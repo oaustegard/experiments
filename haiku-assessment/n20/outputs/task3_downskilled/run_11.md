@@ -1,0 +1,1 @@
+Caching layer now available. It implements write-through caching with configurable TTL and automatic invalidation on upstream changes; clients access it via HTTP headers (cache-control directives are honored). Early deployments show lower p99 latency on repeated reads; developer setup requires one import and two environment variables.

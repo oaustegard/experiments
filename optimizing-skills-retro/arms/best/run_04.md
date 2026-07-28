@@ -1,0 +1,1 @@
+The caching layer reduces latency for application performance. Built on engineered architecture, it provides improvements for teams managing distributed systems. Early adopters have reported measurable reductions in request latency and improved response times across deployments. The feature is available now.

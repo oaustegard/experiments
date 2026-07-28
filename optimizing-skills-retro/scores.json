@@ -1,0 +1,30 @@
+{
+  "check_task": "voice-rewrite of the caching-layer promo paragraph (the triggering failure from haiku-assessment)",
+  "metrics": {
+    "no_invented_architecture": "PRIMARY — the failure that prompted down-skilling v1.2.0",
+    "length_in_spec_60_90": "SECONDARY — the prompt's stated 60-90 word range"
+  },
+  "scoring_note": "Hallucination judged by Muninn (Opus) using the same rubric as the original experiment: any named technology, mechanism, number, or comparison not present in the source paragraph counts as invented. Source paragraph names no architecture, no numbers.",
+  "runs": {
+    "best": [
+      {"run": 1, "words": 52, "invented": false, "in_range": false, "notes": "generic rephrasings only"},
+      {"run": 2, "words": 54, "invented": true,  "in_range": false, "notes": "'data retrieval mechanisms', 'scale across distributed environments'"},
+      {"run": 3, "words": 45, "invented": false, "in_range": false, "notes": "'engineered infrastructure' echoes source"},
+      {"run": 4, "words": 40, "invented": true,  "in_range": false, "notes": "'teams managing distributed systems'"},
+      {"run": 5, "words": 45, "invented": true,  "in_range": false, "notes": "'data retrieval and storage mechanisms'"}
+    ],
+    "candidate": [
+      {"run": 1, "words": 59, "invented": false, "in_range": false, "notes": "padded with generic doc boilerplate; 1 word short"},
+      {"run": 2, "words": 25, "invented": false, "in_range": false, "notes": "clean, terse"},
+      {"run": 3, "words": 56, "invented": false, "in_range": false, "notes": "clean"},
+      {"run": 4, "words": 21, "invented": false, "in_range": false, "notes": "clean, terse"},
+      {"run": 5, "words": 14, "invented": false, "in_range": false, "notes": "clean, very terse"}
+    ]
+  },
+  "summary": {
+    "best":      {"clean_no_invention": "2/5 (60% invention rate)", "length_in_spec": "0/5", "mean_words": 47.2},
+    "candidate": {"clean_no_invention": "5/5 (0% invention rate)",  "length_in_spec": "0/5", "mean_words": 35.0},
+    "original_n20_corroboration": {"best_un_anchored_author": "19/20 invented (95%)", "calibrated_rerun": "0/5 invented"}
+  },
+  "verdict": "Candidate strictly beats best on the triggering failure (architectural hallucination: 0% vs 60%). Reproduces the v1.2.0 SHIP decision. Length-calibration edit did NOT transmit: both arms 0/5 in range; candidate outputs are if anything shorter."
+}

@@ -1,0 +1,1 @@
+1. MUTATION: docstring says "does not mutate inputs" but `result[key] = value` modifies `default_prefs` because `result = default_prefs` creates a reference, not a copy. Demonstration: dp={'a': 1}; uo={'a': 2}; merge_user_prefs(dp, uo); now dp=={'a': 2}, violating the "does not mutate inputs" contract.

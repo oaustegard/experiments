@@ -1,0 +1,805 @@
+{
+  "results": [
+    {
+      "a": {
+        "arxiv_id": "2009.05439",
+        "title": "The chromatic number of 2-edge-colored and signed graphs of bounded maximum degree",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2008.05504",
+        "title": "On the tree-width of even-hole-free graphs",
+        "subfield": "cs.DM",
+        "arxiv_cats": [
+          "cs.DM"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.192896,
+      "a_extract": {
+        "problem": "Determine the chromatic number of 2-edge-colored graphs and signed graphs (graphs whose edges carry a sign or one of two colors) as a function of the maximum degree of the underlying graph.",
+        "methods": "Combinatorial coloring arguments; exact bounds for max-degree 2; case-by-case lower/upper bound constructions for max-degree 3, 4, 5; general bounds parameterized by max degree k. Likely uses homomorphisms to target signed/2-edge-colored graphs (signed cliques / Paley-like targets) and degree-based pigeonhole/probabilistic arguments.",
+        "regime": "Finite simple graphs with bounded maximum degree k; small-k regime (k = 2, 3, 4, 5) treated exactly or near-exactly, plus an asymptotic regime in k.",
+        "hypothesized_generalization": "The exponential-in-k upper bound for signed chromatic number mirrors classical bounds for oriented/proper chromatic number; the framework should extend to other edge-labelings (k-edge-colored graphs, gain graphs over arbitrary groups) where homomorphism targets exist."
+      },
+      "b_extract": {
+        "problem": "Bound the tree-width of even-hole-free graphs (graphs with no induced cycle of even length), motivated by a conjecture that bounded tree-width would imply testability of even-hole-freeness in the bounded-degree property-testing model.",
+        "methods": "Structural graph theory: proves the conjecture for subcubic (max-degree 3) graphs; establishes tree-width bounds for (even-hole, pyramid)-free graphs of max degree at most 4. Likely uses induced-subgraph decomposition theorems, balanced separators, and forbidden-substructure analysis in the spirit of the Chudnovsky-Seymour line.",
+        "regime": "Finite simple graphs of bounded maximum degree (3 and 4) with forbidden induced subgraphs (even holes, pyramids); tree-width as the width parameter; ties into bounded-degree property testing.",
+        "hypothesized_generalization": "If tree-width is bounded for all even-hole-free graphs of bounded degree, this yields a property-testing algorithm; more generally, the technique should extend to other 'parity-constrained' hereditary classes (odd-hole-free, theta-free) under bounded-degree assumptions."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers study graph invariants (chromatic number; tree-width) parameterized by maximum degree, working in the small-k regime with exact case analyses and asymptotic generalizations. They share the methodological pattern of using bounded degree to convert structural/coloring questions into finite-case enumerations, but Paper A targets edge-signed colorings while Paper B targets induced-subgraph-free structure \u2014 different combinatorial axes.",
+        "mediator": "bounded-degree structural decomposition (tree-width / treedepth as a unifying width parameter governing chromatic-type invariants)",
+        "sketch": "A researcher could attempt to bound the signed chromatic number of even-hole-free signed graphs of bounded degree by combining (i) Paper B's tree-width bounds for subcubic and degree-4 even-hole-free graphs with (ii) the standard fact that bounded tree-width implies bounded chromatic number (and, via signed-graph homomorphism targets, bounded signed chromatic number). Concretely: lift Paper A's max-degree-3 and -4 signed chromatic bounds to the restricted class of even-hole-free graphs, where Paper B's decomposition should give substantially tighter constants. The converse direction \u2014 using signed-graph homomorphism obstructions to detect even holes \u2014 could feed into property-testing distinguishers, connecting Paper B's testability motivation to Paper A's coloring machinery via the signed/oriented chromatic number as a robust class invariant."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2605.20579",
+        "title": "An explicit lower bound for the unit distance problem",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2507.15679",
+        "title": "Erd\\H{o}s's unit distance problem and rigidity",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "kind": "anchor",
+      "distance_norm": 0.153646,
+      "gemini_body_cosine_dist": 0.212143,
+      "a_extract": {
+        "problem": "Prove an explicit lower bound for the maximum number of unit distances determined by n points in the plane (Erd\u0151s's unit distance problem), sharpening the OpenAI/Erd\u0151s-style construction with explicit constants.",
+        "methods": "Construct lattices as ideals in rings of integers of CM number fields K/K^+, project via complex embeddings to the plane, and count vectors of equal projected length using a pigeonhole over the totally real subfield. Control class numbers via discriminant bounds, and obtain infinite towers of number fields with many small split primes and bounded inertia degree using a Golod\u2013Shafarevich p-class field tower construction (after Hajir\u2013Maire\u2013Ramakrishna), quotienting by powers of Frobenius.",
+        "regime": "Asymptotic, algebraic-number-theoretic construction regime: highly structured (lattice-arithmetic) point configurations, where the limit is set by class number bounds and the discriminant growth of Golod\u2013Shafarevich towers.",
+        "hypothesized_generalization": "Better exponents may come from sharper class group bounds for CM towers, alternative infinite tower constructions satisfying different local split/inertia conditions, or computational searches over (K^+, K) parameters; the algebraic toolbox transfers to other 'many short equal-length vectors' problems."
+      },
+      "b_extract": {
+        "problem": "Improve the upper bound for the number of unit distances among n planar points (currently O(n^{4/3}) from Spencer\u2013Szemer\u00e9di\u2013Trotter), by exploiting structural constraints that distinguish unit-circle incidences from generic point-line incidences.",
+        "methods": "Reformulate unit distances as point\u2013unit-circle incidences, then apply graph rigidity theory: study the unit-distance graph of an extremal configuration as a framework, locate rigid sub-frameworks within highly non-generic realizations (since extremal point sets are algebraically dependent), and use Asimow\u2013Roth-style framework rigidity (not just generic rigidity) to constrain the combinatorics.",
+        "regime": "Combinatorial-geometry / incidence-theory regime focused on upper bounds; works with arbitrary (worst-case) extremal configurations that are non-generic, so generic rigidity theorems need to be adapted to specific realizations.",
+        "hypothesized_generalization": "Rigidity-based incidence arguments could break the O(n^{4/3}) barrier by ruling out incidence patterns that point-line techniques cannot distinguish, and may apply to other curve families where extremal configurations are forced to be algebraically structured."
+      },
+      "bridge": {
+        "compatibility": "high",
+        "rationale": "Both papers attack the same Erd\u0151s unit-distance problem from opposite directions \u2014 A constructs explicit lower-bound configurations from CM-field lattices, B develops rigidity-based machinery aimed at upper bounds. The shared object (extremal unit-distance graphs realized in the plane) and the explicit nature of A's constructions make them natural test cases for B's rigidity analysis, with lattice projections as the mediating concept.",
+        "mediator": "Lattice constructions / unit-distance graphs of CM-lattice point sets as extremal frameworks for rigidity analysis",
+        "sketch": "A researcher could take the explicit CM-lattice point sets from Paper A as concrete non-generic frameworks and apply Paper B's framework-rigidity tools to compute the rigid sub-frameworks they contain. If the lower-bound configurations turn out to contain unavoidable rigid components of a predictable size, that would either (i) give a matching upper bound proving the construction is tight in some regime, or (ii) reveal that algebraic structure forces a rigidity pattern that the upper-bound argument must accommodate, suggesting where the O(n^{4/3}) bound can be improved. Conversely, B's rigidity constraints could feed back into A's pigeonhole argument by identifying which short-vector multiplicities are achievable in any planar realization, sharpening the class-number-vs-discriminant tradeoff."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2605.20579",
+        "title": "An explicit lower bound for the unit distance problem",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2412.11914",
+        "title": "The Erd\\H{o}s unit distance problem for small point sets",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "kind": "anchor",
+      "distance_norm": 0.138672,
+      "gemini_body_cosine_dist": 0.236568,
+      "a_extract": {
+        "problem": "Improve the explicit lower bound for the Erd\u0151s unit distance problem: maximum number of unit distances determined by n points in the plane, sharpening the recent OpenAI-team proof and making every constant explicit.",
+        "methods": "Construct high-dimensional lattices from rings of integers (or ideals) of CM number fields K/K^+ with many small split primes and controlled relative class number; project to the plane via complex embeddings; use a pigeonhole argument on the class group; build infinite towers of such fields via Golod-Shafarevich p-class field tower constructions, modified (quotient by powers of Frobenius) to bound inertia degree.",
+        "regime": "Asymptotic n \u2192 \u221e lower bound for the unit-distance count; uses sequences of number fields of growing degree with discriminant exponential in degree.",
+        "hypothesized_generalization": "Better bounds should be achievable by sharpening analytic class-number estimates, exhibiting number-field towers satisfying different local splitting conditions, or finding better parameter choices computationally; the same lattice-from-number-field machinery may extend to other incidence/distance problems."
+      },
+      "b_extract": {
+        "problem": "Determine exact values and improved upper bounds of u(n), the maximum number of unit distances in an n-point planar set, for small n, and enumerate all densest unit-distance graphs achieving these values.",
+        "methods": "Three-stage filter pipeline on candidate graphs: (1) enumerate H-free graphs using Globus-Parshall minimal forbidden subgraphs plus nauty enumeration with dense-subgraph tricks; (2) filter using 'totally unfaithful' unit-distance gadgets that force non-embeddability; (3) custom embeddability solver using Euclidean-geometry/linear-algebra moves rather than general cylindrical algebraic decomposition.",
+        "regime": "Finite, small n (roughly up to ~21 vertices); exact combinatorial/algorithmic determination, not asymptotic.",
+        "hypothesized_generalization": "The combinatorial-algebraic filtering pipeline could be pushed to larger n by extending the forbidden-subgraph catalogue, finding more totally-unfaithful gadgets, and improving the specialized embeddability solver; the framework generalizes to other distance-graph realizability problems."
+      },
+      "bridge": {
+        "compatibility": "high",
+        "rationale": "Both papers attack exactly the same Erd\u0151s unit-distance quantity u(n), but from opposite ends: Paper A pushes the asymptotic lower bound via number-field lattice constructions, Paper B pins down exact values for small n via algorithmic enumeration and embeddability testing. They are natural complements within a single problem, and the constructions in A produce explicit point configurations whose small-n instances feed directly into B's analysis.",
+        "mediator": "Lattice constructions from number fields realized as explicit small-n point configurations (and the unit-distance graphs they induce)",
+        "sketch": "A bridge result would take the lattice-projection construction from Paper A, instantiate it for small CM fields (e.g., low-degree cyclotomic or Q(sqrt(-d)) with small discriminant), intersect with a ball giving n in the range Paper B handles, and run Paper B's embeddability solver and enumeration to either (i) certify that the number-field-derived configurations are extremal/densest for those small n, or (ii) discover that Paper B's exhaustively-enumerated densest graphs all admit number-field realizations \u2014 giving structural insight into why the extremal configurations are arithmetic. Conversely, Paper B's totally-unfaithful gadgets and forbidden-subgraph catalogue impose explicit local constraints that the projected lattices must respect, which could feed back into Paper A as additional constraints to optimize the parameter search for which number-field towers yield the densest projections. A concrete attempt: take the Golod-Shafarevich p-class field tower at its smallest few levels, project, and compare the resulting unit-distance graphs at n \u2264 21 against Paper B's complete tables."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2007.13266",
+        "title": "Unfolding cubes: nets, packings, partitions, chords",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2008.07637",
+        "title": "Drawing Shortest Paths in Geodetic Graphs",
+        "subfield": "cs.DM",
+        "arxiv_cats": [
+          "cs.DM"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.238408,
+      "a_extract": {
+        "problem": "Understanding how a d-dimensional cube can be unfolded into a (d-1)-dimensional net, and related combinatorial-geometric questions about packings, partitions, and chord systems on cubes.",
+        "methods": "Combinatorial geometry of polytopes; analysis of spanning trees of the facet adjacency graph (each unfolding corresponds to such a tree); tilings/packings of the unfolded net in Euclidean space; chord/partition combinatorics on cube boundaries.",
+        "regime": "Discrete/combinatorial; finite-dimensional cubes (d >= 2) with emphasis on small d; exact existence/enumeration results rather than asymptotic bounds.",
+        "hypothesized_generalization": "Results likely generalize to other zonotopes or reflexive polytopes; unfolding-as-spanning-tree framework should extend to any polytope whose facet-adjacency graph carries enough symmetry; packing/tiling statements may admit higher-dimensional or non-Euclidean (e.g. flat-torus) analogues."
+      },
+      "b_extract": {
+        "problem": "Drawing geodetic graphs (graphs in which every pair of vertices is joined by a unique shortest path) in the plane so that the drawing realizes the shortest-path structure faithfully \u2014 e.g. each shortest path is drawn as a monotone or straight-line curve.",
+        "methods": "Graph drawing techniques; combinatorial characterization of geodetic graphs; planarity and pseudoline-arrangement arguments; likely uses of force-directed or coordinate-assignment algorithms together with structural graph theory.",
+        "regime": "Discrete; finite graphs, primarily planar or near-planar; worst-case combinatorial guarantees on drawing feasibility and complexity.",
+        "hypothesized_generalization": "Likely extends to graphs with bounded number of shortest paths per pair (k-geodetic), to higher-genus surfaces, or to metric graphs where 'shortest path' is replaced by a chosen geodesic system; methods may transfer to drawing arrangements of pseudolines or curves with prescribed intersection patterns."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers sit in discrete geometry and concern realizations of combinatorial structures in low-dimensional Euclidean space: A turns spanning trees of the cube's facet graph into planar nets, and B turns shortest-path systems of geodetic graphs into planar drawings. Both are essentially asking when a discrete combinatorial object (an unfolding, a geodesic system) admits a non-crossing/realizable layout in the plane.",
+        "mediator": "Planar realizations of combinatorial geodesic/tree systems (the 1-skeleton of a cube unfolding is a spanning tree that must be drawn without overlap; geodetic-graph shortest paths form a tree-like system per source vertex that must be drawn without crossings).",
+        "sketch": "A researcher could view the facet-adjacency graph of a d-cube as a small geodetic graph (it is vertex-transitive, with well-controlled shortest-path structure) and ask: which unfoldings of the cube correspond to faithful planar drawings of this graph's shortest-path system? Conversely, techniques from B for realizing shortest-path systems as planar straight-line drawings might give new sufficient conditions for non-overlapping unfoldings of cubes and other zonotopes, or quantify the 'overlap defect' of an unfolding in terms of geodetic invariants. A concrete first attempt: characterize d-cube unfoldings whose dual spanning tree, drawn in the net, is a shortest-path tree of a geodetic graph on the facets."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2207.03871",
+        "title": "The magic of 8 and 24",
+        "subfield": "math.HO",
+        "arxiv_cats": [
+          "math.HO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "1609.05984",
+        "title": "List approximation for increasing Kolmogorov complexity",
+        "subfield": "cs.CC",
+        "arxiv_cats": [
+          "cs.CC"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.238625,
+      "a_extract": {
+        "problem": "Expository / historical account of why dimensions 8 and 24 are exceptional in mathematics: the E8 lattice and Leech lattice give uniquely dense sphere packings, and these dimensions support extraordinary modular-form, code, and group-theoretic coincidences (Golay codes, Mathieu and Conway groups, monstrous moonshine).",
+        "methods": "Survey-style exposition drawing on lattice theory, modular forms (theta series), error-correcting codes (binary Golay code, ternary Golay), finite simple group constructions, and Viazovska's 2016 linear-programming / modular-form proof of optimality of E8 and Leech sphere packings.",
+        "regime": "Special low-dimensional regime (n = 8, 24); discrete geometry of Euclidean R^n; densest-packing problem; coincidences linking lattices, codes, and sporadic groups.",
+        "hypothesized_generalization": "The 'magic' is not isolated arithmetic luck but reflects a deeper rigidity phenomenon: optimal packings in special dimensions correspond to modular forms of low weight with sharp linear-programming bounds. One expects analogous (but weaker) magic in other dimensions where extremal modular forms exist, and the techniques should generalize to energy-minimization and universal optimality problems."
+      },
+      "b_extract": {
+        "problem": "Given a string x of Kolmogorov complexity K(x), produce a short list of candidate strings such that at least one element of the list has Kolmogorov complexity strictly larger than K(x) by a guaranteed amount \u2014 i.e., 'list-approximation' for increasing complexity.",
+        "methods": "Algorithmic information theory: constructions of computable functions that map x to a polynomial-size list provably containing a complexity-increasing string; uses combinatorial covering / hashing arguments, probabilistic existence proofs derandomized via Kolmogorov-complexity counting, and connections to extractors and list-decoding of error-correcting codes.",
+        "regime": "Asymptotic / infinite-string regime in computability theory; resource-unbounded Kolmogorov complexity (with variants for time-bounded); list sizes polynomial in input length; complexity increments logarithmic or constant.",
+        "hypothesized_generalization": "Bounds on how much complexity can be increased by a short list extend to time-bounded complexity, mutual information, and resource-bounded randomness extraction; the list-decoding analogy suggests deeper ties between Kolmogorov complexity manipulation and combinatorial coding theory."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "The two papers come from very different intellectual cultures \u2014 discrete geometry / modular forms (A) versus algorithmic information theory (B) \u2014 and there is no obvious shared technical apparatus. However, both papers invoke error-correcting codes as a structural device (Golay codes underpin the Leech lattice in A; list-decodable codes underpin the list-approximation constructions in B), which offers a thin but real mediator.",
+        "mediator": "error-correcting codes (specifically the lattice-from-code 'Construction A' bridging combinatorial codes to Euclidean lattices, and list-decodable codes as the combinatorial backbone of complexity-increasing list maps)",
+        "sketch": "A researcher could ask: do the exceptional codes underlying the 8- and 24-dimensional magic (extended Hamming, binary Golay) yield exceptionally good list-decoding / list-approximation parameters that translate into sharper Kolmogorov list-increase bounds in those specific length regimes? Concretely, take Zimand-style list constructions and instantiate them with Golay-code-based hash families or with lattice-points-on-spheres as combinatorial designs, asking whether the rigidity that makes E8 / Leech extremal for packing also makes them extremal for the covering / hashing step inside the list construction. A negative result would itself be informative \u2014 clarifying that the 'magic dimensions' phenomenon is a continuous-geometry rather than combinatorial-coding effect \u2014 while a positive result would give a surprising appearance of sporadic-dimension phenomena in resource-bounded computability."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2506.10354",
+        "title": "Revisiting mean estimation over \u2113p balls: Is the MLE optimal?",
+        "subfield": "math.ST",
+        "arxiv_cats": [
+          "math.ST"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2506.15836",
+        "title": "Code Rate Optimization via Neural Polar Decoders",
+        "subfield": "cs.IT",
+        "arxiv_cats": [
+          "cs.IT"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.240556,
+      "a_extract": {
+        "problem": "Mean estimation over \u2113p balls: determine whether the maximum likelihood estimator (MLE) achieves minimax-optimal risk for estimating an unknown mean vector constrained to lie in an \u2113p ball, across the full range of p including the non-convex regime p<1.",
+        "methods": "Minimax risk analysis comparing MLE to optimal estimators; constructive lower-bound instances exhibiting MLE suboptimality; development of sharp local Gaussian width bounds for non-convex \u2113p balls (p<1) as a key technical tool.",
+        "regime": "High-dimensional Gaussian sequence model / mean estimation with \u2113p-ball constraints; both convex (p\u22651) and non-convex (p<1) sparsity-promoting geometries; risk gaps characterized up to polynomial factors in sample size.",
+        "hypothesized_generalization": "The local Gaussian width framework for non-convex constraint sets, and the constructive instances showing MLE suboptimality, should generalize to other structured estimation problems whose constraint set has poorly behaved local geometry \u2014 e.g. low-rank tensor recovery, group-sparse models, or arbitrary star-shaped bodies where standard plug-in estimators may be inadmissible."
+      },
+      "b_extract": {
+        "problem": "Optimize code rate / mutual information of polar codes over memoryless and finite-state channels with non-uniform capacity-achieving input distributions, by learning input distributions jointly with a neural polar decoder.",
+        "methods": "Neural polar decoders combined with the Honda-Yamamoto (HY) scheme to handle non-uniform input distributions; list decoding for performance enhancement; gradient-based optimization of input distribution to maximize mutual information; experimental validation on memoryless and FSCs up to block length 1024.",
+        "regime": "Finite-block-length polar coding over channels (memoryless and finite-state) whose capacity-achieving input distribution is non-uniform; data-driven / learned decoders replacing analytic successive cancellation; block lengths \u2264 1024.",
+        "hypothesized_generalization": "The neural-decoder + HY-scheme machinery for capacity-achieving non-uniform inputs should extend to broader channel classes (channels with memory, multi-user channels, continuous-input channels) and provide a general recipe for practical capacity-approaching codes whenever the optimal input distribution is intractable to compute analytically."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "The papers share the umbrella of information theory (paper A is cross-listed cs.IT) and both involve geometry of probability distributions, but the technical cores are distant: A studies minimax statistical estimation on \u2113p-ball-constrained means, while B engineers learned decoders for polar codes on channels with non-uniform inputs. There is no obvious shared structure beyond the loose link that mutual-information / capacity quantities are governed by geometric width-like functionals of distribution sets.",
+        "mediator": "Local Gaussian width / I-projection geometry over constrained distribution sets",
+        "sketch": "A researcher could attempt a bridge by reinterpreting the polar-code input-distribution optimization in paper B as a constrained estimation problem on a probability simplex (or \u21131-ball) and importing paper A's local Gaussian width machinery to characterize the statistical hardness of *learning* the capacity-achieving input distribution from finite channel samples. Concretely: replace the empirical MI maximization in B with a constrained MLE over a structured set of input distributions, and use A's non-convex (p<1) local width bounds to derive minimax sample-complexity guarantees for input-distribution learning when the optimal distribution is sparse or near-deterministic. Conversely, A's constructive suboptimality instances might inspire adversarial channel constructions where naive plug-in input distributions provably leave a polynomial gap to capacity, motivating the learned-decoder approach of B on theoretical rather than purely empirical grounds."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "1608.07647",
+        "title": "Elementary polytopes with high lift-and-project ranks for strong positive semidefinite operators",
+        "subfield": "math.OC",
+        "arxiv_cats": [
+          "math.OC"
+        ]
+      },
+      "b": {
+        "arxiv_id": "1608.04112",
+        "title": "Optimal Polynomial-Time Estimators: A Bayesian Notion of Approximation Algorithm",
+        "subfield": "cs.CC",
+        "arxiv_cats": [
+          "cs.CC"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.242972,
+      "a_extract": {
+        "problem": "Construct elementary polytopes (notably the 'chipped hypercube') whose integrality gap persists at high rank under strong lift-and-project (L&P) operators, including positive semidefinite (PSD) tightenings like Lovasz-Schrijver LS_+ and the Lasserre/sum-of-squares hierarchy. The goal is lower-bound constructions: explicit 0/1 polytopes for which many rounds of L&P fail to close the gap to the integer hull.",
+        "methods": "Polyhedral combinatorics and convex relaxation analysis: explicit polytope constructions in {0,1}^n; round-by-round analysis of LS, LS_+, Sherali-Adams, Lasserre operators; certificates that the relaxation after k rounds still contains a fractional point with bad objective; invariance arguments showing the chipped hypercube's gap is preserved under several operator families.",
+        "regime": "Finite-dimensional combinatorial optimization; worst-case integrality gap analysis; rank lower bounds for hierarchies; small explicit polytopes (rather than reductions from hard problems).",
+        "hypothesized_generalization": "The construction template (chipping/perturbing a symmetric base polytope) yields a family of instances that resist arbitrary 'strong' PSD-style operators, suggesting a general obstruction theory: any L&P operator obeying a small set of symmetry/locality axioms will admit elementary polytope witnesses of high rank, decoupling 'PSD-ness' from genuine algorithmic strength."
+      },
+      "b_extract": {
+        "problem": "Formalize a Bayesian notion of approximation algorithm: an 'optimal polynomial-time estimator' that, given an uncomputable or hard-to-compute quantity (e.g. the value of a logical sentence, the output of a long computation), produces a probability/estimate that is optimal in a precise sense relative to a polynomial-time-bounded reasoner with a prior over instances.",
+        "methods": "Logical-uncertainty / algorithmic-probability framework; defines estimators as poly-time functions and proves existence/uniqueness of an 'optimal' one with respect to a class of distinguishers; uses ideas from Garrabrant-style logical induction, computational learning theory, and Bayesian decision theory; reductions and dominance arguments rather than concrete algorithm design.",
+        "regime": "Asymptotic, average-case / Bayesian setting over a distribution of problem instances; resource-bounded reasoning under uncertainty; foundations for AI alignment / decision theory; non-constructive existence results for estimators.",
+        "hypothesized_generalization": "Any computational task with hard worst-case behavior admits an 'optimal' polynomial-time Bayesian estimator that is well-defined up to negligible loss; this estimator-centric viewpoint generalizes classical approximation ratios into a probability-of-correctness framework parameterized by computational class and prior."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "The papers share the high-level theme of 'how well can polynomial-resource procedures approximate a hard quantity?' but operate in disjoint formal settings: A produces worst-case combinatorial lower bounds against specific convex hierarchies on explicit polytopes, while B builds an average-case, distribution-relative existence theory of optimal estimators with no concrete construction or hardness witness. There is no shared object, technique, or quantitative parameter; the connection is at the meta-level of 'approximation under resource bounds.'",
+        "mediator": "Pseudo-distributions / Lasserre dual viewpoint as Bayesian priors over feasible solutions",
+        "sketch": "A researcher could try to recast Lasserre/SoS relaxations as Bayesian estimators in Kosoy's sense: the degree-k SoS solution is a pseudo-expectation, formally a 'distribution' over 0/1 solutions that any degree-k polynomial test cannot distinguish from a real distribution, which mirrors B's notion of an estimator optimal against a poly-time distinguisher class. Under that translation, Au et al.'s integrality-gap polytopes become instances on which the optimal poly-bounded Bayesian estimator (restricted to SoS-style certificates) is provably far from the true integer optimum, giving B's framework a concrete worst-case lower-bound generator. The bridge result would be a theorem: 'on the chipped hypercube family, the optimal degree-k poly-time estimator (in Kosoy's sense, restricted to SoS-expressible distinguishers) incurs Omega(1) loss for k = Omega(n),' linking SoS rank lower bounds to lower bounds in the Bayesian-estimator framework and giving B's abstract theory a library of explicit hard instances inherited from polyhedral combinatorics."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "1608.07647",
+        "title": "Elementary polytopes with high lift-and-project ranks for strong positive semidefinite operators",
+        "subfield": "math.OC",
+        "arxiv_cats": [
+          "math.OC"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2009.03416",
+        "title": "Probabilistic analysis of algorithms for cost constrained minimum weighted combinatorial objects",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.25723,
+      "a_extract": {
+        "problem": "Construct elementary 0/1 polytopes (notably variants of the 'chipped hypercube') whose integrality gap persists under strong lift-and-project (L&P) operators based on positive semidefinite (PSD) tightenings, establishing high L&P rank lower bounds.",
+        "methods": "Polyhedral combinatorics; lift-and-project hierarchies (Lovasz-Schrijver LS, LS+, SDP-strengthened variants, possibly Sherali-Adams/Lasserre comparisons); analysis of integrality gaps; explicit constructions over the hypercube; invariance arguments showing the gap survives several rounds of the operator.",
+        "regime": "Finite-dimensional combinatorial optimization over 0/1 polytopes; worst-case integrality gap analysis; emphasis on small/elementary instances where strong PSD relaxations might be expected to close the gap but provably do not within bounded rank.",
+        "hypothesized_generalization": "Even the strongest known PSD-based L&P operators require non-trivial (possibly linear) rank to certify integrality on simple structured polytopes, suggesting fundamental limits on tightening via lifting and motivating new families of valid inequalities or alternative hierarchies."
+      },
+      "b_extract": {
+        "problem": "Probabilistic analysis of the minimum-weight version of combinatorial optimization problems (spanning trees, matchings, paths, etc.) under an additional hard cost/budget constraint, where edge weights and costs are random.",
+        "methods": "Probabilistic combinatorics; analysis of randomized/greedy/exchange algorithms; concentration inequalities; threshold phenomena; coupling and second-moment arguments applied to constrained combinatorial structures; likely Lagrangian relaxation of the cost constraint.",
+        "regime": "Random-instance / average-case analysis with n -> infinity asymptotics; i.i.d. (or near-i.i.d.) random weights and costs on the ground set of a combinatorial family; budget constraint scales with n.",
+        "hypothesized_generalization": "Cost-constrained minimum-weight combinatorial problems admit sharp asymptotic characterizations (limit constants, thresholds) analogous to the unconstrained case, with algorithms achieving these bounds whp, despite the constraint introducing a non-matroidal coupling."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "Paper A is a worst-case structural result about how strong PSD lift-and-project hierarchies fail on specific 0/1 polytopes, while Paper B is an average-case probabilistic analysis of budget-constrained combinatorial optimization. They share the umbrella of combinatorial optimization on 0/1 polytopes, but operate in disjoint analytical regimes (deterministic gap lower bounds vs. random-instance asymptotics) and use disjoint toolkits. No direct technical artifact of A is needed by B or vice versa.",
+        "mediator": "Lagrangian / SDP relaxations of budget-constrained 0/1 programs",
+        "sketch": "A researcher could attempt a bridge by studying the lift-and-project / SDP relaxation of the cost-constrained polytope that Paper B optimizes over: take the convex hull of feasible combinatorial objects intersected with the linear budget constraint, and ask how many rounds of LS+ (or Lasserre) are needed to close the integrality gap on random instances. Paper A's chipped-hypercube-style constructions give worst-case gap-preservation templates; one could plant such a structure into the budget face and ask whether random weights wash it out \u2014 yielding an average-case L&P rank result. Conversely, Paper B's probabilistic machinery (thresholds for when greedy/Lagrangian methods succeed whp) could be imported to show that on random cost-constrained instances, low-rank PSD relaxations are tight with high probability, complementing A's worst-case obstructions with a smoothed/average-case positive result. The mediator is the SDP/Lagrangian relaxation of a budget-constrained 0/1 polytope, with random data on one side and a chipped-hypercube-style gadget on the other."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2007.13266",
+        "title": "Unfolding cubes: nets, packings, partitions, chords",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2009.00098",
+        "title": "Sorting an Array Using the Topological Sort of a Corresponding Comparison Graph",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.259764,
+      "a_extract": {
+        "problem": "Understand the combinatorial structure of unfoldings (nets) of the n-dimensional cube, and related questions about packings, partitions, and chord systems arising from such unfoldings.",
+        "methods": "Combinatorial enumeration and geometric/polyhedral analysis: representing unfoldings as spanning trees of the cube's facet adjacency graph, counting and classifying nets, studying how they tile or pack, and examining the chord structure induced when faces are identified.",
+        "regime": "Discrete/finite combinatorial geometry on the n-cube; exact (non-asymptotic) structural results for low and arbitrary dimension, with emphasis on classification and existence rather than approximation.",
+        "hypothesized_generalization": "The framework should extend from cubes to general zonotopes or reflexive polytopes, giving a unified language in which unfoldings, lattice packings, set partitions, and chord diagrams are all shadows of one underlying combinatorial object (e.g. a spanning structure on a polytope's face lattice)."
+      },
+      "b_extract": {
+        "problem": "Sort an array by constructing a comparison graph among its elements and then producing a sorted order via a topological sort of that graph.",
+        "methods": "Build a directed graph whose vertices are array entries and whose edges encode pairwise comparison outcomes; run a topological sort (e.g. Kahn's or DFS-based) to recover a linear extension consistent with all observed comparisons; analyze comparison count and runtime.",
+        "regime": "Sequential, deterministic comparison-based sorting of finite arrays; worst-case and average-case analysis in the standard RAM model, with focus on comparison complexity relative to classical O(n log n) bounds.",
+        "hypothesized_generalization": "Any sorting algorithm can be cast as incrementally building a DAG of known order relations and extracting a linear extension, so the method should generalize to partial-order sorting, sorting with faulty comparisons, and to settings where the comparison graph is given or constrained by an external structure."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "The papers share only the very broad theme of 'combinatorial structures encoded by graphs/trees,' but operate on completely different objects (geometric polytope unfoldings vs. comparison-induced DAGs on numbers) with no obvious shared invariant. The cross-field similarity signals (Hamming 0.143, cosine 0.260) are weak-to-moderate and likely driven by generic discrete-math vocabulary rather than a deep structural link.",
+        "mediator": "linear extensions of posets / spanning structures on graphs",
+        "sketch": "A possible bridge would view both objects through the lens of linear extensions of a partial order: an unfolding of the n-cube is a spanning tree of the facet-adjacency graph, which induces a partial order on faces via the unfolding sequence; sorting via a comparison DAG is exactly producing a linear extension of the order induced by observed comparisons. One could ask whether algorithms or counting results for linear extensions of cube-net posets (which have rich symmetry) yield new bounds on comparison-sort variants restricted to comparison graphs with cube-like structure, or conversely whether topological-sort heuristics give efficient ways to enumerate or sample cube unfoldings. The transfer is speculative \u2014 the cube-net poset has no natural 'sorting' interpretation \u2014 but the linear-extension viewpoint is the most concrete shared formalism."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2605.20579",
+        "title": "An explicit lower bound for the unit distance problem",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2103.09508",
+        "title": "Deficiency of p-Class Tower Groups and Minkowski Units",
+        "subfield": "math.NT",
+        "arxiv_cats": [
+          "math.NT"
+        ]
+      },
+      "kind": "anchor",
+      "distance_norm": 0.173177,
+      "gemini_body_cosine_dist": 0.260921,
+      "a_extract": {
+        "problem": "Prove an explicit lower bound for the Erd\u0151s unit distance problem: construct n-point sets in the plane with as many unit distances as possible, sharpening the OpenAI-team argument that beat Erd\u0151s's classical bound.",
+        "methods": "Construct high-dimensional lattices from rings of integers (and ideals) of CM number fields K/K^+, project to the plane via complex embeddings, and use a pigeonhole argument over the relative class group to find many vectors of equal projected length. Source the required infinite sequence of CM fields of controlled discriminant and many small split primes from modified Golod-Shafarevich p-class field towers, with inertia degree controlled by quotienting by a fixed power of Frobenius (a Hajir-Maire-Ramakrishna-style trick).",
+        "regime": "Asymptotic combinatorial geometry: n -> infinity unit-distance counts; CM number fields of growing degree; p-class field towers of quadratic (or cyclic) base fields with discriminant exponential in degree; relative class number bounded via discriminant estimates.",
+        "hypothesized_generalization": "Better unit-distance lower bounds (and analogous incidence-geometry exponents) can be obtained by improving the supply of number-field towers \u2014 finding infinite towers satisfying richer local conditions (small inertia, many split primes, small relative class number), or sharper class-group bounds for these specific towers \u2014 directly feeding back through the lattice-projection machinery."
+      },
+      "b_extract": {
+        "problem": "Study the deficiency of p-class tower groups G_S (Galois groups of maximal pro-p extensions of a number field unramified outside S) and relate it to the existence of Minkowski units, in order to show p-class towers are infinite (Golod-Shafarevich-style) and to sharpen the Shafarevich-Koch upper bound on the number of relators.",
+        "methods": "Cohomological / pro-p group-theoretic analysis of G_S: bound generator/relator counts (deficiency), locate relations in the Zassenhaus filtration, exploit Minkowski-unit conditions on the base field, and use these to drive Golod-Shafarevich-type infiniteness criteria. Emphasis on quotients controlling Frobenius behavior of primes.",
+        "regime": "Pro-p Galois groups over number fields (often quadratic or small-degree), prime p fixed, S a finite set of primes (often empty); asymptotic / 'almost always' statements about families of fields where the Shafarevich-Koch bound is sharp.",
+        "hypothesized_generalization": "Deficiency techniques + Minkowski-unit information should give a general recipe for producing infinite p-class towers of CM (and other) number fields with prescribed splitting/inertia behavior at chosen primes, with sharper control on the relative class number than generic Golod-Shafarevich gives."
+      },
+      "bridge": {
+        "compatibility": "high",
+        "rationale": "Paper A's combinatorial-geometry bound is bottlenecked precisely by the supply of CM number-field towers with (i) many small split primes, (ii) controlled inertia, and (iii) small relative class number \u2014 and it already imports the Hajir-Maire-Ramakrishna Frobenius-quotient trick. Paper B (by Hajir, Maire, and coauthors) refines exactly that machinery: deficiency + Minkowski-unit control over G_S, with relations placed in the Zassenhaus filtration to make infiniteness criteria sharper. The mediator (modified Golod-Shafarevich p-class towers with prescribed local behavior) is shared almost verbatim.",
+        "mediator": "Golod-Shafarevich p-class field towers with controlled Frobenius / inertia (Hajir-Maire-Ramakrishna techniques, deficiency of G_S, Minkowski units)",
+        "sketch": "Apply Paper B's deficiency-and-Minkowski-unit analysis to construct CM towers K_n/K_n^+ in which (a) a prescribed set of small rational primes splits completely in K_n^+ and stays split with inertia 1 in K_n, and (b) the relative class number h(K_n)/h(K_n^+) is provably smaller than what generic Golod-Shafarevich gives, by exploiting deeper Zassenhaus-filtration placement of relators. Feed these towers into Paper A's lattice-projection / pigeonhole argument: more split primes raises the count of equal-length projected vectors while the improved relative-class-number bound reduces the pigeonhole loss, yielding a strictly better explicit exponent in the Erd\u0151s unit-distance lower bound. A first concrete target: redo Paper A's Lemma 2 calculation with the Hajir-Maire deficiency-sharpened towers and quantify the exponent gain, then look for tower families where Minkowski-unit constraints force inertia 1 at a density-positive set of primes."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "1610.00373",
+        "title": "The Complexity of Knapsack in Graph Groups",
+        "subfield": "math.GR",
+        "arxiv_cats": [
+          "math.GR"
+        ]
+      },
+      "b": {
+        "arxiv_id": "1609.08253",
+        "title": "On the Group and Color Isomorphism Problems",
+        "subfield": "cs.CC",
+        "arxiv_cats": [
+          "cs.CC"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.267113,
+      "a_extract": {
+        "problem": "Determine the computational complexity of the knapsack problem in graph groups (right-angled Artin groups / partially commutative groups), generalizing the classical integer knapsack to a non-commutative algebraic setting where group elements substitute for integers.",
+        "methods": "Algebraic combinatorics on graph groups, reductions between knapsack/subset-sum variants and decision problems in group theory, complexity classifications parameterized by the underlying commutation graph (e.g. which induced subgraphs make knapsack NP-hard vs. polynomial-time).",
+        "regime": "Finitely generated graph groups defined by an undirected commutation graph; complexity measured in the bit-length of the input words; worst-case decision-problem complexity.",
+        "hypothesized_generalization": "A dichotomy theorem characterizing the complexity of knapsack-style problems across families of finitely presented groups via structural invariants of their defining presentations (e.g. forbidden induced subgraphs, or the presence of free subgroups of specific shapes)."
+      },
+      "b_extract": {
+        "problem": "Determine the complexity of the group isomorphism problem (deciding whether two finite groups given by Cayley tables are isomorphic) and the related color/coset isomorphism problem, with attention to which group families form barriers to faster algorithms.",
+        "methods": "Reductions between group isomorphism, color isomorphism, and coset intersection; structural group theory used to isolate hard instances (projective special linear groups PSL playing the role that alternating groups played for graph isomorphism); algorithmic techniques rooted in permutation-group algorithms.",
+        "regime": "Finite groups given explicitly (Cayley table or generating permutations); complexity measured in the group order n; quasi-polynomial / n^{O(log n)}-style upper bounds and the search for genuine polynomial improvements.",
+        "hypothesized_generalization": "Identifying the precise algebraic obstacles (specific simple-group families) that govern the complexity of structural-equivalence problems on groups, suggesting a 'bottleneck families' meta-theorem: progress on any group-equivalence decision problem requires breaking the same small set of simple-group barriers."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers sit squarely in computational group theory and ask 'how hard is a decision problem on groups?' \u2014 paper A on infinite finitely-presented groups (knapsack/subset-sum), paper B on finite groups (isomorphism). They share the mediator of using structural group-theoretic invariants (commutation graphs on one side, simple-group composition factors on the other) to drive complexity dichotomies, even though the input regimes (infinite vs. finite, word-length vs. Cayley-table size) differ.",
+        "mediator": "structural-dichotomy programs in computational group theory: classifying problem complexity by forbidden subgroup / subgraph structure (graph-group commutation graphs on one side, simple-group barriers like PSL/alternating on the other).",
+        "sketch": "A researcher could attempt a bridge by studying knapsack-style problems in finite groups \u2014 e.g. given a finite group G and elements g_1,...,g_k, b, decide whether b is a product of (bounded-exponent) powers of the g_i \u2014 and ask whether the same simple-group families (alternating, PSL) that obstruct fast group isomorphism also obstruct fast knapsack. Conversely, one could lift Le Gall\u2013Rosenbaum-style 'bottleneck simple group' arguments to graph groups by asking which induced subgraphs in the commutation graph force embeddings of hard finite-quotient structure, yielding a unified dichotomy: a single combinatorial-algebraic invariant (a 'hardness signature' of the group) controlling both knapsack and isomorphism complexity. Even a partial transfer \u2014 e.g. showing that graph groups whose commutation graph forbids a certain pattern admit knapsack algorithms with the same quasi-polynomial shape as Babai-style isomorphism \u2014 would be a meaningful result."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "1610.06503",
+        "title": "ON THE CONJUGACY PROBLEM IN CERTAIN METABELIAN GROUPS",
+        "subfield": "math.GR",
+        "arxiv_cats": [
+          "math.GR"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2008.09660",
+        "title": "Deletion to Induced Matching",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.272944,
+      "a_extract": {
+        "problem": "Decidability and complexity of the conjugacy problem in certain classes of finitely generated metabelian groups (groups G with G'' = 1), motivated by both pure group-theoretic interest and applications to non-commutative cryptography.",
+        "methods": "Group-theoretic techniques for metabelian groups: representing elements via a short exact sequence with abelian kernel and abelian quotient, reducing conjugacy to questions about ZG-module orbits under the action of the quotient, and using commutative algebra / lattice-style arguments over the integral group ring of the abelian quotient.",
+        "regime": "Finitely generated metabelian groups, typically presented by generators and relators; complexity measured in the length of the input words; emphasis on decidability and, where possible, polynomial-time algorithms.",
+        "hypothesized_generalization": "The same module-theoretic reduction should extend to broader solvable classes (e.g., polycyclic or solvable of bounded derived length) and could give a uniform algorithmic framework for orbit problems in groups acting on finitely generated abelian groups."
+      },
+      "b_extract": {
+        "problem": "Parameterized and approximation complexity of the Deletion to Induced Matching problem: given a graph G and parameter k, delete at most k vertices (or edges) so that the remaining graph is an induced matching (a disjoint union of edges with no extra adjacencies).",
+        "methods": "Parameterized algorithms (FPT / kernelization), branching on forbidden induced substructures (P3, triangles, longer paths), reduction rules to produce a polynomial kernel, and hardness reductions from canonical W[1]/W[2] problems and from Vertex Cover variants.",
+        "regime": "Finite simple graphs, parameter k = number of deletions; worst-case combinatorial complexity, both classical NP-hardness and fine-grained parameterized lower bounds (ETH-based).",
+        "hypothesized_generalization": "The branching-and-kernelization template should generalize to other 'deletion to H-free / deletion to a sparse target class' problems where the target class is characterized by a small set of forbidden induced subgraphs."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "The two papers live in very different worlds: one is about algorithmic decision problems on infinite metabelian groups via module theory over group rings, the other is about parameterized graph deletion. They share no objects, no parameters, and no natural reduction. The most plausible thin connection runs through Cayley graphs of metabelian quotients, but that is a tenuous bridge that neither paper exploits.",
+        "mediator": "Cayley graphs of finite metabelian quotients (and matching/independence structure on them)",
+        "sketch": "A researcher attempting a bridge could study Cayley graphs of finite metabelian groups (e.g., quotients of the groups in Paper A by finite-index normal subgroups) and ask how the algebraic conjugacy structure constrains induced-matching parameters: for instance, whether the conjugacy class sizes give lower bounds on the deletion distance to an induced matching, or whether metabelian Cayley graphs form a parameter-tractable instance class for Deletion to Induced Matching via their highly regular automorphism group. Conversely, one could try to use graph-deletion lower-bound machinery to certify hardness of certain orbit-counting problems in metabelian groups by encoding graph instances into conjugacy queries in a tailored metabelian group. Both directions are speculative and would more likely yield a teaching example than a substantive new theorem."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2008.03587",
+        "title": "A note on deterministic zombies",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2008.05504",
+        "title": "On the tree-width of even-hole-free graphs",
+        "subfield": "cs.DM",
+        "arxiv_cats": [
+          "cs.DM"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.274857,
+      "a_extract": {
+        "problem": "Analyze the 'deterministic zombies' pursuit-evasion game on graphs, in which one or more deterministic zombie pursuers chase a survivor along vertices/edges according to fixed (deterministic, typically shortest-path) movement rules, and determine the zombie number / capture conditions on various graph classes.",
+        "methods": "Combinatorial graph-theoretic arguments about pursuit-evasion: bounding the number of zombies required to catch the survivor on classes of graphs, deterministic-strategy analysis, structural arguments exploiting graph parameters (girth, planarity, degree, treewidth-like decompositions).",
+        "regime": "Finite simple graphs, deterministic adversarial dynamics on graph classes (likely planar, bounded-degree, or otherwise structurally restricted graphs); worst-case analysis over starting configurations.",
+        "hypothesized_generalization": "Capture/escape behavior for deterministic pursuit games is governed by a structural width-like parameter of the host graph; on classes where this parameter is bounded, a constant number of deterministic zombies suffices, suggesting a unified width-based theory of deterministic pursuit complexity."
+      },
+      "b_extract": {
+        "problem": "Determine whether the class of even-hole-free graphs (graphs with no induced cycle of even length >= 4) has bounded tree-width \u2014 or at least, prove bounded tree-width for natural restrictions \u2014 with the motivation that such a bound would imply property-testability of even-hole-freeness in the bounded-degree model.",
+        "methods": "Structural graph theory for hereditary classes defined by forbidden induced subgraphs; case analysis around 'pyramids' and other obstructions; explicit tree-decomposition constructions; reduction to subcubic / bounded-degree subcases; bounds via excluded substructures.",
+        "regime": "Hereditary graph classes defined by forbidden induced subgraphs; bounded-degree subcases (subcubic graphs; max degree 4 with pyramid exclusion); finite simple graphs; existence/parameter bounds rather than algorithmic running times.",
+        "hypothesized_generalization": "Even-hole-free graphs of bounded degree admit tree-decompositions of bounded width, and more broadly, forbidding small even induced obstructions in sparse graphs imposes a tree-like structure \u2014 opening a bridge between induced-subgraph forbidding and width parameters, with consequences for property testing and algorithmics."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers live inside structural / algorithmic graph theory and ultimately turn on width-like parameters of restricted graph classes: pursuit-evasion games (cops, zombies, robbers) are classically tied to tree-width, tree-depth, and related decompositions, and Paper B is precisely a tree-width bound on a hereditary class. The shared deep object is 'how structural restrictions on a graph class control a width parameter, which in turn controls a dynamic/algorithmic invariant', even though the surface vocabularies (pursuit games vs. forbidden induced subgraphs) do not overlap.",
+        "mediator": "tree-width / tree-decomposition as a control parameter for pursuit-evasion games on hereditary graph classes",
+        "sketch": "A natural bridge result would be: 'On (even hole, pyramid)-free graphs of degree at most 4, the deterministic zombie number is bounded by a constant', obtained by composing Paper B's tree-width bound with a known fact that deterministic/shortest-path pursuit numbers are bounded in terms of tree-width (the cop number is bounded by tw+1; analogous bounds plausibly extend to deterministic zombies via the same tree-decomposition cops-and-robbers strategy of guarding bag separators). A researcher would (i) reread Paper A to extract exactly which pursuit invariant is studied and how it behaves under tree-decompositions, (ii) lift Aboulker et al.'s decomposition to a monotone search strategy on the bags, (iii) bound the number of deterministic zombies per bag using local degree-4 structure, and (iv) try to extend the bound to broader even-hole-free subclasses as their tree-width theory grows. The converse direction \u2014 using pursuit-game lower bounds to obstruct tree-width bounds for richer hereditary classes \u2014 is a second, harder transfer worth attempting."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2009.05953",
+        "title": "Optimization over Young diagrams",
+        "subfield": "math.OC",
+        "arxiv_cats": [
+          "math.OC"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2403.04542",
+        "title": "Near-Optimal Algorithm for Directed Expander Decompositions",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.279442,
+      "a_extract": {
+        "problem": "Optimization of functions defined over the combinatorial set of Young diagrams (integer partitions), where the feasible set is discrete and grows combinatorially with the number of boxes.",
+        "methods": "Inferred from title and subfield (math.OC): formulating Young-diagram optimization via convex relaxations on the permutohedron/dominance order, polymatroid/submodular optimization, and/or local-search moves over diagrams (adding/removing boxes). Likely leverages the rich combinatorial-representation-theoretic structure (Young's lattice, RSK correspondence, hook-length identities).",
+        "regime": "Discrete optimization over a lattice-ordered combinatorial family parameterized by partition size n; objective functions presumably monotone, submodular, or otherwise structured along the dominance order.",
+        "hypothesized_generalization": "Techniques should extend to optimization over other lattices of combinatorial objects with similar order-theoretic structure (plane partitions, skew shapes, more generally distributive lattices arising from poset ideals) and to continuous relaxations via the order polytope / chain polytope of the underlying poset."
+      },
+      "b_extract": {
+        "problem": "Computing expander decompositions of directed graphs in near-linear time: partitioning edges of a digraph into clusters that are well-connected (expanding) internally while crossing few inter-cluster edges, generalizing the classical undirected expander decomposition.",
+        "methods": "Inferred from snippet (cs.DS): cut-matching games adapted to the directed setting, recursive flow-based balanced-cut subroutines, push-relabel / interior-point flow primitives, and analysis via directed conductance or sparse-cut certificates. Used as a primitive inside min-cost flow and max-flow breakthroughs (Van den Brand et al. FOCS 2024, Chuzhoy-Khanna).",
+        "regime": "Massive sparse digraphs with m edges; algorithms targeting m^{1+o(1)} runtime; conductance / sparsity parameter phi controlling tradeoff between cluster quality and inter-cluster edges.",
+        "hypothesized_generalization": "Framework should extend to weighted/dynamic digraphs, to hypergraph or matroid analogues, and to recursive decompositions where the partition itself satisfies additional combinatorial constraints (e.g. respecting a given poset or layered structure)."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "The two papers live in genuinely distinct technical universes \u2014 combinatorics of integer partitions on one side, spectral/flow-based graph algorithmics on the other \u2014 with no direct shared object. A bridge is conceivable only via an intermediate combinatorial-polytope construction, and the transferred ideas would be specialized rather than generic.",
+        "mediator": "Order polytopes / Young's lattice viewed as a DAG, connected to directed expansion of Hasse diagrams of distributive lattices.",
+        "sketch": "Young's lattice is a locally-finite DAG whose vertices are partitions and whose edges encode box-addition; truncations of this DAG (partitions fitting in an n x n box) are highly structured digraphs whose directed conductance, expansion, and decomposition behavior are largely unstudied. A researcher could (a) compute directed expander decompositions of Hasse diagrams of distributive lattices (Young's lattice, Young-Fibonacci, plane-partition lattices) and ask whether the resulting clusters correspond to natural combinatorial substructures (e.g. rectangular sub-diagrams, hook classes), then (b) use such decompositions as a divide-and-conquer scaffold for optimization over Young diagrams \u2014 solving locally on each expanding cluster and stitching via the few inter-cluster boundary edges, mirroring how expander decompositions accelerate min-cost flow. Conversely, the rich symmetry of Young's lattice could supply a clean testbed where directed-expander-decomposition guarantees can be sharpened or shown tight."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2009.05439",
+        "title": "The chromatic number of 2-edge-colored and signed graphs of bounded maximum degree",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "1802.08799",
+        "title": "On Pseudo-disk Hypergraphs",
+        "subfield": "cs.CG",
+        "arxiv_cats": [
+          "cs.CG"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.288183,
+      "a_extract": {
+        "problem": "Determine the chromatic number of 2-edge-colored graphs and signed graphs whose underlying graph has bounded maximum degree, where colorings/homomorphisms must respect the edge-color (or sign) structure.",
+        "methods": "Combinatorial constructions of target graphs (e.g., universal/absorbing signed or 2-edge-colored graphs) admitting homomorphisms from every input; case analysis and recursive arguments for small maximum degree (Delta = 2, 3, 4, 5); and general degree-parameterized upper-bound constructions complemented by lower-bound (extremal) examples.",
+        "regime": "Finite simple graphs with bounded maximum degree Delta, edges decorated with one of two colors or with signs +/-; small Delta treated exactly, large Delta via asymptotic-style bounds in Delta.",
+        "hypothesized_generalization": "Tight bounds for fixed small Delta and matching upper/lower bounds of the same growth order in Delta for general Delta, with the techniques extending to k-edge-colored graphs and to other signed-graph homomorphism invariants (oriented chromatic number, signed clique number)."
+      },
+      "b_extract": {
+        "problem": "Study combinatorial and incidence properties of pseudo-disk hypergraphs: hypergraphs whose hyperedges are induced by a family of pseudo-disks in the plane on a finite point set (or dually, points-in-pseudo-disks).",
+        "methods": "Topological/combinatorial geometry arguments exploiting the pseudo-disk property (any two boundaries cross at most twice), forbidden-pattern / VC-type arguments, shallow-cutting and union-complexity bounds, and probabilistic / epsilon-net style arguments yielding bounds on the number of hyperedges, shallow hitting sets, or colorings.",
+        "regime": "Finite point sets in the plane together with a family of pseudo-disks (a generalization of disks/convex regions where pairwise boundary intersections are limited); asymptotic bounds in the number of points n and family size m.",
+        "hypothesized_generalization": "Bounds analogous to those known for disks (linear union complexity, polynomial shallow-cell complexity, small epsilon-nets, bounded chromatic / conflict-free chromatic number) extend to the pseudo-disk setting, with applications to coloring, piercing, and combinatorial Helly-type results."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "Both papers ultimately ask for chromatic-type bounds on combinatorial objects, but Paper A's coloring constraint comes from edge signs/2-colorings on abstract bounded-degree graphs while Paper B's structure comes from planar pseudo-disk incidences; the underlying constraint geometries (sign-respecting homomorphism vs. pseudo-disk arrangement) do not obviously share a common combinatorial backbone. A bridge is conceivable via the intersection / Delaunay graph of a pseudo-disk family viewed as a signed or 2-edge-colored graph, but the natural parameters (maximum degree vs. union complexity) do not align cleanly.",
+        "mediator": "intersection graphs of pseudo-disks viewed as 2-edge-colored / signed graphs (with sign encoding nesting vs. crossing of pseudo-disks)",
+        "sketch": "A researcher could try to lift Paper A's degree-parameterized chromatic bounds for signed graphs onto the intersection graph of a pseudo-disk family, signing each edge by whether the two pseudo-disks cross transversally or one contains the other. Bounded local complexity of pseudo-disk arrangements (each pseudo-disk meets O(k) others in any shallow region) plays the role of bounded maximum degree, so Paper A's Delta=k upper bounds would translate into upper bounds on a signed chromatic / conflict-free chromatic number of pseudo-disk hypergraphs. Conversely, Paper B's union-complexity and shallow-cell machinery could give improved lower-bound constructions of signed graphs with high chromatic number realizable as geometric pseudo-disk intersection patterns, sharpening the extremal examples in Paper A. The bridge is speculative because the sign assignment from geometry has no canonical analog of Paper A's algebraic sign-switching equivalence, so most of the work would be in defining the right sign convention."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "1803.01931",
+        "title": "Structure and generation of crossing-critical graphs",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "1609.08095",
+        "title": "How Much Does a Treedepth Modulator Help to Obtain Polynomial Kernels Beyond Sparse Graphs?",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.290183,
+      "a_extract": {
+        "problem": "Characterize the structure of k-crossing-critical graphs \u2014 minimal graphs requiring at least k edge-crossings when drawn in the plane \u2014 for arbitrary fixed k, extending the explicit tile-and-Mobius-band description known only for k=2.",
+        "methods": "Topological/combinatorial structural graph theory: bounded path-width arguments for plane graphs, decomposition into 'band' and 'fan' local arrangements, reduction operations that contract repeated bounded-size substructures, plus a polynomial-delay enumeration algorithm built on the structural decomposition.",
+        "regime": "Sparse graphs (bounded path-width), drawings in the plane (or Mobius band for twisted fans), asymptotic behavior of sufficiently large k-crossing-critical graphs for any fixed crossing number k.",
+        "hypothesized_generalization": "Every sufficiently large k-crossing-critical graph decomposes into a bounded-size 'core' plus arbitrarily long band/fan regions assembled from a finite (k-dependent) palette of tiles; the structural skeleton governs both enumeration and the topological obstruction to lowering the crossing number."
+      },
+      "b_extract": {
+        "problem": "Determine when the parameter 'size of a treedepth-c modulator' admits a polynomial kernel for Dominating Set beyond sparse-graph classes \u2014 specifically on degenerate graphs \u2014 and obtain a dichotomy in c.",
+        "methods": "Parameterized complexity / kernelization: positive results via the Jansen-Bodlaender treedepth-decomposition technique; negative results via polynomial parameter transformations (for c >= 3) and an OR-cross-composition (for c = 2) yielding ruling-out under NP not in coNP/poly.",
+        "regime": "Degenerate graphs (a sparse-graph generalization), parameter = vertex-deletion distance to treedepth at most c, fixed small c, worst-case kernel size as a polynomial in the parameter.",
+        "hypothesized_generalization": "Bounded-depth elimination structure (treedepth modulators) is the right knob controlling polynomial kernelizability of covering/domination problems on sparse graphs; the threshold between 'polynomial kernel' and 'no polynomial kernel' is governed by how the modulator interacts with the surrounding degenerate part."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers study sparse graphs through a 'bounded-depth core + repetitive periphery' decomposition: Paper A shows k-crossing-critical graphs are a small core plus long band/fan repetitions of bounded-size tiles, while Paper B exploits treedepth-modulator decompositions (small modulator + structurally simple remainder) to obtain or rule out polynomial kernels. The shared structural intuition \u2014 a bounded-complexity skeleton controlling an arbitrarily long, locally repetitive remainder \u2014 is a real mediator, even though the goals (structural characterization vs kernel lower/upper bounds) differ.",
+        "mediator": "Bounded-depth decomposition with repetitive periphery (path-width / treedepth modulator + tile/leaf repetition), enabling protrusion-style replacement and OR-cross-composition arguments.",
+        "sketch": "A researcher could try: (1) view a long band/fan in a k-crossing-critical graph as a 'protrusion' of bounded treedepth attached to a small modulator, then ask whether Crossing Number parameterized by 'treedepth modulator size + k' admits a polynomial kernel on degenerate graphs; (2) conversely, use the band-replication structure of Paper A as the gadget for an OR-cross-composition showing no polynomial kernel exists for Crossing Number parameterized only by the modulator (since bands compose independently along the Mobius axis, mimicking OR-instances); (3) more speculatively, transfer the tile-enumeration algorithm of Paper A into a kernelization meta-theorem: bounded-size tiles attached to a bounded-treedepth core are exactly the 'replaceable protrusions' Jansen-Bodlaender machinery needs, suggesting a unified kernel for topological-minor-style problems on graphs of bounded crossing number with a treedepth modulator."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2507.23557",
+        "title": "Tree-indexed sums of Catalan numbers",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2008.04587",
+        "title": "Critical sets, crowns and local maximum independent sets",
+        "subfield": "cs.DM",
+        "arxiv_cats": [
+          "cs.DM"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.294444,
+      "a_extract": {
+        "problem": "Evaluate and find structural identities for sums of Catalan numbers indexed by the vertices (or nodes) of a tree, generalizing classical Catalan-number identities from linear/sequential indexing to tree-indexed indexing.",
+        "methods": "Generating-function manipulations, recursive decomposition of trees (root + subtrees) mirroring the recursive Catalan recurrence, combinatorial bijections between tree-decorated objects and lattice paths / Dyck-path families, and possibly umbral/symbolic-method techniques.",
+        "regime": "Pure enumerative / algebraic combinatorics on finite rooted trees; asymptotic and exact identities for formal power series in one or several variables.",
+        "hypothesized_generalization": "The tree-indexed sum framework should extend to any sequence satisfying a quadratic (Catalan-like) convolution recurrence, yielding a general transfer principle between tree shapes and identities on Catalan-like sequences, including Motzkin, Schroder, and Fuss-Catalan numbers."
+      },
+      "b_extract": {
+        "problem": "Characterize the structure of critical independent sets, crowns (K\u00f6nig-Egerv\u00e1ry-style structural decompositions), and local maximum independent sets in graphs, and the relationships among these three concepts.",
+        "methods": "Structural graph theory; matching theory (K\u00f6nig-Egerv\u00e1ry, Gallai-Edmonds decomposition); the crown decomposition technique used in parameterized algorithms; analysis of the lattice/poset of (local) maximum independent sets and their intersections; possibly LP-relaxation arguments for fractional independence.",
+        "regime": "Finite simple graphs, primarily focused on graphs admitting nontrivial critical sets / K\u00f6nig-Egerv\u00e1ry properties; combinatorial / structural rather than probabilistic.",
+        "hypothesized_generalization": "The interaction of critical sets, crowns, and local maximum independent sets should yield a general decomposition theorem (or kernelization-style reduction) that applies beyond K\u00f6nig-Egerv\u00e1ry graphs, e.g. to hypergraphs or to weighted independence problems on bipartite-like structures."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "The two papers operate on different combinatorial objects (rooted trees decorated with Catalan numbers vs. graphs with independent-set structure) and pursue different goals (enumerative identities vs. structural-extremal characterizations). However, both have a recursive 'decompose at a distinguished vertex' flavor, and both ultimately count or bound substructures of a graph, so a mediated bridge is not impossible.",
+        "mediator": "Generating functions for independent sets in trees / forests (the independence polynomial and its tree recursion, which itself is governed by Catalan-like recurrences).",
+        "sketch": "A researcher could try to express the number (or weighted sum) of local maximum independent sets of a tree as a tree-indexed sum of Catalan-like quantities, using the standard root-deletion recursion for the independence polynomial. If Paper A's tree-indexed Catalan identities specialize to identities about coefficients of the independence polynomial, they could yield closed forms for counts of critical sets / crowns in tree-like graphs and, via tree-decomposition, for bounded-treewidth graphs. Conversely, Paper B's crown decomposition might give a graph-theoretic interpretation (and possibly a bijective proof) of certain tree-indexed Catalan sums by exhibiting the summands as counting crowns of an associated bipartite incidence graph. The natural test case is the path graph P_n, where independence counts are Fibonacci numbers and crowns degenerate, providing a sanity check for any candidate identity."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2403.12195",
+        "title": "PackIt! Gamified Rectangle Packing",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2009.03416",
+        "title": "Probabilistic analysis of algorithms for cost constrained minimum weighted combinatorial objects",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.294613,
+      "a_extract": {
+        "problem": "Rectangle packing presented as a gamified benchmark \u2014 fitting a collection of axis-aligned rectangles into a bounding region (e.g. a square or strip) without overlap, with the goal of either certifying packability or optimizing area/utility.",
+        "methods": "Likely a mix of SAT/CP encodings, combinatorial search, and human-in-the-loop / gamified exploration (the 'PackIt!' interface) to generate hard instances and certificates; benchmark construction in math.CO / cs.DS style.",
+        "regime": "Small-to-moderate discrete instances of 2D packing where exact solutions or tight bounds are sought; emphasis on worst-case structure and on producing publicly playable instances.",
+        "hypothesized_generalization": "Gamified or human-guided generation of hard combinatorial instances generalizes beyond rectangles to other geometric packing / covering problems (bin packing, polyomino tiling, knapsack-style layout), providing benchmark suites that stress exact solvers."
+      },
+      "b_extract": {
+        "problem": "Probabilistic analysis of algorithms for minimum-weight combinatorial structures (spanning trees, matchings, paths, perfect matchings, etc.) subject to a side cost constraint \u2014 i.e. find the min-weight object whose total cost is at most a budget.",
+        "methods": "Random-input analysis: weights and costs drawn from specified distributions (uniform, exponential); use of Lagrangian relaxation, greedy / threshold algorithms, concentration inequalities, and asymptotic analysis to bound expected optimum and algorithmic performance.",
+        "regime": "Asymptotic n \u2192 \u221e regime on random instances of classical combinatorial optimization problems; focus on expected value of constrained optimum and on algorithms with provable approximation in expectation / w.h.p.",
+        "hypothesized_generalization": "Probabilistic techniques (Lagrangian + concentration) extend to broader classes of bi-criteria combinatorial optimization on random inputs, including problems where the underlying structure is geometric rather than graph-theoretic."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "Paper A is a worst-case, instance-construction / benchmark paper on 2D geometric packing, while Paper B is an asymptotic probabilistic-analysis paper on constrained graph/matroid optimization. They share the umbrella of combinatorial optimization but differ in object (rectangles vs. graph structures), analytic regime (worst-case vs. average-case), and goal (instance generation vs. expected-value bounds). A non-trivial mediator is needed.",
+        "mediator": "bi-criteria / cost-constrained combinatorial optimization on random geometric instances (Lagrangian relaxation applied to 2D packing with random rectangle sizes and a secondary budget)",
+        "sketch": "A bridge result would recast rectangle packing as a cost-constrained combinatorial optimization: each rectangle carries a weight (e.g. area used) and a cost (e.g. processing time, a deadline, or a value), and the task is to select / place a max-weight subset within a budget. One could then transfer Frieze\u2013Tkocz-style probabilistic analysis \u2014 Lagrangian relaxation plus concentration \u2014 from matroid/graph settings to a 'random rectangle' model where sizes and costs are i.i.d., yielding asymptotic formulas for the expected optimum packed area subject to a cost budget. The PackIt! gamified instance generator could in turn supply hard worst-case instances that calibrate how loose the average-case bounds are, closing a worst-case / average-case loop on a geometric bi-criteria packing problem."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2207.08065",
+        "title": "An Algorithm for Berenstein\u2013Kazhdan Decoration Functions and Trails for Classical Lie Algebras",
+        "subfield": "math.QA",
+        "arxiv_cats": [
+          "math.QA"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2403.06564",
+        "title": "An Algorithm for Fast and Correct Computation of Reeb Spaces for PL Bivariate Fields",
+        "subfield": "cs.CG",
+        "arxiv_cats": [
+          "cs.CG"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.294835,
+      "a_extract": {
+        "problem": "Explicitly compute Berenstein-Kazhdan (BK) decoration functions and the associated i-trails on highest-weight representations V(-w_0 Lambda_i) for classical (and G_2) simple Lie algebras, expressed in geometric-crystal coordinates via the parametrization theta^-_i.",
+        "methods": "Combinatorial/representation-theoretic algorithm exploiting that pairings <h_t, mu> lie in the bounded set {-2,-1,0,1,2} for weights mu of V(-w_0 Lambda_i) in types A,B,C,D; uses geometric crystal coordinates, reduced-word parametrizations theta^-_i, and i-trail enumeration to evaluate Phi^h_BK on the unipotent cell.",
+        "regime": "Finite-dimensional simple Lie algebras of classical type (A_n, B_n, C_n, D_n) and the exceptional G_2; works in the framework of Berenstein-Kazhdan geometric crystals over the unipotent radical, with explicit reduced-word data.",
+        "hypothesized_generalization": "Algorithmic recovery of BK decoration functions and explicit trail enumeration could be extended to remaining exceptional types (F_4, E_6, E_7, E_8) by similarly bounding the pairing values, and could be linked to tropicalizations yielding combinatorial models (e.g., Lusztig/Kashiwara polytopes, Nakashima-Zelevinsky polyhedral realizations) for arbitrary symmetrizable Kac-Moody algebras."
+      },
+      "b_extract": {
+        "problem": "Compute the Reeb space of a piecewise-linear (PL) bivariate field f: M -> R^2 on a simplicial 3-manifold correctly and efficiently, including its singular 1-skeleton and 2-sheet structure.",
+        "methods": "Build a Multi-Dimensional Reeb Graph (MDRG) proved homeomorphic to the Reeb space; compute the Jacobi set of the PL bivariate field, project it into the range to obtain the Jacobi structure, and reconstruct the Reeb space by computing a net-like structure and extracting its 2-sheets. Complexity O(n^2 + n c_int log n + n c_L^2).",
+        "regime": "PL bivariate scalar fields on simplicial complexes (typically 3-manifolds M) arising in scientific visualization and topological data analysis; finite combinatorial input with bounded link complexity c_L and intersection count c_int.",
+        "hypothesized_generalization": "Generalize to PL multi-fields f: M -> R^k for k >= 3 via iterated Jacobi/MDRG constructions; provide certified correctness and complexity bounds for higher-dimensional Reeb spaces and mapper-style nerves on more general stratified spaces."
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "Both papers present algorithms on combinatorial/PL data and both involve 'decorated' structures over a base (BK decorations on geometric crystals vs. Jacobi structure decorating the range of a bivariate field), but the underlying objects (algebraic-geometric unipotent cells of reductive groups vs. PL Reeb spaces of multifields) live in distant categories with no immediate shared theorems. A bridge is conceivable only through a mediator that recasts BK trails as combinatorial paths in a polyhedral fan and Reeb-space sheets as strata in that fan.",
+        "mediator": "Tropical geometry / polyhedral fans (Lusztig-Berenstein-Kazhdan tropicalization on the algebra side; Jacobi stratification of the range as a polyhedral subdivision on the geometry side), with Morse-theoretic stratification of moment maps as the connecting language.",
+        "sketch": "A researcher could tropicalize the BK potential Phi^h_BK on the unipotent cell to obtain a piecewise-linear function on R^N whose 'broken lines' / i-trails define a polyhedral subdivision (the string/Nakashima-Zelevinsky polytope), then interpret this PL function as a bivariate (or multivariate) field on the tropical variety and apply the MDRG/Jacobi-structure machinery to compute its Reeb space. Conversely, the net-like structure of the Reeb space could be viewed as a generalized crystal graph whose vertices are 2-sheets and edges are Jacobi-set crossings, and one could ask whether the resulting combinatorial object satisfies Kashiwara-style axioms \u2014 turning Reeb-space computation into a source of new 'crystal-like' combinatorial models. The bridge result would be: an equivalence between the trail-counting algorithm for BK decoration functions on classical types and the MDRG construction applied to the tropicalized superpotential, giving each side a new computational handle (efficient Jacobi-set algorithms on the algebra side; representation-theoretic invariants of Reeb spaces on the geometry side)."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    },
+    {
+      "a": {
+        "arxiv_id": "2008.12160",
+        "title": "Perfect linear complexity profile and Apwenian sequences",
+        "subfield": "math.NT",
+        "arxiv_cats": [
+          "math.NT"
+        ]
+      },
+      "b": {
+        "arxiv_id": "1609.04101",
+        "title": "The Almost Equivalence by Asymptotic Probabilities for Regular Languages and Its Computational Complexities",
+        "subfield": "cs.FL",
+        "arxiv_cats": [
+          "cs.FL"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.301057,
+      "a_extract": {
+        "problem": "Characterize binary sequences with perfect linear complexity profile (LCP) \u2014 i.e. sequences over F_2 whose nth linear complexity equals ceil(n/2) for all n \u2014 and connect this stream-cipher / pseudorandomness notion to 'Apwenian' sequences, an algebraic class of 2-automatic sequences whose generating power series satisfies certain Mahler-type functional equations over F_2[[x]].",
+        "methods": "Berlekamp-Massey-style continued-fraction expansions of formal power series over F_2, the theory of automatic sequences and their algebraic generating functions (Christol's theorem), and Mahler functional equations / substitution dynamics used to characterize when an algebraic power series produces a perfect LCP.",
+        "regime": "Infinite binary sequences over the finite field F_2; characteristic-2 formal power series; algebraic (in particular 2-automatic) sequences; asymptotic/per-prefix linear complexity measured for every n.",
+        "hypothesized_generalization": "Extend the equivalence/characterization to (i) larger finite fields F_q with q-automatic sequences satisfying corresponding Mahler equations, (ii) higher-order linear complexity profiles or k-error linear complexity, and (iii) other algebraically defined automatic families, giving a uniform algebraic criterion for perfect (or near-perfect) complexity profiles."
+      },
+      "b_extract": {
+        "problem": "Decide, for two regular languages L1 and L2, whether they are 'almost equivalent' in the sense that the asymptotic probability (density) of their symmetric difference under a natural distribution on Sigma^* is zero, and classify the computational complexity of this and related approximate-equivalence problems on DFAs/NFAs/regexes.",
+        "methods": "Automata theory (DFA/NFA minimization and product constructions), generating-function / matrix-spectral analysis of word counts a_n(L) = #(L \u2229 Sigma^n) via transfer matrices, asymptotic density of regular languages, and complexity-theoretic reductions placing problems in classes such as P, NL, coNP, PSPACE.",
+        "regime": "Finite-alphabet regular languages presented as DFAs, NFAs, or regular expressions; asymptotic n \u2192 \u221e behavior of word-length densities; worst-case computational complexity over symbolic automaton inputs.",
+        "hypothesized_generalization": "Generalize the asymptotic-density equivalence framework to richer language classes (context-free, visibly pushdown, weighted/probabilistic automata), to other measures (Bernoulli or Markov distributions on Sigma^*), and to quantitative 'epsilon-equivalence' where the density of the symmetric difference is bounded rather than zero, with corresponding complexity classifications."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers ultimately study formal power series associated with infinite symbolic sequences over a finite alphabet: paper A through generating functions of automatic sequences over F_2 satisfying Mahler equations, paper B through counting generating functions a_n(L) x^n of regular languages whose coefficients obey a linear recurrence. Christol's theorem is exactly the mediator: a power series over F_q is algebraic iff its coefficient sequence is q-automatic iff it is recognized by a finite Sigma-input automaton outputting in F_q \u2014 so 'automatic sequence' and 'regular language' are two faces of the same finite-automaton object, even though the surface vocabulary (linear complexity profile vs. asymptotic density equivalence) is disjoint.",
+        "mediator": "Christol's theorem linking q-automatic sequences to algebraic power series over F_q, together with the rational/algebraic generating functions of regular languages.",
+        "sketch": "A researcher could reinterpret paper B's asymptotic-density-zero equivalence of regular languages as a statement about the difference of two rational generating functions a_{L1}(x) - a_{L2}(x) in F_q((x)) (after reduction mod a prime, or directly in Q(x)) having vanishing Cesaro/Dirichlet density of nonzero coefficients, then ask: when does the indicator sequence of L1 triangle L2 \u2014 viewed as an automatic sequence over F_2 \u2014 have a perfect or controlled linear complexity profile in the sense of paper A? Conversely, paper A's Apwenian/perfect-LCP characterization gives an algebraic criterion on the Mahler equation of a 2-automatic sequence that the indicator sequence of a regular language must satisfy to be 'maximally pseudorandom'; this yields a new complexity/regularity invariant for regular languages (LCP of their indicator stream) and a corresponding decision problem whose complexity could be classified using paper B's DFA-product techniques. The concrete first attempt: build, for two DFAs A1, A2, the product automaton recognizing L1 triangle L2, extract the indicator sequence of L1 triangle L2 over Sigma^* enumerated in some canonical order, and prove that 'almost-equivalence' in paper B's sense corresponds to a degenerate (low-rank / non-perfect) LCP, while perfect-LCP forces L1 and L2 to be maximally far apart \u2014 turning paper A's algebraic characterization into a quantitative refinement of paper B's equivalence relation."
+      },
+      "orchestrator": "claude_subagent_general_purpose"
+    }
+  ],
+  "n": 20
+}

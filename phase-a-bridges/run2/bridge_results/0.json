@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Determine the chromatic number of 2-edge-colored graphs and signed graphs (graphs whose edges carry a sign or one of two colors) as a function of the maximum degree of the underlying graph.",
+    "methods": "Combinatorial coloring arguments; exact bounds for max-degree 2; case-by-case lower/upper bound constructions for max-degree 3, 4, 5; general bounds parameterized by max degree k. Likely uses homomorphisms to target signed/2-edge-colored graphs (signed cliques / Paley-like targets) and degree-based pigeonhole/probabilistic arguments.",
+    "regime": "Finite simple graphs with bounded maximum degree k; small-k regime (k = 2, 3, 4, 5) treated exactly or near-exactly, plus an asymptotic regime in k.",
+    "hypothesized_generalization": "The exponential-in-k upper bound for signed chromatic number mirrors classical bounds for oriented/proper chromatic number; the framework should extend to other edge-labelings (k-edge-colored graphs, gain graphs over arbitrary groups) where homomorphism targets exist."
+  },
+  "b_extract": {
+    "problem": "Bound the tree-width of even-hole-free graphs (graphs with no induced cycle of even length), motivated by a conjecture that bounded tree-width would imply testability of even-hole-freeness in the bounded-degree property-testing model.",
+    "methods": "Structural graph theory: proves the conjecture for subcubic (max-degree 3) graphs; establishes tree-width bounds for (even-hole, pyramid)-free graphs of max degree at most 4. Likely uses induced-subgraph decomposition theorems, balanced separators, and forbidden-substructure analysis in the spirit of the Chudnovsky-Seymour line.",
+    "regime": "Finite simple graphs of bounded maximum degree (3 and 4) with forbidden induced subgraphs (even holes, pyramids); tree-width as the width parameter; ties into bounded-degree property testing.",
+    "hypothesized_generalization": "If tree-width is bounded for all even-hole-free graphs of bounded degree, this yields a property-testing algorithm; more generally, the technique should extend to other 'parity-constrained' hereditary classes (odd-hole-free, theta-free) under bounded-degree assumptions."
+  },
+  "bridge": {
+    "compatibility": "medium",
+    "rationale": "Both papers study graph invariants (chromatic number; tree-width) parameterized by maximum degree, working in the small-k regime with exact case analyses and asymptotic generalizations. They share the methodological pattern of using bounded degree to convert structural/coloring questions into finite-case enumerations, but Paper A targets edge-signed colorings while Paper B targets induced-subgraph-free structure — different combinatorial axes.",
+    "mediator": "bounded-degree structural decomposition (tree-width / treedepth as a unifying width parameter governing chromatic-type invariants)",
+    "sketch": "A researcher could attempt to bound the signed chromatic number of even-hole-free signed graphs of bounded degree by combining (i) Paper B's tree-width bounds for subcubic and degree-4 even-hole-free graphs with (ii) the standard fact that bounded tree-width implies bounded chromatic number (and, via signed-graph homomorphism targets, bounded signed chromatic number). Concretely: lift Paper A's max-degree-3 and -4 signed chromatic bounds to the restricted class of even-hole-free graphs, where Paper B's decomposition should give substantially tighter constants. The converse direction — using signed-graph homomorphism obstructions to detect even holes — could feed into property-testing distinguishers, connecting Paper B's testability motivation to Paper A's coloring machinery via the signed/oriented chromatic number as a robust class invariant."
+  }
+}

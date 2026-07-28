@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "what": "MERGED remax_kb hamming_scan (PR #16) vs BLAS float-cosine, reproducing jina-v5-nano-mirror PERFORMANCE.md 'Small, not fast' caveat",
+    "numpy": "2.4.4",
+    "bits": 2048,
+    "row_bytes": 256,
+    "float_dim": 768,
+    "reps": 40,
+    "seed": 20260626,
+    "blas_threads": "OPENBLAS_NUM_THREADS=1",
+    "metric": "best-of-reps ms per query, single query vs full corpus",
+    "bitwise_count_active": true
+  },
+  "results": [
+    {
+      "n": 600,
+      "hamming_ms": 0.0387,
+      "float_cosine_ms": 0.0739,
+      "winner": "Hamming",
+      "hamming_x_cosine": 1.91
+    },
+    {
+      "n": 2000,
+      "hamming_ms": 0.1266,
+      "float_cosine_ms": 0.2529,
+      "winner": "Hamming",
+      "hamming_x_cosine": 2.0
+    },
+    {
+      "n": 10000,
+      "hamming_ms": 0.7255,
+      "float_cosine_ms": 1.8513,
+      "winner": "Hamming",
+      "hamming_x_cosine": 2.55
+    },
+    {
+      "n": 50000,
+      "hamming_ms": 4.2471,
+      "float_cosine_ms": 12.3298,
+      "winner": "Hamming",
+      "hamming_x_cosine": 2.9
+    },
+    {
+      "n": 100000,
+      "hamming_ms": 10.9791,
+      "float_cosine_ms": 25.0829,
+      "winner": "Hamming",
+      "hamming_x_cosine": 2.28
+    },
+    {
+      "n": 500000,
+      "hamming_ms": 116.6755,
+      "float_cosine_ms": 124.216,
+      "winner": "Hamming",
+      "hamming_x_cosine": 1.06
+    },
+    {
+      "n": 1000000,
+      "hamming_ms": 237.8742,
+      "float_cosine_ms": 252.3066,
+      "winner": "Hamming",
+      "hamming_x_cosine": 1.06
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+Caching layer released. It stores hot data in memory with automatic eviction and serves cached reads with lower p99 latency than database queries. The layer integrates into request pipelines via a single import and requires no application-level cache invalidation logic.

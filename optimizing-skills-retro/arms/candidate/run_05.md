@@ -1,0 +1,1 @@
+A new caching layer is available. It reduces latency and provides a developer experience.

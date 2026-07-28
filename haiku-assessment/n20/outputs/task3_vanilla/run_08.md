@@ -1,0 +1,1 @@
+We've completed design and iteration on a new caching layer that reduces latency and improves the developer experience. The system is built on robust engineering principles and provides measurable performance improvements for teams. Early users have reported significant reductions in latency. The implementation is now available for evaluation and production use.

@@ -1,0 +1,3 @@
+Quantization-aware training (QAT) is superior to post-training quantization (PTQ) at very low bit-widths because QAT allows the model to learn how to represent its weights in a way that is robust to the quantization noise, whereas PTQ applies quantization based on a single forward pass, which often results in significant accuracy degradation when the quantization noise is too large to be tolerated. QAT, by contrast, uses the quantization process as a differentiable part of the training loop, allowing the model to adapt its representations to the quantization constraints during the learning process, leading to much better quantization accuracy. [end of text]
+
+

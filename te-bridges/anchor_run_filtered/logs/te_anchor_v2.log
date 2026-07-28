@@ -1,0 +1,35 @@
+Loaded 2 anchors from anchors.json
+  anchor 2603.21852: cached
+  anchor 2305.01582: cached
+  saved anchor_run_filtered/data/anchor_meta.json
+  reformulations 2603.21852: cached (6)
+  reformulations 2305.01582: cached (6)
+  saved anchor_run_filtered/data/anchor_reformulations.json
+  raw candidates 2603.21852: cached (273)
+  raw candidates 2305.01582: cached (360)
+  exclusions 2603.21852: cached (n_citing=3 n_cited=43 n_authors=137)
+  exclusions 2305.01582: cached (n_citing=86 n_cited=94 n_authors=891)
+  [2603.21852] citation+author dedup: 273 → 272 (arxiv:0 pid:0 author:1)
+  [2305.01582] citation+author dedup: 360 → 353 (arxiv:0 pid:0 author:7)
+  TOTAL after citation+author dedup: 633 → 625
+
+  fetching abstracts for 625 candidates (abstract-mention filter)…
+  retry 1/8 after 1.5s: S2 429: {"message": "Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form", "code": "429"}
+  retry 1/8 after 1.3s: S2 429: {"message": "Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form", "code": "429"}
+  retry 2/8 after 1.6s: S2 429: {"message": "Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form", "code": "429"}
+  retry 3/8 after 2.5s: S2 429: {"message": "Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form", "code": "429"}
+  retry 4/8 after 3.9s: S2 429: {"message": "Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form", "code": "429"}
+  retry 5/8 after 5.3s: S2 429: {"message": "Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form", "code": "429"}
+  retry 6/8 after 7.6s: S2 429: {"message": "Too Many Requests. Please wait and try again or apply for a key for higher rate limits. https://www.semanticscholar.org/product/api#api-key-form", "code": "429"}
+  saved anchor_run_filtered/data/candidate_abstracts.json
+  [2603.21852] abstract-mention dedup: dropped 0; now 272 survive
+  [2305.01582] abstract-mention dedup: dropped 0; now 353 survive
+  TOTAL after abstract-mention dedup: 625 → 625
+  saved anchor_run_filtered/data/anchor_candidates_filtered.json
+  [2603.21852] 272 with vectors → kept top 80
+  [2305.01582] 353 with vectors → kept top 80
+  saved anchor_run_filtered/data/te_candidates.json
+  saved anchor_run_filtered/data/empirical_meta.json
+  saved anchor_run_filtered/data/theory_meta.json
+
+Done: 160 candidate pairs in te_candidates.json

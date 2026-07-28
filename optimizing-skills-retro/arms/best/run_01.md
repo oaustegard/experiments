@@ -1,0 +1,1 @@
+A new caching layer has been introduced to improve application performance by reducing latency in request handling. The caching layer is designed to optimize team workflow performance and system responsiveness. Early adopters have reported measurable latency reductions and improvements in the developer experience during testing. The feature is available now for deployment.

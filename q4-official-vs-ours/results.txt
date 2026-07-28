@@ -1,0 +1,14 @@
+corpus: 2058 docs, 100 queries
+  fp32         nDCG@10=0.4408  size= 849.3MB  encode=815.6s
+  ours-q4      nDCG@10=0.4250  size= 169.7MB  encode=844.4s
+  official-q4  nDCG@10=0.4291  size= 138.0MB  encode=816.5s
+
+fidelity to fp32 (per-doc cosine / recall@10-vs-fp32kNN / Spearman-rho):
+  ours-q4      cos=0.9743  recall@10=0.8620  rho=0.9764
+  official-q4  cos=0.9763  recall@10=0.8700  rho=0.9801
+
+verdict table:
+  model         nDCG@10  dNDCG_vs_fp32      MB  enc_s
+  fp32           0.4408         0.0000   849.3  815.6
+  ours-q4        0.4250        -0.0158   169.7  844.4
+  official-q4    0.4291        -0.0118   138.0  816.5

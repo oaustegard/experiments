@@ -1,0 +1,1 @@
+Caching layer released. It intercepts read requests and stores results in process memory, with TTL-based eviction and per-key invalidation hooks. Early users report lower p99 latency on cached reads and reduced backend request volume.

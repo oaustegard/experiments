@@ -1,0 +1,1 @@
+Caching layer released. It stores hot data in memory with TTL-based eviction and integrates with existing application code via a single import. Early adoption shows reduced p99 latency on cache hits; API surface consists of get, set, and invalidate operations.

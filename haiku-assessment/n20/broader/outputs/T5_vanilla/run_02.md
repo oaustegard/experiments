@@ -1,0 +1,1 @@
+- Refactor `parse_date()` to use `ZoneInfo` for timezone handling and allow returning naive datetimes when no timezone is specified.
