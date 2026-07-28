@@ -218,6 +218,7 @@ generation. Extending that by five orders is the concrete next step.
 ## Files
 
 ```
+reproduce.sh                 re-runs a census and diffs it against Markström's file
 src/tutte_coxeter_lemma.py   the refutation above — self-contained, run it
 src/filt.c                   exact cycle-length filter (gcc -O3 -march=native)
 src/window_search.py         girth/circumference search for Proposition 5
@@ -229,7 +230,13 @@ data/order24_markstrom.g6    4 graphs, Markström's file — identical up to iso
 data/order26_mine.g6         23 graphs, this session
 data/order26_markstrom.g6    23 graphs, Markström's file — identical up to isomorphism
 data/near_miss_order26.g6    the graph described above
+data/README.md               provenance for every file above
 ```
+
+`./reproduce.sh 24` rebuilds the order-24 census from scratch and diffs it
+against Markström's own file up to isomorphism (~5 min on 4 cores; `26` takes
+~15). It needs `snarkhunter`, which is not packaged anywhere — the build recipe
+is in the script header.
 
 `filt.c` and `tutte_coxeter_lemma.py` are the two pieces most likely to be useful
 elsewhere. Everything else is scaffolding.
@@ -237,7 +244,11 @@ elsewhere. Everything else is scaffolding.
 ## Sources
 
 - Bondy & Vince, *Cycles in a graph whose lengths differ by one or two*, JGT 27 (1998)
-- Markström, *Extremal graphs for some problems on cycles in graphs*, Congressus Numerantium 171 (2004) — and his data page, which carries the N ≤ 52 result
+- Markström, *Extremal graphs for some problems on cycles in graphs*, Congressus Numerantium 171 (2004) —
+  [paper](http://abel.math.umu.se/~klasm/Uppsatser/cycex.pdf), and the
+  [data page](http://abel.math.umu.se/~klasm/Data/cubicavoid.html) carrying the N ≤ 52 result and the
+  [graph files](http://abel.math.umu.se/~klasm/Data/cubicavoidcycle/). Plain HTTP — the host serves no HTTPS.
+  His order-24 and order-26 files are vendored under `data/`; see [`data/README.md`](data/README.md).
 - Exoo, *Three Graphs and the Erdős-Gyárfás Conjecture*, [arXiv:1403.5636](https://arxiv.org/abs/1403.5636)
 - Heckman & Krakovski, *Erdős-Gyárfás conjecture for cubic planar graphs*, EJC 20(2) (2013)
 - Liu, Yu & Zhang, *Circumference of 3-connected cubic graphs*, [arXiv:1708.08865](https://arxiv.org/abs/1708.08865)
