@@ -1,0 +1,1 @@
+A new caching layer has been built. Early adopters report reduced latency and positive feedback on the developer experience. The caching layer is now available.

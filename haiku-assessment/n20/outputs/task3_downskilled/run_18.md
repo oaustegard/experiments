@@ -1,0 +1,1 @@
+New caching layer is available. It stores frequently accessed data in memory with configurable TTL and eviction policies, and provides cache-hit rates and latency metrics via a standard HTTP endpoint. Users report measurable reductions in database query latency on warm caches. The API remains stable through v2.0.

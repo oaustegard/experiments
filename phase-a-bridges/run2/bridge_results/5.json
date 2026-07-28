@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Mean estimation over ℓp balls: determine whether the maximum likelihood estimator (MLE) achieves minimax-optimal risk for estimating an unknown mean vector constrained to lie in an ℓp ball, across the full range of p including the non-convex regime p<1.",
+    "methods": "Minimax risk analysis comparing MLE to optimal estimators; constructive lower-bound instances exhibiting MLE suboptimality; development of sharp local Gaussian width bounds for non-convex ℓp balls (p<1) as a key technical tool.",
+    "regime": "High-dimensional Gaussian sequence model / mean estimation with ℓp-ball constraints; both convex (p≥1) and non-convex (p<1) sparsity-promoting geometries; risk gaps characterized up to polynomial factors in sample size.",
+    "hypothesized_generalization": "The local Gaussian width framework for non-convex constraint sets, and the constructive instances showing MLE suboptimality, should generalize to other structured estimation problems whose constraint set has poorly behaved local geometry — e.g. low-rank tensor recovery, group-sparse models, or arbitrary star-shaped bodies where standard plug-in estimators may be inadmissible."
+  },
+  "b_extract": {
+    "problem": "Optimize code rate / mutual information of polar codes over memoryless and finite-state channels with non-uniform capacity-achieving input distributions, by learning input distributions jointly with a neural polar decoder.",
+    "methods": "Neural polar decoders combined with the Honda-Yamamoto (HY) scheme to handle non-uniform input distributions; list decoding for performance enhancement; gradient-based optimization of input distribution to maximize mutual information; experimental validation on memoryless and FSCs up to block length 1024.",
+    "regime": "Finite-block-length polar coding over channels (memoryless and finite-state) whose capacity-achieving input distribution is non-uniform; data-driven / learned decoders replacing analytic successive cancellation; block lengths ≤ 1024.",
+    "hypothesized_generalization": "The neural-decoder + HY-scheme machinery for capacity-achieving non-uniform inputs should extend to broader channel classes (channels with memory, multi-user channels, continuous-input channels) and provide a general recipe for practical capacity-approaching codes whenever the optimal input distribution is intractable to compute analytically."
+  },
+  "bridge": {
+    "compatibility": "low",
+    "rationale": "The papers share the umbrella of information theory (paper A is cross-listed cs.IT) and both involve geometry of probability distributions, but the technical cores are distant: A studies minimax statistical estimation on ℓp-ball-constrained means, while B engineers learned decoders for polar codes on channels with non-uniform inputs. There is no obvious shared structure beyond the loose link that mutual-information / capacity quantities are governed by geometric width-like functionals of distribution sets.",
+    "mediator": "Local Gaussian width / I-projection geometry over constrained distribution sets",
+    "sketch": "A researcher could attempt a bridge by reinterpreting the polar-code input-distribution optimization in paper B as a constrained estimation problem on a probability simplex (or ℓ1-ball) and importing paper A's local Gaussian width machinery to characterize the statistical hardness of *learning* the capacity-achieving input distribution from finite channel samples. Concretely: replace the empirical MI maximization in B with a constrained MLE over a structured set of input distributions, and use A's non-convex (p<1) local width bounds to derive minimax sample-complexity guarantees for input-distribution learning when the optimal distribution is sparse or near-deterministic. Conversely, A's constructive suboptimality instances might inspire adversarial channel constructions where naive plug-in input distributions provably leave a polynomial gap to capacity, motivating the learned-decoder approach of B on theoretical rather than purely empirical grounds."
+  }
+}

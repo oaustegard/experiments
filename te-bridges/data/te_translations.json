@@ -1,0 +1,50 @@
+{
+  "n": 3,
+  "translations": [
+    {
+      "emp_arxiv": "2605.14764",
+      "th_arxiv": "2504.03405",
+      "emp_title": "Compositional Sparsity as an Inductive Bias for Neural Architecture Design",
+      "th_title": "On the Rate of Convergence of an Over-Parametrized Deep Neural Network Regression Estimate Learned by Gradient Descent",
+      "judge_verdict": "partially_resolves",
+      "slot_cosine": 0.801,
+      "translation": "The empirical \"approximation/estimation error\" of a trained DNN maps to the theorem's L2 risk E[|m_n(X) - m(X)|^2] of the gradient-descent-trained over-parametrized estimator m_n, while the empirical \"ambient dimension d\" corresponds to the input dimension d of X and the unstated \"structure\" the authors invoke maps to the theorem's hierarchical composition model \u2014 a target m that decomposes as a tree of functions each depending on only d* << d inputs and each \u03b2-smooth. The empirical regime where DNNs \"escape the curse\" requires, on the theory side, that (i) the true regression function actually admits such a hierarchical decomposition with small effective dimension d*, (ii) the network depth/width and GD step size/iteration count match the theorem's over-parametrization schedule, and (iii) noise/sub-Gaussian tail assumptions hold \u2014 none of which the empirical paper verifies or controls for. The concrete untested prediction is a *rate*: the squared L2 error should decay as n^{-2\u03b2/(2\u03b2+d*)} rather than n^{-2\u03b2/(2\u03b2+d)}, so plotting log-risk vs. log-n across architectures matched to the same hierarchical target should yield a slope governed by d* (the max arity of the composition), not the raw input dimension \u2014 and changing d while holding d* fixed should not change the slope. The correspondence is imperfect because the empirical paper frames \"compositional sparsity as inductive bias\" as a property the *architecture* must instantiate, whereas the theorem assumes the *target function* is hierarchically compositional and shows a generic over-parametrized DNN+GD adapts to it; the strongest defensible bridge is therefore \"if your task's regression function is hierarchically compositional with effective dimension d*, then standard deep+wide networks trained by GD already achieve the d*-rate, and the empirical 'escape from the curse' is quantitatively the gap n^{-2\u03b2/(2\u03b2+d*)} vs. n^{-2\u03b2/(2\u03b2+d)}.\"",
+      "indep_opus": {
+        "verdict": "FOLKLORE",
+        "worth_expert": "no",
+        "lineage": "Mhaskar-Poggio 2016; Bauer-Kohler 2019 (Annals of Statistics); Schmidt-Hieber 2020 (Annals); Kohler-Krzyzak / Kohler-Langer follow-ups extending rates to GD-trained over-parametrized nets",
+        "summary": "Bridge is real and internally consistent \u2014 the theorem says what the cascade says. But compositional-sparsity / hierarchical-composition / curse-of-dimensionality-escape is well-trodden territory since 2016. The empirical paper's 'compositional sparsity' is also a richer, fuzzier hypothesis than the clean Bauer-Kohler hierarchical-composition formalism the theorem actually uses, so the bridge covers one formalization, not the empirical phenomenon itself."
+      }
+    },
+    {
+      "emp_arxiv": "2605.15549",
+      "th_arxiv": "2509.07474",
+      "emp_title": "CTF4Nuclear: Common Task Framework for Nuclear Fission and Fusion Models",
+      "th_title": "DKFNet: Differentiable Kalman Filter for Field Inversion and Machine Learning",
+      "judge_verdict": "partially_resolves",
+      "slot_cosine": 0.686,
+      "translation": "The CTF4Nuclear surrogate ML model output y_hat(t; theta) for system state given parameters theta corresponds to the DKFNet posterior mean x_hat_{k|k} produced by the differentiable Kalman recursion, while the twelve evaluation metrics (forecasting error, noise-robustness scores, low-data MSE, parametric generalisation gap) map onto components of the DKF's posterior covariance P_{k|k} and innovation statistics. The empirical regimes \u2014 sparse measurements, noisy sensors, limited training data, and the \"monitoring from sparse measurements only\" paradigm \u2014 map respectively to DKFNet's measurement model H with low row-rank, the assumed Gaussian observation noise R, and the linear-dynamics-with-known-structure hypothesis; the gap is that nuclear systems (molten salt, MHD coolants) are strongly nonlinear and the noise is rarely Gaussian, so the correspondence requires either an EKF/UKF-style linearisation or the explicit nonlinear-system extension the theorem only gestures at. The specific untested prediction is that on the CTF4Nuclear benchmark, replacing the current surrogate with a DKFNet head should (a) reduce forecasting RMSE under the sparse-measurement task in proportion to tr(P_{k|k}) shrinkage versus a non-filtered baseline, and (b) yield calibrated predictive intervals \u2014 empirical coverage at level alpha matching nominal alpha \u2014 which none of the twelve current metrics actually measure. The strongest defensible version of the bridge is narrower than the judge claims: DKFNet explains reliability *of state estimates given a fixed learned dynamics model*, not why ML surrogates learn nuclear dynamics reliably in the first place; field inversion here recovers latent states, not the governing PDE operators that the CTF4Nuclear framing implicitly credits ML with discovering.",
+      "indep_opus": {
+        "verdict": "FOLKLORE",
+        "worth_expert": "no",
+        "lineage": "Differentiable Kalman filters (Haarnoja et al. 2016; Krishnan-Shalit-Sontag deep Kalman filters); EnKF / data-assimilation literature for nuclear/plasma state estimation (decades); 'use a probabilistic filter to get calibrated intervals on a surrogate' is standard scientific-ML / DA practice (Kutz, Brunton, Sandu lines).",
+        "summary": "Over-claims in a specific way. CTF4Nuclear is a benchmark that defines tasks+metrics, not a paper claiming an empirical phenomenon with an unexplained gap; 'the 12 metrics don't measure calibrated intervals' is benchmark scope, not a flagged gap. DKFNet's linear-Gaussian regime is a poor fit for nuclear systems (Bateman equations, turbulent transport, neutronics \u2014 all nonlinear, non-Gaussian) without EKF/UKF/EnKF extensions. Bridge is conceptually folklore and mechanistically misaligned."
+      }
+    },
+    {
+      "emp_arxiv": "2605.15050",
+      "th_arxiv": "2503.19748",
+      "emp_title": "Separating Intrinsic Ambiguity from Estimation Uncertainty in Deep Generative Models for Linear Inverse Problems",
+      "th_title": "No-prior Bayes reIMagined: probabilistic approximations of inferential models",
+      "judge_verdict": "partially_resolves",
+      "slot_cosine": 0.676,
+      "translation": "The empirical \"intrinsic ambiguity\" \u2014 the null-space directions of the forward operator $A$ along which reconstructions $x$ are indistinguishable given measurement $y = Ax + \\varepsilon$ \u2014 corresponds to the parameter coordinates where the possibilistic IM's contour function $\\pi_y(x)$ remains near 1, while \"estimation uncertainty\" maps to coordinates where $\\pi_y$ contracts sharply; the theorem's inner probabilistic approximation $P_y \\preceq \\pi_y$ then plays the role of the generative model's posterior surrogate $q_\\phi(x \\mid y)$. The empirical many-to-one regime maps cleanly onto the theorem's hypothesis that the IM be derived from a valid possibility measure, but requires the nontrivial assumption that a tractable possibilistic IM can be constructed for the high-dimensional, non-identified likelihood $p(y \\mid x)$ induced by deep priors \u2014 something the theory establishes abstractly but not constructively for neural generators. The testable prediction is that credible sets $C_\\alpha = \\{x : P_y(x) \\geq \\alpha\\}$ read off from the inner approximation should achieve exact frequentist coverage $\\Pr(x^\\star \\in C_\\alpha) = 1 - \\alpha$ over repeated draws of $y$ at fixed ground-truth $x^\\star$, even on null-space coordinates where standard variational posteriors are known to be miscalibrated \u2014 a coverage diagnostic the empirical paper does not run. The strongest defensible version of the bridge, absent a constructive IM for deep generators, is conditional: if one can replace the generative posterior with any possibilistic IM that is valid for the linear-inverse likelihood and then take its inner probabilistic approximation, the resulting uncertainty sets will separate ambiguity from estimation error with calibrated coverage, whereas no purely probabilistic posterior built directly from $q_\\phi$ can be guaranteed to do so.",
+      "indep_opus": {
+        "verdict": "FOLKLORE (leaning WEAK-VALID if constructive-IM claim is honestly downgraded)",
+        "worth_expert": "yes",
+        "lineage": "Martin-Liu IM framework (~15+ years); Nickl / Szabo / van der Vaart on frequentist coverage of Bayesian credible sets in inverse problems; recent conformal+IM-style calibration for inverse problems and generative priors.",
+        "summary": "Mapping is over-claimed. IMs quantify uncertainty about a finite-dimensional parameter given a sampling model \u2014 applying to a deep generative prior over x requires either (a) treating the latent code as the parameter (re-imports the prior, loses no-prior guarantee) or (b) a valid predictive/nonparametric IM, which exists in theory but has no constructive, scalable implementation for deep priors. Specific IM-to-deep-generative-inverse-problem bridge at theorem-matching level is probably not published; conceptual move is folklore-adjacent. Worth a domain-expert (Martin-school statistician fluent in Bayesian inverse problems) for the constructive-feasibility question."
+      }
+    }
+  ]
+}

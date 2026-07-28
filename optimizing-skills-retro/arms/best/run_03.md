@@ -1,0 +1,1 @@
+The caching layer is designed to reduce latency and improve developer experience for teams working with performance-sensitive applications. Built on engineered infrastructure, it provides reductions in response times and caching efficiency. Early adopters have reported improvements in latency performance. The system is available for deployment.

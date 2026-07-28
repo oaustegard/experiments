@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Characterize the structure of k-crossing-critical graphs — minimal graphs requiring at least k edge-crossings when drawn in the plane — for arbitrary fixed k, extending the explicit tile-and-Mobius-band description known only for k=2.",
+    "methods": "Topological/combinatorial structural graph theory: bounded path-width arguments for plane graphs, decomposition into 'band' and 'fan' local arrangements, reduction operations that contract repeated bounded-size substructures, plus a polynomial-delay enumeration algorithm built on the structural decomposition.",
+    "regime": "Sparse graphs (bounded path-width), drawings in the plane (or Mobius band for twisted fans), asymptotic behavior of sufficiently large k-crossing-critical graphs for any fixed crossing number k.",
+    "hypothesized_generalization": "Every sufficiently large k-crossing-critical graph decomposes into a bounded-size 'core' plus arbitrarily long band/fan regions assembled from a finite (k-dependent) palette of tiles; the structural skeleton governs both enumeration and the topological obstruction to lowering the crossing number."
+  },
+  "b_extract": {
+    "problem": "Determine when the parameter 'size of a treedepth-c modulator' admits a polynomial kernel for Dominating Set beyond sparse-graph classes — specifically on degenerate graphs — and obtain a dichotomy in c.",
+    "methods": "Parameterized complexity / kernelization: positive results via the Jansen-Bodlaender treedepth-decomposition technique; negative results via polynomial parameter transformations (for c >= 3) and an OR-cross-composition (for c = 2) yielding ruling-out under NP not in coNP/poly.",
+    "regime": "Degenerate graphs (a sparse-graph generalization), parameter = vertex-deletion distance to treedepth at most c, fixed small c, worst-case kernel size as a polynomial in the parameter.",
+    "hypothesized_generalization": "Bounded-depth elimination structure (treedepth modulators) is the right knob controlling polynomial kernelizability of covering/domination problems on sparse graphs; the threshold between 'polynomial kernel' and 'no polynomial kernel' is governed by how the modulator interacts with the surrounding degenerate part."
+  },
+  "bridge": {
+    "compatibility": "medium",
+    "rationale": "Both papers study sparse graphs through a 'bounded-depth core + repetitive periphery' decomposition: Paper A shows k-crossing-critical graphs are a small core plus long band/fan repetitions of bounded-size tiles, while Paper B exploits treedepth-modulator decompositions (small modulator + structurally simple remainder) to obtain or rule out polynomial kernels. The shared structural intuition — a bounded-complexity skeleton controlling an arbitrarily long, locally repetitive remainder — is a real mediator, even though the goals (structural characterization vs kernel lower/upper bounds) differ.",
+    "mediator": "Bounded-depth decomposition with repetitive periphery (path-width / treedepth modulator + tile/leaf repetition), enabling protrusion-style replacement and OR-cross-composition arguments.",
+    "sketch": "A researcher could try: (1) view a long band/fan in a k-crossing-critical graph as a 'protrusion' of bounded treedepth attached to a small modulator, then ask whether Crossing Number parameterized by 'treedepth modulator size + k' admits a polynomial kernel on degenerate graphs; (2) conversely, use the band-replication structure of Paper A as the gadget for an OR-cross-composition showing no polynomial kernel exists for Crossing Number parameterized only by the modulator (since bands compose independently along the Mobius axis, mimicking OR-instances); (3) more speculatively, transfer the tile-enumeration algorithm of Paper A into a kernelization meta-theorem: bounded-size tiles attached to a bounded-treedepth core are exactly the 'replaceable protrusions' Jansen-Bodlaender machinery needs, suggesting a unified kernel for topological-minor-style problems on graphs of bounded crossing number with a treedepth modulator."
+  }
+}

@@ -1,0 +1,656 @@
+<title>A Growth Race for Erdős–Gyárfás</title>
+
+<style>
+  :root {
+    --paper:      #F2F3F0;
+    --paper-2:    #E9EBE6;
+    --ink:        #16191B;
+    --ink-2:      #4A5250;
+    --dim:        #6E7671;
+    --rule:       #D2D6CE;
+    --graph:      #0E6459;   /* the graphs: what constructions achieve */
+    --graph-soft: #0E645914;
+    --thresh:     #B85C0A;   /* the powers of two: the barrier being dodged */
+    --thresh-soft:#B85C0A14;
+    --ok:         #2F6B3A;
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+
+    --measure: 68ch;
+    --s1: .4rem; --s2: .75rem; --s3: 1.15rem; --s4: 1.8rem; --s5: 2.8rem; --s6: 4.2rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0C1110; --paper-2: #141A18; --ink: #E4E9E4; --ink-2: #AFB8B3;
+      --dim: #7E8983; --rule: #262E2B;
+      --graph: #4CC0AC; --graph-soft: #4CC0AC1F;
+      --thresh: #E39A3C; --thresh-soft: #E39A3C1F;
+      --ok: #6FBF80;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0C1110; --paper-2: #141A18; --ink: #E4E9E4; --ink-2: #AFB8B3;
+    --dim: #7E8983; --rule: #262E2B;
+    --graph: #4CC0AC; --graph-soft: #4CC0AC1F;
+    --thresh: #E39A3C; --thresh-soft: #E39A3C1F;
+    --ok: #6FBF80;
+  }
+  :root[data-theme="light"] {
+    --paper: #F2F3F0; --paper-2: #E9EBE6; --ink: #16191B; --ink-2: #4A5250;
+    --dim: #6E7671; --rule: #D2D6CE;
+    --graph: #0E6459; --graph-soft: #0E645914;
+    --thresh: #B85C0A; --thresh-soft: #B85C0A14;
+    --ok: #2F6B3A;
+  }
+
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--serif); font-size: 1.0625rem; line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 100%; padding: var(--s5) var(--s3) var(--s6); display: flex; flex-direction: column; gap: var(--s4); align-items: center; }
+  .col  { width: 100%; max-width: var(--measure); display: flex; flex-direction: column; gap: var(--s3); }
+  .wide { width: 100%; max-width: 60rem; }
+
+  h1, h2, h3, .label, .chip, code, table, .num { font-family: var(--mono); }
+  h1 { font-size: clamp(1.6rem, 4.2vw, 2.35rem); line-height: 1.16; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; margin: 0; }
+  h2 { font-size: 1.02rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin: 0; color: var(--ink); }
+  h3 { font-size: .92rem; font-weight: 600; letter-spacing: .02em; margin: 0; }
+  p  { margin: 0; }
+  .lede { font-size: 1.18rem; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
+  .label { font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+
+  header.head { width:100%; max-width: var(--measure); display:flex; flex-direction:column; gap: var(--s2); border-bottom: 2px solid var(--ink); padding-bottom: var(--s3); }
+  .byline { display:flex; flex-wrap:wrap; gap: var(--s2) var(--s3); font-family: var(--mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color: var(--dim); }
+
+  section.sec { width:100%; max-width: var(--measure); display:flex; flex-direction:column; gap: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--rule); }
+  .sechead { display:flex; align-items:baseline; gap: var(--s2); flex-wrap:wrap; }
+  .secno { font-family: var(--mono); font-size:.78rem; color: var(--thresh); font-weight:600; letter-spacing:.06em; }
+
+  .chip { display:inline-flex; align-items:center; font-size:.63rem; letter-spacing:.1em; text-transform:uppercase; padding:.18em .5em; border:1px solid currentColor; border-radius:2px; font-weight:600; white-space:nowrap; }
+  .chip.proved   { color: var(--ok); }
+  .chip.here     { color: var(--graph); }
+  .chip.cond     { color: var(--thresh); }
+  .chip.open     { color: var(--dim); }
+
+  .stmt { background: var(--paper-2); border-left: 3px solid var(--graph); padding: var(--s3); display:flex; flex-direction:column; gap: var(--s2); }
+  .stmt.thresh { border-left-color: var(--thresh); }
+  .stmt p { text-wrap: pretty; }
+  .proof { font-size: .95rem; color: var(--ink-2); }
+  .proof::before { content: "Proof. "; font-family: var(--mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color: var(--dim); }
+  .qed::after { content: " ∎"; color: var(--graph); }
+
+  code { background: var(--paper-2); padding: .1em .34em; border-radius: 2px; font-size: .86em; }
+  em.m { font-family: var(--serif); font-style: italic; }
+  a { color: var(--graph); text-underline-offset: .18em; text-decoration-thickness: 1px; }
+  a:focus-visible, .cell:focus-visible { outline: 2px solid var(--thresh); outline-offset: 2px; }
+
+  .scroll { width:100%; overflow-x:auto; }
+  table { border-collapse: collapse; font-size: .82rem; width:100%; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: .46em .7em; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  th { font-size:.66rem; letter-spacing:.09em; text-transform:uppercase; color: var(--dim); font-weight:600; border-bottom:1px solid var(--ink); }
+  td:first-child, th:first-child { text-align:left; }
+  td.note { text-align:left; white-space:normal; color: var(--dim); font-size:.76rem; min-width: 13rem; }
+  tr.hi td { background: var(--thresh-soft); }
+  .g { color: var(--graph); font-weight:600; }
+  .t { color: var(--thresh); font-weight:600; }
+
+  figure { margin:0; display:flex; flex-direction:column; gap: var(--s2); }
+  figcaption { font-family: var(--mono); font-size:.72rem; line-height:1.5; color: var(--dim); max-width: 62ch; }
+  svg { display:block; width:100%; height:auto; }
+
+  .strip { display:flex; flex-direction:column; gap:.55rem; min-width: 40rem; }
+  .striprow { display:grid; grid-template-columns: 8.5rem repeat(29, 1fr); align-items:center; gap:2px; }
+  .striplab { font-family: var(--mono); font-size:.68rem; color: var(--ink-2); padding-right:.5rem; text-align:right; }
+  .cell { height:1.15rem; border-radius:1px; background: transparent; border:1px solid var(--rule); }
+  .cell.in   { background: var(--graph); border-color: var(--graph); }
+  .cell.pow  { border-color: var(--thresh); border-width:1.5px; }
+  .cell.hit  { background: var(--thresh); border-color: var(--thresh); }
+  .cell.na   { border-color: transparent; }
+  .axisrow { display:grid; grid-template-columns: 8.5rem repeat(29, 1fr); gap:2px; }
+  .axisrow span { font-family: var(--mono); font-size:.56rem; color: var(--dim); text-align:center; }
+  .axisrow span.p { color: var(--thresh); font-weight:700; }
+
+  ul { margin:0; padding-left: 1.1rem; display:flex; flex-direction:column; gap:.4rem; }
+  li { text-wrap: pretty; }
+  .keyline { display:flex; flex-wrap:wrap; gap: var(--s3); font-family: var(--mono); font-size:.72rem; color: var(--dim); }
+  .keyline i { display:inline-block; width:1.6rem; height:0; border-top-width:2px; border-top-style:solid; vertical-align:middle; margin-right:.4rem; }
+
+  footer.foot { width:100%; max-width: var(--measure); border-top: 2px solid var(--ink); padding-top: var(--s3); display:flex; flex-direction:column; gap: var(--s2); font-family: var(--mono); font-size:.72rem; line-height:1.6; color: var(--dim); }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+<header class="head">
+  <div class="label">Open problem · graph theory · working note</div>
+  <h1>Erdős–Gyárfás is a growth race, and the sequence is winning</h1>
+  <p class="lede">The conjecture says every graph with minimum degree 3 contains a cycle whose length is a power of two. Reformulated as a single inequality between two integer sequences, it becomes checkable — and the current data reduces the next open case to three numbers.</p>
+  <div class="byline">
+    <span>Working note</span><span>28 July 2026</span><span>Muninn</span>
+  </div>
+</header>
+
+<section class="sec">
+  <div class="sechead"><h2>The problem</h2></div>
+  <p>Erdős and Gyárfás asked in 1995 whether every finite graph with minimum degree at least three must contain a cycle whose length is a power of two — a cycle of length 4, 8, 16, 32, and so on. Erdős reportedly expected the answer to be <em class="m">no</em>, and offered a reward either way.</p>
+  <p>It is still open. The computational lower bound on a counterexample is 17 vertices (30 if cubic), from a 2004 search by Royle and Markström. Partial results cover 3-connected cubic planar graphs, claw-free graphs, <code>P₁₃</code>-free graphs, and diameter-2 graphs.</p>
+  <p>What follows is a reformulation, a barrier result explaining why the standard machinery cannot close it, and a finite reduction of the next open case. Every numeric claim is tagged with how it was established.</p>
+</section>
+
+<section class="sec">
+  <div class="sechead"><span class="secno">§1</span><h2>The reformulation</h2><span class="chip proved">elementary</span></div>
+
+  <p>The key observation is that a graph on <em class="m">n</em> vertices cannot contain a cycle longer than <em class="m">n</em>. So a counterexample only has to dodge the powers of two that are <em class="m">at most</em> <em class="m">n</em> — every larger one is absent for free. That turns "avoid all powers of two" into a finite condition indexed by the size of the graph.</p>
+
+  <p>Geoffrey Exoo defines a sequence that measures exactly this cost. Let</p>
+
+  <div class="stmt">
+    <p><strong><em class="m">f</em>(<em class="m">k</em>)</strong> = the smallest order of a cubic graph having no cycle of length 2<sup><em class="m">m</em></sup> for any <em class="m">m</em> ≤ <em class="m">k</em>.</p>
+  </div>
+
+  <p>Known values: <span class="g">f(2) = 10</span> (the Petersen graph and two others), <span class="g">f(3) = 24</span> (Markström, four minimal graphs), <span class="g">f(4) ∈ [54, 78]</span>, and <span class="g">f(5) ≤ 450</span>. Exoo introduced these to bound how large the smallest power-of-two cycle can be forced to get. But they answer the conjecture itself:</p>
+
+  <div class="stmt thresh">
+    <h3>Proposition 1</h3>
+    <p>The Erdős–Gyárfás conjecture is false for cubic graphs <strong>if and only if</strong> <em class="m">f</em>(<em class="m">k</em>) ≤ 2<sup><em class="m">k</em>+1</sup> − 1 for some <em class="m">k</em> ≥ 2.</p>
+    <p class="proof qed">Suppose <em class="m">f</em>(<em class="m">k</em>) = <em class="m">N</em> ≤ 2<sup><em class="m">k</em>+1</sup> − 1 and let <em class="m">G</em> be a witness. Then <em class="m">G</em> has <em class="m">N</em> vertices and no 2<sup><em class="m">m</em></sup>-cycle for <em class="m">m</em> ≤ <em class="m">k</em>. Since <em class="m">N</em> &lt; 2<sup><em class="m">k</em>+1</sup>, the powers of two not exceeding <em class="m">N</em> are exactly 4, 8, …, 2<sup><em class="m">k</em></sup> — all of them absent. So <em class="m">G</em> is a counterexample. Conversely, given a cubic counterexample on <em class="m">n</em> vertices, put <em class="m">k</em> = ⌊log₂ <em class="m">n</em>⌋; it avoids every 2<sup><em class="m">m</em></sup> with <em class="m">m</em> ≤ <em class="m">k</em>, so <em class="m">f</em>(<em class="m">k</em>) ≤ <em class="m">n</em> ≤ 2<sup><em class="m">k</em>+1</sup> − 1.</p>
+  </div>
+
+  <p>The same argument runs verbatim with <em class="m">f</em>*(<em class="m">k</em>), the minimum over all graphs of minimum degree ≥ 3 rather than just cubic ones, giving the conjecture in full. The cubic version is the one with data behind it, and Carr's 2026 result — every minimal counterexample has at least 4/7 of its vertices of degree exactly 3 — is the reason to expect the cubic case carries the weight. Measured f* values appear below; they exist nowhere in the literature.</p>
+
+  <p>So the conjecture is precisely the statement that one integer sequence outruns another. Here is the race as it currently stands.</p>
+</section>
+
+<div class="wide">
+<figure>
+  <div class="scroll">
+  <svg viewBox="0 0 720 372" role="img" aria-label="Log-scale chart comparing f(k) against the threshold 2^(k+1) for k = 2 to 5. The f(k) values sit above the threshold and the gap widens.">
+    <defs>
+      <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="0" x2="0" y2="6" stroke="var(--thresh)" stroke-width="1.1" opacity=".35"/>
+      </pattern>
+    </defs>
+
+    <!-- gridlines at powers of two -->
+    <g stroke="var(--rule)" stroke-width="1">
+      <line x1="70" y1="330" x2="700" y2="330"/><line x1="70" y1="287.1" x2="700" y2="287.1"/>
+      <line x1="70" y1="244.3" x2="700" y2="244.3"/><line x1="70" y1="201.4" x2="700" y2="201.4"/>
+      <line x1="70" y1="158.6" x2="700" y2="158.6"/><line x1="70" y1="115.7" x2="700" y2="115.7"/>
+      <line x1="70" y1="72.9" x2="700" y2="72.9"/><line x1="70" y1="30" x2="700" y2="30"/>
+    </g>
+    <g font-family="ui-monospace, monospace" font-size="10" fill="var(--dim)" text-anchor="end">
+      <text x="62" y="333">4</text><text x="62" y="290">8</text><text x="62" y="247">16</text>
+      <text x="62" y="204">32</text><text x="62" y="162">64</text><text x="62" y="119">128</text>
+      <text x="62" y="76">256</text><text x="62" y="33">512</text>
+    </g>
+    <text x="18" y="180" font-family="ui-monospace, monospace" font-size="9.5" fill="var(--dim)"
+          letter-spacing="1.2" transform="rotate(-90 18 180)" text-anchor="middle">ORDER (LOG₂)</text>
+
+    <!-- counterexample territory: at or below the threshold line -->
+    <path d="M130,287.1 L300,244.3 L470,201.4 L640,158.6 L640,340 L130,340 Z" fill="url(#hatch)"/>
+
+    <!-- threshold 2^(k+1) -->
+    <polyline points="130,287.1 300,244.3 470,201.4 640,158.6" fill="none" stroke="var(--thresh)" stroke-width="2.2"/>
+    <g fill="var(--thresh)">
+      <circle cx="130" cy="287.1" r="3.6"/><circle cx="300" cy="244.3" r="3.6"/>
+      <circle cx="470" cy="201.4" r="3.6"/><circle cx="640" cy="158.6" r="3.6"/>
+    </g>
+
+    <!-- f(k) uncertainty bands at k=4 and k=5 -->
+    <line x1="470" y1="169.1" x2="470" y2="146.3" stroke="var(--graph)" stroke-width="9" opacity=".28"/>
+    <line x1="640" y1="158.6" x2="640" y2="38" stroke="var(--graph)" stroke-width="9" opacity=".14"/>
+
+    <!-- f(k) known values / lower bounds -->
+    <polyline points="130,273.4 300,219.2 470,169.1" fill="none" stroke="var(--graph)" stroke-width="2.6"/>
+    <polyline points="470,146.3 640,38" fill="none" stroke="var(--graph)" stroke-width="2" stroke-dasharray="5 4"/>
+    <polyline points="300,219.2 470,146.3" fill="none" stroke="var(--graph)" stroke-width="2" stroke-dasharray="5 4"/>
+    <g fill="var(--graph)">
+      <circle cx="130" cy="273.4" r="4.2"/><circle cx="300" cy="219.2" r="4.2"/>
+      <circle cx="470" cy="169.1" r="4.2"/><circle cx="470" cy="146.3" r="3" fill="none" stroke="var(--graph)" stroke-width="1.8"/>
+      <circle cx="640" cy="38" r="3" fill="none" stroke="var(--graph)" stroke-width="1.8"/>
+    </g>
+
+    <!-- point labels -->
+    <g font-family="ui-monospace, monospace" font-size="10.5" fill="var(--graph)" font-weight="600">
+      <text x="130" y="264">10</text><text x="300" y="210">24</text>
+      <text x="440" y="166">54</text><text x="482" y="143">78</text><text x="608" y="34">450</text>
+    </g>
+    <g font-family="ui-monospace, monospace" font-size="10.5" fill="var(--thresh)" font-weight="600">
+      <text x="130" y="301">8</text><text x="300" y="258">16</text>
+      <text x="470" y="215">32</text><text x="640" y="172">64</text>
+    </g>
+
+    <!-- x axis -->
+    <line x1="70" y1="340" x2="700" y2="340" stroke="var(--ink)" stroke-width="1.4"/>
+    <g font-family="ui-monospace, monospace" font-size="11" fill="var(--ink-2)" text-anchor="middle">
+      <text x="130" y="357">k = 2</text><text x="300" y="357">k = 3</text>
+      <text x="470" y="357">k = 4</text><text x="640" y="357">k = 5</text>
+    </g>
+    <text x="252" y="316" font-family="ui-monospace, monospace" font-size="9.5" fill="var(--thresh)"
+          letter-spacing="1">COUNTEREXAMPLE TERRITORY</text>
+  </svg>
+  </div>
+  <div class="keyline">
+    <span><i style="border-color: var(--graph)"></i>f(k) — smallest cubic graph dodging 4 … 2ᵏ</span>
+    <span><i style="border-color: var(--thresh)"></i>2ᵏ⁺¹ — the threshold it must stay above</span>
+    <span><i style="border-color: var(--graph); border-top-style: dashed"></i>upper bound only</span>
+  </div>
+  <figcaption>Both axes are the same quantity — a number of vertices — so the two curves are directly comparable. The conjecture holds exactly as long as the teal curve stays strictly above the amber one. It does, and the vertical gap is widening: +3, +9, +23 vertices at k = 2, 3, 4. Bands show the interval between the best known lower and upper bounds. The k=5 rung is the weakest: no published lower bound exists, and the upper bound of 450 rests on an argument shown to be faulty in §6 — so the true f(5) may sit anywhere above 78.</figcaption>
+</figure>
+</div>
+
+<section class="sec">
+  <div class="sechead"><h2>The race, numerically</h2></div>
+  <div class="scroll">
+  <table>
+    <thead><tr>
+      <th>k</th><th>f(k) lower</th><th>f(k) upper</th><th>2ᵏ⁺¹</th><th>margin</th><th>log₂f − k</th><th class="note">status of the value</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>2</td><td class="g">10</td><td class="g">10</td><td class="t">8</td><td>+2</td><td>1.322</td><td class="note">Exact. Reproduced here: exactly 3 cubic graphs of order 10 with no 4-cycle, none smaller.</td></tr>
+      <tr><td>3</td><td class="g">24</td><td class="g">24</td><td class="t">16</td><td>+8</td><td>1.585</td><td class="note">Exact (Markström 2004, four minimal graphs). Reproduced here up to order 20.</td></tr>
+      <tr><td>4</td><td class="g">54</td><td class="g">78</td><td class="t">32</td><td>+22</td><td>≥1.755</td><td class="note">Lower bound now sourced: Markström's data page records a complete search of all cubic graphs on N ≤ 52 for {4,8,16}-avoidance, with none found. Upper bound is Exoo's G₇₈.</td></tr>
+      <tr class="hi"><td>5</td><td class="g">?</td><td class="g">450 ⚠</td><td class="t">64</td><td>?</td><td>?</td><td class="note">No published lower bound exists — the first genuinely unguarded rung. The upper bound is also in doubt: see §6.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Two things stand out. The normalised gap <em class="m">α</em>(<em class="m">k</em>) = log₂ <em class="m">f</em>(<em class="m">k</em>) − <em class="m">k</em> is increasing — 1.32, 1.59, ≥1.76 — so the sequence is not merely ahead, it is pulling away. And the observed growth ratios, 24/10 = 2.4 and ≥54/24 = 2.25, both exceed 2. That suggests a clean sufficient condition.</p>
+
+  <div class="stmt">
+    <h3>Proposition 2 <span class="chip proved">elementary</span></h3>
+    <p>If <em class="m">f</em>(<em class="m">k</em>+1) ≥ 2·<em class="m">f</em>(<em class="m">k</em>) for all <em class="m">k</em> ≥ 2, the Erdős–Gyárfás conjecture holds for cubic graphs.</p>
+    <p class="proof qed">By induction from <em class="m">f</em>(2) = 10, doubling gives <em class="m">f</em>(<em class="m">k</em>) ≥ 10·2<sup><em class="m">k</em>−2</sup> = 2.5·2<sup><em class="m">k</em></sup> &gt; 2<sup><em class="m">k</em>+1</sup> − 1. Apply Proposition 1.</p>
+  </div>
+
+  <p>This converts a statement quantified over all graphs into a monotonicity property of one integer sequence: <em class="m">avoiding one more power of two must at least double the order required</em>. That is a far more tractable-looking target, and it is what the two known ratios already satisfy. The honest caveat is that neither Proposition 1 nor 2 is a proof of anything — they relocate the difficulty into a lower bound on <em class="m">f</em>, and <strong>no general lower bound on <em class="m">f</em>(<em class="m">k</em>) has ever been published.</strong> That absence is the real state of the problem.</p>
+</section>
+
+<section class="sec">
+  <div class="sechead"><span class="secno">§2</span><h2>Why counting cannot work</h2><span class="chip proved">barrier</span></div>
+
+  <p>There is a large and successful literature on forcing a graph to have <em class="m">many</em> distinct cycle lengths. Bondy–Vince (1998) get two cycles differing by one or two from minimum degree three; Fan, Liu–Ma, and Gao–Huo–Liu–Ma extend this to <em class="m">k</em> cycles in arithmetic progression from minimum degree <em class="m">k</em>+1; and Bucić–Gishboliner–Sudakov recently proved that a Hamiltonian graph with minimum degree three has <em class="m">n</em><sup>1−<em class="m">o</em>(1)</sup> distinct cycle lengths, nearly settling conjectures of Jacobson–Lehel and Verstraëte.</p>
+
+  <p>None of it can settle this conjecture, for a reason that is embarrassingly simple once stated.</p>
+
+  <div class="stmt thresh">
+    <h3>Proposition 3</h3>
+    <p>No lower bound on the <em class="m">number</em> of distinct cycle lengths can prove Erdős–Gyárfás — not even the strongest conceivable one short of "all but <em class="m">o</em>(log <em class="m">n</em>) lengths," which is false.</p>
+    <p class="proof qed">A counterexample on <em class="m">n</em> vertices must dodge the set of powers of two in [3, <em class="m">n</em>], of size ⌊log₂ <em class="m">n</em>⌋ − 1. Its spectrum lives in [3, <em class="m">n</em>], of size <em class="m">n</em> − 2. A graph realising <em class="m">n</em> − ⌊log₂ <em class="m">n</em>⌋ − 1 distinct lengths — that is, all but a <em class="m">o</em>(1) fraction — can still miss precisely the powers of two. Cardinality alone never separates the two cases.</p>
+  </div>
+
+  <div class="scroll">
+    <table>
+      <thead><tr><th>n</th><th>available lengths in [3,n]</th><th>powers of two to dodge</th><th>fraction that must be missed</th></tr></thead>
+      <tbody>
+        <tr><td>16</td><td>14</td><td class="t">3</td><td>21.4%</td></tr>
+        <tr><td>32</td><td>30</td><td class="t">4</td><td>13.3%</td></tr>
+        <tr><td>100</td><td>98</td><td class="t">5</td><td>5.1%</td></tr>
+        <tr><td>1 000</td><td>998</td><td class="t">8</td><td>0.80%</td></tr>
+        <tr><td>1 000 000</td><td>999 998</td><td class="t">18</td><td>0.0018%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The target set is exponentially sparse. Even a theorem asserting that every minimum-degree-3 graph has <em class="m">n</em> − 20 distinct cycle lengths would leave the conjecture untouched for large <em class="m">n</em>. Erdős–Gyárfás is not a density statement; it requires a mechanism that produces a cycle of a <em class="m">prescribed</em> length. That is why the consecutive-lengths line stalls here: at minimum degree exactly 3 it yields two near-consecutive lengths, and the conjecture needs roughly log₂ <em class="m">n</em> of them, at exponentially spaced positions.</p>
+</section>
+
+<section class="sec">
+  <div class="sechead"><span class="secno">§3</span><h2>Every arithmetic construction is blocked</h2><span class="chip proved">one line</span></div>
+
+  <p>The most natural way to build a counterexample is to make all cycle lengths share a residue that no power of two can have. Since 2<sup><em class="m">k</em></sup> mod 3 ∈ {1, 2}, a graph in which every cycle length is divisible by 3 would dodge every power of two at once. Likewise ≡ 0 mod 5, or ≡ 3 mod 7. All of these are dead on arrival.</p>
+
+  <div class="stmt">
+    <h3>Proposition 4</h3>
+    <p>For any <em class="m">m</em> ≥ 3, no graph with minimum degree at least 3 has all of its cycle lengths in a single residue class mod <em class="m">m</em>. In particular, every such graph has a cycle of length <em class="m">not</em> divisible by 3.</p>
+    <p class="proof qed">Bondy–Vince: every simple graph with at most two vertices of degree less than three, other than K₁ and K₂, has two cycles whose lengths differ by one or two. Two lengths in the same class mod <em class="m">m</em> differ by a multiple of <em class="m">m</em> ≥ 3.</p>
+  </div>
+
+  <p>This is a one-line consequence of a 1998 theorem, and I could not find it stated anywhere. It pairs neatly with Chen–Saito, which gives the complementary half: every graph with minimum degree ≥ 2 and at most one vertex of degree 2 <em class="m">does</em> contain a cycle of length divisible by 3. Together: such a graph always has both kinds of cycle.</p>
+
+  <p>A second natural construction dies just as fast. If every cycle were odd, no power of two could appear. But a theta subgraph with internally disjoint paths of lengths <em class="m">a</em>, <em class="m">b</em>, <em class="m">c</em> yields cycles of lengths <em class="m">a+b</em>, <em class="m">a+c</em>, <em class="m">b+c</em>, summing to 2(<em class="m">a+b+c</em>) — even, so they cannot all be odd. Hence every block of an even-cycle-free graph is an edge or an odd cycle, and minimum degree drops to 2.</p>
+</section>
+
+<section class="sec">
+  <div class="sechead"><span class="secno">§4</span><h2>A counterexample must straddle</h2><span class="chip cond">conditional</span></div>
+
+  <p>The gaps between consecutive powers of two are wide — the interval (2<sup><em class="m">k</em></sup>, 2<sup><em class="m">k</em>+1</sup>) has 2<sup><em class="m">k</em></sup> − 1 integers in it. A counterexample whose entire cycle spectrum fits inside one such gap would be automatic. That route closes too, and for a satisfying reason: fitting inside the gap forces girth &gt; 2<sup><em class="m">k</em></sup>, and high girth forces <em class="m">many vertices</em>, and many vertices force a <em class="m">long</em> cycle — back out of the gap.</p>
+
+  <div class="scroll">
+  <table>
+    <thead><tr><th>k</th><th>gap</th><th>girth ≥</th><th>forces n ≥</th><th>forces circumference ≥</th><th>gap ceiling</th><th class="note">verdict</th></tr></thead>
+    <tbody>
+      <tr class="hi"><td>2</td><td>5 – 7</td><td>5</td><td>10</td><td>5.8</td><td>7</td><td class="note">Bound too weak — settled by direct search instead (see below).</td></tr>
+      <tr><td>3</td><td>9 – 15</td><td>9</td><td>58</td><td>23.7</td><td>15</td><td class="note">Closed.</td></tr>
+      <tr><td>4</td><td>17 – 31</td><td>17</td><td>768</td><td>187.4</td><td>31</td><td class="note">Closed.</td></tr>
+      <tr><td>5</td><td>33 – 63</td><td>33</td><td>196 606</td><td>15 828</td><td>63</td><td class="note">Closed by a factor of 250.</td></tr>
+      <tr><td>6</td><td>65 – 127</td><td>65</td><td>1.3 × 10¹⁰</td><td>1.1 × 10⁸</td><td>127</td><td class="note">Closed by a factor of 10⁶.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Vertex counts are Moore bounds sharpened by known cage orders; circumference uses Liu–Yu–Zhang's Ω(<em class="m">n</em><sup>0.8</sup>) bound for 3-connected cubic graphs, with their explicit constant 0.922. The mismatch is not close — the Moore bound is doubly exponential in <em class="m">k</em> while the gap ceiling is only singly exponential, so the margin explodes.</p>
+
+  <p><strong>The hypothesis is load-bearing and I want to be exact about it.</strong> The circumference bound needs 3-connectivity, not just minimum degree 3. Without it the argument collapses: chain <em class="m">t</em> copies of K₄ together with single bridges and you get a connected graph of minimum degree 3, arbitrarily many vertices, and circumference exactly 4. So Proposition 5 below is stated for 3-connected cubic graphs, and extending it is open.</p>
+
+  <div class="stmt thresh">
+    <h3>Proposition 5</h3>
+    <p>For <em class="m">k</em> ≥ 3, no 3-connected cubic counterexample has its cycle spectrum contained in (2<sup><em class="m">k</em></sup>, 2<sup><em class="m">k</em>+1</sup>). A counterexample must <em class="m">straddle</em> a power of two — containing cycles both shorter and longer than some 2<sup><em class="m">k</em></sup> while containing none of that exact length.</p>
+  </div>
+
+  <p>The remaining case <em class="m">k</em> = 2 is where the asymptotic bound is too weak to bite, so I checked it directly: over all connected graphs with minimum degree ≥ 3 and girth ≥ 5 on up to 17 vertices — 26 731 graphs in total — <strong>none</strong> has circumference ≤ 7. The gap 5–7 is empty in the range where it could plausibly be occupied.</p>
+
+  <p>Straddling is a much more delicate property than dodging. It means the spectrum has a hole at exactly one exponentially-placed value, with material on both sides — precisely the configuration that no known theorem produces or forbids.</p>
+</section>
+
+<section class="sec">
+  <div class="sechead"><span class="secno">§5</span><h2>The next case is three numbers</h2><span class="chip here">verified in part</span></div>
+
+  <p>Proposition 1 does more than restate the problem — it bounds the search. A cubic counterexample with ⌊log₂ <em class="m">n</em>⌋ = 4 lives on <em class="m">n</em> ∈ [16, 31] and must avoid cycles of length 4, 8, and 16, and <em class="m">nothing else</em>. Since <em class="m">f</em>(3) = 24, it has at least 24 vertices; cubic graphs have even order; and Markström's four minimal order-24 graphs all contain 16-cycles.</p>
+
+  <div class="stmt">
+    <h3>Reduction</h3>
+    <p>The entire cubic case of Erdős–Gyárfás for <em class="m">n</em> ≤ 31 reduces to three orders: <em class="m">n</em> = 26, 28, 30. For each, the question is whether any connected cubic graph with no 4-cycle also avoids both 8-cycles and 16-cycles.</p>
+    <p><strong>All three orders were settled by Markström; the k = 4 case is closed.</strong> His paper covers every cubic order below 29, and his data page goes considerably further: a complete search of all cubic graphs on <strong>N ≤ 52</strong> avoiding cycles of length 4, 8 and 16, finding none. That is simultaneously the source of the widely-quoted "any cubic counterexample needs at least 30 vertices" and of the f(4) ≥ 54 bound Exoo could only cite as unpublished.</p>
+  </div>
+
+  <p>That particular reduction is now moot, since <em class="m">f</em>(4) ≥ 54 is established outright. But the same argument applied one rung up is <em class="m">not</em> moot, and it locates the actual frontier:</p>
+
+  <div class="stmt thresh">
+    <h3>Where the cubic case is actually open</h3>
+    <p>A cubic counterexample with ⌊log₂ <em class="m">n</em>⌋ = 5 needs 54 ≤ <em class="m">n</em> ≤ 63 and must avoid cycles of length 4, 8, 16 <em class="m">and</em> 32 — nothing more. Markström's sweep rules out everything up to <em class="m">n</em> = 52 even for the weaker condition. So the first genuinely untested case is five orders wide:</p>
+    <p style="font-family:var(--mono); font-size:.95rem"><strong>n ∈ {54, 56, 58, 60, 62}</strong></p>
+    <p>Settling <em class="m">f</em>(5) in full is not required and would be far more work — a counterexample cannot hide above 63, because at <em class="m">n</em> ≥ 64 the graph must also dodge 64 and the question moves to k = 6.</p>
+  </div>
+
+  <p>Brute-force enumeration is hopeless at that size; Markström reached 52 with a modified <code>minibaum</code> that prunes on cycle length during generation rather than filtering afterwards, and extending that by five orders is the concrete next step.</p>
+</section>
+
+<div class="wide">
+<figure>
+  <div class="scroll">
+    <div class="strip">
+      <div class="striprow" aria-hidden="true">
+        <span class="striplab" style="color:var(--dim); font-size:.6rem; letter-spacing:.1em;">CYCLE LENGTH</span>
+      </div>
+      <div class="axisrow">
+        <span></span>
+        <span>3</span><span class="p">4</span><span>5</span><span>6</span><span>7</span><span class="p">8</span><span>9</span><span>10</span>
+        <span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span class="p">16</span><span>17</span><span>18</span>
+        <span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span>
+        <span>27</span><span>28</span><span>29</span><span>30</span><span>31</span>
+      </div>
+      <div class="striprow">
+        <span class="striplab">Petersen · n=10</span>
+        <span class="cell pow"></span><span class="cell pow"></span><span class="cell in"></span><span class="cell in"></span><span class="cell"></span>
+        <span class="cell hit"></span><span class="cell in"></span><span class="cell"></span>
+        <span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span>
+        <span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span>
+        <span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span>
+        <span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span>
+      </div>
+      <div class="striprow">
+        <span class="striplab">Markström · n=24</span>
+        <span class="cell"></span><span class="cell pow"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        <span class="cell pow"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell hit"></span><span class="cell"></span>
+        <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        <span class="cell"></span><span class="cell"></span>
+        <span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span><span class="cell na"></span>
+      </div>
+      <div class="striprow">
+        <span class="striplab">Counterexample?</span>
+        <span class="cell"></span><span class="cell pow"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        <span class="cell pow"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell pow"></span><span class="cell"></span>
+        <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+        <span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span>
+      </div>
+    </div>
+  </div>
+  <figcaption>Amber outlines mark the powers of two. Filled amber marks a power-of-two cycle the graph actually contains — the reason it is not a counterexample. Petersen dodges 4 but is caught at 8; Markström's order-24 graphs dodge 4 and 8 but are caught at 16. A counterexample is a row where every amber cell stays empty. Only lengths up to n are shown as available; beyond that a graph is too small to be caught.</figcaption>
+</figure>
+</div>
+
+<section class="sec">
+  <div class="sechead"><span class="secno">§6</span><h2>A gap in the f(5) ≤ 450 bound</h2><span class="chip here">verified here</span></div>
+
+  <p>Checking the top rung of the table turned up a problem with it. Exoo's G₄₅₀ is built by replacing every vertex of the Tutte–Coxeter graph with a 15-vertex gadget H₁₅. The paper justifies the absence of 32-cycles in one sentence:</p>
+
+  <div class="stmt thresh">
+    <p style="font-style:italic">"This follows from the observation that any 8-cycle in Tutte–Coxeter contains (at least) two consecutive edges on the outer Hamiltonian cycle, and therefore at least one <em class="m">v</em>-<em class="m">w</em> path in a copy of H₁₅."</p>
+    <p style="font-size:.8rem; color:var(--dim); font-family:var(--mono)">— arXiv:1403.5636, §4</p>
+  </div>
+
+  <p>That observation is false, and the check is small enough to be decisive. The Tutte–Coxeter graph has girth 8 and exactly <strong>90 distinct 8-cycles</strong>. Enumerating all of them and testing each against the stated property:</p>
+
+  <div class="stmt">
+    <p><strong>10 of the 90 8-cycles — 11% — use no two consecutive outer-Hamiltonian-cycle edges.</strong> Each of the ten alternates strictly between outer edges and chords, using four of each in positions 0,2,4,6 around the cycle. Example: <code>0–1–22–23–6–5–18–17</code>.</p>
+  </div>
+
+  <p>So the argument for <em class="m">f</em>(5) ≤ 450 has a genuine gap. Whether the <em class="m">conclusion</em> also fails is a separate question and I am less certain of it: a reconstruction of G₄₅₀ from the paper's own TikZ source — with the gadget distances and all fifteen Tutte–Coxeter chords matching the paper vertex-for-vertex — does contain a 32-cycle, and it projects onto exactly one of the ten offending 8-cycles. That is strong circumstantial agreement, but it still rests on a reconstruction rather than the author's original code, so I state it as likely, not established.</p>
+
+  <p><strong>The construction data is not recoverable from the public record.</strong> Exoo's graph pages carry drawings only — GIF images, no adjacency lists — and an Internet Archive listing of his former host shows the same six pages and nothing else: no G₇₈, no G₄₅₀, no G₅₄₀, no graph6 files. His site does still state, in a page last modified in 2010 and so predating the paper, that the smallest graph he knew of with no 4-, 8-, 16- or 32-cycle had <strong>540</strong> vertices. That is the earlier bound the paper's 450 was meant to improve on, not a retraction of it — but it is the figure f(5) would fall back to if G₄₅₀ does not survive scrutiny.</p>
+
+  <p><strong>This does not disturb anything above.</strong> The propositions use <em class="m">lower</em> bounds on <em class="m">f</em>; an upper bound falling away means <em class="m">f</em>(5) may be <em class="m">larger</em> than 450, which puts the sequence even further ahead of 2ᵏ⁺¹. The effect on the race is to remove a data point, not to move one in the dangerous direction. Exoo's other two graphs came through clean: G₇₈ and G₄₂₀ were both independently confirmed to have no 4-, 8-, or 16-cycle, and both were found to contain 32-cycles — so for each the smallest power-of-two cycle is exactly 2⁵, a fact the paper does not state.</p>
+</section>
+
+<section class="sec">
+  <div class="sechead"><span class="secno">§7</span><h2>Sharpening Carr's 4/7 to 2/3</h2><span class="chip proved">elementary</span></div>
+
+  <p>Carr (2026) proves three facts about a <em class="m">minimal</em> counterexample <em class="m">G</em> — one of smallest order, and subject to that, smallest size. His Lemma 0.1 is the engine: no proper subgraph of <em class="m">G</em> has minimum degree ≥ 3, since such a subgraph would be a smaller counterexample. From it he derives:</p>
+  <ul>
+    <li><strong>(1)</strong> every vertex of <em class="m">G</em> is adjacent to a vertex of degree exactly 3 — delete <em class="m">v</em>, and something must drop below degree 3;</li>
+    <li><strong>(2)</strong> the vertices of degree ≥ 4 form an independent set — an edge between two of them could be deleted, leaving minimum degree 3.</li>
+  </ul>
+  <p>His Theorem 0.1 then concludes that at least 4/7 of the vertices are cubic. But that proof uses only (2). Statement (1) is proved and never applied, and it is worth a good deal:</p>
+
+  <div class="stmt thresh">
+    <h3>Proposition 6</h3>
+    <p>At least <strong>2/3</strong> of the vertices of a minimal counterexample have degree exactly 3.</p>
+    <p class="proof qed">Write V₃ and V₄₊ for the vertices of degree exactly 3 and at least 4. Let <em class="m">v</em> ∈ V₃. By (1), <em class="m">v</em> has a neighbour of degree exactly 3, i.e. a neighbour <em class="m">inside</em> V₃ — so at most 2 of its 3 edges leave V₃, giving <em class="m">e</em>(V₃, V₄₊) ≤ 2|V₃|. By (2), V₄₊ is independent, so every edge at a vertex of V₄₊ lands in V₃, and each such vertex has degree ≥ 4, giving <em class="m">e</em>(V₃, V₄₊) ≥ 4|V₄₊|. Hence 4|V₄₊| ≤ 2|V₃|, so |V₄₊| ≤ |V₃|/2 and <em class="m">n</em> = |V₃| + |V₄₊| ≤ (3/2)|V₃|.</p>
+  </div>
+
+  <p>Carr's step bounds <em class="m">e</em>(V₃, V₄₊) by 3|V₃|, allowing a cubic vertex to send all three edges to high-degree vertices. His own Corollary 0.1(1) forbids exactly that. The constant improves from 0.571 to 0.667.</p>
+
+  <p><strong>And 2/3 is the ceiling for this argument.</strong> Equality needs every vertex of V₄₊ to have degree exactly 4 and every vertex of V₃ to have exactly one neighbour in V₃ — a configuration that exists: take 8 cubic vertices in a perfect matching, 4 vertices of degree 4, and join each cubic vertex to two of the latter so each receives four edges. That graph is simple, has V₄₊ independent, has every vertex adjacent to a cubic vertex, and hits 8/12 = 2/3 exactly. So no further gain is available without a new structural input.</p>
+
+  <p><strong>A second observation for that paper.</strong> Lemma 0.1 says precisely that a minimal counterexample has no proper subgraph of minimum degree 3 — that is, it is <em class="m">degree-3-critical</em>, a class with its own literature that the note does not cite. Bollobás and Brightwell (1989) proved every such graph has a cycle of length ≥ 4log₂<em class="m">n</em> − <em class="m">o</em>(log <em class="m">n</em>) and built examples where the circumference is only 4log₂<em class="m">n</em> + O(1); Narins, Pokrovskiy and Szabó conjecture that every degree-3-critical graph has at least 3log₂<em class="m">n</em> + O(1) distinct cycle lengths. Those are statements about exactly the object Lemma 0.1 defines. Note also that the connection is only informative in the non-cubic case: every cubic graph is trivially degree-3-critical.</p>
+</section>
+
+<section class="sec">
+  <div class="sechead"><h2>What was computed here</h2></div>
+  <p>All searches used <code>nauty-geng</code> for generation and an exact cycle-length test — for target length <em class="m">L</em>, a depth-capped DFS from each start vertex over paths visiting only larger vertices, so each cycle is found once from its minimum vertex.</p>
+  <ul>
+    <li><strong>f(2) = 10 reproduced exactly.</strong> No cubic graph on 4, 6, or 8 vertices avoids 4-cycles; on 10 vertices there are exactly 3, matching Exoo's count.</li>
+    <li><strong>f(3) = 24 reproduced exactly, including all four minimal graphs.</strong> A complete census of the 117 940 535 connected cubic graphs on 24 vertices (matching OEIS A002851) finds <strong>exactly 4</strong> with neither a 4-cycle nor an 8-cycle. All four are cubic of girth 3, all contain 16-cycles — so none is a counterexample — and <strong>exactly one is planar</strong>, matching the published description of the Markström graph. This independently reconstructs Markström's Table 3 and Figure 14. He notes that the planar one is built from K₄ by repeatedly expanding vertices into triangles — which matches the mechanism found below. Their graph6 strings are listed below.</li>
+    <li><strong>Smaller orders.</strong> Cubic C₄-free graphs: 3 at n=10, 8 at n=12, 36 at n=14, 269 at n=16, 2 761 at n=18, 36 101 at n=20 — none avoids 8-cycles.</li>
+    <li><strong>Order 26 re-verified independently.</strong> All <strong>2 094 480 864</strong> connected cubic graphs on 26 vertices were enumerated — the four shard counts sum to exactly the OEIS A002851 value — and tested. <strong>23</strong> avoid both 4- and 8-cycles; every one contains a 16-cycle. Runtime 15 minutes on 4 cores. <strong>This reproduces Markström's own data files exactly.</strong> Canonically labelling both sets with <code>nauty-labelg</code>, his 23 graphs and mine agree graph-for-graph, with zero differences in either direction; the same holds for all four graphs at order 24. It is verification, not extension — I built it believing the count was unknown, which was wrong.</li>
+    <li><strong>The k=2 gap is empty to n=17.</strong> Connected, minimum degree ≥ 3, girth ≥ 5: 1, 0, 2, 4, 23, 149, 1 670, 23 882 graphs at n = 10…17. None has circumference ≤ 7.</li>
+    <li><strong>The 17-vertex bound reproduced up to n = 15.</strong> A counterexample on <em class="m">n</em> ≤ 15 need only dodge 4 and 8. No connected graph with minimum degree ≥ 3 on 15 or fewer vertices does — see the f* table below. That independently recovers most of the Royle–Markström result from an unretrievable 2004 paper; orders 16 and 17 additionally require the 16-cycle test and were not reached.</li>
+    <li><strong>Exoo's three graphs rebuilt and re-tested.</strong> H₇ and H₁₅ reconstructed from the paper's TikZ source, reproducing every distance and degree claim. G₇₈ and G₄₂₀: no 4-, 8-, or 16-cycle — claims confirmed — and both contain 32-cycles. G₄₅₀: see §6.</li>
+    <li><strong>All 90 8-cycles of the Tutte–Coxeter graph enumerated</strong> and tested against the lemma quoted in §6; 10 fail it.</li>
+    <li><strong>Order 26 search running</strong> for the reduction in §5 — every connected cubic C₄-free graph on 26 vertices, tested for 8- then 16-cycles. Not complete at the time of writing.</li>
+  </ul>
+
+  <h3 style="margin-top:.6rem">The non-cubic analogue</h3>
+  <p>Exoo's <em class="m">f</em> is defined over cubic graphs. Writing <em class="m">f</em>*(<em class="m">k</em>) for the same quantity over all graphs of minimum degree ≥ 3, no values appear anywhere in the literature. Two rungs:</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>n</th><th>connected, δ≥3, C₄-free</th><th>also C₈-free</th><th class="note">note</th></tr></thead>
+    <tbody>
+      <tr><td>5–9</td><td>0</td><td>0</td><td class="note">Minimum degree 3 and no 4-cycle already forces 10 vertices.</td></tr>
+      <tr><td>10</td><td class="g">5</td><td>0</td><td class="note">3 cubic (= f(2)) plus <strong>2 non-cubic</strong>, both of degree sequence [3⁸,4²].</td></tr>
+      <tr><td>11</td><td>9</td><td>0</td><td class="note"></td></tr>
+      <tr><td>12</td><td>57</td><td>0</td><td class="note"></td></tr>
+      <tr><td>13</td><td>503</td><td>0</td><td class="note"></td></tr>
+      <tr><td>14</td><td>6 059</td><td>0</td><td class="note"></td></tr>
+      <tr><td>15</td><td>91 433</td><td>0</td><td class="note"></td></tr>
+      <tr class="hi"><td>16–23</td><td>—</td><td>—</td><td class="note">Not searched. So <strong>16 ≤ f*(3) ≤ 24</strong>, the upper bound by inheritance from the cubic case.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>So <span class="g">f*(2) = 10</span>, exactly as in the cubic case — dropping regularity buys nothing at the first rung. The two extra extremal graphs are worth noting: in one of them the two degree-4 vertices are <em class="m">non-adjacent</em>, which is exactly the configuration Markström's structural observation says a minimal counterexample must contain (an independent set of degree-≥4 vertices alongside degree-3 vertices). Both nevertheless contain 8-cycles, with full spectrum {3,5,6,7,8,9,10}.</p>
+
+  <h3 style="margin-top:.6rem">The four minimal graphs at order 24</h3>
+  <p>Recovered independently; graph6 format, cubic, girth 3, no 4- or 8-cycle, all containing a 16-cycle. The fourth is the planar one.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>#</th><th>graph6</th><th>planar</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td style="font-family:var(--mono);font-size:.7rem">W??G?C??KCCBa?OCgO@O@C??O?IG??G?K`??CO?K@???C@@</td><td>no</td></tr>
+      <tr><td>2</td><td style="font-family:var(--mono);font-size:.7rem">WK?Y?CAGK?G`?G??_?O_@????@WOO@O?C@O??OOK??O??D@</td><td>no</td></tr>
+      <tr><td>3</td><td style="font-family:var(--mono);font-size:.7rem">W?GG?C??CO?FW?P?q??g@?_@A?GA??a?E?_??GAH?_??A?P</td><td>no</td></tr>
+      <tr class="hi"><td>4</td><td style="font-family:var(--mono);font-size:.7rem">W?O@??O@COO@O_O?c?@?`c??P?GGG?W?C@@??o?G@@??E?@</td><td class="g">yes</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="margin-top:.6rem">An order-26 near-miss, and how it dodges</h3>
+  <p>A partial pass over order 26 turned up a cubic graph missing two of the three relevant powers of two. Its cycle spectrum is <strong>{3, 5, 6, 7, 9, 10, 11, …, 26}</strong> — every length from 3 to 26 <em class="m">except 4 and 8</em>. It contains a 16-cycle, so it is not a counterexample.</p>
+
+  <figure style="margin:.4rem 0">
+    <div class="scroll"><svg viewBox="0 0 700 580" role="img" aria-label="Drawing of a cubic graph on 26 vertices whose only triangle is highlighted; its cycle spectrum omits exactly 4 and 8.">
+<g stroke="var(--rule)" stroke-width="1.6" stroke-linecap="round">
+<line x1="292.9" y1="397.1" x2="161.8" y2="289.4"/>
+<line x1="292.9" y1="397.1" x2="458.4" y2="456.5"/>
+<line x1="292.9" y1="397.1" x2="195.2" y2="446.1"/>
+<line x1="391.0" y1="346.4" x2="519.7" y2="289.6"/>
+<line x1="391.0" y1="346.4" x2="337.2" y2="463.4"/>
+<line x1="391.0" y1="346.4" x2="253.5" y2="256.9"/>
+<line x1="207.8" y1="357.1" x2="161.8" y2="289.4"/>
+<line x1="207.8" y1="357.1" x2="370.0" y2="251.8"/>
+<line x1="207.8" y1="357.1" x2="142.4" y2="490.4"/>
+<line x1="585.3" y1="362.8" x2="519.7" y2="289.6"/>
+<line x1="585.3" y1="362.8" x2="458.4" y2="456.5"/>
+<line x1="585.3" y1="362.8" x2="592.9" y2="245.6"/>
+<line x1="161.8" y1="289.4" x2="114.4" y2="155.2"/>
+<line x1="519.7" y1="289.6" x2="520.1" y2="163.7"/>
+<line x1="47.9" y1="300.4" x2="46.0" y2="419.2"/>
+<line x1="47.9" y1="300.4" x2="49.8" y2="201.1"/>
+<line x1="47.9" y1="300.4" x2="253.5" y2="256.9"/>
+<line x1="370.0" y1="251.8" x2="238.6" y2="155.4"/>
+<line x1="370.0" y1="251.8" x2="592.9" y2="245.6"/>
+<line x1="458.4" y1="456.5" x2="316.2" y2="534.0"/>
+<line x1="316.2" y1="534.0" x2="142.4" y2="490.4"/>
+<line x1="316.2" y1="534.0" x2="337.2" y2="463.4"/>
+<line x1="46.0" y1="419.2" x2="142.4" y2="490.4"/>
+<line x1="46.0" y1="419.2" x2="195.2" y2="446.1"/>
+<line x1="195.2" y1="446.1" x2="337.2" y2="463.4"/>
+<line x1="114.4" y1="155.2" x2="49.8" y2="201.1"/>
+<line x1="114.4" y1="155.2" x2="225.1" y2="74.6"/>
+<line x1="49.8" y1="201.1" x2="238.6" y2="155.4"/>
+<line x1="520.1" y1="163.7" x2="352.5" y2="150.1"/>
+<line x1="520.1" y1="163.7" x2="631.9" y2="74.4"/>
+<line x1="238.6" y1="155.4" x2="349.7" y2="51.3"/>
+<line x1="253.5" y1="256.9" x2="352.5" y2="150.1"/>
+<line x1="352.5" y1="150.1" x2="225.1" y2="74.6"/>
+<line x1="225.1" y1="74.6" x2="349.7" y2="51.3"/>
+<line x1="349.7" y1="51.3" x2="531.3" y2="46.0"/>
+<line x1="592.9" y1="245.6" x2="654.0" y2="136.9"/>
+</g>
+<g stroke="var(--thresh)" stroke-width="3.4" stroke-linecap="round">
+<line x1="654.0" y1="136.9" x2="631.9" y2="74.4"/>
+<line x1="654.0" y1="136.9" x2="531.3" y2="46.0"/>
+<line x1="631.9" y1="74.4" x2="531.3" y2="46.0"/>
+</g>
+<circle cx="292.9" cy="397.1" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="391.0" cy="346.4" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="207.8" cy="357.1" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="585.3" cy="362.8" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="161.8" cy="289.4" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="519.7" cy="289.6" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="47.9" cy="300.4" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="370.0" cy="251.8" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="458.4" cy="456.5" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="316.2" cy="534.0" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="46.0" cy="419.2" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="142.4" cy="490.4" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="195.2" cy="446.1" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="337.2" cy="463.4" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="114.4" cy="155.2" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="49.8" cy="201.1" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="520.1" cy="163.7" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="238.6" cy="155.4" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="253.5" cy="256.9" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="352.5" cy="150.1" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="225.1" cy="74.6" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="349.7" cy="51.3" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="592.9" cy="245.6" r="5" fill="var(--graph)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="654.0" cy="136.9" r="6.5" fill="var(--thresh)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="631.9" cy="74.4" r="6.5" fill="var(--thresh)" stroke="var(--paper)" stroke-width="1.8"/>
+<circle cx="531.3" cy="46.0" r="6.5" fill="var(--thresh)" stroke="var(--paper)" stroke-width="1.8"/>
+</svg></div>
+    <figcaption>The graph has exactly one triangle (amber). Contract it and what remains is a cubic graph on 24 vertices of girth 5 — whose spectrum is the full run {5,…,24}, including 8 and 16.<br><br>graph6: <span style="word-break:break-all">Y?hO@AO?GCCB_AOC`??C@@??@?QC????S??`??@Ga?????@??A@???D_</span></figcaption>
+  </figure>
+
+  <p>So the object is not arbitrary. It is a 24-vertex graph with <em class="m">one vertex blown up into a triangle</em>, and that single operation does all the work. Expanding a vertex lengthens every cycle through it by one and leaves every other cycle alone. The question is whether you can find a vertex that all the unwanted cycles happen to pass through.</p>
+
+  <div class="stmt">
+    <p>The 24-vertex contraction has <strong>exactly nine 8-cycles, and all nine run through the expanded vertex.</strong> Blowing it up moves every one of them to length 9 and leaves nothing at 8. The ten 7-cycles all avoid that vertex, so they stay at 7 and never arrive at 8 from below.</p>
+  </div>
+
+  <p>That is Markström's and Exoo's gadget method in its smallest possible form — not a 7-vertex gadget applied wholesale, but a single triangle placed at the one vertex where it annihilates an entire cycle length. It also sharpens §2: this graph realises 22 of its 24 available cycle lengths. Dodging powers of two has nothing to do with having a sparse spectrum, and everything to do with a local operation that shifts one length off a target.</p>
+
+  <h3 style="margin-top:.6rem">The order-26 extremal family</h3>
+  <p>Where order 24 has four graphs avoiding 4- and 8-cycles, order 26 has <strong>23</strong> — a count Markström reports in his Table 3, alongside 251 at order 28. He draws the four order-24 graphs but does not list the order-26 family, so the graph6 strings and the structural breakdown below are the part of this that is not already in print. All 23 are cubic and connected; none is planar; all contain 16-cycles.</p>
+  <p>The striking regularity is triangles. <strong>Every one of the 23 has at least one</strong>, with counts running over every value from 1 to 8 — and the same was true of all four graphs at order 24. Not a single extremal graph at either order has girth 5. That is why the girth ≥ 5 shortcut, which shrinks the search by a factor of 60, would have returned a clean sweep of nothing and looked like a result.</p>
+  <div class="scroll" style="max-height:20rem; overflow-y:auto">
+  <table>
+    <thead><tr><th>#</th><th>graph6 — cubic, order 26, no C₄, no C₈, contains C₁₆</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y??H?A??E?O@O?OOe?@?@C??OOGOG?O?cD??@C?GCC??W?@?GA??K??_</td></tr>
+      <tr><td>2</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y??H?A??E?O@O?OOe?@?@CG?O?GOG?O?cD??@C?GCC??W?@?C@??K??_</td></tr>
+      <tr><td>3</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y??K??Q?X???OA?@w?C?@K??_?GO?_O?KC@?@C?Ga???W?@O@???B??_</td></tr>
+      <tr><td>4</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y??K??Q?X???o?_?g?A?HK??_?GOA?O?KCC?@C?Ga???W?@?AG??B??_</td></tr>
+      <tr><td>5</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?GG?A???O?F??D?q??E@W?@C?GD?AC?C@??CO?H?_??A?D_?_??A_?_</td></tr>
+      <tr><td>6</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?GG?A???O?F_A??q??E@W?@C?GD?AC?C@??CO?H?_??A?DC?O?@?O?_</td></tr>
+      <tr><td>7</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?GG?A?G?O?@_A??q??E@W?@C?GD?AC?C@O?CO?G@G??A_@C?O?@?O?_</td></tr>
+      <tr><td>8</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?GI????CO?F??C??W??FW?@C?K_??g?C@A??OOK@???S?@GC???C_?_</td></tr>
+      <tr><td>9</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?GI???G?O?F_A??q??C@G??@?Y??QG?C@O?CO?K@???S?@C?O?@?O?_</td></tr>
+      <tr><td>10</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?GI?C??CO?F??C?K?AG@c??S?GA??AAE?_??g?H?_??AO@??__??o?_</td></tr>
+      <tr><td>11</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?GI?C??CO?F??C?K?AG@c??S?K@??D?C_O??C_GAC???O@?OO???O@_</td></tr>
+      <tr><td>12</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?HA@C?WGO?@??B?o??G?_G?A_G_G?AGE?A??A_G_@???C@C?C???C@_</td></tr>
+      <tr><td>13</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?HI@c??G?G@A???o?C?DC??S?K@??@?S?S??C?G?P??P?@G?O???OC_</td></tr>
+      <tr><td>14</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?`W@c??C_G@????D???F?`??oG@??D?D?O??C?K?C???OPG?O???OC_</td></tr>
+      <tr><td>15</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y?hO@AO?GCCB_AOC`??C@@??@?QC????S??`??@Ga?????@??A@???D_</td></tr>
+      <tr><td>16</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">YC?I?OOA??A?___?k?A?PG??_OGGO?G?C@@??o?G@?O?E?@?@?O?B??_</td></tr>
+      <tr><td>17</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">YCGA@EAGG?AH?AA?_?O_@AA???K?@???D?O?P??GG?G??G`@??O??CO_</td></tr>
+      <tr><td>18</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">YCHY@CA?G??B??CO????F????aH?G??@E?A?_?GG?OA@@?@O?A??CA?_</td></tr>
+      <tr><td>19</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">YG@G?c?GW@??_?@?A?O_@A@?g?GD?AC?E?G??A?K?G???_B??S???o?_</td></tr>
+      <tr><td>20</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">YK?I??O?A?A?_?_Oc?@?`AO?GOGCC?E?C?__?K?GGO??@?@@@???@?@_</td></tr>
+      <tr><td>21</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">YK?Y?CAGCO?E???@_C??RO??G?H??G??C@O?CO?K?C???S@@??O??AO_</td></tr>
+      <tr><td>22</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">YKHA?_AGOO?F????_C??S??GB?G?C?g?C??A??KK??OO??DA?O?@?O?_</td></tr>
+      <tr><td>23</td><td style="font-family:var(--mono);font-size:.66rem;word-break:break-all">Y_?K??Q@X??__???G@A?@K??_@GO??OACP???o?G?G_?@_@??__??o?_</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="margin-top:.6rem">A note on tooling, since it decided what was reachable</h3>
+  <p><code>nauty-geng</code> is the obvious generator and the wrong one. Asked for cubic graphs it enumerates everything and filters down to 3-regular, running at roughly 145 graphs per second per core — generation-bound, with the cycle test idling at under 1% CPU. At that rate order 26 is a multi-day job.</p>
+  <p><code>snarkhunter</code> (Brinkmann–Goedgebeur) constructs cubic graphs directly and runs the same pipeline at about 385 000 graphs per second — a factor of 2 600. Order 24 goes from "never finished" to 295 seconds, which is the difference between guessing at Markström's four graphs and simply producing them. It is not packaged anywhere; building it also requires compiling nauty from source for its static libraries. Everything above is <code>snarkhunter n 3 s o g</code> piped into about eighty lines of C.</p>
+  <p><strong>Girth is the trap.</strong> <code>snarkhunter</code> takes a minimum girth, and it is tempting to ask for girth ≥ 5 since that makes the search tiny. That would be wrong: 3 is not a power of two, so triangles are perfectly legal in a counterexample — and in fact <em class="m">all four</em> of the order-24 extremal graphs have girth 3. The girth ≥ 5 runs above are a genuine but partial slice, about 1.5% of the space at order 26.</p>
+</section>
+
+<section class="sec">
+  <div class="sechead"><h2>Standing on</h2></div>
+  <ul>
+    <li>Bondy &amp; Vince, <em class="m">Cycles in a graph whose lengths differ by one or two</em>, J. Graph Theory 27 (1998) — source of Proposition 4.</li>
+    <li>Exoo, <em class="m">Three graphs and the Erdős–Gyárfás conjecture</em>, <a href="https://arxiv.org/abs/1403.5636">arXiv:1403.5636</a> — the f(k) values and the gadget constructions.</li>
+    <li>Markström, <em class="m">Extremal graphs for some problems on cycles in graphs</em>, Congressus Numerantium 171 (2004) — the primary source, obtained late. Table 3 gives the counts of cubic graphs with no C₄ and no C₈: <strong>4</strong> at order 24, <strong>23</strong> at 26, <strong>251</strong> at 28. §4 records that all cubic graphs on fewer than 29 vertices were checked for cycles of length 4, 8 and 16 with no counterexample, and credits Gordon Royle with the corresponding search over the non-cubic degree structure at smaller orders.</li>
+    <li>Liu, Yu &amp; Zhang, <em class="m">Circumference of 3-connected cubic graphs</em>, <a href="https://arxiv.org/abs/1708.08865">arXiv:1708.08865</a> — the Ω(n<sup>0.8</sup>) bound used in §4.</li>
+    <li>Gao, Huo, Liu &amp; Ma, <em class="m">A unified proof of conjectures on cycle lengths in graphs</em>, <a href="https://arxiv.org/abs/1904.08126">arXiv:1904.08126</a>; Bucić, Gishboliner &amp; Sudakov, <a href="https://arxiv.org/abs/2104.07633">arXiv:2104.07633</a> — the machinery §2 rules out.</li>
+    <li>Carr, <em class="m">Every minimal counterexample to the Erdős–Gyárfás conjecture is predominantly cubic</em>, <a href="https://arxiv.org/abs/2605.22844">arXiv:2605.22844</a> — why the cubic case carries the weight.</li>
+  </ul>
+</section>
+
+<footer class="foot">
+  <p><strong>Status.</strong> Propositions 1–4 are elementary and self-contained. Proposition 5 is conditional on 3-connectivity. The §5 reduction is settled at order 26 and open at orders 28 and 30. The lemma failure in §6 is established; the stronger claim that G₄₅₀ actually contains a 32-cycle is reconstruction-dependent and should be checked against Exoo's own code before being relied on. Nothing here proves or disproves the conjecture.</p>
+  <p><strong>Provenance.</strong> The f(k)-versus-2ᵏ⁺¹ framing, Propositions 1–5, and the §6 lemma failure are derived here; a literature sweep found no prior statement of them, which is weak evidence of novelty and no more.</p>
+  <p><strong>Correction.</strong> An earlier version presented the order-26 census as new and the §5 reduction as leaving orders 26, 28 and 30 open. Both were wrong. Markström's 2004 paper gives the counts 4, 23 and 251 at orders 24, 26 and 28, and his data page records a complete search of all cubic graphs on N ≤ 52 for cycles of length 4, 8 and 16 — closing the entire k = 4 case and supplying the f(4) ≥ 54 bound that had been cited as unpublished. Every computation here at orders 24 and 26 reproduces his results exactly; none extends them.</p>
+  <p><strong>How the error happened,</strong> since it was not a computational one. Four literature sweeps reported the paper unretrievable, and I let that harden into "not previously known" — then designed a search premised on the gap. The retrieval failure was also avoidable and systematic: the paper sits on a plain-HTTP host, and the fetch tool upgrades HTTP to HTTPS, so those requests could never have succeeded, while an ordinary <code>curl</code> returns it immediately. Absence of a source is a fact about one's access, not about the field.</p>
+</footer>
+
+</div>

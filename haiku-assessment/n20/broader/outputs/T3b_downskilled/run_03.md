@@ -1,0 +1,1 @@
+Caching layer released after months of design and iteration. Early adopters report reduced latency and a straightforward developer experience. The system is available for opt-in use; documentation and migration guidance follow this announcement. The prior caching approach remains available during transition.

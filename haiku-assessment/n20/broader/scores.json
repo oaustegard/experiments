@@ -1,0 +1,705 @@
+{
+  "T4_vanilla": [
+    {
+      "parseable": true,
+      "keys": [
+        "attendees",
+        "date",
+        "duration_minutes",
+        "location",
+        "notes",
+        "organizer",
+        "time",
+        "title"
+      ],
+      "extra_keys": [
+        "attendees",
+        "date",
+        "time"
+      ],
+      "no_extra_keys": false,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 209,
+      "_file": "run_01.md"
+    },
+    {
+      "parseable": true,
+      "keys": [
+        "date",
+        "description",
+        "duration_minutes",
+        "location",
+        "meeting_title",
+        "notes",
+        "organizer",
+        "time"
+      ],
+      "extra_keys": [
+        "date",
+        "description",
+        "meeting_title",
+        "time"
+      ],
+      "no_extra_keys": false,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 252,
+      "_file": "run_02.md"
+    },
+    {
+      "parseable": true,
+      "keys": [
+        "day",
+        "duration_minutes",
+        "location",
+        "meeting_type",
+        "organizer",
+        "requirements",
+        "time",
+        "topic"
+      ],
+      "extra_keys": [
+        "day",
+        "meeting_type",
+        "requirements",
+        "time",
+        "topic"
+      ],
+      "no_extra_keys": false,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 210,
+      "_file": "run_03.md"
+    },
+    {
+      "parseable": true,
+      "keys": [
+        "attendees",
+        "day",
+        "duration_minutes",
+        "event_type",
+        "location",
+        "organizer",
+        "requirements",
+        "time",
+        "title"
+      ],
+      "extra_keys": [
+        "attendees",
+        "day",
+        "event_type",
+        "requirements",
+        "time"
+      ],
+      "no_extra_keys": false,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 233,
+      "_file": "run_04.md"
+    },
+    {
+      "parseable": true,
+      "keys": [
+        "day",
+        "duration",
+        "location",
+        "meeting_type",
+        "organizer",
+        "requirements",
+        "time",
+        "topic"
+      ],
+      "extra_keys": [
+        "day",
+        "duration",
+        "meeting_type",
+        "requirements",
+        "time",
+        "topic"
+      ],
+      "no_extra_keys": false,
+      "duration_correct": false,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 219,
+      "_file": "run_05.md"
+    }
+  ],
+  "T4_downskilled": [
+    {
+      "parseable": true,
+      "keys": [
+        "datetime",
+        "duration_minutes",
+        "location",
+        "notes",
+        "organizer",
+        "title"
+      ],
+      "extra_keys": [],
+      "no_extra_keys": true,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 171,
+      "_file": "run_01.md"
+    },
+    {
+      "parseable": true,
+      "keys": [
+        "datetime",
+        "duration_minutes",
+        "location",
+        "notes",
+        "organizer",
+        "title"
+      ],
+      "extra_keys": [],
+      "no_extra_keys": true,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 171,
+      "_file": "run_02.md"
+    },
+    {
+      "parseable": true,
+      "keys": [
+        "datetime",
+        "duration_minutes",
+        "location",
+        "notes",
+        "organizer",
+        "title"
+      ],
+      "extra_keys": [],
+      "no_extra_keys": true,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 170,
+      "_file": "run_03.md"
+    },
+    {
+      "parseable": true,
+      "keys": [
+        "datetime",
+        "duration_minutes",
+        "location",
+        "notes",
+        "organizer",
+        "title"
+      ],
+      "extra_keys": [],
+      "no_extra_keys": true,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 171,
+      "_file": "run_04.md"
+    },
+    {
+      "parseable": true,
+      "keys": [
+        "datetime",
+        "duration_minutes",
+        "location",
+        "notes",
+        "organizer",
+        "title"
+      ],
+      "extra_keys": [],
+      "no_extra_keys": true,
+      "duration_correct": true,
+      "location_correct": true,
+      "organizer_correct": true,
+      "char_count": 171,
+      "_file": "run_05.md"
+    }
+  ],
+  "T5_vanilla": [
+    {
+      "word_count": 19,
+      "in_length": false,
+      "starts_with_action": false,
+      "refactor_framing": false,
+      "impl_leak": false,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Changed `parse_date()` to accept optional timezone parameter; when `tz=None`, returns timezone-naive datetime instead of",
+      "_file": "run_01.md"
+    },
+    {
+      "word_count": 18,
+      "in_length": true,
+      "starts_with_action": false,
+      "refactor_framing": true,
+      "impl_leak": true,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Refactor `parse_date()` to use `ZoneInfo` for timezone handling and allow returning naive datetimes when no timezone is ",
+      "_file": "run_02.md"
+    },
+    {
+      "word_count": 17,
+      "in_length": true,
+      "starts_with_action": false,
+      "refactor_framing": false,
+      "impl_leak": true,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Changed `parse_date()` to accept optional timezone parameter using `ZoneInfo`, returning naive datetime when no timezone",
+      "_file": "run_03.md"
+    },
+    {
+      "word_count": 13,
+      "in_length": true,
+      "starts_with_action": true,
+      "refactor_framing": false,
+      "impl_leak": true,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Fix `parse_date()` to handle timezone-naive datetimes and use `ZoneInfo` for timezone handling.",
+      "_file": "run_04.md"
+    },
+    {
+      "word_count": 13,
+      "in_length": true,
+      "starts_with_action": true,
+      "refactor_framing": false,
+      "impl_leak": true,
+      "hallucinated_deprecated": true,
+      "multi_line": false,
+      "first_line": "Fix `parse_date()` to accept `None` timezone and use `ZoneInfo` instead of deprecated `timezone()`.",
+      "_file": "run_05.md"
+    }
+  ],
+  "T5_downskilled": [
+    {
+      "word_count": 11,
+      "in_length": true,
+      "starts_with_action": true,
+      "refactor_framing": false,
+      "impl_leak": false,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Change parse_date() default behavior to return naive datetime instead of UTC.",
+      "_file": "run_01.md"
+    },
+    {
+      "word_count": 10,
+      "in_length": true,
+      "starts_with_action": true,
+      "refactor_framing": false,
+      "impl_leak": false,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Fix parse_date() to return naive datetime when no timezone specified.",
+      "_file": "run_02.md"
+    },
+    {
+      "word_count": 10,
+      "in_length": true,
+      "starts_with_action": true,
+      "refactor_framing": false,
+      "impl_leak": false,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Fix parse_date() to return naive datetime when tz is None.",
+      "_file": "run_03.md"
+    },
+    {
+      "word_count": 10,
+      "in_length": true,
+      "starts_with_action": true,
+      "refactor_framing": false,
+      "impl_leak": false,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Fix parse_date() to return naive datetime when tz is None.",
+      "_file": "run_04.md"
+    },
+    {
+      "word_count": 11,
+      "in_length": true,
+      "starts_with_action": true,
+      "refactor_framing": false,
+      "impl_leak": false,
+      "hallucinated_deprecated": false,
+      "multi_line": false,
+      "first_line": "Fix parse_date() to return naive datetime when tz argument is None.",
+      "_file": "run_05.md"
+    }
+  ],
+  "T6_vanilla": [
+    {
+      "top3_complete": true,
+      "correct_tie_break": false,
+      "tight_schema": false,
+      "has_markdown": true,
+      "char_count": 681,
+      "_file": "run_01.md"
+    },
+    {
+      "top3_complete": true,
+      "correct_tie_break": false,
+      "tight_schema": false,
+      "has_markdown": true,
+      "char_count": 618,
+      "_file": "run_02.md"
+    },
+    {
+      "top3_complete": true,
+      "correct_tie_break": true,
+      "tight_schema": false,
+      "has_markdown": true,
+      "char_count": 808,
+      "_file": "run_03.md"
+    },
+    {
+      "top3_complete": true,
+      "correct_tie_break": true,
+      "tight_schema": false,
+      "has_markdown": true,
+      "char_count": 767,
+      "_file": "run_04.md"
+    },
+    {
+      "top3_complete": true,
+      "correct_tie_break": false,
+      "tight_schema": false,
+      "has_markdown": true,
+      "char_count": 608,
+      "_file": "run_05.md"
+    }
+  ],
+  "T6_downskilled": [
+    {
+      "top3_complete": true,
+      "correct_tie_break": true,
+      "tight_schema": true,
+      "has_markdown": false,
+      "char_count": 152,
+      "_file": "run_01.md"
+    },
+    {
+      "top3_complete": true,
+      "correct_tie_break": true,
+      "tight_schema": true,
+      "has_markdown": false,
+      "char_count": 152,
+      "_file": "run_02.md"
+    },
+    {
+      "top3_complete": true,
+      "correct_tie_break": true,
+      "tight_schema": true,
+      "has_markdown": false,
+      "char_count": 152,
+      "_file": "run_03.md"
+    },
+    {
+      "top3_complete": true,
+      "correct_tie_break": true,
+      "tight_schema": true,
+      "has_markdown": false,
+      "char_count": 152,
+      "_file": "run_04.md"
+    },
+    {
+      "top3_complete": true,
+      "correct_tie_break": true,
+      "tight_schema": true,
+      "has_markdown": false,
+      "char_count": 152,
+      "_file": "run_05.md"
+    }
+  ],
+  "T7_vanilla": [
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --assignee alice --label bug --state open --sort created --order asc",
+      "uses_invented_flags": true,
+      "uses_correct_search_sort": false,
+      "correct_command": false,
+      "multi_line": true,
+      "has_markdown": true,
+      "_file": "run_01.md"
+    },
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --assignee alice --label bug --state open --sort created --order asc",
+      "uses_invented_flags": true,
+      "uses_correct_search_sort": false,
+      "correct_command": false,
+      "multi_line": true,
+      "has_markdown": true,
+      "_file": "run_02.md"
+    },
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --assignee alice --label bug --state open --sort created --order asc",
+      "uses_invented_flags": true,
+      "uses_correct_search_sort": false,
+      "correct_command": false,
+      "multi_line": true,
+      "has_markdown": true,
+      "_file": "run_03.md"
+    },
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --assignee alice --label bug --state open --sort created --order asc",
+      "uses_invented_flags": true,
+      "uses_correct_search_sort": false,
+      "correct_command": false,
+      "multi_line": true,
+      "has_markdown": true,
+      "_file": "run_04.md"
+    },
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --assignee alice --label bug --state open --sort created --order asc",
+      "uses_invented_flags": true,
+      "uses_correct_search_sort": false,
+      "correct_command": false,
+      "multi_line": true,
+      "has_markdown": true,
+      "_file": "run_05.md"
+    }
+  ],
+  "T7_downskilled": [
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --state open --assignee alice --label bug --search \"sort:created-asc\"",
+      "uses_invented_flags": false,
+      "uses_correct_search_sort": true,
+      "correct_command": true,
+      "multi_line": false,
+      "has_markdown": false,
+      "_file": "run_01.md"
+    },
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --state open --assignee alice --label bug --search \"sort:created-asc\"",
+      "uses_invented_flags": false,
+      "uses_correct_search_sort": true,
+      "correct_command": true,
+      "multi_line": false,
+      "has_markdown": false,
+      "_file": "run_02.md"
+    },
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --state open --assignee alice --label bug --search \"sort:created-asc\"",
+      "uses_invented_flags": false,
+      "uses_correct_search_sort": true,
+      "correct_command": true,
+      "multi_line": false,
+      "has_markdown": false,
+      "_file": "run_03.md"
+    },
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --state open --assignee alice --label bug --search \"sort:created-asc\"",
+      "uses_invented_flags": false,
+      "uses_correct_search_sort": true,
+      "correct_command": true,
+      "multi_line": false,
+      "has_markdown": false,
+      "_file": "run_04.md"
+    },
+    {
+      "has_gh_line": true,
+      "first_cmd": "gh pr list --state open --assignee alice --label bug --search \"sort:created-asc\"",
+      "uses_invented_flags": false,
+      "uses_correct_search_sort": true,
+      "correct_command": true,
+      "multi_line": false,
+      "has_markdown": false,
+      "_file": "run_05.md"
+    }
+  ],
+  "T8_vanilla": [
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": true,
+      "has_clean_para": true,
+      "char_count": 970,
+      "_file": "run_01.md"
+    },
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": true,
+      "has_clean_para": true,
+      "char_count": 1372,
+      "_file": "run_02.md"
+    },
+    {
+      "fixes_present": 8,
+      "has_numbered_list": false,
+      "has_section_headers": true,
+      "has_clean_para": true,
+      "char_count": 796,
+      "_file": "run_03.md"
+    },
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": true,
+      "has_clean_para": true,
+      "char_count": 1093,
+      "_file": "run_04.md"
+    },
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": true,
+      "has_clean_para": true,
+      "char_count": 925,
+      "_file": "run_05.md"
+    }
+  ],
+  "T8_downskilled": [
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": false,
+      "has_clean_para": true,
+      "char_count": 805,
+      "_file": "run_01.md"
+    },
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": false,
+      "has_clean_para": true,
+      "char_count": 818,
+      "_file": "run_02.md"
+    },
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": false,
+      "has_clean_para": true,
+      "char_count": 765,
+      "_file": "run_03.md"
+    },
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": false,
+      "has_clean_para": true,
+      "char_count": 805,
+      "_file": "run_04.md"
+    },
+    {
+      "fixes_present": 8,
+      "has_numbered_list": true,
+      "has_section_headers": false,
+      "has_clean_para": true,
+      "char_count": 821,
+      "_file": "run_05.md"
+    }
+  ],
+  "T3b_vanilla": [
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 6,
+      "word_count": 210,
+      "in_length_range": false,
+      "has_markdown": true,
+      "_file": "run_01.md"
+    },
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 5,
+      "word_count": 104,
+      "in_length_range": false,
+      "has_markdown": true,
+      "_file": "run_02.md"
+    },
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 0,
+      "word_count": 57,
+      "in_length_range": false,
+      "has_markdown": true,
+      "_file": "run_03.md"
+    },
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 6,
+      "word_count": 178,
+      "in_length_range": false,
+      "has_markdown": true,
+      "_file": "run_04.md"
+    },
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 0,
+      "word_count": 48,
+      "in_length_range": false,
+      "has_markdown": true,
+      "_file": "run_05.md"
+    }
+  ],
+  "T3b_downskilled": [
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 0,
+      "word_count": 55,
+      "in_length_range": false,
+      "has_markdown": false,
+      "_file": "run_01.md"
+    },
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 0,
+      "word_count": 57,
+      "in_length_range": false,
+      "has_markdown": false,
+      "_file": "run_02.md"
+    },
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 0,
+      "word_count": 42,
+      "in_length_range": false,
+      "has_markdown": false,
+      "_file": "run_03.md"
+    },
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 0,
+      "word_count": 56,
+      "in_length_range": false,
+      "has_markdown": false,
+      "_file": "run_04.md"
+    },
+    {
+      "halluc_count": 0,
+      "halluc_terms": [],
+      "banned_count": 0,
+      "word_count": 51,
+      "in_length_range": false,
+      "has_markdown": false,
+      "_file": "run_05.md"
+    }
+  ]
+}

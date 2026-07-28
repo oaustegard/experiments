@@ -1,0 +1,1 @@
+Caching layer released. It sits between the application and the primary datastore, intercepting read requests and returning cached values on hit. The implementation uses in-memory storage with LRU eviction and TTL-based expiry. Benchmarks show lower p99 latency on cache hits; the developer API consists of `cache.get(key)` and `cache.set(key, value, ttl)`.

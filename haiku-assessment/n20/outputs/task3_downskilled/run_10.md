@@ -1,0 +1,1 @@
+Caching layer released. It sits between the application and primary data store, intercepting reads and serving cached hits with sub-millisecond latency. Write-through updates maintain cache coherence; developers configure TTL per key or via annotation. Early testing shows lower p99 latency on cached reads and simpler application code compared to manual Redis integration.

@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Optimization of functions defined over the combinatorial set of Young diagrams (integer partitions), where the feasible set is discrete and grows combinatorially with the number of boxes.",
+    "methods": "Inferred from title and subfield (math.OC): formulating Young-diagram optimization via convex relaxations on the permutohedron/dominance order, polymatroid/submodular optimization, and/or local-search moves over diagrams (adding/removing boxes). Likely leverages the rich combinatorial-representation-theoretic structure (Young's lattice, RSK correspondence, hook-length identities).",
+    "regime": "Discrete optimization over a lattice-ordered combinatorial family parameterized by partition size n; objective functions presumably monotone, submodular, or otherwise structured along the dominance order.",
+    "hypothesized_generalization": "Techniques should extend to optimization over other lattices of combinatorial objects with similar order-theoretic structure (plane partitions, skew shapes, more generally distributive lattices arising from poset ideals) and to continuous relaxations via the order polytope / chain polytope of the underlying poset."
+  },
+  "b_extract": {
+    "problem": "Computing expander decompositions of directed graphs in near-linear time: partitioning edges of a digraph into clusters that are well-connected (expanding) internally while crossing few inter-cluster edges, generalizing the classical undirected expander decomposition.",
+    "methods": "Inferred from snippet (cs.DS): cut-matching games adapted to the directed setting, recursive flow-based balanced-cut subroutines, push-relabel / interior-point flow primitives, and analysis via directed conductance or sparse-cut certificates. Used as a primitive inside min-cost flow and max-flow breakthroughs (Van den Brand et al. FOCS 2024, Chuzhoy-Khanna).",
+    "regime": "Massive sparse digraphs with m edges; algorithms targeting m^{1+o(1)} runtime; conductance / sparsity parameter phi controlling tradeoff between cluster quality and inter-cluster edges.",
+    "hypothesized_generalization": "Framework should extend to weighted/dynamic digraphs, to hypergraph or matroid analogues, and to recursive decompositions where the partition itself satisfies additional combinatorial constraints (e.g. respecting a given poset or layered structure)."
+  },
+  "bridge": {
+    "compatibility": "low",
+    "rationale": "The two papers live in genuinely distinct technical universes — combinatorics of integer partitions on one side, spectral/flow-based graph algorithmics on the other — with no direct shared object. A bridge is conceivable only via an intermediate combinatorial-polytope construction, and the transferred ideas would be specialized rather than generic.",
+    "mediator": "Order polytopes / Young's lattice viewed as a DAG, connected to directed expansion of Hasse diagrams of distributive lattices.",
+    "sketch": "Young's lattice is a locally-finite DAG whose vertices are partitions and whose edges encode box-addition; truncations of this DAG (partitions fitting in an n x n box) are highly structured digraphs whose directed conductance, expansion, and decomposition behavior are largely unstudied. A researcher could (a) compute directed expander decompositions of Hasse diagrams of distributive lattices (Young's lattice, Young-Fibonacci, plane-partition lattices) and ask whether the resulting clusters correspond to natural combinatorial substructures (e.g. rectangular sub-diagrams, hook classes), then (b) use such decompositions as a divide-and-conquer scaffold for optimization over Young diagrams — solving locally on each expanding cluster and stitching via the few inter-cluster boundary edges, mirroring how expander decompositions accelerate min-cost flow. Conversely, the rich symmetry of Young's lattice could supply a clean testbed where directed-expander-decomposition guarantees can be sharpened or shown tight."
+  }
+}

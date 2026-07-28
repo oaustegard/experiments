@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Understanding how a d-dimensional cube can be unfolded into a (d-1)-dimensional net, and related combinatorial-geometric questions about packings, partitions, and chord systems on cubes.",
+    "methods": "Combinatorial geometry of polytopes; analysis of spanning trees of the facet adjacency graph (each unfolding corresponds to such a tree); tilings/packings of the unfolded net in Euclidean space; chord/partition combinatorics on cube boundaries.",
+    "regime": "Discrete/combinatorial; finite-dimensional cubes (d >= 2) with emphasis on small d; exact existence/enumeration results rather than asymptotic bounds.",
+    "hypothesized_generalization": "Results likely generalize to other zonotopes or reflexive polytopes; unfolding-as-spanning-tree framework should extend to any polytope whose facet-adjacency graph carries enough symmetry; packing/tiling statements may admit higher-dimensional or non-Euclidean (e.g. flat-torus) analogues."
+  },
+  "b_extract": {
+    "problem": "Drawing geodetic graphs (graphs in which every pair of vertices is joined by a unique shortest path) in the plane so that the drawing realizes the shortest-path structure faithfully — e.g. each shortest path is drawn as a monotone or straight-line curve.",
+    "methods": "Graph drawing techniques; combinatorial characterization of geodetic graphs; planarity and pseudoline-arrangement arguments; likely uses of force-directed or coordinate-assignment algorithms together with structural graph theory.",
+    "regime": "Discrete; finite graphs, primarily planar or near-planar; worst-case combinatorial guarantees on drawing feasibility and complexity.",
+    "hypothesized_generalization": "Likely extends to graphs with bounded number of shortest paths per pair (k-geodetic), to higher-genus surfaces, or to metric graphs where 'shortest path' is replaced by a chosen geodesic system; methods may transfer to drawing arrangements of pseudolines or curves with prescribed intersection patterns."
+  },
+  "bridge": {
+    "compatibility": "medium",
+    "rationale": "Both papers sit in discrete geometry and concern realizations of combinatorial structures in low-dimensional Euclidean space: A turns spanning trees of the cube's facet graph into planar nets, and B turns shortest-path systems of geodetic graphs into planar drawings. Both are essentially asking when a discrete combinatorial object (an unfolding, a geodesic system) admits a non-crossing/realizable layout in the plane.",
+    "mediator": "Planar realizations of combinatorial geodesic/tree systems (the 1-skeleton of a cube unfolding is a spanning tree that must be drawn without overlap; geodetic-graph shortest paths form a tree-like system per source vertex that must be drawn without crossings).",
+    "sketch": "A researcher could view the facet-adjacency graph of a d-cube as a small geodetic graph (it is vertex-transitive, with well-controlled shortest-path structure) and ask: which unfoldings of the cube correspond to faithful planar drawings of this graph's shortest-path system? Conversely, techniques from B for realizing shortest-path systems as planar straight-line drawings might give new sufficient conditions for non-overlapping unfoldings of cubes and other zonotopes, or quantify the 'overlap defect' of an unfolding in terms of geodetic invariants. A concrete first attempt: characterize d-cube unfoldings whose dual spanning tree, drawn in the net, is a shortest-path tree of a geodetic graph on the facets."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Improve the explicit lower bound for the Erdős unit distance problem: maximum number of unit distances determined by n points in the plane, sharpening the recent OpenAI-team proof and making every constant explicit.",
+    "methods": "Construct high-dimensional lattices from rings of integers (or ideals) of CM number fields K/K^+ with many small split primes and controlled relative class number; project to the plane via complex embeddings; use a pigeonhole argument on the class group; build infinite towers of such fields via Golod-Shafarevich p-class field tower constructions, modified (quotient by powers of Frobenius) to bound inertia degree.",
+    "regime": "Asymptotic n → ∞ lower bound for the unit-distance count; uses sequences of number fields of growing degree with discriminant exponential in degree.",
+    "hypothesized_generalization": "Better bounds should be achievable by sharpening analytic class-number estimates, exhibiting number-field towers satisfying different local splitting conditions, or finding better parameter choices computationally; the same lattice-from-number-field machinery may extend to other incidence/distance problems."
+  },
+  "b_extract": {
+    "problem": "Determine exact values and improved upper bounds of u(n), the maximum number of unit distances in an n-point planar set, for small n, and enumerate all densest unit-distance graphs achieving these values.",
+    "methods": "Three-stage filter pipeline on candidate graphs: (1) enumerate H-free graphs using Globus-Parshall minimal forbidden subgraphs plus nauty enumeration with dense-subgraph tricks; (2) filter using 'totally unfaithful' unit-distance gadgets that force non-embeddability; (3) custom embeddability solver using Euclidean-geometry/linear-algebra moves rather than general cylindrical algebraic decomposition.",
+    "regime": "Finite, small n (roughly up to ~21 vertices); exact combinatorial/algorithmic determination, not asymptotic.",
+    "hypothesized_generalization": "The combinatorial-algebraic filtering pipeline could be pushed to larger n by extending the forbidden-subgraph catalogue, finding more totally-unfaithful gadgets, and improving the specialized embeddability solver; the framework generalizes to other distance-graph realizability problems."
+  },
+  "bridge": {
+    "compatibility": "high",
+    "rationale": "Both papers attack exactly the same Erdős unit-distance quantity u(n), but from opposite ends: Paper A pushes the asymptotic lower bound via number-field lattice constructions, Paper B pins down exact values for small n via algorithmic enumeration and embeddability testing. They are natural complements within a single problem, and the constructions in A produce explicit point configurations whose small-n instances feed directly into B's analysis.",
+    "mediator": "Lattice constructions from number fields realized as explicit small-n point configurations (and the unit-distance graphs they induce)",
+    "sketch": "A bridge result would take the lattice-projection construction from Paper A, instantiate it for small CM fields (e.g., low-degree cyclotomic or Q(sqrt(-d)) with small discriminant), intersect with a ball giving n in the range Paper B handles, and run Paper B's embeddability solver and enumeration to either (i) certify that the number-field-derived configurations are extremal/densest for those small n, or (ii) discover that Paper B's exhaustively-enumerated densest graphs all admit number-field realizations — giving structural insight into why the extremal configurations are arithmetic. Conversely, Paper B's totally-unfaithful gadgets and forbidden-subgraph catalogue impose explicit local constraints that the projected lattices must respect, which could feed back into Paper A as additional constraints to optimize the parameter search for which number-field towers yield the densest projections. A concrete attempt: take the Golod-Shafarevich p-class field tower at its smallest few levels, project, and compare the resulting unit-distance graphs at n ≤ 21 against Paper B's complete tables."
+  }
+}

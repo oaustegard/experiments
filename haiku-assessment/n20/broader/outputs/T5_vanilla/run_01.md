@@ -1,0 +1,1 @@
+- Changed `parse_date()` to accept optional timezone parameter; when `tz=None`, returns timezone-naive datetime instead of defaulting to UTC

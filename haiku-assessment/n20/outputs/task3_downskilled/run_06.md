@@ -1,0 +1,1 @@
+Caching layer released. It sits between application code and the data store, using LRU eviction with TTL-based expiry and optional write-through semantics. Early testing shows lower p99 latency on cached reads and reduced database load under sustained traffic patterns.
