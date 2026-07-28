@@ -78,8 +78,8 @@ consecutive outer-Hamiltonian edges. It has 90 such cycles and 10 violate it.
 The computational half — complete censuses at orders 24 and 26 — reproduces
 Markström (2004) graph-for-graph rather than extending it. That was not the
 intent: it was built on the belief that the order-26 count was unknown, which
-was wrong, and the paper turned out to be one plain-HTTP fetch away. Kept as
-independent verification of a hard-to-obtain computation, and as a caution.
+was wrong, and the paper was a search away. Kept as independent verification
+of a 2004 computation nobody had checked since, and as a caution.
 
 Frontier: a cubic counterexample needs 54 <= n <= 62, even, avoiding cycles
 of length 4, 8, 16 and 32.
