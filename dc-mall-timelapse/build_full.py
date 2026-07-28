@@ -2,9 +2,10 @@
 """Download the user-supplied WAMO HOF stills (filenames.txt) and encode a timelapse."""
 import os, re, subprocess, datetime, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 import imageio_ffmpeg
 
-ROOT = "/home/user/claude-workspace/experiments/dc-mall-timelapse"
+ROOT = Path(__file__).resolve().parent
 FRAMES = os.path.join(ROOT, "frames_full")
 BASE = "https://www.earthcam.com/hof/dc/washingtonmonument/"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"

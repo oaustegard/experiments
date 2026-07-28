@@ -2,19 +2,27 @@
 
 Extends phase_a/scripts/common.py patterns with asymmetric-corpus paths
 and the Gemini 2.5-flash model IDs used in this iteration.
+
+The generic pieces this file once duplicated from `common.py` (backoff,
+chunking, atomic JSON checkpointing, ASCII folding) now live in `_lib/`
+and are re-exported here so existing call sites keep working.
 """
 from __future__ import annotations
 
-import json
 import os
-import random
 import sys
-import time
-import unicodedata
 from pathlib import Path
-from typing import Any, Callable, Iterable, Iterator, TypeVar
+from typing import Any, Callable, TypeVar
 
 import httpx
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from _lib.pipeline import chunked  # noqa: E402,F401 - re-exported for callers
+from _lib.pipeline import load_json as _load_json  # noqa: E402
+from _lib.pipeline import retry as _retry  # noqa: E402
+from _lib.pipeline import save_json as _save_json  # noqa: E402
+from _lib.textnorm import STROKED_LETTER_FOLD as _STROKED_LETTER_FOLD  # noqa: E402,F401
+from _lib.textnorm import ascii_fold  # noqa: E402,F401 - re-exported for callers
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = Path(os.environ.get("TE_DATA_DIR", ROOT / "data")).resolve()
@@ -48,28 +56,13 @@ def retry(
     cap: float = 30.0,
     retry_on: tuple = (httpx.HTTPError,),
 ) -> T:
-    last: Exception | None = None
-    for i in range(attempts):
-        try:
-            return fn()
-        except retry_on as e:
-            last = e
-            wait = min(cap, base ** i) + random.uniform(0, 0.5)
-            print(f"  retry {i+1}/{attempts} after {wait:.1f}s: {e}", file=sys.stderr)
-            time.sleep(wait)
-    assert last is not None
-    raise last
+    """Exponential backoff with jitter. Returns the function's value or raises.
 
-
-def chunked(seq: Iterable[Any], n: int) -> Iterator[list[Any]]:
-    buf: list[Any] = []
-    for x in seq:
-        buf.append(x)
-        if len(buf) >= n:
-            yield buf
-            buf = []
-    if buf:
-        yield buf
+    Thin wrapper over `_lib.pipeline.retry` that keeps this module's HTTP
+    default for `retry_on` — the shared helper defaults to `Exception`,
+    which would swallow bugs in these pipelines.
+    """
+    return _retry(fn, attempts=attempts, base=base, cap=cap, retry_on=retry_on)
 
 
 # ---------------------------------------------------------------------------
@@ -204,20 +197,30 @@ def gemini_generate(
 # JSON checkpointing
 # ---------------------------------------------------------------------------
 
+def _rel(p: Path) -> Path | str:
+    """Path relative to ROOT for logging, falling back to absolute.
+
+    TE_DATA_DIR can point outside ROOT, and `relative_to` raises in that
+    case — a checkpoint write must not die on its own log line.
+    """
+    try:
+        return p.relative_to(ROOT)
+    except ValueError:
+        return p
+
+
 def save_json(name: str, obj: Any) -> Path:
-    p = DATA / name
-    tmp = p.with_suffix(p.suffix + ".tmp")
-    tmp.write_text(json.dumps(obj, indent=2, default=str))
-    tmp.replace(p)
-    print(f"  saved {p.relative_to(ROOT)}", file=sys.stderr)
-    return p
+    """Checkpoint `obj` under this run's DATA dir, atomically."""
+    return _save_json(
+        DATA / name,
+        obj,
+        log=lambda _: print(f"  saved {_rel(DATA / name)}", file=sys.stderr),
+    )
 
 
 def load_json(name: str, default: Any = None) -> Any:
-    p = DATA / name
-    if not p.exists():
-        return default
-    return json.loads(p.read_text())
+    """Read a checkpoint from this run's DATA dir, or `default` if absent."""
+    return _load_json(DATA / name, default)
 
 
 # ---------------------------------------------------------------------------
@@ -242,23 +245,6 @@ def load_json(name: str, default: Any = None) -> Any:
 # fall through to NFKD + ascii-encode for the rest of the diacritic-bearing
 # letters (which DO have canonical decompositions: ñ, é, ü, ç, etc.).
 
-_STROKED_LETTER_FOLD = str.maketrans({
-    "ł": "l", "Ł": "L",    # Polish
-    "ø": "o", "Ø": "O",    # Nordic
-    "đ": "d", "Đ": "D",    # Croatian / Vietnamese
-    "ð": "d", "Ð": "D",    # Icelandic / Faroese
-    "þ": "th", "Þ": "Th",  # Icelandic / Old English
-    "æ": "ae", "Æ": "AE",  # Latin / Nordic
-    "œ": "oe", "Œ": "OE",  # French
-    "ß": "ss",             # German sharp s
-    "ı": "i",              # Turkish dotless i
-})
-
-
-def ascii_fold(s: str) -> str:
-    """Strip diacritics, fold stroked letters, lowercase. Use this for
-    substring matching across mixed-Unicode and ASCII-normalized text
-    surfaces (e.g. S2 author names vs. S2 abstract text).
-    """
-    s = (s or "").translate(_STROKED_LETTER_FOLD)
-    return unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii").lower()
+# `ascii_fold` and `STROKED_LETTER_FOLD` are imported from `_lib.textnorm`
+# at the top of this file — see there for the fold table. They stay
+# re-exported under these names so existing call sites are unchanged.

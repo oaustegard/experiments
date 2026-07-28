@@ -15,9 +15,10 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/home/user/claude-workspace")
-KB_PATH = ROOT / ".spokes/muninn.austegard.com/knowledge/muninn.kb"
-sys.path.insert(0, str(ROOT / "experiments/lexical-kb-phase0"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import experiment, spoke
+KB_PATH = spoke("muninn.austegard.com") / "knowledge/muninn.kb"
+sys.path.insert(0, str(experiment("lexical-kb-phase0")))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from sweep import QUERIES, stem  # noqa: E402

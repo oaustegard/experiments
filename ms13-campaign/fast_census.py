@@ -1,5 +1,6 @@
 import sys, itertools, time, json
-sys.path.insert(0,'/home/user/claude-workspace/experiments/ms13-campaign')
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import k3_proof as k
 
 def unrooted_sig(edges, m):

@@ -5,16 +5,19 @@ import os
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke  # noqa: E402
+
 os.environ.setdefault(
     "JINA_V5_NANO_MIRROR_PATH",
-    "/home/user/claude-workspace/.spokes/jina-v5-nano-mirror",
+    str(spoke("jina-v5-nano-mirror")),
 )
 
 from remax_kb.embedders import JinaTorchEmbedder  # noqa: E402
 from remax_kb.read import KB  # noqa: E402
 
 
-KB_PATH = "/home/user/claude-workspace/.spokes/muninn.austegard.com/knowledge/muninn.kb"
+KB_PATH = str(spoke("muninn.austegard.com") / "knowledge/muninn.kb")
 
 QUERIES = [
     "How does centered SimHash differ from random projection?",
