@@ -1,0 +1,1 @@
+Caching layer released. It provides transparent write-through and write-behind modes, with configurable TTLs per object class and automatic invalidation on upstream changes. Early testers report lower p99 latency on cached reads and a simpler API than the previous adapter-based approach. Documentation and SDKs are available now.

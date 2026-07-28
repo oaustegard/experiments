@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Determine the computational complexity of the knapsack problem in graph groups (right-angled Artin groups / partially commutative groups), generalizing the classical integer knapsack to a non-commutative algebraic setting where group elements substitute for integers.",
+    "methods": "Algebraic combinatorics on graph groups, reductions between knapsack/subset-sum variants and decision problems in group theory, complexity classifications parameterized by the underlying commutation graph (e.g. which induced subgraphs make knapsack NP-hard vs. polynomial-time).",
+    "regime": "Finitely generated graph groups defined by an undirected commutation graph; complexity measured in the bit-length of the input words; worst-case decision-problem complexity.",
+    "hypothesized_generalization": "A dichotomy theorem characterizing the complexity of knapsack-style problems across families of finitely presented groups via structural invariants of their defining presentations (e.g. forbidden induced subgraphs, or the presence of free subgroups of specific shapes)."
+  },
+  "b_extract": {
+    "problem": "Determine the complexity of the group isomorphism problem (deciding whether two finite groups given by Cayley tables are isomorphic) and the related color/coset isomorphism problem, with attention to which group families form barriers to faster algorithms.",
+    "methods": "Reductions between group isomorphism, color isomorphism, and coset intersection; structural group theory used to isolate hard instances (projective special linear groups PSL playing the role that alternating groups played for graph isomorphism); algorithmic techniques rooted in permutation-group algorithms.",
+    "regime": "Finite groups given explicitly (Cayley table or generating permutations); complexity measured in the group order n; quasi-polynomial / n^{O(log n)}-style upper bounds and the search for genuine polynomial improvements.",
+    "hypothesized_generalization": "Identifying the precise algebraic obstacles (specific simple-group families) that govern the complexity of structural-equivalence problems on groups, suggesting a 'bottleneck families' meta-theorem: progress on any group-equivalence decision problem requires breaking the same small set of simple-group barriers."
+  },
+  "bridge": {
+    "compatibility": "medium",
+    "rationale": "Both papers sit squarely in computational group theory and ask 'how hard is a decision problem on groups?' — paper A on infinite finitely-presented groups (knapsack/subset-sum), paper B on finite groups (isomorphism). They share the mediator of using structural group-theoretic invariants (commutation graphs on one side, simple-group composition factors on the other) to drive complexity dichotomies, even though the input regimes (infinite vs. finite, word-length vs. Cayley-table size) differ.",
+    "mediator": "structural-dichotomy programs in computational group theory: classifying problem complexity by forbidden subgroup / subgraph structure (graph-group commutation graphs on one side, simple-group barriers like PSL/alternating on the other).",
+    "sketch": "A researcher could attempt a bridge by studying knapsack-style problems in finite groups — e.g. given a finite group G and elements g_1,...,g_k, b, decide whether b is a product of (bounded-exponent) powers of the g_i — and ask whether the same simple-group families (alternating, PSL) that obstruct fast group isomorphism also obstruct fast knapsack. Conversely, one could lift Le Gall–Rosenbaum-style 'bottleneck simple group' arguments to graph groups by asking which induced subgraphs in the commutation graph force embeddings of hard finite-quotient structure, yielding a unified dichotomy: a single combinatorial-algebraic invariant (a 'hardness signature' of the group) controlling both knapsack and isomorphism complexity. Even a partial transfer — e.g. showing that graph groups whose commutation graph forbids a certain pattern admit knapsack algorithms with the same quasi-polynomial shape as Babai-style isomorphism — would be a meaningful result."
+  }
+}

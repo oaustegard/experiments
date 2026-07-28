@@ -1,0 +1,785 @@
+{
+  "model": "gemini-3.5-flash",
+  "results": [
+    {
+      "a": {
+        "arxiv_id": "2605.20579",
+        "title": "An explicit lower bound for the unit distance problem",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2507.15679",
+        "title": "Erd\\H{o}s's unit distance problem and rigidity",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "kind": "anchor",
+      "distance_norm": 0.153646,
+      "gemini_body_cosine_dist": 0.212143,
+      "a_extract": {
+        "problem": "The paper establishes an explicit lower bound for the unit distance problem in the plane.",
+        "methods": "The proof uses lattices from Golod-Shafarevich class field towers of number fields, relative class numbers, and projection techniques.",
+        "regime": "Asymptotic in the number of points n.",
+        "hypothesized_generalization": "The authors suggest potential improvements to the exponent using analytic and algebraic number theory techniques, and raise questions about the density of the point sets and the limits of the achievable exponents."
+      },
+      "b_extract": {
+        "problem": "The paper investigates Erd\u0151s's unit distance problem by finding rigid sub-frameworks within dense, highly non-generic point configurations in the plane.",
+        "methods": "The authors combine graph rigidity theory, framework rigidity definitions, and combinatorial geometry incidence bounds.",
+        "regime": "Asymptotic in the number of points n, focusing on configurations that maximize the number of unit distances.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "high",
+        "rationale": "Both papers tackle Erd\u0151s's unit distance problem in the plane from complementary angles: Paper A provides an explicit algebraic construction of dense unit-distance point sets using class field theory, while Paper B analyzes the structural rigidity of dense unit-distance configurations. The algebraic structure of the lattices in Paper A provides a concrete, highly non-generic family of configurations on which the rigidity theories of Paper B can be tested and applied.",
+        "mediator": "Algebraic lattice frameworks",
+        "sketch": "A researcher would construct a unit-distance graph using the projection of Golod-Shafarevich lattices as defined in Paper A, and then analyze its infinitesimal and combinatorial rigidity using the tools from Paper B. By leveraging the Galois-theoretic symmetries of the lattice, one could prove the existence of large, highly symmetric rigid sub-frameworks that are otherwise difficult to construct or analyze in generic settings. This would establish a direct link between the algebraic properties of class field towers and the combinatorial rigidity of planar frameworks."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2206.03422",
+        "title": "Vertex-critical $(P_3+\\ell P_1)$-free and vertex-critical (gem, co-gem)-free graphs",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2506.07170",
+        "title": "Rectangular Duals on the Cylinder and the Torus",
+        "subfield": "cs.CG",
+        "arxiv_cats": [
+          "cs.CG"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.219938,
+      "a_extract": {
+        "problem": "The paper investigates the structure and classification of vertex-critical graphs that are free of certain induced subgraphs, specifically $(P_3+\\ell P_1)$ and the combination of gem and co-gem.",
+        "methods": "The authors utilize structural graph theory, vertex-criticality analysis, and forbidden subgraph characterizations.",
+        "regime": "The results apply to finite, simple, undirected graphs with a focus on critical coloring properties.",
+        "hypothesized_generalization": "none"
+      },
+      "b_extract": {
+        "problem": "The paper investigates the conditions under which a graph can be represented as a rectangular dual on cylindrical and toroidal surfaces.",
+        "methods": "The authors extend planar rectangular dualization techniques and topological graph theory to characterize dual layouts on non-planar surfaces.",
+        "regime": "Finite graphs embedded on cylinders and tori.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on chromatic vertex-criticality under forbidden induced subgraph constraints and Paper B focuses on topological contact representations (rectangular duals) on surfaces, they are connected by the structural properties of the underlying graph classes. Specifically, the forbidden subgraphs in Paper A can be analyzed within the class of graphs that admit rectangular duals on constrained surfaces like the cylinder or torus.",
+        "mediator": "Contact graph coloring and forbidden induced subgraphs",
+        "sketch": "A researcher could investigate the chromatic number and vertex-criticality of graphs that admit rectangular dual representations on cylindrical or toroidal surfaces. By identifying whether these surface-embeddable contact graphs are naturally free of certain induced subgraphs (such as gems or $P_3+\\ell P_1$), one could apply the structural classification theorems of Paper A to bound the chromatic number of rectangular duals on non-planar surfaces."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2206.03422",
+        "title": "Vertex-critical $(P_3+\\ell P_1)$-free and vertex-critical (gem, co-gem)-free graphs",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2206.13773",
+        "title": "On Relaxation of Dominant Sets",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.230488,
+      "a_extract": {
+        "problem": "The paper investigates the structure and classification of vertex-critical graphs that are free of certain induced subgraphs, specifically $(P_3+\\ell P_1)$ and the combination of gem and co-gem.",
+        "methods": "The authors utilize structural graph theory, vertex-criticality analysis, and forbidden subgraph characterizations.",
+        "regime": "The results apply to finite, simple, undirected graphs with a focus on critical coloring properties.",
+        "hypothesized_generalization": "none"
+      },
+      "b_extract": {
+        "problem": "The paper addresses the problem of relaxing the definition of dominant sets in graph theory and clustering.",
+        "methods": "The main techniques used involve mathematical relaxation of combinatorial constraints on dominant sets.",
+        "regime": "The results apply to finite graphs and network structures.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on structural graph theory and coloring criticality and Paper B focuses on continuous relaxations of dominant sets for clustering, they are connected via the behavior of independent sets and cliques in forbidden subgraph families. Specifically, dominant sets are closely related to maximal cliques, and the structural constraints of being (gem, co-gem)-free heavily restrict the clique and independent set topology.",
+        "mediator": "semidefinite programming relaxations of clique and dominating set constraints",
+        "sketch": "A researcher could bridge these papers by analyzing how the mathematical relaxations of dominant sets behave when restricted to $(P_3+\\ell P_1)$-free or (gem, co-gem)-free graphs. Specifically, one could prove that the gap between the combinatorial dominant set and its continuous relaxation is bounded or even zero (integrality mutlipliers) under these forbidden subgraph constraints, leveraging the structural decompositions from Paper A to guarantee convergence of clustering algorithms on these graph classes."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2605.20579",
+        "title": "An explicit lower bound for the unit distance problem",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2412.11914",
+        "title": "The Erd\\H{o}s unit distance problem for small point sets",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "kind": "anchor",
+      "distance_norm": 0.138672,
+      "gemini_body_cosine_dist": 0.236568,
+      "a_extract": {
+        "problem": "The paper establishes an explicit lower bound for the unit distance problem in the plane.",
+        "methods": "The proof uses lattices from Golod-Shafarevich class field towers of number fields, relative class numbers, and projection techniques.",
+        "regime": "Asymptotic in the number of points n.",
+        "hypothesized_generalization": "The authors suggest potential improvements to the exponent using analytic and algebraic number theory techniques, and raise questions about the density of the point sets and the limits of the achievable exponents."
+      },
+      "b_extract": {
+        "problem": "The paper improves the upper bounds and determines the exact maximum number of unit distances for small point sets.",
+        "methods": "The authors use combinatorial filtering with minimal forbidden subgraphs, totally unfaithful graph elimination, and a custom geometric embeddability solver.",
+        "regime": "Small finite point sets of size n up to 21.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers tackle the Erd\u0151s unit distance problem but operate in opposite regimes: Paper A constructs asymptotic lower bounds using infinite algebraic lattice projections, while Paper B solves exact maximums for small finite n using combinatorial search and geometric solvers. A bridge could exist in using the algebraic/lattice constructions from Paper A to generate highly symmetric, dense candidate configurations for small n, or using the forbidden subgraphs from Paper B to constrain the algebraic properties of the lattices.",
+        "mediator": "Algebraic lattice embeddings of finite graphs",
+        "sketch": "A researcher could use the number field lattice projections from Paper A to systematically generate coordinate-clean, highly dense point sets for small n (e.g., n = 12 to 21). These algebraic configurations could then be fed into Paper B's geometric embeddability solver as highly structured seeds, or their induced subgraphs could be analyzed to identify new minimal forbidden subgraphs that restrict the density of larger algebraic constructions."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2604.18283",
+        "title": "On quantum functionals for higher-order tensors",
+        "subfield": "math.AG",
+        "arxiv_cats": [
+          "math.AG"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2207.02277",
+        "title": "Hierarchies of Minion Tests for PCSPs through Tensors",
+        "subfield": "cs.CC",
+        "arxiv_cats": [
+          "cs.CC"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.246619,
+      "a_extract": {
+        "problem": "The paper addresses whether upper and lower quantum functionals coincide for higher-order tensors and how to construct new spectral points in Strassen's asymptotic spectrum.",
+        "methods": "The authors analyze laminar weightings, embedded three-tensors, and W-like states to construct new spectral points where upper and lower quantum functionals coincide.",
+        "regime": "Asymptotic regime for higher-order tensors under Kronecker powers.",
+        "hypothesized_generalization": "The authors hint at extending the equivalence of upper and lower quantum functionals to more general classes of weightings beyond laminar weightings."
+      },
+      "b_extract": {
+        "problem": "The paper provides a unified framework to study hierarchies of relaxations for Constraint Satisfaction Problems (CSPs) and their Promise variant (PCSPs).",
+        "methods": "The authors use an algebraic part based on minions and a geometric part called tensorisation inspired by multilinear algebra.",
+        "regime": "The results apply to finite-domain relational structures and standard computational hierarchies such as Sherali-Adams LP, affine IP, and Sum-of-Squares SDP.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers leverage the algebraic and geometric properties of tensors, with Paper A focusing on the asymptotic spectrum of tensors (Strassen's theory) and Paper B using tensorisation to analyze hierarchies of relaxations for Promise CSPs. A deep connection exists in using tensor restriction and asymptotic tensor functionals to bound or characterize the limits of tensor-based relaxation hierarchies.",
+        "mediator": "Asymptotic tensor spectrum and restriction theory",
+        "sketch": "A researcher could map the minion-based tensorisation of PCSP instances to specific tensor families, then apply the upper and lower quantum functionals from Paper A to these tensors. By analyzing the asymptotic spectrum of these PCSP-derived tensors, one could establish fundamental limits on the power of Sherali-Adams or Sum-of-Squares hierarchies for specific promise template families, translating asymptotic tensor complexity directly into computational complexity bounds for PCSPs."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2503.09440",
+        "title": "Strongly chordal graphs as intersection graphs of trees (Farber's proof revisited)",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2403.06580",
+        "title": "Arborescences and Shortest Path Trees when Colors Matter",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.256265,
+      "a_extract": {
+        "problem": "The paper aims to reconstruct, simplify, and provide an electronic record of Farber's lost proof characterizing strongly chordal graphs as intersection graphs of compatible subtrees of a rooted weighted tree, while also providing an efficient algorithm to find a strong elimination order from this representation.",
+        "methods": "The paper uses graph theory, tree-representation of chordal graphs, and a new algorithm that directly extracts a strong elimination order from a compatible tree-representation.",
+        "regime": "Finite, simple, undirected graphs, specifically subclasses of chordal graphs.",
+        "hypothesized_generalization": "none"
+      },
+      "b_extract": {
+        "problem": "The paper investigates the complexity and tractability of finding color-constrained arborescences and shortest path trees in edge-colored directed graphs.",
+        "methods": "The authors utilize matroid intersection formulations, exchange sequences, and design polynomial-time algorithms specifically for directed acyclic graphs.",
+        "regime": "The results apply to edge-colored directed graphs, specifically showing polynomial-time solvability when the digraph is acyclic or has only positive-weight cycles.",
+        "hyporhesized_generalization": "The authors hint at generalizing their algorithms to find color-constrained shortest path trees with minimum total weight and explore connections to colored matroids and color-constrained bases."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on structural graph theory (strongly chordal graphs and tree representations) and Paper B focuses on algorithmic optimization (color-constrained arborescences via matroids), they are connected by their shared reliance on structured tree topologies and optimization over tree families. A bridge could exist by viewing the compatible tree-representations of strongly chordal graphs through the lens of matroid theory and constrained optimization.",
+        "mediator": "Matroidal tree-representations",
+        "sketch": "A researcher could define a 'colored' version of the tree-representation of a strongly chordal graph, where nodes or edges of the underlying tree have color constraints representing different structural properties or partitions of the graph. By translating Farber's compatibility conditions into matroid constraints, one could apply the matroid intersection and exchange sequence techniques from Paper B to efficiently find a color-constrained strong elimination ordering or a restricted tree-representation."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2206.09662",
+        "title": "On approximating the rank of graph divisors",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2604.21531",
+        "title": "Kernelization Bounds for Constrained Coloring",
+        "subfield": "cs.CC",
+        "arxiv_cats": [
+          "cs.CC"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.256298,
+      "a_extract": {
+        "problem": "The paper investigates the computational complexity of approximating the rank of a divisor on a graph.",
+        "methods": "The authors establish a connection between computing the rank of a divisor and finding a minimum target set in an undirected graph.",
+        "regime": "The hardness results apply to general undirected graphs and tropical curves, showing inapproximability within polynomial factors.",
+        "hypothesized_generalization": "The authors hint that their hardness of approximation results also apply to computing the rank of a divisor on a tropical curve."
+      },
+      "b_extract": {
+        "problem": "The paper determines the optimal kernelization bounds for constrained coloring problems, specifically finding the infimum kernel size for rainbow-free coloring of hypergraphs.",
+        "methods": "The authors utilize an algebraic approach based on low-degree polynomials and universal algebra to establish both upper and lower kernelization bounds.",
+        "regime": "The results apply to constraint satisfaction and coloring problems parameterized by the number of variables or the vertex-deletion distance to a disjoint union of cliques.",
+        "hypotheses_generalization": "The authors hint at extending the characterization of kernel complexity to general non-Boolean constraint satisfaction problems over finite domains of size larger than two."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on the hardness of approximating graph divisor ranks and Paper B focuses on kernelization bounds for constrained coloring, both fundamentally rely on algebraic formulations of graph-theoretic constraints. A bridge can be established by representing the chip-firing/divisor configurations as polynomial systems or constraint satisfaction problems (CSPs) over finite domains.",
+        "mediator": "Polynomial Ideals of Graph Divisors",
+        "sketch": "A researcher could map the divisor rank problem (or the equivalent minimum target set problem) to a non-Boolean constraint satisfaction problem (CSP) where variables represent chip counts or firing steps. By expressing these constraints as low-degree polynomial equations over a finite field, one could apply the algebraic kernelization techniques from Paper B to find optimal kernel sizes or prove algebraic hardness bounds for approximating the divisor rank on structured graph classes."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2503.16404",
+        "title": "Series-parallel graphs and hypercube degeneracy",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2403.12734",
+        "title": "Exact and Heuristic Computation of the Scanwidth of Directed Acyclic Graphs",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.257435,
+      "a_extract": {
+        "problem": "The paper investigates the relationship between series-parallel graphs and their degeneracy within the hypercube.",
+        "methods": "The authors employ structural graph theory, series-parallel decompositions, and hypercube embedding techniques.",
+        "regime": "The results apply to finite series-parallel graphs and their embeddings into hypercubes of arbitrary dimension.",
+        "hypothesized_generalization": "none"
+      },
+      "b_extract": {
+        "problem": "The paper addresses the problem of computing the scanwidth of directed acyclic graphs both exactly and heuristically.",
+        "methods": "The authors employ exact algorithms and heuristic computation techniques to determine the scanwidth.",
+        "Regime": "The methods are designed for practical computation on directed acyclic graphs of varying sizes.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers deal with structural properties and decompositions of restricted graph classes, specifically series-parallel graphs and directed acyclic graphs (DAGs). Since series-parallel graphs can be naturally oriented as DAGs, structural parameters like hypercube degeneracy and scanwidth may share deep algorithmic and structural relationships.",
+        "mediator": "Series-parallel DAG decompositions",
+        "sketch": "A researcher could define a natural orientation on series-parallel graphs to treat them as DAGs, and then investigate whether a low hypercube degeneracy implies a bound on the scanwidth. Specifically, one could attempt to translate the series-parallel decomposition tree used for hypercube embeddings into an elimination ordering or topological sorting that yields an optimal or near-optimal scanwidth, providing a new class of DAGs where scanwidth can be computed in polynomial time."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2605.20579",
+        "title": "An explicit lower bound for the unit distance problem",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2103.09508",
+        "title": "Deficiency of p-Class Tower Groups and Minkowski Units",
+        "subfield": "math.NT",
+        "arxiv_cats": [
+          "math.NT"
+        ]
+      },
+      "kind": "anchor",
+      "distance_norm": 0.173177,
+      "gemini_body_cosine_dist": 0.260921,
+      "a_extract": {
+        "problem": "The paper establishes an explicit lower bound for the unit distance problem in the plane.",
+        "methods": "The proof uses lattices from Golod-Shafarevich class field towers of number fields, relative class numbers, and projection techniques.",
+        "regime": "Asymptotic in the number of points n.",
+        "hypothesized_generalization": "The authors suggest potential improvements to the exponent using analytic and algebraic number theory techniques, and raise questions about the density of the point sets and the limits of the achievable exponents."
+      },
+      "b_extract": {
+        "problem": "The paper investigates the deficiency of p-class tower groups and the behavior of Minkowski units to determine when the p-class tower group is infinite.",
+        "methods": "The authors analyze the relations of the Galois group in the Zassenhaus filtration and study the sharpness of the Shafarevich-Koch upper bound.",
+        "regime": "The setting applies to algebraic number fields and their p-class tower groups.",
+        "hypothesized_generalization": "The authors provide evidence suggesting that the Shafarevich-Koch upper bound is almost always sharp."
+      },
+      "bridge": {
+        "compatibility": "high",
+        "rationale": "Both papers rely heavily on the algebraic structure of infinite class field towers (specifically Golod-Shafarevich towers). Paper A uses lattices constructed from these towers to solve a geometric distance problem, while Paper B provides precise group-theoretic bounds (deficiency and Shafarevich-Koch bounds) on the very same class tower groups.",
+        "mediator": "Minkowski embeddings of Golod-Shafarevich class field towers",
+        "sketch": "A researcher would use the refined deficiency bounds and Minkowski unit analysis from Paper B to construct number fields with more favorable regulator and class number growth. By embedding these optimized fields via the Minkowski map, one could construct lattices with higher packing density and better-controlled short vectors. This would directly translate to an improved explicit lower bound exponent for the unit distance problem in Paper A."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2010.02607",
+        "title": "Structural Properties of the First-Order Transduction Quasiorder",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2410.04771",
+        "title": "On the Complexity of Computing the Co-lexicographic Width of a Regular Language",
+        "subfield": "cs.FL",
+        "arxiv_cats": [
+          "cs.FL"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.269525,
+      "a_extract": {
+        "problem": "The paper investigates the structural properties of the first-order transduction quasiorder, specifically analyzing classes with bounded bandwidth and pathwidth.",
+        "methods": "The authors utilize monadic stability, monadic dependence, and structural graph theory parameters such as pathwidth and bandwidth.",
+        "regime": "Infinite families of graph classes, specifically those with bounded pathwidth or bandwidth.",
+        "hypothesized_generalization": "none"
+      },
+      "b_extract": {
+        "problem": "The paper addresses the complexity of computing the deterministic co-lexicographic width of a regular language from a given DFA.",
+        "methods": "The authors use new algorithmic techniques to establish an upper bound and prove a matching conditional lower bound based on the Strong Exponential Time Hypothesis.",
+        "regime": "The result applies asymptotically in terms of the DFA size $m$ and the width parameter $p \\ge 2$ for minimum DFAs.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on model-theoretic properties of graph classes under first-order transductions and Paper B focuses on the automata-theoretic complexity of co-lexicographic width, they are connected by the structural analysis of ordered graphs and transition systems. Specifically, the co-lexicographic width of a regular language can be viewed as a structural width parameter of its minimal DFA's transition graph, which can be analyzed using transduction quasiorders.",
+        "mediator": "co-lexicographic orderings on transition graphs",
+        "sketch": "A researcher could bridge these papers by defining a first-order transduction that maps a class of graphs with bounded pathwidth to the transition DAGs of DFAs with bounded co-lexicographic width. By showing that bounded co-lexicographic width is preserved under certain first-order transductions, one could transfer the structural classification results of the transduction quasiorder to classify the complexity of regular languages based on their state-space topology."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2205.08596",
+        "title": "A comonadicity theorem for partial comodules",
+        "subfield": "math.RA",
+        "arxiv_cats": [
+          "math.RA"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2205.07317",
+        "title": "The domino problem of the hyperbolic plane is undecidable, new proof",
+        "subfield": "cs.DM",
+        "arxiv_cats": [
+          "cs.DM"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.269748,
+      "a_extract": {
+        "problem": "The paper establishes a comonadicity theorem specifically formulated for the category of partial comodules over a coalgebra.",
+        "methods": "The authors utilize category theory, specifically comonadicity criteria and the structural properties of partial comodules and coalgebras.",
+        "regime": "The results apply generally to the algebraic setting of partial representation theory and coalgebraic structures.",
+        "hypothesized_generalization": "none"
+      },
+      "b_extract": {
+        "problem": "The paper addresses the domino problem of the hyperbolic plane, proving that it is undecidable.",
+        "methods": "The paper provides a new proof of undecidability, utilizing geometric constructions and tiling techniques specific to the hyperbolic plane.",
+        "regime": "The result applies to the infinite-dimensional setting of the 2D hyperbolic plane.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "low",
+        "rationale": "The papers belong to highly distinct fields: category theory/algebraic representation theory (Paper A) and computability/discrete geometry (Paper B). However, a connection can be envisioned by representing the local constraints of hyperbolic tilings algebraically via partial actions or coalgebraic structures.",
+        "mediator": "Coalgebraic formulation of tiling constraints",
+        "sketch": "To bridge these results, a researcher could model the local matching rules of the domino problem on a hyperbolic tessellation as a partial representation of a groupoid. By framing the space of valid tilings as a comonad over a base category of local configurations, one could apply the comonadicity theorem for partial comodules to characterize the global reconstructibility of tilings from local data, potentially translating the undecidability of the domino problem into the non-existence of certain comonadic splittings."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2205.05408",
+        "title": "On the equivariant log-concavity for the cohomology of the flag varieties",
+        "subfield": "math.RT",
+        "arxiv_cats": [
+          "math.RT"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2210.07746",
+        "title": "Formalising the h-Principle and Sphere Eversion",
+        "subfield": "cs.LO",
+        "arxiv_cats": [
+          "cs.LO"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.272506,
+      "a_extract": {
+        "problem": "The paper investigates the equivariant log-concavity property for the cohomology of flag varieties.",
+        "methods": "The authors utilize equivariant cohomology, Schubert calculus, and the combinatorics of Weyl groups.",
+        "regime": "The results apply to the cohomology of flag varieties associated with Lie groups of finite rank.",
+        "hypothesized_generalization": "The authors hint at generalizing the equivariant log-concavity to other G-variety settings and more general partial flag manifolds."
+      },
+      "b_extract": {
+        "problem": "The paper addresses the challenge of formalizing advanced mathematics with a strongly geometric flavor, specifically the h-principle and sphere eversion, in a computer proof assistant.",
+        "methods": "The authors utilize formal proof verification techniques within a proof assistant to formalize geometric topology and the h-principle.",
+        "regime": "The result applies to the formalization of infinite-dimensional and continuous geometric structures in interactive theorem provers.",
+        "hypothesized_generalization": "The authors hint at the possibility of formalizing broader classes of geometric and topological theorems beyond sphere eversion using similar proof assistant frameworks."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While the mathematical domains (algebraic combinatorics of flag varieties vs. differential topology/h-principle) are highly distinct, they are bridged by the methodology of formal verification. The complex combinatorial and algebraic structures in Paper A (equivariant cohomology, Weyl groups) are prime candidates for the interactive theorem proving frameworks discussed in Paper B.",
+        "mediator": "Formalization of Equivariant Schubert Calculus in Lean",
+        "sketch": "A researcher attempting to bridge these papers would construct a formal library in a proof assistant (like Lean) for equivariant cohomology and Schubert calculus. They would formalize the combinatorial properties of Weyl groups and the geometric properties of flag varieties to computer-verify the equivariant log-concavity theorems from Paper A. This would extend the geometric formalization toolkit of Paper B from differential topology into equivariant algebraic geometry."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2604.08691",
+        "title": "Planted clique detection and recovery from the hypergraph adjacency matrix",
+        "subfield": "math.ST",
+        "arxiv_cats": [
+          "math.ST"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2604.04188",
+        "title": "Expanders Meet Reed-Muller: Easy Instances of Noisy k-XOR",
+        "subfield": "cs.CC",
+        "arxiv_cats": [
+          "cs.CC"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.278403,
+      "a_extract": {
+        "problem": "The paper addresses the detection and recovery of a planted clique in a uniform hypergraph when only its projected adjacency matrix is observed.",
+        "methods": "The authors analyze a spectral norm test for detection and a polynomial-time spectral method based on the leading eigenvector using a leave-one-out framework for recovery.",
+        "regime": "The results apply asymptotically as the number of vertices $n$ grows, covering both dense and sparse background hyperedge probability regimes.",
+        "hypothesized_generalization": "The authors hint at extending the recovery of hyperedges from graph projections to more general heterogeneous random hypergraph models with multiple edge degrees."
+      },
+      "b_extract": {
+        "problem": "The paper addresses the noisy k-XOR distinguishing problem, showing that near-optimal graph expansion does not inherently imply computational hardness.",
+        "methods": "The authors combine the expander graphs of Guruswami, Umans, and Vadhan with decoding algorithms for Reed-Muller codes from random errors.",
+        "regime": "The result applies to the regime where k is polylogarithmic in the number of variables and the graph has near-optimal expansion.",
+        "hypothesized_generalization": "Under standard conjectures on Reed-Muller codes over the binary erasure channel, the result generalizes to families with near-optimal expansion and polynomial-time algorithms at noise rates up to 1/2."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers analyze high-dimensional discrete structures (hypergraphs) under noise or random perturbations, using spectral properties and decoding-like recovery guarantees. A bridge could connect the spectral projection techniques of Paper A with the expander-based constraint graphs of Paper B to solve planted constraint satisfaction problems (CSPs).",
+        "mediator": "Spectral expansion of hypergraph projections",
+        "sketch": "A researcher could map the noisy $k$-XOR constraint hypergraph to its projected graph representation, applying the spectral norm and leave-one-out eigenvector techniques from Paper A to identify dense 'planted' sub-instances or highly correlated variable clusters. Conversely, the expander-based Reed-Muller decoding framework from Paper B could be adapted to error-correct the noisy projected adjacency matrix of the hypergraph, improving the recovery threshold for the planted clique."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2206.09662",
+        "title": "On approximating the rank of graph divisors",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2403.18513",
+        "title": "Realizing temporal transportation trees",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.278674,
+      "a_extract": {
+        "problem": "The paper investigates the computational complexity of approximating the rank of a divisor on a graph.",
+        "methods": "The authors establish a connection between computing the rank of a divisor and finding a minimum target set in an undirected graph.",
+        "regime": "The hardness results apply to general undirected graphs and tropical curves, showing inapproximability within polynomial factors.",
+        "hypothesized_generalization": "The authors hint that their hardness of approximation results also apply to computing the rank of a divisor on a tropical curve."
+      },
+      "b_extract": {
+        "problem": "The paper studies the computational complexity of the Periodic Upper-Bounded Temporal Tree Realization (TTR) problem, which aims to find a periodic edge labeling on a tree such that the fastest travel times between vertices do not exceed given upper bounds.",
+        "methods": "The authors use a combination of NP-hardness reductions and fixed-parameter tractability (FPT) techniques involving totally unimodular matrices and mixed integer linear programming.",
+        "regime": "The FPT result applies to input trees with a bounded number of leaves, while the hardness results apply to trees with constant diameter or constant maximum degree.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers deal with hard combinatorial optimization problems on graphs (or trees) involving metric-like constraints\u2014specifically, divisor theory (which is closely related to chip-firing and tropical geometry) and temporal travel times. A connection can be forged by viewing both problems through the lens of network flows and metric graph theory, where divisor ranks and travel-time constraints both constrain the underlying graph's metric structure.",
+        "mediator": "Metric graph divisor theory (Tropical geometry)",
+        "sketch": "A researcher could map the temporal tree realization problem to a divisor-theoretic problem on a metric graph (tropical curve) where the edge labelings (travel times) correspond to edge lengths. By translating the upper bounds on travel times into constraints on the existence of divisors of a certain rank (using the metric properties of the tree), one could potentially use the FPT techniques from Paper B (like TU matrices and MILP) to find tractable subclasses for computing divisor ranks, or conversely, use the hardness of divisor approximation to prove new inapproximability bounds for temporal tree realization on more general graph classes."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2503.09591",
+        "title": "Edge Isoperimetry of Lattices",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2206.13372",
+        "title": "Recognition and Isomorphism of Proper U-graphs in FPT-time",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.28603,
+      "a_extract": {
+        "problem": "The paper investigates the existence of an edge-isoperimetric ordering on a specific two-dimensional Cayley graph of a lattice where vertices are connected if their distance is 1 or sqrt(3).",
+        "methods": "The authors utilize computer-assisted proofs, specifically Python scripts for base cases, inductive steps, and sequence solutions, to establish the ordering.",
+        "regime": "The result applies to a specific two-dimensional infinite lattice graph.",
+        "hypothesized_generalization": "none"
+      },
+      "b_extract": {
+        "problem": "The paper addresses the recognition and isomorphism problems for proper U-graphs.",
+        "methods": "The paper utilizes fixed-parameter tractable (FPT) algorithms to solve these graph problems.",
+        "regime": "The result applies in the parameterized complexity setting, specifically in FPT-time with respect to natural graph parameters.",
+        "hypothesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on the extremal combinatorics of a specific 2D lattice and Paper B focuses on parameterized algorithms for geometric intersection graphs, they are connected by the underlying geometry of 2D grid-like structures. The edge-isoperimetric properties of the lattice can be used to bound layout parameters (like bandwidth or pathwidth) of graphs embedded in or derived from such lattices.",
+        "mediator": "Grid-like intersection graph embeddings",
+        "sketch": "A researcher could represent the 2D Cayley graph from Paper A as a proper U-graph by mapping its vertices to geometric intervals or segments in the plane. Using the edge-isoperimetric ordering established in Paper A, one could derive optimal pathwidth or treewidth bounds for these lattice-based U-graphs, thereby providing highly optimized FPT algorithms for recognition and isomorphism specifically tailored to grid-like geometric intersection graphs."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2505.02685",
+        "title": "On the Spectral Expansion of Monotone Subsets of the Hypercube",
+        "subfield": "math.PR",
+        "arxiv_cats": [
+          "math.PR"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2604.22052",
+        "title": "Turnstile Streaming Algorithms Might (Still) as Well Be Linear Sketches, for Polynomial-Length Streams",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.288423,
+      "a_extract": {
+        "problem": "The paper aims to bound the mixing time and spectral gap of the censored random walk on monotone subsets of the hypercube.",
+        "methods": "The authors analyze the spectral expansion of the induced subgraph using a robust version of the Poincar\u00e9 inequality and directed Laplacian heat flow.",
+        "regime": "The result applies to monotone subsets of the hypercube with constant density as the dimension n grows.",
+        "hypothesized_generalization": "The authors hint at improving the mixing time bound of the censored random walk on monotone sets of constant density to O(n log n)."
+      },
+      "b_extract": {
+        "problem": "The paper addresses whether space-efficient turnstile streaming algorithms can be simulated by linear sketches when the stream length is polynomial in the dimension.",
+        "methods": "The authors use a Fourier-analytic framework and tools from additive combinatorics to extract discrete linear measurements from the streaming algorithm.",
+        "regime": "Polynomial-length turnstile streams and non-uniform Read-Once Branching Programs (ROBPs).",
+        "hyphesized_generalization": "The authors hint that their results extend to strict turnstile streams and non-uniform Read-Once Branching Programs (ROBPs)."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on the spectral properties of random walks on monotone subsets of the hypercube and Paper B focuses on turnstile streaming algorithms, they are connected through the Fourier analysis of boolean functions and the structural properties of the hypercube. Specifically, monotone subsets can be represented as monotone boolean functions, whose Fourier spectrum and noise sensitivity dictate both the spectral gap of random walks and the complexity of branching programs simulating streaming algorithms.",
+        "mediator": "Fourier analysis of monotone boolean functions",
+        "sketch": "A researcher could bridge these papers by using the spectral expansion bounds of monotone subsets (from Paper A) to bound the noise sensitivity of the transition functions in the Read-Once Branching Programs (ROBPs) of Paper B. By showing that the state-space transitions of a streaming algorithm restricted to monotone inputs have a concentrated Fourier spectrum, one could prove that linear sketches can simulate turnstile streams under monotone constraints with significantly lower space complexity."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2501.10203",
+        "title": "The Erd\\H{o}s--Moser sum-free set problem via improved bounds for $k$-configurations",
+        "subfield": "math.NT",
+        "arxiv_cats": [
+          "math.NT"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2604.04188",
+        "title": "Expanders Meet Reed-Muller: Easy Instances of Noisy k-XOR",
+        "subfield": "cs.CC",
+        "arxiv_cats": [
+          "cs.CC"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.29547,
+      "a_extract": {
+        "problem": "The paper aims to improve the bounds for sets lacking k-configurations and apply these results to the Erd\u0151s--Moser sum-free set problem.",
+        "methods": "The authors combine the techniques of Kelley and Meka with those of Filmus, Hatami, Hosseini, and Kelman to establish new density bounds.",
+        "regime": "Asymptotic in the size of the abelian group and the parameter k.",
+        "hypothesized_generalization": "The authors hint at the optimality of their bounds up to the respective exponents of 1/12 and 1/2 in the parameters k and delta."
+      },
+      "b_extract": {
+        "problem": "The paper addresses the noisy k-XOR distinguishing problem, showing that near-optimal graph expansion does not inherently imply computational hardness.",
+        "methods": "The authors combine the expander graphs of Guruswami, Umans, and Vadhan with decoding algorithms for Reed-Muller codes from random errors.",
+        "regime": "The result applies to the regime where k is polylogarithmic in the number of variables and the graph has near-optimal expansion.",
+        "hypothesized_generalization": "Under standard conjectures on Reed-Muller codes over the binary erasure channel, the result generalizes to families with near-optimal expansion and polynomial-time algorithms at noise rates up to 1/2."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers fundamentally rely on the structure of low-degree polynomial relations and Fourier analysis over finite abelian groups (or vector spaces). The density of $k$-configurations in Paper A and the decoding of Reed-Muller codes in Paper B both exploit how local algebraic constraints propagate globally under noise or density constraints.",
+        "mediator": "Reed-Muller code structure and Kelley-Meka density increments",
+        "sketch": "A researcher could bridge these papers by using the improved Kelley-Meka bounds for $k$-configurations to establish new bounds on the list-decoding capacity or local testability of Reed-Muller codes under highly biased noise distributions. Specifically, the density increments from Paper A could translate to finding structured agreements (configurations) in the received word of a noisy $k$-XOR instance, thereby improving the decoding guarantees of the algorithms in Paper B."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2503.09440",
+        "title": "Strongly chordal graphs as intersection graphs of trees (Farber's proof revisited)",
+        "subfield": "math.CO",
+        "arxiv_cats": [
+          "math.CO"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2503.17294",
+        "title": "Cycle Patterns and Mean Payoff Games",
+        "subfield": "cs.GT",
+        "arxiv_cats": [
+          "cs.GT"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.297075,
+      "a_extract": {
+        "problem": "The paper aims to reconstruct, simplify, and provide an electronic record of Farber's lost proof characterizing strongly chordal graphs as intersection graphs of compatible subtrees of a rooted weighted tree, while also providing an efficient algorithm to find a strong elimination order from this representation.",
+        "methods": "The paper uses graph theory, tree-representation of chordal graphs, and a new algorithm that directly extracts a strong elimination order from a compatible tree-representation.",
+        "regime": "Finite, simple, undirected graphs, specifically subclasses of chordal graphs.",
+        "hypothesized_generalization": "none"
+      },
+      "b_extract": {
+        "problem": "The paper investigates the structural theory, realizability complexity, and algorithmic hardness of cycle patterns in directed graphs, particularly their application to solving mean payoff games.",
+        "methods": "The authors use cycle patterns, arithmetic and Boolean circuits, linear decision trees, and polyhedral geometry to analyze game complexity and realizability.",
+        "regime": "The results apply to finite directed graphs and games with arbitrary integer weight functions, focusing on the transition between polynomial and exponential weight scales.",
+        "hypod_generalization": "The authors hint at generalizing their realizability insights to understand the size of integer points in more general polyhedral fans within geometric combinatorics."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on undirected strongly chordal graphs and Paper B on directed cycle patterns in games, they are connected via the geometry of weighted trees and polyhedral fans. Weighted trees (Paper A) naturally induce tree metrics that live on tropical polyhedral fans, which are the exact geometric structures used to analyze the complexity of mean payoff games (Paper B).",
+        "mediator": "Tropical geometry of tree metrics",
+        "sketch": "A researcher could map the weighted tree representation of a strongly chordal graph to a point in the space of phylogenetic trees (a tropical polyhedral fan). By interpreting the strong elimination ordering as a trajectory through this fan, one could bound the cycle patterns or state-space complexity of mean payoff games whose underlying transition graphs share structural properties with these tree-metric spaces."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2505.03211",
+        "title": "Noise sensitivity and variance lower bound for minimal left-right crossing of a square in first-passage percolation",
+        "subfield": "math.PR",
+        "arxiv_cats": [
+          "math.PR"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2404.00768",
+        "title": "Adversarially-Robust Inference on Trees via Belief Propagation",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.29942,
+      "a_extract": {
+        "problem": "The paper studies the noise sensitivity and variance lower bounds of the minimal left-right crossing passage times in first-passage percolation on a square.",
+        "methods": "The authors establish a small ball probability estimate in the tail by perturbing the weights for tail events using a Mermin-Wagner type estimate.",
+        "regime": "Asymptotic in the size of the square n.",
+        "hypothesized_generalization": "The authors suggest that their variance lower bounds can be generalized to absolutely continuous weight distributions and that certain geometric assumptions on the limit shape are expected to hold for almost any distribution."
+      },
+      "b_extract": {
+        "problem": "The paper studies the robustness of posterior inference on the root vertex of a tree-structured broadcast process when a fraction of the leaf observations are adversarially corrupted.",
+        "methods": "The authors analyze the performance of the canonical belief propagation algorithm under semi-random and spread adversarial corruption models.",
+        "regime": "The results apply in the limit of infinite tree depth where the signal-to-noise ratio exceeds the Kesten-Stigum threshold.",
+        "hyporhesized_generalization": "none"
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "Both papers investigate the stability of global properties (minimal crossing paths in percolation vs. root inference in trees) under localized perturbations or noise. The mathematical link lies in viewing first-passage percolation as a zero-temperature limit of message-passing algorithms (like Belief Propagation) on lattice-like graphs.",
+        "mediator": "Zero-temperature Belief Propagation on random graphs",
+        "sketch": "A researcher could map the minimal left-right crossing path in first-passage percolation to the MAP (maximum a posteriori) configuration of a spin glass or inference model solved via Belief Propagation. By applying the noise sensitivity estimates from Paper A to the message updates of Paper B, one could bound how adversarial corruptions at the boundary (leaves/edges) propagate to the interior, establishing phase transitions for robust inference in grid-like graphical models."
+      }
+    },
+    {
+      "a": {
+        "arxiv_id": "2501.00171",
+        "title": "On the Minimal Denominator Problem in Function Fields",
+        "subfield": "math.NT",
+        "arxiv_cats": [
+          "math.NT"
+        ]
+      },
+      "b": {
+        "arxiv_id": "2403.20326",
+        "title": "Shaving Logs via Large Sieve Inequality: Faster Algorithms for Sparse Convolution and More",
+        "subfield": "cs.DS",
+        "arxiv_cats": [
+          "cs.DS"
+        ]
+      },
+      "kind": "math\u00d7cs",
+      "distance_norm": 0.142578,
+      "gemini_body_cosine_dist": 0.300251,
+      "a_extract": {
+        "problem": "The paper investigates the probability distribution of the minimal denominator degree and the distribution of the unique monic minimal denominator polynomial in function fields.",
+        "methods": "The authors translate the minimal denominator problem into linear algebra using ranks of Hankel matrices and apply counting techniques over finite fields.",
+        "regime": "The results apply to function fields over a finite field of constant characteristic with a finite residue field.",
+        "hypothesized_generalization": "The authors hint at the minimal denominator problem in the infinite residue case, such as over the field of rational functions with real or complex coefficients, but note that their counting techniques do not apply."
+      },
+      "b_extract": {
+        "problem": "The paper aims to speed up algorithms for sparse convolution, text-to-pattern Hamming distances, and the constellation problem by reducing the overhead of mod-prime hashing.",
+        "methods": "The main technique used is the large sieve inequality from analytic number theory to analyze and improve mod-prime hash functions.",
+        "regime": "The results apply asymptotically in the standard word RAM model for sparse inputs and restricted universe sizes.",
+        "hypothesized_generalization": "The authors hint at generalizing the sparse general convolution algorithm to remove the restriction on the input vector length."
+      },
+      "bridge": {
+        "compatibility": "medium",
+        "rationale": "While Paper A focuses on algebraic properties of minimal denominators in function fields and Paper B focuses on algorithmic sparse convolution via the large sieve, they are connected by the algebraic structure of Hankel matrices, which represent convolution systems. The large sieve inequality has well-known analogues in function fields that could be used to bound the distribution of Hankel matrix ranks for sparse or restricted polynomial families.",
+        "mediator": "Function Field Large Sieve and Sparse Hankel Systems",
+        "sketch": "A researcher could bridge these papers by formulating a 'sparse' minimal denominator problem, where the coefficients of the power series are sparse or restricted. By applying a function-field analogue of the large sieve inequality (similar to the analytic number theory tools in Paper B), one could bound the exceptional set of polynomials where the minimal denominator degree deviates from the expected distribution. This would provide faster randomized algorithms for recovering rational functions from sparse samples in function fields."
+      }
+    }
+  ]
+}

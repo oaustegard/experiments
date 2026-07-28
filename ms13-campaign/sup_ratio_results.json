@@ -1,0 +1,2575 @@
+{
+  "calibration": {
+    "rybin": {
+      "ok": true,
+      "ratio": 0.75,
+      "p": [
+        0.5,
+        0.25,
+        0.5
+      ],
+      "q": [
+        0.5,
+        0.25,
+        0.5
+      ],
+      "demands": [
+        1.0,
+        0.5,
+        1.0
+      ],
+      "w": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  },
+  "self_tests": {
+    "covered": {
+      "n_checked": 10,
+      "n_passed": 10
+    },
+    "consistency": {
+      "n_checked": 8,
+      "n_passed": 8
+    },
+    "consistency_detail": [
+      {
+        "tree": "n4-fork-at-n1",
+        "k": 4,
+        "fixed_demand_ratio": 0.5,
+        "sup_ratio": 0.6666666666666689,
+        "ok": true
+      },
+      {
+        "tree": "n5-chain2-2leaf",
+        "k": 4,
+        "fixed_demand_ratio": 0.5833333333333334,
+        "sup_ratio": 0.6666666666666677,
+        "ok": true
+      },
+      {
+        "tree": "n5-twochains",
+        "k": 3,
+        "fixed_demand_ratio": 0.5,
+        "sup_ratio": 0.7499999999999998,
+        "ok": true
+      },
+      {
+        "tree": "n4-chain3",
+        "k": 3,
+        "fixed_demand_ratio": 0.5,
+        "sup_ratio": 0.75,
+        "ok": true
+      },
+      {
+        "tree": "n5-star4",
+        "k": 5,
+        "fixed_demand_ratio": 0.5833333333333334,
+        "sup_ratio": 0.7500000000509318,
+        "ok": true
+      },
+      {
+        "tree": "n4-star3",
+        "k": 3,
+        "fixed_demand_ratio": 0.5833333333333334,
+        "sup_ratio": 0.6666666666666666,
+        "ok": true
+      },
+      {
+        "tree": "n5-chain3-leaf",
+        "k": 3,
+        "fixed_demand_ratio": 0.5,
+        "sup_ratio": 0.75,
+        "ok": true
+      },
+      {
+        "tree": "n5-chain3-leaf",
+        "k": 5,
+        "fixed_demand_ratio": 0.5833333333333334,
+        "sup_ratio": 0.7500000000000001,
+        "ok": true
+      }
+    ]
+  },
+  "strata": [
+    {
+      "tree": "n4-chain3",
+      "k": 3,
+      "category": "n4",
+      "n_nodes": 4,
+      "raw_combo_count": 56,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 1,
+      "n_tested": 1,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.75,
+        "demands": [
+          1.0,
+          1.0,
+          0.5
+        ],
+        "w": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      }
+    },
+    {
+      "tree": "n4-chain3",
+      "k": 4,
+      "category": "n4",
+      "n_nodes": 4,
+      "raw_combo_count": 126,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 6,
+      "n_tested": 6,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000071,
+        "demands": [
+          1.0,
+          1.0,
+          1.0,
+          0.5000000000000142
+        ],
+        "w": [
+          1.0,
+          0.5000000000000142,
+          0.49999999999998634,
+          0.5000000000000273
+        ]
+      }
+    },
+    {
+      "tree": "n4-fork-at-n1",
+      "k": 3,
+      "category": "n4",
+      "n_nodes": 4,
+      "raw_combo_count": 56,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 1,
+      "n_tested": 1,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.6666666666666669,
+        "demands": [
+          1.0000000000000018,
+          0.9999999999999992,
+          0.9999999999999999
+        ],
+        "w": [
+          0.33333333333333337,
+          -0.0,
+          0.666666666666667
+        ]
+      }
+    },
+    {
+      "tree": "n4-fork-at-n1",
+      "k": 4,
+      "category": "n4",
+      "n_nodes": 4,
+      "raw_combo_count": 126,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 4,
+      "n_tested": 4,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.6666666666666689,
+        "demands": [
+          1.0,
+          0.9999999999999999,
+          1.0000000000000016,
+          1.000000000000007
+        ],
+        "w": [
+          0.0,
+          1.0000000026225175e-06,
+          0.6666656666666662,
+          0.6666676666666678
+        ]
+      }
+    },
+    {
+      "tree": "n4-chain2+leaf",
+      "k": 3,
+      "category": "n4",
+      "n_nodes": 4,
+      "raw_combo_count": 56,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 1,
+      "n_tested": 1,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ]
+        ],
+        "ratio": 0.75,
+        "demands": [
+          1.0,
+          0.5,
+          1.0
+        ],
+        "w": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      }
+    },
+    {
+      "tree": "n4-chain2+leaf",
+      "k": 4,
+      "category": "n4",
+      "n_nodes": 4,
+      "raw_combo_count": 126,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 6,
+      "n_tested": 6,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n2",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000001,
+        "demands": [
+          0.9999999999999999,
+          0.5,
+          0.9999999999999999,
+          0.9999999999999999
+        ],
+        "w": [
+          0.5000000000000001,
+          0.49999999999999956,
+          1.0,
+          0.5000000000000004
+        ]
+      }
+    },
+    {
+      "tree": "n4-star3",
+      "k": 3,
+      "category": "n4",
+      "n_nodes": 4,
+      "raw_combo_count": 56,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 1,
+      "n_tested": 1,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.6666666666666666,
+        "demands": [
+          1.0,
+          1.0,
+          0.9999999999999999
+        ],
+        "w": [
+          0.6666666666666665,
+          -0.0,
+          0.3333333333333332
+        ]
+      }
+    },
+    {
+      "tree": "n4-star3",
+      "k": 4,
+      "category": "n4",
+      "n_nodes": 4,
+      "raw_combo_count": 126,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 2,
+      "n_tested": 2,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "s"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.6666666666666682,
+        "demands": [
+          1.0,
+          1.0000000000000118,
+          -1.1712852909795402e-14,
+          1.0000000000000042
+        ],
+        "w": [
+          0.6666666666666798,
+          0.9999999999999882,
+          0.0,
+          0.33333333333334636
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 9,
+      "n_tested": 9,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000014,
+        "demands": [
+          1.0000000000000013,
+          1.000000000000003,
+          0.9999999999999971
+        ],
+        "w": [
+          0.4999999999999949,
+          0.4999999999999972,
+          0.24999999999999606
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 78,
+      "n_tested": 78,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000177,
+        "demands": [
+          1.0,
+          -2.864375403532904e-14,
+          1.0000000000000049,
+          0.9999999999999991
+        ],
+        "w": [
+          0.499999999999983,
+          0.0,
+          0.5000000000000345,
+          0.7499999999999922
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 378,
+      "n_tested": 4,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 4/378",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "s"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n4",
+            "s"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000007,
+        "demands": [
+          1.0000000000000009,
+          1.0,
+          0.9999999999999996,
+          1.0,
+          1.0000000000000016
+        ],
+        "w": [
+          0.5000000000000011,
+          0.0,
+          0.4999999999999996,
+          0.2500000000000012,
+          0.0
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 5,
+      "n_tested": 5,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000007,
+        "demands": [
+          1.0000000000000018,
+          1.0000000000000002,
+          0.49999999999999944
+        ],
+        "w": [
+          0.5000000000000003,
+          0.4999999999999999,
+          0.5000000000000011
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 40,
+      "n_tested": 40,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "n4"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000032,
+        "demands": [
+          1.0,
+          0.9999999999999997,
+          0.9999999999999994,
+          1.0
+        ],
+        "w": [
+          0.5000000000000064,
+          0.25000000000001754,
+          0.7500000000000032,
+          0.0
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 189,
+      "n_tested": 4,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 4/189",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n3",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.750000000000004,
+        "demands": [
+          0.9999999999999174,
+          0.5000000000001045,
+          0.5000000000000832,
+          0.0,
+          1.0000000000000009
+        ],
+        "w": [
+          0.5000000000000422,
+          0.5000000000000697,
+          0.4999999999999264,
+          0.0,
+          0.49999999999999245
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 8,
+      "n_tested": 8,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000007,
+        "demands": [
+          1.0000000000000018,
+          1.0000000000000002,
+          0.49999999999999944
+        ],
+        "w": [
+          0.5000000000000003,
+          0.4999999999999999,
+          0.5000000000000011
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 71,
+      "n_tested": 71,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000084,
+        "demands": [
+          0.9999999999999843,
+          1.0,
+          1.0000000000000377,
+          1.0
+        ],
+        "w": [
+          0.749999999999969,
+          0.24999999999999156,
+          0.24999999999998038,
+          -0.0
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 350,
+      "n_tested": 4,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 4/350",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000056,
+        "demands": [
+          0.9999999999999905,
+          1.0000000000000067,
+          0.9999999999999878,
+          0.5000000000000137,
+          0.7500000000000056
+        ],
+        "w": [
+          0.4999999999999981,
+          0.9999999999999933,
+          0.5000000000000053,
+          0.5000000000000028,
+          0.0
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 2,
+      "n_tested": 2,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.6666666666666669,
+        "demands": [
+          1.0000000000000004,
+          1.0000000000000002,
+          1.0
+        ],
+        "w": [
+          0.6666666666666665,
+          -0.0,
+          0.33333333333333315
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 12,
+      "n_tested": 12,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000064,
+        "demands": [
+          1.0,
+          0.0,
+          1.0000000000000033,
+          1.0
+        ],
+        "w": [
+          0.7499999999999823,
+          0.0,
+          0.4999999999999888,
+          0.7500000000000064
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 54,
+      "n_tested": 4,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 4/54",
+      "best": {
+        "attach": [
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000028,
+        "demands": [
+          0.9999999999999989,
+          0.9999999999999835,
+          1.0,
+          1.0000000000000084,
+          1.0000000000000029
+        ],
+        "w": [
+          0.9999979999999917,
+          0.25000000000001005,
+          0.5000019999999897,
+          0.7499979999999992,
+          0.0
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 9,
+      "n_tested": 9,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "n4"
+          ]
+        ],
+        "ratio": 0.7500000002086183,
+        "demands": [
+          1.0,
+          1.0,
+          0.5000000004172367
+        ],
+        "w": [
+          0.4999999995827634,
+          0.5000000004172364,
+          0.4999999991655273
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 78,
+      "n_tested": 78,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "n4"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000053,
+        "demands": [
+          0.9999999999999987,
+          0.999999999999967,
+          0.5000000000000085,
+          1.0
+        ],
+        "w": [
+          0.5000000000000007,
+          0.4999999999999761,
+          0.5000000000000128,
+          1.0
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 378,
+      "n_tested": 4,
+      "n_solver_errors": 2,
+      "sample_note": "capped sample 4/378",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "n4"
+          ]
+        ],
+        "ratio": 0.7500000000000017,
+        "demands": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.9999999999999996
+        ],
+        "w": [
+          1.0,
+          0.5000000000000057,
+          1.0,
+          0.49999999999999667,
+          0.2499999999999986
+        ]
+      }
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 5,
+      "n_tested": 5,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000006,
+        "demands": [
+          1.0,
+          0.5000000000000002,
+          0.9999999999999991
+        ],
+        "w": [
+          0.5000000000000008,
+          0.4999999999999991,
+          0.4999999999999993
+        ]
+      }
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 40,
+      "n_tested": 40,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000044,
+        "demands": [
+          1.0,
+          1.0,
+          8.271180143584825e-15,
+          1.0
+        ],
+        "w": [
+          0.25000000000001354,
+          0.25000000000000366,
+          0.0,
+          0.4999999999999992
+        ]
+      }
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 189,
+      "n_tested": 2,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 4/189 | STOPPED EARLY (soft time budget)",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "s"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n3",
+            "n4"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000007,
+        "demands": [
+          1.0,
+          -0.0,
+          1.0,
+          0.49999999999999867,
+          1.0
+        ],
+        "w": [
+          0.75,
+          0.0,
+          0.5000000000000011,
+          0.49999999999999467,
+          0.5000000000000007
+        ]
+      }
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 5,
+      "n_tested": 5,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000057,
+        "demands": [
+          1.0,
+          0.5000000000000124,
+          0.9999999999999999
+        ],
+        "w": [
+          0.49999999999998557,
+          0.5000000000000278,
+          0.4999999999999893
+        ]
+      }
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 41,
+      "n_tested": 41,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000033,
+        "demands": [
+          1.0000000000000147,
+          1.0000000000000115,
+          1.0,
+          0.9999999999999987
+        ],
+        "w": [
+          0.4999999999999969,
+          1.0,
+          0.7500000000000016,
+          0.49999999999999445
+        ]
+      }
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 194,
+      "n_tested": 4,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 4/194",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n1",
+            "s"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000004,
+        "demands": [
+          1.0,
+          1.0,
+          0.0,
+          0.5,
+          1.0
+        ],
+        "w": [
+          1.0,
+          0.49999999999999956,
+          0.0,
+          0.5000000000000009,
+          0.5
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 5,
+      "n_tested": 5,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ]
+        ],
+        "ratio": 0.75,
+        "demands": [
+          0.9999999999999997,
+          0.49999999999999944,
+          1.0000000000000002
+        ],
+        "w": [
+          0.5000000000000004,
+          0.4999999999999989,
+          0.5000000000000003
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 40,
+      "n_tested": 40,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000049,
+        "demands": [
+          0.9999999999999978,
+          0.7500000000000049,
+          0.5000000000000088,
+          0.9999999999999992
+        ],
+        "w": [
+          0.5000000000000093,
+          0.0,
+          0.5000000000000041,
+          0.49999999999999883
+        ]
+      }
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 189,
+      "n_tested": 4,
+      "n_solver_errors": 2,
+      "sample_note": "capped sample 4/189",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000013,
+        "demands": [
+          1.0,
+          0.0,
+          0.5000000000000021,
+          1.0000000000000013,
+          0.5000000000000017
+        ],
+        "w": [
+          0.500000000000002,
+          0.0,
+          0.49999999999999684,
+          0.5000000000000009,
+          0.5000000000000021
+        ]
+      }
+    },
+    {
+      "tree": "n5-star4",
+      "k": 3,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 220,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 1,
+      "n_tested": 1,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.6666666666666725,
+        "demands": [
+          1.0000000000000175,
+          1.0,
+          1.0000000000000002
+        ],
+        "w": [
+          0.3333333333333392,
+          0.3333333333333275,
+          -0.0
+        ]
+      }
+    },
+    {
+      "tree": "n5-star4",
+      "k": 4,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 715,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 5,
+      "n_tested": 5,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.7500000000000022,
+        "demands": [
+          1.000000000000003,
+          1.000000000000004,
+          1.0000000000000027,
+          1.0
+        ],
+        "w": [
+          0.249999999999999,
+          0.2500000000000042,
+          0.2499999999999975,
+          1.0
+        ]
+      }
+    },
+    {
+      "tree": "n5-star4",
+      "k": 5,
+      "category": "n5",
+      "n_nodes": 5,
+      "raw_combo_count": 2002,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 18,
+      "n_tested": 4,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 4/18",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "s"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.6666666666666671,
+        "demands": [
+          1.0000000000000004,
+          1.0000000000000013,
+          1.0000000000000004,
+          1.0,
+          0.0
+        ],
+        "w": [
+          0.999999000000001,
+          0.6666676666666659,
+          0.666666666666667,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "tree": "n6-chain5",
+      "k": 3,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 680,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 43,
+      "n_tested": 25,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 25/43",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n5"
+          ],
+          [
+            "n2",
+            "n5"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000022,
+        "demands": [
+          0.5000000000000058,
+          1.0,
+          1.0000000000000009
+        ],
+        "w": [
+          0.5000000000000109,
+          0.49999999999999606,
+          0.5000000000000021
+        ]
+      }
+    },
+    {
+      "tree": "n6-chain5",
+      "k": 4,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 3060,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 511,
+      "n_tested": 6,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 6/511",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n3",
+            "n5"
+          ],
+          [
+            "n3",
+            "s"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.750000000000009,
+        "demands": [
+          1.0000000000000233,
+          1.00000000000005,
+          1.0000000000000258,
+          1.00000000000004
+        ],
+        "w": [
+          0.5000000000000199,
+          0.25000000000001477,
+          0.24999999999999253,
+          3.9968028886504405e-14
+        ]
+      }
+    },
+    {
+      "tree": "n6-chain5",
+      "k": 5,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 11628,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 3303,
+      "n_tested": 1,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 1/3303",
+      "best": null
+    },
+    {
+      "tree": "n6-chain-fork",
+      "k": 3,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 680,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 39,
+      "n_tested": 25,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 25/39",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n3",
+            "s"
+          ],
+          [
+            "n5",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000046,
+        "demands": [
+          1.0,
+          0.500000000000008,
+          1.0
+        ],
+        "w": [
+          0.499999999999991,
+          0.4999999999999807,
+          0.5000000000000091
+        ]
+      }
+    },
+    {
+      "tree": "n6-chain-fork",
+      "k": 4,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 3060,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 473,
+      "n_tested": 6,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 6/473",
+      "best": {
+        "attach": [
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n3",
+            "n5"
+          ],
+          [
+            "n3",
+            "s"
+          ],
+          [
+            "n4",
+            "s"
+          ]
+        ],
+        "ratio": 0.750000000000002,
+        "demands": [
+          1.0000000001703901,
+          0.750000000000002,
+          0.9999999998296094,
+          0.49999999999999084
+        ],
+        "w": [
+          0.5000000000852042,
+          0.0,
+          0.49999999991480004,
+          0.5000000003408037
+        ]
+      }
+    },
+    {
+      "tree": "n6-chain-fork",
+      "k": 5,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 11628,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 3105,
+      "n_tested": 1,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 1/3105",
+      "best": null
+    },
+    {
+      "tree": "n6-star5",
+      "k": 3,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 680,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 1,
+      "n_tested": 1,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.6666666666666679,
+        "demands": [
+          1.0,
+          0.9999999999999992,
+          1.0000000000000058
+        ],
+        "w": [
+          0.33333333333333215,
+          1.0,
+          0.666666666666664
+        ]
+      }
+    },
+    {
+      "tree": "n6-star5",
+      "k": 4,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 3060,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 6,
+      "n_tested": 6,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.7500000000000009,
+        "demands": [
+          1.0,
+          1.0,
+          0.9999999999999996,
+          1.000000000000004
+        ],
+        "w": [
+          0.4999999999999981,
+          -0.0,
+          0.7500000000000009,
+          0.7499999999999982
+        ]
+      }
+    },
+    {
+      "tree": "n6-star5",
+      "k": 5,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 11628,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 30,
+      "n_tested": 1,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 1/30",
+      "best": null
+    },
+    {
+      "tree": "n6-twochains",
+      "k": 3,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 680,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 43,
+      "n_tested": 25,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 25/43",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n5"
+          ],
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000575,
+        "demands": [
+          0.9999999999999453,
+          0.5000000000000695,
+          1.0000000000002292
+        ],
+        "w": [
+          0.5000000000000042,
+          0.49999999999981437,
+          0.5000000000000905
+        ]
+      }
+    },
+    {
+      "tree": "n6-twochains",
+      "k": 4,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 3060,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 511,
+      "n_tested": 6,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 6/511",
+      "best": {
+        "attach": [
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "n5"
+          ],
+          [
+            "n3",
+            "n4"
+          ],
+          [
+            "n5",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000013,
+        "demands": [
+          1.0000000000000004,
+          0.49999999999999645,
+          0.9999999999999977,
+          1.0000000000000009
+        ],
+        "w": [
+          0.5000000000000056,
+          0.4999999999999989,
+          1.0,
+          0.5000000000000017
+        ]
+      }
+    },
+    {
+      "tree": "n6-twochains",
+      "k": 5,
+      "category": "n6",
+      "n_nodes": 6,
+      "raw_combo_count": 11628,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 3303,
+      "n_tested": 1,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 1/3303",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n3",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000047,
+        "demands": [
+          1.0,
+          1.0000000000000266,
+          -0.0,
+          1.0,
+          0.5000000000000059
+        ],
+        "w": [
+          0.7499990000000292,
+          0.7500009999999813,
+          0.0,
+          0.4999999999999941,
+          0.999998000000049
+        ]
+      }
+    },
+    {
+      "tree": "n7-chain6",
+      "k": 3,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 1771,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 147,
+      "n_tested": 25,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 25/147",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "s"
+          ],
+          [
+            "n6",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000007,
+        "demands": [
+          1.000000000000003,
+          1.0,
+          1.0
+        ],
+        "w": [
+          0.4999999999999999,
+          0.5000000000000017,
+          0.24999999999999925
+        ]
+      }
+    },
+    {
+      "tree": "n7-chain6",
+      "k": 4,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 10626,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 2301,
+      "n_tested": 6,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 6/2301",
+      "best": {
+        "attach": [
+          [
+            "n2",
+            "n4"
+          ],
+          [
+            "n2",
+            "n6"
+          ],
+          [
+            "n3",
+            "n5"
+          ],
+          [
+            "n3",
+            "n6"
+          ]
+        ],
+        "ratio": 0.7500002000000001,
+        "demands": [
+          1.0,
+          0.4999996000000005,
+          1.0,
+          1.0
+        ],
+        "w": [
+          0.5000004000000001,
+          0.4999983999987205,
+          0.5000003999999999,
+          1.0
+        ]
+      }
+    },
+    {
+      "tree": "n7-chain6",
+      "k": 5,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 53130,
+      "enum_exhaustive": false,
+      "n_uncovered_total": 1618,
+      "n_tested": 1,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 1/1618",
+      "best": null
+    },
+    {
+      "tree": "n7-chain-fork",
+      "k": 3,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 1771,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 134,
+      "n_tested": 25,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 25/134",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n4",
+            "n6"
+          ],
+          [
+            "n6",
+            "s"
+          ]
+        ],
+        "ratio": 0.7500000000000027,
+        "demands": [
+          1.000000000000006,
+          1.0,
+          1.0
+        ],
+        "w": [
+          0.49999999999999933,
+          0.7499999999999998,
+          0.249999999999999
+        ]
+      }
+    },
+    {
+      "tree": "n7-chain-fork",
+      "k": 4,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 10626,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 2145,
+      "n_tested": 6,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 6/2145",
+      "best": {
+        "attach": [
+          [
+            "n3",
+            "n6"
+          ],
+          [
+            "n4",
+            "s"
+          ],
+          [
+            "n4",
+            "s"
+          ],
+          [
+            "n5",
+            "n6"
+          ]
+        ],
+        "ratio": 0.7500000000000024,
+        "demands": [
+          1.0,
+          0.0,
+          1.0,
+          0.5000000000000129
+        ],
+        "w": [
+          0.5000000000000049,
+          0.0,
+          0.5000000000000049,
+          0.4999999999999982
+        ]
+      }
+    },
+    {
+      "tree": "n7-chain-fork",
+      "k": 5,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 53130,
+      "enum_exhaustive": false,
+      "n_uncovered_total": 1633,
+      "n_tested": 1,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 1/1633",
+      "best": null
+    },
+    {
+      "tree": "n7-star6",
+      "k": 3,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 1771,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 1,
+      "n_tested": 1,
+      "n_solver_errors": 0,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.6666666666666675,
+        "demands": [
+          1.0,
+          1.0000000000000013,
+          1.0
+        ],
+        "w": [
+          -0.0,
+          0.33333333333333265,
+          0.3333333333333341
+        ]
+      }
+    },
+    {
+      "tree": "n7-star6",
+      "k": 4,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 10626,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 6,
+      "n_tested": 6,
+      "n_solver_errors": 1,
+      "sample_note": "full uncovered set tested",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n2"
+          ],
+          [
+            "n1",
+            "n3"
+          ],
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n3"
+          ]
+        ],
+        "ratio": 0.7500000000000031,
+        "demands": [
+          0.9999999999999984,
+          0.9999999999999993,
+          1.000000000000006,
+          1.0
+        ],
+        "w": [
+          0.24999999999999623,
+          0.24999999999999645,
+          0.25000000000000117,
+          -0.0
+        ]
+      }
+    },
+    {
+      "tree": "n7-star6",
+      "k": 5,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 53130,
+      "enum_exhaustive": false,
+      "n_uncovered_total": 33,
+      "n_tested": 1,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 1/33",
+      "best": null
+    },
+    {
+      "tree": "n7-twochains",
+      "k": 3,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 1771,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 147,
+      "n_tested": 25,
+      "n_solver_errors": 0,
+      "sample_note": "capped sample 25/147",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n6"
+          ],
+          [
+            "n2",
+            "n5"
+          ],
+          [
+            "n4",
+            "n6"
+          ]
+        ],
+        "ratio": 0.7500000000000061,
+        "demands": [
+          1.000000000000001,
+          1.0000000000000038,
+          0.9999999999999983
+        ],
+        "w": [
+          0.500000000000005,
+          0.4999999999999895,
+          0.750000000000007
+        ]
+      }
+    },
+    {
+      "tree": "n7-twochains",
+      "k": 4,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 10626,
+      "enum_exhaustive": true,
+      "n_uncovered_total": 2301,
+      "n_tested": 6,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 6/2301",
+      "best": {
+        "attach": [
+          [
+            "n1",
+            "n4"
+          ],
+          [
+            "n2",
+            "n6"
+          ],
+          [
+            "n3",
+            "n4"
+          ],
+          [
+            "n3",
+            "n5"
+          ]
+        ],
+        "ratio": 0.7500000000000024,
+        "demands": [
+          1.0,
+          1.0,
+          1.0,
+          0.5000000000000031
+        ],
+        "w": [
+          0.5000000000000053,
+          0.49999999999999645,
+          0.2499999999999971,
+          0.5000000000000089
+        ]
+      }
+    },
+    {
+      "tree": "n7-twochains",
+      "k": 5,
+      "category": "n7",
+      "n_nodes": 7,
+      "raw_combo_count": 53130,
+      "enum_exhaustive": false,
+      "n_uncovered_total": 1723,
+      "n_tested": 1,
+      "n_solver_errors": 1,
+      "sample_note": "capped sample 1/1723",
+      "best": null
+    }
+  ],
+  "k6_spot_check": {
+    "tree": "n4-fork-at-n1(spot,3-arc)",
+    "attach": [
+      [
+        "n1",
+        "n2"
+      ],
+      [
+        "n1",
+        "n3"
+      ],
+      [
+        "n1",
+        "s"
+      ],
+      [
+        "n2",
+        "n3"
+      ],
+      [
+        "n2",
+        "s"
+      ],
+      [
+        "n3",
+        "s"
+      ]
+    ],
+    "elapsed_s": 24.635954504999972,
+    "ok": true,
+    "ratio": 0.6666676666666667,
+    "p": [
+      0.0,
+      0.0,
+      0.0,
+      1.9999999999834963e-06,
+      0.6666646666666667,
+      0.6666686666666666
+    ],
+    "q": [
+      1.0,
+      1.0,
+      1.0,
+      0.999998,
+      0.3333353333333333,
+      0.3333313333333333
+    ],
+    "demands": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.9999999999999999
+    ],
+    "w": [
+      0.0,
+      0.0,
+      0.0,
+      1.9999999999834963e-06,
+      0.6666646666666667,
+      0.6666686666666667
+    ]
+  },
+  "k7_note": "k=7 not attempted at all -- not a silent cap. Measured growth k=5->k=6 was a ~5-9x jump (4-8s -> 36s+) even at the smallest 3-arc tree, faster than the ~2x the raw 2^k binary count alone would predict (branch-and-bound cost, not just problem size, blows up). Extrapolating the same factor projects k=7 at several hundred seconds PER CALL on the cheapest structure available -- a single call would risk consuming most of whatever budget remained for one uncertain data point. Left untouched.",
+  "global_best": {
+    "tree": "n7-chain6",
+    "k": 4,
+    "category": "n7",
+    "attach": [
+      [
+        "n2",
+        "n4"
+      ],
+      [
+        "n2",
+        "n6"
+      ],
+      [
+        "n3",
+        "n5"
+      ],
+      [
+        "n3",
+        "n6"
+      ]
+    ],
+    "ratio": 0.7500002000000001,
+    "demands": [
+      1.0,
+      0.4999996000000005,
+      1.0,
+      1.0
+    ],
+    "w": [
+      0.5000004000000001,
+      0.4999983999987205,
+      0.5000003999999999,
+      1.0
+    ]
+  },
+  "count_ge_075": 503,
+  "count_ge_090": 0,
+  "count_ge_099": 0,
+  "n_ratios_computed": 702,
+  "total_solver_errors": 17,
+  "positive_hits": [],
+  "bugs": [],
+  "truncated": false,
+  "truncated_note": null,
+  "total_elapsed_s": 202.34037017099945,
+  "stage1_wall_time_s_note": "stage 1 (pre-resume) ran ~640s of real wall time before being killed on a single pathological MILP call; that time is not included in this process's elapsed()/total_elapsed_s, which only covers the continuation. See the final report for the combined wall-clock total."
+}

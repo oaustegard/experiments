@@ -1,0 +1,1 @@
+1. MUTATION: docstring says "does not mutate inputs" but the function mutates `default_prefs`. Line 3 assigns `result = default_prefs` (alias, not copy), so modifications to `result` directly modify the caller's dict. Demonstration: `d={"a":1}; u={"a":2}; merge_user_prefs(d, u); d == {"a": 2}` — the original dict was mutated, violating the documented contract.

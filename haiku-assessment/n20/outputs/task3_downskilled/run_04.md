@@ -1,0 +1,1 @@
+Caching layer released. It reduces p99 latency on repeated reads by deferring writes to a background queue and caching results in memory with TTL-based invalidation. Early users report lower response times in common workloads; the cache persists across restarts when configured with RDB snapshots.

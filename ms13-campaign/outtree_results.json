@@ -1,0 +1,2378 @@
+{
+  "budget_projection_note": "COST PROJECTION (revised after a full 41-combo run measured 26/41 combos costing 615s at CAP=20/TRIALS=6 -- truncated by the soft-stop guard, 0 assertion failures, 0 positive hits): knobs cut to CAP_PATTERNS_PER_COMBO=15, TRIALS_PER_PATTERN=4, RANDOM_SAMPLES=12, COVERED_SELF_TEST_CAP=5, Lemma-6 self-test restricted to 6 representative trees -- targeting full 41-combo coverage inside the 720s (12min) ceiling this run.",
+  "tree_shapes": [
+    {
+      "name": "n2-chain",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ]
+      ],
+      "n_nodes": 2,
+      "automorphism_group_size": 1
+    },
+    {
+      "name": "n3-chain",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ]
+      ],
+      "n_nodes": 3,
+      "automorphism_group_size": 1
+    },
+    {
+      "name": "n3-cherry",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "s",
+          "n2"
+        ]
+      ],
+      "n_nodes": 3,
+      "automorphism_group_size": 2
+    },
+    {
+      "name": "n4-chain3",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n2",
+          "n3"
+        ]
+      ],
+      "n_nodes": 4,
+      "automorphism_group_size": 1
+    },
+    {
+      "name": "n4-fork-at-n1",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ]
+      ],
+      "n_nodes": 4,
+      "automorphism_group_size": 2
+    },
+    {
+      "name": "n4-chain2+leaf",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "s",
+          "n3"
+        ]
+      ],
+      "n_nodes": 4,
+      "automorphism_group_size": 1
+    },
+    {
+      "name": "n4-star3",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "s",
+          "n2"
+        ],
+        [
+          "s",
+          "n3"
+        ]
+      ],
+      "n_nodes": 4,
+      "automorphism_group_size": 6
+    },
+    {
+      "name": "n5-chain4",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 1
+    },
+    {
+      "name": "n5-chain-fork",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 2
+    },
+    {
+      "name": "n5-chain-leaf",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n1",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 1
+    },
+    {
+      "name": "n5-chain-star",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 6
+    },
+    {
+      "name": "n5-chain3-leaf",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "s",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 1
+    },
+    {
+      "name": "n5-cherry-leaf",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "s",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 2
+    },
+    {
+      "name": "n5-twochains",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "s",
+          "n3"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 2
+    },
+    {
+      "name": "n5-chain2-2leaf",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "s",
+          "n3"
+        ],
+        [
+          "s",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 2
+    },
+    {
+      "name": "n5-star4",
+      "tree_arcs": [
+        [
+          "s",
+          "n1"
+        ],
+        [
+          "s",
+          "n2"
+        ],
+        [
+          "s",
+          "n3"
+        ],
+        [
+          "s",
+          "n4"
+        ]
+      ],
+      "n_nodes": 5,
+      "automorphism_group_size": 24
+    }
+  ],
+  "sanity_anchor": {
+    "instance": "rybin (s-a-b-c chain, attach={t1:(a,c),t2:(s,c),t3:(s,b)}, d=(15,10,15))",
+    "chord_graph_edges": [
+      [
+        "a",
+        "s"
+      ],
+      [
+        "a",
+        "b"
+      ],
+      [
+        "b",
+        "c"
+      ],
+      [
+        "a",
+        "c"
+      ],
+      [
+        "c",
+        "s"
+      ],
+      [
+        "b",
+        "s"
+      ]
+    ],
+    "msw25_covered": false,
+    "expected": false,
+    "passed": true
+  },
+  "enumeration_counts": {
+    "n2-chain/k3": {
+      "raw": 1,
+      "deduped": 1,
+      "covered": 1,
+      "uncovered": 0
+    },
+    "n2-chain/k4": {
+      "raw": 1,
+      "deduped": 1,
+      "covered": 1,
+      "uncovered": 0
+    },
+    "n3-chain/k3": {
+      "raw": 10,
+      "deduped": 10,
+      "covered": 10,
+      "uncovered": 0
+    },
+    "n3-chain/k4": {
+      "raw": 15,
+      "deduped": 15,
+      "covered": 15,
+      "uncovered": 0
+    },
+    "n3-cherry/k3": {
+      "raw": 10,
+      "deduped": 6,
+      "covered": 6,
+      "uncovered": 0
+    },
+    "n3-cherry/k4": {
+      "raw": 15,
+      "deduped": 9,
+      "covered": 9,
+      "uncovered": 0
+    },
+    "n4-chain3/k3": {
+      "raw": 56,
+      "deduped": 56,
+      "covered": 55,
+      "uncovered": 1
+    },
+    "n4-chain3/k4": {
+      "raw": 126,
+      "deduped": 126,
+      "covered": 120,
+      "uncovered": 6
+    },
+    "n4-fork-at-n1/k3": {
+      "raw": 56,
+      "deduped": 32,
+      "covered": 31,
+      "uncovered": 1
+    },
+    "n4-fork-at-n1/k4": {
+      "raw": 126,
+      "deduped": 70,
+      "covered": 66,
+      "uncovered": 4
+    },
+    "n4-chain2+leaf/k3": {
+      "raw": 56,
+      "deduped": 56,
+      "covered": 55,
+      "uncovered": 1
+    },
+    "n4-chain2+leaf/k4": {
+      "raw": 126,
+      "deduped": 126,
+      "covered": 120,
+      "uncovered": 6
+    },
+    "n4-star3/k3": {
+      "raw": 56,
+      "deduped": 14,
+      "covered": 13,
+      "uncovered": 1
+    },
+    "n4-star3/k4": {
+      "raw": 126,
+      "deduped": 28,
+      "covered": 26,
+      "uncovered": 2
+    },
+    "n5-chain4/k3": {
+      "raw": 220,
+      "deduped": 220,
+      "covered": 211,
+      "uncovered": 9
+    },
+    "n5-chain4/k4": {
+      "raw": 715,
+      "deduped": 715,
+      "covered": 637,
+      "uncovered": 78
+    },
+    "n5-chain4/k5": {
+      "raw": 2002,
+      "deduped": 2002,
+      "covered": 1624,
+      "uncovered": 378
+    },
+    "n5-chain-fork/k3": {
+      "raw": 220,
+      "deduped": 126,
+      "covered": 121,
+      "uncovered": 5
+    },
+    "n5-chain-fork/k4": {
+      "raw": 715,
+      "deduped": 393,
+      "covered": 353,
+      "uncovered": 40
+    },
+    "n5-chain-fork/k5": {
+      "raw": 2002,
+      "deduped": 1071,
+      "covered": 882,
+      "uncovered": 189
+    },
+    "n5-chain-leaf/k3": {
+      "raw": 220,
+      "deduped": 220,
+      "covered": 212,
+      "uncovered": 8
+    },
+    "n5-chain-leaf/k4": {
+      "raw": 715,
+      "deduped": 715,
+      "covered": 644,
+      "uncovered": 71
+    },
+    "n5-chain-leaf/k5": {
+      "raw": 2002,
+      "deduped": 2002,
+      "covered": 1652,
+      "uncovered": 350
+    },
+    "n5-chain-star/k3": {
+      "raw": 220,
+      "deduped": 54,
+      "covered": 52,
+      "uncovered": 2
+    },
+    "n5-chain-star/k4": {
+      "raw": 715,
+      "deduped": 156,
+      "covered": 144,
+      "uncovered": 12
+    },
+    "n5-chain-star/k5": {
+      "raw": 2002,
+      "deduped": 405,
+      "covered": 351,
+      "uncovered": 54
+    },
+    "n5-chain3-leaf/k3": {
+      "raw": 220,
+      "deduped": 220,
+      "covered": 211,
+      "uncovered": 9
+    },
+    "n5-chain3-leaf/k4": {
+      "raw": 715,
+      "deduped": 715,
+      "covered": 637,
+      "uncovered": 78
+    },
+    "n5-chain3-leaf/k5": {
+      "raw": 2002,
+      "deduped": 2002,
+      "covered": 1624,
+      "uncovered": 378
+    },
+    "n5-cherry-leaf/k3": {
+      "raw": 220,
+      "deduped": 126,
+      "covered": 121,
+      "uncovered": 5
+    },
+    "n5-cherry-leaf/k4": {
+      "raw": 715,
+      "deduped": 393,
+      "covered": 353,
+      "uncovered": 40
+    },
+    "n5-cherry-leaf/k5": {
+      "raw": 2002,
+      "deduped": 1071,
+      "covered": 882,
+      "uncovered": 189
+    },
+    "n5-twochains/k3": {
+      "raw": 220,
+      "deduped": 116,
+      "covered": 111,
+      "uncovered": 5
+    },
+    "n5-twochains/k4": {
+      "raw": 715,
+      "deduped": 371,
+      "covered": 330,
+      "uncovered": 41
+    },
+    "n5-twochains/k5": {
+      "raw": 2002,
+      "deduped": 1022,
+      "covered": 828,
+      "uncovered": 194
+    },
+    "n5-chain2-2leaf/k3": {
+      "raw": 220,
+      "deduped": 126,
+      "covered": 121,
+      "uncovered": 5
+    },
+    "n5-chain2-2leaf/k4": {
+      "raw": 715,
+      "deduped": 393,
+      "covered": 353,
+      "uncovered": 40
+    },
+    "n5-chain2-2leaf/k5": {
+      "raw": 2002,
+      "deduped": 1071,
+      "covered": 882,
+      "uncovered": 189
+    },
+    "n5-star4/k3": {
+      "raw": 220,
+      "deduped": 20,
+      "covered": 19,
+      "uncovered": 1
+    },
+    "n5-star4/k4": {
+      "raw": 715,
+      "deduped": 53,
+      "covered": 48,
+      "uncovered": 5
+    },
+    "n5-star4/k5": {
+      "raw": 2002,
+      "deduped": 125,
+      "covered": 107,
+      "uncovered": 18
+    }
+  },
+  "equal_demand_self_test": [
+    {
+      "tree": "n2-chain",
+      "k": 3,
+      "n_checked": 1,
+      "max_t_found": "-2"
+    },
+    {
+      "tree": "n2-chain",
+      "k": 4,
+      "n_checked": 1,
+      "max_t_found": "-4/3"
+    },
+    {
+      "tree": "n3-cherry",
+      "k": 3,
+      "n_checked": 6,
+      "max_t_found": "-1"
+    },
+    {
+      "tree": "n3-cherry",
+      "k": 4,
+      "n_checked": 8,
+      "max_t_found": "-1"
+    },
+    {
+      "tree": "n4-chain3",
+      "k": 3,
+      "n_checked": 8,
+      "max_t_found": "-1"
+    },
+    {
+      "tree": "n4-chain3",
+      "k": 4,
+      "n_checked": 8,
+      "max_t_found": "-1"
+    },
+    {
+      "tree": "n4-star3",
+      "k": 3,
+      "n_checked": 8,
+      "max_t_found": "-4/3"
+    },
+    {
+      "tree": "n4-star3",
+      "k": 4,
+      "n_checked": 8,
+      "max_t_found": "-1"
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 3,
+      "n_checked": 8,
+      "max_t_found": "-1"
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 4,
+      "n_checked": 8,
+      "max_t_found": "-4/3"
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 5,
+      "n_checked": 8,
+      "max_t_found": "-1"
+    },
+    {
+      "tree": "n5-star4",
+      "k": 3,
+      "n_checked": 8,
+      "max_t_found": "-4/3"
+    },
+    {
+      "tree": "n5-star4",
+      "k": 4,
+      "n_checked": 8,
+      "max_t_found": "-1"
+    },
+    {
+      "tree": "n5-star4",
+      "k": 5,
+      "n_checked": 8,
+      "max_t_found": "-1"
+    }
+  ],
+  "msw25_covered_self_test": [
+    {
+      "tree": "n2-chain",
+      "k": 3,
+      "n_checked": 1,
+      "max_t_found": "-25/4"
+    },
+    {
+      "tree": "n2-chain",
+      "k": 4,
+      "n_checked": 1,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n3-chain",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n3-chain",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-11/2"
+    },
+    {
+      "tree": "n3-cherry",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n3-cherry",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-11/2"
+    },
+    {
+      "tree": "n4-chain3",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n4-chain3",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n4-fork-at-n1",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n4-fork-at-n1",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n4-chain2+leaf",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-7/2"
+    },
+    {
+      "tree": "n4-chain2+leaf",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-13/2"
+    },
+    {
+      "tree": "n4-star3",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n4-star3",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-21/4"
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-15/2"
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-13/2"
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3"
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-65/12"
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-13/2"
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-8"
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-3/2"
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-11/2"
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-7/2"
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-star4",
+      "k": 3,
+      "n_checked": 5,
+      "max_t_found": "-8/3"
+    },
+    {
+      "tree": "n5-star4",
+      "k": 4,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    },
+    {
+      "tree": "n5-star4",
+      "k": 5,
+      "n_checked": 5,
+      "max_t_found": "-9/2"
+    }
+  ],
+  "per_combo": [
+    {
+      "tree": "n2-chain",
+      "k": 3,
+      "n_uncovered_structural": 0,
+      "n_uncovered_searched": 0,
+      "n_covered_structural": 1,
+      "max_t_found_uncovered": null,
+      "argmax_w": null,
+      "argmax_attach": null,
+      "argmax_demands": null
+    },
+    {
+      "tree": "n2-chain",
+      "k": 4,
+      "n_uncovered_structural": 0,
+      "n_uncovered_searched": 0,
+      "n_covered_structural": 1,
+      "max_t_found_uncovered": null,
+      "argmax_w": null,
+      "argmax_attach": null,
+      "argmax_demands": null
+    },
+    {
+      "tree": "n3-chain",
+      "k": 3,
+      "n_uncovered_structural": 0,
+      "n_uncovered_searched": 0,
+      "n_covered_structural": 10,
+      "max_t_found_uncovered": null,
+      "argmax_w": null,
+      "argmax_attach": null,
+      "argmax_demands": null
+    },
+    {
+      "tree": "n3-chain",
+      "k": 4,
+      "n_uncovered_structural": 0,
+      "n_uncovered_searched": 0,
+      "n_covered_structural": 15,
+      "max_t_found_uncovered": null,
+      "argmax_w": null,
+      "argmax_attach": null,
+      "argmax_demands": null
+    },
+    {
+      "tree": "n3-cherry",
+      "k": 3,
+      "n_uncovered_structural": 0,
+      "n_uncovered_searched": 0,
+      "n_covered_structural": 6,
+      "max_t_found_uncovered": null,
+      "argmax_w": null,
+      "argmax_attach": null,
+      "argmax_demands": null
+    },
+    {
+      "tree": "n3-cherry",
+      "k": 4,
+      "n_uncovered_structural": 0,
+      "n_uncovered_searched": 0,
+      "n_covered_structural": 9,
+      "max_t_found_uncovered": null,
+      "argmax_w": null,
+      "argmax_attach": null,
+      "argmax_demands": null
+    },
+    {
+      "tree": "n4-chain3",
+      "k": 3,
+      "n_uncovered_structural": 1,
+      "n_uncovered_searched": 4,
+      "n_covered_structural": 55,
+      "max_t_found_uncovered": "-3/2",
+      "argmax_w": [
+        "0",
+        "1/2",
+        "0"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "2",
+        "3",
+        "2"
+      ]
+    },
+    {
+      "tree": "n4-chain3",
+      "k": 4,
+      "n_uncovered_structural": 6,
+      "n_uncovered_searched": 24,
+      "n_covered_structural": 120,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "1/6",
+        "3/4",
+        "7/12",
+        "3/4"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "4",
+        "7",
+        "9",
+        "6"
+      ]
+    },
+    {
+      "tree": "n4-fork-at-n1",
+      "k": 3,
+      "n_uncovered_structural": 1,
+      "n_uncovered_searched": 4,
+      "n_covered_structural": 31,
+      "max_t_found_uncovered": "-7/2",
+      "argmax_w": [
+        "0",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "5",
+        "3",
+        "7"
+      ]
+    },
+    {
+      "tree": "n4-fork-at-n1",
+      "k": 4,
+      "n_uncovered_structural": 4,
+      "n_uncovered_searched": 16,
+      "n_covered_structural": 66,
+      "max_t_found_uncovered": "-9/2",
+      "argmax_w": [
+        "0",
+        "0",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "4",
+        "7",
+        "6",
+        "9"
+      ]
+    },
+    {
+      "tree": "n4-chain2+leaf",
+      "k": 3,
+      "n_uncovered_structural": 1,
+      "n_uncovered_searched": 4,
+      "n_covered_structural": 55,
+      "max_t_found_uncovered": "-3",
+      "argmax_w": [
+        "1/2",
+        "1/2",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "5",
+        "3",
+        "7"
+      ]
+    },
+    {
+      "tree": "n4-chain2+leaf",
+      "k": 4,
+      "n_uncovered_structural": 6,
+      "n_uncovered_searched": 24,
+      "n_covered_structural": 120,
+      "max_t_found_uncovered": "-7/2",
+      "argmax_w": [
+        "1/2",
+        "1/2",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "9",
+        "4",
+        "6",
+        "7"
+      ]
+    },
+    {
+      "tree": "n4-star3",
+      "k": 3,
+      "n_uncovered_structural": 1,
+      "n_uncovered_searched": 4,
+      "n_covered_structural": 13,
+      "max_t_found_uncovered": "-15/2",
+      "argmax_w": [
+        "7/12",
+        "1/6",
+        "1/4"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n3"
+        ]
+      ],
+      "argmax_demands": [
+        "18",
+        "3",
+        "15"
+      ]
+    },
+    {
+      "tree": "n4-star3",
+      "k": 4,
+      "n_uncovered_structural": 2,
+      "n_uncovered_searched": 8,
+      "n_covered_structural": 26,
+      "max_t_found_uncovered": "-55/12",
+      "argmax_w": [
+        "5/12",
+        "1",
+        "1/4",
+        "2/3"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "s"
+        ],
+        [
+          "n2",
+          "n3"
+        ]
+      ],
+      "argmax_demands": [
+        "11",
+        "6",
+        "9",
+        "2"
+      ]
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 3,
+      "n_uncovered_structural": 9,
+      "n_uncovered_searched": 36,
+      "n_covered_structural": 211,
+      "max_t_found_uncovered": "-3/2",
+      "argmax_w": [
+        "0",
+        "1/2",
+        "0"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "n4"
+        ],
+        [
+          "n2",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "2",
+        "3",
+        "2"
+      ]
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 4,
+      "n_uncovered_structural": 78,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 637,
+      "max_t_found_uncovered": "-7/2",
+      "argmax_w": [
+        "1/2",
+        "1/2",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n4"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "7",
+        "9",
+        "6",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-chain4",
+      "k": 5,
+      "n_uncovered_structural": 378,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 1624,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "0",
+        "1",
+        "1/4",
+        "5/12",
+        "1"
+      ],
+      "argmax_attach": [
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ],
+        [
+          "n3",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "5",
+        "6",
+        "7",
+        "9",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 3,
+      "n_uncovered_structural": 5,
+      "n_uncovered_searched": 20,
+      "n_covered_structural": 121,
+      "max_t_found_uncovered": "-4/3",
+      "argmax_w": [
+        "1/6",
+        "1/3",
+        "1/3"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n3",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "2",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 4,
+      "n_uncovered_structural": 40,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 353,
+      "max_t_found_uncovered": "-7/2",
+      "argmax_w": [
+        "1/2",
+        "1/2",
+        "1/2",
+        "0"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "7",
+        "9",
+        "4",
+        "6"
+      ]
+    },
+    {
+      "tree": "n5-chain-fork",
+      "k": 5,
+      "n_uncovered_structural": 189,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 882,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "1/6",
+        "1/4",
+        "3/4",
+        "7/12",
+        "1"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "5",
+        "4",
+        "7",
+        "9",
+        "6"
+      ]
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 3,
+      "n_uncovered_structural": 8,
+      "n_uncovered_searched": 32,
+      "n_covered_structural": 212,
+      "max_t_found_uncovered": "-3/2",
+      "argmax_w": [
+        "1/2",
+        "0",
+        "0"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "3",
+        "2",
+        "2"
+      ]
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 4,
+      "n_uncovered_structural": 71,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 644,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "1/8",
+        "5/8",
+        "3/4",
+        "1/4"
+      ],
+      "argmax_attach": [
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n3",
+          "n4"
+        ],
+        [
+          "n3",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "6",
+        "9",
+        "7",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-chain-leaf",
+      "k": 5,
+      "n_uncovered_structural": 350,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 1652,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "0",
+        "0",
+        "1/2",
+        "5/12",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "s"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "n4"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "5",
+        "6",
+        "7",
+        "9",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 3,
+      "n_uncovered_structural": 2,
+      "n_uncovered_searched": 8,
+      "n_covered_structural": 52,
+      "max_t_found_uncovered": "-3/2",
+      "argmax_w": [
+        "0",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "2",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 4,
+      "n_uncovered_structural": 12,
+      "n_uncovered_searched": 48,
+      "n_covered_structural": 144,
+      "max_t_found_uncovered": "-9/2",
+      "argmax_w": [
+        "0",
+        "0",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "7",
+        "6",
+        "4",
+        "9"
+      ]
+    },
+    {
+      "tree": "n5-chain-star",
+      "k": 5,
+      "n_uncovered_structural": 54,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 351,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "1/4",
+        "0",
+        "3/4",
+        "3/8",
+        "5/12"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "6",
+        "5",
+        "7",
+        "4",
+        "9"
+      ]
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 3,
+      "n_uncovered_structural": 9,
+      "n_uncovered_searched": 36,
+      "n_covered_structural": 211,
+      "max_t_found_uncovered": "-3/2",
+      "argmax_w": [
+        "0",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "2",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 4,
+      "n_uncovered_structural": 78,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 637,
+      "max_t_found_uncovered": "-7/2",
+      "argmax_w": [
+        "1/2",
+        "1/2",
+        "1/2",
+        "0"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n4"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "9",
+        "4",
+        "7",
+        "6"
+      ]
+    },
+    {
+      "tree": "n5-chain3-leaf",
+      "k": 5,
+      "n_uncovered_structural": 378,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 1624,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "1/2",
+        "1/2",
+        "3/4",
+        "7/12",
+        "5/6"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "5",
+        "6",
+        "7",
+        "9",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 3,
+      "n_uncovered_structural": 5,
+      "n_uncovered_searched": 20,
+      "n_covered_structural": 121,
+      "max_t_found_uncovered": "-3/2",
+      "argmax_w": [
+        "0",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "2",
+        "2",
+        "3"
+      ]
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 4,
+      "n_uncovered_structural": 40,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 353,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "7/12",
+        "1/8",
+        "7/12",
+        "3/4"
+      ],
+      "argmax_attach": [
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "6",
+        "4",
+        "9",
+        "7"
+      ]
+    },
+    {
+      "tree": "n5-cherry-leaf",
+      "k": 5,
+      "n_uncovered_structural": 189,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 882,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "0",
+        "1/2",
+        "0",
+        "7/12",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n2",
+          "s"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "5",
+        "4",
+        "6",
+        "9",
+        "7"
+      ]
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 3,
+      "n_uncovered_structural": 5,
+      "n_uncovered_searched": 20,
+      "n_covered_structural": 111,
+      "max_t_found_uncovered": "-3/2",
+      "argmax_w": [
+        "1/2",
+        "0",
+        "0"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n4"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "3",
+        "2",
+        "2"
+      ]
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 4,
+      "n_uncovered_structural": 41,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 330,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "1/4",
+        "1/4",
+        "5/12",
+        "1"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n2",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "6",
+        "7",
+        "9",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-twochains",
+      "k": 5,
+      "n_uncovered_structural": 194,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 828,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "0",
+        "11/12",
+        "2/3",
+        "3/4",
+        "1"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "n4"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "5",
+        "6",
+        "9",
+        "7",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 3,
+      "n_uncovered_structural": 5,
+      "n_uncovered_searched": 20,
+      "n_covered_structural": 121,
+      "max_t_found_uncovered": "-4/3",
+      "argmax_w": [
+        "1/3",
+        "1/3",
+        "5/6"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "3",
+        "2",
+        "2"
+      ]
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 4,
+      "n_uncovered_structural": 40,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 353,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "1/2",
+        "3/4",
+        "7/12",
+        "2/3"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "6",
+        "7",
+        "9",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-chain2-2leaf",
+      "k": 5,
+      "n_uncovered_structural": 189,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 882,
+      "max_t_found_uncovered": "-9/2",
+      "argmax_w": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "1/2"
+      ],
+      "argmax_attach": [
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ],
+        [
+          "n3",
+          "s"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "6",
+        "4",
+        "7",
+        "5",
+        "9"
+      ]
+    },
+    {
+      "tree": "n5-star4",
+      "k": 3,
+      "n_uncovered_structural": 1,
+      "n_uncovered_searched": 4,
+      "n_covered_structural": 19,
+      "max_t_found_uncovered": "-3/2",
+      "argmax_w": [
+        "1/2",
+        "0",
+        "0"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n3"
+        ]
+      ],
+      "argmax_demands": [
+        "3",
+        "2",
+        "2"
+      ]
+    },
+    {
+      "tree": "n5-star4",
+      "k": 4,
+      "n_uncovered_structural": 5,
+      "n_uncovered_searched": 20,
+      "n_covered_structural": 48,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "5/12",
+        "1/6",
+        "3/4",
+        "1/12"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n2",
+          "n3"
+        ],
+        [
+          "n4",
+          "s"
+        ]
+      ],
+      "argmax_demands": [
+        "9",
+        "6",
+        "7",
+        "4"
+      ]
+    },
+    {
+      "tree": "n5-star4",
+      "k": 5,
+      "n_uncovered_structural": 18,
+      "n_uncovered_searched": 60,
+      "n_covered_structural": 107,
+      "max_t_found_uncovered": "-15/4",
+      "argmax_w": [
+        "7/12",
+        "0",
+        "3/4",
+        "11/12",
+        "5/6"
+      ],
+      "argmax_attach": [
+        [
+          "n1",
+          "n2"
+        ],
+        [
+          "n1",
+          "n3"
+        ],
+        [
+          "n1",
+          "s"
+        ],
+        [
+          "n2",
+          "n4"
+        ],
+        [
+          "n3",
+          "n4"
+        ]
+      ],
+      "argmax_demands": [
+        "9",
+        "4",
+        "7",
+        "6",
+        "5"
+      ]
+    }
+  ],
+  "positive_hits": [],
+  "truncated": false,
+  "truncated_note": null,
+  "ledger_totals": {
+    "raw": 27213,
+    "deduped": 16453,
+    "covered": 14038,
+    "uncovered": 2415,
+    "covered_fraction": 0.8532182580684373,
+    "uncovered_fraction": 0.14678174193156263
+  },
+  "global_best_uncovered": {
+    "t": "-4/3",
+    "tree": "n5-chain-fork",
+    "attach": [
+      [
+        "n1",
+        "n3"
+      ],
+      [
+        "n3",
+        "s"
+      ],
+      [
+        "n4",
+        "s"
+      ]
+    ],
+    "demands": [
+      "2",
+      "2",
+      "3"
+    ],
+    "w": [
+      "1/6",
+      "1/3",
+      "1/3"
+    ],
+    "t_over_dmax": "-4/9"
+  },
+  "per_tree_best_uncovered": {
+    "n2-chain": null,
+    "n3-chain": null,
+    "n3-cherry": null,
+    "n4-chain3": "-3/2",
+    "n4-fork-at-n1": "-7/2",
+    "n4-chain2+leaf": "-3",
+    "n4-star3": "-55/12",
+    "n5-chain4": "-3/2",
+    "n5-chain-fork": "-4/3",
+    "n5-chain-leaf": "-3/2",
+    "n5-chain-star": "-3/2",
+    "n5-chain3-leaf": "-3/2",
+    "n5-cherry-leaf": "-3/2",
+    "n5-twochains": "-3/2",
+    "n5-chain2-2leaf": "-4/3",
+    "n5-star4": "-3/2"
+  },
+  "n_covered_self_tested": 197,
+  "n_uncovered_searched": 1312,
+  "total_elapsed_s": 540.1874952019998
+}

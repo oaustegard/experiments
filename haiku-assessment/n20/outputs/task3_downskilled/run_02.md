@@ -1,0 +1,1 @@
+Caching layer released. It handles transparent caching of database queries and API responses, with configurable TTLs per endpoint and automatic invalidation on write operations. Deployed services show lower p99 latencies on read-heavy workloads and reduced database load during peak traffic.

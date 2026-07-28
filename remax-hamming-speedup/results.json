@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "numpy": "2.4.4",
+    "bits": 2048,
+    "row_bytes": 256,
+    "float_dim": 768,
+    "k": 10,
+    "reps": 40,
+    "seed": 20260626,
+    "metric": "best-of-reps milliseconds per query (single query vs full corpus)"
+  },
+  "results": [
+    {
+      "n": 600,
+      "lut_baseline": 0.3668,
+      "lut_baseline_match": true,
+      "bitcount_u8": 0.0486,
+      "bitcount_u8_match": true,
+      "bitcount_u64": 0.0358,
+      "bitcount_u64_match": true,
+      "pm1_matmul_f32": 0.1742,
+      "pm1_matmul_f32_match": true,
+      "pm1_matmul_i8": 0.9746,
+      "pm1_matmul_i8_match": false,
+      "float_cosine": 0.06
+    },
+    {
+      "n": 2000,
+      "lut_baseline": 1.3903,
+      "lut_baseline_match": true,
+      "bitcount_u8": 0.1751,
+      "bitcount_u8_match": true,
+      "bitcount_u64": 0.1146,
+      "bitcount_u64_match": true,
+      "pm1_matmul_f32": 0.5683,
+      "pm1_matmul_f32_match": true,
+      "pm1_matmul_i8": 3.4624,
+      "pm1_matmul_i8_match": true,
+      "float_cosine": 0.19
+    },
+    {
+      "n": 10000,
+      "lut_baseline": 7.8315,
+      "lut_baseline_match": true,
+      "bitcount_u8": 1.0398,
+      "bitcount_u8_match": true,
+      "bitcount_u64": 0.5797,
+      "bitcount_u64_match": true,
+      "pm1_matmul_f32": 6.2388,
+      "pm1_matmul_f32_match": true,
+      "pm1_matmul_i8": 38.2002,
+      "pm1_matmul_i8_match": false,
+      "float_cosine": 2.0792
+    },
+    {
+      "n": 50000,
+      "lut_baseline": 38.5433,
+      "lut_baseline_match": true,
+      "bitcount_u8": 7.7358,
+      "bitcount_u8_match": true,
+      "bitcount_u64": 5.2398,
+      "bitcount_u64_match": true,
+      "pm1_matmul_f32": 29.0211,
+      "pm1_matmul_f32_match": true,
+      "pm1_matmul_i8": 177.0611,
+      "pm1_matmul_i8_match": false,
+      "float_cosine": 12.7392
+    },
+    {
+      "n": 100000,
+      "lut_baseline": 98.3338,
+      "lut_baseline_match": true,
+      "bitcount_u8": 17.4169,
+      "bitcount_u8_match": true,
+      "bitcount_u64": 9.8843,
+      "bitcount_u64_match": true,
+      "pm1_matmul_f32": 56.4673,
+      "pm1_matmul_f32_match": true,
+      "pm1_matmul_i8": 348.8237,
+      "pm1_matmul_i8_match": false,
+      "float_cosine": 28.2809
+    },
+    {
+      "n": 500000,
+      "lut_baseline": 549.2065,
+      "lut_baseline_match": true,
+      "bitcount_u8": 197.0243,
+      "bitcount_u8_match": true,
+      "bitcount_u64": 107.7894,
+      "bitcount_u64_match": true,
+      "float_cosine": 140.7787
+    },
+    {
+      "n": 1000000,
+      "lut_baseline": 1124.1933,
+      "lut_baseline_match": true,
+      "bitcount_u8": 381.7719,
+      "bitcount_u8_match": true,
+      "bitcount_u64": 221.8557,
+      "bitcount_u64_match": true,
+      "float_cosine": 301.3545
+    }
+  ]
+}

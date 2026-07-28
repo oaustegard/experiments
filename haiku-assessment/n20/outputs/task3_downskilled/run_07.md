@@ -1,0 +1,1 @@
+Caching layer released. It stores frequently accessed data in memory with automatic invalidation on write, eliminating the need for application-level cache busting. Deployments show lower p99 latency on read-heavy workloads and reduced backend query volume.

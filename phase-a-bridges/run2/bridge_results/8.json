@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Understand the combinatorial structure of unfoldings (nets) of the n-dimensional cube, and related questions about packings, partitions, and chord systems arising from such unfoldings.",
+    "methods": "Combinatorial enumeration and geometric/polyhedral analysis: representing unfoldings as spanning trees of the cube's facet adjacency graph, counting and classifying nets, studying how they tile or pack, and examining the chord structure induced when faces are identified.",
+    "regime": "Discrete/finite combinatorial geometry on the n-cube; exact (non-asymptotic) structural results for low and arbitrary dimension, with emphasis on classification and existence rather than approximation.",
+    "hypothesized_generalization": "The framework should extend from cubes to general zonotopes or reflexive polytopes, giving a unified language in which unfoldings, lattice packings, set partitions, and chord diagrams are all shadows of one underlying combinatorial object (e.g. a spanning structure on a polytope's face lattice)."
+  },
+  "b_extract": {
+    "problem": "Sort an array by constructing a comparison graph among its elements and then producing a sorted order via a topological sort of that graph.",
+    "methods": "Build a directed graph whose vertices are array entries and whose edges encode pairwise comparison outcomes; run a topological sort (e.g. Kahn's or DFS-based) to recover a linear extension consistent with all observed comparisons; analyze comparison count and runtime.",
+    "regime": "Sequential, deterministic comparison-based sorting of finite arrays; worst-case and average-case analysis in the standard RAM model, with focus on comparison complexity relative to classical O(n log n) bounds.",
+    "hypothesized_generalization": "Any sorting algorithm can be cast as incrementally building a DAG of known order relations and extracting a linear extension, so the method should generalize to partial-order sorting, sorting with faulty comparisons, and to settings where the comparison graph is given or constrained by an external structure."
+  },
+  "bridge": {
+    "compatibility": "low",
+    "rationale": "The papers share only the very broad theme of 'combinatorial structures encoded by graphs/trees,' but operate on completely different objects (geometric polytope unfoldings vs. comparison-induced DAGs on numbers) with no obvious shared invariant. The cross-field similarity signals (Hamming 0.143, cosine 0.260) are weak-to-moderate and likely driven by generic discrete-math vocabulary rather than a deep structural link.",
+    "mediator": "linear extensions of posets / spanning structures on graphs",
+    "sketch": "A possible bridge would view both objects through the lens of linear extensions of a partial order: an unfolding of the n-cube is a spanning tree of the facet-adjacency graph, which induces a partial order on faces via the unfolding sequence; sorting via a comparison DAG is exactly producing a linear extension of the order induced by observed comparisons. One could ask whether algorithms or counting results for linear extensions of cube-net posets (which have rich symmetry) yield new bounds on comparison-sort variants restricted to comparison graphs with cube-like structure, or conversely whether topological-sort heuristics give efficient ways to enumerate or sample cube unfoldings. The transfer is speculative — the cube-net poset has no natural 'sorting' interpretation — but the linear-extension viewpoint is the most concrete shared formalism."
+  }
+}

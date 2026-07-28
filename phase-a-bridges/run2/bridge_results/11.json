@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Decidability and complexity of the conjugacy problem in certain classes of finitely generated metabelian groups (groups G with G'' = 1), motivated by both pure group-theoretic interest and applications to non-commutative cryptography.",
+    "methods": "Group-theoretic techniques for metabelian groups: representing elements via a short exact sequence with abelian kernel and abelian quotient, reducing conjugacy to questions about ZG-module orbits under the action of the quotient, and using commutative algebra / lattice-style arguments over the integral group ring of the abelian quotient.",
+    "regime": "Finitely generated metabelian groups, typically presented by generators and relators; complexity measured in the length of the input words; emphasis on decidability and, where possible, polynomial-time algorithms.",
+    "hypothesized_generalization": "The same module-theoretic reduction should extend to broader solvable classes (e.g., polycyclic or solvable of bounded derived length) and could give a uniform algorithmic framework for orbit problems in groups acting on finitely generated abelian groups."
+  },
+  "b_extract": {
+    "problem": "Parameterized and approximation complexity of the Deletion to Induced Matching problem: given a graph G and parameter k, delete at most k vertices (or edges) so that the remaining graph is an induced matching (a disjoint union of edges with no extra adjacencies).",
+    "methods": "Parameterized algorithms (FPT / kernelization), branching on forbidden induced substructures (P3, triangles, longer paths), reduction rules to produce a polynomial kernel, and hardness reductions from canonical W[1]/W[2] problems and from Vertex Cover variants.",
+    "regime": "Finite simple graphs, parameter k = number of deletions; worst-case combinatorial complexity, both classical NP-hardness and fine-grained parameterized lower bounds (ETH-based).",
+    "hypothesized_generalization": "The branching-and-kernelization template should generalize to other 'deletion to H-free / deletion to a sparse target class' problems where the target class is characterized by a small set of forbidden induced subgraphs."
+  },
+  "bridge": {
+    "compatibility": "low",
+    "rationale": "The two papers live in very different worlds: one is about algorithmic decision problems on infinite metabelian groups via module theory over group rings, the other is about parameterized graph deletion. They share no objects, no parameters, and no natural reduction. The most plausible thin connection runs through Cayley graphs of metabelian quotients, but that is a tenuous bridge that neither paper exploits.",
+    "mediator": "Cayley graphs of finite metabelian quotients (and matching/independence structure on them)",
+    "sketch": "A researcher attempting a bridge could study Cayley graphs of finite metabelian groups (e.g., quotients of the groups in Paper A by finite-index normal subgroups) and ask how the algebraic conjugacy structure constrains induced-matching parameters: for instance, whether the conjugacy class sizes give lower bounds on the deletion distance to an induced matching, or whether metabelian Cayley graphs form a parameter-tractable instance class for Deletion to Induced Matching via their highly regular automorphism group. Conversely, one could try to use graph-deletion lower-bound machinery to certify hardness of certain orbit-counting problems in metabelian groups by encoding graph instances into conjugacy queries in a tailored metabelian group. Both directions are speculative and would more likely yield a teaching example than a substantive new theorem."
+  }
+}

@@ -1,0 +1,1 @@
+Caching layer released. It intercepts reads at the application level and stores results in a distributed hash table with automatic invalidation on write. Early users report lower p99 latency on cached reads and simplified integration compared to the previous manual cache-aside pattern.

@@ -1,0 +1,1 @@
+Caching layer released. It sits between the application and the data store, intercepting reads at the network boundary and serving cached responses on hit. Early testing shows reduced latency on repeated queries and lower p99 times on cache-coherent access patterns. The write-through strategy ensures consistency without application-side cache invalidation logic.

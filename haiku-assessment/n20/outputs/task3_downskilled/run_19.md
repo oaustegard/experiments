@@ -1,0 +1,1 @@
+Caching layer released. It intercepts read operations at the application boundary and returns cached results when available, reducing p99 latency on warm data. Write-through mode maintains consistency with source systems; cache invalidation is explicit per key, not time-based.

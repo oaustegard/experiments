@@ -1,0 +1,1 @@
+1. MUTATION: docstring states "does not mutate inputs," but the function mutates `default_prefs` directly. Because `result = default_prefs` assigns the reference (not a copy), modifications to `result` are visible to the caller. Demonstration: `d={"a":1}; merge_user_prefs(d, {"a":2}); print(d)` outputs `{"a":2}` instead of unchanged `{"a":1}`.
