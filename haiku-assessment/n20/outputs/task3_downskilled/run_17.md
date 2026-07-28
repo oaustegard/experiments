@@ -1,0 +1,1 @@
+Caching layer released. It implements write-through consistency with per-key TTL and supports batch operations. Latency decreased on cached reads; the API surface requires no changes to existing code paths.

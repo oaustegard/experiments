@@ -1,0 +1,1 @@
+We have developed a new caching layer that reduces latency and improves developer experience. The system was built through months of design and iteration, incorporating feedback from early users. It provides measurable performance improvements and a streamlined API for teams managing distributed workloads. The caching layer is available now for production deployment.

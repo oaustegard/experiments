@@ -1,0 +1,63 @@
+{
+  "model": "claude-sonnet-subagent",
+  "n_attempts": 6,
+  "results": [
+    {
+      "pair_key": "2503.16404__2403.12734",
+      "a_title": "Series-parallel graphs and hypercube degeneracy",
+      "b_title": "Exact and Heuristic Computation of the Scanwidth of Directed Acyclic Graphs",
+      "compatibility": "medium",
+      "mediator": "Tree decompositions / bounded-treewidth (and more generally graph-minor) structure as a common width parameter linking undirected sparse classes to DAG width measures.",
+      "rationale_excerpt": "Both papers sit within the structural/parameterized graph-theory ecosystem and share the underlying language of tree-like decompositions and minor/width parameters: series-parallel = treewidth 2, and scanwidth is a tree-decomposition-flavored DAG parameter whose underlying (undirected) bound is governed by treewidth-like quantities."
+    },
+    {
+      "pair_key": "2505.02685__2604.22052",
+      "a_title": "On the Spectral Expansion of Monotone Subsets of the Hypercube",
+      "b_title": "Turnstile Streaming Algorithms Might (Still) as Well Be Linear Sketches",
+      "compatibility": "medium",
+      "mediator": "Discrete Fourier / Walsh analysis on abelian groups, with monotone (FKG-correlated) sets as the structured-subset analogue of heavy-frequency lattices, mediated by hypercontractivity / Bonami-Beckner and Rudin-type inequalities.",
+      "rationale_excerpt": "Both papers ultimately do harmonic analysis on a discrete abelian group -- Paper A on the Boolean cube {0,1}^n with Walsh-Fourier characters, Paper B on Z^n with additive-combinatorics tools. The shared mathematical core is 'spectral concentration on a discrete group restricted to a structured subset.'",
+      "novelty_note": "Specific named mediator: FKG-monotone sets as structured-subset analogue of heavy-frequency lattices."
+    },
+    {
+      "pair_key": "2507.15679__2506.07170",
+      "a_title": "Erdős's unit distance problem and rigidity",
+      "b_title": "Rectangular Duals on the Cylinder and the Torus",
+      "compatibility": "low",
+      "mediator": "Rigidity of graphs realized on flat surfaces (toroidal/cylindrical generic rigidity, à la Ross, Schulze, Whiteley)"
+    },
+    {
+      "pair_key": "2604.18283__2207.02277",
+      "a_title": "On quantum functionals for higher-order tensors",
+      "b_title": "Hierarchies of Minion Tests for PCSPs through Tensors",
+      "compatibility": "medium",
+      "mediator": "Asymptotic-spectrum duality applied to tensorised minion preorders (Strassen-style semiring duality as the common abstraction for monotone tensor invariants)",
+      "rationale_excerpt": "Both papers turn questions about discrete combinatorial/algebraic objects into questions about Kronecker/tensor powers and monotone functionals over them: Strassen's asymptotic spectrum is a max-min duality between tensors and real-valued semiring homomorphisms, while minion+tensorisation hierarchies are a max-min duality between PCSP templates and convex relaxations indexed by tensor powers.",
+      "novelty_note": "Genuinely interesting: applies Strassen asymptotic spectrum theory to PCSP minion hierarchies. Both authors would benefit from this observation."
+    },
+    {
+      "pair_key": "2412.11914__2403.18513",
+      "a_title": "The Erdős unit distance problem for small point sets",
+      "b_title": "Realizing temporal transportation trees",
+      "compatibility": "low",
+      "mediator": "graph realization from pairwise distance/duration constraints (distance-realization meta-framework)"
+    },
+    {
+      "pair_key": "2505.03211__2404.00768",
+      "a_title": "Noise sensitivity and variance lower bound for minimal left-right crossing in FPP",
+      "b_title": "Adversarially-Robust Inference on Trees via Belief Propagation",
+      "compatibility": "medium",
+      "mediator": "Noise stability and reconstruction thresholds on graphical models: specifically, the Mossel-O'Donnell-style correspondence between BKS noise sensitivity of monotone boolean functions and non-reconstruction (correlation decay) for broadcast processes -- both governed by L^2 contraction of influence/log-likelihood operators on the underlying graph.",
+      "novelty_note": "Specific named bridge: Mossel-O'Donnell correspondence between BKS noise sensitivity and broadcast-tree reconstruction, transferred from boolean functions to FPP crossings."
+    }
+  ],
+  "summary": {
+    "compatibility_distribution": {"high": 0, "medium": 4, "low": 2, "none": 0},
+    "n_with_specific_named_mediator": 3,
+    "candidates_for_human_review": [
+      "2505.02685__2604.22052 (Fourier/monotone × linear sketches)",
+      "2604.18283__2207.02277 (Strassen spectrum × PCSP minions)",
+      "2505.03211__2404.00768 (FPP noise sensitivity × BP tree robustness)"
+    ]
+  }
+}

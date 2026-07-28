@@ -1,0 +1,51 @@
+{
+  "n": 4,
+  "model": "claude-opus-4-7",
+  "translations": [
+    {
+      "rank": 1,
+      "emp_arxiv": "2305.01582",
+      "th_arxiv": "2604.12806",
+      "emp_title": "Interpretable Machine Learning for Science with PySR and SymbolicRegression.jl",
+      "th_title": "Interpretable Relational Inference with LLM-Guided Symbolic Dynamics Modeling",
+      "slot_cosine": 0.7143,
+      "judge_verdict": "partially_resolves",
+      "source_anchor": "2305.01582",
+      "translation": "The empirical \"recovery of historical empirical equations\" on EmpiricalBench corresponds to the theorem's \"robust structural recovery and compact, mechanism-aligned dynamical expressions\": each benchmark target equation acts as the ground-truth symbolic form, and PySR's recovered expression plays the role of COSINE's inferred dynamics, while the input (x, y) dataset stands in for the time-resolved observations and the (unused) latent structure of operator/variable dependencies stands in for COSINE's unobserved interaction graph. The empirical regime \u2014 fitting closed-form scalar laws from tabular data with PySR's evolutionary search and complexity penalty \u2014 only partially maps onto the theoretical hypothesis, which assumes (a) a many-body system with a graph-structured latent and (b) an LLM-driven outer loop that adaptively prunes/expands the hypothesis space; PySR satisfies neither natively, so the mapping requires treating its complexity-regularized Pareto front as a degenerate single-node \"graph\" and its mutation operators as a non-adaptive stand-in for the LLM proposer. Under that mapping, the theorem predicts a specific, untested effect: augmenting PySR with an LLM-guided proposal step that prunes operator/feature subsets per iteration should measurably increase EmpiricalBench recovery rate and reduce expression complexity on the same datasets, with the largest gains on targets whose true form involves sparse interactions among many candidate features (where PySR's uniform search wastes the most budget). The strongest defensible version of the connection is therefore narrower than the judge's framing: the theorem does not explain why current symbolic regression recovers historical equations, but it predicts that the recovery rate is bounded below the rate achievable when an outer-loop adaptive proposer constrains the hypothesis space, making EmpiricalBench a natural testbed for COSINE-style augmentation of PySR."
+    },
+    {
+      "rank": 5,
+      "emp_arxiv": "2308.03230",
+      "th_arxiv": "2603.21852",
+      "emp_title": "Tractability of approximation by general shallow networks",
+      "th_title": "All elementary functions from a single binary operator",
+      "slot_cosine": 0.6417,
+      "judge_verdict": "partially_resolves",
+      "source_anchor": "2603.21852",
+      "translation": "The empirical paper's \"compositional target function\" `f: R^d -> R` maps to the theorem's elementary function `f` expressible as a binary tree over the EML operator `eml(x,y) = exp(x) - ln(y)`; each bivariate channel in the deep network corresponds to one internal node of that tree, and the network's depth corresponds to the tree's depth `O(log K)` for a function of `K` leaf-level primitives. The empirical regime \u2014 \"target admits compositional structure with bivariate constituents\" \u2014 maps onto the theorem's hypothesis that `f` lies in the elementary-function class closed under EML, which is strictly narrower: the bridge requires the additional assumption that the unknown compositional decomposition the network is exploiting is in fact an EML decomposition (or close to one in approximation-theoretic norm), and the theorem is exact-representation rather than `epsilon`-approximation, so a quantitative gap on node count vs. width per channel remains open. Specific untested prediction: for targets drawn from the elementary class, a depth-`d` network with width-2 channels and a *single shared* bivariate activation initialized near `eml` should match (up to constants) the sample complexity of a network with `d` distinct learned bivariate activations, because the theorem guarantees one operator suffices \u2014 the authors' rates are stated for general bivariate channels and have not been probed against this homogeneous-channel ablation. The strongest defensible version of the connection, given that real ML targets are not elementary functions, is: EML-completeness gives a *constructive existence proof* that the compositional-bivariate hypothesis class the paper relies on is already maximally expressive at width 2 with a single fixed nonlinearity, so any curse-of-dimensionality mitigation observed empirically cannot be attributed to channel heterogeneity per se."
+    },
+    {
+      "rank": 6,
+      "emp_arxiv": "2304.08915",
+      "th_arxiv": "2603.21852",
+      "emp_title": "Differentiable Genetic Programming for High-dimensional Symbolic Regression",
+      "th_title": "All elementary functions from a single binary operator",
+      "slot_cosine": 0.6314,
+      "judge_verdict": "partially_resolves",
+      "source_anchor": "2603.21852",
+      "translation": "In Odrzywolek's theorem, the variable is the operator set O used to build expression trees; in DGP this maps to the parameterized operator library {op_i} whose mixing weights w_i are jointly optimized with operand parameters via gradient descent. The theorem's regime \u2014 closed-form representability of elementary functions f \u2208 E (constants, arithmetic, exp, ln, transcendentals) as finite binary trees \u2014 maps to DGP's hypothesis class on benchmarks like Feynman/Nguyen, but only under the assumption that the gradient landscape over operator weights can actually reach the EML-equivalent subtree configurations (a reachability assumption the theorem itself does not provide). The specific untested prediction: DGP should achieve equal or better recovery rates on the standard SR benchmarks when its operator library is reduced to the *single* EML operator eml(x,y) = exp(x) \u2212 ln(y) plus the constant 1, rather than the usual {+, \u2212, \u00d7, \u00f7, exp, log, sin, ...} set \u2014 because functional completeness is already guaranteed at depth O(size of the elementary expression), and a one-operator library collapses the discrete operator-selection problem that gradient methods struggle with into a pure continuous-parameter problem. If DGP's \"joint tuning\" advantage is really about smoothing discrete operator choice, a singleton library should help, not hurt. The correspondence is imperfect because DGP's operator weights are a *soft mixture* (continuous relaxation) while the theorem assumes hard operator selection at each node, and because gradient reachability of EML-canonical trees is unproven. The strongest defensible claim is therefore conditional: *if* DGP's continuous relaxation does not destroy the expressive power of its underlying discrete grammar, then EML guarantees that a one-operator DGP variant is no less expressive than the full-library version on all elementary targets \u2014 making the operator-library size an empirically separable axis from the joint-tuning mechanism the authors credit."
+    },
+    {
+      "rank": 7,
+      "emp_arxiv": "2602.21307",
+      "th_arxiv": "2603.21852",
+      "emp_title": "SymTorch: Symbolic Distillation of Neural Networks",
+      "th_title": "All elementary functions from a single binary operator",
+      "slot_cosine": 0.6151,
+      "judge_verdict": "partially_resolves",
+      "source_anchor": "2603.21852",
+      "translation": "The closed-form expressions SymTorch recovers from a trained network f_NN (i.e. the symbolic surrogate s(x) over input variables x \u2208 R^d) correspond directly to the elementary-function class E that Odrzywolek's theorem proves is generated by the single binary operator eml(a, b) = exp(a) \u2212 ln(b) together with the constant 1; each recovered expression should therefore admit a representation as a full binary tree T whose internal nodes are all eml and whose leaves are all 1 or x_i. The empirical regime \u2014 symbolic distillation over scientific/engineering targets including PINN residuals and image-classifier logits \u2014 maps onto the theorem's hypothesis only insofar as the ground-truth function lies in E (closed under +, \u2212, \u00d7, \u00f7, exp, ln, powers, trig, inverse trig); high-dimensional image classifiers are a gap, since their target is not obviously elementary and SymTorch's \"interpretable expression\" there is at best a local surrogate. The concrete untested prediction is that SymTorch's existing search space (PySR-style operator sets with ~10 primitives) is strictly redundant: restricting the primitive set to {eml, 1, x_1, \u2026, x_d} and searching only over full binary trees should recover the same expressions, with tree depth bounded by an Odrzywolek-style construction depth for each target, and any target requiring depth beyond that bound is evidence the target is non-elementary rather than evidence that distillation failed. The strongest defensible version, if you don't want to commit to E-membership for every SymTorch benchmark, is the weaker claim that on the subset of benchmarks where the ground truth is known to be elementary (Feynman equations, analytic PINN solutions), eml-only search should match or beat the multi-operator baseline on description length, giving a falsifiable head-to-head test of the theorem's relevance to symbolic distillation."
+    }
+  ],
+  "source": "carried forward from anchor_run/data; filter removed EML-Sheffer (direct citer), Finite Primitive Basis (judge variance: re-judged unrelated), and DSO (fell out of top-80)"
+}

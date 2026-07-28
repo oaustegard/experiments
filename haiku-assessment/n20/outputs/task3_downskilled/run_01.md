@@ -1,0 +1,1 @@
+Caching layer released. It sits between the application and data store, intercepting reads and serving frequently accessed objects from in-memory storage. Latency improvements are observable on warm-cache workloads; cold misses fall through to the origin without additional overhead.

@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Construct elementary 0/1 polytopes (notably variants of the 'chipped hypercube') whose integrality gap persists under strong lift-and-project (L&P) operators based on positive semidefinite (PSD) tightenings, establishing high L&P rank lower bounds.",
+    "methods": "Polyhedral combinatorics; lift-and-project hierarchies (Lovasz-Schrijver LS, LS+, SDP-strengthened variants, possibly Sherali-Adams/Lasserre comparisons); analysis of integrality gaps; explicit constructions over the hypercube; invariance arguments showing the gap survives several rounds of the operator.",
+    "regime": "Finite-dimensional combinatorial optimization over 0/1 polytopes; worst-case integrality gap analysis; emphasis on small/elementary instances where strong PSD relaxations might be expected to close the gap but provably do not within bounded rank.",
+    "hypothesized_generalization": "Even the strongest known PSD-based L&P operators require non-trivial (possibly linear) rank to certify integrality on simple structured polytopes, suggesting fundamental limits on tightening via lifting and motivating new families of valid inequalities or alternative hierarchies."
+  },
+  "b_extract": {
+    "problem": "Probabilistic analysis of the minimum-weight version of combinatorial optimization problems (spanning trees, matchings, paths, etc.) under an additional hard cost/budget constraint, where edge weights and costs are random.",
+    "methods": "Probabilistic combinatorics; analysis of randomized/greedy/exchange algorithms; concentration inequalities; threshold phenomena; coupling and second-moment arguments applied to constrained combinatorial structures; likely Lagrangian relaxation of the cost constraint.",
+    "regime": "Random-instance / average-case analysis with n -> infinity asymptotics; i.i.d. (or near-i.i.d.) random weights and costs on the ground set of a combinatorial family; budget constraint scales with n.",
+    "hypothesized_generalization": "Cost-constrained minimum-weight combinatorial problems admit sharp asymptotic characterizations (limit constants, thresholds) analogous to the unconstrained case, with algorithms achieving these bounds whp, despite the constraint introducing a non-matroidal coupling."
+  },
+  "bridge": {
+    "compatibility": "low",
+    "rationale": "Paper A is a worst-case structural result about how strong PSD lift-and-project hierarchies fail on specific 0/1 polytopes, while Paper B is an average-case probabilistic analysis of budget-constrained combinatorial optimization. They share the umbrella of combinatorial optimization on 0/1 polytopes, but operate in disjoint analytical regimes (deterministic gap lower bounds vs. random-instance asymptotics) and use disjoint toolkits. No direct technical artifact of A is needed by B or vice versa.",
+    "mediator": "Lagrangian / SDP relaxations of budget-constrained 0/1 programs",
+    "sketch": "A researcher could attempt a bridge by studying the lift-and-project / SDP relaxation of the cost-constrained polytope that Paper B optimizes over: take the convex hull of feasible combinatorial objects intersected with the linear budget constraint, and ask how many rounds of LS+ (or Lasserre) are needed to close the integrality gap on random instances. Paper A's chipped-hypercube-style constructions give worst-case gap-preservation templates; one could plant such a structure into the budget face and ask whether random weights wash it out — yielding an average-case L&P rank result. Conversely, Paper B's probabilistic machinery (thresholds for when greedy/Lagrangian methods succeed whp) could be imported to show that on random cost-constrained instances, low-rank PSD relaxations are tight with high probability, complementing A's worst-case obstructions with a smoothed/average-case positive result. The mediator is the SDP/Lagrangian relaxation of a budget-constrained 0/1 polytope, with random data on one side and a chipped-hypercube-style gadget on the other."
+  }
+}

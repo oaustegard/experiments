@@ -1,0 +1,314 @@
+[stage 4] body fetch + slot extract
+Fetching 5 bodies (160 cached)…
+  [1/5] 2201.00904: ok (5521 chars)
+  [2/5] 2504.16503: ok (53249 chars)
+  [3/5] 2412.19207: ok (56597 chars)
+  [4/5] 2111.08054: ok (5242 chars)
+  [5/5] 1104.2852: ok (5154 chars)
+  saved anchor_run_filtered/data/te_bodies.json
+
+Extracting slots for 5 papers (parallelism=2)…
+  [1/5] 2504.16503 (empirical): ok
+  [2/5] 2201.00904 (empirical): ok
+  [3/5] 2412.19207 (theory): ok
+  [4/5] 2111.08054 (theory): ok
+  [5/5] 1104.2852 (theory): ok
+  saved anchor_run_filtered/data/te_extractions.json
+
+Done: 157/165 successful extractions
+[stage 5] slot embed + rerank
+Embedding 5 slot texts (145 cached)…
+  saved anchor_run_filtered/data/te_slot_embs.json
+Valid pairs: emp=70, th=77
+  saved anchor_run_filtered/data/te_reranked.json
+Done: 145 pairs written to data/te_reranked.json
+[stage 6] cheap-judge
+Judging 145 pairs (0 cached, top-160 total)…
+  [1/145] 2604.23256 × 2603.21852: unrelated
+  [2/145] 2305.01582 × 2605.12704: unrelated
+  [3/145] 2305.01582 × 2604.23256: unrelated
+  [4/145] 2305.01582 × 2604.08324: unrelated
+  [5/145] 2305.01582 × 2605.03101: unrelated
+  [6/145] 2305.01582 × 2604.17402: unrelated
+  [7/145] 2305.01582 × 2406.06585: unrelated
+  [8/145] 2605.03841 × 2603.21852: unrelated
+  [9/145] 2305.01582 × 2604.12806: partially_resolves
+  [10/145] 2305.01582 × 2111.08054: unrelated
+  [11/145] 2305.01582 × 2202.09679: unrelated
+  [12/145] 2305.01582 × 2205.13676: unrelated
+  [13/145] 2305.01582 × 2603.28342: unrelated
+  [14/145] 2305.01582 × 2604.03541: unrelated
+  [15/145] 2305.01582 × 2410.00171: unrelated
+  [16/145] 2305.01582 × 2409.09207: unrelated
+  [17/145] 2305.01582 × 2605.06000: unrelated
+  [18/145] 2305.01582 × 2604.15272: unrelated
+  [19/145] 2305.01582 × 1812.02919: unrelated
+  [20/145] 2305.01582 × 2509.02617: unrelated
+  saved anchor_run_filtered/data/te_judged.json
+  [21/145] 2305.01582 × 2206.13585: unrelated
+  [22/145] 2305.01582 × 2504.07976: unrelated
+  [23/145] 2305.01582 × 2406.03973: unrelated
+  [24/145] 2305.01582 × 2605.10401: unrelated
+  [25/145] 2305.01582 × 2605.03686: unrelated
+  [26/145] 2305.01582 × 2605.12139: unrelated
+  [27/145] 2305.01582 × 2010.05343: unrelated
+  [28/145] 2305.01582 × 2602.15632: unrelated
+  [29/145] 2305.01582 × 2301.00011: unrelated
+  [30/145] 2305.01582 × 1605.08187: unrelated
+  [31/145] 2305.01582 × 1906.02389: unrelated
+  [32/145] 2305.01582 × 2602.16530: unrelated
+  [33/145] 2604.23958 × 2603.21852: unrelated
+  [34/145] 2601.13953 × 2603.21852: unrelated
+  [35/145] 2305.01582 × 2208.01687: unrelated
+  [36/145] 2305.01582 × 2604.22937: unrelated
+  [37/145] 2305.01582 × 2604.17175: unrelated
+  [38/145] 2305.01582 × 2605.02313: unrelated
+  [39/145] 2512.19649 × 2603.21852: unrelated
+  [40/145] 2305.01582 × 2311.12624: unrelated
+  saved anchor_run_filtered/data/te_judged.json
+  [41/145] 2305.01582 × 2410.20622: unrelated
+  [42/145] 2305.01582 × 2604.13672: unrelated
+  [43/145] 2305.01582 × 2507.18666: unrelated
+  [44/145] 2305.01582 × 2207.07719: unrelated
+  [45/145] 2305.01582 × 2602.20550: unrelated
+  [46/145] 2305.01582 × 2512.16409: unrelated
+  [47/145] 2305.01582 × 2510.01039: unrelated
+  [48/145] 2308.03230 × 2603.21852: partially_resolves
+  [49/145] 2305.01582 × 2008.12874: unrelated
+  [50/145] 2305.01582 × 1503.08239: unrelated
+  [51/145] 2603.22429 × 2603.21852: unrelated
+  [52/145] 2305.01582 × 1402.4442: unrelated
+  [53/145] 2112.09181 × 2603.21852: unrelated
+  [54/145] 2604.04760 × 2603.21852: unrelated
+  [55/145] 2405.12832 × 2603.21852: unrelated
+  [56/145] 2305.01582 × 2006.02041: unrelated
+  [57/145] 2305.01582 × 2007.03960: unrelated
+  [58/145] 2602.20557 × 2603.21852: unrelated
+  [59/145] 2602.16530 × 2603.21852: unrelated
+  [60/145] 2602.23561 × 2603.21852: unrelated
+  saved anchor_run_filtered/data/te_judged.json
+  [61/145] 2304.08915 × 2603.21852: partially_resolves
+  [62/145] 2205.15764 × 2603.21852: unrelated
+  [63/145] 2305.01582 × 2602.21910: unrelated
+  [64/145] 2305.01582 × 2604.18152: unrelated
+  [65/145] 2305.01582 × 2206.01792: unrelated
+  [66/145] 2402.05306 × 2603.21852: unrelated
+  [67/145] 2305.01582 × 2309.04434: unrelated
+  [68/145] 2305.01582 × 2410.19852: unrelated
+  [69/145] 2305.01582 × 2504.03955: unrelated
+  [70/145] 2502.17393 × 2603.21852: unrelated
+  [71/145] 2305.01582 × 2312.12630: unrelated
+  [72/145] 2007.15298 × 2603.21852: unrelated
+  [73/145] 2605.13980 × 2603.21852: unrelated
+  [74/145] 2603.09597 × 2603.21852: unrelated
+  [75/145] 2305.01582 × 1705.05448: unrelated
+  [76/145] 2305.01582 × 2507.10373: unrelated
+  [77/145] 2501.09667 × 2603.21852: unrelated
+  [78/145] 2302.00773 × 2603.21852: unrelated
+  [79/145] 2305.01582 × 1503.04760: unrelated
+  [80/145] 2305.01582 × 1905.05072: unrelated
+  saved anchor_run_filtered/data/te_judged.json
+  [81/145] 2602.21307 × 2603.21852: partially_resolves
+  [82/145] 2409.16045 × 2603.21852: unrelated
+  [83/145] 2605.08150 × 2603.21852: unrelated
+  retry 1/5 after 1.3s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 1/5 after 1.2s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 1.6s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 1.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.3s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.8s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.6s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.2s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  judge 2305.01582:1705.01328: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [84/145] 2305.01582 × 1705.01328: error
+  retry 1/5 after 1.3s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  judge 2305.01582:2306.03303: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [85/145] 2305.01582 × 2306.03303: error
+  retry 1/5 after 1.1s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 1.6s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 2.0s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.3s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.8s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.5s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  judge 2508.02248:2603.21852: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [86/145] 2508.02248 × 2603.21852: error
+  retry 1/5 after 1.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  judge 2305.01582:1104.2852: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [87/145] 2305.01582 × 1104.2852: error
+  retry 1/5 after 1.1s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 2.0s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 1.9s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.5s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [88/145] 2506.20927 × 2603.21852: unrelated
+  [89/145] 2603.28259 × 2603.21852: unrelated
+  [90/145] 2604.19761 × 2603.21852: unrelated
+  [91/145] 2305.01582 × 1411.0011: unrelated
+  [92/145] 2507.01781 × 2603.21852: unrelated
+  [93/145] 2604.00045 × 2603.21852: unrelated
+  [94/145] 2112.09183 × 2603.21852: unrelated
+  [95/145] 2305.01582 × 2301.04249: unrelated
+  [96/145] 2305.01582 × 2412.19207: unrelated
+  [97/145] 2307.14792 × 2603.21852: unrelated
+  [98/145] 2009.03857 × 2603.21852: unrelated
+  [99/145] 2506.23741 × 2603.21852: unrelated
+  [100/145] 2305.01582 × 2410.13856: unrelated
+  saved anchor_run_filtered/data/te_judged.json
+  [101/145] 2411.06728 × 2603.21852: unrelated
+  [102/145] 2305.01582 × 1203.1287: unrelated
+  [103/145] 2406.02336 × 2603.21852: unrelated
+  [104/145] 2411.09175 × 2603.21852: unrelated
+  [105/145] 2505.17703 × 2603.21852: unrelated
+  [106/145] 2602.08880 × 2603.21852: unrelated
+  [107/145] 2305.01582 × 2603.17816: unrelated
+  [108/145] 2604.02311 × 2603.21852: unrelated
+  [109/145] 2305.01582 × 2510.04256: unrelated
+  [110/145] 2403.08579 × 2603.21852: unrelated
+  [111/145] 2508.05724 × 2603.21852: unrelated
+  [112/145] 2605.09957 × 2603.21852: unrelated
+  [113/145] 2305.01582 × 2511.11872: unrelated
+  [114/145] 2512.16674 × 2603.21852: unrelated
+  [115/145] 2305.01582 × 1509.00433: unrelated
+  [116/145] 2305.01582 × 1609.05720: unrelated
+  [117/145] 2604.13943 × 2603.21852: unrelated
+  [118/145] 2502.14075 × 2603.21852: unrelated
+  [119/145] 2112.03324 × 2603.21852: unrelated
+  [120/145] 2305.01582 × 2304.13038: unrelated
+  saved anchor_run_filtered/data/te_judged.json
+  [121/145] 2604.17275 × 2603.21852: unrelated
+  [122/145] 2407.09693 × 2603.21852: unrelated
+  [123/145] 2506.21797 × 2603.21852: unrelated
+  [124/145] 2605.09671 × 2603.21852: unrelated
+  [125/145] 2604.04438 × 2603.21852: unrelated
+  [126/145] 2402.06990 × 2603.21852: unrelated
+  [127/145] 2509.10034 × 2603.21852: unrelated
+  [128/145] 2305.01582 × 2210.09494: unrelated
+  [129/145] 2603.28627 × 2603.21852: unrelated
+  [130/145] 2501.11275 × 2603.21852: unrelated
+  [131/145] 2305.01582 × 1504.06289: unrelated
+  [132/145] 2510.08780 × 2603.21852: unrelated
+  [133/145] 2504.16503 × 2603.21852: unrelated
+  [134/145] 2112.04002 × 2603.21852: unrelated
+  [135/145] 2605.03951 × 2603.21852: unrelated
+  [136/145] 2605.04193 × 2603.21852: unrelated
+  retry 1/5 after 1.3s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [137/145] 2506.00528 × 2603.21852: unrelated
+  retry 1/5 after 1.1s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 2.0s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 1.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.8s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.5s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.1s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.5s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  judge 2201.00904:2603.21852: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [138/145] 2201.00904 × 2603.21852: error
+  retry 1/5 after 1.1s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  judge 2512.03394:2603.21852: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [139/145] 2512.03394 × 2603.21852: error
+  retry 1/5 after 1.3s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 1.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 1.6s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.3s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.6s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.8s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.2s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  judge 2305.01582:2604.09538: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [140/145] 2305.01582 × 2604.09538: error
+  saved anchor_run_filtered/data/te_judged.json
+  retry 1/5 after 1.0s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  judge 2508.12178:2603.21852: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [141/145] 2508.12178 × 2603.21852: error
+  retry 2/5 after 1.8s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 1/5 after 1.1s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 2/5 after 1.8s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 3/5 after 2.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.7s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 4/5 after 3.6s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  retry 5/5 after 5.4s: Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [142/145] 2410.07966 × 2603.21852: unrelated
+  [143/145] 2305.01582 × 2501.12265: unrelated
+  [144/145] 2510.23638 × 2603.21852: unrelated
+  judge 2305.07996:2603.21852: error Client error '429 Too Many Requests' for url 'https://gateway.ai.cloudflare.com/v1/2d284ae933a9812d7bfef55cd9406200/claude-and-friends/google-ai-studio/v1beta/models/gemini-2.5-flash:generateContent'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429
+  [145/145] 2305.07996 × 2603.21852: error
+  saved anchor_run_filtered/data/te_judged.json
+
+Done: 4/145 resolve/partially_resolve
+[pipeline 4-6 complete]

@@ -1,0 +1,1 @@
+Caching layer released. It sits between application code and persistent storage, intercepting read requests and serving cached responses when available. Reduces latency on repeated queries; developer API consists of three methods: get(), set(), and invalidate().

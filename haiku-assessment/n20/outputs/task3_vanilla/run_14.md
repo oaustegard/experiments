@@ -1,0 +1,1 @@
+We've completed a new caching layer that improves performance. The system reduces latency and provides a straightforward developer experience. This represents a significant change in how caching is handled, moving beyond incremental updates. Testing shows measurable improvements in latency and usability. The layer is now available for use.

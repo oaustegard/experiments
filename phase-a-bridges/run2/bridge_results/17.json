@@ -1,0 +1,20 @@
+{
+  "a_extract": {
+    "problem": "Rectangle packing presented as a gamified benchmark — fitting a collection of axis-aligned rectangles into a bounding region (e.g. a square or strip) without overlap, with the goal of either certifying packability or optimizing area/utility.",
+    "methods": "Likely a mix of SAT/CP encodings, combinatorial search, and human-in-the-loop / gamified exploration (the 'PackIt!' interface) to generate hard instances and certificates; benchmark construction in math.CO / cs.DS style.",
+    "regime": "Small-to-moderate discrete instances of 2D packing where exact solutions or tight bounds are sought; emphasis on worst-case structure and on producing publicly playable instances.",
+    "hypothesized_generalization": "Gamified or human-guided generation of hard combinatorial instances generalizes beyond rectangles to other geometric packing / covering problems (bin packing, polyomino tiling, knapsack-style layout), providing benchmark suites that stress exact solvers."
+  },
+  "b_extract": {
+    "problem": "Probabilistic analysis of algorithms for minimum-weight combinatorial structures (spanning trees, matchings, paths, perfect matchings, etc.) subject to a side cost constraint — i.e. find the min-weight object whose total cost is at most a budget.",
+    "methods": "Random-input analysis: weights and costs drawn from specified distributions (uniform, exponential); use of Lagrangian relaxation, greedy / threshold algorithms, concentration inequalities, and asymptotic analysis to bound expected optimum and algorithmic performance.",
+    "regime": "Asymptotic n → ∞ regime on random instances of classical combinatorial optimization problems; focus on expected value of constrained optimum and on algorithms with provable approximation in expectation / w.h.p.",
+    "hypothesized_generalization": "Probabilistic techniques (Lagrangian + concentration) extend to broader classes of bi-criteria combinatorial optimization on random inputs, including problems where the underlying structure is geometric rather than graph-theoretic."
+  },
+  "bridge": {
+    "compatibility": "low",
+    "rationale": "Paper A is a worst-case, instance-construction / benchmark paper on 2D geometric packing, while Paper B is an asymptotic probabilistic-analysis paper on constrained graph/matroid optimization. They share the umbrella of combinatorial optimization but differ in object (rectangles vs. graph structures), analytic regime (worst-case vs. average-case), and goal (instance generation vs. expected-value bounds). A non-trivial mediator is needed.",
+    "mediator": "bi-criteria / cost-constrained combinatorial optimization on random geometric instances (Lagrangian relaxation applied to 2D packing with random rectangle sizes and a secondary budget)",
+    "sketch": "A bridge result would recast rectangle packing as a cost-constrained combinatorial optimization: each rectangle carries a weight (e.g. area used) and a cost (e.g. processing time, a deadline, or a value), and the task is to select / place a max-weight subset within a budget. One could then transfer Frieze–Tkocz-style probabilistic analysis — Lagrangian relaxation plus concentration — from matroid/graph settings to a 'random rectangle' model where sizes and costs are i.i.d., yielding asymptotic formulas for the expected optimum packed area subject to a cost budget. The PackIt! gamified instance generator could in turn supply hard worst-case instances that calibrate how loose the average-case bounds are, closing a worst-case / average-case loop on a geometric bi-criteria packing problem."
+  }
+}

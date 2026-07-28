@@ -1,0 +1,101 @@
+{
+  "PRE_RESCOPE_FINDING": {
+    "candidate": {
+      "demand_name": "equal",
+      "demands": ["1", "1", "1"],
+      "floors": [
+        ["F0", [[0, 0], [1, 0], [2, 0]]],
+        ["F1", [[0, 0], [1, 0], [2, 1]]]
+      ],
+      "conflicts": [
+        ["C0", [[0, 0], [1, 1]]],
+        ["C1", [[1, 0], [2, 0]]],
+        ["C2", [[1, 0], [2, 1]]]
+      ],
+      "x": {"eps": "1/8", "w": ["1/4", "3/8", "1/2"]},
+      "size": 5
+    },
+    "abstract_verdict": "CANDIDATE",
+    "mechanical_realization": {
+      "outcome": "realized-and-VERIFIED",
+      "is_counterexample": true,
+      "t_of_x": "1/8",
+      "d_max": "1",
+      "num_arcs": 20,
+      "routing_table": [
+        {"label": "ZZZ", "worst_deviation": "15/8", "worst_arc": ["in_F0", "out_F0"], "violates": true},
+        {"label": "ZZE", "worst_deviation": "15/8", "worst_arc": ["in_F1", "out_F1"], "violates": true},
+        {"label": "ZEZ", "worst_deviation": "9/8", "worst_arc": ["in_C0", "out_C0"], "violates": true},
+        {"label": "ZEE", "worst_deviation": "9/8", "worst_arc": ["in_C0", "out_C0"], "violates": true},
+        {"label": "EZZ", "worst_deviation": "9/8", "worst_arc": ["in_C1", "out_C1"], "violates": true},
+        {"label": "EZE", "worst_deviation": "9/8", "worst_arc": ["in_C2", "out_C2"], "violates": true},
+        {"label": "EEZ", "worst_deviation": "9/8", "worst_arc": ["in_F1", "out_F1"], "violates": true},
+        {"label": "EEE", "worst_deviation": "9/8", "worst_arc": ["in_F0", "out_F0"], "violates": true}
+      ]
+    },
+    "by_hand_realization": {
+      "outcome": "realized-and-VERIFIED",
+      "problems": [],
+      "is_counterexample": true,
+      "t_of_x": "1/8"
+    },
+    "agree": true,
+    "note": "Found in an exploratory (uncapped, floor-eligible-size-3) pass of this session before the pipeline was rescoped for tractability (see rescope note below). Re-verified fresh, in-script, via two independently-written realization code paths (gadget_enum.realize_gadget's mechanical DAG builder, and a separately hand-built DAG with different node names/ordering) plus core.py's calibration-gated verify_counterexample. Both agree exactly, including all 8 routing deviations. This is the headline result of the campaign session."
+  },
+  "k3": {
+    "label": "k3-rescoped",
+    "k": 3,
+    "total_raw_designs": 978900,
+    "total_canonical_designs": 68288,
+    "unique_lp_calls": 285,
+    "verdict_counts": {
+      "SAT": 40202,
+      "KILLED-LP-infeasible": 21762,
+      "KILLED-NG6-lemma3": 1674,
+      "KILLED-NG3-floor-budget": 4650
+    },
+    "candidates": [],
+    "elapsed_sec": 144.98,
+    "truncated": false,
+    "truncated_at": null,
+    "bounds": {
+      "floor_sizes": [2],
+      "max_floors": 2,
+      "conflict_cap": 6,
+      "conflict_universe_size": 12,
+      "restrict_conflicts_to_floor_union": false,
+      "demand_vectors": ["equal", "15-10-15-shape", "one-dominant", "all-pairs-sum-gt-dmax", "nondivisible"],
+      "time_budget_sec": 240
+    }
+  },
+  "k4": {
+    "label": "k4-rescoped",
+    "k": 4,
+    "total_raw_designs": 38623,
+    "total_canonical_designs": 500,
+    "unique_lp_calls": 19,
+    "verdict_counts": {
+      "SAT": 311,
+      "KILLED-LP-infeasible": 188
+    },
+    "candidates": [],
+    "elapsed_sec": 76.83,
+    "truncated": true,
+    "truncated_at": "equal (mid floor-config sweep, periodic check)",
+    "bounds": {
+      "floor_sizes": [2],
+      "max_floors": 2,
+      "conflict_cap": 6,
+      "conflict_universe_size": 24,
+      "restrict_conflicts_to_floor_union": true,
+      "demand_vectors": ["equal", "one-dominant", "all-pairs-sum-gt-dmax", "15-10-10-15-shape", "nondivisible"],
+      "time_budget_sec": 70
+    },
+    "coverage_note": "MINIMAL. Only the 'equal' demand vector was touched, and only 500 of its canonical designs were checked (of an unknown, uncounted total -- floor-config enumeration for k=4 size-2 floors is ~300 configs, each with its own conflict universe after the floor-union restriction). The other 4 demand vectors were never started. canonical_key's per-design cost scales with the symmetry group size, which is 8x larger at k=4 equal-demands (384) than k=3 (48), and throughput was observed at ~6.5 canonical-forms/sec vs k=3's ~470/sec. This sweep is a sanity check, not a negative result -- it neither confirms nor rules out size-2-floor k=4 candidates."
+  },
+  "meta": {
+    "total_elapsed_sec": 226.8,
+    "total_lp_calls": 304,
+    "rescope_history": "Round 1 (uncapped/exploratory): found and independently double-verified the PRE_RESCOPE_FINDING counterexample by hand, before a full 5-demand-vector k=3 sweep at conflict-cap=12 with floor sizes 2..3 was attempted and killed by the harness at 900s with zero output (is_unsat() was being called ~4.3M times before any dedup). Round 2 (this rescope, per coordinator directive): rebuilt the pipeline as canonical-form-first (dedup via the symmetry group BEFORE any other check) with a precomputed bitmask UNSAT screen, capped conflicts at 6, restricted k=3 floors to eligible-size-2 only, and added a periodic wall-clock truncation check (a bug in the first version of that check -- it only fired on the CANDIDATE branch -- was caught and fixed after k=4 ran past its budget with zero candidates found)."
+  }
+}

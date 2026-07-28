@@ -1,0 +1,1 @@
+Caching layer released. It stores computed values in-process with configurable TTL and supports invalidation via event subscription. Early deployments report reduced latency on repeated reads and simplified application logic for cache-aware code paths.

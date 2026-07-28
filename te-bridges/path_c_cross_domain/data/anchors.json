@@ -1,0 +1,131 @@
+{
+  "_design_note": "Path C cross-domain anchor run. Tests whether the cascade surfaces non-folklore bridges when the anchor's two-community gap is genuine (not a single-conversation case like EML/PySR in #99). Anchor list drawn from issue #97's exemplar table + grokking. Each anchor declares its 'expected_twin_arxiv' — known papers in the theoretical (or empirical) twin conversation, used by the twin-diagnostic to ask: does SPECTER2 put twin cousins in top-K, or does it only surface same-conversation neighbors?",
+  "_diagnostic_question": "If twins (or close cousins) surface non-trivially in top-K, SPECTER2 geometry holds bridge signal at small scale → Path B becomes defensible. If only same-conversation folklore surfaces, the SLT objection (novelty manifests as new directions in representation space, not as points between existing clusters) is doing real work and the cascade mechanism needs to change before the corpus does.",
+  "anchors": [
+    {
+      "arxiv_id": "2001.08361",
+      "pool": "empirical",
+      "label": "Kaplan et al. — Scaling Laws for Neural Language Models",
+      "opposite_fields": ["Mathematics", "Computer Science", "Physics"],
+      "opposite_year_range": "2000-2026",
+      "rationale": "Bridge: neural scaling laws (2020+) × random matrix theory + statistical mechanics of high-dim regression. Anchor empirical, search theory.",
+      "expected_twin_arxiv": [
+        "1606.01239",
+        "0805.0431",
+        "1810.01075"
+      ],
+      "expected_twin_note": "Pennington-Worah nonlinear RMT (1606.01239); Couillet-Liao RMT methods for ML; Spigler/Geiger/Wyart jamming/heavy-tailed."
+    },
+    {
+      "arxiv_id": "1706.06083",
+      "pool": "empirical",
+      "label": "Madry et al. — Towards Deep Learning Models Resistant to Adversarial Attacks",
+      "opposite_fields": ["Mathematics", "Computer Science"],
+      "opposite_year_range": "2000-2026",
+      "rationale": "Bridge: adversarial robustness (2014+) × isoperimetric / concentration of measure on the sphere.",
+      "expected_twin_arxiv": [
+        "1809.03113",
+        "1801.02774",
+        "1811.00525"
+      ],
+      "expected_twin_note": "Mahloujifar-Mahmoody isoperimetric adv-robustness; Gilmer concentric-sphere geometry; Bubeck-Sellke high-dim adversarial geometry."
+    },
+    {
+      "arxiv_id": "1710.10345",
+      "pool": "empirical",
+      "label": "Soudry et al. — The Implicit Bias of Gradient Descent on Separable Data",
+      "opposite_fields": ["Mathematics", "Computer Science"],
+      "opposite_year_range": "1995-2026",
+      "rationale": "Bridge: implicit bias of GD (2017+) × max-margin / variational regularization.",
+      "expected_twin_arxiv": [
+        "1605.08254",
+        "0901.0314"
+      ],
+      "expected_twin_note": "Telgarsky margin theory; Bartlett margin-based bounds on max-margin classifiers."
+    },
+    {
+      "arxiv_id": "1812.11118",
+      "pool": "empirical",
+      "label": "Belkin et al. — Reconciling modern ML practice and the classical bias-variance trade-off (double descent)",
+      "opposite_fields": ["Mathematics", "Physics", "Computer Science"],
+      "opposite_year_range": "1990-2026",
+      "rationale": "Bridge: double descent (2019+) × statistical mechanics of learning / RMT high-dim regression.",
+      "expected_twin_arxiv": [
+        "1903.08560",
+        "1908.05355",
+        "1904.12191"
+      ],
+      "expected_twin_note": "Hastie-Montanari-Rosset-Tibshirani surprises in high-dim ridgeless regression; Mei-Montanari generalization error; Belkin-Hsu-Xu classical re-derivation."
+    },
+    {
+      "arxiv_id": "2201.02177",
+      "pool": "empirical",
+      "label": "Power et al. — Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets",
+      "opposite_fields": ["Mathematics", "Physics", "Computer Science"],
+      "opposite_year_range": "1995-2026",
+      "rationale": "Bridge: grokking (2022) × phase transitions / singular learning theory (Watanabe).",
+      "expected_twin_arxiv": [
+        "0710.0596",
+        "1402.4346",
+        "2210.01117"
+      ],
+      "expected_twin_note": "Watanabe singular learning theory framing papers; Murfet/Wei devinterp SLT for ML; Nanda mechanistic-grokking (closer to empirical side but bridges)."
+    },
+    {
+      "arxiv_id": "1803.03635",
+      "pool": "empirical",
+      "label": "Frankle & Carbin — The Lottery Ticket Hypothesis",
+      "opposite_fields": ["Mathematics", "Computer Science"],
+      "opposite_year_range": "2000-2026",
+      "rationale": "Bridge: lottery ticket / pruning (2019) × compressed sensing (2006+). Empirical side of the both-directions test.",
+      "expected_twin_arxiv": [
+        "math/0502327",
+        "math/0409186",
+        "math/0410542"
+      ],
+      "expected_twin_note": "Candes-Romberg-Tao stable signal recovery; Candes-Tao decoding by linear programming; Candes-Romberg-Tao robust uncertainty principles."
+    },
+    {
+      "arxiv_id": "math/0502327",
+      "pool": "theory",
+      "label": "Candes-Tao — Decoding by linear programming (foundational compressed sensing)",
+      "opposite_fields": ["Computer Science"],
+      "opposite_year_range": "2014-2026",
+      "rationale": "Bridge: compressed sensing × lottery ticket / pruning / sparse-recovery in NN. Theory side of the both-directions test.",
+      "expected_twin_arxiv": [
+        "1803.03635",
+        "1810.05270",
+        "1611.06440"
+      ],
+      "expected_twin_note": "Frankle-Carbin lottery ticket; Liu-Sun-Zhou rethinking pruning; Molchanov-Tyree-Karras pruning convs."
+    },
+    {
+      "arxiv_id": "2208.01066",
+      "pool": "empirical",
+      "label": "Garg et al. — What Can Transformers Learn In-Context? A Case Study of Simple Function Classes",
+      "opposite_fields": ["Mathematics", "Computer Science"],
+      "opposite_year_range": "1995-2026",
+      "rationale": "Bridge: in-context learning (2022+) × Bayesian induction / Solomonoff (1960s). Empirical side of the both-directions test.",
+      "expected_twin_arxiv": [
+        "cs/0701125",
+        "2111.02080",
+        "cs/0303024"
+      ],
+      "expected_twin_note": "Hutter universal AI / Solomonoff; Xie implicit Bayesian inference for ICL; Hutter optimality of universal sequence prediction."
+    },
+    {
+      "arxiv_id": "cs/0701125",
+      "pool": "theory",
+      "label": "Hutter — Universal Algorithmic Intelligence (Solomonoff/AIXI)",
+      "opposite_fields": ["Computer Science"],
+      "opposite_year_range": "2018-2026",
+      "rationale": "Bridge: Solomonoff/Bayesian induction × in-context learning. Theory side of the both-directions test.",
+      "expected_twin_arxiv": [
+        "2208.01066",
+        "2005.14165",
+        "2111.02080"
+      ],
+      "expected_twin_note": "Garg ICL function-class case study; Brown GPT-3 emergence of ICL; Xie implicit Bayesian inference for ICL."
+    }
+  ]
+}

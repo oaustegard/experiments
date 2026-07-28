@@ -1,0 +1,1 @@
+Caching layer released. It stores hot data in-process with automatic invalidation tied to source mutations, and exposes a synchronous API with no thread-safety overhead. Cached reads show lower p99 latency compared to backend queries; the API is unchanged from prior versions.

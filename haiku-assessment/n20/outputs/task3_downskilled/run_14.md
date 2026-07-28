@@ -1,0 +1,1 @@
+New caching layer released. It uses a write-through policy with TTL-based invalidation and supports both in-memory and distributed backends via a single API. Observed latency reductions on read-heavy workloads; development integration requires one import and minimal configuration changes.
