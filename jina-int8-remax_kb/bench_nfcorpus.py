@@ -22,12 +22,13 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/home/user/claude-workspace")
 HERE = Path(__file__).resolve().parent
 DATA = HERE / "data" / "nfcorpus"
 TOKENIZER = HERE / "tokenizer.json"
-sys.path.insert(0, str(ROOT / ".spokes/remax_kb"))
-sys.path.insert(0, str(ROOT / ".spokes/remax/src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke
+sys.path.insert(0, str(spoke("remax_kb")))
+sys.path.insert(0, str(spoke("remax") / "src"))
 
 from remax_kb.embedders import JinaONNXEmbedder  # noqa: E402
 from remax_kb._hamming import hamming_scan, top_k  # noqa: E402

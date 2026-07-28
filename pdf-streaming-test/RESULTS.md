@@ -89,7 +89,7 @@ at ~1s instead of ~4s.
 cd /home/user/oaustegard.github.io
 python3 -m http.server 4001 > /tmp/srv.log 2>&1 &
 
-cd /home/user/claude-workspace/experiments/pdf-streaming-test
+cd pdf-streaming-test   # from the repo root
 # vendor/ already contains pdf.min.js, pdf.worker.min.js, and the three PDFs
 node test_streaming.js
 ```

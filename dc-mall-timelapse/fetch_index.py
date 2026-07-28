@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Page EarthCam HOF index for the WAMO (Washington Monument) cam back to a cutoff date."""
 import re, json, time, sys, urllib.request, datetime
+from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
 CUTOFF = int(datetime.datetime(2026, 5, 1, tzinfo=datetime.timezone.utc).timestamp())
 BASE = ("https://www.earthcam.com/cams/common/gethofitems.php"
         "?hofsource=com&tm=ecn&camera=wamocam_stream&start={start}&length=50"
@@ -36,7 +38,7 @@ def main():
         start += 50
         time.sleep(0.3)
     kept = sorted((v for v in items.values() if v["ts"] >= CUTOFF), key=lambda x: x["ts"])
-    json.dump(kept, open("/home/user/claude-workspace/experiments/dc-mall-timelapse/index.json", "w"), indent=0)
+    json.dump(kept, open(HERE / "index.json", "w"), indent=0)
     if kept:
         a = datetime.datetime.fromtimestamp(kept[0]["ts"], datetime.timezone.utc)
         b = datetime.datetime.fromtimestamp(kept[-1]["ts"], datetime.timezone.utc)

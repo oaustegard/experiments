@@ -16,13 +16,15 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/home/user/claude-workspace")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import experiment, spoke
+
 HERE = Path(__file__).resolve().parent
-KB = ROOT / ".spokes/muninn.austegard.com/knowledge/muninn.kb"
-JINA = ROOT / "experiments/jina-int8-remax_kb"
-sys.path.insert(0, str(ROOT / ".spokes/remax_kb"))
-sys.path.insert(0, str(ROOT / ".spokes/remax/src"))
-sys.path.insert(0, str(ROOT / "experiments/lexical-kb-phase0"))
+KB = spoke("muninn.austegard.com") / "knowledge/muninn.kb"
+JINA = experiment("jina-int8-remax_kb")
+sys.path.insert(0, str(spoke("remax_kb")))
+sys.path.insert(0, str(spoke("remax") / "src"))
+sys.path.insert(0, str(experiment("lexical-kb-phase0")))
 from sweep import QUERIES, stem            # noqa: E402
 from remax_kb._hamming import hamming_scan, top_k   # noqa: E402
 from remax import StackedSignBitQuantizer  # noqa: E402

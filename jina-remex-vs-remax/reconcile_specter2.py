@@ -14,8 +14,10 @@ import sys
 from pathlib import Path
 import numpy as np
 
-ROOT = Path("/home/user/claude-workspace"); A = Path(__file__).resolve().parent / "assets"
-sys.path.insert(0, str(ROOT / ".spokes/remax/src"))
+A = Path(__file__).resolve().parent / "assets"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke
+sys.path.insert(0, str(spoke("remax") / "src"))
 from remex import Quantizer
 
 BITS = [1, 2, 3, 4, 8]

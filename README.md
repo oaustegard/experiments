@@ -477,10 +477,20 @@ Interactive HTML simulator. Open `snooker-break.html` in a browser.
 
 ## Adding a new experiment
 
+0. **Grep [`METHODS.md`](METHODS.md) first.** It is the ledger of portable
+   methods, environment gotchas and negative results from every experiment
+   here. Two experiments in this repo have already re-derived a result a
+   sibling had documented; that file exists so it stops happening.
 1. `mkdir <short-name>/`
 2. Put scripts, data, and a `RESULTS.md` (or rename if the README is the result) inside.
 3. Add a row to the table above and a section under "Per-experiment notes."
 4. Add anything regenerable (logs, checkpoints, large caches) to `.gitignore`.
+5. When it ends, add what you learned to `METHODS.md` — anything that would
+   change what a *different* experiment does.
 
-If an experiment grows scripts worth reusing, lift them into the relevant
-spoke repo — but the data products and a results writeup stay here.
+Shared helpers live in [`_lib/`](_lib/) — path resolution, retry/backoff,
+atomic JSON checkpointing, Unicode folding. Reach for them rather than
+re-implementing; add to them only once a second experiment needs the code.
+
+If an experiment grows scripts worth reusing more broadly, lift them into
+the relevant spoke repo — but the data products and a results writeup stay here.

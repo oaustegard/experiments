@@ -22,6 +22,9 @@ import re
 import sys
 import pathlib
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke
+
 HERE = pathlib.Path(__file__).resolve().parent
 # Canonical, editable, version-controlled copies of the two source apps. Originally
 # lifted from the session uploads; vendored here so engine changes are reproducible and
@@ -29,9 +32,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 SRC = HERE / "src"
 OCR_SRC = SRC / "parseimages.aspx"
 TR_SRC = SRC / "transcriber.aspx"
-OUT = pathlib.Path(
-    "/home/user/claude-workspace/.spokes/oaustegard.github.io/web-utilities/anything-to-text.html"
-)
+OUT = spoke("oaustegard.github.io") / "web-utilities/anything-to-text.html"
 
 
 def extract_module(text):

@@ -2,9 +2,10 @@
 """Paginate the WAMO HOF feed back 7 days, keep daylight frames, download them."""
 import os, re, json, time, datetime, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 import zoneinfo
 
-ROOT = "/home/user/claude-workspace/experiments/dc-mall-timelapse"
+ROOT = Path(__file__).resolve().parent
 DEST = os.path.join(ROOT, "frames_week")
 os.makedirs(DEST, exist_ok=True)
 TZ = zoneinfo.ZoneInfo("America/New_York")

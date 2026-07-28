@@ -1,15 +1,24 @@
-"""Shared utilities for phase A pipeline: paths, creds, retries, HTTP."""
+"""Shared utilities for phase A pipeline: paths, creds, retries, HTTP.
+
+The generic pieces (backoff, chunking, atomic JSON checkpointing) now live
+in `_lib/pipeline.py`, shared with `te-bridges/scripts/te_common.py` which
+was a near-identical copy of this file. What remains here is the phase-A
+credential set and the S2/Gemini clients built on top.
+"""
 from __future__ import annotations
 
-import json
 import os
-import random
 import sys
-import time
 from pathlib import Path
-from typing import Any, Callable, Iterable, Iterator, TypeVar
+from typing import Any, Callable, TypeVar
 
 import httpx
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from _lib.pipeline import chunked  # noqa: E402,F401 - re-exported for callers
+from _lib.pipeline import load_json as _load_json  # noqa: E402
+from _lib.pipeline import retry as _retry  # noqa: E402
+from _lib.pipeline import save_json as _save_json  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 # Data directory is configurable per-run so multiple corpora can coexist
@@ -47,31 +56,14 @@ def retry(
     base: float = 1.5,
     cap: float = 30.0,
     retry_on: tuple = (httpx.HTTPError,),
-    accept_status: tuple = (200,),
 ) -> T:
-    """Exponential backoff with jitter. Returns the function's value or raises."""
-    last: Exception | None = None
-    for i in range(attempts):
-        try:
-            return fn()
-        except retry_on as e:
-            last = e
-            wait = min(cap, base ** i) + random.uniform(0, 0.5)
-            print(f"  retry {i + 1}/{attempts} after {wait:.1f}s: {e}", file=sys.stderr)
-            time.sleep(wait)
-    assert last is not None
-    raise last
+    """Exponential backoff with jitter. Returns the function's value or raises.
 
-
-def chunked(seq: Iterable[Any], n: int) -> Iterator[list[Any]]:
-    buf: list[Any] = []
-    for x in seq:
-        buf.append(x)
-        if len(buf) >= n:
-            yield buf
-            buf = []
-    if buf:
-        yield buf
+    Thin wrapper over `_lib.pipeline.retry` that keeps this module's HTTP
+    default for `retry_on` — the shared helper defaults to `Exception`,
+    which would swallow bugs in these pipelines.
+    """
+    return _retry(fn, attempts=attempts, base=base, cap=cap, retry_on=retry_on)
 
 
 # ---------------------------------------------------------------------------
@@ -221,17 +213,27 @@ def gemini_generate(
 # JSON checkpointing
 # ---------------------------------------------------------------------------
 
+def _rel(p: Path) -> Path | str:
+    """Path relative to ROOT for logging, falling back to absolute.
+
+    PHASE_A_DATA_DIR can point outside ROOT, and `relative_to` raises in
+    that case — a checkpoint write must not die on its own log line.
+    """
+    try:
+        return p.relative_to(ROOT)
+    except ValueError:
+        return p
+
+
 def save_json(name: str, obj: Any) -> Path:
-    p = DATA / name
-    tmp = p.with_suffix(p.suffix + ".tmp")
-    tmp.write_text(json.dumps(obj, indent=2, default=str))
-    tmp.replace(p)
-    print(f"  saved {p.relative_to(ROOT)}", file=sys.stderr)
-    return p
+    """Checkpoint `obj` under this run's DATA dir, atomically."""
+    return _save_json(
+        DATA / name,
+        obj,
+        log=lambda _: print(f"  saved {_rel(DATA / name)}", file=sys.stderr),
+    )
 
 
 def load_json(name: str, default: Any = None) -> Any:
-    p = DATA / name
-    if not p.exists():
-        return default
-    return json.loads(p.read_text())
+    """Read a checkpoint from this run's DATA dir, or `default` if absent."""
+    return _load_json(DATA / name, default)

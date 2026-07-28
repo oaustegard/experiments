@@ -24,11 +24,12 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import spearmanr
 
-ROOT = Path("/home/user/claude-workspace")
 HERE = Path(__file__).resolve().parent
 A = HERE / "assets"
-sys.path.insert(0, str(ROOT / ".spokes/remax_kb"))
-sys.path.insert(0, str(ROOT / ".spokes/remax/src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke
+sys.path.insert(0, str(spoke("remax_kb")))
+sys.path.insert(0, str(spoke("remax") / "src"))
 from remax import StackedSignBitQuantizer             # noqa: E402
 from remax_kb._hamming import hamming_scan            # noqa: E402
 from remex import Quantizer                           # noqa: E402
