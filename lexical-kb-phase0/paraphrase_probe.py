@@ -21,14 +21,17 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/home/user/claude-workspace")
-MIRROR = ROOT / ".spokes/jina-v5-nano-mirror"
-KB_PATH = ROOT / ".spokes/muninn.austegard.com/knowledge/muninn.kb"
-CACHE = ROOT / "experiments/lexical-kb-phase0/.corpus_vecs.npz"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke  # noqa: E402
+
+HERE = Path(__file__).resolve().parent
+MIRROR = spoke("jina-v5-nano-mirror")
+KB_PATH = spoke("muninn.austegard.com") / "knowledge/muninn.kb"
+CACHE = HERE / ".corpus_vecs.npz"
 os.environ.setdefault("REMAX_KB_TOKENIZER_PATH", str(MIRROR / "model" / "tokenizer.json"))
 
-sys.path.insert(0, str(ROOT / ".spokes/remax_kb"))
-sys.path.insert(0, str(ROOT / "experiments/lexical-kb-phase0"))
+sys.path.insert(0, str(spoke("remax_kb")))
+sys.path.insert(0, str(HERE))
 from sweep import stem, build, ranked_posts  # noqa: E402
 from remax_kb.embedders import JinaONNXEmbedder  # noqa: E402
 

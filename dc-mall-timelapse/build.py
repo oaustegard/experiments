@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Download the available WAMO HOF stills and encode a timelapse with ffmpeg."""
 import json, os, subprocess, urllib.request, datetime
+from pathlib import Path
 import imageio_ffmpeg
 
-ROOT = "/home/user/claude-workspace/experiments/dc-mall-timelapse"
+ROOT = Path(__file__).resolve().parent
 FRAMES = os.path.join(ROOT, "frames")
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 os.makedirs(FRAMES, exist_ok=True)

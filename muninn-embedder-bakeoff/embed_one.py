@@ -14,10 +14,12 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/home/user/claude-workspace")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import experiment, spoke
+
 HERE = Path(__file__).resolve().parent
-KB = ROOT / ".spokes/muninn.austegard.com/knowledge/muninn.kb"
-sys.path.insert(0, str(ROOT / "experiments/lexical-kb-phase0"))
+KB = spoke("muninn.austegard.com") / "knowledge/muninn.kb"
+sys.path.insert(0, str(experiment("lexical-kb-phase0")))
 from sweep import QUERIES, stem  # noqa: E402
 
 KS = (5, 10)

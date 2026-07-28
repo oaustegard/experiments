@@ -25,10 +25,12 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/home/user/claude-workspace")
-JKB = ROOT / "experiments/jina-int8-remax_kb"
-sys.path.insert(0, str(ROOT / ".spokes/remax_kb"))
-sys.path.insert(0, str(ROOT / ".spokes/remax/src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import experiment, spoke
+
+JKB = experiment("jina-int8-remax_kb")
+sys.path.insert(0, str(spoke("remax_kb")))
+sys.path.insert(0, str(spoke("remax") / "src"))
 sys.path.insert(0, str(JKB))
 
 from remax_kb._hamming import hamming_scan, top_k          # noqa: E402

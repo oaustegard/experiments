@@ -2,8 +2,9 @@
 """Download HOF frames for the July 5 2026 midnight fireworks window."""
 import os, json, time, datetime, zoneinfo, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
-ROOT = "/home/user/claude-workspace/experiments/dc-mall-timelapse"
+ROOT = Path(__file__).resolve().parent
 DEST = os.path.join(ROOT, "frames_fireworks")
 os.makedirs(DEST, exist_ok=True)
 TZ = zoneinfo.ZoneInfo("America/New_York")

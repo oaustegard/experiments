@@ -16,13 +16,15 @@ from __future__ import annotations
 import json, subprocess, sys, zipfile
 from pathlib import Path
 
-ROOT = Path("/home/user/claude-workspace")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import experiment, spoke
+
 HERE = Path(__file__).resolve().parent
-KB = ROOT / ".spokes/muninn.austegard.com/knowledge/muninn.kb"
-BUILD = ROOT / "experiments/lexical-kb/build_lexkb.py"
-SEARCH = ROOT / "experiments/lexical-kb/skill_template/search.py"
+KB = spoke("muninn.austegard.com") / "knowledge/muninn.kb"
+BUILD = experiment("lexical-kb") / "build_lexkb.py"
+SEARCH = experiment("lexical-kb") / "skill_template/search.py"
 CORPUS = HERE / "corpus"
-sys.path.insert(0, str(ROOT / "experiments/lexical-kb-phase0"))
+sys.path.insert(0, str(experiment("lexical-kb-phase0")))
 from sweep import QUERIES, stem  # noqa: E402
 
 KS = (5, 10)

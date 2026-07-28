@@ -17,12 +17,16 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
-ROOT = Path("/home/user/claude-workspace")
-CORPUS = ROOT / "experiments/lexical-kb-phase0/corpus"
-SCRIPTS = ROOT / ".spokes/claude-skills/creating-kb/scripts"
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke  # noqa: E402
+
+HERE = Path(__file__).resolve().parent
+CORPUS = HERE / "corpus"
+SCRIPTS = spoke("claude-skills") / "creating-kb/scripts"
 SIZES = [500, 1500, 4000, 0]  # 0 = whole document
 
 # Gold = source_path stems judged on-topic from the post descriptions.

@@ -22,7 +22,9 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE / "model.onnx"
-sys.path.insert(0, str(Path("/home/user/claude-workspace/.spokes/remax_kb")))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke
+sys.path.insert(0, str(spoke("remax_kb")))
 from remax_kb.embedders import JinaONNXEmbedder  # noqa: E402
 
 
