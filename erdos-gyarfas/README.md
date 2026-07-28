@@ -167,8 +167,10 @@ Both counts match OEIS A002851 exactly, so the censuses are complete rather than
 sampled. **Both reproduce Markström (2004) rather than extending it** — his Table 3
 gives 4, 23 and 251 at orders 24, 26 and 28. Canonically labelling with `nauty-labelg`,
 his graphs and these agree **graph-for-graph, zero differences either way** at both
-orders. That is worth having as independent verification of a computation whose source
-paper is hard to obtain, and nothing more.
+orders. That is worth having as independent verification of a 2004 computation nobody
+had checked since, and nothing more. It was built on the belief that the
+order-26 count was unknown. That belief was wrong and the paper was a search
+away; the retrieval failure was mine, not the record's.
 
 **Girth is a trap.** Restricting to girth ≥ 5 shrinks the order-26 search 60-fold and
 returns nothing — but 3 is not a power of two, so triangles are legal, and *every one*
