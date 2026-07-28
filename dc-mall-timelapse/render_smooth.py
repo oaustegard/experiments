@@ -3,6 +3,7 @@
 DC-local timestamp, and crossfade dissolves. Frames are generated in Python and
 piped raw to ffmpeg."""
 import os, sys, bisect, subprocess, datetime, zoneinfo, json
+from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageEnhance
 import imageio_ffmpeg
@@ -14,7 +15,7 @@ def _env(name, default, cast):
 def _date(s):  # YYYY-MM-DD
     return datetime.date(*map(int, s.split("-")))
 
-ROOT = "/home/user/claude-workspace/experiments/dc-mall-timelapse"
+ROOT = Path(__file__).resolve().parent
 FRAMES = os.path.join(ROOT, "frames_full")
 OUT = os.path.join(ROOT, _env("TL_OUT", "wamo_timelapse_smooth.mp4", str))
 W, H = 1280, 720

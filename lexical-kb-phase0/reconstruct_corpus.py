@@ -12,12 +12,17 @@ post inventory (source_path + title) for gold-label selection.
 from __future__ import annotations
 
 import json
+import sys
 import zipfile
 from collections import OrderedDict
 from pathlib import Path
 
-KB = Path("/home/user/claude-workspace/.spokes/muninn.austegard.com/knowledge/muninn.kb")
-OUT = Path("/home/user/claude-workspace/experiments/lexical-kb-phase0/corpus")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke  # noqa: E402
+
+HERE = Path(__file__).resolve().parent
+KB = spoke("muninn.austegard.com") / "knowledge/muninn.kb"
+OUT = HERE / "corpus"
 
 
 def main() -> int:

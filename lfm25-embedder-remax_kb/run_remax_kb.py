@@ -10,15 +10,16 @@ from __future__ import annotations
 import sys, time
 from pathlib import Path
 
-WS = Path("/home/user/claude-workspace")
-sys.path.insert(0, str(WS / ".spokes" / "remax" / "src"))
-sys.path.insert(0, str(WS / ".spokes" / "remax_kb"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke
+sys.path.insert(0, str(spoke("remax") / "src"))
+sys.path.insert(0, str(spoke("remax_kb")))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from remax_kb import pack, KB
 from lfm25_embedder import LFM25Embedder
 
-CORPUS = WS / ".spokes" / "remax_kb" / "examples" / "tiny_corpus"
+CORPUS = spoke("remax_kb") / "examples" / "tiny_corpus"
 OUT = Path(__file__).resolve().parent / "tiny_lfm25.kb"
 
 # Same (query, expected source file) triples as tests/test_retrieval.py

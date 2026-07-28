@@ -21,9 +21,11 @@ from remax_kb.embedders import JinaTorchEmbedder  # noqa: E402
 from remax_kb.pack import pack  # noqa: E402
 from remax_kb.read import KB  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke  # noqa: E402
 
-SITE_ROOT_DEFAULT = "/home/user/claude-workspace/.spokes/muninn.austegard.com"
-JINA_MIRROR_DEFAULT = "/home/user/claude-workspace/.spokes/jina-v5-nano-mirror"
+SITE_ROOT_DEFAULT = str(spoke("muninn.austegard.com"))
+JINA_MIRROR_DEFAULT = str(spoke("jina-v5-nano-mirror"))
 
 
 def main() -> int:

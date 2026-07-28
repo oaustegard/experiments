@@ -3,7 +3,10 @@ SPECTER2 embeddings for remex#69 phase-0 gap fill.
 Papers: Sawin 2605.20579, OpenAI companion 2605.20695, Lenstra 1986.
 """
 import json, torch
+from pathlib import Path
 from transformers import AutoTokenizer, AutoModel
+
+HERE = Path(__file__).resolve().parent
 
 papers = {
     "sawin": {
@@ -71,7 +74,7 @@ for label, p in papers.items():
     }
     print(f"  -> {len(vec)}-d vector, norm={sum(x**2 for x in vec)**0.5:.4f}")
 
-out_path = "/home/user/claude-workspace/experiments/specter2-gap-issue-87/sawin_lenstra_specter.legacy.json"
+out_path = HERE / "sawin_lenstra_specter.legacy.json"
 with open(out_path, "w") as f:
     json.dump(results, f, indent=2)
 

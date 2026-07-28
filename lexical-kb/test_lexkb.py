@@ -20,7 +20,10 @@ sys.path.insert(0, str(HERE / "skill_template"))
 import build_lexkb as B  # noqa: E402
 from search import Index, build_query, rm3_expand, tokenize  # noqa: E402
 
-CORPUS = Path("/home/user/claude-workspace/.spokes/remax_kb/examples/tiny_corpus")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke  # noqa: E402
+
+CORPUS = spoke("remax_kb") / "examples/tiny_corpus"
 
 # (label, raw query, gold source_path, agent core terms, agent expansion terms)
 CASES = [

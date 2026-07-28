@@ -2,8 +2,10 @@
 import sys, time
 from pathlib import Path
 import numpy as np
-ROOT = Path("/home/user/claude-workspace"); A = ROOT/"experiments/jina-remex-vs-remax/assets"
-sys.path.insert(0, str(ROOT/".spokes/remax_kb")); sys.path.insert(0, str(ROOT/".spokes/remax/src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _lib.paths import spoke
+A = Path(__file__).resolve().parent / "assets"
+sys.path.insert(0, str(spoke("remax_kb"))); sys.path.insert(0, str(spoke("remax")/"src"))
 from remex import Quantizer
 from remax import StackedSignBitQuantizer
 from remax_kb._hamming import hamming_scan, top_k
