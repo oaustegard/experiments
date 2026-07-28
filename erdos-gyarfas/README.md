@@ -167,8 +167,10 @@ Both counts match OEIS A002851 exactly, so the censuses are complete rather than
 sampled. **Both reproduce Markström (2004) rather than extending it** — his Table 3
 gives 4, 23 and 251 at orders 24, 26 and 28. Canonically labelling with `nauty-labelg`,
 his graphs and these agree **graph-for-graph, zero differences either way** at both
-orders. That is worth having as independent verification of a computation whose source
-paper is hard to obtain, and nothing more.
+orders. That is worth having as independent verification of a 2004 computation nobody
+had checked since, and nothing more. It was built on the belief that the
+order-26 count was unknown. That belief was wrong and the paper was a search
+away; the retrieval failure was mine, not the record's.
 
 **Girth is a trap.** Restricting to girth ≥ 5 shrinks the order-26 search 60-fold and
 returns nothing — but 3 is not a power of two, so triangles are legal, and *every one*
@@ -216,6 +218,7 @@ generation. Extending that by five orders is the concrete next step.
 ## Files
 
 ```
+reproduce.sh                 re-runs a census and diffs it against Markström's file
 src/tutte_coxeter_lemma.py   the refutation above — self-contained, run it
 src/filt.c                   exact cycle-length filter (gcc -O3 -march=native)
 src/window_search.py         girth/circumference search for Proposition 5
@@ -227,7 +230,13 @@ data/order24_markstrom.g6    4 graphs, Markström's file — identical up to iso
 data/order26_mine.g6         23 graphs, this session
 data/order26_markstrom.g6    23 graphs, Markström's file — identical up to isomorphism
 data/near_miss_order26.g6    the graph described above
+data/README.md               provenance for every file above
 ```
+
+`./reproduce.sh 24` rebuilds the order-24 census from scratch and diffs it
+against Markström's own file up to isomorphism (~5 min on 4 cores; `26` takes
+~15). It needs `snarkhunter`, which is not packaged anywhere — the build recipe
+is in the script header.
 
 `filt.c` and `tutte_coxeter_lemma.py` are the two pieces most likely to be useful
 elsewhere. Everything else is scaffolding.
@@ -235,7 +244,11 @@ elsewhere. Everything else is scaffolding.
 ## Sources
 
 - Bondy & Vince, *Cycles in a graph whose lengths differ by one or two*, JGT 27 (1998)
-- Markström, *Extremal graphs for some problems on cycles in graphs*, Congressus Numerantium 171 (2004) — and his data page, which carries the N ≤ 52 result
+- Markström, *Extremal graphs for some problems on cycles in graphs*, Congressus Numerantium 171 (2004) —
+  [paper](http://abel.math.umu.se/~klasm/Uppsatser/cycex.pdf), and the
+  [data page](http://abel.math.umu.se/~klasm/Data/cubicavoid.html) carrying the N ≤ 52 result and the
+  [graph files](http://abel.math.umu.se/~klasm/Data/cubicavoidcycle/). Plain HTTP — the host serves no HTTPS.
+  His order-24 and order-26 files are vendored under `data/`; see [`data/README.md`](data/README.md).
 - Exoo, *Three Graphs and the Erdős-Gyárfás Conjecture*, [arXiv:1403.5636](https://arxiv.org/abs/1403.5636)
 - Heckman & Krakovski, *Erdős-Gyárfás conjecture for cubic planar graphs*, EJC 20(2) (2013)
 - Liu, Yu & Zhang, *Circumference of 3-connected cubic graphs*, [arXiv:1708.08865](https://arxiv.org/abs/1708.08865)
