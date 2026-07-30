@@ -17,6 +17,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`svgview/`](svgview/README.md) | 2026-07-30 | working on Linux; Windows build never run on a real machine | [`README.md`](svgview/README.md) + [`src/`](svgview/src/) | [andri.dk on Bluesky](https://bsky.app/profile/andri.dk/post/3mrewq7fcsc2j), arguing that launching a full browser to render PDF or SVG is "bonkers insane" — narrowed in his own reply to systems doing it internally. Tested the SVG half by building the alternative: a native Windows-first viewer wrapping `resvg`, ~600 lines. Measured here: **4.8 MiB executable, 12 MiB resident, 16 ms exec→window, 20 ms parse+render to a 1000 px PNG**. Verdict: he is right about SVG and `resvg` had already done the hard part; the argument does *not* transfer to PDF, where the honest options are wrapping Chrome's own PDFium or accepting `hayro`'s coverage gaps. Windows compiles in CI; the file dialog, icon, and association scripts are unverified. |
 | [`erdos-gyarfas/`](erdos-gyarfas/README.md) | 2026-07-28 | open problem; partial results | [`README.md`](erdos-gyarfas/README.md) + [`note.html`](erdos-gyarfas/note.html) + [`tutte_coxeter_lemma.py`](erdos-gyarfas/src/tutte_coxeter_lemma.py) | this session |
 | [`ms13-campaign/`](ms13-campaign/SUMMARY.md) | 2026-07-24 | closed (compute exhausted; open maths recorded) | [`SUMMARY.md`](ms13-campaign/SUMMARY.md) (academic writeup) + [`NOGOS.md`](ms13-campaign/NOGOS.md) (ledger) + [`BLOGPOST.md`](ms13-campaign/BLOGPOST.md) | [issue #169](https://github.com/oaustegard/claude-workspace/issues/169): campaign against Morell–Skutella Conjecture 1.3 (two-sided unsplittable-flow rounding). **No counterexample.** Produced instead: a **reduction** showing 1.3 restricted to 2-path instances *is* a linear-discrepancy question on **network matrices with demand-scaled columns** — a connection neither literature appears to draw (full-text greps of TVZ/Swamy/MSW25 find no mention of Doerr, "linear discrepancy" or "totally unimodular"); a **theorem** settling that question for k=3 (`R = 3/4` exactly, unconditional, census complete through m=10, exact branch-and-bound on the 2 maximal classes); and a ledger of 20 refuted families/claims **including two conjectures of our own** (12.1 refuted at k=4, the staircase conjecture at k=8). Rediscoveries correctly identified as such: the tightness gadget is Morell–Skutella Fig. 3, the equal-demand bound is Doerr 2004. Enumeration shown dead by arithmetic (~2,070 h at k=4). Open: Q7′ (column-scaled Doerr bound, general k). Methodology notes: a false-positive "counterexample" caught at the certificate gate when two independent verifiers turned out to share one blind spot; every over-claim had the same shape (clean at k≤6, false at larger k). |
 | [`ssuf-beta/`](ssuf-beta/RESULTS.md) | 2026-07-24 | done (scoped) | [`RESULTS.md`](ssuf-beta/RESULTS.md) + [`engine.py`](ssuf-beta/engine.py) + [`calibration.py`](ssuf-beta/calibration.py) + [`family.py`](ssuf-beta/family.py) | [claude-workspace#165](https://github.com/oaustegard/claude-workspace/issues/165): quantitative hunt for the SSUF cost-preserving violation constant β* following the Goemans/DGG conjecture disproof (16/15 < β* ≤ 2). Built an exact-rational β* engine (breakpoint-enumerated convex-hull membership LP via sympy's tested simplex, after a hand-rolled one failed its own sanity test). **Calibration against the real Rybin instance was blocked** — no arXiv writeup exists, and this session's WebFetch can't reach the source X thread (HTTP 402, no working mirror) — so calibrated instead against a fully hand-derived, independently-constructed triangle-conflict instance (β\*=1/2, exact match) and swept a parametrized generalization of it — that family's β\* has supremum exactly 1 (approached, never attained or exceeded), a clean negative result short of even the original refuted β=1 bound. Literature gate confirmed TVZ's planar +2·d_max bound and ring-loading bounds (1.1D/1.3D) from primary sources. Honest scope cut: no claim here reproduces or exceeds β\*=16/15; gadget search, ms13 engine sweep, and the ring-loading secondary target were not attempted. |
@@ -57,6 +58,40 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `svgview/` — is a browser really the wrong tool for rendering SVG?
+
+Prompted by [a Bluesky post](https://bsky.app/profile/andri.dk/post/3mrewq7fcsc2j)
+calling browser-based PDF/SVG rendering "bonkers insane." The claim is testable,
+so it got tested: build the lightest native SVG viewer that is actually usable
+and see what it costs.
+
+It costs very little, because `resvg` had already done the hard part. The whole
+viewer is ~600 lines over `resvg` + `winit` + `softbuffer`, and the numbers are
+one to two orders of magnitude below a browser-based equivalent: 4.8 MiB
+executable, 12 MiB resident, 16 ms from `exec` to a window on screen. Static SVG
+is a solved problem outside the browser and has been for years.
+
+The argument does **not** generalize to PDF, which is what the original post
+actually lumped together. PDF is thirty years of accretion — forms, JBIG2/JPX,
+seven shading types, CID fonts, encryption — and the two honest Rust options are
+wrapping PDFium (which *is* Chrome's PDF engine, just without the browser around
+it) or accepting `hayro`'s documented gaps. The elephant gun exists because that
+particular pigeon fights back.
+
+Two process notes worth more than the code:
+
+- The first version of the GUI smoke test counted distinct colours per
+  screenshot and reported `ok` for all seven key bindings while **none** of them
+  were reaching the window — with no window manager on the virtual display,
+  nothing had assigned input focus. Both the bug and the useless check are in
+  `METHODS.md`.
+- The app icon is generated by rasterising `assets/icon.svg` with svgview
+  itself, so artwork and icon cannot drift. Costs about 40 lines of Python.
+
+Not done: no interactive Windows testing at all, so the `Ctrl+O` dialog,
+embedded icon, GUI-subsystem behaviour, and the file-association scripts are
+written-but-unproven. No macOS attempt.
 
 ### `erdos-gyarfas/` — does every min-degree-3 graph have a power-of-two cycle?
 

@@ -1,0 +1,31 @@
+// Windows resource script. Compiled by build.rs via embed-resource; a no-op on
+// every other platform. ASCII only, so it needs no codepage pragma.
+
+// Resource ID 1: Explorer uses the lowest-numbered icon as the app icon.
+1 ICON "svgview.ico"
+
+1 VERSIONINFO
+FILEVERSION 0,1,0,0
+PRODUCTVERSION 0,1,0,0
+FILEOS 0x40004L
+FILETYPE 0x1L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "svgview"
+            VALUE "FileDescription", "svgview - a small native SVG viewer"
+            VALUE "FileVersion", "0.1.0.0"
+            VALUE "InternalName", "svgview"
+            VALUE "LegalCopyright", "MIT OR Apache-2.0"
+            VALUE "OriginalFilename", "svgview.exe"
+            VALUE "ProductName", "svgview"
+            VALUE "ProductVersion", "0.1.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
