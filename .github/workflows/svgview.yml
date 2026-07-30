@@ -1,0 +1,70 @@
+name: ci
+
+# Windows is the target platform but cannot be tested interactively here, so
+# CI's job is to prove the Windows-only code paths compile — the file dialog,
+# the embedded icon and version resource, the GUI subsystem attribute — while
+# Linux carries the behavioural tests.
+
+on:
+  push:
+    paths:
+      - 'svgview/**'
+      - '.github/workflows/svgview.yml'
+  pull_request:
+    paths:
+      - 'svgview/**'
+      - '.github/workflows/svgview.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: svgview
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: svgview
+      - run: cargo build --release
+      - run: cargo test
+      # The headless path is the only part runnable without a desktop session.
+      - run: ./target/release/svgview.exe assets/test.svg --png smoke.png --width 640
+      - name: Report the executable size
+        shell: pwsh
+        run: |
+          $exe = Get-Item target/release/svgview.exe
+          Write-Host "svgview.exe: $($exe.Length) bytes"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: svgview-windows-x86_64
+          path: svgview/target/release/svgview.exe
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: svgview
+      - name: Install the X and keyboard libraries winit needs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb xdotool libxkbcommon-x11-0 libxcb-xkb1
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+      - run: cargo build --release
+      - run: ./scripts/smoke-test.sh
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-screenshots
+          path: svgview/target/smoke/*.png
