@@ -304,6 +304,16 @@ normalization is the natural one and gives the wrong conclusion ("low dimension
 is benign"); the denominator was growing 5x. Plot both or state which you chose
 and why.
 
+### Compare set-recovery metrics only at matched target size
+
+`lattice-representation-hypothesis` §5.2-5.3 — Jaccard and symmetric-difference
+error gave *opposite* meet-vs-join answers on the same runs, purely because one
+operator's targets were 12x larger. Bin by constraint count to control it, then
+check the residual gap against a random-direction baseline: here the control
+reproduced the gap *more strongly* than any real probe, which retired it.
+
+**Use when:** comparing recovery of two set-valued targets of unequal size.
+
 ### Trees are not chains — hierarchical data does not have small closure gaps
 
 `lattice-representation-hypothesis` §4.3. A totally nested attribute chain has

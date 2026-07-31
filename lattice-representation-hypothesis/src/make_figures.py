@@ -142,8 +142,8 @@ def fig_noise_reversal(b):
         ax[k].set_title(f"WordNet context: {name}", fontsize=9)
     ax[0].set_ylabel("Jaccard vs. true lattice")
     ax[0].legend(fontsize=7, loc="lower left")
-    fig.suptitle("The closure absorbs probe noise; the bare intersection does not",
-                 fontsize=10)
+    fig.suptitle("Join degrades more slowly than meet under probe noise (Jaccard;\n"
+                 "note join targets are ~12x larger — see RESULTS.md \u00a75.2)", fontsize=9.5)
     fig.tight_layout()
     fig.savefig(FIG / "noise_reversal.png", bbox_inches="tight")
     plt.close(fig)

@@ -1,8 +1,9 @@
 # Meet, join, and the closure operator: probing the Lattice Representation Hypothesis
 
-**Started / finished:** 2026-07-31 · **Status:** done — thesis largely refuted by
-this experiment's own adversarial arm; three findings survive, one of them a
-reversal of the opening claim.
+**Started / finished:** 2026-07-31 · **Status:** done — **negative result**. The
+opening thesis was refuted by this experiment's own adversarial and WordNet arms.
+What survives is a set of caveats on the paper's experimental setting and one
+measured effect (§5.2) whose proposed mechanism I could not verify.
 
 **Origin.** A post by `@digthatdata.bsky.social` on the *Paper Skygest* Bluesky
 feed, pointing at a paper "demonstrating how linear representations (i.e.
@@ -31,18 +32,30 @@ Then I ran an adversarial arm against my own claims. **Most of them died.**
 |---|---|
 | Definition 7's join is not a lattice element | **Refuted.** Its "conic hull" clause makes it *exactly* `R(Y_A ∩ Y_B)` under linear independence, which holds throughout the paper's own experiments. Verified 96/96 by an independently written LP. |
 | Overshoot is an error rate | **Refuted.** Those members *are* the join. In the WordNet task they are the gold label — the join of {dog, wolf} is `canine`, which contains foxes. |
-| Meet is exact, join is lossy | **Reversed.** Under realistic probe error the join is *more* robust than the meet at every noise level tested. The closure absorbs noise; the bare intersection compounds it. |
+| Meet is exact, join is lossy | **Reversed on the dominant metric, then confounded.** Under probe error the join degrades more slowly than the meet on Jaccard at every noise level — but join targets are ~12× larger, the direction flips on symmetric-difference error in one of two contexts, and the size-controlled version is reproduced by random-direction controls. |
 | The 5/5 Figure 4 gap is explained by this | **Not established.** A difficulty control removes a third of it; the rest is not attributable to the join definition. |
 
-**What survives** is smaller, and two pieces of it are new:
+**What survives** is smaller, and mostly consists of caveats on the setting:
 
-1. **The closure is a noise-robustness mechanism, not a defect** (Arm B, and the
-   reversal of my own thesis). This is the most interesting thing here.
-2. **WordNet-shaped contexts are the worst case, not a benign one** — refuting
-   the natural defense that hierarchical data is "nested and therefore fine."
-3. **Equation 6's meet orientation looks inverted**, and unlike the Definition 7
+1. **Both lattice operations are plain half-space intersections** — verified with
+   0 identity violations. The join needs *fewer* constraints than the meet
+   (0.83 vs 5.55 half-spaces). The only non-representable object in the
+   neighbourhood is the plain union, which is not a lattice operation, and it is
+   indeed recovered worst of the three. §5.1
+2. **The join degrades more slowly under probe noise on Jaccard** — a real
+   measurement, but with a large size confound and a mechanism I could not
+   verify. §5.2–5.3
+3. **WordNet's concept lattice is extremely thin** — 150 objects × 13 attributes
+   give **15 concepts**, with 0/78 cross-cutting attribute pairs. This is a
+   caveat on the paper's own experimental setting, not just mine. §5.4
+4. **Learned attribute directions can be exactly antipodal** (coherence 1.0000),
+   so "independent with probability 1 because `d` is large" is too quick — the
+   paper's canonical-form assumption is never checked empirically. §5.4
+5. **WordNet-shaped contexts are the worst case for the closure gap**, refuting
+   the defence that hierarchical data is "nested and therefore fine." §4.3
+6. **Equation 6's meet orientation looks inverted**, and unlike the Definition 7
    dispute this one is in the executed scoring path. It replicates strongly for
-   the meet and *fails* to replicate for the join.
+   the meet and *fails* to replicate for the join. §6
 
 Plus three forensic observations about the paper that hold regardless of my
 thesis, established by two independently-prompted readers: Figure 4's numbers
@@ -226,9 +239,10 @@ Honest verdict: the 5/5 join deficit is real, unremarked by the paper, and
 **unexplained**. My explanation is not established, and is not the leading
 candidate.
 
-## 5. The reversal: closure as noise robustness
+## 5. The join degrades more slowly under probe noise — with a size confound
 
-This is the finding I did not expect and the one worth keeping.
+This is the finding I did not expect. It is real but narrower than my first
+reading of it, and §5.3 states what it does not support.
 
 Arm B builds two WordNet contexts (`tree`: 150 objects × 13 ancestor attributes
 from `animal/vehicle/plant` roots, density 0.221, zero cross-cutting attribute
@@ -259,18 +273,94 @@ recovery of the true meet and true join (`figures/noise_reversal.png`).
 | 0.10 | 0.745 | **0.867** | 0.657 | **0.782** |
 | 0.20 | 0.597 | **0.750** | 0.527 | **0.675** |
 
-**The join is more robust than the meet at every nonzero noise level, in both
-contexts.** The mechanism is the same closure I spent the experiment calling a
-defect: the meet is a bare intersection of noisy half-spaces, so a single false
-negative anywhere removes an object; the join's closure is an intersection over
-the *shared* intent only, a smaller and more redundant constraint set, so
-individual probe errors are absorbed. The plain union — the object my critique
-treated as the "logically correct" target — tracks the meet, not the join.
+**On Jaccard, the join degrades more slowly than the meet at every nonzero noise
+level, in both contexts.** The plain union — the object my critique treated as
+the "logically correct" target — tracks the meet, not the join, and is recovered
+worst of the three (`tree` error fraction 0.065, vs meet 0.021 and join 0.018).
+That much is exactly what the theory predicts: the union is the only one of the
+three that is not an intersection of half-spaces.
 
-So the practical ordering is the opposite of my thesis. With perfect attribute
-knowledge the meet is exact and the join over-generates. With realistic
-attribute knowledge, which is the only regime a real embedding model is ever in,
-**the join is the better-behaved operation.**
+### 5.1 Why the premise was wrong in the first place
+
+Arm B checked the identity rather than assuming it. For genuine concepts
+`attrs_of(A₁ ∪ A₂) = B₁ ∩ B₂`, so
+
+```
+meet extent = A₁ ∩ A₂     = objs_of(B₁ ∪ B₂)
+join extent = (A₁ ∪ A₂)'' = objs_of(B₁ ∩ B₂)
+```
+
+**Both are plain intersections of half-spaces** — `identity_violations_meet = 0`
+and `identity_violations_join = 0` across all 30 configurations × 8 seeds. The
+closure is not something half-spaces must over-approximate; the closure is
+precisely what lands the join back on a representable set. The only structural
+difference is constraint *count*: the meet intersects 5.55 / 5.84 half-spaces on
+average, the join only 0.83 / 1.09, and 43% / 42% of join targets need zero
+constraints (the top of the lattice, all of `G`).
+
+### 5.2 The size confound
+
+Join extents are **~12× larger** than meet extents (43.1 vs 3.5 objects in
+`tree`; 30.6 vs 2.4 in `cross`), and 66% / 58% of true meets are *empty*.
+Jaccard is generous to large targets. Switch to symmetric-difference error and
+the answer flips in one of the two contexts:
+
+| context | meet J | join J | meet err | join err |
+|---|---|---|---|---|
+| `tree` | 0.839 | **0.932** | 0.0206 | **0.0180** |
+| `cross` | 0.711 | **0.784** | **0.0276** | 0.1102 |
+
+In `cross` the join is **4× worse** on error fraction while simultaneously
+better on Jaccard. Both metrics are defensible; they disagree because of target
+size, not because of geometry.
+
+### 5.3 What kills the size-controlled version
+
+Comparing recovery of `objs_of(B)` binned by `|B|` puts meet and join on one
+axis. At matched half-space count, meet − join Jaccard is positive in **all 30
+configurations** (+0.069 `tree`, +0.126 `cross`). That looks like the asymmetry
+I predicted. Two controls remove it:
+
+1. **Random directions produce the *largest* matched-`k` gap** — larger than any
+   real probe. A gap that widens for a chance-level probe is not evidence about
+   embedding geometry.
+2. **Under i.i.d. incidence noise with the lattice held fixed, the matched-`k`
+   gap has no stable sign** (−0.054 to +0.058, mean ≈ 0).
+
+And the mechanism I proposed is contradicted outright: the per-pair correlation
+between a pair's intrinsic overshoot and its join recovery error is
+**−0.44 in `tree`** (+0.39 in `cross`, so not even consistent in sign). In the
+tree context the pairs whose join travels *furthest* from the union are the
+*easiest* to recover, because their join is simply all of `G`.
+
+**So: the join's slower degradation under noise is a real measurement, and the
+"closure absorbs probe error" story is a plausible but unverified explanation
+for it. It is not established, the size confound is large, and the
+size-controlled version does not survive its own controls.**
+
+### 5.4 Two caveats on the setting itself — including one for the paper
+
+- **WordNet noun hypernymy is a bare tree.** The naive context has **0 of 78
+  cross-cutting attribute pairs**, and 150 objects × 13 attributes yields only
+  **15 concepts** out of 8192 possible intents. Even a selection deliberately
+  maximising overlap reaches 13/78 and 22 concepts. Any WordNet-based evaluation
+  of this hypothesis — **including the paper's own** — is testing an extremely
+  thin lattice, where most meets are empty and ~42% of joins are the top element.
+- **Learned attribute directions can be exactly antipodal.** Mutual coherence of
+  the fitted directions is **1.0000** in `tree` (± 6e-16), for every probe method
+  and text variant, because `living_thing.n.01` and `artifact.n.01` are exactly
+  complementary on that object set — the probes are `y` and `¬y`. `cross` reaches
+  0.920, against 0.139 for random directions.
+
+  This qualifies §4.1. The defence that the paper's directions are "linearly
+  independent with probability 1" because `|M| ≤ 184 ≪ d` assumes *generic*
+  directions. Directions **learned** from a taxonomy that partitions its universe
+  are not generic and can be exactly dependent regardless of how large `d` is.
+  The conic-hull identity needs independence, so a partitioning taxonomy is
+  precisely where it can fail. This does not revive the original claim — exact
+  antipodality is a special case, and the paper's attributes are mostly not
+  complementary — but it does mean the dimension-counting defence is too quick,
+  and the paper never checks the assumption empirically.
 
 ## 6. Equation 6's orientation
 
@@ -365,15 +455,30 @@ Framed as a strengthening rather than a takedown:
   did not replicate.
 - Figure 4's join deficit is 5/5 and survives a Random-baseline difficulty
   control. It deserves a sentence, whatever its cause.
+- The canonical-form assumption (linearly independent attribute directions) is
+  never checked empirically. Directions *learned* from a partitioning taxonomy
+  need not be generic — I measured mutual coherence of exactly 1.0000 on a
+  WordNet context where two attributes were complementary. `d >> |M|` does not
+  by itself secure the assumption.
+- WordNet noun hypernymy yields a very thin lattice (15 concepts from
+  150 objects x 13 attributes; 0/78 cross-cutting attribute pairs). Reporting
+  concept-algebra results on it without that caveat overstates what the
+  evaluation can distinguish.
 - Table 2's 12 impossible F1 cells need correcting.
 - Figure 4 needs both a number table and a released implementation.
 
 ## 10. Reusable findings
 
-- **The FCA join is a noise-robustness mechanism.** Anyone building symbolic
-  reasoning on top of learned attribute probes should prefer join-shaped
-  (closure) queries over meet-shaped (intersection) ones, because intersection
-  compounds probe error multiplicatively and closure does not. §5.
+- **Both FCA lattice operations are half-space intersections; the plain union
+  is the odd one out.** `meet = objs_of(B1 u B2)`, `join = objs_of(B1 n B2)` —
+  the closure is what makes the join representable, not what breaks it. If you
+  are reasoning over learned attribute probes, the operation to distrust is set
+  union, which is not a lattice operation at all. §5.1
+- **Compare set-recovery metrics only at matched target size.** Jaccard and
+  symmetric-difference error gave opposite meet-vs-join answers on the same
+  data, purely because join extents were 12x larger. Report both, or bin by
+  constraint count — and then check the gap against a random-direction control,
+  which in this case reproduced it entirely. §5.2-5.3
 - **Never report a normalized rate without its denominator's behaviour.** Arm
   A's dimension sweep reverses sign between two defensible normalizations, and
   the one that looks natural gives the wrong conclusion. §3.
