@@ -359,3 +359,43 @@ attacking the critique (not the paper) killed the headline claim, and the
 genuinely interesting result only became visible once the wrong one was cleared.
 Then re-check the reviewer with your own code: it was right about the central
 maths and wrong about two subsidiary claims, both of which mattered.
+
+### Pre-register the null before building a metric to criticise something
+
+State what your measurement reads if the target is **entirely correct**. If that
+value is indistinguishable from the "broken" reading, the metric is not a
+diagnostic — redesign before running it.
+
+`lattice-representation-hypothesis/RESULTS.md` §4.2 — a textbook-correct FCA join
+scored 0.60 on the "overshoot" metric built to show the join was broken. The
+metric could not separate right from wrong, and that was knowable from the
+definition before any code was written. Six arms and 9.6M measured pairs were
+spent downstream of it.
+
+Companion failure modes from the same experiment, all cheap to check:
+
+- **Date the thesis.** Rigor applied after a conclusion is locked measures the
+  conclusion, not the world. That thesis was fixed ~2 minutes after reading an
+  abstract; nothing downstream ever revisited it.
+- **Re-derive your central identity from your own primitives, once, hostilely.**
+  The refutation sat eight lines from the false claim in a docstring in this
+  experiment's own `fca.py`, read a dozen times as confirmation.
+- **Schedule the adversarial pass in the plan, not after a result you like.**
+  Both times here the save came from structure — an adversarial subagent and
+  another subagent's own controls — never from re-reading.
+- **Distrust the most quotable sentence.** "0 meet phantoms across 9,615,370
+  pairs" was true, correctly computed, and merely Monte Carlo verification of
+  Ganter & Wille's Basic Theorem.
+
+**Use when:** any experiment whose purpose is to show that something is wrong.
+
+### Never write up a subagent's data without its interpretation
+
+`lattice-representation-hypothesis` §5 — Arm B's JSON was written up before its
+report arrived, producing a narrative the agent's own analysis contradicted:
+same numbers, wrong reading. Had the report landed 20 minutes earlier the
+writeup would have differed from the start.
+
+Fan-out delivers data and interpretation on separate schedules. Either wait for
+the report, or label the reading as your own inference. A conclusion must not
+depend on which subagent finished first.
