@@ -1,0 +1,135 @@
+{
+  "F1_cone_identity": {
+    "cases": [
+      {
+        "case": "independent d=8, |YA u YB|=5, shared=2",
+        "linearly_independent": true,
+        "points_tested": 96,
+        "points_in_conic_hull": 96,
+        "identity_holds": true
+      },
+      {
+        "case": "independent d=20, |YA u YB|=10, shared=3",
+        "linearly_independent": true,
+        "points_tested": 96,
+        "points_in_conic_hull": 96,
+        "identity_holds": true
+      },
+      {
+        "case": "independent d=64, |YA u YB|=14, shared=4",
+        "linearly_independent": true,
+        "points_tested": 96,
+        "points_in_conic_hull": 96,
+        "identity_holds": true
+      },
+      {
+        "case": "DEPENDENT d=2, 4 dirs (k > d)",
+        "linearly_independent": false,
+        "points_tested": 96,
+        "points_in_conic_hull": 43,
+        "identity_holds": false
+      },
+      {
+        "case": "DEPENDENT d=3, d3 = d1 + d2",
+        "linearly_independent": false,
+        "points_tested": 96,
+        "points_in_conic_hull": 34,
+        "identity_holds": false
+      }
+    ]
+  },
+  "F2_context_shape": {
+    "chain_totally_nested": {
+      "n_concepts": 12,
+      "union_not_closed_frac": 0.0,
+      "overshoot_mean": 0.0
+    },
+    "tree_depth4_branch3": {
+      "n_concepts": 257,
+      "union_not_closed_frac": 0.92775,
+      "overshoot_mean": 0.7128141975308641
+    },
+    "tree_depth3_branch4": {
+      "n_concepts": 126,
+      "union_not_closed_frac": 0.9074285714285715,
+      "overshoot_mean": 0.7348571428571429
+    },
+    "iid_bernoulli_p0.3": {
+      "n_concepts": 157,
+      "union_not_closed_frac": 0.884207088028744,
+      "overshoot_mean": 0.650919694080818
+    },
+    "iid_bernoulli_p0.5": {
+      "n_concepts": 400,
+      "union_not_closed_frac": 0.9128,
+      "overshoot_mean": 0.4953026653712851
+    }
+  },
+  "F3_figure4_difficulty_normalized": {
+    "per_domain": [
+      {
+        "domain": "WN-Animal",
+        "raw_gap_ours": 0.036,
+        "join_over_meet_random": 0.978,
+        "join_over_meet_mean": 0.9283,
+        "join_over_meet_ours": 0.9342,
+        "excess_deficit_ours_vs_random": -0.0438,
+        "excess_deficit_mean_vs_random": -0.0497
+      },
+      {
+        "domain": "WN-Plant",
+        "raw_gap_ours": 0.033,
+        "join_over_meet_random": 0.9765,
+        "join_over_meet_mean": 0.9318,
+        "join_over_meet_ours": 0.9409,
+        "excess_deficit_ours_vs_random": -0.0356,
+        "excess_deficit_mean_vs_random": -0.0447
+      },
+      {
+        "domain": "WN-Food",
+        "raw_gap_ours": 0.034,
+        "join_over_meet_random": 0.9787,
+        "join_over_meet_mean": 0.9341,
+        "join_over_meet_ours": 0.9398,
+        "excess_deficit_ours_vs_random": -0.0389,
+        "excess_deficit_mean_vs_random": -0.0446
+      },
+      {
+        "domain": "WN-Event",
+        "raw_gap_ours": 0.047,
+        "join_over_meet_random": 0.9778,
+        "join_over_meet_mean": 1.0,
+        "join_over_meet_ours": 0.9069,
+        "excess_deficit_ours_vs_random": -0.0708,
+        "excess_deficit_mean_vs_random": 0.0222
+      },
+      {
+        "domain": "WN-Cognition",
+        "raw_gap_ours": 0.022,
+        "join_over_meet_random": 0.9775,
+        "join_over_meet_mean": 1.0952,
+        "join_over_meet_ours": 0.9553,
+        "excess_deficit_ours_vs_random": -0.0222,
+        "excess_deficit_mean_vs_random": 0.1177
+      }
+    ],
+    "ours_excess_mean": -0.04226,
+    "ours_excess_all_negative": true,
+    "mean_excess_mean": 0.00017999999999999684,
+    "mean_excess_all_negative": false,
+    "note": "Random contains no method, so its join/meet ratio isolates task difficulty. Excess below it is method-specific."
+  },
+  "F4_eq6_orientation": {
+    "n_trials": 400,
+    "mean_cos": {
+      "meet_min": 0.5912433686865513,
+      "meet_max": 0.6257673385179101,
+      "join_min": 0.9196978929816715,
+      "join_max": 0.923916518045302
+    },
+    "meet_max_beats_min_frac": 0.965,
+    "join_min_beats_max_frac": 0.59,
+    "paper_uses": "meet=min, join=max",
+    "paper_orientation_looks_inverted": true
+  }
+}
