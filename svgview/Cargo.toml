@@ -1,0 +1,32 @@
+[package]
+name = "svgview"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+description = "A very small native SVG viewer. No browser, no web engine."
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+# resvg re-exports usvg and tiny-skia, so it is the only renderer dependency.
+# tiny-skia's default features include `png-format`, which is what --png and
+# Ctrl+S export need, so there is nothing to add on top.
+resvg = "0.47"
+winit = "0.30"
+softbuffer = "0.4"
+
+# Native COM file dialog. Windows-only on purpose: on Linux the default rfd
+# backend wants GTK3, which would drag a system dep into a build that
+# otherwise needs nothing but a C compiler.
+[target.'cfg(windows)'.dependencies]
+rfd = { version = "0.15", default-features = false }
+
+[build-dependencies]
+# No-ops on non-Windows targets.
+embed-resource = "3"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
