@@ -159,6 +159,36 @@ damage it", and saturate.
   author-name matching. Use the pre-translation table in
   `te-bridges/scripts/te_common.py::ascii_fold`.
 - **CCotw reaps idle background jobs.** Checkpoint long runs to disk.
+- **GUI apps are testable in this container** — `Xvfb` is preinstalled, and
+  `apt-get install -y xdotool libxkbcommon-x11-0` covers the rest. `winit` (and
+  anything else on X11) panics with "Library libxkbcommon-x11.so could not be
+  loaded" until that package is present; it is a missing runtime dependency, not
+  a code bug. (`svgview/`)
+- **Screenshot a virtual display with no ImageMagick and no x11grab**: start
+  `Xvfb :99 -screen 0 WxHx24 -fbdir /some/dir` and it continuously dumps the
+  framebuffer to `/some/dir/Xvfb_screen0` in XWD format. ~60 lines of `struct` +
+  `zlib` converts XWD to PNG with no dependencies —
+  `svgview/assets/xwd2png.py` is standalone and copyable.
+- **`xdotool key` silently goes nowhere without a window manager.** Xvfb alone
+  assigns no input focus, so every keystroke lands on the root window and the
+  app under test never sees it. Fix: `xdotool windowfocus $(xdotool search
+  --name <title> | head -1)` before sending keys. This cost a full round of
+  green-but-meaningless test results — see the next entry. (`svgview/`)
+
+**A check that cannot fail is not a check.** The GUI smoke test in `svgview/`
+originally asserted "the screenshot contains at least N distinct colours" after
+each keypress. It passed for all seven bindings while *none* of the keystrokes
+were being delivered, because the assertion was equally true of the unchanged
+frame. Two symptoms should have been read as failure and were not: every state
+reported the identical colour count, and the pass came on the first try.
+
+The generalizable form: an assertion whose truth does not *depend on* the thing
+under test will report success on a no-op. Prefer differential checks — the
+frame must change when it should, and a toggle pressed twice must return to the
+byte-identical frame it started from — and when a fresh test suite passes
+first-try, deliberately break the subject and confirm it goes red. This is
+principle 1 (verify with a disjoint code path) applied to the *test* rather than
+the result.
 - **Semantic Scholar unauthenticated batch** works to ~1–2k papers with backoff;
   intolerable at 1.9M scale. Citations/references GETs are throttled ~50s per
   fail.
