@@ -28,8 +28,11 @@ That font-database cost is why `doc.rs` scans the source for `<text`,
 `<tspan`, and `font-family` before deciding to enumerate system fonts. Most
 SVGs in the wild — icons, logos, plots — have no text at all and skip it.
 
-The Windows executable is built in CI but has **not** been measured or
-interactively tested; see [Platform status](#platform-status).
+The Windows executable comes out **smaller**: 2,785,792 bytes (2.66 MiB),
+measured by CI on `windows-latest` / MSVC. It drops the X11 and Wayland
+backends and `sctk-adwaita` that the Linux build carries, and gains only the
+COM file dialog. Nothing else about the Windows build has been measured — no
+timings, no memory, no interactive use; see [Platform status](#platform-status).
 
 ## Build
 
@@ -151,8 +154,11 @@ Needs `Xvfb`, `xdotool`, and `libxkbcommon-x11-0`.
 | | |
 |---|---|
 | Linux (x86-64) | built, unit tests and smoke test pass, timings above measured here |
-| Windows | compiles in CI; **not** interactively tested — the file dialog, the file-association scripts, the embedded icon, and the GUI subsystem behaviour all need a real machine |
+| Windows | builds on `windows-latest`/MSVC in CI, all 17 unit tests pass, and the headless `--png` path produces correct output. **Never run interactively** — no window has ever been opened on Windows, so the file dialog, the file-association scripts, the embedded icon, and the GUI subsystem behaviour are unverified |
 | macOS | should build (every dependency is cross-platform), never attempted |
+
+CI uploads the Windows executable as a `svgview-windows-x86_64` artifact on
+every run, so testing the unverified half is a download rather than a build.
 
 ## Limits
 
