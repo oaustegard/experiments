@@ -284,3 +284,48 @@ If you see that prefix again, it came from a script written before the split.
 - **Findings below are from a single reading pass** over each experiment's
   results file plus a skim of its code. Numbers are quoted from those writeups,
   not re-measured.
+
+### A closure gap is a property of the context, not an error rate
+
+Before reporting `|S'' \\ S|` as a defect, check whether the closure *is* the
+intended answer. `lattice-representation-hypothesis/RESULTS.md` §4.2 — an entire
+thesis was built on treating FCA join overshoot as error; the overshot members
+are the least upper bound, and in the target task they were the gold label. A
+textbook-correct implementation scores 0.60 on that metric.
+
+**Use when:** any metric of the form "operator X admits members that Y does not".
+
+### Never report a normalized rate without checking its denominator
+
+`lattice-representation-hypothesis` Arm A — join overshoot falls 0.60 -> 0.20 as
+embedding dimension drops when normalized by |join|, and rises 0.28 -> 0.61 over
+the same sweep when normalized by objects at risk (Spearman -1.000). The first
+normalization is the natural one and gives the wrong conclusion ("low dimension
+is benign"); the denominator was growing 5x. Plot both or state which you chose
+and why.
+
+### Compare set-recovery metrics only at matched target size
+
+`lattice-representation-hypothesis` §5.2-5.3 — Jaccard and symmetric-difference
+error gave *opposite* meet-vs-join answers on the same runs, purely because one
+operator's targets were 12x larger. Bin by constraint count to control it, then
+check the residual gap against a random-direction baseline: here the control
+reproduced the gap *more strongly* than any real probe, which retired it.
+
+**Use when:** comparing recovery of two set-valued targets of unequal size.
+
+### Trees are not chains — hierarchical data does not have small closure gaps
+
+`lattice-representation-hypothesis` §4.3. A totally nested attribute chain has
+zero closure gap. A hypernym *tree* has 0.93 non-closed unions and 0.71
+overshoot — worse than iid Bernoulli contexts. Two leaves in different branches
+have incomparable extents. Do not accept "the data is hierarchical, so unions
+are nearly closed" without measuring it.
+
+### Adversarially review your own thesis before writing it up
+
+`lattice-representation-hypothesis` — a separately-prompted agent tasked with
+attacking the critique (not the paper) killed the headline claim, and the
+genuinely interesting result only became visible once the wrong one was cleared.
+Then re-check the reviewer with your own code: it was right about the central
+maths and wrong about two subsidiary claims, both of which mattered.
