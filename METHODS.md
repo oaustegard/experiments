@@ -389,6 +389,14 @@ Companion failure modes from the same experiment, all cheap to check:
 
 **Use when:** any experiment whose purpose is to show that something is wrong.
 
+**Converges with "A check that cannot fail is not a check"** (`svgview/`, same
+week, independently derived): there, a screenshot assertion was equally true of
+an unchanged frame, so it passed while no keystroke was being delivered; here, a
+metric scored the correct answer identically to the broken one. Same principle
+reached from a GUI smoke test and from a formal-methods critique — an assertion
+whose truth does not *depend on* the thing under test will report success on a
+no-op. Both also share the tell: **the pass came easily and on the first try.**
+
 ### Never write up a subagent's data without its interpretation
 
 `lattice-representation-hypothesis` §5 — Arm B's JSON was written up before its
