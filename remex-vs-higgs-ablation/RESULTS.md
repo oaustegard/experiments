@@ -86,7 +86,27 @@ places the run departs from it.
    results, and a higher-dimensional grid would close a little more of the
    remaining gap there — but that is past where either method is interesting,
    since both are within 0.02 recall@10 of fp32 by then.
-5. **The exact-norm arm quantizes with a Gaussian Lloyd-Max at σ = 1/√d, not
+5. **The first `arxiv768` encoding produced unit-norm vectors, which made the
+   inner-product condition degenerate, and had to be redone.** BGE ships a
+   `Normalize` module as the last stage of its sentence-transformers pipeline,
+   and it overrides `encode(normalize_embeddings=False)` — so the supposedly
+   raw vectors came out at exactly ‖x‖ = 1.0000, σ = 0. The symptom was
+   unmissable once looked at: the cosine and inner-product tables for that
+   corpus were *byte-identical in every cell*. With no norm to store, axis B's
+   entire prediction is untestable, since the difference between "store the
+   exact norm" and "fold a scale into the payload" is vacuous when the norm is
+   a constant. The module is now stripped and the true norms kept.
+
+   This turns out to matter for reading axis B at all. Even unnormalised, BGE's
+   norms barely move — CV = 1.4% at d=768 — because the model is *trained*
+   under cosine, so its norm carries almost no information. GloVe, by contrast,
+   has CV = 20%. So the corpora do not sample "inner product" uniformly: on
+   modern text encoders inner-product retrieval is nearly the same problem as
+   cosine, and axis B is close to architecturally moot. Only `glove100`
+   applies real pressure to it. That is a finding about the deployment target,
+   not only a caveat about the setup — but it does mean the axis-B result rests
+   on one corpus of three, and it is reported that way.
+6. **The exact-norm arm quantizes with a Gaussian Lloyd-Max at σ = 1/√d, not
    the exact Beta marginal.** TurboQuant §3 fits its per-coordinate quantizer
    to the Beta distribution that a rotated *unit* vector actually has. The
    Gaussian is the correct asymptotic limit, but it is an approximation
@@ -121,8 +141,12 @@ random sample of the source — the textbook LBG initialization. Gate check G3
 
 | rate | scalar Lloyd-Max | random-init grid (held-out) | verdict |
 |---|---|---|---|
-| 6 bits (m=2, K=4096) | 0.0006443 | 0.0008284 | grid 29% **worse** |
-| 8 bits (m=2, K=65536) | 0.0000479 | 0.0000771 | grid 61% **worse** |
+| 6 bits (m=2, K=4096) | 0.0006442 | 0.0008284 | grid 29% **worse** |
+| 8 bits (m=2, K=65536) | 0.0000413 | 0.0000771 | grid 87% **worse** |
+
+(The 8-bit scalar figure here is the corrected one — the value in use at the
+time was 0.0000479, itself wrong by +16%, which is the second defect the
+adversarial review turned up. It made this gap look smaller than it was.)
 
 Left in, that would have been written up as "scalar wins axis C at high rate"
 — precisely the wrong conclusion the issue warns about, and the kind that is
@@ -234,3 +258,47 @@ asymptotic advantage does not survive contact with numpy (see axis A).
 The full verdict — `ACCEPTABLE-WITH-CAVEATS` on the VQ arm,
 `HONEST-WITH-CAVEATS` on the per-vector budget and `NOT-MATCHED` once shared
 bytes are counted — is reproduced in the PR body.
+
+### What the vector arm is worth, after all of that
+
+The point of the gate and the review is that axis C is only readable if these
+numbers are real. They are the held-out MSE per dimension of the codebook the
+sweep actually uses, against the scalar quantizer at the same rate:
+
+| bits | m | K | grid MSE/dim | scalar Lloyd-Max | gain | × Shannon bound |
+|---|---|---|---|---|---|---|
+| 1 | 8 | 256 | 0.323349 | 0.363380 | +0.51 dB | 1.293 |
+| 1 | 5 | 32 | 0.334978 | 0.363380 | +0.35 dB | 1.340 |
+| 2 | 8 | 65536 | 0.088641 | 0.117482 | +1.22 dB | 1.418 |
+| 2 | 5 | 1024 | 0.094744 | 0.117482 | +0.93 dB | 1.516 |
+| 3 | 5 | 32768 | 0.024992 | 0.034548 | +1.41 dB | 1.600 |
+| 3 | 4 | 4096 | 0.026124 | 0.034548 | +1.21 dB | 1.672 |
+| 4 | 4 | 65536 | 0.007254 | 0.009501 | +1.17 dB | 1.857 |
+| 6 | 2 | 4096 | 0.000551 | 0.000644 | +0.68 dB | 2.255 |
+| 8 | 2 | 65536 | 0.000036 | 0.000041 | +0.63 dB | 2.340 |
+
+Every grid beats the scalar quantizer at its own rate, none beats the Shannon
+bound, and the ratio to the bound rises monotonically with rate — the
+signature of fixed-rate quantization approaching its Zador constant, and a
+sanity check that the numbers are not accidents. The gain peaks at 3 bits and
+falls off at 6 and 8 bits, but that fall-off is **m=2's ceiling, not
+vector quantization's**: the sub-vector dimension drops to 2 there because
+2^(bits·m) must stay under 2¹⁶. See the caveats.
+
+Two of these rows only look right because of the fixes above. The 8-bit row
+was 0.0000771 before the stale codebook was caught — 87% *worse* than scalar
+rather than 0.63 dB better.
+
+The reference points that make them meaningful:
+
+- **Max (1960)** table 1, reproduced to the printed digits at 1–5 bits by the
+  scalar arm (gate G1).
+- **E8's normalised second moment**, 0.0716821 (Conway & Sloane), reproduced to
+  3.7e-4 relative by the lattice machinery (gate G2).
+- **A tuned ball-shaped E8 codebook** at 2 bits/coordinate — the shaping
+  QuIP#'s E8P codebook uses — scoring 0.09110 MSE/dim, which the trained m=8
+  grid has to beat (gate G4).
+- **HIGGS §4.3's own practical envelope**, grid dimension p ∈ [1,5] and grid
+  size n ∈ [9, 4096]. This experiment's grids run to m=8 and K=2¹⁶, at or
+  beyond that envelope at every bit width, so the vector arm is not a
+  weakened stand-in for the method it represents.
