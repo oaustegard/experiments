@@ -24,6 +24,7 @@ grid depends only on (m, K), never on the corpus or the rotation seed.
 from __future__ import annotations
 
 import math
+from functools import cache
 from pathlib import Path
 
 import numpy as np
@@ -50,8 +51,13 @@ M_CANDIDATES = (8, 6, 5, 4, 3, 2)
 # scalar Lloyd-Max
 
 
+@cache
 def lloyd_max_1d(bits: int, iters: int = 20_000, tol: float = 1e-15):
     """Optimal fixed-rate scalar quantizer levels for N(0,1).
+
+    Memoized: the fixed point depends only on the rate, and the sweep rebuilds
+    a codebook for every (arm, seed) cell.  Uncached this costs 3.9s at 8 bits
+    and dominated the sweep.  Callers must not mutate the returned levels.
 
     Lloyd's algorithm on the continuous density.  With boundaries b and the
     normal pdf phi / cdf Phi, the conditional mean of an interval is
@@ -176,10 +182,32 @@ class VectorCodebook:
 # vector grid training
 
 
-def _lloyd(X, K, iters, rng, log=None):
+def product_init(bits: int, m: int) -> np.ndarray:
+    """The m-fold Cartesian product of the optimal scalar quantizer.
+
+    This is the *scalar* arm's codebook viewed as a point set in m dimensions,
+    and it has exactly (2^bits)^m points — which is exactly K for every
+    (bits, m) this experiment uses.  Starting Lloyd here rather than from
+    random samples is the fix for the failure documented in RESULTS.md:
+    random-init Lloyd converges to a local optimum that is *worse* than the
+    scalar product quantizer at 6 and 8 bits, which would have handed axis C a
+    fake win for the scalar arm.  Because Lloyd is monotone non-increasing in
+    training distortion, seeding it here makes the vector arm provably no worse
+    than the scalar arm, so axis C measures real vector-quantization gain
+    rather than an optimizer artifact.
+    """
+    lv, _ = lloyd_max_1d(bits)
+    g = np.meshgrid(*([lv] * m), indexing="ij")
+    return np.stack([x.ravel() for x in g], axis=-1).astype(np.float32)
+
+
+def _lloyd(X, K, iters, rng, log=None, init=None):
     """LBG with KD-tree assignment and largest-cell splitting for empties."""
     n, m = X.shape
-    C = X[rng.choice(n, size=K, replace=False)].astype(np.float32).copy()
+    if init is not None:
+        C = np.ascontiguousarray(init, dtype=np.float32).copy()
+    else:
+        C = X[rng.choice(n, size=K, replace=False)].astype(np.float32).copy()
     prev = np.inf
     for it in range(iters):
         tree = cKDTree(C)
@@ -210,32 +238,71 @@ def _lloyd(X, K, iters, rng, log=None):
     return C, float(np.mean(dist**2)) / m
 
 
-def train_gaussian_grid(m: int, K: int, *, iters: int = 30, seed: int = 20260802,
+def held_out_mse(C: np.ndarray, n: int = 2_000_000, seed: int = 11) -> float:
+    """Per-dimension MSE of a codebook on fresh N(0, I_m) samples.
+
+    Always held out.  Training-set MSE of a K-codepoint grid fitted on a few
+    hundred samples per codepoint is measurably optimistic, and reporting it
+    would silently strengthen the vector arm.
+    """
+    m = C.shape[1]
+    rng = np.random.default_rng(seed)
+    X = rng.standard_normal((n, m)).astype(np.float32)
+    dist, _ = cKDTree(np.ascontiguousarray(C, np.float32)).query(X, k=1, workers=-1)
+    return float(np.mean(dist ** 2)) / m
+
+
+def train_gaussian_grid(m: int, K: int, *, iters: int = 25, seed: int = 20260802,
                         log=None) -> tuple[np.ndarray, float]:
     """Gaussian-optimal m-dim grid with K codepoints, cached on disk.
 
-    Sample count is 40 per codepoint (floor 200k, cap 4M) — below ~20/codepoint
-    the grid overfits its own training sample and the reported MSE is
-    optimistic, which would silently strengthen the vector arm.
+    Two candidates are trained and the better on **held-out** MSE is kept:
+
+      1. Lloyd seeded from `product_init` — the scalar quantizer lifted to m
+         dimensions.  This is the candidate that matters; it makes the vector
+         arm provably no worse than the scalar arm.
+      2. Lloyd from a random sample of the source, the textbook LBG init.
+
+    Keeping the better of the two is not hedging: candidate 2 wins at low rate
+    (where the shaping gain is large and the product grid's rectangular
+    boundary is a real handicap) and candidate 1 wins at high rate, and picking
+    per-configuration is what gives the vector arm its best honest shot.
+
+    Sample count is 300 per codepoint, floor 400k, cap 6M.  The earlier 40 per
+    codepoint was too thin: at K=4096 it cost ~25% in held-out MSE.
     """
     GRID_CACHE.mkdir(parents=True, exist_ok=True)
     path = GRID_CACHE / f"grid_m{m}_K{K}.npz"
     if path.exists():
         z = np.load(path)
         return z["C"], float(z["mse"])
-    n = int(min(4_000_000, max(200_000, 40 * K)))
+    bits = round(math.log2(K) / m)
+    n = int(min(6_000_000, max(400_000, 300 * K)))
+    # Lloyd cost is O(iters * n * log K) with a large constant in 8 dimensions.
+    # Trim iterations rather than samples on the biggest grids: too few samples
+    # per codepoint is a correctness problem (the grid overfits its own
+    # sample), too few iterations only leaves a little convergence on the
+    # table, and the held-out check catches either way.
+    if n * K > 2e11:
+        n, iters = min(n, 4_000_000), min(iters, 15)
     rng = np.random.default_rng(seed + 1009 * m + K)
     X = rng.standard_normal((n, m)).astype(np.float32)
     if log:
-        log(f"    training grid m={m} K={K} on {n:,} samples")
-    C, mse = _lloyd(X, K, iters, rng, log=log)
-    # held-out MSE — the number we report.  Training-set MSE of a grid with
-    # K codepoints and 40K samples is measurably optimistic.
-    Xh = rng.standard_normal((min(1_000_000, n), m)).astype(np.float32)
-    dist, _ = cKDTree(C).query(Xh, k=1, workers=-1)
-    mse_ho = float(np.mean(dist**2)) / m
+        log(f"    training grid m={m} K={K} ({bits}b/coord) on {n:,} samples")
+    cands = []
+    if (1 << (bits * m)) == K:
+        C1, _ = _lloyd(X, K, iters, rng, log=log, init=product_init(bits, m))
+        cands.append(("product-init", C1, held_out_mse(C1)))
+    C2, _ = _lloyd(X, K, iters, rng, log=log)
+    cands.append(("random-init", C2, held_out_mse(C2)))
+    for tag, _, v in cands:
+        if log:
+            log(f"      {tag}: held-out mse/dim={v:.7f}")
+    tag, C, mse_ho = min(cands, key=lambda c: c[2])
+    if log:
+        log(f"      -> keeping {tag}")
     tmp = path.with_suffix(".tmp.npz")
-    np.savez_compressed(tmp, C=C, mse=mse_ho, mse_train=mse)
+    np.savez_compressed(tmp, C=C, mse=mse_ho, init=tag)
     tmp.replace(path)
     return C, mse_ho
 
