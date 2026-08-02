@@ -87,6 +87,17 @@ damage it", and saturate.
 
 - `jina-remex-vs-remax/score_fidelity.py` — recall@k vs fp32-kNN, per-query
   Spearman ρ, reconstruction cosine. Never touches labels. **Portable code.**
+
+**Score the candidate under the same metric as the reference.** Scoring
+`q @ x̂` against a cosine reference without dividing by `‖x̂‖` mixes the
+angular question with a reconstruction-norm question, and does it *unevenly
+across codecs*: a 1-bit code has constant reconstruction norm by construction
+and pays no norm penalty at all, while a multi-bit code carries real norm
+error. In `remex-vs-higgs-ablation` this manufactured a false low-rate
+reversal (0.663 → 0.689 once renormalised). The same pattern was present in
+`score_fidelity.py` above; both are fixed as of 2026-08-01. The failure is
+invisible at high bit widths and grows as the codebook coarsens, so it
+survives exactly the sanity checks people run.
 - `kb-k-sweep/sweep.py::topk_float`/`recall_at_k` — float-cosine top-k as
   ground truth, self-excluded. ~10 lines, numpy only. **Portable code.**
 
