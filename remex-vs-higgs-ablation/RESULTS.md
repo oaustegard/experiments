@@ -254,6 +254,21 @@ computes, and both are carried into the results below: shared bytes are not
 negligible at these corpus sizes (see the amortization table), and the RHT's
 asymptotic advantage does not survive contact with numpy (see axis A).
 
+### One finding did not survive checking
+
+The review's finding 11 held that `BLOCK = 128` charges the HIGGS-like arm
+about 6× its real side cost, because "published HIGGS/QuIP# use group sizes of
+256–1024". Checked against the paper, that is wrong: HIGGS applies its 3- and
+4-bit grids at **group size 64 and 1024**, so 128 sits inside the published
+range and a group size of 64 would charge the arm *twice* what this experiment
+does. `BLOCK` is left at 128 and the finding is not acted on.
+
+Recording it because the point of a review is not that it is right — it is that
+its claims are cheap to check. Five of its blocking findings were real and two
+of those were confirmed by direct measurement before anything changed; this one
+was not, and its timing table (below) was directionally right but off by up to
+37× because it was measured under CPU contention.
+
 The full verdict — `ACCEPTABLE-WITH-CAVEATS` on the VQ arm,
 `HONEST-WITH-CAVEATS` on the per-vector budget and `NOT-MATCHED` once shared
 bytes are counted — is reproduced in the PR body.
