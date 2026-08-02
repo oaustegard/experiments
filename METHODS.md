@@ -129,6 +129,43 @@ relocates ~63,000 empty-cell codepoints toward the mode and earns a genuine
 +0.10 dB — it was not a zero-gain arm at all. A known-bad that is only bad at
 small scale certifies nothing at large scale.
 
+**Ship a sub-5-minute re-verification fixture, and make it check the prose
+against the artifacts.** The expensive parts of an experiment (corpora, trained
+models, sweeps) are hours and are usually gitignored, so nobody rebuilds them to
+check a one-line edit — which means the writeup and the data drift apart
+silently. `remex-vs-higgs-ablation/recheck.py` is the shape: artifact integrity,
+then the headline numbers **recomputed from the stored results by a path that
+does not import the summariser**, compared against the numbers parsed out of the
+prose; then internal consistency of the gate log against the counts the prose
+quotes; then the fast gate and a sample of pinned mutants. 90 seconds. Two of
+that experiment's logged errors were prose disagreeing with artifacts it
+described, and no amount of re-running the science would have found them — the
+numbers were right and the sentences about them were wrong. State plainly what
+the fixture does *not* cover, which is normally the science itself.
+
+**Keep an `ERRORS.md` per experiment: what was wrong, how it was caught, which
+direction it pushed the conclusion.** The base rate is the most useful
+calibration number about a body of work and the one nobody records; without it
+the only options are "trust the writeup" and "trust nothing." Direction is the
+column to read — an error that makes a check more permissive, or a result look
+stronger, is far more dangerous than one that makes it look weaker, because the
+second announces itself the moment someone tries to use the result.
+`remex-vs-higgs-ablation/ERRORS.md` logs 16 errors across two runs, 6 of them
+in the flattering direction, and records two things worth generalising: **an
+estimate of one's own error count made an hour later was wrong** (seven, versus
+eight counted), and **not one of the sixteen was caught by reading code
+carefully** — every one came from executing something, comparing two artifacts,
+or an outside party. Buy execution and comparison, not care. Append, never tidy;
+a cleaned log loses the base rate, which is the only thing it is for.
+
+**Register anchors with their covered range, in one place.** See `ANCHORS.md`.
+The failure it prevents is specific: Max (1960)'s quantizer table stops at 5
+bits, the sweep ran to 8, and for two runs nothing checked past the end of the
+table — where a 16%-high value sat, in the direction that *loosened* the check
+downstream of it. The gap was discoverable at any moment by writing the range
+next to the constant, and nobody did because there was nowhere to write it. Add
+a row when you use a constant, not when you audit.
+
 **A gate that does not block is a report.** That experiment's first run listed
 the gate as step 3 of a documented command sequence, so nothing stopped the
 sweep from running with it red or unrun. `run_ablation.py` now invokes it and
