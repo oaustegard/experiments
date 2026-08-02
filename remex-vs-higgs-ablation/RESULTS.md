@@ -394,26 +394,54 @@ strictly dominated at every bit width and every corpus (glove100/cosine at
 and is the positive control on the harness — a harness that made `prod` look
 competitive would be broken.
 
-### Axis A: the wall clock says the opposite of the prediction
+### Axis A: recall is null, and the wall clock is close to a wash
 
-Rotation apply, measured on an idle machine, 4096 vectors at d ≤ 1024 and 512
-above:
+**Superseded 2026-08-01 — the original numbers here measured the FWHT
+implementation, not the transform.** The first pass reported Haar 13–21×
+faster at d=768–1024 and framed it as a fact about numpy rather than about
+the algorithm. That framing was right, which is precisely why the number
+should not have been reported as a result: it was an artifact of a butterfly
+that ran two full-array copies per stage in interpreted numpy while the dense
+arm ran one tuned `sgemm`. Three changes make the comparison fair —
+
+1. blocks of ≤1024 dispatch to a cached Hadamard **matmul**, so both arms are
+   BLAS-bound (the butterfly, now copy-free via `np.add(..., out=)`, still
+   wins above that, measured crossover B≈2048);
+2. the permutation is **dropped when `B == d`** — the classical RHT is `H·D`,
+   and a gather over an `(n, d)` array was the single most expensive step;
+3. timing is **min-of-trials**, not mean, which on a shared container was
+   measuring neighbours.
+
+Rotation apply, 4096 vectors at d ≤ 1024 and 512 above, min of 7 trials × 5 reps:
 
 | d | Haar (dense) | RHT | ratio |
 |---|---|---|---|
-| 100 | 0.4 ms | 21.0 ms | Haar **50× faster** |
-| 768 | 14.0 ms | 299.0 ms | Haar **21× faster** |
-| 1024 | 21.5 ms | 273.0 ms | Haar **13× faster** |
-| 4096 | 42.3 ms | 91.1 ms | Haar 2.2× faster |
-| 8192 | 172.1 ms | 325.6 ms | Haar 1.9× faster |
+| 100 | 0.9 ms | 4.3 ms | Haar 4.5× faster |
+| 768 | 41.5 ms | 48.3 ms | Haar 1.2× faster |
+| 1024 | 74.3 ms | 79.7 ms | ~parity (1.07×) |
+| 2048 | 37.1 ms | 22.5 ms | RHT 1.65× faster |
+| 4096 | 152.5 ms | 49.8 ms | RHT 3.1× faster |
+| 8192 | 611.7 ms | 138.4 ms | RHT **4.4× faster** |
 
-The asymptotics are real and visible — the ratio moves from 50× to 1.9× as d
-grows by two decades — but the crossover is nowhere near the dimensions anyone
-runs retrieval at. This is a fact about numpy, not about the algorithm: the
-dense rotation is a single BLAS `sgemm` against decades of tuning, while the
-FWHT is a Python loop over strided slices doing 3 full-array passes per stage.
-A fused FWHT would change this entirely. Reported because the pre-registered
-prediction was the other way round and the honest measurement is the result.
+The crossover sits at **d ≈ 1024**, not past 8192, and at the dimensions this
+experiment actually indexes the two are within ~20% of each other. The
+remaining Haar win at d=100 is real and structural rather than an artifact:
+100's largest power-of-two divisor is 4, which forces four rounds of
+block-mixing with a gather in each, and no implementation of a Hadamard
+transform fixes a dimension that is nearly coprime to 2.
+
+Build cost is the one place the gap is not close, and it runs the other way
+from the first writeup's conclusion: constructing the Haar rotation is a QR of
+a d×d matrix, measured at 0.08 s at d=768 and **92.8 s at d=8192**, against
+0.0002–0.0007 s for the RHT at every dimension — and the dense arm then has to
+keep 256 MB of rotation where the RHT keeps a permutation and a sign vector.
+That does not matter for an index built once, and it matters a great deal for
+anything that rebuilds per shard or per seed.
+
+Recall is unchanged by any of this (−0.0001 ± 0.0013); axis A never moved the
+metric. What changed is the secondary claim, and it changed enough to matter:
+**rotation choice is close to free at retrieval dimensions**, so it is a
+implementation-convenience decision rather than a performance one.
 
 ### Shared bytes invert the comparison at these corpus sizes
 
@@ -459,10 +487,14 @@ The issue asked for this explicitly, and a result where all four hold would be
 less informative than one that breaks.
 
 1. **"A → null. Haar ≈ RHT on recall; RHT 10–100× faster at d=768–1024."**
-   *Confidence 0.8.* — **Half right, and the half that failed is the
-   interesting one.** Recall is null as predicted (−0.0001 ± 0.0013). The
-   speed claim is refuted with the sign reversed: RHT is 13–21× *slower* at
-   those dimensions in numpy, not 10–100× faster.
+   *Confidence 0.8.* — **Recall null as predicted; the speed half is wrong in
+   both directions.** Recall is null (−0.0001 ± 0.0013). The first pass
+   measured RHT 13–21× *slower*, which turned out to be the implementation,
+   not the transform; after the fixes above it is ~1.2× slower at d=768,
+   parity at d=1024 and 3–4× faster at d=4096–8192. So the predicted 10–100×
+   speedup is still refuted at retrieval dimensions — the honest reading is
+   **no meaningful difference either way**, with the RHT's asymptotic win
+   arriving just past where anyone indexes.
 2. **"B → metric-dependent. Exact-norm irrelevant under cosine (Δ < 0.01),
    helps under inner product."** *Confidence 0.6.* — **Failed.** The cosine
    half holds (+0.0008). The inner-product half does not: the effect is
@@ -484,7 +516,8 @@ less informative than one that breaks.
 4. **"remex's surviving advantage is implementation simplicity, not
    distortion."** *Confidence 0.5.* — **Held, and understated.** remex is
    also the better recall-per-byte choice below ~350k vectors once the shared
-   codebook is counted, and it is 13–50× faster to apply in numpy.
+   codebook is counted. (The original writeup added "and 13–50× faster to
+   apply"; that claim is withdrawn — see axis A.)
 
 ## What this means for remex
 
@@ -496,9 +529,9 @@ by 8 bits.
 
 That is a real loss, and it is also a small one against what it buys: a
 numpy-only, calibration-free, data-oblivious codec with a 2 KiB side table
-instead of a 1 MiB one, that is faster to apply at every dimension anyone
-indexes at, and that wins on true bytes-per-vector below a few hundred
-thousand documents. If the index is large and the bit budget is 2–3 bits, the
+instead of a 1 MiB one, and that wins on true bytes-per-vector below a few
+hundred thousand documents. It is *not* meaningfully faster to apply — the
+rotation is a wash at retrieval dimensions. If the index is large and the bit budget is 2–3 bits, the
 HIGGS lineage is the right answer. Otherwise the gap is not what should decide
 it.
 
@@ -509,7 +542,15 @@ it.
   recover a little more; the m=2 ceiling is about 1.3 dB of the 4.3 dB
   scalar→Shannon gap. This does not affect the 1–4 bit conclusions, which use
   m=4–8.
-- **Axis B rests on one corpus.** Only `glove100` has real norm spread.
+- **Axis B now rests on two corpora, one of them added after the fact.**
+  `glove100` was the only original corpus with real norm spread (CV 20% vs
+  BGE's 1.4–2.7%), which left the axis-B conclusion resting on n=1 at d=100 —
+  and the one place axis B *did* win (1-bit MIPS) was an interaction with the
+  low-spread encoder corpora, so the two readings never met at the same
+  dimensionality. `fmnist784` (ANN-benchmarks fashion-mnist-784-euclidean,
+  raw pixel vectors) closes that: real norm spread at a dimensionality
+  comparable to the encoder corpora, and no encoder in the loop.
+  **The axis-B numbers above predate it and have not been re-run.**
 - **`nfcorpus1024` is 2,000 of 3,633 documents.** bge-large on CPU measured
   ~0.3–0.7 docs/s here; the full corpus was a multi-hour encode. Capped
   deliberately, not truncated by a crash.
@@ -524,6 +565,9 @@ it.
 
 ```bash
 python3 build_corpora.py          # ~1 h, mostly bge-large on CPU
+                                  # fmnist784 needs assets/fashion-mnist.hdf5:
+                                  #   curl -L -o assets/fashion-mnist.hdf5 \
+                                  #     http://ann-benchmarks.com/fashion-mnist-784-euclidean.hdf5
 python3 pretrain_grids.py         # ~25 min, cached by (version, m, K)
 python3 calibrate.py              # the gate; non-zero exit blocks the sweep
 python3 run_ablation.py           # the sweep, checkpointed per (corpus, metric, bits)
