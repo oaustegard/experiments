@@ -1,0 +1,86 @@
+==============================================================================
+CALIBRATION GATE — remex-vs-higgs-ablation
+==============================================================================
+
+G0  empirical MSE path vs closed-form scalar (disjoint code paths)
+  [PASS] b=2 m=2 product grid: measured=0.1175096 closed-form=0.1174818 rel=2.37e-04
+  [PASS] b=4 m=2 product grid: measured=0.0095057 closed-form=0.0095010 rel=4.91e-04
+  [PASS] b=6 m=2 product grid: measured=0.0006490 closed-form=0.0006442 rel=7.44e-03
+  [PASS] b=2 m=4 product grid: measured=0.1174547 closed-form=0.1174818 rel=2.31e-04
+
+G1  scalar Lloyd-Max vs Max (1960) table 1
+  [PASS] b=1: mse=0.363380 published=0.3634 rel=5.44e-05
+  [PASS] b=2: mse=0.117482 published=0.1175 rel=1.54e-04
+  [PASS] b=3: mse=0.034548 published=0.03454 rel=2.25e-04
+  [PASS] b=4: mse=0.009501 published=0.009497 rel=4.22e-04
+  [PASS] b=5: mse=0.002505 published=0.002499 rel=2.27e-03
+
+G2  E8 normalised second moment vs Conway & Sloane
+  [PASS] E8 NSM: 0.0717081 vs published 0.0716821
+
+    (certifying 9 distinct grids used across d=100/768/1024)
+
+G3  trained grid: beats scalar, never beats Shannon
+  [PASS] b=1 m=5 < scalar: vq=0.33518 scalar=0.36338 gain=0.35 dB
+  [PASS] b=1 m=5 > Shannon: vq=0.33518 bound=0.25000 ratio=1.341
+  [PASS] b=2 m=5 < scalar: vq=0.09476 scalar=0.11748 gain=0.93 dB
+  [PASS] b=2 m=5 > Shannon: vq=0.09476 bound=0.06250 ratio=1.516
+  [PASS] b=3 m=5 < scalar: vq=0.02500 scalar=0.03455 gain=1.41 dB
+  [PASS] b=3 m=5 > Shannon: vq=0.02500 bound=0.01562 ratio=1.600
+  [PASS] b=4 m=4 < scalar: vq=0.00726 scalar=0.00950 gain=1.17 dB
+  [PASS] b=4 m=4 > Shannon: vq=0.00726 bound=0.00391 ratio=1.858
+  [PASS] b=6 m=2 < scalar: vq=0.00055 scalar=0.00064 gain=0.68 dB
+  [PASS] b=6 m=2 > Shannon: vq=0.00055 bound=0.00024 ratio=2.259
+  [PASS] b=8 m=2 < scalar: vq=0.00004 scalar=0.00004 gain=0.63 dB
+  [PASS] b=8 m=2 > Shannon: vq=0.00004 bound=0.00002 ratio=2.337
+  [PASS] b=1 m=8 < scalar: vq=0.32362 scalar=0.36338 gain=0.50 dB
+  [PASS] b=1 m=8 > Shannon: vq=0.32362 bound=0.25000 ratio=1.294
+  [PASS] b=2 m=8 < scalar: vq=0.08875 scalar=0.11748 gain=1.22 dB
+  [PASS] b=2 m=8 > Shannon: vq=0.08875 bound=0.06250 ratio=1.420
+  [PASS] b=3 m=4 < scalar: vq=0.02613 scalar=0.03455 gain=1.21 dB
+  [PASS] b=3 m=4 > Shannon: vq=0.02613 bound=0.01562 ratio=1.672
+
+G4  trained 8-dim grid at 2 bits/coord vs a tuned E8 ball codebook
+  [PASS] grid beats E8 by >=1%: grid=0.08875 E8=0.09120 ratio=0.973
+  [PASS] E8 itself beats scalar: E8=0.09120 scalar=0.11748
+
+G5  grid quality improves with sub-vector dimension m (b=2)
+  [PASS] m=2 <= m=1: 0.11053 vs 0.11748
+  [PASS] m=4 <= m=2: 0.09790 vs 0.11053
+  [PASS] m=8 <= m=4: 0.08875 vs 0.09790
+
+G6  RHT incoherence matches Haar (else axis A is confounded)
+  [PASS] d=100 spike incoherence: rht=0.2695 haar=0.2738 (1/sqrt(d)=0.1000)
+  [PASS] d=768 spike incoherence: rht=0.1210 haar=0.1222 (1/sqrt(d)=0.0361)
+  [PASS] d=1024 spike incoherence: rht=0.0312 haar=0.1067 (1/sqrt(d)=0.0312)
+
+G7  KNOWN-BAD: under-trained grid must be rejected
+  [PASS] G4 criterion rejects the bad grid: bad=0.09142 vs G4 threshold E8*0.99=0.09029
+
+G8  payload bytes matched across codebooks; side channels itemised
+  [PASS] d=100 b=2 payload: scalar=25.0 vector=25.0
+  [PASS] d=100 b=2 side channels: exactnorm=4.0B blockscale=4.0B (2 blocks of 50)
+  [PASS] d=100 b=4 payload: scalar=50.0 vector=50.0
+  [PASS] d=100 b=4 side channels: exactnorm=4.0B blockscale=10.0B (5 blocks of 20)
+  [PASS] d=768 b=2 payload: scalar=192.0 vector=192.0
+  [PASS] d=768 b=2 side channels: exactnorm=4.0B blockscale=12.0B (6 blocks of 128)
+  [PASS] d=768 b=4 payload: scalar=384.0 vector=384.0
+  [PASS] d=768 b=4 side channels: exactnorm=4.0B blockscale=12.0B (6 blocks of 128)
+  [PASS] d=1024 b=2 payload: scalar=256.0 vector=256.0
+  [PASS] d=1024 b=2 side channels: exactnorm=4.0B blockscale=16.0B (8 blocks of 128)
+  [PASS] d=1024 b=4 payload: scalar=512.0 vector=512.0
+  [PASS] d=1024 b=4 side channels: exactnorm=4.0B blockscale=16.0B (8 blocks of 128)
+
+------------------------------------------------------------------------------
+NOTES
+  - b=5 sits 0.24% above Max (1960)'s 0.002499; ours is the converged fixed point (residual 6.5e-08, stable over 2e3..2e5 iterations) and the Gaussian's log-concavity makes it unique, so the 1960 table's last digit is the imprecise one.
+  - scalar LM b=6: mse=6.442e-04, ratio to Shannon 2^-2b = 2.639 (Panter-Dite asymptote 2.721)
+  - scalar LM b=8: mse=4.127e-05, ratio to Shannon 2^-2b = 2.704 (Panter-Dite asymptote 2.721)
+  - E8 ball codebook (2^16 pts, scale 0.985): mse/dim=0.09120; trained grid m=8: 0.08875; scalar LM: 0.11748
+  - d=100: mean max|coord| random unit vec — haar 0.2749, rht 0.2738
+  - d=768: mean max|coord| random unit vec — haar 0.1224, rht 0.1221
+  - d=1024: mean max|coord| random unit vec — haar 0.1079, rht 0.1071
+  - under-trained m=8 grid (2 Lloyd iters): mse/dim=0.09142 vs converged E8 anchor 0.09120, scalar 0.11748
+------------------------------------------------------------------------------
+
+GATE PASSED — axis-C results are readable.
