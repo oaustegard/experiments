@@ -55,6 +55,18 @@ def _encode(texts, model_name, maxlen=MAXLEN):
 
     model = SentenceTransformer(model_name, device="cpu")
     model.max_seq_length = maxlen
+    # BGE ships a Normalize module as the last pipeline stage, and it wins over
+    # encode(normalize_embeddings=False) -- so the "raw" vectors come out
+    # exactly unit-norm.  That silently collapses the inner-product condition
+    # onto the cosine one (they were byte-identical on the first arxiv768 run)
+    # and makes axis B's whole prediction untestable, since there is no norm
+    # left to store exactly.  Drop the module and keep the true norms; the
+    # cosine condition re-normalises downstream anyway, so one encoding serves
+    # both metrics.
+    while model and type(model[len(model) - 1]).__name__ == "Normalize":
+        del model[len(model) - 1]
+    print(f"    [{model_name}] pipeline: "
+          f"{[type(m).__name__ for m in model]}", flush=True)
     out = []
     t0 = time.time()
     for i in range(0, len(texts), BATCH):

@@ -198,12 +198,23 @@ def timing(res):
     t = res.get("_timing")
     if not t:
         return
-    print("## Axis A wall-clock — rotation apply, 4096 vectors\n")
-    print("| d | Haar (dense) | RHT | speedup | Haar build | RHT build |")
-    print("|---|---|---|---|---|---|")
+    print("## Axis A wall-clock — applying the rotation\n")
+    print("The ratio is deliberately not called a speedup. The RHT really is "
+          "O(d log d) against Haar's O(d^2), but this measures numpy, which "
+          "runs the dense rotation as one BLAS sgemm and the FWHT as a Python "
+          "loop over strided slices. d=4096 and 8192 are included, well past "
+          "any corpus here, so the asymptotic crossover is measured rather "
+          "than assumed.\n")
+    print("| d | vectors | Haar (dense) | RHT | haar/rht | RHT rounds "
+          "| Haar build | RHT build |")
+    print("|---|---|---|---|---|---|---|---|")
     for d, row in sorted(t.items(), key=lambda kv: int(kv[0])):
-        print(f"| {d} | {row['haar'] * 1e3:.1f} ms | {row['rht'] * 1e3:.1f} ms "
-              f"| {row['speedup']:.1f}x | {row['haar_build_s'] * 1e3:.0f} ms "
+        faster = "RHT" if row["haar_over_rht"] > 1 else "Haar"
+        print(f"| {d} | {row.get('nvec', '')} | {row['haar'] * 1e3:.1f} ms "
+              f"| {row['rht'] * 1e3:.1f} ms "
+              f"| {row['haar_over_rht']:.2f}x ({faster}) "
+              f"| {row.get('rounds', '')} "
+              f"| {row['haar_build_s'] * 1e3:.0f} ms "
               f"| {row['rht_build_s'] * 1e3:.2f} ms |")
     print()
 
