@@ -15,6 +15,8 @@ ship seven green tests over an input path that was never connected.
 
 Checks
 ------
+G0  the empirical MSE instrument agrees with the closed-form scalar answer,
+    via two code paths that share nothing                          [instrument]
 G1  scalar Lloyd-Max MSE == Max (1960) table 1                     [published]
 G2  E8 normalised second moment == 0.0716821 (Conway & Sloane)     [published]
 G3  trained m-dim Gaussian grid beats scalar at the same rate, and never
@@ -30,6 +32,12 @@ G7  KNOWN-BAD: a deliberately under-trained grid must be caught by G3/G4's
     check above is decoration.                                     [two-sided]
 G8  payload bytes are identical for scalar and vector arms at matched
     (d, bits); side-channel bytes are itemised, not folded away    [budget]
+
+G3 is not hypothetical: it fired on the first real build of this experiment,
+where Lloyd seeded from random samples converged to grids *worse* than the
+scalar quantizer at 6 and 8 bits.  See RESULTS.md — that would have been
+reported as "scalar wins axis C at high rate", which is exactly the wrong
+conclusion the issue warns about.
 """
 from __future__ import annotations
 
@@ -125,6 +133,33 @@ def best_scaled_mse(C: np.ndarray, n: int = 200_000) -> tuple[float, float]:
 
 # --------------------------------------------------------------------------
 # gates
+
+
+def g0_measurement_path():
+    """Validate the empirical MSE path against the closed-form scalar answer.
+
+    `codebook_mse` (sampling + KD-tree nearest neighbour) and `lloyd_max_1d`
+    (exact integration against the normal density) share no code.  Lifting the
+    scalar levels into an m-dimensional product grid makes them measure the
+    same quantity, because nearest-neighbour assignment on a product grid
+    decomposes into independent per-coordinate assignment.  If they agree, a
+    later disagreement between a trained grid and the scalar arm is a fact
+    about the grid rather than about the measurement.
+
+    This is METHODS.md principle 1 applied to the instrument, and it is what
+    localised the random-init Lloyd defect described in RESULTS.md: the
+    measurement was exonerated first, so the grid was the only suspect left.
+    """
+    print("\nG0  empirical MSE path vs closed-form scalar (disjoint code paths)")
+    ok = True
+    for b, m in ((2, 2), (4, 2), (6, 2), (2, 4)):
+        _, closed = grids.lloyd_max_1d(b)
+        measured = codebook_mse(grids.product_init(b, m), n=1_000_000)
+        rel = abs(measured - closed) / closed
+        ok &= check(rel < 1e-2, f"b={b} m={m} product grid",
+                    f"measured={measured:.7f} closed-form={closed:.7f} "
+                    f"rel={rel:.2e}")
+    return ok
 
 
 def g1_scalar_table():
@@ -265,6 +300,7 @@ def main():
     print("=" * 78)
     print("CALIBRATION GATE — remex-vs-higgs-ablation")
     print("=" * 78)
+    g0_measurement_path()
     g1_scalar_table()
     g2_e8_nsm()
 
