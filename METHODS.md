@@ -125,6 +125,9 @@ damage it", and saturate.
 | `RemaxBuilder` stacked-SimHash quantizer, numpy-only, chunked Hamming | `phase-a-bridges/scripts/remax.py` | trivial |
 | uint64-view POPCNT Hamming kernel (`xor.view(np.uint64)` + `np.bitwise_count`), ~10× a LUT gather | `remax-hamming-speedup/bench.py` | trivial |
 | Fidelity-vs-fp32 quantization eval (`eval_scores`, `recall_vs_gt`) | `jina-remex-vs-remax/score_fidelity.py` | trivial |
+| Exact continuous Lloyd-Max for N(0,1) (reproduces Max 1960), plus Gaussian-optimal m-dim VQ grids by KD-tree-accelerated Lloyd | `remex-vs-higgs-ablation/grids.py` | trivial |
+| E8 lattice: nearest-point decoder, ball-shaped codebook, normalised second moment | `remex-vs-higgs-ablation/calibrate.py` | trivial |
+| Randomized Hadamard rotation for ANY d, no power-of-two padding (rounds of permute + block-diagonal FWHT) | `remex-vs-higgs-ablation/quantizers.py::RHTRotation` | trivial |
 | Self-retrieval recall@k harness (`topk_float`, `recall_at_k`) | `kb-k-sweep/sweep.py` | trivial |
 | Stdlib-only BM25 + RM3 index reader | `lexical-kb/skill_template/search.py` | trivial (already shipped as `creating-kb`) |
 | Dependency-free txt/md/html extract + paragraph-respecting chunker | `lexical-kb/build_lexkb.py::extract_text` | trivial |
@@ -222,6 +225,105 @@ the result.
   the rule. (`haiku-assessment/GUIDE.md`)
 - **"Be specific" without "specific about only what's stated" causes confident
   fabrication** — 19/20 in one probe. (`haiku-assessment/GUIDE.md`)
+- **Lloyd/LBG from a random init converges to grids WORSE than the scalar
+  quantizer at high rate.** Seed it from the product of optimal scalar
+  quantizers instead. Trained on N(0,I₂) at 6 bits, random-init Lloyd gave
+  held-out MSE/dim 0.000828 against scalar Lloyd-Max's 0.000644 — 29% worse,
+  and 87% worse at 8 bits. More samples do not fix it (48 → 1,953 per
+  codepoint only moved 0.000854 → 0.000769) and neither does a lattice init: a
+  tuned A2 hexagonal ball scored 0.000916, because a *uniform-density* lattice
+  is the wrong construction for a Gaussian at fixed rate — optimal point
+  density goes as f^(m/(m+2)), which scalar Lloyd-Max already has and a
+  lattice ball does not. The fix is one line: `product_init(bits, m)` has
+  exactly (2^bits)^m points, so it is a legal starting codebook, and Lloyd
+  from there is monotone. Keep the unrefined product grid as a *candidate*
+  too, not just as an init — see the next entry.
+  (`remex-vs-higgs-ablation/grids.py`)
+- **"Lloyd is monotone, so refinement can't be worse" is false as usually
+  coded.** Lloyd is monotone in *training* distortion; if you select or report
+  on *held-out* distortion, refinement really can land worse than its own
+  starting point — the train/held-out gap reaches ~14% at 61 samples per
+  codepoint. If you want the bound "never worse than X", X must be in the
+  candidate set and scored on the same held-out stream as everything else.
+  Select and report on *different* seeds while you are at it.
+  (`remex-vs-higgs-ablation/grids.py::train_gaussian_grid`)
+- **The Lloyd-Max distortion identity MSE = 1 − Σpᵢyᵢ² is only valid AT the
+  fixed point.** Recomputing the cell probabilities from freshly updated levels
+  evaluates it slightly off the fixed point. Harmless where Lloyd has
+  converged; at 8 bits it has not (20k iterations still leave
+  max|level − centroid| ≈ 5e-6) and the identity returned 4.791e-5 against a
+  true 4.127e-5 — **16% high**. Integrate the distortion directly. Note the
+  failure direction: an inflated scalar baseline makes a "the fancy method
+  beats scalar" gate *more permissive*, and Max (1960)'s published table stops
+  at 5 bits so a table-comparison check cannot catch it.
+  (`remex-vs-higgs-ablation/grids.py::lloyd_max_1d`)
+- **Score cosine as cosine: divide by ‖x̂‖.** Ranking quantized documents by
+  the bare inner product `q·x̂` silently rewards codecs whose reconstruction
+  norm happens to be constant and penalises those with norm spread — which is
+  a property of the *codebook shape*, not of retrieval quality. A 1-bit scalar
+  quantizer emits ±c on every coordinate, so ‖x̂‖ = c√d is constant **by
+  construction** and it pays nothing; an m-dimensional VQ grid's ‖x̂‖ varies
+  (CV ≈ 1%). Measured on 750 arXiv abstracts at 1 bit, the VQ arm scored
+  recall@10 0.663 against the scalar arm's 0.686 *despite* better MSE (+0.50 dB)
+  and better mean reconstruction cosine (0.823 vs 0.799); renormalising the
+  reconstruction flipped it to 0.689 and the ordering agreed with the
+  distortion numbers again. Left alone this reads as a genuine
+  "scalar wins at low rate" reversal. `jina-remex-vs-remax/score_fidelity.py`
+  and the first version of `remex-vs-higgs-ablation` both had it, so check any
+  harness in this repo that scores `Q @ Xhat.T`. Keep reconstruction MSE on the
+  *raw* reconstruction so it stays a property of the codec.
+  (`remex-vs-higgs-ablation/run_ablation.py::Reference.score`)
+- **Better MSE does not imply better recall, and mean reconstruction cosine
+  does not settle it either.** Both were *better* for the arm that lost above.
+  When a distortion metric and a ranking metric disagree, look for a
+  per-document quantity that shifts scores without shifting fidelity — here the
+  spread of ‖x̂‖ across documents. Diagnose it by renormalising and re-scoring:
+  if the disagreement vanishes, it was scale, not geometry.
+- **Rotated *unit* vectors have Beta-distributed coordinates, not Gaussian**
+  (density ∝ (1−x²)^((d−3)/2)); TurboQuant fits its Lloyd-Max to that Beta.
+  Using a Gaussian at σ=1/√d instead costs ≤0.007% excess MSE at 2 bits and
+  ≤0.43% at 6 bits for d=100, and ~0% for d ≥ 768 — measured, so you can skip
+  the Beta with a citation rather than a hope.
+  (`remex-vs-higgs-ablation/beta_check.py`)
+
+---
+
+## Cache and measurement hygiene
+
+- **Key a cache on the METHOD, not just on the problem.** A grid cache keyed
+  `(m, K)` silently served codebooks trained by an older, worse procedure after
+  the trainer was fixed — and the stale file was 87% worse than the baseline it
+  was supposed to beat, which would have produced a confidently wrong published
+  result. It survived a `rm -rf` of the cache because a background job that was
+  being killed rewrote it moments after the delete, so it was identifiable only
+  by its *schema* (an extra key the new writer does not emit). Put a
+  `VERSION` constant in the filename **and** inside the file, and delete on
+  mismatch rather than trusting. Bump it whenever the procedure changes.
+  (`remex-vs-higgs-ablation/grids.py::GRID_VERSION`)
+- **Exonerate the instrument before blaming the subject** — principle 1 applied
+  to measurement. When a sampled/empirical metric disagrees with theory, first
+  find a *degenerate case where the two must agree by construction* and check
+  there. An m-dimensional product of scalar quantizer levels must score exactly
+  the closed-form scalar MSE under nearest-neighbour assignment, because NN on
+  a product grid decomposes per coordinate; agreement to 3 significant figures
+  at 2/4/6 bits proved a KD-tree MSE harness correct and left the trained grid
+  as the only suspect. Cheap, and it converts "one of these two things is
+  broken" into "this one thing is broken".
+  (`remex-vs-higgs-ablation/calibrate.py::g0_measurement_path`)
+- **A checked-in number copied from a log line is a number you will get
+  wrong.** A migration guard was seeded with an intermediate `lloyd it=…`
+  training MSE (0.0796) where the run's *held-out* figure was 0.0887, and
+  correctly refused a perfectly good artifact. Training and held-out MSE differ
+  by ~11% at 61 samples/codepoint — always take the final reported line, and
+  say in the comment which one it is.
+  (`remex-vs-higgs-ablation/migrate_grid.py`)
+- **`pgrep -f <pattern>` matches the watcher's own command line.** A wait loop
+  written as `until ! pgrep -f trainer; do sleep 30; done` never exits, because
+  the shell running it contains "trainer" in its own argv. A second attempt
+  with a malformed predicate exited *immediately* and reported the job finished
+  while it was still running — the more dangerous failure. Wait on a PID
+  (`while kill -0 $PID`), which cannot self-match. This is "a check that cannot
+  fail is not a check" (see `svgview` below) in wait-loop form.
 
 ---
 
