@@ -20,7 +20,10 @@ never finishes (METHODS.md principle 7).
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -201,9 +204,15 @@ def run(datasets=DATASETS, resume=True):
                           f"rho={r['spearman']['mean']:.3f} "
                           f"B/vec={r['bytes']['total']:.1f}", flush=True)
                 results[key0][bkey] = block
+                results["_code_fingerprint"] = code_fingerprint()
                 save_json(OUT, results)
                 print(f"  -- {metric} {bits}b done in {time.time() - t0:.0f}s",
                       flush=True)
+    # Always stamp and save, even when every block was cached: a resumed run
+    # that computes nothing still needs to record WHICH code the stored results
+    # correspond to, or a fully-cached re-run silently leaves a stale stamp.
+    results["_code_fingerprint"] = code_fingerprint()
+    save_json(OUT, results)
     return results
 
 
@@ -274,15 +283,70 @@ def timing(reps=5):
     return out
 
 
+def code_fingerprint() -> str:
+    """Hash of the modules the stored results depend on, stamped into
+    results.json so a later reader can tell whether the sweep matches the code.
+
+    Added after an upstream change to `quantizers.py` (a different RHT) landed
+    while a branch held a results.json produced by the old one. Every check in
+    `recheck.py` stayed green, because nothing compared the results to the code
+    that made them.
+
+    Only the CODEC is hashed, not this harness: changing how the sweep is
+    driven, logged or gated does not change the numbers, and stamping on it
+    would invalidate every stored result on an unrelated edit.
+    """
+    h = hashlib.sha256()
+    for name in ("quantizers.py", "grids.py"):
+        h.update((HERE / name).read_bytes())
+    return h.hexdigest()
+
+
+def require_gate():
+    """Run the calibration gate and refuse to sweep unless it passes.
+
+    The first run listed the gate as step 3 of a documented command sequence,
+    which makes it advisory: nothing stopped `run_ablation.py` from producing
+    axis-C numbers with the gate red, or never run at all.  A gate that does
+    not block is a report.  Exit 2 (INCONCLUSIVE -- no known-bad registered,
+    or no coverage limit stated) blocks exactly like exit 1, because "every
+    check passed" from a suite that was never shown to reject anything is not
+    evidence.
+
+    SKIP_GATE=1 exists for iterating on the runner itself.  It prints a loud
+    banner; it is not a way to publish.
+    """
+    if os.environ.get("SKIP_GATE") == "1":
+        print("!" * 74)
+        print("!! SKIP_GATE=1 -- axis-C numbers from this run are UNGATED")
+        print("!! and must not be published.")
+        print("!" * 74)
+        return
+    print("running the calibration gate before the sweep ...")
+    rc = subprocess.call([sys.executable, str(HERE / "gate.py")])
+    if rc != 0:
+        kind = {1: "FAILED", 2: "INCONCLUSIVE"}.get(rc, f"exit {rc}")
+        raise SystemExit(
+            f"\ncalibration gate {kind} -- sweep aborted.\n"
+            "Axis C is only readable if the vector arm is credible; that is "
+            "the precondition\nthe commissioning issue states, so this is not "
+            "a warning to read past.")
+    print("gate passed -- proceeding to the sweep.\n")
+
+
 def main():
     args = sys.argv[1:]
     if args and args[0] == "timing":
+        # Timing is axis A only: no codebook is involved, so the codebook
+        # gate is not its precondition.
         print("\n### axis A wall-clock (rotation apply, 4096 vectors)")
         t = timing()
         res = json.loads(OUT.read_text()) if OUT.exists() else {}
         res["_timing"] = t
+        res["_code_fingerprint"] = code_fingerprint()
         save_json(OUT, res)
         return 0
+    require_gate()
     run(datasets=tuple(args) if args else DATASETS)
     return 0
 

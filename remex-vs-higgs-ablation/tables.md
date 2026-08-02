@@ -2,6 +2,28 @@
 
 recall@10 vs fp32 exact search, mean over 5 rotation seeds (worst seed in parentheses).
 
+**arxiv768 — cosine**
+
+| bits | B/vec remex | B/vec HIGGS-like | remex R@10 | HIGGS-like R@10 | delta | remex rho | HIGGS-like rho |
+|---|---|---|---|---|---|---|---|
+| 1 | 100 | 108 | 0.647 (0.635) | 0.670 (0.662) | +0.023 | 0.8723 | 0.8840 |
+| 2 | 196 | 204 | 0.807 (0.803) | 0.832 (0.821) | +0.025 | 0.9637 | 0.9716 |
+| 3 | 292 | 300 | 0.889 (0.881) | 0.902 (0.896) | +0.013 | 0.9893 | 0.9917 |
+| 4 | 388 | 396 | 0.942 (0.938) | 0.947 (0.943) | +0.005 | 0.9969 | 0.9977 |
+| 6 | 580 | 588 | 0.980 (0.977) | 0.979 (0.977) | -0.001 | 0.9998 | 0.9998 |
+| 8 | 772 | 780 | 0.993 (0.991) | 0.995 (0.993) | +0.002 | 1.0000 | 1.0000 |
+
+**arxiv768 — inner product**
+
+| bits | B/vec remex | B/vec HIGGS-like | remex R@10 | HIGGS-like R@10 | delta | remex rho | HIGGS-like rho |
+|---|---|---|---|---|---|---|---|
+| 1 | 100 | 108 | 0.660 (0.646) | 0.664 (0.651) | +0.004 | 0.8710 | 0.8765 |
+| 2 | 196 | 204 | 0.771 (0.767) | 0.792 (0.779) | +0.021 | 0.9470 | 0.9604 |
+| 3 | 292 | 300 | 0.851 (0.841) | 0.873 (0.863) | +0.022 | 0.9803 | 0.9865 |
+| 4 | 388 | 396 | 0.915 (0.911) | 0.931 (0.924) | +0.016 | 0.9937 | 0.9960 |
+| 6 | 580 | 588 | 0.974 (0.968) | 0.979 (0.975) | +0.006 | 0.9995 | 0.9997 |
+| 8 | 772 | 780 | 0.993 (0.991) | 0.993 (0.989) | +0.001 | 1.0000 | 1.0000 |
+
 **glove100 — cosine**
 
 | bits | B/vec remex | B/vec HIGGS-like | remex R@10 | HIGGS-like R@10 | delta | remex rho | HIGGS-like rho |
@@ -23,28 +45,6 @@ recall@10 vs fp32 exact search, mean over 5 rotation seeds (worst seed in parent
 | 4 | 54 | 60 | 0.856 (0.854) | 0.884 (0.883) | +0.028 | 0.9947 | 0.9963 |
 | 6 | 79 | 79 | 0.957 (0.955) | 0.963 (0.961) | +0.006 | 0.9996 | 0.9997 |
 | 8 | 104 | 104 | 0.987 (0.986) | 0.989 (0.989) | +0.002 | 1.0000 | 1.0000 |
-
-**arxiv768 — cosine**
-
-| bits | B/vec remex | B/vec HIGGS-like | remex R@10 | HIGGS-like R@10 | delta | remex rho | HIGGS-like rho |
-|---|---|---|---|---|---|---|---|
-| 1 | 100 | 108 | 0.682 (0.677) | 0.688 (0.677) | +0.006 | 0.9063 | 0.9118 |
-| 2 | 196 | 204 | 0.828 (0.812) | 0.845 (0.837) | +0.017 | 0.9733 | 0.9791 |
-| 3 | 292 | 300 | 0.903 (0.896) | 0.912 (0.906) | +0.009 | 0.9922 | 0.9939 |
-| 4 | 388 | 396 | 0.942 (0.937) | 0.948 (0.943) | +0.006 | 0.9978 | 0.9983 |
-| 6 | 580 | 588 | 0.982 (0.979) | 0.985 (0.983) | +0.003 | 0.9998 | 0.9998 |
-| 8 | 772 | 780 | 0.995 (0.993) | 0.993 (0.992) | -0.001 | 1.0000 | 1.0000 |
-
-**arxiv768 — inner product**
-
-| bits | B/vec remex | B/vec HIGGS-like | remex R@10 | HIGGS-like R@10 | delta | remex rho | HIGGS-like rho |
-|---|---|---|---|---|---|---|---|
-| 1 | 100 | 108 | 0.683 (0.674) | 0.668 (0.661) | -0.015 | 0.9059 | 0.9063 |
-| 2 | 196 | 204 | 0.768 (0.753) | 0.788 (0.773) | +0.020 | 0.9597 | 0.9686 |
-| 3 | 292 | 300 | 0.847 (0.839) | 0.869 (0.855) | +0.022 | 0.9847 | 0.9895 |
-| 4 | 388 | 396 | 0.909 (0.899) | 0.924 (0.915) | +0.015 | 0.9951 | 0.9970 |
-| 6 | 580 | 588 | 0.968 (0.959) | 0.974 (0.973) | +0.006 | 0.9996 | 0.9997 |
-| 8 | 772 | 780 | 0.987 (0.984) | 0.991 (0.989) | +0.005 | 1.0000 | 1.0000 |
 
 **nfcorpus1024 — cosine**
 
@@ -72,6 +72,28 @@ recall@10 vs fp32 exact search, mean over 5 rotation seeds (worst seed in parent
 
 Mean change in recall@10 from flipping one axis with the other two held fixed, averaged over the 4 cells that differ only in that axis, +/- 1 sd across those cells. Positive = the HIGGS-lineage setting wins.
 
+**arxiv768 — cosine**
+
+| bits | A rotation: haar -> rht | B norm: exact -> blockscale | C codebook: scalar -> vector |
+|---|---|---|---|
+| 1 | +0.0049 ± 0.0063 | +0.0044 ± 0.0017 | +0.0136 ± 0.0065 |
+| 2 | +0.0036 ± 0.0041 | +0.0040 ± 0.0036 | +0.0196 ± 0.0029 |
+| 3 | +0.0002 ± 0.0045 | +0.0007 ± 0.0020 | +0.0105 ± 0.0043 |
+| 4 | -0.0010 ± 0.0022 | +0.0018 ± 0.0028 | +0.0060 ± 0.0030 |
+| 6 | -0.0022 ± 0.0013 | +0.0000 ± 0.0013 | +0.0007 ± 0.0016 |
+| 8 | -0.0006 ± 0.0013 | +0.0019 ± 0.0015 | +0.0001 ± 0.0015 |
+
+**arxiv768 — inner product**
+
+| bits | A rotation: haar -> rht | B norm: exact -> blockscale | C codebook: scalar -> vector |
+|---|---|---|---|
+| 1 | +0.0071 ± 0.0072 | +0.0032 ± 0.0015 | -0.0063 ± 0.0072 |
+| 2 | -0.0038 ± 0.0077 | -0.0022 ± 0.0035 | +0.0282 ± 0.0082 |
+| 3 | -0.0036 ± 0.0040 | -0.0024 ± 0.0018 | +0.0260 ± 0.0040 |
+| 4 | -0.0031 ± 0.0024 | +0.0015 ± 0.0019 | +0.0173 ± 0.0018 |
+| 6 | -0.0002 ± 0.0005 | +0.0001 ± 0.0005 | +0.0054 ± 0.0005 |
+| 8 | +0.0004 ± 0.0004 | -0.0004 ± 0.0005 | +0.0010 ± 0.0005 |
+
 **glove100 — cosine**
 
 | bits | A rotation: haar -> rht | B norm: exact -> blockscale | C codebook: scalar -> vector |
@@ -93,28 +115,6 @@ Mean change in recall@10 from flipping one axis with the other two held fixed, a
 | 4 | +0.0004 ± 0.0021 | +0.0033 ± 0.0022 | +0.0223 ± 0.0024 |
 | 6 | +0.0003 ± 0.0013 | +0.0002 ± 0.0015 | +0.0051 ± 0.0008 |
 | 8 | +0.0002 ± 0.0005 | +0.0001 ± 0.0004 | +0.0015 ± 0.0005 |
-
-**arxiv768 — cosine**
-
-| bits | A rotation: haar -> rht | B norm: exact -> blockscale | C codebook: scalar -> vector |
-|---|---|---|---|
-| 1 | -0.0020 ± 0.0013 | +0.0013 ± 0.0015 | +0.0056 ± 0.0012 |
-| 2 | +0.0006 ± 0.0038 | -0.0002 ± 0.0032 | +0.0156 ± 0.0024 |
-| 3 | -0.0040 ± 0.0026 | -0.0000 ± 0.0018 | +0.0128 ± 0.0032 |
-| 4 | -0.0002 ± 0.0013 | -0.0002 ± 0.0014 | +0.0056 ± 0.0016 |
-| 6 | +0.0009 ± 0.0010 | +0.0011 ± 0.0011 | +0.0016 ± 0.0008 |
-| 8 | -0.0014 ± 0.0009 | -0.0002 ± 0.0013 | -0.0003 ± 0.0011 |
-
-**arxiv768 — inner product**
-
-| bits | A rotation: haar -> rht | B norm: exact -> blockscale | C codebook: scalar -> vector |
-|---|---|---|---|
-| 1 | +0.0008 ± 0.0053 | +0.0008 ± 0.0019 | -0.0174 ± 0.0055 |
-| 2 | +0.0016 ± 0.0015 | +0.0006 ± 0.0015 | +0.0194 ± 0.0015 |
-| 3 | +0.0020 ± 0.0044 | -0.0015 ± 0.0046 | +0.0233 ± 0.0024 |
-| 4 | +0.0001 ± 0.0039 | +0.0009 ± 0.0019 | +0.0133 ± 0.0043 |
-| 6 | -0.0009 ± 0.0012 | +0.0005 ± 0.0004 | +0.0062 ± 0.0011 |
-| 8 | +0.0011 ± 0.0012 | +0.0014 ± 0.0011 | +0.0014 ± 0.0012 |
 
 **nfcorpus1024 — cosine**
 
@@ -142,17 +142,29 @@ Mean change in recall@10 from flipping one axis with the other two held fixed, a
 
 | metric | axis | mean delta R@10 | sd | max |delta| | n cells |
 |---|---|---|---|---|---|
-| cosine | A rotation: haar -> rht | -0.0001 | 0.0013 | 0.0040 | 18 |
-| cosine | B norm: exact -> blockscale | +0.0008 | 0.0011 | 0.0029 | 18 |
-| cosine | C codebook: scalar -> vector | +0.0108 | 0.0099 | 0.0348 | 18 |
-| inner product | A rotation: haar -> rht | +0.0002 | 0.0012 | 0.0021 | 18 |
-| inner product | B norm: exact -> blockscale | +0.0010 | 0.0011 | 0.0033 | 18 |
-| inner product | C codebook: scalar -> vector | +0.0132 | 0.0145 | 0.0398 | 18 |
+| cosine | A rotation: haar -> rht | +0.0005 | 0.0016 | 0.0049 | 18 |
+| cosine | B norm: exact -> blockscale | +0.0014 | 0.0014 | 0.0044 | 18 |
+| cosine | C codebook: scalar -> vector | +0.0113 | 0.0100 | 0.0348 | 18 |
+| inner product | A rotation: haar -> rht | -0.0003 | 0.0024 | 0.0071 | 18 |
+| inner product | B norm: exact -> blockscale | +0.0009 | 0.0016 | 0.0033 | 18 |
+| inner product | C codebook: scalar -> vector | +0.0146 | 0.0139 | 0.0398 | 18 |
 
 ## Controls
 
 | corpus / metric | bits | fp32 | naive uniform (no rotation) | LM+QJL (`prod`) | remex |
 |---|---|---|---|---|---|
+| arxiv768 / cosine | 1 | 1.000 | 0.672 | n/a | 0.647 |
+| arxiv768 / cosine | 2 | 1.000 | 0.830 | 0.665 | 0.807 |
+| arxiv768 / cosine | 3 | 1.000 | 0.884 | 0.817 | 0.889 |
+| arxiv768 / cosine | 4 | 1.000 | 0.927 | 0.891 | 0.942 |
+| arxiv768 / cosine | 6 | 1.000 | 0.963 | 0.965 | 0.980 |
+| arxiv768 / cosine | 8 | 1.000 | 0.973 | 0.990 | 0.993 |
+| arxiv768 / inner product | 1 | 1.000 | 0.675 | n/a | 0.660 |
+| arxiv768 / inner product | 2 | 1.000 | 0.788 | 0.677 | 0.771 |
+| arxiv768 / inner product | 3 | 1.000 | 0.859 | 0.779 | 0.851 |
+| arxiv768 / inner product | 4 | 1.000 | 0.906 | 0.856 | 0.915 |
+| arxiv768 / inner product | 6 | 1.000 | 0.935 | 0.951 | 0.974 |
+| arxiv768 / inner product | 8 | 1.000 | 0.939 | 0.986 | 0.993 |
 | glove100 / cosine | 1 | 1.000 | 0.310 | n/a | 0.315 |
 | glove100 / cosine | 2 | 1.000 | 0.594 | 0.373 | 0.598 |
 | glove100 / cosine | 3 | 1.000 | 0.757 | 0.633 | 0.774 |
@@ -165,18 +177,6 @@ Mean change in recall@10 from flipping one axis with the other two held fixed, a
 | glove100 / inner product | 4 | 1.000 | 0.848 | 0.770 | 0.856 |
 | glove100 / inner product | 6 | 1.000 | 0.947 | 0.928 | 0.957 |
 | glove100 / inner product | 8 | 1.000 | 0.981 | 0.979 | 0.987 |
-| arxiv768 / cosine | 1 | 1.000 | 0.701 | n/a | 0.682 |
-| arxiv768 / cosine | 2 | 1.000 | 0.838 | 0.698 | 0.828 |
-| arxiv768 / cosine | 3 | 1.000 | 0.897 | 0.835 | 0.903 |
-| arxiv768 / cosine | 4 | 1.000 | 0.941 | 0.907 | 0.942 |
-| arxiv768 / cosine | 6 | 1.000 | 0.968 | 0.970 | 0.982 |
-| arxiv768 / cosine | 8 | 1.000 | 0.971 | 0.991 | 0.995 |
-| arxiv768 / inner product | 1 | 1.000 | 0.712 | n/a | 0.683 |
-| arxiv768 / inner product | 2 | 1.000 | 0.781 | 0.697 | 0.768 |
-| arxiv768 / inner product | 3 | 1.000 | 0.861 | 0.775 | 0.847 |
-| arxiv768 / inner product | 4 | 1.000 | 0.895 | 0.851 | 0.909 |
-| arxiv768 / inner product | 6 | 1.000 | 0.927 | 0.948 | 0.968 |
-| arxiv768 / inner product | 8 | 1.000 | 0.931 | 0.981 | 0.987 |
 | nfcorpus1024 / cosine | 1 | 1.000 | 0.659 | n/a | 0.657 |
 | nfcorpus1024 / cosine | 2 | 1.000 | 0.818 | 0.671 | 0.814 |
 | nfcorpus1024 / cosine | 3 | 1.000 | 0.897 | 0.820 | 0.896 |
@@ -198,18 +198,6 @@ The **cosine-opt** column is the honest total for a cosine-only index: documents
 
 | corpus | arm | bits | payload B | side B | total B | cosine-opt B | shared (KiB) | grid dim m |
 |---|---|---|---|---|---|---|---|---|
-| glove100 | haar+exactnorm+scalar | 1 | 12 | 4 | 16 | 12 | 39 | 1 |
-| glove100 | rht+blockscale+vector | 1 | 12 | 4 | 16 | 16 | 3 | 5 |
-| glove100 | haar+exactnorm+scalar | 2 | 25 | 4 | 29 | 25 | 39 | 1 |
-| glove100 | rht+blockscale+vector | 2 | 25 | 4 | 29 | 29 | 22 | 5 |
-| glove100 | haar+exactnorm+scalar | 3 | 38 | 4 | 42 | 38 | 39 | 1 |
-| glove100 | rht+blockscale+vector | 3 | 38 | 4 | 42 | 42 | 642 | 5 |
-| glove100 | haar+exactnorm+scalar | 4 | 50 | 4 | 54 | 50 | 39 | 1 |
-| glove100 | rht+blockscale+vector | 4 | 50 | 10 | 60 | 60 | 1026 | 4 |
-| glove100 | haar+exactnorm+scalar | 6 | 75 | 4 | 79 | 75 | 39 | 1 |
-| glove100 | rht+blockscale+vector | 6 | 75 | 4 | 79 | 79 | 34 | 2 |
-| glove100 | haar+exactnorm+scalar | 8 | 100 | 4 | 104 | 100 | 40 | 1 |
-| glove100 | rht+blockscale+vector | 8 | 100 | 4 | 104 | 104 | 514 | 2 |
 | arxiv768 | haar+exactnorm+scalar | 1 | 96 | 4 | 100 | 96 | 2304 | 1 |
 | arxiv768 | rht+blockscale+vector | 1 | 96 | 12 | 108 | 108 | 16 | 8 |
 | arxiv768 | haar+exactnorm+scalar | 2 | 192 | 4 | 196 | 192 | 2304 | 1 |
@@ -222,6 +210,18 @@ The **cosine-opt** column is the honest total for a cosine-only index: documents
 | arxiv768 | rht+blockscale+vector | 6 | 576 | 12 | 588 | 588 | 40 | 2 |
 | arxiv768 | haar+exactnorm+scalar | 8 | 768 | 4 | 772 | 768 | 2305 | 1 |
 | arxiv768 | rht+blockscale+vector | 8 | 768 | 12 | 780 | 780 | 520 | 2 |
+| glove100 | haar+exactnorm+scalar | 1 | 12 | 4 | 16 | 12 | 39 | 1 |
+| glove100 | rht+blockscale+vector | 1 | 12 | 4 | 16 | 16 | 3 | 5 |
+| glove100 | haar+exactnorm+scalar | 2 | 25 | 4 | 29 | 25 | 39 | 1 |
+| glove100 | rht+blockscale+vector | 2 | 25 | 4 | 29 | 29 | 22 | 5 |
+| glove100 | haar+exactnorm+scalar | 3 | 38 | 4 | 42 | 38 | 39 | 1 |
+| glove100 | rht+blockscale+vector | 3 | 38 | 4 | 42 | 42 | 642 | 5 |
+| glove100 | haar+exactnorm+scalar | 4 | 50 | 4 | 54 | 50 | 39 | 1 |
+| glove100 | rht+blockscale+vector | 4 | 50 | 10 | 60 | 60 | 1026 | 4 |
+| glove100 | haar+exactnorm+scalar | 6 | 75 | 4 | 79 | 75 | 39 | 1 |
+| glove100 | rht+blockscale+vector | 6 | 75 | 4 | 79 | 79 | 34 | 2 |
+| glove100 | haar+exactnorm+scalar | 8 | 100 | 4 | 104 | 100 | 40 | 1 |
+| glove100 | rht+blockscale+vector | 8 | 100 | 4 | 104 | 104 | 514 | 2 |
 | nfcorpus1024 | haar+exactnorm+scalar | 1 | 128 | 4 | 132 | 128 | 4096 | 1 |
 | nfcorpus1024 | rht+blockscale+vector | 1 | 128 | 16 | 144 | 144 | 13 | 8 |
 | nfcorpus1024 | haar+exactnorm+scalar | 2 | 256 | 4 | 260 | 256 | 4096 | 1 |
@@ -241,18 +241,6 @@ Shared = rotation + codebook, divided by the number of documents in that corpus.
 
 | corpus | N | bits | arm | B/vec (headline) | shared B/vec | true B/vec | N for <5% |
 |---|---|---|---|---|---|---|---|
-| glove100 | 20,000 | 1 | haar+exactnorm+scalar | 16 | 2.0 | 18.5 | 48,495 |
-| glove100 | 20,000 | 1 | rht+blockscale+vector | 16 | 0.1 | 16.6 | 3,200 |
-| glove100 | 20,000 | 2 | haar+exactnorm+scalar | 29 | 2.0 | 31.0 | 27,598 |
-| glove100 | 20,000 | 2 | rht+blockscale+vector | 29 | 1.1 | 30.1 | 15,504 |
-| glove100 | 20,000 | 3 | haar+exactnorm+scalar | 42 | 2.0 | 43.5 | 19,293 |
-| glove100 | 20,000 | 3 | rht+blockscale+vector | 42 | 32.9 | 74.4 | 316,800 |
-| glove100 | 20,000 | 4 | haar+exactnorm+scalar | 54 | 2.0 | 56.0 | 14,839 |
-| glove100 | 20,000 | 4 | rht+blockscale+vector | 60 | 52.5 | 112.5 | 350,192 |
-| glove100 | 20,000 | 6 | haar+exactnorm+scalar | 79 | 2.0 | 81.0 | 10,192 |
-| glove100 | 20,000 | 6 | rht+blockscale+vector | 79 | 1.7 | 80.7 | 8,803 |
-| glove100 | 20,000 | 8 | haar+exactnorm+scalar | 104 | 2.1 | 106.1 | 7,890 |
-| glove100 | 20,000 | 8 | rht+blockscale+vector | 104 | 26.3 | 130.3 | 101,210 |
 | arxiv768 | 750 | 1 | haar+exactnorm+scalar | 100 | 3145.7 | 3245.7 | 471,861 |
 | arxiv768 | 750 | 1 | rht+blockscale+vector | 108 | 21.2 | 129.2 | 2,940 |
 | arxiv768 | 750 | 2 | haar+exactnorm+scalar | 196 | 3145.7 | 3341.7 | 240,747 |
@@ -265,6 +253,18 @@ Shared = rotation + codebook, divided by the number of documents in that corpus.
 | arxiv768 | 750 | 6 | rht+blockscale+vector | 588 | 53.9 | 641.9 | 1,376 |
 | arxiv768 | 750 | 8 | haar+exactnorm+scalar | 772 | 3147.1 | 3919.1 | 61,149 |
 | arxiv768 | 750 | 8 | rht+blockscale+vector | 780 | 709.3 | 1489.3 | 13,641 |
+| glove100 | 20,000 | 1 | haar+exactnorm+scalar | 16 | 2.0 | 18.5 | 48,495 |
+| glove100 | 20,000 | 1 | rht+blockscale+vector | 16 | 0.1 | 16.6 | 3,200 |
+| glove100 | 20,000 | 2 | haar+exactnorm+scalar | 29 | 2.0 | 31.0 | 27,598 |
+| glove100 | 20,000 | 2 | rht+blockscale+vector | 29 | 1.1 | 30.1 | 15,504 |
+| glove100 | 20,000 | 3 | haar+exactnorm+scalar | 42 | 2.0 | 43.5 | 19,293 |
+| glove100 | 20,000 | 3 | rht+blockscale+vector | 42 | 32.9 | 74.4 | 316,800 |
+| glove100 | 20,000 | 4 | haar+exactnorm+scalar | 54 | 2.0 | 56.0 | 14,839 |
+| glove100 | 20,000 | 4 | rht+blockscale+vector | 60 | 52.5 | 112.5 | 350,192 |
+| glove100 | 20,000 | 6 | haar+exactnorm+scalar | 79 | 2.0 | 81.0 | 10,192 |
+| glove100 | 20,000 | 6 | rht+blockscale+vector | 79 | 1.7 | 80.7 | 8,803 |
+| glove100 | 20,000 | 8 | haar+exactnorm+scalar | 104 | 2.1 | 106.1 | 7,890 |
+| glove100 | 20,000 | 8 | rht+blockscale+vector | 104 | 26.3 | 130.3 | 101,210 |
 | nfcorpus1024 | 3,633 | 1 | haar+exactnorm+scalar | 132 | 1154.5 | 1286.5 | 635,502 |
 | nfcorpus1024 | 3,633 | 1 | rht+blockscale+vector | 144 | 3.7 | 147.7 | 1,849 |
 | nfcorpus1024 | 3,633 | 2 | haar+exactnorm+scalar | 260 | 1154.5 | 1414.5 | 322,640 |
@@ -284,9 +284,9 @@ The ratio is deliberately not called a speedup. The RHT really is O(d log d) aga
 
 | d | vectors | Haar (dense) | RHT | haar/rht | RHT rounds | Haar build | RHT build |
 |---|---|---|---|---|---|---|---|
-| 100 | 4096 | 0.4 ms | 21.0 ms | 0.02x (Haar) | 4 | 1 ms | 0.29 ms |
-| 768 | 4096 | 14.0 ms | 299.0 ms | 0.05x (Haar) | 2 | 64 ms | 0.45 ms |
-| 1024 | 4096 | 21.5 ms | 273.0 ms | 0.08x (Haar) | 1 | 133 ms | 0.38 ms |
-| 4096 | 512 | 42.3 ms | 91.1 ms | 0.46x (Haar) | 1 | 4118 ms | 0.61 ms |
-| 8192 | 512 | 172.1 ms | 325.6 ms | 0.53x (Haar) | 1 | 34200 ms | 5.94 ms |
+| 100 | 4096 | 0.4 ms | 20.6 ms | 0.02x (Haar) | 4 | 1 ms | 0.23 ms |
+| 768 | 4096 | 9.4 ms | 223.6 ms | 0.04x (Haar) | 2 | 59 ms | 0.35 ms |
+| 1024 | 4096 | 16.3 ms | 183.9 ms | 0.09x (Haar) | 1 | 125 ms | 0.30 ms |
+| 4096 | 512 | 31.1 ms | 72.8 ms | 0.43x (Haar) | 1 | 3515 ms | 0.48 ms |
+| 8192 | 512 | 145.6 ms | 217.2 ms | 0.67x (Haar) | 1 | 24066 ms | 0.78 ms |
 

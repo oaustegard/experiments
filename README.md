@@ -5,6 +5,15 @@ subdirectory is self-contained: scripts, data, and a results file
 (`RESULTS.md` for pipeline runs, `README.md` for build/recipe artifacts,
 or the artifact itself when it speaks for itself, like an HTML page).
 
+**Trust conventions.** [`ANCHORS.md`](ANCHORS.md) registers every published
+constant in use with its *covered range*, because a range gap is invisible from
+inside a green run. Each experiment should carry an `ERRORS.md` (what was wrong,
+how it was caught, which direction it pushed the conclusion — the base rate is
+the most useful calibration number about a body of work) and a `recheck.py`
+(a sub-5-minute fixture that checks the prose against the artifacts, so the
+writeup and the data cannot drift apart between full rebuilds).
+`remex-vs-higgs-ablation/` carries all three and is the reference shape.
+
 Results are reported as they came out. Several of these are negative
 results, one is a correction of earlier rejected work, and one turned
 out to reproduce a 2004 paper rather than extend it — all labelled as
@@ -180,8 +189,8 @@ Gaussian-MSE-optimal multi-dimensional grid) — so the difference can be
 attributed to an axis rather than to a method.
 
 **Only axis C moves.** Pooled over 3 corpora (d=100/768/1024) × 6 bit widths ×
-5 rotation seeds: rotation −0.0001 ± 0.0013 recall@10, norm handling
-+0.0008 ± 0.0011, codebook **+0.0108 (cosine) / +0.0132 (inner product)**. The
+5 rotation seeds: rotation +0.0005 ± 0.0016 recall@10, norm handling
++0.0014 ± 0.0014, codebook **+0.0113 (cosine) / +0.0146 (inner product)**. The
 codebook effect peaks at **+0.035 at 2–3 bits**, decays monotonically, and is
 gone by 8 bits — and it is about twice as large at d=100 as at d=768/1024,
 which is what the scalar-vs-vector gap should do as coordinates get closer to
@@ -191,7 +200,7 @@ i.i.d. Gaussian.
 was predicted 10–100× *faster* to apply at d=768–1024; corrected, it is **at parity**,
 because numpy runs the dense rotation as one BLAS `sgemm` and the FWHT as a
 Python loop over strided slices. The ratio does move the right way with
-dimension (50× at d=100 → 1.9× at d=8192), so the asymptotics are visible, but
+dimension (50× at d=100 → 1.5× at d=8192), so the asymptotics are visible, but
 the crossover is far past any retrieval dimension. And exact-norm was predicted
 to win under inner product; it does not — partly because BGE-family encoders
 are *trained* under cosine, so their raw norms barely vary (CV 1.4–2.7% against
@@ -212,6 +221,25 @@ there — but its distinctiveness was never distortion. It is numpy-only,
 calibration-free, data-oblivious, carries a 2 KiB side
 table instead of 1 MiB, and wins on true bytes-per-vector below a few hundred
 thousand documents.
+
+**Rerun 2026-08-02 under the [`gating`](https://github.com/oaustegard/claude-skills/tree/main/gating)
+skill.** The question that run asked was not "does the calibration gate pass"
+but "can it go red." Audited (`audit.py`), three of its checks could not fail in
+the way that mattered: the rotation check compared the two arms to each other
+and nothing else, so replacing **both** with the identity still passed; the
+axis-C check asserted an inequality with no margin, which a vector arm doing no
+vector quantization clears by sampling noise; and the published-table anchor
+stops at 5 bits while the sweep runs to 8. Mutation testing (91 mutants,
+55 survivors) found the gate scored codebook *contents* and never ran the
+*encoder* — mutating the decision boundaries, the nearest-neighbour k, and the
+axis-B norm-mode branch all left it green. The rebuilt gate (`gate.py`, 166
+checks, 5 known-bads, 14 stated coverage limits) now blocks the sweep on a
+non-zero exit instead of being a documented step, and three of its own new
+checks went red on first run — including one that turned an *attainable*
+optimum into a failure, because a Hadamard transform maps a coordinate spike to
+exactly ±1/√d. Conclusions are unchanged: `glove100` and `nfcorpus1024`
+reproduce to four decimals, `arxiv768` shifts because its abstracts are a fresh
+draw.
 
 **Process is most of the value here.** The two-sided calibration gate ran
 *before* the sweep and immediately caught Lloyd-from-random-init converging to
