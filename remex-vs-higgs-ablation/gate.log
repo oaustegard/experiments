@@ -43,7 +43,7 @@ GATE — remex-vs-higgs axis-C calibration
   [PASS] (bracket) haar d=100 spike incoherence [anchor: uniform unit vector, ideal 0.2756]: 0.1 <= 0.273535 < 0.551197 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
   [PASS] (bracket) haar d=100 random-vector incoherence [anchor: uniform unit vector, ideal 0.2756]: 0.137799 < 0.26764 < 0.551197 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
   [PASS] (anchor) rht d=100 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.79e-07
-  [PASS] (anchor) rht d=100 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 5.22e-08
+  [PASS] (anchor) rht d=100 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 5.96e-08
   [PASS] (bracket) rht d=100 spike incoherence [anchor: uniform unit vector, ideal 0.2756]: 0.1 <= 0.271484 < 0.551197 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
   [PASS] (bracket) rht d=100 random-vector incoherence [anchor: uniform unit vector, ideal 0.2756]: 0.137799 < 0.273612 < 0.551197 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
   [PASS] (check) d=100 RHT incoherence within 25% of Haar's: rht=0.2715 haar=0.2735
@@ -52,19 +52,28 @@ GATE — remex-vs-higgs axis-C calibration
   [PASS] (bracket) haar d=768 spike incoherence [anchor: uniform unit vector, ideal 0.1214]: 0.0360844 <= 0.122735 < 0.242851 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
   [PASS] (bracket) haar d=768 random-vector incoherence [anchor: uniform unit vector, ideal 0.1214]: 0.0607128 < 0.121479 < 0.242851 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
   [PASS] (anchor) rht d=768 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
-  [PASS] (anchor) rht d=768 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 2.61e-08
+  [PASS] (anchor) rht d=768 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 1.27e-07
   [PASS] (bracket) rht d=768 spike incoherence [anchor: uniform unit vector, ideal 0.1214]: 0.0360844 <= 0.122375 < 0.242851 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
   [PASS] (bracket) rht d=768 random-vector incoherence [anchor: uniform unit vector, ideal 0.1214]: 0.0607128 < 0.122127 < 0.242851 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
   [PASS] (check) d=768 RHT incoherence within 25% of Haar's: rht=0.1224 haar=0.1227
+  [PASS] (anchor) haar d=784 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
+  [PASS] (anchor) haar d=784 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 1.15e-07
+  [PASS] (bracket) haar d=784 spike incoherence [anchor: uniform unit vector, ideal 0.1207]: 0.0357143 <= 0.121785 < 0.241319 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) haar d=784 random-vector incoherence [anchor: uniform unit vector, ideal 0.1207]: 0.0603298 < 0.120451 < 0.241319 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (anchor) rht d=784 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
+  [PASS] (anchor) rht d=784 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 3.73e-08
+  [PASS] (bracket) rht d=784 spike incoherence [anchor: uniform unit vector, ideal 0.1207]: 0.0357143 <= 0.124512 < 0.241319 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) rht d=784 random-vector incoherence [anchor: uniform unit vector, ideal 0.1207]: 0.0603298 < 0.119337 < 0.241319 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (check) d=784 RHT incoherence within 25% of Haar's: rht=0.1245 haar=0.1218
   [PASS] (anchor) haar d=1024 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
   [PASS] (anchor) haar d=1024 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 8.94e-08
-  [PASS] (bracket) haar d=1024 spike incoherence [anchor: uniform unit vector, ideal 0.1080]: 0.03125 <= 0.10869 < 0.216006 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
-  [PASS] (bracket) haar d=1024 random-vector incoherence [anchor: uniform unit vector, ideal 0.1080]: 0.0540014 < 0.107622 < 0.216006 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (bracket) haar d=1024 spike incoherence [anchor: uniform unit vector, ideal 0.1075]: 0.03125 <= 0.10647 < 0.215059 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) haar d=1024 random-vector incoherence [anchor: uniform unit vector, ideal 0.1075]: 0.0537647 < 0.10779 < 0.215059 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
   [PASS] (anchor) rht d=1024 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
-  [PASS] (anchor) rht d=1024 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 1.86e-08
-  [PASS] (bracket) rht d=1024 spike incoherence [anchor: uniform unit vector, ideal 0.1080]: 0.03125 <= 0.03125 < 0.216006 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
-  [PASS] (bracket) rht d=1024 random-vector incoherence [anchor: uniform unit vector, ideal 0.1080]: 0.0540014 < 0.107783 < 0.216006 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
-  [PASS] (check) d=1024 RHT incoherence within 25% of Haar's: rht=0.0312 haar=0.1087
+  [PASS] (anchor) rht d=1024 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 8.85e-08
+  [PASS] (bracket) rht d=1024 spike incoherence [anchor: uniform unit vector, ideal 0.1075]: 0.03125 <= 0.03125 < 0.215059 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) rht d=1024 random-vector incoherence [anchor: uniform unit vector, ideal 0.1075]: 0.0537647 < 0.106996 < 0.215059 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (check) d=1024 RHT incoherence within 25% of Haar's: rht=0.0312 haar=0.1065
   [PASS] (anchor) scalar b=2 d=64 codec is idempotent [anchor: Q(Q(x)) = Q(x)]: max drift 0.00e+00
   [PASS] (anchor) scalar b=2 d=64 output is drawn from the codebook [anchor: definition of a quantizer]: 4 codepoints
   [PASS] (bracket) scalar b=2 d=64 encoder attains the codebook's own distortion: 0.105734 < 0.117517 < 0.12923 — the point-set MSE cannot see a wrong decision boundary
@@ -117,6 +126,24 @@ GATE — remex-vs-higgs axis-C calibration
   [PASS] (bracket) d=768 b=4 scalar shared bytes == d²·4 + 2^b·4: 2,359,360 vs 2,359,360
   [PASS] (bracket) d=768 b=4 vector shared bytes == perms·d·5 + K·m·4: 1,056,256 vs 1,056,256
   [PASS] (bracket) d=768 b=4 vector codebook exceeds the scalar level table: 1,048,576B vs 64B
+  [PASS] (check) d=784 b=2 payload matched: scalar=196.0 vector=196.0
+  [PASS] (anchor) d=784 b=2 payload == d*bits/8 [anchor: arithmetic]: scalar=196.0 vector=196.0 expected=196.0
+  [PASS] (bracket) d=784 b=2 total == payload + side: scalar=200.0 vector=210.0
+  [PASS] (bracket) d=784 b=2 blockscale arm has >1 block: nblocks=7 block=112
+  [PASS] (check) d=784 b=2 side channels itemised: exactnorm=4.0B blockscale=14.0B (7x112)
+  [PASS] (check) d=784 b=2 block tiles the sub-vector dim: block=112 m=8
+  [PASS] (bracket) d=784 b=2 scalar shared bytes == d²·4 + 2^b·4: 2,458,640 vs 2,458,640
+  [PASS] (bracket) d=784 b=2 vector shared bytes == perms·d·5 + K·m·4: 2,108,912 vs 2,108,912
+  [PASS] (bracket) d=784 b=2 vector codebook exceeds the scalar level table: 2,097,152B vs 16B
+  [PASS] (check) d=784 b=4 payload matched: scalar=392.0 vector=392.0
+  [PASS] (anchor) d=784 b=4 payload == d*bits/8 [anchor: arithmetic]: scalar=392.0 vector=392.0 expected=392.0
+  [PASS] (bracket) d=784 b=4 total == payload + side: scalar=396.0 vector=406.0
+  [PASS] (bracket) d=784 b=4 blockscale arm has >1 block: nblocks=7 block=112
+  [PASS] (check) d=784 b=4 side channels itemised: exactnorm=4.0B blockscale=14.0B (7x112)
+  [PASS] (check) d=784 b=4 block tiles the sub-vector dim: block=112 m=4
+  [PASS] (bracket) d=784 b=4 scalar shared bytes == d²·4 + 2^b·4: 2,458,688 vs 2,458,688
+  [PASS] (bracket) d=784 b=4 vector shared bytes == perms·d·5 + K·m·4: 1,060,336 vs 1,060,336
+  [PASS] (bracket) d=784 b=4 vector codebook exceeds the scalar level table: 1,048,576B vs 64B
   [PASS] (check) d=1024 b=2 payload matched: scalar=256.0 vector=256.0
   [PASS] (anchor) d=1024 b=2 payload == d*bits/8 [anchor: arithmetic]: scalar=256.0 vector=256.0 expected=256.0
   [PASS] (bracket) d=1024 b=2 total == payload + side: scalar=260.0 vector=272.0
@@ -124,7 +151,7 @@ GATE — remex-vs-higgs axis-C calibration
   [PASS] (check) d=1024 b=2 side channels itemised: exactnorm=4.0B blockscale=16.0B (8x128)
   [PASS] (check) d=1024 b=2 block tiles the sub-vector dim: block=128 m=8
   [PASS] (bracket) d=1024 b=2 scalar shared bytes == d²·4 + 2^b·4: 4,194,320 vs 4,194,320
-  [PASS] (bracket) d=1024 b=2 vector shared bytes == perms·d·5 + K·m·4: 2,102,272 vs 2,102,272
+  [PASS] (bracket) d=1024 b=2 vector shared bytes == perms·d·5 + K·m·4: 2,097,152 vs 2,097,152
   [PASS] (bracket) d=1024 b=2 vector codebook exceeds the scalar level table: 2,097,152B vs 16B
   [PASS] (check) d=1024 b=4 payload matched: scalar=512.0 vector=512.0
   [PASS] (anchor) d=1024 b=4 payload == d*bits/8 [anchor: arithmetic]: scalar=512.0 vector=512.0 expected=512.0
@@ -133,13 +160,14 @@ GATE — remex-vs-higgs axis-C calibration
   [PASS] (check) d=1024 b=4 side channels itemised: exactnorm=4.0B blockscale=16.0B (8x128)
   [PASS] (check) d=1024 b=4 block tiles the sub-vector dim: block=128 m=4
   [PASS] (bracket) d=1024 b=4 scalar shared bytes == d²·4 + 2^b·4: 4,194,368 vs 4,194,368
-  [PASS] (bracket) d=1024 b=4 vector shared bytes == perms·d·5 + K·m·4: 1,053,696 vs 1,053,696
+  [PASS] (bracket) d=1024 b=4 vector shared bytes == perms·d·5 + K·m·4: 1,048,576 vs 1,048,576
   [PASS] (bracket) d=1024 b=4 vector codebook exceeds the scalar level table: 1,048,576B vs 64B
   [PASS] (known-bad) an under-trained m=8 grid is rejected by the E8 anchor: bad=0.09142 > E8*0.99=0.09029
   [PASS] (known-bad) an identity 'rotation' is rejected by the incoherence bracket: identity spike incoherence 1.0000 outside (0.1000, 0.5537) — the old relative check passed this, because both arms were equally broken
   [PASS] (known-bad) a vector arm with zero quantization gain is rejected by the SAME criterion the real grids face: unrefined product grid gains +0.000 dB -> REJECTED. It DOES pass the old `< scalar` test (0.117542 < 0.117482), which is why that test certified nothing. [0.0625 < 0.117542 < 0.117542 — gain over the lifted scalar grid +0.00 dB must clear 3 se of the paired estimator (se=0.00e+00); cannot beat the rate-distortion bound 2^-2b]
   [PASS] (known-bad) the b=8 scalar MSE that shipped in the first run is rejected by Panter-Dite: recorded pre-fix ratio 3.140 >= 2.7207; the published table's range ends at b=5 so G1 could never see this
   [PASS] (known-bad) an arm that drops its codebook from shared bytes is rejected: 2,016B without the grid vs 22,480B with it
+  [note] gating dimensions read from built corpora: (100, 768, 784, 1024) (not a hard-coded list — see corpus_dims())
   [note] noise model: analytic paired se 3.094e-04 vs observed spread of the same difference over 5 independent streams 2.176e-04 (ratio 1.42; with 5 draws the observed spread is itself only good to ~35%)
   [note] b=1 m=5 K=32: grid=0.33518 scalar=0.36338 gain=+0.35 dB ratio-to-Shannon=1.341
   [note] b=2 m=5 K=1024: grid=0.0947629 scalar=0.117482 gain=+0.93 dB ratio-to-Shannon=1.516
@@ -153,13 +181,16 @@ GATE — remex-vs-higgs axis-C calibration
   [note] E8 ball codebook (2^16 pts, best scale 0.985): mse/dim=0.09120
   [note] d=100: ideal E[max|coord|] of a uniform unit vector = 0.2756 (independent draw, no rotation code involved); 1/sqrt(d)=0.1000
   [note] d=768: ideal E[max|coord|] of a uniform unit vector = 0.1214 (independent draw, no rotation code involved); 1/sqrt(d)=0.0361
-  [note] d=1024: ideal E[max|coord|] of a uniform unit vector = 0.1080 (independent draw, no rotation code involved); 1/sqrt(d)=0.0312
+  [note] d=784: ideal E[max|coord|] of a uniform unit vector = 0.1207 (independent draw, no rotation code involved); 1/sqrt(d)=0.0357
+  [note] d=1024: ideal E[max|coord|] of a uniform unit vector = 0.1075 (independent draw, no rotation code involved); 1/sqrt(d)=0.0312
   [note] d=100 b=2 shared bytes: remex(haar+scalar)=40,016B HIGGS-like(rht+vector)=22,480B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
   [note] d=100 b=4 shared bytes: remex(haar+scalar)=40,064B HIGGS-like(rht+vector)=1,050,576B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
   [note] d=768 b=2 shared bytes: remex(haar+scalar)=2,359,312B HIGGS-like(rht+vector)=2,104,832B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
   [note] d=768 b=4 shared bytes: remex(haar+scalar)=2,359,360B HIGGS-like(rht+vector)=1,056,256B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
-  [note] d=1024 b=2 shared bytes: remex(haar+scalar)=4,194,320B HIGGS-like(rht+vector)=2,102,272B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
-  [note] d=1024 b=4 shared bytes: remex(haar+scalar)=4,194,368B HIGGS-like(rht+vector)=1,053,696B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=784 b=2 shared bytes: remex(haar+scalar)=2,458,640B HIGGS-like(rht+vector)=2,108,912B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=784 b=4 shared bytes: remex(haar+scalar)=2,458,688B HIGGS-like(rht+vector)=1,060,336B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=1024 b=2 shared bytes: remex(haar+scalar)=4,194,320B HIGGS-like(rht+vector)=2,097,152B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=1024 b=4 shared bytes: remex(haar+scalar)=4,194,368B HIGGS-like(rht+vector)=1,048,576B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
   [cannot catch] Max (1960) covers b<=5 only. Above that the anchor is Panter-Dite, which is asymptotic: it bounds the scalar MSE from above but does not pin it, so an error smaller than the gap to the asymptote (~2.6% at b=6, ~0.6% at b=8) is invisible.
   [cannot catch] Every codebook check scores against N(0, I). If the rotated corpus coordinates are not Gaussian — heavy tails, residual anisotropy the rotation failed to kill — every grid here is calibrated for the wrong source and all of these checks still pass. Nothing in the gate looks at a real corpus.
   [cannot catch] The incoherence bracket is evaluated on coordinate spikes and random unit vectors, not on the corpora. A rotation that spreads those but interacts badly with real embedding geometry passes.
@@ -175,4 +206,4 @@ GATE — remex-vs-higgs axis-C calibration
   [cannot catch] MUTATION SURVIVOR — the QJL replication control's internals (quantizers.py:260-297: sketch scale, residual norm, the sqrt(pi/2) debiasing). The gate now only checks that the control stays DOMINATED by plain scalar, which is the property the sweep reads it for. A QJL arm that is wrong in a way that keeps it dominated would pass, and the sweep would report a control that is correctly ordered for the wrong reason.
   [cannot catch] Equivalent mutants confirmed by inspection, not gaps: the sign in _trunc_second_moment (grids.py:152-154) is unobservable because Sum(fb - fa) telescopes to zero for any symmetric level set; `* sign` -> `/ sign` (quantizers.py:120) is identity for sign = ±1; and numpy treats reshape(-2, B) exactly like reshape(-1, B).
 
-PASSED — 139 checks, 5 known-bad rejected, 14 coverage limit(s) stated.
+PASSED — 166 checks, 5 known-bad rejected, 14 coverage limit(s) stated.

@@ -63,6 +63,8 @@ from calibrate import best_scaled_mse, codebook_mse, e8_ball_codebook
 #: The optimal fixed-rate quantizer approaches this FROM BELOW, so it is a
 #: hard upper bound at every finite rate and the anchor that covers the rates
 #: Max (1960)'s table does not reach.
+HERE = Path(__file__).resolve().parent
+
 PANTER_DITE = 2.7207
 
 #: Seeds used to check the analytic standard error against an observed spread.
@@ -101,6 +103,39 @@ def paired_gain(C_vq: np.ndarray, C_raw: np.ndarray, n: int, seed: int = 11):
     return mse_vq, mse_raw, gain_db, se
 
 
+#: Dimensions to fall back on when no corpora are built (CI, a fresh clone).
+FALLBACK_DIMS = (100, 768, 784, 1024)
+
+
+def corpus_dims() -> tuple[int, ...]:
+    """The dimensionalities the sweep will actually run, read from the corpora.
+
+    Hard-coding this list is exactly how the FIRST gate came to certify grids
+    for d=768 only, while every `glove100` number in the writeup came from
+    uncertified m=5 grids — the audit's G3 finding. A hard-coded list does not
+    fail when a corpus is added at a new dimensionality; it silently stops
+    covering the sweep.
+
+    So the gate asks the assets rather than a constant. `fmnist784` was added
+    to `DATASETS` upstream while this branch was open, and at d=784 the RHT is
+    a configuration nothing had gated: B = 16 (the largest power of two
+    dividing 784) over 3 rounds, against B = 256/1024 and 1-2 rounds elsewhere.
+    Its grids happen to be shared with d=768/1024, but its rotation, its block
+    tiling and its incoherence are its own.
+    """
+    dims = set()
+    for path in sorted((HERE / "assets").glob("*.npz")):
+        if path.name in {"fashion-mnist.npz"}:
+            continue
+        try:
+            with np.load(path) as z:
+                if "docs" in z:
+                    dims.add(int(z["docs"].shape[1]))
+        except (OSError, ValueError, KeyError):
+            continue
+    return tuple(sorted(dims)) if dims else FALLBACK_DIMS
+
+
 # --------------------------------------------------------------------------
 
 
@@ -110,7 +145,11 @@ def build(fast: bool) -> Gate:
     # `mutate.py` can run the gate a hundred times, not to certify anything.
     N = 40_000 if fast else 1_000_000
     NE8 = 25_000 if fast else 600_000
-    DIMS = (100,) if fast else (100, 768, 1024)
+    ALL_DIMS = corpus_dims()
+    DIMS = ALL_DIMS[:1] if fast else ALL_DIMS
+
+    g.note(f"gating dimensions read from built corpora: {ALL_DIMS} "
+           f"(not a hard-coded list — see corpus_dims())")
 
     # ---- the measurement instrument, before anything it measures ---------
     # Lifting the scalar levels into an m-dim product grid makes the sampled
@@ -191,7 +230,7 @@ def build(fast: bool) -> Gate:
         want = [(2, 2)]
     else:
         want, seen = [], set()
-        for d in DIMS:
+        for d in ALL_DIMS:
             for b in (1, 2, 3, 4, 6, 8):
                 m = grids.pick_m(b, d)
                 if m == 1 or (m, 1 << (b * m)) in seen:

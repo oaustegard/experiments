@@ -14,6 +14,17 @@ would retrieve?" — so we score each code against fp32's OWN ranking:
   * recon cosine  — mean cosine(decode(code), fp32 vector). remex only
     (remax codes are binary, no dequantization).
 
+METRIC CONSISTENCY (fixed 2026-08-01, see experiments#9): the reference
+ranking is cosine, so every candidate ranking must be cosine too.  Scoring
+`q @ xhat` without dividing by ||xhat|| silently mixes the angular question
+with a reconstruction-norm question, and it does not do so evenly across
+codecs: a 1-bit code has constant reconstruction norm *by construction* and
+therefore pays no penalty at all, while a multi-bit code carries real norm
+error.  In the sibling ablation that manufactured a false low-rate result
+(0.663 -> 0.689 once renormalised).  Both sides are normalised below.  If you
+want to score MIPS instead, normalise NEITHER side -- but then the reference
+must be MIPS as well.
+
 Reads cached fp32 vectors (no re-embedding). Each Quantizer is built once.
 """
 from __future__ import annotations
@@ -72,9 +83,16 @@ def main():
         n, m = D.shape[0], Q.shape[0]
         print(f"\n### {corpus}: {n} docs (chunk-level), {m} queries", flush=True)
 
-        # fp32 ground truth
+        # fp32 ground truth, under the same metric the candidates are scored
+        # with.  Row-normalising D is a no-op for an already-unit-norm encoder
+        # output and a correction otherwise; the CV is printed so the choice
+        # is visible rather than assumed.
+        dn = np.linalg.norm(D, axis=1)
+        print(f"  doc-norm CV {dn.std() / dn.mean():.4f} "
+              f"({'unit-norm' if dn.std() / dn.mean() < 1e-4 else 'unnormalised'})")
         global gt_scores_cache
-        gt_scores_cache = (Q @ D.T).astype(np.float32)              # (m, n)
+        Dn = D / (dn[:, None] + 1e-12)
+        gt_scores_cache = (Q @ Dn.T).astype(np.float32)             # (m, n)
         gt_top = np.argsort(-gt_scores_cache, axis=1)               # (m, n)
 
         rows = []  # (label, bits, dim, B/row, rec{1,5,10,100}, rho, recon)
@@ -85,13 +103,18 @@ def main():
             print(f"  {label:<20} R@1={rec[1]:.3f} R@10={rec[10]:.3f} "
                   f"R@100={rec[100]:.3f} rho={rho:.3f} recon={recon}", flush=True)
 
-        # remex family — build each Quantizer once, decode for aligned scores
+        # remex family — build each Quantizer once, decode for aligned scores.
+        # Note the d512 row is scored against the FULL-width fp32 ranking, so
+        # it reports truncation + quantization together.  That is the intended
+        # reading for a bytes-per-row comparison; it is not a pure codec number.
         for bits, dim in [(8, 768), (4, 768), (2, 768), (1, 768), (4, 512)]:
             t = time.time()
             qz = Quantizer(d=dim, bits=bits, seed=SEED)
             comp = qz.encode(np.ascontiguousarray(D[:, :dim]))
             Xhat = qz.decode(comp)                                   # (n, dim) approx fp32
-            scores = Q[:, :dim] @ Xhat.T                             # (m, n) aligned
+            # Cosine, to match the reference ranking -- see METRIC CONSISTENCY.
+            Xn = Xhat / (np.linalg.norm(Xhat, axis=1, keepdims=True) + 1e-12)
+            scores = Q[:, :dim] @ Xn.T                               # (m, n) aligned
             recon = float(np.mean(np.sum(Xhat * D[:, :dim], axis=1) /
                           (np.linalg.norm(Xhat, axis=1) * np.linalg.norm(D[:, :dim], axis=1) + 1e-9)))
             add(f"remex {bits}b d{dim}", bits, dim, dim * bits // 8, scores, f"{recon:.4f}")

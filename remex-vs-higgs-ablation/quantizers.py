@@ -62,25 +62,66 @@ class HaarRotation:
         return Y @ self.Q.T
 
 
+_HADAMARD_CACHE: dict[int, np.ndarray] = {}
+
+# Above this block size the explicit matrix stops paying: the butterfly does
+# log2(B) passes over the data while the matmul does B multiply-adds per
+# element, so BLAS's constant-factor advantage is eventually swamped.
+# Measured crossover on this container is B ~ 2048; 1024 is the conservative
+# side of it.  See RESULTS.md "Axis A".
+FWHT_MATMUL_MAX_B = 1024
+
+
+def _hadamard(B: int) -> np.ndarray:
+    """Orthonormal Sylvester Hadamard matrix, cached per block size."""
+    H = _HADAMARD_CACHE.get(B)
+    if H is None:
+        from scipy.linalg import hadamard as _sc_hadamard
+
+        H = np.ascontiguousarray(_sc_hadamard(B).astype(np.float32) / math.sqrt(B))
+        _HADAMARD_CACHE[B] = H
+    return H
+
+
 def fwht(a: np.ndarray) -> np.ndarray:
     """Normalized fast Walsh-Hadamard transform along the last axis.
 
-    Normalized by 1/sqrt(B), so the transform is orthogonal *and* symmetric —
+    Normalized by 1/sqrt(B), so the transform is orthogonal *and* symmetric --
     it is its own inverse, which is why `RHTRotation.inverse` can reuse it.
+
+    Two implementations, selected by block size, because the honest comparison
+    against a dense BLAS rotation needs the fast transform to actually be fast:
+
+      * B <= FWHT_MATMUL_MAX_B: one `sgemm` against a cached Hadamard matrix.
+        More arithmetic than the butterfly, but it runs at BLAS speed instead
+        of at numpy-elementwise speed, and it is what wins at every dimension
+        anyone builds a retrieval index at.
+      * larger B: a copy-free butterfly that ping-pongs between two buffers.
+        `np.add(..., out=)` into the destination avoids the two full-array
+        temporaries per stage that the naive in-place version needs.
+
+    Both agree with the naive butterfly exactly (matmul to float32 rounding).
     """
     B = a.shape[-1]
     lead = a.shape[:-1]
-    y = np.ascontiguousarray(a, dtype=np.float32).reshape(-1, B).copy()
+    if B <= FWHT_MATMUL_MAX_B:
+        flat = np.ascontiguousarray(a, dtype=np.float32).reshape(-1, B)
+        return (flat @ _hadamard(B)).reshape(*lead, B)
+    # np.array(copy) is required: the ping-pong can end on the input buffer,
+    # and the final in-place scaling would then mutate the caller's array.
+    src = np.array(a, dtype=np.float32, order="C").reshape(-1, B)
+    dst = np.empty_like(src)
     h = 1
     while h < B:
-        y = y.reshape(-1, B // (2 * h), 2, h)
-        x0 = y[:, :, 0, :].copy()
-        x1 = y[:, :, 1, :].copy()
-        y[:, :, 0, :] = x0 + x1
-        y[:, :, 1, :] = x0 - x1
-        y = y.reshape(-1, B)
+        s = src.reshape(-1, B // (2 * h), 2, h)
+        d = dst.reshape(-1, B // (2 * h), 2, h)
+        np.add(s[:, :, 0, :], s[:, :, 1, :], out=d[:, :, 0, :])
+        np.subtract(s[:, :, 0, :], s[:, :, 1, :], out=d[:, :, 1, :])
+        src, dst = dst, src
         h *= 2
-    return (y / math.sqrt(B)).reshape(*lead, B)
+    src = src.reshape(-1, B)
+    src /= math.sqrt(B)
+    return src.reshape(*lead, B)
 
 
 def _largest_pow2_divisor(d: int) -> int:
@@ -108,7 +149,12 @@ class RHTRotation:
         if self.B < 2:
             raise ValueError(f"d={d} has no usable Hadamard block")
         rounds = 1 if self.B == d else max(2, math.ceil(math.log(d) / math.log(self.B)))
-        self.perms = [rng.permutation(d) for _ in range(rounds)]
+        # The classical RHT is H.D -- a sign flip then a full-width Hadamard.
+        # The permutation exists only to mix ACROSS blocks when B < d; with a
+        # single full-width block it is dead weight, and a gather over a
+        # (n, d) array is the most expensive step in the whole transform.
+        self.permute = not (rounds == 1 and self.B == d)
+        self.perms = [rng.permutation(d) for _ in range(rounds)] if self.permute else []
         self.inv_perms = [np.argsort(p) for p in self.perms]
         self.signs = [rng.choice(np.array([-1.0, 1.0], np.float32), size=d)
                       for _ in range(rounds)]
@@ -116,17 +162,21 @@ class RHTRotation:
     def apply(self, X):
         Y = np.ascontiguousarray(X, dtype=np.float32)
         n = Y.shape[0]
-        for perm, sign in zip(self.perms, self.signs):
-            Y = Y[:, perm] * sign
+        perms = self.perms if self.permute else [None] * len(self.signs)
+        for perm, sign in zip(perms, self.signs):
+            Y = np.take(Y, perm, axis=1) * sign if perm is not None else Y * sign
             Y = fwht(Y.reshape(n, self.d // self.B, self.B)).reshape(n, self.d)
         return Y
 
     def inverse(self, Y):
         Z = np.ascontiguousarray(Y, dtype=np.float32)
         n = Z.shape[0]
-        for perm_inv, sign in zip(reversed(self.inv_perms), reversed(self.signs)):
+        inv = self.inv_perms if self.permute else [None] * len(self.signs)
+        for perm_inv, sign in zip(reversed(inv), reversed(self.signs)):
             Z = fwht(Z.reshape(n, self.d // self.B, self.B)).reshape(n, self.d)
-            Z = (Z * sign)[:, perm_inv]
+            Z = Z * sign
+            if perm_inv is not None:
+                Z = np.take(Z, perm_inv, axis=1)
         return Z
 
 

@@ -9,7 +9,8 @@ in this experiment rather than the ones that sound plausible.
 
 Four phases, cheapest first:
 
-  1. ARTIFACT INTEGRITY  results.json has the shape the writeup assumes
+  1. ARTIFACT INTEGRITY  results.json has the shape the writeup assumes, AND
+                         was produced by the code currently in the tree
   2. PROSE vs ARTIFACT   the headline numbers in RESULTS.md are RECOMPUTED
                          from results.json by a code path that shares nothing
                          with summarize.py, and must match what the prose says
@@ -32,6 +33,7 @@ Run:  python3 recheck.py     (~90 s; non-zero exit on any failure)
 """
 from __future__ import annotations
 
+import hashlib
 import itertools
 import json
 import re
@@ -63,16 +65,66 @@ def check(ok: bool, label: str, detail: str = "") -> bool:
 # 1. artifact integrity
 
 
+def expected_blocks() -> set[str]:
+    """Every (corpus, metric) the sweep is configured to produce.
+
+    Read from run_ablation.DATASETS rather than hard-coded. A hard-coded list
+    is what let this fixture pass while `fmnist784` was added to DATASETS
+    upstream and the stored results still covered only three corpora — the
+    fixture would have certified a results.json that was missing a quarter of
+    the sweep.
+    """
+    sys.path.insert(0, str(HERE))
+    from run_ablation import DATASETS, METRICS
+    return {f"{d}|{m}" for d in DATASETS for m in METRICS}
+
+
 def phase1(res) -> None:
     print("\n1. ARTIFACT INTEGRITY")
-    blocks = [k for k in res if not k.startswith("_")]
-    check(len(blocks) == 6, "results.json has 6 corpus x metric blocks",
-          f"{sorted(blocks)}")
+    blocks = {k for k in res if not k.startswith("_")}
+    want_blocks = expected_blocks()
+    missing, extra = sorted(want_blocks - blocks), sorted(blocks - want_blocks)
+    # `extra` is a real error — a stored block for a corpus the sweep no longer
+    # runs is stale. `missing` is NOT, because upstream deliberately registered
+    # `fmnist784` in DATASETS while stating in RESULTS.md that the axis-B
+    # numbers predate it and have not been re-run. Failing on that would be
+    # this fixture disagreeing with a known, documented, intended state.
+    # Reported loudly instead, so it cannot be forgotten.
+    check(not extra, "results.json has no block for a corpus the sweep dropped",
+          f"extra={extra}")
+    if missing:
+        print(f"  [note] {len(missing)} block(s) in run_ablation.DATASETS with "
+              f"no stored results: {missing}")
+        print("         upstream states the axis-B re-run for fmnist784 is "
+              "pending; this is expected, not drift.")
     check("_timing" in res, "axis-A timing block present")
-    for b in blocks:
+    for b in sorted(blocks):
         want = set(BITS) | {"fp32"}
         check(set(res[b]) == want, f"{b} covers every bit width",
               f"{sorted(res[b])}")
+
+    # Pin the stored results to the code that produced them. This is the gap
+    # the PR #10 merge exposed: `quantizers.py` changed upstream (a different
+    # RHT), so results.json became stale with respect to the tree while every
+    # other check here stayed green. Nothing compared the two.
+    stamp = res.get("_code_fingerprint")
+    live = code_fingerprint()
+    check(stamp is not None,
+          "results.json carries a code fingerprint",
+          "absent — re-run `python3 run_ablation.py` to stamp it")
+    if stamp is not None:
+        check(stamp == live,
+              "results.json was produced by the code now in the tree",
+              f"stored {stamp[:12]} vs live {live[:12]} — the sweep is stale, "
+              f"re-run it")
+
+
+def code_fingerprint() -> str:
+    """Hash of the modules whose behaviour the stored results depend on."""
+    h = hashlib.sha256()
+    for name in ("quantizers.py", "grids.py"):
+        h.update((HERE / name).read_bytes())
+    return h.hexdigest()
 
 
 # --------------------------------------------------------------------------
@@ -202,21 +254,23 @@ def phase4(quick: bool) -> None:
     # is the exhaustive one.  Picked to span both files and both kinds of hole
     # (an unrun encoder, a byte-accounting tautology).
     sample = [c for c in CASES
-              if (c[0], c[1]) in {("grids.py", 166), ("grids.py", 194),
-                                  ("quantizers.py", 206)}]
+              if (c[0], c[1]) in {("grids.py", "self.bnd = (0.5 *"),
+                                  ("grids.py", "self._tree.query(sub, k=1"),
+                                  ("quantizers.py",
+                                   "payload = self.d * self.bits / 8.0")}]
     if quick:
         sample = sample[:1]
-    for fname, line, before, after, breaks, _ in sample:
+    for fname, needle, before, after, breaks, _ in sample:
         path = HERE / fname
         original = path.read_text()
         try:
-            path.write_text(mutate_line(original, line, before, after))
+            path.write_text(mutate_line(original, needle, before, after))
             rc = subprocess.call([sys.executable, str(HERE / "gate.py"), "--fast"],
                                  stdout=subprocess.DEVNULL,
                                  stderr=subprocess.DEVNULL)
         finally:
             path.write_text(original)
-        check(rc != 0, f"mutant {fname}:{line} {before}->{after} still dies",
+        check(rc != 0, f"mutant {fname} [{needle[:28]}] {before}->{after} still dies",
               breaks)
 
 

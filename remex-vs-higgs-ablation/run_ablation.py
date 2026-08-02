@@ -20,6 +20,7 @@ never finishes (METHODS.md principle 7).
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
@@ -46,7 +47,7 @@ METRICS = ("cosine", "ip")
 KS = (10, 100)
 SPEARMAN_QUERIES = 200      # cap: rank correlation is O(m n log n) per arm
 
-DATASETS = ("arxiv768", "glove100", "nfcorpus1024")
+DATASETS = ("arxiv768", "glove100", "fmnist784", "nfcorpus1024")
 
 
 # --------------------------------------------------------------------------
@@ -203,9 +204,15 @@ def run(datasets=DATASETS, resume=True):
                           f"rho={r['spearman']['mean']:.3f} "
                           f"B/vec={r['bytes']['total']:.1f}", flush=True)
                 results[key0][bkey] = block
+                results["_code_fingerprint"] = code_fingerprint()
                 save_json(OUT, results)
                 print(f"  -- {metric} {bits}b done in {time.time() - t0:.0f}s",
                       flush=True)
+    # Always stamp and save, even when every block was cached: a resumed run
+    # that computes nothing still needs to record WHICH code the stored results
+    # correspond to, or a fully-cached re-run silently leaves a stale stamp.
+    results["_code_fingerprint"] = code_fingerprint()
+    save_json(OUT, results)
     return results
 
 
@@ -230,22 +237,28 @@ def timing(reps=5):
     """Wall-clock for axis A.
 
     Includes d well past the corpora so the O(d^2) vs O(d log d) crossover is
-    measured rather than asserted -- at the experiment's own dimensions the
-    dense rotation is one BLAS call and wins outright.
+    measured rather than asserted.  Both arms now run at BLAS speed where they
+    can -- the FWHT dispatches to a cached Hadamard matmul for blocks up to
+    1024 -- so this measures the transforms rather than numpy's elementwise
+    loop overhead.  Reported as min-of-trials, the standard microbenchmark
+    statistic; the mean on a shared container is dominated by neighbours.
     """
     out = {}
     rng = np.random.default_rng(0)
-    for d in (100, 768, 1024, 4096, 8192):
+    for d in (100, 768, 1024, 2048, 4096, 8192):
         nvec = 4096 if d <= 1024 else 512
         X = rng.standard_normal((nvec, d)).astype(np.float32)
         row = {}
         for kind in ("haar", "rht"):
             R = qzm.ROTATIONS[kind](d, 0)
             R.apply(X[:64])  # warm
-            t = time.perf_counter()
-            for _ in range(reps):
-                R.apply(X)
-            row[kind] = (time.perf_counter() - t) / reps
+            best = float("inf")
+            for _ in range(7):
+                t = time.perf_counter()
+                for _ in range(reps):
+                    R.apply(X)
+                best = min(best, (time.perf_counter() - t) / reps)
+            row[kind] = best
             row["nvec"] = X.shape[0]
         bt = time.perf_counter()
         qzm.HaarRotation(d, 0)
@@ -253,19 +266,40 @@ def timing(reps=5):
         bt = time.perf_counter()
         qzm.RHTRotation(d, 0)
         row["rht_build_s"] = time.perf_counter() - bt
-        # Deliberately NOT called "speedup".  The RHT is genuinely O(d log d)
-        # against Haar's O(d^2), but this measures numpy, and numpy runs the
-        # dense rotation as a single BLAS sgemm while the FWHT is a Python
-        # loop over strided slices.  Reporting the ratio as a speedup would be
-        # a claim about the algorithm that the measurement does not support.
+        # Both arms are BLAS-bound at these sizes now, so the ratio is a fair
+        # comparison of the two transforms rather than of numpy's elementwise
+        # loop against sgemm.  It is still a numpy number, not a claim about
+        # the asymptotics in the abstract.
         row["haar_over_rht"] = row["haar"] / row["rht"]
-        row["rounds"] = len(qzm.RHTRotation(d, 0).perms)
+        _R = qzm.RHTRotation(d, 0)
+        row["rounds"] = max(1, len(_R.perms))
+        row["block"] = _R.B
+        row["permuted"] = _R.permute
         out[str(d)] = row
         faster = "rht" if row["haar_over_rht"] > 1 else "haar"
         print(f"  d={d:>4}: haar {row['haar'] * 1e3:7.1f}ms  "
               f"rht {row['rht'] * 1e3:7.1f}ms  ratio haar/rht "
               f"{row['haar_over_rht']:.2f}x ({faster} faster)")
     return out
+
+
+def code_fingerprint() -> str:
+    """Hash of the modules the stored results depend on, stamped into
+    results.json so a later reader can tell whether the sweep matches the code.
+
+    Added after an upstream change to `quantizers.py` (a different RHT) landed
+    while a branch held a results.json produced by the old one. Every check in
+    `recheck.py` stayed green, because nothing compared the results to the code
+    that made them.
+
+    Only the CODEC is hashed, not this harness: changing how the sweep is
+    driven, logged or gated does not change the numbers, and stamping on it
+    would invalidate every stored result on an unrelated edit.
+    """
+    h = hashlib.sha256()
+    for name in ("quantizers.py", "grids.py"):
+        h.update((HERE / name).read_bytes())
+    return h.hexdigest()
 
 
 def require_gate():
@@ -309,6 +343,7 @@ def main():
         t = timing()
         res = json.loads(OUT.read_text()) if OUT.exists() else {}
         res["_timing"] = t
+        res["_code_fingerprint"] = code_fingerprint()
         save_json(OUT, res)
         return 0
     require_gate()

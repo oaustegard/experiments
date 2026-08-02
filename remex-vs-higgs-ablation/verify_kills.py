@@ -23,34 +23,41 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 
-#: (file, 1-based line, before, after, what the mutation breaks, which check
-#: is claimed to catch it).  Every entry is a survivor from mutate.log.
+#: (file, needle, before, after, what the mutation breaks, which check catches
+#: it).  Every entry is a survivor from mutate.log.
+#:
+#: Targets are pinned by a unique SNIPPET of the line, not by a line number.
+#: They were pinned by line number until an upstream change to `quantizers.py`
+#: (the BLAS-bound FWHT) shifted every line in that file by ~50 and the fixture
+#: started reporting "line 206 does not contain '*'".  A fixture that silently
+#: points at the wrong line after someone else edits the file is worse than no
+#: fixture: it fails for a reason unrelated to what it is guarding.
 CASES = [
-    ("grids.py", 39, "1", "2",
+    ("grids.py", "MAX_1960_MSE = {1:", "1", "2",
      "drops b=1 from the Max (1960) anchor table by collapsing a dict key",
      "the Max (1960) anchor table still covers b=1..5"),
-    ("grids.py", 130, "-", "+",
+    ("grids.py", "return np.linspace(-clip, clip, k)", "-", "+",
      "uniform_levels spans [+clip, +clip] — a degenerate grid",
      "uniform floor control"),
-    ("grids.py", 166, "*", "/",
+    ("grids.py", "self.bnd = (0.5 *", "*", "/",
      "ScalarCodebook decision boundaries scaled by 0.5 instead of averaged",
      "scalar codec idempotence / encoder attains the codebook's distortion"),
-    ("grids.py", 166, "+", "-",
+    ("grids.py", "self.bnd = (0.5 *", "+", "-",
      "ScalarCodebook boundaries from level DIFFERENCES, not midpoints",
      "scalar codec idempotence / encoder distortion"),
-    ("grids.py", 194, "1", "2",
+    ("grids.py", "self._tree.query(sub, k=1", "1", "2",
      "VectorCodebook returns the SECOND nearest codepoint",
      "vector encoder attains the codebook's distortion"),
-    ("quantizers.py", 177, "min", "max",
+    ("quantizers.py", "cap = min(BLOCK, d // 2)", "min", "max",
      "d=100 collapses to ONE block, so per-block scale becomes a global scale",
      "blockscale arm has >1 block"),
-    ("quantizers.py", 206, "*", "/",
+    ("quantizers.py", "payload = self.d * self.bits / 8.0", "*", "/",
      "payload byte count becomes d/bits/8",
      "payload == d*bits/8"),
-    ("quantizers.py", 208, "+", "-",
+    ("quantizers.py", '"total": payload + side', "+", "-",
      "total bytes reported as payload MINUS side channels",
      "total == payload + side"),
-    ("quantizers.py", 232, "==", "!=",
+    ("quantizers.py", 'if self.norm_kind == "exactnorm":', "==", "!=",
      "the two axis-B norm modes are swapped",
      "arm round-trip error == codebook MSE"),
 ]
@@ -82,12 +89,23 @@ EQUIVALENT = [
 ]
 
 
-def mutate_line(text: str, line: int, before: str, after: str) -> str:
+def locate(text: str, needle: str) -> int:
+    """1-based line number of the unique line containing `needle`."""
+    hits = [i for i, ln in enumerate(text.splitlines(), 1) if needle in ln]
+    if len(hits) != 1:
+        raise SystemExit(
+            f"needle {needle!r} matched {len(hits)} lines, need exactly 1 — "
+            f"the target moved or changed; fix the snippet, do not guess")
+    return hits[0]
+
+
+def mutate_line(text: str, needle: str, before: str, after: str) -> str:
     lines = text.splitlines(keepends=True)
-    src = lines[line - 1]
+    i = locate(text, needle) - 1
+    src = lines[i]
     if before not in src:
-        raise SystemExit(f"line {line} does not contain {before!r}: {src!r}")
-    lines[line - 1] = src.replace(before, after, 1)
+        raise SystemExit(f"line {i + 1} does not contain {before!r}: {src!r}")
+    lines[i] = src.replace(before, after, 1)
     return "".join(lines)
 
 
@@ -101,19 +119,19 @@ def main() -> int:
         return 2
 
     survived = []
-    for i, (fname, line, before, after, breaks, catcher) in enumerate(CASES, 1):
+    for i, (fname, needle, before, after, breaks, catcher) in enumerate(CASES, 1):
         path = HERE / fname
         original = path.read_text()
         try:
-            path.write_text(mutate_line(original, line, before, after))
+            path.write_text(mutate_line(original, needle, before, after))
             rc = subprocess.call(cmd, stdout=subprocess.DEVNULL,
                                  stderr=subprocess.DEVNULL)
         finally:
             path.write_text(original)     # restore even on Ctrl-C
         ok = rc != 0
         if not ok:
-            survived.append((fname, line, before, after, catcher))
-        print(f"  [{i}/{len(CASES)}] {fname}:{line} {before} -> {after:<5} "
+            survived.append((fname, locate(original, needle), before, after, catcher))
+        print(f"  [{i}/{len(CASES)}] {fname}:{locate(original, needle)} {before} -> {after:<5} "
               f"{'KILLED' if ok else 'SURVIVED'}  ({breaks})")
 
     print("\n" + "=" * 70)

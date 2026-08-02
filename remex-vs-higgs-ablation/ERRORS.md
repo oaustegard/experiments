@@ -9,10 +9,13 @@ available options are "trust the writeup" and "trust nothing", and neither is a
 decision procedure. With it you can ask the real question: *is error here
 detectable and bounded?*
 
-A worked demonstration of why estimating beats nothing but measuring beats
-estimating: asked how many errors this session had produced, the estimate given
-was "roughly seven." Counting them properly for this file gives **eight**. The
-estimate was made an hour after the events, by the process that made them.
+A worked demonstration, in three escalating steps, of why a log beats a
+recollection. Asked how many errors this session had produced, the estimate
+given was "roughly seven" — made an hour after the events, by the process that
+made them. Counting them properly for this file gave **eight**. Then an outside
+party found a **ninth**, and it was the one with the largest effect on the
+writeup. Self-assessment was wrong about the count, and wrong again about the
+ceiling.
 
 **Direction** is the column to read first. An error that makes a check *more
 permissive*, or that makes a conclusion look *stronger*, is far more dangerous
@@ -21,7 +24,7 @@ tries to use the result, and the first never does.
 
 ---
 
-## Run 2 (2026-08-02, the `gating` rerun) — 8 errors, all mine
+## Run 2 (2026-08-02, the `gating` rerun) — 9 errors, all mine
 
 | # | error | caught by | direction |
 |---|---|---|---|
@@ -37,9 +40,41 @@ tries to use the result, and the first never does.
 **Detection attribution.** Gate went red: 4. Standing fixture: 1. Re-reading
 output against artifacts: 2. Running a command rather than trusting prose: 1.
 
+### 9 — caught by someone else, after the branch was already open
+
+| # | error | caught by | direction |
+|---|---|---|---|
+| 9 | **"RHT is 11–24× slower to apply in numpy."** Reported as a result across `RESULTS.md`, `README.md` and the PR body. It measured a butterfly running two full-array copies per stage in interpreted numpy against one tuned `sgemm` — the implementation, not the transform. Corrected upstream in PR #10: ~1.2× slower at d=768, parity at d=1024, **3–4× faster at d=4096–8192**, crossover near d≈1024. | **an outside party**, in a review of the merged first run, while this branch was open | **the flattering direction for remex**, and the writeup said so out loud without acting on it: *"This is a fact about numpy, not about the algorithm... A fused FWHT would change this entirely."* The caveat was correct and the number was still printed as a finding. |
+
+This one is the most instructive entry in the file, for three reasons.
+
+**The disclaimer was not a substitute for the fix.** Flagging that a measurement
+is implementation-bound does not make it safe to report as a result. If a claim
+is known to be an artifact of the harness, the options are to fix the harness or
+to drop the claim — not to publish it with a footnote. Both runs published it.
+
+**The `gating` work did not touch it.** The whole rerun was about whether checks
+can fail, and the gate grew from 8 checks to 139 — none of which looked at axis
+A's timing, because the gate certifies *codebooks and rotations for
+correctness*, not *performance claims*. A performance number has no anchor in
+that gate at all. The confidence grading added later called this claim
+**MEASURED** — "one machine, one BLAS, a contended 4-core box, one run" — which
+was the right tier and still understated it: the problem was not variance, it
+was that the two arms were not comparably implemented.
+
+**It is the first entry here found by someone outside the process.** The other
+eight in run 2 were found by machinery the same process built. That machinery is
+good at "does this code do what its author thinks", and structurally blind to
+"is this comparison fair" — which is a question about intent, not behaviour.
+Anchors and mutants cannot supply it.
+
+**Consequence for this branch:** the sweep was re-run in full against the merged
+code (a changed RHT and a fourth corpus), and every axis-A number in the writeup
+was replaced rather than patched.
+
 Note what did *not* catch anything: careful reading of my own code before
-running it. Every one of these was found by execution or by comparing two
-artifacts, none by inspection alone.
+running it. Every one of these was found by execution, by comparing two
+artifacts, or by an outside party — none by inspection alone.
 
 Note also #6: it passed the fast configuration and failed the full one. A
 cheap check that runs often is not a substitute for running the real one at
@@ -67,7 +102,7 @@ Investigating an anomaly in output: 2.
 
 ## What the two runs together say
 
-**16 errors across two runs of one experiment.** Both runs were done carefully
+**17 errors across two runs of one experiment.** Both runs were done carefully
 by a process that believed it was being careful.
 
 The distribution is the useful part:
@@ -76,22 +111,25 @@ The distribution is the useful part:
   constant, a confound). Five of eight needed a scheduled adversarial reviewer
   to find, because the gate could not see them.
 - **Run 2's errors were mostly in the checking apparatus** (a meaningless
-  comparison, an overclaim, a false red, a toothless known-bad). Four of eight
-  were found by the gate going red on the author's own work.
+  comparison, an overclaim, a false red, a toothless known-bad). Four of nine
+  were found by the gate going red on the author's own work — and the one the
+  machinery could not reach (#9, an unfair performance comparison) needed a
+  reviewer, because fairness is a question about intent, not behaviour.
 
 That shift is what the `gating` skill bought. It did not reduce the error
 count — it moved errors from the class "found by a scheduled human-equivalent
 review, or not at all" into the class "found by machinery, immediately, at the
 moment of the mistake."
 
-**Six of the sixteen pushed a conclusion in the flattering direction**
-(run 1 #1, #2, #3, #8; run 2 #1, #3). That is the number to watch. Errors that
+**Seven of the seventeen pushed a conclusion in the flattering direction**
+(run 1 #1, #2, #3, #8; run 2 #1, #3, #9). That is the number to watch. Errors that
 make results look weaker get caught when someone tries to use them; errors that
 make results look stronger are load-bearing until something external
 contradicts them.
 
 **Nothing here was caught by reading code carefully.** Every one was caught by
-executing something, comparing two artifacts, or by an outside party. Plan
+executing something, comparing two artifacts, or by an outside party — and
+exactly one, run 2 #9, needed the outside party. Plan
 accordingly: buy execution and comparison, not care.
 
 ---
