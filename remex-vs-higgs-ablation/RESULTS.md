@@ -76,8 +76,24 @@ places the run departs from it.
 3. **The BEIR NFCorpus zip host times out** through the same proxy; the
    `mteb/nfcorpus` HuggingFace mirror is used.
 4. **The vector codebook is capped at 2¹⁶ codepoints** (`K_MAX`), which forces
-   sub-vector dimension m=2 at 6 and 8 bits. See the caveats section — this is
-   a real limit on what the 6/8-bit axis-C numbers can claim.
+   sub-vector dimension m=2 at 6 and 8 bits. This was flagged as a possible
+   self-inflicted strawman on the vector arm, then checked against the source:
+   HIGGS §4.3 states its own practical configuration space as grid dimension
+   **p ∈ [1,5]** and grid size **n ∈ [9, 4096]**. This experiment's grids run
+   to m=8 and K=2¹⁶, i.e. at or beyond the published envelope at every bit
+   width, so the cap does not weaken the vector arm relative to the method it
+   stands in for. It does still mean the 6- and 8-bit axis-C numbers are m=2
+   results, and a higher-dimensional grid would close a little more of the
+   remaining gap there — but that is past where either method is interesting,
+   since both are within 0.02 recall@10 of fp32 by then.
+5. **The exact-norm arm quantizes with a Gaussian Lloyd-Max at σ = 1/√d, not
+   the exact Beta marginal.** TurboQuant §3 fits its per-coordinate quantizer
+   to the Beta distribution that a rotated *unit* vector actually has. The
+   Gaussian is the correct asymptotic limit, but it is an approximation
+   applied to remex's own side of the comparison, so `beta_check.py` measures
+   it rather than assuming it is free: excess MSE is ≤0.007% at 2 bits and
+   ≤0.43% at 6 bits for d=100, and ~0% for d ≥ 768. It does not materially
+   handicap remex at any dimension used here.
 
 ## Calibration gate
 
@@ -146,3 +162,75 @@ wins at high rate. That check is now G0/G3 in the gate.
 
 This is the entry that belongs in METHODS.md regardless of how the ablation
 comes out.
+
+## Adversarial review
+
+The issue scheduled an independent review *before* the writeup rather than
+after, on two specific questions: whether the VQ arm is implemented at
+published quality, and whether the bit budget is matched honestly including
+every side channel. A second agent read the harness with no stake in the
+outcome and was told to try to break it.
+
+It did. Five findings were blocking, and two of them were confirmed by direct
+measurement before anything was changed:
+
+**A stale grid, and the reason it survived.** `grid_m2_K65536.npz` — the
+8-bit vector codebook — was still the artifact of the *pre-fix* trainer. Its
+held-out MSE was 7.71e-5 against the scalar quantizer's 4.13e-5: the 8-bit
+vector arm was **2.11 dB worse than scalar**, which would have reproduced
+exactly the fake "scalar wins axis C at high rate" result the gate had already
+caught once. It survived a `rm -rf` of the grid cache because a background
+trainer that was being killed rewrote the file moments after the delete. The
+file was identifiable only by its schema (an `mse_train` key, no `init` key).
+
+The root cause is not the race, it is the cache key: grids were keyed on
+`(m, K)` — on the *problem*, not on the *method*. A cache keyed that way cannot
+notice that the code which produced its contents has changed. Grids are now
+keyed and stamped with a `GRID_VERSION`, and a file whose stamp does not match
+is deleted rather than trusted.
+
+**A wrong published number, in the direction that hides the defect.**
+`lloyd_max_1d` returned the distortion via the fixed-point identity
+MSE = 1 − Σpᵢyᵢ², which holds only when the levels *are* the centroids of the
+cells their boundaries induce. Lloyd has converged by 6 bits but not by 8
+(20,000 iterations still leave max|level − centroid| ≈ 5e-6), so at 8 bits the
+identity was evaluated slightly off the fixed point and returned **4.791e-5
+against a true 4.127e-5, 16% high**. Max (1960)'s published table stops at 5
+bits, so gate check G1 could never have caught it — and an inflated scalar MSE
+makes G3's "the vector grid must beat scalar" test *more permissive* exactly
+where the vector arm is weakest. The corrected value now sits just under the
+Panter–Dite asymptote (2.7207·2⁻²ᵇ = 4.151e-5), as it should.
+
+**A guarantee that was argued rather than enforced.** The claim that seeding
+Lloyd from the scalar product grid makes the vector arm "provably no worse
+than the scalar arm" did not hold as coded. Lloyd is monotone in *training*
+distortion, but selection happens on *held-out* distortion, and the largest
+grids get only ~61 samples per codepoint, where the train/held-out gap reaches
+~14%. Refinement really can land worse than its own starting point, and the
+unrefined product grid was never itself a candidate — so there was nothing to
+fall back to. It is a candidate now, which makes the bound real instead of
+rhetorical. This one stings: it is the same species of error as the bug the
+gate had just caught, and I had written the justification confidently enough
+not to test it.
+
+**A confound that hit one arm only.** At d=100 and 4 bits the block size (50)
+was not a multiple of the sub-vector dimension (4), so 2 of every 25
+sub-vectors straddled a block boundary and had their halves scaled by
+different fp16 factors before being quantized by a grid trained on N(0, I₄).
+That corrupts only the `blockscale+vector` cell — the HIGGS-like arm — and so
+confounds axes B and C rather than degrading anything uniformly. Block size is
+now required to tile the sub-vector dimension.
+
+**A gate that never certified the grids that mattered.** G3 hard-coded
+`pick_m(b, 768)`, so the m=5 grids behind *every* `glove100` number at 1, 2 and
+3 bits were never checked against scalar or against Shannon at all. The gate
+now certifies every distinct grid used across all three corpus dimensions.
+
+Two further findings changed what the experiment can claim rather than what it
+computes, and both are carried into the results below: shared bytes are not
+negligible at these corpus sizes (see the amortization table), and the RHT's
+asymptotic advantage does not survive contact with numpy (see axis A).
+
+The full verdict — `ACCEPTABLE-WITH-CAVEATS` on the VQ arm,
+`HONEST-WITH-CAVEATS` on the per-vector budget and `NOT-MATCHED` once shared
+bytes are counted — is reproduced in the PR body.

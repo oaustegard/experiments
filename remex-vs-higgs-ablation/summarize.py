@@ -150,6 +150,50 @@ def budget(res):
     print()
 
 
+#: Corpus sizes actually swept, for the shared-byte amortization table.
+CORPUS_N = {"arxiv768": 750, "glove100": 20_000, "nfcorpus1024": 3_633}
+
+
+def shared_amortization(res):
+    """What the index-level bytes cost per vector AT THE SIZES ACTUALLY RUN.
+
+    The headline tables exclude the rotation and the codebook because they are
+    shared across the index. That is the convention both lineages use and it is
+    right in the limit — but it is not free here, and it is not symmetric: a
+    Haar rotation is d*d fp32 (2.4 MB at d=768) while a vector codebook is up
+    to 65536*m fp32 (2.1 MB at m=8). At 750 or 20,000 documents those are not
+    rounding errors, and for the vector arm at 4 bits the codebook costs about
+    as much per vector as the entire payload.
+
+    So this table states the crossover instead of hiding it: `N for <5%` is the
+    index size at which shared bytes fall below 5% of the per-vector total.
+    """
+    print("## Shared bytes: what amortization actually costs at these corpus sizes\n")
+    print("Shared = rotation + codebook, divided by the number of documents in "
+          "that corpus. `true B/vec` is payload + side + shared. This is the "
+          "column the headline tables leave out.\n")
+    print("| corpus | N | bits | arm | B/vec (headline) | shared B/vec | "
+          "true B/vec | N for <5% |")
+    print("|---|---|---|---|---|---|---|---|")
+    for key in [k for k in res if k.endswith("|cosine")]:
+        name = key.split("|")[0]
+        n = CORPUS_N.get(name)
+        if not n:
+            continue
+        for b in BITS:
+            cell = res[key].get(str(b))
+            if not cell:
+                continue
+            for arm in (REMEX, HIGGS):
+                r = cell[arm]
+                head = r["bytes"]["total"]
+                sh = r["shared_bytes"] / n
+                need = int(np.ceil(r["shared_bytes"] / (0.05 * head)))
+                print(f"| {name} | {n:,} | {b} | {arm} | {head:.0f} | {sh:.1f} "
+                      f"| {head + sh:.1f} | {need:,} |")
+    print()
+
+
 def timing(res):
     t = res.get("_timing")
     if not t:
@@ -171,6 +215,7 @@ def main():
     axis_summary(res)
     controls(res)
     budget(res)
+    shared_amortization(res)
     timing(res)
     return 0
 

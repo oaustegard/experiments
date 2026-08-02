@@ -42,6 +42,16 @@ MAX_1960_MSE = {1: 0.3634, 2: 0.1175, 3: 0.03454, 4: 0.009497, 5: 0.002499}
 #: it covers the QuIP#-relevant regime (2 bits x 8 dims = 2^16).
 K_MAX = 1 << 16
 
+#: Bumped whenever the grid TRAINING PROCEDURE changes, and part of the cache
+#: filename.  Without this the cache key was (m, K) alone, so a grid trained by
+#: an older, worse procedure was silently reused after the code was fixed --
+#: which is exactly what happened: a stale grid_m2_K65536 from the pre-fix
+#: trainer survived a cache wipe (it was rewritten by a still-dying background
+#: job moments after the delete) and would have made the 8-bit vector arm look
+#: 1.87x worse than scalar.  A cache keyed only on the problem, not on the
+#: method, cannot notice that.
+GRID_VERSION = 2
+
 #: Sub-vector dimensions we are willing to use, largest first.  m must divide
 #: the ambient dimension, so the usable set is per-dataset.
 M_CANDIDATES = (8, 6, 5, 4, 3, 2)
@@ -88,10 +98,17 @@ def lloyd_max_1d(bits: int, iters: int = 20_000, tol: float = 1e-15):
         if abs(prev - mse) < tol:
             break
         prev = mse
-    bnd = 0.5 * (levels[:-1] + levels[1:])
-    edges = np.concatenate([[-np.inf], bnd, [np.inf]])
-    p = np.diff(norm.cdf(edges))
-    mse = 1.0 - float(np.sum(p * levels**2))
+    # Evaluate the distortion directly rather than via the fixed-point
+    # identity MSE = 1 - sum(p_i y_i^2).  That identity only holds when the
+    # levels ARE the centroids of the cells the boundaries induce; recomputing
+    # p from freshly-updated levels evaluates it slightly off the fixed point.
+    # Harmless while Lloyd has converged, but at 8 bits it has not (20k
+    # iterations still leave max|level - centroid| ~ 5e-6) and the identity
+    # reported 4.791e-05 against a true 4.127e-05 -- 16% high.  An inflated
+    # scalar MSE makes the calibration gate's "vector beats scalar" check
+    # MORE permissive exactly where the vector arm is weakest, and Max (1960)
+    # stops at 5 bits so G1 could never catch it.
+    mse = _scalar_mse_gaussian(levels)
     return levels.astype(np.float32), mse
 
 
@@ -238,7 +255,16 @@ def _lloyd(X, K, iters, rng, log=None, init=None):
     return C, float(np.mean(dist**2)) / m
 
 
-def held_out_mse(C: np.ndarray, n: int = 2_000_000, seed: int = 11) -> float:
+#: Sample stream used to CHOOSE between candidate grids.
+SELECT_SEED = 11
+#: A different stream, used to REPORT the winner's MSE.  Selecting and
+#: reporting on the same draw biases the reported number by the max-of-k
+#: selection noise; tiny here (~0.04% against a ~1.2 dB effect) but free to
+#: avoid.
+REPORT_SEED = 977
+
+
+def held_out_mse(C: np.ndarray, n: int = 2_000_000, seed: int = SELECT_SEED) -> float:
     """Per-dimension MSE of a codebook on fresh N(0, I_m) samples.
 
     Always held out.  Training-set MSE of a K-codepoint grid fitted on a few
@@ -256,26 +282,41 @@ def train_gaussian_grid(m: int, K: int, *, iters: int = 25, seed: int = 20260802
                         log=None) -> tuple[np.ndarray, float]:
     """Gaussian-optimal m-dim grid with K codepoints, cached on disk.
 
-    Two candidates are trained and the better on **held-out** MSE is kept:
+    Three candidates are scored on held-out MSE and the best is kept:
 
-      1. Lloyd seeded from `product_init` — the scalar quantizer lifted to m
-         dimensions.  This is the candidate that matters; it makes the vector
-         arm provably no worse than the scalar arm.
+      0. `product_init` itself, **unrefined** — the scalar quantizer lifted to
+         m dimensions, no Lloyd at all.
+      1. Lloyd seeded from `product_init`.
       2. Lloyd from a random sample of the source, the textbook LBG init.
 
-    Keeping the better of the two is not hedging: candidate 2 wins at low rate
-    (where the shaping gain is large and the product grid's rectangular
-    boundary is a real handicap) and candidate 1 wins at high rate, and picking
-    per-configuration is what gives the vector arm its best honest shot.
+    Candidate 0 is what makes "the vector arm is never worse than the scalar
+    arm" actually true.  An earlier version claimed that guarantee from
+    candidate 1 alone, reasoning that Lloyd is monotone — but Lloyd is monotone
+    in *training* distortion while selection happens on *held-out* distortion,
+    and at the 61 samples/codepoint the largest grids get, the train/held-out
+    gap reaches ~14%.  So refinement really can come out worse than its own
+    starting point, and without candidate 0 there was nothing to fall back to.
+    Since a product grid reproduces the scalar quantizer exactly under
+    nearest-neighbour assignment, keeping it as a candidate bounds the vector
+    arm below by the scalar arm up to held-out sampling noise.
 
-    Sample count is 300 per codepoint, floor 400k, cap 6M.  The earlier 40 per
-    codepoint was too thin: at K=4096 it cost ~25% in held-out MSE.
+    Candidates 1 and 2 split the regimes: 2 wins at low rate (large shaping
+    gain, where the product grid's rectangular boundary is a real handicap) and
+    1 wins at high rate.
+
+    Sample count is 300 per codepoint (floor 400k), but the work budget below
+    caps it at 6M — so the K=65536 grids actually get ~61/codepoint and
+    K=32768 gets ~183.  That undersampling costs ~3.4% held-out MSE at
+    m=4/K=4096 in a controlled check; candidate 0 is the guard that keeps it
+    from ever costing more than the scalar baseline.
     """
     GRID_CACHE.mkdir(parents=True, exist_ok=True)
-    path = GRID_CACHE / f"grid_m{m}_K{K}.npz"
+    path = GRID_CACHE / f"grid_v{GRID_VERSION}_m{m}_K{K}.npz"
     if path.exists():
         z = np.load(path)
-        return z["C"], float(z["mse"])
+        if str(z.get("version", "")) == str(GRID_VERSION):
+            return z["C"], float(z["mse"])
+        path.unlink()   # written by a different procedure; do not trust it
     bits = round(math.log2(K) / m)
     n = int(min(6_000_000, max(400_000, 300 * K)))
     # Lloyd cost is O(iters * n * log K) with a large constant in 8 dimensions.
@@ -291,18 +332,22 @@ def train_gaussian_grid(m: int, K: int, *, iters: int = 25, seed: int = 20260802
         log(f"    training grid m={m} K={K} ({bits}b/coord) on {n:,} samples")
     cands = []
     if (1 << (bits * m)) == K:
-        C1, _ = _lloyd(X, K, iters, rng, log=log, init=product_init(bits, m))
+        P = product_init(bits, m)
+        cands.append(("product-raw", P, held_out_mse(P)))
+        C1, _ = _lloyd(X, K, iters, rng, log=log, init=P)
         cands.append(("product-init", C1, held_out_mse(C1)))
     C2, _ = _lloyd(X, K, iters, rng, log=log)
     cands.append(("random-init", C2, held_out_mse(C2)))
     for tag, _, v in cands:
         if log:
             log(f"      {tag}: held-out mse/dim={v:.7f}")
-    tag, C, mse_ho = min(cands, key=lambda c: c[2])
+    tag, C, _ = min(cands, key=lambda c: c[2])
+    mse_ho = held_out_mse(C, seed=REPORT_SEED)   # report on a fresh stream
     if log:
-        log(f"      -> keeping {tag}")
+        log(f"      -> keeping {tag} (reported mse/dim={mse_ho:.7f})")
     tmp = path.with_suffix(".tmp.npz")
-    np.savez_compressed(tmp, C=C, mse=mse_ho, init=tag)
+    np.savez_compressed(tmp, C=C, mse=mse_ho, init=tag, version=GRID_VERSION,
+                        samples=n, iters=iters)
     tmp.replace(path)
     return C, mse_ho
 
