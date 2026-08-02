@@ -440,6 +440,44 @@ true bytes-per-vector below a few hundred thousand documents. If the index is
 large and the bit budget is 2–3 bits, the HIGGS lineage is the right answer.
 Otherwise the gap is not what should decide it.
 
+## How much to trust each claim
+
+The prose above asserts everything in the same voice. It should not. These
+claims are not equally supported, and the differences are large enough to
+change what you would do with them.
+
+| tier | means |
+|---|---|
+| **REPRODUCED** | independently re-derived after a full rebuild, and anchored |
+| **ANCHORED** | checked against a value this codebase did not produce, single run |
+| **MEASURED** | a real measurement, no external anchor, single environment |
+| **ARGUED** | a mechanism or an extrapolation; the inputs are measured, the claim is not |
+
+| claim | tier | what would overturn it |
+|---|---|---|
+| Only axis C moves; A and B are null | **REPRODUCED** | Its size is +0.0113/+0.0146 against a seed spread of ±0.001–0.004, reproduced to 4 decimals on two corpora across a full independent rebuild. Would need a shared defect in both the rotation and the norm paths that survives the orthogonality, round-trip and incoherence anchors. |
+| Axis C peaks at 2–3 bits and closes by 8 | **REPRODUCED** | Same, and the shape holds on all six corpus×metric combinations. |
+| Grid MSE gains (0.35–1.41 dB), scalar MSE | **ANCHORED** | Max (1960) at b≤5, Panter–Dite at b=6/8, E8 NSM, Shannon from below, and a tuned E8 ball codebook. Would need several independent published constants to be wrong together. |
+| Codec is correct (idempotent, in-codebook, attains its own distortion) | **ANCHORED**, but **new** | Anchored on definitional properties — but these checks were written *this run* and have no failure history beyond the mutants they were built against. Treat as the least-seasoned checks in the gate. |
+| Byte accounting (payload, side channels, shared) | **ANCHORED** to arithmetic | Nothing here serialises an index. A codec whose real encoding is larger than its accounting says would pass every check. |
+| RHT is 11–24× slower to apply in numpy | **MEASURED** | One machine, one BLAS, a contended 4-core box, one run. The *direction* is robust (it is a Python loop against `sgemm`); the multiples are not portable. |
+| 1-bit MIPS: remex's ‖x̂‖/‖x‖ has zero spread | **ANCHORED** | Now a gate check (√(2/π), std < 1e-5), not prose. Definitional for a constant-modulus code. |
+| *Why* the 1-bit MIPS reversal happens (norm-noise vs norm-spread) | **ARGUED** | The ingredients are measured — zero spread on one side, corpus norm CVs of 1.4/2.7/20.2% — but the causal story is not itself tested. A different mechanism producing the same three numbers would be indistinguishable here. |
+| Shared bytes reverse the recall-per-byte ordering at 20k vectors | **MEASURED** | Direct from measured payloads and codebook sizes at a real corpus size. Solid at N=20,000. |
+| The ~350k-vector amortization threshold | **ARGUED** | An extrapolation from a formula, not a measurement. No corpus that size was run. Treat as an order of magnitude. |
+| Anything resting on `arxiv768` alone | **weakest** | It did not reproduce — the abstracts are a fresh draw. Use it as a third dimensionality, not as a number. |
+| Axis B is "close to moot on modern encoders" | **ARGUED**, one corpus | Only `glove100` has real norm spread. This is a claim about encoder families drawn from two BGE models. |
+
+Two structural limits behind the whole table: every codebook check scores
+against N(0, I), so if the rotated corpus coordinates are not Gaussian then
+every grid is calibrated for the wrong source *and all of these checks still
+pass*; and the recall pipeline itself is outside the gate, anchored only by the
+fp32 control (1.000 by construction) and the LM+QJL replication control.
+
+See `ERRORS.md` for the measured error rate of this experiment — 16 across two
+runs, 6 of them in the flattering direction — and `../ANCHORS.md` for the
+covered range of every constant above.
+
 ## Caveats
 
 - **The 6- and 8-bit axis-C numbers are m=2 results.** `K_MAX = 2¹⁶` forces the
@@ -467,6 +505,8 @@ Otherwise the gap is not what should decide it.
 ## Reproducing
 
 ```bash
+python3 recheck.py           # ~90 s — RUN THIS FIRST on any touch of this dir
+
 python3 build_corpora.py     # ~1.5 h, mostly bge-large on CPU
 python3 audit.py             # audits calibrate.py; writes audit.log
 python3 gate.py              # the gate; exit 1 FAILED, exit 2 INCONCLUSIVE

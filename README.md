@@ -5,6 +5,15 @@ subdirectory is self-contained: scripts, data, and a results file
 (`RESULTS.md` for pipeline runs, `README.md` for build/recipe artifacts,
 or the artifact itself when it speaks for itself, like an HTML page).
 
+**Trust conventions.** [`ANCHORS.md`](ANCHORS.md) registers every published
+constant in use with its *covered range*, because a range gap is invisible from
+inside a green run. Each experiment should carry an `ERRORS.md` (what was wrong,
+how it was caught, which direction it pushed the conclusion — the base rate is
+the most useful calibration number about a body of work) and a `recheck.py`
+(a sub-5-minute fixture that checks the prose against the artifacts, so the
+writeup and the data cannot drift apart between full rebuilds).
+`remex-vs-higgs-ablation/` carries all three and is the reference shape.
+
 Results are reported as they came out. Several of these are negative
 results, one is a correction of earlier rejected work, and one turned
 out to reproduce a 2004 paper rather than extend it — all labelled as
