@@ -104,6 +104,21 @@ class Reference:
         self.dnorm2 = float(np.sum(self.D.astype(np.float64) ** 2))
 
     def score(self, Dhat: np.ndarray) -> dict:
+        if self.metric == "cosine":
+            # Cosine means cos(q, xhat) = q.xhat / ||xhat||, so divide.  Omitting
+            # this (as the earlier harness in this repo does) silently penalises
+            # any arm whose reconstruction has norm spread, and at 1 bit that is
+            # decisive: the scalar quantizer emits +-c on every coordinate, so
+            # ||xhat|| = c*sqrt(d) is CONSTANT by construction and it pays no
+            # penalty, while the vector grid's ||xhat|| varies (CV 1.0%).
+            # Un-renormalised, the vector arm scored R@10 0.663 against scalar's
+            # 0.686 on arxiv768 at 1 bit despite better MSE *and* better mean
+            # reconstruction cosine; renormalised it scores 0.689 and wins.
+            # That inversion was an artifact of the scoring, not a property of
+            # the codebook, and it would have been reported as a real axis-C
+            # reversal at low rate.
+            Dhat = Dhat / np.maximum(
+                np.linalg.norm(Dhat, axis=1, keepdims=True), 1e-12)
         S = self.Q @ Dhat.T
         top = _topk(S, max(KS))
         out = {}
@@ -112,9 +127,13 @@ class Reference:
                        for i in range(top.shape[0]))
             out[f"recall@{k}"] = hits / (top.shape[0] * k)
         out["spearman"] = _spearman_rows(_ordinal_ranks(S[: self.sq]), self.gt_ranks)
-        err = Dhat.astype(np.float64) - self.D.astype(np.float64)
-        out["rel_mse"] = float(np.sum(err ** 2) / self.dnorm2)
         return out
+
+    def recon_error(self, Dhat: np.ndarray) -> float:
+        """Relative reconstruction MSE, always on the raw reconstruction —
+        never the renormalised one, so it stays a property of the codec."""
+        err = Dhat.astype(np.float64) - self.D.astype(np.float64)
+        return float(np.sum(err ** 2) / self.dnorm2)
 
 
 # --------------------------------------------------------------------------
@@ -169,6 +188,7 @@ def run(datasets=DATASETS, resume=True):
                         arm = make_arm(spec, bits, d, seed)
                         Dhat = arm.encode_decode(ref.D)
                         m = ref.score(Dhat)
+                        m["rel_mse"] = ref.recon_error(Dhat)
                         m["bytes"] = arm.bytes_per_vector()
                         m["shared_bytes"] = arm.shared_bytes()
                         m["codebook_m"] = arm.cb.m

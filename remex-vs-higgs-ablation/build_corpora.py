@@ -41,6 +41,12 @@ NS = {"a": "http://www.w3.org/2005/Atom"}
 
 N_ARXIV_DOCS = 750
 N_ARXIV_QUERIES = 150
+#: NFCorpus is capped rather than run whole.  bge-large on CPU measured
+#: ~0.7 docs/s uncontended here, so the full 3,633-document corpus is a
+#: multi-hour encode for a corpus whose job is to add a third dimensionality
+#: and a third domain -- 2,000 documents does that, and still leaves
+#: recall@100 covering only 5% of the corpus (vs 13% on arxiv768).
+N_NFCORPUS_DOCS = 2000
 N_GLOVE_DOCS = 20_000
 N_GLOVE_QUERIES = 1_000
 BATCH = 16
@@ -72,7 +78,7 @@ def _encode(texts, model_name, maxlen=MAXLEN):
     for i in range(0, len(texts), BATCH):
         out.append(model.encode(texts[i : i + BATCH], convert_to_numpy=True,
                                 normalize_embeddings=False, show_progress_bar=False))
-        if i % (BATCH * 20) == 0:
+        if i % (BATCH * 10) == 0:
             done = min(i + BATCH, len(texts))
             rate = done / max(time.time() - t0, 1e-9)
             print(f"    {done}/{len(texts)} @ {rate:.1f}/s", flush=True)
@@ -240,6 +246,10 @@ def build_nfcorpus():
         if line.strip():
             qtext.append(json.loads(line)["text"])
     qtext = qtext[:400]
+    if len(docs_txt) > N_NFCORPUS_DOCS:
+        rng = np.random.default_rng(0)
+        keep = np.sort(rng.choice(len(docs_txt), N_NFCORPUS_DOCS, replace=False))
+        docs_txt = [docs_txt[i] for i in keep]
     print(f"[nfcorpus1024] {len(docs_txt)} docs / {len(qtext)} queries; "
           f"encoding with bge-large", flush=True)
     docs = _encode(docs_txt, "BAAI/bge-large-en-v1.5")
