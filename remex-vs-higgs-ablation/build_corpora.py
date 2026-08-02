@@ -11,6 +11,11 @@ off a single spectrum shape:
               this repo, which used a 750-abstract arXiv set.
   glove100    ANN-benchmarks glove-100-angular, d=100.  External
               comparability; strongly anisotropic word-vector geometry.
+  fmnist784   ANN-benchmarks fashion-mnist-784-euclidean, d=784.  Raw pixel
+              vectors, so norms vary with how much of the frame the garment
+              fills -- the only high-dimensional corpus here with real norm
+              spread, which is what axis B needs and what encoder corpora
+              cannot supply (see the axis-B caveat in RESULTS.md).
   nfcorpus1024  BEIR NFCorpus medical abstracts, d=1024,
               BAAI/bge-large-en-v1.5.  The deployment-shaped target, and the
               corpus where per-tensor int8 was previously shown domain-fragile
@@ -49,6 +54,8 @@ N_ARXIV_QUERIES = 150
 N_NFCORPUS_DOCS = 2000
 N_GLOVE_DOCS = 20_000
 N_GLOVE_QUERIES = 1_000
+N_FMNIST_DOCS = 20_000
+N_FMNIST_QUERIES = 1_000
 BATCH = 16
 MAXLEN = 256
 
@@ -218,6 +225,45 @@ def build_glove():
 
 
 # --------------------------------------------------------------------------
+# Fashion-MNIST (ANN-benchmarks) -- the axis-B corpus
+
+
+def build_fmnist():
+    """Raw 28x28 pixel vectors, d=784, no encoder in the loop.
+
+    Exists because axis B (exact fp32 norm vs per-block scale) can only be
+    read on a corpus whose vectors have genuine norm spread, and the two
+    encoder corpora do not: bge is trained under cosine and its raw norms
+    vary by 1.4-2.7%.  Pixel vectors vary by tens of percent -- a sandal and
+    a coat differ in how much ink is on the canvas -- at a dimensionality
+    comparable to the encoder corpora, and at zero encode cost.
+    """
+    dst = ASSETS / "fmnist784.npz"
+    if dst.exists():
+        print("[fmnist784] cached, skip")
+        return
+    import h5py
+
+    src = ASSETS / "fashion-mnist.hdf5"
+    if not src.exists():
+        raise SystemExit("[fmnist784] assets/fashion-mnist.hdf5 missing — "
+                         "curl -L -o assets/fashion-mnist.hdf5 "
+                         "http://ann-benchmarks.com/fashion-mnist-784-euclidean.hdf5")
+    with h5py.File(src, "r") as f:
+        train = np.asarray(f["train"], dtype=np.float32)
+        test = np.asarray(f["test"], dtype=np.float32)
+    rng = np.random.default_rng(0)
+    didx = rng.choice(train.shape[0], size=N_FMNIST_DOCS, replace=False)
+    docs = np.ascontiguousarray(train[np.sort(didx)])
+    qry = np.ascontiguousarray(test[:N_FMNIST_QUERIES])
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(dst, docs=docs, queries=qry)
+    nrm = np.linalg.norm(docs, axis=1)
+    print(f"[fmnist784] docs {docs.shape} queries {qry.shape} "
+          f"norm CV {nrm.std() / nrm.mean():.3f}")
+
+
+# --------------------------------------------------------------------------
 # NFCorpus (BEIR)
 
 
@@ -261,9 +307,9 @@ def build_nfcorpus():
 
 
 def main():
-    which = sys.argv[1:] or ["glove", "arxiv", "nfcorpus"]
+    which = sys.argv[1:] or ["glove", "fmnist", "arxiv", "nfcorpus"]
     for name in which:
-        {"glove": build_glove, "arxiv": build_arxiv,
+        {"glove": build_glove, "fmnist": build_fmnist, "arxiv": build_arxiv,
          "nfcorpus": build_nfcorpus}[name]()
     return 0
 
