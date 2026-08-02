@@ -175,7 +175,18 @@ class Arm:
         # exactly the degeneracy that would make axis B look null for the
         # wrong reason.  d=100 -> 50 (2 groups), 768 -> 128 (6), 1024 -> 128 (8).
         cap = min(BLOCK, d // 2) or 1
-        self.block = max(k for k in range(1, cap + 1) if d % k == 0)
+        sub = self.cb.m
+        # The block boundary must not cut a sub-vector in half.  If it does,
+        # some sub-vectors get their two halves divided by DIFFERENT fp16
+        # scales before hitting a grid trained on N(0, I_m), which corrupts
+        # only the blockscale+vector cell -- i.e. the HIGGS-like arm -- and so
+        # confounds axes B and C rather than degrading anything uniformly.
+        # Concretely this bit d=100 at 4 bits, where block=50 and m=4 left
+        # 2 of every 25 sub-vectors straddling a boundary.
+        ok = [k for k in range(1, cap + 1) if d % k == 0 and k % sub == 0]
+        self.block = max(ok) if ok else max(k for k in range(1, cap + 1) if d % k == 0)
+        if self.block % sub:
+            raise ValueError(f"block {self.block} does not tile sub-vector dim {sub} at d={d}")
         self.nblocks = d // self.block
 
     # -- naming -----------------------------------------------------------
@@ -258,8 +269,16 @@ class QJLArm(Arm):
         return "control:lm+qjl"
 
     def bytes_per_vector(self):
+        # 4 B for the vector norm, plus 4 B for the RESIDUAL norm: the QJL
+        # decoder below scales the sign sketch by ||resid||, which is a real
+        # per-vector quantity a decoder cannot recompute from the code.
+        # Charging only the first would have let this control cheat by 4 B.
         payload = self.d * self.total_bits / 8.0
-        return {"payload": payload, "side": 4.0, "total": payload + 4.0}
+        return {"payload": payload, "side": 8.0, "total": payload + 8.0}
+
+    def shared_bytes(self):
+        # the d x d JL sketch is shared across the index, like the rotation
+        return super().shared_bytes() + self.d * self.d * 4
 
     def encode_decode(self, X):
         X = np.ascontiguousarray(X, dtype=np.float32)

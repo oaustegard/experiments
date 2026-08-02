@@ -205,10 +205,17 @@ def _summarize(runs):
 
 
 def timing(reps=5):
+    """Wall-clock for axis A.
+
+    Includes d well past the corpora so the O(d^2) vs O(d log d) crossover is
+    measured rather than asserted -- at the experiment's own dimensions the
+    dense rotation is one BLAS call and wins outright.
+    """
     out = {}
     rng = np.random.default_rng(0)
-    for d in (100, 768, 1024):
-        X = rng.standard_normal((4096, d)).astype(np.float32)
+    for d in (100, 768, 1024, 4096, 8192):
+        nvec = 4096 if d <= 1024 else 512
+        X = rng.standard_normal((nvec, d)).astype(np.float32)
         row = {}
         for kind in ("haar", "rht"):
             R = qzm.ROTATIONS[kind](d, 0)
@@ -217,17 +224,25 @@ def timing(reps=5):
             for _ in range(reps):
                 R.apply(X)
             row[kind] = (time.perf_counter() - t) / reps
+            row["nvec"] = X.shape[0]
         bt = time.perf_counter()
         qzm.HaarRotation(d, 0)
         row["haar_build_s"] = time.perf_counter() - bt
         bt = time.perf_counter()
         qzm.RHTRotation(d, 0)
         row["rht_build_s"] = time.perf_counter() - bt
-        row["speedup"] = row["haar"] / row["rht"]
+        # Deliberately NOT called "speedup".  The RHT is genuinely O(d log d)
+        # against Haar's O(d^2), but this measures numpy, and numpy runs the
+        # dense rotation as a single BLAS sgemm while the FWHT is a Python
+        # loop over strided slices.  Reporting the ratio as a speedup would be
+        # a claim about the algorithm that the measurement does not support.
+        row["haar_over_rht"] = row["haar"] / row["rht"]
+        row["rounds"] = len(qzm.RHTRotation(d, 0).perms)
         out[str(d)] = row
-        print(f"  d={d:>4}: haar {row['haar'] * 1e3:.1f}ms  "
-              f"rht {row['rht'] * 1e3:.1f}ms  speedup {row['speedup']:.1f}x "
-              f"(4096 vectors)")
+        faster = "rht" if row["haar_over_rht"] > 1 else "haar"
+        print(f"  d={d:>4}: haar {row['haar'] * 1e3:7.1f}ms  "
+              f"rht {row['rht'] * 1e3:7.1f}ms  ratio haar/rht "
+              f"{row['haar_over_rht']:.2f}x ({faster} faster)")
     return out
 
 

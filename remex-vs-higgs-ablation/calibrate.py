@@ -304,15 +304,23 @@ def main():
     g1_scalar_table()
     g2_e8_nsm()
 
-    rows = []
-    for b in (1, 2, 3, 4, 6, 8):
-        m = grids.pick_m(b, 768)
-        if m == 1:
-            continue
-        C, _ = grids.train_gaussian_grid(m, 1 << (b * m),
-                                         log=lambda s: print("   ", s))
-        _, sc = grids.lloyd_max_1d(b)
-        rows.append((b, m, 1 << (b * m), codebook_mse(C), sc))
+    # Certify every grid the sweep will actually use, across every corpus
+    # dimension -- not just d=768's.  Hard-coding one d meant the m=5 grids
+    # that produce every glove100 number at 1, 2 and 3 bits were never checked
+    # against scalar or against Shannon at all.
+    rows, seen = [], set()
+    for d in (100, 768, 1024):
+        for b in (1, 2, 3, 4, 6, 8):
+            m = grids.pick_m(b, d)
+            K = 1 << (b * m)
+            if m == 1 or (m, K) in seen:
+                continue
+            seen.add((m, K))
+            C, _ = grids.train_gaussian_grid(m, K, log=lambda s: print("   ", s))
+            _, sc = grids.lloyd_max_1d(b)
+            rows.append((b, m, K, codebook_mse(C), sc))
+    print(f"\n    (certifying {len(rows)} distinct grids used across "
+          f"d=100/768/1024)")
     g3_bracket(rows)
     _, mse_e8, _ = g4_e8_anchor()
     g5_monotone_m()
