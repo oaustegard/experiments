@@ -1,86 +1,178 @@
-==============================================================================
-CALIBRATION GATE — remex-vs-higgs-ablation
-==============================================================================
+==========================================================================
+GATE — remex-vs-higgs axis-C calibration
+==========================================================================
+  [PASS] (anchor) MSE instrument, b=2 m=2 product grid [anchor: closed-form integration against the normal density]: measured=0.11751 published=0.117482 rel=2.37e-04 tol=2e-02
+  [PASS] (anchor) MSE instrument, b=4 m=2 product grid [anchor: closed-form integration against the normal density]: measured=0.00950568 published=0.00950101 rel=4.91e-04 tol=2e-02
+  [PASS] (anchor) MSE instrument, b=6 m=2 product grid [anchor: closed-form integration against the normal density]: measured=0.00064903 published=0.00064424 rel=7.44e-03 tol=2e-02
+  [PASS] (anchor) MSE instrument, b=2 m=4 product grid [anchor: closed-form integration against the normal density]: measured=0.117455 published=0.117482 rel=2.31e-04 tol=2e-02
+  [PASS] (anchor) analytic paired se predicts the observed spread of the difference [anchor: repeated measurement]: analytic=3.094e-04 observed=2.176e-04 ratio=1.42
+  [PASS] (anchor) scalar Lloyd-Max b=1 [anchor: Max (1960) table 1]: measured=0.36338 published=0.3634 rel=5.44e-05 tol=3e-03
+  [PASS] (anchor) scalar Lloyd-Max b=2 [anchor: Max (1960) table 1]: measured=0.117482 published=0.1175 rel=1.54e-04 tol=3e-03
+  [PASS] (anchor) scalar Lloyd-Max b=3 [anchor: Max (1960) table 1]: measured=0.0345478 published=0.03454 rel=2.25e-04 tol=3e-03
+  [PASS] (anchor) scalar Lloyd-Max b=4 [anchor: Max (1960) table 1]: measured=0.00950101 published=0.009497 rel=4.22e-04 tol=3e-03
+  [PASS] (anchor) scalar Lloyd-Max b=5 [anchor: Max (1960) table 1]: measured=0.00250467 published=0.002499 rel=2.27e-03 tol=3e-03
+  [PASS] (bracket) scalar Lloyd-Max b=6 vs Panter-Dite [anchor: Panter & Dite (1951)]: 2 < 2.63881 < 2.7207 — optimal fixed-rate scalar quantizer approaches 2.7207*2^-2b from below; above it means the quantizer is not optimal or the distortion is misevaluated
+  [PASS] (bracket) scalar Lloyd-Max b=8 vs Panter-Dite [anchor: Panter & Dite (1951)]: 2 < 2.70448 < 2.7207 — optimal fixed-rate scalar quantizer approaches 2.7207*2^-2b from below; above it means the quantizer is not optimal or the distortion is misevaluated
+  [PASS] (bracket) scalar ratio-to-Shannon increases with rate: 2.6388(b=6) < 2.7045(b=8)
+  [PASS] (anchor) E8 normalised second moment [anchor: Conway & Sloane, SPLAG table 2.3]: measured=0.0717081 published=0.0716821 rel=3.63e-04 tol=5e-03
+  [PASS] (bracket) grid b=1 m=5 K=32: real VQ gain, below Shannon: 0.25 < 0.33518 < 0.362856 — gain over the lifted scalar grid +0.35 dB must clear 3 se of the paired estimator (se=1.65e-04); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=1 m=5 beats scalar (closed form): vq=0.33518 scalar=0.36338
+  [PASS] (bracket) grid b=2 m=5 K=1024: real VQ gain, below Shannon: 0.0625 < 0.0947629 < 0.117246 — gain over the lifted scalar grid +0.93 dB must clear 3 se of the paired estimator (se=7.82e-05); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=2 m=5 beats scalar (closed form): vq=0.0947629 scalar=0.117482
+  [PASS] (bracket) grid b=3 m=5 K=32768: real VQ gain, below Shannon: 0.015625 < 0.0249966 < 0.0344565 — gain over the lifted scalar grid +1.41 dB must clear 3 se of the paired estimator (se=3.15e-05); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=3 m=5 beats scalar (closed form): vq=0.0249966 scalar=0.0345478
+  [PASS] (bracket) grid b=4 m=4 K=65536: real VQ gain, below Shannon: 0.00390625 < 0.00725735 < 0.00945756 — gain over the lifted scalar grid +1.17 dB must clear 3 se of the paired estimator (se=1.28e-05); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=4 m=4 beats scalar (closed form): vq=0.00725735 scalar=0.00950101
+  [PASS] (bracket) grid b=6 m=2 K=4096: real VQ gain, below Shannon: 0.000244141 < 0.000551422 < 0.000640687 — gain over the lifted scalar grid +0.71 dB must clear 3 se of the paired estimator (se=2.78e-06); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=6 m=2 beats scalar (closed form): vq=0.000551422 scalar=0.00064424
+  [PASS] (bracket) grid b=8 m=2 K=65536: real VQ gain, below Shannon: 1.52588e-05 < 3.56634e-05 < 4.08853e-05 — gain over the lifted scalar grid +0.75 dB must clear 3 se of the paired estimator (se=4.90e-07); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=8 m=2 beats scalar (closed form): vq=3.56634e-05 scalar=4.12671e-05
+  [PASS] (bracket) grid b=1 m=8 K=256: real VQ gain, below Shannon: 0.25 < 0.323622 < 0.363005 — gain over the lifted scalar grid +0.50 dB must clear 3 se of the paired estimator (se=1.32e-04); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=1 m=8 beats scalar (closed form): vq=0.323622 scalar=0.36338
+  [PASS] (bracket) grid b=2 m=8 K=65536: real VQ gain, below Shannon: 0.0625 < 0.0887501 < 0.11735 — gain over the lifted scalar grid +1.22 dB must clear 3 se of the paired estimator (se=6.39e-05); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=2 m=8 beats scalar (closed form): vq=0.0887501 scalar=0.117482
+  [PASS] (bracket) grid b=3 m=4 K=4096: real VQ gain, below Shannon: 0.015625 < 0.0261319 < 0.0344363 — gain over the lifted scalar grid +1.21 dB must clear 3 se of the paired estimator (se=3.43e-05); cannot beat the rate-distortion bound 2^-2b
+  [PASS] (check) grid b=3 m=4 beats scalar (closed form): vq=0.0261319 scalar=0.0345478
+  [PASS] (anchor) trained m=8 grid beats a tuned E8 ball by >=1% [anchor: QuIP# E8P codebook family]: grid=0.08875 E8=0.09120 ratio=0.973
+  [PASS] (anchor) the E8 anchor itself beats scalar: E8=0.09120 scalar=0.11748
+  [PASS] (bracket) quality monotone in m: m=2 <= m=1: 0.11053 vs 0.11748
+  [PASS] (bracket) quality monotone in m: m=4 <= m=2: 0.09790 vs 0.11053
+  [PASS] (bracket) quality monotone in m: m=8 <= m=4: 0.08875 vs 0.09790
+  [PASS] (anchor) haar d=100 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.79e-07
+  [PASS] (anchor) haar d=100 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 1.49e-07
+  [PASS] (bracket) haar d=100 spike incoherence [anchor: uniform unit vector, ideal 0.2756]: 0.1 <= 0.273535 < 0.551197 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) haar d=100 random-vector incoherence [anchor: uniform unit vector, ideal 0.2756]: 0.137799 < 0.26764 < 0.551197 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (anchor) rht d=100 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.79e-07
+  [PASS] (anchor) rht d=100 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 5.22e-08
+  [PASS] (bracket) rht d=100 spike incoherence [anchor: uniform unit vector, ideal 0.2756]: 0.1 <= 0.271484 < 0.551197 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) rht d=100 random-vector incoherence [anchor: uniform unit vector, ideal 0.2756]: 0.137799 < 0.273612 < 0.551197 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (check) d=100 RHT incoherence within 25% of Haar's: rht=0.2715 haar=0.2735
+  [PASS] (anchor) haar d=768 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
+  [PASS] (anchor) haar d=768 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 1.04e-07
+  [PASS] (bracket) haar d=768 spike incoherence [anchor: uniform unit vector, ideal 0.1214]: 0.0360844 <= 0.122735 < 0.242851 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) haar d=768 random-vector incoherence [anchor: uniform unit vector, ideal 0.1214]: 0.0607128 < 0.121479 < 0.242851 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (anchor) rht d=768 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
+  [PASS] (anchor) rht d=768 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 2.61e-08
+  [PASS] (bracket) rht d=768 spike incoherence [anchor: uniform unit vector, ideal 0.1214]: 0.0360844 <= 0.122375 < 0.242851 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) rht d=768 random-vector incoherence [anchor: uniform unit vector, ideal 0.1214]: 0.0607128 < 0.122127 < 0.242851 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (check) d=768 RHT incoherence within 25% of Haar's: rht=0.1224 haar=0.1227
+  [PASS] (anchor) haar d=1024 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
+  [PASS] (anchor) haar d=1024 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 8.94e-08
+  [PASS] (bracket) haar d=1024 spike incoherence [anchor: uniform unit vector, ideal 0.1080]: 0.03125 <= 0.10869 < 0.216006 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) haar d=1024 random-vector incoherence [anchor: uniform unit vector, ideal 0.1080]: 0.0540014 < 0.107622 < 0.216006 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (anchor) rht d=1024 preserves the norm [anchor: orthogonality]: max |‖Rx‖-1| = 1.19e-07
+  [PASS] (anchor) rht d=1024 round-trips [anchor: R^-1 R = I]: max |R^-1Rx - x| = 1.86e-08
+  [PASS] (bracket) rht d=1024 spike incoherence [anchor: uniform unit vector, ideal 0.1080]: 0.03125 <= 0.03125 < 0.216006 — a rotation that fails to spread a coordinate spike leaves max|coord| near 1, and axis A then compares two no-ops
+  [PASS] (bracket) rht d=1024 random-vector incoherence [anchor: uniform unit vector, ideal 0.1080]: 0.0540014 < 0.107783 < 0.216006 — the probe the spike test cannot supply at power-of-two d, where FWHT flattens a delta by construction
+  [PASS] (check) d=1024 RHT incoherence within 25% of Haar's: rht=0.0312 haar=0.1087
+  [PASS] (anchor) scalar b=2 d=64 codec is idempotent [anchor: Q(Q(x)) = Q(x)]: max drift 0.00e+00
+  [PASS] (anchor) scalar b=2 d=64 output is drawn from the codebook [anchor: definition of a quantizer]: 4 codepoints
+  [PASS] (bracket) scalar b=2 d=64 encoder attains the codebook's own distortion: 0.105734 < 0.117517 < 0.12923 — the point-set MSE cannot see a wrong decision boundary
+  [PASS] (anchor) scalar b=4 d=64 codec is idempotent [anchor: Q(Q(x)) = Q(x)]: max drift 0.00e+00
+  [PASS] (anchor) scalar b=4 d=64 output is drawn from the codebook [anchor: definition of a quantizer]: 16 codepoints
+  [PASS] (bracket) scalar b=4 d=64 encoder attains the codebook's own distortion: 0.00855091 < 0.00949877 < 0.0104511 — the point-set MSE cannot see a wrong decision boundary
+  [PASS] (anchor) vector b=2 d=100 codec is idempotent [anchor: Q(Q(x)) = Q(x)]: max drift 0.00e+00
+  [PASS] (anchor) vector b=2 d=100 output is drawn from the codebook [anchor: definition of a quantizer]: 1024 codepoints
+  [PASS] (bracket) vector b=2 d=100 encoder attains the codebook's own distortion: 0.0852866 < 0.0947918 < 0.104239 — the point-set MSE cannot see a wrong decision boundary
+  [PASS] (bracket) arm(exactnorm) round-trip error == codebook MSE [anchor: orthogonality + Lloyd-Max]: 0.0259108 < 0.033539 < 0.0466395 — rotate/scale/quantize/unrotate must lose nothing beyond the quantizer itself
+  [PASS] (bracket) arm(blockscale) round-trip error == codebook MSE [anchor: orthogonality + Lloyd-Max]: 0.0259108 < 0.0325234 < 0.0466395 — rotate/scale/quantize/unrotate must lose nothing beyond the quantizer itself
+  [PASS] (bracket) 1-bit exact-norm arm reproduces relative norms exactly [anchor: constant-modulus code]: mean=0.79788 std=7.10e-08 (sqrt(2/pi)=0.79788)
+  [PASS] (bracket) uniform floor control b=2 sits between Lloyd-Max and a mis-clipped uniform: 0.117482 < 0.118854 < 0.422835 — the floor must be a TUNED uniform quantizer: worse than optimal scalar, better than an arbitrary clip, or 'remex beats the floor' is not evidence
+  [PASS] (bracket) uniform floor control b=4 sits between Lloyd-Max and a mis-clipped uniform: 0.00950101 < 0.0115455 < 0.41942 — the floor must be a TUNED uniform quantizer: worse than optimal scalar, better than an arbitrary clip, or 'remex beats the floor' is not evidence
+  [PASS] (anchor) LM+QJL control stays dominated by plain scalar at a matched budget [anchor: settled result, 2026-04-02]: qjl=15.24285 scalar=5.30231 (both 4 bits/coord total)
+  [PASS] (anchor) the Max (1960) anchor table still covers b=1..5: keys=[1, 2, 3, 4, 5]
+  [PASS] (check) d=100 b=2 payload matched: scalar=25.0 vector=25.0
+  [PASS] (anchor) d=100 b=2 payload == d*bits/8 [anchor: arithmetic]: scalar=25.0 vector=25.0 expected=25.0
+  [PASS] (bracket) d=100 b=2 total == payload + side: scalar=29.0 vector=29.0
+  [PASS] (bracket) d=100 b=2 blockscale arm has >1 block: nblocks=2 block=50
+  [PASS] (check) d=100 b=2 side channels itemised: exactnorm=4.0B blockscale=4.0B (2x50)
+  [PASS] (check) d=100 b=2 block tiles the sub-vector dim: block=50 m=5
+  [PASS] (bracket) d=100 b=2 scalar shared bytes == d²·4 + 2^b·4: 40,016 vs 40,016
+  [PASS] (bracket) d=100 b=2 vector shared bytes == perms·d·5 + K·m·4: 22,480 vs 22,480
+  [PASS] (bracket) d=100 b=2 vector codebook exceeds the scalar level table: 20,480B vs 16B
+  [PASS] (check) d=100 b=4 payload matched: scalar=50.0 vector=50.0
+  [PASS] (anchor) d=100 b=4 payload == d*bits/8 [anchor: arithmetic]: scalar=50.0 vector=50.0 expected=50.0
+  [PASS] (bracket) d=100 b=4 total == payload + side: scalar=54.0 vector=60.0
+  [PASS] (bracket) d=100 b=4 blockscale arm has >1 block: nblocks=5 block=20
+  [PASS] (check) d=100 b=4 side channels itemised: exactnorm=4.0B blockscale=10.0B (5x20)
+  [PASS] (check) d=100 b=4 block tiles the sub-vector dim: block=20 m=4
+  [PASS] (bracket) d=100 b=4 scalar shared bytes == d²·4 + 2^b·4: 40,064 vs 40,064
+  [PASS] (bracket) d=100 b=4 vector shared bytes == perms·d·5 + K·m·4: 1,050,576 vs 1,050,576
+  [PASS] (bracket) d=100 b=4 vector codebook exceeds the scalar level table: 1,048,576B vs 64B
+  [PASS] (check) d=768 b=2 payload matched: scalar=192.0 vector=192.0
+  [PASS] (anchor) d=768 b=2 payload == d*bits/8 [anchor: arithmetic]: scalar=192.0 vector=192.0 expected=192.0
+  [PASS] (bracket) d=768 b=2 total == payload + side: scalar=196.0 vector=204.0
+  [PASS] (bracket) d=768 b=2 blockscale arm has >1 block: nblocks=6 block=128
+  [PASS] (check) d=768 b=2 side channels itemised: exactnorm=4.0B blockscale=12.0B (6x128)
+  [PASS] (check) d=768 b=2 block tiles the sub-vector dim: block=128 m=8
+  [PASS] (bracket) d=768 b=2 scalar shared bytes == d²·4 + 2^b·4: 2,359,312 vs 2,359,312
+  [PASS] (bracket) d=768 b=2 vector shared bytes == perms·d·5 + K·m·4: 2,104,832 vs 2,104,832
+  [PASS] (bracket) d=768 b=2 vector codebook exceeds the scalar level table: 2,097,152B vs 16B
+  [PASS] (check) d=768 b=4 payload matched: scalar=384.0 vector=384.0
+  [PASS] (anchor) d=768 b=4 payload == d*bits/8 [anchor: arithmetic]: scalar=384.0 vector=384.0 expected=384.0
+  [PASS] (bracket) d=768 b=4 total == payload + side: scalar=388.0 vector=396.0
+  [PASS] (bracket) d=768 b=4 blockscale arm has >1 block: nblocks=6 block=128
+  [PASS] (check) d=768 b=4 side channels itemised: exactnorm=4.0B blockscale=12.0B (6x128)
+  [PASS] (check) d=768 b=4 block tiles the sub-vector dim: block=128 m=4
+  [PASS] (bracket) d=768 b=4 scalar shared bytes == d²·4 + 2^b·4: 2,359,360 vs 2,359,360
+  [PASS] (bracket) d=768 b=4 vector shared bytes == perms·d·5 + K·m·4: 1,056,256 vs 1,056,256
+  [PASS] (bracket) d=768 b=4 vector codebook exceeds the scalar level table: 1,048,576B vs 64B
+  [PASS] (check) d=1024 b=2 payload matched: scalar=256.0 vector=256.0
+  [PASS] (anchor) d=1024 b=2 payload == d*bits/8 [anchor: arithmetic]: scalar=256.0 vector=256.0 expected=256.0
+  [PASS] (bracket) d=1024 b=2 total == payload + side: scalar=260.0 vector=272.0
+  [PASS] (bracket) d=1024 b=2 blockscale arm has >1 block: nblocks=8 block=128
+  [PASS] (check) d=1024 b=2 side channels itemised: exactnorm=4.0B blockscale=16.0B (8x128)
+  [PASS] (check) d=1024 b=2 block tiles the sub-vector dim: block=128 m=8
+  [PASS] (bracket) d=1024 b=2 scalar shared bytes == d²·4 + 2^b·4: 4,194,320 vs 4,194,320
+  [PASS] (bracket) d=1024 b=2 vector shared bytes == perms·d·5 + K·m·4: 2,102,272 vs 2,102,272
+  [PASS] (bracket) d=1024 b=2 vector codebook exceeds the scalar level table: 2,097,152B vs 16B
+  [PASS] (check) d=1024 b=4 payload matched: scalar=512.0 vector=512.0
+  [PASS] (anchor) d=1024 b=4 payload == d*bits/8 [anchor: arithmetic]: scalar=512.0 vector=512.0 expected=512.0
+  [PASS] (bracket) d=1024 b=4 total == payload + side: scalar=516.0 vector=528.0
+  [PASS] (bracket) d=1024 b=4 blockscale arm has >1 block: nblocks=8 block=128
+  [PASS] (check) d=1024 b=4 side channels itemised: exactnorm=4.0B blockscale=16.0B (8x128)
+  [PASS] (check) d=1024 b=4 block tiles the sub-vector dim: block=128 m=4
+  [PASS] (bracket) d=1024 b=4 scalar shared bytes == d²·4 + 2^b·4: 4,194,368 vs 4,194,368
+  [PASS] (bracket) d=1024 b=4 vector shared bytes == perms·d·5 + K·m·4: 1,053,696 vs 1,053,696
+  [PASS] (bracket) d=1024 b=4 vector codebook exceeds the scalar level table: 1,048,576B vs 64B
+  [PASS] (known-bad) an under-trained m=8 grid is rejected by the E8 anchor: bad=0.09142 > E8*0.99=0.09029
+  [PASS] (known-bad) an identity 'rotation' is rejected by the incoherence bracket: identity spike incoherence 1.0000 outside (0.1000, 0.5537) — the old relative check passed this, because both arms were equally broken
+  [PASS] (known-bad) a vector arm with zero quantization gain is rejected by the SAME criterion the real grids face: unrefined product grid gains +0.000 dB -> REJECTED. It DOES pass the old `< scalar` test (0.117542 < 0.117482), which is why that test certified nothing. [0.0625 < 0.117542 < 0.117542 — gain over the lifted scalar grid +0.00 dB must clear 3 se of the paired estimator (se=0.00e+00); cannot beat the rate-distortion bound 2^-2b]
+  [PASS] (known-bad) the b=8 scalar MSE that shipped in the first run is rejected by Panter-Dite: recorded pre-fix ratio 3.140 >= 2.7207; the published table's range ends at b=5 so G1 could never see this
+  [PASS] (known-bad) an arm that drops its codebook from shared bytes is rejected: 2,016B without the grid vs 22,480B with it
+  [note] noise model: analytic paired se 3.094e-04 vs observed spread of the same difference over 5 independent streams 2.176e-04 (ratio 1.42; with 5 draws the observed spread is itself only good to ~35%)
+  [note] b=1 m=5 K=32: grid=0.33518 scalar=0.36338 gain=+0.35 dB ratio-to-Shannon=1.341
+  [note] b=2 m=5 K=1024: grid=0.0947629 scalar=0.117482 gain=+0.93 dB ratio-to-Shannon=1.516
+  [note] b=3 m=5 K=32768: grid=0.0249966 scalar=0.0345478 gain=+1.41 dB ratio-to-Shannon=1.600
+  [note] b=4 m=4 K=65536: grid=0.00725735 scalar=0.00950101 gain=+1.17 dB ratio-to-Shannon=1.858
+  [note] b=6 m=2 K=4096: grid=0.000551422 scalar=0.00064424 gain=+0.68 dB ratio-to-Shannon=2.259
+  [note] b=8 m=2 K=65536: grid=3.56634e-05 scalar=4.12671e-05 gain=+0.63 dB ratio-to-Shannon=2.337
+  [note] b=1 m=8 K=256: grid=0.323622 scalar=0.36338 gain=+0.50 dB ratio-to-Shannon=1.294
+  [note] b=2 m=8 K=65536: grid=0.0887501 scalar=0.117482 gain=+1.22 dB ratio-to-Shannon=1.420
+  [note] b=3 m=4 K=4096: grid=0.0261319 scalar=0.0345478 gain=+1.21 dB ratio-to-Shannon=1.672
+  [note] E8 ball codebook (2^16 pts, best scale 0.985): mse/dim=0.09120
+  [note] d=100: ideal E[max|coord|] of a uniform unit vector = 0.2756 (independent draw, no rotation code involved); 1/sqrt(d)=0.1000
+  [note] d=768: ideal E[max|coord|] of a uniform unit vector = 0.1214 (independent draw, no rotation code involved); 1/sqrt(d)=0.0361
+  [note] d=1024: ideal E[max|coord|] of a uniform unit vector = 0.1080 (independent draw, no rotation code involved); 1/sqrt(d)=0.0312
+  [note] d=100 b=2 shared bytes: remex(haar+scalar)=40,016B HIGGS-like(rht+vector)=22,480B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=100 b=4 shared bytes: remex(haar+scalar)=40,064B HIGGS-like(rht+vector)=1,050,576B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=768 b=2 shared bytes: remex(haar+scalar)=2,359,312B HIGGS-like(rht+vector)=2,104,832B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=768 b=4 shared bytes: remex(haar+scalar)=2,359,360B HIGGS-like(rht+vector)=1,056,256B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=1024 b=2 shared bytes: remex(haar+scalar)=4,194,320B HIGGS-like(rht+vector)=2,102,272B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [note] d=1024 b=4 shared bytes: remex(haar+scalar)=4,194,368B HIGGS-like(rht+vector)=1,053,696B — the rotation term dominates below b=3 at d=100, which is why the amortization table must be read per bit width
+  [cannot catch] Max (1960) covers b<=5 only. Above that the anchor is Panter-Dite, which is asymptotic: it bounds the scalar MSE from above but does not pin it, so an error smaller than the gap to the asymptote (~2.6% at b=6, ~0.6% at b=8) is invisible.
+  [cannot catch] Every codebook check scores against N(0, I). If the rotated corpus coordinates are not Gaussian — heavy tails, residual anisotropy the rotation failed to kill — every grid here is calibrated for the wrong source and all of these checks still pass. Nothing in the gate looks at a real corpus.
+  [cannot catch] The incoherence bracket is evaluated on coordinate spikes and random unit vectors, not on the corpora. A rotation that spreads those but interacts badly with real embedding geometry passes.
+  [cannot catch] The incoherence upper edge is 2x the ideal. That catches a rotation that has stopped working (the identity is 3.6-9x out) but not one that is merely mediocre: a rotation leaving max|coord| up to twice the Haar value passes, and axis A would read it as a fair comparison.
+  [cannot catch] The spike probe is degenerate for the RHT at power-of-two d: the Hadamard block spans the whole vector, so one round maps a delta to exactly +-1/sqrt(d) and the check passes at the floor however badly the permutation and sign stages behave. The random-vector probe covers that case; the spike probe alone would not.
+  [cannot catch] Byte accounting is checked against an analytic formula, not against bytes actually written to disk. Nothing here serialises an index, so a codec whose real encoding is larger than its accounting says would pass.
+  [cannot catch] The recall pipeline itself — top-k, recall@k, Spearman — is outside this gate; it is anchored by the fp32 control (recall 1.000 by construction) and the LM+QJL replication control in run_ablation.py, neither of which runs here.
+  [cannot catch] Seed variance of the trained grids is not gated. Grids are trained once at a fixed seed; a seed-sensitive trainer would show up as a quiet shift in axis C, not as a failure.
+  [cannot catch] STATISTICAL, NOT PRACTICAL. The axis-C margin is 3 standard errors of a PAIRED estimator, and that se shrinks as the two codebooks become similar — measured, a product grid perturbed by N(0, 1e-3) gains +0.0001 dB against a 3-se margin of 1.2e-06 and is ACCEPTED. So the check certifies 'the gain is real', not 'the gain is worth having'. Real grids here gain 0.35-1.41 dB; an arm gaining 0.01 dB would pass. The only practical floor in this gate is the E8-ball anchor, and it constrains one configuration (m=8 at 2 bits/coord), not all nine.
+  [cannot catch] MUTATION SURVIVOR — tuning constants. GRID_VERSION, K_MAX, M_CANDIDATES, the Lloyd iteration count and the training-sample budget can all be changed without any check firing. They select WHICH grid gets built rather than whether it is correct, and every grid actually built is then bracketed against scalar and Shannon. A change here silently alters the configuration the sweep reports, so RESULTS.md must state m and K per rate, which it does.
+  [cannot catch] MUTATION SURVIVOR — `_lloyd`'s in-loop training MSE and its logging and convergence probes (grids.py:232-254). The training distortion is discarded: selection and reporting both use held_out_mse. So those lines are genuinely dead for correctness, and mutations to them are equivalent mutants rather than gaps.
+  [cannot catch] MUTATION SURVIVOR — block-size selection (quantizers.py:186-187) beyond the >1-block floor now gated. Shrinking the candidate range changes d=100's block from 50 to 25: still a legal tiling, still >1 block, but a different axis-B granularity than the one reported. Gated for validity, not for identity.
+  [cannot catch] MUTATION SURVIVOR — the QJL replication control's internals (quantizers.py:260-297: sketch scale, residual norm, the sqrt(pi/2) debiasing). The gate now only checks that the control stays DOMINATED by plain scalar, which is the property the sweep reads it for. A QJL arm that is wrong in a way that keeps it dominated would pass, and the sweep would report a control that is correctly ordered for the wrong reason.
+  [cannot catch] Equivalent mutants confirmed by inspection, not gaps: the sign in _trunc_second_moment (grids.py:152-154) is unobservable because Sum(fb - fa) telescopes to zero for any symmetric level set; `* sign` -> `/ sign` (quantizers.py:120) is identity for sign = ±1; and numpy treats reshape(-2, B) exactly like reshape(-1, B).
 
-G0  empirical MSE path vs closed-form scalar (disjoint code paths)
-  [PASS] b=2 m=2 product grid: measured=0.1175096 closed-form=0.1174818 rel=2.37e-04
-  [PASS] b=4 m=2 product grid: measured=0.0095057 closed-form=0.0095010 rel=4.91e-04
-  [PASS] b=6 m=2 product grid: measured=0.0006490 closed-form=0.0006442 rel=7.44e-03
-  [PASS] b=2 m=4 product grid: measured=0.1174547 closed-form=0.1174818 rel=2.31e-04
-
-G1  scalar Lloyd-Max vs Max (1960) table 1
-  [PASS] b=1: mse=0.363380 published=0.3634 rel=5.44e-05
-  [PASS] b=2: mse=0.117482 published=0.1175 rel=1.54e-04
-  [PASS] b=3: mse=0.034548 published=0.03454 rel=2.25e-04
-  [PASS] b=4: mse=0.009501 published=0.009497 rel=4.22e-04
-  [PASS] b=5: mse=0.002505 published=0.002499 rel=2.27e-03
-
-G2  E8 normalised second moment vs Conway & Sloane
-  [PASS] E8 NSM: 0.0717081 vs published 0.0716821
-
-    (certifying 9 distinct grids used across d=100/768/1024)
-
-G3  trained grid: beats scalar, never beats Shannon
-  [PASS] b=1 m=5 < scalar: vq=0.33518 scalar=0.36338 gain=0.35 dB
-  [PASS] b=1 m=5 > Shannon: vq=0.33518 bound=0.25000 ratio=1.341
-  [PASS] b=2 m=5 < scalar: vq=0.09476 scalar=0.11748 gain=0.93 dB
-  [PASS] b=2 m=5 > Shannon: vq=0.09476 bound=0.06250 ratio=1.516
-  [PASS] b=3 m=5 < scalar: vq=0.02500 scalar=0.03455 gain=1.41 dB
-  [PASS] b=3 m=5 > Shannon: vq=0.02500 bound=0.01562 ratio=1.600
-  [PASS] b=4 m=4 < scalar: vq=0.00726 scalar=0.00950 gain=1.17 dB
-  [PASS] b=4 m=4 > Shannon: vq=0.00726 bound=0.00391 ratio=1.858
-  [PASS] b=6 m=2 < scalar: vq=0.00055 scalar=0.00064 gain=0.68 dB
-  [PASS] b=6 m=2 > Shannon: vq=0.00055 bound=0.00024 ratio=2.259
-  [PASS] b=8 m=2 < scalar: vq=0.00004 scalar=0.00004 gain=0.63 dB
-  [PASS] b=8 m=2 > Shannon: vq=0.00004 bound=0.00002 ratio=2.337
-  [PASS] b=1 m=8 < scalar: vq=0.32362 scalar=0.36338 gain=0.50 dB
-  [PASS] b=1 m=8 > Shannon: vq=0.32362 bound=0.25000 ratio=1.294
-  [PASS] b=2 m=8 < scalar: vq=0.08875 scalar=0.11748 gain=1.22 dB
-  [PASS] b=2 m=8 > Shannon: vq=0.08875 bound=0.06250 ratio=1.420
-  [PASS] b=3 m=4 < scalar: vq=0.02613 scalar=0.03455 gain=1.21 dB
-  [PASS] b=3 m=4 > Shannon: vq=0.02613 bound=0.01562 ratio=1.672
-
-G4  trained 8-dim grid at 2 bits/coord vs a tuned E8 ball codebook
-  [PASS] grid beats E8 by >=1%: grid=0.08875 E8=0.09120 ratio=0.973
-  [PASS] E8 itself beats scalar: E8=0.09120 scalar=0.11748
-
-G5  grid quality improves with sub-vector dimension m (b=2)
-  [PASS] m=2 <= m=1: 0.11053 vs 0.11748
-  [PASS] m=4 <= m=2: 0.09790 vs 0.11053
-  [PASS] m=8 <= m=4: 0.08875 vs 0.09790
-
-G6  RHT incoherence matches Haar (else axis A is confounded)
-  [PASS] d=100 spike incoherence: rht=0.2695 haar=0.2738 (1/sqrt(d)=0.1000)
-  [PASS] d=768 spike incoherence: rht=0.1210 haar=0.1222 (1/sqrt(d)=0.0361)
-  [PASS] d=1024 spike incoherence: rht=0.0312 haar=0.1067 (1/sqrt(d)=0.0312)
-
-G7  KNOWN-BAD: under-trained grid must be rejected
-  [PASS] G4 criterion rejects the bad grid: bad=0.09142 vs G4 threshold E8*0.99=0.09029
-
-G8  payload bytes matched across codebooks; side channels itemised
-  [PASS] d=100 b=2 payload: scalar=25.0 vector=25.0
-  [PASS] d=100 b=2 side channels: exactnorm=4.0B blockscale=4.0B (2 blocks of 50)
-  [PASS] d=100 b=4 payload: scalar=50.0 vector=50.0
-  [PASS] d=100 b=4 side channels: exactnorm=4.0B blockscale=10.0B (5 blocks of 20)
-  [PASS] d=768 b=2 payload: scalar=192.0 vector=192.0
-  [PASS] d=768 b=2 side channels: exactnorm=4.0B blockscale=12.0B (6 blocks of 128)
-  [PASS] d=768 b=4 payload: scalar=384.0 vector=384.0
-  [PASS] d=768 b=4 side channels: exactnorm=4.0B blockscale=12.0B (6 blocks of 128)
-  [PASS] d=1024 b=2 payload: scalar=256.0 vector=256.0
-  [PASS] d=1024 b=2 side channels: exactnorm=4.0B blockscale=16.0B (8 blocks of 128)
-  [PASS] d=1024 b=4 payload: scalar=512.0 vector=512.0
-  [PASS] d=1024 b=4 side channels: exactnorm=4.0B blockscale=16.0B (8 blocks of 128)
-
-------------------------------------------------------------------------------
-NOTES
-  - b=5 sits 0.24% above Max (1960)'s 0.002499; ours is the converged fixed point (residual 6.5e-08, stable over 2e3..2e5 iterations) and the Gaussian's log-concavity makes it unique, so the 1960 table's last digit is the imprecise one.
-  - scalar LM b=6: mse=6.442e-04, ratio to Shannon 2^-2b = 2.639 (Panter-Dite asymptote 2.721)
-  - scalar LM b=8: mse=4.127e-05, ratio to Shannon 2^-2b = 2.704 (Panter-Dite asymptote 2.721)
-  - E8 ball codebook (2^16 pts, scale 0.985): mse/dim=0.09120; trained grid m=8: 0.08875; scalar LM: 0.11748
-  - d=100: mean max|coord| random unit vec — haar 0.2749, rht 0.2738
-  - d=768: mean max|coord| random unit vec — haar 0.1224, rht 0.1221
-  - d=1024: mean max|coord| random unit vec — haar 0.1079, rht 0.1071
-  - under-trained m=8 grid (2 Lloyd iters): mse/dim=0.09142 vs converged E8 anchor 0.09120, scalar 0.11748
-------------------------------------------------------------------------------
-
-GATE PASSED — axis-C results are readable.
+PASSED — 139 checks, 5 known-bad rejected, 14 coverage limit(s) stated.
