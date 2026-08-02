@@ -1,0 +1,5 @@
+# Scripts here run directly from this directory (`python3 run_ablation.py`),
+# so grids/quantizers/plot are first-party. Without this, ruff's I001 ordering
+# depends on which directory you invoke it from and the two invocations
+# disagree with each other.
+src = ["."]
