@@ -520,9 +520,12 @@ it.
 ## Caveats
 
 - **The 6- and 8-bit axis-C numbers are m=2 results.** `K_MAX = 2¹⁶` forces the
-  sub-vector dimension to 2 at those rates. A higher-dimensional grid would
-  recover a little more; the m=2 ceiling is about 1.3 dB of the 4.3 dB
-  scalar→Shannon gap. This does not affect the 1–4 bit conclusions, which use
+  sub-vector dimension to 2 at those rates. Measured: at 8 bits the m=2 grid
+  realises 0.63 dB of a 4.32 dB scalar→Shannon gap and leaves 3.69 dB on the
+  table (at 6 bits, 0.68 of 4.21 dB). How much of that remainder a
+  higher-dimensional grid would recover is **not measured here** — so read the
+  6- and 8-bit axis-C numbers as "what m=2 buys", not as "what vector
+  quantization buys". This does not affect the 1–4 bit conclusions, which use
   m=4–8.
 - **Axis B rests on one corpus.** Only `glove100` has real norm spread.
 - **`nfcorpus1024` is 2,000 of 3,633 documents.** bge-large on CPU measured
