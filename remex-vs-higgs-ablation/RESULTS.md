@@ -1,7 +1,10 @@
 # remex vs the QuIP#/HIGGS lineage — a 2×2×2 ablation for retrieval
 
 *Commissioned by [oaustegard/experiments#8](https://github.com/oaustegard/experiments/issues/8).
-Run 2026-08-02 on CCotw.*
+Run 2026-08-02 on CCotw. **The calibration gate was then audited and rebuilt
+under the [`gating`](https://github.com/oaustegard/claude-skills/tree/main/gating)
+skill — see Part 1.** The ablation's numbers below are the merged run's,
+unchanged by that work.*
 
 ## Question
 
@@ -22,6 +25,166 @@ says *which axis* the difference lives on, and that is the actionable part.
 
 `remex` = (haar, exactnorm, scalar). `HIGGS-like` = (rht, blockscale, vector).
 The other six cells are the interaction terms.
+
+# Part 1 — the rerun under `gating`
+
+The first run shipped a calibration gate that passed all 8 of its checks and
+had already caught a real defect: a random-init Lloyd trainer converging to
+grids *worse* than the scalar quantizer at 6 and 8 bits, which would have been
+written up as "scalar wins axis C at high rate." It was not a bad gate.
+
+This rerun applies the [`gating`](https://github.com/oaustegard/claude-skills/tree/main/gating)
+skill to it. The skill's question is not "does the suite pass" but "can it go
+red," and it names three obligations: an anchor outside your own code, a
+known-bad the gate demonstrably rejects, and a written statement of what it
+cannot catch. The old gate had the first, had one instance of the second, and
+did not have the third.
+
+`calibrate.py` is kept **unmodified**, because `audit.py`'s probes are evidence
+about that file and rewriting it would erase what they measured. `gate.py` is
+the replacement.
+
+## The audit: three checks could not fail
+
+`python3 audit.py` → `audit.log`. Verdicts are the skill's four.
+
+| check | verdict | the probe |
+|---|---|---|
+| **G6** RHT incoherence | **CANNOT FAIL** | Replaced *both* rotations with the identity — the worst possible incoherence — and G6 reported PASS at d=100, 768 and 1024. |
+| **G3** grid beats scalar | **BLIND** | A vector arm contributing zero quantization gain (−0.002 to +0.002 dB) passed 5 of 6 assertions. The one that fired did so by sampling noise, not by a stated margin. |
+| **G1** Max (1960) anchor | **BLIND** | The table covers b≤5; the sweep runs to 8. b=6 and b=8 carried no assertion at all. |
+| **G8** byte budget | **BLIND** | A 32 MiB codebook — 4334× the real one — changed nothing G8 looks at. |
+| **G7** known-bad reach | **BLIND** | The gate's only known-bad exercises G4's criterion alone. G3, the check axis C actually rests on, *accepts* the same under-trained grid (0.09142 < 0.11748 scalar). |
+
+G0, G2 and G5 were not probed and are PLAUSIBLE: each has a named breaking
+input and an external anchor, none observed red.
+
+**G6 is the one worth dwelling on.** It is not a weak check, it is a *relative*
+one, and the two things it relates are the two arms of the same factorial —
+which share the apply/inverse plumbing, the call site, and the author. A shared
+failure is exactly what such a check cannot see, and axis A would have been read
+off two no-op rotations without a single warning.
+
+**G3 is more uncomfortable, because the thing that broke it was a fix.** Adding
+the unrefined product grid as a training candidate is correct — it is what makes
+"the vector arm is never worse than the scalar arm" true rather than rhetorical,
+and the first run's adversarial review was right to demand it. But it also means
+a vector arm that does no vector quantization degrades to the scalar arm instead
+of to something visibly bad, and `grid_mse < scalar_mse` with no margin cannot
+tell those apart. A guarantee that makes an arm safe can make the check watching
+it toothless.
+
+## Mutation testing: the gate scored the codebook and never ran the codec
+
+`mutate.py --target grids.py --target quantizers.py --stride 3 --max 50`
+→ `mutate.log`: **36 killed, 55 survived of 91.**
+
+The survivors clustered, and the cluster was the diagnosis. The gate measured
+codebook *contents* — the MSE of a point set, by KD-tree — and never invoked
+the *encoder*:
+
+| survivor | what it breaks |
+|---|---|
+| `grids.py:166` `*`→`/`, `+`→`−` | `ScalarCodebook`'s decision boundaries |
+| `grids.py:194` `k=1`→`k=2` | `VectorCodebook` returns the second-nearest codepoint |
+| `quantizers.py:232` `==`→`!=` | swaps the two axis-B norm modes |
+
+Those functions run on every vector of every corpus, and all three mutations
+left the gate green. Three more were holes of the same family: `uniform_levels`
+— the naive-uniform **floor control** that "the floor sits below remex
+everywhere" rests on — was never called; `MAX_1960_MSE` could lose a row to a
+mutated dict key and the gate would report PASS over fewer rates; and
+`min(BLOCK, d//2)`→`max` collapses d=100 to a single block, turning the
+per-block-scale arm into a global scale, with the byte check none the wiser
+because `side == 2·nblocks` holds just as well for nblocks=1.
+
+Two survivors were tautologies **in the rebuilt gate**: payload bytes compared
+between two arms computed from the same expression (so both moved together),
+and a `total` field nothing read.
+
+`verify_kills.py` re-runs the 9 real mutants and confirms each dies — a
+permanent fixture rather than a transient experiment, so the day someone widens
+a tolerance for an unrelated reason it fails. It also lists 7 confirmed
+equivalent mutants with the reason each is unobservable, because an unexplained
+survivor and an equivalent mutant look identical in a report. Two are worth
+knowing: the sign in `_trunc_second_moment` cannot be observed because
+Σ(fb−fa) telescopes to zero for any level set symmetric about 0, and numpy
+treats `reshape(-2, B)` exactly like `reshape(-1, B)`.
+
+## The rebuilt gate
+
+`gate.py`, on the skill's `Gate` harness (vendored as `_gate_harness.py`), which
+mechanically refuses to report PASS without a registered known-bad it rejected
+*and* at least one stated coverage limit — exit 2, INCONCLUSIVE, not 0.
+
+Final run: **PASSED — 166 checks, 5 known-bad rejected, 14 coverage limits
+stated** (`gate.log`).
+
+What changed:
+
+- **Absolute incoherence brackets.** Each rotation is bracketed against the
+  E[max|coord|] of a uniformly random unit vector, computed by drawing and
+  normalising Gaussians — a path touching neither rotation. The identity sits
+  3.6–9× outside it.
+- **A margin derived from measured noise.** `paired_gain` scores the trained
+  grid and the lifted scalar grid on the *same* sample stream, so the common
+  fluctuation cancels and the difference carries its own standard error. The
+  grid must clear the degenerate baseline by 3 se, not merely land on the right
+  side of an inequality. The axis-C criterion is one function, called by both
+  the live check and the known-bad, so the known-bad cannot drift from it.
+- **Panter–Dite at the unanchored rates.** The optimal fixed-rate scalar
+  quantizer approaches 2.7207·2⁻²ᵇ from below, a hard upper bracket where
+  Max (1960) has run out.
+- **The codec is actually run**: idempotence (`Q(Q(x)) == Q(x)`), membership
+  (every output is a codepoint), the encoder attaining the point set's own
+  distortion, the arm round-trip landing on the codebook MSE, and the 1-bit
+  exact-norm arm reproducing relative norms with zero spread.
+- **Five known-bads instead of one**: the under-trained grid (retained), the
+  identity rotation, a barely-trained zero-gain vector arm, the recorded pre-fix
+  b=8 scalar MSE, and an arm that drops its codebook from shared bytes.
+- **The gate blocks.** `run_ablation.py` runs it and aborts on non-zero exit,
+  including exit 2. Previously it was step 3 of a documented command list, which
+  is advisory. A gate that does not block is a report.
+
+### Four checks in the new gate went red, and all four were mine
+
+Worth recording, because it is the honest shape of adding brackets:
+
+1. **A paired standard error compared against an unpaired one.** They estimate
+   different quantities; the check was meaningless as written. Replaced with a
+   comparison of the analytic paired se against the observed spread of the same
+   difference across independent streams.
+2. **"The vector arm always carries more shared bytes."** False at d=100 and
+   2 bits, where remex's 40 KiB Haar matrix outweighs the 20 KiB codebook. The
+   claim that actually holds is about the *codebook* term; the total is now a
+   per-bit-width note, which is how the amortization table has to be read anyway.
+3. **`rht d=1024 spike incoherence: 0.03125 < 0.03125`** — a strict lower bound
+   at an *attainable* optimum. At a power-of-two d the Hadamard block spans the
+   whole vector, so one round maps a coordinate spike to exactly ±1/√d. The
+   bound is right; the strictness was wrong. This one blocked the sweep, which
+   is the wiring working. Fixed to be inclusive, and a random-vector probe added
+   because the spike probe is degenerate for the RHT at power-of-two d — FWHT
+   flattens a delta by construction however badly the other stages behave.
+4. **The zero-gain known-bad was not zero-gain.** To avoid a degenerate
+   zero standard error I built it from one Lloyd iteration on 2,000 samples
+   rather than from the unrefined product grid. At m=8 with K=65536 that
+   relocates ~63,000 empty-cell codepoints toward the mode and earns a real
+   +0.10 dB, so the gate correctly *accepted* it and the known-bad failed. It
+   passed in fast mode (m=2, K=16) and only failed at full size — a reminder
+   that a known-bad has to be validated at the configuration it will run in.
+
+That fourth failure exposed something worth more than the fix. Probing for a
+jitter scale that would give a genuinely zero-gain arm showed the paired
+standard error **shrinks as the two codebooks converge**: a product grid
+perturbed by N(0, 1e-3) gains +0.0001 dB against a 3-se margin of 1.2e-06, and
+is accepted. The margin is statistically correct and practically empty — it
+certifies *the gain is real*, not *the gain is worth having*. Real grids here
+gain 0.35–1.41 dB; an arm gaining 0.01 dB would pass. The only practical floor
+in this gate is the E8-ball anchor, and it constrains one configuration (m=8 at
+2 bits/coord) out of nine. That is now a stated coverage limit rather than an
+assumption, and it is the sharpest remaining weakness in the gate.
+
+---
 
 ## Setup
 
@@ -114,6 +277,12 @@ places the run departs from it.
    handicap remex at any dimension used here.
 
 ## Calibration gate
+
+> **Superseded — see Part 1.** This section describes `calibrate.py`, the
+> gate as it stood for the run below. It was audited under the `gating`
+> skill and replaced by `gate.py`; `calibrate.py` is kept unmodified
+> because `audit.py`'s probes are evidence about *that* file. Three of the
+> checks described here could not fail in the way that mattered.
 
 The issue is explicit that a null on axis C is only readable if the vector arm
 is credible:
@@ -535,6 +704,43 @@ rotation is a wash at retrieval dimensions. If the index is large and the bit bu
 HIGGS lineage is the right answer. Otherwise the gap is not what should decide
 it.
 
+## How much to trust each claim
+
+The prose above asserts everything in the same voice. It should not. These
+claims are not equally supported, and the differences are large enough to
+change what you would do with them.
+
+| tier | means |
+|---|---|
+| **ANCHORED** | checked against a value this codebase did not produce |
+| **MEASURED** | a real measurement, no external anchor, single environment |
+| **ARGUED** | a mechanism or an extrapolation; the inputs are measured, the claim is not |
+| **WITHDRAWN** | asserted in an earlier revision, found wrong, corrected here |
+
+| claim | tier | what would overturn it |
+|---|---|---|
+| Only axis C moves; A and B are null | **MEASURED**, 3 corpora × 6 rates × 5 seeds | Effect size +0.0108/+0.0132 against a seed spread of ±0.001–0.004, one-signed on all six corpus×metric combinations. A shared defect in both the rotation and norm paths would have to survive the orthogonality, round-trip and incoherence anchors. |
+| Grid MSE gains (0.35–1.41 dB), scalar MSE | **ANCHORED** | Max (1960) at b≤5, Panter–Dite at b=6/8, E8's normalised second moment, Shannon from below, and a tuned E8 ball codebook. Several independent published constants would have to be wrong together. |
+| Codec is correct (idempotent, in-codebook, attains its own distortion) | **ANCHORED**, but **new** | Anchored on definitional properties — but these checks were written in this revision and have no failure history beyond the mutants they were built against. The least-seasoned checks in the gate. |
+| Byte accounting (payload, side, shared) | **ANCHORED** to arithmetic | Nothing here serialises an index. A codec whose real encoding is larger than its accounting says would pass every check. |
+| ~~RHT is 11–24× slower to apply in numpy~~ | **WITHDRAWN** | Measured a butterfly doing two full-array copies per stage against one tuned `sgemm` — the implementation, not the transform. Corrected upstream: ~parity at retrieval dimensions, RHT 3–4× faster at d=4096–8192, crossover near d≈1024. See `ERRORS.md` run 2 #9. |
+| Axis A wall-clock, as corrected | **MEASURED** | One machine, one BLAS, min-of-trials. The *shape* (crossover near d≈1024) is robust; the multiples are not portable. |
+| 1-bit MIPS: remex's ‖x̂‖/‖x‖ has zero spread | **ANCHORED** | A gate check now (√(2/π), std < 1e-5), not prose. Definitional for a constant-modulus code. |
+| *Why* the 1-bit MIPS reversal happens | **ARGUED** | Ingredients are measured — zero spread on one side, corpus norm CVs of 1.4/2.7/20% — but the causal story is not itself tested. A different mechanism producing the same numbers would be indistinguishable here. |
+| Shared bytes reverse recall-per-byte at 20k vectors | **MEASURED** | Direct from measured payloads and codebook sizes at a real corpus size. |
+| The ~350k-vector amortization threshold | **ARGUED** | An extrapolation from a formula. No corpus that size was run. An order of magnitude, not a number. |
+| Axis B is "close to moot on modern encoders" | **ARGUED**, one corpus | Only `glove100` has real norm spread. `fmnist784` was added upstream to close exactly this gap and **has not been swept yet** — that re-run is pending, and it is the single most likely thing to change a conclusion here. |
+
+Two structural limits behind the whole table: every codebook check scores
+against N(0, I), so if the rotated corpus coordinates are not Gaussian then
+every grid is calibrated for the wrong source *and all of these checks still
+pass*; and the recall pipeline itself is outside the gate, anchored only by the
+fp32 control (1.000 by construction) and the LM+QJL replication control.
+
+See `ERRORS.md` for the measured error rate of this experiment — 17 across two
+runs, 7 of them in the flattering direction — and `../ANCHORS.md` for the
+covered range of every constant above.
+
 ## Caveats
 
 - **The 6- and 8-bit axis-C numbers are m=2 results.** `K_MAX = 2¹⁶` forces the
@@ -560,17 +766,30 @@ it.
   rotation-seed outliers in this family. Across 5 seeds × every cell, the
   worst seed is within 0.01–0.02 recall@10 of the mean and no arm produced an
   outlier. Reported as a negative result on that specific risk.
+- **What the gate still cannot catch** is stated in `gate.log` under
+  `[cannot catch]` — 14 entries. The load-bearing ones: every codebook check
+  scores against N(0, I), so if the rotated corpus coordinates are not Gaussian
+  every grid is calibrated for the wrong source and all checks still pass; byte
+  accounting is checked against arithmetic, not bytes written to disk; the
+  incoherence bound catches a rotation that has stopped working but not one
+  that is merely mediocre; the axis-C margin is statistical, not practical; and
+  the recall pipeline itself is outside the gate, anchored only by the fp32 and
+  LM+QJL controls inside the sweep.
 
 ## Reproducing
 
 ```bash
+python3 recheck.py                # ~90 s — RUN THIS FIRST on any touch of this dir
+
 python3 build_corpora.py          # ~1 h, mostly bge-large on CPU
                                   # fmnist784 needs assets/fashion-mnist.hdf5:
                                   #   curl -L -o assets/fashion-mnist.hdf5 \
                                   #     http://ann-benchmarks.com/fashion-mnist-784-euclidean.hdf5
 python3 pretrain_grids.py         # ~25 min, cached by (version, m, K)
-python3 calibrate.py              # the gate; non-zero exit blocks the sweep
-python3 run_ablation.py           # the sweep, checkpointed per (corpus, metric, bits)
+python3 audit.py                  # audits the OLD gate (calibrate.py) -> audit.log
+python3 gate.py                   # THE gate; exit 1 FAILED, exit 2 INCONCLUSIVE
+python3 verify_kills.py           # the 9 mutants the gate's newer checks must kill
+python3 run_ablation.py           # runs the gate first and ABORTS unless it passes
 python3 run_ablation.py timing    # axis A wall-clock; needs an idle machine
 python3 summarize.py > tables.md
 python3 plot.py

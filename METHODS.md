@@ -67,6 +67,111 @@ clean. One-sided "found nothing" tests hide inverted signs.
 - `optimizing-skills-retro` — the check set must include the failure that
   motivated the edit (held-in), plus a regression guard (held-out).
 
+**Two-sided is necessary, not sufficient — measure the known-bad's *reach*.**
+`remex-vs-higgs-ablation/calibrate.py` was two-sided by this principle's own
+standard and still had three checks that could not fail. Its single known-bad
+(an under-trained grid) exercised exactly one of eight checks; the check axis C
+actually rested on *accepted* the same bad grid. Audited with the `gating`
+skill's procedure (`audit.py` in that directory):
+
+- **A relative check has no anchor.** "RHT's incoherence is within 25% of
+  Haar's" passes when *both* rotations are replaced by the identity — the
+  worst possible incoherence — because nothing compares either to an absolute
+  reference. Shared failure modes are exactly what a relative check cannot see,
+  and two arms of one factorial share almost everything. Fix: bracket against a
+  reference computed by a path that touches neither arm.
+- **A fallback candidate can make an assertion true by construction.** Adding
+  the scalar product grid as a training candidate — itself a good fix, for a
+  real bug — made "the vector grid beats the scalar grid" nearly tautological:
+  a vector arm doing no vector quantization degrades to the fallback and lands
+  on the right side of the inequality by sampling noise. An inequality with no
+  stated margin cannot distinguish "worked" from "did nothing." Fix: require a
+  margin derived from measured noise (a *paired* estimator, so the shared
+  fluctuation cancels), against the degenerate baseline rather than a
+  differently-computed one.
+- **State the anchor's range, then check past it.** Max (1960) stops at 5 bits;
+  the sweep runs to 8. Beyond the table there was no assertion at all, only a
+  printed note — and since the scalar MSE is the vector arm's threshold, an
+  inflated value *loosens* the check downstream. Fix: Panter–Dite
+  (2.7207·2⁻²ᵇ) as a hard upper bracket at the unanchored rates.
+
+**Score the artifact, and also run the code that produces it.** Mutation
+testing (`gating/scripts/mutate.py`, 91 mutants over that experiment's two core
+modules) found the gate scored codebook *contents* — the MSE of a point set —
+but never invoked the *encoder*. Mutating the decision boundaries, the
+nearest-neighbour k, and the axis-B norm-mode branch all left it green, and
+those functions run on every vector of every corpus. Cheap fixes with real
+anchors: idempotence (`Q(Q(x)) == Q(x)`), membership (every output is a
+codepoint), and the encoder attaining the point set's own distortion. Two
+further survivors were tautologies *in the rebuilt gate* — payload bytes
+compared between two arms computed by the same expression, and a `total` field
+nothing read. Kills verified individually and permanently in
+`remex-vs-higgs-ablation/verify_kills.py`; equivalent mutants are listed there
+with the reason each is unobservable, because an unexplained survivor and an
+equivalent mutant look identical in a report.
+
+**A statistical margin is not a practical floor, and a paired one gets weaker
+the closer the comparison is.** Replacing a bare inequality with "must beat the
+baseline by 3 standard errors of a paired estimator" is the right move against
+sampling noise, and it is still not a floor: the paired se *shrinks* as the two
+things converge, so an arm with a real-but-worthless advantage clears it easily.
+Measured in `remex-vs-higgs-ablation`: a product grid perturbed by N(0, 1e-3)
+gains +0.0001 dB against a 3-se margin of 1.2e-06 and is accepted, while the
+real grids gain 0.35–1.41 dB. "Significant" and "worth having" are different
+assertions and need different thresholds — the second one has to come from an
+anchor (there, a published E8-ball codebook), not from the estimator.
+
+**Validate a known-bad at the configuration it will run in.** The same
+experiment's zero-gain known-bad was built from one Lloyd iteration to avoid a
+degenerate zero standard error. It passed in the fast configuration (m=2,
+K=16) and failed at full size, because at m=8 with K=65536 a single iteration
+relocates ~63,000 empty-cell codepoints toward the mode and earns a genuine
++0.10 dB — it was not a zero-gain arm at all. A known-bad that is only bad at
+small scale certifies nothing at large scale.
+
+**Ship a sub-5-minute re-verification fixture, and make it check the prose
+against the artifacts.** The expensive parts of an experiment (corpora, trained
+models, sweeps) are hours and are usually gitignored, so nobody rebuilds them to
+check a one-line edit — which means the writeup and the data drift apart
+silently. `remex-vs-higgs-ablation/recheck.py` is the shape: artifact integrity,
+then the headline numbers **recomputed from the stored results by a path that
+does not import the summariser**, compared against the numbers parsed out of the
+prose; then internal consistency of the gate log against the counts the prose
+quotes; then the fast gate and a sample of pinned mutants. 90 seconds. Two of
+that experiment's logged errors were prose disagreeing with artifacts it
+described, and no amount of re-running the science would have found them — the
+numbers were right and the sentences about them were wrong. State plainly what
+the fixture does *not* cover, which is normally the science itself.
+
+**Keep an `ERRORS.md` per experiment: what was wrong, how it was caught, which
+direction it pushed the conclusion.** The base rate is the most useful
+calibration number about a body of work and the one nobody records; without it
+the only options are "trust the writeup" and "trust nothing." Direction is the
+column to read — an error that makes a check more permissive, or a result look
+stronger, is far more dangerous than one that makes it look weaker, because the
+second announces itself the moment someone tries to use the result.
+`remex-vs-higgs-ablation/ERRORS.md` logs 16 errors across two runs, 6 of them
+in the flattering direction, and records two things worth generalising: **an
+estimate of one's own error count made an hour later was wrong** (seven, versus
+eight counted), and **not one of the sixteen was caught by reading code
+carefully** — every one came from executing something, comparing two artifacts,
+or an outside party. Buy execution and comparison, not care. Append, never tidy;
+a cleaned log loses the base rate, which is the only thing it is for.
+
+**Register anchors with their covered range, in one place.** See `ANCHORS.md`.
+The failure it prevents is specific: Max (1960)'s quantizer table stops at 5
+bits, the sweep ran to 8, and for two runs nothing checked past the end of the
+table — where a 16%-high value sat, in the direction that *loosened* the check
+downstream of it. The gap was discoverable at any moment by writing the range
+next to the constant, and nobody did because there was nowhere to write it. Add
+a row when you use a constant, not when you audit.
+
+**A gate that does not block is a report.** That experiment's first run listed
+the gate as step 3 of a documented command sequence, so nothing stopped the
+sweep from running with it red or unrun. `run_ablation.py` now invokes it and
+aborts on non-zero exit — including exit 2, INCONCLUSIVE, which the `gating`
+harness returns when a gate registers no known-bad or states no coverage limit.
+
 ### 3. Fit and evaluate on the same corpus and learned methods look better than they are
 
 - `recall-per-byte/RESULTS.md` — ITQ's apparent win over parameter-free random
@@ -139,6 +244,9 @@ survives exactly the sanity checks people run.
 | Exact continuous Lloyd-Max for N(0,1) (reproduces Max 1960), plus Gaussian-optimal m-dim VQ grids by KD-tree-accelerated Lloyd | `remex-vs-higgs-ablation/grids.py` | trivial |
 | E8 lattice: nearest-point decoder, ball-shaped codebook, normalised second moment | `remex-vs-higgs-ablation/calibrate.py` | trivial |
 | Randomized Hadamard rotation for ANY d, no power-of-two padding (rounds of permute + block-diagonal FWHT) | `remex-vs-higgs-ablation/quantizers.py::RHTRotation` | trivial |
+| Gate audit harness: probes that demonstrate a check CANNOT FAIL (identity-rotation substitution, degenerate-trainer substitution, anchor-range gap) | `remex-vs-higgs-ablation/audit.py` | small — probes are subject-specific, the four verdicts and the six passes are not |
+| Permanent mutation-kill fixture: named mutations + the check claimed to catch each, restored after every run, plus documented equivalent mutants | `remex-vs-higgs-ablation/verify_kills.py` | trivial |
+| Paired MSE estimator with an analytic standard error (two codebooks on one sample stream, so the shared sampling fluctuation cancels) — turns a bare inequality into a margin derived from measured noise | `remex-vs-higgs-ablation/gate.py::paired_gain` | trivial |
 | Self-retrieval recall@k harness (`topk_float`, `recall_at_k`) | `kb-k-sweep/sweep.py` | trivial |
 | Stdlib-only BM25 + RM3 index reader | `lexical-kb/skill_template/search.py` | trivial (already shipped as `creating-kb`) |
 | Dependency-free txt/md/html extract + paragraph-respecting chunker | `lexical-kb/build_lexkb.py::extract_text` | trivial |

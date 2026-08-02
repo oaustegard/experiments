@@ -1,0 +1,29 @@
+baseline: gate must pass on unmutated code
+  [1/9] grids.py:39 1 -> 2     KILLED  (drops b=1 from the Max (1960) anchor table by collapsing a dict key)
+  [2/9] grids.py:130 - -> +     KILLED  (uniform_levels spans [+clip, +clip] — a degenerate grid)
+  [3/9] grids.py:166 * -> /     KILLED  (ScalarCodebook decision boundaries scaled by 0.5 instead of averaged)
+  [4/9] grids.py:166 + -> -     KILLED  (ScalarCodebook boundaries from level DIFFERENCES, not midpoints)
+  [5/9] grids.py:194 1 -> 2     KILLED  (VectorCodebook returns the SECOND nearest codepoint)
+  [6/9] quantizers.py:177 min -> max   KILLED  (d=100 collapses to ONE block, so per-block scale becomes a global scale)
+  [7/9] quantizers.py:206 * -> /     KILLED  (payload byte count becomes d/bits/8)
+  [8/9] quantizers.py:208 + -> -     KILLED  (total bytes reported as payload MINUS side channels)
+  [9/9] quantizers.py:232 == -> !=    KILLED  (the two axis-B norm modes are swapped)
+
+======================================================================
+all 9 mutants killed — every check added after mutation testing was observed going red on the mutation that motivated it
+
+7 further survivors are equivalent mutants, verified by inspection rather than by a check:
+  grids.py:126  k > 1 -> k >= 1
+      k = 2**bits >= 2 for every rate in BITS; the branch differs only at bits=0, which the sweep never runs
+  grids.py:128  m < best -> m <= best
+      keeps the last tie rather than the first in uniform_levels' clip search; measured, all 111 candidate clips give distinct float64 MSEs at both b=2 and b=4, so there is no tie to break
+  grids.py:152  a * pdf(a) -> a / pdf(a)
+      enters _scalar_mse_gaussian only through Sum(fb - fa), which cancels term-by-term for any level set symmetric about 0
+  grids.py:154  - (fb - fa) -> + (fb - fa)
+      same cancellation: the sum telescopes to f(inf) - f(-inf) = 0
+  grids.py:232  dist**2 -> dist**3
+      _lloyd's in-loop MSE is a convergence probe; selection and reporting both use held_out_mse, so the value is discarded
+  quantizers.py:73  reshape(-1, B) -> reshape(-2, B)
+      numpy treats any negative dimension as 'infer'
+  quantizers.py:120  Y * sign -> Y / sign
+      sign is +-1, so multiply and divide are the same map

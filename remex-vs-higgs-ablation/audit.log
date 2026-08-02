@@ -1,0 +1,92 @@
+==========================================================================
+AUDIT — calibrate.py, per gating/references/auditing.md
+==========================================================================
+
+==========================================================================
+PROBE 1 — G6 incoherence, both rotations replaced by the identity
+==========================================================================
+
+G6  RHT incoherence matches Haar (else axis A is confounded)
+  [PASS] d=100 spike incoherence: rht=1.0000 haar=1.0000 (1/sqrt(d)=0.1000)
+  [PASS] d=768 spike incoherence: rht=1.0000 haar=1.0000 (1/sqrt(d)=0.0361)
+  [PASS] d=1024 spike incoherence: rht=1.0000 haar=1.0000 (1/sqrt(d)=0.0312)
+
+  ==> G6 incoherence: CANNOT FAIL
+      Both rotations replaced by the identity — the strongest possible violation of what G6 certifies — and G6 reported PASS at every d. The check compares RHT to Haar only; with no absolute anchor, a shared failure is invisible. Axis A would be read off two no-op rotations.
+
+==========================================================================
+PROBE 2 — G3 bracket, vector trainer degraded to the scalar arm
+==========================================================================
+    b=2 m=8: product-only grid=0.1175417 scalar=0.1174818  gain=-0.002 dB
+    b=3 m=4: product-only grid=0.0345393 scalar=0.0345478  gain=+0.001 dB
+    b=4 m=4: product-only grid=0.0094960 scalar=0.0095010  gain=+0.002 dB
+
+G3  trained grid: beats scalar, never beats Shannon
+  [FAIL] b=2 m=8 < scalar: vq=0.11754 scalar=0.11748 gain=-0.00 dB
+  [PASS] b=2 m=8 > Shannon: vq=0.11754 bound=0.06250 ratio=1.881
+  [PASS] b=3 m=4 < scalar: vq=0.03454 scalar=0.03455 gain=0.00 dB
+  [PASS] b=3 m=4 > Shannon: vq=0.03454 bound=0.01562 ratio=2.211
+  [PASS] b=4 m=4 < scalar: vq=0.00950 scalar=0.00950 gain=0.00 dB
+  [PASS] b=4 m=4 > Shannon: vq=0.00950 bound=0.00391 ratio=2.431
+
+  ==> G3 beats-scalar: BLIND
+      1/6 assertions fired on a zero-gain arm — it lands on the right side of the inequality only by sampling noise, not by a stated margin
+
+==========================================================================
+PROBE 3 — G1 anchor range vs the rates the sweep actually uses
+==========================================================================
+    anchor covers b=[1, 2, 3, 4, 5]; sweep uses b=[1, 2, 3, 4, 6, 8]; unanchored: [6, 8]
+    b=8 attempted reconstruction of the pre-fix path = 4.1267067e-05
+    b=8 corrected (direct integration)               = 4.1267054e-05
+    -> reconstruction error +0.000% — DOES NOT reproduce the documented +16%; the defect depended on more than the identity itself, so this probe proves nothing about that specific value
+    b=8 historical value per RESULTS.md              = 4.7910000e-05 (+16.1%)
+    b=8 Panter-Dite asymptote 2.7207*2^-16           = 4.1514587e-05
+    ratio to Shannon: true 2.704, historical 3.140, bound 2.7207 -> Panter-Dite would reject the historical value, and the true value clears it by only 0.6%
+
+  ==> G1 published-table anchor: BLIND
+      The anchor covers b<=5; the sweep runs to 8, so b=6 and b=8 carry no assertion at all — that part is structural and certain. The consequence is not merely a missing check: the scalar MSE is G3's threshold, so an inflated value makes the one check guarding axis C strictly MORE permissive. Panter-Dite (2.7207*2^-2b) bounds the unanchored rates and is currently printed as a NOTE rather than asserted; it would reject the historical value (ratio 3.140 > 2.7207). Caveat on this probe: the attempt above to reconstruct the historical defect failed (+0.000%), so the range gap is demonstrated and the specific value is taken from the record.
+
+==========================================================================
+PROBE 4 — G8 byte budget, vector codebook inflated 16x
+==========================================================================
+    shared bytes: 7,744 -> 33,562,112 (4334x)
+
+G8  payload bytes matched across codebooks; side channels itemised
+  [PASS] d=100 b=2 payload: scalar=25.0 vector=25.0
+  [PASS] d=100 b=2 side channels: exactnorm=4.0B blockscale=4.0B (2 blocks of 50)
+  [PASS] d=100 b=4 payload: scalar=50.0 vector=50.0
+  [PASS] d=100 b=4 side channels: exactnorm=4.0B blockscale=10.0B (5 blocks of 20)
+  [PASS] d=768 b=2 payload: scalar=192.0 vector=192.0
+  [PASS] d=768 b=2 side channels: exactnorm=4.0B blockscale=12.0B (6 blocks of 128)
+  [PASS] d=768 b=4 payload: scalar=384.0 vector=384.0
+  [PASS] d=768 b=4 side channels: exactnorm=4.0B blockscale=12.0B (6 blocks of 128)
+  [PASS] d=1024 b=2 payload: scalar=256.0 vector=256.0
+  [PASS] d=1024 b=2 side channels: exactnorm=4.0B blockscale=16.0B (8 blocks of 128)
+  [PASS] d=1024 b=4 payload: scalar=512.0 vector=512.0
+  [PASS] d=1024 b=4 side channels: exactnorm=4.0B blockscale=16.0B (8 blocks of 128)
+
+  ==> G8 byte budget: BLIND
+      G8 checks payload and per-vector side channels only (0 failures with a 32 MiB codebook in play). The shared cost — the quantity that inverts the recall-per-byte conclusion in RESULTS.md — is computed by `shared_bytes()` and asserted nowhere. The adversarial review's NOT-MATCHED verdict is carried in prose while the gate reports the budget green.
+
+==========================================================================
+PROBE 5 — reach of the single known-bad (G7)
+==========================================================================
+    under-trained m=8 grid: 0.09142
+    G4 criterion (<= E8*0.99 = 0.09029): REJECTS
+    G3 criterion (< scalar  = 0.11748): ACCEPTS
+
+  ==> known-bad coverage: BLIND
+      One known-bad, reaching ['G4']. G3 — the check axis C actually rests on — ACCEPTS the same under-trained grid (0.09142 < 0.11748 scalar), so it is not covered despite the docstring's claim. Unexercised: ['G0', 'G1', 'G2', 'G3', 'G5', 'G6', 'G8']. G3 did fire historically on the random-init grid, but that was a transient experiment; nothing in the suite re-runs it, so a future change that re-loosens it is silent.
+
+==========================================================================
+SUMMARY
+==========================================================================
+  CANNOT FAIL  G6 incoherence
+  BLIND        G3 beats-scalar
+  BLIND        G1 published-table anchor
+  BLIND        G8 byte budget
+  BLIND        known-bad coverage
+
+  5 of 5 probed checks are CANNOT FAIL or BLIND.
+  Checks not probed here (G0, G2, G5) are PLAUSIBLE: each has a
+  named breaking input and an external anchor, none observed red.
