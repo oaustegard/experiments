@@ -257,6 +257,28 @@ the result.
   beats scalar" gate *more permissive*, and Max (1960)'s published table stops
   at 5 bits so a table-comparison check cannot catch it.
   (`remex-vs-higgs-ablation/grids.py::lloyd_max_1d`)
+- **Score cosine as cosine: divide by ‖x̂‖.** Ranking quantized documents by
+  the bare inner product `q·x̂` silently rewards codecs whose reconstruction
+  norm happens to be constant and penalises those with norm spread — which is
+  a property of the *codebook shape*, not of retrieval quality. A 1-bit scalar
+  quantizer emits ±c on every coordinate, so ‖x̂‖ = c√d is constant **by
+  construction** and it pays nothing; an m-dimensional VQ grid's ‖x̂‖ varies
+  (CV ≈ 1%). Measured on 750 arXiv abstracts at 1 bit, the VQ arm scored
+  recall@10 0.663 against the scalar arm's 0.686 *despite* better MSE (+0.50 dB)
+  and better mean reconstruction cosine (0.823 vs 0.799); renormalising the
+  reconstruction flipped it to 0.689 and the ordering agreed with the
+  distortion numbers again. Left alone this reads as a genuine
+  "scalar wins at low rate" reversal. `jina-remex-vs-remax/score_fidelity.py`
+  and the first version of `remex-vs-higgs-ablation` both had it, so check any
+  harness in this repo that scores `Q @ Xhat.T`. Keep reconstruction MSE on the
+  *raw* reconstruction so it stays a property of the codec.
+  (`remex-vs-higgs-ablation/run_ablation.py::Reference.score`)
+- **Better MSE does not imply better recall, and mean reconstruction cosine
+  does not settle it either.** Both were *better* for the arm that lost above.
+  When a distortion metric and a ranking metric disagree, look for a
+  per-document quantity that shifts scores without shifting fidelity — here the
+  spread of ‖x̂‖ across documents. Diagnose it by renormalising and re-scoring:
+  if the disagreement vanishes, it was scale, not geometry.
 - **Rotated *unit* vectors have Beta-distributed coordinates, not Gaussian**
   (density ∝ (1−x²)^((d−3)/2)); TurboQuant fits its Lloyd-Max to that Beta.
   Using a Gaussian at σ=1/√d instead costs ≤0.007% excess MSE at 2 bits and
