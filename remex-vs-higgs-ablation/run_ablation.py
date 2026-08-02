@@ -21,6 +21,8 @@ never finishes (METHODS.md principle 7).
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -266,15 +268,50 @@ def timing(reps=5):
     return out
 
 
+def require_gate():
+    """Run the calibration gate and refuse to sweep unless it passes.
+
+    The first run listed the gate as step 3 of a documented command sequence,
+    which makes it advisory: nothing stopped `run_ablation.py` from producing
+    axis-C numbers with the gate red, or never run at all.  A gate that does
+    not block is a report.  Exit 2 (INCONCLUSIVE -- no known-bad registered,
+    or no coverage limit stated) blocks exactly like exit 1, because "every
+    check passed" from a suite that was never shown to reject anything is not
+    evidence.
+
+    SKIP_GATE=1 exists for iterating on the runner itself.  It prints a loud
+    banner; it is not a way to publish.
+    """
+    if os.environ.get("SKIP_GATE") == "1":
+        print("!" * 74)
+        print("!! SKIP_GATE=1 -- axis-C numbers from this run are UNGATED")
+        print("!! and must not be published.")
+        print("!" * 74)
+        return
+    print("running the calibration gate before the sweep ...")
+    rc = subprocess.call([sys.executable, str(HERE / "gate.py")])
+    if rc != 0:
+        kind = {1: "FAILED", 2: "INCONCLUSIVE"}.get(rc, f"exit {rc}")
+        raise SystemExit(
+            f"\ncalibration gate {kind} -- sweep aborted.\n"
+            "Axis C is only readable if the vector arm is credible; that is "
+            "the precondition\nthe commissioning issue states, so this is not "
+            "a warning to read past.")
+    print("gate passed -- proceeding to the sweep.\n")
+
+
 def main():
     args = sys.argv[1:]
     if args and args[0] == "timing":
+        # Timing is axis A only: no codebook is involved, so the codebook
+        # gate is not its precondition.
         print("\n### axis A wall-clock (rotation apply, 4096 vectors)")
         t = timing()
         res = json.loads(OUT.read_text()) if OUT.exists() else {}
         res["_timing"] = t
         save_json(OUT, res)
         return 0
+    require_gate()
     run(datasets=tuple(args) if args else DATASETS)
     return 0
 

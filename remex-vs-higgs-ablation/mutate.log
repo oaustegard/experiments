@@ -1,0 +1,158 @@
+baseline: gate passes on unmutated code (python3 gate.py --fast)
+
+grids.py: 50 mutation sites
+  [1/50] line 39: 1 -> 2                    SURVIVED
+  [2/50] line 39: 4 -> 5                    SURVIVED
+  [3/50] line 43: 16 -> 17                  SURVIVED
+  [4/50] line 57: 6 -> 7                    SURVIVED
+  [5/50] line 57: 3 -> 4                    SURVIVED
+  [6/50] line 83: + -> -                    killed (exit 1)
+  [7/50] line 87: 1 -> 2                    killed (exit 1)
+  [8/50] line 88: - -> +                    killed (exit 1)
+  [9/50] line 93: - -> +                    killed (exit 1)
+  [10/50] line 97: - -> +                    SURVIVED
+  [11/50] line 98: - -> +                    SURVIVED
+  [12/50] line 123: is -> is not             SURVIVED
+  [13/50] line 126: > -> >=                  SURVIVED
+  [14/50] line 130: - -> +                   SURVIVED
+  [15/50] line 130: 1 -> 2                   SURVIVED
+  [16/50] line 136: 1 -> 2                   killed (exit 1)
+  [17/50] line 137: - -> +                   killed (exit 1)
+  [18/50] line 140: - -> +                   killed (exit 1)
+  [19/50] line 143: 2 -> 3                   killed (exit 1)
+  [20/50] line 143: + -> -                   killed (exit 1)
+  [21/50] line 148: - -> +                   killed (exit 1)
+  [22/50] line 152: * -> /                   SURVIVED
+  [23/50] line 154: - -> +                   SURVIVED
+  [24/50] line 166: * -> /                   SURVIVED
+  [25/50] line 166: + -> -                   SURVIVED
+  [26/50] line 170: 1 -> 2                   SURVIVED
+  [27/50] line 194: 1 -> 2                   SURVIVED
+  [28/50] line 217: * -> /                   killed (exit 1)
+  [29/50] line 218: 1 -> 2                   killed (exit 1)
+  [30/50] line 231: 1 -> 2                   killed (exit 1)
+  [31/50] line 232: 2 -> 3                   SURVIVED
+  [32/50] line 236: 0 -> 1                   SURVIVED
+  [33/50] line 248: and -> or                killed (exit 1)
+  [34/50] line 248: 0 -> 1                   SURVIVED
+  [35/50] line 248: - -> +                   SURVIVED
+  [36/50] line 250: < -> <=                  SURVIVED
+  [37/50] line 254: 1 -> 2                   SURVIVED
+  [38/50] line 255: 2 -> 3                   SURVIVED
+  [39/50] line 274: 1 -> 2                   killed (exit 1)
+  [40/50] line 277: 1 -> 2                   killed (exit 1)
+  [41/50] line 281: 25 -> 26                 SURVIVED
+  [42/50] line 313: True -> False            killed (exit 1)
+  [43/50] line 321: max -> min               SURVIVED
+  [44/50] line 327: * -> /                   SURVIVED
+  [45/50] line 328: min -> max               SURVIVED
+  [46/50] line 329: 1009 -> 1010             SURVIVED
+  [47/50] line 334: 1 -> 2                   SURVIVED
+  [48/50] line 344: min -> max               killed (exit 1)
+  [49/50] line 358: 0 -> 1                   killed (exit 1)
+  [50/50] line 358: <= -> <                  SURVIVED
+quantizers.py: 41 mutation sites
+  [1/41] line 37: 128 -> 129                SURVIVED
+  [2/41] line 72: - -> +                    killed (exit 1)
+  [3/41] line 73: 1 -> 2                    SURVIVED
+  [4/41] line 76: - -> +                    killed (exit 1)
+  [5/41] line 76: 2 -> 3                    killed (exit 1)
+  [6/41] line 77: 0 -> 1                    killed (exit 1)
+  [7/41] line 79: + -> -                    killed (exit 1)
+  [8/41] line 81: - -> +                    killed (exit 1)
+  [9/41] line 83: * -> /                    killed (exit 1)
+  [10/41] line 88: 2 -> 3                    killed (exit 1)
+  [11/41] line 89: 2 -> 3                    killed (exit 1)
+  [12/41] line 110: 1 -> 2                   SURVIVED
+  [13/41] line 110: 2 -> 3                   SURVIVED
+  [14/41] line 120: * -> /                   SURVIVED
+  [15/41] line 128: // -> /                  killed (exit 1)
+  [16/41] line 177: min -> max               SURVIVED
+  [17/41] line 177: or -> and                killed (exit 1)
+  [18/41] line 186: + -> -                   SURVIVED
+  [19/41] line 186: 0 -> 1                   SURVIVED
+  [20/41] line 186: 0 -> 1                   killed (exit 1)
+  [21/41] line 187: 1 -> 2                   SURVIVED
+  [22/41] line 187: == -> !=                 SURVIVED
+  [23/41] line 206: * -> /                   SURVIVED
+  [24/41] line 208: + -> -                   SURVIVED
+  [25/41] line 214: * -> /                   killed (exit 1)
+  [26/41] line 215: == -> !=                 killed (exit 1)
+  [27/41] line 216: 4 -> 5                   killed (exit 1)
+  [28/41] line 218: * -> /                   killed (exit 1)
+  [29/41] line 218: * -> /                   killed (exit 1)
+  [30/41] line 232: == -> !=                 SURVIVED
+  [31/41] line 239: * -> /                   SURVIVED
+  [32/41] line 244: 2 -> 3                   SURVIVED
+  [33/41] line 260: * -> /                   SURVIVED
+  [34/41] line 262: - -> +                   SURVIVED
+  [35/41] line 264: 99991 -> 99992           SURVIVED
+  [36/41] line 281: + -> -                   SURVIVED
+  [37/41] line 281: 4 -> 5                   SURVIVED
+  [38/41] line 286: True -> False            SURVIVED
+  [39/41] line 295: 1 -> 2                   SURVIVED
+  [40/41] line 296: 2 -> 3                   SURVIVED
+  [41/41] line 297: * -> /                   SURVIVED
+
+======================================================================
+killed 36/91   survived 55/91
+
+SURVIVORS — the code changed here and the gate stayed green:
+  grids.py:39  1 -> 2
+  grids.py:39  4 -> 5
+  grids.py:43  16 -> 17
+  grids.py:57  6 -> 7
+  grids.py:57  3 -> 4
+  grids.py:97  - -> +
+  grids.py:98  - -> +
+  grids.py:123  is -> is not
+  grids.py:126  > -> >=
+  grids.py:130  - -> +
+  grids.py:130  1 -> 2
+  grids.py:152  * -> /
+  grids.py:154  - -> +
+  grids.py:166  * -> /
+  grids.py:166  + -> -
+  grids.py:170  1 -> 2
+  grids.py:194  1 -> 2
+  grids.py:232  2 -> 3
+  grids.py:236  0 -> 1
+  grids.py:248  0 -> 1
+  grids.py:248  - -> +
+  grids.py:250  < -> <=
+  grids.py:254  1 -> 2
+  grids.py:255  2 -> 3
+  grids.py:281  25 -> 26
+  grids.py:321  max -> min
+  grids.py:327  * -> /
+  grids.py:328  min -> max
+  grids.py:329  1009 -> 1010
+  grids.py:334  1 -> 2
+  grids.py:358  <= -> <
+  quantizers.py:37  128 -> 129
+  quantizers.py:73  1 -> 2
+  quantizers.py:110  1 -> 2
+  quantizers.py:110  2 -> 3
+  quantizers.py:120  * -> /
+  quantizers.py:177  min -> max
+  quantizers.py:186  + -> -
+  quantizers.py:186  0 -> 1
+  quantizers.py:187  1 -> 2
+  quantizers.py:187  == -> !=
+  quantizers.py:206  * -> /
+  quantizers.py:208  + -> -
+  quantizers.py:232  == -> !=
+  quantizers.py:239  * -> /
+  quantizers.py:244  2 -> 3
+  quantizers.py:260  * -> /
+  quantizers.py:262  - -> +
+  quantizers.py:264  99991 -> 99992
+  quantizers.py:281  + -> -
+  quantizers.py:281  4 -> 5
+  quantizers.py:286  True -> False
+  quantizers.py:295  1 -> 2
+  quantizers.py:296  2 -> 3
+  quantizers.py:297  * -> /
+
+Each line is a behaviour nothing currently checks. Either add a check,
+or record it under the gate's stated coverage limits.
