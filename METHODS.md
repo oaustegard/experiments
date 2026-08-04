@@ -479,6 +479,28 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Count what the BASELINE ships, not just what the codec ships — and if the
+  baseline is Matryoshka truncation, it ships nothing.** Comparing quantizer
+  payload against a truncation baseline credits the codec with free shared
+  structure: remex needs a d x d rotation (+codebook), remax needs k of them,
+  while a Matryoshka slice needs zero side data because the vector already
+  exists. Measured on 179 vectors at d=384: remex @ 2-bit is 100 B/vec payload
+  against full fp32's 1536 B — but **3,395 B/vec** once the rotation is
+  materialized, i.e. the conclusion **inverts**. Break-evens: n=69 (d=64 @ 2-bit
+  vs fp32 d=64), **n=411** (d=384 @ 2-bit vs full fp32), **n=1,282** (d=384 @
+  1-bit vs fp32 d=128). Also take the payload from the codec's own accounting
+  (`CompressedVectors.nbytes`) rather than `dim*bits/8`, which drops the
+  separately-stored float32 norms — +4 B/vec, i.e. **+50% at d=64 @ 1-bit**.
+  This repo had already found this exact trap (`remex-vs-higgs-ablation`, "needs
+  ~350k vectors to amortize") and it was reproduced anyway. (`bekko-embedding-bench`)
+- **A seed-derived structure is the same object priced in two currencies —
+  bytes if you ship it, latency if you regenerate it — and quoting either alone
+  flatters the codec.** remax_kb's rotation is deterministic from (dim, k, seed):
+  ship it and it costs +3,295 B/vec at n=179 (+476 at n=1,238, +6 at n=100k);
+  regenerate it and it costs **53 ms on every query, forever**; cache it once per
+  opened index and it costs ~0. A byte-budget table that assumes regeneration and
+  a latency table that assumes the bytes are free are each individually correct
+  and jointly misleading. Report the pair. (`bekko-embedding-bench/RESULTS.md`)
 - **A per-query constant can eat an order-of-magnitude encoder win — measure the
   whole path, then decompose it.** bekko-a8m is 12.9x faster than jina v5 nano q4
   in isolation, but only **2.3x** through `remax_kb.read.KB.search`, because
