@@ -1,0 +1,42 @@
+{
+ "12470": {
+  "number": 12470,
+  "title": "OneHotEncoder ignore unknown error when categories are strings",
+  "created_at": "2018-10-27T08:38:53Z",
+  "labels": [
+   "Bug"
+  ],
+  "body": "#### Description\n\nThis bug is very specific, but it happens when you set OneHotEncoder to ignore unknown entries.\nand your labels are strings. The memory of the arrays is not handled safely and it can lead to a ValueError\n\nBasically, when you call the transform method it will sets all the unknown strings on your array to OneHotEncoder.categories_[i][0] which is the first category alphabetically sorted given for fit\nIf this OneHotEncoder.categories_[i][0] is a long string, and the array that you want to transform has small strings, then it is impossible to fit the whole  OneHotEncoder.categories_[i][0] into the entries of the array we want to transform. So  OneHotEncoder.categories_[i][0]  is truncated and this raise the ValueError.\n\n#### Steps/Code to Reproduce\n```\nimport numpy as np\nfrom sklearn.preprocessing import OneHotEncoder\n\ntrain  = np.array([ '22','333','4444','11111111' ]).reshape((-1,1))\ntest   = np.array([ '55555',  '22' ]).reshape((-1,1))\n\nohe = OneHotEncoder(dtype=bool,handle_unknown='ignore')\n\nohe.fit( train )\nenc_test = ohe.transform( test )\n```\n\n#### Expected Results\nHere we should get an sparse matrix 2x4 false everywhere except at (1,1) the '22' that is known\n\n#### Actual Results\n\n> ValueError: y contains previously unseen labels: ['111111']\n\n#### Comments\n\nI already implemented a fix for this issue, where I check the size of the elements in the array before, and I cast them into objects if necessary."
+ },
+ "19638": {
+  "number": 19638,
+  "title": "[BUG] hinge_loss multi",
+  "created_at": "2021-03-07T12:16:07Z",
+  "labels": [
+   "Bug",
+   "module:metrics"
+  ],
+  "body": "```python\n>>> sklearn.metrics.hinge_loss(y_true=[2,1,0,1,0,1,1], pred_decision=[0,1,2,1,0,2,1])\n\n  2378         y_true = le.transform(y_true)\n   2379         mask = np.ones_like(pred_decision, dtype=bool)\n-> 2380         mask[np.arange(y_true.shape[0]), y_true] = False\n   2381         margin = pred_decision[~mask]\n   2382         margin -= np.max(pred_decision[mask].reshape(y_true.shape[0], -1),\n\nIndexError: too many indices for array: array is 1-dimensional, but 2 were indexed\n```"
+ },
+ "28046": {
+  "number": 28046,
+  "title": "Log Loss gradient and hessian returns NaN for large negative values",
+  "created_at": "2024-01-02T16:13:24Z",
+  "labels": [
+   "Bug",
+   "Numerical Stability"
+  ],
+  "body": "### Describe the bug\n\nThe private `HalfBinomialLoss` gradient and hessian returns `np.NaN` for large negative values of `raw_prediction`:\n- `gradient`\n- `gradient_hessian`\nOnly the `loss_gradient` returns the correct gradient.\n\n### Steps/Code to Reproduce\n\n```python\nimport numpy as np\nfrom sklearn._loss import HalfBinomialLoss\n\nloss = HalfBinomialLoss()\ny_true, raw = np.array([1.]), np.array([-1e3])\n[\n    loss.gradient(y_true, raw),\n    loss.loss_gradient(y_true, raw),\n    loss.gradient_hessian(y_true, raw),\n]\n```\n\n### Expected Results\n\ngradient = -1 and hessian = 0\n\n### Actual Results\n\n```\n[array([nan]), (array([1000.]), array([-1.])), (array([nan]), array([nan]))]\n```"
+ },
+ "14338": {
+  "number": 14338,
+  "title": "IterativeImputer not converging (at all)",
+  "created_at": "2019-07-13T19:15:48Z",
+  "labels": [
+   "Moderate",
+   "High Priority",
+   "module:impute"
+  ],
+  "body": "Observed in #14330: the IterativeImputer doesn't converge, as a matter of fact, the convergence criterion doesn't seem to go down with iterations.\nTo me that indicates that either there's an issue with the implementation, an issue with the metric, or that our stopping criterion is not suitable.\n\nWere there examples on which it converged? It would be nice to plot the convergence but we don't allow callbacks like that. But just printing it on https://github.com/scikit-learn/scikit-learn/blob/master/examples/impute/plot_iterative_imputer_variants_comparison.py shows that it doesn't go down."
+ }
+}
