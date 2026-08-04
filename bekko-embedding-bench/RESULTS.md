@@ -91,6 +91,11 @@ re-mined set is of comparable difficulty.
 | ast / a8m | 0.667 | 0.778 | 0.806 | **0.889** | **0.889** | **0.889** |
 | ast / a25m | 0.667 | 0.778 | 0.806 | 0.806 | **0.889** | **0.889** |
 | flat / a8m | 0.667 | 0.778 | **0.833** | **0.889** | 0.833 | 0.889 |
+| flat / a25m | 0.667 | 0.778 | 0.806 | **0.889** | **0.889** | **0.889** |
+
+The full 2x2 is reported. Every cell puts dense at r@5 0.806-0.833 and RRF at
+0.833-0.889 against grep's flat 0.667, so the headline does not depend on which
+cell you pick.
 
 Prior runs, for reference: naive rg 0.57/0.79; retired **TF-IDF** tier 0.36/0.74.
 
@@ -143,19 +148,31 @@ Which number you quote is a methodology choice, so both are here.
 
 Varying exactly one axis at a time:
 
-| axis | change | Δ r@5 | Δ r@10 |
+| axis | held fixed | Δ r@5 | Δ r@10 |
 |---|---|---|---|
-| chunking (encoder fixed a8m) | ast → flat | +0.028 | 0.000 |
-| encoder (chunking fixed ast) | a8m → a25m | 0.000 | −0.083 |
+| chunking, ast → flat | a8m | **+0.028** | 0.000 |
+| chunking, ast → flat | a25m | 0.000 | **+0.083** |
+| encoder, a8m → a25m | ast | 0.000 | **−0.083** |
+| encoder, a8m → a25m | flat | **−0.028** | 0.000 |
 
 The handoff's prior was "chunk boundaries matter more than the encoder here."
-**Stated explicitly, as asked: it does not hold.** Both effects are within noise
-at n=6, and both are small next to the dense-vs-grep gap (+0.14 r@5) that is the
-actual finding. The one place chunking shows up is the identifier-poor instance,
-where AST chunking beats flat (r@5 0.667 vs 0.333) — n=1, so suggestive only.
+**Stated explicitly, as asked: it does not hold** — and with the 2x2 complete the
+statement is stronger than a null. Each axis **changes sign depending on the
+level of the other**: flattening helps a8m at r@5 (+0.028) and does nothing to
+a25m; a25m loses r@10 under ast chunking (−0.083) and gains it under flat. Every
+effect is ±0.028 or ±0.083 — one instance-level step at n=6 — with no consistent
+direction. Both axes are noise, and both are small next to the +0.139
+dense-vs-grep gap that is the actual finding.
 
-**a25m does not earn its cost.** 3x the encode time (33 min vs 11 min) for
-r@10 0.806 vs a8m's 0.889. The 4-layer model is the one to use.
+**Correction from the completed 2x2.** With only three cells this file claimed
+AST chunking helps on the identifier-poor instance (r@5 0.667 ast vs 0.333 flat).
+The fourth cell withdraws it: flat/a25m also scores 0.667 there, so 0.333 is a
+flat/**a8m** quirk, not a chunking effect. n=1 strata generate exactly this kind
+of false signal, which is why the thin-slice caveat below is load-bearing.
+
+**a25m does not earn its cost either way.** 3x the encode time (33 min vs 11 min,
+25.8 min vs ~11 for flat) to land at r@10 0.806 under ast and 0.889 under flat —
+i.e. no better than a8m at best, worse at worst. The 4-layer model is the one to use.
 
 ---
 
@@ -301,5 +318,5 @@ between them they are sufficient to build a PR-gold benchmark offline.**
   (same caveat as both prior runs).
 - Part B numbers are **self-retrieval**, not human-labelled relevance. Fair
   across models (identical splits) but not an absolute quality measure.
-- `flat/a25m` was still encoding at write-up; the 2x2 is reported as 3 cells.
-- Wall clock: ~50 min of encoding on 4 vCPU for the four corpus cells.
+- Wall clock: ~81 min of corpus encoding on 4 vCPU for the four cells
+  (a8m 11/11 min ast/flat, a25m 33/26 min), partly overlapped with Part B.
