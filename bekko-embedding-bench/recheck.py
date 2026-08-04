@@ -156,6 +156,32 @@ def main() -> int:
           all(r["shipped_ms"] > r["fixed_ms"] for r in fj),
           f"jina typical {fj[1]['shipped_ms']:.0f} -> {fj[1]['fixed_ms']:.0f} ms")
 
+    # ── projections (the RHT option) ────────────────────────────────────────
+    D = {r["dim"]: r for r in json.load(open(HERE / "results_rht_dims.json"))}
+    check("remax's own rht_rotation @rounds=2 reproduces its documented 1.5-1.8x",
+          all(1.4 <= D[d]["haar_ms"] / D[d]["remax_rht_r2_ms"] <= 2.2 for d in D),
+          " ".join(f"d{d}={D[d]['haar_ms'] / D[d]['remax_rht_r2_ms']:.2f}x" for d in D))
+    check("remax_kb's separate srht_matrix is SLOWER than haar at every dim",
+          all(D[d]["kb_srht_r3_ms"] > D[d]["haar_ms"] for d in D),
+          " ".join(f"d{d}={D[d]['haar_ms'] / D[d]['kb_srht_r3_ms']:.2f}x" for d in D))
+    check("rademacher is the cheapest option at v1's dim=256",
+          D[256]["kb_rademacher_ms"] < min(D[256][k] for k in
+              ("haar_ms", "remax_rht_r2_ms", "remax_rht_r3_ms", "kb_srht_r3_ms")),
+          f"{D[256]['kb_rademacher_ms']:.1f} ms")
+
+    R = json.load(open(HERE / "results_rht.json"))
+    ret = [r for r in R if r["stage"] == "retrieval"]
+    for model in {r["model"] for r in ret}:
+        sub = [r for r in ret if r["model"] == model]
+        spread = max(r["r@10"] for r in sub) - min(r["r@10"] for r in sub)
+        check(f"projection choice is quality-neutral ({model})", spread <= 0.03,
+              f"R@10 spread {spread:.3f}")
+    # the point of §7: even the cheapest projection dwarfs the encode it serves
+    pa = {r["model"]: r for r in json.load(open(HERE / "results_kbpath.json"))}["bekko-a8m"]
+    check("even the cheapest projection costs more than bekko-a8m's encode",
+          D[256]["kb_rademacher_ms"] > pa["encode_ms"],
+          f"rademacher {D[256]['kb_rademacher_ms']:.1f} ms vs encode {pa['encode_ms']:.1f} ms")
+
     # ── composition ─────────────────────────────────────────────────────────
     C = json.load(open(HERE / "results_compose.json"))
     cells = 0
