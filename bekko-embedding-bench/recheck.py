@@ -53,17 +53,35 @@ def main() -> int:
           f"{mean('dense_r5', rich):.3f} >= {mean('rg_r5', rich):.3f}")
     check("poor stratum is n=1 (thin-slice caveat is real)", len(poor) == 1)
 
-    # axes both small
-    flat8 = [r for r in A if r["mode"] == "flat" and r["variant"] == "a8m"]
-    ast25 = [r for r in A if r["mode"] == "ast" and r["variant"] == "a25m"]
-    if flat8 and ast25:
-        d_chunk = abs(mean("dense_r5", flat8) - mean("dense_r5", ast8))
-        d_enc = abs(mean("dense_r5", ast25) - mean("dense_r5", ast8))
-        gap = mean("dense_r5", ast8) - mean("rg_r5", ast8)
-        check("chunking effect smaller than dense-vs-grep gap", d_chunk < gap,
-              f"{d_chunk:.3f} < {gap:.3f}")
-        check("encoder effect smaller than dense-vs-grep gap", d_enc < gap,
-              f"{d_enc:.3f} < {gap:.3f}")
+    # full 2x2: dense beats grep in EVERY cell, and neither axis has a
+    # consistent sign — the claim the writeup makes is stronger than a null.
+    cell = lambda mo, v: [r for r in A if r["mode"] == mo and r["variant"] == v]
+    cells = {(mo, v): cell(mo, v) for mo in ("ast", "flat") for v in ("a8m", "a25m")}
+    check("full 2x2 present", all(len(c) == 6 for c in cells.values()),
+          f"{sum(1 for c in cells.values() if len(c) == 6)}/4 cells")
+    check("dense beats grep at r@5 in every cell",
+          all(mean("dense_r5", c) > mean("rg_r5", c) for c in cells.values()),
+          " ".join(f"{k[0]}/{k[1]}={mean('dense_r5', c):.3f}" for k, c in cells.items()))
+
+    gap = mean("dense_r5", ast8) - mean("rg_r5", ast8)
+    chunk_d = [mean("dense_r5", cells[("flat", v)]) - mean("dense_r5", cells[("ast", v)])
+               for v in ("a8m", "a25m")]
+    enc_d = [mean("dense_r5", cells[(mo, "a25m")]) - mean("dense_r5", cells[(mo, "a8m")])
+             for mo in ("ast", "flat")]
+    check("every axis effect is smaller than the dense-vs-grep gap",
+          all(abs(d) < gap for d in chunk_d + enc_d),
+          f"max |delta| {max(abs(d) for d in chunk_d + enc_d):.3f} < {gap:.3f}")
+    check("neither axis has a consistent sign across the other's levels",
+          min(chunk_d) <= 0 <= max(chunk_d) and min(enc_d) <= 0 <= max(enc_d),
+          f"chunking {chunk_d} encoder {enc_d}")
+
+    # the withdrawn claim: 0.333 on the poor stratum is a flat/a8m quirk,
+    # not a chunking effect. Guard it so it cannot be re-asserted.
+    poor_r5 = {k: [r for r in c if r["issue"] == 22186][0]["dense_r5"]
+               for k, c in cells.items()}
+    check("AST-helps-poor-stratum claim stays withdrawn (flat/a25m also 0.667)",
+          poor_r5[("flat", "a25m")] == poor_r5[("ast", "a25m")],
+          f"{poor_r5}")
 
     # ── Part B ──────────────────────────────────────────────────────────────
     B = json.load(open(HERE / "results_partb.json"))
