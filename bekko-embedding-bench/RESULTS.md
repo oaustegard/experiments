@@ -7,9 +7,12 @@ on that box; the claude.ai container (1 vCPU / 3 GB) is not comparable.
 **Headline.** Part A reverses the 2026-07-04/05 verdict: a neural code-capable
 encoder *does* beat identifier grep on file discovery, including on the
 identifier-poor instance where grep scores zero — the decision gate passes.
-Part B goes the other way: bekko **loses to the incumbent jina v5 nano q4 at
-every byte budget on both distributions**, so the remax_kb default should not
-change. These are not in tension; they are different questions.
+Part B is a **regime choice, not a dominance**: bekko loses to jina v5 nano q4
+at every byte budget, but bekko-a8m encodes a query **12.9x faster on 1 vCPU**
+(11.3 ms vs 146.4 ms), which is the whole point of a 7.7M-*active*-parameter
+model and which the iso-byte comparison alone does not see. Which one is the
+right default depends on whether the deployment is quality-bound or
+compute-bound.
 
 ---
 
@@ -219,8 +222,10 @@ its edge — jina wins by **0.03–0.10 R@10 at every budget**, and jina at 64 d
 And the size argument evaporates: **official jina q4 is 131.6 MB, bekko-a8m is
 124.1 MB.** A 7 MB difference is not an architecture decision.
 
-**Verdict: do not swap the remax_kb default.** The incumbent is better at every
-byte budget, on both distributions, at the same artifact size.
+**On quality per byte, the incumbent wins outright.** Better at every budget, on
+both distributions, at the same artifact size. That was the original verdict here
+— and on its own it is **an incomplete answer**, because it prices bytes and
+ignores compute. See "Compute" below, which changes the recommendation.
 
 ### 3. The strategic note (regime A) — already true, without bekko
 
@@ -228,11 +233,72 @@ The handoff's point was that a ~130 MB encoder becomes shippable alongside the
 `.kb`, collapsing regime A from `7cecfd94` (the "light embed endpoint with a
 shared secret" existed only because the encoder was too big to distribute).
 
-**That is already the case with the incumbent.** The official jina q4 that
-remax_kb *already defaults to* is 131.6 MB. Nothing about bekko is needed to
-retire the endpoint-and-secret design; the redistribution question reduces to
-whether the *corpus* is redistributable, exactly as the handoff framed it — but
-the encoder-size premise was satisfied before this benchmark ran.
+**On size, that is already true of the incumbent.** The official jina q4 that
+remax_kb *already defaults to* is 131.6 MB, so the encoder-size premise was
+satisfied before this benchmark ran and the redistribution question reduces to
+whether the *corpus* is redistributable, as the handoff framed it.
+
+**But size was not the only thing standing in the way.** A shipped encoder has
+to be pleasant to *run* on whatever the reader has, and on 1 vCPU jina answers a
+query in **146 ms** against bekko-a8m's **11.3 ms**. So bekko does add something
+the incumbent does not: it makes the ship-the-encoder regime cheap on constrained
+hardware, not merely possible. The earlier claim in this file that regime A
+"never needed bekko" was true of the size premise and too strong about the
+regime.
+
+### 4. Compute — the axis the iso-byte table cannot see
+
+bekko-a8m is **4 layers x 384 hidden x 1152 FFN**; jina v5 nano is **12 x 768 x
+3072**. That is ~12x the per-token FLOPs, and it is the entire design point of a
+7.7M-*active*-parameter encoder (the 98M-param embedding table is a gather, not
+compute). Measured, median of 5, same texts, each model's own tokenizer and
+required prefixes:
+
+| threads | model | query latency (batch=1) | docs/s | tokens/s |
+|---|---|---|---|---|
+| **1** | **bekko-a8m** | **11.3 ms** | **53.6** | **6,375** |
+| 1 | bekko-a25m | 35.0 ms | 17.7 | 2,101 |
+| 1 | jina v5 nano q4 | **146.4 ms** | 5.3 | 569 |
+| 4 | bekko-a8m | 6.7 ms | 149.3 | 17,766 |
+| 4 | bekko-a25m | 16.7 ms | 40.4 | 4,803 |
+| 4 | jina v5 nano q4 | 46.5 ms | 16.0 | 1,726 |
+
+**bekko-a8m is 12.9x faster per query on 1 vCPU and 11.2x higher throughput.**
+The measured ratio matches the FLOPs ratio (~12x), so this is **architectural,
+not a q4-dequantization artifact** — which also means it will not be tuned away.
+
+This matters because remax_kb's stated pitch is querying a `.kb` "from a vanilla
+container with onnxruntime + tokenizers + numpy", and the claude.ai container is
+**1 vCPU**. On that box the query path is 146 ms vs 11 ms — the difference
+between noticeable and imperceptible — and a corpus build runs 11x longer.
+
+### 5. The actual recommendation: an iso-quality ladder
+
+Cheapest encoder reaching a given quality, 1-vCPU query latency:
+
+| blog R@10 target | cheapest model | query | code R@10 |
+|---|---|---|---|
+| ≤ 0.575 | **bekko-a8m** (d=384) | **11.3 ms** | 0.888 |
+| 0.58 – 0.598 | bekko-a25m (d=384) | 35.0 ms | 0.950 |
+| > 0.60 | **jina only** (d=768) | 146.4 ms | 0.983 |
+
+So the honest verdict is **regime-dependent**, and the original "do not swap"
+was under-specified:
+
+- **Quality-bound, or compute amortized** (cores available, corpus built once,
+  query volume low): **keep jina**. It is the only model that reaches R@10 0.60+
+  on blog and 0.98 on code, and the quality gap is largest exactly on the code
+  distribution (0.983 vs 0.888 — the one place bekko was *advertised* to be
+  strong, and it loses by 0.095).
+- **Compute-bound** (1 vCPU reader, latency-sensitive query path, or a large
+  corpus to encode): **bekko-a8m** buys 12.9x for ~0.045 blog / ~0.095 code
+  R@10. On a 1-vCPU container that is a defensible trade, and for a big index
+  build it is the difference between minutes and hours.
+- **bekko-a25m is the hedge**: 4.2x faster than jina, within 0.022 blog R@10 of
+  it, and it recovers most of the code gap (0.950 vs 0.983).
+
+What has *not* changed: at a fixed byte budget the compression story is
+unaffected, and Part A is untouched (it never involved jina).
 
 ---
 
@@ -318,5 +384,9 @@ between them they are sufficient to build a PR-gold benchmark offline.**
   (same caveat as both prior runs).
 - Part B numbers are **self-retrieval**, not human-labelled relevance. Fair
   across models (identical splits) but not an absolute quality measure.
+- Latency is measured on the **shipped artifacts** (bekko default ONNX, jina
+  official q4) — the ones remax_kb would actually load. A different jina export
+  might time differently, though the measured ratio matching the FLOPs ratio
+  says the gap is architectural rather than an artifact of q4.
 - Wall clock: ~81 min of corpus encoding on 4 vCPU for the four cells
   (a8m 11/11 min ast/flat, a25m 33/26 min), partly overlapped with Part B.

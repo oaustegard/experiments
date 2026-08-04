@@ -341,6 +341,19 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **An iso-byte retrieval comparison prices storage and silently assumes compute
+  is free — for a small encoder that is the whole comparison you are missing.**
+  bekko-embedding-v1-a8m lost to jina v5 nano q4 in 11 of 12 iso-byte cells,
+  which read as "don't switch" until latency was measured: **11.3 ms vs 146.4 ms
+  per query on 1 vCPU (12.9x), 11.2x tokens/s**. The gap is architectural
+  (4 layers x 384 hidden x 1152 FFN against 12 x 768 x 3072, ~12x the per-token
+  FLOPs) and the measured ratio matching the FLOPs ratio is what rules out a
+  quantization artifact. A model advertised by *active* parameter count is making
+  a compute claim, so benchmark compute or you have not tested its thesis. Report
+  both **texts/s and tokens/s** when tokenizers differ (256k vs 128k vocab gives
+  different token counts for the same text), and measure **batch=1 at 1 thread**
+  separately from batched throughput — the query path and the index-build path
+  are different products. (`bekko-embedding-bench/RESULTS.md`)
 - **At a fixed byte budget, quantize wide rather than truncate narrow.**
   Matryoshka truncation and scalar quantization are orthogonal axes, and on a
   179-chunk retrieval task they are *not* equally good ways to spend bytes:
