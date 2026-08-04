@@ -374,6 +374,71 @@ held, so it should be an explicit call rather than something I slip in.
 **Build cost, same corpus (179 chunks, 1 thread):** bekko-a8m 6.5 s,
 bekko-a25m 21.3 s, jina q4 60.2 s — 9.3x, consistent with the throughput ratio.
 
+### 7. The RHT option — right lever for portability, wrong lever for latency
+
+§6 blamed a per-query Haar QR. The obvious alternative is a structured
+projection, and remax_kb v2 already **defaults** to one: `projection="srht"`,
+with `"haar"` kept for back-compat. Measured at v1's actual geometry
+(dim=256, k=8), median of 5, cost to construct all k stacks:
+
+| projection | build (d=256) | vs haar |
+|---|---|---|
+| `rademacher` (v2 option) | **14.2 ms** | **3.7x faster** |
+| remax `rht_rotation`, rounds=2 | 31.3 ms | 1.7x faster |
+| remax `rht_rotation`, rounds=3 | 43.0 ms | 1.2x faster |
+| `haar` (v1 default) | 53.1 ms | — |
+| `remax_kb.projection.srht_matrix`, rounds=3 (**v2 default**) | **75.7 ms** | **1.4x slower** |
+
+**remax's documented 1.5–1.8x speedup is confirmed, and it is a different
+function than the one remax_kb defaults to.** `remax.rotation.rht_rotation` at
+its floored rounds=2 gives 1.7x / 2.1x / 1.6x at d=256 / 768 / 1024 — squarely
+in the documented band. `remax_kb.projection.srht_matrix` is a *separate*
+implementation and is 1.4–3.0x **slower** than Haar at every dimension measured:
+
+| dim | haar | remax rht (r=2) | kb srht (r=3) | kb rademacher |
+|---|---|---|---|---|
+| 256 | 53.1 ms | **31.3** | 75.7 | **14.2** |
+| 768 | 599.1 ms | **290.9** | 1777.3 | 314.9 |
+| 1024 | 1043.4 ms | **633.0** | 2116.4 | **560.5** |
+
+**That is not a defect.** v2's own comment says why it chose srht: it is
+seed-only (ships no `binarizer/rotations.*` sidecar) and **bit-for-bit
+reproducible by the JavaScript reader**, where Haar's PCG64 + Ziggurat + LAPACK
+QR is NumPy-only and a mismatched projection flips ~50% of code bits. srht buys
+cross-reader portability and pays construction time for it. Worth knowing when
+choosing, not worth "fixing".
+
+**Retrieval is indistinguishable across all three**, so the choice really is
+free on quality here (self-retrieval, dim=256, k=8):
+
+| projection | a8m R@1 / R@10 | a25m R@1 / R@10 |
+|---|---|---|
+| haar | 0.207 / 0.564 | 0.240 / 0.581 |
+| rademacher | 0.212 / **0.587** | 0.212 / **0.587** |
+| srht | 0.201 / 0.570 | 0.251 / 0.575 |
+| *(fp32 reference)* | *— / 0.559* | *— / 0.587* |
+
+All within ±0.023 R@10 and straddling the fp32 baseline — at this dim and corpus
+the ~85%-of-the-Rademacher→Haar-gap claim in v2's comment is not resolvable.
+
+**But none of this fixes §6, and that is the finding.** Every row above is a
+*per-query construction* cost of 14–76 ms against bekko-a8m's **~6 ms encode**.
+Even the cheapest projection is more than twice the encode it is supposed to be
+serving. Switching Haar→rademacher would take the query from ~54 ms to ~20 ms;
+**caching takes it to 6.0 ms**, and caching works for every projection.
+
+Ordered, then:
+
+1. **Cache the projection per opened index.** Verified identical codes and hits
+   (§6). Removes the tax entirely, and is orthogonal to which projection you pick.
+2. **If per-query construction is genuinely unavoidable**, `rademacher` is 3.7x
+   cheaper than Haar at d=256 and quality-neutral here.
+3. **Pick `srht` when a non-NumPy reader has to reproduce the planes** — that is
+   what it is for. Then cache it, because it is the most expensive to build.
+
+The RHT question turned out to be orthogonal to the latency question: projection
+choice is a portability decision, and the latency is a caching decision.
+
 ---
 
 ## Byte-budget composition — quantization dominates truncation

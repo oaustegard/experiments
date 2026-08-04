@@ -1,0 +1,83 @@
+[
+ {
+  "stage": "construct",
+  "projection": "haar (v1 default)",
+  "build_ms": 52.417095999771846,
+  "apply_ms": 0.13969100109534338,
+  "shape": [
+   8,
+   256,
+   256
+  ]
+ },
+ {
+  "stage": "construct",
+  "projection": "rademacher (v2)",
+  "build_ms": 12.678602999585564,
+  "apply_ms": 0.11621200064837467,
+  "shape": [
+   8,
+   256,
+   256
+  ]
+ },
+ {
+  "stage": "construct",
+  "projection": "srht (v2 default)",
+  "build_ms": 68.3355399996799,
+  "apply_ms": 0.11374400128261186,
+  "shape": [
+   8,
+   256,
+   256
+  ]
+ },
+ {
+  "stage": "retrieval",
+  "projection": "haar (v1 default)",
+  "model": "bekko-a8m",
+  "r@1": 0.20670391061452514,
+  "r@10": 0.5642458100558659,
+  "fp32_r@10": 0.5586592178770949
+ },
+ {
+  "stage": "retrieval",
+  "projection": "rademacher (v2)",
+  "model": "bekko-a8m",
+  "r@1": 0.2122905027932961,
+  "r@10": 0.5865921787709497,
+  "fp32_r@10": 0.5586592178770949
+ },
+ {
+  "stage": "retrieval",
+  "projection": "srht (v2 default)",
+  "model": "bekko-a8m",
+  "r@1": 0.2011173184357542,
+  "r@10": 0.5698324022346368,
+  "fp32_r@10": 0.5586592178770949
+ },
+ {
+  "stage": "retrieval",
+  "projection": "haar (v1 default)",
+  "model": "bekko-a25m",
+  "r@1": 0.24022346368715083,
+  "r@10": 0.5810055865921788,
+  "fp32_r@10": 0.5865921787709497
+ },
+ {
+  "stage": "retrieval",
+  "projection": "rademacher (v2)",
+  "model": "bekko-a25m",
+  "r@1": 0.2122905027932961,
+  "r@10": 0.5865921787709497,
+  "fp32_r@10": 0.5865921787709497
+ },
+ {
+  "stage": "retrieval",
+  "projection": "srht (v2 default)",
+  "model": "bekko-a25m",
+  "r@1": 0.25139664804469275,
+  "r@10": 0.5754189944134078,
+  "fp32_r@10": 0.5865921787709497
+ }
+]

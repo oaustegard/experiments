@@ -341,6 +341,20 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **"The RHT is faster" is a claim about a specific implementation at a specific
+  d — check which function you are actually calling.** remax's
+  `remax.rotation.rht_rotation` at its floored rounds=2 reproduces its documented
+  1.5-1.8x over Haar QR (measured 1.70x / 2.06x / 1.65x at d=256/768/1024), but
+  `remax_kb.projection.srht_matrix` is a **different** implementation and is
+  **1.4-3.0x slower than Haar** at every dim measured — and it is remax_kb v2's
+  *default*. That is deliberate, not a defect: srht is seed-only and bit-for-bit
+  reproducible by a non-NumPy reader, where Haar's PCG64 + Ziggurat + LAPACK QR
+  is not, and a mismatched projection flips ~50% of code bits. Projection choice
+  is a **portability** decision; do not reach for it to fix latency. Rounds
+  matter too (rht r=2 31 ms vs r=3 43 ms at d=256), and remax floors at 2 for a
+  measured reason. Retrieval was neutral across haar/rademacher/srht (R@10 spread
+  <=0.022, straddling fp32), so quality does not break the tie either.
+  (`bekko-embedding-bench/RESULTS.md` §7)
 - **An iso-byte retrieval comparison prices storage and silently assumes compute
   is free — for a small encoder that is the whole comparison you are missing.**
   bekko-embedding-v1-a8m lost to jina v5 nano q4 in 11 of 12 iso-byte cells,
