@@ -293,12 +293,86 @@ was under-specified:
 - **Compute-bound** (1 vCPU reader, latency-sensitive query path, or a large
   corpus to encode): **bekko-a8m** buys 12.9x for ~0.045 blog / ~0.095 code
   R@10. On a 1-vCPU container that is a defensible trade, and for a big index
-  build it is the difference between minutes and hours.
+  build it is the difference between minutes and hours (measured: 6.5 s vs
+  60.2 s to pack the same 179 chunks). **Caveat measured in §6: as remax_kb
+  ships today only 2.3x of that 12.9x reaches the reader**, because a constant
+  per-query binarizer cost swamps it. The constant is removable.
 - **bekko-a25m is the hedge**: 4.2x faster than jina, within 0.022 blog R@10 of
   it, and it recovers most of the code gap (0.950 vs 0.983).
 
 What has *not* changed: at a fixed byte budget the compression story is
 unaffected, and Part A is untouched (it never involved jina).
+
+### 6. The real query path — where the 12.9x actually goes
+
+Encoder-in-isolation is not what a reader pays. Driving
+`remax_kb.read.KB.search` on two `.kb` files packed here with **identical**
+chunks and binarizer params (dim=256, k=8, seed=0), so the only difference is
+the embedder, 1 thread:
+
+| model | search | = encode | + stacked-SimHash | + hamming_scan | + top_k |
+|---|---|---|---|---|---|
+| bekko-a8m | 65.5 ms | **5.4** | **57.3** | 0.03 | 0.01 |
+| bekko-a25m | 68.5 ms | 18.6 | 46.6 | 0.02 | 0.01 |
+| jina v5 nano q4 | 153.4 ms | 90.7 | 61.7 | 0.02 | 0.01 |
+
+**End-to-end the advantage collapses from 12.9x to 2.3x** — and not because the
+encoder measurement was wrong. A ~50-60 ms *constant* sits in the middle of every
+query and swamps the difference. For bekko-a8m it is **87% of the whole query**.
+
+**It is `_stacked_simhash_encode`.** That method constructs a
+`StackedSignBitQuantizer(d, k, seed)` **per call**, and that constructor builds
+k=8 Haar rotations by QR of a 256x256 Gaussian. All three parameters come from
+the manifest and cannot change for an opened `.kb`, so every query rebuilds
+byte-identical rotations from scratch.
+
+Caching it once per opened `KB` — one line — was verified to produce **identical
+codes and an identical hit list**, so this is a speedup, not a behaviour change:
+
+| query | model | shipped | cached | encode |
+|---|---|---|---|---|
+| short (9 tok) | bekko-a8m | 59.4 ms | **5.5 ms** | 6.6 |
+| typical (14 tok) | bekko-a8m | 54.5 ms | **6.0 ms** | 6.1 |
+| long (52 tok) | bekko-a8m | 64.2 ms | **15.3 ms** | 14.7 |
+| short | jina q4 | 126.7 ms | 80.2 ms | 79.2 |
+| typical | jina q4 | 138.4 ms | 91.2 ms | 88.5 |
+| long | jina q4 | 231.4 ms | 176.5 ms | 177.2 |
+
+| bekko-a8m over jina | shipped | cached |
+|---|---|---|
+| short | 2.1x | **14.7x** |
+| typical | 2.5x | **15.1x** |
+| long | 3.6x | **11.6x** |
+
+So the honest answer to "does the 12.9x survive end-to-end" is **not as
+remax_kb ships today, but the thing eating it is a fixable constant, not the
+architecture**. Remove it and the query path becomes encode-dominated and the
+encoder advantage is fully realized (11.6–15.1x). The fix helps the incumbent
+too — jina drops 138 → 91 ms — but it helps a fast encoder far more, because a
+fixed tax hurts most whoever else is cheap.
+
+**The scan is not the problem and will not become one soon.** Hamming scan +
+top_k over dim=256/k=8 codes:
+
+| n chunks | scan + top_k | index |
+|---|---|---|
+| 179 | 0.046 ms | 0.04 MB |
+| 1,238 (`muninn.kb`) | 0.14 ms | 0.3 MB |
+| 10,000 | 0.95 ms | 2.4 MB |
+| 100,000 | 13.2 ms | 24 MB |
+
+At the "few hundred to a few thousand docs" remax_kb targets, retrieval is
+free and the query is *entirely* encode plus that constant. Only around
+n≈100k does the scan reach parity with bekko-a8m's encode.
+
+**Recommended, and not done here:** cache the quantizer on `KB` (and the
+equivalent in `read_v2`). It is a one-line change worth ~9x on every query for a
+small encoder and ~1.5x for the incumbent. I have not opened a remax_kb PR — the
+handoff held changes to that repo, and this is a different change than the one it
+held, so it should be an explicit call rather than something I slip in.
+
+**Build cost, same corpus (179 chunks, 1 thread):** bekko-a8m 6.5 s,
+bekko-a25m 21.3 s, jina q4 60.2 s — 9.3x, consistent with the throughput ratio.
 
 ---
 
