@@ -131,6 +131,31 @@ def main() -> int:
           max(v for (m, _), v in blog.items() if m == "jina-v5-nano-q4")
           > max(v for (m, _), v in blog.items() if m != "jina-v5-nano-q4"))
 
+    # ── real query path ─────────────────────────────────────────────────────
+    P = {r["model"]: r for r in json.load(open(HERE / "results_kbpath.json"))}
+    pa, pj = P["bekko-a8m"], P["jina-v5-nano-q4"]
+    check("as-shipped end-to-end speedup is FAR below the encoder-only 12.9x",
+          2.0 <= pj["search_ms"] / pa["search_ms"] <= 3.0,
+          f"{pj['search_ms'] / pa['search_ms']:.1f}x end-to-end vs 12.9x isolated")
+    check("the binarizer constant, not encode, dominates bekko's shipped query",
+          pa["simhash_ms"] > pa["encode_ms"] * 3,
+          f"simhash {pa['simhash_ms']:.1f} ms vs encode {pa['encode_ms']:.1f} ms")
+    check("hamming scan is negligible at corpus scale", pa["scan_ms"] < 1.0,
+          f"{pa['scan_ms']:.3f} ms")
+
+    F = json.load(open(HERE / "results_kbfix.json"))
+    check("cached quantizer is behaviour-preserving (codes AND hits identical)",
+          all(r["codes_identical"] and r["hits_identical"] for r in F))
+    fa = [r for r in F if r["model"] == "bekko-a8m"]
+    fj = [r for r in F if r["model"] != "bekko-a8m"]
+    check("caching restores a double-digit end-to-end advantage",
+          min(j["fixed_ms"] / a["fixed_ms"] for a, j in zip(fa, fj)) >= 10,
+          " ".join(f"{a['query'].split()[0]}={j['fixed_ms'] / a['fixed_ms']:.1f}x"
+                   for a, j in zip(fa, fj)))
+    check("caching helps the incumbent too, just less",
+          all(r["shipped_ms"] > r["fixed_ms"] for r in fj),
+          f"jina typical {fj[1]['shipped_ms']:.0f} -> {fj[1]['fixed_ms']:.0f} ms")
+
     # ── composition ─────────────────────────────────────────────────────────
     C = json.load(open(HERE / "results_compose.json"))
     cells = 0

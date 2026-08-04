@@ -465,6 +465,20 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **A per-query constant can eat an order-of-magnitude encoder win — measure the
+  whole path, then decompose it.** bekko-a8m is 12.9x faster than jina v5 nano q4
+  in isolation, but only **2.3x** through `remax_kb.read.KB.search`, because
+  `_stacked_simhash_encode` constructs a `StackedSignBitQuantizer(d, k, seed)` on
+  every call and that constructor builds k Haar rotations by QR — from manifest
+  parameters that cannot change for an opened index. It was **87% of bekko's
+  query** and ~50-60 ms flat for everyone. Caching it per opened index (one line,
+  verified to yield identical codes *and* identical hit lists) restores
+  **11.6-15.1x**. Two portable lessons: a fixed tax hurts most whoever else is
+  cheap, so component benchmarks systematically overstate wins for the fast
+  component; and "deterministic from (d, k, seed)" is a construction-time
+  invariant that a reader should exploit, not re-derive per call. Decompose
+  before concluding — the stage that dominated here was neither the model nor
+  the search. (`bekko-embedding-bench/RESULTS.md` §6)
 - **Token accounting for a retrieval baseline is a methodology choice — quote
   both, or you are picking the flattering one.** Charging `rg` its full
   matching-line output made a dense arm look **12.8x cheaper**; charging `rg -l`,
