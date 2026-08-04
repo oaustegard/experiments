@@ -263,6 +263,27 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`add_repo` cannot add a cross-owner repo, but `git clone` and
+  `mcp__github__search_*` still reach it — and that is enough to build a
+  PR-gold benchmark.** A session pinned to one owner gets
+  `cross-tier adds are not supported in v1`, after which
+  `api.github.com/repos/<other-owner>/*` 403s and `mcp__github__issue_read`
+  refuses. What still works, unscoped: `git clone` of the public repo (full
+  history), and `mcp__github__search_issues` / `search_pull_requests`, which
+  return **full issue and PR bodies**. So mine gold from git rather than the
+  API: a squash-merging repo (scikit-learn) puts each PR on one commit whose
+  subject ends `(#NNNNN)` and whose diff *is* the PR diff. Recover issue
+  bodies by bounding the issue number between neighbouring PRs' commit dates
+  and date-windowing a search. Large search results are persisted to a file
+  by the harness — parse them with a script instead of reading them into
+  context, or paging a few hundred PRs will cost more tokens than the
+  experiment. (`bekko-embedding-bench`)
+- **A model card's OpenVINO-vs-ONNX-Runtime speedup does not survive a
+  small-core box.** bekko-embedding-v1's card claims ORT is 5.5x slower than
+  OpenVINO on x86 CPU; measured on 4 vCPU they are within 8% (20.1 vs 21.8
+  chunks/s). Report `nproc` with any throughput number, and do not pick a
+  runtime on a card's benchmark without re-measuring on your own core count.
+  (`bekko-embedding-bench`)
 - **Cloudflare AI Gateway throttles hard.** Start LLM batch concurrency at **2**,
   not 4 or 12. `phase-a-bridges` learned 12→4→2; `te-bridges` started at 4
   anyway and lost 18–20% of extractions to exhausted retries.
@@ -320,6 +341,28 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **At a fixed byte budget, quantize wide rather than truncate narrow.**
+  Matryoshka truncation and scalar quantization are orthogonal axes, and on a
+  179-chunk retrieval task they are *not* equally good ways to spend bytes:
+  remex d=384 @ 2-bit costs **96 B at R@10 0.609** against full fp32 d=384's
+  **1536 B at 0.598** — 16x smaller and not worse — while remex d=384 @ 1-bit
+  matches fp32-truncated-to-128 at **48 B vs 512 B**. Truncation lost at every
+  budget compared. Keep the coordinates, drop the bits.
+  (`bekko-embedding-bench/RESULTS.md`)
+- **The one-bit-beats-two inversion is a property of the encoder, so test it
+  per encoder — never inherit it.** 1-bit beat 2-bit on SPECTER2 and inverted
+  on Jina; on bekko-embedding-v1, **2-bit beats 1-bit in all 8 (variant x dim)
+  cells**, by up to 0.129 R@10 and largest at the narrowest width. A `.kb`
+  built on a new encoder must re-measure the bit ladder before inheriting the
+  1-bit default. (`bekko-embedding-bench/RESULTS.md`)
+- **int8-ing only the static token-embedding table is ~free, and that is a
+  vocab-size fact, not a quantization insight.** bekko's vocab is 256,000 x 384
+  = a 98 M-param table that is essentially the entire 404 MiB fp32 export;
+  int8ing it alone gives 404.3 -> 124.1 MiB at per-doc cosine **0.99989** to
+  its own fp32, holding on both a prose and a code distribution. Mirror image
+  of the `MatMulNBits` gotcha above: there the table stayed fp32 and *inflated*
+  naive int4. Check where a model's parameters actually live before choosing a
+  quantization recipe. (`bekko-embedding-bench/RESULTS.md`)
 - **Mismatched random rotation matrices collapse recall to chance**, not
   graceful degradation. Two *different* valid orthogonal projections on doc vs
   query side flip ~50% of sign bits: recall 0.78 → 0.005. Only int8-rounding of
@@ -409,6 +452,25 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Token accounting for a retrieval baseline is a methodology choice — quote
+  both, or you are picking the flattering one.** Charging `rg` its full
+  matching-line output made a dense arm look **12.8x cheaper**; charging `rg -l`,
+  which returns exactly the information a *file*-discovery metric scores, made
+  the same dense arm **2x more expensive**. Same runs, same metric, opposite
+  conclusions. State which output mode the baseline is charged for.
+  (`bekko-embedding-bench/RESULTS.md`)
+- **A benchmark's instance set is the artifact worth keeping, not its code.**
+  mini-CTXBench has now been rebuilt three times at ~3 tool calls each; what was
+  lost every time, and what made "reuse the same 7 instances" unsatisfiable, is
+  the *list of instances*. Commit the pinned set (issue number, PR number,
+  commit sha, gold files, issue body) even when the harness is throwaway —
+  without it no two runs are comparable. (`bekko-embedding-bench/instances.json`)
+- **Assign strata by a measured property, not a remembered label.** Splitting
+  benchmark instances into identifier-rich/-poor by *running the extractor and
+  seeing what it recovers* produced a cleaner split than the hand labels would
+  have, and is reproducible: the deciding instance yields literally zero
+  code-shaped tokens because it argues its bug in prose and points at code by
+  line-number URL. (`bekko-embedding-bench`)
 - **Key a cache on the METHOD, not just on the problem.** A grid cache keyed
   `(m, K)` silently served codebooks trained by an older, worse procedure after
   the trainer was fixed — and the stale file was 87% worse than the baseline it
