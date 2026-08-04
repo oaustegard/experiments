@@ -453,23 +453,96 @@ Pareto frontier, bekko-a25m, blog distribution:
 
 | bytes/vec | best spend | R@10 |
 |---|---|---|
-| 8 | remex d=64 @ 1-bit | 0.430 |
-| 16 | remex d=64 @ 2-bit | 0.559 |
-| 48 | remex d=384 @ 1-bit | 0.564 |
-| 64 | remex d=256 @ 2-bit | 0.587 |
-| **96** | **remex d=384 @ 2-bit** | **0.609** |
+| 12 | remex d=64 @ 1-bit | 0.430 |
+| 20 | remex d=64 @ 2-bit | 0.559 |
+| 52 | remex d=384 @ 1-bit | 0.564 |
+| 68 | remex d=256 @ 2-bit | 0.587 |
+| **100** | **remex d=384 @ 2-bit** | **0.609** |
 | 512 | fp32 d=128 (truncation) | 0.564 |
 | 1536 | fp32 d=384 (full) | 0.598 |
 
-**The answer to "does remex/remax beat Matryoshka at a fixed byte budget" is
-yes, decisively.** remex d=384 @ 2-bit costs **96 B and scores 0.609**, against
-full fp32's **1536 B for 0.598** — 16x smaller and not worse. Truncation is the
-*worse* way to save bytes on this corpus at every budget compared:
-fp32 d=128 (512 B, 0.564) is matched by remex d=384 @ 1-bit at **48 B** — 10.7x
-fewer bytes for the same recall.
+**On payload bytes the answer is yes** — remex d=384 @ 2-bit scores **0.609**
+against full fp32's **0.598** — but see the correction immediately below: the
+payload figures here undercount, and payload is the *wrong* meter at small n.
 
-Rule of thumb this supports: **spend the budget on coordinates, not on bits.**
-Keep all 384 dims and drop to 1–2 bits before you truncate to 128 dims at fp32.
+### Correction — the first pass mis-priced this comparison twice
+
+Prompted by a challenge to check whether the vendor's Matryoshka was being
+applied correctly against the codecs. **The truncation itself is correct**:
+normalize-full-then-truncate-then-renormalize is bit-identical to
+truncate-raw-then-normalize (max |Δ| ≤ 6e-8, i.e. float32 epsilon), which is the
+vendor's prescribed procedure. The *accounting* was wrong, twice, and both errors
+favoured the codecs.
+
+**Error 1 — the payload itself was undercounted.** Bytes were hand-computed as
+`dim*bits/8`, which omits the **float32 norms remex stores separately**. remex's
+own `CompressedVectors.nbytes` gives **52 B/vec** at d=384 @ 1-bit, not 48, and
+**100 B** at 2-bit, not 96. Negligible at d=384; **+50% at d=64 @ 1-bit**
+(12 B, not 8). All tables below now use remex's own accounting.
+
+**Error 2 — and this is the one that matters — shared structures were free.**
+**Matryoshka truncation ships nothing**: it is a slice of a vector that already
+exists. remex needs a d×d rotation (+ codebook); remax needs *k* of them. Counting
+those at zero compares a codec's payload against a baseline's total. This repo
+has already been caught by exactly this trap once — `remex-vs-higgs-ablation`
+found that "counting the shared codebook, the vector arm costs 52.5 B/vector at
+4 bits against a 50 B payload… needs ~350k vectors to amortize." I reproduced the
+error rather than the lesson.
+
+With side data materialized, the claims **invert at the corpus actually
+benchmarked** (n=179):
+
+| arm | true B/vec @ n=179 | R@10 | baseline | B/vec | R@10 | winner |
+|---|---|---|---|---|---|---|
+| remex d=384 @ 2-bit | **3,395** | 0.609 | fp32 d=384 | **1,536** | 0.598 | **baseline** |
+| remex d=384 @ 1-bit | **3,347** | 0.564 | fp32 d=128 | **512** | 0.564 | **baseline** |
+| remex d=64 @ 2-bit | **112** | 0.559 | fp32 d=64 | 256 | 0.520 | codec |
+
+Break-even corpus sizes, materialized:
+
+| comparison | break-even n |
+|---|---|
+| remex d=64 @ 2-bit vs fp32 d=64 | **69** |
+| remex d=384 @ 2-bit vs fp32 d=384 | **411** |
+| remex d=384 @ 1-bit vs fp32 d=128 | **1,282** |
+
+So `muninn-subset.kb` (179 chunks) sits *below* two of the three break-evens and
+`muninn.kb` (1,238) sits near the third. The wide-and-low-bit spend only pays
+once the rotation amortizes.
+
+### But the rotation is seed-derived — bytes and latency are the same object
+
+The thing that makes this more than an erratum: those rotations are
+**deterministic from (dim, k, seed)**. A reader can ship them *or* regenerate
+them. remax_kb v1 regenerates — which is precisely the **53 ms/query constant**
+measured in §6, and why v2's `srht` was chosen to "ship nothing" (§7).
+
+So the two sections were pricing one object in two currencies, and each in
+isolation flatters the codec:
+
+| you pay in | cost | measured in |
+|---|---|---|
+| **bytes** (ship the rotation) | +3,295 B/vec at n=179, +476 at n=1,238, +6 at n=100k | this section |
+| **latency** (regenerate per query) | +53 ms on every query, forever | §6 |
+| **neither** (ship once, cache in memory) | ~0 | §6's verified fix |
+
+The payload-only frontier is therefore *correct for the deployment remax_kb
+actually implements* — it regenerates, so side bytes really are zero — but only
+because it is paying in the other currency. Quote payload-only bytes **and** the
+per-query constant together, or the compression story is half-told.
+
+### Corrected rule of thumb
+
+**Spend the budget on coordinates, not bits — once the corpus is big enough to
+amortize the rotation, or the rotation is regenerated/cached rather than shipped.**
+At n in the low hundreds with side data materialized, plain Matryoshka truncation
+is the better spend, and it has the additional virtue of needing no side data,
+no codebook, and no per-query reconstruction at all.
+
+For remax_kb specifically — which regenerates — the payload frontier stands, and
+the right reading is: **remex d=384 @ 2-bit at 100 B/vec beating fp32 d=384 at
+1,536 B/vec, on the condition that §6's caching fix lands.** Without it you are
+paying 53 ms/query for those savings.
 
 remex beats remax in 30 of 32 cells. remax reaches the frontier once (a8m,
 256 B, k=8). Given remax's own framing — a rank-correct precision ladder, not a

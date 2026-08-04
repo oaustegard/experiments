@@ -197,18 +197,40 @@ def main() -> int:
         s = [r for r in C if r["variant"] == v and r["bytes"] == b]
         return max(r["r@10"] for r in s) if s else None
 
-    q96 = [r["r@10"] for r in C if r["variant"] == "a25m" and r["codec"] == "remex"
-           and r["dim"] == 384 and r["param"] == 2][0]
-    f1536 = [r["r@10"] for r in C if r["variant"] == "a25m" and r["codec"] == "fp32"
-             and r["dim"] == 384][0]
-    check("quantization at 96 B >= full fp32 at 1536 B (16x smaller, not worse)",
-          q96 >= f1536, f"{q96:.3f} >= {f1536:.3f}")
+    # ── honest bytes (the Matryoshka-vs-codec accounting audit) ─────────────
+    H = [r for r in json.load(open(HERE / "results_honest_bytes.json"))
+         if r["variant"] == "a25m"]
+    g = lambda c, d, p: [r for r in H if r["codec"] == c and r["dim"] == d
+                         and r["param"] == p][0]
 
-    f512 = [r["r@10"] for r in C if r["variant"] == "a25m" and r["codec"] == "fp32"
-            and r["dim"] == 128][0]
-    q48 = [r["r@10"] for r in C if r["variant"] == "a25m" and r["codec"] == "remex"
-           and r["dim"] == 384 and r["param"] == 1][0]
-    check("remex 48 B matches fp32-truncated 512 B", q48 >= f512, f"{q48:.3f} >= {f512:.3f}")
+    # payload must come from remex's OWN accounting (which includes the norms),
+    # not a hand-computed dim*bits/8 that silently drops them.
+    r384_2 = g("remex", 384, 2)
+    check("remex payload uses remex's own nbytes (norms included)",
+          abs(r384_2["payload_b"] - 100) < 1
+          and r384_2["payload_b"] > r384_2["naive_payload_b"],
+          f"{r384_2['payload_b']:.0f} B vs naive {r384_2['naive_payload_b']:.0f} B")
+
+    # Matryoshka truncation ships nothing; the codecs do not. Guard the asymmetry.
+    check("Matryoshka arms carry zero side data",
+          all(r["side_b"] == 0 for r in H if r["codec"] == "fp32"))
+    check("codec arms carry non-zero side data",
+          all(r["side_b"] > 0 for r in H if r["codec"] in ("remex", "remax")))
+
+    f384 = g("fp32", 384, 32)
+    check("payload-only: quantization still beats full fp32",
+          r384_2["r@10"] >= f384["r@10"] and r384_2["payload_b"] < f384["payload_b"],
+          f"{r384_2['payload_b']:.0f} B vs {f384['payload_b']:.0f} B")
+
+    # ...but materialized at the benchmarked corpus size the claim INVERTS.
+    n0 = 179
+    check("at n=179 with side data materialized, truncation wins (claim inverts)",
+          r384_2["payload_b"] + r384_2["side_b"] / n0 > f384["payload_b"],
+          f"{r384_2['payload_b'] + r384_2['side_b'] / n0:.0f} B vs "
+          f"{f384['payload_b']:.0f} B")
+    breakeven = r384_2["side_b"] / (f384["payload_b"] - r384_2["payload_b"])
+    check("break-even is in the low hundreds of vectors", 300 < breakeven < 600,
+          f"n={breakeven:.0f}")
 
     print()
     if FAIL:
