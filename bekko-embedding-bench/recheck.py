@@ -103,6 +103,34 @@ def main() -> int:
     check("jina q4 and bekko-a8m are comparable size (size argument is moot)",
           abs(J["model_mb"] - 124.1) < 15, f"jina {J['model_mb']} MB vs bekko-a8m 124.1 MB")
 
+    # ── compute ─────────────────────────────────────────────────────────────
+    # The axis the iso-byte table cannot see, and the reason the Part B verdict
+    # is a regime choice rather than a dominance.
+    L = json.load(open(HERE / "results_latency.json"))
+    lat = {(r["model"], r["threads"]): r for r in L}
+    a1 = lat[("bekko-a8m", 1)]
+    j1 = lat[("jina-v5-nano-q4", 1)]
+    check("bekko-a8m is >=10x faster than jina on 1 vCPU (query path)",
+          j1["query_ms"] / a1["query_ms"] >= 10,
+          f"{j1['query_ms'] / a1['query_ms']:.1f}x "
+          f"({a1['query_ms']:.1f} vs {j1['query_ms']:.1f} ms)")
+    check("throughput ratio matches the ~12x FLOPs ratio (architectural, not q4)",
+          8 <= a1["tokens_per_s"] / j1["tokens_per_s"] <= 16,
+          f"{a1['tokens_per_s'] / j1['tokens_per_s']:.1f}x tokens/s")
+    check("a25m is the middle rung, not dominated",
+          j1["query_ms"] > lat[("bekko-a25m", 1)]["query_ms"] > a1["query_ms"])
+
+    # the ladder: jina still owns the top quality rung, so 'just swap' is wrong
+    blog = {(r["model"], r["dim"]): r["r@10"]
+            for r in json.load(open(HERE / "results_partb.json"))["retrieval"]
+            if r["dist"] == "blog" and "fp32" not in r["model"]}
+    blog.update({(r["model"], r["dim"]): r["r@10"]
+                 for r in json.load(open(HERE / "results_jina.json"))["retrieval"]
+                 if r["dist"] == "blog"})
+    check("jina still owns the top quality rung (verdict is a trade, not a flip)",
+          max(v for (m, _), v in blog.items() if m == "jina-v5-nano-q4")
+          > max(v for (m, _), v in blog.items() if m != "jina-v5-nano-q4"))
+
     # ── composition ─────────────────────────────────────────────────────────
     C = json.load(open(HERE / "results_compose.json"))
     cells = 0
