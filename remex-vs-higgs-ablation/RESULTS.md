@@ -797,4 +797,8 @@ python3 beta_check.py             # Gaussian-vs-Beta marginal cost
 ```
 
 Regenerable artifacts (`assets/`, `data/`) are gitignored. Lint gate:
-`uvx ruff@0.16.0 check .` from this directory or the repo root — both pass.
+`uvx ruff@0.16.0 check .` **from this directory** — clean. From the repo root
+it reports 1,311 errors, **none of them in this directory**; those are
+pre-existing in other experiments and are not this experiment's gate. The
+earlier "both pass" wording was the run-2 #8 error resurfacing — see
+`ERRORS.md` run 3 #1.

@@ -12,7 +12,7 @@ import time
 
 import grids
 
-DIMS = (100, 768, 1024)
+DIMS = (100, 768, 784, 1024)
 BITS = (1, 2, 3, 4, 6, 8)
 
 
