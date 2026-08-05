@@ -393,6 +393,27 @@ the result.
   measured reason. Retrieval was neutral across haar/rademacher/srht (R@10 spread
   <=0.022, straddling fp32), so quality does not break the tie either.
   (`bekko-embedding-bench/RESULTS.md` §7)
+
+- **A stored index that regenerates its transform from a seed inherits every
+  upstream default it did not pin — store the transform instead.** `repo-index`
+  originally rebuilt its remex rotation from `seed=0` at query time and only
+  *fingerprinted* it, justified by "numpy's LAPACK QR drifts across BLAS
+  builds". That justification was already stale: remex#40 had replaced
+  `np.linalg.qr` with an explicit Householder QR precisely to be bit-reproducible
+  across BLAS builds. The real exposure was three other things having to stay
+  still — remex's `rotation=` **default** (which remex documents as deliberately
+  changeable, and the call site did not pass one), numpy's `default_rng` stream
+  (NEP 19 declines to guarantee it across feature releases), and remex's
+  construction of the matrix (which #40 is itself proof can change). Decoding
+  under a wrong rotation is ~50% of bits different — total and silent, not
+  degraded. Two rules: **pass the rotation explicitly, never inherit the
+  library's default** (free), and **persist the matrix next to the codes**
+  (576 KB at d=384 f32, against a 182 KB index — a 4x artifact increase that is
+  still nothing in a git repo). A fingerprint only converts a silent failure into
+  a warning plus a full rebuild; storing prevents it. Generalizes to any
+  seed-derived artifact — rotations, projections, permutations, codebooks: if
+  you felt the need to build a detector for a regeneration mismatch, that is the
+  signal to store the thing instead. (`repo-index/README.md`)
 - **An iso-byte retrieval comparison prices storage and silently assumes compute
   is free — for a small encoder that is the whole comparison you are missing.**
   bekko-embedding-v1-a8m lost to jina v5 nano q4 in 11 of 12 iso-byte cells,
