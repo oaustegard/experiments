@@ -416,6 +416,43 @@ the result.
   <=0.022, straddling fp32), so quality does not break the tie either.
   (`bekko-embedding-bench/RESULTS.md` §7)
 
+- **More retrieval arms is not monotonically better — RRF is unweighted, so a
+  weak arm votes as loudly as a strong one.** Fusing dense + stored-BM25 scored
+  24/24; adding ripgrep as a third arm dropped it to **22/24**. Fusion helps only
+  when the arms fail on *different* queries and each is individually credible;
+  an arm whose ranking is near-noise on one query class (rg on "find a file like
+  this one": 3/9) actively drags the consensus. Test each arm alone before
+  fusing, and add an arm only if the fused score improves — not because more
+  signal sounds better. Related: **ripgrep cannot be a fusion arm for similarity
+  queries at all**, because it returns a set rather than a ranking, and counting
+  matched terms does not recover a ranking it never produced.
+  (`hybrid-code-index/RESULTS.md`)
+- **Volume does not predict corpus pollution — similarity to real queries does.**
+  Two dilution cases in the same tool, opposite outcomes: 173 `run_NN.md` model
+  generations at **20%** of the corpus measurably crowded out real answers
+  (keyword agreement 8/10 → 10/10 once excluded), while generated `.json` results
+  data at **79%** of the corpus was completely **inert** (24/24 fused, with and
+  without). The difference is that the model output was topically on-subject
+  *prose* competing directly with real answers, whereas JSON is lexically alien —
+  the encoder maps it somewhere no natural query goes. So do not reach for a
+  build-time exclusion on size or share; measure whether the content is
+  *reachable* by the queries you serve. It is not free either way: the lexical
+  arm's postings inflated 1 MB → 6.36 MB (138k terms) on the JSON.
+  (`hybrid-code-index/RESULTS.md`)
+- **Incremental indexing is exactly equivalent to a full rebuild only for
+  components that are not fitted on the corpus.** Content-hash chunk reuse gave a
+  **bit-identical** matrix (max abs delta 0.000e+00) at 0.2 s against a 537 s full
+  build — 2735x — because the encoder is per-chunk independent and remex
+  quantization is data-oblivious. **BM25 breaks this**: IDF shifts for every term
+  whenever any document is added, so the lexical arm must be refit wholesale
+  (affordable at 5.2 s, but not incrementalizable). Same for PCA, k-means, ITQ,
+  and PQ codebooks. Before building an incremental path, ask which components
+  depend on corpus statistics — those are the ones where "incremental" silently
+  means "approximate". Note also what incremental does *not* fix: a **committed**
+  index is a binary blob stored whole per commit (1.00 MB codes + 6.36 MB
+  postings here, ~1.5 GB of history at 200 rebuilds), so cheap rebuilds and cheap
+  history are separate problems with separate fixes.
+  (`hybrid-code-index/hcindex.py::incremental`)
 - **A baseline scoped to a narrower corpus than the system under test reports
   improvements as regressions.** After `repo-index` was extended from `.md` to
   `.md`+`.py`, its keyword benchmark fell 10/10 → 7/10 and looked like a clear
