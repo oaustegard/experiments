@@ -416,6 +416,27 @@ the result.
   <=0.022, straddling fp32), so quality does not break the tie either.
   (`bekko-embedding-bench/RESULTS.md` §7)
 
+- **A baseline scoped to a narrower corpus than the system under test reports
+  improvements as regressions.** After `repo-index` was extended from `.md` to
+  `.md`+`.py`, its keyword benchmark fell 10/10 → 7/10 and looked like a clear
+  regression to revert. All three "regressions" were the index returning the
+  **definition** instead of a prose mention — `ascii_fold` → `_lib/textnorm.py`,
+  `GRID_VERSION` → `remex-vs-higgs-ablation/grids.py` — and the grep arm was
+  still pinned to `--glob '*.md'`, so a correct `.py` answer could not score.
+  Matched arm: 9/10. Whenever the system's corpus, file types, or candidate set
+  changes, re-scope the baseline in the same commit; a frozen baseline silently
+  becomes a different question. Related trap in the same tool: a *harness that
+  embeds its own queries* joins the corpus it searches — `code-index-duplication/
+  run.py` contains all nine NL queries verbatim and retrieved itself in the top 5
+  for 4 of 9, worth 2 points of hit@5. (`code-index-duplication/RESULTS.md`)
+- **Report the configuration the tool ships, not the one the harness finds most
+  flattering.** The same experiment first scored 9/9 excluding only the query
+  *file* — but in real CLI use, same-directory neighbours filled every result
+  slot, so `--file` excludes the query's whole *directory*. The harness was
+  changed to match before any number was written down. Headline was unchanged
+  here; the discipline is what matters, because the gap between "what I measured"
+  and "what it does" is invisible in the writeup unless you go looking.
+  (`code-index-duplication/RESULTS.md`)
 - **A semantic index over a repo that stores model output will rank that output
   against real questions — exclude generated directories.** `repo-index` indexed
   `haiku-assessment/**/outputs/` and `**/prompts/`: 173 `run_NN.md`-shaped

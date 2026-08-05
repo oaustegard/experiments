@@ -1,4 +1,4 @@
-# Rebuild the semantic index when markdown changes.
+# Rebuild the semantic index when markdown or Python changes.
 #
 # Full rebuild is ~45 s for the whole repo, so there is no incremental path to
 # maintain — just rebuild. The index is deterministic on a fixed toolchain, so
@@ -14,7 +14,7 @@ name: repo-index
 on:
   push:
     branches: [main]
-    paths: ['**.md', 'repo-index/ask.py', '.github/workflows/repo-index.yml']
+    paths: ['**.md', '**.py', 'repo-index/ask.py', '.github/workflows/repo-index.yml']
   workflow_dispatch:
 
 permissions:

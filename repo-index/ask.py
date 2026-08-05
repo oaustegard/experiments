@@ -48,6 +48,12 @@ SKIP = {".git", "node_modules", "__pycache__", ".venv"}
 # keyword-bearing queries from 8/10 to 10/10 (both misses were identifier lookups
 # answered with LLM chatter) while the 5 rediscovery cases stayed 5/5.
 GENERATED = {"outputs", "prompts"}
+# .py earns its place: on the duplication map METHODS.md recorded by hand,
+# querying with a file's own text finds a known sibling 9/9 (ranks 1-3), and
+# content-only scores the same as with a path header, so it is not filename
+# matching. Adding it left rediscovery at 5/5 and moved keyword queries to the
+# definition (ascii_fold -> _lib/textnorm.py rather than a prose mention).
+GLOBS = ("*.md", "*.py")
 MIN_CHARS, MAX_CHARS = 200, 2000
 BITS, DIM, SEED = 2, 384, 0
 # Pinned explicitly, never left to remex's default. remex documents that
@@ -166,7 +172,7 @@ class Encoder:
 
 def chunk_repo() -> list[dict]:
     out = []
-    for p in sorted(REPO.rglob("*.md")):
+    for p in sorted(sum((list(REPO.rglob(g)) for g in GLOBS), [])):
         if any(d in p.parts for d in SKIP | GENERATED):
             continue
         rel = str(p.relative_to(REPO))
@@ -280,6 +286,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("query", nargs="*")
     ap.add_argument("--build", action="store_true")
+    ap.add_argument("--file", metavar="PATH",
+                    help="use a file's text as the query — 'does something like this already exist?'. Excludes the file itself from results.")
     ap.add_argument("--verify", action="store_true",
                     help="check the stored rotation against seed regeneration")
     ap.add_argument("-k", type=int, default=8)
@@ -291,6 +299,21 @@ if __name__ == "__main__":
         build()
     elif a.verify:
         verify()
+    elif a.file:
+        src = Path(a.file).resolve()
+        text = "\n".join(src.read_text(errors="ignore").split("\n")[:60])
+        drop = list(a.exclude)
+        if src.is_relative_to(REPO):
+            rel = src.relative_to(REPO)
+            # Exclude the query file's whole directory, not just the file. The
+            # question is "does this exist *elsewhere*", and same-directory
+            # neighbours otherwise fill every slot: querying with
+            # muninn-embedder-bakeoff/bench.py returned four files from its own
+            # directory, and dropping them surfaced the documented sibling
+            # jina-int8-remax_kb/bench.py at rank 1. Use the plain query form if
+            # you do want local hits.
+            drop.append(f"{rel.parent}/*" if rel.parent != Path(".") else str(rel))
+        query(text, a.k, drop)
     elif a.query:
         query(" ".join(a.query), a.k, a.exclude)
     else:
