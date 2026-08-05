@@ -18,6 +18,24 @@ The last row is the honest framing: **grep isn't beaten, it's unblocked.** With
 `concurrency`, `ITQ`, `codebook`, `matryoshka`, `power analysis` in hand, grep
 finds every prior. This index removes the need to already know the word.
 
+### The other direction: does it hold up where grep is strong?
+
+Ten keyword-bearing queries — the kind you'd normally just grep (`ascii_fold`,
+`GRID_VERSION`, `Lloyd-Max`, `EXPERIMENTS_SPOKES_ROOT`, `SPECTER2`, `RRF`,
+`nDCG`, …). Scored deliberately in grep's favour: does the index's top-5 contain
+a file that grep-with-the-obvious-term also returns?
+
+| | agrees with grep |
+|---|---|
+| before excluding generated output | 8/10 |
+| **after** | **10/10** |
+
+Both original misses were **identifier lookups**, and both were answered with
+LLM chatter from `haiku-assessment/**/outputs/` — see "corpus hygiene" below.
+Even at 10/10 the weakest case is `ascii_fold`, which lands at **rank 5**. Exact
+identifier lookup is still grep's job; the index merely no longer embarrasses
+itself there.
+
 ## Use
 
 ```bash
@@ -36,12 +54,28 @@ Complement to the grep instruction, not a replacement — run both.
 
 | | |
 |---|---|
-| corpus | 1,274 markdown chunks from 263 files (headings-split) |
+| corpus | 1,022 markdown chunks from 90 files (headings-split), generated model output excluded |
 | encoder | `bekko-embedding-v1-a8m`, 384-d, mean-pooled |
 | codec | **remex 2-bit** — this repo's own measured sweet spot |
-| index | **0.18 MB** committed (packed codes + `(path, line)` pointers) |
+| index | **0.14 MB** committed (packed codes + `(path, line)` pointers) |
 | rotation | 0.56 MB committed — stored, not regenerated ([why](#the-failure-this-design-is-actually-guarding-against)) |
-| rebuild | ~60 s for the whole repo |
+| rebuild | ~45 s for the whole repo |
+
+### Corpus hygiene
+
+`outputs/` and `prompts/` directories are excluded. They held 173 files of
+machine-generated model output (all `run_NN.md`-shaped near-duplicates) — an
+experiment's *data*, not its findings — and they were **20% of the corpus**.
+They were not inert: both conventional-query misses above were real questions
+answered with a sample of LLM output, and the vague queries were prone to
+returning five near-identical `run_0N.md` chunks in a row. Excluding them took
+conventional agreement 8/10 → 10/10 with the rediscovery cases unchanged at 5/5,
+and shrank the index 27%.
+
+The general form: **a semantic index over a repo that stores model output will
+rank that output against real questions**, because it is topically on-subject
+and there is a lot of it. Lexical search never had this problem — nobody greps
+for a phrase that only appears in a sampled generation.
 
 It stores **pointers, not text** — the repo is the corpus, so there is no reason
 to carry a second copy of it. Both choices come from
@@ -52,7 +86,7 @@ is statistically indistinguishable from uncompressed fp32 (n=59, p=1.0), and
 ## Keeping it current
 
 `.github/workflows/repo-index.yml` rebuilds on any markdown change to `main`
-and commits the result. A full rebuild is ~60 s, so there is no incremental
+and commits the result. A full rebuild is ~45 s, so there is no incremental
 path to maintain — and because the build is deterministic on a fixed toolchain,
 an unchanged corpus produces a byte-identical artifact and no commit.
 
@@ -82,10 +116,9 @@ them. Manual only: the encoder is pinned and does not change on its own, so
 there is nothing to schedule. `dry_run: true` (dispatch only) fetches and
 verifies without publishing.
 
-> **The mirror release is not published yet.** Until it is, `ask.py` logs one
-> expected `HTTPError` per file and falls back to Hugging Face — which works, and
-> the sha256 check still runs, so integrity is enforced either way. What is
-> missing is only rate-limit and availability insurance.
+> **Published.** `repo-index-model-v1` exists and a cold `ask.py` run now fetches
+> from `github.com` rather than Hugging Face. It was published by the label
+> trigger above, from the PR branch, before that PR had merged.
 >
 > The workflow exists because a Claude Code session cannot create releases — the
 > agent proxy returns *"Creating, editing, or deleting releases is not permitted
