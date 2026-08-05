@@ -1,0 +1,61 @@
+# Rebuild the semantic index when markdown changes.
+#
+# Full rebuild is ~33 s for the whole repo, so there is no incremental path to
+# maintain — just rebuild. The index is deterministic on a fixed toolchain, so
+# an unchanged corpus produces a byte-identical artifact and no commit.
+#
+# The encoder is pinned by sha256 and served from this repo's own releases
+# (bekko-embedding-v1-a8m is MIT, so mirroring is permitted). HF is the
+# fallback. Pinning matters for more than availability: a different encoder
+# silently changes the embedding space, so ask.py verifies the hash and refuses
+# to build against the wrong one.
+name: repo-index
+
+on:
+  push:
+    branches: [main]
+    paths: ['**.md', 'repo-index/ask.py', '.github/workflows/repo-index.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repo-index-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Pin the toolchain. The index depends on ONNX Runtime float output and on
+      # numpy's LAPACK QR (the remex rotation), so an unpinned bump would rewrite
+      # every code and churn the diff. See repo-index/manifest.json.
+      - run: pip install --quiet 'numpy==2.4.6' 'onnxruntime==1.28.0' 'tokenizers==0.23.1' 'remex==0.6.0'
+
+      - name: Cache encoder
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/repo-index
+          key: bekko-a8m-96d8cc6199e96357
+
+      - name: Rebuild index
+        run: python3 repo-index/ask.py --build
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- repo-index/; then
+            echo "index unchanged — nothing to commit"; exit 0
+          fi
+          git config user.name  'repo-index bot'
+          git config user.email 'noreply@github.com'
+          git add repo-index/index.npy repo-index/pointers.json \
+                  repo-index/shape.json repo-index/manifest.json
+          git commit -m "repo-index: rebuild for ${GITHUB_SHA::8}"
+          git push
