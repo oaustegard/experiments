@@ -246,6 +246,57 @@ def rrf(ranked: list[list[str]], k: int = 60) -> list[str]:
     return sorted(s, key=lambda f: -s[f])
 
 
+# ── incremental build ───────────────────────────────────────────────────────
+def chunk_hash(text: str) -> str:
+    import hashlib
+    return hashlib.sha256(text.encode("utf-8", "ignore")).hexdigest()[:16]
+
+
+def incremental(chunks: list[Chunk], encode, prev_codes=None, prev_hashes=None):
+    """Encode only chunks whose content hash is new; copy the rest.
+
+    **This is exactly equivalent to a full rebuild, bit for bit** — not an
+    approximation traded for speed. Two properties make that true, and both were
+    established elsewhere in this repo:
+
+      - the encoder is per-chunk independent (no corpus statistics, no batch
+        normalization that crosses chunk boundaries), and
+      - remex quantization is data-oblivious: the codec is fully determined by
+        (d, bits, seed, rotation) and never fitted to the corpus.
+
+    So a reused row is the row a full rebuild would have produced. Anything that
+    *does* fit on the corpus breaks this — PCA, k-means, ITQ, product-quantizer
+    codebooks, and notably **BM25's IDF**, which shifts for every term when any
+    document is added. The lexical arm therefore cannot be incrementalized the
+    same way; it is refit from scratch, which is affordable precisely because
+    fitting it is seconds rather than minutes.
+
+    Returns (codes, n_encoded, n_reused).
+    """
+    import numpy as np
+    hashes = [chunk_hash(c.text) for c in chunks]
+    prev_at: dict[str, int] = {}
+    if prev_codes is not None and prev_hashes:
+        # last occurrence wins; duplicates are interchangeable by construction
+        prev_at = {h: i for i, h in enumerate(prev_hashes)}
+
+    todo = [i for i, h in enumerate(hashes) if h not in prev_at]
+    reuse = [(i, prev_at[h]) for i, h in enumerate(hashes) if h in prev_at]
+
+    width = prev_codes.shape[1] if prev_codes is not None and len(prev_codes) else None
+    out = None
+    if todo:
+        fresh = encode([chunks[i].text for i in todo])
+        width = width or fresh.shape[1]
+        out = np.zeros((len(chunks), width), dtype=fresh.dtype)
+        out[todo] = fresh
+    if out is None:
+        out = np.zeros((len(chunks), width), dtype=prev_codes.dtype)
+    for i, j in reuse:
+        out[i] = prev_codes[j]
+    return out, hashes, len(todo), len(reuse)
+
+
 def match(path: str, pat: str) -> bool:
     """Substring unless the pattern carries a glob metacharacter."""
     from fnmatch import fnmatch
