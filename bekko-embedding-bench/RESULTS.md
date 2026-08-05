@@ -456,6 +456,53 @@ chunk encodes). **Every embedding-quality conclusion in this file rides on 179
 chunks from 11 blog posts**, encoded in seconds. The compute went to the arm that
 needed it least.
 
+### Was 78 minutes reasonable? Mostly no — audited
+
+**The corpus work is real, so "seconds" was never available.** The AST corpus is
+11,380 chunks at a true mean of **328 effective tokens** (median 322, p90 927 —
+*not* 512; an earlier read of this said 512 because `encode_batch` over the whole
+corpus pads to the longest). At ~17.4 MFLOP/token for a 4-layer/384-hidden/1152-FFN
+model that is **64.9 TFLOP**. This box (AVX-512 Xeon, 4 vCPU) sustains
+**424 GFLOP/s** on 2048² sgemm, so the floor at *100% of peak* is **2.6 min** for
+one cell. Minutes, not seconds.
+
+**But three things were wrong, in increasing order of cost.**
+
+1. **Batching left 1.25x on the table.** Batches of 8 in corpus order pad every
+   chunk to the batch's longest, which the length distribution (median 322, p90
+   927) makes expensive: **1.47x** padded-token waste. Length-sorting before
+   batching fixes it — measured **1.25x** end-to-end (25.1 vs 20.1 chunks/s), and
+   the output is **bit-identical** (max |Δ| = 0.0). Should have been in the
+   encoder from the start.
+
+2. **Achieved throughput was 25% of peak** — 106 GFLOP/s against 424. Most of
+   that gap is structural: a 384×1152 GEMM is far from the shape where BLAS
+   reaches peak, and layernorm/activation traffic and ORT dispatch are not
+   FLOPs. It is low, not pathological, and closing it would mean sequence
+   packing rather than a config change.
+
+3. **The real waste was scope, and it dwarfs the other two.**
+
+   | cell | wall | what it bought |
+   |---|---|---|
+   | ast/a8m | 10.2 min | **the result** |
+   | ast/a25m | 33.0 min | within noise — and r@10 *worse* than a8m |
+   | flat/a8m | 8.8 min | chunking axis → noise |
+   | flat/a25m | 25.8 min | chunking × encoder → noise |
+   | **total** | **77.8 min** | |
+
+   Both extra axes came back inside noise at n=6, so **67 of the 78 minutes
+   bought conclusions that the sample size could never have supported**. The
+   minimum defensible run — ast/a8m, length-sorted — is **8.2 min, 10% of what
+   was spent**.
+
+The generalizable version: I sized the *corpus* for rigour (all 674 files, so
+retrieval faces real distractors — that part was right) and then replicated it
+across a 2×2 of axes whose effects were far below the resolution of a 6-instance
+benchmark. Power analysis belongs *before* the encode budget, not after it.
+
+
+
 **At n=179 one query is 0.56 pp of R@10**, and the differences reported above are
 2–8 queries wide. The arms are evaluated on the same queries, so the right test
 is paired — exact McNemar on discordant pairs, plus a paired bootstrap CI:
