@@ -1,5 +1,60 @@
 [
  {
+  "issue": 6848,
+  "pr": 11796,
+  "sha": "4140657700cc55830347c871134c8e982d29fab5",
+  "gold": [
+   "sklearn/discriminant_analysis.py",
+   "sklearn/tests/test_discriminant_analysis.py"
+  ],
+  "n_gold": 2,
+  "title": "LinearDiscriminantAnalysis predict probability bug",
+  "body": "I am pretty confident there is a bug introduced in commit\n7c1101d7c26ba0b77184cce9c0b9be79adb526de\n\nConcretely, line 518 of the current version \nhttps://github.com/scikit-learn/scikit-learn/blob/master/sklearn/discriminant_analysis.py\nshould be removed as it yields wrong results. \n\nThere is no reason why constant 1 should be added to the computed probability after exponentiation and before inversion. \n\nTo verify this, I have run a one-to-one comparison between the outcome of the method and MATLAB's builtin LDA classifier on the Iris dataset. Only after removal of line 518, results match (up to a tolerance).\n\nIf everyone agrees on that, I am happy to submit a PR.\n",
+  "created_at": "2016-06-01T16:48:08Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 7811,
+  "pr": 8002,
+  "sha": "4907029b1ddff16b111c501ad010d5207e0bd177",
+  "gold": [
+   "sklearn/tree/_criterion.pxd",
+   "sklearn/tree/_criterion.pyx",
+   "sklearn/tree/_splitter.pxd",
+   "sklearn/tree/_splitter.pyx",
+   "sklearn/tree/_tree.pxd",
+   "sklearn/tree/_tree.pyx",
+   "sklearn/tree/_utils.pxd",
+   "sklearn/tree/_utils.pyx"
+  ],
+  "n_gold": 8,
+  "title": "mae DecisionTree does not free used memory after refit",
+  "body": "<!--\r\nIf your issue is a usage question, submit it here instead:\r\n- StackOverflow with the scikit-learn tag: http://stackoverflow.com/questions/tagged/scikit-learn\r\n- Mailing List: https://mail.python.org/mailman/listinfo/scikit-learn\r\nFor more information, see User Questions: http://scikit-learn.org/stable/support.html#user-questions\r\n-->\r\n\r\n<!-- Instructions For Filing a Bug: https://github.com/scikit-learn/scikit-learn/blob/master/CONTRIBUTING.md#filing-bugs -->\r\n\r\n#### Description\r\nDecisionTree with mae criterion does not free used memory.\r\nAs a result that kind of trees is unusable in cycle, forests and cross-validation.\r\n(originally i encoutered this problem while trying use grid search with mae forest)\r\n\r\n#### Steps/Code to Reproduce\r\n\r\n```\r\nimport sklearn\r\n\r\nparams = dict(max_depth=range(1, 10))\r\nparams = sklearn.model_selection.ParameterGrid(params)\r\nreg = sklearn.tree.DecisionTreeRegressor(criterion='mae')\r\n\r\n# repeated several times in jupyter cell\r\nfor p in params:\r\n    print p\r\n    for i in range(100):\r\n        reg.set_params(**p)\r\n        reg.fit(xxx, yyy)\r\n```\r\n\r\n#### Expected Results\r\nNo additional memory usage after first completion of cycle.\r\nCell with 'for' cycle is runnable unlimited times.\r\n\r\nReplacing 'mae' with 'mse' does give expected result.\r\n\r\n#### Actual Results\r\nAdditional memory is used after each cell execution.\r\nDeleteing tree with 'del' and enforcing 'gc.collect()' does not help.\r\nWhen there is no memory left OS (windows) shuts down python process.\r\n\r\nMy guess is that there is memory leak in cython.\r\n\r\n#### Versions\r\n<!--\r\nPlease run the following snippet and paste the output below.\r\nimport platform; print(platform.platform())\r\nimport sys; print(\"Python\", sys.version)\r\nimport numpy; print(\"NumPy\", numpy.__version__)\r\nimport scipy; print(\"SciPy\", scipy.__version__)\r\nimport sklearn; print(\"Scikit-Learn\", sklearn.__version__)\r\n-->\r\n\r\nWindows-7-6.1.7601-SP1\r\n('Python', '2.7.12 | packaged by conda-forge | (default, Aug 12 2016, 18:53:38) [MSC v.1500 64 bit (AMD64)]')\r\n('NumPy', '1.11.2')\r\n('SciPy', '0.18.0')\r\n('Scikit-Learn', '0.18')\r\n\r\n<!-- Thanks for contributing! -->\r\n",
+  "created_at": "2016-11-02T14:28:58Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 8307,
+  "pr": 8578,
+  "sha": "b4a12b18a8f9c274c637bf8f5a26282aa4249d85",
+  "gold": [
+   "examples/cross_decomposition/plot_compare_cross_decomposition.py"
+  ],
+  "n_gold": 1,
+  "title": "Error in compare cross decomposition method",
+  "body": "On this page \r\nhttp://scikit-learn.org/stable/auto_examples/cross_decomposition/plot_compare_cross_decomposition.html#sphx-glr-auto-examples-cross-decomposition-plot-compare-cross-decomposition-py\r\n\r\nThe last lines has (copy-paste) error:\r\ncca = CCA(n_components=2)\r\ncca.fit(X_train, Y_train)\r\nX_train_r, Y_train_r = **plsca**.transform(X_train, Y_train)\r\nX_test_r, Y_test_r = **plsca**.transform(X_test, Y_test)\r\n\r\nIt should be cca.transform instead of plsca.transform",
+  "created_at": "2017-02-07T08:47:52Z",
+  "labels": [
+   "Easy",
+   "Documentation",
+   "Sprint"
+  ]
+ },
+ {
   "issue": 12470,
   "pr": 12471,
   "sha": "62117f482e39757d3e5f25568e1180dcfa695363",
@@ -11,6 +66,22 @@
   "title": "OneHotEncoder ignore unknown error when categories are strings",
   "body": "#### Description\n\nThis bug is very specific, but it happens when you set OneHotEncoder to ignore unknown entries.\nand your labels are strings. The memory of the arrays is not handled safely and it can lead to a ValueError\n\nBasically, when you call the transform method it will sets all the unknown strings on your array to OneHotEncoder.categories_[i][0] which is the first category alphabetically sorted given for fit\nIf this OneHotEncoder.categories_[i][0] is a long string, and the array that you want to transform has small strings, then it is impossible to fit the whole  OneHotEncoder.categories_[i][0] into the entries of the array we want to transform. So  OneHotEncoder.categories_[i][0]  is truncated and this raise the ValueError.\n\n#### Steps/Code to Reproduce\n```\nimport numpy as np\nfrom sklearn.preprocessing import OneHotEncoder\n\ntrain  = np.array([ '22','333','4444','11111111' ]).reshape((-1,1))\ntest   = np.array([ '55555',  '22' ]).reshape((-1,1))\n\nohe = OneHotEncoder(dtype=bool,handle_unknown='ignore')\n\nohe.fit( train )\nenc_test = ohe.transform( test )\n```\n\n#### Expected Results\nHere we should get an sparse matrix 2x4 false everywhere except at (1,1) the '22' that is known\n\n#### Actual Results\n\n> ValueError: y contains previously unseen labels: ['111111']\n\n#### Comments\n\nI already implemented a fix for this issue, where I check the size of the elements in the array before, and I cast them into objects if necessary.",
   "created_at": "2018-10-27T08:38:53Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 12672,
+  "pr": 12701,
+  "sha": "876b14907f96a42e63c3ef576a46755b120c3c01",
+  "gold": [
+   "sklearn/metrics/pairwise.py",
+   "sklearn/metrics/tests/test_pairwise.py"
+  ],
+  "n_gold": 2,
+  "title": "KNeighborsRegressor gives different results for different n_jobs values",
+  "body": "<!--\r\nIf your issue is a usage question, submit it here instead:\r\n- StackOverflow with the scikit-learn tag: https://stackoverflow.com/questions/tagged/scikit-learn\r\n- Mailing List: https://mail.python.org/mailman/listinfo/scikit-learn\r\nFor more information, see User Questions: http://scikit-learn.org/stable/support.html#user-questions\r\n-->\r\n\r\n<!-- Instructions For Filing a Bug: https://github.com/scikit-learn/scikit-learn/blob/master/CONTRIBUTING.md#filing-bugs -->\r\n\r\n#### Description\r\n<!-- Example: Joblib Error thrown when calling fit on LatentDirichletAllocation with evaluate_every > 0-->\r\nWhen using 'seuclidean' distance metric, the algorithm produces different predictions for different values of the n_jobs parameter if no V is passed as additional metric_params. This implies that if configured with n_jobs=-1 two different machines show different results depending on the number of cores. The same happens for 'mahalanobis' distance metric if no V and VI are passed as metric_params.\r\n\r\n#### Steps/Code to Reproduce\r\n<!--\r\nExample:\r\n```python\r\nfrom sklearn.feature_extraction.text import CountVectorizer\r\nfrom sklearn.decomposition import LatentDirichletAllocation\r\n\r\ndocs = [\"Help I have a bug\" for i in range(1000)]\r\n\r\nvectorizer = CountVectorizer(input=docs, analyzer='word')\r\nlda_features = vectorizer.fit_transform(docs)\r\n\r\nlda_model = LatentDirichletAllocation(\r\n    n_topics=10,\r\n    learning_method='online',\r\n    evaluate_every=10,\r\n    n_jobs=4,\r\n)\r\nmodel = lda_model.fit(lda_features)\r\n```\r\nIf the code is too long, feel free to put it in a public gist and link\r\nit in the issue: https://gist.github.com\r\n-->\r\n```python\r\n# Import required packages\r\nimport numpy as np\r\nimport pandas as pd\r\nfrom sklearn.datasets import load_boston\r\nfrom sklearn.model_selection import train_test_split\r\nfrom sklearn.neighbors import KNeighborsRegressor\r\n\r\n# Prepare the dataset\r\ndataset = load_boston()\r\ntarget = dataset.target\r\ndata = pd.DataFrame(dataset.data, columns=dataset.feature_names)\r\n\r\n# Split the dataset\r\nnp.random.seed(42)\r\nX_train, X_test, y_train, y_test = train_test_split(data, target, test_size=0.2)\r\n\r\n# Create a regressor with seuclidean distance and passing V as additional argument\r\nmodel_n_jobs_1 = KNeighborsRegressor(n_jobs=1, algorithm='brute', metric='seuclidean')\r\nmodel_n_jobs_1.fit(X_train, y_train)\r\nnp.sum(model_n_jobs_1.predict(X_test)) # --> 2127.99999\r\n\r\n# Create a regressor with seuclidean distance and passing V as additional argument\r\nmodel_n_jobs_3 = KNeighborsRegressor(n_jobs=3, algorithm='brute', metric='seuclidean')\r\nmodel_n_jobs_3.fit(X_train, y_train)\r\nnp.sum(model_n_jobs_3.predict(X_test)) # --> 2129.38\r\n\r\n# Create a regressor with seuclidean distance and passing V as additional argument\r\nmodel_n_jobs_all = KNeighborsRegressor(n_jobs=-1, algorithm='brute', metric='seuclidean')\r\nmodel_n_jobs_all.fit(X_train, y_train)\r\nnp.sum(model_n_jobs_all.predict(X_test)) # --> 2125.29999\r\n```\r\n\r\n#### Expected Results\r\n<!-- Example: No error is thrown. Please paste or describe the expected results.-->\r\nThe prediction should be always the same and not depend on the value passed to the n_jobs parameter.\r\n\r\n#### Actual Results\r\n<!-- Please paste or specifically describe the actual output or traceback. -->\r\nThe prediction value changes depending on the value passed to n_jobs which, in case of n_jobs=-1, makes the prediction depend on the number of cores of the machine running the code.\r\n\r\n#### Versions\r\n<!--\r\nPlease run the following snippet and paste the output below.\r\nFor scikit-learn >= 0.20:\r\nimport sklearn; sklearn.show_versions()\r\nFor scikit-learn < 0.20:\r\nimport platform; print(platform.platform())\r\nimport sys; print(\"Python\", sys.version)\r\nimport numpy; print(\"NumPy\", numpy.__version__)\r\nimport scipy; print(\"SciPy\", scipy.__version__)\r\nimport sklearn; print(\"Scikit-Learn\", sklearn.__version__)\r\n-->\r\nSystem\r\n------\r\n    python: 3.6.6 (default, Jun 28 2018, 04:42:43)  [GCC 5.4.0 20160609]\r\n    executable: /home/mcorella/.local/share/virtualenvs/outlier_detection-8L4UL10d/bin/python3.6\r\n    machine: Linux-4.15.0-39-generic-x86_64-with-Ubuntu-16.04-xenial\r\n\r\nBLAS\r\n----\r\n    macros: NO_ATLAS_INFO=1, HAVE_CBLAS=None\r\n    lib_dirs: /usr/lib\r\n    cblas_libs: cblas\r\n\r\nPython deps\r\n-----------\r\n    pip: 18.1\r\n    setuptools: 40.5.0\r\n    sklearn: 0.20.0\r\n    numpy: 1.15.4\r\n    scipy: 1.1.0\r\n    Cython: None\r\n    pandas: 0.23.4\r\n\r\n<!-- Thanks for contributing! -->\r\n",
+  "created_at": "2018-11-26T11:46:34Z",
   "labels": [
    "Bug"
   ]
@@ -34,6 +105,19 @@
   ]
  },
  {
+  "issue": 15818,
+  "pr": 16003,
+  "sha": "4d5407c89fb2b25ef5cba90470cbdaecf10064cc",
+  "gold": [
+   "sklearn/linear_model/tests/test_sag.py"
+  ],
+  "n_gold": 1,
+  "title": "test_sag_regressor_computed_correctly failure on Python 3.7 Linux Azure",
+  "body": "https://dev.azure.com/conda-forge/feedstock-builds/_build/results?buildId=101693\r\n\r\n```\r\n____________________ test_sag_regressor_computed_correctly _____________________\r\n[gw1] linux -- Python 3.7.3 $PREFIX/bin/python\r\n\r\n    @pytest.mark.filterwarnings('ignore:The max_iter was reached')\r\n    def test_sag_regressor_computed_correctly():\r\n        \"\"\"tests if the sag regressor is computed correctly\"\"\"\r\n        alpha = .1\r\n        n_features = 10\r\n        n_samples = 40\r\n        max_iter = 50\r\n        tol = .000001\r\n        fit_intercept = True\r\n        rng = np.random.RandomState(0)\r\n        X = rng.normal(size=(n_samples, n_features))\r\n        w = rng.normal(size=n_features)\r\n        y = np.dot(X, w) + 2.\r\n        step_size = get_step_size(X, alpha, fit_intercept, classification=False)\r\n    \r\n        clf1 = Ridge(fit_intercept=fit_intercept, tol=tol, solver='sag',\r\n                     alpha=alpha * n_samples, max_iter=max_iter)\r\n        clf2 = clone(clf1)\r\n    \r\n        clf1.fit(X, y)\r\n        clf2.fit(sp.csr_matrix(X), y)\r\n    \r\n        spweights1, spintercept1 = sag_sparse(X, y, step_size, alpha,\r\n                                              n_iter=max_iter,\r\n                                              dloss=squared_dloss,\r\n                                              fit_intercept=fit_intercept)\r\n    \r\n        spweights2, spintercept2 = sag_sparse(X, y, step_size, alpha,\r\n                                              n_iter=max_iter,\r\n                                              dloss=squared_dloss, sparse=True,\r\n                                              fit_intercept=fit_intercept)\r\n    \r\n        assert_array_almost_equal(clf1.coef_.ravel(),\r\n                                  spweights1.ravel(),\r\n>                                 decimal=3)\r\nE       AssertionError: \r\nE       Arrays are not almost equal to 3 decimals\r\nE       \r\nE       Mismatch: 10%\r\nE       Max absolute difference: 0.00238873\r\nE       Max relative difference: 0.00495185\r\nE        x: array([-0.467, -0.967,  0.652,  0.318, -1.616,  0.306,  0.711,  0.068,\r\nE              -0.238, -0.634])\r\nE        y: array([-0.468, -0.969,  0.653,  0.319, -1.616,  0.305,  0.711,  0.068,\r\nE              -0.239, -0.633])\r\n```\r\nBuilding scikit-learn 0.22 on conda-forge https://github.com/conda-forge/scikit-learn-feedstock/pull/113\r\n",
+  "created_at": "2019-12-07T15:53:47Z",
+  "labels": []
+ },
+ {
   "issue": 18318,
   "pr": 19703,
   "sha": "b84afe541c679b0cb57b3b1f7f438400392d11ee",
@@ -53,6 +137,43 @@
   ]
  },
  {
+  "issue": 19489,
+  "pr": 19520,
+  "sha": "64d54483edfa55ab44d836f9b08ff1bd38f7f6bb",
+  "gold": [
+   "sklearn/feature_extraction/_dict_vectorizer.py",
+   "sklearn/feature_extraction/tests/test_dict_vectorizer.py"
+  ],
+  "n_gold": 2,
+  "title": "'feature_name' referenced before assignment",
+  "body": "<!--\r\nBefore submitting a bug, please make sure the issue hasn't been already\r\naddressed by searching through the past issues.\r\n-->\r\n\r\n#### Describe the bug\r\n\r\nWhen I run some preprocessing on my data the line triggering the error is:\r\n\r\n```\r\nC:\\local_tools\\Anaconda3\\envs\\mother_env\\lib\\site-packages\\sklearn\\feature_extraction\\_dict_vectorizer.py in _transform(self, X, fitting)\r\n    226                                                indices=indices, values=values)\r\n    227 \r\n--> 228                 if feature_name is not None:\r\n    229                     if fitting and feature_name not in vocab:\r\n    230                         vocab[feature_name] = len(feature_names)\r\n\r\nUnboundLocalError: local variable 'feature_name' referenced before assignment\r\n```\r\n\r\n#### Steps/Code to Reproduce\r\n<!--\r\nPlease add a minimal example that we can reproduce the error by running the\r\ncode. Be as succinct as possible, do not depend on external data. In short, we\r\nare going to copy-paste your code and we expect to get the same\r\nresult as you.\r\n\r\nExample:\r\n```python\r\nfrom sklearn.feature_extraction.text import CountVectorizer\r\nfrom sklearn.decomposition import LatentDirichletAllocation\r\ndocs = [\"Help I have a bug\" for i in range(1000)]\r\nvectorizer = CountVectorizer(input=docs, analyzer='word')\r\nlda_features = vectorizer.fit_transform(docs)\r\nlda_model = LatentDirichletAllocation(\r\n    n_topics=10,\r\n    learning_method='online',\r\n    evaluate_every=10,\r\n    n_jobs=4,\r\n)\r\nmodel = lda_model.fit(lda_features)\r\n```\r\nIf the code is too long, feel free to put it in a public gist and link\r\nit in the issue: https://gist.github.com\r\n-->\r\n\r\nIt involves a bit too much preprocessing to put here but from inspecting the respective source file (see above, sklearn\\feature_extraction\\_dict_vectorizer.py) I have the strong suspicion that ```feature_name``` can go through all if/elif checks without being assigned anything.\r\n\r\n\r\n#### Versions\r\n<!--\r\nPlease run the following snippet and paste the output below.\r\nFor scikit-learn >= 0.20:\r\nimport sklearn; sklearn.show_versions()\r\nFor scikit-learn < 0.20:\r\nimport platform; print(platform.platform())\r\nimport sys; print(\"Python\", sys.version)\r\nimport numpy; print(\"NumPy\", numpy.__version__)\r\nimport scipy; print(\"SciPy\", scipy.__version__)\r\nimport sklearn; print(\"Scikit-Learn\", sklearn.__version__)\r\nimport imblearn; print(\"Imbalanced-Learn\", imblearn.__version__)\r\n-->\r\n\r\nSystem:\r\n    python: 3.8.5 (default, Sep  3 2020, 21:29:08) [MSC v.1916 64 bit (AMD64)]\r\nexecutable: C:\\local_tools\\Anaconda3\\envs\\mother_env\\python.exe\r\n   machine: Windows-10-10.0.18362-SP0\r\n\r\nPython dependencies:\r\n          pip: 20.3.3\r\n   setuptools: 52.0.0.post20210125\r\n      sklearn: 0.24.1\r\n        numpy: 1.19.2\r\n        scipy: 1.6.0\r\n       Cython: None\r\n       pandas: 1.2.1\r\n   matplotlib: 3.3.4\r\n       joblib: 1.0.1\r\nthreadpoolctl: 2.1.0\r\n\r\nBuilt with OpenMP: True\r\n\r\n<!-- Thanks for contributing! -->\r\n",
+  "created_at": "2021-02-18T20:17:21Z",
+  "labels": [
+   "Bug",
+   "Regression",
+   "module:feature_extraction"
+  ]
+ },
+ {
+  "issue": 19546,
+  "pr": 19766,
+  "sha": "57d3668f2a1fea69dafc2e68208576a56812cd45",
+  "gold": [
+   "sklearn/utils/sparsefuncs_fast.pyx",
+   "sklearn/utils/tests/test_sparsefuncs.py"
+  ],
+  "n_gold": 2,
+  "title": "Weighted variance computation for sparse data is not numerically stable",
+  "body": "This issue was discovered when adding tests for #19527 (currently marked XFAIL).\r\n\r\nHere is minimal reproduction case using the underlying private API:\r\n\r\nhttps://gist.github.com/ogrisel/bd2cf3350fff5bbd5a0899fa6baf3267\r\n\r\nThe results are the following (macOS / arm64 / Python 3.9.1 / Cython 0.29.21 / clang 11.0.1):\r\n\r\n```\r\n## dtype=float64\r\n_incremental_mean_and_var [100.] [0.]\r\ncsr_mean_variance_axis0 [100.] [-2.18040566e-11]\r\nincr_mean_variance_axis0 csr [100.] [-2.18040566e-11]\r\ncsc_mean_variance_axis0 [100.] [-2.18040566e-11]\r\nincr_mean_variance_axis0 csc [100.] [-2.18040566e-11]\r\n## dtype=float32\r\n_incremental_mean_and_var [100.00000577] [3.32692735e-11]\r\ncsr_mean_variance_axis0 [99.99997] [0.00123221]\r\nincr_mean_variance_axis0 csr [99.99997] [0.00123221]\r\ncsc_mean_variance_axis0 [99.99997] [0.00123221]\r\nincr_mean_variance_axis0 csc [99.99997] [0.00123221]\r\n```\r\n\r\nSo the `sklearn.utils.extmath._incremental_mean_and_var` function for dense numpy arrays is numerically stable  both in float64 and float32 (~1e-11 is much less then `np.finfo(np.float32).eps`), but the sparse counterparts, either incremental are not are all wrong in the same way.\r\n\r\nSo the gist above should be adapted to write a new series of new tests for these Cython functions and the fix will probably involve adapting the algorithm implemented in `sklearn.utils.extmath._incremental_mean_and_var` to the sparse case.\r\n\r\nNote: there is another issue opened for the numerical stability of `StandardScaler`: #5602 / #11549 but it is related to the computation of the (unweighted) mean in incremental model (in `partial_fit`) vs full batch mode (in `fit`). ",
+  "created_at": "2021-02-24T10:11:07Z",
+  "labels": [
+   "Bug",
+   "Moderate",
+   "module:linear_model",
+   "module:preprocessing"
+  ]
+ },
+ {
   "issue": 19638,
   "pr": 19643,
   "sha": "f4e692c0876425ef6afb6f514b54696f3e071c35",
@@ -67,6 +188,44 @@
   "labels": [
    "Bug",
    "module:metrics"
+  ]
+ },
+ {
+  "issue": 19726,
+  "pr": 19788,
+  "sha": "684b7d1955e76c0621ca2e399df90e83e525a6f7",
+  "gold": [
+   "sklearn/linear_model/_base.py",
+   "sklearn/preprocessing/_data.py",
+   "sklearn/preprocessing/tests/test_data.py",
+   "sklearn/utils/extmath.py",
+   "sklearn/utils/sparsefuncs_fast.pyx"
+  ],
+  "n_gold": 5,
+  "title": "BUG: Regression with StandardScaler due to #19527",
+  "body": "#### Describe the bug\r\n#19527 introduced a regression with StandardScaler when dealing with data with small magnitudes.\r\n\r\n#### Steps/Code to Reproduce\r\n\r\nIn MNE-Python some of our data channels have magnitudes in the ~1e-13 range. On 638b7689bbbfae4bcc4592c6f8a43ce86b571f0b or before, this code (which uses random data of different scales) returns all True, which seems correct:\r\n```\r\nimport numpy as np\r\nfrom sklearn.preprocessing import StandardScaler\r\n\r\nfor scale in (1e15, 1e10, 1e5, 1, 1e-5, 1e-10, 1e-15):\r\n    data = np.random.RandomState(0).rand(1000, 4) - 0.5\r\n    data *= scale\r\n    scaler = StandardScaler(with_mean=True, with_std=True)\r\n    X = scaler.fit_transform(data)\r\n    stds = np.std(data, axis=0)\r\n    means = np.mean(data, axis=0)\r\n    print(np.allclose(X, (data - means) / stds, rtol=1e-7, atol=1e-7 * scale))\r\n```\r\nBut on c748e465c76c43a173ad5ab2fd82639210f8e895 / after #19527, anything \"too small\" starts to fail, as I get 5 True and the last two scale factors (1e-10, 1e-15) False. Hence `StandardScaler` no longer standardizes the data.\r\n\r\ncc @ogrisel since this came from your PR and @maikia @rth @agramfort since you approved the PR",
+  "created_at": "2021-03-19T17:14:20Z",
+  "labels": [
+   "Bug",
+   "Regression",
+   "module:preprocessing"
+  ]
+ },
+ {
+  "issue": 20178,
+  "pr": 28823,
+  "sha": "70ca21f106b603b611da73012c9ade7cd8e438b8",
+  "gold": [
+   "sklearn/feature_extraction/tests/test_text.py",
+   "sklearn/feature_extraction/text.py"
+  ],
+  "n_gold": 2,
+  "title": "Optional `stop_words_` attribute for CountVectorizer and TfidfVectorizer",
+  "body": "#### Describe the workflow you want to enable\r\nHi,\r\n\r\nRefering to this message found for `sklearn.feature_extraction.text.CountVectorizer` and `sklearn.feature_extraction.text.TfidfVectorizer`: \r\n```\r\nThe stop_words_ attribute can get large and increase the model size when pickling. This attribute is provided only for introspection and can be safely removed using delattr or set to None before pickling.\r\n```\r\nThis attribute can indeed be very large when the dataset is big (leading to out of memory error sometimes). Besides, what it contains is not used by everyone (not always).\r\nSo, it would be nice to have this attribute as optional. \r\n#### Describe your proposed solution\r\n* Add the possibility to indicate that we don't want to build this attribute when initializing `CountVectorizer` and `TfidfVectorizer` \r\n\r\n#### Describe alternatives you've considered, if relevant\r\n\r\n#### Additional context\r\n",
+  "created_at": "2021-06-01T07:27:59Z",
+  "labels": [
+   "New Feature",
+   "module:feature_extraction"
   ]
  },
  {
@@ -88,6 +247,153 @@
   ]
  },
  {
+  "issue": 25333,
+  "pr": 25341,
+  "sha": "c3fca815362b3019aef8f5654c8ca3cf5848d1d8",
+  "gold": [
+   "sklearn/ensemble/tests/test_forest.py",
+   "sklearn/tree/_splitter.pyx",
+   "sklearn/tree/tests/test_tree.py"
+  ],
+  "n_gold": 3,
+  "title": "Read only buffer in cross_val_score with sparse matrix.",
+  "body": "### Describe the bug\n\nWhen calling `cross_val_score` with a sparse data matrix `X` and a `RandomForestClassifier` with `n_jobs=-1`, there is a weird interaction with joblib and memmapping that makes the buffer from `X` read-only, breaking the cython code for the tree construction but it is weird as it only appears with the `cross_validate` function, and not when calling the classifier alone, while `n_jobs=1` for the  cross val function so joblib should not enter the play here...\n\n### Steps/Code to Reproduce\n\n```python\r\nfrom scipy.sparse import csr_matrix\r\nfrom sklearn.datasets import make_classification\r\nfrom sklearn.ensemble import RandomForestClassifier\r\nfrom sklearn.model_selection import cross_val_score\r\n\r\nX, y = make_classification(10000, n_features=200)\r\nX = csr_matrix(X, copy=True)\r\n\r\nclf = RandomForestClassifier(n_jobs=-1)\r\n\r\ncross_val_score(clf, X, y)\r\n```\n\n### Expected Results\n\nWorking code\n\n### Actual Results\n\n```\r\nValueError: \r\nAll the 5 fits failed.\r\nIt is very likely that your model is misconfigured.\r\nYou can try to debug the error by setting error_score='raise'.\r\n\r\nBelow are more details about the failures:\r\n--------------------------------------------------------------------------------\r\n5 fits failed with the following error:\r\njoblib.externals.loky.process_executor._RemoteTraceback: \r\n\"\"\"\r\nTraceback (most recent call last):\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/joblib/externals/loky/process_executor.py\", line 428, in _process_worker\r\n    r = call_item()\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/joblib/externals/loky/process_executor.py\", line 275, in __call__\r\n    return self.fn(*self.args, **self.kwargs)\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/joblib/_parallel_backends.py\", line 620, in __call__\r\n    return self.func(*args, **kwargs)\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/joblib/parallel.py\", line 288, in __call__\r\n    return [func(*args, **kwargs)\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/joblib/parallel.py\", line 288, in <listcomp>\r\n    return [func(*args, **kwargs)\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/sklearn/utils/fixes.py\", line 117, in __call__\r\n    return self.function(*args, **kwargs)\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/sklearn/ensemble/_forest.py\", line 185, in _parallel_build_trees\r\n    tree.fit(X, y, sample_weight=curr_sample_weight, check_input=False)\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/sklearn/tree/_classes.py\", line 889, in fit\r\n    super().fit(\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/sklearn/tree/_classes.py\", line 379, in fit\r\n    builder.build(self.tree_, X, y, sample_weight)\r\n  File \"sklearn/tree/_tree.pyx\", line 147, in sklearn.tree._tree.DepthFirstTreeBuilder.build\r\n  File \"sklearn/tree/_tree.pyx\", line 173, in sklearn.tree._tree.DepthFirstTreeBuilder.build\r\n  File \"sklearn/tree/_splitter.pyx\", line 789, in sklearn.tree._splitter.BaseSparseSplitter.init\r\n  File \"stringsource\", line 660, in View.MemoryView.memoryview_cwrapper\r\n  File \"stringsource\", line 350, in View.MemoryView.memoryview.__cinit__\r\nValueError: buffer source array is read-only\r\n\"\"\"\r\n\r\nThe above exception was the direct cause of the following exception:\r\n\r\nTraceback (most recent call last):\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/sklearn/model_selection/_validation.py\", line 686, in _fit_and_score\r\n    estimator.fit(X_train, y_train, **fit_params)\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/sklearn/ensemble/_forest.py\", line 474, in fit\r\n    trees = Parallel(\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/joblib/parallel.py\", line 1098, in __call__\r\n    self.retrieve()\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/joblib/parallel.py\", line 975, in retrieve\r\n    self._output.extend(job.get(timeout=self.timeout))\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/site-packages/joblib/_parallel_backends.py\", line 567, in wrap_future_result\r\n    return future.result(timeout=timeout)\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/concurrent/futures/_base.py\", line 458, in result\r\n    return self.__get_result()\r\n  File \"/home/temp/.local/miniconda/lib/python3.10/concurrent/futures/_base.py\", line 403, in __get_result\r\n    raise self._exception\r\nValueError: buffer source array is read-only\r\n```\n\n### Versions\n\n```shell\nSystem:\r\n    python: 3.10.6 | packaged by conda-forge | (main, Aug 22 2022, 20:36:39) [GCC 10.4.0]\r\nexecutable: /home/temp/.local/miniconda/bin/python3.10\r\n   machine: Linux-5.14.0-1054-oem-x86_64-with-glibc2.31\r\n\r\nPython dependencies:\r\n      sklearn: 1.2.0\r\n          pip: 22.3\r\n   setuptools: 65.5.0\r\n        numpy: 1.23.5\r\n        scipy: 1.9.3\r\n       Cython: 0.29.32\r\n       pandas: 1.5.2\r\n   matplotlib: 3.6.2\r\n       joblib: 1.2.0\r\nthreadpoolctl: 3.1.0\r\n\r\nBuilt with OpenMP: True\r\n\r\nthreadpoolctl info:\r\n       user_api: blas\r\n   internal_api: mkl\r\n         prefix: libmkl_rt\r\n       filepath: /home/temp/.local/miniconda/lib/libmkl_rt.so.2\r\n        version: 2022.1-Product\r\nthreading_layer: intel\r\n    num_threads: 4\r\n\r\n       user_api: openmp\r\n   internal_api: openmp\r\n         prefix: libomp\r\n       filepath: /home/temp/.local/miniconda/lib/libomp.so\r\n        version: None\r\n    num_threads: 8\r\n```\n```\n",
+  "created_at": "2023-01-08T19:20:02Z",
+  "labels": [
+   "Bug",
+   "module:ensemble",
+   "module:tree"
+  ]
+ },
+ {
+  "issue": 26793,
+  "pr": 28043,
+  "sha": "f3470f81e093e5f52ebd39a50abe5d8c7a24f5af",
+  "gold": [
+   "sklearn/preprocessing/_polynomial.py",
+   "sklearn/preprocessing/tests/test_polynomial.py"
+  ],
+  "n_gold": 2,
+  "title": "Handle np.nan / missing values in SplineTransformer",
+  "body": "I think it would be quite natural to add an option to `SplineTransformer` to accept inputs with missing values as follows:\r\n\r\n- `handle_missing=\"error\"` the default (keep current behavior)\r\n- `handle_missing=\"zero\"`/\"constant\": encode missing values by setting all output features for that input column to 0 (or some other constant, see discussion below),\r\n- `handle_missing=\"indicator\"`: append an extra binary feature as missingness indicator and encode missing values as 0 on the remaining output features.\r\n\r\nNote that `handle_missing=\"indicator\"` would be different and statistically more meaningful than  `SimpleImputer(strategy=\"mean\", add_indicator=True)` with `SplineTransformer` and furthermore would make for leaner ML pipelines (better UX).\r\n\r\nI am not sure if we need to add the `handle_missing=\"zero\"` option. It would break the property the sum of output values of a given `SplineTransformer` encoding always sum to 1 while `handle_missing=\"indicator\"` would preserve this property (in addition to make missingness more explicit to the downstream model in case missingness is informative one way or another).\r\n\r\nIf we want to preserve the sum to 1 property while not adding an explicit missingness indicator feature, maybe we could instead provide `handle_missing=\"constant\"` (not sure about the name) that would encode missing values as `1 / n_outputs` to preserve the \"sum to 1\" property. Not entirely sure if this would result in a more interesting prior than the zero encoding.",
+  "created_at": "2023-07-07T07:08:51Z",
+  "labels": [
+   "Enhancement"
+  ]
+ },
+ {
+  "issue": 26802,
+  "pr": 29612,
+  "sha": "c0e07cf46e6411425381391f78b8315661f5ad69",
+  "gold": [
+   "sklearn/decomposition/_fastica.py",
+   "sklearn/decomposition/tests/test_fastica.py"
+  ],
+  "n_gold": 2,
+  "title": "\u26a0\ufe0f CI failed on Linux_Runs.pylatest_conda_forge_mkl (last failure: Jul 10, 2024) \u26a0\ufe0f",
+  "body": "**CI is still failing on [Linux_Runs.pylatest_conda_forge_mkl](https://dev.azure.com/scikit-learn/scikit-learn/_build/results?buildId=68533&view=logs&j=dde5042c-7464-5d47-9507-31bdd2ee0a3a)** (Jul 10, 2024)\n- test_fastica_eigh_low_rank_warning[31]",
+  "created_at": "2023-07-08T02:58:44Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 27626,
+  "pr": 27645,
+  "sha": "9371cec9366dbbd4f3ab0290e6efec948a0a5295",
+  "gold": [
+   "sklearn/ensemble/_iforest.py",
+   "sklearn/ensemble/tests/test_iforest.py"
+  ],
+  "n_gold": 2,
+  "title": "Isolation Forest Bug with Sparse Matrix and Contamination as Float",
+  "body": "### Describe the bug\r\n\r\n### Environment:\r\n\r\n```\r\nPython 3.11 and 3.8\r\nScikit-learn library 1.3.1\r\nIsolation Forest algorithm\r\nSparse matrix input (tested csr and csc)\r\nContamination parameter set as a float\r\n```\r\n\r\n### Bug Summary:\r\n\r\nWhen using the Isolation Forest algorithm from the Scikit-learn library with a sparse matrix as input data and explicitly setting the contamination parameter as a float (rather than 'auto'), a bug is encountered that stops the algorithm during the fit operation.\r\n\r\n### Expected Behavior:\r\n\r\nThe Isolation Forest algorithm should run without errors and produce anomaly scores as expected, with the contamination level set according to the specified float value.\r\n\r\n### Actual Behavior:\r\n\r\nWhen the contamination parameter is set as a float value, the Isolation Forest algorithm may encounter issues during model fitting or produce unexpected results. The bug might lead to incorrect anomaly detection and, in some cases, throw an error.\r\n\r\n### Additional Information:\r\n\r\nThe bug is not observed when the contamination parameter is set to 'auto' or when dense matrices are used.\r\nThe bug's impact may vary depending on the specific version of Scikit-learn being used.\r\nThis bug may be related to the handling of sparse data and the contamination parameter in the Isolation Forest implementation.\r\n\r\n### Steps/Code to Reproduce\r\n\r\n### Not working with contamination as a float\r\n```python\r\nfrom sklearn.datasets import make_classification\r\nfrom scipy.sparse import csc_matrix\r\nfrom sklearn.ensemble import IsolationForest\r\n\r\nX, y = make_classification(n_samples=50000, n_features=1000)\r\nX = csc_matrix(X)\r\nX.sort_indices()\r\nIsolationForest(n_estimators=10, max_samples=256, n_jobs=1, contamination=0.1).fit(X)\r\n```\r\n\r\n### Properly working with contamination = 'auto'/not specified\r\n```python\r\nfrom sklearn.datasets import make_classification\r\nfrom scipy.sparse import csc_matrix\r\nfrom sklearn.ensemble import IsolationForest\r\n\r\nX, y = make_classification(n_samples=50000, n_features=1000)\r\nX = csc_matrix(X)\r\nX.sort_indices()\r\nIsolationForest(n_estimators=10, max_samples=256, n_jobs=1, contamination='auto').fit(X)\r\n```\r\n\r\n### Expected Results\r\n\r\nThe Isolation Forest algorithm should run without errors and produce anomaly scores as expected, with the contamination level set according to the specified float value.\r\n\r\n### Actual Results\r\n\r\n```pytb\r\nBuilding estimator 48 of 50 for this parallel run (total 100)...\r\nBuilding estimator 49 of 50 for this parallel run (total 100)...\r\nBuilding estimator 50 of 50 for this parallel run (total 100)...\r\n[Parallel(n_jobs=2)]: Done   2 out of   2 | elapsed:    7.0s finished\r\n---------------------------------------------------------------------------\r\nValueError                                Traceback (most recent call last)\r\nInput In [6], in <cell line: 11>()\r\n      8 #Train ML Modell\r\n      9 logging.info('Starting ML Modell Training')\r\n---> 11 distributionforest = algorithm.fit(X)\r\n     13 logging.info('Finished ML Modell Training')\r\n     15 #Store ML Model\r\n\r\nFile ~/.local/lib/python3.8/site-packages/sklearn/base.py:1152, in _fit_context.<locals>.decorator.<locals>.wrapper(estimator, *args, **kwargs)\r\n   1145     estimator._validate_params()\r\n   1147 with config_context(\r\n   1148     skip_parameter_validation=(\r\n   1149         prefer_skip_nested_validation or global_skip_validation\r\n   1150     )\r\n   1151 ):\r\n-> 1152     return fit_method(estimator, *args, **kwargs)\r\n\r\nFile ~/.local/lib/python3.8/site-packages/sklearn/ensemble/_iforest.py:349, in IsolationForest.fit(self, X, y, sample_weight)\r\n    344     return self\r\n    346 # Else, define offset_ wrt contamination parameter\r\n    347 # To avoid performing input validation a second time we call\r\n    348 # _score_samples rather than score_samples\r\n--> 349 self.offset_ = np.percentile(self._score_samples(X), 100.0 * self.contamination)\r\n    351 return self\r\n\r\nFile ~/.local/lib/python3.8/site-packages/sklearn/ensemble/_iforest.py:447, in IsolationForest._score_samples(self, X)\r\n    444 check_is_fitted(self)\r\n    446 # Take the opposite of the scores as bigger is better (here less abnormal)\r\n--> 447 return -self._compute_chunked_score_samples(X)\r\n\r\nFile ~/.local/lib/python3.8/site-packages/sklearn/ensemble/_iforest.py:477, in IsolationForest._compute_chunked_score_samples(self, X)\r\n    473 scores = np.zeros(n_samples, order=\"f\")\r\n    475 for sl in slices:\r\n    476     # compute score on the slices of test samples:\r\n--> 477     scores[sl] = self._compute_score_samples(X[sl], subsample_features)\r\n    479 return scores\r\n\r\nFile ~/.local/lib/python3.8/site-packages/sklearn/ensemble/_iforest.py:504, in IsolationForest._compute_score_samples(self, X, subsample_features)\r\n    499 for tree_idx, (tree, features) in enumerate(\r\n    500     zip(self.estimators_, self.estimators_features_)\r\n    501 ):\r\n    502     X_subset = X[:, features] if subsample_features else X\r\n--> 504     leaves_index = tree.apply(X_subset, check_input=False)\r\n    506     depths += (\r\n    507         self._decision_path_lengths[tree_idx][leaves_index]\r\n    508         + self._average_path_length_per_tree[tree_idx][leaves_index]\r\n    509         - 1.0\r\n    510     )\r\n    511 denominator = len(self.estimators_) * average_path_length_max_samples\r\n\r\nFile ~/.local/lib/python3.8/site-packages/sklearn/tree/_classes.py:553, in BaseDecisionTree.apply(self, X, check_input)\r\n    551 check_is_fitted(self)\r\n    552 X = self._validate_X_predict(X, check_input)\r\n--> 553 return self.tree_.apply(X)\r\n\r\nFile sklearn/tree/_tree.pyx:839, in sklearn.tree._tree.Tree.apply()\r\n\r\nFile sklearn/tree/_tree.pyx:842, in sklearn.tree._tree.Tree.apply()\r\n\r\nFile sklearn/tree/_tree.pyx:895, in sklearn.tree._tree.Tree._apply_sparse_csr()\r\n\r\nValueError: X should be in csr_matrix format, got <class 'scipy.sparse.csc.csc_matrix'>\r\n```\r\n\r\n### Versions\r\n\r\n```shell\r\nSystem:\r\n    python: 3.8.10 | packaged by conda-forge | (default, May 11 2021, 07:13:52)  [GCC 9.3.0]\r\nexecutable: /opt/conda/bin/python\r\n   machine: Linux-4.18.0-372.73.1.el8_6.x86_64-x86_64-with-glibc2.10\r\n\r\nPython dependencies:\r\n      sklearn: 1.3.1\r\n          pip: 23.2.1\r\n   setuptools: 59.8.0\r\n        numpy: 1.20.3\r\n        scipy: 1.6.0\r\n       Cython: 0.29.21\r\n       pandas: 2.0.3\r\n   matplotlib: 3.3.4\r\n       joblib: 1.2.0\r\nthreadpoolctl: 3.1.0\r\n\r\nBuilt with OpenMP: True\r\n\r\nthreadpoolctl info:\r\n       user_api: blas\r\n   internal_api: openblas\r\n         prefix: libopenblas\r\n       filepath: /opt/conda/lib/libopenblasp-r0.3.21.so\r\n        version: 0.3.21\r\nthreading_layer: pthreads\r\n   architecture: SkylakeX\r\n    num_threads: 16\r\n\r\n       user_api: openmp\r\n   internal_api: openmp\r\n         prefix: libgomp\r\n       filepath: /home/jovyan/.local/lib/python3.8/site-packages/scikit_learn.libs/libgomp-a34b3233.so.1.0.0\r\n        version: None\r\n    num_threads: 16\r\n```\r\n",
+  "created_at": "2023-10-20T08:33:50Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 27695,
+  "pr": 27801,
+  "sha": "1471fa7c5816e6340d25e67c6f9555f142bc3aea",
+  "gold": [
+   "sklearn/preprocessing/_function_transformer.py",
+   "sklearn/preprocessing/tests/test_function_transformer.py"
+  ],
+  "n_gold": 2,
+  "title": "pipeline using FunctionTransformer with feature_names_out=... fails when applied to dataframe argument",
+  "body": "### Describe the bug\r\n\r\n(based on this stackoverflow question: https://stackoverflow.com/questions/77379286/sklearn-pipeline-get-feature-names-out-fails-unless-dataframe-has-matching-ren/77396145#77396145)\r\n\r\nI have a simple sklearn (1.3.1) pipeline where the first step is renaming its input features, so I implemented feature_names_out as below.  If I fit the pipeline on a numpy array using `p.fit_transform(df.values)`, everything is fine and it reports output feature names as `x0__log`, `x1__log`.  However if I fit on the dataframe directly with `p.fit_transform(df)`, then `p.get_feature_names_out()` gives a stack trace ending with `ValueError: input_features is not equal to feature_names_in_`.\r\n\r\n(from the answer) The problem is that FunctionTransformer by default applies func directly to the input without converting the input first; so `p[0].transform(df)` produces a dataframe with columns still `[a, b]`, and `p[1]` gets fitted on that frame, setting its `feature_names_in_` attribute also to `[a, b]`, which contradicts what comes out of `get_feature_names_out` (having been passed through your `with_suffix`).\r\n\r\nThe suggested workaround is to set `validate=True` in your FunctionTransformer: this will convert the input to a numpy array, so that the subsequent step won't be fitted on a dataframe, so won't have a `feature_names_in_` set.  (Or make sure a dataframe argument has its columns renamed to make `feature_names_out` as I ended up doing.)\r\n\r\n\r\n\r\n\r\n\r\n### Steps/Code to Reproduce\r\n\r\n```python\r\nfrom typing import List\r\nimport numpy as np\r\nimport pandas as pd\r\nfrom sklearn.preprocessing import FunctionTransformer, StandardScaler\r\nfrom sklearn.pipeline import make_pipeline\r\n\r\ndef with_suffix(_, names: List[str]):\r\n    return [name + '__log' for name in names]\r\n\r\np = make_pipeline(\r\n    FunctionTransformer(np.log1p, feature_names_out=with_suffix),\r\n    StandardScaler()\r\n)\r\n\r\ndf = pd.DataFrame([[1,2], [3,4], [5,6]], columns=['a', 'b'])\r\n\r\np.fit_transform(df)              # <= works if we pass df.values instead\r\np.get_feature_names_out()     # <= fails when pipeline is applied to dataframe\r\n```\r\n\r\n### Expected Results\r\n\r\nNo error should be shown.\r\n\r\n### Actual Results\r\n\r\n```pytb\r\n{\r\n\t\"name\": \"ValueError\",\r\n\t\"message\": \"input_features is not equal to feature_names_in_\",\r\n\t\"stack\": \"---------------------------------------------------------------------------\r\nValueError                                Traceback (most recent call last)\r\n/Users/psurry/Hopper/fintech-ml-core/feature-tables/scratch/binning.ipynb Cell 97 line 1\r\n     <a href='vscode-notebook-cell:/Users/psurry/Hopper/fintech-ml-core/feature-tables/scratch/binning.ipynb#Y210sZmlsZQ%3D%3D?line=14'>15</a> df = pd.DataFrame([[1,2], [3,4], [5,6]], columns=['a', 'b'])\r\n     <a href='vscode-notebook-cell:/Users/psurry/Hopper/fintech-ml-core/feature-tables/scratch/binning.ipynb#Y210sZmlsZQ%3D%3D?line=16'>17</a> p.fit_transform(df)              # <= works if we pass df.values instead\r\n---> <a href='vscode-notebook-cell:/Users/psurry/Hopper/fintech-ml-core/feature-tables/scratch/binning.ipynb#Y210sZmlsZQ%3D%3D?line=17'>18</a> p.get_feature_names_out()     # <= fails when pipeline is applied to dataframe\r\n\r\nFile ~/miniconda3/envs/feature-tables/lib/python3.11/site-packages/sklearn/pipeline.py:820, in Pipeline.get_feature_names_out(self, input_features)\r\n    814     if not hasattr(transform, \\\"get_feature_names_out\\\"):\r\n    815         raise AttributeError(\r\n    816             \\\"Estimator {} does not provide get_feature_names_out. \\\"\r\n    817             \\\"Did you mean to call pipeline[:-1].get_feature_names_out\\\"\r\n    818             \\\"()?\\\".format(name)\r\n    819         )\r\n--> 820     feature_names_out = transform.get_feature_names_out(feature_names_out)\r\n    821 return feature_names_out\r\n\r\nFile ~/miniconda3/envs/feature-tables/lib/python3.11/site-packages/sklearn/base.py:949, in OneToOneFeatureMixin.get_feature_names_out(self, input_features)\r\n    929 \\\"\\\"\\\"Get output feature names for transformation.\r\n    930 \r\n    931 Parameters\r\n   (...)\r\n    946     Same as input features.\r\n    947 \\\"\\\"\\\"\r\n    948 check_is_fitted(self, \\\"n_features_in_\\\")\r\n--> 949 return _check_feature_names_in(self, input_features)\r\n\r\nFile ~/miniconda3/envs/feature-tables/lib/python3.11/site-packages/sklearn/utils/validation.py:2071, in _check_feature_names_in(estimator, input_features, generate_names)\r\n   2067 input_features = np.asarray(input_features, dtype=object)\r\n   2068 if feature_names_in_ is not None and not np.array_equal(\r\n   2069     feature_names_in_, input_features\r\n   2070 ):\r\n-> 2071     raise ValueError(\\\"input_features is not equal to feature_names_in_\\\")\r\n   2073 if n_features_in_ is not None and len(input_features) != n_features_in_:\r\n   2074     raise ValueError(\r\n   2075         \\\"input_features should have length equal to number of \\\"\r\n   2076         f\\\"features ({n_features_in_}), got {len(input_features)}\\\"\r\n   2077     )\r\n\r\nValueError: input_features is not equal to feature_names_in_\"\r\n}\r\n```\r\n\r\n### Versions\r\n\r\n```shell\r\nSystem:\r\n    python: 3.11.6 | packaged by conda-forge | (main, Oct  3 2023, 10:40:37) [Clang 15.0.7 ]\r\nexecutable: /Users/psurry/miniconda3/envs/feature-tables/bin/python\r\n   machine: macOS-14.1-x86_64-i386-64bit\r\n\r\nPython dependencies:\r\n      sklearn: 1.3.1\r\n          pip: 23.3\r\n   setuptools: 68.2.2\r\n        numpy: 1.26.0\r\n        scipy: 1.11.3\r\n       Cython: None\r\n       pandas: 2.0.3\r\n   matplotlib: 3.8.0\r\n       joblib: 1.3.2\r\nthreadpoolctl: 3.2.0\r\n\r\nBuilt with OpenMP: True\r\n\r\nthreadpoolctl info:\r\n       user_api: blas\r\n   internal_api: openblas\r\n    num_threads: 8\r\n         prefix: libopenblas\r\n       filepath: /Users/psurry/miniconda3/envs/feature-tables/lib/libopenblasp-r0.3.24.dylib\r\n        version: 0.3.24\r\nthreading_layer: openmp\r\n   architecture: Nehalem\r\n\r\n       user_api: openmp\r\n   internal_api: openmp\r\n    num_threads: 8\r\n         prefix: libomp\r\n       filepath: /Users/psurry/miniconda3/envs/feature-tables/lib/libomp.dylib\r\n        version: None\r\n\r\n       user_api: openmp\r\n   internal_api: openmp\r\n    num_threads: 8\r\n         prefix: libomp\r\n       filepath: /Users/psurry/miniconda3/envs/feature-tables/lib/python3.11/site-packages/sklearn/.dylibs/libomp.dylib\r\n        version: None\r\n\r\n       user_api: blas\r\n   internal_api: openblas\r\n    num_threads: 8\r\n         prefix: libopenblas\r\n       filepath: /Users/psurry/miniconda3/envs/feature-tables/lib/python3.11/site-packages/scipy/.dylibs/libopenblas.0.dylib\r\n        version: 0.3.21.dev\r\nthreading_layer: pthreads\r\n   architecture: Nehalem\r\n```\r\n",
+  "created_at": "2023-10-31T14:57:34Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 27737,
+  "pr": 27748,
+  "sha": "19e5fbc2cd7be4e50977cf210501cb92d0f480ef",
+  "gold": [
+   "sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py"
+  ],
+  "n_gold": 1,
+  "title": "Clarify docstring on HistGradientBoostingRegressor regarding monotonic_cst",
+  "body": "Hi scikit team! Enormous fan of all you do \ud83d\ude4f \r\n\r\nI'm thinking about opening a small PR and would love your thoughts.\r\n\r\nThe docs/docstring on `HistGradientBoostingRegressor` [have the following note](https://github.com/scikit-learn/scikit-learn/blob/bed14db756d39829c71dbb537f7f5041b5e792c2/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py#L1310) about the argument `monotonic_cst`: \"The constraints are only valid for binary classifications and hold over the probability of the positive class.\" \r\n\r\nShould we consider clarifying or removing this note in the `Regressor` docstring? \r\n\r\nThe note of course makes sense in the `Classifier` docstring. Here in the `Regressor` docstring, I found this sentence a bit unclear. It technically could be read as suggesting the constraint is not valid when used with this Regressor. I suspect that is not the intended meaning, since Scikit has published a guide on [using monotonic_cst with a HistGradientBoostingRegressor](https://scikit-learn.org/stable/auto_examples/ensemble/plot_monotonic_constraints.html).\r\n\r\nThanks for considering! Here's the full section in question of the docstring:\r\n\r\n>         monotonic_cst : array-like of int of shape (n_features) or dict, default=None\r\n>\r\n>         Monotonic constraint to enforce on each feature are specified using the\r\n>         following integer values:\r\n> \r\n>         - 1: monotonic increase\r\n>         - 0: no constraint\r\n>         - -1: monotonic decrease\r\n> \r\n>         If a dict with str keys, map feature to monotonic constraints by name.\r\n>         If an array, the features are mapped to constraints by position. See\r\n>         :ref:`monotonic_cst_features_names` for a usage example.\r\n> \r\n>         The constraints are only valid for binary classifications and hold\r\n>         over the probability of the positive class.\r\n>         Read more in the :ref:`User Guide <monotonic_cst_gbdt>`.\r\n> ",
+  "created_at": "2023-11-07T00:26:56Z",
+  "labels": [
+   "Needs Triage"
+  ]
+ },
+ {
+  "issue": 27814,
+  "pr": 27817,
+  "sha": "94f0d6aa7b2d3bdc3d60507daca9b83c7e8b7633",
+  "gold": [
+   "sklearn/ensemble/_forest.py",
+   "sklearn/ensemble/tests/test_forest.py"
+  ],
+  "n_gold": 2,
+  "title": "RandomForestRegressor having problem with integer-values targets: The type of target cannot be used to compute OOB estimates",
+  "body": "### Describe the bug\n\nWhen having:\r\n- RandomForestRegressor\r\n- Multiple targets\r\n- integer values only (e.g., 1.0, 2.0, 3.0, ...) in the targets\r\n- oob_score=True\r\n\r\nThe check in `BaseForest` will raise the error:\r\n\r\n```\r\nValueError: The type of target cannot be used to compute OOB estimates. Got multiclass-multioutput while only the following are supported: continuous, continuous-multioutput, binary, multiclass, multilabel-indicator.\r\n```\r\n\r\nbecause `type_of_target` misclassifies the target as multiclass instead of continuous when integer values are reported.\r\nThis is a bug because (1) I explicitly requested for a Regressor and (2) the classes are clearly to many to be a classification problem.\r\n\r\nI could solve the problem by perturbing just a bit one value for each target, e.g.,:\r\n```python \r\nfor target in targets:\r\n   df[target].iloc[0] *= 1.0001\r\n```\r\nbut I would like to work out a more definitive fix in the program.\r\n\n\n### Steps/Code to Reproduce\n\n```python\r\nimport pandas as pd\r\nfrom sklearn.ensemble import RandomForestRegressor\r\n\r\ndf = pd.DataFrame({\r\n    \"feat1\": [1 ,2 ,3 ,4 ,5 ,6 ,7 ,8 ,9 ,10],\r\n    \"feat2\": [2, 6, 8, 1, 3, 5, 7, 9, 4, 10],\r\n    \"target1\": [4.0, 6.0, 7.0, 3.0, 5.0, 4.0, 6.0 ,7.0 ,8.0 ,9.0],\r\n    \"target2\": [5.0, 5.0, 6.0, 7.0, 3.0, 4.0, 10.0,6.0,6.0,7.0],\r\n})\r\n\r\nrf = RandomForestRegressor(oob_score=True, random_state=42)\r\nrf.fit(df[[\"feat1\", \"feat2\"]], df[[\"target1\", \"target2\"]])\r\n```\n\n### Expected Results\n\nRandomForestRegressor(oob_score=True, random_state=42)\n\n### Actual Results\n\n```\r\n---------------------------------------------------------------------------\r\nValueError                                Traceback (most recent call last)\r\nCell In[5], line 12\r\n      4 df = pd.DataFrame({\r\n      5     \"feat1\": [1 ,2 ,3 ,4 ,5 ,6 ,7 ,8 ,9 ,10],\r\n      6     \"feat2\": [2, 6, 8, 1, 3, 5, 7, 9, 4, 10],\r\n      7     \"target1\": [4.0, 6.0, 7.0, 3.0, 5.0, 4.0, 6.0 ,7.0 ,8.0 ,9.0],\r\n      8     \"target2\": [5.0, 5.0, 6.0, 7.0, 3.0, 4.0, 10.0,6.0,6.0,7.0],\r\n      9 })\r\n     11 rf = RandomForestRegressor(oob_score=True, random_state=42)\r\n---> 12 rf.fit(df[[\"feat1\", \"feat2\"]], df[[\"target1\", \"target2\"]])\r\n\r\nFile c:\\ProgramData\\miniconda3\\envs\\py310\\lib\\site-packages\\sklearn\\ensemble\\_forest.py:503, in BaseForest.fit(self, X, y, sample_weight)\r\n    497     y_type = type_of_target(y)\r\n    498     if y_type in (\"multiclass-multioutput\", \"unknown\"):\r\n    499         # FIXME: we could consider to support multiclass-multioutput if\r\n    500         # we introduce or reuse a constructor parameter (e.g.\r\n    501         # oob_score) allowing our user to pass a callable defining the\r\n    502         # scoring strategy on OOB sample.\r\n--> 503         raise ValueError(\r\n    504             \"The type of target cannot be used to compute OOB \"\r\n    505             f\"estimates. Got {y_type} while only the following are \"\r\n    506             \"supported: continuous, continuous-multioutput, binary, \"\r\n    507             \"multiclass, multilabel-indicator.\"\r\n    508         )\r\n    509     self._set_oob_score_and_attributes(X, y)\r\n    511 # Decapsulate classes_ attributes\r\n\r\nValueError: The type of target cannot be used to compute OOB estimates. Got multiclass-multioutput while only the following are supported: continuous, continuous-multioutput, binary, multiclass, multilabel-indicator.\r\n````\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\n\n### Versions\n\n```shell\n1.3.2\n```\n",
+  "created_at": "2023-11-20T18:08:17Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 27931,
+  "pr": 28268,
+  "sha": "775587b6b6bbc12d9e320b51ed007cabf28b576e",
+  "gold": [
+   "sklearn/ensemble/tests/test_forest.py",
+   "sklearn/tree/_classes.py"
+  ],
+  "n_gold": 2,
+  "title": "ENH support for missing values in ExtraTrees ",
+  "body": "### Describe the workflow you want to enable\n\nInspired  by https://github.com/scikit-learn/scikit-learn/pull/26391 I think that support for missing values for ExtraTrees regressor and classifier should/could also be provided.\n\n### Describe your proposed solution\n\nI think a foundational work is already provided by @thomasjpfan  in https://github.com/scikit-learn/scikit-learn/pull/26391 and besides tests and documentation to enable nan handling it is enough to modify `sklearn/tree/_classes.py`:\r\nFor `ExtraTreeRegressor` add method:\r\n```\r\n def _more_tags(self):\r\n        # XXX: nan is only support for dense arrays, but we set this for common test to\r\n        # pass, specifically: check_estimators_nan_inf\r\n        allow_nan = self.criterion in {\r\n            \"squared_error\",\r\n            \"friedman_mse\",\r\n            \"poisson\",\r\n        }\r\n        return {\"allow_nan\": allow_nan}\r\n```\r\nFor `ExtraTreeClassifier` add method:\r\n```\r\ndef _more_tags(self):\r\n        # XXX: nan is only support for dense arrays, but we set this for common test to\r\n        # pass, specifically: check_estimators_nan_inf\r\n        allow_nan = self.criterion in {\r\n            \"gini\",\r\n            \"log_loss\",\r\n            \"entropy\",\r\n        }\r\n        return {\"multilabel\": True, \"allow_nan\": allow_nan}\r\n```\r\nI've run the code locally, and it appears to be functioning as expected. However, I must emphasize that my testing was not exhaustive, and I might have overlooked some obvious aspects.\n\n### Describe alternatives you've considered, if relevant\n\n_No response_\n\n### Additional context\n\n_No response_",
+  "created_at": "2023-12-10T21:12:28Z",
+  "labels": [
+   "New Feature",
+   "module:tree"
+  ]
+ },
+ {
+  "issue": 27952,
+  "pr": 28074,
+  "sha": "7f131e04b01b43a05846bbc3d0b8c2988e6dd03e",
+  "gold": [
+   "sklearn/ensemble/_hist_gradient_boosting/predictor.py",
+   "sklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py"
+  ],
+  "n_gold": 2,
+  "title": "HistGradientBoosting pickle portability between 64bit and 32bit arch",
+  "body": "### Describe the bug\n\nHistGradinetBoosting models use ```np.intp``` to represent the ```feature_idx``` in TreePredictor nodes\r\n\r\nhttps://github.com/scikit-learn/scikit-learn/blob/0f8a7775ad248b9aa4be63291ae71d9212a46e6c/sklearn/ensemble/_hist_gradient_boosting/common.pyx#L19-L36\r\n\r\nThis seems to cause issues with using pickled HistGradientBoosting models which are trained on a 64 bit environment, in 32 bit environments ( like Pyodide which is where I encountered this issue).\r\n\r\nI know that for a while the other Tree models in sklearn had a similar problem but I am not 100% what the solution was. \r\n\r\nWould changing the type to be ```np.uint32``` be an acceptable solution here?\r\n\r\n\r\n\r\n\r\n\n\n### Steps/Code to Reproduce\n\n ## Steps to reproduce \r\n1. Train a model in python on a 64 bit system \r\n2. Pickle the output \r\n3. Load that pickle on a 32 bit python environment like Pyodide \r\n4. Attempt to run the prediction on the loaded model \r\n\r\nsee this repo for a full example: https://github.com/stuartlynn/hist_gradient_boost_bug\n\n### Expected Results\n\nThe pyodide code to run and give the expected output \n\n### Actual Results\n\n## Error message \r\nRunning the above gives the following error message when trying to execute the Pyodide code \r\n```\r\nPythonError: Traceback (most recent call last):\r\n  File \"/lib/python311.zip/_pyodide/_base.py\", line 571, in eval_code_async\r\n    await CodeRunner(\r\n  File \"/lib/python311.zip/_pyodide/_base.py\", line 394, in run_async\r\n    coroutine = eval(self.code, globals, locals)\r\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\n  File \"<exec>\", line 61, in <module>\r\n  File \"/lib/python3.11/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\", l\r\n    return self._loss.link.inverse(self._raw_predict(X).ravel())\r\n                                   ^^^^^^^^^^^^^^^^^^^^\r\n  File \"/lib/python3.11/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\", l\r\n    self._predict_iterations(\r\n  File \"/lib/python3.11/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py\", l\r\n    raw_predictions[:, k] += predict(X)\r\n                             ^^^^^^^^^^\r\n  File \"/lib/python3.11/site-packages/sklearn/ensemble/_hist_gradient_boosting/predictor.py\", line 71,\r\n    _predict_from_raw_data(\r\n  File \"sklearn/ensemble/_hist_gradient_boosting/_predictor.pyx\", line 18, in sklearn.ensemble._hist_gr\r\nValueError: Buffer dtype mismatch, expected 'intp_t' but got 'long long' in 'const node_struct.feature_\r\n\r\n    at new_error (/Users/slynn/tmp/demoland_onnx_test/runner/node_modules/.pnpm/pyodide@0.24.1/node_mod\r\n    at wasm://wasm/02250ad6:wasm-function[295]:0x158827\r\n    at wasm://wasm/02250ad6:wasm-function[452]:0x15fcd5\r\n    at _PyCFunctionWithKeywords_TrampolineCall (/Users/slynn/tmp/demoland_onnx_test/runner/node_modules\r\n    at wasm://wasm/02250ad6:wasm-function[1057]:0x1a3091\r\n    at wasm://wasm/02250ad6:wasm-function[3387]:0x289e4d\r\n    at wasm://wasm/02250ad6:wasm-function[2037]:0x1e3f77\r\n    at wasm://wasm/02250ad6:wasm-function[1064]:0x1a3579\r\n    at wasm://wasm/02250ad6:wasm-function[1067]:0x1a383a\r\n    at wasm://wasm/02250ad6:wasm-function[1068]:0x1a38dc\r\n    at wasm://wasm/02250ad6:wasm-function[3200]:0x2685c5\r\n    at wasm://wasm/02250ad6:wasm-function[3201]:0x26e3d0\r\n    at wasm://wasm/02250ad6:wasm-function[1070]:0x1a3a04\r\n    at wasm://wasm/02250ad6:wasm-function[1065]:0x1a3694\r\n    at wasm://wasm/02250ad6:wasm-function[440]:0x15f45e\r\n    at Module.callPyObjectKwargs (/Users/slynn/tmp/demoland_onnx_test/runner/node_modules/.pnpm/pyodide@0.24.1/node_modules/pyodide/pyodide.asm.js:9:81732)\r\n    at Module.callPyObject (/Users/slynn/tmp/demoland_onnx_test/runner/node_modules/.pnpm/pyodide@0.24.1/node_modules/pyodide/pyodide.asm.js:9:82066)\r\n    at Timeout.wrapper [as _onTimeout] (/Users/slynn/tmp/demoland_onnx_test/runner/node_modules/.pnpm/pyodide@0.24.1/node_modules/pyodide/pyodide.asm.js:9:58562)\r\n    at listOnTimeout (node:internal/timers:569:17)\r\n    at process.processTimers (node:internal/timers:512:7) {\r\n  type: 'ValueError',\r\n  __error_address: 116329376\r\n}\r\n```\r\n\r\n## Things I have already checked\r\n\r\n- All versions of the libraries used are the same in both environments \r\n- Tried with both pickles and joblib \r\n\r\n## Hacky fix \r\n\r\nSo what I found to work is the following. In pyodide, after loading the model if we manually change the types of the nodes for the predictors, then the model runs fine. There is an example of this in the example repo\r\n\r\n```python\r\nY_DTYPE = np.float64\r\nX_DTYPE = np.float64\r\nX_BINNED_DTYPE = np.uint8  # hence max_bins == 256\r\n# dtype for gradients and hessians arrays\r\nG_H_DTYPE = np.float32\r\nX_BITSET_INNER_DTYPE = np.uint32\r\n\r\n\r\nPREDICTOR_RECORD_DTYPE_2 = np.dtype([\r\n    ('value', Y_DTYPE),\r\n    ('count', np.uint32),\r\n    ('feature_idx', np.int32),\r\n    ('num_threshold', X_DTYPE),\r\n    ('missing_go_to_left', np.uint8),\r\n    ('left', np.uint32),\r\n    ('right', np.uint32),\r\n    ('gain', Y_DTYPE),\r\n    ('depth', np.uint32),\r\n    ('is_leaf', np.uint8),\r\n    ('bin_threshold', X_BINNED_DTYPE),\r\n    ('is_categorical', np.uint8),\r\n    # The index of the corresponding bitsets in the Predictor's bitset arrays.\r\n    # Only used if is_categorical is True\r\n    ('bitset_idx', np.uint32)\r\n])\r\n\r\nmodel  = joblib.load(\"/model.joblib\")\r\n\r\nfor i,_ in enumerate(model._predictors):\r\n    model._predictors[i][0].nodes = model._predictors[i][0].nodes.astype(PREDICTOR_RECORD_DTYPE_2)\r\n\r\nmodel.predict(data)\r\n```\n\n### Versions\n\n```shell\npython version 3.11.3 (main, May 15 2023, 10:43:03) [Clang 14.0.6 ]\r\nsklearn version 1.3.1\r\n\r\nSystem:\r\n    python: 3.11.3 (main, May 15 2023, 10:43:03) [Clang 14.0.6 ]\r\nexecutable: /Users/slynn/miniconda3/envs/demoland/bin/python\r\n   machine: macOS-10.16-x86_64-i386-64bit\r\n\r\nPython dependencies:\r\n      sklearn: 1.3.1\r\n          pip: 23.3\r\n   setuptools: 68.0.0\r\n        numpy: 1.25.2\r\n        scipy: 1.11.3\r\n       Cython: None\r\n       pandas: 1.5.3\r\n   matplotlib: None\r\n       joblib: 1.3.2\r\nthreadpoolctl: 3.2.0\r\n\r\nBuilt with OpenMP: True\r\n\r\nthreadpoolctl info:\r\n       user_api: openmp\r\n   internal_api: openmp\r\n    num_threads: 10\r\n         prefix: libomp\r\n       filepath: /Users/slynn/miniconda3/envs/demoland/lib/python3.11/site-packages/sklearn/.dylibs/libomp.dylib\r\n        version: None\r\n\r\n       user_api: blas\r\n   internal_api: openblas\r\n    num_threads: 10\r\n         prefix: libopenblas\r\n       filepath: /Users/slynn/miniconda3/envs/demoland/lib/python3.11/site-packages/numpy/.dylibs/libopenblas64_.0.dylib\r\n        version: 0.3.23.dev\r\nthreading_layer: pthreads\r\n   architecture: Nehalem\r\n\r\n       user_api: blas\r\n   internal_api: openblas\r\n    num_threads: 10\r\n         prefix: libopenblas\r\n       filepath: /Users/slynn/miniconda3/envs/demoland/lib/python3.11/site-packages/scipy/.dylibs/libopenblas.0.dylib\r\n        version: 0.3.21.dev\r\nthreading_layer: pthreads\r\n   architecture: Nehalem\n```\n",
+  "created_at": "2023-12-12T18:13:26Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
   "issue": 28046,
   "pr": 28048,
   "sha": "5ad8e458e4cb14c68609390bc0293d7b5458d74a",
@@ -102,6 +408,662 @@
   "labels": [
    "Bug",
    "Numerical Stability"
+  ]
+ },
+ {
+  "issue": 28507,
+  "pr": 31529,
+  "sha": "ce1b377f3bb2580e7cc1e35ba7eed2131e3b8e8e",
+  "gold": [
+   "sklearn/ensemble/_bagging.py",
+   "sklearn/ensemble/_bootstrap.py",
+   "sklearn/ensemble/_forest.py",
+   "sklearn/ensemble/tests/test_bagging.py",
+   "sklearn/ensemble/tests/test_bootstrap.py",
+   "sklearn/ensemble/tests/test_forest.py",
+   "sklearn/ensemble/tests/test_voting.py"
+  ],
+  "n_gold": 7,
+  "title": "Allow `RandomForest*` and `ExtraTrees*` to have a higher max_samples than 1.0 when `bootstrap=True`",
+  "body": "### Describe the workflow you want to enable\r\n\r\nCurrently, random/extra forests can bootstrap sample the data such that `max_samples \\in (0.0, 1.0]`. This enables an out-of-bag sample estimate in forests.\r\n\r\nHowever, this only allows you to sample in principle up to at most 63% unique samples and then 37% of unique samples are for out-of-bag estimation. However, you should be able to control this parameter to a proportion greater. For instance, perhaps I want to leverage 80% of my data to fit each tree, and 20% to estimate oob performance. This requires one to set `max_samples=1.6`. \r\n\r\nBeyond that, no paper suggests that 63% is required cutoff for bootstrapping the samples in Random/Extra forest. I am happy to submit a PR if the core-dev team thinks the propose solution is simple and reasonable.\r\n\r\nSee https://stats.stackexchange.com/questions/126107/expected-proportion-of-the-sample-when-bootstrapping for a good reference and explanation.\r\n\r\n### Describe your proposed solution\r\n\r\nThe proposed solution is actually backwards-compatable and adds minimal complexity to the codebase.\r\n\r\n1. We change https://github.com/scikit-learn/scikit-learn/blob/38c8cc3bab151b76ed890a4b690871e0fa404426/sklearn/ensemble/_forest.py#L95-L125 to the following LOC:\r\n2.\r\n```Python\r\n\r\ndef _get_n_samples_bootstrap(n_samples, max_samples):\r\n    \"\"\"\r\n    Get the number of samples in a bootstrap sample.\r\n\r\n    The expected total number of unique samples in a bootstrap sample is\r\n    required to be at most ``n_samples - 1``.\r\n    This is equivalent to the expected number of out-of-bag samples being at\r\n    least 1.\r\n\r\n    Parameters\r\n    ----------\r\n    n_samples : int\r\n        Number of samples in the dataset.\r\n    max_samples : int or float\r\n        The maximum number of samples to draw from the total available:\r\n            - if float, this indicates a fraction of the total;\r\n            - if int, this indicates the exact number of samples;\r\n            - if None, this indicates the total number of samples.\r\n\r\n    Returns\r\n    -------\r\n    n_samples_bootstrap : int\r\n        The total number of samples to draw for the bootstrap sample.\r\n    \"\"\"\r\n    if max_samples is None:\r\n        return n_samples\r\n\r\n    if isinstance(max_samples, Integral):\r\n        expected_oob_samples = (1 - np.exp(-max_samples / n_samples)) * n_samples\r\n        if expected_oob_samples >= n_samples - 1:\r\n            raise ValueError(\r\n                \"The expected number of unique samples in the bootstrap sample\"\r\n                f\" must be at most {n_samples - 1}. It is: {expected_oob_samples}\"\r\n            )\r\n        return max_samples\r\n\r\n    if isinstance(max_samples, Real):\r\n        expected_oob_samples = (1 - np.exp(-max_samples)) * n_samples\r\n        if expected_oob_samples >= n_samples - 1:\r\n            raise ValueError(\r\n                \"The expected number of unique samples in the bootstrap sample\"\r\n                f\" must be at most {n_samples - 1}. It is: {expected_oob_samples}\"\r\n            )\r\n        return max(round(n_samples * max_samples), 1)\r\n```\r\n\r\nNote, we probably want some reasonable control over how large `max_samples` can be relative to `n_samples`. For instance if `max_samples = 10*n_samples`, this results in you pretty much sampling all unique samples per tree and almost no samples for oob computation. Thus a reasonable cutoff is we always allow at least 1 sample to be oob.\r\n\r\n- if `max_samples` is an integer -> then it must be `(1 - e^(-max_samples/n_samples)) * n_samples > 1`\r\n- if `max_samples` is a float -> then it must be that `(1 - e^(-max_samples)) * n_samples > 1` (i.e. you are expected to sample at least 1 sample out of bag). \r\n\r\nAlternatively, we can impose a reasonable heuristic of 5 samples. I think regardless it works for most use-cases because people would typically want to change the in-bag percentage from 63% to say 80% or 90% at most, but not 99.99%\r\n\r\n### Describe alternatives you've considered, if relevant\r\n\r\nThere is no other way of allowing this functionality without forking the code.\r\n\r\n### Additional context\r\n\r\nThis allows flexibility in terms of the trees and may help in supporting other issues that require more fine-grained control over what is in-bag vs oob such as #19710.",
+  "created_at": "2024-02-22T17:36:36Z",
+  "labels": [
+   "New Feature"
+  ]
+ },
+ {
+  "issue": 30315,
+  "pr": 30393,
+  "sha": "0e0df3626e53b3a1f79aba03bf0602a0a0bbedee",
+  "gold": [
+   "sklearn/preprocessing/tests/test_polynomial.py"
+  ],
+  "n_gold": 1,
+  "title": "\u26a0\ufe0f CI failed on Linux_Nightly.pylatest_pip_scipy_dev (last failure: Dec 05, 2024) \u26a0\ufe0f",
+  "body": "**CI is still failing on [Linux_Nightly.pylatest_pip_scipy_dev](https://dev.azure.com/scikit-learn/scikit-learn/_build/results?buildId=72598&view=logs&j=dfe99b15-50db-5d7b-b1e9-4105c42527cf)** (Dec 05, 2024)\n- test_partial_dependence_binary_model_grid_resolution[features0-10-10]",
+  "created_at": "2024-11-21T02:57:33Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 30808,
+  "pr": 30833,
+  "sha": "0372d5e0b5052de174acbd5673303ffc0677e1b5",
+  "gold": [
+   "sklearn/ensemble/_bagging.py",
+   "sklearn/ensemble/tests/test_bagging.py",
+   "sklearn/tests/metadata_routing_common.py",
+   "sklearn/tests/test_metaestimators_metadata_routing.py"
+  ],
+  "n_gold": 4,
+  "title": "Add metadata routing params support in the predict method of `BaggingClassifier/Regressor`",
+  "body": "### Describe the workflow you want to enable\n\nHello! I'm trying to use metadata routing with `BaggingClassifier` and `BaggingRegressor` however it is implemented for the `fit` method, not the `predict` one. I am wondering if there is a particular reason for not doing it on the predict function or if this is a feature that could be added. This would enable situations like the following, which currently gives an error:\n\n```python\nimport numpy as np\nimport sklearn\nfrom sklearn import ensemble\nfrom sklearn.base import BaseEstimator\n\nsklearn.set_config(enable_metadata_routing=True)\n\n\nclass CustomEstimator(BaseEstimator):\n    def fit(self, X, y, foo):\n        return self\n\n    def predict(self, X, bar):\n        return np.zeros(X.shape[0])\n\n\nestimator = CustomEstimator()\nestimator.set_fit_request(foo=True)\nestimator.set_predict_request(bar=True)\nmodel = ensemble.BaggingRegressor(estimator)\n\nn, p = 10, 2\nrng = np.random.default_rng(0)\nx = rng.random((n, p))\ny = rng.integers(0, 2, n)\n\nmodel.fit(x, y, foo=True)\nmodel.predict(x, bar=True). # TypeError: BaggingRegressor.predict() got an unexpected keyword argument 'bar'\n\n```\n\n### Describe your proposed solution\n\nSimilar to the fit method, something like:\n```python\nif _routing_enabled():\n    routed_params = process_routing(self, \"predict\", **predict_params)\n```\n\nHowever, I don't have enough understanding of the metadata routing implementation to know exactly what should be done.\n\n### Describe alternatives you've considered, if relevant\n\n_No response_\n\n### Additional context\n\nI tried to have a look at the history of PRs/Issues to find a discussion around this point, but could not find it in the PR introducing the metadata routing to these estimators (#28432).",
+  "created_at": "2025-02-10T17:32:57Z",
+  "labels": [
+   "New Feature",
+   "Metadata Routing"
+  ]
+ },
+ {
+  "issue": 30817,
+  "pr": 30859,
+  "sha": "ffc6cdc20b8d5eb58e38042fd90a2aeecc33dfb8",
+  "gold": [
+   "sklearn/linear_model/_logistic.py",
+   "sklearn/linear_model/tests/test_logistic.py",
+   "sklearn/metrics/_scorer.py",
+   "sklearn/metrics/tests/test_score_objects.py",
+   "sklearn/model_selection/tests/test_classification_threshold.py",
+   "sklearn/tests/metadata_routing_common.py",
+   "sklearn/tests/test_metadata_routing.py",
+   "sklearn/tests/test_metaestimators_metadata_routing.py",
+   "sklearn/utils/_metadata_requests.py"
+  ],
+  "n_gold": 9,
+  "title": "sample_weight is silently ignored in LogisticRegressionCV.score when metadata routing is enabled",
+  "body": "### Describe the bug\n\nI'm not sure if it is a proper bug, or my lack of understanding of the metadata routing API ;)\n\nWhen `enable_metadata_routing=True`, the `score` method of a `LogisticRegressionCV` estimator will ignore `sample_weight`.\n```python\nset_config(enable_metadata_routing=True)\nlogreg_cv = LogisticRegressionCV().fit(X, y)\nlogreg_cv.score(X, y, sample_weight=sw)==logreg_cv.score(X, y) #unweighted accuracy\n```\nI found it surprising, because the `score` method works fine when `enable_metadata_routing=False`, so the same piece of code behaves differently depending on the metadata routing config.\n```python\nset_config(enable_metadata_routing=False)\nlogreg_cv = LogisticRegressionCV().fit(X, y)\nlogreg_cv.score(X, y, sample_weight=sw) #weighted accuracy\n```\n\nIf I understood the metadata routing API correctly, to make the `score` method `sample_weight` aware we need to explicitly pass a scorer that request it:\n```python\nset_config(enable_metadata_routing=True)\nweighted_accuracy = make_scorer(accuracy_score).set_score_request(sample_weight=True)\nlogreg_cv = LogisticRegressionCV(scoring=weighted_accuracy).fit(X, y)\nlogreg_cv.score(X, y, sample_weight=sw) #weighted accuracy\n```\n\nIf it's the intended behavior of the metadata routing API, maybe we should warn the user or raise an error in the first case, instead of silently ignoring `sample_weight` ?\n\n### Steps/Code to Reproduce\n\n```python\nfrom sklearn import set_config\nfrom sklearn.metrics import make_scorer, accuracy_score\nfrom sklearn.linear_model import LogisticRegressionCV\nimport numpy as np\n\nrng = np.random.RandomState(22)\nn_samples, n_features = 10, 4\nX = rng.rand(n_samples, n_features)\ny = rng.randint(0, 2, size=n_samples)\nsw = rng.randint(0, 5, size=n_samples)\n\nset_config(enable_metadata_routing=True)\nlogreg_cv = LogisticRegressionCV()\nlogreg_cv.fit(X, y)\n# sample_weight is silently ignored in logreg_cv.score\nassert logreg_cv.score(X, y) == logreg_cv.score(X, y, sample_weight=sw) \nassert not logreg_cv.score(X, y, sample_weight=sw)==accuracy_score(logreg_cv.predict(X),y, sample_weight=sw)\n```\n\n### Expected Results\n\nEither `logreg_cv.score(X, y, sample_weight=sw)` raises an error/warning or the assertions are false.\n\n### Actual Results\n\nThe assertions are true.\n\n### Versions\n\n```shell\nsklearn: 1.7.dev0\n```",
+  "created_at": "2025-02-12T15:49:01Z",
+  "labels": [
+   "Bug",
+   "Metadata Routing"
+  ]
+ },
+ {
+  "issue": 30821,
+  "pr": 30955,
+  "sha": "85fb4dab9f76af8a06706da48dc7dd56916b105e",
+  "gold": [
+   "sklearn/ensemble/_forest.py"
+  ],
+  "n_gold": 1,
+  "title": "Consolidate description of missing values in tree-based models `RandomForestClassifier` and `ExtraTreesClassifier`",
+  "body": "### Describe the issue linked to the documentation\n\n[HistGradientBoostingClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html) has a section right at the beginning that discusses how missing values are handled. \n\nOtoh, RandomForestClassifier and ExtraTreesClassifier does not, and it is actually unclear from the docstring how it is handled. This leads to some confusion, and users would have to go fishing within our User Guide, or even the raw Cython code to understand how the missing-ness is handled.\n\n### Suggest a potential alternative/fix\n\nAdd the following to [RandomForestClassifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html):\n\n```\nThis estimator has native support for missing values (NaNs). During training, the tree grower learns at each split point whether samples with missing values should go to the left or right child, based on the potential gain. When predicting, samples with missing values are assigned to the left or right child consequently. If no missing values were encountered for a given feature during training, then samples with missing values are mapped to whichever child has the most samples.\n```\n\nAdd corresponding entry in https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesClassifier.html, https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html and https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html.",
+  "created_at": "2025-02-13T02:04:35Z",
+  "labels": [
+   "Documentation"
+  ]
+ },
+ {
+  "issue": 32589,
+  "pr": 32592,
+  "sha": "3c60f0437a9c3be4d7c8344e0dff1fa40fbcdc55",
+  "gold": [
+   "sklearn/preprocessing/_encoders.py",
+   "sklearn/preprocessing/tests/test_encoders.py"
+  ],
+  "n_gold": 2,
+  "title": "OneHotEncoder handle_unknown='warn' behaves like 'ignore' instead of 'infrequent_if_exist'",
+  "body": "### Describe the bug\n\nAccording to the [documentation](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html), `handle_unknown='warn'` should behave like `handle_unknown='infrequent_if_exist'` (mapping unknown categories to the infrequent category) while emitting a warning.\n\nHowever, in practice, `handle_unknown='warn'` behaves like `handle_unknown='ignore'` (mapping unknown categories to all zeros).\n\nDocumentation states:\n> 'warn' : When an unknown category is encountered during transform a warning is issued, and the encoding then proceeds as described for handle_unknown=\"infrequent_if_exist\".\n\n### Steps/Code to Reproduce\n\n```python\nimport pandas as pd\nfrom sklearn.preprocessing import OneHotEncoder\n\n# Training data with infrequent category\ntrain_data = pd.DataFrame({\n    'building_type': ['restaurant']*3 + ['shop']*3 + ['snack']\n})\n\n# Test data with unknown category\ntest_data = pd.DataFrame({\n    'building_type': ['restaurant', 'snack', 'casino']  # casino is unknown\n})\n\n# Test with 'warn'\nencoder_warn = OneHotEncoder(\n    handle_unknown='warn',\n    sparse_output=False,\n    min_frequency=2,\n    drop='first'\n)\nencoder_warn.fit(train_data)\nresult_warn = encoder_warn.transform(test_data)\n\n# Test with 'infrequent_if_exist'\nencoder_infreq = OneHotEncoder(\n    handle_unknown='infrequent_if_exist',\n    sparse_output=False,\n    min_frequency=2,\n    drop='first'\n)\nencoder_infreq.fit(train_data)\nresult_infreq = encoder_infreq.transform(test_data)\n\nprint(\"Unknown category 'casino' with 'warn':\", result_warn[2])\nprint(\"Unknown category 'casino' with 'infrequent_if_exist':\", result_infreq[2])\n```\n\n### Expected Results\n\n```\nUnknown category 'casino' with 'warn': [0. 1.]\nUnknown category 'casino' with 'infrequent_if_exist': [0. 1.]\n\nBoth should map the unknown category to the infrequent category.\n```\n\n### Actual Results\n\n```\nUnknown category 'casino' with 'warn': [0. 0.]\nUnknown category 'casino' with 'infrequent_if_exist': [0. 1.]\n\n'warn' maps to all zeros (like 'ignore') instead of mapping to infrequent.\n```\n\n### Versions\n\n```shell\nSystem:\n    python: 3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]\nexecutable: c:\\Users\\abguv\\OneDrive\\Desktop\\Formation Data Engineer\\Projets\\Projet 6\\analyse\\.venv\\Scripts\\python.exe\n   machine: Windows-11-10.0.26200-SP0\n\nPython dependencies:\n      sklearn: 1.7.2\n          pip: 25.0.1\n   setuptools: 80.9.0\n        numpy: 2.3.3\n        scipy: 1.16.2\n       Cython: None\n       pandas: 2.3.3\n   matplotlib: 3.10.6\n       joblib: 1.5.2\nthreadpoolctl: 3.6.0\n\nBuilt with OpenMP: True\n\nthreadpoolctl info:\n       user_api: blas\n   internal_api: openblas\n    num_threads: 8\n         prefix: libscipy_openblas\n       filepath: C:\\Users\\abguv\\OneDrive\\Desktop\\Formation Data Engineer\\Projets\\Projet 6\\analyse\\.venv\\Lib\\site-packages\\numpy.libs\\libscipy_openblas64_-860d95b1c38e637ce4509f5fa24fbf2a.dll\n        version: 0.3.30\nthreading_layer: pthreads\n   architecture: SkylakeX\n\n       user_api: openmp\n   internal_api: openmp\n    num_threads: 8\n         prefix: vcomp\n       filepath: C:\\Users\\abguv\\OneDrive\\Desktop\\Formation Data Engineer\\Projets\\Projet 6\\analyse\\.venv\\Lib\\site-packages\\sklearn\\.libs\\vcomp140.dll\n        version: None\n\n       user_api: blas\n   internal_api: openblas\n    num_threads: 8\n         prefix: libscipy_openblas\n       filepath: C:\\Users\\abguv\\OneDrive\\Desktop\\Formation Data Engineer\\Projets\\Projet 6\\analyse\\.venv\\Lib\\site-packages\\scipy.libs\\libscipy_openblas-48c358d105077551cc9cc3ba79387ed5.dll\n        version: 0.3.29.dev\nthreading_layer: pthreads\n   architecture: SkylakeX\n```",
+  "created_at": "2025-10-27T21:18:23Z",
+  "labels": [
+   "Bug",
+   "module:preprocessing"
+  ]
+ },
+ {
+  "issue": 32631,
+  "pr": 33320,
+  "sha": "16a9e1ff0d1e6b66f812bee0468702f5fe762b3c",
+  "gold": [
+   "sklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py"
+  ],
+  "n_gold": 1,
+  "title": "CI cp313t intermittent failure `UserWarning: sklearn.utils.parallel.delayed should be used with sklearn.utils.parallel.Parallel`",
+  "body": "Also seen in https://github.com/scikit-learn/scikit-learn/issues/32303#issuecomment-3354667463 as well in a different test and on Linux (this one is on macOS).\n\nThis is very likely related to warnings being thread-unsafe in cp313t. Not sure this is worth doing something about it since it doesn't seem to happen that often.\n\n```\n  ______________________ test_no_user_warning_with_scoring _______________________\n  joblib.externals.loky.process_executor._RemoteTraceback: \n  \"\"\"\n  Traceback (most recent call last):\n    File \"/private/var/folders/q1/lmdr88vx1k90l53fxl9p8lwc0000gn/T/cibw-run-kd2mu_4k/cp313t-macosx_arm64/venv-test-arm64/lib/python3.13t/site-packages/joblib/_utils.py\", line 72, in __call__\n      return self.func(**kwargs)\n             ~~~~~~~~~^^^^^^^^^^\n    File \"/private/var/folders/q1/lmdr88vx1k90l53fxl9p8lwc0000gn/T/cibw-run-kd2mu_4k/cp313t-macosx_arm64/venv-test-arm64/lib/python3.13t/site-packages/joblib/parallel.py\", line 607, in __call__\n      return [func(*args, **kwargs) for func, args, kwargs in self.items]\n              ~~~~^^^^^^^^^^^^^^^^^\n    File \"/private/var/folders/q1/lmdr88vx1k90l53fxl9p8lwc0000gn/T/cibw-run-kd2mu_4k/cp313t-macosx_arm64/venv-test-arm64/lib/python3.13t/site-packages/sklearn/utils/parallel.py\", line 144, in __call__\n      warnings.warn(\n      ~~~~~~~~~~~~~^\n          (\n          ^\n      ...<5 lines>...\n          UserWarning,\n          ^^^^^^^^^^^^\n      )\n      ^\n  UserWarning: `sklearn.utils.parallel.delayed` should be used with `sklearn.utils.parallel.Parallel` to make it possible to propagate the scikit-learn configuration of the current thread to the joblib workers.\n  \"\"\"\n  \n  The above exception was the direct cause of the following exception:\n  \n      def test_no_user_warning_with_scoring():\n          \"\"\"Check that no UserWarning is raised when scoring is set.\n      \n          Non-regression test for #22907.\n          \"\"\"\n          pd = pytest.importorskip(\"pandas\")\n          X, y = make_regression(n_samples=50, random_state=0)\n          X_df = pd.DataFrame(X, columns=[f\"col{i}\" for i in range(X.shape[1])])\n      \n          est = HistGradientBoostingRegressor(\n              random_state=0, scoring=\"neg_mean_absolute_error\", early_stopping=True\n          )\n          with warnings.catch_warnings():\n              warnings.simplefilter(\"error\", UserWarning)\n  >           est.fit(X_df, y)\n  \n  ../venv-test-arm64/lib/python3.13t/site-packages/sklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py:1370: \n  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n  ../venv-test-arm64/lib/python3.13t/site-packages/sklearn/base.py:1336: in wrapper\n      return fit_method(estimator, *args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  ../venv-test-arm64/lib/python3.13t/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py:722: in fit\n      X_binned_train = self._bin_data(X_train, is_training_data=True)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  ../venv-test-arm64/lib/python3.13t/site-packages/sklearn/ensemble/_hist_gradient_boosting/gradient_boosting.py:1237: in _bin_data\n      X_binned = self._bin_mapper.fit_transform(X)  # F-aligned array\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  ../venv-test-arm64/lib/python3.13t/site-packages/sklearn/utils/_set_output.py:316: in wrapped\n      data_to_wrap = f(self, X, *args, **kwargs)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  ../venv-test-arm64/lib/python3.13t/site-packages/sklearn/base.py:907: in fit_transform\n      return self.fit(X, **fit_params).transform(X)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\n  ../venv-test-arm64/lib/python3.13t/site-packages/sklearn/ensemble/_hist_gradient_boosting/binning.py:240: in fit\n      non_cat_thresholds = Parallel(n_jobs=self.n_threads, backend=\"threading\")(\n  ../venv-test-arm64/lib/python3.13t/site-packages/sklearn/utils/parallel.py:91: in __call__\n      return super().__call__(iterable_with_config_and_warning_filters)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  ../venv-test-arm64/lib/python3.13t/site-packages/joblib/parallel.py:2072: in __call__\n      return output if self.return_generator else list(output)\n                                                  ^^^^^^^^^^^^\n  ../venv-test-arm64/lib/python3.13t/site-packages/joblib/parallel.py:1682: in _get_outputs\n      yield from self._retrieve()\n  ../venv-test-arm64/lib/python3.13t/site-packages/joblib/parallel.py:1784: in _retrieve\n      self._raise_error_fast()\n  ../venv-test-arm64/lib/python3.13t/site-packages/joblib/parallel.py:1859: in _raise_error_fast\n      error_job.get_result(self.timeout)\n  ../venv-test-arm64/lib/python3.13t/site-packages/joblib/parallel.py:758: in get_result\n      return self._return_or_raise()\n             ^^^^^^^^^^^^^^^^^^^^^^^\n  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n  \n  self = <joblib.parallel.BatchCompletionCallBack object at 0x5d4061e5010>\n  \n      def _return_or_raise(self):\n          try:\n              if self.status == TASK_ERROR:\n  >               raise self._result\n  E               UserWarning: `sklearn.utils.parallel.delayed` should be used with `sklearn.utils.parallel.Parallel` to make it possible to propagate the scikit-learn configuration of the current thread to the joblib workers.\n  \n  ../venv-test-arm64/lib/python3.13t/site-packages/joblib/parallel.py:773: UserWarning\n```",
+  "created_at": "2025-11-02T07:25:07Z",
+  "labels": [
+   "Build / CI",
+   "free-threading"
+  ]
+ },
+ {
+  "issue": 32748,
+  "pr": 32747,
+  "sha": "ff9da6428aafc802b6d3afe8df6b5cb75b2d39b0",
+  "gold": [
+   "sklearn/linear_model/_logistic.py",
+   "sklearn/linear_model/tests/test_logistic.py"
+  ],
+  "n_gold": 2,
+  "title": "LogisticRegressionCV bug when one fold has not all classes",
+  "body": "I may be missing something but it seems like the coefficient for a given class does not stay at zero when a class is missing.\n\nI took the Iris dataset with the well known issue that `y` is ordered with 3 classes so that if you use `cv=KFold(3)` you will get the issue that each training fold will have 2 of the 3 classes, and the the test fold has the third class.\n\n```py\nimport numpy as np\n\nfrom sklearn.linear_model import LogisticRegressionCV\nfrom sklearn.datasets import load_iris\nfrom sklearn.model_selection import KFold\n\nX, y = load_iris(return_X_y=True)\n\n# Error occurs on `main` but on on this branch\nlr = LogisticRegressionCV(cv=KFold(3), Cs=[1], fit_intercept=False).fit(X, y)\nlr.coefs_paths_\n```\n\nAs far as I can see there are no zero-coefficient anywhere?\n```\n{np.int64(0): array([[[ 0.36617189,  0.4181025 , -1.80054529, -1.59885258,\n          11.94538259]],\n \n        [[-0.27013869,  0.19659815, -1.0394569 , -0.4717853 ,\n           8.11303679]],\n \n        [[-0.2259761 ,  0.55491805, -1.32935417, -0.56475712,\n           6.7920903 ]]]),\n np.int64(1): array([[[-0.36863165, -0.41910848,  1.80385762,  1.60144714,\n          -4.03491417]],\n \n        [[ 0.26501596, -0.1994853 ,  1.03704383,  0.47085702,\n          -1.69095992]],\n \n        [[ 0.22447638, -0.55428594,  1.33474803,  0.56733333,\n          -0.29154238]]]),\n np.int64(2): array([[[ 2.45975917e-03,  1.00598025e-03, -3.31232754e-03,\n          -2.59456480e-03, -7.91046843e+00]],\n \n        [[ 5.12273225e-03,  2.88714428e-03,  2.41307063e-03,\n           9.28278209e-04, -6.42207687e+00]],\n \n        [[ 1.49971712e-03, -6.32115481e-04, -5.39386365e-03,\n          -2.57621573e-03, -6.50054792e+00]]])}\n```\n\nFor completeness, the same snippet fails on `main` so I guess this could be turned into a test for the new behaviour if it becomes clearer what to test exactly (maybe a smoke test is enough?) ...\n```\nValueError: cannot reshape array of size 15 into shape (3,1,3,newaxis)\n```\n\n> [!WARNING]\n> @lesteve spotted a hickup (call it bug) that needs fixing.\n\n#### Checking the assumptions\nSmuggling in\n```python\nc, f = np.unique(y_train, return_counts=True)\ncf = {int(ci):int(fi) for ci, fi in zip(c, f)}\nprint(f\"y_train counts={cf}\")\n```\nright before `coefs, Cs, n_iter = _logistic_regression_path(` around line 683 gives\n```\ny_train counts={1: 50, 2: 50}\ny_train counts={0: 50, 2: 50}\ny_train counts={0: 50, 1: 50}\n```\nThis confirms: Class i is missing in fold i.\n\n#### Why are the coefficients of all classes changed?\nBecause they enter the objective function via the penalty. Therefore, the above code comment should be modified.\n\n#### Why there is a bug to fix?\nInside function `_logistic_regression_path`, around line 280\n```py\nle = LabelEncoder()\n```\nThis should instead read\n```py\nle = LabelEncoder().fit(classes)\n```\nand the subsequent `fit_transform` should be changed to `transform` (this fixes a bug and makes it faster).\n\n#### Remaining tasks\nEven if this is fixed, there remains a bug if one passes another scorer, e.g.\n```py\nlr = LogisticRegressionCV(cv=KFold(3), Cs=[1], fit_intercept=False,scoring=\"neg_brier_score\").fit(X, y)\n```\n```\nValueError: y_true contains only one label (0). Please provide the list of all expected class labels explicitly through the labels argument.\n```\nI would postpone fixing this to another future PR, maybe not part of 1.8. The situation is already better if the above is fixed.\n\n_Originally posted by @lorentzenchr in https://github.com/scikit-learn/scikit-learn/pull/32073#discussion_r2539697181_\n            ",
+  "created_at": "2025-11-20T06:19:32Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 32805,
+  "pr": 32825,
+  "sha": "ec4f93c3f027f8a8e97588d7e49d295c9ac7a202",
+  "gold": [
+   "sklearn/ensemble/_bagging.py",
+   "sklearn/ensemble/tests/test_bagging.py"
+  ],
+  "n_gold": 2,
+  "title": "RFC: `Bagging` estimators: avoid changing `max_samples` default behavior in 1.8",
+  "body": "As stated in the change log of PR #31414\n\n> `max_samples` is now interpreted as a fraction of `sample_weight.sum()` instead of `X.shape[0]` when passed as a float.\n\nBecause `max_samples` default to `1.0`, this is a change of the default behavior. I expressed concerns about this change in this thread https://github.com/scikit-learn/scikit-learn/pull/31529#discussion_r2541938811 for a different PR but the same kind of change (on random forests).\n\nIt seems @antoinebaker, the author of both PRs, agrees with me that having `max_samples=None` as default (and `None` is then re-interpreted as `X.shape[0]`) sounds safer/less surprising for users. (I'll let you confirm or not @antoinebaker ^^).\n\nSo **I propose to not merge the PR/commit #31414 in v1.8** (is this even possible? \ud83d\ude05 @lesteve)\n\nOr, merge a PR to change the default before v1.8? (not sure this is possible either).\n\nWhy I think this is \"urgent\"? Because we don't want to change default twice in a row (those are backward incompatible changes: same code produces different results).\n\nWhat are your thoughts? @antoinebaker @ogrisel \n\n\n",
+  "created_at": "2025-11-27T17:55:13Z",
+  "labels": [
+   "RFC"
+  ]
+ },
+ {
+  "issue": 32870,
+  "pr": 32119,
+  "sha": "33b51a63cc06c64ac31a872269f19957b1238d6e",
+  "gold": [
+   "doc/modules/tree.rst",
+   "sklearn/ensemble/tests/test_forest.py",
+   "sklearn/tree/_classes.py",
+   "sklearn/tree/_criterion.pxd",
+   "sklearn/tree/_criterion.pyx",
+   "sklearn/tree/_partitioner.pxd",
+   "sklearn/tree/_partitioner.pyx",
+   "sklearn/tree/_splitter.pxd",
+   "sklearn/tree/_splitter.pyx",
+   "sklearn/tree/tests/test_split.py",
+   "sklearn/tree/tests/test_swap.py",
+   "sklearn/tree/tests/test_tree.py"
+  ],
+  "n_gold": 12,
+  "title": "BUG: `DecisionTreeRegressor`: invalid impurity for `criterion=\"poisson\"` with missing values",
+  "body": "### Describe the bug\n\nWhen missing values are present in `X`, `DecisionTreeRegressor(criterion=\"poisson\", ...)` sometimes computes invalid impurities.\n\nImpurity should match with half-poisson deviance according to the documentation. And it is indeed the case when they are no missing values. But when missing values are present, something goes wrong, and you can even get negative impurities.\n\nI found this bug thanks to my big test from this draft PR https://github.com/scikit-learn/scikit-learn/pull/32193. This same test shows that impurity does match `sklearn.metrics.mean_poisson_deviance(...) / 2` when no missing values are present.\n\n### Steps/Code to Reproduce\n\n```Python\nfrom sklearn.tree import DecisionTreeRegressor, plot_tree\n\nX = np.array([np.nan, 1, 2, 3, np.nan]).reshape(-1, 1)\ny = [0.49, 0.5, 0.7, 1.5, 0.8]\n\ntree = DecisionTreeRegressor(criterion='poisson', max_depth=1)\ntree.fit(X, y)\n\nplot_tree(tree);\n```\n\n### Expected Results\n\nImpurities should be positive. Impurity of the right children should be 0, as it has only one sample.\n\n### Actual Results\n\nSome impurities are negative:\n\n<img width=\"515\" height=\"389\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/90169bc8-1e05-48ab-aac1-b77f599dcef9\" />\n\n### Versions\n\n```shell\nSystem:\n    python: 3.12.11 (main, Aug 18 2025, 19:19:11) [Clang 20.1.4 ]\nexecutable: /home/arthur/dev-perso/scikit-learn/sklearn-env/bin/python\n   machine: Linux-6.14.0-36-generic-x86_64-with-glibc2.39\n\nPython dependencies:\n      sklearn: 1.9.dev0\n          pip: None\n   setuptools: 80.9.0\n        numpy: 2.3.5\n        scipy: 1.16.3\n       Cython: 3.2.1\n       pandas: 2.3.3\n   matplotlib: 3.10.7\n       joblib: 1.5.2\nthreadpoolctl: 3.6.0\n\nBuilt with OpenMP: True\n\nthreadpoolctl info:\n       user_api: blas\n   internal_api: openblas\n    num_threads: 16\n         prefix: libscipy_openblas\n       filepath: /home/arthur/dev-perso/scikit-learn/sklearn-env/lib/python3.12/site-packages/numpy.libs/libscipy_openblas64_-fdde5778.so\n        version: 0.3.30\nthreading_layer: pthreads\n   architecture: Haswell\n\n       user_api: blas\n   internal_api: openblas\n    num_threads: 16\n         prefix: libscipy_openblas\n       filepath: /home/arthur/dev-perso/scikit-learn/sklearn-env/lib/python3.12/site-packages/scipy.libs/libscipy_openblas-b75cc656.so\n        version: 0.3.29.dev\nthreading_layer: pthreads\n   architecture: Haswell\n\n       user_api: openmp\n   internal_api: openmp\n    num_threads: 16\n         prefix: libgomp\n       filepath: /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0\n        version: None\n```",
+  "created_at": "2025-12-09T10:06:41Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 32927,
+  "pr": 32932,
+  "sha": "0e366004a64444c2ee7124bfc28d49d87faabae2",
+  "gold": [
+   "sklearn/linear_model/_logistic.py",
+   "sklearn/linear_model/tests/test_logistic.py"
+  ],
+  "n_gold": 2,
+  "title": "`LogisticRegression`: Conflicting warnings when following deprecation advice for `penalty=None` (sklearn 1.8.0)",
+  "body": "### Describe the bug\n\nI am encountering a catch-22 situation with `LogisticRegression` warnings in scikit-learn 1.8.0.\n\nWhen I use `LogisticRegression(penalty=None)`, I get a `FutureWarning` advising me to use `C=np.inf` instead. However, when I follow this advice and use `LogisticRegression(C=np.inf)` (leaving `penalty` at its default), I get **both** the `FutureWarning` again and a `UserWarning` stating that `C` is ignored because `penalty=None`.\n\nIt seems that `C=np.inf` correctly disables regularization (effectively setting `penalty=None` internally), but this internal state then triggers the warning intended for users who explicitly pass conflicting arguments.\n\n\n### Steps/Code to Reproduce\n\n```python\nimport sys\nimport warnings\nimport numpy as np\nimport sklearn\nfrom sklearn.linear_model import LogisticRegression\nfrom sklearn.datasets import make_classification\n\nX, y = make_classification(random_state=42)\n\nprint(\"LogisticRegression default params:\", LogisticRegression().get_params())\nprint()\n\nwith warnings.catch_warnings(record=True) as w:\n    warnings.simplefilter(\"always\")\n\n    print(\"--- Case 1: penalty=None ---\")\n    LogisticRegression(penalty=None).fit(X, y)\n    for warning in w:\n        print(f\"{warning.category.__name__}: {warning.message}\")\n\n    print(\"\\n--- Case 2: l1_ratio=0, C=np.inf ---\")\n    LogisticRegression(l1_ratio=0, C=np.inf).fit(X, y)\n    for warning in w:\n        print(f\"{warning.category.__name__}: {warning.message}\")\n```\n\n### Expected Results\n\nUsing `C=np.inf` (with default `penalty`) should be the correct way to specify no regularization without triggering warnings, as per the `FutureWarning` message. It should definitely not trigger a `UserWarning` claiming that `C` is ignored, since `C` was the parameter used to request this behavior.\n\n### Actual Results\n\n\n```text\nLogisticRegression default params: {'C': 1.0, 'class_weight': None, 'dual': False, 'fit_intercept': True, 'intercept_scaling': 1, 'l1_ratio': 0.0, 'max_iter': 100, 'n_jobs': None, 'penalty': 'deprecated', 'random_state': None, 'solver': 'lbfgs', 'tol': 0.0001, 'verbose': 0, 'warm_start': False}\n\n--- Case 1: penalty=None ---\nFutureWarning: 'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' instead. Use l1_ratio=0 instead of penalty='l2', l1_ratio=1 instead of penalty='l1', and C=np.inf instead of penalty=None.\n\n--- Case 2: l1_ratio=0, C=np.inf ---\nFutureWarning: 'penalty' was deprecated in version 1.8 and will be removed in 1.10. To avoid this warning, leave 'penalty' set to its default value and use 'l1_ratio' or 'C' instead. Use l1_ratio=0 instead of penalty='l2', l1_ratio=1 instead of penalty='l1', and C=np.inf instead of penalty=None.\nUserWarning: Setting penalty=None will ignore the C and l1_ratio parameters\n```\n\n### Versions\n\n```shell\nSystem:\n    python: 3.13.3 (main, Apr  9 2025, 03:47:57) [Clang 20.1.0 ]\nexecutable: /Users/rubens.filho/projects/pers/robust/.venv/bin/python\n   machine: macOS-15.7.3-arm64-arm-64bit-Mach-O\n\nPython dependencies:\n      sklearn: 1.8.0\n          pip: None\n   setuptools: None\n        numpy: 2.3.5\n        scipy: 1.16.3\n       Cython: None\n       pandas: 2.3.3\n   matplotlib: 3.10.8\n       joblib: 1.5.2\nthreadpoolctl: 3.6.0\n\nBuilt with OpenMP: True\n\nthreadpoolctl info:\n       user_api: openmp\n   internal_api: openmp\n    num_threads: 10\n         prefix: libomp\n       filepath: /Users/rubens.filho/projects/pers/robust/.venv/lib/python3.13/site-packages/sklearn/.dylibs/libomp.dylib\n        version: None\n```",
+  "created_at": "2025-12-22T15:39:37Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 33032,
+  "pr": 33565,
+  "sha": "e56d43fdeaa5af7f8c707de15dc2e4a8f1b50867",
+  "gold": [
+   "sklearn/linear_model/_base.py",
+   "sklearn/linear_model/tests/test_base.py"
+  ],
+  "n_gold": 2,
+  "title": "BUG: LinearRegression is wrong on float32 and large n_samples (> 500k rows) due to `cond` param to scipy.linalg.lstsq",
+  "body": "### Describe the bug\n\n`LinearRegression` is wrong on `float32` with a large sample size (e.g. 500k rows) since sklearn 1.6.0. This is still the case on 1.8.0. See minimal repro below. The residual sum of squares is much larger than the solution found by `{scipy,numpy}.linalg.lstsq` on `float32`.\n\nUsing the minimal repro below, `git bisect` points to this commit from https://github.com/scikit-learn/scikit-learn/pull/30040: https://github.com/scikit-learn/scikit-learn/commit/bef9d1803d1f243e4d3f9e845fac356a4fc555a8\n\nhttps://github.com/scikit-learn/scikit-learn/blob/66200f149ba6c64a3a93dd73e37bdeea87bb5db8/sklearn/linear_model/_base.py#L702-L703\n\n- Indeed, changing L702 to `cond = None` fixes the bug.\n    - Doing so will revive issue #26164, so someone needs to make a call.\n    - I think issue 26164 is strictly less important than the correctness of linear regression (minimize residue).\n- `cond` at L702 scales up linearly with the number of rows and eventually zeros out large enough singular values to throw off the solution completely.\n- As a result, sklearn `LinearRegression` fails to scale to even 500k rows at `float32` precision below.\n- Meanwhile, `scipy.linalg.lstsq` (the underlying solver) and `numpy.linalg.lstsq` don't have this issue with the internally defaulted `cond` / `rcond` values (see inline comments below).\n\n### Steps/Code to Reproduce\n\n```python3\nimport numpy as np\nfrom scipy import linalg\nfrom sklearn.linear_model import LinearRegression\n\nnp.random.seed(1337)\nn_samples = 500_000\n\nx1 = np.random.rand(n_samples)\nx2 = 0.3 * x1 + 0.1 * np.random.rand(n_samples)\nX = np.column_stack([x1, x2])\ny = X @ [0.5, 2.0] + 0.1 * np.random.rand(n_samples)\nassert X.dtype == np.float64 and y.dtype == np.float64\n\nX32, y32 = X.astype(np.float32), y.astype(np.float32)\n\nscipy_f64 = linalg.lstsq(X, y)[0]\nscipy_f32 = linalg.lstsq(X32, y32)[0]  # pdb -> cond defaults to np.float32(1.1920929e-07)\nnumpy_f64 = np.linalg.lstsq(X, y)[0]\nnumpy_f32 = np.linalg.lstsq(X32, y32)[0]  # pdb -> rcond defaults to np.float64(1.1102230246251565e-10)\nsklearn_f64 = LinearRegression(fit_intercept=False).fit(X, y).coef_\nsklearn_f32 = LinearRegression(fit_intercept=False).fit(X32, y32).coef_  # pdb -> sklearn sets cond to np.float32(0.059604645)\n\nprint(f\"scipy float64:    {scipy_f64}, residue: {linalg.norm(y - X @ scipy_f64):.2f}\")\nprint(f\"scipy float32:    {scipy_f32}, residue: {linalg.norm(y32 - X32 @ scipy_f32):.2f}\")\nprint(f\"numpy float64:    {numpy_f64}, residue: {linalg.norm(y - X @ numpy_f64):.2f}\")\nprint(f\"numpy float32:    {numpy_f32}, residue: {linalg.norm(y32 - X32 @ numpy_f32):.2f}\")\nprint(f\"sklearn float64:  {sklearn_f64}, residue: {linalg.norm(y - X @ sklearn_f64):.2f}\")\nprint(f\"sklearn float32:  {sklearn_f32}, residue: {linalg.norm(y32 - X32 @ sklearn_f32):.2f}  <--------\")\n```\n\n### Expected Results\n\n```python3\nscipy float64:    [0.41391995 2.42901607], residue: 24.40\nscipy float32:    [0.4139197 2.429016 ], residue: 24.40\nnumpy float64:    [0.41391995 2.42901607], residue: 24.40\nnumpy float32:    [0.41391996 2.429016  ], residue: 24.40\nsklearn float64:  [0.41391995 2.42901607], residue: 24.40\nsklearn float32:  [0.4139197 2.429016 ], residue: 24.40  <--------\n```\n\n### Actual Results\n\n```python3\nscipy float64:    [0.41391995 2.42901607], residue: 24.40\nscipy float32:    [0.4139197 2.429016 ], residue: 24.40\nnumpy float64:    [0.41391995 2.42901607], residue: 24.40\nnumpy float32:    [0.41391996 2.429016  ], residue: 24.40\nsklearn float64:  [0.41391995 2.42901607], residue: 24.40\nsklearn float32:  [1.1635013  0.43804753], residue: 59.06  <--------\n```\n\n\n### Root cause analysis\n\nWhy does sklearn set `cond` this way in the first place? [#30040](https://github.com/scikit-learn/scikit-learn/pull/30040) explains:\n> The `scipy.linalg.lstsq` solver can fail the sample weight consistency test, especially for wide dataset (`n_features > n_samples`) after centering `X,y` (as done when `fit_intercept=True`).\n> \n> Setting the `cond` parameter (cut-off ratio on singular values) to the value recommended by `numpy.linalg.lstsq` documentation seems to fix the bug.\n- Indeed, `numpy.linalg.lstsq` defaults to [`rcond = finfo(t).eps * max(n, m)`](https://github.com/numpy/numpy/blob/v2.4.0/numpy/linalg/_linalg.py#L2528-L2529)\n    - However, for float32 input, numpy sets `t` (calculation precision) to float64 and `result_t` (result precision) to float32 ([two  lines above](https://github.com/numpy/numpy/blob/v2.4.0/numpy/linalg/_linalg.py#L2525)), so numpy does not have the bug described by the current issue.\n        - Calc type is always float64: [here](https://github.com/numpy/numpy/blob/v2.4.1/numpy/linalg/_linalg.py#L206-L210) and [there (`signature = 'ddd->ddid'`)](https://github.com/numpy/numpy/blob/v2.4.1/numpy/linalg/_linalg.py#L2525-L2531).\n        - This comes at a cost. float32 X will be cast into a float64 copy by numpy's [ufunc `signature` mechanism](https://numpy.org/doc/stable/reference/ufuncs.html):\n            - > Casting will be used as necessary. The actual DType of the input arrays is not considered unless signature is None for that array.\n    - sklearn's underlying solver is `scipy.linalg.lstsq`. For float32 input, it sets calculation precision to `float32` (no casting / copy), unlike numpy's `float64`.\n        - This does not interact well with `numpy's` default `rcond`, resulting in this bug.\n    - The above can be validated by pdb-ing into the corresponding lines in the minimal repro above.\n\n### Suggested fix\n\nFirst add the above minimal repro as a new test case.\n\nThen add `float32` to #30040's test case `test_linear_regression_sample_weight_consistency` with this patch:\n<details>\n\n<summary>Click to expand patch!</summary>\n\n```diff\ndiff --git a/sklearn/linear_model/tests/test_base.py b/sklearn/linear_model/tests/test_base.py\nindex a1b7c79e6f..9d4982f52e 100644\n--- a/sklearn/linear_model/tests/test_base.py\n+++ b/sklearn/linear_model/tests/test_base.py\n@@ -762,8 +762,9 @@ def test_fused_types_make_dataset(csr_container):\n     ],\n )\n @pytest.mark.parametrize(\"fit_intercept\", [False, True])\n+@pytest.mark.parametrize(\"dtype\", [np.float32, np.float64])\n def test_linear_regression_sample_weight_consistency(\n-    X_shape, sparse_container, fit_intercept, global_random_seed\n+    X_shape, sparse_container, fit_intercept, dtype, global_random_seed\n ):\n     \"\"\"Test that the impact of sample_weight is consistent.\n \n@@ -774,8 +775,8 @@ def test_linear_regression_sample_weight_consistency(\n     rng = np.random.RandomState(global_random_seed)\n     n_samples, n_features = X_shape\n \n-    X = rng.rand(n_samples, n_features)\n-    y = rng.rand(n_samples)\n+    X = rng.rand(n_samples, n_features).astype(dtype)\n+    y = rng.rand(n_samples).astype(dtype)\n     if sparse_container is not None:\n         X = sparse_container(X)\n     params = dict(fit_intercept=fit_intercept)\n@@ -790,14 +791,14 @@ def test_linear_regression_sample_weight_consistency(\n     # test with sparse input.\n     sample_weight = np.ones_like(y)\n     reg.fit(X, y, sample_weight=sample_weight)\n-    assert_allclose(reg.coef_, coef, rtol=1e-6)\n+    assert_allclose(reg.coef_, coef, rtol=1e-3 if dtype == np.float32 else 1e-6)\n     if fit_intercept:\n         assert_allclose(reg.intercept_, intercept)\n \n     # 2) sample_weight=None should be equivalent to sample_weight = number\n     sample_weight = 123.0\n     reg.fit(X, y, sample_weight=sample_weight)\n-    assert_allclose(reg.coef_, coef, rtol=1e-6)\n+    assert_allclose(reg.coef_, coef, rtol=1e-3 if dtype == np.float32 else 1e-6)\n     if fit_intercept:\n         assert_allclose(reg.intercept_, intercept)\n \n@@ -809,7 +810,8 @@ def test_linear_regression_sample_weight_consistency(\n         intercept = reg.intercept_\n \n     reg.fit(X, y, sample_weight=np.pi * sample_weight)\n-    assert_allclose(reg.coef_, coef, rtol=1e-6 if sparse_container is None else 1e-5)\n+    rtol = 1e-3 if dtype == np.float32 else 1e-6 if sparse_container is None else 1e-5\n+    assert_allclose(reg.coef_, coef, rtol=rtol)\n     if fit_intercept:\n         assert_allclose(reg.intercept_, intercept)\n \n@@ -822,7 +824,7 @@ def test_linear_regression_sample_weight_consistency(\n     if fit_intercept:\n         intercept_0 = reg.intercept_\n     reg.fit(X[:-5], y[:-5], sample_weight=sample_weight[:-5])\n-    assert_allclose(reg.coef_, coef_0, rtol=1e-5)\n+    assert_allclose(reg.coef_, coef_0, rtol=3e-3 if dtype == np.float32 else 1e-5)\n     if fit_intercept:\n         assert_allclose(reg.intercept_, intercept_0)\n \n@@ -841,7 +843,7 @@ def test_linear_regression_sample_weight_consistency(\n \n     reg1 = LinearRegression(**params).fit(X, y, sample_weight=sample_weight_1)\n     reg2 = LinearRegression(**params).fit(X2, y2, sample_weight=sample_weight_2)\n-    assert_allclose(reg1.coef_, reg2.coef_, rtol=1e-6)\n+    assert_allclose(reg1.coef_, reg2.coef_, rtol=1e-3 if dtype == np.float32 else 1e-6)\n     if fit_intercept:\n         assert_allclose(reg1.intercept_, reg2.intercept_)\n \n```\n\n</details>\n\nThen do TDD to find a combination of (dtype, cond) to pass all tests. I haven't been able to find anything reasonable.\n\nI think it is more urgent to fix `LinearRegression` to meet its definition (minimize residue sum of squares) than to pass the [sample weight consistency tests](https://github.com/scikit-learn/scikit-learn/blob/762734097daa72f6bd1b363ac989afa4717530f7/sklearn/linear_model/tests/test_base.py#L765). In the worst case I recommend setting `cond = None`, marking the weight tests as xfail, reopening #26164, and maybe report #26164 upstream (to scipy).\n\n### Versions\n\n```shell\nSystem:\n    python: 3.14.2 | packaged by conda-forge | (main, Dec  6 2025, 11:21:58) [GCC 14.3.0]\nexecutable: /home/jli/miniforge3/envs/sklearn-dbg/bin/python3\n   machine: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39\n\nPython dependencies:\n      sklearn: 1.8.0\n          pip: 25.3\n   setuptools: None\n        numpy: 2.4.0\n        scipy: 1.16.3\n       Cython: None\n       pandas: None\n   matplotlib: None\n       joblib: 1.5.3\nthreadpoolctl: 3.6.0\n\nBuilt with OpenMP: True\n\nthreadpoolctl info:\n       user_api: blas\n   internal_api: openblas\n    num_threads: 12\n         prefix: libscipy_openblas\n       filepath: /home/jli/miniforge3/envs/sklearn-dbg/lib/python3.14/site-packages/numpy.libs/libscipy_openblas64_-fdde5778.so\n        version: 0.3.30\nthreading_layer: pthreads\n   architecture: Haswell\n\n       user_api: blas\n   internal_api: openblas\n    num_threads: 12\n         prefix: libscipy_openblas\n       filepath: /home/jli/miniforge3/envs/sklearn-dbg/lib/python3.14/site-packages/scipy.libs/libscipy_openblas-b75cc656.so\n        version: 0.3.29.dev\nthreading_layer: pthreads\n   architecture: Haswell\n\n       user_api: openmp\n   internal_api: openmp\n    num_threads: 12\n         prefix: libgomp\n       filepath: /home/jli/miniforge3/envs/sklearn-dbg/lib/python3.14/site-packages/scikit_learn.libs/libgomp-e985bcbb.so.1.0.0\n        version: None\n```",
+  "created_at": "2026-01-09T20:15:35Z",
+  "labels": [
+   "Bug",
+   "Needs Investigation",
+   "Numerical Stability"
+  ]
+ },
+ {
+  "issue": 33167,
+  "pr": 33252,
+  "sha": "e67ae2f1412a4c67ce4c24061ce44af2af3d5bcb",
+  "gold": [
+   "sklearn/neighbors/_binary_tree.pxi.tp",
+   "sklearn/tree/_criterion.pyx",
+   "sklearn/tree/_partitioner.pyx",
+   "sklearn/utils/_sorting.pxd",
+   "sklearn/utils/_sorting.pyx",
+   "sklearn/utils/tests/test_sorting.py"
+  ],
+  "n_gold": 6,
+  "title": "Segfault in KDTree.query_radius",
+  "body": "### Describe the bug and give evidence about its user-facing impact\n\nI query a dataset with around 1.6M locations using `KDTree.query_radius`. The script dies in a segfault without an informative error message. \n\n### Steps/Code to Reproduce\n\nData: https://drive.google.com/file/d/1eAr774HknkcfYFHoOjcic0aY4XetCwUe/view?usp=sharing (\u26a0\ufe0f  don't naively `np.load` contents from untrusted source as this can execute arbitrary code on your machine)\n\n```python\nfrom sklearn.neighbors import KDTree\nimport numpy as np\n\ndata = np.load(\"data.npy\")\n\ntree = KDTree(data)\n\nquery = np.array([\n    [651047.8125, 6863169.5]\n])\n\ntree.query_radius(query, 800.0, return_distance = True, sort_results = True)\n```\n\n### Expected Results\n\nIn case there is an issue with the data volumes, there should be at least an informative error message.\n\n### Actual Results\n\nThere is a segfault. It works with other query locations, for instance:\n\n```\n  [652760.68, 6863527.73]\n  [652950.7, 6863942.6]\n  [652760.68, 6863527.73]\n```\n\n### Versions\n\n```shell\nSystem:\n    python: 3.12.12 | packaged by conda-forge | (main, Jan 26 2026, 23:51:32) [GCC 14.3.0]\nexecutable: /home/???/.miniforge3/envs/???/bin/python3\n   machine: Linux-6.8.0-90-generic-x86_64-with-glibc2.39\n\nPython dependencies:\n      sklearn: 1.8.0\n          pip: 25.3\n   setuptools: 80.10.2\n        numpy: 2.4.1\n        scipy: 1.17.0\n       Cython: None\n       pandas: 2.3.3\n   matplotlib: 3.10.8\n       joblib: 1.5.3\nthreadpoolctl: 3.6.0\n\nBuilt with OpenMP: True\n\nthreadpoolctl info:\n       user_api: blas\n   internal_api: openblas\n    num_threads: 12\n         prefix: libopenblas\n       filepath: /home/???/.miniforge3/envs/???/lib/libopenblasp-r0.3.30.so\n        version: 0.3.30\nthreading_layer: pthreads\n   architecture: Haswell\n\n       user_api: openmp\n   internal_api: openmp\n    num_threads: 12\n         prefix: libgomp\n       filepath: /home/???/.miniforge3/envs/???/lib/libgomp.so.1.0.0\n        version: None\n```\n\n### Interest in fixing the bug\n\nI noticed that the problem only occurs for `sort_results = True`. It might have to do with the fact that there are many duplicates in the data.",
+  "created_at": "2026-02-01T19:58:19Z",
+  "labels": [
+   "Bug",
+   "cython"
+  ]
+ },
+ {
+  "issue": 33757,
+  "pr": 33918,
+  "sha": "15e9684cd23f6a13f2f5bfa8515bc78c5f8a76eb",
+  "gold": [
+   "sklearn/linear_model/_bayes.py",
+   "sklearn/linear_model/tests/test_bayes.py"
+  ],
+  "n_gold": 2,
+  "title": "[BUG] BayesianRidge.predict with return_std=True fails to center test features, leading to incorrect predictive variance",
+  "body": "### Describe the bug and give evidence about its user-facing impact\n\nIn `BayesianRidge`, the predictive variance calculation in the `predict` method is mathematically inconsistent with the training process when `fit_intercept=True` (the default). During `fit()`, the model centers the features (`X - X_offset_`), but during `predict()`, the variance is calculated using the **raw** test features `X_test` instead of centering them by the training mean `X_offset_`. As a result, the model reports its lowest uncertainty at the coordinate origin rather than at the center of the training data. For datasets far from the origin, this leads to significantly wrong uncertainty estimation, violating the principle that a Bayesian model should be most certain in the region where it has observed the most data.\n\n#### Mathematical formulation\n\nThe original problem is $y = w^T x + b + \\epsilon$. Instead, scikit-learn solves a centered version $y = w^T \\tilde{x} + b' + \\epsilon$, where $\\tilde{x} = x - E[x]$, in order to find $w$ and $b'$, and finally $b$ is computed as $b = b' - w^T E[x]$. First, $b'$ is estimated using a frequentist approach (OLS/MLE) to be $b' = E[y]$, since $E[\\tilde{x}] = 0$. This allows the problem to be reduced to $\\tilde{y} = y - b' = w^T \\tilde{x} + \\epsilon$, on which a Bayesian approach is used to find $w$ (the posterior mean).\n\nAfter $w$ is found, the predictive distribution of $\\tilde{y}$ on a new test point $\\tilde{x}$ is then given by\n$$\\tilde{\\mu} = w^T \\tilde{x}$$\n$$\\sigma^2 = \\alpha^{-1} + \\tilde{x}^T \\Sigma_w \\tilde{x}$$\n\nBut since $y = \\tilde{y} + b'$, the predictive distribution of $y$ has the mean shifted to\n$$\\mu = w^T \\tilde{x} + b'$$\nwhile the variance stays the same.\n\nHowever, our test point is actually $x$, so this all becomes\n$$\\mu = w^T (x - \\mu_x) + b' = w^T x + b$$\n$$\\sigma^2 = \\alpha^{-1} + (x - \\mu_x)^T \\Sigma_w (x - \\mu_x)$$\nwhere $\\mu_x = E[x]$ (estimated using the training data).\n\nNote that `predict` returns `y_mean` and `y_std`, where `y_mean` is exactly $\\mu$, but `y_std` is not $\\sigma$; instead it is\n$$\\alpha^{-1} + x^T \\Sigma_w x$$\n\nWhat is missing is to subtract $\\mu_x$ from $x$ before the variance computation.\n\n### Steps/Code to Reproduce\n\n```python\nimport numpy as np\nimport matplotlib.pyplot as plt\nfrom sklearn.linear_model import BayesianRidge\n\nn = 4\n\nx_train = np.linspace(80, 100, n)\ny_train = x_train + 10*np.random.RandomState(0).standard_normal(n)\nmodel = BayesianRidge().fit(x_train.reshape(-1, 1), y_train)\nx = np.linspace(-100, 100, 101)\ny_mean, y_std = model.predict(x.reshape(-1, 1), return_std=True)\nprint(f\"Std (x={x[50]:3g}): {y_std[50]:7.4f}\")\nprint(f\"Std (x={x[-1]:3g}): {y_std[-1]:7.4f}\")\nplt.plot(x_train, y_train, 'r.')\nplt.plot(x, y_mean, 'b-')\nplt.fill_between(x, y_mean - y_std, y_mean + y_std, color='RoyalBlue')\nplt.title('Actual Results')\nplt.show()\n\nx_train = np.linspace(80, 100, n)\nx_train -= x_train.mean()\ny_train = x_train + 10*np.random.RandomState(0).standard_normal(n)\nmodel = BayesianRidge().fit(x_train.reshape(-1, 1), y_train)\nx = np.linspace(-100, 100, 101)\ny_mean, y_std = model.predict(x.reshape(-1, 1), return_std=True)\nprint(f\"Std (x={x[50]:3g}): {y_std[50]:7.4f}\")\nprint(f\"Std (x={x[-1]:3g}): {y_std[-1]:7.4f}\")\nplt.plot(x_train, y_train, 'r.')\nplt.plot(x, y_mean, 'b-')\nplt.fill_between(x, y_mean - y_std, y_mean + y_std, color='RoyalBlue')\nplt.title('Correct when data is already centered')\nplt.show()\n\nx_train = np.linspace(80, 100, n)\ny_train = x_train + 10*np.random.RandomState(0).standard_normal(n)\nmodel = BayesianRidge().fit(x_train.reshape(-1, 1), y_train)\nx = np.linspace(-100, 100, 101)\ny_mean = model.predict(x.reshape(-1, 1))\n_, y_std = model.predict((x - model.X_offset_).reshape(-1, 1), return_std=True)\nprint(f\"Std (x={x[50]:3g}): {y_std[50]:7.4f}\")\nprint(f\"Std (x={x[-1]:3g}): {y_std[-1]:7.4f}\")\nplt.plot(x_train, y_train, 'r.')\nplt.plot(x, y_mean, 'b-')\nplt.fill_between(x, y_mean - y_std, y_mean + y_std, color='RoyalBlue')\nplt.title('Expected Results')\nplt.show()\n```\n\n### Expected Results\n\nLowest variance close to the training data.\n<img width=\"640\" height=\"480\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/efb43b99-fbf4-406d-a86e-e97baf0c3e5d\" />\n\n### Actual Results\n\nLowest variance close to the origin.\n<img width=\"640\" height=\"480\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/4c00fbb6-747d-4a7e-8bce-5062b648333b\" />\n\nNote that this is fine if the data is already centered; this is the problem scikit-learn is actually solving.\n<img width=\"640\" height=\"480\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/91f1c669-9e57-4a8c-9d7d-c37f962f2439\" />\n\n### Versions\n\n```shell\nSystem:\n    python: 3.14.2 (main, Jan 27 2026, 23:59:57) [Clang 21.1.4 ]\nexecutable: /home/danilo/sciml/.venv/bin/python\n   machine: Linux-6.17.0-20-generic-x86_64-with-glibc2.42\n\nPython dependencies:\n      sklearn: 1.8.0\n          pip: None\n   setuptools: 81.0.0\n        numpy: 2.4.2\n        scipy: 1.17.0\n       Cython: None\n       pandas: 3.0.0\n   matplotlib: 3.10.8\n       joblib: 1.5.3\nthreadpoolctl: 3.6.0\n\nBuilt with OpenMP: True\n\nthreadpoolctl info:\n       user_api: blas\n   internal_api: openblas\n    num_threads: 24\n         prefix: libscipy_openblas\n       filepath: /home/danilo/sciml/.venv/lib/python3.14/site-packages/numpy.libs/libscipy_openblas64_-096271d3.so\n        version: 0.3.31.dev\nthreading_layer: pthreads\n   architecture: SkylakeX\n\n       user_api: blas\n   internal_api: openblas\n    num_threads: 24\n         prefix: libscipy_openblas\n       filepath: /home/danilo/sciml/.venv/lib/python3.14/site-packages/scipy.libs/libscipy_openblas-6cdc3b4a.so\n        version: 0.3.30\nthreading_layer: pthreads\n   architecture: SkylakeX\n\n       user_api: openmp\n   internal_api: openmp\n    num_threads: 24\n         prefix: libgomp\n       filepath: /home/danilo/sciml/.venv/lib/python3.14/site-packages/scikit_learn.libs/libgomp-e985bcbb.so.1.0.0\n        version: None\n```\n\n### Interest in fixing the bug\n\nThe bug is very easy to fix: just add a single line subtracting the mean before the variance calculation.\n\n```python\n    def predict(self, X, return_std=False):\n        y_mean = self._decision_function(X)\n        if not return_std:\n            return y_mean\n        else:\n            X = X - self.X_offset_  # <-- just add this line\n            sigmas_squared_data = (np.dot(X, self.sigma_) * X).sum(axis=1)\n            y_std = np.sqrt(sigmas_squared_data + (1.0 / self.alpha_))\n            return y_mean, y_std\n```",
+  "created_at": "2026-04-15T16:25:04Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 33877,
+  "pr": 33876,
+  "sha": "e73515894a265663e8f0f83dcb55f23dc93bd3a0",
+  "gold": [
+   "sklearn/metrics/pairwise.py",
+   "sklearn/metrics/tests/test_pairwise.py"
+  ],
+  "n_gold": 2,
+  "title": "BUG _parallel_pairwise does not slice Y_norm_squared alongside Y when n_jobs > 1",
+  "body": "### Describe the bug and give evidence about its user-facing impact\n\n`_parallel_pairwise` chunks `Y` into slices for parallel execution but passes `**kwds` (including `Y_norm_squared`) unchanged. When `euclidean_distances` is called with `Y_norm_squared` and `n_jobs > 1`, this causes a `ValueError` due to shape mismatch between the sliced `Y` and the full `Y_norm_squared`.\n\n### Steps/Code to Reproduce\n\n```python\nfrom sklearn.metrics.pairwise import _parallel_pairwise, euclidean_distances\nimport numpy as np\n\nX = np.random.RandomState(42).rand(13, 4)\nY_norm_squared = np.sum(X ** 2, axis=1)\n\n# n_jobs=1: no chunking, Y_norm_squared matches Y \u2014 works fine\nresult = _parallel_pairwise(X, X, euclidean_distances, n_jobs=1, Y_norm_squared=Y_norm_squared)\nprint(\"n_jobs=1: OK\", result.shape)\n\n# n_jobs=2: Y chunked but Y_norm_squared stays full \u2014 crashes\n_parallel_pairwise(X, X, euclidean_distances, n_jobs=2, Y_norm_squared=Y_norm_squared)\n```\n\n### Expected Results\n\nNo error is thrown. The `n_jobs=2` call returns the same distance matrix as `n_jobs=1`.\n\n### Actual Results\n\n```python-traceback\nValueError: Incompatible dimensions for Y of shape (6, 4) and Y_norm_squared of shape (13,).\n```\n\n### Versions\n\n```\nSystem:\n    python: 3.12.9 | packaged by Anaconda, Inc. | (main, Feb  6 2025, 12:55:12) [Clang 14.0.6 ]\n   machine: macOS-26.4.1-arm64-arm-64bit\n\nPython dependencies:\n      sklearn: 1.8.0\n          pip: 25.0\n   setuptools: 82.0.1\n        numpy: 2.4.4\n        scipy: 1.17.1\n       Cython: 3.2.4\n       pandas: 2.3.3\n   matplotlib: None\n       joblib: 1.5.3\nthreadpoolctl: 3.6.0\n\nBuilt with OpenMP: True\n```\n\nAlso confirmed on `main` (the code at `sklearn/metrics/pairwise.py` line 1986 still passes `**kwds` unsliced).\n\n### Interest in fixing the bug\n\nYes \u2014 I have a fix ready in #33876. The fix slices `Y_norm_squared` alongside `Y` in the `Parallel` call inside `_parallel_pairwise()`.",
+  "created_at": "2026-04-27T23:30:10Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 33885,
+  "pr": 33902,
+  "sha": "113ee7473f8344cee938384f0ef1a85c59b0654e",
+  "gold": [
+   "sklearn/linear_model/_logistic.py",
+   "sklearn/linear_model/tests/test_logistic.py"
+  ],
+  "n_gold": 2,
+  "title": "LogisticRegressionCV with use_legacy_attributes=False, refit=False",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\n### Describe the bug and give evidence about its user-facing impact\n\n`LogisticRegressionCV(use_legacy_attributes=False, refit=False)` errors.\n\n### Steps/Code to Reproduce\n\n```python\nfrom sklearn.datasets import load_iris\nfrom sklearn.linear_model import LogisticRegressionCV\nX, y = load_iris(return_X_y=True)\nm = LogisticRegressionCV(l1_ratios=[0.0], use_legacy_attributes=False, refit=False, solver=\"newton-cholesky\")\nm.fit(X, y)\n```\n\n### Expected Results\n\nno error\n\n### Actual Results\n\n```\npython3.13/site-packages/sklearn/linear_model/_logistic.py:2135, in LogisticRegressionCV.fit(self, X, y, sample_weight, **params)\n   2133 else:\n   2134     n_l1_ratios = len(self.l1_ratios_)\n-> 2135     self.l1_ratio_ = float(self.l1_ratio_[0])\n   2136     if n_classes <= 2:\n   2137         newpaths = newpaths.reshape(1, n_folds, n_cs, n_l1_ratios, n_dof)\n\nTypeError: float() argument must be a string or a real number, not 'NoneType'\n```\n\n### Versions\n\n```shell\nscikit-learn 1.8.0\n```\n\n### Interest in fixing the bug\n\nx",
+  "created_at": "2026-04-28T21:27:34Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 34047,
+  "pr": 34065,
+  "sha": "07f42cca7580bd3b917860721e2e3344abca66e5",
+  "gold": [
+   "sklearn/linear_model/_ridge.py",
+   "sklearn/linear_model/tests/test_ridge.py",
+   "sklearn/utils/_test_common/instance_generator.py"
+  ],
+  "n_gold": 3,
+  "title": "Inconsistent type of predictions and `classes_` for array API classifiers",
+  "body": "### Describe the bug and give evidence about its user-facing impact\n\nThere's currently 2 classifiers with array API support:\n* `LogisticRegression`\n* `RidgeClassifier`\n\nThe docs and discussions in this issue tracker are quite unclear about what should be the expected behavior when input types are mixed in the case of classifiers.\n\nSince in general 'y' can be something like strings or non-sequential integers that get re-encoded internally, I think it makes sense that the `classes_` attributes under array API would be obtained from the type of 'y' and then sliced when returning something from `.predict()` - i.e. \"prediction follows 'y'\".\n\nThis appears to be the case for `LogisticRegression`:\n```python\nimport os\nos.environ[\"SCIPY_ARRAY_API\"] = \"1\"\n\nimport numpy as np\nimport torch\n\nrng = np.random.default_rng(seed=123)\nX = rng.random(size=(20,3))\ny = rng.integers(2, size=X.shape[0])\nyt = torch.tensor(y, device=\"xpu\", dtype=torch.float32)\n\nfrom sklearn import set_config\nfrom sklearn.linear_model import LogisticRegression\nset_config(array_api_dispatch=True)\nmodel = LogisticRegression(solver=\"lbfgs\").fit(X, yt)\nmodel.classes_\n```\n```\ntensor([0., 1.], device='xpu:0')\n```\n\nBut the docs state \"everything follows 'X'\" instead, and `RidgeClassifier` does appear to follow this logic from the docs, even if it might not be as natural for classification scenarios:\n```python\nfrom sklearn.linear_model import RidgeClassifier\nmodel = RidgeClassifier(solver=\"svd\").fit(X, yt)\nmodel.classes_\n```\n```\narray([0., 1.], dtype=float32)\n```\n\n### Steps/Code to Reproduce\n\nDescribed above.\n\n### Expected Results\n\nAll classifiers with array API support should work like in `LogisticRegression`.\n\n### Actual Results\n\n`RidgeClassifier` works differently.\n\n### Versions\n\n```shell\nSystem:\n    python: 3.13.13 | packaged by conda-forge | (main, Apr  8 2026, 02:00:33) [GCC 14.3.0]\nexecutable: /export/users/dcortes/miniforge3/envs/torch19/bin/python\n   machine: Linux-6.17.0-20-generic-x86_64-with-glibc2.39\n\nPython dependencies:\n      sklearn: 1.9.dev0\n          pip: 26.1.1\n   setuptools: 70.2.0\n        numpy: 2.4.4\n        scipy: 1.17.1\n       Cython: 3.2.4\n       pandas: 3.0.3\n   matplotlib: None\n       joblib: 1.5.3\nthreadpoolctl: 3.6.0\n\nBuilt with OpenMP: True\n\nthreadpoolctl info:\n       user_api: blas\n   internal_api: openblas\n    num_threads: 64\n         prefix: libscipy_openblas\n       filepath: /mnt/cached_oses/dcortes/miniforge3/envs/torch19/lib/python3.13/site-packages/numpy.libs/libscipy_openblas64_-32a4b2a6.so\n        version: 0.3.31.188.0\nthreading_layer: pthreads\n   architecture: SkylakeX\n\n       user_api: blas\n   internal_api: openblas\n    num_threads: 64\n         prefix: libscipy_openblas\n       filepath: /mnt/cached_oses/dcortes/miniforge3/envs/torch19/lib/python3.13/site-packages/scipy.libs/libscipy_openblas-6cdc3b4a.so\n        version: 0.3.30\nthreading_layer: pthreads\n   architecture: SkylakeX\n\n       user_api: openmp\n   internal_api: openmp\n    num_threads: 112\n         prefix: libgomp\n       filepath: /mnt/cached_oses/dcortes/miniforge3/envs/torch19/lib/libgomp.so.1.0.0\n        version: None\n```\n\n### Interest in fixing the bug\n\nNo.",
+  "created_at": "2026-05-18T13:52:49Z",
+  "labels": [
+   "Bug",
+   "Array API"
+  ]
+ },
+ {
+  "issue": 34114,
+  "pr": 34129,
+  "sha": "3604450435824f0d25becfec9f22e029bfe0fc00",
+  "gold": [
+   "sklearn/linear_model/_base.py"
+  ],
+  "n_gold": 1,
+  "title": "Interactions between array API and sparse coefficients are not documented",
+  "body": "### Describe the issue linked to the documentation\n\nArray API support was recently expanded to cover LogisticRegression, which allows having sparse coefficients:\nhttps://github.com/scikit-learn/scikit-learn/blob/9eff0fd241a2c2221112d0f7461876208e6b05d4/sklearn/linear_model/_base.py#L508\n\nIt's not expected that coefficients would have exact zeros with the supported solver 'lbfgs' for array API (although it can still happen when columns have the same value in all rows), but technically a user can still call `.sparsify()` on an estimator that was fitted to array API classes, in which case it will fail.\n\nThe documentation is not clear about limitations of LogisticRegression under array API, such as not being able to sparsify coefficients or not being able to make predictions if it somehow succeeds.\n\n### Suggest a potential alternative/fix\n\nDocumentation should be clear about limitations of methods from estimators when using array API classes.",
+  "created_at": "2026-05-25T06:47:56Z",
+  "labels": [
+   "Documentation"
+  ]
+ },
+ {
+  "issue": 34175,
+  "pr": 34187,
+  "sha": "fab08f7d7b3b3be3ce81d6e0c33b1e9368b2a098",
+  "gold": [
+   "sklearn/neighbors/_binary_tree.pxi.tp",
+   "sklearn/neighbors/tests/test_kd_tree.py"
+  ],
+  "n_gold": 2,
+  "title": "BinaryTree/KDTree statistics are not thread-safe (and might be a performance issue)",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\n### Describe the bug and give evidence about its user-facing impact\n\nIn `BinaryTree.query()`, we have:\n\n```python\n        self.n_trims = 0\n        self.n_leaves = 0\n        self.n_splits = 0\n```\n\nand these are incremented in methods called by `query()`. Since a tree can be simultaneously used from multiple threads:\n\n1. The statistics will be garbage, as the numbers will get overwritten by different threads.\n2. It's possible that this will slow down operation as the same memory needs to be pushed between caches across CPU cores.\n\n### Steps/Code to Reproduce\n\n```python\nimport threading\nimport numpy as np\nfrom sklearn.neighbors import KDTree\n\nsamples = np.random.rand(10_000, 10)\nquery_points = np.random.rand(10_000, 10)\ntree = KDTree(samples, 10)\n\ndef run_and_get_stats():\n    tree.query(query_points, dualtree=False, breadth_first=False, sort_results=False)\n    return tree.get_tree_stats()\n\n# Single-threaded version, resets stats to zero:\nprint(\"Single threaded:\")\nassert run_and_get_stats() == run_and_get_stats()\nprint(\"OK\")\n\n# Threaded version:\nprint(\"Threaded:\")\nthread_stats = set()\nthreads = []\nfor _ in range(10):\n    t = threading.Thread(target=lambda: thread_stats.add(run_and_get_stats()))\n    threads.append(t)\n    t.start()\nfor t in threads:\n    t.join()\n\nassert len(thread_stats) == 1\nassert thread_stats.pop() == run_and_get_stats()\nprint(\"OK\")\n```\n\n### Expected Results\n\nRunning in parallel should, given the current contract, give the same results. This is not really possible.\n\nSo really the API should be changed so `query()` does _not_ reset to zero, and instead increments existing stats.\n\n### Actual Results\n\n```\nSingle threaded:\nOK\nThreaded:\nTraceback (most recent call last):\n  File \"/home/itamarst/devel/scikit-learn/binarytree_threadsafety.py\", line 29, in <module>\n    assert len(thread_stats) == 1\n           ^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n```\n\n### Versions\n\n```shell\nSystem:            \n    python: 3.14.5 free-threading build (main, May 11 2026, 11:48:49) [GCC 13.3.0]\nexecutable: /home/itamarst/devel/scikit-learn/venv314t/bin/python                        machine: Linux-6.18.7-76061807-generic-x86_64-with-glibc2.39\n                                           \nPython dependencies:                       \n      sklearn: 1.10.dev0\n          pip: 26.1\n   setuptools: 82.0.1  \n        numpy: 2.4.5                       \n        scipy: 1.17.1 \n       Cython: 3.2.4                       \n       pandas: 3.0.3\n   matplotlib: 3.10.9\n       joblib: 1.5.3\nthreadpoolctl: 3.6.0\n     narwhals: 2.21.2\n\nBuilt with OpenMP: True\n\nthreadpoolctl info:\n       user_api: blas\n   internal_api: openblas\n    num_threads: 12\n         prefix: libscipy_openblas\n       filepath: /home/itamarst/devel/scikit-learn/venv314t/lib/python3.14t/site-packages/numpy.libs/libscipy_openblas64_-32a4b2a6.so\n        version: 0.3.31.188.0\nthreading_layer: pthreads\n   architecture: Haswell\n\n       user_api: blas\n   internal_api: openblas\n    num_threads: 12\n         prefix: libscipy_openblas\n       filepath: /home/itamarst/devel/scikit-learn/venv314t/lib/python3.14t/site-packages/scipy.libs/libscipy_openblas-6cdc3b4a.so\n        version: 0.3.30\nthreading_layer: pthreads\n   architecture: Haswell\n\n       user_api: openmp\n   internal_api: openmp\n    num_threads: 12\n         prefix: libgomp\n       filepath: /usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0\n        version: None\n```\n\n### Interest in fixing the bug\n\nI might fix this, depending. The lack of thread safety isn't a significant correctness issue; might be a performance issue though.\n\nhttps://github.com/scikit-learn/scikit-learn/pull/19884 was a previous attempt to remove these, stalled because it was unclear if performance was an issue.\n\nMy plan:\n1. Try to determine if this is a performance bottleneck.\n2. If it is a bottleneck, try switching to thread-locals to calculate this, and then stats would be correct. **This will require a small API change:** stats will not reset to zero at the start of `query()`, but rather get incremented to existing stats.\n4. If it's not a bottleneck, or the thread-local approach proves non-viable, or the small API change is unacceptable: deprecate the API, document that its results are garbage, and then in the future this can eventually be removed.",
+  "created_at": "2026-06-01T17:52:39Z",
+  "labels": [
+   "Bug",
+   "Needs Triage"
+  ]
+ },
+ {
+  "issue": 34232,
+  "pr": 34242,
+  "sha": "19b57abab044e04aea98f0ec777b6b218d662ed8",
+  "gold": [
+   "sklearn/neighbors/_binary_tree.pxi.tp",
+   "sklearn/neighbors/tests/test_kd_tree.py"
+  ],
+  "n_gold": 2,
+  "title": "Deprecate stats and number of calls tracking in KDTree/BallTree (or see if there's a way to speed-up, if useful)",
+  "body": "### Describe the workflow you want to enable\n\nhttps://github.com/scikit-learn/scikit-learn/pull/34187 sped up multi-threaded operations by using a thread-local, but slowed down single-threaded operations.\n\nThis suggests the amount of new work involved is meaningful, and slowing down multi-threaded operations as well. It was still worth it (the CPU time was counterbalanced by removing _lots_ of time spent doing cross-CPU-core memory locking), but still suggests a bunch of computational work is involved that would be nice to speed up.\n\n### Describe your proposed solution\n\nIt's not clear if anyone actually uses these stats (`BallTree.get_tree_stats()`, `BallTree.get_n_calls()`), so deprecating it seems like one option; they can then be deleted wholesale when the time comes.\n\nAnother option is seeing if there's some way to make it faster, e.g. maybe there's a loop that predicatably increments a counter by 1 `n` times and could be replaced with incrementing by `n` just once. If there is, may well be worth doing immediately whether or not deprecation happens.\n\n### Describe alternatives you've considered, if relevant\n\n_No response_\n\n### Additional context\n\nMain question I have to maintainers here is if deprecation is possible.\n\nWhen I get to this I will inspect code to see if there is a potential for speedup right now; there might not be, with deprecation the only option.",
+  "created_at": "2026-06-09T15:30:58Z",
+  "labels": [
+   "New Feature"
+  ]
+ },
+ {
+  "issue": 34286,
+  "pr": 34287,
+  "sha": "679b8a5215a8b0dcda7393bc8d9226da73ffcad5",
+  "gold": [
+   "doc/modules/ensemble.rst",
+   "doc/modules/model_evaluation.rst",
+   "doc/visualizations.rst",
+   "examples/miscellaneous/plot_display_object_visualization.py",
+   "examples/model_selection/plot_grid_search_refit_callable.py",
+   "examples/model_selection/plot_roc_crossval.py",
+   "examples/preprocessing/plot_discretization_classification.py",
+   "examples/release_highlights/plot_release_highlights_1_5_0.py",
+   "examples/release_highlights/plot_release_highlights_1_7_0.py",
+   "examples/release_highlights/plot_release_highlights_1_8_0.py",
+   "examples/release_highlights/plot_release_highlights_1_9_0.py",
+   "sklearn/calibration.py",
+   "sklearn/ensemble/_voting.py",
+   "sklearn/ensemble/tests/test_stacking.py",
+   "sklearn/ensemble/tests/test_voting.py",
+   "sklearn/feature_selection/tests/test_from_model.py",
+   "sklearn/frozen/_frozen.py",
+   "sklearn/inspection/_plot/tests/test_boundary_decision_display.py",
+   "sklearn/inspection/tests/test_partial_dependence.py",
+   "sklearn/inspection/tests/test_permutation_importance.py",
+   "sklearn/linear_model/_logistic.py",
+   "sklearn/linear_model/tests/test_logistic.py",
+   "sklearn/metrics/_ranking.py",
+   "sklearn/metrics/tests/test_ranking.py",
+   "sklearn/metrics/tests/test_score_objects.py",
+   "sklearn/model_selection/_classification_threshold.py",
+   "sklearn/model_selection/tests/test_search.py",
+   "sklearn/model_selection/tests/test_validation.py",
+   "sklearn/multioutput.py",
+   "sklearn/semi_supervised/tests/test_self_training.py",
+   "sklearn/tests/test_calibration.py",
+   "sklearn/tests/test_common.py",
+   "sklearn/tests/test_multiclass.py",
+   "sklearn/tests/test_multioutput.py",
+   "sklearn/tests/test_pipeline.py",
+   "sklearn/utils/_repr_html/tests/test_estimator.py"
+  ],
+  "n_gold": 36,
+  "title": "Stopp setting `random_state` in `LogisticRegression` unless it has an effect",
+  "body": "In most cases, there is absolutely no need to set `LogisticRegression(random_state=123)` because no random numbers are drawn, in particular the default solver (\"lbfgs\") does not use random numbers.\nThe only cases where random numbers are used is with solvers liblinear, sag, saga.",
+  "created_at": "2026-06-13T10:33:27Z",
+  "labels": [
+   "API",
+   "Hard",
+   "module:linear_model"
+  ]
+ },
+ {
+  "issue": 34292,
+  "pr": 34300,
+  "sha": "d7e7e4f8a7f656cfe55c0409cf5599d82b1b7d67",
+  "gold": [
+   "sklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py",
+   "sklearn/ensemble/_hist_gradient_boosting/tests/test_warm_start.py",
+   "sklearn/ensemble/tests/test_gradient_boosting.py",
+   "sklearn/ensemble/tests/test_stacking.py",
+   "sklearn/linear_model/tests/test_least_angle.py",
+   "sklearn/model_selection/tests/test_split.py",
+   "sklearn/neighbors/tests/test_graph.py",
+   "sklearn/neighbors/tests/test_neighbors.py",
+   "sklearn/svm/tests/test_svm.py"
+  ],
+  "n_gold": 9,
+  "title": "CI `mypy` reports type errors in unrelated PRs",
+  "body": "First noticed in ba12cf9a0290b9852b4849915f431b61300b4128 and its revert ae8f42a2b15ca8a7d44a8fc3c05149147339a0fe, where the CI failed because `mypy` reported the following errors despite the changes being unrelated:\n\n<details>\n\n<summary>Error message</summary>\n\n```bash\n### Running mypy ###\n\nsklearn/neighbors/tests/test_graph.py:84: error: List item 0 has incompatible type \"type[KNeighborsTransformer]\"; expected \"type[NeighborsBase]\"  [list-item]\nsklearn/svm/tests/test_svm.py:631: error: List item 1 has incompatible type \"tuple[type[NuSVC], str]\"; expected \"tuple[type[BaseSVC], str]\"  [list-item]\nsklearn/svm/tests/test_svm.py:650: error: List item 1 has incompatible type \"tuple[type[NuSVC], dict[str, list[float]]]\"; expected \"tuple[type[BaseSVC], dict[str, list[float]]]\"  [list-item]\nsklearn/svm/tests/test_svm.py:1252: error: List item 0 has incompatible type \"type[SVC]\"; expected \"type[BaseSVC]\"  [list-item]\nsklearn/svm/tests/test_svm.py:1267: error: List item 0 has incompatible type \"type[SVC]\"; expected \"type[BaseSVC]\"  [list-item]\nsklearn/svm/tests/test_svm.py:1520: error: List item 1 has incompatible type \"tuple[type[NuSVC], str]\"; expected \"tuple[type[BaseSVC], str]\"  [list-item]\nsklearn/svm/tests/test_svm.py:1529: error: List item 0 has incompatible type \"type[SVC]\"; expected \"type[BaseSVC]\"  [list-item]\nsklearn/neighbors/tests/test_neighbors.py:335: error: List item 0 has incompatible type \"type[KNeighborsClassifier]\"; expected \"type[NeighborsBase]\"  [list-item]\nsklearn/neighbors/tests/test_neighbors.py:336: error: List item 1 has incompatible type \"type[KNeighborsRegressor]\"; expected \"type[NeighborsBase]\"  [list-item]\nsklearn/linear_model/tests/test_least_angle.py:209: error: List item 0 has incompatible type \"type[Lars]\"; expected \"type[Lars]\"  [list-item]\nsklearn/linear_model/tests/test_least_angle.py:209: error: List item 1 has incompatible type \"type[LarsCV]\"; expected \"type[Lars]\"  [list-item]\nsklearn/ensemble/tests/test_stacking.py:566: error: List item 1 has incompatible type \"tuple[type[StackingRegressor], type[DummyRegressor], str, LinearRegression, Any, Any]\"; expected \"tuple[ABCMeta, type[BaseEstimator], str, BaseEstimator, Any, Any]\"  [list-item]\nsklearn/ensemble/tests/test_gradient_boosting.py:1351: error: List item 2 has incompatible type \"tuple[type[GradientBoostingRegressor], Any, type[DummyRegressor]]\"; expected \"tuple[ABCMeta, Any, type[BaseEstimator]]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_warm_start.py:32: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_warm_start.py:54: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_warm_start.py:80: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_warm_start.py:108: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_warm_start.py:137: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_warm_start.py:157: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_warm_start.py:183: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py:66: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py:953: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], HalfSquaredError, Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], BaseLoss, Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py:970: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any, Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any, Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py:1461: error: List item 1 has incompatible type \"tuple[type[HistGradientBoostingRegressor], Any]\"; expected \"tuple[type[BaseHistGradientBoosting], Any]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py:1554: error: List item 0 has incompatible type \"type[HistGradientBoostingClassifier]\"; expected \"type[BaseHistGradientBoosting]\"  [list-item]\nsklearn/ensemble/_hist_gradient_boosting/tests/test_gradient_boosting.py:1609: error: List item 0 has incompatible type \"type[HistGradientBoostingClassifier]\"; expected \"type[BaseHistGradientBoosting]\"  [list-item]\nsklearn/model_selection/tests/test_split.py:430: error: List item 0 has incompatible type \"type[StratifiedKFold]\"; expected \"type[_BaseKFold]\"  [list-item]\nsklearn/model_selection/tests/test_split.py:457: error: List item 0 has incompatible type \"type[StratifiedKFold]\"; expected \"type[_BaseKFold]\"  [list-item]\nsklearn/model_selection/tests/test_split.py:499: error: List item 0 has incompatible type \"type[StratifiedKFold]\"; expected \"type[_BaseKFold]\"  [list-item]\nsklearn/model_selection/tests/test_split.py:542: error: List item 0 has incompatible type \"type[KFold]\"; expected \"type[_BaseKFold]\"  [list-item]\nsklearn/model_selection/tests/test_split.py:542: error: List item 1 has incompatible type \"type[StratifiedKFold]\"; expected \"type[_BaseKFold]\"  [list-item]\nsklearn/model_selection/tests/test_split.py:1660: error: List item 0 has incompatible type \"type[GroupKFold]\"; expected \"type[_BaseKFold]\"  [list-item]\nFound 32 errors in 9 files (checked 596 source files)\nProblems detected by mypy, please fix them\n```\n</details>\n\nThe same errors are appearing in newly created PRs as well, e.g. #34289, #34290, #34291.",
+  "created_at": "2026-06-15T01:02:51Z",
+  "labels": [
+   "Build / CI"
+  ]
+ },
+ {
+  "issue": 34304,
+  "pr": 34248,
+  "sha": "c8f2a908ab60e988102b59429c2b52deb01f00ee",
+  "gold": [
+   "sklearn/ensemble/_hist_gradient_boosting/binning.py",
+   "sklearn/ensemble/_hist_gradient_boosting/tests/test_binning.py",
+   "sklearn/utils/stats.py",
+   "sklearn/utils/tests/test_stats.py"
+  ],
+  "n_gold": 4,
+  "title": "Speed up histogram bin creation in `sklearn.ensemble._hist_gradient_boosting.binning`",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\n### Describe the workflow you want to enable\n\nBin creation is a surprisingly large chunk of at least some of the histogram gradient boosting benchmarks; a big chunk of that is `np.argsort()`. I am fairly certain it can be faster, e.g. full sorting is probably unnecessary in many cases.\n\n### Describe your proposed solution\n\nCurrent ideas (perhaps all wrong!) that I expect to try:\n \n* A quick experiment suggests `np.argpartition` is way faster than `np.argsort` and plausibly viable in some common cases. I _think_ even that may be overkill.\n* It would not surprise me if the unique values calculation is unnecessary on the full data, and running it just on the bins might suffice.\n* Maybe NumPy's own histogram calculation might work sometimes?\n\nEtc. Still TBD if any of this is actually correct.\n\n### Describe alternatives you've considered, if relevant\n\n_No response_\n\n### Additional context\n\nI will try to implement some of these, and if I succeed then submit a PR.",
+  "created_at": "2026-06-15T20:02:45Z",
+  "labels": [
+   "New Feature",
+   "Needs Decision"
+  ]
+ },
+ {
+  "issue": 34307,
+  "pr": 34380,
+  "sha": "f801a5e60f935e868b613ad58dfadb1325d32540",
+  "gold": [
+   "sklearn/utils/_array_api.py",
+   "sklearn/utils/tests/test_array_api.py"
+  ],
+  "n_gold": 2,
+  "title": "Using `move_to` on a numpy array with negative stride crashes the Python process",
+  "body": "The `move_to` function we have for moving arrays from one namespace to another can crash the Python process when you ask it to move an array with negative strides. I found this while working on `PCA` where we have an array with negative stride (`Vt` from `_fit_truncated`).\n\nThe code below is a reproducer:\n\n```python\nimport numpy as np\nimport torch\nimport sklearn\nfrom sklearn.utils._array_api import get_namespace_and_device, move_to\n\ndef make_negative_strided():\n    \"\"\"A small, contiguous-source array viewed with a negative stride.\"\"\"\n    a = np.arange(12.0).reshape(3, 4)[:, ::-1]\n    assert not a.flags[\"C_CONTIGUOUS\"]\n    assert a.strides[-1] < 0\n    return a\n\na = make_negative_strided()\nwith sklearn.config_context(array_api_dispatch=True):\n    xp, _, device = get_namespace_and_device(torch.asarray([1.0]))\n    try:\n        move_to(a, xp=xp, device=device)\n    except Exception as exc:  # it is not caught\n        print(\"Caught a Python exception (unexpected):\", type(exc).__name__, exc)\n    else:\n        # this doesn't happen\n        print(\"move_to returned without error (unexpected)\")\n\n    # instead the process exits with a SIGABRT\n```\n\nAI tells me that a possible fix is to call `np.ascontiguousarray(array)` if the input `array` is an array with negative stride. In addition we should [only apply this workaround in the case where the `move_to` target is torch](https://github.com/scikit-learn/scikit-learn/issues/34307#issuecomment-4778962780). The comment for the workaround should also include a link to https://github.com/pytorch/pytorch/issues/188023 and this issue so we can know when the work around can be removed.\n\nSomething like this, but with a check for torch as target:\n```diff\n--- a/sklearn/utils/_array_api.py\n+++ b/sklearn/utils/_array_api.py\n@@ def move_to(*arrays, xp, device):\n             xp_array, _, device_array = get_namespace_and_device(array)\n             if xp == xp_array and device == device_array:\n                 converted_arrays.append(array)\n             else:\n+                strides = getattr(array, \"strides\", None)\n+                if strides is not None and any(\n+                    stride < 0 for stride in strides\n+                ):\n+                    # Some libraries (e.g. torch) do not raise a catchable\n+                    # Python exception but abort the whole process when a NumPy\n+                    # array with negative or zero strides is imported via DLPack\n+                    # (such arrays are produced for instance by ``a[::-1]``\n+                    # reversals, as done by ARPACK). The ``except`` clause below\n+                    # therefore cannot protect against it, so the source array is\n+                    # made contiguous first to guarantee positive strides.\n+                    array = numpy.ascontiguousarray(array)\n                 try:\n                     # The dlpack protocol is the future proof and library agnostic\n                     # method to transfer arrays across namespace and device boundaries\n                     # hence this method is attempted first and going through NumPy is\n                     # only used as fallback in case of failure.\n                     # Note: copy=None is the default since array-api 2023.12. Namespace\n                     # libraries should only trigger a copy automatically if needed.\n                     array_converted = xp.from_dlpack(array, device=device)\n```\n\nWhat do others think about this? I am also wondering if this is a bug in numpy's DLPack implementation (should not expose arrays with negative stride) or if this is a bug in torch (should check for negative stride before doing anything)?\n\nI think that `numpy.ascontiguousarray(array)` is free for most arrays, those that already full fill it. For arrays that are not already contiguous I don't know what the cost is, but I think there is no alternative?",
+  "created_at": "2026-06-16T09:39:10Z",
+  "labels": [
+   "Bug",
+   "Array API"
+  ]
+ },
+ {
+  "issue": 34311,
+  "pr": 34378,
+  "sha": "58a47d6b8e231d8800910d4c0ed8941e4c994ecb",
+  "gold": [
+   "sklearn/_loss/tests/test_loss.py",
+   "sklearn/covariance/tests/test_covariance.py",
+   "sklearn/decomposition/tests/test_pca.py",
+   "sklearn/linear_model/_glm/tests/test_glm.py",
+   "sklearn/linear_model/tests/test_logistic.py",
+   "sklearn/linear_model/tests/test_ridge.py",
+   "sklearn/mixture/tests/test_gaussian_mixture.py",
+   "sklearn/model_selection/tests/test_split.py",
+   "sklearn/model_selection/tests/test_validation.py",
+   "sklearn/preprocessing/tests/test_data.py",
+   "sklearn/tests/test_calibration.py",
+   "sklearn/tests/test_kernel_approximation.py",
+   "sklearn/tests/test_naive_bayes.py",
+   "sklearn/tests/test_pipeline.py",
+   "sklearn/utils/estimator_checks.py",
+   "sklearn/utils/tests/test_array_api.py",
+   "sklearn/utils/tests/test_extmath.py",
+   "sklearn/utils/tests/test_indexing.py",
+   "sklearn/utils/tests/test_multiclass.py",
+   "sklearn/utils/tests/test_stats.py"
+  ],
+  "n_gold": 20,
+  "title": "Explicitly set `array_api_dispatch=False` when computing reference values in array API tests",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\nWe should make the array API dispatch flag explicit in tests that compare dispatch Off and On.\n\nRight now we have tests that assume that the default setting of the flag is off when computing the reference values. They then enable the flag and run the alternative version.\n\nIn preparation for enabling array API dispatch by default it is useful to run our test suite with the flag set to On as default. This means we compute our reference values with the flag enabled. I'm not sure if this is a problem or will lead to false results in our tests. But it seems like a good idea to make the setting explicit in our tests.\n\nWe can do this with the settings context manager.\n\nWDYT?",
+  "created_at": "2026-06-16T13:45:50Z",
+  "labels": [
+   "Array API"
+  ]
+ },
+ {
+  "issue": 34315,
+  "pr": 34352,
+  "sha": "f01a3b9eb74ebf6181e7f93c87ea1259c9822a29",
+  "gold": [
+   "sklearn/metrics/pairwise.py"
+  ],
+  "n_gold": 1,
+  "title": "Off-by-one indexing error in paired_manhattan_distances docstring",
+  "body": "### Describe the issue linked to the documentation\n\nfound a small index error in the docstring for `sklearn.metrics.pairwise.paired_manhattan_distances`.\n\nThe docstring in `sklearn/metrics/pairwise.py` says it calculates distances up to: \n`\"(X[0], Y[0]), (X[1], Y[1]), ..., (X[n_samples], Y[n_samples]).\"`\n\nBecause Python starts counting at 0, the last item in an array of size `n_samples` is actually at `n_samples - 1`. If we try to use `X[n_samples]` in real code, Python throws an `IndexError`.\n\n### Steps/Code to Reproduce\nHere is a quick code example using the docstring's own matrix shape to show the error:\n\n```python\nimport sklearn\nimport numpy as np \n\nprint(f\"Scikit-Learn Version: {sklearn.__version__}\")\n\nn_samples = 3\nX = np.array([[1, 1, 0], [0, 1, 0], [0, 0, 1]]) \n\ntry:\n    X[n_samples] \nexcept IndexError as e:\n    print(f\"Error: {e}\")\n    \n# Output: Error: index 3 is out of bounds for axis 0 with size 3\n```\n`Scikit-Learn Version: 1.8.0`\n\n### Suggest a potential alternative/fix\n\nTo fix this, we just need to update the docstring in `sklearn/metrics/pairwise.py` to end with `(X[n_samples - 1], Y[n_samples - 1])`. \n\nLet me know if I should open a quick PR to patch this!",
+  "created_at": "2026-06-16T18:56:16Z",
+  "labels": [
+   "Documentation"
+  ]
+ },
+ {
+  "issue": 34354,
+  "pr": 34355,
+  "sha": "6c381f02211368addecca848be9f253e244d422c",
+  "gold": [
+   "sklearn/ensemble/_weight_boosting.py"
+  ],
+  "n_gold": 1,
+  "title": "DOC: fix grammatical errors in AdaBoostClassifier and AdaBoostRegressor docstrings",
+  "body": "### Describe the issue linked to the documentation\n\n### Describe the issue\n\nIn `sklearn/ensemble/_weight_boosting.py`, there are several grammatical \nerrors and inconsistencies in the docstrings of `AdaBoostClassifier` \nand `AdaBoostRegressor`:\n\n**1. Missing word in module docstring**\n\nCurrent:\n    This module structure is the following:\n\nShould be:\n    The module structure is as follows:\n\n**2. Grammar error in `decision_function` and `staged_decision_function`**\n\nCurrent (appears multiple times):\n    Binary classification is a special cases with ``k == 1``\n\nShould be:\n    Binary classification is a special case with ``k == 1``\n\n**3. Grammar error in `staged_decision_function`, `staged_predict_proba`**\n\nCurrent (appears multiple times):\n    The order of outputs is the same of that of the :term:`classes_` attribute.\n\nShould be:\n    The order of outputs is the same as that of the :term:`classes_` attribute.\n\n**4. Grammar error in reference citation in `AdaBoostRegressor`**\n\nCurrent:\n    An AdaBoost [1] regressor\n\nShould be:\n    An AdaBoost [1]_ regressor\n\nNote: `AdaBoostClassifier` correctly uses `[1]_` with the trailing \nunderscore for RST citation syntax, but `AdaBoostRegressor` is missing it.\n\n### Steps to reproduce\n\nOpen `sklearn/ensemble/_weight_boosting.py` and search for the phrases above.\n\n### Suggested fix\n\nFix the grammatical errors and citation syntax as described above.\n\n### Suggest a potential alternative/fix\n\n_No response_",
+  "created_at": "2026-06-21T13:16:35Z",
+  "labels": [
+   "Documentation"
+  ]
+ },
+ {
+  "issue": 34356,
+  "pr": 34359,
+  "sha": "6e3e447e3f3d879232bc13a8bd89eb7b43b3d96f",
+  "gold": [
+   ".pre-commit-config.yaml",
+   "sklearn/cluster/_k_means_common.pyx",
+   "sklearn/manifold/_utils.pyx"
+  ],
+  "n_gold": 3,
+  "title": "Ruff and Cython-lint generates new linting errors",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\nWith v0.15.18, ruff introduces more rules:\n\n```\n\nunnecessary-generator-set: Unnecessary generator (rewrite as a set comprehension)\n    --> sklearn/utils/validation.py:2540:17\n     |\n2539 |     if categorical_features.dtype.kind == \"O\":\n2540 |         types = set(type(f) for f in categorical_features)\n     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n2541 |         if types != {str}:\n2542 |             raise ValueError(\n     |\nhelp: Rewrite as a set comprehension\n\nFound 2439 errors.\n[*] 501 fixable with the `--fix` option (1431 hidden fixes can be enabled with the `--unsafe-fixes` option).\n(.venv) adamli@mac scikit-learn % ruff --version\nruff 0.15.18\n(.venv) adamli@mac scikit-learn % \n\n(.venv) adamli@mac scikit-learn % uv pip install \"ruff==0.12.2\"                   \nruff check --output-format=full\nruff format --diff\nResolved 1 package in 76ms\nUninstalled 1 package in 1ms\nInstalled 1 package in 2ms\n - ruff==0.15.18\n + ruff==0.12.2\nAll checks passed!\n957 files already formatted\n(.venv) adamli@mac scikit-learn % \n```\n\nSame with Cython-lint v0.16:\n\n```\n(.venv) adamli@mac scikit-learn % cython-lint --version\n0.16.0\n(.venv) adamli@mac scikit-learn % ./build_tools/linting.sh \n### Running the ruff linter ###\n\nAll checks passed!\nNo problem detected by the ruff linter\n\n### Running the ruff formatter ###\n\n957 files already formatted\nNo problem detected by the ruff formatter\n\n### Running mypy ###\n\nsklearn/utils/fixes.py:189: error: Module \"numpy\" has no attribute \"ComplexWarning\"  [attr-defined]\nsklearn/utils/fixes.py:189: error: Name \"ComplexWarning\" already defined (possibly by an import)  [no-redef]\nsklearn/utils/fixes.py:189: error: Module \"numpy\" has no attribute \"VisibleDeprecationWarning\"  [attr-defined]\nsklearn/utils/fixes.py:189: error: Name \"VisibleDeprecationWarning\" already defined (possibly by an import)  [no-redef]\nsklearn/callback/_progressbar.py:17: error: Need type annotation for \"_run_queues\" (hint: \"_run_queues: dict[<type>, <type>] = ...\")  [var-annotated]\nsklearn/callback/_progressbar.py:18: error: Need type annotation for \"_run_monitors\" (hint: \"_run_monitors: dict[<type>, <type>] = ...\")  [var-annotated]\nFound 6 errors in 2 files (checked 596 source files)\nProblems detected by mypy, please fix them\n\n### Running cython-lint ###\n\n/Users/adamli/Documents/scikit-learn/sklearn/cluster/_k_means_common.pyx:30:9: Loop control variable 'i' not used within the loop body (if this is intended, startthe name with an underscore)\n/Users/adamli/Documents/scikit-learn/sklearn/manifold/_utils.pyx:74:13: Loop control variable 'l' not used within the loop body (if this is intended, start the name with an underscore)\nProblems detected by cython-lint, please fix them\n\n### Checking for bad deprecation order ###\n\nNo problems detected related to deprecation order\n\n### Checking for default doctest directives ###\n\nNo problems detected related to doctest directives\n\n### Checking for joblib imports ###\n\nNo problems detected related to joblib imports\n\n### Linting completed ###\n\nLinting failed\n\n(.venv) adamli@mac scikit-learn % \n```\n\nI haven't tackled these issues in a bit in main. What's the best practice for doing this? Is there a pre-commit workflow, or should I do it manually?",
+  "created_at": "2026-06-21T16:37:20Z",
+  "labels": [
+   "Needs Triage"
+  ]
+ },
+ {
+  "issue": 34385,
+  "pr": 34386,
+  "sha": "dfe68afba23a9bbd654da69ec1074d090dba25a0",
+  "gold": [
+   "sklearn/utils/_encode.py",
+   "sklearn/utils/_missing.py",
+   "sklearn/utils/tests/test_encode.py"
+  ],
+  "n_gold": 3,
+  "title": "Optimize unique counts for `object` dtype (as used e.g. by OneHotEncoder)",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\nI profiled https://gist.github.com/ogrisel/1b24301bfc90d61ab2138bb7fbf7f623 to get a sense of what it does.\n\nIf you click through to the [interactive flamegraph](https://github.com/user-attachments/assets/df8d26b5-5624-4883-a41f-62998c1ad4a0) you'll see `sklearn.utils._encode._unique_python` is 10% of this profile, and most of that time is actually in counting the unique values.\n\nIt's possible to make that significantly faster, with noticeable improvements on the linked benchmark; I'll try to find a benchmark that is more focused too.\n\nEssentially you stick to Python's `Counter` and do post-processing on that, instead of subclassing and overriding it (cause it has a fast C implementation if you use it directly). I have a sketch that works, and will submit a PR that is less sketchy.",
+  "created_at": "2026-06-24T21:20:52Z",
+  "labels": [
+   "Needs Triage"
+  ]
+ },
+ {
+  "issue": 34401,
+  "pr": 34402,
+  "sha": "9dc4f7bdd233c9677b0977bb745cdd1e19f9c878",
+  "gold": [
+   "sklearn/linear_model/_ridge.py"
+  ],
+  "n_gold": 1,
+  "title": "DOC: fix typo and inconsistencies in RidgeClassifier docstrings",
+  "body": "### Describe the issue linked to the documentation\n\n### Describe the issue\n\nIn `sklearn/linear_model/_ridge.py`, there are several docstring issues \nin the Ridge classifier classes:\n\n**1. Typo in `_RidgeClassifierMixin.predict`**\n\nCurrent:\n    X : {array-like, spare matrix} of shape (n_samples, n_features)\n\nShould be:\n    X : {array-like, sparse matrix} of shape (n_samples, n_features)\n\n**2. Extra space in `Ridge` See Also section**\n\nCurrent:\n    RidgeClassifierCV :  Ridge classifier with built-in cross validation.\n\nShould be:\n    RidgeClassifierCV : Ridge classifier with built-in cross validation.\n\n**3. Missing RST function links in `RidgeClassifier` solver descriptions**\n\n`Ridge` correctly uses RST `:func:` links for solver references:\n    'cholesky' uses the standard :func:`scipy.linalg.solve` function\n    'sparse_cg' uses :func:`scipy.sparse.linalg.cg`\n    'lsqr' uses :func:`scipy.sparse.linalg.lsqr`\n\nBut `RidgeClassifier` describes the same solvers as plain text without \n`:func:` links, making the documentation inconsistent.\n\n### Steps to reproduce\n\nOpen `sklearn/linear_model/_ridge.py` and search for:\n- `spare matrix` in `_RidgeClassifierMixin.predict`\n- Double space after colon in the See Also section of `Ridge`\n- The solver descriptions in `RidgeClassifier` vs `Ridge`\n\n### Suggested fix\n\n- Fix `spare` \u2192 `sparse` in `_RidgeClassifierMixin.predict`\n- Remove extra space in See Also section\n- Add `:func:` RST links to solver descriptions in `RidgeClassifier`\n\n### Suggest a potential alternative/fix\n\n_No response_",
+  "created_at": "2026-06-28T12:38:10Z",
+  "labels": [
+   "Documentation"
+  ]
+ },
+ {
+  "issue": 34505,
+  "pr": 34508,
+  "sha": "25088e0aa006f9d8757b9cc2228fea33818f3454",
+  "gold": [
+   "sklearn/utils/_mask.py"
+  ],
+  "n_gold": 1,
+  "title": "Improve documentation of `safe_mask`",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\nThis issue is blocked for [EuroPython/EuroScipy Sprint](https://ep2026.europython.eu/sprints/) participants. \nPlease no other contributions for these two days.\n\nPlease talk with us first in person before starting to work, so we can help you pick a task and getting started.\n\n-------\n\nimprove documentation of `safe_mask`\nhttps://scikit-learn.org/stable/modules/generated/sklearn.utils.safe_mask.html\n\nThis is a small task that solely serves to explain to users when to use this util function. Adding somthing between 3 words up to 3 sentences should be enough.",
+  "created_at": "2026-07-18T08:02:10Z",
+  "labels": [
+   "Sprint",
+   "Needs Triage"
+  ]
+ },
+ {
+  "issue": 34511,
+  "pr": 34519,
+  "sha": "a15c336eb3bc1b50083d05d8a2228be0cd4ccc52",
+  "gold": [
+   "sklearn/ensemble/_gb.py"
+  ],
+  "n_gold": 1,
+  "title": "Inconsistent `_check_initialized` method: only present on gradient boosting estimators",
+  "body": "While reviewing #34495, I noticed that `_check_initialized` only exists on the gradient boosting estimators and nowhere else in the codebase. The method does nothing but wrap `check_is_fitted(self)`.\n\n## Steps to reproduce\n```\nfrom sklearn.ensemble import (\n    AdaBoostClassifier,\n    GradientBoostingClassifier,\n    GradientBoostingRegressor,\n    HistGradientBoostingClassifier,\n    RandomForestClassifier,\n)\nfrom sklearn.linear_model import LogisticRegression\n\nestimators = [\n    GradientBoostingClassifier(),\n    GradientBoostingRegressor(),\n    HistGradientBoostingClassifier(),\n    AdaBoostClassifier(),\n    RandomForestClassifier(),\n    LogisticRegression(),\n]\n\nfor est in estimators:\n    print(f\"{type(est).__name__:32s} _check_initialized? {hasattr(est, '_check_initialized')}\")\n```\n\n## Results\n```\nGradientBoostingClassifier       _check_initialized? True\nGradientBoostingRegressor        _check_initialized? True\nHistGradientBoostingClassifier   _check_initialized? False\nAdaBoostClassifier               _check_initialized? False\nRandomForestClassifier           _check_initialized? False\nLogisticRegression               _check_initialized? False\n```\n\n## Background\nI tried to trace how the method was introduced. As far as I can tell it first appeared in 2015 and was never explicitly discussed \u2014 the surrounding conversations are all about the apply method. Please correct me if I've missed something:\n- 2015: https://github.com/scikit-learn/scikit-learn/pull/5228\n- 2016: https://github.com/scikit-learn/scikit-learn/pull/7464\n- 2019: https://github.com/scikit-learn/scikit-learn/pull/14545\n\n## Questions\n1. Should `_check_initialized` be generalized across the other estimators \u2014 e.g. moved up into `BaseEnsemble`?\n2. Or should it be removed, since it's a redundant wrapper around `check_is_fitted` and inconsistent with the rest of the codebase?",
+  "created_at": "2026-07-18T13:34:25Z",
+  "labels": [
+   "Sprint"
+  ]
+ },
+ {
+  "issue": 34521,
+  "pr": 34524,
+  "sha": "ba726c5a88b7d1f6d812424248e21286eddec044",
+  "gold": [
+   "sklearn/utils/_testing.py"
+  ],
+  "n_gold": 1,
+  "title": "Doc CI failure due to seaborn bug",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\n\nDoc CI is currently failing: https://app.circleci.com/pipelines/github/scikit-learn/scikit-learn/80636/workflows/40ebac76-5fb3-4830-b972-27e2a16b2e3f/jobs/357479\n\ndue to a mpl warning:\n\n> matplotlib._api.deprecation.MatplotlibDeprecationWarning: vert: bool was deprecated in Matplotlib 3.11 and will be removed in 3.13. Use orientation: {'vertical', 'horizontal'} instead.\n\noriginating from our seaborn call:\n\nhttps://github.com/scikit-learn/scikit-learn/blob/75d19945ce2e46efaad65b81f01f0610164d1be8/examples/inspection/plot_linear_model_coefficient_interpretation.py#L370\n\nfixed in: https://github.com/mwaskom/seaborn/pull/3820\n\nbut AFAICT this is only released in the newest patch: https://sources.debian.org/patches/seaborn/0.13.2-6/ ?\n\n\n<details open>\n<summary>Details</summary>\n\n```\n    Traceback (most recent call last):\n      File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/sphinx/cmd/build.py\", line 432, in build_main\n        app.build(args.force_all, args.filenames)\n        ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n      File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/sphinx/application.py\", line 444, in build\n        self.events.emit('build-finished', None)\n        ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^\n      File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/sphinx/events.py\", line 441, in emit\n        results.append(listener.handler(self._app, *args))\n                       ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\n      File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/sphinx_gallery/gen_gallery.py\", line 1592, in summarize_failing_examples\n        raise ExtensionError(fail_message)\n    sphinx.errors.ExtensionError: Here is a summary of the problems encountered when running the examples:\n    \n    Unexpected failing examples (1):\n    \n        ../examples/inspection/plot_linear_model_coefficient_interpretation.py failed leaving traceback:\n    \n        Traceback (most recent call last):\n          File \"/home/circleci/project/examples/inspection/plot_linear_model_coefficient_interpretation.py\", line 370, in <module>\n            sns.boxplot(data=coefs, orient=\"h\", color=\"cyan\", saturation=0.5, whis=10)\n            ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n          File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/seaborn/categorical.py\", line 1634, in boxplot\n            p.plot_boxes(\n            ~~~~~~~~~~~~^\n                width=width,\n                ^^^^^^^^^^^^\n            ...<8 lines>...\n                plot_kws=kwargs,\n                ^^^^^^^^^^^^^^^^\n            )\n            ^\n          File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/seaborn/categorical.py\", line 700, in plot_boxes\n            artists = ax.bxp(**boxplot_kws)\n          File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/matplotlib/_api/deprecation.py\", line 477, in wrapper\n            return func(*args, **kwargs)\n          File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/matplotlib/axes/_axes.py\", line 4842, in bxp\n            _api.warn_deprecated(\n            ~~~~~~~~~~~~~~~~~~~~^\n                \"3.11\",\n                ^^^^^^^\n                name=\"vert: bool\",\n                ^^^^^^^^^^^^^^^^^^\n                alternative=\"orientation: {'vertical', 'horizontal'}\",\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n            )\n            ^\n          File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/matplotlib/_api/deprecation.py\", line 94, in warn_deprecated\n            warn_external(warning, category=MatplotlibDeprecationWarning)\n            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n          File \"/home/circleci/miniforge3/envs/testenv/lib/python3.14/site-packages/matplotlib/_api/__init__.py\", line 494, in warn_external\n            warnings.warn(message, category, **kwargs)\n            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        matplotlib._api.deprecation.MatplotlibDeprecationWarning: vert: bool was deprecated in Matplotlib 3.11 and will be removed in 3.13. Use orientation: {'vertical', 'horizontal'} instead.\n```\n\n</details>\n\ncc @lesteve \n",
+  "created_at": "2026-07-20T01:01:51Z",
+  "labels": [
+   "Documentation",
+   "Build / CI"
+  ]
+ },
+ {
+  "issue": 34542,
+  "pr": 34555,
+  "sha": "3e36503667b4ec33724f364aedcb14429d5e6c1d",
+  "gold": [
+   "sklearn/neighbors/tests/test_kd_tree.py"
+  ],
+  "n_gold": 1,
+  "title": "CI Pyodide failure `RuntimeError: can't start new thread`",
+  "body": "[build log](https://github.com/scikit-learn/scikit-learn/actions/runs/29892068423/job/88834325909)\n\nThis probably needs an additional `@pytest.mark.xfail(_IS_WASM, reason=\"cannot start threads\")` in the `neighbors/tests/test_kd_tree.py::test_thread_safety[42]` test.\n\nRember to push a commit with `[pyodide]` so that the Pyodide CI runs in the PR to make sure it passes.",
+  "created_at": "2026-07-22T07:47:46Z",
+  "labels": []
+ },
+ {
+  "issue": 34578,
+  "pr": 34594,
+  "sha": "63f2abff4003210103a0569664982ce384487dfa",
+  "gold": [
+   "sklearn/tree/_classes.py",
+   "sklearn/tree/tests/test_split.py",
+   "sklearn/tree/tests/test_tree.py"
+  ],
+  "n_gold": 3,
+  "title": "test_split_impurity or the code it tests seem to be unstable",
+  "body": "> [!WARNING]\n> This issue is not yet ready for a PR. If you are interested in contributing to scikit-learn, please have a look at our [contributing guidelines](https://scikit-learn.org/dev/developers/contributing.html), and in particular the sections for [new contributors](https://scikit-learn.org/dev/developers/contributing.html#new-contributors) and the [\"Needs triage\"](https://scikit-learn.org/dev/developers/contributing.html#issues-tagged-needs-triage) label.\n\nThe CI has been failing on `test_split_impurity` recently on `global_random_seed=15` on all platforms (see #34566).\n\nTesting locally with `SKLEARN_TESTS_GLOBAL_RANDOM_SEED=all pytest sklearn/tree/tests/test_split.py -k 'test_split_impurity' -v`\nI had this test failing for 10 (out of 100) different seeds and we can see from the test parametrisation there are two combinations that fail:\n\n```bash\nsklearn/tree/tests/test_split.py::test_split_impurity[15-dense-categorical-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[26-dense-categorical-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[28-dense-categorical-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[31-dense-categorical-with_missing-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[34-dense-categorical-with_missing-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[60-dense-categorical-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[66-dense-categorical-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[79-dense-categorical-with_missing-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[95-dense-categorical-with_missing-DecisionTreeRegressor-absolute_error] FAILED\nsklearn/tree/tests/test_split.py::test_split_impurity[99-dense-categorical-with_missing-DecisionTreeRegressor-absolute_error] FAILED\n```\n\nPinging @cakedev0 and @adam2392, since you have both worked on this test in #32193 and #33354.\nIt may be the latter PR that caused this (that was merged 2 weeks ago), since otherwise we should have seen failures on other seeds in the CI, which we have not.",
+  "created_at": "2026-07-27T09:17:45Z",
+  "labels": [
+   "module:tree",
+   "Needs Investigation"
   ]
  }
 ]

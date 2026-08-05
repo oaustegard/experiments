@@ -87,57 +87,77 @@ Sanity check on comparability: the grep baseline lands at **r@5 0.667 / r@10
 0.778**, against the prior run's 0.57 / 0.79 at n=7. Same ballpark, so the
 re-mined set is of comparable difficulty.
 
-### Results (mean over 6 instances)
+### Results — n=6 first, then n=59
+
+The original run was **n=6**. It has since been re-mined to **n=59** (same
+procedure, 630 PRs harvested, 97 candidates with live gold, 59 with retrievable
+issue bodies). **The n=6 headline does not replicate.**
 
 | cell | rg r@5 | rg r@10 | bekko r@5 | bekko r@10 | RRF r@5 | RRF r@10 |
 |---|---|---|---|---|---|---|
-| ast / a8m | 0.667 | 0.778 | 0.806 | **0.889** | **0.889** | **0.889** |
-| ast / a25m | 0.667 | 0.778 | 0.806 | 0.806 | **0.889** | **0.889** |
-| flat / a8m | 0.667 | 0.778 | **0.833** | **0.889** | 0.833 | 0.889 |
-| flat / a25m | 0.667 | 0.778 | 0.806 | **0.889** | **0.889** | **0.889** |
+| ast / a8m | 0.596 | 0.682 | **0.595** | 0.667 | 0.662 | 0.728 |
+| ast / a25m | 0.596 | 0.682 | 0.656 | 0.706 | 0.650 | 0.733 |
+| flat / a8m | 0.596 | 0.682 | 0.658 | **0.744** | 0.672 | **0.762** |
+| flat / a25m | 0.596 | 0.682 | 0.644 | 0.708 | 0.674 | 0.751 |
 
-The full 2x2 is reported. Every cell puts dense at r@5 0.806-0.833 and RRF at
-0.833-0.889 against grep's flat 0.667, so the headline does not depend on which
-cell you pick.
+At n=6 this table read **rg 0.667 / dense 0.806 / RRF 0.889** for ast/a8m. At
+n=59 dense/a8m lands at **0.595 against grep's 0.596 — a dead tie**, and *worse*
+at r@10 (0.667 vs 0.682).
 
-Prior runs, for reference: naive rg 0.57/0.79; retired **TF-IDF** tier 0.36/0.74.
+### Paired tests at n=59 — one finding survives, and it is not the headline
 
-### The decision gate — passes
+Sign test on per-instance recall differences, plus a paired bootstrap CI:
 
-> Build only if bekko clears rg at r@5 on the identifier-poor stratum **and**
-> does not regress on the identifier-rich stratum.
+| comparison | Δ | 95% CI | w/l | p | verdict |
+|---|---|---|---|---|---|
+| dense ast/a8m beats rg (r@5) | **−0.001** | [−0.099, +0.097] | 12/14 | 0.845 | **noise** |
+| dense ast/a25m beats rg (r@5) | +0.061 | [−0.041, +0.164] | 14/10 | 0.541 | noise |
+| dense flat/a8m beats rg (r@5) | +0.062 | [−0.017, +0.150] | 11/10 | 1.000 | noise |
+| RRF flat/a8m beats rg (r@5) | +0.076 | [+0.019, +0.145] | 10/4 | 0.180 | suggestive |
+| RRF flat/a8m beats rg (r@10) | +0.080 | [+0.021, +0.150] | 10/3 | 0.092 | suggestive |
+| chunking: flat beats ast (a8m, r@5) | +0.063 | [−0.009, +0.144] | 9/5 | 0.424 | noise |
+| **encoder: a25m beats a8m (ast, r@5)** | **+0.061** | **[+0.022, +0.105]** | **13/1** | **0.0018** | **SUPPORTED** |
 
-| stratum | n | rg r@5 | bekko r@5 (ast/a8m) |
+**No dense-vs-grep comparison is significant in any cell.** RRF is directionally
+ahead everywhere and its bootstrap CIs exclude zero, but the sign test does not
+clear 0.05 — recall ties dominate, which makes the sign test conservative and the
+two tests disagree. Read RRF as *suggestive, not established*.
+
+The one solid result is **a25m > a8m (13 wins to 1, p=0.0018)** — which
+**reverses the n=6 conclusion** that "a25m does not earn its cost". At n=6 a25m
+looked *worse* at r@10; at n=59 it is reliably better. The extra 9 layers do buy
+something; whether they buy 3x the encode time is a separate call.
+
+### The decision gate, re-evaluated
+
+| cell | poor stratum (n=1) | rich stratum (n=58) | gate |
 |---|---|---|---|
-| identifier-poor (#22186) | 1 | **0.000** | **0.667** |
-| identifier-rich | 5 | 0.800 | 0.833 |
+| ast / a8m | 0.667 vs rg 0.000 — clears | 0.594 vs rg 0.606 — **regresses** | **FAIL** |
+| ast / a25m | 0.667 vs rg 0.000 — clears | 0.656 vs rg 0.606 — ok | pass |
+| flat / a8m | 0.333 vs rg 0.000 — clears | 0.663 vs rg 0.606 — ok | pass |
 
-Clears on the poor stratum (grep scores *zero* — it has nothing to grep for);
-no regression on the rich stratum (r@10 tied at 0.933). **This is a real
-reversal of the TF-IDF result**, and it is exactly the reversal the handoff
-predicted: the 2026-07 replication falsified TF-IDF, not dense retrieval.
+**The gate now depends on which cell you pick**, which is itself the finding: at
+n=6 it passed on the cell I happened to run first. And the identifier-poor
+stratum is **still n=1 of 59** — 10x the sample bought no additional
+identifier-poor instances, which independently corroborates the ~0.3% base rate
+from `ecc4caad` and means the stratum the gate turns on remains untestable.
 
-**But report it as the thin slice it is.** n=1 on the deciding stratum, against
-a standing base rate of 2/600 (~0.3%) of merged sklearn PRs fixing
-identifier-poor issues. A win here is a win on ~0.3% of traffic.
-
-The StackOverflowQA warning in the handoff (a8m 74.9 vs gte-base 87.1) did not
-show up as a disqualifier at this n — but n=6 cannot detect it either.
-
-### Fusion is the actual recommendation
-
-RRF(rg, bekko) is the best arm at r@5 (0.889 vs 0.806 dense-only, 0.667
-rg-only) because the two fail on **disjoint** instances. Dense alone regressed
-on #18318 (r@5 0.50); fusion recovers it to 1.00 while keeping the #22186 win.
-Neither arm alone dominates; the union does.
+**Consequence for the 2026-07 verdict: it stands.** This experiment does *not*
+overturn the retirement of the semantic tier. The n=6 reversal was noise; a
+neural encoder ties identifier grep on well-specified issues, which is what the
+original replication concluded about TF-IDF.
 
 ### Cost — both framings, because only one is flattering
 
-| arm | tokens (6 instances) | wall |
+| arm | tokens (n=59) | tokens (n=6, original) |
 |---|---|---|
-| `rg` full line output | 328,230 | 0.8 s |
-| **`rg -l` (filenames only)** | **13,336** | 0.8 s |
-| bekko dense, top-10 chunks | 25,568 | 1.0 s (+ index) |
+| `rg` full line output | 6,385,339 | 328,230 |
+| **`rg -l` (filenames only)** | **315,470** | 13,336 |
+| bekko dense, top-10 chunks | 200,071 | 25,568 |
+
+At n=59 dense is **1.6x cheaper** than `rg -l`, where at n=6 it was 2x more
+expensive — the larger sample includes more identifier-heavy issues whose grep
+output is large. Against `rg`'s full line output dense is 32x cheaper.
 
 Charging `rg` its full line output makes dense look **12.8x cheaper**. That is
 not an honest baseline for a *file*-discovery metric: `rg -l` returns exactly
