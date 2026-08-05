@@ -47,9 +47,56 @@ to carry a second copy of it. Both choices come from
 is statistically indistinguishable from uncompressed fp32 (n=59, p=1.0), and
 1-bit is measurably worse (p=0.008).
 
-The encoder (~124 MB) is fetched to `~/.cache/repo-index` on first use, or set
-`$BEKKO_HOME`. Requires `onnxruntime`, `tokenizers`, `numpy`, and `remex` on
-`PYTHONPATH`.
+## Keeping it current
+
+`.github/workflows/repo-index.yml` rebuilds on any markdown change to `main`
+and commits the result. A full rebuild is ~33 s, so there is no incremental
+path to maintain — and because the build is deterministic on a fixed toolchain,
+an unchanged corpus produces a byte-identical artifact and no commit.
+
+**The encoder is pinned by sha256, with Hugging Face as the source and this
+repo's own releases as the intended mirror** (`repo-index-model-v1`).
+
+> **The mirror release is not published yet.** Until it is, `ask.py` logs one
+> expected `HTTPError` per file and falls back to Hugging Face — which works,
+> and the sha256 check still runs, so integrity is enforced either way. What is
+> missing is only the rate-limit and availability insurance. To publish it:
+>
+> ```bash
+> gh release create repo-index-model-v1 --title "repo-index encoder (pinned)" \
+>   --notes "Mirror of hotchpotch/bekko-embedding-v1-a8m (MIT). sha256 96d8cc61…"
+> python3 repo-index/mirror_model.py | cut -d' ' -f1 \
+>   | xargs gh release upload repo-index-model-v1
+> ```
+>
+> (Claude Code sessions cannot create releases — the agent proxy returns
+> *"Creating, editing, or deleting releases is not permitted for this session
+> type"* — so this step is a human one.) bekko-embedding-v1-a8m
+is MIT, so mirroring is permitted. Pinning is not only about availability and
+rate limits: **a different encoder silently changes the embedding space**, so
+`ask.py` verifies the hash and refuses to build against the wrong file.
+`mirror_model.py` prints the files and hashes to upload.
+
+### The failure this design is actually guarding against
+
+`remex`'s own rule is that *the rotation is part of the encoding*. Here it is
+**regenerated from the seed at query time** rather than stored — and numpy's
+LAPACK QR can drift across BLAS builds. A CI-built index queried on a different
+machine could therefore land in a **different space with no error at all**, just
+quietly worse results.
+
+So `manifest.json` records a **fingerprint of the actual rotation matrix**, and a
+query that recomputes a different one prints a loud warning. Versions
+(`numpy`, `onnxruntime`, `remex`) are recorded too but are *informational* — a
+git checkout of remex reports `0.0.0+unknown` where CI installs `0.6.0`, so the
+enforced invariant is the fingerprint, not the version string. The workflow pins
+`numpy`, `onnxruntime`, `tokenizers` and `remex` for the same reason: an
+unpinned bump would rewrite every code and churn the diff.
+
+## Requirements
+
+`onnxruntime`, `tokenizers`, `numpy`, `remex`. The encoder (~124 MB) lands in
+`~/.cache/repo-index`, or set `$BEKKO_HOME`.
 
 ## Caveat on the evaluation
 
