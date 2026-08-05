@@ -46,7 +46,18 @@ python3 repo-index/ask.py "about to fan out concurrent LLM calls through a gatew
 
 python3 repo-index/ask.py --build      # after adding or editing markdown
 python3 repo-index/ask.py --verify     # stored rotation vs seed regeneration
+
+# drop results by path. No glob metacharacter -> substring; with *?[ -> glob
+# against the whole relative path. Repeatable. Filters after scoring, so -k
+# still returns k — excluded slots are backfilled, not left as gaps.
+python3 repo-index/ask.py "vector retrieval" --exclude ms13-campaign
+python3 repo-index/ask.py "vector retrieval" --exclude '*/vendor/*' --exclude '*skill_template*'
 ```
+
+`--exclude` is per-query and reversible; the `outputs/`/`prompts/` exclusion
+below is at build time and those chunks are not in the index at all. That is the
+right split — generated model output is never the answer, whereas a directory
+that is a false hit for one query is the correct answer for another.
 
 Complement to the grep instruction, not a replacement — run both.
 
