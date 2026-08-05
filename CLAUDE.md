@@ -16,6 +16,18 @@ combinatorial-search-shaped.
 grep -i -A3 'concurrency\|quantiz\|<your topic>' METHODS.md
 ```
 
+Grep only works if you already know the term. When you don't — which is the
+usual shape of this failure — use the semantic index alongside it:
+
+```bash
+python3 repo-index/ask.py "about to fan out concurrent LLM calls through a gateway"
+```
+
+On this repo's own documented rediscoveries it finds the prior 5/5 from a
+plain description of what you are about to do, where grep on the query's own
+words finds 1/5. It does not replace the grep — run both. See
+[`repo-index/README.md`](repo-index/README.md), including its caveats.
+
 This is not boilerplate diligence — it is the specific failure this repo has
 already had twice:
 
