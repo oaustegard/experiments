@@ -416,6 +416,30 @@ the result.
   <=0.022, straddling fp32), so quality does not break the tie either.
   (`bekko-embedding-bench/RESULTS.md` §7)
 
+- **A relocated file is indistinguishable from a deleted one by path — detect
+  moves by content.** `git log --diff-filter=D` reports a moved file as deleted
+  at its old path. Building a "deleted content" corpus from that put **live**
+  content into the gone-corpus: 5 of 21 `remax` files had been relocated
+  (`src/remax/bench/*` → `bench/*`), inflating the corpus 27% and manufacturing a
+  false positive where a *live* `crossover.py` satisfied a query whose gold was
+  its deleted path. Detect by content overlap (>50% of non-trivial lines present
+  in some live file), not by path or basename — basename matching would wrongly
+  drop `src/remax/bench/__init__.py`, which is genuinely gone. General form:
+  **when a control arm scores on a query only the treatment should be able to
+  answer, suspect the answer key before believing the arm.** That anomaly, not
+  inspection, is what surfaced this.
+  (`history-tombstone-index/RESULTS.md`)
+- **Writing your rejections down preserves the verdict, not the mechanism.** A
+  repo with an explicit "delete the driver, never the record" convention
+  (`remax`) answered 5/6 "was X ever tried?" questions from its surviving prose
+  alone — and **0/6** "how was X implemented?". A writeup saying "the encoder,
+  its CSR-builder and a BEIR benchmark were all built" tells you the thing
+  existed and lost; it does not carry the signature, the batching, or what the
+  tests asserted. Indexing deleted files alongside the working tree scored 12/12
+  where the tree alone scored 5/12, for +19% corpus. So the discipline is worth
+  keeping *and* is not a substitute — and if you want the mechanism to survive a
+  deletion, the writeup has to contain the code, not describe it.
+  (`history-tombstone-index/RESULTS.md`)
 - **More retrieval arms is not monotonically better — RRF is unweighted, so a
   weak arm votes as loudly as a strong one.** Fusing dense + stored-BM25 scored
   24/24; adding ripgrep as a third arm dropped it to **22/24**. Fusion helps only
