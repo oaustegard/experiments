@@ -19,6 +19,7 @@ First run downloads the encoder (~124 MB) to $BEKKO_HOME or ~/.cache/repo-index.
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import hashlib
 import json
 import os
@@ -41,6 +42,18 @@ HF = "https://huggingface.co/hotchpotch/bekko-embedding-v1-a8m/resolve/main"
 FILES = {"onnx/model.onnx": "model.onnx", "tokenizer.json": "tokenizer.json",
          "config.json": "config.json"}
 SKIP = {".git", "node_modules", "__pycache__", ".venv"}
+# Directories of machine-generated model output — an experiment's *data*, not its
+# findings. 173 files, all `run_NN.md`-shaped near-duplicates, and they were 20%
+# of the corpus. Measured: excluding them took agreement-with-grep on
+# keyword-bearing queries from 8/10 to 10/10 (both misses were identifier lookups
+# answered with LLM chatter) while the 5 rediscovery cases stayed 5/5.
+GENERATED = {"outputs", "prompts"}
+# .py earns its place: on the duplication map METHODS.md recorded by hand,
+# querying with a file's own text finds a known sibling 9/9 (ranks 1-3), and
+# content-only scores the same as with a path header, so it is not filename
+# matching. Adding it left rediscovery at 5/5 and moved keyword queries to the
+# definition (ascii_fold -> _lib/textnorm.py rather than a prose mention).
+GLOBS = ("*.md", "*.py")
 MIN_CHARS, MAX_CHARS = 200, 2000
 BITS, DIM, SEED = 2, 384, 0
 # Pinned explicitly, never left to remex's default. remex documents that
@@ -159,8 +172,8 @@ class Encoder:
 
 def chunk_repo() -> list[dict]:
     out = []
-    for p in sorted(REPO.rglob("*.md")):
-        if any(d in p.parts for d in SKIP):
+    for p in sorted(sum((list(REPO.rglob(g)) for g in GLOBS), [])):
+        if any(d in p.parts for d in SKIP | GENERATED):
             continue
         rel = str(p.relative_to(REPO))
         lines = p.read_text(errors="ignore").split("\n")
@@ -200,7 +213,21 @@ def build() -> None:
     print(f"wrote index: {size / 2**20:.2f} MB", file=sys.stderr)
 
 
-def query(q: str, k: int) -> None:
+def excluded(path: str, patterns: list[str]) -> bool:
+    """Match a pointer path against --exclude patterns.
+
+    A pattern with no glob metacharacter is treated as a substring, so
+    `--exclude ms13-campaign` does the obvious thing; anything with `*?[` is
+    matched as a glob against the whole relative path (`--exclude '*/vendor/*'`).
+    """
+    for pat in patterns:
+        g = pat if any(c in pat for c in "*?[") else f"*{pat}*"
+        if fnmatch.fnmatch(path, g):
+            return True
+    return False
+
+
+def query(q: str, k: int, exclude: list[str] | None = None) -> None:
     import remex
     ptr = json.load(open(HERE / "pointers.json"))
     shape = json.loads((HERE / "shape.json").read_text())
@@ -225,7 +252,7 @@ def query(q: str, k: int) -> None:
     seen, shown = set(), 0
     for i in np.argsort(-(xhat @ qv)):
         key = (ptr[i]["f"], ptr[i]["s"] // 40)
-        if key in seen:
+        if key in seen or (exclude and excluded(ptr[i]["f"], exclude)):
             continue
         seen.add(key)
         print(f"  {ptr[i]['f']}:{ptr[i]['s']}")
@@ -259,15 +286,35 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("query", nargs="*")
     ap.add_argument("--build", action="store_true")
+    ap.add_argument("--file", metavar="PATH",
+                    help="use a file's text as the query — 'does something like this already exist?'. Excludes the file itself from results.")
     ap.add_argument("--verify", action="store_true",
                     help="check the stored rotation against seed regeneration")
     ap.add_argument("-k", type=int, default=8)
+    ap.add_argument("--exclude", action="append", metavar="PAT", default=[],
+                    help="drop results whose path matches; substring, or a glob "
+                         "if it contains *?[. Repeatable.")
     a = ap.parse_args()
     if a.build:
         build()
     elif a.verify:
         verify()
+    elif a.file:
+        src = Path(a.file).resolve()
+        text = "\n".join(src.read_text(errors="ignore").split("\n")[:60])
+        drop = list(a.exclude)
+        if src.is_relative_to(REPO):
+            rel = src.relative_to(REPO)
+            # Exclude the query file's whole directory, not just the file. The
+            # question is "does this exist *elsewhere*", and same-directory
+            # neighbours otherwise fill every slot: querying with
+            # muninn-embedder-bakeoff/bench.py returned four files from its own
+            # directory, and dropping them surfaced the documented sibling
+            # jina-int8-remax_kb/bench.py at rank 1. Use the plain query form if
+            # you do want local hits.
+            drop.append(f"{rel.parent}/*" if rel.parent != Path(".") else str(rel))
+        query(text, a.k, drop)
     elif a.query:
-        query(" ".join(a.query), a.k)
+        query(" ".join(a.query), a.k, a.exclude)
     else:
         ap.print_help()
