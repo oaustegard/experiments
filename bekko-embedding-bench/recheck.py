@@ -85,6 +85,23 @@ def main() -> int:
           all(abs(CE[m]["dense_r5"] - CE[m]["rg_r5"]) < 0.08 for m in CE),
           " ".join(f"{m}={CE[m]['dense_r5']:.3f}" for m in CE))
 
+    # ── quantization on CODE (not just the blog corpus) ─────────────────────
+    Q = {(r["codec"], r["param"], r["dim"]): r
+         for r in json.load(open(HERE / "results_code_quant.json"))}
+    q1, q2 = Q[("remex", 1, 384)], Q[("remex", 2, 384)]
+    f384, f64 = Q[("fp32", 32, 384)], Q[("fp32", 32, 64)]
+    check("CODE: quantize-wide beats truncate-narrow (1-bit@48B vs fp32 d=64@256B)",
+          q1["r@5"] > f64["r@5"] and q1["bytes"] < f64["bytes"],
+          f"{q1['r@5']:.3f}@{q1['bytes']}B vs {f64['r@5']:.3f}@{f64['bytes']}B")
+    check("CODE: 2-bit@96B matches uncompressed@1536B",
+          abs(q2["r@5"] - f384["r@5"]) < 0.03,
+          f"{q2['r@5']:.3f} vs {f384['r@5']:.3f}")
+    check("CODE: 1-bit is NOT free vs full fp32 (honest limit)",
+          q1["r@5"] < f384["r@5"], f"{q1['r@5']:.3f} vs {f384['r@5']:.3f}")
+    check("CODE: best dense arm still only ties grep",
+          max(r["r@5"] for r in Q.values()) < 0.70,
+          f"best r@5 {max(r['r@5'] for r in Q.values()):.3f} vs grep 0.596")
+
     # ── Part B ──────────────────────────────────────────────────────────────
     B = json.load(open(HERE / "results_partb.json"))
     for f in B["fidelity"]:

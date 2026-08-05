@@ -1103,6 +1103,95 @@ n=6 to n=50 costs search-API calls, not GPU-minutes**, and the miner
 (`scripts/mine.py` + the date-window recovery procedure) already exists.
 
 
+## Quantization on CODE, and whether a `.kb` sidecar for a repo is tenable
+
+Two gaps closed. The byte-budget ladder elsewhere in this file ran **only on the
+blog corpus** via self-retrieval; bit-depth behaviour is distribution-specific
+(the one-bit-beats-two inversion *is* that), so none of it should have been
+assumed to transfer. Re-run over the **11,380-chunk scikit-learn AST corpus**,
+scored on the **real n=59 file-discovery task** rather than self-retrieval:
+
+| configuration | bytes/vec | r@5 | r@10 | +grep (RRF) r@10 |
+|---|---|---|---|---|
+| fp32 d=384 (uncompressed) | 1536 | 0.656 | 0.706 | 0.734 |
+| fp32 d=256 | 1024 | 0.642 | 0.699 | 0.710 |
+| fp32 d=128 | 512 | 0.615 | 0.654 | 0.692 |
+| **fp32 d=64** (vendor floor) | **256** | **0.526** | 0.645 | 0.706 |
+| **remex 1-bit d=384** | **48** | **0.614** | 0.687 | 0.723 |
+| **remex 2-bit d=384** | **96** | **0.661** | **0.718** | 0.695 |
+| remex 4-bit d=384 | 192 | **0.673** | 0.714 | 0.728 |
+| remax k=1 d=384 | 48 | 0.606 | 0.658 | 0.724 |
+| remax k=2 d=384 | 96 | 0.619 | 0.686 | 0.718 |
+| remax k=8 d=384 | 384 | 0.638 | 0.704 | 0.704 |
+
+**The blog finding replicates on code — and here it is significant** (paired,
+n=59, r@5):
+
+| comparison | Δ | 95% CI | w/l | p | verdict |
+|---|---|---|---|---|---|
+| **remex 1-bit @48 B beats fp32 d=64 @256 B** | **+0.087** | [+0.023, +0.159] | 12/3 | **0.0352** | **SUPPORTED** |
+| remex 2-bit @96 B vs fp32 d=384 @1536 B | +0.005 | [−0.029, +0.049] | 2/2 | 1.000 | **tie** |
+| remex 1-bit @48 B vs fp32 d=384 @1536 B | **−0.043** | [−0.078, −0.013] | 0/8 | **0.0078** | **real loss** |
+
+So on code: **quantize wide rather than truncate narrow** (1-bit at 48 B beats
+d=64 at 256 B — 5.3x smaller *and* better, and unlike the blog corpus this one
+clears significance). **2-bit at 96 B is statistically indistinguishable from the
+uncompressed vector at 1536 B — 16x smaller for no measurable loss.** But **1-bit
+is not free**: it loses to full fp32 by a real margin (0 wins to 8). The sweet
+spot on code is **2-bit**. remex beats remax at every matched budget, as on blog.
+
+### Sidecar sizing — and a design point specific to code
+
+A code sidecar **does not need to carry the corpus text**, because the corpus
+*is* the working tree. Chunks collapse to `(path, start-line)` pointers:
+
+| component | size |
+|---|---|
+| scikit-learn source (`.py/.pyx/.pxd/.tp`) | 14.1 MB |
+| chunk text, if carried (as a blog `.kb` does) | 11.3 MB raw |
+| **chunk pointers instead (path + start), gzipped** | **0.04 MB** |
+| vectors, remex 1-bit | 0.52 MB |
+| vectors, remex 2-bit | 1.04 MB |
+
+| sidecar | total | share of source tree |
+|---|---|---|
+| **remex 1-bit** | **0.56 MB** | **4.0%** |
+| **remex 2-bit** | **1.08 MB** | **7.7%** |
+
+### Verdict: tenable on size and freshness, unproven on value
+
+**Size — yes, comfortably.** ~1 MB beside a 14 MB source tree, at quality
+statistically equal to uncompressed vectors.
+
+**Staleness — yes, if updated incrementally.** Measured churn over the last 197
+code-touching commits: **median 2 files, mean 3.9, p90 7**, at ~16.9 chunks/file.
+A median commit invalidates ~34 chunks:
+
+| | median commit | full rebuild |
+|---|---|---|
+| bekko-a8m | **1.9 s** | ~10 min |
+| bekko-a25m | 5.6 s | ~33 min |
+| jina-code | ~14 s | 62 min |
+
+So a post-commit hook is entirely practical; a full rebuild per commit is not.
+Note the `.kb` v1 format is immutable — incremental update needs **v2**
+(`.kbi`/`.kbc`, tombstones + mutation), which exists.
+
+**Value — this is the weak leg, and it is the same weak leg as the rest of Part
+A.** At its best the sidecar scores r@5 0.673 / r@10 0.718, against plain `rg`'s
+**0.596 / 0.682** — a tie, not a win, and no dense-vs-grep comparison in this
+experiment reached significance at n=59. What the sidecar buys is the **fusion**
+arm (RRF r@10 0.723–0.734) and coverage of queries where grep has nothing to
+match on. That is a real but modest benefit for a ~1 MB artifact and a ~36 ms
+query (bekko-a25m at 1 vCPU, plus scan, *assuming* the §6 binarizer cache fix —
+without it, ~90 ms).
+
+**Recommendation:** tenable, and cheap enough that the size and freshness
+objections do not bite. But build it as a *fusion partner for grep*, not a
+replacement — on this evidence a code `.kb` that replaces `rg` buys nothing, and
+one that supplements it buys ~+0.04 r@10.
+
+
 ## Where the harness should live
 
 It has now been rebuilt three times, and **the code was never the expensive
