@@ -416,6 +416,105 @@ the result.
   <=0.022, straddling fp32), so quality does not break the tie either.
   (`bekko-embedding-bench/RESULTS.md` §7)
 
+- **A relocated file is indistinguishable from a deleted one by path — detect
+  moves by content.** `git log --diff-filter=D` reports a moved file as deleted
+  at its old path. Building a "deleted content" corpus from that put **live**
+  content into the gone-corpus: 5 of 21 `remax` files had been relocated
+  (`src/remax/bench/*` → `bench/*`), inflating the corpus 27% and manufacturing a
+  false positive where a *live* `crossover.py` satisfied a query whose gold was
+  its deleted path. Detect by content overlap (>50% of non-trivial lines present
+  in some live file), not by path or basename — basename matching would wrongly
+  drop `src/remax/bench/__init__.py`, which is genuinely gone. General form:
+  **when a control arm scores on a query only the treatment should be able to
+  answer, suspect the answer key before believing the arm.** That anomaly, not
+  inspection, is what surfaced this.
+  (`history-tombstone-index/RESULTS.md`)
+- **Writing your rejections down preserves the verdict, not the mechanism.** A
+  repo with an explicit "delete the driver, never the record" convention
+  (`remax`) answered 5/6 "was X ever tried?" questions from its surviving prose
+  alone — and **0/6** "how was X implemented?". A writeup saying "the encoder,
+  its CSR-builder and a BEIR benchmark were all built" tells you the thing
+  existed and lost; it does not carry the signature, the batching, or what the
+  tests asserted. Indexing deleted files alongside the working tree scored 12/12
+  where the tree alone scored 5/12, for +19% corpus. So the discipline is worth
+  keeping *and* is not a substitute — and if you want the mechanism to survive a
+  deletion, the writeup has to contain the code, not describe it.
+  (`history-tombstone-index/RESULTS.md`)
+- **More retrieval arms is not monotonically better — RRF is unweighted, so a
+  weak arm votes as loudly as a strong one.** Fusing dense + stored-BM25 scored
+  24/24; adding ripgrep as a third arm dropped it to **22/24**. Fusion helps only
+  when the arms fail on *different* queries and each is individually credible;
+  an arm whose ranking is near-noise on one query class (rg on "find a file like
+  this one": 3/9) actively drags the consensus. Test each arm alone before
+  fusing, and add an arm only if the fused score improves — not because more
+  signal sounds better. Related: **ripgrep cannot be a fusion arm for similarity
+  queries at all**, because it returns a set rather than a ranking, and counting
+  matched terms does not recover a ranking it never produced.
+  (`hybrid-code-index/RESULTS.md`)
+- **Volume does not predict corpus pollution — similarity to real queries does.**
+  Two dilution cases in the same tool, opposite outcomes: 173 `run_NN.md` model
+  generations at **20%** of the corpus measurably crowded out real answers
+  (keyword agreement 8/10 → 10/10 once excluded), while generated `.json` results
+  data at **79%** of the corpus was completely **inert** (24/24 fused, with and
+  without). The difference is that the model output was topically on-subject
+  *prose* competing directly with real answers, whereas JSON is lexically alien —
+  the encoder maps it somewhere no natural query goes. So do not reach for a
+  build-time exclusion on size or share; measure whether the content is
+  *reachable* by the queries you serve. It is not free either way: the lexical
+  arm's postings inflated 1 MB → 6.36 MB (138k terms) on the JSON.
+  (`hybrid-code-index/RESULTS.md`)
+- **Incremental indexing is exactly equivalent to a full rebuild only for
+  components that are not fitted on the corpus.** Content-hash chunk reuse gave a
+  **bit-identical** matrix (max abs delta 0.000e+00) at 0.2 s against a 537 s full
+  build — 2735x — because the encoder is per-chunk independent and remex
+  quantization is data-oblivious. **BM25 breaks this**: IDF shifts for every term
+  whenever any document is added, so the lexical arm must be refit wholesale
+  (affordable at 5.2 s, but not incrementalizable). Same for PCA, k-means, ITQ,
+  and PQ codebooks. Before building an incremental path, ask which components
+  depend on corpus statistics — those are the ones where "incremental" silently
+  means "approximate". Note also what incremental does *not* fix: a **committed**
+  index is a binary blob stored whole per commit (1.00 MB codes + 6.36 MB
+  postings here, ~1.5 GB of history at 200 rebuilds), so cheap rebuilds and cheap
+  history are separate problems with separate fixes.
+  (`hybrid-code-index/hcindex.py::incremental`)
+- **A baseline scoped to a narrower corpus than the system under test reports
+  improvements as regressions.** After `repo-index` was extended from `.md` to
+  `.md`+`.py`, its keyword benchmark fell 10/10 → 7/10 and looked like a clear
+  regression to revert. All three "regressions" were the index returning the
+  **definition** instead of a prose mention — `ascii_fold` → `_lib/textnorm.py`,
+  `GRID_VERSION` → `remex-vs-higgs-ablation/grids.py` — and the grep arm was
+  still pinned to `--glob '*.md'`, so a correct `.py` answer could not score.
+  Matched arm: 9/10. Whenever the system's corpus, file types, or candidate set
+  changes, re-scope the baseline in the same commit; a frozen baseline silently
+  becomes a different question. Related trap in the same tool: a *harness that
+  embeds its own queries* joins the corpus it searches — `code-index-duplication/
+  run.py` contains all nine NL queries verbatim and retrieved itself in the top 5
+  for 4 of 9, worth 2 points of hit@5. (`code-index-duplication/RESULTS.md`)
+- **Report the configuration the tool ships, not the one the harness finds most
+  flattering.** The same experiment first scored 9/9 excluding only the query
+  *file* — but in real CLI use, same-directory neighbours filled every result
+  slot, so `--file` excludes the query's whole *directory*. The harness was
+  changed to match before any number was written down. Headline was unchanged
+  here; the discipline is what matters, because the gap between "what I measured"
+  and "what it does" is invisible in the writeup unless you go looking.
+  (`code-index-duplication/RESULTS.md`)
+- **A semantic index over a repo that stores model output will rank that output
+  against real questions — exclude generated directories.** `repo-index` indexed
+  `haiku-assessment/**/outputs/` and `**/prompts/`: 173 `run_NN.md`-shaped
+  near-duplicate generations, **20% of the corpus**. They were not inert filler.
+  Agreement with grep on ten keyword-bearing queries was 8/10, and *both* misses
+  were identifier lookups (`ascii_fold`, `GRID_VERSION`) answered with a sample
+  of LLM output instead of the file that defines the thing; vague queries would
+  return five near-identical `run_0N.md` chunks in a row. Excluding those
+  directories: **8/10 → 10/10**, rediscovery cases unchanged at 5/5, index 27%
+  smaller. Lexical search never had this failure — nobody greps for a phrase
+  that only appears in a sampled generation — so it is easy to carry an
+  "index everything" habit across from grep and not notice. Sweep for
+  `outputs/`, `prompts/`, `runs/`, `samples/` before building any embedding
+  index over an experiments repo. Corollary for evaluation: this was invisible
+  to the 5 hand-written rediscovery queries (5/5 both before and after) and only
+  showed up on queries whose answer is a *specific* artifact — vague-query
+  benchmarks cannot detect corpus pollution. (`repo-index/ask.py::GENERATED`)
 - **A stored index that regenerates its transform from a seed inherits every
   upstream default it did not pin — store the transform instead.** `repo-index`
   originally rebuilt its remex rotation from `seed=0` at query time and only

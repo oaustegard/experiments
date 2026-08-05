@@ -18,6 +18,32 @@ The last row is the honest framing: **grep isn't beaten, it's unblocked.** With
 `concurrency`, `ITQ`, `codebook`, `matryoshka`, `power analysis` in hand, grep
 finds every prior. This index removes the need to already know the word.
 
+### The other direction: does it hold up where grep is strong?
+
+Ten keyword-bearing queries — the kind you'd normally just grep (`ascii_fold`,
+`GRID_VERSION`, `Lloyd-Max`, `EXPERIMENTS_SPOKES_ROOT`, `SPECTER2`, `RRF`,
+`nDCG`, …). Scored deliberately in grep's favour: does the index's top-5 contain
+a file that grep-with-the-obvious-term also returns?
+
+| corpus | agrees with grep |
+|---|---|
+| `.md`, including generated model output | 8/10 |
+| `.md`, generated output excluded | **10/10** |
+| `.md` + `.py` (current) | 9/10 |
+
+Both original misses were **identifier lookups** answered with LLM chatter from
+`haiku-assessment/**/outputs/` — see "corpus hygiene" below.
+
+The last row is not a regression, and reading it as one was a mistake worth
+recording. The grep arm was pinned to `--glob '*.md'`, so when the index started
+returning `_lib/textnorm.py:1` for `ascii_fold` — the *definition*, where the
+md-only index had managed a rank-5 prose mention — it scored as a miss. With the
+baseline re-scoped to the same file types, 9/10. See
+[`code-index-duplication/`](../code-index-duplication/RESULTS.md).
+
+Exact identifier lookup is still grep's job. The index is now competent at it
+rather than embarrassing, which is a different claim from winning.
+
 ## Use
 
 ```bash
@@ -26,9 +52,25 @@ python3 repo-index/ask.py "about to fan out concurrent LLM calls through a gatew
 #   woodall/README.md:55
 #   README.md:25
 
-python3 repo-index/ask.py --build      # after adding or editing markdown
+python3 repo-index/ask.py --build      # after editing any .md or .py
 python3 repo-index/ask.py --verify     # stored rotation vs seed regeneration
+
+# drop results by path. No glob metacharacter -> substring; with *?[ -> glob
+# against the whole relative path. Repeatable. Filters after scoring, so -k
+# still returns k — excluded slots are backfilled, not left as gaps.
+python3 repo-index/ask.py "vector retrieval" --exclude ms13-campaign
+python3 repo-index/ask.py "vector retrieval" --exclude '*/vendor/*' --exclude '*skill_template*'
+
+# "does something like this already exist?" — query with a file's own text.
+# Excludes the query file's whole directory, since the question is about elsewhere.
+python3 repo-index/ask.py --file te-bridges/scripts/te_common.py
+#   phase-a-bridges/scripts/common.py:1      <- the documented duplicate, rank 1
 ```
+
+`--exclude` is per-query and reversible; the `outputs/`/`prompts/` exclusion
+below is at build time and those chunks are not in the index at all. That is the
+right split — generated model output is never the answer, whereas a directory
+that is a false hit for one query is the correct answer for another.
 
 Complement to the grep instruction, not a replacement — run both.
 
@@ -36,12 +78,48 @@ Complement to the grep instruction, not a replacement — run both.
 
 | | |
 |---|---|
-| corpus | 1,274 markdown chunks from 263 files (headings-split) |
+| corpus | `.md` (headings-split) + `.py` (60-line windows), generated model output excluded |
 | encoder | `bekko-embedding-v1-a8m`, 384-d, mean-pooled |
 | codec | **remex 2-bit** — this repo's own measured sweet spot |
-| index | **0.18 MB** committed (packed codes + `(path, line)` pointers) |
+| index | **0.27 MB** committed (packed codes + `(path, line)` pointers) |
 | rotation | 0.56 MB committed — stored, not regenerated ([why](#the-failure-this-design-is-actually-guarding-against)) |
-| rebuild | ~60 s for the whole repo |
+| rebuild | ~45 s for the whole repo |
+
+### Why it indexes code
+
+`.py` was added after measuring it, not on principle. This repo's own
+`bekko-embedding-bench` found dense retrieval does **not** beat grep at NL→code
+*localization* (r@5 0.656 vs 0.596, n=59, ns) — so the usual reason to index code
+is already a measured non-reason here.
+
+The reason that did hold up is duplication. `METHODS.md` keeps a **duplication
+map** of files this repo reimplemented by accident. Querying with a file's own
+text finds a documented sibling **9/9 at ranks 1–3**, and content-only scores the
+same as with a path header, so it is matching content rather than filename. Grep
+handed the most distinctive `def` name from the query file gets 8/9 — a tie, at
+n=9 — but it needs a draft with a distinctive name in it, where the NL arm needs
+no draft at all.
+
+Adding `.py` left rediscovery at 5/5, kept keyword agreement at 9/10, and moved
+answers from prose to the definition (`ascii_fold` → `_lib/textnorm.py:1` rather
+than a rank-5 mention). Full writeup and the three measurement failures it
+produced: [`code-index-duplication/`](../code-index-duplication/RESULTS.md).
+
+### Corpus hygiene
+
+`outputs/` and `prompts/` directories are excluded. They held 173 files of
+machine-generated model output (all `run_NN.md`-shaped near-duplicates) — an
+experiment's *data*, not its findings — and they were **20% of the corpus**.
+They were not inert: both conventional-query misses above were real questions
+answered with a sample of LLM output, and the vague queries were prone to
+returning five near-identical `run_0N.md` chunks in a row. Excluding them took
+conventional agreement 8/10 → 10/10 with the rediscovery cases unchanged at 5/5,
+and shrank the index 27%.
+
+The general form: **a semantic index over a repo that stores model output will
+rank that output against real questions**, because it is topically on-subject
+and there is a lot of it. Lexical search never had this problem — nobody greps
+for a phrase that only appears in a sampled generation.
 
 It stores **pointers, not text** — the repo is the corpus, so there is no reason
 to carry a second copy of it. Both choices come from
@@ -51,8 +129,8 @@ is statistically indistinguishable from uncompressed fp32 (n=59, p=1.0), and
 
 ## Keeping it current
 
-`.github/workflows/repo-index.yml` rebuilds on any markdown change to `main`
-and commits the result. A full rebuild is ~60 s, so there is no incremental
+`.github/workflows/repo-index.yml` rebuilds on any `.md` or `.py` change to `main`
+and commits the result. A full rebuild is ~45 s, so there is no incremental
 path to maintain — and because the build is deterministic on a fixed toolchain,
 an unchanged corpus produces a byte-identical artifact and no commit.
 
@@ -82,10 +160,9 @@ them. Manual only: the encoder is pinned and does not change on its own, so
 there is nothing to schedule. `dry_run: true` (dispatch only) fetches and
 verifies without publishing.
 
-> **The mirror release is not published yet.** Until it is, `ask.py` logs one
-> expected `HTTPError` per file and falls back to Hugging Face — which works, and
-> the sha256 check still runs, so integrity is enforced either way. What is
-> missing is only rate-limit and availability insurance.
+> **Published.** `repo-index-model-v1` exists and a cold `ask.py` run now fetches
+> from `github.com` rather than Hugging Face. It was published by the label
+> trigger above, from the PR branch, before that PR had merged.
 >
 > The workflow exists because a Claude Code session cannot create releases — the
 > agent proxy returns *"Creating, editing, or deleting releases is not permitted
