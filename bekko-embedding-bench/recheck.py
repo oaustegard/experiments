@@ -269,6 +269,25 @@ def main() -> int:
           f"{res['dense only (bekko-a25m)']['r@50']:.3f}, "
           f"{res['query expansion (RM3-ish)']['recovered']}/26 recovered")
 
+    # ── statistical power ───────────────────────────────────────────────────
+    # n=179 is the number that governs every embedding-quality claim here.
+    # These guards keep the writeup from re-asserting under-powered results.
+    S = json.load(open(HERE / "results_significance.json"))
+    by = {c["claim"]: c for c in S["claims"]}
+    check("corpus is the 179-chunk blog subset (1 query = 0.56 pp)", S["n"] == 179)
+    sig = [c for c in S["claims"] if c["significant"]]
+    check("only ONE headline byte-budget claim survives n=179",
+          len(sig) == 1 and "d=64" in sig[0]["claim"],
+          f"{len(sig)}/{len(S['claims'])} significant: {sig[0]['claim']}")
+    for cl in ("remex 2-bit @96B beats UNCOMPRESSED fp32 @1536B",
+               "remex 1-bit @48B beats vendor floor d=64 @256B"):
+        check(f"UNDER-POWERED, must not be quoted as established: {cl[:44]}",
+              not by[cl]["significant"] and by[cl]["ci_lo"] < 0 < by[cl]["ci_hi"],
+              f"p={by[cl]['p']:.3f} CI [{by[cl]['ci_lo']:+.3f},{by[cl]['ci_hi']:+.3f}]")
+    check("truncation-to-d=64 cost IS established",
+          by["Matryoshka d=384 beats d=64"]["significant"],
+          f"p={by['Matryoshka d=384 beats d=64']['p']:.3f}")
+
     # ── honest bytes (the Matryoshka-vs-codec accounting audit) ─────────────
     H = [r for r in json.load(open(HERE / "results_honest_bytes.json"))
          if r["variant"] == "a25m"]

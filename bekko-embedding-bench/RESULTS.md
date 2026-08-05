@@ -441,9 +441,75 @@ choice is a portability decision, and the latency is a caching decision.
 
 ---
 
+## Statistical power — read this before quoting any number above
+
+**Corpora.** Two, and they are very different sizes:
+
+| used for | corpus | size | encode wall-clock (4 vCPU) |
+|---|---|---|---|
+| Part A (code search) | scikit-learn `sklearn/` | 674 files → **11,380** AST / **9,363** flat chunks | **77.8 min** across 4 cells (a8m 10.2 + 8.8, a25m 33.0 + 25.8) |
+| Part B, byte budgets, projections, ceiling | `muninn-subset.kb` | **179 chunks / 11 blog posts** | seconds |
+| second distribution | sklearn AST slice | 179 chunks | seconds |
+
+So the ~78 minutes of encoding bought the **code-search** benchmark (~41,500
+chunk encodes). **Every embedding-quality conclusion in this file rides on 179
+chunks from 11 blog posts**, encoded in seconds. The compute went to the arm that
+needed it least.
+
+**At n=179 one query is 0.56 pp of R@10**, and the differences reported above are
+2–8 queries wide. The arms are evaluated on the same queries, so the right test
+is paired — exact McNemar on discordant pairs, plus a paired bootstrap CI:
+
+| claim | Δ R@10 | 95% CI | disc. | p | verdict |
+|---|---|---|---|---|---|
+| remex 2-bit @96 B beats **uncompressed** fp32 @1536 B | +0.011 | [−0.011, +0.034] | 3/1 | 0.625 | **noise** |
+| remex 1-bit @48 B beats vendor floor d=64 @256 B | +0.045 | [−0.011, +0.101] | 17/9 | 0.169 | **noise** |
+| remex 1-bit @48 B equals Matryoshka d=128 @512 B | +0.000 | [−0.050, +0.050] | 10/10 | 1.000 | noise |
+| remex 2-bit beats remax k=2 (same 96 B) | +0.039 | [−0.011, +0.089] | 14/7 | 0.189 | **noise** |
+| remex 1-bit beats remax k=1 (same 48 B) | +0.011 | [−0.045, +0.067] | 15/13 | 0.851 | **noise** |
+| jina q4 beats bekko-a25m (blog, full width) | +0.034 | [−0.022, +0.089] | 17/11 | 0.345 | **noise** |
+| Matryoshka d=384 beats d=64 | +0.078 | [+0.022, +0.134] | 20/6 | **0.009** | **SUPPORTED** |
+| Matryoshka d=384 beats d=256 | +0.011 | [−0.017, +0.045] | 5/3 | 0.727 | noise |
+
+**One of eight survives.** Truncation to d=64 does measurably cost recall. Every
+other headline in this file — including "remex 2-bit beats the uncompressed
+vector", which I led with — is **not resolvable at n=179**.
+
+**The exception, and it is a large one.** On the *code* distribution at R@1, jina
+beats bekko-a25m **0.888 vs 0.721, +0.168, 31 discordant wins to 1, p < 1e-5**.
+That single comparison is overwhelming, and it is the real evidence behind Part
+B's "do not swap" — not the twelve iso-byte cells, which are individually noise
+and mutually correlated (same queries, nested dims), so "wins 11 of 12" is not
+twelve independent trials.
+
+### What this does and does not overturn
+
+- **Part B's verdict stands, on narrower grounds.** jina's advantage is
+  established on code-distribution R@1 at p<1e-5. The blog-distribution and
+  R@10 margins are noise.
+- **The trimming-vs-quantization direction is consistent but not established
+  *here*.** Every budget and both encoders point the same way, and the vendor's
+  own HAKARI table — a far larger evaluation — puts binary@384 at −12.93% against
+  d=64's −17.51%. My corpus is **consistent with** that and too small to
+  demonstrate it independently. Cite the vendor's number for the claim; cite mine
+  only as corroboration.
+- **The projection comparison (§7) was already reported as neutral**, and the
+  power analysis confirms that a ≤0.022 spread at n=179 could not have shown
+  otherwise. That conclusion was safe.
+- **Part A is worse off, and was flagged as such throughout**: n=6 instances,
+  n=1 on the deciding stratum.
+
+To resolve a true 0.01 R@10 gap at 80% power needs roughly **n > 2000**, an order
+of magnitude more than this corpus. The right fix is not more bits of analysis on
+179 chunks — it is `muninn.kb` (1,238) or a standard IR set (BEIR/NFCorpus,
+~3,600 docs with real qrels rather than self-retrieval), and it costs far less
+compute than the 78 minutes already spent on the code corpus.
+
+---
+
 ## Head-to-head: Matryoshka trimming vs quantization at equal bytes
 
-**Quantization wins, and the vendor's own card already says so.** The model card
+**Quantization wins — on the vendor's own card, and directionally here, though n=179 cannot establish it independently (see the power section above).** The model card
 publishes this comparison on their HAKARI benchmark:
 
 | Setting | Dim | Encoding | Rescore | HAKARI | Δ vs 384 float |

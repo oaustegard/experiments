@@ -479,6 +479,21 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Put the compute where the inference is, and run the paired test before
+  writing the headline.** This experiment spent **78 minutes** encoding 41,500
+  scikit-learn chunks for a **6-instance** code-search benchmark, while every
+  embedding-quality conclusion rode on **179 chunks from 11 blog posts** encoded
+  in seconds. At n=179 one query is 0.56 pp of R@10, so the 2-8 query differences
+  being reported were unresolvable: exact McNemar on the discordant pairs killed
+  **seven of eight** headline claims, including "quantization at 96 B beats the
+  uncompressed 1536 B vector" (+0.011, 3 wins to 1, p=0.625). What survived was
+  the one comparison with a large effect — jina over bekko on code-distribution
+  R@1, +0.168, 31 to 1, p<1e-5. Two habits this buys cheaply: **arms share
+  queries, so test paired** (McNemar / paired bootstrap, not two independent
+  proportions), and **"wins 11 of 12 cells" is not 12 trials** when the cells are
+  nested dimensions of one corpus. Resolving a true 0.01 R@10 gap at 80% power
+  needs n>2000 — cheaper than the encode budget already spent.
+  (`bekko-embedding-bench/RESULTS.md`)
 - **Before charging a codec for "shared structure", check what the structure
   actually is — and whether anything ships it.** I priced remex's side data as a
   materialized dense d x d rotation (590 KB at d=384) plus "the codebook",
