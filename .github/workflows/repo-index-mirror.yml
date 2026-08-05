@@ -22,8 +22,24 @@ on:
         type: boolean
         default: false
 
+  # Label a PR `publish-mirror` to run this. Two reasons it exists alongside
+  # workflow_dispatch:
+  #
+  #   1. workflow_dispatch only appears once the workflow is on the default
+  #      branch. A `pull_request` run uses the workflow file from the PR itself,
+  #      so this is triggerable before it has merged.
+  #   2. It is one tap on a phone, where the Actions "Run workflow" form is
+  #      awkward and `gh` is not available at all.
+  #
+  # The label is removed when the run finishes, so it behaves like a button:
+  # add it again to run again. From a fork the token is read-only and the
+  # publish steps will fail — by design.
+  pull_request:
+    types: [labeled]
+
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: repo-index-mirror
@@ -31,7 +47,13 @@ concurrency:
 
 jobs:
   mirror:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.label.name == 'publish-mirror'
     runs-on: ubuntu-latest
+    env:
+      # `inputs` is empty on a label run, so fall back to the same default.
+      TAG: ${{ inputs.tag || 'repo-index-model-v1' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -52,10 +74,9 @@ jobs:
             > "$RUNNER_TEMP/files.txt"
 
       - name: Create the release if it does not exist
-        if: ${{ !inputs.dry_run }}
+        if: ${{ github.event_name == 'pull_request' || !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.tag }}
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "release $TAG exists — updating its assets"
@@ -76,21 +97,42 @@ jobs:
             --notes-file "$RUNNER_TEMP/notes.md"
 
       - name: Upload assets
-        if: ${{ !inputs.dry_run }}
+        if: ${{ github.event_name == 'pull_request' || !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.tag }}
         run: xargs -d '\n' -a "$RUNNER_TEMP/files.txt" gh release upload "$TAG" --clobber
 
       # Disjoint check: pull the assets back down over the public release URL and
       # re-verify, rather than trusting that the upload did what it said.
       - name: Verify the published assets round-trip
-        if: ${{ !inputs.dry_run }}
+        if: ${{ github.event_name == 'pull_request' || !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.tag }}
         run: |
           mkdir -p "$RUNNER_TEMP/roundtrip"
           gh release download "$TAG" --dir "$RUNNER_TEMP/roundtrip" --clobber
           python3 repo-index/mirror_model.py "$RUNNER_TEMP/roundtrip"
-          echo "### Mirror published to \`$TAG\` and verified" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "### Mirror published and verified"
+            echo
+            echo "Downloaded the published assets back over the public URL and"
+            echo "re-checked them against the pin in \`ask.py\`."
+            echo
+            gh release view "$TAG" --json url --jq '"\(.url)"'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Clear the label so it works like a button: add it again to run again.
+  # always() so a failed run is retryable too.
+  unlabel:
+    needs: mirror
+    if: >-
+      always() && github.event_name == 'pull_request' &&
+      github.event.label.name == 'publish-mirror'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X DELETE \
+            "repos/${{ github.repository }}/issues/${{ github.event.number }}/labels/publish-mirror" \
+            || echo "label already gone"
