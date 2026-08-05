@@ -42,7 +42,11 @@ FILES = {"onnx/model.onnx": "model.onnx", "tokenizer.json": "tokenizer.json",
          "config.json": "config.json"}
 SKIP = {".git", "node_modules", "__pycache__", ".venv"}
 MIN_CHARS, MAX_CHARS = 200, 2000
-BITS, DIM = 2, 384
+BITS, DIM, SEED = 2, 384, 0
+# Pinned explicitly, never left to remex's default. remex documents that
+# default as deliberately changeable, and decoding under the wrong rotation is
+# "50%-different, not slightly off ... total and silent". Costs nothing to pin.
+ROTATION = "haar"
 
 
 def ensure_model() -> Path:
@@ -77,27 +81,52 @@ def _sha256(p: Path) -> str:
     return h.hexdigest()
 
 
-def provenance(qz) -> dict:
-    """Everything that defines the embedding space this index lives in.
+def quantizer():
+    """The codec, with the stored rotation bound to it.
 
-    remex's own rule: *the rotation is part of the encoding*. It is regenerated
-    from the seed at query time, and numpy's QR can drift across BLAS builds — so
-    a CI-built index queried on a different machine could land in a different
-    space with no error, just quietly worse recall. Fingerprint it so that is
-    detected instead.
+    remex's own rule is that *the rotation is part of the encoding*. This used to
+    regenerate R from the seed at query time and merely fingerprint it. That is
+    the weaker form of the rule: it turns a wrong rotation into a warning and a
+    rebuild rather than a non-event, and it leaves the index depending on three
+    upstream things staying still — remex's `rotation` default, remex's
+    construction of it, and numpy's `default_rng` stream (which NEP 19
+    explicitly does not guarantee across feature releases).
+
+    Storing the matrix costs 576 KB once and removes all three. It is the same
+    reasoning remex applies to its own containers, which record the rotation
+    rather than assuming it.
     """
+    import remex
+    qz = remex.Quantizer(d=DIM, bits=BITS, seed=SEED, rotation=ROTATION)
+    p = HERE / "rotation.npy"
+    if p.exists():
+        R = np.load(p)
+        if R.shape != (DIM, DIM) or R.dtype != np.float32:
+            raise SystemExit(f"rotation.npy is {R.shape}/{R.dtype}, expected "
+                             f"({DIM}, {DIM})/float32")
+        qz.R = R
+    return qz
+
+
+def provenance(qz) -> dict:
+    """Everything that defines the embedding space this index lives in."""
     import numpy as _np
     import onnxruntime
-    from remex.rotation import haar_rotation
-    R = haar_rotation(DIM, seed=0)
     return {
-        "encoder_sha256": MODEL_SHA256, "dim": DIM, "bits": BITS, "seed": 0,
+        "encoder_sha256": MODEL_SHA256, "dim": DIM, "bits": BITS, "seed": SEED,
         "rotation": qz.rotation,
-        "rotation_fingerprint": hashlib.sha256(
-            _np.ascontiguousarray(R).tobytes()).hexdigest()[:32],
+        # of the stored matrix, so this checks the artifact rather than a
+        # regeneration of it
+        "rotation_sha256": hashlib.sha256(
+            _np.ascontiguousarray(qz.R).tobytes()).hexdigest(),
+        # analytic from (d, bits) -- no RNG, no BLAS. Not stored, only
+        # fingerprinted: a change upstream is caught, not silently absorbed.
+        "codebook_sha256": hashlib.sha256(
+            _np.ascontiguousarray(qz.boundaries).tobytes()
+            + _np.ascontiguousarray(qz.centroids).tobytes()).hexdigest()[:32],
         "onnxruntime": onnxruntime.__version__, "numpy": _np.__version__,
         # informational only -- a git checkout reports 0.0.0+unknown while CI
-        # installs 0.6.0. The enforced invariant is the fingerprint, not this.
+        # installs 0.6.0. The enforced invariants are the hashes, not this.
         "remex": getattr(__import__("remex"), "__version__", "unknown"),
     }
 
@@ -156,7 +185,9 @@ def build() -> None:
     print(f"chunking {len({c['f'] for c in chunks})} markdown files "
           f"-> {len(chunks)} chunks", file=sys.stderr)
     vecs = Encoder()(([c["t"] for c in chunks]))
-    qz = remex.Quantizer(d=DIM, bits=BITS, seed=0)
+    # build from the seed, then persist R alongside the codes it produced
+    qz = remex.Quantizer(d=DIM, bits=BITS, seed=SEED, rotation=ROTATION)
+    np.save(HERE / "rotation.npy", np.ascontiguousarray(qz.R))
     codes = qz.encode(vecs)
     # pack to the real 2 bits/dim; raw `indices` is uint8, i.e. 4x larger
     np.save(HERE / "index.npy", remex.pack(codes.indices.ravel(), BITS))
@@ -175,17 +206,17 @@ def query(q: str, k: int) -> None:
     shape = json.loads((HERE / "shape.json").read_text())
     idx = remex.unpack(np.load(HERE / "index.npy"), BITS,
                        shape[0] * shape[1]).reshape(shape).astype(np.uint8)
-    qz = remex.Quantizer(d=DIM, bits=BITS, seed=0)
+    qz = quantizer()
     want = json.load(open(HERE / "manifest.json"))
     have = provenance(qz)
-    if have["rotation_fingerprint"] != want["rotation_fingerprint"]:
-        print(f"WARNING: rotation fingerprint differs from the one this index was "
-              f"built with ({want['rotation_fingerprint'][:12]} vs "
-              f"{have['rotation_fingerprint'][:12]}).\n"
-              f"  built with numpy {want['numpy']} / ort {want['onnxruntime']}; "
-              f"you have numpy {have['numpy']} / ort {have['onnxruntime']}.\n"
-              f"  Results will be silently degraded. Re-run --build.",
-              file=sys.stderr)
+    for key, what in (("rotation_sha256", "rotation.npy"),
+                      ("codebook_sha256", "remex Lloyd-Max codebook")):
+        if want.get(key) and have[key] != want[key]:
+            raise SystemExit(
+                f"{what} does not match the one this index was built with.\n"
+                f"  expected {want[key][:16]}  got {have[key][:16]}\n"
+                f"  Codes decoded under the wrong transform are ~50% different, "
+                f"not slightly off. Refusing to return results; re-run --build.")
     cv = remex.CompressedVectors(indices=idx, norms=np.ones(len(ptr), dtype=np.float32),
                                  d=DIM, bits=BITS, rotation=qz.rotation)
     xhat = qz.decode(cv)
@@ -203,14 +234,39 @@ def query(q: str, k: int) -> None:
             break
 
 
+def verify() -> None:
+    """Does regenerating R from the seed still reproduce the stored matrix?
+
+    Purely diagnostic — the query path uses the stored one either way, so a
+    divergence here is not a failure, it is the pin doing its job. Kept out of
+    the query path because the Householder QR is O(d^3).
+    """
+    from remex.rotation import ROTATION_CODES  # noqa: F401  (fail loudly if gone)
+    import remex
+    stored = np.load(HERE / "rotation.npy")
+    fresh = remex.Quantizer(d=DIM, bits=BITS, seed=SEED, rotation=ROTATION).R
+    same = np.array_equal(stored, fresh)
+    print(f"rotation: stored vs regenerated from seed -> "
+          f"{'identical' if same else 'DIVERGED'}")
+    if not same:
+        print(f"  max abs delta {np.abs(stored - fresh).max():.3e} — the stored "
+              f"matrix is authoritative; nothing is broken.")
+    print(f"remex default rotation is {remex.Quantizer(d=8, bits=2).rotation!r}; "
+          f"this index pins {ROTATION!r}")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("query", nargs="*")
     ap.add_argument("--build", action="store_true")
+    ap.add_argument("--verify", action="store_true",
+                    help="check the stored rotation against seed regeneration")
     ap.add_argument("-k", type=int, default=8)
     a = ap.parse_args()
     if a.build:
         build()
+    elif a.verify:
+        verify()
     elif a.query:
         query(" ".join(a.query), a.k)
     else:
