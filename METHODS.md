@@ -479,6 +479,27 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Length-sort before batching, and check the length distribution before
+  believing your throughput is compute-bound.** Tokenizer padding is to the
+  *batch's longest* sequence, so corpus-order batches of heterogeneous text pay
+  for the longest member every time. On an AST-chunked scikit-learn corpus
+  (median 322, p90 927 tokens) that is **1.47x** wasted padded tokens; sorting by
+  length before batching and restoring the order after measured **1.25-1.38x**
+  end-to-end with **bit-identical** output. Two traps around it: (a)
+  `encode_batch` over a whole corpus pads *everything* to the global longest, so
+  a naive length histogram taken that way reports 100% at the truncation cap and
+  hides the distribution entirely — call `no_padding()` first; (b) before
+  optimizing, price the work: 3.73M tokens x ~17.4 MFLOP/token = 64.9 TFLOP, and
+  a 4-vCPU AVX-512 box sustaining 424 GFLOP/s on 2048^2 sgemm has a 2.6-minute
+  floor, so "this should take seconds" was never on the table. Achieved was
+  106 GFLOP/s = 25% of peak, which for 384x1152 GEMMs is low but not pathological.
+  (`bekko-embedding-bench/RESULTS.md`)
+- **Run the power analysis before the compute budget, not after.** 67 of 78
+  minutes of encoding went to a 2x2 of axes (encoder size, chunking strategy)
+  whose measured effects all landed inside the noise of a 6-instance benchmark.
+  Sizing the corpus for rigour was right; replicating it across axes the sample
+  could not resolve was not. Ask "what effect size can n detect?" first, then buy
+  only the cells that clear it. (`bekko-embedding-bench`)
 - **Put the compute where the inference is, and run the paired test before
   writing the headline.** This experiment spent **78 minutes** encoding 41,500
   scikit-learn chunks for a **6-instance** code-search benchmark, while every
