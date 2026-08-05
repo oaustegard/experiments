@@ -416,6 +416,23 @@ the result.
   <=0.022, straddling fp32), so quality does not break the tie either.
   (`bekko-embedding-bench/RESULTS.md` §7)
 
+- **A semantic index over a repo that stores model output will rank that output
+  against real questions — exclude generated directories.** `repo-index` indexed
+  `haiku-assessment/**/outputs/` and `**/prompts/`: 173 `run_NN.md`-shaped
+  near-duplicate generations, **20% of the corpus**. They were not inert filler.
+  Agreement with grep on ten keyword-bearing queries was 8/10, and *both* misses
+  were identifier lookups (`ascii_fold`, `GRID_VERSION`) answered with a sample
+  of LLM output instead of the file that defines the thing; vague queries would
+  return five near-identical `run_0N.md` chunks in a row. Excluding those
+  directories: **8/10 → 10/10**, rediscovery cases unchanged at 5/5, index 27%
+  smaller. Lexical search never had this failure — nobody greps for a phrase
+  that only appears in a sampled generation — so it is easy to carry an
+  "index everything" habit across from grep and not notice. Sweep for
+  `outputs/`, `prompts/`, `runs/`, `samples/` before building any embedding
+  index over an experiments repo. Corollary for evaluation: this was invisible
+  to the 5 hand-written rediscovery queries (5/5 both before and after) and only
+  showed up on queries whose answer is a *specific* artifact — vague-query
+  benchmarks cannot detect corpus pollution. (`repo-index/ask.py::GENERATED`)
 - **A stored index that regenerates its transform from a seed inherits every
   upstream default it did not pin — store the transform instead.** `repo-index`
   originally rebuilt its remex rotation from `seed=0` at query time and only

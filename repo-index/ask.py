@@ -41,6 +41,12 @@ HF = "https://huggingface.co/hotchpotch/bekko-embedding-v1-a8m/resolve/main"
 FILES = {"onnx/model.onnx": "model.onnx", "tokenizer.json": "tokenizer.json",
          "config.json": "config.json"}
 SKIP = {".git", "node_modules", "__pycache__", ".venv"}
+# Directories of machine-generated model output — an experiment's *data*, not its
+# findings. 173 files, all `run_NN.md`-shaped near-duplicates, and they were 20%
+# of the corpus. Measured: excluding them took agreement-with-grep on
+# keyword-bearing queries from 8/10 to 10/10 (both misses were identifier lookups
+# answered with LLM chatter) while the 5 rediscovery cases stayed 5/5.
+GENERATED = {"outputs", "prompts"}
 MIN_CHARS, MAX_CHARS = 200, 2000
 BITS, DIM, SEED = 2, 384, 0
 # Pinned explicitly, never left to remex's default. remex documents that
@@ -160,7 +166,7 @@ class Encoder:
 def chunk_repo() -> list[dict]:
     out = []
     for p in sorted(REPO.rglob("*.md")):
-        if any(d in p.parts for d in SKIP):
+        if any(d in p.parts for d in SKIP | GENERATED):
             continue
         rel = str(p.relative_to(REPO))
         lines = p.read_text(errors="ignore").split("\n")
