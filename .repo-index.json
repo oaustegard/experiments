@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Repo-local config for the hybrid index. Everything here is a claim about",
+    "THIS repo, not about indexing in general — the tool's defaults live in",
+    "hybrid-code-index/hcindex.py::DEFAULT_CFG and know nothing about us.",
+    "",
+    "Build-time exclusion is a last resort: it is unrecoverable without a full",
+    "rebuild, so it is reserved for content that is never an answer to any",
+    "query. Everything situational belongs on the command line via --exclude.",
+    "",
+    "Each entry below has to earn its place with a measurement, recorded in",
+    "hybrid-code-index/RESULTS.md."
+  ],
+  "exclude": [
+    "*/outputs/*",
+    "*/prompts/*"
+  ],
+  "_exclude_rationale": {
+    "*/outputs/*, */prompts/*": "173 run_NN.md-shaped near-duplicate model generations from haiku-assessment — an experiment's data, not its findings. They were 20% of the markdown corpus and were outranking real answers on identifier queries. Measured: excluding them moved keyword agreement 8/10 -> 10/10 with rediscovery unchanged at 5/5."
+  }
+}
