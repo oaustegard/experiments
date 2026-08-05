@@ -54,8 +54,24 @@ and commits the result. A full rebuild is ~33 s, so there is no incremental
 path to maintain — and because the build is deterministic on a fixed toolchain,
 an unchanged corpus produces a byte-identical artifact and no commit.
 
-**The encoder is pinned by sha256 and mirrored to this repo's own releases**
-(`repo-index-model-v1`), with Hugging Face as fallback. bekko-embedding-v1-a8m
+**The encoder is pinned by sha256, with Hugging Face as the source and this
+repo's own releases as the intended mirror** (`repo-index-model-v1`).
+
+> **The mirror release is not published yet.** Until it is, `ask.py` logs one
+> expected `HTTPError` per file and falls back to Hugging Face — which works,
+> and the sha256 check still runs, so integrity is enforced either way. What is
+> missing is only the rate-limit and availability insurance. To publish it:
+>
+> ```bash
+> gh release create repo-index-model-v1 --title "repo-index encoder (pinned)" \
+>   --notes "Mirror of hotchpotch/bekko-embedding-v1-a8m (MIT). sha256 96d8cc61…"
+> python3 repo-index/mirror_model.py | cut -d' ' -f1 \
+>   | xargs gh release upload repo-index-model-v1
+> ```
+>
+> (Claude Code sessions cannot create releases — the agent proxy returns
+> *"Creating, editing, or deleting releases is not permitted for this session
+> type"* — so this step is a human one.) bekko-embedding-v1-a8m
 is MIT, so mirroring is permitted. Pinning is not only about availability and
 rate limits: **a different encoder silently changes the embedding space**, so
 `ask.py` verifies the hash and refuses to build against the wrong file.

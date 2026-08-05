@@ -289,6 +289,18 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **A Claude Code session cannot create GitHub releases — the proxy blocks it by
+  policy, not by credential.** `POST /repos/{owner}/{repo}/releases` returns
+  *"Creating, editing, or deleting releases is not permitted for this session
+  type"* even for an in-scope repo with a PAT that can push commits and open PRs.
+  Two adjacent gotchas found on the way: `curl -d @file` sends
+  `application/x-www-form-urlencoded`, and the proxy rejects that with *"Form-encoded
+  request bodies are not accepted"* — use `--data-binary` plus an explicit
+  `Content-Type: application/json`; and `uploads.github.com` answering `400` on a
+  bare root GET means the host is **reachable**, not blocked. Design any
+  release-publishing step as a documented human action with a fallback that works
+  without it, rather than something a session can complete.
+  (`repo-index/README.md`)
 - **`add_repo` cannot add a cross-owner repo, but `git clone` and
   `mcp__github__search_*` still reach it — and that is enough to build a
   PR-gold benchmark.** A session pinned to one owner gets

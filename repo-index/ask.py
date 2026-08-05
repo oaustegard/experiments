@@ -56,7 +56,8 @@ def ensure_model() -> Path:
                     urllib.request.urlretrieve(f"{base}/{path}", p)
                     break
                 except Exception as e:  # noqa: BLE001 - mirror may not exist yet
-                    print(f"  {type(e).__name__}, trying next source", file=sys.stderr)
+                    print(f"  {type(e).__name__} — expected if the release mirror "
+                          f"has not been published; falling back", file=sys.stderr)
             else:
                 raise SystemExit(f"could not fetch {local}")
     got = _sha256(MODEL_DIR / "model.onnx")
