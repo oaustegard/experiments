@@ -197,6 +197,42 @@ def main() -> int:
         s = [r for r in C if r["variant"] == v and r["bytes"] == b]
         return max(r["r@10"] for r in s) if s else None
 
+    # ── head-to-head: trimming vs quantization at equal bytes ───────────────
+    HH = [r for r in json.load(open(HERE / "results_headtohead.json"))
+          if r["variant"] == "a25m"]
+    def arm(a, p_):
+        return [r for r in HH if r["arm"] == a and r["param"] == p_][0]
+    shared = sorted({r["bytes"] for r in HH if r["arm"] == "matryoshka"} &
+                    {r["bytes"] for r in HH if r["arm"] == "remex@384"})
+    check("quantization beats trimming at EVERY shared byte budget",
+          all(max(r["r@10"] for r in HH if r["arm"] == "remex@384" and r["bytes"] == b)
+              > max(r["r@10"] for r in HH if r["arm"] == "matryoshka" and r["bytes"] == b)
+              for b in shared),
+          f"budgets {shared}")
+    check("remex 2-bit @96 B beats uncompressed fp32 @1536 B",
+          arm("remex@384", 2)["r@10"] > arm("matryoshka", 384)["r@10"],
+          f"{arm('remex@384', 2)['r@10']:.3f} @96 B vs "
+          f"{arm('matryoshka', 384)['r@10']:.3f} @1536 B")
+    check("remex 1-bit @48 B matches Matryoshka d=128 @512 B",
+          arm("remex@384", 1)["r@10"] >= arm("matryoshka", 128)["r@10"],
+          f"{arm('remex@384', 1)['r@10']:.3f} vs {arm('matryoshka', 128)['r@10']:.3f}")
+    check("advantage widens as the budget shrinks",
+          (arm("remex@384", 1)["r@10"] / arm("matryoshka", 12)["r@10"])
+          > (arm("remex@384", 8)["r@10"] / arm("matryoshka", 96)["r@10"]),
+          f"{arm('remex@384', 1)['r@10'] / arm('matryoshka', 12)['r@10']:.2f}x @48 B "
+          f"vs {arm('remex@384', 8)['r@10'] / arm('matryoshka', 96)['r@10']:.2f}x @384 B")
+    check("remex beats remax at equal bytes",
+          all(arm("remex@384", b)["r@10"] > arm("remax@384", b)["r@10"] for b in (1, 2, 4, 8)))
+    # coarse filter: quantized arm is the better stage-1, and the ceiling is the encoder
+    check("remex 2-bit @96 B matches uncompressed R@50 (better coarse filter)",
+          arm("remex@384", 2)["r@50"] >= arm("matryoshka", 384)["r@50"] - 1e-9
+          and arm("remex@384", 2)["r@50"] > arm("matryoshka", 128)["r@50"],
+          f"{arm('remex@384', 2)['r@50']:.3f} @96 B vs Matryoshka d=128 "
+          f"{arm('matryoshka', 128)['r@50']:.3f} @512 B")
+    check("R@50 ceiling is an ENCODER limit, not a compression limit",
+          arm("matryoshka", 384)["r@50"] < 0.90,
+          f"uncompressed fp32 R@50 = {arm('matryoshka', 384)['r@50']:.3f}")
+
     # ── honest bytes (the Matryoshka-vs-codec accounting audit) ─────────────
     H = [r for r in json.load(open(HERE / "results_honest_bytes.json"))
          if r["variant"] == "a25m"]

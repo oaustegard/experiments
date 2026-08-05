@@ -441,6 +441,81 @@ choice is a portability decision, and the latency is a caching decision.
 
 ---
 
+## Head-to-head: Matryoshka trimming vs quantization at equal bytes
+
+The direct question, no combinations: **at a given bytes/vector, is it better to
+keep fp32 and cut coordinates (the vendor's Matryoshka ladder), or keep all 384
+coordinates and cut bits (remex / remax)?**
+
+**Quantization wins at every overlapping budget, and the gap widens as the budget
+shrinks.** R@10, bekko-a25m, payload bytes/vector:
+
+| bytes | Matryoshka fp32 | remex @384 | remax @384 | quantization advantage |
+|---|---|---|---|---|
+| 48 | 0.274 (d=12*) | **0.564** (1-bit) | 0.553 (k=1) | **2.1x** |
+| 96 | 0.352 (d=24*) | **0.609** (2-bit) | 0.570 (k=2) | **1.7x** |
+| 144 | — | **0.603** (3-bit) | 0.587 (k=3) | — |
+| 192 | 0.480 (d=48*) | **0.598** (4-bit) | 0.575 (k=4) | 1.25x |
+| 384 | 0.547 (d=96*) | **0.598** (8-bit) | 0.581 (k=8) | 1.09x |
+| 256 | 0.520 (d=64, vendor floor) | — | — | — |
+| 512 | 0.564 (d=128) | — | — | — |
+| 1536 | 0.598 (d=384, uncompressed) | — | — | — |
+
+`*` below the vendor's supported tiers (256/128/64); the ladder had to be
+extended downward because the two families barely overlap otherwise — the
+vendor's cheapest supported tier (256 B) is already more expensive than remex at
+8 bits.
+
+Two comparisons make the size of the effect concrete:
+
+- **remex 2-bit at 96 B (R@10 0.609) beats the uncompressed 384-d fp32 vector at
+  1536 B (0.598).** 16x fewer bytes, and not worse.
+- **remex 1-bit at 48 B (0.564) exactly equals Matryoshka d=128 at 512 B
+  (0.564).** 10.7x fewer bytes for identical recall.
+
+Matryoshka trimming does not win at any budget where the two can be compared.
+
+**Why the asymmetry.** At 48 B, trimming keeps 12 of 384 coordinates and discards
+97% of them outright; 1-bit quantization keeps the *sign of every coordinate*.
+Matryoshka concentrates variance in the leading dimensions, which is what makes
+the tail cheap to drop — but "cheap" is not "free", and one bit per coordinate
+buys more than 32 bits on a twelfth of the coordinates.
+
+**remex beats remax at every budget** (0.609 vs 0.570 at 96 B; 0.598 vs 0.581 at
+384 B). Consistent with remax's own framing — a rank-correct precision ladder,
+not a byte-optimal codec.
+
+### As a coarse filter — and the ceiling that limits it
+
+The follow-up idea was a wide-N cheap tier feeding a finer stage. R@50 is the
+relevant number, and again the quantized arms make the better filter:
+
+| stage-1 candidate | bytes | R@50 | R@10 |
+|---|---|---|---|
+| **remex 2-bit @384** | **96** | **0.855** | 0.609 |
+| remax k=3 @384 | 144 | 0.860 | 0.587 |
+| Matryoshka d=128 | 512 | 0.844 | 0.564 |
+| Matryoshka d=64 | 256 | 0.816 | 0.520 |
+| *(uncompressed fp32 d=384)* | *1536* | *0.855* | *0.598* |
+
+**remex 2-bit at 96 B reaches the same R@50 as the uncompressed vector** (0.855)
+at 1/16 the bytes, so it is the better coarse filter — Matryoshka d=128 costs
+5.3x more for lower recall.
+
+**But note the ceiling.** R@50 saturates at ~0.855–0.860 for *every* arm at
+≥96 B, uncompressed included. ~14% of queries never surface their gold chunk in
+the top 50 at any precision, so that is an **encoder** limit, not a compression
+limit. A two-stage design on this corpus cannot exceed ~0.855 final R@10 however
+good stage 2 is — which is the main argument against building one here: stage 1
+at 96 B already returns R@10 0.609 directly, and the reranking headroom is the
+gap to 0.855, bounded by an encoder that Part B already showed loses to jina.
+
+*(Caveat: n=179, so single-instance steps are ±0.006 and the Matryoshka curve is
+mildly non-monotonic — d=192 scores 0.609 against d=256's 0.587. Read the trend,
+not the individual cells.)*
+
+---
+
 ## Byte-budget composition — quantization dominates truncation
 
 Two orthogonal axes (`2eba5b5b`): Matryoshka cuts *coordinates*, remex cuts
