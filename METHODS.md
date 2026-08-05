@@ -263,6 +263,27 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`add_repo` cannot add a cross-owner repo, but `git clone` and
+  `mcp__github__search_*` still reach it — and that is enough to build a
+  PR-gold benchmark.** A session pinned to one owner gets
+  `cross-tier adds are not supported in v1`, after which
+  `api.github.com/repos/<other-owner>/*` 403s and `mcp__github__issue_read`
+  refuses. What still works, unscoped: `git clone` of the public repo (full
+  history), and `mcp__github__search_issues` / `search_pull_requests`, which
+  return **full issue and PR bodies**. So mine gold from git rather than the
+  API: a squash-merging repo (scikit-learn) puts each PR on one commit whose
+  subject ends `(#NNNNN)` and whose diff *is* the PR diff. Recover issue
+  bodies by bounding the issue number between neighbouring PRs' commit dates
+  and date-windowing a search. Large search results are persisted to a file
+  by the harness — parse them with a script instead of reading them into
+  context, or paging a few hundred PRs will cost more tokens than the
+  experiment. (`bekko-embedding-bench`)
+- **A model card's OpenVINO-vs-ONNX-Runtime speedup does not survive a
+  small-core box.** bekko-embedding-v1's card claims ORT is 5.5x slower than
+  OpenVINO on x86 CPU; measured on 4 vCPU they are within 8% (20.1 vs 21.8
+  chunks/s). Report `nproc` with any throughput number, and do not pick a
+  runtime on a card's benchmark without re-measuring on your own core count.
+  (`bekko-embedding-bench`)
 - **Cloudflare AI Gateway throttles hard.** Start LLM batch concurrency at **2**,
   not 4 or 12. `phase-a-bridges` learned 12→4→2; `te-bridges` started at 4
   anyway and lost 18–20% of extractions to exhausted retries.
@@ -320,6 +341,55 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **"The RHT is faster" is a claim about a specific implementation at a specific
+  d — check which function you are actually calling.** remax's
+  `remax.rotation.rht_rotation` at its floored rounds=2 reproduces its documented
+  1.5-1.8x over Haar QR (measured 1.70x / 2.06x / 1.65x at d=256/768/1024), but
+  `remax_kb.projection.srht_matrix` is a **different** implementation and is
+  **1.4-3.0x slower than Haar** at every dim measured — and it is remax_kb v2's
+  *default*. That is deliberate, not a defect: srht is seed-only and bit-for-bit
+  reproducible by a non-NumPy reader, where Haar's PCG64 + Ziggurat + LAPACK QR
+  is not, and a mismatched projection flips ~50% of code bits. Projection choice
+  is a **portability** decision; do not reach for it to fix latency. Rounds
+  matter too (rht r=2 31 ms vs r=3 43 ms at d=256), and remax floors at 2 for a
+  measured reason. Retrieval was neutral across haar/rademacher/srht (R@10 spread
+  <=0.022, straddling fp32), so quality does not break the tie either.
+  (`bekko-embedding-bench/RESULTS.md` §7)
+- **An iso-byte retrieval comparison prices storage and silently assumes compute
+  is free — for a small encoder that is the whole comparison you are missing.**
+  bekko-embedding-v1-a8m lost to jina v5 nano q4 in 11 of 12 iso-byte cells,
+  which read as "don't switch" until latency was measured: **11.3 ms vs 146.4 ms
+  per query on 1 vCPU (12.9x), 11.2x tokens/s**. The gap is architectural
+  (4 layers x 384 hidden x 1152 FFN against 12 x 768 x 3072, ~12x the per-token
+  FLOPs) and the measured ratio matching the FLOPs ratio is what rules out a
+  quantization artifact. A model advertised by *active* parameter count is making
+  a compute claim, so benchmark compute or you have not tested its thesis. Report
+  both **texts/s and tokens/s** when tokenizers differ (256k vs 128k vocab gives
+  different token counts for the same text), and measure **batch=1 at 1 thread**
+  separately from batched throughput — the query path and the index-build path
+  are different products. (`bekko-embedding-bench/RESULTS.md`)
+- **At a fixed byte budget, quantize wide rather than truncate narrow.**
+  Matryoshka truncation and scalar quantization are orthogonal axes, and on a
+  179-chunk retrieval task they are *not* equally good ways to spend bytes:
+  remex d=384 @ 2-bit costs **96 B at R@10 0.609** against full fp32 d=384's
+  **1536 B at 0.598** — 16x smaller and not worse — while remex d=384 @ 1-bit
+  matches fp32-truncated-to-128 at **48 B vs 512 B**. Truncation lost at every
+  budget compared. Keep the coordinates, drop the bits.
+  (`bekko-embedding-bench/RESULTS.md`)
+- **The one-bit-beats-two inversion is a property of the encoder, so test it
+  per encoder — never inherit it.** 1-bit beat 2-bit on SPECTER2 and inverted
+  on Jina; on bekko-embedding-v1, **2-bit beats 1-bit in all 8 (variant x dim)
+  cells**, by up to 0.129 R@10 and largest at the narrowest width. A `.kb`
+  built on a new encoder must re-measure the bit ladder before inheriting the
+  1-bit default. (`bekko-embedding-bench/RESULTS.md`)
+- **int8-ing only the static token-embedding table is ~free, and that is a
+  vocab-size fact, not a quantization insight.** bekko's vocab is 256,000 x 384
+  = a 98 M-param table that is essentially the entire 404 MiB fp32 export;
+  int8ing it alone gives 404.3 -> 124.1 MiB at per-doc cosine **0.99989** to
+  its own fp32, holding on both a prose and a code distribution. Mirror image
+  of the `MatMulNBits` gotcha above: there the table stayed fp32 and *inflated*
+  naive int4. Check where a model's parameters actually live before choosing a
+  quantization recipe. (`bekko-embedding-bench/RESULTS.md`)
 - **Mismatched random rotation matrices collapse recall to chance**, not
   graceful degradation. Two *different* valid orthogonal projections on doc vs
   query side flip ~50% of sign bits: recall 0.78 → 0.005. Only int8-rounding of
@@ -409,6 +479,67 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Before charging a codec for "shared structure", check what the structure
+  actually is — and whether anything ships it.** I priced remex's side data as a
+  materialized dense d x d rotation (590 KB at d=384) plus "the codebook",
+  concluded its byte advantage inverted below n~411, and was **wrong on both
+  counts**. remex's Lloyd-Max codebook is *scalar*: 2^bits-1 boundaries +
+  2^bits centroids for a 1-D N(0,1/d) coordinate, i.e. **28 B at 2 bits**,
+  21,065x smaller than the rotation, and *analytic* from (d, bits) so a reader
+  recomputes rather than receives it. (The "large shared codebook" intuition came
+  from `remex-vs-higgs-ablation`, where it meant a **vector**-quantization grid
+  with 2^(m*bits) codepoints — a different object; do not transfer it to a scalar
+  quantizer.) And the rotation is seed-derived in every remax_kb configuration
+  except v2-`haar`-with-int8-sidecar, so it ships as 4 bytes of seed. Real
+  per-vector side cost at n=179: **0.0 B**, not the 3,295 B I charged. Two rules:
+  take payload from the codec's own `nbytes` (it includes the separately-stored
+  f32 norms — +4 B/vec, i.e. +50% at d=64 @ 1-bit, and that part *was* a real
+  bug), and price side data by **what a reader receives**, not by what happens to
+  sit in RAM. (`bekko-embedding-bench/RESULTS.md`)
+- **An RHT's storage is O(d) bits in operator form; the d^2 floats are a speed
+  choice, not a requirement.** A randomized Hadamard transform is a +/-1 diagonal
+  plus an FWHT, so its entire state is `rounds * d` bits — 144 B at d=384,
+  rounds=3, against 589,824 B for a dense f32 rotation. Both
+  `remax.rotation.rht_rotation` and `remax_kb.projection.srht_matrix`
+  *materialize* it to keep the apply path a single BLAS matmul, which is why a
+  naive `nbytes`-style audit sees no saving. If storage is the constraint, use
+  the operator form; if apply latency is, materialize and cache. Removing the
+  d^2 term is exactly what the RHT is *for*, and it is the argument for v2's
+  `srht` default over `haar`+int8-sidecar (1.2 MB of planes against a 179-chunk
+  corpus = 6,590 B/vec). (`bekko-embedding-bench/RESULTS.md`)
+- **A per-query constant can eat an order-of-magnitude encoder win — measure the
+  whole path, then decompose it.** bekko-a8m is 12.9x faster than jina v5 nano q4
+  in isolation, but only **2.3x** through `remax_kb.read.KB.search`, because
+  `_stacked_simhash_encode` constructs a `StackedSignBitQuantizer(d, k, seed)` on
+  every call and that constructor builds k Haar rotations by QR — from manifest
+  parameters that cannot change for an opened index. It was **87% of bekko's
+  query** and ~50-60 ms flat for everyone. Caching it per opened index (one line,
+  verified to yield identical codes *and* identical hit lists) restores
+  **11.6-15.1x**. Two portable lessons: a fixed tax hurts most whoever else is
+  cheap, so component benchmarks systematically overstate wins for the fast
+  component; and "deterministic from (d, k, seed)" is a construction-time
+  invariant that a reader should exploit, not re-derive per call. Decompose
+  before concluding — the stage that dominated here was neither the model nor
+  the search. (`bekko-embedding-bench/RESULTS.md` §6)
+- **Token accounting for a retrieval baseline is a methodology choice — quote
+  both, or you are picking the flattering one.** Charging `rg` its full
+  matching-line output made a dense arm look **12.8x cheaper**; charging `rg -l`,
+  which returns exactly the information a *file*-discovery metric scores, made
+  the same dense arm **2x more expensive**. Same runs, same metric, opposite
+  conclusions. State which output mode the baseline is charged for.
+  (`bekko-embedding-bench/RESULTS.md`)
+- **A benchmark's instance set is the artifact worth keeping, not its code.**
+  mini-CTXBench has now been rebuilt three times at ~3 tool calls each; what was
+  lost every time, and what made "reuse the same 7 instances" unsatisfiable, is
+  the *list of instances*. Commit the pinned set (issue number, PR number,
+  commit sha, gold files, issue body) even when the harness is throwaway —
+  without it no two runs are comparable. (`bekko-embedding-bench/instances.json`)
+- **Assign strata by a measured property, not a remembered label.** Splitting
+  benchmark instances into identifier-rich/-poor by *running the extractor and
+  seeing what it recovers* produced a cleaner split than the hand labels would
+  have, and is reproducible: the deciding instance yields literally zero
+  code-shaped tokens because it argues its bug in prose and points at code by
+  line-number URL. (`bekko-embedding-bench`)
 - **Key a cache on the METHOD, not just on the problem.** A grid cache keyed
   `(m, K)` silently served codebooks trained by an older, worse procedure after
   the trainer was fixed — and the stale file was 87% worse than the baseline it
