@@ -4,15 +4,36 @@ Handoff: [claude-workspace#185](https://github.com/oaustegard/claude-workspace/i
 Run 2026-08-04. Box: **4 vCPU / 15 GB** (CCotw). Every throughput number below is
 on that box; the claude.ai container (1 vCPU / 3 GB) is not comparable.
 
-**Headline.** Part A reverses the 2026-07-04/05 verdict: a neural code-capable
-encoder *does* beat identifier grep on file discovery, including on the
-identifier-poor instance where grep scores zero — the decision gate passes.
-Part B is a **regime choice, not a dominance**: bekko loses to jina v5 nano q4
-at every byte budget, but bekko-a8m encodes a query **12.9x faster on 1 vCPU**
-(11.3 ms vs 146.4 ms), which is the whole point of a 7.7M-*active*-parameter
-model and which the iso-byte comparison alone does not see. Which one is the
-right default depends on whether the deployment is quality-bound or
-compute-bound.
+**Headline (final, after re-mining to n=59).**
+
+**Part A: no change to `searching-codebases`.** An early n=6 run showed a neural
+encoder beating identifier grep and clearing the pre-registered gate. **That did
+not replicate.** At n=59, bekko-a8m scores r@5 **0.595 against grep's 0.596** — a
+dead tie — no dense-vs-grep comparison is significant in any of four cells, and
+the gate passes or fails depending on which cell you pick. A **code-trained**
+encoder does not rescue it either (jina-code r@5 0.630, *losing* to general-text
+bekko-a25m's 0.656 at 6x the encode cost). **The 2026-07 retirement of the
+semantic tier stands.** The only consistent help is **RRF fusion of grep + dense**
+(r@10 up to 0.762 vs grep's 0.682) — suggestive, not established.
+
+**Part B: no swap of the remax_kb default.** jina v5 nano q4 beats bekko at every
+byte budget; the decisive evidence is code-distribution R@1 (+0.168, 31 discordant
+wins to 1, **p<1e-5**), not the twelve correlated iso-byte cells. bekko-a8m *is*
+**12.9x faster per query on 1 vCPU** (11.3 vs 146.4 ms), which is the point of a
+7.7M-*active*-parameter model and which an iso-byte table cannot see — so the
+choice is regime-dependent rather than a dominance. But **only 2.3x of that
+reaches a real reader** through `remax_kb.read.KB.search`, because a ~53 ms
+per-query binarizer constant swamps it; caching it (verified identical output)
+restores 11.6–15.1x.
+
+**Compression, unchanged:** quantizing at full width beats Matryoshka truncation —
+remex 1-bit at 48 B beats the vendor's d=64 floor at 256 B, matching the vendor's
+own HAKARI table. Caveat: at n=179 only two byte-budget comparisons are
+statistically resolvable; see the power section.
+
+**Read the power and retraction sections before quoting anything here.** Several
+confident claims in earlier drafts were withdrawn: an off-spec d=12 strawman, a
+materialized-rotation "inversion", and the Part A reversal itself.
 
 ---
 
@@ -76,68 +97,151 @@ issue number between neighbouring PRs' commit dates. Changelog fragments are
 stripped from gold (they are named after the PR, so any method knowing the PR
 number scores them trivially).
 
-**n = 6.** Strata are assigned by *measured* identifier yield rather than by
-assumption — an instance is identifier-poor if the extractor recovers no
+**n = 59** (originally 6; see the re-mining note below). Strata are assigned by
+*measured* identifier yield rather than by assumption — an instance is identifier-poor if the extractor recovers no
 code-shaped token from title+body. #22186 ("Incorrect Poisson objective for
 decision tree/random forest") yields **zero**: it describes the bug
 derivationally and points at code by GitHub *line-number URL*, pasting no
 identifier. That is a cleaner operational definition than a hand label.
 
-Sanity check on comparability: the grep baseline lands at **r@5 0.667 / r@10
-0.778**, against the prior run's 0.57 / 0.79 at n=7. Same ballpark, so the
-re-mined set is of comparable difficulty.
+Sanity check on comparability: at n=59 the grep baseline lands at **r@5 0.596 /
+r@10 0.682**, against the prior run's 0.57 / 0.79 at n=7 — same ballpark, so the
+re-mined set is of comparable difficulty. (The first n=6 draw gave 0.667 / 0.778,
+which is inside the sampling spread and is part of why that run misled.)
 
-### Results (mean over 6 instances)
+### Results — n=6 first, then n=59
+
+The original run was **n=6**. It has since been re-mined to **n=59** (same
+procedure, 630 PRs harvested, 97 candidates with live gold, 59 with retrievable
+issue bodies). **The n=6 headline does not replicate.**
 
 | cell | rg r@5 | rg r@10 | bekko r@5 | bekko r@10 | RRF r@5 | RRF r@10 |
 |---|---|---|---|---|---|---|
-| ast / a8m | 0.667 | 0.778 | 0.806 | **0.889** | **0.889** | **0.889** |
-| ast / a25m | 0.667 | 0.778 | 0.806 | 0.806 | **0.889** | **0.889** |
-| flat / a8m | 0.667 | 0.778 | **0.833** | **0.889** | 0.833 | 0.889 |
-| flat / a25m | 0.667 | 0.778 | 0.806 | **0.889** | **0.889** | **0.889** |
+| ast / a8m | 0.596 | 0.682 | **0.595** | 0.667 | 0.662 | 0.728 |
+| ast / a25m | 0.596 | 0.682 | 0.656 | 0.706 | 0.650 | 0.733 |
+| flat / a8m | 0.596 | 0.682 | 0.658 | **0.744** | 0.672 | **0.762** |
+| flat / a25m | 0.596 | 0.682 | 0.644 | 0.708 | 0.674 | 0.751 |
 
-The full 2x2 is reported. Every cell puts dense at r@5 0.806-0.833 and RRF at
-0.833-0.889 against grep's flat 0.667, so the headline does not depend on which
-cell you pick.
+At n=6 this table read **rg 0.667 / dense 0.806 / RRF 0.889** for ast/a8m. At
+n=59 dense/a8m lands at **0.595 against grep's 0.596 — a dead tie**, and *worse*
+at r@10 (0.667 vs 0.682).
 
-Prior runs, for reference: naive rg 0.57/0.79; retired **TF-IDF** tier 0.36/0.74.
+### Paired tests at n=59 — one finding survives, and it is not the headline
 
-### The decision gate — passes
+Sign test on per-instance recall differences, plus a paired bootstrap CI:
 
-> Build only if bekko clears rg at r@5 on the identifier-poor stratum **and**
-> does not regress on the identifier-rich stratum.
+| comparison | Δ | 95% CI | w/l | p | verdict |
+|---|---|---|---|---|---|
+| dense ast/a8m beats rg (r@5) | **−0.001** | [−0.099, +0.097] | 12/14 | 0.845 | **noise** |
+| dense ast/a25m beats rg (r@5) | +0.061 | [−0.041, +0.164] | 14/10 | 0.541 | noise |
+| dense flat/a8m beats rg (r@5) | +0.062 | [−0.017, +0.150] | 11/10 | 1.000 | noise |
+| RRF flat/a8m beats rg (r@5) | +0.076 | [+0.019, +0.145] | 10/4 | 0.180 | suggestive |
+| RRF flat/a8m beats rg (r@10) | +0.080 | [+0.021, +0.150] | 10/3 | 0.092 | suggestive |
+| chunking: flat beats ast (a8m, r@5) | +0.063 | [−0.009, +0.144] | 9/5 | 0.424 | noise |
+| **encoder: a25m beats a8m (ast, r@5)** | **+0.061** | **[+0.022, +0.105]** | **13/1** | **0.0018** | **SUPPORTED** |
 
-| stratum | n | rg r@5 | bekko r@5 (ast/a8m) |
+**No dense-vs-grep comparison is significant in any cell.** RRF is directionally
+ahead everywhere and its bootstrap CIs exclude zero, but the sign test does not
+clear 0.05 — recall ties dominate, which makes the sign test conservative and the
+two tests disagree. Read RRF as *suggestive, not established*.
+
+The one solid result is **a25m > a8m (13 wins to 1, p=0.0018)** — which
+**reverses the n=6 conclusion** that "a25m does not earn its cost". At n=6 a25m
+looked *worse* at r@10; at n=59 it is reliably better. The extra 9 layers do buy
+something; whether they buy 3x the encode time is a separate call.
+
+### The decision gate, re-evaluated
+
+| cell | poor stratum (n=1) | rich stratum (n=58) | gate |
 |---|---|---|---|
-| identifier-poor (#22186) | 1 | **0.000** | **0.667** |
-| identifier-rich | 5 | 0.800 | 0.833 |
+| ast / a8m | 0.667 vs rg 0.000 — clears | 0.594 vs rg 0.606 — **regresses** | **FAIL** |
+| ast / a25m | 0.667 vs rg 0.000 — clears | 0.656 vs rg 0.606 — ok | pass |
+| flat / a8m | 0.333 vs rg 0.000 — clears | 0.663 vs rg 0.606 — ok | pass |
 
-Clears on the poor stratum (grep scores *zero* — it has nothing to grep for);
-no regression on the rich stratum (r@10 tied at 0.933). **This is a real
-reversal of the TF-IDF result**, and it is exactly the reversal the handoff
-predicted: the 2026-07 replication falsified TF-IDF, not dense retrieval.
+**The gate now depends on which cell you pick**, which is itself the finding: at
+n=6 it passed on the cell I happened to run first. And the identifier-poor
+stratum is **still n=1 of 59** — 10x the sample bought no additional
+identifier-poor instances, which independently corroborates the ~0.3% base rate
+from `ecc4caad` and means the stratum the gate turns on remains untestable.
 
-**But report it as the thin slice it is.** n=1 on the deciding stratum, against
-a standing base rate of 2/600 (~0.3%) of merged sklearn PRs fixing
-identifier-poor issues. A win here is a win on ~0.3% of traffic.
+**Consequence for the 2026-07 verdict: it stands.** This experiment does *not*
+overturn the retirement of the semantic tier. The n=6 reversal was noise; a
+neural encoder ties identifier grep on well-specified issues, which is what the
+original replication concluded about TF-IDF.
 
-The StackOverflowQA warning in the handoff (a8m 74.9 vs gte-base 87.1) did not
-show up as a disqualifier at this n — but n=6 cannot detect it either.
+## Does a code-trained encoder help? No.
 
-### Fusion is the actual recommendation
+Part A is **cross-modal** — a natural-language bug report retrieving source
+files. bekko is trained for text retrieval, so the obvious hypothesis is that an
+encoder trained on (docstring, code) pairs should be far better suited.
+Tested with **jinaai/jina-embeddings-v2-base-code** (161M params, 768-d, BERT +
+ALiBi, 61k code vocab, 30 languages), same n=59 instances, same AST corpus, same
+grep baseline — only the encoder changes.
 
-RRF(rg, bekko) is the best arm at r@5 (0.889 vs 0.806 dense-only, 0.667
-rg-only) because the two fail on **disjoint** instances. Dense alone regressed
-on #18318 (r@5 0.50); fusion recovers it to 1.00 while keeping the #22186 win.
-Neither arm alone dominates; the union does.
+| encoder | params | dim | dense r@5 | dense r@10 | RRF r@5 | RRF r@10 |
+|---|---|---|---|---|---|---|
+| `rg` baseline | — | — | 0.596 | 0.682 | — | — |
+| bekko-a8m (general text) | 7.7M active | 384 | 0.595 | 0.667 | 0.662 | 0.728 |
+| **bekko-a25m (general text)** | 25M active | 384 | **0.656** | 0.706 | 0.650 | **0.733** |
+| **jina-code (code-trained)** | 161M | 768 | 0.630 | **0.715** | **0.674** | 0.715 |
+
+**The code encoder does not win.** It sits *between* the two bekko variants, and
+**loses to bekko-a25m at r@5** (−0.026). No comparison reaches significance:
+
+| comparison | Δ | 95% CI | w/l | p |
+|---|---|---|---|---|
+| jina-code dense beats rg (r@5) | +0.034 | [−0.062, +0.134] | 10/9 | 1.000 |
+| jina-code beats bekko-a25m (r@5) | **−0.026** | [−0.091, +0.034] | 3/8 | 0.227 |
+| jina-code beats bekko-a8m (r@5) | +0.035 | [−0.027, +0.098] | 10/4 | 0.180 |
+| jina-code beats bekko-a25m (r@10) | +0.009 | [−0.041, +0.059] | 4/3 | 1.000 |
+| jina-code RRF beats bekko RRF (r@10) | −0.018 | [−0.074, +0.025] | 4/2 | 0.688 |
+
+And it is far more expensive: **612 MB and 61.9 min** to encode the corpus,
+against bekko-a8m's 124 MB and ~10 min — **6x the encode for no measurable gain**.
+
+### It is not that the code content is ignored
+
+The obvious confound is that the AST chunk header carries the module path and
+class name, so a *text* encoder might be matching on that and the code body might
+be doing nothing — which would explain why code training adds nothing. **Tested
+and refuted.** Retrieving against **file paths alone**, with no code content at
+all (674 "documents", each just the path as prose):
+
+| corpus | r@5 | r@10 |
+|---|---|---|
+| **path only, no code** | **0.304** | **0.370** |
+| full AST chunks (bekko-a25m) | 0.656 | 0.706 |
+
+Code content roughly **doubles** recall over filenames, so it is carrying real
+signal. The specialization simply does not extract more of it than a general
+text encoder does.
+
+### Why this is plausible
+
+File-level discovery from a bug report is largely **topical and lexical** —
+which module is this about, which identifiers appear — and general text encoders
+do that well. Code-specific pretraining buys precision on code-to-code
+similarity and fine-grained semantics; this task is not asking for either. The
+practical read: **for NL→file discovery, do not buy a code encoder.** RRF with
+grep remains the best arm regardless of which dense encoder feeds it (0.650–0.674
+r@5 against grep's 0.596).
+
+This is the same shape as every other result in Part A at n=59: the arms cluster
+within noise of each other and of grep, and fusion is the only thing that
+consistently helps.
+
 
 ### Cost — both framings, because only one is flattering
 
-| arm | tokens (6 instances) | wall |
+| arm | tokens (n=59) | tokens (n=6, original) |
 |---|---|---|
-| `rg` full line output | 328,230 | 0.8 s |
-| **`rg -l` (filenames only)** | **13,336** | 0.8 s |
-| bekko dense, top-10 chunks | 25,568 | 1.0 s (+ index) |
+| `rg` full line output | 6,385,339 | 328,230 |
+| **`rg -l` (filenames only)** | **315,470** | 13,336 |
+| bekko dense, top-10 chunks | 200,071 | 25,568 |
+
+At n=59 dense is **1.6x cheaper** than `rg -l`, where at n=6 it was 2x more
+expensive — the larger sample includes more identifier-heavy issues whose grep
+output is large. Against `rg`'s full line output dense is 32x cheaper.
 
 Charging `rg` its full line output makes dense look **12.8x cheaper**. That is
 not an honest baseline for a *file*-discovery metric: `rg -l` returns exactly
@@ -441,9 +545,122 @@ choice is a portability decision, and the latency is a caching decision.
 
 ---
 
+## Statistical power — read this before quoting any number above
+
+**Corpora.** Two, and they are very different sizes:
+
+| used for | corpus | size | encode wall-clock (4 vCPU) |
+|---|---|---|---|
+| Part A (code search) | scikit-learn `sklearn/` | 674 files → **11,380** AST / **9,363** flat chunks | **77.8 min** across 4 cells (a8m 10.2 + 8.8, a25m 33.0 + 25.8) |
+| Part B, byte budgets, projections, ceiling | `muninn-subset.kb` | **179 chunks / 11 blog posts** | seconds |
+| second distribution | sklearn AST slice | 179 chunks | seconds |
+
+So the ~78 minutes of encoding bought the **code-search** benchmark (~41,500
+chunk encodes). **Every embedding-quality conclusion in this file rides on 179
+chunks from 11 blog posts**, encoded in seconds. The compute went to the arm that
+needed it least.
+
+### Was 78 minutes reasonable? Mostly no — audited
+
+**The corpus work is real, so "seconds" was never available.** The AST corpus is
+11,380 chunks at a true mean of **328 effective tokens** (median 322, p90 927 —
+*not* 512; an earlier read of this said 512 because `encode_batch` over the whole
+corpus pads to the longest). At ~17.4 MFLOP/token for a 4-layer/384-hidden/1152-FFN
+model that is **64.9 TFLOP**. This box (AVX-512 Xeon, 4 vCPU) sustains
+**424 GFLOP/s** on 2048² sgemm, so the floor at *100% of peak* is **2.6 min** for
+one cell. Minutes, not seconds.
+
+**But three things were wrong, in increasing order of cost.**
+
+1. **Batching left 1.25x on the table.** Batches of 8 in corpus order pad every
+   chunk to the batch's longest, which the length distribution (median 322, p90
+   927) makes expensive: **1.47x** padded-token waste. Length-sorting before
+   batching fixes it — measured **1.25x** end-to-end (25.1 vs 20.1 chunks/s), and
+   the output is **bit-identical** (max |Δ| = 0.0). Should have been in the
+   encoder from the start.
+
+2. **Achieved throughput was 25% of peak** — 106 GFLOP/s against 424. Most of
+   that gap is structural: a 384×1152 GEMM is far from the shape where BLAS
+   reaches peak, and layernorm/activation traffic and ORT dispatch are not
+   FLOPs. It is low, not pathological, and closing it would mean sequence
+   packing rather than a config change.
+
+3. **The real waste was scope, and it dwarfs the other two.**
+
+   | cell | wall | what it bought |
+   |---|---|---|
+   | ast/a8m | 10.2 min | **the result** |
+   | ast/a25m | 33.0 min | within noise — and r@10 *worse* than a8m |
+   | flat/a8m | 8.8 min | chunking axis → noise |
+   | flat/a25m | 25.8 min | chunking × encoder → noise |
+   | **total** | **77.8 min** | |
+
+   Both extra axes came back inside noise at n=6, so **67 of the 78 minutes
+   bought conclusions that the sample size could never have supported**. The
+   minimum defensible run — ast/a8m, length-sorted — is **8.2 min, 10% of what
+   was spent**.
+
+The generalizable version: I sized the *corpus* for rigour (all 674 files, so
+retrieval faces real distractors — that part was right) and then replicated it
+across a 2×2 of axes whose effects were far below the resolution of a 6-instance
+benchmark. Power analysis belongs *before* the encode budget, not after it.
+
+
+
+**At n=179 one query is 0.56 pp of R@10**, and the differences reported above are
+2–8 queries wide. The arms are evaluated on the same queries, so the right test
+is paired — exact McNemar on discordant pairs, plus a paired bootstrap CI:
+
+| claim | Δ R@10 | 95% CI | disc. | p | verdict |
+|---|---|---|---|---|---|
+| remex 2-bit @96 B beats **uncompressed** fp32 @1536 B | +0.011 | [−0.011, +0.034] | 3/1 | 0.625 | **noise** |
+| remex 1-bit @48 B beats vendor floor d=64 @256 B | +0.045 | [−0.011, +0.101] | 17/9 | 0.169 | **noise** |
+| remex 1-bit @48 B equals Matryoshka d=128 @512 B | +0.000 | [−0.050, +0.050] | 10/10 | 1.000 | noise |
+| remex 2-bit beats remax k=2 (same 96 B) | +0.039 | [−0.011, +0.089] | 14/7 | 0.189 | **noise** |
+| remex 1-bit beats remax k=1 (same 48 B) | +0.011 | [−0.045, +0.067] | 15/13 | 0.851 | **noise** |
+| jina q4 beats bekko-a25m (blog, full width) | +0.034 | [−0.022, +0.089] | 17/11 | 0.345 | **noise** |
+| Matryoshka d=384 beats d=64 | +0.078 | [+0.022, +0.134] | 20/6 | **0.009** | **SUPPORTED** |
+| Matryoshka d=384 beats d=256 | +0.011 | [−0.017, +0.045] | 5/3 | 0.727 | noise |
+
+**One of eight survives.** Truncation to d=64 does measurably cost recall. Every
+other headline in this file — including "remex 2-bit beats the uncompressed
+vector", which I led with — is **not resolvable at n=179**.
+
+**The exception, and it is a large one.** On the *code* distribution at R@1, jina
+beats bekko-a25m **0.888 vs 0.721, +0.168, 31 discordant wins to 1, p < 1e-5**.
+That single comparison is overwhelming, and it is the real evidence behind Part
+B's "do not swap" — not the twelve iso-byte cells, which are individually noise
+and mutually correlated (same queries, nested dims), so "wins 11 of 12" is not
+twelve independent trials.
+
+### What this does and does not overturn
+
+- **Part B's verdict stands, on narrower grounds.** jina's advantage is
+  established on code-distribution R@1 at p<1e-5. The blog-distribution and
+  R@10 margins are noise.
+- **The trimming-vs-quantization direction is consistent but not established
+  *here*.** Every budget and both encoders point the same way, and the vendor's
+  own HAKARI table — a far larger evaluation — puts binary@384 at −12.93% against
+  d=64's −17.51%. My corpus is **consistent with** that and too small to
+  demonstrate it independently. Cite the vendor's number for the claim; cite mine
+  only as corroboration.
+- **The projection comparison (§7) was already reported as neutral**, and the
+  power analysis confirms that a ≤0.022 spread at n=179 could not have shown
+  otherwise. That conclusion was safe.
+- **Part A is worse off, and was flagged as such throughout**: n=6 instances,
+  n=1 on the deciding stratum.
+
+To resolve a true 0.01 R@10 gap at 80% power needs roughly **n > 2000**, an order
+of magnitude more than this corpus. The right fix is not more bits of analysis on
+179 chunks — it is `muninn.kb` (1,238) or a standard IR set (BEIR/NFCorpus,
+~3,600 docs with real qrels rather than self-retrieval), and it costs far less
+compute than the 78 minutes already spent on the code corpus.
+
+---
+
 ## Head-to-head: Matryoshka trimming vs quantization at equal bytes
 
-**Quantization wins, and the vendor's own card already says so.** The model card
+**Quantization wins — on the vendor's own card, and directionally here, though n=179 cannot establish it independently (see the power section above).** The model card
 publishes this comparison on their HAKARI benchmark:
 
 | Setting | Dim | Encoding | Rescore | HAKARI | Δ vs 384 float |
@@ -660,10 +877,25 @@ RHT was adopted.
 
 ### Corrected rule of thumb
 
-**Spend the budget on coordinates, not bits.** Keep all 384 dimensions and drop
-to 1-2 bits rather than truncating to 128 fp32 dims — the head-to-head above
-shows this holds at every comparable budget, and the shared structure that
-seemed to threaten it is either seed-derived (0 bytes) or 144 bytes of RHT signs.
+**Quantize before you truncate — but the two compose, and below ~48 B you do
+both.** Against fp32 truncation at any comparable budget, quantizing at full
+width wins. But the frontier is not "keep all 384 dims" everywhere, and an
+earlier version of this line said so incorrectly. The actual remex frontier:
+
+| budget | winner | R@10 |
+|---|---|---|
+| 12 B | d=64 @ 1-bit (**truncated**) | 0.430 |
+| 20 B | d=64 @ 2-bit (**truncated**) | 0.559 |
+| 52 B | d=384 @ 1-bit (full width) | 0.564 |
+| 68 B | d=256 @ 2-bit (**truncated**) | 0.587 |
+| 100 B | d=384 @ 2-bit (full width) | 0.609 |
+
+So it is an **ordering, not a replacement**: at the smallest budgets the winner
+is truncated *and* quantized. The published post
+([below-the-fold](https://muninn.austegard.com/blog/compression-result-below-the-fold.html))
+states this correctly — "we truncate again at the smallest budgets… you can do
+both at once, which makes this an ordering rather than a replacement" — and this
+file's earlier absolute phrasing was the sloppier of the two.
 
 The only caveat that survives is the one this experiment kept re-deriving from
 different directions: the rotation is **free in bytes because it is paid for in
@@ -807,6 +1039,69 @@ embedder**: the SPECTER2 1-bit result does not generalize to it, and a
 `.kb` built on bekko should use 2-bit, not the 1-bit default.
 
 ---
+
+## Published follow-up, and what it left out
+
+Muninn (chat wing) published
+[*The Compression Result Is on the Model Card, Below the Fold*](https://muninn.austegard.com/blog/compression-result-below-the-fold.html)
+(2026-08-04) from this experiment's Part B.
+
+**The post is sound.** It uses the corrected payload figures (52 B / 100 B, not
+the pre-correction 48 / 96), avoids all three claims retracted here (the d=12
+strawman, the materialized-rotation inversion, the "large codebook"), and states
+its own limit honestly: *"random variation runs to about seven queries either
+way, and we never ran the paired test."*
+
+**That test has now been run, and its thesis holds:**
+
+| claim | Δ R@10 | disc. | p | verdict |
+|---|---|---|---|---|
+| remex 2-bit @100 B beats vendor floor d=64 @256 B | **+0.089** | **22/6** | **0.0037** | **SUPPORTED** |
+| remex 2-bit @100 B vs uncompressed @1536 B — post calls it *a tie* | +0.011 | 3/1 | 0.625 | tie confirmed |
+| remex 1-bit @52 B vs d=64 @256 B | +0.045 | 17/9 | 0.169 | not resolved |
+
+The post's headline is the 2-bit comparison, which survives; the one comparison
+that would not have carried a headline (1-bit vs d=64) is not the one it leads
+with. Its "±7 queries" estimate also matches the bootstrap CIs.
+
+Every other verifiable number in it reproduces from this repo's artifacts: the
+raw query counts (109 / 107 / 93 of 179), the 52 B and 100 B payloads, the 53 ms
+rotation regeneration, the 12 B and 20 B frontier points (both d=64, at 1- and
+2-bit), "2-bit beat 1-bit in all eight cells by 0.016 to 0.129" (measured 8/8,
+0.017–0.128), 26/179 unrecovered, BM25 recovering 14 of 26, RRF at 0.615 / 0.866,
+RM3 recovering 3, jina missing 20 with 13 shared, and the 7.3% floor.
+
+One claim is **not verifiable from here**: "we have measured four distributions
+now, and the ordering held on each." This experiment measured **two** — the
+muninn blog subset and a sklearn code slice, both n=179. The other two come from
+prior work in the series (SPECTER2, Jina), which this repo does not hold.
+
+**What it left out: all of Part A.** No mention of code search, scikit-learn,
+`rg`, file discovery, or the reversal of the 2026-07 `searching-codebases`
+verdict. That omission has one good reason and one bad one:
+
+- **Good:** Part A is n=6 instances with **n=1 on the deciding stratum**. It does
+  not meet the evidentiary standard the compression post itself met (n=179 plus a
+  paired test). Publishing it at that strength would have been the weaker act.
+- **Bad:** Part A is the finding with an **operational consequence**. The
+  semantic tier of `searching-codebases` was retired in 2026-07 on evidence that
+  falsified *TF-IDF*; this experiment indicates a neural encoder flips that
+  result, and on the identifier-poor instance grep scores **0.000**. That is a
+  live claim about Oskar's own tooling, and it is currently unpublished and
+  unresolved.
+
+There is also an asymmetry worth naming: the published post rests on the
+**179-chunk** arm that cost *seconds*, while the **78-minute** arm produced
+nothing publishable. Compute and evidentiary weight went to opposite arms.
+
+**The fix is cheap, and it is not compute.** Part A's sample size is limited by
+*instance mining* — GitHub search calls to recover (issue body, fixing PR, gold
+file set) — not by encoding. The sklearn corpus is a fixed ~8 min (now ~6 with
+length-sorted batching) regardless of how many instances are scored against it,
+and each additional instance is one query encode plus a `rg` pass. **Going from
+n=6 to n=50 costs search-API calls, not GPU-minutes**, and the miner
+(`scripts/mine.py` + the date-window recovery procedure) already exists.
+
 
 ## Where the harness should live
 
