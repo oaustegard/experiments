@@ -443,78 +443,119 @@ choice is a portability decision, and the latency is a caching decision.
 
 ## Head-to-head: Matryoshka trimming vs quantization at equal bytes
 
-The direct question, no combinations: **at a given bytes/vector, is it better to
-keep fp32 and cut coordinates (the vendor's Matryoshka ladder), or keep all 384
-coordinates and cut bits (remex / remax)?**
+**Quantization wins, and the vendor's own card already says so.** The model card
+publishes this comparison on their HAKARI benchmark:
 
-**Quantization wins at every overlapping budget, and the gap widens as the budget
-shrinks.** R@10, bekko-a25m, payload bytes/vector:
+| Setting | Dim | Encoding | Rescore | HAKARI | Δ vs 384 float |
+|---|---|---|---|---|---|
+| Full quality | 384 | float | No | 0.545 | — |
+| Smaller index | 256 | float | No | 0.536 | −1.76% |
+| Compact index | 128 | float | No | 0.507 | −7.05% |
+| **Very compact** | **64** | float | No | 0.450 | **−17.51%** |
+| INT8 search | 384 | int8 | No | 0.515 | −5.48% |
+| **INT8 + rescore** | 384 | int8 | **Yes** | **0.545** | **−0.04%** |
+| **Binary search** | **384** | **binary** | No | 0.475 | **−12.93%** |
+| **Binary + rescore** | 384 | binary | **Yes** | **0.543** | **−0.44%** |
 
-| bytes | Matryoshka fp32 | remex @384 | remax @384 | quantization advantage |
-|---|---|---|---|---|
-| 48 | 0.274 (d=12*) | **0.564** (1-bit) | 0.553 (k=1) | **2.1x** |
-| 96 | 0.352 (d=24*) | **0.609** (2-bit) | 0.570 (k=2) | **1.7x** |
-| 144 | — | **0.603** (3-bit) | 0.587 (k=3) | — |
-| 192 | 0.480 (d=48*) | **0.598** (4-bit) | 0.575 (k=4) | 1.25x |
-| 384 | 0.547 (d=96*) | **0.598** (8-bit) | 0.581 (k=8) | 1.09x |
-| 256 | 0.520 (d=64, vendor floor) | — | — | — |
-| 512 | 0.564 (d=128) | — | — | — |
-| 1536 | 0.598 (d=384, uncompressed) | — | — | — |
+Binary at 384-d (48 B) loses **12.93%**; truncating to 64-d (256 B) loses
+**17.51%**. Their own numbers put 1-bit-at-full-width ahead of the lowest
+supported truncation tier, at 5.3x fewer bytes. And with a rescore step, binary
+comes back to −0.44% of full float.
 
-`*` below the vendor's supported tiers (256/128/64); the ladder had to be
-extended downward because the two families barely overlap otherwise — the
-vendor's cheapest supported tier (256 B) is already more expensive than remex at
-8 bits.
+### Measured here, at the vendor's supported tiers only
 
-Two comparisons make the size of the effect concrete:
+The card is explicit — **"Supported truncate dimensions: 256, 128, 64"** — so the
+comparison is run on those, plus the full 384. (An earlier version of this file
+extended the ladder down to d=12 to make the byte ranges overlap and quoted the
+resulting 2.1x as the headline. That was a **strawman**: nobody proposes d=12,
+and the honest comparison does not need it.)
 
-- **remex 2-bit at 96 B (R@10 0.609) beats the uncompressed 384-d fp32 vector at
-  1536 B (0.598).** 16x fewer bytes, and not worse.
-- **remex 1-bit at 48 B (0.564) exactly equals Matryoshka d=128 at 512 B
-  (0.564).** 10.7x fewer bytes for identical recall.
+bekko-a25m, payload bytes/vector:
 
-Matryoshka trimming does not win at any budget where the two can be compared.
-
-**Why the asymmetry.** At 48 B, trimming keeps 12 of 384 coordinates and discards
-97% of them outright; 1-bit quantization keeps the *sign of every coordinate*.
-Matryoshka concentrates variance in the leading dimensions, which is what makes
-the tail cheap to drop — but "cheap" is not "free", and one bit per coordinate
-buys more than 32 bits on a twelfth of the coordinates.
-
-**remex beats remax at every budget** (0.609 vs 0.570 at 96 B; 0.598 vs 0.581 at
-384 B). Consistent with remax's own framing — a rank-correct precision ladder,
-not a byte-optimal codec.
-
-### As a coarse filter — and the ceiling that limits it
-
-The follow-up idea was a wide-N cheap tier feeding a finer stage. R@50 is the
-relevant number, and again the quantized arms make the better filter:
-
-| stage-1 candidate | bytes | R@50 | R@10 |
+| configuration | bytes | R@10 | R@50 |
 |---|---|---|---|
-| **remex 2-bit @384** | **96** | **0.855** | 0.609 |
-| remax k=3 @384 | 144 | 0.860 | 0.587 |
-| Matryoshka d=128 | 512 | 0.844 | 0.564 |
-| Matryoshka d=64 | 256 | 0.816 | 0.520 |
-| *(uncompressed fp32 d=384)* | *1536* | *0.855* | *0.598* |
+| Matryoshka fp32 d=384 (uncompressed) | 1536 | 0.598 | 0.855 |
+| Matryoshka fp32 d=256 | 1024 | 0.587 | 0.838 |
+| Matryoshka fp32 d=128 | 512 | 0.564 | 0.844 |
+| **Matryoshka fp32 d=64** (vendor floor) | **256** | **0.520** | 0.816 |
+| **remex 1-bit @384** | **48** | **0.564** | 0.821 |
+| **remex 2-bit @384** | **96** | **0.609** | 0.855 |
+| remex 4-bit @384 | 192 | 0.598 | 0.855 |
+| remax k=1 @384 | 48 | 0.553 | 0.838 |
+| remax k=2 @384 | 96 | 0.570 | 0.849 |
 
-**remex 2-bit at 96 B reaches the same R@50 as the uncompressed vector** (0.855)
-at 1/16 the bytes, so it is the better coarse filter — Matryoshka d=128 costs
-5.3x more for lower recall.
+**Against the vendor's own floor (d=64, 256 B):**
 
-**But note the ceiling.** R@50 saturates at ~0.855–0.860 for *every* arm at
-≥96 B, uncompressed included. ~14% of queries never surface their gold chunk in
-the top 50 at any precision, so that is an **encoder** limit, not a compression
-limit. A two-stage design on this corpus cannot exceed ~0.855 final R@10 however
-good stage 2 is — which is the main argument against building one here: stage 1
-at 96 B already returns R@10 0.609 directly, and the reranking headroom is the
-gap to 0.855, bounded by an encoder that Part B already showed loses to jina.
+| arm | bytes | R@10 | vs d=64 |
+|---|---|---|---|
+| remex 1-bit @384 | **48** | 0.564 | **5.3x smaller, +0.045** |
+| remax k=1 @384 | **48** | 0.553 | 5.3x smaller, +0.034 |
+| remex 2-bit @384 | 96 | 0.609 | 2.7x smaller, **+0.089** |
 
-*(Caveat: n=179, so single-instance steps are ±0.006 and the Matryoshka curve is
-mildly non-monotonic — d=192 scores 0.609 against d=256's 0.587. Read the trend,
-not the individual cells.)*
+And **remex 2-bit at 96 B (0.609) beats the uncompressed 384-d vector at 1536 B
+(0.598)** — 16x smaller, not worse. **remex 1-bit at 48 B exactly equals
+Matryoshka d=128 at 512 B.** Matryoshka trimming does not win at any budget.
 
----
+**Why.** Truncating to 64 keeps 1/6 of the coordinates and discards the rest;
+1-bit keeps the *sign of all 384*. Matryoshka concentrating variance in the
+leading dims is what makes the tail cheap to drop — but cheap is not free, and a
+sign bit on every coordinate carries more than 32 bits on a sixth of them.
+
+**remex beats remax at every budget** (0.609 vs 0.570 at 96 B) — consistent with
+remax's framing as a rank-correct ladder rather than a byte-optimal codec.
+
+## The R@50 ceiling: what it is, and what recovers it
+
+R@50 saturates near 0.855 for every arm ≥96 B, uncompressed included — 26/179
+queries (14.5%) never surface gold in the top 50 at any precision. Three things
+matter about that number, and the first is a caveat on my own harness.
+
+**1. A large part of it is the harness, not the encoder.** Inspecting the 26:
+the head/body split cuts mid-topic, so query and gold are adjacent-but-unrelated
+spans. Query "The Boot Sequence — every conversation begins with…" against a gold
+body that is raw mermaid markup (`ceDiagram participant PI as…`); query about
+memories-vs-skill-files against a gold body that opens "Layer 4: Context Window".
+Several of these are **unanswerable by construction** and should not be counted
+against any retrieval method.
+
+**2. Half of the rest is encoder-specific, not a task floor.** jina q4 fails only
+**20**, and only **13 fail for both**. So the genuinely shared floor is
+13/179 = **7.3%**, not 14.5% — and Part B's better encoder recovers half of
+bekko's failures on its own.
+
+**3. Rescoring cannot touch it.** The vendor's rescore step (binary −12.93% →
+−0.44%) reranks a candidate set with full-precision vectors. It fixes
+*quantization* loss because the gold is already in the set. These 26 are a
+**recall** failure — gold never enters the set — so rescoring is the wrong tool
+by construction. Worth stating, because the vendor's table makes rescoring look
+like a general remedy.
+
+### What actually recovers them — measured
+
+| method | R@10 | R@50 | recovers of the 26 |
+|---|---|---|---|
+| dense only (bekko-a25m) | 0.598 | 0.855 | 0/26 |
+| **BM25 only** | 0.520 | 0.793 | **14/26** |
+| **dense + BM25, RRF** | **0.615** | **0.866** | 8/26 |
+| query expansion (RM3-style) | 0.598 | 0.838 | 3/26 |
+
+**Lexical fusion, not query expansion.** BM25 alone is *worse overall* (R@10
+0.520) yet recovers **14 of the 26 dense misses** — the same disjoint-failure
+structure Part A found between `rg` and dense. RRF fusion gives the best overall
+numbers (R@10 0.615, R@50 0.866), recovering 8 while keeping the easy cases;
+pure BM25 recovers more hard cases but loses more easy ones, so the choice
+depends on whether you want peak recall or peak top-10.
+
+**Query expansion is the weakest option measured** — 3/26 recovered, and R@50
+*drops* 0.855 → 0.838. That reproduces this repo's existing negative result
+(`muninn-rm3`: RM3 "does not help on a small corpus", R@10 1.000 → 0.900).
+Pseudo-relevance feedback needs a relevant top-k to feed on; when the gold is
+absent from the candidates, expansion just amplifies the wrong neighbourhood.
+
+**Practical upshot:** remax_kb v2 **already ships BM25 + RRF fusion**, so the
+remedy is a configuration choice, not new work — and it is the same conclusion
+Part A reached from the opposite direction.
+
 
 ## Byte-budget composition — quantization dominates truncation
 

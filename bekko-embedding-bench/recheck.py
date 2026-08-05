@@ -219,11 +219,18 @@ def main() -> int:
     check("remex 1-bit @48 B matches Matryoshka d=128 @512 B",
           arm("remex@384", 1)["r@10"] >= arm("matryoshka", 128)["r@10"],
           f"{arm('remex@384', 1)['r@10']:.3f} vs {arm('matryoshka', 128)['r@10']:.3f}")
-    check("advantage widens as the budget shrinks",
-          (arm("remex@384", 1)["r@10"] / arm("matryoshka", 12)["r@10"])
-          > (arm("remex@384", 8)["r@10"] / arm("matryoshka", 96)["r@10"]),
-          f"{arm('remex@384', 1)['r@10'] / arm('matryoshka', 12)['r@10']:.2f}x @48 B "
-          f"vs {arm('remex@384', 8)['r@10'] / arm('matryoshka', 96)['r@10']:.2f}x @384 B")
+    # STRAWMAN GUARD: an earlier pass quoted a 2.1x headline against Matryoshka
+    # d=12, far below the vendor's documented floor ("Supported truncate
+    # dimensions: 256, 128, 64"). The claim must hold at the vendor's own floor.
+    m64 = arm("matryoshka", 64)
+    check("beats the VENDOR FLOOR d=64 on both bytes and recall (no strawman needed)",
+          arm("remex@384", 1)["bytes"] < m64["bytes"]
+          and arm("remex@384", 1)["r@10"] > m64["r@10"],
+          f"remex 1-bit {arm('remex@384', 1)['bytes']} B/{arm('remex@384', 1)['r@10']:.3f} "
+          f"vs d=64 {m64['bytes']} B/{m64['r@10']:.3f}")
+    check("headline does not depend on sub-64 (off-spec) tiers",
+          arm("remex@384", 2)["r@10"] > arm("matryoshka", 384)["r@10"]
+          and arm("remex@384", 1)["r@10"] >= arm("matryoshka", 128)["r@10"])
     check("remex beats remax at equal bytes",
           all(arm("remex@384", b)["r@10"] > arm("remax@384", b)["r@10"] for b in (1, 2, 4, 8)))
     # coarse filter: quantized arm is the better stage-1, and the ceiling is the encoder
@@ -232,9 +239,35 @@ def main() -> int:
           and arm("remex@384", 2)["r@50"] > arm("matryoshka", 128)["r@50"],
           f"{arm('remex@384', 2)['r@50']:.3f} @96 B vs Matryoshka d=128 "
           f"{arm('matryoshka', 128)['r@50']:.3f} @512 B")
-    check("R@50 ceiling is an ENCODER limit, not a compression limit",
+    check("R@50 ceiling is not a compression limit (fp32 hits it too)",
           arm("matryoshka", 384)["r@50"] < 0.90,
           f"uncompressed fp32 R@50 = {arm('matryoshka', 384)['r@50']:.3f}")
+
+    # ── recovering the R@50 ceiling ─────────────────────────────────────────
+    RC = json.load(open(HERE / "results_recover.json"))
+    res = {r["method"]: r for r in RC["results"]}
+    check("the ceiling is only PARTLY bekko's: jina fails fewer, overlap smaller",
+          len(RC["both_fail"]) < len(RC["fail"]),
+          f"{len(RC['fail'])} bekko / {len(RC['both_fail'])} shared "
+          f"= {len(RC['both_fail']) / RC['n'] * 100:.1f}% true floor")
+    check("BM25 recovers a majority of dense's misses despite being worse overall",
+          res["BM25 only"]["recovered"] > res["dense only (bekko-a25m)"]["recovered"]
+          and res["BM25 only"]["r@10"] < res["dense only (bekko-a25m)"]["r@10"],
+          f"{res['BM25 only']['recovered']}/{res['BM25 only']['n_fail']} recovered, "
+          f"R@10 {res['BM25 only']['r@10']:.3f}")
+    check("RRF fusion is the best overall arm",
+          res["dense + BM25, RRF"]["r@10"] > res["dense only (bekko-a25m)"]["r@10"]
+          and res["dense + BM25, RRF"]["r@50"] > res["dense only (bekko-a25m)"]["r@50"],
+          f"R@10 {res['dense + BM25, RRF']['r@10']:.3f} "
+          f"R@50 {res['dense + BM25, RRF']['r@50']:.3f}")
+    check("query expansion is the WEAKEST remedy (reproduces the muninn-rm3 negative)",
+          res["query expansion (RM3-ish)"]["r@50"]
+          < res["dense only (bekko-a25m)"]["r@50"]
+          and res["query expansion (RM3-ish)"]["recovered"]
+          < res["BM25 only"]["recovered"],
+          f"R@50 {res['query expansion (RM3-ish)']['r@50']:.3f} vs "
+          f"{res['dense only (bekko-a25m)']['r@50']:.3f}, "
+          f"{res['query expansion (RM3-ish)']['recovered']}/26 recovered")
 
     # ── honest bytes (the Matryoshka-vs-codec accounting audit) ─────────────
     H = [r for r in json.load(open(HERE / "results_honest_bytes.json"))
