@@ -4,15 +4,36 @@ Handoff: [claude-workspace#185](https://github.com/oaustegard/claude-workspace/i
 Run 2026-08-04. Box: **4 vCPU / 15 GB** (CCotw). Every throughput number below is
 on that box; the claude.ai container (1 vCPU / 3 GB) is not comparable.
 
-**Headline.** Part A reverses the 2026-07-04/05 verdict: a neural code-capable
-encoder *does* beat identifier grep on file discovery, including on the
-identifier-poor instance where grep scores zero — the decision gate passes.
-Part B is a **regime choice, not a dominance**: bekko loses to jina v5 nano q4
-at every byte budget, but bekko-a8m encodes a query **12.9x faster on 1 vCPU**
-(11.3 ms vs 146.4 ms), which is the whole point of a 7.7M-*active*-parameter
-model and which the iso-byte comparison alone does not see. Which one is the
-right default depends on whether the deployment is quality-bound or
-compute-bound.
+**Headline (final, after re-mining to n=59).**
+
+**Part A: no change to `searching-codebases`.** An early n=6 run showed a neural
+encoder beating identifier grep and clearing the pre-registered gate. **That did
+not replicate.** At n=59, bekko-a8m scores r@5 **0.595 against grep's 0.596** — a
+dead tie — no dense-vs-grep comparison is significant in any of four cells, and
+the gate passes or fails depending on which cell you pick. A **code-trained**
+encoder does not rescue it either (jina-code r@5 0.630, *losing* to general-text
+bekko-a25m's 0.656 at 6x the encode cost). **The 2026-07 retirement of the
+semantic tier stands.** The only consistent help is **RRF fusion of grep + dense**
+(r@10 up to 0.762 vs grep's 0.682) — suggestive, not established.
+
+**Part B: no swap of the remax_kb default.** jina v5 nano q4 beats bekko at every
+byte budget; the decisive evidence is code-distribution R@1 (+0.168, 31 discordant
+wins to 1, **p<1e-5**), not the twelve correlated iso-byte cells. bekko-a8m *is*
+**12.9x faster per query on 1 vCPU** (11.3 vs 146.4 ms), which is the point of a
+7.7M-*active*-parameter model and which an iso-byte table cannot see — so the
+choice is regime-dependent rather than a dominance. But **only 2.3x of that
+reaches a real reader** through `remax_kb.read.KB.search`, because a ~53 ms
+per-query binarizer constant swamps it; caching it (verified identical output)
+restores 11.6–15.1x.
+
+**Compression, unchanged:** quantizing at full width beats Matryoshka truncation —
+remex 1-bit at 48 B beats the vendor's d=64 floor at 256 B, matching the vendor's
+own HAKARI table. Caveat: at n=179 only two byte-budget comparisons are
+statistically resolvable; see the power section.
+
+**Read the power and retraction sections before quoting anything here.** Several
+confident claims in earlier drafts were withdrawn: an off-spec d=12 strawman, a
+materialized-rotation "inversion", and the Part A reversal itself.
 
 ---
 
@@ -76,16 +97,17 @@ issue number between neighbouring PRs' commit dates. Changelog fragments are
 stripped from gold (they are named after the PR, so any method knowing the PR
 number scores them trivially).
 
-**n = 6.** Strata are assigned by *measured* identifier yield rather than by
-assumption — an instance is identifier-poor if the extractor recovers no
+**n = 59** (originally 6; see the re-mining note below). Strata are assigned by
+*measured* identifier yield rather than by assumption — an instance is identifier-poor if the extractor recovers no
 code-shaped token from title+body. #22186 ("Incorrect Poisson objective for
 decision tree/random forest") yields **zero**: it describes the bug
 derivationally and points at code by GitHub *line-number URL*, pasting no
 identifier. That is a cleaner operational definition than a hand label.
 
-Sanity check on comparability: the grep baseline lands at **r@5 0.667 / r@10
-0.778**, against the prior run's 0.57 / 0.79 at n=7. Same ballpark, so the
-re-mined set is of comparable difficulty.
+Sanity check on comparability: at n=59 the grep baseline lands at **r@5 0.596 /
+r@10 0.682**, against the prior run's 0.57 / 0.79 at n=7 — same ballpark, so the
+re-mined set is of comparable difficulty. (The first n=6 draw gave 0.667 / 0.778,
+which is inside the sampling spread and is part of why that run misled.)
 
 ### Results — n=6 first, then n=59
 
