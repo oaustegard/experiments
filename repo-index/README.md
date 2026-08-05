@@ -63,15 +63,24 @@ about availability and rate limits: **a different encoder silently changes the
 embedding space**, so `ask.py` verifies the hash and refuses to build against
 the wrong file. `mirror_model.py` prints the files and hashes to upload.
 
-To publish or refresh the mirror, dispatch **`repo-index-mirror`** from the
-Actions tab (`gh workflow run repo-index-mirror` also works). It fetches from
-Hugging Face, **verifies the sha256 pin before publishing anything**, creates the
-release if missing, uploads with `--clobber`, then downloads the published assets
-back over the public URL and re-verifies them.
+To publish or refresh the mirror, run **`repo-index-mirror`**. Two ways in:
 
-It is manual-dispatch only: the encoder is pinned and does not change on its own,
-so there is nothing to schedule. `dry_run: true` fetches and verifies without
-publishing.
+| trigger | when |
+|---|---|
+| **add the `publish-mirror` label to a PR** | works from a phone in one tap, and works *before* the workflow reaches `main` |
+| dispatch from the Actions tab, or `gh workflow run repo-index-mirror` | needs the workflow on the default branch |
+
+The label route exists because `workflow_dispatch` only appears once a workflow
+is on the default branch, whereas a `pull_request` run uses the workflow file
+**from the PR itself**. The label is removed when the run finishes, so it behaves
+like a button — add it again to run again, including to retry a failure.
+
+Either way the run fetches from Hugging Face, **verifies the sha256 pin before
+publishing anything**, creates the release if missing, uploads with `--clobber`,
+then downloads the published assets back over the public URL and re-verifies
+them. Manual only: the encoder is pinned and does not change on its own, so
+there is nothing to schedule. `dry_run: true` (dispatch only) fetches and
+verifies without publishing.
 
 > **The mirror release is not published yet.** Until it is, `ask.py` logs one
 > expected `HTTPError` per file and falls back to Hugging Face — which works, and

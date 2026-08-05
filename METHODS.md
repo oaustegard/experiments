@@ -310,7 +310,19 @@ survives exactly the sanity checks people run.
   README as commands to paste. Do *not* route a blocked capability through a
   side channel (a Worker on a custom domain, say) to defeat the check itself;
   that is a different thing from running it in a context that legitimately has
-  the permission. (`.github/workflows/repo-index-mirror.yml`)
+  the permission.
+
+  **`workflow_dispatch` alone is not enough, though: it only appears once the
+  workflow is on the default branch.** So the very first run is blocked behind a
+  merge — and if the person who has to merge is on a phone, so is that. Add
+  `on: pull_request: types: [labeled]` gated on a specific label name: a
+  `pull_request` run uses the workflow file **from the PR itself**, so it is
+  triggerable before merging, and adding a label is one tap in the GitHub mobile
+  app where the Actions "Run workflow" form is awkward and `gh` does not exist.
+  Have a `needs:`-chained `if: always()` job delete the label afterwards and it
+  behaves like a button — re-add to re-run, including to retry a failure. Fork
+  PRs get a read-only token, so this does not widen who can fire it.
+  (`.github/workflows/repo-index-mirror.yml`)
 - **`add_repo` cannot add a cross-owner repo, but `git clone` and
   `mcp__github__search_*` still reach it — and that is enough to build a
   PR-gold benchmark.** A session pinned to one owner gets
