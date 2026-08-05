@@ -615,6 +615,22 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **A code-trained encoder did not beat a general text encoder on NL->code file
+  discovery — and the obvious confound was ruled out.** On a 59-instance
+  scikit-learn bug-report -> gold-file benchmark,
+  `jina-embeddings-v2-base-code` (161M, 768-d, 30 languages of code) scored
+  r@5 **0.630** against general-text `bekko-a25m`'s **0.656** and a plain `rg`
+  baseline's **0.596** — it lost to the general encoder and no comparison was
+  significant, at **6x the encode cost** (612 MB / 61.9 min vs 124 MB / ~10 min).
+  The confound worth checking first, because it would have explained the result
+  trivially: AST chunk headers carry the module path and class name, so a text
+  encoder might be matching those and ignoring the code. **Refuted** — retrieving
+  against file paths alone, with no code content, scores 0.304/0.370, so code
+  content roughly doubles recall and is genuinely used; the specialization just
+  adds nothing on top. Likely because file-level discovery from a bug report is
+  topical and lexical, not a code-semantics task. Buy a code encoder for
+  code-to-code similarity, not for NL->file localization.
+  (`bekko-embedding-bench/RESULTS.md`)
 - **SPECTER2/citation-trained embedding geometry cannot find cross-disciplinary
   bridge papers.** Four escalating experiments; the twin diagnostic found 0/26
   expected twins in any anchor's ~700-paper candidate union across 9 documented

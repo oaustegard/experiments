@@ -63,6 +63,16 @@ def main() -> int:
           mean("dense_r5", ast25) > mean("dense_r5", ast8) + 0.03,
           f"{mean('dense_r5', ast25):.3f} vs {mean('dense_r5', ast8):.3f}")
 
+    # ── code-trained encoder ────────────────────────────────────────────────
+    CE = {r["model"]: r for r in json.load(open(HERE / "results_codeemb.json"))}
+    check("code-trained encoder does NOT beat the general one at r@5",
+          CE["jina-code"]["dense_r5"] <= CE["bekko-a25m"]["dense_r5"],
+          f"jina-code {CE['jina-code']['dense_r5']:.3f} vs "
+          f"bekko-a25m {CE['bekko-a25m']['dense_r5']:.3f}")
+    check("all encoders cluster near the grep baseline",
+          all(abs(CE[m]["dense_r5"] - CE[m]["rg_r5"]) < 0.08 for m in CE),
+          " ".join(f"{m}={CE[m]['dense_r5']:.3f}" for m in CE))
+
     # ── Part B ──────────────────────────────────────────────────────────────
     B = json.load(open(HERE / "results_partb.json"))
     for f in B["fidelity"]:

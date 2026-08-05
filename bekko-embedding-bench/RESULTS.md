@@ -147,6 +147,68 @@ overturn the retirement of the semantic tier. The n=6 reversal was noise; a
 neural encoder ties identifier grep on well-specified issues, which is what the
 original replication concluded about TF-IDF.
 
+## Does a code-trained encoder help? No.
+
+Part A is **cross-modal** — a natural-language bug report retrieving source
+files. bekko is trained for text retrieval, so the obvious hypothesis is that an
+encoder trained on (docstring, code) pairs should be far better suited.
+Tested with **jinaai/jina-embeddings-v2-base-code** (161M params, 768-d, BERT +
+ALiBi, 61k code vocab, 30 languages), same n=59 instances, same AST corpus, same
+grep baseline — only the encoder changes.
+
+| encoder | params | dim | dense r@5 | dense r@10 | RRF r@5 | RRF r@10 |
+|---|---|---|---|---|---|---|
+| `rg` baseline | — | — | 0.596 | 0.682 | — | — |
+| bekko-a8m (general text) | 7.7M active | 384 | 0.595 | 0.667 | 0.662 | 0.728 |
+| **bekko-a25m (general text)** | 25M active | 384 | **0.656** | 0.706 | 0.650 | **0.733** |
+| **jina-code (code-trained)** | 161M | 768 | 0.630 | **0.715** | **0.674** | 0.715 |
+
+**The code encoder does not win.** It sits *between* the two bekko variants, and
+**loses to bekko-a25m at r@5** (−0.026). No comparison reaches significance:
+
+| comparison | Δ | 95% CI | w/l | p |
+|---|---|---|---|---|
+| jina-code dense beats rg (r@5) | +0.034 | [−0.062, +0.134] | 10/9 | 1.000 |
+| jina-code beats bekko-a25m (r@5) | **−0.026** | [−0.091, +0.034] | 3/8 | 0.227 |
+| jina-code beats bekko-a8m (r@5) | +0.035 | [−0.027, +0.098] | 10/4 | 0.180 |
+| jina-code beats bekko-a25m (r@10) | +0.009 | [−0.041, +0.059] | 4/3 | 1.000 |
+| jina-code RRF beats bekko RRF (r@10) | −0.018 | [−0.074, +0.025] | 4/2 | 0.688 |
+
+And it is far more expensive: **612 MB and 61.9 min** to encode the corpus,
+against bekko-a8m's 124 MB and ~10 min — **6x the encode for no measurable gain**.
+
+### It is not that the code content is ignored
+
+The obvious confound is that the AST chunk header carries the module path and
+class name, so a *text* encoder might be matching on that and the code body might
+be doing nothing — which would explain why code training adds nothing. **Tested
+and refuted.** Retrieving against **file paths alone**, with no code content at
+all (674 "documents", each just the path as prose):
+
+| corpus | r@5 | r@10 |
+|---|---|---|
+| **path only, no code** | **0.304** | **0.370** |
+| full AST chunks (bekko-a25m) | 0.656 | 0.706 |
+
+Code content roughly **doubles** recall over filenames, so it is carrying real
+signal. The specialization simply does not extract more of it than a general
+text encoder does.
+
+### Why this is plausible
+
+File-level discovery from a bug report is largely **topical and lexical** —
+which module is this about, which identifiers appear — and general text encoders
+do that well. Code-specific pretraining buys precision on code-to-code
+similarity and fine-grained semantics; this task is not asking for either. The
+practical read: **for NL→file discovery, do not buy a code encoder.** RRF with
+grep remains the best arm regardless of which dense encoder feeds it (0.650–0.674
+r@5 against grep's 0.596).
+
+This is the same shape as every other result in Part A at n=59: the arms cluster
+within noise of each other and of grep, and fusion is the only thing that
+consistently helps.
+
+
 ### Cost — both framings, because only one is flattering
 
 | arm | tokens (n=59) | tokens (n=6, original) |
