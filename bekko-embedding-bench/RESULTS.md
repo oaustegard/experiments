@@ -540,71 +540,197 @@ Pareto frontier, bekko-a25m, blog distribution:
 against full fp32's **0.598** — but see the correction immediately below: the
 payload figures here undercount, and payload is the *wrong* meter at small n.
 
-### Correction — the first pass mis-priced this comparison twice
+### Correction, and then a retraction of most of it
 
-Prompted by a challenge to check whether the vendor's Matryoshka was being
-applied correctly against the codecs. **The truncation itself is correct**:
-normalize-full-then-truncate-then-renormalize is bit-identical to
-truncate-raw-then-normalize (max |Δ| ≤ 6e-8, i.e. float32 epsilon), which is the
-vendor's prescribed procedure. The *accounting* was wrong, twice, and both errors
-favoured the codecs.
+Two rounds of scrutiny here, and the second overturned the first. Recording both,
+because the retracted version is the kind of confident over-correction that is
+worth being able to find later.
 
-**Error 1 — the payload itself was undercounted.** Bytes were hand-computed as
-`dim*bits/8`, which omits the **float32 norms remex stores separately**. remex's
-own `CompressedVectors.nbytes` gives **52 B/vec** at d=384 @ 1-bit, not 48, and
-**100 B** at 2-bit, not 96. Negligible at d=384; **+50% at d=64 @ 1-bit**
-(12 B, not 8). All tables below now use remex's own accounting.
+**What survives.** The payload was hand-computed as `dim*bits/8`, which drops the
+**float32 norms remex stores separately**. remex's own
+`CompressedVectors.nbytes` gives **52 B/vec** at d=384 @ 1-bit (not 48) and
+**100 B** at 2-bit (not 96) — negligible at d=384, **+50% at d=64 @ 1-bit**
+(12 B, not 8). All tables use remex's own accounting. That correction stands.
 
-**Error 2 — and this is the one that matters — shared structures were free.**
-**Matryoshka truncation ships nothing**: it is a slice of a vector that already
-exists. remex needs a d×d rotation (+ codebook); remax needs *k* of them. Counting
-those at zero compares a codec's payload against a baseline's total. This repo
-has already been caught by exactly this trap once — `remex-vs-higgs-ablation`
-found that "counting the shared codebook, the vector arm costs 52.5 B/vector at
-4 bits against a 50 B payload… needs ~350k vectors to amortize." I reproduced the
-error rather than the lesson.
+**What does not.** I then charged each codec for a **materialized dense d×d
+rotation** (590 KB at d=384) plus "the codebook", concluded that the codec
+advantage *inverts* below n≈411, and wrote it up. **That was wrong**, for two
+reasons.
 
-With side data materialized, the claims **invert at the corpus actually
-benchmarked** (n=179):
+**1. remex's codebook is not large — it is 28 bytes.** Lloyd-Max here is a
+*scalar* quantizer: `2^bits - 1` boundaries and `2^bits` centroids for a
+1-D N(0, 1/d) coordinate distribution, shared by every dimension.
 
-| arm | true B/vec @ n=179 | R@10 | baseline | B/vec | R@10 | winner |
-|---|---|---|---|---|---|---|
-| remex d=384 @ 2-bit | **3,395** | 0.609 | fp32 d=384 | **1,536** | 0.598 | **baseline** |
-| remex d=384 @ 1-bit | **3,347** | 0.564 | fp32 d=128 | **512** | 0.564 | **baseline** |
-| remex d=64 @ 2-bit | **112** | 0.559 | fp32 d=64 | 256 | 0.520 | codec |
+| bits | boundaries | centroids | total |
+|---|---|---|---|
+| 1 | 1 | 2 | **12 B** |
+| 2 | 3 | 4 | **28 B** |
+| 4 | 15 | 16 | 124 B |
+| 8 | 255 | 256 | 2,044 B |
 
-Break-even corpus sizes, materialized:
+It is **21,065x smaller than the rotation** at 2 bits, and it is *analytic* —
+determined by `(d, bits)` with no reference to data, so a reader recomputes it
+rather than receiving it. It rounds to 0.2 B/vec even at n=179.
 
-| comparison | break-even n |
-|---|---|
-| remex d=64 @ 2-bit vs fp32 d=64 | **69** |
-| remex d=384 @ 2-bit vs fp32 d=384 | **411** |
-| remex d=384 @ 1-bit vs fp32 d=128 | **1,282** |
+The "large shared codebook" framing was imported from `remex-vs-higgs-ablation`,
+where it referred to a **vector-quantization grid** with `2^(m·bits)` codepoints
+— genuinely large, and a different arm of a different experiment. Transferring
+that to remex's scalar codebook was a category error.
 
-So `muninn-subset.kb` (179 chunks) sits *below* two of the three break-evens and
-`muninn.kb` (1,238) sits near the third. The wide-and-low-bit spend only pays
-once the rotation amortizes.
+**2. The rotation is the only large object, and nobody ships it dense — which is
+exactly what the RHT is for.** A randomized Hadamard transform is a ±1 diagonal
+plus an FWHT: in **operator form** its entire state is a sign vector,
+`rounds × d` **bits**. The `d²` floats appear only because both
+`remax.rotation.rht_rotation` and `remax_kb.projection.srht_matrix`
+*materialize* the transform to keep the apply path a single BLAS matmul —
+a speed decision, not a storage requirement.
 
-### But the rotation is seed-derived — bytes and latency are the same object
+What a reader actually receives, d=384:
 
-The thing that makes this more than an erratum: those rotations are
-**deterministic from (dim, k, seed)**. A reader can ship them *or* regenerate
-them. remax_kb v1 regenerates — which is precisely the **53 ms/query constant**
-measured in §6, and why v2's `srht` was chosen to "ship nothing" (§7).
-
-So the two sections were pricing one object in two currencies, and each in
-isolation flatters the codec:
-
-| you pay in | cost | measured in |
+| side structure | bytes | B/vec @ n=179 |
 |---|---|---|
-| **bytes** (ship the rotation) | +3,295 B/vec at n=179, +476 at n=1,238, +6 at n=100k | this section |
-| **latency** (regenerate per query) | +53 ms on every query, forever | §6 |
-| **neither** (ship once, cache in memory) | ~0 | §6's verified fix |
+| seed only — **remax_kb v1, and v2 with `srht`/`rademacher`** | 4 | **0.0** |
+| RHT in operator form (sign vector) | 144 | 0.8 |
+| Lloyd-Max codebook (2-bit) | 28 | 0.2 |
+| *dense f32 rotation — what I wrongly charged* | *589,824* | *3,295* |
+| v2 `haar` + int8 sidecar (non-NumPy readers only) | 1,179,648 | 6,590 |
 
-The payload-only frontier is therefore *correct for the deployment remax_kb
-actually implements* — it regenerates, so side bytes really are zero — but only
-because it is paying in the other currency. Quote payload-only bytes **and** the
-per-query constant together, or the compression story is half-told.
+Every remax_kb configuration except the last is **seed-derived and ships
+nothing**; v2's `srht` was chosen precisely so it "ships nothing at all". So the
+590 KB I charged is a cost no deployment here pays, and the inversion it produced
+was an artifact of that charge.
+
+**Corrected result: with realistic side data the frontier is unchanged.**
+
+| arm | B/vec (seed-only) | R@10 | baseline | B/vec | R@10 | winner |
+|---|---|---|---|---|---|---|
+| remex d=384 @ 2-bit | **100.0** | 0.609 | fp32 d=384 | 1,536 | 0.598 | **codec** |
+| remex d=384 @ 1-bit | **52.0** | 0.564 | fp32 d=128 | 512 | 0.564 | **codec** |
+
+Even charging the RHT operator form it moves to 100.8 / 52.8 B — the conclusion
+does not depend on the choice. **There is no inversion at n=179, and no
+break-even to clear.**
+
+The one configuration where side data genuinely dominates is v2 with `haar` +
+the int8 rotation sidecar, which exists so a JavaScript reader can reproduce the
+planes. There, 1.2 MB of rotations against 179 chunks is a real 6,590 B/vec —
+and it is an argument for `srht`, i.e. for the RHT, on exactly the grounds the
+RHT was adopted.
+
+### Corrected rule of thumb
+
+**Spend the budget on coordinates, not bits.** Keep all 384 dimensions and drop
+to 1-2 bits rather than truncating to 128 fp32 dims — the head-to-head above
+shows this holds at every comparable budget, and the shared structure that
+seemed to threaten it is either seed-derived (0 bytes) or 144 bytes of RHT signs.
+
+The only caveat that survives is the one this experiment kept re-deriving from
+different directions: the rotation is **free in bytes because it is paid for in
+time**. remax_kb v1 regenerates it per query, which is §6's 53 ms. Cache it and
+you pay neither.
+
+---
+
+## Byte-budget composition — quantization dominates truncation
+
+Two orthogonal axes (`2eba5b5b`): Matryoshka cuts *coordinates*, remex cuts
+*bits per coordinate*, remax stacks *sign-bit signatures*. Scored as cosine —
+reconstructions renormalized by `‖x̂‖`, per METHODS.md, because ranking by bare
+inner product rewards codecs whose reconstruction norm is constant by
+construction.
+
+Pareto frontier, bekko-a25m, blog distribution:
+
+| bytes/vec | best spend | R@10 |
+|---|---|---|
+| 12 | remex d=64 @ 1-bit | 0.430 |
+| 20 | remex d=64 @ 2-bit | 0.559 |
+| 52 | remex d=384 @ 1-bit | 0.564 |
+| 68 | remex d=256 @ 2-bit | 0.587 |
+| **100** | **remex d=384 @ 2-bit** | **0.609** |
+| 512 | fp32 d=128 (truncation) | 0.564 |
+| 1536 | fp32 d=384 (full) | 0.598 |
+
+**On payload bytes the answer is yes** — remex d=384 @ 2-bit scores **0.609**
+against full fp32's **0.598** — but see the correction immediately below: the
+payload figures here undercount, and payload is the *wrong* meter at small n.
+
+### Correction, and then a retraction of most of it
+
+Two rounds of scrutiny here, and the second overturned the first. Recording both,
+because the retracted version is the kind of confident over-correction that is
+worth being able to find later.
+
+**What survives.** The payload was hand-computed as `dim*bits/8`, which drops the
+**float32 norms remex stores separately**. remex's own
+`CompressedVectors.nbytes` gives **52 B/vec** at d=384 @ 1-bit (not 48) and
+**100 B** at 2-bit (not 96) — negligible at d=384, **+50% at d=64 @ 1-bit**
+(12 B, not 8). All tables use remex's own accounting. That correction stands.
+
+**What does not.** I then charged each codec for a **materialized dense d×d
+rotation** (590 KB at d=384) plus "the codebook", concluded that the codec
+advantage *inverts* below n≈411, and wrote it up. **That was wrong**, for two
+reasons.
+
+**1. remex's codebook is not large — it is 28 bytes.** Lloyd-Max here is a
+*scalar* quantizer: `2^bits - 1` boundaries and `2^bits` centroids for a
+1-D N(0, 1/d) coordinate distribution, shared by every dimension.
+
+| bits | boundaries | centroids | total |
+|---|---|---|---|
+| 1 | 1 | 2 | **12 B** |
+| 2 | 3 | 4 | **28 B** |
+| 4 | 15 | 16 | 124 B |
+| 8 | 255 | 256 | 2,044 B |
+
+It is **21,065x smaller than the rotation** at 2 bits, and it is *analytic* —
+determined by `(d, bits)` with no reference to data, so a reader recomputes it
+rather than receiving it. It rounds to 0.2 B/vec even at n=179.
+
+The "large shared codebook" framing was imported from `remex-vs-higgs-ablation`,
+where it referred to a **vector-quantization grid** with `2^(m·bits)` codepoints
+— genuinely large, and a different arm of a different experiment. Transferring
+that to remex's scalar codebook was a category error.
+
+**2. The rotation is the only large object, and nobody ships it dense — which is
+exactly what the RHT is for.** A randomized Hadamard transform is a ±1 diagonal
+plus an FWHT: in **operator form** its entire state is a sign vector,
+`rounds × d` **bits**. The `d²` floats appear only because both
+`remax.rotation.rht_rotation` and `remax_kb.projection.srht_matrix`
+*materialize* the transform to keep the apply path a single BLAS matmul —
+a speed decision, not a storage requirement.
+
+What a reader actually receives, d=384:
+
+| side structure | bytes | B/vec @ n=179 |
+|---|---|---|
+| seed only — **remax_kb v1, and v2 with `srht`/`rademacher`** | 4 | **0.0** |
+| RHT in operator form (sign vector) | 144 | 0.8 |
+| Lloyd-Max codebook (2-bit) | 28 | 0.2 |
+| *dense f32 rotation — what I wrongly charged* | *589,824* | *3,295* |
+| v2 `haar` + int8 sidecar (non-NumPy readers only) | 1,179,648 | 6,590 |
+
+Every remax_kb configuration except the last is **seed-derived and ships
+nothing**; v2's `srht` was chosen precisely so it "ships nothing at all". So the
+590 KB I charged is a cost no deployment here pays, and the inversion it produced
+was an artifact of that charge.
+
+**Corrected result: with realistic side data the frontier is unchanged.**
+
+| arm | B/vec (seed-only) | R@10 | baseline | B/vec | R@10 | winner |
+|---|---|---|---|---|---|---|
+| remex d=384 @ 2-bit | **100.0** | 0.609 | fp32 d=384 | 1,536 | 0.598 | **codec** |
+| remex d=384 @ 1-bit | **52.0** | 0.564 | fp32 d=128 | 512 | 0.564 | **codec** |
+
+Even charging the RHT operator form it moves to 100.8 / 52.8 B — the conclusion
+does not depend on the choice. **There is no inversion at n=179, and no
+break-even to clear.**
+
+The one configuration where side data genuinely dominates is v2 with `haar` +
+the int8 rotation sidecar, which exists so a JavaScript reader can reproduce the
+planes. There, 1.2 MB of rotations against 179 chunks is a real 6,590 B/vec —
+and it is an argument for `srht`, i.e. for the RHT, on exactly the grounds the
+RHT was adopted.
 
 ### Corrected rule of thumb
 
