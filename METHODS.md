@@ -33,6 +33,32 @@ and leave a one-line pointer here.
 
 ## Cross-cutting principles
 
+- **A quantization ladder measured on one corpus does not transfer by
+  assumption — but on this pair it did, and got *stronger* on the harder task.**
+  The byte/quality ladder here was first run on 179 blog chunks by
+  self-retrieval, where remex 1-bit @48 B vs Matryoshka d=64 @256 B was
+  directionally right but **not significant** (p=0.169). Re-run over 11,380
+  scikit-learn AST chunks and scored on a real NL->file task (n=59), the same
+  comparison is **+0.087, 12 wins to 3, p=0.035** — supported. Two things
+  generalize: **quantize wide rather than truncate narrow** held on both
+  distributions, and **2-bit at 96 B is statistically indistinguishable from an
+  uncompressed 1536 B vector** on both. One caveat that only the code run
+  exposed: **1-bit is not free** — it loses to full fp32 by a real margin
+  (0 wins to 8, p=0.008), so the sweet spot is 2-bit, not 1-bit.
+  (`bekko-embedding-bench/RESULTS.md`)
+- **A retrieval sidecar for a *code repo* should not carry the corpus text — the
+  working tree already is the corpus.** Storing `(path, start-line)` pointers
+  instead of chunk bodies took the non-vector half of a scikit-learn index from
+  **11.3 MB to 0.04 MB gzipped**, making a whole sidecar **0.56 MB at 1-bit /
+  1.08 MB at 2-bit against a 14.1 MB source tree (4.0% / 7.7%)**. Staleness is
+  also a non-issue if updates are incremental: measured churn over 197
+  code-touching sklearn commits is **median 2 files / mean 3.9 / p90 7**, at
+  ~16.9 chunks per file, so a median commit invalidates ~34 chunks — **1.9 s** to
+  re-encode with a small model against ~10 min for a full rebuild. Requires a
+  mutable index format (`.kb` v1 is immutable; v2 `.kbi`/`.kbc` has tombstones).
+  The binding constraint is **not** size or freshness — it is that the dense arm
+  only ties `rg`, so build it as a fusion partner, not a replacement.
+  (`bekko-embedding-bench/RESULTS.md`)
 These were each surfaced independently by separate surveys of disjoint
 experiment sets — convergence is the evidence they generalize.
 
