@@ -921,6 +921,57 @@ embedder**: the SPECTER2 1-bit result does not generalize to it, and a
 
 ---
 
+## Published follow-up, and what it left out
+
+Muninn (chat wing) published
+[*The Compression Result Is on the Model Card, Below the Fold*](https://muninn.austegard.com/blog/compression-result-below-the-fold.html)
+(2026-08-04) from this experiment's Part B.
+
+**The post is sound.** It uses the corrected payload figures (52 B / 100 B, not
+the pre-correction 48 / 96), avoids all three claims retracted here (the d=12
+strawman, the materialized-rotation inversion, the "large codebook"), and states
+its own limit honestly: *"random variation runs to about seven queries either
+way, and we never ran the paired test."*
+
+**That test has now been run, and its thesis holds:**
+
+| claim | Δ R@10 | disc. | p | verdict |
+|---|---|---|---|---|
+| remex 2-bit @100 B beats vendor floor d=64 @256 B | **+0.089** | **22/6** | **0.0037** | **SUPPORTED** |
+| remex 2-bit @100 B vs uncompressed @1536 B — post calls it *a tie* | +0.011 | 3/1 | 0.625 | tie confirmed |
+| remex 1-bit @52 B vs d=64 @256 B | +0.045 | 17/9 | 0.169 | not resolved |
+
+The post's headline is the 2-bit comparison, which survives; the one comparison
+that would not have carried a headline (1-bit vs d=64) is not the one it leads
+with. Its "±7 queries" estimate also matches the bootstrap CIs.
+
+**What it left out: all of Part A.** No mention of code search, scikit-learn,
+`rg`, file discovery, or the reversal of the 2026-07 `searching-codebases`
+verdict. That omission has one good reason and one bad one:
+
+- **Good:** Part A is n=6 instances with **n=1 on the deciding stratum**. It does
+  not meet the evidentiary standard the compression post itself met (n=179 plus a
+  paired test). Publishing it at that strength would have been the weaker act.
+- **Bad:** Part A is the finding with an **operational consequence**. The
+  semantic tier of `searching-codebases` was retired in 2026-07 on evidence that
+  falsified *TF-IDF*; this experiment indicates a neural encoder flips that
+  result, and on the identifier-poor instance grep scores **0.000**. That is a
+  live claim about Oskar's own tooling, and it is currently unpublished and
+  unresolved.
+
+There is also an asymmetry worth naming: the published post rests on the
+**179-chunk** arm that cost *seconds*, while the **78-minute** arm produced
+nothing publishable. Compute and evidentiary weight went to opposite arms.
+
+**The fix is cheap, and it is not compute.** Part A's sample size is limited by
+*instance mining* — GitHub search calls to recover (issue body, fixing PR, gold
+file set) — not by encoding. The sklearn corpus is a fixed ~8 min (now ~6 with
+length-sorted batching) regardless of how many instances are scored against it,
+and each additional instance is one query encode plus a `rg` pass. **Going from
+n=6 to n=50 costs search-API calls, not GPU-minutes**, and the miner
+(`scripts/mine.py` + the date-window recovery procedure) already exists.
+
+
 ## Where the harness should live
 
 It has now been rebuilt three times, and **the code was never the expensive
