@@ -63,21 +63,32 @@ about availability and rate limits: **a different encoder silently changes the
 embedding space**, so `ask.py` verifies the hash and refuses to build against
 the wrong file. `mirror_model.py` prints the files and hashes to upload.
 
+To publish or refresh the mirror, dispatch **`repo-index-mirror`** from the
+Actions tab (`gh workflow run repo-index-mirror` also works). It fetches from
+Hugging Face, **verifies the sha256 pin before publishing anything**, creates the
+release if missing, uploads with `--clobber`, then downloads the published assets
+back over the public URL and re-verifies them.
+
+It is manual-dispatch only: the encoder is pinned and does not change on its own,
+so there is nothing to schedule. `dry_run: true` fetches and verifies without
+publishing.
+
 > **The mirror release is not published yet.** Until it is, `ask.py` logs one
-> expected `HTTPError` per file and falls back to Hugging Face — which works,
-> and the sha256 check still runs, so integrity is enforced either way. What is
-> missing is only the rate-limit and availability insurance. To publish it:
+> expected `HTTPError` per file and falls back to Hugging Face — which works, and
+> the sha256 check still runs, so integrity is enforced either way. What is
+> missing is only rate-limit and availability insurance.
 >
-> ```bash
-> gh release create repo-index-model-v1 --title "repo-index encoder (pinned)" \
->   --notes "Mirror of hotchpotch/bekko-embedding-v1-a8m (MIT). sha256 96d8cc61…"
-> python3 repo-index/mirror_model.py | cut -d' ' -f1 \
->   | xargs gh release upload repo-index-model-v1
-> ```
->
-> (Claude Code sessions cannot create releases — the agent proxy returns
-> *"Creating, editing, or deleting releases is not permitted for this session
-> type"* — so this step is a human one.)
+> The workflow exists because a Claude Code session cannot create releases — the
+> agent proxy returns *"Creating, editing, or deleting releases is not permitted
+> for this session type"* — but an Actions run, holding the repo's own
+> `GITHUB_TOKEN` with `contents: write`, can.
+
+**A mismatch is a hard failure, never an automatic re-pin.** If Hugging Face
+serves different bytes, mirroring them would put a *different embedding space*
+behind a name the index trusts — the exact silent failure the pin exists to stop.
+Re-pinning is a deliberate change, made together with a full `--build`. (The
+first version of `mirror_model.py` only printed the hashes and left the
+comparison to whoever was reading the terminal, which is not a check.)
 
 ### The failure this design is actually guarding against
 

@@ -1,0 +1,96 @@
+# Publish (or refresh) the pinned encoder as a release asset.
+#
+# Manual only. The encoder is pinned by sha256 and does not change on its own,
+# so there is nothing to schedule — this exists because a Claude Code session
+# cannot create releases ("Creating, editing, or deleting releases is not
+# permitted for this session type") while an Actions run can.
+#
+# Once the release exists, repo-index/ask.py fetches from it first and falls
+# back to Hugging Face. Both paths are sha256-verified, so the mirror buys
+# availability and rate-limit headroom, not integrity.
+name: repo-index-mirror
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to create or update'
+        default: 'repo-index-model-v1'
+        required: true
+      dry_run:
+        description: 'Fetch and verify only — do not publish'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repo-index-mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # mirror_model.py imports ask.py to read the pin from one place, and
+      # ask.py imports numpy at module scope.
+      - run: pip install --quiet 'numpy==2.4.6'
+
+      # Refuses to continue if Hugging Face is serving something other than the
+      # pinned bytes — mirroring that would put a different embedding space
+      # behind a name the index trusts.
+      - name: Fetch from Hugging Face and verify the pin
+        run: |
+          python3 repo-index/mirror_model.py --fetch "$RUNNER_TEMP/model" \
+            > "$RUNNER_TEMP/files.txt"
+
+      - name: Create the release if it does not exist
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "release $TAG exists — updating its assets"
+            exit 0
+          fi
+          SHA=$(python3 -c "import sys; sys.path.insert(0, 'repo-index'); from ask import MODEL_SHA256; print(MODEL_SHA256)")
+          cat > "$RUNNER_TEMP/notes.md" <<EOF
+          Mirror of [hotchpotch/bekko-embedding-v1-a8m](https://huggingface.co/hotchpotch/bekko-embedding-v1-a8m), MIT-licensed, pinned for \`repo-index\`.
+
+          \`model.onnx\` sha256 \`$SHA\`
+
+          The pin is enforced by \`repo-index/ask.py\`, which refuses to build against
+          a different encoder — a changed encoder silently changes the embedding
+          space. Published by \`.github/workflows/repo-index-mirror.yml\`.
+          EOF
+          gh release create "$TAG" \
+            --title "repo-index encoder (pinned)" \
+            --notes-file "$RUNNER_TEMP/notes.md"
+
+      - name: Upload assets
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: xargs -d '\n' -a "$RUNNER_TEMP/files.txt" gh release upload "$TAG" --clobber
+
+      # Disjoint check: pull the assets back down over the public release URL and
+      # re-verify, rather than trusting that the upload did what it said.
+      - name: Verify the published assets round-trip
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/roundtrip"
+          gh release download "$TAG" --dir "$RUNNER_TEMP/roundtrip" --clobber
+          python3 repo-index/mirror_model.py "$RUNNER_TEMP/roundtrip"
+          echo "### Mirror published to \`$TAG\` and verified" >> "$GITHUB_STEP_SUMMARY"

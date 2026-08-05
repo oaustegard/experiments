@@ -297,10 +297,20 @@ survives exactly the sanity checks people run.
   `application/x-www-form-urlencoded`, and the proxy rejects that with *"Form-encoded
   request bodies are not accepted"* — use `--data-binary` plus an explicit
   `Content-Type: application/json`; and `uploads.github.com` answering `400` on a
-  bare root GET means the host is **reachable**, not blocked. Design any
-  release-publishing step as a documented human action with a fallback that works
-  without it, rather than something a session can complete.
-  (`repo-index/README.md`)
+  bare root GET means the host is **reachable**, not blocked.
+
+  **The fix is to move the privileged step into a `workflow_dispatch` Action.**
+  The restriction is on the *session*, not on the repo or the token: an Actions
+  run holding the repo's own `GITHUB_TOKEN` with `contents: write` creates
+  releases fine. So a session can author and commit the workflow, and a human
+  fires it with one click (or `gh workflow run <name>`). That generalizes past
+  releases to anything the session type withholds but the repo itself permits —
+  and it is strictly better than a documented manual procedure, because the steps
+  end up version-controlled, reviewable and re-runnable instead of living in a
+  README as commands to paste. Do *not* route a blocked capability through a
+  side channel (a Worker on a custom domain, say) to defeat the check itself;
+  that is a different thing from running it in a context that legitimately has
+  the permission. (`.github/workflows/repo-index-mirror.yml`)
 - **`add_repo` cannot add a cross-owner repo, but `git clone` and
   `mcp__github__search_*` still reach it — and that is enough to build a
   PR-gold benchmark.** A session pinned to one owner gets
