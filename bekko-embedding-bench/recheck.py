@@ -31,60 +31,59 @@ def mean(key: str, rows: list[dict]) -> float:
 
 
 def main() -> int:
+    # ── the writeup must not contradict itself ──────────────────────────────
+    # An earlier revision left the n=6 reversal in the top-of-file headline
+    # while the body retracted it 100 lines down. A reader stops at the
+    # headline, so guard the retracted phrasings by text.
+    doc = (HERE / "RESULTS.md").read_text()
+    for banned in ("Part A reverses the 2026-07-04/05 verdict",
+                   "the decision gate passes"):
+        check(f"RESULTS.md headline free of retracted claim: {banned[:40]!r}",
+              banned not in doc)
+    check("RESULTS.md headline states the n=59 outcome",
+          "does not replicate" in doc and "n=59" in doc)
+
     # ── Part A ──────────────────────────────────────────────────────────────
     A = json.load(open(HERE / "results_parta.json"))
     inst = json.load(open(HERE / "instances.json"))
-    check("instance set is committed and n=6", len(inst) == 6, f"n={len(inst)}")
 
     ast8 = [r for r in A if r["mode"] == "ast" and r["variant"] == "a8m"]
-    check("grep baseline r@5 == 0.667", abs(mean("rg_r5", ast8) - 2 / 3) < 5e-3,
+    check("Part A instance set re-mined to n>=50", len(inst) >= 50, f"n={len(inst)}")
+    check("grep baseline r@5 ~0.596 at n=59", abs(mean("rg_r5", ast8) - 0.596) < 0.01,
           f"{mean('rg_r5', ast8):.3f}")
-    check("dense beats grep at r@5 (ast/a8m)", mean("dense_r5", ast8) > mean("rg_r5", ast8),
-          f"{mean('dense_r5', ast8):.3f} > {mean('rg_r5', ast8):.3f}")
-    check("RRF is best arm at r@5", mean("rrf_r5", ast8) >= mean("dense_r5", ast8),
-          f"{mean('rrf_r5', ast8):.3f}")
+    # THE HEADLINE REVERSED AT n=59. Guard it so the n=6 version cannot return.
+    check("n=59: dense/a8m does NOT beat grep (n=6 headline retracted)",
+          mean("dense_r5", ast8) <= mean("rg_r5", ast8) + 0.01,
+          f"dense {mean('dense_r5', ast8):.3f} vs rg {mean('rg_r5', ast8):.3f}")
+    check("RRF remains directionally best in every cell",
+          all(mean("rrf_r5", [r for r in A if r["mode"] == m and r["variant"] == v])
+              > mean("rg_r5", [r for r in A if r["mode"] == m and r["variant"] == v])
+              for m in ("ast", "flat") for v in ("a8m", "a25m")))
 
-    # decision gate
-    poor = [r for r in ast8 if r["issue"] == 22186]
-    rich = [r for r in ast8 if r["issue"] != 22186]
-    check("identifier-poor instance yields 0 identifiers", poor[0]["n_idents"] == 0)
-    check("GATE part 1: grep scores 0 on poor stratum", mean("rg_r5", poor) == 0.0)
-    check("GATE part 1: bekko clears grep on poor stratum",
-          mean("dense_r5", poor) > mean("rg_r5", poor), f"{mean('dense_r5', poor):.3f} > 0")
-    check("GATE part 2: no regression on rich stratum r@5",
-          mean("dense_r5", rich) >= mean("rg_r5", rich) - 1e-9,
-          f"{mean('dense_r5', rich):.3f} >= {mean('rg_r5', rich):.3f}")
-    check("poor stratum is n=1 (thin-slice caveat is real)", len(poor) == 1)
+    # gate now depends on the cell -- that IS the finding
+    poor = [r for r in ast8 if r["n_idents"] == 0]
+    rich = [r for r in ast8 if r["n_idents"] > 0]
+    check("identifier-poor stratum is STILL n=1 at n=59 (base rate corroborated)",
+          len(poor) == 1, f"{len(poor)}/{len(ast8)}")
+    check("GATE FAILS on ast/a8m at n=59 (regresses on the rich stratum)",
+          mean("dense_r5", rich) < mean("rg_r5", rich),
+          f"rich dense {mean('dense_r5', rich):.3f} vs rg {mean('rg_r5', rich):.3f}")
 
-    # full 2x2: dense beats grep in EVERY cell, and neither axis has a
-    # consistent sign — the claim the writeup makes is stronger than a null.
-    cell = lambda mo, v: [r for r in A if r["mode"] == mo and r["variant"] == v]
-    cells = {(mo, v): cell(mo, v) for mo in ("ast", "flat") for v in ("a8m", "a25m")}
-    check("full 2x2 present", all(len(c) == 6 for c in cells.values()),
-          f"{sum(1 for c in cells.values() if len(c) == 6)}/4 cells")
-    check("dense beats grep at r@5 in every cell",
-          all(mean("dense_r5", c) > mean("rg_r5", c) for c in cells.values()),
-          " ".join(f"{k[0]}/{k[1]}={mean('dense_r5', c):.3f}" for k, c in cells.items()))
+    # encoder axis is now REAL (it was called noise at n=6)
+    ast25 = [r for r in A if r["mode"] == "ast" and r["variant"] == "a25m"]
+    check("encoder axis a25m>a8m is real at n=59 (reverses the n=6 call)",
+          mean("dense_r5", ast25) > mean("dense_r5", ast8) + 0.03,
+          f"{mean('dense_r5', ast25):.3f} vs {mean('dense_r5', ast8):.3f}")
 
-    gap = mean("dense_r5", ast8) - mean("rg_r5", ast8)
-    chunk_d = [mean("dense_r5", cells[("flat", v)]) - mean("dense_r5", cells[("ast", v)])
-               for v in ("a8m", "a25m")]
-    enc_d = [mean("dense_r5", cells[(mo, "a25m")]) - mean("dense_r5", cells[(mo, "a8m")])
-             for mo in ("ast", "flat")]
-    check("every axis effect is smaller than the dense-vs-grep gap",
-          all(abs(d) < gap for d in chunk_d + enc_d),
-          f"max |delta| {max(abs(d) for d in chunk_d + enc_d):.3f} < {gap:.3f}")
-    check("neither axis has a consistent sign across the other's levels",
-          min(chunk_d) <= 0 <= max(chunk_d) and min(enc_d) <= 0 <= max(enc_d),
-          f"chunking {chunk_d} encoder {enc_d}")
-
-    # the withdrawn claim: 0.333 on the poor stratum is a flat/a8m quirk,
-    # not a chunking effect. Guard it so it cannot be re-asserted.
-    poor_r5 = {k: [r for r in c if r["issue"] == 22186][0]["dense_r5"]
-               for k, c in cells.items()}
-    check("AST-helps-poor-stratum claim stays withdrawn (flat/a25m also 0.667)",
-          poor_r5[("flat", "a25m")] == poor_r5[("ast", "a25m")],
-          f"{poor_r5}")
+    # ── code-trained encoder ────────────────────────────────────────────────
+    CE = {r["model"]: r for r in json.load(open(HERE / "results_codeemb.json"))}
+    check("code-trained encoder does NOT beat the general one at r@5",
+          CE["jina-code"]["dense_r5"] <= CE["bekko-a25m"]["dense_r5"],
+          f"jina-code {CE['jina-code']['dense_r5']:.3f} vs "
+          f"bekko-a25m {CE['bekko-a25m']['dense_r5']:.3f}")
+    check("all encoders cluster near the grep baseline",
+          all(abs(CE[m]["dense_r5"] - CE[m]["rg_r5"]) < 0.08 for m in CE),
+          " ".join(f"{m}={CE[m]['dense_r5']:.3f}" for m in CE))
 
     # ── Part B ──────────────────────────────────────────────────────────────
     B = json.load(open(HERE / "results_partb.json"))
@@ -268,6 +267,25 @@ def main() -> int:
           f"R@50 {res['query expansion (RM3-ish)']['r@50']:.3f} vs "
           f"{res['dense only (bekko-a25m)']['r@50']:.3f}, "
           f"{res['query expansion (RM3-ish)']['recovered']}/26 recovered")
+
+    # ── statistical power ───────────────────────────────────────────────────
+    # n=179 is the number that governs every embedding-quality claim here.
+    # These guards keep the writeup from re-asserting under-powered results.
+    S = json.load(open(HERE / "results_significance.json"))
+    by = {c["claim"]: c for c in S["claims"]}
+    check("corpus is the 179-chunk blog subset (1 query = 0.56 pp)", S["n"] == 179)
+    sig = [c for c in S["claims"] if c["significant"]]
+    check("only ONE headline byte-budget claim survives n=179",
+          len(sig) == 1 and "d=64" in sig[0]["claim"],
+          f"{len(sig)}/{len(S['claims'])} significant: {sig[0]['claim']}")
+    for cl in ("remex 2-bit @96B beats UNCOMPRESSED fp32 @1536B",
+               "remex 1-bit @48B beats vendor floor d=64 @256B"):
+        check(f"UNDER-POWERED, must not be quoted as established: {cl[:44]}",
+              not by[cl]["significant"] and by[cl]["ci_lo"] < 0 < by[cl]["ci_hi"],
+              f"p={by[cl]['p']:.3f} CI [{by[cl]['ci_lo']:+.3f},{by[cl]['ci_hi']:+.3f}]")
+    check("truncation-to-d=64 cost IS established",
+          by["Matryoshka d=384 beats d=64"]["significant"],
+          f"p={by['Matryoshka d=384 beats d=64']['p']:.3f}")
 
     # ── honest bytes (the Matryoshka-vs-codec accounting audit) ─────────────
     H = [r for r in json.load(open(HERE / "results_honest_bytes.json"))

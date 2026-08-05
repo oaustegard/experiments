@@ -479,6 +479,42 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Length-sort before batching, and check the length distribution before
+  believing your throughput is compute-bound.** Tokenizer padding is to the
+  *batch's longest* sequence, so corpus-order batches of heterogeneous text pay
+  for the longest member every time. On an AST-chunked scikit-learn corpus
+  (median 322, p90 927 tokens) that is **1.47x** wasted padded tokens; sorting by
+  length before batching and restoring the order after measured **1.25-1.38x**
+  end-to-end with **bit-identical** output. Two traps around it: (a)
+  `encode_batch` over a whole corpus pads *everything* to the global longest, so
+  a naive length histogram taken that way reports 100% at the truncation cap and
+  hides the distribution entirely — call `no_padding()` first; (b) before
+  optimizing, price the work: 3.73M tokens x ~17.4 MFLOP/token = 64.9 TFLOP, and
+  a 4-vCPU AVX-512 box sustaining 424 GFLOP/s on 2048^2 sgemm has a 2.6-minute
+  floor, so "this should take seconds" was never on the table. Achieved was
+  106 GFLOP/s = 25% of peak, which for 384x1152 GEMMs is low but not pathological.
+  (`bekko-embedding-bench/RESULTS.md`)
+- **Run the power analysis before the compute budget, not after.** 67 of 78
+  minutes of encoding went to a 2x2 of axes (encoder size, chunking strategy)
+  whose measured effects all landed inside the noise of a 6-instance benchmark.
+  Sizing the corpus for rigour was right; replicating it across axes the sample
+  could not resolve was not. Ask "what effect size can n detect?" first, then buy
+  only the cells that clear it. (`bekko-embedding-bench`)
+- **Put the compute where the inference is, and run the paired test before
+  writing the headline.** This experiment spent **78 minutes** encoding 41,500
+  scikit-learn chunks for a **6-instance** code-search benchmark, while every
+  embedding-quality conclusion rode on **179 chunks from 11 blog posts** encoded
+  in seconds. At n=179 one query is 0.56 pp of R@10, so the 2-8 query differences
+  being reported were unresolvable: exact McNemar on the discordant pairs killed
+  **seven of eight** headline claims, including "quantization at 96 B beats the
+  uncompressed 1536 B vector" (+0.011, 3 wins to 1, p=0.625). What survived was
+  the one comparison with a large effect — jina over bekko on code-distribution
+  R@1, +0.168, 31 to 1, p<1e-5. Two habits this buys cheaply: **arms share
+  queries, so test paired** (McNemar / paired bootstrap, not two independent
+  proportions), and **"wins 11 of 12 cells" is not 12 trials** when the cells are
+  nested dimensions of one corpus. Resolving a true 0.01 R@10 gap at 80% power
+  needs n>2000 — cheaper than the encode budget already spent.
+  (`bekko-embedding-bench/RESULTS.md`)
 - **Before charging a codec for "shared structure", check what the structure
   actually is — and whether anything ships it.** I priced remex's side data as a
   materialized dense d x d rotation (590 KB at d=384) plus "the codebook",
@@ -579,6 +615,22 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **A code-trained encoder did not beat a general text encoder on NL->code file
+  discovery — and the obvious confound was ruled out.** On a 59-instance
+  scikit-learn bug-report -> gold-file benchmark,
+  `jina-embeddings-v2-base-code` (161M, 768-d, 30 languages of code) scored
+  r@5 **0.630** against general-text `bekko-a25m`'s **0.656** and a plain `rg`
+  baseline's **0.596** — it lost to the general encoder and no comparison was
+  significant, at **6x the encode cost** (612 MB / 61.9 min vs 124 MB / ~10 min).
+  The confound worth checking first, because it would have explained the result
+  trivially: AST chunk headers carry the module path and class name, so a text
+  encoder might be matching those and ignoring the code. **Refuted** — retrieving
+  against file paths alone, with no code content, scores 0.304/0.370, so code
+  content roughly doubles recall and is genuinely used; the specialization just
+  adds nothing on top. Likely because file-level discovery from a bug report is
+  topical and lexical, not a code-semantics task. Buy a code encoder for
+  code-to-code similarity, not for NL->file localization.
+  (`bekko-embedding-bench/RESULTS.md`)
 - **SPECTER2/citation-trained embedding geometry cannot find cross-disciplinary
   bridge papers.** Four escalating experiments; the twin diagnostic found 0/26
   expected twins in any anchor's ~700-paper candidate union across 9 documented

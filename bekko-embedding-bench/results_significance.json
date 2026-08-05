@@ -1,0 +1,85 @@
+{
+ "n": 179,
+ "claims": [
+  {
+   "claim": "remex 2-bit @96B beats UNCOMPRESSED fp32 @1536B",
+   "delta": 0.011173184357541888,
+   "ci_lo": -0.011173184357541888,
+   "ci_hi": 0.03351955307262566,
+   "wins": 3,
+   "losses": 1,
+   "p": 0.625,
+   "significant": false
+  },
+  {
+   "claim": "remex 1-bit @48B beats vendor floor d=64 @256B",
+   "delta": 0.04469273743016766,
+   "ci_lo": -0.011173184357541888,
+   "ci_hi": 0.1005586592178771,
+   "wins": 17,
+   "losses": 9,
+   "p": 0.16863754391670227,
+   "significant": false
+  },
+  {
+   "claim": "remex 1-bit @48B equals Matryoshka d=128 @512B",
+   "delta": 0.0,
+   "ci_lo": -0.05027932960893855,
+   "ci_hi": 0.05027932960893855,
+   "wins": 10,
+   "losses": 10,
+   "p": 1.0,
+   "significant": false
+  },
+  {
+   "claim": "remex 2-bit beats remax k=2 (same 96 B)",
+   "delta": 0.03910614525139666,
+   "ci_lo": -0.011173184357541888,
+   "ci_hi": 0.08938547486033521,
+   "wins": 14,
+   "losses": 7,
+   "p": 0.18924713134765625,
+   "significant": false
+  },
+  {
+   "claim": "remex 1-bit beats remax k=1 (same 48 B)",
+   "delta": 0.011173184357541888,
+   "ci_lo": -0.04469273743016766,
+   "ci_hi": 0.06703910614525144,
+   "wins": 15,
+   "losses": 13,
+   "p": 0.8505540192127228,
+   "significant": false
+  },
+  {
+   "claim": "jina q4 beats bekko-a25m (full width)",
+   "delta": 0.03351955307262566,
+   "ci_lo": -0.022346368715083886,
+   "ci_hi": 0.08938547486033521,
+   "wins": 17,
+   "losses": 11,
+   "p": 0.34492845088243484,
+   "significant": false
+  },
+  {
+   "claim": "Matryoshka d=384 beats d=64",
+   "delta": 0.07821229050279332,
+   "ci_lo": 0.022346368715083886,
+   "ci_hi": 0.13407821229050282,
+   "wins": 20,
+   "losses": 6,
+   "p": 0.009355306625366211,
+   "significant": true
+  },
+  {
+   "claim": "Matryoshka d=384 beats d=256",
+   "delta": 0.011173184357541888,
+   "ci_lo": -0.016759776536312887,
+   "ci_hi": 0.04469273743016755,
+   "wins": 5,
+   "losses": 3,
+   "p": 0.7265625,
+   "significant": false
+  }
+ ]
+}
