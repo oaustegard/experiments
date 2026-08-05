@@ -10,8 +10,11 @@ Run after editing either the prose or the results.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
+
+sys.path.insert(0, os.environ.get("REMEX_ROOT", "/home/user/remex"))
 
 HERE = Path(__file__).resolve().parent
 FAIL: list[str] = []
@@ -250,7 +253,105 @@ def main() -> int:
     # Matryoshka truncation ships nothing; the codecs do not. Guard the asymmetry.
     check("Matryoshka arms carry zero side data",
           all(r["side_b"] == 0 for r in H if r["codec"] == "fp32"))
-    check("codec arms carry non-zero side data",
+    check("codec arms carry non-zero side data IF materialized",
+          all(r["side_b"] > 0 for r in H if r["codec"] in ("remex", "remax")))
+
+    f384 = g("fp32", 384, 32)
+    check("payload-only: quantization still beats full fp32",
+          r384_2["r@10"] >= f384["r@10"] and r384_2["payload_b"] < f384["payload_b"],
+          f"{r384_2['payload_b']:.0f} B vs {f384['payload_b']:.0f} B")
+
+    # RETRACTED CLAIM GUARD: an earlier pass charged each codec a materialized
+    # dense d x d rotation, concluded the advantage inverts below n~411, and was
+    # wrong. remex's codebook is 28 B (analytic, scalar Lloyd-Max), and the
+    # rotation is seed-derived in every remax_kb config except v2-haar+int8 --
+    # an RHT's whole state in operator form is rounds*d BITS. Assert the real
+    # accounting so the over-correction cannot come back.
+    from remex.codebook import lloyd_max_codebook as _cb
+    bo, ce = _cb(384, 2)
+    check("remex codebook is tiny and analytic (not a 'large shared codebook')",
+          bo.nbytes + ce.nbytes < 64,
+          f"{bo.nbytes + ce.nbytes} B at d=384/2-bit, "
+          f"{(384 * 384 * 4) // (bo.nbytes + ce.nbytes)}x smaller than a dense rotation")
+    SEED_ONLY, RHT_OPERATOR = 4, 3 * 384 // 8
+    n0 = 179
+    for label, side in (("seed-only", SEED_ONLY), ("RHT operator form", RHT_OPERATOR)):
+        check(f"NO inversion at n=179 with realistic side data ({label})",
+              r384_2["payload_b"] + side / n0 < f384["payload_b"],
+              f"{r384_2['payload_b'] + side / n0:.1f} B vs {f384['payload_b']:.0f} B")
+    check("RHT operator state is O(d) bits, not O(d^2) floats",
+          RHT_OPERATOR * 100 < 384 * 384 * 4,
+          f"{RHT_OPERATOR} B vs {384 * 384 * 4} B materialized")
+
+    # ── composition ─────────────────────────────────────────────────────────
+    C = json.load(open(HERE / "results_compose.json"))
+    cells = 0
+    for v in ("a8m", "a25m"):
+        for dim in (384, 256, 128, 64):
+            g = lambda p: [r["r@10"] for r in C if r["variant"] == v and r["dim"] == dim
+                           and r["codec"] == "remex" and r["param"] == p][0]
+            if g(2) > g(1):
+                cells += 1
+    check("2-bit beats 1-bit in ALL 8 cells (bekko is Jina-side)", cells == 8, f"{cells}/8")
+
+    def best_at(v, b):
+        s = [r for r in C if r["variant"] == v and r["bytes"] == b]
+        return max(r["r@10"] for r in s) if s else None
+
+    # ── head-to-head: trimming vs quantization at equal bytes ───────────────
+    HH = [r for r in json.load(open(HERE / "results_headtohead.json"))
+          if r["variant"] == "a25m"]
+    def arm(a, p_):
+        return [r for r in HH if r["arm"] == a and r["param"] == p_][0]
+    shared = sorted({r["bytes"] for r in HH if r["arm"] == "matryoshka"} &
+                    {r["bytes"] for r in HH if r["arm"] == "remex@384"})
+    check("quantization beats trimming at EVERY shared byte budget",
+          all(max(r["r@10"] for r in HH if r["arm"] == "remex@384" and r["bytes"] == b)
+              > max(r["r@10"] for r in HH if r["arm"] == "matryoshka" and r["bytes"] == b)
+              for b in shared),
+          f"budgets {shared}")
+    check("remex 2-bit @96 B beats uncompressed fp32 @1536 B",
+          arm("remex@384", 2)["r@10"] > arm("matryoshka", 384)["r@10"],
+          f"{arm('remex@384', 2)['r@10']:.3f} @96 B vs "
+          f"{arm('matryoshka', 384)['r@10']:.3f} @1536 B")
+    check("remex 1-bit @48 B matches Matryoshka d=128 @512 B",
+          arm("remex@384", 1)["r@10"] >= arm("matryoshka", 128)["r@10"],
+          f"{arm('remex@384', 1)['r@10']:.3f} vs {arm('matryoshka', 128)['r@10']:.3f}")
+    check("advantage widens as the budget shrinks",
+          (arm("remex@384", 1)["r@10"] / arm("matryoshka", 12)["r@10"])
+          > (arm("remex@384", 8)["r@10"] / arm("matryoshka", 96)["r@10"]),
+          f"{arm('remex@384', 1)['r@10'] / arm('matryoshka', 12)['r@10']:.2f}x @48 B "
+          f"vs {arm('remex@384', 8)['r@10'] / arm('matryoshka', 96)['r@10']:.2f}x @384 B")
+    check("remex beats remax at equal bytes",
+          all(arm("remex@384", b)["r@10"] > arm("remax@384", b)["r@10"] for b in (1, 2, 4, 8)))
+    # coarse filter: quantized arm is the better stage-1, and the ceiling is the encoder
+    check("remex 2-bit @96 B matches uncompressed R@50 (better coarse filter)",
+          arm("remex@384", 2)["r@50"] >= arm("matryoshka", 384)["r@50"] - 1e-9
+          and arm("remex@384", 2)["r@50"] > arm("matryoshka", 128)["r@50"],
+          f"{arm('remex@384', 2)['r@50']:.3f} @96 B vs Matryoshka d=128 "
+          f"{arm('matryoshka', 128)['r@50']:.3f} @512 B")
+    check("R@50 ceiling is an ENCODER limit, not a compression limit",
+          arm("matryoshka", 384)["r@50"] < 0.90,
+          f"uncompressed fp32 R@50 = {arm('matryoshka', 384)['r@50']:.3f}")
+
+    # ── honest bytes (the Matryoshka-vs-codec accounting audit) ─────────────
+    H = [r for r in json.load(open(HERE / "results_honest_bytes.json"))
+         if r["variant"] == "a25m"]
+    g = lambda c, d, p: [r for r in H if r["codec"] == c and r["dim"] == d
+                         and r["param"] == p][0]
+
+    # payload must come from remex's OWN accounting (which includes the norms),
+    # not a hand-computed dim*bits/8 that silently drops them.
+    r384_2 = g("remex", 384, 2)
+    check("remex payload uses remex's own nbytes (norms included)",
+          abs(r384_2["payload_b"] - 100) < 1
+          and r384_2["payload_b"] > r384_2["naive_payload_b"],
+          f"{r384_2['payload_b']:.0f} B vs naive {r384_2['naive_payload_b']:.0f} B")
+
+    # Matryoshka truncation ships nothing; the codecs do not. Guard the asymmetry.
+    check("Matryoshka arms carry zero side data",
+          all(r["side_b"] == 0 for r in H if r["codec"] == "fp32"))
+    check("codec arms carry non-zero side data IF materialized",
           all(r["side_b"] > 0 for r in H if r["codec"] in ("remex", "remax")))
 
     f384 = g("fp32", 384, 32)

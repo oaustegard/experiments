@@ -479,28 +479,34 @@ the result.
 
 ## Cache and measurement hygiene
 
-- **Count what the BASELINE ships, not just what the codec ships — and if the
-  baseline is Matryoshka truncation, it ships nothing.** Comparing quantizer
-  payload against a truncation baseline credits the codec with free shared
-  structure: remex needs a d x d rotation (+codebook), remax needs k of them,
-  while a Matryoshka slice needs zero side data because the vector already
-  exists. Measured on 179 vectors at d=384: remex @ 2-bit is 100 B/vec payload
-  against full fp32's 1536 B — but **3,395 B/vec** once the rotation is
-  materialized, i.e. the conclusion **inverts**. Break-evens: n=69 (d=64 @ 2-bit
-  vs fp32 d=64), **n=411** (d=384 @ 2-bit vs full fp32), **n=1,282** (d=384 @
-  1-bit vs fp32 d=128). Also take the payload from the codec's own accounting
-  (`CompressedVectors.nbytes`) rather than `dim*bits/8`, which drops the
-  separately-stored float32 norms — +4 B/vec, i.e. **+50% at d=64 @ 1-bit**.
-  This repo had already found this exact trap (`remex-vs-higgs-ablation`, "needs
-  ~350k vectors to amortize") and it was reproduced anyway. (`bekko-embedding-bench`)
-- **A seed-derived structure is the same object priced in two currencies —
-  bytes if you ship it, latency if you regenerate it — and quoting either alone
-  flatters the codec.** remax_kb's rotation is deterministic from (dim, k, seed):
-  ship it and it costs +3,295 B/vec at n=179 (+476 at n=1,238, +6 at n=100k);
-  regenerate it and it costs **53 ms on every query, forever**; cache it once per
-  opened index and it costs ~0. A byte-budget table that assumes regeneration and
-  a latency table that assumes the bytes are free are each individually correct
-  and jointly misleading. Report the pair. (`bekko-embedding-bench/RESULTS.md`)
+- **Before charging a codec for "shared structure", check what the structure
+  actually is — and whether anything ships it.** I priced remex's side data as a
+  materialized dense d x d rotation (590 KB at d=384) plus "the codebook",
+  concluded its byte advantage inverted below n~411, and was **wrong on both
+  counts**. remex's Lloyd-Max codebook is *scalar*: 2^bits-1 boundaries +
+  2^bits centroids for a 1-D N(0,1/d) coordinate, i.e. **28 B at 2 bits**,
+  21,065x smaller than the rotation, and *analytic* from (d, bits) so a reader
+  recomputes rather than receives it. (The "large shared codebook" intuition came
+  from `remex-vs-higgs-ablation`, where it meant a **vector**-quantization grid
+  with 2^(m*bits) codepoints — a different object; do not transfer it to a scalar
+  quantizer.) And the rotation is seed-derived in every remax_kb configuration
+  except v2-`haar`-with-int8-sidecar, so it ships as 4 bytes of seed. Real
+  per-vector side cost at n=179: **0.0 B**, not the 3,295 B I charged. Two rules:
+  take payload from the codec's own `nbytes` (it includes the separately-stored
+  f32 norms — +4 B/vec, i.e. +50% at d=64 @ 1-bit, and that part *was* a real
+  bug), and price side data by **what a reader receives**, not by what happens to
+  sit in RAM. (`bekko-embedding-bench/RESULTS.md`)
+- **An RHT's storage is O(d) bits in operator form; the d^2 floats are a speed
+  choice, not a requirement.** A randomized Hadamard transform is a +/-1 diagonal
+  plus an FWHT, so its entire state is `rounds * d` bits — 144 B at d=384,
+  rounds=3, against 589,824 B for a dense f32 rotation. Both
+  `remax.rotation.rht_rotation` and `remax_kb.projection.srht_matrix`
+  *materialize* it to keep the apply path a single BLAS matmul, which is why a
+  naive `nbytes`-style audit sees no saving. If storage is the constraint, use
+  the operator form; if apply latency is, materialize and cache. Removing the
+  d^2 term is exactly what the RHT is *for*, and it is the argument for v2's
+  `srht` default over `haar`+int8-sidecar (1.2 MB of planes against a 179-chunk
+  corpus = 6,590 B/vec). (`bekko-embedding-bench/RESULTS.md`)
 - **A per-query constant can eat an order-of-magnitude encoder win — measure the
   whole path, then decompose it.** bekko-a8m is 12.9x faster than jina v5 nano q4
   in isolation, but only **2.3x** through `remax_kb.read.KB.search`, because
