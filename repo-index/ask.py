@@ -19,6 +19,7 @@ First run downloads the encoder (~124 MB) to $BEKKO_HOME or ~/.cache/repo-index.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -31,6 +32,11 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[1]
 HERE = Path(__file__).resolve().parent
 MODEL_DIR = Path(os.environ.get("BEKKO_HOME", Path.home() / ".cache/repo-index"))
+# Pinned mirror (MIT-licensed model, redistribution OK). Falls back to HF.
+MODEL_SHA256 = "96d8cc6199e96357b21b2fb12f6d7ffd2d4abc7b182fe94b5468fbd6dc819af7"
+MIRROR = os.environ.get(
+    "REPO_INDEX_MIRROR",
+    "https://github.com/oaustegard/experiments/releases/download/repo-index-model-v1")
 HF = "https://huggingface.co/hotchpotch/bekko-embedding-v1-a8m/resolve/main"
 FILES = {"onnx/model.onnx": "model.onnx", "tokenizer.json": "tokenizer.json",
          "config.json": "config.json"}
@@ -44,9 +50,55 @@ def ensure_model() -> Path:
     for remote, local in FILES.items():
         p = MODEL_DIR / local
         if not p.exists():
-            print(f"fetching {local} ...", file=sys.stderr)
-            urllib.request.urlretrieve(f"{HF}/{remote}", p)
+            for base, path in ((MIRROR, local), (HF, remote)):
+                try:
+                    print(f"fetching {local} from {base.split('/')[2]} ...", file=sys.stderr)
+                    urllib.request.urlretrieve(f"{base}/{path}", p)
+                    break
+                except Exception as e:  # noqa: BLE001 - mirror may not exist yet
+                    print(f"  {type(e).__name__}, trying next source", file=sys.stderr)
+            else:
+                raise SystemExit(f"could not fetch {local}")
+    got = _sha256(MODEL_DIR / "model.onnx")
+    if got != MODEL_SHA256:
+        raise SystemExit(
+            f"encoder sha256 mismatch\n  expected {MODEL_SHA256}\n  got      {got}\n"
+            "The index was built with a specific encoder; a different one silently "
+            "changes the embedding space. Delete the cache and refetch.")
     return MODEL_DIR
+
+
+def _sha256(p: Path) -> str:
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for blk in iter(lambda: f.read(1 << 20), b""):
+            h.update(blk)
+    return h.hexdigest()
+
+
+def provenance(qz) -> dict:
+    """Everything that defines the embedding space this index lives in.
+
+    remex's own rule: *the rotation is part of the encoding*. It is regenerated
+    from the seed at query time, and numpy's QR can drift across BLAS builds — so
+    a CI-built index queried on a different machine could land in a different
+    space with no error, just quietly worse recall. Fingerprint it so that is
+    detected instead.
+    """
+    import numpy as _np
+    import onnxruntime
+    from remex.rotation import haar_rotation
+    R = haar_rotation(DIM, seed=0)
+    return {
+        "encoder_sha256": MODEL_SHA256, "dim": DIM, "bits": BITS, "seed": 0,
+        "rotation": qz.rotation,
+        "rotation_fingerprint": hashlib.sha256(
+            _np.ascontiguousarray(R).tobytes()).hexdigest()[:32],
+        "onnxruntime": onnxruntime.__version__, "numpy": _np.__version__,
+        # informational only -- a git checkout reports 0.0.0+unknown while CI
+        # installs 0.6.0. The enforced invariant is the fingerprint, not this.
+        "remex": getattr(__import__("remex"), "__version__", "unknown"),
+    }
 
 
 class Encoder:
@@ -110,6 +162,8 @@ def build() -> None:
     (HERE / "shape.json").write_text(json.dumps(list(codes.indices.shape)))
     json.dump([{"f": c["f"], "s": c["s"]} for c in chunks],
               open(HERE / "pointers.json", "w"), separators=(",", ":"))
+    prov = provenance(qz) | {"n_chunks": len(chunks)}
+    json.dump(prov, open(HERE / "manifest.json", "w"), indent=1, sort_keys=True)
     size = (HERE / "index.npy").stat().st_size + (HERE / "pointers.json").stat().st_size
     print(f"wrote index: {size / 2**20:.2f} MB", file=sys.stderr)
 
@@ -121,6 +175,16 @@ def query(q: str, k: int) -> None:
     idx = remex.unpack(np.load(HERE / "index.npy"), BITS,
                        shape[0] * shape[1]).reshape(shape).astype(np.uint8)
     qz = remex.Quantizer(d=DIM, bits=BITS, seed=0)
+    want = json.load(open(HERE / "manifest.json"))
+    have = provenance(qz)
+    if have["rotation_fingerprint"] != want["rotation_fingerprint"]:
+        print(f"WARNING: rotation fingerprint differs from the one this index was "
+              f"built with ({want['rotation_fingerprint'][:12]} vs "
+              f"{have['rotation_fingerprint'][:12]}).\n"
+              f"  built with numpy {want['numpy']} / ort {want['onnxruntime']}; "
+              f"you have numpy {have['numpy']} / ort {have['onnxruntime']}.\n"
+              f"  Results will be silently degraded. Re-run --build.",
+              file=sys.stderr)
     cv = remex.CompressedVectors(indices=idx, norms=np.ones(len(ptr), dtype=np.float32),
                                  d=DIM, bits=BITS, rotation=qz.rotation)
     xhat = qz.decode(cv)
