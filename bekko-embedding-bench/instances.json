@@ -1,0 +1,107 @@
+[
+ {
+  "issue": 12470,
+  "pr": 12471,
+  "sha": "62117f482e39757d3e5f25568e1180dcfa695363",
+  "gold": [
+   "sklearn/preprocessing/_encoders.py",
+   "sklearn/preprocessing/tests/test_encoders.py"
+  ],
+  "n_gold": 2,
+  "title": "OneHotEncoder ignore unknown error when categories are strings",
+  "body": "#### Description\n\nThis bug is very specific, but it happens when you set OneHotEncoder to ignore unknown entries.\nand your labels are strings. The memory of the arrays is not handled safely and it can lead to a ValueError\n\nBasically, when you call the transform method it will sets all the unknown strings on your array to OneHotEncoder.categories_[i][0] which is the first category alphabetically sorted given for fit\nIf this OneHotEncoder.categories_[i][0] is a long string, and the array that you want to transform has small strings, then it is impossible to fit the whole  OneHotEncoder.categories_[i][0] into the entries of the array we want to transform. So  OneHotEncoder.categories_[i][0]  is truncated and this raise the ValueError.\n\n#### Steps/Code to Reproduce\n```\nimport numpy as np\nfrom sklearn.preprocessing import OneHotEncoder\n\ntrain  = np.array([ '22','333','4444','11111111' ]).reshape((-1,1))\ntest   = np.array([ '55555',  '22' ]).reshape((-1,1))\n\nohe = OneHotEncoder(dtype=bool,handle_unknown='ignore')\n\nohe.fit( train )\nenc_test = ohe.transform( test )\n```\n\n#### Expected Results\nHere we should get an sparse matrix 2x4 false everywhere except at (1,1) the '22' that is known\n\n#### Actual Results\n\n> ValueError: y contains previously unseen labels: ['111111']\n\n#### Comments\n\nI already implemented a fix for this issue, where I check the size of the elements in the array before, and I cast them into objects if necessary.",
+  "created_at": "2018-10-27T08:38:53Z",
+  "labels": [
+   "Bug"
+  ]
+ },
+ {
+  "issue": 13056,
+  "pr": 19490,
+  "sha": "c48dba07185f7533442d6e9a338622afc5e55f81",
+  "gold": [
+   "sklearn/decomposition/_fastica.py",
+   "sklearn/decomposition/tests/test_fastica.py",
+   "sklearn/tests/test_docstring_parameters.py"
+  ],
+  "n_gold": 3,
+  "title": "FastICA whitening problem (Bug)",
+  "body": "<!--\r\nIf your issue is a usage question, submit it here instead:\r\n- StackOverflow with the scikit-learn tag: https://stackoverflow.com/questions/tagged/scikit-learn\r\n- Mailing List: https://mail.python.org/mailman/listinfo/scikit-learn\r\nFor more information, see User Questions: http://scikit-learn.org/stable/support.html#user-questions\r\n-->\r\n\r\n<!-- Instructions For Filing a Bug: https://github.com/scikit-learn/scikit-learn/blob/master/CONTRIBUTING.md#filing-bugs -->\r\n\r\n#### Description\r\n<!-- Example: Joblib Error thrown when calling fit on LatentDirichletAllocation with evaluate_every > 0-->\r\nWhen performing FastICA using whiten=True attribute, the resulted unmixed signals have a variance of 1/len(data). this can be handled by multiplying the unmixed signals by sqrt(len(data)) in source code before returning it. Also, the unmixing matrix and its inverse must be changed properly to fit the corrected signals\r\n\r\n#### Steps/Code to Reproduce\r\n<!--\r\nExample:\r\n```python\r\nfrom sklearn.feature_extraction.text import CountVectorizer\r\nfrom sklearn.decomposition import LatentDirichletAllocation\r\n\r\ndocs = [\"Help I have a bug\" for i in range(1000)]\r\n\r\nvectorizer = CountVectorizer(input=docs, analyzer='word')\r\nlda_features = vectorizer.fit_transform(docs)\r\n\r\nlda_model = LatentDirichletAllocation(\r\n    n_topics=10,\r\n    learning_method='online',\r\n    evaluate_every=10,\r\n    n_jobs=4,\r\n)\r\nmodel = lda_model.fit(lda_features)\r\n```\r\nIf the code is too long, feel free to put it in a public gist and link\r\nit in the issue: https://gist.github.com\r\n-->\r\n    chnum = eeg_signal.shape[0]\r\n    eeg_signal = eeg_signal.transpose()\r\n    ica = FastICA(n_components=chnum, whiten=True)\r\n    eeg_unmixed = ica.fit_transform(eeg_signal)  # Reconstruct signals\r\n    print(var(eeg_unmixed))\r\n    print(len(eeg_unmixed[0]))\r\n    eeg_unmixed = eeg_unmixed / np.sqrt(np.var(eeg_unmixed))  # this is to handle the scikit learn bug!\r\n\r\n#### Expected Results\r\n<!-- Example: No error is thrown. Please paste or describe the expected results.-->\r\nexpected a variance = 1\r\n#### Actual Results\r\n<!-- Please paste or specifically describe the actual output or traceback. -->\r\nresulted in variance = 1/len(eeg_signal)\r\n#### Versions\r\n<!--\r\nPlease run the following snippet and paste the output below.\r\nFor scikit-learn >= 0.20:\r\nimport sklearn; sklearn.show_versions()\r\nFor scikit-learn < 0.20:\r\nimport platform; print(platform.platform())\r\nimport sys; print(\"Python\", sys.version)\r\nimport numpy; print(\"NumPy\", numpy.__version__)\r\nimport scipy; print(\"SciPy\", scipy.__version__)\r\nimport sklearn; print(\"Scikit-Learn\", sklearn.__version__)\r\n-->\r\n\r\nscikit-learn        0.20.2 \r\n<!-- Thanks for contributing! -->\r\nThanks,\r\nHafez",
+  "created_at": "2019-01-28T09:54:46Z",
+  "labels": [
+   "Bug",
+   "High Priority"
+  ]
+ },
+ {
+  "issue": 18318,
+  "pr": 19703,
+  "sha": "b84afe541c679b0cb57b3b1f7f438400392d11ee",
+  "gold": [
+   "sklearn/gaussian_process/_gpr.py",
+   "sklearn/gaussian_process/tests/test_gpr.py"
+  ],
+  "n_gold": 2,
+  "title": "Regression in GP standard deviation where y_train.std() == 0",
+  "body": "In https://github.com/scikit-learn/scikit-learn/pull/15782#issuecomment-685086334, @rkern writes regarding that fix:\r\n\r\n> FWIW, this broke a few downstream users where y_train.std() == 0 (e.g. only one datapoint) when being used for Bayesian optimization. This probably needs a guard for such a case (which is common in the Bayesian optimization use case)\r\n\r\nMore detail in https://github.com/fmfn/BayesianOptimization/issues/243#issuecomment-685004696:\r\n\r\n> The normalize_y=True option which is used now divides out the standard deviation of the y data, not just subtracting the mean. When there is just one data point, this results in a NaN.",
+  "created_at": "2020-09-01T21:57:19Z",
+  "labels": [
+   "Bug",
+   "Easy",
+   "Regression",
+   "module:gaussian_process"
+  ]
+ },
+ {
+  "issue": 19638,
+  "pr": 19643,
+  "sha": "f4e692c0876425ef6afb6f514b54696f3e071c35",
+  "gold": [
+   "sklearn/metrics/_classification.py",
+   "sklearn/metrics/tests/test_classification.py"
+  ],
+  "n_gold": 2,
+  "title": "[BUG] hinge_loss multi",
+  "body": "```python\n>>> sklearn.metrics.hinge_loss(y_true=[2,1,0,1,0,1,1], pred_decision=[0,1,2,1,0,2,1])\n\n  2378         y_true = le.transform(y_true)\n   2379         mask = np.ones_like(pred_decision, dtype=bool)\n-> 2380         mask[np.arange(y_true.shape[0]), y_true] = False\n   2381         margin = pred_decision[~mask]\n   2382         margin -= np.max(pred_decision[mask].reshape(y_true.shape[0], -1),\n\nIndexError: too many indices for array: array is 1-dimensional, but 2 were indexed\n```",
+  "created_at": "2021-03-07T12:16:07Z",
+  "labels": [
+   "Bug",
+   "module:metrics"
+  ]
+ },
+ {
+  "issue": 22186,
+  "pr": 22191,
+  "sha": "2b15b908c11b90a15253394b1a03bd535720d6ce",
+  "gold": [
+   "sklearn/ensemble/tests/test_forest.py",
+   "sklearn/tree/_criterion.pyx",
+   "sklearn/tree/tests/test_tree.py"
+  ],
+  "n_gold": 3,
+  "title": "Incorrect Poisson objective for decision tree/random forest",
+  "body": "### Describe the bug\r\n\r\n@lorentzenchr\r\n\r\n[The Poisson objective](https://github.com/scikit-learn/scikit-learn/blob/ff09c8a579b116500deade618f93c4dc0d5750bd/sklearn/tree/_criterion.pyx#L1333) has a slight mistake in its derivation. \r\n\r\nGiven an unregularised decision tree, as the depth increases we expect to see the training loss go to zero. This _does not_ occur in sklearn. We noticed this while implementing the same objective in the cuml project. \r\n\r\nThe problem is that the loss of the left and right children get normalised by number of examples in each branch, such that they have equal weight even when the left child has many more examples that the right child.\r\n\r\nThis can be corrected by replacing this code: https://github.com/scikit-learn/scikit-learn/blob/ff09c8a579b116500deade618f93c4dc0d5750bd/sklearn/tree/_criterion.pyx#L1394\r\n\r\nWith something equivalent to this: https://github.com/rapidsai/cuml/blob/416ce61a478a879a49d685e9b06dc4e6d25cb758/cpp/src/decisiontree/batched-levelalgo/objectives.cuh#L316\r\n",
+  "created_at": "2022-01-11T11:03:54Z",
+  "labels": [
+   "Bug",
+   "module:tree"
+  ]
+ },
+ {
+  "issue": 28046,
+  "pr": 28048,
+  "sha": "5ad8e458e4cb14c68609390bc0293d7b5458d74a",
+  "gold": [
+   "sklearn/_loss/_loss.pyx.tp",
+   "sklearn/_loss/tests/test_loss.py"
+  ],
+  "n_gold": 2,
+  "title": "Log Loss gradient and hessian returns NaN for large negative values",
+  "body": "### Describe the bug\n\nThe private `HalfBinomialLoss` gradient and hessian returns `np.NaN` for large negative values of `raw_prediction`:\n- `gradient`\n- `gradient_hessian`\nOnly the `loss_gradient` returns the correct gradient.\n\n### Steps/Code to Reproduce\n\n```python\nimport numpy as np\nfrom sklearn._loss import HalfBinomialLoss\n\nloss = HalfBinomialLoss()\ny_true, raw = np.array([1.]), np.array([-1e3])\n[\n    loss.gradient(y_true, raw),\n    loss.loss_gradient(y_true, raw),\n    loss.gradient_hessian(y_true, raw),\n]\n```\n\n### Expected Results\n\ngradient = -1 and hessian = 0\n\n### Actual Results\n\n```\n[array([nan]), (array([1000.]), array([-1.])), (array([nan]), array([nan]))]\n```",
+  "created_at": "2024-01-02T16:13:24Z",
+  "labels": [
+   "Bug",
+   "Numerical Stability"
+  ]
+ }
+]
