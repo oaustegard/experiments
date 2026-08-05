@@ -773,10 +773,25 @@ RHT was adopted.
 
 ### Corrected rule of thumb
 
-**Spend the budget on coordinates, not bits.** Keep all 384 dimensions and drop
-to 1-2 bits rather than truncating to 128 fp32 dims — the head-to-head above
-shows this holds at every comparable budget, and the shared structure that
-seemed to threaten it is either seed-derived (0 bytes) or 144 bytes of RHT signs.
+**Quantize before you truncate — but the two compose, and below ~48 B you do
+both.** Against fp32 truncation at any comparable budget, quantizing at full
+width wins. But the frontier is not "keep all 384 dims" everywhere, and an
+earlier version of this line said so incorrectly. The actual remex frontier:
+
+| budget | winner | R@10 |
+|---|---|---|
+| 12 B | d=64 @ 1-bit (**truncated**) | 0.430 |
+| 20 B | d=64 @ 2-bit (**truncated**) | 0.559 |
+| 52 B | d=384 @ 1-bit (full width) | 0.564 |
+| 68 B | d=256 @ 2-bit (**truncated**) | 0.587 |
+| 100 B | d=384 @ 2-bit (full width) | 0.609 |
+
+So it is an **ordering, not a replacement**: at the smallest budgets the winner
+is truncated *and* quantized. The published post
+([below-the-fold](https://muninn.austegard.com/blog/compression-result-below-the-fold.html))
+states this correctly — "we truncate again at the smallest budgets… you can do
+both at once, which makes this an ordering rather than a replacement" — and this
+file's earlier absolute phrasing was the sloppier of the two.
 
 The only caveat that survives is the one this experiment kept re-deriving from
 different directions: the rotation is **free in bytes because it is paid for in
@@ -944,6 +959,18 @@ way, and we never ran the paired test."*
 The post's headline is the 2-bit comparison, which survives; the one comparison
 that would not have carried a headline (1-bit vs d=64) is not the one it leads
 with. Its "±7 queries" estimate also matches the bootstrap CIs.
+
+Every other verifiable number in it reproduces from this repo's artifacts: the
+raw query counts (109 / 107 / 93 of 179), the 52 B and 100 B payloads, the 53 ms
+rotation regeneration, the 12 B and 20 B frontier points (both d=64, at 1- and
+2-bit), "2-bit beat 1-bit in all eight cells by 0.016 to 0.129" (measured 8/8,
+0.017–0.128), 26/179 unrecovered, BM25 recovering 14 of 26, RRF at 0.615 / 0.866,
+RM3 recovering 3, jina missing 20 with 13 shared, and the 7.3% floor.
+
+One claim is **not verifiable from here**: "we have measured four distributions
+now, and the ordering held on each." This experiment measured **two** — the
+muninn blog subset and a sklearn code slice, both n=179. The other two come from
+prior work in the series (SPECTER2, Jina), which this repo does not hold.
 
 **What it left out: all of Part A.** No mention of code search, scikit-learn,
 `rg`, file discovery, or the reversal of the 2026-07 `searching-codebases`
