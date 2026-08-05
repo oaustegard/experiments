@@ -31,6 +31,18 @@ def mean(key: str, rows: list[dict]) -> float:
 
 
 def main() -> int:
+    # ── the writeup must not contradict itself ──────────────────────────────
+    # An earlier revision left the n=6 reversal in the top-of-file headline
+    # while the body retracted it 100 lines down. A reader stops at the
+    # headline, so guard the retracted phrasings by text.
+    doc = (HERE / "RESULTS.md").read_text()
+    for banned in ("Part A reverses the 2026-07-04/05 verdict",
+                   "the decision gate passes"):
+        check(f"RESULTS.md headline free of retracted claim: {banned[:40]!r}",
+              banned not in doc)
+    check("RESULTS.md headline states the n=59 outcome",
+          "does not replicate" in doc and "n=59" in doc)
+
     # ── Part A ──────────────────────────────────────────────────────────────
     A = json.load(open(HERE / "results_parta.json"))
     inst = json.load(open(HERE / "instances.json"))
