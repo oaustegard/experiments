@@ -1,0 +1,302 @@
+[
+ {
+  "q": "what does ascii_fold do",
+  "oracle": "experiments",
+  "routed": [
+   "remax_kb",
+   "experiments",
+   "remax"
+  ],
+  "rank": 2
+ },
+ {
+  "q": "why is the grid cache keyed on a version constant",
+  "oracle": "experiments",
+  "routed": [
+   "remax",
+   "remex",
+   "experiments"
+  ],
+  "rank": 3
+ },
+ {
+  "q": "Lloyd-Max codebook boundaries and centroids",
+  "oracle": "remex",
+  "routed": [
+   "remax",
+   "remex",
+   "remax_kb"
+  ],
+  "rank": 2
+ },
+ {
+  "q": "where do spoke checkouts resolve from",
+  "oracle": "experiments",
+  "routed": [
+   "experiments",
+   "claude-workspace",
+   "remax"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "reciprocal rank fusion k parameter",
+  "oracle": "remax_kb",
+  "routed": [
+   "remax",
+   "remax_kb",
+   "experiments"
+  ],
+  "rank": 2
+ },
+ {
+  "q": "how was the CSR sparse matrix builder implemented for the count-sketch path",
+  "oracle": "remax",
+  "routed": [
+   "remax",
+   "experiments",
+   "remex"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "how was NVFP4 dequantization performed before encoding",
+  "oracle": "remax",
+  "routed": [
+   "remex",
+   "claude-skills",
+   "remax"
+  ],
+  "rank": 3
+ },
+ {
+  "q": "what did the tests for the sparse postings list assert",
+  "oracle": "sklearn-bench",
+  "routed": [
+   "experiments",
+   "remax_kb",
+   "claude-skills"
+  ],
+  "rank": 9
+ },
+ {
+  "q": "why is the number of RHT rounds floored at two",
+  "oracle": "remax",
+  "routed": [
+   "remax",
+   "remex",
+   "sklearn-bench"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "stacked sign bit quantizer with k independent rotations",
+  "oracle": "remax",
+  "routed": [
+   "remax",
+   "remex",
+   "remax_kb"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "popcount XOR scan over bit-packed codes",
+  "oracle": "remax_kb",
+  "routed": [
+   "remax",
+   "remex",
+   "remax_kb"
+  ],
+  "rank": 3
+ },
+ {
+  "q": "Haar rotation via explicit Householder QR reflector convention",
+  "oracle": "remex",
+  "routed": [
+   "remex",
+   "remax",
+   "sklearn-bench"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "ADC search with a lookup table over quantized indices",
+  "oracle": "remex",
+  "routed": [
+   "remex",
+   "remax",
+   "remax_kb"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "Matryoshka nested codebooks via right shift",
+  "oracle": "remex",
+  "routed": [
+   "remex",
+   "remax",
+   "remax_kb"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "IVF coarse index multi-probe by Hamming distance",
+  "oracle": "remex",
+  "routed": [
+   "remex",
+   "remax",
+   "remax_kb"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "tombstones and soft deletes in the knowledge base format",
+  "oracle": "remax_kb",
+  "routed": [
+   "remax_kb",
+   "experiments",
+   "claude-workspace"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "BM25 plus RRF fusion inside the kb reader",
+  "oracle": "experiments",
+  "routed": [
+   "remax_kb",
+   "remax",
+   "claude-skills"
+  ],
+  "rank": 4
+ },
+ {
+  "q": "srht projection matrix construction for remax_kb",
+  "oracle": "experiments",
+  "routed": [
+   "remax_kb",
+   "remax",
+   "experiments"
+  ],
+  "rank": 3
+ },
+ {
+  "q": "turso memory recall with FTS5 and vector search",
+  "oracle": "muninn-utilities",
+  "routed": [
+   "muninn-utilities",
+   "remex",
+   "remax"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "boot sequence that materializes utility scripts from memories",
+  "oracle": "claude-skills",
+  "routed": [
+   "muninn-utilities",
+   "claude-workspace",
+   "claude-container-layers"
+  ],
+  "rank": 4
+ },
+ {
+  "q": "blog post publish and bluesky announce helper",
+  "oracle": "muninn-utilities",
+  "routed": [
+   "muninn-utilities",
+   "remax_kb",
+   "claude-skills"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "grapheme cap check for bluesky posts",
+  "oracle": "muninn-utilities",
+  "routed": [
+   "claude-skills",
+   "remax",
+   "remax_kb"
+  ],
+  "rank": 4
+ },
+ {
+  "q": "container layer composition and cached restore from releases",
+  "oracle": "claude-skills",
+  "routed": [
+   "claude-container-layers",
+   "claude-workspace",
+   "remex"
+  ],
+  "rank": 6
+ },
+ {
+  "q": "SessionStart hook that fetches skills tarballs",
+  "oracle": "claude-workspace",
+  "routed": [
+   "claude-workspace",
+   "muninn-utilities",
+   "claude-skills"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "skill frontmatter name and description validation rules",
+  "oracle": "claude-skills",
+  "routed": [
+   "claude-skills",
+   "sklearn-bench",
+   "remax_kb"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "gerund naming convention for skills",
+  "oracle": "claude-skills",
+  "routed": [
+   "claude-skills",
+   "muninn-utilities",
+   "experiments"
+  ],
+  "rank": 1
+ },
+ {
+  "q": "sample weights in gradient boosting loss functions",
+  "oracle": "sklearn-bench",
+  "routed": [
+   "remax",
+   "muninn-utilities",
+   "experiments"
+  ],
+  "rank": 5
+ },
+ {
+  "q": "sparse matrix CSR indptr handling in the estimator",
+  "oracle": "sklearn-bench",
+  "routed": [
+   "remax",
+   "experiments",
+   "remex"
+  ],
+  "rank": 9
+ },
+ {
+  "q": "cross validation splitter with stratification",
+  "oracle": "sklearn-bench",
+  "routed": [
+   "remax",
+   "sklearn-bench",
+   "remex"
+  ],
+  "rank": 2
+ },
+ {
+  "q": "one-hot encoder handling of unknown categories",
+  "oracle": "sklearn-bench",
+  "routed": [
+   "remax_kb",
+   "remax",
+   "claude-container-layers"
+  ],
+  "rank": 4
+ }
+]
