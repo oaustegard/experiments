@@ -56,6 +56,36 @@ CARD_FILES = {"README.md", "README.rst", "README.txt", "README",
               "CLAUDE.md", "AGENTS.md", "SKILL.md", "pyproject.toml"}
 
 
+def content_card(name: str, chunks: list[H.Chunk], df: dict, n_repos: int,
+                 top: int = 400) -> list[H.Chunk]:
+    """A card built from what the repo *contains*, not what its README says it is.
+
+    Front matter turned out to be the wrong source. scikit-learn's README.rst
+    mentions none of "gradient boosting", "one-hot", "cross validation",
+    "sparse" or "estimator" -- it is badges, install instructions and links --
+    while its tree has 296 files matching "sparse" and 311 matching "estimator".
+    A README describes identity; routing needs inventory.
+
+    So: terms ranked by repo-level tf-idf (frequent here, rare across the other
+    repos), plus module path components. Distinctive rather than merely common,
+    which is what keeps `import`/`self`/`return` out of every card.
+    """
+    from collections import Counter
+    import math
+    tf = Counter()
+    paths = Counter()
+    for c in chunks:
+        tf.update(H.tokens(c.text))
+        for part in Path(c.f).parts:
+            paths[part.replace(".py", "").replace(".md", "")] += 1
+    scored = sorted(tf, key=lambda w: -(tf[w] * math.log(n_repos / max(1, df.get(w, 1)))))
+    terms = [w for w in scored if len(w) > 2][:top]
+    mods = [w for w, _ in paths.most_common(60)]
+    body = (f"repository {name}\ndistinctive terms: " + " ".join(terms) +
+            "\nmodules: " + " ".join(mods))
+    return [H.Chunk(name, 0, body[i:i + 2000]) for i in range(0, len(body), 2000)]
+
+
 def repo_card(root: Path, cfg: dict) -> list[H.Chunk]:
     """The always-loaded summary for one repo: front matter + shape.
 
@@ -133,6 +163,12 @@ def main() -> None:
         c = dict(cfg)
         c.update(H.load_cfg(root))
         c["extensions"] = cfg["extensions"]
+        # This harness lists all 30 queries verbatim and lives inside one of the
+        # indexed repos, so leaving it in biases the oracle toward `experiments`
+        # and invalidates the fine-tier cache on every edit to it. Fourth
+        # instance of this shape here, after code-index-duplication (where the
+        # harness retrieved itself for 4 of 9 NL queries) and hybrid-code-index.
+        c["exclude"] = list(c.get("exclude", [])) + ["account-routing-tier/*"]
         fine[root.name] = H.build_corpus(root, c)
         cards += repo_card(root, c)
     for n, ch in fine.items():
@@ -189,27 +225,54 @@ def main() -> None:
         fused = H.rrf([dr, br])
         return fused[0].split("#")[0] if fused else top_d
 
+    # document frequency across repos, for the content-card tf-idf
+    from collections import Counter
+    df: Counter = Counter()
+    for n, ch in fine.items():
+        df.update({w for c in ch for w in H.tokens(c.text)})
+    ccards = []
+    for n, ch in fine.items():
+        ccards += content_card(n, ch, df, len(fine))
+
     print("card chunks per repo:", {n: sum(1 for c in cards if c.f == n)
                                     for n in fine}, flush=True)
-    hits = {1: 0, 2: 0, 3: 0, 5: 0}
-    rows = []
-    for q in QUERIES:
-        want = oracle_repo(q)
-        got = rank_repos_coarse(q)
-        pos = got.index(want) + 1 if want in got else 99
-        for k in hits:
-            hits[k] += pos <= k
-        rows.append({"q": q, "oracle": want, "routed": got[:3], "rank": pos})
-
     n = len(QUERIES)
-    print(f"routing recall over {n} queries, {len(fine)} repos:")
-    for k in (1, 2, 3, 5):
-        print(f"  recall@{k}  {hits[k]:2d}/{n}  ({100*hits[k]/n:.0f}%)")
-    print("\nmisses at k=3:")
-    for r in rows:
+    oracles = [oracle_repo(q) for q in QUERIES]
+    allrows = {}
+    print(f"\n{'card source':28s} {'@1':>6s} {'@2':>6s} {'@3':>6s} {'@5':>6s}  chunks")
+    print("-" * 60)
+    for label, cc in (("front matter (README etc)", cards),
+                      ("content (tf-idf + modules)", ccards),
+                      ("both", cards + ccards)):
+        cm = enc([c.text for c in cc], batch=16)
+        cr = np.array([c.f for c in cc])
+        cb = H.BM25().fit(cc)
+
+        def route(q, cm=cm, cr=cr, cb=cb):
+            qv = enc([q])[0]
+            def best(scores):
+                seen = []
+                for i in np.argsort(-scores):
+                    if cr[i] not in seen:
+                        seen.append(cr[i])
+                return seen
+            return H.rrf([best(cm @ qv), best(cb.score(q))])
+
+        hits, rows = {1: 0, 2: 0, 3: 0, 5: 0}, []
+        for q, want in zip(QUERIES, oracles):
+            got = route(q)
+            pos = got.index(want) + 1 if want in got else 99
+            for k in hits:
+                hits[k] += pos <= k
+            rows.append({"q": q, "oracle": want, "routed": got[:3], "rank": pos})
+        print(f"{label:28s} " + " ".join(f"{100*hits[k]/n:5.0f}%" for k in (1,2,3,5))
+              + f"  {len(cc)}")
+        allrows[label] = rows
+    print("\nmisses at k=3, content card:")
+    for r in allrows["content (tf-idf + modules)"]:
         if r["rank"] > 3:
-            print(f"  want {r['oracle']:22s} got {r['routed']}  <- {r['q'][:48]}")
-    json.dump(rows, open(HERE / "results.json", "w"), indent=1)
+            print(f"  want {r['oracle']:22s} got {[str(x) for x in r['routed']]}  <- {r['q'][:44]}")
+    json.dump(allrows, open(HERE / "results.json", "w"), indent=1)
 
 
 if __name__ == "__main__":
