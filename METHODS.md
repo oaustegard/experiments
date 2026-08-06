@@ -176,12 +176,15 @@ the only options are "trust the writeup" and "trust nothing." Direction is the
 column to read — an error that makes a check more permissive, or a result look
 stronger, is far more dangerous than one that makes it look weaker, because the
 second announces itself the moment someone tries to use the result.
-`remex-vs-higgs-ablation/ERRORS.md` logs 16 errors across two runs, 6 of them
-in the flattering direction, and records two things worth generalising: **an
+`remex-vs-higgs-ablation/ERRORS.md` logs 23 errors across three runs, 7 of them
+in the flattering direction, and records three things worth generalising: **an
 estimate of one's own error count made an hour later was wrong** (seven, versus
-eight counted), and **not one of the sixteen was caught by reading code
+eight counted); **not one of the twenty-three was caught by reading code
 carefully** — every one came from executing something, comparing two artifacts,
-or an outside party. Buy execution and comparison, not care. Append, never tidy;
+or an outside party; and **a correction that lands in one paragraph is not a
+correction** — run 3 #1 found a claim still standing in the reproduction
+instructions that run 2 had already logged, diagnosed, and fixed elsewhere in
+the same file. Buy execution and comparison, not care. Append, never tidy;
 a cleaned log loses the base rate, which is the only thing it is for.
 
 **Register anchors with their covered range, in one place.** See `ANCHORS.md`.
@@ -740,6 +743,36 @@ the result.
   per-document quantity that shifts scores without shifting fidelity — here the
   spread of ‖x̂‖ across documents. Diagnose it by renormalising and re-scoring:
   if the disagreement vanishes, it was scale, not geometry.
+- **…and when renormalising does *not* make it vanish, stop looking for a
+  summary statistic.** On `fmnist784` (ANN-benchmarks fashion-mnist-784, raw
+  pixels, d=784) at 1 bit, the vector-grid arm wins reconstruction MSE on all
+  four corpora in both metrics (≈0.32 vs ≈0.36 relative) **and** wins on the
+  variance of the projected score error q·(x̂−x) (0.0359 vs 0.0366) — the
+  quantity ranking actually sees — and still loses recall@10 by 0.021 under
+  cosine and 0.047 under inner product, one-signed across 5 seeds. Three
+  mechanisms were measured and refuted: non-Gaussian rotated marginals (excess
+  kurtosis −0.040, KS 0.016 — the rotation Gaussianises even data that is 50%
+  exact zeros), norm-noise × corpus norm spread (non-monotone: the largest
+  spread of four corpora, CV 31%, gives the largest scalar win), and
+  block-correlated VQ residuals (refuted by the score-error variance above).
+  The regime is the likely culprit and is worth checking first next time:
+  fmnist784's rank-10-to-11 similarity gap is 0.00093 at a mean similarity of
+  0.923, so 1-bit score error (std ≈0.037) is **~40× the gap** and both arms
+  rank almost entirely inside their own noise. Practical rule: **at rates where
+  quantization noise dwarfs the neighbour gap, no distortion summary — MSE,
+  cosine, or projected score variance — predicts recall.** Measure recall.
+  (`remex-vs-higgs-ablation/RESULTS.md`, "The fmnist784 result")
+- **Corpora built from encoders trained under cosine cannot test anything
+  about vector norms.** BGE-family raw norms vary by CV 1.4–2.7%, so
+  inner-product retrieval on them is nearly the same problem as cosine, and any
+  "exact norm vs per-block scale" comparison reads null for a reason that has
+  nothing to do with the methods. If an axis touches norms, put a corpus with
+  real spread in the design *before* running: GloVe-100 is CV 20%, raw
+  fashion-mnist pixels CV 31%, both one `curl` from ann-benchmarks.com and
+  needing no encoder. Measured across four corpora spanning CV 1.4%–31%, the
+  axis-B effect is flat everywhere (+0.0003 to +0.0017), so the null is real —
+  but it took the wide-spread corpora to know that rather than assume it.
+  (`remex-vs-higgs-ablation/build_corpora.py::build_fmnist`)
 - **Rotated *unit* vectors have Beta-distributed coordinates, not Gaussian**
   (density ∝ (1−x²)^((d−3)/2)); TurboQuant fits its Lloyd-Max to that Beta.
   Using a Gaussian at σ=1/√d instead costs ≤0.007% excess MSE at 2 bits and
