@@ -458,6 +458,22 @@ the result.
   answer, suspect the answer key before believing the arm.** That anomaly, not
   inspection, is what surfaced this.
   (`history-tombstone-index/RESULTS.md`)
+- **Three corpora, three question classes, and they are orthogonal — a corpus
+  aimed at the wrong class is inert, not harmful.** Measured on `remax`: the
+  working tree answers *what does the code do*, deleted-file tombstones answer
+  *how did the removed thing work*, and PR bodies answer *why was it done that
+  way*. Adding tombstones to a rationale benchmark moved nothing (6/8 -> 6/8);
+  adding PR bodies took it to 8/8. Adding tombstones to a mechanism benchmark
+  took 0/6 -> 6/6. So they stack without the arms fighting, and each should be
+  justified against the question class it serves rather than a pooled score that
+  hides which one is carrying. Cost is small — 43 merged PRs is +12% corpus, and
+  17 deleted files +19% — but PR bodies are **not in git**, so indexing them
+  makes network and a token a hard dependency of a rebuild that is otherwise
+  pure filesystem. Two conditions before believing this transfers: check the
+  repo's *median PR body length* (remax's is 2,727 chars because every PR is
+  agent-authored; a repo of "fixes #12" bodies gets noise with a title attached),
+  and have the build degrade to the offline corpora rather than fail.
+  (`pr-decision-log/RESULTS.md`)
 - **Writing your rejections down preserves the verdict, not the mechanism.** A
   repo with an explicit "delete the driver, never the record" convention
   (`remax`) answered 5/6 "was X ever tried?" questions from its surviving prose
