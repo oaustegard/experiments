@@ -416,6 +416,31 @@ the result.
   <=0.022, straddling fp32), so quality does not break the tie either.
   (`bekko-embedding-bench/RESULTS.md` §7)
 
+- **A seed-derived rotation reconstructed per query can dominate query latency —
+  and this is the third time it has bitten in this repo.** A hybrid index's query
+  measured ~400 ms, of which 270 ms was charged to "decode". The actual decode of
+  858 vectors is 22 ms; **200 ms was rebuilding a Haar rotation** (Householder QR,
+  O(d^3) at d=384) on every single query. Prior instances: `remax_kb`'s
+  `_stacked_simhash_encode` rebuilding k rotations per query (87% of query time,
+  `bekko-embedding-bench`), and `repo-index` regenerating its rotation from seed
+  (fixed by committing `rotation.npy`). Two fixes, and the cheaper one is not the
+  obvious one: persisting a d=384 Haar matrix costs 576 KB, whereas
+  `rotation="rht"` **builds in 6.2 ms instead of 171 ms and costs nothing** — and
+  remex measured RHT as retrieval-indistinguishable from Haar (-0.0001 +/- 0.0013,
+  experiments#11). Prefer the cheap construction over the stored matrix when the
+  library offers one. Check where the time actually goes before believing a
+  profile label: "decode" was 90% not-decode.
+  (`hybrid-code-index/RESULTS.md`)
+- **In a hybrid index the lexical arm is usually the bigger artifact.** BM25
+  postings for `remax` are 245 KB against 93 KB of remex 2-bit dense codes — 2.6x
+  — and postings scale with *vocabulary*, not chunk count, so a corpus with
+  hashes, IDs or floats in it explodes them (138,685 terms / 6.36 MB on a
+  JSON-heavy corpus where the dense side stayed at 1 MB). If an index is too
+  large, look at the lexical side first; the intuition that embeddings are the
+  expensive part is wrong here. Also: BM25 cannot be incrementalized the way the
+  dense arm can, because IDF shifts for every term when any document is added —
+  affordable only because fitting it is sub-second.
+  (`hybrid-code-index/RESULTS.md`)
 - **A relocated file is indistinguishable from a deleted one by path — detect
   moves by content.** `git log --diff-filter=D` reports a moved file as deleted
   at its old path. Building a "deleted content" corpus from that put **live**

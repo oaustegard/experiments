@@ -246,6 +246,60 @@ def rrf(ranked: list[list[str]], k: int = 60) -> list[str]:
     return sorted(s, key=lambda f: -s[f])
 
 
+# ── persistence ─────────────────────────────────────────────────────────────
+def save(path: Path, chunks: list[Chunk], codes, bm: "BM25", hashes: list[str],
+         meta: dict) -> dict:
+    """Write the index as one .npz. Returns a per-component byte breakdown.
+
+    BM25 postings are stored as three flat arrays (terms / offsets / docs+tfs)
+    rather than JSON: a dict-of-lists serializes to roughly 6x its packed size
+    and has to be parsed rather than mmapped.
+    """
+    import numpy as np
+    path.parent.mkdir(parents=True, exist_ok=True)
+    terms = sorted(bm.postings)
+    docs, tfs, offs = [], [], [0]
+    for t in terms:
+        for d, f in bm.postings[t]:
+            docs.append(d); tfs.append(f)
+        offs.append(len(docs))
+    payload = {
+        "codes": codes,
+        "files": np.array([c.f for c in chunks]),
+        "lines": np.array([c.s for c in chunks], dtype=np.int32),
+        "hashes": np.array(hashes),
+        "bm_terms": np.array(terms),
+        "bm_offs": np.array(offs, dtype=np.int64),
+        "bm_docs": np.array(docs, dtype=np.int32),
+        "bm_tfs": np.array(tfs, dtype=np.int32),
+        "bm_lens": np.array(bm.lens, dtype=np.int32),
+        "meta": np.array([json.dumps(meta)]),
+    }
+    np.savez_compressed(path, **payload)
+    import io
+    sizes = {}
+    for k, v in payload.items():
+        buf = io.BytesIO()
+        np.savez_compressed(buf, **{k: v})
+        sizes[k] = buf.tell()
+    sizes["TOTAL_on_disk"] = path.stat().st_size
+    return sizes
+
+
+def load(path: Path):
+    import numpy as np
+    z = np.load(path, allow_pickle=False)
+    chunks = [Chunk(f, int(s), "") for f, s in zip(z["files"], z["lines"])]
+    bm = BM25()
+    bm.lens = z["bm_lens"].tolist()
+    bm.n = len(bm.lens)
+    terms, offs, docs, tfs = z["bm_terms"], z["bm_offs"], z["bm_docs"], z["bm_tfs"]
+    for i, t in enumerate(terms):
+        bm.postings[str(t)] = list(zip(docs[offs[i]:offs[i + 1]].tolist(),
+                                       tfs[offs[i]:offs[i + 1]].tolist()))
+    return chunks, z["codes"], bm, z["hashes"].tolist(), json.loads(str(z["meta"][0]))
+
+
 # ── incremental build ───────────────────────────────────────────────────────
 def chunk_hash(text: str) -> str:
     import hashlib
