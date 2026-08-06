@@ -458,6 +458,19 @@ the result.
   answer, suspect the answer key before believing the arm.** That anomaly, not
   inspection, is what surfaced this.
   (`history-tombstone-index/RESULTS.md`)
+- **Cost the baseline before optimizing against it.** A per-repo routing tier
+  was built and tuned over three 18-minute encodes so a client could fetch only
+  the partitions it needs — then one command showed the *entire* 9-repo account
+  index is **8.54 MB** (2.37 MB dense + 6.17 MB postings, 25,904 chunks
+  including scikit-learn) against a **157 MB encoder the client already
+  downloads**, with a flat scan over everything costing **7.6 ms**. The
+  optimization targets something 18x smaller than an existing required
+  download. Before measuring how well a shortcut works, measure what the
+  un-shortcut path costs; "fetch everything" is often the correct design at
+  personal-account scale and only stops being so past ~1M chunks. The failure
+  is seductive because the shortcut's *own* metrics look like progress —
+  recall@k improved across four card designs while the whole exercise was moot.
+  (`account-routing-tier/RESULTS.md`)
 - **A README states a project's identity, not its inventory — do not build a
   router from front matter.** Routing queries to the right repo by embedding
   READMEs failed on scikit-learn: its `README.rst` contains **zero** occurrences

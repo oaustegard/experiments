@@ -1,8 +1,9 @@
 # account-routing-tier
 
-**Started / finished:** 2026-08-06 · **Status:** done — **qualified. Routing
-reaches 87–90% at k=3 of 9 repos, which is not good enough to be lossy by
-default, but is fine behind a confidence gate.**
+**Started / finished:** 2026-08-06 · **Status:** done — **premature. Routing
+reaches 87–90% at k=3 of 9 repos, but the whole account index is 8.54 MB against
+a 157 MB encoder the client already downloads, so there is nothing to route
+around. Kept as a measurement of when partitioning *would* pay.**
 
 **Question.** A whole-account index partitioned per repo only works if a client
 can decide *which* partitions to fetch without downloading them all. That needs a
@@ -78,7 +79,38 @@ rises for reasons unrelated to relevance. Any per-repo aggregation over a
 variable number of cards needs a correction for card count; taking the max does
 not have one.
 
-## Verdict
+## Verdict: the routing tier solves a problem this account does not have
+
+Measured after the fact, which is the wrong order and is the point of this
+section. The **entire** account index — 9 repos, 25,904 chunks, scikit-learn
+included — is:
+
+| | |
+|---|---|
+| dense codes (remex 2-bit, 384-d) | 2.37 MB |
+| BM25 postings (2.6x, measured ratio) | 6.17 MB |
+| **total** | **8.54 MB** |
+| the encoder already required | **157 MB — 18x larger** |
+| flat scan over all 25,904 chunks | **7.6 ms/query** |
+| decode, once per process | 220 ms |
+
+So routing exists to avoid fetching 8.5 MB in a system that already downloads
+157 MB, where scanning everything costs 7.6 ms. **Download the whole account
+index and scan it flat.** No partitions on demand, no 13% silent miss, no
+confidence gate to tune.
+
+Routing earns its place when the index outgrows what a client will hold —
+somewhere past ~1M chunks, roughly 40x this account. That is a monorepo or an
+org, not a personal account. The work below stands as a measurement of *when*
+partitioning would work, not as something to deploy now.
+
+**The process failure is the reusable part: I measured the accuracy of an
+optimization without first measuring whether the thing it optimizes is
+expensive.** The partition-size question was answered in one command, after
+three 18-minute encodes spent tuning card construction. Cost the baseline
+before improving on it.
+
+### Original verdict (routing considered on its own terms)
 
 **87% at k=3 means 13% of queries land in no fetched partition, silently.** That
 is not acceptable as a default, and pushing to k=5 (97%) means fetching over half
