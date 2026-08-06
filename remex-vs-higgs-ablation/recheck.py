@@ -48,16 +48,35 @@ ROT = ("haar", "rht")
 NRM = ("exactnorm", "blockscale")
 CB = ("scalar", "vector")
 AXES = {"A": (0, ROT), "B": (1, NRM), "C": (2, CB)}
-CORPORA = ("arxiv768", "glove100", "nfcorpus1024")
+# Deliberately NOT a hard-coded list. A frozen ("arxiv768", "glove100",
+# "nfcorpus1024") is what let this phase recompute three-corpus pooled means and
+# call them a match for a RESULTS.md that had been rewritten from four — the
+# same defect `expected_blocks()` below was already fixed for, left standing
+# here. The fixture would have certified stale prose against fresh artifacts,
+# which is precisely the drift it exists to catch. Read the corpora off the
+# artifact instead.
 BITS = ("1", "2", "3", "4", "6", "8")
 
 FAILURES: list[str] = []
 
 
-def check(ok: bool, label: str, detail: str = "") -> bool:
-    print(f"  [{'PASS' if ok else 'FAIL'}] {label}" + (f": {detail}" if detail else ""))
+def check(ok: bool, label: str, detail: str = "", fix: str = "") -> bool:
+    """`detail` is the measurement and prints either way; `fix` is the remedy
+    and prints only on failure.
+
+    Keeping them separate matters more here than it looks: with one field, the
+    remedy has to be written into the detail, and then a PASS line reads
+    "[PASS] ... — the sweep is stale, re-run it". A log that reports success in
+    the words of a failure is worse than no log, because it trains the reader to
+    skim the verdict column and stop reading the line.
+    """
+    parts = [detail] if detail else []
+    if not ok and fix:
+        parts.append(fix)
+    tail = " — ".join(parts)
+    print(f"  [{'PASS' if ok else 'FAIL'}] {label}" + (f": {tail}" if tail else ""))
     if not ok:
-        FAILURES.append(f"{label}: {detail}")
+        FAILURES.append(f"{label}: {tail}")
     return ok
 
 
@@ -85,18 +104,16 @@ def phase1(res) -> None:
     want_blocks = expected_blocks()
     missing, extra = sorted(want_blocks - blocks), sorted(blocks - want_blocks)
     # `extra` is a real error — a stored block for a corpus the sweep no longer
-    # runs is stale. `missing` is NOT, because upstream deliberately registered
-    # `fmnist784` in DATASETS while stating in RESULTS.md that the axis-B
-    # numbers predate it and have not been re-run. Failing on that would be
-    # this fixture disagreeing with a known, documented, intended state.
-    # Reported loudly instead, so it cannot be forgotten.
+    # runs is stale. `missing` used to be tolerated with a printed note, because
+    # `fmnist784` was registered in DATASETS while RESULTS.md stated the axis-B
+    # numbers predated it. That exception expired when the sweep was run: every
+    # block in DATASETS now has stored results, so a gap is drift again and is
+    # checked as one. A tolerated-missing branch that outlives its reason is
+    # indistinguishable from a fixture that does not check coverage at all.
     check(not extra, "results.json has no block for a corpus the sweep dropped",
           f"extra={extra}")
-    if missing:
-        print(f"  [note] {len(missing)} block(s) in run_ablation.DATASETS with "
-              f"no stored results: {missing}")
-        print("         upstream states the axis-B re-run for fmnist784 is "
-              "pending; this is expected, not drift.")
+    check(not missing, "results.json covers every corpus in run_ablation.DATASETS",
+          f"missing={missing}")
     check("_timing" in res, "axis-A timing block present")
     for b in sorted(blocks):
         want = set(BITS) | {"fp32"}
@@ -111,12 +128,13 @@ def phase1(res) -> None:
     live = code_fingerprint()
     check(stamp is not None,
           "results.json carries a code fingerprint",
-          "absent — re-run `python3 run_ablation.py` to stamp it")
+          "present" if stamp is not None else "absent",
+          fix="re-run `python3 run_ablation.py` to stamp it")
     if stamp is not None:
         check(stamp == live,
               "results.json was produced by the code now in the tree",
-              f"stored {stamp[:12]} vs live {live[:12]} — the sweep is stale, "
-              f"re-run it")
+              f"stored {stamp[:12]} vs live {live[:12]}",
+              fix="the sweep is stale, re-run it")
 
 
 def code_fingerprint() -> str:
@@ -139,11 +157,12 @@ def pooled_axis_means(res) -> dict[tuple[str, str], float]:
     averages, by hand, the delta from flipping one axis with the other two
     held fixed.
     """
+    corpora = sorted({k.split("|")[0] for k in res if "|" in k})
     out: dict[tuple[str, str], float] = {}
     for metric in ("cosine", "ip"):
         for ax, (pos, vals) in AXES.items():
             deltas = []
-            for corpus in CORPORA:
+            for corpus in corpora:
                 block = res[f"{corpus}|{metric}"]
                 for bits in BITS:
                     cells = block[bits]

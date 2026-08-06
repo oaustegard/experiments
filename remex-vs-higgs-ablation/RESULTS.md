@@ -6,6 +6,13 @@ under the [`gating`](https://github.com/oaustegard/claude-skills/tree/main/gatin
 skill — see Part 1.** The ablation's numbers below are the merged run's,
 unchanged by that work.*
 
+*Revised 2026-08-05: the fourth corpus (`fmnist784`) that the previous two runs
+registered but never swept has now been run, closing the axis-B gap this
+writeup had graded its weakest claim. Every pooled figure below is over four
+corpora. The axis conclusions are unchanged; the published **mechanism** for
+the 1-bit reversal is refuted and now carried as unexplained. See
+[The fmnist784 result](#the-fmnist784-result-axis-b-closed-and-a-mechanism-refuted).*
+
 ## Question
 
 Does remex's construction — exact fp32 norm stored out-of-band + dense Haar
@@ -482,17 +489,23 @@ recall@100, Spearman ρ, per-seed min/max and the byte itemisation — are in
 
 ### The short answer
 
-**Only axis C moves.** Pooled over three corpora and six bit widths:
+**Only axis C moves.** Pooled over **four** corpora and six bit widths:
 
 | axis | cosine | inner product |
 |---|---|---|
-| **A** rotation: Haar → RHT | −0.0001 ± 0.0013 | +0.0002 ± 0.0012 |
-| **B** norm: exact fp32 → per-block scale | +0.0008 ± 0.0011 | +0.0010 ± 0.0011 |
-| **C** codebook: scalar → Gaussian-optimal grid | **+0.0108 ± 0.0099** | **+0.0132 ± 0.0145** |
+| **A** rotation: Haar → RHT | −0.0004 ± 0.0018 | +0.0005 ± 0.0031 |
+| **B** norm: exact fp32 → per-block scale | +0.0007 ± 0.0011 | +0.0010 ± 0.0011 |
+| **C** codebook: scalar → Gaussian-optimal grid | **+0.0082 ± 0.0106** | **+0.0112 ± 0.0168** |
 
 Axes A and B are indistinguishable from zero at a seed-to-seed spread of
 ±0.001–0.004. Axis C is an order of magnitude larger, one-signed, and present
-on all six corpus×metric combinations.
+on all **eight** corpus×metric combinations.
+
+*Updated 2026-08-05 with `fmnist784`, the axis-B corpus the previous revision
+registered but never swept. It is the fourth corpus and it moves the pooled
+axis-C figures down (from +0.0108/+0.0132) because its codebook effect is the
+weakest of the four under cosine. **The axis-B conclusion is unchanged and is
+now measured rather than argued** — see below.*
 
 ### Axis C is a low-rate effect that closes completely
 
@@ -504,6 +517,8 @@ on all six corpus×metric combinations.
 | arxiv768 / inner product | +0.0233 | 3 bits | +0.0014 |
 | nfcorpus1024 / cosine | +0.0178 | 2 bits | +0.0002 |
 | nfcorpus1024 / inner product | +0.0239 | 3 bits | +0.0008 |
+| fmnist784 / cosine | +0.0096 | 3 bits | +0.0006 |
+| fmnist784 / inner product | +0.0266 | 3 bits | +0.0027 |
 
 The shape is the same everywhere: peak at 2–3 bits, monotone decay, gone by 8.
 It is also **dimension-dependent** — the effect is roughly twice as large at
@@ -525,6 +540,14 @@ Axis C is not uniformly positive. Under **inner product at 1 bit** it goes
 *negative* on both encoder corpora — arxiv768 −0.0174, nfcorpus1024 −0.0043 —
 while staying positive on glove100 (+0.0231). That is an axis-B × axis-C
 interaction, and it has a clean mechanism.
+
+> **The mechanism below is refuted by `fmnist784`. Read this section for the
+> measurements; do not carry the explanation.** The story predicts the reversal
+> should weaken monotonically as a corpus's true norm spread grows. fmnist784
+> has the largest spread of the four (CV 31%) and shows the *largest* remex win
+> (−0.047), and it reverses under cosine too, where the harness divides ‖x̂‖ out
+> and norm noise cannot reach the ranking at all. See
+> [the fmnist784 result](#the-fmnist784-result-axis-b-closed-and-a-mechanism-refuted).
 
 At 1 bit the scalar codebook emits ±c on every coordinate, so the code's norm
 is constant; combined with an exactly-stored fp32 norm, remex's reconstruction
@@ -552,6 +575,92 @@ This is the sharpest thing the factorial bought that a head-to-head could not:
 remex's advantage here is not the scalar codebook and not the exact norm, but
 their *interaction*, and it appears exactly in the regime where axis B looked
 moot on its own.
+
+### The fmnist784 result: axis B closed, and a mechanism refuted
+
+*Run 2026-08-05. The previous revision registered `fmnist784` in `DATASETS`,
+extended the gate to d=784, and then shipped without sweeping it — grading the
+axis-B conclusion **ARGUED, one corpus** and naming this re-run "the single most
+likely thing to change a conclusion here." This is that re-run.*
+
+**Why the corpus.** Axis B asks whether storing an exact fp32 norm out-of-band
+beats folding a per-block scale into the payload. That question is unreadable on
+a corpus whose norms do not vary, and two of the three original corpora are
+BGE-family encoders trained under cosine (norm CV 1.4–2.7%). Axis B therefore
+rested on `glove100` alone, at d=100. `fmnist784` is ANN-benchmarks
+fashion-mnist-784-euclidean — 20k raw pixel vectors, **norm CV 0.310**, at a
+dimensionality comparable to the encoder corpora and with no encoder in the loop.
+
+**Axis B is null anyway.** This is the result the corpus was built to get:
+
+| corpus | norm CV | axis-B marginal, cosine | axis-B marginal, IP |
+|---|---|---|---|
+| arxiv768 | 0.014 | +0.0003 | +0.0004 |
+| nfcorpus1024 | 0.027 | +0.0006 | +0.0010 |
+| glove100 | 0.202 | +0.0014 | +0.0017 |
+| **fmnist784** | **0.310** | **+0.0005** | **+0.0009** |
+
+At more than a fifth of a vector's length in norm variation, exact-norm storage
+buys **nothing** as a main effect — and what sign there is favours the
+*block-scale* side, as it did on every other corpus. Axis B is now measured on
+two corpora with real norm spread at two dimensionalities, and it is flat on
+both. Prediction 2 fails more decisively than before, and no longer with the
+"but the encoders have no norm spread" escape.
+
+**And the 1-bit mechanism does not survive.** The head-to-head at 1 bit,
+remex vs HIGGS-like, ordered by norm spread:
+
+| corpus | norm CV | cosine | inner product |
+|---|---|---|---|
+| arxiv768 | 0.014 | +0.0056 higgs | **−0.0151 remex** |
+| nfcorpus1024 | 0.027 | +0.0170 higgs | **−0.0062 remex** |
+| glove100 | 0.202 | +0.0252 higgs | +0.0240 higgs |
+| **fmnist784** | **0.310** | **−0.0209 remex** | **−0.0471 remex** |
+
+The norm-noise story predicts this column should be monotone in norm CV: remex
+wins when the codec's ~0.7% norm noise is large relative to the corpus's true
+spread, and loses when it is not. fmnist784 has the largest spread and the
+largest remex win. **Non-monotone, so norm spread is not the explanatory
+variable.** Worse for the story, fmnist reverses under *cosine*, where
+`Reference.score` divides by ‖x̂‖ (a fix made in this experiment's own run 2)
+and per-document norm noise cannot reach the ranking at all.
+
+Three candidate mechanisms were tested and all three failed:
+
+1. **Non-Gaussian rotated coordinates** — the gate's own loudest coverage limit
+   ("every codebook check scores against N(0, I)"), and fmnist is the first
+   non-encoder corpus here, 50.3% of its raw pixels exactly zero. Measured after
+   Haar rotation of the unit directions: excess kurtosis **−0.040** and KS vs
+   N(0,1) of **0.016**, against glove100's −0.053 and 0.0065. Both are near
+   Gaussian; the rotation does its job even on half-zero data. **Refuted.**
+2. **Norm noise × true norm spread** — refuted above, twice: non-monotone, and
+   inapplicable under cosine.
+3. **Block-correlated residuals.** A vector grid shares one codeword across an
+   m=8 sub-vector, so its error is correlated within the block where a scalar
+   quantizer's is independent per coordinate; two codecs with equal ‖x̂−x‖² can
+   put different amounts of error onto the query direction, which is all ranking
+   sees. Measured directly at 1 bit: the vector arm's score-error std is
+   **lower**, not higher (fmnist 0.0359 vs remex's 0.0366; glove 0.0610 vs
+   0.0641). **Refuted.**
+
+What *is* established is a decoupling. The vector arm wins reconstruction MSE
+**uniformly at 1 bit — on all four corpora, in both metrics** (≈0.32 vs ≈0.36
+relative MSE) and wins on score-error variance too, yet loses recall on five of
+the eight corpus×metric cells. At 1 bit, recall is not a function of distortion,
+and the two available summary statistics for "how wrong is the reconstruction"
+both point the wrong way. This is the empirical case for the commissioning
+issue's instruction to treat reconstruction MSE as a **secondary diagnostic
+only** — here it is not merely less informative than recall, it is
+anti-correlated with it.
+
+One measured fact that a future attempt should start from rather than rediscover:
+fmnist784's neighbourhoods are extraordinarily tight — mean similarity at rank 10
+of **0.923** with a rank-10-to-11 gap of **0.00093**, against glove100's 0.486
+and 0.00349. The 1-bit score-error std is ~0.037, roughly **40× that gap**, so at
+this rate both arms are ranking almost entirely inside their own noise. That is
+the regime where the reversal lives, and it is plausibly why summary statistics
+of the error fail to predict it — but that is a hypothesis, not a result. **The
+reversal is MEASURED (5 seeds, both metrics, one-signed) and UNEXPLAINED.**
 
 ### Controls behave
 
@@ -666,17 +775,20 @@ less informative than one that breaks.
    arriving just past where anyone indexes.
 2. **"B → metric-dependent. Exact-norm irrelevant under cosine (Δ < 0.01),
    helps under inner product."** *Confidence 0.6.* — **Failed.** The cosine
-   half holds (+0.0008). The inner-product half does not: the effect is
+   half holds (+0.0007). The inner-product half does not: the effect is
    +0.0010, statistically indistinguishable from the cosine case and, if
-   anything, favouring the *block-scale* side. Caveat that matters: two of
-   three corpora come from encoders trained under cosine, whose raw norms
-   barely vary (CV 1.4–2.7% against GloVe's 20%), so inner product is nearly
-   the same problem as cosine there. On modern text encoders axis B is close
-   to moot by construction. **But see the 1-bit MIPS result above**: exact-norm
-   does win there, on precisely those low-spread corpora, through an
-   interaction with the 1-bit scalar codebook rather than on its own. The
-   prediction failed as a main effect and was right for a reason it did not
-   state.
+   anything, favouring the *block-scale* side. **The escape clause is now
+   closed.** The earlier revision caveated this by noting that two of three
+   corpora were encoders trained under cosine, whose raw norms barely vary
+   (CV 1.4–2.7%), leaving the reading resting on GloVe alone. `fmnist784`
+   (norm CV 31%, d=784, no encoder) was added to test exactly that, and axis B
+   is flat there too: +0.0005 cosine, +0.0009 IP. Exact-norm storage buys
+   nothing as a main effect even when norms vary by a third of a vector's
+   length. **But see the 1-bit result above**: exact-norm does win there — on
+   five of eight corpus×metric cells — through an interaction with the 1-bit
+   scalar codebook rather than on its own. The prediction failed as a main
+   effect and was right for a reason it did not state; the reason it was
+   originally given (norm noise vs norm spread) is itself now refuted.
 3. **"C → remex loses to a properly-implemented Gaussian-optimal grid at 2–3
    bits, converging by 4–6 bits. This is the arm that could remove remex's
    claim to distinctiveness."** *Confidence 0.55.* — **Held, with the
@@ -719,17 +831,18 @@ change what you would do with them.
 
 | claim | tier | what would overturn it |
 |---|---|---|
-| Only axis C moves; A and B are null | **MEASURED**, 3 corpora × 6 rates × 5 seeds | Effect size +0.0108/+0.0132 against a seed spread of ±0.001–0.004, one-signed on all six corpus×metric combinations. A shared defect in both the rotation and norm paths would have to survive the orthogonality, round-trip and incoherence anchors. |
+| Only axis C moves; A and B are null | **MEASURED**, 4 corpora × 6 rates × 5 seeds | Effect size +0.0082/+0.0112 against a seed spread of ±0.001–0.004, one-signed on all eight corpus×metric combinations. A shared defect in both the rotation and norm paths would have to survive the orthogonality, round-trip and incoherence anchors. |
 | Grid MSE gains (0.35–1.41 dB), scalar MSE | **ANCHORED** | Max (1960) at b≤5, Panter–Dite at b=6/8, E8's normalised second moment, Shannon from below, and a tuned E8 ball codebook. Several independent published constants would have to be wrong together. |
 | Codec is correct (idempotent, in-codebook, attains its own distortion) | **ANCHORED**, but **new** | Anchored on definitional properties — but these checks were written in this revision and have no failure history beyond the mutants they were built against. The least-seasoned checks in the gate. |
 | Byte accounting (payload, side, shared) | **ANCHORED** to arithmetic | Nothing here serialises an index. A codec whose real encoding is larger than its accounting says would pass every check. |
 | ~~RHT is 11–24× slower to apply in numpy~~ | **WITHDRAWN** | Measured a butterfly doing two full-array copies per stage against one tuned `sgemm` — the implementation, not the transform. Corrected upstream: ~parity at retrieval dimensions, RHT 3–4× faster at d=4096–8192, crossover near d≈1024. See `ERRORS.md` run 2 #9. |
 | Axis A wall-clock, as corrected | **MEASURED** | One machine, one BLAS, min-of-trials. The *shape* (crossover near d≈1024) is robust; the multiples are not portable. |
 | 1-bit MIPS: remex's ‖x̂‖/‖x‖ has zero spread | **ANCHORED** | A gate check now (√(2/π), std < 1e-5), not prose. Definitional for a constant-modulus code. |
-| *Why* the 1-bit MIPS reversal happens | **ARGUED** | Ingredients are measured — zero spread on one side, corpus norm CVs of 1.4/2.7/20% — but the causal story is not itself tested. A different mechanism producing the same numbers would be indistinguishable here. |
+| *That* the 1-bit reversal happens | **MEASURED**, 4 corpora × 5 seeds | One-signed across seeds; remex wins 5 of 8 corpus×metric cells at 1 bit. |
+| *Why* the 1-bit reversal happens | ~~**ARGUED**~~ → **REFUTED, and now UNEXPLAINED** | The norm-noise story predicted a monotone relationship with corpus norm spread. `fmnist784` (CV 31%, the largest) shows the largest remex win, and reverses under cosine where ‖x̂‖ is divided out. Two further candidates — non-Gaussian rotated marginals, block-correlated residuals — were measured and refuted. What remains is a decoupling: the vector arm wins reconstruction MSE **and** score-error variance at 1 bit on every corpus, and still loses recall. No mechanism here is load-bearing; treat the effect as observed, not understood. |
 | Shared bytes reverse recall-per-byte at 20k vectors | **MEASURED** | Direct from measured payloads and codebook sizes at a real corpus size. |
 | The ~350k-vector amortization threshold | **ARGUED** | An extrapolation from a formula. No corpus that size was run. An order of magnitude, not a number. |
-| Axis B is "close to moot on modern encoders" | **ARGUED**, one corpus | Only `glove100` has real norm spread. `fmnist784` was added upstream to close exactly this gap and **has not been swept yet** — that re-run is pending, and it is the single most likely thing to change a conclusion here. |
+| Axis B is null as a main effect, on encoders **and** off them | **MEASURED**, 4 corpora spanning norm CV 1.4%–31% | The gap this row used to name is closed: `fmnist784` was swept 2026-08-05 and axis B is flat there too (+0.0005 cosine, +0.0009 IP) despite the largest norm spread of the four. Overturning this now needs a corpus where exact-norm storage moves recall by more than the ±0.001–0.004 seed spread, which none of four does. The narrower claim it replaces — "close to moot *on modern encoders*" — was true but under-stated: it is close to moot off them as well. |
 
 Two structural limits behind the whole table: every codebook check scores
 against N(0, I), so if the rotated corpus coordinates are not Gaussian then
@@ -737,7 +850,7 @@ every grid is calibrated for the wrong source *and all of these checks still
 pass*; and the recall pipeline itself is outside the gate, anchored only by the
 fp32 control (1.000 by construction) and the LM+QJL replication control.
 
-See `ERRORS.md` for the measured error rate of this experiment — 17 across two
+See `ERRORS.md` for the measured error rate of this experiment — 23 across three
 runs, 7 of them in the flattering direction — and `../ANCHORS.md` for the
 covered range of every constant above.
 
@@ -748,15 +861,22 @@ covered range of every constant above.
   recover a little more; the m=2 ceiling is about 1.3 dB of the 4.3 dB
   scalar→Shannon gap. This does not affect the 1–4 bit conclusions, which use
   m=4–8.
-- **Axis B now rests on two corpora, one of them added after the fact.**
-  `glove100` was the only original corpus with real norm spread (CV 20% vs
-  BGE's 1.4–2.7%), which left the axis-B conclusion resting on n=1 at d=100 —
-  and the one place axis B *did* win (1-bit MIPS) was an interaction with the
-  low-spread encoder corpora, so the two readings never met at the same
-  dimensionality. `fmnist784` (ANN-benchmarks fashion-mnist-784-euclidean,
-  raw pixel vectors) closes that: real norm spread at a dimensionality
-  comparable to the encoder corpora, and no encoder in the loop.
-  **The axis-B numbers above predate it and have not been re-run.**
+- **Axis B rests on two corpora with real norm spread, one added after the
+  fact.** `glove100` was the only original corpus with real spread (CV 20% vs
+  BGE's 1.4–2.7%), which left the axis-B conclusion at n=1 and at d=100.
+  `fmnist784` (ANN-benchmarks fashion-mnist-784-euclidean, raw pixels, CV 31%,
+  d=784) was added to close that and **was swept on 2026-08-05**; axis B is
+  flat on it. Two corpora at two dimensionalities is enough to retire the
+  "only one corpus could see this" objection, and not enough to make the
+  null a law — both are image/word-vector corpora, and neither is a
+  production retrieval index.
+- **fmnist784 is a deliberately adversarial corpus, and only for axis B.**
+  Raw pixels are non-negative, 50.3% exact zeros, and the neighbourhoods are
+  pathologically tight (mean similarity at rank 10 of 0.923). It was chosen
+  for norm spread, and it delivers that; its axis-C and 1-bit behaviour are
+  a bonus reading from a corpus never designed to be representative of
+  retrieval. The 1-bit reversal it exposes is real but should not be
+  generalised to text retrieval without a text corpus that shows it.
 - **`nfcorpus1024` is 2,000 of 3,633 documents.** bge-large on CPU measured
   ~0.3–0.7 docs/s here; the full corpus was a multi-hour encode. Capped
   deliberately, not truncated by a crash.
@@ -782,9 +902,14 @@ covered range of every constant above.
 python3 recheck.py                # ~90 s — RUN THIS FIRST on any touch of this dir
 
 python3 build_corpora.py          # ~1 h, mostly bge-large on CPU
-                                  # fmnist784 needs assets/fashion-mnist.hdf5:
+                                  # the two ANN-benchmarks corpora need their h5
+                                  # downloaded first (no encoder, ~1 min each):
                                   #   curl -L -o assets/fashion-mnist.hdf5 \
                                   #     http://ann-benchmarks.com/fashion-mnist-784-euclidean.hdf5
+                                  #   curl -L -o assets/glove.hdf5 \
+                                  #     http://ann-benchmarks.com/glove-100-angular.hdf5
+                                  # `build_corpora.py fmnist glove` builds just those
+                                  # two, which is enough for every axis-B reading.
 python3 pretrain_grids.py         # ~25 min, cached by (version, m, K)
 python3 audit.py                  # audits the OLD gate (calibrate.py) -> audit.log
 python3 gate.py                   # THE gate; exit 1 FAILED, exit 2 INCONCLUSIVE
