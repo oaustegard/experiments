@@ -151,3 +151,118 @@ python3 hybrid-code-index/bench_incremental.py # rebuild cost + equivalence
   testbed (144 commits, 10,042 deleted lines, 21 files deleted and never
   restored) and has an answer key in `bench/results/*.md`, written under its own
   "delete the driver, never the record" convention.
+
+---
+
+## Is it practical? A cost sheet
+
+Measured by building a real persisted index for `oaustegard/remax` (0.99 MB of
+source across 102 files) — live tree plus tombstones, 858 chunks. Every number
+below is from `build.py`, not an estimate.
+
+| | |
+|---|---|
+| build, cold | **37-51 s** across runs (corpus 0.5 s, BM25 fit 0.3-0.5 s, dense encode 36-51 s @ 17-24 chunks/s) |
+| build, one file edited | **1.0 s measured** (`--update`: encoded 1 chunk, reused 857 of 858) |
+| artifact | **353 KB = 35% of source** |
+| query, cold process | **~155 ms** (load 70 ms, decode 81 ms, score 5 ms) |
+| quality | **12/12**, identical to the fp32 benchmark |
+| encoder dependency | **157 MB**, one-time, shared across every repo |
+
+### Artifact breakdown — the lexical arm dominates
+
+| component | size |
+|---|---|
+| dense codes (remex 2-bit, 384-d) | 93 KB |
+| **BM25 postings** | **245 KB** |
+| pointers + hashes + meta | 15 KB |
+
+**The lexical index is 2.6x the dense one.** That inverts the usual intuition
+that embeddings are the expensive part, and it scales with *vocabulary* rather
+than chunk count — on this repo's own JSON-heavy corpus the postings hit 6.36 MB
+across 138,685 terms, where the dense side stayed at 1 MB. If an index gets too
+big, the lexical arm is the thing to look at first.
+
+### The 200 ms bug I had already written a rule about
+
+First query measurement was ~400 ms, with 270 ms of it attributed to "decode".
+Isolating it: **the actual decode of 858 vectors is 22 ms; 200 ms was
+reconstructing the Haar rotation** (Householder QR, O(d³) at d=384) on every
+query.
+
+That is the same defect diagnosed earlier in this repo's `bekko-embedding-bench`
+against `remax_kb` — `_stacked_simhash_encode` rebuilding rotations per query,
+87% of query time — and the same one `repo-index` fixed by committing
+`rotation.npy`, with a `METHODS.md` entry saying to store the transform rather
+than regenerate it. I wrote the rule and then did not apply it in the next
+artifact I built.
+
+The fix here is better than storing it: **`rotation="rht"` builds in 6.2 ms
+instead of 171 ms and costs 0 bytes**, versus 576 KB to persist a Haar matrix.
+remex measured RHT as retrieval-indistinguishable from Haar (−0.0001 ± 0.0013,
+this repo's own experiments#11), and that was re-verified rather than assumed —
+the persisted 2-bit + rht artifact scores 12/12, matching the fp32 benchmark
+exactly. Query dropped to ~155 ms.
+
+### Verdict
+
+**Practical for a repo of this size, with one caveat that dominates everything
+else.** 353 KB is committable, 37 s is a CI step, 155 ms is interactive, and
+2-bit compression costs nothing measurable.
+
+The caveat is the **157 MB encoder to search 1 MB of source** — 160x the thing
+it indexes. That is only reasonable because it is amortized: one download serves
+every repo on the machine, and it is already pinned and mirrored. As a
+standalone per-repo tool it would be absurd; as shared infrastructure it is fine.
+
+Scaling is linear in chunks at ~24 chunks/s on 4 CPU threads: this repo's 11,257
+chunks took 580 s. A 100k-chunk repo would be ~70 min for a cold build, which is
+why the incremental path is not optional at that size — and why the artifact
+should be a release asset rather than a committed blob that stores a full copy
+per rebuild.
+
+
+## Corrections after the cost sheet was first written
+
+Three claims above were published before they were earned. Recording them
+because the pattern — asserting a number for a code path that was never run —
+is the failure, not the numbers.
+
+**1. The incremental figure was an extrapolation, not a measurement.**
+`H.incremental()` existed but `build.py` never called it, and
+`bench_incremental.py` was never executed. The original "~1 s" came from
+`typical_chunks_per_file / measured_rate` in a script that never ran. Now wired
+as `--update` and measured end to end:
+
+| | dense encode |
+|---|---|
+| full build, 858 chunks | **44.5 s** |
+| one file edited (1 chunk changed) | **1.0 s** — encoded 1, reused 857 |
+
+~45x. The estimate was roughly right, which does not make it a measurement.
+
+**2. "BM25 cannot be incrementalized because IDF shifts" was wrong.**
+`BM25.score` derives idf per query from `len(postings[t])` and `n`. Nothing
+precomputed exists to invalidate, so adding or dropping a document updates idf
+for free; the lexical arm is incrementalizable. The only reusable work is
+tokenization, now cacheable by content hash via `fit(chunks, tf_cache)`.
+
+The conclusion survives for a different and better reason: **BM25 fit is 0.4 s
+against a 44.5 s dense encode, under 1% of build time.** So it is not worth
+incrementalizing — but that is a cost argument, not the impossibility argument
+originally given. A rationalization for skipping something that turned out to be
+both possible and not worth doing is worse than either answer alone.
+
+**3. `--update` cannot currently reuse tokenization.** The artifact stores chunk
+hashes but not chunk *text*, so `tf_cache` starts empty on a loaded index and
+BM25 refits from scratch regardless. Fixing it means storing text (much larger
+artifact) or per-chunk term frequencies. For 0.4 s neither is worth it; the
+`tf_cache` parameter is left in place because it is correct and free when a
+caller does have the texts in hand.
+
+## Still not done
+
+- **Changes are not indexed.** Tombstones cover whole deleted files only.
+  Removed *hunks* inside surviving files — likely the larger population — are
+  untouched, and are where a per-file cap on tombstone density would start to
+  matter.
