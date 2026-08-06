@@ -437,9 +437,13 @@ the result.
   hashes, IDs or floats in it explodes them (138,685 terms / 6.36 MB on a
   JSON-heavy corpus where the dense side stayed at 1 MB). If an index is too
   large, look at the lexical side first; the intuition that embeddings are the
-  expensive part is wrong here. Also: BM25 cannot be incrementalized the way the
-  dense arm can, because IDF shifts for every term when any document is added —
-  affordable only because fitting it is sub-second.
+  expensive part is wrong here. **Correction to an earlier version of this entry:** BM25 *is*
+  incrementalizable. Its idf is derived at query time from `len(postings[t])`
+  and `n`, so there is nothing precomputed to invalidate when a document is
+  added or dropped; the only reusable work is tokenization, cacheable by content
+  hash. The point stands anyway for a different reason — fitting BM25 is 0.3 s
+  against a 36 s dense encode, under 1% of build time, so it is not where
+  incremental effort pays.
   (`hybrid-code-index/RESULTS.md`)
 - **A relocated file is indistinguishable from a deleted one by path — detect
   moves by content.** `git log --diff-filter=D` reports a moved file as deleted

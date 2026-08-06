@@ -162,8 +162,8 @@ below is from `build.py`, not an estimate.
 
 | | |
 |---|---|
-| build, cold | **37 s** (corpus 0.5 s, BM25 fit 0.3 s, dense encode 36 s @ 24 chunks/s) |
-| build, one file edited | ~1 s (content-hash reuse; only the changed chunks re-encode) |
+| build, cold | **37-51 s** across runs (corpus 0.5 s, BM25 fit 0.3-0.5 s, dense encode 36-51 s @ 17-24 chunks/s) |
+| build, one file edited | **1.0 s measured** (`--update`: encoded 1 chunk, reused 857 of 858) |
 | artifact | **353 KB = 35% of source** |
 | query, cold process | **~155 ms** (load 70 ms, decode 81 ms, score 5 ms) |
 | quality | **12/12**, identical to the fp32 benchmark |
@@ -220,3 +220,49 @@ chunks took 580 s. A 100k-chunk repo would be ~70 min for a cold build, which is
 why the incremental path is not optional at that size — and why the artifact
 should be a release asset rather than a committed blob that stores a full copy
 per rebuild.
+
+
+## Corrections after the cost sheet was first written
+
+Three claims above were published before they were earned. Recording them
+because the pattern — asserting a number for a code path that was never run —
+is the failure, not the numbers.
+
+**1. The incremental figure was an extrapolation, not a measurement.**
+`H.incremental()` existed but `build.py` never called it, and
+`bench_incremental.py` was never executed. The original "~1 s" came from
+`typical_chunks_per_file / measured_rate` in a script that never ran. Now wired
+as `--update` and measured end to end:
+
+| | dense encode |
+|---|---|
+| full build, 858 chunks | **44.5 s** |
+| one file edited (1 chunk changed) | **1.0 s** — encoded 1, reused 857 |
+
+~45x. The estimate was roughly right, which does not make it a measurement.
+
+**2. "BM25 cannot be incrementalized because IDF shifts" was wrong.**
+`BM25.score` derives idf per query from `len(postings[t])` and `n`. Nothing
+precomputed exists to invalidate, so adding or dropping a document updates idf
+for free; the lexical arm is incrementalizable. The only reusable work is
+tokenization, now cacheable by content hash via `fit(chunks, tf_cache)`.
+
+The conclusion survives for a different and better reason: **BM25 fit is 0.4 s
+against a 44.5 s dense encode, under 1% of build time.** So it is not worth
+incrementalizing — but that is a cost argument, not the impossibility argument
+originally given. A rationalization for skipping something that turned out to be
+both possible and not worth doing is worse than either answer alone.
+
+**3. `--update` cannot currently reuse tokenization.** The artifact stores chunk
+hashes but not chunk *text*, so `tf_cache` starts empty on a loaded index and
+BM25 refits from scratch regardless. Fixing it means storing text (much larger
+artifact) or per-chunk term frequencies. For 0.4 s neither is worth it; the
+`tf_cache` parameter is left in place because it is correct and free when a
+caller does have the texts in hand.
+
+## Still not done
+
+- **Changes are not indexed.** Tombstones cover whole deleted files only.
+  Removed *hunks* inside surviving files — likely the larger population — are
+  untouched, and are where a per-file cap on tombstone density would start to
+  matter.
