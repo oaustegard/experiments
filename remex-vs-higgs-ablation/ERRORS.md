@@ -1,6 +1,6 @@
 # Error log — remex-vs-higgs-ablation
 
-Every error found in this experiment, both runs, with how it was caught and
+Every error found in this experiment, all three runs, with how it was caught and
 which way it pushed the conclusion.
 
 This exists because the base rate is the single most useful calibration number
@@ -100,9 +100,9 @@ Investigating an anomaly in output: 2.
 
 ---
 
-## What the two runs together say
+## What the three runs together say
 
-**17 errors across two runs of one experiment.** Both runs were done carefully
+**23 errors across three runs of one experiment.** All three were done carefully
 by a process that believed it was being careful.
 
 The distribution is the useful part:
@@ -121,7 +121,7 @@ count — it moved errors from the class "found by a scheduled human-equivalent
 review, or not at all" into the class "found by machinery, immediately, at the
 moment of the mistake."
 
-**Seven of the seventeen pushed a conclusion in the flattering direction**
+**Seven of the twenty-three pushed a conclusion in the flattering direction**
 (run 1 #1, #2, #3, #8; run 2 #1, #3, #9). That is the number to watch. Errors that
 make results look weaker get caught when someone tries to use them; errors that
 make results look stronger are load-bearing until something external
@@ -131,6 +131,56 @@ contradicts them.
 executing something, comparing two artifacts, or by an outside party — and
 exactly one, run 2 #9, needed the outside party. Plan
 accordingly: buy execution and comparison, not care.
+
+---
+
+## Run 3 (2026-08-05, the fmnist784 axis-B sweep) — 6 errors
+
+| # | error | caught by | direction |
+|---|---|---|---|
+| 1 | **The "ruff passes from the repo root" claim was still in `RESULTS.md`.** Logged as run 2 #8 and corrected in the prose that discusses linting, but the *Reproducing* section still read "from this directory or the repo root — both pass." The root reports 1,311 errors (none in this directory). | running the command instead of trusting the sentence — the same way it was caught the first time | **an inherited claim that survived being logged as an error.** Direction is mild (it overstates repo hygiene, not a result) but the pattern is not: a correction that lands in one paragraph and not in another is not a correction. |
+| 2 | **`pretrain_grids.py`'s `DIMS` omitted 784.** The script's docstring claims it pre-trains "every grid the sweep will need"; `run_ablation.DATASETS` had contained `fmnist784` since the previous revision. d=784 happens to need the same `(m, K)` set as 768/1024, so nothing was missing at run time. | reading `pick_m(b, d)` across all four dims before trusting the cache | **latent, and it was luck rather than design.** Had 784 picked a different `m` the sweep would have trained a grid inline, off the cache path the gate certifies. |
+| 3 | **The published mechanism for the 1-bit reversal was wrong.** `RESULTS.md` carried a norm-noise-vs-norm-spread story, correctly graded **ARGUED**, that predicts the effect should weaken monotonically as corpus norm spread grows. fmnist784 has the largest spread and the largest remex win, and reverses under cosine where ‖x̂‖ is divided out. | **the experiment the writeup itself scheduled** — it named this re-run "the single most likely thing to change a conclusion here" | **neutral for the headline, bad for the explanation.** No axis conclusion moves; the *why* does. Graded ARGUED, which is what let it be found rather than believed — the grading did its job. |
+
+| 4 | **Re-derived a gotcha this repo had already written down.** Both watchdogs for the sweep were `pgrep -f "run_ablation.py fmnist784"` loops, which match *their own* shell argv, so the wait never terminated and no completion notification ever fired. The sweep had in fact finished; the loop reported "STILL RUNNING" for hours. Then `pkill -f "until ! pgrep"` killed the enclosing shell for the same reason. `METHODS.md` already carries this verbatim — *"`pgrep -f <pattern>` matches the watcher's own command line… Wait on a PID (`while kill -0 $PID`), which cannot self-match"* — sourced from **this very experiment**. | the user asking "surely this was done" | **cost only wall-clock, no result.** But it is the third instance of the repo's signature failure (`te-bridges`, `recall-per-byte`, now this), and the first where the entry was not merely in `METHODS.md` but had been written *by this experiment*. |
+
+| 5 | **`recheck.py` pooled phase 2 over a hard-coded three-corpus list.** `CORPORA = ("arxiv768", "glove100", "nfcorpus1024")` — so after the fourth corpus landed, the fixture recomputed *three*-corpus pooled means and compared them to a RESULTS.md rewritten from four. The same file's `expected_blocks()` carries a docstring explaining why a hard-coded list is wrong and reading `run_ablation.DATASETS` instead; the fix was applied to one function and not the other. | **the fixture itself, going red** on the 4-corpus rewrite | **would have blocked a correct writeup** (false red), but the same defect in the other direction is the dangerous one: had the prose *not* been updated, phase 2 would have compared stale prose to stale recomputation and passed. Now derived from the artifact's own keys. |
+| 6 | **`recheck.py`'s `check()` printed failure remedies on passing lines.** The log read `[PASS] results.json was produced by the code now in the tree: … — the sweep is stale, re-run it`, because one `detail` field carried both the measurement and the remedy. | reading the fixture's own output while diagnosing #5 | cosmetic, but corrosive in a file whose entire purpose is trust: a log that reports success in the words of failure teaches the reader to skim the verdict column. Split into `detail` (always) and `fix` (failures only). |
+
+**Detection attribution.** Running a command rather than trusting prose: 1.
+Reading code against its own docstring: 1. A pre-scheduled experiment aimed at
+the weakest claim: 1. The user, noticing elapsed time: 1. The standing fixture
+going red: 1. Reading the fixture's own output: 1.
+
+**#1 and #5 are the same error twice**, and it is the error this file is worst
+at preventing: a correction applied to one call site and not its twin. #1 fixed
+the ruff claim in the linting prose and left it in the reproduction
+instructions; #5 fixed the hard-coded corpus list in `expected_blocks()` and
+left it in `pooled_axis_means()` forty lines below. Both were logged, diagnosed,
+and *partially* applied. The generalisable form is in `METHODS.md`: a
+correction that lands in one paragraph is not a correction — grep for the
+claim, do not fix the instance.
+
+**#4 is the one to read.** `CLAUDE.md` opens with "Before starting any
+experiment: grep METHODS.md", names rediscovery as the specific failure this
+repo has already had twice, and prices it at a paused $435 run. I did not grep,
+and re-derived an entry that this experiment had itself contributed. Reading the
+ledger is cheap and I skipped it because the task looked like a re-run of
+finished work rather than a new experiment — which is exactly when the ledger is
+least likely to be consulted and its contents most likely to already apply.
+
+**None of the three was found by the gate**, and none could have been: one is a
+prose claim about a lint run, one is a cache-population script outside the
+measurement path, and one is a causal story about results the gate certifies the
+*inputs* to. The gate's stated coverage limits already say this — "the recall
+pipeline itself is outside this gate" — and run 3 is the case where that limit
+bites in the direction of an explanation rather than a number.
+
+**The cheapest error to find was the one already written down.** #1 cost one
+command and had been logged, with the correct diagnosis, in this same file. A
+log only converts to a fix if something re-reads it; `recheck.py` now checks
+prose-vs-artifact consistency but has no check that an `ERRORS.md` entry was
+actually applied everywhere. That is the natural next fixture.
 
 ---
 
