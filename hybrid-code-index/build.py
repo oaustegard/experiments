@@ -38,7 +38,7 @@ def quantize(vecs):
     return qz.encode(vecs).indices, qz
 
 
-def build(root: Path, out: Path, with_tombstones: bool) -> None:
+def build(root: Path, out: Path, with_tombstones: bool, update: bool = False) -> None:
     cfg = H.load_cfg(root)
     t0 = time.time()
     chunks = H.build_corpus(root, cfg)
@@ -62,21 +62,32 @@ def build(root: Path, out: Path, with_tombstones: bool) -> None:
           f"{f', {len(chunks)-n_live} tombstone' if with_tombstones else ''})"
           f"  [{t_corpus:.1f}s]")
 
+    prev_codes = prev_hashes = None
+    tf_cache: dict = {}
+    if update and out.exists():
+        old_chunks, prev_codes, old_bm, prev_hashes, _ = H.load(out)
+        # reusable tokenization, keyed by content hash exactly like the dense rows
+        for i, c in enumerate(old_chunks):
+            pass  # texts are not stored; tf_cache stays empty on a loaded index
+        print(f"  reusing   {out.name} ({len(prev_hashes)} prior chunks)")
+
     t0 = time.time()
-    bm = H.BM25().fit(chunks)
+    bm = H.BM25().fit(chunks, tf_cache)
     t_bm = time.time() - t0
 
     enc = encoder()
     t0 = time.time()
-    vecs = enc([c.text for c in chunks], batch=16)
+    codes, hashes, n_enc, n_reused = H.incremental(
+        chunks, lambda ts: quantize(enc(ts, batch=16))[0],
+        prev_codes=prev_codes, prev_hashes=prev_hashes)
     t_enc = time.time() - t0
-    codes, _ = quantize(vecs)
-    hashes = [H.chunk_hash(c.text) for c in chunks]
+    if prev_codes is not None:
+        print(f"  encoded   {n_enc} new chunks, reused {n_reused} "
+              f"({100*n_reused/max(1,len(chunks)):.0f}%)")
 
     sizes = H.save(out, chunks, codes, bm, hashes,
                    {"root": str(root), "n_live": n_live, "dim": 384, "bits": 2})
-    print(f"  bm25 fit  {t_bm:.1f}s   dense encode {t_enc:.0f}s "
-          f"({len(chunks)/t_enc:.0f} chunks/s)")
+    print(f"  bm25 fit  {t_bm:.1f}s   dense encode {t_enc:.1f}s")
     print("\nartifact breakdown (compressed):")
     for k in ("codes", "bm_terms", "bm_offs", "bm_docs", "bm_tfs", "bm_lens",
               "files", "lines", "hashes"):
@@ -121,6 +132,8 @@ if __name__ == "__main__":
     ap.add_argument("root", nargs="?")
     ap.add_argument("--out", type=Path)
     ap.add_argument("--tombstones", action="store_true")
+    ap.add_argument("--update", action="store_true",
+                    help="reuse rows from an existing --out index by content hash")
     ap.add_argument("--query", type=Path)
     ap.add_argument("-k", type=int, default=5)
     ap.add_argument("q", nargs="*")
@@ -128,4 +141,4 @@ if __name__ == "__main__":
     if a.query:
         query(a.query, " ".join(a.q) or a.root, a.k)
     else:
-        build(Path(a.root), a.out, a.tombstones)
+        build(Path(a.root), a.out, a.tombstones, a.update)

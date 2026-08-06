@@ -189,9 +189,18 @@ class BM25:
     lens: list = field(default_factory=list)
     n: int = 0
 
-    def fit(self, chunks: list[Chunk]) -> "BM25":
+    def fit(self, chunks: list[Chunk], tf_cache: dict | None = None) -> "BM25":
+        """Build postings. `tf_cache` maps content hash -> Counter, so unchanged
+        chunks skip tokenization; postings and idf still come out identical
+        because both are derived, not stored."""
         for i, c in enumerate(chunks):
-            tf = Counter(tokens(c.text))
+            h = chunk_hash(c.text) if tf_cache is not None else None
+            if tf_cache is not None and h in tf_cache:
+                tf = tf_cache[h]
+            else:
+                tf = Counter(tokens(c.text))
+                if tf_cache is not None:
+                    tf_cache[h] = tf
             self.lens.append(sum(tf.values()) or 1)
             for t, f in tf.items():
                 self.postings[t].append((i, f))
@@ -320,10 +329,15 @@ def incremental(chunks: list[Chunk], encode, prev_codes=None, prev_hashes=None):
 
     So a reused row is the row a full rebuild would have produced. Anything that
     *does* fit on the corpus breaks this — PCA, k-means, ITQ, product-quantizer
-    codebooks, and notably **BM25's IDF**, which shifts for every term when any
-    document is added. The lexical arm therefore cannot be incrementalized the
-    same way; it is refit from scratch, which is affordable precisely because
-    fitting it is seconds rather than minutes.
+    codebooks.
+
+    An earlier version of this docstring named **BM25's IDF** as such a case.
+    That was wrong. `BM25.score` derives idf per query from `len(postings[t])`
+    and `n`; nothing precomputed exists to invalidate, so adding or dropping a
+    document updates idf for free. The lexical arm is incrementalizable too —
+    the only reusable work is tokenization, which `tf_cache` below keys by
+    content hash. It matters far less than it sounds: fitting BM25 is 0.3 s
+    against a 36 s dense encode on remax, i.e. under 1% of build time.
 
     Returns (codes, n_encoded, n_reused).
     """
