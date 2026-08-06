@@ -189,9 +189,18 @@ class BM25:
     lens: list = field(default_factory=list)
     n: int = 0
 
-    def fit(self, chunks: list[Chunk]) -> "BM25":
+    def fit(self, chunks: list[Chunk], tf_cache: dict | None = None) -> "BM25":
+        """Build postings. `tf_cache` maps content hash -> Counter, so unchanged
+        chunks skip tokenization; postings and idf still come out identical
+        because both are derived, not stored."""
         for i, c in enumerate(chunks):
-            tf = Counter(tokens(c.text))
+            h = chunk_hash(c.text) if tf_cache is not None else None
+            if tf_cache is not None and h in tf_cache:
+                tf = tf_cache[h]
+            else:
+                tf = Counter(tokens(c.text))
+                if tf_cache is not None:
+                    tf_cache[h] = tf
             self.lens.append(sum(tf.values()) or 1)
             for t, f in tf.items():
                 self.postings[t].append((i, f))
@@ -246,6 +255,60 @@ def rrf(ranked: list[list[str]], k: int = 60) -> list[str]:
     return sorted(s, key=lambda f: -s[f])
 
 
+# ── persistence ─────────────────────────────────────────────────────────────
+def save(path: Path, chunks: list[Chunk], codes, bm: "BM25", hashes: list[str],
+         meta: dict) -> dict:
+    """Write the index as one .npz. Returns a per-component byte breakdown.
+
+    BM25 postings are stored as three flat arrays (terms / offsets / docs+tfs)
+    rather than JSON: a dict-of-lists serializes to roughly 6x its packed size
+    and has to be parsed rather than mmapped.
+    """
+    import numpy as np
+    path.parent.mkdir(parents=True, exist_ok=True)
+    terms = sorted(bm.postings)
+    docs, tfs, offs = [], [], [0]
+    for t in terms:
+        for d, f in bm.postings[t]:
+            docs.append(d); tfs.append(f)
+        offs.append(len(docs))
+    payload = {
+        "codes": codes,
+        "files": np.array([c.f for c in chunks]),
+        "lines": np.array([c.s for c in chunks], dtype=np.int32),
+        "hashes": np.array(hashes),
+        "bm_terms": np.array(terms),
+        "bm_offs": np.array(offs, dtype=np.int64),
+        "bm_docs": np.array(docs, dtype=np.int32),
+        "bm_tfs": np.array(tfs, dtype=np.int32),
+        "bm_lens": np.array(bm.lens, dtype=np.int32),
+        "meta": np.array([json.dumps(meta)]),
+    }
+    np.savez_compressed(path, **payload)
+    import io
+    sizes = {}
+    for k, v in payload.items():
+        buf = io.BytesIO()
+        np.savez_compressed(buf, **{k: v})
+        sizes[k] = buf.tell()
+    sizes["TOTAL_on_disk"] = path.stat().st_size
+    return sizes
+
+
+def load(path: Path):
+    import numpy as np
+    z = np.load(path, allow_pickle=False)
+    chunks = [Chunk(f, int(s), "") for f, s in zip(z["files"], z["lines"])]
+    bm = BM25()
+    bm.lens = z["bm_lens"].tolist()
+    bm.n = len(bm.lens)
+    terms, offs, docs, tfs = z["bm_terms"], z["bm_offs"], z["bm_docs"], z["bm_tfs"]
+    for i, t in enumerate(terms):
+        bm.postings[str(t)] = list(zip(docs[offs[i]:offs[i + 1]].tolist(),
+                                       tfs[offs[i]:offs[i + 1]].tolist()))
+    return chunks, z["codes"], bm, z["hashes"].tolist(), json.loads(str(z["meta"][0]))
+
+
 # ── incremental build ───────────────────────────────────────────────────────
 def chunk_hash(text: str) -> str:
     import hashlib
@@ -266,10 +329,15 @@ def incremental(chunks: list[Chunk], encode, prev_codes=None, prev_hashes=None):
 
     So a reused row is the row a full rebuild would have produced. Anything that
     *does* fit on the corpus breaks this — PCA, k-means, ITQ, product-quantizer
-    codebooks, and notably **BM25's IDF**, which shifts for every term when any
-    document is added. The lexical arm therefore cannot be incrementalized the
-    same way; it is refit from scratch, which is affordable precisely because
-    fitting it is seconds rather than minutes.
+    codebooks.
+
+    An earlier version of this docstring named **BM25's IDF** as such a case.
+    That was wrong. `BM25.score` derives idf per query from `len(postings[t])`
+    and `n`; nothing precomputed exists to invalidate, so adding or dropping a
+    document updates idf for free. The lexical arm is incrementalizable too —
+    the only reusable work is tokenization, which `tf_cache` below keys by
+    content hash. It matters far less than it sounds: fitting BM25 is 0.3 s
+    against a 36 s dense encode on remax, i.e. under 1% of build time.
 
     Returns (codes, n_encoded, n_reused).
     """

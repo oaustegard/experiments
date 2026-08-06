@@ -419,6 +419,35 @@ the result.
   <=0.022, straddling fp32), so quality does not break the tie either.
   (`bekko-embedding-bench/RESULTS.md` §7)
 
+- **A seed-derived rotation reconstructed per query can dominate query latency —
+  and this is the third time it has bitten in this repo.** A hybrid index's query
+  measured ~400 ms, of which 270 ms was charged to "decode". The actual decode of
+  858 vectors is 22 ms; **200 ms was rebuilding a Haar rotation** (Householder QR,
+  O(d^3) at d=384) on every single query. Prior instances: `remax_kb`'s
+  `_stacked_simhash_encode` rebuilding k rotations per query (87% of query time,
+  `bekko-embedding-bench`), and `repo-index` regenerating its rotation from seed
+  (fixed by committing `rotation.npy`). Two fixes, and the cheaper one is not the
+  obvious one: persisting a d=384 Haar matrix costs 576 KB, whereas
+  `rotation="rht"` **builds in 6.2 ms instead of 171 ms and costs nothing** — and
+  remex measured RHT as retrieval-indistinguishable from Haar (-0.0001 +/- 0.0013,
+  experiments#11). Prefer the cheap construction over the stored matrix when the
+  library offers one. Check where the time actually goes before believing a
+  profile label: "decode" was 90% not-decode.
+  (`hybrid-code-index/RESULTS.md`)
+- **In a hybrid index the lexical arm is usually the bigger artifact.** BM25
+  postings for `remax` are 245 KB against 93 KB of remex 2-bit dense codes — 2.6x
+  — and postings scale with *vocabulary*, not chunk count, so a corpus with
+  hashes, IDs or floats in it explodes them (138,685 terms / 6.36 MB on a
+  JSON-heavy corpus where the dense side stayed at 1 MB). If an index is too
+  large, look at the lexical side first; the intuition that embeddings are the
+  expensive part is wrong here. **Correction to an earlier version of this entry:** BM25 *is*
+  incrementalizable. Its idf is derived at query time from `len(postings[t])`
+  and `n`, so there is nothing precomputed to invalidate when a document is
+  added or dropped; the only reusable work is tokenization, cacheable by content
+  hash. The point stands anyway for a different reason — fitting BM25 is 0.3 s
+  against a 36 s dense encode, under 1% of build time, so it is not where
+  incremental effort pays.
+  (`hybrid-code-index/RESULTS.md`)
 - **A relocated file is indistinguishable from a deleted one by path — detect
   moves by content.** `git log --diff-filter=D` reports a moved file as deleted
   at its old path. Building a "deleted content" corpus from that put **live**
@@ -432,6 +461,56 @@ the result.
   answer, suspect the answer key before believing the arm.** That anomaly, not
   inspection, is what surfaced this.
   (`history-tombstone-index/RESULTS.md`)
+- **Cost the baseline before optimizing against it.** A per-repo routing tier
+  was built and tuned over three 18-minute encodes so a client could fetch only
+  the partitions it needs — then one command showed the *entire* 9-repo account
+  index is **8.54 MB** (2.37 MB dense + 6.17 MB postings, 25,904 chunks
+  including scikit-learn) against a **157 MB encoder the client already
+  downloads**, with a flat scan over everything costing **7.6 ms**. The
+  optimization targets something 18x smaller than an existing required
+  download. Before measuring how well a shortcut works, measure what the
+  un-shortcut path costs; "fetch everything" is often the correct design at
+  personal-account scale and only stops being so past ~1M chunks. The failure
+  is seductive because the shortcut's *own* metrics look like progress —
+  recall@k improved across four card designs while the whole exercise was moot.
+  (`account-routing-tier/RESULTS.md`)
+- **A README states a project's identity, not its inventory — do not build a
+  router from front matter.** Routing queries to the right repo by embedding
+  READMEs failed on scikit-learn: its `README.rst` contains **zero** occurrences
+  of "gradient boosting", "one-hot", "cross validation", "sparse" or "estimator"
+  while its tree has 296 files matching "sparse" and 311 matching "estimator" —
+  it is badges, install instructions and links. A card built from repo-level
+  tf-idf terms plus module paths beat the front-matter card at every k **with
+  2.5x fewer chunks**. The trap is that the front-matter card *looks* obviously
+  right, and a related real bug (the card list held only `README.md`, so a repo
+  shipping `README.rst` had no README at all) supplies a plausible wrong
+  explanation for its failures — fixing that moved recall@1 47% -> 43%.
+  (`account-routing-tier/RESULTS.md`)
+- **Ranking a group by its best member rewards having more members.** Splitting
+  large repos into several routing cards, to fix a genuine 350x capacity
+  imbalance, made ranking *worse* at low k (recall@1 53% -> 47% for 3.7x the
+  cards) because a repo's score was the max over its cards: more cards is more
+  draws from the score distribution, so a split group's maximum rises for
+  reasons unrelated to relevance. Any per-group aggregation over a variable
+  number of items needs a count correction; `max` has none, and neither does
+  "best chunk per file" when files differ wildly in length.
+  (`account-routing-tier/RESULTS.md`)
+- **Three corpora, three question classes, and they are orthogonal — a corpus
+  aimed at the wrong class is inert, not harmful.** Measured on `remax`: the
+  working tree answers *what does the code do*, deleted-file tombstones answer
+  *how did the removed thing work*, and PR bodies answer *why was it done that
+  way*. Adding tombstones to a rationale benchmark moved nothing (6/8 -> 6/8);
+  adding PR bodies took it to 8/8. Adding tombstones to a mechanism benchmark
+  took 0/6 -> 6/6. So they stack without the arms fighting, and each should be
+  justified against the question class it serves rather than a pooled score that
+  hides which one is carrying. Cost is small — 43 merged PRs is +12% corpus, and
+  17 deleted files +19% — but PR bodies are **not in git**, so indexing them
+  makes network and a token a hard dependency of a rebuild that is otherwise
+  pure filesystem. Two conditions before believing this transfers: check the
+  repo's *median PR body length* (remax's is 2,727 chars because every PR is
+  agent-authored; a repo of "fixes #12" bodies gets noise with a title attached),
+  and have the build degrade to the offline corpora rather than fail.
+  (`pr-decision-log/RESULTS.md`)
 - **Writing your rejections down preserves the verdict, not the mechanism.** A
   repo with an explicit "delete the driver, never the record" convention
   (`remax`) answered 5/6 "was X ever tried?" questions from its surviving prose
@@ -480,6 +559,19 @@ the result.
   postings here, ~1.5 GB of history at 200 rebuilds), so cheap rebuilds and cheap
   history are separate problems with separate fixes.
   (`hybrid-code-index/hcindex.py::incremental`)
+- **Documenting a failure mode does not prevent recurrence — only structure
+  does.** The "evaluation harness sits inside the corpus it measures" bug has now
+  occurred **four times** in this line of work: `code-index-duplication` (the
+  harness retrieved itself for 4 of 9 NL queries, worth 2 points of hit@5),
+  `hybrid-code-index`, `pr-decision-log`, and `account-routing-tier` — the last
+  two *after* it was diagnosed, written up here, and explicitly guarded against
+  in an earlier harness. Each new harness is a fresh opportunity to forget. The
+  fix that holds is making self-exclusion the default in the corpus builder
+  (`hcindex.build_corpus` excluding the caller's own directory) rather than
+  something every harness must remember to pass. Generalise: if a rule has to be
+  re-applied by hand at each new call site, expect it to be missed at some of
+  them, and move it into the callee.
+  (`account-routing-tier/RESULTS.md`)
 - **A baseline scoped to a narrower corpus than the system under test reports
   improvements as regressions.** After `repo-index` was extended from `.md` to
   `.md`+`.py`, its keyword benchmark fell 10/10 → 7/10 and looked like a clear
