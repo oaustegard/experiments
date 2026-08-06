@@ -93,7 +93,7 @@ def pr_chunks(prs: list[dict], cfg: dict) -> list[H.Chunk]:
 # `[PR #66]` label matches "PR #66" and a tree path matches its filename.
 RATIONALE = [
     ("Why does this library compile a C popcount kernel when its anti-goals say "
-     "no C or C++ bindings?", ["_native", "CLAUDE.md", "PR #"]),
+     "no C or C++ bindings?", ["_native", "CLAUDE.md"]),
     ("Why is the number of RHT rounds floored at two rather than one?",
      ["ROTATION_LSH", "rotation.py", "PR #60"]),
     ("Why does the stored corpus format record which rotation encoded it?",
