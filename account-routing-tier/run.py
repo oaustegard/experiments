@@ -57,7 +57,7 @@ CARD_FILES = {"README.md", "README.rst", "README.txt", "README",
 
 
 def content_card(name: str, chunks: list[H.Chunk], df: dict, n_repos: int,
-                 top: int = 400) -> list[H.Chunk]:
+                 top: int = 400, split_over: int = 1000) -> list[H.Chunk]:
     """A card built from what the repo *contains*, not what its README says it is.
 
     Front matter turned out to be the wrong source. scikit-learn's README.rst
@@ -72,6 +72,28 @@ def content_card(name: str, chunks: list[H.Chunk], df: dict, n_repos: int,
     """
     from collections import Counter
     import math
+
+    # Card capacity has to scale with the repo, or a large repo is unroutable.
+    # Measured: sklearn-bench is 47% of the corpus and got the same 400-term
+    # card as claude-container-layers at 0.1% of it -- 0.033 card-terms per
+    # chunk against 11.8 -- and its queries mis-routed even after the card was
+    # built from content. Above `split_over` chunks, emit one card per
+    # top-level directory instead of one per repo. Cards still carry the repo
+    # name, so the routing API is unchanged; only the surface area grows.
+    if len(chunks) > split_over:
+        groups: dict[str, list[H.Chunk]] = {}
+        for c in chunks:
+            groups.setdefault(Path(c.f).parts[0] if Path(c.f).parts else ".",
+                              []).append(c)
+        out: list[H.Chunk] = []
+        for g, sub in sorted(groups.items()):
+            if len(sub) < 20:
+                continue
+            out += content_card(f"{name}", sub, df, n_repos, top=top,
+                                split_over=10**9)
+        if out:
+            return out
+
     tf = Counter()
     paths = Counter()
     for c in chunks:

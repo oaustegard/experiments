@@ -458,6 +458,27 @@ the result.
   answer, suspect the answer key before believing the arm.** That anomaly, not
   inspection, is what surfaced this.
   (`history-tombstone-index/RESULTS.md`)
+- **A README states a project's identity, not its inventory — do not build a
+  router from front matter.** Routing queries to the right repo by embedding
+  READMEs failed on scikit-learn: its `README.rst` contains **zero** occurrences
+  of "gradient boosting", "one-hot", "cross validation", "sparse" or "estimator"
+  while its tree has 296 files matching "sparse" and 311 matching "estimator" —
+  it is badges, install instructions and links. A card built from repo-level
+  tf-idf terms plus module paths beat the front-matter card at every k **with
+  2.5x fewer chunks**. The trap is that the front-matter card *looks* obviously
+  right, and a related real bug (the card list held only `README.md`, so a repo
+  shipping `README.rst` had no README at all) supplies a plausible wrong
+  explanation for its failures — fixing that moved recall@1 47% -> 43%.
+  (`account-routing-tier/RESULTS.md`)
+- **Ranking a group by its best member rewards having more members.** Splitting
+  large repos into several routing cards, to fix a genuine 350x capacity
+  imbalance, made ranking *worse* at low k (recall@1 53% -> 47% for 3.7x the
+  cards) because a repo's score was the max over its cards: more cards is more
+  draws from the score distribution, so a split group's maximum rises for
+  reasons unrelated to relevance. Any per-group aggregation over a variable
+  number of items needs a count correction; `max` has none, and neither does
+  "best chunk per file" when files differ wildly in length.
+  (`account-routing-tier/RESULTS.md`)
 - **Three corpora, three question classes, and they are orthogonal — a corpus
   aimed at the wrong class is inert, not harmful.** Measured on `remax`: the
   working tree answers *what does the code do*, deleted-file tombstones answer
@@ -522,6 +543,19 @@ the result.
   postings here, ~1.5 GB of history at 200 rebuilds), so cheap rebuilds and cheap
   history are separate problems with separate fixes.
   (`hybrid-code-index/hcindex.py::incremental`)
+- **Documenting a failure mode does not prevent recurrence — only structure
+  does.** The "evaluation harness sits inside the corpus it measures" bug has now
+  occurred **four times** in this line of work: `code-index-duplication` (the
+  harness retrieved itself for 4 of 9 NL queries, worth 2 points of hit@5),
+  `hybrid-code-index`, `pr-decision-log`, and `account-routing-tier` — the last
+  two *after* it was diagnosed, written up here, and explicitly guarded against
+  in an earlier harness. Each new harness is a fresh opportunity to forget. The
+  fix that holds is making self-exclusion the default in the corpus builder
+  (`hcindex.build_corpus` excluding the caller's own directory) rather than
+  something every harness must remember to pass. Generalise: if a rule has to be
+  re-applied by hand at each new call site, expect it to be missed at some of
+  them, and move it into the callee.
+  (`account-routing-tier/RESULTS.md`)
 - **A baseline scoped to a narrower corpus than the system under test reports
   improvements as regressions.** After `repo-index` was extended from `.md` to
   `.md`+`.py`, its keyword benchmark fell 10/10 → 7/10 and looked like a clear
