@@ -152,6 +152,13 @@ class Encoder:
         self.tok = Tokenizer.from_file(str(d / "tokenizer.json"))
         self.tok.enable_truncation(max_length=512)
         self.tok.enable_padding(pad_id=0, pad_token="<pad>")
+        # CPU is forced, so ONNX Runtime's device discovery is never consulted.
+        # On Hyper-V/Azure hosts (GitHub runners, WSL2) it still logs one
+        # warning per session -- `device_discovery.cc GetPciBusId ... did not
+        # match expected pattern` -- because the ACPI path is a GUID rather than
+        # a PCI bus:device.function address. It skips that device and continues.
+        # Benign, and not silenced: raising the ORT log severity to hide it would
+        # also hide warnings worth reading.
         self.sess = ort.InferenceSession(str(d / "model.onnx"),
                                          providers=["CPUExecutionProvider"])
 
