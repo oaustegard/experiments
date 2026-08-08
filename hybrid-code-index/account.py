@@ -39,6 +39,32 @@ import hcindex as H  # noqa: E402
 DIM, BITS, SEED, ROT = 384, 2, 0, "rht"
 
 
+def tokenizer_sha256() -> str:
+    """Hash the *logic* of `hcindex.tokens`, ignoring comments and formatting.
+
+    BM25 postings are keyed by this function's output, so a query-side copy that
+    drifts from it does not error -- the lexical arm just stops matching, while
+    the dense arm keeps returning plausible-looking results. Recording the hash
+    in the manifest lets a consumer refuse rather than silently degrade;
+    `claude-workspace/scripts/xr.py` vendors `tokens` and checks it.
+
+    AST rather than raw source so a reflowed comment does not invalidate every
+    published index, and the docstring is stripped so the two copies may
+    document themselves differently.
+    """
+    import ast
+    import hashlib
+    import inspect
+    import textwrap
+    tree = ast.parse(textwrap.dedent(inspect.getsource(H.tokens)))
+    body = tree.body[0].body  # type: ignore[attr-defined]
+    if (body and isinstance(body[0], ast.Expr)
+            and isinstance(body[0].value, ast.Constant)
+            and isinstance(body[0].value.value, str)):
+        body.pop(0)
+    return hashlib.sha256(ast.dump(tree).encode()).hexdigest()[:16]
+
+
 def api(path: str, token: str) -> list:
     out, page = [], 1
     while True:
@@ -214,7 +240,10 @@ def cmd_merge(a) -> None:
             "n_chunks": len(chunks), "repos": plan["repos"],
             "repo_chunks": repo_chunks,
             "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "encoder_sha256": __import__("ask").MODEL_SHA256}
+            "encoder_sha256": __import__("ask").MODEL_SHA256,
+            # lets a consumer refuse a drifted tokenizer instead of silently
+            # losing the lexical arm -- see tokenizer_sha256() above
+            "tokenizer_sha256": tokenizer_sha256()}
     H.save(Path(a.out), chunks, codes, bm, hashes, meta)
     Path(a.manifest).write_text(json.dumps(meta, indent=1))
     print(f"  wrote {Path(a.out).stat().st_size/2**20:.1f} MB")
@@ -258,7 +287,10 @@ def cmd_build(a) -> None:
             # measured per-repo counts: the weights the next shard split uses
             "repo_chunks": repo_chunks,
             "built_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "encoder_sha256": __import__("ask").MODEL_SHA256}
+            "encoder_sha256": __import__("ask").MODEL_SHA256,
+            # lets a consumer refuse a drifted tokenizer instead of silently
+            # losing the lexical arm -- see tokenizer_sha256() above
+            "tokenizer_sha256": tokenizer_sha256()}
     H.save(Path(a.out), chunks, codes, bm, hashes, meta)
     Path(a.manifest).write_text(json.dumps(meta, indent=1))
     print(f"  wrote {Path(a.out).stat().st_size/2**20:.1f} MB")
