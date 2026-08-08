@@ -48,9 +48,22 @@ def tokenizer_sha256() -> str:
     in the manifest lets a consumer refuse rather than silently degrade;
     `claude-workspace/scripts/xr.py` vendors `tokens` and checks it.
 
-    AST rather than raw source so a reflowed comment does not invalidate every
-    published index, and the docstring is stripped so the two copies may
-    document themselves differently.
+    Parsed and re-emitted rather than hashed raw, so a reflowed comment does not
+    invalidate every published index, and with the docstring stripped so the two
+    copies may document themselves differently.
+
+    `ast.unparse`, NOT `ast.dump`. dump serializes the AST's internal field
+    layout, which grows between releases -- the same source hashed three
+    different ways across interpreters:
+
+        3.10 / 3.11   0a95c45ce7fa46ed
+        3.12          2faf90cb782a1c60      <- what the runner published
+        3.13          6e147ade19dc28ae
+
+    That makes the pin a Python-version detector rather than a logic detector,
+    and it would refuse a perfectly good index in any session whose interpreter
+    differs from the runner's. `unparse` re-emits canonical *source*, which is
+    identical on 3.10 through 3.13.
     """
     import ast
     import hashlib
@@ -62,7 +75,7 @@ def tokenizer_sha256() -> str:
             and isinstance(body[0].value, ast.Constant)
             and isinstance(body[0].value.value, str)):
         body.pop(0)
-    return hashlib.sha256(ast.dump(tree).encode()).hexdigest()[:16]
+    return hashlib.sha256(ast.unparse(tree).encode()).hexdigest()[:16]
 
 
 def api(path: str, token: str) -> list:
