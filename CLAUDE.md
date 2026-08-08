@@ -28,6 +28,23 @@ plain description of what you are about to do, where grep on the query's own
 words finds 1/5. It does not replace the grep — run both. See
 [`repo-index/README.md`](repo-index/README.md), including its caveats.
 
+**Both of those only see this repo.** If the thing you are about to build might
+already exist in `remex`, `remax`, `claude-skills`, `muninn-utilities` or any
+other owned repo, that is a third question and needs the account-wide index:
+
+```bash
+python3 /home/user/claude-workspace/scripts/xr.py "<plain description>"
+python3 /home/user/claude-workspace/scripts/xr.py -r remex "<description>"
+```
+
+Use `-r` whenever you know the repo. Account-wide, this repo's own canonical
+rediscovery query — *"about to fan out concurrent LLM calls through a
+Cloudflare gateway"* — returns **nothing relevant in the top 20**, because
+`claude-skills` contributes 8,088 chunks thick with API-invocation vocabulary.
+Scoped with `-r experiments` it puts `phase-a-bridges` at #2. So `xr` answers
+*where across the account*, and `ask.py` answers *what inside this repo* —
+running the wrong one is how a miss looks like an absence.
+
 This is not boilerplate diligence — it is the specific failure this repo has
 already had twice:
 
