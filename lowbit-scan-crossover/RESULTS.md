@@ -13,6 +13,39 @@ interpolated between two rows. With no constant term the equation has no
 solution, and no crossover was observed here at any n from 100 to 1e6, at any
 ISA level from SSE4.2 up, cold or warm, single-query or batch-1024.
 
+## Prior art — read this before the results
+
+**The C kernel here is a reimplementation, not a contribution.**
+`remax/src/remax/_native.py` already contains a `__builtin_popcountll` Hamming
+scan (8 bytes per iteration, compiled at import with `-O3`, ctypes-loaded,
+user-private cache, graceful NumPy fallback), and
+`remax.packing.hamming_distances` already dispatches to it. Its docstring
+already reports **25–35x over the NumPy path**, already identifies the
+100k–1M cache falloff, and already warns against quoting the ratio as a single
+number because it moves with both `n` and `d`. This experiment's 37x warm /
+19x cold reproduces that on different hardware; it does not discover it.
+
+Also already known in-account: **a gather cannot use the popcount kernel** —
+`remax/core.py` and `bench/results/QUERY_PATH_SPEED.md` put asymmetric scoring
+at 38–45x a Hamming scan for exactly that reason. The "family model predicts
+ADC is gather-bound" note below is therefore a restatement, not a prediction.
+
+Externally, the kernel is textbook: faiss's `HammingComputer32` is literally
+four `uint64`s XORed and popcounted, and what gcc emits at `-march=x86-64-v3`
+is Muła/Kurz/Lemire's AVX2 Harley-Seal. Bit planes are bit-slicing, a database
+indexing technique long predating this.
+
+`hamkern.c` is kept because a standalone kernel with no ctypes cache and no
+fallback isolates kernel cost cleanly, which is what the roofline table needs.
+It should not be shipped; `_native.py` is the implementation.
+
+**How this happened:** `experiments/CLAUDE.md` mandates an account-wide `xr`
+check before building, precisely to prevent this. It was skipped — and `xr` is
+currently unrunnable in the CCotw container (`ModuleNotFoundError: remex`,
+because the index is remex-compressed), so the mandated check is a silent
+no-op there. `mcp__github__search_code` with `user:oaustegard` found
+`_native.py` in one query, needs no local index, and is the fallback.
+
 Two things fall out that are worth more than the retraction:
 
 1. **`.sum(axis=1)` over a narrow inner axis is the whole slowdown.**
@@ -57,7 +90,8 @@ evicting L3 between reps. 4 vCPU Xeon @2.10GHz, AVX-512 incl. VPOPCNTDQ, 260 MB
 L3, 16 GB RAM. `dab41dd6` measured on a 1 vCPU container.
 
 `C vpopcnt` is the identical arithmetic in `hamkern.c` at `-O3 -march=native`
-(objdump confirms 47 `vpopcnt`). `xor read` is a pure streaming read of the same
+(objdump confirms 47 `vpopcnt`) — a reimplementation of `remax/_native.py`, see
+Prior art. `xor read` is a pure streaming read of the same
 buffer — achievable bandwidth *at that residency*, a cache roofline at small n,
 not a DRAM roofline.
 
@@ -154,8 +188,23 @@ pessimistic bound — the Hamming side is unblocked.
 - **Stop attributing the original result to the 1 vCPU container.** Fitted
   per-row costs agree to 5%. It is a 4.1 ms constant, not a slower core, not a
   smaller cache, not a missing instruction.
-- **Ship the bit-plane layout** on the remax scan path: 2.4x at the shipped
-  config, 5.2x at k=256, pure numpy.
+- **Wire `remax_kb` to the native kernel it already depends on.**
+  `remax_kb/_hamming.py` imports `from remax.packing import stable_top_k`, so
+  `remax` is already a hard dependency — but `_popcount_rows` implements the
+  NumPy path inline and never calls `remax.packing.hamming_distances`, which
+  would dispatch to `_native`. The compiled kernel exists, ships, falls back
+  cleanly, and is one import away from the shipped scan. This is a wiring gap,
+  not a research finding, and it is the highest-value item here.
+- **Ship the bit-plane layout** where a compiled kernel is genuinely
+  unavailable — the `js/kb-reader.js` browser/Worker reader, and any NumPy-only
+  fallback: 2.4x at the shipped config, 5.2–6.6x at k=256, no compiler. Note
+  the limit: bit planes win on *full* scans and lose on filtered subsets (W
+  scattered accesses per row instead of one), so this is a full-scan
+  optimisation.
+- **Retire "a compiled SIMD kernel is unnecessary."** That ruling in
+  `remax-hamming-speedup` was made against the NumPy idiom at 1.7x over BLAS.
+  The kernel it declared unnecessary was already written, in `remax`, at 28x
+  per that repo's own CHANGELOG.
 - **Re-measure, don't revise, the 100M figure.** `dab41dd6`'s ~4.7 s/query
   single-core extrapolation came from the numpy kernel; candidates here span
   ~150 ms (warm 22 GB/s) to ~460 ms (cold 6.9 GB/s) over 3.2 GB. Three values
@@ -192,8 +241,16 @@ pessimistic bound — the Hamming side is unblocked.
   4M/16M tail. `a = 4.108 ms` with residuals ±0.5 ms is a good fit but a
   3-point one, and the *cause* of the 4.1 ms is not identified — only its
   existence and size.
-- The family model predicts ADC's 13.5x is gather latency (a cache line and a
-  dependent load per subquantizer per candidate), hence flat in `n` and
-  insensitive to bit width. Flat in `n` matches `901e3c06`. **The bit-width leg
-  is untested** — this is a prediction, not a result, and nothing here
-  transfers to the remex ADC path.
+- The family model puts ADC's 13.5x in the gather regime rather than the
+  streaming one. `remax/core.py` and `QUERY_PATH_SPEED.md` already say this
+  (asymmetric scoring at 38–45x a Hamming scan, "cannot use the SIMD popcount
+  kernel"), so it is a restatement in different vocabulary, not a prediction.
+  The bit-width leg remains untested, and nothing measured here transfers to
+  the remex ADC path.
+- **Novelty accounting.** New here: the constant-term reconciliation of
+  `dab41dd6` with `remax-hamming-speedup` (§ fit); the `.sum(axis=1)`
+  narrow-axis diagnosis, which is about the `bitwise_count` path and not the
+  LUT path `_native.py`'s docstring analyses; the bit-plane numbers; the 6%
+  `-march` measurement; and the `remax_kb` wiring gap. Not new: the C kernel,
+  the ~30x NumPy-vs-C ratio, the cache falloff, and the gather-vs-stream
+  distinction — all already in `remax`.
