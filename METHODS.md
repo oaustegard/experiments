@@ -292,6 +292,26 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`xr` needs three pip installs on a cold CCotw container — it is not
+  unavailable there.** `scripts/xr.py` imports `remex` to decompress the index
+  and `onnxruntime` + `tokenizers` to encode the query, and a bare container has
+  none of them, so the first call dies with `ModuleNotFoundError: remex` and the
+  second with `ModuleNotFoundError: onnxruntime`. Both are one line:
+
+  ```bash
+  python3 -m pip install --break-system-packages remex onnxruntime tokenizers
+  ```
+
+  `remex` is on PyPI, published by the same author as the repo (verify via
+  `pypi.org/pypi/remex/json` → `project_urls.Repository`) — do not assume a
+  bare name on PyPI is the right package without checking. Total cost well
+  under a minute; after that the resident server answers in **175 ms** warm, as
+  documented. This is worth stating because the failure mode is not the missing
+  package, it is concluding from an ImportError that a *mandated* check is
+  structurally unavailable and writing that into the record — which happened in
+  `lowbit-scan-crossover`, on the one check that would have prevented its
+  rediscovery. See the duplication map.
+
 - **A Claude Code session cannot create GitHub releases — the proxy blocks it by
   policy, not by credential.** `POST /repos/{owner}/{repo}/releases` returns
   *"Creating, editing, or deleting releases is not permitted for this session
@@ -829,6 +849,48 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Fit `t = a + b·n` before reporting a crossover — a scale gate and a
+  constant term look identical from two data points.** Any linear scan is
+  `t(n) = a + bytes_per_candidate·n / (bandwidth·efficiency)`, where `n` enters
+  only as a multiplier on the linear term, identically for every kernel. So
+  **two kernels can cross only if at least one has `a > 0`**; with `a ≈ 0` on
+  both sides the ratio is constant and no corpus size flips the ordering. A
+  reported crossover is then an artifact of the two `n` values that bracket it.
+  `lowbit-scan-crossover/fit.py` is the check. It found that `dab41dd6`'s
+  "compression is SCALE-GATED below ~150k rows" fits `4.108 ms + 32.40 ns·n`
+  while the same numpy expression on another machine fits `−0.78 ms +
+  33.98 ns·n` — **per-row costs agreeing to 5%, so the entire gate was the
+  4.1 ms constant**, and `n* = a/(b_f32 − b_ham)` reproduces the reported gate
+  at ~68,000. `n*` is meaningful only inside the fitted range. When `a > 0`, the
+  constant *is* the finding, and it belongs to the harness, not the corpus.
+
+- **`.sum(axis=1)` over a narrow inner axis is the bottleneck in packed-code
+  scans, not the popcount — store bit planes instead.** In
+  `np.bitwise_count(C ^ q).sum(axis=1)` (the kernel `Portable code` records
+  above from `remax-hamming-speedup`), `np.bitwise_count` runs at 14.7 GB/s and
+  `.sum(axis=1)` over a 4-wide axis at **1.9 GB/s** — 62% of the kernel. numpy's
+  per-row pairwise-reduction overhead is fixed, so the damage scales inversely
+  with code width: 1.20 GB/s at 4 words/row (k=256) vs 3.33 GB/s at 32 words/row
+  (d=512·k=4). Storing the W words as W contiguous **columns** turns the row
+  reduction into W−1 whole-array adds: **5.2x at k=256, 2.4x at d=512·k=4**,
+  pure numpy. Two consequences: a kernel benchmarked at one code width does not
+  transfer to another (this is how `dab41dd6` and `remax-hamming-speedup` reached
+  opposite verdicts on the same idiom), and "pure numpy already beats BLAS so a
+  compiled kernel is unnecessary" was measured against the wrong numpy — the
+  compiled kernel is 37x over BLAS warm and 19x cold, against the idiom's 1.7x.
+
+- **A SIMD instruction you assume is load-bearing usually is not — rebuild at a
+  lower `-march` and measure before scoping a result to it.** The obvious
+  explanation for a slow popcount scan on one container was a missing AVX-512
+  VPOPCNTDQ. Rebuilding the same C source at `-march=x86-64-v3` and `v2`
+  (objdump confirming **zero** `vpopcnt` instructions — gcc emits a
+  table/Harley-Seal popcount, per Muła/Kurz/Lemire) cost **6%**: 34.7x and
+  34.8x over BLAS against 37.0x. Cheap to run, and it kills an entire class of
+  "their hardware was different" hand-waving. Practical consequence:
+  `remax/_native.py` compiles at import with plain `-O3` and **no `-march`**,
+  which is the right call for a cached user-side compile — that portability is
+  worth ~6%, now measured rather than assumed.
+
 - **Length-sort before batching, and check the length distribution before
   believing your throughput is compute-bound.** Tokenizer padding is to the
   *batch's longest* sequence, so corpus-order batches of heterogeneous text pay
@@ -1051,6 +1113,26 @@ If you see that prefix again, it came from a script written before the split.
   collapsed to distinct posts, fixed 5-query topical gold). **Still duplicated.**
   Not consolidated because the corpus is not present here, so a refactor could
   not be run — see "Not done" below.
+- `lowbit-scan-crossover/hamkern.c` ↔ `remax/src/remax/_native.py` — an
+  independent reimplementation of a C `__builtin_popcountll` Hamming scan that
+  **already existed in `remax`**, is already dispatched to by
+  `remax.packing.hamming_distances`, and whose docstring already measured
+  25-35x over the NumPy path with the same 100k-1M cache falloff. Written
+  because the mandated account-wide `xr` check was skipped. **Keep
+  `hamkern.c`** as a standalone roofline reference (no ctypes cache, no
+  fallback, so it isolates kernel cost) but treat `_native.py` as the
+  implementation. Fourth documented rediscovery in this repo, and the least
+  excusable: run afterwards, `xr "hamming distance popcount kernel in C over
+  packed binary codes"` returns `remax/src/remax/packing.py` at rank 1 and
+  `remax/src/remax/_native.py` at rank 8; `-r remax` puts `_native.py` at rank
+  2 and `tests/test_native.py` at rank 4. The tool works and answers in 175 ms
+  warm. It was skipped, then — when a first attempt raised
+  `ModuleNotFoundError: remex` — written up as "unavailable in this container"
+  rather than fixed with the `pip install` below. **An ImportError in a
+  mandated check is a missing dependency, not a broken check; install it and
+  re-run before concluding anything about the tool.**
+  `mcp__github__search_code` with `user:oaustegard <terms>` is the no-local-
+  index fallback and found `_native.py` in one query.
 - `lexical-kb/skill_template/search.py` → `creating-kb` skill →
   `kb-packer-web/vendor/search.py` — deliberate vendoring with
   `kb-packer-web/check_sync.py` guarding drift. **Leave as is.**
