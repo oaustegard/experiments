@@ -1,0 +1,140 @@
+{
+ "source": "transcribed from the run log of account-index-corpora run 31310605478 (2026-08-09T11:22Z). The corpora.json artifact itself is not downloadable with this session's token \u2014 /actions/artifacts 403s where /releases does not.",
+ "run_url": "https://github.com/oaustegard/claude-workspace/actions/runs/31310605478",
+ "scope": "all 65 repos",
+ "totals": {
+  "tree": {
+   "chunks": 42578,
+   "chars": 57521371,
+   "pct_of_tree": 100.0
+  },
+  "tombstones": {
+   "chunks": 3043,
+   "chars": 4366694,
+   "pct_of_tree": 7.1
+  },
+  "prs": {
+   "chunks": 1953,
+   "chars": 2323975,
+   "pct_of_tree": 4.6
+  },
+  "added": {
+   "chunks": 4996,
+   "pct_of_tree": 11.7
+  }
+ },
+ "pr_coverage": {
+  "repos_fetched": 53,
+  "repos_failed": 12,
+  "merged_prs": 1444,
+  "note": "the PR figure is a FLOOR. 12 of 65 repos returned HTTPError on /pulls while cloning fine, so ACCOUNT_INDEX_PAT reads contents but not pull requests on them. claude-workspace alone has 154 merged PRs that are missing from the 1,953."
+ },
+ "clone": {
+  "repos": 65,
+  "depth": "full",
+  "secs": 68,
+  "note": "the issue records 89 s for the same clone at depth 50"
+ },
+ "per_repo_top20": {
+  "experiments": {
+   "tree": 11148,
+   "tombstones": 3,
+   "prs": 61
+  },
+  "claude-skills": {
+   "tree": 8092,
+   "tombstones": 539,
+   "prs": 538
+  },
+  "oaustegard.github.io": {
+   "tree": 2633,
+   "tombstones": 364,
+   "prs": 366
+  },
+  "thinking-traces-eval": {
+   "tree": 3272,
+   "tombstones": 0,
+   "prs": 2
+  },
+  "sage": {
+   "tree": 2899,
+   "tombstones": 20,
+   "prs": 0
+  },
+  "muninn-utilities": {
+   "tree": 1922,
+   "tombstones": 82,
+   "prs": 144
+  },
+  "muninn.austegard.com": {
+   "tree": 2060,
+   "tombstones": 15,
+   "prs": 0
+  },
+  "claude-workspace": {
+   "tree": 237,
+   "tombstones": 1484,
+   "prs": 0
+  },
+  "bookmarklets": {
+   "tree": 1395,
+   "tombstones": 30,
+   "prs": 45
+  },
+  "llm-as-computer": {
+   "tree": 1148,
+   "tombstones": 20,
+   "prs": 91
+  },
+  "aeyu.io": {
+   "tree": 662,
+   "tombstones": 89,
+   "prs": 217
+  },
+  "remax": {
+   "tree": 720,
+   "tombstones": 138,
+   "prs": 87
+  },
+  "tree-sitter-mojo": {
+   "tree": 554,
+   "tombstones": 209,
+   "prs": 42
+  },
+  "remex": {
+   "tree": 594,
+   "tombstones": 20,
+   "prs": 79
+  },
+  "fusemojo": {
+   "tree": 538,
+   "tombstones": 0,
+   "prs": 5
+  },
+  "browser-extensions": {
+   "tree": 483,
+   "tombstones": 18,
+   "prs": 29
+  },
+  "eml-sr": {
+   "tree": 462,
+   "tombstones": 0,
+   "prs": 45
+  },
+  "remax_kb": {
+   "tree": 434,
+   "tombstones": 0,
+   "prs": 40
+  },
+  "claude-workspace-fuse": {
+   "tree": 418,
+   "tombstones": 0,
+   "prs": 47
+  },
+  "PP-OCRv6_medium_rec_onnx": {
+   "tree": 433,
+   "tombstones": 0,
+   "prs": 0
+  }
+ }
+}

@@ -25,10 +25,12 @@ Two scripts, both offline-ish and neither touching the encoder:
   tree, tombstone and PR corpora through the same path a real build uses and
   report the counts. No model, no index written.
 
-**Scope caveat, stated before the numbers.** This session could clone 3 of the
-account's 65 repos. That sample does include the largest (`experiments`, 11,109
-chunks of the account's ~42,500), so it is not a toy, but every percentage below
-is over 13,257 tree chunks rather than the full corpus.
+The per-corpus analysis below was done on 3 repos, because that is what the
+session could clone. It has since been **re-run over all 65** on a runner
+([run 31310605478](https://github.com/oaustegard/claude-workspace/actions/runs/31310605478),
+2 min 18 s) — see *Account-wide* at the end. Both sets of numbers are kept: the
+3-repo run is where the content analysis was done, the account run is the
+authority on size.
 
 ## Result 1 — `--depth 50` costs nothing, and would not work if it were used
 
@@ -149,23 +151,82 @@ PRs and continues, and the run emits a `::warning::` naming the count, because
 degrading quietly would publish a smaller index that still verifies and still
 answers.
 
+## Account-wide (all 65 repos)
+
+| corpus | chunks | % of tree | chars |
+|---|---:|---:|---:|
+| tree | 42,578 | 100.0% | 57,521,371 |
+| tombstones | 3,043 | 7.1% | 4,366,694 |
+| PR bodies | 1,953 | 4.6% ⚠ floor | 2,323,975 |
+| tree + both | 47,574 | 111.7% | |
+
+The tree count matches the published `manifest.json` (42,578) exactly, which is
+the check worth having: `corpora` chunks through the same path the real build
+uses, so it is measuring the index rather than an approximation of it.
+
+Both 3-repo estimates were wrong, in opposite directions. **Tombstones 11.8% →
+7.1%** (claude-workspace's 1,484 is a smaller share of a bigger tree) and **PR
+bodies 3.2% → 4.6%**. The gap narrows but the verdict does not move.
+
+**The PR figure is a floor.** 12 of 65 repos returned `HTTPError` on `/pulls`
+while cloning fine, so `ACCOUNT_INDEX_PAT` carries contents read but not
+pull-request read on them — claude-workspace, claude-container-layers,
+career-search, chats, ADQueryModule, MSDInterview among them. That drops
+claude-workspace's 154 merged PRs out of the 1,953 entirely. At the observed
+1.35 chunks per PR, the true figure is nearer 5.5%. **Fixing the PAT scope is a
+prerequisite to trusting this number**, and it is worth doing before any
+answer-quality benchmark, since the missing repos are the ones whose PR bodies
+are richest.
+
+Two things that went right and are worth recording as such. The degradation path
+behaved exactly as `METHODS.md` requires — the build dropped the unavailable
+repos, continued, and emitted `::warning::PR bodies unavailable for 12/65
+repos`, which is the only reason the gap was noticed at all rather than shipping
+a quietly thinner corpus. And the clone: **65 repos at full depth in 68 s**,
+against the 89 s the issue records for the same clone at depth 50. Full history
+did not merely land within noise of the shallow clone — it measured faster than
+the recorded shallow time, which retires the last reason to keep a depth number.
+
+Per-repo, the shape from the 3-repo run holds and one new case joins it:
+
+| repo | tree | tombstones | PRs |
+|---|---:|---:|---:|
+| experiments | 11,148 | 3 | 61 |
+| claude-skills | 8,092 | 539 | 538 |
+| oaustegard.github.io | 2,633 | 364 | 366 |
+| sage | 2,899 | 20 | 0 |
+| muninn-utilities | 1,922 | 82 | 144 |
+| **claude-workspace** | **237** | **1,484** | 0 |
+| aeyu.io | 662 | 89 | 217 |
+| tree-sitter-mojo | 554 | 209 | 42 |
+
+claude-workspace stays the inversion — 6.3× more deleted than live. Nothing else
+on the account comes close, which is the point: it is not a general property of
+tombstones, it is one repo that shed a research directory and kept its data files
+in history.
+
 ## Where this leaves it
 
 Both corpora are implemented and **off by default**. The size question is
 answered; the answer-quality question at account scale is not, and it needs a
 full encode plus a benchmark that does not exist yet.
 
-- **PR bodies**: +3.2% for the corpus that answers *why*, on an account whose PR
-  bodies match the profile the win was measured on. Cheapest thing on the table.
-- **Tombstones**: +11.8% nominal, but ~94% of it is deleted data files on this
-  account. Not worth turning on as it stands. What would change that is not more
-  history — it is excluding machine-generated data from *both* corpora, which is
-  the same crowding problem `#197` files under "related, not in scope"
+- **PR bodies**: **+4.6% account-wide and that is a floor** — nearer 5.5% once
+  the PAT can read pull requests on the 12 repos it currently cannot. For the
+  corpus that answers *why*, on an account whose PR bodies match the profile the
+  win was measured on. Cheapest thing on the table, and the next step is a PAT
+  scope fix rather than more measurement.
+- **Tombstones**: **+7.1% account-wide**, but ~94% of it is deleted data files.
+  Not worth turning on as it stands. What would change that is not more history —
+  it is excluding machine-generated data from *both* corpora, which is the same
+  crowding problem `#197` files under "related, not in scope"
   (`code-index-duplication`).
-- **`--depth 50`**: resolved to depth 1, since tombstones are not shipping.
+- **`--depth 50`**: resolved to depth 1, since tombstones are not shipping — and
+  the account-wide clone confirms there was never a cost to trade: full history
+  for 65 repos took 68 s against the 89 s on record at depth 50.
 
-Reproduce the size half account-wide with the `account-index-corpora` workflow
-in claude-workspace — dispatch-only, no encode, a couple of minutes.
+Re-run the size half any time with the `account-index-corpora` workflow in
+claude-workspace — dispatch-only, no encode, 2 min 18 s for the run above.
 
 ## Cost
 
