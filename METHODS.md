@@ -292,6 +292,26 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`xr` needs three pip installs on a cold CCotw container — it is not
+  unavailable there.** `scripts/xr.py` imports `remex` to decompress the index
+  and `onnxruntime` + `tokenizers` to encode the query, and a bare container has
+  none of them, so the first call dies with `ModuleNotFoundError: remex` and the
+  second with `ModuleNotFoundError: onnxruntime`. Both are one line:
+
+  ```bash
+  python3 -m pip install --break-system-packages remex onnxruntime tokenizers
+  ```
+
+  `remex` is on PyPI, published by the same author as the repo (verify via
+  `pypi.org/pypi/remex/json` → `project_urls.Repository`) — do not assume a
+  bare name on PyPI is the right package without checking. Total cost well
+  under a minute; after that the resident server answers in **175 ms** warm, as
+  documented. This is worth stating because the failure mode is not the missing
+  package, it is concluding from an ImportError that a *mandated* check is
+  structurally unavailable and writing that into the record — which happened in
+  `lowbit-scan-crossover`, on the one check that would have prevented its
+  rediscovery. See the duplication map.
+
 - **A Claude Code session cannot create GitHub releases — the proxy blocks it by
   policy, not by credential.** `POST /repos/{owner}/{repo}/releases` returns
   *"Creating, editing, or deleting releases is not permitted for this session
@@ -1098,16 +1118,21 @@ If you see that prefix again, it came from a script written before the split.
   **already existed in `remax`**, is already dispatched to by
   `remax.packing.hamming_distances`, and whose docstring already measured
   25-35x over the NumPy path with the same 100k-1M cache falloff. Written
-  because the mandated account-wide `xr` check was skipped — and `xr` was
-  skipped because it is broken in the CCotw container (`ModuleNotFoundError:
-  remex`, since the index is remex-compressed), which turns a mandated check
-  into a silent no-op. **Keep `hamkern.c`** as a standalone roofline reference
-  (no ctypes cache, no fallback, so it isolates kernel cost) but treat
-  `_native.py` as the implementation. Fourth documented rediscovery in this
-  repo; the first one caused by the rediscovery tool itself being unavailable,
-  which is the failure worth fixing. `mcp__github__search_code` with
-  `user:oaustegard` found it in one query and needs no local index — use it as
-  the fallback when `xr` will not start.
+  because the mandated account-wide `xr` check was skipped. **Keep
+  `hamkern.c`** as a standalone roofline reference (no ctypes cache, no
+  fallback, so it isolates kernel cost) but treat `_native.py` as the
+  implementation. Fourth documented rediscovery in this repo, and the least
+  excusable: run afterwards, `xr "hamming distance popcount kernel in C over
+  packed binary codes"` returns `remax/src/remax/packing.py` at rank 1 and
+  `remax/src/remax/_native.py` at rank 8; `-r remax` puts `_native.py` at rank
+  2 and `tests/test_native.py` at rank 4. The tool works and answers in 175 ms
+  warm. It was skipped, then — when a first attempt raised
+  `ModuleNotFoundError: remex` — written up as "unavailable in this container"
+  rather than fixed with the `pip install` below. **An ImportError in a
+  mandated check is a missing dependency, not a broken check; install it and
+  re-run before concluding anything about the tool.**
+  `mcp__github__search_code` with `user:oaustegard <terms>` is the no-local-
+  index fallback and found `_native.py` in one query.
 - `lexical-kb/skill_template/search.py` → `creating-kb` skill →
   `kb-packer-web/vendor/search.py` — deliberate vendoring with
   `kb-packer-web/check_sync.py` guarding drift. **Leave as is.**
