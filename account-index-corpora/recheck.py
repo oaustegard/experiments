@@ -68,6 +68,28 @@ def main() -> None:
           abs(tot["depth50"] - tot["full"]) < 0.5 * tot["depth1"],
           "the writeup says full clone is within noise of depth 50")
 
+    print("account-wide run")
+    acct = json.loads((HERE / "corpora_account.json").read_text())
+    at = acct["totals"]
+    for key, label in (("tree", "tree"), ("tombstones", "tombstones"),
+                       ("prs", "PR bodies")):
+        n, pct = at[key]["chunks"], at[key]["pct_of_tree"]
+        check(f"{label} account chunk count is quoted", f"{n:,}" in prose, f"{n:,}")
+        check(f"{label} account share is quoted", f"{pct}%" in prose, f"{pct}%")
+    # the tree count is the load-bearing cross-check: `corpora` chunks through
+    # the same path the build does, so it has to reproduce the published index
+    check("account tree matches the published manifest's n_chunks",
+          at["tree"]["chunks"] == 42578,
+          "if this drifts, `corpora` is no longer measuring the real index")
+    cov = acct["pr_coverage"]
+    check("the PR floor is flagged rather than reported clean",
+          "floor" in prose and f"{cov['repos_failed']} of 65" in prose,
+          f"{cov['repos_failed']} repos failed")
+    check("the 3-repo estimates are shown as revised, not quietly replaced",
+          "11.8% →" in prose and "3.2% →" in prose)
+    check("the account clone time is quoted",
+          f"{acct['clone']['secs']} s" in prose, f"{acct['clone']['secs']} s")
+
     print("the corpus builder still applies the tree's exclusions")
     # the 74,822-chunk regression: without this the number in RESULTS.md is
     # history rather than a description of the code
