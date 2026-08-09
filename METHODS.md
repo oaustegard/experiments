@@ -511,6 +511,51 @@ the result.
   agent-authored; a repo of "fixes #12" bodies gets noise with a title attached),
   and have the build degrade to the offline corpora rather than fail.
   (`pr-decision-log/RESULTS.md`)
+- **A corpus that does not come from your file walker must re-implement your
+  file walker's exclusions — or it will index exactly what you configured out.**
+  Adding a tombstone corpus (deleted files, recovered at their last living
+  revision) to the account index first measured **74,822 chunks against a
+  13,257-chunk working tree**: 1.7x the entire live index, from three repos. A
+  deleted path gets no `stat()` and no `rglob`, so extension, `skip_dirs`,
+  `skip_names`, the repo's own `exclude` list and the size cap all silently stop
+  applying, and a 767,692-line deleted embedding dump enters a corpus the live
+  index refuses at 1 MiB. Filtered, 47x smaller. The same trap is waiting for any
+  corpus assembled from git history, an API, or a database rather than from
+  `discover()`. Extract the predicate and call it from both.
+  (`account-index-corpora/RESULTS.md`)
+- **A per-repo corpus result does not survive the move to account scale
+  unchanged — the same corpus can invert.** Tombstones measured +19% and 0/6 ->
+  6/6 on `remax`, a library whose deletions are hand-written source. Account-wide
+  they are +11.8% nominal but **~94% deleted machine-generated data**:
+  claude-workspace contributes 1,484 tombstone chunks against a 232-chunk working
+  tree, of which ~23 are prose or source. A repo that generates data files and
+  later deletes them has a deletion record dominated by them, and no per-repo
+  measurement on a library-shaped repo can see that. Two mechanisms only visible
+  at account scale: relocation detection must compare **across** repos (a
+  migration deletes in one and lands in another — 540 files here), and candidate
+  matching must be restricted (by basename) or the guard is O(dead x live).
+  PR bodies do transfer: +3.2%, and the median-body-length condition holds.
+  (`account-index-corpora/RESULTS.md`)
+- **`--depth N` on a clone buys an arbitrary fraction of the deletion record,
+  not a cheap one.** `git log --diff-filter=D` sees only the grafted window, so
+  shallow-clone deletion coverage is a function of the repo's commit rate rather
+  than of anything chosen: `--depth 50` found **2 of 18** deletions in one repo
+  and 640 of 644 in another. It is also not saving anything — depth 1, depth 50
+  and a full clone measured 6.5 s / 7.3 s / 7.4 s summed over three repos, with
+  no consistent sign, because fixed per-clone overhead dominates the extra
+  bytes. If history is needed, take all of it; if it is not, take depth 1. The
+  middle is a number that looks tuned and is not.
+  (`account-index-corpora/RESULTS.md`)
+- **A build gated on "what changed" will not notice that its own configuration
+  changed.** The account index skips every step when no repo's `pushed_at` has
+  moved, which is what makes a quiet run cheap — so a dispatch that turns a new
+  corpus on hits the early exit and reports success having rebuilt nothing. Any
+  content-derived skip check has to diff the *build settings* alongside the
+  inputs. Same shape one layer down: in a sharded build, three processes rebuild
+  the corpus independently and match rows by content hash, so a setting passed
+  as a per-job flag rather than carried in the shared plan artifact does not
+  error when it diverges — it silently re-encodes everything.
+  (`account-index-corpora/RESULTS.md`)
 - **Writing your rejections down preserves the verdict, not the mechanism.** A
   repo with an explicit "delete the driver, never the record" convention
   (`remax`) answered 5/6 "was X ever tried?" questions from its surviving prose
