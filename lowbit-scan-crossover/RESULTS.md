@@ -40,11 +40,32 @@ fallback isolates kernel cost cleanly, which is what the roofline table needs.
 It should not be shipped; `_native.py` is the implementation.
 
 **How this happened:** `experiments/CLAUDE.md` mandates an account-wide `xr`
-check before building, precisely to prevent this. It was skipped — and `xr` is
-currently unrunnable in the CCotw container (`ModuleNotFoundError: remex`,
-because the index is remex-compressed), so the mandated check is a silent
-no-op there. `mcp__github__search_code` with `user:oaustegard` found
-`_native.py` in one query, needs no local index, and is the fallback.
+check before building, precisely to prevent this. It was skipped. Run
+afterwards it answers immediately:
+
+```
+$ xr.py "hamming distance popcount kernel in C over packed binary codes"
+remax/src/remax/packing.py:1          <- the dispatcher
+remax_kb/remax_kb/_hamming.py:1
+...
+remax/src/remax/_native.py:271        <- the kernel
+
+$ xr.py -r remax "SIMD popcount hamming scan native C extension"
+remax/src/remax/packing.py:1
+remax/src/remax/_native.py:91         <- rank 2 when scoped
+remax/CHANGELOG.md:21
+remax/tests/test_native.py:1
+```
+
+A first attempt raised `ModuleNotFoundError: remex` and was written up here as
+"`xr` is unavailable in this container" — an infrastructure finding — instead
+of being fixed with `pip install --break-system-packages remex onnxruntime
+tokenizers`, which takes well under a minute (`remex` is on PyPI, published by
+the same author). Warm calls are 175 ms. **An ImportError in a mandated check
+is a missing dependency, not a broken check.** The wrong diagnosis reached
+`METHODS.md`, this file, and a PR body before it was caught. Corrected in both
+places; `mcp__github__search_code user:oaustegard` remains the no-local-index
+fallback.
 
 Two things fall out that are worth more than the retraction:
 
