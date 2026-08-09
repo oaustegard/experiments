@@ -199,6 +199,57 @@ n=42,500, ms/query: batch 1 → 1.9414 vs 0.0542 (35.8x); batch 8 → 1.0637 vs
 0.0594 (**4.2x**). BLAS gains 7.7x from batching and still loses. 4.2x is the
 pessimistic bound — the Hamming side is unblocked.
 
+## 5. 100M measured directly — and top-k, not the scan, is the risk
+
+3.2 GB of codes fits in this container's 16 GB, so the blog post's figure needs
+no extrapolation at all. `dab41dd6` raised a latency worry against
+*"single-threaded brute force returns top-100 candidates in well under a
+second"* on the strength of a ~4.7 s/query estimate derived from the numpy
+kernel. Measured, single-threaded, `hamkern.c`:
+
+| n | codes | scan (best of 5) | GB/s |
+|--:|--:|--:|--:|
+| 16,000,000 | 0.51 GB | 47.0 ms | 10.9 |
+| 100,000,000 | 3.20 GB | 298–316 ms | 10.7 |
+
+10.7 GB/s over 3.2 GB is the DRAM-streaming regime, between the L2-resident
+22–26 GB/s and the L3-evicted 6.9 GB/s measured in § 1 and § 3. The **scan** is
+comfortably sub-second.
+
+Selection is not:
+
+```
+n=100,000,000, warm, single-threaded
+  scan                                316.0 ms
+  + np.argpartition top-100          +713.7 ms  ->  1.030 s   <- over budget
+  + counting-sort top-100            +707.9 ms  ->  1.024 s   <- no better
+  fused scan+threshold, one pass      394.8 ms  ->  0.395 s   <- 2.6x
+```
+
+The counting sort does not help because it still makes two more full passes
+over the 200 MB score array (`bincount`, then `flatnonzero`); the pass count is
+what costs, not the comparison strategy. The fix is not a better top-k, it is
+**not materialising the score array at all** — `ham_scan_thresh` emits candidate
+ids under a distance threshold in the same pass as the scan, and never writes
+100M scores.
+
+That path returns an **exact** top-k, verified at n=20M: the sorted distance
+multiset of the fused top-100 is identical to `np.argpartition`'s. The *index*
+sets differ, legitimately — 45 rows tie at the boundary distance, so which 100
+you name is arbitrary and both answers are correct.
+
+**So the blog claim holds, conditionally.** True for the scan (316 ms) and for
+a fused implementation (395 ms); **false** for scan + naive numpy top-k
+(1.03 s). `dab41dd6` was wrong about the stage but right that there was a risk
+— and the risk is real for anything that does the obvious thing.
+
+*Methodology note, because it nearly shipped:* the first run of this measured
+`np.argpartition` at **5391 ms** — a single unwarmed call, dominated by page
+faults on the freshly-written score array and the 800 MB index allocation.
+Warm it is 714 ms, 7.6x less. One cold call reported as a result is the same
+error this whole experiment exists to document, made once more at the last
+step.
+
 ## What to change
 
 - **Retract** "compression is SCALE-GATED and below ~150k rows its win is
@@ -226,11 +277,8 @@ pessimistic bound — the Hamming side is unblocked.
   `remax-hamming-speedup` was made against the NumPy idiom at 1.7x over BLAS.
   The kernel it declared unnecessary was already written, in `remax`, at 28x
   per that repo's own CHANGELOG.
-- **Re-measure, don't revise, the 100M figure.** `dab41dd6`'s ~4.7 s/query
-  single-core extrapolation came from the numpy kernel; candidates here span
-  ~150 ms (warm 22 GB/s) to ~460 ms (cold 6.9 GB/s) over 3.2 GB. Three values
-  an order apart is a reason to measure at 16M and extrapolate once. This is
-  the number the blog-post latency worry rests on.
+- **The 100M figure is now measured, not extrapolated — and the bottleneck is
+  top-k, not the scan.** See § 5.
 
 ## Reusable
 
