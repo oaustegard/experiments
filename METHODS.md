@@ -864,9 +864,12 @@ the result.
   explanation for a slow popcount scan on one container was a missing AVX-512
   VPOPCNTDQ. Rebuilding the same C source at `-march=x86-64-v3` and `v2`
   (objdump confirming **zero** `vpopcnt` instructions — gcc emits a
-  table/Harley-Seal popcount) cost **6%**: 34.7x and 34.8x over BLAS against
-  37.0x. Cheap to run, and it kills an entire class of "their hardware was
-  different" hand-waving.
+  table/Harley-Seal popcount, per Muła/Kurz/Lemire) cost **6%**: 34.7x and
+  34.8x over BLAS against 37.0x. Cheap to run, and it kills an entire class of
+  "their hardware was different" hand-waving. Practical consequence:
+  `remax/_native.py` compiles at import with plain `-O3` and **no `-march`**,
+  which is the right call for a cached user-side compile — that portability is
+  worth ~6%, now measured rather than assumed.
 
 - **Length-sort before batching, and check the length distribution before
   believing your throughput is compute-bound.** Tokenizer padding is to the
@@ -1090,6 +1093,21 @@ If you see that prefix again, it came from a script written before the split.
   collapsed to distinct posts, fixed 5-query topical gold). **Still duplicated.**
   Not consolidated because the corpus is not present here, so a refactor could
   not be run — see "Not done" below.
+- `lowbit-scan-crossover/hamkern.c` ↔ `remax/src/remax/_native.py` — an
+  independent reimplementation of a C `__builtin_popcountll` Hamming scan that
+  **already existed in `remax`**, is already dispatched to by
+  `remax.packing.hamming_distances`, and whose docstring already measured
+  25-35x over the NumPy path with the same 100k-1M cache falloff. Written
+  because the mandated account-wide `xr` check was skipped — and `xr` was
+  skipped because it is broken in the CCotw container (`ModuleNotFoundError:
+  remex`, since the index is remex-compressed), which turns a mandated check
+  into a silent no-op. **Keep `hamkern.c`** as a standalone roofline reference
+  (no ctypes cache, no fallback, so it isolates kernel cost) but treat
+  `_native.py` as the implementation. Fourth documented rediscovery in this
+  repo; the first one caused by the rediscovery tool itself being unavailable,
+  which is the failure worth fixing. `mcp__github__search_code` with
+  `user:oaustegard` found it in one query and needs no local index — use it as
+  the fallback when `xr` will not start.
 - `lexical-kb/skill_template/search.py` → `creating-kb` skill →
   `kb-packer-web/vendor/search.py` — deliberate vendoring with
   `kb-packer-web/check_sync.py` guarding drift. **Leave as is.**
