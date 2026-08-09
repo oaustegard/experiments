@@ -536,6 +536,16 @@ the result.
   matching must be restricted (by basename) or the guard is O(dead x live).
   PR bodies do transfer: +3.2%, and the median-body-length condition holds.
   (`account-index-corpora/RESULTS.md`)
+- **A token that can clone a repo cannot necessarily read its pull requests, and
+  the build will not notice.** Indexing merged PR bodies account-wide fetched 53
+  of 65 repos; the other 12 returned `HTTPError` on `/pulls` while cloning fine
+  in the same run, because the PAT carries contents read but not pull-request
+  read on them. The corpus came out ~18% short with every other signal green.
+  Two things made it visible rather than silent: the fetch degrades per repo
+  instead of failing the run, and it emits a `::warning::` naming the count. Any
+  corpus assembled from an API needs both — degrade *and* announce — because a
+  smaller corpus still builds, still verifies, and still answers.
+  (`account-index-corpora/RESULTS.md`)
 - **`--depth N` on a clone buys an arbitrary fraction of the deletion record,
   not a cheap one.** `git log --diff-filter=D` sees only the grafted window, so
   shallow-clone deletion coverage is a function of the repo's commit rate rather
