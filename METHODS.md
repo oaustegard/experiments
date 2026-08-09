@@ -829,6 +829,45 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Fit `t = a + b·n` before reporting a crossover — a scale gate and a
+  constant term look identical from two data points.** Any linear scan is
+  `t(n) = a + bytes_per_candidate·n / (bandwidth·efficiency)`, where `n` enters
+  only as a multiplier on the linear term, identically for every kernel. So
+  **two kernels can cross only if at least one has `a > 0`**; with `a ≈ 0` on
+  both sides the ratio is constant and no corpus size flips the ordering. A
+  reported crossover is then an artifact of the two `n` values that bracket it.
+  `lowbit-scan-crossover/fit.py` is the check. It found that `dab41dd6`'s
+  "compression is SCALE-GATED below ~150k rows" fits `4.108 ms + 32.40 ns·n`
+  while the same numpy expression on another machine fits `−0.78 ms +
+  33.98 ns·n` — **per-row costs agreeing to 5%, so the entire gate was the
+  4.1 ms constant**, and `n* = a/(b_f32 − b_ham)` reproduces the reported gate
+  at ~68,000. `n*` is meaningful only inside the fitted range. When `a > 0`, the
+  constant *is* the finding, and it belongs to the harness, not the corpus.
+
+- **`.sum(axis=1)` over a narrow inner axis is the bottleneck in packed-code
+  scans, not the popcount — store bit planes instead.** In
+  `np.bitwise_count(C ^ q).sum(axis=1)` (the kernel `Portable code` records
+  above from `remax-hamming-speedup`), `np.bitwise_count` runs at 14.7 GB/s and
+  `.sum(axis=1)` over a 4-wide axis at **1.9 GB/s** — 62% of the kernel. numpy's
+  per-row pairwise-reduction overhead is fixed, so the damage scales inversely
+  with code width: 1.20 GB/s at 4 words/row (k=256) vs 3.33 GB/s at 32 words/row
+  (d=512·k=4). Storing the W words as W contiguous **columns** turns the row
+  reduction into W−1 whole-array adds: **5.2x at k=256, 2.4x at d=512·k=4**,
+  pure numpy. Two consequences: a kernel benchmarked at one code width does not
+  transfer to another (this is how `dab41dd6` and `remax-hamming-speedup` reached
+  opposite verdicts on the same idiom), and "pure numpy already beats BLAS so a
+  compiled kernel is unnecessary" was measured against the wrong numpy — the
+  compiled kernel is 37x over BLAS warm and 19x cold, against the idiom's 1.7x.
+
+- **A SIMD instruction you assume is load-bearing usually is not — rebuild at a
+  lower `-march` and measure before scoping a result to it.** The obvious
+  explanation for a slow popcount scan on one container was a missing AVX-512
+  VPOPCNTDQ. Rebuilding the same C source at `-march=x86-64-v3` and `v2`
+  (objdump confirming **zero** `vpopcnt` instructions — gcc emits a
+  table/Harley-Seal popcount) cost **6%**: 34.7x and 34.8x over BLAS against
+  37.0x. Cheap to run, and it kills an entire class of "their hardware was
+  different" hand-waving.
+
 - **Length-sort before batching, and check the length distribution before
   believing your throughput is compute-bound.** Tokenizer padding is to the
   *batch's longest* sequence, so corpus-order batches of heterogeneous text pay
