@@ -90,6 +90,18 @@ def tokens(s: str) -> list[str]:
     """
     out: list[str] = []
     for raw in _WORD.findall(s):
+        # 40 is p99 of the account corpus, and everything past it measured as
+        # base64 payloads and hex digests lifted out of embedded data files —
+        # not identifiers, and not things anyone types as a query. Dropping
+        # 0.71% of terms takes `bm_terms` from a <U1191 array of 1060.5 MB to
+        # 35.6 MB, because NumPy pads every one of 222,605 terms (mean length
+        # 11.1) out to the longest. The literal is INLINE ON PURPOSE: the two
+        # copies of this function are pinned against each other by
+        # `logic_sha256`, which hashes the AST — a module constant would make
+        # the pin cover the name while the value drifted, and a divergent BM25
+        # tokenizer fails silently rather than loudly.
+        if len(raw) > 40:
+            continue
         out.append(raw.lower().strip("_"))
         parts = [p for sub in raw.split("_") if sub for p in _CAMEL.findall(sub)]
         if len(parts) > 1:
@@ -256,6 +268,31 @@ def rrf(ranked: list[list[str]], k: int = 60) -> list[str]:
 
 
 # ── persistence ─────────────────────────────────────────────────────────────
+def decode_norms(codes, meta: dict):
+    """L2 norm of each DECODED row, so a consumer never has to decode at all.
+
+    A consumer scoring straight off the 2-bit codes (remex ADC) gets a raw inner
+    product. The index is cosine, so it needs to divide by the length of the
+    reconstructed row — a quantity that depends only on the codes and the codec,
+    but that costs a full `decode()` to obtain. Doing it once here, on the
+    runner, is 1.8 s and 171 KB; making every consumer do it is 4.4 s and 65.7 MB
+    of float32 on every cold start.
+
+    Not the same as `CompressedVectors.norms`, which is the norm of the vector
+    that went IN. These are the norms of what comes back OUT, quantization error
+    included, which is what makes the ADC ranking match a dequantized one exactly
+    rather than to 0.928.
+    """
+    import numpy as np
+    import remex
+    qz = remex.Quantizer(d=meta["dim"], bits=meta["bits"], seed=meta["seed"],
+                         rotation=meta["rotation"])
+    cv = remex.CompressedVectors(indices=codes, norms=np.ones(len(codes), np.float32),
+                                 d=meta["dim"], bits=meta["bits"],
+                                 rotation=meta["rotation"])
+    return np.linalg.norm(qz.decode(cv), axis=1).astype(np.float32)
+
+
 def save(path: Path, chunks: list[Chunk], codes, bm: "BM25", hashes: list[str],
          meta: dict) -> dict:
     """Write the index as one .npz. Returns a per-component byte breakdown.
@@ -274,6 +311,7 @@ def save(path: Path, chunks: list[Chunk], codes, bm: "BM25", hashes: list[str],
         offs.append(len(docs))
     payload = {
         "codes": codes,
+        "dense_norms": decode_norms(codes, meta),
         "files": np.array([c.f for c in chunks]),
         "lines": np.array([c.s for c in chunks], dtype=np.int32),
         "hashes": np.array(hashes),
