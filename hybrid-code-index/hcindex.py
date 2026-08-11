@@ -49,6 +49,33 @@ DEFAULT_CFG = {
     "skip_names": ["package-lock.json", "yarn.lock", "poetry.lock", "Cargo.lock",
                    "pnpm-lock.yaml", "go.sum", "composer.lock"],
     "max_bytes": 1 << 20,
+    # Test-fixture corpora. Same claim as skip_dirs -- never an answer, present
+    # in almost every repo -- but the directories are two segments deep, and
+    # skip_dirs matches whole path parts, so these have to be globs.
+    #
+    # Measured 2026-08-11: fusemojo/test/data holds Alice in Wonderland and
+    # Pride and Prejudice as fuse-test input, 438 chunks of Gutenberg prose in
+    # the account index. Being prose, they win prose-shaped queries outright --
+    # "why did the thing that worked yesterday start returning nothing" returned
+    # both novels as its top two hits, ahead of every real document.
+    #
+    # The globs are anchored on path separators rather than left as substrings.
+    # `match()` wraps a metacharacter-free pattern as *pat*, so a bare
+    # "test/data" would also eat "latest/data/", and "fixtures" would eat
+    # "src/fixtures.py". Verified kept: latest/data/real.py,
+    # src/test/data_loader.py, manifests/data/spec.md, src/fixtures.py,
+    # goldens.md, app/snapshots.ts.
+    #
+    # A repo that genuinely wants its fixtures indexed cannot switch these off:
+    # `load_cfg` unions list values rather than replacing them, the same
+    # protection that stops a repo dropping `.git` from skip_dirs. Nobody has
+    # wanted to; if that changes, the lever is a new cfg key, not a silent
+    # override.
+    "fixture_globs": ["*/test/data/*", "test/data/*",
+                      "*/tests/data/*", "tests/data/*",
+                      "*/testdata/*", "testdata/*",
+                      "*/fixtures/*", "fixtures/*",
+                      "*/__fixtures__/*", "*/golden/*", "*/snapshots/*"],
     # repo-specific build-time exclusions go here, in the repo's own config
     "exclude": [],
     "doc_extensions": [".md", ".rst", ".txt", ".tex"],
@@ -127,7 +154,8 @@ def discover(root: Path, cfg: dict) -> list[Path]:
         rel = p.relative_to(root)
         if any(d in rel.parts for d in skip_d):
             continue
-        if any(match(str(rel), pat) for pat in cfg["exclude"]):
+        if any(match(str(rel), pat) for pat in
+               cfg["exclude"] + cfg.get("fixture_globs", [])):
             continue
         try:
             if p.stat().st_size > cap:

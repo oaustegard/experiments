@@ -84,6 +84,59 @@ It is not free, though: BM25 postings inflate to **6.36 MB / 138,685 terms** wit
 JSON, against ~1 MB without. Storage cost of the stored-lexical arm is strongly
 corpus-dependent, not a fixed tax.
 
+## Confirmed: test-fixture prose, the case the JSON result predicts
+
+The `.json` refutation above gives the criterion: **similarity to real queries
+predicts pollution, volume does not.** Test-fixture corpora are the high-
+similarity case, and they behave exactly as that criterion says they should.
+
+`fusemojo/test/data/` holds Alice in Wonderland and Pride and Prejudice as fuse
+test input — **438 chunks** of Project Gutenberg prose in the account index,
+0.9% of 42,789. Small, and that is the point: unlike JSON it is natural language,
+so it competes directly with real documents on any prose-shaped query.
+
+Found while auditing `xr` account-wide on 2026-08-11. The query *"why did the
+thing that worked yesterday start returning nothing"* returned:
+
+    fusemojo/test/data/alice_in_wonderland.txt:1     0.2976
+    fusemojo/test/data/pride_and_prejudice.txt:1     0.2975
+
+as its **top two hits**, ahead of every real document in 65 repos. Two more
+negative controls put fixture and dump files in the top 5. This is the `outputs/`
+pollution pattern — topically plausible prose outranking answers — not the inert
+JSON one.
+
+Excluded via a new `fixture_globs` default in `DEFAULT_CFG`, alongside
+`skip_dirs` rather than in any repo's `exclude`: the claim is about test
+fixtures in general, not about fusemojo. Measured effect:
+
+| tree | before | after |
+|---|---|---|
+| `fusemojo/test/data` | 438 chunks | 0 |
+| `experiments` | 11,192 chunks | 11,192 (+1 from this commit's own test) |
+
+The globs are anchored on path separators. `match()` wraps a
+metacharacter-free pattern as `*pat*`, so an unanchored `test/data` also eats
+`latest/data/` and `fixtures` eats `src/fixtures.py`. Seven real source paths
+are pinned as must-keep in `test_account.py`.
+
+**The `.json` result still stands and nothing here reopens it.** The three data
+dumps that surfaced in the same audit (`phase-a-bridges/run2/checkpoint.json`,
+`lattice-representation-hypothesis/results/phantoms.json`,
+`te-bridges/path_c_cross_domain/data/te_judged.json`) appeared *only* under
+negative controls — queries the account cannot answer at all, where nothing real
+competes. That is what "lexically alien" predicts, and it is now visible rather
+than silent: `xr` publishes each hit's dense score and flags a query whose best
+score falls under 0.36 (claude-workspace#214).
+
+Excluding that class would also be wrong on its own terms. Sampling the 105
+`.json` files under `data/`, `results/`, and `run*/` in `experiments` — 7,075
+chunks, 63% of that repo's corpus — finds prose inside them:
+`arm_a_synthetic.json` carries a `"thesis"` field stating a finding in English,
+and `theory_meta.json` carries paper titles and abstracts. A path-shaped
+exclusion cannot tell those from `exp3_slot_embeddings.json`, which is 770
+chunks of bare floats. Separating them needs a content heuristic, not a glob.
+
 ## Rebuild cost, and why incremental was necessary
 
 A full rebuild is **537 s** on the all-text corpus (20 chunks/s, 4 threads) —
