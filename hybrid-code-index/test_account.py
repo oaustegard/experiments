@@ -113,6 +113,32 @@ def main() -> None:
               not A.admissible("data/embeddings.json", excl)
               and A.admissible("src/embeddings.json", excl))
 
+        print("test fixtures never enter the corpus")
+        # Gutenberg novels shipped as fuse-test input are prose, so they win
+        # prose-shaped queries outright: a vague debugging question returned
+        # alice_in_wonderland.txt and pride_and_prejudice.txt as its top two
+        # account-wide hits, ahead of every real document. 438 chunks.
+        for p in ["test/data/alice_in_wonderland.txt", "src/test/data/big.txt",
+                  "tests/data/sample.json", "testdata/golden.txt",
+                  "pkg/testdata/x.json", "fixtures/user.json",
+                  "spec/fixtures/reply.json", "app/__fixtures__/state.json",
+                  "internal/golden/out.txt", "ui/snapshots/home.txt"]:
+            check(f"drops {p}", not A.admissible(p, cfg))
+        # `match()` wraps a metacharacter-free pattern as *pat*, so the globs
+        # are anchored on separators. Unanchored, "test/data" eats "latest/data"
+        # and "fixtures" eats "src/fixtures.py" — both real source paths.
+        for p in ["latest/data/real.py", "src/test/data_loader.py",
+                  "manifests/data/spec.md", "src/fixtures.py", "goldens.md",
+                  "app/snapshots.ts", "datatest/run.py"]:
+            check(f"keeps {p}", A.admissible(p, cfg))
+        # Same protection as `.git` in skip_dirs: load_cfg unions list values,
+        # so a repo config cannot quietly re-admit its fixtures.
+        merged = dict(cfg); merged["fixture_globs"] = []
+        check("a repo cannot switch fixtures back on by emptying the key",
+              sorted(set(H.DEFAULT_CFG["fixture_globs"]) | set(merged["fixture_globs"]))
+              == sorted(H.DEFAULT_CFG["fixture_globs"]),
+              "load_cfg unions rather than replaces")
+
         print("tombstone corpus")
         by_base = A.live_index(names, root, cfg)
         tombs = A.tombstone_chunks("alpha", repo, cfg, by_base)
