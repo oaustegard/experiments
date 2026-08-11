@@ -250,7 +250,8 @@ def admissible(rel: str, cfg: dict) -> bool:
         return False
     if any(s in p.parts for s in cfg["skip_dirs"]):
         return False
-    return not any(H.match(rel, pat) for pat in cfg["exclude"])
+    return not any(H.match(rel, pat) for pat in
+                   cfg["exclude"] + cfg.get("fixture_globs", []))
 
 
 def live_index(names, root: Path, cfg: dict) -> dict[str, list[set]]:
