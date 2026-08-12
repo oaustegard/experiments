@@ -226,7 +226,10 @@ gets surfaced to the user, not performed.
 
 ## Prior art
 
-Checked before writing, per the rediscovery rule.
+Two passes. The first covered the account only and was the wrong scope; the
+second covered published sources and changed what counts as new here.
+
+### Account-local
 
 - `grep -ri sendmessage` across `oaustegard/claude-workspace`: zero hits.
   Scoped `xr -r claude-workspace` on the delivery/resume vocabulary returned
@@ -244,6 +247,71 @@ inter-agent messaging. `grep -rn "SendMessage\|ListAgents"` across that skill
 returns nothing — the tool pair is unmentioned. Fixing it is a separate PR
 against `claude-skills` and needs a `metadata.version` bump per that repo's
 release gate.
+
+### Published
+
+The feature is documented and was covered in the press. Cross-session messaging
+shipped **2026-08-07 in Claude Code v2.1.224**, macOS and Linux only.
+
+[**Official documentation**](https://code.claude.com/docs/en/cross-session-messaging)
+is thorough on the cross-session case: the tool pair, inbound controls
+(`crossSessionInbound`: accept / hold / refuse), the per-session inbox socket
+and `CLAUDE_CODE_MESSAGING_SOCKET`, `isolatePeerMachines`, rate limiting, and
+availability caveats. It confirms the delivery model in almost the same words
+this test measured: *"The receiving Claude reads the message between tool calls
+during an active turn, so a running tool is never interrupted."*
+
+It also states that `/list-agents` covers *"Subagents: agents running inside the
+current session"* — true from the parent's side, and silent on the fact that a
+subagent has no `ListAgents` of its own.
+
+[claudefa.st on persistent subagents](https://claudefa.st/blog/guide/agents/persistent-subagents)
+already documents resume-on-send, intact context, and the cost curve, with a
+measured resume chain of 199k → 324k tokens across eight rounds and a
+recommendation to hand off near 300k. **The resume portion of this writeup is a
+rediscovery.** That source does not address whether the agent can detect it was
+resumed.
+
+### What is actually new here
+
+| Finding | Status against published sources |
+|---|---|
+| `from` attribute is the agent type, not an address | **Not documented anywhere found** |
+| Envelope asymmetry (`<agent-message>` vs `<system-reminder>`) | **Not documented anywhere found** |
+| `ListAgents` absent inside subagents | **Not documented**; adjacent issues cover `SendMessage` absence, not this |
+| Resume is undetectable by the resumed agent | **Not addressed** by the source that documents resume |
+| Delivery queues, never interrupts | Documented officially — confirmed, not new |
+| Resume preserves context, costs a full turn | Documented by claudefa.st — rediscovery |
+
+### Contradicting an open bug report
+
+Two reports claim spawned subagents **cannot originate** `SendMessage`:
+
+- [anthropics/claude-code#48160](https://github.com/anthropics/claude-code/issues/48160)
+  (closed as duplicate): *"Subagents could receive SendMessage (parent's
+  messages resumed them with the content in context), but could not originate.
+  Asymmetric."* Subagents there reported *"SendMessage tool not available in this
+  environment (verified via ToolSearch — no match)."*
+- [ruvnet/ruflo#2028](https://github.com/ruvnet/ruflo/issues/2028) (open): *"The
+  lead can message subagents but subagents cannot message each other or the
+  lead."*
+
+**This test contradicts both.** The Haiku `general-purpose` subagent originated
+`SendMessage` to `"main"` three separate times, successfully, receipt
+`{"success":true,"message":"Queued for the main conversation's next turn."}`,
+with no `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` set. What it lacked was
+`ListAgents`, not `SendMessage` — the exact inverse of what #48160 reports.
+Either the origination gap was fixed between that report and 2026-08-12, or it
+is environment-specific. This run is CCotw, not a local terminal, which is the
+most likely confounder and is not controlled for.
+
+The closest published match to the addressing finding is
+[anthropics/claude-code#42999](https://github.com/anthropics/claude-code/issues/42999)
+(**closed as not planned**): `SendMessage(to=<agent name>)` returns
+`{"success":true}` and silently delivers nothing, while the raw agentId works.
+That is adjacent but distinct — it concerns a name the user assigned, and it
+fails *silently*. The finding here is that the value the tool tells you to reply
+with is not a name at all, and it fails *loudly*.
 
 ---
 
