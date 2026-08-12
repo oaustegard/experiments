@@ -90,11 +90,56 @@ here. That much is genuinely hub-local: it is a trap Muninn sessions hit, and
 
 ---
 
+## 5. Ran the rediscovery check against the account only, not the world
+
+**What happened.** Asked whether prior documentation existed, I ran `grep` over
+the hub, `xr -r claude-workspace`, and account-wide `xr` — all of which search
+Oskar's 65 repos — and reported "not documented" on that basis. Oskar: *"When I
+asked if prior docs existed I meant externally, in the world."*
+
+**What the external pass found.** Cross-session messaging shipped 2026-08-07 in
+v2.1.224 with a substantial official documentation page, press coverage, and
+third-party writeups. Two findings demoted:
+
+- Delivery-queues-never-interrupts is stated almost verbatim in the official
+  docs. Confirmed, not discovered.
+- Resume-on-send with intact context and a cost curve is already documented by
+  claudefa.st, with a better-measured cost chain (199k → 324k over eight rounds)
+  than the three-run figure here.
+
+**Direction.** Toward overstating novelty. The account-local check is the one
+`experiments/CLAUDE.md` mandates, and running it created a false sense that the
+rediscovery question had been answered. It answers "have *we* built this," not
+"is this known."
+
+**What survived, and one thing that improved.** The `from`-attribute finding,
+the envelope asymmetry, the absent `ListAgents` inside subagents, and the
+undetectability of resume are all absent from every published source found. And
+the external pass turned up something the account pass could not: two bug
+reports claiming subagents cannot *originate* `SendMessage`, which this run
+directly contradicts. That contradiction is worth more than the two findings it
+cost.
+
+**Rule.** `xr` answers rediscovery-within-the-account. A novelty claim about a
+third-party product needs a web pass, and the two are not substitutes. The
+mandated check is a floor, not the whole check.
+
+---
+
 ## Base rate
 
-Four errors across one afternoon's work on a single small question. Two
-(#1, #4) changed what shipped and required an external correction to catch. Two
-(#2, #3) were self-caught or harmless. No numerical claim in `RESULTS.md`
-changed as a result of any of them — every measured string survived; what
-changed was where the writeup lives and how much of it was assumed rather than
-observed.
+Five errors across one afternoon on a single small question. Three (#1, #4, #5)
+changed what shipped and each required an external correction to catch — all
+three from Oskar, none self-caught. Two (#2, #3) were self-caught or harmless.
+
+The pattern across #1, #4 and #5 is one failure wearing three hats: **stopping
+at the first surface that answers the question.** The tool description instead
+of the tool (#1). The category instead of the audience (#4). The account index
+instead of the web (#5). Each check I ran was a real check that returned a real
+answer; each was the wrong scope, and none of them announced that.
+
+No measured claim in `RESULTS.md` changed as a result of any of them. Every
+verbatim string survived. What changed was the writeup's home, how much of it
+was assumed rather than observed, and how much of it is actually new — two
+findings were demoted to rediscoveries by #5, and one contradiction of a public
+bug report was gained that the narrower check could not have surfaced.
