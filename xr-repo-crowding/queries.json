@@ -1,0 +1,2018 @@
+[
+ {
+  "repo": "claude-skills",
+  "pr": 745,
+  "q": "feat(skills): Add/Update skill: agent-routing Automated skill upload for **agent-routing**.\n\n*This PR was generated automatically from the file `.uploads/agent-routing.zip`.*\n\nPlease review the skill contents, especially `SKILL.md`, before merging.",
+  "truth": [
+   "claude-skills/agent-routing/CHANGELOG.md",
+   "claude-skills/agent-routing/README.md",
+   "claude-skills/agent-routing/SKILL.md"
+  ]
+ },
+ {
+  "repo": "claude-skills",
+  "pr": 746,
+  "q": "Skills review: repair broken frontmatter, mark obsolete skills, close registry gaps Repo-wide review of all 89 skills, fixing defects that were silently degrading distribution plus obsolescence marking.\n\n## \ud83d\udd34 Correctness\n\n**Two skills had frontmatter that failed the repo's own parser.** `scripts/frontmatter_utils.parse_skill_md` raises on both, so `registry/generate.py` and `skill-release.yml` saw them as versionless:\n\n- `json-render-ui` \u2014 unquoted `:` inside the description (`..",
+  "truth": [
+   "claude-skills/.claude-plugin/marketplace.json",
+   "claude-skills/building-github-index-v2/SKILL.md",
+   "claude-skills/forecasting-reverso/SKILL.md",
+   "claude-skills/image-to-svg/SKILL.md",
+   "claude-skills/installing-skills/SKILL.md",
+   "claude-skills/invoking-github/SKILL.md",
+   "claude-skills/json-render-ui/SKILL.md",
+   "claude-skills/orchestrating-agents/SKILL.md",
+   "claude-skills/orchestrating-agents/references/function-reference.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/agent-routing/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/agent-routing/README.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/agent-routing/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/agent-routing/references/calibration-2026-07-15.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/README.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/references/analysis.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/references/code.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/references/drill.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/references/philosophers.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/references/prose-register.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/references/prose.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/references/recommendation.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/challenging/scripts/challenger.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/generative-thinking/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/generative-thinking/README.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/generative-thinking/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/references/function-reference.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/verifying-claims/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/verifying-claims/README.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/verifying-claims/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/verifying-claims/references/drift-report-example.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/verifying-claims/scripts/gather_context.py",
+   "claude-skills/plugins/code-intelligence/skills/assessing-impact/CHANGELOG.md",
+   "claude-skills/plugins/code-intelligence/skills/assessing-impact/README.md",
+   "claude-skills/plugins/code-intelligence/skills/assessing-impact/SKILL.md",
+   "claude-skills/plugins/code-intelligence/skills/assessing-impact/scripts/impact.py",
+   "claude-skills/plugins/code-intelligence/skills/orienting-codebases/CHANGELOG.md",
+   "claude-skills/plugins/code-intelligence/skills/orienting-codebases/README.md",
+   "claude-skills/plugins/code-intelligence/skills/orienting-codebases/SKILL.md",
+   "claude-skills/plugins/code-intelligence/skills/reasoning-semiformally/SKILL.md",
+   "claude-skills/plugins/code-intelligence/skills/semantic-grep/CHANGELOG.md",
+   "claude-skills/plugins/code-intelligence/skills/semantic-grep/README.md",
+   "claude-skills/plugins/code-intelligence/skills/semantic-grep/SKILL.md",
+   "claude-skills/plugins/code-intelligence/skills/semantic-grep/scripts/semantic_grep.py",
+   "claude-skills/plugins/data-and-visualization/skills/forecasting-reverso/SKILL.md",
+   "claude-skills/plugins/data-and-visualization/skills/json-render-ui/SKILL.md",
+   "claude-skills/plugins/development-tools/skills/composing-html/CHANGELOG.md",
+   "claude-skills/plugins/development-tools/skills/composing-html/README.md",
+   "claude-skills/plugins/development-tools/skills/composing-html/SKILL.md",
+   "claude-skills/plugins/development-tools/skills/composing-html/assets/base.css",
+   "claude-skills/plugins/development-tools/skills/composing-html/assets/base.js",
+   "claude-skills/plugins/development-tools/skills/composing-html/references/palette.md",
+   "claude-skills/plugins/development-tools/skills/composing-html/references/templates.md",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/build.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/checker.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/composer.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/__init__.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/deck.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/design.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/diagram.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/editor.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/exploration.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/freeform.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/prototype.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/report.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/research.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/scripts/templates/review.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/tests/test_checker.py",
+   "claude-skills/plugins/development-tools/skills/composing-html/tests/test_smoke.py",
+   "claude-skills/plugins/development-tools/skills/querying-markdown/CHANGELOG.md",
+   "claude-skills/plugins/development-tools/skills/querying-markdown/SKILL.md",
+   "claude-skills/plugins/development-tools/skills/querying-markdown/references/cheatsheet.md",
+   "claude-skills/plugins/development-tools/skills/querying-markdown/scripts/install-mq.sh",
+   "claude-skills/plugins/environment-and-config/skills/uploading-files/CHANGELOG.md",
+   "claude-skills/plugins/environment-and-config/skills/uploading-files/README.md",
+   "claude-skills/plugins/environment-and-config/skills/uploading-files/SKILL.md",
+   "claude-skills/plugins/environment-and-config/skills/uploading-files/scripts/upload.py",
+   "claude-skills/plugins/github-and-git/skills/closing-issues/CHANGELOG.md",
+   "claude-skills/plugins/github-and-git/skills/closing-issues/SKILL.md"
+  ]
+ },
+ {
+  "repo": "claude-skills",
+  "pr": 721,
+  "q": "Add philosophers option to challenging + convening-experts Adds an ancient-philosophers option to both skills, per Oskar's request, calibrated by the 2026-07-02 grounded-vs-vibes Aristotle experiment (Bluesky-moderation-as-constitution, Sonnet 4.6).\n\n## challenging v0.11.0\n- New `philosophers` review profile (`references/philosophers.md`): conceptual-layer adversary \u2014 Socratic elenchus, Aristotelian division-before-judgment, is/ought audit, best-absolute",
+  "truth": [
+   "claude-skills/challenging/CHANGELOG.md",
+   "claude-skills/challenging/SKILL.md",
+   "claude-skills/challenging/references/philosophers.md",
+   "claude-skills/challenging/scripts/challenger.py",
+   "claude-skills/convening-experts/SKILL.md",
+   "claude-skills/convening-experts/references/ancient-philosophers.md"
+  ]
+ },
+ {
+  "repo": "claude-skills",
+  "pr": 698,
+  "q": "Fix recall collapse in the binding-resolved (python-lsp) tier fix(searching-codebases): open all symbol-bearing files for the binding-resolved tier\n\nlsp_query built pyright's open-file set from occurrence_sites(), which is capped at _MAX_OCCURRENCES=40. For frequent symbols the first 40 text occurrences span only a few source files, so call sites in files past the cap were never opened and pyright could not see them -> silent recall collapse. Measured on psf",
+  "truth": [
+   "claude-skills/searching-codebases/scripts/lsp_refs.py"
+  ]
+ },
+ {
+  "repo": "claude-skills",
+  "pr": 734,
+  "q": "feat: parsing-video skill \u2014 contact sheets for video interpretation ## Summary\n\nAdds a new **parsing-video** skill for *interpreting* video content (as opposed to transforming it, which `processing-video` covers). Claude can't play video, but it can read images \u2014 so the skill samples frames evenly across a video, stamps each with its source timestamp, and tiles them into contact sheets that compress ~16 moments into one readable image, preserving narrative flow an",
+  "truth": [
+   "claude-skills/parsing-video/SKILL.md",
+   "claude-skills/parsing-video/scripts/contact_sheet.py",
+   "claude-skills/parsing-video/scripts/dwell_points.py",
+   "claude-skills/processing-video/SKILL.md"
+  ]
+ },
+ {
+  "repo": "claude-skills",
+  "pr": 742,
+  "q": "fix(creating-video): --keep-audio was a no-op \u2014 port audio crossfade from the stale branch *Filed by Muninn*\n\nPorts the unshipped audio work from the now-stale `creating-video-skill` branch onto current `main` (0.2.0 / Omni).\n\n## The bug\n\n`--keep-audio` is documented in SKILL.md (\"`--keep-audio` to `acrossfade` instead\") but does nothing. The trim stage kept audio on each clip; the stitch stage built a video-only `filter_complex` and passed `-map \"[vv]\"` only, so the audio was dropped o",
+  "truth": [
+   "claude-skills/creating-video/CHANGELOG.md",
+   "claude-skills/creating-video/SKILL.md",
+   "claude-skills/creating-video/scripts/assemble.py"
+  ]
+ },
+ {
+  "repo": "claude-skills",
+  "pr": 724,
+  "q": "registry: materialize plugins/ as real skill copies (importable from Claude Science/Cowork) ## What\n\n`registry/generate.py` now **copies** each skill directory into `plugins/<category>/skills/<name>/` instead of symlinking it. `.gitattributes` marks `plugins/**` as generated.\n\n## Why\n\nClaude Science (and Cowork) import skills by walking the repo through the **GitHub tree API**. There, a symlink is a `mode 120000` blob whose content is the target path \u2014 not a directory the importer can de",
+  "truth": [
+   "claude-skills/.claude-plugin/marketplace.json",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/README.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/examples/process-improvement-example.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/examples/strategic-decision-example.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/examples/technical-troubleshooting-example.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/references/ancient-philosophers.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/references/consulting-frameworks.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/convening-experts/references/msd-domain-experts.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/api-orchestration.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/code-review-triage.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/content-moderation.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/creative-rewriting.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/data-extraction.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/document-qa.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/email-summarization.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/meeting-notes.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/resume-screening.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/sql-generation.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/step-by-step-analysis.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/examples/text-classification.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/ambiguity-resolution.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/code-generation.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/comparative-analysis.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/conditional-logic.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/context-utilization.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/counting-enumeration.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/creative-generation.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/implicit-constraints.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/instruction-density.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/multi-hop-reasoning.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/multi-turn-consistency.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/negation-handling.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/nuanced-classification.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/output-calibration.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/parallel-consistency.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/partial-information.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/schema-adherence.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/self-correction.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/summarization-fidelity.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/down-skilling/gaps/tool-use-planning.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-antigravity/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-antigravity/README.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-antigravity/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-antigravity/references/auth-internals.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-antigravity/scripts/agy_auth_broker.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-antigravity/scripts/test_agy_auth_broker.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-gemini/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-gemini/README.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-gemini/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-gemini/references/advanced.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-gemini/references/examples.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-gemini/references/models.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/invoking-gemini/scripts/gemini_client.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/llm-as-computer/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/llm-as-computer/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/llm-as-computer/src/executor.mojo",
+   "claude-skills/plugins/ai-and-reasoning/skills/llm-as-computer/src/isa_lite.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/llm-as-computer/src/programs.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/llm-as-computer/src/runner.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/llm-as-computer/src/setup.sh",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/README.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/references/api-reference.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/references/workflows.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/scripts/agent_pool.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/scripts/claude_client.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/scripts/orchestration.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/scripts/task_state.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/scripts/test_caching.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/scripts/test_integration.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/scripts/test_interrupt.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/orchestrating-agents/scripts/test_streaming.py",
+   "claude-skills/plugins/ai-and-reasoning/skills/reviewing-ai-papers/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/tiling-tree/CHANGELOG.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/tiling-tree/SKILL.md",
+   "claude-skills/plugins/ai-and-reasoning/skills/tiling-tree/scripts/tiling_tree.py",
+   "claude-skills/plugins/code-intelligence/skills/exploring-codebases/CHANGELOG.md",
+   "claude-skills/plugins/code-intelligence/skills/exploring-codebases/README.md",
+   "claude-skills/plugins/code-intelligence/skills/exploring-codebases/SKILL.md",
+   "claude-skills/plugins/code-intelligence/skills/featuring/CHANGELOG.md",
+   "claude-skills/plugins/code-intelligence/skills/featuring/README.md",
+   "claude-skills/plugins/code-intelligence/skills/featuring/SKILL.md",
+   "claude-skills/plugins/code-intelligence/skills/featuring/_FEATURES_example_root.md",
+   "claude-skills/plugins/code-intelligence/skills/featuring/_FEATURES_example_sub.md"
+  ]
+ },
+ {
+  "repo": "claude-skills",
+  "pr": 647,
+  "q": "flowing v1.3.1: move API reference out of SKILL.md into references/ ## Summary\n\n`flowing/SKILL.md` had accumulated a full API reference \u2014 every `@task` parameter, all `Flow` methods, resume/override, detached auto-discovery, the `validate=`/`when=` signature gotcha \u2014 plus inline version annotations (`v1.1`, `v1.2.0`, `v1.3`). That is reference material *about* the skill, not imperative instructions *to* the agent that loads it on trigger, and it inflated the alway",
+  "truth": [
+   "claude-skills/flowing/CHANGELOG.md",
+   "claude-skills/flowing/SKILL.md",
+   "claude-skills/flowing/references/reference.md"
+  ]
+ },
+ {
+  "repo": "sage",
+  "pr": 8,
+  "q": "CLAUDE.md: deployment requirements + the missing create-note tool *Filed by Muninn*\n\nFindings from a claude.ai session on 2026-07-12 that tried to add one note to Sage and could not, holding valid Turso credentials.\n\n- **State corrected.** The Turso DB now exists (`sage-oaustegard.aws-us-east-1.turso.io`), is reachable over `/v2/pipeline`, and holds only `welcome-to-leafwiki`. CLAUDE.md said no database existed.\n- **Open work #2 expanded into an ordered requirem",
+  "truth": [
+   "sage/CLAUDE.md",
+   "sage/mcp/src/rpc.test.ts",
+   "sage/mcp/src/tools.ts",
+   "sage/saged/src/sageApi.ts"
+  ]
+ },
+ {
+  "repo": "sage",
+  "pr": 4,
+  "q": "e2e smoke test \u2014 and the cookie-auth bug it caught You asked if I was stuck. I wasnt \u2014 but I had handed you the installer as *your* first test, which was lazy. CI has Go 1.25; it can run it.\n\n**It immediately found a real bug.**\n\nThe API is **cookie-authenticated, not Bearer.** The login handler returns `{message, user, accessTokenExpiresAt}` and sets the JWT as an HTTP-only cookie; the middleware reads that cookie and has no `Authorization` heade",
+  "truth": [
+   "sage/.github/workflows/ci.yml",
+   "sage/app/internal/core/tree/sql_store.go",
+   "sage/app/internal/core/tree/sql_store_test.go",
+   "sage/app/internal/links/links_store.go",
+   "sage/app/internal/properties/properties_store.go",
+   "sage/app/internal/sagedb/sagedb.go",
+   "sage/app/internal/search/sqlite_index.go",
+   "sage/app/internal/tags/tags_store.go",
+   "sage/app/internal/wiki/wiki.go",
+   "sage/install.sh",
+   "sage/mcp/src/index.ts",
+   "sage/saged/package.json",
+   "sage/saged/src/auth.test.ts",
+   "sage/saged/src/index.ts",
+   "sage/saged/src/sageApi.ts"
+  ]
+ },
+ {
+  "repo": "sage",
+  "pr": 1,
+  "q": "Getting-started tutorial + CI Adds the missing on-ramp, and CI.\n\n**docs/getting-started.md** \u2014 build the embedded UI, run the wiki on a database (`--database-url`), move to Turso, give `saged` its own editor account, deploy the daemon and the MCP server. Known gaps stated plainly: no importer from a file-based wiki, and nothing has been run against a live deployment.\n\n**.github/workflows/ci.yml** \u2014 `go vet` + `go build ./...`",
+  "truth": [
+   "sage/.github/workflows/ci.yml",
+   "sage/README.md",
+   "sage/app/internal/wiki/wiki.go",
+   "sage/docs/getting-started.md"
+  ]
+ },
+ {
+  "repo": "sage",
+  "pr": 10,
+  "q": "mcp: route writes through a Sage service binding (worker-to-worker) ## Summary\n\nWith Sage now hosted as its own Cloudflare Worker (the `sage-container` host), the mcp Worker couldn't reach it: Cloudflare blocks one Worker from fetching another on the same `workers.dev` zone (**error 1042**). Reads were unaffected (they go straight to Turso), but every **write** (`create_note` / `tag_note` / `link_notes`) failed at login.\n\n## Fix\n\nRoute the write path through a **s",
+  "truth": [
+   "sage/mcp/src/index.ts",
+   "sage/mcp/wrangler.toml",
+   "sage/saged/src/sageApi.ts"
+  ]
+ },
+ {
+  "repo": "sage",
+  "pr": 9,
+  "q": "app: Turso-capable Dockerfile + Fly config for hosting Sage ## Summary\n\nHosting Sage is the one blocker between the merged `create_note` tool (#8) and actually writing notes from a chat: the MCP/saged Workers write through the app's API, so the app has to run somewhere public. This adds the scaffolding to host it \u2014 and fixes a trap in the existing image.\n\n**The stock `app/Dockerfile` cannot reach Turso.** It builds `CGO_ENABLED=0` with no build tag, so its",
+  "truth": [
+   "sage/app/fly.toml",
+   "sage/sage-container/README.md",
+   "sage/sage-container/package.json",
+   "sage/sage-container/src/index.ts",
+   "sage/sage-container/tsconfig.json"
+  ]
+ },
+ {
+  "repo": "sage",
+  "pr": 7,
+  "q": "Fix schema initialization against remote libSQL (Turso) ## Summary\n\nSage could not boot against a real Turso database. Two schema paths relied on **multi-statement `Exec` calls**, and the remote libSQL (Turso/Hrana) driver executes only the **first statement** of a multi-statement string and silently ignores the rest. Local `modernc.org/sqlite` runs the whole script, so this was invisible to CI and unit tests and only surfaced on contact with a live da",
+  "truth": [
+   "sage/app/internal/core/shared/sqliteutil/sqlite.go",
+   "sage/app/internal/core/shared/sqliteutil/sqlite_test.go",
+   "sage/app/internal/core/tree/sql_store.go",
+   "sage/app/internal/search/sqlite_index.go"
+  ]
+ },
+ {
+  "repo": "sage",
+  "pr": 16,
+  "q": "mcp: migrate to MCP SDK v2 and the 2026-07-28 protocol Replaces the hand-rolled JSON-RPC 2.0 dispatch in `mcp/` with the official `@modelcontextprotocol/server` v2 SDK, so one route and one factory serve both protocol revisions.\n\n## Why now\n\nThe 2026-07-28 spec went final today. Its headline change is a stateless core \u2014 no `initialize`, no protocol-level session \u2014 which is what lets an MCP server run as a plain Worker with no session affinity. Sage wa",
+  "truth": [
+   "sage/mcp/README.md",
+   "sage/mcp/package.json",
+   "sage/mcp/src/index.ts",
+   "sage/mcp/src/mcp-oauth.ts",
+   "sage/mcp/src/rpc.test.ts",
+   "sage/mcp/src/server.ts",
+   "sage/mcp/src/stdio.ts",
+   "sage/mcp/src/tools.ts"
+  ]
+ },
+ {
+  "repo": "sage",
+  "pr": 5,
+  "q": "CLAUDE.md \u2014 handoff for Claude Code A resumable stash for an agent that **has network access**, which this session did not.\n\nIt leads with the thing that matters: the previous session could not reach `modernc.org`, `proxy.golang.org`, Cloudflare or Turso, so it used CI as a debugger and **never ran `saged` or `mcp` at all**. Their login\u2192write path is unit-tested only and should be assumed broken until observed working. That is task",
+  "truth": [
+   "sage/CLAUDE.md",
+   "sage/README.md",
+   "sage/app/internal/core/tree/sql_store_test.go"
+  ]
+ },
+ {
+  "repo": "experiments",
+  "pr": 17,
+  "q": "repo-index: store the rotation, and a dispatchable workflow to publish the encoder mirror Two changes to `repo-index`.\n\n# 1. Store the rotation instead of regenerating it from the seed\n\n`repo-index` regenerated its remex rotation from `seed=0` at query time and only *fingerprinted* it, justified in the README by \"numpy's LAPACK QR drifts across BLAS builds\".\n\n**That justification was stale.** remex#40 had already replaced `np.linalg.qr` with an explicit Householder QR *precisely* to be",
+  "truth": [
+   "experiments/.github/workflows/repo-index-mirror.yml",
+   "experiments/.github/workflows/repo-index.yml",
+   "experiments/METHODS.md",
+   "experiments/repo-index/README.md",
+   "experiments/repo-index/ask.py",
+   "experiments/repo-index/manifest.json",
+   "experiments/repo-index/mirror_model.py",
+   "experiments/repo-index/pointers.json"
+  ]
+ },
+ {
+  "repo": "experiments",
+  "pr": 1,
+  "q": "Migrate experiments/ out of claude-workspace; add erdos-gyarfas as #38 Moves all 37 experiment directories from `oaustegard/claude-workspace/experiments/` into this repo verbatim, and adds this session's work as the 38th.\n\n`claude-workspace` is a session-boot repo \u2014 it shouldn't be carrying a research backlog, and 90 MB of it was embedding dumps loaded on every clone.\n\n## The migration\n\n- All 37 project directories copied unchanged, 629 files.\n- `INDEX.md` \u2192 `README.",
+  "truth": [
+   "experiments/README.md",
+   "experiments/anything-to-text/RESULTS.md",
+   "experiments/anything-to-text/build.py",
+   "experiments/atproto-pad-login/RESULTS.md",
+   "experiments/atproto-pad-login/package.json",
+   "experiments/dc-mall-timelapse/RESULTS.md",
+   "experiments/dc-mall-timelapse/build.py",
+   "experiments/dc-mall-timelapse/build_full.py",
+   "experiments/dc-mall-timelapse/fetch_fireworks.py",
+   "experiments/dc-mall-timelapse/fetch_index.py",
+   "experiments/dc-mall-timelapse/fetch_week.py",
+   "experiments/dc-mall-timelapse/filenames.txt",
+   "experiments/dc-mall-timelapse/fireworks_index.json",
+   "experiments/dc-mall-timelapse/index.json",
+   "experiments/dc-mall-timelapse/render_smooth.py",
+   "experiments/dc-mall-timelapse/week_index.json",
+   "experiments/discrepancy/README.md",
+   "experiments/discrepancy/RESULTS.md",
+   "experiments/discrepancy/beck_fiala.py",
+   "experiments/discrepancy/bf_results.json",
+   "experiments/discrepancy/deep_search.py",
+   "experiments/discrepancy/komlos.py",
+   "experiments/discrepancy/komlos_results.json",
+   "experiments/discrepancy/plot_growth.py",
+   "experiments/discrepancy/polish_small.py",
+   "experiments/discrepancy/run_beck_fiala.py",
+   "experiments/discrepancy/run_komlos.py",
+   "experiments/discrepancy/tests/test_calibration.py",
+   "experiments/discrepancy/tree_dp.py",
+   "experiments/discrepancy/verify_certificates.py",
+   "experiments/erdos-gyarfas/README.md",
+   "experiments/erdos-gyarfas/note.html",
+   "experiments/erdos-gyarfas/src/existence.py",
+   "experiments/erdos-gyarfas/src/exoo_graphs.py",
+   "experiments/erdos-gyarfas/src/filt.c",
+   "experiments/erdos-gyarfas/src/tutte_coxeter_lemma.py",
+   "experiments/erdos-gyarfas/src/validate.py",
+   "experiments/erdos-gyarfas/src/window_search.py",
+   "experiments/haiku-assessment/GUIDE.md",
+   "experiments/haiku-assessment/RESULTS.md",
+   "experiments/haiku-assessment/n20/RESULTS-n20.md",
+   "experiments/haiku-assessment/n20/broader/RESULTS-broader.md"
+  ]
+ },
+ {
+  "repo": "experiments",
+  "pr": 25,
+  "q": "account.py: tombstone and PR-body corpora, sized before shipping Builder side of [claude-workspace#197](https://github.com/oaustegard/claude-workspace/issues/197). The consumer side (staleness warning, workflow inputs) is in [claude-workspace#199](https://github.com/oaustegard/claude-workspace/pull/199).\n\nThe issue asks whether the account index should carry the two corpora that measured as wins per-repo \u2014 deleted files (`history-tombstone-index`, 0/6 \u2192 6/6 on",
+  "truth": [
+   "experiments/METHODS.md",
+   "experiments/README.md",
+   "experiments/account-index-corpora/ERRORS.md",
+   "experiments/account-index-corpora/RESULTS.md",
+   "experiments/account-index-corpora/clone_depth.py",
+   "experiments/account-index-corpora/corpora_scoped.json",
+   "experiments/account-index-corpora/recheck.py",
+   "experiments/account-index-corpora/results.json",
+   "experiments/hybrid-code-index/account.py",
+   "experiments/hybrid-code-index/test_account.py"
+  ]
+ },
+ {
+  "repo": "experiments",
+  "pr": 4,
+  "q": "Add CLAUDE.md pointing sessions at METHODS.md Follow-up to #3. `METHODS.md` only works if it is read *before* the work starts \u2014 this puts that instruction where a session actually sees it.\n\n## What it says\n\nThe load-bearing part is the first section: **grep `METHODS.md` before writing code**, with a concrete command and the two cases that justify it \u2014\n\n- `te-bridges` repeated `phase-a-bridges`' Cloudflare-gateway concurrency lesson from the *",
+  "truth": [
+   "experiments/CLAUDE.md"
+  ]
+ },
+ {
+  "repo": "experiments",
+  "pr": 12,
+  "q": "bekko-embedding-bench: split verdict \u2014 Part A reverses the search prior, Part B upholds the remax_kb default Benchmarks `hotchpotch/bekko-embedding-v1` (a8m/a25m) for the two decisions in\n[claude-workspace#185](https://github.com/oaustegard/claude-workspace/issues/185).\nThey came out opposite ways, which is why the handoff was right to keep them separate.\n\nFull writeup: [`bekko-embedding-bench/RESULTS.md`](bekko-embedding-bench/RESULTS.md).\n\n## Part A \u2014 code search: the 2026-07 verdict reverses\n\nThe reti",
+  "truth": [
+   "experiments/METHODS.md",
+   "experiments/README.md",
+   "experiments/bekko-embedding-bench/RESULTS.md",
+   "experiments/bekko-embedding-bench/instances.json",
+   "experiments/bekko-embedding-bench/manual/issues_manual.json",
+   "experiments/bekko-embedding-bench/recheck.py",
+   "experiments/bekko-embedding-bench/results_compose.json",
+   "experiments/bekko-embedding-bench/results_headtohead.json",
+   "experiments/bekko-embedding-bench/results_honest_bytes.json",
+   "experiments/bekko-embedding-bench/results_jina.json",
+   "experiments/bekko-embedding-bench/results_kbfix.json",
+   "experiments/bekko-embedding-bench/results_kbpath.json",
+   "experiments/bekko-embedding-bench/results_latency.json",
+   "experiments/bekko-embedding-bench/results_parta.json",
+   "experiments/bekko-embedding-bench/results_partb.json",
+   "experiments/bekko-embedding-bench/results_recover.json",
+   "experiments/bekko-embedding-bench/results_rht.json",
+   "experiments/bekko-embedding-bench/results_rht_dims.json",
+   "experiments/bekko-embedding-bench/rg_baseline.json",
+   "experiments/bekko-embedding-bench/scripts/bekko.py",
+   "experiments/bekko-embedding-bench/scripts/bench_headtohead.py",
+   "experiments/bekko-embedding-bench/scripts/bench_honest_bytes.py",
+   "experiments/bekko-embedding-bench/scripts/bench_kb_fix.py",
+   "experiments/bekko-embedding-bench/scripts/bench_kb_path.py",
+   "experiments/bekko-embedding-bench/scripts/bench_latency.py",
+   "experiments/bekko-embedding-bench/scripts/bench_recover.py",
+   "experiments/bekko-embedding-bench/scripts/bench_rht.py",
+   "experiments/bekko-embedding-bench/scripts/chunk.py",
+   "experiments/bekko-embedding-bench/scripts/encode_corpus.py",
+   "experiments/bekko-embedding-bench/scripts/eval_search.py",
+   "experiments/bekko-embedding-bench/scripts/jina.py",
+   "experiments/bekko-embedding-bench/scripts/mine.py",
+   "experiments/bekko-embedding-bench/scripts/run_compose.py",
+   "experiments/bekko-embedding-bench/scripts/run_jina_partb.py",
+   "experiments/bekko-embedding-bench/scripts/run_parta.py",
+   "experiments/bekko-embedding-bench/scripts/run_partb.py"
+  ]
+ },
+ {
+  "repo": "experiments",
+  "pr": 19,
+  "q": "remex-vs-higgs-ablation: sweep fmnist784, closing the axis-B gap (#8) Follow-up on [#8](https://github.com/oaustegard/experiments/issues/8). The main deliverable landed in #9, #10 and #11; this closes the one item those left explicitly open. **Complete \u2014 sweep run, writeup updated, all gates green.**\n\n## Why this exists\n\n`RESULTS.md` graded the axis-B conclusion **ARGUED, one corpus** and named the gap itself:\n\n> Only `glove100` has real norm spread. `fmnist784` was",
+  "truth": [
+   "experiments/METHODS.md",
+   "experiments/README.md",
+   "experiments/remex-vs-higgs-ablation/ERRORS.md",
+   "experiments/remex-vs-higgs-ablation/RESULTS.md",
+   "experiments/remex-vs-higgs-ablation/pretrain_grids.py",
+   "experiments/remex-vs-higgs-ablation/recheck.py",
+   "experiments/remex-vs-higgs-ablation/results.json",
+   "experiments/remex-vs-higgs-ablation/tables.md"
+  ]
+ },
+ {
+  "repo": "experiments",
+  "pr": 29,
+  "q": "hybrid-code-index: exclude test-fixture corpora from the index `fusemojo/test/data/` holds Alice in Wonderland and Pride and Prejudice as fuse test input \u2014 **438 chunks** of Project Gutenberg prose in the account index. Being natural language, they compete directly with real documents on any prose-shaped query.\n\nFound auditing `xr` account-wide on 2026-08-11. The query *\"why did the thing that worked yesterday start returning nothing\"* returned:\n\n```\nfusemojo",
+  "truth": [
+   "experiments/hybrid-code-index/RESULTS.md",
+   "experiments/hybrid-code-index/account.py",
+   "experiments/hybrid-code-index/hcindex.py",
+   "experiments/hybrid-code-index/test_account.py"
+  ]
+ },
+ {
+  "repo": "experiments",
+  "pr": 10,
+  "q": "fix(ablation): BLAS-bound FWHT, axis-B corpus with real norm spread, metric-consistent scoring Three follow-ups to #9, from review of the merged result. Two are corrections to claims #9 made; one is a contamination fix outside this experiment's directory.\n\n## 1. Axis A measured the implementation, not the transform\n\n#9 reported Haar **13\u201321\u00d7 faster** than the RHT at d=768\u20131024 and labelled it \"a fact about numpy, not about the algorithm.\" That label was right, which is why the number should",
+  "truth": [
+   "experiments/METHODS.md",
+   "experiments/README.md",
+   "experiments/jina-remex-vs-remax/score_fidelity.py",
+   "experiments/remex-vs-higgs-ablation/RESULTS.md",
+   "experiments/remex-vs-higgs-ablation/build_corpora.py",
+   "experiments/remex-vs-higgs-ablation/quantizers.py",
+   "experiments/remex-vs-higgs-ablation/results.json",
+   "experiments/remex-vs-higgs-ablation/run_ablation.py"
+  ]
+ },
+ {
+  "repo": "muninn.austegard.com",
+  "pr": 80,
+  "q": "Fix mermaid diagram bleed + lightbox not showing content Follow-up to #79 \u2014 fixes two bugs visible in testing:\n\n## A. Diagrams bleed off the right edge\n\nPR #79 removed `max-width: 100%` from `.mermaid svg` and added `min-width: 700px` on wide diagrams. This forced SVGs wider than the container, and `overflow-x: auto` put the scrollbar below the fold on tall diagrams.\n\n**Fix:** Restore `max-width: 100%` on inline SVGs so they scale to fit the container.",
+  "truth": [
+   "muninn.austegard.com/blog/muninn-at-100-days.html"
+  ]
+ },
+ {
+  "repo": "muninn.austegard.com",
+  "pr": 29,
+  "q": "Add postscript to 126 Million Steps Per Second Adds a \"Postscript: Putting It to Work\" section after the closing credits, linking to:\n\n- [Hungarian trace](https://muninn.austegard.com/blog/126-million-steps-per-second/hungarian-trace.html) \u2014 10\u00d710 min-cost matching, 23K steps\n- [Sudoku trace](https://muninn.austegard.com/blog/126-million-steps-per-second/sudoku-trace.html) \u2014 constraint verification, 6.8K steps  \n- [Implementation code](https:/",
+  "truth": [
+   "muninn.austegard.com/blog/126-million-steps-per-second.html"
+  ]
+ },
+ {
+  "repo": "muninn.austegard.com",
+  "pr": 11,
+  "q": "feat: vendor remembering + add update workflow ## Problem\n\nPerch fails on import:\n```\nModuleNotFoundError: No module named 'remembering'\n```\n\n`.perch/tools/memory.py` does `from remembering.scripts import ...` but `remembering` lives in claude-skills, not this repo.\n\n## Fix\n\n**Vendors `remembering/scripts/`** directly into the repo. The existing `PYTHONPATH=$GITHUB_WORKSPACE` makes it importable \u2014 no workflow changes needed to perch.yml.\n\n**Ad",
+  "truth": [
+   "muninn.austegard.com/.github/workflows/update-remembering.yml",
+   "muninn.austegard.com/remembering/scripts/__init__.py",
+   "muninn.austegard.com/remembering/scripts/boot.py",
+   "muninn.austegard.com/remembering/scripts/bootstrap.py",
+   "muninn.austegard.com/remembering/scripts/config.py",
+   "muninn.austegard.com/remembering/scripts/defaults/ops.json",
+   "muninn.austegard.com/remembering/scripts/defaults/profile.json",
+   "muninn.austegard.com/remembering/scripts/hints.py",
+   "muninn.austegard.com/remembering/scripts/memory.py",
+   "muninn.austegard.com/remembering/scripts/migrations/restructure_boot_v1.py",
+   "muninn.austegard.com/remembering/scripts/migrations/restructure_boot_v1_snapshot.json",
+   "muninn.austegard.com/remembering/scripts/result.py",
+   "muninn.austegard.com/remembering/scripts/state.py",
+   "muninn.austegard.com/remembering/scripts/task.py",
+   "muninn.austegard.com/remembering/scripts/turso.py",
+   "muninn.austegard.com/remembering/scripts/utilities.py"
+  ]
+ },
+ {
+  "repo": "muninn.austegard.com",
+  "pr": 246,
+  "q": "blog: wire Bluesky announcement into the Nemotron post Follow-up to the merged post PR #245. Wires the Bluesky announcement into `blog/four-bit-model-one-bit-index.html`:\n\n- `bsky:uri` meta \u2192 `at://did:plc:r2whjvupgfw55mllpksnombn/app.bsky.feed.post/3mqsqozogb22o` (resolved from the `austegard.com` handle), so the engagement widget renders likes/replies.\n- noscript fallback link points at the announcement post.\n\n**Search reindex \u2014 done.** I ran `scrip",
+  "truth": [
+   "muninn.austegard.com/blog/four-bit-model-one-bit-index.html"
+  ]
+ },
+ {
+  "repo": "muninn.austegard.com",
+  "pr": 57,
+  "q": "Redesign fly + zeitgeist: breadth over recursion ## Redesign Fly and Zeitgeist perch prompts\n\nAddresses structural drift where both tasks converged into AI paper digests.\n\n### Problem\n\n- **Zeitgeist** sourced exclusively from AI Bluesky feeds (ai_list, paperskygest). Produced research digests instead of current events briefings.\n- **Fly** seeded from recent memories (all about memory/RAG/context), creating a closed loop back to the same AI resea",
+  "truth": [
+   "muninn.austegard.com/.perch/prompts/tasks/fly.md",
+   "muninn.austegard.com/.perch/prompts/tasks/zeitgeist.md"
+  ]
+ },
+ {
+  "repo": "muninn.austegard.com",
+  "pr": 144,
+  "q": "feat(search): draft Pages Function + frontend (search-on-mac) Search-on-mac frontend + Pages Function. Design + roadmap: #143.\n\n## Status\n\n- [x] Frontend `/search.html` with shareable `?q=` URLs\n- [x] Pages Function `/api/search` \u2014 hybrid retrieval via vendored\n      `KBReader` from oaustegard/remax_kb#6\n- [x] CF AI Gateway integration, no GEMINI_API_KEY in env\n- [ ] `knowledge/v2/muninn.kbi` artifact built and committed\n- [ ] Pages secrets configured (CF_AC",
+  "truth": [
+   "muninn.austegard.com/knowledge/v2/README.md",
+   "muninn.austegard.com/scripts/build_muninn_kb.py",
+   "muninn.austegard.com/search.html"
+  ]
+ },
+ {
+  "repo": "muninn.austegard.com",
+  "pr": 10,
+  "q": "Homepage cleanup: flight-logs, blog limit, links, BlueSky Supersedes #6 (which had a merge conflict).\n\n### index.html (homepage):\n- **Hero image**: Replace small circular raven with full-width `og-image.png` (already has title + tagline). Remove redundant `<h1>` and tagline text.\n- **Description**: Two paragraphs \u2014 one about Muninn of Norse mythology, one about Muninn the AI agent\n- **Latest posts only**: `limit=\"5\"`, section header \u2192 \"Latest Writing\", w",
+  "truth": [
+   "muninn.austegard.com/blog/index.html",
+   "muninn.austegard.com/index.html"
+  ]
+ },
+ {
+  "repo": "muninn.austegard.com",
+  "pr": 22,
+  "q": "Blog automation Phase 1: shared CSS + post template ## Phase 1: Blog template + shared CSS\n\nPart of the blog automation project (austegard.com + muninn.austegard.com).\n\n### What this adds\n\n**`styles/blog.css`** \u2014 extracted from the inline `<style>` blocks duplicated across every blog post:\n- article img, h2, h3, blockquote styling (with dark mode)\n- `.post-meta`, `.bsky-section`, pre/code, table, figcaption\n- Consolidates ~50 lines of CSS currently",
+  "truth": [
+   "muninn.austegard.com/blog/_template.html",
+   "muninn.austegard.com/styles/blog.css"
+  ]
+ },
+ {
+  "repo": "thinking-traces-eval",
+  "pr": 3,
+  "q": "Partial pilot of issue #2 (~10% scope) \u2014 go/no-go assessment ## Scope\n\nPartial run of issue #2 \u2014 ~10% of the full experiment, as requested by Oskar (\\\"do ~10% and evaluate whether it is promising enough to keep going\\\").\n\n3 traces \u00d7 3 eval problems \u00d7 2 conditions \u00d7 1 sample. No AIME off-domain (no internet access for problem fetch; not needed for the go/no-go decision).\n\n## Pipeline implemented\n\n| Step | Spec | Partial |\n|---|---|---|\n| Trace generation | O",
+  "truth": [
+   "thinking-traces-eval/PIPELINE.md",
+   "thinking-traces-eval/README.md",
+   "thinking-traces-eval/answers/no_rag/ex_1_2_i.md",
+   "thinking-traces-eval/answers/no_rag/ex_2_15.md",
+   "thinking-traces-eval/answers/no_rag/ex_3_24.md",
+   "thinking-traces-eval/answers/rag/ex_1_2_i.md",
+   "thinking-traces-eval/answers/rag/ex_2_15.md",
+   "thinking-traces-eval/answers/rag/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_0/ex_1_2_i.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_0/ex_2_15.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_0/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_0/ex_5_17.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_0/ex_5_19.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_0/ex_7_28.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_1/ex_1_2_i.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_1/ex_2_15.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_1/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_1/ex_5_17.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_1/ex_5_19.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_1/ex_7_28.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_2/ex_1_2_i.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_2/ex_2_15.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_2/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_2/ex_5_17.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_2/ex_5_19.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_2/ex_7_28.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_3/ex_1_2_i.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_3/ex_2_15.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_3/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_3/ex_5_17.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_3/ex_5_19.md",
+   "thinking-traces-eval/answers_iter3/no_rag/sample_3/ex_7_28.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_0/ex_1_2_i.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_0/ex_2_15.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_0/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_0/ex_5_17.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_0/ex_5_19.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_0/ex_7_28.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_1/ex_1_2_i.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_1/ex_2_15.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_1/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_1/ex_5_17.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_1/ex_5_19.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_1/ex_7_28.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_2/ex_1_2_i.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_2/ex_2_15.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_2/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_2/ex_5_17.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_2/ex_5_19.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_2/ex_7_28.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_3/ex_1_2_i.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_3/ex_2_15.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_3/ex_3_24.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_3/ex_5_17.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_3/ex_5_19.md",
+   "thinking-traces-eval/answers_iter3/rag/sample_3/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_0/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_0/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_1/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_1/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_2/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_2/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_3/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_3/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_4/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_4/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_5/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_5/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_6/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_6/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_7/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/no_rag/sample_7/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_0/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_0/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_1/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_1/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_2/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_2/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_3/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_3/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_4/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_4/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_5/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_5/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_6/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_6/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_7/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/raw/sample_7/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_0/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_0/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_1/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_1/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_2/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_2/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_3/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_3/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_4/ex_3_24.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_4/ex_7_28.md",
+   "thinking-traces-eval/answers_iter4/struct/sample_5/ex_3_24.md"
+  ]
+ },
+ {
+  "repo": "oaustegard.github.io",
+  "pr": 323,
+  "q": "Motion Player: port Ball Maze's refined orientation neutralization ## Summary\n\nMotion Player had the **first-cut** counter-rotation (debounced, angle read only from `screen.orientation`). Ball Maze subsequently went through several on-device iterations to make rotation smooth and robust. This ports those refinements into `motion-player/app.js` so a flip behaves identically here:\n\n- **Angle from whichever source reports a rotation** \u2014 `screen.orientation.angle ||",
+  "truth": [
+   "oaustegard.github.io/motion-player/SPEC.md",
+   "oaustegard.github.io/motion-player/app.js",
+   "oaustegard.github.io/motion-player/sw.js"
+  ]
+ },
+ {
+  "repo": "oaustegard.github.io",
+  "pr": 315,
+  "q": "Ball Maze: score only new ground so hole penalties stick ## Summary\n\nFixes the reported scoring exploit: after draining to 0 on hole falls (the score floors at 0 rather than going negative), the score would \"start counting up\" again \u2014 distance points were awarded per cell-length rolled over *any* ground, so re-rolling already-covered corridors after each reset re-earned points, making repeated deaths farmable. Even jiggling against a wall accrued points",
+  "truth": [
+   "oaustegard.github.io/fun-and-games/ball-maze/README.md",
+   "oaustegard.github.io/fun-and-games/ball-maze/game.js",
+   "oaustegard.github.io/fun-and-games/ball-maze/index.html",
+   "oaustegard.github.io/fun-and-games/ball-maze/sw.js"
+  ]
+ },
+ {
+  "repo": "oaustegard.github.io",
+  "pr": 235,
+  "q": "fun-and-games: add snooker break simulator ## Summary\n\nNew entry in **Fun & Games**: an interactive 2D physics simulator comparing the traditional rearmost-red break shot in snooker with Shaun Murphy's third-red break shot from the 2026 World Championship final.\n\nSingle-file HTML/Canvas, no build step. Lives at `fun-and-games/snooker-break.html` with a companion `_README.md`.\n\n**Live demo (after merge)**: https://austegard.com/fun-and-game",
+  "truth": [
+   "oaustegard.github.io/fun-and-games/snooker-break.html",
+   "oaustegard.github.io/fun-and-games/snooker-break_README.md"
+  ]
+ },
+ {
+  "repo": "oaustegard.github.io",
+  "pr": 308,
+  "q": "Currents in Motion: diagnose sticky iOS motion denial on screen, retry on click ## Summary\n\nFollow-up to #307. On iOS, once a motion prompt on an origin has been denied **or dismissed**, every later `requestPermission()` returns `\"denied\"` instantly without showing a prompt \u2014 Safari replays the remembered answer until the tab is closed. The previous build reported this as a generic \"motion access denied\" with recovery instructions that were wrong (motion has no entry under aA",
+  "truth": [
+   "oaustegard.github.io/fun-and-games/currents-motion.html"
+  ]
+ },
+ {
+  "repo": "oaustegard.github.io",
+  "pr": 321,
+  "q": "Ball Maze: tap the goal disc for a version + orientation debug readout ## Summary\n\nDiagnosing the landscape-shrink on-device is ambiguous without knowing which build the installed app is actually running (service-worker update lag means \"merged\" \u2260 \"running\"). Tapping the **green goal disc** now toggles a debug readout in the score slot:\n\n```\nv11 a90 844x390\n```\n\n\u2014 game version, the orientation angle currently being countered (`a0` = none), and live viewport dimension",
+  "truth": [
+   "oaustegard.github.io/fun-and-games/ball-maze/README.md",
+   "oaustegard.github.io/fun-and-games/ball-maze/game.js",
+   "oaustegard.github.io/fun-and-games/ball-maze/sw.js"
+  ]
+ },
+ {
+  "repo": "oaustegard.github.io",
+  "pr": 309,
+  "q": "Ball Maze: holes on the solution path + CLAUDE.md PR-lifecycle note ## Summary\n\nTwo changes:\n\n### Holes on the solution path (follow-up to #306, pushed after it merged)\n\nOff-path holes could never threaten a player who follows the path. Now most holes sit **on** the solution path \u2014 1 on level 2 ramping to 5 on level 5 \u2014 placed in straight corridor cells and offset 0.14 cells to one side, leaving a narrow safe lane along the opposite wall, like the physical labyrin",
+  "truth": [
+   "oaustegard.github.io/CLAUDE.md",
+   "oaustegard.github.io/fun-and-games/ball-maze/README.md",
+   "oaustegard.github.io/fun-and-games/ball-maze/game.js",
+   "oaustegard.github.io/fun-and-games/ball-maze/index.html"
+  ]
+ },
+ {
+  "repo": "oaustegard.github.io",
+  "pr": 312,
+  "q": "Ball Maze: endless runtime-generated levels, saved progress, SW cache bump ## Summary\n\n- **Endless levels, generated at runtime.** The fixed 5-level table is replaced by `levelSpec(n)`: the maze grid grows every level (from 6\u00d79, +2 cols / +3 rows per level) until cells would drop below 22 px on the current screen (18\u00d733 on a typical phone), after which difficulty keeps ramping through hole count alone \u2014 up to 14 on-path holes plus 18 dead-end decoys. Level bonus stays 10",
+  "truth": [
+   "oaustegard.github.io/fun-and-games/ball-maze/README.md",
+   "oaustegard.github.io/fun-and-games/ball-maze/game.js",
+   "oaustegard.github.io/fun-and-games/ball-maze/index.html",
+   "oaustegard.github.io/fun-and-games/ball-maze/sw.js"
+  ]
+ },
+ {
+  "repo": "oaustegard.github.io",
+  "pr": 292,
+  "q": "Currents: iOS fullscreen fix + tilt diagnostics The bottom black bar was a documented iOS trap: `html, body { height: 100% }` silently breaks `viewport-fit=cover` + `black-translucent`, so content never extends behind the home indicator. `100vh` is the only value that works from a standalone cold start (`100dvh` also breaks until a rotation). Fixed, and adopted the canvas-game full-bleed pattern (`overscroll-behavior:none`, `touch-action:none`,",
+  "truth": [
+   "oaustegard.github.io/fun-and-games/currents.html"
+  ]
+ },
+ {
+  "repo": "muninn-utilities",
+  "pr": 87,
+  "q": "Fix 4 stale remembering skill tests ## What\n\nFour `remembering/tests/` tests were failing. In every case the **source is correct** and the **test expectation was stale** \u2014 the tests hadn't been updated when the source behavior changed. Fixed the four assertions to match current behavior.\n\n## The four failures\n\n| Test | Cause | Fix |\n|---|---|---|\n| `test_remembering.py::test_imports` | `state.TYPES` gained `\"analysis\"` (a valid memo",
+  "truth": [
+   "muninn-utilities/remembering/tests/test_hardening.py",
+   "muninn-utilities/remembering/tests/test_remembering.py"
+  ]
+ },
+ {
+  "repo": "muninn-utilities",
+  "pr": 16,
+  "q": "remembering: holistic alias + return-shape fix (#15) ## Summary\n\nCloses #15. Three-layer fix for the recurring kwarg + return-shape failure\nclass across the entire `remembering` public API \u2014 not just `recall`/`remember`.\n\n### Layer 1 \u2014 `@accept_aliases` decorator\n\nNew `remembering/scripts/aliases.py` exports `ALIASES` (per-function table\nof wrong\u2192canonical kwarg names) and the `@accept_aliases` decorator. The\ndecorator:\n\n- Translates deprecated kwar",
+  "truth": [
+   "muninn-utilities/remembering/CHANGELOG.md",
+   "muninn-utilities/remembering/scripts/__init__.py",
+   "muninn-utilities/remembering/scripts/aliases.py",
+   "muninn-utilities/remembering/scripts/bootstrap.py",
+   "muninn-utilities/remembering/scripts/config.py",
+   "muninn-utilities/remembering/scripts/defaults/ops.json",
+   "muninn-utilities/remembering/scripts/memory.py",
+   "muninn-utilities/remembering/scripts/result.py",
+   "muninn-utilities/remembering/tests/test_aliases.py"
+  ]
+ },
+ {
+  "repo": "muninn-utilities",
+  "pr": 2,
+  "q": "feat(recall): accept 'query' as alias for 'search' ## What\n\nAdds `query` as a first-class alias for `search` in the recall family. The two names now resolve to the same parameter; if both are provided, `query` wins.\n\nUpdated:\n- `recall(search=..., query=...)` in `remembering/scripts/memory.py`\n- `recall_since(..., search=..., query=...)` in `remembering/scripts/memory.py`\n- `recall_between(..., search=..., query=...)` in `remembering/scripts/memor",
+  "truth": [
+   "muninn-utilities/remembering/scripts/memory.py",
+   "muninn-utilities/remembering/scripts/task.py"
+  ]
+ },
+ {
+  "repo": "muninn-utilities",
+  "pr": 53,
+  "q": "Flight-log migration: point read paths at muninn.austegard.com ## What\n\nCompletes the flight-log repo migration from `oaustegard/claude-skills` to\n`oaustegard/muninn.austegard.com` (mac) on the **read** side. Three utilities\nstill hardcoded the old repo / Flight-log category id, which is why recent\nflight logs ended up split across both repos (observed: Fly 2026-05-31 in both\nclaude-skills #681 and mac #158).\n\n## Changes\n\n- **`muninn_utils/perch_publish.py`**",
+  "truth": [
+   "muninn-utilities/muninn_utils/perch_publish.py",
+   "muninn-utilities/muninn_utils/perch_triage.py",
+   "muninn-utilities/remembering/scripts/boot.py"
+  ]
+ },
+ {
+  "repo": "muninn-utilities",
+  "pr": 30,
+  "q": "Add claude.com/blog watcher as Daily Perch step *Filed by Muninn*\n\nAdds a Daily Perch step that surfaces new posts on https://claude.com/blog as Oskar-facing operational signal.\n\n## Why this lives here (and not in `routine-inbox-review-v1` or `tasks/zeitgeist.md`)\n\n- `routine-inbox-review-v1` is for things addressed to Muninn (discussions, mentions, DMs). claude.com/blog is a news source, not an inbox. (Self-correction from earlier in the sessi",
+  "truth": [
+   "muninn-utilities/muninn_utils/news_watch.py",
+   "muninn-utilities/remembering/scripts/tasks/anthropic_news.md"
+  ]
+ },
+ {
+  "repo": "muninn-utilities",
+  "pr": 43,
+  "q": "feat(snapshot): repackage as muninn-snapshot claude-skill ## Why\n\nOskar's reframe: instead of \"project instruction + KB files in project knowledge\", make the snapshot a self-contained `muninn-snapshot` claude-skill with the project-instruction content becoming `SKILL.md` and an expanded manifest acting as a topic-to-reference bridge.\n\nThis gives proper progressive disclosure: the skill body loads when triggered; the references load only when the bridge p",
+  "truth": [
+   "muninn-utilities/snapshot/README.md",
+   "muninn-utilities/snapshot/build.py",
+   "muninn-utilities/snapshot/compose_bridge.py",
+   "muninn-utilities/snapshot/compose_instruction.py",
+   "muninn-utilities/snapshot/config.py",
+   "muninn-utilities/snapshot/example-output/muninn-snapshot/SKILL.md",
+   "muninn-utilities/snapshot/example-output/muninn-snapshot/references/memory-discipline.md",
+   "muninn-utilities/snapshot/kb.py",
+   "muninn-utilities/snapshot/pull.py"
+  ]
+ },
+ {
+  "repo": "muninn-utilities",
+  "pr": 76,
+  "q": "blog_publish: add new_post() template-filler (#67) Closes #67.\n\n## What\nAdds `blog_publish.new_post(title, summary, body_html, *, author='Muninn', published=None, repo='oaustegard/muninn.austegard.com', og_image=None, description=None, ref='main') -> str`.\n\nFetches `blog/_template.html` from `repo` (cached per (repo, ref) for the session), fills the template's placeholders, and returns HTML that passes `validate_blog_html(html, repo)` **by constru",
+  "truth": [
+   "muninn-utilities/muninn_utils/blog_publish.py",
+   "muninn-utilities/muninn_utils/tests/test_blog_new_post.py"
+  ]
+ },
+ {
+  "repo": "muninn-utilities",
+  "pr": 94,
+  "q": "docs: plan for moving the memory backend and the API credentials to Cloudflare Adds `docs/mcp-migration.md` \u2014 a design and staged migration plan for re-hosting Muninn's backend as Cloudflare Workers on the Sage pattern, while keeping the genuinely-local half skill-shaped.\n\nProposal only; no code changes. Opened for the decisions in \u00a78.\n\n**Two deliberately decoupled tracks.**\n\n## Track 1 \u2014 memory backend (\u00a72\u2013\u00a76)\n\n- **`muninn-mcp/` Worker** \u2014 anything whose only dependency is",
+  "truth": [
+   "muninn-utilities/docs/mcp-migration.md"
+  ]
+ },
+ {
+  "repo": "bookmarklets",
+  "pr": 25,
+  "q": "Jules PR Jules PR\n\n---\n*PR created automatically by Jules for task [13407363087857197431](https://jules.google.com/task/13407363087857197431)*",
+  "truth": [
+   "bookmarklets/CONTENT_SUMMARY.md",
+   "bookmarklets/snippets/get-claude-organization-id.md"
+  ]
+ },
+ {
+  "repo": "bookmarklets",
+  "pr": 18,
+  "q": "Add README for bitbucket_compare_pr_commits.js This change adds a new README.md file for the `bitbucket_compare_pr_commits.js` bookmarklet and updates the `CONTENT_SUMMARY.md` to include the new bookmarklet.",
+  "truth": [
+   "bookmarklets/CONTENT_SUMMARY.md",
+   "bookmarklets/bitbucket_compare_pr_commits_README.md"
+  ]
+ },
+ {
+  "repo": "bookmarklets",
+  "pr": 17,
+  "q": "Fix: Update organization ID retrieval in claude_pruner.js The `claude_pruner.js` bookmarklet was failing because of a change in how claude.ai handles the organization ID. I've updated the script to use a more robust method of finding the ID by searching through the page's scripts. This should fix the bookmarklet and make it more resilient to future changes.",
+  "truth": [
+   "bookmarklets/claude_pruner.js"
+  ]
+ },
+ {
+  "repo": "bookmarklets",
+  "pr": 46,
+  "q": "Use GPT-5 mini for auto-generated bookmarklet READMEs The auto-README workflow was still targeting an older OpenAI 4.x model. This PR updates README generation to use a current GitHub Models target.\n\n- **Model target update**\n  - Updated `.github/scripts/generate_readme.py` to switch the chat completion model from `openai/gpt-4o-mini` to `openai/gpt-5-mini`.\n  - Scope is intentionally limited to the model identifier used by the existing generation fl",
+  "truth": [
+   "bookmarklets/.github/scripts/generate_readme.py"
+  ]
+ },
+ {
+  "repo": "bookmarklets",
+  "pr": 24,
+  "q": "Add README for claude_recent_summaries.js This change adds a README file for the `claude_recent_summaries.js` bookmarklet. The new documentation follows the project's standard format and provides a comprehensive overview of the bookmarklet's functionality. The change also includes a verification that all other bookmarklets in the repository are already documented.\n\n---\n*PR created automatically by Jules for task [4576429661968110293](http",
+  "truth": [
+   "bookmarklets/claude_recent_summaries_README.md"
+  ]
+ },
+ {
+  "repo": "bookmarklets",
+  "pr": 43,
+  "q": "refactor: remove duplicate prompt file, read document_command.md at runtime",
+  "truth": [
+   "bookmarklets/.github/workflows/auto_readme.yml"
+  ]
+ },
+ {
+  "repo": "bookmarklets",
+  "pr": 27,
+  "q": "Filter out disabled skills from viewer The bookmarklet now only displays skills where enabled === true. Updated empty state message to reflect \"active skills\" filtering.",
+  "truth": [
+   "bookmarklets/claude_list_skills.js"
+  ]
+ },
+ {
+  "repo": "bookmarklets",
+  "pr": 33,
+  "q": "Update outdated bookmarklet README files Updated READMEs to reflect recent changes in bookmarklet implementations:\r\n\r\n- speed_up_video_README.md: Added Shadow DOM support, cross-origin workaround, and native controls features\r\n- claude_my_skills_README.md: Created new README for the Claude Skills Installer bookmarklet\r\n- claude_conversation_tree_json_README.md: Updated org ID detection method and added shared conversation support\r\n- clau",
+  "truth": [
+   "bookmarklets/claude_conversation_tree_json_README.md",
+   "bookmarklets/claude_my_skills_README.md",
+   "bookmarklets/claude_pruner_README.md",
+   "bookmarklets/speed_up_video_README.md"
+  ]
+ },
+ {
+  "repo": "browser-extensions",
+  "pr": 27,
+  "q": "deshittification: use storage.local instead of storage.sync for rules Follow-up to #25/#26. Rules weren't persisting across page loads \u2014 `storage.sync` silently drops writes when the profile has Chrome Sync disabled/signed-out or a quota is hit, and `popup.js` never checked `chrome.runtime.lastError` on the `set()` calls. A saved rule could appear in the popup for that session but vanish on the next open or page reload with no visible error.\n\n- Switch `content.js`,",
+  "truth": [
+   "browser-extensions/deshittification_extension/background.js",
+   "browser-extensions/deshittification_extension/content.js",
+   "browser-extensions/deshittification_extension/manifest.json",
+   "browser-extensions/deshittification_extension/popup.js"
+  ]
+ },
+ {
+  "repo": "browser-extensions",
+  "pr": 17,
+  "q": "Improve message rendering with markdown support and collapsible blocks ## Summary\nThis PR enhances the conversation viewer with better content rendering, improved UI/UX for collapsible blocks, and markdown support for assistant messages. The changes modernize the display of thinking blocks, tool usage, and regular messages across all viewer interfaces.\n\n## Key Changes\n\n### Content Rendering Improvements\n- Added markdown-to-HTML conversion for assistant messages using",
+  "truth": [
+   "browser-extensions/claude-cache-extension/lib/pruner-core.js",
+   "browser-extensions/claude-cache-extension/manifest.json",
+   "browser-extensions/claude-cache-extension/popup.html",
+   "browser-extensions/claude-cache-extension/popup.js",
+   "browser-extensions/claude-cache-extension/viewer.html",
+   "browser-extensions/claude-cache-extension/viewer.js"
+  ]
+ },
+ {
+  "repo": "browser-extensions",
+  "pr": 3,
+  "q": "Consolidate 10 browser extensions into monorepo Imported extensions:\n- at-protocol-extension\n- bookmarklet-runner-extension\n- claude-usage-extension\n- convert-to-md-extension\n- copy_url_w_title_extension\n- custom-redirects-extension\n- deshittification_extension\n- github_gist_creator_extension\n- web2md-ext\n- x-redirect-extension",
+  "truth": [
+   "browser-extensions/at-protocol-extension/README.md",
+   "browser-extensions/at-protocol-extension/background.js",
+   "browser-extensions/at-protocol-extension/manifest.json",
+   "browser-extensions/bookmarklet-runner-extension/.github/scripts/release-extension.sh",
+   "browser-extensions/bookmarklet-runner-extension/.github/workflows/extension-release.yml",
+   "browser-extensions/bookmarklet-runner-extension/AGENTS.md",
+   "browser-extensions/bookmarklet-runner-extension/README.md",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/README.md",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/demo_highlight_links.js",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/demo_word_count.js",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/github_stars.js",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/github_stars_README.md",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/hello_world.js",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/utils_copy_title.js",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/utils_copy_url.js",
+   "browser-extensions/bookmarklet-runner-extension/demo-bookmarklets/utils_scroll_to_top.js",
+   "browser-extensions/bookmarklet-runner-extension/manifest.json",
+   "browser-extensions/bookmarklet-runner-extension/options.css",
+   "browser-extensions/bookmarklet-runner-extension/options.html",
+   "browser-extensions/bookmarklet-runner-extension/options.js",
+   "browser-extensions/bookmarklet-runner-extension/popup.html",
+   "browser-extensions/bookmarklet-runner-extension/popup.js",
+   "browser-extensions/claude-usage-extension/.claude/settings.local.json",
+   "browser-extensions/claude-usage-extension/.github/workflows/release.yml",
+   "browser-extensions/claude-usage-extension/README.md",
+   "browser-extensions/claude-usage-extension/background.js",
+   "browser-extensions/claude-usage-extension/manifest.json",
+   "browser-extensions/convert-to-md-extension/README.md",
+   "browser-extensions/convert-to-md-extension/background.js",
+   "browser-extensions/convert-to-md-extension/manifest.json",
+   "browser-extensions/convert-to-md-extension/options.html",
+   "browser-extensions/convert-to-md-extension/options.js",
+   "browser-extensions/convert-to-md-extension/result.html",
+   "browser-extensions/convert-to-md-extension/result.js",
+   "browser-extensions/copy_url_w_title_extension/README.md",
+   "browser-extensions/copy_url_w_title_extension/manifest.json",
+   "browser-extensions/copy_url_w_title_extension/popup.html",
+   "browser-extensions/copy_url_w_title_extension/popup.js",
+   "browser-extensions/copy_url_w_title_extension/styles.css",
+   "browser-extensions/custom-redirects-extension/README.md",
+   "browser-extensions/custom-redirects-extension/background.js",
+   "browser-extensions/custom-redirects-extension/manifest.json",
+   "browser-extensions/custom-redirects-extension/options.html",
+   "browser-extensions/custom-redirects-extension/options.js",
+   "browser-extensions/deshittification_extension/README.md",
+   "browser-extensions/deshittification_extension/background.js",
+   "browser-extensions/deshittification_extension/content.js",
+   "browser-extensions/deshittification_extension/manifest.json",
+   "browser-extensions/deshittification_extension/popup.html",
+   "browser-extensions/deshittification_extension/popup.js",
+   "browser-extensions/deshittification_extension/style.css",
+   "browser-extensions/github_gist_creator_extension/README.md",
+   "browser-extensions/github_gist_creator_extension/background.js",
+   "browser-extensions/github_gist_creator_extension/manifest.json",
+   "browser-extensions/github_gist_creator_extension/options.html",
+   "browser-extensions/github_gist_creator_extension/options.js",
+   "browser-extensions/github_gist_creator_extension/popup.html",
+   "browser-extensions/github_gist_creator_extension/popup.js",
+   "browser-extensions/web2md-ext/README.md",
+   "browser-extensions/web2md-ext/background.js",
+   "browser-extensions/web2md-ext/content.js",
+   "browser-extensions/web2md-ext/manifest.json"
+  ]
+ },
+ {
+  "repo": "browser-extensions",
+  "pr": 2,
+  "q": "Add Fraktur Toggle browser extension Create a browser extension that toggles webpage fonts to Fraktur (blackletter) as a performative protest against fascist-leaning sites.\n\nFeatures:\n- One-click font toggle to Fraktur\n- Per-site memory with optional auto-apply\n- Manifest V3 compliant\n- Works on all websites\n- Generated icons with Fraktur 'F' symbol",
+  "truth": [
+   "browser-extensions/fraktur-toggle/README.md",
+   "browser-extensions/fraktur-toggle/content.js",
+   "browser-extensions/fraktur-toggle/manifest.json"
+  ]
+ },
+ {
+  "repo": "browser-extensions",
+  "pr": 14,
+  "q": "Reorganize context menus into hierarchical groups and update tool URLs ## Summary\nRestructured the Bluesky extension's context menu system to use hierarchical parent menus for better organization, and updated all tool URLs to point to a centralized base URL (`https://oaustegard.github.io/bsky`).\n\n## Key Changes\n- **Menu Reorganization**: Grouped related context menu items under parent menus:\n  - \"Post Tools\" parent with Thread Reader, Post Constellation Graph, and Th",
+  "truth": [
+   "browser-extensions/bsky-extension/background.js",
+   "browser-extensions/bsky-extension/manifest.json"
+  ]
+ },
+ {
+  "repo": "browser-extensions",
+  "pr": 16,
+  "q": "Add claude-cache-extension: conversation cache for crash recovery Chrome extension that intercepts Claude.ai API responses (including SSE streams) and caches them in IndexedDB. When the UI crashes mid-response, conversation data is preserved and can be viewed/exported via the extension popup.\n\n**Features:**\n- Transparent `fetch()` interception in MAIN world\n- SSE stream capture with chunk-level caching\n- MAIN/ISOLATED world relay pattern for message passing\n- Pr",
+  "truth": [
+   "browser-extensions/claude-cache-extension/README.md",
+   "browser-extensions/claude-cache-extension/content-script-isolated.js",
+   "browser-extensions/claude-cache-extension/content-script-main.js",
+   "browser-extensions/claude-cache-extension/lib/pruner-core.js",
+   "browser-extensions/claude-cache-extension/manifest.json",
+   "browser-extensions/claude-cache-extension/popup.html",
+   "browser-extensions/claude-cache-extension/popup.js",
+   "browser-extensions/claude-cache-extension/service-worker.js",
+   "browser-extensions/claude-cache-extension/viewer.html",
+   "browser-extensions/claude-cache-extension/viewer.js"
+  ]
+ },
+ {
+  "repo": "browser-extensions",
+  "pr": 20,
+  "q": "Fix claude-usage-extension: pick the chat-capable org, not memberships[0] ## Problem\n\nThe extension stopped working \u2014 badge shows the gray `!` error icon every poll.\n\n**Root cause: org selection, not the recent claude.ai usage-UI change.** The\nextension calls the API directly (`/api/organizations/{orgId}/usage`); that\nendpoint and its response shape are unchanged. The break is in how the org ID\nis chosen.\n\nAccounts can now have **two** memberships in `/api/bootstrap`:",
+  "truth": [
+   "browser-extensions/claude-usage-extension/background.js"
+  ]
+ },
+ {
+  "repo": "browser-extensions",
+  "pr": 18,
+  "q": "Add periodic merging of in-progress streams to improve crash safety ## Summary\nThis PR enhances crash safety by periodically merging in-progress stream data into the conversation cache. Instead of waiting for a stream to complete, partial messages are now merged into the cached conversation at regular intervals, ensuring that user-visible progress isn't lost if the extension crashes mid-stream.\n\n## Key Changes\n- **Periodic stream merging**: Added `PERIODIC_MERGE_I",
+  "truth": [
+   "browser-extensions/claude-cache-extension/content-script-main.js",
+   "browser-extensions/claude-cache-extension/manifest.json",
+   "browser-extensions/claude-cache-extension/service-worker.js"
+  ]
+ },
+ {
+  "repo": "remax",
+  "pr": 61,
+  "q": "Restore rotations_ assignment via write-through setter `StackedSignBitQuantizer.rotations_` became a read-only property in #59 (cac9e84). Every downstream caller that assigned to it now raises:\n\n```\nAttributeError: property 'rotations_' of 'StackedSignBitQuantizer' object has no setter\n```\n\nCaught it because it broke the muninn.austegard.com search reindex: `remax_kb.pack_v2._get_quantizer` substitutes an SRHT or Rademacher stack, or the int8-dequanti",
+  "truth": [
+   "remax/src/remax/stacked.py",
+   "remax/tests/test_rotation_rht.py"
+  ]
+ },
+ {
+  "repo": "remax",
+  "pr": 54,
+  "q": "Add asymmetric search: float query against sign-bit index Follow-up to #53 (merged). New branch, since that PR is finished.\n\n## What and why\n\n`search` binarizes both sides. Exa's web-scale index ([writeup](https://exa.ai/blog/building-web-scale-vector-db)) stores document sign bits but keeps the **query** in float, scoring it against the \u00b11 values those bits stand for. The query is one vector per search and occupies no index storage \u2014 binarizing it disca",
+  "truth": [
+   "remax/bench/asymmetric_lfm25.py",
+   "remax/bench/results/LFM25_SUMMARY.md",
+   "remax/bench/results/lfm25_asymmetric.json",
+   "remax/src/remax/__init__.py",
+   "remax/src/remax/core.py",
+   "remax/src/remax/packing.py",
+   "remax/src/remax/stacked.py",
+   "remax/tests/test_asymmetric.py"
+  ]
+ },
+ {
+  "repo": "remax",
+  "pr": 62,
+  "q": "Corpus: record the rotation construction in a rotation.json sidecar ## What\n\n`Corpus` now records which rotation built an index, in a `rotation.json` sidecar beside `index.bin` / `meta.db` / `mean.npy`.\n\n**Deliberately not a header change and not a format-version bump.** `mean.npy` already establishes the sidecar idiom in this class, so this stays a two-way door: old readers ignore an unknown file, and nothing on disk becomes unreadable. Header untouched, `_VERSIO",
+  "truth": [
+   "remax/bench/gates/rotation_identity_gate.py",
+   "remax/bench/results/ROTATION_LSH.md",
+   "remax/src/remax/corpus.py",
+   "remax/tests/test_corpus.py"
+  ]
+ },
+ {
+  "repo": "remax",
+  "pr": 71,
+  "q": "Gate the compile-and-cache layer of _native.py A mutation pass (`gating/scripts/mutate.py`, 34 sites in `src/remax/_native.py`) against the existing native gate \u2014 `test_native.py`, `test_hardening.py`, `test_query_path.py`, `test_query_speed_paths.py` \u2014 killed 16 and left 18 alive. The split was located, not scattered:\n\n| Region | Killed | Survived |\n|---|---|---|\n| validation + dispatch (`hamming_distances_native`) | 15 | 1 |\n| compile / cach",
+  "truth": [
+   "remax/tests/test_native_compile.py"
+  ]
+ },
+ {
+  "repo": "remax",
+  "pr": 43,
+  "q": "docs(README): add jina-v5 GOR as convergent training-time evidence *Filed by Muninn*\n\nAdds a \"Related work: training-time alternatives\" section between \"Relationship to remex\" and \"Background\", positioning remax against the GOR (Global Orthogonal Regularizer) finding in jina-embeddings-v5 (2602.15547v2, Apr 2026).\n\n## Why\n\nJina v5's Table 6 is the cleanest external validation yet of remax's core thesis \u2014 distribution shape, not codebook cleverness, dominates 1-bi",
+  "truth": [
+   "remax/README.md"
+  ]
+ },
+ {
+  "repo": "remax",
+  "pr": 66,
+  "q": "Make the query path faster without changing a single neighbour **490 passed, 3 skipped** (from 404/2). Both gates green; the query-path gate's `--self-test` drives **all 14** simulated defects red, up from 8.\n\nEvery change here is **bit-identical** to what it replaces. The scan stays exhaustive \u2014 no cell assignment, no multi-probe, no candidate pruning \u2014 so recall is unchanged *by construction*, not by tolerance. `CLAUDE.md:28` prohibits reinventing an IVF in",
+  "truth": [
+   "remax/CHANGELOG.md",
+   "remax/README.md",
+   "remax/bench/gates/query_path_gate.py",
+   "remax/bench/query_path_speed.py",
+   "remax/bench/results/QUERY_PATH_SPEED.md",
+   "remax/bench/results/query_path_speed.json",
+   "remax/src/remax/core.py",
+   "remax/src/remax/corpus.py",
+   "remax/src/remax/packing.py",
+   "remax/tests/test_query_path.py",
+   "remax/tests/test_query_speed_paths.py"
+  ]
+ },
+ {
+  "repo": "remax",
+  "pr": 64,
+  "q": "Release v0.1.0 \u2014 version from package metadata, plus a CHANGELOG Release prep. **404 passed, 2 skipped.** Small on purpose \u2014 deliberately kept separate from the query-path and consolidation work so the release commit is reviewable on its own.\n\n## Why now\n\nremax has no tags and no releases across 35+ merged PRs, and `__version__` has been the literal `\"0.0.0\"` the entire time \u2014 **including PR #31, which changed the emitted codes.**\n\nThat is not cosmetic. `remax_",
+  "truth": [
+   "remax/CHANGELOG.md",
+   "remax/pyproject.toml",
+   "remax/src/remax/__init__.py",
+   "remax/tests/test_version.py"
+  ]
+ },
+ {
+  "repo": "remax",
+  "pr": 9,
+  "q": "Implement #4: real-embedding bench harness \u2014 SPECTER2 R@10 = 0.635 *Filed by Muninn (revised after second pass)*\n\nCloses #4. **DoD met \u2014 including the 0.635 reproduction.**\n\n## What this adds\n\n```\nsrc/remax/bench/\n\u251c\u2500\u2500 __init__.py\n\u251c\u2500\u2500 eval.py             # recall_at_k, exact_knn, evaluate_quantizer\n\u251c\u2500\u2500 datasets.py         # SPECTER2/MiniLM/GloVe registry + cache loader\n\u2514\u2500\u2500 run_baseline.py     # orchestrator + markdown formatter + CLI\n\nbench/\n\u251c\u2500\u2500 run_baseline.py",
+  "truth": [
+   "remax/README.md",
+   "remax/bench/fetch_specter2_cache.sh",
+   "remax/bench/results/BASELINE.md",
+   "remax/bench/run_baseline.py",
+   "remax/tests/test_bench_datasets.py",
+   "remax/tests/test_bench_eval.py",
+   "remax/tests/test_bench_run_baseline.py"
+  ]
+ },
+ {
+  "repo": "llm-as-computer",
+  "pr": 5,
+  "q": "Phase 13: general-purpose stack computer \u2014 ISA completeness Extend the compiled transformer with SWAP, OVER, ROT opcodes and prove\nit is a general-purpose stack computer by executing a diverse algorithm\nsuite (Fibonacci, multiply, power-of-2, sum-1-to-N, parity test).\n\nArchitecture changes:\n- 3 new opcodes: SWAP (10), OVER (11), ROT (12)\n- Head 4: stack read at SP-2 (for ROT), using reserved head slot\n- FF dispatch extended to 12 opcodes with 4-input value",
+  "truth": [
+   "llm-as-computer/CLAUDE.md"
+  ]
+ },
+ {
+  "repo": "llm-as-computer",
+  "pr": 111,
+  "q": "Path B: weight-layer realisation of ClosedForm/ProductForm (closes #109) ## Summary\n\nImplements all three Path B sub-paths from the design doc and closes the\n26-test TDD acceptance suite added in `103a5d7`.\n\n- **`path_b.py`** \u2014 dispatcher: `PathBOutOfScope`, `PathBResult`,\n  `path_b_in_scope(row, n)`, and `evaluate_program_forking_weight_layer`\n  (auto-dispatches by top type or accepts an explicit `path` \u2208 `{b1, b2, b3}`).\n- **`ff_symbolic_poly_embedding.py`** (B.1) \u2014",
+  "truth": [
+   "llm-as-computer/algebraic_poly.py",
+   "llm-as-computer/dev/ff_closed_form_equivalence.md",
+   "llm-as-computer/ff_symbolic.py",
+   "llm-as-computer/ff_symbolic_poly_embedding.py",
+   "llm-as-computer/ff_symbolic_recurrent.py",
+   "llm-as-computer/path_b.py",
+   "llm-as-computer/symbolic_programs_catalog.py",
+   "llm-as-computer/test_path_b_ff_closed_form.py",
+   "llm-as-computer/test_symbolic_programs_catalog.py"
+  ]
+ },
+ {
+  "repo": "llm-as-computer",
+  "pr": 97,
+  "q": "feat: poly_to_program() compiler + unit tests (issue #94) ## Summary\n\nImplements `poly_to_program(poly: Poly) -> List[Instruction]` that compiles a `Poly` into a branchless LAC program using only the `_POLY_OPS` subset.\n\n## Implementation (`poly_compiler.py`)\n\n**Algorithm:**\n1. PUSH once per variable (allocates `x0, x1, ...`)\n2. For each monomial: copy vars from base via DUP/OVER/ROT, raise to power, scale by coefficient\n3. ADD monomial results into accu",
+  "truth": [
+   "llm-as-computer/dev/poly_compiler_context.md",
+   "llm-as-computer/poly_compiler.py",
+   "llm-as-computer/test_poly_compiler.py"
+  ]
+ },
+ {
+  "repo": "llm-as-computer",
+  "pr": 71,
+  "q": "S1: Guarded + unrolled symbolic traces (closes #70) Addresses **S1** (issue #70) on the issue #68 roadmap: _Guarded + unrolled symbolic traces \u2014 unlock the branch-blocked catalog rows._\n\n## Summary\n\n- **`symbolic_executor.py`** \u2014 adds `Guard` / `GuardedPoly` types and a worklist-based `run_forking` that handles `JZ` / `JNZ` by forking the symbolic state.  Finite conditionals on symbolic inputs now produce a `GuardedPoly` (a partitioned case table)",
+  "truth": [
+   "llm-as-computer/dev/symbolic_collapse_report.md",
+   "llm-as-computer/programs.py",
+   "llm-as-computer/symbolic_executor.py",
+   "llm-as-computer/symbolic_programs_catalog.py",
+   "llm-as-computer/test_symbolic_programs_catalog.py"
+  ]
+ },
+ {
+  "repo": "llm-as-computer",
+  "pr": 7,
+  "q": "Fix mischaracterization of phase 5-9 detour as deliberate The training detour was not a planned departure from Percepta's compile\napproach \u2014 it was accidental drift across sessions caused by not anchoring\nto an extractive summary of Percepta's specific claims. The writeup.md\nalready told this story honestly, but README.md, RD-PLAN.md, and\nFINDINGS.md all claimed or implied it was intentional. Fixed all three.\n\nhttps://claude.ai/code/session_01TBi95QxFHK7",
+  "truth": [
+   "llm-as-computer/README.md"
+  ]
+ },
+ {
+  "repo": "llm-as-computer",
+  "pr": 55,
+  "q": "Add C \u2192 WASM \u2192 tokens end-to-end pipeline ## Summary\n\n- Implements `compile_c()` that chains `clang --target=wasm32` \u2192 `wasm2wat` \u2192 `parse_wat()` to compile C source code to `List[Instruction]` for execution on our stack machine\n- Handles WASM calling convention (stack args \u2192 locals initialization via `LOCAL.SET` preamble)\n- Graceful errors for unsupported WASM features (i64, f32/f64, SIMD, atomics, etc.)\n- Convenience `compile_and_run(so",
+  "truth": [
+   "llm-as-computer/c_pipeline.py"
+  ]
+ },
+ {
+  "repo": "llm-as-computer",
+  "pr": 118,
+  "q": "Add comparative review vs Percepta-Core/transformer-vm ## Summary\n\nSide-by-side analysis of LAC's implementation against Percepta's\ncanonical reference at https://github.com/Percepta-Core/transformer-vm.\n\nBoth repos validate the same claim \u2014 transformers can execute programs\nvia 2D parabolic-key attention \u2014 but diverge substantially in scope,\narchitecture, and engineering style. Filed as `dev/comparison-transformer-vm.md`\nalongside the other research",
+  "truth": [
+   "llm-as-computer/dev/comparison-transformer-vm.md"
+  ]
+ },
+ {
+  "repo": "llm-as-computer",
+  "pr": 87,
+  "q": "M4: Honest i32 wrap semantics via ModPoly (closes #78) ## Summary\n\nImplements **option (b)** of issue #78: carry i32 wrap semantics directly in the algebra by introducing polynomials over \u2124/2\u00b3\u00b2. This complements option (a) \u2014 range pinning via \\`range_check()\\` \u2014 which already landed in PR #73 and is retained for guard-based programs.\n\n## What changed\n\n- **\\`symbolic_executor.py\\`** \u2014 new \\`ModPoly\\` class: a sibling to \\`Poly\\` whose coefficients are",
+  "truth": [
+   "llm-as-computer/dev/ff_symbolic_equivalence.md",
+   "llm-as-computer/ff_symbolic.py",
+   "llm-as-computer/symbolic_executor.py",
+   "llm-as-computer/test_ff_symbolic.py"
+  ]
+ },
+ {
+  "repo": "claude-workspace-fuse",
+  "pr": 27,
+  "q": "CLAUDE.md: soften Read-tool line claim + add time-grounding reminder *Filed by Muninn.*\n\nMirror of [oaustegard/claude-workspace#85](https://github.com/oaustegard/claude-workspace/pull/85) \u2014 fuse carries its own copy of these CLAUDE.md sections, so the same patches need to land here.\n\n### 1. Soften the Read-tool line claim\n\nWidens \"usually around 500\u2013800 lines\" to a density-dependent range. Same rationale as parent PR; the 500-line figure shipped verbatim into the t",
+  "truth": [
+   "claude-workspace-fuse/CLAUDE.md"
+  ]
+ },
+ {
+  "repo": "claude-workspace-fuse",
+  "pr": 25,
+  "q": "Port spoke-overlay script from upstream PR #83 ## Summary\n\nPort `scripts/apply_spoke_layers.py` (plus the 30-test unit suite and the example spoke manifest) from upstream [oaustegard/claude-workspace#83](https://github.com/oaustegard/claude-workspace/pull/83) so the spoke-level container-layer overlay can be exercised under this fork's fuse composition. This is a verbatim port \u2014 no fork-specific adaptations needed because `scripts/compose_laye",
+  "truth": [
+   "claude-workspace-fuse/docs/spoke-layer-example.json",
+   "claude-workspace-fuse/scripts/apply_spoke_layers.py",
+   "claude-workspace-fuse/tests/test_apply_spoke_layers.py"
+  ]
+ },
+ {
+  "repo": "claude-workspace-fuse",
+  "pr": 31,
+  "q": "boot-ccotw.sh: adopt parent's \"any HTTP status\" precheck ## Summary\n\nFollow-up to #30 (merged). Parent `claude-workspace` already had a better fix for the same precheck bug, landed in a prior session \u2014 using an \"any HTTP status proves the network is up\" approach against `raw.githubusercontent.com` instead of the \"swap the probe URL\" approach I first landed here in #30.\n\nPorts parent's version verbatim (comment adjusted to note the port), so parent and f",
+  "truth": [
+   "claude-workspace-fuse/boot-ccotw.sh"
+  ]
+ },
+ {
+  "repo": "claude-workspace-fuse",
+  "pr": 44,
+  "q": "Inventory of xai-org/grok-build (xAI's terminal coding agent) ## What\n\n`docs/grok-build/` \u2014 inventory of [xai-org/grok-build](https://github.com/xai-org/grok-build) (2026-07-16 `main` snapshot, 2,734 files / ~12.5k symbols): a synthesis README plus four cluster deep-dives with `file:line` references (agent runtime, tools + workspace, TUI, context management + extensibility).\n\n## Highlights\n\n- **Claude Code compatibility is a deliberate design goal** in Grok",
+  "truth": [
+   "claude-workspace-fuse/docs/grok-build/README.md",
+   "claude-workspace-fuse/docs/grok-build/context.md",
+   "claude-workspace-fuse/docs/grok-build/runtime.md",
+   "claude-workspace-fuse/docs/grok-build/tools.md",
+   "claude-workspace-fuse/docs/grok-build/tui.md"
+  ]
+ },
+ {
+  "repo": "claude-workspace-fuse",
+  "pr": 36,
+  "q": "boot: add muninn-boot skill as the model-invocable boot entrypoint (hybrid) ## What & why\n\nPackages boot as an invocable **`muninn-boot`** skill so the model can drive it on the first turn of a cold session \u2014 *after* `add_repo` widens scope, which is the one step a `SessionStart` shell hook structurally cannot do (it runs before any model turn; `add_repo` is a model-only, host-managed MCP tool reached over a WebSocket the CLI holds \u2014 confirmed not shell-reachable this ses",
+  "truth": [
+   "claude-workspace-fuse/.claude/skills/muninn-boot/SKILL.md",
+   "claude-workspace-fuse/.claude/skills/muninn-boot/scripts/boot.sh",
+   "claude-workspace-fuse/CLAUDE.md",
+   "claude-workspace-fuse/boot-ccotw.sh",
+   "claude-workspace-fuse/scripts/ensure-scope.sh"
+  ]
+ },
+ {
+  "repo": "claude-workspace-fuse",
+  "pr": 37,
+  "q": "boot: make container-layer compose non-fatal under set -e ## What broke\n\nDebugging a fully-degraded boot (session `87f8d62b`, 2026-07-07) traced the failure through several layers. The **root** cause was the familiar cold-start proxy scope (spokes 403 until `add_repo`). But two findings downstream are the real content:\n\n1. **`add_repo`'s interactive approval doesn't round-trip on `remote_mobile` child sessions.** The `canUseTool` permission card either n",
+  "truth": [
+   "claude-workspace-fuse/boot-ccotw.sh"
+  ]
+ },
+ {
+  "repo": "claude-workspace-fuse",
+  "pr": 40,
+  "q": "Spike: carve base+fuse deps off the GitHub-Releases layer path onto PyPI/apt ## What this spikes\n\nTests the split I proposed in-session: keep the **heavy** modular layers on the container-layer system, but install the **light always-on slice** natively so it stops inheriting the cold-start fragility of the GitHub-Releases cache.\n\nThe layer cache restores tarballs from `oaustegard/claude-container-layers` \u2014 the same `codeload`/GitHub-proxy surface that cold-start-degrades u",
+  "truth": [
+   "claude-workspace-fuse/.claude/container-layers.json",
+   "claude-workspace-fuse/boot-ccotw.sh",
+   "claude-workspace-fuse/docs/spike-native-base-deps.md",
+   "claude-workspace-fuse/scripts/install-base-deps.sh"
+  ]
+ },
+ {
+  "repo": "claude-workspace-fuse",
+  "pr": 29,
+  "q": "settings.json: reallow github MCP server ## Summary\n- Removes the `deniedMcpServers: [{ \"serverName\": \"github\" }]` block from `.claude/settings.json`, letting the platform's `mcp__github__*` tools surface in this workspace's sessions again.\n- Previous rationale (documented in CLAUDE.md) was that the platform MCP couldn't reach spokes. Under the current `add_repo` model, in-scope repos are reachable via the MCP too, so the blanket deny is",
+  "truth": [
+   "claude-workspace-fuse/.claude/settings.json"
+  ]
+ },
+ {
+  "repo": "remex",
+  "pr": 63,
+  "q": "Mojo port: IVFCoarseIndex parity with Python ## Summary\n\nPorts `remex.ivf.IVFCoarseIndex` to Mojo so the Mojo runtime gets the\nsame sublinear coarse scan the Python runtime got in PR #58. Closes #61.\n\n- `remex/mojo/src/ivf.mojo` \u2014 `IVFCoarseIndex` over `PackedVectors`\n  with both hash modes:\n  - `MODE_LSH` \u2014 `n_bits` random hyperplanes drawn from the\n    NumPy-compatible Ziggurat RNG (`NumpyNormalRNG`), so\n    `(d, n_bits, seed)` produces th",
+  "truth": [
+   "remex/remex/mojo/README.md",
+   "remex/remex/mojo/bench/bench_ivf.mojo",
+   "remex/remex/mojo/src/ivf.mojo",
+   "remex/remex/mojo/tests/build_ivf_fixture.py",
+   "remex/remex/mojo/tests/test_ivf.mojo"
+  ]
+ },
+ {
+  "repo": "remex",
+  "pr": 70,
+  "q": "docs(research): Matryoshka \u00d7 scalar quantization \u2014 byte-optimal retrieval A research report for `docs/research/`: how Jina v5-nano's native **Matryoshka\ndimensions** and remex's **TurboQuant scalar quantization** combine for\nbyte-optimal retrieval \u2014 with a Pareto chart.\n\n## Finding\nThe two compression levers are orthogonal \u2014 dimension (Matryoshka) sets quality,\nbit-depth (remex) sets storage \u2014 and the recall/byte frontier comes from composing\nthem. On NFCorpus (qrels, n",
+  "truth": [
+   "remex/docs/research/matryoshka-and-quantization.md"
+  ]
+ },
+ {
+  "repo": "remex",
+  "pr": 51,
+  "q": "Mojo search_twostage: heap-based coarse top-k \u2014 closes #49 Closes #49.\n\n## Summary\n\nReplaces the O(n\u00b7candidates) selection-style coarse top-k in `search_twostage` with a min-heap walked once over `n` scores. O(n\u00b7k) \u2192 O(n log k), ~90\u00d7 fewer comparisons at the default (n=10k, candidates=500).\n\n## Why\n\nPer [PR #48's bench refresh](https://github.com/oaustegard/remex/pull/48), the selection loop dominated Mojo's `search_twostage` so heavily that it was *slowe",
+  "truth": [
+   "remex/remex/mojo/src/quantizer.mojo"
+  ]
+ },
+ {
+  "repo": "remex",
+  "pr": 36,
+  "q": "Mojo port of Quantizer (encode + ADC search) \u2014 closes #5 ## Summary\n\nPure-Mojo port of the remex Quantizer's encode and ADC search path under `remex/mojo/`, plus a `polarquant` CLI binary. Closes #5.\n\n- **`remex/mojo/src/`** \u2014 Mojo modules: rotation (Householder QR), Lloyd-Max codebook, bit-packing (1/2/3/4/8-bit), `.npy` reader, `.pq` + `.params` binary formats, PRNG (xoshiro256++ + Marsaglia polar), and the encode + ADC search hot path.\n- **`remex/moj",
+  "truth": [
+   "remex/README.md",
+   "remex/bench/RESULTS.md",
+   "remex/remex/__init__.py",
+   "remex/remex/mojo/README.md",
+   "remex/remex/mojo/bench/bench_encode.mojo",
+   "remex/remex/mojo/bench/bench_search.mojo",
+   "remex/remex/mojo/bench/compare.py",
+   "remex/remex/mojo/polarquant.mojo",
+   "remex/remex/mojo/src/codebook.mojo",
+   "remex/remex/mojo/src/mathx.mojo",
+   "remex/remex/mojo/src/matrix.mojo",
+   "remex/remex/mojo/src/npy.mojo",
+   "remex/remex/mojo/src/packing.mojo",
+   "remex/remex/mojo/src/params_format.mojo",
+   "remex/remex/mojo/src/pq_format.mojo",
+   "remex/remex/mojo/src/quantizer.mojo",
+   "remex/remex/mojo/src/rng.mojo",
+   "remex/remex/mojo/src/rotation.mojo",
+   "remex/remex/mojo/tests/test_codebook.mojo",
+   "remex/remex/mojo/tests/test_encode.mojo",
+   "remex/remex/mojo/tests/test_packing.mojo",
+   "remex/remex/mojo/tests/test_rng.mojo",
+   "remex/remex/mojo/tests/test_rotation.mojo",
+   "remex/remex/pq_format.py"
+  ]
+ },
+ {
+  "repo": "remex",
+  "pr": 58,
+  "q": "Add IVFCoarseIndex: data-oblivious IVF over the Matryoshka coarse tier (closes #53) Closes #53.\n\n## Summary\n\n- Adds `remex.IVFCoarseIndex` \u2014 a coarse-tier inverted-file index that lets `search_twostage`-style retrieval visit only `nprobe` of `2**n_bits` cells per query, instead of streaming the full coarse memory.\n- Stays fully **data-oblivious**: no k-means, no training. The index is deterministic from `(quantizer, n_bits, mode, seed)`. Both hash modes the issue calls out are im",
+  "truth": [
+   "remex/CLAUDE.md",
+   "remex/README.md",
+   "remex/bench/specter2_eval.py",
+   "remex/remex/__init__.py",
+   "remex/remex/ivf.py",
+   "remex/tests/test_ivf.py"
+  ]
+ },
+ {
+  "repo": "remex",
+  "pr": 73,
+  "q": "Mojo: implement the RHT rotation, byte-identical to Python Makes the Mojo port compatible with `rotation=\"rht\"`. Previously the Mojo side knew only the Haar construction, so an RHT `Quantizer` had no counterpart and `save_params` refused to emit parameters for one.\n\n## What changed\n\n**`src/rotation.mojo` \u2014 `rht_rotation(d, seed)`**, mirroring `remex.rotation.rht_rotation`: the same rounds of (permute \u2192 sign flip \u2192 block-diagonal FWHT) applied to the ident",
+  "truth": [
+   "remex/remex/core.py",
+   "remex/remex/mojo/README.md",
+   "remex/remex/mojo/polarquant.mojo",
+   "remex/remex/mojo/src/quantizer.mojo",
+   "remex/remex/mojo/src/rng_numpy.mojo",
+   "remex/remex/mojo/src/rotation.mojo",
+   "remex/remex/mojo/tests/build_rht_fixture.py",
+   "remex/remex/mojo/tests/test_rht.mojo",
+   "remex/remex/mojo/tests/test_rht_encode.mojo",
+   "remex/remex/mojo/tests/test_rng_numpy.mojo",
+   "remex/remex/pq_format.py",
+   "remex/remex/rotation.py",
+   "remex/tests/test_rotation_rht.py"
+  ]
+ },
+ {
+  "repo": "remex",
+  "pr": 13,
+  "q": "Add GPU acceleration and ADC search with two-stage retrieval ## Summary\n\nThis PR adds GPU-accelerated search and memory-efficient asymmetric distance computation (ADC) to polar-embed, enabling two-stage retrieval for large-scale deployments. The changes maintain backward compatibility while providing significant performance and memory improvements for production use cases.\n\n## Key Changes\n\n### GPU Acceleration (`polar_embed/gpu.py`)\n- **New `GPUSearcher` cl",
+  "truth": [
+   "remex/CLAUDE.md",
+   "remex/README.md",
+   "remex/bench/RESULTS.md",
+   "remex/bench/benchmark.py",
+   "remex/bench/real_embedding_eval.py",
+   "remex/docs/integration-guide.md",
+   "remex/pyproject.toml",
+   "remex/tests/test_adc_gpu.py",
+   "remex/tests/test_polar_embed.py"
+  ]
+ },
+ {
+  "repo": "remex",
+  "pr": 27,
+  "q": "Rename project polar-embed \u2192 remex and add MIT LICENSE - Rename package directory polar_embed/ \u2192 remex/\n- Rename PolarQuantizer class \u2192 Quantizer (PolarQuantizer kept as deprecated alias)\n- Update all imports, docs, tests, and benchmarks\n- Add MIT LICENSE file (copyright 2026 Oskar Austegard)\n- Update pyproject.toml package name to \"remex\"\n\nCloses #22, closes #15\n\nhttps://claude.ai/code/session_01PojsWzjmqpwy6LJLXE8MVt",
+  "truth": [
+   "remex/CLAUDE.md",
+   "remex/README.md",
+   "remex/bench/benchmark.py",
+   "remex/bench/real_embedding_eval.py",
+   "remex/docs/integration-guide.md",
+   "remex/pyproject.toml",
+   "remex/remex/__init__.py",
+   "remex/remex/codebook.py",
+   "remex/remex/core.py",
+   "remex/remex/gpu.py",
+   "remex/remex/packing.py",
+   "remex/remex/rotation.py",
+   "remex/tests/test_adc_gpu.py",
+   "remex/tests/test_matryoshka.py",
+   "remex/tests/test_polar_embed.py"
+  ]
+ },
+ {
+  "repo": "aeyu.io",
+  "pr": 236,
+  "q": "Exclude virtual rides from route detection clustering ## Summary\n- Skip `VirtualRide` activities in `detectRoutes()` and `findRouteForActivity()` so Zwift/indoor rides never cluster with outdoor routes\n- Tighten the distance gate in `distanceMatch()` to return `false` (with a `console.warn`) when distance data is missing, instead of silently matching everything\n\nCloses #231\n\n## Test plan\n- [ ] Verify outdoor rides still cluster into routes as before",
+  "truth": [
+   "aeyu.io/src/routes.js"
+  ]
+ },
+ {
+  "repo": "aeyu.io",
+  "pr": 262,
+  "q": "Fix desktop clipboard for Coach with Claude button ## Summary\n- Restores copy-to-clipboard + open behavior for the \"Coach with Claude\" button on desktop\n- Mobile keeps the plain link (no clipboard copy) as intended by #259\n- Uses `installContext.isMobile` to branch behavior in both Dashboard.js and ActivityDetail.js\n\n## What happened\nCommit #259 simplified the Coach button to a plain `<a>` link on **both** mobile and desktop. This was only intende",
+  "truth": [
+   "aeyu.io/src/components/ActivityDetail.js",
+   "aeyu.io/src/components/Dashboard.js"
+  ]
+ },
+ {
+  "repo": "aeyu.io",
+  "pr": 216,
+  "q": "Fix zoomed-in viewport on iOS app restore ## Summary\n- Adds `maximum-scale=1.0` to the viewport meta tag on all 5 HTML pages\n- Fixes iOS Safari bug where restoring a backgrounded tab retains a slightly zoomed state, causing content to bleed off the left/right edges\n\n## Test plan\n- [ ] Open the app on iOS Safari\n- [ ] Switch to another app, then switch back \u2014 verify content is not zoomed/bleeding\n- [ ] Verify pinch-to-zoom is disabled (exp",
+  "truth": [
+   "aeyu.io/activity.html",
+   "aeyu.io/callback.html",
+   "aeyu.io/dashboard.html",
+   "aeyu.io/demo.html",
+   "aeyu.io/index.html"
+  ]
+ },
+ {
+  "repo": "aeyu.io",
+  "pr": 229,
+  "q": "Replace segment-only route matching with distance-gated Jaccard",
+  "truth": [
+   "aeyu.io/src/routes.js"
+  ]
+ },
+ {
+  "repo": "aeyu.io",
+  "pr": 180,
+  "q": "Add LLM export feature for AI coaching context New export-llm.js module aggregates recent ride data into a compact\npayload (~2-5KB) with weekly rollups, monthly trends, fitness indicators,\nstreak data, award distributions, and last 10 rides. Supports Markdown\nand JSON output formats with configurable time windows (30d-1yr).\n\nUI added in Settings panel with format/window selectors and copy-to-clipboard.\nFAQ entry explains the feature.\n\nhttps://",
+  "truth": [
+   "aeyu.io/src/components/Dashboard.js",
+   "aeyu.io/src/export-llm.js"
+  ]
+ },
+ {
+  "repo": "aeyu.io",
+  "pr": 268,
+  "q": "Fix AI coach export to respect imperial units ## Summary\n- **`segmentToMarkdown`** was hardcoding `km` and `m` units \u2014 now uses `formatDistance`/`formatElevation` from `units.js` to respect user preference\n- **JSON exports** (clipboard copy + download) always output metric values with metric key names (`distance_km`, `elevation_m`, `avg_speed_kph`) \u2014 now converts values and renames keys when imperial (e.g. `distance_km: 5.0` \u2192 `distance_mi: 3",
+  "truth": [
+   "aeyu.io/src/components/ActivityDetail.js",
+   "aeyu.io/src/components/Dashboard.js",
+   "aeyu.io/src/export-llm.js"
+  ]
+ },
+ {
+  "repo": "aeyu.io",
+  "pr": 260,
+  "q": "Update AI coach artifact URL https://claude.ai/code/session_0143NfHSnb8BxJQYMc1B9JfZ",
+  "truth": [
+   "aeyu.io/src/components/ActivityDetail.js",
+   "aeyu.io/src/components/Dashboard.js"
+  ]
+ },
+ {
+  "repo": "aeyu.io",
+  "pr": 220,
+  "q": "Make routes a first-class feature with Strava sync and trend charts ## Summary\n\n- **Strava routes sync**: Fetches user's saved Strava routes and uses their names for ride cluster naming (instead of most-frequent activity name heuristic). Syncs automatically as a high-priority target at the start of every sync, plus a dedicated \"Sync Routes\" button in Settings.\n- **Route trend charts**: All route chips in search now show speed + power trend charts when clicked. Sea",
+  "truth": [
+   "aeyu.io/src/awards.js",
+   "aeyu.io/src/components/ActivityDetail.js",
+   "aeyu.io/src/components/Dashboard.js",
+   "aeyu.io/src/components/Landing.js",
+   "aeyu.io/src/config.js",
+   "aeyu.io/src/db.js",
+   "aeyu.io/src/routes.js",
+   "aeyu.io/src/sync.js"
+  ]
+ },
+ {
+  "repo": "tree-sitter-mojo",
+  "pr": 18,
+  "q": "Add transfer_expression for '^' ownership transfer (closes #7) ## Summary\n\nImplements Mojo's `^` postfix ownership-transfer operator, closing #7.\nAcceptance corpus drops **42 \u2192 21 (\u221221)** against the main baseline.\n`basic.mojo` is now CLEAN.\n\n## Grammar changes\n\nNew rule, same precedence as attribute access per the issue spec:\n\n```js\ntransfer_expression: $ => prec(PREC.call, seq(\n  $.primary_expression,\n  '^',\n)),\n```\n\nWired into the `primary_expression` choi",
+  "truth": [
+   "tree-sitter-mojo/grammar.js",
+   "tree-sitter-mojo/src/grammar.json",
+   "tree-sitter-mojo/src/node-types.json",
+   "tree-sitter-mojo/test/corpus/ownership_transfer.txt"
+  ]
+ },
+ {
+  "repo": "tree-sitter-mojo",
+  "pr": 16,
+  "q": "Add trait_definition rule (closes #5) ## Summary\n\nImplements `trait` declarations, closing #5. Strict mirror of\n`struct_definition` per the issue spec \u2014 identical seq() structure,\nidentical field names, only the leading keyword differs:\n\n```js\ntrait_definition: $ => seq(\n  'trait',\n  field('name', $.identifier),\n  field('type_parameters', optional($.type_parameter)),\n  field('traits', optional($.argument_list)),\n  ':',\n  field('body',",
+  "truth": [
+   "tree-sitter-mojo/grammar.js",
+   "tree-sitter-mojo/src/grammar.json",
+   "tree-sitter-mojo/src/node-types.json",
+   "tree-sitter-mojo/test/corpus/traits.txt"
+  ]
+ },
+ {
+  "repo": "tree-sitter-mojo",
+  "pr": 12,
+  "q": "Add variable_declaration for `var` bindings (closes #2) ## Summary\n\nImplements `var` declarations, closing #2. This was the highest single\ncontributor to the parse-error count \u2014 the acceptance script drops\n**127 \u2192 43 ERROR/MISSING nodes (\u221284)**, the largest single-feature drop\non the roadmap so far.\n\n## Grammar change\n\nNew rule mirrors the shape of `assignment` (both `: type` and `= value`\nindependently optional, matching the issue's `var name [: type]",
+  "truth": [
+   "tree-sitter-mojo/grammar.js",
+   "tree-sitter-mojo/src/grammar.json",
+   "tree-sitter-mojo/src/node-types.json",
+   "tree-sitter-mojo/test/corpus/var_declarations.txt"
+  ]
+ },
+ {
+  "repo": "tree-sitter-mojo",
+  "pr": 48,
+  "q": "Extend raises_clause to accept a typed error (closes #42) Closes #42. Follow-up from PR #40.\n\n## Gap\n\nMojo's typed-raises clause names the specific exception type:\n\n\\`\\`\\`mojo\nfn parse(...) raises ParseError -> String:   # ERROR before this PR\nfn other() raises:                            # parsed\n\\`\\`\\`\n\nOnly the bare \\`raises\\` keyword was accepted.\n\n## Grammar\n\n\\`\\`\\`js\nraises_clause: \\$ => seq(\n  'raises',\n  field('error_type', optional(\\$.type)),\n),",
+  "truth": [
+   "tree-sitter-mojo/grammar.js",
+   "tree-sitter-mojo/src/grammar.json",
+   "tree-sitter-mojo/src/node-types.json",
+   "tree-sitter-mojo/test/corpus/raises_double.txt",
+   "tree-sitter-mojo/test/corpus/typed_raises.txt"
+  ]
+ },
+ {
+  "repo": "tree-sitter-mojo",
+  "pr": 14,
+  "q": "Add comptime_declaration rule (closes #3) ## Summary\n\nImplements `comptime` declarations, closing #3. The new rule is\nshape-identical to `variable_declaration` (#12) \u2014 both follow the\n`keyword name [: type] [= value]` pattern, just with a different\nleading keyword:\n\n```js\ncomptime_declaration: $ => seq(\n  'comptime',\n  field('name', $.identifier),\n  optional(seq(':', field('type', $.type))),\n  optional(seq('=', field('value', $._right_han",
+  "truth": [
+   "tree-sitter-mojo/grammar.js",
+   "tree-sitter-mojo/src/grammar.json",
+   "tree-sitter-mojo/src/node-types.json",
+   "tree-sitter-mojo/test/corpus/comptime.txt"
+  ]
+ },
+ {
+  "repo": "tree-sitter-mojo",
+  "pr": 20,
+  "q": "Decorators on struct/trait + Mojo decorator highlights (closes #9) ## Summary\n\nThe issue called out \"verify first, only file grammar changes if the\nparser actually errors\". **Verification flagged three of four:** the\nstruct decorators all errored because `decorated_definition` only\naccepted `class_definition` and `function_definition` in its choice.\n\n| Form | Status (before) |\n|---|---|\n| `@fieldwise_init struct Point(Copyable, Movable):` | \u274c ERROR |\n| `@register",
+  "truth": [
+   "tree-sitter-mojo/grammar.js",
+   "tree-sitter-mojo/src/grammar.json",
+   "tree-sitter-mojo/src/node-types.json",
+   "tree-sitter-mojo/test/corpus/mojo_decorators.txt"
+  ]
+ },
+ {
+  "repo": "tree-sitter-mojo",
+  "pr": 37,
+  "q": "Widen acceptance corpus beyond fusemojo (4 sources, 7,205 lines) ## Summary\n\nResolves the v1.0 blocker from #28 \u2014 the `examples/` corpus is no\nlonger a single-author smoke test. Grows from **4 files / 688 lines**\nof fusemojo to **28 files / 7,205 lines** spanning **four distinct\nupstream sources**. `script/check-errors.sh` stays at zero\nERROR/MISSING nodes.\n\nNo grammar / parser / query changes \u2014 pure examples-only addition.\n\n## Sources and files\n\nAll copied ver",
+  "truth": [
+   "tree-sitter-mojo/examples/decimo_bigfloat.mojo",
+   "tree-sitter-mojo/examples/decimo_rational.mojo",
+   "tree-sitter-mojo/examples/lightbug_bench.mojo",
+   "tree-sitter-mojo/examples/lightbug_cookie_expiration.mojo",
+   "tree-sitter-mojo/examples/lightbug_http_date.mojo",
+   "tree-sitter-mojo/examples/lightbug_http_json.mojo",
+   "tree-sitter-mojo/examples/lightbug_service.mojo",
+   "tree-sitter-mojo/examples/lightbug_strings.mojo",
+   "tree-sitter-mojo/examples/lightbug_test_uri.mojo",
+   "tree-sitter-mojo/examples/max_amd_target.mojo",
+   "tree-sitter-mojo/examples/max_pipeline_compiler.mojo",
+   "tree-sitter-mojo/examples/max_pipeline_dsl.mojo",
+   "tree-sitter-mojo/examples/max_pipeline_strategies.mojo",
+   "tree-sitter-mojo/examples/max_warp_context.mojo",
+   "tree-sitter-mojo/examples/mojojson_serializer.mojo",
+   "tree-sitter-mojo/examples/mojojson_streaming.mojo",
+   "tree-sitter-mojo/examples/stdlib_builtin_slice.mojo",
+   "tree-sitter-mojo/examples/stdlib_floatable.mojo",
+   "tree-sitter-mojo/examples/stdlib_gpu_func_attribute.mojo",
+   "tree-sitter-mojo/examples/stdlib_hasher.mojo",
+   "tree-sitter-mojo/examples/stdlib_os_linux_aarch64.mojo",
+   "tree-sitter-mojo/examples/stdlib_os_macos.mojo",
+   "tree-sitter-mojo/examples/stdlib_random_rng.mojo",
+   "tree-sitter-mojo/examples/stdlib_stat.mojo"
+  ]
+ },
+ {
+  "repo": "tree-sitter-mojo",
+  "pr": 36,
+  "q": "Regenerate src/ with tree-sitter-cli 0.26 to match CI ## Summary\n\nFix-up for #33. That PR regenerated `src/` with tree-sitter-cli 0.25.10 (the `^0.25.9` pin in `package.json` devDeps), but CI installs `^0.26`. The \"Verify committed parser.c matches generated output\" check failed on the PR and is now red on `main`.\n\nThis PR re-runs `tree-sitter generate` with 0.26.8 so the committed `src/` matches CI's expectation.\n\n## Diff scope\n\nMechanical regen onl",
+  "truth": [
+   "tree-sitter-mojo/src/tree_sitter/array.h"
+  ]
+ },
+ {
+  "repo": "remax_kb",
+  "pr": 16,
+  "q": "perf(hamming): hardware popcount for the 1-bit scan (~10x, beats BLAS float cosine) \u2014 closes #15 ## Summary\n\nCloses #15. Makes the 1-bit Hamming scan **~10x faster than the current popcount LUT and faster than a BLAS float-cosine scan at every corpus size**, while keeping the codes bit-packed (256 B/row) \u2014 delivering the latency half of the 1-bit format's promise that the issue identified as missing.\n\nThe fix is the issue's *cheapest* candidate (approach 1): replace the per-byte popcount **LU",
+  "truth": [
+   "remax_kb/remax_kb/_hamming.py",
+   "remax_kb/remax_kb/read_v2.py",
+   "remax_kb/tests/test_hamming.py"
+  ]
+ },
+ {
+  "repo": "remax_kb",
+  "pr": 30,
+  "q": "JS reader: close the parity gaps, and default new packs to srht so they ship no rotation sidecar Follow-up to #29 (rebased onto main now that it merged). **165 passed, 7 skipped, 3 xpassed** (from 161). All four gates green; cross-reader grew 36 \u2192 **115** checks, open-validation 29 \u2192 **41**.\n\nEvery item here was a coverage limit some gate in this repo had already written down. This closes them or explains why they can't be.\n\n## 1. Sign convention \u2014 half of #20, and **#20 stays open**\n\n`kb-rea",
+  "truth": [
+   "remax_kb/.github/workflows/test.yml",
+   "remax_kb/README.md",
+   "remax_kb/SPEC_v2.md",
+   "remax_kb/js/kb-reader.js",
+   "remax_kb/remax_kb/cli.py",
+   "remax_kb/remax_kb/pack_v2.py",
+   "remax_kb/tests/gates/gate_cross_reader.py",
+   "remax_kb/tests/gates/gate_open_validation.py",
+   "remax_kb/tests/test_cli.py",
+   "remax_kb/tests/test_int8_rotations.py",
+   "remax_kb/tests/test_js_reader_compat.py",
+   "remax_kb/tests/test_reader_parity.py",
+   "remax_kb/tests/test_srht.py"
+  ]
+ },
+ {
+  "repo": "remax_kb",
+  "pr": 26,
+  "q": "Tune v2 hybrid search: semantic floor + fusion knobs ## Why\n\nThe v2 hybrid path (dense SimHash + BM25, fused with RRF) always ranks *something* nearest \u2014 even for a complete-nonsense query. Because RRF awards rank-credit by position, that spurious \"nearest\" dense hit leaks into the fused results regardless of how (ir)relevant it actually is. That's the noise showing up in MAC searches. There was also no way to tune the fusion depth, and the result c",
+  "truth": [
+   "remax_kb/remax_kb/cli.py",
+   "remax_kb/remax_kb/read_v2.py",
+   "remax_kb/skill/SKILL.md",
+   "remax_kb/skill/search.py",
+   "remax_kb/tests/test_search_tuning.py"
+  ]
+ },
+ {
+  "repo": "remax_kb",
+  "pr": 21,
+  "q": "remex codec: CI + reproducible benchmark + docs (production hardening) Production hardening for the remex codec (merged in #18). No behavior change to the\ncodec itself \u2014 this adds the evidence, automation, and docs to make it trustworthy.\n\n## Added\n\n- **CI** (`.github/workflows/test.yml`) \u2014 the repo had none. Runs the full suite on\n  push/PR (no torch; model/network tests self-skip) plus a benchmark smoke run.\n- **Reproducible benchmark** (`bench/bench_codecs.py` + `",
+  "truth": [
+   "remax_kb/.github/workflows/test.yml",
+   "remax_kb/README.md",
+   "remax_kb/bench/RESULTS.md",
+   "remax_kb/bench/bench_codecs.py",
+   "remax_kb/pyproject.toml",
+   "remax_kb/requirements-runtime.txt",
+   "remax_kb/tests/test_js_reader_compat.py"
+  ]
+ },
+ {
+  "repo": "remax_kb",
+  "pr": 22,
+  "q": "Wire remex codec into the v2 .kbi/.kbc path (closes #19) Closes #19. Wires the **remex** multi-bit codec (merged for v1 in #18) into the\nv2 `.kbi`/`.kbc` split-index path, so new builds \u2014 the recommended format \u2014 can\nuse it with full hybrid (dense + BM25) retrieval and mutation.\n\n## Usage\n\n```bash\nremax-kb pack ./docs -o docs.kbi --v2 --codec remex --bits 4 --dim 512 --embedder jina-onnx\n```\n\n## What it does\n\n- **KBWriter**: `codec`/`bits` params; `_enc",
+  "truth": [
+   "remax_kb/README.md",
+   "remax_kb/SPEC_v2.md",
+   "remax_kb/remax_kb/cli.py",
+   "remax_kb/remax_kb/pack_v2.py",
+   "remax_kb/remax_kb/read_v2.py",
+   "remax_kb/tests/test_pack_v2_remex.py"
+  ]
+ },
+ {
+  "repo": "remax_kb",
+  "pr": 6,
+  "q": "feat(v2): ship rotations.f32 + JS reader ## Adds rotations cache + JS reader\n\nTwo pieces:\n\n### 1. `binarizer/rotations.f32` zip entry\n\nOptional in spec. Writer always emits it. Contains the pre-computed\nHaar rotation matrices as `k * dim * dim` float32 LE.\n\n**Why ship instead of port QR to JS:** bit-identical reproduction of\n`numpy.SeedSequence` + Ziggurat-driven `standard_normal` + LAPACK\nHouseholder QR in JS is 500+ lines of fragile co",
+  "truth": [
+   "remax_kb/SPEC_v2.md",
+   "remax_kb/js/kb-reader.js",
+   "remax_kb/remax_kb/pack_v2.py",
+   "remax_kb/tests/test_js_reader_compat.py"
+  ]
+ },
+ {
+  "repo": "remax_kb",
+  "pr": 32,
+  "q": "Use remax's compiled Hamming kernel instead of reimplementing the NumPy one `remax` has always been a hard dependency of `_hamming.py` \u2014 `stable_top_k` is imported from it \u2014 and `remax` has shipped a `__builtin_popcountll` C kernel since **v0.2.0**, the version pinned in `pyproject.toml`. `packing.hamming_distances` dispatches to it whenever `remax._native.AVAILABLE`.\n\nThe scan never called any of it. It reimplemented the NumPy path inline, so every query took the slow ro",
+  "truth": [
+   "remax_kb/remax_kb/_hamming.py",
+   "remax_kb/remax_kb/read_v2.py",
+   "remax_kb/tests/test_hamming.py"
+  ]
+ },
+ {
+  "repo": "remax_kb",
+  "pr": 10,
+  "q": "int8-quantized rotation sidecar (4\u00d7 smaller, recall-neutral) ## Why\n\nThe `binarizer/rotations` sidecar (`k\u00b7dim\u00b2` f32 matrices) exists so non-NumPy readers can encode a query into the corpus's sign-space. It's **corpus-independent**, so it dominates a *small* `.kbi` \u2014 exactly the regime the \"bundle a `.kb` into a skill\" goal cares about. The matrices feed only a **sign test** (`x\u00b7Q \u2265 0`), so f32 precision is overkill.\n\n## What\n\nQuantize the rotations to **in",
+  "truth": [
+   "remax_kb/SPEC_v2.md",
+   "remax_kb/js/kb-reader.js",
+   "remax_kb/pyproject.toml",
+   "remax_kb/remax_kb/pack_v2.py",
+   "remax_kb/remax_kb/read_v2.py",
+   "remax_kb/remax_kb/rotations.py",
+   "remax_kb/tests/test_int8_rotations.py",
+   "remax_kb/tests/test_js_reader_compat.py"
+  ]
+ },
+ {
+  "repo": "eml-sr",
+  "pr": 39,
+  "q": "Issue #32: compiler-backed test suite + GrammarError Closes #32.\n\n## Scope\n\nDeliverables A, B, D per the issue body. **Deliverable C (retrofit `test_eml_sr.py`) deferred** \u2014 the existing hand-crafted targets there are stable and the retrofit risk/value ratio didn't justify piggybacking onto this PR. Suggest a follow-up issue if desired.\n\n## Changes\n\n### `eml_compiler.py`: new `GrammarError` class\nSubclasses `ValueError` for backward compat. Retarget",
+  "truth": [
+   "eml-sr/eml_compiler.py",
+   "eml-sr/tests/test_compiler_grammar.py",
+   "eml-sr/tests/test_compiler_recovery.py"
+  ]
+ },
+ {
+  "repo": "eml-sr",
+  "pr": 51,
+  "q": "Parameterize engine on operator choice; add cousin ablation (closes #36) ## Summary\n\nImplements [eml-sr#36](https://github.com/oaustegard/eml-sr/issues/36) \u2014 the cousin ablation. Parameterizes the engine on operator choice (EML / EDL / NEG_EML) via `eml_operators.OperatorConfig`, derives canonical identities for the cousins, verifies them numerically, and runs a comparative benchmark that emits `benchmarks/cousin_ablation.md`.\n\n## What changes\n\n- **`eml_operators.py` (",
+  "truth": [
+   "eml-sr/benchmarks/cousin_ablation.md",
+   "eml-sr/benchmarks/cousin_ablation.py",
+   "eml-sr/eml_compiler.py",
+   "eml-sr/eml_operators.py",
+   "eml-sr/eml_sr.py",
+   "eml-sr/tests/test_cousin_identities.py"
+  ]
+ },
+ {
+  "repo": "eml-sr",
+  "pr": 55,
+  "q": "discover_curriculum: recover ln(x) (closes #49) ## Summary\n\n`discover_curriculum` failed to recover the canonical `ln(x)` target at\n`max_depth=4, n_tries=16, threshold=1e-6` even though `discover` at the\nsame budget nailed it. Two compounding bugs:\n\n### Bug 1: best intermediate snap discarded\n\nGrowth steps could destroy a good intermediate snap. Splitting leaf K+1\nretrains the whole soft tree, and if the optimizer drifted, the final\nsnap could",
+  "truth": [
+   "eml-sr/eml_sr.py",
+   "eml-sr/tests/test_curriculum_multivariate.py"
+  ]
+ },
+ {
+  "repo": "eml-sr",
+  "pr": 28,
+  "q": "Issue #19: update sklearn wrapper for native multivariate Implements Direction E [5/6] from #13. Closes #19.\n\n**Depends on:** #16 (public API 2D \u2014 merged), #17 (Normalizer vectorized \u2014 merged), #18 (curriculum multivariate \u2014 PR #27).\n\n**Stacked on:** `claude/implement-eml-18-curriculum-mv` \u2014 base will become `main` after #27 merges.\n\n## What changes\n\n`EMLRegressor` now passes multi-column `X` through the multivariate forward pass by default.\n\n### API sur",
+  "truth": [
+   "eml-sr/eml_sr_sklearn.py"
+  ]
+ },
+ {
+  "repo": "eml-sr",
+  "pr": 10,
+  "q": "Add CSV ingestion, sklearn interface, and Feynman benchmark (#6) Closes #6.\n\n## Summary\n- **Phase 1 \u2014 CSV CLI**: `Normalizer` class (minmax/standard/none) + `discover_csv()` + argparse subcommands. `python eml_sr.py csv data.csv --x-col t --y-col temp --max-depth 5 --workers 8` works end-to-end. Reports the formula in normalized coords plus the affine substitution needed to invert it.\n- **Phase 2 \u2014 Feynman benchmark**: `benchmarks/feynman.py` with 17 curated un",
+  "truth": [
+   "eml-sr/README.md",
+   "eml-sr/benchmarks/feynman.py",
+   "eml-sr/eml_sr.py",
+   "eml-sr/eml_sr_sklearn.py"
+  ]
+ },
+ {
+  "repo": "eml-sr",
+  "pr": 26,
+  "q": "Issue #17: vectorize Normalizer for multi-column X (implementation) Direction E [3/6] \u2014 implements the code for issue #17.\n\nCloses #17. Supersedes PR #23, which merged only this issue's tests (see #25 for the forensic record).\n\n## What changed\n\n`Normalizer` in `eml_sr.py` now handles both 1D and 2D `X`:\n\n- **1D surface preserved byte-for-byte.** For scalar inputs, `x_a` and `x_b` are still Python floats, `describe()` emits the legacy `x' = a * x + b` format, and `",
+  "truth": [
+   "eml-sr/eml_sr.py"
+  ]
+ },
+ {
+  "repo": "eml-sr",
+  "pr": 22,
+  "q": "Issue #11: wire depth-0 passthrough to close the identity gap Closes #11.\n\n## Summary\n\nThe depth-1 identity gap is architecturally a wiring issue, not a new-architecture issue. `EMLTree1D(depth=0)` already constructs, forwards, snaps, and trains \u2014 but the `discover()` ladder skipped it, and `GrowingEMLTree` hardcoded depth 1. This PR wires depth 0 into both entry points.\n\nA single-leaf tree has no gates and emits exactly one of `{1, x}`. That closes the gap",
+  "truth": [
+   "eml-sr/README.md",
+   "eml-sr/benchmarks/feynman.py",
+   "eml-sr/eml_sr.py",
+   "eml-sr/tests/test_eml_sr.py"
+  ]
+ },
+ {
+  "repo": "eml-sr",
+  "pr": 56,
+  "q": "Per-edge MLP distillation via eml-sr (closes #42) ## Summary\n\nAdds `eml_sr_distill.py` \u2014 the KAN-style post-hoc extraction pipeline proposed in #42.\n\nPipeline: train a small MLP \u2192 sample per-feature partial-dependence curves (and optionally per-edge first-layer pre-activations) \u2192 run `discover_curriculum` on each slot \u2192 compose additively. Returns a `DistillReport` with per-slot recovery flags, compression ratio (MLP params vs surrogate tree node",
+  "truth": [
+   "eml-sr/README.md",
+   "eml-sr/benchmarks/distill_demo.py",
+   "eml-sr/eml_sr_distill.py",
+   "eml-sr/tests/test_distill.py"
+  ]
+ },
+ {
+  "repo": "claude-workspace",
+  "pr": 214,
+  "q": "xr: publish the dense score with every hit `xr` could not say \"no\". RRF fuses two *rankings*, so its output is ordinal \u2014 the k-th result is the k-th best available, never \"good\". A query for something the account has never held returned k rows indistinguishable from a query it documents thoroughly. The scores existed internally and were thrown away before output.\n\nAudited 2026-08-11 (`xr \"test xr\"` \u2192 \"is it actually useful?\"):\n\n| query | t",
+  "truth": [
+   "claude-workspace/CLAUDE.md",
+   "claude-workspace/scripts/xr.py",
+   "claude-workspace/tests/test_xr.py"
+  ]
+ },
+ {
+  "repo": "claude-workspace",
+  "pr": 215,
+  "q": "CLAUDE.md: on a repeated add_repo approval error, ask for Auto mode A reminder to myself, requested 2026-08-11.\n\n`add_repo`'s approval surfaces to you as an interactive prompt while returning `MCP error -32003: MCP tool call requires approval` to me. A call that is merely waiting therefore looks broken from my side.\n\nObserved this session: `add_repo(oaustegard/experiments, access=push)` errored, and an immediate identical retry returned the clone instructions \u2014 yo",
+  "truth": [
+   "claude-workspace/CLAUDE.md"
+  ]
+ },
+ {
+  "repo": "claude-workspace",
+  "pr": 115,
+  "q": "docs(CLAUDE.md): correct resume vs session-end persistence model ## What\n\nSharpens the container-lifecycle guidance that was actively teaching the wrong mental model.\n\n**Before:** \"The container is ephemeral \u2014 nothing survives session end unless committed and pushed.\" + \"`/tmp/` not persistent across sessions.\" \u2014 no distinction between *resume* and *session end*.\n\n**After:** A **resume** is a fresh container *instance* (uptime ~0, shell/env/cwd reset, `boot()`",
+  "truth": [
+   "claude-workspace/CLAUDE.md"
+  ]
+ },
+ {
+  "repo": "claude-workspace",
+  "pr": 186,
+  "q": "CLAUDE.md: stop manufacturing reveals I used \"and it has a name here\" twice in a single message, both times to introduce a fact that stood perfectly well on its own. Oskar: *\"Nobody uses 'it has a name here'. Stop trying to make fetch happen.\"*\n\nAdds an operational rule naming the construction and its relatives \u2014 \"and that's the interesting part\", \"here's the thing\", the one-line beat before an ordinary sentence \u2014 with the plain-state",
+  "truth": [
+   "claude-workspace/CLAUDE.md"
+  ]
+ },
+ {
+  "repo": "claude-workspace",
+  "pr": 210,
+  "q": "boot: keep stage exhaust out of the model's context, fit the core in 2KB Found while testing `xr`: the session answered a task in generic-assistant mode with no profile, ops or triggers loaded. Two defects in `boot-ccotw.sh` behind that.\n\n## 1. Stage exhaust in stdout\n\n`boot-ccotw.sh` stdout **is** the operational context the model reads. It carried ~430 bytes of progress noise:\n\n```\nEnvironment ready (cached).\n\u23f1 bash:env_source 8ms\n\u23f1 bash:drift_check 1265ms\n  \u2713 Skills",
+  "truth": [
+   "claude-workspace/boot-ccotw.sh",
+   "claude-workspace/tests/test_boot_resilience.py",
+   "claude-workspace/tests/test_link_slash_skills.sh"
+  ]
+ },
+ {
+  "repo": "claude-workspace",
+  "pr": 199,
+  "q": "xr: warn on a stale index; wire the corpora the account build does not have Closes the three items #187 left open. Builder-side changes are in [oaustegard/experiments#25](https://github.com/oaustegard/experiments/pull/25) \u2014 that PR needs to land for the workflow inputs here to do anything.\n\nFixes #197.\n\n## 1. Staleness warning\n\n`built_at` has been in the manifest since the first build and nothing read it outside `--stats`. The failure this guards against is the one the wh",
+  "truth": [
+   "claude-workspace/.github/workflows/account-index-corpora.yml",
+   "claude-workspace/.github/workflows/account-index-rebuild.yml",
+   "claude-workspace/.github/workflows/account-index.yml",
+   "claude-workspace/CLAUDE.md",
+   "claude-workspace/scripts/xr.py",
+   "claude-workspace/tests/test_xr.py"
+  ]
+ },
+ {
+  "repo": "claude-workspace",
+  "pr": 158,
+  "q": "Handle agent proxy lockdown: mirror artifacts, fix boot probes ## Summary\n\nThe agent proxy underwent a lockdown on 2026-07-02 that blocks codeload and most API endpoints for repos outside the session scope. This PR adds fallback mechanisms to keep boot and rebuild working, documents the new GitHub access landscape, and fixes credential confusion.\n\n## Key Changes\n\n- **Mirror fallback for boot artifacts**: Added `mirror-session-artifacts.yml` GitHub Action that",
+  "truth": [
+   "claude-workspace/.github/workflows/mirror-session-artifacts.yml",
+   "claude-workspace/CLAUDE.md",
+   "claude-workspace/boot-ccotw.sh",
+   "claude-workspace/rebuild-layer.sh",
+   "claude-workspace/scripts/cf-gh-proxy/worker.js",
+   "claude-workspace/scripts/cf-gh-proxy/wrangler.toml",
+   "claude-workspace/scripts/compose_layers.py",
+   "claude-workspace/tests/test_compose_layers.py"
+  ]
+ },
+ {
+  "repo": "claude-workspace",
+  "pr": 110,
+  "q": "Review SkillOpt + add optimizing-skills (review record); document account-wide GitHub access ## What\n\nOutput of reviewing **SkillOpt** (microsoft/SkillOpt, [arXiv:2605.23904](https://arxiv.org/abs/2605.23904)) \u2014 paper + source \u2014 and turning it into a usable skill.\n\n- **`experiments/skillopt-skill/`** \u2014 the review record + provenance snapshot of the new `optimizing-skills` skill (held-out validation gate, bounded edits, failure-first reflection, impact ranking, protected core, cross-revisi",
+  "truth": [
+   "claude-workspace/CLAUDE.md"
+  ]
+ },
+ {
+  "repo": "mojo-bm25s",
+  "pr": 11,
+  "q": "5 TFC \u00d7 5 IDF BM25 scoring kernels with parity tests (closes #2) Closes #2. Also lands the project-level **CLAUDE.md** establishing TDD as the default.\n\n## TDD red\u2192green trace\n\n1. Wrote `tests/test_scoring.py` (75 cases) deriving every assertion from the `bm25s` reference functions \u2014 no implementation drafted yet.\n2. Stubbed `score_tfc` / `score_idf` in `lib.mojo` to return well-typed zeros. `pixi run test` \u2192 **65 failed, 12 passed** (parity tests all failed at",
+  "truth": [
+   "mojo-bm25s/CLAUDE.md",
+   "mojo-bm25s/src/mojo_bm25s/__init__.py",
+   "mojo-bm25s/src/mojo_bm25s/lib.mojo",
+   "mojo-bm25s/src/mojo_bm25s/scoring.mojo",
+   "mojo-bm25s/tests/test_scoring.py"
+  ]
+ },
+ {
+  "repo": "mojo-bm25s",
+  "pr": 38,
+  "q": "Vocab builder + token-id mapping (closes #24) ## Summary\n\n- Adds `mojo_bm25s.Vocab` \u2014 a deterministic string -> int32 ID map built from a tokenized corpus, with the reverse lookup, an unknown-token sentinel, and save/load. Used by the index builder (#25) and retriever (#27) downstream.\n- Implementation lives in `src/mojo_bm25s/vocab.py` (pure Python), per the issue's note that Mojo's `Dict` has API rough edges in v1.0.0b1 and the vocab isn't",
+  "truth": [
+   "mojo-bm25s/src/mojo_bm25s/__init__.py",
+   "mojo-bm25s/src/mojo_bm25s/vocab.py",
+   "mojo-bm25s/tests/test_vocab.py"
+  ]
+ },
+ {
+  "repo": "mojo-bm25s",
+  "pr": 47,
+  "q": "Wheel distribution via setuptools (closes #29) ## Summary\n\n- Configures the project to build a PyPI-ready wheel that bundles the compiled Mojo kernel (`_kernel.so`) adjacent to the package \u2014 `pip install mojo_bm25s` now works in a fresh venv with no Mojo / pixi present.\n- Updates `_load_kernel()` to search the bundled location first and fall back to `build/mojo_bm25s.so` for in-tree dev \u2014 no environment-detection branching, same `__init__.py`",
+  "truth": [
+   "mojo-bm25s/.github/workflows/release.yml",
+   "mojo-bm25s/README.md",
+   "mojo-bm25s/pixi.toml",
+   "mojo-bm25s/pyproject.toml",
+   "mojo-bm25s/scripts/build_wheel.py",
+   "mojo-bm25s/setup.py",
+   "mojo-bm25s/src/mojo_bm25s/__init__.py",
+   "mojo-bm25s/tests/test_wheel_distribution.py"
+  ]
+ },
+ {
+  "repo": "mojo-bm25s",
+  "pr": 10,
+  "q": "Phase 1 bootstrap: Mojo stub kernel + Python shim + CI (closes #1) Closes #1.\n\n## Summary\n\nStands up the Mojo + Python build environment and CI so subsequent kernel issues have something to land into. Trivial `hello()` stub exercises the full toolchain (Mojo compile \u2192 shared lib \u2192 Python import) end-to-end.\n\n## Changes\n\n- **`src/mojo_bm25s/lib.mojo`** \u2014 `hello()` constructs `SIMD[float32, 4](1, 2, 3, 4)` and returns `reduce_add()` (10.0). Registered via `PythonMo",
+  "truth": [
+   "mojo-bm25s/.github/workflows/ci.yml",
+   "mojo-bm25s/README.md",
+   "mojo-bm25s/pixi.toml",
+   "mojo-bm25s/src/mojo_bm25s/__init__.py",
+   "mojo-bm25s/src/mojo_bm25s/lib.mojo",
+   "mojo-bm25s/tests/conftest.py",
+   "mojo-bm25s/tests/test_smoke.py"
+  ]
+ },
+ {
+  "repo": "mojo-bm25s",
+  "pr": 46,
+  "q": "CLI: mojo-bm25s index | query (closes #28) ## Summary\n\nAdds the \\`mojo-bm25s\\` CLI with two subcommands wrapping \\`mojo_bm25s.Retriever\\`:\n\n\\`\\`\\`\nmojo-bm25s index --corpus corpus.jsonl --out index_dir/ [--method ...] [--k1 ...] [--b ...] [--delta ...]\nmojo-bm25s query --index index_dir/ --queries queries.jsonl --k 10 --out results.jsonl\n\\`\\`\\`\n\nJSONL formats (BEIR-compatible):\n- corpus: \\`{\\\"_id\\\": \\\"doc1\\\", \\\"text\\\": \\\"...\\\"}\\`\n- queries",
+  "truth": [
+   "mojo-bm25s/pyproject.toml",
+   "mojo-bm25s/src/mojo_bm25s/cli.py",
+   "mojo-bm25s/tests/conftest.py",
+   "mojo-bm25s/tests/test_cli.py"
+  ]
+ },
+ {
+  "repo": "mojo-bm25s",
+  "pr": 36,
+  "q": "Mojo-native tokenizer (closes #22) ## Summary\n\nAdds `mojo_bm25s.tokenize(...)` \u2014 a whitespace + lowercase + optional English stopwords tokenizer for the standalone-library path. Closes #22.\n\nThe goal of this issue was to stop pulling `bm25s.tokenize` (and transitively NLTK / PyStemmer) for basic English tokenization. After this PR `mojo_bm25s` ships its own ~30-line tokenizer that matches the bm25s reference exactly on the parity o",
+  "truth": [
+   "mojo-bm25s/src/mojo_bm25s/__init__.py",
+   "mojo-bm25s/src/mojo_bm25s/tokenize.py",
+   "mojo-bm25s/tests/test_tokenizer.py"
+  ]
+ },
+ {
+  "repo": "mojo-bm25s",
+  "pr": 15,
+  "q": "bm25s backend-swap glue: monkey-patch retrieve hot paths (closes #6) Closes #6.\n\n`patch_bm25s(retriever)` mutates a stock `bm25s.BM25` in place to route its retrieve hot paths through the Mojo kernels \u2014 no fork, no subclass.\n\n## What gets swapped\n\n| Method | Routed to | Notes |\n|--------|-----------|-------|\n| `_compute_relevance_from_scores` | `mojo_bm25s.csc_score` | The downstream `weight_mask` and `nonoccurrence_array` handling in `get_scores_from_ids` still ru",
+  "truth": [
+   "mojo-bm25s/src/mojo_bm25s/__init__.py",
+   "mojo-bm25s/src/mojo_bm25s/patch.py",
+   "mojo-bm25s/tests/test_patch.py"
+  ]
+ },
+ {
+  "repo": "mojo-bm25s",
+  "pr": 17,
+  "q": "Phase 2 decision: Hold (trigger not met on x86; ARM data missing) \u2014 closes #9 Closes #9.\n\n## Decision: **Hold**\n\n| Trigger | Status |\n|---|---|\n| (a) Mojo \u2265 1.3\u00d7 numba on a BEIR dataset | **Not met on x86** \u2014 0.50\u00d7 scifact, 0.34\u00d7 trec-covid |\n| (b) Mojo matches numba within 10% on ARM/Apple Silicon | **Unmeasured** \u2014 no ARM hardware was used |\n\nA **Go** call now would move the goalposts that #9 was specifically written to prevent. A **No-go** call now would archive on incom",
+  "truth": [
+   "mojo-bm25s/PHASE2.md",
+   "mojo-bm25s/README.md"
+  ]
+ }
+]

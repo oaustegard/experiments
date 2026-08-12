@@ -1074,6 +1074,18 @@ the result.
   one** — official was better on nDCG, cosine, recall-vs-fp32-kNN and Spearman ρ
   *and* 32MB smaller. Check for an official/Optimum export before building your
   own. (`q4-official-vs-ours/RESULTS.md`)
+- **Repo size does not bury small repos in account-wide code search, and the
+  three obvious corrections all lose.** On 145 PR-mined file-localization
+  queries across 19 repos spanning 278-11,195 chunks, the current RRF ranker
+  scored recall@1 **73.8**; a per-repo cap tied at 73.8, a diversified candidate
+  pool scored 67.6, and an RRF weight of `1/log(1+chunks_in_repo)` scored
+  **48.3** — a 25-point loss, because a third of queries legitimately belong to
+  a large repo and the prior pushes those answers down. The premise fails too:
+  under the baseline, small repos *out*-perform large ones (80.4 vs 68.3), so
+  there is nothing for a size correction to correct. Scoping with `-r` is worth
+  3.4-7.6 points and remains the whole real effect. Replicated on
+  identifier-poor queries (path tokens stripped) with the same ordering.
+  (`xr-repo-crowding/RESULTS.md`)
 - **EarthCam's `gethofitems.php` ignores `start`/`date_start`/`date_end`** — always
   returns newest ≤50, ~45-day retention, deep archive is paid with no open API.
   (`dc-mall-timelapse/RESULTS.md`)
