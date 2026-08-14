@@ -117,6 +117,20 @@ through a deliberately disjoint implementation and reproduces nDCG@10 to <1e-9,
 and its two negative controls collapse to ~0.003, which is the part that makes
 the agreement mean anything.
 
+**A concurrent second encode turned this into a replication.** Run in a
+container where every HF host was 403, it rebuilt SciFact from the upstream
+AllenAI release, verified BEIR's four published cardinalities, and registered
+the one gap counts cannot cover — the document *strings*.
+`crosscheck_allenai.py` closed it: the rebuild matches `BeIR/scifact` on
+**4128/5183 documents and differs on 1055 (20.4%)**, because AllenAI's abstract
+sentences keep trailing whitespace at structured-abstract section boundaries
+that BEIR normalised away. The two artifacts scored **0.7152 and 0.7067** — both
+inside the pre-registered band, so the band certified a corpus it could not see
+was wrong. Wherever the input strings were identical the vectors were
+*bit*-identical (4137 docs, 300/300 queries, zero
+same-string-different-vector), so the encode path is deterministic and the whole
+gap is text.
+
 ### `account-index-corpora/` — what tombstones and PR bodies cost the account index
 
 The two corpora that measured as wins on one repo — deleted files
