@@ -90,6 +90,67 @@ dim / max_length / prefix / pooling combination — an unverifiable settings mat
 is worse than a 15-minute re-encode when the whole deliverable is
 "comparable to the codec eval".
 
+## Independent replication — and what it caught
+
+This issue was run twice concurrently, in two containers. The second encode
+(PR #35, closed) hit an environment where **every** Hugging Face host answered
+`403 to CONNECT` — not just the `us.aws.cdn.hf.co` leg the issue warns about,
+but `huggingface.co`, `hf.co`, `datasets-server` and both CDN legs. It correctly
+declined to route around a policy denial and rebuilt SciFact from the upstream
+AllenAI release instead, getting all three non-obvious mappings right (BEIR's
+*test* split is AllenAI's *dev* claims; relevance is `cited_doc_ids` not
+`evidence`; 339 pairs not the naive 340) and asserting BEIR's four published
+cardinalities before encoding. It then registered the gap it could not close —
+counts pin the split, not the strings — and asked for a per-document diff from
+anywhere HF was reachable.
+
+`crosscheck_allenai.py` is that diff, and the reconstruction does not hold:
+
+```
+exact doc-string match : 4128/5183 (79.64%)
+differing doc strings  : 1055     (20.36%)
+title differs          : 0
+```
+
+AllenAI's `abstract` sentences carry trailing whitespace at structured-abstract
+section boundaries that BEIR normalised away; `" ".join(abstract)` keeps it
+(`'…detected.   \n RESULTS We propose…'` against BEIR's
+`'…detected. RESULTS We propose…'`).
+
+Comparing the two committed matrices before #35 was closed:
+
+| | |
+|---|---|
+| Query vectors bit-identical | **300 / 300** |
+| Document vectors bit-identical | **4137 / 5183** |
+| Per-document cosine | mean 0.998997, median 1.000000, min 0.976637 |
+| nDCG@10 | **0.7152** (BEIR text) vs **0.7067** (rebuild) |
+| Judged-relevant docs affected | 85 / 283 (30.0%) |
+| Gold-doc rank changed | 60 / 339 pairs, worst +259 |
+
+The text difference explains the vector difference exactly:
+
+```
+text differs & vector differs : 1046
+text differs & vector same    :    9   <- all at the 384-token cap,
+text same    & vector differs :    0      divergence 61-92% through the text
+text same    & vector same    : 4128
+```
+
+Three things follow, and all three are in the ledger:
+
+1. **Zero same-string-different-vector cases** across two containers, two
+   authors and two loaders — this encode path is deterministic, so a diff
+   between two runs is a diff in the inputs.
+2. **The sanity band certified a corpus it could not see was wrong.** Both
+   0.7152 and 0.7067 sit comfortably inside 0.60–0.72. A published-count check
+   plus a wide metric band is not a substitute for comparing strings — which is
+   precisely what #35's own `ANCHORS.md` row predicted, now recorded as measured
+   rather than hypothesised.
+3. Scoring the other matrix with this experiment's scorer reproduced its 0.7067
+   exactly, so the two metric implementations agree and the whole gap is corpus
+   text.
+
 ## Cost
 
 14.7 min wall clock on 4 vCPU; ~10 min of that is the document pass. Model
@@ -103,6 +164,7 @@ inference. The claude.ai estimate this issue exists to avoid was 45–85 min on
 python3 encode.py                 # ~15 min on 4 vCPU; resumable, checkpoints every 40 batches
 python3 recheck.py                # seconds; re-scores the committed artifact, exits non-zero on drift
 python3 encode.py --parity-check  # confirms length-sorted batching is bit-identical
+python3 crosscheck_allenai.py     # diffs the AllenAI rebuild against real BeIR text
 ```
 
 `encode.py` fetches the model (SHA256-verified) and dataset itself; `data/raw/`

@@ -320,20 +320,47 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
-- **A network-allowlist warning inherited from a task spec is a fact about
-  *that* container, not about the host — re-test it before building around
-  it.** Issue #33 specified that HF load-balances its LFS redirect between
-  `us.gcp.cdn.hf.co` (allowlisted) and `us.aws.cdn.hf.co` (not), and to retry
-  until it lands on GCP. From CCotw all three SciFact files landed **first try
-  on `us.aws.cdn.hf.co`** at exactly the sizes in the HF tree — the refusal is
-  real on the claude.ai container (observed 2026-08-04) and absent here, which
-  is the same per-environment split `bekko-embedding-bench` recorded for
-  `*.cdn.hf.co`. Cost of getting this backwards runs both ways: assume the
-  warning holds and you build retry scaffolding you do not need, or read
-  "it worked for me" as universal and you ship a script that dies on the
-  container it was written for. Keep the retry, note which environment it is
-  for, and state the environment with any egress claim — the same discipline
-  `nproc`-with-throughput already gets. (`ttt-embed-quantized/RESULTS.md`)
+- **Hugging Face reachability differs between two CCotw containers running the
+  same task at the same time — state the environment with any egress claim.**
+  Issue #33 warned that HF load-balances its LFS redirect between
+  `us.gcp.cdn.hf.co` (allowlisted) and `us.aws.cdn.hf.co` (not). Two encodes of
+  that issue ran concurrently on 2026-08-14: one downloaded all three SciFact
+  files **first try on `us.aws.cdn.hf.co`**, the supposedly-blocked leg; the
+  other found **every** HF host refused — `huggingface.co`, `hf.co`,
+  `datasets-server.huggingface.co`, `cdn-lfs.hf.co` *and both CDN legs* —
+  answering `connect_rejected / gateway answered 403 to CONNECT`. Same repo,
+  same day, same nominal platform. So this is not merely claude.ai-vs-CCotw
+  (`bekko-embedding-bench`'s reading, still correct as far as it went): **egress
+  policy varies per environment configuration and must be probed, never
+  inherited** — from a spec, from a prior writeup, or from a sibling run. Two
+  practical corollaries: `curl` alone hides the reason as bare exit 56, so read
+  the proxy's own error to distinguish a policy denial from a transient failure;
+  and **a policy denial is not to be retried or routed around** — find a
+  sanctioned source instead. Keep retry loops for the environments that need
+  them, and label which environment any egress claim came from, the same
+  discipline `nproc`-with-throughput already gets.
+  (`ttt-embed-quantized/RESULTS.md`)
+- **Rebuilding BEIR SciFact from the upstream AllenAI release gets you 79.6% of
+  the corpus and a green check suite.** When HF is unreachable, BEIR SciFact
+  looks reconstructible from `scifact.s3-us-west-2.amazonaws.com/release/latest/data.tar.gz`.
+  Three mappings are not guessable and all three matter: **BEIR's *test* split is
+  AllenAI's *dev* claims** (AllenAI's test claims ship unlabelled); **relevance is
+  `cited_doc_ids`, not `evidence`** (`evidence` is the SUPPORT/CONTRADICT subset
+  — 209 pairs over 188 queries against BEIR's 339 over 300, which would have
+  *inflated* nDCG by shrinking the denominator); and the pair count is **339, not
+  the naive 340**, because one dev claim cites the same document twice. Get all
+  three right, assert the four published cardinalities, and the rebuild still
+  **differs from `BeIR/scifact` on 1,055 of 5,183 documents (20.4%)** — AllenAI's
+  `abstract` sentences carry trailing whitespace at structured-abstract section
+  boundaries (`"…detected.   \n RESULTS We propose…"`) that BEIR normalised away,
+  and `" ".join(abstract)` preserves it. Downstream: per-document cosine 0.9990
+  mean / 0.9766 min, **nDCG@10 0.7067 against 0.7152** from real BEIR text, with
+  30% of judged-relevant documents affected and the gold doc's rank moving on
+  60 of 339 pairs. **Both numbers sit inside the pre-registered 0.60–0.72 sanity
+  band**, so neither the counts nor the band detects this. If you must rebuild,
+  diff the strings when you next reach a host that serves the real thing —
+  `ttt-embed-quantized/crosscheck_allenai.py` does exactly that and is the
+  cheapest form of the check. (`ttt-embed-quantized/RESULTS.md`)
 - **`xr` needs three pip installs on a cold CCotw container — it is not
   unavailable there.** `scripts/xr.py` imports `remex` to decompress the index
   and `onnxruntime` + `tokenizers` to encode the query, and a bare container has
@@ -481,6 +508,21 @@ the result.
   logs: with length-sorted batches the early throughput reading is a large
   overestimate (14.7 docs/s falling to a 5.9 docs/s final average here), so an
   ETA computed in the first minute of a sorted run is systematically optimistic.
+  Independently, **plain mini-batching is bit-exact too** — batch 32 vs batch 4
+  on this encoder gave `max|Δ| = 0.000e+00` across all 256 dims, upgrading
+  `q4-official-vs-ours`' first-principles argument (it mini-batched to dodge a
+  ~26 GB attention-mask `Expand` OOM) to a measurement. **Batch size is a pure
+  throughput knob on a masked, last-token-pooled encoder**, so an artifact never
+  depends on it. Cheapest possible guard: encode one batch two ways and diff.
+  (`ttt-embed-quantized/RESULTS.md`)
+- **Two independent implementations of this encode produced bit-identical
+  vectors wherever the input strings were identical** — 4,128 of 5,183 documents
+  and 300 of 300 queries matched to the last bit across two containers, two
+  authors and two loaders, with **zero** cases of same-string-different-vector.
+  Worth knowing before budgeting for nondeterminism: jina-v5-nano q4 on ONNX
+  Runtime CPU is reproducible, so any diff between two runs of it is a diff in
+  the *inputs*, and can be chased as one. Do not attribute an embedding
+  mismatch to float nondeterminism without checking the strings first.
   (`ttt-embed-quantized/RESULTS.md`)
 - **"The RHT is faster" is a claim about a specific implementation at a specific
   d — check which function you are actually calling.** remax's
@@ -1128,6 +1170,28 @@ the result.
 - **Decorrelated (shared-ITQ + random) rotation mixes tie plain random SimHash
   exactly** at every k on two embedders; under an honest transfer protocol plain
   SimHash beats ITQ outright. (`rotation-decorrelation/RESULTS.md`)
+- **Offloading a job from claude.ai to CCotw buys wall-clock, not throughput —
+  and check what the throughput number already contains before generalising
+  from it.** The claude.ai container measures jina-v5-nano q4 at <2 docs/s on
+  one core and reaps detached jobs after ~100 s, which is what makes a 5,183-doc
+  encode impossible there rather than merely slow. CCotw's 4 vCPU do not encode
+  faster *per core* — one measured run got 4.4 docs/s (~1.1/core), i.e. ~2.2x
+  whole-machine — so the job becomes possible because 15–20 uninterrupted
+  minutes are available, not because the cores are better. **But that per-core
+  constant is soft:** a second run on identical hardware got 5.9 docs/s
+  (~1.5/core) purely from length-sorted batching, so the 1.1 figure carries a
+  1.37x unforced overhead. Both conclusions survive — offload for wall-clock,
+  and expect little from more cores — but quote the per-core number with the
+  batching strategy attached. (`ttt-embed-quantized/RESULTS.md`)
+- **The `jina-v5-nano-mirror` ONNX loader cannot load the q4 asset.**
+  `scripts/embed_onnx.py::materialize()` hardcodes the 847 MB fp32 `model.onnx`
+  in its `ONNX_ASSETS` table, so it will neither fetch nor open the 170 MB
+  `model.q4.onnx` the same release publishes — despite the module docstring
+  presenting itself as the torch-free path for ephemeral containers, which is
+  exactly where the small asset is wanted. Both encodes of issue #33 hit this
+  and both replicated its pooling/prefix/normalize semantics by hand against the
+  same `tokenizer.json` and `pad_id=128001`. Reuse `ttt-embed-quantized/encode.py`
+  rather than rediscovering it. (`ttt-embed-quantized/encode.py`)
 - **Hand-rolled q4 ONNX export is dominated by the model authors' official
   one** — official was better on nDCG, cosine, recall-vs-fp32-kNN and Spearman ρ
   *and* 32MB smaller. Check for an official/Optimum export before building your
