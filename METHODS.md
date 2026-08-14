@@ -33,6 +33,34 @@ and leave a one-line pointer here.
 
 ## Cross-cutting principles
 
+- **A cached matrix whose encode settings are not recorded is not reusable, no
+  matter how exactly its shape and provenance match.** `ttt-embed-quantized`
+  needed SciFact under jina-v5-nano; `rotation-decorrelation` already had a
+  `jina_scifact_corpus.npy` — same corpus, same embedder, cached in a
+  `claude-container-layers` release. It was declined and the 15-minute encode
+  paid anyway, because nothing anywhere recorded its `dim` / `max_length` /
+  prefix / pooling. The trap is that reuse would have *looked* fine: had it been
+  256-dim, every shape, dtype and norm check would have passed and the
+  incomparability would have been permanently silent. **"Prior art exists" and
+  "prior art is usable" are different findings, and the second one needs
+  recorded settings, not a matching filename.** Corollary for producers: an
+  embedding artifact ships its full encode configuration next to it or it is
+  write-only — `ttt-embed-quantized/data/meta.json` carries encoder repo,
+  release tag, asset SHA256, dim, max_length, pooling rule, prefixes and text
+  template for exactly this reason. (`ttt-embed-quantized/RESULTS.md`,
+  `ERRORS.md`)
+- **When the deliverable's job is to be *comparable*, pin the superseded
+  artifact on purpose.** `ttt-embed-quantized` encoded with
+  jina-v5-nano-mirror's `model.q4.onnx` while both that mirror's
+  `PERFORMANCE.md` and this file's own "hand-rolled q4 is dominated by the
+  official one" entry say the authors' upstream q4 is smaller *and* more
+  faithful. Substituting the better encoder would have silently voided the
+  premise — that the 2026-07-08 codec eval's fidelity numbers carry over —
+  because comparability constrains **weights**, not just hyperparameters. The
+  general rule: "use the better tool" and "match the prior run" are in genuine
+  tension, the prior run wins whenever the output feeds a comparison, and the
+  decision gets written down rather than made implicitly by whoever reads the
+  model card last. (`ttt-embed-quantized/RESULTS.md`)
 - **A quantization ladder measured on one corpus does not transfer by
   assumption — but on this pair it did, and got *stronger* on the harder task.**
   The byte/quality ladder here was first run on 179 blog chunks by
@@ -292,6 +320,20 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **A network-allowlist warning inherited from a task spec is a fact about
+  *that* container, not about the host — re-test it before building around
+  it.** Issue #33 specified that HF load-balances its LFS redirect between
+  `us.gcp.cdn.hf.co` (allowlisted) and `us.aws.cdn.hf.co` (not), and to retry
+  until it lands on GCP. From CCotw all three SciFact files landed **first try
+  on `us.aws.cdn.hf.co`** at exactly the sizes in the HF tree — the refusal is
+  real on the claude.ai container (observed 2026-08-04) and absent here, which
+  is the same per-environment split `bekko-embedding-bench` recorded for
+  `*.cdn.hf.co`. Cost of getting this backwards runs both ways: assume the
+  warning holds and you build retry scaffolding you do not need, or read
+  "it worked for me" as universal and you ship a script that dies on the
+  container it was written for. Keep the retry, note which environment it is
+  for, and state the environment with any egress claim — the same discipline
+  `nproc`-with-throughput already gets. (`ttt-embed-quantized/RESULTS.md`)
 - **`xr` needs three pip installs on a cold CCotw container — it is not
   unavailable there.** `scripts/xr.py` imports `remex` to decompress the index
   and `onnxruntime` + `tokenizers` to encode the query, and a bare container has
@@ -424,6 +466,22 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **Sorting texts by token length before batching a transformer encode is
+  bit-identical, not merely close — and worth ~1.37x, not the 2x the intuition
+  promises.** Padding is masked out of attention, and last-token pooling indexes
+  `mask.sum(-1) - 1`, so batch composition cannot reach the output: measured
+  **max absolute difference 0.0** across 48 docs between length-sorted and
+  source-order batching, and again across batch size 8 vs 16
+  (`ttt-embed-quantized/encode.py --parity-check`). Because it is exact rather
+  than approximate, it needs no accuracy budget and can be applied to artifact
+  encodes that must stay comparable to earlier runs. But **measure the speedup
+  rather than reasoning it out**: "halve the padding, halve the time" predicts
+  ~2x; a 240-doc A/B gave **1.37x** (4.3 → 5.8 docs/s), because attention is not
+  the whole cost and the sort only helps within a batch. Corollary for progress
+  logs: with length-sorted batches the early throughput reading is a large
+  overestimate (14.7 docs/s falling to a 5.9 docs/s final average here), so an
+  ETA computed in the first minute of a sorted run is systematically optimistic.
+  (`ttt-embed-quantized/RESULTS.md`)
 - **"The RHT is faster" is a claim about a specific implementation at a specific
   d — check which function you are actually calling.** remax's
   `remax.rotation.rht_rotation` at its floored rounds=2 reproduces its documented
