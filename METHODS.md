@@ -292,6 +292,44 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Every Hugging Face host is 403 at the CCotw egress proxy — but the datasets
+  behind them usually have an upstream that is not.** `huggingface.co`,
+  `hf.co`, `datasets-server.huggingface.co`, `cdn-lfs.hf.co` and **both** CDN
+  legs (`us.gcp.cdn.hf.co`, `us.aws.cdn.hf.co`) all answer
+  `connect_rejected / gateway answered 403 to CONNECT`. This is a policy denial,
+  so per `/root/.ccr/README.md` it must not be retried or routed around — and
+  note it is **environment-specific**: claude.ai project containers allowlist the
+  GCP leg, which is why issue #33 said to "retry until it lands on GCP". Read a
+  session's real allowlist with
+  `curl -sS "$HTTPS_PROXY/__agentproxy/status"`, whose `recentRelayFailures`
+  names the blocked host and the reason; `curl` alone hides it as exit 56.
+
+  The recovery is that **BEIR-style datasets are re-derivable from the upstream
+  the benchmark itself wrapped**, and those upstreams are ordinary S3/GitHub
+  hosts that are reachable. BEIR SciFact rebuilds exactly from
+  `scifact.s3-us-west-2.amazonaws.com/release/latest/data.tar.gz`. Two mappings
+  are not guessable and cost a re-run if assumed:
+  **BEIR's *test* split is AllenAI's *dev* claims** (the AllenAI test claims ship
+  unlabelled), and **qrels come from `cited_doc_ids`, not `evidence`** —
+  `evidence` is the SUPPORT/CONTRADICT subset and yields 209 pairs over 188
+  queries, where BEIR publishes 339 over 300. Verify the reconstruction against
+  the benchmark's *published counts* rather than trusting the mapping: the four
+  numbers 5183 docs / 1109 claims / 300 test queries / 339 qrels pin it, and
+  hitting 339 also catches the one dev claim that cites the same doc twice
+  (naive counting gives 340). (`ttt-embed-quantized`)
+
+- **A GitHub Release asset is reachable where the model hub is not.**
+  `release-assets.githubusercontent.com` and `raw.githubusercontent.com` are
+  allowlisted while `huggingface.co` is not, which is the whole reason
+  `jina-v5-nano-mirror` exists — but its `scripts/embed_onnx.py` hardcodes the
+  847 MB fp32 `model.onnx` in `materialize()`, so it **cannot fetch or load the
+  q4 asset**. Fetch `model.q4.onnx` from the release URL directly and replicate
+  the loader's ~15 lines (prefix → tokenize with `pad_id=128001` → forward →
+  index `mask.sum(-1) - 1` → truncate → L2). Check the asset by byte count
+  (q4 = 169,736,452 B); a proxy denial or an HTML error page otherwise lands as
+  a short file that fails much later as an opaque ONNX parse error.
+  (`ttt-embed-quantized`)
+
 - **`xr` needs three pip installs on a cold CCotw container — it is not
   unavailable there.** `scripts/xr.py` imports `remex` to decompress the index
   and `onnxruntime` + `tokenizers` to encode the query, and a bare container has
@@ -423,6 +461,20 @@ the result.
   exists. See "Migration breakage" below.
 
 ## Numerical / ML gotchas
+
+- **Mini-batching a masked, last-token-pooled encoder is bit-exact, so batch
+  size is a pure throughput knob — measured, not assumed.** `q4-official-vs-ours`
+  had to mini-batch because a one-shot `encode(all_docs)` makes the
+  attention-mask `Expand` allocate ~26 GB and OOM at 1,500 docs, and argued from
+  first principles that per-row output is unchanged. Re-checked directly on
+  jina-v5-nano q4 (32 SciFact docs, batch 32 vs batch 4): **max|Δ| = 0.000e+00**,
+  exactly zero across all 256 dims. The reasoning generalises to any encoder
+  whose pooling indexes true token lengths and whose attention is masked —
+  padding width cannot reach a real position. What this does *not* license is
+  **length-sorted bucketing**, which changes row order and needs its own check,
+  and it says nothing about encoders with mean-pooling bugs that divide by the
+  padded length. Cheapest possible guard: encode one batch two ways and diff.
+  (`ttt-embed-quantized/encode_scifact.py --check-batch-invariance`)
 
 - **"The RHT is faster" is a claim about a specific implementation at a specific
   d — check which function you are actually calling.** remax's
