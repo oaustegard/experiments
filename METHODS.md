@@ -318,6 +318,20 @@ survives exactly the sanity checks people run.
   hitting 339 also catches the one dev claim that cites the same doc twice
   (naive counting gives 340). (`ttt-embed-quantized`)
 
+- **Offloading a job from claude.ai to CCotw buys wall-clock, not throughput —
+  size the move against the reaper, not the core count.** jina-v5-nano q4 on
+  SciFact runs at **4.4 docs/s on 4 vCPU** here, i.e. ~1.1 docs/s per core,
+  against claude.ai's **<2 docs/s on one core**: no better per core, only ~2.2×
+  whole-machine, and the 5,183-doc encode still takes 20 minutes. What makes the
+  job possible is that claude.ai **reaps detached jobs after ~100 s**, which caps
+  any in-session encode near 200 documents no matter how fast the core is. The
+  session-load gap points the same way (1.5 s vs 13 s) — most of what claude.ai
+  loses on a short job is fixed overhead. So the decision rule is: move a job for
+  *uninterrupted minutes*, and do not expect a speedup proportional to `nproc`.
+  Corollary for planning: an encode that is too slow here will not be rescued by
+  a bigger container either; it needs a smaller model, fewer tokens, or a
+  batched-once-and-committed artifact. (`ttt-embed-quantized`)
+
 - **A GitHub Release asset is reachable where the model hub is not.**
   `release-assets.githubusercontent.com` and `raw.githubusercontent.com` are
   allowlisted while `huggingface.co` is not, which is the whole reason

@@ -92,8 +92,7 @@ def artifact_checks() -> None:
     print("prose — RESULTS.md agrees with data/:")
     ndcg = ndcg_at_k(Q, Dm, doc_ids, q_ids, qrels)
     text = (HERE / "RESULTS.md").read_text()
-    m = re.search(r"against the qrels = \*\*?([0-9.]+)", text) or re.search(
-        r"nDCG@10.{0,40}?=\s*\*\*([0-9.]+)\*\*", text)
+    m = re.search(r"against the qrels = \*{0,2}(\d+\.\d+)", text)
     if not m:
         print("  BAD could not find the nDCG number in RESULTS.md")
         fails.append("RESULTS.md nDCG")
