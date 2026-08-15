@@ -1,0 +1,199 @@
+{
+  "_README": [
+    "Every constant this model uses, with its source. Nothing numeric lives in",
+    "model.py. Edit here (or override on the CLI) and re-run.",
+    "",
+    "PROVENANCE WARNING, read before trusting any row: the session that built",
+    "this had WebFetch and curl blocked by an egress allowlist for every domain",
+    "below except the search index itself. Every figure was read out of a search",
+    "engine's summary of the page, NOT the page. Rows are tagged with",
+    "'confidence'. Re-verify anything tagged 'secondary' against the primary URL",
+    "before this model informs a purchase."
+  ],
+
+  "electricity": {
+    "_note": "Montgomery County MD is Pepco territory (Pepco serves ~567k customers across Montgomery + Prince George's). No county-specific tariff exists; you take Pepco's Maryland rate schedules. A 24/7 inference node is a demand-metered ~100% load-factor customer, which is the best case for amortizing demand charges, so the low end of this band is reachable with competitive supply.",
+    "rates_usd_per_kwh": {
+      "md_commercial_eia_aug2026": {
+        "value": 0.164,
+        "confidence": "secondary",
+        "source": "EIA state commercial average, Aug 2026, via https://energystackhub.com/resources/commercial-electricity-rates-by-state",
+        "note": "DEFAULT. Conservative (highest credible) choice."
+      },
+      "md_commercial_eia_dec2025": {
+        "value": 0.1586,
+        "confidence": "secondary",
+        "source": "EIA report Dec 2025, MD commercial average"
+      },
+      "md_industrial_eia": {
+        "value": 0.1359,
+        "confidence": "secondary",
+        "source": "EIA report Dec 2025, MD industrial average"
+      },
+      "pepco_commercial_thru_2026_05_31": {
+        "value": 0.1325,
+        "confidence": "secondary",
+        "source": "quoted Pepco commercial rate through 2026-05-31"
+      },
+      "pepco_sos_price_to_compare_summer_2026": {
+        "value": 0.1129,
+        "confidence": "secondary",
+        "source": "https://www.pepco.com/my-account/my-service/customer-choice-md/price-to-compare, effective 2026-06-01 to 2026-09-30",
+        "note": "SUPPLY ONLY. Delivery rides on top. Do NOT use as an all-in rate."
+      }
+    },
+    "default_rate": "md_commercial_eia_aug2026",
+    "pending_risk": {
+      "pepco_distribution_rate_case_nov2025": "+23% requested on distribution",
+      "note": "MD commercial rates already rose ~26% after an early-2026 rate case. EIA also published a bad MD residential number in Mar 2026 (35c, corrected to 22.2c) - see https://psc.maryland.gov/news/2026/u-s-eia-corrects-maryland-electricity-price-data/ - so treat wild MD figures with suspicion."
+    }
+  },
+
+  "models": {
+    "gpt-5.6-luna": {
+      "vendor": "OpenAI",
+      "open_weights": false,
+      "aa_intelligence_index": {"max": 52, "xhigh": 50, "high": 47, "medium": 39},
+      "output_tok_s": {"max": 150, "xhigh": 144, "high": 147, "medium": 175},
+      "context": 1000000,
+      "confidence": "secondary",
+      "source": "https://artificialanalysis.ai/models/gpt-5-6-luna",
+      "size_note": "Parameter count UNDISCLOSED. Third-party '27B dense' and '8.8B dense' claims found in search summaries are unreliable and appear to conflate other model cards. This model deliberately does NOT assume a Luna size; it sizes hardware from a capability-matched OPEN model instead."
+    },
+    "deepseek-v4-pro-0813": {
+      "vendor": "DeepSeek",
+      "open_weights": true,
+      "license": "MIT",
+      "total_params": 1.6e12,
+      "active_params": 49e9,
+      "context": 1000000,
+      "max_output": 384000,
+      "weight_bytes_nvfp4": 800e9,
+      "aa_intelligence_index": {"reasoning_max_effort": 53},
+      "confidence": "secondary",
+      "source": "https://artificialanalysis.ai/models/deepseek-v4-pro ; https://deepseek.ai/deepseek-v4 ; weights published 2026-08-13 as 66 fp8 shards, ungated",
+      "note": "THE CAPABILITY MATCH. AA index 53 vs Luna(max) 52 -- statistically level. This is what you must run locally to claim you have matched Luna."
+    },
+    "deepseek-v4-flash-0731": {
+      "vendor": "DeepSeek",
+      "open_weights": true,
+      "license": "MIT",
+      "total_params": 284e9,
+      "active_params": 13e9,
+      "context": 1000000,
+      "weight_bytes_fp4": 150e9,
+      "confidence": "secondary",
+      "source": "https://deepseek.ai/deepseek-v4 ; https://recipes.vllm.ai/deepseek-ai/DeepSeek-V4-Flash",
+      "note": "NOT a capability match for Luna. Luna beats it 92.3 vs 71.2 GPQA, 62.7 vs 49.1 SWE-bench Pro, 84.7 vs 49.1 Terminal-Bench 2.0. Included because it is the honest cheap fallback if sovereignty, not parity, is the actual requirement."
+    }
+  },
+
+  "hardware": {
+    "8xB200-HGX": {
+      "gpus": 8,
+      "vram_bytes": 1536e9,
+      "gpu_fp4_dense_flops": 9e15,
+      "measured_decode_tok_s_per_gpu": 976,
+      "measured_decode_at_tok_s_per_user": 105,
+      "measured_decode_model": "deepseek-v4-pro-0813",
+      "it_load_kw": 11.0,
+      "it_idle_kw": 2.7,
+      "pue": 1.30,
+      "capex_usd": 450000,
+      "confidence": "secondary",
+      "sources": [
+        "throughput: https://inferencex.semianalysis.com/compare/deepseek-v4-b200-vs-gb200 (B200 976 tok/s/GPU @105 tok/s/user on V4 Pro 1.6T)",
+        "power: HGX B200 8-GPU ~10.2 kW typical, ~12 kW at 8x1000W TDP, DGX B200 ~14.3 kW max incl. cooling",
+        "price: https://www.mercatus-ai.com/blog/b200-server-price ($400-500k, ~$450k typical integrated quote; DGX B200 lists ~$515k)"
+      ],
+      "it_idle_kw_note": "ESTIMATED, not measured: ~150 W/GPU parked + ~1.5 kW host. Lowest-confidence number in this file. Idle draw sets the floor cost of a box that is up 24/7 and busy 10-15% of the time, so it matters here more than it usually would.",
+      "pue_note": "1.30 assumes a competent air-cooled enterprise room or colo. An office-building server closet is 1.4-1.5. NVIDIA states liquid cooling is effectively mandatory above ~1000 W/GPU."
+    },
+    "GB200-NVL72": {
+      "gpus": 72,
+      "vram_bytes": 13824e9,
+      "gpu_fp4_dense_flops": 9e15,
+      "measured_decode_tok_s_per_gpu": 6644,
+      "measured_decode_at_tok_s_per_user": 105,
+      "measured_decode_tok_s_per_gpu_alt": 9497,
+      "measured_decode_at_tok_s_per_user_alt": 55,
+      "measured_decode_model": "deepseek-v4-pro-0813",
+      "it_load_kw": 132.0,
+      "it_idle_kw": 40.0,
+      "pue": 1.15,
+      "capex_usd": 3500000,
+      "confidence": "secondary",
+      "sources": [
+        "throughput: https://inferencex.semianalysis.com/compare/deepseek-v4-b200-vs-gb200",
+        "power: 120 kW nominal, 130-132 kW observed at full load; https://www.nvidia.com/en-us/data-center/gb200-nvl72/ and https://newsletter.semianalysis.com/p/h100-vs-gb200-nvl72-training-benchmarks"
+      ],
+      "note": "Reference rack for the FIRST-PASS question (raw energy per token at scale). Wildly over-provisioned for an 800-seat office; kept so the two framings can be compared in one place. it_idle_kw is a guess."
+    },
+    "12xRTX-PRO-6000-BW": {
+      "gpus": 12,
+      "vram_bytes": 1152e9,
+      "gpu_fp4_dense_flops": 4e15,
+      "measured_decode_tok_s_per_gpu": null,
+      "it_load_kw": 8.7,
+      "it_idle_kw": 1.8,
+      "pue": 1.30,
+      "capex_usd": 215000,
+      "confidence": "estimated",
+      "sources": [
+        "https://www.thundercompute.com/blog/nvidia-rtx-pro-6000-pricing ($13,250 NVIDIA marketplace, street from ~$15.4k)",
+        "96 GB GDDR7, 600 W, 4 PFLOPS peak FP4"
+      ],
+      "note": "SPECULATIVE, no measured V4-Pro throughput exists for this config. 12x96=1152 GB holds the 800 GB weights with room for KV. Capex is ~half the 8xB200. The risk is the interconnect: PCIe 5.0 instead of NVLink, against a 1.6T MoE whose expert parallelism is all-to-all-bound. Decode will suffer, possibly severely. Benchmark before believing. Included so the model can PRICE the option, not so it can recommend it."
+    },
+    "default_hardware": "8xB200-HGX"
+  },
+
+  "prefill": {
+    "_note": "No published isolated-prefill tok/s exists for V4 Pro. InferenceX publishes decode throughput at fixed interactivity. Prefill is therefore MODELLED, not measured.",
+    "flops_per_token_multiplier": 2.0,
+    "flops_per_token_note": "2 x active_params. Ignores attention FLOPs, which V4's Compressed Sparse Attention + Heavily Compressed Attention make cheap at short context but NOT at 1M. Long-context input costs materially more than this model says -- note OpenAI charges 2x for Luna's long-context tier for the same reason.",
+    "mfu": 0.30,
+    "mfu_range": [0.20, 0.35],
+    "mfu_confidence": "estimated",
+    "mfu_note": "LOWEST-CONFIDENCE NUMBER IN THE MODEL. 30% is a plausible large-MoE prefill MFU, not a measurement. The 20-35% band is carried through every output. Sanity check that it is not absurd: at 30% it implies prefill is ~4x cheaper per token than decode at the 105 tok/s/user operating point, and the measured decode point itself back-solves to ~7% MFU, which is normal for GEMV-bound decode."
+  },
+
+  "api_prices_usd_per_mtok": {
+    "_note": "Confirmed by the requester 2026-08-15: the $0.22 originally supplied was AWS Bedrock; OpenAI direct is $0.20, and a batch tier is available at $0.10 input.",
+    "luna_direct": {"input": 0.20, "output": 1.20, "confidence": "secondary", "source": "post-80%-cut pricing, eff. 2026-07-30; launch pricing was $1/$6"},
+    "luna_direct_long_context": {"input": 0.40, "output": 1.80, "confidence": "secondary"},
+    "luna_bedrock": {"input": 0.22, "output": 1.20, "confidence": "requester-supplied"},
+    "luna_batch": {"input": 0.10, "output": 0.60, "confidence": "requester-supplied", "note": "output half-price is INFERRED from the standard 50% batch convention, not confirmed. Only the $0.10 input was given."},
+    "deepseek_v4_pro_api": {"input": 0.435, "output": 0.87, "cache_hit_input": 0.003625, "confidence": "secondary", "source": "DeepSeek list pricing, 2026-05-22"},
+    "deepseek_v4_flash_api": {"input": 0.14, "output": 0.28, "confidence": "secondary"},
+    "default_interactive": "luna_direct",
+    "default_batch": "luna_batch"
+  },
+
+  "workload": {
+    "_note": "THE WEAKEST PART OF THE MODEL, and the part you should replace first with real telemetry. Requester's brief: ~800 users, office work, power-curve activity distribution, predominantly M-F 40h weeks with staggered starts (07:00 to 09:30), no meaningful off-hours load except a 2-3 h nightly batch.",
+    "seats": 800,
+    "daily_active_fraction": 0.55,
+    "workdays_per_year": 250,
+    "coverage_hours_per_workday": 11.5,
+    "peak_hour_request_share": 0.15,
+    "peak_hour_request_share_note": "Fraction of a day's requests landing in the busiest hour. This is how the power-curve distribution enters the model: it drives PEAK SIZING. It barely moves annual totals.",
+    "batch_hours_per_night": 2.5,
+    "batch_nights_per_year": 365,
+    "scenarios": {
+      "A": {"label": "light chat/office", "requests_per_active_user_per_day": 30, "input_tokens_per_request": 5000, "output_tokens_per_request": 700},
+      "B": {"label": "docs + some agentic", "requests_per_active_user_per_day": 60, "input_tokens_per_request": 15000, "output_tokens_per_request": 1200},
+      "C": {"label": "heavy agentic, whole company", "requests_per_active_user_per_day": 120, "input_tokens_per_request": 40000, "output_tokens_per_request": 3000}
+    },
+    "scenario_provenance": "AUTHORED, not sourced. Published per-seat figures found (FinOps LLM: 'light analyst' 3M input tok/day) are ~7x above even scenario C per active user and are not credible for office work; they were rejected rather than used. Scenarios A-C are bracketing guesses. Replace with telemetry.",
+    "default_scenario": "B"
+  },
+
+  "selfhost_opex": {
+    "_note": "Everything that is not the box and not the electrons.",
+    "ops_usd_per_year": 120000,
+    "ops_note": "colo or room buildout amortized, network, spares, and 0.3-0.5 FTE of MLOps to keep a production service up for 800 employees. AUTHORED estimate. Set to 0 to see the hardware+power-only floor.",
+    "capex_life_years": 3,
+    "redundancy_note": "All figures are for ONE node. Serving 800 employees from a single box means one hardware failure removes the company's AI. N+1 doubles capex. The model does NOT include this by default -- multiply capex by 2 to see it."
+  }
+}

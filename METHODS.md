@@ -288,6 +288,53 @@ survives exactly the sanity checks people run.
   long-running background jobs on idle; multi-minute embedding runs must
   checkpoint to memmap/`.npz` mid-run.
 
+- **Before reporting a ratio between a marginal cost and a price, compute the
+  marginal cost's share of total cost — otherwise the ratio is true and decides
+  nothing.** `luna-onprem-tco` was asked to compare the electricity cost of
+  local inference against an API's per-token price, computed it carefully
+  (electricity is **57×** cheaper per million input tokens), and the answer was
+  useless: electricity is **3%** of the cost of owning the hardware. What
+  actually decides on-prem-vs-API is a **capacity floor** — matching a closed
+  model's capability forces a specific open model, whose weights force a
+  minimum GPU count, whose capex you pay at 5% utilisation exactly as at 85%.
+  The tell was present in the first pass and printed as a footnote *underneath*
+  the headline it invalidated ("electricity is 15.7% of hardware TCO"). Generic
+  form: **a per-unit comparison is only a decision input when the unit cost is
+  a large share of total cost; otherwise report the share first and the ratio
+  second, or not at all.** Same shape as `account-routing-tier`'s "cost the
+  baseline before optimizing against it", one level up — there the error was
+  optimising a cheap path, here it was *measuring* one.
+  (`luna-onprem-tco/RESULTS.md`, `ERRORS.md` "the framing error")
+
+- **Any model that compares "buy capacity" against "rent per unit" must reject
+  configurations that cannot serve the load, structurally — every instance of
+  that error flatters buying.** `luna-onprem-tco/model.py` cheerfully returned
+  `verdict: self-host` at **845% peak utilisation**, comparing one node's cost
+  against a token bill that needs nine. It is not a caveat, it is a missing
+  constraint: `nodes = max(1, ceil(peak_utilisation))`, with capex *and*
+  throughput-derived capacity both scaling on it. Two properties make this
+  class dangerous — it is invisible in aggregate annual figures (which balance
+  fine), and it is **one-directional**, so it never shows up as an implausible
+  result in the direction you are watching for. Assert `per-node peak ≤ 100%`
+  in the checker, not in prose. The sibling error in the same file: applying a
+  *serving* power floor (idle + 35% of the load delta, correct for a lightly
+  loaded GPU) to genuinely **parked** hours, inflating annual kWh 35% on a box
+  that is parked three-quarters of the year. (`luna-onprem-tco/ERRORS.md` #3–4)
+
+- **Rack-scale MoE inference benchmarks do not transfer to single nodes —
+  decode is off by ~6×, prefill by almost nothing.** Measured on DeepSeek V4
+  Pro (1.6 T, 49 B active): a GB200 NVL72 rack does **6,644 tok/s/GPU** decode
+  where an 8×B200 node does **976** at the same interactivity, because MoE
+  decode is all-to-all bound and scales with NVLink-domain size. In energy
+  terms that is **$0.014 vs $0.083 per million output tokens** on identical
+  GPUs at the same electricity price. Prefill, being compute-bound, is
+  effectively flat between them (**$0.0035 vs $0.0030/M** — the small node is
+  *better*, on PUE alone). So: **quote rack numbers for rack deployments only;
+  a single node is a fine prefill engine and a poor decode engine**, and anyone
+  sizing on-prem inference from published rack benchmarks will overestimate
+  decode economics by most of a decimal order.
+  (`luna-onprem-tco/params.json:hardware`, `RESULTS.md`)
+
 ---
 
 ## Portable code (extraction candidates)
@@ -319,6 +366,25 @@ survives exactly the sanity checks people run.
 ---
 
 ## Environment gotchas (this container)
+
+- **A CCotw session can have `WebSearch` working and `WebFetch` blocked for
+  every domain — research is still possible, but every figure becomes
+  secondary, and the writeup has to say so.** On 2026-08-15 the agent proxy
+  returned `EGRESS_BLOCKED` to `WebFetch` and `CONNECT tunnel failed, response
+  403` to `curl` for openai.com, openrouter.ai, artificialanalysis.ai, eia.gov,
+  pepco.com, venturebeat.com, together.ai and deepseek.ai — every primary
+  source `luna-onprem-tco` needed — while `WebSearch` answered normally.
+  `curl -sS "$HTTPS_PROXY/__agentproxy/status"` reported `"selective": false`
+  and an empty `recentRelayFailures`, i.e. **the status endpoint does not
+  surface the allowlist**, so probing a URL is the only way to learn it is
+  blocked. Consequences worth planning for: search-result *summaries* are the
+  research channel, so numbers arrive already paraphrased by a model, and two
+  of them in that session were visibly wrong (a "27B dense" parameter count for
+  a closed model, and a per-seat token figure ~7× any plausible value) —
+  reconciling several summaries against each other is the only available
+  cross-check. Tag every constant with its provenance at capture time rather
+  than reconstructing it later; `luna-onprem-tco/params.json` carries a
+  `confidence` field per row and `recheck.py` fails if one is missing.
 
 - **Hugging Face reachability differs between two CCotw containers running the
   same task at the same time — state the environment with any egress claim.**
