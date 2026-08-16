@@ -304,6 +304,17 @@ survives exactly the sanity checks people run.
   second, or not at all.** Same shape as `account-routing-tier`'s "cost the
   baseline before optimizing against it", one level up — there the error was
   optimising a cheap path, here it was *measuring* one.
+  **What replaces the ratio is duty cycle**: run the same model at two scales
+  and it answers oppositely for the same reason. An 800-seat fleet loses by
+  2.7× because a $450 k node is bought whole and filled 17%; a single $6,000
+  RTX 5090 *wins* above ~4 h/day of flat-out generation. Neither turns on
+  $/token. Both turn on what fraction of a fixed capacity is used — so the
+  question to ask a buy-vs-rent proposal is "what duty cycle", not "what does
+  a token cost". And define the duty cycle in the unit that bills: **hours of
+  flat-out generation, not hours the tool is open.** Interactive chat emits
+  tokens ~5–10% of wall-clock time, so "I use it 4 hours a day" is off by an
+  order of magnitude from "4 hours of generation", and it is off in the
+  direction that justifies the purchase.
   (`luna-onprem-tco/RESULTS.md`, `ERRORS.md` "the framing error")
 
 - **Any model that compares "buy capacity" against "rent per unit" must reject
@@ -320,6 +331,33 @@ survives exactly the sanity checks people run.
   *serving* power floor (idle + 35% of the load delta, correct for a lightly
   loaded GPU) to genuinely **parked** hours, inflating annual kWh 35% on a box
   that is parked three-quarters of the year. (`luna-onprem-tco/ERRORS.md` #3–4)
+
+- **Check a quoted tok/s against the decode roofline before building anything
+  on it: `bandwidth / weight_bytes` is a hard single-stream ceiling.** A dense
+  model reads every weight once per output token, so no amount of tuning beats
+  bandwidth ÷ bytes — only a different decoding scheme (multi-token prediction,
+  speculative decoding) or batching. Qwen3.8-27B at ~4.25 effective bits is
+  14.8 GB against an RTX 5090's 1,792 GB/s: **121 tok/s at 100% MBU, ~97 at a
+  realistic 80%**. A quoted "180–200 TPS" is therefore **1.56× the hard
+  ceiling** — true, but only via MTP, speculation or concurrency, which is a
+  materially different claim from what the bare number implies. The check is
+  one division and it tells you *which mechanism* you are being quoted.
+  Corollary for the same box: **prefill and decode contend for one GPU**, so
+  sustained output is `1/(1/decode + fresh_ratio/prefill)`, not the decode rate.
+  With prefix caching, `fresh_ratio = (1 − hit_rate) × billed_ratio` — the local
+  mirror of the API's cache reads. On a 5090 that turned 190 tok/s into 123–167
+  depending on input intensity. (`luna-onprem-tco/hourly.py`, `ERRORS.md` #5–6)
+
+- **Prompt caching has a break-even hit rate, and below it caching costs more
+  than re-sending.** Providers that price cache *writes* above uncached input
+  make this non-obvious. Luna: input $0.20/M, cached read $0.02/M, cache write
+  **$0.25/M** (1.25×). Effective price is `h·0.02 + (1−h)·0.25`, which crosses
+  plain input at **h = (0.25 − 0.20)/(0.25 − 0.02) = 21.7%**. Any workload with
+  a lower reuse rate — one-shot bulk generation, high-cardinality prompts —
+  should have caching *off*. Compute the crossing from the provider's own three
+  numbers rather than assuming caching is free money; the general form is
+  `h* = (write − input)/(write − read)`.
+  (`luna-onprem-tco/params.json:api_prices`, `hourly.py::cache_breakeven_hit_rate`)
 
 - **Rack-scale MoE inference benchmarks do not transfer to single nodes —
   decode is off by ~6×, prefill by almost nothing.** Measured on DeepSeek V4
