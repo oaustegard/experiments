@@ -69,6 +69,13 @@ def main():
         "haiku pass 14/14": ("14/14", True),
         "sonnet pass 13/14": ("13/14", True),
     }
+    if "pipelines" in after:
+        pl = after["pipelines"]
+        anchors["haiku-low tokens"] = (f"{a['haiku-low']['output_tokens_measured']:,}", True)
+        anchors["haiku-low pass 12/14"] = ("12/14", True)
+        anchors["pipeline $/task"] = (f"${pl['haiku-low+test-retry']['cost_usd_per_task']:.3f}", True)
+        anchors["orch pipeline $/task"] = (f"${pl['haiku-low+opus-orch']['cost_usd_per_task']:.3f}", True)
+        anchors["luna pipeline $/task"] = (f"${pl['haiku-low+test-retry']['cost_usd_per_task_at_luna']:.3f}", True)
     for name, (needle, want) in anchors.items():
         check(f"prose anchor: {name} ({needle})", (needle in prose) == want)
     ratio = a["haiku-solo"]["output_tokens_measured"] / a["opus-solo"]["output_tokens_measured"]
