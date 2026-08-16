@@ -1,0 +1,41 @@
+{
+  "_README": [
+    "Every constant the analysis uses, with source and confidence. Nothing numeric",
+    "lives in analyze.py. Measured quantities (pass rates, output tokens) live in",
+    "data/, not here.",
+    "PROVENANCE: Anthropic prices are from the claude-api skill's cached model table",
+    "(cache date 2026-06-24, re-served 2026-08-16 in-session) - secondary. Luna and",
+    "DeepSeek prices are inherited from luna-onprem-tco/params.json (PR #37), which",
+    "itself carries a secondary-provenance warning: search-summary reads, not",
+    "primary pages. Re-verify before any purchasing decision."
+  ],
+  "api_prices_usd_per_mtok": {
+    "claude-haiku-4-5": {"input": 1.0, "output": 5.0, "confidence": "secondary", "source": "claude-api skill model table, cached 2026-06-24"},
+    "claude-sonnet-5": {"input": 3.0, "output": 15.0, "confidence": "secondary", "note": "intro $2/$10 through 2026-08-31; list price used"},
+    "claude-opus-5": {"input": 5.0, "output": 25.0, "confidence": "secondary"},
+    "claude-fable-5": {"input": 10.0, "output": 50.0, "confidence": "secondary"},
+    "gpt-5.6-luna": {"input": 0.2, "output": 1.2, "confidence": "secondary", "source": "luna-onprem-tco/params.json api_prices.luna_direct (post-80%-cut, eff. 2026-07-30)"},
+    "gpt-5.6-luna-batch": {"input": 0.1, "output": 0.6, "confidence": "requester-supplied+inferred", "source": "luna-onprem-tco: output half-price inferred from batch convention"},
+    "deepseek-v4-flash": {"input": 0.14, "output": 0.28, "confidence": "secondary", "source": "luna-onprem-tco/params.json"},
+    "deepseek-v4-pro": {"input": 0.435, "output": 0.87, "confidence": "secondary", "source": "luna-onprem-tco/params.json"}
+  },
+  "harness": {
+    "session_model": "claude-fable-5",
+    "worker_model_map": {"haiku": "claude-haiku-4-5", "sonnet": "claude-sonnet-5", "opus": "claude-opus-5"},
+    "node_kernel_input_tokens": 33000,
+    "node_kernel_note": "Fixed per-node project-context load measured 2026-08-16 (memory ceef3af6, run wf_125b7073-75f): every Workflow agent node carries the full CLAUDE.md/boot kernel as input. A harness artifact, not a property of orchestration; it is byte-stable shared-prefix and mostly cache-read in practice. Excluded from the cost model's content-token accounting, reported separately.",
+    "chars_per_token_estimate": 4.0,
+    "chars_per_token_note": "Crude prompt-side estimate for input-token modeling; output tokens are measured via budget.spent() deltas, input tokens are NOT directly observable per-arm in this harness."
+  },
+  "effort": {
+    "solo_arms": "medium",
+    "retry_worker": "medium",
+    "orchestrator_diagnosis": "high"
+  },
+  "protocol": {
+    "n_tasks": 8,
+    "max_retry_rounds": 2,
+    "retry_arms_seed": "haiku-solo round-0 solutions",
+    "orchestrator_writes_code": false
+  }
+}
