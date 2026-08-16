@@ -1,0 +1,88 @@
+{
+ "haiku-low": {
+  "cron_next": {
+   "passed": true,
+   "n_passed": 31,
+   "n_total": 31,
+   "failures": ""
+  },
+  "csv_line": {
+   "passed": true,
+   "n_passed": 18,
+   "n_total": 18,
+   "failures": ""
+  },
+  "expr_eval": {
+   "passed": true,
+   "n_passed": 31,
+   "n_total": 31,
+   "failures": ""
+  },
+  "glob_match": {
+   "passed": true,
+   "n_passed": 21,
+   "n_total": 21,
+   "failures": ""
+  },
+  "interval_merge": {
+   "passed": true,
+   "n_passed": 17,
+   "n_total": 17,
+   "failures": ""
+  },
+  "lru_ttl": {
+   "passed": true,
+   "n_passed": 12,
+   "n_total": 12,
+   "failures": ""
+  },
+  "parse_range": {
+   "passed": false,
+   "n_passed": 12,
+   "n_total": 19,
+   "failures": ".FFF.FFF..F........                                                      [100%]\n=================================== FAILURES ===================================\nE   ValueError: Range A > B\n/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B\nE   ValueError: Range A > B\n/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B\nE   ValueError: Range A > B\n/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B\nE   ValueError: invalid literal for int() with base 10: '-3--1'\n\nDuring handling of the above exception, another exception occurred:\nE   ValueError: Invalid token\n/tmp/tmpwsd51igw/solution.py:43: ValueError: Invalid token\nE   assert [-2, -1] == [-2, -1, 0, 1]\n      \n      Right contains 2 more items, first extra item: 0\n      Use -v to get more diff\n/tmp/tmpwsd51igw/test_hidden.py:24: assert [-2, -1] == [-2, -1, 0, 1]\nE   ValueError: Range A > B\n/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B\nE   ValueError: Range A > B\n/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B\n=========================== short test summary info ============================\nFAILED test_hidden.py::test_simple_range - ValueError: Range A > B\nFAILED test_hidden.py::test_mixed_sorted_dedup - ValueError: Range A > B\nFAILED test_hidden.py::test_overlap_dedup - ValueError: Range A > B\nFAILED test_hidden.py::test_negative_range - ValueError: Invalid token\nFAILED test_hidden.py::test_negative_to_positive - assert [-2, -1] == [-2, -1...\nFAILED test_hidden.py::test_whitespace - ValueError: Range A > B\nFAILED test_hidden.py::test_single_element_range - ValueError: Range A > B\n7 failed, 12 passed in 0.03s\n"
+  },
+  "roman_strict": {
+   "passed": false,
+   "n_passed": 34,
+   "n_total": 35,
+   "failures": "......F............................                                      [100%]\n=================================== FAILURES ===================================\nE   Failed: DID NOT RAISE ValueError\n/tmp/tmpt6ad_oit/test_hidden.py:44: Failed: DID NOT RAISE ValueError\n=========================== short test summary info ============================\nFAILED test_hidden.py::test_invalid_raises[MMMM] - Failed: DID NOT RAISE Valu...\n1 failed, 34 passed in 0.06s\n"
+  },
+  "semver_cmp": {
+   "passed": true,
+   "n_passed": 31,
+   "n_total": 31,
+   "failures": ""
+  },
+  "stack_vm": {
+   "passed": true,
+   "n_passed": 23,
+   "n_total": 23,
+   "failures": ""
+  },
+  "template_render": {
+   "passed": true,
+   "n_passed": 18,
+   "n_total": 18,
+   "failures": ""
+  },
+  "text_table": {
+   "passed": true,
+   "n_passed": 15,
+   "n_total": 15,
+   "failures": ""
+  },
+  "toposort_lex": {
+   "passed": true,
+   "n_passed": 13,
+   "n_total": 13,
+   "failures": ""
+  },
+  "wrap_text": {
+   "passed": true,
+   "n_passed": 16,
+   "n_total": 16,
+   "failures": ""
+  }
+ }
+}
