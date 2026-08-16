@@ -1,0 +1,31 @@
+.FFF.FFF..F........                                                      [100%]
+=================================== FAILURES ===================================
+E   ValueError: Range A > B
+/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B
+E   ValueError: Range A > B
+/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B
+E   ValueError: Range A > B
+/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B
+E   ValueError: invalid literal for int() with base 10: '-3--1'
+
+During handling of the above exception, another exception occurred:
+E   ValueError: Invalid token
+/tmp/tmpwsd51igw/solution.py:43: ValueError: Invalid token
+E   assert [-2, -1] == [-2, -1, 0, 1]
+      
+      Right contains 2 more items, first extra item: 0
+      Use -v to get more diff
+/tmp/tmpwsd51igw/test_hidden.py:24: assert [-2, -1] == [-2, -1, 0, 1]
+E   ValueError: Range A > B
+/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B
+E   ValueError: Range A > B
+/tmp/tmpwsd51igw/solution.py:36: ValueError: Range A > B
+=========================== short test summary info ============================
+FAILED test_hidden.py::test_simple_range - ValueError: Range A > B
+FAILED test_hidden.py::test_mixed_sorted_dedup - ValueError: Range A > B
+FAILED test_hidden.py::test_overlap_dedup - ValueError: Range A > B
+FAILED test_hidden.py::test_negative_range - ValueError: Invalid token
+FAILED test_hidden.py::test_negative_to_positive - assert [-2, -1] == [-2, -1...
+FAILED test_hidden.py::test_whitespace - ValueError: Range A > B
+FAILED test_hidden.py::test_single_element_range - ValueError: Range A > B
+7 failed, 12 passed in 0.03s

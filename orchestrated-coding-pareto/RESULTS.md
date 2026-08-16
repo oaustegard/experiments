@@ -118,6 +118,40 @@ measured, but the ratio may be tunable rather than intrinsic.
    coding workload. The fleet workload shape is friendlier to the box than office
    chat (parallel, batchable), but the volume is still missing.
 
+## Follow-up: the effort knob (added same day, after PR #39 opened)
+
+Oskar asked whether the haiku delegation ran at too high an effort setting. Re-ran
+all 14 tasks at `effort: low` — the floor this harness exposes (there is no
+thinking-off toggle on Workflow agents, and CCotw has no raw API key by design, so
+fully-disabled thinking remains untested):
+
+| arm | pass | output tokens | tok/task | $/task | $/task @Luna |
+|---|---|---|---|---|---|
+| haiku-low | 12/14 | 206,668 | 14.8k | $0.075 | — |
+| haiku-low + test-feedback retry | 14/14 | 223,169 | 15.9k | $0.080 | $0.019 |
+| haiku-low + opus-diagnose→haiku-fix | 14/14 | 232,374 | 16.6k | $0.097 | — |
+| opus-solo (reference) | 14/14 | 42,019 | 3.0k | $0.079 | — |
+
+Three answers fall out:
+
+1. **The verbosity is mostly intrinsic, not the knob.** Dropping `medium` → `low`
+   cut output tokens 26% (20.1k → 14.8k/task) — still 4.9× opus. If the 6.7× ratio
+   were configured thinking, `low` should have collapsed it; it didn't.
+2. **`low` finally broke the ceiling — and activated the orchestration arms.**
+   haiku-low failed `parse_range` (its hyphen-splitter rejects even `"1-3"`) and
+   `roman_strict` (one invalid form accepted). Both retry lanes ran on this seed,
+   and **both went 2/2 in one round**: raw pytest output alone fixed everything the
+   opus diagnosis fixed. Measured orchestrator premium over mechanical test
+   feedback: zero quality, +$0.017/task cost (9,427 opus output tokens of
+   diagnosis). n=2 failures — a first datapoint, not a verdict — but its direction
+   matches the main result: the *verification loop* buys the quality back; the
+   orchestrator's intelligence adds nothing a failing test didn't already say.
+3. **The best cheap pipeline ties frontier-solo at Anthropic prices and wins only
+   on Luna prices.** haiku-low + test-retry reaches 14/14 at $0.080/task vs
+   opus-solo's $0.079 one-shot — a tie that additionally requires owning a grading
+   harness. Repriced at Luna direct, the same pipeline is $0.019/task, 4.1× under
+   opus-solo. The procurement conclusion from the main run stands unchanged.
+
 ## Confidence
 
 Ranked by how much a wrong value would move the conclusion:
