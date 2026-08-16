@@ -62,10 +62,48 @@
     "deepseek-v4-flash": 0.0132,
     "deepseek-v4-pro": 0.0409
    }
+  },
+  "haiku-retry": {
+   "graded": {
+    "parse_range": true,
+    "roman_strict": true
+   }
+  },
+  "orch-haiku": {
+   "graded": {
+    "parse_range": true,
+    "roman_strict": true
+   }
+  },
+  "haiku-low": {
+   "model": "claude-haiku-4-5",
+   "effort": "low",
+   "tasks_passed": 12,
+   "tasks_total": 14,
+   "output_tokens_measured": 206668,
+   "cost_usd": 1.0432,
+   "cost_usd_per_task": 0.0745
   }
  },
  "notes": {
   "kernel": "Each workflow node additionally carries ~33000 input tokens of fixed harness kernel (cache-read in practice); excluded above.",
   "haiku_output_ratio_vs_opus": 6.68
+ },
+ "pipelines": {
+  "haiku-low+test-retry": {
+   "tasks_passed": 14,
+   "output_tokens": 223169,
+   "cost_usd": 1.1257,
+   "cost_usd_per_task": 0.0804,
+   "cost_usd_per_task_at_luna": 0.0193
+  },
+  "haiku-low+opus-orch": {
+   "tasks_passed": 14,
+   "opus_diagnose_tokens": 9427,
+   "haiku_fix_tokens": 16279,
+   "cost_usd": 1.3603,
+   "cost_usd_per_task": 0.0972,
+   "orchestrator_marginal_quality_vs_test_retry": 0
+  }
  }
 }
