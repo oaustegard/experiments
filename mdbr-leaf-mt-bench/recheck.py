@@ -88,5 +88,32 @@ check("same-session 8.0 vs 10.8 ms", abs(lb["leaf-mt-int8"] - 8.0) < 0.05 and ab
 c = get(pb["claims"], claim="leaf fp32 @1024 vs jina @768, code R@1")
 check("negative control: decisive cell is not 'noise'", c["significant"])
 
+# codec head-to-head (bench_headtohead_leaf.py)
+hh = json.load(open(HERE / "results_headtohead_leaf.json"))
+HR, HC = hh["rows"], hh["claims"]
+check("remax k=1 blog @128B = 0.503",
+      abs(get(HR, dist="blog", arm="remax", dim=1024, param=1)["r@10"] - 0.503) < 5e-4)
+check("vendor binary blog @128B = 0.547",
+      abs(get(HR, dist="blog", arm="vendor-binary", dim=1024)["r@10"] - 0.547) < 5e-4)
+check("binary-asym blog @128B = 0.559 (panel max)",
+      abs(get(HR, dist="blog", arm="binary-asym", dim=1024)["r@10"] - 0.559) < 5e-4)
+check("binary-asym d=512 blog = 0.542 = fp32 full",
+      abs(get(HR, dist="blog", arm="binary-asym", dim=512)["r@10"]
+          - get(HR, dist="blog", arm="matryoshka-fp32", dim=1024)["r@10"]) < 5e-4)
+c = get(HC, claim="[blog] remax k=1 vs vendor binary @128B (d=1024)")
+check("remax vs vendor binary blog: -0.045, n.s.",
+      abs(c["delta"] + 0.045) < 5e-4 and not c["significant"])
+c = get(HC, claim="[blog] remex 2-bit @1024 (~260B) vs MRL d=64 fp32 (256B)")
+check("quantize-before-truncate blog: +0.073, p=0.015",
+      abs(c["delta"] - 0.073) < 5e-4 and c["significant"])
+c = get(HC, claim="[code] remex 2-bit @1024 (~260B) vs MRL d=64 fp32 (256B)")
+check("quantize-before-truncate code: +0.117, p<1e-4",
+      abs(c["delta"] - 0.117) < 5e-4 and c["p"] < 1e-4)
+c = get(HC, claim="[blog] remex 2-bit @1024 (~260B) vs fp32 @1024 (4096B)")
+check("remex 2-bit ~= uncompressed (blog, n.s.)", not c["significant"])
+check("remax stack beats width at 128B: d=512 k=2 > d=1024 k=1 (blog)",
+      get(HR, dist="blog", arm="remax", dim=512, param=2)["r@10"]
+      > get(HR, dist="blog", arm="remax", dim=1024, param=1)["r@10"])
+
 print(f"\n{FAIL} failure(s)")
 sys.exit(1 if FAIL else 0)
