@@ -1,0 +1,86 @@
+{
+ "retrieval": [
+  {
+   "model": "bekko-a8m",
+   "dist": "blog",
+   "dim": 384,
+   "r@1": 0.2122905027932961,
+   "r@10": 0.5754189944134078
+  },
+  {
+   "model": "leaf-mt-int8",
+   "dist": "blog",
+   "dim": 1024,
+   "r@1": 0.25139664804469275,
+   "r@10": 0.5418994413407822
+  },
+  {
+   "model": "bekko-a8m",
+   "dist": "code",
+   "dim": 384,
+   "r@1": 0.664804469273743,
+   "r@10": 0.888268156424581
+  },
+  {
+   "model": "leaf-mt-int8",
+   "dist": "code",
+   "dim": 1024,
+   "r@1": 0.5921787709497207,
+   "r@10": 0.8715083798882681
+  }
+ ],
+ "claims": [
+  {
+   "claim": "leaf int8 vs bekko-a8m, blog R@10",
+   "delta": -0.03351955307262566,
+   "ci_lo": -0.0949720670391061,
+   "ci_hi": 0.027932960893854775,
+   "wins": 12,
+   "losses": 18,
+   "p": 0.361594608053565,
+   "significant": false
+  },
+  {
+   "claim": "leaf int8 vs bekko-a8m, code R@10",
+   "delta": -0.016759776536312887,
+   "ci_lo": -0.06145251396648055,
+   "ci_hi": 0.027932960893854775,
+   "wins": 8,
+   "losses": 11,
+   "p": 0.6476058959960938,
+   "significant": false
+  },
+  {
+   "claim": "leaf int8 vs bekko-a8m, blog R@1",
+   "delta": 0.03910614525139666,
+   "ci_lo": -0.01675977653631286,
+   "ci_hi": 0.09497206703910616,
+   "wins": 17,
+   "losses": 10,
+   "p": 0.24778856337070465,
+   "significant": false
+  },
+  {
+   "claim": "leaf int8 vs bekko-a8m, code R@1",
+   "delta": -0.07262569832402233,
+   "ci_lo": -0.14525139664804476,
+   "ci_hi": 0.0,
+   "wins": 17,
+   "losses": 30,
+   "p": 0.07894069368148848,
+   "significant": false
+  }
+ ],
+ "latency": [
+  {
+   "model": "bekko-a8m",
+   "threads": 1,
+   "query_ms": 10.768998000003194
+  },
+  {
+   "model": "leaf-mt-int8",
+   "threads": 1,
+   "query_ms": 8.02857300004689
+  }
+ ]
+}
