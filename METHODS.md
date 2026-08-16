@@ -1453,3 +1453,44 @@ writeup would have differed from the start.
 Fan-out delivers data and interpretation on separate schedules. Either wait for
 the report, or label the reading as your own inference. A conclusion must not
 depend on which subagent finished first.
+
+### Validate hidden test suites against a reference before any model sees the task
+
+Author spec, tests, and a reference implementation together; the suite must pass
+against the reference before it grades anything else. In
+`orchestrated-coding-pareto` this caught authoring bugs in 3 of 14 suites — one
+wrong test expectation that would have failed every arm on correct code, one
+reference/spec disagreement that would have graded spec-compliant code as wrong,
+one mangled-but-accidentally-correct reference. A hidden suite that has never
+passed a known-good solution is an unvalidated measuring instrument.
+(`orchestrated-coding-pareto/ERRORS.md`)
+
+### Grade early arms before building arms that depend on them
+
+Task-difficulty ceilings are invisible until graded. `orchestrated-coding-pareto`
+planned retry/orchestration arms seeded from a cheap model's failures; grading the
+first six landed solutions mid-run (rather than after all arms) showed 6/6 passes
+and forced two difficulty escalations while generation for later arms had not yet
+been paid for. Had grading waited for the full matrix, the whole run would have
+produced an undiagnostic null. Corollary: retry-style arms should state up front
+what happens when the failure set is empty — "vacuous" is a reportable outcome,
+not a broken pipeline.
+
+### Per-token price is not cost — measure tokens-per-task before comparing tiers
+
+A model at 1/5 the per-token price that emits 6.7× the output tokens costs *more*
+per solved task. `orchestrated-coding-pareto` measured Haiku 4.5 at 20.1k output
+tokens/task vs Opus 5 at 3.0k on identical tasks (ratio worsening with task
+difficulty), flipping the expected cost ranking at equal measured quality. Any
+cheap-fleet argument made from a price sheet alone is unfounded until the
+verbosity ratio is measured — and the ratio may be a harness/effort artifact, so
+measure it in the deployment configuration, not in general.
+
+### Workflow-tool token metering: sequential phases, budget.spent() deltas
+
+`budget.spent()` is a turn-global output-token counter shared by all concurrent
+workflows. Per-arm/per-phase metering therefore requires strictly sequential
+phases (or sequential workflow invocations) with marks recorded between them;
+launching two workflows concurrently silently confounds every delta. Input tokens
+are not observable per-arm at all — estimate from content sizes and say so.
+(`orchestrated-coding-pareto/data/marks.json`)
