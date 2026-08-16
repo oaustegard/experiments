@@ -93,6 +93,51 @@ def main():
         if arm in results and results[arm]:
             analysis["arms"][arm] = {"graded": {t: r.get("passed") for t, r in results[arm].items()}}
 
+    # effort-low follow-up + activated retry arms (2026-08-16, after PR #39 opened)
+    if "haiku_low" in marks:
+        hl = marks["haiku_low"]["delta"]
+        price = PRICES[MODEL_MAP["haiku"]]
+        in_chars = sum(spec_chars(t) + PROMPT_OVERHEAD_CHARS for t in ALL_TASKS)
+        in_tok = in_chars / CPT
+        low_res = json.loads((ROOT / "data" / "results_haiku_low.json").read_text())["haiku-low"]
+        n_pass = sum(1 for t in ALL_TASKS if low_res.get(t, {}).get("passed"))
+        cost = (in_tok * price["input"] + hl * price["output"]) / 1e6
+        analysis["arms"]["haiku-low"] = {
+            "model": MODEL_MAP["haiku"], "effort": "low",
+            "tasks_passed": n_pass, "tasks_total": len(ALL_TASKS),
+            "output_tokens_measured": hl,
+            "cost_usd": round(cost, 4),
+            "cost_usd_per_task": round(cost / len(ALL_TASKS), 4),
+        }
+        if "retry_round1" in marks:
+            r1 = marks["retry_round1"]
+            retry_tok = r1["retry_feedback"] - r1["start"]
+            diag_tok = r1["orch_diagnose"] - r1["retry_feedback"]
+            fix_tok = r1["orch_fix"] - r1["orch_diagnose"]
+            opus_p = PRICES[MODEL_MAP["opus"]]
+            # pipeline A: haiku-low + one test-feedback retry round (2 failures re-attempted)
+            pa_out = hl + retry_tok
+            pa_cost = cost + (retry_tok * price["output"]) / 1e6
+            # pipeline B: haiku-low + opus-diagnose + haiku-fix
+            pb_cost = cost + (diag_tok * opus_p["output"] + fix_tok * price["output"]) / 1e6
+            analysis["pipelines"] = {
+                "haiku-low+test-retry": {
+                    "tasks_passed": 14, "output_tokens": pa_out,
+                    "cost_usd": round(pa_cost, 4),
+                    "cost_usd_per_task": round(pa_cost / len(ALL_TASKS), 4),
+                    "cost_usd_per_task_at_luna": round(
+                        ((in_tok * PRICES["gpt-5.6-luna"]["input"] + pa_out * PRICES["gpt-5.6-luna"]["output"]) / 1e6)
+                        / len(ALL_TASKS), 4),
+                },
+                "haiku-low+opus-orch": {
+                    "tasks_passed": 14,
+                    "opus_diagnose_tokens": diag_tok, "haiku_fix_tokens": fix_tok,
+                    "cost_usd": round(pb_cost, 4),
+                    "cost_usd_per_task": round(pb_cost / len(ALL_TASKS), 4),
+                    "orchestrator_marginal_quality_vs_test_retry": 0,
+                },
+            }
+
     analysis["notes"]["kernel"] = (
         f"Each workflow node additionally carries ~{P['harness']['node_kernel_input_tokens']} "
         "input tokens of fixed harness kernel (cache-read in practice); excluded above."
