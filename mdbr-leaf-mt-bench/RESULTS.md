@@ -126,6 +126,55 @@ The cheap rung is now an artifact-size choice: leaf-mt-int8 at 23.7 MB is the
 smallest credible remax_kb embedder measured in this family, and small enough
 to ship places a 124–190 MB model can't go. The quality rungs are unchanged.
 
+## Byte-budget head-to-head: the card's own compression menu vs remex/remax
+
+Follow-up (same day): how do remax stacked sign bits fare against the model's
+*own* recommended binary quantization, and what does the quant-vs-MRL Pareto
+look like on this model? Six arms — MRL fp32 truncation, the card's int8
+(`[-1,+1]` ranges), the card's sign-bit binary (symmetric Hamming), binary
+docs scored by fp32 queries ("binary asym" — the card's rescore trick
+collapsed to exhaustive asymmetric scoring, an upper bound on binary+rescore),
+remex Lloyd-Max, and remax — each also run at truncated dims 1024/512/256/
+128/64 so both families compose with MRL. Embeddings from the int8 export,
+encoded once. Chart: `pareto.png`; data: `results_headtohead_leaf.json`.
+
+![Pareto: quantization arms vs MRL truncation](pareto.png)
+
+**remax does not beat the vendor's plain sign bits.** At the shared 128 B
+budget (d=1024), blog R@10 is remax k=1 **0.503** vs vendor binary **0.547**
+(Δ −0.045, 7/15 discordant, p = 0.13) and code 0.816 vs 0.821 (p = 1.0).
+remex 1-bit is statistically level with vendor binary on both distributions
+(±0.017, p ≥ 0.68). So on this model the rotation/centering machinery buys
+nothing over `np.sign()` — consistent with the card's claim that
+quantization robustness was distilled in from the teacher. The asymmetric
+trick adds +0.011 over symmetric binary on both distributions (n.s.), and
+its blog value at 128 B (**0.559**) is the best number measured in the whole
+panel — nominally *above* full fp32 (0.542), a +0.017 that is n=179 noise
+but does mean binary costs nothing here.
+
+**Quantize-before-truncate reproduces on leaf.** remex 2-bit at full width
+(~260 B with norms) beats the fp32 MRL floor d=64 (256 B) by **+0.073 blog
+(p = 0.015)** and **+0.117 code (19w/6l → 22w/1l, p < 1e-4)** — the same
+rule bekko-a25m produced, now on a second, MRL-trained model — and is
+statistically indistinguishable from the uncompressed 4096 B vector
+(−0.006 blog / −0.017 code, n.s.).
+
+**The frontier is composition, not any single family.** Blog frontier by
+budget: sign bits at 8 B (0.318), remex d=64 1-bit at 12 B (0.369), binary
+asym d=128 at 16 B (0.486), binary d=256 at 32 B (0.525), binary asym d=512
+at 64 B (**0.542 — full-fp32 quality at 64x compression**), binary asym
+d=1024 at 128 B (0.559), remex d=512 2-bit at 260 B (0.553). Code behaves
+the same with remex taking more of the mid-budget points. MRL-fp32 is
+dominated everywhere on both distributions — its only frontier point is the
+uncompressed endpoint on code.
+
+One wrinkle against the kb-k-sweep prior ("dims beat stacks"): at iso-bytes
+*within* remax, truncating and stacking beats full width here — d=512 k=2
+(0.542 blog) over d=1024 k=1 (0.503) at 128 B. On this model the first sign
+bit of a shorter vector is worth less than a second bit on half the
+coordinates, which is the opposite of how the muninn-corpus sweep landed at
+256 B/doc.
+
 ## Scope — what was deliberately not run
 
 - **Part A (NL→code file discovery)** — not run. The prior bench's audit
@@ -155,4 +204,7 @@ to ship places a 124–190 MB model can't go. The quality rungs are unchanged.
 python3 scripts/run_partb_leaf.py      # retrieval + fidelity + paired tests -> results_partb_leaf.json
 python3 scripts/bench_latency_leaf.py  # compute table -> results_latency_leaf.json
 python3 scripts/bench_vs_bekko.py      # paired cheap-rung comparison -> results_vs_bekko.json
+# codec head-to-head needs remex (PyPI) + remax (clone at /home/user/remax):
+python3 scripts/bench_headtohead_leaf.py   # -> results_headtohead_leaf.json
+python3 scripts/make_pareto_chart.py       # -> pareto.png
 ```
