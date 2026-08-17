@@ -25,6 +25,12 @@
         "confidence": "secondary",
         "source": "EIA report Dec 2025, MD commercial average"
       },
+      "md_residential_eia_corrected": {
+        "value": 0.222,
+        "confidence": "secondary",
+        "source": "EIA, after the Maryland PSC forced a correction: https://psc.maryland.gov/news/2026/u-s-eia-corrects-maryland-electricity-price-data/",
+        "note": "The Mar 2026 report said 35 c/kWh (2nd highest in the US, +89% YoY); corrected to 22.2 c, +17% YoY. Use this for a home office. The episode is also the reason every EIA row here is tagged secondary."
+      },
       "md_industrial_eia": {
         "value": 0.1359,
         "confidence": "secondary",
@@ -73,6 +79,24 @@
       "confidence": "secondary",
       "source": "https://artificialanalysis.ai/models/deepseek-v4-pro ; https://deepseek.ai/deepseek-v4 ; weights published 2026-08-13 as 66 fp8 shards, ungated",
       "note": "THE CAPABILITY MATCH. AA index 53 vs Luna(max) 52 -- statistically level. This is what you must run locally to claim you have matched Luna."
+    },
+    "qwen3.8-27b": {
+      "vendor": "Alibaba Tongyi Lab",
+      "open_weights": true,
+      "license": "Apache 2.0",
+      "released": "2026-08-14",
+      "total_params": 27.78e9,
+      "active_params": 27.78e9,
+      "dense": true,
+      "context": 262144,
+      "multimodal": "text + image + video, vision encoder",
+      "attention": "Gated DeltaNet (linear) + hybrid; multi-token prediction",
+      "weight_bits_nvfp4": 4.25,
+      "benchmarks": {"swe_bench_pro": 61.7, "deepswe_1_1": 42.2, "qwen_swe_bench": 79.0, "coworkbench": 70.7},
+      "confidence": "secondary",
+      "source": "https://www.yottalabs.ai/post/qwen-3-8-27b-specs-hardware-requirements-how-to-run-2026 ; https://benchlm.ai/models/qwen3-8-27b ; weights on HF under Apache 2.0",
+      "note": "THE CONSUMER-SCALE CAPABILITY MATCH, and a much closer one than V4 Flash: SWE-Bench Pro 61.7 vs Luna's 62.7. DENSE, not MoE -- Qwen 3.8-Max is the sparse one at ~95B active. Luna still leads on knowledge breadth (GPQA 92.3; the previous-gen Qwen3.6-27B lost GPQA, MMMU-Pro and SWE-Bench Pro to Luna outright) and on context (1.05M vs 262K). Gated DeltaNet's linear attention makes the KV cache far cheaper than a standard 27B, which is what makes long context on 32 GB thinkable at all.",
+      "bits_note": "4.25 effective bits assumes NVFP4 MoE-style weight quant with norms/embeddings/router left higher. Drives weights_gb, which drives the decode roofline, so it is load-bearing."
     },
     "deepseek-v4-flash-0731": {
       "vendor": "DeepSeek",
@@ -145,6 +169,27 @@
       ],
       "note": "SPECULATIVE, no measured V4-Pro throughput exists for this config. 12x96=1152 GB holds the 800 GB weights with room for KV. Capex is ~half the 8xB200. The risk is the interconnect: PCIe 5.0 instead of NVLink, against a 1.6T MoE whose expert parallelism is all-to-all-bound. Decode will suffer, possibly severely. Benchmark before believing. Included so the model can PRICE the option, not so it can recommend it."
     },
+    "RTX-5090-desktop": {
+      "gpus": 1,
+      "vram_bytes": 32e9,
+      "gpu_tgp_w": 600,
+      "host_w": 90,
+      "platform_w": 40,
+      "psu_efficiency": 0.90,
+      "memory_bandwidth_gb_s": 1792,
+      "measured_prefill_tok_s_llama31_8b": 7200,
+      "capex_usd": 6000,
+      "capex_usd_msrp_era": 3299,
+      "confidence": "secondary",
+      "sources": [
+        "575 W TGP, 580-600 W under heavy load, 32 GB GDDR7, 1,792 GB/s: NVIDIA spec via secondary summaries",
+        "street price: https://videocardprices.com/card/nvidia-rtx-5090/ -- US median $4,699.99 Aug 2026, in-stock range $3,900-5,000; $1,999 Founders Edition does not exist at retail, AIB baselines from $2,900",
+        "prefill anchor: ~7,200 tok/s on Llama-3.1-8B, via secondary summary"
+      ],
+      "capex_note": "$6,000 = $4,700 street-median card + ~$1,300 for a 1200 W PSU, CPU, 64 GB RAM, NVMe and case. capex_usd_msrp_era is the same box had the card sold at its $1,999 MSRP -- kept because the shortage roughly DOUBLES the break-even duty cycle, which makes the GPU market a bigger swing factor than electricity or model choice.",
+      "host_w_note": "90 W CPU is for an inference workload, which barely loads it. Gaming/CPU-offload figures of 'north of 800 W system' assume a loaded CPU and do not apply.",
+      "no_pue_note": "A desktop has no datacenter PUE. It does have summer air conditioning: removing 811 W of heat at COP 3.5 costs another ~232 W. Winter it offsets heating instead. Modelled as an optional multiplier, not baked in."
+    },
     "default_hardware": "8xB200-HGX"
   },
 
@@ -160,7 +205,7 @@
 
   "api_prices_usd_per_mtok": {
     "_note": "Confirmed by the requester 2026-08-15: the $0.22 originally supplied was AWS Bedrock; OpenAI direct is $0.20, and a batch tier is available at $0.10 input.",
-    "luna_direct": {"input": 0.20, "output": 1.20, "confidence": "secondary", "source": "post-80%-cut pricing, eff. 2026-07-30; launch pricing was $1/$6"},
+    "luna_direct": {"input": 0.20, "output": 1.20, "cached_read": 0.02, "cache_write": 0.25, "confidence": "secondary", "source": "post-80%-cut pricing, eff. 2026-07-30; launch pricing was $1/$6. Cache: 90% discount on reads, writes at 1.25x uncached input, 30-min minimum cache life, explicit breakpoints", "cache_note": "Because writes carry a 1.25x premium, caching only pays above a hit rate of (0.25-0.20)/(0.25-0.02) = 21.7%. Below that, re-sending is cheaper than caching."},
     "luna_direct_long_context": {"input": 0.40, "output": 1.80, "confidence": "secondary"},
     "luna_bedrock": {"input": 0.22, "output": 1.20, "confidence": "requester-supplied"},
     "luna_batch": {"input": 0.10, "output": 0.60, "confidence": "requester-supplied", "note": "output half-price is INFERRED from the standard 50% batch convention, not confirmed. Only the $0.10 input was given."},
@@ -187,6 +232,28 @@
     },
     "scenario_provenance": "AUTHORED, not sourced. Published per-seat figures found (FinOps LLM: 'light analyst' 3M input tok/day) are ~7x above even scenario C per active user and are not credible for office work; they were rejected rather than used. Scenarios A-C are bracketing guesses. Replace with telemetry.",
     "default_scenario": "B"
+  },
+
+  "hourly": {
+    "_note": "Single-GPU, per-hour framing -- `hourly.py`. Different question from the fleet model: not 'do we buy a cluster for 800 seats' but 'is one card cheaper than the API while it is running'. Same price book, same electricity rates.",
+    "default_hardware": "RTX-5090-desktop",
+    "default_model": "qwen3.8-27b",
+    "nominal_decode_tok_s": 190,
+    "nominal_decode_note": "USER-SUPPLIED PREMISE (180-200 TPS), retained deliberately. It sits ~1.9x above the plain single-stream decode roofline for this model -- see `hourly.py::roofline`. Reachable via the multi-token prediction this model ships, or speculative decoding, or 2+ concurrent streams; NOT reachable by plain decode. `conservative_decode_tok_s` is the roofline-respecting branch and every output is reported at both.",
+    "conservative_decode_tok_s": 95,
+    "mbu": 0.80,
+    "mbu_note": "Memory-bandwidth utilisation for single-stream decode. 0.80 is typical for a well-tuned llama.cpp/vLLM run.",
+    "profiles": {
+      "chat": {"label": "chat / assistant", "billed_in_out_ratio": 8, "cache_hit_rate": 0.60, "use_cache": true},
+      "agentic": {"label": "agentic coding", "billed_in_out_ratio": 40, "cache_hit_rate": 0.85, "use_cache": true},
+      "bulk": {"label": "bulk generation", "billed_in_out_ratio": 1.5, "cache_hit_rate": 0.10, "use_cache": false}
+    },
+    "profiles_provenance": "AUTHORED. Ratios and hit rates are bracketing guesses, not telemetry. `bulk` deliberately has use_cache=false because its 10% hit rate is BELOW the 21.7% break-even -- caching it would cost more, which is the point of carrying that row.",
+    "residential_rate_key": "md_residential_eia_corrected",
+    "ac_cop": 3.5,
+    "ac_note": "Summer only, and only if the box lives in conditioned space. Off by default.",
+    "duty_cycle_hours_per_day": [1, 2, 4, 8, 24],
+    "duty_cycle_note": "'Flat-out generation', not 'hours with the tool open'. Interactive chat generates tokens perhaps 5-10% of wall-clock time, so 4 h/day of real generation is ~1.8M output tokens/day -- an always-on agent or a batch pipeline, not a person typing. Conflating the two is the easiest way to talk yourself into the purchase."
   },
 
   "selfhost_opex": {

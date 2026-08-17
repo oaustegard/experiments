@@ -1,7 +1,13 @@
 # Luna on-prem vs API — what actually decides it
 
-**Status:** done. Negative result for the framing the question arrived in.
-**Date:** 2026-08-15. **Cost:** ~15 web searches, no GPU time, no API spend, ~2 h wall clock.
+**Status:** done, two passes. Negative result for the framing the question arrived in.
+**Date:** 2026-08-15 (fleet), 2026-08-16 (single-GPU). **Cost:** ~21 web searches, no GPU time, no API spend, ~3 h wall clock.
+
+Two scales, one price book. `model.py` asks *"do we buy a cluster for 800
+seats"* and answers **no, by 2.7×**. `hourly.py` asks *"is one RTX 5090 cheaper
+than the API while it runs"* and answers **yes, above ~4 h/day of flat-out
+generation**. The same principle decides both, in opposite directions: what
+matters is not the per-token cost but how much of a fixed capacity you fill.
 
 ## The question, and the question underneath it
 
@@ -141,6 +147,97 @@ The practical consequence: **the small box is a fine prefill engine and a poor
 decode engine.** Anyone sizing on-prem inference from rack-scale benchmarks
 will overestimate a single node's decode economics by ~6×.
 
+## Second pass: one RTX 5090, per hour — `hourly.py`
+
+Same question, 1/1000th the scale, and the answer is different in kind. Local
+model: **Qwen3.8-27B** (released 14 Aug 2026, Apache 2.0, 27.78 B **dense**,
+262 K context, Gated DeltaNet attention + multi-token prediction). Unlike V4
+Flash in the fleet analysis, this is a near-match on coding — **SWE-Bench Pro
+61.7% against Luna's 62.7%** — though Luna still leads decisively on knowledge
+breadth (GPQA 92.3%) and on context (1.05 M vs 262 K).
+
+**Electricity is $`ANCHOR-5090-power-res: 0.180`/hr** — 600 W card + 90 W CPU +
+40 W platform, ÷ 0.90 PSU = **`ANCHOR-5090-wall-w: 811` W** at the wall, at
+Maryland's EIA-corrected **residential** 22.2 ¢/kWh ($0.133 at the commercial
+rate; +28% if summer AC has to remove the heat).
+
+Two premise corrections came first, and both moved the answer:
+
+**The quoted 180–200 TPS is above the single-stream decode roofline.** 27.78 B
+dense at ~4.25 effective bits is 14.8 GB, read once per token from 1,792 GB/s,
+so the hard ceiling is **`ANCHOR-5090-ceiling: 121` tok/s** and ~97 at a
+realistic 80% MBU. 190 is **1.56×** the hard ceiling. Reachable — this model
+ships multi-token prediction, and batching or speculative decoding get there —
+but not by plain decode. Every result is reported at both 190 and 95.
+
+**Prefill and decode share the one card.** There is no separate prefill pool on
+a desktop. At ~2,073 tok/s prefill (the measured 7,200 tok/s for Llama-3.1-8B
+scaled by parameters), the advertised decode rate is never the sustained rate:
+
+| profile | billed in:out | cache hit | fresh in:out | sustained out | Luna $/hr | × electricity |
+|---|---|---|---|---|---|---|
+| chat / assistant | 8:1 | 60% | 3.2 | 147 tok/s | $1.11 | 6.2× res, 8.3× comm |
+| agentic coding | 40:1 | 85% | 6.0 | **`ANCHOR-agentic-sustained: 122.6`** tok/s | **$`ANCHOR-agentic-luna-hr: 1.49`** | **8.3×** res, 11.2× comm |
+| bulk generation | 1.5:1 | 10% | 1.35 | 167 tok/s | $0.90 | 5.0× res, 6.8× comm |
+
+**So 5–11×, against the fleet analysis's 57×.** The gap collapsed because a
+consumer card serving one stream is a poor token engine: **$0.19–0.26 per
+million output tokens** against the 8×B200 node's $0.083 and the NVL72 rack's
+$0.014. Single-stream inference is the least energy-efficient way to make a
+token, and batching is most of what datacenter economics *is*.
+
+### A price-book result worth carrying separately
+
+Luna bills cache **writes** at 1.25× uncached input ($0.25/M) and reads at 0.1×
+($0.02/M). So **caching only pays above a
+`ANCHOR-cache-breakeven: 21.7`% hit rate** — below it, turning caching on costs
+more than re-sending. The `bulk` profile above sits at 10% and therefore runs
+uncached, deliberately.
+
+### And capex decides it again — but this time it is winnable
+
+The RTX 5090 is in a shortage: US street median **$4,700** in August 2026
+(in-stock range $3,900–5,000); the $1,999 Founders Edition does not exist at
+retail and AIB baselines start at $2,900. Call the box $6,000.
+
+| flat-out h/day | capex $/hr | + power | all-in |
+|---|---|---|---|
+| 1 | 5.48 | 0.18 | $5.66 |
+| 2 | 2.74 | 0.18 | $2.92 |
+| 4 | 1.37 | 0.18 | $1.55 |
+| 8 | 0.68 | 0.18 | $0.86 |
+| 24 | 0.23 | 0.18 | $0.41 |
+
+Break-even against Luna, at 190 tok/s:
+
+| profile | $6,000 street box | $3,299 MSRP-era box |
+|---|---|---|
+| chat / assistant | **`ANCHOR-chat-be-hday: 5.9` h/day** | 3.2 h/day |
+| agentic coding | **`ANCHOR-agentic-be-hday: 4.2` h/day** | 2.3 h/day |
+| bulk generation | 7.6 h/day | 4.2 h/day |
+
+At the roofline-respecting 95 tok/s these become 12.3 / 7.5 / 18.3 h/day — chat
+and bulk stop being reachable at all.
+
+Two things fall out. **The GPU shortage roughly doubles the break-even duty
+cycle**, which makes the used-card market a bigger swing factor than
+electricity, model choice or rate schedule. And **"h/day" means flat-out
+generation, not hours with the tool open** — interactive chat emits tokens
+perhaps 5–10% of wall-clock time, so 4 h/day of real generation is ~1.8 M
+output tokens/day. That is an always-on agent or a batch pipeline. A person
+typing will never reach it, and conflating the two is the easiest way to talk
+yourself into the purchase.
+
+### The lever
+
+Every number above is **single-stream**, the worst case for both throughput and
+energy per token. Serving 4–8 concurrent requests should multiply aggregate
+output for the same 811 W, cutting $/M output proportionally and collapsing the
+break-even duty cycle — and a box running an agent fleet reaches "flat out"
+honestly where a chat session never will. No measured batched figure for
+Qwen3.8-27B on a 5090 exists yet, so this is flagged as the thing to benchmark,
+not claimed.
+
 ## What would change the answer
 
 In descending order of leverage:
@@ -162,9 +259,14 @@ In descending order of leverage:
 
 ```bash
 python3 model.py --all-scenarios --first-pass --sweep-mfu
-python3 model.py --seats 2000 --scenario C          # the crossover
+python3 model.py --seats 2000 --scenario C          # the fleet crossover
 python3 model.py --ops 0 --nodes 2                  # floor cost, with N+1
-python3 recheck.py                                  # 97 checks, ~4 s
+
+python3 hourly.py                                   # single-GPU, both decode branches
+python3 hourly.py --decode 120 --ac                 # roofline-respecting, with summer AC
+python3 hourly.py --capex 3299                      # the box at MSRP-era card prices
+
+python3 recheck.py                                  # 154 checks, ~8 s
 ```
 
 Drop real telemetry into `params.json:workload.scenarios` — that is the input
@@ -185,11 +287,13 @@ Ranked by how much a wrong value would move the conclusion:
 
 | input | confidence | if wrong |
 |---|---|---|
-| workload scenarios A–C | **authored, unsourced** | dominates everything; replace with telemetry |
-| $450 k capex, $120 k ops | secondary / authored | sets the floor the whole result turns on |
-| prefill MFU 30% | estimated | swept 20–35%; batch route fails across the whole band |
+| workload scenarios A–C, hourly profiles | **authored, unsourced** | dominates everything; replace with telemetry |
+| $450 k capex, $120 k ops; $6,000 desktop | secondary / authored | sets the floor both results turn on |
+| 190 tok/s decode premise | **user-supplied, above roofline** | halving it roughly doubles every break-even duty cycle; both branches reported |
+| prefill MFU 30% (fleet) | estimated | swept 20–35%; batch route fails across the whole band |
+| 2,073 tok/s prefill (5090) | **scaled, not measured** | sets the prefill-contention term; an 8 B measurement extrapolated 3.5× |
 | 8×B200 idle 2.7 kW | estimated | only affects the electricity line, which is 3% |
-| electricity rates | secondary | **immaterial — proven by negative control** |
+| electricity rates | secondary | **immaterial at fleet scale — proven by negative control**; matters more per-hour, still not decisive |
 
 The published per-seat figures I could find (FinOps LLM: "light analyst" =
 3 M input tok/day) sit ~7× above even scenario C per active user. I rejected

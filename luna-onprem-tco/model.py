@@ -67,7 +67,16 @@ def decode_tok_s(hw: dict, alt: bool = False) -> float:
 
 
 def fits(hw: dict, model: dict, weight_key: str) -> bool:
-    return hw["vram_bytes"] >= model[weight_key]
+    """Does the model's weight footprint fit this box's VRAM? Falls back to
+    total_params x weight_bits for entries that carry a bit-width instead of a
+    byte count (the consumer-scale models, which `hourly.py` owns)."""
+    if weight_key in model:
+        need = model[weight_key]
+    elif "weight_bits_nvfp4" in model:
+        need = model["total_params"] * model["weight_bits_nvfp4"] / 8
+    else:
+        return False
+    return hw["vram_bytes"] >= need
 
 
 def power_kw(hw: dict, util: float, serving: bool = True) -> float:
@@ -194,6 +203,12 @@ def run(args) -> dict:
         w["batch_hours_per_night"] = args.batch_hours
 
     hw = PARAMS["hardware"][args.hardware]
+    if "it_load_kw" not in hw:
+        raise SystemExit(
+            f"{args.hardware} is a single-GPU desktop profile, not a datacenter node.\n"
+            f"The fleet model assumes rack power states, a measured aggregate decode\n"
+            f"figure, and no prefill/decode contention -- none of which hold on one card.\n"
+            f"Use:  python3 hourly.py --hardware {args.hardware}")
     model = PARAMS["models"][args.model]
     rate = args.rate if args.rate is not None else \
         PARAMS["electricity"]["rates_usd_per_kwh"][PARAMS["electricity"]["default_rate"]]["value"]
