@@ -28,7 +28,9 @@ independent second opinion gates better than a correlated one.
 
 from __future__ import annotations
 
+import argparse
 import json
+import statistics
 import time
 from pathlib import Path
 
@@ -78,18 +80,43 @@ class CascadeArm(ArmBase):
         p = self.primary.route(query)
         if p is not None:
             return p
-        lab, s = self.fallback.score(query)[0]
+        top = self.fallback.score(query)
+        if not top:  # a lexical arm with no term in common: abstain
+            return None
+        lab, s = top[0]
         return lab if s >= self.threshold else None
 
 
-def _top1(arm, queries: list[str]) -> list[tuple[str, float]]:
-    """Fallback top-1 per query, batching the encode where the arm supports it."""
+def _top1(arm, queries: list[str]) -> list[tuple[str | None, float]]:
+    """Fallback top-1 per query, batching the encode where the arm supports it.
+
+    A lexical arm returns an empty ranking when the request shares no term with
+    any label — that is an abstention, not a crash, so it becomes (None, -inf)
+    and falls below every threshold.
+    """
     if hasattr(arm, "precompute"):
         arm.precompute(queries)
-    return [arm.score(q)[0] for q in queries]
+    return [(s[0] if (s := arm.score(q)) else (None, float("-inf"))) for q in queries]
 
 
-def curve(fallback: str, rows: list[dict], grid, primary=None) -> list[dict]:
+def grid_for(arm, rows: list[dict], n: int = 40) -> list[float]:
+    """Thresholds as quantiles of the arm's own top-1 scores, not a fixed band.
+
+    The registered arms disagree about scale by three orders of magnitude —
+    measured on family A, BM25-over-training-text tops out at 40.5, cosine at
+    0.96 and an RRF fusion at 0.016. A shared 0..1 grid would pin half of them
+    at coverage 1.0 and the rest at 0.0 while looking like a sweep.
+    """
+    import numpy as np
+    xs = np.array([s for _, s in _top1(arm, [r["query"] for r in rows])
+                   if s != float("-inf")], dtype=float)
+    if not len(xs):
+        return [0.0]
+    qs = np.unique(np.quantile(xs, np.linspace(0.0, 1.0, n)))
+    return [float("-inf")] + [float(x) for x in qs]
+
+
+def curve(fallback: str, rows: list[dict], grid: list[float], primary=None) -> list[dict]:
     """The cascade's coverage/precision/accuracy/abstention at every threshold.
 
     Computed once from cached top-1 scores rather than by re-running `route` per
@@ -113,7 +140,7 @@ def curve(fallback: str, rows: list[dict], grid, primary=None) -> list[dict]:
             hits += got == r["label"]
         abst = sum(h is None and s < t for h, (_, s) in zip(hand_off, fb_off))
         out.append({
-            "threshold": round(float(t), 3),
+            "threshold": round(float(t), 4) if t != float("-inf") else None,
             "coverage": round(ans / max(len(on), 1), 4),
             "precision": round(hits / ans, 4) if ans else 0.0,
             "label_acc": round(hits / max(len(on), 1), 4),
@@ -126,7 +153,9 @@ def pick(rows: list[dict]) -> dict:
     ok = [r for r in rows if (r["abstain_acc"] or 0) >= ABSTAIN_FLOOR]
     # Ties broken toward the higher threshold: same accuracy, more abstention
     # headroom on traffic that looks like neither split.
-    return max(ok or rows, key=lambda r: (r["label_acc"], r["threshold"]))
+    key = lambda r: (r["label_acc"],
+                     r["threshold"] if r["threshold"] is not None else float("-inf"))
+    return max(ok or rows, key=key)
 
 
 def scored_arms() -> list[str]:
@@ -142,6 +171,46 @@ def scored_arms() -> list[str]:
         if hasattr(a, "score"):
             out.append(name)
     return out
+
+
+def screen(names: list[str], rows: list[dict], n: int = 200) -> dict:
+    """Top-1 accuracy and per-query latency on the selection split.
+
+    Only for choosing which of ~25 registered arms to cascade over. Family A is
+    the training family for several of them, so a 1.000 here means memorised,
+    not good — the cascade curves on B and wild are where that shows.
+    """
+    on = [r for r in rows if r.get("label")][:n]
+    out = {}
+    for name in names:
+        arm = arms_mod.build(name)
+        lat, hit = [], 0
+        for r in on:
+            t0 = time.perf_counter()
+            s = arm.score(r["query"])
+            lat.append((time.perf_counter() - t0) * 1000)
+            hit += bool(s) and s[0][0] == r["label"]
+        out[name] = {"top1_acc": round(hit / len(on), 4),
+                     "median_ms": round(statistics.median(lat), 4)}
+    return out
+
+
+def choose_fallbacks(scores: dict) -> list[str]:
+    """Every encoder arm, plus the best member of each sibling family.
+
+    `bm25_arms.py` and `spacy_arms.py` register a dozen variants between them;
+    cascading over all of them would print a curve nobody reads. One per prefix,
+    picked on the selection split only.
+    """
+    keep = [n for n in scores if n.startswith("enc-") and n.endswith("-open")]
+    fams: dict[str, str] = {}
+    for n in scores:
+        if n.startswith("enc-"):
+            continue
+        fam = n.split("-")[0]
+        if fam not in fams or scores[n]["top1_acc"] > scores[fams[fam]]["top1_acc"]:
+            fams[fam] = n
+    return keep + sorted(fams.values())
 
 
 def agreement(fallback: str, rows: list[dict], threshold: float) -> dict:
@@ -178,58 +247,77 @@ register("cascade-enc-fusion", lambda: CascadeArm("enc-fusion-open", 0.33))
 register("cascade-enc-centroid", lambda: CascadeArm("enc-centroid-open", 0.47))
 
 
-def main() -> int:
-    import numpy as np
-
+def main(argv=None) -> int:
     from eval import load_split, score
+
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--fallbacks", nargs="*", default=None,
+                    help="registered scored arms to cascade over (default: screened)")
+    args = ap.parse_args(argv)
 
     arms_mod.load_all()
     rows = {k: load_split(v) for k, v in PATHS.items()}
-    fallbacks = [n for n in scored_arms() if n.endswith("-open") or "enc-" not in n]
-    if not fallbacks:
-        raise SystemExit("no scored arm registered; run encoder_arms.py first")
-    print(f"scored arms available: {', '.join(scored_arms())}")
-    print(f"cascading over: {', '.join(fallbacks)}")
+    available = scored_arms()
+    print(f"scored arms registered: {', '.join(available)}")
     if arms_mod.UNAVAILABLE:
         print("unavailable:", json.dumps(arms_mod.UNAVAILABLE))
+    scr = screen(available, rows[SELECT_SPLIT])
+    fallbacks = args.fallbacks or choose_fallbacks(scr)
+    print(f"\ncascading over: {', '.join(fallbacks)}\n")
+    print(f"{'scored arm':<22}{'top1 acc (A)':>14}{'ms':>9}")
+    for n in available:
+        print(f"{n:<22}{scr[n]['top1_acc']:>14.3f}{scr[n]['median_ms']:>9.3f}")
     print()
 
     out: dict = {"fallbacks": fallbacks, "abstain_floor": ABSTAIN_FLOOR,
-                 "select_split": SELECT_SPLIT, "unavailable": dict(arms_mod.UNAVAILABLE)}
-    grid = np.round(np.arange(0.0, 0.95, 0.01), 3)
+                 "select_split": SELECT_SPLIT, "screen": scr,
+                 "unavailable": dict(arms_mod.UNAVAILABLE)}
 
     # ── the curves ──────────────────────────────────────────────────────────
     chosen = {}
     for fb in fallbacks:
+        # One grid per arm, quantiles of its own scores on the selection split,
+        # then the *same* thresholds applied to B and wild — a threshold is a
+        # fixed operating parameter, not something re-derived per split.
+        grid = grid_for(arms_mod.build(fb), rows[SELECT_SPLIT])
+        out.setdefault("grids", {})[fb] = [None if t == float("-inf") else round(t, 4)
+                                           for t in grid]
         for sname in SPLITS:
-            c = curve(fb, rows[sname], grid)
-            out.setdefault("curves", {}).setdefault(fb, {})[sname] = c
-        chosen[fb] = pick(out["curves"][fb][SELECT_SPLIT])["threshold"]
-    out["chosen_thresholds"] = chosen
+            out.setdefault("curves", {}).setdefault(fb, {})[sname] = \
+                curve(fb, rows[sname], grid)
+        thr = pick(out["curves"][fb][SELECT_SPLIT])["threshold"]
+        # A `None` threshold is the -inf end of the grid: the arm was selected to
+        # answer everything the hand rules did not. Kept, not special-cased —
+        # that is the catch-all, and the curve should be allowed to choose it.
+        chosen[fb] = float("-inf") if thr is None else thr
+    out["chosen_thresholds"] = {k: (None if v == float("-inf") else v)
+                                for k, v in chosen.items()}
 
     for fb in fallbacks:
-        print(f"cascade: hand -> {fb}, threshold sweep")
-        hdr = f"{'thr':>6}" + "".join(f"{s[:6] + ' cov':>12}{'acc':>7}{'abst':>7}" for s in SPLITS)
+        print(f"cascade: hand -> {fb}   (threshold = quantiles of {fb} top-1 score)")
+        hdr = f"{'thr':>9}" + "".join(f"{s[:6] + ' cov':>13}{'acc':>7}{'abst':>7}"
+                                      for s in SPLITS)
         print(hdr)
         print("-" * len(hdr))
-        by = {s: {r["threshold"]: r for r in out["curves"][fb][s]} for s in SPLITS}
-        for t in grid:
-            t = round(float(t), 3)
-            if abs(t * 100 - round(t * 100)) > 1e-6 or round(t * 100) % 5:
-                continue  # print every 0.05, the JSON keeps every 0.01
-            line = f"{t:>6.2f}"
-            for s in SPLITS:
-                r = by[s][t]
-                line += f"{r['coverage']:>12.3f}{r['label_acc']:>7.3f}{r['abstain_acc']:>7.3f}"
+        n = len(out["curves"][fb][SELECT_SPLIT])
+        for i in range(0, n, max(1, n // 12)):
+            r0 = out["curves"][fb][SELECT_SPLIT][i]
+            t = r0["threshold"]
+            line = f"{'-inf' if t is None else format(t, '.3f'):>9}"
+            for sname in SPLITS:
+                r = out["curves"][fb][sname][i]
+                line += (f"{r['coverage']:>13.3f}{r['label_acc']:>7.3f}"
+                         f"{r['abstain_acc']:>7.3f}")
             print(line)
+        sel = pick(out["curves"][fb][SELECT_SPLIT])
         print(f"selected on {SELECT_SPLIT} at abstention >= {ABSTAIN_FLOOR}: "
-              f"threshold {chosen[fb]:.2f}")
+              f"threshold {sel['threshold']}")
         for sname in SPLITS:
             o = pick(out["curves"][fb][sname])
             out.setdefault("oracle", {}).setdefault(fb, {})[sname] = o
-            print(f"  oracle-best on {sname:<22} thr {o['threshold']:.2f}  "
+            print(f"  oracle-best on {sname:<22} thr {o['threshold']}  "
                   f"acc {o['label_acc']:.3f}  abst {o['abstain_acc']:.3f}  "
-                  f"(diagnostic only — chosen on the test split)")
+                  f"(diagnostic only — chosen on the split it is scored on)")
         print()
 
     # ── the comparable table, cold instances, eval.py's own scorer ──────────

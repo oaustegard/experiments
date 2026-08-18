@@ -298,7 +298,10 @@ class VectorArm(_SchemaArm):
         q = self._vec(self.doc(query))
         sims = self.mat @ q
         order = sims.argsort()[::-1]
-        return [(self.labels[i], float(sims[i])) for i in order[:10]]
+        # Full ranking, not a top-k: the interesting question about vectors is
+        # where the gold label lands when it is *not* first, and a truncated
+        # list makes "rank 40" and "unreachable" look identical.
+        return [(self.labels[i], float(sims[i])) for i in order]
 
 
 # ---------------------------------------------------------------------------
@@ -524,6 +527,35 @@ def diagnostics(splits) -> dict:
     # rather than repeat it, since the whole vector hypothesis rests on it.
     texts = label_strings(lem.catalogue)
     out["approve_in_schema"] = sorted(l for l, t in texts.items() if "approv" in t.lower())
+
+    # (d) The decisive test of the synonymy hypothesis. Split each routable row
+    # by whether the lexical arm shares *any* word with any label: on the
+    # zero-overlap rows a lexical router is structurally blind, so if vectors
+    # supply synonymy at all, this is where it has to show up.
+    tok, fus = build("tok-overlap"), build("spacy-fusion")
+    out["zero_overlap"] = {}
+    out["recall_at_5"] = {}
+    for sname, rows in splits.items():
+        on = [r for r in rows if r.get("label")]
+        blind = [r for r in on if not tok.score(r["query"])]
+        seen = [r for r in on if tok.score(r["query"])]
+        hit = lambda arm, rs: (
+            round(sum(1 for r in rs
+                      if (arm.score(r["query"]) or [(None, 0)])[0][0] == r["label"]) / len(rs), 4)
+            if rs else None)
+        out["zero_overlap"][sname] = {
+            "n_blind": len(blind), "share_blind": round(len(blind) / len(on), 4),
+            "vec_idf_acc_on_blind": hit(vec, blind),
+            "vec_idf_acc_on_seen": hit(vec, seen),
+            "tok_acc_on_seen": hit(tok, seen),
+        }
+        rk = {}
+        for tag, arm in (("tok-overlap", tok), ("spacy-lemma", lem),
+                         ("spacy-vec-idf", vec), ("spacy-fusion", fus)):
+            r5 = sum(1 for r in on
+                     if r["label"] in [l for l, _ in arm.score(r["query"])[:5]])
+            rk[tag] = round(r5 / len(on), 4)
+        out["recall_at_5"][sname] = rk
     return out
 
 
@@ -583,6 +615,14 @@ def main() -> int:
               f"vec {str(p['vec-idf_rank']):>5}  syn {str(p['syntax_rank']):>5}   "
               f"(verb,obj)={p['verb_obj'][0]},{p['verb_obj'][1]}")
     print(f"\nlabels whose schema text contains 'approv': {diag['approve_in_schema'] or 'none'}")
+    print("\nrows with zero lexical overlap against every label (a lexical router is blind):")
+    for sname, d in diag["zero_overlap"].items():
+        print(f"  {sname:<24} blind {d['share_blind']:.3f} (n={d['n_blind']})  "
+              f"vec-idf acc there {d['vec_idf_acc_on_blind']}  "
+              f"| on the rest: vec {d['vec_idf_acc_on_seen']} tok {d['tok_acc_on_seen']}")
+    print("\nrecall@5 (is the gold label anywhere in the top five):")
+    for sname, d in diag["recall_at_5"].items():
+        print(f"  {sname:<24} " + "  ".join(f"{k} {v:.3f}" for k, v in d.items()))
 
     lat = [out[n][s]["median_latency_ms"] for n in out for s in out[n]]
     payload = {
