@@ -91,7 +91,8 @@ def score(router: Router, rows: list[dict]) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("rules", nargs="+", type=Path)
+    ap.add_argument("rules", nargs="+",
+                    help="arm names from the arms.py registry, or paths to rules_*.json")
     ap.add_argument("--dump-errors", type=Path)
     a = ap.parse_args()
 
@@ -104,21 +105,28 @@ def main() -> int:
     hdr = f"{'arm':<24}{'split':<22}{'cov':>7}{'prec':>7}{'acc':>7}{'tool':>7}{'meth':>7}{'abst':>7}{'args':>7}{'ms':>9}"
     print(hdr)
     print("-" * len(hdr))
-    for rp in a.rules:
-        # `hand` and `hand+fallback` are pseudo-paths for the hand-written arm.
-        if str(rp) in ("hand", "hand+fallback"):
-            r = HandRouter(fallback=str(rp).endswith("fallback"))
-            arm = str(rp)
+    import arms as arms_mod
+    arms_mod.load_all()
+
+    for spec in a.rules:
+        # Three ways to name an arm, so the first-pass command lines still work:
+        # a registry name, a rules_*.json path, or the `hand` pseudo-path.
+        if spec in arms_mod.REGISTRY:
+            r, arm = arms_mod.build(spec), spec
+        elif spec in ("hand", "hand+fallback"):
+            r = HandRouter(fallback=spec.endswith("fallback"))
+            arm = spec
         else:
-            r = Router(rp)
-            arm = rp.stem.replace("rules_", "")
-        n_rules = len(r.rules)
+            rp = Path(spec)
+            r, arm = Router(rp), rp.stem.replace("rules_", "")
+        n_rules = len(getattr(r, "rules", ()) or ())
         for sname, spath in splits.items():
             s = score(r, load_split(spath))
             all_errors[f"{arm}|{sname}"] = s.pop("errors")
             out.setdefault(arm, {})[sname] = s
             f = lambda k: "  -  " if s[k] is None else f"{s[k]:.3f}"
-            print(f"{arm + f' ({n_rules}r)':<24}{sname:<22}{f('coverage'):>7}"
+            tag = f"{arm} ({n_rules}r)" if n_rules else arm
+            print(f"{tag:<24}{sname:<22}{f('coverage'):>7}"
                   f"{f('precision'):>7}{f('label_acc'):>7}{f('tool_acc'):>7}"
                   f"{f('method_acc_given_tool'):>7}{f('abstain_acc'):>7}"
                   f"{f('args_acc'):>7}{s['median_latency_ms']:>9.4f}")
