@@ -218,5 +218,529 @@
    "gold": null,
    "got": "create_or_update_file"
   }
+ ],
+ "gemini-3.7-flash|b": {
+  "model": "gemini-3.7-flash",
+  "split": "b",
+  "n_rows": 160,
+  "per_label": 2,
+  "seed": 20260819,
+  "prefetch_wall_s": 202.7,
+  "ms_per_call_at_conc2": 1266.8,
+  "n_prefetch_failed": 0,
+  "n_routable": 158,
+  "n_offtopic": 2,
+  "coverage": 0.5633,
+  "precision": 0.9438,
+  "label_acc": 0.5316,
+  "tool_acc": 0.5316,
+  "method_acc_given_tool": null,
+  "abstain_acc": 1.0,
+  "args_acc": 0.3154,
+  "median_latency_ms": 0.0699
+ },
+ "gemini-3.7-flash|b|errors": [
+  {
+   "id": "b-r10",
+   "query": "save artifact 145250320 from vercel/next.js locally",
+   "gold": "actions_get::download_workflow_run_artifact",
+   "got": null
+  },
+  {
+   "id": "b-r9",
+   "query": "save artifact 464575063 from denoland/deno locally",
+   "gold": "actions_get::download_workflow_run_artifact",
+   "got": null
+  },
+  {
+   "id": "b-r19",
+   "query": "pull up the publish.yml workflow spec over on denoland/deno",
+   "gold": "actions_get::get_workflow",
+   "got": null
+  },
+  {
+   "id": "b-r23",
+   "query": "what does astral-sh/ruff's test.yaml pipeline config actually say?",
+   "gold": "actions_get::get_workflow",
+   "got": "get_file_contents"
+  },
+  {
+   "id": "b-r35",
+   "query": "walk me through rust-lang/cargo job 606193455",
+   "gold": "actions_get::get_workflow_job",
+   "got": null
+  },
+  {
+   "id": "b-r26",
+   "query": "what went on inside job 116485141 over at torvalds/linux?",
+   "gold": "actions_get::get_workflow_job",
+   "got": null
+  },
+  {
+   "id": "b-r39",
+   "query": "give me the summary of rust-lang/cargo run 695118201",
+   "gold": "actions_get::get_workflow_run",
+   "got": null
+  },
+  {
+   "id": "b-r42",
+   "query": "how did run 387567229 end up on denoland/deno?",
+   "gold": "actions_get::get_workflow_run",
+   "got": null
+  },
+  {
+   "id": "b-r49",
+   "query": "where can I download the raw logs of vercel/next.js run 960483674?",
+   "gold": "actions_get::get_workflow_run_logs_url",
+   "got": null
+  },
+  {
+   "id": "b-r59",
+   "query": "link me to the full log archive for run 705383936 on denoland/deno",
+   "gold": "actions_get::get_workflow_run_logs_url",
+   "got": null
+  },
+  {
+   "id": "b-r71",
+   "query": "what did run 909354620 cost torvalds/linux in CI time?",
+   "gold": "actions_get::get_workflow_run_usage",
+   "got": null
+  },
+  {
+   "id": "b-r63",
+   "query": "how many minutes did vercel/next.js run 345373329 burn?",
+   "gold": "actions_get::get_workflow_run_usage",
+   "got": null
+  },
+  {
+   "id": "b-r72",
+   "query": "which jobs did run 266226020 on rust-lang/cargo contain?",
+   "gold": "actions_list::list_workflow_jobs",
+   "got": null
+  },
+  {
+   "id": "b-r81",
+   "query": "which jobs did run 605971141 on rust-lang/cargo contain?",
+   "gold": "actions_list::list_workflow_jobs",
+   "got": null
+  },
+  {
+   "id": "b-r91",
+   "query": "what files did astral-sh/ruff run 230951399 leave behind?",
+   "gold": "actions_list::list_workflow_run_artifacts",
+   "got": null
+  },
+  {
+   "id": "b-r85",
+   "query": "what files did denoland/deno run 781770386 leave behind?",
+   "gold": "actions_list::list_workflow_run_artifacts",
+   "got": null
+  },
+  {
+   "id": "b-r96",
+   "query": "give me the run history for publish.yml on vercel/next.js",
+   "gold": "actions_list::list_workflow_runs",
+   "got": null
+  },
+  {
+   "id": "b-r107",
+   "query": "what runs has vercel/next.js's nightly.yml had lately?",
+   "gold": "actions_list::list_workflow_runs",
+   "got": null
+  },
+  {
+   "id": "b-r108",
+   "query": "which pipelines does denoland/deno have configured?",
+   "gold": "actions_list::list_workflows",
+   "got": null
+  },
+  {
+   "id": "b-r112",
+   "query": "which pipelines does vercel/next.js have configured?",
+   "gold": "actions_list::list_workflows",
+   "got": null
+  },
+  {
+   "id": "b-r122",
+   "query": "abort run 901539063 over on astral-sh/ruff",
+   "gold": "actions_run_trigger::cancel_workflow_run",
+   "got": null
+  },
+  {
+   "id": "b-r123",
+   "query": "stop rust-lang/cargo run 69087203, it's wasting minutes",
+   "gold": "actions_run_trigger::cancel_workflow_run",
+   "got": null
+  },
+  {
+   "id": "b-r140",
+   "query": "wipe run 328921859's logs on denoland/deno",
+   "gold": "actions_run_trigger::delete_workflow_run_logs",
+   "got": null
+  },
+  {
+   "id": "b-r133",
+   "query": "purge the stored logs of rust-lang/cargo run 275275004",
+   "gold": "actions_run_trigger::delete_workflow_run_logs",
+   "got": null
+  },
+  {
+   "id": "b-r155",
+   "query": "just redo the jobs that broke in torvalds/linux run 664578121",
+   "gold": "actions_run_trigger::rerun_failed_jobs",
+   "got": null
+  },
+  {
+   "id": "b-r151",
+   "query": "just redo the jobs that broke in torvalds/linux run 538573939",
+   "gold": "actions_run_trigger::rerun_failed_jobs",
+   "got": null
+  },
+  {
+   "id": "b-r159",
+   "query": "can you retry denoland/deno run 698273495 from the top?",
+   "gold": "actions_run_trigger::rerun_workflow_run",
+   "got": null
+  },
+  {
+   "id": "b-r157",
+   "query": "run 856975824 on torvalds/linux again, all of it",
+   "gold": "actions_run_trigger::rerun_workflow_run",
+   "got": null
+  },
+  {
+   "id": "b-r173",
+   "query": "start a fresh nightly.yml build for denoland/deno",
+   "gold": "actions_run_trigger::run_workflow",
+   "got": null
+  },
+  {
+   "id": "b-r168",
+   "query": "start a fresh nightly.yml build for torvalds/linux",
+   "gold": "actions_run_trigger::run_workflow",
+   "got": null
+  },
+  {
+   "id": "b-r229",
+   "query": "start canary from release over in torvalds/linux",
+   "gold": "create_branch",
+   "got": null
+  },
+  {
+   "id": "b-r430",
+   "query": "what does denoland/deno #302 actually say?",
+   "gold": "issue_read::get",
+   "got": null
+  },
+  {
+   "id": "b-r427",
+   "query": "what does rust-lang/cargo issue 1393 actually say?",
+   "gold": "issue_read::get",
+   "got": null
+  },
+  {
+   "id": "b-r439",
+   "query": "what have people said under rust-lang/cargo issue #703?",
+   "gold": "issue_read::get_comments",
+   "got": null
+  },
+  {
+   "id": "b-r437",
+   "query": "what have people said under vercel/next.js issue #745?",
+   "gold": "issue_read::get_comments",
+   "got": null
+  },
+  {
+   "id": "b-r446",
+   "query": "how is denoland/deno issue issue 3053 tagged?",
+   "gold": "issue_read::get_labels",
+   "got": null
+  },
+  {
+   "id": "b-r454",
+   "query": "what labels are stuck on https://github.com/rust-lang/cargo/issues/2792 over at rust-lang/cargo?",
+   "gold": "issue_read::get_labels",
+   "got": null
+  },
+  {
+   "id": "b-r459",
+   "query": "find the umbrella issue above https://github.com/torvalds/linux/issues/905 on torvalds/linux",
+   "gold": "issue_read::get_parent",
+   "got": null
+  },
+  {
+   "id": "b-r458",
+   "query": "what issue is rust-lang/cargo #2109 filed under?",
+   "gold": "issue_read::get_parent",
+   "got": null
+  },
+  {
+   "id": "b-r473",
+   "query": "what's nested under vercel/next.js issue #4582?",
+   "gold": "issue_read::get_sub_issues",
+   "got": null
+  }
+ ],
+ "gemini-3.7-flash|a": {
+  "model": "gemini-3.7-flash",
+  "split": "a",
+  "n_rows": 160,
+  "per_label": 2,
+  "seed": 20260819,
+  "prefetch_wall_s": 191.1,
+  "ms_per_call_at_conc2": 1194.3,
+  "n_prefetch_failed": 0,
+  "n_routable": 158,
+  "n_offtopic": 2,
+  "coverage": 0.557,
+  "precision": 0.9545,
+  "label_acc": 0.5316,
+  "tool_acc": 0.5316,
+  "method_acc_given_tool": null,
+  "abstain_acc": 1.0,
+  "args_acc": 0.3657,
+  "median_latency_ms": 0.0696
+ },
+ "gemini-3.7-flash|a|errors": [
+  {
+   "id": "a-r7",
+   "query": "download artifact 472282023 from run 818137071 in github/github-mcp-server",
+   "gold": "actions_get::download_workflow_run_artifact",
+   "got": null
+  },
+  {
+   "id": "a-r1",
+   "query": "fetch the artifact 974973934 for github/github-mcp-server",
+   "gold": "actions_get::download_workflow_run_artifact",
+   "got": null
+  },
+  {
+   "id": "a-r15",
+   "query": "show the release.yml workflow definition in github/github-mcp-server",
+   "gold": "actions_get::get_workflow",
+   "got": null
+  },
+  {
+   "id": "a-r18",
+   "query": "get workflow release.yml for oaustegard/experiments",
+   "gold": "actions_get::get_workflow",
+   "got": null
+  },
+  {
+   "id": "a-r33",
+   "query": "get workflow job 347187439 in psf/requests",
+   "gold": "actions_get::get_workflow_job",
+   "got": null
+  },
+  {
+   "id": "a-r34",
+   "query": "show job 892243306 details for psf/requests",
+   "gold": "actions_get::get_workflow_job",
+   "got": null
+  },
+  {
+   "id": "a-r40",
+   "query": "get workflow run 938547059 in anthropics/claude-code",
+   "gold": "actions_get::get_workflow_run",
+   "got": null
+  },
+  {
+   "id": "a-r43",
+   "query": "show run 894698889 for anthropics/claude-code",
+   "gold": "actions_get::get_workflow_run",
+   "got": null
+  },
+  {
+   "id": "a-r56",
+   "query": "get the log download url for run 485624149 in psf/requests",
+   "gold": "actions_get::get_workflow_run_logs_url",
+   "got": null
+  },
+  {
+   "id": "a-r50",
+   "query": "show the logs url for github/github-mcp-server run 779179043",
+   "gold": "actions_get::get_workflow_run_logs_url",
+   "got": null
+  },
+  {
+   "id": "a-r67",
+   "query": "get billable usage for run 617598523 in pallets/flask",
+   "gold": "actions_get::get_workflow_run_usage",
+   "got": null
+  },
+  {
+   "id": "a-r60",
+   "query": "get billable usage for run 918072405 in psf/requests",
+   "gold": "actions_get::get_workflow_run_usage",
+   "got": null
+  },
+  {
+   "id": "a-r82",
+   "query": "show the jobs in pallets/flask run 37193008",
+   "gold": "actions_list::list_workflow_jobs",
+   "got": null
+  },
+  {
+   "id": "a-r79",
+   "query": "show the jobs in psf/requests run 957480043",
+   "gold": "actions_list::list_workflow_jobs",
+   "got": null
+  },
+  {
+   "id": "a-r90",
+   "query": "show artifacts produced by github/github-mcp-server run 779178366",
+   "gold": "actions_list::list_workflow_run_artifacts",
+   "got": null
+  },
+  {
+   "id": "a-r87",
+   "query": "show artifacts produced by oaustegard/experiments run 420888935",
+   "gold": "actions_list::list_workflow_run_artifacts",
+   "got": null
+  },
+  {
+   "id": "a-r106",
+   "query": "list workflow runs for release.yml in anthropics/claude-code",
+   "gold": "actions_list::list_workflow_runs",
+   "got": null
+  },
+  {
+   "id": "a-r101",
+   "query": "list workflow runs for build-layers.yml in anthropics/claude-code",
+   "gold": "actions_list::list_workflow_runs",
+   "got": null
+  },
+  {
+   "id": "a-r112",
+   "query": "show all workflows for pallets/flask",
+   "gold": "actions_list::list_workflows",
+   "got": null
+  },
+  {
+   "id": "a-r109",
+   "query": "show all workflows for pallets/flask",
+   "gold": "actions_list::list_workflows",
+   "got": null
+  },
+  {
+   "id": "a-r128",
+   "query": "cancel run 923723375 in oaustegard/experiments",
+   "gold": "actions_run_trigger::cancel_workflow_run",
+   "got": null
+  },
+  {
+   "id": "a-r126",
+   "query": "cancel run 385089892 in oaustegard/experiments",
+   "gold": "actions_run_trigger::cancel_workflow_run",
+   "got": null
+  },
+  {
+   "id": "a-r134",
+   "query": "remove workflow run logs 562282078 from pallets/flask",
+   "gold": "actions_run_trigger::delete_workflow_run_logs",
+   "got": null
+  },
+  {
+   "id": "a-r142",
+   "query": "delete the logs for run 823389743 in oaustegard/experiments",
+   "gold": "actions_run_trigger::delete_workflow_run_logs",
+   "got": null
+  },
+  {
+   "id": "a-r144",
+   "query": "rerun the failed jobs for run 84517599 in psf/requests",
+   "gold": "actions_run_trigger::rerun_failed_jobs",
+   "got": null
+  },
+  {
+   "id": "a-r153",
+   "query": "retry only failed jobs in oaustegard/experiments run 804815406",
+   "gold": "actions_run_trigger::rerun_failed_jobs",
+   "got": null
+  },
+  {
+   "id": "a-r166",
+   "query": "rerun workflow run 616756924 for psf/requests",
+   "gold": "actions_run_trigger::rerun_workflow_run",
+   "got": null
+  },
+  {
+   "id": "a-r167",
+   "query": "rerun run 831969121 in github/github-mcp-server",
+   "gold": "actions_run_trigger::rerun_workflow_run",
+   "got": null
+  },
+  {
+   "id": "a-r176",
+   "query": "run the release.yml workflow in oaustegard/experiments",
+   "gold": "actions_run_trigger::run_workflow",
+   "got": null
+  },
+  {
+   "id": "a-r168",
+   "query": "run the ci.yml workflow in psf/requests",
+   "gold": "actions_run_trigger::run_workflow",
+   "got": null
+  },
+  {
+   "id": "a-r427",
+   "query": "get issue #3903 in psf/requests",
+   "gold": "issue_read::get",
+   "got": null
+  },
+  {
+   "id": "a-r421",
+   "query": "show issue #3322 details for oaustegard/experiments",
+   "gold": "issue_read::get",
+   "got": null
+  },
+  {
+   "id": "a-r436",
+   "query": "show issue https://github.com/oaustegard/experiments/issues/3253 comments for oaustegard/experiments",
+   "gold": "issue_read::get_comments",
+   "got": null
+  },
+  {
+   "id": "a-r435",
+   "query": "show issue #2838 comments for pallets/flask",
+   "gold": "issue_read::get_comments",
+   "got": null
+  },
+  {
+   "id": "a-r451",
+   "query": "show which labels issue #328 has in oaustegard/experiments",
+   "gold": "issue_read::get_labels",
+   "got": null
+  },
+  {
+   "id": "a-r448",
+   "query": "get the labels on issue issue 3133 in github/github-mcp-server",
+   "gold": "issue_read::get_labels",
+   "got": null
+  },
+  {
+   "id": "a-r457",
+   "query": "get the parent issue of https://github.com/github/github-mcp-server/issues/827 in github/github-mcp-server",
+   "gold": "issue_read::get_parent",
+   "got": null
+  },
+  {
+   "id": "a-r466",
+   "query": "get the parent issue of issue 484 in oaustegard/experiments",
+   "gold": "issue_read::get_parent",
+   "got": null
+  },
+  {
+   "id": "a-r473",
+   "query": "list sub-issues of issue #4726 in oaustegard/experiments",
+   "gold": "issue_read::get_sub_issues",
+   "got": null
+  },
+  {
+   "id": "a-r472",
+   "query": "list sub-issues of issue https://github.com/psf/requests/issues/3541 in psf/requests",
+   "gold": "issue_read::get_sub_issues",
+   "got": null
+  }
  ]
 }
