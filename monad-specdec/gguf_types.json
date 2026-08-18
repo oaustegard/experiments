@@ -1,0 +1,38 @@
+{
+  "Q8_0": {
+    "n_tensors": 722,
+    "type_histogram": {
+      "F32": 161,
+      "Q8_0": 561
+    },
+    "token_embd_weight": "Q8_0",
+    "has_separate_output_weight": false,
+    "sample_layer_tensor": "Q8_0"
+  },
+  "Q4_K_M": {
+    "n_tensors": 722,
+    "type_histogram": {
+      "F32": 161,
+      "Q8_0": 41,
+      "Q5_0": 400,
+      "Q6_K": 40,
+      "Q5_1": 40,
+      "Q4_K": 40
+    },
+    "token_embd_weight": "Q8_0",
+    "has_separate_output_weight": false,
+    "sample_layer_tensor": "Q5_0"
+  },
+  "Q4_0": {
+    "n_tensors": 722,
+    "type_histogram": {
+      "F32": 161,
+      "Q8_0": 1,
+      "Q4_0": 560
+    },
+    "token_embd_weight": "Q8_0",
+    "has_separate_output_weight": false,
+    "sample_layer_tensor": "Q4_0"
+  },
+  "note": "token_embd.weight is the LM head under tied embeddings. It stays Q8_0 in every 4-bit build, while layer tensors drop to 4-bit."
+}
