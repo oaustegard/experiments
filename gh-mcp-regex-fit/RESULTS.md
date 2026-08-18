@@ -163,10 +163,10 @@ does this PR actually change?"*, which contains no learned token. The
 hand-written rule for the same target is `\b(diff|patch|changeset)\b`, and the
 extra alternates were written for words no training query contained.
 
-**That is most of the gap — but not all of it, and the second pass below
-corrects this paragraph.** A fitter can only learn the surface forms it was
-shown; a human writing a rule enumerates synonyms from knowledge of the
-language. What that account cannot explain is `bm25-schema`, a ranker with
+**That is most of the gap — but not all of it, and two later passes correct
+this paragraph.** A fitter can only learn the surface forms it was shown; the
+author of a rule enumerates synonyms from knowledge of the language. Note what
+that author is: see **"Hand-written" is the wrong word** below. What that account cannot explain is `bm25-schema`, a ranker with
 **zero fitted parameters**, which drops 0.611 → 0.200 across the same two
 families. Family B is not merely phrasing the fitter had not seen; it is
 phrasing that avoids *schema vocabulary*, and it penalises anything reading the
@@ -559,3 +559,67 @@ Wild is 26 rows at the gate, so read it as directional.
 - **A local `catalogue.py` shadows the PyPI `catalogue` package** that spaCy
   depends on. The failure is an `AttributeError`, not an `ImportError`, so a
   guard written for missing dependencies does not catch it.
+
+---
+
+# "Hand-written" is the wrong word
+
+`handwritten.py` is called the hand-written arm throughout this writeup, and
+compared against the *fitted* arms as though the contrast were human knowledge
+versus machine learning. It is not. **Claude wrote those rules**, reading the 50
+schemas. So the contrast the experiment actually ran is:
+
+> **model reasoning compiled once into deterministic rules**, versus
+> **statistics fitted from a corpus**
+
+and the compiled-reasoning arm won on the held-out phrasing family (0.546,
+above the supervised encoder centroid's 0.540 and the fitted decision list's
+0.239), while landing mid-pack on the hand-authored split (0.486, behind BM25
+over training queries at 0.635). It is also the precise front tier that makes
+the cascade work.
+
+This matters for three claims made above:
+
+1. **"There is no model arm" is false.** The model arm is the one that beat every
+   fitted variant. What is missing is a *live, per-query* model arm — a different
+   configuration, not a different capability.
+2. **`\b(diff|patch|changeset)\b` is model knowledge, not human knowledge.** The
+   finding that a fitter cannot invent domain synonyms stands; the conclusion is
+   that an LLM supplies them offline, for free at runtime, not that a person must.
+3. **The 0.696 / 0.546 / 0.486 numbers are contaminated.** Claude wrote both the
+   query templates and the rules scored against them. The writeup called this
+   "an optimistic bound"; it is worse than that — it disqualifies the arm as a
+   measurement of what compiled model reasoning is worth.
+
+## The clean-room protocol
+
+`gemini_arms.py` fixes both problems with one substitution: an **independent
+model** that did not write the eval and has never seen it.
+
+- **`gemini-compile`** — the model receives the catalogue and the 23 structural
+  cue names, and nothing else. No queries, no eval rows, no failure list, none of
+  Claude's rules. It returns ordered rules, which execute through the *same
+  executor* as `handwritten.py`, so the only variable is authorship. This is the
+  "trained regex" the question was originally about: a model reasons about the
+  use case once, and the artefact is deterministic code at 0.03 ms.
+- **`gemini-live`** — per-query routing, which is the ceiling the compiled arm
+  approximates and the escalation target a cascade would use instead of
+  abstaining.
+
+Planned variants: **model-as-fitter** (same model, allowed to see family-A
+queries with labels — the honest competitor to this experiment's greedy covering
+algorithm), **iterated** (revises against its own family-A errors only, then
+scored on B and wild), and **tier** (which model tier is needed to compile good
+rules — if a small one suffices the offline step is nearly free).
+
+**Status: built, not run.** The gateway credentials live in `/mnt/project/
+proxy.env`, and `/mnt/project` is not mounted in this container, so
+`gemini_client.available()` reports them missing. The executor, prompt, caching,
+retry and scoring path are validated end to end against a synthetic rule file
+(5 of 6 stub rules loaded, one invented label correctly dropped, 0.027 ms median).
+Two `METHODS.md` entries this repo already paid for are honoured in the client:
+concurrency starts at **2** (`te-bridges` lost 18-20% of extractions starting at
+4), and `thinkingBudget` is **0** for the live routing calls (Gemini 3.x thinking
+models exhaust the output budget and return silently empty responses) while the
+rule-authoring call sets `-1`, because that one is reasoning rather than
+extraction.
