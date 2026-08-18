@@ -622,6 +622,19 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **A small tool-calling model is far worse at picking a category than its own
+  retrieval head is at picking a tool.** Splitting an 18-tool catalogue into five
+  groups of ≤5 and asking Needle 2 to choose the group first scored **0.370**
+  routable top-1, 24 points *below* just declaring all 18 (0.611) — its errors
+  were systematic, not noisy (7 of 8 account queries went to one wrong group).
+  The same split with ~20 lines of regex over structural cues as stage 1 scored
+  **0.722**, above the flat arm and most of the way to the five-tool oracle
+  ceiling (0.778). These models are trained to map a concrete request onto a
+  concrete callable; a group description is not one. If a design needs a
+  pre-filter, make it deterministic, and remember a stage-1 error is
+  unrecoverable — the right tool is then absent from stage 2 entirely.
+  (`needle-bsky/two_stage.py`)
+
 - **A grammar-constrained router's confidence head scores the whole call, so an
   optional argument you declared but the query never licensed poisons the score
   of an otherwise-correct routing decision.** Cactus Needle 2 emitted

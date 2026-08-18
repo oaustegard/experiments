@@ -219,6 +219,51 @@ construction returns in ~0 ms and the engine load lands on the first
 `complete()`. An `init_seconds` measured around the constructor measures
 nothing, and the first query of any session carries ~2 s that belongs to setup.
 
+### Two-stage routing over five-tool groups
+
+Two results above point the same way. A five-tool catalogue containing the right
+answer beats the flat 18 by 11–17 points, and the sixth declared tool costs 3.6x
+the per-turn latency. Both say: keep every agent at five tools and pick the
+five first. `two_stage.py` splits the 18 into five groups of ≤5 (`account`,
+`follow_graph`, `one_post`, `find_content`, `plumbing`) and routes in two steps.
+
+| stage 1 | stage-1 group accuracy | routable top-1 | args | invented |
+|---|---|---|---|---|
+| a Needle turn over 5 group descriptions | 0.481 | 0.370 | 0.333 | 0.333 |
+| ~20 lines of regex over the query text | **0.870** | **0.722** | **0.685** | 0.111 |
+| — flat 18-tool `tuned-min`, for comparison | n/a | 0.611 | 0.537 | 0.222 |
+| — oracle five-tool ceiling, for comparison | n/a | 0.778 | 0.667 | 0.185 |
+
+Asking Needle to classify a request into an abstract category is 24 points
+**worse** than just handing it all 18 tools. Its errors are systematic rather
+than noisy: every `plumbing` query went to `follow_graph` or `find_content`,
+and 7 of 8 `account` queries went to `find_content`. The model is trained to map
+a concrete request onto a concrete callable, and a group description
+("the request is about one named account…") is not one. Needle's own retrieval
+head, a contrastive embedding rather than a decode, does the same 5-of-18 job far
+better. Replacing it with a Needle turn moves backwards.
+
+Replacing it with something deterministic is the right one. The regex stage
+looks for structural cues only — does the text contain a post URI, a feed or
+list URI, a `did:plc:`, a follow word, a handle-shaped token — and costs
+microseconds. That combination lands at 0.722 routable, above the flat 18-tool
+arm and most of the way to the five-tool ceiling, while cutting invented
+arguments by half.
+
+**The 0.870 is not a held-out number.** Those rules were written after reading
+which groups the Needle classifier confused, so they are fitted to this eval's
+distribution to an unknown degree. What generalises is the shape: the cheap
+deterministic pre-filter beat the model-based one by 35 points, and a stage-1
+error is unrecoverable because the right tool is then absent from stage 2's
+catalogue entirely.
+
+One implementation constraint found on the way. The engine holds **one global
+session per process**: `_bind()` re-runs `needle_init` whenever a different
+`needle.Needle` object is used, so a two-stage router in one process pays an
+init on every turn, and a loaded `.cact` can never be unloaded (constructing a
+base-weights agent after a tuned one raises rather than silently answering with
+the tuned weights). Deploy the stages as separate processes.
+
 ### Where the base model fails
 
 Per-category top-1, all four arms:

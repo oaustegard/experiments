@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import statistics
 import sys
 import time
@@ -95,29 +96,61 @@ GROUP_SCHEMAS = [
 
 GROUP_OF = {tool: g for g, tools in GROUPS.items() for tool in tools}
 
+# --- the cheap stage 1 -------------------------------------------------------
+# Structural cues in the query text, not a learned model and not a Needle turn.
+# Written after seeing which groups the Needle classifier confused, which is a
+# real overfitting risk and is stated in RESULTS.md; the rules are deliberately
+# surface-level (does the text contain a post URI, a feed URI, a DID, a handle)
+# rather than keyed to individual eval items.
+_POST_URI = re.compile(r"(bsky\.app/profile/[^\s]+/post/|app\.bsky\.feed\.post/)", re.IGNORECASE)
+_FEED_URI = re.compile(r"(bsky\.app/profile/[^\s]+/(lists|feed)/|app\.bsky\.(feed\.generator|graph\.list)/)", re.IGNORECASE)
+_DID = re.compile(r"did:plc:", re.IGNORECASE)
+_PLUMBING = re.compile(r"\b(did|pds|appview|app view|relay|plc|down|outage|broken|offline|keywords?|key terms)\b", re.IGNORECASE)
+_GRAPH = re.compile(r"\b(follow|follows|follower|followers|following)\b", re.IGNORECASE)
+_HANDLE = re.compile(r"\b[a-z0-9-]+(\.[a-z0-9-]+)+\b", re.IGNORECASE)
+
+
+def heuristic_group(query: str) -> str:
+    """Pick a group from surface cues. Microseconds, no model."""
+    if _POST_URI.search(query):
+        return "one_post"
+    if _FEED_URI.search(query):
+        return "find_content"
+    if _DID.search(query) or _PLUMBING.search(query):
+        return "plumbing"
+    if _GRAPH.search(query):
+        return "follow_graph"
+    if _HANDLE.search(query):
+        return "account"
+    return "find_content"
+
 
 class TwoStageRouter:
-    def __init__(self, arm: str = "tuned-min"):
+    def __init__(self, arm: str = "tuned-min", stage1: str = "needle"):
         import needle
 
         self.arm = arm
+        self.stage1_kind = stage1
         by_name = {s["name"]: s for s in load_schemas(arm)}
-        self.stage1 = needle.Needle(tools=GROUP_SCHEMAS)
+        self.stage1 = needle.Needle(tools=GROUP_SCHEMAS) if stage1 == "needle" else None
         self.stage2 = {g: needle.Needle(tools=[by_name[t] for t in tools]) for g, tools in GROUPS.items()}
         self.schemas = list(by_name.values())
 
     def route(self, query: str) -> tuple[Decision, str | None]:
-        self.stage1.reset()
         t0 = time.perf_counter()
-        r1 = self.stage1.complete(query)
-        calls = r1.get("function_calls") or []
-        if not calls:
-            dt = (time.perf_counter() - t0) * 1000
-            return (
-                Decision(query, None, {}, r1.get("confidence"), "refuse", r1.get("reasoning"), dt),
-                None,
-            )
-        group = calls[0]["name"]
+        if self.stage1_kind == "heuristic":
+            group = heuristic_group(query)
+        else:
+            self.stage1.reset()
+            r1 = self.stage1.complete(query)
+            calls = r1.get("function_calls") or []
+            if not calls:
+                dt = (time.perf_counter() - t0) * 1000
+                return (
+                    Decision(query, None, {}, r1.get("confidence"), "refuse", r1.get("reasoning"), dt),
+                    None,
+                )
+            group = calls[0]["name"]
         agent = self.stage2.get(group)
         if agent is None:
             dt = (time.perf_counter() - t0) * 1000
@@ -150,11 +183,12 @@ class TwoStageRouter:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", default="tuned-min")
+    ap.add_argument("--stage1", default="needle", choices=["needle", "heuristic"])
     ap.add_argument("--evalset", default=str(HERE / "evalset.jsonl"))
     a = ap.parse_args()
 
     items = load_items(Path(a.evalset))
-    r = TwoStageRouter(a.arm)
+    r = TwoStageRouter(a.arm, a.stage1)
 
     rows, group_rows = [], []
     for it in items:
@@ -169,7 +203,8 @@ def main() -> int:
 
     routable = [x for x in rows if x["expected"]]
     res = {
-        "arm": f"two-stage-{a.arm}",
+        "arm": f"two-stage-{a.stage1}-{a.arm}",
+        "stage1": a.stage1,
         "groups": GROUPS,
         "summary": summarize(rows),
         "stage1_group_acc_routable": round(sum(x["group_ok"] for x in routable) / len(routable), 4),
@@ -178,10 +213,10 @@ def main() -> int:
         ),
         "rows": rows,
     }
-    (HERE / "results_two_stage.json").write_text(json.dumps(res, indent=1))
+    (HERE / f"results_two_stage_{a.stage1}.json").write_text(json.dumps(res, indent=1))
     s = res["summary"]
     print(
-        f"two-stage-{a.arm}: tool {s['tool_acc']:.3f}  routable {s['tool_acc_routable']:.3f}  "
+        f"two-stage[{a.stage1}]-{a.arm}: tool {s['tool_acc']:.3f}  routable {s['tool_acc_routable']:.3f}  "
         f"refuse {s['refusal_acc']:.3f}  args {s['args_acc_routable']:.3f}  "
         f"invented {s['invented_rate']:.3f}  median {s['median_latency_ms']:.0f}ms"
     )
