@@ -115,6 +115,27 @@ def main() -> int:
             cell = f"{g['coverage']:.2f} / {g['precision_tool']:.3f}"
             check(f"{arm} t={t} -> {cell}", cell in md)
 
+    ap_path = HERE / "results_arity_probe.json"
+    if ap_path.exists():
+        print("\narity probe")
+        ap = json.loads(ap_path.read_text())
+        conds = ap["conditions"]
+        check("30 probe queries", len(ap["queries"]) == 30, str(len(ap["queries"])))
+        means = [conds[k]["mean_confidence"] for k in ("required", "+optional", "+noise")]
+        check("confidence falls monotonically with arity", means[0] > means[1] > means[2], str(means))
+        for k in ("required", "+optional", "+noise"):
+            v = f"{conds[k]['mean_confidence']:.3f}"
+            check(f"probe {k} mean {v} quoted", v in md)
+        for key, label in (
+            ("required_vs_+optional", "handle -> +limit"),
+            ("+optional_vs_+noise", "+limit -> +transcribe"),
+            ("required_vs_+noise", "handle -> both"),
+        ):
+            t = ap["sign_tests"][key]
+            check(f"{label} sign test p={t['p']} quoted", str(t["p"]) in md or f"{t['p']:.5f}" in md)
+            check(f"{label} counts {t['down']}/{t['up']} quoted", f"| {t['down']} | {t['up']} |" in md)
+        check("all three probe steps significant", all(ap["sign_tests"][k]["p"] < 0.05 for k in ap["sign_tests"]))
+
     lat_path = HERE / "results_latency_vs_catalogue.json"
     if lat_path.exists():
         print("\nlatency vs catalogue size")
