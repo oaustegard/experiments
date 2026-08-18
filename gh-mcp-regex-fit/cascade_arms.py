@@ -243,8 +243,10 @@ def agreement(fallback: str, rows: list[dict], threshold: float) -> dict:
             f"hand ∧ arm agree, s>={threshold:.2f}": stat(agree_t)}
 
 
-register("cascade-enc-fusion", lambda: CascadeArm("enc-fusion-open", 0.33))
-register("cascade-enc-centroid", lambda: CascadeArm("enc-centroid-open", 0.47))
+# Thresholds from the family-A sweep in `main()` under the 0.70 abstention floor.
+register("cascade-enc-fusion", lambda: CascadeArm("enc-fusion-open", 0.4162))
+register("cascade-enc-centroid", lambda: CascadeArm("enc-centroid-open", 0.588))
+register("cascade-enc-schema", lambda: CascadeArm("enc-schema-open", 0.3525))
 
 
 def main(argv=None) -> int:
@@ -321,7 +323,7 @@ def main(argv=None) -> int:
         print()
 
     # ── the comparable table, cold instances, eval.py's own scorer ──────────
-    hdr = (f"{'arm':<26}{'split':<22}{'cov':>7}{'prec':>7}{'acc':>7}"
+    hdr = (f"{'arm':<30}{'split':<22}{'cov':>7}{'prec':>7}{'acc':>7}"
            f"{'tool':>7}{'meth':>7}{'abst':>7}{'args':>7}{'ms':>9}")
     print(hdr)
     print("-" * len(hdr))
@@ -341,7 +343,7 @@ def main(argv=None) -> int:
             s["build_ms"] = round(build_ms, 1)
             out.setdefault("arms", {}).setdefault(tag, {})[sname] = s
             f = lambda k: "  -  " if s[k] is None else f"{s[k]:.3f}"
-            print(f"{tag:<26}{sname:<22}{f('coverage'):>7}{f('precision'):>7}"
+            print(f"{tag:<30}{sname:<22}{f('coverage'):>7}{f('precision'):>7}"
                   f"{f('label_acc'):>7}{f('tool_acc'):>7}"
                   f"{f('method_acc_given_tool'):>7}{f('abstain_acc'):>7}"
                   f"{f('args_acc'):>7}{s['median_latency_ms']:>9.4f}")
@@ -371,6 +373,35 @@ def main(argv=None) -> int:
                 print(f"{sname:<22}{k.replace('arm', fb):<40}{v['coverage']:>8.3f}"
                       f"{v['precision']:>9.3f}{v['n']:>6}")
         print()
+
+    print("latency profile (wild + family B, cold instances)\n")
+    lhdr = f"{'arm':<30}{'mean':>9}{'p50':>9}{'p90':>9}{'p99':>9}{'fallthrough':>13}"
+    print(lhdr)
+    print("-" * len(lhdr))
+    qs = [r["query"] for r in rows[SPLITS[1]]] + [r["query"] for r in rows[SPLITS[2]]]
+    for tag, make in table:
+        arm = make()
+        lat = []
+        for q in qs:
+            t0 = time.perf_counter()
+            arm.route(q)
+            lat.append((time.perf_counter() - t0) * 1000)
+        lat.sort()
+        # Fallthrough is what the cost actually depends on: the hand rules answer
+        # 87% of family B and 73% of wild in 0.05 ms, and only the remainder pays
+        # the encoder's 2-7 ms.
+        ft = (sum(getattr(arm, "primary", HandRouter()).route(q) is None for q in qs)
+              / len(qs)) if isinstance(arm, CascadeArm) else None
+        prof = {"mean_ms": round(sum(lat) / len(lat), 4),
+                "p50_ms": round(lat[len(lat) // 2], 4),
+                "p90_ms": round(lat[int(len(lat) * 0.9)], 4),
+                "p99_ms": round(lat[int(len(lat) * 0.99)], 4),
+                "fallthrough": None if ft is None else round(ft, 4)}
+        out.setdefault("latency", {})[tag] = prof
+        print(f"{tag:<30}{prof['mean_ms']:>9.3f}{prof['p50_ms']:>9.3f}"
+              f"{prof['p90_ms']:>9.3f}{prof['p99_ms']:>9.3f}"
+              f"{'  -  ' if ft is None else format(ft, '.3f'):>13}")
+    print()
 
     try:
         import encoder_arms
