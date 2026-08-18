@@ -43,7 +43,21 @@
   "schedule": "5% warmup then cosine",
   "grad_clip": 1.0,
   "method": "full fine-tune (not LoRA)",
-  "loss": "completion tokens only"
+  "loss": "completion tokens only",
+  "steps": 540,
+  "wall_clock_seconds": 6466,
+  "val_loss_by_epoch": [
+   0.0128,
+   0.004,
+   0.0017
+  ],
+  "final_train_loss": 0.0001,
+  "checkpoints": [
+   "tuned-e1",
+   "tuned-e2",
+   "tuned-e3",
+   "tuned"
+  ]
  },
  "host": {
   "cpu_count": 4,
@@ -52,5 +66,27 @@
   "transformers": "5.15.0",
   "python": "3.11.15",
   "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39"
+ },
+ "results": {
+  "monad_zero_shot_routable": 0.0,
+  "monad_e1_routable": 0.3889,
+  "monad_e2_routable": 0.4815,
+  "monad_e3_routable": 0.4444,
+  "copy_accuracy": {
+   "needle-base": 0.78,
+   "needle-lora": 0.902,
+   "monad-e1": 0.561,
+   "monad-e3": 0.512,
+   "n_literal_args": 41
+  },
+  "repaired_args": 0.3704
+ },
+ "tokenizer_check": {
+  "needle_vocab": 8192,
+  "monad_vocab": 8192,
+  "pieces_over_ten_identifiers": {
+   "needle": 111,
+   "monad": 109
+  }
  }
 }

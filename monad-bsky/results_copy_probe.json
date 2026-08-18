@@ -1,0 +1,518 @@
+{
+ "needle-base": {
+  "n_literal_args": 41,
+  "verbatim_copies": 32,
+  "copy_accuracy": 0.7805,
+  "misses": [
+   {
+    "id": "posts-04",
+    "arg": "handle",
+    "want": "simonwillison.net",
+    "got": null
+   },
+   {
+    "id": "profile-03",
+    "arg": "handle",
+    "want": "emilyliu.me",
+    "got": null
+   },
+   {
+    "id": "search-04",
+    "arg": "query",
+    "want": "jetstream",
+    "got": "jetstream from bnewbold.net"
+   },
+   {
+    "id": "users-02",
+    "arg": "query",
+    "want": "cycling",
+    "got": null
+   },
+   {
+    "id": "likes-02",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "/////did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v"
+   },
+   {
+    "id": "thread-03",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "//did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v"
+   },
+   {
+    "id": "feed-02",
+    "arg": "feed_uri",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+    "got": null
+   },
+   {
+    "id": "id-03",
+    "arg": "actor",
+    "want": "did:plc:s3cqfxbcwnvvyrsttl3wivgp",
+    "got": "plc:s3cqfxbcwnvvvyrsttl3wivgp"
+   },
+   {
+    "id": "analyze-01",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": "Bluesky Bluesky Hosting"
+   }
+  ]
+ },
+ "needle-lora": {
+  "n_literal_args": 41,
+  "verbatim_copies": 37,
+  "copy_accuracy": 0.9024,
+  "misses": [
+   {
+    "id": "posts-04",
+    "arg": "handle",
+    "want": "simonwillison.net",
+    "got": null
+   },
+   {
+    "id": "search-03",
+    "arg": "query",
+    "want": "atproto outage",
+    "got": null
+   },
+   {
+    "id": "search-04",
+    "arg": "query",
+    "want": "jetstream",
+    "got": "jetstream from bnewbold.net"
+   },
+   {
+    "id": "analyze-01",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": null
+   }
+  ]
+ },
+ "needle-2stage": {
+  "n_literal_args": 41,
+  "verbatim_copies": 33,
+  "copy_accuracy": 0.8049,
+  "misses": [
+   {
+    "id": "profile-02",
+    "arg": "handle",
+    "want": "pfrazee.com",
+    "got": null
+   },
+   {
+    "id": "search-04",
+    "arg": "query",
+    "want": "jetstream",
+    "got": "jetstream from bnewbold.net"
+   },
+   {
+    "id": "users-02",
+    "arg": "query",
+    "want": "cycling",
+    "got": null
+   },
+   {
+    "id": "likes-02",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "//did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v"
+   },
+   {
+    "id": "thread-03",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "//did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v"
+   },
+   {
+    "id": "feed-02",
+    "arg": "feed_uri",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+    "got": null
+   },
+   {
+    "id": "id-03",
+    "arg": "actor",
+    "want": "did:plc:s3cqfxbcwnvvyrsttl3wivgp",
+    "got": "plc:s3cqfxbcwnvvvyrsttl3wivgp"
+   },
+   {
+    "id": "analyze-03",
+    "arg": "handle",
+    "want": "austegard.com",
+    "got": null
+   }
+  ]
+ },
+ "monad-e1": {
+  "n_literal_args": 41,
+  "verbatim_copies": 23,
+  "copy_accuracy": 0.561,
+  "misses": [
+   {
+    "id": "posts-01",
+    "arg": "handle",
+    "want": "pfrazee.com",
+    "got": null
+   },
+   {
+    "id": "posts-02",
+    "arg": "handle",
+    "want": "austegard.com",
+    "got": null
+   },
+   {
+    "id": "posts-03",
+    "arg": "handle",
+    "want": "why.bsky.team",
+    "got": null
+   },
+   {
+    "id": "posts-04",
+    "arg": "handle",
+    "want": "simonwillison.net",
+    "got": null
+   },
+   {
+    "id": "posts-05",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": null
+   },
+   {
+    "id": "profile-01",
+    "arg": "handle",
+    "want": "austegard.com",
+    "got": "afethegard.com"
+   },
+   {
+    "id": "search-04",
+    "arg": "query",
+    "want": "jetstream",
+    "got": "jetforeknap"
+   },
+   {
+    "id": "search-07",
+    "arg": "query",
+    "want": "cactus compute",
+    "got": "cactus computation"
+   },
+   {
+    "id": "likes-02",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": null
+   },
+   {
+    "id": "thread-03",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "at://did:plc:s3cqfxbcghtvvirtz"
+   },
+   {
+    "id": "graph-03",
+    "arg": "handle",
+    "want": "pfrazee.com",
+    "got": null
+   },
+   {
+    "id": "graph-05",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": null
+   },
+   {
+    "id": "feed-02",
+    "arg": "feed_uri",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+    "got": "at://did:plc:s3cqfxbcghtvvirusoprofilostrumsl3cqfxbcghtvivirus>"
+   },
+   {
+    "id": "feed-03",
+    "arg": "feed_uri",
+    "want": "https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+    "got": "norwegians"
+   },
+   {
+    "id": "id-01",
+    "arg": "actor",
+    "want": "austegard.com",
+    "got": "ustekidel.com"
+   },
+   {
+    "id": "id-02",
+    "arg": "actor",
+    "want": "pfrazee.com",
+    "got": "requirement"
+   },
+   {
+    "id": "id-03",
+    "arg": "actor",
+    "want": "did:plc:s3cqfxbcwnvvyrsttl3wivgp",
+    "got": "resolve_identity"
+   },
+   {
+    "id": "analyze-01",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": null
+   }
+  ]
+ },
+ "monad-e2": {
+  "n_literal_args": 41,
+  "verbatim_copies": 21,
+  "copy_accuracy": 0.5122,
+  "misses": [
+   {
+    "id": "posts-03",
+    "arg": "handle",
+    "want": "why.bsky.team",
+    "got": "didn't get_posts"
+   },
+   {
+    "id": "posts-04",
+    "arg": "handle",
+    "want": "simonwillison.net",
+    "got": "simonwillen.net"
+   },
+   {
+    "id": "posts-05",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": null
+   },
+   {
+    "id": "search-03",
+    "arg": "query",
+    "want": "atproto outage",
+    "got": null
+   },
+   {
+    "id": "search-04",
+    "arg": "query",
+    "want": "jetstream",
+    "got": "jetforekback"
+   },
+   {
+    "id": "search-05",
+    "arg": "query",
+    "want": "tour de france",
+    "got": "tour de fr\u00e8res"
+   },
+   {
+    "id": "search-07",
+    "arg": "query",
+    "want": "cactus compute",
+    "got": "cactus computation"
+   },
+   {
+    "id": "users-02",
+    "arg": "query",
+    "want": "cycling",
+    "got": "transience"
+   },
+   {
+    "id": "users-03",
+    "arg": "query",
+    "want": "austegard",
+    "got": null
+   },
+   {
+    "id": "likes-02",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "at://did:plc:s3cqfxbcwnvvirior"
+   },
+   {
+    "id": "thread-03",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "at://did:plc:s3cqfxbcwnvvuk.post/3lxk2mnop4c2v"
+   },
+   {
+    "id": "graph-01",
+    "arg": "handle",
+    "want": "austegard.com",
+    "got": null
+   },
+   {
+    "id": "graph-03",
+    "arg": "handle",
+    "want": "pfrazee.com",
+    "got": "recall"
+   },
+   {
+    "id": "graph-05",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": null
+   },
+   {
+    "id": "feed-02",
+    "arg": "feed_uri",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+    "got": "at://did:plc:s3cqfxbcwnvvirus/aaaotfjzjplna"
+   },
+   {
+    "id": "feed-03",
+    "arg": "feed_uri",
+    "want": "https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+    "got": "norwegians"
+   },
+   {
+    "id": "id-02",
+    "arg": "actor",
+    "want": "pfrazee.com",
+    "got": null
+   },
+   {
+    "id": "id-03",
+    "arg": "actor",
+    "want": "did:plc:s3cqfxbcwnvvyrsttl3wivgp",
+    "got": null
+   },
+   {
+    "id": "analyze-01",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": "bornbold.net mostly"
+   },
+   {
+    "id": "analyze-03",
+    "arg": "handle",
+    "want": "austegard.com",
+    "got": "afethew.com"
+   }
+  ]
+ },
+ "monad-e3": {
+  "n_literal_args": 41,
+  "verbatim_copies": 21,
+  "copy_accuracy": 0.5122,
+  "misses": [
+   {
+    "id": "posts-01",
+    "arg": "handle",
+    "want": "pfrazee.com",
+    "got": null
+   },
+   {
+    "id": "posts-03",
+    "arg": "handle",
+    "want": "why.bsky.team",
+    "got": "Why.bsky.team's recent"
+   },
+   {
+    "id": "posts-04",
+    "arg": "handle",
+    "want": "simonwillison.net",
+    "got": "simonwillon.net"
+   },
+   {
+    "id": "posts-05",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": null
+   },
+   {
+    "id": "profile-01",
+    "arg": "handle",
+    "want": "austegard.com",
+    "got": "afethew.com"
+   },
+   {
+    "id": "search-03",
+    "arg": "query",
+    "want": "atproto outage",
+    "got": null
+   },
+   {
+    "id": "search-04",
+    "arg": "query",
+    "want": "jetstream",
+    "got": "jetforek"
+   },
+   {
+    "id": "search-07",
+    "arg": "query",
+    "want": "cactus compute",
+    "got": "cactus computation"
+   },
+   {
+    "id": "users-02",
+    "arg": "query",
+    "want": "cycling",
+    "got": null
+   },
+   {
+    "id": "users-03",
+    "arg": "query",
+    "want": "austegard",
+    "got": "afethewess"
+   },
+   {
+    "id": "likes-02",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "at://did:plc:s3cqfxbcwnvvirior"
+   },
+   {
+    "id": "thread-03",
+    "arg": "post_uri_or_url",
+    "want": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+    "got": "at://did:plc:s3cqfxbcwnvvuk/3lxk2mnop4c2v"
+   },
+   {
+    "id": "graph-02",
+    "arg": "handle",
+    "want": "austegard.com",
+    "got": "afethew.com"
+   },
+   {
+    "id": "graph-03",
+    "arg": "handle",
+    "want": "pfrazee.com",
+    "got": null
+   },
+   {
+    "id": "graph-05",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": null
+   },
+   {
+    "id": "feed-03",
+    "arg": "feed_uri",
+    "want": "https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+    "got": "norwegians"
+   },
+   {
+    "id": "id-01",
+    "arg": "actor",
+    "want": "austegard.com",
+    "got": null
+   },
+   {
+    "id": "id-03",
+    "arg": "actor",
+    "want": "did:plc:s3cqfxbcwnvvyrsttl3wivgp",
+    "got": null
+   },
+   {
+    "id": "analyze-01",
+    "arg": "handle",
+    "want": "bnewbold.net",
+    "got": "bornbold.net"
+   },
+   {
+    "id": "analyze-03",
+    "arg": "handle",
+    "want": "austegard.com",
+    "got": "afethew.com"
+   }
+  ]
+ }
+}
