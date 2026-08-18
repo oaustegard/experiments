@@ -1,0 +1,222 @@
+{
+ "gemini-3.7-flash|wild": {
+  "model": "gemini-3.7-flash",
+  "split": "wild",
+  "n_rows": 89,
+  "per_label": null,
+  "seed": 20260819,
+  "prefetch_wall_s": 116.9,
+  "ms_per_call_at_conc2": 1313.6,
+  "n_prefetch_failed": 0,
+  "n_routable": 74,
+  "n_offtopic": 15,
+  "coverage": 0.5946,
+  "precision": 0.9545,
+  "label_acc": 0.5676,
+  "tool_acc": 0.5676,
+  "method_acc_given_tool": null,
+  "abstain_acc": 0.9333,
+  "args_acc": null,
+  "median_latency_ms": 0.0707
+ },
+ "gemini-3.7-flash|wild|errors": [
+  {
+   "id": "w01",
+   "query": "is the CI green on my PR yet",
+   "gold": "pull_request_read::get_status",
+   "got": null
+  },
+  {
+   "id": "w02",
+   "query": "pull up oaustegard/claude-workspace #217 and tell me what the reviewer wants",
+   "gold": "pull_request_read::get_review_comments",
+   "got": null
+  },
+  {
+   "id": "w03",
+   "query": "i need the diff for https://github.com/astral-sh/ruff/pull/9912",
+   "gold": "pull_request_read::get_diff",
+   "got": null
+  },
+  {
+   "id": "w11",
+   "query": "file an issue about the tokenizer drift",
+   "gold": "issue_write::create",
+   "got": null
+  },
+  {
+   "id": "w12",
+   "query": "close #88, it's fixed",
+   "gold": "issue_write::update",
+   "got": null
+  },
+  {
+   "id": "w13",
+   "query": "what did people say on issue 88",
+   "gold": "issue_read::get_comments",
+   "got": null
+  },
+  {
+   "id": "w14",
+   "query": "show me issue 88",
+   "gold": "issue_read::get",
+   "got": null
+  },
+  {
+   "id": "w15",
+   "query": "the checks are red \u2014 which job blew up",
+   "gold": "actions_list::list_workflow_jobs",
+   "got": null
+  },
+  {
+   "id": "w17",
+   "query": "just rerun the ones that failed",
+   "gold": "actions_run_trigger::rerun_failed_jobs",
+   "got": null
+  },
+  {
+   "id": "w18",
+   "query": "cancel that run, it's stuck",
+   "gold": "actions_run_trigger::cancel_workflow_run",
+   "got": null
+  },
+  {
+   "id": "w19",
+   "query": "trigger build-layers.yml on main",
+   "gold": "actions_run_trigger::run_workflow",
+   "got": null
+  },
+  {
+   "id": "w20",
+   "query": "which workflows do we even have in this repo",
+   "gold": "actions_list::list_workflows",
+   "got": null
+  },
+  {
+   "id": "w21",
+   "query": "how many CI minutes did run 18442310092 use",
+   "gold": "actions_get::get_workflow_run_usage",
+   "got": null
+  },
+  {
+   "id": "w26",
+   "query": "show me commit deadbeef1234",
+   "gold": "get_commit",
+   "got": null
+  },
+  {
+   "id": "w42",
+   "query": "which files does that PR touch",
+   "gold": "pull_request_read::get_files",
+   "got": null
+  },
+  {
+   "id": "w43",
+   "query": "has anyone approved it",
+   "gold": "pull_request_read::get_reviews",
+   "got": null
+  },
+  {
+   "id": "w44",
+   "query": "list the commits on PR 1204",
+   "gold": "pull_request_read::get_commits",
+   "got": null
+  },
+  {
+   "id": "w45",
+   "query": "start a review on 1204 but don't submit",
+   "gold": "pull_request_review_write::create",
+   "got": null
+  },
+  {
+   "id": "w46",
+   "query": "ok submit the review, approve",
+   "gold": "pull_request_review_write::submit_pending",
+   "got": null
+  },
+  {
+   "id": "w47",
+   "query": "scrap the draft review i started",
+   "gold": "pull_request_review_write::delete_pending",
+   "got": null
+  },
+  {
+   "id": "w57",
+   "query": "what issues are still open",
+   "gold": "list_issues",
+   "got": "search_issues"
+  },
+  {
+   "id": "w59",
+   "query": "what labels are on issue 88",
+   "gold": "issue_read::get_labels",
+   "got": null
+  },
+  {
+   "id": "w60",
+   "query": "is issue 91 a child of something bigger",
+   "gold": "issue_read::get_parent",
+   "got": null
+  },
+  {
+   "id": "w61",
+   "query": "what's nested under issue 91",
+   "gold": "issue_read::get_sub_issues",
+   "got": null
+  },
+  {
+   "id": "w65",
+   "query": "where do i download the raw logs for that run",
+   "gold": "actions_get::get_workflow_run_logs_url",
+   "got": null
+  },
+  {
+   "id": "w66",
+   "query": "grab the build artifact off that run",
+   "gold": "actions_get::download_workflow_run_artifact",
+   "got": null
+  },
+  {
+   "id": "w67",
+   "query": "what artifacts did run 18442310092 produce",
+   "gold": "actions_list::list_workflow_run_artifacts",
+   "got": null
+  },
+  {
+   "id": "w68",
+   "query": "show me the run history for ci.yml",
+   "gold": "actions_list::list_workflow_runs",
+   "got": null
+  },
+  {
+   "id": "w69",
+   "query": "what does ci.yml actually do",
+   "gold": "actions_get::get_workflow",
+   "got": "get_file_contents"
+  },
+  {
+   "id": "w70",
+   "query": "how did run 18442310092 go",
+   "gold": "actions_get::get_workflow_run",
+   "got": null
+  },
+  {
+   "id": "w72",
+   "query": "which checks are reporting on that PR",
+   "gold": "pull_request_read::get_check_runs",
+   "got": null
+  },
+  {
+   "id": "w73",
+   "query": "read me the conversation on the PR itself, not the inline stuff",
+   "gold": "pull_request_read::get_comments",
+   "got": null
+  },
+  {
+   "id": "w84",
+   "query": "add an entry to METHODS.md about this",
+   "gold": null,
+   "got": "create_or_update_file"
+  }
+ ]
+}

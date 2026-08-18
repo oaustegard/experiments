@@ -1,0 +1,399 @@
+{
+ "author": "gemini-3.7-flash",
+ "prompt_sha": "ba27b4408f57d82e",
+ "n_returned": 78,
+ "n_kept": 78,
+ "invented_labels": [],
+ "rules": [
+  {
+   "label": "actions_get::download_workflow_run_artifact",
+   "pattern": "download.*artifact",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_run_logs_url",
+   "pattern": "logs?(_url)?.*run|run.*log",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_run_usage",
+   "pattern": "usage|billable|timing.*run",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_job",
+   "pattern": "job.*details?|get.*job",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_get::get_workflow_run",
+   "pattern": "workflow[- ]run|status.*run|get.*run",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow",
+   "pattern": "get.*workflow|workflow.*details?",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "get_job_logs",
+   "pattern": "failed.*jobs?.*logs?|job.*logs?|download.*logs?",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::rerun_failed_jobs",
+   "pattern": "re[- ]?run.*failed",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::rerun_workflow_run",
+   "pattern": "re[- ]?run",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::cancel_workflow_run",
+   "pattern": "cancel.*(run|workflow)",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::delete_workflow_run_logs",
+   "pattern": "delete.*logs?",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::run_workflow",
+   "pattern": "trigger|run|dispatch.*workflow",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "actions_list::list_workflow_run_artifacts",
+   "pattern": "artifacts?",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_list::list_workflow_jobs",
+   "pattern": "jobs?",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_list::list_workflow_runs",
+   "pattern": "runs?|history",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "actions_list::list_workflows",
+   "pattern": "list.*workflows?|all.*workflows?|show.*workflows?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "resolve_review_thread",
+   "pattern": "resolve.*(thread|conversation)",
+   "requires": "thread_id"
+  },
+  {
+   "label": "unresolve_review_thread",
+   "pattern": "unresolve.*(thread|conversation)",
+   "requires": "thread_id"
+  },
+  {
+   "label": "add_comment_to_pending_review",
+   "pattern": "comment.*pending.*review|pending.*review.*comment",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "add_reply_to_pull_request_comment",
+   "pattern": "reply.*(comment|review)|react.*(comment|review)",
+   "requires": "bare_num"
+  },
+  {
+   "label": "pull_request_review_write::submit_pending",
+   "pattern": "submit.*review",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_review_write::delete_pending",
+   "pattern": "delete.*(pending.*review|review)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_review_write::create",
+   "pattern": "approve|request.*changes?|create.*review|submit.*review",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "request_copilot_review",
+   "pattern": "copilot.*review|ask.*copilot.*review",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "assign_copilot_to_issue",
+   "pattern": "assign.*copilot|copilot.*(fix|solve|handle)",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "merge_pull_request",
+   "pattern": "merge",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "update_pull_request_branch",
+   "pattern": "update.*(branch|base)|sync.*branch",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "update_pull_request",
+   "pattern": "(close|reopen|edit|update|rename).*pull|pull.*(close|reopen|edit|update)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_diff",
+   "pattern": "diff|patch|changeset|what.*changed|code.*change",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_status",
+   "pattern": "status|ci|checks?.*status",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_files",
+   "pattern": "files?.*changed|list.*files?|changed.*files?",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_commits",
+   "pattern": "commits?|commit.*list",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_review_comments",
+   "pattern": "review.*comments?|inline.*comments?",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_reviews",
+   "pattern": "reviews?|approvals?",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_comments",
+   "pattern": "comments?|discussion",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_check_runs",
+   "pattern": "check[- ]runs?",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get",
+   "pattern": "view|details?|info|summary|get|read",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "sub_issue_write",
+   "pattern": "add.*sub[- ]issue|sub[- ]issue.*create",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_sub_issues",
+   "pattern": "sub[- ]issues?|child.*issues?",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_parent",
+   "pattern": "parent.*issue|parent",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_comments",
+   "pattern": "comments?|discussion",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_labels",
+   "pattern": "labels?",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get",
+   "pattern": "view|details?|info|summary|get|read|show",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "comment|react|reply",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_write::update",
+   "pattern": "close|reopen|update|edit|assign|label.*issue",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_write::create",
+   "pattern": "create.*issue|open.*issue|new.*issue|file.*issue",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "create_pull_request",
+   "pattern": "create.*pr|open.*pr|create.*pull|open.*pull|new.*pr",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "get_commit",
+   "pattern": "commit|sha",
+   "requires": "sha"
+  },
+  {
+   "label": "list_commits",
+   "pattern": "commits?|commit.*history|recent.*changes",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "get_release_by_tag",
+   "pattern": "release.*(for|by|tag)",
+   "requires": "semver_tag"
+  },
+  {
+   "label": "get_tag",
+   "pattern": "tag|tag.*details?",
+   "requires": "semver_tag"
+  },
+  {
+   "label": "get_latest_release",
+   "pattern": "latest.*release|current.*release",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_releases",
+   "pattern": "releases?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_tags",
+   "pattern": "tags?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_branches",
+   "pattern": "branches?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "create_branch",
+   "pattern": "create.*branch|new.*branch|branch.*create",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "push_files",
+   "pattern": "push.*files?|commit.*files?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "delete_file",
+   "pattern": "delete.*file|remove.*file",
+   "requires": "path"
+  },
+  {
+   "label": "create_or_update_file",
+   "pattern": "create.*file|update.*file|write.*file|save.*file",
+   "requires": "path"
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "read|cat|contents?|view|show|fetch.*file",
+   "requires": "path"
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "read|cat|contents?|view|show|fetch.*file",
+   "requires": "url_blob"
+  },
+  {
+   "label": "get_label",
+   "pattern": "label.*details?|get.*label",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_repository_collaborators",
+   "pattern": "collaborators?|contributors?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issue_fields",
+   "pattern": "issue.*fields?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issue_types",
+   "pattern": "issue.*types?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issues",
+   "pattern": "list.*issues?|open.*issues?|show.*issues?",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_pull_requests",
+   "pattern": "list.*(prs?|pull.*requests?)|open.*(prs?|pull.*requests?)",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "fork_repository",
+   "pattern": "fork",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "create_repository",
+   "pattern": "create.*repo|new.*repo|create.*repository|new.*repository",
+   "requires": null
+  },
+  {
+   "label": "get_team_members",
+   "pattern": "members?.*team|team.*members?",
+   "requires": "org_team"
+  },
+  {
+   "label": "get_teams",
+   "pattern": "my.*teams?|list.*teams?|teams?.*(i am in|member)",
+   "requires": null
+  },
+  {
+   "label": "get_me",
+   "pattern": "whoami|my.*profile|current.*user|authenticated.*user|my.*github",
+   "requires": null
+  },
+  {
+   "label": "search_code",
+   "pattern": "search.*code|find.*code|grep|symbol|class|function",
+   "requires": null
+  },
+  {
+   "label": "search_commits",
+   "pattern": "search.*commits?",
+   "requires": null
+  },
+  {
+   "label": "search_pull_requests",
+   "pattern": "search.*(pr|prs|pull.*requests?)|find.*(pr|prs|pull.*requests?)",
+   "requires": null
+  },
+  {
+   "label": "search_issues",
+   "pattern": "search.*issues?|find.*issues?",
+   "requires": null
+  },
+  {
+   "label": "search_users",
+   "pattern": "search.*users?|find.*users?|search.*people",
+   "requires": null
+  },
+  {
+   "label": "search_repositories",
+   "pattern": "search.*repos?|find.*repos?|search.*repositories",
+   "requires": null
+  }
+ ]
+}
