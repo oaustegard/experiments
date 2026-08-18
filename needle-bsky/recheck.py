@@ -147,14 +147,17 @@ def main() -> int:
         check("ratio stated in RESULTS.md", "3.6x" in md)
         check("flat from 6 to 18", abs(lat[18] - lat[6]) / lat[6] < 0.15, f"{lat[6]} -> {lat[18]}")
 
-    ts_path = HERE / "results_two_stage.json"
-    if ts_path.exists():
-        print("\ntwo-stage")
+    for kind in ("needle", "heuristic"):
+        ts_path = HERE / f"results_two_stage_{kind}.json"
+        if not ts_path.exists():
+            continue
+        print(f"\ntwo-stage [{kind}]")
         ts = json.loads(ts_path.read_text())
         tss = ts["summary"]
-        check("two-stage routable quoted", f"{tss['tool_acc_routable']:.3f}" in md)
-        check("stage-1 group accuracy quoted", f"{ts['stage1_group_acc_routable']:.3f}" in md)
-        check("two-stage rows = 62", len(ts["rows"]) == 62)
+        check(f"{kind} routable {tss['tool_acc_routable']:.3f} quoted", f"{tss['tool_acc_routable']:.3f}" in md)
+        check(f"{kind} stage-1 group acc {ts['stage1_group_acc_routable']:.3f} quoted",
+              f"{ts['stage1_group_acc_routable']:.3f}" in md)
+        check(f"{kind} rows = 62", len(ts["rows"]) == 62)
         check("every group has at most five tools", all(len(v) <= 5 for v in ts["groups"].values()))
         declared_in_groups = {t for v in ts["groups"].values() for t in v}
         check("groups cover all 18 tools exactly once",
