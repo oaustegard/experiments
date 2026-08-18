@@ -405,6 +405,21 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **The Cactus Needle engine holds one global session per process, so two
+  `needle.Needle` objects do not coexist — every switch between them re-runs
+  `needle_init`.** `_bind()` is a no-op only when the agent is already active
+  (`needle/__init__.py`), and a tuned `.cact` cannot be unloaded at all: once
+  loaded, constructing a base-weights agent raises rather than silently
+  answering with the tuned weights. Any design that alternates agents (a
+  two-stage router, an A/B comparison in one loop) pays init per turn or needs
+  separate processes.
+- **On a 4-core container, a background trainer inflates every concurrent
+  latency measurement by an order of magnitude.** A five-tool Needle turn
+  measured 284 ms alone and 3,644 ms with a LoRA fine-tune running — same code,
+  same schema. Accuracy is unaffected where decoding is deterministic, so
+  correctness arms can share the box; timing arms cannot. Record what else was
+  running when a latency number was taken. (`needle-bsky/ERRORS.md` #6)
+
 - **`pkill -f '<pattern>'` matches its own command line and kills itself**,
   returning non-zero and aborting the rest of a compound shell command — so a
   "kill the old run, start the new one" one-liner silently never starts the new

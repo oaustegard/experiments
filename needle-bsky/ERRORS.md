@@ -76,3 +76,44 @@ results before publishing, rather than after.
 **Direction.** Would have overstated the model's refusal behaviour on exactly
 the axis that matters for safety. Corrected in place, and the caveat now says
 the read-only catalogue — not the model — is the boundary.
+
+## 5. Two trainers running at once, from a misread process table
+
+**What.** After two `ps` checks appeared to show no `needle finetune` process, I
+concluded the run had been OOM-killed and relaunched it — twice. All three were
+alive. At the point I noticed, two trainers were competing for four cores and
+9.6 GB, which is why the second one looked stuck in compile for 16 minutes.
+
+**Cause.** Both `ps` invocations produced output large enough to be truncated
+into a persisted file, and I read the preview rather than the file. Absence of a
+line in a preview is not absence of the process. The third relaunch also broke
+the log: two processes held `> ft.log`, one `rm -f` unlinked the inode the
+survivor was writing to, and the visible `ft.log` afterwards belonged to the
+dead run. The survivor's output was only readable through
+`cat /proc/<pid>/fd/1`.
+
+**Fix.** Kill the duplicate, read progress from `/proc/<pid>/fd/1`, give each
+run its own log path. When a `ps` result is truncated, grep it rather than
+skim it.
+
+**Direction.** Cost roughly 40 minutes of wall-clock and produced one wrong
+diagnosis in this file's own draft ("OOM-killed"), which is corrected here.
+No measured number was affected.
+
+## 6. Every latency number measured while the trainer ran is inflated ~12x
+
+**What.** A probe of the agent-switch cost returned 3,644 ms for a single
+five-tool agent, against 284 ms measured earlier for the same configuration.
+
+**Cause.** The LoRA run was using ~175% of four cores throughout. Needle
+inference on CPU is compute-bound, so a concurrent trainer moves every timing by
+an order of magnitude.
+
+**Fix.** All latency in RESULTS.md is from runs with nothing else on the box;
+the switch-cost probe was re-run after training finished. Accuracy is unaffected
+— decoding is deterministic and the calls were byte-identical — so the two-stage
+accuracy numbers collected during training stand.
+
+**Direction.** Caught immediately, because the number contradicted a measurement
+already in the writeup. A latency finding measured only once, with no baseline
+to contradict it, would have shipped.
