@@ -54,7 +54,7 @@ def main() -> int:
         from needle_bsky.tools_tuned import SCHEMAS
 
         declared = {s["name"] for s in SCHEMAS}
-    except Exception as exc:  # pragma: no cover - import guard
+    except ImportError as exc:
         FAILURES.append(f"tools_tuned import: {exc}")
     check("18 tools declared", len(declared) == 18, f"got {len(declared)}")
     unknown = {t for i in items for t in i["tool"]} - declared
@@ -130,7 +130,7 @@ def main() -> int:
     check("no absolute container paths in RESULTS.md", "/workspace/" not in md and "/home/user/" not in md)
     check("caveats section present", "## Caveats" in md)
     check("n=62 caveat present", "n=62" in md)
-    ft = re.search(r"## Fine-tune\n+(.+?)(\n## |\Z)", md, re.S)
+    ft = re.search(r"## Fine-tune\n+(.+?)(\n## |\Z)", md, re.DOTALL)
     check("fine-tune section filled", bool(ft) and "<!-- FT -->" not in md)
 
     print(f"\n{CHECKS - len(FAILURES)}/{CHECKS} checks passed")

@@ -27,8 +27,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from eval import load_items, score_one, summarize  # noqa: E402
-from needle_bsky.router import Router, load_schemas  # noqa: E402
+from eval import load_items, score_one, summarize
+from needle_bsky.router import Router, load_schemas
 
 K = 5  # Needle renders five tools per turn
 
