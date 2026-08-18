@@ -1890,3 +1890,59 @@ are not observable per-arm at all — estimate from content sizes and say so.
   model authored both the rules and the eval queries, the number is not
   contaminated-but-usable, it is disqualified — swap in a *different* model that
   never saw the eval. (`gh-mcp-regex-fit/handwritten.py`, `gemini_arms.py`)
+
+- **Supervise a rule-writing model with its own errors, not with labelled
+  examples — and stop at two rounds.** Same model, same corpus, same 79 targets,
+  three regimes: shown nothing but the schemas it scores **0.161** on a disjoint
+  phrasing family; shown 237 labelled rows it scores **0.050** (*worse than
+  nothing*, p=2.8e-16) because it copies the examples' surface forms into its
+  patterns; shown its own errors on those same rows it scores **0.219**.
+  Labelled examples are a sample of the phrasing distribution and the model
+  reads them as the specification. Iteration then peaks fast — round 1 buys
+  +0.229 on the hand-authored split, round 2 +0.014, round 3 loses 0.123 *in
+  sample* because each revision rewrites the whole ordered list and new rules
+  shadow correct ones. Keep the round-2 artefact, not the last.
+  (`gh-mcp-regex-fit/compile_variants.py`)
+
+- **Telling a model to "write broad patterns" makes them narrower.** The
+  obvious fix for a high-precision/low-coverage rule set is to ask for breadth.
+  Holding catalogue, executor and splits fixed and changing only the
+  instruction — cover every target, five to ten surface forms each, do not buy
+  precision with abstention — coverage went **down** on both held-out splits
+  (0.216→0.149 wild, 0.390→0.188). The model wrote more alternations and
+  anchored them harder to the schema's own verbs. Coverage of unseen phrasings
+  is not something exhortation supplies; error feedback is.
+  (`gh-mcp-regex-fit/breadth_arm.py`)
+
+- **Compiling deterministic rules from a schema is a capability cliff, not a
+  slope — price the offline step on the tier you will actually use.** Identical
+  clean-room prompt, three tiers: gemini-2.5-flash-lite **0.000**, gemini-2.5-
+  flash **0.000**, gemini-3.7-flash **0.161/0.176** on the two held-out splits.
+  The small models transcribe the schema signature into regex syntax
+  (`get workflow (?P<workflow_id>\S+) in (?P<owner>\S+)/(?P<repo>\S+)`) and match
+  only requests phrased as the schema names itself. Their *precision* stays high
+  (0.918) because a pattern matching nothing is never wrong — read coverage, not
+  precision, when an arm might be degenerate. (`gh-mcp-regex-fit/gemini_arms.py`)
+
+- **Before believing a split gap, score an arm that has no stake in any split.**
+  Every arm in a three-split routing eval spread 3-16x across the splits
+  (0.984→0.239 fitted, 0.615→0.161 clean room, 0.696→0.546→0.486 for the eval's
+  own author), which reads as generalisation loss. A live LLM answering per
+  query — fitted on nothing, reading no schema vocabulary — scored
+  **0.532 / 0.532 / 0.568** across the same three. The splits are equally hard;
+  every gap was authorship and supervision. The reference arm costs one
+  afternoon of inference and reinterprets every other number in the table. It
+  also caught the contamination directly: the eval's author's rules were the
+  only arm to *beat* live inference, and only on the split whose paraphrases
+  that author wrote. (`gh-mcp-regex-fit/live_eval.py`)
+
+- **A compiled rule tier in front of an LLM router buys cost, not accuracy —
+  budget it that way.** Rules-first-then-model, joined per row: on hand-authored
+  queries every front tier landed at **0.635-0.649** accuracy regardless of which
+  one it was (live model alone: 0.568), but model calls avoided ranged from
+  **19% to 63%**. Two arms reaching the identical 0.635 differed 2.6x in calls
+  saved. So iterate the front tier for *coverage* and judge it on call volume;
+  its accuracy contribution saturates almost immediately. The front tier does
+  add accuracy where the model itself abstains — a live router declining 40% of
+  routable requests at 95.5% precision leaves room a 0.075 ms rule set can fill.
+  (`gh-mcp-regex-fit/cascade_live.py`)
