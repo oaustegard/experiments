@@ -339,6 +339,125 @@ this eval by construction: the categories where Monad wins (`feed` 3/3 vs 2/3,
 `search` 6/7 vs 5/7) are three and seven queries. Reported as a bound, not a
 design.
 
+## Four follow-ups
+
+### A retry cascade fixes the coverage problem
+
+A single gate rides one coverage/precision curve. A cascade can accept on
+different evidence at each tier: take Needle's answer when its own confidence is
+high, otherwise take it when Monad independently agrees, otherwise escalate.
+
+| t₁ | tier 1 n / precision | tier 2 n / precision | coverage | precision | escalated |
+|---|---|---|---|---|---|
+| 0.5 | 29 / 0.690 | 16 / 0.875 | 0.726 | 0.756 | 17 |
+| 0.6 | 27 / 0.741 | 16 / 0.875 | 0.694 | 0.791 | 19 |
+| 0.7 | 20 / 0.800 | 18 / 0.889 | 0.613 | 0.842 | 24 |
+| 0.8 | 13 / 0.846 | 22 / 0.864 | 0.565 | 0.857 | 27 |
+| 0.9 | 7 / 1.000 | 23 / 0.870 | 0.484 | 0.900 | 32 |
+
+Against the single gates on the same denominator (confidence ≥ 0.7 gives 0.323
+coverage at 0.800, agreement alone 0.435 at 0.889, no gate 1.000 at 0.710), the
+cascade at t₁=0.7 delivers **0.613 coverage at 0.842**. Roughly double the
+coverage of the confidence gate at higher precision, and 40% more coverage than
+agreement alone at a small precision cost. The tiers are doing what a cascade is
+supposed to do: tier 1 keeps the queries Needle is sure about, tier 2 recovers
+the ones it is unsure about but Monad corroborates.
+
+### Rewriting the ask
+
+The third tier, re-asking with Monad in the loop, adds very little. Feeding
+Monad's own `<think>` derivation to Needle as the restated query accepts 1 of 24
+escalated queries; appending Monad's chosen tool as a hint to the original
+accepts 3, at 0.667 precision, which drags the cascade's precision from 0.842 to
+0.829 to buy 0.048 of coverage.
+
+The pipeline that would have been interesting (english → Monad → Needle, with
+Monad canonicalising the request) is not available with these models. Base
+Monad cannot rewrite: asked to restate a request as a plain command it analyses
+the *instruction* and never reaches the request, the same failure it shows on
+zero-shot routing. And the fine-tuned model corrupts identifiers **inside its
+own reasoning** before any JSON is involved:
+
+| query | Monad's trace |
+|---|---|
+| `what's simonwillison.net saying on bluesky` | `'simanwillander.net -> handle` |
+| `how many followers does pfrazee.com have` | `'retratee.com' -> handle` |
+| `get 50 posts from bnewbold.net` | `'50' -> query; 'brownbold.net' -> lang no` |
+
+A model that mangles the handle while restating the request cannot be the stage
+that restates the request for a downstream router. Any rewrite it produces hands
+Needle a corrupted string to copy faithfully.
+
+### Monad as an 18-way classifier
+
+Treating Monad as an 18-way classifier — prefill the prompt, then score
+`log P(name)` for each declared name and take the argmax — makes undeclared names
+unreachable and yields a softmax confidence the generative arm lacks.
+Both are real gains. The accuracy is not:
+
+| Monad arm | routable |
+|---|---|
+| free generation (2 epochs) | **0.481** |
+| scored over 18 names, after its own trace | 0.241 |
+| scored with no trace generated first | 0.222 |
+| scored, length-normalised | 0.222 |
+| top-3 of the scored ranking | 0.407 |
+
+The softmax gate barely separates: precision moves 0.241 → 0.286 as coverage
+falls to 0.648, then *drops* at higher thresholds.
+
+This was checked for a harness bug before being believed, because a 24-point
+drop from adding a constraint is surprising. Scoring each candidate with an
+independent full forward pass, sharing no KV cache with the others, reproduces
+the same picks, and greedy decoding at that same position emits the same wrong
+names (`get_posting lately`, `get_profile`). The scoring is faithful; the
+position is simply a weak place to ask. The model was trained to emit a
+derivation and then a call, and the marginal distribution at one token position
+does not recover the argmax of the sequence it would have generated.
+
+### The regex-only router
+
+If deterministic code beat a Needle turn by 35 points at picking one of five
+groups, the question is what it scores doing the whole job. `regex_only.py` is
+20 ordered rules over structural cues and keywords, no model anywhere:
+
+| router | routable | args | refusal | median latency |
+|---|---|---|---|---|
+| **regex only** | **0.833** | 0.685 | 0.500 | **0.022 ms** |
+| Needle two-stage | 0.722 | 0.685 | 0.625 | 324 ms |
+| Needle oracle k=5 (ceiling) | 0.778 | 0.667 | 0.625 | 199 ms |
+| Needle base | 0.611 | 0.537 | 0.625 | 958 ms |
+| Monad 2 epochs | 0.481 | 0.296 | 0.500 | 3,316 ms |
+
+It beats Needle's *oracle* arm — the configuration where retrieval is replaced
+by a five-tool catalogue containing the right answer — and it does so about
+15,000 times faster.
+
+**These rules were written after reading this eval's failures**, so 0.833 is not
+a held-out number. The obvious test is available, though: the training generator
+produces queries from a different template family with disjoint entity pools,
+and the regex was never tuned against them. Over 400 fresh draws from it
+(340 routable, 60 off-topic):
+
+| | eval set (fitted) | unseen templates |
+|---|---|---|
+| routable | 0.833 | **0.824** |
+| refusal | 0.500 | **0.183** |
+
+The routing rules generalise; the refusal does not. The catch-all
+`search_posts` fallback swallows anything unmatched, so "rename this file to
+draft2" becomes a content search. And most of the routing errors are rule bugs
+rather than genuine ambiguity — `reposters` is missing from the repost
+alternation so it falls through to `get_thread`, and "dig **up** posts on rust
+compiler" matches the `\bup\b` in the status rule.
+
+Neither caveat rescues the model layer on this catalogue. What the models buy
+over the regex, at three to four orders of magnitude more latency, is **knowing
+when they cannot help**: refusal 0.625 against 0.183, and a confidence score to
+gate on. On a catalogue this structurally signposted, where handles, post URIs,
+feed URIs and DIDs are lexically unmistakable, a model adds little to routing. A catalogue whose tools were distinguished by intent rather than by
+the shape of their arguments would not hand a regex this much.
+
 ## Reading this against the small-reasoner thesis
 
 Monad is a generalist that was never shown a tool schema, and 800 examples plus

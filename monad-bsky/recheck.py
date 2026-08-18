@@ -154,6 +154,58 @@ def main() -> int:
         check(f"dispatch ceiling {disp['overall']:.3f} quoted", f"{disp['overall']:.3f}" in md)
         check("dispatch is flagged as fitted", "fitted to" in flat)
 
+    print("\nfollow-ups")
+    for name, path in (
+        ("cascade", HERE / "results_cascade.json"),
+        ("regex-only", HERE / "results_regex-only.json"),
+        ("classifier", HERE / "results_classifier-e2.json"),
+    ):
+        check(f"{name} results present", path.exists())
+
+    cpath = HERE / "results_cascade.json"
+    if cpath.exists():
+        cas = load(cpath)
+        by_t = {r["t_hi"]: r for r in cas["two_tier"]}
+        for t in (0.7, 0.8, 0.9):
+            r = by_t[t]
+            check(f"cascade t={t} {r['cumulative_coverage']:.3f}/{r['cumulative_precision']:.3f} quoted",
+                  f"{r['cumulative_coverage']:.3f}" in md and f"{r['cumulative_precision']:.3f}" in md)
+        conf = {r["t"]: r for r in cas["baselines"]["confidence_only"]}
+        check("cascade beats the confidence gate at t=0.7 on both axes",
+              by_t[0.7]["cumulative_coverage"] > conf[0.7]["coverage"]
+              and by_t[0.7]["cumulative_precision"] > conf[0.7]["precision"],
+              f"{by_t[0.7]} vs {conf[0.7]}")
+        if "tier3" in cas:
+            t3 = cas["tier3"]
+            check("tier 3 accepts almost nothing",
+                  all(v["accepted"] <= 3 for v in t3.values()),
+                  str({k: v["accepted"] for k, v in t3.items()}))
+            check("the tier-3 result is stated", "adds very little" in flat)
+
+    rpath = HERE / "results_regex-only.json"
+    if rpath.exists():
+        rx = load(rpath)["summary"]
+        check(f"regex routable {rx['tool_acc_routable']:.3f} quoted", f"{rx['tool_acc_routable']:.3f}" in md)
+        check(f"regex refusal {rx['refusal_acc']:.3f} quoted", f"{rx['refusal_acc']:.3f}" in md)
+        ns = load(NEEDLE / "results_two_stage_heuristic.json")["summary"]
+        orc = load(NEEDLE / "results_oracle-tuned-min.json")["summary"]
+        check("regex beats needle two-stage", rx["tool_acc_routable"] > ns["tool_acc_routable"])
+        check("regex beats the needle oracle ceiling", rx["tool_acc_routable"] > orc["tool_acc_routable"])
+        check("regex loses on refusal", rx["refusal_acc"] < ns["refusal_acc"])
+        check("the held-out regex numbers are stated", "0.824" in md and "0.183" in md)
+        check("the fitted-rules caveat is stated", "not a held-out number" in flat)
+
+    kpath = HERE / "results_classifier-e2.json"
+    if kpath.exists():
+        cl = load(kpath)["summary"]
+        gen = arms["tuned-e2"]["summary"]["tool_acc_routable"]
+        check(f"classifier routable {cl['tool_acc_routable']:.3f} quoted",
+              f"{cl['tool_acc_routable']:.3f}" in md)
+        check("classifier loses to free generation", cl["tool_acc_routable"] < gen,
+              f"{cl['tool_acc_routable']} vs {gen}")
+        check("classifier cannot hallucinate", cl["hallucinated_tool_rate"] == 0.0)
+        check("the bug check is described", "independent full forward pass" in flat)
+
     print("\ncross-experiment")
     for label, path in (
         ("needle-base", NEEDLE / "results_tuned-min.json"),
