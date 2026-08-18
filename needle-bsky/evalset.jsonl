@@ -1,0 +1,62 @@
+{"id": "posts-01", "cat": "person-posts", "query": "what has pfrazee.com been posting lately", "tool": ["get_user_posts"], "args": {"handle": "pfrazee.com"}, "evidenced": []}
+{"id": "posts-02", "cat": "person-posts", "query": "show me the last 10 posts from austegard.com", "tool": ["get_user_posts"], "args": {"handle": "austegard.com"}, "evidenced": ["limit"]}
+{"id": "posts-03", "cat": "person-posts", "query": "pull @why.bsky.team's recent posts", "tool": ["get_user_posts"], "args": {"handle": "why.bsky.team"}, "evidenced": []}
+{"id": "posts-04", "cat": "person-posts", "query": "what's simonwillison.net saying on bluesky", "tool": ["get_user_posts"], "args": {"handle": "simonwillison.net"}, "evidenced": []}
+{"id": "posts-05", "cat": "person-posts", "query": "get 50 posts from bnewbold.net", "tool": ["get_user_posts"], "args": {"handle": "bnewbold.net"}, "evidenced": ["limit"]}
+{"id": "profile-01", "cat": "profile", "query": "show me austegard.com's profile", "tool": ["get_profile"], "args": {"handle": "austegard.com"}, "evidenced": []}
+{"id": "profile-02", "cat": "profile", "query": "how many followers does pfrazee.com have", "tool": ["get_profile"], "args": {"handle": "pfrazee.com"}, "evidenced": []}
+{"id": "profile-03", "cat": "profile", "query": "what's in emilyliu.me's bio", "tool": ["get_profile"], "args": {"handle": "emilyliu.me"}, "evidenced": []}
+{"id": "profile-04", "cat": "profile", "query": "look up the account jay.bsky.team", "tool": ["get_profile", "search_users"], "args": {}, "evidenced": []}
+{"id": "search-01", "cat": "search", "query": "search bluesky for posts about norwegian politics", "tool": ["search_posts"], "args": {"query": "norwegian politics"}, "evidenced": []}
+{"id": "search-02", "cat": "search", "query": "find posts mentioning matryoshka embeddings", "tool": ["search_posts"], "args": {"query": "matryoshka embeddings"}, "evidenced": []}
+{"id": "search-03", "cat": "search", "query": "what are people saying about the atproto outage", "tool": ["search_posts"], "args": {"query": "atproto outage"}, "evidenced": []}
+{"id": "search-04", "cat": "search", "query": "search for posts about jetstream from bnewbold.net", "tool": ["search_posts"], "args": {"query": "jetstream"}, "evidenced": ["author"]}
+{"id": "search-05", "cat": "search", "query": "posts about the tour de france since 2026-07-01", "tool": ["search_posts"], "args": {"query": "tour de france"}, "evidenced": ["since"]}
+{"id": "search-06", "cat": "search", "query": "find norwegian language posts about strom priser", "tool": ["search_posts"], "args": {"query": "strom priser"}, "evidenced": ["lang"]}
+{"id": "search-07", "cat": "search", "query": "search bluesky for cactus compute", "tool": ["search_posts"], "args": {"query": "cactus compute"}, "evidenced": []}
+{"id": "users-01", "cat": "find-users", "query": "find people who write about atproto", "tool": ["search_users"], "args": {"query": "atproto"}, "evidenced": []}
+{"id": "users-02", "cat": "find-users", "query": "which accounts have cycling in their bio", "tool": ["search_users"], "args": {"query": "cycling"}, "evidenced": []}
+{"id": "users-03", "cat": "find-users", "query": "search for users called austegard", "tool": ["search_users"], "args": {"query": "austegard"}, "evidenced": []}
+{"id": "likes-01", "cat": "interactions", "query": "who liked https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v", "tool": ["get_likes"], "args": {"post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "likes-02", "cat": "interactions", "query": "show the likes on at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v", "tool": ["get_likes"], "args": {"post_uri_or_url": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "reposts-01", "cat": "interactions", "query": "who reposted https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v", "tool": ["get_reposts"], "args": {"post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "reposts-02", "cat": "interactions", "query": "list the accounts that boosted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v", "tool": ["get_reposts"], "args": {"post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "quotes-01", "cat": "interactions", "query": "show me the quote posts of https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v", "tool": ["get_quotes"], "args": {"post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "quotes-02", "cat": "interactions", "query": "who quoted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v", "tool": ["get_quotes"], "args": {"post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "thread-01", "cat": "thread", "query": "show me the replies to https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v", "tool": ["get_thread"], "args": {"post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "thread-02", "cat": "thread", "query": "read the whole thread at https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v", "tool": ["get_thread"], "args": {"post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "thread-03", "cat": "thread", "query": "what did people reply to at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v", "tool": ["get_thread"], "args": {"post_uri_or_url": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v"}, "evidenced": []}
+{"id": "graph-01", "cat": "graph", "query": "who does austegard.com follow", "tool": ["get_following"], "args": {"handle": "austegard.com"}, "evidenced": []}
+{"id": "graph-02", "cat": "graph", "query": "who follows austegard.com", "tool": ["get_followers"], "args": {"handle": "austegard.com"}, "evidenced": []}
+{"id": "graph-03", "cat": "graph", "query": "list pfrazee.com's followers", "tool": ["get_followers"], "args": {"handle": "pfrazee.com"}, "evidenced": []}
+{"id": "graph-04", "cat": "graph", "query": "show me the accounts emilyliu.me is following", "tool": ["get_following"], "args": {"handle": "emilyliu.me"}, "evidenced": []}
+{"id": "graph-05", "cat": "graph", "query": "get 100 followers of bnewbold.net", "tool": ["get_followers"], "args": {"handle": "bnewbold.net"}, "evidenced": ["limit"]}
+{"id": "feed-01", "cat": "feed", "query": "get the posts in https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f", "tool": ["get_feed_posts"], "args": {"feed_uri": "https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f"}, "evidenced": []}
+{"id": "feed-02", "cat": "feed", "query": "read the feed at at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna", "tool": ["get_feed_posts"], "args": {"feed_uri": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna"}, "evidenced": []}
+{"id": "feed-03", "cat": "feed", "query": "what's in my norwegians list https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f", "tool": ["get_feed_posts"], "args": {"feed_uri": "https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f"}, "evidenced": []}
+{"id": "trend-01", "cat": "trending", "query": "what's trending on bluesky", "tool": ["get_trending", "get_trending_topics"], "args": {}, "evidenced": []}
+{"id": "trend-02", "cat": "trending", "query": "give me the top 5 trending topics", "tool": ["get_trending", "get_trending_topics"], "args": {}, "evidenced": ["limit"]}
+{"id": "trend-03", "cat": "trending", "query": "which topics are hot right now, and how many posts each", "tool": ["get_trending"], "args": {}, "evidenced": []}
+{"id": "trend-04", "cat": "trending", "query": "just list the trending topic names", "tool": ["get_trending_topics"], "args": {}, "evidenced": []}
+{"id": "hose-01", "cat": "firehose", "query": "sample the firehose for 30 seconds", "tool": ["sample_firehose"], "args": {}, "evidenced": ["duration"]}
+{"id": "hose-02", "cat": "firehose", "query": "listen to the live stream of new posts for a minute", "tool": ["sample_firehose"], "args": {}, "evidenced": ["duration"]}
+{"id": "hose-03", "cat": "firehose", "query": "watch the firehose for posts containing bitcoin", "tool": ["sample_firehose"], "args": {}, "evidenced": ["filter"]}
+{"id": "id-01", "cat": "identity", "query": "what's the did for austegard.com", "tool": ["resolve_identity"], "args": {"actor": "austegard.com"}, "evidenced": []}
+{"id": "id-02", "cat": "identity", "query": "which pds hosts pfrazee.com", "tool": ["resolve_identity"], "args": {"actor": "pfrazee.com"}, "evidenced": []}
+{"id": "id-03", "cat": "identity", "query": "resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle", "tool": ["resolve_identity"], "args": {"actor": "did:plc:s3cqfxbcwnvvyrsttl3wivgp"}, "evidenced": []}
+{"id": "status-01", "cat": "status", "query": "is bluesky down right now", "tool": ["atproto_status"], "args": {}, "evidenced": []}
+{"id": "status-02", "cat": "status", "query": "which atproto layer is broken", "tool": ["atproto_status"], "args": {}, "evidenced": []}
+{"id": "status-03", "cat": "status", "query": "check whether the appview is up", "tool": ["atproto_status"], "args": {}, "evidenced": []}
+{"id": "analyze-01", "cat": "analysis", "query": "what is bnewbold.net mostly about", "tool": ["analyze_account"], "args": {"handle": "bnewbold.net"}, "evidenced": []}
+{"id": "analyze-02", "cat": "analysis", "query": "summarise what emilyliu.me posts about", "tool": ["analyze_account"], "args": {"handle": "emilyliu.me"}, "evidenced": []}
+{"id": "analyze-03", "cat": "analysis", "query": "give me the keywords for the account austegard.com", "tool": ["analyze_account"], "args": {"handle": "austegard.com"}, "evidenced": []}
+{"id": "kw-01", "cat": "keywords", "query": "pull the key terms out of this text: the relay went down but every pds kept serving records normally", "tool": ["extract_keywords"], "args": {}, "evidenced": []}
+{"id": "kw-02", "cat": "keywords", "query": "extract keywords from: sykkel, terskeleffekt og vintertrening i Oslo", "tool": ["extract_keywords"], "args": {}, "evidenced": []}
+{"id": "off-01", "cat": "off-topic", "query": "what's the weather in Oslo", "tool": [], "args": {}, "evidenced": []}
+{"id": "off-02", "cat": "off-topic", "query": "book me a flight to Bergen next tuesday", "tool": [], "args": {}, "evidenced": []}
+{"id": "off-03", "cat": "off-topic", "query": "send a dm to pfrazee.com saying hello", "tool": [], "args": {}, "evidenced": []}
+{"id": "off-04", "cat": "off-topic", "query": "post this to my bluesky account: good morning", "tool": [], "args": {}, "evidenced": []}
+{"id": "off-05", "cat": "off-topic", "query": "delete my last bluesky post", "tool": [], "args": {}, "evidenced": []}
+{"id": "off-06", "cat": "off-topic", "query": "how many calories did I burn on my ride yesterday", "tool": [], "args": {}, "evidenced": []}
+{"id": "off-07", "cat": "off-topic", "query": "block the account spammer.bsky.social", "tool": [], "args": {}, "evidenced": []}
+{"id": "off-08", "cat": "off-topic", "query": "what is the capital of Norway", "tool": [], "args": {}, "evidenced": []}
