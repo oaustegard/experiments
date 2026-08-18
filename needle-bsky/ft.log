@@ -1,0 +1,5 @@
+  backend   cpu  float32
+  data      800 examples  seq_len 640  cap 640
+  lora      rank 16  alpha 32  5 weight groups
+  holdout   80 examples for validation
+  schedule  180 steps  warmup 9  cosine decay  clip 1.0  (compiling...)

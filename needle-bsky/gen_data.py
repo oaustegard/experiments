@@ -167,7 +167,25 @@ OFF_TOPIC = [
 ]
 
 
-def build(n: int, seed: int, tools: list[dict], off_ratio: float = 0.15) -> list[dict]:
+def _render(tools: list[dict], keep: str | None, k: int, r: random.Random) -> list[dict]:
+    """The k tools this row declares.
+
+    Needle renders at most five tools per turn — retrieval picks them at
+    inference time — so a training row that declares all 18 does not match the
+    context the model will ever decode against, and at 18 the tool block alone
+    is ~1,400 tokens, past `--max-len 1024`. Every label then falls outside the
+    window and the run reports `loss 0.0000` while learning nothing. Declare k.
+    """
+    if k >= len(tools):
+        return tools
+    by = {t["name"]: t for t in tools}
+    pool = [n for n in by if n != keep]
+    names = ([keep] if keep else []) + r.sample(pool, k - (1 if keep else 0))
+    r.shuffle(names)
+    return [by[n] for n in names]
+
+
+def build(n: int, seed: int, tools: list[dict], off_ratio: float = 0.15, k: int = 5) -> list[dict]:
     r = random.Random(seed)
     pop = [f for w, f in TEMPLATES for _ in range(w)]
     rows = []
@@ -175,13 +193,18 @@ def build(n: int, seed: int, tools: list[dict], off_ratio: float = 0.15) -> list
     for _ in range(n - n_off):
         q, name, args, reasoning = r.choice(pop)(r)
         rows.append(
-            {"query": q, "tools": tools, "answers": [{"name": name, "arguments": args}], "reasoning": reasoning}
+            {
+                "query": q,
+                "tools": _render(tools, name, k, r),
+                "answers": [{"name": name, "arguments": args}],
+                "reasoning": reasoning,
+            }
         )
     for _ in range(n_off):
         rows.append(
             {
                 "query": r.choice(OFF_TOPIC),
-                "tools": tools,
+                "tools": _render(tools, None, k, r),
                 "answers": [],
                 "reasoning": "no declared tool serves this",
             }
@@ -195,6 +218,7 @@ def main() -> int:
     ap.add_argument("-n", type=int, default=600)
     ap.add_argument("--seed", type=int, default=20260818)
     ap.add_argument("--arm", default="tuned-min")
+    ap.add_argument("-k", type=int, default=5, help="tools declared per row; matches what retrieval renders")
     ap.add_argument("--out", default=str(HERE / "data" / "train.jsonl"))
     a = ap.parse_args()
 
@@ -204,7 +228,7 @@ def main() -> int:
     from needle_bsky.router import load_schemas
 
     tools = load_schemas(a.arm)
-    rows = build(a.n, a.seed, tools)
+    rows = build(a.n, a.seed, tools, k=a.k)
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w") as fh:
