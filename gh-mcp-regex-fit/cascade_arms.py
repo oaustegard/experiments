@@ -366,10 +366,14 @@ def main(argv=None) -> int:
         out.setdefault("agreement", {}).setdefault(sname, {})["hand ∧ fitted-schema"] = row
         print(f"{sname:<22}{'hand ∧ fitted-schema':<40}{row['coverage']:>8.3f}"
               f"{row['precision']:>9.3f}{row['n']:>6}")
+        shown_hand = False
         for fb in fallbacks:
             a = agreement(fb, rows[sname], chosen[fb])
             out["agreement"][sname].update({f"{k} [{fb}]": v for k, v in a.items()})
             for k, v in a.items():
+                if k == "hand alone" and shown_hand:
+                    continue  # identical for every fallback; print it once
+                shown_hand = shown_hand or k == "hand alone"
                 print(f"{sname:<22}{k.replace('arm', fb):<40}{v['coverage']:>8.3f}"
                       f"{v['precision']:>9.3f}{v['n']:>6}")
         print()

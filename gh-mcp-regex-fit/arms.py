@@ -37,8 +37,15 @@ def build(name: str):
     return REGISTRY[name]()
 
 
-def load_all() -> None:
-    """Import every arm module that is present, skipping ones whose deps are absent."""
+def load_all(verbose: bool = False) -> None:
+    """Import every arm module present, skipping ones whose dependencies are absent.
+
+    The broad `except` below is load-bearing. spaCy's dependency chain imports a
+    PyPI package named `catalogue`, which this directory's own `catalogue.py`
+    shadows; the failure surfaces as `AttributeError: module 'catalogue' has no
+    attribute 'create'`, so an ImportError-only guard lets it escape and it reads
+    like a broken spaCy rather than a name collision. Measured 2026-08-18.
+    """
     import importlib
     for mod in ("baseline_arms", "bm25_arms", "spacy_arms", "encoder_arms", "cascade_arms"):
         try:
@@ -48,6 +55,8 @@ def load_all() -> None:
             # dependency is absent, or which is mid-edit, must not take the
             # whole evaluation down with it.
             UNAVAILABLE[mod] = f"{type(e).__name__}: {e}"
+            if verbose:
+                print(f"  arm module {mod} unavailable: {UNAVAILABLE[mod]}")
 
 
 class ArmBase:

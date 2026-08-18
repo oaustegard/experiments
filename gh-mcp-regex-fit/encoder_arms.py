@@ -15,7 +15,11 @@ Three label representations, because "embed the label" is underspecified:
   schema    each of the 79 targets embedded as its own schema text (tool name,
             title, description, and the per-method gloss where the `method`
             enum's description carries one). Zero training data — this is what a
-            router could do on a catalogue it has never seen traffic for.
+            router could do on a catalogue it has never seen traffic for. It is
+            also the weakest arm measured here: 0.298 on family B and 0.392 on
+            wild, below the hand-written regexes' 0.546 / 0.486 and level with
+            the best fitted decision list. The catalogue does not describe
+            itself in the words people use to ask for it.
   centroid  each target embedded as the mean of its family-A training queries,
             renormalised. Uses labelled traffic, so its family-A number is
             fitted and meaningless; B and wild are the real ones.
@@ -240,10 +244,15 @@ class EncoderArm(ArmBase):
         return self.labels_[i] if s[i] >= self.threshold else None
 
 
-# Thresholds are set in `main()` by sweeping family A (the fitted family) under
-# the same abstention floor the cascade uses; the registry defaults are the
-# values that sweep chose, so `eval.py enc-fusion` reproduces the table row.
-# Filled in from the family-A sweep in `main()`; see results_encoder.json.
+# Thresholds swept on family A under the cascade's 0.70 abstention floor; these
+# are the values that sweep chose, so `eval.py enc-fusion` reproduces the row.
+#
+# The threshold is the least transferable part of this arm. A cosine to a
+# training centroid is calibrated to the phrasing family it was built from:
+# 0.53 keeps coverage 0.998 on family A and 0.343 on family B, taking accuracy
+# from 0.916 to 0.247 while the same arm at an open threshold scores 0.540.
+# Fusion is far less brittle (0.999 -> 0.742) because half its score comes from
+# schema text, which no split had a hand in writing.
 THRESHOLDS = {"schema": 0.28, "centroid": 0.53, "fusion": 0.35}
 
 for _src in ("schema", "centroid", "fusion"):
