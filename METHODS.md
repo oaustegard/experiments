@@ -1888,8 +1888,12 @@ are not observable per-arm at all — estimate from content sizes and say so.
   running at 0.04 ms with zero inference cost. Two consequences: an "LLM-as-
   compiler" arm is cheap and belongs in any routing comparison; and if the same
   model authored both the rules and the eval queries, the number is not
-  contaminated-but-usable, it is disqualified — swap in a *different* model that
-  never saw the eval. (`gh-mcp-regex-fit/handwritten.py`, `gemini_arms.py`)
+  contaminated-but-usable, it is disqualified — re-run the compile in a clean
+  room. **Since measured**: the clean-room re-run scored *higher* on realistic
+  queries than the contaminated arm (0.540 vs 0.486) and lower on the template
+  family (0.504 vs 0.546), so writing rules with the eval in view is worth about
+  ±0.05 and points the wrong way. Disqualify the number, but do not assume the
+  honest one is worse. (`gh-mcp-regex-fit/handwritten.py`, `gemini_arms.py`)
 
 - **Supervise a rule-writing model with its own errors, not with labelled
   examples — and stop at two rounds.** Same model, same corpus, same 79 targets,
@@ -1914,15 +1918,24 @@ are not observable per-arm at all — estimate from content sizes and say so.
   is not something exhortation supplies; error feedback is.
   (`gh-mcp-regex-fit/breadth_arm.py`)
 
-- **Compiling deterministic rules from a schema is a capability cliff, not a
-  slope — price the offline step on the tier you will actually use.** Identical
-  clean-room prompt, three tiers: gemini-2.5-flash-lite **0.000**, gemini-2.5-
-  flash **0.000**, gemini-3.7-flash **0.161/0.176** on the two held-out splits.
-  The small models transcribe the schema signature into regex syntax
+- **Compiling deterministic rules from a schema is a model-capability cliff —
+  and budget, procedure and instruction will not substitute for the tier.**
+  Identical clean-room prompt, one catalogue of 79 routing targets, accuracy on
+  hand-authored queries: gemini-2.5-flash-lite **0.000**, gemini-2.5-flash
+  **0.013**, gemini-3.7-flash **0.176**, Claude **0.540**. The small models
+  transcribe the schema signature into regex syntax
   (`get workflow (?P<workflow_id>\S+) in (?P<owner>\S+)/(?P<repo>\S+)`) and match
-  only requests phrased as the schema names itself. Their *precision* stays high
-  (0.918) because a pattern matching nothing is never wrong — read coverage, not
-  precision, when an arm might be degenerate. (`gh-mcp-regex-fit/gemini_arms.py`)
+  only requests phrased as the schema names itself. Three interventions were run
+  to test whether the gap to Claude was procedure rather than capability, and
+  **none of them closed it**: instructing breadth explicitly made coverage *fall*
+  (0.216→0.149); splitting the catalogue over 8 calls to cut per-call output
+  pressure produced 224 rules — 2.8 per target, more than Claude's 154 — and
+  changed nothing (0.176→0.162, p=1.00); two rounds of error supervision reached
+  0.419, still below Claude's *zero-shot* 0.540. Price the offline compile on the
+  tier you will actually ship, and do not assume a cheaper model plus more calls
+  substitutes. Watch *coverage*, not precision, when grading these: a degenerate
+  rule set scores 0.918 precision because a pattern matching nothing is never
+  wrong. (`gh-mcp-regex-fit/chunked_arm.py`, `breadth_arm.py`)
 
 - **Before believing a split gap, score an arm that has no stake in any split.**
   Every arm in a three-split routing eval spread 3-16x across the splits
@@ -1936,13 +1949,16 @@ are not observable per-arm at all — estimate from content sizes and say so.
   only arm to *beat* live inference, and only on the split whose paraphrases
   that author wrote. (`gh-mcp-regex-fit/live_eval.py`)
 
-- **A compiled rule tier in front of an LLM router buys cost, not accuracy —
-  budget it that way.** Rules-first-then-model, joined per row: on hand-authored
-  queries every front tier landed at **0.635-0.649** accuracy regardless of which
-  one it was (live model alone: 0.568), but model calls avoided ranged from
-  **19% to 63%**. Two arms reaching the identical 0.635 differed 2.6x in calls
-  saved. So iterate the front tier for *coverage* and judge it on call volume;
-  its accuracy contribution saturates almost immediately. The front tier does
-  add accuracy where the model itself abstains — a live router declining 40% of
-  routable requests at 95.5% precision leaves room a 0.075 ms rule set can fill.
-  (`gh-mcp-regex-fit/cascade_live.py`)
+- **A microsecond rule tier in front of an LLM router can beat the router, and
+  the mechanism is complementary abstention.** Rules first, live model on
+  whatever they decline, joined per row on hand-authored queries: the model alone
+  scored 0.568, model-compiled rules alone 0.540, and the **cascade 0.770 while
+  removing 58% of the model's calls**. The gain is not the rules being more
+  accurate — they are slightly worse standalone — it is that the model *declines*
+  40% of routable requests at 95.5% precision, and the rules answer a large share
+  of exactly those. Two arms with correlated errors cannot do this, so measure the
+  abstention overlap before predicting a cascade's value from the two standalone
+  numbers. The corollary is a threshold: below a compiler-capability line the
+  front tier is purely a cost lever (every weaker rule set landed at 0.635-0.649
+  regardless, while calls avoided ranged 19-63%), and above it, it is also an
+  accuracy one. (`gh-mcp-regex-fit/cascade_live.py`)
