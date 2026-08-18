@@ -23,7 +23,19 @@ def exact_p(b: int, c: int) -> float:
 
 
 def arm(name: str):
-    return HandRouter() if name == "hand" else Router(HERE / f"rules_{name}.json")
+    """A contrast may name the hand arm, a fitted rule file, or a registry arm.
+
+    The registry branch is what lets the compiled Gemini arms be compared against
+    the first pass's fitted ones on the same rows — they are different classes of
+    object (`CompiledRouter` vs `Router`) but both answer `route`.
+    """
+    if name == "hand":
+        return HandRouter()
+    import arms as arms_mod
+    arms_mod.load_all()
+    if name in arms_mod.REGISTRY:
+        return arms_mod.build(name)
+    return Router(HERE / f"rules_{name}.json")
 
 
 def main() -> int:
@@ -31,8 +43,12 @@ def main() -> int:
         "family B (held-out)": HERE / "data" / "family_b.jsonl",
         "wild (hand-authored)": HERE / "wild.jsonl",
     }
-    contrasts = [("hand", "schema"), ("hand", "overlap"), ("hand", "laplace8"),
-                 ("schema", "overlap")]
+    import sys
+    if len(sys.argv) > 1:
+        contrasts = [tuple(a.split(":", 1)) for a in sys.argv[1:]]
+    else:
+        contrasts = [("hand", "schema"), ("hand", "overlap"), ("hand", "laplace8"),
+                     ("schema", "overlap")]
     out = {}
     hdr = f"{'split':<22}{'contrast':<24}{'A only':>8}{'B only':>8}{'both':>7}{'p':>10}"
     print(hdr)
@@ -55,7 +71,8 @@ def main() -> int:
             print(f"{sname:<22}{tag:<24}{b:>8}{c:>8}{both:>7}{ps:>10}")
             out.setdefault(sname, {})[tag] = {"a_only": b, "b_only": c, "both": both,
                                               "p": p, "n": len(on)}
-    (HERE / "results_mcnemar.json").write_text(json.dumps(out, indent=1) + "\n")
+    name = "results_mcnemar_gemini.json" if len(sys.argv) > 1 else "results_mcnemar.json"
+    (HERE / name).write_text(json.dumps(out, indent=1) + "\n")
     return 0
 
 

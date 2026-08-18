@@ -134,5 +134,107 @@
     "abstain_acc": 0.8666666666666667
    }
   ]
+ },
+ "b|compiled-gemini-iter2": {
+  "split": "b",
+  "n_rows": 160,
+  "front": "compiled-gemini-iter2",
+  "model": "gemini-3.7-flash",
+  "calls_saved_routable": 0.4620253164556962,
+  "calls_saved_all": 0.45625,
+  "arms": [
+   {
+    "arm": "compiled-gemini-iter2",
+    "n": 158,
+    "coverage": 0.4620253164556962,
+    "precision": 0.4520547945205479,
+    "label_acc": 0.2088607594936709,
+    "abstain_acc": 1.0
+   },
+   {
+    "arm": "live",
+    "n": 158,
+    "coverage": 0.5632911392405063,
+    "precision": 0.9438202247191011,
+    "label_acc": 0.5316455696202531,
+    "abstain_acc": 1.0
+   },
+   {
+    "arm": "cascade compiled-gemini-iter2 -> live",
+    "n": 158,
+    "coverage": 0.7848101265822784,
+    "precision": 0.6693548387096774,
+    "label_acc": 0.5253164556962026,
+    "abstain_acc": 1.0
+   }
+  ]
+ },
+ "b|hand": {
+  "split": "b",
+  "n_rows": 160,
+  "front": "hand",
+  "model": "gemini-3.7-flash",
+  "calls_saved_routable": 0.8227848101265823,
+  "calls_saved_all": 0.8125,
+  "arms": [
+   {
+    "arm": "hand",
+    "n": 158,
+    "coverage": 0.8227848101265823,
+    "precision": 0.6307692307692307,
+    "label_acc": 0.5189873417721519,
+    "abstain_acc": 1.0
+   },
+   {
+    "arm": "live",
+    "n": 158,
+    "coverage": 0.5632911392405063,
+    "precision": 0.9438202247191011,
+    "label_acc": 0.5316455696202531,
+    "abstain_acc": 1.0
+   },
+   {
+    "arm": "cascade hand -> live",
+    "n": 158,
+    "coverage": 0.9113924050632911,
+    "precision": 0.6666666666666666,
+    "label_acc": 0.6075949367088608,
+    "abstain_acc": 1.0
+   }
+  ]
+ },
+ "b|compiled-gemini-cleanroom": {
+  "split": "b",
+  "n_rows": 160,
+  "front": "compiled-gemini-cleanroom",
+  "model": "gemini-3.7-flash",
+  "calls_saved_routable": 0.33544303797468356,
+  "calls_saved_all": 0.33125,
+  "arms": [
+   {
+    "arm": "compiled-gemini-cleanroom",
+    "n": 158,
+    "coverage": 0.33544303797468356,
+    "precision": 0.41509433962264153,
+    "label_acc": 0.13924050632911392,
+    "abstain_acc": 1.0
+   },
+   {
+    "arm": "live",
+    "n": 158,
+    "coverage": 0.5632911392405063,
+    "precision": 0.9438202247191011,
+    "label_acc": 0.5316455696202531,
+    "abstain_acc": 1.0
+   },
+   {
+    "arm": "cascade compiled-gemini-cleanroom -> live",
+    "n": 158,
+    "coverage": 0.7278481012658228,
+    "precision": 0.7043478260869566,
+    "label_acc": 0.5126582278481012,
+    "abstain_acc": 1.0
+   }
+  ]
  }
 }
