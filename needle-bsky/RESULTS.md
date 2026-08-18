@@ -236,8 +236,8 @@ five first. `two_stage.py` splits the 18 into five groups of ≤5 (`account`,
 
 Asking Needle to classify a request into an abstract category is 24 points
 **worse** than just handing it all 18 tools. Its errors are systematic rather
-than noisy: every `plumbing` query went to `follow_graph` or `find_content`,
-and 7 of 8 `account` queries went to `find_content`. The model is trained to map
+than noisy: of the 15 `account` queries it put 9 in `find_content` and got 3
+right, and of the 8 `plumbing` queries it got 1 right. The model is trained to map
 a concrete request onto a concrete callable, and a group description
 ("the request is about one named account…") is not one. Needle's own retrieval
 head, a contrastive embedding rather than a decode, does the same 5-of-18 job far
