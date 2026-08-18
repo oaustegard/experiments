@@ -667,17 +667,15 @@ the result.
   `tok:diff -> get_diff` that never fire on "what code does this PR actually
   change", where the rule's author writes `\b(diff|patch|changeset)\b` from knowledge of
   the language. Laplace-corrected scoring, min-coverage 8 and dropping bigrams
-  **That author was an LLM, not a person** — the "hand-written" arm was Claude
-  reading the 50 schemas, so the real contrast is model reasoning compiled once
-  into deterministic rules versus statistics fitted from a corpus, and the
-  compiled arm won. Budget an offline model pass to author the rules; the
-  artefact still runs at 0.04 ms with no inference cost. The arm is also
-  contaminated (same author wrote the query templates), which is why the clean
-  room below uses a different model.
   each moved coverage and precision without moving accuracy (0.191-0.227). The
   one intervention that helped computes features against the schema at inference
   time instead of learning them. If you fit routing rules, budget for a synonym
-  source the training queries do not contain. (`gh-mcp-regex-fit/fit.py`)
+  source the training queries do not contain. **And note who that author is:**
+  the "hand-written" comparison arm was Claude reading the 50 schemas, not a
+  person — so the real contrast is model reasoning compiled once into
+  deterministic rules versus statistics fitted from a corpus, and the compiled
+  arm won. Budget an offline model pass to author the rules; the artefact still
+  runs at 0.04 ms with no inference cost. (`gh-mcp-regex-fit/fit.py`)
 - **Price a catch-all fallback rule by ablation before shipping one: it can take
   abstention to zero for no accuracy.** The same 73 hand-written rules with and
   without a catch-all scored abstention 0.925/0.950/0.867 against
