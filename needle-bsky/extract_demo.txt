@@ -1,0 +1,79 @@
+# extraction over 8 live posts from @austegard.com
+
+## declared: four fields (language, links_to, mentions_handle, subject)
+
+post: US child vaccination rates have plunged since before the pandemic, with kindergarten classrooms in more than 70% of counties now lacking herd immunity against measles.
+  -> null  (confidence 0.0017)
+
+post: I asked Qwen3.8 27B (q4) to "do something" - I wanted to watch the memory as it worked the response was almost poetic: gist.github.com/oaustegard/2...
+  -> {"subject": "do something", "mentions_handle": "gist.github.com/oaustegard/2", "language": "q4"}  (confidence 0.0002)
+
+post: Haiku 4.5 is basically unusable for coding tasks. It can get the job done, but spends so much time thinking that thit ends up slower and more expensive than Sonnet 5 AND Opus 5! 1/
+  -> null  (confidence 0.0062)
+
+post: I love this!
+  -> {"subject": "Love this", "mentions_handle": "live"}  (confidence 0.0)
+
+post: New level unlocked - Inbox 7,000
+  -> null  (confidence 0.0343)
+
+post: Your regular reminder Republicans in Congress fully support this.
+  -> {"subject": "Regular reminder Republicans in Congress", "mentions_handle": "Regular reminder Republicans in Congress", "language": "en"}  (confidence 0.0)
+
+post: No sooner than them fixing Bsky, Claude goes down. Sunday.
+  -> {"subject": "Bsky down", "mentions_handle": "Claude"}  (confidence 0.0)
+
+post: when Bsky is down we go straight up ATProtoing: https://github.com/oaustegard/claude-skills/releases/tag/atprotoing-v0.1.0 (perhaps we should decentralize this stuff a bit more?)
+  -> {"subject": "ATProtoing", "mentions_handle": "https://github.com/oaustegard/claude-skills/releases/tag/atprotoing-v0.1.0"}  (confidence 0.0419)
+
+  mean confidence 0.0105   refused 3/8
+
+## declared: subject only (subject)
+
+post: US child vaccination rates have plunged since before the pandemic, with kindergarten classrooms in more than 70% of counties now lacking herd immunity against measles.
+  -> null  (confidence 0.0012)
+
+post: I asked Qwen3.8 27B (q4) to "do something" - I wanted to watch the memory as it worked the response was almost poetic: gist.github.com/oaustegard/2...
+  -> {"subject": "do something"}  (confidence 0.0119)
+
+post: Haiku 4.5 is basically unusable for coding tasks. It can get the job done, but spends so much time thinking that thit ends up slower and more expensive than Sonnet 5 AND Opus 5! 1/
+  -> null  (confidence 0.0144)
+
+post: I love this!
+  -> null  (confidence 0.0413)
+
+post: New level unlocked - Inbox 7,000
+  -> null  (confidence 0.0434)
+
+post: Your regular reminder Republicans in Congress fully support this.
+  -> {"subject": "Regular reminder Republicans in Congress fully support this time"}  (confidence 0.0)
+
+post: No sooner than them fixing Bsky, Claude goes down. Sunday.
+  -> {"subject": "Bsky down"}  (confidence 0.0)
+
+post: when Bsky is down we go straight up ATProtoing: https://github.com/oaustegard/claude-skills/releases/tag/atprotoing-v0.1.0 (perhaps we should decentralize this stuff a bit more?)
+  -> null  (confidence 0.0198)
+
+  mean confidence 0.0165   refused 5/8
+
+## constructed posts, span-shaped fields (what, when, where, amount)
+
+post: Bokbytterkveld torsdag 19:00 på Kulturhuset, meld deg på innen 20. august.
+  -> {"what": "Bokbytterkveld torsdag 19:00 på Kulturhuset, meld deg på innen 20", "when": "2025-08-20", "where": "på Kulturhuset", "amount": "20"}  (confidence 0.0)
+
+post: Release 0.4.2 is out, fixes the ICE restart bug, download at github.com/oaustegard/remex
+  -> null  (confidence 0.004)
+
+post: Standup moved to 09:30 CET starting Monday, room B2.
+  -> {"what": "Standup", "when": "Monday", "where": "room B2", "amount": "09:30"}  (confidence 0.0)
+
+post: Selling a Wahoo Kickr Core for 4200 NOK, pickup in Oslo this weekend.
+  -> {"what": "Wahoo Kickr Core", "when": "Oslo", "amount": "4200"}  (confidence 0.0)
+
+post: Talk accepted: 'Small models, big catalogues' at ATmosphere Conf, March 14, Seattle.
+  -> {"what": "Small models, big catalogues", "when": "March 14", "where": "ATmosphere Conf"}  (confidence 0.0053)
+
+post: Rain all week in Bergen, 12C on Thursday, 9C by Saturday.
+  -> {"what": "Rain all week in Bergen", "when": "Thursday", "amount": "12C on Thursday, 9C by Saturday", "where": "Bergen"}  (confidence 0.0)
+
+  mean confidence 0.0015   refused 1/6

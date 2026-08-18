@@ -10,15 +10,30 @@ a product can act above a threshold and escalate below it.
 
 This wires it in front of an 18-tool Bluesky read surface (`browsing-bluesky`
 and `atprotoing`, both already on disk as skills) and measures what the routing
-layer is actually worth: 62 natural-language queries, four schema arms, an
-oracle-retrieval probe, and a LoRA fine-tune.
+layer is worth: 62 natural-language queries, four schema arms, an
+oracle-retrieval probe, a two-stage router, a LoRA fine-tune, and an extraction
+pass.
 
-Headline: **the base model routes 61–70% of queries to the right tool, and the
-confidence head is what makes that usable, but only if you declare nothing but
-required arguments.** With optional arguments declared, a correct call can score
-0.0004, so the gate cannot separate correct routing from wrong. With them
-dropped, the same gate trades coverage for precision monotonically: 38%
-coverage at 76% precision, 13% at 100%.
+Three findings, in the order they change what you would build.
+
+**The base model routes 61–70% of queries to the right tool, and the confidence
+head is what makes that usable, but only if you declare nothing but required
+arguments.** With optional arguments declared, a correct call can score 0.0004,
+so the gate cannot separate correct routing from wrong. With them dropped, the
+same gate trades coverage for precision monotonically: 38% coverage at 76%
+precision, 13% at 100%.
+
+**Keep every agent at five tools, and pick the five with something that is not
+a model.** A five-tool catalogue containing the right answer beats the flat 18
+by 11–17 points, and the sixth declared tool costs 3.6x the per-turn latency.
+Splitting into groups and letting Needle choose the group scores 24 points
+*worse* than the flat 18; ~20 lines of regex doing the same job scores 11 points
+better and runs 3.8x faster.
+
+**The fine-tune is a wash and costs the gate.** 800 templated examples and two
+hours of CPU moved routing from 0.611 to 0.667 (paired p=1.0), left the two
+worst categories exactly where they were, and replaced every confidence score
+with `None`, because fine-tuning does not update the confidence head.
 
 Everything below is CPU-only, on a 4-core CCotw container. No GPU, no
 `ANTHROPIC_API_KEY`, no OpenRouter.
@@ -199,13 +214,15 @@ catalogue with the rest:
 
 | tools declared | median turn | p90 |
 |---|---|---|
-| 5 | **284 ms** | 334 ms |
-| 6 | 1034 ms | 1146 ms |
-| 8 | 1054 ms | 1218 ms |
-| 12 | 1122 ms | 1285 ms |
-| 18 | 1109 ms | 1282 ms |
+| 5 | **290 ms** | 419 ms |
+| 6 | 1051 ms | 1478 ms |
+| 8 | 1100 ms | 1234 ms |
+| 12 | 1123 ms | 1313 ms |
+| 18 | 1187 ms | 1285 ms |
 
-The sixth tool costs 3.6x the fifth. Retrieval is a fixed ~750 ms per turn on
+The sixth tool costs 3.63x the fifth. An earlier run of the same probe, hours
+apart and before anything else was on the box, gave 284 / 1034 / 1054 / 1122 /
+1109 ms — the same shape to within a few percent. Retrieval is a fixed ~750 ms per turn on
 this CPU, charged the moment a sixth tool is declared and then almost flat out
 to 18. `tool_index_path` does not touch it: with the index persisted, cold and
 warm, the median turn stayed
@@ -229,12 +246,12 @@ the per-turn latency. Both say: keep every agent at five tools and pick the
 five first. `two_stage.py` splits the 18 into five groups of ≤5 (`account`,
 `follow_graph`, `one_post`, `find_content`, `plumbing`) and routes in two steps.
 
-| stage 1 | stage-1 group accuracy | routable top-1 | args | invented |
-|---|---|---|---|---|
-| a Needle turn over 5 group descriptions | 0.481 | 0.370 | 0.333 | 0.333 |
-| ~20 lines of regex over the query text | **0.870** | **0.722** | **0.685** | 0.111 |
-| — flat 18-tool `tuned-min`, for comparison | n/a | 0.611 | 0.537 | 0.222 |
-| — oracle five-tool ceiling, for comparison | n/a | 0.778 | 0.667 | 0.185 |
+| stage 1 | stage-1 group accuracy | routable top-1 | args | invented | median end-to-end |
+|---|---|---|---|---|---|
+| a Needle turn over 5 group descriptions | 0.481 | 0.370 | 0.333 | 0.333 | 1702 ms |
+| ~20 lines of regex over the query text | **0.870** | **0.722** | **0.685** | 0.111 | **316 ms** |
+| — flat 18-tool `tuned-min`, for comparison | n/a | 0.611 | 0.537 | 0.222 | 1187 ms |
+| — oracle five-tool ceiling, for comparison | n/a | 0.778 | 0.667 | 0.185 | 199 ms |
 
 Asking Needle to classify a request into an abstract category is 24 points
 **worse** than just handing it all 18 tools. Its errors are systematic rather
@@ -250,7 +267,10 @@ looks for structural cues only — does the text contain a post URI, a feed or
 list URI, a `did:plc:`, a follow word, a handle-shaped token — and costs
 microseconds. That combination lands at 0.722 routable, above the flat 18-tool
 arm and most of the way to the five-tool ceiling, while cutting invented
-arguments by half.
+arguments by half and running **3.8x faster end-to-end** than the flat arm —
+316 ms against 1187 ms, because no agent it touches is ever above the retrieval
+threshold. Accuracy was identical across two runs hours apart, one of them
+against a saturated box, which is the determinism holding.
 
 **The 0.870 is not a held-out number.** Those rules were written after reading
 which groups the Needle classifier confused, so they are fitted to this eval's
@@ -301,7 +321,101 @@ already tried and could not.
 
 ## Fine-tune
 
-<!-- FT -->
+800 synthetic rows (`gen_data.py`, 15% off-topic refusals, entity pools disjoint
+from the eval set), LoRA rank 16 / alpha 32 on the frozen base, 3 epochs, batch
+8, `max_len` 640, merged and exported to a 13.74 MB `.cact`. Roughly two hours
+of 4-core CPU. Evaluated on the same 62 queries with the same `tuned-min`
+schemas.
+
+| | routable | args | refusal | invented | confidence |
+|---|---|---|---|---|---|
+| base | 0.611 | 0.537 | 0.625 | 0.222 | available |
+| fine-tuned | 0.667 | 0.648 | **0.375** | 0.222 | **None** |
+
+Paired McNemar over the same queries: tool selection 4 base-only wins against 5
+fine-tuned-only, **p=1.0**; arguments 3 against 7, p=0.34. At this data scale
+the fine-tune is a wash on routing and directionally positive on arguments,
+with a real regression on refusing off-topic input — it answered "what is the
+capital of Norway" with `get_trending_topics` and "block the account
+spammer.bsky.social" with `get_followers`.
+
+The per-category table is what makes the run worth reporting:
+
+| category | n | base | fine-tuned |
+|---|---|---|---|
+| thread | 3 | 0.67 | 1.00 |
+| interactions | 6 | 0.83 | 1.00 |
+| graph | 5 | 0.60 | 0.80 |
+| person-posts | 5 | 0.60 | 0.80 |
+| **profile** | 4 | **0.25** | **0.25** |
+| **identity** | 3 | **0.33** | **0.33** |
+| analysis | 3 | 1.00 | 0.67 |
+| search | 7 | 0.71 | 0.57 |
+| off-topic | 8 | 0.62 | 0.38 |
+
+`profile` and `identity` are the two categories the base model is worst at, and
+both were covered by the training templates — "open the account page for X" for
+`get_profile`, "where is X's repo hosted" and "turn <did> into a handle" for
+`resolve_identity`. Neither moved at all. The confusions that survive are the
+ones where two tools serve genuinely adjacent intents ("how many followers does
+X have" is a profile field and a graph query), and 800 templated examples did
+not separate them.
+
+And the fine-tune costs the gate. Cactus documents that fine-tuning does not
+update the confidence head, so a tuned agent reports `confidence` as `None` and
+warns once at construction. Everything in the gate section above stops being
+available the moment you load tuned weights. Against a wash on accuracy, that
+is the whole trade: the tuning removed the one signal that made a 61% router
+safe to act on.
+
+Anyone wanting real gains here should spend the effort on catalogue size
+instead. The regex stage-1 arm is +11 points for about 20 lines of code and
+keeps the confidence head; this fine-tune is +5.6 points, not significant, and
+gives it up.
+
+Training loss reached 0.965 with validation 1.096 at the end of epoch 1. The
+epoch 2 and 3 curves were not captured — the trainer's stdout was writing to an
+inode that a concurrent run had unlinked, and only the first epoch survived in
+a readable file (ERRORS.md #5). The exported model is unaffected; the loss
+curve past epoch 1 simply is not in hand.
+
+
+## Extraction
+
+Needle treats extraction as tool calling with one declared tool, so the same
+engine that routes a query can read a post and return a typed record.
+`extract_demo.py` runs it over 8 live posts from `@austegard.com` in two schema
+shapes, plus 6 constructed posts that carry their field values literally.
+
+| declared | mean confidence | refused |
+|---|---|---|
+| `subject`, `mentions_handle`, `links_to`, `language` | 0.0105 | 3/8 |
+| `subject` only | 0.0165 | 5/8 |
+| `what`, `when`, `where`, `amount` on constructed posts | 0.0015 | 1/6 |
+
+**Every extraction in all three conditions scored below 0.05.** The highest
+single score across 22 attempts was 0.0434. At any threshold that made the
+routing gate useful, all of it escalates.
+
+The outputs say why. A field like `subject` ("the main thing the post is about,
+in a few words") asks for a summary, and Needle's contract is that arguments
+carry only values evidenced by the input — so it fills `subject` with a copied
+fragment and `mentions_handle` with whatever span is nearby:
+`{"subject": "Love this", "mentions_handle": "live"}` for the post "I love
+this!", and `"language": "q4"` for a post that mentions a q4 quantization.
+
+Span-shaped fields do better on content and no better on confidence. "Standup
+moved to 09:30 CET starting Monday, room B2." returned
+`{"what": "Standup", "when": "Monday", "where": "room B2"}`, which is right, at
+confidence 0.0. The same schema put `"when": "Oslo"` on a for-sale post and
+invented `"when": "2025-08-20"` from the Norwegian "20. august" — a year the
+post does not contain, and the wrong one.
+
+So for this domain the split is clean: route with it, do not extract with it.
+The routing gate has an operating point; extraction has none. That is a
+statement about free-form social text against these schemas, not about the
+invoice-shaped extraction the model card demonstrates — but it is the shape a
+Bluesky toolset would actually ask for.
 
 ## Running it
 
@@ -310,9 +424,14 @@ pip install cactus-needle                      # engine + weights fetched once f
 
 python3 -m needle_bsky route "who liked <post url>"        # decide only, no network
 python3 -m needle_bsky ask   "open the account page for austegard.com"
+python3 -m needle_bsky ask   "..." --router flat           # declare all 18 to one agent
 python3 -m needle_bsky repl                                # keeps the agent warm
 python3 -m needle_bsky tools --arm tuned-min               # dump the declared schemas
 ```
+
+The default router is the two-stage one measured above: a deterministic group
+pick, then a ≤5-tool agent. `--router flat` declares all 18 to a single agent,
+which is the arm most of this writeup measures.
 
 `ask` applies the gate and exits 3 when it escalates, so a shell caller can
 branch on "the small model was not sure" without parsing anything.

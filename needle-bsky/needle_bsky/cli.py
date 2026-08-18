@@ -4,9 +4,14 @@
     python3 -m needle_bsky route "who liked <post url>"     # decide only, no network
     python3 -m needle_bsky ask   "what has pfrazee.com been posting"
     python3 -m needle_bsky repl                             # keep the agent warm
+    python3 -m needle_bsky ask "..." --router flat          # declare all 18 instead
 
 `route` is the measured layer: one 45M-parameter turn, no Bluesky credentials
 needed. `ask` adds the confidence gate and executes the chosen tool.
+
+The default router is the two-stage one: a deterministic group pick, then a
+≤5-tool Needle agent. On the eval set that is 0.722 routable at 316 ms against
+0.611 at 1187 ms for declaring all 18 to one agent (`--router flat`).
 
 Below the threshold nothing runs. The exit code says so — 3 means "escalate",
 i.e. hand this query to a larger model rather than guessing at a network call.
@@ -46,6 +51,9 @@ def main(argv=None) -> int:
     ap.add_argument("mode", choices=["route", "ask", "repl", "tools"])
     ap.add_argument("query", nargs="*")
     ap.add_argument("--arm", default="tuned-min", choices=list(ARMS))
+    ap.add_argument("--router", default="grouped", choices=["grouped", "flat"])
+    ap.add_argument("--stage1", default="heuristic", choices=["heuristic", "needle"],
+                    help="grouped router only; 'needle' is the arm that measured 24pp worse")
     ap.add_argument("--threshold", type=float, default=DEFAULT_THRESHOLD)
     ap.add_argument("--weights", default=None, help="a tuned .cact")
     ap.add_argument("--system", default=None, help='environment facts, e.g. "date: 2026-08-18; locale: en-US"')
@@ -58,10 +66,19 @@ def main(argv=None) -> int:
         print(json.dumps(load_schemas(a.arm), indent=1))
         return EXIT_OK
 
-    router = Router(arm=a.arm, threshold=a.threshold, system=a.system, weights=a.weights)
+    if a.router == "grouped":
+        if a.weights or a.system:
+            ap.error("--weights and --system apply to the flat router; pass --router flat")
+        from .grouped import GROUPS, GroupedRouter
+
+        router = GroupedRouter(arm=a.arm, threshold=a.threshold, stage1=a.stage1)
+        shape = f"{len(GROUPS)} groups of <=5"
+    else:
+        router = Router(arm=a.arm, threshold=a.threshold, system=a.system, weights=a.weights)
+        shape = f"{len(router.schemas)} tools"
 
     if a.mode == "repl":
-        print(f"needle_bsky [{a.arm}] — {len(router.schemas)} tools, gate {a.threshold}. Ctrl-D to exit.")
+        print(f"needle_bsky [{a.arm}, {a.router}] — {shape}, gate {a.threshold}. Ctrl-D to exit.")
         while True:
             try:
                 q = input("> ").strip()
