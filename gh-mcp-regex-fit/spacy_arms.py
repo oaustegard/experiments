@@ -534,7 +534,7 @@ def diagnostics(splits) -> dict:
     # supply synonymy at all, this is where it has to show up.
     tok, fus = build("tok-overlap"), build("spacy-fusion")
     out["zero_overlap"] = {}
-    out["recall_at_5"] = {}
+    out["recall_at_k"] = {}
     for sname, rows in splits.items():
         on = [r for r in rows if r.get("label")]
         blind = [r for r in on if not tok.score(r["query"])]
@@ -544,18 +544,25 @@ def diagnostics(splits) -> dict:
                       if (arm.score(r["query"]) or [(None, 0)])[0][0] == r["label"]) / len(rs), 4)
             if rs else None)
         out["zero_overlap"][sname] = {
-            "n_blind": len(blind), "share_blind": round(len(blind) / len(on), 4),
+            "n_routable": len(on), "n_blind": len(blind), "n_seen": len(seen),
+            "share_blind": round(len(blind) / len(on), 4),
             "vec_idf_acc_on_blind": hit(vec, blind),
             "vec_idf_acc_on_seen": hit(vec, seen),
             "tok_acc_on_seen": hit(tok, seen),
         }
+        # k=79 is the "reachable at all" rate, and it is the number that separates
+        # the two families of arm: a lexical arm only ranks labels it shares a
+        # word with, so its recall@79 is capped below 1.0, while the vector arm
+        # ranks all 79 by construction and reaches 1.0 for free. Anything the
+        # vector arm buys has to appear as recall it gains between those bounds.
         rk = {}
         for tag, arm in (("tok-overlap", tok), ("spacy-lemma", lem),
                          ("spacy-vec-idf", vec), ("spacy-fusion", fus)):
-            r5 = sum(1 for r in on
-                     if r["label"] in [l for l, _ in arm.score(r["query"])[:5]])
-            rk[tag] = round(r5 / len(on), 4)
-        out["recall_at_5"][sname] = rk
+            ranked = [[l for l, _ in arm.score(r["query"])] for r in on]
+            rk[tag] = {f"@{k}": round(
+                sum(1 for r, order in zip(on, ranked) if r["label"] in order[:k]) / len(on), 4)
+                for k in (1, 3, 5, 10, 79)}
+        out["recall_at_k"][sname] = rk
     return out
 
 
@@ -617,12 +624,17 @@ def main() -> int:
     print(f"\nlabels whose schema text contains 'approv': {diag['approve_in_schema'] or 'none'}")
     print("\nrows with zero lexical overlap against every label (a lexical router is blind):")
     for sname, d in diag["zero_overlap"].items():
-        print(f"  {sname:<24} blind {d['share_blind']:.3f} (n={d['n_blind']})  "
-              f"vec-idf acc there {d['vec_idf_acc_on_blind']}  "
-              f"| on the rest: vec {d['vec_idf_acc_on_seen']} tok {d['tok_acc_on_seen']}")
-    print("\nrecall@5 (is the gold label anywhere in the top five):")
-    for sname, d in diag["recall_at_5"].items():
-        print(f"  {sname:<24} " + "  ".join(f"{k} {v:.3f}" for k, v in d.items()))
+        print(f"  {sname:<24} blind {d['share_blind']:.3f} (n={d['n_blind']:>3} of "
+              f"{d['n_routable']})  vec-idf acc there {d['vec_idf_acc_on_blind']}  "
+              f"| on the other {d['n_seen']}: vec {d['vec_idf_acc_on_seen']} "
+              f"tok {d['tok_acc_on_seen']}")
+    print("\nrecall@k (k=79 is 'reachable at all'; lexical arms rank only labels "
+          "they share a word with):")
+    ks = ("@1", "@3", "@5", "@10", "@79")
+    print(f"  {'split':<24}{'arm':<16}" + "".join(f"{k:>8}" for k in ks))
+    for sname, d in diag["recall_at_k"].items():
+        for tag, r in d.items():
+            print(f"  {sname:<24}{tag:<16}" + "".join(f"{r[k]:>8.3f}" for k in ks))
 
     lat = [out[n][s]["median_latency_ms"] for n in out for s in out[n]]
     payload = {
