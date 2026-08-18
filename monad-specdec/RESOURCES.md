@@ -40,8 +40,11 @@ llama.cpp, 4 threads, batch 1, 48 tokens, same machine as everything else here.
 | Q4_K_M | 240 MB | 29.3 | 34.1 | 0.97× |
 | Q4_0 | 202 MB | 23.9 | 41.9 | 1.19× |
 
-Q4_K_M is slower than Q8_0. Its per-block scales and mins cost more to unpack
-than the halved weight traffic saves at this size.
+Q4_K_M is slower than Q8_0, and reading the tensor types explains why better
+than a guess about unpacking overhead does. Only **40 of its 561 quantized
+tensors are actually Q4_K**; the rest are Q5_0 (400), Q6_K (40) and Q5_1 (40).
+Q4_K_M for this model is a mostly-5-bit mix carrying K-quant bookkeeping, which
+is also why its file is *larger* than Q4_0's, at 240 MB against 202 MB.
 
 The reason the whole ladder is flat: decode here is not weight-bandwidth-bound.
 Halving the weight bytes in torch by moving fp32 → bf16, which leaves FLOPs and
@@ -108,6 +111,13 @@ Built against Baguettotron's real config and timed on this CPU:
 | **Target step (80 layers)** | **118.7** | |
 | **c** | **0.059** | vs Monad's 0.476 |
 
+Nothing here is a trained EAGLE head. No such head exists for Baguettotron, so
+there is no measured acceptance anywhere in this document — the modules below
+are randomly initialized and timed, which is valid for cost and says nothing
+about α. Both target and draft run in **torch fp32** unless a row says
+otherwise; the GGUF ladder above is a separate measurement with no drafter in
+it.
+
 Trainable parameters: **4.2M**, 1.3% of the target. Baguettotron's 80×576 shape
 makes a single decoder layer unusually cheap in proportion — the published EAGLE
 drafts run 3–5% of their targets.
@@ -131,6 +141,38 @@ and 16,384 cover all of them, so a 16k draft head gives up nothing measurable on
 that domain. That corpus is narrow and coverage moves with domain.
 
 α is assumed here, not measured. Everything above is a cost measurement.
+
+### The cost ratio degrades under quantization
+
+c was measured with both sides in fp32, and it does not carry over to a
+quantized target. Quantizing speeds up the 80-layer stack, but an EAGLE draft
+step is 80-84% vocabulary projection, so the two do not shrink together.
+
+Quantizing target and draft identically in torch (dynamic int8, same runtime,
+same session):
+
+| Precision | Target step | Draft step | c | Best projected at α=0.7 |
+|---|---|---|---|---|
+| fp32 | 121.9 ms | 6.02 ms | 0.049 | 2.36× |
+| int8 dynamic | 102.1 ms | 5.94 ms | 0.058 | 2.28× |
+
+The target gained 1.19×; the draft step moved 1%, because int8 barely touches
+the 65,536-wide projection that is 84% of it. c rose 18%.
+
+llama.cpp makes this sharper. Baguettotron ties its embeddings, so there is no
+separate `output.weight` — `token_embd.weight` *is* the LM head, and in the
+official GGUFs it is **Q8_0 in Q4_0 and Q4_K_M alike** while every layer tensor
+drops to 4- or 5-bit. In the Q4_0 build it is the single Q8_0 tensor among 560
+Q4_0 ones. The dominant term of a draft step is therefore byte-identical between
+the Q8_0 and Q4_0 files, while the target step falls from 28.3 to 23.9 ms.
+
+So quantization and speculative decoding are substitutes here rather than
+complements: every millisecond taken off the target's layers raises c and shrinks
+the speculative win. The effect is real but small at this scale — 2.36× to 2.28×
+projected — so it reorders nothing. It does mean a drafter should be priced
+against the precision it will actually be served at, and that a reduced draft
+vocabulary matters *more* on a quantized target, not less, since the projection
+is the part quantization does not fix.
 
 ### Acceptance at this scale
 
@@ -203,6 +245,8 @@ the data is what needs a rented GPU.
 | `eagle_vocab.py` | Draft cost vs draft-vocabulary size → `eagle_vocab.json` |
 | `vocab_coverage.py` | Token coverage of a reduced draft vocabulary → `vocab_coverage.json` |
 | `train_feasibility.py` | Hidden-state harvest throughput on 4 cores → `train_feasibility.json` |
+| `eagle_quant.py` | Cost ratio at fp32 vs dynamic int8 → `eagle_quant.json` |
+| `gguf_types.py` | Per-tensor precision in each official GGUF → `gguf_types.json` |
 
 Measurements are noisy at the ±20-30% level on shared cores; the 65,536 LM head
 timed 5.51 ms in `eagle_cost.py` and 8.54 ms in `eagle_vocab.py`. Every conclusion
