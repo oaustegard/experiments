@@ -5,8 +5,10 @@ Baguettotron. Two questions: what would 4-bit quantization take, and what would 
 purpose-built drafter take.
 
 Short version. The 4-bit quants already exist, PleIAs ships them officially, and
-on this CPU they buy 1.19× at best — the runtime is a bigger lever than the bit
-width. A drafter is the opposite case: an EAGLE-style head measures at cost ratio
+under llama.cpp's dequantization kernels they buy 1.19× at best on this CPU. The
+runtime is a bigger lever than the bit width; a lookup-table kernel is a
+different runtime, and the caveat section below sizes what it could and could not
+recover. A drafter is the opposite case: an EAGLE-style head measures at cost ratio
 c = 0.059 against Monad's 0.476, which is the difference between 0.90× and a
 projected 1.9–2.8×. The cost is a few GPU-hours, and the training data harvest is
 what dominates it.
@@ -50,6 +52,41 @@ would cap out near 1.3×.
 Precision is the small lever. The runtime is the large one — llama.cpp Q8_0 runs
 at 28.3 ms/token against torch fp32's 111 ms on the same cores, 3.9× for no
 change in precision at all.
+
+### Scope of the bandwidth ceiling
+
+That ceiling is a statement about **weight bandwidth only**, and the flat ladder
+above is a statement about llama.cpp's **dequantization-based** kernels. Neither
+bounds 4-bit in general.
+
+The alternative is to never reconstruct the weights: keep partial sums in a
+lookup table and replace the multiply-accumulate with a table read.
+[T-MAC](https://github.com/microsoft/T-MAC) does exactly that for low-bit LLM
+weights on CPU and reports 4–5× over llama.cpp on 3B BitNet, with the property
+that throughput "can linearly improve with the number of bits decreases, which is
+not observable on GPUs and NPUs based on dequantization". Its GEMM kernels are
+already in llama.cpp for prefill. That win comes from the arithmetic term, not
+the bandwidth term, so the 19–23% bandwidth share measured above does not cap it.
+
+`remex` reached the opposite result on the same idea, in the retrieval setting.
+It implements ADC lookup-table scoring (`search_adc`), which scores compressed
+vectors without dequantizing, and its own benchmark at 100k vectors, d=384,
+8-bit puts cached dequantization at **3.9 ms/query and 192 MB** against ADC at
+**152 ms/query and 39 MB** — 39× slower, and slower even than dequantizing fresh
+on every query (137 ms). remex documents ADC as a memory optimization, not a
+latency one.
+
+Both can be true. remex's table is larger than L1 and read by memory gather
+across a whole corpus; T-MAC's is small enough to live in SIMD registers and be
+read by shuffle instructions. That is the reading of the difference, not a
+measurement of it.
+
+Whether T-MAC would help *this* model is a separate question, and the depth
+measurements argue it would not help much. At width 576 the per-layer cost ratio
+is 1.57 against the 5.06 that either a compute-bound or a bandwidth-bound layer
+would show, so fixed per-layer overhead dominates and neither arithmetic nor
+bandwidth has much to give back. T-MAC's numbers come from 3B–7B models whose
+matrices are 4–7× wider. Untested here.
 
 ## b) A drafter
 
