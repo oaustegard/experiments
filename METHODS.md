@@ -1731,3 +1731,24 @@ phases (or sequential workflow invocations) with marks recorded between them;
 launching two workflows concurrently silently confounds every delta. Input tokens
 are not observable per-arm at all — estimate from content sizes and say so.
 (`orchestrated-coding-pareto/data/marks.json`)
+
+### Decode latency tracks depth, not parameter count — check before picking a draft model
+
+At batch 1 the marginal cost of a transformer layer is dominated by fixed
+overhead (kernel dispatch, normalization, cache handling), not by the width² in
+its FLOPs. `monad-specdec` truncated two PleIAs stacks and fitted a line through
+the depths: 0.804 ms/layer at width 256, 1.264 ms/layer at width 576 — a ratio of
+1.57 where a compute-bound decode would show 2.25² = 5.06. So Monad at 1/5.7 the
+parameters of Baguettotron is only 2.1× faster per token, because it carries
+64 layers to Baguettotron's 80.
+
+Consequence for speculative decoding: the cost ratio c that sets break-even comes
+from **depth**, so a draft model must be *shallow*, not merely *small*. A
+parameter-count estimate of c was 2.6× too optimistic here and predicted a win
+where the measurement gives 0.90× baseline. Two minutes of layer-truncation
+benchmarking answers this before any decoding harness gets written.
+
+Second-order, same experiment: a draft model with a **smaller vocabulary** needs
+more steps per target token (3.25 vs 4.12 chars/token → 1.27 draft steps per
+target token), which multiplies the effective c. Cross-tokenizer drafting pays
+this on top of the acceptance cost.
