@@ -1,0 +1,1519 @@
+{
+ "vocab": "schema",
+ "bigrams": true,
+ "overlap": 3,
+ "score": "precision",
+ "min_precision": 0.85,
+ "min_coverage": 3,
+ "max_feats_per_row": 14,
+ "train": "family_a.jsonl",
+ "n_train": 988,
+ "rules": [
+  {
+   "literals": [
+    [
+     "tok:diff",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_diff",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:members",
+     true
+    ]
+   ],
+   "label": "get_team_members",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:failed_jobs",
+     true
+    ],
+    [
+     "ov:get_job_logs",
+     true
+    ]
+   ],
+   "label": "actions_run_trigger::rerun_failed_jobs",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:types",
+     true
+    ],
+    [
+     "bi:issue_types",
+     true
+    ]
+   ],
+   "label": "list_issue_types",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:rerun",
+     true
+    ]
+   ],
+   "label": "actions_run_trigger::rerun_workflow_run",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:tag",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     true
+    ]
+   ],
+   "label": "get_tag",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:actions_run_trigger::cancel_workflow_run",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     true
+    ]
+   ],
+   "label": "actions_run_trigger::cancel_workflow_run",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:submit",
+     true
+    ],
+    [
+     "tok:review",
+     true
+    ]
+   ],
+   "label": "pull_request_review_write::submit_pending",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:runs",
+     true
+    ],
+    [
+     "bi:get_check",
+     false
+    ]
+   ],
+   "label": "actions_list::list_workflow_runs",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:issue_read::get_comments",
+     true
+    ],
+    [
+     "cue:issue_ref",
+     true
+    ]
+   ],
+   "label": "issue_read::get_comments",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:comments",
+     true
+    ],
+    [
+     "bi:get_discussion",
+     false
+    ]
+   ],
+   "label": "pull_request_read::get_review_comments",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:list_issue_fields",
+     true
+    ],
+    [
+     "tok:issue",
+     true
+    ]
+   ],
+   "label": "list_issue_fields",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:copilot",
+     true
+    ],
+    [
+     "tok:review",
+     true
+    ]
+   ],
+   "label": "request_copilot_review",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:sub",
+     true
+    ],
+    [
+     "tok:as",
+     false
+    ]
+   ],
+   "label": "issue_read::get_sub_issues",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:url",
+     true
+    ],
+    [
+     "ov:actions_get::get_workflow_run_logs_url",
+     true
+    ]
+   ],
+   "label": "actions_get::get_workflow_run_logs_url",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:actions_get::download_workflow_run_artifact",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     true
+    ]
+   ],
+   "label": "actions_get::download_workflow_run_artifact",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:labels_issue",
+     true
+    ],
+    [
+     "tok:issue",
+     true
+    ]
+   ],
+   "label": "issue_read::get_labels",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:users",
+     true
+    ],
+    [
+     "ov:search_users",
+     true
+    ]
+   ],
+   "label": "search_users",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:copilot",
+     true
+    ]
+   ],
+   "label": "assign_copilot_to_issue",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:artifacts",
+     true
+    ],
+    [
+     "tok:run",
+     true
+    ]
+   ],
+   "label": "actions_list::list_workflow_run_artifacts",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:actions_get::get_workflow_run_usage",
+     true
+    ],
+    [
+     "cue:run_ref",
+     true
+    ]
+   ],
+   "label": "actions_get::get_workflow_run_usage",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:branches",
+     true
+    ]
+   ],
+   "label": "list_branches",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:push",
+     true
+    ],
+    [
+     "ov:push_files",
+     true
+    ]
+   ],
+   "label": "push_files",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:commit",
+     true
+    ],
+    [
+     "ov:push_files",
+     true
+    ]
+   ],
+   "label": "get_commit",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:actions_list::list_workflows",
+     true
+    ],
+    [
+     "tok:run",
+     true
+    ]
+   ],
+   "label": "actions_list::list_workflow_jobs",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:semver_tag",
+     true
+    ]
+   ],
+   "label": "get_release_by_tag",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:actions_get::get_workflow_job",
+     true
+    ],
+    [
+     "tok:logs",
+     false
+    ]
+   ],
+   "label": "actions_get::get_workflow_job",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:job",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     true
+    ]
+   ],
+   "label": "get_job_logs",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:logs",
+     true
+    ],
+    [
+     "ov:actions_run_trigger::run_workflow",
+     true
+    ]
+   ],
+   "label": "actions_run_trigger::delete_workflow_run_logs",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:fork_repository",
+     true
+    ]
+   ],
+   "label": "fork_repository",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:releases",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     true
+    ]
+   ],
+   "label": "list_releases",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:tags",
+     true
+    ],
+    [
+     "ov:list_tags",
+     true
+    ]
+   ],
+   "label": "list_tags",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:run",
+     true
+    ],
+    [
+     "cue:run_ref",
+     true
+    ]
+   ],
+   "label": "actions_get::get_workflow_run",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:add",
+     true
+    ],
+    [
+     "tok:review",
+     true
+    ]
+   ],
+   "label": "add_comment_to_pending_review",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:pending_review",
+     true
+    ],
+    [
+     "bi:create_pending",
+     false
+    ]
+   ],
+   "label": "pull_request_review_write::delete_pending",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:workflow",
+     true
+    ],
+    [
+     "tok:run",
+     false
+    ]
+   ],
+   "label": "actions_get::get_workflow",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:workflow_file",
+     true
+    ],
+    [
+     "cue:path",
+     true
+    ]
+   ],
+   "label": "actions_run_trigger::run_workflow",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:list_issues",
+     true
+    ],
+    [
+     "tok:pagination",
+     false
+    ]
+   ],
+   "label": "list_issues",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:issues",
+     true
+    ],
+    [
+     "cue:issue_ref",
+     false
+    ]
+   ],
+   "label": "search_issues",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:pull_request_review_write::unresolve_thread",
+     true
+    ],
+    [
+     "cue:hash_num",
+     false
+    ]
+   ],
+   "label": "unresolve_review_thread",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:label",
+     true
+    ]
+   ],
+   "label": "get_label",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:status",
+     true
+    ],
+    [
+     "ov:pull_request_read::get_status",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_status",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:files",
+     true
+    ],
+    [
+     "ov:push_files",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_files",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:merge",
+     true
+    ],
+    [
+     "bi:branch_into",
+     false
+    ]
+   ],
+   "label": "merge_pull_request",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:workflows",
+     true
+    ]
+   ],
+   "label": "actions_list::list_workflows",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:reply",
+     true
+    ],
+    [
+     "tok:comment",
+     true
+    ]
+   ],
+   "label": "add_reply_to_pull_request_comment",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:comment",
+     true
+    ]
+   ],
+   "label": "add_issue_comment",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:teams",
+     true
+    ]
+   ],
+   "label": "get_teams",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:update_pull_request",
+     true
+    ],
+    [
+     "tok:issue",
+     true
+    ]
+   ],
+   "label": "issue_write::update",
+   "n": 11,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:issue_write::update",
+     true
+    ],
+    [
+     "tok:update",
+     false
+    ]
+   ],
+   "label": "issue_write::create",
+   "n": 10,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:which",
+     true
+    ],
+    [
+     "tok:pull",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_check_runs",
+   "n": 9,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:commits",
+     true
+    ],
+    [
+     "tok:pull",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_commits",
+   "n": 9,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:open",
+     true
+    ],
+    [
+     "ov:list_pull_requests",
+     true
+    ]
+   ],
+   "label": "list_pull_requests",
+   "n": 9,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:search_commits",
+     true
+    ]
+   ],
+   "label": "search_commits",
+   "n": 9,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:create",
+     true
+    ],
+    [
+     "cue:path",
+     true
+    ]
+   ],
+   "label": "create_or_update_file",
+   "n": 9,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:new_branch",
+     true
+    ]
+   ],
+   "label": "create_branch",
+   "n": 9,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:latest",
+     true
+    ],
+    [
+     "tok:get",
+     true
+    ]
+   ],
+   "label": "get_latest_release",
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:resolve",
+     true
+    ],
+    [
+     "bi:resolve_thread",
+     false
+    ]
+   ],
+   "label": "pull_request_review_write::resolve_thread",
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:update_branch",
+     true
+    ]
+   ],
+   "label": "update_pull_request_branch",
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:get_issue",
+     true
+    ],
+    [
+     "tok:issue",
+     true
+    ]
+   ],
+   "label": "issue_read::get",
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:parent_issue",
+     true
+    ],
+    [
+     "bi:get_parent",
+     false
+    ]
+   ],
+   "label": "sub_issue_write",
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:issue_read::get_parent",
+     true
+    ],
+    [
+     "ov:sub_issue_write",
+     true
+    ]
+   ],
+   "label": "issue_read::get_parent",
+   "n": 9,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:create_pull_request",
+     true
+    ],
+    [
+     "cue:quoted",
+     true
+    ]
+   ],
+   "label": "create_repository",
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:what",
+     true
+    ]
+   ],
+   "label": null,
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:list_commits",
+     true
+    ],
+    [
+     "cue:hash_num",
+     false
+    ]
+   ],
+   "label": "list_commits",
+   "n": 10,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:list_releases",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     false
+    ]
+   ],
+   "label": "get_me",
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:this",
+     true
+    ]
+   ],
+   "label": null,
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:request_from",
+     true
+    ],
+    [
+     "tok:from",
+     true
+    ]
+   ],
+   "label": "create_pull_request",
+   "n": 7,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:mark",
+     true
+    ],
+    [
+     "tok:request",
+     true
+    ]
+   ],
+   "label": "update_pull_request",
+   "n": 7,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:review",
+     true
+    ],
+    [
+     "cue:thread_id",
+     false
+    ]
+   ],
+   "label": "pull_request_review_write::create",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:get_contents",
+     true
+    ],
+    [
+     "tok:contents",
+     true
+    ]
+   ],
+   "label": "get_file_contents",
+   "n": 7,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:path",
+     true
+    ],
+    [
+     "ov:update_pull_request_branch",
+     false
+    ]
+   ],
+   "label": "delete_file",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:discussion",
+     true
+    ],
+    [
+     "ov:pull_request_read::get_comments",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_comments",
+   "n": 7,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:pull_request_review_write::unresolve_thread",
+     true
+    ],
+    [
+     "tok:mark",
+     false
+    ]
+   ],
+   "label": "pull_request_review_write::unresolve_thread",
+   "n": 7,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:search_code",
+     true
+    ],
+    [
+     "tok:github",
+     true
+    ]
+   ],
+   "label": "search_code",
+   "n": 7,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:search",
+     true
+    ],
+    [
+     "tok:pull",
+     true
+    ]
+   ],
+   "label": "search_pull_requests",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:find_matching",
+     true
+    ]
+   ],
+   "label": "search_repositories",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:add_issue_comment",
+     true
+    ],
+    [
+     "tok:thread",
+     true
+    ]
+   ],
+   "label": "resolve_review_thread",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:repositories",
+     true
+    ],
+    [
+     "ov:search_pull_requests",
+     true
+    ]
+   ],
+   "label": "search_repositories",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:resolve",
+     true
+    ],
+    [
+     "tok:prrt",
+     true
+    ]
+   ],
+   "label": "resolve_review_thread",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:list_repository_collaborators",
+     true
+    ],
+    [
+     "tok:list",
+     true
+    ]
+   ],
+   "label": "list_repository_collaborators",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:get_tag",
+     true
+    ],
+    [
+     "ov:search_users",
+     true
+    ]
+   ],
+   "label": "search_pull_requests",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:details",
+     true
+    ],
+    [
+     "ov:search_pull_requests",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:request",
+     true
+    ],
+    [
+     "tok:get",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:has",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     true
+    ]
+   ],
+   "label": "list_repository_collaborators",
+   "n": 6,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:title",
+     true
+    ],
+    [
+     "ov:update_pull_request",
+     true
+    ]
+   ],
+   "label": "update_pull_request",
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:get_reviews",
+     true
+    ],
+    [
+     "tok:get",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_reviews",
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:from",
+     true
+    ],
+    [
+     "ov:create_branch",
+     true
+    ]
+   ],
+   "label": "get_file_contents",
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:search",
+     true
+    ]
+   ],
+   "label": "search_code",
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:create",
+     true
+    ],
+    [
+     "ov:search_pull_requests",
+     true
+    ]
+   ],
+   "label": "create_pull_request",
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:thread",
+     true
+    ],
+    [
+     "tok:mark",
+     false
+    ]
+   ],
+   "label": "pull_request_review_write::unresolve_thread",
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:issues_as",
+     true
+    ],
+    [
+     "ov:issue_read::get_sub_issues",
+     true
+    ]
+   ],
+   "label": "sub_issue_write",
+   "n": 4,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:github_profile",
+     true
+    ]
+   ],
+   "label": "get_me",
+   "n": 4,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:into",
+     true
+    ],
+    [
+     "ov:merge_pull_request",
+     true
+    ]
+   ],
+   "label": "update_pull_request_branch",
+   "n": 4,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:mark_thread",
+     true
+    ],
+    [
+     "tok:resolved",
+     true
+    ]
+   ],
+   "label": "pull_request_review_write::resolve_thread",
+   "n": 4,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:get_release_by_tag",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     true
+    ]
+   ],
+   "label": "get_latest_release",
+   "n": 4,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:details",
+     true
+    ],
+    [
+     "cue:issue_ref",
+     true
+    ]
+   ],
+   "label": "issue_read::get",
+   "n": 4,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:create_branch",
+     true
+    ],
+    [
+     "ov:create_pull_request",
+     true
+    ]
+   ],
+   "label": "create_repository",
+   "n": 4,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:issue_ref",
+     true
+    ],
+    [
+     "bi:update_issue",
+     false
+    ]
+   ],
+   "label": "issue_read::get_parent",
+   "n": 3,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:bare_num",
+     true
+    ],
+    [
+     "cue:pr_ref",
+     false
+    ]
+   ],
+   "label": null,
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "tok:create",
+     true
+    ],
+    [
+     "tok:issue",
+     false
+    ]
+   ],
+   "label": "create_branch",
+   "n": 3,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:with_new",
+     true
+    ],
+    [
+     "ov:update_pull_request_branch",
+     true
+    ]
+   ],
+   "label": "create_or_update_file",
+   "n": 3,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:check_runs",
+     true
+    ],
+    [
+     "ov:pull_request_read::get_check_runs",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_check_runs",
+   "n": 3,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:list_commits",
+     true
+    ],
+    [
+     "tok:list",
+     true
+    ]
+   ],
+   "label": "pull_request_read::get_commits",
+   "n": 3,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "bi:find_commits",
+     true
+    ]
+   ],
+   "label": "search_commits",
+   "n": 3,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "ov:update_pull_request_branch",
+     true
+    ]
+   ],
+   "label": null,
+   "n": 3,
+   "precision": 1.0
+  }
+ ]
+}
