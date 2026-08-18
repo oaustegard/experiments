@@ -622,6 +622,26 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **A small-model fine-tune can be a wash on accuracy and still cost you the
+  calibration head — check whether your serving stack keeps the head before
+  spending the compute.** Cactus documents that fine-tuning does not update
+  Needle's confidence head, so a tuned agent reports `confidence: None` and warns
+  once at construction. Measured: 800 templated rows, LoRA r16, 3 epochs, ~2 h of
+  4-core CPU moved routable top-1 from 0.611 to 0.667 (paired McNemar **p=1.0**),
+  regressed off-topic refusal from 0.625 to 0.375, and left the two weakest
+  categories — both explicitly covered by the training templates — at exactly
+  their base scores. The gate it removed was worth more than the accuracy it did
+  not add. (`needle-bsky/RESULTS.md`)
+- **A confidence head that never clears any usable threshold is the answer, not
+  a missing result.** Needle 2's extraction over free-form social text scored
+  below 0.05 on all 22 attempts across three schema shapes (max 0.0434), while
+  the same model's routing on the same corpus reaches 1.000 precision at 0.9. Two
+  capabilities of one model can have completely different operating points; test
+  for the operating point rather than eyeballing outputs. Related: fields that
+  ask for a summary (`subject`: "the main thing the post is about") fall outside
+  a span-copying extraction contract by construction, and get filled with
+  arbitrary nearby spans rather than refused. (`needle-bsky/extract_demo.py`)
+
 - **A small tool-calling model is far worse at picking a category than its own
   retrieval head is at picking a tool.** Splitting an 18-tool catalogue into five
   groups of ≤5 and asking Needle 2 to choose the group first scored **0.370**
