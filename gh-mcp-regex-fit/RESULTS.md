@@ -163,8 +163,14 @@ does this PR actually change?"*, which contains no learned token. The
 hand-written rule for the same target is `\b(diff|patch|changeset)\b`, and the
 extra alternates were written for words no training query contained.
 
-**That is the whole gap.** A fitter can only learn the surface forms it was
-shown; a human writing a rule enumerates synonyms from knowledge of the language.
+**That is most of the gap — but not all of it, and the second pass below
+corrects this paragraph.** A fitter can only learn the surface forms it was
+shown; a human writing a rule enumerates synonyms from knowledge of the
+language. What that account cannot explain is `bm25-schema`, a ranker with
+**zero fitted parameters**, which drops 0.611 → 0.200 across the same two
+families. Family B is not merely phrasing the fitter had not seen; it is
+phrasing that avoids *schema vocabulary*, and it penalises anything reading the
+catalogue just as hard. See **Family B is the odd split** below.
 The fitted arm's family-A precision of 1.000 at 0.984 coverage against 0.415
 precision at 0.577 coverage on family B is the textbook signature, and every
 knob aimed at it — Laplace-corrected scoring, min-coverage 8, dropping bigrams —
@@ -317,3 +323,239 @@ python3 mcnemar.py                    # paired significance
 ```
 
 `data/` is gitignored and regenerable from the committed generator and seed.
+
+---
+
+# Second pass — the rest of the lexical stack, and one rung up
+
+Oskar's follow-up: *"we have a number of lexical tools at our disposal: regex,
+grep, bm25. Do the others improve anything? And up the stack there's good old
+spaCy."* Three arms were built against the same catalogue, the same three splits
+and the same scoring code, behind a common interface (`arms.py`) so every router
+in this experiment is directly comparable. Everything below was measured by
+three subagents working in parallel and re-verified through this writeup's own
+eval path before being believed.
+
+## The table
+
+`label_acc` on family A (fitted) / family B (held-out phrasings) / wild
+(hand-authored). For any arm whose documents *are* the family-A queries, the
+family-A column is memorisation and should be ignored.
+
+| arm | A | B | wild | abstention (wild) | median ms |
+|---|---|---|---|---|---|
+| fitted decision list, best | 0.984 | 0.239 | 0.351 | 1.000 | 0.047 |
+| hand-written regex | 0.696 | 0.546 | 0.486 | 0.867 | 0.036 |
+| hand-written + catch-all | 0.696 | 0.546 | 0.500 | **0.000** | 0.036 |
+| `tok-overlap` (IDF schema overlap, no fitting) | 0.539 | 0.193 | 0.351 | 0.667 | **0.030** |
+| `bm25-schema` (zero parameters) | 0.611 | 0.200 | 0.405 | 0.200 | **0.014** |
+| `bm25-train` (documents = family-A queries) | 0.993\* | 0.318 | **0.635** | 0.533 | 0.025 |
+| `bm25-both` (weighted fusion, w=0.2) | 0.997\* | 0.341 | 0.622 | 0.200 | 0.076 |
+| `bm25-gated+off` (threshold + negative doc) | 0.981\* | 0.293 | 0.540 | **0.867** | 0.073 |
+| `spacy-lemma` | 0.492 | 0.165 | 0.311 | — | 8.2 |
+| `spacy-vec-idf` | 0.416 | 0.092 | 0.230 | — | 8.6 |
+| `spacy-fusion` | 0.621 | 0.156 | 0.351 | — | 8.2 |
+| `enc-schema` (encoder, zero-shot) | 0.567 | 0.260 | 0.378 | 0.467 | 2.0–3.7 |
+| `enc-centroid` (encoder, family-A centroids) | 0.916\* | 0.247 | 0.460 | 1.000 | 2.0–3.7 |
+| `enc-fusion` | 0.903\* | 0.397 | 0.595 | 0.800 | 2.0–3.7 |
+| **`cascade-enc-fusion`** (hand → encoder @0.416) | **0.738** | **0.585** | **0.622** | **0.867** | **0.088** |
+
+\* documents or centroids built from family A.
+
+## The cascade is the result
+
+The parent experiment measured a catch-all fallback at abstention **0.000** for
+**+0.014** accuracy and called it a giveaway. The fix is not to drop the
+fallback but to give it a score it can decline on. Hand-written rules first;
+where they abstain, a thresholded encoder; where that also declines, abstain.
+
+| | A | B | wild | abstention |
+|---|---|---|---|---|
+| hand, abstains | 0.696 | 0.546 | 0.486 | 0.925 / 0.950 / 0.867 |
+| hand + catch-all | 0.696 | 0.546 | 0.500 | **0.000 / 0.000 / 0.000** |
+| **hand → enc-fusion @0.416** | **0.738** | **0.585** | **0.622** | 0.925 / 0.925 / **0.867** |
+
+**+0.136 wild accuracy over the abstaining hand arm at zero abstention cost.**
+On wild the abstention line is flat at 0.867 for every threshold down to 0.416 —
+the encoder is simply never confident about the 15 off-topic rows, which is the
+property a catch-all regex cannot have by construction.
+
+It is also cheap where it matters: **82% of requests never reach the encoder**,
+so the median is **0.088 ms** against 0.071 for the hand arm alone, with the
+2–4 ms encode paid only on the tail (p90 9.3 ms, p99 16.5 ms).
+
+## Family B is the odd split
+
+`bm25-schema` fits nothing — no split contributes a parameter — and still scores
+**0.611 / 0.200 / 0.405**, a 3x spread and a −67% A→B drop against the fitted
+list's −76%. A zero-parameter ranker cannot overfit, so the A→B collapse cannot
+be overfitting alone.
+
+The tell is that **wild outscores family B on every schema-reading arm**: 0.405
+vs 0.200 for BM25, 0.378 vs 0.260 for the encoder. Hand-authored requests are
+*easier* than the generated "held-out" family. Family B was written to avoid
+family A's verbs, and family A's verbs came from the same schemas any
+catalogue-reading router consults, so family B is adversarial toward schema
+vocabulary specifically.
+
+This does not rescue the fitted arms — they lose to hand-written rules on wild
+too (0.351 vs 0.486), which is the split with no such bias. It does mean **the
+−0.31 family-B gap in the first pass overstates generalisation loss**, and any
+future experiment generating a held-out family this way should expect the same
+distortion.
+
+## Was the truncated catalogue to blame? No
+
+`catalogue.py` capped parameter descriptions at 240 characters, which cut the
+`method` enum glosses on exactly the three dispatchers that document them —
+`pull_request_read` kept 3 of its 9. Every schema-reading arm was handicapped by
+the harness rather than by the catalogue. Rebuilding without the cap (2.2x the
+method-gloss text, 9 of 9 enums glossed) and re-running:
+
+| arm | B, capped | B, full | wild, capped | wild, full |
+|---|---|---|---|---|
+| `bm25-schema` | 0.200 | 0.224 | 0.405 | 0.405 |
+| `enc-schema` | 0.260 | 0.282 | 0.378 | 0.378 |
+| `tok-overlap` | 0.193 | 0.193 | 0.351 | 0.338 |
+
+A real bug, worth +0.02 on family B and nothing on wild. **The conclusion it
+threatened survives**: the catalogue does not describe itself in the words people
+use to ask for it. "approve" appears in none of the 79 schema texts, and giving
+the arms the full text does not change that.
+
+## BM25: a shortlister, not a router
+
+`bm25-train` beats every prior arm on the honest split — **wild 0.635** against
+0.486 hand-written and 0.351 best-fitted, McNemar p=0.043 — and loses decisively
+on family B (0.318 vs 0.546, p=8e-27). "Soft beats hard" holds on hand-authored
+requests and fails on the adversarial family.
+
+Recall@k is where it earns its place:
+
+| arm | wild @1 | @3 | @5 | @10 |
+|---|---|---|---|---|
+| `bm25-train` | 0.635 | 0.784 | 0.811 | 0.892 |
+| `bm25-train-stem` | 0.635 | 0.811 | 0.838 | **0.960** |
+| `bm25-both` | 0.622 | 0.784 | 0.851 | 0.919 |
+
+**79 targets narrowed to 5 keeps 85% of gold answers, at 0.03 ms.** That is the
+usable product: a candidate generator in front of a more expensive decision, not
+a router. It also reframes the tool-catalogue sizing problem — `needle-bsky`
+measured a fixed ~750 ms penalty for declaring a sixth tool to Cactus Needle, and
+a 0.03 ms shortlister that keeps 85% recall at k=5 is a way to never pay it.
+
+Two further results:
+
+- **A negative document beats a threshold for abstention.** One extra pseudo-label
+  whose document is the 40 off-topic training queries buys **+0.400 abstention for
+  −0.014 accuracy** — the exact mirror of the catch-all, same 0.014, opposite sign.
+  Stacked with a threshold, `bm25-gated+off` reaches abstention 0.925 / 0.867 with
+  real accuracy, the first arm here with both.
+- **RRF loses to weighted sum at every weight** (wild 0.554 vs 0.622). The two
+  component arms are of very unequal quality, and a weighted sum can down-weight
+  the weak one to 0.2 where reciprocal-rank fusion votes it as loudly as the
+  strong one.
+
+## Stemming: two agents, two mechanisms, one conclusion
+
+Stemming and lemmatisation both *lose* at top-1, and the reason is the same and
+worth stating as a rule: **in an API catalogue, grammatical number is semantic.**
+Plural names a list endpoint, singular a fetch-one.
+
+The lemmatiser deletes exactly the most discriminative token:
+
+| form | df/79 | idf | → lemma | df/79 | idf |
+|---|---|---|---|---|---|
+| branches | 1 | 4.37 | branch | 5 | 2.76 |
+| files | 2 | 3.68 | file | 5 | 2.76 |
+| issues | 4 | 2.98 | issue | 15 | 1.66 |
+
+Method-accuracy-given-tool falls 1.000 → 0.500 on wild under lemmatisation. The
+Porter stemmer arrives at the same place from the other side: 96 stems merge more
+than one surface form, and the merges hit `tag`/`tags` (`get_tag` vs
+`list_tags`), `workflow`/`workflows`, `team`/`teams`, `commit`/`commits`. Family
+B verdict changes: **16 fixed, 83 broken**.
+
+The exception: stemming *helps recall@10* (0.892 → 0.960 on wild). It pulls the
+right answer into the shortlist while pushing it off the top. **Stem if you are
+shortlisting; do not if you are deciding.**
+
+## spaCy: a clean negative, and the sharpest diagnosis in the experiment
+
+`en_core_web_md` installed and downloaded without trouble — the anticipated
+proxy 403 on the GitHub-release model never happened. Every spaCy arm then lost
+to `tok-overlap`, a 20-line IDF-weighted schema-overlap control with no spaCy in
+the path, while running **250x slower** (8.2 ms vs 0.03 ms).
+
+The decisive measurement is the **zero-lexical-overlap slice** — rows sharing no
+word with any of the 79 label texts, where lexical routing is structurally blind.
+n = 2 / 77 / 7 across the splits, and the vector arm scores **0.000 on all
+three**, against 0.437 / 0.108 / 0.254 on rows lexical matching can see. Family
+B's n=77 is enough to believe. Vectors add nothing precisely where they were
+supposed to.
+
+They do move gold from *absent* to *findable*: "has anyone approved it" puts
+`pull_request_read::get_reviews` at **rank 21 of 79**, and "what code does this
+PR actually change" puts `get_diff` at rank 30. That is not routing. What a human
+supplies writing `\b(diff|patch|changeset)\b` is **domain synonymy** — the fact
+that those three name one GitHub concept — and general-English vectors do not
+encode it, because it is a fact about this API rather than about English.
+
+Two incidental corrections to the first pass:
+
+- **The referent problem is absence, not pronouns.** The pronoun direct-object
+  rate on wild is only **0.108**. Requests do not say "merge it" instead of
+  naming the PR nearly as often as they simply never name the repo at all —
+  which matches `context_probe.py`'s 0.135 `owner/repo` presence.
+- **Latency is no longer part of the regex arms' case.** BM25 runs at
+  0.005–0.028 ms against the hand-written regexes' 0.036–0.087. The lexical
+  ranker is *faster* than the rule list as well as more accurate on wild.
+
+## Where the semantic ceiling actually sits
+
+Just above the regex floor, not in a different regime. The best single semantic
+arm scores 0.622 wild and 0.540 family B against 0.486 / 0.546 for hand-written
+regexes — +0.14 on one split, −0.01 on the other, for 50–90x the latency and a
+124 MB model.
+
+What carries it is **supervision, not semantics**: zero-shot schema-text
+embedding scores 0.298 / 0.392, *below* the regexes. Given the same family-A
+supervision the encoder generalises 2.3x better than the fitted decision list on
+family B (0.540 vs 0.239) — so what the encoder buys is exactly the synonym
+robustness the first pass diagnosed as the fitter's failure, recovering about
+half the gap.
+
+The remaining ~0.38 error on wild is not a phrasing problem and no encoder fixes
+it. Only 13.5% of hand-authored requests carry the `owner/repo` their tool
+requires; *"go ahead and merge it"* has no referent to embed. **Routing above
+~0.62 on this catalogue needs conversation state, not a bigger encoder.**
+
+## The agreement gate scales with independence
+
+| split | gate | coverage | precision |
+|---|---|---|---|
+| B | hand ∧ fitted list | 0.192 | 0.775 |
+| B | **hand ∧ encoder centroid** | **0.355** | **0.864** |
+| wild | hand ∧ fitted list | 0.203 | 0.867 |
+| wild | **hand ∧ encoder centroid** | **0.351** | **0.923** |
+| wild | hand ∧ encoder fusion, s≥0.42 | 0.297 | 0.955 |
+
+1.7–1.9x the coverage at higher precision. The fitted list shares this repo's cue
+layer and catalogue with the hand arm; the encoder shares neither. That is what
+`monad-bsky` meant by the two signals being "close to independent", now with a
+gradient: **the more independent the second voter, the more the gate buys.**
+Wild is 26 rows at the gate, so read it as directional.
+
+## Second-pass caveats
+
+- **Every threshold was chosen on family A**, the fitted family, and transferred.
+  For the BM25 gate the transfer happened to be free (wild's own oracle threshold
+  is the same 0.841); for the encoder cascade it was not checked against a wild
+  oracle, so its operating point is transferred, not tuned.
+- **The wild split is 74 routable rows.** Every wild contrast here is directional.
+- **`spacy_arms.py` changed between the cascade agent's two screening runs**
+  (wild 0.365 → 0.351), so its fallback-comparison table mixes two versions of
+  that one row. The selected cascade does not use spaCy.
+- **A local `catalogue.py` shadows the PyPI `catalogue` package** that spaCy
+  depends on. The failure is an `AttributeError`, not an `ImportError`, so a
+  guard written for missing dependencies does not catch it.
