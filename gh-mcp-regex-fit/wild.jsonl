@@ -1,0 +1,89 @@
+{"id":"w01","query":"is the CI green on my PR yet","label":"pull_request_read::get_status"}
+{"id":"w02","query":"pull up oaustegard/claude-workspace #217 and tell me what the reviewer wants","label":"pull_request_read::get_review_comments"}
+{"id":"w03","query":"i need the diff for https://github.com/astral-sh/ruff/pull/9912","label":"pull_request_read::get_diff"}
+{"id":"w04","query":"what's in scripts/xr.py right now","label":"get_file_contents"}
+{"id":"w05","query":"anything open on oaustegard/experiments that mentions the index rebuild","label":"search_issues"}
+{"id":"w06","query":"list the branches, i've lost track","label":"list_branches"}
+{"id":"w07","query":"who else can push to this repo","label":"list_repository_collaborators"}
+{"id":"w08","query":"go ahead and merge it","label":"merge_pull_request"}
+{"id":"w09","query":"squash-merge 412 on oaustegard/experiments","label":"merge_pull_request"}
+{"id":"w10","query":"open a PR from claude/regex-tool-routing-heuristics into main","label":"create_pull_request"}
+{"id":"w11","query":"file an issue about the tokenizer drift","label":"issue_write::create"}
+{"id":"w12","query":"close #88, it's fixed","label":"issue_write::update"}
+{"id":"w13","query":"what did people say on issue 88","label":"issue_read::get_comments"}
+{"id":"w14","query":"show me issue 88","label":"issue_read::get"}
+{"id":"w15","query":"the checks are red — which job blew up","label":"actions_list::list_workflow_jobs"}
+{"id":"w16","query":"give me the log for that failing job","label":"get_job_logs"}
+{"id":"w17","query":"just rerun the ones that failed","label":"actions_run_trigger::rerun_failed_jobs"}
+{"id":"w18","query":"cancel that run, it's stuck","label":"actions_run_trigger::cancel_workflow_run"}
+{"id":"w19","query":"trigger build-layers.yml on main","label":"actions_run_trigger::run_workflow"}
+{"id":"w20","query":"which workflows do we even have in this repo","label":"actions_list::list_workflows"}
+{"id":"w21","query":"how many CI minutes did run 18442310092 use","label":"actions_get::get_workflow_run_usage"}
+{"id":"w22","query":"what commit is v2.3.1 pointing at","label":"get_tag"}
+{"id":"w23","query":"what's the newest release","label":"get_latest_release"}
+{"id":"w24","query":"what shipped in v14.2.0","label":"get_release_by_tag"}
+{"id":"w25","query":"every tag on denoland/deno please","label":"list_tags"}
+{"id":"w26","query":"show me commit deadbeef1234","label":"get_commit"}
+{"id":"w27","query":"what's landed on main this week","label":"list_commits"}
+{"id":"w28","query":"find where we call libsql_experimental in the workspace repo","label":"search_code"}
+{"id":"w29","query":"any repos out there doing hybrid bm25 plus dense retrieval","label":"search_repositories"}
+{"id":"w30","query":"is there a github user called bnewbold","label":"search_users"}
+{"id":"w31","query":"which PRs mention the proxy 403","label":"search_pull_requests"}
+{"id":"w32","query":"search the commit log for anything about ITQ","label":"search_commits"}
+{"id":"w33","query":"drop layers/Containerfile.mojo from the repo","label":"delete_file"}
+{"id":"w34","query":"write this into docs/architecture.md and commit it","label":"create_or_update_file"}
+{"id":"w35","query":"push all four of these files in a single commit","label":"push_files"}
+{"id":"w36","query":"cut me a branch called fix/proxy-retry off main","label":"create_branch"}
+{"id":"w37","query":"fork rust-lang/cargo so i can patch it","label":"fork_repository"}
+{"id":"w38","query":"make a new private repo called muninn-scratch","label":"create_repository"}
+{"id":"w39","query":"who am i logged in as","label":"get_me"}
+{"id":"w40","query":"what teams am i on","label":"get_teams"}
+{"id":"w41","query":"who's in the platform team at anthropics","label":"get_team_members"}
+{"id":"w42","query":"which files does that PR touch","label":"pull_request_read::get_files"}
+{"id":"w43","query":"has anyone approved it","label":"pull_request_read::get_reviews"}
+{"id":"w44","query":"list the commits on PR 1204","label":"pull_request_read::get_commits"}
+{"id":"w45","query":"start a review on 1204 but don't submit","label":"pull_request_review_write::create"}
+{"id":"w46","query":"ok submit the review, approve","label":"pull_request_review_write::submit_pending"}
+{"id":"w47","query":"scrap the draft review i started","label":"pull_request_review_write::delete_pending"}
+{"id":"w48","query":"mark PRRT_kwABCDEF1234 resolved","label":"resolve_review_thread"}
+{"id":"w49","query":"actually reopen PRRT_kwABCDEF1234, not done","label":"unresolve_review_thread"}
+{"id":"w50","query":"reply to that inline comment saying i'll fix it","label":"add_reply_to_pull_request_comment"}
+{"id":"w51","query":"leave a comment on the issue saying it's a proxy problem","label":"add_issue_comment"}
+{"id":"w52","query":"ask copilot to review 412","label":"request_copilot_review"}
+{"id":"w53","query":"have copilot pick up issue 91","label":"assign_copilot_to_issue"}
+{"id":"w54","query":"take that PR out of draft","label":"update_pull_request"}
+{"id":"w55","query":"it's conflicting — pull main into the PR branch","label":"update_pull_request_branch"}
+{"id":"w56","query":"what open PRs are sitting on oaustegard/claude-workspace","label":"list_pull_requests"}
+{"id":"w57","query":"what issues are still open","label":"list_issues"}
+{"id":"w58","query":"all the releases for pallets/flask","label":"list_releases"}
+{"id":"w59","query":"what labels are on issue 88","label":"issue_read::get_labels"}
+{"id":"w60","query":"is issue 91 a child of something bigger","label":"issue_read::get_parent"}
+{"id":"w61","query":"what's nested under issue 91","label":"issue_read::get_sub_issues"}
+{"id":"w62","query":"make 91 a sub-issue of 88","label":"sub_issue_write"}
+{"id":"w63","query":"which issue types can i pick in the anthropics org","label":"list_issue_types"}
+{"id":"w64","query":"what does the bug label look like here","label":"get_label"}
+{"id":"w65","query":"where do i download the raw logs for that run","label":"actions_get::get_workflow_run_logs_url"}
+{"id":"w66","query":"grab the build artifact off that run","label":"actions_get::download_workflow_run_artifact"}
+{"id":"w67","query":"what artifacts did run 18442310092 produce","label":"actions_list::list_workflow_run_artifacts"}
+{"id":"w68","query":"show me the run history for ci.yml","label":"actions_list::list_workflow_runs"}
+{"id":"w69","query":"what does ci.yml actually do","label":"actions_get::get_workflow"}
+{"id":"w70","query":"how did run 18442310092 go","label":"actions_get::get_workflow_run"}
+{"id":"w71","query":"add this note to the review i haven't sent yet","label":"add_comment_to_pending_review"}
+{"id":"w72","query":"which checks are reporting on that PR","label":"pull_request_read::get_check_runs"}
+{"id":"w73","query":"read me the conversation on the PR itself, not the inline stuff","label":"pull_request_read::get_comments"}
+{"id":"w74","query":"what custom issue fields are set up here","label":"list_issue_fields"}
+{"id":"w75","query":"rebase my local branch onto main","label":null}
+{"id":"w76","query":"why is the container out of disk","label":null}
+{"id":"w77","query":"summarise what we did this session","label":null}
+{"id":"w78","query":"boot up","label":null}
+{"id":"w79","query":"run the smoke tests","label":null}
+{"id":"w80","query":"what model am i talking to","label":null}
+{"id":"w81","query":"stash my changes","label":null}
+{"id":"w82","query":"explain what a decision list is","label":null}
+{"id":"w83","query":"upload","label":null}
+{"id":"w84","query":"add an entry to METHODS.md about this","label":null}
+{"id":"w85","query":"pip install onnxruntime","label":null}
+{"id":"w86","query":"what time is it in oslo","label":null}
+{"id":"w87","query":"turn this table into a chart","label":null}
+{"id":"w88","query":"grep for TODO in the scripts directory","label":null}
+{"id":"w89","query":"how much context do i have left","label":null}
