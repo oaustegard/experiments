@@ -626,7 +626,7 @@ the result.
   retrieval head is at picking a tool.** Splitting an 18-tool catalogue into five
   groups of ≤5 and asking Needle 2 to choose the group first scored **0.370**
   routable top-1, 24 points *below* just declaring all 18 (0.611) — its errors
-  were systematic, not noisy (7 of 8 account queries went to one wrong group).
+  were systematic, not noisy (9 of 15 account queries landed in one wrong group, 3 were right).
   The same split with ~20 lines of regex over structural cues as stage 1 scored
   **0.722**, above the flat arm and most of the way to the five-tool oracle
   ceiling (0.778). These models are trained to map a concrete request onto a
