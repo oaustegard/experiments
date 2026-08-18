@@ -85,7 +85,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 ## Per-experiment notes
 
-### `monad-bsky/` — the gap was copying, not choosing
+### `monad-bsky/` — Monad at the needle-bsky routing task
 
 `needle-bsky` measured a purpose-built 45M tool-caller. This runs PleIAs Monad,
 a 56M generalist reasoning model, at the identical task: same tools, same 62
@@ -98,7 +98,7 @@ hours of CPU, and still loses to Needle at every configuration.
 The reason is not what it looks like. Sorting the errors separates routing
 mistakes from transcription mistakes, and Monad's are mostly the second kind: it
 reproduces an identifier from the request correctly 51% of the time against
-Needle's 78–90%, returning `afethew.com` for `austegard.com`. The tempting
+Needle's 78–90%. `austegard.com` comes back as `afethew.com`. The tempting
 explanation — a small prose-trained vocabulary shattering identifiers — is
 measurably false: both models carry 8,192 pieces and segment these strings the
 same way. What differs is that Needle was built around span-copying and Monad
