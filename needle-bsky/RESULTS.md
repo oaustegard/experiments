@@ -1,11 +1,12 @@
 # needle-bsky — Cactus Needle 2 as a routing layer over the Bluesky read tools
 
-Cactus shipped [Needle 2](https://cactuscompute.com/needle) on 2026-08-13: a
-45M-parameter tool-calling model, 14 MB compressed at CQ2, meant for phones,
-wearables and microcontrollers. It answers only in function calls, with a byte-level
-grammar compiled from the declared schemas constraining every token, and it
-carries a calibrated confidence head so a product can act above a threshold and
-escalate below it.
+[Needle 2](https://cactuscompute.com/needle) is a 45M-parameter tool-calling
+model from Cactus Compute, 14 MB compressed at CQ2, meant for phones, wearables
+and microcontrollers. `cactus-needle` 2.0.0 went to PyPI on 2026-08-10 and
+2.0.6 on 2026-08-17; this run used 2.0.6 with engine 2.0.2. The model answers
+only in function calls, with a byte-level grammar compiled from the declared
+schemas constraining every token, and it carries a calibrated confidence head so
+a product can act above a threshold and escalate below it.
 
 This wires it in front of an 18-tool Bluesky read surface (`browsing-bluesky`
 and `atprotoing`, both already on disk as skills) and measures what the routing
@@ -37,8 +38,8 @@ not recoverable from natural language.
 
 18 matters because Needle renders at most **five** tools per turn. Above five, a
 built-in retrieval head embeds the query and admits only the top five into the
-context, with the grammar rebuilt over that subset. Cactus's own documentation puts it as "an unselected tool is
-unreachable, not merely unlikely".
+context, with the grammar rebuilt over that subset. Cactus's own documentation
+puts it as "an unselected tool is unreachable, not merely unlikely".
 
 ## The four arms
 
