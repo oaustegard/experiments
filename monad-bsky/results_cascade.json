@@ -1,0 +1,201 @@
+{
+ "n": 62,
+ "two_tier": [
+  {
+   "t_hi": 0.5,
+   "tier1_n": 29,
+   "tier1_precision": 0.6897,
+   "tier2_n": 16,
+   "tier2_precision": 0.875,
+   "cumulative_coverage": 0.7258,
+   "cumulative_precision": 0.7556,
+   "escalated": 17,
+   "escalated_needle_would_have_been_right": 10
+  },
+  {
+   "t_hi": 0.6,
+   "tier1_n": 27,
+   "tier1_precision": 0.7407,
+   "tier2_n": 16,
+   "tier2_precision": 0.875,
+   "cumulative_coverage": 0.6935,
+   "cumulative_precision": 0.7907,
+   "escalated": 19,
+   "escalated_needle_would_have_been_right": 10
+  },
+  {
+   "t_hi": 0.7,
+   "tier1_n": 20,
+   "tier1_precision": 0.8,
+   "tier2_n": 18,
+   "tier2_precision": 0.8889,
+   "cumulative_coverage": 0.6129,
+   "cumulative_precision": 0.8421,
+   "escalated": 24,
+   "escalated_needle_would_have_been_right": 12
+  },
+  {
+   "t_hi": 0.8,
+   "tier1_n": 13,
+   "tier1_precision": 0.8462,
+   "tier2_n": 22,
+   "tier2_precision": 0.8636,
+   "cumulative_coverage": 0.5645,
+   "cumulative_precision": 0.8571,
+   "escalated": 27,
+   "escalated_needle_would_have_been_right": 14
+  },
+  {
+   "t_hi": 0.9,
+   "tier1_n": 7,
+   "tier1_precision": 1.0,
+   "tier2_n": 23,
+   "tier2_precision": 0.8696,
+   "cumulative_coverage": 0.4839,
+   "cumulative_precision": 0.9,
+   "escalated": 32,
+   "escalated_needle_would_have_been_right": 17
+  }
+ ],
+ "baselines": {
+  "confidence_only": [
+   {
+    "t": 0.5,
+    "coverage": 0.4677,
+    "precision": 0.6897
+   },
+   {
+    "t": 0.6,
+    "coverage": 0.4355,
+    "precision": 0.7407
+   },
+   {
+    "t": 0.7,
+    "coverage": 0.3226,
+    "precision": 0.8
+   },
+   {
+    "t": 0.8,
+    "coverage": 0.2097,
+    "precision": 0.8462
+   },
+   {
+    "t": 0.9,
+    "coverage": 0.1129,
+    "precision": 1.0
+   }
+  ],
+  "agreement_only": {
+   "coverage": 0.4355,
+   "precision": 0.8889
+  },
+  "no_gate": {
+   "coverage": 1.0,
+   "precision": 0.7097
+  }
+ },
+ "tier3": {
+  "trace_as_query": {
+   "eligible": 24,
+   "accepted": 1,
+   "precision_of_accepted": 1.0,
+   "cascade_coverage": 0.629,
+   "cascade_precision": 0.8462,
+   "examples": [
+    {
+     "id": "analyze-01",
+     "rewritten": "'bornbold.net mostly' -> handle",
+     "got": "analyze_account",
+     "conf": 0.0037,
+     "ok": true
+    },
+    {
+     "id": "analyze-02",
+     "rewritten": "'emilyliu.me' -> handle",
+     "got": "get_profile",
+     "conf": 0.3702,
+     "ok": false
+    },
+    {
+     "id": "analyze-03",
+     "rewritten": "'afethew.com' -> handle",
+     "got": "get_user_posts",
+     "conf": 0.1529,
+     "ok": false
+    },
+    {
+     "id": "feed-02",
+     "rewritten": "the feed -> feed_uri",
+     "got": "get_feed_posts",
+     "conf": 0.0433,
+     "ok": true
+    },
+    {
+     "id": "graph-01",
+     "rewritten": "no declared tool serves this",
+     "got": "get_trending_topics",
+     "conf": 0.3294,
+     "ok": false
+    },
+    {
+     "id": "graph-04",
+     "rewritten": "'emilyliu.me' -> handle",
+     "got": "get_profile",
+     "conf": 0.3702,
+     "ok": false
+    }
+   ]
+  },
+  "query_plus_hint": {
+   "eligible": 24,
+   "accepted": 3,
+   "precision_of_accepted": 0.6667,
+   "cascade_coverage": 0.6613,
+   "cascade_precision": 0.8293,
+   "examples": [
+    {
+     "id": "analyze-01",
+     "rewritten": "what is bnewbold.net mostly about (suggested tool: get_user_posts)",
+     "got": "analyze_account",
+     "conf": 0.0332,
+     "ok": true
+    },
+    {
+     "id": "analyze-02",
+     "rewritten": "summarise what emilyliu.me posts about (suggested tool: get_posts)",
+     "got": "analyze_account",
+     "conf": 0.4951,
+     "ok": true
+    },
+    {
+     "id": "analyze-03",
+     "rewritten": "give me the keywords for the account austegard.com (suggested tool: get_user_posts)",
+     "got": "extract_keywords",
+     "conf": 0.6825,
+     "ok": false
+    },
+    {
+     "id": "feed-02",
+     "rewritten": "read the feed at at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna (suggested tool: ",
+     "got": null,
+     "conf": 0.0024,
+     "ok": false
+    },
+    {
+     "id": "graph-01",
+     "rewritten": "who does austegard.com follow",
+     "got": "get_followers",
+     "conf": 0.6471,
+     "ok": false
+    },
+    {
+     "id": "graph-04",
+     "rewritten": "show me the accounts emilyliu.me is following (suggested tool: get_following)",
+     "got": "get_following",
+     "conf": 0.752,
+     "ok": true
+    }
+   ]
+  }
+ }
+}

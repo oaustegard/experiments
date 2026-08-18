@@ -622,6 +622,42 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **Measure the no-model baseline before concluding a small model earns its
+  place.** Twenty ordered regex rules over structural cues routed an 18-tool
+  Bluesky catalogue at **0.833** routable against 0.722 for a two-stage Cactus
+  Needle router and 0.778 for Needle's *oracle* five-tool ceiling — at 0.022 ms
+  against 324 ms, four orders of magnitude. On unseen queries from a different
+  template family the rules held at **0.824**, so this is not simply
+  overfitting. What the models bought was refusal (0.625 vs the regex's 0.183 on
+  unseen data, where a catch-all fallback swallows everything off-topic) and a
+  confidence score. Catalogues whose tools are distinguished by argument *shape*
+  — handles, URIs, DIDs — hand a regex most of the task; catalogues distinguished
+  by intent do not. (`monad-bsky/regex_only.py`)
+- **A retry cascade beats any single accept-gate on the coverage/precision
+  frontier.** Accepting on Needle's own confidence first, then on
+  Needle/Monad agreement, then escalating, gave **0.613 coverage at 0.842
+  precision** where the confidence gate alone gave 0.323 at 0.800 and agreement
+  alone 0.435 at 0.889. Different tiers accept on different evidence, so the
+  cascade keeps queries a single threshold discards. A third tier that re-asks
+  with a rewritten query added 1–3 queries out of 24 and lowered precision.
+  (`monad-bsky/cascade.py`)
+- **Constraining a fine-tuned generative model to score a fixed label set can
+  cost more than the hallucinations it prevents.** Scoring Monad's 18 declared
+  tool names by `log P(name)` and taking the argmax makes undeclared names
+  unreachable and yields a softmax confidence, but scored **0.241** routable
+  against **0.481** for letting the same model generate freely — top-3 only
+  0.407. Verified against a harness bug with independent full forward passes
+  sharing no KV cache. A model trained to emit a derivation then a call does not
+  carry its decision in the marginal at one token position; a decode grammar
+  constrains the *path* and preserves generation dynamics, label scoring does
+  not. (`monad-bsky/classifier.py`)
+- **A model that corrupts identifiers cannot be the stage that restates the
+  request.** Fine-tuned Monad mangles handles inside its own `<think>` trace
+  (`simonwillison.net` → `simanwillander.net`) before any structured output is
+  produced, so an english → small-model → router pipeline hands the router a
+  corrupted string to copy faithfully. Check whether a proposed rewriter
+  preserves literals before designing around it. (`monad-bsky/RESULTS.md`)
+
 - **Two small models agreeing is a better accept-gate than one model's
   calibrated confidence head, at the same coverage.** Cactus Needle's two-stage
   router and a fine-tuned Monad independently naming the same tool were right
