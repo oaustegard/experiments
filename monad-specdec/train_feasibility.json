@@ -1,0 +1,35 @@
+{
+  "rows": [
+    {
+      "batch": 1,
+      "seqlen": 512,
+      "seconds": 2.67,
+      "tokens_per_s": 192.0,
+      "hours_per_100M_tokens": 144.7
+    },
+    {
+      "batch": 4,
+      "seqlen": 512,
+      "seconds": 12.06,
+      "tokens_per_s": 169.8,
+      "hours_per_100M_tokens": 163.6
+    },
+    {
+      "batch": 8,
+      "seqlen": 512,
+      "seconds": 28.86,
+      "tokens_per_s": 141.9,
+      "hours_per_100M_tokens": 195.7
+    },
+    {
+      "batch": 8,
+      "seqlen": 1024,
+      "seconds": 61.98,
+      "tokens_per_s": 132.2,
+      "hours_per_100M_tokens": 210.2
+    }
+  ],
+  "best_tokens_per_s": 192.0,
+  "hours_for_eagle_sharegpt_68k_approx_50M_tokens": 72.3,
+  "note": "Forward-pass harvest only; excludes the draft-head optimizer steps, which are negligible at 4-14M params."
+}
