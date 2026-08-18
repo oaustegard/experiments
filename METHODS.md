@@ -665,8 +665,15 @@ the result.
   0.696 and **0.546** (McNemar p=1.7e-44). The learned rules are not memorising
   entities — the entity pools were disjoint — they are sensible rules like
   `tok:diff -> get_diff` that never fire on "what code does this PR actually
-  change", where a human writes `\b(diff|patch|changeset)\b` from knowledge of
+  change", where the rule's author writes `\b(diff|patch|changeset)\b` from knowledge of
   the language. Laplace-corrected scoring, min-coverage 8 and dropping bigrams
+  **That author was an LLM, not a person** — the "hand-written" arm was Claude
+  reading the 50 schemas, so the real contrast is model reasoning compiled once
+  into deterministic rules versus statistics fitted from a corpus, and the
+  compiled arm won. Budget an offline model pass to author the rules; the
+  artefact still runs at 0.04 ms with no inference cost. The arm is also
+  contaminated (same author wrote the query templates), which is why the clean
+  room below uses a different model.
   each moved coverage and precision without moving accuracy (0.191-0.227). The
   one intervention that helped computes features against the schema at inference
   time instead of learning them. If you fit routing rules, budget for a synonym
@@ -735,8 +742,8 @@ the result.
   **0.000**, against 0.108 on rows lexical matching can see. Vectors moved "has
   anyone approved it" from lexically unreachable to **rank 21 of 79**: findable,
   not routable. Every spaCy arm lost to a 20-line IDF schema-overlap control with
-  no spaCy in the path, at **250x** the latency (8.2 ms vs 0.03 ms). What a human
-  supplies writing `\b(diff|patch|changeset)\b` is the fact that those name one
+  no spaCy in the path, at **250x** the latency (8.2 ms vs 0.03 ms). What the rule
+  author (an LLM, offline) supplies writing `\b(diff|patch|changeset)\b` is the fact that those name one
   concept *in this API* — not a fact about English, so no general encoder has it.
   (`gh-mcp-regex-fit/spacy_arms.py`)
 - **An agreement gate pays in proportion to how independent the second voter is.**
@@ -1873,3 +1880,15 @@ phases (or sequential workflow invocations) with marks recorded between them;
 launching two workflows concurrently silently confounds every delta. Input tokens
 are not observable per-arm at all — estimate from content sizes and say so.
 (`orchestrated-coding-pareto/data/marks.json`)
+
+- **Check whether your "human baseline" is a model.** This repo spent a whole
+  experiment comparing "hand-written" regex rules against fitted ones and framing
+  it as human knowledge versus machine learning. Claude wrote the rules. The real
+  contrast was **model reasoning compiled once into deterministic code** versus
+  **statistics fitted from a corpus**, and compiled reasoning won the held-out
+  split (0.546 against 0.239 fitted and 0.540 for a supervised encoder) while
+  running at 0.04 ms with zero inference cost. Two consequences: an "LLM-as-
+  compiler" arm is cheap and belongs in any routing comparison; and if the same
+  model authored both the rules and the eval queries, the number is not
+  contaminated-but-usable, it is disqualified — swap in a *different* model that
+  never saw the eval. (`gh-mcp-regex-fit/handwritten.py`, `gemini_arms.py`)
