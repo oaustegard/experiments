@@ -622,6 +622,42 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **A small model's failure to fill tool arguments is usually transcription, not
+  routing — measure the two separately before blaming the model's reasoning.**
+  Fine-tuned Monad (56M) picked a defensible tool far more often than it
+  reproduced the identifier the request contained: over 41 eval arguments that
+  appear verbatim in the query it emitted the right string **51%** of the time,
+  against **78%** for Cactus Needle's untuned base and **90%** for its LoRA.
+  `austegard.com` came back as `afethew.com`, `jetstream` as `jetforek`. Score
+  "did it copy the span" as its own metric; a combined arguments-correct number
+  hides which half is broken. (`monad-bsky/copy_probe.py`)
+- **Do not attribute a copying failure to tokenizer vocabulary without measuring
+  both tokenizers.** The obvious story — Monad's 8,192-piece prose vocabulary
+  shatters handles and DIDs — was written into a draft and is false: Cactus
+  Needle carries **the same 8,192 pieces** and segments the same strings
+  identically (`austegard.com` is `['a','ust','eg','ard','.','com']` in both;
+  111 vs 109 pieces over ten identifiers). The cause that survives is the
+  training objective, and the evidence is that Needle's *base* weights, never
+  exposed to the experiment's data, already copy at 0.780.
+  (`monad-bsky/ERRORS.md` #1)
+- **More fine-tuning made verbatim copying worse while training loss kept
+  falling** — 0.561 at one epoch to 0.512 at three, train loss 0.0001. Fitting
+  the training set's identifiers is not the same operation as transcribing an
+  unseen one, and nothing in the loss distinguishes them.
+- **A validation split drawn from your own generator measures template fit, not
+  generalisation.** Monad's val loss improved 7.5x across three epochs (0.0128 →
+  0.0040 → 0.0017) while eval accuracy went 0.389 → 0.481 → 0.444. If the
+  held-out rows come from the same templates as the training rows, the curve
+  will look excellent regardless. Judge checkpoints on the task eval.
+  (`monad-bsky/ERRORS.md` #5)
+- **An unconstrained decoder invents tool names, at a rate worth pricing.**
+  Fine-tuned Monad emitted names that were never declared (`get_posts`,
+  `get_replies`, once `get_spammer.bsky.social`, assembled from the query's own
+  handle) on **6.5% of queries after one epoch and 14.5% after three** — rising
+  with training. A grammar compiled over the declared names makes this
+  impossible rather than unlikely, which is a concrete reason to prefer a
+  constrained decoder over a larger model. (`monad-bsky/RESULTS.md`)
+
 - **A small-model fine-tune can be a wash on accuracy and still cost you the
   calibration head — check whether your serving stack keeps the head before
   spending the compute.** Cactus documents that fine-tuning does not update

@@ -1,0 +1,1270 @@
+{
+ "label": "tuned-e3",
+ "model": "/workspace/experiments/monad-bsky/tuned-e3",
+ "arm": "tuned-min",
+ "n_tools": 18,
+ "summary": {
+  "n": 62,
+  "tool_acc": 0.4516,
+  "tool_acc_routable": 0.4444,
+  "refusal_acc": 0.5,
+  "args_acc_routable": 0.2963,
+  "invented_rate": 0.3148,
+  "parse_ok_rate": 1.0,
+  "status_counts": {
+   "ok": 54,
+   "refused": 8
+  },
+  "hallucinated_tool_rate": 0.1452,
+  "median_latency_ms": 2879.4,
+  "mean_new_tokens": 56.9,
+  "prompt_tokens": 711
+ },
+ "rows": [
+  {
+   "id": "posts-01",
+   "cat": "person-posts",
+   "query": "what has pfrazee.com been posting lately",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "lately"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "status": "ok",
+   "latency_ms": 2631.6,
+   "prompt_tokens": 711,
+   "new_tokens": 43,
+   "reasoning": "'lately' -> query"
+  },
+  {
+   "id": "posts-02",
+   "cat": "person-posts",
+   "query": "show me the last 10 posts from austegard.com",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "get_posts",
+   "arguments": {
+    "handle": "austegard.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3216.2,
+   "prompt_tokens": 711,
+   "new_tokens": 52,
+   "reasoning": "'austegard.com' -> handle"
+  },
+  {
+   "id": "posts-03",
+   "cat": "person-posts",
+   "query": "pull @why.bsky.team's recent posts",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "get_posts",
+   "arguments": {
+    "handle": "Why.bsky.team's recent"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3139.9,
+   "prompt_tokens": 712,
+   "new_tokens": 58,
+   "reasoning": "'why.bsky.team's recent' -> handle"
+  },
+  {
+   "id": "posts-04",
+   "cat": "person-posts",
+   "query": "what's simonwillison.net saying on bluesky",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "handle": "simonwillon.net"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3485.0,
+   "prompt_tokens": 713,
+   "new_tokens": 56,
+   "reasoning": "'simonwillon.net' -> handle"
+  },
+  {
+   "id": "posts-05",
+   "cat": "person-posts",
+   "query": "get 50 posts from bnewbold.net",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "get_post_uri_or_url",
+   "arguments": {
+    "query": "get_50",
+    "lang": "brownbold.net"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "lang",
+    "query"
+   ],
+   "status": "ok",
+   "latency_ms": 4639.4,
+   "prompt_tokens": 708,
+   "new_tokens": 76,
+   "reasoning": "'50' -> query; 'brownbold.net' -> lang no"
+  },
+  {
+   "id": "profile-01",
+   "cat": "profile",
+   "query": "show me austegard.com's profile",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "get_profile",
+   "arguments": {
+    "handle": "afethew.com"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3310.1,
+   "prompt_tokens": 707,
+   "new_tokens": 51,
+   "reasoning": "'afethew.com' -> handle"
+  },
+  {
+   "id": "profile-02",
+   "cat": "profile",
+   "query": "how many followers does pfrazee.com have",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "pfrazee.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3068.7,
+   "prompt_tokens": 710,
+   "new_tokens": 55,
+   "reasoning": "'pfrazee.com' -> handle"
+  },
+  {
+   "id": "profile-03",
+   "cat": "profile",
+   "query": "what's in emilyliu.me's bio",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "handle": "emilyliu.me"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3041.2,
+   "prompt_tokens": 710,
+   "new_tokens": 56,
+   "reasoning": "'emilyliu.me' -> handle"
+  },
+  {
+   "id": "profile-04",
+   "cat": "profile",
+   "query": "look up the account jay.bsky.team",
+   "expected": [
+    "get_profile",
+    "search_users"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "jay.bsky.team"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "status": "ok",
+   "latency_ms": 3160.6,
+   "prompt_tokens": 709,
+   "new_tokens": 56,
+   "reasoning": "'jay.bsky.team' -> handle"
+  },
+  {
+   "id": "search-01",
+   "cat": "search",
+   "query": "search bluesky for posts about norwegian politics",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "norwegian politics"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2965.2,
+   "prompt_tokens": 712,
+   "new_tokens": 51,
+   "reasoning": "'norwegian politics' -> query"
+  },
+  {
+   "id": "search-02",
+   "cat": "search",
+   "query": "find posts mentioning matryoshka embeddings",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "matryoshka embeddings"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2861.9,
+   "prompt_tokens": 710,
+   "new_tokens": 54,
+   "reasoning": "'matryoshka' -> query"
+  },
+  {
+   "id": "search-03",
+   "cat": "search",
+   "query": "what are people saying about the atproto outage",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "refused",
+   "latency_ms": 1808.3,
+   "prompt_tokens": 709,
+   "new_tokens": 31,
+   "reasoning": "no declared tool serves this"
+  },
+  {
+   "id": "search-04",
+   "cat": "search",
+   "query": "search for posts about jetstream from bnewbold.net",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "jetforek",
+    "langjan": "brownbigh"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [
+    "langjan"
+   ],
+   "status": "ok",
+   "latency_ms": 3466.6,
+   "prompt_tokens": 712,
+   "new_tokens": 72,
+   "reasoning": "'jetforek' -> query; 'jetforek' -> langjan"
+  },
+  {
+   "id": "search-05",
+   "cat": "search",
+   "query": "posts about the tour de france since 2026-07-01",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "2026-07-01": "tour de france"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "2026-07-01"
+   ],
+   "status": "ok",
+   "latency_ms": 3321.5,
+   "prompt_tokens": 713,
+   "new_tokens": 61,
+   "reasoning": "the tour de france' -> 2026-07-01"
+  },
+  {
+   "id": "search-06",
+   "cat": "search",
+   "query": "find norwegian language posts about strom priser",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "strom priser",
+    "lang": "no"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3767.7,
+   "prompt_tokens": 712,
+   "new_tokens": 70,
+   "reasoning": "'strom priser' -> query; 'norwegian language' -> lang no"
+  },
+  {
+   "id": "search-07",
+   "cat": "search",
+   "query": "search bluesky for cactus compute",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "cactus computation"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2647.5,
+   "prompt_tokens": 707,
+   "new_tokens": 47,
+   "reasoning": "'cactus compute' -> query"
+  },
+  {
+   "id": "users-01",
+   "cat": "find-users",
+   "query": "find people who write about atproto",
+   "expected": [
+    "search_users"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "atproto"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2570.5,
+   "prompt_tokens": 706,
+   "new_tokens": 45,
+   "reasoning": "'atproto' -> query"
+  },
+  {
+   "id": "users-02",
+   "cat": "find-users",
+   "query": "which accounts have cycling in their bio",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "refused",
+   "latency_ms": 1854.5,
+   "prompt_tokens": 706,
+   "new_tokens": 31,
+   "reasoning": "no declared tool serves this"
+  },
+  {
+   "id": "users-03",
+   "cat": "find-users",
+   "query": "search for users called austegard",
+   "expected": [
+    "search_users"
+   ],
+   "got": "search_users",
+   "arguments": {
+    "query": "afethewess"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2536.2,
+   "prompt_tokens": 706,
+   "new_tokens": 47,
+   "reasoning": "'afethewess' -> query"
+  },
+  {
+   "id": "likes-01",
+   "cat": "interactions",
+   "query": "who liked https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": "get_likes",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4547.2,
+   "prompt_tokens": 737,
+   "new_tokens": 92,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "likes-02",
+   "cat": "interactions",
+   "query": "show the likes on at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": "get_likes",
+   "arguments": {
+    "post_uri_or_url": "at://did:plc:s3cqfxbcwnvvirior"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4496.8,
+   "prompt_tokens": 756,
+   "new_tokens": 79,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "reposts-01",
+   "cat": "interactions",
+   "query": "who reposted https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": "get_reposts",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4902.7,
+   "prompt_tokens": 737,
+   "new_tokens": 92,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "reposts-02",
+   "cat": "interactions",
+   "query": "list the accounts that boosted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4904.8,
+   "prompt_tokens": 741,
+   "new_tokens": 92,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "quotes-01",
+   "cat": "interactions",
+   "query": "show me the quote posts of https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": "get_quotes",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 5099.0,
+   "prompt_tokens": 741,
+   "new_tokens": 91,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "quotes-02",
+   "cat": "interactions",
+   "query": "who quoted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": "get_quotes",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4806.5,
+   "prompt_tokens": 738,
+   "new_tokens": 92,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "thread-01",
+   "cat": "thread",
+   "query": "show me the replies to https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": "get_replies",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 5382.7,
+   "prompt_tokens": 740,
+   "new_tokens": 92,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "thread-02",
+   "cat": "thread",
+   "query": "read the whole thread at https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": "get_thread",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4802.6,
+   "prompt_tokens": 740,
+   "new_tokens": 92,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "thread-03",
+   "cat": "thread",
+   "query": "what did people reply to at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": "get_reposts",
+   "arguments": {
+    "post_uri_or_url": "at://did:plc:s3cqfxbcwnvvuk/3lxk2mnop4c2v"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4642.6,
+   "prompt_tokens": 756,
+   "new_tokens": 91,
+   "reasoning": "the post reference -> post_uri_or_url"
+  },
+  {
+   "id": "graph-01",
+   "cat": "graph",
+   "query": "who does austegard.com follow",
+   "expected": [
+    "get_following"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "austegard.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2758.3,
+   "prompt_tokens": 706,
+   "new_tokens": 53,
+   "reasoning": "'austegard.com' -> handle"
+  },
+  {
+   "id": "graph-02",
+   "cat": "graph",
+   "query": "who follows austegard.com",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "afethew.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2671.6,
+   "prompt_tokens": 705,
+   "new_tokens": 50,
+   "reasoning": "'afethew.com' -> handle"
+  },
+  {
+   "id": "graph-03",
+   "cat": "graph",
+   "query": "list pfrazee.com's followers",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "search_followers",
+   "arguments": {
+    "query": "followers"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "status": "ok",
+   "latency_ms": 2623.8,
+   "prompt_tokens": 708,
+   "new_tokens": 46,
+   "reasoning": "'followers' -> query"
+  },
+  {
+   "id": "graph-04",
+   "cat": "graph",
+   "query": "show me the accounts emilyliu.me is following",
+   "expected": [
+    "get_following"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "emilyliu.me"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2964.8,
+   "prompt_tokens": 710,
+   "new_tokens": 54,
+   "reasoning": "'emilyliu.me' -> handle"
+  },
+  {
+   "id": "graph-05",
+   "cat": "graph",
+   "query": "get 100 followers of bnewbold.net",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "search_followers",
+   "arguments": {
+    "query": "birthday"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "status": "ok",
+   "latency_ms": 2362.8,
+   "prompt_tokens": 708,
+   "new_tokens": 45,
+   "reasoning": "'100' -> query"
+  },
+  {
+   "id": "feed-01",
+   "cat": "feed",
+   "query": "get the posts in https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4000.3,
+   "prompt_tokens": 736,
+   "new_tokens": 83,
+   "reasoning": "the feed reference -> feed_uri"
+  },
+  {
+   "id": "feed-02",
+   "cat": "feed",
+   "query": "read the feed at at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 4858.0,
+   "prompt_tokens": 754,
+   "new_tokens": 96,
+   "reasoning": "the feed -> feed_uri"
+  },
+  {
+   "id": "feed-03",
+   "cat": "feed",
+   "query": "what's in my norwegians list https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "norwegians"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3274.9,
+   "prompt_tokens": 741,
+   "new_tokens": 54,
+   "reasoning": "the feed reference -> feed_uri"
+  },
+  {
+   "id": "trend-01",
+   "cat": "trending",
+   "query": "what's trending on bluesky",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "trending on bluesky"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "status": "ok",
+   "latency_ms": 2896.9,
+   "prompt_tokens": 706,
+   "new_tokens": 52,
+   "reasoning": "'tgrustzen' -> query"
+  },
+  {
+   "id": "trend-02",
+   "cat": "trending",
+   "query": "give me the top 5 trending topics",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": "get_trending_topics",
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2445.7,
+   "prompt_tokens": 706,
+   "new_tokens": 40,
+   "reasoning": "'tropics -> top 5"
+  },
+  {
+   "id": "trend-03",
+   "cat": "trending",
+   "query": "which topics are hot right now, and how many posts each",
+   "expected": [
+    "get_trending"
+   ],
+   "got": "extract_keywords",
+   "arguments": {
+    "text": "hot right now, and how many posts each"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "text"
+   ],
+   "status": "ok",
+   "latency_ms": 2657.2,
+   "prompt_tokens": 711,
+   "new_tokens": 55,
+   "reasoning": "the supplied passage -> text"
+  },
+  {
+   "id": "trend-04",
+   "cat": "trending",
+   "query": "just list the trending topic names",
+   "expected": [
+    "get_trending_topics"
+   ],
+   "got": "get_trending",
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2096.0,
+   "prompt_tokens": 705,
+   "new_tokens": 39,
+   "reasoning": "'touges -> get_trending"
+  },
+  {
+   "id": "hose-01",
+   "cat": "firehose",
+   "query": "sample the firehose for 30 seconds",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": "sample_firehose",
+   "arguments": {
+    "duration": 30
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2280.0,
+   "prompt_tokens": 705,
+   "new_tokens": 44,
+   "reasoning": "'sormanice -> duration 30"
+  },
+  {
+   "id": "hose-02",
+   "cat": "firehose",
+   "query": "listen to the live stream of new posts for a minute",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": "sample_firehose",
+   "arguments": {
+    "filter": "live"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [
+    "filter"
+   ],
+   "status": "ok",
+   "latency_ms": 2419.2,
+   "prompt_tokens": 711,
+   "new_tokens": 48,
+   "reasoning": "'live' -> filter"
+  },
+  {
+   "id": "hose-03",
+   "cat": "firehose",
+   "query": "watch the firehose for posts containing bitcoin",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "bitcoin"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "status": "ok",
+   "latency_ms": 2332.9,
+   "prompt_tokens": 711,
+   "new_tokens": 47,
+   "reasoning": "'bitcoin' -> query"
+  },
+  {
+   "id": "id-01",
+   "cat": "identity",
+   "query": "what's the did for austegard.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "refused",
+   "latency_ms": 1800.5,
+   "prompt_tokens": 708,
+   "new_tokens": 31,
+   "reasoning": "no declared tool serves this"
+  },
+  {
+   "id": "id-02",
+   "cat": "identity",
+   "query": "which pds hosts pfrazee.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "host": "pfrazee.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "host"
+   ],
+   "status": "ok",
+   "latency_ms": 2979.4,
+   "prompt_tokens": 709,
+   "new_tokens": 55,
+   "reasoning": "'pfrazee.com' -> host"
+  },
+  {
+   "id": "id-03",
+   "cat": "identity",
+   "query": "resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": "resolve_identity",
+   "arguments": {
+    "feed_uri": "did:plc:s3cqfxbcwnvvuklnn"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [
+    "feed_uri"
+   ],
+   "status": "ok",
+   "latency_ms": 3625.0,
+   "prompt_tokens": 727,
+   "new_tokens": 70,
+   "reasoning": "the feed reference -> feed_uri"
+  },
+  {
+   "id": "status-01",
+   "cat": "status",
+   "query": "is bluesky down right now",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "now"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "status": "ok",
+   "latency_ms": 2427.5,
+   "prompt_tokens": 705,
+   "new_tokens": 41,
+   "reasoning": "'now' -> query"
+  },
+  {
+   "id": "status-02",
+   "cat": "status",
+   "query": "which atproto layer is broken",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "refused",
+   "latency_ms": 1822.1,
+   "prompt_tokens": 705,
+   "new_tokens": 31,
+   "reasoning": "no declared tool serves this"
+  },
+  {
+   "id": "status-03",
+   "cat": "status",
+   "query": "check whether the appview is up",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "append"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "status": "ok",
+   "latency_ms": 2261.2,
+   "prompt_tokens": 704,
+   "new_tokens": 43,
+   "reasoning": "'append' -> query"
+  },
+  {
+   "id": "analyze-01",
+   "cat": "analysis",
+   "query": "what is bnewbold.net mostly about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "handle": "bornbold.net"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2798.1,
+   "prompt_tokens": 708,
+   "new_tokens": 54,
+   "reasoning": "'bornbold.net' -> handle"
+  },
+  {
+   "id": "analyze-02",
+   "cat": "analysis",
+   "query": "summarise what emilyliu.me posts about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": "get_posts",
+   "arguments": {
+    "handle": "emilyliu.me"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2769.9,
+   "prompt_tokens": 711,
+   "new_tokens": 54,
+   "reasoning": "'emilyliu.me' -> handle"
+  },
+  {
+   "id": "analyze-03",
+   "cat": "analysis",
+   "query": "give me the keywords for the account austegard.com",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "handle": "afethew.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2808.2,
+   "prompt_tokens": 712,
+   "new_tokens": 52,
+   "reasoning": "'afethew.com' -> handle"
+  },
+  {
+   "id": "kw-01",
+   "cat": "keywords",
+   "query": "pull the key terms out of this text: the relay went down but every pds kept serving records normally",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": "extract_keywords",
+   "arguments": {
+    "text": "the relay went down but every pds kept serving records normally"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [
+    "text"
+   ],
+   "status": "ok",
+   "latency_ms": 3076.7,
+   "prompt_tokens": 723,
+   "new_tokens": 60,
+   "reasoning": "the supplied passage -> text"
+  },
+  {
+   "id": "kw-02",
+   "cat": "keywords",
+   "query": "extract keywords from: sykkel, terskeleffekt og vintertrening i Oslo",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": "extract_keywords",
+   "arguments": {
+    "text": "sykkel, terskeleffekt og vintertrening i Oslo"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [
+    "text"
+   ],
+   "status": "ok",
+   "latency_ms": 3520.1,
+   "prompt_tokens": 727,
+   "new_tokens": 68,
+   "reasoning": "the supplied passage -> text"
+  },
+  {
+   "id": "off-01",
+   "cat": "off-topic",
+   "query": "what's the weather in Oslo",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "refused",
+   "latency_ms": 1816.1,
+   "prompt_tokens": 705,
+   "new_tokens": 31,
+   "reasoning": "no declared tool serves this"
+  },
+  {
+   "id": "off-02",
+   "cat": "off-topic",
+   "query": "book me a flight to Bergen next tuesday",
+   "expected": [],
+   "got": "search_posts",
+   "arguments": {
+    "query": "next tuesday"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2699.8,
+   "prompt_tokens": 709,
+   "new_tokens": 49,
+   "reasoning": "'next tuesday' -> query"
+  },
+  {
+   "id": "off-03",
+   "cat": "off-topic",
+   "query": "send a dm to pfrazee.com saying hello",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "refused",
+   "latency_ms": 2013.5,
+   "prompt_tokens": 715,
+   "new_tokens": 31,
+   "reasoning": "no declared tool serves this"
+  },
+  {
+   "id": "off-04",
+   "cat": "off-topic",
+   "query": "post this to my bluesky account: good morning",
+   "expected": [],
+   "got": "get_following",
+   "arguments": {
+    "handle": "good morning"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2784.8,
+   "prompt_tokens": 710,
+   "new_tokens": 48,
+   "reasoning": "'good morning' -> handle"
+  },
+  {
+   "id": "off-05",
+   "cat": "off-topic",
+   "query": "delete my last bluesky post",
+   "expected": [],
+   "got": "get_post",
+   "arguments": {
+    "handle": "last bluesky"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 2821.2,
+   "prompt_tokens": 707,
+   "new_tokens": 51,
+   "reasoning": "'last bluesky' -> handle"
+  },
+  {
+   "id": "off-06",
+   "cat": "off-topic",
+   "query": "how many calories did I burn on my ride yesterday",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "refused",
+   "latency_ms": 1937.0,
+   "prompt_tokens": 711,
+   "new_tokens": 31,
+   "reasoning": "no declared tool serves this"
+  },
+  {
+   "id": "off-07",
+   "cat": "off-topic",
+   "query": "block the account spammer.bsky.social",
+   "expected": [],
+   "got": "get_spammer.bsky.social",
+   "arguments": {
+    "handle": "smalloc.bsky.social"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "ok",
+   "latency_ms": 3387.0,
+   "prompt_tokens": 709,
+   "new_tokens": 64,
+   "reasoning": "'smalloc.bsky.social' -> handle"
+  },
+  {
+   "id": "off-08",
+   "cat": "off-topic",
+   "query": "what is the capital of Norway",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "refused",
+   "latency_ms": 1754.2,
+   "prompt_tokens": 704,
+   "new_tokens": 31,
+   "reasoning": "no declared tool serves this"
+  }
+ ]
+}

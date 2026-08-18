@@ -1,0 +1,1127 @@
+{
+ "label": "base",
+ "model": "/workspace/experiments/monad-bsky/model",
+ "arm": "tuned-min",
+ "n_tools": 18,
+ "summary": {
+  "n": 62,
+  "tool_acc": 0.129,
+  "tool_acc_routable": 0.0,
+  "refusal_acc": 1.0,
+  "args_acc_routable": 0.0,
+  "invented_rate": 0.0,
+  "parse_ok_rate": 0.0,
+  "status_counts": {
+   "unparseable": 62
+  },
+  "hallucinated_tool_rate": 0.0,
+  "median_latency_ms": 4970.1,
+  "mean_new_tokens": 96,
+  "prompt_tokens": 711
+ },
+ "rows": [
+  {
+   "id": "posts-01",
+   "cat": "person-posts",
+   "query": "what has pfrazee.com been posting lately",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5772.0,
+   "prompt_tokens": 711,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"use only arguments whose values ap"
+  },
+  {
+   "id": "posts-02",
+   "cat": "person-posts",
+   "query": "show me the last 10 posts from austegard.com",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5365.2,
+   "prompt_tokens": 711,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"use only arguments whose values ap"
+  },
+  {
+   "id": "posts-03",
+   "cat": "person-posts",
+   "query": "pull @why.bsky.team's recent posts",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5151.7,
+   "prompt_tokens": 712,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no reference to other tools. \"use only arguments whose va"
+  },
+  {
+   "id": "posts-04",
+   "cat": "person-posts",
+   "query": "what's simonwillison.net saying on bluesky",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5523.6,
+   "prompt_tokens": 713,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no reference to other tools. \"use only arguments whose va"
+  },
+  {
+   "id": "posts-05",
+   "cat": "person-posts",
+   "query": "get 50 posts from bnewbold.net",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5228.5,
+   "prompt_tokens": 708,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request. Reply with one JSON object: {\"name\": <name>, \"arguments: {}, \"arguments: {}}, \"use only arguments whose values appear in the request\"}\"\"\n\nParse request. Clear technical writing task.\n\n\u2192 JSON structure needed. Subject-verb-object. Ar"
+  },
+  {
+   "id": "profile-01",
+   "cat": "profile",
+   "query": "show me austegard.com's profile",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4790.0,
+   "prompt_tokens": 707,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "profile-02",
+   "cat": "profile",
+   "query": "how many followers does pfrazee.com have",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5086.6,
+   "prompt_tokens": 710,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"use only arguments whose values ap"
+  },
+  {
+   "id": "profile-03",
+   "cat": "profile",
+   "query": "what's in emilyliu.me's bio",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4948.8,
+   "prompt_tokens": 710,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"use only arguments whose values ap"
+  },
+  {
+   "id": "profile-04",
+   "cat": "profile",
+   "query": "look up the account jay.bsky.team",
+   "expected": [
+    "get_profile",
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5454.1,
+   "prompt_tokens": 709,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "search-01",
+   "cat": "search",
+   "query": "search bluesky for posts about norwegian politics",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5355.2,
+   "prompt_tokens": 712,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-answer\" text. Tools: JSON format. Specific requirements:\n- <<name>> arrows\n- arguments with values  \n- no tool fits request\n- use only arguments\n- use only arguments\n- use only arguments\n- use only arguments\n- no tool fits request\n- get_profile(handle), get_read"
+  },
+  {
+   "id": "search-02",
+   "cat": "search",
+   "query": "find posts mentioning matryoshka embeddings",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5167.3,
+   "prompt_tokens": 710,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 binary response. \"use only arguments whose values appear in the request\" \u2192 binary response. \"use only arguments whose values appear in the request\" \u2192 bin"
+  },
+  {
+   "id": "search-03",
+   "cat": "search",
+   "query": "what are people saying about the atproto outage",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5012.1,
+   "prompt_tokens": 709,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request\" + \"reply with one JSON object\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in "
+  },
+  {
+   "id": "search-04",
+   "cat": "search",
+   "query": "search for posts about jetstream from bnewbold.net",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4828.0,
+   "prompt_tokens": 712,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-answer\" text. Tools: JSON format. Specific requirements:\n- <<name>> arrows\n- arguments with values  \n- no tool fits request\n- use only arguments\n- no tool fits request\n- reply with only arguments\n- use only arguments\n- reply with only arguments\n- reply with only arguments\n- re"
+  },
+  {
+   "id": "search-05",
+   "cat": "search",
+   "query": "posts about the tour de france since 2026-07-01",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4755.6,
+   "prompt_tokens": 713,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" for Bluesky app. Specific formatting constraints noted: <<Title>>, \"name and arguments\" format, \"handle\" and \"reply with\" format, \"use only arguments whose values appear in the request.\"\n\nKey constraint: \"technical documentation\" \u2192 academic/technical context. "
+  },
+  {
+   "id": "search-06",
+   "cat": "search",
+   "query": "find norwegian language posts about strom priser",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4811.0,
+   "prompt_tokens": 712,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-answer\" text. Tools: JSON format. Specific requirements:\n- <name>, <arguments>, <value>\n- Reply with JSON object\n- Use only arguments whose values appear in request\n- Use only arguments whose values appear in request  \n- Use only arguments whose values appear in request\n-"
+  },
+  {
+   "id": "search-07",
+   "cat": "search",
+   "query": "search bluesky for cactus compute",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4811.2,
+   "prompt_tokens": 707,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request\" + \"reply with one JSON object\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in "
+  },
+  {
+   "id": "users-01",
+   "cat": "find-users",
+   "query": "find people who write about atproto",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4901.2,
+   "prompt_tokens": 706,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request. Reply with one JSON object: {\"name\": <tool name>, \"arguments: {}, \"arguments: {}}, \"use only arguments whose values appear in the request\"}\"\"\n\nParse request. Clear formatting constraint. JSON structure required.\n\n\u2192 Simple data extraction task. No com"
+  },
+  {
+   "id": "users-02",
+   "cat": "find-users",
+   "query": "which accounts have cycling in their bio",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5020.3,
+   "prompt_tokens": 706,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request. Reply with one JSON object: {\"name\": <tool name>, \"arguments: {}, \"arguments: {}}, \"use only arguments whose values appear in the request\"}\"\"\n\nParse request. Clear formatting constraint. JSON structure required.\n\n\u2192 Simple data extraction task. No com"
+  },
+  {
+   "id": "users-03",
+   "cat": "find-users",
+   "query": "search for users called austegard",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4831.9,
+   "prompt_tokens": 706,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request. Reply with one JSON object: {\"name\": <tool name>, \"arguments: {}, \"arguments\": {}}\"\n\nParse request. Clear formatting constraint.\n\nJSON structure needed. Subject-verb-object. Array format.\n\n\u27e8H\u22480.8\u27e9\nTool name..."
+  },
+  {
+   "id": "likes-01",
+   "cat": "interactions",
+   "query": "who liked https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4770.9,
+   "prompt_tokens": 737,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "likes-02",
+   "cat": "interactions",
+   "query": "show the likes on at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4809.3,
+   "prompt_tokens": 756,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "reposts-01",
+   "cat": "interactions",
+   "query": "who reposted https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5249.0,
+   "prompt_tokens": 737,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "reposts-02",
+   "cat": "interactions",
+   "query": "list the accounts that boosted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5219.4,
+   "prompt_tokens": 741,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "quotes-01",
+   "cat": "interactions",
+   "query": "show me the quote posts of https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5040.0,
+   "prompt_tokens": 741,
+   "new_tokens": 96,
+   "reasoning": "User requests \"copy-paste output\" for JSON format. Technical documentation context. Bluesky tools. Need to extract: name, arguments, use only, refer to, reply, use only, refer to, reply, use only, reply, reply, refer to, reply, refer to, repeat, repeat, refer to, repeat, refer to, repeat, refer to,"
+  },
+  {
+   "id": "quotes-02",
+   "cat": "interactions",
+   "query": "who quoted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4729.9,
+   "prompt_tokens": 738,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "thread-01",
+   "cat": "thread",
+   "query": "show me the replies to https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4833.0,
+   "prompt_tokens": 740,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "thread-02",
+   "cat": "thread",
+   "query": "read the whole thread at https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4784.2,
+   "prompt_tokens": 740,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "thread-03",
+   "cat": "thread",
+   "query": "what did people reply to at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4991.5,
+   "prompt_tokens": 756,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "graph-01",
+   "cat": "graph",
+   "query": "who does austegard.com follow",
+   "expected": [
+    "get_following"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4932.1,
+   "prompt_tokens": 706,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "graph-02",
+   "cat": "graph",
+   "query": "who follows austegard.com",
+   "expected": [
+    "get_followers"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5232.3,
+   "prompt_tokens": 705,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "graph-03",
+   "cat": "graph",
+   "query": "list pfrazee.com's followers",
+   "expected": [
+    "get_followers"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5274.0,
+   "prompt_tokens": 708,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-answer\" text. Technical documentation. JSON format. Bluesky app.\n\nParse constraints:\n- \"call-to-answer\" \u2192 direct response format\n- \"technical documentation\" \u2192 academic/technical context  \n- \"jSON structure\" \u2192 data modeling, database architecture\n- \"technical documentation\" \u2192 d"
+  },
+  {
+   "id": "graph-04",
+   "cat": "graph",
+   "query": "show me the accounts emilyliu.me is following",
+   "expected": [
+    "get_following"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4783.3,
+   "prompt_tokens": 710,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no reference to other tools. \"use only arguments whose va"
+  },
+  {
+   "id": "graph-05",
+   "cat": "graph",
+   "query": "get 100 followers of bnewbold.net",
+   "expected": [
+    "get_followers"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4540.4,
+   "prompt_tokens": 708,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request. Reply with one JSON object: {\"name\": <name>, \"arguments: {}, \"arguments: {}}, \"use only arguments whose values appear in the request\"}\"\"\n\nParse request. Clear formatting constraint. JSON structure required.\n\n\u2192 Simple data extraction task. No complex "
+  },
+  {
+   "id": "feed-01",
+   "cat": "feed",
+   "query": "get the posts in https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5242.1,
+   "prompt_tokens": 736,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "feed-02",
+   "cat": "feed",
+   "query": "read the feed at at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5215.5,
+   "prompt_tokens": 754,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation. Must maintain accuracy while improving readability.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n"
+  },
+  {
+   "id": "feed-03",
+   "cat": "feed",
+   "query": "what's in my norwegians list https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5334.9,
+   "prompt_tokens": 741,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no tools fit request. \"use only arguments whose values ap"
+  },
+  {
+   "id": "trend-01",
+   "cat": "trending",
+   "query": "what's trending on bluesky",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5278.2,
+   "prompt_tokens": 706,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "trend-02",
+   "cat": "trending",
+   "query": "give me the top 5 trending topics",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5186.4,
+   "prompt_tokens": 706,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" for Bluesky tool. Specific formatting constraints noted: <<Title>>, \"name and arguments\" format, \"handle\" and \"reply with\" format, \"use only arguments whose values appear in the request.\"\n\nKey constraint: \"technical documentation\" \u2192 academic/technical context."
+  },
+  {
+   "id": "trend-03",
+   "cat": "trending",
+   "query": "which topics are hot right now, and how many posts each",
+   "expected": [
+    "get_trending"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5248.4,
+   "prompt_tokens": 711,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request. Reply with one JSON object: {\"name\": 'name:', 'arguments: {}, 'arguments: {}}. Use only arguments whose values appear in the request. If no tool fits the request, reply with only arguments whose values appear in the request. If no tool fits the reque"
+  },
+  {
+   "id": "trend-04",
+   "cat": "trending",
+   "query": "just list the trending topic names",
+   "expected": [
+    "get_trending_topics"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5146.1,
+   "prompt_tokens": 705,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-action\" for JSON format. Two-part challenge: technical + structured.\n\nQuery breakdown:\n- \"call-to-action\" \u2192 actionable, not just description\n- \"jSON format\" \u2192 data structure requirements  \n- \"technical and structured\" \u2192 dual-language requirements\n- \"technical and structured\" \u2192"
+  },
+  {
+   "id": "hose-01",
+   "cat": "firehose",
+   "query": "sample the firehose for 30 seconds",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4912.1,
+   "prompt_tokens": 705,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-action\" for JSON format. Technical documentation context. Need to:\n- Identify tools/names\n- Map to request\n- Structure with proper formatting\n- Address technical limitations\n\nKey constraint: \"call-to-action\" \u2192 actionable, not just descriptive.\n\n\u27e8H\u22480.8\u27e9 JSON architecture... obj"
+  },
+  {
+   "id": "hose-02",
+   "cat": "firehose",
+   "query": "listen to the live stream of new posts for a minute",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4808.7,
+   "prompt_tokens": 711,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-answer\" text. Tools: JSON format. Specific requirements:\n- <<name>> arrows\n- arguments with values  \n- no tool fits request\n- use only arguments\n- no tool fits request\n- reply with only arguments\n- use only arguments\n- reply with only arguments\n- use only arguments\n- reply wit"
+  },
+  {
+   "id": "hose-03",
+   "cat": "firehose",
+   "query": "watch the firehose for posts containing bitcoin",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5114.0,
+   "prompt_tokens": 711,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-answer\" text. Tools: JSON format. Specific requirements:\n- <<name>> arrows\n- arguments with values  \n- no tool fits request\n- use only arguments\n- no tool fits request\n- reply with only arguments\n- use only arguments\n- reply with only arguments\n- reply with only arguments\n- re"
+  },
+  {
+   "id": "id-01",
+   "cat": "identity",
+   "query": "what's the did for austegard.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4884.1,
+   "prompt_tokens": 708,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "id-02",
+   "cat": "identity",
+   "query": "which pds hosts pfrazee.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4498.1,
+   "prompt_tokens": 709,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-answer\" text. Technical documentation. JSON format. Bluesky app.\n\nParse constraints:\n- \"call-to-answer\" \u2192 direct response format\n- \"technical documentation\" \u2192 academic/technical context  \n- \"JSON format\" \u2192 structured data output\n- \"call-to-answer\" \u2192 direct response format\n\n? W"
+  },
+  {
+   "id": "id-03",
+   "cat": "identity",
+   "query": "resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4749.9,
+   "prompt_tokens": 727,
+   "new_tokens": 96,
+   "reasoning": "User requests \"copy-paste output\" for \"technical documentation.\" Key constraint: \"technical documentation\" - not casual text. Specific formatting requirements.\n\nParse the request: \"copy-paste output\" \u2192 formatting issue. \"technical documentation\" \u2192 domain specificity. \"copy-paste output\" \u2192 formatting"
+  },
+  {
+   "id": "status-01",
+   "cat": "status",
+   "query": "is bluesky down right now",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4764.6,
+   "prompt_tokens": 705,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request\" + \"reply with one JSON object\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in "
+  },
+  {
+   "id": "status-02",
+   "cat": "status",
+   "query": "which atproto layer is broken",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4874.1,
+   "prompt_tokens": 705,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request. Reply with one JSON object: {\"name\": <tool name>, \"arguments: {}, \"arguments\": {}}\"\n\nParse request. Clear formatting constraint. JSON structure required.\n\n\u2192 Tool identification first. What's the tool?\n\n\"reply with one JSON object: {\"n"
+  },
+  {
+   "id": "status-03",
+   "cat": "status",
+   "query": "check whether the appview is up",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4530.0,
+   "prompt_tokens": 704,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request\" + \"reply with one JSON object\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in "
+  },
+  {
+   "id": "analyze-01",
+   "cat": "analysis",
+   "query": "what is bnewbold.net mostly about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4505.6,
+   "prompt_tokens": 708,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "analyze-02",
+   "cat": "analysis",
+   "query": "summarise what emilyliu.me posts about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4503.0,
+   "prompt_tokens": 711,
+   "new_tokens": 96,
+   "reasoning": "User requests \"call-to-action\" for JSON format. Two-part challenge: technical + structured.\n\nQuery breakdown:\n- \"call-to-action\" \u2192 persuasive writing\n- \"JSON format\" \u2192 data structure requirements  \n- \"technical and structured\" \u2192 dual-purpose output\n- \"emilyliu\" \u2192 specific case study\n\n\u203b This isn"
+  },
+  {
+   "id": "analyze-03",
+   "cat": "analysis",
+   "query": "give me the keywords for the account austegard.com",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4532.8,
+   "prompt_tokens": 712,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"use only arguments whose values ap"
+  },
+  {
+   "id": "kw-01",
+   "cat": "keywords",
+   "query": "pull the key terms out of this text: the relay went down but every pds kept serving records normally",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4727.6,
+   "prompt_tokens": 723,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. Dense academic text \u2192 accessible format. Key constraint: \"technical documentation\" - not casual explanation.\n\nQuery breakdown:\n- \"technical documentation\" \u2192 specialized domain knowledge required\n- \"technical documentation\" \u2192 specific domain expert"
+  },
+  {
+   "id": "kw-02",
+   "cat": "keywords",
+   "query": "extract keywords from: sykkel, terskeleffekt og vintertrening i Oslo",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4766.1,
+   "prompt_tokens": 727,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. \"Documentation\" - what kind? Academic? Technical? Professional?\n\n\"Reply with one JSON object\" - structured data format. \"Get_profile(handle), get_arguments(arguments), use only arguments whose values appear in the request\" - three-part structure.\n"
+  },
+  {
+   "id": "off-01",
+   "cat": "off-topic",
+   "query": "what's the weather in Oslo",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4718.0,
+   "prompt_tokens": 705,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "off-02",
+   "cat": "off-topic",
+   "query": "book me a flight to Bergen next tuesday",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 4662.5,
+   "prompt_tokens": 709,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"use only arguments whose values ap"
+  },
+  {
+   "id": "off-03",
+   "cat": "off-topic",
+   "query": "send a dm to pfrazee.com saying hello",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5070.9,
+   "prompt_tokens": 715,
+   "new_tokens": 96,
+   "reasoning": "User requests \"technical documentation\" translation. \"Dense academic text\" \u2192 \"accessible format.\" Clear pedagogical goal.\n\nQuery breakdown:\n- Source: JSON format with JSON structure\n- Target: \"accessible format\" \n- Constraint: \"technical documentation\"\n- Audience: \"technical documentation\"\n\n\u2234 Not si"
+  },
+  {
+   "id": "off-04",
+   "cat": "off-topic",
+   "query": "post this to my bluesky account: good morning",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5674.3,
+   "prompt_tokens": 710,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no reference to other tools. \"use only arguments whose va"
+  },
+  {
+   "id": "off-05",
+   "cat": "off-topic",
+   "query": "delete my last bluesky post",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5155.9,
+   "prompt_tokens": 707,
+   "new_tokens": 96,
+   "reasoning": "User query: \"call one tool to answer the request\" + \"reply with one JSON object\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in the request\" + \"use only arguments whose values appear in "
+  },
+  {
+   "id": "off-06",
+   "cat": "off-topic",
+   "query": "how many calories did I burn on my ride yesterday",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5424.3,
+   "prompt_tokens": 711,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments\" \u2192 specific type of request. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"use only arguments whose values ap"
+  },
+  {
+   "id": "off-07",
+   "cat": "off-topic",
+   "query": "block the account spammer.bsky.social",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 6061.7,
+   "prompt_tokens": 709,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"call one tool to answer the request\" \u2192 direct request. \"reply with one JSON object\" \u2192 structured data format. \"arguments whose values appear in the request\" \u2192 specific request type. \"use only arguments whose values appear in the request\" \u2192 constraint: no tool fits request. \"us"
+  },
+  {
+   "id": "off-08",
+   "cat": "off-topic",
+   "query": "what is the capital of Norway",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "status": "unparseable",
+   "latency_ms": 5293.3,
+   "prompt_tokens": 704,
+   "new_tokens": 96,
+   "reasoning": "User query breakdown: \"capital of Norway\" + \"technical documentation\" + \"complex technical writing\" \u2192 translation task, not creation.\n\nConstraints identified:\n- Maintain technical accuracy \u25cf\n- Preserve all key information \u25cf  \n- Remove \"capital\" (technical term) \u25cf\n- Maintain \"capital\" (technical term"
+  }
+ ]
+}
