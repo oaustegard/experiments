@@ -2,8 +2,8 @@
 
 Cactus shipped [Needle 2](https://cactuscompute.com/needle) on 2026-08-13: a
 45M-parameter tool-calling model, 14 MB compressed at CQ2, meant for phones,
-wearables and microcontrollers. It answers only in function calls — a byte-level
-grammar compiled from the declared schemas constrains every token — and it
+wearables and microcontrollers. It answers only in function calls, with a byte-level
+grammar compiled from the declared schemas constraining every token, and it
 carries a calibrated confidence head so a product can act above a threshold and
 escalate below it.
 
@@ -13,16 +13,16 @@ layer is actually worth: 62 natural-language queries, four schema arms, an
 oracle-retrieval probe, and a LoRA fine-tune.
 
 Headline: **the base model routes 61–70% of queries to the right tool, and the
-confidence head is what makes that usable — but only if you declare nothing but
-required arguments.** With optional arguments declared, confidence collapses
-toward zero on correct calls too, and the gate becomes unusable. With them
+confidence head is what makes that usable, but only if you declare nothing but
+required arguments.** With optional arguments declared, a correct call can score
+0.0004, so the gate cannot separate correct routing from wrong. With them
 dropped, the same gate trades coverage for precision monotonically: 38%
 coverage at 76% precision, 13% at 100%.
 
 Everything below is CPU-only, on a 4-core CCotw container. No GPU, no
 `ANTHROPIC_API_KEY`, no OpenRouter.
 
-## What is declared
+## The declared catalogue
 
 18 tools, all reads:
 
@@ -37,8 +37,8 @@ not recoverable from natural language.
 
 18 matters because Needle renders at most **five** tools per turn. Above five, a
 built-in retrieval head embeds the query and admits only the top five into the
-context, with the grammar rebuilt over that subset. An unselected tool is
-unreachable, not merely unlikely.
+context, with the grammar rebuilt over that subset. Cactus's own documentation puts it as "an unselected tool is
+unreachable, not merely unlikely".
 
 ## The four arms
 
@@ -66,10 +66,10 @@ tool name(s), the arguments the query licenses, and which optional arguments are
 *evidenced* by the query text ("get 50 posts from…" licenses `limit`, "what has
 X been posting" does not). Three things are scored per query:
 
-- **tool** — predicted name is in the accepted set; an off-topic query must
+- **tool**: predicted name is in the accepted set; an off-topic query must
   produce Needle's empty call.
-- **args** — every expected key present and equal after normalisation.
-- **invented** — the call carries an argument neither expected nor evidenced,
+- **args**: every expected key present and equal after normalisation.
+- **invented**: the call carries an argument neither expected nor evidenced,
   i.e. a value the query never licensed.
 
 Routing is one `complete()` turn and touches no network. Every arm is
@@ -96,14 +96,15 @@ Paired McNemar (same 62 queries per arm, exact two-sided):
 
 Only one contrast is significant at n=62: rewriting the descriptions is worth
 +26 points of routable accuracy when the full signature is declared. The arity
-contrasts point in opposite directions depending on the wording and neither
-reaches significance — on accuracy. Arity's real effect is elsewhere.
+contrasts point in opposite directions depending on the wording, and neither
+reaches significance on accuracy. Arity's effect lands on the confidence gate
+instead.
 
-### What arity does to the confidence gate
+### Argument arity and the confidence gate
 
 The gate is the reason to run a 45M model at all: act above a threshold,
 escalate below it. Sweeping the threshold over the calls each arm emits
-(refusals excluded — a refusal executes nothing at any threshold):
+(refusals excluded, since a refusal executes nothing at any threshold):
 
 | threshold | `tuned` coverage / precision | `tuned-min` coverage / precision |
 |---|---|---|
@@ -127,11 +128,43 @@ cut the invented rate from 0.722 to 0.352 (`auto`) and from 0.518 to 0.222
 (`tuned`), and raised mean confidence on correct calls in both wordings.
 
 The practical rule: **declare only the arguments you need the model to fill.**
-Not because it routes better — that contrast is a wash — but because the
+Not because it routes better, since that contrast is a wash, but because the
 confidence score is otherwise uninformative, and the confidence score is the
 product.
 
-### Retrieval costs more than the selector does
+### The arity effect on a single-tool catalogue
+
+The gate result above is measured across 18 tools, four wordings and a
+retrieval stage, any of which could be carrying it. `arity_probe.py` removes all
+three: **one** declared tool, so the routing decision is correct by
+construction, 30 queries that name an account and license nothing else, and the
+only thing that varies is how many optional arguments that one schema declares.
+
+| declared | mean confidence | median | filled an unlicensed argument |
+|---|---|---|---|
+| `handle` | 0.199 | 0.073 | 0.000 |
+| `handle`, `limit` | 0.111 | 0.028 | 0.733 |
+| `handle`, `limit`, `transcribe` | 0.068 | 0.016 | 0.233 |
+
+Paired two-sided sign tests over the same 30 queries:
+
+| step | confidence down | up | p |
+|---|---|---|---|
+| `handle` → `+limit` | 21 | 9 | 0.04277 |
+| `+limit` → `+transcribe` | 21 | 9 | 0.04277 |
+| `handle` → both | 25 | 5 | **0.00032** |
+
+Monotone and significant at every step, on a call that cannot be misrouted.
+The 18-tool gate result is the same mechanism operating through a selection
+stage.
+
+Two things this also shows. The head is conservative in absolute terms — mean
+0.199 even in the required-only condition on an unambiguous call — so a
+threshold has to be fitted to a deployment rather than read as a probability.
+And the model fills the unlicensed `limit` on 73% of queries when it is
+declared, which is what the confidence head is reacting to.
+
+### Retrieval versus selection
 
 Needle renders five tools; 18 are declared. A wrong answer can mean the right
 tool never entered the context, or that it did and the model picked a neighbour.
@@ -152,11 +185,11 @@ declared tools are the retrieval head failing to surface the right tool, not the
 selector picking wrong. Two eval queries make it concrete: `feed-02` ("read the
 feed at at://…/app.bsky.feed.generator/…") and `trend-03` ("which topics are hot
 right now, and how many posts each") both came back as refusals at confidence
-0.0006 and 0.9464 — the model declining to call a tool it was never shown.
+0.0006 and 0.9464, the model declining to call a tool it was never shown.
 
 `auto-min`'s −0.018 is within noise (one query on n=54).
 
-### The sixth tool costs 3.6x
+### Latency versus catalogue size
 
 Holding the five tools the probe queries need in every subset and padding the
 catalogue with the rest:
@@ -169,15 +202,16 @@ catalogue with the rest:
 | 12 | 1122 ms | 1285 ms |
 | 18 | 1109 ms | 1282 ms |
 
-Retrieval is a fixed ~750 ms per turn on this CPU, charged the moment a sixth
-tool is declared and then almost flat out to 18. `tool_index_path` does not
+The sixth tool costs 3.6x the fifth. Retrieval is a fixed ~750 ms per turn on
+this CPU, charged the moment a sixth tool is declared and then almost flat out
+to 18. `tool_index_path` does not
 touch it: with the index persisted, cold and warm, the median turn stayed
 1090–1124 ms against 1150 ms without. That is consistent with the documented
-design — the index caches the *tool* embeddings, computed once at init, while
+design: the index caches the *tool* embeddings, computed once at init, while
 the *query* is embedded every turn.
 
-So the size decision is binary, not gradual. Five or fewer tools per agent is a
-different performance regime; six and eighteen cost the same.
+Five or fewer tools per agent is one performance regime. Six and eighteen are
+the other, and cost the same as each other.
 
 One measurement artifact worth naming: `needle.Needle(...)` binds lazily, so
 construction returns in ~0 ms and the engine load lands on the first
@@ -211,7 +245,7 @@ errors are all semantically adjacent: "how many followers does pfrazee.com have"
 routes to `get_followers`, "look up the account jay.bsky.team" routes to
 `get_user_posts`. `identity` fails because the model has no notion that "did"
 and "pds" are things `resolve_identity` serves. `graph` sits at 0.600 in all
-four arms on the `get_followers` / `get_following` pair — a distinction of one
+four arms on the `get_followers` / `get_following` pair, a distinction of one
 preposition.
 
 These are the failures a fine-tune should reach, and the ones a schema rewrite
@@ -252,8 +286,8 @@ python3 recheck.py               # every number in this file against the artifac
   every other ordering here as directional.
 - **One author wrote the eval set and the tuned schemas**, so the tuned arm is
   partly measuring agreement between two artifacts by the same writer. The
-  `auto` arm is not exposed to this — its wording predates the experiment by
-  months — which is why the `auto` vs `tuned` gap is the contrast worth
+  `auto` arm is not exposed to this, since its wording predates the experiment by
+  months, which is why the `auto` vs `tuned` gap is the contrast worth
   believing.
 - **The eval set is not sampled from real traffic.** Queries were written to
   cover the catalogue and to include the confusions the surface actually has
