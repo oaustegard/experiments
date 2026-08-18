@@ -655,10 +655,24 @@ def main() -> int:
             print(line)
         for s, rows in rows_by_split.items():
             out["threshold_sweep"][gate][s] = rows
-        best = max(rows_by_split["family A (fitted)"], key=lambda d: d["overall"])
-        print(f"  best on family A by overall accuracy (routable hits + correct abstains):"
-              f" t={best['threshold']} cov={best['coverage']} acc={best['label_acc']}"
-              f" abst={best['abstain_acc']}")
+        # Family A is the only split it is legitimate to choose on, and it is the
+        # fitted family — so the chosen threshold is *transferred* to B and wild,
+        # not tuned there. Printing each split's own oracle threshold makes the
+        # size of that transfer gap visible instead of implied.
+        for sname in splits:
+            best = max(rows_by_split[sname], key=lambda d: d["overall"])
+            note = "  <- chosen" if sname == "family A (fitted)" else "  (oracle, not used)"
+            print(f"  argmax overall on {sname:<22} t={best['threshold']:<7}"
+                  f" cov={best['coverage']:.3f} acc={best['label_acc']:.3f}"
+                  f" abst={best['abstain_acc']:.3f} overall={best['overall']:.3f}{note}")
+            out["threshold_sweep"][gate].setdefault("_argmax", {})[sname] = best
+        chosen = max(rows_by_split["family A (fitted)"], key=lambda d: d["overall"])["threshold"]
+        for sname in splits:
+            row = next(d for d in rows_by_split[sname] if d["threshold"] == chosen)
+            print(f"  transferred t={chosen} to {sname:<22} cov={row['coverage']:.3f}"
+                  f" acc={row['label_acc']:.3f} abst={row['abstain_acc']:.3f}"
+                  f" overall={row['overall']:.3f}")
+            out["threshold_sweep"][gate].setdefault("_transferred", {})[sname] = row
         print()
 
     # --- the agreement gate, both sides BM25 --------------------------------
