@@ -117,3 +117,23 @@ accuracy numbers collected during training stand.
 **Direction.** Caught immediately, because the number contradicted a measurement
 already in the writeup. A latency finding measured only once, with no baseline
 to contradict it, would have shipped.
+
+## 7. Two confusion counts stated from memory, not from the rows
+
+**What.** The two-stage section shipped one commit claiming "every `plumbing`
+query went to `follow_graph` or `find_content`, and 7 of 8 `account` queries
+went to `find_content`". Counting the rows: 15 `account` queries, of which 9
+went to `find_content` and 3 were right; 8 `plumbing` queries, of which 1 was
+right and the rest scattered across four groups including `one_post`.
+
+**Cause.** I read the error list printed by `two_stage.py`, which shows only
+the failures, and described the distribution from it. A list of errors does not
+carry the denominator or the successes.
+
+**Fix.** Counted with `collections.Counter` over `group_expected` /`group` and
+replaced both figures. `recheck.py` cannot catch this class — the claim is prose
+about a distribution, not a headline number — so the guard is counting rather
+than describing.
+
+**Direction.** Overstated how systematic the failure was, in the direction of
+my own argument. Corrected within the hour, one commit later.
