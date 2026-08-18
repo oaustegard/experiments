@@ -106,6 +106,15 @@ except Exception as e:  # surface any failure as ImportError, per arms.load_all
     raise ImportError(f"spacy unavailable: {type(e).__name__}: {e}") from e
 
 MODEL = "en_core_web_md"
+
+# Check the model at *import* time, not at first route: `arms.load_all()` skips a
+# module that raises ImportError, and a missing model should skip this file
+# rather than blow up mid-evaluation when an arm is constructed.
+with _unshadowed():
+    if not _spacy.util.is_package(MODEL):
+        raise ImportError(f"spaCy model {MODEL} not installed "
+                          f"(python3 -m spacy download {MODEL})")
+
 _NLP = None
 LOAD_MS = 0.0
 
