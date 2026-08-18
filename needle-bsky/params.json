@@ -1,0 +1,60 @@
+{
+ "experiment": "needle-bsky",
+ "date": "2026-08-18",
+ "model": {
+  "name": "Cactus Needle 2",
+  "params": "45M",
+  "package": "cactus-needle",
+  "version": "2.0.6",
+  "weights": "huggingface.co/Cactus-Compute/needle2",
+  "engine_cache": "2.0.2",
+  "paper": "arXiv:2607.18363",
+  "repo": "github.com/cactus-compute/needle"
+ },
+ "catalogue": {
+  "n_tools": 18,
+  "sources": [
+   "browsing-bluesky/scripts/bsky.py (16)",
+   "atprotoing/scripts/atproto.py (2)"
+  ],
+  "excluded": [
+   "get_all_followers",
+   "get_all_following"
+  ]
+ },
+ "evalset": {
+  "path": "evalset.jsonl",
+  "n": 62,
+  "routable": 54,
+  "off_topic": 8
+ },
+ "arms": [
+  "auto",
+  "auto-min",
+  "tuned",
+  "tuned-min",
+  "oracle-auto",
+  "oracle-auto-min",
+  "oracle-tuned",
+  "oracle-tuned-min"
+ ],
+ "oracle_k": 5,
+ "oracle_seed": 20260818,
+ "finetune": {
+  "rows": 800,
+  "tools_per_row": 5,
+  "seed": 20260818,
+  "epochs": 6,
+  "lora_rank": 16,
+  "lora_alpha": 32,
+  "batch_size": 16,
+  "max_len": 1024
+ },
+ "host": {
+  "cpu_count": 4,
+  "backend": "cpu float32",
+  "python": "3.11.15",
+  "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
+  "jax": "0.10.2"
+ }
+}

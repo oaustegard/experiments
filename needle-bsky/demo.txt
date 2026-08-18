@@ -1,0 +1,25 @@
+$ python3 -m needle_bsky ask "grab pfrazee.com's timeline"
+[escalate] get_profile(handle='pfrazee.com')  confidence 0.059  1178 ms
+  below the gate — not executed. Hand this one up.
+
+$ python3 -m needle_bsky ask "open the account page for austegard.com"
+[act] get_profile(handle='austegard.com')  confidence 0.501  961 ms
+{
+ "handle": "austegard.com",
+ "display_name": "Oskar \ud83d\udd4a\ufe0f",
+ "description": "oskar @ austegard.com \ud83d\udd4a\ufe0f\nAI Explorer - caveat vibrans\nEvolution guide for Muninn \ud83d\udc26\u200d\u2b1b (muninn.austegard.com)\n\nYeah not actually green. Not really that grouchy either.",
+ "followers": 496,
+ "following": 855,
+ "posts": 3820,
+
+$ python3 -m needle_bsky ask "dig up posts on cactus needle"
+[escalate] get_user_posts(handle='cactus_posts')  confidence 0.000  1338 ms
+  below the gate — not executed. Hand this one up.
+
+$ python3 -m needle_bsky ask "anything broken in the network at the moment"
+[escalate] atproto_status()  confidence 0.230  827 ms
+  below the gate — not executed. Hand this one up.
+
+$ python3 -m needle_bsky ask "set a timer for twenty minutes"
+[refuse] no declared tool serves this (confidence 0.993, 706 ms)
+
