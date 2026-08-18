@@ -1,0 +1,56 @@
+{
+ "experiment": "monad-bsky",
+ "date": "2026-08-18",
+ "question": "Does a general-purpose 56M reasoning model, fine-tuned, match a purpose-built 45M tool-calling model on the same 18-tool routing task?",
+ "model": {
+  "name": "Monad",
+  "repo": "PleIAs/Monad",
+  "params_measured": 56700000.0,
+  "arch": "LlamaForCausalLM, 64 layers, hidden 256, 4 heads, head_dim 64, intermediate 768",
+  "vocab": 8192,
+  "max_position_embeddings": 2048,
+  "tie_word_embeddings": true,
+  "trained_on": "SYNTH, ~200B tokens",
+  "template": "Qwen-style <|im_start|> turns with a <think> trace",
+  "card_limits": "English only, no multi-turn, hallucinations expected; MMLU ~30%, GSM8K 8%"
+ },
+ "comparison_arm": "needle-bsky (Cactus Needle 2, 45M, grammar-constrained, calibrated confidence head)",
+ "prompt": {
+  "tool_rendering": "one prose line per tool: name(args): description",
+  "tool_block_tokens_prose": 574,
+  "tool_block_tokens_json": 1972,
+  "context_limit": 2048,
+  "median_row_tokens": 767,
+  "max_row_tokens": 864
+ },
+ "eval": {
+  "source": "needle-bsky/evalset.jsonl",
+  "n": 62,
+  "routable": 54,
+  "off_topic": 8,
+  "scoring": "imported from needle-bsky/eval.py"
+ },
+ "train": {
+  "rows": 800,
+  "tools_per_row": 18,
+  "seed": 20260818,
+  "epochs": 3,
+  "batch_size": 4,
+  "lr": 0.0001,
+  "max_len": 896,
+  "val_split": 0.1,
+  "optimizer": "AdamW wd 0.01 betas (0.9,0.95)",
+  "schedule": "5% warmup then cosine",
+  "grad_clip": 1.0,
+  "method": "full fine-tune (not LoRA)",
+  "loss": "completion tokens only"
+ },
+ "host": {
+  "cpu_count": 4,
+  "backend": "cpu fp32",
+  "torch": "2.13.0+cpu",
+  "transformers": "5.15.0",
+  "python": "3.11.15",
+  "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39"
+ }
+}
