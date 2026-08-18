@@ -10,7 +10,7 @@
    "method_acc_given_tool": 0.972,
    "abstain_acc": 0.925,
    "args_acc": 0.6363,
-   "median_latency_ms": 0.0476
+   "median_latency_ms": 0.0445
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -22,7 +22,7 @@
    "method_acc_given_tool": 0.9275,
    "abstain_acc": 0.95,
    "args_acc": 0.4669,
-   "median_latency_ms": 0.0471
+   "median_latency_ms": 0.0459
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -34,7 +34,45 @@
    "method_acc_given_tool": 0.9375,
    "abstain_acc": 0.8667,
    "args_acc": null,
-   "median_latency_ms": 0.0354
+   "median_latency_ms": 0.0353
+  }
+ },
+ "compiled-claude-cleanroom": {
+  "family A (fitted)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.9873,
+   "precision": 0.8739,
+   "label_acc": 0.8629,
+   "tool_acc": 0.8861,
+   "method_acc_given_tool": 0.9418,
+   "abstain_acc": 1.0,
+   "args_acc": 0.7682,
+   "median_latency_ms": 0.0836
+  },
+  "family B (held-out)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.7774,
+   "precision": 0.6486,
+   "label_acc": 0.5042,
+   "tool_acc": 0.5601,
+   "method_acc_given_tool": 0.8197,
+   "abstain_acc": 0.95,
+   "args_acc": 0.4389,
+   "median_latency_ms": 0.0965
+  },
+  "wild (hand-authored)": {
+   "n_routable": 74,
+   "n_offtopic": 15,
+   "coverage": 0.6757,
+   "precision": 0.8,
+   "label_acc": 0.5405,
+   "tool_acc": 0.5405,
+   "method_acc_given_tool": 1.0,
+   "abstain_acc": 0.8667,
+   "args_acc": null,
+   "median_latency_ms": 0.0747
   }
  },
  "compiled-gemini-cleanroom": {
@@ -48,7 +86,7 @@
    "method_acc_given_tool": 0.9781,
    "abstain_acc": 0.95,
    "args_acc": 0.5623,
-   "median_latency_ms": 0.0453
+   "median_latency_ms": 0.0426
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -60,7 +98,7 @@
    "method_acc_given_tool": 0.8101,
    "abstain_acc": 1.0,
    "args_acc": 0.1628,
-   "median_latency_ms": 0.0549
+   "median_latency_ms": 0.0525
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -72,7 +110,45 @@
    "method_acc_given_tool": 1.0,
    "abstain_acc": 0.9333,
    "args_acc": null,
-   "median_latency_ms": 0.036
+   "median_latency_ms": 0.0328
+  }
+ },
+ "compiled-gemini-chunked": {
+  "family A (fitted)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.8175,
+   "precision": 0.8981,
+   "label_acc": 0.7342,
+   "tool_acc": 0.7605,
+   "method_acc_given_tool": 0.9263,
+   "abstain_acc": 1.0,
+   "args_acc": 0.6547,
+   "median_latency_ms": 0.0873
+  },
+  "family B (held-out)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.2268,
+   "precision": 0.6047,
+   "label_acc": 0.1371,
+   "tool_acc": 0.1466,
+   "method_acc_given_tool": 0.8902,
+   "abstain_acc": 1.0,
+   "args_acc": 0.1043,
+   "median_latency_ms": 0.1322
+  },
+  "wild (hand-authored)": {
+   "n_routable": 74,
+   "n_offtopic": 15,
+   "coverage": 0.1892,
+   "precision": 0.8571,
+   "label_acc": 0.1622,
+   "tool_acc": 0.1622,
+   "method_acc_given_tool": 1.0,
+   "abstain_acc": 1.0,
+   "args_acc": null,
+   "median_latency_ms": 0.085
   }
  },
  "compiled-gemini-breadth": {
@@ -86,7 +162,7 @@
    "method_acc_given_tool": 0.9729,
    "abstain_acc": 1.0,
    "args_acc": 0.5425,
-   "median_latency_ms": 0.0584
+   "median_latency_ms": 0.0578
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -98,7 +174,7 @@
    "method_acc_given_tool": 0.82,
    "abstain_acc": 1.0,
    "args_acc": 0.1132,
-   "median_latency_ms": 0.0899
+   "median_latency_ms": 0.0878
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -110,7 +186,7 @@
    "method_acc_given_tool": 1.0,
    "abstain_acc": 1.0,
    "args_acc": null,
-   "median_latency_ms": 0.0488
+   "median_latency_ms": 0.0482
   }
  },
  "compiled-gemini-fitter": {
@@ -124,7 +200,7 @@
    "method_acc_given_tool": 0.9746,
    "abstain_acc": 1.0,
    "args_acc": 0.7312,
-   "median_latency_ms": 0.0666
+   "median_latency_ms": 0.0663
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -136,7 +212,7 @@
    "method_acc_given_tool": 0.48,
    "abstain_acc": 1.0,
    "args_acc": 0.0318,
-   "median_latency_ms": 0.1028
+   "median_latency_ms": 0.1082
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -148,7 +224,7 @@
    "method_acc_given_tool": 1.0,
    "abstain_acc": 1.0,
    "args_acc": null,
-   "median_latency_ms": 0.075
+   "median_latency_ms": 0.0716
   }
  },
  "compiled-gemini-iter1": {
@@ -162,7 +238,7 @@
    "method_acc_given_tool": 1.0,
    "abstain_acc": 0.925,
    "args_acc": 0.7349,
-   "median_latency_ms": 0.0701
+   "median_latency_ms": 0.0716
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -174,7 +250,7 @@
    "method_acc_given_tool": 0.7967,
    "abstain_acc": 1.0,
    "args_acc": 0.1883,
-   "median_latency_ms": 0.0969
+   "median_latency_ms": 0.0992
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -186,7 +262,7 @@
    "method_acc_given_tool": 0.9091,
    "abstain_acc": 0.9333,
    "args_acc": null,
-   "median_latency_ms": 0.0596
+   "median_latency_ms": 0.0631
   }
  },
  "compiled-gemini-iter2": {
@@ -200,7 +276,7 @@
    "method_acc_given_tool": 1.0,
    "abstain_acc": 0.925,
    "args_acc": 0.7633,
-   "median_latency_ms": 0.0748
+   "median_latency_ms": 0.0798
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -212,7 +288,7 @@
    "method_acc_given_tool": 0.7739,
    "abstain_acc": 1.0,
    "args_acc": 0.1883,
-   "median_latency_ms": 0.1134
+   "median_latency_ms": 0.1136
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -224,7 +300,7 @@
    "method_acc_given_tool": 0.8333,
    "abstain_acc": 0.8667,
    "args_acc": null,
-   "median_latency_ms": 0.0753
+   "median_latency_ms": 0.0732
   }
  },
  "compiled-gemini-iter3": {
@@ -238,7 +314,7 @@
    "method_acc_given_tool": 1.0,
    "abstain_acc": 0.95,
    "args_acc": 0.6153,
-   "median_latency_ms": 0.0802
+   "median_latency_ms": 0.0805
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -250,7 +326,7 @@
    "method_acc_given_tool": 0.7451,
    "abstain_acc": 1.0,
    "args_acc": 0.1463,
-   "median_latency_ms": 0.1248
+   "median_latency_ms": 0.125
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -262,7 +338,7 @@
    "method_acc_given_tool": 1.0,
    "abstain_acc": 0.8667,
    "args_acc": null,
-   "median_latency_ms": 0.0811
+   "median_latency_ms": 0.0796
   }
  },
  "compiled-gemini25-cleanroom": {
@@ -276,7 +352,7 @@
    "method_acc_given_tool": 0.9133,
    "abstain_acc": 1.0,
    "args_acc": 0.2737,
-   "median_latency_ms": 0.0593
+   "median_latency_ms": 0.0582
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -288,7 +364,7 @@
    "method_acc_given_tool": null,
    "abstain_acc": 1.0,
    "args_acc": 0.0,
-   "median_latency_ms": 0.0605
+   "median_latency_ms": 0.0581
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -300,7 +376,7 @@
    "method_acc_given_tool": null,
    "abstain_acc": 1.0,
    "args_acc": null,
-   "median_latency_ms": 0.0303
+   "median_latency_ms": 0.0297
   }
  },
  "compiled-gemini25lite-cleanroom": {
@@ -314,7 +390,7 @@
    "method_acc_given_tool": 0.7059,
    "abstain_acc": 1.0,
    "args_acc": 0.058,
-   "median_latency_ms": 0.0473
+   "median_latency_ms": 0.0467
   },
   "family B (held-out)": {
    "n_routable": 948,
@@ -326,7 +402,7 @@
    "method_acc_given_tool": null,
    "abstain_acc": 1.0,
    "args_acc": 0.0,
-   "median_latency_ms": 0.0464
+   "median_latency_ms": 0.0461
   },
   "wild (hand-authored)": {
    "n_routable": 74,
@@ -338,7 +414,7 @@
    "method_acc_given_tool": null,
    "abstain_acc": 1.0,
    "args_acc": null,
-   "median_latency_ms": 0.033
+   "median_latency_ms": 0.0327
   }
  }
 }

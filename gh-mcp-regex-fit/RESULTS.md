@@ -627,56 +627,145 @@ extraction.
 # Third pass — the clean room actually ran
 
 The gateway credentials arrived, so the rig the second pass left `built, not
-run` ran. Everything below is Gemini 3.7 Flash through the Cloudflare AI
-Gateway, authoring rules that execute in `handwritten.py`'s executor and are
-scored by the same `eval.py` on the same three splits. Nothing about the
-harness changed: `hand` reproduces 0.696 / 0.546 / 0.486 and the fitted
-`schema` list reproduces 0.984 / 0.239 / 0.324 to three decimals from a
-regenerated `data/`.
+run` ran. Two independent compilers now author rules against the same 79
+targets — **Gemini 3.7 Flash** through the Cloudflare AI Gateway, and a
+**Claude subagent in a clean room** that read a single spec file and nothing
+else — and both execute in `handwritten.py`'s executor, scored by the same
+`eval.py` on the same three splits. Nothing about the harness changed: `hand`
+reproduces 0.696 / 0.546 / 0.486 and the fitted `schema` list reproduces
+0.984 / 0.239 / 0.324 to three decimals from a regenerated `data/`.
 
-Five supervision regimes, one live arm, three model tiers.
+The headline is not the one the second pass expected. Contamination turned out
+to be worth about ±0.05 and to point *against* the contaminated arm on the
+split that matters. What the clean room actually exposed is a **compiler
+capability gap between models that three separate controls fail to close**, and
+a cascade that beats live inference by 0.202.
 
 ## The table
 
-Accuracy on family A (fitted) / family B (held-out) / wild (hand-authored).
-Every compiled arm runs through the same executor; only who wrote the rules
-and what they were shown differs.
+Accuracy on family A / family B / wild. Every compiled arm runs the same
+executor; only the author, and what it was shown, differ.
 
-| arm | what it saw | A | B | wild | wild cov | wild prec |
-|---|---|---|---|---|---|---|
-| `gemini25lite-cleanroom` | schemas + cues | 0.059 | 0.000 | 0.000 | 0.000 | – |
-| `gemini25-cleanroom` | schemas + cues | 0.294 | 0.000 | 0.013 | 0.013 | 1.000 |
-| `gemini-breadth` | schemas + cues, *told to be broad* | 0.632 | 0.151 | 0.108 | 0.149 | 0.727 |
-| `gemini-cleanroom` | schemas + cues | 0.615 | 0.161 | 0.176 | 0.216 | 0.812 |
-| `gemini-fitter` | + 237 labelled family-A rows | 0.841 | 0.050 | 0.230 | 0.270 | 0.850 |
-| `gemini-iter1` | + its own family-A errors, ×1 | 0.892 | 0.219 | 0.405 | 0.554 | 0.732 |
-| **`gemini-iter2`** | + its own family-A errors, ×2 | 0.912 | 0.210 | **0.419** | 0.568 | 0.738 |
-| `gemini-iter3` | + its own family-A errors, ×3 | 0.789 | 0.176 | 0.419 | 0.513 | 0.816 |
-| `hand` (Claude, contaminated) | wrote the templates and the rules | 0.696 | 0.546 | 0.486 | 0.730 | 0.667 |
-| `schema` (greedy fitted list) | fitted on family A | 0.984 | 0.239 | 0.324 | 0.527 | 0.615 |
-| **`gemini-live`** (per query, 1.3 s) | the request, at inference time | — | 0.532 | **0.568** | 0.595 | 0.955 |
+| arm | author | what it saw | A | B | wild | wild cov | wild prec |
+|---|---|---|---|---|---|---|---|
+| `gemini25lite-cleanroom` | 2.5-flash-lite | schemas + cues | 0.059 | 0.000 | 0.000 | 0.000 | – |
+| `gemini25-cleanroom` | 2.5-flash | schemas + cues | 0.294 | 0.000 | 0.013 | 0.013 | 1.000 |
+| `gemini-breadth` | 3.7-flash | schemas + cues, *told to be broad* | 0.632 | 0.151 | 0.108 | 0.149 | 0.727 |
+| `gemini-chunked` | 3.7-flash | schemas + cues, *8 calls, 224 rules* | 0.734 | 0.137 | 0.162 | 0.189 | 0.857 |
+| `gemini-cleanroom` | 3.7-flash | schemas + cues | 0.615 | 0.161 | 0.176 | 0.216 | 0.812 |
+| `gemini-fitter` | 3.7-flash | + 237 labelled family-A rows | 0.841 | 0.050 | 0.230 | 0.270 | 0.850 |
+| `gemini-iter1` | 3.7-flash | + its own family-A errors, ×1 | 0.892 | 0.219 | 0.405 | 0.554 | 0.732 |
+| `gemini-iter2` | 3.7-flash | + its own family-A errors, ×2 | 0.912 | 0.210 | 0.419 | 0.568 | 0.738 |
+| `gemini-iter3` | 3.7-flash | + its own family-A errors, ×3 | 0.789 | 0.176 | 0.419 | 0.513 | 0.816 |
+| `schema` | greedy fit | fitted on family A | 0.984 | 0.239 | 0.324 | 0.527 | 0.615 |
+| `hand` | Claude | wrote the templates *and* the rules | 0.696 | 0.546 | 0.486 | 0.730 | 0.667 |
+| **`claude-cleanroom`** | Claude | schemas + cues, never saw a split | 0.863 | 0.504 | **0.540** | 0.676 | 0.800 |
+| **`gemini-live`** | 3.7-flash | the request, per query, 1.2 s | 0.532 | 0.532 | **0.568** | 0.595 | 0.955 |
 
-Two paragraphs' worth of that table is the whole third pass, so take them one
-at a time.
+## The clean room works, and the contamination was small
 
-## An independent compiler ties Claude on wild, and it took iteration to get there
+`claude-cleanroom` is a subagent given one file: the 79 targets, the 23 cue
+names, the executor semantics and the output format. It was forbidden the
+experiment directory and its transcript confirms it — six tool calls, one read
+of the spec, the rest in a scratch directory. It produced **154 rules** and
+scored **0.863 / 0.504 / 0.540**.
 
-`hand` vs `gemini-iter2` on the wild split: 17 queries where only Claude's
-rules are right, 12 where only Gemini's are, 19 where both are — **McNemar
-p = 0.458**. On the split that is not a template family, rules compiled by a
-model that never saw the eval are statistically indistinguishable from rules
-written by the model that authored it.
+Set that against the arm it replaces. `hand` was written by Claude *after*
+authoring the query templates, which the second pass called disqualifying.
+Measured, the disqualification was right in principle and small in size:
 
-That is the answer to the question this thread started from. A model reading a
-catalogue once and emitting regexes is a real routing artefact, not a
-degenerate one, and the resulting router runs at **0.075 ms** — about
-**17,000x** faster than asking the model per request.
+| | family B | wild |
+|---|---|---|
+| `hand` (saw everything) | 0.546 | 0.486 |
+| `claude-cleanroom` (saw nothing) | 0.504 | **0.540** |
 
-But the clean room alone does not get there. Zero-shot from the schemas it
-scores 0.176 on wild; one round of revision against its own family-A errors
-takes it to 0.405 (`cleanroom` vs `iter1`, p = 4.0e-05). What the model needs
-is not more instruction, it is *a loss signal* — and one round supplies most of
-it.
+Contamination bought **+0.042 on family B** — the split whose paraphrases the
+same author wrote — and **cost 0.054 on wild** (McNemar p=0.038 and p=0.481
+respectively). Writing rules with the eval in view made them better on the
+template family and *worse* on realistic requests, which is what overfitting to
+a template family looks like from the inside. The second pass was right to
+throw the number out; it was wrong to expect the honest number to be lower.
+
+So the answer to the question that started this thread — *does a model reading
+a catalogue and writing regexes produce a real router?* — is **yes, 0.540 on
+hand-authored requests at 0.077 ms**, and it needed no supervision, no queries,
+and no sight of the eval.
+
+## But the compiler is a model, and the tier gap is a cliff
+
+Three tiers of one family, identical prompt:
+
+| compiler | A | B | wild |
+|---|---|---|---|
+| gemini-2.5-flash-lite | 0.059 | 0.000 | 0.000 |
+| gemini-2.5-flash | 0.294 | 0.000 | 0.013 |
+| gemini-3.7-flash | 0.615 | 0.161 | 0.176 |
+| Claude (clean room) | 0.863 | 0.504 | 0.540 |
+
+Both 2.5 tiers score **zero** on both held-out splits, and their rules say why.
+2.5-flash-lite writes
+
+```
+get workflow (?P<workflow_id>\S+) in (?P<owner>\S+)/(?P<repo>\S+)
+```
+
+a transcription of the schema signature into regex syntax, which matches only a
+request phrased as the schema names itself. 3.7-flash writes
+`download.*artifact`. Their *precision* stays high — 0.918 on family A for lite
+— because a pattern that matches almost nothing is almost never wrong. Read the
+coverage column when an arm might be degenerate.
+
+Compiling a router is not a formatting task: it requires anticipating phrasings
+absent from the input, and that capability arrives between tiers rather than
+degrading smoothly across them.
+
+## Three controls, and none of them is procedure
+
+Gemini 3.7-flash at 0.176 against Claude at 0.540 is a 3x gap, and the two arms
+did not run the same procedure — Claude ran an agent loop (read spec, write a
+generator script, validate, smoke-test, ~16 minutes) and emitted 154 rules;
+Gemini got one `generateContent` call and emitted 78. Three interventions test
+whether the gap is procedure or model. **All three fail to close it.**
+
+**Told to be broad.** `breadth_arm.py` changes only the instruction — cover
+every target, five to ten surface forms each, do not buy precision by leaving
+targets uncovered — holding catalogue, cues, executor and splits fixed.
+Coverage went **down**: 0.216 → 0.149 on wild, 0.390 → 0.188 on family B.
+Asked for breadth, the model wrote more alternations and anchored them harder
+to the schema's own verbs.
+
+**Given eight calls instead of one.** `chunked_arm.py` splits the catalogue
+into 8 chunks of 10 targets, gives each its own call — cutting per-call output
+pressure ~10x — then runs one ordering pass over the concatenation, verified to
+be a permutation and not a rewrite. It produced **224 rules, 2.8 per target,
+more than Claude wrote**. Wild went 0.176 → **0.162** (p=1.00), family B
+0.161 → 0.137. More budget, more calls, more rules, same behaviour.
+
+**Given supervision.** Two rounds of its own family-A errors is the one thing
+that moves it, to 0.419 wild — still below Claude's *zero-shot* 0.540, and now
+comparing a supervised arm against an unsupervised one.
+
+The gap survives budget, procedure, instruction and supervision. It is the
+model.
+
+## Showing it labelled examples is worse than showing it nothing
+
+`gemini-fitter` sees 237 labelled family-A rows — three per target, the same
+supervision `fit.py`'s greedy covering algorithm got. It reaches 0.841 in
+sample and **0.050** on family B: *below* the 0.161 of the arm shown no queries
+at all (p=2.8e-16), at 0.110 coverage.
+
+This is the first pass's negative result, replicated with the algorithm
+removed. The conclusion there was "a fitter learns the surface forms in its
+data"; the live counter-hypothesis was that the greedy decision-list induction
+was simply a poor hypothesis class. It was not the algorithm. Hand a frontier
+model the identical rows and it overfits them *harder* than the greedy learner
+did — 0.050 against `schema`'s 0.239 — by copying example phrasing into its
+patterns. Labelled examples are a sample of the phrasing distribution, and the
+model reads them as the specification.
+
+The same supervision delivered as **errors** rather than as examples works:
+0.050 → 0.219 on family B, 0.230 → 0.419 on wild.
 
 ## Iteration peaks at two rounds and then eats itself
 
@@ -690,123 +779,52 @@ it.
 Round 3 loses 0.123 *in sample*, on the very rows whose errors it was shown.
 Each revision rewrites the whole ordered list, so a fix inserted for one error
 can shadow a rule that was already right — the failure mode the prompt warns
-the model about, committed by the model. **Two rounds, then stop**, and keep
-the round-2 artefact rather than the last one.
+the model about, committed by the model. Keep the round-2 artefact, not the
+last one.
 
-## Being told to write broad rules makes them narrower
+## The live model is the ceiling, and it is flat across all three splits
 
-Every compiled arm fails the same way — 65% of family-B errors and 71% of wild
-errors are abstentions, not wrong labels. Precision holds up (0.73–0.85 on
-wild); coverage is the whole deficit. The obvious hypothesis is that the
-clean-room prompt asks for it: it says *"omitting a target is better than a
-rule you do not believe in."*
+Gemini 3.7 Flash answering per request, `thinkingBudget=0`, at **1,194–1,314 ms
+per call** through the gateway at concurrency 2: **0.568** on wild, **0.532** on
+family B, **0.532** on family A (the template families subsampled to 160 rows at
+2 per target, seed 20260819). It abstains on 40% of routable requests and is
+right **95.5%** of the time it answers.
 
-`breadth_arm.py` changes only that instruction — cover every target, write
-broad patterns, five to ten surface forms each, do not buy precision by leaving
-targets uncovered — and holds catalogue, cues, executor and splits fixed.
-Coverage went **down**: 0.216 → 0.149 on wild, 0.390 → 0.188 on family B, and
-accuracy with it (0.176 → 0.108, p = 0.267 — directionally worse, not
-significantly so, on 89 rows). Asked for breadth, the model wrote *more*
-alternations per rule but anchored them harder to the schema's own verbs.
+Two things follow, and the second one reinterprets the whole writeup.
 
-So the narrowness is not a prompt artefact and does not have a prompt fix. It
-is the thing an independent author cannot supply: which surface forms the
-population actually uses. Error feedback supplies it; exhortation does not.
+**Compiled rules reach 95% of live inference at 1/17,000 the latency.** 0.540
+against 0.568 on wild, 0.077 ms against 1,267 ms. Whatever a per-query model is
+worth on this catalogue, nearly all of it compiles into regexes.
 
-## Showing it labelled examples is worse than showing it nothing
+**Every split gap in this experiment is authorship, not difficulty.** An arm
+fitted on nothing, reading no schema vocabulary, scores the same on all three
+splits. Every other arm spreads 3–16x across them:
 
-`gemini-fitter` sees 237 labelled family-A rows — three per target, the same
-supervision `fit.py`'s greedy covering algorithm got. It reaches 0.841 in
-sample and **0.050** on family B, *below* the 0.161 of the arm shown no queries
-at all (p = 2.8e-16), at 0.110 coverage.
-
-This is the first pass's negative result, replicated with the algorithm
-removed. The conclusion there was "a fitter learns the surface forms in its
-data"; the counter-hypothesis was that Claude's greedy decision-list induction
-was simply a poor hypothesis class. It was not the algorithm. Hand a
-frontier model the identical rows and it overfits them *harder* than the
-greedy learner did — 0.050 against `schema`'s 0.239 on family B — by copying
-example phrasing into its patterns. Labelled examples are a demonstration of
-the phrasing distribution, and the model treats them as the specification.
-
-What works is the same supervision delivered as *errors* rather than as
-examples: 0.050 → 0.219 for the same 79 targets and the same corpus.
-
-## The compiler tier is a cliff, not a slope
-
-| compiler | A | B | wild |
+| arm | A | B | wild |
 |---|---|---|---|
-| gemini-2.5-flash-lite | 0.059 | 0.000 | 0.000 |
-| gemini-2.5-flash | 0.294 | 0.000 | 0.013 |
-| gemini-3.7-flash | 0.615 | 0.161 | 0.176 |
+| `gemini-live` (no stake in any split) | 0.532 | 0.532 | 0.568 |
+| `schema` (fitted on A) | 0.984 | 0.239 | 0.324 |
+| `gemini-cleanroom` (schemas only) | 0.615 | 0.161 | 0.176 |
+| `hand` (wrote A and B) | 0.696 | 0.546 | 0.486 |
 
-The hoped-for result was that a small model compiles adequate rules and the
-offline step becomes nearly free. It does not. Both 2.5 tiers score **zero** on
-both held-out splits — and the rules explain it. 2.5-flash-lite writes
-patterns like
+The second pass inferred family B's adversarial character from a zero-parameter
+BM25 ranker dropping 0.611 → 0.200 and concluded it "overstates generalisation
+loss". The live arm measures it directly and the conclusion holds and hardens:
+family B does not measure generalisation, it measures distance from family A's
+vocabulary. **Wild is the split to quote.**
 
-```
-get workflow (?P<workflow_id>\S+) in (?P<owner>\S+)/(?P<repo>\S+)
-```
+And the ceiling itself relocates the problem. The second pass put the wall at
+~0.62 and blamed missing referents — `context_probe.py` found hand-authored
+requests carry their `owner/repo` 13.5% of the time. A live frontier model on
+those rows scores 0.568 and declines 40% of them, and scores the *same* 0.532
+on the template families where the referent is nearly always present. The wall
+is not a property of regexes, and on this evidence it is not referent presence
+either: 79 targets with overlapping intents are genuinely ambiguous from one
+sentence.
 
-which is a transcription of the schema signature into regex syntax, matching
-only a request phrased as the schema names itself. 3.7-flash writes
-`download.*artifact`. Precision stays high for the small models (0.918 on
-family A for lite) because a pattern that matches almost nothing is almost
-never wrong — read the coverage column, which is 0.064 / 0.000 / 0.000.
+## The result: compiled rules in front of the model beat the model
 
-Compiling a router is not a formatting task. It requires anticipating phrasings
-that are absent from the input, and that capability appears between these
-tiers rather than degrading across them.
-
-## The live model is the ceiling, and the ceiling is 0.568
-
-Gemini 3.7 Flash answering per request, `thinkingBudget=0`, at **1,267 ms per
-call** through the gateway at concurrency 2: **0.568** on wild, **0.532** on
-family B (160 rows subsampled at 2 per target, seed 20260819). It abstains on
-40% of routable requests and is right **95.5%** of the time it does answer.
-
-Two things follow.
-
-**Compiled rules reach 74% of live inference at 1/17,000 the latency.** 0.419
-against 0.568 on wild. Whatever a per-query model is worth here, most of it
-compiles.
-
-**And the ceiling itself is low**, which relocates the problem. The second pass
-put the wall at ~0.62 and blamed missing referents — `context_probe.py` found
-hand-authored requests carry their `owner/repo` 13.5% of the time. A live
-frontier model on the same rows scores 0.568 and declines 40% of them. The wall
-is not a property of regexes.
-
-## Family B is adversarial toward schema vocabulary — now measured, not inferred
-
-The second pass inferred this from a zero-parameter BM25 ranker dropping
-0.611 → 0.200 across the families, and concluded family B "overstates
-generalisation loss." The live arm tests it directly, because it reads no
-schema vocabulary at all: **0.532 on family B against 0.568 on wild.** For an
-arm with no stake in either, the two splits are the same difficulty.
-
-Every other arm disagrees with that, in the direction its supervision predicts:
-
-| arm | B | wild | wild ÷ B |
-|---|---|---|---|
-| `gemini-live` (no stake) | 0.532 | 0.568 | 1.07 |
-| `hand` (Claude wrote both families) | 0.546 | 0.486 | **0.89** |
-| `gemini-iter2` (supervised on family A) | 0.210 | 0.419 | 2.00 |
-
-Family B is where an arm supervised on family A is punished hardest — it was
-built to share no phrasing with A — and it is the *only* split where Claude's
-rules beat live inference. Rules exceeding a frontier model on exactly the
-split whose paraphrases their author wrote is what contamination looks like
-when you can finally see it against a reference.
-
-The correction the second pass made stands and gets sharper: family B does not
-measure generalisation, it measures distance from family A's vocabulary. Wild
-is the split to quote.
-
-## The front tier buys cost; it buys accuracy only sometimes
-
-`cascade_live.py` joins the two halves per row — compiled rules first, the live
+`cascade_live.py` joins the halves per row — compiled rules first, the live
 model on whatever they decline — and reports the number that decides whether
 compiling is worth it: how many requests never reach the model.
 
@@ -817,8 +835,9 @@ compiling is worth it: how many requests never reach the model.
 | none (live alone) | 0.568 | 0.955 | 0% |
 | `gemini-cleanroom` | 0.635 | 0.904 | 19.1% |
 | `gemini-fitter` | 0.649 | 0.906 | 22.5% |
-| **`gemini-iter2`** | 0.635 | 0.783 | **49.4%** |
+| `gemini-iter2` | 0.635 | 0.783 | 49.4% |
 | `hand` (contaminated) | 0.649 | 0.727 | 62.9% |
+| **`claude-cleanroom`** | **0.770** | 0.851 | **58.4%** |
 
 **family B (160 rows)**
 
@@ -828,50 +847,61 @@ compiling is worth it: how many requests never reach the model.
 | `gemini-cleanroom` | 0.513 | 33.1% |
 | `gemini-iter2` | 0.525 | 45.6% |
 | `hand` (contaminated) | 0.608 | 81.2% |
+| **`claude-cleanroom`** | **0.696** | 75.6% |
 
-On wild every front tier *improves* on the live model, by 0.067–0.081 — the
-rules catch requests the model itself declines, and the model catches requests
-the rules decline. On family B the independent fronts are accuracy-neutral
-(−0.007 to −0.019) and still remove a third to a half of the calls.
+**A microsecond rule layer in front of a live LLM router beats the LLM router
+by 0.202 while removing 58% of its calls.** Not by being more accurate than it
+— the rules score 0.540 against its 0.568 — but by being *differently* wrong:
+the model declines 40% of routable requests at 95.5% precision, and the rules
+answer a large share of exactly those. Two arms with correlated errors would
+not do this; two arms with complementary abstentions do.
 
-Note what the front tier does *not* change: accuracy lands at 0.635–0.649 on
-wild regardless of which compiled arm sits in front. What differs is price.
-`gemini-cleanroom` and `gemini-iter2` reach the same 0.635, and `iter2` gets
-there while sending 2.6x fewer requests to the model. **Iteration buys
-coverage, and coverage is the cost axis, not the accuracy axis.**
+Note what the weaker front tiers show. Cascade accuracy sits at 0.635–0.649
+whichever Gemini arm leads, while calls avoided ranges 19% → 49%. Below a
+capability threshold the front tier is purely a cost lever; above it, it is
+also an accuracy one.
 
 ## What this pass changes
 
-- The clean-room number exists: **0.419 wild** for a model-compiled router
-  after two rounds of error feedback, tying Claude's contaminated 0.486
-  (p = 0.458) and reaching 74% of live inference at 1/17,000 the latency.
-- The first pass's negative result about fitting was **not** an artefact of its
-  greedy algorithm. A frontier model given the same labelled rows overfits
-  further (0.050 vs 0.239 on family B).
-- Supervision has to arrive as **errors**, not as examples, and two rounds is
-  the whole budget.
-- The compiler tier is a **capability cliff**: 2.5-flash and 2.5-flash-lite
-  produce rule sets that score zero on both held-out splits.
-- Family B's adversarial character is now measured against an arm with no stake
-  in it, rather than inferred.
+- **The clean-room number exists and it is good**: 0.540 on wild for a
+  model-compiled router with no supervision and no sight of the eval, at
+  0.077 ms — 95% of live per-query inference at 1/17,000 the latency.
+- **Contamination was worth ±0.05 and pointed the wrong way.** Writing rules
+  with the eval in view helped on the template family (+0.042) and *hurt* on
+  realistic requests (−0.054).
+- **The cascade is the deliverable**: compiled rules → live model reaches
+  **0.770** on wild against 0.568 for the model alone, avoiding 58.4% of calls.
+- **Compiling is a capability cliff.** Three tiers of Gemini score 0.000, 0.013
+  and 0.176 on wild against Claude's 0.540, and the gap survives instruction,
+  an 8x call budget, 2.8 rules per target, and two rounds of supervision.
+- **The first pass's fitting result was not its algorithm.** A frontier model
+  given the same labelled rows overfits further (0.050 vs 0.239 on family B).
+  Supervision has to arrive as errors, and two rounds is the whole budget.
+- **Every split gap here is authorship.** The live arm scores 0.532 / 0.532 /
+  0.568 across three splits every other arm spreads 3–16x on.
 
 ## Third-pass caveats
 
-- **Wild is 89 rows and Claude wrote it.** Swapping the rule author fixed one
-  side of the contamination; the eval still has Claude's fingerprints, which is
-  why the wild McNemar (p = 0.458) is a tie rather than a ranking.
-- **The live arm is subsampled on the template families** — 2 rows per target,
-  160 rows, fixed seed — and complete only on wild. It is one model at one
-  temperature with thinking disabled.
-- **`gemini-3.7-flash` is one compiler.** The tier result says small Gemini
-  models cannot do this; it does not say which capability threshold matters or
-  where other vendors sit.
+- **Wild is 89 rows and Claude wrote it.** Swapping the rule author fixes one
+  side; the eval still has Claude's fingerprints, and `claude-cleanroom` shares
+  a model family with whoever wrote the queries. That is the most likely
+  remaining inflation in the 0.540, and the fix is the same one the second pass
+  named: an eval mined from real transcripts.
+- **The two clean rooms are not procedurally matched.** Claude ran an agent
+  loop with self-validation; Gemini ran one API call, and separately eight. The
+  chunked arm is the control for that and closes none of the gap, but "same
+  model in an agent loop" was not run for Gemini, because no such harness
+  exists here.
+- **The live arm is subsampled on the template families** — 2 per target, 160
+  rows, seed 20260819 — and complete only on wild, so its flat 0.532/0.532/0.568
+  carries roughly ±0.04. The family-B cascade abstention figures rest on **2
+  off-topic rows** and should be ignored; the wild ones (15 rows) are weak.
+- **One rule set per regime, no seeds.** Compile calls are cached and
+  reproducible, but variance across repeated compilations is unmeasured — and
+  with 89-row wild, differences under ~0.08 are not resolvable.
 - **Latency is measured through the Cloudflare gateway at concurrency 2** and
-  includes queueing: 1,267–1,314 ms per call. Direct-to-provider would be
-  faster; the ratio to 0.075 ms is what the argument rests on, not the absolute.
-- **One rule set per regime, no seeds.** The compile calls are cached and
-  reproducible, but sampling variance across repeated compilations is
-  unmeasured.
+  includes queueing. The ratio to 0.077 ms is what the argument rests on, not
+  the absolute.
 
 ## Reproduce the third pass
 
@@ -885,21 +915,28 @@ python3 gen_data.py --n 12                                 # regenerate the spli
 
 python3 gemini_arms.py compile --tag gemini-cleanroom      # clean room
 python3 breadth_arm.py                                     # clean room, told to be broad
+python3 chunked_arm.py --chunk 10                          # clean room, 8 calls
 python3 compile_variants.py fitter   --per-label 3 --tag gemini-fitter
 python3 compile_variants.py iterated --rounds 3 --tag gemini
 python3 gemini_arms.py compile --model gemini-2.5-flash      --tag gemini25-cleanroom
 python3 gemini_arms.py compile --model gemini-2.5-flash-lite --tag gemini25lite-cleanroom
 
-python3 eval.py hand compiled-gemini-cleanroom compiled-gemini-breadth \
-                compiled-gemini-fitter compiled-gemini-iter1 compiled-gemini-iter2 \
-                compiled-gemini-iter3 compiled-gemini25-cleanroom \
-                compiled-gemini25lite-cleanroom
+python3 eval.py hand compiled-claude-cleanroom compiled-gemini-cleanroom \
+                compiled-gemini-chunked compiled-gemini-breadth compiled-gemini-fitter \
+                compiled-gemini-iter1 compiled-gemini-iter2 compiled-gemini-iter3 \
+                compiled-gemini25-cleanroom compiled-gemini25lite-cleanroom
 
 python3 live_eval.py --split wild                          # ~2 min
 python3 live_eval.py --split b --per-label 2               # ~3 min
-python3 cascade_live.py --split wild --front compiled-gemini-iter2
-python3 mcnemar.py hand:compiled-gemini-iter2 compiled-gemini-cleanroom:compiled-gemini-iter2
+python3 cascade_live.py --split wild --front compiled-claude-cleanroom
+python3 mcnemar.py hand:compiled-claude-cleanroom compiled-claude-cleanroom:compiled-gemini-iter2
 ```
+
+`rules_claude-cleanroom.json` is committed. Regenerating it needs a subagent
+handed `CLEANROOM_SPEC.md` — the committed, byte-identical copy of what the
+Gemini arms receive — and forbidden this directory; verify the isolation
+afterwards from the agent's own transcript rather than trusting the
+instruction.
 
 Results land in `results_gemini.json`, `results_live.json`,
 `results_cascade_live.json` and `results_mcnemar_gemini.json`.
