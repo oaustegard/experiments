@@ -147,6 +147,28 @@ def main() -> int:
         check("ratio stated in RESULTS.md", "3.6x" in md)
         check("flat from 6 to 18", abs(lat[18] - lat[6]) / lat[6] < 0.15, f"{lat[6]} -> {lat[18]}")
 
+    ts_path = HERE / "results_two_stage.json"
+    if ts_path.exists():
+        print("\ntwo-stage")
+        ts = json.loads(ts_path.read_text())
+        tss = ts["summary"]
+        check("two-stage routable quoted", f"{tss['tool_acc_routable']:.3f}" in md)
+        check("stage-1 group accuracy quoted", f"{ts['stage1_group_acc_routable']:.3f}" in md)
+        check("two-stage rows = 62", len(ts["rows"]) == 62)
+        check("every group has at most five tools", all(len(v) <= 5 for v in ts["groups"].values()))
+        declared_in_groups = {t for v in ts["groups"].values() for t in v}
+        check("groups cover all 18 tools exactly once",
+              declared_in_groups == declared and sum(len(v) for v in ts["groups"].values()) == 18)
+
+    print("\nrepo integration")
+    root = HERE.parent
+    idx = (root / "README.md").read_text()
+    check("README index row", "needle-bsky/" in idx)
+    check("README per-experiment note", "### `needle-bsky/`" in idx)
+    check("METHODS entry", "needle-bsky" in (root / "METHODS.md").read_text())
+    check("ERRORS.md present", (HERE / "ERRORS.md").exists())
+    check("params.json present", (HERE / "params.json").exists())
+
     print("\nprose hygiene")
     check("no absolute container paths in RESULTS.md", "/workspace/" not in md and "/home/user/" not in md)
     check("caveats section present", "## Caveats" in md)
