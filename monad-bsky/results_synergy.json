@@ -1,0 +1,353 @@
+{
+ "complementarity": {
+  "needle-base x monad-e2": {
+   "both": 20,
+   "needle-base_only": 18,
+   "monad-e2_only": 10,
+   "neither": 14,
+   "union": 0.7742,
+   "needle-base_alone": 0.6129,
+   "monad-e2_alone": 0.4839
+  },
+  "needle-base x monad-e3": {
+   "both": 20,
+   "needle-base_only": 18,
+   "monad-e3_only": 8,
+   "neither": 16,
+   "union": 0.7419,
+   "needle-base_alone": 0.6129,
+   "monad-e3_alone": 0.4516
+  },
+  "needle-2stage x monad-e2": {
+   "both": 24,
+   "needle-2stage_only": 20,
+   "monad-e2_only": 6,
+   "neither": 12,
+   "union": 0.8065,
+   "needle-2stage_alone": 0.7097,
+   "monad-e2_alone": 0.4839
+  },
+  "needle-2stage x monad-e3": {
+   "both": 22,
+   "needle-2stage_only": 22,
+   "monad-e3_only": 6,
+   "neither": 12,
+   "union": 0.8065,
+   "needle-2stage_alone": 0.7097,
+   "monad-e3_alone": 0.4516
+  }
+ },
+ "agreement_gate": {
+  "needle-base x monad-e2": {
+   "n_agree": 25,
+   "coverage": 0.4032,
+   "precision_when_agreed": 0.8,
+   "n_disagree": 37,
+   "needle-base_right_when_disagreed": 18,
+   "monad-e2_right_when_disagreed": 10,
+   "both_wrong_when_disagreed": 9
+  },
+  "needle-base x monad-e3": {
+   "n_agree": 25,
+   "coverage": 0.4032,
+   "precision_when_agreed": 0.8,
+   "n_disagree": 37,
+   "needle-base_right_when_disagreed": 18,
+   "monad-e3_right_when_disagreed": 8,
+   "both_wrong_when_disagreed": 11
+  },
+  "needle-2stage x monad-e2": {
+   "n_agree": 27,
+   "coverage": 0.4355,
+   "precision_when_agreed": 0.8889,
+   "n_disagree": 35,
+   "needle-2stage_right_when_disagreed": 20,
+   "monad-e2_right_when_disagreed": 6,
+   "both_wrong_when_disagreed": 9
+  },
+  "needle-2stage x monad-e3": {
+   "n_agree": 25,
+   "coverage": 0.4032,
+   "precision_when_agreed": 0.88,
+   "n_disagree": 37,
+   "needle-2stage_right_when_disagreed": 22,
+   "monad-e3_right_when_disagreed": 6,
+   "both_wrong_when_disagreed": 9
+  }
+ },
+ "confidence_transfer": {
+  "n": 62,
+  "mean_needle_conf_when_needle_right": 0.5836,
+  "mean_needle_conf_when_needle_wrong": 0.3922,
+  "mean_needle_conf_when_monad_right": 0.4859,
+  "mean_needle_conf_when_monad_wrong": 0.5317,
+  "above_0.4": {
+   "n": 39,
+   "needle_acc": 0.6923,
+   "monad_acc": 0.4872
+  },
+  "above_0.6": {
+   "n": 25,
+   "needle_acc": 0.76,
+   "monad_acc": 0.44
+  },
+  "above_0.8": {
+   "n": 15,
+   "needle_acc": 0.8667,
+   "monad_acc": 0.4
+  }
+ },
+ "name_snapping": {
+  "monad-e2": {
+   "routable_before": 0.4815,
+   "routable_after": 0.4815,
+   "queries_fixed": [],
+   "queries_broken": []
+  },
+  "monad-e3": {
+   "routable_before": 0.4444,
+   "routable_after": 0.4815,
+   "queries_fixed": [
+    [
+     "graph-03",
+     "search_followers",
+     "get_followers"
+    ],
+    [
+     "graph-05",
+     "search_followers",
+     "get_followers"
+    ]
+   ],
+   "queries_broken": []
+  }
+ },
+ "split_roles": {
+  "monad-e2 tool + needle-base args": {
+   "routable": 0.4815,
+   "args": 0.3519,
+   "note": "Needle's arguments are only available where it chose the same tool",
+   "n_shared_tool": 23
+  },
+  "monad-e3 tool + needle-base args": {
+   "routable": 0.4444,
+   "args": 0.3333,
+   "note": "Needle's arguments are only available where it chose the same tool",
+   "n_shared_tool": 23
+  },
+  "monad-e2 tool + needle-2stage args": {
+   "routable": 0.4815,
+   "args": 0.4074,
+   "note": "Needle's arguments are only available where it chose the same tool",
+   "n_shared_tool": 25
+  },
+  "monad-e3 tool + needle-2stage args": {
+   "routable": 0.4444,
+   "args": 0.3704,
+   "note": "Needle's arguments are only available where it chose the same tool",
+   "n_shared_tool": 23
+  }
+ },
+ "fallback": {
+  "needle-base -> monad-e2 on refusal": {
+   "needle_refused_a_routable_query": 2,
+   "monad_rescued": 1,
+   "ids": [
+    "feed-02"
+   ]
+  },
+  "needle-base -> monad-e2 below conf 0.6": {
+   "needle_wrong_and_unsure": 16,
+   "monad_right_there": 7
+  },
+  "needle-base -> monad-e3 on refusal": {
+   "needle_refused_a_routable_query": 2,
+   "monad_rescued": 1,
+   "ids": [
+    "feed-02"
+   ]
+  },
+  "needle-base -> monad-e3 below conf 0.6": {
+   "needle_wrong_and_unsure": 16,
+   "monad_right_there": 5
+  },
+  "needle-2stage -> monad-e2 on refusal": {
+   "needle_refused_a_routable_query": 2,
+   "monad_rescued": 1,
+   "ids": [
+    "feed-02"
+   ]
+  },
+  "needle-2stage -> monad-e2 below conf 0.6": {
+   "needle_wrong_and_unsure": 9,
+   "monad_right_there": 2
+  },
+  "needle-2stage -> monad-e3 on refusal": {
+   "needle_refused_a_routable_query": 2,
+   "monad_rescued": 1,
+   "ids": [
+    "feed-02"
+   ]
+  },
+  "needle-2stage -> monad-e3 below conf 0.6": {
+   "needle_wrong_and_unsure": 9,
+   "monad_right_there": 2
+  }
+ },
+ "category_dispatch": {
+  "per_category": {
+   "analysis": {
+    "n": 3,
+    "needle": 2,
+    "monad": 0,
+    "pick": "needle"
+   },
+   "feed": {
+    "n": 3,
+    "needle": 2,
+    "monad": 3,
+    "pick": "monad"
+   },
+   "find-users": {
+    "n": 3,
+    "needle": 0,
+    "monad": 1,
+    "pick": "monad"
+   },
+   "firehose": {
+    "n": 3,
+    "needle": 3,
+    "monad": 1,
+    "pick": "needle"
+   },
+   "graph": {
+    "n": 5,
+    "needle": 3,
+    "monad": 3,
+    "pick": "needle"
+   },
+   "identity": {
+    "n": 3,
+    "needle": 3,
+    "monad": 0,
+    "pick": "needle"
+   },
+   "interactions": {
+    "n": 6,
+    "needle": 5,
+    "monad": 5,
+    "pick": "needle"
+   },
+   "keywords": {
+    "n": 2,
+    "needle": 2,
+    "monad": 2,
+    "pick": "needle"
+   },
+   "off-topic": {
+    "n": 8,
+    "needle": 5,
+    "monad": 4,
+    "pick": "needle"
+   },
+   "person-posts": {
+    "n": 5,
+    "needle": 5,
+    "monad": 1,
+    "pick": "needle"
+   },
+   "profile": {
+    "n": 4,
+    "needle": 2,
+    "monad": 2,
+    "pick": "needle"
+   },
+   "search": {
+    "n": 7,
+    "needle": 5,
+    "monad": 6,
+    "pick": "monad"
+   },
+   "status": {
+    "n": 3,
+    "needle": 2,
+    "monad": 0,
+    "pick": "needle"
+   },
+   "thread": {
+    "n": 3,
+    "needle": 2,
+    "monad": 1,
+    "pick": "needle"
+   },
+   "trending": {
+    "n": 4,
+    "needle": 3,
+    "monad": 1,
+    "pick": "needle"
+   }
+  },
+  "overall": 0.7581,
+  "needle_2stage_alone": 0.7097,
+  "caveat": "fitted to this eval by construction; an upper bound, not a result"
+ },
+ "gate_comparison": {
+  "n_calls": 55,
+  "needle_confidence_sweep": [
+   {
+    "threshold": 0.0,
+    "coverage": 1.0,
+    "precision": 0.7091
+   },
+   {
+    "threshold": 0.2,
+    "coverage": 0.8,
+    "precision": 0.75
+   },
+   {
+    "threshold": 0.4,
+    "coverage": 0.6364,
+    "precision": 0.7429
+   },
+   {
+    "threshold": 0.5,
+    "coverage": 0.5273,
+    "precision": 0.6897
+   },
+   {
+    "threshold": 0.6,
+    "coverage": 0.4909,
+    "precision": 0.7407
+   },
+   {
+    "threshold": 0.7,
+    "coverage": 0.3636,
+    "precision": 0.8
+   },
+   {
+    "threshold": 0.8,
+    "coverage": 0.2364,
+    "precision": 0.8462
+   },
+   {
+    "threshold": 0.9,
+    "coverage": 0.1273,
+    "precision": 1.0
+   }
+  ],
+  "agreement": {
+   "coverage": 0.4545,
+   "precision": 0.88
+  },
+  "agreement_and_confidence": {
+   "agree_and_conf_0.4": {
+    "coverage": 0.2545,
+    "precision": 0.9286
+   },
+   "agree_and_conf_0.6": {
+    "coverage": 0.2,
+    "precision": 0.9091
+   }
+  }
+ }
+}

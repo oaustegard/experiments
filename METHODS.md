@@ -622,6 +622,33 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **Two small models agreeing is a better accept-gate than one model's
+  calibrated confidence head, at the same coverage.** Cactus Needle's two-stage
+  router and a fine-tuned Monad independently naming the same tool were right
+  **0.880** of the time over **0.455** coverage; Needle's own confidence head
+  reached only 0.741 at 0.491 coverage and needed to drop to 0.236 coverage to
+  match 0.846. The signals compose — agreement plus confidence ≥ 0.4 gives 0.929
+  at 0.255. Two properties make this worth reaching for: agreement needs **no
+  confidence head**, which matters because fine-tuning destroys Needle's, and the
+  two signals are close to independent (a post-hoc score over one model's logits
+  versus a second model trained on different data under a different objective).
+  The cost is running both models — 11x latency here — so it suits batch or
+  high-stakes calls, not a phone. (`monad-bsky/synergy.py`)
+- **A calibrated confidence score does not transfer to another model's answers
+  on the same query.** Needle's head separated its own correctness (mean 0.584
+  right / 0.392 wrong) and was flat-to-inverted on Monad's (0.486 / 0.532),
+  getting *worse* at higher thresholds: at confidence ≥ 0.8 Needle was 0.867
+  accurate and Monad 0.400. Calibration is a property of the model that emitted
+  it, not a difficulty score for the input. Do not reuse one model's confidence
+  to gate another's output. (`monad-bsky/synergy.py`)
+- **Price a hallucinated-name rate in accuracy points before building a grammar
+  for it.** Fine-tuned Monad invented undeclared tool names on 14.5% of queries,
+  but snapping them to the nearest declared name by edit distance fixed only two
+  queries (+3.7 points): most invented names sat on queries that were misrouted
+  anyway. A constrained decoder is still the right call for other reasons —
+  malformed output, unbounded values — but the accuracy it recovers can be a
+  fraction of the violation rate. (`monad-bsky/synergy.py`)
+
 - **A small model's failure to fill tool arguments is usually transcription, not
   routing — measure the two separately before blaming the model's reasoning.**
   Fine-tuned Monad (56M) picked a defensible tool far more often than it
