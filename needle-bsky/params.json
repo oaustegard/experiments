@@ -36,7 +36,10 @@
   "oracle-auto",
   "oracle-auto-min",
   "oracle-tuned",
-  "oracle-tuned-min"
+  "oracle-tuned-min",
+  "finetuned",
+  "two_stage_needle",
+  "two_stage_heuristic"
  ],
  "oracle_k": 5,
  "oracle_seed": 20260818,
@@ -44,11 +47,19 @@
   "rows": 800,
   "tools_per_row": 5,
   "seed": 20260818,
-  "epochs": 6,
+  "epochs": 3,
   "lora_rank": 16,
   "lora_alpha": 32,
-  "batch_size": 16,
-  "max_len": 1024
+  "batch_size": 8,
+  "max_len": 640,
+  "fitted_seq_len": 640,
+  "steps": 270,
+  "holdout": 80,
+  "epoch1_train_loss": 0.965,
+  "epoch1_val_loss": 1.0956,
+  "wall_clock_minutes_approx": 115,
+  "export": "needle_bsky.cact, 13.74 MB, 405 tensors, mixed[embedding=4,mhc=4,default=2]A8",
+  "note": "epoch 2-3 losses not captured; see ERRORS.md #5"
  },
  "host": {
   "cpu_count": 4,
@@ -56,5 +67,6 @@
   "python": "3.11.15",
   "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
   "jax": "0.10.2"
- }
+ },
+ "engine_note": "one global session per process; switching agents re-runs needle_init; a loaded .cact cannot be unloaded"
 }
