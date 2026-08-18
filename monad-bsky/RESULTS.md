@@ -18,6 +18,12 @@ configuration. But it copies an identifier out of the request correctly only
 against 78–90% for the grammar-constrained arm, and **more training makes the
 copying worse**.
 
+One combination of the two is worth having. Where the models independently name
+the same tool, that answer is right **88.0%** of the time across 45.5% of
+queries, against 74.1% for Needle's own calibrated confidence head at the same
+coverage — and agreement needs no confidence head, which is what fine-tuning
+takes away. It costs running both models, 11x the latency of Needle alone.
+
 Everything below is CPU-only on the same 4-core container.
 
 ## The two models
@@ -177,7 +183,7 @@ The same failure appears at the tool-name level. Tuned Monad invents names that
 were never declared (`get_posts`, `get_replies`, `search_followers`, and once
 `get_spammer.bsky.social`, assembled out of the query's own handle) on 6.5% of
 queries after one epoch, 11.3% after two and 14.5% after three. Needle cannot do this: its grammar admits only the declared names.
-A constrained decoder buys exactly this, measurably, and it is worth
+A constrained decoder buys exactly this, and measurably it is worth
 more here than the 11M parameter difference.
 
 ## Don't ask it to copy
@@ -243,6 +249,95 @@ close to the worst possible shape for a CPU: almost no width to parallelise
 across, sixty-four dependent matmuls per token. Needle runs on a hand-written
 C++ engine with a quantized weight format; this is transformers on fp32 tensors,
 so the comparison is implementation as much as architecture.
+
+## Combining the two
+
+Both models answered the same 62 queries and every per-query row is committed,
+so `synergy.py` evaluates eight combinations as post-processing. One works, one
+fails cleanly, and the rest do not pay for a second model.
+
+### Agreement beats Needle's own confidence head
+
+When Needle's two-stage router and 2-epoch Monad independently name the same
+tool, that answer is right **88.0%** of the time, across 45.5% of the queries
+where Needle emitted a call. Needle's calibrated confidence head, on the same
+55 calls, reaches that precision only by cutting coverage roughly in half:
+
+| gate | coverage | precision |
+|---|---|---|
+| none | 1.000 | 0.709 |
+| Needle confidence ≥ 0.4 | 0.636 | 0.743 |
+| Needle confidence ≥ 0.6 | 0.491 | 0.741 |
+| Needle confidence ≥ 0.8 | 0.236 | 0.846 |
+| Needle confidence ≥ 0.9 | 0.127 | 1.000 |
+| **the two models agree** | **0.455** | **0.880** |
+| agree *and* confidence ≥ 0.4 | 0.255 | **0.929** |
+
+At matched coverage (~0.46) the confidence head delivers 0.741 against
+agreement's 0.880, about 14 points. To reach agreement's precision on confidence
+alone Needle has to drop to 0.236 coverage, roughly half. The two signals also
+compose: requiring both lifts precision to 0.929.
+
+Two reasons this is worth something beyond the number. Agreement needs **no
+confidence head at all**, and fine-tuning Needle destroys its head — so a tuned
+deployment, which currently has no gate, could get one back this way. And the
+signals are close to independent: one is a calibrated post-hoc score over
+Needle's own logits, the other is a second model trained from different data
+under a different objective.
+
+The price is honest and steep: you run both models. 324 ms for Needle's
+two-stage plus ~3,300 ms for Monad is **11x the latency** of Needle alone, and
+it buys about double the coverage at equal precision. On a phone that is a bad
+trade; in a batch pipeline where a wrong tool call costs a network round trip
+and a wrong answer, it may not be.
+
+### Needle's confidence says nothing about Monad
+
+The head separates Needle's own correctness — mean 0.584 when right, 0.392 when
+wrong. Pointed at Monad's answers it is flat and slightly inverted: 0.486 when Monad
+is right, 0.532 when Monad is wrong. Sliced by
+threshold it gets worse, not better:
+
+| Needle confidence | n | Needle accuracy | Monad accuracy |
+|---|---|---|---|
+| ≥ 0.4 | 39 | 0.692 | 0.487 |
+| ≥ 0.6 | 25 | 0.760 | 0.440 |
+| ≥ 0.8 | 15 | 0.867 | 0.400 |
+
+Calibration is a property of the model that produced it, not of the query. A
+"hard query" score that transfers between models would have been useful; this
+one does not.
+
+### The other five combinations
+
+**Complementarity is thin.** Needle two-stage and Monad are both right on 24
+queries, Needle alone on 20, Monad alone on 6, neither on 12. The union ceiling
+is 0.806 against Needle's 0.710: six queries of headroom, and reaching it needs
+an oracle to know which model to believe.
+
+**Name snapping is smaller than the hallucination rate suggests.** Snapping
+Monad's undeclared names to the nearest declared one by edit distance fixes two
+queries at epoch 3 (0.444 → 0.481) and none at epoch 2. A decode grammar would
+eliminate the 6.5–14.5% hallucinated-name rate, but most of those names sat on
+queries that were misrouted anyway, so the accuracy it buys is ~3.7 points, not
+14. This corrects the impression the earlier section leaves.
+
+**Splitting the roles does not work.** Monad choosing the tool and Needle
+supplying the arguments reaches 0.407 argument accuracy, against 0.370 for
+Monad's own regex repair and 0.685 for Needle two-stage doing both jobs. Needle's
+arguments are only available where it picked the same tool (25 of 62 queries),
+so the split is starved exactly where it would help.
+
+**Fallback rescues almost nothing.** Needle two-stage refuses only 2 routable
+queries and Monad rescues 1. Among the 9 queries where Needle is both wrong and
+below 0.6 confidence, Monad is right on 2. The flat Needle arm has more room —
+16 wrong-and-unsure, Monad right on 7 — but the flat arm is the configuration
+you would not deploy.
+
+**Per-category dispatch tops out at 0.758** against 0.710, and it is fitted to
+this eval by construction: the categories where Monad wins (`feed` 3/3 vs 2/3,
+`search` 6/7 vs 5/7) are three and seven queries. Reported as a bound, not a
+design.
 
 ## Reading this against the small-reasoner thesis
 

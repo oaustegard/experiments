@@ -39,6 +39,8 @@ def load(path: Path) -> dict:
 
 def main() -> int:
     md = (HERE / "RESULTS.md").read_text()
+    # line-wrapped prose breaks naive substring checks on phrases
+    flat = " ".join(md.split())
 
     print("monad arms")
     arms = {}
@@ -67,7 +69,7 @@ def main() -> int:
         check("epoch 2 is the best Monad arm", e["tuned-e2"] == max(e.values()), str(e))
         check("epoch 3 does not beat epoch 2", e["tuned-e3"] <= e["tuned-e2"], str(e))
     check("val losses quoted", all(x in md for x in ("0.0128", "0.0040", "0.0017")))
-    check("val-loss-is-not-accuracy caveat present", "not a held-out task" in md)
+    check("val-loss-is-not-accuracy caveat present", "not a held-out task" in flat)
 
     print("\ncopy probe")
     cp_path = HERE / "results_copy_probe.json"
@@ -89,7 +91,7 @@ def main() -> int:
     print("\ntokenizer claim")
     check("the tokenizer explanation is retracted, not stated",
           "is wrong" in md and "8,192-piece vocabularies" in md)
-    check("identical segmentation quoted", "['a','ust','eg','ard','.','com']" in md)
+    check("identical segmentation quoted", "['a','ust','eg','ard','.','com']" in flat)
     check("111 vs 109 quoted", "111" in md and "109" in md)
 
     print("\nrepair arm")
@@ -103,7 +105,54 @@ def main() -> int:
               r["summary"]["tool_acc_routable"] == base["tool_acc_routable"])
         check(f"repaired args {r['summary']['args_acc_routable']:.3f} quoted",
               f"{r['summary']['args_acc_routable']:.3f}" in md)
-        check("the fitted-extractor caveat is stated", "fitted to this" in md)
+        check("the fitted-extractor caveat is stated", "fitted to this" in flat)
+
+    print("\nsynergy")
+    sy_path = HERE / "results_synergy.json"
+    check("synergy results present", sy_path.exists())
+    if sy_path.exists():
+        sy = json.loads(sy_path.read_text())
+        g = sy["gate_comparison"]
+        ag = g["agreement"]
+        check(f"agreement precision {ag['precision']:.3f} quoted", f"{ag['precision']:.3f}" in md)
+        check(f"agreement coverage {ag['coverage']:.3f} quoted", f"{ag['coverage']:.3f}" in md)
+        sweep = {r["threshold"]: r for r in g["needle_confidence_sweep"]}
+        for t in (0.4, 0.6, 0.8, 0.9):
+            if t in sweep:
+                r = sweep[t]
+                check(f"conf>={t} row {r['coverage']:.3f}/{r['precision']:.3f} quoted",
+                      f"{r['coverage']:.3f}" in md and f"{r['precision']:.3f}" in md)
+        near = sweep.get(0.6)
+        check("agreement beats confidence at matched coverage",
+              near is not None and ag["precision"] > near["precision"] and ag["coverage"] < near["coverage"] * 1.1,
+              f"agree {ag} vs conf0.6 {near}")
+        combo = g["agreement_and_confidence"].get("agree_and_conf_0.4")
+        if combo:
+            check("composed gate beats either alone", combo["precision"] > ag["precision"])
+            check(f"composed precision {combo['precision']:.3f} quoted", f"{combo['precision']:.3f}" in md)
+
+        ct = sy["confidence_transfer"]
+        check("confidence does not transfer to Monad",
+              ct["mean_needle_conf_when_monad_right"] <= ct["mean_needle_conf_when_monad_wrong"],
+              f"{ct['mean_needle_conf_when_monad_right']} vs {ct['mean_needle_conf_when_monad_wrong']}")
+        check("the non-transfer is stated", "says nothing about Monad" in flat)
+        for key in ("mean_needle_conf_when_needle_right", "mean_needle_conf_when_needle_wrong",
+                    "mean_needle_conf_when_monad_right", "mean_needle_conf_when_monad_wrong"):
+            check(f"{key} {ct[key]} quoted", f"{ct[key]:.3f}" in md)
+
+        comp = sy["complementarity"]["needle-2stage x monad-e2"]
+        check(f"union ceiling {comp['union']:.3f} quoted", f"{comp['union']:.3f}" in md)
+        check("union is above needle alone", comp["union"] > comp["needle-2stage_alone"])
+
+        snap = sy["name_snapping"]["monad-e3"]
+        check("name snapping fixed exactly two queries", len(snap["queries_fixed"]) == 2,
+              str(snap["queries_fixed"]))
+        check("snapping broke nothing", not snap["queries_broken"])
+        check("the snapping correction is stated", "not 14" in flat)
+
+        disp = sy["category_dispatch"]
+        check(f"dispatch ceiling {disp['overall']:.3f} quoted", f"{disp['overall']:.3f}" in md)
+        check("dispatch is flagged as fitted", "fitted to" in flat)
 
     print("\ncross-experiment")
     for label, path in (
