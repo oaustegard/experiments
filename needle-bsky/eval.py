@@ -23,13 +23,12 @@ import argparse
 import json
 import statistics
 import sys
-import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from needle_bsky.router import ARMS, Router  # noqa: E402
+from needle_bsky.router import ARMS, Router
 
 
 def norm(v) -> str:
@@ -123,10 +122,10 @@ def gate_sweep(rows: list[dict], steps=None) -> list[dict]:
     return out
 
 
-def run_arm(arm: str, items: list[dict], repeat: int = 1) -> dict:
-    t0 = time.perf_counter()
-    r = Router(arm=arm, threshold=0.0)  # gate applied in analysis, not here
-    init_s = time.perf_counter() - t0
+def run_arm(arm: str, items: list[dict], repeat: int = 1, weights: str | None = None) -> dict:
+    # Construction is lazy — the engine binds on the first complete() — so there
+    # is nothing worth timing around this call. See ERRORS.md #2.
+    r = Router(arm=arm, threshold=0.0, weights=weights)  # gate applied in analysis
 
     runs = []
     for _ in range(repeat):
@@ -141,7 +140,7 @@ def run_arm(arm: str, items: list[dict], repeat: int = 1) -> dict:
     return {
         "arm": arm,
         "n_tools": len(r.schemas),
-        "init_seconds": round(init_s, 2),
+        "weights": weights,
         "repeat": repeat,
         "deterministic": identical if repeat > 1 else None,
         "summary": summarize(rows),
@@ -155,14 +154,16 @@ def main() -> int:
     ap.add_argument("--arms", nargs="*", default=list(ARMS))
     ap.add_argument("--evalset", default=str(HERE / "evalset.jsonl"))
     ap.add_argument("--repeat", type=int, default=1)
+    ap.add_argument("--weights", default=None, help="a tuned .cact; confidence is None on tuned weights")
+    ap.add_argument("--label", default=None, help="output file suffix, defaults to the arm name")
     ap.add_argument("--out-dir", default=str(HERE))
     a = ap.parse_args()
 
     items = load_items(Path(a.evalset))
     print(f"{len(items)} queries, arms {a.arms}")
     for arm in a.arms:
-        res = run_arm(arm, items, a.repeat)
-        Path(a.out_dir, f"results_{arm}.json").write_text(json.dumps(res, indent=1))
+        res = run_arm(arm, items, a.repeat, a.weights)
+        Path(a.out_dir, f"results_{a.label or arm}.json").write_text(json.dumps(res, indent=1))
         s = res["summary"]
         print(
             f"{arm:10} tool {s['tool_acc']:.3f}  routable {s['tool_acc_routable']:.3f}  "

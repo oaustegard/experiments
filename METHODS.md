@@ -405,6 +405,16 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **`pkill -f '<pattern>'` matches its own command line and kills itself**,
+  returning non-zero and aborting the rest of a compound shell command — so a
+  "kill the old run, start the new one" one-liner silently never starts the new
+  one, and the next poll reads a stale log as if it were fresh. Use
+  `pgrep -f '<narrower pattern>' | xargs -r kill`. Related: `setsid`-detached
+  jobs in this container do not reliably survive the tool call that launched
+  them; two multi-minute fine-tunes died mid-compile with no exit line. Use the
+  harness's own `run_in_background` for anything longer than a tool call.
+  (`needle-bsky/ERRORS.md` #3)
+
 - **A CCotw session can have `WebSearch` working and `WebFetch` blocked for
   every domain — research is still possible, but every figure becomes
   secondary, and the writeup has to say so.** On 2026-08-15 the agent proxy
@@ -596,6 +606,48 @@ the result.
   exists. See "Migration breakage" below.
 
 ## Numerical / ML gotchas
+
+- **A grammar-constrained router's confidence head scores the whole call, so an
+  optional argument you declared but the query never licensed poisons the score
+  of an otherwise-correct routing decision.** Cactus Needle 2 emitted
+  `get_user_posts(handle='pfrazee.com', limit=10)` for "what has pfrazee.com
+  been posting lately" — right tool, right handle, invented `limit` — at
+  confidence **0.0004**. Dropping every non-required argument from the same 18
+  schemas cut the invented-argument rate from 0.518 to 0.222 and raised mean
+  confidence on correct calls from 0.309 to 0.584, which is the difference
+  between a gate that can trade coverage for precision (38% coverage at 0.762,
+  20% at 0.909, 13% at 1.000) and one that reaches high precision only by
+  keeping one call in fifty. Routing accuracy itself barely moved (p=0.11), so
+  the reason to trim arity is the **gate**, not the accuracy. Declare only the
+  arguments you need the model to fill. (`needle-bsky/RESULTS.md`)
+- **`loss 0.0000` at step 5 of a fine-tune is truncation, not an easy task.**
+  Training rows that declared all 18 tool schemas tokenized to 1,642 tokens
+  against `--max-len 1024`; the target follows the tool block, so every label
+  position was cut and masked. Before believing any fine-tune loss, tokenize the
+  longest row with the trainer's own tokenizer and compare against `max_len` —
+  it is one command and it distinguishes "converged" from "learned nothing".
+  (`needle-bsky/ERRORS.md` #1)
+- **Match the training context to the decode context when the serving stack does
+  retrieval.** Needle renders at most five tools per turn, chosen by a retrieval
+  head, so a training row declaring the full catalogue trains on a context the
+  model will never see at inference — and is what blew the token budget above.
+  Generating rows with the correct tool plus four distractors fixed both at once.
+  (`needle-bsky/gen_data.py`)
+- **Declaring a sixth tool to Cactus Needle costs a fixed ~750 ms per turn; the
+  seventh through eighteenth are free.** Median turn on 4 CPU cores: 284 ms at 5
+  tools, 1034 ms at 6, 1109 ms at 18. Retrieval engages above five and embeds
+  the query every turn. `tool_index_path` does not help — it caches the *tool*
+  embeddings computed once at init, not the per-turn query embed (measured:
+  1090–1124 ms with the index, 1150 ms without). Size agent catalogues at five
+  or accept the flat penalty; there is no gradient in between.
+  (`needle-bsky/results_latency_vs_catalogue.json`)
+- **Retrieval, not selection, is where a small router loses most of its
+  accuracy.** Giving each query its own five-tool catalogue containing the right
+  answer lifted routable top-1 from 0.611 to 0.778 (tuned-min) and 0.704 to
+  0.815 (tuned) over the same 54 queries — roughly a third of the remaining
+  errors were the right tool never entering the context. If a router
+  underperforms, measure the oracle-retrieval arm before rewriting the selector's
+  prompts. (`needle-bsky/oracle.py`)
 
 - **Sorting texts by token length before batching a transformer encode is
   bit-identical, not merely close — and worth ~1.37x, not the 2x the intuition

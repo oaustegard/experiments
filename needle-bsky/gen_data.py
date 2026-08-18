@@ -68,8 +68,39 @@ TEXTS = [
 # --- templates ---------------------------------------------------------------
 # Verb frames deliberately disjoint from evalset.jsonl.
 
-def _t(fn):
-    return fn
+# Templates that need two draws from different pools get a named function; a
+# directly-called lambda would do the same job and read worse.
+
+
+def _lang_search(r):
+    t = r.choice(TOPICS)
+    lname, lcode = r.choice(LANGS)
+    return (f"{lname} posts about {t}", "search_posts", {"query": t, "lang": lcode},
+            f"'{t}' -> query; '{lname}' -> lang {lcode}")
+
+
+def _author_search(r):
+    t, h = r.choice(TOPICS), r.choice(HANDLES)
+    return (f"{t} posts written by {h}", "search_posts", {"query": t, "author": h},
+            f"'{t}' -> query; '{h}' -> author")
+
+
+def _hose_duration(r):
+    d = r.choice([5, 15, 20, 45, 60])
+    return (f"tap the stream for {d} seconds", "sample_firehose", {"duration": d},
+            f"'{d} seconds' -> duration {d}")
+
+
+def _hose_filter(r):
+    t = r.choice(TOPICS)
+    return (f"tap the stream and keep anything about {t}", "sample_firehose", {"filter": t},
+            f"'{t}' -> filter")
+
+
+def _keywords(r):
+    t = r.choice(TEXTS)
+    return (f"main terms in the following: {t}", "extract_keywords", {"text": t},
+            "the supplied passage -> text")
 
 
 TEMPLATES = [
@@ -88,12 +119,8 @@ TEMPLATES = [
                    f"'{t}' -> query")),
     (2, lambda r: (f"is anyone on bluesky discussing {(t := r.choice(TOPICS))}", "search_posts", {"query": t},
                    f"'{t}' -> query")),
-    (2, lambda r: ((lambda t, lname, lcode: (f"{lname} posts about {t}", "search_posts",
-                                             {"query": t, "lang": lcode},
-                                             f"'{t}' -> query; '{lname}' -> lang {lcode}"))(
-        r.choice(TOPICS), *r.choice(LANGS)))),
-    (2, lambda r: ((lambda t, h: (f"{t} posts written by {h}", "search_posts", {"query": t, "author": h},
-                                  f"'{t}' -> query; '{h}' -> author"))(r.choice(TOPICS), r.choice(HANDLES)))),
+    (2, _lang_search),
+    (2, _author_search),
     (3, lambda r: (f"whose accounts mention {(t := r.choice(TOPICS))}", "search_users", {"query": t},
                    f"'{t}' -> query")),
     (2, lambda r: (f"look for accounts named {(h := r.choice(HANDLES).split('.')[0])}", "search_users",
@@ -134,10 +161,8 @@ TEMPLATES = [
                    "names only -> get_trending_topics")),
     (2, lambda r: ("a bare list of what is popular", "get_trending_topics", {},
                    "bare list -> get_trending_topics")),
-    (3, lambda r: ((lambda d: (f"tap the stream for {d} seconds", "sample_firehose", {"duration": d},
-                               f"'{d} seconds' -> duration {d}"))(r.choice([5, 15, 20, 45, 60])))),
-    (2, lambda r: ((lambda t: (f"tap the stream and keep anything about {t}", "sample_firehose",
-                               {"filter": t}, f"'{t}' -> filter"))(r.choice(TOPICS)))),
+    (3, _hose_duration),
+    (2, _hose_filter),
     (3, lambda r: (f"where is {(h := r.choice(HANDLES))}'s repo hosted", "resolve_identity", {"actor": h},
                    f"'{h}' -> actor; hosting -> resolve_identity")),
     (2, lambda r: (f"turn {(d := r.choice(DIDS))} into a handle", "resolve_identity", {"actor": d},
@@ -152,8 +177,7 @@ TEMPLATES = [
                    {"handle": h}, f"'{h}' -> handle; characterise -> analyze_account")),
     (2, lambda r: (f"what themes run through {(h := r.choice(HANDLES))}", "analyze_account", {"handle": h},
                    f"'{h}' -> handle")),
-    (3, lambda r: ((lambda t: (f"main terms in the following: {t}", "extract_keywords", {"text": t},
-                               "the supplied passage -> text"))(r.choice(TEXTS)))),
+    (3, _keywords),
 ]
 
 OFF_TOPIC = [
