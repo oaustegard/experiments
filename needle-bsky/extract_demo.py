@@ -26,6 +26,18 @@ sys.path.insert(0, str(HERE))
 
 from needle_bsky import catalogue  # noqa: F401  (puts the skill scripts on sys.path)
 
+MINIMAL_RECORD = {
+    "name": "post_record",
+    "description": "What one Bluesky post is about.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "subject": {"type": "string", "description": "the main thing the post is about, in a few words"}
+        },
+        "required": ["subject"],
+    },
+}
+
 POST_RECORD = {
     "name": "post_record",
     "description": "What one Bluesky post is about.",
@@ -42,6 +54,36 @@ POST_RECORD = {
 }
 
 
+# Constructed posts, not fetched ones: each carries the field values literally,
+# to separate "the model cannot extract" from "the field asked for a summary
+# rather than a span". Needle's documented contract is that arguments contain
+# only values evidenced by the input, so a `subject` field is outside it by
+# construction and these are inside it.
+SPANNY = [
+    "Bokbytterkveld torsdag 19:00 på Kulturhuset, meld deg på innen 20. august.",
+    "Release 0.4.2 is out, fixes the ICE restart bug, download at github.com/oaustegard/remex",
+    "Standup moved to 09:30 CET starting Monday, room B2.",
+    "Selling a Wahoo Kickr Core for 4200 NOK, pickup in Oslo this weekend.",
+    "Talk accepted: 'Small models, big catalogues' at ATmosphere Conf, March 14, Seattle.",
+    "Rain all week in Bergen, 12C on Thursday, 9C by Saturday.",
+]
+
+EVENT_RECORD = {
+    "name": "event_record",
+    "description": "A dated or priced thing announced in a post.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "what": {"type": "string", "description": "the name of the thing, copied from the post"},
+            "when": {"type": "string", "description": "the date or time written in the post"},
+            "where": {"type": "string", "description": "the place written in the post"},
+            "amount": {"type": "string", "description": "a price or quantity written in the post"},
+        },
+        "required": ["what"],
+    },
+}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--handle", default="austegard.com")
@@ -53,18 +95,49 @@ def main() -> int:
     import needle
 
     posts = [p for p in bsky.get_user_posts(a.handle, limit=a.limit) if (p.get("text") or "").strip()]
-    agent = needle.Needle(tools=[POST_RECORD])
+    texts = [" ".join(p["text"].split()) for p in posts]
 
     lines = [f"# extraction over {len(posts)} live posts from @{a.handle}", ""]
-    for p in posts:
-        text = " ".join(p["text"].split())
+    for label, schema in (("four fields", POST_RECORD), ("subject only", MINIMAL_RECORD)):
+        agent = needle.Needle(tools=[schema])
+        confs, refused = [], 0
+        lines.append(f"## declared: {label} ({', '.join(sorted(schema['parameters']['properties']))})")
+        lines.append("")
+        for text in texts:
+            agent.reset()
+            r = agent.complete(text)
+            calls = r.get("function_calls") or []
+            got = calls[0]["arguments"] if calls else None
+            if got is None:
+                refused += 1
+            if r.get("confidence") is not None:
+                confs.append(r["confidence"])
+            lines.append(f"post: {text[:180]}")
+            lines.append(f"  -> {json.dumps(got, ensure_ascii=False)}  (confidence {r.get('confidence')})")
+            lines.append("")
+        mean = sum(confs) / len(confs) if confs else 0.0
+        lines.append(f"  mean confidence {mean:.4f}   refused {refused}/{len(texts)}")
+        lines.append("")
+
+    agent = needle.Needle(tools=[EVENT_RECORD])
+    confs, refused = [], 0
+    lines.append("## constructed posts, span-shaped fields (what, when, where, amount)")
+    lines.append("")
+    for text in SPANNY:
         agent.reset()
         r = agent.complete(text)
         calls = r.get("function_calls") or []
         got = calls[0]["arguments"] if calls else None
-        lines.append(f"post: {text[:200]}")
+        if got is None:
+            refused += 1
+        if r.get("confidence") is not None:
+            confs.append(r["confidence"])
+        lines.append(f"post: {text}")
         lines.append(f"  -> {json.dumps(got, ensure_ascii=False)}  (confidence {r.get('confidence')})")
         lines.append("")
+    mean = sum(confs) / len(confs) if confs else 0.0
+    lines.append(f"  mean confidence {mean:.4f}   refused {refused}/{len(SPANNY)}")
+    lines.append("")
 
     out = "\n".join(lines)
     Path(a.out).write_text(out)

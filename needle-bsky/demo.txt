@@ -1,25 +1,56 @@
+# needle_bsky ask — default router (grouped, heuristic stage 1), gate 0.6
+
 $ python3 -m needle_bsky ask "grab pfrazee.com's timeline"
-[escalate] get_profile(handle='pfrazee.com')  confidence 0.059  1178 ms
+[escalate] get_profile(handle='pfrazee.com')  confidence 0.108  835 ms
   below the gate — not executed. Hand this one up.
 
 $ python3 -m needle_bsky ask "open the account page for austegard.com"
-[act] get_profile(handle='austegard.com')  confidence 0.501  961 ms
+[act] get_profile(handle='austegard.com')  confidence 0.777  835 ms
 {
  "handle": "austegard.com",
  "display_name": "Oskar \ud83d\udd4a\ufe0f",
  "description": "oskar @ austegard.com \ud83d\udd4a\ufe0f\nAI Explorer - caveat vibrans\nEvolution guide for Muninn \ud83d\udc26\u200d\u2b1b (muninn.austegard.com)\n\nYeah not actually green. Not really that grouchy either.",
  "followers": 496,
- "following": 855,
- "posts": 3820,
 
-$ python3 -m needle_bsky ask "dig up posts on cactus needle"
-[escalate] get_user_posts(handle='cactus_posts')  confidence 0.000  1338 ms
+$ python3 -m needle_bsky ask "who follows austegard.com"
+[act] get_followers(handle='austegard.com')  confidence 0.895  415 ms
+50 results
+  - {"handle": "overby.me", "display_name": "Niclas Overby \u24c3", "did": "did:plc:eukcx4amfqmhfrnkix7zwm34", "description": "\ud83d\udd4a\ufe0f Progressive \ud83c\uddea\ud83c\uddfa Sovereignty \ud83d\udc41\ufe0e Sentientis
+  - {"handle": "kaidav.is", "display_name": "Kai \ud83c\udf1f", "did": "did:plc:jznynyzgerlqmdbbj33o7wfs", "description": "Space cowboy. Crafter of artisanal free-range websites and small businesses. \n\nEverything changes. 
+  - {"handle": "philpax.me", "display_name": "philpax", "did": "did:plc:wamidydbgu3u6fk3yckaglnz", "description": "creative engineer \u00b7 Rust, gamedev/modding, reverse engineering, writing, AI, XR, etc\n\na better world i
+  - {"handle": "justgovai.bsky.social", "display_name": "justgovai.bsky.social", "did": "did:plc:6w2kd2brjbkwuxql3wud5k3e", "description": "The Justice and Government Analytics Initiative is an independent, nonpartisan resea
+
+$ python3 -m needle_bsky ask "where is austegard.com's repo hosted"
+[escalate] get_user_posts(handle='austegard.com')  confidence 0.144  895 ms
   below the gate — not executed. Hand this one up.
 
 $ python3 -m needle_bsky ask "anything broken in the network at the moment"
-[escalate] atproto_status()  confidence 0.230  827 ms
+[act] atproto_status()  confidence 0.920  193 ms
+4 results
+  - {"layer": "PDS entryway", "ok": true, "ms": 641}
+  - {"layer": "PLC directory", "ok": true, "ms": 431}
+  - {"layer": "Constellation", "ok": true, "ms": 2831}
+  - {"layer": "AppView", "ok": true, "ms": 436}
+
+$ python3 -m needle_bsky ask "dig up posts on cactus needle"
+[escalate] get_trending_topics()  confidence 0.100  862 ms
   below the gate — not executed. Hand this one up.
 
 $ python3 -m needle_bsky ask "set a timer for twenty minutes"
-[refuse] no declared tool serves this (confidence 0.993, 706 ms)
+[refuse] no declared tool serves this (confidence 0.995, 698 ms)
+
+# the same queries against --router flat, all 18 declared to one agent
+
+$ python3 -m needle_bsky ask "grab pfrazee.com's timeline" --router flat
+[escalate] get_profile(handle='pfrazee.com')  confidence 0.059  1198 ms
+  below the gate — not executed. Hand this one up.
+
+$ python3 -m needle_bsky ask "who follows austegard.com" --router flat
+[act] get_followers(handle='austegard.com')  confidence 0.702  989 ms
+50 results
+  - {"handle": "overby.me", "display_name": "Niclas Overby \u24c3", "did": "did:plc:eukcx4amfqmhfrnkix7zwm34", "description": "\ud83d\udd4a\ufe0f Progressive \ud83c\uddea\ud83c\uddfa Sovereignty \ud83d\udc41\ufe0e Sentientis
+
+$ python3 -m needle_bsky ask "where is austegard.com's repo hosted" --router flat
+[escalate] get_user_posts(handle='austegard.com')  confidence 0.046  1126 ms
+  below the gate — not executed. Hand this one up.
 
