@@ -696,6 +696,85 @@ the result.
   Collapsing a catalogue into fewer dispatcher tools to keep the tool count down
   looks free on this evidence — relevant given that declaring a sixth tool to
   Cactus Needle costs a fixed ~750 ms. (`gh-mcp-regex-fit/eval.py`)
+- **A fallback that can score is worth +0.14 accuracy at zero abstention cost; a
+  fallback that cannot is worth +0.014 at all of it.** Same catalogue, same
+  precise hand-written rules in front: an unconditional catch-all took abstention
+  0.867 -> 0.000 for +0.014 wild accuracy, while a *thresholded* encoder in the
+  same slot gave **+0.136** wild accuracy (0.486 -> 0.622) with abstention
+  unchanged at 0.867. On the hand-authored split the abstention line is flat for
+  every threshold down to the selected one, because the scored arm is simply
+  never confident about off-topic rows — a property no catch-all regex can have.
+  It is also nearly free: 82% of requests never reach the scorer, so the cascade
+  median is 0.088 ms against 0.071 ms for the rules alone, paying the 2-4 ms
+  encode only on the tail. Cascade, do not fall back.
+  (`gh-mcp-regex-fit/cascade_arms.py`)
+- **In an API catalogue grammatical number is semantic, so stemming and
+  lemmatisation delete the most discriminative token you have.** Plural names a
+  list endpoint, singular a fetch-one. Lemmatising collapsed `branches` (idf
+  4.37) to `branch` (2.76) and `issues` (2.98) to `issue` (1.66), dropping
+  method-accuracy-given-tool from 1.000 to 0.500; Porter stemming merged 96 stems
+  across `tag`/`tags` (`get_tag` vs `list_tags`), `workflow`/`workflows`,
+  `commit`/`commits`, for 16 fixed against 83 broken on one split. Two
+  independent implementations reached this by different routes. The exception:
+  stemming *helps* recall@10 (0.892 -> 0.960), pulling gold into a shortlist
+  while pushing it off the top — **stem if you are shortlisting, not if you are
+  deciding.** (`gh-mcp-regex-fit/bm25_arms.py`, `spacy_arms.py`)
+- **A lexical ranker is a good shortlister and a poor router; measure recall@k
+  before judging it by top-1.** BM25 over training queries scored 0.635 top-1 on
+  hand-authored GitHub MCP requests but **0.851 at k=5 and 0.919 at k=10** over
+  79 targets, at 0.03 ms. That reframes tool-catalogue sizing: `needle-bsky`
+  measured a fixed ~750 ms penalty for declaring a sixth tool to Cactus Needle,
+  and a 0.03 ms shortlist keeping 85% recall at k=5 is how not to pay it. Also:
+  **RRF lost to weighted sum at every weight** (0.554 vs 0.622) because the two
+  component arms were of very unequal quality and only a weighted sum can
+  down-weight the weak one. (`gh-mcp-regex-fit/bm25_arms.py`)
+- **spaCy's general-English vectors do not supply domain synonymy, and the
+  zero-lexical-overlap slice is how to prove it in one measurement.** On rows
+  sharing no word with any label text — where lexical routing is structurally
+  blind, n=77 on one split — an IDF-weighted `en_core_web_md` vector arm scored
+  **0.000**, against 0.108 on rows lexical matching can see. Vectors moved "has
+  anyone approved it" from lexically unreachable to **rank 21 of 79**: findable,
+  not routable. Every spaCy arm lost to a 20-line IDF schema-overlap control with
+  no spaCy in the path, at **250x** the latency (8.2 ms vs 0.03 ms). What a human
+  supplies writing `\b(diff|patch|changeset)\b` is the fact that those name one
+  concept *in this API* — not a fact about English, so no general encoder has it.
+  (`gh-mcp-regex-fit/spacy_arms.py`)
+- **An agreement gate pays in proportion to how independent the second voter is.**
+  Hand-written rules agreeing with a fitted decision list — which shares their cue
+  layer and catalogue — gated at 0.192/0.775 (held-out) and 0.203/0.867 (wild);
+  the same rules agreeing with a sentence encoder, which shares neither, gated at
+  **0.355/0.864** and **0.351/0.923**, roughly 1.8x the coverage at higher
+  precision. `monad-bsky` established that agreement beats a calibrated
+  confidence head; the gradient is the new part, and it says to pick a second
+  voter that fails differently rather than one that is merely separate.
+  (`gh-mcp-regex-fit/cascade_arms.py`)
+- **A held-out query family written to avoid the training family's verbs is
+  adversarial toward the schema, not just toward the fitter — check it with a
+  zero-parameter ranker.** A BM25 arm over schema text fits nothing, yet dropped
+  0.611 -> 0.200 across the two families, a -67% fall against the fitted decision
+  list's -76%. Since a zero-parameter ranker cannot overfit, most of that gap is
+  a property of the split. Confirmation: **hand-authored queries outscored the
+  "held-out" generated ones on every schema-reading arm** (0.405 vs 0.200 BM25,
+  0.378 vs 0.260 encoder). Generated held-out families of this construction
+  overstate generalisation loss; a zero-parameter baseline separates the split's
+  difficulty from the model's failure for the cost of one run.
+  (`gh-mcp-regex-fit/bm25_arms.py`)
+- **A local module shadowing a PyPI package fails as `AttributeError`, not
+  `ImportError`, so dependency guards do not catch it.** spaCy's dependency chain
+  imports a package named `catalogue`; a `catalogue.py` in the working directory
+  shadows it and `import spacy` dies with "module 'catalogue' has no attribute
+  'create'", which reads like a broken spaCy rather than a name collision. Guard
+  optional-arm imports with `except Exception`, and hide the directory plus swap
+  `sys.modules` around the third-party import if a rename is not possible.
+  (`gh-mcp-regex-fit/spacy_arms.py`, `arms.py`)
+- **Truncating schema text in a harness silently handicaps every arm that reads
+  it — measure the cap before trusting a "the schema lacks the words" finding.**
+  A 240-character cap on parameter descriptions cut the `method` enum glosses on
+  exactly the three GitHub MCP dispatchers that document them (`pull_request_read`
+  kept 3 of 9). Rebuilding at full length doubled the glossed text and moved
+  held-out accuracy only 0.200 -> 0.224, so the finding survived — but it was the
+  harness, not the catalogue, that was being measured until it was checked.
+  (`gh-mcp-regex-fit/catalogue.py --full`)
 - **A retry cascade beats any single accept-gate on the coverage/precision
   frontier.** Accepting on Needle's own confidence first, then on
   Needle/Monad agreement, then escalating, gave **0.613 coverage at 0.842
