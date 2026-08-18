@@ -244,7 +244,7 @@ class EncoderArm(ArmBase):
 # the same abstention floor the cascade uses; the registry defaults are the
 # values that sweep chose, so `eval.py enc-fusion` reproduces the table row.
 # Filled in from the family-A sweep in `main()`; see results_encoder.json.
-THRESHOLDS = {"schema": 0.20, "centroid": 0.47, "fusion": 0.33}
+THRESHOLDS = {"schema": 0.28, "centroid": 0.53, "fusion": 0.35}
 
 for _src in ("schema", "centroid", "fusion"):
     register(f"enc-{_src}", lambda s=_src: EncoderArm(s, THRESHOLDS[s]))
