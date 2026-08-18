@@ -682,7 +682,10 @@ def main() -> int:
 def _quantile_grid(arm, rows: list[dict], gate: str, n: int = 21) -> list[float]:
     """Thresholds at observed quantiles, so every step moves coverage."""
     vals = sorted(gate_stat(arm.rank(r["query"]), gate) for r in rows)
-    return [vals[min(len(vals) - 1, int(i * len(vals) / n))] for i in range(n)]
+    grid = [vals[min(len(vals) - 1, int(i * len(vals) / n))] for i in range(n)]
+    # The fused top score saturates at 1.0 whenever both rankers agree, which is
+    # 39% of family A, so the upper quantiles collapse onto one threshold.
+    return sorted(dict.fromkeys(grid))
 
 
 if __name__ == "__main__":
