@@ -181,12 +181,14 @@ containing the correct tool plus four seeded distractors.
 | `tuned-min` | 0.611 | 0.778 | +0.167 |
 
 With perfect retrieval and hand-written schemas the model reaches 81.5% top-1
-over 54 queries. Roughly a third of the base model's remaining errors at 18
-declared tools are the retrieval head failing to surface the right tool, not the
-selector picking wrong. Two eval queries make it concrete: `feed-02` ("read the
-feed at at://…/app.bsky.feed.generator/…") and `trend-03` ("which topics are hot
-right now, and how many posts each") both came back as refusals at confidence
-0.0006 and 0.9464, the model declining to call a tool it was never shown.
+over 54 queries. Between a third and two fifths of the errors at 18 declared
+tools disappear when retrieval is replaced by an oracle: `tuned` goes from 16
+errors to 10, `tuned-min` from 21 to 12. Two queries are suggestive of the
+mechanism without proving it — `feed-02` ("read the feed at
+at://…/app.bsky.feed.generator/…") and `trend-03` ("which topics are hot right
+now, and how many posts each") both came back as refusals, at confidence 0.0006
+and 0.9464. A refusal is what a rendered-but-unmatched catalogue and an
+unrendered tool look like alike; the Python surface cannot distinguish them.
 
 `auto-min`'s −0.018 is within noise (one query on n=54).
 
@@ -205,8 +207,8 @@ catalogue with the rest:
 
 The sixth tool costs 3.6x the fifth. Retrieval is a fixed ~750 ms per turn on
 this CPU, charged the moment a sixth tool is declared and then almost flat out
-to 18. `tool_index_path` does not
-touch it: with the index persisted, cold and warm, the median turn stayed
+to 18. `tool_index_path` does not touch it: with the index persisted, cold and
+warm, the median turn stayed
 1090–1124 ms against 1150 ms without. That is consistent with the documented
 design: the index caches the *tool* embeddings, computed once at init, while
 the *query* is embedded every turn.
