@@ -418,3 +418,80 @@ conventional system.
   construction. It is decisive about zero-shot and says nothing else.
 - **NL2Bash is 60% `find`** and its NL side is written by annotators, not users.
   It is a correctness corpus, not a usage distribution.
+
+## 6. Fine-tuning answers the gate's open question — and invalidates its premise
+
+The gate deliberately left one thing open: whether zero-shot failure was a
+*shape* problem or a *capability* problem. `monad-bsky` is the precedent —
+it took this model's 56M sibling from 0.000 to 0.481 by installing an output
+shape. So: 600 rows, one epoch, batch 2, lr 1e-4 cosine, loss masked to the
+completion span, **25.5 minutes on 4 CPU cores**. Training prompts are byte-identical
+in format to the gate's, so no gain can come from a format change.
+
+**Scored against the baseline that makes the number mean something.** 27 of the
+40 gate rows have `find` as their gold, so answering `find` unconditionally
+scores 0.675 — a trap the retrieval verification pass caught once already, and
+one an earlier draft of this section walked straight into by reporting "8 of 9
+correct" without noting that most of those golds were `find`.
+
+| slice | base | **fine-tuned** | always-`find` |
+|---|---|---|---|
+| all (n=40) | 0.025 | **0.950** | 0.675 |
+| **non-`find` (n=13)** | 0.000 | **0.923** | **0.000** |
+| uncontaminated (n=38) | 0.026 | 0.947 | — |
+| uncontaminated non-`find` (n=13) | 0.000 | 0.923 | 0.000 |
+| commands emitted at all | 0.025 | **0.950** | — |
+
+The non-`find` row is the claim: **0.923 where a constant scores 0.000.** It
+routes `less`, `cat`, `mount`, `yum` and `set` correctly and misses only `kill`.
+The zero-shot failure was **shape, not capability**, and 25 minutes of CPU fixed
+it. Two of the 40 rows leaked into training through duplicate NL2Bash English
+strings; excluding them changes nothing (0.947 / 0.923).
+
+### The premise that justified this model did not survive
+
+**Verbatim rate is 0.000 before fine-tuning and 0.000 after.** The whole reason
+Pleias-RAG-350M was chosen over any other 350M model is that it is trained to
+quote sources literally, and the architecture's bet was that converting
+generation into extraction would rescue a tiny model — with `monad-bsky`'s 51%
+identifier-copying failure as the thing being fixed. The fine-tuned model does
+not quote the supplied command. **It generates one.**
+
+So the result is real and the reasoning that produced it was wrong. What was
+installed is "emit a shell command", not "copy the right span". That has a
+direct consequence: **there is no evidence here that the RAG-specialised model
+was the right base**, and the obvious ablation — fine-tune a non-RAG 350M model
+of similar size on the identical rows — has not been run. If it matches, the
+source-quoting property is decorative for this task and the model choice should
+be made on other grounds.
+
+### What this does and does not establish
+
+It establishes that the middle tier can exist at 350M, on a laptop, at ~12 s per
+query on four CPU cores unquantised.
+
+It does not establish that the commands are *correct*. `utility_ok` compares the
+leading utility, so `find . -type f -print0 | xargs -0 grep -i '.*\.*'` counts as
+a success while being nonsense. Functional-equivalence scoring — Docker execution
+plus an LLM judge, the metric behind the published 74% for GPT-4o — is the
+missing harness, and until it exists **0.923 is a routing number wearing a
+generation number's clothes**.
+
+Other limits: n=13 on the slice that carries the claim; one epoch with training
+loss still oscillating 1.4–2.1; training and evaluation drawn from the same
+corpus and phrasing distribution, so this measures in-distribution shape
+installation and says nothing about the wild-request case that `context_probe.py`
+showed is much harder.
+
+### Where the bottleneck moved
+
+| component | before tonight | after |
+|---|---|---|
+| 2 — small model for intent | unknown | **works after 25 min of fine-tuning** |
+| 4b — retrieval | untested | **binding constraint at 0.233 recall@5** |
+
+The architecture is alive and the work is now retrieval quality, which is the
+better problem to have: it is deterministic, measurable in milliseconds, and has
+measured headroom nobody has spent yet — PATH-scoping (+54% at k=5, done),
+utility-level documents (0.369 vs 0.324 on non-find, tried once), an oracle
+bound at 0.533, and a dense arm and query rewriter neither of which was built.
