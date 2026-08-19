@@ -82,7 +82,13 @@ def main() -> int:
                     help="stop and checkpoint when this wall-clock budget is spent")
     ap.add_argument("--seed", type=int, default=20260819)
     ap.add_argument("--out", type=Path, default=HERE / "ft")
+    ap.add_argument("--results", type=Path, default=HERE / "results_finetune.json")
     ap.add_argument("--build-only", action="store_true")
+    ap.add_argument("--base-model", default=None,
+                    help="base checkpoint to fine-tune; defaults to Pleias-RAG-350M. "
+                         "The ablation uses PleIAs/Pleias-350m-Preview, which is the same "
+                         "architecture and tokenizer (llama, L26, h1024, vocab 65536) "
+                         "without the RAG mid-training - so it isolates that variable alone.")
     ap.add_argument("--checkpoint-every", type=int, default=50,
                     help="save every N steps; a container restart killed a run at "
                          "step 110/300 with nothing on disk, because the first "
@@ -107,8 +113,10 @@ def main() -> int:
     from transformers import AutoModelForCausalLM, AutoTokenizer
     import pleias_gate as G
 
-    tok = AutoTokenizer.from_pretrained(G.MODEL)
-    model = AutoModelForCausalLM.from_pretrained(G.MODEL, dtype=torch.float32)
+    base = a.base_model or G.MODEL
+    print(f"base model: {base}")
+    tok = AutoTokenizer.from_pretrained(base)
+    model = AutoModelForCausalLM.from_pretrained(base, dtype=torch.float32)
     model.train()
 
     def encode(r):
@@ -161,10 +169,10 @@ def main() -> int:
 
     a.out.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(a.out); tok.save_pretrained(a.out)
-    json.dump({"steps": step, "epochs_requested": a.epochs, "rows": len(train),
+    json.dump({"base_model": base, "steps": step, "epochs_requested": a.epochs, "rows": len(train),
                "lr": a.lr, "batch": a.batch, "minutes": round((time.time() - t0) / 60, 1),
                "stopped_on_budget": stopped},
-              open(HERE / "results_finetune.json", "w"), indent=1)
+              open(a.results, "w"), indent=1)
     print(f"\nsaved to {a.out}; re-run pleias_gate.py against it to measure")
     return 0
 
