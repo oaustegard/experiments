@@ -220,6 +220,11 @@ expensive path, and it is the one that works.
 Harvesting hidden states is a batched forward pass, so the 9 tok/s decode rate is
 not the constraint. Measured on 4 cores:
 
+**Corrected 2026-08-18:** the table below was measured while other jobs
+saturated the same four cores. A clean re-measurement during the harvest in
+[`DRAFTER.md`](DRAFTER.md) gives **431 tok/s** sustained over 250k tokens, 2.2×
+these numbers. The 72-hour figure below is correspondingly ~32 hours.
+
 | Batch × seqlen | tokens/s |
 |---|---|
 | 1 × 512 | 192.0 |
