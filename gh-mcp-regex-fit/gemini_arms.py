@@ -211,9 +211,18 @@ class GeminiLiveArm(ArmBase):
         return lab if lab in self.valid else None
 
 
-for _p in sorted(HERE.glob("rules_gemini*.json")):
-    register(f"compiled-{_p.stem.replace('rules_', '')}",
-             lambda p=_p: CompiledRouter(p))
+def _is_compiled(path: Path) -> bool:
+    """A compiled rule file carries an `author`; a fitted one carries `literals`."""
+    try:
+        return "author" in json.loads(path.read_text())
+    except Exception:
+        return False
+
+
+for _p in sorted(HERE.glob("rules_*.json")):
+    if _is_compiled(_p):
+        register(f"compiled-{_p.stem.replace('rules_', '')}",
+                 lambda p=_p: CompiledRouter(p))
 register("gemini-live", lambda: GeminiLiveArm())
 
 

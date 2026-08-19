@@ -47,7 +47,8 @@ def load_all(verbose: bool = False) -> None:
     like a broken spaCy rather than a name collision. Measured 2026-08-18.
     """
     import importlib
-    for mod in ("baseline_arms", "bm25_arms", "spacy_arms", "encoder_arms", "cascade_arms"):
+    for mod in ("baseline_arms", "bm25_arms", "spacy_arms", "encoder_arms", "cascade_arms",
+                "gemini_arms"):
         try:
             importlib.import_module(mod)
         except Exception as e:
