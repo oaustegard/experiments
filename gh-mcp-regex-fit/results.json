@@ -1,0 +1,230 @@
+{
+ "hand": {
+  "family A (fitted)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.9504,
+   "precision": 0.7325,
+   "label_acc": 0.6962,
+   "tool_acc": 0.7057,
+   "method_acc_given_tool": 0.972,
+   "abstain_acc": 0.925,
+   "args_acc": 0.6363,
+   "median_latency_ms": 0.0617
+  },
+  "family B (held-out)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.8703,
+   "precision": 0.6279,
+   "label_acc": 0.5464,
+   "tool_acc": 0.5675,
+   "method_acc_given_tool": 0.9275,
+   "abstain_acc": 0.95,
+   "args_acc": 0.4669,
+   "median_latency_ms": 0.066
+  },
+  "wild (hand-authored)": {
+   "n_routable": 74,
+   "n_offtopic": 15,
+   "coverage": 0.7297,
+   "precision": 0.6667,
+   "label_acc": 0.4865,
+   "tool_acc": 0.5,
+   "method_acc_given_tool": 0.9375,
+   "abstain_acc": 0.8667,
+   "args_acc": null,
+   "median_latency_ms": 0.0522
+  }
+ },
+ "cascade-enc-fusion": {
+  "family A (fitted)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.9989,
+   "precision": 0.7392,
+   "label_acc": 0.7384,
+   "tool_acc": 0.7479,
+   "method_acc_given_tool": 0.9738,
+   "abstain_acc": 0.925,
+   "args_acc": 0.6708,
+   "median_latency_ms": 0.0697
+  },
+  "family B (held-out)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.9167,
+   "precision": 0.6387,
+   "label_acc": 0.5854,
+   "tool_acc": 0.6076,
+   "method_acc_given_tool": 0.9271,
+   "abstain_acc": 0.925,
+   "args_acc": 0.4822,
+   "median_latency_ms": 0.0806
+  },
+  "wild (hand-authored)": {
+   "n_routable": 74,
+   "n_offtopic": 15,
+   "coverage": 0.9054,
+   "precision": 0.6866,
+   "label_acc": 0.6216,
+   "tool_acc": 0.6622,
+   "method_acc_given_tool": 0.85,
+   "abstain_acc": 0.8667,
+   "args_acc": null,
+   "median_latency_ms": 0.1281
+  }
+ },
+ "bm25-train": {
+  "family A (fitted)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 1.0,
+   "precision": 0.9926,
+   "label_acc": 0.9926,
+   "tool_acc": 0.9926,
+   "method_acc_given_tool": 1.0,
+   "abstain_acc": 0.625,
+   "args_acc": 0.852,
+   "median_latency_ms": 0.0356
+  },
+  "family B (held-out)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.9589,
+   "precision": 0.3311,
+   "label_acc": 0.3175,
+   "tool_acc": 0.3755,
+   "method_acc_given_tool": 0.7011,
+   "abstain_acc": 0.55,
+   "args_acc": 0.271,
+   "median_latency_ms": 0.011
+  },
+  "wild (hand-authored)": {
+   "n_routable": 74,
+   "n_offtopic": 15,
+   "coverage": 0.9865,
+   "precision": 0.6438,
+   "label_acc": 0.6351,
+   "tool_acc": 0.6622,
+   "method_acc_given_tool": 0.8889,
+   "abstain_acc": 0.5333,
+   "args_acc": null,
+   "median_latency_ms": 0.0081
+  }
+ },
+ "enc-fusion": {
+  "family A (fitted)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.9989,
+   "precision": 0.9039,
+   "label_acc": 0.903,
+   "tool_acc": 0.9146,
+   "method_acc_given_tool": 0.9714,
+   "abstain_acc": 0.825,
+   "args_acc": 0.7657,
+   "median_latency_ms": 4.3589
+  },
+  "family B (held-out)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.7416,
+   "precision": 0.5349,
+   "label_acc": 0.3966,
+   "tool_acc": 0.461,
+   "method_acc_given_tool": 0.6685,
+   "abstain_acc": 0.825,
+   "args_acc": 0.3142,
+   "median_latency_ms": 4.5473
+  },
+  "wild (hand-authored)": {
+   "n_routable": 74,
+   "n_offtopic": 15,
+   "coverage": 0.8514,
+   "precision": 0.6984,
+   "label_acc": 0.5946,
+   "tool_acc": 0.6351,
+   "method_acc_given_tool": 0.85,
+   "abstain_acc": 0.8,
+   "args_acc": null,
+   "median_latency_ms": 3.8501
+  }
+ },
+ "tok-overlap": {
+  "family A (fitted)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.942,
+   "precision": 0.5722,
+   "label_acc": 0.539,
+   "tool_acc": 0.5622,
+   "method_acc_given_tool": 0.8836,
+   "abstain_acc": 0.775,
+   "args_acc": 0.4932,
+   "median_latency_ms": 0.0481
+  },
+  "family B (held-out)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.7532,
+   "precision": 0.2563,
+   "label_acc": 0.193,
+   "tool_acc": 0.1973,
+   "method_acc_given_tool": 0.875,
+   "abstain_acc": 0.825,
+   "args_acc": 0.1209,
+   "median_latency_ms": 0.0365
+  },
+  "wild (hand-authored)": {
+   "n_routable": 74,
+   "n_offtopic": 15,
+   "coverage": 0.6892,
+   "precision": 0.5098,
+   "label_acc": 0.3514,
+   "tool_acc": 0.3514,
+   "method_acc_given_tool": 1.0,
+   "abstain_acc": 0.6667,
+   "args_acc": null,
+   "median_latency_ms": 0.0313
+  }
+ },
+ "fitted-schema": {
+  "family A (fitted)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.9842,
+   "precision": 1.0,
+   "label_acc": 0.9842,
+   "tool_acc": 0.9842,
+   "method_acc_given_tool": 1.0,
+   "abstain_acc": 1.0,
+   "args_acc": 0.8446,
+   "median_latency_ms": 0.0913
+  },
+  "family B (held-out)": {
+   "n_routable": 948,
+   "n_offtopic": 40,
+   "coverage": 0.577,
+   "precision": 0.415,
+   "label_acc": 0.2395,
+   "tool_acc": 0.3038,
+   "method_acc_given_tool": 0.6648,
+   "abstain_acc": 0.975,
+   "args_acc": 0.2494,
+   "median_latency_ms": 0.1034
+  },
+  "wild (hand-authored)": {
+   "n_routable": 74,
+   "n_offtopic": 15,
+   "coverage": 0.527,
+   "precision": 0.6154,
+   "label_acc": 0.3243,
+   "tool_acc": 0.3649,
+   "method_acc_given_tool": 0.75,
+   "abstain_acc": 1.0,
+   "args_acc": null,
+   "median_latency_ms": 0.0885
+  }
+ }
+}
