@@ -262,3 +262,56 @@ Only **38.9%** of tail-bucket gold utilities are in the corpus at all, against
 the used-once tail. The tail recall numbers are therefore a floor: on a real
 machine with ~2,000 man pages the corpus would contain far more of them. The
 head numbers carry no such caveat and are the ones to argue from.
+
+## Where this leaves the six-component architecture
+
+| # | component | verdict tonight |
+|---|---|---|
+| 3 | regex parameter extraction | **works** — 0.971 precision holdout; 0.55 recall on unmarked values is the gap |
+| 4a | corpus construction | **works** — 31,169 chunks, 4,698 utilities, 1.25 s to index |
+| 1 | LLM-composed regex rules | **works, and does not improve with feedback** — 0.540 wild, flat over 3 rounds |
+| 6 | error logging | **reframed** — an eval set, not a supervision signal |
+| 4b | retrieval over that corpus | **fails as built** — 0.280 recall@5, 0.417 scoped, needs to serve k=3 |
+| 2 | small model reading the sources | **fails** — 0 of 40, verbatim 0.000 |
+| 5 | ICL grounded in valid calls | **untested** — blocked behind 2 |
+
+The deterministic half holds up. Both middle tiers failed their first
+measurement, and they failed *independently*: even a perfect retriever would not
+help, because the gate handed the model the right source and it still produced
+prose; and even a working model would be starved, because the shortlist misses
+the utility three times in four.
+
+That is a more useful outcome than one failure would have been, because the two
+have different fixes and neither is speculative:
+
+- **Retrieval** is a corpus-scoping and query-matching problem. Scoping to
+  installed utilities is measured at +54% on recall@5 and is free. The remaining
+  gap is a vocabulary mismatch between a full-sentence request and a 19-token
+  chunk, which is what a dense arm or a query rewriter is for — neither tried.
+- **The model** is an output-shape problem, and `monad-bsky` is the precedent:
+  its 56M sibling went **0.000 → 0.481** on exactly this kind of shape
+  installation. `finetune_gate.py` is staged with the training rows built (600
+  train / 100 holdout, 93 distinct utilities, identical prompt format to the
+  gate so a gain cannot come from a format change) and deliberately not run —
+  it is hours of CPU and the recipe should be chosen deliberately.
+
+**What would change my recommendation.** If the fine-tune moves the gate off
+zero, the architecture is alive and the work is retrieval quality. If it does
+not, the middle tier needs a 7B-class model, where the published NL2SH number is
+61% against GPT-4o's 74% — and at that size the scaffold-prefill trick and the
+k≈3 constraint both stop mattering, which is a different and much more
+conventional system.
+
+## Caveats
+
+- **Nothing here is scored on the metric that matters.** Every number is utility
+  selection or retrieval recall. The published NL2SH benchmark scores functional
+  equivalence by executing both commands in Docker and judging outputs, and
+  reports 74% for GPT-4o. Until that harness exists, none of these figures are
+  comparable to the literature.
+- **The container has 60 man pages.** Man coverage, the tail retrieval bucket,
+  and the `man_option` chunk count are all floors, not estimates.
+- **The gate is n=40** on one model at greedy decoding with a fixed source
+  construction. It is decisive about zero-shot and says nothing else.
+- **NL2Bash is 60% `find`** and its NL side is written by annotators, not users.
+  It is a correctness corpus, not a usage distribution.
