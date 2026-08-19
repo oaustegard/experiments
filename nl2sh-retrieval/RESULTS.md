@@ -144,3 +144,51 @@ shape is exactly what fine-tuning does, and it is the open question.
 
 What it does show is that **there is no zero-shot path here**, and that any plan
 resting on one should stop. That is what the gate was for.
+
+## 4. Does a frontier compiler degrade when fed more failure cases? No — it stops.
+
+Oskar's pushback on the third pass of `gh-mcp-regex-fit`: the iteration that
+regressed was *Gemini* revising its own rules, not a frontier model doing it by
+reading failures, and "I would expect YOU to not make more errors when fed
+another failure case." That arm had never been run. It has now, under the
+identical protocol — start from the clean-room rule set, score on family A,
+show at most 120 family-A errors, revise, repeat; never look at family B or wild.
+
+| round | rules | family A | family B | wild |
+|---|---|---|---|---|
+| clean room | 154 | 0.863 | 0.504 | 0.540 |
+| **Claude** iter1 | 173 | 0.995 | 0.545 | 0.540 |
+| **Claude** iter2 | 174 | **1.000** | 0.545 | 0.540 |
+| **Claude** iter3 | 174 | **1.000** | 0.545 | 0.540 |
+| | | | | |
+| Gemini iter1 | 80 | 0.892 | 0.219 | 0.405 |
+| Gemini iter2 | 82 | 0.912 | 0.210 | 0.419 |
+| Gemini iter3 | 83 | **0.789** | 0.176 | 0.419 |
+
+**He was right, and the mechanism is better than "doesn't degrade": it stops.**
+`rules_claude-iter2.json` and `rules_claude-iter3.json` are **byte-identical**
+(sha `01ffa759965f`). Shown a fresh batch of failures at round 3, the model
+changed nothing. Gemini rewrote the entire ordered list every round, which is
+why a fix for one error kept shadowing a rule that was already right, and why it
+lost 0.123 *in sample* at round 3. That regression is a property of that model's
+revision behaviour, not a law about error-driven iteration. My third-pass
+writeup stated it as the latter; that was an overreach.
+
+**But the second finding matters more for the architecture, and it is not
+good news.** Iteration bought perfect in-sample fit and essentially nothing
+else:
+
+- family A: 0.863 → **1.000** (all 948 rows)
+- family B: 0.504 → 0.545 (+0.041, all of it in round 1)
+- wild: 0.540 → **0.540 → 0.540 → 0.540**
+
+Wild did not move by a single query across three rounds. Round 1 changed 5 of 74
+wild predictions and broke exactly as many as it fixed. So a frontier model
+iterating on its own errors is **safe but non-transferring**: it closes the
+in-sample gap and leaves generalisation where it found it.
+
+That is a sharper design rule for the logging component than the one it
+replaces. The reason to log real requests is **evaluation, not supervision** —
+not because feedback degrades the rules, but because it does not carry past the
+rows it was computed on. And the one round that helps is the first: round 2 was
++0.000 everywhere, round 3 was a no-op the model declined to make.
