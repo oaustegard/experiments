@@ -92,3 +92,55 @@ requests reproduced exactly that split: `.log` / `/var/log` / `30 days`,
 `src/` as a relative directory and `deploy` as a username after "as" were both
 missed. The failures are unmarked, naturally-phrased values, which is the case
 that matters and the one to fix first.
+
+### The verdict: 1 of 40, and the one is an accident
+
+Best configuration — 3 sources (the gold utility's tldr example plus two
+distractors), scaffold prefilled, greedy decoding, 40 NL2Bash requests where the
+gold utility is guaranteed to be among the sources:
+
+| metric | value |
+|---|---|
+| parse rate | 1.000 |
+| **names the gold utility somewhere** | **0.550** |
+| **emits anything command-shaped** | **0.025** |
+| **utility correct** | **0.025** (1 of 40) |
+| **quotes a source command verbatim** | **0.000** |
+| median latency | 6.5 s (4 CPU cores) |
+| median prompt | 121 tokens |
+
+The single "hit" does not survive inspection: for *"Delete all regular files
+named 'FILE-TO-FIND' under current directory tree"* it answered *"The file
+system you're looking for is the one that contains the directory path
+'*.ext'…"*, which matched only because a token collided. **The true rate is
+0 of 40.**
+
+What it produces instead is confident encyclopedic prose about shell:
+
+> The command "kill" is used to terminate a program by terminating its execution.
+
+> The file system is running in a container, and it's running in the current folder.
+
+This is `monad-bsky`'s zero-shot result replicated one model generation later —
+0.000 routable there, 0.025 here — and for the same reason. A model trained to
+answer questions from sources, handed shell documentation, writes an
+encyclopedia entry about shell. It is doing its job; its job is not this.
+
+**The specific bet that failed is worth naming, because it was the good one.**
+The architecture's premise was that converting *generation* into *extraction*
+would rescue a tiny model: retrieval supplies the command, the model only has to
+quote it, and Pleias-RAG is trained precisely to quote. **Verbatim rate is
+0.000.** It does quote — the earlier traces show correct `<ref>` spans lifting
+source text exactly — but it quotes *descriptions into prose*, never a command
+as an answer. Span-copying is real and points the wrong way.
+
+Two things this does **not** show. It does not show 350M is too small: source
+comprehension is partial but present (0.55 names the right utility), and it
+degrades with source count — 6/8 at 3 sources, 4/8 at 5, worse at 15 — which is
+an architectural constraint (**keep the shortlist at k≈3**), not a verdict. And
+it does not show fine-tuning would fail: `monad-bsky` took the 56M sibling from
+**0.000 to 0.481** with 800 rows and three epochs on CPU. Installing the output
+shape is exactly what fine-tuning does, and it is the open question.
+
+What it does show is that **there is no zero-shot path here**, and that any plan
+resting on one should stop. That is what the gate was for.
