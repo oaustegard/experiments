@@ -1752,3 +1752,37 @@ Second-order, same experiment: a draft model with a **smaller vocabulary** needs
 more steps per target token (3.25 vs 4.12 chars/token → 1.27 draft steps per
 target token), which multiplies the effective c. Cross-tokenizer drafting pays
 this on top of the acceptance cost.
+
+### Verify the watcher, not just the work
+
+Three failures in one session of `monad-specdec`, all in scaffolding, none in the
+measurement code. The measurements got full confabulation-cascade discipline —
+`lm_head(hidden_states[-1])` checked against logits to 0.0, a KV-context bug
+caught that was worth 53% of the headline metric, benchmarks re-run after a
+background compile contaminated them. The code that reported *whether the work
+was progressing* got no checks at all, and cost a full night of compute.
+
+**An unverified watcher is worse than no watcher: it turns a crash into a silent
+stall.**
+
+1. **Unreachable wait condition (~8h lost).** The producer exited on
+   `while total < TARGET` (a token count); the waiter blocked on a *shard count*.
+   The producer checks its condition at the top of the loop, so on crossing the
+   target it exited mid-shard and never wrote the final partial one. That shard
+   was unreachable by construction. A producer and its waiter must share **one**
+   termination condition — or the waiter must also exit when the producer's pid
+   is gone.
+2. **`pgrep -f` matches itself (16 min of false confidence).** A liveness check
+   run as `bash -c '... pgrep -f "run_sweep|eagle_train2" ...'` matches its own
+   command line, because the pattern is *in* that command line. A dead job
+   reported ALIVE. Use `ps -C python3`, a pidfile, or a heartbeat file the job
+   rewrites every N steps — and check the heartbeat's **age**, not its existence.
+3. **2× memory peak on load, killed with no traceback and no OOM line.**
+   `H.append(d["h"])` for N shards then `np.concatenate(H)` holds the list *and*
+   the result. Preallocate `np.empty((total, dim))` and fill in place. Silent
+   death with no error still means OOM; absence of a message is not absence of a
+   cause.
+
+Cross-check liveness on a **second axis**. Failure 2 only surfaced because
+`free -g` showed 0 GB resident for a job that had to hold 3.2 GB. One signal is
+not liveness.
