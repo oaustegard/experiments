@@ -43,6 +43,11 @@ class CredentialsMissing(RuntimeError):
     pass
 
 
+class NotAcceptedError(RuntimeError):
+    """A 4xx the server will never accept — raised immediately, never retried."""
+
+
+
 def load_env() -> dict[str, str]:
     """Read the three CF variables from the environment, else from proxy.env."""
     keys = ("CF_ACCOUNT_ID", "CF_GATEWAY_ID", "CF_API_TOKEN")
@@ -104,6 +109,15 @@ def generate(prompt: str, *, model: str = DEFAULT_MODEL, thinking_budget: int = 
             r = httpx.post(url, headers=headers, json=payload, timeout=180.0)
             if r.status_code == 429 or r.status_code >= 500:
                 raise httpx.HTTPError(f"HTTP {r.status_code}: {r.text[:200]}")
+            if 400 <= r.status_code < 500:
+                # A 4xx that is not 429 is a request the server will never accept:
+                # a bad model name, or a config that model rejects. Retrying it five
+                # times with backoff turns an instant answer into minutes of silence.
+                # Measured 2026-08-19: `thinkingBudget: 0` on gemini-3.5-flash-lite
+                # is a hard 400, and probing four model names took ~6 minutes because
+                # every one of them was retried.
+                raise NotAcceptedError(
+                    f"HTTP {r.status_code} for model {model}: {r.text[:300]}")
             r.raise_for_status()
             data = r.json()
             cands = data.get("candidates") or []
@@ -118,6 +132,8 @@ def generate(prompt: str, *, model: str = DEFAULT_MODEL, thinking_budget: int = 
             ck.parent.mkdir(parents=True, exist_ok=True)
             ck.write_text(json.dumps({"model": model, "text": text}))
             return text
+        except NotAcceptedError:
+            raise
         except Exception as e:  # noqa: BLE001 - retried below
             last = e
             time.sleep(min(30.0, 2.0 * 2 ** attempt) * (0.5 + random.random()))
