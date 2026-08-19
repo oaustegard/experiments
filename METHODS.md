@@ -1909,8 +1909,23 @@ are not observable per-arm at all — estimate from content sizes and say so.
   ±0.05 and points the wrong way. Disqualify the number, but do not assume the
   honest one is worse. (`gh-mcp-regex-fit/handwritten.py`, `gemini_arms.py`)
 
+- **Error-driven rule iteration is model-dependent, and on a frontier compiler it
+  is safe but does not transfer.** The regression documented in the entry below
+  (round 3 losing 0.123 in-sample) was measured on gemini-3.7-flash and is a
+  property of *that model's* revision behaviour: it rewrote the whole ordered
+  list each round, so fixes kept shadowing rules that were already right. Run
+  under the identical protocol, Claude did not degrade — it **stopped**, returning
+  a byte-identical rule file at round 3 rather than changing anything. But the
+  gain was in-sample only: family A 0.863 -> 1.000, held-out paraphrase family
+  +0.041, and the hand-authored split **0.540 -> 0.540 -> 0.540** across three
+  rounds, with round 1 changing 5 of 74 predictions and breaking as many as it
+  fixed. So: use a capable compiler, expect **one** useful round, and treat a log
+  of real failures as an **evaluation** set rather than a supervision signal —
+  not because feedback is destructive, but because it does not carry past the
+  rows it was computed on. (`nl2sh-retrieval/results_claude_iteration.json`)
+
 - **Supervise a rule-writing model with its own errors, not with labelled
-  examples — and stop at two rounds.** Same model, same corpus, same 79 targets,
+  examples — and stop at two rounds (see the model-dependence caveat above).** Same model, same corpus, same 79 targets,
   three regimes: shown nothing but the schemas it scores **0.161** on a disjoint
   phrasing family; shown 237 labelled rows it scores **0.050** (*worse than
   nothing*, p=2.8e-16) because it copies the examples' surface forms into its
