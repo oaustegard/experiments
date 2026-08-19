@@ -85,3 +85,10 @@ inferring a prompt protocol from a token list.**
 of preamble. Pre-filling a minimal scaffold and starting generation at the
 answer span took a query from **61.2 s to 5.4 s** on 4 CPU cores, without
 changing what the model says.
+
+An independent spot-check (not the agent's own eval) on five hand-written
+requests reproduced exactly that split: `.log` / `/var/log` / `30 days`,
+`port 8080`, `100MB` / `~/Downloads` and `644` all extracted correctly, while
+`src/` as a relative directory and `deploy` as a username after "as" were both
+missed. The failures are unmarked, naturally-phrased values, which is the case
+that matters and the one to fix first.
