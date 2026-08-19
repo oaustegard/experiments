@@ -192,3 +192,73 @@ replaces. The reason to log real requests is **evaluation, not supervision** —
 not because feedback degrades the rules, but because it does not carry past the
 rows it was computed on. And the one round that helps is the first: round 2 was
 +0.000 everywhere, round 3 was a no-op the model declined to make.
+
+## 5. The retrieval tier: 0.28 recall@5, and the reason is corpus breadth
+
+`retrieve.py` builds a BM25 index with code-aware tokenization — a compound
+token emits the whole token and its parts, which is what made
+`hybrid-code-index` work — over all 31,169 chunks. Scored against NL2Bash: for a
+600-query sample, is the gold utility among the utilities of the top-k chunks?
+
+| | recall@1 | recall@5 | recall@10 | recall@20 |
+|---|---|---|---|---|
+| all (n=600) | 0.098 | **0.280** | 0.382 | 0.473 |
+| head | 0.099 | 0.273 | 0.381 | 0.477 |
+| tail | 0.056 | 0.222 | 0.278 | 0.333 |
+
+Median query latency **0.117 ms**, index build 1.25 s. Speed was never the
+question.
+
+For comparison, `gh-mcp-regex-fit` measured BM25 at **0.851 recall@5** over 79
+GitHub tool targets. Here it is 0.280 over 4,698 utilities. **The retrieval tier
+as built does not work.**
+
+### Why: 7,232 tldr pages bury the classic utilities
+
+The failing queries say exactly what is wrong:
+
+| query | top-5 utilities returned |
+|---|---|
+| "Removes all top-level *.pdf files in a current folder" | `bun`, `alr`, `wapm`, `pnpm` |
+| "find files bigger than 100MB" | `oneliner`, `rmlint`, `blkdiscard`, `roll`, `tomb` |
+| "kill the process listening on port 8080" | `ss`, `fkill`, `rc`, `uvicorn`, `opencode` |
+
+BM25 finds a literal lexical match inside some obscure tool's example — `bun why
+--top` matches "top-level" — rather than the common utility the request means.
+The corpus covers the entire modern CLI ecosystem, and the ~400 classic Unix
+tools are a rounding error inside it.
+
+**This is `xr`'s documented cross-repo confusability, in a new domain.** That
+tool's own guidance says account-wide search returns nothing relevant for a
+query whose answer exists, because one large repo "contributes 8,088 chunks
+thick with API-invocation vocabulary and buries the writeup", and scoping fixes
+it. Same mechanism, same fix.
+
+### Scoping to installed utilities nearly doubles recall@1
+
+Restricting the corpus to utilities actually present on `$PATH` — 4,698 → 569
+utilities, 31,169 → 6,921 chunks — on an **identical 400-query sample**, so only
+the corpus differs and not the sample composition:
+
+| k | full corpus | PATH-scoped | change |
+|---|---|---|---|
+| 1 | 0.090 | **0.170** | +89% |
+| 5 | 0.270 | **0.417** | +54% |
+| 10 | 0.378 | 0.490 | +30% |
+| 20 | 0.440 | 0.575 | +31% |
+
+A one-line filter, and it is the largest single intervention measured tonight.
+It is also free in deployment: a helper knows what is installed.
+
+**But it is not nearly enough.** 0.417 at k=5 still misses the right utility for
+most requests, and the gate established that the model degrades past **k≈3** —
+so the tier has to deliver at k=3, where it is worse. The two measurements meet
+in the wrong place.
+
+### One caveat that inflates the tail figures
+
+Only **38.9%** of tail-bucket gold utilities are in the corpus at all, against
+98.7% for the head, because this container has 60 man pages and tldr covers half
+the used-once tail. The tail recall numbers are therefore a floor: on a real
+machine with ~2,000 man pages the corpus would contain far more of them. The
+head numbers carry no such caveat and are the ones to argue from.
