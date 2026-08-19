@@ -144,6 +144,8 @@ def evaluate(a):
         ids = tok(prompt, return_tensors="pt", add_special_tokens=False)
         with torch.no_grad():
             out = model.generate(**ids, max_new_tokens=64, do_sample=False,
+                                 repetition_penalty=a.rep_penalty,
+                                 no_repeat_ngram_size=a.no_repeat,
                                  pad_token_id=tok.pad_token_id or tok.eos_token_id)
         gen = tok.decode(out[0][ids["input_ids"].shape[1]:], skip_special_tokens=True)
         cmd = gen.strip().strip("`").split("\n")[0].strip()
@@ -161,7 +163,7 @@ def evaluate(a):
                "utility_acc_all": round(sum(r["utility_ok"] for r in rows) / len(rows), 3),
                "utility_acc_leak_free": round(sum(r["utility_ok"] for r in clean) / len(clean), 3),
                "command_rate": round(sum(bool(r["command"]) for r in rows) / len(rows), 3)}
-    (SELFHIST / "results_gemma.json").write_text(
+    (SELFHIST / f"results_gemma{a.tag}.json").write_text(
         json.dumps({"summary": summary, "rows": rows}, indent=1) + "\n")
     print("\n" + json.dumps(summary, indent=1))
 
@@ -182,6 +184,9 @@ def main() -> int:
     e = sub.add_parser("eval"); common(e)
     e.add_argument("--nl", type=Path, default=SELFHIST / "cyber_nl.json")
     e.add_argument("--model", type=Path, default=HERE / "ft_gemma")
+    e.add_argument("--rep-penalty", type=float, default=1.0)
+    e.add_argument("--no-repeat", type=int, default=0)
+    e.add_argument("--tag", default="")
     a = ap.parse_args()
     (train if a.cmd == "train" else evaluate)(a)
     return 0
