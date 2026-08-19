@@ -139,3 +139,81 @@ would close it.
 | `eagle_train.py` | Train the 4.2M head, measure teacher-forced acceptance → `eagle_train.json` |
 | `eagle_scaling.py` | Passes-versus-data arms → `eagle_scaling.json` |
 | `eagle_e2e.py` | Greedy speculative decoding with the trained head → `eagle_e2e.json` |
+
+---
+
+# Retraining in distribution
+
+The first head trained on this repository's markdown and Python. Baguettotron is
+a reasoning model whose chat template opens the assistant turn with `<think>`,
+and whose generations follow SYNTH's reasoning format, so that corpus was out of
+distribution on both counts. Rebuilt on **SYNTH rendered through the model's own
+chat template**, interleaved 4:1 with wikitext-103, harvested at 431 tok/s into
+11 shards of 250k tokens.
+
+## Data scaling
+
+Four epochs each, identical held-out set, so these compare to one another:
+
+| Train tokens | ep1 | ep2 | ep3 | ep4 | wall clock |
+|---|---|---|---|---|---|
+| 975k | 0.300 | 0.332 | 0.354 | **0.364** | 18 min |
+| 1.97M | 0.331 | 0.364 | 0.382 | **0.401** | 35 min |
+| 2.72M | 0.349 | 0.389 | 0.403 | **0.412** | 59 min |
+
+About **+0.037 per doubling**, and it holds across every epoch-matched pair. The
+earlier 0.4095 figure does not belong in this table: it was scored against a
+different held-out set, and a scaling curve is only valid inside one eval
+distribution. Changing the corpus invalidated the comparison, which is easy to
+miss when both numbers are called acceptance.
+
+## End to end
+
+Greedy speculative decoding with the 2.72M-token head. Every run produced
+token-identical output to plain greedy, so the loop is lossless and any
+difference is real.
+
+| γ | α | measured | projected with a cached draft head |
+|---|---|---|---|
+| 1 | 0.386 | **1.092×** | 1.321× |
+| 2 | 0.270 | 1.052× | 1.224× |
+| 3 | 0.200 | 0.816× | 1.089× |
+| 4 | 0.154 | 0.786× | 0.989× |
+
+**The drafter now beats baseline**, at γ=1 and γ=2, measured rather than
+projected — and measured with the draft head re-running over its whole prefix
+each round instead of keeping a KV cache, which charges it far more than a real
+implementation would. The projected column applies the measured acceptance to
+the separately measured cost ratio c = 0.049.
+
+On the old raw-prose prompts the same head reaches α = 0.265 and 0.986× at γ=1,
+still just under parity. That gap between 0.386 and 0.265 is what prompt
+distribution is worth here: the same weights, the same decoder, different way of
+asking.
+
+γ beyond 2 still degrades faster than published EAGLE does. The head trains on
+next-token prediction alone, with no feature-regression loss and no
+training-time feedback, so when multi-step drafting feeds its own output back in
+it has never been trained for that input. Fixing it is the obvious next change.
+
+## Where this leaves the depth bet
+
+Baguettotron's 80 layers are why this works at all. A one-layer draft head
+against an 80-layer target is a cost ratio no wide-shallow model of the same
+size could offer, and it is the same property that made Monad useless as a
+drafter: latency tracks depth, so a 64-layer draft model was only 2.1× faster
+than the 80-layer target it was drafting for.
+
+The width cuts the other way. At 576 hidden against a 65,536 vocabulary, the
+output projection is worth 10.7 layers by parameter count and 3.85 by measured
+time, against 0.65 layers for Llama-2-7B. That is why the vocabulary projection
+is 78–84% of a draft step here, and why reducing the draft vocabulary is the
+largest remaining lever.
+
+## Cost
+
+Harvest 2.72M tokens: 109 min at 431 tok/s on 4 CPU cores. Train: 18–59 min
+depending on corpus size. No GPU at any point. Storage is the binding
+constraint on this container — fp16 hidden states run 1,152 bytes per token, so
+the 58 GB needed for EAGLE's ~50M-token recipe does not fit in 22 GB free. See
+[`HANDOFF.md`](HANDOFF.md) for the streaming version that removes that ceiling.
