@@ -216,6 +216,12 @@ def main() -> int:
     ap.add_argument("--out", type=Path, default=HERE / "results_retrieval.json")
     a = ap.parse_args()
 
+    if not (a.nl2bash / "all.nl").exists():
+        raise SystemExit(
+            f"no NL2Bash corpus at {a.nl2bash}. Clone it and point --nl2bash at "
+            "its data/bash directory:\n"
+            "  git clone --depth 1 https://github.com/TellinaTool/nl2bash.git\n"
+            "  python3 eval_retrieval.py --nl2bash nl2bash/data/bash")
     pairs = load_pairs(a.nl2bash / "all.nl", a.nl2bash / "all.cm")
     buckets, freq = bucket_map(pairs)
     rng = random.Random(a.seed)

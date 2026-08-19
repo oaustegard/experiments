@@ -44,10 +44,17 @@ def test_exact_flag_query_ranks_owning_chunk_first():
     assert hits[0][0].utility == "find"
 
 
-def test_prose_query_reaches_the_flag_chunk():
-    # No literal "--max-depth" in the query: only the split parts can match.
-    utils = _idx().topk_utilities("how deep does it recurse", k=3)
-    assert "find" in utils or "grep" in utils
+def test_prose_query_reaches_the_compound_chunk():
+    # No literal "--max-depth" in the query: only the split part "depth" can
+    # match, which a tokenizer keeping compounds whole would miss entirely.
+    utils = _idx().topk_utilities("what limits the depth", k=3)
+    assert utils == ["find"]
+
+
+def test_morphology_is_not_handled_without_stemming():
+    # Documented limitation, not an accident: "recurse" never reaches
+    # "--recursive" unless the index is built with stem=True.
+    assert _idx().topk("recurse", 3) == []
 
 
 def test_utility_name_is_searchable_even_when_absent_from_text():
