@@ -20,9 +20,13 @@ one.
 |---|---|---|---|
 | `tldr_example` | 29,437 | yes | quotable; covers 96% of the top-50 utilities |
 | `man_option` | 1,601 | no | universal coverage, but needs *composition* |
-| `man_example` | 131 | yes | quotable, rare |
+| `man_example` | 131 | 65% | quotable, rare — see below |
 
-4,688 of 4,698 utilities have at least one runnable chunk. Chunks are **median
+4,688 of 4,698 utilities have at least one runnable chunk. `runnable=true` on
+`man_example` is a **kind label, not a guarantee**: after two parser fixes the
+share of man examples that actually invoke their own utility went 19% → **65%**,
+and the remaining 35% are `psql` SQL session transcripts. 65% is the honest
+number. 756 tldr stub/redirect pages and 250 exact duplicates were dropped. Chunks are **median
 19 tokens, p90 34** — far smaller than the scoping pass estimated, which matters
 for the retrieval design: at that length a dense embedding has very little to
 work with and the lexical arm should carry the load.
@@ -51,8 +55,12 @@ command? 300 dev pairs, 100 held out, seed 20260819:
 |---|---|---|
 | precision (substring) | 0.907 [0.875–0.931] | **0.971** [0.927–0.989] |
 | recall, all gold values | 0.828 | 0.872 |
-| recall, values NL2Bash *marks* | 0.984 | 0.954 |
 | recall, values it does **not** mark | **0.453** | **0.545** |
+
+A marked-value recall of 0.98 appeared in an earlier draft of this table and has
+been removed: the agent that built the extractor flagged it as **near-tautological**,
+because the "marked" denominator is roughly the set the extractor fires on.
+Quote 0.838 and 0.469 (both splits pooled).
 
 Holdout scoring higher than dev is the good direction — nothing was tuned into
 the dev split. Per-kind precision runs 0.86–1.00 with `glob`, `identifier`,
@@ -92,6 +100,15 @@ requests reproduced exactly that split: `.log` / `/var/log` / `30 days`,
 `src/` as a relative directory and `deploy` as a username after "as" were both
 missed. The failures are unmarked, naturally-phrased values, which is the case
 that matters and the one to fix first.
+
+Two structural findings from the same run bear on the architecture more than the
+precision figure does. **Only 37.4% of requests contain every operand their
+command needs** — the rest of the time the value simply is not in the sentence,
+which is `gh-mcp-regex-fit`'s 13.5% referent-presence result reappearing in a
+new domain. And **only 53% of correct extractions are a whole command token**:
+the rest compose (`20` → `+20M`, `1080` → `-D1080`), so splicing extracted spans
+straight into argv would be wrong about half the time *even with perfect
+extraction*. Extraction feeds a template; it does not assemble a command.
 
 ### The verdict: 1 of 40, and the one is an accident
 
@@ -165,14 +182,34 @@ show at most 120 family-A errors, revise, repeat; never look at family B or wild
 | Gemini iter2 | 82 | 0.912 | 0.210 | 0.419 |
 | Gemini iter3 | 83 | **0.789** | 0.176 | 0.419 |
 
-**He was right, and the mechanism is better than "doesn't degrade": it stops.**
-`rules_claude-iter2.json` and `rules_claude-iter3.json` are **byte-identical**
-(sha `01ffa759965f`). Shown a fresh batch of failures at round 3, the model
-changed nothing. Gemini rewrote the entire ordered list every round, which is
-why a fix for one error kept shadowing a rule that was already right, and why it
-lost 0.123 *in sample* at round 3. That regression is a property of that model's
-revision behaviour, not a law about error-driven iteration. My third-pass
-writeup stated it as the latter; that was an overreach.
+**He was right that Claude does not degrade — but the round-3 test he was
+pointing at never actually ran.** `rules_claude-iter2.json` and
+`rules_claude-iter3.json` are byte-identical (sha `01ffa759965f`), and an
+earlier draft of this section read that as the model declining to change
+anything when shown fresh failures. It is not. **Claude saturated family A at
+round 2 — 1.000, zero errors — so round 3 had no error signal to show it.**
+Round 3 is the identity revision by construction. Gemini still had ~88 family-A
+errors at the same point, which is why its round 3 had something to do and did
+it badly.
+
+What *is* measured, and is strong: **every Claude revision was strictly
+monotone.** Paired McNemar, clean room → iter1: **125–0** on family A and
+**39–0** on family B. Not one previously-correct row was lost, on any split, at
+any round. Gemini's *improving* round 1 already broke 62 family-A rows and its
+round 3 broke 193. So the "fixes shadow correct rules" mechanism is real and is
+Gemini's; Claude's edits did not exhibit it.
+
+As a substitute for the missing test the agent ran `iter3-speculative` — ten
+broadening edits made with no error signal at all — and it scored identically on
+all three splits (1.000 / 0.545 / 0.540). Revision without signal did not
+degrade either. That is suggestive, not the experiment.
+
+**One confound to name:** the two arms did not revise the same way. Claude
+patched by anchor into an existing list; Gemini regenerated the whole list each
+round, which is the mechanism `gh-mcp-regex-fit` blames for the regression. So
+this compares *model plus edit procedure*, not model alone. My third-pass
+writeup stated the regression as a general law about error-driven iteration;
+that was an overreach either way.
 
 **But the second finding matters more for the architecture, and it is not
 good news.** Iteration bought perfect in-sample fit and essentially nothing
@@ -200,14 +237,47 @@ token emits the whole token and its parts, which is what made
 `hybrid-code-index` work — over all 31,169 chunks. Scored against NL2Bash: for a
 600-query sample, is the gold utility among the utilities of the top-k chunks?
 
-| | recall@1 | recall@5 | recall@10 | recall@20 |
-|---|---|---|---|---|
-| all (n=600) | 0.098 | **0.280** | 0.382 | 0.473 |
-| head | 0.099 | 0.273 | 0.381 | 0.477 |
-| tail | 0.056 | 0.222 | 0.278 | 0.333 |
+| slice | n | @1 | @5 | @10 | @20 |
+|---|---|---|---|---|---|
+| all | 600 | 0.098 | 0.280 | 0.382 | 0.473 |
+| non-find | 225 | 0.116 | 0.324 | 0.396 | 0.480 |
+| tail (stratified) | 369 | 0.071 | **0.203** [0.165–0.247] | 0.252 | 0.290 |
+| **non-find AND prompt does not name the utility** | **180** | **0.061** | **0.233** | — | **0.389** |
 
-Median query latency **0.117 ms**, index build 1.25 s. Speed was never the
-question.
+Median latency **0.184 ms** for the metric actually reported, index build 1.3 s.
+Speed was never the question.
+
+**An adversarial verification pass (`verify_retrieval.py`, 8 checks) recomputed
+all of this independently and returned OVERSTATED.** The arithmetic reproduces
+to four decimals; three framing problems do not survive, and the bottom row of
+that table is the one it says to quote.
+
+**(a) The `all` row loses to a constant.** A query-*independent* list of the 20
+commonest NL2Bash utilities scores **0.625@1 / 0.787@20**, beating BM25's
+0.098 / 0.473 at every k. That is the corpus's 60% `find` skew, not retrieval
+skill. The prior collapses to 0.000@1 / 0.431@20 on non-find and to **0.000 at
+every k** on the tail, which is why only the non-find and tail rows carry a
+claim, and why they need the prior printed beside them. Against a random
+retriever BM25 is fine (0.473@20 vs 0.010); random was simply the wrong baseline.
+
+**(b) A third of the recall comes from prompts that name the answer.** 34.7% of
+NL2Bash prompts contain the gold utility as a literal token — annotators wrote
+the English while looking at the command (*"Convert \*.au files … using `sox`"*).
+Those queries score **0.586@5**; the other 65% score **0.117@5**. The premise of
+this tier is a user who does *not* know which utility to reach for, so the
+second number is the deployment number.
+
+**(c) The quoted latency was for a different computation** — 0.119 ms times
+`topk` only, while the reported ranking needs `rank_utilities(pool=300)` at
+0.184 ms. Sub-millisecond either way; the number was wrong by 1.5x and is
+corrected above.
+
+Two checks came back clean. **No leakage:** zero exact normalised matches
+between the 600 prompts and the 29,437 tldr descriptions, median best-Jaccard
+0.16, one query in 600 above 0.5 — the corpora do not share a source. **Gold
+parse is sound:** 29/30 spot-checks correct, 1.4% junk labels (mostly
+`VAR=$(cmd)` collapsing under quote-masking), which *deflates* recall by at most
+1.4 points rather than explaining it.
 
 For comparison, `gh-mcp-regex-fit` measured BM25 at **0.851 recall@5** over 79
 GitHub tool targets. Here it is 0.280 over 4,698 utilities. **The retrieval tier
@@ -250,18 +320,33 @@ the corpus differs and not the sample composition:
 A one-line filter, and it is the largest single intervention measured tonight.
 It is also free in deployment: a helper knows what is installed.
 
-**But it is not nearly enough.** 0.417 at k=5 still misses the right utility for
-most requests, and the gate established that the model degrades past **k≈3** —
-so the tier has to deliver at k=3, where it is worse. The two measurements meet
-in the wrong place.
+The verification pass bounds how much more is available this way. **90.9% of the
+31,169 chunks belong to utilities NL2Bash never mentions** — tldr is thick with
+`git` subcommands, `aws`, `kubectl`, `npm`, `cargo`, while NL2Bash is 2016-era
+POSIX shell. Oracle-scoping the corpus to just the 356 gold utilities (2,833
+chunks) lifts recall@5 from 0.280 to **0.533** and @20 to 0.765. That oracle is
+not deployable, but it brackets the intervention: PATH-scoping's measured 0.417
+sits between the unscoped 0.280 and the oracle's 0.533, so **scoping is most of
+the available headroom and it has largely been taken.**
+
+**And it is still not enough.** 0.417 at k=5 misses the right utility for most
+requests, and the gate established that the model degrades past **k≈3** — so the
+tier has to deliver at k=3, where it is worse. The two measurements meet in the
+wrong place.
 
 ### One caveat that inflates the tail figures
 
 Only **38.9%** of tail-bucket gold utilities are in the corpus at all, against
-98.7% for the head, because this container has 60 man pages and tldr covers half
-the used-once tail. The tail recall numbers are therefore a floor: on a real
-machine with ~2,000 man pages the corpus would contain far more of them. The
-head numbers carry no such caveat and are the ones to argue from.
+98.7% for the head, and on the stratified 369-pair tail run **193 of 246
+utilities are never retrieved at any k**. Roughly half the tail loss is coverage
+and half is ranking.
+
+The ablation makes this sharper. At k=5 on the tail: tldr-only **0.198**,
+both **0.203**, **man-only 0.008** — because the 60 man pages this container
+ships are all `java` and `postgres` tooling, covering 0.8% of tail golds. So
+`nl2sh-scoping`'s prediction that **man pages carry the tail is untestable here,
+not refuted**, and re-running this on a machine with a real man corpus is the
+single measurement most likely to change the verdict on the retrieval tier.
 
 ## Where this leaves the six-component architecture
 
@@ -271,7 +356,7 @@ head numbers carry no such caveat and are the ones to argue from.
 | 4a | corpus construction | **works** — 31,169 chunks, 4,698 utilities, 1.25 s to index |
 | 1 | LLM-composed regex rules | **works, and does not improve with feedback** — 0.540 wild, flat over 3 rounds |
 | 6 | error logging | **reframed** — an eval set, not a supervision signal |
-| 4b | retrieval over that corpus | **fails as built** — 0.280 recall@5, 0.417 scoped, needs to serve k=3 |
+| 4b | retrieval over that corpus | **fails as built** — 0.233 recall@5 on the deployment slice (0.417 PATH-scoped), needs to serve k=3 |
 | 2 | small model reading the sources | **fails** — 0 of 40, verbatim 0.000 |
 | 5 | ICL grounded in valid calls | **untested** — blocked behind 2 |
 
@@ -285,9 +370,13 @@ That is a more useful outcome than one failure would have been, because the two
 have different fixes and neither is speculative:
 
 - **Retrieval** is a corpus-scoping and query-matching problem. Scoping to
-  installed utilities is measured at +54% on recall@5 and is free. The remaining
-  gap is a vocabulary mismatch between a full-sentence request and a 19-token
-  chunk, which is what a dense arm or a query rewriter is for — neither tried.
+  installed utilities is measured at +54% on recall@5 and is free, and the oracle
+  bound says that is most of the headroom scoping can give. The remaining gap is
+  a vocabulary mismatch between a full-sentence request and a 19-token chunk,
+  which is what a dense arm or a query rewriter is for — neither tried. One arm
+  that *was* tried points the same way: **utility-level documents** (one document
+  per utility instead of per chunk) beat chunk-level on non-find, 0.369 vs 0.324
+  at k=5.
 - **The model** is an output-shape problem, and `monad-bsky` is the precedent:
   its 56M sibling went **0.000 → 0.481** on exactly this kind of shape
   installation. `finetune_gate.py` is staged with the training rows built (600
