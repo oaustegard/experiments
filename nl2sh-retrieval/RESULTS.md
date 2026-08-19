@@ -17,9 +17,11 @@ Headline, in the order the numbers should be trusted:
   600 rows and **25.5 minutes on 4 CPU cores** it reaches **0.923 on the
   non-`find` slice, where a constant answer scores 0.000**. The failure was
   output shape, not capability.
-- **But the premise that chose this model did not survive**: verbatim rate is
-  0.000 before *and* after. It was picked for literal source-quoting; what
-  fine-tuning installed was command *generation*. The non-RAG ablation is unrun.
+- **The premise that chose this model did not survive, and the ablation confirms
+  it**: verbatim rate is 0.000 before *and* after, and the RAG-less sibling
+  fine-tunes to **0.846 non-`find` against the RAG model's 0.923** — one example
+  out of 13. The source-quoting the model was chosen for is used by neither; the
+  model choice was not the important decision (§7).
 - **Retrieval is now the bottleneck**: **0.233 recall@5** on the deployment
   slice, and a query-*independent* frequency prior beats the naive headline.
 - **Parameter extraction works**: 0.971 precision held out — but only 37.4% of
@@ -501,3 +503,43 @@ better problem to have: it is deterministic, measurable in milliseconds, and has
 measured headroom nobody has spent yet — PATH-scoping (+54% at k=5, done),
 utility-level documents (0.369 vs 0.324 on non-find, tried once), an oracle
 bound at 0.533, and a dense arm and query rewriter neither of which was built.
+
+## 7. The RAG base was worth ~1 example out of 13, and the reason it was chosen was not used at all
+
+The premise that selected Pleias-RAG-350M — literal source-quoting — showed a
+verbatim rate of 0.000. So: does the RAG mid-training matter, or would any
+350M model fine-tune to the same place? The ablation fine-tunes **the RAG-less
+sibling `Pleias-350m-Preview`** (same lab, same llama architecture L26×h1024,
+same base data, same tokenizer vocabulary) on the byte-identical 600 rows and
+scores it on the same gate.
+
+| arm | utility (all 40) | utility (non-`find`, n=13) | verbatim |
+|---|---|---|---|
+| base (RAG), zero-shot | 0.025 | 0.000 | 0.000 |
+| fine-tuned (RAG) | 0.950 | **0.923** (12/13) | 0.000 |
+| **fine-tuned (non-RAG)** | 0.900 | **0.846** (11/13) | 0.000 |
+| always-`find` prior | 0.675 | 0.000 | — |
+
+**The RAG base is better by one example out of thirteen.** 12/13 against 11/13
+on the slice that carries the claim — a difference of a single query, well
+inside noise at n=13. On all 40 it is 0.950 vs 0.900, two queries. Both
+fine-tune from a useless zero-shot base to a working router; the RAG head buys a
+margin that this eval cannot distinguish from zero.
+
+**And the property it was chosen for is used by neither.** Verbatim rate is
+0.000 for both fine-tuned models. Whatever the ~8-point non-`find` gap is, it is
+not source-quoting — both generate the command rather than copying it.
+
+**One confound makes even that small gap unattributable.** `Pleias-350m-Preview`
+lacks the RAG special tokens, so a `<|source_start|>…<|source_end|>` block costs
+it **18 tokens against the RAG model's 5**. It trained in **45.8 minutes against
+25.5** for that reason, and its longer per-row encoding is a plausible source of
+the one-example difference on its own. So the ablation varies two things — RAG
+mid-training *and* native source delimiters — and cannot separate them. A clean
+single-variable run would give both models a plain-text source format.
+
+**The practical conclusion holds regardless of which variable it is:** you do
+not need the RAG-specialised model. A plain 350M sibling fine-tunes to within
+one example of it on this gate, and the source-quoting capability that motivated
+the choice does not appear in either model's output. The model selection was not
+the important decision; the fine-tuning was.
