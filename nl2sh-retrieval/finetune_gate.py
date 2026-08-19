@@ -83,6 +83,10 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=20260819)
     ap.add_argument("--out", type=Path, default=HERE / "ft")
     ap.add_argument("--build-only", action="store_true")
+    ap.add_argument("--checkpoint-every", type=int, default=50,
+                    help="save every N steps; a container restart killed a run at "
+                         "step 110/300 with nothing on disk, because the first "
+                         "version only saved at the end")
     a = ap.parse_args()
 
     rows = build_rows(a.tldr, a.nl2bash, a.rows + a.holdout, a.distractors, a.seed)
@@ -141,6 +145,13 @@ def main() -> int:
                 el = (time.time() - t0) / 60
                 print(f"  ep{ep} step {step}/{len(dl) * a.epochs}  loss {loss.item():.4f}  "
                       f"{el:.1f}m elapsed", flush=True)
+            if a.checkpoint_every and step % a.checkpoint_every == 0:
+                a.out.mkdir(parents=True, exist_ok=True)
+                model.save_pretrained(a.out); tok.save_pretrained(a.out)
+                json.dump({"steps": step, "partial": True,
+                           "minutes": round((time.time() - t0) / 60, 1)},
+                          open(HERE / "results_finetune_partial.json", "w"), indent=1)
+                print(f"  checkpointed at step {step}", flush=True)
             if (time.time() - t0) / 60 >= a.budget_minutes:
                 print(f"budget of {a.budget_minutes}m spent at step {step}; checkpointing")
                 stopped = True
