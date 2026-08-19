@@ -568,8 +568,22 @@ survives exactly the sanity checks people run.
 - **Cloudflare AI Gateway throttles hard.** Start LLM batch concurrency at **2**,
   not 4 or 12. `phase-a-bridges` learned 12→4→2; `te-bridges` started at 4
   anyway and lost 18–20% of extractions to exhausted retries.
-- **Gemini 2.5/3.x thinking models eat the whole output budget.** Set
-  `thinkingConfig.thinkingBudget = 0` for structured-extraction calls or you get
+- **`thinkingBudget: 0` is rejected outright by some newer models — check before
+  relying on the entry below.** On **gemini-3.5-flash-lite** it is a hard
+  `HTTP 400 INVALID_ARGUMENT`: thinking cannot be disabled at all. Dynamic
+  (`-1`) works, but spends thinking tokens on everything — measured 2026-08-19,
+  *"Reply with exactly: ok"* cost **90 thought tokens for a 1-token answer**, and
+  at `maxOutputTokens=16` it returned `finishReason=MAX_TOKENS` with empty text
+  (13 thought tokens), which is the silent-empty trap below reproduced on a model
+  where the documented fix is unavailable. Omitting `thinkingConfig` entirely is
+  the workaround. Two consequences: probe the model before assuming budget=0 is
+  accepted, and **do not price a "cheap" thinking-mandatory model on its per-token
+  rate** — a high-throughput helper on Flash-Lite pays a thinking tax on every
+  trivial request. Related: a 4xx that is not 429 will never succeed, so fail fast
+  rather than retrying — five backoff attempts turned a 0.8 s answer into minutes
+  when probing four model names. (`gh-mcp-regex-fit/gemini_client.py`)
+- **Gemini 2.5/3.x thinking models eat the whole output budget.** Where
+  `thinkingBudget = 0` *is* accepted, set it for structured-extraction calls or you get
   silent empty responses, not errors. (`phase-a-bridges/RESULTS.md`)
 - **No apt ffmpeg.** `pip install imageio-ffmpeg` →
   `imageio_ffmpeg.get_ffmpeg_exe()` ships a static ffmpeg 7.0.2.
