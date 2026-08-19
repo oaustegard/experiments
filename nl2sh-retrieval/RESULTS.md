@@ -1,16 +1,30 @@
 # nl2sh-retrieval — building the deterministic tier, and gating the small model
 
-**Started / finished:** 2026-08-19 · **Status:** the gate is the result.
+**Started / finished:** 2026-08-19 · **Status:** done —
+**the deterministic tiers hold, both middle tiers fail independently, and an
+adversarial pass returned OVERSTATED on the first draft of the retrieval numbers.**
 
 [`nl2sh-scoping`](../nl2sh-scoping/README.md) established the shape of the
-problem — utility selection over a ~377-utility long tail, not flag composition
+problem — utility selection over a long tail of utilities, not flag composition
 — and argued for a heterogeneous chunked corpus with a small model reading it.
-This builds that corpus, the parameter extractor, and the retrieval tier, and
-then runs the one test that decides whether the small-model component exists at
-all.
+This builds that corpus, the parameter extractor and the retrieval tier, and
+runs the one test that decides whether the small-model component exists at all.
 
-Four things were built and measured. Three work. The fourth is the interesting
-one.
+Headline, in the order the numbers should be trusted:
+
+- **The gate is negative.** Pleias-RAG-350M zero-shot produces **0 usable
+  commands in 40**, verbatim rate **0.000**, handed the right source every time.
+- **Retrieval fails as built**: **0.233 recall@5** on the deployment slice, and
+  a query-*independent* frequency prior beats the naive headline figure.
+- **Parameter extraction works**: 0.971 precision held out — but only 37.4% of
+  requests contain every operand, and only 53% of correct extractions are a
+  whole command token.
+- **Rule iteration neither degrades nor transfers**: strictly monotone
+  (McNemar 125–0), and wild accuracy sat at 0.540 across all three rounds.
+
+Everything below that was measured by one agent was recomputed by another
+instructed to break it. Where the two disagree, the correction is stated inline
+rather than the original quietly replaced.
 
 ## 1. The corpus — 31,169 chunks over 4,698 utilities
 
@@ -41,7 +55,7 @@ to use `.TP`, and the parser here handles both idioms. The qualitative
 conclusion — man pages chunk into retrieval-sized units — survives; the specific
 number did not.
 
-## 2. Parameter extraction — precision 0.97 on held-out
+## 2. Parameter extraction — precision 0.97 on held-out, and two structural limits
 
 `extract_params.py` pulls literal values out of the request text: paths, globs,
 extensions, sizes, durations, ports, PIDs, permissions, users, hosts, quoted
@@ -162,7 +176,7 @@ shape is exactly what fine-tuning does, and it is the open question.
 What it does show is that **there is no zero-shot path here**, and that any plan
 resting on one should stop. That is what the gate was for.
 
-## 4. Does a frontier compiler degrade when fed more failure cases? No — it stops.
+## 4. Does a frontier compiler degrade when fed more failure cases? Not measurably — and the round that would have tested it had no signal
 
 Oskar's pushback on the third pass of `gh-mcp-regex-fit`: the iteration that
 regressed was *Gemini* revising its own rules, not a frontier model doing it by
@@ -230,7 +244,7 @@ not because feedback degrades the rules, but because it does not carry past the
 rows it was computed on. And the one round that helps is the first: round 2 was
 +0.000 everywhere, round 3 was a no-op the model declined to make.
 
-## 5. The retrieval tier: 0.28 recall@5, and the reason is corpus breadth
+## 5. The retrieval tier: 0.233 recall@5 where it counts, and the reason is corpus breadth
 
 `retrieve.py` builds a BM25 index with code-aware tokenization — a compound
 token emits the whole token and its parts, which is what made
@@ -334,7 +348,7 @@ requests, and the gate established that the model degrades past **k≈3** — so
 tier has to deliver at k=3, where it is worse. The two measurements meet in the
 wrong place.
 
-### One caveat that inflates the tail figures
+### The tail figures are a floor, and one ablation is untestable here
 
 Only **38.9%** of tail-bucket gold utilities are in the corpus at all, against
 98.7% for the head, and on the stratified 369-pair tail run **193 of 246
