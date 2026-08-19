@@ -568,8 +568,45 @@ survives exactly the sanity checks people run.
 - **Cloudflare AI Gateway throttles hard.** Start LLM batch concurrency at **2**,
   not 4 or 12. `phase-a-bridges` learned 12→4→2; `te-bridges` started at 4
   anyway and lost 18–20% of extractions to exhausted retries.
-- **Gemini 2.5/3.x thinking models eat the whole output budget.** Set
-  `thinkingConfig.thinkingBudget = 0` for structured-extraction calls or you get
+- **To disable thinking on gemini-3.5-flash-lite, OMIT `thinkingConfig` — do not
+  pass `thinkingBudget: 0`.** The lite model 400s on an explicit `thinkingBudget: 0`
+  (`INVALID_ARGUMENT`), which is easy to misread as "thinking is mandatory". It is
+  not: with **no `thinkingConfig` field at all**, `thoughtsTokenCount` is **0** and
+  a one-command answer returns in ~1.0-1.3 s (gateway round-trip, not thinking).
+  Passing `thinkingBudget: -1` turns dynamic thinking ON (213 thought tokens
+  measured), which is the opposite of what you want for high-volume work — so the
+  earlier claim here that flash-lite carries a mandatory thinking tax was wrong,
+  corrected 2026-08-19. Per-model: 3.5-flash-lite rejects budget=0 but defaults to
+  no-thinking; 2.5-flash-lite accepts budget=0; both think=0 with no config. In
+  `gemini_client.generate`, `thinking_budget=-1` omits the field (the fast path),
+  `>=0` sets it. (`nl2sh-selfhist/gemini_direct.py`)
+- **Even where `thinkingBudget: 0` is honoured, budget the OUTPUT tokens
+  generously — a short answer can still be truncated.** On gemini-3.7-flash with
+  `thinkingBudget: 0`, a one-sentence request generated at `maxOutputTokens=120`
+  came back as *"Go to my"* / *"Show all files and"* — cut after ~3 words — while
+  the identical call at `maxOutputTokens=512` returned the full sentence. So the
+  120-token window was consumed by something other than the visible answer even
+  with thinking nominally off. The practical rule: for a short structured output,
+  set `maxOutputTokens` to several hundred, not to a tight bound around the
+  expected length, and re-check the finishReason. Measured 2026-08-19 across 39
+  command-to-NL generations, where the tight bound silently truncated the ones
+  with the shortest answers. (`nl2sh-selfhist/gen_nl.py`)
+- **`thinkingBudget: 0` is rejected outright by some newer models — check before
+  relying on the entry below.** On **gemini-3.5-flash-lite** it is a hard
+  `HTTP 400 INVALID_ARGUMENT`: thinking cannot be disabled at all. Dynamic
+  (`-1`) works, but spends thinking tokens on everything — measured 2026-08-19,
+  *"Reply with exactly: ok"* cost **90 thought tokens for a 1-token answer**, and
+  at `maxOutputTokens=16` it returned `finishReason=MAX_TOKENS` with empty text
+  (13 thought tokens), which is the silent-empty trap below reproduced on a model
+  where the documented fix is unavailable. Omitting `thinkingConfig` entirely is
+  the workaround. Two consequences: probe the model before assuming budget=0 is
+  accepted, and **do not price a "cheap" thinking-mandatory model on its per-token
+  rate** — a high-throughput helper on Flash-Lite pays a thinking tax on every
+  trivial request. Related: a 4xx that is not 429 will never succeed, so fail fast
+  rather than retrying — five backoff attempts turned a 0.8 s answer into minutes
+  when probing four model names. (`gh-mcp-regex-fit/gemini_client.py`)
+- **Gemini 2.5/3.x thinking models eat the whole output budget.** Where
+  `thinkingBudget = 0` *is* accepted, set it for structured-extraction calls or you get
   silent empty responses, not errors. (`phase-a-bridges/RESULTS.md`)
 - **No apt ffmpeg.** `pip install imageio-ffmpeg` →
   `imageio_ffmpeg.get_ffmpeg_exe()` ships a static ffmpeg 7.0.2.
@@ -1888,5 +1925,169 @@ are not observable per-arm at all — estimate from content sizes and say so.
   running at 0.04 ms with zero inference cost. Two consequences: an "LLM-as-
   compiler" arm is cheap and belongs in any routing comparison; and if the same
   model authored both the rules and the eval queries, the number is not
-  contaminated-but-usable, it is disqualified — swap in a *different* model that
-  never saw the eval. (`gh-mcp-regex-fit/handwritten.py`, `gemini_arms.py`)
+  contaminated-but-usable, it is disqualified — re-run the compile in a clean
+  room. **Since measured**: the clean-room re-run scored *higher* on realistic
+  queries than the contaminated arm (0.540 vs 0.486) and lower on the template
+  family (0.504 vs 0.546), so writing rules with the eval in view is worth about
+  ±0.05 and points the wrong way. Disqualify the number, but do not assume the
+  honest one is worse. (`gh-mcp-regex-fit/handwritten.py`, `gemini_arms.py`)
+
+- **Error-driven rule iteration is model-dependent, and on a frontier compiler it
+  is safe but does not transfer.** The regression documented in the entry below
+  (round 3 losing 0.123 in-sample) was measured on gemini-3.7-flash and is a
+  property of *that model's* revision behaviour: it rewrote the whole ordered
+  list each round, so fixes kept shadowing rules that were already right. Run
+  under the identical protocol, Claude did not degrade — it **stopped**, returning
+  a byte-identical rule file at round 3 rather than changing anything. But the
+  gain was in-sample only: family A 0.863 -> 1.000, held-out paraphrase family
+  +0.041, and the hand-authored split **0.540 -> 0.540 -> 0.540** across three
+  rounds, with round 1 changing 5 of 74 predictions and breaking as many as it
+  fixed. So: use a capable compiler, expect **one** useful round, and treat a log
+  of real failures as an **evaluation** set rather than a supervision signal —
+  not because feedback is destructive, but because it does not carry past the
+  rows it was computed on. (`nl2sh-retrieval/results_claude_iteration.json`)
+
+- **Supervise a rule-writing model with its own errors, not with labelled
+  examples — and stop at two rounds (see the model-dependence caveat above).** Same model, same corpus, same 79 targets,
+  three regimes: shown nothing but the schemas it scores **0.161** on a disjoint
+  phrasing family; shown 237 labelled rows it scores **0.050** (*worse than
+  nothing*, p=2.8e-16) because it copies the examples' surface forms into its
+  patterns; shown its own errors on those same rows it scores **0.219**.
+  Labelled examples are a sample of the phrasing distribution and the model
+  reads them as the specification. Iteration then peaks fast — round 1 buys
+  +0.229 on the hand-authored split, round 2 +0.014, round 3 loses 0.123 *in
+  sample* because each revision rewrites the whole ordered list and new rules
+  shadow correct ones. Keep the round-2 artefact, not the last.
+  (`gh-mcp-regex-fit/compile_variants.py`)
+
+- **Telling a model to "write broad patterns" makes them narrower.** The
+  obvious fix for a high-precision/low-coverage rule set is to ask for breadth.
+  Holding catalogue, executor and splits fixed and changing only the
+  instruction — cover every target, five to ten surface forms each, do not buy
+  precision with abstention — coverage went **down** on both held-out splits
+  (0.216→0.149 wild, 0.390→0.188). The model wrote more alternations and
+  anchored them harder to the schema's own verbs. Coverage of unseen phrasings
+  is not something exhortation supplies; error feedback is.
+  (`gh-mcp-regex-fit/breadth_arm.py`)
+
+- **Compiling deterministic rules from a schema is a model-capability cliff —
+  and budget, procedure and instruction will not substitute for the tier.**
+  Identical clean-room prompt, one catalogue of 79 routing targets, accuracy on
+  hand-authored queries: gemini-2.5-flash-lite **0.000**, gemini-2.5-flash
+  **0.013**, gemini-3.7-flash **0.176**, Claude **0.540**. The small models
+  transcribe the schema signature into regex syntax
+  (`get workflow (?P<workflow_id>\S+) in (?P<owner>\S+)/(?P<repo>\S+)`) and match
+  only requests phrased as the schema names itself. Three interventions were run
+  to test whether the gap to Claude was procedure rather than capability, and
+  **none of them closed it**: instructing breadth explicitly made coverage *fall*
+  (0.216→0.149); splitting the catalogue over 8 calls to cut per-call output
+  pressure produced 224 rules — 2.8 per target, more than Claude's 154 — and
+  changed nothing (0.176→0.162, p=1.00); two rounds of error supervision reached
+  0.419, still below Claude's *zero-shot* 0.540. Price the offline compile on the
+  tier you will actually ship, and do not assume a cheaper model plus more calls
+  substitutes. Watch *coverage*, not precision, when grading these: a degenerate
+  rule set scores 0.918 precision because a pattern matching nothing is never
+  wrong. (`gh-mcp-regex-fit/chunked_arm.py`, `breadth_arm.py`)
+
+- **Before believing a split gap, score an arm that has no stake in any split.**
+  Every arm in a three-split routing eval spread 3-16x across the splits
+  (0.984→0.239 fitted, 0.615→0.161 clean room, 0.696→0.546→0.486 for the eval's
+  own author), which reads as generalisation loss. A live LLM answering per
+  query — fitted on nothing, reading no schema vocabulary — scored
+  **0.532 / 0.532 / 0.568** across the same three. The splits are equally hard;
+  every gap was authorship and supervision. The reference arm costs one
+  afternoon of inference and reinterprets every other number in the table. It
+  also caught the contamination directly: the eval's author's rules were the
+  only arm to *beat* live inference, and only on the split whose paraphrases
+  that author wrote. (`gh-mcp-regex-fit/live_eval.py`)
+
+- **A microsecond rule tier in front of an LLM router can beat the router, and
+  the mechanism is complementary abstention.** Rules first, live model on
+  whatever they decline, joined per row on hand-authored queries: the model alone
+  scored 0.568, model-compiled rules alone 0.540, and the **cascade 0.770 while
+  removing 58% of the model's calls**. The gain is not the rules being more
+  accurate — they are slightly worse standalone — it is that the model *declines*
+  40% of routable requests at 95.5% precision, and the rules answer a large share
+  of exactly those. Two arms with correlated errors cannot do this, so measure the
+  abstention overlap before predicting a cascade's value from the two standalone
+  numbers. The corollary is a threshold: below a compiler-capability line the
+  front tier is purely a cost lever (every weaker rule set landed at 0.635-0.649
+  regardless, while calls avoided ranged 19-63%), and above it, it is also an
+  accuracy one. (`gh-mcp-regex-fit/cascade_live.py`)
+
+- **Read a model's reference implementation before inferring its prompt protocol
+  from its special-token list — the failure looks exactly like incapacity.**
+  Pleias-RAG-350M exposes `<|query_start|>`, `<|source_start|>`, `<|source_id|>`
+  and friends, and a prompt assembled from those alone produced a **0.000 parse
+  rate**: the model kept emitting further `<|source_start|>` blocks and
+  degenerated into repetition. That is the same signature as `monad-bsky`'s
+  zero-shot result (0 parseable calls in 62), so it reads as "this model cannot
+  do the task". It was two missing details, both in the library's own
+  `_format_prompt`: every block needs a trailing newline, and **the prompt must
+  end with `<|language_start|>\n`**, which is the only signal that the source
+  list is closed. Two minutes of reading against a discarded measurement.
+  (`nl2sh-retrieval/pleias_gate.py`)
+
+- **Pre-fill a reasoning model's scaffold when you only want its answer: 9x.**
+  Pleias-RAG generates `language` → `query_analysis` → `query_report` →
+  `source_analysis` → `source_report` → `draft` before `<|answer_start|>`, about
+  700 tokens of preamble. Appending a minimal scaffold to the prompt so decoding
+  begins at the answer span took a query from **61.2 s to 5.4 s** on 4 CPU cores
+  and did not change the content of the answer. Applies to any model whose
+  output structure is delimited by special tokens rather than free-form — the
+  preamble is prompt, not inference. Check that it does not change the answer
+  before relying on it; here it did not. (`nl2sh-retrieval/pleias_gate.py`)
+
+- **A roff `.TP` split is not a general man-page option parser.** Chunking man
+  pages by the `.TP` macro looks universal and is not: **32 of 60** man pages on
+  a stock container carry zero `.TP`, because DocBook-XSL generated pages spell
+  an option as `.PP` / `\fB\-a\fR` / `.br`. A chunk-size statistic computed
+  that way silently describes only the subset that uses the macro — it did here,
+  and the reported median was wrong. Sample the *parse failures*, not just the
+  parse successes, before quoting a distribution over a document corpus.
+  (`nl2sh-retrieval/build_corpus.py`, correcting `nl2sh-scoping`)
+
+- **A tiny model that emits nothing usable zero-shot may be one fine-tune away
+  from working — and the reason it works may not be the reason you picked it.**
+  Pleias-RAG-350M scored **0 usable shell commands in 40** with the correct
+  source in its context every time, answering in cited prose. 600 rows, one
+  epoch, loss masked to the completion span, **25.5 minutes on 4 CPU cores**
+  took it to **0.923 on the slice where a constant answer scores 0.000**. That
+  is `monad-bsky`'s 0.000 -> 0.481 replicated on a second model: what these
+  models lack zero-shot is an *output shape*, and installing one is cheap. Gate
+  zero-shot, but do not conclude from a zero-shot gate.
+  **The instructive part is the ablation nobody ran.** The model was chosen
+  specifically because it is trained to quote sources literally, to fix a
+  documented 51% identifier-copying failure in its 56M sibling. **Verbatim rate
+  was 0.000 before fine-tuning and 0.000 after** — it generates the command
+  rather than copying it. The result is real, the rationale that selected the
+  base model is unsupported, and any other 350M model might do as well. When a
+  capability argument picks your model, measure that capability in the *result*,
+  not just in the model card. (`nl2sh-retrieval/pleias_gate.py`, `finetune_gate.py`)
+
+- **Score a routing arm against a constant-answer prior before believing it.**
+  Two separate measurements in one night were nearly reported against zero when
+  the honest baseline was much higher: NL2Bash is **60% `find`**, so "always
+  answer `find`" scores **0.675** on a 40-row gate sample, and a
+  query-independent list of the 20 commonest utilities scores **0.625@1** on a
+  retrieval eval whose real system scored 0.098. Both times the fix was the same
+  — report the skew-free slice (non-`find`) beside the headline, where the
+  constant scores 0.000 and the arm has to actually route. A corpus with a heavy
+  head will flatter any method that learns the head; the prior tells you how
+  much of your number is the corpus.
+  (`nl2sh-retrieval/score_gate_ft.py`, `verify_retrieval.py`)
+
+- **An eval where neither side is authored by the model under test can be worth
+  0.3 accuracy — build one before trusting any number.** A 350M router scored
+  **0.923** on a gate whose commands and phrasing both traced to the training
+  corpus (NL2Bash), and **0.618** on the same task when the commands were real
+  (a public 16k-command corpus) and the natural language was written by an
+  *independent* model told not to name the target. The 0.30 gap is the combined
+  cost of three flattering properties that are easy to miss: templated phrasing
+  from a single author, a head-heavy label distribution (NL2Bash is 60% `find`),
+  and the request naming its own answer (34.7% of NL2Bash prompts contained the
+  gold utility). The fix is cheap once you have a real artifact corpus — an
+  independent model writes the other side — and it is the difference between an
+  upper bound and a capability. Public real-command corpora exist and are
+  findable in one search (Zenodo/UCI 8136017, CC-BY-4.0).
+  (`nl2sh-selfhist/gen_nl.py`, `run_independent_eval.py`)

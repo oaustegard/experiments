@@ -1,0 +1,410 @@
+{
+  "what": "Adversarial verification of nl2sh-retrieval/eval_retrieval.py. Every number below was recomputed by verify_retrieval.py; none is copied from results_retrieval.json.",
+  "reproduced": {
+    "note": "check 8 recomputed the headline distinct-utility recall independently (same seed, same sampler) and got identical values, so the reported table is arithmetically sound.",
+    "reported_all": {
+      "1": 0.098,
+      "5": 0.28,
+      "20": 0.473
+    },
+    "recomputed_all": {
+      "1": 0.0983,
+      "5": 0.28,
+      "20": 0.4733
+    },
+    "reported_tail_stratified": {
+      "5": 0.203,
+      "20": 0.29
+    },
+    "recomputed_tail_stratified": {
+      "5": 0.2033,
+      "20": 0.29
+    },
+    "verdict": "CONFIRMED"
+  },
+  "check_1_gold_parse": {
+    "question": "Is the gold-utility label correct?",
+    "code": "verify_retrieval.py --check gold (check_gold): 30-pair manual spot check from the same seed-0 sample, plus an exhaustive scan of all 12,458 pairs for labels that cannot be a utility, plus a second independent parser that does not split pipelines.",
+    "spot_check": "29 of 30 correct. The one oddity is legitimate: `env -i ./makeall.sh` -> `makeall.sh`, a user script that no doc corpus can contain. `$( )` and `VAR=` prefixes, /usr/bin paths, xargs and -exec payloads were all handled correctly.",
+    "junk_labels_total": 173,
+    "junk_label_rate": 0.0139,
+    "dominant_failure": "`VAR=$(cmd ...)` \u2014 quote-masking turns the substitution into `\"\"`, the `=` token is skipped as a VAR=value prefix, and the masked `\"\"` is returned as the gold (49 pairs). 20 more lead with `for`, 12 with `{`.",
+    "second_parser_disagreement_rate": 0.006,
+    "effect_on_recall": "Junk golds are never in the corpus, so they are guaranteed misses. Removing all 173 would raise recall by at most 1.4 points absolute. This DEFLATES the reported number slightly; it does not explain it.",
+    "verdict": "CONFIRMED"
+  },
+  "check_2_leakage": {
+    "question": "Are NL2Bash prompts leaking into tldr descriptions?",
+    "code": "verify_retrieval.py --check leak (check_leak): normalised exact-match of every one of the 600 prompts against all 29,437 tldr description lines, plus best token-Jaccard of each prompt against the descriptions of ITS OWN gold utility, plus recall banded by that Jaccard.",
+    "exact_normalised_matches": 0,
+    "jaccard_vs_gold_utility_descriptions": {
+      "median": 0.1579,
+      "mean": 0.1684,
+      "p90": 0.25,
+      "frac_ge_0.5": 0.0017,
+      "frac_ge_0.3": 0.0667
+    },
+    "recall_by_jaccard_band": {
+      "0.0-0.2": {
+        "n": 418,
+        "recall@5": 0.1603,
+        "recall@20": 0.3517
+      },
+      "0.2-0.4": {
+        "n": 174,
+        "recall@5": 0.546,
+        "recall@20": 0.7414
+      },
+      "0.4-0.6": {
+        "n": 8,
+        "recall@5": 0.75,
+        "recall@20": 1.0
+      },
+      "0.6-1.01": null
+    },
+    "finding": "No verbatim or near-verbatim leakage: zero exact matches, median best Jaccard 0.16, only 1 query in 600 above 0.5. The two corpora were not derived from a common source. BUT recall is highly concentrated in the 29% of queries that happen to share >=0.2 of their wording with a tldr description of the right utility: 0.546@5 there vs 0.160@5 on the other 418. So the headline is not inflated by leakage, it is inflated by phrasing luck \u2014 see check 5a, which is the sharper version of this.",
+    "verdict": "CONFIRMED (no leakage), with a wording-sensitivity caveat"
+  },
+  "check_3_k_and_baselines": {
+    "question": "Is 'utility in top-k' trivially easy at k=20, and what is chance?",
+    "code": "verify_retrieval.py --check k (check_k) and --check baseline_slices (check_baseline_slices, prior fitted on the 11,858 pairs OUTSIDE the eval sample so it is not an oracle).",
+    "corpus_utilities": 4698,
+    "distinct_utilities_in_topk_chunks": {
+      "1": {
+        "mean": 1.0,
+        "median": 1.0
+      },
+      "5": {
+        "mean": 4.17,
+        "median": 4.0
+      },
+      "10": {
+        "mean": 7.81,
+        "median": 8.0
+      },
+      "20": {
+        "mean": 15.04,
+        "median": 15.0
+      }
+    },
+    "not_trivial": "top-20 chunks span a mean of 15.0 distinct utilities out of 4,698 \u2014 0.32% of the answer space. k=20 is not covering the corpus.",
+    "random_baselines": {
+      "1": {
+        "random_chunk": 0.0,
+        "random_utility": 0.0,
+        "constant_top_frequency": 0.625
+      },
+      "5": {
+        "random_chunk": 0.0033,
+        "random_utility": 0.0,
+        "constant_top_frequency": 0.6917
+      },
+      "10": {
+        "random_chunk": 0.0017,
+        "random_utility": 0.0017,
+        "constant_top_frequency": 0.7367
+      },
+      "20": {
+        "random_chunk": 0.01,
+        "random_utility": 0.0017,
+        "constant_top_frequency": 0.7933
+      }
+    },
+    "constant_frequency_prior_per_slice": {
+      "all": {
+        "n": 600,
+        "bm25": {
+          "1": 0.0983,
+          "5": 0.28,
+          "20": 0.4733
+        },
+        "constant_prior": {
+          "1": 0.625,
+          "5": 0.6917,
+          "20": 0.7867
+        }
+      },
+      "non_find": {
+        "n": 225,
+        "bm25": {
+          "1": 0.1156,
+          "5": 0.3244,
+          "20": 0.48
+        },
+        "constant_prior": {
+          "1": 0.0,
+          "5": 0.1778,
+          "20": 0.4311
+        }
+      },
+      "head": {
+        "n": 535,
+        "bm25": {
+          "1": 0.0991,
+          "5": 0.2729,
+          "20": 0.4766
+        },
+        "constant_prior": {
+          "1": 0.7009,
+          "5": 0.7757,
+          "20": 0.8822
+        }
+      },
+      "tail": {
+        "n": 369,
+        "bm25": {
+          "1": 0.0705,
+          "5": 0.2033,
+          "20": 0.29
+        },
+        "constant_prior": {
+          "1": 0.0,
+          "5": 0.0,
+          "20": 0.0
+        }
+      }
+    },
+    "finding": "Against random, BM25 is fine: 0.473@20 vs 0.010 for a random-chunk retriever and 0.002 for random utilities. Random is the wrong baseline. A query-INDEPENDENT list of the 20 commonest NL2Bash utilities scores 0.625@1 / 0.787@20 overall, beating BM25 (0.098 / 0.473) at every k. That is the find-skew the scoping README warned about: the constant prior collapses to 0.000@1 / 0.431@20 on non-find and to 0.000 at every k on the tail, where BM25 gets 0.203@5 / 0.290@20. So the tier does add information exactly where the architecture argument said it must \u2014 but the `all` row of the reported table is below a baseline that ignores the query, and should not be quoted at all.",
+    "verdict": "OVERSTATED \u2014 the `all` row is uninformative; only the non-find and tail rows carry a claim, and they need the constant prior printed beside them."
+  },
+  "check_4_head_tail_split": {
+    "question": "Are head and tail disjoint, and is the tail sample big enough?",
+    "code": "verify_retrieval.py --check split (check_split): set intersection of the bucket assignment plus Wilson 95% intervals on a recomputed tail recall.",
+    "disjoint": true,
+    "utilities_per_bucket": {
+      "head": 50,
+      "mid": 60,
+      "tail": 246
+    },
+    "main_sample_tail_n": 18,
+    "main_sample_tail_wilson95_at5": [
+      0.09,
+      0.4522
+    ],
+    "tail_stratified": {
+      "pairs": 369,
+      "distinct_utilities": 246,
+      "recall": {
+        "1": 0.0705,
+        "5": 0.2033,
+        "10": 0.252,
+        "20": 0.29
+      },
+      "wilson95": {
+        "1": [
+          0.0485,
+          0.1012
+        ],
+        "5": [
+          0.1653,
+          0.2473
+        ],
+        "10": [
+          0.2104,
+          0.2987
+        ],
+        "20": [
+          0.246,
+          0.3382
+        ]
+      },
+      "tail_utilities_with_zero_hit_at5": 193
+    },
+    "finding": "Buckets are disjoint by construction (assignment is per utility, and the three sets intersect empty). The n=18 tail row in the main table has a 95% interval of [0.09, 0.45] and carries no information \u2014 the agent flagged this itself and replaced it. The stratified run is adequate: 369 pairs over 246 distinct utilities, recall@5 0.203 [0.165, 0.247]. One thing it hides: 193 of those 246 utilities are never retrieved at all at k=5, so the 0.203 is carried by ~53 utilities, not spread thinly.",
+    "verdict": "CONFIRMED (the stratified numbers; the n=18 row is BROKEN and is already labelled as such in the source report)"
+  },
+  "check_5a_utility_name_in_prompt": {
+    "question": "Does the prompt already contain the answer?",
+    "code": "verify_retrieval.py --check hint (check_hint).",
+    "share_of_prompts_naming_gold_utility": 0.3467,
+    "recall_when_named": {
+      "n": 208,
+      "recall@1": 0.2163,
+      "recall@5": 0.5865,
+      "recall@20": 0.9183
+    },
+    "recall_when_not_named": {
+      "n": 392,
+      "recall@1": 0.0357,
+      "recall@5": 0.1173,
+      "recall@20": 0.2372
+    },
+    "per_slice": {
+      "non_find_named": {
+        "n": 45,
+        "recall@1": 0.3333,
+        "recall@5": 0.6889,
+        "recall@20": 0.8444
+      },
+      "non_find_unnamed": {
+        "n": 180,
+        "recall@1": 0.0611,
+        "recall@5": 0.2333,
+        "recall@20": 0.3889
+      },
+      "tail_named": {
+        "n": 167,
+        "recall@1": 0.1018,
+        "recall@5": 0.2395,
+        "recall@20": 0.3174
+      },
+      "tail_unnamed": {
+        "n": 202,
+        "recall@1": 0.0446,
+        "recall@5": 0.1733,
+        "recall@20": 0.2673
+      }
+    },
+    "finding": "34.7% of NL2Bash prompts contain the gold utility as a literal token (annotators wrote the English while looking at the command: 'Convert *.au files ... using `sox`'). Those queries score 0.586@5 / 0.918@20; the other 65% score 0.117@5 / 0.237@20. The tier's whole premise is a user who does NOT know which utility to reach for, so the second row is the deployment number. On the slice that matters \u2014 non-find AND the prompt does not name the tool, n=180 \u2014 recall is 0.061@1 / 0.233@5 / 0.389@20, against the 0.116 / 0.324 / 0.480 reported for non-find. The reported non-find column is ~28% relatively optimistic.",
+    "verdict": "OVERSTATED"
+  },
+  "check_5b_candidate_pool_mismatch": {
+    "question": "Is the ranker being blamed for a corpus that cannot answer the eval?",
+    "code": "verify_retrieval.py --check other and --check scoped (check_scoped): restrict the corpus to the 356 utilities NL2Bash ever asks about and re-run the identical metric.",
+    "chunks_whose_utility_never_appears_in_nl2bash": 28336,
+    "off_topic_chunk_share": 0.9091,
+    "scoped_corpus": {
+      "chunks": 2833,
+      "utilities": 210
+    },
+    "scoped_recall_sample600": {
+      "n": 600,
+      "recall": {
+        "1": 0.2117,
+        "5": 0.5333,
+        "20": 0.765
+      },
+      "recall_non_find": {
+        "1": 0.2533,
+        "5": 0.56,
+        "20": 0.7067
+      }
+    },
+    "scoped_recall_tail_all369": {
+      "n": 369,
+      "recall": {
+        "1": 0.1707,
+        "5": 0.3279,
+        "20": 0.3957
+      },
+      "recall_non_find": {
+        "1": 0.1707,
+        "5": 0.3279,
+        "20": 0.3957
+      }
+    },
+    "finding": "90.9% of the 31,169 chunks belong to utilities NL2Bash never mentions \u2014 tldr is thick with git subcommands, aws, kubectl, npm, cargo, while NL2Bash is 2016-era POSIX shell. Oracle-scoping the corpus to the 356 gold utilities (2,833 chunks) lifts recall@5 from 0.280 to 0.533 and @20 from 0.473 to 0.765; tail@5 goes 0.203 -> 0.328. That is an oracle and not deployable as such, but a deployable analogue exists \u2014 scope to the utilities actually installed on the machine. So roughly half the measured miss rate is candidate-pool pollution, not ranking. The reported numbers understate what this tier could do and should not be read as 'lexical retrieval over shell docs does not work'.",
+    "verdict": "OVERSTATED (in the pessimistic direction) \u2014 the conclusion is stronger than the measurement supports"
+  },
+  "check_5c_latency": {
+    "question": "Is the quoted latency the latency of the metric that was reported?",
+    "code": "verify_retrieval.py --check k (check_k) times topk() and rank_utilities(pool=300) separately over the same 600 queries.",
+    "measured": {
+      "topk_only_median": 0.119,
+      "rank_utilities_pool300_median": 0.184,
+      "rank_utilities_pool300_p90": 0.225
+    },
+    "finding": "eval_retrieval.evaluate() times only idx.topk(nl, 20), but the headline table is the distinct-utility ranking, which needs rank_utilities(pool=300). That costs 0.184 ms median / 0.225 ms p90, not the 0.119 / 0.161 reported. Still sub-millisecond; the claim survives, the number is wrong by 1.5x.",
+    "verdict": "OVERSTATED (minor)"
+  },
+  "check_5d_other": {
+    "duplicate_nl_prompts_pairs": 2139,
+    "duplicate_nl_prompts_distinct": 876,
+    "recall_leading_utility_only": {
+      "5": 0.28,
+      "20": 0.4733
+    },
+    "recall_any_utility_in_command": {
+      "5": 0.3183,
+      "20": 0.5317
+    },
+    "gold_utilities_missing_from_corpus": 146,
+    "top_missing": {
+      "\"\"": 49,
+      "zcat": 44,
+      "yum": 41,
+      "gunzip": 14,
+      "1": 11,
+      "path": 5,
+      "+short": 4,
+      "{my_iso_file}": 3,
+      "bunzip2": 3,
+      "\"\"$path\"\"": 3,
+      "...": 3,
+      "script.sh": 3,
+      "\"\"$0\"\"": 3,
+      "someCommand": 3,
+      "`basename": 2
+    },
+    "notes": [
+      "2,139 of 12,458 pairs share a prompt string with another pair (876 distinct repeated prompts). Nothing is trained here so this is not train/test contamination, but it means the 600-pair sample has fewer than 600 independent queries.",
+      "Scoring only the LEADING utility is strict: crediting any utility named anywhere in the command raises recall@5 from 0.280 to 0.318 and @20 from 0.473 to 0.532. Which target is right depends on what the tier hands the model; the reported choice is the conservative one and should be labelled as such.",
+      "146 gold utilities (341 pairs) have no chunk at all. The largest are real coverage gaps, not parse noise: zcat (44 pairs), yum (41), gunzip (14), bunzip2 (3)."
+    ],
+    "verdict": "CONFIRMED with caveats"
+  },
+  "overall": {
+    "verdict": "OVERSTATED",
+    "one_line": "The arithmetic reproduces exactly, but the headline framing does not survive: the `all` row loses to a query-independent frequency prior, a third of the recall that exists comes from prompts that name the answer, and 91% of the corpus can never be correct for this eval.",
+    "numbers_to_quote_instead": {
+      "non_find_prompt_does_not_name_the_utility_n180": {
+        "n": 180,
+        "@1": 0.0611,
+        "@5": 0.2333,
+        "@20": 0.3889
+      },
+      "tail_all_369_pairs_246_utilities": {
+        "recall": {
+          "1": 0.0705,
+          "5": 0.2033,
+          "10": 0.252,
+          "20": 0.29
+        },
+        "wilson95": {
+          "1": [
+            0.0485,
+            0.1012
+          ],
+          "5": [
+            0.1653,
+            0.2473
+          ],
+          "10": [
+            0.2104,
+            0.2987
+          ],
+          "20": [
+            0.246,
+            0.3382
+          ]
+        }
+      },
+      "constant_query_independent_prior_non_find": {
+        "1": 0.0,
+        "5": 0.1778,
+        "20": 0.4311
+      },
+      "constant_query_independent_prior_tail": {
+        "1": 0.0,
+        "5": 0.0,
+        "20": 0.0
+      },
+      "oracle_scoped_corpus_sample600": {
+        "1": 0.2117,
+        "5": 0.5333,
+        "20": 0.765
+      },
+      "true_latency_of_reported_metric_ms": {
+        "topk_only_median": 0.119,
+        "rank_utilities_pool300_median": 0.184,
+        "rank_utilities_pool300_p90": 0.225
+      }
+    },
+    "what_still_stands": [
+      "Recall IS bad in absolute terms: 0.233@5 on the realistic non-find/unnamed slice.",
+      "The tail is the hard part and BM25 beats every query-independent baseline there (0.203@5 vs 0.000), which is the architecture claim the scoping doc made.",
+      "Sub-millisecond retrieval at 31k chunks is real (0.184 ms median).",
+      "man-only is untestable on this container (60 pages, java/postgres) \u2014 correctly reported as untestable rather than as a refutation."
+    ]
+  }
+}
