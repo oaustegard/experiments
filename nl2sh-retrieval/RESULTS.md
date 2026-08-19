@@ -1,7 +1,7 @@
 # nl2sh-retrieval — building the deterministic tier, and gating the small model
 
-**Started / finished:** 2026-08-19 · **Status:** done —
-**the deterministic tiers hold, both middle tiers fail independently, and an
+**Started / finished:** 2026-08-19 · **Status:** done — **the small model works
+after 25 minutes of fine-tuning, retrieval is now the bottleneck, and an
 adversarial pass returned OVERSTATED on the first draft of the retrieval numbers.**
 
 [`nl2sh-scoping`](../nl2sh-scoping/README.md) established the shape of the
@@ -12,10 +12,16 @@ runs the one test that decides whether the small-model component exists at all.
 
 Headline, in the order the numbers should be trusted:
 
-- **The gate is negative.** Pleias-RAG-350M zero-shot produces **0 usable
-  commands in 40**, verbatim rate **0.000**, handed the right source every time.
-- **Retrieval fails as built**: **0.233 recall@5** on the deployment slice, and
-  a query-*independent* frequency prior beats the naive headline figure.
+- **The zero-shot gate is negative, and fine-tuning fixes it.** Pleias-RAG-350M
+  produces **0 usable commands in 40** handed the right source every time; after
+  600 rows and **25.5 minutes on 4 CPU cores** it reaches **0.923 on the
+  non-`find` slice, where a constant answer scores 0.000**. The failure was
+  output shape, not capability.
+- **But the premise that chose this model did not survive**: verbatim rate is
+  0.000 before *and* after. It was picked for literal source-quoting; what
+  fine-tuning installed was command *generation*. The non-RAG ablation is unrun.
+- **Retrieval is now the bottleneck**: **0.233 recall@5** on the deployment
+  slice, and a query-*independent* frequency prior beats the naive headline.
 - **Parameter extraction works**: 0.971 precision held out — but only 37.4% of
   requests contain every operand, and only 53% of correct extractions are a
   whole command token.
@@ -370,9 +376,9 @@ single measurement most likely to change the verdict on the retrieval tier.
 | 4a | corpus construction | **works** — 31,169 chunks, 4,698 utilities, 1.25 s to index |
 | 1 | LLM-composed regex rules | **works, and does not improve with feedback** — 0.540 wild, flat over 3 rounds |
 | 6 | error logging | **reframed** — an eval set, not a supervision signal |
-| 4b | retrieval over that corpus | **fails as built** — 0.233 recall@5 on the deployment slice (0.417 PATH-scoped), needs to serve k=3 |
-| 2 | small model reading the sources | **fails** — 0 of 40, verbatim 0.000 |
-| 5 | ICL grounded in valid calls | **untested** — blocked behind 2 |
+| 2 | small model reading the sources | **fails zero-shot** (0 of 40) — **works fine-tuned**: 0.923 non-`find`, 25.5 min CPU |
+| 4b | retrieval over that corpus | **the bottleneck** — 0.233 recall@5 on the deployment slice (0.417 PATH-scoped), needs to serve k=3 |
+| 5 | ICL grounded in valid calls | **untested** — now unblocked |
 
 The deterministic half holds up. Both middle tiers failed their first
 measurement, and they failed *independently*: even a perfect retriever would not

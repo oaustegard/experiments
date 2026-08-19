@@ -2023,3 +2023,33 @@ are not observable per-arm at all — estimate from content sizes and say so.
   and the reported median was wrong. Sample the *parse failures*, not just the
   parse successes, before quoting a distribution over a document corpus.
   (`nl2sh-retrieval/build_corpus.py`, correcting `nl2sh-scoping`)
+
+- **A tiny model that emits nothing usable zero-shot may be one fine-tune away
+  from working — and the reason it works may not be the reason you picked it.**
+  Pleias-RAG-350M scored **0 usable shell commands in 40** with the correct
+  source in its context every time, answering in cited prose. 600 rows, one
+  epoch, loss masked to the completion span, **25.5 minutes on 4 CPU cores**
+  took it to **0.923 on the slice where a constant answer scores 0.000**. That
+  is `monad-bsky`'s 0.000 -> 0.481 replicated on a second model: what these
+  models lack zero-shot is an *output shape*, and installing one is cheap. Gate
+  zero-shot, but do not conclude from a zero-shot gate.
+  **The instructive part is the ablation nobody ran.** The model was chosen
+  specifically because it is trained to quote sources literally, to fix a
+  documented 51% identifier-copying failure in its 56M sibling. **Verbatim rate
+  was 0.000 before fine-tuning and 0.000 after** — it generates the command
+  rather than copying it. The result is real, the rationale that selected the
+  base model is unsupported, and any other 350M model might do as well. When a
+  capability argument picks your model, measure that capability in the *result*,
+  not just in the model card. (`nl2sh-retrieval/pleias_gate.py`, `finetune_gate.py`)
+
+- **Score a routing arm against a constant-answer prior before believing it.**
+  Two separate measurements in one night were nearly reported against zero when
+  the honest baseline was much higher: NL2Bash is **60% `find`**, so "always
+  answer `find`" scores **0.675** on a 40-row gate sample, and a
+  query-independent list of the 20 commonest utilities scores **0.625@1** on a
+  retrieval eval whose real system scored 0.098. Both times the fix was the same
+  — report the skew-free slice (non-`find`) beside the headline, where the
+  constant scores 0.000 and the arm has to actually route. A corpus with a heavy
+  head will flatter any method that learns the head; the prior tells you how
+  much of your number is the corpus.
+  (`nl2sh-retrieval/score_gate_ft.py`, `verify_retrieval.py`)
