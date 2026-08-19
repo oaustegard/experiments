@@ -1,0 +1,53 @@
+{
+ "contaminated_rows_excluded": [
+  4,
+  13
+ ],
+ "constant_prior_always_find": {
+  "n": 40,
+  "n_find_golds": 27,
+  "utility_acc_all": 0.675,
+  "utility_acc_non_find": 0.0,
+  "why": "27 of 40 golds are `find`; a constant answer scores this without routing"
+ },
+ "base_model": {
+  "all": {
+   "n": 40,
+   "utility_acc": 0.025,
+   "command_rate": 0.025,
+   "verbatim": 0.0
+  },
+  "non_find": {
+   "n": 13,
+   "utility_acc": 0.0
+  },
+  "uncontaminated": {
+   "n": 38,
+   "utility_acc": 0.026
+  },
+  "uncontaminated_non_find": {
+   "n": 13,
+   "utility_acc": 0.0
+  }
+ },
+ "fine_tuned": {
+  "all": {
+   "n": 40,
+   "utility_acc": 0.95,
+   "command_rate": 0.95,
+   "verbatim": 0.0
+  },
+  "non_find": {
+   "n": 13,
+   "utility_acc": 0.923
+  },
+  "uncontaminated": {
+   "n": 38,
+   "utility_acc": 0.947
+  },
+  "uncontaminated_non_find": {
+   "n": 13,
+   "utility_acc": 0.923
+  }
+ }
+}
