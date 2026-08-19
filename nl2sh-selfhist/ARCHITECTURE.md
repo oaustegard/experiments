@@ -45,15 +45,24 @@ keep.** The fine-tuned 350M at 0.618 with retrieval is the only option with no
 network, and there the docs matter because the model is genuinely weak. ~12 s
 per query on 4 CPU cores unquantised; far faster on Metal/GPU.
 
-## On flash-lite specifically
+## On flash-lite specifically — it is the clean winner
 
-It is the most accurate here (0.771) but carries a latency cost the accuracy
-number hides: **`gemini-3.5-flash-lite` rejects `thinkingBudget: 0` outright
-(HTTP 400)** and spends thinking tokens on every request — ~90 to answer "reply
-ok". For a terminal helper where the whole value is *fast*, that tax lands on
-every trivial command. If latency matters more than the ~3-point accuracy edge,
-**`gemini-3.7-flash` with `thinkingBudget: 0` (0.743) is the better generator.**
-Use flash-lite only if you can tolerate the per-request thinking latency.
+flash-lite is the most accurate here (0.771) AND the fastest AND the cheapest
+(the high-volume model), with **no thinking tax**. An earlier version of this
+memo claimed it carried a mandatory thinking cost; that was wrong. The confusion:
+`gemini-3.5-flash-lite` 400s on an explicit `thinkingBudget: 0`, which reads like
+"thinking is forced on" — but **omitting `thinkingConfig` entirely gives
+`thoughtsTokenCount = 0`** and a ~1.0-1.3 s response (that latency is the gateway
+round-trip, identical for flash and flash-lite). Passing `thinkingBudget: -1`
+turns dynamic thinking ON (213 tokens), which is what you must NOT do for
+high-volume work.
+
+The 0.771 above was already measured with thinking off: `gemini_direct.py --think -1`
+routes through `generate(thinking_budget=-1)`, which omits `thinkingConfig` (the
+fast path), so flash-lite ran at 0 thinking tokens. So the recommendation is
+simply: **use `gemini-3.5-flash-lite` with no `thinkingConfig`** — most accurate,
+no thinking, high-volume-priced. `gemini-3.7-flash` (0.743, `thinkingBudget: 0`)
+is the fallback if you specifically want that model.
 
 ## Caveats
 
@@ -73,6 +82,6 @@ Use flash-lite only if you can tolerate the per-request thinking latency.
 
 ```bash
 python3 gemini_direct.py --model gemini-3.7-flash
-python3 gemini_direct.py --model gemini-3.5-flash-lite --think -1   # -1 omits thinkingConfig
+python3 gemini_direct.py --model gemini-3.5-flash-lite --think -1   # -1 omits thinkingConfig -> thinking OFF (fast path)
 python3 run_independent_eval.py --model ../nl2sh-retrieval/ft       # the small-model-plus-retrieval baseline
 ```

@@ -568,6 +568,18 @@ survives exactly the sanity checks people run.
 - **Cloudflare AI Gateway throttles hard.** Start LLM batch concurrency at **2**,
   not 4 or 12. `phase-a-bridges` learned 12→4→2; `te-bridges` started at 4
   anyway and lost 18–20% of extractions to exhausted retries.
+- **To disable thinking on gemini-3.5-flash-lite, OMIT `thinkingConfig` — do not
+  pass `thinkingBudget: 0`.** The lite model 400s on an explicit `thinkingBudget: 0`
+  (`INVALID_ARGUMENT`), which is easy to misread as "thinking is mandatory". It is
+  not: with **no `thinkingConfig` field at all**, `thoughtsTokenCount` is **0** and
+  a one-command answer returns in ~1.0-1.3 s (gateway round-trip, not thinking).
+  Passing `thinkingBudget: -1` turns dynamic thinking ON (213 thought tokens
+  measured), which is the opposite of what you want for high-volume work — so the
+  earlier claim here that flash-lite carries a mandatory thinking tax was wrong,
+  corrected 2026-08-19. Per-model: 3.5-flash-lite rejects budget=0 but defaults to
+  no-thinking; 2.5-flash-lite accepts budget=0; both think=0 with no config. In
+  `gemini_client.generate`, `thinking_budget=-1` omits the field (the fast path),
+  `>=0` sets it. (`nl2sh-selfhist/gemini_direct.py`)
 - **Even where `thinkingBudget: 0` is honoured, budget the OUTPUT tokens
   generously — a short answer can still be truncated.** On gemini-3.7-flash with
   `thinkingBudget: 0`, a one-sentence request generated at `maxOutputTokens=120`
