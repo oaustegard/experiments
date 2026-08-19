@@ -568,6 +568,17 @@ survives exactly the sanity checks people run.
 - **Cloudflare AI Gateway throttles hard.** Start LLM batch concurrency at **2**,
   not 4 or 12. `phase-a-bridges` learned 12→4→2; `te-bridges` started at 4
   anyway and lost 18–20% of extractions to exhausted retries.
+- **Even where `thinkingBudget: 0` is honoured, budget the OUTPUT tokens
+  generously — a short answer can still be truncated.** On gemini-3.7-flash with
+  `thinkingBudget: 0`, a one-sentence request generated at `maxOutputTokens=120`
+  came back as *"Go to my"* / *"Show all files and"* — cut after ~3 words — while
+  the identical call at `maxOutputTokens=512` returned the full sentence. So the
+  120-token window was consumed by something other than the visible answer even
+  with thinking nominally off. The practical rule: for a short structured output,
+  set `maxOutputTokens` to several hundred, not to a tight bound around the
+  expected length, and re-check the finishReason. Measured 2026-08-19 across 39
+  command-to-NL generations, where the tight bound silently truncated the ones
+  with the shortest answers. (`nl2sh-selfhist/gen_nl.py`)
 - **`thinkingBudget: 0` is rejected outright by some newer models — check before
   relying on the entry below.** On **gemini-3.5-flash-lite** it is a hard
   `HTTP 400 INVALID_ARGUMENT`: thinking cannot be disabled at all. Dynamic
