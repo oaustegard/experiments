@@ -2064,3 +2064,18 @@ are not observable per-arm at all — estimate from content sizes and say so.
   head will flatter any method that learns the head; the prior tells you how
   much of your number is the corpus.
   (`nl2sh-retrieval/score_gate_ft.py`, `verify_retrieval.py`)
+
+- **An eval where neither side is authored by the model under test can be worth
+  0.3 accuracy — build one before trusting any number.** A 350M router scored
+  **0.923** on a gate whose commands and phrasing both traced to the training
+  corpus (NL2Bash), and **0.618** on the same task when the commands were real
+  (a public 16k-command corpus) and the natural language was written by an
+  *independent* model told not to name the target. The 0.30 gap is the combined
+  cost of three flattering properties that are easy to miss: templated phrasing
+  from a single author, a head-heavy label distribution (NL2Bash is 60% `find`),
+  and the request naming its own answer (34.7% of NL2Bash prompts contained the
+  gold utility). The fix is cheap once you have a real artifact corpus — an
+  independent model writes the other side — and it is the difference between an
+  upper bound and a capability. Public real-command corpora exist and are
+  findable in one search (Zenodo/UCI 8136017, CC-BY-4.0).
+  (`nl2sh-selfhist/gen_nl.py`, `run_independent_eval.py`)
