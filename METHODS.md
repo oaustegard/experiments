@@ -1976,3 +1976,35 @@ are not observable per-arm at all — estimate from content sizes and say so.
   front tier is purely a cost lever (every weaker rule set landed at 0.635-0.649
   regardless, while calls avoided ranged 19-63%), and above it, it is also an
   accuracy one. (`gh-mcp-regex-fit/cascade_live.py`)
+
+- **Read a model's reference implementation before inferring its prompt protocol
+  from its special-token list — the failure looks exactly like incapacity.**
+  Pleias-RAG-350M exposes `<|query_start|>`, `<|source_start|>`, `<|source_id|>`
+  and friends, and a prompt assembled from those alone produced a **0.000 parse
+  rate**: the model kept emitting further `<|source_start|>` blocks and
+  degenerated into repetition. That is the same signature as `monad-bsky`'s
+  zero-shot result (0 parseable calls in 62), so it reads as "this model cannot
+  do the task". It was two missing details, both in the library's own
+  `_format_prompt`: every block needs a trailing newline, and **the prompt must
+  end with `<|language_start|>\n`**, which is the only signal that the source
+  list is closed. Two minutes of reading against a discarded measurement.
+  (`nl2sh-retrieval/pleias_gate.py`)
+
+- **Pre-fill a reasoning model's scaffold when you only want its answer: 9x.**
+  Pleias-RAG generates `language` → `query_analysis` → `query_report` →
+  `source_analysis` → `source_report` → `draft` before `<|answer_start|>`, about
+  700 tokens of preamble. Appending a minimal scaffold to the prompt so decoding
+  begins at the answer span took a query from **61.2 s to 5.4 s** on 4 CPU cores
+  and did not change the content of the answer. Applies to any model whose
+  output structure is delimited by special tokens rather than free-form — the
+  preamble is prompt, not inference. Check that it does not change the answer
+  before relying on it; here it did not. (`nl2sh-retrieval/pleias_gate.py`)
+
+- **A roff `.TP` split is not a general man-page option parser.** Chunking man
+  pages by the `.TP` macro looks universal and is not: **32 of 60** man pages on
+  a stock container carry zero `.TP`, because DocBook-XSL generated pages spell
+  an option as `.PP` / `\fB\-a\fR` / `.br`. A chunk-size statistic computed
+  that way silently describes only the subset that uses the macro — it did here,
+  and the reported median was wrong. Sample the *parse failures*, not just the
+  parse successes, before quoting a distribution over a document corpus.
+  (`nl2sh-retrieval/build_corpus.py`, correcting `nl2sh-scoping`)

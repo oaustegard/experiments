@@ -1,0 +1,28 @@
+{
+ "summary": {
+  "model": "PleIAs/Pleias-RAG-350M",
+  "n": 1,
+  "distractors": 4,
+  "parse_rate": 1.0,
+  "command_rate": 0.0,
+  "utility_acc": 0.0,
+  "verbatim_rate": 0.0,
+  "median_seconds": 20.4,
+  "median_prompt_tokens": 552
+ },
+ "rows": [
+  {
+   "nl": "Send SIGKILL signal to processes ID 18581, 18582, and 18583, killing them instantly.",
+   "gold_cmd": "kill -9 18581 18582 18583",
+   "gold_utility": "kill",
+   "n_sources": 14,
+   "prompt_tokens": 552,
+   "parsed": true,
+   "answer": "",
+   "command": "",
+   "utility_ok": false,
+   "verbatim": false,
+   "seconds": 20.4
+  }
+ ]
+}
