@@ -125,6 +125,8 @@ def main() -> int:
     ap.add_argument("--max-new-tokens", type=int, default=140)
     ap.add_argument("--seed", type=int, default=20260819)
     ap.add_argument("--smoke", action="store_true", help="print full generations")
+    ap.add_argument("--model-path", default=None,
+                    help="local fine-tuned checkpoint; defaults to the HF base model")
     ap.add_argument("--out", type=Path, default=HERE / "results_gate.json")
     a = ap.parse_args()
 
@@ -142,8 +144,9 @@ def main() -> int:
     rows = pool[: a.n]
     print(f"eval rows: {len(rows)} (gold utility always has tldr examples)\n")
 
-    tok = AutoTokenizer.from_pretrained(MODEL)
-    model = AutoModelForCausalLM.from_pretrained(MODEL, dtype=torch.float32).eval()
+    src = a.model_path or MODEL
+    tok = AutoTokenizer.from_pretrained(src)
+    model = AutoModelForCausalLM.from_pretrained(src, dtype=torch.float32).eval()
 
     others = [u for u in tldr if len(tldr[u]) >= 2]
     recs, lat = [], []
@@ -198,7 +201,7 @@ def main() -> int:
 
     n = len(recs)
     summary = {
-        "model": MODEL, "n": n, "distractors": a.distractors,
+        "model": src, "n": n, "distractors": a.distractors,
         "examples_per_util": a.examples_per_util, "prefill": not a.no_prefill,
         "n_sources": recs[0]["n_sources"],
         "names_gold_utility": round(sum(
