@@ -1,0 +1,378 @@
+{
+ "summary": {
+  "source": "results_gate.json",
+  "n": 40,
+  "EQUIVALENT": 0,
+  "DIFFERENT": 40,
+  "INCONCLUSIVE": 0,
+  "decided_by_execution": 40,
+  "functional_acc_over_decided": 0.0,
+  "functional_acc_over_all": 0.0,
+  "utility_acc_over_all": 0.025
+ },
+ "rows": [
+  {
+   "i": 1,
+   "nl": "Send SIGKILL signal to processes ID 18581, 18582, and 18583, killing them instantly.",
+   "gold": "kill -9 18581 18582 18583",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 2,
+   "nl": "find files which do not have all permissions to all the users in the current directory",
+   "gold": "find . -type f ! -perm 777 | head",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 3,
+   "nl": "Change permissions to 644 of multiple files with permissions 755",
+   "gold": "find . -perm 755 -exec chmod 644 {} \\;",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 4,
+   "nl": "find all c, cpp files in current folder",
+   "gold": "find -name \"*.cpp\" -o -name \"*.c\"",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 5,
+   "nl": "Perform a case insensitive search for *filename* files/directories under current directory tree",
+   "gold": "find . -iname \"*filename*\"",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 6,
+   "nl": "Page through the information of the system's PHP setup.",
+   "gold": "less -f <(php -i)",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 7,
+   "nl": "search for bash and rsync files in the entire file system excluding search in the path /usr/share folder and discard all the errors",
+   "gold": "find / -path /usr/share -prune -o \\( -name rsync -o -name bash \\) -print 2>/dev/nul",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 8,
+   "nl": "Delete all regular files named 'FILE-TO-FIND' under current directory tree",
+   "gold": "find . -type f -name \"FILE-TO-FIND\" -exec rm -f {} \\;",
+   "pred": "find -name * -path/to",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 9,
+   "nl": "Infinitely ping every host listed in \"file-of-ips\" with at most 50 processes at once",
+   "gold": "cat file-of-ips | xargs -n 1 -I ^ -P 50 ping ^",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 10,
+   "nl": "Print out the names and types of all files in the current directory tree",
+   "gold": "find . -printf \"%y %p\\n\"",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 11,
+   "nl": "Find all php files under current directory",
+   "gold": "find . -type f -name \"*.php\"",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 12,
+   "nl": "Delete all files beneath the current directory that begin with the letters 'Foo'.",
+   "gold": "find . -type f -name \"Foo*\" -exec rm {} \\;",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 13,
+   "nl": "update the permission of all the php files in current directory and save the output to a file",
+   "gold": "find . -name '*.php' -exec chmod 755 {} \\; > logfile.txt",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 14,
+   "nl": "find all jpg files in current folder",
+   "gold": "find . -type f -name \"*.JPG\"",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 15,
+   "nl": "List all files without descending into subdirectories",
+   "gold": "find * -type f -print -o -type d -prune",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 16,
+   "nl": "Recursively bind mount \"/something\" on \"/new_something\"",
+   "gold": "mount --rbind /something /new_something",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 17,
+   "nl": "Print a list of all regular files residing in the current directory",
+   "gold": "find . -maxdepth 1 -type f -print0",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 18,
+   "nl": "Find recursively all empty directories in the current directory",
+   "gold": "find . -type d -empty",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 19,
+   "nl": "Search all regular files in the /var/log directory tree for string \"19:26\"",
+   "gold": "find /var/log/ -type f -exec grep -H \u201819:26\u2032 {} \\;",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 20,
+   "nl": "Find all files and directories that have been modified in the last seven days.",
+   "gold": "find . -mtime -7",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 21,
+   "nl": "using exec in find command to dispaly the searched files",
+   "gold": "find . ... -exec cat {} \\; -exec echo \\;",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 22,
+   "nl": "display all files in the folder /usr and its sub directory(do not search beyond the sub directory)",
+   "gold": "find /usr -maxdepth 1 -print",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 23,
+   "nl": "Installs packages 'mysql' and 'mysql-server'.",
+   "gold": "yum install mysql mysql-server",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 24,
+   "nl": "Search the files from directory tree \"dirname\" for string \"foo\"",
+   "gold": "find dirname  -print0 | xargs -0 grep foo",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 25,
+   "nl": "Exit the shell immediately if an error is encountered",
+   "gold": "set -o errexit",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 26,
+   "nl": "Searches available packages with 'mysql' and 'client' in name.",
+   "gold": "yum search mysql | grep client",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 27,
+   "nl": "Find all files/directories under $1 which have at least write permission for their owner and set write permission for group for these files/directories",
+   "gold": "find \"$1\" -perm -u+w -print0 | xargs chmod g+w",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 28,
+   "nl": "Search for case-insensitive \"string\" in \"log.tar.gz\"",
+   "gold": "zcat log.tar.gz | grep -a -i \"string\"",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 29,
+   "nl": "Search the current directory tree for regular files whose names end with \"keep.${SUFFIX}\", where $SUFFIX is a shell variable",
+   "gold": "find . -type f -name \"*keep.${SUFFIX}\"",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 30,
+   "nl": "Print summary of new/missing files, and which files differ between dir_one and dir_two, sorted alphabetically.",
+   "gold": "diff -qr dir_one dir_two | sort",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 31,
+   "nl": "Print only the number of lines in file \"$f\"",
+   "gold": "wc -l $f | tr -s ' ' | cut -d ' ' -f 1",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 32,
+   "nl": "show all the regular/normal files in the folder /home/user/demo",
+   "gold": "find /home/user/demo -type f -print",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 33,
+   "nl": "Split \"file.txt\" into files of at most 1 MiB in size with a numeric suffix, prefix \"file\", and additional suffix \".txt\"",
+   "gold": "split -b 1M -d  file.txt file --additional-suffix=.txt",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 34,
+   "nl": "Read standard input until a null character is found and save the result in variable \"line\"",
+   "gold": "read -r -d $'\\0'",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 35,
+   "nl": "Display top 500 mp4 and flv files under current directory along with their timestamps in the sorted order of time",
+   "gold": "find . -regex \".*\\.\\(flv\\|mp4\\)\" -type f -printf '%T+ %p\\n' | sort | head -n 500",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 36,
+   "nl": "Print all string from file 'file2.txt' matching pattern in file 'file1.txt'",
+   "gold": "grep \"$(cat file1.txt)\" file2.txt",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 37,
+   "nl": "find files in the current directory and sub-directories, that were accessed within last hour",
+   "gold": "find -amin -60",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 38,
+   "nl": "Search the /home/sdt5z/tmp directory tree for files named \"accepted_hits.bam\"",
+   "gold": "find /home/sdt5z/tmp -name \"accepted_hits.bam\"",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 39,
+   "nl": "Search the current directory recursively for regular files with extensions sdw, sdc, sdd and save the search result as \"list_1\"",
+   "gold": "find . -type f | egrep '(sdw|sdc|sdd)$' > list_1",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  },
+  {
+   "i": 40,
+   "nl": "search for all the directories in the current directory and do not search in sub directories",
+   "gold": "find . -mindepth 1 -maxdepth 1 -type d",
+   "pred": "",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "why": "no command produced"
+  }
+ ]
+}
