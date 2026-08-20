@@ -1,0 +1,941 @@
+{
+ "oracle": {
+  "mode": "oracle",
+  "n": 38,
+  "n_leak_free": 34,
+  "utility_acc_leak_free": 0.5,
+  "gold_in_sources_rate": 1.0,
+  "rows": [
+   {
+    "utility": "cd",
+    "nl": "Go to my home directory.",
+    "command": "cd /home/myuser",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ls",
+    "nl": "Show all files in the current directory, including hidden ones.",
+    "command": "ri",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "cat",
+    "nl": "Show the contents of the file 0hRGen1s.",
+    "command": "cat /path/to/file",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "fcrackzip",
+    "nl": "Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.",
+    "command": "rails_server",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ssh",
+    "nl": "Connect to the remote server at 172.18.5.1 on port 22.",
+    "command": "ssh username@remote_host",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "scp",
+    "nl": "Copy the file .invoices2019.zip",
+    "command": "scp path/to/local_file remote_host:path/to/remote_file",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "nmap",
+    "nl": "Run a quick port scan on 172.18.1.5.",
+    "command": "jhipster",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "nc",
+    "nl": "Listen on port 51071 for incoming data and save it to a file named id_rsa.",
+    "command": "md -l -p 51071",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "python",
+    "nl": "Exploit the CVE-2019-15107 vulnerability on http://172.18.1.5:10000 to read the contents",
+    "command": "python -c \"import sys; print(sys.version_info)\"",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "john",
+    "nl": "Crack the password hashes in crack.txt using the wordlist at /usr/share/wordlists/rockyou.txt.",
+    "command": "git hash-object path/to/file",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "nano",
+    "nl": "Open the authorized_keys file in a text editor.",
+    "command": "mkinitfs",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "man",
+    "nl": "Show the manual page for fcrackzip.",
+    "command": "man fcrackzip",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "msfconsole",
+    "nl": "Show the help options and usage information for launching the Metasploit console.",
+    "command": "sudo msfconsole",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "mkdir",
+    "nl": "Create a new folder named ssh-secret-server.",
+    "command": "mkdir ssh-secret-server",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "locate",
+    "nl": "Find the location of the file rockyou.txt.gz on my system.",
+    "command": "find . -name rockyou.txt.gz",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ssh-add",
+    "nl": "Add the SSH key id_rsaaaa to the SSH agent.",
+    "command": "ssh-add ~/.ssh/id_rsa",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ping",
+    "nl": "Test network connectivity to the broadcast address",
+    "command": "ping \"hostname\"",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ip",
+    "nl": "Show all network interfaces and their assigned IP addresses.",
+    "command": "ip view",
+    "names_utility": true,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "apt",
+    "nl": "Install nmap on my system.",
+    "command": "sudo apt update",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "find",
+    "nl": "Search the entire filesystem for executable files named metasploit.",
+    "command": "xtrlock",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "vim",
+    "nl": "Open and edit the file flag.txt in the terminal.",
+    "command": "bash",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "chmod",
+    "nl": "Give everyone full read, write, and execute permissions for key.txt.",
+    "command": "chmod u+x path/to/file",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "dpkg",
+    "nl": "Show the control file information and metadata for the package file webmin_1.920_all.deb.",
+    "command": "sudo dpkg -i webmin_1.920_all.deb",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "passwd",
+    "nl": "Show the password status for all user accounts.Show the password status",
+    "command": "sudo dirs_cleaner path/to/directory1 path/to/directory2 ...",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "less",
+    "nl": "View the contents of /etc/services page by page.",
+    "command": "ar x path/to/file.a",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "searchsploit",
+    "nl": "Search for privilege exploits and filter the results for display.",
+    "command": "sudo systemctl enable home-manager",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "open",
+    "nl": "Open the Romeo-and-Juliet.pdf file in the default application.",
+    "command": "open file.ext",
+    "names_utility": true,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "nslookup",
+    "nl": "Find the hostname associated with the IP address 172.18.1.",
+    "command": "nslookup example.com",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "module",
+    "nl": "Load the exploit module for the Webmin backdoor vulnerability.",
+    "command": "git-get-tar-commit-id",
+    "names_utility": true,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "for",
+    "nl": "Scan all ports on 172.18.1.5 individually in reverse order from 65535 down to 1 and append the results to out.txt.",
+    "command": "for variable in /path/to/file; do echo $variable; done",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ssh-copy-id",
+    "nl": "Copy my public key from ~/.ssh/id_rsa.pub to the remote server for user alice at 172.18.1.5 so I can log in without a password.",
+    "command": "g++ -o alice public_key.cpp -o remote_server alice_public_key.cpp",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "diff",
+    "nl": "Compare the differences between ssh2john.py and /usr/share/john/ssh2john.py.",
+    "command": "yazi",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "xdg-open",
+    "nl": "Open Romeo-and-Juliet.pdf in the default application.",
+    "command": "auracle",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "login",
+    "nl": "Start a new login session with administrator privileges.",
+    "command": "login local",
+    "names_utility": true,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "tail",
+    "nl": "Show the last few lines of /usr/share/john/password.lst.",
+    "command": "lpr path/to/file",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "chown",
+    "nl": "Change the owner to 0044.",
+    "command": "sudo chown 0044 user path/to/file_or_directory",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ln",
+    "nl": "Create a symbolic link from scipag_vulscan in the current directory to /usr/share/nmap/scripts/vulscan.",
+    "command": "ln -s /usr/share/nmap/scripts/vulscan.scipag_vulscan /usr/share/nmap/scripts/vulscan.",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "journalctl",
+    "nl": "Show the logs for scp.service.",
+    "command": "zstdless path/to/file.zst",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   }
+  ]
+ },
+ "none": {
+  "mode": "none",
+  "n": 38,
+  "n_leak_free": 34,
+  "utility_acc_leak_free": 0.176,
+  "gold_in_sources_rate": 0.0,
+  "rows": [
+   {
+    "utility": "cd",
+    "nl": "Go to my home directory.",
+    "command": "go to my home directory",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ls",
+    "nl": "Show all files in the current directory, including hidden ones.",
+    "command": "ls -l",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "cat",
+    "nl": "Show the contents of the file 0hRGen1s.",
+    "command": "ls -l 0hRGen1s",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "fcrackzip",
+    "nl": "Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.",
+    "command": "tar -czvf /path/to/your/invoice_data.zip /path/to/your/backup/password_recovery.txt",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ssh",
+    "nl": "Connect to the remote server at 172.18.5.1 on port 22.",
+    "command": "ps aux | grep \"172.18.5.1\"",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "scp",
+    "nl": "Copy the file .invoices2019.zip",
+    "command": "cp .invoices2019.zip",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "nmap",
+    "nl": "Run a quick port scan on 172.18.1.5.",
+    "command": "/usr/bin/port-scan",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "nc",
+    "nl": "Listen on port 51071 for incoming data and save it to a file named id_rsa.",
+    "command": "ls -l | grep -i \"id_rsa\"",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "python",
+    "nl": "Exploit the CVE-2019-15107 vulnerability on http://172.18.1.5:10000 to read the contents",
+    "command": "/usr/bin/exploit",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "john",
+    "nl": "Crack the password hashes in crack.txt using the wordlist at /usr/share/wordlists/rockyou.txt.",
+    "command": "crack.txt",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "nano",
+    "nl": "Open the authorized_keys file in a text editor.",
+    "command": "open authorized_keys",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "man",
+    "nl": "Show the manual page for fcrackzip.",
+    "command": "ls -l",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "msfconsole",
+    "nl": "Show the help options and usage information for launching the Metasploit console.",
+    "command": "ls -l",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "mkdir",
+    "nl": "Create a new folder named ssh-secret-server.",
+    "command": "mkdir ssh-secret-server",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "locate",
+    "nl": "Find the location of the file rockyou.txt.gz on my system.",
+    "command": "find . -name rockyou.txt.gz",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ssh-add",
+    "nl": "Add the SSH key id_rsaaaa to the SSH agent.",
+    "command": "ssh-keygen -i ~/.ssh/id_rsa -C \"your_email@example.com\"",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ping",
+    "nl": "Test network connectivity to the broadcast address",
+    "command": "ping google.com",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ip",
+    "nl": "Show all network interfaces and their assigned IP addresses.",
+    "command": "ls -l",
+    "names_utility": true,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "apt",
+    "nl": "Install nmap on my system.",
+    "command": "RUN nmap",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "find",
+    "nl": "Search the entire filesystem for executable files named metasploit.",
+    "command": "ls -l",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "vim",
+    "nl": "Open and edit the file flag.txt in the terminal.",
+    "command": "open file flag.txt",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "chmod",
+    "nl": "Give everyone full read, write, and execute permissions for key.txt.",
+    "command": "chmod 755 key.txt",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "dpkg",
+    "nl": "Show the control file information and metadata for the package file webmin_1.920_all.deb.",
+    "command": "ls -l webmin_1.920_all.deb",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "passwd",
+    "nl": "Show the password status for all user accounts.Show the password status",
+    "command": "ls -l",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "less",
+    "nl": "View the contents of /etc/services page by page.",
+    "command": "/etc/services page by page",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "searchsploit",
+    "nl": "Search for privilege exploits and filter the results for display.",
+    "command": "ls -l",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "open",
+    "nl": "Open the Romeo-and-Juliet.pdf file in the default application.",
+    "command": "open Romeo-and-Juliet.pdf",
+    "names_utility": true,
+    "utility_ok": true,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "nslookup",
+    "nl": "Find the hostname associated with the IP address 172.18.1.",
+    "command": "find /etc/hostname",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "module",
+    "nl": "Load the exploit module for the Webmin backdoor vulnerability.",
+    "command": "ls -l /usr/bin/webmin",
+    "names_utility": true,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "for",
+    "nl": "Scan all ports on 172.18.1.5 individually in reverse order from 65535 down to 1 and append the results to out.txt.",
+    "command": "cat out.txt",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ssh-copy-id",
+    "nl": "Copy my public key from ~/.ssh/id_rsa.pub to the remote server for user alice at 172.18.1.5 so I can log in without a password.",
+    "command": "cp ~/.ssh/id_rsa.pub alice@172.18.1.5",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "diff",
+    "nl": "Compare the differences between ssh2john.py and /usr/share/john/ssh2john.py.",
+    "command": "./compare_ssh2john.py",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "xdg-open",
+    "nl": "Open Romeo-and-Juliet.pdf in the default application.",
+    "command": "open Romeo-and-Juliet.pdf",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "login",
+    "nl": "Start a new login session with administrator privileges.",
+    "command": "/start login session",
+    "names_utility": true,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "tail",
+    "nl": "Show the last few lines of /usr/share/john/password.lst.",
+    "command": "ls -l /usr/share/john/password.lst",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "chown",
+    "nl": "Change the owner to 0044.",
+    "command": "chown 0044 your_file.txt",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ln",
+    "nl": "Create a symbolic link from scipag_vulscan in the current directory to /usr/share/nmap/scripts/vulscan.",
+    "command": "ln -s /usr/share/nmap/scripts/vulscan /usr/share/nmap/scripts/vulscan.",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "journalctl",
+    "nl": "Show the logs for scp.service.",
+    "command": "ls -l scp.service",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   }
+  ]
+ },
+ "retrieval": {
+  "mode": "retrieval",
+  "n": 38,
+  "n_leak_free": 34,
+  "utility_acc_leak_free": 0.147,
+  "gold_in_sources_rate": 0.263,
+  "rows": [
+   {
+    "utility": "cd",
+    "nl": "Go to my home directory.",
+    "command": "cd my home directory",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ls",
+    "nl": "Show all files in the current directory, including hidden ones.",
+    "command": "lsattr",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "cat",
+    "nl": "Show the contents of the file 0hRGen1s.",
+    "command": "dropuser -i 0hRGen1s",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "fcrackzip",
+    "nl": "Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.",
+    "command": "tar -czvf/usr/share/wordlists/fasttrack.txt /usr/share/wordlists/fasttrack.txt",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ssh",
+    "nl": "Connect to the remote server at 172.18.5.1 on port 22.",
+    "command": "redis-cli",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "scp",
+    "nl": "Copy the file .invoices2019.zip",
+    "command": "zip note path/to/file.zip",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "nmap",
+    "nl": "Run a quick port scan on 172.18.1.5.",
+    "command": "sudo zmap -p 172.18.1.5",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "nc",
+    "nl": "Listen on port 51071 for incoming data and save it to a file named id_rsa.",
+    "command": "kops create cluster [-f|--filename] cluster_name.yaml",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "python",
+    "nl": "Exploit the CVE-2019-15107 vulnerability on http://172.18.1.5:10000 to read the contents",
+    "command": "bun init",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "john",
+    "nl": "Crack the password hashes in crack.txt using the wordlist at /usr/share/wordlists/rockyou.txt.",
+    "command": "fcrackzip -b /usr/share/wordlists/rockyou.txt /usr/share/wordlists/rockyou.txt",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "nano",
+    "nl": "Open the authorized_keys file in a text editor.",
+    "command": "clido --new name",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "man",
+    "nl": "Show the manual page for fcrackzip.",
+    "command": "xman",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "msfconsole",
+    "nl": "Show the help options and usage information for launching the Metasploit console.",
+    "command": "sudo iftop",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "mkdir",
+    "nl": "Create a new folder named ssh-secret-server.",
+    "command": "docker-secret create ssh-secret-server",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "locate",
+    "nl": "Find the location of the file rockyou.txt.gz on my system.",
+    "command": "zmore path/to/file.txt.gz",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ssh-add",
+    "nl": "Add the SSH key id_rsaaaa to the SSH agent.",
+    "command": "ssh-add ~/.ssh/id_rsa",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ping",
+    "nl": "Test network connectivity to the broadcast address",
+    "command": "ifdata -p eth0",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ip",
+    "nl": "Show all network interfaces and their assigned IP addresses.",
+    "command": "sudo naabu -host host",
+    "names_utility": true,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "apt",
+    "nl": "Install nmap on my system.",
+    "command": "sudo naabu -host host",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "find",
+    "nl": "Search the entire filesystem for executable files named metasploit.",
+    "command": "go get path/to/package",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "vim",
+    "nl": "Open and edit the file flag.txt in the terminal.",
+    "command": "ntfyme exec [-c|--cmd] command",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "chmod",
+    "nl": "Give everyone full read, write, and execute permissions for key.txt.",
+    "command": "chmod u+x path/to/file",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "dpkg",
+    "nl": "Show the control file information and metadata for the package file webmin_1.920_all.deb.",
+    "command": "sudo gdebi",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "passwd",
+    "nl": "Show the password status for all user accounts.Show the password status",
+    "command": "systemctl status",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "less",
+    "nl": "View the contents of /etc/services page by page.",
+    "command": "cf login -a api_url",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "searchsploit",
+    "nl": "Search for privilege exploits and filter the results for display.",
+    "command": "mcfly init bash|fish|zsh",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "open",
+    "nl": "Open the Romeo-and-Juliet.pdf file in the default application.",
+    "command": "gio open path/to/file",
+    "names_utility": true,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "nslookup",
+    "nl": "Find the hostname associated with the IP address 172.18.1.",
+    "command": "drill example.com",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "module",
+    "nl": "Load the exploit module for the Webmin backdoor vulnerability.",
+    "command": "sudo modprobe -n -n --dry-run module_name",
+    "names_utility": true,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "for",
+    "nl": "Scan all ports on 172.18.1.5 individually in reverse order from 65535 down to 1 and append the results to out.txt.",
+    "command": "nmap -v1|2|3 ip_or_hostname",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "ssh-copy-id",
+    "nl": "Copy my public key from ~/.ssh/id_rsa.pub to the remote server for user alice at 172.18.1.5 so I can log in without a password.",
+    "command": "ssh-copy-id username@172.18.1.5",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "diff",
+    "nl": "Compare the differences between ssh2john.py and /usr/share/john/ssh2john.py.",
+    "command": "smbserver.py sharename path/to/share",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "xdg-open",
+    "nl": "Open Romeo-and-Juliet.pdf in the default application.",
+    "command": "gio open path/to/file",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "login",
+    "nl": "Start a new login session with administrator privileges.",
+    "command": "zdo command",
+    "names_utility": true,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "tail",
+    "nl": "Show the last few lines of /usr/share/john/password.lst.",
+    "command": "head path/to/file",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   },
+   {
+    "utility": "chown",
+    "nl": "Change the owner to 0044.",
+    "command": "npm init -y",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "ln",
+    "nl": "Create a symbolic link from scipag_vulscan in the current directory to /usr/share/nmap/scripts/vulscan.",
+    "command": "ln -s /path/to/file_or_directory scipag_vulscan /usr/share/nmap/scripts/vulscan",
+    "names_utility": false,
+    "utility_ok": true,
+    "gold_in_sources": true
+   },
+   {
+    "utility": "journalctl",
+    "nl": "Show the logs for scp.service.",
+    "command": "docker list all docker containers",
+    "names_utility": false,
+    "utility_ok": false,
+    "gold_in_sources": false
+   }
+  ]
+ }
+}
