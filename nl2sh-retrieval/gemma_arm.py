@@ -48,6 +48,24 @@ def build_user(nl: str, sources: list[str]) -> str:
     return f"{SYS}\n\nUtilities:\n{src}\n\nRequest: {nl}"
 
 
+def _extract_command(gen: str) -> str:
+    """Pull a command from model output, fenced or bare.
+
+    An instruction-tuned model wraps commands in ```bash fences; a fine-tuned
+    one emits them bare. The earlier parser stripped backticks then split on the
+    newline, which turned "```bash\ncd ~\n```" into "bash" -> "" and scored the
+    untrained model at a spurious 0.03. Handle the fence explicitly.
+    """
+    import re
+    m = re.search(r"```(?:bash|sh|shell)?\s*\n?(.+?)```", gen, re.S)
+    body = m.group(1) if m else gen
+    for line in body.strip().splitlines():
+        line = line.strip().strip("`").strip()
+        if line and not line.lower().startswith(("here", "sure", "to ", "you ", "this ")):
+            return line
+    return ""
+
+
 def gold_utility(cmd: str) -> str:
     sys.path.insert(0, str(HERE))
     import pleias_gate as G
@@ -156,9 +174,7 @@ def evaluate(a):
                                  no_repeat_ngram_size=a.no_repeat,
                                  pad_token_id=tok.pad_token_id or tok.eos_token_id)
         gen = tok.decode(out[0][ids["input_ids"].shape[1]:], skip_special_tokens=True)
-        cmd = gen.strip().strip("`").split("\n")[0].strip()
-        if cmd.startswith("bash"):
-            cmd = cmd[4:].strip()
+        cmd = _extract_command(gen)
         rows.append({**r, "command": cmd,
                      "utility_ok": bool(cmd) and G.gold_utility(cmd) == r["utility"],
                      "verbatim_src": False})
