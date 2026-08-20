@@ -1,0 +1,46 @@
+{
+ "experiment": "needle-tool-naming",
+ "date": "2026-08-20",
+ "question": "does Cactus Needle 2 route on tool names or tool descriptions?",
+ "prereg": "PREREG.md, committed 08e1fa3 before the first variant ran",
+ "model": {
+  "package": "cactus-needle",
+  "package_version": "2.0.7",
+  "sibling_version": "2.0.6 (needle-bsky), 2.0.7 here \u2014 canon reproduces that arm exactly",
+  "checkpoint": "Cactus-Compute/needle2 :: checkpoints/needle2.pkl",
+  "architecture": "SimpleAttentionNetwork, d_model 512, 27 layers, 8 heads / 4 kv, vocab 8192",
+  "total_params": 45211383,
+  "engram_table_params": 8388608,
+  "lora_reachable_params": 28311552
+ },
+ "catalogue": {
+  "n_tools": 18,
+  "arity": "tuned-min (required arguments only)",
+  "source": "needle-bsky/needle_bsky/tools_tuned.py, descriptions unmodified"
+ },
+ "evalset": {
+  "path": "needle-bsky/evalset.jsonl",
+  "n": 62,
+  "routable": 54,
+  "off_topic": 8,
+  "modified": false
+ },
+ "variants": [
+  "canon",
+  "desc-only",
+  "names-only",
+  "neither",
+  "separated",
+  "adversarial"
+ ],
+ "modes": {
+  "flat": "all 18 declared",
+  "oracle": "5-tool catalogue containing the right answer"
+ },
+ "oracle_seed": 20260818,
+ "stripped_description": "A Bluesky API operation.",
+ "stripped_arg_description": "value",
+ "hardware": "CCotw container, 4 vCPU, no GPU",
+ "wall_clock": "9m44s for all 12 runs",
+ "determinism": "verified two ways: --repeat 2 in-process, and byte-identical rows across two separate processes"
+}
