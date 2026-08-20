@@ -97,18 +97,29 @@ class Helper:
             self.model_path = None
             return False
 
-    def retrieve(self, query: str, k: int = 3):
-        hits = self.index.search(query, k=12)
-        # one example per utility, top k utilities
-        seen, srcs = [], []
-        for chunk, _ in hits:
-            if chunk.utility in seen:
-                continue
-            seen.append(chunk.utility)
-            srcs.append(f"{chunk.utility} — {chunk.text.splitlines()[0] if chunk.text else ''}")
-            if len(seen) >= k:
+    def retrieve(self, query: str, k: int = 3, show: int = 5):
+        """Return (sources_for_generation, candidate_utilities, confidence_margin).
+
+        The margin is top1-minus-top2 over per-utility best-chunk scores. It is
+        the confidence signal for the abstention gate: absolute BM25 score does
+        not separate hits from misses (it scales with query length), the margin
+        does (median 5.5 when the gold utility is top1, 1.9 when not).
+        """
+        import numpy as np
+        s = self.index.scores(query)
+        agg = {}
+        for i in np.argsort(s)[::-1]:
+            if s[i] <= 0:
                 break
-        return srcs, seen
+            u = self.index.chunks[int(i)].utility
+            if u not in agg:
+                agg[u] = (float(s[i]), self.index.chunks[int(i)].text)
+        ranked = sorted(agg.items(), key=lambda kv: -kv[1][0])
+        margin = (ranked[0][1][0] - ranked[1][1][0]) if len(ranked) > 1 else (
+            ranked[0][1][0] if ranked else 0.0)
+        srcs = [f"{u} — {(txt.splitlines()[0] if txt else '')}" for u, (_, txt) in ranked[:k]]
+        pages = [f"{u} — {(txt.splitlines()[0] if txt else '')}" for u, (_, txt) in ranked[:show]]
+        return srcs, [u for u, _ in ranked[:k]], round(margin, 2), pages
 
     def generate(self, query: str, sources: list[str], max_new_tokens: int = 140) -> str:
         if not self._load_model():
@@ -132,11 +143,23 @@ class Helper:
                     warnings.append(f"request said {kind} '{v}' — not in the command")
         return warnings
 
-    def suggest(self, query: str, k: int = 3) -> dict:
-        sources, utils = self.retrieve(query, k=k)
-        command = self.generate(query, sources) if self.model_path else ""
-        return {"query": query, "candidates": utils, "sources": sources,
-                "command": command, "warnings": self.audit(query, command) if command else [],
+    def suggest(self, query: str, k: int = 3, margin_threshold: float = 5.0) -> dict:
+        sources, utils, margin, pages = self.retrieve(query, k=k)
+        # Abstention gate: a 270M model has no reliable command knowledge of its
+        # own (measured: 0.000 with no sources), so when retrieval is not
+        # confident we do NOT ask the model to guess — that trains/produces
+        # confabulation, and a confident wrong command is worse than none. We
+        # show the closest documented pages instead.
+        confident = margin >= margin_threshold
+        if not confident or not self.model_path:
+            return {"query": query, "abstained": True, "margin": margin,
+                    "pages": pages, "command": "", "warnings": [], "destructive": False,
+                    "candidates": utils}
+        command = self.generate(query, sources)
+        return {"query": query, "abstained": False, "margin": margin,
+                "candidates": utils, "sources": sources, "command": command,
+                "pages": pages,
+                "warnings": self.audit(query, command) if command else [],
                 "destructive": bool(command and DESTRUCTIVE.search(command))}
 
 
@@ -153,16 +176,19 @@ def confirm_and_run(command: str, destructive: bool) -> None:
 
 
 def render(res: dict, explain: bool) -> None:
-    if not res["command"]:
-        print("no command produced. closest documented utilities:")
-        for u, s in zip(res["candidates"], res["sources"]):
-            print(f"  {s}")
+    if res.get("abstained") or not res.get("command"):
+        why = "couldn't grok that confidently" if res.get("abstained") else "no command produced"
+        print(f"\n  {why} — closest documented pages:")
+        for pg in res.get("pages", []):
+            print(f"    · {pg}")
+        if explain:
+            print(f"\n  (retrieval margin {res.get('margin')}, below the confidence threshold)")
         return
     print(f"\n  $ {res['command']}")
     for w in res["warnings"]:
         print(f"  ⚠  {w}")
     if explain:
-        print(f"\n  retrieved: {', '.join(res['candidates'])}")
+        print(f"\n  retrieved: {', '.join(res['candidates'])}  (margin {res.get('margin')})")
         for s in res["sources"]:
             print(f"    · {s}")
 
@@ -174,6 +200,8 @@ def main() -> int:
     ap.add_argument("--model", type=Path, default=HERE / "ft")
     ap.add_argument("--k", type=int, default=3)
     ap.add_argument("--explain", action="store_true", help="show retrieval + audit, do not run")
+    ap.add_argument("--margin", type=float, default=5.0,
+                    help="retrieval confidence margin below which nlsh abstains and shows pages")
     ap.add_argument("--no-scope", action="store_true", help="do not restrict to $PATH utilities")
     a = ap.parse_args()
 
@@ -185,7 +213,7 @@ def main() -> int:
           file=sys.stderr)
 
     if a.query:
-        res = helper.suggest(" ".join(a.query), k=a.k)
+        res = helper.suggest(" ".join(a.query), k=a.k, margin_threshold=a.margin)
         render(res, a.explain)
         if res["command"] and not a.explain:
             confirm_and_run(res["command"], res["destructive"])
@@ -200,7 +228,7 @@ def main() -> int:
             return 0
         if not q:
             continue
-        res = helper.suggest(q, k=a.k)
+        res = helper.suggest(q, k=a.k, margin_threshold=a.margin)
         render(res, a.explain)
         if res["command"] and not a.explain:
             confirm_and_run(res["command"], res["destructive"])

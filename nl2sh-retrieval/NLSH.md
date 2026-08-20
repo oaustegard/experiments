@@ -61,3 +61,41 @@ python3 nlsh.py --no-scope "..."                           # use the full corpus
 
 Needs `data/chunks.jsonl` (build with `build_corpus.py`) and `ft/` (train with
 `finetune_gate.py`). Both are gitignored; the model weights are 1.4 GB.
+
+## Abstention — never a confident wrong command
+
+A 270M model has no reliable command knowledge of its own: the ablation
+(`nl2sh-selfhist/results_fullsystem.json`) measured **0.000 with no sources**.
+So when retrieval is not confident, nlsh must NOT ask the model to guess — that
+is confabulation, and a confident wrong command is worse than none. Instead it
+**abstains and shows the closest documented pages**: *"couldn't grok that
+confidently — here are the pages that look relevant."*
+
+The confidence signal is the **retrieval margin** — top1 minus top2 over
+per-utility best-chunk scores. Absolute BM25 score does not separate hits from
+misses (it scales with query length; every cyber query scored 11–43); the margin
+does. Measured on the independent eval (`calibrate.py`):
+
+| margin ≥ | coverage | gold@top1 | gold in top-3 |
+|---|---|---|---|
+| 0 | 1.00 | 0.118 | 0.235 |
+| 3 | 0.35 | 0.333 | 0.417 |
+| **5** | **0.12** | 0.500 | **0.750** |
+| 8 | 0.06 | 0.500 | 1.000 |
+
+Median margin is **5.5 when the gold utility is top1, 1.9 when not** — a clean
+separation. nlsh defaults to **margin ≥ 5**: generate only where retrieval is
+confident (and gold is then in the model's sources 75% of the time), abstain
+everywhere else. Demonstrated:
+
+- *"list all files including hidden"* → margin 5.8 → generates, `ls` on top.
+- *"count lines in report.txt"* → margin 0.8 → abstains, but the first page shown
+  is `wc — Count lines in file`. Even declining, the user gets the answer.
+
+**Known gap:** the margin gate can be fooled by a spurious strong match on
+nonsense input (*"asdkfj qwerty"* scored margin 8 off one keyboard-layout tool).
+A secondary guard — a minimum matched-term count, or an absolute-score floor
+calibrated per corpus — is the fix; the margin alone is necessary, not
+sufficient. On this container's thin 60-man-page corpus the confident slice is
+small; a real machine's full man set would raise both coverage and the abstain
+page list's usefulness.
