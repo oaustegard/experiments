@@ -84,6 +84,9 @@ def main() -> int:
     ap.add_argument("--chunks", type=Path, default=D.DEFAULT_CHUNKS)
     ap.add_argument("--retriever", default="bm25")
     ap.add_argument("--granularity", default="chunk", choices=["chunk", "page"])
+    ap.add_argument("--source-form", default="example", choices=["example", "page"],
+                    help="what each retrieved utility contributes to the prompt: its "
+                         "first tldr example (the shipped form) or its whole page")
     ap.add_argument("--nl", type=Path, nargs="+", default=list(Q.CYBER_NL))
     ap.add_argument("--modes", nargs="+", default=["oracle", "none", "retrieval"])
     ap.add_argument("-k", type=int, default=3)
@@ -111,13 +114,27 @@ def main() -> int:
     model = AutoModelForCausalLM.from_pretrained(a.model, dtype=torch.float32).eval()
     rng = random.Random(a.seed)
 
+    def render(u: str) -> str:
+        """One source block for utility `u`.
+
+        `example` is the shipped form: the first tldr example, one line. `page`
+        is issue #48 item 4 — Gemma 3 270M has a 32k window where Pleias had 4k,
+        so a whole page fits and the model sees every documented flag rather than
+        one example's. The prompt still names the utility first either way, so
+        `utility_ok` is scored against the same thing.
+        """
+        if a.source_form == "example":
+            d, c = tldr[u][0]
+            return f"{u} — {d}: {c}"
+        body = "; ".join(f"{d}: {c}" for d, c in tldr[u])
+        return f"{u} — {body}"
+
     def sources_for(nl: str) -> list[str]:
         out = []
         for u in rank(nl):
             if u not in tldr:
                 continue
-            d, c = tldr[u][0]
-            out.append(f"{u} — {d}: {c}")
+            out.append(render(u))
             if len(out) >= a.k:
                 break
         return out
@@ -130,7 +147,7 @@ def main() -> int:
                 others = [u for u in tldr if len(tldr[u]) >= 1 and u != gu]
                 picks = [gu] + rng.sample(others, a.distractors)
                 rng.shuffle(picks)
-                srcs = [f"{u} — {tldr[u][0][0]}: {tldr[u][0][1]}" for u in picks]
+                srcs = [render(u) for u in picks]
             elif mode == "none":
                 srcs = []
             else:
@@ -156,10 +173,11 @@ def main() -> int:
                 "rows": rows}
 
     out = {"retriever": a.retriever, "granularity": a.granularity,
+           "source_form": a.source_form,
            "model": str(a.model), "n": len(data),
            "modes": {m: run(m) for m in a.modes}}
     a.out.write_text(json.dumps(out, indent=1) + "\n")
-    print(f"\nretriever: {a.retriever}   n={len(data)}")
+    print(f"\nretriever: {a.retriever}   sources: {a.source_form}   n={len(data)}")
     print(f"{'mode':<12}{'routing (leak-free)':>22}{'gold in sources':>18}")
     print("-" * 52)
     for m in a.modes:

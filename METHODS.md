@@ -33,6 +33,20 @@ and leave a one-line pointer here.
 
 ## Cross-cutting principles
 
+- **A 34-row eval can report the opposite sign of a real effect — grow the eval
+  before you believe the direction, not after.** The retriever `nl2sh-dense`
+  recommends raises gold-in-sources on both halves of its eval (0.235 -> 0.382
+  on the original 34 rows, 0.269 -> 0.400 on 130 new ones) and moves end-to-end
+  routing in opposite directions on the two: **0.206 -> 0.147** on the old rows,
+  **0.108 -> 0.169** on the new. Two queries flipping is 0.059 at n=34. Had the
+  session kept the inherited eval, its headline would have been that better
+  retrieval makes the system worse, with a plausible mechanism available to
+  explain it. Extending it cost about 25 minutes: 149 more rows sampled from the
+  corpus that eval already used, natural language written by the same model
+  through the same prompt. When an eval is small enough that one query is worth
+  0.03, treat "extend the eval" as the first experiment, not as diligence after
+  the result. (`nl2sh-dense/sample_cyber.py`, `RESULTS.md`)
+
 - **A cached matrix whose encode settings are not recorded is not reusable, no
   matter how exactly its shape and provenance match.** `ttt-embed-quantized`
   needed SciFact under jina-v5-nano; `rotation-decorrelation` already had a
@@ -1537,6 +1551,55 @@ the result.
 
 ---
 
+- **Retrieval granularity is a free knob once the consumer's context window
+  allows it, and larger units won on both arms.** The shell-documentation corpus
+  was chunked to one tldr example per document for Pleias' 4k window. Grouping
+  its 31,169 chunks into the **6,397 source pages** they came from lifted BM25
+  alone from 0.262 to 0.323 gold-in-sources at no cost in disk, encoder or query
+  time, and lifted every hybrid arm by a similar margin (best chunk-level 0.354,
+  best page-level 0.390). A whole page carries the vocabulary any one example
+  omits, and a mean-pooled vector over a page summarises what a utility is for
+  better than a vector over one example line. But **feeding** the whole page to
+  the generator did nothing (0.159 vs 0.165 routing, and 0.610 vs 0.640 under
+  oracle sources): the index wants pages, the prompt does not. Re-check
+  granularity whenever the model downstream changes its context budget.
+  (`nl2sh-dense/dense_index.py:page_chunks`)
+
+- **A 23.5 MB int8 encoder matched a 164.5 MB one on a documentation corpus, so
+  artifact size decides an on-device embedder, not retrieval quality.**
+  all-MiniLM-L6-v2 int8 (23.5 MB) and mdbr-leaf-mt int8 (25.6 MB) scored 0.341
+  and 0.311 gold-in-sources against bekko-embedding-v1-a8m's 0.354 at 164.5 MB —
+  one to two queries apart on 164, and indistinguishable once fused with BM25
+  (0.390 for both leaf and bekko at page level). This is the on-device corollary
+  to `bekko-embedding-bench` and `mdbr-leaf-mt-bench`, which ranked the same
+  models by retrieval on blog and code corpora: on a corpus this size the
+  ranking does not reproduce and the footprint is the whole decision. Measure
+  the small model before budgeting for the big one. (`nl2sh-dense/encoders.py`)
+
+- **RRF cannot feed an abstention gate — it throws away the magnitudes a
+  confidence signal is made of.** Fusing BM25 and a dense arm with reciprocal-rank
+  fusion ranks well (0.390 gold-in-sources, best measured) and its top1-minus-top2
+  margin has an AUC of **0.47-0.53** against "is the gold answer in the sources"
+  — a coin flip — because every leading item's score is a sum of `1/(60+rank)`
+  and those are nearly equal by construction. The same fusion as a min-max
+  weighted sum reaches AUC 0.59-0.64 on the same queries. Corollary in the other
+  direction: min-max normalizing a fused score puts top1 at 1.0, so its margin,
+  its `top2/top1` ratio and its relative margin become one scale-free signal for
+  free. Pick the fusion by what runs on top of it, not by ranking alone.
+  (`nl2sh-dense/calibrate_rel.py`)
+
+- **A threshold written in raw score units does not survive a change of corpus;
+  set it as a quantile or normalize the score first.** An abstention gate at
+  `BM25 margin >= 5`, fitted where scores ran 11-43, fires on 12% of security
+  queries and **0%** of everyday ones where scores run 0.2-2.8. The obvious
+  diagnosis — use a ratio, not a difference — is only half right: setting the
+  *same absolute margin* by quantile instead of by constant gives 0.50 / 0.46 /
+  0.47 coverage across three distributions, as even as `top2/top1` manages, and
+  the two signals' AUCs match to three decimals. What the ratio actually buys is
+  needing no calibration sample at deployment. Note also that `top2/top1` and
+  `(top1-top2)/top1` are the same signal reparameterized, so testing both is
+  testing one. (`nl2sh-dense/calibrate_rel.py`)
+
 ## Cache and measurement hygiene
 
 - **Fit `t = a + b·n` before reporting a crossover — a scale gate and a
@@ -1716,6 +1779,20 @@ the result.
 ---
 
 ## Negative results — do not re-derive
+
+- **Query expansion lost again, in both an unsupervised and a
+  cross-arm form.** Over 164 shell-documentation requests, RM3 took
+  gold-in-sources from 0.262 to **0.226** and dense-PRF (feed the dense arm's
+  top hits back as BM25 expansion terms) to **0.232-0.299** depending on the
+  encoder. This confirms `muninn-rm3`'s prediction that pseudo-relevance feedback
+  cannot bridge a vocabulary-divergent query, and adds that it actively costs.
+  Dense-PRF does work on the query that motivated it — *"recover the password for
+  invoices2019.zip"* goes from a top-5 with no `fcrackzip` in it to one
+  containing `zip2john`, `zipcloak`, `fcrackzip` — and still loses in aggregate,
+  because it damages every query whose vocabulary was already right. If a dense
+  arm is available, feed its **documents** to the model rather than its
+  **vocabulary** to BM25. A gate that expands only on low retrieval confidence
+  remains unmeasured. (`nl2sh-dense/reformulate.py`)
 
 - **A failure pattern that is real inside one category can be invisible as a
   main effect — size it before designing around it.** Seven queries in two
