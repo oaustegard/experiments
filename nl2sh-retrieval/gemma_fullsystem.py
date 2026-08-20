@@ -34,7 +34,7 @@ SELFHIST = HERE.parent / "nl2sh-selfhist"
 sys.path.insert(0, str(HERE))
 import pleias_gate as G
 import retrieve as R
-from gemma_arm import build_user
+from gemma_arm import build_user, _extract_command
 
 
 def retrieved_sources(index: R.Index, tldr: dict, nl: str, k: int) -> list[str]:
@@ -94,9 +94,7 @@ def main() -> int:
                 out = model.generate(**ids, max_new_tokens=64, do_sample=False,
                                      pad_token_id=tok.pad_token_id or tok.eos_token_id)
             gen = tok.decode(out[0][ids["input_ids"].shape[1]:], skip_special_tokens=True)
-            cmd = gen.strip().strip("`").split("\n")[0].strip()
-            if cmd.startswith("bash"):
-                cmd = cmd[4:].strip()
+            cmd = _extract_command(gen)
             gold_in_src = any(s.split(" ")[0] == gu for s in srcs)
             rows.append({"utility": gu, "nl": r["nl"], "command": cmd,
                          "names_utility": r.get("names_utility", False),
