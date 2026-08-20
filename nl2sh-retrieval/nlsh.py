@@ -91,6 +91,7 @@ class Helper:
             self._tok = AutoTokenizer.from_pretrained(self.model_path)
             self._model = AutoModelForCausalLM.from_pretrained(self.model_path, dtype=torch.float32).eval()
             self._torch = torch
+            self._is_gemma = "gemma" in getattr(self._model.config, "model_type", "").lower()
             return True
         except Exception as e:
             print(f"[model unavailable: {type(e).__name__}: {e}]", file=sys.stderr)
@@ -126,9 +127,20 @@ class Helper:
         pages = [f"{u} — {(txt.splitlines()[0] if txt else '')}" for u, (_, txt) in ranked[:show]]
         return srcs, [u for u, _ in ranked[:k]], round(margin, 2), pages
 
-    def generate(self, query: str, sources: list[str], max_new_tokens: int = 140) -> str:
+    def generate(self, query: str, sources: list[str], max_new_tokens: int = 96) -> str:
         if not self._load_model():
             return ""
+        if self._is_gemma:
+            from gemma_arm import build_user, _extract_command
+            prompt = self._tok.apply_chat_template(
+                [{"role": "user", "content": build_user(query, sources)}],
+                tokenize=False, add_generation_prompt=True)
+            ids = self._tok(prompt, return_tensors="pt", add_special_tokens=False)
+            with self._torch.no_grad():
+                out = self._model.generate(**ids, max_new_tokens=max_new_tokens, do_sample=False,
+                                           pad_token_id=self._tok.pad_token_id or self._tok.eos_token_id)
+            gen = self._tok.decode(out[0][ids["input_ids"].shape[1]:], skip_special_tokens=True)
+            return _extract_command(gen)
         ids = self._tok(G.build_prompt(query, sources) + G.PREFILL, return_tensors="pt")
         with self._torch.no_grad():
             out = self._model.generate(**ids, max_new_tokens=max_new_tokens,
@@ -202,7 +214,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="on-device natural-language shell helper")
     ap.add_argument("query", nargs="*", help="the request; omit for a REPL")
     ap.add_argument("--chunks", type=Path, default=HERE / "data" / "chunks.jsonl")
-    ap.add_argument("--model", type=Path, default=HERE / "ft")
+    ap.add_argument("--model", type=Path, default=HERE / "ft_gemma" if (HERE / "ft_gemma").exists() else HERE / "ft")
     ap.add_argument("--k", type=int, default=3)
     ap.add_argument("--explain", action="store_true", help="show retrieval + audit, do not run")
     ap.add_argument("--margin", type=float, default=5.0,
