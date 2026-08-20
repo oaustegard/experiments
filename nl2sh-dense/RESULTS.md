@@ -7,7 +7,9 @@ utility's page is handed to it and 0.206 when BM25 picks the context, because
 BM25 surfaces the gold utility 26% of the time.
 
 Three of the four items moved retrieval. Query reformulation did not, and that
-negative is in §3.
+negative is in §3. A fifth thing the issue did not ask for — training a linear
+adapter on frozen query vectors — moved it further than any of them, and §5 is
+why that is not an argument for fine-tuning the encoder.
 
 | change | gold in the k=3 sources | end-to-end routing | encoder |
 |---|---|---|---|
@@ -16,6 +18,7 @@ negative is in §3.
 | \+ page-level index instead of chunks | 0.323 | — | none |
 | **\+ both** | **0.390** (p = 0.0003) | 0.165 (p = 0.26) | **25.6 MB** |
 | \+ both, 164.5 MB encoder | 0.390 (p = 0.0001) | 0.183 (p = 0.11) | 164.5 MB |
+| \+ a trained query adapter (§5) | **0.463** (p < 0.0001) | **0.201** (p = 0.058) | 25.6 + 4.2 MB |
 
 The retrieval column is established. The routing column moves in the same
 direction under both retrievers and does not clear significance at this sample
@@ -206,6 +209,91 @@ BM25 arm at higher precision, and the same threshold everywhere.
 0.59–0.64. RRF ranks well and cannot say how sure it is. If the gate ships, the
 retriever under it should be the weighted sum.
 
+## 5. A trained query adapter on frozen embeddings
+
+The four items above leave the retriever at recall@3 = 0.396 and **recall@50 =
+0.726** on the same queries. A third of the eval has the gold page in the
+candidate set, ranked 4th to 50th: the retriever finds it and orders it wrong.
+That is the condition under which training the scorer pays, and it does not
+require touching the encoder.
+
+`adapter.py` fits one identity-initialized `d x d` matrix on the query side.
+Document vectors stay exactly as the frozen encoder produced them, so the 6,397
+cached page vectors and any index built from them survive unchanged, and the
+adapter can be added or removed without re-encoding anything. Training data is
+NL2Bash, capped at 200 pairs per gold utility to defuse the 60.3% `find` skew;
+negatives are in-batch plus 4 hard negatives per query mined from the frozen
+retriever's own top 50. **40 seconds on 4 CPU cores, 4,588 pairs, 4.2 MB of
+weights** on leaf-mt's 1024 dims (0.6 MB on MiniLM's 384).
+
+The eval stays the cyber corpus, so this measures transfer: annotator-written
+English about NL2Bash commands, evaluated on Gemini-written English about
+different commands.
+
+| stack (164 leak-free queries) | gold@1 | gold@3 | gold in sources | routing |
+|---|---|---|---|---|
+| BM25 over chunks (shipped) | 0.140 | 0.262 | 0.262 | 0.128 |
+| page + wsum(BM25, leaf-mt-int8) | 0.238 | 0.384 | 0.384 | 0.165 |
+| **\+ query adapter** | **0.293** | **0.427** | **0.463** | **0.201** |
+
+The adapter's own increment is 0.384 → 0.463 in sources, 21 queries won to 8
+lost, **p = 0.024**. Against the shipped BM25 the whole stack is 0.262 → 0.463,
+43 to 10, p < 0.0001, and end-to-end routing 0.128 → 0.201, 23 to 11,
+**p = 0.058**. On the held-out NL2Bash slice the same matrix takes recall@3 from
+0.359 to 0.824, which is the in-distribution number and is not the claim.
+
+### Coverage of the training utilities
+
+NL2Bash covers 207 of the corpus's 4,698 utilities. Splitting the eval by
+whether its gold utility is one of them:
+
+| slice | n | sources, no adapter | with adapter |
+|---|---|---|---|
+| gold utility in the training set | 87 | 0.322 | **0.506** (+0.184) |
+| gold utility never seen | 77 | 0.455 | 0.416 (−0.039) |
+
+**It does not generalize across utilities, and cutting capacity does not make it
+generalize.** A rank-64 adapter — 16x fewer free parameters — scores +0.161 on
+the seen slice and −0.052 on the unseen one, the same shape. So this is not
+overfitting in the usual sense, where a smaller model would transfer better; the
+adapter is learning which request phrasings point at each of 207 specific
+utilities, and that knowledge has nowhere to go for the other 4,491.
+
+Note also that the unseen slice starts *higher* (0.455 vs 0.322). NL2Bash covers
+common utilities, so the eval rows it does not cover are mostly distinctive
+security tools that BM25 already matches by name — the rows with the least room
+to gain and the most to lose from a shifted query space.
+
+### So: should the embedder be fine-tuned?
+
+**Not on this data.** A full fine-tune has strictly more capacity than a linear
+map on the same 207 utilities, and the rank-64 comparison shows capacity is not
+what limits transfer. It would buy a similar gain on the covered head, a similar
+loss on the tail, and cost an encoder re-export plus a re-encode of every
+document vector each time it is retrained.
+
+What the measurement argues for instead, in order:
+
+1. **Ship the adapter behind a coverage check.** Apply it when the top BM25
+   candidates are utilities the adapter saw and fall back to the frozen query
+   vector otherwise. The two slices are cleanly separable at index-build time —
+   the training utility list is 207 strings — so this is a lookup, not a
+   classifier.
+2. **Widen utility coverage before adding capacity.** The lever is pairs for the
+   other 4,491 utilities, not a bigger model. Generating them is the same
+   `gen_nl.py` machinery this directory already used to extend the eval, run in
+   the other direction: sample commands per uncovered utility, have a model write
+   the request. That is also the point at which a fine-tune becomes worth
+   pricing.
+3. **Only then fine-tune**, and re-measure the seen/unseen split first, because
+   it is the number that decides whether the extra capacity bought coverage or
+   more memorization.
+
+One implementation defect worth fixing before anyone reuses this: `--rank`
+trains a low-rank adapter and then saves the materialized `I + AB`, so the
+low-rank form costs the same 4.2 MB on disk as the full one. The training-time
+constraint is real and measured; the storage saving is not implemented.
+
 ## End to end
 
 The retrieval numbers only matter if they reach the generated command. Gemma 3
@@ -269,7 +357,7 @@ worse.
   `funceq.py` cannot reach on a security corpus without a network sandbox.
 - **The container has 60 man pages.** The 31,169-chunk corpus is
   tldr-dominated; a real machine's full man set changes every absolute number
-  here. Trust the relative ordering, not the absolute numbers.
+  here. The relative ordering is what should travel.
 - **`selfhist` is n=13 and hand-authored.** Its coverage numbers are usable and
   its precision numbers are not: one query is 0.077.
 - **NL2Bash is 50.3% `find` in this sample and its English was written from the

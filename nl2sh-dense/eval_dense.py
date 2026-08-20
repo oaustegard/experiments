@@ -174,6 +174,8 @@ def main() -> int:
                     help="chunk pool the generator's source list is drawn from")
     ap.add_argument("--alphas", type=float, nargs="+", default=[0.3, 0.5, 0.7])
     ap.add_argument("--no-utility-prefix", action="store_true")
+    ap.add_argument("--adapter", type=Path, default=None,
+                    help="query-side linear adapter from adapter.py")
     ap.add_argument("--out", type=Path, default=HERE / "results_dense.json")
     a = ap.parse_args()
 
@@ -207,6 +209,7 @@ def main() -> int:
                           "granularity": a.granularity,
                           "documents": len(chunks),
                           "nl": [str(p.name) for p in a.nl],
+                          "adapter": str(a.adapter) if a.adapter else None,
                           "utility_prefix": not a.no_utility_prefix},
                "arms": []}
 
@@ -221,7 +224,7 @@ def main() -> int:
 
     for model in a.models:
         _, _, dense = D.load(model, a.chunks, not a.no_utility_prefix,
-                             granularity=a.granularity)
+                             granularity=a.granularity, adapter=a.adapter)
         dn_cache = {r["nl"]: dense.scores(r["nl"]) for r in rows}
         size_mb = round(dense.enc.artifact_bytes() / 1e6, 1)
 
@@ -230,7 +233,8 @@ def main() -> int:
             arm["artifact_mb"] = size_mb
             results["arms"].append(arm)
 
-        add(f"dense:{model}", lambda r: (
+        tag = model + ("+adapter" if a.adapter else "")
+        add(f"dense:{tag}", lambda r: (
             D.rank_utilities(dn_cache[r["nl"]], utilities, a.pool),
             top_chunks(dn_cache[r["nl"]], a.sources_pool, positive_only=False)))
 
@@ -256,7 +260,7 @@ def main() -> int:
                           D.rank_utilities(ds, utilities, a.pool))
             return fused, fused_chunks(bs, ds, a.sources_pool)
 
-        add(f"rrf:bm25+{model}", rrf_rankers)
+        add(f"rrf:bm25+{tag}", rrf_rankers)
 
         for alpha in a.alphas:
             def w_rankers(r, alpha=alpha):
@@ -266,7 +270,7 @@ def main() -> int:
                     D.rank_utilities(ds, utilities, a.pool), alpha)
                 return fused, wsum_chunks(bs, ds, alpha, a.sources_pool)
 
-            add(f"wsum{alpha}:bm25+{model}", w_rankers)
+            add(f"wsum{alpha}:bm25+{tag}", w_rankers)
 
         if a.reform:
             import reformulate as RF

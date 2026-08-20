@@ -115,18 +115,27 @@ def build_vectors(model: str, chunks: list, utility_prefix: bool = True,
 
 
 class DenseArm:
-    """Cosine over cached chunk vectors, aggregated to utilities."""
+    """Cosine over cached chunk vectors, aggregated to utilities.
+
+    `adapter` is an optional (d, d) matrix applied to the query vector only
+    (see `adapter.py`). Document vectors are untouched by design, so an adapter
+    can be added to or removed from a live index without re-encoding anything.
+    """
 
     def __init__(self, model: str, chunks: list, vectors: np.ndarray,
-                 threads: int | None = None) -> None:
+                 threads: int | None = None, adapter: np.ndarray | None = None) -> None:
         self.model = model
         self.chunks = chunks
         self.vectors = vectors
         self.enc = encoders.build(model, threads=threads)
         self.utilities = np.array([c.utility for c in chunks], dtype=object)
+        self.adapter = adapter
 
     def scores(self, query: str) -> np.ndarray:
         q = self.enc.encode([query], prompt="query")[0]
+        if self.adapter is not None:
+            q = self.adapter @ q
+            q = q / max(float(np.linalg.norm(q)), 1e-9)
         return self.vectors @ q
 
 
@@ -187,12 +196,14 @@ def wsum(bm25: list[tuple[str, float]], dense: list[tuple[str, float]],
 
 
 def load(model: str, chunks_path: Path = DEFAULT_CHUNKS, utility_prefix: bool = True,
-         threads: int | None = None, granularity: str = "chunk"):
+         threads: int | None = None, granularity: str = "chunk",
+         adapter: Path | None = None):
     chunks = GRANULARITIES[granularity](R.load_chunks(chunks_path))
     index = R.Index(chunks)
     vectors = build_vectors(model, chunks, utility_prefix, threads=threads,
                             granularity=granularity)
-    return chunks, index, DenseArm(model, chunks, vectors, threads=threads)
+    W = np.load(adapter)["W"] if adapter else None
+    return chunks, index, DenseArm(model, chunks, vectors, threads=threads, adapter=W)
 
 
 def main() -> int:
