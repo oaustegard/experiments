@@ -721,6 +721,41 @@ the result.
   impossible rather than unlikely, which is a concrete reason to prefer a
   constrained decoder over a larger model. (`monad-bsky/RESULTS.md`)
 
+- **Check what a model already ships at before designing a compression
+  experiment — "can we quantize?" may already be answered in the checkpoint.**
+  Cactus Needle 2 carries `weight_bits = "embedding=4,mhc=4,default=2"`, so the
+  bulk is at 2 bits before anyone touches it, and the question is not whether to
+  quantize but whether the shipped spec is on the right side of the knee. It is:
+  over ten arms spanning the exporter's whole range, the eight with no ternary in
+  the bulk span **0.593 to 0.648 — three queries of 54 — while their blobs span
+  12.36 to 23.17 MB, and zero of the eight differ significantly from the shipped
+  spec**. A 1.9x swing in file size bought nothing in either direction. Going up
+  is the surprising half: 4-bit everywhere costs **+68.6% bytes** and scores
+  nominally *worse*, which is what quantization-aware training (the exporter's
+  `qapt` stage) predicts — reconstructing weights more precisely than they were
+  fitted for recovers nothing. (`needle-quantization/RESULTS.md`)
+
+- **A quantization format's name is not its storage width — read the packer.**
+  `TERNARY_BITS = 1.58` is log2(3), the information content of a ternary symbol.
+  The exporter stores each one as a **2-bit crumb** (`_packed_row_bytes` returns
+  `in_pad * 2 // 8`; `_pack_ternary_crumbs` uses code 3 for zero), so ternary
+  occupies exactly the bytes of `bits=2` while offering three codebook levels
+  instead of four — strictly dominated before a single query runs. Estimating
+  from the constant put the expected saving 3.5x too high and would have made a
+  non-existent axis the headline of the experiment; one probe export before
+  writing the sweep caught it. Measured cost of taking that trade anyway: **39
+  points at identical file size**, or 57 points and a model that refuses every
+  query. (`needle-quantization/ERRORS.md` #1)
+
+- **Vendor-protected tensors are a hypothesis, not a fact — ablate them.** The
+  shipped spec protects `embedding` and `mhc` at 4 bits while everything else
+  sits at 2. Dropping both to 2 gives a **10% smaller file at p=1.00** and, at
+  n=54, a nominally *higher* score. Split apart, the embedding protection is
+  worth exactly nothing (lands on the control) and the MHC protection nothing
+  measurable. Whatever those 4 bits buy, it is not this task — so on any
+  deployment where bytes bind, re-export before accepting the vendor default.
+  (`needle-quantization/RESULTS.md`)
+
 - **A small model trained to a fixed depth budget has almost no prunable depth,
   and the redundancy is in the MIDDLE, not the deep end.** Sweeping all 24
   positions of a 4-layer cut on a 27-layer 45M attention-only model, scored on a

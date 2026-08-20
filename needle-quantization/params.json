@@ -1,0 +1,30 @@
+{
+ "experiment": "needle-quantization",
+ "date": "2026-08-20",
+ "question": "can Cactus Needle 2 be quantized further than it ships?",
+ "prereg": "PREREG.md, committed ffbf410 before any arm was exported",
+ "model": {
+  "package": "cactus-needle",
+  "package_version": "2.0.7",
+  "checkpoint": "Cactus-Compute/needle2 :: checkpoints/needle2.pkl",
+  "total_params": 45211383,
+  "shipped_weight_bits": "embedding=4,mhc=4,default=2",
+  "shipped_blob_mb": 13.74
+ },
+ "exporter": {
+  "legal_widths": [2, 3, 4, 1.58],
+  "CQ_BITS": [2, 3, 4],
+  "TERNARY_BITS": 1.58,
+  "ternary_storage": "2-bit crumbs (_packed_row_bytes -> in_pad * 2 // 8), identical bytes to bits=2",
+  "group_size": 128,
+  "no_8bit": "CQ_BITS caps at 4; the up direction is bounded by the format"
+ },
+ "catalogue": {"n_tools": 18, "arm": "tuned-min", "source": "needle-bsky/needle_bsky/tools_tuned.py"},
+ "evalset": {"path": "needle-bsky/evalset.jsonl", "n": 62, "routable": 54, "off_topic": 8, "modified": false},
+ "scoring": "needle-layer-pruning/eval_pruned.py, imported by path",
+ "control": {"arm": "shipped", "routable": 0.6111,
+             "note": "reproduces needle-bsky tuned-min, needle-tool-naming canon and needle-layer-pruning control"},
+ "confidence": "None on every weights= path, so the gate is out of scope",
+ "latency": "not reported; four arms ran on a loaded box (ERRORS.md #2)",
+ "hardware": "CCotw container, 4 vCPU, no GPU"
+}
