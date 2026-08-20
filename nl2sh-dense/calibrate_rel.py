@@ -270,8 +270,8 @@ def main() -> int:
             print(f"{label:<12}" + "".join(
                 f"{arm['per_distribution'][d][label]:>14.3f}" for d in dists))
 
-        print(f"\n--- the shipped gate and two written-down alternatives "
-              f"(coverage / gen_precision@k) ---")
+        print("\n--- the shipped gate and two written-down alternatives "
+              "(coverage / gen_precision@k) ---")
         for i, (sig, thr) in enumerate(FIXED_GATES):
             cells = []
             for d in dists:

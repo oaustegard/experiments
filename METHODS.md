@@ -1551,6 +1551,28 @@ the result.
 
 ---
 
+- **Fit a linear adapter on frozen query embeddings before pricing a fine-tune —
+  and split the eval by training coverage before believing either.** With the
+  gold document at recall@3 = 0.396 and recall@50 = 0.726, the candidate set
+  already held the answer and the ordering was wrong, which is the condition a
+  trained scorer fixes. One identity-initialized `d x d` matrix on the **query
+  side only** — 4,588 NL2Bash pairs capped per utility, in-batch plus 4 mined
+  hard negatives, **40 seconds on 4 CPU cores, 4.2 MB** — took gold-in-sources
+  from 0.384 to **0.463** (21 wins / 8 losses, p = 0.024) on an independent
+  corpus, and end-to-end routing from 0.128 to 0.201 (p = 0.058). Document
+  vectors are untouched by construction, so no cached index is invalidated and
+  the adapter can be switched off at query time. **But the entire gain sits on
+  the 207 utilities the training data covered**: +0.184 on eval rows whose gold
+  utility appeared in training (n=87), **−0.039** on rows whose did not (n=77).
+  A rank-64 adapter, 16x fewer parameters, reproduces the same split
+  (+0.161 / −0.052), so this is not overfitting that capacity control fixes — it
+  is training-data coverage, and a full fine-tune on the same pairs would hit the
+  same wall with more capacity to memorize. Two rules: run the linear adapter
+  first because it costs a minute and answers whether the representation or the
+  objective was the problem, and **always report the seen/unseen split**, because
+  the aggregate number hides a regression on exactly the long tail retrieval
+  exists to serve. (`nl2sh-dense/adapter.py`)
+
 - **Retrieval granularity is a free knob once the consumer's context window
   allows it, and larger units won on both arms.** The shell-documentation corpus
   was chunked to one tldr example per document for Pleias' 4k window. Grouping

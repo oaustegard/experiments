@@ -83,6 +83,8 @@ def main() -> int:
     ap.add_argument("--tldr", type=Path, required=True)
     ap.add_argument("--chunks", type=Path, default=D.DEFAULT_CHUNKS)
     ap.add_argument("--retriever", default="bm25")
+    ap.add_argument("--adapter", type=Path, default=None,
+                    help="query-side linear adapter from adapter.py")
     ap.add_argument("--granularity", default="chunk", choices=["chunk", "page"])
     ap.add_argument("--source-form", default="example", choices=["example", "page"],
                     help="what each retrieved utility contributes to the prompt: its "
@@ -107,7 +109,8 @@ def main() -> int:
     dense = None
     if a.retriever != "bm25":
         _, model_name, _ = parse_retriever(a.retriever)
-        _, _, dense = D.load(model_name, a.chunks, granularity=a.granularity)
+        _, _, dense = D.load(model_name, a.chunks, granularity=a.granularity,
+                             adapter=a.adapter)
     rank = make_ranker(a.retriever, index, dense, utilities, a.pool)
 
     tok = AutoTokenizer.from_pretrained(a.model)
@@ -174,6 +177,7 @@ def main() -> int:
 
     out = {"retriever": a.retriever, "granularity": a.granularity,
            "source_form": a.source_form,
+           "adapter": str(a.adapter) if a.adapter else None,
            "model": str(a.model), "n": len(data),
            "modes": {m: run(m) for m in a.modes}}
     a.out.write_text(json.dumps(out, indent=1) + "\n")
