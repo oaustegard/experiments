@@ -1,0 +1,55 @@
+{
+  "tokenizer_granularity": {
+    "corpus_chars": 634,
+    "monad_tokens": 195,
+    "baguettotron_tokens": 154,
+    "monad_chars_per_token": 3.251,
+    "baguettotron_chars_per_token": 4.117,
+    "draft_steps_per_target_token": 1.266
+  },
+  "cost": {
+    "draft_decode_ms": 57.011,
+    "target_decode_ms": 119.883,
+    "raw_cost_ratio_c": 0.476,
+    "effective_cost_ratio_c": 0.602,
+    "breakeven_acceptance_at_gamma1_raw": 0.476,
+    "breakeven_acceptance_at_gamma1_effective": 0.602
+  },
+  "table": [
+    {
+      "gamma": 1,
+      "measured_acceptance": 0.546,
+      "measured_speedup": 0.902,
+      "theory_speedup_raw_cost": 1.048,
+      "theory_speedup_effective_cost": 0.965
+    },
+    {
+      "gamma": 2,
+      "measured_acceptance": 0.474,
+      "measured_speedup": 0.835,
+      "theory_speedup_raw_cost": 0.871,
+      "theory_speedup_effective_cost": 0.771
+    },
+    {
+      "gamma": 3,
+      "measured_acceptance": 0.399,
+      "measured_speedup": 0.713,
+      "theory_speedup_raw_cost": 0.668,
+      "theory_speedup_effective_cost": 0.578
+    },
+    {
+      "gamma": 4,
+      "measured_acceptance": 0.381,
+      "measured_speedup": 0.638,
+      "theory_speedup_raw_cost": 0.552,
+      "theory_speedup_effective_cost": 0.47
+    },
+    {
+      "gamma": 8,
+      "measured_acceptance": 0.249,
+      "measured_speedup": 0.419,
+      "theory_speedup_raw_cost": 0.277,
+      "theory_speedup_effective_cost": 0.229
+    }
+  ]
+}

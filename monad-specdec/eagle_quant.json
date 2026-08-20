@@ -1,0 +1,27 @@
+{
+  "fp32": {
+    "components_ms": {
+      "fc": 0.0407,
+      "decoder_layer": 0.903,
+      "lm_head_65536": 5.0749
+    },
+    "draft_step_ms": 6.0187,
+    "target_step_ms": 121.8591,
+    "cost_ratio_c": 0.0494,
+    "lm_head_share_of_draft": 0.843,
+    "best_speedup_alpha0.7": 2.36
+  },
+  "int8_dynamic": {
+    "components_ms": {
+      "fc": 0.0346,
+      "decoder_layer": 1.1368,
+      "lm_head_65536": 4.7697
+    },
+    "draft_step_ms": 5.9411,
+    "target_step_ms": 102.0838,
+    "cost_ratio_c": 0.0582,
+    "lm_head_share_of_draft": 0.803,
+    "best_speedup_alpha0.7": 2.28
+  },
+  "c_ratio_int8_over_fp32": 1.178
+}

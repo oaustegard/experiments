@@ -1,0 +1,59 @@
+{
+  "monad": {
+    "width": 256,
+    "points": [
+      [
+        8,
+        7.74
+      ],
+      [
+        16,
+        16.065
+      ],
+      [
+        32,
+        26.339
+      ],
+      [
+        48,
+        42.536
+      ],
+      [
+        64,
+        52.574
+      ]
+    ],
+    "ms_per_layer": 0.804,
+    "fixed_ms": 2.037
+  },
+  "baguettotron": {
+    "width": 576,
+    "points": [
+      [
+        10,
+        18.322
+      ],
+      [
+        20,
+        29.689
+      ],
+      [
+        40,
+        52.125
+      ],
+      [
+        60,
+        84.358
+      ],
+      [
+        80,
+        104.507
+      ]
+    ],
+    "ms_per_layer": 1.264,
+    "fixed_ms": 4.711
+  },
+  "per_layer_ratio_bag_over_monad": 1.572,
+  "width_ratio_bag_over_monad": 2.25,
+  "note": "A layer's FLOPs scale with width^2. If decode were compute-bound the per-layer ratio would approach the square of the width ratio; if it is overhead-bound the ratio approaches 1."
+}
