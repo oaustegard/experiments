@@ -1,0 +1,1125 @@
+{
+ "label": "cut8_at09",
+ "cut": "[9,17)",
+ "layers": 19,
+ "engram_layers": "(2,)",
+ "arm": "tuned-min",
+ "weights": "/tmp/claude-0/-home-user/6e18fa82-c9dd-52c8-af33-846bbe1b6ecf/scratchpad/cut8_at09.cact",
+ "summary": {
+  "n": 62,
+  "tool_acc": 0.1935,
+  "tool_acc_routable": 0.1111,
+  "refusal_acc": 0.75,
+  "args_acc_routable": 0.0,
+  "invented_rate": 0.1111,
+  "mean_conf_correct": null,
+  "mean_conf_wrong": null,
+  "median_latency_ms": 1598.3,
+  "mean_latency_ms": 1564.7
+ },
+ "rows": [
+  {
+   "id": "posts-01",
+   "cat": "person-posts",
+   "query": "what has pfrazee.com been posting lately",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1820.5,
+   "reasoning": "User wants to check for posts about pfraze from the DID, pfrazee is the @blues.com, with their posts.com from the DID to check their posts. Use austegard.com, with default to pfraing.com, with auste.com, with pfraze as auste.com, with default to pfraze as pfraze.com is the @blues.com, with austegard.com will be used as pfraze's @blues.check\",\"without @blues.check' -> @blues.check's @pfrazee.com is the @blues.check's @blues.check' -> @blues.check's @blues.check's @blues.check's @blues.check's @"
+  },
+  {
+   "id": "posts-02",
+   "cat": "person-posts",
+   "query": "show me the last 10 posts from austegard.com",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1936.0,
+   "reasoning": "User wants to check for posts with 'post_id from the account' -> 'blues' -> 'post_id from the account' -> 'blues' -> 'blues' -> 'blues' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> 'bur' -> '"
+  },
+  {
+   "id": "posts-03",
+   "cat": "person-posts",
+   "query": "pull @why.bsky.team's recent posts",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "blues.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1821.5,
+   "reasoning": "'pfra' -> @blues.com' -> @blues.com, @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com -> @blues.com"
+  },
+  {
+   "id": "posts-04",
+   "cat": "person-posts",
+   "query": "what's simonwillison.net saying on bluesky",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "search_users",
+   "arguments": {
+    "query": "blues"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1634.6,
+   "reasoning": "User wants to check for Bluesky.check_identis for the user's domain is a page of their account. Use 'blues' as a page is the user's domain is a page. Use 'blues' as the tool's domain is for the user's tool's domain is for the user's domain is for their account.check the tool is for the user's domain is for the user's tool's domain is for the user's tool's domain is for the user's domain is for the user's tool's domain is for the user's tool's domain is for the user's tool's domain is for the user's tool's domain is for the user's tool's domain is for the user's tool's domain is for the user's tool's domain is for the user's tool's domain is for the user's tool's domain is for the user's tool's domain"
+  },
+  {
+   "id": "posts-05",
+   "cat": "person-posts",
+   "query": "get 50 posts from bnewbold.net",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1701.8,
+   "reasoning": "post_id 'post_id' from 'post_url' -> post_id 'blues' -> 'htt' -> 'post_id' -> 'htt' -> 'post_id' -> 'post_id' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt'"
+  },
+  {
+   "id": "profile-01",
+   "cat": "profile",
+   "query": "show me austegard.com's profile",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1274.0,
+   "reasoning": "User wants to check their posts. Use 'block' to see if PDs are not specified. Check for @broken's @blocked.com, but looking up their account for the user is auste.com, pulling their posts are likely from the DID and the PLC.com will be used as the PLC.com is the default to auste.com, but the tool is needed for the user's domain is not specified."
+  },
+  {
+   "id": "profile-02",
+   "cat": "profile",
+   "query": "how many followers does pfrazee.com have",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "handle @austegard.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1204.5,
+   "reasoning": "User wants to check followers' -> pfrazee.com, with default to 'followers' as austegs.com, with default to pfraze.com, with no mention of @austegard.com and pfraze.com is not specified as pfraze.com."
+  },
+  {
+   "id": "profile-03",
+   "cat": "profile",
+   "query": "what's in emilyliu.me's bio",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "analyze_account",
+   "arguments": {
+    "handle": "block_site"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1109.7,
+   "reasoning": "User wants to check for bio.check_follower_broken_identis -> pf_id is 'pfra' -> @block_site.com. Use 'block' as a PLC's IDs. No mention of pf_id for the user is pluing their account."
+  },
+  {
+   "id": "profile-04",
+   "cat": "profile",
+   "query": "look up the account jay.bsky.team",
+   "expected": [
+    "get_profile",
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1639.4,
+   "reasoning": "'block the account' -> pfrazee.com, 'followers' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> '"
+  },
+  {
+   "id": "search-01",
+   "cat": "search",
+   "query": "search bluesky for posts about norwegian politics",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "blues"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1491.6,
+   "reasoning": "search_posts for 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query"
+  },
+  {
+   "id": "search-02",
+   "cat": "search",
+   "query": "find posts mentioning matryoshka embeddings",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1672.8,
+   "reasoning": "search_posts for 'block' -> query 'follow' -> search_posts with 'pf' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> '"
+  },
+  {
+   "id": "search-03",
+   "cat": "search",
+   "query": "what are people saying about the atproto outage",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1586.0,
+   "reasoning": "User wants to check for posts about their posts are pfraze. Use 'block' to see if the posts are needed. Check for posts with 'pd' and 'broken' to see if the user is a pfraze is the right tool for their account is needed. Use 'block' to check for 'broken' to see if the user is a pfraze is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal is the main portal"
+  },
+  {
+   "id": "search-04",
+   "cat": "search",
+   "query": "search for posts about jetstream from bnewbold.net",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "blues"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 910.9,
+   "reasoning": "'blues' -> search_posts with default to 'pfra' for 'blues' for 'blues' for 'brand' for the user is likely a pfrazee.com, but query is a pfraze not specified as a broad search."
+  },
+  {
+   "id": "search-05",
+   "cat": "search",
+   "query": "posts about the tour de france since 2026-07-01",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1535.9,
+   "reasoning": "post_id from 'post_id' -> post_id from 'post_id' -> 'look for posts from the post' -> 'look for posts from the museon' -> post_id from 'post_id' -> 'look' -> 'post_id' -> 'look' -> 'post_id' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> '"
+  },
+  {
+   "id": "search-06",
+   "cat": "search",
+   "query": "find norwegian language posts about strom priser",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "blues"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1672.4,
+   "reasoning": "'block the user' -> @blues'pf's pd_blues's IDs are not specified; 'without @blues' -> @blues'pf's @blues' -> @blues.com, but query says 'with' -> @blues' -> @blues'pfraize -> @blues.com, but 'with' -> @blues' -> @blues' -> @blues'pfraize -> @blues.com -> @blues.com -> @blues.com -> @blues.pd_blues -> @blues.com -> @blues.com -> @blues.pd_blues -> @blues.pd_blues -> @blues.pd_blues ->"
+  },
+  {
+   "id": "search-07",
+   "cat": "search",
+   "query": "search bluesky for cactus compute",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "blues"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1443.9,
+   "reasoning": "query says 'blues' so search_posts for 'pop' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query 'blues' -> query"
+  },
+  {
+   "id": "users-01",
+   "cat": "find-users",
+   "query": "find people who write about atproto",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1634.4,
+   "reasoning": "User wants to search for PDS. Use 'block' to find the DID and 'follow' for the user is pulling their account. Use 'block' to find their PDS. Use 'block' to get a PDS. Use 'block' to search for 'block' to check for 'block' to see if the PDS is needed. Use 'block' to check for 'block' to see if the PDS is needed. Use 'block' to check the user's account. Use 'block' to check for 'block' to see if the user is pull the PDS or use the PDS to check for 'block' to see if the PDS is needed. Use 'block' to check for 'block' to see if the PDS is needed. Use 'block' to check for 'block' to check for 'block' to see if the user is pull the PD"
+  },
+  {
+   "id": "users-02",
+   "cat": "find-users",
+   "query": "which accounts have cycling in their bio",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1776.5,
+   "reasoning": "User wants to check for posts. Use 'bios' as a pd's domain. Check for bio is the user's account. Check for bio is the app. Check for posts. Use 'bios' as a pd_identity.check_posts_bio_follower_block_identis with a known \",\"block_user_identis from the account_identis from the site is the user's domain is the tool to check their account.check_stud_block_identis is the only tool to check for bio is the user's domain is the account.check_stud_block_identis is the user's domain is the account_identis tool.check_stud_block_identis is the user's domain is the account_identis is the user's domain is the account_identis is the user's domain is the account_identis is"
+  },
+  {
+   "id": "users-03",
+   "cat": "find-users",
+   "query": "search for users called austegard",
+   "expected": [
+    "search_users"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "block"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1009.0,
+   "reasoning": "search_posts with no evidence of 'block' and 'follow' from 'block' as auste.com, but query is a pfrazee.com, so search_posts with 'block' as auste.com is not specified as a pfrazee."
+  },
+  {
+   "id": "likes-01",
+   "cat": "interactions",
+   "query": "who liked https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": "get_likes",
+   "arguments": {
+    "post_uri_or_url": "htt-bsky.app"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1136.4,
+   "reasoning": "URL is a URL for the posts are not specified; use a generic URL to identify a brower's post_id is provided. Use a plausible UR-like tool: post_id is not specified."
+  },
+  {
+   "id": "likes-02",
+   "cat": "interactions",
+   "query": "show the likes on at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2361.8,
+   "reasoning": null
+  },
+  {
+   "id": "reposts-01",
+   "cat": "interactions",
+   "query": "who reposted https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": "analyze_account",
+   "arguments": {
+    "handle": "htt-bsky.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1383.6,
+   "reasoning": "URL is a URL for the posts, so I're not a directed posts.post_id is a URL. Use a plausible UR to identify a pair of 'bsky' from the user's domain is a like-to-history.com, but the tool is needed for the user is provided. I're a directed posts."
+  },
+  {
+   "id": "reposts-02",
+   "cat": "interactions",
+   "query": "list the accounts that boosted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": "get_likes",
+   "arguments": {
+    "post_uri_or_url": "post_identity is a pfraze.pd"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1307.1,
+   "reasoning": "post_identity is a URL, but the tool is missing - need to check for posts.post_identity is a fresh calls, so check their posts are not specified. Use a generic posts to see their posts."
+  },
+  {
+   "id": "quotes-01",
+   "cat": "interactions",
+   "query": "show me the quote posts of https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": "get_likes",
+   "arguments": {
+    "post_uri_or_url": "htt-bsky.pd"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1027.0,
+   "reasoning": null
+  },
+  {
+   "id": "quotes-02",
+   "cat": "interactions",
+   "query": "who quoted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2044.8,
+   "reasoning": "URL is a URL for the posts, but the tool is missing. The user said 'post_id is needed to be provided as a pfraze query, so I're not a directed posts. I'all the user is in their account for the posts are provided. I're a pfrazebow, so I're a pfrazebow, but I're a pfrazebow, so I're a pfrazebow, so I're a pfrazebow. I're a pfrazebow, so I're a pfrazebow. I're a pfrazebow, so I're a pfrazebow. I're a pfrazebow, so I're a pfrazebow. I're a pfrazebow, so I're a pfrazebow. I're a p"
+  },
+  {
+   "id": "thread-01",
+   "cat": "thread",
+   "query": "show me the replies to https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2336.1,
+   "reasoning": null
+  },
+  {
+   "id": "thread-02",
+   "cat": "thread",
+   "query": "read the whole thread at https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1933.6,
+   "reasoning": "URL is a UR-like, but the tool is for posts. The user wants to read the posts for the page. I're using the default to the post_id is provided. I're in a URL to be used as the posts are not specified. I're in a real-site-browest.com and the user is likely a like or retrieve their posts are from the same tool, so I're a direct like the posts are not a direct like the user's brower is a like the posts are not a direct like the user's gaming apps are available. I're a direct like the post_id is needed to check their posts are from the same tool, so I're a like the user's browest. I're a like the post_id is from the same tool to check their posts are from the same tool to read the most recent, so I're a like the user's g"
+  },
+  {
+   "id": "thread-03",
+   "cat": "thread",
+   "query": "what did people reply to at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1897.8,
+   "reasoning": "post_identity:bc:id from 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> '"
+  },
+  {
+   "id": "graph-01",
+   "cat": "graph",
+   "query": "who does austegard.com follow",
+   "expected": [
+    "get_following"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "bluesky.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1224.7,
+   "reasoning": "User wants to check for followers. Check their account for @blues.com is pfrazee.com, with their posts.com from the account toggle.check_followers_and 'follow' as austegard.com is the user's domain is austegard.com, but need to check their posts.com are not specified as pfrazee.com."
+  },
+  {
+   "id": "graph-02",
+   "cat": "graph",
+   "query": "who follows austegard.com",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "followers.followers.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1544.9,
+   "reasoning": "User wants to check for followers. Check their account for followers. Check for followers.com, but need to see if followers are not specified. Use 'followers' as a pfrazee.com' with default to 'follower' as austegs.com, but need to check for followers.com, but use austegard, with default to 'followers' as austeg is a pfrazee.com, with no mention of pfraze in the default. Use austegard.check_following_followers_and 'followers' as austegard.check_following_following_blues tool."
+  },
+  {
+   "id": "graph-03",
+   "cat": "graph",
+   "query": "list pfrazee.com's followers",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "blues"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1340.7,
+   "reasoning": "'followers' -> pfrazee.com, 'followers' -> pfraze asc, but no IDs given; use a default to 'best' for auste.com's @austegard.com, but need to check for followers. Use aust_blues_follower.com, but need to check for followers. Use auste.com, with default to pfraze asc.com, with pfraze asc."
+  },
+  {
+   "id": "graph-04",
+   "cat": "graph",
+   "query": "show me the accounts emilyliu.me is following",
+   "expected": [
+    "get_following"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "block"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1655.2,
+   "reasoning": "'following' -> 'follower' -> 'block' -> 'follower' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block'"
+  },
+  {
+   "id": "graph-05",
+   "cat": "graph",
+   "query": "get 100 followers of bnewbold.net",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "block"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1675.1,
+   "reasoning": "'followers' -> 'follower' -> 'blues' -> 'follower' -> 'blues' -> 'brand' -> 'follower' -> 'blues' -> 'brand' -> 'blues' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block'"
+  },
+  {
+   "id": "feed-01",
+   "cat": "feed",
+   "query": "get the posts in https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2086.5,
+   "reasoning": "post_id 'post_id' from 'post_id' in query is 'post_id' for the user is in a URL, so use that as the post_id is not specified. Use a plausible URL to check for posts."
+  },
+  {
+   "id": "feed-02",
+   "cat": "feed",
+   "query": "read the feed at at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1958.4,
+   "reasoning": "URL is a pd_blues_identity_identis for the user is pluy.pd_bc's PDS is not specified as a URL to be used. The tool is needed for posts, so use a generated PLC.pd_bc_identis to get their own pd_bc_identis for the same tool to check their app.pd_bc_bc_identis for the same tool to check their account for the user's account is needed for the pd_bc_bc_bc_identis for the pd_bc_bc_bc_identis for the user's account is needed for the pd_bc_bc_bc_identis for the user's account is for the pd_bc_bc_bc_idout and the same tool to check their account is for the user's port"
+  },
+  {
+   "id": "feed-03",
+   "cat": "feed",
+   "query": "what's in my norwegians list https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1940.1,
+   "reasoning": "URL is a pd_blues_identis for the user is in a URL, so I're not a directory. Use a plausible domain. Use a plausible URL to check for posts. Use auste.check_posts_blues_identis with a plausible URL to identify pd_blues from the app.check_stage_blues_identis with the same tool, so get_posts_blues_identis for the same tool, so retrieve the user's profile.checked_follow_blues_identis is the only tool to check for posts."
+  },
+  {
+   "id": "trend-01",
+   "cat": "trending",
+   "query": "what's trending on bluesky",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1294.6,
+   "reasoning": "'blues' -> query 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues' -> 'blues'"
+  },
+  {
+   "id": "trend-02",
+   "cat": "trending",
+   "query": "give me the top 5 trending topics",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1435.3,
+   "reasoning": "get_trending_topics: no topic filter, no count of posts. get_posts with default to 'blues' and 'blues' from 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blues' to 'blu"
+  },
+  {
+   "id": "trend-03",
+   "cat": "trending",
+   "query": "which topics are hot right now, and how many posts each",
+   "expected": [
+    "get_trending"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1853.5,
+   "reasoning": "User wants to check for posts with 'blues' and 'posts' from the tool list is needed. Use 'live' for the user is aud-like, but they want to see their latest posts are not specified. Use 'live' as a broad search."
+  },
+  {
+   "id": "trend-04",
+   "cat": "trending",
+   "query": "just list the trending topic names",
+   "expected": [
+    "get_trending_topics"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "blues"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1031.8,
+   "reasoning": "get_followers with no arguments needed; use default to 'blues' for auste.com, but no @site is not specified as 'blues' for auste.com, but no @site is not specified as 'blues' for auste.com, so use 'blues' as auste.com will be used as 'blues' for auste.com.com is the default to 'blues' for auste.com, so use 'blues' as auste.com to get_followers."
+  },
+  {
+   "id": "hose-01",
+   "cat": "firehose",
+   "query": "sample the firehose for 30 seconds",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1463.3,
+   "reasoning": "User wants to check for posts and posts for the DID. Use 'block' to see if the posts are needed. Use 'pd' for the user is aud-blocked posts. Use 'block' as a pd_id is needed. Use 'block' to check for @site' -> @site_block_stud_block_id is needed. Use 'block' -> @site' -> @site_block_id is needed. Use 'block' -> @site' -> @site_block_id is needed. Use 'block' -> @site' -> @site_block_id is needed. Use 'block' -> @site' -> @site' -> @site' -> @site' -> @site' -> @site_block_id is @site_block_id is"
+  },
+  {
+   "id": "hose-02",
+   "cat": "firehose",
+   "query": "listen to the live stream of new posts for a minute",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1727.9,
+   "reasoning": null
+  },
+  {
+   "id": "hose-03",
+   "cat": "firehose",
+   "query": "watch the firehose for posts containing bitcoin",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1501.7,
+   "reasoning": "post_uri_url from 'block' -> 'publish' -> 'post_site' -> 'post_id' -> 'post_site' -> 'post_id' -> 'post_site' -> 'post_site' -> 'post_id' -> 'post_site' -> 'post_site' -> 'post_id' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_id' -> 'post_site' -> 'post_site' -> 'post_id' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' -> 'post_site' ->"
+  },
+  {
+   "id": "id-01",
+   "cat": "identity",
+   "query": "what's the did for austegard.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "PLC.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1505.1,
+   "reasoning": "User wants to search for Bluesky.com from the DID and the PLC.com is the \\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC.com\\n\\nPLC"
+  },
+  {
+   "id": "id-02",
+   "cat": "identity",
+   "query": "which pds hosts pfrazee.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1608.5,
+   "reasoning": "User wants to check for PDS, but need to find their posts. Use 'block' to see if pfraze is not a pd-site. Use 'pd' to search for 'block' to check for PLC' as a pd_blues_broken_identity_block_and 'block' to find their PDS. Use 'block' as a pd_broken'with default to 'block' as a pd_broken's tool, so use 'block' to search for 'block' to check their posts. Use 'block' to find their PDS' -> pd_broken_identity's tool, but use 'block' as pd_broken's tool, so use 'block' to search for 'block' to check their posts. Use 'block' to find their 'block' to check their 'b"
+  },
+  {
+   "id": "id-03",
+   "cat": "identity",
+   "query": "resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1765.4,
+   "reasoning": "User wants to check for posts about PFR.check_pass_blues_follow_identitool_blues_identitool_bc_id is the only tool for PFR, but the user's domain is for PFR, so I're not specified as a pd_blues_bc_id is the only PFR, so I're aud-blues with auste.com, but the tool is needed for PFR, so I're auden for the PFR is the only PFR is the domain is for the user's domain is for the PFR is the only PFR is the domain is for the user's account is for the PFR's tool, so I're auden for the user's domain is for the PFR is for the user's domain is for the PFR is for the user's account is for the PFR'"
+  },
+  {
+   "id": "status-01",
+   "cat": "status",
+   "query": "is bluesky down right now",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "blues"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 899.7,
+   "reasoning": "User wants to check for posts about Bluesky is the right tool is the most relevant. Use 'blues' to search for 'blues' to find the right tool's 'blues' to check for 'block' to see if the right tool is needed for the user is aud-blocked, so search for 'blues' to find the right tool's 'block' to show the top-like wording is the most relevant."
+  },
+  {
+   "id": "status-02",
+   "cat": "status",
+   "query": "which atproto layer is broken",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": "analyze_account",
+   "arguments": {
+    "handle": "broken"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1498.1,
+   "reasoning": "User wants to check for posts and posts are pfraze. Use 'broken' as a pf's \",\"identity is-pf-site-broken-pders-broken-pf-site-broken-pders-blocked. Use 'broken' as a pd's domain. Use 'broken' as a pd's tool list. Use 'broken' as a pd's domain. Use 'broken' as a pd's domain. Use 'broken' as a pd's tool-like. Use 'broken' as a pd's domain. Use 'broken' as a pd's domain. Use 'broken' as a pd's domain. Use 'broken' as a pd's domain. Use 'broken' as a pd's domain. Use 'broken' as"
+  },
+  {
+   "id": "status-03",
+   "cat": "status",
+   "query": "check whether the appview is up",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1621.2,
+   "reasoning": "'broken' -> posts, 'following' -> pd_blues_identity_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_id\",\"identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_identit_id \u2192 check_posts_identi_identit_identit_identit_id \u2192 get_posts_identi_identit_identit_id \u2192 check_posts for follower \u2192 get_follow_posts to identify_follow_id and follower_id from"
+  },
+  {
+   "id": "analyze-01",
+   "cat": "analysis",
+   "query": "what is bnewbold.net mostly about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1734.0,
+   "reasoning": "'block the user' -> @blues.pd' -> @blues.pd_blues_broken_identity_identis -> @blues.pd_blue.com -> @blues.pd_blues_brand -> @blues.pd_blues_box.pd_blues_brak_blues -> @blues.pd_blues -> @blues.pd_blues -> @blues.pd_blues -> @blues.pd_blues -> @blues.pd_blues -> @blues.pd_blues -> @blues.pd_blues -> @blues.pd_blues -> @blues.pd_blues ->"
+  },
+  {
+   "id": "analyze-02",
+   "cat": "analysis",
+   "query": "summarise what emilyliu.me posts about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1624.4,
+   "reasoning": "post_id from 'post_id' -> 'htt' -> 'post_id' -> 'link' -> 'blues' -> 'pfra' -> 'post_id' -> 'htt' -> 'post_id' -> 'link' -> 'htt' -> 'vot' -> 'link' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'htt' -> 'h"
+  },
+  {
+   "id": "analyze-03",
+   "cat": "analysis",
+   "query": "give me the keywords for the account austegard.com",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "handle": "blues.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1364.4,
+   "reasoning": "User wants to check for @blues.com. Use 'blues' to find the account. Use 'blues' to search for 'block' to see if pfrazee.com is from the account.pull_follower_block_id is from the @blues.get_user_block_stat_block_id is from the same tool, so get_user_posts with austegard.com is from the same tool, so get_user_posts with 'block' to check their account."
+  },
+  {
+   "id": "kw-01",
+   "cat": "keywords",
+   "query": "pull the key terms out of this text: the relay went down but every pds kept serving records normally",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1696.1,
+   "reasoning": "User wants to check for posts and pull their account is pulled from auste.check_handle_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis_and_block_identis"
+  },
+  {
+   "id": "kw-02",
+   "cat": "keywords",
+   "query": "extract keywords from: sykkel, terskeleffekt og vintertrening i Oslo",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1564.2,
+   "reasoning": "'site' -> search_posts for 'block' -> 'pull' -> 'find' -> 'vot' -> 'look for' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> '"
+  },
+  {
+   "id": "off-01",
+   "cat": "off-topic",
+   "query": "what's the weather in Oslo",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1707.8,
+   "reasoning": "Query says 'check weather' -> search_posts for 'broken' -> query 'hiking' -> search_posts for 'weling' -> query 'in Oslo' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query 'brok' -> query '"
+  },
+  {
+   "id": "off-02",
+   "cat": "off-topic",
+   "query": "book me a flight to Bergen next tuesday",
+   "expected": [],
+   "got": "search_posts",
+   "arguments": {
+    "query": "blues"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 936.2,
+   "reasoning": "search_posts for Bluesky, use 'blues' for posts. 'Bluesky' is a pair of 'blues' for Bluesky's user is a pair of 'blues' for the user is aud-blues.com is the tool to search for 'blues' for the user is auden's domain."
+  },
+  {
+   "id": "off-03",
+   "cat": "off-topic",
+   "query": "send a dm to pfrazee.com saying hello",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1754.9,
+   "reasoning": "hello is a pfraze, but the tool is not provided. The user's domain is for PFR, so I're not a pfrazee, so I'd use that as a pfraze's request is for @pfraze's pd_blues.com is for @pfraze's @pd_blues.com is for @pfraze's @pd_blues.com is for @pfraze's @pd_blues.com is for @pfraze's @pd_blues.com is for @pfraze's @pd_blues.com is for @pfraze's @pd_blues.com is for @pfraze's.com, so I'd use that as a PDS to get a pf"
+  },
+  {
+   "id": "off-04",
+   "cat": "off-topic",
+   "query": "post this to my bluesky account: good morning",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1530.2,
+   "reasoning": "post_uri_or_url from 'post_id' -> 'post_id' -> 'post_report' -> 'look for posts from the blues.app' -> 'post_id from the post_id from the blues.app' -> 'look' -> 'post_id from the post_id from the blues.app -> 'look' -> 'post_id' -> 'post_id' -> 'post_id' -> 'post_id' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' -> 'look' ->"
+  },
+  {
+   "id": "off-05",
+   "cat": "off-topic",
+   "query": "delete my last bluesky post",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1457.0,
+   "reasoning": "User wants to search for posts about 'blues' -> search_posts with 'blues' as a broad search, no mention of 'blues' -> query 'blues' -> search_posts with 'blues' -> query 'blues' -> search_posts with 'blues' -> query 'blues' -> search_posts with 'blues' -> query 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search_posts with 'blues' -> search"
+  },
+  {
+   "id": "off-06",
+   "cat": "off-topic",
+   "query": "how many calories did I burn on my ride yesterday",
+   "expected": [],
+   "got": "search_posts",
+   "arguments": {
+    "query": "browing"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1626.7,
+   "reasoning": "User wants to check their posts for posts about browing. Use 'burn' to find their posts. Use 'follow' to search for 'posts' to see their posts. Use 'browing' to list their posts. Use 'browing' to search for 'browing' to check for posts. Use 'browing' to list their posts. Use 'browing' to search for 'browing' to list posts. Use 'browing' to list posts. Use 'browing' to search for 'browing' to list posts. Use 'browing' to list posts. Use 'browing' to search for 'browing' to list posts. Use 'browing' to list posts. Use 'browing' to list posts. Use 'browing' to list posts. Use 'browing' to list posts. Use 'browing' to list posts"
+  },
+  {
+   "id": "off-07",
+   "cat": "off-topic",
+   "query": "block the account spammer.bsky.social",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1588.2,
+   "reasoning": "'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'block' -> 'b"
+  },
+  {
+   "id": "off-08",
+   "cat": "off-topic",
+   "query": "what is the capital of Norway",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1491.6,
+   "reasoning": "'Paris' is the \\nPL\\nPL\\nPR\\nAspiring\\nPR\\nAusing the city\\nPR\\nAusing the airbly\\nPR\\nAusing the city\\nPR\\nAusing the airbly\\nPR\\nAusing the city\\nAusing the airbly\\nPR\\nAusing the city\\nAusing the airbly\\nAusing the city\\nAusing the airbly\\nAusing the city\\nAusing the airbly\\nAusing the city\\nAusing the airbly\\nAusing the city\\nAusing the airbly\\nAusing the city\\nAusing the airbly\\nAusing the city\\nAusing the airbly\\nAusing the city\\nAusing"
+  }
+ ]
+}

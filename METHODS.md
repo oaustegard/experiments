@@ -721,6 +721,57 @@ the result.
   impossible rather than unlikely, which is a concrete reason to prefer a
   constrained decoder over a larger model. (`monad-bsky/RESULTS.md`)
 
+- **A small model trained to a fixed depth budget has almost no prunable depth,
+  and the redundancy is in the MIDDLE, not the deep end.** Sweeping all 24
+  positions of a 4-layer cut on a 27-layer 45M attention-only model, scored on a
+  real 62-query task: **one** position is statistically indistinguishable from
+  the unpruned control (0.574 vs 0.611, paired McNemar p=0.81), 20 of 24 are
+  significant at p<0.05, and 5 leave a model that refuses every query. The
+  tolerant zone is starts 7–14; the three deepest cuts are among the five worst.
+  That is the **inverse** of the large-decoder result (Gromov et al. 2024;
+  ShortGPT) that deeper layers are the redundant ones. Do not carry a
+  depth-pruning intuition from 7B–70B models down to this scale. 8-layer cuts
+  over the same tolerant zone top out at 0.148 and a 12-layer cut reaches 0.000.
+  (`needle-layer-pruning/RESULTS.md`)
+
+- **Validate a pruning heuristic against a real task metric before trusting it —
+  the standard one can correlate at zero.** Angular distance across a block (the
+  representation entering it versus leaving it) is the usual cheap score for
+  choosing which layers to delete. Against the measured accuracy of all 24 cuts
+  it scored **Spearman +0.061**: its top pick measured 0.018 routable, third
+  worst in the sweep, and the sweep's actual best ranked 10th by the heuristic.
+  The six lowest-distance blocks span a 0.016 band containing both the 3rd-best
+  position and the two worst, so the score cannot separate them at all. Layers
+  can barely move the residual stream and still be load-bearing when the output
+  head is calibrated to what they do. Budget for the full sweep.
+  (`needle-layer-pruning/importance.py`)
+
+- **Per-token throughput and end-to-end turn latency can move completely
+  independently — measure the one your user experiences.** Removing 15% of a
+  router's layers improved prefill by 22.3% and decode by 28.7% (against a 17.4%
+  linear-in-depth expectation) and changed the median turn by **0.0%** over three
+  interleaved repetitions. Two effects cancel it: above five declared tools the
+  contrastive retrieval head is a fixed per-turn cost, and a degraded model emits
+  more tokens. Relatedly, **per-turn wall clock is not a valid speed metric when
+  the intervention changes model quality** — at a five-tool catalogue the pruned
+  model measured 43% *slower* per turn, purely from output length. Report
+  `tok/s`. (`needle-layer-pruning/throughput.py`, `ERRORS.md` #3)
+
+- **A dedicated memory subsystem can be worth less than a few well-placed
+  layers.** Two of the cuts that destroy an entire 4.19M-parameter Engram n-gram
+  table — 9.3% of the model — rank 2nd and 4th of 24 (0.500, 0.463), while cuts
+  that preserve both tables and remove four layers from the wrong place score
+  0.000. When ablating a component, rank it against the alternatives rather than
+  against zero; parameter count is a poor guide to what a task actually uses.
+  (`needle-layer-pruning/RESULTS.md`)
+
+- **`needle-bsky`'s `summarize()` returns `None` for a rate over an empty subset,
+  and every importer crashes formatting it with `:.3f`.** Hit in two separate
+  experiments now, both times on a smoke set with no off-topic queries, both
+  times fixed at the call site instead of in the shared function. If you import
+  that scorer, wrap the summary print. (`needle-tool-naming/ERRORS.md` #3,
+  `needle-layer-pruning/ERRORS.md` #4)
+
 - **A model whose layer stack is an `nn.scan` can be grown to arbitrary depth
   by concatenating along one axis — check for a scanned stack before assuming
   depth is fixed at export.** In Cactus Needle 2 every per-layer tensor carries a

@@ -1,0 +1,1071 @@
+{
+ "label": "cut8_at07",
+ "cut": "[7,15)",
+ "layers": 19,
+ "engram_layers": "(2, 7)",
+ "arm": "tuned-min",
+ "weights": "/tmp/claude-0/-home-user/6e18fa82-c9dd-52c8-af33-846bbe1b6ecf/scratchpad/cut8_at07.cact",
+ "summary": {
+  "n": 62,
+  "tool_acc": 0.1452,
+  "tool_acc_routable": 0.037,
+  "refusal_acc": 0.875,
+  "args_acc_routable": 0.0,
+  "invented_rate": 0.0,
+  "mean_conf_correct": null,
+  "mean_conf_wrong": null,
+  "median_latency_ms": 1718.2,
+  "mean_latency_ms": 1755.0
+ },
+ "rows": [
+  {
+   "id": "posts-01",
+   "cat": "person-posts",
+   "query": "what has pfrazee.com been posting lately",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1903.8,
+   "reasoning": "User wants to check if PLC. Needs pfraze.com.posts (assume posts?) and pfraz, but need to identify a pfraz.com.post_id is a known.pdf - need to get_profile.post_id for PLC.post_id for 'pfra' (infer: pick up, but user is pulling, but 'pfra'), but no IDs, but no tool."
+  },
+  {
+   "id": "posts-02",
+   "cat": "person-posts",
+   "query": "show me the last 10 posts from austegard.com",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1794.6,
+   "reasoning": "No tool: 'pfra' is not apartment. No tool: 'pfra', 'posts' is not a valid, but 'posts' is not a pfraze. No tool: 'pfra' is not apt, but no tool is for 'pfra' (no posts). No tool: 'pfra' is not apt, but no tool is for 'pfra' (blues), but no tool calls. No tool: 'pfra' is not apt, but no tool is for 'pfra' (no tool), but 'pfra' is not apt. No tool: 'pfra' is not apt, but no tool. No tool: 'pfra' is not apt."
+  },
+  {
+   "id": "posts-03",
+   "cat": "person-posts",
+   "query": "pull @why.bsky.team's recent posts",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1866.0,
+   "reasoning": "User wants to see if pfra are unknown. Needs pulling, but no tool is a known. Need to check if user is a known. No follow-up is a known. No follow-up is a known.com. Pulling is a known, but no 'pull' and 'pull' is not a known.com. Pulling is a known, but no 'pull' and 'pull' is not a known.com. Pulling is a known.com.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested"
+  },
+  {
+   "id": "posts-04",
+   "cat": "person-posts",
+   "query": "what's simonwillison.net saying on bluesky",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1673.7,
+   "reasoning": "User wants to check for reviews; 'pull' is a known, but 'bluesky' is a known. PLC with 'pull' and 'recent' (assuming 'pull') but 'pull' is a known, but 'pull' is a known, but 'pull' is a known. PLC search_posts_rev: 'pull' is not a valid. PLC tool: 'pull' is not a known, but 'pull' is a known, but 'pull' is a known, but 'pull' is a known. PLC -> pull, but 'pull' is a known, but 'pull' is a known. PLC query is a known. PLC from 'pull' as a known. PLC\",\"pull'input_lookup_rev: 'pull' is a known, but 'pull' is a known. PLC'-"
+  },
+  {
+   "id": "posts-05",
+   "cat": "person-posts",
+   "query": "get 50 posts from bnewbold.net",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1710.9,
+   "reasoning": "post_id 'post_id' is not a known; no tool is token. No tool is for 'pfra' (blues), but the user is a known.post_id is not a valid.post_id is not a known.post_id is not a like, but the user's request is not a known.post_id is not a known.com.com.com.post_id is not a known.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.com.pdf_report.com.com.pdf_report.com.com.com.com.pdf_report.com.com.com.com.com.pdf_report.com.com.pdf_report.com.com.pdf_report.com.com"
+  },
+  {
+   "id": "profile-01",
+   "cat": "profile",
+   "query": "show me austegard.com's profile",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1756.4,
+   "reasoning": "User wants to check if PLC. Needs pfraze. Needs pfraize_bullets, but no tool is pfra0 and a like. No tool is pfra10s.pfRel: PLC.pfra20-pokoju for PLC.pfra10s.png, but PLC.pfra10s.png, but PLC.pfra10s.png, but PLC.pfra10s.png, but PLC.png, but PLC.png, but PLC.png, but PLC.png, but PLC.png, but PLC.png, but PLC.png, but PLC.png, but PLC.png, but PLC.png, but PL"
+  },
+  {
+   "id": "profile-02",
+   "cat": "profile",
+   "query": "how many followers does pfrazee.com have",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1719.3,
+   "reasoning": "No tool is for 'following' (bluesky); 'following' is not a pfra. No tool is for 'following' (assuming a 'following'); 'following' is not a valid, but 'following' is not a known. No 'following' is not a like 'following' as a 'following' is not a 'following' (assuming 'following'); 'following' is not a 'following' (assuming 'following'); 'following' is not a 'following' (assuming 'following'); 'following' is not a 'following' (assuming 'following'); 'following' is not a 'following' (assuming 'following'); 'following' is not a 'following' (ass"
+  },
+  {
+   "id": "profile-03",
+   "cat": "profile",
+   "query": "what's in emilyliu.me's bio",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1503.6,
+   "reasoning": "User wants to check if PLC. But user is a known Bluesky ('pulling') and PLC, but no tool. Needs pulling - need to search for inventory. PLC.pull_request_id for 'broken_blues' and 'pull' is not a known. No tool: 'pull' is a known, but 'pull' is a known. PLC.pull_request_identifiers from 'pull' but not a known. PLC.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifi"
+  },
+  {
+   "id": "profile-04",
+   "cat": "profile",
+   "query": "look up the account jay.bsky.team",
+   "expected": [
+    "get_profile",
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1879.9,
+   "reasoning": "User wants to check if account is pulling. Needs pulling, but no tool is for 'pull' and 'look up' - need to find the account. PLAb, but no 'pull' and 'pull' is not a known. The 'check' is not a known. The 'pull' is a known, but the 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' as a known. The 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'p"
+  },
+  {
+   "id": "search-01",
+   "cat": "search",
+   "query": "search bluesky for posts about norwegian politics",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "pull"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1525.0,
+   "reasoning": "User wants to search for audit. Pick: 'pull' but no tool. Needs_blues_found_alternative_search_reviews. Pick: 'pull' but no 'pull' and 'pull' but 'pull' and 'pull' and 'pull' but 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' but 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' but 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull"
+  },
+  {
+   "id": "search-02",
+   "cat": "search",
+   "query": "find posts mentioning matryoshka embeddings",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1505.6,
+   "reasoning": "User wants to check for posts. Needs pulling, but no tool is for 'pull' with 'posts' and 'find' (assuming 'pull') and 'pull' is a known. No tool: 'pull' is not a known. PLC_pull_requested_by_id is a known. PLC_pull_requested_by_identifiers.pull_requested_by_identifiers.pull_requested_by_identifiers.pull_requested_by_identifiers.pull_requested_by_identifiers.pull_requested_by_identifiers.pull_requested_by_identifiers.pull_requested_by_identifiers.pull_requested_by_identifiers.p"
+  },
+  {
+   "id": "search-03",
+   "cat": "search",
+   "query": "what are people saying about the atproto outage",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1494.6,
+   "reasoning": "No tool: 'pull' is a known account. The user wants to check for 'pull' and 'recent' (assume the PLC). The 'report_safety_check_in_pull' and 'pull' is not a known, but the 'pull' and 'pull' as a known, but the 'pull' and 'pull' and 'pull' as a known. The 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and '"
+  },
+  {
+   "id": "search-04",
+   "cat": "search",
+   "query": "search for posts about jetstream from bnewbold.net",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1559.4,
+   "reasoning": "User wants to search for apartment. Needs pick up, but no tool is for search. PLC search_posts. Needs_blues_found_alternative_prompt: search_for_patterns.search_for_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_patterns.pd_p"
+  },
+  {
+   "id": "search-05",
+   "cat": "search",
+   "query": "posts about the tour de france since 2026-07-01",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1568.8,
+   "reasoning": "post_id from 'post_id' (no post_id); 'post_id is the right' is not a known; 'post_id' is not a known, but 'post_id' is not a known.post_id is not a tool call; no tool is post_id."
+  },
+  {
+   "id": "search-06",
+   "cat": "search",
+   "query": "find norwegian language posts about strom priser",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1575.8,
+   "reasoning": "No tool: 'pf' is not a known. No tool: 'pf' is a known, but no tool is a known. The user wants to check for reviews, but the PLC. The 'pf' is a known, but the 'pf' and 'pd_pLoan' is not a known. The 'pd_pLoan' is not a known. The 'pd_pLoan' is not a known. The 'pd_pLoan' is not a known, but the 'pd_pLoan' is not a known. The 'pd_pLoan' is not a known. The 'pd_pLoan' is not a known, but the 'pd_pLoan' is not a known. The 'pd_pLoan' is not a known. The 'pd_pLoan' is not a known, but the 'pd_pLoan"
+  },
+  {
+   "id": "search-07",
+   "cat": "search",
+   "query": "search bluesky for cactus compute",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "pull"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1448.6,
+   "reasoning": "User wants to check for 'pull' but no tool is for 'bluesky' (assuming aids), but the user's request is for a known. The 'pull' and 'pull' as a known, but the 'pull' and 'pull' as a known from 'pull' and 'pull' as a known, but the 'pull' and 'pull' as a known. The 'pull' and 'pull' as a 'pull' and 'pull' as a 'pull' and 'pull' as a 'pull' and 'pull' and 'pull' as a 'pull' and 'pull' and 'pull' as a 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' as a 'pull'"
+  },
+  {
+   "id": "users-01",
+   "cat": "find-users",
+   "query": "find people who write about atproto",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1686.0,
+   "reasoning": "No tool: 'pull' is a known account. PLA_recent_broken_now. PLA_recent_broken_broken_now.png is a known, but no IDs. The PLA_recent_broken_now.png is the only PLA_recent_broken_now.png is not a known.pdf_report_block_broken_now.png is_block_brand.png_block_contact_look_up_mobile_application_id and pull_request_id for PLA_recent_block_block_contact_look_up_mobile_pull_request_id.png_block_contact_look_up_mobile_pull_request_id.png_block_contact_l"
+  },
+  {
+   "id": "users-02",
+   "cat": "find-users",
+   "query": "which accounts have cycling in their bio",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1452.0,
+   "reasoning": "User wants to check for 'broken' (infer: 'broken') and 'purchase' is not a known Bluesky, but the user's request is for a known. The 'broken' is a known, but the 'broken' is a known. The 'broken' is not a known, but the 'broken' is a known. The 'broken' is not a known. The 'broken' is not a known. The 'broken' is not a known, but the 'broken' is not a known. The 'broken' is not a known. The 'broken' is not a known. The 'broken' is not a known. The 'broken' is not a known. The 'broken' is not a known. The 'broken' is not a known. The 'broken' is not a known. The 'broken' is not a known"
+  },
+  {
+   "id": "users-03",
+   "cat": "find-users",
+   "query": "search for users called austegard",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1729.7,
+   "reasoning": "No tool: search_for_contact. PLAb, but no 'pf' and 'pf' (assuming aids. PLAb, but user is looking for audit trail. PLAb, but user is picked up. PLAb, but user is picked up."
+  },
+  {
+   "id": "likes-01",
+   "cat": "interactions",
+   "query": "who liked https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2239.5,
+   "reasoning": "post_id from 'likes' (note: 'likes'); post_id not provided; post_id is a known, but user wants to see if they have a post_id; use 'likes' for 'likes' and 'post_id' is not a valid."
+  },
+  {
+   "id": "likes-02",
+   "cat": "interactions",
+   "query": "show the likes on at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2146.8,
+   "reasoning": "User wants to check for 'likes' and 'pf' - need to check if pick a like. But the posts are not a known. The 'post_id' is a known, but the 'pf' as a known. The 'pull' is a known, but the 'pull' is a known. The 'pull' is a known, but the 'pull' and 'pull' is not a known. The 'pull' is a known, but the 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'p"
+  },
+  {
+   "id": "reposts-01",
+   "cat": "interactions",
+   "query": "who reposted https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2023.6,
+   "reasoning": "User wants to check for posts. No tool: post_id is a known, but user is a known. No tool: post_id is a known. No tool: post_id is a known.post_id is the only tool. No lookup, but no tool is like 'pull' for 'pull' with a 'pull' and 'look up' for 'pull' and 'post_id' is not a known. No tool: 'pull' is a known, but 'pull' is a known. No tool: 'pull' is a known, but 'pull' is a known. No tool: 'pull' is a known, but 'pull' is a known. No tool: 'pull' is a known, but 'pull' is a known. No tool: 'pull' is a known, but 'pull' is a known. No tool: 'pull' is a known, but 'pull' is a known. No tool: '"
+  },
+  {
+   "id": "reposts-02",
+   "cat": "interactions",
+   "query": "list the accounts that boosted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2066.0,
+   "reasoning": "post_identifiers from 'pull' and 'broken' (assuming); post_id is a known, but user wants to check for 'look up' and 'pull' with 'pull' and 'pull' as a 'pull' and 'look up' (infer: 'pull'); post_id 'pull' and 'look up' and 'pull' and 'pull' and 'pull' and 'look up' -> post_id 'pull' and 'pull' but 'pull' and 'look up' -> pull.post_id 'pull' and 'pull' and 'look up' -> post_id 'pull' and 'pull' and 'look up' -> 'pull' and 'pull' and 'look up' -> post_id 'pull' and 'pull' and 'pull' and 'pull' and 'look up"
+  },
+  {
+   "id": "quotes-01",
+   "cat": "interactions",
+   "query": "show me the quote posts of https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2218.7,
+   "reasoning": "post_identifiers from 'post_id' (note: 'post_id), but user wants to see, but no tool; post_id is a known. post_id is not a like-aust for the user's request is a bare noun-phrase.post_id is not a valid.post_id is the only tool."
+  },
+  {
+   "id": "quotes-02",
+   "cat": "interactions",
+   "query": "who quoted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2096.0,
+   "reasoning": "User wants to check if PLC.No_link, but need to get_profile_pull_request_id for a known. No tool: pulling, but no 'pf' and 'pull' is a known. PLC.post_id is the only PLC.pull_request_identifiers (no_pull), but the PLC.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identifiers.pull_request_identif"
+  },
+  {
+   "id": "thread-01",
+   "cat": "thread",
+   "query": "show me the replies to https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2089.5,
+   "reasoning": "User wants to check for reviews; need to get_posts.post_identifiers from 'recent' (assuming aids) and 'pull' is a known posts.post_identifiers.post_identifiers.com.reviews.post_identifiers.com.pdf/v1/current_a_identifiers.post_identifiers.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.com.pdf_reviews.pdf_reviews."
+  },
+  {
+   "id": "thread-02",
+   "cat": "thread",
+   "query": "read the whole thread at https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2161.0,
+   "reasoning": "User wants to check if PLC, but the PLC.posts are not a known. No tool is toggle. The posts (assume 'pf') and a known pfraze.posts_pull-in-picture_in_picture_in_picture_in_picture_pull with no URL, but the PLC.posts_pull-in-picture_in_picture_pull-in-picture_in_picture_pull-in-picture_in_picture_pull-in-picture_in_picture_pull-in-picture_in_picture_pull-in-picture_in_picture_pull-in-picture_in_picture_pull-in-picture_in_picture_pull-in-p"
+  },
+  {
+   "id": "thread-03",
+   "cat": "thread",
+   "query": "what did people reply to at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2185.7,
+   "reasoning": "User wants to check for reviews; need to get_profile_id and get_profile_id for a known, but the PLC.post_requested_doc_pdf is not a valid.post_requested_doc_pdf with 'pull' and 'pull' but 'pull' is a known, but 'pull' and 'pull' and 'pull' as a known, but 'pull' and 'pull' and 'pull' and 'pull' as a 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' but 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull'"
+  },
+  {
+   "id": "graph-01",
+   "cat": "graph",
+   "query": "who does austegard.com follow",
+   "expected": [
+    "get_following"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1871.5,
+   "reasoning": "No tool: 'following' is not ab. No account for 'following' (assumed), but no 'following' (infer to get_follow_user) and 'following' (no account). No 'following' (assumed), but 'following' (assumed), but 'following' (no 'following'), but 'following' (assumed), but 'following' (no 'following'), but 'following' (assumed), but 'following' (no 'following'), but 'following' (no 'following'), but 'following' (no 'following'), but 'following' (no 'following'), but 'following' (no 'following'), but 'following' (no 'following'), but 'following' (no 'following"
+  },
+  {
+   "id": "graph-02",
+   "cat": "graph",
+   "query": "who follows austegard.com",
+   "expected": [
+    "get_followers"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1754.1,
+   "reasoning": "User wants to check if account is pfra.get_following_follow_bluesky_follow_user.follow_user.post_id is apt, but no 'post' and 'following' is not a known. No follow-up is apt, but no 'post' and 'following' is not a valid.post_id is the user's own intent is apt.post_id is not apt.post_id for 'post' and 'post' as a known.post_id for 'post' and 'post_id' is not apt.post_id for 'post' and 'post_id' is not apt.post_id for 'post_id' and 'post_id' is not apt.post_id for 'post_id' and 'post_id' is not apt.post_id for 'post_id' and 'post_id' is not apt.post_id for 'post"
+  },
+  {
+   "id": "graph-03",
+   "cat": "graph",
+   "query": "list pfrazee.com's followers",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_following",
+   "arguments": {
+    "handle": "pf'pf"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1916.7,
+   "reasoning": "User wants to check if pfra.get_following_follow_branded_by_id is a known, but no 'pf' and 'following' (assuming 'pf') and 'following' is a known. No tool is audit for 'pf', but 'pf' and 'following' is not a valid. No 'pf' as a 'pf' and 'following' is not a 'pf' and 'following' as a 'pf' and 'following' as a 'pf' and 'following' as a 'pf' and 'following' as a 'pf' and 'following' as a 'pf' and 'following' as a 'pf' and 'following' as a 'pf' and 'following' as a 'pf' and 'following' as a 'pf' and '"
+  },
+  {
+   "id": "graph-04",
+   "cat": "graph",
+   "query": "show me the accounts emilyliu.me is following",
+   "expected": [
+    "get_following"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1705.7,
+   "reasoning": "User wants to check for 'broken' (assuming) and 'pull' is a known account. But the user is pulling, but the 'pull' and 'broken' (infer: 'pull') and 'broken' (assuming 'broken'). The 'block' is not a valid. The 'block' is not a known. The 'block' is not a known. The 'block' is not a tool, but the 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known."
+  },
+  {
+   "id": "graph-05",
+   "cat": "graph",
+   "query": "get 100 followers of bnewbold.net",
+   "expected": [
+    "get_followers"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1873.2,
+   "reasoning": "No tool: 'pfra' is a pulling. Needs pfraize, but no tool is for 'pfra', but 'pfra' is a known. PLC with no specific pfraze.com. PLC_and_brand: no pfra\",\"get_following_patterns.pfra_link is the only pulling.pfra_link is the only pulling.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested.pull_requested"
+  },
+  {
+   "id": "feed-01",
+   "cat": "feed",
+   "query": "get the posts in https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1826.8,
+   "reasoning": "post_identifiers from 'post_identifiers' (note: 'post_identifiers'); post_identifiers is a valid, but no tool calls; post_identifiers.post_identifiers.post_identifiers.post_identifiers.com.pdf_link for post_identifiers.post_identifiers.com.pdf_link for post_identifiers.post_identifiers.com.pdf_link for post_identifiers.com.pdf_link for post_identifiers.post_identifiers.com.pdf_link for post_identifiers.post_identifiers.post_identifiers.post_identifiers.com.pdf_link"
+  },
+  {
+   "id": "feed-02",
+   "cat": "feed",
+   "query": "read the feed at at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2087.8,
+   "reasoning": "User wants to check for reviews, but the PLC.pf_slot is a picked. The PLC tool is not a valid. The PLC.poulet is the only way to check, but the PLC.poulet's 'pull' is the only PLC.poulet is the PLC.poulet's 'pull' is the PLC.poulet's 'pull' is the PLC.poulet's 'pull' is the PLC.poulet's 'pull's' is the PLC.poulet's 'pull's' is the PLC.poulet's 'pull's' is the PLC.poulet's 'pull's' is the PLC.poulet's 'pull's' is the PLC.poulet's 'pull'"
+  },
+  {
+   "id": "feed-03",
+   "cat": "feed",
+   "query": "what's in my norwegians list https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1816.5,
+   "reasoning": "User wants to check for 'pull' but no tool is a known. No tool is for 'pull' and 'look up' - but 'pull' is a known. The 'pull' is a known, but the 'pull' and 'pull' is not a valid. The 'pull' is a known, but the 'pull' and 'pull' is not a known. The 'pull' and 'pull' and 'pull' and 'pull' is not a 'pull' and 'pull' but the 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'p"
+  },
+  {
+   "id": "trend-01",
+   "cat": "trending",
+   "query": "what's trending on bluesky",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1385.8,
+   "reasoning": "No tool: get_trending_topics. User wants to see what's on the topic. No tool is for 'live' (bluesky_topics) and 'live' is not a known topic. The user's request is for a live. The 'live' is not a known, but the 'live' is a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live' is not a known topic. The 'live'"
+  },
+  {
+   "id": "trend-02",
+   "cat": "trending",
+   "query": "give me the top 5 trending topics",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1756.0,
+   "reasoning": "No tool is for 'pull' but user wants topics; no specific topic, but user is a known topic. The topic is a known topic, but the user's request is for audit. No tool is get_trending_topics_in_page."
+  },
+  {
+   "id": "trend-03",
+   "cat": "trending",
+   "query": "which topics are hot right now, and how many posts each",
+   "expected": [
+    "get_trending"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1501.6,
+   "reasoning": "No tool: 'pull' is not a known. No tool: 'pull' is a known, but user wants to check for 'pull' and 'report' (no tool); 'get_trending_topics' is not a known. No tool: 'pull' is not a known, but 'pull' is a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known. No tool: 'pull' is not a known"
+  },
+  {
+   "id": "trend-04",
+   "cat": "trending",
+   "query": "just list the trending topic names",
+   "expected": [
+    "get_trending_topics"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2711.5,
+   "reasoning": "No tool is for get_trending_topics; get_trending_topics is not a known; no tool is for 'get_trending_topics' and 'trending' is not a known, but the user's request is for a topic."
+  },
+  {
+   "id": "hose-01",
+   "cat": "firehose",
+   "query": "sample the firehose for 30 seconds",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1636.8,
+   "reasoning": "User wants to check if PLC. Needs pulling, but the PLC. The 'pull' is a known, but the 'pull' is a known. The 'pull' is a known, but the 'pull' is a known. The 'pull' is a known, but the 'pull' and 'pull' is a known, but the 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and '"
+  },
+  {
+   "id": "hose-02",
+   "cat": "firehose",
+   "query": "listen to the live stream of new posts for a minute",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1471.4,
+   "reasoning": "User wants to check live streams. No tool is live. No tool is for 'live' (no streaming) and 'report_live_posts' is not a known. No tool is 'live' (infer, but 'live') and 'live' is not a known. No tool is 'live' (no streaming) and 'live' (no streaming) and 'live' (no streaming); 'live' is not a live streaming, but 'live' is not a live streaming. No tool is 'live' (no streaming); 'live' is not a live streaming, but 'live' is not a live streaming. No streaming is live. No tool, but 'live' is not a live.streaming_streaming_live_id is live. No streaming_live_id is live. No streaming_live_id is not a live.streaming_l"
+  },
+  {
+   "id": "hose-03",
+   "cat": "firehose",
+   "query": "watch the firehose for posts containing bitcoin",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1634.9,
+   "reasoning": "post_id 'post_id' is not a known; 'post_id' is not a known. No tool is for 'post_id, but the user's request is for a live post_id. The post_id is not a known. The post_id is the only tool."
+  },
+  {
+   "id": "id-01",
+   "cat": "identity",
+   "query": "what's the did for austegard.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1632.7,
+   "reasoning": "User wants to check for reviews; no tool is for audit trail. The 'pull' is a known, but the 'pull' is a known PLC. The 'recent' and 'pull' as a known, but the 'pull' and 'pull' is a known, but the 'pull' and 'pull' and 'pull' as a possible. The 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and 'pull' and '"
+  },
+  {
+   "id": "id-02",
+   "cat": "identity",
+   "query": "which pds hosts pfrazee.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1717.1,
+   "reasoning": "User wants to check if PLC. Needs pfraze.pols (assume 'PLC') and 'pfra' is a known, but no tool is a known. No tool is pick/document.pdf is not a known. No tool is for 'pfra', but the pdf.pdf_report is not a valid.pdf_report_pdf_link is the only pdf.pdf_report_pdf_link is the only pdf_report.pdf_report_pdf_link is the only pdf_report.pdf_report_pdf_link is the PLC.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report"
+  },
+  {
+   "id": "id-03",
+   "cat": "identity",
+   "query": "resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1762.1,
+   "reasoning": "User wants to check if PLC. Needs pfra, but no tool. PLC is a known. Need to check if PLC. PLC -> check if PLC. PLC.pdf (but 'pf') is a known, but no 'pf' as a known. PLC.pdf_report is the only tool. PLC.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf_report.pdf"
+  },
+  {
+   "id": "status-01",
+   "cat": "status",
+   "query": "is bluesky down right now",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1406.7,
+   "reasoning": "User wants to see if PLC. No tool is for live. The 'public_dashboard_live_trending_topics_in_p_report. The 'p.get_trending_topics' is not a known. The 'p.get_trending_topics' is not a known, but the 'p.get_trending_topics' is not a known. The 'p.get_trending_topics' is not a known. The 'p.get_trending_topics' is not a known. No tool is 'p.get_trending_topics' and 'p.get_trending_topics' is not a known. No 'p.get_trending_topics' is not a known. No 'p.get_trending_topics' is not a known. No 'p.get_trending_topics' is not a known. No"
+  },
+  {
+   "id": "status-02",
+   "cat": "status",
+   "query": "which atproto layer is broken",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1567.9,
+   "reasoning": "User wants to check if PLC. Needs pull_request to check for live. No tool is for 'pull' and 'live' (assume 'pull') but not a known. No tool: pull_request_check_in, but no 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not a known. No tool: 'pull_request' is not"
+  },
+  {
+   "id": "status-03",
+   "cat": "status",
+   "query": "check whether the appview is up",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1634.2,
+   "reasoning": "No tool: get_trending_topics. The user wants to check, but no tool is for 'check_app_library' and 'broken_now' (no tool), but no tool is for 'get_trending_topics' and 'pf', but no 'broken_now' and 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf' is not a known. No tool: 'pf'"
+  },
+  {
+   "id": "analyze-01",
+   "cat": "analysis",
+   "query": "what is bnewbold.net mostly about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1791.4,
+   "reasoning": "User wants to check for reviews; need to get_profile_reviews.get_profile_id: 'pf' is not a known, but no tool. PLC/posts/bluesky_find_belay_reviews.post_id: 'pf' is not a known, but no tool. PLC -> pick up, but no tool. PLC_pfREPLOT from 'pf' as a known, but 'pf' is a known, but 'pf' is the only tool. PLC_pfREPLOT and 'pf' is not a valid.post_id: 'pf' is not a known, but no tool. No tool."
+  },
+  {
+   "id": "analyze-02",
+   "cat": "analysis",
+   "query": "summarise what emilyliu.me posts about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1632.0,
+   "reasoning": "User wants to see if pending, but the post_id is a known. The post_id is a known. The post_id is about a like, but the user's request is for a like. The post_id is a known from the query is about a booked. The post_id is the user's request for a booked.com and the user's request for a booked.com.post_id is not a known.com.post_id is not a valid.com.post_id is not a tool, but the user's request is for a booked.com.post_id is not a booked.com.post_id is not a booked.com.post_id is not a booked.com.post_id is not a booked.com.post_id is not a booked.com.post_id is not a booked.com.post_id is not a booked.com.post_id is not a booked.com.post"
+  },
+  {
+   "id": "analyze-03",
+   "cat": "analysis",
+   "query": "give me the keywords for the account austegard.com",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1731.3,
+   "reasoning": "User wants to check for 'bloed' (no account) and 'pfra' (assuming aids to get_user_posts). PfRate is a pfra. Need to search for 'bloed' and 'pfra', but 'bloed' (no 'pfra'), but 'bloed' (no 'bloed'), but 'pfra' (no 'bloed'), but 'bloed' (no 'bloed'), but 'bloed' (no 'bloed'), but 'bloed' (no 'bloed'), but 'bloed' (no 'bloed'), but 'bloed' (no 'bloed'), but 'bloed' (no 'bloed'), but 'bloed' (no 'bloed'), but 'bloed' (no 'bloed'), but 'bloed' (no"
+  },
+  {
+   "id": "kw-01",
+   "cat": "keywords",
+   "query": "pull the key terms out of this text: the relay went down but every pds kept serving records normally",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1783.2,
+   "reasoning": "User wants to pull the PLC. PLC, but the PLC. Needs pull_request to pull, but the PLC. The PLC.pull, but the PLC.pull_request to pull, but the PLC.pull_request to pull, but the PLC.pull_request to pull, but the PLC.pull_request to pull, but the PLC.pull_request to pull, but the PLC.pull_request to pull, but the PLC.pull_request to pull, but the PLC.pull_request to pull.pull_request to pull.pull_request to pull.pull_request to pull.pull_request to pull.pull_request to pull.pull_request to pull.pull"
+  },
+  {
+   "id": "kw-02",
+   "cat": "keywords",
+   "query": "extract keywords from: sykkel, terskeleffekt og vintertrening i Oslo",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1855.1,
+   "reasoning": "User wants to pull out, but have a known. Needs pull, but no tool is for 'pull' and 'pull' with 'pull' and 'keywords' (assuming 'pull') but 'pull' is not a valid. Pull in 'pull' with 'pull' and 'keywords' (infer: 'pull') but 'pull' is not a 'pull' with 'pull' and 'keywords' (no 'pull') but 'pull' is not a 'pull' with 'pull' and 'keywords' (assuming 'pull') but 'pull' is not a 'pull' with 'pull' and 'pull' with 'pull' and 'pull' with 'pull' and 'pull' with 'pull' and 'pull' with 'pull' and 'pull' with 'pull' and 'pull' with 'p"
+  },
+  {
+   "id": "off-01",
+   "cat": "off-topic",
+   "query": "what's the weather in Oslo",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1445.7,
+   "reasoning": "No tool: search_posts. The user wants to check for 'broken' (no tool); 'purchase' is not a known, but the user's request is for a known. No tool: 'check if we have apartment. The 'get_trending_topics' is not a known. The 'get_trending_topics' is not apartment. The 'get_trending_topics' is not apartment. The 'get_trending_topics' is not apartment. The 'get_trending_topics' is not apartment. No tool: 'get_trending_topics' is not apartment. No tool: 'get_trending_topics' is not apartment. No tool: 'get_trending_topics' is not apartment. No tool: 'get_trending_topics' is not apartment. No tool: 'get"
+  },
+  {
+   "id": "off-02",
+   "cat": "off-topic",
+   "query": "book me a flight to Bergen next tuesday",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1606.7,
+   "reasoning": "User wants to check for 'Bluesky' (flight) and 'Bluesky' (assume I need to find the right). No tool is for 'broken_now' (potential), but the user is looking at a time. The 'block' is not a known, but the 'block' is a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block' is not a known. The 'block'"
+  },
+  {
+   "id": "off-03",
+   "cat": "off-topic",
+   "query": "send a dm to pfrazee.com saying hello",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1863.5,
+   "reasoning": "No tool: pfraz. No tool: pfraze.png is a known, but no tool is pfra_link. The user wants to send a pfraize.com.pdf is the only tool. No pfra_link for pfra_link, but the pfra_link.pdf (no pfra_link) is the only tool. The pfra_link is the only pfra_link.pdf (infer from 'pf') is not a valid.pdf, but no pfra_link.pdf, but no pfra_link.pdf, but no pfra_link.pdf, but no pfra_link.pdf, but no pfra_link.pdf, but no pfra_link.pdf, but no pfra_link.p"
+  },
+  {
+   "id": "off-04",
+   "cat": "off-topic",
+   "query": "post this to my bluesky account: good morning",
+   "expected": [],
+   "got": "get_quotes",
+   "arguments": {
+    "post_uri_or_url": "post_id"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1590.9,
+   "reasoning": "post_identifi: 'post_id' is not a known; 'good' is a known, but 'post_id' is not a known. No tool is post_id. 'post_id' is not a known. No tool is 'post_id' for 'post_id' and 'post_id' is not a known. No tool is 'post_id' for 'post_id' and 'post_id' is not a known. No tool is 'post_id' for 'post_id' and 'post_id' is not a known. No 'post_id' for 'post_id' is not a known. No 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id' for 'post_id"
+  },
+  {
+   "id": "off-05",
+   "cat": "off-topic",
+   "query": "delete my last bluesky post",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1527.0,
+   "reasoning": "User wants to search for a newsletter. Needs search_posts. No tool is for 'pf' (lookup, but user is a known, but search_posts_lookup_reviews.), but no tool is for 'pf' and 'pd' with 'pdf' and 'pdf' (no posts). No tool is 'pdf' but 'pdf' is not a valid. No tool is 'pdf' for 'pdf' (bluesky_lookup_reviews.pdf_link), but 'pdf' is not a tool, but 'pdf' is not a known. No tool, but 'pdf' is not a known. No tool, but 'pdf' is not a known. No tool, but 'pdf' is not a known. No tool, but 'pdf' is not a known. No tool, but 'p"
+  },
+  {
+   "id": "off-06",
+   "cat": "off-topic",
+   "query": "how many calories did I burn on my ride yesterday",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1601.3,
+   "reasoning": "No tool: search_posts. The user wants to check for 'broken' (assuming a known). No tool is for 'purchase' (no tool), but the user is searching. The 'purchase' is a known, but the 'purchase' is a known. The 'purchase' is not a known. The 'purchase' is a known, but the 'purchase' is a known. The 'purchase' is not a valid. The 'purchase' is not a known. The 'purchase' is not a valid. The 'purchase' is not a valid. The 'purchase' is not a valid. The 'purchase' is not a valid. The 'purchase' is not a valid. The 'purchase' is not a valid. The 'purchase' is not a valid. The 'purchase' is not a valid. The 'purchase' is not a valid. The '"
+  },
+  {
+   "id": "off-07",
+   "cat": "off-topic",
+   "query": "block the account spammer.bsky.social",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1669.9,
+   "reasoning": "User wants to check for reviews; need to find the account.posts_block_contact_id is not a known, but no tool is read-only. No tool is search_for_contact.posts_block_bill and 'recent' but not a known.posts_block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.block_contact_id is not a known.b"
+  },
+  {
+   "id": "off-08",
+   "cat": "off-topic",
+   "query": "what is the capital of Norway",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1458.2,
+   "reasoning": "No tool: get_trending_topics. get_trending_topics. No tool: get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics.get_trending_topics."
+  }
+ ]
+}

@@ -1,0 +1,1151 @@
+{
+ "label": "cut8_at10",
+ "cut": "[10,18)",
+ "layers": 19,
+ "engram_layers": "(2,)",
+ "arm": "tuned-min",
+ "weights": "/tmp/claude-0/-home-user/6e18fa82-c9dd-52c8-af33-846bbe1b6ecf/scratchpad/cut8_at10.cact",
+ "summary": {
+  "n": 62,
+  "tool_acc": 0.1774,
+  "tool_acc_routable": 0.1481,
+  "refusal_acc": 0.375,
+  "args_acc_routable": 0.0741,
+  "invented_rate": 0.2778,
+  "mean_conf_correct": null,
+  "mean_conf_wrong": null,
+  "median_latency_ms": 1572.5,
+  "mean_latency_ms": 1430.6
+ },
+ "rows": [
+  {
+   "id": "posts-01",
+   "cat": "person-posts",
+   "query": "what has pfrazee.com been posting lately",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1615.2,
+   "reasoning": "User wants to check the \",\"analyze_account\":\"look at PFR\",\"handle\":\"PRAB\",\"atproto_status\":\"l'On-AppsTrPosts\",\"handle\":\"App.PRAB\"}}]name\":\"analyze_account\",\"arguments\":{\"handle\":\"APVST-PRAB\",\"handle\":\"APRAB\",\"handle\":\"APRABST\",\"handle\":\"APRABSTRE-PRABSTRELATRELTOTON\",\"handle\",\"handle\":\"APRABSTRELTOTO\",\"anpass_acco_id\":\"APRABSTRELATOTO\",\"handle\",\"handle\":\"APRABSTRELTOTO\",\"anpass_acco_id\":\"APRABSTRE"
+  },
+  {
+   "id": "posts-02",
+   "cat": "person-posts",
+   "query": "show me the last 10 posts from austegard.com",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "austeg.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 863.3,
+   "reasoning": null
+  },
+  {
+   "id": "posts-03",
+   "cat": "person-posts",
+   "query": "pull @why.bsky.team's recent posts",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2002.3,
+   "reasoning": "User wants to see the posts about 'pfra' and '@why.bsky' -> handle @don's account for @suppling.posts are not a tool that's not aud-supplied."
+  },
+  {
+   "id": "posts-04",
+   "cat": "person-posts",
+   "query": "what's simonwillison.net saying on bluesky",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "simple bluesy"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 904.5,
+   "reasoning": "User wants to check on a Blue. The tool is for simoning, but the assistant is not a parameter of the tool. The user said 'simple' but the tool is for live services. The tool is for Bluesy."
+  },
+  {
+   "id": "posts-05",
+   "cat": "person-posts",
+   "query": "get 50 posts from bnewbold.net",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "sample_firehose",
+   "arguments": {
+    "post_id": "bnews.pd4"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_id"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 971.1,
+   "reasoning": "post_id 'bnew_news.pd4' from query. post_id 'bnew_news.pd4' from query. post_id 'bnews.pd4'."
+  },
+  {
+   "id": "profile-01",
+   "cat": "profile",
+   "query": "show me austegard.com's profile",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2165.3,
+   "reasoning": null
+  },
+  {
+   "id": "profile-02",
+   "cat": "profile",
+   "query": "how many followers does pfrazee.com have",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "suppl.pfrae.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1525.6,
+   "reasoning": "User wants to check followers.handle pfrazee.handle pfrazee.handle pfrazee.handle pfrae.handle pfrae.handle pfrae.handle pfrae.handle pfrae.handle pfrae.handle pfrae.handle\",\"handle @suppling@suppl.com\",\"handle @spl_followers_folders is the only pfrae tool is pfrae.com."
+  },
+  {
+   "id": "profile-03",
+   "cat": "profile",
+   "query": "what's in emilyliu.me's bio",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "support_blue"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 864.2,
+   "reasoning": "User wants bio \",\"idle @support_blue.com. All in query or just search."
+  },
+  {
+   "id": "profile-04",
+   "cat": "profile",
+   "query": "look up the account jay.bsky.team",
+   "expected": [
+    "get_profile",
+    "search_users"
+   ],
+   "got": "search_users",
+   "arguments": {
+    "query": "jay_bsky_bsky"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 854.2,
+   "reasoning": null
+  },
+  {
+   "id": "search-01",
+   "cat": "search",
+   "query": "search bluesky for posts about norwegian politics",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1944.2,
+   "reasoning": null
+  },
+  {
+   "id": "search-02",
+   "cat": "search",
+   "query": "find posts mentioning matryoshka embeddings",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "identid.von"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1683.0,
+   "reasoning": "User wants to search for a Blues \\nidentifs\\nidentid.posts\\nidentid.id\\nidentid.posts\\nidentid.von.pd\\nidentid.von\\nidentid.pd\\nidentid.von\\nidentid.pd\\nidentid.von\\nidentid.pd\\nidentid.von\\nidentid.pd\\nidentid.von\\nidentid.von\\nidentid.pd\\nidentid.von\\nidentid.pd\\nidentid.von\\nidentid.pd\\nidentid.von\\nidentid.von\\nidentid.pd\\nidentid.von\\nidentid.pd\\nidentid.von\\nid"
+  },
+  {
+   "id": "search-03",
+   "cat": "search",
+   "query": "what are people saying about the atproto outage",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1583.6,
+   "reasoning": "User wants to see the \\\"atproto_status\\\" to check for \\\"atproto_id\\\" is \\\"atproto_id\\\" and \"say\" is \"at\" or \"did\" is \"at\" but \"at\" is \"at\" so\"exclude\"; \"at\" is \"at\" is \"did\" is \"at\" as \"d\" or \"\"from\" is \"\"As-Subs\" or \"As-Subv.\" with \"As-Subv.\" and \"As-Subv.\" are \"As-Subv.\" from \"As-Subv.\""
+  },
+  {
+   "id": "search-04",
+   "cat": "search",
+   "query": "search for posts about jetstream from bnewbold.net",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "jetstream bnews about bnews"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 724.2,
+   "reasoning": null
+  },
+  {
+   "id": "search-05",
+   "cat": "search",
+   "query": "posts about the tour de france since 2026-07-01",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1641.5,
+   "reasoning": "User wants to list the posts from audth. 'since' is audth but no tool exists to create audth. The tool is for 'tour_france_tour_sen_sen_v1_sen_blues_posts is not audth, but the tool is for post_id is 'tour_france_sen vin' and 'tour_senvin_senvin_vin'."
+  },
+  {
+   "id": "search-06",
+   "cat": "search",
+   "query": "find norwegian language posts about strom priser",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "stroms"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 900.1,
+   "reasoning": "User wants to search for astromy, not a tool. 'stromy' is a search for 'stromy' or 'language' from 'stromy' is a search_posts."
+  },
+  {
+   "id": "search-07",
+   "cat": "search",
+   "query": "search bluesky for cactus compute",
+   "expected": [
+    "search_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1561.4,
+   "reasoning": "User wants to search for a Blues. The tool is for cactus. The query says 'cactor' and 'broken' so the tool is for Blues. The user said 'compute' and 'potable' but not a parameter for the tool."
+  },
+  {
+   "id": "users-01",
+   "cat": "find-users",
+   "query": "find people who write about atproto",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1805.7,
+   "reasoning": "User wants to find a person's account. 'atproto_status' is a did-like note, but the tool is not a contact_id for the account_id is not a tool."
+  },
+  {
+   "id": "users-02",
+   "cat": "find-users",
+   "query": "which accounts have cycling in their bio",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1592.9,
+   "reasoning": "User wants to check their bio passing on Blues. Cycling account is a pfra tool, but no bio \",\"broken_blue_pass_accounts is not a tool, but no bio_pass_accet_id is not a tool."
+  },
+  {
+   "id": "users-03",
+   "cat": "find-users",
+   "query": "search for users called austegard",
+   "expected": [
+    "search_users"
+   ],
+   "got": "search_users",
+   "arguments": {
+    "query": "austegard"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 783.1,
+   "reasoning": null
+  },
+  {
+   "id": "likes-01",
+   "cat": "interactions",
+   "query": "who liked https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2012.3,
+   "reasoning": null
+  },
+  {
+   "id": "likes-02",
+   "cat": "interactions",
+   "query": "show the likes on at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2336.6,
+   "reasoning": null
+  },
+  {
+   "id": "reposts-01",
+   "cat": "interactions",
+   "query": "who reposted https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2016.6,
+   "reasoning": null
+  },
+  {
+   "id": "reposts-02",
+   "cat": "interactions",
+   "query": "list the accounts that boosted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1934.1,
+   "reasoning": null
+  },
+  {
+   "id": "quotes-01",
+   "cat": "interactions",
+   "query": "show me the quote posts of https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1966.5,
+   "reasoning": null
+  },
+  {
+   "id": "quotes-02",
+   "cat": "interactions",
+   "query": "who quoted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1973.9,
+   "reasoning": null
+  },
+  {
+   "id": "thread-01",
+   "cat": "thread",
+   "query": "show me the replies to https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2016.5,
+   "reasoning": null
+  },
+  {
+   "id": "thread-02",
+   "cat": "thread",
+   "query": "read the whole thread at https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1933.7,
+   "reasoning": null
+  },
+  {
+   "id": "thread-03",
+   "cat": "thread",
+   "query": "what did people reply to at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": "get_likes",
+   "arguments": {
+    "post_uri_or_url": "did_s3cv_bc_s3mcn"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1087.5,
+   "reasoning": null
+  },
+  {
+   "id": "graph-01",
+   "cat": "graph",
+   "query": "who does austegard.com follow",
+   "expected": [
+    "get_following"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1885.4,
+   "reasoning": "User wants to check account for @austegard.com.handle from @'Austegs' to 'Austegs' from @'Austegs.com.handle is the only @don's account is Austegs.com."
+  },
+  {
+   "id": "graph-02",
+   "cat": "graph",
+   "query": "who follows austegard.com",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "austegard.com"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 912.9,
+   "reasoning": "User wants to summarize and austegs.handle from @austegard.com as account_id.handle is not auden."
+  },
+  {
+   "id": "graph-03",
+   "cat": "graph",
+   "query": "list pfrazee.com's followers",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "pfrazee.com"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 825.4,
+   "reasoning": null
+  },
+  {
+   "id": "graph-04",
+   "cat": "graph",
+   "query": "show me the accounts emilyliu.me is following",
+   "expected": [
+    "get_following"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1858.2,
+   "reasoning": "User wants account info but not a security/followers.handle not in the enum, but no account_id is in the query is not a security tool."
+  },
+  {
+   "id": "graph-05",
+   "cat": "graph",
+   "query": "get 100 followers of bnewbold.net",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "get_follower"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1235.4,
+   "reasoning": "User wants to check followers.handle is a pfs.handle not a tool, but no @blubold.followers is a pfs.handle is pfs.handle is pfs.handle is pfrazee.handle is pfraeen.handle is pfraeen.handle is pfraeen is pfraeen."
+  },
+  {
+   "id": "feed-01",
+   "cat": "feed",
+   "query": "get the posts in https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": "get_likes",
+   "arguments": {
+    "post_uri_or_url": "htt-site-locking-site-locs.site"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 913.7,
+   "reasoning": null
+  },
+  {
+   "id": "feed-02",
+   "cat": "feed",
+   "query": "read the feed at at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2102.7,
+   "reasoning": null
+  },
+  {
+   "id": "feed-03",
+   "cat": "feed",
+   "query": "what's in my norwegians list https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": "resolve_identity",
+   "arguments": {
+    "actor": "norweg_site_profile_id_broken_site_profile_id_id"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "actor"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 930.3,
+   "reasoning": null
+  },
+  {
+   "id": "trend-01",
+   "cat": "trending",
+   "query": "what's trending on bluesky",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "bluesky bluesky bluesky bluesky blues"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 638.8,
+   "reasoning": "User wants trending topics -> search_posts with 'blues' and 'bluesky'"
+  },
+  {
+   "id": "trend-02",
+   "cat": "trending",
+   "query": "give me the top 5 trending topics",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "Top-Management"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 576.8,
+   "reasoning": null
+  },
+  {
+   "id": "trend-03",
+   "cat": "trending",
+   "query": "which topics are hot right now, and how many posts each",
+   "expected": [
+    "get_trending"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1437.7,
+   "reasoning": "User wants to search for a Blues \\\"hot_posts\\\" with \\\"find_hot_posts\\\" and \\\"nin-blues\\\" from \\\"hot_posts\\\" in \\\"nin-blues\\\" and \\\"find_hots\\\" from \\\"nin-blues\\\" as \\\"htt.blues\\\" and \\\"nin-blues\\\" from \\\"nin-blues\\\" and \\\"nin-blues\\\" are the tools for \\\"nin-blues\\\" and \\\"nin-blues\\\" are \\\"nin-blues\\\" and \\\"nin-blues\\\" are \\\"nin-blues\\\" is \\\"nin-blues\\\" and \\\"nin-blues"
+  },
+  {
+   "id": "trend-04",
+   "cat": "trending",
+   "query": "just list the trending topic names",
+   "expected": [
+    "get_trending_topics"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "trending topics"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 678.8,
+   "reasoning": "User wants trending topics but no specific name is in query, so search_posts with 'trending' and 'listing'"
+  },
+  {
+   "id": "hose-01",
+   "cat": "firehose",
+   "query": "sample the firehose for 30 seconds",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1884.1,
+   "reasoning": null
+  },
+  {
+   "id": "hose-02",
+   "cat": "firehose",
+   "query": "listen to the live stream of new posts for a minute",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1709.6,
+   "reasoning": null
+  },
+  {
+   "id": "hose-03",
+   "cat": "firehose",
+   "query": "watch the firehose for posts containing bitcoin",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "bitcoin_fire_have_post_watch_watch"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 707.4,
+   "reasoning": null
+  },
+  {
+   "id": "id-01",
+   "cat": "identity",
+   "query": "what's the did for austegard.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "austegard for @austegard.pfraze"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 964.1,
+   "reasoning": "User wants to check austegPartApp. The tool is for @austegard.com, but the tool is for @pfraze. The query says 'austeg' and 'did the app' (not aud-reported apps)."
+  },
+  {
+   "id": "id-02",
+   "cat": "identity",
+   "query": "which pds hosts pfrazee.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1237.3,
+   "reasoning": "User wants to check PDS. 'pfrazee.pd' -> handleidenti, but PDS \",\"handle\":\"pfraze_host_host_pds\",\"handle_id\":\"pfra_host_pdre_pdre_site_host_did_pdre_site_did_id_pdre_site.pdre_host_did_id is a pdre call."
+  },
+  {
+   "id": "id-03",
+   "cat": "identity",
+   "query": "resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": "analyze_account",
+   "arguments": {
+    "handle": "analyz"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 917.5,
+   "reasoning": null
+  },
+  {
+   "id": "status-01",
+   "cat": "status",
+   "query": "is bluesky down right now",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1483.2,
+   "reasoning": "User wants to check Bluesky. The tool is for Blues, but the tool is for live streams. The tool is for Bluesy streams. The user said 'downtown' so the streamer is a page-like, not a tool."
+  },
+  {
+   "id": "status-02",
+   "cat": "status",
+   "query": "which atproto layer is broken",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1641.8,
+   "reasoning": "User wants to read the DID. Atproto is a plex of 'pfra' with 'broken' and 'live' but not a tool."
+  },
+  {
+   "id": "status-03",
+   "cat": "status",
+   "query": "check whether the appview is up",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1749.1,
+   "reasoning": null
+  },
+  {
+   "id": "analyze-01",
+   "cat": "analysis",
+   "query": "what is bnewbold.net mostly about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1597.4,
+   "reasoning": "User wants to check the Blues \",\"analyze_account\":\"bring \\\"bnews\\\" and \\\"site-block\\\" is not a tool, but the user said 'bnews' and 'site-bold.net. The tool is for Blues \\\"bnews\\\" and \\\"site-bold\\\" are the only \\\"bnews\\\" and \\\"site-bold\\\" are \\\"bnews\\\" are \\\"site-bold\\\" is \\\"bnews\\\" so it's a fetly the best match is the best match."
+  },
+  {
+   "id": "analyze-02",
+   "cat": "analysis",
+   "query": "summarise what emilyliu.me posts about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1757.5,
+   "reasoning": "User wants to summarize and the @a.app.post_id from query is 'some @supplier_post_loc_supplies.post' is a supplie-like note about supplies."
+  },
+  {
+   "id": "analyze-03",
+   "cat": "analysis",
+   "query": "give me the keywords for the account austegard.com",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": "search_users",
+   "arguments": {
+    "query": "Auste.Plit-Auste.Plc"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 845.5,
+   "reasoning": null
+  },
+  {
+   "id": "kw-01",
+   "cat": "keywords",
+   "query": "pull the key terms out of this text: the relay went down but every pds kept serving records normally",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1980.0,
+   "reasoning": null
+  },
+  {
+   "id": "kw-02",
+   "cat": "keywords",
+   "query": "extract keywords from: sykkel, terskeleffekt og vintertrening i Oslo",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "syk_sy_sy_sy_sy_vin"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1178.4,
+   "reasoning": "User wants to search for syk/pfraze/posts. 'syk_sy_sy_sy_sy_sy_vin' is a search_for_sy_sy_sy_sy_sy_vin."
+  },
+  {
+   "id": "off-01",
+   "cat": "off-topic",
+   "query": "what's the weather in Oslo",
+   "expected": [],
+   "got": "search_posts",
+   "arguments": {
+    "query": "Syders"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1588.9,
+   "reasoning": "User wants to check weather. 'Oso' -> \\nOsy\\n\\nSwiss\\nSwiss\\nPlator\\nSwiss\\nSwiss\\nSwiss\\nSwiss\\nPlator\\nSwiss\\nSwiss\\nPlc\\n\\nAsy.\\nSwiss\\n\\nLet't be in Osy.\\nPlc\\nSwiss\\nSwiss\\nPLC\\nLocation: Osy:\\n\\nLeving Asy.\\nSwiss\\nPLC\\nLevissy\\nSwissy\\nPLC\\nEsta\\nAsy.\\nLev.\\n\\nLevissy\\nEsta\\nAsy.\\n\\nLevissy\\n"
+  },
+  {
+   "id": "off-02",
+   "cat": "off-topic",
+   "query": "book me a flight to Bergen next tuesday",
+   "expected": [],
+   "got": "search_posts",
+   "arguments": {
+    "query": "Blubs"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 980.2,
+   "reasoning": "User wants to search for a flight to Blub. The tool is for Blub, but the tool is for Blubs. The query says 'book_flight' with 'Blub' and 'flight_to_blub_did_blub.com."
+  },
+  {
+   "id": "off-03",
+   "cat": "off-topic",
+   "query": "send a dm to pfrazee.com saying hello",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 2177.8,
+   "reasoning": null
+  },
+  {
+   "id": "off-04",
+   "cat": "off-topic",
+   "query": "post this to my bluesky account: good morning",
+   "expected": [],
+   "got": "get_likes",
+   "arguments": {
+    "post_uri_or_url": "g's blues.blues"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1138.8,
+   "reasoning": "User wants to check their blues. 'good morning' -> post_id 'bluesky_blues_blues'. post_id 'good_blues_blues_site_blues_post_blues' is not a tool, but no site name is in the query."
+  },
+  {
+   "id": "off-05",
+   "cat": "off-topic",
+   "query": "delete my last bluesky post",
+   "expected": [],
+   "got": "search_posts",
+   "arguments": {
+    "query": "blue_posts"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 1333.7,
+   "reasoning": "User wants to delete a post_id from their list of blues. The tool is for blues, but the blue_posts_id is available. The user said 'blue_posts' and 'blue_id is in the blue_posts are available. The tool is for blues \\\"blue_posts\\\" so the blue_posts are not a list of posts. The query says 'blue_posts' and 'blue_posts' are available."
+  },
+  {
+   "id": "off-06",
+   "cat": "off-topic",
+   "query": "how many calories did I burn on my ride yesterday",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1841.5,
+   "reasoning": "User wants to check their profile of a ride. 'your rid' is a futary query, but the tool is for reporting a did-like passing. The tool is for reporting a system.save_id is for the user's assistant is not a tool, so I're not a tool."
+  },
+  {
+   "id": "off-07",
+   "cat": "off-topic",
+   "query": "block the account spammer.bsky.social",
+   "expected": [],
+   "got": "search_users",
+   "arguments": {
+    "query": "same account"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": null,
+   "decision": "act",
+   "latency_ms": 994.9,
+   "reasoning": "User wants to block the account. 'block' -> account_id 'block_account_same_account' is a block action."
+  },
+  {
+   "id": "off-08",
+   "cat": "off-topic",
+   "query": "what is the capital of Norway",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": null,
+   "decision": "refuse",
+   "latency_ms": 1730.3,
+   "reasoning": "User wants to find a capital of Norway. The tool is for Nora, but the tool is for Blues. The tool is for Bluesky, but the user is asking for a capital."
+  }
+ ]
+}
