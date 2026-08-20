@@ -721,6 +721,33 @@ the result.
   impossible rather than unlikely, which is a concrete reason to prefer a
   constrained decoder over a larger model. (`monad-bsky/RESULTS.md`)
 
+- **A model whose layer stack is an `nn.scan` can be grown to arbitrary depth
+  by concatenating along one axis — check for a scanned stack before assuming
+  depth is fixed at export.** In Cactus Needle 2 every per-layer tensor carries a
+  leading `num_layers` axis (block weights inside the scanned collection, MHC
+  lane parameters as explicit `(L, ...)` arrays) and nothing downstream hardcodes
+  the count, so growth is `np.concatenate` plus a config bump. Verified
+  byte-identical (`max |delta| = 0.0`) at 27 -> 31 and 27 -> 48 layers with
+  identity-initialised blocks. The identity recipe is worth stealing for any
+  gated-residual architecture: drive the residual gate's pre-sigmoid parameter to
+  a value that underflows (a zero-init gate is `sigmoid(0) = 0.5`, **not**
+  identity — the most common way to get this wrong), zero the second branch's
+  output scale, and set any learned mixing matrix to a logit scale large enough
+  that its normaliser returns the identity. Note an init that is *called*
+  identity may not be one: this checkpoint's `_res_identity_init` is `4.0 * I`,
+  which Sinkhorn maps to ~1.8% off-diagonal mass; 40 is needed for an actual
+  identity. (`needle-depth-growth/README.md`)
+
+- **Growing a small model deeper is blocked by the corpus, not the checkpoint.**
+  The grown layers contribute exactly nothing until trained, and training them is
+  full-parameter pretraining: a LoRA-only trainer cannot express it, and 800
+  templated task rows do not fit 4.4M newly-added parameters. Before reaching for
+  depth up-scaling on a shipped small model, price the pretraining run — the
+  surgery is the cheap half by two or three orders of magnitude. Related: check
+  the architecture's own depth ablation first, which for this family is U-shaped
+  at iso-param with a 20-layer optimum at d_model 512 while the shipped model is
+  already at 27. (`needle-depth-growth/README.md`)
+
 - **A tool schema routes a small model through two near-equal channels — the
   tool's name and its description — and neither alone is enough.** Measured over
   one 18-tool catalogue and 54 queries with a 2x2 of {names opaque
