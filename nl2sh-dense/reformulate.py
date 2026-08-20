@@ -33,7 +33,6 @@ the index was built in — an expansion tokenized differently would silently mis
 from __future__ import annotations
 
 import argparse
-import math
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path

@@ -1,0 +1,1442 @@
+{
+ "retriever": "rrf:bm25+leaf-mt-int8",
+ "granularity": "page",
+ "model": "/workspace/experiments/nl2sh-retrieval/ft_gemma",
+ "n": 178,
+ "modes": {
+  "retrieval": {
+   "mode": "retrieval",
+   "n": 178,
+   "n_leak_free": 164,
+   "utility_acc_leak_free": 0.165,
+   "command_rate": 1.0,
+   "gold_in_sources_rate": 0.388,
+   "rows": [
+    {
+     "utility": "cd",
+     "nl": "Go to my home directory.",
+     "command": "cd my home -o -f",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "ls",
+     "nl": "Show all files in the current directory, including hidden ones.",
+     "command": "lsattr -f",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "cat",
+     "nl": "Show the contents of the file 0hRGen1s.",
+     "command": "git -c 0hRGen1s",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "fcrackzip",
+     "nl": "Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.",
+     "command": "john /usr/share/wordlists/fasttrack.txt",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ssh",
+     "nl": "Connect to the remote server at 172.18.5.1 on port 22.",
+     "command": "ssh -p 22.18.5.1 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | x",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "scp",
+     "nl": "Copy the file .invoices2019.zip",
+     "command": "copy -c 2019.zip",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "nmap",
+     "nl": "Run a quick port scan on 172.18.1.5.",
+     "command": "scan 172.18.1.5",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "nc",
+     "nl": "Listen on port 51071 for incoming data and save it to a file named id_rsa.",
+     "command": "ncat 51071 | xargs -0 id_rsa",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "python",
+     "nl": "Exploit the CVE-2019-15107 vulnerability on http://172.18.1.5:10000 to read the contents",
+     "command": "searchsploit -p 10000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "john",
+     "nl": "Crack the password hashes in crack.txt using the wordlist at /usr/share/wordlists/rockyou.txt.",
+     "command": "john /usr/share/wordlists/rockyou.txt",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "nano",
+     "nl": "Open the authorized_keys file in a text editor.",
+     "command": "o -t ' ' | xargs -0 -0",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "man",
+     "nl": "Show the manual page for fcrackzip.",
+     "command": "fcrackzip -p 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "msfconsole",
+     "nl": "Show the help options and usage information for launching the Metasploit console.",
+     "command": "pulumi -c $(cat /bin/console/ -o -c 2>/dev/null)",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "mkdir",
+     "nl": "Create a new folder named ssh-secret-server.",
+     "command": "ssh-secret-server",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "locate",
+     "nl": "Find the location of the file rockyou.txt.gz on my system.",
+     "command": "gz -c 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ssh-add",
+     "nl": "Add the SSH key id_rsaaaa to the SSH agent.",
+     "command": "ssh-copy-id",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "ping",
+     "nl": "Test network connectivity to the broadcast address",
+     "command": "ip ssh -c 2 | xargs -0 | grep -l",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ip",
+     "nl": "Show all network interfaces and their assigned IP addresses.",
+     "command": "ip -c 2000 | grep IP | xargs -0",
+     "names_utility": true,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "apt",
+     "nl": "Install nmap on my system.",
+     "command": "searchsploit -n 1000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "find",
+     "nl": "Search the entire filesystem for executable files named metasploit.",
+     "command": "which metasploit",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "vim",
+     "nl": "Open and edit the file flag.txt in the terminal.",
+     "command": "edit -f | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "chmod",
+     "nl": "Give everyone full read, write, and execute permissions for key.txt.",
+     "command": "chmod 755",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "dpkg",
+     "nl": "Show the control file information and metadata for the package file webmin_1.920_all.deb.",
+     "command": "yum show the control file | grep -l",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "passwd",
+     "nl": "Show the password status for all user accounts.Show the password status",
+     "command": "passwd -c '",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "less",
+     "nl": "View the contents of /etc/services page by page.",
+     "command": "systemctl -p /etc/services page",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "searchsploit",
+     "nl": "Search for privilege exploits and filter the results for display.",
+     "command": "search -f privilege",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "open",
+     "nl": "Open the Romeo-and-Juliet.pdf file in the default application.",
+     "command": "man Romeo-and-Juliet.pdf",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "nslookup",
+     "nl": "Find the hostname associated with the IP address 172.18.1.",
+     "command": "dns -p 172.18.1",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "module",
+     "nl": "Load the exploit module for the Webmin backdoor vulnerability.",
+     "command": "searchsploit -p 2000",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "for",
+     "nl": "Scan all ports on 172.18.1.5 individually in reverse order from 65535 down to 1 and append the results to out.txt.",
+     "command": "rustscan -a | tail -1 | awk '",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ssh-copy-id",
+     "nl": "Copy my public key from ~/.ssh/id_rsa.pub to the remote server for user alice at 172.18.1.5 so I can log in without a password.",
+     "command": "ssh-keygen -c 172.18.1.5",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "diff",
+     "nl": "Compare the differences between ssh2john.py and /usr/share/john/ssh2john.py.",
+     "command": "git -p ssh2john.py /usr/share/john/ssh2john.py",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "xdg-open",
+     "nl": "Open Romeo-and-Juliet.pdf in the default application.",
+     "command": "man Romeo-and-Juliet.pdf",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "login",
+     "nl": "Start a new login session with administrator privileges.",
+     "command": "sudo -p /var/log/syslog",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "tail",
+     "nl": "Show the last few lines of /usr/share/john/password.lst.",
+     "command": "john /usr/share/john/password.lst",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "chown",
+     "nl": "Change the owner to 0044.",
+     "command": "chgrp -o chgrp 0044",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "ln",
+     "nl": "Create a symbolic link from scipag_vulscan in the current directory to /usr/share/nmap/scripts/vulscan.",
+     "command": "link -s /usr/share/nmap/scripts/vulscan.",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "journalctl",
+     "nl": "Show the logs for scp.service.",
+     "command": "log scp.service.",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "apt",
+     "nl": "Install metasploit-framework on my system.",
+     "command": "dep metasploit-framework",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "dig",
+     "nl": "Find my public IP address using myip.opendns.com.",
+     "command": "dig myip.opendns.com",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "netstat",
+     "nl": "Show all active network connections and listening ports.",
+     "command": "netstat -p 23 -i 24 -o 3 -o 4 -o 5 -o 6 -o 7 -o 8 -o 9 -o 10 -o 11 -o 12 -o 13 -o 1",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "tree",
+     "nl": "Display a hierarchical view of all files and folders in the current directory.",
+     "command": "ls -d",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "sftp",
+     "nl": "Download the file personal/.invoices2019.zip from the remote server 10.1.26.9 as user admin and save it to a local file or directory named result.",
+     "command": "ssh -c 10.1.26.9",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "test",
+     "nl": "Evaluate a conditional expression.",
+     "command": "let -e | xargs -0 -0",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "nc",
+     "nl": "Connect to port 4444 on localhost.",
+     "command": "wait4x -c 1000 | xargs -0 | xargs -0 | xargs -0 | xargs -0 | xargs -0 | xargs -0 | xargs -0 | xargs -0 | xargs -0 | xargs -0 | xargs -",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "history",
+     "nl": "Show a list of previously executed commands in the terminal.",
+     "command": "for -i 2000 -p 2000 -p 2000 -p 2000 -p 2000 -p 2000 -p 2000 -p 2000 -p 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "echo",
+     "nl": "Print the text -----BEGIN RSA PRIVATE KEY----- to the terminal.",
+     "command": "read -t \"BEGIN RSA PRIVATE KEY-----\"",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "mmcli",
+     "nl": "Show the help information and available options for managing modems from the command line.",
+     "command": "iw --type f -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "exit",
+     "nl": "Close the current terminal session.",
+     "command": "reset -f",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "arp",
+     "nl": "Show all IP and MAC address mappings on the local network.",
+     "command": "ip -c 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "micro",
+     "nl": "Open the file key in a terminal text editor.",
+     "command": "o -t /bin/read -c ' ' | xargs -0 -0",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "print",
+     "nl": "Display the word banner in the terminal.",
+     "command": "banner",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "fcrackzip",
+     "nl": "Crack the password of a ZIP file.",
+     "command": "john -c 1000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "passwd",
+     "nl": "Change the password for the admin user.",
+     "command": "passwd -uadmin /bin/chpasswd",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "clear",
+     "nl": "Wipe the terminal screen to remove all previous output.",
+     "command": "clear -f 2000",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "sshpass",
+     "nl": "Log in to the remote server at 10.1.26.9 as user admin using the password admin without being prompted.",
+     "command": "login -padmin admin",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "ping",
+     "nl": "Check the network connection to 172.18.1.5 to see if it is reachable.",
+     "command": "netdiscover -r 172.18.1.5",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ruby",
+     "nl": "Run the 47230.rb script.",
+     "command": "run_init -b 47230.rb",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "gedit",
+     "nl": "Open the graphical text editor.",
+     "command": "o -t 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "logout",
+     "nl": "Sign out of the current terminal session.",
+     "command": "reset -p 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "rcp",
+     "nl": "Copy .invoices2019",
+     "command": "copyq .invoices2019",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "touch",
+     "nl": "Create an empty file named id_rsa.",
+     "command": "mkdir id_rsa",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "help",
+     "nl": "Show a list of available shell built-in commands and how to use them.",
+     "command": "help -l",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "hostname",
+     "nl": "Change the system's hostname to 172.18.1.5.",
+     "command": "resolveip -c 172.18.1.5",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "crontab",
+     "nl": "Show my scheduled cron jobs.",
+     "command": "cron -c 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "arping",
+     "nl": "Show the help information for pinging devices on the local network using ARP requests.",
+     "command": "ip ssh | grep -l",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "nslookup",
+     "nl": "Find the hostname associated with the IP address 172.18.1.5.",
+     "command": "dns -p 172.18.1.5",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "git",
+     "nl": "Download the repository from https://github.com/jas502n/CVE-2019-15107.",
+     "command": "yum install $(repo/java/CVE-2019-15107)",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "pacman",
+     "nl": "Update the system packages and install nmap.",
+     "command": "yum update nmap",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "unzip",
+     "nl": "Extract the contents of .invoices2019.zip.",
+     "command": "zip .invoices2019.zip",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "systemctl",
+     "nl": "List all active system services and their current status.",
+     "command": "service --status-all",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "apt-get",
+     "nl": "Install a tool to crack passwords on protected zip files.",
+     "command": "john -pzip -c 2007",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "curl",
+     "nl": "Send an HTTP request to 172.1",
+     "command": "curl 172.1",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "su",
+     "nl": "Switch to the root user.",
+     "command": "switch_root /bin/root/",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ssh-copy-id",
+     "nl": "Copy my SSH public key to eve@10.1.17.4 to enable password",
+     "command": "ssh-keygen -c '",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "lynis",
+     "nl": "Run a security audit on the remote system at 100.100.100.4.",
+     "command": "sudo prowler -a 100.100.100.4",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "traceroute",
+     "nl": "Show the network path to 1",
+     "command": "ip ssh 2",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "tar",
+     "nl": "Extract the contents of rockyou.txt.gz and show the progress in the terminal.",
+     "command": "progress -t 10000000 | grep -r",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "gcc",
+     "nl": "Compile the C program CVE_2019_15107.c into an executable named CVE_2019_15107 using the curl library.",
+     "command": "CC -c 2019_15107.c -o -c 2019_15107.c",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "wget",
+     "nl": "Download the file from https://netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920_all.deb.",
+     "command": "wget https://netix.dl.sourceforge.net/project/webadmin/webmin_1.920/webmin_1.920_all.deb.",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "ssh-add",
+     "nl": "Add the id_rsa private key to the SSH agent.",
+     "command": "ssh-keygen -p",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "egrep",
+     "nl": "Find the service associated with TCP port 22 in /etc/services.",
+     "command": "ss -t 22 /etc/services.",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "fping",
+     "nl": "Ping multiple network hosts quickly at the same time.",
+     "command": "ping -c 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "masscan",
+     "nl": "Show the current configuration template for scanning port 1234 instead of running the scan.",
+     "command": "perl -n 1234",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "iptables",
+     "nl": "Manage the system firewall rules to control network traffic.",
+     "command": "firewall-cmd --type f -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -o -",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "mkdir",
+     "nl": "Create a folder named .ssh in the current location.",
+     "command": "hub -c .ssh",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "gobuster",
+     "nl": "Brute force and discover directories on http://172.18.1.5/ using the wordlist located at /sips/sipssys/users/a/admin/user.",
+     "command": "readlink -p /sips/sipssys/users/a/admin/user.",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "wpscan",
+     "nl": "Scan the WordPress site at http://127.18.1.5 for security vulnerabilities and configuration issues.",
+     "command": "wp -f 2007",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "alias",
+     "nl": "Create a shortcut called ll to list all files, including hidden ones, in a detailed view with human-readable file sizes.",
+     "command": "ls -1 | xargs -0 -0",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "xclip",
+     "nl": "Paste the contents of my clipboard into .ssh/id_rsa.",
+     "command": "copyq",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "hydra",
+     "nl": "Perform a brute-force dictionary attack against network login credentials.",
+     "command": "pator ssh_login",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "unshadow",
+     "nl": "Combine the passwd and shadow files into a single file named mypasswd.txt.",
+     "command": "paste mypasswd.txt",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "ifconfig",
+     "nl": "Display the network interface configurations and IP addresses.",
+     "command": "ipconfig | grep -i",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "install",
+     "nl": "Install metaspoilt-framework with administrator privileges.",
+     "command": "sudo -p -l 2000 -p 3000 -p 4000 -p 5000 -p 6000 -p 7000 -p 8000 -p 9000 -p 10",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ps",
+     "nl": "Show a detailed list of all running processes on the system.",
+     "command": "ps -p | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "tmux",
+     "nl": "Start a persistent terminal session that can be detached and resumed later.",
+     "command": "screen -t 1000 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "sort",
+     "nl": "Display the contents of hacking/wordlist.txt in alphabetical order.",
+     "command": "cewl -d ' ' | sort | awk ' '",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "open",
+     "nl": "Open the file or folder named nmap in its default application.",
+     "command": "open -n 18",
+     "names_utility": true,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "rmdir",
+     "nl": "Delete the invoices2019 folder.",
+     "command": "sudo rm -f {} \\;",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "rm",
+     "nl": "Delete the file id_rsa.",
+     "command": "shmem_id -r shmem_id",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "set",
+     "nl": "Set the target host IP address to 172.18",
+     "command": "mtr -c 172.18",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "whereis",
+     "nl": "Find the location of the binary, source code, and manual pages for researchers.",
+     "command": "whereis -p 2000",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "perl",
+     "nl": "Check which version of Perl is installed on the system.",
+     "command": "perlbrew",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "tshark",
+     "nl": "Capture network traffic to and from 172.18.1.5.",
+     "command": "tcpdump -d 172.18.1.5",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ssh",
+     "nl": "Log in to the remote server at 10.1.26.9 as the user admin.",
+     "command": "ssh -v 10.1.26.9",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "metaflac",
+     "nl": "Display the help information and usage options for editing FLAC metadata.",
+     "command": "mdls -l",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "openssl",
+     "nl": "Launch the interactive cryptography and certificate management tool.",
+     "command": "step -c 256 | xargs -0 -0",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "dpkg",
+     "nl": "Install the webmin_1.920",
+     "command": "install webmin_1.920",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "tcpdump",
+     "nl": "Capture network traffic on port 22.",
+     "command": "tcpdump -d 22.",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "hashcat",
+     "nl": "Crack the password hashes in hash.txt using the wordlist located at /usr/share/wordlists/rockyou.txt.",
+     "command": "john /usr/share/wordlists/rockyou.txt",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "which",
+     "nl": "Show the path to the fcrackzip executable.",
+     "command": "upx fcrackzip",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "nmap",
+     "nl": "Scan 172.18.1.5 for open ports.",
+     "command": "rustscan -a | grep open",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "lsof",
+     "nl": "List all open listening ports and the processes using them.",
+     "command": "ls -l",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "host",
+     "nl": "Find the IP address for exploit-db.com.",
+     "command": "dig -d /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /bin/find /",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "more",
+     "nl": "View the contents of wordlist.txt one page at a time.",
+     "command": "cewl -p 2 -p 1 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "show",
+     "nl": "Display a list of all available exploit modules.",
+     "command": "module | grep -l",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "msfconsole",
+     "nl": "Launch the interactive console for the Metasploit framework.",
+     "command": "sudo msfconsole | xargs -0 -0",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "shasum",
+     "nl": "Calculate the SHA checksum for the file id_rsa.",
+     "command": "shasum id_rsa",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "%",
+     "nl": "Securely copy the / directory.",
+     "command": "cp / -c 2>/dev/null",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ncat",
+     "nl": "Listen for incoming network connections on port 8080.",
+     "command": "upnpc -a 192.168.0.1 8080 80 tcp | grep -l",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "nice",
+     "nl": "Display the current process scheduling priority.",
+     "command": "chrt -p | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -0 -0 | xargs -",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "sed",
+     "nl": "Change passwd_mode from 0 to 2 in /etc/webmin/miniserv.conf and restart the webmin service.",
+     "command": "passwd_mode 2",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "xargs",
+     "nl": "Display the help and usage options for the command used to pass standard input as arguments to other commands.",
+     "command": "xml --help",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "whois",
+     "nl": "Look up the registration and ownership details for the IP address 172.18.1.5.",
+     "command": "ip -o 172.18.1.5",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "searchsploit",
+     "nl": "Search for exploit code and vulnerabilities related to webmin.",
+     "command": "search -c \".*\"",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "man",
+     "nl": "Show me the manual page and documentation for the nmap tool.",
+     "command": "npm -p nmap",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "mtr",
+     "nl": "Continuously trace the network route to 8.8.8.8 to monitor latency and packet loss.",
+     "command": "ip ssh | grep -l 1",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "cp",
+     "nl": "Find ssh2john.py on my system and copy it to the current directory.",
+     "command": "ssh2john.py",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "cat",
+     "nl": "Display the contents of flag.txt.",
+     "command": "ul flag.txt",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ls",
+     "nl": "List all files in the current directory, including hidden ones, with detailed information.",
+     "command": "ls -1",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "cd",
+     "nl": "Go up to the parent directory.",
+     "command": "cd $(pwd)",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "npm",
+     "nl": "Scan all ports on 192.",
+     "command": "ipscan 192.168.0.1",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "scp",
+     "nl": "Copy the file invoices2019.zip from the remote server 10.1.26.9 using the admin user to the local /home directory.",
+     "command": "rsync /home/ -v /home/ -v /home/ -v /home/ -v /home/ -v /home/ -v /home/ -v /home/ -v /home/ -v /home/ -v /home/ -v /home/ -v /home",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "eval",
+     "nl": "Start the SSH authentication agent in the current terminal session.",
+     "command": "ssh-agent",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "less",
+     "nl": "View the contents of file.txt page by page.",
+     "command": "ul -p page.txt",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "bash",
+     "nl": "Run the 47293.sh script.",
+     "command": "sh -c 47293.sh",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "where",
+     "nl": "Find the location of the file .invoices2019.zip.",
+     "command": "zip -a .invoices2019.zip",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "showmount",
+     "nl": "Show the list of exported NFS shares on this machine.",
+     "command": "showmount -n 1000",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "netdiscover",
+     "nl": "Scan the network to discover active devices at 172.18.",
+     "command": "scan -l 172.18",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "htop",
+     "nl": "Show an interactive monitor of running processes and system resource usage.",
+     "command": "top -p 2000 | grep -i ' ' | xargs -0 -0 | grep -i ' ' | xargs -0 | grep -i ' ' | xargs -0 | grep -i ' ' | xargs -0 | grep -i ' ' | xargs -",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "export",
+     "nl": "Set the terminal type to xterm.",
+     "command": "reset",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "arp-scan",
+     "nl": "Scan the local network to find all connected devices and their IP addresses.",
+     "command": "ip -c 2",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "tail",
+     "nl": "Show the last few lines of /var/log/auth.log.",
+     "command": "last -1 /var/log/auth.log",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "cksum",
+     "nl": "Calculate the checksum and byte count for the file id_rsa.",
+     "command": "shasum -H0 | wc -l",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "login",
+     "nl": "Sign in to the system to start a new session.",
+     "command": "tmux new-session",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "last",
+     "nl": "Show the history of recent user logins and system reboots.",
+     "command": "last -10",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "file",
+     "nl": "Show the file type of every file in the current directory.",
+     "command": "lsattr -f",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "head",
+     "nl": "Show the first 30 lines of /usr/share/john/password.lst.",
+     "command": "john /usr/share/john/password.lst",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "gio",
+     "nl": "Open file2 in its default application.",
+     "command": "open file2",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "locate",
+     "nl": "Find the location of the file ssh2john.py on the system.",
+     "command": "ssh2john.py | xargs -0 ssh2john.py",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "from",
+     "nl": "Import the function to convert packed binary data back into standard Python values.",
+     "command": "import python_data",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "stty",
+     "nl": "Set the terminal to read keystrokes immediately without waiting for the Enter key and stop displaying typed",
+     "command": "read -t \"Enter key\" | xargs -0 grep -t ' ' | xargs -0 grep -t ' ' | xargs -0 grep -t ' ' | xargs -0 grep -t ' ' | xargs -0 grep -t ' ' | xargs -0 grep -",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "pbpaste",
+     "nl": "Save the contents of my clipboard to a file named id_rsa.",
+     "command": "copyq my clipboard",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "vim",
+     "nl": "Open and edit the file named id_rsa in a text editor.",
+     "command": "edit -s id_rsa",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "journalctl",
+     "nl": "Show the logs for the scp service.",
+     "command": "log -c 's/ / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "while",
+     "nl": "Keep trying to download http://pastebin.com/raw/hz0dX16z until it succeeds.",
+     "command": "rsync- -rf -f 2000 -f 2000 -f 2000 -f 2000 -f 2000 -f 2000 -f 2000 -f 2000 -f",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "sh",
+     "nl": "Run the script 47293.sh with the",
+     "command": "sh -c 47293.sh",
+     "names_utility": true,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "nvim",
+     "nl": "Open ssh2john.py in a text editor.",
+     "command": "ssh2john.py | xargs -0 ssh2john.py",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "john",
+     "nl": "Crack the password hashes in hash using the wordlist at /usr/share/wordlists/rockyou.txt.",
+     "command": "john /usr/share/wordlists/rockyou.txt",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "dc",
+     "nl": "Change to the debian/ directory.",
+     "command": "alias debian/",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ssh-keygen",
+     "nl": "Generate a new SSH key pair.",
+     "command": "ssh-keygen -o -p 2>/dev/null",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "base64",
+     "nl": "Decode base64 encoded data from the standard input.",
+     "command": "base64 -i | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x1 | x",
+     "names_utility": true,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "grep",
+     "nl": "Find all lines containing ssh in my .bash_history file.",
+     "command": "ssh-keyscan ssh-keyscan hostname",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "python",
+     "nl": "Convert an encrypted SSH private key into a format that can be processed by John the Ripper for password cracking.",
+     "command": "john -cssh-keygen -p 2007",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "zip",
+     "nl": "Show the help options for creating and managing zip archives.",
+     "command": "zip | grep help",
+     "names_utility": true,
+     "utility_ok": true,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "mv",
+     "nl": "Rename the file 10.1.135.83 to privkey.",
+     "command": "rename --name \"10.1.135.83\"",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "for",
+     "nl": "Scan every port from 1 to 65535 on 172.18.1.5 individually and append the results to out.txt.",
+     "command": "scan 172.18.1.5 | tail -1 | xargs -0 | tail -1 | xargs -0 | tail -1 | xargs -0 | tail -1 | xargs -0 | tail -1 | xargs -0 | tail -1 | xargs",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "chmod",
+     "nl": "Change the permissions of id_rsa so only I can read and write to it.",
+     "command": "chmod 755",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "diff",
+     "nl": "Show the differences between ssh.john and ssh2.jogn.",
+     "command": "ssh-2.jogn ssh2.jogn",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "nano",
+     "nl": "Open the id_rsa file in a text editor.",
+     "command": "o -t id_rsa",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "telnet",
+     "nl": "Connect to port 23 on 127.18.1.5 to test the network connection.",
+     "command": "netdiscover -r 172.16.6.0/23 -i test_network_path",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "ipconfig",
+     "nl": "Show my computer's IP address and network configuration details.",
+     "command": "ip -c 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "service",
+     "nl": "Start the postgresql service.",
+     "command": "pgadmin | grep -l",
+     "names_utility": true,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "find",
+     "nl": "Search for all .zip files in the current directory and its subfolders, ignoring case.",
+     "command": "zip -d .zip",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "msfvenom",
+     "nl": "Generate a custom payload or shellcode for penetration testing.",
+     "command": "searchsploit -c 2000",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": false
+    },
+    {
+     "utility": "sha512sum",
+     "nl": "Find which file in the root directory has a SHA-512 hash containing 206ce87678.",
+     "command": "find / -name SHA-512 -hash 206ce87678",
+     "names_utility": false,
+     "utility_ok": false,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "chown",
+     "nl": "Change the owner of the id_rsa file to user ID 0044.",
+     "command": "chown $(whoami)",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    },
+    {
+     "utility": "ss",
+     "nl": "Show all listening TCP ports and their process information matching post.",
+     "command": "ss -p 2>/dev/null",
+     "names_utility": false,
+     "utility_ok": true,
+     "gold_in_sources": true
+    }
+   ]
+  }
+ }
+}

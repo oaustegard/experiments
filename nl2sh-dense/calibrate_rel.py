@@ -131,12 +131,34 @@ def sweep(per: list[dict], signal: str, thresholds: list[float],
 
 
 HIGHER = {"margin": True, "ratio": False, "relmargin": True, "top1": True}
-GRIDS = {
-    "margin": [0, 0.5, 1, 2, 3, 5, 8, 12],
-    "ratio": [0.95, 0.9, 0.85, 0.8, 0.7, 0.6, 0.5, 0.3],
-    "relmargin": [0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.7],
-    "top1": [0, 1, 2, 3, 5, 8, 12, 20],
-}
+
+#: Fractions of the calibration distribution that should fall on the confident
+#: side. Thresholds are read off as quantiles rather than written down as
+#: numbers, because a fused score, a raw BM25 margin and a cosine live on three
+#: different scales and a fixed grid tests only whichever one it was written for.
+#: That is the incumbent gate's failure in miniature: `margin >= 5` is a
+#: perfectly good BM25 operating point and is off the end of every other scale.
+COVERAGE_TARGETS = [1.0, 0.8, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+
+#: The gate as shipped, plus two scale-free thresholds that need no calibration
+#: sample. These are reported as written-down constants rather than as quantiles,
+#: because that is the form the question is about: `nlsh --margin 5` is a literal
+#: 5 in BM25 score units, and `top2/top1 <= 0.85` is a literal 0.85 on a scale
+#: that is the same everywhere.
+FIXED_GATES = [("margin", 5.0), ("margin", 3.0),
+               ("ratio", 0.85), ("ratio", 0.8), ("ratio", 0.7)]
+
+
+def thresholds_for(per: list[dict], signal: str, targets=COVERAGE_TARGETS) -> list[float]:
+    """Threshold values that give each target coverage on THIS distribution."""
+    vals = sorted((p[signal] for p in per), reverse=HIGHER[signal])
+    if not vals:
+        return [0.0] * len(targets)
+    out = []
+    for t in targets:
+        i = min(len(vals) - 1, max(0, int(round(t * len(vals))) - 1))
+        out.append(round(float(vals[i]), 6))
+    return out
 
 
 def main() -> int:
@@ -145,17 +167,21 @@ def main() -> int:
                     help="dense models to also calibrate the hybrid arm on")
     ap.add_argument("--alpha", type=float, default=0.5, help="wsum weight on dense")
     ap.add_argument("--chunks", type=Path, default=D.DEFAULT_CHUNKS)
+    ap.add_argument("--granularity", default="chunk", choices=["chunk", "page"])
+    ap.add_argument("--fusion", default="wsum", choices=["wsum", "rrf"])
     ap.add_argument("--nl2bash", type=Path, default=None)
     ap.add_argument("--nl2bash-n", type=int, default=300)
     ap.add_argument("-k", type=int, default=3)
     ap.add_argument("--show", type=int, default=5)
     ap.add_argument("--pool", type=int, default=400)
+    ap.add_argument("--calibrate-on", default="cyber",
+                    help="distribution the thresholds are read off")
     ap.add_argument("--leaky", action="store_true",
                     help="keep rows whose request names the gold utility")
     ap.add_argument("--out", type=Path, default=HERE / "results_calibrate_rel.json")
     a = ap.parse_args()
 
-    chunks = R.load_chunks(a.chunks)
+    chunks = D.GRANULARITIES[a.granularity](R.load_chunks(a.chunks))
     index = R.Index(chunks)
     utilities = np.array([c.utility for c in chunks], dtype=object)
     tldr = tldr_from_chunks(chunks)
@@ -166,16 +192,22 @@ def main() -> int:
     arms = {"bm25": lambda q: D.rank_utilities(index.scores(q), utilities, a.pool,
                                                positive_only=True)}
     for model in a.models:
-        _, _, dense = D.load(model, a.chunks)
+        _, _, dense = D.load(model, a.chunks, granularity=a.granularity)
         arms[f"dense:{model}"] = (
             lambda q, d=dense: D.rank_utilities(d.scores(q), utilities, a.pool))
-        arms[f"wsum{a.alpha}:bm25+{model}"] = (
-            lambda q, d=dense: D.wsum(
+        def fuse(bu, du, how=a.fusion, alpha=a.alpha):
+            return D.wsum(bu, du, alpha) if how == "wsum" else D.rrf(bu, du)
+
+        name = (f"wsum{a.alpha}:bm25+{model}" if a.fusion == "wsum"
+                else f"rrf:bm25+{model}")
+        arms[name] = (
+            lambda q, d=dense, fuse=fuse: fuse(
                 D.rank_utilities(index.scores(q), utilities, a.pool, positive_only=True),
-                D.rank_utilities(d.scores(q), utilities, a.pool), a.alpha))
+                D.rank_utilities(d.scores(q), utilities, a.pool)))
 
     out = {"config": {"k": a.k, "show": a.show, "alpha": a.alpha,
-                      "leak_free": not a.leaky},
+                      "granularity": a.granularity, "fusion": a.fusion,
+                      "documents": len(chunks), "leak_free": not a.leaky},
            "distributions": {name: {"n": len(rows),
                                     "constant_prior": Q.constant_prior(rows)}
                              for name, rows in sets.items()},
@@ -183,6 +215,13 @@ def main() -> int:
 
     for arm_name, rank_fn in arms.items():
         arm = {"per_distribution": {}}
+        # Thresholds are set on the calibration distribution once, then applied
+        # unchanged everywhere else — the transfer question, not a per-corpus refit.
+        calib = measure(sets[a.calibrate_on], rank_fn, a.k, a.show)
+        grids = {sig: thresholds_for(calib, sig) for sig in SIGNALS}
+        arm["thresholds"] = grids
+        arm["calibrated_on"] = a.calibrate_on
+        arm["coverage_targets"] = COVERAGE_TARGETS
         for dist, rows in sets.items():
             per = measure(rows, rank_fn, a.k, a.show)
             hits = [p for p in per if p["gold_at_top1"]]
@@ -192,7 +231,9 @@ def main() -> int:
                      "gold_in_gen": round(sum(p["gold_in_gen"] for p in per) / len(per), 3),
                      "signals": {}}
             for sig in SIGNALS:
+                grid = grids[sig]
                 entry["signals"][sig] = {
+                    "thresholds": grid,
                     # Two labels, because the gate has two possible jobs. `top1`
                     # is what `calibrate.py` measured. `in_gen` is what the gate
                     # actually gates on: the generator sees k=3 sources and can
@@ -203,8 +244,12 @@ def main() -> int:
                                       [p["gold_in_gen"] for p in per], HIGHER[sig]),
                     "median_hit": round(statistics.median([p[sig] for p in hits]), 3) if hits else None,
                     "median_miss": round(statistics.median([p[sig] for p in miss]), 3) if miss else None,
-                    "sweep": sweep(per, sig, GRIDS[sig], HIGHER[sig], a.show),
+                    "sweep": sweep(per, sig, grid, HIGHER[sig], a.show),
                 }
+            entry["fixed_gates"] = [
+                {"signal": sig, "threshold": thr,
+                 **sweep(per, sig, [thr], HIGHER[sig], a.show)[0]}
+                for sig, thr in FIXED_GATES]
             entry["rows"] = per
             arm["per_distribution"][dist] = entry
         out["arms"][arm_name] = arm
@@ -225,18 +270,31 @@ def main() -> int:
             print(f"{label:<12}" + "".join(
                 f"{arm['per_distribution'][d][label]:>14.3f}" for d in dists))
 
-        print(f"\n--- transfer: one threshold, every distribution "
+        print(f"\n--- the shipped gate and two written-down alternatives "
               f"(coverage / gen_precision@k) ---")
+        for i, (sig, thr) in enumerate(FIXED_GATES):
+            cells = []
+            for d in dists:
+                row = arm["per_distribution"][d]["fixed_gates"][i]
+                gp = row["gen_precision_topk"]
+                cells.append(f"{row['coverage']:.2f}/{'  - ' if gp is None else f'{gp:.2f}'}"
+                             .rjust(14))
+            op = ">=" if HIGHER[sig] else "<="
+            print(f"    {sig} {op} {thr:<8g}" + "".join(cells))
+
+        print(f"\n--- transfer: thresholds set on '{arm['calibrated_on']}', applied "
+              f"unchanged (coverage / gen_precision@k) ---")
         for sig in SIGNALS:
-            print(f"  {sig}")
-            for i, thr in enumerate(GRIDS[sig]):
+            print(f"  {sig}   (threshold at each target coverage on "
+                  f"{arm['calibrated_on']})")
+            for i, thr in enumerate(arm["thresholds"][sig]):
                 cells = []
                 for d in dists:
                     row = arm["per_distribution"][d]["signals"][sig]["sweep"][i]
                     gp = row["gen_precision_topk"]
                     cells.append(f"{row['coverage']:.2f}/{'  - ' if gp is None else f'{gp:.2f}'}"
                                  .rjust(14))
-                print(f"    {str(thr):<8}" + "".join(cells))
+                print(f"    {COVERAGE_TARGETS[i]:<5.0%}{thr:<10.4g}" + "".join(cells))
     return 0
 
 
