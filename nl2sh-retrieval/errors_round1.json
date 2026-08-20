@@ -1,0 +1,728 @@
+{
+ "round": 1,
+ "rules": "rules_claude-cleanroom.json",
+ "family_a_acc": 0.8629,
+ "n_errors": 130,
+ "errors": [
+  {
+   "id": "a-r694",
+   "query": "show which files #29 touches",
+   "gold": "pull_request_read::get_files",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r786",
+   "query": "reopen thread PRRT_W93EMX2J0BP0 on #569",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r809",
+   "query": "request a copilot review on #2378 in pallets/flask",
+   "gold": "request_copilot_review",
+   "got": null
+  },
+  {
+   "id": "a-r715",
+   "query": "get the reviews on #1113 in anthropics/claude-code",
+   "gold": "pull_request_read::get_reviews",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r464",
+   "query": "show which issue https://github.com/anthropics/claude-code/issues/227 belongs to in anthropics/claude-code",
+   "gold": "issue_read::get_parent",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r614",
+   "query": "merge #154 in github/github-mcp-server",
+   "gold": "merge_pull_request",
+   "got": null
+  },
+  {
+   "id": "a-r894",
+   "query": "search users for retry backoff",
+   "gold": "search_users",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r938",
+   "query": "merge the base branch into PR 1173",
+   "gold": "update_pull_request_branch",
+   "got": "merge_pull_request"
+  },
+  {
+   "id": "a-r940",
+   "query": "merge the base branch into PR 484",
+   "gold": "update_pull_request_branch",
+   "got": "merge_pull_request"
+  },
+  {
+   "id": "a-r35",
+   "query": "show job 785745729 details for oaustegard/experiments",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r479",
+   "query": "get the sub issues under #1502 in psf/requests",
+   "gold": "issue_read::get_sub_issues",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r878",
+   "query": "find repos matching retry backoff",
+   "gold": "search_repositories",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r846",
+   "query": "find commits mentioning \"retry backoff\"",
+   "gold": "search_commits",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r789",
+   "query": "unresolve review thread PRRT_G3GH1U4KQNWB on https://github.com/oaustegard/experiments/pull/2478 in oaustegard/experiments",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r275",
+   "query": "create a repository named retry backoff",
+   "gold": "create_repository",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r478",
+   "query": "get the sub issues under #2978 in oaustegard/experiments",
+   "gold": "issue_read::get_sub_issues",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r781",
+   "query": "reopen thread PRRT_ICZJF8JDk26U on https://github.com/psf/requests/pull/1750",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r29",
+   "query": "show job 299049949 details for psf/requests",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r660",
+   "query": "list commits on #975 in psf/requests",
+   "gold": "pull_request_read::get_commits",
+   "got": "list_commits"
+  },
+  {
+   "id": "a-r891",
+   "query": "search users for retry backoff",
+   "gold": "search_users",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r907",
+   "query": "link issue 625 under parent issue 770905570 in pallets/flask",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r458",
+   "query": "show which issue issue 3818 belongs to in pallets/flask",
+   "gold": "issue_read::get_parent",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r909",
+   "query": "link #2743 under parent issue 675782100 in psf/requests",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r25",
+   "query": "get workflow job 28678123 in oaustegard/experiments",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r707",
+   "query": "get the review comments on #1423 in oaustegard/experiments",
+   "gold": "pull_request_read::get_review_comments",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r280",
+   "query": "remove the file pkg/github/actions.go in pallets/flask on feature/retry",
+   "gold": "delete_file",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r612",
+   "query": "merge #4149 in anthropics/claude-code",
+   "gold": "merge_pull_request",
+   "got": null
+  },
+  {
+   "id": "a-r26",
+   "query": "show job 700510501 details for github/github-mcp-server",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r469",
+   "query": "get the sub issues under #3434 in psf/requests",
+   "gold": "issue_read::get_sub_issues",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r892",
+   "query": "search users for \"retry backoff\"",
+   "gold": "search_users",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r34",
+   "query": "show job 892243306 details for psf/requests",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r729",
+   "query": "get the status of #2573 in anthropics/claude-code",
+   "gold": "pull_request_read::get_status",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r780",
+   "query": "reopen thread PRRT_32TkUFB6RISB on #1835",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r460",
+   "query": "get the parent issue of #3693 in psf/requests",
+   "gold": "issue_read::get_parent",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r885",
+   "query": "find repos matching retry backoff",
+   "gold": "search_repositories",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r474",
+   "query": "get the sub issues under issue 2498 in psf/requests",
+   "gold": "issue_read::get_sub_issues",
+   "got": "sub_issue_write"
+  },
+  {
+   "id": "a-r27",
+   "query": "show job 261632485 details for psf/requests",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r201",
+   "query": "add a comment to issue #4470 saying \"retry backoff\"",
+   "gold": "add_issue_comment",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r738",
+   "query": "create a pending review on #3623 in github/github-mcp-server",
+   "gold": "pull_request_review_write::create",
+   "got": null
+  },
+  {
+   "id": "a-r31",
+   "query": "show job 501833870 details for pallets/flask",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r766",
+   "query": "resolve review thread PRRT_F4HMZ9SRHUkJ on https://github.com/oaustegard/experiments/pull/3352 in oaustegard/experiments",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r876",
+   "query": "search repositories for retry backoff",
+   "gold": "search_repositories",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r759",
+   "query": "resolve review thread PRRT_8L2H1SZORkD9 on PR 787 in oaustegard/experiments",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r737",
+   "query": "create a pending review on #2078 in psf/requests",
+   "gold": "pull_request_review_write::create",
+   "got": null
+  },
+  {
+   "id": "a-r947",
+   "query": "update the branch of #3969 in pallets/flask",
+   "gold": "update_pull_request_branch",
+   "got": null
+  },
+  {
+   "id": "a-r803",
+   "query": "push src/router.py and rate limit to release/v2 in github/github-mcp-server in one commit",
+   "gold": "push_files",
+   "got": "create_or_update_file"
+  },
+  {
+   "id": "a-r911",
+   "query": "link issue 1656 under parent issue 196197797 in anthropics/claude-code",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r264",
+   "query": "create a repository named \"retry backoff\"",
+   "gold": "create_repository",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r783",
+   "query": "reopen thread PRRT_G72XCIRVANS0 on PR 1501",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r696",
+   "query": "get the review comments on #4427 in oaustegard/experiments",
+   "gold": "pull_request_read::get_review_comments",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r679",
+   "query": "get the diff for #2346 in psf/requests",
+   "gold": "pull_request_read::get_diff",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r671",
+   "query": "list commits on #47 in github/github-mcp-server",
+   "gold": "pull_request_read::get_commits",
+   "got": "list_commits"
+  },
+  {
+   "id": "a-r461",
+   "query": "show which issue issue 1071 belongs to in pallets/flask",
+   "gold": "issue_read::get_parent",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r663",
+   "query": "list commits on #4533 in pallets/flask",
+   "gold": "pull_request_read::get_commits",
+   "got": "list_commits"
+  },
+  {
+   "id": "a-r743",
+   "query": "create a pending review on #2034 in github/github-mcp-server",
+   "gold": "pull_request_review_write::create",
+   "got": null
+  },
+  {
+   "id": "a-r784",
+   "query": "reopen thread PRRT_GMF37S7PCCNF on #3895",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r792",
+   "query": "push multiple files to github/github-mcp-server on feature/retry",
+   "gold": "push_files",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r689",
+   "query": "show which files #2406 touches",
+   "gold": "pull_request_read::get_files",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r943",
+   "query": "update the branch of #1246 in github/github-mcp-server",
+   "gold": "update_pull_request_branch",
+   "got": null
+  },
+  {
+   "id": "a-r758",
+   "query": "resolve review thread PRRT_F2J4DXUMX9Y6 on PR 4410 in github/github-mcp-server",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r902",
+   "query": "link https://github.com/anthropics/claude-code/issues/4255 under parent issue 408440870 in anthropics/claude-code",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r756",
+   "query": "mark thread PRRT_NPINTBISFFZV resolved on https://github.com/github/github-mcp-server/pull/2703",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r906",
+   "query": "link #730 under parent issue 383001721 in pallets/flask",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r790",
+   "query": "reopen thread PRRT_Y9JF4ZUUI562 on #2031",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r852",
+   "query": "find issues about retry backoff",
+   "gold": "search_issues",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r475",
+   "query": "get the sub issues under issue 2129 in oaustegard/experiments",
+   "gold": "issue_read::get_sub_issues",
+   "got": "sub_issue_write"
+  },
+  {
+   "id": "a-r934",
+   "query": "update #1599 in psf/requests to change the title",
+   "gold": "update_pull_request",
+   "got": "issue_write::update"
+  },
+  {
+   "id": "a-r888",
+   "query": "find github users named retry backoff",
+   "gold": "search_users",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r33",
+   "query": "get workflow job 347187439 in psf/requests",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r321",
+   "query": "show docs/architecture.md from github/github-mcp-server on branch feature/retry",
+   "gold": "get_file_contents",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r254",
+   "query": "create a PR in github/github-mcp-server titled fix the retry loop",
+   "gold": "create_pull_request",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r497",
+   "query": "update issue https://github.com/oaustegard/experiments/issues/1700 in oaustegard/experiments to closed",
+   "gold": "issue_write::update",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r32",
+   "query": "show job 187410571 details for github/github-mcp-server",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r502",
+   "query": "update issue issue 57 in anthropics/claude-code to closed",
+   "gold": "issue_write::update",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r484",
+   "query": "create an issue in oaustegard/experiments titled fix the retry loop",
+   "gold": "issue_write::create",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r937",
+   "query": "merge the base branch into https://github.com/github/github-mcp-server/pull/401",
+   "gold": "update_pull_request_branch",
+   "got": "merge_pull_request"
+  },
+  {
+   "id": "a-r932",
+   "query": "update #3011 in psf/requests to change the title",
+   "gold": "update_pull_request",
+   "got": "issue_write::update"
+  },
+  {
+   "id": "a-r517",
+   "query": "list commits in pallets/flask on feature/retry",
+   "gold": "list_commits",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r252",
+   "query": "create a PR in anthropics/claude-code titled fix the retry loop",
+   "gold": "create_pull_request",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r459",
+   "query": "show which issue issue 1160 belongs to in psf/requests",
+   "gold": "issue_read::get_parent",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r797",
+   "query": "push lib/encode.rs and \"retry backoff\" to dev in oaustegard/experiments in one commit",
+   "gold": "push_files",
+   "got": "create_or_update_file"
+  },
+  {
+   "id": "a-r244",
+   "query": "create lib/encode.rs in github/github-mcp-server on branch feature/retry",
+   "gold": "create_or_update_file",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r482",
+   "query": "create an issue in psf/requests titled fix the retry loop",
+   "gold": "issue_write::create",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r788",
+   "query": "unresolve review thread PRRT_79GU2D99SCHV on https://github.com/oaustegard/experiments/pull/793 in oaustegard/experiments",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r764",
+   "query": "resolve review thread PRRT_LVwTCZ4NS24I on https://github.com/anthropics/claude-code/pull/4590 in anthropics/claude-code",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r796",
+   "query": "push src/router.py and retry backoff to dev in psf/requests in one commit",
+   "gold": "push_files",
+   "got": "create_or_update_file"
+  },
+  {
+   "id": "a-r760",
+   "query": "mark thread PRRT_wwDM2Xk28U5X resolved on #782",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r677",
+   "query": "get the diff for #3386 in github/github-mcp-server",
+   "gold": "pull_request_read::get_diff",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r765",
+   "query": "mark thread PRRT_R7J51DRWDQOA resolved on #2831",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r757",
+   "query": "resolve review thread PRRT_OV1NTww99B3H on #2398 in oaustegard/experiments",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r501",
+   "query": "update issue #2578 in github/github-mcp-server to closed",
+   "gold": "issue_write::update",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r24",
+   "query": "show job 543268503 details for psf/requests",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r762",
+   "query": "resolve review thread PRRT_TPIT0ONP1QZV on #3857 in oaustegard/experiments",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r767",
+   "query": "resolve review thread PRRT_R99L3SUGEUWB on https://github.com/github/github-mcp-server/pull/1041 in github/github-mcp-server",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r761",
+   "query": "resolve review thread PRRT_B55HNKV69J10 on PR 20 in psf/requests",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r785",
+   "query": "reopen thread PRRT_OPUVP1PQCHSV on #4402",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r698",
+   "query": "get the review comments on #4295 in github/github-mcp-server",
+   "gold": "pull_request_read::get_review_comments",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r317",
+   "query": "show internal/parser.ts from oaustegard/experiments on branch feature/retry",
+   "gold": "get_file_contents",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r904",
+   "query": "link https://github.com/anthropics/claude-code/issues/3371 under parent issue 332326538 in anthropics/claude-code",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r245",
+   "query": "create lib/encode.rs in oaustegard/experiments on branch feature/retry",
+   "gold": "create_or_update_file",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r791",
+   "query": "unresolve review thread PRRT_RZETLTEF2OkK on #1213 in anthropics/claude-code",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r787",
+   "query": "unresolve review thread PRRT_PkY4SATKQPWD on https://github.com/oaustegard/experiments/pull/4300 in oaustegard/experiments",
+   "gold": "pull_request_review_write::unresolve_thread",
+   "got": "unresolve_review_thread"
+  },
+  {
+   "id": "a-r898",
+   "query": "find github users named \"retry backoff\"",
+   "gold": "search_users",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r622",
+   "query": "merge #2537 in github/github-mcp-server",
+   "gold": "merge_pull_request",
+   "got": null
+  },
+  {
+   "id": "a-r700",
+   "query": "get the review comments on #1695 in oaustegard/experiments",
+   "gold": "pull_request_read::get_review_comments",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r720",
+   "query": "get the status of #2325 in pallets/flask",
+   "gold": "pull_request_read::get_status",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r706",
+   "query": "get the review comments on #1445 in pallets/flask",
+   "gold": "pull_request_read::get_review_comments",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r656",
+   "query": "get the discussion comments on #134 in github/github-mcp-server",
+   "gold": "pull_request_read::get_comments",
+   "got": "issue_read::get"
+  },
+  {
+   "id": "a-r810",
+   "query": "request a copilot review on #2676 in anthropics/claude-code",
+   "gold": "request_copilot_review",
+   "got": null
+  },
+  {
+   "id": "a-r910",
+   "query": "link #4730 under parent issue 137142056 in psf/requests",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r30",
+   "query": "get workflow job 778099981 in pallets/flask",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r799",
+   "query": "push internal/parser.ts and retry backoff to release/v2 in pallets/flask in one commit",
+   "gold": "push_files",
+   "got": "create_or_update_file"
+  },
+  {
+   "id": "a-r763",
+   "query": "mark thread PRRT_EKNOM8L1RHQw resolved on PR 4007",
+   "gold": "pull_request_review_write::resolve_thread",
+   "got": "resolve_review_thread"
+  },
+  {
+   "id": "a-r939",
+   "query": "update the branch of #1996 in anthropics/claude-code",
+   "gold": "update_pull_request_branch",
+   "got": null
+  },
+  {
+   "id": "a-r903",
+   "query": "link issue 3219 under parent issue 625222221 in pallets/flask",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r28",
+   "query": "show job 111724796 details for anthropics/claude-code",
+   "gold": "actions_get::get_workflow_job",
+   "got": "actions_get::get_workflow_run"
+  },
+  {
+   "id": "a-r861",
+   "query": "find issues about retry backoff",
+   "gold": "search_issues",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r800",
+   "query": "push lib/encode.rs and memory leak to feature/retry in psf/requests in one commit",
+   "gold": "push_files",
+   "got": "create_or_update_file"
+  },
+  {
+   "id": "a-r889",
+   "query": "search users for \"retry backoff\"",
+   "gold": "search_users",
+   "got": "actions_run_trigger::rerun_workflow_run"
+  },
+  {
+   "id": "a-r713",
+   "query": "get the reviews on #1078 in pallets/flask",
+   "gold": "pull_request_read::get_reviews",
+   "got": "issue_read::get"
+  }
+ ]
+}
