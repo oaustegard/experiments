@@ -9,7 +9,8 @@ BM25 surfaces the gold utility 26% of the time.
 Three of the four items moved retrieval. Query reformulation did not, and that
 negative is in §3. A fifth thing the issue did not ask for — training a linear
 adapter on frozen query vectors — moved it further than any of them, and §5 is
-why that is not an argument for fine-tuning the encoder.
+why that is not an argument for fine-tuning the encoder. §6 runs each arm at its
+own granularity and settles what the generator does with the text it is sent.
 
 | change | gold in the k=3 sources | end-to-end routing | encoder |
 |---|---|---|---|
@@ -293,6 +294,83 @@ One implementation defect worth fixing before anyone reuses this: `--rank`
 trains a low-rank adapter and then saves the materialized `I + AB`, so the
 low-rank form costs the same 4.2 MB on disk as the full one. The training-time
 constraint is real and measured; the storage saving is not implemented.
+
+## 6. Mixed granularity and the choice of example
+
+Oskar's follow-up: BM25 is the arm that gained from pages, so let it rank pages
+for *which utility*, and let the encoder rank chunks for *which example* — coarse
+to fine, with the outputs combined. The granularity table §2 reports is already
+evidence for the premise:
+
+| arm | chunk | page | delta |
+|---|---|---|---|
+| BM25 | 0.262 | 0.323 | **+0.061** |
+| dense: leaf-mt-int8 | 0.311 | 0.323 | +0.012 |
+| dense: MiniLM-L6-int8 | 0.341 | 0.287 | **−0.054** |
+| dense: bekko-a8m | 0.354 | 0.360 | +0.006 |
+
+BM25 gains from a longer document because it has more terms to match and its
+length normalization absorbs the cost. A mean-pooled vector averages the one
+example that matched into the eleven that did not, so the encoder gains nothing
+and MiniLM loses. Forcing both arms to share a granularity, which is what §1–§2
+did, suits whichever arm the choice happened to favour.
+
+`coarse_to_fine.py` runs the cross product. Fusion happens after each arm
+aggregates to utilities, which is what makes a mixed arm expressible at all: a
+page and a chunk are not the same object and cannot be fused as documents, but
+"the score this arm gives utility `u`" is the same object either way.
+
+| BM25 / dense | MiniLM-L6-int8 | leaf-mt-int8 |
+|---|---|---|
+| chunk / chunk | 0.354 | 0.354 |
+| chunk / page | 0.323 | 0.366 |
+| **page / chunk** | **0.366** | 0.378 |
+| page / page | 0.341 | 0.378 |
+
+(wsum α=0.5, no adapter, gold-in-sources over 164 leak-free queries, sources
+taken from the fused utility ranking so every cell is measured the same way.)
+
+**The prediction holds for MiniLM and does not separate.** Page-BM25 with
+chunk-dense is MiniLM's best cell at 0.366 against 0.341 for page/page — and that
+is 4 queries, 10 wins to 6, p = 0.45. For leaf-mt, whose dense arm was
+granularity-indifferent, page/chunk and page/page tie exactly at 0.378. So the
+rule "give each arm the granularity it measures well at" is directionally
+supported and, at this sample size, unproven. It costs nothing to follow: both
+caches already exist and the fusion is unchanged.
+
+### The choice of example
+
+The second half of the question is the larger untested lever, because nothing in
+§1–§5 ever varied it. The generator gets `tldr[u][0]` — whichever example the
+page opens with, chosen by file order, never with reference to the request. Once
+the coarse stage has named the utility, choosing among its examples costs one
+cached dot product each.
+
+Scored end to end on the recommended stack, with `oracle` isolating the effect by
+guaranteeing the gold utility is present so only the accompanying text varies:
+
+| what each source block contains | routing (retrieval) | routing (oracle) |
+|---|---|---|
+| the utility name and nothing else | 0.152 | 0.451 |
+| its first tldr example (shipped) | 0.201 | **0.640** |
+| the example best matching the query, dense | 0.207 | 0.640 |
+| the example best matching the query, hybrid | 0.207 | — |
+| its whole page | 0.159 | 0.610 |
+
+**An example is worth +0.189 under oracle; the right example is worth nothing.**
+Query-relevant selection moves 4 queries and loses 3, p = 1.0, and reproduces
+0.640 exactly under oracle. Sending the whole page is slightly worse than sending
+one line of it.
+
+So the model reads the documentation — a names-only prompt drops oracle routing
+from 0.640 to 0.451, which is most of what training bought — and it takes a fixed
+benefit from having an exemplar rather than a graded benefit from a better one.
+One example anchors the output format and the utility's argument shape; a second
+one, or a better-matched one, adds nothing it can use.
+
+That closes the fine stage. The retrieval tier's job is to produce the right k
+utility *names*, each with any one example attached, and every remaining point
+between 0.640 and 1.000 under oracle belongs to the generator.
 
 ## End to end
 

@@ -159,13 +159,26 @@ the same — the 164.5 MB encoder `xr` vendors is not needed for a phone-sized
 tool. What did not: query reformulation in either form, and feeding the model
 whole pages rather than one example.
 
-Asked afterwards whether the embedder should be fine-tuned, the measurement
-said no. A linear adapter on frozen query vectors — 4.2 MB, 40 seconds — beats
+Two follow-up questions from Oskar closed out the directory. Asked whether the
+embedder should be fine-tuned, the measurement said no. A linear adapter on frozen query vectors — 4.2 MB, 40 seconds — beats
 every arm above it (0.463 gold-in-sources, routing 0.201), and all of that gain
 sits on the 207 utilities NL2Bash covers, with a small loss on the 4,491 it does
 not. Cutting the adapter's capacity 16-fold reproduces the same split, so the
 limit is training coverage rather than model size, and a fine-tune would buy the
 same head and the same tail at far greater cost.
+
+Asked whether BM25 could rank pages while the encoder ranks chunks — coarse to
+fine — the granularity table says yes in principle: pages are worth +0.061 to
+BM25 and −0.054 to MiniLM's dense arm, so a shared granularity suits whichever
+arm it happened to favour. Measured, the mixed cell is the best one for MiniLM
+(0.366 vs 0.341) and an exact tie for leaf-mt, at p = 0.45. The second half of
+that question turned out to have a sharper answer: **which example accompanies a
+retrieved utility does not matter, and having one does.** Under oracle sources,
+a names-only prompt routes 0.451, the arbitrary first example 0.640, and the
+example a relevance pass picks 0.640 exactly. The model reads the documentation
+and takes a fixed benefit from an exemplar rather than a graded benefit from a
+better one, so the fine stage has no headroom and everything between 0.640 and
+1.000 belongs to the generator.
 
 The abstention gate's diagnosis changed on measurement. `margin >= 5` fails
 across corpora because 5 is a number in BM25 score units fitted once on one

@@ -1587,6 +1587,39 @@ the result.
   granularity whenever the model downstream changes its context budget.
   (`nl2sh-dense/dense_index.py:page_chunks`)
 
+- **BM25 and a mean-pooled encoder want different document lengths, so fuse
+  after aggregating to entities rather than forcing one granularity.** Moving a
+  shell-documentation corpus from 31,169 example-level chunks to the 6,397 pages
+  they came from moved BM25 **+0.061** gold-in-sources and the three dense arms
+  +0.012, **−0.054** and +0.006. The mechanism is not subtle — a longer document
+  gives BM25 more terms to match and its length normalization absorbs the cost,
+  while a mean-pooled vector averages the one passage that matched into the ten
+  that did not. A mixed arm is expressible because fusion happens *after* each
+  arm aggregates to the entity being ranked: a page and a chunk are not the same
+  object and cannot be fused as documents, but "the score this arm gives utility
+  `u`" is. Measured, page-BM25 with chunk-dense was the best cell for the model
+  whose dense arm lost from pages (0.366 vs 0.341) and an exact tie for the one
+  that was indifferent (0.378) — directionally right, p = 0.45 at n=164, and free
+  to adopt because both caches already exist.
+  (`nl2sh-dense/coarse_to_fine.py`)
+
+- **A small RAG generator takes a fixed benefit from having an exemplar and no
+  graded benefit from a better one — test with a names-only control before
+  building a reranker for it.** Gemma 3 270M routing, with the gold utility
+  guaranteed present so only the attached text varies: **name only 0.451**, its
+  first tldr example **0.640**, the example a query-relevance pass selects
+  **0.640** (identical), its whole page 0.610. So the documentation is read — it
+  is worth +0.189, most of what fine-tuning bought — and query-relevant selection
+  of *which* example moves 4 queries and loses 3 (p = 1.0). One example anchors
+  the output format and the utility's argument shape; a better-matched one adds
+  nothing the model can use, and more text is slightly worse. The practical
+  consequence is that a retrieval tier feeding a model this size should spend its
+  effort on producing the right k *entities*, each with any one exemplar, and not
+  on selecting passages within them. The names-only arm is the load-bearing
+  control: without it "the right example does not matter" reads as "the text does
+  not matter", which is false by 0.189. (`nl2sh-dense/fullsystem_dense.py
+  --source-form`)
+
 - **A 23.5 MB int8 encoder matched a 164.5 MB one on a documentation corpus, so
   artifact size decides an on-device embedder, not retrieval quality.**
   all-MiniLM-L6-v2 int8 (23.5 MB) and mdbr-leaf-mt int8 (25.6 MB) scored 0.341
