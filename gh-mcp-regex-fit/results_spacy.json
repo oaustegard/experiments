@@ -1,0 +1,631 @@
+{
+ "model": "en_core_web_md",
+ "spacy_version": "3.8.15",
+ "model_load_ms": 4173.3,
+ "median_latency_ms_overall": 8.1667,
+ "baselines_from_results_md": {
+  "hand-written regex": [
+   0.696,
+   0.546,
+   0.486
+  ],
+  "best fitted list": [
+   0.984,
+   0.239,
+   0.351
+  ],
+  "structural cues only": [
+   0.049,
+   0.029,
+   0.013
+  ]
+ },
+ "arms": {
+  "tok-overlap": {
+   "family A (fitted)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.942,
+    "precision": 0.5722,
+    "label_acc": 0.539,
+    "tool_acc": 0.5622,
+    "method_acc_given_tool": 0.8836,
+    "abstain_acc": 0.775,
+    "args_acc": 0.4932,
+    "median_latency_ms": 0.0434,
+    "build_ms": 5.9
+   },
+   "family B (held-out)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.7532,
+    "precision": 0.2563,
+    "label_acc": 0.193,
+    "tool_acc": 0.1973,
+    "method_acc_given_tool": 0.875,
+    "abstain_acc": 0.825,
+    "args_acc": 0.1209,
+    "median_latency_ms": 0.0321,
+    "build_ms": 5.9
+   },
+   "wild (hand-authored)": {
+    "n_routable": 74,
+    "n_offtopic": 15,
+    "coverage": 0.6892,
+    "precision": 0.5098,
+    "label_acc": 0.3514,
+    "tool_acc": 0.3514,
+    "method_acc_given_tool": 1.0,
+    "abstain_acc": 0.6667,
+    "args_acc": null,
+    "median_latency_ms": 0.0267,
+    "build_ms": 5.9
+   }
+  },
+  "spacy-lemma": {
+   "family A (fitted)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.9283,
+    "precision": 0.5295,
+    "label_acc": 0.4916,
+    "tool_acc": 0.5538,
+    "method_acc_given_tool": 0.6927,
+    "abstain_acc": 0.775,
+    "args_acc": 0.4747,
+    "median_latency_ms": 8.0759,
+    "build_ms": 1397.5
+   },
+   "family B (held-out)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.673,
+    "precision": 0.2445,
+    "label_acc": 0.1646,
+    "tool_acc": 0.1804,
+    "method_acc_given_tool": 0.4,
+    "abstain_acc": 0.7,
+    "args_acc": 0.1221,
+    "median_latency_ms": 8.4763,
+    "build_ms": 1397.5
+   },
+   "wild (hand-authored)": {
+    "n_routable": 74,
+    "n_offtopic": 15,
+    "coverage": 0.7703,
+    "precision": 0.4035,
+    "label_acc": 0.3108,
+    "tool_acc": 0.3378,
+    "method_acc_given_tool": 0.5,
+    "abstain_acc": 0.6,
+    "args_acc": null,
+    "median_latency_ms": 8.1961,
+    "build_ms": 1397.5
+   }
+  },
+  "spacy-vec-mean": {
+   "family A (fitted)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.7943,
+    "precision": 0.4874,
+    "label_acc": 0.3871,
+    "tool_acc": 0.4167,
+    "method_acc_given_tool": 0.7879,
+    "abstain_acc": 0.425,
+    "args_acc": 0.3033,
+    "median_latency_ms": 8.1372,
+    "build_ms": 2571.4
+   },
+   "family B (held-out)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.7331,
+    "precision": 0.1252,
+    "label_acc": 0.0918,
+    "tool_acc": 0.1234,
+    "method_acc_given_tool": 0.4118,
+    "abstain_acc": 0.45,
+    "args_acc": 0.0751,
+    "median_latency_ms": 8.6396,
+    "build_ms": 2571.4
+   },
+   "wild (hand-authored)": {
+    "n_routable": 74,
+    "n_offtopic": 15,
+    "coverage": 0.7973,
+    "precision": 0.2034,
+    "label_acc": 0.1622,
+    "tool_acc": 0.1757,
+    "method_acc_given_tool": 0.6667,
+    "abstain_acc": 0.2,
+    "args_acc": null,
+    "median_latency_ms": 8.3843,
+    "build_ms": 2571.4
+   }
+  },
+  "spacy-vec-idf": {
+   "family A (fitted)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.8629,
+    "precision": 0.4817,
+    "label_acc": 0.4156,
+    "tool_acc": 0.4293,
+    "method_acc_given_tool": 0.8917,
+    "abstain_acc": 0.225,
+    "args_acc": 0.3268,
+    "median_latency_ms": 8.5184,
+    "build_ms": 3117.5
+   },
+   "family B (held-out)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.8892,
+    "precision": 0.1032,
+    "label_acc": 0.0918,
+    "tool_acc": 0.1097,
+    "method_acc_given_tool": 0.5278,
+    "abstain_acc": 0.15,
+    "args_acc": 0.0509,
+    "median_latency_ms": 8.5617,
+    "build_ms": 3117.5
+   },
+   "wild (hand-authored)": {
+    "n_routable": 74,
+    "n_offtopic": 15,
+    "coverage": 0.9595,
+    "precision": 0.2394,
+    "label_acc": 0.2297,
+    "tool_acc": 0.2432,
+    "method_acc_given_tool": 0.8,
+    "abstain_acc": 0.2,
+    "args_acc": null,
+    "median_latency_ms": 10.4067,
+    "build_ms": 3117.5
+   }
+  },
+  "spacy-syntax": {
+   "family A (fitted)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.6445,
+    "precision": 0.4043,
+    "label_acc": 0.2605,
+    "tool_acc": 0.2975,
+    "method_acc_given_tool": 0.6847,
+    "abstain_acc": 0.85,
+    "args_acc": 0.2762,
+    "median_latency_ms": 7.519,
+    "build_ms": 1329.4
+   },
+   "family B (held-out)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.4536,
+    "precision": 0.1233,
+    "label_acc": 0.0559,
+    "tool_acc": 0.0601,
+    "method_acc_given_tool": 0.5,
+    "abstain_acc": 0.925,
+    "args_acc": 0.0344,
+    "median_latency_ms": 7.7422,
+    "build_ms": 1329.4
+   },
+   "wild (hand-authored)": {
+    "n_routable": 74,
+    "n_offtopic": 15,
+    "coverage": 0.473,
+    "precision": 0.2857,
+    "label_acc": 0.1351,
+    "tool_acc": 0.1486,
+    "method_acc_given_tool": 0.5,
+    "abstain_acc": 0.7333,
+    "args_acc": null,
+    "median_latency_ms": 6.9518,
+    "build_ms": 1329.4
+   }
+  },
+  "spacy-fusion": {
+   "family A (fitted)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.9989,
+    "precision": 0.622,
+    "label_acc": 0.6213,
+    "tool_acc": 0.6382,
+    "method_acc_given_tool": 0.9363,
+    "abstain_acc": 0.575,
+    "args_acc": 0.5339,
+    "median_latency_ms": 8.2442,
+    "build_ms": 5233.1
+   },
+   "family B (held-out)": {
+    "n_routable": 948,
+    "n_offtopic": 40,
+    "coverage": 0.9304,
+    "precision": 0.1678,
+    "label_acc": 0.1561,
+    "tool_acc": 0.1899,
+    "method_acc_given_tool": 0.4386,
+    "abstain_acc": 0.45,
+    "args_acc": 0.112,
+    "median_latency_ms": 8.6338,
+    "build_ms": 5233.1
+   },
+   "wild (hand-authored)": {
+    "n_routable": 74,
+    "n_offtopic": 15,
+    "coverage": 0.9324,
+    "precision": 0.3768,
+    "label_acc": 0.3514,
+    "tool_acc": 0.3784,
+    "method_acc_given_tool": 0.75,
+    "abstain_acc": 0.4,
+    "args_acc": null,
+    "median_latency_ms": 7.5372,
+    "build_ms": 5233.1
+   }
+  }
+ },
+ "diagnostics": {
+  "syntax": {
+   "family A (fitted)": {
+    "n": 948,
+    "has_verb": 0.8196,
+    "has_object": 0.7848,
+    "pronoun_object_rate_of_all": 0.0,
+    "pronoun_object_rate_of_objects": 0.0
+   },
+   "family B (held-out)": {
+    "n": 948,
+    "has_verb": 0.9335,
+    "has_object": 0.8565,
+    "pronoun_object_rate_of_all": 0.0981,
+    "pronoun_object_rate_of_objects": 0.1145
+   },
+   "wild (hand-authored)": {
+    "n": 74,
+    "has_verb": 0.9189,
+    "has_object": 0.7162,
+    "pronoun_object_rate_of_all": 0.1081,
+    "pronoun_object_rate_of_objects": 0.1509
+   }
+  },
+  "synonym_probes": [
+   {
+    "query": "has anyone approved it",
+    "gold": "pull_request_read::get_reviews",
+    "verb_obj": [
+     "approve",
+     "it",
+     true
+    ],
+    "lemma": [],
+    "lemma_rank": null,
+    "vec-idf": [
+     [
+      "list_pull_requests",
+      0.779
+     ],
+     [
+      "add_issue_comment",
+      0.767
+     ],
+     [
+      "get_me",
+      0.756
+     ]
+    ],
+    "vec-idf_rank": 21,
+    "syntax": [],
+    "syntax_rank": null
+   },
+   {
+    "query": "what code does this PR actually change",
+    "gold": "pull_request_read::get_diff",
+    "verb_obj": [
+     "change",
+     "code",
+     false
+    ],
+    "lemma": [
+     [
+      "assign_copilot_to_issue",
+      1.333
+     ],
+     [
+      "search_pull_requests",
+      1.317
+     ],
+     [
+      "update_pull_request_branch",
+      1.128
+     ]
+    ],
+    "lemma_rank": null,
+    "vec-idf": [
+     [
+      "list_pull_requests",
+      0.799
+     ],
+     [
+      "get_me",
+      0.791
+     ],
+     [
+      "add_issue_comment",
+      0.747
+     ]
+    ],
+    "vec-idf_rank": 30,
+    "syntax": [
+     [
+      "update_pull_request_branch",
+      2.255
+     ],
+     [
+      "sub_issue_write",
+      2.109
+     ],
+     [
+      "assign_copilot_to_issue",
+      1.969
+     ]
+    ],
+    "syntax_rank": null
+   },
+   {
+    "query": "is the CI green on my PR yet",
+    "gold": "pull_request_read::get_status",
+    "verb_obj": [
+     "be",
+     null,
+     false
+    ],
+    "lemma": [
+     [
+      "search_pull_requests",
+      1.317
+     ],
+     [
+      "get_me",
+      1.002
+     ]
+    ],
+    "lemma_rank": null,
+    "vec-idf": [
+     [
+      "add_issue_comment",
+      0.64
+     ],
+     [
+      "list_pull_requests",
+      0.639
+     ],
+     [
+      "search_pull_requests",
+      0.618
+     ]
+    ],
+    "vec-idf_rank": 31,
+    "syntax": [],
+    "syntax_rank": null
+   },
+   {
+    "query": "go ahead and merge it",
+    "gold": "merge_pull_request",
+    "verb_obj": [
+     "merge",
+     "it",
+     true
+    ],
+    "lemma": [
+     [
+      "merge_pull_request",
+      1.954
+     ]
+    ],
+    "lemma_rank": 1,
+    "vec-idf": [
+     [
+      "merge_pull_request",
+      0.889
+     ],
+     [
+      "push_files",
+      0.771
+     ],
+     [
+      "get_me",
+      0.742
+     ]
+    ],
+    "vec-idf_rank": 1,
+    "syntax": [
+     [
+      "merge_pull_request",
+      3.908
+     ]
+    ],
+    "syntax_rank": 1
+   },
+   {
+    "query": "cancel that run, it's stuck",
+    "gold": "actions_run_trigger::cancel_workflow_run",
+    "verb_obj": [
+     "stick",
+     "run",
+     false
+    ],
+    "lemma": [
+     [
+      "actions_run_trigger::run_workflow",
+      1.24
+     ],
+     [
+      "actions_run_trigger::cancel_workflow_run",
+      1.24
+     ],
+     [
+      "actions_run_trigger::delete_workflow_run_logs",
+      1.24
+     ]
+    ],
+    "lemma_rank": 2,
+    "vec-idf": [
+     [
+      "actions_run_trigger::cancel_workflow_run",
+      0.722
+     ],
+     [
+      "get_me",
+      0.721
+     ],
+     [
+      "list_pull_requests",
+      0.705
+     ]
+    ],
+    "vec-idf_rank": 1,
+    "syntax": [
+     [
+      "get_job_logs",
+      0.486
+     ],
+     [
+      "actions_run_trigger::run_workflow",
+      0.443
+     ],
+     [
+      "actions_run_trigger::cancel_workflow_run",
+      0.443
+     ]
+    ],
+    "syntax_rank": 3
+   }
+  ],
+  "approve_in_schema": [],
+  "zero_overlap": {
+   "family A (fitted)": {
+    "n_routable": 948,
+    "n_blind": 2,
+    "n_seen": 946,
+    "share_blind": 0.0021,
+    "vec_idf_acc_on_blind": 0.0,
+    "vec_idf_acc_on_seen": 0.4366,
+    "tok_acc_on_seen": 0.5423
+   },
+   "family B (held-out)": {
+    "n_routable": 948,
+    "n_blind": 77,
+    "n_seen": 871,
+    "share_blind": 0.0812,
+    "vec_idf_acc_on_blind": 0.0,
+    "vec_idf_acc_on_seen": 0.1079,
+    "tok_acc_on_seen": 0.2273
+   },
+   "wild (hand-authored)": {
+    "n_routable": 74,
+    "n_blind": 7,
+    "n_seen": 67,
+    "share_blind": 0.0946,
+    "vec_idf_acc_on_blind": 0.0,
+    "vec_idf_acc_on_seen": 0.2537,
+    "tok_acc_on_seen": 0.403
+   }
+  },
+  "recall_at_k": {
+   "family A (fitted)": {
+    "tok-overlap": {
+     "@1": 0.5411,
+     "@3": 0.7964,
+     "@5": 0.8797,
+     "@10": 0.9241,
+     "@79": 0.9873
+    },
+    "spacy-lemma": {
+     "@1": 0.5032,
+     "@3": 0.7859,
+     "@5": 0.8681,
+     "@10": 0.9209,
+     "@79": 0.9905
+    },
+    "spacy-vec-idf": {
+     "@1": 0.4357,
+     "@3": 0.6266,
+     "@5": 0.7004,
+     "@10": 0.8049,
+     "@79": 1.0
+    },
+    "spacy-fusion": {
+     "@1": 0.6213,
+     "@3": 0.8112,
+     "@5": 0.8713,
+     "@10": 0.9357,
+     "@79": 0.9895
+    }
+   },
+   "family B (held-out)": {
+    "tok-overlap": {
+     "@1": 0.2089,
+     "@3": 0.3481,
+     "@5": 0.4515,
+     "@10": 0.5759,
+     "@79": 0.6983
+    },
+    "spacy-lemma": {
+     "@1": 0.1772,
+     "@3": 0.2922,
+     "@5": 0.4008,
+     "@10": 0.5612,
+     "@79": 0.6994
+    },
+    "spacy-vec-idf": {
+     "@1": 0.0992,
+     "@3": 0.1941,
+     "@5": 0.2658,
+     "@10": 0.347,
+     "@79": 1.0
+    },
+    "spacy-fusion": {
+     "@1": 0.1561,
+     "@3": 0.3787,
+     "@5": 0.4568,
+     "@10": 0.5812,
+     "@79": 0.7468
+    }
+   },
+   "wild (hand-authored)": {
+    "tok-overlap": {
+     "@1": 0.3649,
+     "@3": 0.527,
+     "@5": 0.5811,
+     "@10": 0.6486,
+     "@79": 0.7297
+    },
+    "spacy-lemma": {
+     "@1": 0.3243,
+     "@3": 0.473,
+     "@5": 0.5405,
+     "@10": 0.6892,
+     "@79": 0.7703
+    },
+    "spacy-vec-idf": {
+     "@1": 0.2297,
+     "@3": 0.3784,
+     "@5": 0.4189,
+     "@10": 0.5135,
+     "@79": 1.0
+    },
+    "spacy-fusion": {
+     "@1": 0.3514,
+     "@3": 0.4595,
+     "@5": 0.5405,
+     "@10": 0.7162,
+     "@79": 0.8378
+    }
+   }
+  }
+ }
+}

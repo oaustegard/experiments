@@ -1,0 +1,29 @@
+{
+ "always_find_prior": 0.675,
+ "arms": {
+  "base (RAG, zero-shot)": {
+   "n": 40,
+   "utility_all": 0.025,
+   "utility_nonfind": 0.0,
+   "utility_uncontaminated": 0.026,
+   "command_rate": 0.025,
+   "verbatim": 0.0
+  },
+  "fine-tuned (RAG)": {
+   "n": 40,
+   "utility_all": 0.95,
+   "utility_nonfind": 0.923,
+   "utility_uncontaminated": 0.947,
+   "command_rate": 0.95,
+   "verbatim": 0.0
+  },
+  "fine-tuned (non-RAG)": {
+   "n": 40,
+   "utility_all": 0.9,
+   "utility_nonfind": 0.846,
+   "utility_uncontaminated": 0.895,
+   "command_rate": 0.9,
+   "verbatim": 0.0
+  }
+ }
+}

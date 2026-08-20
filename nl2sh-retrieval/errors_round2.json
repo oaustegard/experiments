@@ -1,0 +1,38 @@
+{
+ "round": 2,
+ "rules": "rules_claude-iter1.json",
+ "family_a_acc": 0.9947,
+ "n_errors": 5,
+ "errors": [
+  {
+   "id": "a-r902",
+   "query": "link https://github.com/anthropics/claude-code/issues/4255 under parent issue 408440870 in anthropics/claude-code",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  },
+  {
+   "id": "a-r737",
+   "query": "create a pending review on #2078 in psf/requests",
+   "gold": "pull_request_review_write::create",
+   "got": "pull_request_read::get_reviews"
+  },
+  {
+   "id": "a-r738",
+   "query": "create a pending review on #3623 in github/github-mcp-server",
+   "gold": "pull_request_review_write::create",
+   "got": "pull_request_read::get_reviews"
+  },
+  {
+   "id": "a-r743",
+   "query": "create a pending review on #2034 in github/github-mcp-server",
+   "gold": "pull_request_review_write::create",
+   "got": "pull_request_read::get_reviews"
+  },
+  {
+   "id": "a-r904",
+   "query": "link https://github.com/anthropics/claude-code/issues/3371 under parent issue 332326538 in anthropics/claude-code",
+   "gold": "sub_issue_write",
+   "got": "issue_read::get_parent"
+  }
+ ]
+}
