@@ -210,8 +210,10 @@ retriever under it should be the weighted sum.
 
 The retrieval numbers only matter if they reach the generated command. Gemma 3
 270M was re-fine-tuned here on the same 600 NL2Bash rows, one epoch, same seed
-and hyperparameters (26 minutes on 4 contended CPU cores against the original's
-15.9), and re-scored under `gemma_fullsystem.py`'s conditions.
+and hyperparameters — 38.1 minutes on 4 cores against the original's 15.9,
+because a corpus encode shared the box for part of it
+(`results_retrain_gemma.json`) — and re-scored under `gemma_fullsystem.py`'s
+conditions.
 
 On the original 38-row eval the retrained model reproduces the published
 pipeline exactly — routing **0.206**, gold in sources **0.263** — so the
