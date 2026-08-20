@@ -905,6 +905,99 @@ the result.
   impossible rather than unlikely, which is a concrete reason to prefer a
   constrained decoder over a larger model. (`monad-bsky/RESULTS.md`)
 
+- **A model whose layer stack is an `nn.scan` can be grown to arbitrary depth
+  by concatenating along one axis — check for a scanned stack before assuming
+  depth is fixed at export.** In Cactus Needle 2 every per-layer tensor carries a
+  leading `num_layers` axis (block weights inside the scanned collection, MHC
+  lane parameters as explicit `(L, ...)` arrays) and nothing downstream hardcodes
+  the count, so growth is `np.concatenate` plus a config bump. Verified
+  byte-identical (`max |delta| = 0.0`) at 27 -> 31 and 27 -> 48 layers with
+  identity-initialised blocks. The identity recipe is worth stealing for any
+  gated-residual architecture: drive the residual gate's pre-sigmoid parameter to
+  a value that underflows (a zero-init gate is `sigmoid(0) = 0.5`, **not**
+  identity — the most common way to get this wrong), zero the second branch's
+  output scale, and set any learned mixing matrix to a logit scale large enough
+  that its normaliser returns the identity. Note an init that is *called*
+  identity may not be one: this checkpoint's `_res_identity_init` is `4.0 * I`,
+  which Sinkhorn maps to ~1.8% off-diagonal mass; 40 is needed for an actual
+  identity. (`needle-depth-growth/README.md`)
+
+- **Growing a small model deeper is blocked by the corpus, not the checkpoint.**
+  The grown layers contribute exactly nothing until trained, and training them is
+  full-parameter pretraining: a LoRA-only trainer cannot express it, and 800
+  templated task rows do not fit 4.4M newly-added parameters. Before reaching for
+  depth up-scaling on a shipped small model, price the pretraining run — the
+  surgery is the cheap half by two or three orders of magnitude. Related: check
+  the architecture's own depth ablation first, which for this family is U-shaped
+  at iso-param with a 20-layer optimum at d_model 512 while the shipped model is
+  already at 27. (`needle-depth-growth/README.md`)
+
+- **A tool schema routes a small model through two near-equal channels — the
+  tool's name and its description — and neither alone is enough.** Measured over
+  one 18-tool catalogue and 54 queries with a 2x2 of {names opaque
+  (`tool_01`..`tool_18`)} x {descriptions replaced by a constant string}: both
+  intact **0.611**, names only 0.444, descriptions only 0.407, neither **0.074**
+  against a 0.056 chance floor. Deleting either channel is significant (paired
+  McNemar **p=0.035** and **p=0.019**); the difference *between* them is 0.037 at
+  p=0.82. Against the floor, names are worth 0.370 and descriptions 0.333 while
+  both together are worth 0.537, so roughly a quarter of each is carried by the
+  other. Budget schema effort across both, and do not assume prose is where the
+  routing lives. (`needle-tool-naming/RESULTS.md`)
+
+- **Improving tool names is not a lever; wrecking them is.** A systematic
+  rewrite of all 18 names to `<verb>_<distinguishing object>`, descriptions
+  unchanged, reproduced the original to three decimals at both catalogue sizes
+  (0.611 flat, 0.778 oracle-5, paired **p=1.00** both). Mechanically rotating the
+  same names onto confusable neighbours cost 18.5 points. So a name that is
+  merely *adequate* is already spending its full value, while a misleading one is
+  expensive — spend review effort on catching collisions, not on polish.
+  (`needle-tool-naming/RESULTS.md`)
+
+- **Uniform, mutually-parallel tool names flatten a calibrated confidence head
+  even when accuracy is unchanged — check the gate after any schema edit, not
+  just the accuracy.** The rule-written naming above matched baseline accuracy
+  exactly and dropped confidence separation (mean on correct minus mean on wrong)
+  from **0.191 to 0.101**, because mean confidence on *wrong* calls rose 0.392 ->
+  0.480. For a model whose deployment case is act-above-threshold-escalate-below,
+  that is a straight regression delivered by a change that looks free in the
+  accuracy column. The mirror case is informative too: when a tool's name and its
+  description disagree, the model can still answer correctly off the description
+  and its confidence collapses (0.584 -> 0.167 on the same query).
+  (`needle-tool-naming/RESULTS.md`)
+
+- **A contrastive tool-retrieval head reads descriptions, and a wrong name hurts
+  it more than a missing one.** Retrieval cost (oracle-5 accuracy minus
+  full-catalogue accuracy) over the same variants: **0.056** with opaque names and
+  real descriptions, **0.185** with real names and no descriptions, **0.278** with
+  names rotated onto neighbours. If a catalogue is too big to render and a
+  retrieval head is picking the subset, the descriptions are what it selects on —
+  but note the decode uses them too, since the +26pp `auto`->`tuned` description
+  rewrite in `needle-bsky` survives an oracle catalogue at +20.4pp.
+  (`needle-tool-naming/RESULTS.md`)
+
+- **Read the fine-tuner's target list before reasoning from an architecture
+  paper to why a fine-tune failed.** Cactus's attention-only paper
+  (arXiv:2607.18363) localizes a SAN's content storage to the attention output
+  projection, which invites the conclusion that a LoRA leaving two categories
+  unmoved must have missed that write path. It does not:
+  `needle/model/finetune.py` sets `LORA_TARGETS = ("q_proj", "k_proj", "v_proj",
+  "gate_proj", "out_proj")` and, resolved against the shipped checkpoint, reaches
+  **28.31M of 45.21M** parameters. What it cannot reach is the two Engram
+  n-gram tables (8.39M, **18.6%** of the model), their key/value projections, the
+  token embedding, the contrastive head and the confidence head. Ten minutes with
+  the checkpoint replaced a plausible story that would have cost a two-hour
+  rerun. (`needle-tool-naming/ERRORS.md` #1)
+
+- **A shipped model is usually its architecture paper plus the parts the paper
+  concluded it needed.** Cactus Needle 2's model class is literally
+  `SimpleAttentionNetwork`, but the 45,211,383-parameter checkpoint also carries
+  `Engram` (hash-indexed n-gram lookup tables at two layers, 18.6% of
+  parameters — the parametric store the paper concludes an attention-only stack
+  lacks) and `HadamardMLP` (Walsh-Hadamard channel mixing, 3x512 diagonal
+  parameters per block, nonlinear composition at near-zero parameter cost).
+  Reading the paper as a description of the product overstates what was removed.
+  (`needle-tool-naming/RESULTS.md`)
+
 - **A small-model fine-tune can be a wash on accuracy and still cost you the
   calibration head — check whether your serving stack keeps the head before
   spending the compute.** Cactus documents that fine-tuning does not update
@@ -1623,6 +1716,16 @@ the result.
 ---
 
 ## Negative results — do not re-derive
+
+- **A failure pattern that is real inside one category can be invisible as a
+  main effect — size it before designing around it.** Seven queries in two
+  categories all pointed at tool-name capture, and the pre-registered aggregate
+  test over 54 queries and 15 categories came back at 0.037, p=0.82. The
+  category-level effect was genuine and reproduced on demand (rotating names onto
+  neighbours moved that category 0.250 -> 0.750 with descriptions untouched); it
+  was simply 4 queries of 54. Pre-registering the prediction is what kept this a
+  reported miss rather than a tidy headline built from the one category that
+  moved. (`needle-tool-naming/PREREG.md`, `ERRORS.md` #2)
 
 - **A code-trained encoder did not beat a general text encoder on NL->code file
   discovery — and the obvious confound was ruled out.** On a 59-instance
