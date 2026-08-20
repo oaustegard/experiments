@@ -1,0 +1,1304 @@
+{
+ "variant": "neither",
+ "mode": "oracle",
+ "n_tools": 5,
+ "names": {
+  "tool_01": "get_profile",
+  "tool_02": "get_user_posts",
+  "tool_03": "search_posts",
+  "tool_04": "get_feed_posts",
+  "tool_05": "get_trending",
+  "tool_06": "get_trending_topics",
+  "tool_07": "sample_firehose",
+  "tool_08": "get_thread",
+  "tool_09": "get_quotes",
+  "tool_10": "get_likes",
+  "tool_11": "get_reposts",
+  "tool_12": "get_followers",
+  "tool_13": "get_following",
+  "tool_14": "search_users",
+  "tool_15": "analyze_account",
+  "tool_16": "extract_keywords",
+  "tool_17": "resolve_identity",
+  "tool_18": "atproto_status"
+ },
+ "repeat": 1,
+ "deterministic": null,
+ "summary": {
+  "n": 62,
+  "tool_acc": 0.3387,
+  "tool_acc_routable": 0.2593,
+  "refusal_acc": 0.875,
+  "args_acc_routable": 0.2407,
+  "invented_rate": 0.4815,
+  "mean_conf_correct": 0.3506,
+  "mean_conf_wrong": 0.148,
+  "median_latency_ms": 222.4,
+  "mean_latency_ms": 237.7
+ },
+ "gate_sweep": [
+  {
+   "threshold": 0.0,
+   "acted": 44,
+   "coverage": 1.0,
+   "precision_tool": 0.3182,
+   "precision_args": 0.2955,
+   "escalated_but_correct": 0
+  },
+  {
+   "threshold": 0.05,
+   "acted": 21,
+   "coverage": 0.4773,
+   "precision_tool": 0.4286,
+   "precision_args": 0.381,
+   "escalated_but_correct": 5
+  },
+  {
+   "threshold": 0.1,
+   "acted": 19,
+   "coverage": 0.4318,
+   "precision_tool": 0.4211,
+   "precision_args": 0.3684,
+   "escalated_but_correct": 6
+  },
+  {
+   "threshold": 0.2,
+   "acted": 15,
+   "coverage": 0.3409,
+   "precision_tool": 0.4,
+   "precision_args": 0.3333,
+   "escalated_but_correct": 8
+  },
+  {
+   "threshold": 0.3,
+   "acted": 11,
+   "coverage": 0.25,
+   "precision_tool": 0.3636,
+   "precision_args": 0.2727,
+   "escalated_but_correct": 10
+  },
+  {
+   "threshold": 0.4,
+   "acted": 7,
+   "coverage": 0.1591,
+   "precision_tool": 0.4286,
+   "precision_args": 0.4286,
+   "escalated_but_correct": 11
+  },
+  {
+   "threshold": 0.5,
+   "acted": 5,
+   "coverage": 0.1136,
+   "precision_tool": 0.4,
+   "precision_args": 0.4,
+   "escalated_but_correct": 12
+  },
+  {
+   "threshold": 0.6,
+   "acted": 1,
+   "coverage": 0.0227,
+   "precision_tool": 0.0,
+   "precision_args": 0.0,
+   "escalated_but_correct": 14
+  },
+  {
+   "threshold": 0.7,
+   "acted": 1,
+   "coverage": 0.0227,
+   "precision_tool": 0.0,
+   "precision_args": 0.0,
+   "escalated_but_correct": 14
+  },
+  {
+   "threshold": 0.8,
+   "acted": 0,
+   "coverage": 0.0,
+   "precision_tool": null,
+   "precision_args": null,
+   "escalated_but_correct": 14
+  },
+  {
+   "threshold": 0.9,
+   "acted": 0,
+   "coverage": 0.0,
+   "precision_tool": null,
+   "precision_args": null,
+   "escalated_but_correct": 14
+  }
+ ],
+ "rows": [
+  {
+   "id": "posts-01",
+   "cat": "person-posts",
+   "query": "what has pfrazee.com been posting lately",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "get_trending",
+   "arguments": {
+    "post_uri_or_url": "https://pfrazee.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": 0.0033,
+   "decision": "act",
+   "latency_ms": 278.3,
+   "reasoning": "User asks about a specific API pfrazee.com. Call tool_05 with that URL."
+  },
+  {
+   "id": "posts-02",
+   "cat": "person-posts",
+   "query": "show me the last 10 posts from austegard.com",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.2663,
+   "decision": "refuse",
+   "latency_ms": 113.7,
+   "reasoning": "No tool retrieves posts or history; tools only perform actions."
+  },
+  {
+   "id": "posts-03",
+   "cat": "person-posts",
+   "query": "pull @why.bsky.team's recent posts",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.0355,
+   "decision": "refuse",
+   "latency_ms": 241.1,
+   "reasoning": "No tool for retrieving posts or history. Tools only handle API operations (Bluesky API, Bluesky API, Bluesky API) and API operations."
+  },
+  {
+   "id": "posts-04",
+   "cat": "person-posts",
+   "query": "what's simonwillison.net saying on bluesky",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "get_thread",
+   "arguments": {
+    "post_uri_or_url": "https://simonwillison.net"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": 0.0001,
+   "decision": "act",
+   "latency_ms": 286.5,
+   "reasoning": "User wants simonwillison.net. Use tool_id 'simonwillison.net' to get the API."
+  },
+  {
+   "id": "posts-05",
+   "cat": "person-posts",
+   "query": "get 50 posts from bnewbold.net",
+   "expected": [
+    "get_user_posts"
+   ],
+   "got": "get_thread",
+   "arguments": {
+    "post_uri_or_url": "https://www.bnewbold.net/posts"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": 0.0001,
+   "decision": "act",
+   "latency_ms": 189.9,
+   "reasoning": null
+  },
+  {
+   "id": "profile-01",
+   "cat": "profile",
+   "query": "show me austegard.com's profile",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "get_profile",
+   "arguments": {
+    "handle": "austegard.com"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.2698,
+   "decision": "act",
+   "latency_ms": 118.5,
+   "reasoning": null
+  },
+  {
+   "id": "profile-02",
+   "cat": "profile",
+   "query": "how many followers does pfrazee.com have",
+   "expected": [
+    "get_profile"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.1844,
+   "decision": "refuse",
+   "latency_ms": 139.5,
+   "reasoning": "No tool provides follower statistics or social media data. Tools are limited to Bluesky API operations."
+  },
+  {
+   "id": "profile-03",
+   "cat": "profile",
+   "query": "what's in emilyliu.me's bio",
+   "expected": [
+    "get_profile"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "emilyliu.me's bio"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": 0.0048,
+   "decision": "act",
+   "latency_ms": 292.5,
+   "reasoning": "User wants to check Bluesky API for emilyliu.me's bio. Use tool_03 with query 'emilyliu.me's bio'."
+  },
+  {
+   "id": "profile-04",
+   "cat": "profile",
+   "query": "look up the account jay.bsky.team",
+   "expected": [
+    "get_profile",
+    "search_users"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "jay.bsky.team"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "feed_uri"
+   ],
+   "confidence": 0.1825,
+   "decision": "act",
+   "latency_ms": 127.1,
+   "reasoning": null
+  },
+  {
+   "id": "search-01",
+   "cat": "search",
+   "query": "search bluesky for posts about norwegian politics",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "norwegian politics"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.0031,
+   "decision": "act",
+   "latency_ms": 110.3,
+   "reasoning": null
+  },
+  {
+   "id": "search-02",
+   "cat": "search",
+   "query": "find posts mentioning matryoshka embeddings",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "matryoshka embeddings"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.005,
+   "decision": "act",
+   "latency_ms": 243.1,
+   "reasoning": "User wants to search posts about matryoshka embeddings. Use search_posts with query 'matryoshka embeddings'."
+  },
+  {
+   "id": "search-03",
+   "cat": "search",
+   "query": "what are people saying about the atproto outage",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "sample_firehose",
+   "arguments": {
+    "text": "atproto outage"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "text"
+   ],
+   "confidence": 0.0051,
+   "decision": "act",
+   "latency_ms": 230.2,
+   "reasoning": "User wants to check Bluesky API for a specific topic. Use tool_07 with the query 'atproto outage'."
+  },
+  {
+   "id": "search-04",
+   "cat": "search",
+   "query": "search for posts about jetstream from bnewbold.net",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "atproto_status",
+   "arguments": {
+    "query": "jetstream from bnewbold.net"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.005,
+   "decision": "act",
+   "latency_ms": 122.9,
+   "reasoning": null
+  },
+  {
+   "id": "search-05",
+   "cat": "search",
+   "query": "posts about the tour de france since 2026-07-01",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "tour de france"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.0,
+   "decision": "act",
+   "latency_ms": 263.0,
+   "reasoning": "User wants to posts about tour de france. Use post_id 'tour_de_france_2026' with a plausible post_id."
+  },
+  {
+   "id": "search-06",
+   "cat": "search",
+   "query": "find norwegian language posts about strom priser",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "get_thread",
+   "arguments": {
+    "post_uri_or_url": "https://www.norwegian.com/language/strom-priser"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": 0.0,
+   "decision": "act",
+   "latency_ms": 214.9,
+   "reasoning": null
+  },
+  {
+   "id": "search-07",
+   "cat": "search",
+   "query": "search bluesky for cactus compute",
+   "expected": [
+    "search_posts"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "cactus compute"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.0789,
+   "decision": "act",
+   "latency_ms": 99.5,
+   "reasoning": null
+  },
+  {
+   "id": "users-01",
+   "cat": "find-users",
+   "query": "find people who write about atproto",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.4949,
+   "decision": "refuse",
+   "latency_ms": 136.7,
+   "reasoning": "No tool searches for people or retrieves contact details. Tools only handle Bluesky API operations."
+  },
+  {
+   "id": "users-02",
+   "cat": "find-users",
+   "query": "which accounts have cycling in their bio",
+   "expected": [
+    "search_users"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.2538,
+   "decision": "refuse",
+   "latency_ms": 127.1,
+   "reasoning": "No tool provides account balance or account information. Tools only handle Bluesky API operations."
+  },
+  {
+   "id": "users-03",
+   "cat": "find-users",
+   "query": "search for users called austegard",
+   "expected": [
+    "search_users"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "austegard"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.3484,
+   "decision": "act",
+   "latency_ms": 99.7,
+   "reasoning": null
+  },
+  {
+   "id": "likes-01",
+   "cat": "interactions",
+   "query": "who liked https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": "get_thread",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.1551,
+   "decision": "act",
+   "latency_ms": 417.3,
+   "reasoning": "User provides a URL to identify the Bluesky API. Calling tool_08 with that URL."
+  },
+  {
+   "id": "likes-02",
+   "cat": "interactions",
+   "query": "show the likes on at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_likes"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "likes on at://did:plc:s3cqfxbcwnvvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": 0.2844,
+   "decision": "act",
+   "latency_ms": 408.2,
+   "reasoning": null
+  },
+  {
+   "id": "reposts-01",
+   "cat": "interactions",
+   "query": "who reposted https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": "get_trending_topics",
+   "arguments": {
+    "handle": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "confidence": 0.084,
+   "decision": "act",
+   "latency_ms": 396.0,
+   "reasoning": "User provides a URL to identify the Bluesky API. Calling tool_id_api with that URL."
+  },
+  {
+   "id": "reposts-02",
+   "cat": "interactions",
+   "query": "list the accounts that boosted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_reposts"
+   ],
+   "got": "get_reposts",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.1552,
+   "decision": "act",
+   "latency_ms": 580.5,
+   "reasoning": "User wants to list accounts with URL. 'list the accounts' -> tool_list. 'boosted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v' -> post_uri_or_url."
+  },
+  {
+   "id": "quotes-01",
+   "cat": "interactions",
+   "query": "show me the quote posts of https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": "sample_firehose",
+   "arguments": {
+    "post_uri": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri"
+   ],
+   "confidence": 0.3254,
+   "decision": "act",
+   "latency_ms": 264.1,
+   "reasoning": null
+  },
+  {
+   "id": "quotes-02",
+   "cat": "interactions",
+   "query": "who quoted https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_quotes"
+   ],
+   "got": "get_quotes",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.244,
+   "decision": "act",
+   "latency_ms": 398.6,
+   "reasoning": "User provides a URL to identify the Bluesky API. Calling tool_09 with that URL."
+  },
+  {
+   "id": "thread-01",
+   "cat": "thread",
+   "query": "show me the replies to https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "handle": "https://bsky.app/profile/austegard.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "confidence": 0.2495,
+   "decision": "act",
+   "latency_ms": 269.2,
+   "reasoning": null
+  },
+  {
+   "id": "thread-02",
+   "cat": "thread",
+   "query": "read the whole thread at https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": "get_thread",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/pfrazee.com/post/3lxk2mnop4c2v"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.5005,
+   "decision": "act",
+   "latency_ms": 299.9,
+   "reasoning": null
+  },
+  {
+   "id": "thread-03",
+   "cat": "thread",
+   "query": "what did people reply to at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.post/3lxk2mnop4c2v",
+   "expected": [
+    "get_thread"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.0,
+   "decision": "refuse",
+   "latency_ms": 1113.8,
+   "reasoning": "post_uri_or_url from query verbatim; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at_did' from 'reply to'; tool_id 'reply_to_at"
+  },
+  {
+   "id": "graph-01",
+   "cat": "graph",
+   "query": "who does austegard.com follow",
+   "expected": [
+    "get_following"
+   ],
+   "got": "get_trending_topics",
+   "arguments": {
+    "handle": "austegard.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.0234,
+   "decision": "act",
+   "latency_ms": 231.1,
+   "reasoning": "User wants to identify a Bluesky API for austegard.com. Use tool_06 with the name from query."
+  },
+  {
+   "id": "graph-02",
+   "cat": "graph",
+   "query": "who follows austegard.com",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "austegard.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "feed_uri"
+   ],
+   "confidence": 0.0138,
+   "decision": "act",
+   "latency_ms": 253.5,
+   "reasoning": "User wants to identify a Bluesky API for austegard.com. Use tool_04 with feed_uri 'austegard.com'."
+  },
+  {
+   "id": "graph-03",
+   "cat": "graph",
+   "query": "list pfrazee.com's followers",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_trending",
+   "arguments": {
+    "tool_id": "pfrazee.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "tool_id"
+   ],
+   "confidence": 0.3297,
+   "decision": "act",
+   "latency_ms": 261.2,
+   "reasoning": "'list pfrazee.com's followers' -> tool_id 'pfrazee.com'. Tool_id is a valid string."
+  },
+  {
+   "id": "graph-04",
+   "cat": "graph",
+   "query": "show me the accounts emilyliu.me is following",
+   "expected": [
+    "get_following"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.161,
+   "decision": "refuse",
+   "latency_ms": 145.0,
+   "reasoning": "No tool for account follower or social media access. Tools are limited to Bluesky API operations."
+  },
+  {
+   "id": "graph-05",
+   "cat": "graph",
+   "query": "get 100 followers of bnewbold.net",
+   "expected": [
+    "get_followers"
+   ],
+   "got": "get_trending",
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.5748,
+   "decision": "act",
+   "latency_ms": 79.6,
+   "reasoning": null
+  },
+  {
+   "id": "feed-01",
+   "cat": "feed",
+   "query": "get the posts in https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.4261,
+   "decision": "act",
+   "latency_ms": 286.6,
+   "reasoning": null
+  },
+  {
+   "id": "feed-02",
+   "cat": "feed",
+   "query": "read the feed at at://did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "//did:plc:s3cqfxbcwnvvyrsttl3wivgp/app.bsky.feed.generator/aaaotfjzjplna"
+   },
+   "tool_ok": true,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.3612,
+   "decision": "act",
+   "latency_ms": 364.7,
+   "reasoning": null
+  },
+  {
+   "id": "feed-03",
+   "cat": "feed",
+   "query": "what's in my norwegians list https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f",
+   "expected": [
+    "get_feed_posts"
+   ],
+   "got": "get_thread",
+   "arguments": {
+    "post_uri_or_url": "https://bsky.app/profile/austegard.com/lists/3lankcdrlip2f"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": 0.7024,
+   "decision": "act",
+   "latency_ms": 434.3,
+   "reasoning": "User provides a URL for Bluesky API operation. Call tool_08 with that URL."
+  },
+  {
+   "id": "trend-01",
+   "cat": "trending",
+   "query": "what's trending on bluesky",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": "sample_firehose",
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.0477,
+   "decision": "act",
+   "latency_ms": 170.9,
+   "reasoning": "User wants trending bluesky API. Use tool_07 to get trending API."
+  },
+  {
+   "id": "trend-02",
+   "cat": "trending",
+   "query": "give me the top 5 trending topics",
+   "expected": [
+    "get_trending",
+    "get_trending_topics"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "top 5 trending topics"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": 0.0,
+   "decision": "act",
+   "latency_ms": 104.3,
+   "reasoning": null
+  },
+  {
+   "id": "trend-03",
+   "cat": "trending",
+   "query": "which topics are hot right now, and how many posts each",
+   "expected": [
+    "get_trending"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.0496,
+   "decision": "refuse",
+   "latency_ms": 135.7,
+   "reasoning": "No tool provides topics, posts, or information retrieval. Tools are limited to API operations."
+  },
+  {
+   "id": "trend-04",
+   "cat": "trending",
+   "query": "just list the trending topic names",
+   "expected": [
+    "get_trending_topics"
+   ],
+   "got": "get_thread",
+   "arguments": {
+    "post_uri_or_url": "trending_topic"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": 0.0,
+   "decision": "act",
+   "latency_ms": 298.7,
+   "reasoning": "User wants trending topics. 'trending topic names' -> query 'trending topic names'. Tool_id not specified, so use generic 'trending_topic'."
+  },
+  {
+   "id": "hose-01",
+   "cat": "firehose",
+   "query": "sample the firehose for 30 seconds",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "sample_firehose.mp3"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "feed_uri"
+   ],
+   "confidence": 0.0,
+   "decision": "act",
+   "latency_ms": 128.3,
+   "reasoning": null
+  },
+  {
+   "id": "hose-02",
+   "cat": "firehose",
+   "query": "listen to the live stream of new posts for a minute",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": "sample_firehose",
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.5403,
+   "decision": "act",
+   "latency_ms": 75.3,
+   "reasoning": null
+  },
+  {
+   "id": "hose-03",
+   "cat": "firehose",
+   "query": "watch the firehose for posts containing bitcoin",
+   "expected": [
+    "sample_firehose"
+   ],
+   "got": "sample_firehose",
+   "arguments": {
+    "post_uri_or_url": "firehose_posts.mp3"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": 0.0,
+   "decision": "act",
+   "latency_ms": 373.5,
+   "reasoning": "'watch the firehose for posts containing bitcoin' -> post_uri_or_url 'firehose_posts.mp3'. Tool_07 is the only tool that accepts a URL."
+  },
+  {
+   "id": "id-01",
+   "cat": "identity",
+   "query": "what's the did for austegard.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": "search_posts",
+   "arguments": {
+    "query": "austegard.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "query"
+   ],
+   "confidence": 0.0074,
+   "decision": "act",
+   "latency_ms": 243.6,
+   "reasoning": "User asks for austegard.com API. Use tool_a_stock with the API name."
+  },
+  {
+   "id": "id-02",
+   "cat": "identity",
+   "query": "which pds hosts pfrazee.com",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": "get_followers",
+   "arguments": {
+    "handle": "pfrazee.com"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "confidence": 0.0164,
+   "decision": "act",
+   "latency_ms": 236.2,
+   "reasoning": "User wants pds hosts for PFrazee.com. Call tool_12 with that URL."
+  },
+  {
+   "id": "id-03",
+   "cat": "identity",
+   "query": "resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle",
+   "expected": [
+    "resolve_identity"
+   ],
+   "got": "get_user_posts",
+   "arguments": {
+    "handle": "resolve did:plc:s3cqfxbcwnvvvyrsttl3wivgp to a handle"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "handle"
+   ],
+   "confidence": 0.5033,
+   "decision": "act",
+   "latency_ms": 530.6,
+   "reasoning": "'resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle' -> handle 'resolve did:plc:s3cqfxbcwnvvyrsttl3wivgp to a handle'. Tool tool_02 matches."
+  },
+  {
+   "id": "status-01",
+   "cat": "status",
+   "query": "is bluesky down right now",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.0404,
+   "decision": "refuse",
+   "latency_ms": 155.8,
+   "reasoning": "User asks about current Bluesky API status. No tool provides real-time status queries or current state. Only action tools exist."
+  },
+  {
+   "id": "status-02",
+   "cat": "status",
+   "query": "which atproto layer is broken",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.0524,
+   "decision": "refuse",
+   "latency_ms": 145.7,
+   "reasoning": "No tool provides layer status or error logs. Tools only handle API operations and Bluesky API operations."
+  },
+  {
+   "id": "status-03",
+   "cat": "status",
+   "query": "check whether the appview is up",
+   "expected": [
+    "atproto_status"
+   ],
+   "got": null,
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.1766,
+   "decision": "refuse",
+   "latency_ms": 133.6,
+   "reasoning": "No tool provides app status or diagnostic information. Tools only handle API operations and Bluesky API operations."
+  },
+  {
+   "id": "analyze-01",
+   "cat": "analysis",
+   "query": "what is bnewbold.net mostly about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": "get_feed_posts",
+   "arguments": {
+    "feed_uri": "bnewbold.net"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "feed_uri"
+   ],
+   "confidence": 0.0009,
+   "decision": "act",
+   "latency_ms": 269.5,
+   "reasoning": "User wants to check Bluesky API for bnewbold.net. Use tool_04 with feed_uri 'bnewbold.net'."
+  },
+  {
+   "id": "analyze-02",
+   "cat": "analysis",
+   "query": "summarise what emilyliu.me posts about",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": "resolve_identity",
+   "arguments": {
+    "actor": "emilyliu.me"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "actor"
+   ],
+   "confidence": 0.0007,
+   "decision": "act",
+   "latency_ms": 229.8,
+   "reasoning": "User wants to summarize emilyliu.me posts about emilyliu.me. Use summarise_post_id."
+  },
+  {
+   "id": "analyze-03",
+   "cat": "analysis",
+   "query": "give me the keywords for the account austegard.com",
+   "expected": [
+    "analyze_account"
+   ],
+   "got": "sample_firehose",
+   "arguments": {
+    "post_uri_or_url": "https://api.account.com/keywords"
+   },
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [
+    "post_uri_or_url"
+   ],
+   "confidence": 0.0005,
+   "decision": "act",
+   "latency_ms": 188.8,
+   "reasoning": null
+  },
+  {
+   "id": "kw-01",
+   "cat": "keywords",
+   "query": "pull the key terms out of this text: the relay went down but every pds kept serving records normally",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": "extract_keywords",
+   "arguments": {
+    "text": "the relay went down but every pds kept serving records normally"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [
+    "text"
+   ],
+   "confidence": 0.0181,
+   "decision": "act",
+   "latency_ms": 278.3,
+   "reasoning": "'key terms out of this text' -> tool_16.text 'the relay went down but every pds kept serving records normally'."
+  },
+  {
+   "id": "kw-02",
+   "cat": "keywords",
+   "query": "extract keywords from: sykkel, terskeleffekt og vintertrening i Oslo",
+   "expected": [
+    "extract_keywords"
+   ],
+   "got": "extract_keywords",
+   "arguments": {
+    "text": "sokkel, terskeleffekt og vintertrening i Oslo"
+   },
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [
+    "text"
+   ],
+   "confidence": 0.1751,
+   "decision": "act",
+   "latency_ms": 355.9,
+   "reasoning": "'keywords' -> text 'sokkel, terskeleffekt og vintertrening i Oslo'; tool_16 is the only API tool."
+  },
+  {
+   "id": "off-01",
+   "cat": "off-topic",
+   "query": "what's the weather in Oslo",
+   "expected": [],
+   "got": "sample_firehose",
+   "arguments": {},
+   "tool_ok": false,
+   "args_ok": false,
+   "invented": [],
+   "confidence": 0.4854,
+   "decision": "act",
+   "latency_ms": 92.7,
+   "reasoning": null
+  },
+  {
+   "id": "off-02",
+   "cat": "off-topic",
+   "query": "book me a flight to Bergen next tuesday",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.8966,
+   "decision": "refuse",
+   "latency_ms": 142.8,
+   "reasoning": "No tool for flight booking or scheduling. Tools are limited to Bluesky API operations."
+  },
+  {
+   "id": "off-03",
+   "cat": "off-topic",
+   "query": "send a dm to pfrazee.com saying hello",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.5853,
+   "decision": "refuse",
+   "latency_ms": 137.9,
+   "reasoning": "No messaging or email tool available. Tools are limited to Bluesky API operations."
+  },
+  {
+   "id": "off-04",
+   "cat": "off-topic",
+   "query": "post this to my bluesky account: good morning",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.7362,
+   "decision": "refuse",
+   "latency_ms": 121.3,
+   "reasoning": "No post-action or social media tool exists. Tools are limited to API operations."
+  },
+  {
+   "id": "off-05",
+   "cat": "off-topic",
+   "query": "delete my last bluesky post",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 1.0,
+   "decision": "refuse",
+   "latency_ms": 107.9,
+   "reasoning": "No tool supports deleting or removing posts; tools only perform actions."
+  },
+  {
+   "id": "off-06",
+   "cat": "off-topic",
+   "query": "how many calories did I burn on my ride yesterday",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.9928,
+   "decision": "refuse",
+   "latency_ms": 135.6,
+   "reasoning": "No tool provides health data or calorie information. Tools are limited to Bluesky API operations."
+  },
+  {
+   "id": "off-07",
+   "cat": "off-topic",
+   "query": "block the account spammer.bsky.social",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.163,
+   "decision": "refuse",
+   "latency_ms": 149.5,
+   "reasoning": "No tool for blocking accounts or managing social media accounts. Tools are limited to Bluesky API operations."
+  },
+  {
+   "id": "off-08",
+   "cat": "off-topic",
+   "query": "what is the capital of Norway",
+   "expected": [],
+   "got": null,
+   "arguments": {},
+   "tool_ok": true,
+   "args_ok": true,
+   "invented": [],
+   "confidence": 0.2109,
+   "decision": "refuse",
+   "latency_ms": 158.6,
+   "reasoning": "No tool provides factual information or knowledge queries. Tools are limited to API operations and Bluesky API operations."
+  }
+ ]
+}
