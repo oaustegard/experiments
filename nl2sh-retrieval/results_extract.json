@@ -1,0 +1,567 @@
+{
+  "seed": 20260819,
+  "n_sample": 400,
+  "splits": {
+    "dev": 300,
+    "holdout": 100
+  },
+  "dev": {
+    "n_pairs": 300,
+    "n_extracted": 408,
+    "extracted_per_request": 1.36,
+    "precision_substring": 0.9069,
+    "precision_substring_ci95": [
+      0.8747,
+      0.9314
+    ],
+    "precision_substring_caseless": 0.9167,
+    "precision_token_exact": 0.5319,
+    "gold_all": 361,
+    "recall_all": 0.8283,
+    "recall_all_ci95": [
+      0.7859,
+      0.8637
+    ],
+    "gold_marked": 255,
+    "recall_marked": 0.9843,
+    "recall_marked_exact_match_only": 0.902,
+    "gold_unmarked": 106,
+    "recall_unmarked": 0.4528,
+    "per_kind": {
+      "literal": {
+        "n": 128,
+        "precision": 0.8906
+      },
+      "path": {
+        "n": 78,
+        "precision": 0.9359
+      },
+      "number": {
+        "n": 36,
+        "precision": 0.8889
+      },
+      "extension": {
+        "n": 35,
+        "precision": 0.8571
+      },
+      "filename": {
+        "n": 26,
+        "precision": 0.9615
+      },
+      "glob": {
+        "n": 22,
+        "precision": 1.0
+      },
+      "duration": {
+        "n": 21,
+        "precision": 0.7143
+      },
+      "identifier": {
+        "n": 17,
+        "precision": 1.0
+      },
+      "var": {
+        "n": 14,
+        "precision": 1.0
+      },
+      "size": {
+        "n": 11,
+        "precision": 0.9091
+      },
+      "perm": {
+        "n": 10,
+        "precision": 0.9
+      },
+      "user": {
+        "n": 4,
+        "precision": 1.0
+      },
+      "ip": {
+        "n": 2,
+        "precision": 1.0
+      },
+      "signal": {
+        "n": 2,
+        "precision": 0.5
+      },
+      "hostname": {
+        "n": 1,
+        "precision": 1.0
+      },
+      "port": {
+        "n": 1,
+        "precision": 1.0
+      }
+    }
+  },
+  "holdout": {
+    "n_pairs": 100,
+    "n_extracted": 136,
+    "extracted_per_request": 1.36,
+    "precision_substring": 0.9706,
+    "precision_substring_ci95": [
+      0.9268,
+      0.9885
+    ],
+    "precision_substring_caseless": 0.9706,
+    "precision_token_exact": 0.5294,
+    "gold_all": 109,
+    "recall_all": 0.8716,
+    "recall_all_ci95": [
+      0.7959,
+      0.9219
+    ],
+    "gold_marked": 87,
+    "recall_marked": 0.954,
+    "recall_marked_exact_match_only": 0.9195,
+    "gold_unmarked": 22,
+    "recall_unmarked": 0.5455,
+    "per_kind": {
+      "literal": {
+        "n": 52,
+        "precision": 0.9808
+      },
+      "path": {
+        "n": 17,
+        "precision": 0.9412
+      },
+      "var": {
+        "n": 14,
+        "precision": 0.9286
+      },
+      "number": {
+        "n": 13,
+        "precision": 0.9231
+      },
+      "extension": {
+        "n": 10,
+        "precision": 1.0
+      },
+      "glob": {
+        "n": 7,
+        "precision": 1.0
+      },
+      "identifier": {
+        "n": 7,
+        "precision": 1.0
+      },
+      "filename": {
+        "n": 6,
+        "precision": 1.0
+      },
+      "hostname": {
+        "n": 3,
+        "precision": 1.0
+      },
+      "size": {
+        "n": 2,
+        "precision": 1.0
+      },
+      "user": {
+        "n": 2,
+        "precision": 1.0
+      },
+      "duration": {
+        "n": 2,
+        "precision": 1.0
+      },
+      "perm": {
+        "n": 1,
+        "precision": 1.0
+      }
+    }
+  },
+  "all400": {
+    "n_pairs": 400,
+    "n_extracted": 544,
+    "extracted_per_request": 1.36,
+    "precision_substring": 0.9228,
+    "precision_substring_ci95": [
+      0.8973,
+      0.9424
+    ],
+    "precision_substring_caseless": 0.9301,
+    "precision_token_exact": 0.5312,
+    "gold_all": 470,
+    "recall_all": 0.8383,
+    "recall_all_ci95": [
+      0.8023,
+      0.8688
+    ],
+    "gold_marked": 342,
+    "recall_marked": 0.9766,
+    "recall_marked_exact_match_only": 0.9064,
+    "gold_unmarked": 128,
+    "recall_unmarked": 0.4688,
+    "per_kind": {
+      "literal": {
+        "n": 180,
+        "precision": 0.9167
+      },
+      "path": {
+        "n": 95,
+        "precision": 0.9368
+      },
+      "number": {
+        "n": 49,
+        "precision": 0.898
+      },
+      "extension": {
+        "n": 45,
+        "precision": 0.8889
+      },
+      "filename": {
+        "n": 32,
+        "precision": 0.9688
+      },
+      "glob": {
+        "n": 29,
+        "precision": 1.0
+      },
+      "var": {
+        "n": 28,
+        "precision": 0.9643
+      },
+      "identifier": {
+        "n": 24,
+        "precision": 1.0
+      },
+      "duration": {
+        "n": 23,
+        "precision": 0.7391
+      },
+      "size": {
+        "n": 13,
+        "precision": 0.9231
+      },
+      "perm": {
+        "n": 11,
+        "precision": 0.9091
+      },
+      "user": {
+        "n": 6,
+        "precision": 1.0
+      },
+      "hostname": {
+        "n": 4,
+        "precision": 1.0
+      },
+      "ip": {
+        "n": 2,
+        "precision": 1.0
+      },
+      "signal": {
+        "n": 2,
+        "precision": 0.5
+      },
+      "port": {
+        "n": 1,
+        "precision": 1.0
+      }
+    }
+  },
+  "cue_presence": {
+    "pairs_with_operands": 369,
+    "pairs_where_every_operand_appears_in_request": 138,
+    "fraction": 0.374
+  },
+  "failures_dev": {
+    "false_positive_kinds": [
+      [
+        "literal",
+        14
+      ],
+      [
+        "duration",
+        6
+      ],
+      [
+        "extension",
+        5
+      ],
+      [
+        "path",
+        5
+      ],
+      [
+        "number",
+        4
+      ],
+      [
+        "filename",
+        1
+      ],
+      [
+        "size",
+        1
+      ],
+      [
+        "perm",
+        1
+      ],
+      [
+        "signal",
+        1
+      ]
+    ],
+    "top_false_positives": [
+      {
+        "kind": "duration",
+        "value": "24",
+        "n": 6
+      },
+      {
+        "kind": "extension",
+        "value": ".c",
+        "n": 2
+      },
+      {
+        "kind": "extension",
+        "value": ".h",
+        "n": 2
+      },
+      {
+        "kind": "literal",
+        "value": "dateiname",
+        "n": 2
+      },
+      {
+        "kind": "number",
+        "value": "22",
+        "n": 1
+      },
+      {
+        "kind": "filename",
+        "value": "MyCProgam.c",
+        "n": 1
+      },
+      {
+        "kind": "literal",
+        "value": "b and",
+        "n": 1
+      },
+      {
+        "kind": "literal",
+        "value": "as required and directory",
+        "n": 1
+      },
+      {
+        "kind": "literal",
+        "value": "Linux",
+        "n": 1
+      },
+      {
+        "kind": "path",
+        "value": "~/backups/",
+        "n": 1
+      },
+      {
+        "kind": "size",
+        "value": "0",
+        "n": 1
+      },
+      {
+        "kind": "literal",
+        "value": "foobar\\n\\337",
+        "n": 1
+      },
+      {
+        "kind": "number",
+        "value": "24",
+        "n": 1
+      },
+      {
+        "kind": "number",
+        "value": "2",
+        "n": 1
+      },
+      {
+        "kind": "path",
+        "value": "/home/user/myLogFile.logNNN",
+        "n": 1
+      }
+    ],
+    "top_missed_marked": [
+      {
+        "value": "md5sum",
+        "n": 1
+      },
+      {
+        "value": "clean-all",
+        "n": 1
+      },
+      {
+        "value": ".gitignore",
+        "n": 1
+      },
+      {
+        "value": "dir-name-here",
+        "n": 1
+      }
+    ],
+    "top_missed_unmarked": [
+      {
+        "value": "file",
+        "n": 5
+      },
+      {
+        "value": "dir",
+        "n": 2
+      },
+      {
+        "value": "name",
+        "n": 2
+      },
+      {
+        "value": "directory",
+        "n": 2
+      },
+      {
+        "value": "rm",
+        "n": 2
+      },
+      {
+        "value": "ch",
+        "n": 1
+      },
+      {
+        "value": "total",
+        "n": 1
+      },
+      {
+        "value": "binary",
+        "n": 1
+      },
+      {
+        "value": "CVS",
+        "n": 1
+      },
+      {
+        "value": "junk",
+        "n": 1
+      },
+      {
+        "value": "files",
+        "n": 1
+      },
+      {
+        "value": "video",
+        "n": 1
+      },
+      {
+        "value": "src",
+        "n": 1
+      },
+      {
+        "value": "emacs",
+        "n": 1
+      },
+      {
+        "value": "reverse",
+        "n": 1
+      }
+    ]
+  },
+  "failures_holdout": {
+    "false_positive_kinds": [
+      [
+        "literal",
+        1
+      ],
+      [
+        "path",
+        1
+      ],
+      [
+        "number",
+        1
+      ],
+      [
+        "var",
+        1
+      ]
+    ],
+    "top_false_positives": [
+      {
+        "kind": "literal",
+        "value": "*prets copy",
+        "n": 1
+      },
+      {
+        "kind": "path",
+        "value": "/tmp/",
+        "n": 1
+      },
+      {
+        "kind": "number",
+        "value": "24",
+        "n": 1
+      },
+      {
+        "kind": "var",
+        "value": "$2",
+        "n": 1
+      }
+    ],
+    "top_missed_marked": [
+      {
+        "value": "@133986838",
+        "n": 1
+      },
+      {
+        "value": "var/log",
+        "n": 1
+      },
+      {
+        "value": "100x100\">\"",
+        "n": 1
+      },
+      {
+        "value": "\"$project_dir\"/iTunesArtwork",
+        "n": 1
+      }
+    ],
+    "top_missed_unmarked": [
+      {
+        "value": "sys",
+        "n": 1
+      },
+      {
+        "value": "dir",
+        "n": 1
+      },
+      {
+        "value": "rm",
+        "n": 1
+      },
+      {
+        "value": "rename",
+        "n": 1
+      },
+      {
+        "value": "find",
+        "n": 1
+      },
+      {
+        "value": "blank",
+        "n": 1
+      },
+      {
+        "value": "mogrify",
+        "n": 1
+      },
+      {
+        "value": "JPEG",
+        "n": 1
+      },
+      {
+        "value": "hello",
+        "n": 1
+      },
+      {
+        "value": "log",
+        "n": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,779 @@
+{
+ "author": "claude-opus-5 (subagent, clean room)",
+ "n_returned": 154,
+ "n_kept": 154,
+ "invented_labels": [],
+ "supervision": "none (catalogue + cue names only; never saw any split)",
+ "rules": [
+  {
+   "label": "unresolve_review_thread",
+   "pattern": "\\bun-?resolve\\w*\\b|\\breopen\\b.{0,30}\\b(thread|conversation|discussion)\\b|\\bmark\\b.{0,30}\\bunresolved\\b",
+   "requires": "thread_id"
+  },
+  {
+   "label": "resolve_review_thread",
+   "pattern": "\\bresolve\\w*\\b|\\bmark\\b.{0,30}\\bresolved\\b|\\b(close|dismiss|hide)\\b.{0,25}\\b(thread|conversation|discussion)\\b",
+   "requires": "thread_id"
+  },
+  {
+   "label": "request_copilot_review",
+   "pattern": "\\bcopilot\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "request_copilot_review",
+   "pattern": "\\bcopilot\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "assign_copilot_to_issue",
+   "pattern": "\\bcopilot\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "assign_copilot_to_issue",
+   "pattern": "\\bcopilot\\b",
+   "requires": "url_issue"
+  },
+  {
+   "label": "assign_copilot_to_issue",
+   "pattern": "\\b(assign|hand|give|let|have|ask|put|sic)\\b.{0,40}\\bcopilot\\b|\\bcopilot\\b.{0,40}\\b(fix|work on|handle|solve|implement|take|tackle|do)\\b",
+   "requires": "hash_num"
+  },
+  {
+   "label": "actions_run_trigger::rerun_failed_jobs",
+   "pattern": "\\b(re-?run|re-?try|retry|re-?start|re-?trigger)\\b.{0,40}\\bfail(ed|ing|ure|ures)?\\b|\\bfail(ed|ing)\\b.{0,25}\\bjobs?\\b.{0,25}\\b(again|re-?run|re-?try)\\b|\\bjust the fail\\w*\\b|\\bonly the fail\\w*\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::rerun_failed_jobs",
+   "pattern": "\\b(re-?run|re-?try|retry|re-?start|re-?trigger)\\b.{0,40}\\bfail(ed|ing|ure|ures)?\\b|\\bfail(ed|ing)\\b.{0,25}\\bjobs?\\b.{0,25}\\b(again|re-?run|re-?try)\\b|\\bjust the fail\\w*\\b|\\bonly the fail\\w*\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_run_trigger::rerun_workflow_run",
+   "pattern": "\\b(re-?run|re-?try|retry|re-?trigger|re-?start|re-?launch|re-?execute)\\b|\\b(run|start|kick ?off|trigger)\\b.{0,30}\\bagain\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::rerun_workflow_run",
+   "pattern": "\\b(re-?run|re-?try|retry|re-?trigger|re-?start|re-?launch|re-?execute)\\b|\\b(run|start|kick ?off|trigger)\\b.{0,30}\\bagain\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_run_trigger::cancel_workflow_run",
+   "pattern": "\\b(cancel|abort|stop|kill|terminate|halt)\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::cancel_workflow_run",
+   "pattern": "\\b(cancel|abort|stop|kill|terminate|halt)\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_run_trigger::delete_workflow_run_logs",
+   "pattern": "\\b(delete|remove|clear|purge|wipe|clean ?up|nuke)\\b.{0,30}\\blogs?\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::delete_workflow_run_logs",
+   "pattern": "\\b(delete|remove|clear|purge|wipe|clean ?up|nuke)\\b.{0,30}\\blogs?\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_get::get_workflow_run_usage",
+   "pattern": "\\b(usage|billing|billable|minutes|how long|duration|elapsed|run ?time|cost|expensive)\\b|\\bhow much time\\b|\\btime (it )?took\\b|\\btook\\b.{0,20}\\b(to run|minutes|long)\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_run_usage",
+   "pattern": "\\b(usage|billing|billable|minutes|how long|duration|elapsed|run ?time|cost|expensive)\\b|\\bhow much time\\b|\\btime (it )?took\\b|\\btook\\b.{0,20}\\b(to run|minutes|long)\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_get::get_workflow_run_logs_url",
+   "pattern": "\\b(url|link|uri|download link|signed url|permalink)\\b.{0,40}\\blogs?\\b|\\blogs?\\b.{0,30}\\b(url|link|uri|download link)\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_run_logs_url",
+   "pattern": "\\b(url|link|uri|download link|signed url|permalink)\\b.{0,40}\\blogs?\\b|\\blogs?\\b.{0,30}\\b(url|link|uri|download link)\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "get_job_logs",
+   "pattern": "\\blogs?\\b|\\blog output\\b|\\bstack ?trace\\b|\\btraceback\\b|\\berror (output|message|log)\\b|\\bwhy\\b.{0,40}\\bfail\\w*\\b|\\bwhat went wrong\\b|\\bfail\\w*\\b.{0,30}\\b(output|reason|why|message)\\b|\\boutput\\b.{0,25}\\bfail\\w*\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "get_job_logs",
+   "pattern": "\\blogs?\\b|\\blog output\\b|\\bstack ?trace\\b|\\btraceback\\b|\\berror (output|message|log)\\b|\\bwhy\\b.{0,40}\\bfail\\w*\\b|\\bwhat went wrong\\b|\\bfail\\w*\\b.{0,30}\\b(output|reason|why|message)\\b|\\boutput\\b.{0,25}\\bfail\\w*\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_list::list_workflow_run_artifacts",
+   "pattern": "\\b(list|show|what|which|all|any|see)\\b.{0,40}\\bartifacts\\b|\\bartifacts\\b.{0,25}\\b(are|were|does|did|exist|available|produced|uploaded)\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_list::list_workflow_run_artifacts",
+   "pattern": "\\b(list|show|what|which|all|any|see)\\b.{0,40}\\bartifacts\\b|\\bartifacts\\b.{0,25}\\b(are|were|does|did|exist|available|produced|uploaded)\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_get::download_workflow_run_artifact",
+   "pattern": "\\b(download|get|grab|fetch|save|retrieve|give me|pull down)\\b.{0,40}\\bartifacts?\\b|\\bartifacts?\\b.{0,25}\\b(download|zip|file|locally)\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::download_workflow_run_artifact",
+   "pattern": "\\b(download|get|grab|fetch|save|retrieve|give me|pull down)\\b.{0,40}\\bartifacts?\\b|\\bartifacts?\\b.{0,25}\\b(download|zip|file|locally)\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_list::list_workflow_jobs",
+   "pattern": "\\b(list|show|what|which|all|any|each|every)\\b.{0,40}\\bjobs\\b|\\bjobs\\b.{0,30}\\b(in|of|for|ran|are|were|exist|make up)\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_list::list_workflow_jobs",
+   "pattern": "\\b(list|show|what|which|all|any|each|every)\\b.{0,40}\\bjobs\\b|\\bjobs\\b.{0,30}\\b(in|of|for|ran|are|were|exist|make up)\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_get::get_workflow_run",
+   "pattern": "\\b(run|build|workflow|pipeline|status|state|result|outcome|details?|info|about|what happened|summar\\w+|when|who|conclusion|succeed\\w*|fail\\w*|pass\\w*|green|red|tell)\\b",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_run",
+   "pattern": "\\b(run|build|workflow|pipeline|status|state|result|outcome|details?|info|about|what happened|summar\\w+|when|who|conclusion|succeed\\w*|fail\\w*|pass\\w*|green|red|tell)\\b",
+   "requires": "url_run"
+  },
+  {
+   "label": "actions_list::list_workflow_runs",
+   "pattern": "\\b(list|show|recent|latest|last|all|what|which|any|see|past|failed|history)\\b.{0,40}\\b(runs|builds|executions)\\b|\\b(runs|builds)\\b.{0,25}\\b(of|for|on)\\b|\\bhow (often|many times)\\b",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "actions_run_trigger::run_workflow",
+   "pattern": "\\b(run|trigger|kick ?off|launch|start|dispatch|fire|execute|invoke|re-?run|manually run)\\b",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "actions_get::get_workflow",
+   "pattern": "\\b(workflow|pipeline)\\b|\\b(show|get|read|display|view|cat|open|what does|contents?|definition|describe|explain|config\\w*)\\b",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "actions_run_trigger::rerun_failed_jobs",
+   "pattern": "\\b(re-?run|re-?try|retry|re-?start|re-?trigger)\\b.{0,40}\\bfail(ed|ing|ure|ures)?\\b|\\bfail(ed|ing)\\b.{0,25}\\bjobs?\\b.{0,25}\\b(again|re-?run|re-?try)\\b|\\bjust the fail\\w*\\b|\\bonly the fail\\w*\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_run_trigger::delete_workflow_run_logs",
+   "pattern": "\\b(delete|remove|clear|purge|wipe|nuke)\\b.{0,30}\\b(workflow |run |build |job )?logs?\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_run_trigger::cancel_workflow_run",
+   "pattern": "\\b(cancel|abort|stop|kill|terminate|halt)\\b.{0,40}\\b(workflow|runs?|builds?|pipeline|ci|jobs?|actions?|deploy\\w*)\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_run_trigger::rerun_workflow_run",
+   "pattern": "\\b(re-?run|re-?try|retry|re-?trigger|re-?start|re-?launch)\\b.{0,40}\\b(workflow|run|build|pipeline|ci|job|action|check|deploy\\w*|it|that|this)\\b|\\b(re-?run|retry)\\b.{0,10}$",
+   "requires": null
+  },
+  {
+   "label": "actions_run_trigger::run_workflow",
+   "pattern": "\\b(run|trigger|kick ?off|launch|start|dispatch|fire|execute|invoke)\\b.{0,30}\\b(workflow|pipeline)\\b|\\bworkflow[_ ]dispatch\\b|\\bmanually (trigger|run|dispatch|fire|start)\\b|\\b(trigger|kick ?off|dispatch|launch)\\b.{0,30}\\b(deploy\\w*|release|build|ci|action)\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_list::list_workflow_jobs",
+   "pattern": "\\b(list|show|what|which|all|any)\\b.{0,40}\\bjobs\\b.{0,30}\\b(in|of|for)\\b.{0,25}\\b(run|build|workflow)\\b|\\bjobs\\b.{0,20}\\b(in|of|for)\\b.{0,20}\\b(that|the|this) (run|build|workflow)\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_get::get_workflow_job",
+   "pattern": "\\bjob\\b[ #]{0,3}\\d{3,}\\b|\\bjob id\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_list::list_workflow_run_artifacts",
+   "pattern": "\\b(list|show|what|which|all|any)\\b.{0,40}\\bartifacts\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_get::download_workflow_run_artifact",
+   "pattern": "\\b(download|grab|fetch|retrieve|save|get)\\b.{0,30}\\bartifacts?\\b",
+   "requires": null
+  },
+  {
+   "label": "get_job_logs",
+   "pattern": "\\b(get|download|show|fetch|dump|tail|read|pull|grab|see|check|look at|give me)\\b.{0,40}\\blogs?\\b|\\bfail\\w*\\b.{0,25}\\blogs?\\b|\\blogs?\\b.{0,25}\\bfail\\w*\\b|\\bjob logs?\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_list::list_workflow_runs",
+   "pattern": "\\b(list|show|recent|latest|last|all|what|which|any|see|past|failed)\\b.{0,40}\\b(workflow runs|ci runs|pipeline runs|action runs|builds|runs)\\b",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "actions_list::list_workflow_runs",
+   "pattern": "\\b(list|show|recent|latest|last|all|which|any|failed)\\b.{0,30}\\b(workflow runs|ci runs|pipeline runs|action runs)\\b|\\bworkflow runs\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_list::list_workflows",
+   "pattern": "\\b(list|show|what|which|all|any|see|enumerate)\\b.{0,40}\\bworkflows\\b|\\bworkflows\\b.{0,30}\\b(exist|are (there|defined|configured|set up))\\b|\\bwhat ci\\b|\\bworkflows (in|for|of)\\b",
+   "requires": null
+  },
+  {
+   "label": "actions_get::get_workflow",
+   "pattern": "\\b(show|get|describe|details?|about|what does|definition|config\\w*)\\b.{0,40}\\b(workflow|pipeline)\\b",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "add_comment_to_pending_review",
+   "pattern": "\\b(add|leave|post|put|write|include|attach)\\b.{0,60}\\bcomments?\\b.{0,60}\\bpending\\b|\\bpending review\\b.{0,60}\\bcomments?\\b|\\bcomments?\\b.{0,50}\\b(my |the )?pending review\\b",
+   "requires": null
+  },
+  {
+   "label": "pull_request_review_write::submit_pending",
+   "pattern": "\\bsubmit\\b.{0,40}\\b(pending |draft |my |the )*review\\b|\\bfinali[sz]e\\b.{0,30}\\breview\\b|\\bpublish\\b.{0,30}\\breview\\b|\\bsend\\b.{0,25}\\b(my |the )?(pending )?review\\b",
+   "requires": null
+  },
+  {
+   "label": "pull_request_review_write::delete_pending",
+   "pattern": "\\b(delete|discard|remove|cancel|throw away|drop|abandon|scrap|dismiss)\\b.{0,40}\\b(pending|draft|my|the)\\b.{0,20}\\breview\\b|\\b(delete|discard|cancel|dismiss|scrap)\\b.{0,25}\\bpending review\\b",
+   "requires": null
+  },
+  {
+   "label": "pull_request_review_write::unresolve_thread",
+   "pattern": "\\bun-?resolve\\w*\\b|\\breopen\\b.{0,30}\\b(thread|conversation|discussion)\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_review_write::unresolve_thread",
+   "pattern": "\\bun-?resolve\\w*\\b|\\breopen\\b.{0,30}\\b(thread|conversation|discussion)\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_review_write::resolve_thread",
+   "pattern": "\\bresolve\\w*\\b.{0,40}\\b(thread|conversation|comment|discussion|feedback|nit)\\w*\\b|\\bmark\\b.{0,40}\\bresolved\\b|\\bresolve\\b.{0,15}\\b(all|the|that|this|those|every|them)\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_review_write::resolve_thread",
+   "pattern": "\\bresolve\\w*\\b.{0,40}\\b(thread|conversation|comment|discussion|feedback|nit)\\w*\\b|\\bmark\\b.{0,40}\\bresolved\\b|\\bresolve\\b.{0,15}\\b(all|the|that|this|those|every|them)\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_review_write::create",
+   "pattern": "\\b(approve|approving|approval|lgtm|sign ?off|request(ing)? changes|reject|block)\\b|\\b(leave|add|create|start|do|write|give|submit|post)\\b.{0,25}\\b(a |an |my )?review\\b|\\breview (it|this|that|the pr)\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_review_write::create",
+   "pattern": "\\b(approve|approving|approval|lgtm|sign ?off|request(ing)? changes|reject|block)\\b|\\b(leave|add|create|start|do|write|give|submit|post)\\b.{0,25}\\b(a |an |my )?review\\b|\\breview (it|this|that|the pr)\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "merge_pull_request",
+   "pattern": "\\b(merge|squash|rebase and merge|land|ship it|merge it|auto-?merge)\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "merge_pull_request",
+   "pattern": "\\b(merge|squash|rebase and merge|land|ship it|merge it|auto-?merge)\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "update_pull_request_branch",
+   "pattern": "\\b(update|sync|refresh|rebase|bring)\\b.{0,40}\\b(branch|with (main|master|base|develop|trunk)|up ?to ?date)\\b|\\bup to date with\\b|\\bsync\\b.{0,30}\\bbase\\b|\\bmerge (main|master|the base)\\b.{0,25}\\binto\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "update_pull_request_branch",
+   "pattern": "\\b(update|sync|refresh|rebase|bring)\\b.{0,40}\\b(branch|with (main|master|base|develop|trunk)|up ?to ?date)\\b|\\bup to date with\\b|\\bsync\\b.{0,30}\\bbase\\b|\\bmerge (main|master|the base)\\b.{0,25}\\binto\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "update_pull_request",
+   "pattern": "\\b(close|closes|reopen|re-open)\\b|\\b(rename|retitle|edit|update|change|set|convert|mark|make|move|switch|point)\\b.{0,50}\\b(title|body|description|base|draft|ready for review|state|milestone|reviewers?|assignees?|labels?|target|branch)\\b|\\bretarget\\b|\\bconvert\\b.{0,25}\\bdraft\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "update_pull_request",
+   "pattern": "\\b(close|closes|reopen|re-open)\\b|\\b(rename|retitle|edit|update|change|set|convert|mark|make|move|switch|point)\\b.{0,50}\\b(title|body|description|base|draft|ready for review|state|milestone|reviewers?|assignees?|labels?|target|branch)\\b|\\bretarget\\b|\\bconvert\\b.{0,25}\\bdraft\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "add_reply_to_pull_request_comment",
+   "pattern": "\\b(reply|respond|answer)\\w*\\b.{0,40}\\breview comment\\b|\\b(reply|respond|answer)\\w*\\b.{0,30}\\bcomment\\b[ #]{0,3}\\d+|\\breply to (that|this|the) comment\\b|\\breply to comment\\b",
+   "requires": null
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "\\b(add|leave|post|write|drop|put|make|send|reply with)\\b.{0,40}\\bcomments?\\b|\\bcomment\\b.{0,20}\\b(on|to|in|saying|that)\\b|\\breact\\w*\\b.{0,30}\\b(with|to|emoji|thumbs)\\b|\\b(thumbs.?up|:\\+1:)\\b|\\bsay\\b.{0,30}\\b(on|in)\\b.{0,20}\\b(pr|issue|thread)\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "\\b(add|leave|post|write|drop|put|make|send|reply with)\\b.{0,40}\\bcomments?\\b|\\bcomment\\b.{0,20}\\b(on|to|in|saying|that)\\b|\\breact\\w*\\b.{0,30}\\b(with|to|emoji|thumbs)\\b|\\b(thumbs.?up|:\\+1:)\\b|\\bsay\\b.{0,30}\\b(on|in)\\b.{0,20}\\b(pr|issue|thread)\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get_files",
+   "pattern": "\\b(which|what|list|show|all|the|how many|any)\\b.{0,30}\\bfiles?\\b|\\bfiles?\\b.{0,30}\\b(changed|touched|modified|affected|added|removed|renamed|involved)\\b|\\b(changed|touched|modified|affected)\\b.{0,20}\\bfiles?\\b|\\bfile list\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_files",
+   "pattern": "\\b(which|what|list|show|all|the|how many|any)\\b.{0,30}\\bfiles?\\b|\\bfiles?\\b.{0,30}\\b(changed|touched|modified|affected|added|removed|renamed|involved)\\b|\\b(changed|touched|modified|affected)\\b.{0,20}\\bfiles?\\b|\\bfile list\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get_commits",
+   "pattern": "\\bcommits\\b|\\bcommit list\\b|\\bhow many commits\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_commits",
+   "pattern": "\\bcommits\\b|\\bcommit list\\b|\\bhow many commits\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get_diff",
+   "pattern": "\\b(diff|patch|changeset|change ?set|delta)\\b|\\bwhat changed\\b|\\bcode changes?\\b|\\bwhat('s| is| are)? ?(the )?(code )?changes?\\b|\\bwhat does (it|this|the pr) change\\b|\\bshow (me )?(the )?changes?\\b|\\bwhat did .{0,25}change\\b|\\bunified diff\\b|\\bwhat code\\b.{0,25}\\bchange\\w*\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_diff",
+   "pattern": "\\b(diff|patch|changeset|change ?set|delta)\\b|\\bwhat changed\\b|\\bcode changes?\\b|\\bwhat('s| is| are)? ?(the )?(code )?changes?\\b|\\bwhat does (it|this|the pr) change\\b|\\bshow (me )?(the )?changes?\\b|\\bwhat did .{0,25}change\\b|\\bunified diff\\b|\\bwhat code\\b.{0,25}\\bchange\\w*\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get_review_comments",
+   "pattern": "\\b(review|inline|line|code)[ -]comments?\\b|\\bcomments?\\b.{0,30}\\b(on the (diff|code|lines?)|in the (diff|review|code))\\b|\\breviewers?'? comments?\\b|\\bnits?\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_review_comments",
+   "pattern": "\\b(review|inline|line|code)[ -]comments?\\b|\\bcomments?\\b.{0,30}\\b(on the (diff|code|lines?)|in the (diff|review|code))\\b|\\breviewers?'? comments?\\b|\\bnits?\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get_reviews",
+   "pattern": "\\breviews?\\b|\\bwho (approved|reviewed|has reviewed|signed off)\\b|\\bapprovals?\\b|\\bapproved\\b|\\breviewers?\\b|\\bhas (it|this) been reviewed\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_reviews",
+   "pattern": "\\breviews?\\b|\\bwho (approved|reviewed|has reviewed|signed off)\\b|\\bapprovals?\\b|\\bapproved\\b|\\breviewers?\\b|\\bhas (it|this) been reviewed\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get_comments",
+   "pattern": "\\bcomments?\\b|\\bdiscussion\\b|\\bconversation\\b|\\bfeedback\\b|\\bthreads?\\b|\\bwhat (are|did|do|does|has) (people|they|folks|anyone|everyone|reviewers)\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_comments",
+   "pattern": "\\bcomments?\\b|\\bdiscussion\\b|\\bconversation\\b|\\bfeedback\\b|\\bthreads?\\b|\\bwhat (are|did|do|does|has) (people|they|folks|anyone|everyone|reviewers)\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get_check_runs",
+   "pattern": "\\bcheck ?runs?\\b|\\bchecks\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_check_runs",
+   "pattern": "\\bcheck ?runs?\\b|\\bchecks\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get_status",
+   "pattern": "\\bstatus(es)?\\b|\\bgreen\\b|\\bpassing\\b|\\bfailing\\b|\\bmergeable\\b|\\bbuild state\\b|\\bci\\b.{0,25}\\b(pass\\w*|fail\\w*|green|ok|red|status|happy)\\b|\\b(is|are) (it|this|that|they) (ok|good|clean|red)\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_status",
+   "pattern": "\\bstatus(es)?\\b|\\bgreen\\b|\\bpassing\\b|\\bfailing\\b|\\bmergeable\\b|\\bbuild state\\b|\\bci\\b.{0,25}\\b(pass\\w*|fail\\w*|green|ok|red|status|happy)\\b|\\b(is|are) (it|this|that|they) (ok|good|clean|red)\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "pull_request_read::get",
+   "pattern": "\\b(pr|pull request|this|that|it|show|get|tell|what|describe|summar\\w*|about|details?|info|look|read|open|check|explain|why|when|who)\\b",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get",
+   "pattern": "\\b(pr|pull request|this|that|it|show|get|tell|what|describe|summar\\w*|about|details?|info|look|read|open|check|explain|why|when|who)\\b",
+   "requires": "url_pull"
+  },
+  {
+   "label": "create_pull_request",
+   "pattern": "\\b(open|create|make|raise|file|submit|start|put up|send|draft)\\b.{0,40}\\b(pull request|prs?|p\\.r\\.)\\b|\\bpr\\b.{0,25}\\bfrom\\b.{0,30}\\b(into|to|against)\\b|\\bmake (this|it) a pr\\b",
+   "requires": null
+  },
+  {
+   "label": "search_pull_requests",
+   "pattern": "\\b(prs?|pull requests?)\\b.{0,40}\\b(by|from|authored by|opened by|created by|assigned to|reviewed by)\\b|\\b(by|from)\\b.{0,25}\\b(prs?|pull requests?)\\b",
+   "requires": "at_user"
+  },
+  {
+   "label": "search_pull_requests",
+   "pattern": "\\b(search|find|look for|any|which|show me)\\b.{0,50}\\b(prs?|pull requests?)\\b.{0,40}\\b(about|mentioning|regarding|related to|matching|containing|that (touch|mention|change|modify))\\b|\\bsearch\\b.{0,30}\\b(prs?|pull requests?)\\b|\\b(prs?|pull requests?)\\b.{0,25}\\b(about|mentioning|regarding|related to)\\b",
+   "requires": null
+  },
+  {
+   "label": "list_pull_requests",
+   "pattern": "\\b(list|show|what|which|any|all|open|see|get|are there)\\b.{0,40}\\b(prs?|pull requests?)\\b|\\b(open|closed|merged|draft) (prs?|pull requests?)\\b",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_pull_requests",
+   "pattern": "\\b(list|show me|what|which|any|all)\\b.{0,30}\\b(open |closed |merged |draft )?(prs|pull requests)\\b|\\bopen prs?\\b",
+   "requires": null
+  },
+  {
+   "label": "sub_issue_write",
+   "pattern": "\\b(add|link|attach|make|set|create|nest|convert|move)\\b.{0,50}\\bsub-? ?issue\\b|\\bas a sub-? ?issue\\b|\\bsub-? ?issue of\\b|\\bunder issue\\b|\\bchild of\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_sub_issues",
+   "pattern": "\\bsub-? ?issues\\b|\\bchild(ren)? issues?\\b|\\bsub-?tasks?\\b|\\bbreakdown\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_sub_issues",
+   "pattern": "\\bsub-? ?issues\\b|\\bchild(ren)? issues?\\b|\\bsub-?tasks?\\b|\\bbreakdown\\b",
+   "requires": "url_issue"
+  },
+  {
+   "label": "issue_read::get_parent",
+   "pattern": "\\bparent\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_parent",
+   "pattern": "\\bparent\\b",
+   "requires": "url_issue"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "\\b(add|leave|post|write|drop|put|make|send|reply with)\\b.{0,40}\\bcomments?\\b|\\bcomment\\b.{0,20}\\b(on|to|in|saying|that)\\b|\\breact\\w*\\b.{0,30}\\b(with|to|emoji|thumbs)\\b|\\b(thumbs.?up|:\\+1:)\\b|\\bsay\\b.{0,30}\\b(on|in)\\b.{0,20}\\b(pr|issue|thread)\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "\\b(add|leave|post|write|drop|put|make|send|reply with)\\b.{0,40}\\bcomments?\\b|\\bcomment\\b.{0,20}\\b(on|to|in|saying|that)\\b|\\breact\\w*\\b.{0,30}\\b(with|to|emoji|thumbs)\\b|\\b(thumbs.?up|:\\+1:)\\b|\\bsay\\b.{0,30}\\b(on|in)\\b.{0,20}\\b(pr|issue|thread)\\b",
+   "requires": "url_issue"
+  },
+  {
+   "label": "issue_write::update",
+   "pattern": "\\b(close|closes|reopen|re-open)\\b|\\b(rename|retitle|edit|update|change|set|mark|move|convert|assign|unassign|add|remove|apply|attach|put|give|drop)\\b.{0,50}\\b(title|body|description|labels?|assignees?|milestone|state|type|priority|status)\\b|\\bassign\\b.{0,30}\\bto\\b|\\bmark\\b.{0,25}\\b(done|complete|completed|duplicate|wontfix|stale)\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_write::update",
+   "pattern": "\\b(close|closes|reopen|re-open)\\b|\\b(rename|retitle|edit|update|change|set|mark|move|convert|assign|unassign|add|remove|apply|attach|put|give|drop)\\b.{0,50}\\b(title|body|description|labels?|assignees?|milestone|state|type|priority|status)\\b|\\bassign\\b.{0,30}\\bto\\b|\\bmark\\b.{0,25}\\b(done|complete|completed|duplicate|wontfix|stale)\\b",
+   "requires": "url_issue"
+  },
+  {
+   "label": "issue_read::get_labels",
+   "pattern": "\\blabels?\\b|\\btagged\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_labels",
+   "pattern": "\\blabels?\\b|\\btagged\\b",
+   "requires": "url_issue"
+  },
+  {
+   "label": "issue_read::get_comments",
+   "pattern": "\\bcomments?\\b|\\bdiscussion\\b|\\bconversation\\b|\\breplies\\b|\\bfeedback\\b|\\bthread\\b|\\bwhat (did|have|does|do|has) (people|they|anyone|folks|the reporter|the author)\\b|\\blast comment\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_comments",
+   "pattern": "\\bcomments?\\b|\\bdiscussion\\b|\\bconversation\\b|\\breplies\\b|\\bfeedback\\b|\\bthread\\b|\\bwhat (did|have|does|do|has) (people|they|anyone|folks|the reporter|the author)\\b|\\blast comment\\b",
+   "requires": "url_issue"
+  },
+  {
+   "label": "issue_read::get",
+   "pattern": "\\b(issue|bug|ticket|this|that|it|show|get|tell|what|describe|summar\\w*|about|details?|info|status|read|look|explain|open|check|why|who|when)\\b",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get",
+   "pattern": "\\b(issue|bug|ticket|this|that|it|show|get|tell|what|describe|summar\\w*|about|details?|info|status|read|look|explain|open|check|why|who|when)\\b",
+   "requires": "url_issue"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "\\b(add|leave|post|write|drop|put|make|send|reply with)\\b.{0,40}\\bcomments?\\b|\\bcomment\\b.{0,20}\\b(on|to|in|saying|that)\\b|\\breact\\w*\\b.{0,30}\\b(with|to|emoji|thumbs)\\b|\\b(thumbs.?up|:\\+1:)\\b|\\bsay\\b.{0,30}\\b(on|in)\\b.{0,20}\\b(pr|issue|thread)\\b",
+   "requires": "hash_num"
+  },
+  {
+   "label": "issue_write::update",
+   "pattern": "\\b(close|closes|reopen|re-open)\\b|\\b(rename|retitle|edit|update|change|set|mark|move|convert|assign|unassign|add|remove|apply|attach|put|give|drop)\\b.{0,50}\\b(title|body|description|labels?|assignees?|milestone|state|type|priority|status)\\b|\\bassign\\b.{0,30}\\bto\\b|\\bmark\\b.{0,25}\\b(done|complete|completed|duplicate|wontfix|stale)\\b",
+   "requires": "hash_num"
+  },
+  {
+   "label": "issue_read::get",
+   "pattern": "\\b(what|show|tell me|describe|summar\\w*|details?|read|look at|about|get|explain|check|status of)\\b",
+   "requires": "hash_num"
+  },
+  {
+   "label": "issue_write::create",
+   "pattern": "\\b(open|create|file|raise|log|submit|make|add|write|start)\\b.{0,40}\\b(issue|bug report|bug|ticket|feature request|task|todo|enhancement)\\b|\\bnew issue\\b",
+   "requires": null
+  },
+  {
+   "label": "search_issues",
+   "pattern": "\\bissues?\\b.{0,30}\\b(by|from|opened by|created by|reported by|assigned to|filed by)\\b",
+   "requires": "at_user"
+  },
+  {
+   "label": "search_issues",
+   "pattern": "\\bissues?\\b.{0,30}\\b(about|mentioning|regarding|related to|matching|containing|describing|that (mention|describe|talk|say|report)|where)\\b|\\b(search|find|look)\\w*\\b.{0,40}\\bissues?\\b.{0,40}\\b(about|error|bug|fail\\w*|crash|problem|broken)\\b|\\bsearch\\b.{0,30}\\bissues?\\b|\\bany issues? (about|around|regarding|involving|with the)\\b",
+   "requires": null
+  },
+  {
+   "label": "list_issues",
+   "pattern": "\\b(list|show|what|which|any|all|open|closed|see|get|are there)\\b.{0,40}\\bissues\\b|\\b(open|closed) issues\\b",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issues",
+   "pattern": "\\b(list|show me|all|open|closed|which|what|any)\\b.{0,30}\\b(open |closed )?issues\\b",
+   "requires": null
+  },
+  {
+   "label": "list_issue_types",
+   "pattern": "\\bissue types?\\b|\\btypes? of issues?\\b",
+   "requires": null
+  },
+  {
+   "label": "list_issue_fields",
+   "pattern": "\\bissue fields?\\b|\\bcustom fields?\\b|\\bfield definitions?\\b",
+   "requires": null
+  },
+  {
+   "label": "get_label",
+   "pattern": "\\b(get|show|describe|details?|about|what|look up|fetch|colou?r of|definition of)\\b.{0,40}\\blabel\\b",
+   "requires": "quoted"
+  },
+  {
+   "label": "get_label",
+   "pattern": "\\b(get|show|describe|details of|look up|fetch|what colou?r is)\\b.{0,30}\\b(the )?label\\b",
+   "requires": null
+  },
+  {
+   "label": "delete_file",
+   "pattern": "\\b(delete|remove|rm|drop|get rid of|nuke|unlink)\\b",
+   "requires": "path"
+  },
+  {
+   "label": "create_or_update_file",
+   "pattern": "\\b(create|add|write|update|edit|modify|commit|save|append|replace|rename|bump|set|insert|upload)\\b",
+   "requires": "path"
+  },
+  {
+   "label": "push_files",
+   "pattern": "\\bpush\\b.{0,40}\\bfiles?\\b|\\bcommit\\b.{0,30}\\b(these|those|multiple|several|all|both|the following)\\b.{0,25}\\bfiles\\b|\\bpush (these|those|all|the) (changes|files|edits)\\b|\\bcommit all\\b",
+   "requires": null
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "\\b(show|read|get|cat|open|display|print|view|fetch|see|look at|dump|check|what('s| is)|contents?|source|give me|pull up|paste|grab)\\b",
+   "requires": "url_blob"
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "\\b(show|read|get|cat|open|display|print|view|fetch|see|look at|dump|check|what('s| is)|contents?|source|give me|pull up|paste|grab)\\b",
+   "requires": "path"
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "\\b(contents? of|cat |read the file|show me the file|what('s| is) in the file|list the files (in|under)|files in the (directory|folder|dir))\\b",
+   "requires": null
+  },
+  {
+   "label": "get_commit",
+   "pattern": "\\b(commit|sha|hash|revision|rev|change|diff|what|show|details?|about|explain|look)\\w*\\b",
+   "requires": "sha40"
+  },
+  {
+   "label": "get_commit",
+   "pattern": "\\b(commit|sha|hash|revision|rev)\\b",
+   "requires": "sha"
+  },
+  {
+   "label": "get_commit",
+   "pattern": "\\b(commit|sha|hash|show|what|details?|about|diff|explain|look)\\b",
+   "requires": "url_commit"
+  },
+  {
+   "label": "search_commits",
+   "pattern": "\\bcommits?\\b.{0,30}\\b(by|from|authored by|written by)\\b|\\b(by|from)\\b.{0,25}\\bcommits?\\b",
+   "requires": "at_user"
+  },
+  {
+   "label": "search_commits",
+   "pattern": "\\b(search|find|look for|any)\\b.{0,40}\\bcommits?\\b|\\bcommits?\\b.{0,35}\\b(mentioning|with (the )?message|whose message|containing|that mention|matching)\\b",
+   "requires": null
+  },
+  {
+   "label": "list_commits",
+   "pattern": "\\b(list|show|recent|latest|last|all|what|which|any|history|log|see)\\b.{0,40}\\bcommits\\b|\\bcommit (history|log)\\b|\\bcommits\\b.{0,30}\\b(on|in|to|since|from|between)\\b",
+   "requires": "branch_word"
+  },
+  {
+   "label": "list_commits",
+   "pattern": "\\b(list|show|recent|latest|last|all|what|which|any|history|log|see)\\b.{0,40}\\bcommits\\b|\\bcommit (history|log)\\b|\\bcommits\\b.{0,30}\\b(on|in|to|since|from|between)\\b",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_commits",
+   "pattern": "\\b(list|show|recent|latest|last|all|what|any)\\b.{0,40}\\bcommits\\b|\\bcommit (history|log)\\b",
+   "requires": null
+  },
+  {
+   "label": "create_branch",
+   "pattern": "\\b(create|make|cut|start|add|open|new|spin up|branch off)\\b.{0,40}\\bbranch\\b|\\bnew branch\\b",
+   "requires": null
+  },
+  {
+   "label": "list_branches",
+   "pattern": "\\b(list|show|what|which|all|any|see)\\b.{0,40}\\bbranches\\b|\\bbranches\\b.{0,30}\\b(exist|are there|does|do)\\b",
+   "requires": null
+  },
+  {
+   "label": "get_release_by_tag",
+   "pattern": "\\brelease\\b",
+   "requires": "semver_tag"
+  },
+  {
+   "label": "get_tag",
+   "pattern": "\\btags?\\b",
+   "requires": "semver_tag"
+  },
+  {
+   "label": "get_latest_release",
+   "pattern": "\\b(latest|newest|most recent|current|last)\\b.{0,30}\\brelease\\b|\\brelease\\b.{0,25}\\b(latest|newest|most recent)\\b|\\blatest version\\b|\\bcurrent release\\b|\\bwhat version\\b.{0,30}\\b(released|current|out|latest|shipped)\\b",
+   "requires": null
+  },
+  {
+   "label": "list_releases",
+   "pattern": "\\b(list|show|what|which|all|any|recent|see)\\b.{0,40}\\breleases\\b|\\breleases\\b.{0,25}\\b(are|exist|does|in|for)\\b",
+   "requires": null
+  },
+  {
+   "label": "get_release_by_tag",
+   "pattern": "\\brelease\\b.{0,30}\\b(tag(ged)?|version|named|called)\\b|\\brelease\\b.{0,15}\\bv?\\d+\\.\\d",
+   "requires": null
+  },
+  {
+   "label": "list_tags",
+   "pattern": "\\b(list|show|what|which|all|any)\\b.{0,40}\\btags\\b|\\btags\\b.{0,25}\\b(exist|are there|in|for)\\b",
+   "requires": null
+  },
+  {
+   "label": "get_tag",
+   "pattern": "\\b(get|show|describe|details?|about|look up|what('s| is))\\b.{0,30}\\btag\\b",
+   "requires": "quoted"
+  },
+  {
+   "label": "fork_repository",
+   "pattern": "\\bfork\\b",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "fork_repository",
+   "pattern": "\\bfork\\b.{0,40}\\b(repo|repository|it|this|that|to my|into my|under my)\\b|\\bfork it\\b",
+   "requires": null
+  },
+  {
+   "label": "create_repository",
+   "pattern": "\\b(create|make|new|set ?up|start|init(iali[sz]e)?|spin up|bootstrap)\\b.{0,40}\\b(repo|repository)\\b",
+   "requires": null
+  },
+  {
+   "label": "list_repository_collaborators",
+   "pattern": "\\bcollaborators?\\b|\\bwho (has|have|can) (access|write|push|admin)\\b|\\bwho can (push|write|merge|commit)\\b|\\baccess list\\b|\\bpeople with access\\b",
+   "requires": null
+  },
+  {
+   "label": "get_team_members",
+   "pattern": "\\b(members?|who('s| is)? (in|on)|membership|roster|people (in|on)|belongs to|who are the)\\b",
+   "requires": "org_team"
+  },
+  {
+   "label": "get_teams",
+   "pattern": "\\b(my|our|what|which|list|all) teams\\b|\\bteams (am i|i'm|i am|do i|that i)\\b|\\bteams? (i belong|i'm a member|i am a member)\\b",
+   "requires": null
+  },
+  {
+   "label": "get_me",
+   "pattern": "\\bwho am i\\b|\\bmy (github )?(profile|account|user ?name|handle|identity|details|info|email)\\b|\\bam i (logged in|authenticated|signed in)\\b|\\bcurrent(ly)? (authenticated )?user\\b|\\bwhoami\\b|\\bwho i am\\b|\\bmy own (profile|account)\\b",
+   "requires": null
+  },
+  {
+   "label": "search_users",
+   "pattern": "\\b(who is|who's|profile (of|for)|look up|find out about|tell me about|info (on|about)|user)\\b",
+   "requires": "at_user"
+  },
+  {
+   "label": "search_users",
+   "pattern": "\\b(search|find|look for|locate|look up)\\b.{0,40}\\b(users?|developers?|people|engineers?|contributors?|someone|folks|accounts?)\\b|\\bgithub users?\\b|\\bwho (is|are) the\\b.{0,25}\\b(users?|developers?|people)\\b",
+   "requires": null
+  },
+  {
+   "label": "search_repositories",
+   "pattern": "\\b(search|find|look for|discover|locate|any|show me|list|are there)\\b.{0,50}\\b(repos?|repositories|repository|projects?|libraries|libs)\\b|\\brepos? (about|for|that|matching|named|with)\\b",
+   "requires": null
+  },
+  {
+   "label": "search_code",
+   "pattern": "\\b(search|find|grep|look for|locate|where('s| is)|which files?|any)\\b.{0,60}\\b(code|function|func|method|class|symbol|usages?|uses|definition|defined|implementation|implements?|string|variable|const|import|calls?|called|snippet|pattern|regex|todo)\\b|\\bgrep\\b|\\bcode search\\b|\\bsearch (the )?(code|codebase|source)\\b|\\bwhere (is|are)\\b.{0,30}\\b(defined|implemented|used)\\b",
+   "requires": null
+  },
+  {
+   "label": "pull_request_read::get",
+   "pattern": "",
+   "requires": "url_pull"
+  },
+  {
+   "label": "issue_read::get",
+   "pattern": "",
+   "requires": "url_issue"
+  },
+  {
+   "label": "get_commit",
+   "pattern": "",
+   "requires": "url_commit"
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "",
+   "requires": "url_blob"
+  },
+  {
+   "label": "actions_get::get_workflow_run",
+   "pattern": "",
+   "requires": "url_run"
+  },
+  {
+   "label": "get_release_by_tag",
+   "pattern": "",
+   "requires": "url_release"
+  }
+ ]
+}

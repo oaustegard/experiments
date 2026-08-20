@@ -1,0 +1,96 @@
+{
+ "vocab": "cues",
+ "min_precision": 0.85,
+ "min_coverage": 3,
+ "max_feats_per_row": 14,
+ "train": "family_a.jsonl",
+ "n_train": 988,
+ "rules": [
+  {
+   "literals": [
+    [
+     "cue:sha",
+     true
+    ],
+    [
+     "cue:owner_repo",
+     true
+    ]
+   ],
+   "label": "get_commit",
+   "n": 12,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:branch_word",
+     true
+    ],
+    [
+     "cue:pr_ref",
+     true
+    ]
+   ],
+   "label": "update_pull_request_branch",
+   "n": 8,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:path",
+     true
+    ],
+    [
+     "cue:pr_ref",
+     true
+    ]
+   ],
+   "label": "add_comment_to_pending_review",
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:quoted",
+     true
+    ],
+    [
+     "cue:hash_num",
+     true
+    ]
+   ],
+   "label": "add_issue_comment",
+   "n": 5,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:branch_word",
+     true
+    ],
+    [
+     "cue:hash_num",
+     true
+    ]
+   ],
+   "label": "update_pull_request_branch",
+   "n": 4,
+   "precision": 1.0
+  },
+  {
+   "literals": [
+    [
+     "cue:org_team",
+     true
+    ]
+   ],
+   "label": "get_team_members",
+   "n": 13,
+   "precision": 0.9231
+  }
+ ]
+}

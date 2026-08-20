@@ -1,0 +1,650 @@
+{
+ "splits": {
+  "family_a": {
+   "n_routable": 948,
+   "n_offtopic": 40
+  },
+  "family_b": {
+   "n_routable": 948,
+   "n_offtopic": 40
+  },
+  "wild": {
+   "n_routable": 74,
+   "n_offtopic": 15
+  }
+ },
+ "arms": {
+  "claude-cleanroom": {
+   "rules_file": "rules_claude-cleanroom.json",
+   "n_rules": 154,
+   "supervision": "none (catalogue + cue names only; never saw any split)",
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.9873,
+     "precision": 0.8739,
+     "label_acc": 0.8629,
+     "tool_acc": 0.8861,
+     "method_acc_given_tool": 0.9418,
+     "abstain_acc": 1.0,
+     "args_acc": 0.7682,
+     "median_latency_ms": 0.0964
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.7774,
+     "precision": 0.6486,
+     "label_acc": 0.5042,
+     "tool_acc": 0.5601,
+     "method_acc_given_tool": 0.8197,
+     "abstain_acc": 0.95,
+     "args_acc": 0.4389,
+     "median_latency_ms": 0.1091
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.6757,
+     "precision": 0.8,
+     "label_acc": 0.5405,
+     "tool_acc": 0.5405,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 0.8667,
+     "args_acc": null,
+     "median_latency_ms": 0.0864
+    }
+   }
+  },
+  "claude-iter1": {
+   "rules_file": "rules_claude-iter1.json",
+   "n_rules": 173,
+   "supervision": "round 1; 120 family-A errors shown; family A only",
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 1.0,
+     "precision": 0.9947,
+     "label_acc": 0.9947,
+     "tool_acc": 0.9947,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 1.0,
+     "args_acc": 0.8496,
+     "median_latency_ms": 0.0999
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.8017,
+     "precision": 0.6803,
+     "label_acc": 0.5454,
+     "tool_acc": 0.6076,
+     "method_acc_given_tool": 0.8196,
+     "abstain_acc": 0.95,
+     "args_acc": 0.4555,
+     "median_latency_ms": 0.1115
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.6757,
+     "precision": 0.8,
+     "label_acc": 0.5405,
+     "tool_acc": 0.5811,
+     "method_acc_given_tool": 0.8421,
+     "abstain_acc": 0.8667,
+     "args_acc": null,
+     "median_latency_ms": 0.0863
+    }
+   }
+  },
+  "claude-iter2": {
+   "rules_file": "rules_claude-iter2.json",
+   "n_rules": 174,
+   "supervision": "round 2; 5 family-A errors shown; family A only",
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 1.0,
+     "precision": 1.0,
+     "label_acc": 1.0,
+     "tool_acc": 1.0,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 1.0,
+     "args_acc": 0.8557,
+     "median_latency_ms": 0.1011
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.8017,
+     "precision": 0.6803,
+     "label_acc": 0.5454,
+     "tool_acc": 0.6076,
+     "method_acc_given_tool": 0.8196,
+     "abstain_acc": 0.95,
+     "args_acc": 0.4555,
+     "median_latency_ms": 0.1122
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.6757,
+     "precision": 0.8,
+     "label_acc": 0.5405,
+     "tool_acc": 0.5811,
+     "method_acc_given_tool": 0.8421,
+     "abstain_acc": 0.8667,
+     "args_acc": null,
+     "median_latency_ms": 0.0954
+    }
+   }
+  },
+  "claude-iter3": {
+   "rules_file": "rules_claude-iter3.json",
+   "n_rules": 174,
+   "supervision": "round 3; 0 family-A errors shown (family A saturated at 1.000 after round 2), so the revision is the identity",
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 1.0,
+     "precision": 1.0,
+     "label_acc": 1.0,
+     "tool_acc": 1.0,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 1.0,
+     "args_acc": 0.8557,
+     "median_latency_ms": 0.1008
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.8017,
+     "precision": 0.6803,
+     "label_acc": 0.5454,
+     "tool_acc": 0.6076,
+     "method_acc_given_tool": 0.8196,
+     "abstain_acc": 0.95,
+     "args_acc": 0.4555,
+     "median_latency_ms": 0.1133
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.6757,
+     "precision": 0.8,
+     "label_acc": 0.5405,
+     "tool_acc": 0.5811,
+     "method_acc_given_tool": 0.8421,
+     "abstain_acc": 0.8667,
+     "args_acc": null,
+     "median_latency_ms": 0.0916
+    }
+   }
+  },
+  "claude-iter3-speculative": {
+   "rules_file": "rules_claude-iter3-speculative.json",
+   "n_rules": 174,
+   "supervision": "round 3 diagnostic; family A had ZERO errors, so these 10 broadening edits are motivated by language intuition alone, not by any failure",
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 1.0,
+     "precision": 1.0,
+     "label_acc": 1.0,
+     "tool_acc": 1.0,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 1.0,
+     "args_acc": 0.8557,
+     "median_latency_ms": 0.104
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.8017,
+     "precision": 0.6803,
+     "label_acc": 0.5454,
+     "tool_acc": 0.6076,
+     "method_acc_given_tool": 0.8196,
+     "abstain_acc": 0.95,
+     "args_acc": 0.4555,
+     "median_latency_ms": 0.1144
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.6757,
+     "precision": 0.8,
+     "label_acc": 0.5405,
+     "tool_acc": 0.5811,
+     "method_acc_given_tool": 0.8421,
+     "abstain_acc": 0.8667,
+     "args_acc": null,
+     "median_latency_ms": 0.0915
+    }
+   }
+  },
+  "gemini-cleanroom": {
+   "rules_file": "rules_gemini-cleanroom.json",
+   "n_rules": 78,
+   "supervision": null,
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.8154,
+     "precision": 0.7542,
+     "label_acc": 0.615,
+     "tool_acc": 0.6213,
+     "method_acc_given_tool": 0.9781,
+     "abstain_acc": 0.95,
+     "args_acc": 0.5623,
+     "median_latency_ms": 0.0493
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.3903,
+     "precision": 0.4135,
+     "label_acc": 0.1614,
+     "tool_acc": 0.1772,
+     "method_acc_given_tool": 0.8101,
+     "abstain_acc": 1.0,
+     "args_acc": 0.1628,
+     "median_latency_ms": 0.0611
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.2162,
+     "precision": 0.8125,
+     "label_acc": 0.1757,
+     "tool_acc": 0.1757,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 0.9333,
+     "args_acc": null,
+     "median_latency_ms": 0.0424
+    }
+   }
+  },
+  "gemini-iter1": {
+   "rules_file": "rules_gemini-iter1.json",
+   "n_rules": 80,
+   "supervision": "round 1; 120 family-A errors shown",
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.9947,
+     "precision": 0.8971,
+     "label_acc": 0.8924,
+     "tool_acc": 0.8924,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 0.925,
+     "args_acc": 0.7349,
+     "median_latency_ms": 0.0828
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.4842,
+     "precision": 0.4532,
+     "label_acc": 0.2194,
+     "tool_acc": 0.2458,
+     "method_acc_given_tool": 0.7967,
+     "abstain_acc": 1.0,
+     "args_acc": 0.1883,
+     "median_latency_ms": 0.1133
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.5541,
+     "precision": 0.7317,
+     "label_acc": 0.4054,
+     "tool_acc": 0.4189,
+     "method_acc_given_tool": 0.9091,
+     "abstain_acc": 0.9333,
+     "args_acc": null,
+     "median_latency_ms": 0.0727
+    }
+   }
+  },
+  "gemini-iter2": {
+   "rules_file": "rules_gemini-iter2.json",
+   "n_rules": 82,
+   "supervision": "round 2; 102 family-A errors shown",
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 1.0,
+     "precision": 0.9124,
+     "label_acc": 0.9124,
+     "tool_acc": 0.9124,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 0.925,
+     "args_acc": 0.7633,
+     "median_latency_ms": 0.0855
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.4842,
+     "precision": 0.4336,
+     "label_acc": 0.2099,
+     "tool_acc": 0.2373,
+     "method_acc_given_tool": 0.7739,
+     "abstain_acc": 1.0,
+     "args_acc": 0.1883,
+     "median_latency_ms": 0.1302
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.5676,
+     "precision": 0.7381,
+     "label_acc": 0.4189,
+     "tool_acc": 0.4459,
+     "method_acc_given_tool": 0.8333,
+     "abstain_acc": 0.8667,
+     "args_acc": null,
+     "median_latency_ms": 0.0835
+    }
+   }
+  },
+  "gemini-iter3": {
+   "rules_file": "rules_gemini-iter3.json",
+   "n_rules": 83,
+   "supervision": "round 3; 83 family-A errors shown",
+   "splits": {
+    "family_a": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.9831,
+     "precision": 0.8026,
+     "label_acc": 0.789,
+     "tool_acc": 0.789,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 0.95,
+     "args_acc": 0.6153,
+     "median_latency_ms": 0.0892
+    },
+    "family_b": {
+     "n_routable": 948,
+     "n_offtopic": 40,
+     "coverage": 0.4525,
+     "precision": 0.3893,
+     "label_acc": 0.1762,
+     "tool_acc": 0.2036,
+     "method_acc_given_tool": 0.7451,
+     "abstain_acc": 1.0,
+     "args_acc": 0.1463,
+     "median_latency_ms": 0.143
+    },
+    "wild": {
+     "n_routable": 74,
+     "n_offtopic": 15,
+     "coverage": 0.5135,
+     "precision": 0.8158,
+     "label_acc": 0.4189,
+     "tool_acc": 0.4189,
+     "method_acc_given_tool": 1.0,
+     "abstain_acc": 0.8667,
+     "args_acc": null,
+     "median_latency_ms": 0.0904
+    }
+   }
+  }
+ },
+ "mcnemar": [
+  {
+   "split": "family_a",
+   "a": "claude-cleanroom",
+   "b": "claude-iter1",
+   "a_only": 0,
+   "b_only": 125,
+   "n": 948,
+   "p": 4.70197740328915e-38
+  },
+  {
+   "split": "family_b",
+   "a": "claude-cleanroom",
+   "b": "claude-iter1",
+   "a_only": 0,
+   "b_only": 39,
+   "n": 948,
+   "p": 3.637978807091713e-12
+  },
+  {
+   "split": "wild",
+   "a": "claude-cleanroom",
+   "b": "claude-iter1",
+   "a_only": 1,
+   "b_only": 1,
+   "n": 74,
+   "p": 1.0
+  },
+  {
+   "split": "family_a",
+   "a": "claude-iter1",
+   "b": "claude-iter2",
+   "a_only": 0,
+   "b_only": 5,
+   "n": 948,
+   "p": 0.0625
+  },
+  {
+   "split": "family_b",
+   "a": "claude-iter1",
+   "b": "claude-iter2",
+   "a_only": 0,
+   "b_only": 0,
+   "n": 948,
+   "p": 1.0
+  },
+  {
+   "split": "wild",
+   "a": "claude-iter1",
+   "b": "claude-iter2",
+   "a_only": 0,
+   "b_only": 0,
+   "n": 74,
+   "p": 1.0
+  },
+  {
+   "split": "family_a",
+   "a": "claude-iter2",
+   "b": "claude-iter3",
+   "a_only": 0,
+   "b_only": 0,
+   "n": 948,
+   "p": 1.0
+  },
+  {
+   "split": "family_b",
+   "a": "claude-iter2",
+   "b": "claude-iter3",
+   "a_only": 0,
+   "b_only": 0,
+   "n": 948,
+   "p": 1.0
+  },
+  {
+   "split": "wild",
+   "a": "claude-iter2",
+   "b": "claude-iter3",
+   "a_only": 0,
+   "b_only": 0,
+   "n": 74,
+   "p": 1.0
+  },
+  {
+   "split": "family_a",
+   "a": "claude-iter3",
+   "b": "claude-iter3-speculative",
+   "a_only": 0,
+   "b_only": 0,
+   "n": 948,
+   "p": 1.0
+  },
+  {
+   "split": "family_b",
+   "a": "claude-iter3",
+   "b": "claude-iter3-speculative",
+   "a_only": 0,
+   "b_only": 0,
+   "n": 948,
+   "p": 1.0
+  },
+  {
+   "split": "wild",
+   "a": "claude-iter3",
+   "b": "claude-iter3-speculative",
+   "a_only": 0,
+   "b_only": 0,
+   "n": 74,
+   "p": 1.0
+  },
+  {
+   "split": "family_a",
+   "a": "claude-cleanroom",
+   "b": "claude-iter3-speculative",
+   "a_only": 0,
+   "b_only": 130,
+   "n": 948,
+   "p": 1.4693679385278594e-39
+  },
+  {
+   "split": "family_b",
+   "a": "claude-cleanroom",
+   "b": "claude-iter3-speculative",
+   "a_only": 0,
+   "b_only": 39,
+   "n": 948,
+   "p": 3.637978807091713e-12
+  },
+  {
+   "split": "wild",
+   "a": "claude-cleanroom",
+   "b": "claude-iter3-speculative",
+   "a_only": 1,
+   "b_only": 1,
+   "n": 74,
+   "p": 1.0
+  },
+  {
+   "split": "family_a",
+   "a": "gemini-cleanroom",
+   "b": "gemini-iter1",
+   "a_only": 62,
+   "b_only": 325,
+   "n": 948,
+   "p": 3.884862364512676e-44
+  },
+  {
+   "split": "family_b",
+   "a": "gemini-cleanroom",
+   "b": "gemini-iter1",
+   "a_only": 15,
+   "b_only": 70,
+   "n": 948,
+   "p": 1.1724940227199809e-09
+  },
+  {
+   "split": "wild",
+   "a": "gemini-cleanroom",
+   "b": "gemini-iter1",
+   "a_only": 2,
+   "b_only": 19,
+   "n": 74,
+   "p": 0.00022125244140625
+  },
+  {
+   "split": "family_a",
+   "a": "gemini-iter1",
+   "b": "gemini-iter2",
+   "a_only": 66,
+   "b_only": 85,
+   "n": 948,
+   "p": 0.14271807618296564
+  },
+  {
+   "split": "family_b",
+   "a": "gemini-iter1",
+   "b": "gemini-iter2",
+   "a_only": 15,
+   "b_only": 6,
+   "n": 948,
+   "p": 0.0783538818359375
+  },
+  {
+   "split": "wild",
+   "a": "gemini-iter1",
+   "b": "gemini-iter2",
+   "a_only": 1,
+   "b_only": 2,
+   "n": 74,
+   "p": 1.0
+  },
+  {
+   "split": "family_a",
+   "a": "gemini-iter2",
+   "b": "gemini-iter3",
+   "a_only": 193,
+   "b_only": 76,
+   "n": 948,
+   "p": 6.573362463382503e-13
+  },
+  {
+   "split": "family_b",
+   "a": "gemini-iter2",
+   "b": "gemini-iter3",
+   "a_only": 43,
+   "b_only": 11,
+   "n": 948,
+   "p": 1.4013057456185862e-05
+  },
+  {
+   "split": "wild",
+   "a": "gemini-iter2",
+   "b": "gemini-iter3",
+   "a_only": 3,
+   "b_only": 3,
+   "n": 74,
+   "p": 1.0
+  },
+  {
+   "split": "family_a",
+   "a": "gemini-cleanroom",
+   "b": "gemini-iter3",
+   "a_only": 159,
+   "b_only": 324,
+   "n": 948,
+   "p": 4.854433719869695e-14
+  },
+  {
+   "split": "family_b",
+   "a": "gemini-cleanroom",
+   "b": "gemini-iter3",
+   "a_only": 41,
+   "b_only": 55,
+   "n": 948,
+   "p": 0.18428587288036472
+  },
+  {
+   "split": "wild",
+   "a": "gemini-cleanroom",
+   "b": "gemini-iter3",
+   "a_only": 1,
+   "b_only": 19,
+   "n": 74,
+   "p": 4.00543212890625e-05
+  }
+ ]
+}
