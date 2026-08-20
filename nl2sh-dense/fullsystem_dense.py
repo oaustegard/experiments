@@ -86,9 +86,16 @@ def main() -> int:
     ap.add_argument("--adapter", type=Path, default=None,
                     help="query-side linear adapter from adapter.py")
     ap.add_argument("--granularity", default="chunk", choices=["chunk", "page"])
-    ap.add_argument("--source-form", default="example", choices=["example", "page"],
+    ap.add_argument("--source-form", default="example",
+                    choices=["example", "page", "best-chunk", "best-chunk-hybrid",
+                             "name"],
                     help="what each retrieved utility contributes to the prompt: its "
-                         "first tldr example (the shipped form) or its whole page")
+                         "first tldr example (the shipped form), its whole page, or "
+                         "the one example of its page that best matches this request; "
+                         "`name` sends the bare utility name and no documentation at "
+                         "all, which is the control for whether the text is read")
+    ap.add_argument("--fine-model", default=None,
+                    help="encoder for the fine stage; defaults to the retriever's")
     ap.add_argument("--nl", type=Path, nargs="+", default=list(Q.CYBER_NL))
     ap.add_argument("--modes", nargs="+", default=["oracle", "none", "retrieval"])
     ap.add_argument("-k", type=int, default=3)
@@ -117,27 +124,70 @@ def main() -> int:
     model = AutoModelForCausalLM.from_pretrained(a.model, dtype=torch.float32).eval()
     rng = random.Random(a.seed)
 
-    def render(u: str) -> str:
-        """One source block for utility `u`.
+    # ---- fine stage -------------------------------------------------------
+    # The coarse stage names a utility; this picks the text that utility
+    # contributes. `example` sends `tldr[u][0]`, which is whichever example the
+    # page happens to open with and has never been chosen with reference to the
+    # request. The `best-chunk` forms score that utility's own examples against
+    # the query and send the winner, which costs one already-cached dot product
+    # per candidate example and nothing at index time.
+    fine_chunks = fine_index = fine_dense = None
+    if a.source_form.startswith("best-chunk"):
+        fine_chunks = R.load_chunks(a.chunks)
+        by_utility: dict[str, list[int]] = {}
+        for i, c in enumerate(fine_chunks):
+            if c.kind == "tldr_example":
+                by_utility.setdefault(c.utility, []).append(i)
+        fine_index = R.Index(fine_chunks)
+        fine_model = a.fine_model or parse_retriever(a.retriever)[1]
+        if fine_model is None:
+            raise SystemExit("--source-form best-chunk needs a dense model; pass "
+                             "--fine-model or use a dense retriever")
+        _, _, fine_dense = D.load(fine_model, a.chunks, granularity="chunk",
+                                  adapter=a.adapter)
 
-        `example` is the shipped form: the first tldr example, one line. `page`
-        is issue #48 item 4 — Gemma 3 270M has a 32k window where Pleias had 4k,
-        so a whole page fits and the model sees every documented flag rather than
-        one example's. The prompt still names the utility first either way, so
-        `utility_ok` is scored against the same thing.
-        """
+    def best_chunk(u: str, nl: str, dn: np.ndarray, bm: np.ndarray | None) -> str:
+        """The example of `u`'s page that this request scores highest."""
+        ids = by_utility.get(u)
+        if not ids:
+            d, c = tldr[u][0]
+            return f"{d}: {c}"
+        if bm is None:
+            best = max(ids, key=lambda i: float(dn[i]))
+        else:
+            # Min-max within this utility's own examples, so the two scales are
+            # comparable over the handful of candidates actually being ranked.
+            def norm(v, sel):
+                vals = np.array([v[i] for i in sel], dtype=np.float32)
+                lo, hi = float(vals.min()), float(vals.max())
+                return {i: (float(v[i]) - lo) / max(hi - lo, 1e-9) for i in sel}
+            nd, nb = norm(dn, ids), norm(bm, ids)
+            best = max(ids, key=lambda i: 0.5 * nd[i] + 0.5 * nb[i])
+        return fine_chunks[best].text.replace("\n", ": ")
+
+    def render(u: str, nl: str, dn, bm) -> str:
+        # The control. If routing is unchanged when every source block is just a
+        # name, the model is selecting from the candidate list and not reading
+        # the documentation, and the whole retrieval tier's job is to produce the
+        # right k names rather than the right k examples.
+        if a.source_form == "name":
+            return u
         if a.source_form == "example":
             d, c = tldr[u][0]
             return f"{u} — {d}: {c}"
-        body = "; ".join(f"{d}: {c}" for d, c in tldr[u])
-        return f"{u} — {body}"
+        if a.source_form == "page":
+            return f"{u} — " + "; ".join(f"{d}: {c}" for d, c in tldr[u])
+        return f"{u} — " + best_chunk(u, nl, dn, bm)
 
     def sources_for(nl: str) -> list[str]:
+        dn = fine_dense.scores(nl) if fine_dense is not None else None
+        bm = (fine_index.scores(nl)
+              if a.source_form == "best-chunk-hybrid" else None)
         out = []
         for u in rank(nl):
             if u not in tldr:
                 continue
-            out.append(render(u))
+            out.append(render(u, nl, dn, bm))
             if len(out) >= a.k:
                 break
         return out
@@ -150,7 +200,10 @@ def main() -> int:
                 others = [u for u in tldr if len(tldr[u]) >= 1 and u != gu]
                 picks = [gu] + rng.sample(others, a.distractors)
                 rng.shuffle(picks)
-                srcs = [render(u) for u in picks]
+                dn = fine_dense.scores(r["nl"]) if fine_dense is not None else None
+                bmv = (fine_index.scores(r["nl"])
+                       if a.source_form == "best-chunk-hybrid" else None)
+                srcs = [render(u, r["nl"], dn, bmv) for u in picks]
             elif mode == "none":
                 srcs = []
             else:
