@@ -119,7 +119,7 @@ def train(a):
     model.save_pretrained(a.out); tok.save_pretrained(a.out)
     json.dump({"base": BASE, "steps": step, "rows": a.rows,
                "minutes": round((time.time()-t0)/60, 1)},
-              open(HERE / "results_finetune_gemma.json", "w"), indent=1)
+              open(a.results, "w"), indent=1)
     print(f"saved to {a.out}")
 
 
@@ -181,6 +181,7 @@ def main() -> int:
     t.add_argument("--batch", type=int, default=2); t.add_argument("--lr", type=float, default=1e-4)
     t.add_argument("--budget-minutes", type=float, default=60)
     t.add_argument("--out", type=Path, default=HERE / "ft_gemma")
+    t.add_argument("--results", type=Path, default=HERE / "results_finetune_gemma.json")
     e = sub.add_parser("eval"); common(e)
     e.add_argument("--nl", type=Path, default=SELFHIST / "cyber_nl.json")
     e.add_argument("--model", type=Path, default=HERE / "ft_gemma")
