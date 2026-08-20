@@ -721,6 +721,49 @@ the result.
   impossible rather than unlikely, which is a concrete reason to prefer a
   constrained decoder over a larger model. (`monad-bsky/RESULTS.md`)
 
+- **Measure a model's runtime footprint; do not derive it from the weight file
+  — and check whether your inference wrapper is already reporting it.** Four
+  experiments were spent shaving a 13.74 MB blob toward a 16 MB device budget
+  before anyone measured what the thing actually costs to run. Cactus Needle's
+  completion result carries `peak_ram_mb`, and `needle_bsky.router` already
+  threaded it onto every Decision — `eval.py` dropped it on the floor. Twelve
+  real routing turns: **43.8 MB peak against 13.74 MB of weights**, with 14.3 MB
+  of that the Python interpreter, so **~16 MB of engine runtime on top of the
+  model itself**. The file that everyone optimises was never the binding
+  constraint. Corollary worth carrying: loading weights through a `weights=`
+  path cost ~13 MB more again, because the blob is resident more than once —
+  RSS fell ~2.75x for each 1 MB removed from the file. (`needle-esp32-budget/`)
+
+- **Two compression steps that are each free do not compose — measure the
+  combination, never the sum of the deltas.** A layer cut measured at **−0.037**
+  (p=0.81, a genuine null) and a bit-width change measured at **+0.018** (p=1.00)
+  applied together measured **−0.222**. Neither experiment could have predicted
+  that from its own arm, and the composed build was both the smallest and by far
+  the worst thing produced in the series. Any pruning x quantization x
+  distillation plan that adds up independently-validated deltas is estimating a
+  number it has not measured. (`needle-esp32-budget/`)
+
+- **Falsify a configuration knob with an absurd value before planning memory or
+  latency around it.** `.cact` exports accept `kv_window`, the field is written
+  into the blob header, and Cactus's own `kv_budget_window()` sizes a KV cache
+  from it — so it read as a 1.6 MB lever. Exporting at 8, 160, 192, 224, 256,
+  384 and 512 and scoring all seven produced **one distinct outcome**, identical
+  to four decimals. An 8-token attention window cannot serve a 481-token prompt,
+  so the field is recorded and ignored on that inference path (`export.py`
+  describes it as the width the model was *trained* with). The cheap test is the
+  absurd value: a knob that survives it is inert. (`needle-esp32-budget/`)
+
+- **A tool-routing turn is prefill, so its cost scales with the catalogue, not
+  the query.** The five schemas the retrieval head renders are **467 tokens**
+  and are re-prefilled every turn — there is no prefix cache — against a ~14
+  token query. 481 prefill tokens / 423.9 tok/s = **1.13 s** against a measured
+  1.21 s turn, so essentially the whole turn is re-reading the tool
+  definitions, which works out to ~50 GFLOP per routing decision at this model
+  size. For any embedded or battery target that is the term to attack, and it is
+  attacked by shrinking the rendered catalogue rather than the model — which is
+  the same conclusion `needle-bsky` and `monad-bsky` reached from accuracy and
+  latency respectively. (`needle-esp32-budget/`)
+
 - **Check what a model already ships at before designing a compression
   experiment — "can we quantize?" may already be answered in the checkpoint.**
   Cactus Needle 2 carries `weight_bits = "embedding=4,mhc=4,default=2"`, so the
