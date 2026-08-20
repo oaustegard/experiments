@@ -117,6 +117,11 @@ class Helper:
         ranked = sorted(agg.items(), key=lambda kv: -kv[1][0])
         margin = (ranked[0][1][0] - ranked[1][1][0]) if len(ranked) > 1 else (
             ranked[0][1][0] if ranked else 0.0)
+        # Secondary guard against a spurious high margin on nonsense input: a
+        # real request shares several content terms with the corpus vocabulary;
+        # "asdkfj qwerty" matches one rare token and scores a big margin off it.
+        qterms = [tok for tok in R.tokens(query) if tok in self.index.postings]
+        self._last_matched_terms = len(set(qterms))
         srcs = [f"{u} — {(txt.splitlines()[0] if txt else '')}" for u, (_, txt) in ranked[:k]]
         pages = [f"{u} — {(txt.splitlines()[0] if txt else '')}" for u, (_, txt) in ranked[:show]]
         return srcs, [u for u, _ in ranked[:k]], round(margin, 2), pages
@@ -150,7 +155,7 @@ class Helper:
         # confident we do NOT ask the model to guess — that trains/produces
         # confabulation, and a confident wrong command is worse than none. We
         # show the closest documented pages instead.
-        confident = margin >= margin_threshold
+        confident = margin >= margin_threshold and getattr(self, "_last_matched_terms", 0) >= 2
         if not confident or not self.model_path:
             return {"query": query, "abstained": True, "margin": margin,
                     "pages": pages, "command": "", "warnings": [], "destructive": False,
