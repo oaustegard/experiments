@@ -3,11 +3,11 @@
 The three preceding experiments asked "can this model be made smaller" without a
 number to hit. This prices it against one: **16 MB**.
 
-**Short version: the bytes almost fit and the arithmetic does not.** A routing
-turn over this catalogue costs roughly **50 GFLOP**, every turn, because the tool
-schemas are re-prefilled each time. That is 1.2 s on a 4-core x86 container and
-one to two orders of magnitude worse on any ESP32. Memory is the constraint that
-looks binding and compute is the one that actually is.
+**Short version: the model file fits and nothing else does.** The weights are
+11.16–12.36 MB against 16 MB of PSRAM, comfortably — but the measured working
+set is **43.8 MB**, and a routing turn over this catalogue costs roughly
+**50 GFLOP** because the tool schemas are re-prefilled every time. The file size
+everyone optimises is the one thing that was never the problem.
 
 Everything below separates what was **measured here**, what is **read off
 Cactus's own code**, and what is **inferred about hardware I do not have**.
@@ -24,39 +24,65 @@ Cactus's own code**, and what is **inferred about hardware I do not have**.
 available: ternary packs into the same bytes as 2-bit by construction and costs
 39 points; 3- and 4-bit are larger for nothing.
 
+## Measured: the actual runtime footprint, which is the answer
+
+The engine reports `peak_ram_mb` on every completion and
+`needle_bsky.router` already threads it onto each Decision — `eval.py` just
+drops it. For a memory budget that field is the whole question. `rss_probe.py`
+runs twelve real routing turns and reports it beside process RSS:
+
+| configuration | weights | engine peak RAM | process RSS |
+|---|---|---|---|
+| stock engine weights | 13.74 MB | **43.8 MB** | 43.9 MB |
+| shipped spec via `weights=` | 13.74 MB | 57.1 MB | 57.1 MB |
+| `default=2` via `weights=` | 12.36 MB | 53.7 MB | 54.3 MB |
+| `[9,13)` pruned + `default=2` | 11.16 MB | 50.4 MB | 50.4 MB |
+
+The Python interpreter and imports account for 14.3 MB of that (`rss_before`),
+so the stock path costs roughly **29.5 MB of engine against 13.74 MB of weights
+— about 16 MB of runtime on top of the model itself.**
+
+The `weights=` rows carry ~13 MB more than the stock row, which is the blob
+being resident more than once (Python `bytes` plus the engine's own copy); the
+RSS delta tracks about 2.75x each weight delta, consistent with that. The stock
+row is therefore the honest one to plan against.
+
+**Against 16 MB this is not close.** The model file fits with room to spare; the
+working set is roughly three times the budget. Reducing the weights does not fix
+it, because the weights are not what is over.
+
 ## From Cactus's code: the KV budget, which cannot be tuned from here
 
 `architecture.py` carries `KV_BUDGET_BYTES = 11 MiB + 512 KiB` and a `per_pos`
 formula that, for this config (27 layers, 4 KV heads, head_dim 64, 2 Engram
 sites, 8-bit KV with fp32 group scales), works out to **16,704 bytes per cached
-position**:
-
-| window | KV cache |
-|---|---|
-| 512 | 8.55 MB |
-| 256 (what the checkpoint pins) | **4.28 MB** |
-| 160 (`KV_WINDOW_MIN`) | 2.67 MB |
-
-So the resident total at the shipped settings is **13.74 + 4.28 = 18.02 MB**, or
-**12.36 + 4.28 = 16.64 MB** at the best free weight spec — over 16 MB before a
-single byte of activations, tokenizer, grammar table, engine code or
-application.
+position** — 4.28 MB at the pinned 256 window, 3.69 MB at 23 layers. That is
+part of the ~16 MB of runtime above, not additional to it.
 
 **And the window is not a knob.** `write_export(..., kv_window=...)` writes the
 value into the `.cact` header, so it looked like a way to buy back 1.6 MB.
 Exporting at 8, 160, 192, 224, 256, 384 and 512 and scoring all seven on the
 62-query set gives **one distinct outcome** — 0.611 / 0.613 / 0.625 / 0.537,
-identical to four decimal places at every window:
+identical at every window. An 8-token attention window cannot serve a
+~481-token prompt. The field is recorded and ignored on this inference path;
+`export.py` describes it as "the sliding-window width the model was **trained**
+with".
 
-| kv_window | routable | tool | refusal | args |
-|---|---|---|---|---|
-| 8 | 0.611 | 0.613 | 0.625 | 0.537 |
-| 160 → 512 | 0.611 | 0.613 | 0.625 | 0.537 |
+## Measured: the two size reductions do not compose
 
-An 8-token attention window cannot serve a ~481-token prompt. The field is
-recorded and ignored on this inference path — `export.py` even describes it as
-"the sliding-window width the model was **trained** with". So the 4.28 MB is a
-number to plan around, not one to reduce from the export side.
+`needle-layer-pruning` found one survivable cut and `needle-quantization` found
+one free bit spec. Applied together they are **not** free:
+
+| build | weights | routable |
+|---|---|---|
+| `[9,13)` pruned, shipped bits | 12.49 MB | 0.574 |
+| unpruned, `default=2` | 12.36 MB | 0.630 |
+| **both** | **11.16 MB** | **0.389** |
+
+A −0.037 change and a +0.018 change compose to **−0.222**. Neither experiment
+could have predicted that from its own arm, and the smallest build in this
+series is also the least accurate by a wide margin — 44 points below the
+regex baseline that needs no model at all.
 
 ## Measured: the compute per routing decision, which is the real wall
 
@@ -113,13 +139,22 @@ keeps only the working set in RAM:
 
 | | |
 |---|---|
-| flash | 12.36 MB of 16 MB — leaves ~3.6 MB for app and partition table, and **no room for a second OTA slot** |
-| RAM | 4.28 MB KV + activations — fits 8 MB PSRAM, does not fit 512 KB SRAM |
+| model file | 11.16–12.36 MB — fits 16 MB with room |
+| measured working set | **43.8 MB** on the only build available here, ~29.5 MB of it engine |
 | per query | ~50 GFLOP |
 
-The capacity story is survivable. The compute story is not, and nothing in the
-three preceding experiments moves it: depth is not prunable, precision is
-already at the knee, and the KV window is inert.
+With 16 MB of PSRAM the model *file* is a non-problem. The working set is
+roughly 2.7x the budget and the compute is one to two orders of magnitude out.
+Nothing in the three preceding experiments moves either: depth is not prunable,
+precision is already at the knee, the KV window is inert, and the two size
+reductions do not compose.
+
+The measurement caveat is real and load-bearing: this is an x86 build inside a
+Python process with a general-purpose allocator, and `peak_ram_mb` tracks
+process RSS. An embedded build would be leaner. What transfers is the *shape* —
+non-weight runtime is comparable to the weights themselves — not the absolute
+number. Anyone seriously targeting this part should measure the embedded engine,
+because that is the number that decides it and it is not knowable from here.
 
 ## The lever that is left, and it is not in the model
 
@@ -140,10 +175,13 @@ essentially zero compute, and would run on an ESP32 with 15.9 MB to spare.** The
 cover it — and on that catalogue, the prompt would be shorter and the arithmetic
 above would improve accordingly.
 
-## Open question
+## Answered since first writing
 
-Whether the 16 MB is flash or PSRAM, and which ESP32 part, decides the RAM half
-of this. The compute half is unaffected either way.
+The 16 MB is **PSRAM**, which settles the capacity half in the model's favour
+and does not help: at 43.8 MB measured working set the binding constraint was
+never the file. Which ESP32 part still matters for the compute half — S3 and P4
+differ by roughly an order of magnitude — but not enough to close a 50 GFLOP
+gap.
 
 ## Reproduction
 
