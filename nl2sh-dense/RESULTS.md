@@ -10,7 +10,8 @@ Three of the four items moved retrieval. Query reformulation did not, and that
 negative is in §3. A fifth thing the issue did not ask for — training a linear
 adapter on frozen query vectors — moved it further than any of them, and §5 is
 why that is not an argument for fine-tuning the encoder. §6 runs each arm at its
-own granularity and settles what the generator does with the text it is sent.
+own granularity and settles what the generator does with the text it is sent. §7
+rewrites the corpus itself, which turns out to beat all of them.
 
 | change | gold in the k=3 sources | end-to-end routing | encoder |
 |---|---|---|---|
@@ -20,6 +21,7 @@ own granularity and settles what the generator does with the text it is sent.
 | **\+ both** | **0.390** (p = 0.0003) | 0.165 (p = 0.26) | **25.6 MB** |
 | \+ both, 164.5 MB encoder | 0.390 (p = 0.0001) | 0.183 (p = 0.11) | 164.5 MB |
 | \+ a trained query adapter (§5) | **0.463** (p < 0.0001) | **0.201** (p = 0.058) | 25.6 + 4.2 MB |
+| \+ an LLM-rewritten corpus (§7) | **0.555** (p < 0.0001) | **0.250** (p = 0.0012) | 25.6 + 4.2 MB |
 
 The retrieval column is established. The routing column moves in the same
 direction under both retrievers and does not clear significance at this sample
@@ -371,6 +373,114 @@ one, or a better-matched one, adds nothing it can use.
 That closes the fine stage. The retrieval tier's job is to produce the right k
 utility *names*, each with any one example attached, and every remaining point
 between 0.640 and 1.000 under oracle belongs to the generator.
+
+## 7. Rewriting the corpus for the model that has to read it
+
+Pleias' Redline — a 321M legal assistant running offline on a Raspberry Pi 5 —
+reports that "most of the project's effort went not into the model but into
+converting the Red Line Guidebook into a corpus a small model can use reliably":
+semantic chunking on logical units, context injection annotating each chunk with
+its jurisdiction and legal framework, entity normalization of acronyms and terms,
+and markdown hierarchy preserved through retrieval
+(pleias.ai/blog/local-ai-for-knowledge).
+
+This corpus already had two of those four. tldr examples are logical units and
+`page_chunks` supplies the hierarchy. The two it lacked are the two that every
+failure in this directory traces back to: shell documentation is written in the
+vocabulary of the tool and the request arrives in the vocabulary of the goal.
+`fcrackzip`'s page says "dictionary attack"; the user types "recover the
+password".
+
+`enrich.py` sends each of the 6,397 pages to `gemini-3.5-flash-lite` for a
+normalized one-line summary, a task category, 4 to 8 goal-level phrasings a
+person would type wanting this utility without knowing its name, and a short
+disambiguation against confusable tools. The examples are kept verbatim, because
+§6 measured that replacing the exemplar costs routing. **6,396 of 6,397 pages
+enriched, one refusal, 2 hours 5 minutes at concurrency 2.**
+
+### The model-family confound
+
+The primary eval's natural language was written by `gemini-3.7-flash`. Having
+`gemini-3.5-flash-lite` write the corpus's query vocabulary means a recall lift
+admits two readings: the corpus improved, or two members of one model family
+converged on phrasing. This repo has already paid 0.3 accuracy for not separating
+those, so the enrichment number is never quoted without its control —
+`nl2bash_control.json`, 300 requests whose English was written by human
+annotators, 129 utilities, constant prior 0.010.
+
+| gold in sources | plain corpus | enriched | wins/losses | p |
+|---|---|---|---|---|
+| **cyber (Gemini NL)**, BM25 | 0.311 | **0.427** | 24 / 5 | 0.0005 |
+| **cyber**, wsum(BM25, leaf-mt-int8) | 0.378 | **0.494** | 23 / 4 | 0.0003 |
+| **human control**, BM25 | 0.215 | **0.269** | 21 / 5 | 0.0025 |
+| **human control**, RRF(BM25, leaf-mt-int8) | 0.296 | **0.394** | 42 / 13 | 0.0001 |
+
+**The lift survives on human-written English**, and the control's fused gain
+(+0.098) is as large as the Gemini eval's (+0.116). Whatever family alignment
+exists, it is not what is being measured.
+
+### Where the gain comes from
+
+`check_cards.py` asks whether a card's generated intents retrieve the page they
+were written from. The index is the **plain** corpus, so the test is not
+circular. Over
+1,200 cards and 5,943 intent lines: 0.212 of individual lines reach their own page
+at rank 1, and 0.748 of cards have at least one line reaching it in the top 3.
+
+That splits the eval's gold utilities in two, and the split is the mechanism:
+
+| | n | plain | enriched | delta | p |
+|---|---|---|---|---|---|
+| intents echo the page (reachable from the original wording) | 105 | 0.419 | 0.505 | +0.086 | 0.035 |
+| **intents add vocabulary the page lacks** | 58 | 0.293 | **0.517** | **+0.224** | 0.001 |
+
+The utilities whose pages could never be reached from goal-level language start
+0.126 behind and finish level. Enrichment closes the specific gap it was aimed
+at, rather than lifting everything by a constant — which is what a phrasing-
+alignment artefact would have done.
+
+### The whole stack
+
+Every number on the same 164 leak-free requests, against the pipeline as shipped
+before this directory existed:
+
+| | gold in sources | end-to-end routing |
+|---|---|---|
+| BM25 over chunks (shipped) | 0.262 | 0.128 |
+| \+ dense arm, page-level index (§1–2) | 0.390 | 0.165 (p = 0.26) |
+| \+ query adapter (§5) | 0.463 | 0.201 (p = 0.058) |
+| \+ enriched corpus, no adapter | 0.506 | **0.226** (p = 0.0052) |
+| **enriched corpus + adapter** | **0.555** | **0.250** (p = 0.0012) |
+| oracle ceiling | 1.000 | 0.640 |
+
+**Corpus enrichment is the largest single lever measured here, and the first one
+whose routing gain clears significance.** It beats the trained adapter while
+training nothing, and the two are additive — the adapter adds 0.049 on top of the
+enriched corpus (p = 0.077), retrained in 40 seconds against the new vectors.
+Routing at 0.250 against an oracle of 0.640 means the retrieval tier now delivers
+39% of what a perfect one would, against 20% at the start.
+
+The adapter arms carry §5's coverage caveat, and the human control cannot check
+them: it is drawn from NL2Bash, which is the adapter's training corpus. The
+control validates enrichment, which is the claim it was built for.
+
+### The corpus as an artifact
+
+`handbook.py` emits the cards as a single greppable markdown file — one section
+per utility with its summary, category, "use when you want to" phrasings and
+"not for" disambiguation above its documented examples — or as JSONL with a
+stable schema. It is documentation organised by what a user wants rather than by
+what each tool is called, which is the axis a shell manual does not have and the
+axis a retrieval tier needs.
+
+Provenance travels with every artifact and is not optional: the examples are
+reproduced verbatim from [tldr-pages](https://github.com/tldr-pages/tldr),
+copyright the tldr-pages team and contributors, **CC-BY-4.0**; man-page material
+carries each package's own licence; and the generated fields are unreviewed model
+output — a retrieval aid, not documentation to trust over the real page. The same
+attribution was added to `nl2sh-retrieval/RESULTS.md`, where the verbatim content
+has been committed since that directory was written and the attribution was
+missing.
 
 ## End to end
 

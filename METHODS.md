@@ -1551,6 +1551,54 @@ the result.
 
 ---
 
+- **Rewriting the corpus beat every retrieval technique tried against it, and it
+  is the cheapest thing on the list.** Documentation is written in the vocabulary
+  of the thing documented; requests arrive in the vocabulary of the goal. A
+  `gemini-3.5-flash-lite` pass over 6,397 shell-documentation pages — adding a
+  normalized summary, a category, 4-8 goal-level phrasings a user would type
+  without knowing the tool's name, and a short disambiguation, with the original
+  examples kept verbatim — took gold-in-sources from 0.311 to **0.427** on BM25
+  alone (24 wins / 5, p = 0.0005) and end-to-end routing from 0.128 to **0.226**
+  (p = 0.0052), against 0.201 for a trained query adapter and 0.165 for adding a
+  dense arm. **2 hours 5 minutes at concurrency 2, one refusal in 6,397 pages**,
+  and it composes with the adapter for 0.555 / 0.250. Reach for the corpus before
+  the retriever: Pleias' Redline reports the same ordering for a 321M offline
+  legal assistant — "most of the project's effort went not into the model but
+  into converting the Guidebook into a corpus a small model can use reliably".
+  (`nl2sh-dense/enrich.py`, pleias.ai/blog/local-ai-for-knowledge)
+
+- **When one model writes your corpus and a sibling wrote your eval, the lift is
+  unreadable without a human-authored control — and the control needs building
+  before the number arrives, not after.** `gemini-3.7-flash` authored the eval's
+  natural language and `gemini-3.5-flash-lite` the corpus's query vocabulary, so
+  a recall gain could be a better corpus or one model family agreeing with
+  itself. A 300-row control whose English came from human annotators settled it:
+  the fused gain there (+0.098, 42 wins / 13, p = 0.0001) matched the Gemini
+  eval's (+0.116). Two traps in building it, both hit: NL2Bash uncapped is 50%
+  `find`, so cap per utility or the control measures the prior; and excluding the
+  rows a query adapter trained on leaves **97.7%** `find`, so a control cannot
+  serve both an adapter arm and a corpus arm — the adapter arms keep their own
+  coverage caveat instead. (`nl2sh-dense/make_control_eval.py`)
+
+- **Split a corpus-rewriting gain by whether the rewrite was reachable from the
+  original text; a uniform lift is the signature of an artefact.** Query the
+  *plain* corpus with each generated intent line and record whether its own page
+  comes back — circular against the enriched corpus, clean against the plain one.
+  Utilities whose intents merely echoed their page gained **+0.086**; those whose
+  intents added vocabulary the page did not contain gained **+0.224**, starting
+  0.126 behind and finishing level. The gain landing exactly on the pages that
+  were unreachable is the mechanism showing itself; a phrasing-alignment artefact
+  would have lifted both groups by a constant.
+  (`nl2sh-dense/check_cards.py`)
+
+- **Key a vector cache on the corpus, not just on the model and the settings.**
+  A cache named `chunks_{model}_{granularity}.npy` served an enriched 6,397-row
+  corpus and a plain 6,397-row corpus from the same file, and the row-count guard
+  passed because the counts match by construction. Caught before it produced a
+  number; it would have been silent and permanent if it had not been. This is the
+  cached-matrix entry above, one level down: shape, dtype and length checks all
+  pass, and the incomparability never surfaces. (`nl2sh-dense/dense_index.py`)
+
 - **Fit a linear adapter on frozen query embeddings before pricing a fine-tune —
   and split the eval by training coverage before believing either.** With the
   gold document at recall@3 = 0.396 and recall@50 = 0.726, the candidate set
