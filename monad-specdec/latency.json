@@ -1,0 +1,34 @@
+{
+  "runs": [
+    {
+      "model": "monad",
+      "repo": "PleIAs/Monad",
+      "params_m": 56.7,
+      "layers": 64,
+      "hidden": 256,
+      "vocab": 8192,
+      "prompt_tokens": 28,
+      "prefill_ms_median": 151.32,
+      "decode_ms_median": 57.011,
+      "decode_ms_mean": 59.713,
+      "decode_ms_p10": 51.513,
+      "n_decode_samples": 96
+    },
+    {
+      "model": "baguettotron",
+      "repo": "PleIAs/Baguettotron",
+      "params_m": 321.0,
+      "layers": 80,
+      "hidden": 576,
+      "vocab": 65536,
+      "prompt_tokens": 24,
+      "prefill_ms_median": 308.42,
+      "decode_ms_median": 119.883,
+      "decode_ms_mean": 121.907,
+      "decode_ms_p10": 112.479,
+      "n_decode_samples": 96
+    }
+  ],
+  "target_over_draft_latency_ratio": 2.1,
+  "torch_threads": 4
+}
