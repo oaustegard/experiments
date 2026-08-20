@@ -92,10 +92,12 @@ everywhere else. Demonstrated:
 - *"count lines in report.txt"* → margin 0.8 → abstains, but the first page shown
   is `wc — Count lines in file`. Even declining, the user gets the answer.
 
-**Known gap:** the margin gate can be fooled by a spurious strong match on
-nonsense input (*"asdkfj qwerty"* scored margin 8 off one keyboard-layout tool).
-A secondary guard — a minimum matched-term count, or an absolute-score floor
-calibrated per corpus — is the fix; the margin alone is necessary, not
-sufficient. On this container's thin 60-man-page corpus the confident slice is
+**The nonsense guard.** The margin alone can be fooled by a spurious strong
+match on garbage input (*"asdkfj qwerty"* scored margin 8 off one keyboard-layout
+tool). A second condition closes it: the query must share **at least 2 content
+terms** with the corpus vocabulary. With both conditions, *"asdkfj qwerty"* (1
+matched term) and *"xkcd"* (0) abstain despite their margins, while *"list all
+files"* (4 terms, margin 5.8) still generates. Margin is necessary, matched-term
+count makes it sufficient. On this container's thin 60-man-page corpus the confident slice is
 small; a real machine's full man set would raise both coverage and the abstain
 page list's usefulness.
