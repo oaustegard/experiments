@@ -464,6 +464,32 @@ The adapter arms carry §5's coverage caveat, and the human control cannot check
 them: it is drawn from NL2Bash, which is the adapter's training corpus. The
 control validates enrichment, which is the claim it was built for.
 
+### Is it shippable? The retrieval tier is; the offline system is not
+
+`utility_ok` scores the leading token of the generated command, so 0.250 routing
+is an upper bound on a number that is worse. Every one of the 41 outputs it scores
+correct on the shipped stack, read by hand: 12.8% are degenerate token-repeat
+loops that still lead with the right utility (`mv -t 10.1.135.83 /usr/ -f
+10.1.135.83 /usr/ -f …`, `ssh -p 22.18.5.1 | xargs -0 -0 | xargs -0 -0 …`), and
+most of the rest carry wrong arguments — `cd my home -o -p 2000` for "go to my
+home directory", `chmod 755` with no file for a request naming `key.txt`.
+Genuinely runnable and correct is nearer **0.05–0.06** than 0.25. The abstention
+gate does not recover it: the confident slice tops out around 0.30 leading-token
+routing at every ratio threshold, and the degenerate outputs fire in the *high*-
+confidence band.
+
+So the boundary is clean. **The retrieval tier is shippable** — 0.262 → 0.555
+gold-in-sources, validated on human-authored English, 30 MB of artifacts — and so
+is the handbook. **The end-to-end offline helper is not**, and this section is the
+proof that the wall was never retrieval: driving gold-in-sources from 0.262 to
+0.555 against a ceiling of 1.000 moved real command quality almost not at all,
+because the 270M generator routes only 0.640 *when handed the gold page every
+time*. That 0.640-under-oracle is the `monad-bsky` transcription ceiling — a
+sub-300M model cannot reliably copy a path or a flag — and it is a weights limit,
+not a plumbing one. The remaining lever is a stronger sub-1B base or the cloud
+`flash-lite` path (0.771, `ARCHITECTURE.md`); more corpus or retrieval work now
+runs into a generator that cannot use it.
+
 ### The corpus as an artifact
 
 `handbook.py` emits the cards as a single greppable markdown file — one section
