@@ -87,17 +87,31 @@ def page_chunks(chunks: list) -> list:
 GRANULARITIES = {"chunk": lambda cs: cs, "page": page_chunks}
 
 
-def cache_path(model: str, utility_prefix: bool, granularity: str = "chunk") -> Path:
+def cache_path(model: str, utility_prefix: bool, granularity: str = "chunk",
+               corpus: Path | None = None) -> Path:
+    """Cache name, keyed on everything that changes the vectors.
+
+    `corpus` is in the key because it has to be: the enriched corpus and the
+    plain page corpus have the same 6,397 rows, so the row-count guard below
+    passes and a cache keyed only on model and granularity would silently serve
+    one corpus's vectors for the other. That is the failure METHODS.md records
+    as "a cached matrix whose encode settings are not recorded is not reusable"
+    — every shape and dtype check passes and the incomparability is permanent.
+    """
     tag = "" if utility_prefix else "_noutil"
     grain = "" if granularity == "chunk" else f"_{granularity}"
-    return CACHE / f"chunks_{model}{tag}{grain}.npy"
+    stem = ""
+    if corpus is not None and Path(corpus).resolve() != Path(DEFAULT_CHUNKS).resolve():
+        stem = "_" + Path(corpus).stem
+    return CACHE / f"chunks_{model}{tag}{grain}{stem}.npy"
 
 
 def build_vectors(model: str, chunks: list, utility_prefix: bool = True,
                   batch_size: int = 16, threads: int | None = None,
-                  granularity: str = "chunk") -> np.ndarray:
+                  granularity: str = "chunk",
+                  corpus: Path | None = None) -> np.ndarray:
     """Encode every document once and cache. Regenerable; the cache is gitignored."""
-    path = cache_path(model, utility_prefix, granularity)
+    path = cache_path(model, utility_prefix, granularity, corpus)
     if path.exists():
         v = np.load(path)
         if len(v) == len(chunks):
@@ -115,18 +129,27 @@ def build_vectors(model: str, chunks: list, utility_prefix: bool = True,
 
 
 class DenseArm:
-    """Cosine over cached chunk vectors, aggregated to utilities."""
+    """Cosine over cached chunk vectors, aggregated to utilities.
+
+    `adapter` is an optional (d, d) matrix applied to the query vector only
+    (see `adapter.py`). Document vectors are untouched by design, so an adapter
+    can be added to or removed from a live index without re-encoding anything.
+    """
 
     def __init__(self, model: str, chunks: list, vectors: np.ndarray,
-                 threads: int | None = None) -> None:
+                 threads: int | None = None, adapter: np.ndarray | None = None) -> None:
         self.model = model
         self.chunks = chunks
         self.vectors = vectors
         self.enc = encoders.build(model, threads=threads)
         self.utilities = np.array([c.utility for c in chunks], dtype=object)
+        self.adapter = adapter
 
     def scores(self, query: str) -> np.ndarray:
         q = self.enc.encode([query], prompt="query")[0]
+        if self.adapter is not None:
+            q = self.adapter @ q
+            q = q / max(float(np.linalg.norm(q)), 1e-9)
         return self.vectors @ q
 
 
@@ -187,12 +210,14 @@ def wsum(bm25: list[tuple[str, float]], dense: list[tuple[str, float]],
 
 
 def load(model: str, chunks_path: Path = DEFAULT_CHUNKS, utility_prefix: bool = True,
-         threads: int | None = None, granularity: str = "chunk"):
+         threads: int | None = None, granularity: str = "chunk",
+         adapter: Path | None = None):
     chunks = GRANULARITIES[granularity](R.load_chunks(chunks_path))
     index = R.Index(chunks)
     vectors = build_vectors(model, chunks, utility_prefix, threads=threads,
-                            granularity=granularity)
-    return chunks, index, DenseArm(model, chunks, vectors, threads=threads)
+                            granularity=granularity, corpus=chunks_path)
+    W = np.load(adapter)["W"] if adapter else None
+    return chunks, index, DenseArm(model, chunks, vectors, threads=threads, adapter=W)
 
 
 def main() -> int:
@@ -215,7 +240,7 @@ def main() -> int:
         chunks = GRANULARITIES[a.granularity](R.load_chunks(a.chunks))
         build_vectors(a.model, chunks, not a.no_utility_prefix,
                       batch_size=a.batch_size, threads=a.threads,
-                      granularity=a.granularity)
+                      granularity=a.granularity, corpus=a.chunks)
         return 0
 
     chunks, index, dense = load(a.model)

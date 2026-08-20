@@ -34,6 +34,15 @@ Everything below that was measured by one agent was recomputed by another
 instructed to break it. Where the two disagree, the correction is stated inline
 rather than the original quietly replaced.
 
+## Provenance of the committed corpus
+
+`data/chunks.jsonl` redistributes worked examples verbatim from
+[tldr-pages](https://github.com/tldr-pages/tldr), copyright the tldr-pages team
+and contributors, licensed **CC-BY-4.0**. The `man_option` and `man_example`
+chunks come from the manuals installed in the build container and carry each
+package's own licence. This note was missing until 2026-08-20 and is the
+attribution CC-BY requires wherever the content travels.
+
 ## 1. The corpus — 31,169 chunks over 4,698 utilities
 
 `build_corpus.py` turns tldr pages and roff man pages into three chunk kinds:

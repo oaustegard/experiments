@@ -7,7 +7,11 @@ utility's page is handed to it and 0.206 when BM25 picks the context, because
 BM25 surfaces the gold utility 26% of the time.
 
 Three of the four items moved retrieval. Query reformulation did not, and that
-negative is in §3.
+negative is in §3. A fifth thing the issue did not ask for — training a linear
+adapter on frozen query vectors — moved it further than any of them, and §5 is
+why that is not an argument for fine-tuning the encoder. §6 runs each arm at its
+own granularity and settles what the generator does with the text it is sent. §7
+rewrites the corpus itself, which turns out to beat all of them.
 
 | change | gold in the k=3 sources | end-to-end routing | encoder |
 |---|---|---|---|
@@ -16,6 +20,8 @@ negative is in §3.
 | \+ page-level index instead of chunks | 0.323 | — | none |
 | **\+ both** | **0.390** (p = 0.0003) | 0.165 (p = 0.26) | **25.6 MB** |
 | \+ both, 164.5 MB encoder | 0.390 (p = 0.0001) | 0.183 (p = 0.11) | 164.5 MB |
+| \+ a trained query adapter (§5) | **0.463** (p < 0.0001) | **0.201** (p = 0.058) | 25.6 + 4.2 MB |
+| \+ an LLM-rewritten corpus (§7) | **0.555** (p < 0.0001) | **0.250** (p = 0.0012) | 25.6 + 4.2 MB |
 
 The retrieval column is established. The routing column moves in the same
 direction under both retrievers and does not clear significance at this sample
@@ -206,6 +212,333 @@ BM25 arm at higher precision, and the same threshold everywhere.
 0.59–0.64. RRF ranks well and cannot say how sure it is. If the gate ships, the
 retriever under it should be the weighted sum.
 
+## 5. A trained query adapter on frozen embeddings
+
+The four items above leave the retriever at recall@3 = 0.396 and **recall@50 =
+0.726** on the same queries. A third of the eval has the gold page in the
+candidate set, ranked 4th to 50th: the retriever finds it and orders it wrong.
+That is the condition under which training the scorer pays, and it does not
+require touching the encoder.
+
+`adapter.py` fits one identity-initialized `d x d` matrix on the query side.
+Document vectors stay exactly as the frozen encoder produced them, so the 6,397
+cached page vectors and any index built from them survive unchanged, and the
+adapter can be added or removed without re-encoding anything. Training data is
+NL2Bash, capped at 200 pairs per gold utility to defuse the 60.3% `find` skew;
+negatives are in-batch plus 4 hard negatives per query mined from the frozen
+retriever's own top 50. **40 seconds on 4 CPU cores, 4,588 pairs, 4.2 MB of
+weights** on leaf-mt's 1024 dims (0.6 MB on MiniLM's 384).
+
+The eval stays the cyber corpus, so this measures transfer: annotator-written
+English about NL2Bash commands, evaluated on Gemini-written English about
+different commands.
+
+| stack (164 leak-free queries) | gold@1 | gold@3 | gold in sources | routing |
+|---|---|---|---|---|
+| BM25 over chunks (shipped) | 0.140 | 0.262 | 0.262 | 0.128 |
+| page + wsum(BM25, leaf-mt-int8) | 0.238 | 0.384 | 0.384 | 0.165 |
+| **\+ query adapter** | **0.293** | **0.427** | **0.463** | **0.201** |
+
+The adapter's own increment is 0.384 → 0.463 in sources, 21 queries won to 8
+lost, **p = 0.024**. Against the shipped BM25 the whole stack is 0.262 → 0.463,
+43 to 10, p < 0.0001, and end-to-end routing 0.128 → 0.201, 23 to 11,
+**p = 0.058**. On the held-out NL2Bash slice the same matrix takes recall@3 from
+0.359 to 0.824, which is the in-distribution number and is not the claim.
+
+### Coverage of the training utilities
+
+NL2Bash covers 207 of the corpus's 4,698 utilities. Splitting the eval by
+whether its gold utility is one of them:
+
+| slice | n | sources, no adapter | with adapter |
+|---|---|---|---|
+| gold utility in the training set | 87 | 0.322 | **0.506** (+0.184) |
+| gold utility never seen | 77 | 0.455 | 0.416 (−0.039) |
+
+**It does not generalize across utilities, and cutting capacity does not make it
+generalize.** A rank-64 adapter — 16x fewer free parameters — scores +0.161 on
+the seen slice and −0.052 on the unseen one, the same shape. So this is not
+overfitting in the usual sense, where a smaller model would transfer better; the
+adapter is learning which request phrasings point at each of 207 specific
+utilities, and that knowledge has nowhere to go for the other 4,491.
+
+Note also that the unseen slice starts *higher* (0.455 vs 0.322). NL2Bash covers
+common utilities, so the eval rows it does not cover are mostly distinctive
+security tools that BM25 already matches by name — the rows with the least room
+to gain and the most to lose from a shifted query space.
+
+### So: should the embedder be fine-tuned?
+
+**Not on this data.** A full fine-tune has strictly more capacity than a linear
+map on the same 207 utilities, and the rank-64 comparison shows capacity is not
+what limits transfer. It would buy a similar gain on the covered head, a similar
+loss on the tail, and cost an encoder re-export plus a re-encode of every
+document vector each time it is retrained.
+
+What the measurement argues for instead, in order:
+
+1. **Ship the adapter behind a coverage check.** Apply it when the top BM25
+   candidates are utilities the adapter saw and fall back to the frozen query
+   vector otherwise. The two slices are cleanly separable at index-build time —
+   the training utility list is 207 strings — so this is a lookup, not a
+   classifier.
+2. **Widen utility coverage before adding capacity.** The lever is pairs for the
+   other 4,491 utilities, not a bigger model. Generating them is the same
+   `gen_nl.py` machinery this directory already used to extend the eval, run in
+   the other direction: sample commands per uncovered utility, have a model write
+   the request. That is also the point at which a fine-tune becomes worth
+   pricing.
+3. **Only then fine-tune**, and re-measure the seen/unseen split first, because
+   it is the number that decides whether the extra capacity bought coverage or
+   more memorization.
+
+One implementation defect worth fixing before anyone reuses this: `--rank`
+trains a low-rank adapter and then saves the materialized `I + AB`, so the
+low-rank form costs the same 4.2 MB on disk as the full one. The training-time
+constraint is real and measured; the storage saving is not implemented.
+
+## 6. Mixed granularity and the choice of example
+
+Oskar's follow-up: BM25 is the arm that gained from pages, so let it rank pages
+for *which utility*, and let the encoder rank chunks for *which example* — coarse
+to fine, with the outputs combined. The granularity table §2 reports is already
+evidence for the premise:
+
+| arm | chunk | page | delta |
+|---|---|---|---|
+| BM25 | 0.262 | 0.323 | **+0.061** |
+| dense: leaf-mt-int8 | 0.311 | 0.323 | +0.012 |
+| dense: MiniLM-L6-int8 | 0.341 | 0.287 | **−0.054** |
+| dense: bekko-a8m | 0.354 | 0.360 | +0.006 |
+
+BM25 gains from a longer document because it has more terms to match and its
+length normalization absorbs the cost. A mean-pooled vector averages the one
+example that matched into the eleven that did not, so the encoder gains nothing
+and MiniLM loses. Forcing both arms to share a granularity, which is what §1–§2
+did, suits whichever arm the choice happened to favour.
+
+`coarse_to_fine.py` runs the cross product. Fusion happens after each arm
+aggregates to utilities, which is what makes a mixed arm expressible at all: a
+page and a chunk are not the same object and cannot be fused as documents, but
+"the score this arm gives utility `u`" is the same object either way.
+
+| BM25 / dense | MiniLM-L6-int8 | leaf-mt-int8 |
+|---|---|---|
+| chunk / chunk | 0.354 | 0.354 |
+| chunk / page | 0.323 | 0.366 |
+| **page / chunk** | **0.366** | 0.378 |
+| page / page | 0.341 | 0.378 |
+
+(wsum α=0.5, no adapter, gold-in-sources over 164 leak-free queries, sources
+taken from the fused utility ranking so every cell is measured the same way.)
+
+**The prediction holds for MiniLM and does not separate.** Page-BM25 with
+chunk-dense is MiniLM's best cell at 0.366 against 0.341 for page/page — and that
+is 4 queries, 10 wins to 6, p = 0.45. For leaf-mt, whose dense arm was
+granularity-indifferent, page/chunk and page/page tie exactly at 0.378. So the
+rule "give each arm the granularity it measures well at" is directionally
+supported and, at this sample size, unproven. It costs nothing to follow: both
+caches already exist and the fusion is unchanged.
+
+### The choice of example
+
+The second half of the question is the larger untested lever, because nothing in
+§1–§5 ever varied it. The generator gets `tldr[u][0]` — whichever example the
+page opens with, chosen by file order, never with reference to the request. Once
+the coarse stage has named the utility, choosing among its examples costs one
+cached dot product each.
+
+Scored end to end on the recommended stack, with `oracle` isolating the effect by
+guaranteeing the gold utility is present so only the accompanying text varies:
+
+| what each source block contains | routing (retrieval) | routing (oracle) |
+|---|---|---|
+| the utility name and nothing else | 0.152 | 0.451 |
+| its first tldr example (shipped) | 0.201 | **0.640** |
+| the example best matching the query, dense | 0.207 | 0.640 |
+| the example best matching the query, hybrid | 0.207 | — |
+| its whole page | 0.159 | 0.610 |
+
+**An example is worth +0.189 under oracle; the right example is worth nothing.**
+Query-relevant selection moves 4 queries and loses 3, p = 1.0, and reproduces
+0.640 exactly under oracle. Sending the whole page is slightly worse than sending
+one line of it.
+
+So the model reads the documentation — a names-only prompt drops oracle routing
+from 0.640 to 0.451, which is most of what training bought — and it takes a fixed
+benefit from having an exemplar rather than a graded benefit from a better one.
+One example anchors the output format and the utility's argument shape; a second
+one, or a better-matched one, adds nothing it can use.
+
+That closes the fine stage. The retrieval tier's job is to produce the right k
+utility *names*, each with any one example attached, and every remaining point
+between 0.640 and 1.000 under oracle belongs to the generator.
+
+## 7. Rewriting the corpus for the model that has to read it
+
+Pleias' Redline — a 321M legal assistant running offline on a Raspberry Pi 5 —
+reports that "most of the project's effort went not into the model but into
+converting the Red Line Guidebook into a corpus a small model can use reliably":
+semantic chunking on logical units, context injection annotating each chunk with
+its jurisdiction and legal framework, entity normalization of acronyms and terms,
+and markdown hierarchy preserved through retrieval
+(pleias.ai/blog/local-ai-for-knowledge).
+
+This corpus already had two of those four. tldr examples are logical units and
+`page_chunks` supplies the hierarchy. The two it lacked are the two that every
+failure in this directory traces back to: shell documentation is written in the
+vocabulary of the tool and the request arrives in the vocabulary of the goal.
+`fcrackzip`'s page says "dictionary attack"; the user types "recover the
+password".
+
+`enrich.py` sends each of the 6,397 pages to `gemini-3.5-flash-lite` for a
+normalized one-line summary, a task category, 4 to 8 goal-level phrasings a
+person would type wanting this utility without knowing its name, and a short
+disambiguation against confusable tools. The examples are kept verbatim, because
+§6 measured that replacing the exemplar costs routing. **6,396 of 6,397 pages
+enriched, one refusal, 2 hours 5 minutes at concurrency 2.**
+
+### The model-family confound
+
+The primary eval's natural language was written by `gemini-3.7-flash`. Having
+`gemini-3.5-flash-lite` write the corpus's query vocabulary means a recall lift
+admits two readings: the corpus improved, or two members of one model family
+converged on phrasing. This repo has already paid 0.3 accuracy for not separating
+those, so the enrichment number is never quoted without its control —
+`nl2bash_control.json`, 300 requests whose English was written by human
+annotators, 129 utilities, constant prior 0.010.
+
+| gold in sources | plain corpus | enriched | wins/losses | p |
+|---|---|---|---|---|
+| **cyber (Gemini NL)**, BM25 | 0.311 | **0.427** | 24 / 5 | 0.0005 |
+| **cyber**, wsum(BM25, leaf-mt-int8) | 0.378 | **0.494** | 23 / 4 | 0.0003 |
+| **human control**, BM25 | 0.215 | **0.269** | 21 / 5 | 0.0025 |
+| **human control**, RRF(BM25, leaf-mt-int8) | 0.296 | **0.394** | 42 / 13 | 0.0001 |
+
+**The lift survives on human-written English**, and the control's fused gain
+(+0.098) is as large as the Gemini eval's (+0.116). Whatever family alignment
+exists, it is not what is being measured.
+
+### Where the gain comes from
+
+`check_cards.py` asks whether a card's generated intents retrieve the page they
+were written from. The index is the **plain** corpus, so the test is not
+circular. Over
+1,200 cards and 5,943 intent lines: 0.212 of individual lines reach their own page
+at rank 1, and 0.748 of cards have at least one line reaching it in the top 3.
+
+That splits the eval's gold utilities in two, and the split is the mechanism:
+
+| | n | plain | enriched | delta | p |
+|---|---|---|---|---|---|
+| intents echo the page (reachable from the original wording) | 105 | 0.419 | 0.505 | +0.086 | 0.035 |
+| **intents add vocabulary the page lacks** | 58 | 0.293 | **0.517** | **+0.224** | 0.001 |
+
+The utilities whose pages could never be reached from goal-level language start
+0.126 behind and finish level. Enrichment closes the specific gap it was aimed
+at, rather than lifting everything by a constant — which is what a phrasing-
+alignment artefact would have done.
+
+### The whole stack
+
+Every number on the same 164 leak-free requests, against the pipeline as shipped
+before this directory existed:
+
+| | gold in sources | end-to-end routing |
+|---|---|---|
+| BM25 over chunks (shipped) | 0.262 | 0.128 |
+| \+ dense arm, page-level index (§1–2) | 0.390 | 0.165 (p = 0.26) |
+| \+ query adapter (§5) | 0.463 | 0.201 (p = 0.058) |
+| \+ enriched corpus, no adapter | 0.506 | **0.226** (p = 0.0052) |
+| **enriched corpus + adapter** | **0.555** | **0.250** (p = 0.0012) |
+| oracle ceiling | 1.000 | 0.640 |
+
+**Corpus enrichment is the largest single lever measured here, and the first one
+whose routing gain clears significance.** It beats the trained adapter while
+training nothing, and the two are additive — the adapter adds 0.049 on top of the
+enriched corpus (p = 0.077), retrained in 40 seconds against the new vectors.
+Routing at 0.250 against an oracle of 0.640 means the retrieval tier now delivers
+39% of what a perfect one would, against 20% at the start.
+
+The adapter arms carry §5's coverage caveat, and the human control cannot check
+them: it is drawn from NL2Bash, which is the adapter's training corpus. The
+control validates enrichment, which is the claim it was built for.
+
+### Is it shippable? The retrieval tier is; the offline system is not
+
+`utility_ok` scores the leading token of the generated command, so 0.250 routing
+is an upper bound on a number that is worse. Every one of the 41 outputs it scores
+correct on the shipped stack, read by hand: 12.8% are degenerate token-repeat
+loops that still lead with the right utility (`mv -t 10.1.135.83 /usr/ -f
+10.1.135.83 /usr/ -f …`, `ssh -p 22.18.5.1 | xargs -0 -0 | xargs -0 -0 …`), and
+most of the rest carry wrong arguments — `cd my home -o -p 2000` for "go to my
+home directory", `chmod 755` with no file for a request naming `key.txt`.
+Genuinely runnable and correct is nearer **0.05–0.06** than 0.25. The abstention
+gate does not recover it: the confident slice tops out around 0.30 leading-token
+routing at every ratio threshold, and the degenerate outputs fire in the *high*-
+confidence band.
+
+So the boundary is clean. **The retrieval tier is shippable** — 0.262 → 0.555
+gold-in-sources, validated on human-authored English, 30 MB of artifacts — and so
+is the handbook. **The end-to-end offline helper is not**, and this section is the
+proof that the wall was never retrieval: driving gold-in-sources from 0.262 to
+0.555 against a ceiling of 1.000 moved real command quality almost not at all,
+because the 270M generator routes only 0.640 *when handed the gold page every
+time*. That 0.640-under-oracle is the `monad-bsky` transcription ceiling — a
+sub-300M model cannot reliably copy a path or a flag — and it is a weights limit,
+not a plumbing one. The remaining lever is a stronger sub-1B base or the cloud
+`flash-lite` path (0.771, `ARCHITECTURE.md`); more corpus or retrieval work now
+runs into a generator that cannot use it.
+
+### The corpus as an artifact
+
+`handbook.py` emits the cards as a single greppable markdown file — one section
+per utility with its summary, category, "use when you want to" phrasings and
+"not for" disambiguation above its documented examples — or as JSONL with a
+stable schema. It is documentation organised by what a user wants rather than by
+what each tool is called, which is the axis a shell manual does not have and the
+axis a retrieval tier needs.
+
+Provenance travels with every artifact and is not optional: the examples are
+reproduced verbatim from [tldr-pages](https://github.com/tldr-pages/tldr),
+copyright the tldr-pages team and contributors, **CC-BY-4.0**; man-page material
+carries each package's own licence; and the generated fields are unreviewed model
+output — a retrieval aid, not documentation to trust over the real page. The same
+attribution was added to `nl2sh-retrieval/RESULTS.md`, where the verbatim content
+has been committed since that directory was written and the attribution was
+missing.
+
+### Packaged as a single remax_kb archive
+
+The shippable half of this directory — the enriched corpus, its BM25 arm, its
+dense arm and RRF fusion — is exactly what `remax_kb`'s v2 `.kbi` format holds in
+one file with a numpy-only reader. `pack_kb.py` bridges the two: it wraps
+`encoders.LeafMTEncoder` in remax_kb's `Embedder` protocol (which the encoder
+already satisfies — `fingerprint()` plus `encode(texts, prompt=…)`) and feeds the
+6,397 enriched pages in as chunks.
+
+The round trip holds. A `.kbi` at `--codec remex --bits 4 --dim 1024` is
+**7.3 MB + a 6.1 MB chunk store**, queries in **73 ms** on CPU, and reproduces
+the in-repo pipeline within quantization noise:
+
+| | gold in sources |
+|---|---|
+| in-repo, enriched, wsum α=0.5, full-float | 0.494 |
+| `.kbi` round trip, RRF (default) | 0.462 |
+| `.kbi` round trip, weighted α=0.5 | **0.480** |
+
+The 0.014 residual is the 4-bit code; a higher `--bits` closes it at a larger
+file. What the archive deliberately drops is the query adapter (§5) — remax_kb
+has no learned-query-transform concept, and the adapter's gain lived entirely on
+its 207 training utilities, so the portable artifact is the corpus rewrite, which
+is 0.506 of the 0.555 and the general part.
+
+One gap for a first-class build: leaf-mt is not in remax_kb's embedder registry
+(`jina-onnx` / `jina-torch` / `gemini` / `lfm25`). `pack_kb.LeafMTKBEmbedder` is
+the "implement your own embedder" path the protocol documents and is the ~40
+lines a registry entry in remax_kb would need; `lfm25` is already in-registry and
+local but its retrieval was not measured here.
+
 ## End to end
 
 The retrieval numbers only matter if they reach the generated command. Gemma 3
@@ -269,7 +602,7 @@ worse.
   `funceq.py` cannot reach on a security corpus without a network sandbox.
 - **The container has 60 man pages.** The 31,169-chunk corpus is
   tldr-dominated; a real machine's full man set changes every absolute number
-  here. Trust the relative ordering, not the absolute numbers.
+  here. The relative ordering is what should travel.
 - **`selfhist` is n=13 and hand-authored.** Its coverage numbers are usable and
   its precision numbers are not: one query is 0.077.
 - **NL2Bash is 50.3% `find` in this sample and its English was written from the
