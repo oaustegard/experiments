@@ -508,6 +508,37 @@ attribution was added to `nl2sh-retrieval/RESULTS.md`, where the verbatim conten
 has been committed since that directory was written and the attribution was
 missing.
 
+### Packaged as a single remax_kb archive
+
+The shippable half of this directory — the enriched corpus, its BM25 arm, its
+dense arm and RRF fusion — is exactly what `remax_kb`'s v2 `.kbi` format holds in
+one file with a numpy-only reader. `pack_kb.py` bridges the two: it wraps
+`encoders.LeafMTEncoder` in remax_kb's `Embedder` protocol (which the encoder
+already satisfies — `fingerprint()` plus `encode(texts, prompt=…)`) and feeds the
+6,397 enriched pages in as chunks.
+
+The round trip holds. A `.kbi` at `--codec remex --bits 4 --dim 1024` is
+**7.3 MB + a 6.1 MB chunk store**, queries in **73 ms** on CPU, and reproduces
+the in-repo pipeline within quantization noise:
+
+| | gold in sources |
+|---|---|
+| in-repo, enriched, wsum α=0.5, full-float | 0.494 |
+| `.kbi` round trip, RRF (default) | 0.462 |
+| `.kbi` round trip, weighted α=0.5 | **0.480** |
+
+The 0.014 residual is the 4-bit code; a higher `--bits` closes it at a larger
+file. What the archive deliberately drops is the query adapter (§5) — remax_kb
+has no learned-query-transform concept, and the adapter's gain lived entirely on
+its 207 training utilities, so the portable artifact is the corpus rewrite, which
+is 0.506 of the 0.555 and the general part.
+
+One gap for a first-class build: leaf-mt is not in remax_kb's embedder registry
+(`jina-onnx` / `jina-torch` / `gemini` / `lfm25`). `pack_kb.LeafMTKBEmbedder` is
+the "implement your own embedder" path the protocol documents and is the ~40
+lines a registry entry in remax_kb would need; `lfm25` is already in-registry and
+local but its retrieval was not measured here.
+
 ## End to end
 
 The retrieval numbers only matter if they reach the generated command. Gemma 3
