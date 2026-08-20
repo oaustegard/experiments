@@ -1,0 +1,236 @@
+[
+ {
+  "tier": "head",
+  "cmd": "cd ~",
+  "utility": "cd",
+  "freq": 2176
+ },
+ {
+  "tier": "head",
+  "cmd": "ls -a",
+  "utility": "ls",
+  "freq": 3038
+ },
+ {
+  "tier": "head",
+  "cmd": "cat 0hRGen1s",
+  "utility": "cat",
+  "freq": 632
+ },
+ {
+  "tier": "head",
+  "cmd": "fcrackzip -u -D /usr/share/wordlists/fasttrack.txt invoices2019.zip",
+  "utility": "fcrackzip",
+  "freq": 679
+ },
+ {
+  "tier": "head",
+  "cmd": "ssh 172.18.5.1:22",
+  "utility": "ssh",
+  "freq": 930
+ },
+ {
+  "tier": "head",
+  "cmd": "scp .invoices2019.zip @: /",
+  "utility": "scp",
+  "freq": 696
+ },
+ {
+  "tier": "head",
+  "cmd": "nmap -F 172.18.1.5",
+  "utility": "nmap",
+  "freq": 1583
+ },
+ {
+  "tier": "head",
+  "cmd": "nc -l -p 51071 > id_rsa",
+  "utility": "nc",
+  "freq": 144
+ },
+ {
+  "tier": "head",
+  "cmd": "python CVE_2019_15107.py http://172.18.1.5:10000 'cat /home/eve/.ssh'",
+  "utility": "python",
+  "freq": 421
+ },
+ {
+  "tier": "head",
+  "cmd": "john crack.txt --wordlist=/usr/share/wordlists/rockyou.txt",
+  "utility": "john",
+  "freq": 442
+ },
+ {
+  "tier": "head",
+  "cmd": "nano authorized_keys",
+  "utility": "nano",
+  "freq": 160
+ },
+ {
+  "tier": "head",
+  "cmd": "man fcrackzip",
+  "utility": "man",
+  "freq": 255
+ },
+ {
+  "tier": "head",
+  "cmd": "msfconsole -h",
+  "utility": "msfconsole",
+  "freq": 341
+ },
+ {
+  "tier": "mid",
+  "cmd": "mkdir ssh-secret-server",
+  "utility": "mkdir",
+  "freq": 17
+ },
+ {
+  "tier": "mid",
+  "cmd": "locate rockyou.txt.gz",
+  "utility": "locate",
+  "freq": 58
+ },
+ {
+  "tier": "mid",
+  "cmd": "ssh-add id_rsaaaa",
+  "utility": "ssh-add",
+  "freq": 15
+ },
+ {
+  "tier": "mid",
+  "cmd": "ping 10.1.26.0 -b",
+  "utility": "ping",
+  "freq": 117
+ },
+ {
+  "tier": "mid",
+  "cmd": "ip addr show",
+  "utility": "ip",
+  "freq": 81
+ },
+ {
+  "tier": "mid",
+  "cmd": "apt get-install nmap",
+  "utility": "apt",
+  "freq": 30
+ },
+ {
+  "tier": "mid",
+  "cmd": "find / -name metasploit -executable",
+  "utility": "find",
+  "freq": 98
+ },
+ {
+  "tier": "mid",
+  "cmd": "vim flag.txt",
+  "utility": "vim",
+  "freq": 141
+ },
+ {
+  "tier": "mid",
+  "cmd": "chmod 777 key.txt",
+  "utility": "chmod",
+  "freq": 107
+ },
+ {
+  "tier": "mid",
+  "cmd": "sudo dpkg  -f webmin_1.920_all.deb",
+  "utility": "dpkg",
+  "freq": 25
+ },
+ {
+  "tier": "mid",
+  "cmd": "passwd -a",
+  "utility": "passwd",
+  "freq": 59
+ },
+ {
+  "tier": "mid",
+  "cmd": "less /etc/services",
+  "utility": "less",
+  "freq": 40
+ },
+ {
+  "tier": "mid",
+  "cmd": "searchsploit privilege | grep display",
+  "utility": "searchsploit",
+  "freq": 45
+ },
+ {
+  "tier": "mid",
+  "cmd": "open Romeo-and-Juliet.pdf",
+  "utility": "open",
+  "freq": 4
+ },
+ {
+  "tier": "tail",
+  "cmd": "nslookup 172.18.1.",
+  "utility": "nslookup",
+  "freq": 3
+ },
+ {
+  "tier": "tail",
+  "cmd": "search vsftpd",
+  "utility": "search",
+  "freq": 3
+ },
+ {
+  "tier": "tail",
+  "cmd": "module exploit/webapp/webmin_backdoor",
+  "utility": "module",
+  "freq": 1
+ },
+ {
+  "tier": "tail",
+  "cmd": "for i in {65535..1}; do nmap -p ${i} 172.18.1.5 >> out.txt; done",
+  "utility": "for",
+  "freq": 2
+ },
+ {
+  "tier": "tail",
+  "cmd": "ssh-copy-id -i ~/.ssh/id_rsa.pub alice@172.18.1.5",
+  "utility": "ssh-copy-id",
+  "freq": 3
+ },
+ {
+  "tier": "tail",
+  "cmd": "diff ssh2john.py /usr/share/john/ssh2john.py",
+  "utility": "diff",
+  "freq": 3
+ },
+ {
+  "tier": "tail",
+  "cmd": "xdg-open Romeo-and-Juliet.pdf",
+  "utility": "xdg-open",
+  "freq": 1
+ },
+ {
+  "tier": "tail",
+  "cmd": "sudo login",
+  "utility": "login",
+  "freq": 3
+ },
+ {
+  "tier": "tail",
+  "cmd": "tail /usr/share/john/password.lst",
+  "utility": "tail",
+  "freq": 3
+ },
+ {
+  "tier": "tail",
+  "cmd": "chown 0044",
+  "utility": "chown",
+  "freq": 3
+ },
+ {
+  "tier": "tail",
+  "cmd": "ln -s `pwd`/scipag_vulscan /usr/share/nmap/scripts/vulscan",
+  "utility": "ln",
+  "freq": 1
+ },
+ {
+  "tier": "tail",
+  "cmd": "journalctl -u scp.service",
+  "utility": "journalctl",
+  "freq": 2
+ }
+]

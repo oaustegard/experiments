@@ -45,6 +45,37 @@ Scoped with `-r experiments` it puts `phase-a-bridges` at #2. So `xr` answers
 *where across the account*, and `ask.py` answers *what inside this repo* —
 running the wrong one is how a miss looks like an absence.
 
+**And all three of those only see your own code.** The fourth question is
+whether the *world* has already built it, and it is the cheapest of the four:
+two to four web searches before you write any code. Search three things, not
+one:
+
+1. **Products** — what shipped, and how it actually works. Read past the
+   marketing to the mechanism.
+2. **The technique in the literature** — the thing you are about to invent
+   usually has a name. Cascades, routing and abstention are a mature area; you
+   are almost never first to the *method*, only to the application.
+3. **Published eval sets and metrics.** This is the highest-value search and the
+   easiest to skip. Three passes of `gh-mcp-regex-fit` rested on an 89-row eval
+   Claude wrote, and every conclusion carried that caveat. One search for the
+   adjacent domain turned up **NL2Bash** (9,305 human-curated pairs), the
+   **NLC2CMD** benchmark, and a 600-pair manually verified test set with a
+   functional-equivalence metric. An afternoon of searching would have been
+   worth more than the eval we hand-authored.
+
+Report the result with the right resolution. "Someone has built a terminal AI
+helper" and "someone has built *this composition*" are different findings, and
+conflating them kills good ideas. Separate **components exist** from
+**composition exists**: Warp ships parameterised workflows *and* an AI prompt,
+but as two entry points the user chooses between, not one routed by abstention —
+which is a gap, not a duplicate. And when you find nothing, say **"did not find
+it in N searches"**, never "it does not exist"; this is a crowded space and four
+queries is not a survey.
+
+The absence of a hit is also not a green light on its own. If prior art exists
+and you are building anyway, say in the writeup what it does differently and
+what you expect to beat.
+
 This is not boilerplate diligence — it is the specific failure this repo has
 already had twice:
 

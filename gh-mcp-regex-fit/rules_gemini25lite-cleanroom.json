@@ -1,0 +1,411 @@
+{
+ "author": "gemini-2.5-flash-lite",
+ "prompt_sha": "ba27b4408f57d82e",
+ "n_returned": 81,
+ "n_kept": 80,
+ "invented_labels": [
+  "sub_issue_write::create"
+ ],
+ "rules": [
+  {
+   "label": "actions_get::get_workflow",
+   "pattern": "get workflow (?P<workflow_id>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_get::get_workflow_run",
+   "pattern": "get workflow run (?P<run_id>\\d+) for workflow (?P<workflow_id>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_get::get_workflow_job",
+   "pattern": "get job (?P<job_id>\\d+) for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_get::download_workflow_run_artifact",
+   "pattern": "download artifact (?P<artifact_id>\\S+) for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_get::get_workflow_run_usage",
+   "pattern": "get usage for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_get::get_workflow_run_logs_url",
+   "pattern": "get logs url for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_list::list_workflows",
+   "pattern": "list workflows in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_list::list_workflow_runs",
+   "pattern": "list runs for workflow (?P<workflow_id>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_list::list_workflow_jobs",
+   "pattern": "list jobs for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_list::list_workflow_run_artifacts",
+   "pattern": "list artifacts for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_run_trigger::run_workflow",
+   "pattern": "run workflow (?P<workflow_file>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "actions_run_trigger::rerun_workflow_run",
+   "pattern": "rerun workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_run_trigger::rerun_failed_jobs",
+   "pattern": "rerun failed jobs for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_run_trigger::cancel_workflow_run",
+   "pattern": "cancel workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "actions_run_trigger::delete_workflow_run_logs",
+   "pattern": "delete logs for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "add_comment_to_pending_review",
+   "pattern": "add comment to pending review for (?P<owner>\\S+)/(?P<repo>\\S+) PR #(?P<pullNumber>\\d+) on (?P<path>\\S+) with body (?P<body>.*)",
+   "requires": "path"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "add comment to issue (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+) with body (?P<body>.*)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "add comment to PR (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+) with body (?P<body>.*)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "add_reply_to_pull_request_comment",
+   "pattern": "reply to comment (?P<commentId>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+) with body (?P<body>.*)",
+   "requires": "commentId"
+  },
+  {
+   "label": "assign_copilot_to_issue",
+   "pattern": "assign copilot to issue (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "create_branch",
+   "pattern": "create branch (?P<branch>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "create_or_update_file",
+   "pattern": "create or update file (?P<path>\\S+) in branch (?P<branch>\\S+) of (?P<owner>\\S+)/(?P<repo>\\S+) with content (?P<content>.*) and message (?P<message>.*)",
+   "requires": "path"
+  },
+  {
+   "label": "create_pull_request",
+   "pattern": "create pull request from (?P<head>\\S+) to (?P<base>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+) with title (?P<title>.*)",
+   "requires": null
+  },
+  {
+   "label": "create_repository",
+   "pattern": "create repository (?P<name>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "delete_file",
+   "pattern": "delete file (?P<path>\\S+) in branch (?P<branch>\\S+) of (?P<owner>\\S+)/(?P<repo>\\S+) with message (?P<message>.*)",
+   "requires": "path"
+  },
+  {
+   "label": "fork_repository",
+   "pattern": "fork repository (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "get_commit",
+   "pattern": "get commit (?P<sha>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "sha"
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "get file (?P<path>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "path"
+  },
+  {
+   "label": "get_job_logs",
+   "pattern": "get logs for job (?P<job_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "job_id"
+  },
+  {
+   "label": "get_job_logs",
+   "pattern": "get failed job logs for workflow run (?P<run_id>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "run_id"
+  },
+  {
+   "label": "get_label",
+   "pattern": "get label (?P<name>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "get_latest_release",
+   "pattern": "get latest release in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "get_me",
+   "pattern": "get me",
+   "requires": null
+  },
+  {
+   "label": "get_release_by_tag",
+   "pattern": "get release with tag (?P<tag>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "tag"
+  },
+  {
+   "label": "get_tag",
+   "pattern": "get tag (?P<tag>\\S+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "tag"
+  },
+  {
+   "label": "get_team_members",
+   "pattern": "get members of team (?P<team_slug>\\S+) in organization (?P<org>\\S+)",
+   "requires": "org_team"
+  },
+  {
+   "label": "get_teams",
+   "pattern": "get my teams",
+   "requires": null
+  },
+  {
+   "label": "issue_read::get",
+   "pattern": "get issue (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "issue_read::get_comments",
+   "pattern": "get comments for issue (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "issue_read::get_sub_issues",
+   "pattern": "get sub-issues for issue (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "issue_read::get_parent",
+   "pattern": "get parent issue for issue (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "issue_read::get_labels",
+   "pattern": "get labels for issue (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "issue_write::create",
+   "pattern": "create issue in (?P<owner>\\S+)/(?P<repo>\\S+) with title (?P<title>.*)",
+   "requires": null
+  },
+  {
+   "label": "issue_write::update",
+   "pattern": "update issue (?P<issue_number>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "issue_number"
+  },
+  {
+   "label": "list_branches",
+   "pattern": "list branches in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "list_commits",
+   "pattern": "list commits in branch (?P<branch>\\S+) of (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "branch"
+  },
+  {
+   "label": "list_issue_fields",
+   "pattern": "list issue fields for (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issue_fields",
+   "pattern": "list issue fields for organization (?P<owner>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "list_issue_types",
+   "pattern": "list issue types for (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issue_types",
+   "pattern": "list issue types for organization (?P<owner>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "list_issues",
+   "pattern": "list issues in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "list_pull_requests",
+   "pattern": "list pull requests in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "list_releases",
+   "pattern": "list releases in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "list_repository_collaborators",
+   "pattern": "list collaborators of (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "list_tags",
+   "pattern": "list tags in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": null
+  },
+  {
+   "label": "merge_pull_request",
+   "pattern": "merge pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get",
+   "pattern": "get pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get_diff",
+   "pattern": "get diff for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get_status",
+   "pattern": "get status for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get_files",
+   "pattern": "get files for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get_commits",
+   "pattern": "get commits for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get_review_comments",
+   "pattern": "get review comments for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get_reviews",
+   "pattern": "get reviews for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get_comments",
+   "pattern": "get comments for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_read::get_check_runs",
+   "pattern": "get check runs for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_review_write::create",
+   "pattern": "create review for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+) with body (?P<body>.*) and event (?P<event>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_review_write::submit_pending",
+   "pattern": "submit pending review for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+) with body (?P<body>.*) and event (?P<event>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_review_write::delete_pending",
+   "pattern": "delete pending review for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "pull_request_review_write::resolve_thread",
+   "pattern": "resolve review thread (?P<threadID>\\S+)",
+   "requires": "thread_id"
+  },
+  {
+   "label": "pull_request_review_write::unresolve_thread",
+   "pattern": "unresolve review thread (?P<threadID>\\S+)",
+   "requires": "thread_id"
+  },
+  {
+   "label": "push_files",
+   "pattern": "push files to (?P<owner>\\S+)/(?P<repo>\\S+) in branch (?P<branch>\\S+) with message (?P<message>.*)",
+   "requires": "branch"
+  },
+  {
+   "label": "request_copilot_review",
+   "pattern": "request copilot review for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "search_code",
+   "pattern": "search code for (?P<query>.*)",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_commits",
+   "pattern": "search commits for (?P<query>.*)",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_issues",
+   "pattern": "search issues for (?P<query>.*)",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_pull_requests",
+   "pattern": "search pull requests for (?P<query>.*)",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_repositories",
+   "pattern": "search repositories for (?P<query>.*)",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_users",
+   "pattern": "search users for (?P<query>.*)",
+   "requires": "quoted"
+  },
+  {
+   "label": "update_pull_request",
+   "pattern": "update pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  },
+  {
+   "label": "update_pull_request_branch",
+   "pattern": "update branch for pull request (?P<pullNumber>\\d+) in (?P<owner>\\S+)/(?P<repo>\\S+)",
+   "requires": "pullNumber"
+  }
+ ]
+}

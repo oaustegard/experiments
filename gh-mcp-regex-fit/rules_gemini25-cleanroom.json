@@ -1,0 +1,484 @@
+{
+ "author": "gemini-2.5-flash",
+ "prompt_sha": "ba27b4408f57d82e",
+ "n_returned": 95,
+ "n_kept": 95,
+ "invented_labels": [],
+ "rules": [
+  {
+   "label": "resolve_review_thread",
+   "pattern": "resolve (?:the )?review thread",
+   "requires": "thread_id"
+  },
+  {
+   "label": "unresolve_review_thread",
+   "pattern": "unresolve (?:the )?review thread",
+   "requires": "thread_id"
+  },
+  {
+   "label": "add_comment_to_pending_review",
+   "pattern": "add comment to (?:my )?pending review",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "add_reply_to_pull_request_comment",
+   "pattern": "(?:reply to|respond to) (?:the )?comment",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "add (?:a )?(?:comment|reaction) to (?:the )?(?:pull request|pr)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "add_issue_comment",
+   "pattern": "add (?:a )?(?:comment|reaction) to (?:the )?issue",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "assign_copilot_to_issue",
+   "pattern": "assign copilot to (?:the )?issue",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "request_copilot_review",
+   "pattern": "request copilot review",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "actions_get::get_workflow",
+   "pattern": "(?:get|show|view) (?:the )?workflow",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "actions_get::get_workflow",
+   "pattern": "(?:get|show|view) (?:the )?workflow",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_get::get_workflow_run",
+   "pattern": "(?:get|show|view) (?:the )?workflow run",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_run",
+   "pattern": "(?:get|show|view) (?:the )?workflow run",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_get::get_workflow_job",
+   "pattern": "(?:get|show|view) (?:the )?workflow job",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_get::download_workflow_run_artifact",
+   "pattern": "download (?:the )?artifact",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::download_workflow_run_artifact",
+   "pattern": "download (?:the )?artifact",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_get::get_workflow_run_usage",
+   "pattern": "(?:get|show|view) (?:the )?workflow run usage",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_run_usage",
+   "pattern": "(?:get|show|view) (?:the )?workflow run usage",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_get::get_workflow_run_logs_url",
+   "pattern": "(?:get|show|view) (?:the )?workflow run logs url",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_get::get_workflow_run_logs_url",
+   "pattern": "(?:get|show|view) (?:the )?workflow run logs url",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_run_trigger::run_workflow",
+   "pattern": "run (?:the )?workflow",
+   "requires": "workflow_file"
+  },
+  {
+   "label": "actions_run_trigger::run_workflow",
+   "pattern": "run (?:the )?workflow",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_run_trigger::rerun_workflow_run",
+   "pattern": "rerun (?:the )?workflow run",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::rerun_workflow_run",
+   "pattern": "rerun (?:the )?workflow run",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_run_trigger::rerun_failed_jobs",
+   "pattern": "rerun failed jobs",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::rerun_failed_jobs",
+   "pattern": "rerun failed jobs",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_run_trigger::cancel_workflow_run",
+   "pattern": "cancel (?:the )?workflow run",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::cancel_workflow_run",
+   "pattern": "cancel (?:the )?workflow run",
+   "requires": "bare_num"
+  },
+  {
+   "label": "actions_run_trigger::delete_workflow_run_logs",
+   "pattern": "delete (?:the )?workflow run logs",
+   "requires": "run_ref"
+  },
+  {
+   "label": "actions_run_trigger::delete_workflow_run_logs",
+   "pattern": "delete (?:the )?workflow run logs",
+   "requires": "bare_num"
+  },
+  {
+   "label": "pull_request_review_write::create",
+   "pattern": "create (?:a new )?review",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_review_write::submit_pending",
+   "pattern": "(?:submit|finish) (?:the )?review",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_review_write::delete_pending",
+   "pattern": "delete (?:the )?pending review",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_diff",
+   "pattern": "(?:show|get|view) (?:the )?(?:diff|patch|changeset|code changes|what changed)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_status",
+   "pattern": "(?:show|get|view) (?:the )?(?:status|checks|ci status)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_files",
+   "pattern": "(?:show|get|view) (?:the )?(?:files|file list)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_commits",
+   "pattern": "(?:show|get|view) (?:the )?(?:commits|commit list)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_review_comments",
+   "pattern": "(?:show|get|view) (?:the )?review comments",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_reviews",
+   "pattern": "(?:show|get|view) (?:the )?reviews",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_comments",
+   "pattern": "(?:show|get|view) (?:the )?comments",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get_check_runs",
+   "pattern": "(?:show|get|view) (?:the )?check runs",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "pull_request_read::get",
+   "pattern": "(?:show|get|view) (?:the )?(?:pull request|pr)(?: details)?",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "issue_read::get_comments",
+   "pattern": "(?:show|get|view) (?:the )?comments",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_sub_issues",
+   "pattern": "(?:show|get|view) (?:the )?(?:sub issues|children issues)",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_parent",
+   "pattern": "(?:show|get|view) (?:the )?parent issue",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get_labels",
+   "pattern": "(?:show|get|view) (?:the )?labels",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "issue_read::get",
+   "pattern": "(?:show|get|view) (?:the )?issue(?: details)?",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "(?:get|show|read) (?:the )?file contents",
+   "requires": "path"
+  },
+  {
+   "label": "get_file_contents",
+   "pattern": "(?:get|show|read) (?:the )?file",
+   "requires": "path"
+  },
+  {
+   "label": "create_or_update_file",
+   "pattern": "(?:create|update) (?:a )?file",
+   "requires": "path"
+  },
+  {
+   "label": "delete_file",
+   "pattern": "delete (?:the )?file",
+   "requires": "path"
+  },
+  {
+   "label": "get_commit",
+   "pattern": "(?:get|show|view) (?:the )?commit",
+   "requires": "sha"
+  },
+  {
+   "label": "get_tag",
+   "pattern": "(?:get|show|view) (?:the )?tag",
+   "requires": "semver_tag"
+  },
+  {
+   "label": "get_release_by_tag",
+   "pattern": "(?:get|show|view) (?:the )?release by tag",
+   "requires": "semver_tag"
+  },
+  {
+   "label": "get_latest_release",
+   "pattern": "(?:get|show|view) (?:the )?latest release",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "get_label",
+   "pattern": "(?:get|show|view) (?:the )?label",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "update_pull_request",
+   "pattern": "update (?:the )?(?:pull request|pr)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "update_pull_request_branch",
+   "pattern": "update (?:the )?(?:pull request|pr) branch|sync (?:the )?(?:pull request|pr) branch",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "issue_write::update",
+   "pattern": "update (?:the )?issue",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "create_pull_request",
+   "pattern": "create (?:a new )?(?:pull request|pr)",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "create_branch",
+   "pattern": "create (?:a new )?branch",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "issue_write::create",
+   "pattern": "create (?:a new )?issue",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "create_repository",
+   "pattern": "create (?:a new )?repository",
+   "requires": null
+  },
+  {
+   "label": "merge_pull_request",
+   "pattern": "merge (?:the )?(?:pull request|pr)",
+   "requires": "pr_ref"
+  },
+  {
+   "label": "fork_repository",
+   "pattern": "fork (?:the )?repository",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "push_files",
+   "pattern": "(?:push|upload) files",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "sub_issue_write",
+   "pattern": "add (?:a )?sub-?issue",
+   "requires": "issue_ref"
+  },
+  {
+   "label": "get_job_logs",
+   "pattern": "(?:get|download|show) (?:the )?job logs",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_commits",
+   "pattern": "(?:list|show|get) (?:the )?commits",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_branches",
+   "pattern": "(?:list|show|get) (?:the )?branches",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_tags",
+   "pattern": "(?:list|show|get) (?:the )?tags",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_releases",
+   "pattern": "(?:list|show|get) (?:the )?releases",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_pull_requests",
+   "pattern": "(?:list|show|get) (?:the )?(?:pull requests|prs)",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issues",
+   "pattern": "(?:list|show|get) (?:the )?issues",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issue_fields",
+   "pattern": "(?:list|show|get) (?:the )?issue fields",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_issue_types",
+   "pattern": "(?:list|show|get) (?:the )?issue types",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "list_repository_collaborators",
+   "pattern": "(?:list|show|get) (?:the )?collaborators",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "actions_list::list_workflows",
+   "pattern": "(?:list|show|get) (?:the )?workflows",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "actions_list::list_workflow_runs",
+   "pattern": "(?:list|show|get) (?:the )?workflow runs",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "actions_list::list_workflow_jobs",
+   "pattern": "(?:list|show|get) (?:the )?workflow jobs",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "actions_list::list_workflow_run_artifacts",
+   "pattern": "(?:list|show|get) (?:the )?artifacts",
+   "requires": "owner_repo"
+  },
+  {
+   "label": "get_me",
+   "pattern": "(?:get|show|view) my (?:profile|github info)|who am i",
+   "requires": null
+  },
+  {
+   "label": "get_teams",
+   "pattern": "(?:list|show|get) my teams",
+   "requires": null
+  },
+  {
+   "label": "get_team_members",
+   "pattern": "(?:list|show|get) (?:the )?team members",
+   "requires": "org_team"
+  },
+  {
+   "label": "search_code",
+   "pattern": "search (?:for )?code",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_code",
+   "pattern": "find (?:the )?code",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_commits",
+   "pattern": "search (?:for )?commits",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_commits",
+   "pattern": "find (?:the )?commits",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_issues",
+   "pattern": "search (?:for )?issues",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_issues",
+   "pattern": "find (?:the )?issues",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_pull_requests",
+   "pattern": "search (?:for )?(?:pull requests|prs)",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_pull_requests",
+   "pattern": "find (?:the )?(?:pull requests|prs)",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_repositories",
+   "pattern": "search (?:for )?repositories",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_repositories",
+   "pattern": "find (?:the )?repositories",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_users",
+   "pattern": "search (?:for )?users",
+   "requires": "quoted"
+  },
+  {
+   "label": "search_users",
+   "pattern": "find (?:the )?users",
+   "requires": "quoted"
+  }
+ ]
+}
