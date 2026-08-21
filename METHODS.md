@@ -389,6 +389,30 @@ survives exactly the sanity checks people run.
 
 ---
 
+- **A prompt comparison run zero-shot can be decided by output *shape* rather
+  than by the framing you meant to test — anchor the output slot in every
+  condition before reading the result.** `nl2sh-instantiate` asked Gemma 3 270M
+  to substitute literals into a documented example instead of generating a
+  command freely, and the substitution prompt lost 0.146 to 0.500 on routing.
+  It was not losing at substitution: on **0.774 of rows** it answered in the
+  shape of the source lines it had just been shown — `- go — Go to my home
+  directory`, bullet and em-dash included — which the scorer reads as the
+  utility `-`. Appending a bare `Command:` cue to *both* conditions separates
+  the two questions. One epoch of fine-tuning erases the imitation completely
+  (0.774 -> 0.000), which is the same shape as `nl2sh-retrieval`'s 0.026 ->
+  0.706 and `monad-bsky`'s 0.000 -> 0.481: **a zero-shot format failure in a
+  small instruct model is weak evidence about the task and strong evidence
+  about the output slot.** (`nl2sh-instantiate/prompts.py`, `score.py`)
+- **When two arms tie on your headline metric, check whether they separate on
+  the failure mode — the tie may be the less interesting half of the result.**
+  Fine-tuned under either prompt, the two arms route identically (23 wins to
+  20, p = 0.76). They separate on degeneracy: token-repeat loops fall
+  **0.183 -> 0.049** and *usable* — routes correctly **and** is not a loop —
+  goes 31 to 16, p = 0.040. `nl2sh-selfhist/MODELS.md` had named degeneracy the
+  real ceiling after `repetition_penalty=1.3` bought a comparable reduction at
+  a cost of 0.118 routing; the prompt change buys it for free. Report the
+  garbage rate as its own column, always. (`nl2sh-instantiate/RESULTS.md`)
+
 ## Portable code (extraction candidates)
 
 | What | Where | Effort |
@@ -670,6 +694,30 @@ the result.
 - **`sys.path` hardcoded to `/home/user/claude-workspace`** — 32 `.py` files
   across 13 experiments still point at the pre-migration layout, which no longer
   exists. See "Migration breakage" below.
+
+- **An execution-scored eval is capped by what the container may run, and no
+  wider fixture lifts it — pick the corpus for the scorer.** Building the
+  `funceq` fixture from every path the *gold* commands name (113 files) still
+  leaves **0.22 coverage** on the cyber corpus: 48 of 164 golds exit 127
+  because `nmap`, `john`, `fcrackzip` and `msfconsole` are absent by design, 34
+  golds and 19 predictions hit the deny list (`curl`, `ssh`, `scp`, `kill`),
+  and 19 more exit 1 in a fixture that cannot hold their real state. Installing
+  offensive tooling to score an eval is not a trade worth making. NL2SH-ALFA
+  writes its paths under `/testbed` precisely so its rows execute, which is why
+  it is the corpus where functional equivalence decides.
+  (`nl2sh-instantiate/funceq_ext.py`, `funceq_alfa.py`)
+- **A `run_in_background` Bash poll loop suspends the turn instead of freeing
+  it, and a reclaimed container takes every uncommitted result with it.** The
+  session that produced `nl2sh-instantiate` finished the whole grid, then
+  issued `until grep -q DONE …; do sleep 20; done` with `run_in_background:
+  true` to wait for the last job. It never woke: seven user messages went
+  unanswered over nine hours and the container was reclaimed with the scripts,
+  both fine-tuned checkpoints and every `results_*.json` uncommitted. The
+  scripts were recoverable from the transcript and re-ran to identical numbers
+  (0.427 routing, exactly), the checkpoints were not. Two rules follow:
+  **detach long jobs with `nohup` and poll them with short foreground checks**,
+  and **commit each artifact as it lands**, not at the end of the pipeline.
+  (`nl2sh-instantiate/RESULTS.md`)
 
 ## Numerical / ML gotchas
 
@@ -1702,6 +1750,31 @@ the result.
   needing no calibration sample at deployment. Note also that `top2/top1` and
   `(top1-top2)/top1` are the same signal reparameterized, so testing both is
   testing one. (`nl2sh-dense/calibrate_rel.py`)
+
+- **A degeneracy detector built on whitespace tokens misses loops inside a
+  single token, and the naive fix fires on IP addresses.** `apt -f -o
+  my_my_my_my…` and `user.html.html.html…` are one whitespace-delimited word,
+  so a repeated-adjacent-token rule and a bigram-frequency rule both score them
+  clean. The intra-token rule that catches them is
+  `([A-Za-z][\w.\-]{1,9}?)\1{2,}` — **anchored on a letter**, because
+  `(.{2,10}?)\1{2,}` fires on `100.100.100.4` and `8.8.8.8`, where the
+  repetition is an address. Adding it moved the arm it was discovered on from
+  0.024 to 0.049 and narrowed the gap being claimed from 7.6x to 3.7x, which is
+  the direction an honest metric revision usually runs.
+  (`nl2sh-instantiate/score.py`)
+- **Report the constant-class prior for *external* benchmarks too, not only for
+  evals you built.** NL2SH-ALFA's test split is 109 `find` rows out of 300 — an
+  always-`find` baseline scores **0.393** on the 270-row leak-free slice, so a
+  0.911 headline is mostly skew. NL2Bash leans the same way (0.603). The
+  non-`find` slice is the column that carries information, and it moves far
+  less: 0.854 vs 0.866 between the two arms.
+  (`nl2sh-instantiate/alfa_prep.py`, `RESULTS.md`)
+- **A leading-token routing metric can overstate functional correctness by ~8x
+  — measure execution once before building on the proxy.** Gemma 3 270M
+  zero-shot scores routing 0.427 on the cyber eval and **functional accuracy
+  0.055** over the same 164 rows (0.250 over the 36 rows execution can decide).
+  That lands on the estimate arrived at by reading every stage-1 output by hand.
+  (`nl2sh-instantiate/funceq_ext.py`)
 
 ## Cache and measurement hygiene
 
