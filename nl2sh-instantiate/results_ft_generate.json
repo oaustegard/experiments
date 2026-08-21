@@ -1,0 +1,4131 @@
+{
+ "summary": {
+  "model": "ft_generate",
+  "condition": "generate",
+  "sources": "oracle",
+  "distractors": 2,
+  "seed": 20260819,
+  "n": 179,
+  "n_leak_free": 164,
+  "utility_acc_all": 0.626,
+  "utility_acc_leak_free": 0.61,
+  "command_rate": 1.0,
+  "mean_prompt_tokens": 124.5,
+  "mean_new_tokens": 23.6,
+  "mean_seconds": 1.16,
+  "decode_tok_per_s": 20.3,
+  "wall_minutes": 3.5
+ },
+ "rows": [
+  {
+   "tier": "head",
+   "cmd": "cd ~",
+   "utility": "cd",
+   "freq": 2176,
+   "nl": "Go to my home directory.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "cd ~",
+   "command": "cd myhome",
+   "raw": "cd myhome",
+   "utility_ok": true,
+   "sources": [
+    "mvn-deploy \u2014 Copy the final artifact into the remote repository configured in the `settings.xml` file: mvn deploy",
+    "cd \u2014 Go to the specified directory: CD PATH\\TO\\DIRECTORY",
+    "pbmmake \u2014 Create a blank bitmap of the specified dimensions: pbmmake width height > path/to/output_file.pbm"
+   ],
+   "literals": [],
+   "prompt_tokens": 116,
+   "new_tokens": 4,
+   "seconds": 0.62
+  },
+  {
+   "tier": "head",
+   "cmd": "ls -a",
+   "utility": "ls",
+   "freq": 3038,
+   "nl": "Show all files in the current directory, including hidden ones.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ls -a",
+   "command": "ls -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -",
+   "raw": "ls -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -",
+   "utility_ok": true,
+   "sources": [
+    "zoxide \u2014 Go to the highest-ranked directory that contains `string` in the name: zoxide query string",
+    "ls \u2014 List files one per line: ls -1",
+    "oh-my-posh \u2014 Display current shell name: oh-my-posh get shell"
+   ],
+   "literals": [],
+   "prompt_tokens": 109,
+   "new_tokens": 64,
+   "seconds": 3.14
+  },
+  {
+   "tier": "head",
+   "cmd": "cat 0hRGen1s",
+   "utility": "cat",
+   "freq": 632,
+   "nl": "Show the contents of the file 0hRGen1s.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "cat 0hRGen1s",
+   "command": "cat file | xargs -0",
+   "raw": "cat file | xargs -0",
+   "utility_ok": true,
+   "sources": [
+    "sbt \u2014 Start a REPL (interactive shell): sbt",
+    "pdbedit \u2014 List all Samba users: sudo pdbedit [-L|--list]",
+    "cat \u2014 Print the contents of a file to `stdout`: cat path/to/file"
+   ],
+   "literals": [],
+   "prompt_tokens": 105,
+   "new_tokens": 8,
+   "seconds": 0.5
+  },
+  {
+   "tier": "head",
+   "cmd": "fcrackzip -u -D /usr/share/wordlists/fasttrack.txt invoices2019.zip",
+   "utility": "fcrackzip",
+   "freq": 679,
+   "nl": "Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "fcrackzip -u -D /usr/share/wordlists/fasttrack.txt invoices2019.zip",
+   "command": "echo /usr/share/wordlists/fasttrack.txt | awk -f 's/ // // // // // // // // // // // // // // // // // // // // // //",
+   "raw": "echo /usr/share/wordlists/fasttrack.txt | awk -f 's/ // // // // // // // // // // // // // // // // // // // // // //",
+   "utility_ok": false,
+   "sources": [
+    "mpijavac \u2014 Compile a Java source file: mpijavac path/to/source_file.java",
+    "hexo \u2014 Initialize a website: hexo init path/to/directory",
+    "fcrackzip \u2014 Brute-force a password with a length of 4 to 8 characters and contains only alphanumeric characters (order matters): fcrackzip [-b|--brute-force] [-l|--length] 4-8 [-c|--charset] aA1 archive"
+   ],
+   "literals": [
+    "invoices2019.zip",
+    "/usr/share/wordlists/fasttrack.txt"
+   ],
+   "prompt_tokens": 174,
+   "new_tokens": 64,
+   "seconds": 3.1
+  },
+  {
+   "tier": "head",
+   "cmd": "ssh 172.18.5.1:22",
+   "utility": "ssh",
+   "freq": 930,
+   "nl": "Connect to the remote server at 172.18.5.1 on port 22.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ssh 172.18.5.1:22",
+   "command": "ssh 22 172.185.1",
+   "raw": "ssh 22 172.185.1",
+   "utility_ok": true,
+   "sources": [
+    "apptainer \u2014 Download a container from Docker Hub: apptainer pull path/to/image.sif docker://image:tag",
+    "vol.py \u2014 Get information about a memory dump file: python3 vol.py [-f|--filename] path\\to\\memory_dump_file windows.info",
+    "ssh \u2014 Connect to a remote server: ssh username@remote_host"
+   ],
+   "literals": [
+    "172.18.5.1",
+    "22"
+   ],
+   "prompt_tokens": 143,
+   "new_tokens": 15,
+   "seconds": 0.8
+  },
+  {
+   "tier": "head",
+   "cmd": "scp .invoices2019.zip @: /",
+   "utility": "scp",
+   "freq": 696,
+   "nl": "Copy the file .invoices2019.zip",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "scp .invoices2019.zip @: /",
+   "command": "path/to/remote_file",
+   "raw": "path/to/remote_file",
+   "utility_ok": false,
+   "sources": [
+    "scp \u2014 Copy a local file to a remote host: scp path/to/local_file remote_host:path/to/remote_file",
+    "doppler-projects \u2014 Get all projects: doppler projects",
+    "betterlockscreen \u2014 Lock the screen: betterlockscreen [-l|--lock]"
+   ],
+   "literals": [],
+   "prompt_tokens": 116,
+   "new_tokens": 8,
+   "seconds": 0.51
+  },
+  {
+   "tier": "head",
+   "cmd": "nmap -F 172.18.1.5",
+   "utility": "nmap",
+   "freq": 1583,
+   "nl": "Run a quick port scan on 172.18.1.5.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "nmap -F 172.18.1.5",
+   "command": "nmap -v1 | xargs -0 grep -c 's/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/",
+   "raw": "nmap -v1 | xargs -0 grep -c 's/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/",
+   "utility_ok": true,
+   "sources": [
+    "mopac \u2014 Perform calculations according to an input file (`.mop`, `.dat`, and `.arc`): mopac path/to/input_file",
+    "nmap \u2014 Scan the top 1000 ports of a remote host with various [v]erbosity levels: nmap -v1|2|3 ip_or_hostname",
+    "netlify \u2014 Log in to the Netlify account: netlify login"
+   ],
+   "literals": [],
+   "prompt_tokens": 146,
+   "new_tokens": 64,
+   "seconds": 3.13
+  },
+  {
+   "tier": "head",
+   "cmd": "nc -l -p 51071 > id_rsa",
+   "utility": "nc",
+   "freq": 144,
+   "nl": "Listen on port 51071 for incoming data and save it to a file named id_rsa.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "nc -l -p 51071 > id_rsa",
+   "command": "nc 51071",
+   "raw": "nc 51071",
+   "utility_ok": true,
+   "sources": [
+    "md \u2014 Create directory: MD path/to/directory",
+    "vifm \u2014 Open the current directory: vifm .",
+    "nc \u2014 Start a [l]istener on the specified TCP [p]ort and send a file into it: nc < filename -l -p port"
+   ],
+   "literals": [
+    "51071"
+   ],
+   "prompt_tokens": 120,
+   "new_tokens": 8,
+   "seconds": 0.48
+  },
+  {
+   "tier": "head",
+   "cmd": "python CVE_2019_15107.py http://172.18.1.5:10000 'cat /home/eve/.ssh'",
+   "utility": "python",
+   "freq": 421,
+   "nl": "Exploit the CVE-2019-15107 vulnerability on http://172.18.1.5:10000 to read the contents",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "python CVE_2019_15107.py http://172.18.1.5:10000 'cat /home/eve/.ssh'",
+   "command": "python -c \"sudo find / -type f -exec grep -c 'sudo find / -exec grep -c 'sudo find / -exec grep -c 'sudo find / -exec grep -c 'sudo find / -exec grep -c 'sudo find / -exec grep -c 'sudo find /",
+   "raw": "python -c \"sudo find / -type f -exec grep -c 'sudo find / -exec grep -c 'sudo find / -exec grep -c 'sudo find / -exec grep -c 'sudo find / -exec grep -c 'sudo find / -exec grep -c 'sudo find /",
+   "utility_ok": true,
+   "sources": [
+    "python \u2014 Start a REPL (interactive shell): python",
+    "sshfs \u2014 Mount remote directory: sshfs username@remote_host:remote_directory mountpoint",
+    "solcjs \u2014 Compile a specific contract to hex: solcjs --bin path/to/file.sol"
+   ],
+   "literals": [
+    "CVE-2019-15107",
+    "http://172.18.1.5:10000"
+   ],
+   "prompt_tokens": 134,
+   "new_tokens": 64,
+   "seconds": 2.97
+  },
+  {
+   "tier": "head",
+   "cmd": "john crack.txt --wordlist=/usr/share/wordlists/rockyou.txt",
+   "utility": "john",
+   "freq": 442,
+   "nl": "Crack the password hashes in crack.txt using the wordlist at /usr/share/wordlists/rockyou.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "john crack.txt --wordlist=/usr/share/wordlists/rockyou.txt",
+   "command": "john /usr/share/wordlists/rockyou.txt",
+   "raw": "john /usr/share/wordlists/rockyou.txt",
+   "utility_ok": true,
+   "sources": [
+    "john \u2014 Crack password hashes: john path/to/hashes.txt",
+    "opencode-session \u2014 List sessions: opencode session list",
+    "xpmtoppm \u2014 Convert an XPM image to a PPM image: xpmtoppm path/to/input_file.xpm > path/to/output_file.ppm"
+   ],
+   "literals": [
+    "crack.txt",
+    "/usr/share/wordlists/rockyou.txt"
+   ],
+   "prompt_tokens": 134,
+   "new_tokens": 14,
+   "seconds": 0.75
+  },
+  {
+   "tier": "head",
+   "cmd": "nano authorized_keys",
+   "utility": "nano",
+   "freq": 160,
+   "nl": "Open the authorized_keys file in a text editor.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "nano authorized_keys",
+   "command": "nano -e 's/ -e/ // // // // // // // // // // // // // // // // // // // // // // // // // // // /",
+   "raw": "nano -e 's/ -e/ // // // // // // // // // // // // // // // // // // // // // // // // // // // /",
+   "utility_ok": true,
+   "sources": [
+    "mkinitfs \u2014 Generate an initramfs with the features specified in `/etc/mkinitfs/mkinitfs.conf`: mkinitfs",
+    "nano \u2014 Open specific files, moving to the next file after closing the previous one: nano path/to/file1 path/to/file2 ...",
+    "b4-am \u2014 Retrieve patches from a thread and prepare them for `git am`: b4 am message_id"
+   ],
+   "literals": [
+    "authorized_keys"
+   ],
+   "prompt_tokens": 139,
+   "new_tokens": 64,
+   "seconds": 3.11
+  },
+  {
+   "tier": "head",
+   "cmd": "man fcrackzip",
+   "utility": "man",
+   "freq": 255,
+   "nl": "Show the manual page for fcrackzip.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "man fcrackzip",
+   "command": "man -a fcrackzip",
+   "raw": "man -a fcrackzip",
+   "utility_ok": true,
+   "sources": [
+    "man \u2014 Display the man page for a command: man command",
+    "pridecat \u2014 Print the contents of a file in pride colors to `stdout`: pridecat path/to/file",
+    "nginx \u2014 Start the server with the default configuration file: nginx"
+   ],
+   "literals": [],
+   "prompt_tokens": 99,
+   "new_tokens": 7,
+   "seconds": 0.39
+  },
+  {
+   "tier": "head",
+   "cmd": "msfconsole -h",
+   "utility": "msfconsole",
+   "freq": 341,
+   "nl": "Show the help options and usage information for launching the Metasploit console.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "msfconsole -h",
+   "command": "resize2fs /dev/sdXN",
+   "raw": "resize2fs /dev/sdXN",
+   "utility_ok": false,
+   "sources": [
+    "watchexec \u2014 Call `ls -la` when any file in the current directory changes: watchexec ls -la",
+    "msfconsole \u2014 Launch the interactive console (append `--quiet` to suppress the startup banner): sudo msfconsole",
+    "resize2fs \u2014 Automatically resize a filesystem to its maximum possible size: resize2fs /dev/sdXN"
+   ],
+   "literals": [],
+   "prompt_tokens": 132,
+   "new_tokens": 10,
+   "seconds": 0.56
+  },
+  {
+   "tier": "mid",
+   "cmd": "mkdir ssh-secret-server",
+   "utility": "mkdir",
+   "freq": 17,
+   "nl": "Create a new folder named ssh-secret-server.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "mkdir ssh-secret-server",
+   "command": "chown ssh-secret-server",
+   "raw": "chown ssh-secret-server",
+   "utility_ok": false,
+   "sources": [
+    "pct-status \u2014 Display if the container is running: pct status 100",
+    "continue \u2014 Skip to the next iteration: while :; do continue; echo \"This will never be reached\"; done",
+    "mkdir \u2014 Create specific directories: mkdir path/to/directory1 path/to/directory2 ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 114,
+   "new_tokens": 8,
+   "seconds": 0.47
+  },
+  {
+   "tier": "mid",
+   "cmd": "locate rockyou.txt.gz",
+   "utility": "locate",
+   "freq": 58,
+   "nl": "Find the location of the file rockyou.txt.gz on my system.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "locate rockyou.txt.gz",
+   "command": "find ~/my -type f -print",
+   "raw": "find ~/my -type f -print",
+   "utility_ok": false,
+   "sources": [
+    "locate \u2014 Look for pattern in the database. Note: The database is recomputed periodically (usually weekly or daily): locate \"pattern\"",
+    "pamedge \u2014 Perform edge-detection on a Netpbm image: pamedge path/to/input.pam > path/to/output.pam",
+    "fping \u2014 List the status of all hosts within a range: fping 192.168.1.{1..254}"
+   ],
+   "literals": [],
+   "prompt_tokens": 149,
+   "new_tokens": 9,
+   "seconds": 0.52
+  },
+  {
+   "tier": "mid",
+   "cmd": "ssh-add id_rsaaaa",
+   "utility": "ssh-add",
+   "freq": 15,
+   "nl": "Add the SSH key id_rsaaaa to the SSH agent.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ssh-add id_rsaaaa",
+   "command": "ssh-agent -i id_rsaaaa",
+   "raw": "ssh-agent -i id_rsaaaa",
+   "utility_ok": false,
+   "sources": [
+    "ssh-add \u2014 Add the default SSH keys in `~/.ssh` to the ssh-agent: ssh-add",
+    "gpupdate \u2014 Check and apply updated Group Policy settings: gpupdate",
+    "bdfr \u2014 Download videos/images from the specified links to URL or ID's of posts: bdfr download path/to/output_directory [-l|--link] post_url"
+   ],
+   "literals": [
+    "id_rsaaaa"
+   ],
+   "prompt_tokens": 132,
+   "new_tokens": 10,
+   "seconds": 0.54
+  },
+  {
+   "tier": "mid",
+   "cmd": "ping 10.1.26.0 -b",
+   "utility": "ping",
+   "freq": 117,
+   "nl": "Test network connectivity to the broadcast address",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ping 10.1.26.0 -b",
+   "command": "ping -c 250 -c 250",
+   "raw": "ping -c 250 -c 250",
+   "utility_ok": true,
+   "sources": [
+    "ping \u2014 Ping the specified host: ping \"hostname\"",
+    "docker-compose-down \u2014 Stop and remove all containers and networks: docker compose down",
+    "docker-stats \u2014 View documentation for the original command: tldr docker container stats"
+   ],
+   "literals": [],
+   "prompt_tokens": 94,
+   "new_tokens": 14,
+   "seconds": 0.7
+  },
+  {
+   "tier": "mid",
+   "cmd": "ip addr show",
+   "utility": "ip",
+   "freq": 81,
+   "nl": "Show all network interfaces and their assigned IP addresses.",
+   "names_utility": true,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ip addr show",
+   "command": "ip --address 2 | xargs -0 grep -i \"IP\"",
+   "raw": "ip --address 2 | xargs -0 grep -i \"IP\"",
+   "utility_ok": true,
+   "sources": [
+    "openclaw-channels \u2014 List all configured channels: openclaw channels list",
+    "pip-hash \u2014 Generate hash for a package file: pip hash path/to/package.whl",
+    "ip \u2014 Set the SSH version: ip ssh version 2"
+   ],
+   "literals": [],
+   "prompt_tokens": 100,
+   "new_tokens": 17,
+   "seconds": 0.84
+  },
+  {
+   "tier": "mid",
+   "cmd": "apt get-install nmap",
+   "utility": "apt",
+   "freq": 30,
+   "nl": "Install nmap on my system.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "apt get-install nmap",
+   "command": "sudo install nmap my system.",
+   "raw": "sudo install nmap my system.",
+   "utility_ok": false,
+   "sources": [
+    "apt \u2014 Update the list of available packages and versions (recommended before running other `apt` commands): sudo apt update",
+    "fitstopnm \u2014 Convert a FITS file to a PNM image: fitstopnm path/to/file.fits > path/to/output.pnm",
+    "idevicesetlocation \u2014 Set a specific latitude and longitude: idevicesetlocation latitude longitude"
+   ],
+   "literals": [],
+   "prompt_tokens": 127,
+   "new_tokens": 8,
+   "seconds": 0.45
+  },
+  {
+   "tier": "mid",
+   "cmd": "find / -name metasploit -executable",
+   "utility": "find",
+   "freq": 98,
+   "nl": "Search the entire filesystem for executable files named metasploit.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "find / -name metasploit -executable",
+   "command": "find / -name \"*.php\" -exec grep -c \"m\" {} \\;",
+   "raw": "find / -name \"*.php\" -exec grep -c \"m\" {} \\;",
+   "utility_ok": true,
+   "sources": [
+    "xtrlock \u2014 Lock the display and show a padlock instead of the cursor: xtrlock",
+    "find \u2014 Find files by extension: find path/to/directory -name '*.ext'",
+    "% \u2014 Bring the current job to front: %"
+   ],
+   "literals": [],
+   "prompt_tokens": 102,
+   "new_tokens": 18,
+   "seconds": 0.89
+  },
+  {
+   "tier": "mid",
+   "cmd": "vim flag.txt",
+   "utility": "vim",
+   "freq": 141,
+   "nl": "Open and edit the file flag.txt in the terminal.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "vim flag.txt",
+   "command": "vim -f -f -f -f -f -f",
+   "raw": "vim -f -f -f -f -f -f",
+   "utility_ok": true,
+   "sources": [
+    "gv2gxl \u2014 Convert a graph from `gv` to `gxl` format: gv2gxl -o output.gxl input.gv",
+    "apx \u2014 View documentation for managing package managers: tldr apx pkgmanagers",
+    "vim \u2014 Open a file: vim path/to/file"
+   ],
+   "literals": [
+    "flag.txt"
+   ],
+   "prompt_tokens": 117,
+   "new_tokens": 14,
+   "seconds": 0.74
+  },
+  {
+   "tier": "mid",
+   "cmd": "chmod 777 key.txt",
+   "utility": "chmod",
+   "freq": 107,
+   "nl": "Give everyone full read, write, and execute permissions for key.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "chmod 777 key.txt",
+   "command": "chmod 775",
+   "raw": "chmod 775",
+   "utility_ok": true,
+   "sources": [
+    "chmod \u2014 Give the [u]ser who owns a file the right to e[x]ecute it: chmod u+x path/to/file",
+    "talk \u2014 Start a talk session with a user on the same machine: talk username",
+    "rvm \u2014 Install one or more versions of Ruby: rvm install version1 version2 ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 125,
+   "new_tokens": 6,
+   "seconds": 0.4
+  },
+  {
+   "tier": "mid",
+   "cmd": "sudo dpkg  -f webmin_1.920_all.deb",
+   "utility": "dpkg",
+   "freq": 25,
+   "nl": "Show the control file information and metadata for the package file webmin_1.920_all.deb.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "sudo dpkg  -f webmin_1.920_all.deb",
+   "command": "sudo find / -type f -print0 | xargs -0 file | grep -c \"control\"",
+   "raw": "sudo find / -type f -print0 | xargs -0 file | grep -c \"control\"",
+   "utility_ok": false,
+   "sources": [
+    "pm-install-create \u2014 Create a session and a session ID: pm install-create",
+    "dtrace \u2014 Set target data model for a specific architecture: dtrace -arch arch_name",
+    "dpkg \u2014 Install a package: sudo dpkg [-i|--install] path/to/file.deb"
+   ],
+   "literals": [],
+   "prompt_tokens": 127,
+   "new_tokens": 23,
+   "seconds": 1.26
+  },
+  {
+   "tier": "mid",
+   "cmd": "passwd -a",
+   "utility": "passwd",
+   "freq": 59,
+   "nl": "Show the password status for all user accounts.Show the password status",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "passwd -a",
+   "command": "passwd -a | xargs -0 sudo chown user_account_user_password_user_password_user_password_password_user_password_password_password_user_password_password_password_password_user_password_password_password_password_user_password_password_password",
+   "raw": "passwd -a | xargs -0 sudo chown user_account_user_password_user_password_user_password_password_user_password_password_password_user_password_password_password_password_user_password_password_password_password_user_password_password_password",
+   "utility_ok": true,
+   "sources": [
+    "try-rs \u2014 Open the interactive TUI: try-rs",
+    "passwd \u2014 Change the password of the current user interactively: passwd",
+    "dirs_cleaner \u2014 Recursively delete contents of folder structure without removing directories: sudo dirs_cleaner path/to/directory1 path/to/directory2 ..."
+   ],
+   "literals": [
+    "accounts.Show"
+   ],
+   "prompt_tokens": 116,
+   "new_tokens": 64,
+   "seconds": 3.23
+  },
+  {
+   "tier": "mid",
+   "cmd": "less /etc/services",
+   "utility": "less",
+   "freq": 40,
+   "nl": "View the contents of /etc/services page by page.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "less /etc/services",
+   "command": "less -p 1 | grep -i \".*\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.",
+   "raw": "less -p 1 | grep -i \".*\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.",
+   "utility_ok": true,
+   "sources": [
+    "vifm \u2014 Open the current directory: vifm .",
+    "gcut \u2014 View documentation for the original command: tldr [-p|--platform] common cut",
+    "less \u2014 Open a file for interactive reading: less path/to/source_file"
+   ],
+   "literals": [
+    "/etc/services"
+   ],
+   "prompt_tokens": 103,
+   "new_tokens": 52,
+   "seconds": 2.3
+  },
+  {
+   "tier": "mid",
+   "cmd": "searchsploit privilege | grep display",
+   "utility": "searchsploit",
+   "freq": 45,
+   "nl": "Search for privilege exploits and filter the results for display.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "searchsploit privilege | grep display",
+   "command": "search -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -",
+   "raw": "search -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -i -",
+   "utility_ok": false,
+   "sources": [
+    "exfatlabel \u2014 Display the current filesystem label: exfatlabel /dev/sda",
+    "searchsploit \u2014 Search for an exploit, shellcode, or paper: searchsploit search_terms",
+    "pkill \u2014 Kill all processes which match: pkill \"process_name\""
+   ],
+   "literals": [],
+   "prompt_tokens": 108,
+   "new_tokens": 64,
+   "seconds": 2.96
+  },
+  {
+   "tier": "mid",
+   "cmd": "open Romeo-and-Juliet.pdf",
+   "utility": "open",
+   "freq": 4,
+   "nl": "Open the Romeo-and-Juliet.pdf file in the default application.",
+   "names_utility": true,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "open Romeo-and-Juliet.pdf",
+   "command": "open -a <(php)",
+   "raw": "open -a <(php)",
+   "utility_ok": true,
+   "sources": [
+    "sfdk-build-requires \u2014 Run a subcommand refreshing the cache: sfdk build-requires --refresh subcommand",
+    "pkgctl-build \u2014 Automatically choose the right build script to build packages in a clean `chroot`: pkgctl build",
+    "open \u2014 Open a file with the associated application: open file.ext"
+   ],
+   "literals": [
+    "Romeo-and-Juliet.pdf"
+   ],
+   "prompt_tokens": 121,
+   "new_tokens": 8,
+   "seconds": 0.55
+  },
+  {
+   "tier": "tail",
+   "cmd": "nslookup 172.18.1.",
+   "utility": "nslookup",
+   "freq": 3,
+   "nl": "Find the hostname associated with the IP address 172.18.1.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "nslookup 172.18.1.",
+   "command": "find / -name \"172.18.1.",
+   "raw": "find / -name \"172.18.1.",
+   "utility_ok": false,
+   "sources": [
+    "nslookup \u2014 Query your system's default name server for an IP address (A record) of the domain: nslookup example.com",
+    "rolldice \u2014 Roll a single 20 sided dice: rolldice d20",
+    "adb-shell \u2014 Start a remote interactive shell on the emulator or device: adb shell"
+   ],
+   "literals": [],
+   "prompt_tokens": 127,
+   "new_tokens": 15,
+   "seconds": 0.81
+  },
+  {
+   "tier": "tail",
+   "cmd": "module exploit/webapp/webmin_backdoor",
+   "utility": "module",
+   "freq": 1,
+   "nl": "Load the exploit module for the Webmin backdoor vulnerability.",
+   "names_utility": true,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "module exploit/webapp/webmin_backdoor",
+   "command": "module -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "raw": "module -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "utility_ok": true,
+   "sources": [
+    "asdf \u2014 List all available plugins: asdf plugin list all",
+    "eu-readelf \u2014 Display all extractable information contained in the ELF file: eu-readelf [-a|--all] path/to/file",
+    "module \u2014 Display available modules: module avail"
+   ],
+   "literals": [],
+   "prompt_tokens": 106,
+   "new_tokens": 64,
+   "seconds": 3.03
+  },
+  {
+   "tier": "tail",
+   "cmd": "for i in {65535..1}; do nmap -p ${i} 172.18.1.5 >> out.txt; done",
+   "utility": "for",
+   "freq": 2,
+   "nl": "Scan all ports on 172.18.1.5 individually in reverse order from 65535 down to 1 and append the results to out.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "for i in {65535..1}; do nmap -p ${i} 172.18.1.5 >> out.txt; done",
+   "command": "for i in 65535; do echo $variable; done",
+   "raw": "for i in 65535; do echo $variable; done",
+   "utility_ok": true,
+   "sources": [
+    "ls \u2014 List files one per line: ls -1",
+    "for \u2014 Iterate through command line parameters: for variable; do echo $variable; done",
+    "ykman-openpgp \u2014 Display general information about the OpenPGP application: ykman openpgp info"
+   ],
+   "literals": [
+    "172.18.1.5",
+    "65535",
+    "1"
+   ],
+   "prompt_tokens": 135,
+   "new_tokens": 17,
+   "seconds": 0.85
+  },
+  {
+   "tier": "tail",
+   "cmd": "ssh-copy-id -i ~/.ssh/id_rsa.pub alice@172.18.1.5",
+   "utility": "ssh-copy-id",
+   "freq": 3,
+   "nl": "Copy my public key from ~/.ssh/id_rsa.pub to the remote server for user alice at 172.18.1.5 so I can log in without a password.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ssh-copy-id -i ~/.ssh/id_rsa.pub alice@172.18.1.5",
+   "command": "ssh-copy-id -c alice@172.18.1.5",
+   "raw": "ssh-copy-id -c alice@172.18.1.5",
+   "utility_ok": true,
+   "sources": [
+    "yadm-config \u2014 Set or update a yadm's Git configuration: yadm config key.inner-key value",
+    "ssh-copy-id \u2014 Copy your keys to the remote machine: ssh-copy-id username@remote_host",
+    "airpaste \u2014 Wait for a message and display it when received: airpaste"
+   ],
+   "literals": [
+    "~/.ssh/id_rsa.pub",
+    "alice",
+    "172.18.1.5"
+   ],
+   "prompt_tokens": 148,
+   "new_tokens": 20,
+   "seconds": 1.02
+  },
+  {
+   "tier": "tail",
+   "cmd": "diff ssh2john.py /usr/share/john/ssh2john.py",
+   "utility": "diff",
+   "freq": 3,
+   "nl": "Compare the differences between ssh2john.py and /usr/share/john/ssh2john.py.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "diff ssh2john.py /usr/share/john/ssh2john.py",
+   "command": "diff -t /usr/share/john/ssh2john.py /usr/share/john/ssh2john.py",
+   "raw": "diff -t /usr/share/john/ssh2john.py /usr/share/john/ssh2john.py",
+   "utility_ok": true,
+   "sources": [
+    "diff \u2014 Compare files (lists changes to turn `old_file` into `new_file`): diff path/to/old_file path/to/new_file",
+    "npm-install-test \u2014 Install all dependencies and then run tests: npm [it|install-test]",
+    "az-redis \u2014 Create a new Redis cache instance: az redis create --location location [-n|--name] name [-g|--resource-group] resource_group --sku Basic|Premium|Standard --vm-size c0|c1|c2|c3|c4|c5|c6|p1|p2|p3|p4|p5"
+   ],
+   "literals": [
+    "ssh2john.py",
+    "/usr/share/john/ssh2john.py"
+   ],
+   "prompt_tokens": 205,
+   "new_tokens": 28,
+   "seconds": 1.38
+  },
+  {
+   "tier": "tail",
+   "cmd": "xdg-open Romeo-and-Juliet.pdf",
+   "utility": "xdg-open",
+   "freq": 1,
+   "nl": "Open Romeo-and-Juliet.pdf in the default application.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "xdg-open Romeo-and-Juliet.pdf",
+   "command": "zstdmt -a",
+   "raw": "zstdmt -a",
+   "utility_ok": false,
+   "sources": [
+    "zstdmt \u2014 View documentation for the original command: tldr zstd",
+    "xdg-open \u2014 Open the current directory in the default file explorer: xdg-open .",
+    "auracle \u2014 Display AUR packages that match a `regex`: auracle search 'regex'"
+   ],
+   "literals": [
+    "Romeo-and-Juliet.pdf"
+   ],
+   "prompt_tokens": 110,
+   "new_tokens": 6,
+   "seconds": 0.36
+  },
+  {
+   "tier": "tail",
+   "cmd": "sudo login",
+   "utility": "login",
+   "freq": 3,
+   "nl": "Start a new login session with administrator privileges.",
+   "names_utility": true,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "sudo login",
+   "command": "login -p -A | xargs -0 chmod 777",
+   "raw": "login -p -A | xargs -0 chmod 777",
+   "utility_ok": true,
+   "sources": [
+    "login \u2014 Use local username and password for authentication: login local",
+    "ansible-pull \u2014 Pull a playbook from a VCS and execute a default `local.yml` playbook: ansible-pull [-U|--url] repository_url",
+    "internet-explorer \u2014 View documentation for the original command: tldr [-p|--platform] windows iexplore"
+   ],
+   "literals": [],
+   "prompt_tokens": 121,
+   "new_tokens": 16,
+   "seconds": 0.83
+  },
+  {
+   "tier": "tail",
+   "cmd": "tail /usr/share/john/password.lst",
+   "utility": "tail",
+   "freq": 3,
+   "nl": "Show the last few lines of /usr/share/john/password.lst.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "tail /usr/share/john/password.lst",
+   "command": "tail -n 1 /usr/share/john/password.lst",
+   "raw": "tail -n 1 /usr/share/john/password.lst",
+   "utility_ok": true,
+   "sources": [
+    "hostapd \u2014 Start an access point: sudo hostapd path/to/hostapd.conf",
+    "tail \u2014 Show last 8 lines in file: tail -n 8 path/to/file",
+    "systemd-delta \u2014 Show all overridden configuration files: systemd-delta"
+   ],
+   "literals": [
+    "/usr/share/john/password.lst"
+   ],
+   "prompt_tokens": 114,
+   "new_tokens": 16,
+   "seconds": 0.84
+  },
+  {
+   "tier": "tail",
+   "cmd": "chown 0044",
+   "utility": "chown",
+   "freq": 3,
+   "nl": "Change the owner to 0044.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "chown 0044",
+   "command": "chown -o 0044",
+   "raw": "chown -o 0044",
+   "utility_ok": true,
+   "sources": [
+    "chown \u2014 Change the owner user of a file/directory: sudo chown user path/to/file_or_directory",
+    "numbat \u2014 Start an interactive session: numbat",
+    "host \u2014 Lookup A, AAAA, and MX records of a domain: host domain"
+   ],
+   "literals": [],
+   "prompt_tokens": 106,
+   "new_tokens": 10,
+   "seconds": 0.54
+  },
+  {
+   "tier": "tail",
+   "cmd": "ln -s `pwd`/scipag_vulscan /usr/share/nmap/scripts/vulscan",
+   "utility": "ln",
+   "freq": 1,
+   "nl": "Create a symbolic link from scipag_vulscan in the current directory to /usr/share/nmap/scripts/vulscan.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ln -s `pwd`/scipag_vulscan /usr/share/nmap/scripts/vulscan",
+   "command": "ln -s /usr/share/nmap/scripts/vulscan",
+   "raw": "ln -s /usr/share/nmap/scripts/vulscan",
+   "utility_ok": true,
+   "sources": [
+    "ln \u2014 Create a symbolic link to a file or directory: ln [-s|--symbolic] /path/to/file_or_directory path/to/symlink",
+    "hyprpicker \u2014 Pick a color in the default (hex) format: hyprpicker",
+    "doctl-databases \u2014 Run a `doctl databases` command with an access token: doctl [d|databases] command [-t|--access-token] access_token"
+   ],
+   "literals": [
+    "scipag_vulscan",
+    "/usr/share/nmap/scripts/vulscan"
+   ],
+   "prompt_tokens": 163,
+   "new_tokens": 16,
+   "seconds": 0.87
+  },
+  {
+   "tier": "tail",
+   "cmd": "journalctl -u scp.service",
+   "utility": "journalctl",
+   "freq": 2,
+   "nl": "Show the logs for scp.service.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "journalctl -u scp.service",
+   "command": "checksec -n 1",
+   "raw": "checksec -n 1",
+   "utility_ok": false,
+   "sources": [
+    "checksec \u2014 List security properties of an executable binary file: checksec file path/to/binary",
+    "journalctl \u2014 Show the latest `n` lines and follow new messages (like `tail --follow` for traditional syslog): journalctl [-n|--lines] n [-f|--follow]",
+    "paxs \u2014 Search for a package: paxs search_term"
+   ],
+   "literals": [],
+   "prompt_tokens": 125,
+   "new_tokens": 7,
+   "seconds": 0.42
+  },
+  {
+   "tier": "head",
+   "cmd": "sudo apt install metasploit-framework",
+   "utility": "apt",
+   "freq": 30,
+   "nl": "Install metasploit-framework on my system.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sudo apt install metasploit-framework",
+   "command": "sudo my -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f",
+   "raw": "sudo my -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f -f",
+   "utility_ok": false,
+   "sources": [
+    "wrk \u2014 Run a benchmark for `30` seconds, using `12` threads, and keeping `400` HTTP connections open: wrk [-t|--threads] 12 [-c|--connections] 400 [-d|--duration] 30s \"http://127.0.0.1:8080/index.html\"",
+    "gitea \u2014 Run the Gitea web server using the default configuration: gitea web",
+    "apt \u2014 Update the list of available packages and versions (recommended before running other `apt` commands): sudo apt update"
+   ],
+   "literals": [],
+   "prompt_tokens": 180,
+   "new_tokens": 57,
+   "seconds": 2.73
+  },
+  {
+   "tier": "mid",
+   "cmd": "dig +short myip.opendns.com",
+   "utility": "dig",
+   "freq": 2,
+   "nl": "Find my public IP address using myip.opendns.com.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "dig +short myip.opendns.com",
+   "command": "dig -s myip.opendns.com",
+   "raw": "dig -s myip.opendns.com",
+   "utility_ok": true,
+   "sources": [
+    "atktopbm \u2014 Convert a Andrew Toolkit raster object to a PBM image: atktopbm path/to/image.atk > path/to/output.pbm",
+    "dpigs \u2014 Display the `n` largest packages on the system: dpigs [-n|--lines] n",
+    "dig \u2014 Lookup the IP(s) associated with a hostname (A records): dig +short example.com"
+   ],
+   "literals": [],
+   "prompt_tokens": 137,
+   "new_tokens": 11,
+   "seconds": 0.58
+  },
+  {
+   "tier": "head",
+   "cmd": "netstat -a",
+   "utility": "netstat",
+   "freq": 45,
+   "nl": "Show all active network connections and listening ports.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "netstat -a",
+   "command": "netstat -p -o -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a",
+   "raw": "netstat -p -o -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a",
+   "utility_ok": true,
+   "sources": [
+    "coreautha \u2014 Start the agent: coreautha",
+    "virsh-undefine \u2014 Delete only the virtual machine configuration file: virsh undefine --domain vm_name",
+    "netstat \u2014 Display the PID and program name listening on a specific protocol: netstat -p protocol"
+   ],
+   "literals": [],
+   "prompt_tokens": 106,
+   "new_tokens": 64,
+   "seconds": 2.89
+  },
+  {
+   "tier": "mid",
+   "cmd": "tree",
+   "utility": "tree",
+   "freq": 3,
+   "nl": "Display a hierarchical view of all files and folders in the current directory.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "tree",
+   "command": "tree -L -F -c",
+   "raw": "tree -L -F -c",
+   "utility_ok": true,
+   "sources": [
+    "sha256sum \u2014 Calculate the SHA256 checksum for one or more files: sha256sum path/to/file1 path/to/file2 ...",
+    "tree \u2014 Print files and directories up to `num` levels of depth (where 1 means the current directory): tree -L num",
+    "get-childitem \u2014 List all non-hidden items in the current directory: Get-ChildItem"
+   ],
+   "literals": [],
+   "prompt_tokens": 141,
+   "new_tokens": 8,
+   "seconds": 0.49
+  },
+  {
+   "tier": "mid",
+   "cmd": "sftp admin@10.1.26.9:personal/.invoices2019.zip result",
+   "utility": "sftp",
+   "freq": 4,
+   "nl": "Download the file personal/.invoices2019.zip from the remote server 10.1.26.9 as user admin and save it to a local file or directory named result.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sftp admin@10.1.26.9:personal/.invoices2019.zip result",
+   "command": "path/to/start_server.sh",
+   "raw": "path/to/start_server.sh",
+   "utility_ok": false,
+   "sources": [
+    "valheim \u2014 Start the server: path/to/start_server.sh",
+    "sftp \u2014 Connect to a remote server and enter an interactive command mode: sftp remote_user@remote_host",
+    "e4defrag \u2014 Defragment the filesystem: e4defrag /dev/sdXN"
+   ],
+   "literals": [
+    "personal/.invoices2019.zip",
+    "10.1.26.9",
+    "admin"
+   ],
+   "prompt_tokens": 145,
+   "new_tokens": 10,
+   "seconds": 0.59
+  },
+  {
+   "tier": "tail",
+   "cmd": "test",
+   "utility": "test",
+   "freq": 1,
+   "nl": "Evaluate a conditional expression.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "test",
+   "command": "test -c \".*\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.",
+   "raw": "test -c \".*\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.",
+   "utility_ok": true,
+   "sources": [
+    "test \u2014 Test if a given variable is equal to a given string: test \"$MY_VAR\" = \"/bin/zsh\"",
+    "git-summary \u2014 Display data about a Git repository: git summary",
+    "yapf \u2014 Display a diff of the changes that would be made, without making them (dry-run): yapf [-d|--diff] path/to/file"
+   ],
+   "literals": [],
+   "prompt_tokens": 123,
+   "new_tokens": 54,
+   "seconds": 2.5
+  },
+  {
+   "tier": "head",
+   "cmd": "nc localhost 4444",
+   "utility": "nc",
+   "freq": 144,
+   "nl": "Connect to port 4444 on localhost.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "nc localhost 4444",
+   "command": "nc 4444",
+   "raw": "nc 4444",
+   "utility_ok": true,
+   "sources": [
+    "pw-encplay \u2014 View documentation for the original command: tldr pw-cat",
+    "nc \u2014 Start a [l]istener on the specified TCP [p]ort and send a file into it: nc < filename -l -p port",
+    "railway \u2014 Login to a Railway account: railway login"
+   ],
+   "literals": [
+    "4444",
+    "localhost"
+   ],
+   "prompt_tokens": 113,
+   "new_tokens": 7,
+   "seconds": 0.4
+  },
+  {
+   "tier": "head",
+   "cmd": "history",
+   "utility": "history",
+   "freq": 35,
+   "nl": "Show a list of previously executed commands in the terminal.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "history",
+   "command": "history -n 1 | grep -a 'exec rm -f {} \\;",
+   "raw": "history -n 1 | grep -a 'exec rm -f {} \\;",
+   "utility_ok": true,
+   "sources": [
+    "jless \u2014 Open a JSON file: jless path/to/file.json",
+    "xbps-remove \u2014 Remove a package: xbps-remove package",
+    "history \u2014 Display the commands history list with line numbers: history"
+   ],
+   "literals": [],
+   "prompt_tokens": 97,
+   "new_tokens": 17,
+   "seconds": 0.85
+  },
+  {
+   "tier": "head",
+   "cmd": "echo -----BEGIN RSA PRIVATE KEY-----",
+   "utility": "echo",
+   "freq": 43,
+   "nl": "Print the text -----BEGIN RSA PRIVATE KEY----- to the terminal.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "echo -----BEGIN RSA PRIVATE KEY-----",
+   "command": "echo \"BEGIN RSA PRIVATE KEY-----\" | awk -f 's/ -t/ // // // // // // // // // // // // // // // // // // // // // // //",
+   "raw": "echo \"BEGIN RSA PRIVATE KEY-----\" | awk -f 's/ -t/ // // // // // // // // // // // // // // // // // // // // // // //",
+   "utility_ok": true,
+   "sources": [
+    "echo \u2014 Print a text message. Note: Quotes are optional: echo \"Hello World\"",
+    "dtruss \u2014 Trace a running process by PID: sudo dtruss -p pid",
+    "7za \u2014 [a]rchive a file or directory: 7za a path/to/archive.7z path/to/file_or_directory"
+   ],
+   "literals": [],
+   "prompt_tokens": 128,
+   "new_tokens": 64,
+   "seconds": 3.04
+  },
+  {
+   "tier": "tail",
+   "cmd": "mmcli --help",
+   "utility": "mmcli",
+   "freq": 1,
+   "nl": "Show the help information and available options for managing modems from the command line.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "mmcli --help",
+   "command": "start-process -o -f",
+   "raw": "start-process -o -f",
+   "utility_ok": false,
+   "sources": [
+    "start-process \u2014 Open a specific directory on Windows Explorer (equivalent to `explorer path\\to\\directory`): Start-Process path\\to\\directory",
+    "git-fetch \u2014 Fetch the latest changes from the default remote upstream repository (if set): git fetch",
+    "mmcli \u2014 List available modems: mmcli [-L|--list-modems]"
+   ],
+   "literals": [],
+   "prompt_tokens": 129,
+   "new_tokens": 8,
+   "seconds": 0.45
+  },
+  {
+   "tier": "head",
+   "cmd": "exit",
+   "utility": "exit",
+   "freq": 174,
+   "nl": "Close the current terminal session.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "exit",
+   "command": "exit -c",
+   "raw": "exit -c",
+   "utility_ok": true,
+   "sources": [
+    "gsleep \u2014 View documentation for the original command: tldr [-p|--platform] linux sleep",
+    "git-diff-index \u2014 Compare the working directory with a specific commit: git diff-index commit",
+    "exit \u2014 Exit DOSBox: EXIT"
+   ],
+   "literals": [],
+   "prompt_tokens": 96,
+   "new_tokens": 4,
+   "seconds": 0.26
+  },
+  {
+   "tier": "mid",
+   "cmd": "arp -a",
+   "utility": "arp",
+   "freq": 18,
+   "nl": "Show all IP and MAC address mappings on the local network.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "arp -a",
+   "command": "arp -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "raw": "arp -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "utility_ok": true,
+   "sources": [
+    "arp \u2014 Show the current ARP table: arp",
+    "vifm \u2014 Open the current directory: vifm .",
+    "git-fsck \u2014 Check the current repository: git fsck"
+   ],
+   "literals": [],
+   "prompt_tokens": 88,
+   "new_tokens": 64,
+   "seconds": 2.96
+  },
+  {
+   "tier": "mid",
+   "cmd": "micro key",
+   "utility": "micro",
+   "freq": 2,
+   "nl": "Open the file key in a terminal text editor.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "micro key",
+   "command": "micro -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t",
+   "raw": "micro -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t",
+   "utility_ok": true,
+   "sources": [
+    "bzip2recover \u2014 Recover all intact blocks from a damaged `.bz2` file: bzip2recover damaged_file.bz2",
+    "micro \u2014 Open a file: micro path/to/file",
+    "soxi \u2014 Display the sound file metadata: soxi path/to/file.wav"
+   ],
+   "literals": [],
+   "prompt_tokens": 111,
+   "new_tokens": 64,
+   "seconds": 2.94
+  },
+  {
+   "tier": "mid",
+   "cmd": "print banner",
+   "utility": "print",
+   "freq": 4,
+   "nl": "Display the word banner in the terminal.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "print banner",
+   "command": "print -t",
+   "raw": "print -t",
+   "utility_ok": true,
+   "sources": [
+    "pamoil \u2014 Turn a PAM image into an oil painting: pamoil path/to/input_file.pam > path/to/output_file.pam",
+    "massdns \u2014 Resolve `A` records for domains in a file using specified resolvers: massdns [-r|--resolvers] path/to/resolvers.txt path/to/domains.txt",
+    "print \u2014 View documentation for the Zsh builtin: tldr print.zsh"
+   ],
+   "literals": [],
+   "prompt_tokens": 139,
+   "new_tokens": 4,
+   "seconds": 0.29
+  },
+  {
+   "tier": "head",
+   "cmd": "fcrackzip",
+   "utility": "fcrackzip",
+   "freq": 679,
+   "nl": "Crack the password of a ZIP file.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "fcrackzip",
+   "command": "pg_amcheck -c 4 -l -c 8 -l -c 8 -l -c 8 -l",
+   "raw": "pg_amcheck -c 4 -l -c 8 -l -c 8 -l -c 8 -l",
+   "utility_ok": false,
+   "sources": [
+    "pg_amcheck \u2014 Check a specific database: pg_amcheck dbname",
+    "fcrackzip \u2014 Brute-force a password with a length of 4 to 8 characters and contains only alphanumeric characters (order matters): fcrackzip [-b|--brute-force] [-l|--length] 4-8 [-c|--charset] aA1 archive",
+    "toolbox-rm \u2014 Remove a Toolbx container: toolbox rm container_name"
+   ],
+   "literals": [],
+   "prompt_tokens": 143,
+   "new_tokens": 29,
+   "seconds": 1.4
+  },
+  {
+   "tier": "head",
+   "cmd": "passwd admin",
+   "utility": "passwd",
+   "freq": 59,
+   "nl": "Change the password for the admin user.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "passwd admin",
+   "command": "passwd -a.txt",
+   "raw": "passwd -a.txt",
+   "utility_ok": true,
+   "sources": [
+    "passwd \u2014 Change the password of the current user interactively: passwd",
+    "zapier-test \u2014 Test an integration: zapier test",
+    "minio-client \u2014 View documentation for the original command: tldr mc.cli"
+   ],
+   "literals": [],
+   "prompt_tokens": 93,
+   "new_tokens": 6,
+   "seconds": 0.34
+  },
+  {
+   "tier": "head",
+   "cmd": "clear",
+   "utility": "clear",
+   "freq": 154,
+   "nl": "Wipe the terminal screen to remove all previous output.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "clear",
+   "command": "clear -f",
+   "raw": "clear -f",
+   "utility_ok": true,
+   "sources": [
+    "git-cola \u2014 Start the GUI: git cola",
+    "slocate \u2014 Enable quiet mode to suppress error messages: slocate -q",
+    "clear \u2014 Clear the screen: clear"
+   ],
+   "literals": [],
+   "prompt_tokens": 85,
+   "new_tokens": 4,
+   "seconds": 0.25
+  },
+  {
+   "tier": "tail",
+   "cmd": "sshpass -p \"admin\" ssh admin@10.1.26.9",
+   "utility": "sshpass",
+   "freq": 1,
+   "nl": "Log in to the remote server at 10.1.26.9 as user admin using the password admin without being prompted.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sshpass -p \"admin\" ssh admin@10.1.26.9",
+   "command": "sshpass -d 10.1.26.9",
+   "raw": "sshpass -d 10.1.26.9",
+   "utility_ok": true,
+   "sources": [
+    "dhclient \u2014 Get an IP address for the `eth0` interface: sudo dhclient eth0",
+    "sshpass \u2014 Connect to a remote server using a password supplied on a file descriptor (in this case, `stdin`): sshpass -d 0 ssh user@hostname",
+    "olevba \u2014 Analyze a file, showing both macro code and analysis results: olevba path/to/file"
+   ],
+   "literals": [
+    "10.1.26.9",
+    "admin"
+   ],
+   "prompt_tokens": 148,
+   "new_tokens": 15,
+   "seconds": 0.77
+  },
+  {
+   "tier": "head",
+   "cmd": "ping 172.18.1.5",
+   "utility": "ping",
+   "freq": 117,
+   "nl": "Check the network connection to 172.18.1.5 to see if it is reachable.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ping 172.18.1.5",
+   "command": "ping 172.18.1.5",
+   "raw": "ping 172.18.1.5",
+   "utility_ok": true,
+   "sources": [
+    "lvmdump \u2014 Generate a basic dump: lvmdump",
+    "ping \u2014 Ping the specified host: ping \"hostname\"",
+    "oxipng \u2014 Compress a PNG file (overwrites the file by default): oxipng path/to/file.png"
+   ],
+   "literals": [
+    "172.18.1.5"
+   ],
+   "prompt_tokens": 115,
+   "new_tokens": 13,
+   "seconds": 0.63
+  },
+  {
+   "tier": "mid",
+   "cmd": "ruby 47230.rb",
+   "utility": "ruby",
+   "freq": 12,
+   "nl": "Run the 47230.rb script.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ruby 47230.rb",
+   "command": "ruby -c 47230",
+   "raw": "ruby -c 47230",
+   "utility_ok": true,
+   "sources": [
+    "ruby \u2014 Execute a Ruby script: ruby path/to/script.rb",
+    "lvm_import_vdo \u2014 Import a VDO volume with automatic names for the VG/LV: lvm_import_vdo /dev/mapper/vdo_volume",
+    "prstat \u2014 Examine all processes and reports statistics sorted by CPU usage: prstat"
+   ],
+   "literals": [
+    "47230.rb"
+   ],
+   "prompt_tokens": 124,
+   "new_tokens": 10,
+   "seconds": 0.53
+  },
+  {
+   "tier": "tail",
+   "cmd": "gedit",
+   "utility": "gedit",
+   "freq": 1,
+   "nl": "Open the graphical text editor.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "gedit",
+   "command": "go -e \"text\"",
+   "raw": "go -e \"text\"",
+   "utility_ok": false,
+   "sources": [
+    "psgrep \u2014 Find process lines containing a specific string: psgrep process_name",
+    "go-env \u2014 Show all environment variables: go env",
+    "gedit \u2014 Open a text file: gedit path/to/file"
+   ],
+   "literals": [],
+   "prompt_tokens": 91,
+   "new_tokens": 7,
+   "seconds": 0.39
+  },
+  {
+   "tier": "mid",
+   "cmd": "logout",
+   "utility": "logout",
+   "freq": 3,
+   "nl": "Sign out of the current terminal session.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "logout",
+   "command": "logout -e",
+   "raw": "logout -e",
+   "utility_ok": true,
+   "sources": [
+    "go-fix \u2014 Update packages to use new APIs: go fix packages",
+    "cargo-check \u2014 Check the current package: cargo [c|check]",
+    "logout \u2014 Exit a login shell: logout"
+   ],
+   "literals": [],
+   "prompt_tokens": 88,
+   "new_tokens": 4,
+   "seconds": 0.26
+  },
+  {
+   "tier": "tail",
+   "cmd": "rcp .invoices2019.zip root@10.1.26.23:",
+   "utility": "rcp",
+   "freq": 1,
+   "nl": "Copy .invoices2019",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "rcp .invoices2019.zip root@10.1.26.23:",
+   "command": "n=1 | xargs -0 copy -i -c",
+   "raw": "n=1 | xargs -0 copy -i -c",
+   "utility_ok": false,
+   "sources": [
+    "ansible-doc \u2014 List available action plugins (modules): ansible-doc [-l|--list]",
+    "rcp \u2014 Copy a file to a remote host: rcp path/to/local_file username@remote_host:/path/to/destination/",
+    "nemo \u2014 Open the current user home directory: nemo"
+   ],
+   "literals": [
+    ".invoices2019"
+   ],
+   "prompt_tokens": 113,
+   "new_tokens": 14,
+   "seconds": 0.69
+  },
+  {
+   "tier": "head",
+   "cmd": "touch id_rsa",
+   "utility": "touch",
+   "freq": 33,
+   "nl": "Create an empty file named id_rsa.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "touch id_rsa",
+   "command": "touch -i id_rsa",
+   "raw": "touch -i id_rsa",
+   "utility_ok": true,
+   "sources": [
+    "terraform-taint \u2014 Mark a resource as tainted: terraform taint resource_type.resource_name[instance_index]",
+    "coreaudiod \u2014 Start the daemon: coreaudiod",
+    "touch \u2014 Create specific files or update their timestamps if they already exist: touch path/to/file1 path/to/file2 ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 118,
+   "new_tokens": 7,
+   "seconds": 0.39
+  },
+  {
+   "tier": "mid",
+   "cmd": "help",
+   "utility": "help",
+   "freq": 10,
+   "nl": "Show a list of available shell built-in commands and how to use them.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "help",
+   "command": "help -a",
+   "raw": "help -a",
+   "utility_ok": true,
+   "sources": [
+    "wn \u2014 Show information available for the word \"emphatically\": wn emphatically",
+    "jj-bookmark \u2014 Create a new bookmark at the given revision: jj [b|bookmark] [c|create] [-r|--revision] revision name",
+    "help \u2014 Display the full list of builtin commands: help"
+   ],
+   "literals": [],
+   "prompt_tokens": 116,
+   "new_tokens": 4,
+   "seconds": 0.28
+  },
+  {
+   "tier": "mid",
+   "cmd": "hostname 172.18.1.5",
+   "utility": "hostname",
+   "freq": 8,
+   "nl": "Change the system's hostname to 172.18.1.5.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "hostname 172.18.1.5",
+   "command": "hostname 172.18.1.5",
+   "raw": "hostname 172.18.1.5",
+   "utility_ok": true,
+   "sources": [
+    "arp-scan \u2014 Scan the current local network: arp-scan [-l|--localnet]",
+    "cephadm \u2014 Bootstrap a new Ceph cluster on the current host: sudo cephadm bootstrap --mon-ip monitor_ip",
+    "hostname \u2014 Show current host name: hostname"
+   ],
+   "literals": [],
+   "prompt_tokens": 117,
+   "new_tokens": 13,
+   "seconds": 0.71
+  },
+  {
+   "tier": "tail",
+   "cmd": "crontab -l",
+   "utility": "crontab",
+   "freq": 1,
+   "nl": "Show my scheduled cron jobs.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "crontab -l",
+   "command": "dropbearconvert -c mycron",
+   "raw": "dropbearconvert -c mycron",
+   "utility_ok": false,
+   "sources": [
+    "crontab \u2014 [e]dit the crontab file for the current user: crontab -e",
+    "paccache \u2014 Remove all but the 3 most recent package versions from the `pacman` cache: paccache [-r|--remove]",
+    "dropbearconvert \u2014 Convert an OpenSSH private key to the Dropbear format: dropbearconvert openssh dropbear path/to/input_key path/to/output_key"
+   ],
+   "literals": [],
+   "prompt_tokens": 138,
+   "new_tokens": 8,
+   "seconds": 0.47
+  },
+  {
+   "tier": "mid",
+   "cmd": "arping --help",
+   "utility": "arping",
+   "freq": 3,
+   "nl": "Show the help information for pinging devices on the local network using ARP requests.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "arping --help",
+   "command": "dash -t \"pinging devices on the local network\"",
+   "raw": "dash -t \"pinging devices on the local network\"",
+   "utility_ok": false,
+   "sources": [
+    "dash \u2014 Start an interactive shell session: dash",
+    "lzless \u2014 View documentation for the original command: tldr xzless",
+    "arping \u2014 Ping a host by ARP request packets: sudo arping host_ip"
+   ],
+   "literals": [],
+   "prompt_tokens": 101,
+   "new_tokens": 13,
+   "seconds": 0.66
+  },
+  {
+   "tier": "mid",
+   "cmd": "nslookup 172.18.1.5",
+   "utility": "nslookup",
+   "freq": 3,
+   "nl": "Find the hostname associated with the IP address 172.18.1.5.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "nslookup 172.18.1.5",
+   "command": "su -a 172.18.1.5",
+   "raw": "su -a 172.18.1.5",
+   "utility_ok": false,
+   "sources": [
+    "su \u2014 Switch to superuser (requires the root password): su",
+    "nslookup \u2014 Query your system's default name server for an IP address (A record) of the domain: nslookup example.com",
+    "git-verify-commit \u2014 Check commits for a GPG signature: git verify-commit commit_hash1 optional_commit_hash2 ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 133,
+   "new_tokens": 15,
+   "seconds": 0.78
+  },
+  {
+   "tier": "mid",
+   "cmd": "git clone https://github.com/jas502n/CVE-2019-15107",
+   "utility": "git",
+   "freq": 21,
+   "nl": "Download the repository from https://github.com/jas502n/CVE-2019-15107.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "git clone https://github.com/jas502n/CVE-2019-15107",
+   "command": "git init",
+   "raw": "git init",
+   "utility_ok": true,
+   "sources": [
+    "mssh \u2014 Open a new window and connect to multiple SSH servers: mssh user@host1 user@host2 ...",
+    "nix-build.3 \u2014 Build a package from nixpkgs, symlinking the result to `./result`: nix build nixpkgs#pkg",
+    "git \u2014 Create an empty Git repository: git init"
+   ],
+   "literals": [
+    "https://github.com/jas502n/CVE-2019-15107"
+   ],
+   "prompt_tokens": 136,
+   "new_tokens": 3,
+   "seconds": 0.24
+  },
+  {
+   "tier": "tail",
+   "cmd": "sudo pacman -Syu nmap",
+   "utility": "pacman",
+   "freq": 1,
+   "nl": "Update the system packages and install nmap.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sudo pacman -Syu nmap",
+   "command": "sudo pacman -s /nmap",
+   "raw": "sudo pacman -s /nmap",
+   "utility_ok": true,
+   "sources": [
+    "mimikatz-sekurlsa \u2014 Extract plaintext passwords: mimikatz \"sekurlsa::logonpasswords\"",
+    "krita \u2014 Start Krita: krita",
+    "pacman \u2014 [S]ynchronize and update all packages: sudo pacman -Syu"
+   ],
+   "literals": [],
+   "prompt_tokens": 105,
+   "new_tokens": 9,
+   "seconds": 0.48
+  },
+  {
+   "tier": "head",
+   "cmd": "unzip .invoices2019.zip",
+   "utility": "unzip",
+   "freq": 32,
+   "nl": "Extract the contents of .invoices2019.zip.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "unzip .invoices2019.zip",
+   "command": "cl -f -f -f -f -f -f -f -f -f -f -f -f",
+   "raw": "cl -f -f -f -f -f -f -f -f -f -f -f -f",
+   "utility_ok": false,
+   "sources": [
+    "unzip \u2014 Extract all files/directories from specific archives into the current directory: unzip path/to/archive1.zip path/to/archive2.zip ...",
+    "gst-launch-1.0-audiomixer \u2014 Mix two audio streams together: gst-launch-1.0 audiotestsrc ! element_name. audiotestsrc ! element_name. audiomixer name=element_name ! fakesink",
+    "cl \u2014 Compile a source file: cl path\\to\\source.c"
+   ],
+   "literals": [],
+   "prompt_tokens": 160,
+   "new_tokens": 26,
+   "seconds": 1.24
+  },
+  {
+   "tier": "mid",
+   "cmd": "systemctl",
+   "utility": "systemctl",
+   "freq": 16,
+   "nl": "List all active system services and their current status.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "systemctl",
+   "command": "systemctl status",
+   "raw": "systemctl status",
+   "utility_ok": true,
+   "sources": [
+    "lsblk \u2014 List all storage devices in a tree-like format: lsblk",
+    "systemctl \u2014 Show all running services: systemctl status",
+    "adb-uninstall \u2014 Uninstall a package: adb uninstall com.example.app"
+   ],
+   "literals": [],
+   "prompt_tokens": 97,
+   "new_tokens": 4,
+   "seconds": 0.25
+  },
+  {
+   "tier": "head",
+   "cmd": "sudo apt-get install fcrackzip",
+   "utility": "apt-get",
+   "freq": 31,
+   "nl": "Install a tool to crack passwords on protected zip files.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sudo apt-get install fcrackzip",
+   "command": "sudo find . -type f -print0 | xargs -0 tar -c -f",
+   "raw": "sudo find . -type f -print0 | xargs -0 tar -c -f",
+   "utility_ok": false,
+   "sources": [
+    "pmset \u2014 Display the current power management settings: pmset -g",
+    "apt-get \u2014 Update the list of available packages and versions (it's recommended to run this before other `apt-get` commands): sudo apt-get update",
+    "cec-client \u2014 List all CEC adapters: cec-client [-l|--list-devices]"
+   ],
+   "literals": [],
+   "prompt_tokens": 122,
+   "new_tokens": 20,
+   "seconds": 1.01
+  },
+  {
+   "tier": "head",
+   "cmd": "curl 172.18.1.5:10000",
+   "utility": "curl",
+   "freq": 105,
+   "nl": "Send an HTTP request to 172.1",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "curl 172.18.1.5:10000",
+   "command": "curl 172.1",
+   "raw": "curl 172.1",
+   "utility_ok": true,
+   "sources": [
+    "cargo-fetch \u2014 Fetch dependencies specified in `Cargo.lock` (for all targets): cargo fetch",
+    "curl \u2014 Make an HTTP GET request and dump the contents in `stdout`: curl https://example.com",
+    "silicon \u2014 Generate an image from a specific source file: silicon path/to/source_file [-o|--output] path/to/output_image"
+   ],
+   "literals": [
+    "172.1"
+   ],
+   "prompt_tokens": 127,
+   "new_tokens": 8,
+   "seconds": 0.51
+  },
+  {
+   "tier": "head",
+   "cmd": "su root",
+   "utility": "su",
+   "freq": 64,
+   "nl": "Switch to the root user.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "su root",
+   "command": "su root",
+   "raw": "su root",
+   "utility_ok": true,
+   "sources": [
+    "dbeaver \u2014 Open DBeaver: dbeaver",
+    "ss-local \u2014 Run a Shadowsocks proxy by specifying the host, server port, local port, password, and encryption method: ss-local -s host -p server_port -l local port -k password -m encrypt_method",
+    "su \u2014 Switch to superuser (requires the root password): su"
+   ],
+   "literals": [],
+   "prompt_tokens": 123,
+   "new_tokens": 3,
+   "seconds": 0.25
+  },
+  {
+   "tier": "mid",
+   "cmd": "ssh-copy-id eve@10.1.17.4",
+   "utility": "ssh-copy-id",
+   "freq": 3,
+   "nl": "Copy my SSH public key to eve@10.1.17.4 to enable password",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ssh-copy-id eve@10.1.17.4",
+   "command": "ssh-copy-id --password --exec chown password {} \\;",
+   "raw": "ssh-copy-id --password --exec chown password {} \\;",
+   "utility_ok": true,
+   "sources": [
+    "zdump \u2014 Print the current time in a timezone: zdump timezone",
+    "qm-terminal \u2014 Attach to a terminal: qm [ter|terminal] 100",
+    "ssh-copy-id \u2014 Copy your keys to the remote machine: ssh-copy-id username@remote_host"
+   ],
+   "literals": [
+    "10.1.17.4"
+   ],
+   "prompt_tokens": 122,
+   "new_tokens": 15,
+   "seconds": 0.78
+  },
+  {
+   "tier": "tail",
+   "cmd": "lynis audit system remote 100.100.100.4",
+   "utility": "lynis",
+   "freq": 1,
+   "nl": "Run a security audit on the remote system at 100.100.100.4.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "lynis audit system remote 100.100.100.4",
+   "command": "sl -o 100.100.100.4",
+   "raw": "sl -o 100.100.100.4",
+   "utility_ok": false,
+   "sources": [
+    "lynis \u2014 Check that Lynis is up-to-date: sudo lynis update info",
+    "sl \u2014 Let a steam locomotive run through your terminal: sl",
+    "picom-trans \u2014 Set the currently focused window opacity to a specific percentage: picom-trans [-c|--current] [-o|--opacity] percentage"
+   ],
+   "literals": [],
+   "prompt_tokens": 131,
+   "new_tokens": 18,
+   "seconds": 0.98
+  },
+  {
+   "tier": "mid",
+   "cmd": "traceroute 172.18.1.5",
+   "utility": "traceroute",
+   "freq": 13,
+   "nl": "Show the network path to 1",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "traceroute 172.18.1.5",
+   "command": "which 1",
+   "raw": "which 1",
+   "utility_ok": false,
+   "sources": [
+    "gst-launch-1.0-pipewiresrc \u2014 Listen to the default microphone: gst-launch-1.0 pipewiresrc ! autoaudiosink",
+    "ndc \u2014 Set the [c]ontrol channel rendezvous point: ndc -c channel command",
+    "traceroute \u2014 Traceroute to a host: traceroute example.com"
+   ],
+   "literals": [
+    "1"
+   ],
+   "prompt_tokens": 116,
+   "new_tokens": 4,
+   "seconds": 0.29
+  },
+  {
+   "tier": "mid",
+   "cmd": "tar -xvf rockyou.txt.gz",
+   "utility": "tar",
+   "freq": 2,
+   "nl": "Extract the contents of rockyou.txt.gz and show the progress in the terminal.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "tar -xvf rockyou.txt.gz",
+   "command": "tar -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -",
+   "raw": "tar -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -t -c -",
+   "utility_ok": true,
+   "sources": [
+    "tar \u2014 [c]reate an archive and write it to a [f]ile: tar cf path/to/target.tar path/to/file1 path/to/file2 ...",
+    "pnmtoxwd \u2014 Convert a PNM image file to XWD: pnmtoxwd path/to/input_file.pnm > path/to/output_file.xwd",
+    "odpscmd-table \u2014 [Interactive] Create a table with partition and lifecycle: create table table_name (col type) partitioned by (col type) lifecycle days;"
+   ],
+   "literals": [],
+   "prompt_tokens": 176,
+   "new_tokens": 64,
+   "seconds": 3.06
+  },
+  {
+   "tier": "mid",
+   "cmd": "gcc CVE_2019_15107.c -o CVE_2019_15107 -lcurl",
+   "utility": "gcc",
+   "freq": 5,
+   "nl": "Compile the C program CVE_2019_15107.c into an executable named CVE_2019_15107 using the curl library.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "gcc CVE_2019_15107.c -o CVE_2019_15107 -lcurl",
+   "command": "gcc -c CVE_2019_15107",
+   "raw": "gcc -c CVE_2019_15107",
+   "utility_ok": true,
+   "sources": [
+    "gcc \u2014 Compile multiple source files into an executable: gcc path/to/source1.c path/to/source2.c ... [-o|--output] path/to/output_executable",
+    "ollama \u2014 Start the daemon required to run other commands: ollama serve",
+    "backlight_control \u2014 Increase/decrease the backlight by a specific percent count: backlight_control +|-5"
+   ],
+   "literals": [
+    "CVE_2019_15107.c",
+    "CVE_2019_15107"
+   ],
+   "prompt_tokens": 159,
+   "new_tokens": 16,
+   "seconds": 0.86
+  },
+  {
+   "tier": "head",
+   "cmd": "wget https://netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920_all.deb",
+   "utility": "wget",
+   "freq": 30,
+   "nl": "Download the file from https://netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920_all.deb.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "wget https://netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920_all.deb",
+   "command": "wget -c \"netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920/webmin_1.920/all.deb\"",
+   "raw": "wget -c \"netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920/webmin_1.920/all.deb\"",
+   "utility_ok": true,
+   "sources": [
+    "wget \u2014 Download the contents of a URL to a file (named \"foo\" in this case): wget https://example.com/foo",
+    "pdfunite \u2014 Merge multiple PDF files into a single one: pdfunite path/to/file1.pdf path/to/file2.pdf ... path/to/merged_output.pdf",
+    "lnav \u2014 View logs of a program, specifying log files, directories, or URLs: lnav path/to/log_or_directory|url"
+   ],
+   "literals": [
+    "https://netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920_all.deb"
+   ],
+   "prompt_tokens": 186,
+   "new_tokens": 50,
+   "seconds": 2.47
+  },
+  {
+   "tier": "mid",
+   "cmd": "ssh-add id_rsa",
+   "utility": "ssh-add",
+   "freq": 15,
+   "nl": "Add the id_rsa private key to the SSH agent.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ssh-add id_rsa",
+   "command": "ssh-agent -a \"private key\"",
+   "raw": "ssh-agent -a \"private key\"",
+   "utility_ok": false,
+   "sources": [
+    "rustup-target \u2014 Add a target to a toolchain: rustup target add --toolchain toolchain target",
+    "pve-firewall \u2014 Compile and print all firewall rules: pve-firewall [c|compile]",
+    "ssh-add \u2014 Add the default SSH keys in `~/.ssh` to the ssh-agent: ssh-add"
+   ],
+   "literals": [
+    "id_rsa"
+   ],
+   "prompt_tokens": 125,
+   "new_tokens": 10,
+   "seconds": 0.54
+  },
+  {
+   "tier": "mid",
+   "cmd": "egrep -w '22/(tcp)' /etc/services",
+   "utility": "egrep",
+   "freq": 4,
+   "nl": "Find the service associated with TCP port 22 in /etc/services.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "egrep -w '22/(tcp)' /etc/services",
+   "command": "setserial -a /etc/services",
+   "raw": "setserial -a /etc/services",
+   "utility_ok": false,
+   "sources": [
+    "egrep \u2014 Search for one or more repeated characters: egrep 'a+' path/to/file",
+    "pacman-files \u2014 Update the package database: sudo pacman -Fy",
+    "setserial \u2014 Print all information about a specific serial device: setserial -a /dev/cuaN"
+   ],
+   "literals": [
+    "22",
+    "/etc/services"
+   ],
+   "prompt_tokens": 116,
+   "new_tokens": 9,
+   "seconds": 0.53
+  },
+  {
+   "tier": "mid",
+   "cmd": "fping",
+   "utility": "fping",
+   "freq": 3,
+   "nl": "Ping multiple network hosts quickly at the same time.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "fping",
+   "command": "brew update",
+   "raw": "brew update",
+   "utility_ok": false,
+   "sources": [
+    "fping \u2014 List the status of all hosts within a range: fping 192.168.1.{1..254}",
+    "clamav \u2014 View documentation for scanning files using the `clamd` daemon: tldr clamdscan",
+    "brew-autoremove \u2014 Remove all unused formulae: brew autoremove"
+   ],
+   "literals": [],
+   "prompt_tokens": 121,
+   "new_tokens": 3,
+   "seconds": 0.24
+  },
+  {
+   "tier": "mid",
+   "cmd": "masscan -p1234 --echo",
+   "utility": "masscan",
+   "freq": 3,
+   "nl": "Show the current configuration template for scanning port 1234 instead of running the scan.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "masscan -p1234 --echo",
+   "command": "tldr nc",
+   "raw": "tldr nc",
+   "utility_ok": false,
+   "sources": [
+    "netcat \u2014 View documentation for the original command: tldr nc",
+    "masscan \u2014 Scan an IP or network subnet for port 80: masscan ip_address|network_prefix [-p|--ports] 80",
+    "lci \u2014 Run a LOLCODE file: lci path/to/file"
+   ],
+   "literals": [
+    "1234"
+   ],
+   "prompt_tokens": 124,
+   "new_tokens": 4,
+   "seconds": 0.31
+  },
+  {
+   "tier": "tail",
+   "cmd": "iptables",
+   "utility": "iptables",
+   "freq": 1,
+   "nl": "Manage the system firewall rules to control network traffic.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "iptables",
+   "command": "sudo find / -type f -exec chmod 640 {} \\;",
+   "raw": "sudo find / -type f -exec chmod 640 {} \\;",
+   "utility_ok": false,
+   "sources": [
+    "iptables \u2014 View chains, rules, packet/byte counters, and line numbers for the filter table: sudo iptables [-vnL --line-numbers|--verbose --numeric --list --line-numbers]",
+    "pridecat \u2014 Print the contents of a file in pride colors to `stdout`: pridecat path/to/file",
+    "unxz \u2014 View documentation for the original command: tldr xz"
+   ],
+   "literals": [],
+   "prompt_tokens": 133,
+   "new_tokens": 16,
+   "seconds": 0.79
+  },
+  {
+   "tier": "mid",
+   "cmd": "mkdir .ssh",
+   "utility": "mkdir",
+   "freq": 17,
+   "nl": "Create a folder named .ssh in the current location.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "mkdir .ssh",
+   "command": "sudo find . -name \"*.ssh\" -print",
+   "raw": "sudo find . -name \"*.ssh\" -print",
+   "utility_ok": false,
+   "sources": [
+    "lazygit \u2014 Open Lazygit in the current repository: lazygit",
+    "mkdir \u2014 Create specific directories: mkdir path/to/directory1 path/to/directory2 ...",
+    "xzcmp \u2014 Compare two specific files: xzcmp path/to/file1 path/to/file2"
+   ],
+   "literals": [
+    ".ssh"
+   ],
+   "prompt_tokens": 112,
+   "new_tokens": 11,
+   "seconds": 0.59
+  },
+  {
+   "tier": "mid",
+   "cmd": "gobuster dir -u http://172.18.1.5/ -w /sips/sipssys/users/a/admin/user",
+   "utility": "gobuster",
+   "freq": 2,
+   "nl": "Brute force and discover directories on http://172.18.1.5/ using the wordlist located at /sips/sipssys/users/a/admin/user.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "gobuster dir -u http://172.18.1.5/ -w /sips/sipssys/users/a/admin/user",
+   "command": "pushd /sips/sipssys/users/a/admin/user/user.txt",
+   "raw": "pushd /sips/sipssys/users/a/admin/user/user.txt",
+   "utility_ok": false,
+   "sources": [
+    "gobuster \u2014 Discover directories and files that match in the wordlist: gobuster dir [-u|--url] https://example.com/ [-w|--wordlist] path/to/file",
+    "vm_stat \u2014 Display virtual memory statistics: vm_stat",
+    "pushd \u2014 Switch to directory and push it on the stack: pushd path/to/directory"
+   ],
+   "literals": [
+    "http://172.18.1.5/",
+    "/sips/sipssys/users/a/admin/user"
+   ],
+   "prompt_tokens": 158,
+   "new_tokens": 22,
+   "seconds": 1.11
+  },
+  {
+   "tier": "mid",
+   "cmd": "wpscan --url http://127.18.1.5",
+   "utility": "wpscan",
+   "freq": 4,
+   "nl": "Scan the WordPress site at http://127.18.1.5 for security vulnerabilities and configuration issues.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "wpscan --url http://127.18.1.5",
+   "command": "sudo find / -type f -print0 | xargs -0 grep -i \".*\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.",
+   "raw": "sudo find / -type f -print0 | xargs -0 grep -i \".*\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.\\.",
+   "utility_ok": false,
+   "sources": [
+    "wpscan \u2014 Update the vulnerability database: wpscan --update",
+    "phpstorm \u2014 Open a specific directory: phpstorm path/to/directory",
+    "a2query \u2014 List enabled Apache modules: sudo a2query -m"
+   ],
+   "literals": [
+    "http://127.18.1.5"
+   ],
+   "prompt_tokens": 111,
+   "new_tokens": 60,
+   "seconds": 2.79
+  },
+  {
+   "tier": "mid",
+   "cmd": "alias ll='ls -hlA'",
+   "utility": "alias",
+   "freq": 5,
+   "nl": "Create a shortcut called ll to list all files, including hidden ones, in a detailed view with human-readable file sizes.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "alias ll='ls -hlA'",
+   "command": "alias ll= list -s",
+   "raw": "alias ll= list -s",
+   "utility_ok": true,
+   "sources": [
+    "alias \u2014 List all aliases: alias",
+    "distcc \u2014 Compile a source file using a compiler like `gcc`: distcc gcc -c path/to/source.c -o path/to/output.o",
+    "mocp \u2014 Launch the MOC terminal UI: mocp"
+   ],
+   "literals": [],
+   "prompt_tokens": 122,
+   "new_tokens": 7,
+   "seconds": 0.42
+  },
+  {
+   "tier": "tail",
+   "cmd": "xclip -selection c -o > .ssh/id_rsa",
+   "utility": "xclip",
+   "freq": 1,
+   "nl": "Paste the contents of my clipboard into .ssh/id_rsa.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "xclip -selection c -o > .ssh/id_rsa",
+   "command": "echo my clipboard | paste -sd' ' ' | xargs -0 paste -sd' ' ' | paste -sd' ' ' | paste -sd' ' '",
+   "raw": "echo my clipboard | paste -sd' ' ' | xargs -0 paste -sd' ' ' | paste -sd' ' ' | paste -sd' ' '",
+   "utility_ok": false,
+   "sources": [
+    "twine \u2014 Upload to PyPI: twine upload dist/*",
+    "xclip \u2014 Copy the output from a command to the X11 primary selection area (clipboard): echo 123 | xclip",
+    "etcd \u2014 Start a single-node etcd cluster: etcd"
+   ],
+   "literals": [
+    ".ssh/id_rsa"
+   ],
+   "prompt_tokens": 110,
+   "new_tokens": 36,
+   "seconds": 1.77
+  },
+  {
+   "tier": "tail",
+   "cmd": "hydra",
+   "utility": "hydra",
+   "freq": 1,
+   "nl": "Perform a brute-force dictionary attack against network login credentials.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "hydra",
+   "command": "nano -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "raw": "nano -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "utility_ok": false,
+   "sources": [
+    "elasticsearch-keystore \u2014 Create a new keystore (not password-protected): elasticsearch-keystore create",
+    "hydra \u2014 Start Hydra's wizard: hydra-wizard",
+    "nano \u2014 Open specific files, moving to the next file after closing the previous one: nano path/to/file1 path/to/file2 ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 122,
+   "new_tokens": 64,
+   "seconds": 2.97
+  },
+  {
+   "tier": "mid",
+   "cmd": "unshadow passwd shadow > mypasswd.txt",
+   "utility": "unshadow",
+   "freq": 7,
+   "nl": "Combine the passwd and shadow files into a single file named mypasswd.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "unshadow passwd shadow > mypasswd.txt",
+   "command": "sudo chown mypasswd.txt mypasswd.txt",
+   "raw": "sudo chown mypasswd.txt mypasswd.txt",
+   "utility_ok": false,
+   "sources": [
+    "stolonctl \u2014 Get cluster status: stolonctl --cluster-name cluster_name --store-backend store_backend --store-endpoints store_endpoints status",
+    "ausearch \u2014 Search for all SELinux AVC denial events: sudo ausearch [-m|--message] avc",
+    "unshadow \u2014 Combine the `/etc/shadow` and `/etc/passwd` of the current system: sudo unshadow /etc/passwd /etc/shadow"
+   ],
+   "literals": [],
+   "prompt_tokens": 148,
+   "new_tokens": 12,
+   "seconds": 0.62
+  },
+  {
+   "tier": "head",
+   "cmd": "ifconfig",
+   "utility": "ifconfig",
+   "freq": 119,
+   "nl": "Display the network interface configurations and IP addresses.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ifconfig",
+   "command": "ifconfig -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a",
+   "raw": "ifconfig -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a",
+   "utility_ok": true,
+   "sources": [
+    "jj-git-push \u2014 Push a bookmark to the given remote (defaults to `git.push` setting): jj git push [-b|--bookmark] bookmark --remote remote",
+    "php-cs-fixer \u2014 Execute code style fixing in the current directory: php-cs-fixer fix",
+    "ifconfig \u2014 View network settings of an interface: ifconfig interface_name"
+   ],
+   "literals": [],
+   "prompt_tokens": 126,
+   "new_tokens": 64,
+   "seconds": 3.0
+  },
+  {
+   "tier": "tail",
+   "cmd": "sudo install metaspoilt-framework",
+   "utility": "install",
+   "freq": 1,
+   "nl": "Install metaspoilt-framework with administrator privileges.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sudo install metaspoilt-framework",
+   "command": "pv -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -",
+   "raw": "pv -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -p -",
+   "utility_ok": false,
+   "sources": [
+    "xzdiff \u2014 Compare two files: xzdiff path/to/file1 path/to/file2",
+    "pv \u2014 Print the contents of the file and display a progress bar: pv path/to/file",
+    "install \u2014 Copy files to the destination: install path/to/source_file1 path/to/source_file2 ... path/to/destination"
+   ],
+   "literals": [],
+   "prompt_tokens": 127,
+   "new_tokens": 64,
+   "seconds": 3.05
+  },
+  {
+   "tier": "mid",
+   "cmd": "ps aux",
+   "utility": "ps",
+   "freq": 6,
+   "nl": "Show a detailed list of all running processes on the system.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ps aux",
+   "command": "ps aux",
+   "raw": "ps aux",
+   "utility_ok": true,
+   "sources": [
+    "usbip \u2014 List all local USB devices and their bus ID's: usbip list [-l|--local]",
+    "ps \u2014 List all running processes: ps aux",
+    "npm-search \u2014 Search for a package by name: npm [s|search] package"
+   ],
+   "literals": [],
+   "prompt_tokens": 106,
+   "new_tokens": 3,
+   "seconds": 0.25
+  },
+  {
+   "tier": "mid",
+   "cmd": "tmux",
+   "utility": "tmux",
+   "freq": 4,
+   "nl": "Start a persistent terminal session that can be detached and resumed later.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "tmux",
+   "command": "tmux -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t",
+   "raw": "tmux -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t -t",
+   "utility_ok": true,
+   "sources": [
+    "tmux \u2014 Start a new session: tmux",
+    "pnmpaste \u2014 Paste a PNM image into another PNM image at the specified coordinates: pnmpaste x y path/to/image1.pnm path/to/image2.pnm > path/to/output.pnm",
+    "pbmtolj \u2014 Convert a PBM file to an HP LaserJet file: pbmtolj path/to/input.pbm > path/to/output.lj"
+   ],
+   "literals": [],
+   "prompt_tokens": 151,
+   "new_tokens": 52,
+   "seconds": 2.57
+  },
+  {
+   "tier": "mid",
+   "cmd": "sort hacking/wordlist.txt",
+   "utility": "sort",
+   "freq": 5,
+   "nl": "Display the contents of hacking/wordlist.txt in alphabetical order.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sort hacking/wordlist.txt",
+   "command": "sort -A | grep \"cat\"",
+   "raw": "sort -A | grep \"cat\"",
+   "utility_ok": true,
+   "sources": [
+    "cli53 \u2014 List domains: cli53 list",
+    "stun \u2014 Make a STUN request: stun stun.1und1.de",
+    "sort \u2014 Sort a file in ascending order: sort path/to/file"
+   ],
+   "literals": [
+    "hacking/wordlist.txt"
+   ],
+   "prompt_tokens": 99,
+   "new_tokens": 9,
+   "seconds": 0.49
+  },
+  {
+   "tier": "mid",
+   "cmd": "open nmap",
+   "utility": "open",
+   "freq": 4,
+   "nl": "Open the file or folder named nmap in its default application.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "open nmap",
+   "command": "open -f -f -f -f -f -f -f -f -f -f -f -f -f",
+   "raw": "open -f -f -f -f -f -f -f -f -f -f -f -f -f",
+   "utility_ok": true,
+   "sources": [
+    "cargo-add \u2014 Add the latest version of a dependency to the current project: cargo add dependency",
+    "dnsmasq \u2014 Start dnsmasq with default configuration: dnsmasq",
+    "open \u2014 Open a file with the associated application: open file.ext"
+   ],
+   "literals": [],
+   "prompt_tokens": 104,
+   "new_tokens": 28,
+   "seconds": 1.31
+  },
+  {
+   "tier": "mid",
+   "cmd": "rmdir invoices2019",
+   "utility": "rmdir",
+   "freq": 8,
+   "nl": "Delete the invoices2019 folder.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "rmdir invoices2019",
+   "command": "rsmdir -f -r",
+   "raw": "rsmdir -f -r",
+   "utility_ok": false,
+   "sources": [
+    "avahi-browse \u2014 List services available on the local network along with their addresses and ports, ignoring ones on the local machine: avahi-browse [-a|--all] [-r|--resolve] [-l|--ignore-local]",
+    "rmdir \u2014 Remove specific directories: rmdir path/to/directory1 path/to/directory2 ...",
+    "aws-glue \u2014 List jobs: aws glue list-jobs"
+   ],
+   "literals": [
+    "invoices2019"
+   ],
+   "prompt_tokens": 138,
+   "new_tokens": 8,
+   "seconds": 0.47
+  },
+  {
+   "tier": "head",
+   "cmd": "rm id_rsa",
+   "utility": "rm",
+   "freq": 46,
+   "nl": "Delete the file id_rsa.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "rm id_rsa",
+   "command": "rm -f -f",
+   "raw": "rm -f -f",
+   "utility_ok": true,
+   "sources": [
+    "gh-pr-view \u2014 View the pull request associated with the current branch: gh pr view",
+    "weechat \u2014 Start WeeChat: weechat",
+    "rm \u2014 Remove specific files: rm path/to/file1 path/to/file2 ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 100,
+   "new_tokens": 6,
+   "seconds": 0.34
+  },
+  {
+   "tier": "mid",
+   "cmd": "set RHOST 172.18.1.5",
+   "utility": "set",
+   "freq": 6,
+   "nl": "Set the target host IP address to 172.18",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "set RHOST 172.18.1.5",
+   "command": "set -a 172.18",
+   "raw": "set -a 172.18",
+   "utility_ok": true,
+   "sources": [
+    "netcat \u2014 View documentation for the original command: tldr nc",
+    "set \u2014 Set variable: SET VAR=value",
+    "fwconsole \u2014 Reload FreePBX configurations: fwconsole reload"
+   ],
+   "literals": [
+    "172.18"
+   ],
+   "prompt_tokens": 91,
+   "new_tokens": 11,
+   "seconds": 0.54
+  },
+  {
+   "tier": "mid",
+   "cmd": "whereis researchers",
+   "utility": "whereis",
+   "freq": 3,
+   "nl": "Find the location of the binary, source code, and manual pages for researchers.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "whereis researchers",
+   "command": "whereis -r",
+   "raw": "whereis -r",
+   "utility_ok": true,
+   "sources": [
+    "newrole \u2014 Start a new shell with a specific SELinux role: newrole [-r|--role] role_name",
+    "whereis \u2014 Locate binary, source, and man pages for SSH: whereis ssh",
+    "imv \u2014 View multiple images: imv path/to/image1.ext path/to/image2.ext ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 128,
+   "new_tokens": 5,
+   "seconds": 0.31
+  },
+  {
+   "tier": "tail",
+   "cmd": "perl --version",
+   "utility": "perl",
+   "freq": 1,
+   "nl": "Check which version of Perl is installed on the system.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "perl --version",
+   "command": "perl -e 'print",
+   "raw": "perl -e 'print",
+   "utility_ok": true,
+   "sources": [
+    "perl \u2014 Print lines from `stdin` [m]atching `regex1` and case [i]nsensitive `regex2`: perl -n -e 'print if m/regex1/ and m/regex2/i'",
+    "elif \u2014 View documentation for `if` command: tldr if",
+    "qdbus \u2014 List available service names: qdbus"
+   ],
+   "literals": [],
+   "prompt_tokens": 127,
+   "new_tokens": 6,
+   "seconds": 0.37
+  },
+  {
+   "tier": "mid",
+   "cmd": "tshark host 172.18.1.5",
+   "utility": "tshark",
+   "freq": 5,
+   "nl": "Capture network traffic to and from 172.18.1.5.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "tshark host 172.18.1.5",
+   "command": "lastcomm -t 172.18.1.5",
+   "raw": "lastcomm -t 172.18.1.5",
+   "utility_ok": false,
+   "sources": [
+    "tshark \u2014 Monitor packets from the default interface: tshark",
+    "afplay \u2014 Play a sound file (waits until playback ends): afplay path/to/file",
+    "lastcomm \u2014 Print information about all the commands in the acct (record file): lastcomm"
+   ],
+   "literals": [],
+   "prompt_tokens": 113,
+   "new_tokens": 16,
+   "seconds": 0.77
+  },
+  {
+   "tier": "head",
+   "cmd": "ssh admin@10.1.26.9",
+   "utility": "ssh",
+   "freq": 930,
+   "nl": "Log in to the remote server at 10.1.26.9 as the user admin.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ssh admin@10.1.26.9",
+   "command": "ssh 10.1.26.9",
+   "raw": "ssh 10.1.26.9",
+   "utility_ok": true,
+   "sources": [
+    "ssh \u2014 Connect to a remote server: ssh username@remote_host",
+    "vagrant-ssh \u2014 SSH into the machine running in the current directory: vagrant ssh",
+    "gnureadlink \u2014 View documentation for the original command: tldr readlink"
+   ],
+   "literals": [
+    "10.1.26.9",
+    "admin"
+   ],
+   "prompt_tokens": 113,
+   "new_tokens": 12,
+   "seconds": 0.62
+  },
+  {
+   "tier": "mid",
+   "cmd": "metaflac --help",
+   "utility": "metaflac",
+   "freq": 2,
+   "nl": "Display the help information and usage options for editing FLAC metadata.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "metaflac --help",
+   "command": "bundle install",
+   "raw": "bundle install",
+   "utility_ok": false,
+   "sources": [
+    "metaflac \u2014 Show all tags in a FLAC file: metaflac --show-all-tags path/to/file.flac",
+    "bundle \u2014 Install all gems defined in the `Gemfile` expected in the working directory: bundle install",
+    "pecl \u2014 Display a list of available commands: pecl"
+   ],
+   "literals": [],
+   "prompt_tokens": 118,
+   "new_tokens": 3,
+   "seconds": 0.22
+  },
+  {
+   "tier": "mid",
+   "cmd": "openssl",
+   "utility": "openssl",
+   "freq": 7,
+   "nl": "Launch the interactive cryptography and certificate management tool.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "openssl",
+   "command": "openssl -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c",
+   "raw": "openssl -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c",
+   "utility_ok": true,
+   "sources": [
+    "openssl \u2014 Generate a private key and encrypt the output file using AES-256: openssl genpkey -algorithm rsa|ec -out path/to/private.key -aes256",
+    "sshfs \u2014 Mount remote directory: sshfs username@remote_host:remote_directory mountpoint",
+    "gshred \u2014 View documentation for the original command: tldr shred"
+   ],
+   "literals": [],
+   "prompt_tokens": 129,
+   "new_tokens": 64,
+   "seconds": 2.8
+  },
+  {
+   "tier": "head",
+   "cmd": "sudo dpkg -i webmin_1.920_all.deb",
+   "utility": "dpkg",
+   "freq": 25,
+   "nl": "Install the webmin_1.920",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sudo dpkg -i webmin_1.920_all.deb",
+   "command": "sudo find . -type f -print0 | xargs -0 -i",
+   "raw": "sudo find . -type f -print0 | xargs -0 -i",
+   "utility_ok": false,
+   "sources": [
+    "dpkg \u2014 Install a package: sudo dpkg [-i|--install] path/to/file.deb",
+    "pamstack \u2014 Stack the planes of the specified PAM images in the specified order: pamstack path/to/image1.pam path/to/image2.pam ... > path/to/output.pam",
+    "sg_raw \u2014 Send a command to an optical SCSI device assigned to `sr0` to load the media in its tray: sg_raw /dev/sr0 EA 00 00 00 00 01"
+   ],
+   "literals": [
+    "webmin_1.920"
+   ],
+   "prompt_tokens": 169,
+   "new_tokens": 17,
+   "seconds": 0.89
+  },
+  {
+   "tier": "mid",
+   "cmd": "sudo tcpdump port 22",
+   "utility": "tcpdump",
+   "freq": 6,
+   "nl": "Capture network traffic on port 22.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sudo tcpdump port 22",
+   "command": "tcpdump -d 22",
+   "raw": "tcpdump -d 22",
+   "utility_ok": true,
+   "sources": [
+    "gdalwarp \u2014 Reproject a raster dataset: gdalwarp -t_srs EPSG:4326 path/to/input.tif path/to/output.tif",
+    "ngrep \u2014 Capture traffic of all interfaces: ngrep -d any",
+    "tcpdump \u2014 List available network interfaces: tcpdump [-D|--list-interfaces]"
+   ],
+   "literals": [
+    "22"
+   ],
+   "prompt_tokens": 124,
+   "new_tokens": 8,
+   "seconds": 0.47
+  },
+  {
+   "tier": "mid",
+   "cmd": "hashcat hash.txt /usr/share/wordlists/rockyou.txt",
+   "utility": "hashcat",
+   "freq": 3,
+   "nl": "Crack the password hashes in hash.txt using the wordlist located at /usr/share/wordlists/rockyou.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "hashcat hash.txt /usr/share/wordlists/rockyou.txt",
+   "command": "hash.txt -a /usr/share/wordlists/rockyou.txt",
+   "raw": "hash.txt -a /usr/share/wordlists/rockyou.txt",
+   "utility_ok": false,
+   "sources": [
+    "btop \u2014 Start `btop`: btop",
+    "systemctl-help \u2014 Show the manual page for a specific unit: systemctl help unit",
+    "hashcat \u2014 Perform a brute-force attack (mode 3) with the default hashcat mask: hashcat [-m|--hash-type] hash_type_id [-a|--attack-mode] 3 hash_value"
+   ],
+   "literals": [
+    "hash.txt",
+    "/usr/share/wordlists/rockyou.txt"
+   ],
+   "prompt_tokens": 147,
+   "new_tokens": 18,
+   "seconds": 0.94
+  },
+  {
+   "tier": "mid",
+   "cmd": "which fcrackzip",
+   "utility": "which",
+   "freq": 13,
+   "nl": "Show the path to the fcrackzip executable.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "which fcrackzip",
+   "command": "which fcrackzip",
+   "raw": "which fcrackzip",
+   "utility_ok": true,
+   "sources": [
+    "which \u2014 Search the `$PATH` environment variable and display the location of any matching executables: which executable",
+    "rargs \u2014 Execute a command for every line of input, just like `xargs` (`{0}` indicates where to substitute in the text): command | rargs command {0}",
+    "diffoscope \u2014 Compare two files: diffoscope path/to/file1 path/to/file2"
+   ],
+   "literals": [],
+   "prompt_tokens": 133,
+   "new_tokens": 5,
+   "seconds": 0.33
+  },
+  {
+   "tier": "head",
+   "cmd": "nmap 172.18.1.5",
+   "utility": "nmap",
+   "freq": 1583,
+   "nl": "Scan 172.18.1.5 for open ports.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "nmap 172.18.1.5",
+   "command": "goaccess -p 172.18.1.5",
+   "raw": "goaccess -p 172.18.1.5",
+   "utility_ok": false,
+   "sources": [
+    "goaccess \u2014 Analyze one or more log files in interactive mode: goaccess path/to/log1 path/to/log2 ...",
+    "nmap \u2014 Scan the top 1000 ports of a remote host with various [v]erbosity levels: nmap -v1|2|3 ip_or_hostname",
+    "gdaldem \u2014 Compute the hillshade of a DEM: gdaldem hillshade path/to/input.tif path/to/output.tif"
+   ],
+   "literals": [
+    "172.18.1.5"
+   ],
+   "prompt_tokens": 157,
+   "new_tokens": 16,
+   "seconds": 0.81
+  },
+  {
+   "tier": "mid",
+   "cmd": "sudo lsof -i -P -n | grep \"LISTEN\"",
+   "utility": "lsof",
+   "freq": 4,
+   "nl": "List all open listening ports and the processes using them.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sudo lsof -i -P -n | grep \"LISTEN\"",
+   "command": "screenfetch -P 11111111111111111111111111111111111111111111111111111111111",
+   "raw": "screenfetch -P 11111111111111111111111111111111111111111111111111111111111",
+   "utility_ok": false,
+   "sources": [
+    "screenfetch \u2014 Start `screenfetch`: screenfetch",
+    "lsof \u2014 Find the processes that have a given file open: lsof path/to/file",
+    "gdaldem \u2014 Compute the hillshade of a DEM: gdaldem hillshade path/to/input.tif path/to/output.tif"
+   ],
+   "literals": [],
+   "prompt_tokens": 115,
+   "new_tokens": 64,
+   "seconds": 2.85
+  },
+  {
+   "tier": "mid",
+   "cmd": "host exploit-db.com",
+   "utility": "host",
+   "freq": 6,
+   "nl": "Find the IP address for exploit-db.com.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "host exploit-db.com",
+   "command": "host -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "raw": "host -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "utility_ok": true,
+   "sources": [
+    "host \u2014 Lookup A, AAAA, and MX records of a domain: host domain",
+    "instaloader \u2014 Download a profile: instaloader profile_name",
+    "ppmlabel \u2014 Add text to a PPM image at the specified location: ppmlabel -x pos_x -y pos_y [-t|-text] text path/to/input_file.ppm > path/to/output_file.ppm"
+   ],
+   "literals": [],
+   "prompt_tokens": 138,
+   "new_tokens": 64,
+   "seconds": 2.83
+  },
+  {
+   "tier": "mid",
+   "cmd": "more wordlist.txt",
+   "utility": "more",
+   "freq": 9,
+   "nl": "View the contents of wordlist.txt one page at a time.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "more wordlist.txt",
+   "command": "more -p 1",
+   "raw": "more -p 1",
+   "utility_ok": true,
+   "sources": [
+    "more \u2014 Open a file: more path/to/file",
+    "esbuild \u2014 Bundle a JavaScript application and print to `stdout`: esbuild --bundle path/to/file.js",
+    "npm-owner \u2014 Add a new user as a maintainer of a package: npm owner add username package_name"
+   ],
+   "literals": [
+    "wordlist.txt"
+   ],
+   "prompt_tokens": 116,
+   "new_tokens": 6,
+   "seconds": 0.35
+  },
+  {
+   "tier": "mid",
+   "cmd": "show exploits",
+   "utility": "show",
+   "freq": 4,
+   "nl": "Display a list of all available exploit modules.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "show exploits",
+   "command": "show -l",
+   "raw": "show -l",
+   "utility_ok": true,
+   "sources": [
+    "show \u2014 Show switch IP addresses: [sh|show] ip interface brief",
+    "metaflac \u2014 Show all tags in a FLAC file: metaflac --show-all-tags path/to/file.flac",
+    "bloodhound-python \u2014 Collect all data using default collection methods (includes groups, sessions, and trusts): bloodhound-python --username username --password password --domain domain"
+   ],
+   "literals": [],
+   "prompt_tokens": 131,
+   "new_tokens": 4,
+   "seconds": 0.27
+  },
+  {
+   "tier": "head",
+   "cmd": "msfconsole",
+   "utility": "msfconsole",
+   "freq": 341,
+   "nl": "Launch the interactive console for the Metasploit framework.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "msfconsole",
+   "command": "sudo groupadd -f -f -f -f -f -f -f -f -f -f -f -f -f -f",
+   "raw": "sudo groupadd -f -f -f -f -f -f -f -f -f -f -f -f -f -f",
+   "utility_ok": false,
+   "sources": [
+    "msfconsole \u2014 Launch the interactive console (append `--quiet` to suppress the startup banner): sudo msfconsole",
+    "tgpt \u2014 Chat with the default provider (GPT-3.5-turbo): tgpt \"prompt\"",
+    "groupadd \u2014 Create a new group: sudo groupadd group_name"
+   ],
+   "literals": [],
+   "prompt_tokens": 114,
+   "new_tokens": 32,
+   "seconds": 1.58
+  },
+  {
+   "tier": "mid",
+   "cmd": "shasum id_rsa",
+   "utility": "shasum",
+   "freq": 2,
+   "nl": "Calculate the SHA checksum for the file id_rsa.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "shasum id_rsa",
+   "command": "shasum -i id_rsa",
+   "raw": "shasum -i id_rsa",
+   "utility_ok": true,
+   "sources": [
+    "shasum \u2014 Calculate the SHA1 checksum for one or more files: shasum path/to/file1 path/to/file2 ...",
+    "gcrane-help \u2014 Display help for a subcommand: gcrane help command",
+    "cupsenable \u2014 Start one or more destination(s): cupsenable destination1 destination2 ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 120,
+   "new_tokens": 9,
+   "seconds": 0.51
+  },
+  {
+   "tier": "tail",
+   "cmd": "% scp /",
+   "utility": "%",
+   "freq": 1,
+   "nl": "Securely copy the / directory.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "% scp /",
+   "command": "% -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c /",
+   "raw": "% -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c / -c /",
+   "utility_ok": true,
+   "sources": [
+    "% \u2014 Bring the current job to front: %",
+    "aa-status \u2014 Check status: sudo aa-status",
+    "diffstat \u2014 Display changes in a histogram: diff path/to/file1 path/to/file2 | diffstat"
+   ],
+   "literals": [],
+   "prompt_tokens": 96,
+   "new_tokens": 64,
+   "seconds": 2.95
+  },
+  {
+   "tier": "mid",
+   "cmd": "ncat -l 8080",
+   "utility": "ncat",
+   "freq": 5,
+   "nl": "Listen for incoming network connections on port 8080.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ncat -l 8080",
+   "command": "sudo find / -type f -print0 | xargs -0 grep -c 8080",
+   "raw": "sudo find / -type f -print0 | xargs -0 grep -c 8080",
+   "utility_ok": false,
+   "sources": [
+    "ncat \u2014 Listen for input on the specified port and write it to the specified file: ncat [-l|--listen] port > path/to/file",
+    "systemd-cat \u2014 Write the output of the specified command to the journal (both output streams are captured): systemd-cat command",
+    "pbmtonokia \u2014 Convert a PBM image into a Nokia Operator Logo as hexcode: pbmtonokia [-f|-fmt] NEX_NOL -net network_operator_code path/to/image.pbm > path/to/output.hex"
+   ],
+   "literals": [
+    "8080"
+   ],
+   "prompt_tokens": 171,
+   "new_tokens": 23,
+   "seconds": 1.18
+  },
+  {
+   "tier": "tail",
+   "cmd": "nice",
+   "utility": "nice",
+   "freq": 1,
+   "nl": "Display the current process scheduling priority.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "nice",
+   "command": "nice -p 1 | xargs -0 sleep 1 | sort | head -n 1 | head -n 1 | sort | head -n 1 | head -n 1 | sort | head -n 1 | head -n 1 | sort | head -n 1 |",
+   "raw": "nice -p 1 | xargs -0 sleep 1 | sort | head -n 1 | head -n 1 | sort | head -n 1 | head -n 1 | sort | head -n 1 | head -n 1 | sort | head -n 1 |",
+   "utility_ok": true,
+   "sources": [
+    "vibe \u2014 Start an interactive Mistral Vibe session in the current directory: vibe",
+    "gfmt \u2014 View documentation for the original command: tldr fmt",
+    "nice \u2014 Print the current niceness value: nice"
+   ],
+   "literals": [],
+   "prompt_tokens": 89,
+   "new_tokens": 64,
+   "seconds": 2.85
+  },
+  {
+   "tier": "mid",
+   "cmd": "sudo sed -i s/passwd_mode=0/passwd_mode=2/g /etc/webmin/miniserv.conf;service webmin restart",
+   "utility": "sed",
+   "freq": 3,
+   "nl": "Change passwd_mode from 0 to 2 in /etc/webmin/miniserv.conf and restart the webmin service.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sudo sed -i s/passwd_mode=0/passwd_mode=2/g /etc/webmin/miniserv.conf;service webmin restart",
+   "command": "sed -i \"000000000000000000000000000000000000000000000000000000000000",
+   "raw": "sed -i \"000000000000000000000000000000000000000000000000000000000000",
+   "utility_ok": true,
+   "sources": [
+    "systemctl-kexec \u2014 Fast reboot using kexec (if kernel is pre-loaded): systemctl kexec",
+    "git-merge-tree \u2014 Show the result of a merge between two branches: git merge-tree branch1 branch2",
+    "sed \u2014 Replace all `apple` (basic `regex`) occurrences with `mango` (basic `regex`) in all input lines and print the result to `stdout`: command | sed 's/apple/mango/g'"
+   ],
+   "literals": [
+    "passwd_mode",
+    "0",
+    "2",
+    "/etc/webmin/miniserv.conf"
+   ],
+   "prompt_tokens": 165,
+   "new_tokens": 64,
+   "seconds": 2.83
+  },
+  {
+   "tier": "tail",
+   "cmd": "xargs --help",
+   "utility": "xargs",
+   "freq": 1,
+   "nl": "Display the help and usage options for the command used to pass standard input as arguments to other commands.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "xargs --help",
+   "command": "highlight -o | grep 's/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/",
+   "raw": "highlight -o | grep 's/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/s/",
+   "utility_ok": false,
+   "sources": [
+    "xargs \u2014 Run a command using the input data as arguments: arguments_source | xargs command",
+    "highlight \u2014 Produce a complete HTML document from a source code file: highlight [-o|--out-format] html [-s|--style] theme_name [-S|--syntax] language path/to/source_code",
+    "nmcli-device \u2014 Print the statuses of all network interfaces: nmcli [d|device]"
+   ],
+   "literals": [],
+   "prompt_tokens": 149,
+   "new_tokens": 64,
+   "seconds": 2.89
+  },
+  {
+   "tier": "tail",
+   "cmd": "whois 172.18.1.5",
+   "utility": "whois",
+   "freq": 1,
+   "nl": "Look up the registration and ownership details for the IP address 172.18.1.5.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "whois 172.18.1.5",
+   "command": "which IP address 172.18.1.5.",
+   "raw": "which IP address 172.18.1.5.",
+   "utility_ok": false,
+   "sources": [
+    "gmknod \u2014 View documentation for the original command: tldr [-p|--platform] linux mknod",
+    "whois \u2014 Get information about a domain name: whois example.com",
+    "pdftoppm \u2014 Specify the range of pages to convert (`n` - first page, `m` - last page): pdftoppm -f n -l m path/to/file.pdf image_name_prefix"
+   ],
+   "literals": [],
+   "prompt_tokens": 152,
+   "new_tokens": 16,
+   "seconds": 0.79
+  },
+  {
+   "tier": "head",
+   "cmd": "searchsploit webmin",
+   "utility": "searchsploit",
+   "freq": 45,
+   "nl": "Search for exploit code and vulnerabilities related to webmin.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "searchsploit webmin",
+   "command": "searchsploit -c \".*.php\"",
+   "raw": "searchsploit -c \".*.php\"",
+   "utility_ok": true,
+   "sources": [
+    "searchsploit \u2014 Search for an exploit, shellcode, or paper: searchsploit search_terms",
+    "glab-pipeline \u2014 View a running pipeline on the current branch: glab pipeline status",
+    "qm \u2014 List all virtual machines: qm list"
+   ],
+   "literals": [],
+   "prompt_tokens": 102,
+   "new_tokens": 11,
+   "seconds": 0.57
+  },
+  {
+   "tier": "head",
+   "cmd": "man nmap",
+   "utility": "man",
+   "freq": 255,
+   "nl": "Show me the manual page and documentation for the nmap tool.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "man nmap",
+   "command": "man -p \"man\"",
+   "raw": "man -p \"man\"",
+   "utility_ok": true,
+   "sources": [
+    "strigger \u2014 Register a new trigger. Execute the specified program when the specified event occurs: strigger --set --primary_database_failure|primary_slurmdbd_failure|primary_slurmctld_acct_buffer_full|primary_slurmctld_failure|... [-p|--program] path/to/executable",
+    "onefetch \u2014 Display statistics for the Git repository in the current working directory: onefetch",
+    "man \u2014 Display the man page for a command: man command"
+   ],
+   "literals": [],
+   "prompt_tokens": 158,
+   "new_tokens": 7,
+   "seconds": 0.42
+  },
+  {
+   "tier": "tail",
+   "cmd": "mtr 8.8.8.8",
+   "utility": "mtr",
+   "freq": 1,
+   "nl": "Continuously trace the network route to 8.8.8.8 to monitor latency and packet loss.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "mtr 8.8.8.8",
+   "command": "mtr -c 8.88.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.",
+   "raw": "mtr -c 8.88.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.8.",
+   "utility_ok": true,
+   "sources": [
+    "avahi-resolve-host-name \u2014 View documentation for the original command: tldr avahi-resolve",
+    "elasticsearch-create-enrollment-token \u2014 Create an enrollment token for adding a new Elasticsearch node: elasticsearch-create-enrollment-token [-s|--scope] node",
+    "mtr \u2014 Traceroute to a host and continuously ping all intermediary hops: mtr example.com"
+   ],
+   "literals": [
+    "8.8.8.8"
+   ],
+   "prompt_tokens": 144,
+   "new_tokens": 64,
+   "seconds": 3.07
+  },
+  {
+   "tier": "head",
+   "cmd": "cp $(locate ssh2john.py) .",
+   "utility": "cp",
+   "freq": 91,
+   "nl": "Find ssh2john.py on my system and copy it to the current directory.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "cp $(locate ssh2john.py) .",
+   "command": "cp -i",
+   "raw": "cp -i",
+   "utility_ok": true,
+   "sources": [
+    "unzipsfx \u2014 Create a self-extracting binary file of a Zip archive: cat $(which unzipsfx) path/to/archive.zip > filename && chmod 755 filename",
+    "cp \u2014 Copy a file to another location: cp path/to/source_file path/to/target_file",
+    "pulumi-state \u2014 Delete a resource from the current stack's state: pulumi state delete"
+   ],
+   "literals": [
+    "ssh2john.py"
+   ],
+   "prompt_tokens": 144,
+   "new_tokens": 4,
+   "seconds": 0.29
+  },
+  {
+   "tier": "head",
+   "cmd": "cat flag.txt",
+   "utility": "cat",
+   "freq": 632,
+   "nl": "Display the contents of flag.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "cat flag.txt",
+   "command": "cat -f",
+   "raw": "cat -f",
+   "utility_ok": true,
+   "sources": [
+    "trdsql \u2014 Convert object data from multiple JSON files to a CSV file with header (`-oh`) and double quote: trdsql -ocsv -oh \"SELECT * FROM path/to/directory/*.json\" | sed 's/\\([^,]*\\)/\"&\"/g' > path/to/file.csv",
+    "cat \u2014 Print the contents of a file to `stdout`: cat path/to/file",
+    "npm-config \u2014 Show all configuration settings: npm [c|config] list"
+   ],
+   "literals": [],
+   "prompt_tokens": 153,
+   "new_tokens": 4,
+   "seconds": 0.31
+  },
+  {
+   "tier": "head",
+   "cmd": "ls -la",
+   "utility": "ls",
+   "freq": 3038,
+   "nl": "List all files in the current directory, including hidden ones, with detailed information.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ls -la",
+   "command": "ls -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -",
+   "raw": "ls -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -d -",
+   "utility_ok": true,
+   "sources": [
+    "atool \u2014 List files in an archive: atool [-l|--list] path/to/archive.zip",
+    "ls \u2014 List files one per line: ls -1",
+    "hf \u2014 Login to Hugging Face Hub: hf auth login"
+   ],
+   "literals": [],
+   "prompt_tokens": 108,
+   "new_tokens": 64,
+   "seconds": 3.06
+  },
+  {
+   "tier": "head",
+   "cmd": "cd ..",
+   "utility": "cd",
+   "freq": 2176,
+   "nl": "Go up to the parent directory.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "cd ..",
+   "command": "cd -o parent",
+   "raw": "cd -o parent",
+   "utility_ok": true,
+   "sources": [
+    "tokei \u2014 Display a report for the code in a directory and all subdirectories: tokei path/to/directory",
+    "docker-compose-down \u2014 Stop and remove all containers and networks: docker compose down",
+    "cd \u2014 Go to the specified directory: CD PATH\\TO\\DIRECTORY"
+   ],
+   "literals": [],
+   "prompt_tokens": 105,
+   "new_tokens": 5,
+   "seconds": 0.3
+  },
+  {
+   "tier": "tail",
+   "cmd": "npm -p- 192.168.130.0",
+   "utility": "npm",
+   "freq": 1,
+   "nl": "Scan all ports on 192.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "npm -p- 192.168.130.0",
+   "command": "sudo find / -type f -print0 | xargs -0 grep -i 's/ // // // // // // // // // // // // // // // // // // // // // //",
+   "raw": "sudo find / -type f -print0 | xargs -0 grep -i 's/ // // // // // // // // // // // // // // // // // // // // // //",
+   "utility_ok": false,
+   "sources": [
+    "cpufreq-aperf \u2014 Start calculating, defaulting to all CPU cores and 1 second refresh interval: sudo cpufreq-aperf",
+    "npm \u2014 Create a `package.json` file with default values (omit `--yes` to do it interactively): npm init [-y|--yes]",
+    "ufw-enable \u2014 Simulate enabling the firewall without making changes: sudo ufw --dry-run enable"
+   ],
+   "literals": [],
+   "prompt_tokens": 134,
+   "new_tokens": 64,
+   "seconds": 2.85
+  },
+  {
+   "tier": "head",
+   "cmd": "scp admin@10.1.26.9:invoices2019.zip /home",
+   "utility": "scp",
+   "freq": 696,
+   "nl": "Copy the file invoices2019.zip from the remote server 10.1.26.9 using the admin user to the local /home directory.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "scp admin@10.1.26.9:invoices2019.zip /home",
+   "command": "csvstat -u 10.1.26.9",
+   "raw": "csvstat -u 10.1.26.9",
+   "utility_ok": false,
+   "sources": [
+    "csvstat \u2014 Show all stats for all columns: csvstat data.csv",
+    "gid \u2014 View documentation for the original command: tldr id",
+    "scp \u2014 Copy a local file to a remote host: scp path/to/local_file remote_host:path/to/remote_file"
+   ],
+   "literals": [
+    "invoices2019.zip",
+    "10.1.26.9",
+    "/home"
+   ],
+   "prompt_tokens": 137,
+   "new_tokens": 15,
+   "seconds": 0.74
+  },
+  {
+   "tier": "tail",
+   "cmd": "eval `ssh-agent`",
+   "utility": "eval",
+   "freq": 1,
+   "nl": "Start the SSH authentication agent in the current terminal session.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "eval `ssh-agent`",
+   "command": "eval -a `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo",
+   "raw": "eval -a `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `echo `",
+   "utility_ok": true,
+   "sources": [
+    "luanti \u2014 Start Luanti in client mode: luanti",
+    "git-create-branch \u2014 Create a local branch: git create-branch branch_name",
+    "eval \u2014 Call `echo` with the \"foo\" argument: eval \"echo foo\""
+   ],
+   "literals": [],
+   "prompt_tokens": 102,
+   "new_tokens": 64,
+   "seconds": 3.02
+  },
+  {
+   "tier": "head",
+   "cmd": "less file.txt",
+   "utility": "less",
+   "freq": 40,
+   "nl": "View the contents of file.txt page by page.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "less file.txt",
+   "command": "less -f -f -p",
+   "raw": "less -f -f -p",
+   "utility_ok": true,
+   "sources": [
+    "less \u2014 Open a file for interactive reading: less path/to/source_file",
+    "ypchpass \u2014 View documentation for the original command: tldr chpass",
+    "wikiman \u2014 Search for a specific topic in all installed sources: wikiman search_term"
+   ],
+   "literals": [
+    "file.txt"
+   ],
+   "prompt_tokens": 104,
+   "new_tokens": 8,
+   "seconds": 0.44
+  },
+  {
+   "tier": "mid",
+   "cmd": "bash 47293.sh",
+   "utility": "bash",
+   "freq": 5,
+   "nl": "Run the 47293.sh script.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "bash 47293.sh",
+   "command": "bash -c 47293",
+   "raw": "bash -c 47293",
+   "utility_ok": true,
+   "sources": [
+    "bash \u2014 Start an interactive shell session: bash",
+    "pathping \u2014 Ping and trace the route to a host: pathping hostname",
+    "svg2png \u2014 Convert an SVG file to PNG: svg2png path/to/file.svg path/to/output.png"
+   ],
+   "literals": [
+    "47293.sh"
+   ],
+   "prompt_tokens": 107,
+   "new_tokens": 10,
+   "seconds": 0.55
+  },
+  {
+   "tier": "mid",
+   "cmd": "where .invoices2019.zip",
+   "utility": "where",
+   "freq": 2,
+   "nl": "Find the location of the file .invoices2019.zip.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "where .invoices2019.zip",
+   "command": "where -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -",
+   "raw": "where -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -f -i -",
+   "utility_ok": true,
+   "sources": [
+    "where \u2014 Find all instances of a command: where command",
+    "pulumi-update \u2014 View documentation for the original command: tldr pulumi up",
+    "nm \u2014 List global (extern) functions in a file (prefixed with T): nm [-g|--extern-only] path/to/file.o"
+   ],
+   "literals": [],
+   "prompt_tokens": 118,
+   "new_tokens": 64,
+   "seconds": 2.98
+  },
+  {
+   "tier": "tail",
+   "cmd": "showmount -e",
+   "utility": "showmount",
+   "freq": 1,
+   "nl": "Show the list of exported NFS shares on this machine.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "showmount -e",
+   "command": "cdparanoia -B | xargs -0 grep -a \"export\"",
+   "raw": "cdparanoia -B | xargs -0 grep -a \"export\"",
+   "utility_ok": false,
+   "sources": [
+    "autoraise \u2014 Run AutoRaise in the background: autoraise &",
+    "cdparanoia \u2014 Extract all tracks and write them into separate WAV files named `track#.wav`: cdparanoia [-B|--batch]",
+    "showmount \u2014 Show clients currently mounting from the server: showmount hostname"
+   ],
+   "literals": [],
+   "prompt_tokens": 110,
+   "new_tokens": 17,
+   "seconds": 0.85
+  },
+  {
+   "tier": "mid",
+   "cmd": "netdiscover -r 172.18.1.5",
+   "utility": "netdiscover",
+   "freq": 5,
+   "nl": "Scan the network to discover active devices at 172.18.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "netdiscover -r 172.18.1.5",
+   "command": "resticprofile-schedule -d 172.18",
+   "raw": "resticprofile-schedule -d 172.18",
+   "utility_ok": false,
+   "sources": [
+    "resticprofile-schedule \u2014 Schedule default profile: resticprofile schedule",
+    "netdiscover \u2014 Scan the IP range on the network interface for active hosts: netdiscover -r 172.16.6.0/23 -i ens244",
+    "gemtopnm \u2014 Convert a GEM image file to a PNM image: gemtopnm path/to/file.img > path/to/output.pnm"
+   ],
+   "literals": [],
+   "prompt_tokens": 146,
+   "new_tokens": 15,
+   "seconds": 0.8
+  },
+  {
+   "tier": "tail",
+   "cmd": "htop",
+   "utility": "htop",
+   "freq": 1,
+   "nl": "Show an interactive monitor of running processes and system resource usage.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "htop",
+   "command": "sudo find / -type f -exec bash -c 's/ // // // // // // // // // // // // // // // // // // // // // // // // //",
+   "raw": "sudo find / -type f -exec bash -c 's/ // // // // // // // // // // // // // // // // // // // // // // // // //",
+   "utility_ok": false,
+   "sources": [
+    "repquota \u2014 Report stats for all quotas in use: sudo repquota [-a|--all]",
+    "unix2dos \u2014 Change the line endings of a file: unix2dos path/to/file",
+    "htop \u2014 Start `htop`: htop"
+   ],
+   "literals": [],
+   "prompt_tokens": 105,
+   "new_tokens": 64,
+   "seconds": 2.89
+  },
+  {
+   "tier": "mid",
+   "cmd": "export TERM=xterm",
+   "utility": "export",
+   "freq": 6,
+   "nl": "Set the terminal type to xterm.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "export TERM=xterm",
+   "command": "export terminal=xterm.txt",
+   "raw": "export terminal=xterm.txt",
+   "utility_ok": true,
+   "sources": [
+    "export \u2014 Set an environment variable: export VARIABLE=value",
+    "s3cmd \u2014 Invoke configuration/reconfiguration tool: s3cmd --configure",
+    "mklink \u2014 Create a symbolic link to a file: mklink path\\to\\link_file path\\to\\source_file"
+   ],
+   "literals": [],
+   "prompt_tokens": 105,
+   "new_tokens": 8,
+   "seconds": 0.42
+  },
+  {
+   "tier": "mid",
+   "cmd": "arp-scan -l",
+   "utility": "arp-scan",
+   "freq": 10,
+   "nl": "Scan the local network to find all connected devices and their IP addresses.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "arp-scan -l",
+   "command": "calendar -a",
+   "raw": "calendar -a",
+   "utility_ok": false,
+   "sources": [
+    "calendar \u2014 Show events for today and tomorrow (or the weekend on Friday) from the default calendar: calendar",
+    "arp-scan \u2014 Scan the current local network: arp-scan [-l|--localnet]",
+    "firebase \u2014 Log in to <https://console.firebase.google.com>: firebase login"
+   ],
+   "literals": [],
+   "prompt_tokens": 116,
+   "new_tokens": 4,
+   "seconds": 0.29
+  },
+  {
+   "tier": "mid",
+   "cmd": "tail /var/log/auth.log",
+   "utility": "tail",
+   "freq": 3,
+   "nl": "Show the last few lines of /var/log/auth.log.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "tail /var/log/auth.log",
+   "command": "tail -n 8 /var/log/auth.log",
+   "raw": "tail -n 8 /var/log/auth.log",
+   "utility_ok": true,
+   "sources": [
+    "navi \u2014 Browse through all available cheatsheets: navi",
+    "f5fpc \u2014 Open a new VPN connection: sudo f5fpc --start",
+    "tail \u2014 Show last 8 lines in file: tail -n 8 path/to/file"
+   ],
+   "literals": [
+    "/var/log/auth.log"
+   ],
+   "prompt_tokens": 108,
+   "new_tokens": 14,
+   "seconds": 0.74
+  },
+  {
+   "tier": "mid",
+   "cmd": "cksum id_rsa",
+   "utility": "cksum",
+   "freq": 10,
+   "nl": "Calculate the checksum and byte count for the file id_rsa.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "cksum id_rsa",
+   "command": "cl -c id_rsa",
+   "raw": "cl -c id_rsa",
+   "utility_ok": false,
+   "sources": [
+    "cksum \u2014 Display a 32-bit checksum, size in bytes and filename: cksum path/to/file",
+    "kubectl-describe \u2014 Show details of pods in a namespace: kubectl describe [po|pods] [-n|--namespace] namespace",
+    "cl \u2014 Compile a source file: cl path\\to\\source.c"
+   ],
+   "literals": [],
+   "prompt_tokens": 122,
+   "new_tokens": 7,
+   "seconds": 0.39
+  },
+  {
+   "tier": "mid",
+   "cmd": "login",
+   "utility": "login",
+   "freq": 3,
+   "nl": "Sign in to the system to start a new session.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "login",
+   "command": "login -s system | xargs -0 sign -s",
+   "raw": "login -s system | xargs -0 sign -s",
+   "utility_ok": true,
+   "sources": [
+    "login \u2014 Use local username and password for authentication: login local",
+    "dget \u2014 Download a binary package: dget package",
+    "systemctl-kill \u2014 Send the `SIGTERM` signal to a unit to terminate it: systemctl kill unit"
+   ],
+   "literals": [],
+   "prompt_tokens": 100,
+   "new_tokens": 13,
+   "seconds": 0.64
+  },
+  {
+   "tier": "mid",
+   "cmd": "last",
+   "utility": "last",
+   "freq": 2,
+   "nl": "Show the history of recent user logins and system reboots.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "last",
+   "command": "mix -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "raw": "mix -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "utility_ok": false,
+   "sources": [
+    "dhcpcd \u2014 Release all address leases: sudo dhcpcd [-k|--release]",
+    "mix \u2014 Execute a particular file: mix run my_script.exs",
+    "last \u2014 View last login information (e.g., username, terminal, boot time, kernel) of all users as read from `/var/log/wtmp`: last"
+   ],
+   "literals": [
+    "logins"
+   ],
+   "prompt_tokens": 124,
+   "new_tokens": 64,
+   "seconds": 3.0
+  },
+  {
+   "tier": "mid",
+   "cmd": "file *",
+   "utility": "file",
+   "freq": 5,
+   "nl": "Show the file type of every file in the current directory.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "file *",
+   "command": "file -f -t",
+   "raw": "file -f -t",
+   "utility_ok": true,
+   "sources": [
+    "file \u2014 Give a description of the type of the specified file: file path/to/file",
+    "pulseaudio \u2014 Check if PulseAudio is running (a non-zero exit code means it is not running): pulseaudio --check",
+    "cpufreq-set \u2014 Set the CPU frequency policy of CPU 1 to \"userspace\": sudo cpufreq-set [-c|--cpu] 1 [-g|--governor] userspace"
+   ],
+   "literals": [],
+   "prompt_tokens": 145,
+   "new_tokens": 6,
+   "seconds": 0.36
+  },
+  {
+   "tier": "mid",
+   "cmd": "head -n 30 /usr/share/john/password.lst",
+   "utility": "head",
+   "freq": 10,
+   "nl": "Show the first 30 lines of /usr/share/john/password.lst.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "head -n 30 /usr/share/john/password.lst",
+   "command": "head -n 30 /usr/share/john/password.lst",
+   "raw": "head -n 30 /usr/share/john/password.lst",
+   "utility_ok": true,
+   "sources": [
+    "command \u2014 Execute the `ls` program literally, even if an `ls` alias exists: command ls",
+    "gnutr \u2014 View documentation for the original command: tldr tr",
+    "head \u2014 Output the first 10 lines of a file: head path/to/file"
+   ],
+   "literals": [
+    "30",
+    "/usr/share/john/password.lst"
+   ],
+   "prompt_tokens": 116,
+   "new_tokens": 17,
+   "seconds": 0.85
+  },
+  {
+   "tier": "tail",
+   "cmd": "gio open file2",
+   "utility": "gio",
+   "freq": 1,
+   "nl": "Open file2 in its default application.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "gio open file2",
+   "command": "rpm -a 2",
+   "raw": "rpm -a 2",
+   "utility_ok": false,
+   "sources": [
+    "rpm \u2014 Show version of httpd package: rpm [-q|--query] httpd",
+    "gio \u2014 Open a file with the default application (e.g. PDF, image): gio open path/to/file",
+    "fossil-commit \u2014 Create a new version containing all the changes in the current checkout; user will be prompted for a comment: fossil [ci|commit]"
+   ],
+   "literals": [
+    "file2"
+   ],
+   "prompt_tokens": 125,
+   "new_tokens": 6,
+   "seconds": 0.37
+  },
+  {
+   "tier": "head",
+   "cmd": "ip a",
+   "utility": "ip",
+   "freq": 81,
+   "nl": "Show all network interfaces and their assigned IP addresses.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ip a",
+   "command": "ip --address 2 | xargs -0 grep -i \"IP\"",
+   "raw": "ip --address 2 | xargs -0 grep -i \"IP\"",
+   "utility_ok": true,
+   "sources": [
+    "gnuseq \u2014 View documentation for the original command: tldr seq",
+    "pkgctl-release \u2014 Release a build artifact: pkgctl release --repo repository --message commit_message",
+    "ip \u2014 Set the SSH version: ip ssh version 2"
+   ],
+   "literals": [],
+   "prompt_tokens": 100,
+   "new_tokens": 17,
+   "seconds": 0.91
+  },
+  {
+   "tier": "head",
+   "cmd": "locate ssh2john.py",
+   "utility": "locate",
+   "freq": 58,
+   "nl": "Find the location of the file ssh2john.py on the system.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "locate ssh2john.py",
+   "command": "find / -type f -print0 | xargs -0 chmod 777",
+   "raw": "find / -type f -print0 | xargs -0 chmod 777",
+   "utility_ok": false,
+   "sources": [
+    "jigsaw \u2014 Initialize a project: jigsaw init",
+    "locate \u2014 Look for pattern in the database. Note: The database is recomputed periodically (usually weekly or daily): locate \"pattern\"",
+    "ges-launch-1.0 \u2014 View two clips in sequence: ges-launch-1.0 +clip path/to/file1 +clip path/to/file2"
+   ],
+   "literals": [
+    "ssh2john.py"
+   ],
+   "prompt_tokens": 130,
+   "new_tokens": 19,
+   "seconds": 0.91
+  },
+  {
+   "tier": "tail",
+   "cmd": "from struct import unpack",
+   "utility": "from",
+   "freq": 1,
+   "nl": "Import the function to convert packed binary data back into standard Python values.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "from struct import unpack",
+   "command": "from -i convert -b",
+   "raw": "from -i convert -b",
+   "utility_ok": true,
+   "sources": [
+    "from \u2014 List mail: from",
+    "mac2unix \u2014 Change the line endings of a file: mac2unix path/to/file",
+    "paste \u2014 Join all the lines into a single line, using `TAB` as delimiter: paste [-s|--serial] path/to/file"
+   ],
+   "literals": [],
+   "prompt_tokens": 113,
+   "new_tokens": 7,
+   "seconds": 0.4
+  },
+  {
+   "tier": "mid",
+   "cmd": "stty raw -echo",
+   "utility": "stty",
+   "freq": 2,
+   "nl": "Set the terminal to read keystrokes immediately without waiting for the Enter key and stop displaying typed",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "stty raw -echo",
+   "command": "tldr getTGT.py",
+   "raw": "tldr getTGT.py",
+   "utility_ok": false,
+   "sources": [
+    "stty \u2014 Display current terminal size: stty size",
+    "aha \u2014 Convert terminal output to HTML: color_command | aha > path/to/output.html",
+    "impacket-gettgt \u2014 View documentation for the original command: tldr getTGT.py"
+   ],
+   "literals": [],
+   "prompt_tokens": 114,
+   "new_tokens": 8,
+   "seconds": 0.47
+  },
+  {
+   "tier": "tail",
+   "cmd": "pbpaste > id_rsa",
+   "utility": "pbpaste",
+   "freq": 1,
+   "nl": "Save the contents of my clipboard to a file named id_rsa.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "pbpaste > id_rsa",
+   "command": "sdid_rsa | xargs -0 file",
+   "raw": "sdid_rsa | xargs -0 file",
+   "utility_ok": false,
+   "sources": [
+    "scd \u2014 Index paths recursively for the very first run: scd -ar path/to/directory",
+    "pbpaste \u2014 Write the contents of the clipboard to a file: pbpaste > path/to/file",
+    "gnuprintf \u2014 View documentation for the original command: tldr printf"
+   ],
+   "literals": [],
+   "prompt_tokens": 113,
+   "new_tokens": 11,
+   "seconds": 0.62
+  },
+  {
+   "tier": "head",
+   "cmd": "vim id_rsa",
+   "utility": "vim",
+   "freq": 141,
+   "nl": "Open and edit the file named id_rsa in a text editor.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "vim id_rsa",
+   "command": "vim -e id_rsa",
+   "raw": "vim -e id_rsa",
+   "utility_ok": true,
+   "sources": [
+    "dvc-freeze \u2014 Freeze one or more specified stages: dvc freeze stage_name1 stage_name2 ...",
+    "vim \u2014 Open a file: vim path/to/file",
+    "jira-navigate \u2014 View documentation for the original command: tldr jira open"
+   ],
+   "literals": [
+    "id_rsa"
+   ],
+   "prompt_tokens": 108,
+   "new_tokens": 7,
+   "seconds": 0.39
+  },
+  {
+   "tier": "mid",
+   "cmd": "journalctl -u scp",
+   "utility": "journalctl",
+   "freq": 2,
+   "nl": "Show the logs for the scp service.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "journalctl -u scp",
+   "command": "log -s /proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/",
+   "raw": "log -s /proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/proc/",
+   "utility_ok": false,
+   "sources": [
+    "journalctl \u2014 Show the latest `n` lines and follow new messages (like `tail --follow` for traditional syslog): journalctl [-n|--lines] n [-f|--follow]",
+    "hangman \u2014 Start the game: hangman",
+    "fc-pattern \u2014 Display default information about a font: fc-pattern [-d|--default] 'DejaVu Serif'"
+   ],
+   "literals": [],
+   "prompt_tokens": 125,
+   "new_tokens": 64,
+   "seconds": 2.85
+  },
+  {
+   "tier": "mid",
+   "cmd": "while true; do wget http://pastebin.com/raw/hz0dX16z && break; done",
+   "utility": "while",
+   "freq": 4,
+   "nl": "Keep trying to download http://pastebin.com/raw/hz0dX16z until it succeeds.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "while true; do wget http://pastebin.com/raw/hz0dX16z && break; done",
+   "command": "while read -p -t \"http://pastebin.com/raw/hz0dX16z\"",
+   "raw": "while read -p -t \"http://pastebin.com/raw/hz0dX16z\"",
+   "utility_ok": true,
+   "sources": [
+    "while \u2014 Read `stdin` and perform an action on every line: while read line; do echo \"$line\"; done",
+    "xgettext \u2014 Scan file and output strings to `messages.po`: xgettext path/to/input_file",
+    "dnf-install \u2014 Install packages by name: sudo dnf [in|install] package1 package2 ..."
+   ],
+   "literals": [
+    "http://pastebin.com/raw/hz0dX16z"
+   ],
+   "prompt_tokens": 138,
+   "new_tokens": 24,
+   "seconds": 1.26
+  },
+  {
+   "tier": "head",
+   "cmd": "sh 47293.sh 47293.sh http://172.18.1.5:10000",
+   "utility": "sh",
+   "freq": 25,
+   "nl": "Run the script 47293.sh with the",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sh 47293.sh 47293.sh http://172.18.1.5:10000",
+   "command": "sh -c 47293",
+   "raw": "sh -c 47293",
+   "utility_ok": true,
+   "sources": [
+    "sh \u2014 Start an interactive shell session: sh",
+    "vagrant \u2014 Create a `Vagrantfile` in the current directory with the base Vagrant box: vagrant init",
+    "clido \u2014 Create a list: clido --new name"
+   ],
+   "literals": [
+    "47293.sh"
+   ],
+   "prompt_tokens": 102,
+   "new_tokens": 10,
+   "seconds": 0.53
+  },
+  {
+   "tier": "tail",
+   "cmd": "nvim ssh2john.py",
+   "utility": "nvim",
+   "freq": 1,
+   "nl": "Open ssh2john.py in a text editor.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "nvim ssh2john.py",
+   "command": "sed -e 's/s/////////////////////////////////////////////////////////",
+   "raw": "sed -e 's/s/////////////////////////////////////////////////////////",
+   "utility_ok": false,
+   "sources": [
+    "reg-save \u2014 Save a registry key, its subkeys and values to a specific file: reg save key_name path\\to\\file.hiv",
+    "nvim \u2014 Open a file: nvim path/to/file",
+    "fixfiles \u2014 If specified with onboot, this fixfiles will record the current date in the `/.autorelabel` file, so that it can be used later to speed up labeling. If used with restore, the restore will only affect files that were modified today: fixfiles -B"
+   ],
+   "literals": [
+    "ssh2john.py"
+   ],
+   "prompt_tokens": 157,
+   "new_tokens": 64,
+   "seconds": 2.86
+  },
+  {
+   "tier": "head",
+   "cmd": "john --wordlist=/usr/share/wordlists/rockyou.txt hash",
+   "utility": "john",
+   "freq": 442,
+   "nl": "Crack the password hashes in hash using the wordlist at /usr/share/wordlists/rockyou.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "john --wordlist=/usr/share/wordlists/rockyou.txt hash",
+   "command": "chown list_hash_user_password_hash_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_",
+   "raw": "chown list_hash_user_password_hash_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_txt_",
+   "utility_ok": false,
+   "sources": [
+    "meson \u2014 Generate a project with default values: meson init",
+    "john \u2014 Crack password hashes: john path/to/hashes.txt",
+    "hatch \u2014 Create a new Hatch project: hatch new project_name"
+   ],
+   "literals": [
+    "/usr/share/wordlists/rockyou.txt"
+   ],
+   "prompt_tokens": 105,
+   "new_tokens": 64,
+   "seconds": 2.97
+  },
+  {
+   "tier": "tail",
+   "cmd": "dc debian/",
+   "utility": "dc",
+   "freq": 1,
+   "nl": "Change to the debian/ directory.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "dc debian/",
+   "command": "dc -a",
+   "raw": "dc -a",
+   "utility_ok": true,
+   "sources": [
+    "dc \u2014 Start an interactive session: dc",
+    "bpython \u2014 Start a REPL (interactive shell): bpython",
+    "espanso \u2014 Check status: espanso status"
+   ],
+   "literals": [],
+   "prompt_tokens": 81,
+   "new_tokens": 4,
+   "seconds": 0.24
+  },
+  {
+   "tier": "mid",
+   "cmd": "ssh-keygen",
+   "utility": "ssh-keygen",
+   "freq": 13,
+   "nl": "Generate a new SSH key pair.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ssh-keygen",
+   "command": "ssh-keygen -a",
+   "raw": "ssh-keygen -a",
+   "utility_ok": true,
+   "sources": [
+    "ssh-keygen \u2014 Generate a key interactively: ssh-keygen",
+    "git-ls-files \u2014 Show deleted files: git ls-files [-d|--deleted]",
+    "npm-dist-tag \u2014 List all distribution tags for a package: npm dist-tag ls package_name"
+   ],
+   "literals": [],
+   "prompt_tokens": 105,
+   "new_tokens": 6,
+   "seconds": 0.34
+  },
+  {
+   "tier": "mid",
+   "cmd": "base64 -d",
+   "utility": "base64",
+   "freq": 2,
+   "nl": "Decode base64 encoded data from the standard input.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "base64 -d",
+   "command": "borg -i | xargs -0 echo -c \"base64\"",
+   "raw": "borg -i | xargs -0 echo -c \"base64\"",
+   "utility_ok": false,
+   "sources": [
+    "base64 \u2014 Encode a file to `stdout`: base64 [-i|--input] path/to/file",
+    "borg \u2014 Initialize a (local) repository: borg init path/to/repo_directory",
+    "sc_warts2pcap \u2014 Convert the data from several `.warts` files into one PCAP file: sc_warts2pcap -o path/to/output.pcap path/to/file1.warts path/to/file2.warts ..."
+   ],
+   "literals": [
+    "base64"
+   ],
+   "prompt_tokens": 152,
+   "new_tokens": 17,
+   "seconds": 0.85
+  },
+  {
+   "tier": "head",
+   "cmd": "grep ssh .bash_history",
+   "utility": "grep",
+   "freq": 25,
+   "nl": "Find all lines containing ssh in my .bash_history file.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "grep ssh .bash_history",
+   "command": "grep -i \"ssh\"",
+   "raw": "grep -i \"ssh\"",
+   "utility_ok": true,
+   "sources": [
+    "remove-appxpackage \u2014 Remove an app package: Remove-AppxPackage package",
+    "grep \u2014 Search for a pattern within files: grep \"search_pattern\" path/to/file1 path/to/file2 ...",
+    "ansible-vault \u2014 Create a new encrypted vault file with a prompt for a password: ansible-vault create path/to/vault_file"
+   ],
+   "literals": [],
+   "prompt_tokens": 129,
+   "new_tokens": 7,
+   "seconds": 0.43
+  },
+  {
+   "tier": "head",
+   "cmd": "python ssh2john.py",
+   "utility": "python",
+   "freq": 421,
+   "nl": "Convert an encrypted SSH private key into a format that can be processed by John the Ripper for password cracking.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "python ssh2john.py",
+   "command": "python -c \"ssh\"",
+   "raw": "python -c \"ssh\"",
+   "utility_ok": true,
+   "sources": [
+    "lzfgrep \u2014 View documentation for the original command: tldr xzgrep",
+    "python \u2014 Start a REPL (interactive shell): python",
+    "snap \u2014 View documentation for the packaging solution: tldr snap.pkg"
+   ],
+   "literals": [],
+   "prompt_tokens": 107,
+   "new_tokens": 7,
+   "seconds": 0.43
+  },
+  {
+   "tier": "mid",
+   "cmd": "zip -help",
+   "utility": "zip",
+   "freq": 6,
+   "nl": "Show the help options for creating and managing zip archives.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "zip -help",
+   "command": "zip -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "raw": "zip -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -a -",
+   "utility_ok": true,
+   "sources": [
+    "moe \u2014 Open moe and create a backup file (file~) when saving edits: moe path/to/file",
+    "pct-status \u2014 Display if the container is running: pct status 100",
+    "zip \u2014 Add files/directories to a specific archive: zip [-r|--recurse-paths] path/to/compressed.zip path/to/file_or_directory1 path/to/file_or_directory2 ..."
+   ],
+   "literals": [],
+   "prompt_tokens": 142,
+   "new_tokens": 64,
+   "seconds": 2.87
+  },
+  {
+   "tier": "mid",
+   "cmd": "mv 10.1.135.83 privkey",
+   "utility": "mv",
+   "freq": 19,
+   "nl": "Rename the file 10.1.135.83 to privkey.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "mv 10.1.135.83 privkey",
+   "command": "mv -f 10.1.135.83",
+   "raw": "mv -f 10.1.135.83",
+   "utility_ok": true,
+   "sources": [
+    "onefetch \u2014 Display statistics for the Git repository in the current working directory: onefetch",
+    "mv \u2014 Rename a file or directory when the target is not an existing directory: mv path/to/source path/to/target",
+    "swapoff \u2014 Disable a given swap area: sudo swapoff path/to/file"
+   ],
+   "literals": [
+    "10.1.135.83"
+   ],
+   "prompt_tokens": 123,
+   "new_tokens": 16,
+   "seconds": 0.75
+  },
+  {
+   "tier": "mid",
+   "cmd": "for i in {1..65535}; do nmap -p ${i} 172.18.1.5 >> out.txt; done",
+   "utility": "for",
+   "freq": 2,
+   "nl": "Scan every port from 1 to 65535 on 172.18.1.5 individually and append the results to out.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "for i in {1..65535}; do nmap -p ${i} 172.18.1.5 >> out.txt; done",
+   "command": "for i in 172.18.1.5; done",
+   "raw": "for i in 172.18.1.5; done",
+   "utility_ok": true,
+   "sources": [
+    "wacli-contacts-alias-set \u2014 Set an alias for a specific contact: wacli contacts alias set phone_number@s.whatsapp.net alias",
+    "gnuuname \u2014 View documentation for the original command: tldr uname",
+    "for \u2014 Iterate through command line parameters: for variable; do echo $variable; done"
+   ],
+   "literals": [
+    "1",
+    "65535",
+    "172.18.1.5"
+   ],
+   "prompt_tokens": 143,
+   "new_tokens": 17,
+   "seconds": 0.88
+  },
+  {
+   "tier": "head",
+   "cmd": "chmod 600 id_rsa",
+   "utility": "chmod",
+   "freq": 107,
+   "nl": "Change the permissions of id_rsa so only I can read and write to it.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "chmod 600 id_rsa",
+   "command": "chmod 775 id_rsa",
+   "raw": "chmod 775 id_rsa",
+   "utility_ok": true,
+   "sources": [
+    "chmod \u2014 Give the [u]ser who owns a file the right to e[x]ecute it: chmod u+x path/to/file",
+    "jira-project \u2014 List all projects: jira project [ls|list]",
+    "pnmarith \u2014 View documentation for the current command: tldr pamarith"
+   ],
+   "literals": [
+    "id_rsa"
+   ],
+   "prompt_tokens": 122,
+   "new_tokens": 9,
+   "seconds": 0.49
+  },
+  {
+   "tier": "mid",
+   "cmd": "diff ssh.john ssh2.jogn",
+   "utility": "diff",
+   "freq": 3,
+   "nl": "Show the differences between ssh.john and ssh2.jogn.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "diff ssh.john ssh2.jogn",
+   "command": "diff -t ssh.john",
+   "raw": "diff -t ssh.john",
+   "utility_ok": true,
+   "sources": [
+    "ngrep \u2014 Capture traffic of all interfaces: ngrep -d any",
+    "diff \u2014 Compare files (lists changes to turn `old_file` into `new_file`): diff path/to/old_file path/to/new_file",
+    "ggroups \u2014 View documentation for the original command: tldr groups"
+   ],
+   "literals": [
+    "ssh.john"
+   ],
+   "prompt_tokens": 120,
+   "new_tokens": 7,
+   "seconds": 0.41
+  },
+  {
+   "tier": "head",
+   "cmd": "nano id_rsa",
+   "utility": "nano",
+   "freq": 160,
+   "nl": "Open the id_rsa file in a text editor.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "nano id_rsa",
+   "command": "nano -e 'id_rsa'",
+   "raw": "nano -e 'id_rsa'",
+   "utility_ok": true,
+   "sources": [
+    "logoff \u2014 Terminate the current session: logoff",
+    "dnf-system-upgrade \u2014 Prepare the system by upgrading all installed packages: sudo dnf upgrade --refresh",
+    "nano \u2014 Open specific files, moving to the next file after closing the previous one: nano path/to/file1 path/to/file2 ..."
+   ],
+   "literals": [
+    "id_rsa"
+   ],
+   "prompt_tokens": 118,
+   "new_tokens": 9,
+   "seconds": 0.51
+  },
+  {
+   "tier": "mid",
+   "cmd": "telnet 127.18.1.5 23",
+   "utility": "telnet",
+   "freq": 15,
+   "nl": "Connect to port 23 on 127.18.1.5 to test the network connection.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "telnet 127.18.1.5 23",
+   "command": "telnet -t 23 127.18.1.5",
+   "raw": "telnet -t 23 127.18.1.5",
+   "utility_ok": true,
+   "sources": [
+    "aws-mq \u2014 Create a broker: aws mq create-broker --host-instance-type instance_type --broker-name broker_name --engine-type ACTIVEMQ|RABBITMQ --publicly-accessible|--no-publicly-accessible",
+    "glab-mr-create \u2014 Interactively create a merge request: glab mr create",
+    "telnet \u2014 Telnet to the default port of a host: telnet host"
+   ],
+   "literals": [
+    "23",
+    "127.18.1.5"
+   ],
+   "prompt_tokens": 153,
+   "new_tokens": 19,
+   "seconds": 1.1
+  },
+  {
+   "tier": "head",
+   "cmd": "ipconfig",
+   "utility": "ipconfig",
+   "freq": 34,
+   "nl": "Show my computer's IP address and network configuration details.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ipconfig",
+   "command": "ipconfig my",
+   "raw": "ipconfig my",
+   "utility_ok": true,
+   "sources": [
+    "ipconfig \u2014 List all network interfaces: ipconfig getiflist",
+    "argos-translate \u2014 Install translation pairs for Spanish to English translation: argospm install translate-es_en",
+    "ffprobe \u2014 Display all available stream info for a media file: ffprobe [-v|-loglevel] error -show_streams input.mp4"
+   ],
+   "literals": [],
+   "prompt_tokens": 120,
+   "new_tokens": 4,
+   "seconds": 0.27
+  },
+  {
+   "tier": "mid",
+   "cmd": "service postgresql start",
+   "utility": "service",
+   "freq": 22,
+   "nl": "Start the postgresql service.",
+   "names_utility": true,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "service postgresql start",
+   "command": "rsync -s PostgreSQL",
+   "raw": "rsync -s PostgreSQL",
+   "utility_ok": false,
+   "sources": [
+    "gst-discoverer-1.0 \u2014 Print file metadata: gst-discoverer-1.0 path/to/file",
+    "service \u2014 List the name and status of all services: service --status-all",
+    "locate \u2014 Look for pattern in the database. Note: The database is recomputed periodically (usually weekly or daily): locate \"pattern\""
+   ],
+   "literals": [],
+   "prompt_tokens": 118,
+   "new_tokens": 6,
+   "seconds": 0.36
+  },
+  {
+   "tier": "head",
+   "cmd": "find . -iname \\*.zip",
+   "utility": "find",
+   "freq": 98,
+   "nl": "Search for all .zip files in the current directory and its subfolders, ignoring case.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "find . -iname \\*.zip",
+   "command": "find . -type f -iname \"*.zip\" -exec grep -i 's///////////////////////////////////////////////",
+   "raw": "find . -type f -iname \"*.zip\" -exec grep -i 's///////////////////////////////////////////////",
+   "utility_ok": true,
+   "sources": [
+    "terraform-output \u2014 Display all outputs for the root module: terraform output",
+    "find \u2014 Find files by extension: find path/to/directory -name '*.ext'",
+    "tye \u2014 Scaffold a `tye.yaml` file representing the application: tye init"
+   ],
+   "literals": [
+    ".zip"
+   ],
+   "prompt_tokens": 114,
+   "new_tokens": 64,
+   "seconds": 3.04
+  },
+  {
+   "tier": "mid",
+   "cmd": "msfvenom",
+   "utility": "msfvenom",
+   "freq": 6,
+   "nl": "Generate a custom payload or shellcode for penetration testing.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "msfvenom",
+   "command": "look -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -",
+   "raw": "look -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -c -",
+   "utility_ok": false,
+   "sources": [
+    "look \u2014 Search for lines beginning with a specific prefix in a specific file: look prefix path/to/file",
+    "msfvenom \u2014 List payloads: msfvenom [-l|--list] payloads",
+    "mariadb \u2014 Connect to MariaDB as the current user: mariadb"
+   ],
+   "literals": [],
+   "prompt_tokens": 109,
+   "new_tokens": 64,
+   "seconds": 2.74
+  },
+  {
+   "tier": "mid",
+   "cmd": "sha512sum /* | grep 206ce87678",
+   "utility": "sha512sum",
+   "freq": 11,
+   "nl": "Find which file in the root directory has a SHA-512 hash containing 206ce87678.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "sha512sum /* | grep 206ce87678",
+   "command": "find . -type f -hash",
+   "raw": "find . -type f -hash",
+   "utility_ok": false,
+   "sources": [
+    "pbmnoise \u2014 Generate a PGM image containing white noise: pbmnoise width height > path/to/output.pbm",
+    "sha512sum \u2014 Calculate the SHA512 checksum for one or more files: sha512sum path/to/file1 path/to/file2 ...",
+    "tmpmail \u2014 Create a temporary inbox: tmpmail [-g|--generate]"
+   ],
+   "literals": [
+    "SHA-512"
+   ],
+   "prompt_tokens": 150,
+   "new_tokens": 8,
+   "seconds": 0.49
+  },
+  {
+   "tier": "mid",
+   "cmd": "chown 0044 id_rsa",
+   "utility": "chown",
+   "freq": 3,
+   "nl": "Change the owner of the id_rsa file to user ID 0044.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "chown 0044 id_rsa",
+   "command": "sudo chown id_rsa",
+   "raw": "sudo chown id_rsa",
+   "utility_ok": true,
+   "sources": [
+    "dcfldd \u2014 Copy a disk to a raw image file and hash the image using SHA256: dcfldd if=/dev/disk_device of=file.img hash=sha256 hashlog=file.hash",
+    "chown \u2014 Change the owner user of a file/directory: sudo chown user path/to/file_or_directory",
+    "apache2ctl \u2014 Start the Apache daemon. Throw a message if it is already running: sudo apache2ctl start"
+   ],
+   "literals": [
+    "id_rsa"
+   ],
+   "prompt_tokens": 161,
+   "new_tokens": 7,
+   "seconds": 0.44
+  },
+  {
+   "tier": "mid",
+   "cmd": "ss -lntp | grep post",
+   "utility": "ss",
+   "freq": 10,
+   "nl": "Show all listening TCP ports and their process information matching post.",
+   "names_utility": false,
+   "source_file": "cyber_nl_ext.json",
+   "gold_cmd": "ss -lntp | grep post",
+   "command": "ss -a | grep -i 's/ // // // // // // // // // // // // // // // // // // // // // // // // // // //",
+   "raw": "ss -a | grep -i 's/ // // // // // // // // // // // // // // // // // // // // // // // // // // //",
+   "utility_ok": true,
+   "sources": [
+    "gpu-screen-recorder \u2014 Select a source using a desktop portal and record it: gpu-screen-recorder -w portal -o path/to/video.mp4",
+    "ss \u2014 Show all TCP/UDP/RAW/UNIX sockets: ss [-a|--all] --tcp|--udp|--raw|--unix",
+    "shntool-split \u2014 View documentation for the original command: tldr shnsplit"
+   ],
+   "literals": [],
+   "prompt_tokens": 140,
+   "new_tokens": 64,
+   "seconds": 2.93
+  }
+ ]
+}
