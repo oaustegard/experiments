@@ -214,6 +214,46 @@ The benchmark's own metric is execution plus a model judge, and it reports
 execution scoring below is read, and none of these routing figures should be
 put beside it.
 
+## Execution scoring: the first functional number, and it is 0.055
+
+`funceq.py` was blocked in stage 1 — 17 of 40 rows INCONCLUSIVE, because the
+fixture had none of the files the commands name, which is the harness measuring
+its own sandbox. `funceq_ext.py` takes the first of the two routes #52 names:
+build the fixture from the paths the **gold** commands mention before anything
+runs. That is neutral between the arms — both sides meet the same tree, and a
+prediction that invents a different filename still fails.
+
+Zero-shot `generate`, the 164 leak-free cyber rows, 113 files and 1 directory
+created:
+
+| | |
+|---|---|
+| decided (EQUIVALENT + DIFFERENT) | 36 of 164 — **coverage 0.22** |
+| functional accuracy over decided | 0.250 |
+| **functional accuracy over all** | **0.055** |
+| routing (`utility_ok`) over all | 0.427 |
+
+**`utility_ok` overstates by about 8x**, and 0.055 lands on top of the estimate
+#52 arrived at by reading all 41 stage-1 outputs by hand — "genuinely runnable
+and correct is nearer 0.05". The metric the issue distrusted deserved it.
+
+Widening the fixture further will not raise the 0.22. The 128 undecided rows
+break down as: **48 golds exit 127** — `nmap`, `john`, `fcrackzip`, `msfconsole`
+are absent from the container by design and installing offensive tooling to
+score an eval is not a trade worth making — **34 golds and 19 predictions hit
+`funceq`'s deny list** (`curl`, `ssh`, `scp`, `kill`), and 19 golds exit 1 in a
+fixture that cannot hold their real state. That is the cyber corpus's ceiling
+under execution, not this fixture's, and it is why NL2SH-ALFA is the corpus
+where functional equivalence can actually decide.
+
+### On comparing anything here to the paper's 74%
+
+The benchmark reports 74% for GPT-4o, and that number comes from InterCode-ALFA:
+their container image, their command set, and **a model judge for the rows
+execution cannot separate**. An execution-only score with no judge is a floor
+computed under a different rule. Wherever a number from this directory appears
+beside it, say that.
+
 ## Caveats
 
 - **Every number in this file was measured, and then its container was lost.**
@@ -234,7 +274,8 @@ put beside it.
   the time in the shipped stack, so every routing number here is above what the
   deployed pipeline would produce.
 - **The cyber eval's utility names come from a corpus this container cannot
-  run.** See the coverage numbers below rather than reading a functional
+  run.** Execution decides 0.22 of its rows and no wider fixture changes that;
+  read the coverage beside the functional accuracy rather than reading the
   accuracy as a capability.
 - **The container is not a laptop.** 4 CPU cores, fp32 weights, no quantised
   build. The bar in `bench.py` is measured here and labelled as such.
