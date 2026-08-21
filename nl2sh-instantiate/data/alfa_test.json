@@ -1,0 +1,2702 @@
+[
+ {
+  "tier": "alfa-d0",
+  "cmd": "ls",
+  "alt_cmd": "ls -l",
+  "utility": "ls",
+  "freq": 0,
+  "nl": "list files in the current directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ls -a",
+  "alt_cmd": "ls -alh",
+  "utility": "ls",
+  "freq": 0,
+  "nl": "list all files in the current directory including hidden files",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "lsof",
+  "alt_cmd": "lsof -P -i -n",
+  "utility": "lsof",
+  "freq": 0,
+  "nl": "list open files",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "cp /testbed/hello.php /testbed/hello-COPY.php",
+  "alt_cmd": "cp /testbed/hello.php /testbed/hello-COPY.php -v",
+  "utility": "cp",
+  "freq": 0,
+  "nl": "create a copy of /testbed/hello.php named /testbed/hello-COPY.php",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "touch /testbed/test.txt",
+  "alt_cmd": "> /testbed/test.txt",
+  "utility": "touch",
+  "freq": 0,
+  "nl": "create a file  /testbed/test.txt",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "mkdir /testbed/test_dir",
+  "alt_cmd": "mkdir /testbed/test_dir -v",
+  "utility": "mkdir",
+  "freq": 0,
+  "nl": "create a directory /testbed/test_dir",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "rm does_not_exist.txt",
+  "alt_cmd": "unlink does_not_exist.txt",
+  "utility": "rm",
+  "freq": 0,
+  "nl": "remove a file named does_not_exist.txt",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "echo hello world",
+  "alt_cmd": "echo -n 'hello world'",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "print hello world",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "pwd",
+  "alt_cmd": "pwd .",
+  "utility": "pwd",
+  "freq": 0,
+  "nl": "print the current working directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "date",
+  "alt_cmd": "date -R",
+  "utility": "date",
+  "freq": 0,
+  "nl": "print the current date and time",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "whoami",
+  "alt_cmd": "id -un",
+  "utility": "whoami",
+  "freq": 0,
+  "nl": "print the current user",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "rmdir fake_dir",
+  "alt_cmd": "rm -r fake_dir",
+  "utility": "rmdir",
+  "freq": 0,
+  "nl": "remove a directory named fake_dir",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "echo $0",
+  "alt_cmd": "echo $SHELL",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "print the current shell",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "env",
+  "alt_cmd": "printenv",
+  "utility": "env",
+  "freq": 0,
+  "nl": "print environment variables",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "echo $HOME",
+  "alt_cmd": "echo ~",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "print the current user's home directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "echo $PATH",
+  "alt_cmd": "printenv PATH",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "print the current user's path",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "cat setup_nl2b_fs_1.sh",
+  "alt_cmd": "nl setup_nl2b_fs_1.sh",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "display the contents of the setup_nl2b_fs_1.sh file",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "head -n 5 setup_nl2b_fs_1.sh",
+  "alt_cmd": "sed -n '1,5p' setup_nl2b_fs_1.sh",
+  "utility": "head",
+  "freq": 0,
+  "nl": "display the first 5 lines of the setup_nl2b_fs_1.sh file",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "tail -n 5 setup_nl2b_fs_1.sh",
+  "alt_cmd": "tac setup_nl2b_fs_1.sh | head -n 5",
+  "utility": "tail",
+  "freq": 0,
+  "nl": "display the last 5 lines of the setup_nl2b_fs_1.sh file",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "sed -n 10p setup_nl2b_fs_1.sh",
+  "alt_cmd": "awk 'NR==10' setup_nl2b_fs_1.sh",
+  "utility": "sed",
+  "freq": 0,
+  "nl": "print the tenth line of the setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "which bash",
+  "alt_cmd": "type bash",
+  "utility": "which",
+  "freq": 0,
+  "nl": "print the path of the bash executable",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "history",
+  "alt_cmd": "history | cut -c 8-",
+  "utility": "history",
+  "freq": 0,
+  "nl": "display the shell history",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "vmstat",
+  "alt_cmd": "vmstat -t",
+  "utility": "vmstat",
+  "freq": 0,
+  "nl": "print the system utilization stats",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "uptime",
+  "alt_cmd": "uptime -p",
+  "utility": "uptime",
+  "freq": 0,
+  "nl": "print the system uptime",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "w",
+  "alt_cmd": "w -s",
+  "utility": "w",
+  "freq": 0,
+  "nl": "print the system load averages",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ps",
+  "alt_cmd": "ps -e",
+  "utility": "ps",
+  "freq": 0,
+  "nl": "print running processes",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "pstree",
+  "alt_cmd": "pstree -p",
+  "utility": "pstree",
+  "freq": 0,
+  "nl": "print running processes in a tree format",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "free",
+  "alt_cmd": "free -h",
+  "utility": "free",
+  "freq": 0,
+  "nl": "print the system memory usage",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "df",
+  "alt_cmd": "df -h",
+  "utility": "df",
+  "freq": 0,
+  "nl": "print the system disk usage",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "uname -a",
+  "alt_cmd": "uname -r",
+  "utility": "uname",
+  "freq": 0,
+  "nl": "print the kernel version",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "hostname",
+  "alt_cmd": "hostname -f",
+  "utility": "hostname",
+  "freq": 0,
+  "nl": "print the system hostname",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "hostname -I",
+  "alt_cmd": "hostname -i",
+  "utility": "hostname",
+  "freq": 0,
+  "nl": "print the system IP address",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "cat /etc/resolv.conf | grep nameserver",
+  "alt_cmd": "grep nameserver /etc/resolv.conf",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "print the ip addresses of the system DNS servers",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ifconfig",
+  "alt_cmd": "ifconfig -a",
+  "utility": "ifconfig",
+  "freq": 0,
+  "nl": "display the network interfaces",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "route",
+  "alt_cmd": "route -n",
+  "utility": "route",
+  "freq": 0,
+  "nl": "display the routing table",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "last",
+  "alt_cmd": "last -a",
+  "utility": "last",
+  "freq": 0,
+  "nl": "show the last logged in users",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "last -w",
+  "alt_cmd": "last -w -i",
+  "utility": "last",
+  "freq": 0,
+  "nl": "print the last logged in users and show the full user and domain names",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "openssl version",
+  "alt_cmd": "openssl version -a",
+  "utility": "openssl",
+  "freq": 0,
+  "nl": "print the openssl version",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "echo -n 'hello' | base64",
+  "alt_cmd": "printf 'hello' | openssl enc -base64",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "base64 encode the string 'hello'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "echo 'aGVsbG8=' | base64 -d",
+  "alt_cmd": "echo 'aGVsbG8=' | openssl enc -base64 -d",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "base64 decode the string 'aGVsbG8='",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "grep 'console' setup_nl2b_fs_1.sh",
+  "alt_cmd": "awk '/console/' setup_nl2b_fs_1.sh",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "print lines containing 'console' in the file setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "stat setup_nl2b_fs_1.sh",
+  "alt_cmd": "stat -t setup_nl2b_fs_1.sh",
+  "utility": "stat",
+  "freq": 0,
+  "nl": "list the stats and timestamps of the file setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "gzip -k /testbed/hello.php",
+  "alt_cmd": "gzip --keep /testbed/hello.php",
+  "utility": "gzip",
+  "freq": 0,
+  "nl": "gzip the file /testbed/hello.php keeping the original file",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "tar -cf /testbed/hello.tar /testbed/hello.php",
+  "alt_cmd": "tar -cvf /testbed/hello.tar /testbed/hello.php",
+  "utility": "tar",
+  "freq": 0,
+  "nl": "tar the file /testbed/hello.php to /testbed/hello.tar",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "apt show curl",
+  "alt_cmd": "apt-cache show curl",
+  "utility": "apt",
+  "freq": 0,
+  "nl": "show apt information about the curl package",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "jobs",
+  "alt_cmd": "jobs -p",
+  "utility": "jobs",
+  "freq": 0,
+  "nl": "list background jobs",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "echo $TERM",
+  "alt_cmd": "printenv TERM",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "print the current terminal type",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "nice",
+  "alt_cmd": "nice",
+  "utility": "nice",
+  "freq": 0,
+  "nl": "display the current process priority",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "echo $$",
+  "alt_cmd": "pidof bash",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "display the pid of the current shell",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "time echo 'hello'",
+  "alt_cmd": "time echo 'hello'",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "time how long it takes to run the command echo 'hello'",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "groups",
+  "alt_cmd": "groups",
+  "utility": "groups",
+  "freq": 0,
+  "nl": "print the current user's groups",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "id",
+  "alt_cmd": "id -u",
+  "utility": "id",
+  "freq": 0,
+  "nl": "print the current user's id",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "crontab -l",
+  "alt_cmd": "crontab -l",
+  "utility": "crontab",
+  "freq": 0,
+  "nl": "list the cron tab",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "umask",
+  "alt_cmd": "umask -p",
+  "utility": "umask",
+  "freq": 0,
+  "nl": "print the current user's umask",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "lscpu",
+  "alt_cmd": "cat /proc/cpuinfo",
+  "utility": "lscpu",
+  "freq": 0,
+  "nl": "list cpu information",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "lsmem",
+  "alt_cmd": "cat /proc/meminfo",
+  "utility": "lsmem",
+  "freq": 0,
+  "nl": "list memory information",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ssh -V",
+  "alt_cmd": "ssh -V",
+  "utility": "ssh",
+  "freq": 0,
+  "nl": "print the installed ssh version",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "cat ~/.bashrc",
+  "alt_cmd": "nl ~/.bashrc",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "print the bash profile in the home directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "locale",
+  "alt_cmd": "locale",
+  "utility": "locale",
+  "freq": 0,
+  "nl": "print the system's locale",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "lsblk",
+  "alt_cmd": "lsblk -f",
+  "utility": "lsblk",
+  "freq": 0,
+  "nl": "list block devices",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "find . -size +100M -print",
+  "alt_cmd": "find . -size +100M",
+  "utility": "find",
+  "freq": 0,
+  "nl": "find all files larger than 100MB in the current dir",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ln -s /testbed/hello.php /testbed/link",
+  "alt_cmd": "ln -s /testbed/hello.php /testbed/link",
+  "utility": "ln",
+  "freq": 0,
+  "nl": "create a symbolic link to /testbed/hello.php named /testbed/link",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "chown nobody /testbed/test.txt",
+  "alt_cmd": "chown nobody /testbed/test.txt",
+  "utility": "chown",
+  "freq": 0,
+  "nl": "change the ownership of /testbed/test.txt to user 'nobody'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "chgrp nogroup /testbed/test.txt",
+  "alt_cmd": "chgrp nogroup /testbed/test.txt",
+  "utility": "chgrp",
+  "freq": 0,
+  "nl": "change the group of /testbed/test.txt to group 'nogroup'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "chmod 444 /testbed/test.txt",
+  "alt_cmd": "chmod a=r /testbed/test.txt",
+  "utility": "chmod",
+  "freq": 0,
+  "nl": "change permissions of /testbed/test.txt to read-only for everyone",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "wc setup_nl2b_fs_1.sh",
+  "alt_cmd": "wc setup_nl2b_fs_1.sh",
+  "utility": "wc",
+  "freq": 0,
+  "nl": "count the lines, words, and characters in setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "sort setup_nl2b_fs_1.sh",
+  "alt_cmd": "sort setup_nl2b_fs_1.sh",
+  "utility": "sort",
+  "freq": 0,
+  "nl": "print the lines in setup_nl2b_fs_1.sh sorted alphabetically",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "uniq setup_nl2b_fs_1.sh",
+  "alt_cmd": "uniq setup_nl2b_fs_1.sh",
+  "utility": "uniq",
+  "freq": 0,
+  "nl": "print the unique lines in setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "netstat --statistics",
+  "alt_cmd": "netstat -s",
+  "utility": "netstat",
+  "freq": 0,
+  "nl": "display network statistics",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "netstat -i",
+  "alt_cmd": "netstat --interfaces",
+  "utility": "netstat",
+  "freq": 0,
+  "nl": "display network interfaces",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "cal -3",
+  "alt_cmd": "cal -3",
+  "utility": "cal",
+  "freq": 0,
+  "nl": "display a calendar for the next 3 months",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "service --status-all",
+  "alt_cmd": "service --status-all",
+  "utility": "service",
+  "freq": 0,
+  "nl": "show running daemons and services",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "who -b",
+  "alt_cmd": "uptime -s",
+  "utility": "who",
+  "freq": 0,
+  "nl": "print the system boot time",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "swapon --show",
+  "alt_cmd": "free -h | grep Swap",
+  "utility": "swapon",
+  "freq": 0,
+  "nl": "print current swap usage",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "sysctl -a",
+  "alt_cmd": "sysctl --all",
+  "utility": "sysctl",
+  "freq": 0,
+  "nl": "print a list of active kernel parameters",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "dpkg --get-selections",
+  "alt_cmd": "apt list --installed",
+  "utility": "dpkg",
+  "freq": 0,
+  "nl": "list the installed software packages",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "cat /etc/shells",
+  "alt_cmd": "cat /etc/shells",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "list available shells",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "getent passwd",
+  "alt_cmd": "cat /etc/passwd",
+  "utility": "getent",
+  "freq": 0,
+  "nl": "list all users on the system",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "getent group",
+  "alt_cmd": "cat /etc/group",
+  "utility": "getent",
+  "freq": 0,
+  "nl": "list all groups on the system",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "basename /usr/local/bin/my_script.sh",
+  "alt_cmd": "echo 'my_script.sh'",
+  "utility": "basename",
+  "freq": 0,
+  "nl": "extract the filename from this path '/usr/local/bin/my_script.sh'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "nslookup google.com",
+  "alt_cmd": "dig google.com",
+  "utility": "nslookup",
+  "freq": 0,
+  "nl": "perform a dns lookup for google.com",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "dirname /usr/local/bin/my_script.sh",
+  "alt_cmd": "echo '/usr/local/bin/'",
+  "utility": "dirname",
+  "freq": 0,
+  "nl": "extract the directory from this path '/usr/local/bin/my_script.sh'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "wall 'System maintenance in 10 minutes!'",
+  "alt_cmd": "echo 'System maintenance in 10 minutes!' | wall",
+  "utility": "wall",
+  "freq": 0,
+  "nl": "send the message 'System maintenance in 10 minutes!' to all logged in users",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "file setup_nl2b_fs_1.sh",
+  "alt_cmd": "file setup_nl2b_fs_1.sh",
+  "utility": "file",
+  "freq": 0,
+  "nl": "print the file type of setup_nl2b_fs_1.sh",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "fold -w 40 setup_nl2b_fs_1.sh",
+  "alt_cmd": "fmt -w 40 setup_nl2b_fs_1.sh",
+  "utility": "fold",
+  "freq": 0,
+  "nl": "print the contents of setup_nl2b_fs_1.sh with lines wrapped to 40 characters",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "getconf -a",
+  "alt_cmd": "getconf -a",
+  "utility": "getconf",
+  "freq": 0,
+  "nl": "print all system configuration variables",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "nproc",
+  "alt_cmd": "nproc",
+  "utility": "nproc",
+  "freq": 0,
+  "nl": "print the number of processors",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ulimit -n",
+  "alt_cmd": "ulimit -n",
+  "utility": "ulimit",
+  "freq": 0,
+  "nl": "print the max number of open file descriptors",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ulimit -u",
+  "alt_cmd": "ulimit -u",
+  "utility": "ulimit",
+  "freq": 0,
+  "nl": "print the max number of user processes",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ulimit -t",
+  "alt_cmd": "prlimit --cpu",
+  "utility": "ulimit",
+  "freq": 0,
+  "nl": "print the max cpu time",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "getconf LONG_BIT",
+  "alt_cmd": "getconf LONG_BIT",
+  "utility": "getconf",
+  "freq": 0,
+  "nl": "display the configured size of long integers",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "tree -L 2",
+  "alt_cmd": "find . -maxdepth 2 -print",
+  "utility": "tree",
+  "freq": 0,
+  "nl": "print the directory tree two levels deep",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "grep -o 'the' setup_nl2b_fs_1.sh | wc -l",
+  "alt_cmd": "grep -o 'the' setup_nl2b_fs_1.sh | nl",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "print the number of times the word 'the' appears in setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "ls -a | wc -l",
+  "alt_cmd": "ls -al | wc -l",
+  "utility": "ls",
+  "freq": 0,
+  "nl": "print the number of files in the current directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "sed -n '1p' setup_nl2b_fs_1.sh",
+  "alt_cmd": "awk 'NR == 1 {print}' setup_nl2b_fs_1.sh",
+  "utility": "sed",
+  "freq": 0,
+  "nl": "print first line of setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "sed -n '$p' setup_nl2b_fs_1.sh",
+  "alt_cmd": "awk 'END {print}' setup_nl2b_fs_1.sh",
+  "utility": "sed",
+  "freq": 0,
+  "nl": "print the last line of setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "sed -n '3,5p' setup_nl2b_fs_1.sh",
+  "alt_cmd": "awk 'NR >= 3 && NR <= 5 {print}' setup_nl2b_fs_1.sh",
+  "utility": "sed",
+  "freq": 0,
+  "nl": "print lines 3 to 5 of setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "sed -n '1~2p' setup_nl2b_fs_1.sh",
+  "alt_cmd": "awk 'NR % 2 == 1 {print}' setup_nl2b_fs_1.sh",
+  "utility": "sed",
+  "freq": 0,
+  "nl": "print every other line of setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "wc -w setup_nl2b_fs_1.sh",
+  "alt_cmd": "awk '{ total += NF } END { print total }' setup_nl2b_fs_1.sh",
+  "utility": "wc",
+  "freq": 0,
+  "nl": "print the number of words in setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d0",
+  "cmd": "find . -maxdepth 1 -type f -empty",
+  "alt_cmd": "find . -maxdepth 1 -type f -empty -print",
+  "utility": "find",
+  "freq": 0,
+  "nl": "find all empty files in the current directory, do not search sub directories",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "awk 'length < 20' setup_nl2b_fs_1.sh",
+  "alt_cmd": "grep -v '^.\\{20,\\}' setup_nl2b_fs_1.sh",
+  "utility": "awk",
+  "freq": 0,
+  "nl": "print lines in the file setup_nl2b_fs_1.sh that are less than 20 characters",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "grep 'the' setup_nl2b_fs_1.sh",
+  "alt_cmd": "awk '/the/' setup_nl2b_fs_1.sh",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "print lines in the file setup_nl2b_fs_1.sh that contain the characters 'the'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "grep 'the' setup_nl2b_fs_1.sh | grep 'a'",
+  "alt_cmd": "awk '/the/ && /a/' setup_nl2b_fs_1.sh",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "print lines in the file setup_nl2b_fs_1.sh that contain the characters 'the' and 'a'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "sha512sum setup_nl2b_fs_1.sh",
+  "alt_cmd": "openssl dgst -sha512 setup_nl2b_fs_1.sh",
+  "utility": "sha512sum",
+  "freq": 0,
+  "nl": "display the sha512 digest of setup_nl2b_fs_1.sh",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "openssl enc -aes-256-cbc -in setup_nl2b_fs_1.sh -pass pass:password -out out.enc",
+  "alt_cmd": "openssl enc -aes-256-cbc -in setup_nl2b_fs_1.sh -pass pass:password -out out.enc",
+  "utility": "openssl",
+  "freq": 0,
+  "nl": "encrypt the file setup_nl2b_fs_1.sh using the aes-256-cbc algorithm with password 'password' and save it to out.enc",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "echo 'hello' > world.txt",
+  "alt_cmd": "echo 'hello' | dd of=world.txt",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "create a file named 'world.txt' with the text 'hello' inside",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "curl ipinfo.io/ip",
+  "alt_cmd": "curl ifconfig.me/ip",
+  "utility": "curl",
+  "freq": 0,
+  "nl": "print the system's public ip address",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "md5sum /testbed/*.java | awk '{print $1}' | sort | uniq -d",
+  "alt_cmd": "find /testbed -type f -name \"*.java\" -exec md5sum {} + | sort | uniq -w32 -d -c | sort -nr",
+  "utility": "md5sum",
+  "freq": 0,
+  "nl": "Calculate a list of duplicate md5 sum hashes for all the \".java\" files in the /testbed directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed/dir2/subdir2 -type f -print0 | sort -z | xargs -0 md5sum | awk '{print $1}' | md5sum",
+  "alt_cmd": "ls -1 /testbed/dir2/subdir2/* | sort | xargs md5sum | awk '{print $1}' | md5sum",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Calculate the md5 sum of the md5 sum of all the files under /testbed/dir2/subdir2 sorted by filename",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "cat $(echo $FILES | tr ' ' '\\n' | sort) | md5sum",
+  "alt_cmd": "echo \"$FILES\" | tr ' ' '\\n' | sort | xargs cat | md5sum",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "Calculate the md5 sum of the contents of the sorted list of files \"$FILES\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed/dir1/subdir1 -type f -name *.py -exec md5sum {} + | awk '{print $1}' | sort | md5sum",
+  "alt_cmd": "find /testbed/dir1/subdir1 -type f -name '*.py' -print0 | xargs -0 md5sum | awk '{print $1}' | sort | md5sum",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Calculate the md5 sum of the sorted list of md5 sums of all \".py\" files under /testbed/dir1/subdir1",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name \"*.txt\" -exec du {} + | awk -v hostname=\"$(hostname)\" '{print hostname, $0}'",
+  "alt_cmd": "find /testbed -name \"*.txt\" -exec du -h {} + | awk -v hostname=\"$(hostname)\" '{print hostname, $0}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Calculate the total disk usage for each \".txt\" file on the /testbed directory and prepend the system host name to the output",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name \"*.php\" -exec chmod 755 {} \\; -exec /bin/echo {} \\; | wc -l",
+  "alt_cmd": "find /testbed -type f -name \"*.php\" -exec chmod 755 {} \\; -print | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Change permissions for all PHP files under the /testbed directory tree to 755 and print the number of files changed",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "pstree -s $$ | grep -q \"screen\" && echo \"True\" || echo \"False\"",
+  "alt_cmd": "ps -o comm= $(pstree -sp $$ | awk -F '[^0-9]*' '{print $2}') | grep -q 'screen' && echo \"True\" || echo \"False\"",
+  "utility": "pstree",
+  "freq": 0,
+  "nl": "Check if the current shell is running within a 'screen' process and print \"True\" or \"False\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "comm -23 <(sort /testbed/dir3/subdir1/subsubdir1/textfile3.txt | uniq) <(sort /testbed/dir2/subdir1/textfile2.txt | uniq) | head -1 | grep -q '.' && echo \"False\" || echo \"True\"",
+  "alt_cmd": "comm -23 <(sort /testbed/dir3/subdir1/subsubdir1/textfile3.txt | uniq) <(sort /testbed/dir2/subdir1/textfile2.txt | uniq) | grep -q '.' && echo \"False\" || echo \"True\"",
+  "utility": "comm",
+  "freq": 0,
+  "nl": "Print \"True\" if the contents of file /testbed/dir3/subdir1/subsubdir1/textfile3.txt is a subset of file /testbed/dir2/subdir1/textfile2.txt, otherwise print \"False\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*.txt' -print0 | xargs -0 wc -w | awk 'END { print $1/(NR-1) }'",
+  "alt_cmd": "find /testbed -type f -name \"*.txt\" -exec wc -w {} + | awk '{total = $1} END {print total/(NR-1)}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Compute the mean average of the word count of *.txt files in the /testbed directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*.txt' -print0 | xargs -0 wc -w | awk '$1 < 6 {v += $1; c++} END {print v/c}'",
+  "alt_cmd": "find /testbed -name '*.txt' -print0 | xargs -0 wc -w | awk '$1 < 6 {v += $1; c++} END {print v/c, \"words\"}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Compute the mean average of the word count of *.txt files smaller than 6 words in the /testbed directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -path '*FooBar*' -print0 | xargs -0 -I{} cp -r {} /testbed/dir3/subdir1/subsubdir1/tmp",
+  "alt_cmd": "find /testbed -path '*FooBar*' -print0 | xargs -0 -I{} cp -R {} /testbed/dir3/subdir1/subsubdir1/tmp",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Copy all files with \"FooBar\" in the path under the '/testbed' directory to the '/testbed/dir3/subdir1/subsubdir1/tmp' directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name \"*.txt\" \\( -exec echo {} \\; -o -exec true \\; \\) -exec grep another {} \\;",
+  "alt_cmd": "find /testbed -type f -name \"*.txt\" -print -exec grep -H \"another\" {} \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "search for all .txt files in the /testbed directory, prints their paths, and then search within each file for the word \"another\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "head /testbed/textfile7.txt -c16 | od -tx1 -w16 | head -n1 | cut -d' ' -f2- | tr -d ' '",
+  "alt_cmd": "head -c 16 /testbed/textfile7.txt | od -An -tx1 | tr -d ' \\n'",
+  "utility": "head",
+  "freq": 0,
+  "nl": "Convert the first 16 characters in \"/testbed/textfile7.txt\" to a single hexadecimal value",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -path '*FooBar*' | xargs -i cp -p \"{}\" .",
+  "alt_cmd": "find /testbed -type f -path '*FooBar*' -exec cp --preserve=mode,ownership,timestamps {} ./ \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Copies all files under the /testbed folder like \"file.txt\" with \"FooBar\" in the path to the root of the current folder, preserving mode, ownership and timestamp attributes.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*FooBar*' -print0 | xargs -0 -I{} cp -R {} /testbed/dir3/subdir1/subsubdir1/tmp",
+  "alt_cmd": "find /testbed -name \"*FooBar*\" -exec cp -r {} /testbed/dir3/subdir1/subsubdir1/tmp \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Copy all files and folders below the /testbed directory whose names contain \"FooBar\" to directory '/testbed/dir3/subdir1/subsubdir1/tmp'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name \"*.c\" -print0 | xargs -0 cat | wc -l",
+  "alt_cmd": "find /testbed -name \"*.c\" -exec wc -l {} + | awk '{s+=$1} END {print s}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count all the lines of all '*.c' files in /testbed directory recursively",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find . -type f -name '*php' | xargs cat | wc -l",
+  "alt_cmd": "find . -type f -name '*.php' -exec wc -l {} + | awk '{s=$1} END {print s}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count all the lines of all files with names ending with 'php' in current directory and subdirectories recursively",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /testbed/ -name '*.php' | xargs cat | wc -l",
+  "alt_cmd": "find /testbed/ -type f -name '*.php' | xargs cat | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count all the lines of all php files in the /testbed directory recursively",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -name \"*.py\" -exec md5sum {} +",
+  "alt_cmd": "find /testbed -type f -name \"*.py\" -print0 | xargs -0 md5sum",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Calculate the md5sum of all '*.py' files in /testbed folder and sub folders.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name \"*.html\" | xargs grep -l foo | wc -l",
+  "alt_cmd": "find /testbed -name \"*.html\" -exec grep -l foo {} + | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count the *.html files residing in the /testbed directory tree and containing string \"foo\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name \"*.php\" -exec chmod 755 {} \\; -exec /bin/echo {} \\; | wc -l",
+  "alt_cmd": "find /testbed -type f -name '*.php' -exec chmod 755 {} \\; -print | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count the number of files/directories with '.php' extension under /testbed directory tree and change the permissions to 755",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /testbed/ -name '*file*' | sort | xargs wc -l",
+  "alt_cmd": "find /testbed -type f -name '*file*' -exec wc -l {} +",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count the number of lines in all files in the /testbed directory tree that match pattern '*file*'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find ${DIRECTORY} -type f -print | sed -e 's@^.*/@@' | grep '[aeiouyAEIOUY]' | wc -l",
+  "alt_cmd": "find \"${DIRECTORY}\" -type f -print | awk -F/ '{print $NF}' | grep -i '[aeiouy]' | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count the number of regular files in directory tree ${DIRECTORY} that contain a vowel in their names",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f | sed -e 's/.*\\.//' | sed -e 's/.*\\///' | sort | uniq -c | sort -rn",
+  "alt_cmd": "find /testbed -type f | awk -F. '{if (NF>1) print $NF}' | sort | uniq -c | sort -nr",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count the number of files for each unique file extensions in the /testbed directory tree.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -name '*.gz' | xargs zcat | wc -l",
+  "alt_cmd": "find /testbed -type f -name \"*.gz\" -exec sh -c 'gunzip -c \"$0\" | wc -l' {} \\; | awk '{s+=$1} END {print s}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count the total number of lines in all \"*.gz\" files in the /testbed directory tree after decompression",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /testbed -type f -exec ls -l {} \\; | wc -l",
+  "alt_cmd": "find /testbed -type f | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Counts all files in the /testbed folder and subfolders.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*.php' -type f | sort | xargs wc -l",
+  "alt_cmd": "find /testbed -type f -name \"*.php\" -exec wc -l {} + | sort",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count lines in each *.php file sorted by file in /testbed directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*.php' -type f | xargs wc -l | sort -nr",
+  "alt_cmd": "find /testbed -type f -name \"*.php\" -exec wc -l {} + | sort -rn",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Counts lines in each *.php file in /testbed directory, sorted by number of lines, descending.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "grep -oE '([0-9]{1,3}\\.){3}[0-9]{1,3}' /etc/networks | sort | uniq -c | sort -nr",
+  "alt_cmd": "awk '{for (i=1; i<=NF; i++) if ($i ~ /([0-9]{1,3}\\.){3}[0-9]{1,3}/) print $i}' /etc/networks | sort | uniq -c | sort -nr",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Counts number of occurences of all ip addresses in '/etc/networks' file, and prints all addresses with number of occurences in a descending order.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*.php' | xargs cat | awk '/[a-zA-Z0-9]/ {i++} END{print i}'",
+  "alt_cmd": "find /testbed -type f -name '*.php' -exec grep -H '.*[[:alnum:]].*' {} + | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Counts total number of only lines with alphanumeric symbols in all *.php files in the /testbed folder and subfolders.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*.js' -or -name '*.php' | xargs wc -l | grep 'total'  | awk '{print $1}'",
+  "alt_cmd": "find /testbed -type f \\( -name '*.php' -o -name '*.js' \\) -exec wc -l {} + | awk '{s=$1} END {print s}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Counts total lines in PHP and JS files in /testbed.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type d -name \"dir1\" -print |  sed 's/$/\\/abc.txt/g' | xargs touch",
+  "alt_cmd": "find testbed -type d -name \"dir1\" -exec touch {}/abc.txt \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Create an empty file \"abc.txt\" in each directory named \"dir1\" under testbed directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /var/log/ -mtime +1 | xargs  tar -czvPf  /testbed/logs.tar.gz",
+  "alt_cmd": "find /var/log -type f -mtime +1 -exec tar -czvPf /testbed/logs.tar.gz {} +",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Create logs.tar.gz of all older than one day logs of Ubuntu",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed/dir3/subdir1/subsubdir1/tmp -type f -mtime +2 -print0 | xargs -0 rm -f",
+  "alt_cmd": "find /testbed/dir3/subdir1/subsubdir1/tmp -type f -mtime +2 -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Delete files in \"/testbed/dir3/subdir1/subsubdir1/tmp\" that are older than 2 days",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -exec du -b {} + | sort -rh | head -n 5",
+  "alt_cmd": "find /testbed -type f -print0 | xargs -0 du -b | sort -rn | head -n 5",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Display the 5 largest files in the /testbed directory and its sub-directories.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -size +0c -exec du -b {} + | sort -n | head -n 5",
+  "alt_cmd": "find /testbed -type f -size +0c -exec du -b {} + | sort -rh | tail -n 5",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Display the 5 smallest files in the /testbed directory and its sub-directories ignoring any empty files.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -exec ls -s {} \\; | sort -n  | head -5",
+  "alt_cmd": "find /testbed -type f -exec du -b {} + | sort -n | head -n 5",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Display the 5 smallest files in the /testbed directory and its sub-directories.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -maxdepth 1 -exec du -b {} + | sort -rh | head -n 5",
+  "alt_cmd": "ls -lS /testbed | grep '^-' | head -n 5",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Display the five biggest file sizes only in the /testbed directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name \"*.java\" -exec grep -Hin Hello {} + | cut -d \":\" -f 1 | xargs -I{} basename {}",
+  "alt_cmd": "find testbed -type f -name \"*.java\" -exec grep -l 'Hello' {} +",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Find .java files in the testbed directory tree that contain 'Hello', and print their names",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f | awk -F/ '{print $NF}' | sort -f | uniq -i -d",
+  "alt_cmd": "find /testbed -type f | awk -F/ '{print tolower($NF)}' | sort | uniq -d",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Print a list of all duplicate case insensitive filenames in the /testbed directory tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "comm -23 <(find /testbed/dir1 | sed 's#/testbed/dir1/##' | sort) <(find /testbed/dir2 | sed 's#/testbed/dir2/##' | sort) | sed 's#^#/testbed/dir1/#'",
+  "alt_cmd": "comm -23 <(find testbed/dir1 -type f | sed 's|testbed/dir1/||' | sort) <(find testbed/dir2 -type f | sed 's|testbed/dir2/||' | sort) | sed 's|^|testbed/dir1/|'",
+  "utility": "comm",
+  "freq": 0,
+  "nl": "Print all unique file paths under \"testbed/dir1\" compared to \"testbed/dir2\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "grep -rl 'Hello' /testbed | xargs -I {} dirname {} | sort | uniq",
+  "alt_cmd": "find /testbed -type f -exec grep -l 'Hello' {} + | xargs -I {} dirname {} | sort | uniq",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Recursively finds all files containing text 'Hello' in /testbed and prints folder where they are placed.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*.java' -print0 |xargs -0 wc -l|grep 'total' |awk '{ print $1 }'",
+  "alt_cmd": "find /testbed -name \"*.java\" -exec wc -l {} + | awk '{s=$1} END {print s}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Prints total number of lines of all *.java files in /testbed folder and subfolders.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "ln /testbed/dir3/subdir1/subsubdir1/FooBar -s /",
+  "alt_cmd": "ln -s /testbed/dir3/subdir1/subsubdir1/FooBar /",
+  "utility": "ln",
+  "freq": 0,
+  "nl": "Create a symbolic link named FooBar in the /testbed/dir3/subdir1/subsubdir1 directory to the root directory /",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /testbed/dir1 -perm 1553",
+  "alt_cmd": "find /testbed/dir1 -type f -perm 1553",
+  "utility": "find",
+  "freq": 0,
+  "nl": "search for all the files in the folder /testbed/dir1 which have sticky bit set and have the permissions 553",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -name '*.php' -exec grep -iq \"world\" {} \\; -print",
+  "alt_cmd": "find /testbed -name \"*.php\" -exec grep -H \"world\" {} \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "search for php files in /testbed directory and search for \"world\" in all these files",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "grep -inr \"Hello\" /system/folder1",
+  "alt_cmd": "find /system/folder1 -type f -exec grep -inH 'hello' {} \\;",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Recursively finds all files with any cased text \"Hello\" in the '/system/folder1' folder, and precedes found string with its number in file.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "grep -rnw /system -e \"foo\"",
+  "alt_cmd": "grep -ronw '/system' -e 'foo'",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Recursively finds all files with whole word \"foo\" in the '/system', and precedes found string with its number in file.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "tree /system",
+  "alt_cmd": "find /system -print | sed -e 's;[^/]*/;|___;g;s;___|; |;g'",
+  "utility": "tree",
+  "freq": 0,
+  "nl": "Recursively list contents of the '/system' directory in a tree-like format",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "tree -a /system/folder2",
+  "alt_cmd": "find /system/folder2 -print | sed -e 's;[^/]*/;|___;g;s;___|; |;g'",
+  "utility": "tree",
+  "freq": 0,
+  "nl": "Recursively print all files and directories in the '/system/folder2' directory tree including hidden files",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system -type f -name \"*.out\" -print0 | xargs -0 -n1 dirname | sort -u",
+  "alt_cmd": "find /system -type f -name \"*.out\" -printf '%h\\n' | sort -u",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Recursively prints all folders in the '/system' folder that contain files like \"*.out\".",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "yes y | rm -r /system/*.txt",
+  "alt_cmd": "find /system -maxdepth 1 -type f -name \"*.txt\" -exec rm -f {} \\;",
+  "utility": "yes",
+  "freq": 0,
+  "nl": "Remove all \"*.txt\" files in the '/system' folder and answer \"y\" to any prompt",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder3/temp -depth -type d -exec rmdir {} \\;",
+  "alt_cmd": "find /system/folder3/temp -type d -empty -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Recursively removes all empty folders from the /system/folder3/temp folder.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder3/temp -type d -empty -exec rmdir -vp --ignore-fail-on-non-empty {} +",
+  "alt_cmd": "find /system/folder3/temp -type d -empty -print -delete 2>/dev/null",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Recursively removes all empty folders under /system/folder3/temp, printing info message on each operation, and suppressing error messages if folder is not empty.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder1 -type f -not -name '*txt' | xargs rm",
+  "alt_cmd": "find /system/folder1 -type f ! -name '*.txt' -print -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Recursively removes all files in the /system/folder1 folder but '*txt' files.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder2 -type f -name '*special*' ! -path '*/special/*' -execdir bash -c 'mv \"$0\" \"${0/special/regular}\"' {} \\;",
+  "alt_cmd": "find /system/folder1 -type f -name '*special*' -exec bash -c 'for f; do mv -- \"$f\" \"${f%/*}/${f##*/special/regular}\"; done' _ {} +",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Recursively rename all files under /system/folder2 replacing special with regular.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "grep -r \"foo\" /system | tee >(wc -l)",
+  "alt_cmd": "grep -r \"foo\" /system | awk '{print} END {print NR}'",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Recursively search for \"foo\" in the '/system' folder and write the output to the console followed by the number of matched lines",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system/folder3/ -type f -exec basename {} \\;",
+  "alt_cmd": "find /system/folder3/ -type f | xargs -n 1 basename",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Recursively search for all regular files below directory \"/system/folder3/\", and output the name of each, without any containing directories.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "zcat -r /system/folder2.tar.gz | grep \"special\"",
+  "alt_cmd": "tar -xzvf /system/folder2.tar.gz -O | grep \"special\"",
+  "utility": "zcat",
+  "freq": 0,
+  "nl": "Recursively unzip files to stdout in \"/system/folder2.tar.gz\" and search for \"special\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "cat /system/folder3/temp/temp1/text1.txt | sed 's/\\r$//' | od -c",
+  "alt_cmd": "cat system/folder3/temp/temp1/text1.txt | sed 's/\\r$//' | od -c -An",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "Remove \"\\r\" at the end of each line in \"system/folder3/temp/temp1/text1.txt\" and display the result as printable characters or backslash escapes",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system/folder1 -name '*.doc' -exec rm \"{}\" \\;",
+  "alt_cmd": "find /system/folder1 -type f -name '*.doc' -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all *.doc files from the /system/folder1 tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder1 -name '*.log' -print0 | xargs -0 rm",
+  "alt_cmd": "find /system/folder1 -type f -name '*.log' -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all *.log files from the /system/folder1 tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system -name '*.txt' -maxdepth 1 | xargs rm",
+  "alt_cmd": "find /system -name '*.txt' -maxdepth 1 -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all *.txt files in '/system' directory but not in it's subdirectories",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder3/backup_dbg/*.sql -mtime +25 -exec rm -f {} \\;",
+  "alt_cmd": "find /system/folder3/backup_dbg -name '*.sql' -print -mtime +25 -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all *.sql files in the '/system/folder3/backup_dbg' directory that were last modified more than 25 days ago",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder1 -mmin +5 -type f -name \"*.txt\" -delete",
+  "alt_cmd": "find /system/folder1 -mmin +5 -type f -name \"*.txt\" | xargs rm -f",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all *.txt files under the /system/folder1 directory modified more than 5 minutes ago",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder1 -maxdepth 1 -mmin +5 -type f -name \"*.txt\" ! -name \"keep.txt\" -delete",
+  "alt_cmd": "find /system/folder1 -maxdepth 1 -mmin +5 -type f -name \"*.txt\" ! -name \"keep.txt\" | xargs rm -f",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all *.txt files, except \"keep.txt\", under /system/folder1 directory modified more than 5 minutes ago. Do not include subdirectories.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder1 -name 'new*.sh' -exec rm -f '{}' \\;",
+  "alt_cmd": "find /system/folder1 -name 'new*.sh' -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all .sh files in the '/system/folder1' tree whose names begin with \"new\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system \\( -name a.out -o -name '*.o' -o -name 'core' \\) -exec rm {} \\;",
+  "alt_cmd": "find /system -type f \\( -name \"a.out\" -o -name \"*.o\" -o -name \"core\" \\) -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all a.out, *.o, and core files under the '/system' directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "cat /system/folder1/data.csv | rev | cut -d, -f-5 | rev",
+  "alt_cmd": "tail -n 1 /system/folder1/data.csv | rev | cut -d',' -f1-5 | rev",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "Print the last five lines of /system/folder1/data.csv",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system -name \"temp\" -type d -delete",
+  "alt_cmd": "find /system -type d -name \"temp\" -exec rm -rf {} +",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all directories called \"temp\" from the /system directory tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder3/temp -type f -empty -print | xargs rm -f",
+  "alt_cmd": "find /system/folder3/temp -type f -empty -print -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all empty files in /system/folder3/temp and below",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system \\( -name a.out -o -name '*.o' \\) -mtime -7 -exec rm {} \\;",
+  "alt_cmd": "find /system -type f \\( -name \"a.out\" -o -name \"*.o\" \\) -mtime -7 -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all files a.out and *.o in the /system directory tree that were modified less than 7 days ago",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder3/temp \\( -name '.DS_Store' -or -name '._.DS_Store' -or -name '._*' -or -name '.TemporaryItems' -or -name '.apdisk' \\) -exec rm -rf {} \\;",
+  "alt_cmd": "find /system/folder3/temp \\( -name '.DS_Store' -or -name '._.DS_Store' -or -name '._*' -or -name '.TemporaryItems' -or -name '.apdisk' \\) -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove all files and directories under '/system/folder3/temp' directory tree that match with one of the name patterns '.DS_Store', '._.DS_Store' , '._*', '.TemporaryItems' or '.apdisk'",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "echo '1/2 [3] (27/03/2012 19:32:54) word word word word 4/5' | sed -e 's/(.*)//' -e 's/[^0-9]/ /g' | column -t",
+  "alt_cmd": "echo '1/2 [3] (27/03/2012 19:32:54) word word word word 4/5' | sed 's/([^)]*)//g' | tr -c '0-9' ' ' | column -t",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "Remove everything within parentheses and substitute all non digit characters with a space from \"1/2 [3] (27/03/2012 19:32:54) word word word word 4/5\" and format the output as a table",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system/folder1 -name 'text[2-4]*' -exec rm {} \\;",
+  "alt_cmd": "find /system/folder1 -name 'text[2-4]*' -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove files text2, text3, text4 in directory /system/folder1",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system -type f -size -1k -exec rm {} +",
+  "alt_cmd": "find /system -type f -size -1k -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove files that are less than 1KB in size under /system directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system -type f -mtime +31 -exec rm -f {} \\;",
+  "alt_cmd": "find /system -type f -mtime +31 -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove files modified more than 31 days ago recursively from \"/system\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "paste -sd \"\" /system/folder3/temp/temp1/text1.txt",
+  "alt_cmd": "tr -d '\\n' < /system/folder3/temp/temp1/text1.txt",
+  "utility": "paste",
+  "freq": 0,
+  "nl": "Print \"/system/folder3/temp/temp1/text1.txt\" without newline characters.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system -type f -exec rm {} +",
+  "alt_cmd": "find /system -type f -delete",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Remove regular files in the /system directory tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "diff -qr /system/folder1 /system/folder2 | sort",
+  "alt_cmd": "diff -qr /system/folder1 /system/folder2",
+  "utility": "diff",
+  "freq": 0,
+  "nl": "Print which files differ between /system/folder1 and /system/folder2.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "df -m /system",
+  "alt_cmd": "df -m /system | grep / | tr -s ' ' | cut -d ' ' -f 4",
+  "utility": "df",
+  "freq": 0,
+  "nl": "Print amount of space available on the file system containing path to the /system directory in megabytes.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system -type d | wc -l",
+  "alt_cmd": "tree -d /system | tail -n 1",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Display the number of sub-directories under /system",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "tar --mtime='2023-01-01' --owner=0 --group=0 -czf mytarfile.tgz `find /system/folder1 -mtime -60`",
+  "alt_cmd": "tar --mtime='2023-01-01' --owner=0 --group=0 -czvf mytarfile.tgz `find /system/folder1 -mtime -60`",
+  "utility": "tar",
+  "freq": 0,
+  "nl": "Archive all files in /system/folder1 directory modified in the last 60 days to \"/mytarfile.tgz\" with a time of 2023-01-01, owner of 0, and group of 0.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "ln /system/folder1 -s /",
+  "alt_cmd": "ln -s /system/folder1 /",
+  "utility": "ln",
+  "freq": 0,
+  "nl": "Create a symbolic link named folder1 in the /system directory to the root folder /",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "echo $(date) \"1\" | tee -a /system/folder3/temp/empty.txt",
+  "alt_cmd": "echo $(date +\"%Y-%m-%d~%H:%M:%S\") \"1\" | tee -a /system/folder3/temp/empty.txt",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "Write the current date and time followed by \" 1\" to the console and append to \"/system/folder3/temp/empty.txt\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system -name \"*.txt\" -not -name \"concat.txt\" -print -exec cat {} \\; > /system/folder3/temp/concat.txt",
+  "alt_cmd": "find /system -type f -name \"*.txt\" -not -name \"concat.txt\" -print -exec cat {} \\; > /system/folder3/temp/concat.txt",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Concatenate all .txt files residing in the /system tree into a single file \"/system/folder3/temp/concat.txt\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system -depth -print | cpio -dump /backup",
+  "alt_cmd": "find /system -print | cpio -dump /backup",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Compresses all the files in the /system folder with default depth to /backup using cpio.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system -maxdepth 1 -type f ! -name '*text*' -exec cp {} /system/folder3/backup_dbg/backup \\;",
+  "alt_cmd": "find /system -maxdepth 1 -print -type f ! -name '*text*' -exec cp {} /system/folder3/backup_dbg/backup \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Copy all files in the /system directory except those containing 'text' to '/system/folder3/backup_dbg/backup'. Do not include subdirectories.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "mv /system/folder3/temp/temp1 /system/folder3/temp/temp1_old",
+  "alt_cmd": "cp -r /system/folder3/temp/temp1 /system/folder3/temp/temp1_old && rm -r /system/folder3/temp/temp1",
+  "utility": "mv",
+  "freq": 0,
+  "nl": "Rename \"/system/folder3/temp/temp1\" to \"/system/folder3/temp/temp1_old\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "od -t c /system/text1.txt",
+  "alt_cmd": "hexdump -C /system/text1.txt",
+  "utility": "od",
+  "freq": 0,
+  "nl": "Dump \"/system/text1.txt\" as ASCII characters",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "tar --mtime='2023-01-01' --owner=0 --group=0 -zcf compress_folder1.tar.gz /system/folder1",
+  "alt_cmd": "tar --mtime='2023-01-01' --owner=0 --group=0 -zcvf compress_folder1.tar.gz /system/folder1",
+  "utility": "tar",
+  "freq": 0,
+  "nl": "Create a compressed archive of /system/folder1 \"compress_folder1.tar.gz\" with a time of 2023-01-01, owner of 0, and group of 0.",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "curl http://example.com/textfile.txt -o /system/textfile.txt",
+  "alt_cmd": "curl -vo /system/textfile.txt http://example.com/textfile.txt",
+  "utility": "curl",
+  "freq": 0,
+  "nl": "download content from \"http://example.com/textfile.txt\" and output to 'textfile.txt' in /system",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /system -size +10c -print",
+  "alt_cmd": "find /system -type f -size +10c",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Search in /system downwards all files whose size is greater than 10 bytes.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /system -type f -name '*.txt' -exec md5sum {} + | awk '{print $1}' | sort",
+  "alt_cmd": "find /system -type f -name \"*.txt\" -exec md5sum {} + | sort",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Calculate the md5sum of each \".txt\" file under \"/system\" and sort the output.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "more /etc/hosts | grep `hostname` | awk '{print $1}'",
+  "alt_cmd": "grep \"$(hostname)\" /etc/hosts | awk '{print $1}'",
+  "utility": "more",
+  "freq": 0,
+  "nl": "Search for the system host name in \"/etc/hosts\" and print the IP address in the first awk field",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -daystart -type f -mtime -30",
+  "alt_cmd": "find /workspace -type f -mtime -30",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Find files in /workspace directory modified within 30 days.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -name '*.c' -size +1k -print",
+  "alt_cmd": "find /workspace -name '*.c' -size +1k",
+  "utility": "find",
+  "freq": 0,
+  "nl": "find files in the /workspace directory with pattern` *.c  that larger than 1 Kilobytes",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -type f -cmin +60",
+  "alt_cmd": "find /workspace -type f -cmin +60 -print",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Find files in the /workspace directory and sub-directories, that changed over an hour ago.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -type f -amin +60",
+  "alt_cmd": "find /workspace -type f -amin +60 -print",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Find files in the /workspace directory and sub-directories, that were accessed over an hour ago.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -maxdepth 1 -type d",
+  "alt_cmd": "find /workspace -maxdepth 1 -type d",
+  "utility": "find",
+  "freq": 0,
+  "nl": "list all the drectories present in the /workspace directory and do not search in the sub directories.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -empty",
+  "alt_cmd": "find /workspace -empty -print",
+  "utility": "find",
+  "freq": 0,
+  "nl": "list all the files in the /workspace directory which are of size 0 bytes.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -empty -exec ls {} \\;",
+  "alt_cmd": "find /workspace -type f -size 0",
+  "utility": "find",
+  "freq": 0,
+  "nl": "list all zero-length files under the /workspace directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -type f -size +1k -delete",
+  "alt_cmd": "find /workspace -type f -size +1k -exec rm {} \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "locate and remove large files (> 1 KB) in /workspace",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -perm 400 -type f -exec ls -l {} \\;",
+  "alt_cmd": "find /workspace -perm 400 -ls",
+  "utility": "find",
+  "freq": 0,
+  "nl": "List all the files in the /workspace directory which have only read permission to the group.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -perm 777 -type f -exec ls -l {} \\;",
+  "alt_cmd": "find /workspace -perm 777 -ls",
+  "utility": "find",
+  "freq": 0,
+  "nl": "List all the files in the /workspace directory which have permissions 777.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -name \"*.txt\" -exec ls -ld {} \\;",
+  "alt_cmd": "find /workspace -name \"*.txt\" | xargs ls -ld",
+  "utility": "find",
+  "freq": 0,
+  "nl": "List the details of all the text files in /workspace directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -maxdepth 1 -type f -exec mv -t / {} +",
+  "alt_cmd": "find /workspace -maxdepth 1 -type f -exec mv {} / \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "move all files in the /workspace folder to / and do not move the files in the sub folder",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -atime -1 -type f -exec mv {} / \\;",
+  "alt_cmd": "find /workspace -type f -atime -1 -print0 | xargs -0 -I {} mv {} /",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Move files in /workspace accessed less than one day ago to directory /.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace/dir1 -type f -exec grep -il 'hello' {} \\;",
+  "alt_cmd": "grep -ril 'hello' /workspace/dir1",
+  "utility": "find",
+  "freq": 0,
+  "nl": "print all filenames of files under /workspace/dir1 dir containing 'hello', case-insensitive",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "du -sh /workspace",
+  "alt_cmd": "du -h /workspace",
+  "utility": "du",
+  "freq": 0,
+  "nl": "print disk usage of files or folders in /workspace",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "tac /workspace/dir1/long.txt | awk 'NF{print $NF; exit}'",
+  "alt_cmd": "awk '{ for (i=1; i<=NF; i++) last=$i } END { print last }' /workspace/dir1/long.txt",
+  "utility": "tac",
+  "freq": 0,
+  "nl": "print the last word in /workspace/dir1/long.txt",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "du -a /workspace | sort -nr | head -n 3",
+  "alt_cmd": "find /workspace -exec du -h {} + | sort -rh | head -n 3",
+  "utility": "du",
+  "freq": 0,
+  "nl": "Print the 3 largest directories in /workspace.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "head -n1 /workspace/dir1/long.txt",
+  "alt_cmd": "sed -n '1p' /workspace/dir1/long.txt",
+  "utility": "head",
+  "freq": 0,
+  "nl": "prints first line of \"/workspace/dir1/long.txt\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "tac /workspace/dir1/a.txt | grep -m 1 '.'",
+  "alt_cmd": "awk 'NF' /workspace/dir1/a.txt | tail -n 1",
+  "utility": "tac",
+  "freq": 0,
+  "nl": "prints the last non-empty line of \"/workspace/dir1/a.txt\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -type f -delete",
+  "alt_cmd": "find /workspace -type f -exec rm -f {} +",
+  "utility": "find",
+  "freq": 0,
+  "nl": "prune all the files in the /workspace directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -type f -size +1k -size -32k",
+  "alt_cmd": "find /workspace -type f -size +1k -size -32k -print",
+  "utility": "find",
+  "freq": 0,
+  "nl": "search for all the files in the  /workspace directory which have size greater than 1KB (approx) and less than 32KB(approx).",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type f | awk -F/ '{print NF, $0}' | sort -n",
+  "alt_cmd": "find /workspace -type f | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2-",
+  "utility": "find",
+  "freq": 0,
+  "nl": "search for all the files in the  /workspace folder and sort them in the order of their depth and display the file names",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type f -size +1k -exec ls -ls {} + | sort -n | tail -1",
+  "alt_cmd": "find /workspace -type f -size +1k -exec ls -lh {} + | sort -k 5 -rh | head -n 1",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Search for all the files in the /workspace folder which are bigger than 1KB and display the biggest file.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find  /workspace -type f \\( -iname \"*.txt\" -not -perm -o=w \\)",
+  "alt_cmd": "find /workspace -type f -name \"*.txt\" ! -perm -o=w",
+  "utility": "find",
+  "freq": 0,
+  "nl": "search for text files in the  /workspace folder which do not have write access to others",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find  /workspace -name mysql -type d",
+  "alt_cmd": "find workspace -type d -name \"mysql\"",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Search for the directory \"mysql\" in the workspace directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type f | awk -F/ '{print $NF}' | sort -f | uniq -i -d",
+  "alt_cmd": "find /workspace -type f | awk -F/ '{print tolower($NF)}' | sort | uniq -d",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Print a list of all duplicate case insensitive filenames in the /workspace directory tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -name old2.txt | xargs ls -tl",
+  "alt_cmd": "find /workspace -name old2.txt -print0 | xargs -0 ls -tl",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Search for the file old2.txt in the /workspace folder and list its permissions and creation time.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find  /workspace -type f | xargs grep -l \"hello\"",
+  "alt_cmd": "grep -rnw '/workspace' -e 'hello'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "search for the word \"hello\" in all the regular/normal files in the  /workspace folder and display the matched file name",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type f -exec md5sum {} + | awk '{print $2 \" \" $1}'",
+  "alt_cmd": "find /workspace -type f -print0 | xargs -0 md5sum | awk '{print $2 \" \" $1}'",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Calculate the md5 sum of all files in the /workspace directory with the filename printed first",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -type f -exec md5sum {} + | sort",
+  "alt_cmd": "find /workspace -type f -exec md5sum {} +",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Calculate the md5 sum of all files in directory tree \"/workspace\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type f -name '*.*' | awk -F. 'NF>1 {ext=tolower($NF); if (length(ext) >= 3 && length(ext) <= 6) print ext}' | sort | uniq -c | wc -l",
+  "alt_cmd": "find /workspace -type f -name '*.*' | sed -n 's/.*\\.//p' | awk '{print tolower($0)}' | grep -E '^[a-z]{3,6}$' | sort -u | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count the number of unique 3 to 6 character file extensions are in the /workspace directory tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type d -print|sed 's@^@/usr/@'|xargs mkdir -p",
+  "alt_cmd": "find /workspace -type d | cpio -pdm /usr",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Create a copy of the /workspace directory structure in the /usr directory,",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type f -printf '%T+ %p\\n' | sort | head -n 1 | awk '{print $2}' | xargs ls -l",
+  "alt_cmd": "find /workspace -type f -exec stat --format '%Y %n' {} \\; | sort -n | head -n 1 | cut -d' ' -f2- | xargs ls -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Display a long listing of the oldest file under '/workspace' directory tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type d -print0 | xargs -0 du | sort -n | tail -2 | cut -f2 | xargs -I{} du -sh {}",
+  "alt_cmd": "find /workspace -type d -print0 | xargs -0 du | sort -n | tail -2",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Find the largest 2 directories under /workspace directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type f | xargs md5sum | sort | uniq -Dw32",
+  "alt_cmd": "find /workspace -type f -print0 | xargs -0 md5sum | sort | uniq -w32 -D",
+  "utility": "find",
+  "freq": 0,
+  "nl": "List all files with their paths that have identical content in /workspace directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "cat /workspace/files.txt |xargs -I {} dirname \"{}\"| sort -u | xargs -I{} mkdir -p \"{}\"",
+  "alt_cmd": "cat /workspace/files.txt | xargs -I {} dirname {}| sort -u | xargs -I{} mkdir -p \"{}\"",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "Make directories for each unique file path in \"/workspace/files.txt\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "cat /workspace/files.txt | xargs du -b | tail -1 | awk '{print $1}'",
+  "alt_cmd": "awk '{print $0}' /workspace/files.txt | xargs du -b | awk '{sum += $1} END {print sum}'",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "Print the total disk usage in bytes of all files listed in \"/workspace/files.txt\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -maxdepth 1 -type f -name '.*' -exec sh -c 'mv \"$0\" \"${0%/\\.*}/${0##*/.}\"' {} \\;",
+  "alt_cmd": "find /workspace -maxdepth 1 -type f -name '.*' -exec sh -c 'mv \"$1\" \"${1%/\\.*}/${1##*/.}\"' _ {} \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Unhide all hidden files in the /workspace directory. Do not include subdirectories.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "diff /workspace/dir1/long.txt /workspace/dir1/terminate.txt | grep ^[\\>\\<] | wc -l",
+  "alt_cmd": "diff /workspace/dir1/long.txt /workspace/dir1/terminate.txt | grep '^>' | wc -l",
+  "utility": "diff",
+  "freq": 0,
+  "nl": "Count the number of differing lines in \"/workspace/dir1/long.txt\" and \"/workspace/dir1/terminate.txt\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "diff -U 0 /workspace/dir1/terminate.txt /workspace/dir1/long.txt | grep -v ^@ | wc -l",
+  "alt_cmd": "diff -U 0 /workspace/dir1/terminate.txt /workspace/dir1/long.txt | grep -v '^@' | wc -l",
+  "utility": "diff",
+  "freq": 0,
+  "nl": "Count the number of differing lines in \"/workspace/dir1/terminate.txt\" and \"/workspace/dir1/long.txt\" with 0 lines of unified context",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "awk '!/^[[:space:]]*$/{++x} END{print x}' /workspace/dir1/a.txt",
+  "alt_cmd": "grep -v '^[[:space:]]*$' /workspace/dir1/a.txt | wc -l",
+  "utility": "awk",
+  "freq": 0,
+  "nl": "Counts lines in file /workspace/dir1/a.txt ignoring empty lines and lines with spaces only.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "cat /workspace/results.txt | xargs -I{} ln -s {} ~/newlinks",
+  "alt_cmd": "cat /workspace/results.txt | xargs -I {} ln -s {} ~/newlinks",
+  "utility": "cat",
+  "freq": 0,
+  "nl": "Create a symbolic link in directory \"~/newlinks\" for each file listed in \"/workspace/results.txt\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /workspace -type f -name '.*' -delete",
+  "alt_cmd": "find /workspace -type f -name '.*' -exec rm -f {} \\;",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Delete all hidden files under /workspace",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "od -t fD /workspace/dir1/long.txt",
+  "alt_cmd": "od -An -t fD /workspace/dir1/long.txt",
+  "utility": "od",
+  "freq": 0,
+  "nl": "Display a dump of \"/workspace/dir1/long.txt\" as floating point values of double size",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "diff <(ls /workspace/dir1) <(ls /workspace/dir2)",
+  "alt_cmd": "diff -qr /workspace/dir1 /workspace/dir2",
+  "utility": "diff",
+  "freq": 0,
+  "nl": "Display differences between list of files in /workspace/dir1 and /workspace/dir2.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "du -sb /workspace/dir1/sum.c | cut -f1",
+  "alt_cmd": "stat -c %s /workspace/dir1/sum.c",
+  "utility": "du",
+  "freq": 0,
+  "nl": "Display the file size of file '/workspace/dir1/sum.c' in bytes",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "rev /workspace/dir1/file.txt | cut -d/ -f1 | rev",
+  "alt_cmd": "awk -F/ '{print $NF}' /workspace/dir1/file.txt",
+  "utility": "rev",
+  "freq": 0,
+  "nl": "Display the last slash-separated part of each filename path in /workspace/dir1/file.txt",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "du /workspace -a -h | sort -hr",
+  "alt_cmd": "du -ah /workspace | sort -rh",
+  "utility": "du",
+  "freq": 0,
+  "nl": "Display the sizes and filepaths of all files/directories in /workspace directory sorted in descending order of size",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "df -k /workspace | tail -1 | awk '{print $5}'",
+  "alt_cmd": "df -h /workspace | awk 'NR==2 {print $5}'",
+  "utility": "df",
+  "freq": 0,
+  "nl": "Print percentage of the space used on the /workspace directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "nl /workspace/dir1/long.txt | sort -nr | cut -b8-",
+  "alt_cmd": "tac /workspace/dir1/long.txt",
+  "utility": "nl",
+  "freq": 0,
+  "nl": "Print the contents of \"/workspace/dir1/long.txt\" in reverse order",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "echo $'workspace/Icon\\r' | xargs touch",
+  "alt_cmd": "touch \"workspace/Icon\"$'\\r'",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "Create an empty file \"Icon\" in workspace/ with a carriage return character in the end of its name.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "ln /workspace/dir1 -s /",
+  "alt_cmd": "ln -s /workspace/dir1 /",
+  "utility": "ln",
+  "freq": 0,
+  "nl": "Create a symbolc link in the /workspace/dir1 to root folder",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "tree /workspace -p -u -g -f",
+  "alt_cmd": "find /workspace -type f -exec stat --format '%A %U %G %N' {} \\;",
+  "utility": "tree",
+  "freq": 0,
+  "nl": "Display permissions, user, group, and full path for each file in the /workspace directory tree",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -type f -print0  | xargs -0 grep -iH \"hello\"",
+  "alt_cmd": "grep -ri 'hello' /workspace",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Search for 'hello' case insensitively in all files under /workspace directory tree and show the matched lines with their filenames",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /workspace -name '*.gz' -print0 | xargs -0 gunzip",
+  "alt_cmd": "find /workspace -type f -name '*.gz' -exec gunzip {} +",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Unpack all *.gz archives in the /workspace directory tree",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "gzip -dc /workspace/archive.tar.gz | tar -xf - -C /backup",
+  "alt_cmd": "tar -xzvf /workspace/archive.tar.gz -C /backup",
+  "utility": "gzip",
+  "freq": 0,
+  "nl": "Uncompress \"/workspace/archive.tar.gz\" and extract the archive to \"/backup\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "ln /workspace/dir1/terminate.txt /workspace/test",
+  "alt_cmd": "ln -s /workspace/dir1/terminate.txt /workspace/test",
+  "utility": "ln",
+  "freq": 0,
+  "nl": "Create a symbolic link to \"/workspace/dir1/terminate.txt\" named \"/workspace/test\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "uname -v | grep -o '#[0-9]\\+'",
+  "alt_cmd": "uname -r | awk -F'-' '{print $2}'",
+  "utility": "uname",
+  "freq": 0,
+  "nl": "Retrieve only build number of current kernel, ie. #104",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "dig -x 127.0.0.1",
+  "alt_cmd": "nslookup 127.0.0.1",
+  "utility": "dig",
+  "freq": 0,
+  "nl": "Print reverse lookup for adress 127.0.0.1",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "ls -ald `which grep`",
+  "alt_cmd": "stat $(which grep)",
+  "utility": "ls",
+  "freq": 0,
+  "nl": "List file information of the full path of command \"grep\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "echo \"http://www.google.com\" | cut -d'/' -f3",
+  "alt_cmd": "echo \"http://www.google.com\" | sed -E 's|https?://([^/]+).*|\\1|'",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "Extract host name part from \"http://www.google.com\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "env | sed 's/;/\\\\;/g'",
+  "alt_cmd": "while IFS= read -r line; do echo \"${line//;/\\\\;}\"; done < <(env)",
+  "utility": "env",
+  "freq": 0,
+  "nl": "List environment variables and their values, escaping all semicolons with a backslash.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "pstree -a",
+  "alt_cmd": "ps -eo pid,ppid,cmd --forest",
+  "utility": "pstree",
+  "freq": 0,
+  "nl": "Displays a tree of all process alongside their command line arguments.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "mkdir -p dir/subdir/subsubdir",
+  "alt_cmd": "mkdir -p dir/subdir/subsubdir",
+  "utility": "mkdir",
+  "freq": 0,
+  "nl": "Create intermediate directories \"dir\" and \"subdir\" as required and create \"subsubdir\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "yes | head -n10 | grep -n . | cut -d: -f1 | paste -sd:",
+  "alt_cmd": "echo $(seq -s \":\" 1 10)",
+  "utility": "yes",
+  "freq": 0,
+  "nl": "Print numbers 1 through 10 separated by \":\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "bind -P",
+  "alt_cmd": "bind -P",
+  "utility": "bind",
+  "freq": 0,
+  "nl": "print all readline bindings",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "bind -l | grep p",
+  "alt_cmd": "bind -l | egrep 'p'",
+  "utility": "bind",
+  "freq": 0,
+  "nl": "list names of bind functions containing \"p\"",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "address=$(dig +short google.com | grep -E '^[0-9.]+$' | head -n 1) && echo $address",
+  "alt_cmd": "address=$(dig +short google.com | grep -m 1 '^[0-9]' | head -n 1) && echo $address",
+  "utility": "+short",
+  "freq": 0,
+  "nl": "Save first IP address of domain 'google.com' in 'address' variable and display it",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "echo '  Hello world;876\t  ' | tr -cd ';0-9'",
+  "alt_cmd": "echo \"  Hello world;876     \" | sed 's/[^0-9;]//g'",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "Remove all characters except \";\" and digits from the string \"  Hello world;876\t  \"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "echo '  Hello world!\t  ' | sed -e 's/^[ \\t]*//' | sed -e 's/[ \\t]*$//'",
+  "alt_cmd": "echo -n \"  Hello world!    \" | sed 's/^[ \\t]*//;s/[ \\t]*$//'",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "Remove leading and trailing spaces or tabs from \"  Hello world!\t  \"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "echo 987654321 | rev | cut -c 4- | rev",
+  "alt_cmd": "echo \"987654321\" | sed 's/...$//'",
+  "utility": "echo",
+  "freq": 0,
+  "nl": "Remove the last 3 characters from \"987654321\"",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "df . | tail -1 | awk '{print $1}'",
+  "alt_cmd": "df -P . | awk 'NR==2 {print $1}'",
+  "utility": "df",
+  "freq": 0,
+  "nl": "Print source of the file system containing current working directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "env | awk -F= '{if($1 ~ /H/) print $1}'",
+  "alt_cmd": "env | grep '^[^=]*H[^=]*=' | awk -F= '{print $1}'",
+  "utility": "env",
+  "freq": 0,
+  "nl": "List all variables (names only) with names containing \"H\".",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "who | cut -d' ' -f1 | sort | uniq",
+  "alt_cmd": "who | awk '{print $1}' | sort | uniq",
+  "utility": "who",
+  "freq": 0,
+  "nl": "Print a list of unique users who are logged in",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "ping -w 1 192.168.1.1",
+  "alt_cmd": "ping -w 1 192.168.1.1",
+  "utility": "ping",
+  "freq": 0,
+  "nl": "ping 192.168.1.1",
+  "names_utility": true
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "seq -s= 100|tr -d '[:digit:]'",
+  "alt_cmd": "printf '=%.0s' {1..99}",
+  "utility": "seq",
+  "freq": 0,
+  "nl": "Print a line of 99 '=' characters",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "who | awk -F' ' '{print $1}' | sort -u | wc -l",
+  "alt_cmd": "who | wc -l",
+  "utility": "who",
+  "freq": 0,
+  "nl": "Count number of users logged in",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "cal -3 12 2120",
+  "alt_cmd": "cal -3 12 2120",
+  "utility": "cal",
+  "freq": 0,
+  "nl": "Displays calendar of a previous, current and next month for December of 2120 year.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "cut -d: -f1 /etc/group | sort",
+  "alt_cmd": "cut -d: -f1 /etc/group | sort | uniq",
+  "utility": "cut",
+  "freq": 0,
+  "nl": "Extract, sort and print only group names from /etc/group.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "seq 10 | jq -s 'add'",
+  "alt_cmd": "echo $(( (10 * (10 + 1)) / 2 ))",
+  "utility": "seq",
+  "freq": 0,
+  "nl": "Calculate the sum of all the numbers from 1 to 10",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /testbed | wc -l",
+  "alt_cmd": "find /testbed -print | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Count the number of files and directories in the entire testbed directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find testbed -type f -name \"*.py\" | wc -l",
+  "alt_cmd": "find testbed -type f -name \"*.py\" -print | wc -l",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Print the number of python files in the testbed directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "sort -r /testbed/dir1/textfile1.txt > /testbed/dir1/textfile1_reverse_sorted.txt",
+  "alt_cmd": "sort -r /testbed/dir1/textfile1.txt > /testbed/dir1/textfile1_reverse_sorted.txt",
+  "utility": "sort",
+  "freq": 0,
+  "nl": "Sort the lines of textfile1.txt in reverse alphabetical order and save the result to a new file named textfile1_reverse_sorted.txt",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /testbed -type f -exec grep -l 'Shell' {} +",
+  "alt_cmd": "grep -r 'Shell' /testbed",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Search for all files containing the word 'Shell' in testbed.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /testbed -type l",
+  "alt_cmd": "find /testbed -type l -print",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Find all symbolic links in the testbed directory.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "du -sh testbed/ | awk '{print $1}' > total_size.txt",
+  "alt_cmd": "du -s testbed/ | awk '{print $1}' > total_size.txt",
+  "utility": "du",
+  "freq": 0,
+  "nl": "Get the total size of all files in testbed/ and save it to total_size.txt",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "ls -lhS /testbed/dir1",
+  "alt_cmd": "ls -lhS /testbed/dir1",
+  "utility": "ls",
+  "freq": 0,
+  "nl": "List all files in the directory /testbed/dir1 and sort them by size in human-readable format",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "grep -rl . /testbed/dir2 | xargs wc -l",
+  "alt_cmd": "find /testbed/dir2 -type f -exec wc -l {} +",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Count the number of lines in files under the directory /testbed/dir2.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed/dir3 -type f -exec ls -lhS {} + | sort -rh -k5 | head -n 3",
+  "alt_cmd": "find /testbed/dir3 -type f -exec ls -lhS {} + 2>/dev/null | sort -rh -k5 | head -n 3",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Print the name and size of the 3 largest files in the directory /testbed/dir3",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -mmin -120 -print0 | xargs -0 tar -czf /testbed/archive.tar.gz",
+  "alt_cmd": "find /testbed -type f -mmin -120 -print0 | xargs -0 tar -czf /testbed/archive.tar.gz",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Find all files modified in the last 2 hours and compress them into a tarball named archive.tar.gz in the directory /testbed",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "ls -d /testbed/*/ | grep -v /subdir1/",
+  "alt_cmd": "find /testbed -mindepth 1 -maxdepth 1 -type d ! -name \"subdir1\"",
+  "utility": "ls",
+  "freq": 0,
+  "nl": "List all subdirectories of /testbed that are not named subdir1",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "grep -r 'text file' /testbed",
+  "alt_cmd": "grep -rl 'text file' /testbed",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Search for all files that contain the string 'text file' under the directory /testbed",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "find /testbed -type f -exec md5sum {} + > /testbed/hashes.txt",
+  "alt_cmd": "find /testbed -type f -exec md5sum {} + > /testbed/hashes.txt",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Compute the MD5 hash of all files under the directory /testbed and store them in a file named hashes.txt in the same directory",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "tail -n 10 /testbed/dir3/subdir1/subsubdir1/textfile3.txt",
+  "alt_cmd": "tail -n 10 /testbed/dir3/subdir1/subsubdir1/textfile3.txt",
+  "utility": "tail",
+  "freq": 0,
+  "nl": "Print the last 10 lines of the file /testbed/dir3/subdir1/subsubdir1/textfile3.txt",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "grep -n 'value3' /testbed/dir1/subdir1/jsonfile1.json",
+  "alt_cmd": "grep -n 'value3' /testbed/dir1/subdir1/jsonfile1.json",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Print the line number and contents of all lines containing the string 'value3' in the file /testbed/dir1/subdir1/jsonfile1.json",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d1",
+  "cmd": "find /testbed -type f -mtime -1 -print",
+  "alt_cmd": "find /testbed -type f -mtime -1",
+  "utility": "find",
+  "freq": 0,
+  "nl": "Find all files in the directory /testbed that have been modified in the last 24 hours and print their path",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "grep -rl \"Hello\" /testbed | xargs sed -i 's/Hello/Hi/g'",
+  "alt_cmd": "grep -rl 'Hello' /testbed | xargs sed -i 's/Hello/Hi/g'",
+  "utility": "grep",
+  "freq": 0,
+  "nl": "Search for all the files in /testbed directory and its subdirectories that contain the word 'Hello' and replace it with 'Hi' in-place.",
+  "names_utility": false
+ },
+ {
+  "tier": "alfa-d2",
+  "cmd": "paste <(nl /testbed/dir3/subdir1/subsubdir1/textfile3.txt) <(nl /testbed/dir1/subdir1/textfile4.txt)",
+  "alt_cmd": "paste <(nl /testbed/dir3/subdir1/subsubdir1/textfile3.txt) <(nl /testbed/dir1/subdir1/textfile4.txt)",
+  "utility": "paste",
+  "freq": 0,
+  "nl": "Display the contents of textfile3.txt and textfile4.txt side by side, with line numbers and a separator between them.",
+  "names_utility": false
+ }
+]
