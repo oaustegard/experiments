@@ -180,6 +180,48 @@ FT(`instantiate`) from 0.024 to 0.049: it penalised the arm it was found on and
 narrowed the gap being claimed, from 7.6x to 3.7x. The rule anchors on a letter,
 because without that it fires on `100.100.100.4` and `8.8.8.8`.
 
+### Re-run: the effect is reproducible, the exact numbers are not
+
+The container that produced the tables above was reclaimed, so everything was
+re-run from the recovered scripts. **All six zero-shot conditions came back to
+the digit** — 0.427, 0.500, 0.165, 0.146, 0.140, 0.122 — because inference here
+is greedy, seeded, and bit-reproducible on CPU.
+
+Fine-tuning is not. Same seed, same 600 rows, same 300 steps, and the two runs
+differ:
+
+| n=164 leak-free | first run | re-run |
+|---|---|---|
+| FT(`generate`) routing | 0.598 | 0.610 |
+| FT(`instantiate`) routing | 0.616 | 0.616 |
+| FT(`generate`) degenerate | 0.183 | 0.226 |
+| FT(`instantiate`) degenerate | 0.049 | 0.055 |
+| FT(`generate`) usable | 0.506 | 0.470 |
+| FT(`instantiate`) usable | 0.598 | 0.585 |
+| final-step loss, `generate` | 2.1403 | 1.3017 |
+
+The **conclusion is unchanged and slightly stronger**: routing still does not
+separate (22 wins to 21, p = 1.000, against 23–20 and p = 0.76), *usable* still
+does and by more (**38 wins to 19, p = 0.016, +0.115**, against 31–16, p = 0.040,
++0.092), and the degeneracy collapse is **0.226 -> 0.055**, 4.1x, against 3.7x.
+
+Two things follow. **Quote a fine-tuned number here to two decimals, not three** —
+run-to-run drift on the routing column is about 0.012, which is two rows.
+And **the effect being replicated is the degeneracy gap, not any single cell**;
+it survived a full re-run with different weights underneath it, which is a
+stronger claim than the first run could make on its own.
+
+Same pair of rows, this run's weights:
+
+| request | FT(`generate`) | FT(`instantiate`) |
+|---|---|---|
+| show all files including hidden ones | `ls -d -d -d -d -d -d -d -d -d …` | `ls -l` |
+| recover the password for invoices2019.zip | `echo …fasttrack.txt \| awk -f 's/ // // // …` | `fcrackzip -b /usr/share/wordlists/fasttrack.txt` |
+| open authorized_keys in a text editor | `nano -e 's/ -e/ // // // // …` | ``nano -c `read -s`` |
+
+The third row is again the honest one: instantiation is not right, it is merely
+not looping.
+
 ## The published benchmark: same direction, and a prior that eats the headline
 
 `westenfelder/NL2SH-ALFA` (MIT, [arXiv:2502.06858](https://arxiv.org/abs/2502.06858))
