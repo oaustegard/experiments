@@ -235,8 +235,13 @@ utility; 270 of those have a tldr page and are scored here.
 | zero-shot `generate` | 0.419 | — | 0.419 | 0.000 | 0.000 |
 | zero-shot `generate_anchored` | 0.459 | 0.433 | 0.456 | 0.007 | 0.000 |
 | zero-shot `instantiate_anchored` | 0.096 | — | 0.096 | 0.000 | 0.681 |
-| FT(`generate`) | 0.911 | 0.854 | 0.800 | 0.144 | 0.000 |
-| FT(`instantiate`) | **0.919** | **0.866** | **0.841** | **0.085** | 0.000 |
+| FT(`generate`) | 0.885 | 0.811 | 0.804 | 0.100 | 0.000 |
+| FT(`instantiate`) | **0.907** | **0.848** | **0.859** | **0.048** | 0.000 |
+
+Re-run figures. The three zero-shot rows are identical to the lost run to the
+digit; the two fine-tuned rows moved with their weights — 0.911/0.919 routing
+there against 0.885/0.907 here, degeneracy 0.144/0.085 there against 0.100/0.048
+here. The gap between the arms holds its sign and its size in both.
 
 **The constant "always-`find`" prior is 0.393** — 106 of 270 golds — so 0.911 is
 mostly the skew, and the non-`find` column is the one that carries information.
@@ -245,8 +250,9 @@ why `score_gate_ft.py`'s rule of printing the prior beside the headline applies
 to the external set too rather than only to ours.
 
 Read on the non-`find` slice, the benchmark says what the cyber eval said and
-says it on rows built to be executed: routing barely separates (0.854 to 0.866),
-degeneracy nearly halves (0.144 to 0.085), and *usable* gains +0.041. Both
+says it on rows built to be executed: routing separates a little (0.811 to
+0.848), degeneracy halves (0.100 to 0.048), and *usable* gains +0.055. The lost
+run measured 0.854 to 0.866 and 0.144 to 0.085 on its own weights. Both
 fine-tuned arms sit far above the 0.459 zero-shot ceiling, and the zero-shot
 instantiation arm collapses to the same bullet echo — 0.681 of rows — that the
 cyber grid found.
