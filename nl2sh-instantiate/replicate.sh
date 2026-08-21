@@ -14,7 +14,7 @@ keep() {   # keep <path...> — commit whatever landed, push best-effort
   git -C .. -c commit.gpgsign=false -c user.email=muninn@austegard.com -c user.name=muninn \
       commit -q -m "nl2sh-instantiate: $1" 2>/dev/null && say "committed $1"
   git -C .. -c 'credential.helper=!f() { echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f' \
-      push -q origin HEAD 2>/dev/null && say "pushed"
+      push -q origin HEAD && say "pushed" || say "PUSH FAILED"
 }
 
 for c in generate instantiate instantiate_bare generate_anchored instantiate_anchored instantiate_anchored_bare; do
