@@ -141,3 +141,6 @@ Mechanics findings the assessment could not reach:
 - `artifacts/stop-hook-instrumentation.diff` — the temporary hook modification
 - `artifacts/stop-hook-log.jsonl` — captured Stop event + directive compliance
 - `artifacts/fitness_probe.py` — single-candidate fitness timing probe
+- `artifacts/supervisor_stop.py`, `artifacts/test_supervisor_stop.py` — copies of the
+  Stop hook and its tests as merged into claude-workspace (that repo is private; these
+  are here so the write-up links to readable code)
