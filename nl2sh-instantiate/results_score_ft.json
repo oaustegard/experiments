@@ -1,0 +1,75 @@
+{
+ "slice": "leak-free",
+ "prior": {
+  "n": 164,
+  "most_common_utility": "cd",
+  "constant_utility_prior": 0.012,
+  "distinct_utilities": 132
+ },
+ "runs": {
+  "ft_generate/generate": {
+   "n": 164,
+   "routing": 0.61,
+   "command_rate": 1.0,
+   "degenerate": 0.226,
+   "routing_nondegenerate": 0.47,
+   "exact": 0.03,
+   "bullet_echo": 0.0,
+   "utility_mentioned": 0.61,
+   "rows_with_literals": 68,
+   "literal_reproduction": 0.469,
+   "gold_arg_recall": 0.239,
+   "decode_tok_per_s": 20.3,
+   "mean_seconds": 1.16,
+   "mean_prompt_tokens": 124.5
+  },
+  "ft_instantiate_anchored/instantiate_anchored": {
+   "n": 164,
+   "routing": 0.616,
+   "command_rate": 1.0,
+   "degenerate": 0.055,
+   "routing_nondegenerate": 0.585,
+   "exact": 0.024,
+   "bullet_echo": 0.0,
+   "utility_mentioned": 0.622,
+   "rows_with_literals": 68,
+   "literal_reproduction": 0.667,
+   "gold_arg_recall": 0.243,
+   "decode_tok_per_s": 19.7,
+   "mean_seconds": 0.69,
+   "mean_prompt_tokens": 181.4
+  },
+  "gemma-3-270m-it/generate_anchored": {
+   "n": 164,
+   "routing": 0.5,
+   "command_rate": 1.0,
+   "degenerate": 0.0,
+   "routing_nondegenerate": 0.5,
+   "exact": 0.085,
+   "bullet_echo": 0.0,
+   "utility_mentioned": 0.506,
+   "rows_with_literals": 68,
+   "literal_reproduction": 0.156,
+   "gold_arg_recall": 0.151,
+   "decode_tok_per_s": 19.9,
+   "mean_seconds": 0.73,
+   "mean_prompt_tokens": 127.5
+  },
+  "gemma-3-270m-it/instantiate_anchored": {
+   "n": 164,
+   "routing": 0.146,
+   "command_rate": 1.0,
+   "degenerate": 0.0,
+   "routing_nondegenerate": 0.146,
+   "exact": 0.012,
+   "bullet_echo": 0.774,
+   "utility_mentioned": 0.561,
+   "rows_with_literals": 68,
+   "literal_reproduction": 0.271,
+   "gold_arg_recall": 0.201,
+   "decode_tok_per_s": 20.1,
+   "mean_seconds": 1.28,
+   "mean_prompt_tokens": 181.4
+  }
+ }
+}
