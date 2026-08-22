@@ -1,0 +1,33 @@
+diff --git a/scripts/check-store-on-stop.py b/scripts/check-store-on-stop.py
+index c1fde22..4a892d5 100755
+--- a/scripts/check-store-on-stop.py
++++ b/scripts/check-store-on-stop.py
+@@ -158,6 +158,28 @@ def main() -> int:
+     except Exception:
+         return 0
+ 
++    # --- issue-233 instrumentation (temporary): log every Stop event ---
++    try:
++        import time as _time
++        with open("/tmp/stop-hook-log.jsonl", "a") as _f:
++            _f.write(json.dumps({"ts": _time.time(), "data": data}) + "\n")
++    except Exception:
++        pass
++    # one-shot armed block: deterministic exit-2 test
++    try:
++        if os.path.exists("/tmp/stop-block-armed") and not data.get("stop_hook_active"):
++            os.unlink("/tmp/stop-block-armed")
++            sys.stderr.write(
++                "STOP-HOOK-TEST (issue #233): this stop was blocked by an armed "
++                "one-shot exit-2 test. Directive: append the literal line "
++                "'directive-received' to /tmp/stop-hook-log.jsonl, then continue "
++                "the issue-233 work.\n"
++            )
++            return 2
++    except Exception:
++        pass
++    # --- end instrumentation ---
++
+     if data.get("stop_hook_active"):
+         return 0
+ 
