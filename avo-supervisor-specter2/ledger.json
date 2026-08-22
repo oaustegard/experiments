@@ -459,6 +459,98 @@
         "--seed",
         "555"
       ]
+    },
+    {
+      "id": 26,
+      "ts": 1787428786.9076397,
+      "score": 0.763,
+      "desc": "bits=4 haar seed=2026 two-stage cand=300",
+      "strategy_class": "search-strategy",
+      "wall_s": 13.87,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "2026",
+        "--two-stage",
+        "--candidates",
+        "300"
+      ]
+    },
+    {
+      "id": 27,
+      "ts": 1787428789.0103695,
+      "score": 0.7435,
+      "desc": "bits=4 rht seed=2026 (rotation control)",
+      "strategy_class": "quantization-config",
+      "wall_s": 2.1,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "rht",
+        "--seed",
+        "2026"
+      ]
+    },
+    {
+      "id": 28,
+      "ts": 1787428803.2922103,
+      "score": 0.7625,
+      "desc": "ivf lsh n_bits=4 nprobe=16=flat, seed=2026 corpus",
+      "strategy_class": "ivf-coarse-tier",
+      "wall_s": 14.28,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "2026",
+        "--ivf",
+        "--ivf-mode",
+        "lsh",
+        "--n-bits",
+        "4",
+        "--nprobe",
+        "16",
+        "--candidates",
+        "500"
+      ]
+    },
+    {
+      "id": 29,
+      "ts": 1787428806.9831593,
+      "score": 0.748,
+      "desc": "bits=4 haar seed=7777",
+      "strategy_class": "quantization-config",
+      "wall_s": 3.69,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "7777"
+      ]
+    },
+    {
+      "id": 30,
+      "ts": 1787428810.5505278,
+      "score": 0.762,
+      "desc": "bits=4 haar seed=2026 (best, reconfirm)",
+      "strategy_class": "quantization-config",
+      "wall_s": 3.57,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "2026"
+      ]
     }
   ],
   "strategy_switches": 2
