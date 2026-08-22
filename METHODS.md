@@ -2220,6 +2220,112 @@ reached from a GUI smoke test and from a formal-methods critique — an assertio
 whose truth does not *depend on* the thing under test will report success on a
 no-op. Both also share the tell: **the pass came easily and on the first try.**
 
+### Two metrics that share an algebraic term will correlate — derive before you report
+
+Principle 1 above says two implementations agree falsely when they share a
+*modelling assumption*. The metric-level version is sharper and easier to miss:
+two scores agree trivially when they share a **term in their definitions**, and
+the agreement then says nothing about the system under study.
+
+`tc-interference-weights/RESULTS.md` (a review of external work, not our own
+measurement) — Anthropic's interference-weights note scores each virtual weight
+by *Fisher effectiveness* (a second-order KL estimate) and by *helpfulness*
+(mean loss change under ablation), then reports that the two track each other on
+the effective tail as a finding about the trained model: "a model trained to
+minimize loss has every reason to get its most consequential weights pointing in
+a good direction." Expanding their own helpfulness formula to second order in
+`u = sw` gives `helpfulness(w) = -w*dL/dw + fisher(w) + O(u^3)` — the Optimal
+Brain Damage saliency they cite in related work. `fisher` is a positive-definite
+quadratic form, always >= 0 and growing as `w^2` while the gradient term grows as
+`w`, so weights above a crossover in `|sw|` are *forced* to measure as helpful.
+Measured on their published figure data: log-log slope 0.89-1.06, r 0.956-0.990,
+median ratio 0.58-1.22 in all six weight families over six or more orders of
+magnitude. The correlation is largely an identity.
+
+The check is fifteen minutes with a pencil, and it runs **before** the compute:
+write both metrics as expressions in the same primitives and see whether one
+reduces to the other plus a residual. If it does, the residual is the finding —
+here, the first-order term is exactly what separates helpful from harmful, which
+also inverts their claim that "a sharper metric has little room to improve."
+
+We are exposed to this wherever a cheap score is validated against an expensive
+one: ERA/TWERA against Fisher, `xr` dense score against RRF rank, `utility_ok`
+against `funceq`, routing against gold-in-sources. A high correlation between a
+proxy and its ground truth is the *expected* reading when the proxy was derived
+from the same expansion — not evidence the proxy works.
+
+**Use when:** reporting that metric A predicts metric B, or that a cheap proxy
+tracks an expensive ground truth.
+
+### At large N, significance stops discriminating — commit an effect-size floor first
+
+The power entry under "Numerical / ML gotchas" covers being *under*powered. This
+is the mirror failure: past some N every difference clears p < 0.05, the
+significance test degenerates into a sample-size report, and a headline built on
+it survives no honest re-reading.
+
+`tc-interference-weights/RESULTS.md` — with 1B tokens per weight estimate,
+Anthropic's note reports 47.6% of virtual weights having positive mean
+helpfulness and rests "the model is still dense in this basis" on it. Their own
+appendix computes a region of practical equivalence: at their own naive
+yardstick (the model's total loss budget spread over its 331M weights,
+eps = 1.5e-8 nats/token), **90.1% of weights are practically zero and 2.9% are
+positive** — population-weighted, ~9.6M weights against a 2.9M-parameter model.
+That converges with their own helpfulness-mass estimate (2.43% density holds 90%
+of positive mass) and with Fisher pruning (30% density costs 0.0107 nats). Three
+routes land on 2-3%; only the sign-of-the-mean route reaches the Discussion.
+
+The floor has to be chosen from the problem, not from the data: what change in
+the outcome would alter a decision? Then report the fraction clearing it in the
+main line, next to the p-value, not instead of it. An eps chosen after seeing the
+distribution is a post-hoc filter and inherits every objection to one.
+
+**Use when:** n is large enough that the confidence intervals are narrow
+relative to the quantity's natural scale — big token counts, exhaustive pair
+enumerations, full-corpus sweeps.
+
+### Point `recheck.py` at the artifact that could refute the headline, not only the ones the prose cites
+
+The existing recheck convention verifies **prose against the artifacts it
+describes**. That catches sentences that misreport their own numbers. It cannot
+catch a headline that is contradicted by a result sitting elsewhere in the same
+repo, because nothing in the prose points at it.
+
+`tc-interference-weights/RESULTS.md` — the effect-size analysis that undercuts
+the note's central conclusion is not missing, wrong, or hidden. It was computed
+correctly, rendered as a figure, and placed in an appendix that the Discussion
+never cites. No prose-vs-artifact check would flag it: every sentence in the
+Discussion is consistent with the artifacts it quotes.
+
+The addition is one assertion per experiment: name the strongest piece of
+evidence *against* the headline, and have the fixture recompute it and print it
+next to the headline number. If they are in tension, the writeup either hedges or
+explains why the counter-evidence does not bind. Relegating an analysis to an
+appendix is a claim that it does not change the conclusion — make that claim
+explicitly, where it can be checked.
+
+Companion to "A check that cannot fail is not a check": a check that only reads
+the evidence you already believe cannot fail either.
+
+**Use when:** any writeup with a stated headline and an appendix.
+
+### Read small-multiple grids with code, not with your eyes
+
+`tc-interference-weights/RESULTS.md` — the note claims Fisher pruning beats raw
+weight magnitude "for every density and individual weight family (except for
+negative Features->Logits weights)". Its own `threshold_data.js` says Fisher wins
+that family at all 19 sampled densities by 3-10x, and loses on a different one —
+Tokens->OV->Logits negative-only, worse at 8/19 densities and up to 2.22x. Six
+families times three sign conditions is eighteen small panels of two crossing
+curves; the misattribution is what reading that grid by eye produces. Fifteen
+lines of interpolation over the stored series settles it exactly.
+
+Generalizes to any faceted comparison we publish: the per-cell claim comes out of
+the array, and belongs in `recheck.py`.
+
+**Use when:** a sentence names which facet of a multi-panel figure is the
+exception.
+
 ### Never write up a subagent's data without its interpretation
 
 `lattice-representation-hypothesis` §5 — Arm B's JSON was written up before its
