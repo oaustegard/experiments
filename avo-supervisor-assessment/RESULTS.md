@@ -35,16 +35,19 @@ in claude-workspace) with stdin logging plus a one-shot armed exit-2 block
 - Untested: registering a *new* hook in settings.json mid-session. The tested
   path edits an already-registered script.
 
-## Q2 — Plateau detection: arithmetic in the hook, forced and correct
+## Q2 — Plateau detection: arithmetic every stop, Gemini on stagnation
 
 - Hook wall clock: **38 ms** over this session's 794 KB transcript. Ledger
   parse + best-of-last-N comparison is noise on that.
-- An LLM call from inside the hook is not possible on CCotw: no
-  `ANTHROPIC_API_KEY` (by design), and neither the harness Agent tool nor MCP
-  is reachable from a hook shell. The division is forced: hook = arithmetic +
-  directive injection; strategy reasoning happens in the main loop after
-  injection, done by the frontier model with full context — better than any
-  side-channel LLM call would be anyway.
+- CORRECTED 2026-08-22 (Oskar): the first version of this section claimed no
+  LLM was reachable from a hook shell. Wrong — the session env carries
+  `CF_ACCOUNT_ID`/`CF_GATEWAY_ID`/`CF_API_TOKEN` (plus AWS and GCP tokens),
+  hooks inherit it, and a live plateau question through `invoking-gemini`'s
+  client returned a correct verdict in **4.6 s** from a non-login shell.
+  Still true: no Anthropic key, so the hook cannot call Claude.
+- Design is therefore three tiers: arithmetic every stop (38 ms) → Gemini
+  escalation only when stagnant (~5 s, inside hook budget) → injected
+  directive lands on the frontier model with full context.
 
 ## Q3 — Ledger: JSON in-repo is the state; Turso is the postmortem
 
@@ -55,12 +58,14 @@ in claude-workspace) with stdin logging plus a one-shot armed exit-2 block
 | Turso `config_get`, warm | 0.49–0.69 s |
 | Turso cold start | documented 503s, backoff required |
 
-The Stop hook reads the ledger on every stop, so the ledger must be a file —
-Turso from hook context adds credential sourcing (`/etc/profile.d` is
-login-shell only) and 503 risk for no benefit. Commit per candidate; the boot
-clone then delivers the ledger to any resumed or fresh session for free.
-Context is disposable, the file is the state. Turso keeps the cross-session
-narrative (run summaries, verdicts), not per-candidate state.
+AMENDED 2026-08-22 (Oskar): Turso from a hook-shaped shell (`bash -c`,
+non-login) works — cold python process completes a `config_get` in **1.0 s**
+including import, so "the ledger must be a file" was overstated.
+Turso-primary with write-through to a local JSON cache (hook falls back to
+the cache on cold-start 503s) is fully buildable and removes the
+commit-per-candidate requirement. What in-repo JSON uniquely buys is
+candidate↔commit pairing in git history. Either works; write-through both
+costs ~1 ms + ~0.5 s per candidate.
 
 ## Q4 — Throughput: evaluation is not the bottleneck
 
