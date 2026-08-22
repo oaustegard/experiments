@@ -254,7 +254,132 @@
         "--candidates",
         "500"
       ]
+    },
+    {
+      "id": 16,
+      "ts": 1787428660.0571494,
+      "score": 0.7385,
+      "desc": "ivf lsh n_bits=6 nprobe=32",
+      "strategy_class": "ivf-coarse-tier",
+      "wall_s": 14.21,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "123",
+        "--ivf",
+        "--ivf-mode",
+        "lsh",
+        "--n-bits",
+        "6",
+        "--nprobe",
+        "32",
+        "--candidates",
+        "500"
+      ]
+    },
+    {
+      "id": 17,
+      "ts": 1787428674.2902236,
+      "score": 0.7535,
+      "desc": "ivf lsh n_bits=6 nprobe=48 (~75% of 64 cells)",
+      "strategy_class": "ivf-coarse-tier",
+      "wall_s": 14.23,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "123",
+        "--ivf",
+        "--ivf-mode",
+        "lsh",
+        "--n-bits",
+        "6",
+        "--nprobe",
+        "48",
+        "--candidates",
+        "500"
+      ]
+    },
+    {
+      "id": 18,
+      "ts": 1787428688.5156028,
+      "score": 0.7525,
+      "desc": "ivf rotated_prefix n_bits=6 nprobe=32",
+      "strategy_class": "ivf-coarse-tier",
+      "wall_s": 14.22,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "123",
+        "--ivf",
+        "--ivf-mode",
+        "rotated_prefix",
+        "--n-bits",
+        "6",
+        "--nprobe",
+        "32",
+        "--candidates",
+        "500"
+      ]
+    },
+    {
+      "id": 19,
+      "ts": 1787428702.7603607,
+      "score": 0.754,
+      "desc": "ivf lsh n_bits=4 nprobe=14 (~87% of 16 cells)",
+      "strategy_class": "ivf-coarse-tier",
+      "wall_s": 14.24,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "123",
+        "--ivf",
+        "--ivf-mode",
+        "lsh",
+        "--n-bits",
+        "4",
+        "--nprobe",
+        "14",
+        "--candidates",
+        "500"
+      ]
+    },
+    {
+      "id": 20,
+      "ts": 1787428717.146409,
+      "score": 0.756,
+      "desc": "ivf lsh n_bits=8 nprobe=200 (~78% of 256 cells)",
+      "strategy_class": "ivf-coarse-tier",
+      "wall_s": 14.39,
+      "args": [
+        "--bits",
+        "4",
+        "--rotation",
+        "haar",
+        "--seed",
+        "123",
+        "--ivf",
+        "--ivf-mode",
+        "lsh",
+        "--n-bits",
+        "8",
+        "--nprobe",
+        "200",
+        "--candidates",
+        "800"
+      ]
     }
   ],
-  "strategy_switches": 1
+  "strategy_switches": 2
 }
