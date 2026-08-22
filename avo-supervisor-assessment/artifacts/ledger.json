@@ -1,0 +1,56 @@
+{
+  "candidates": [
+    {
+      "id": 1,
+      "ts": 1787421652.434784,
+      "score": 0.8485,
+      "desc": "baseline: bits=4 rotation=rht seed=42, single-stage",
+      "strategy_class": "quantization-config",
+      "commit": null,
+      "wall_s": 1.16
+    },
+    {
+      "id": 2,
+      "ts": 1787421681.9648607,
+      "score": 0.8525,
+      "desc": "bits=4 rotation=haar seed=42, single-stage (+0.004 over rht)",
+      "strategy_class": "quantization-config",
+      "commit": null,
+      "wall_s": 1.28
+    },
+    {
+      "id": 3,
+      "ts": 1787421727.7578049,
+      "score": 0.855,
+      "desc": "bits=4 rotation=haar seed=7, single-stage (seed variation, +0.0025)",
+      "strategy_class": "quantization-config",
+      "commit": null,
+      "wall_s": 1.2
+    },
+    {
+      "id": 4,
+      "ts": 1787421754.7350788,
+      "score": 0.862,
+      "desc": "bits=4 rotation=haar seed=123, single-stage (best seed so far, +0.007)",
+      "strategy_class": "quantization-config",
+      "commit": null,
+      "wall_s": 1.33
+    },
+    {
+      "id": 5,
+      "ts": 1787421792.8805792,
+      "score": 0.861,
+      "desc": "bits=4 haar seed=123 + two-stage rescore (class switch; -0.001 vs single-stage, 5x eval cost)",
+      "strategy_class": "search-strategy",
+      "commit": null,
+      "wall_s": 6.37
+    }
+  ],
+  "strategy_switches": 0,
+  "result": {
+    "best_score": 0.862,
+    "best": "bits=4 rotation=haar seed=123 single-stage",
+    "baseline": 0.8485,
+    "delta": "+0.0135"
+  }
+}
