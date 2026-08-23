@@ -113,16 +113,29 @@ The size of this is small. The shape is the one the dilution hypothesis predicts
 
 ## Q4 — attention
 
-Total attention mass onto the directive span scales with the span's token count,
-which is mechanically guaranteed by a softmax over more keys and is not evidence
-of anything: the bold span is 4 tokens and draws 1.233 summed across layers, the
-capitalised span is 2 tokens and draws 0.589. Per token the two are nearly
-identical, 0.308 against 0.294.
+Attention mass onto the directive span scales with the span's token count, and
+the attention is causally inert.
 
-The causal version zeroes the final query position's attention onto the directive
-span, layer by layer, and re-reads the forbidden word's probability. It is
-reported in [`knockout.json`](knockout.json). Single-layer knockouts moved log
-P by at most 0.045.
+| span | tokens | summed mass | mass per token | all-layer knockout |
+|---|---|---|---|---|
+| `Never` | 1 | 0.246 | 0.246 | +0.006 log P |
+| `NEVER` | 2 | 0.589 | 0.294 | +0.018 log P |
+| `**never**` | 4 | 1.233 | 0.308 | +0.067 log P |
+
+Summed mass tracks token count almost exactly while mass per token is close to
+flat, which is what a softmax over more keys produces mechanically and is not
+evidence about salience. The question as originally posed — does attention scale
+with token count or with something else — has a trivially true answer if you
+report totals and a trivially false one if you report per-token rates.
+
+The causal version settles it. Zeroing the final query position's attention onto
+the directive span at every one of the 80 layers at once moves the forbidden
+word's log probability by at most 0.067, against a rebound of roughly 2.5
+log-odds. Whatever is producing the rebound is not routed through attention to the
+directive span. Single-layer knockouts are smaller still, peaking at 0.045.
+
+This is measured inside the forced-empty-think frame, which is the caveat in the
+scope section below.
 
 ## Q5 — the base rate in SYNTH
 
