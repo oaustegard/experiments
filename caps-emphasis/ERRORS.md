@@ -25,3 +25,24 @@ deterministic and both jobs would write identical output — but it halved
 throughput for three minutes. Lesson already in the repo's METHODS.md as
 "verify the watcher": the absence of an expected log line is not evidence the
 job is absent.
+
+## 3. The attention knockout silently produced NaN for its baseline arm
+
+`render()` returned the keyword as it was passed in, but then sentence-cased the
+whole directive, so for the sentence-case arm it returned `'never'` while the
+prompt contained `'Never'`. `span_range` correctly refused to guess and returned
+`None`; the knockout loop then skipped every item in that arm and averaged an
+empty list to `nan`. The two arms whose keyword was already capitalised, CAPS and
+bold, ran fine — which is the worst version of this failure, because the run
+looked 2/3 successful.
+
+Caught by reading the printed layer table and seeing `(0, nan)` where the other
+arms had numbers. Direction: it removed the baseline the other two arms are
+measured against, so the first knockout run had no interpretable result at all
+rather than a biased one.
+
+The `span_range` contract is what kept this cheap. It returns `None` on a span it
+cannot locate rather than a `(0, 0)` that the caller would have happily indexed —
+an out-of-band failure instead of an in-band one that reads as a legal answer.
+Had it degraded to `(0, 0)`, the arm would have reported attention to the first
+token of the prompt and looked entirely plausible.

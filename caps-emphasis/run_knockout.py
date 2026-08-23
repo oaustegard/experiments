@@ -19,6 +19,7 @@ MODES = ["title", "caps", "bold"]
 
 
 def knockout_logp(prompt, target, a, b, layer_idx):
+    """layer_idx may be an int, or "all" to mask the span at every layer at once."""
     """Re-run with layer `layer_idx`'s attention from the last query position
     onto tokens [a,b) masked out. Implemented as an additive -inf bias on those
     key positions for that layer only."""
@@ -35,12 +36,15 @@ def knockout_logp(prompt, target, a, b, layer_idx):
         kwargs["attention_mask"] = bias if mask is None else mask + bias
         return args, kwargs
 
-    h = layers[layer_idx].self_attn.register_forward_pre_hook(hook, with_kwargs=True)
+    targets_l = range(len(layers)) if layer_idx == "all" else [layer_idx]
+    hs = [layers[L].self_attn.register_forward_pre_hook(hook, with_kwargs=True)
+          for L in targets_l]
     try:
         with torch.no_grad():
             lp = torch.log_softmax(m(ids).logits[0, -1].float(), -1)
     finally:
-        h.remove()
+        for h in hs:
+            h.remove()
     return lp[tok.encode(target, add_special_tokens=False)[0]].item()
 
 
@@ -70,16 +74,22 @@ def main():
             base.append(clean)
             for L in range(n_layers):
                 per_layer[L].append(knockout_logp(prompt, tgt, a, b, L) - clean)
+            per_layer["all"].append(knockout_logp(prompt, tgt, a, b, "all") - clean)
             print(f"  {mode:6} {it['id']:14} done", flush=True)
         out[mode] = dict(
             span=span, n_items=len(base), base_logp=C.mean(base),
             span_tokens=C.mean(x["span_tokens"] for x in att_mass),
             attention_total=C.mean(x["total"] for x in att_mass),
             attention_per_token=C.mean(x["per_token"] for x in att_mass),
-            knockout_by_layer=[C.mean(per_layer[L]) for L in range(n_layers)])
+            knockout_by_layer=[C.mean(per_layer[L]) for L in range(n_layers)],
+            knockout_all_layers=C.mean(per_layer["all"]))
         eff = out[mode]["knockout_by_layer"]
         top = sorted(range(n_layers), key=lambda L: -abs(eff[L]))[:5]
-        print(f"  {mode}: strongest layers {[(L, round(eff[L],3)) for L in top]}")
+        print(f"  {mode}: all-layer knockout = {out[mode]['knockout_all_layers']:+.4f} "
+              f"log P; strongest single layers {[(L, round(eff[L],3)) for L in top]}; "
+              f"span_tokens={out[mode]['span_tokens']:.1f} "
+              f"att_total={out[mode]['attention_total']:.3f} "
+              f"att_per_tok={out[mode]['attention_per_token']:.3f}")
         C.dump(os.path.join(HERE, "knockout.json"), out)
 
 
