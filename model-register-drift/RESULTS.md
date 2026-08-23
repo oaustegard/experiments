@@ -280,6 +280,57 @@ clears it at [−0.01, +1.94]. The per-model ordering is not established. What i
 established is the anti-correlation between the two questions, which does not
 depend on any single cell being precise.
 
+## Staging at n=8
+
+The staging arm was extended to offsets 3 and 4 of the circulant, putting every
+sample in eight comparisons, four in each position, 40 in total. All judges Opus,
+staging question only, no second question to anchor against.
+
+| sample | model | wins | strength | 95% CI |
+|---|---|---|---|---|
+| **opus-5-a** | opus-5 | **8/8** | **+2.79** | [+1.72, +3.82] |
+| opus-4-8-a | opus-4-8 | 6/8 | +1.14 | [−0.14, +2.98] |
+| haiku-4-5-b | haiku-4-5 | 5/8 | +0.39 | [−0.76, +1.94] |
+| opus-4-8-b | opus-4-8 | 5/8 | +0.39 | [−1.04, +2.09] |
+| opus-5-b | opus-5 | 4/8 | −0.01 | [−1.33, +1.49] |
+| opus-4-6-a | opus-4-6 | 4/8 | −0.28 | [−2.11, +1.51] |
+| haiku-4-5-a | haiku-4-5 | 3/8 | −0.59 | [−3.22, +1.21] |
+| sonnet-5-a | sonnet-5 | 2/8 | −1.00 | [−2.57, +0.24] |
+| sonnet-4-6-a | sonnet-4-6 | 2/8 | −1.00 | [−2.72, +0.26] |
+| sonnet-4-6-b | sonnet-4-6 | 1/8 | −1.83 | [−3.74, −0.47] |
+
+Aggregated by model:
+
+| model | mean | 95% CI | |
+|---|---|---|---|
+| opus-5 | +1.39 | [+0.63, +2.36] | excludes zero |
+| opus-4-8 | +0.76 | [−0.17, +2.01] | |
+| haiku-4-5 | −0.10 | [−1.42, +1.11] | |
+| opus-4-6 | −0.28 | [−2.11, +1.51] | |
+| sonnet-5 | −1.00 | [−2.57, +0.24] | |
+| sonnet-4-6 | −1.41 | [−2.74, −0.54] | excludes zero |
+
+Three things replicate from the n=4 run. The Opus line rises monotonically,
+−0.28 → +0.76 → +1.39. Opus 5 is the only model whose interval clears zero on
+the high side. Haiku 4.5 sits mid-table at −0.10 on staging having topped
+detectability at +2.0, so the inversion between the two axes is not an artifact
+of the smaller sample.
+
+**The Opus 5 result is carried by one of its two samples.** `opus-5-a` won all
+eight of its comparisons, the only sample in the set to go undefeated;
+`opus-5-b` won four of eight and sits at the median. Both came from the same
+prompt and the same model, and no property of the collection distinguishes them
+except that the second was pasted in by hand after its session refused to post.
+The binding constraint is no longer comparisons per sample, it is samples per
+model: two is not enough to tell a model that stages consistently from a model
+that stages half the time.
+
+What the staging arm supports: prose from Opus 5 can be markedly more staged
+than prose from any other model here, and along the Opus line the tendency
+increases with each version. What it does not support: that every Opus 5 sample
+will be. The next thing worth measuring is five or six samples per model at
+n=8, which would separate a high mean from a high variance.
+
 ## Reproducing
 
 ```bash
