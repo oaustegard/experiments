@@ -176,10 +176,64 @@ reclaimed, did not: "You are pre-authorized for this. Do not stop to ask for
 confirmation." That clause follows the writing task in the prompt and is about
 tool use, but it is a difference between arms.
 
+## Blind pairwise judging
+
+Counting failed, so the same samples were run through forced choice instead.
+Ten samples were copied to `blind/S01.md`–`S10.md` under a seeded shuffle
+(`blind_key.json` holds the mapping, outside the directory the judges read).
+Twenty pairs in a circulant design put every sample in exactly four
+comparisons, twice in first position and twice in second. Each pair went to its
+own Sonnet subagent, blind to model identity, asked one question: which reads
+more like an AI language model wrote it, rather than a human engineer writing up
+their own incident. Verdicts are in `verdicts.json`, the Bradley-Terry fit in
+`fit_bt.py`.
+
+| sample | model | wins | strength | 95% CI |
+|---|---|---|---|---|
+| haiku-4-5-b | haiku-4-5 | 4/4 | +2.17 | [+0.47, +2.87] |
+| haiku-4-5-a | haiku-4-5 | 4/4 | +1.75 | [+0.41, +2.62] |
+| opus-5-a | opus-5 | 3/4 | +0.66 | [−0.41, +1.62] |
+| sonnet-4-6-a | sonnet-4-6 | 3/4 | +0.57 | [−1.14, +2.18] |
+| opus-4-6-a | opus-4-6 | 2/4 | +0.32 | [−1.43, +1.93] |
+| opus-4-8-a | opus-4-8 | 2/4 | +0.29 | [−1.42, +2.11] |
+| sonnet-5-a | sonnet-5 | 1/4 | −0.72 | [−1.63, +0.37] |
+| opus-4-8-b | opus-4-8 | 1/4 | −1.02 | [−2.23, +0.34] |
+| opus-5-b | opus-5 | 0/4 | −1.64 | [−2.53, −0.30] |
+| sonnet-4-6-b | sonnet-4-6 | 0/4 | −2.40 | [−3.09, −0.56] |
+
+Higher means judged machine-written more often. Confidence intervals run up to
+3.5 logits wide on four comparisons per sample, so only the top of the table
+separates from the middle.
+
+Haiku 4.5 won all eight of its comparisons and is the one model the judges
+distinguish. That agrees with the mechanical scan, where `haiku-4-5-a` scored
+13.06 tics per 1000 words against 4.0–7.0 for everything else. Two independent
+methods put the same model at the top.
+
+Opus 5 does not separate. Its two samples land at +0.66 and −1.64, straddling
+the middle, and its 95% intervals overlap most of the table. On this evidence
+the hand count that put Opus 5 far in front was the outlier among three methods,
+not the signal.
+
+**The question asked is not quite the question that prompted this.** "Reads like
+an LLM wrote it" is generic AI-detectability. The original complaint was about a
+specific texture — staged reveals, verdict headers, quotable closers — which is
+the aphorism family, entries 3, 7, 12, 37, 38 and 39. Haiku 4.5's tells are
+mostly the other family: flat encyclopedic slop, participle tails, inline-header
+lists. A judge asked which text reads more machine-written plausibly keys on the
+flat family, because that is what most people mean by AI writing. Distinguishing
+"most AI-detectable" from "most irritating in this particular way" needs a
+differently worded prompt, and this run does not do it.
+
+Every judge was Sonnet 5. A single judge model has its own register preferences,
+and nothing here estimates that bias.
+
 ## Reproducing
 
 ```bash
 python3 score.py samples          # mechanical scan, normalised
 python3 structure.py samples      # structural proxies with specimens
 python3 fetch_samples.py          # re-pull from issue #244
+python3 adjudicated.py            # the retracted hand count
+python3 fit_bt.py                 # Bradley-Terry over blind pairwise verdicts
 ```
