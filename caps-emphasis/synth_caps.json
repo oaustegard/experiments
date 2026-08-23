@@ -20,9 +20,9 @@
   "token_level": {
     "caps_per_1000_words_all": 8.103715239416763,
     "caps_per_1000_words_excl_curated_acronyms_and_roman": 5.360442709526135,
-    "caps_per_1000_words_excl_data_driven_acronyms": 1.2269083979984032,
+    "caps_per_1000_words_excl_data_driven_acronyms": 0.5616163451452686,
     "n_caps_excl_curated": 56409,
-    "n_caps_excl_data_driven": 12911,
+    "n_caps_excl_data_driven": 5910,
     "caps_token_length_hist": {
       "2": 32296,
       "3": 35795,
@@ -352,7 +352,7 @@
       "token": "BP",
       "count": 207,
       "lower_form_count": 57,
-      "acronymish": false
+      "acronymish": true
     },
     {
       "token": "MRI",
@@ -382,7 +382,7 @@
       "token": "CO",
       "count": 194,
       "lower_form_count": 1175,
-      "acronymish": false
+      "acronymish": true
     },
     {
       "token": "IP",
@@ -406,7 +406,7 @@
       "token": "OH",
       "count": 186,
       "lower_form_count": 10,
-      "acronymish": false
+      "acronymish": true
     },
     {
       "token": "DSM",
@@ -442,7 +442,7 @@
       "token": "SEC",
       "count": 156,
       "lower_form_count": 45,
-      "acronymish": false
+      "acronymish": true
     },
     {
       "token": "VI",
@@ -568,11 +568,10 @@
   "buckets": {
     "n_sampled_occurrences": 200,
     "counts": {
-      "acronym/initialism": 165,
-      "heading/label": 11,
-      "emphasis-in-sentence": 14,
-      "structured-marker": 8,
-      "other": 2
+      "acronym/initialism": 176,
+      "emphasis-in-sentence": 8,
+      "heading/label": 8,
+      "structured-marker": 8
     },
     "examples": {
       "acronym/initialism": [
@@ -602,41 +601,9 @@
           "snippet": "Constraints ⏎  ⏎ Timeline constraint: High school typically 13-18 years old ⏎ Legal constraint: FERPA rights age-based, not grade-based ⏎ Technology constraint: Phone systems/communication meth"
         },
         {
-          "token": "ISD",
-          "field": "query",
-          "snippet": "How does Judge Kent's ruling in the Santa Fe ISD case reflect the evolving interpretation of the Establishment Clause regarding both schoo"
-        }
-      ],
-      "heading/label": [
-        {
           "token": "SECRETS",
           "field": "synthetic_answer",
           "snippet": "TELL A STORY OF OLD EARTH. ⏎ [GIGANTIC CHROMOSOME IMAGE] ⏎  ⏎ THEY ARE A LIVING FOSSIL. ANCIENT SECRETS WRITTEN IN THEIR BLOOD. THEY REMIND US OF A WORLD LONG GONE."
-        },
-        {
-          "token": "TRANSPORT",
-          "field": "synthetic_answer",
-          "snippet": "AY TO THE BALKANS IS UNDERSCORED BY ITS FUNCTION AS A CROSSROADS FOR CAR, RAIL, AND RIVER TRANSPORT. THIS STATUS ENHANCES ITS ECONOMIC VIABILITY AND STRENGTHENS ITS POSITION AS A CORRIDOR F"
-        },
-        {
-          "token": "DEN",
-          "field": "synthetic_answer",
-          "snippet": "TISCHE BESATZUNG VOR DEM GESAMTEN WELTPUBLIKUM ANKLAGTE. DIESER HISTORISCHE SCHRITT SCHUF DEN FUNDAMENT FÜR DEN SPÄTEREN IRA-WAFFEN-ABSCHWUR UND DEN FRIEDEN IM NORDIRLANDKONFLIKT. ⏎  ⏎ * "
-        },
-        {
-          "token": "BUT",
-          "field": "synthetic_reasoning",
-          "snippet": "nufacturing ⏎ - China: massive population, strategic location → could develop differently ⏎ - BUT: colonial governance structures remain extractive ● ⏎  ⏎ ### 5. Geographic/economic constrain"
-        },
-        {
-          "token": "AVG",
-          "field": "synthetic_reasoning",
-          "snippet": "rontation, indirect activism ⏎  ⏎ ● Performance metrics (consistent high-level): ⏎ - 1947: .297 AVG, 12 HR, 23 SB ⏎ - 1948: .314 AVG, 12 HR, 21 SB   ⏎ - 1949: .298 AVG, 10 HR, 13 SB → NL MVP ⏎ - "
-        },
-        {
-          "token": "BUT",
-          "field": "synthetic_reasoning",
-          "snippet": "tern recognition from available data: ⏎ - 1999 republishing suggests sustained interest ● ⏎ - BUT: 13-year gap → market cycles unpredictable ◐ ⏎ - No trend data beyond 1999 → extrapolation "
         }
       ],
       "emphasis-in-sentence": [
@@ -644,11 +611,6 @@
           "token": "SAYS",
           "field": "synthetic_reasoning",
           "snippet": "m line:** Hessian diagnostic tool only. Not parameter estimator. ⏎  ⏎ ### 3. What the Hessian SAYS ABOUT FIT ⏎  ⏎ Positive definite Hessian → minimum exists → good properties. ● ⏎  ⏎ But magnitude"
-        },
-        {
-          "token": "B₁",
-          "field": "synthetic_reasoning",
-          "snippet": ") ⏎  ⏎ Label entrances: A, B, C, D. ⏎  ⏎ From entrance A: tunnels A₁, A₂ ⏎ From entrance B: tunnels B₁, B₂   ⏎ From entrance C: tunnels C₁, C₂ ⏎ From entrance D: tunnels D₁, D₂ ⏎  ⏎ Total: A₁, A₂, B₁,"
         },
         {
           "token": "NOT",
@@ -666,9 +628,46 @@
           "snippet": " P ≈ 0.2-0.3 (rare for ECJ to follow AG on policy questions) ⏎  ⏎ Final assessment: ⏎ ● ECJ did NOT uphold AG recommendation ⏎ ● ECJ adopted opposite position: restrictions maintained as \"nec"
         },
         {
-          "token": "RR",
+          "token": "ALL",
           "field": "synthetic_reasoning",
-          "snippet": "eality shows opposite. OR generally much larger than RR for common outcomes. ⏎  ⏎ **Answer**: RR and OR differ significantly for large probabilities near 1. OR typically exceeds RR subst"
+          "snippet": "tern: Some territories retained, others lost to independence movement ⏎  ⏎ **France:** ⏎ - Lost ALL North American territories 1763 (Seven Years' War) ● ⏎ - Regained continental claims 1800 ("
+        },
+        {
+          "token": "MAI",
+          "field": "synthetic_answer",
+          "snippet": "vium-intracellulare) infection is generally considered insufficient for optimal outcomes. MAI infections are typically treated with a series of three antibiotics for a period of at le"
+        }
+      ],
+      "heading/label": [
+        {
+          "token": "TRANSPORT",
+          "field": "synthetic_answer",
+          "snippet": "AY TO THE BALKANS IS UNDERSCORED BY ITS FUNCTION AS A CROSSROADS FOR CAR, RAIL, AND RIVER TRANSPORT. THIS STATUS ENHANCES ITS ECONOMIC VIABILITY AND STRENGTHENS ITS POSITION AS A CORRIDOR F"
+        },
+        {
+          "token": "DEN",
+          "field": "synthetic_answer",
+          "snippet": "TISCHE BESATZUNG VOR DEM GESAMTEN WELTPUBLIKUM ANKLAGTE. DIESER HISTORISCHE SCHRITT SCHUF DEN FUNDAMENT FÜR DEN SPÄTEREN IRA-WAFFEN-ABSCHWUR UND DEN FRIEDEN IM NORDIRLANDKONFLIKT. ⏎  ⏎ * "
+        },
+        {
+          "token": "BUT",
+          "field": "synthetic_reasoning",
+          "snippet": "nufacturing ⏎ - China: massive population, strategic location → could develop differently ⏎ - BUT: colonial governance structures remain extractive ● ⏎  ⏎ ### 5. Geographic/economic constrain"
+        },
+        {
+          "token": "BUT",
+          "field": "synthetic_reasoning",
+          "snippet": "tern recognition from available data: ⏎ - 1999 republishing suggests sustained interest ● ⏎ - BUT: 13-year gap → market cycles unpredictable ◐ ⏎ - No trend data beyond 1999 → extrapolation "
+        },
+        {
+          "token": "THOUSANDS",
+          "field": "synthetic_answer",
+          "snippet": "ATIONWIDE PHENOMENON ⏎ THIS WORK WASN'T JUST IN THE SOUTH. URBAN MIGRATION DREW HUNDREDS OF THOUSANDS OF BLACK WOMEN TO CITIES LIKE NEW YORK, CHICAGO, AND PHILADELPHIA, WHERE DOMESTIC SERVICE"
+        },
+        {
+          "token": "BUT",
+          "field": "synthetic_reasoning",
+          "snippet": "onant in proper context ⏎  ⏎ ### 5. Synthesis ⏎  ⏎ \"Nice sounding together\" = consonant intervals BUT: ⏎ - Context matters exponentially ⏎ - Cultural/historical variation ⏎ - Function within harmon"
         }
       ],
       "structured-marker": [
@@ -702,19 +701,597 @@
           "field": "synthetic_reasoning",
           "snippet": " these differential experiences. ⏎  ⏎ ### 3. Mathematical Logic ⏎  ⏎ Performance > Expectations → SQ > 0 (positive disconfirmation) ⏎ Performance = Expectations → SQ = 0 (neutral confirmation)"
         }
-      ],
-      "other": [
-        {
-          "token": "N₁",
-          "field": "synthetic_reasoning",
-          "snippet": "× 2 = 2 ⏎  ⏎ No growth factor applies to t=4 term. ⏎  ⏎ # Net calculation ⏎  ⏎ Net increase = N₂(9) - N₁(9) = 2 - 512 = -510 ⏎  ⏎ Hmm. Negative? Let me double-check... ⏎  ⏎ Doctrine 1 at 9th century: "
-        },
-        {
-          "token": "ROI",
-          "field": "synthetic_reasoning",
-          "snippet": " ⏎  ⏎ Core question: Do ROI ratios drive government vaccine policy? Yes, but nuanced. ⏎  ⏎ ### 2. ROI Framework Analysis ⏎  ⏎ Standard ROI calculation: Benefits/(Direct Costs)   ⏎ Where benefits = "
-        }
       ]
+    }
+  },
+  "emphatic_caps": {
+    "definition": "emphatic caps = all-caps token (len>=2) that is not acronym-like, sitting on a mixed-case line of >=5 words, in a document that is not itself majority-uppercase",
+    "all_caps_documents": {
+      "n": 12,
+      "frac": 0.0005429864253393666,
+      "words": 3418,
+      "caps_tokens": 2394,
+      "share_of_all_caps_tokens": 0.028073220211780433
+    },
+    "n_emphatic_caps": 3546,
+    "emphatic_caps_per_1000_words": 0.3369698070871611,
+    "frac_of_all_caps_tokens_that_are_emphatic": 0.041582138208426656,
+    "top_emphatic_tokens": [
+      {
+        "token": "AND",
+        "count": 552,
+        "examples": [
+          "※ Both apply here - Declaration lacks binding force AND establishes common standards",
+          "- Python's flexibility enabled both tools AND meta-programming",
+          "→ \"Why does St. Petersburg have both its own local government AND federal administration?\""
+        ]
+      },
+      {
+        "token": "OR",
+        "count": 393,
+        "examples": [
+          "Translation issues: \"dialectos\" could mean regional varieties OR systematic linguistic varieties. Spanish \"dialecto\" often conflates with \"accent.\"",
+          "Predatory pricing → compensatory damages to injured parties OR administrative penalties",
+          "※ Need to clarify: \"connect to south\" could mean origin→south spread OR south→rest of Asia transmission. Context suggests former."
+        ]
+      },
+      {
+        "token": "NOT",
+        "count": 237,
+        "examples": [
+          "- But NOT presidential office itself",
+          "NOT: Mother's \"genes\" physically transferred. Just defective X chromosome.",
+          "**Core clarification needed**: Centrifugal force IS real in rotating frames, NOT \"made up\" - depends on reference frame choice."
+        ]
+      },
+      {
+        "token": "IS",
+        "count": 179,
+        "examples": [
+          "\"Striking genome organization\" - what exactly? ● Replication bias: genes clustered in one strand direction. ● Distributed families: ABC transporters (80 copies), IS elements, phage remnants.",
+          "The tensor itself IS the geometric relationship - it maps coordinate differentials to actual geometric quantities.",
+          "**Determinism**: Multiplicative functions f satisfy f(n) = ∏f(p_i^k_i) for n = ∏p_i^k_i. This IS complete determination - values at prime powers → all values."
+        ]
+      },
+      {
+        "token": "BUT",
+        "count": 165,
+        "examples": [
+          "- BUT: Bone health management ≠ diagnostic disclosure justification",
+          "IF mission launched on schedule → THEN landing site selection followed protocol → THEN Oxia Planum became preferred → BUT mission status uncertain post-2021",
+          "BUT: Visual elements → narrowed contextual attention → detail loss"
+        ]
+      },
+      {
+        "token": "ALL",
+        "count": 104,
+        "examples": [
+          "Please make sure to naturally incorporate these four keywords in the monologue: \"voir dire,\" \"challenges,\" \"impaneled,\" and \"verdict.\" Also, my professor has this weird requirement that exactly 9 word",
+          "Key question: Does this finite limit exist for ALL curves?",
+          "- VP assumes ALL presidential powers/duties"
+        ]
+      },
+      {
+        "token": "IF",
+        "count": 91,
+        "examples": [
+          "**Physical realism check:** 2.6% annual decline plausible IF:",
+          "IF mission launched on schedule → THEN landing site selection followed protocol → THEN Oxia Planum became preferred → BUT mission status uncertain post-2021",
+          "Automated bicycle parking could contribute to reduced traffic IF embedded in comprehensive transport strategy. Individual systems likely minimal impact. Broader adoption + policy alignment needed for "
+        ]
+      },
+      {
+        "token": "SE",
+        "count": 79,
+        "examples": [
+          "- Concentration: Global South (SE Asia, Sub-Saharan Africa)",
+          "Hastings: ~14km SE Freetown, terrestrial location",
+          "SD vs SE: different beasts entirely."
+        ]
+      },
+      {
+        "token": "IT",
+        "count": 74,
+        "examples": [
+          "├─ Economic: IT boom, venture capital",
+          "Primary driver: IT industry expansion ●",
+          "**Technology boom**: IT industry expansion attracted skilled workers from globally. Startups and Silicon Valley proximity created demand for housing."
+        ]
+      },
+      {
+        "token": "DES",
+        "count": 58,
+        "examples": [
+          "How come they need to go through all this complicated key splitting and permutation stuff when the original DES key is already 56 bits long?",
+          "DES key isn't 56 bits for encryption. It's 64 bits with 8 parity bits. Effective key length = 56 bits.",
+          "∴ DES permutations aren't \"complicated waste\" - systematic key material distribution across cryptographic rounds."
+        ]
+      },
+      {
+        "token": "AT",
+        "count": 55,
+        "examples": [
+          "Normal state: ● tracheids/vessel elements dead AT MATURITY (programmed).",
+          "- B&AT: similar scale, broader scope",
+          "How the current AT&T board composition aligns with the company's senior management structure would be informative."
+        ]
+      },
+      {
+        "token": "CAN",
+        "count": 52,
+        "examples": [
+          "Harbour porpoises CAN be found in deep waters (distribution) but are not \"common residents\" there (habitat preference). ※ This creates logical trap.",
+          "Actually: Small firms CAN successfully employ differentiation strategies. Key difference = scope/implementation scale.",
+          "∴ Conclusion: Small firms CAN win against big competitors using differentiation strategies, but success depends on specific circumstances, industry characteristics, and execution quality. Not guarante"
+        ]
+      },
+      {
+        "token": "TRUE",
+        "count": 49,
+        "examples": [
+          "Both claims: TRUE ● High confidence.",
+          "● Dustin Brown vs Rafael Nadal Wimbledon 2015: TRUE",
+          "☑ \"Theoretically produce over 38,000 variants\" - TRUE"
+        ]
+      },
+      {
+        "token": "NO",
+        "count": 44,
+        "examples": [
+          "Result: 49.8% voted YES, 50.2% NO. Close but decisive rejection. ●",
+          "- NO2, CFCs, CO₂ excess → detectable?",
+          "- Problem: weak signatures. Earth's NO2 barely detectable from space currently."
+        ]
+      },
+      {
+        "token": "AS",
+        "count": 40,
+        "examples": [
+          "※ Response mentions specific clubs: ACS Ksar, AS Douanes, AS Garde Nationale, ASAC Concorde, ASC Police, ASC Tidjikja, FC Gourel Sangue, FC Tevragh-Zeina, Kaedi FC, Nouakchott Kings",
+          "※ Response mentions specific clubs: ACS Ksar, AS Douanes, AS Garde Nationale, ASAC Concorde, ASC Police, ASC Tidjikja, FC Gourel Sangue, FC Tevragh-Zeina, Kaedi FC, Nouakchott Kings",
+          "Yes, I can confirm that Nouakchott continues to host ten of the fourteen teams in the Mauritanian Super D1 as of the 2023-2024 season. The clubs based in Nouakchott include ACS Ksar, AS Douanes, AS Ga"
+        ]
+      },
+      {
+        "token": "ARE",
+        "count": 39,
+        "examples": [
+          "├─ Acknowledge: You ARE self-actualized",
+          "**Key insight**: All three ARE central tendency measures. Mode's limitations are practical, not theoretical.",
+          "\"Special drug thing\" → PARP inhibitors ARE expensive ◐"
+        ]
+      },
+      {
+        "token": "DO",
+        "count": 38,
+        "examples": [
+          "Most B-type stars DO show some emission. Only rare subset truly \"quiet.\"",
+          "**Option B (sample size)** → ○ Permutation tests DO incorporate n, but this isn't the primary advantage",
+          "But wait. ● Some loci DO show clustering patterns. PCA analyses often align with traditional race categories."
+        ]
+      },
+      {
+        "token": "SU",
+        "count": 35,
+        "examples": [
+          "Current particle physics: B violation in GUTs (SU(5), SO(10)), but insufficient magnitude. CP violation in weak interactions, too small.",
+          "├─ Standard Model: SU(3) × SU(2) × U(1)",
+          "├─ Standard Model: SU(3) × SU(2) × U(1)"
+        ]
+      },
+      {
+        "token": "HA",
+        "count": 31,
+        "examples": [
+          "Break down: Clinical efficacy = measurable outcomes. Superior = comparative advantage. Bleeding prevention = primary HA treatment goal.",
+          "⟨H≈0.2⟩ Recall: Efanesoctocog alfa = non-acetylated, VWF-independent rFVIII. Approved for severe HA. Weekly dosing = extended half-life. Traditional pd-FVIII = variable dosing, often 3-4x/week.",
+          "For weak acid HA titrated with strong base:"
+        ]
+      },
+      {
+        "token": "SO",
+        "count": 30,
+        "examples": [
+          "Current particle physics: B violation in GUTs (SU(5), SO(10)), but insufficient magnitude. CP violation in weak interactions, too small.",
+          "├─ Gravity: SO(3,1) or SL(2,C)",
+          "Lie algebras serve as the \"infinitesimal groups\" that enable the study of Lie groups through differential calculus, making them essential across modern geometry, physics, and engineering. Their applic"
+        ]
+      },
+      {
+        "token": "THEN",
+        "count": 29,
+        "examples": [
+          "IF mission launched on schedule → THEN landing site selection followed protocol → THEN Oxia Planum became preferred → BUT mission status uncertain post-2021",
+          "IF mission launched on schedule → THEN landing site selection followed protocol → THEN Oxia Planum became preferred → BUT mission status uncertain post-2021",
+          "THEN OECD estimate range reasonable"
+        ]
+      },
+      {
+        "token": "SEA",
+        "count": 27,
+        "examples": [
+          "SEA (State Education Agency) → competitive grant → LEA subgrant → IHE partnership",
+          "Year 2: SEA approval → subgrant allocation",
+          "MSP program structure ● well-established. District-level initiation most common path. Funding flows through SEA → LEA subgrant → university partnership."
+        ]
+      },
+      {
+        "token": "ALS",
+        "count": 27,
+        "examples": [
+          "※ Alternative possibilities: ALS, Pompe disease, spinal muscular atrophy",
+          "A. Amyotrophic lateral sclerosis (ALS)",
+          "- Motor neuron diseases: ● ALS, PLS, bulbar variants"
+        ]
+      },
+      {
+        "token": "ART",
+        "count": 26,
+        "examples": [
+          "- HIV treatment outcomes (ART reducing transmission) ●",
+          "- Treatment efficacy (penicillin + ART synergy?)",
+          "- HIV: requires long-term ART"
+        ]
+      },
+      {
+        "token": "NE",
+        "count": 26,
+        "examples": [
+          "- Geographic scope: Sahel region (Senegal → NE Africa)",
+          "Lungi IATA: ~17km NE Freetown, maritime location",
+          "● Greek winds: Boreas (N), Zephyrus (NE), Notus (S), Eurus (E) - each cardinal direction"
+        ]
+      },
+      {
+        "token": "ET",
+        "count": 20,
+        "examples": [
+          "The NYSE's opening bell ceremony takes place at 9:30 am ET each trading day and is traditionally accompanied by applause. The green button activates the main bell, which is used both for the opening c",
+          "The NYSE's opening bell ceremony takes place at 9:30 am ET each trading day and is traditionally accompanied by applause. The green button activates the main bell, which is used both for the opening c",
+          "Essential tremor (ET): benign movement disorder, primarily postural/shaking tremor. Parkinson's disease (PD): neurodegenerative, motor-plus-cognitive decline."
+        ]
+      },
+      {
+        "token": "HE",
+        "count": 20,
+        "examples": [
+          "“I’m engaging!” Alexei’s voice was tight with concentration as he swung the tank’s main gun turret, the massive 125mm cannon slewing around to face the sniper’s position. “Firing! HE round!”",
+          "Break down: \"balance\" → quantitative comparison. \"procedural complications\" → intra-procedural events. \"post-operative hepatic encephalopathy\" → HE development post-intervention. \"clinical outcomes\" →",
+          "◐ Up to 25% transient post-op HE"
+        ]
+      },
+      {
+        "token": "FALSE",
+        "count": 19,
+        "examples": [
+          "※ Statement 2 is FALSE: ε cannot be solved for algebraically from the given inequality.",
+          "☐ Create legal vacuum (FALSE - existing legal framework persists)",
+          "**B: \"utility is generally confined to specific academic discipline\"** ⚠ FALSE"
+        ]
+      },
+      {
+        "token": "ME",
+        "count": 19,
+        "examples": [
+          "- Diaspora: ME, East Africa, Europe, NA, Asia",
+          "I'm developing an app and I'm confused about all these different Java editions I keep reading about. I see there's Java SE, Java EE, Java ME, and something called Personal Java. My app needs to run on",
+          "Query breakdown: \"different Java editions\" → SE/EE/ME confusion. \"desktop/mobile support\" → platform selection. \"same classes across editions\" → package compatibility."
+        ]
+      },
+      {
+        "token": "CAPITAL",
+        "count": 18,
+        "examples": [
+          "Please make sure to naturally incorporate these four keywords in the monologue: \"voir dire,\" \"challenges,\" \"impaneled,\" and \"verdict.\" Also, my professor has this weird requirement that exactly 9 word",
+          "- Write everything in CAPITAL LETTERS only",
+          "Write a short story about a young woman with schwannomatosis discovering her diagnosis. Include exactly 10 words in ALL CAPITAL LETTERS throughout the narrative and end with the phrase \"the pain will "
+        ]
+      },
+      {
+        "token": "DAS",
+        "count": 18,
+        "examples": [
+          "- Disease activity assessment (ESR, CRP, DAS28)",
+          "I'm working with a cohort of rheumatoid arthritis patients where we've been using DAS28 scores to monitor inflammatory activity, but we're encountering cases where CRP gene polymorphisms might be affe",
+          "I'm working with a cohort of rheumatoid arthritis patients where we've been using DAS28 scores to monitor inflammatory activity, but we're encountering cases where CRP gene polymorphisms might be affe"
+        ]
+      },
+      {
+        "token": "ICE",
+        "count": 17,
+        "examples": [
+          "● Total cost of ownership: ICE higher after 3-5 years",
+          "- EV advantages over ICE: clear and growing",
+          "- Synthetic fuels: could maintain ICE dominance"
+        ]
+      },
+      {
+        "token": "FIRST",
+        "count": 17,
+        "examples": [
+          "I'm trying to implement a simple language parser and I keep getting errors about FIRST/FIRST conflicts. The error log says it's because of left recursion, but I don't really understand what that means",
+          "I'm trying to implement a simple language parser and I keep getting errors about FIRST/FIRST conflicts. The error log says it's because of left recursion, but I don't really understand what that means",
+          "Query: \"FIRST/FIRST conflicts\" + \"left recursion\" + implementation issues."
+        ]
+      },
+      {
+        "token": "JAK",
+        "count": 17,
+        "examples": [
+          "Hey, remind me real quick if JAK2 actually phosphorylates that Y177 domain on BCR::ABL1 - was that confirmed?",
+          "Query: \"JAK2 actually phosphorylates that Y177 domain on BCR::ABL1 - was that confirmed?\"",
+          "Breaking down: ● JAK2 kinase activity, ● BCR::ABL1 oncogene, ● specific tyrosine phosphorylation event Y177, ● experimental confirmation status."
+        ]
+      },
+      {
+        "token": "CORE",
+        "count": 17,
+        "examples": [
+          "\"civil rights groups\" → SNCC, CORE, SCLC, NAACP? Geographic focus Mississippi specifically or broader movement?",
+          "CORE: ● Definitive shift documented. 1964 after Mississippi murders.",
+          "3. Organizational response (SNCC, CORE shifts)"
+        ]
+      },
+      {
+        "token": "THE",
+        "count": 16,
+        "examples": [
+          "La diferencia en el ranking entre las matemáticas y las humanidades de la Universidad de Viena refleja una aparente paradoja, ya que la institución tiene el mejor ranking en matemáticas (29° lugar mun",
+          "*   **THE BISHOP**, Prince of the See.",
+          "*   **THE CHANCELLOR**, his chief ſervant."
+        ]
+      },
+      {
+        "token": "ST",
+        "count": 15,
+        "examples": [
+          "- MI: ST-elevation vs non-ST elevation",
+          "- MI: ST-elevation vs non-ST elevation",
+          "- Literacy rates (ST-specific vs general) ●"
+        ]
+      },
+      {
+        "token": "BASIC",
+        "count": 15,
+        "examples": [
+          "Narrowing down: likely embedded systems, very constrained environments, or legacy languages like BASIC, assembly without high-level abstractions.",
+          "Parse: \"basic computer stuff\" → likely BASIC programming language. \"trash things\" → garbage collection (GC). \"stop working for long time\" → performance pauses/stalls.",
+          "Can BASIC cause long computer stalls during garbage collection?"
+        ]
+      },
+      {
+        "token": "NA",
+        "count": 14,
+        "examples": [
+          "adrenaline/NA → COMT pathway (metanephrine, normetanephrine)",
+          "● Spiritual practices (AA/NA programs, Buddhist traditions, etc.)",
+          "● Historical range: Holarctic (NA/EA/Europe/Eastern Europe)"
+        ]
+      },
+      {
+        "token": "WHY",
+        "count": 14,
+        "examples": [
+          "→ Core question: WHY do states prosecute citizens for CSE abroad?",
+          "\"culinary rationale behind this specific meat combination\" → seeking deeper WHY, not just WHAT.",
+          "User seeking: stylistic evolution motivation. Not just what changed, but WHY."
+        ]
+      }
+    ],
+    "directive_contexts": {
+      "ALL": [
+        "Please make sure to naturally incorporate these four keywords in the monologue: \"voir dire,\" \"challenges,\" \"impaneled,\" and \"verdict.\" Also, my professor has this weird requirement that exactly 9 word",
+        "Key question: Does this finite limit exist for ALL curves?",
+        "- VP assumes ALL presidential powers/duties",
+        "Back to logic: If could detect ALL viruses, could also detect virus detection algorithm itself (would contain viruses). Paradox → impossibility.",
+        "Actually, this phrasing suggests we're summing ALL contributions, not subtracting. The phrasing \"total displacement magnitude\" is asking for the magnitude of the sum, not the difference."
+      ],
+      "ANY": [
+        "IP fragmentation fundamental limitation: ● Entire packet lost if ANY fragment dropped.",
+        "Key insight: connective complexity irrelevant. ANY connective mix works. Universal conversion."
+      ],
+      "NEVER": [
+        "Elara closed her eyes. Her body felt like a foreign country, populated by these silent, growing things. The tinnitus was a CONSTANT, PAIN, ALWAYS there, a siren’s wail that NEVER let up. The tumors we",
+        "The merchant Liam stood at his shop’s door. A brisk wind blew down from the north, carrying the sour tang of the Liffey. English folk, their faces gaunt with worry, sought his silver thimbles. But ins",
+        "NEVER give a baby honey.",
+        "Late at night, I sit in this study, surrounded by the same papers that once defined our age. The ghost of prosperity still haunts these halls, but I can only hear the whispers of a nation in pain. I c"
+      ],
+      "NOTE": [
+        "TITLE: *Fasti* [MONTH], the month of [A NOTE ON THE WEATHER/SEASONAL CHARACTERISTIC]."
+      ],
+      "ALWAYS": [
+        "Elara closed her eyes. Her body felt like a foreign country, populated by these silent, growing things. The tinnitus was a CONSTANT, PAIN, ALWAYS there, a siren’s wail that NEVER let up. The tumors we",
+        "The merchant Liam stood at his shop’s door. A brisk wind blew down from the north, carrying the sour tang of the Liffey. English folk, their faces gaunt with worry, sought his silver thimbles. But ins",
+        "The merchant Liam stood at his shop’s door. A brisk wind blew down from the north, carrying the sour tang of the Liffey. English folk, their faces gaunt with worry, sought his silver thimbles. But ins",
+        "\"description\": \"The ELECTRIC vibe of Quito's Foch district pulses with rhythm. Neon lights reflect in windows while people flow like currents. Experience live music, renowned DJs, plus superb brews, f",
+        "Lord Tenterden's Act is a law for enforcing verbal agreements. It applies to contracts made without a written note. A CONTRACT is binding and MUST be honored. But some rules are different for these or"
+      ],
+      "DO": [
+        "Most B-type stars DO show some emission. Only rare subset truly \"quiet.\"",
+        "**Option B (sample size)** → ○ Permutation tests DO incorporate n, but this isn't the primary advantage",
+        "But wait. ● Some loci DO show clustering patterns. PCA analyses often align with traditional race categories.",
+        "\"not properly tested\" → oversimplified. Some projective assessments DO have:",
+        "Matter waves DO show interference patterns. User conflates expectation with reality."
+      ],
+      "NOT": [
+        "- But NOT presidential office itself",
+        "NOT: Mother's \"genes\" physically transferred. Just defective X chromosome.",
+        "**Core clarification needed**: Centrifugal force IS real in rotating frames, NOT \"made up\" - depends on reference frame choice.",
+        "Which of the following statements does NOT accurately describe the geographical distribution of the harbour porpoise?",
+        "\"Which statement does NOT accurately describe geographical distribution?\""
+      ],
+      "SHOULD": [
+        "→ Need to separate: what standard IS vs what it SHOULD BE"
+      ],
+      "ONLY": [
+        "Ancient Greek: words END ONLY on vowels OR /n s r/. Final stops (consonants) → lost.",
+        "Key constraint: **ALL diphthongs occur ONLY in open syllables** ●",
+        "- SMCT1 mRNA detectable: ONLY MKN74",
+        "→ Tribal courts ONLY have authority",
+        "! Key constraint: Islamic law courts in Zanzibar handle ONLY family matters. No appeals beyond High Court Zanzibar for Islamic family disputes."
+      ],
+      "EVERY": [
+        "∴ SCA now subordinate to Constitutional Court in EVERY case type.",
+        "Li-Yorke: If period-3 exists → EVERY positive integer period exists."
+      ],
+      "MUST": [
+        "Lord Tenterden's Act is a law for enforcing verbal agreements. It applies to contracts made without a written note. A CONTRACT is binding and MUST be honored. But some rules are different for these or"
+      ]
+    }
+  },
+  "tokenizer_evidence": {
+    "note": "Baguettotron tokenizer vocab (65,536). Token counts for each surface form, no-leading-space / with-leading-space.",
+    "vocab_size": 65536,
+    "multichar_alpha_tokens": {
+      "CAPS": 3502,
+      "lower": 36597,
+      "Title/mixed": 13754
+    },
+    "directive_token_counts": {
+      "never": {
+        "CAPS": 2,
+        "CAPS_sp": 2,
+        "lower": 2,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "always": {
+        "CAPS": 3,
+        "CAPS_sp": 3,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 2,
+        "Title_sp": 1
+      },
+      "must": {
+        "CAPS": 2,
+        "CAPS_sp": 2,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "important": {
+        "CAPS": 3,
+        "CAPS_sp": 3,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 2,
+        "Title_sp": 1
+      },
+      "note": {
+        "CAPS": 1,
+        "CAPS_sp": 1,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "warning": {
+        "CAPS": 2,
+        "CAPS_sp": 2,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 2
+      },
+      "critical": {
+        "CAPS": 3,
+        "CAPS_sp": 3,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "required": {
+        "CAPS": 3,
+        "CAPS_sp": 3,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "should": {
+        "CAPS": 3,
+        "CAPS_sp": 2,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "avoid": {
+        "CAPS": 3,
+        "CAPS_sp": 3,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 2,
+        "Title_sp": 1
+      },
+      "caution": {
+        "CAPS": 2,
+        "CAPS_sp": 2,
+        "lower": 2,
+        "lower_sp": 1,
+        "Title": 2,
+        "Title_sp": 2
+      },
+      "danger": {
+        "CAPS": 3,
+        "CAPS_sp": 3,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 2,
+        "Title_sp": 2
+      },
+      "attention": {
+        "CAPS": 3,
+        "CAPS_sp": 3,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 2,
+        "Title_sp": 2
+      },
+      "remember": {
+        "CAPS": 2,
+        "CAPS_sp": 2,
+        "lower": 2,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "only": {
+        "CAPS": 2,
+        "CAPS_sp": 1,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "all": {
+        "CAPS": 1,
+        "CAPS_sp": 1,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "do": {
+        "CAPS": 1,
+        "CAPS_sp": 1,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      },
+      "not": {
+        "CAPS": 1,
+        "CAPS_sp": 1,
+        "lower": 1,
+        "lower_sp": 1,
+        "Title": 1,
+        "Title_sp": 1
+      }
     }
   }
 }
