@@ -143,7 +143,7 @@ the same thing from the other side: fitted on this corpus, it holds 3,502
 multi-character all-caps tokens against 36,597 lowercase, which is why
 capitalising a directive costs two to three times its lowercase token count.
 
-## Bold was entropy and register, not emphasis
+## The bold arm
 
 Bold outnumbers emphatic capitals in the corpus 23:1, and in the first pass bold
 appeared to suppress about 20× harder than capitals. That correspondence was
