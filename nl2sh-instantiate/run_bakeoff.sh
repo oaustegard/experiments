@@ -104,10 +104,22 @@ gguf)
   # The quantised lane. Nemotron 3 Nano 4B is the row #52 most wants: a hybrid
   # Mamba2/attention model rather than a dense transformer, and the middle point
   # of its three-point vocabulary axis — 65k Pleias, 131k Nemotron, 262k Gemma.
+  # Gemma 4 E2B is the other row #52 tabulates. Google's own q4_0 GGUF is gated
+  # (307 to login) but unsloth's Q4_K_M mirror of the same weights is not —
+  # api 200 gated:false, and a ranged 1-byte fetch of the weight file returns
+  # 206, which is the only proof that counts. The mmproj vision towers in that
+  # repo are not downloaded; this is a text task.
   NEM=nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF
   NEMF=NVIDIA-Nemotron3-Nano-4B-Q4_K_M.gguf
-  gguf results_nemotron4b_q4km_generate.json            "$NEM" "$NEMF" generate
+  G4=unsloth/gemma-4-E2B-it-GGUF
+  G4F=gemma-4-E2B-it-Q4_K_M.gguf
+  # `generate` on both bases before either second condition, so a queue that
+  # runs out of time still leaves the primary condition on every model rather
+  # than two conditions on one.
+  gguf results_nemotron4b_q4km_generate.json             "$NEM" "$NEMF" generate
+  gguf results_gemma4e2b_q4km_generate.json              "$G4"  "$G4F"  generate
   gguf results_nemotron4b_q4km_instantiate_anchored.json "$NEM" "$NEMF" instantiate_anchored
+  gguf results_gemma4e2b_q4km_instantiate_anchored.json  "$G4"  "$G4F"  instantiate_anchored
   ;;
 bench-only)
   bench results_bench_270m_fp32.json unsloth/gemma-3-270m-it float32
