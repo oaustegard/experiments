@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nl2sh"
+version = "0.1.0"
+description = "Hybrid search over shell documentation, with an optional local or remote model"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Oskar Austegard" }]
+keywords = ["shell", "cli", "search", "llm", "local-first"]
+
+# The base install runs the search tier and every remote backend. Remote
+# backends need no dependency because they go over stdlib HTTP, and a local
+# daemon (Ollama, llama-server, LM Studio) is reached the same way — so the
+# only extras are the in-process runtimes.
+dependencies = ["numpy>=1.24", "onnxruntime>=1.17", "tokenizers>=0.15"]
+
+[project.optional-dependencies]
+llamacpp = ["llama-cpp-python>=0.3"]
+transformers = ["transformers>=4.40", "torch>=2.0"]
+mlx = ["mlx-lm>=0.14"]
+all = ["llama-cpp-python>=0.3", "transformers>=4.40", "torch>=2.0"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+nl2sh = "nl2sh.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["nl2sh*"]
+
+[tool.setuptools.package-data]
+"nl2sh.vendor" = ["*.py"]
