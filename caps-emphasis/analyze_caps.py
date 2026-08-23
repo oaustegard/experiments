@@ -101,12 +101,12 @@ with gzip.open(SAMPLE, "rt") as fh:
 caps_total = sum(caps_counter.values())
 
 def is_acronymish(w):
-    """Curated set, roman numeral, or a caps token whose lowercase form is
-    essentially absent from the corpus (so it is not a word being shouted)."""
+    """Acronym unless its lowercase form is a common corpus word that is
+    overwhelmingly written lowercase — i.e. this caps form is that word shouted."""
     if w in CURATED_ACRONYMS or ROMAN.match(w):
         return True
     lf = lower_counter.get(w.lower(), 0)
-    return lf < 10 or lf < caps_counter[w] * 0.05
+    return not (lf >= 200 and caps_counter[w] < 0.05 * lf)
 
 caps_nonacr_curated = sum(c for w, c in caps_counter.items()
                           if not (w in CURATED_ACRONYMS or ROMAN.match(w)))

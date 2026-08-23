@@ -164,3 +164,61 @@ def dump(path, obj):
     with open(path, "w") as f:
         json.dump(obj, f, indent=2)
     print("wrote", path)
+
+
+@torch.no_grad()
+def probe_full(prompts, targets, controls, batch_size=8):
+    """Full-distribution probe. Returns per prompt: log P(target), rank of the
+    target, entropy of the whole next-token distribution, and log P(a control
+    token).
+
+    A scalar log P(target) cannot tell suppression apart from an off-distribution
+    prompt flattening everything, so the control token and the entropy are what
+    make the difference interpretable.
+    """
+    tok, m = load()
+    pad = tok.encode("[PAD]", add_special_tokens=False)[0]
+    out = []
+    for i in range(0, len(prompts), batch_size):
+        chunk, tg, ct = (prompts[i:i + batch_size], targets[i:i + batch_size],
+                         controls[i:i + batch_size])
+        enc = [tok.encode(p, add_special_tokens=False) for p in chunk]
+        L = max(len(e) for e in enc)
+        ids = torch.full((len(enc), L), pad, dtype=torch.long)
+        att = torch.zeros((len(enc), L), dtype=torch.long)
+        for j, e in enumerate(enc):
+            ids[j, L - len(e):] = torch.tensor(e)
+            att[j, L - len(e):] = 1
+        lp = torch.log_softmax(
+            m(input_ids=ids, attention_mask=att).logits[:, -1, :].float(), -1)
+        ent = -(lp.exp() * lp).sum(-1)
+        for j in range(len(enc)):
+            tid = tok.encode(tg[j], add_special_tokens=False)[0]
+            cid = tok.encode(ct[j], add_special_tokens=False)[0]
+            rank = int((lp[j] > lp[j, tid]).sum().item())
+            out.append(dict(logp=lp[j, tid].item(), rank=rank,
+                            entropy=ent[j].item(), logp_control=lp[j, cid].item()))
+    return out
+
+
+def logodds(lp):
+    """log p - log(1-p) from a log-probability, numerically safe near p=1."""
+    import math
+    if lp > -1e-9:
+        return 30.0
+    return lp - math.log(-math.expm1(lp))
+
+
+def bootstrap_ci(pairs, n=4000, seed=20260823, agg=None):
+    """Percentile CI on the mean of paired differences. Deterministic seed."""
+    import random
+    rng = random.Random(seed)
+    d = [a - b for a, b in pairs] if agg is None else agg(pairs)
+    k = len(d)
+    if k < 2:
+        return (float("nan"), float("nan"))
+    means = []
+    for _ in range(n):
+        means.append(sum(d[rng.randrange(k)] for _ in range(k)) / k)
+    means.sort()
+    return means[int(0.025 * n)], means[int(0.975 * n)]

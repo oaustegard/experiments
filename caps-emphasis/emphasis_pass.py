@@ -10,8 +10,15 @@ lower_counter = {t["token"].lower(): t["lower_form_count"] for t in base["top60_
 CUR = set(base["top60_caps_tokens"][0].keys())  # unused; reuse rule below
 
 
+CURATED = set(open("curated_acronyms.txt").read().split())
+
+
 def acronymish(w, lf, cf):
-    return ROMAN.match(w) or lf < 10 or lf < cf * 0.05
+    """Acronym unless its lowercase form is a common corpus word that is
+    overwhelmingly written lowercase (i.e. this caps form is the word shouted)."""
+    if w in CURATED or ROMAN.match(w):
+        return True
+    return not (lf >= 200 and cf < 0.05 * lf)
 
 
 # need global lower/caps counts -> recompute cheaply
