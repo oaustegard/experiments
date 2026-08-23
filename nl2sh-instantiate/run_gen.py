@@ -68,6 +68,8 @@ def make_sources(gu: str, tldr: dict, rng: random.Random, distractors: int) -> l
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="unsloth/gemma-3-270m-it")
+    ap.add_argument("--dtype", default="float32", choices=["float32", "bfloat16", "float16"],
+                    help="weight dtype. stage 1 ran float32; a 4B model does not fit 15 GB at float32.")
     ap.add_argument("--condition", required=True, choices=sorted(prompts.BUILDERS))
     ap.add_argument("--tldr", type=Path, required=True)
     ap.add_argument("--nl", type=Path, nargs="*", default=DEFAULT_EVALS)
@@ -87,7 +89,7 @@ def main() -> int:
     tldr = G.load_tldr(a.tldr)
     data = load_eval(list(a.nl), tldr)[: a.limit]
     tok = AutoTokenizer.from_pretrained(a.model)
-    model = AutoModelForCausalLM.from_pretrained(a.model, dtype=torch.float32).eval()
+    model = AutoModelForCausalLM.from_pretrained(a.model, dtype=getattr(torch, a.dtype)).eval()
     build = prompts.BUILDERS[a.condition]
     rng = random.Random(a.seed)
 
@@ -121,7 +123,7 @@ def main() -> int:
     clean = [r for r in rows if not r.get("names_utility")]
     tot_new = sum(r["new_tokens"] for r in rows)
     summary = {
-        "model": str(a.model), "condition": a.condition, "sources": "oracle",
+        "model": str(a.model), "condition": a.condition, "dtype": a.dtype, "sources": "oracle",
         "distractors": a.distractors, "seed": a.seed, "n": len(rows),
         "n_leak_free": len(clean),
         "utility_acc_all": round(sum(r["utility_ok"] for r in rows) / len(rows), 3),

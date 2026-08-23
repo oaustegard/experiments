@@ -1,0 +1,169 @@
+{
+ "summary": {
+  "model": "nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF",
+  "condition": "generate",
+  "dtype": "gguf",
+  "sources": "oracle",
+  "distractors": 2,
+  "seed": 20260819,
+  "n": 6,
+  "n_leak_free": 6,
+  "utility_acc_all": 0.167,
+  "utility_acc_leak_free": 0.167,
+  "command_rate": 1.0,
+  "mean_prompt_tokens": 130.0,
+  "mean_new_tokens": 62.0,
+  "mean_seconds": 43.46,
+  "decode_tok_per_s": 1.4,
+  "wall_minutes": 4.3,
+  "runner": "llama.cpp",
+  "quant": "NVIDIA-Nemotron3-Nano-4B-Q4_K_M.gguf",
+  "gguf_file": "NVIDIA-Nemotron3-Nano-4B-Q4_K_M.gguf",
+  "gguf_bytes": 2837072864,
+  "n_threads": 2,
+  "n_ctx": 4096,
+  "reasoning": "off",
+  "chat_format": "chat_template.default",
+  "chat_template_embedded": true
+ },
+ "rows": [
+  {
+   "tier": "head",
+   "cmd": "cd ~",
+   "utility": "cd",
+   "freq": 2176,
+   "nl": "Go to my home directory.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "cd ~",
+   "command": "We need to translate request \"Go to my home directory.\" into a single shell command using documented utilities. Utilities: topgrade (run updates), cd (go to specified directory), winicontoppm (view documentation). The request is to go to home directory. So command: cd ~ or cd $HOME.",
+   "raw": "We need to translate request \"Go to my home directory.\" into a single shell command using documented utilities. Utilities: topgrade (run updates), cd (go to specified directory), winicontoppm (view documentation). The request is to go to home directory. So command: cd ~ or cd $HOME.",
+   "utility_ok": false,
+   "sources": [
+    "topgrade \u2014 Run updates: topgrade",
+    "cd \u2014 Go to the specified directory: CD PATH\\TO\\DIRECTORY",
+    "winicontoppm \u2014 View documentation for the current command: tldr winicontopam"
+   ],
+   "literals": [],
+   "prompt_tokens": 101,
+   "new_tokens": 64,
+   "seconds": 38.62
+  },
+  {
+   "tier": "head",
+   "cmd": "ls -a",
+   "utility": "ls",
+   "freq": 3038,
+   "nl": "Show all files in the current directory, including hidden ones.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ls -a",
+   "command": "We need to output a single shell command that lists all files in current directory including hidden ones. Use ls -1. Hidden files are included by default? ls -1 lists all entries, including hidden? Usually ls includes hidden files if not using -A. So command: ls -1. That's it. Output",
+   "raw": "We need to output a single shell command that lists all files in current directory including hidden ones. Use ls -1. Hidden files are included by default? ls -1 lists all entries, including hidden? Usually ls includes hidden files if not using -A. So command: ls -1. That's it. Output",
+   "utility_ok": false,
+   "sources": [
+    "adb-start-server \u2014 Start the adb server if it is not running: adb start-server",
+    "ls \u2014 List files one per line: ls -1",
+    "nix-classic \u2014 Search for a package in nixpkgs via its name: nix-env [-qaP|--query --available --attr-path] search_term_regex"
+   ],
+   "literals": [],
+   "prompt_tokens": 132,
+   "new_tokens": 64,
+   "seconds": 49.31
+  },
+  {
+   "tier": "head",
+   "cmd": "cat 0hRGen1s",
+   "utility": "cat",
+   "freq": 632,
+   "nl": "Show the contents of the file 0hRGen1s.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "cat 0hRGen1s",
+   "command": "cat 0hRGen1s",
+   "raw": "We need to output a single shell command that prints the contents of file 0hRGen1s. Use cat. So command: cat 0hRGen1s. Output only the command.\n</think>\ncat 0hRGen1s",
+   "utility_ok": true,
+   "sources": [
+    "tcpdump \u2014 List available network interfaces: tcpdump [-D|--list-interfaces]",
+    "bootc-switch \u2014 Change the base OS to a new container image from a registry: sudo bootc switch image",
+    "cat \u2014 Print the contents of a file to `stdout`: cat path/to/file"
+   ],
+   "literals": [],
+   "prompt_tokens": 121,
+   "new_tokens": 52,
+   "seconds": 40.85
+  },
+  {
+   "tier": "head",
+   "cmd": "fcrackzip -u -D /usr/share/wordlists/fasttrack.txt invoices2019.zip",
+   "utility": "fcrackzip",
+   "freq": 679,
+   "nl": "Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "fcrackzip -u -D /usr/share/wordlists/fasttrack.txt invoices2019.zip",
+   "command": "We need to translate request into a single shell command using documented utilities. The request: \"Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.\"",
+   "raw": "We need to translate request into a single shell command using documented utilities. The request: \"Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.\"\n\nWe have utilities: bindkey, dep init, fcrackzip.",
+   "utility_ok": false,
+   "sources": [
+    "bindkey \u2014 List all existing hotkeys: bindkey",
+    "dep \u2014 Interactively initialize deployer in the local path (use a framework template with `--template=template`): dep init",
+    "fcrackzip \u2014 Brute-force a password with a length of 4 to 8 characters and contains only alphanumeric characters (order matters): fcrackzip [-b|--brute-force] [-l|--length] 4-8 [-c|--charset] aA1 archive"
+   ],
+   "literals": [
+    "invoices2019.zip",
+    "/usr/share/wordlists/fasttrack.txt"
+   ],
+   "prompt_tokens": 181,
+   "new_tokens": 64,
+   "seconds": 50.18
+  },
+  {
+   "tier": "head",
+   "cmd": "ssh 172.18.5.1:22",
+   "utility": "ssh",
+   "freq": 930,
+   "nl": "Connect to the remote server at 172.18.5.1 on port 22.",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "ssh 172.18.5.1:22",
+   "command": "We need to translate request into a single shell command. The request: \"Connect to the remote server at 172.18.5.1 on port 22.\" That's ssh username@remote_host. But we need username? Not given. Probably just ssh 172.18",
+   "raw": "We need to translate request into a single shell command. The request: \"Connect to the remote server at 172.18.5.1 on port 22.\" That's ssh username@remote_host. But we need username? Not given. Probably just ssh 172.18",
+   "utility_ok": false,
+   "sources": [
+    "systemctl-list-jobs \u2014 List all active jobs: systemctl list-jobs",
+    "netsh-wlan \u2014 Show all available wireless networks: netsh wlan show networks",
+    "ssh \u2014 Connect to a remote server: ssh username@remote_host"
+   ],
+   "literals": [
+    "172.18.5.1",
+    "22"
+   ],
+   "prompt_tokens": 120,
+   "new_tokens": 64,
+   "seconds": 37.61
+  },
+  {
+   "tier": "head",
+   "cmd": "scp .invoices2019.zip @: /",
+   "utility": "scp",
+   "freq": 696,
+   "nl": "Copy the file .invoices2019.zip",
+   "names_utility": false,
+   "source_file": "cyber_nl.json",
+   "gold_cmd": "scp .invoices2019.zip @: /",
+   "command": "We need to translate request: \"Copy the file .invoices2019.zip\". No remote host or path given. Probably just list generators? But request is to copy file, but no details. Maybe they want to generate something? The only utility is scp, but need remote host and remote file path",
+   "raw": "We need to translate request: \"Copy the file .invoices2019.zip\". No remote host or path given. Probably just list generators? But request is to copy file, but no details. Maybe they want to generate something? The only utility is scp, but need remote host and remote file path",
+   "utility_ok": false,
+   "sources": [
+    "scp \u2014 Copy a local file to a remote host: scp path/to/local_file remote_host:path/to/remote_file",
+    "rails-generate \u2014 List all available generators: rails generate",
+    "archivemount \u2014 Mount an archive to a specific mountpoint: archivemount path/to/archive path/to/mount_point"
+   ],
+   "literals": [],
+   "prompt_tokens": 125,
+   "new_tokens": 64,
+   "seconds": 44.22
+  }
+ ]
+}
