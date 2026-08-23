@@ -49,7 +49,7 @@ the ironic rebound that [Mann et al.](https://arxiv.org/abs/2511.12381) and
 reproduced here. Capitalising the directive makes the rebound slightly worse, not
 better.
 
-### What the rebound is made of
+### Decomposing the rebound
 
 Naming the word is most of it, and the prohibition frame is the rest. Four
 directives against no directive at all:
