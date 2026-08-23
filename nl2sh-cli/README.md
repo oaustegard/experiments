@@ -83,9 +83,10 @@ k = 3
 
 ## Accuracy by model size
 
-The retrieval tier surfaces the right utility 0.555 of the time on a
+The retrieval tier surfaces the right utility 0.506 of the time on a
 132-utility evaluation whose constant-utility prior is 0.012, and it answers in
-milliseconds on a CPU. A generator on top costs weights, memory and seconds per
+milliseconds on a CPU. 0.506 rather than the 0.555 the research quotes, because
+the query adapter that separates them is not shipped — see Limits. A generator on top costs weights, memory and seconds per
 request, and below about a billion parameters it does not pay for them.
 
 Measured on the same 164 requests, oracle sources, greedy decoding
@@ -145,13 +146,24 @@ above was produced by those exact bytes. `vendor.sh` re-copies and re-pins them.
 
 ## Limits
 
-- The query-side adapter measured in `nl2sh-retrieval` is not included. Its
-  gain was confined to the 207 utilities it trained on, so it stays behind.
+- The query-side adapter measured in `nl2sh-retrieval` is not included, which
+  is the whole difference between 0.506 here and the 0.555 that directory
+  reports. It gained +0.184 on the 207 utilities it trained on and **lost**
+  0.039 on utilities it had not seen, so shipping it would trade a headline
+  number for worse behaviour on exactly the commands a user is most likely to
+  be looking up.
 - The evaluation corpus is auto-generated and carries noise. One request reads
   "Scan all ports on 192." against a gold command of `npm -p- 192.168.130.0`,
   which is not a port scan.
 - Execution scoring decides 0.22 of the evaluation. The rest names tooling the
   scoring container does not have, or commands the sandbox refuses.
+- Search latency: about 4-10 ms per query once warm, ~3 s for the first query
+  in a process, and 2-3 minutes the very first time ever, when it encodes all
+  6,397 pages. The encoder download is ~26 MB.
+- `nl2sh search` currently needs the `oaustegard/experiments` checkout beside
+  it for the corpus and the retrieval modules; a bare `pip install` gets the
+  backends and the CLI but not a working index. `nl2sh doctor` says which.
+  Packaging the corpus is the open item.
 - The accuracy table's tok/s came from runs pinned to 2 of this box's 4
   shared vCPUs, with another model decoding on the other two. No
   accelerator was involved anywhere. Read every latency here as a floor.

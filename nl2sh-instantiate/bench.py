@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import resource
 import sys
 import time
@@ -43,6 +44,9 @@ def main() -> int:
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    # Captured before the model loads: a run started on a busy box is not a
+    # batch=1 measurement, and the reader deserves to see that in the row.
+    load1 = os.getloadavg()[0]
     t_load = time.perf_counter()
     tok = AutoTokenizer.from_pretrained(a.model)
     model = AutoModelForCausalLM.from_pretrained(a.model, dtype=getattr(torch, a.dtype)).eval()
@@ -83,6 +87,14 @@ def main() -> int:
     rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
     mean = lambda xs: sum(xs) / len(xs)
     summary = {
+        # Thread count and load average belong in the artifact, not only in
+        # whatever prose quotes it. Four bench rows shipped with "batch=1 on 4
+        # CPU cores" in their commit message while actually running pinned to
+        # two threads with another model decoding beside them; nothing in the
+        # JSON contradicted the claim, so nothing caught it.
+        "threads": int(os.environ.get("OMP_NUM_THREADS", 0)) or os.cpu_count(),
+        "cpu_count": os.cpu_count(),
+        "load1_at_start": round(load1, 2),
         "model": a.model, "condition": a.condition, "dtype": a.dtype,
         "params": n_params, "weight_bytes": weight_bytes,
         "weight_gib": round(weight_bytes / 2**30, 3),
