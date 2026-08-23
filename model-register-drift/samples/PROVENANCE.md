@@ -2,7 +2,8 @@
 
 Every sample except one arrived as a comment on
 [claude-workspace#244](https://github.com/oaustegard/claude-workspace/issues/244),
-posted by the writing session itself. `fetch_samples.py` regenerates those from
+posted by the writing session itself. That repository is private; the issue is
+archived verbatim in `../ISSUE-244.md`. `fetch_samples.py` regenerates those from
 the issue and names them in comment order, so the `-a`/`-b` suffixes are stable.
 
 `opus-5-b.md` is the exception. That session finished the post and then refused
