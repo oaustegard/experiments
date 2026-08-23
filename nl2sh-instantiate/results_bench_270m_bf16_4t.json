@@ -1,0 +1,20 @@
+{
+ "threads": 4,
+ "cpu_count": 4,
+ "load1_at_start": 3.33,
+ "model": "unsloth/gemma-3-270m-it",
+ "condition": "instantiate",
+ "dtype": "bfloat16",
+ "params": 268098176,
+ "weight_bytes": 536196352,
+ "weight_gib": 0.499,
+ "load_seconds": 4.5,
+ "peak_rss_mib": 1301.0,
+ "n_measured": 11,
+ "ttft_ms_mean": 445.9,
+ "ttft_ms_min": 434.1,
+ "decode_tok_per_s_mean": 18.6,
+ "decode_tok_per_s_max": 18.9,
+ "wall_seconds_64_tokens_mean": 3.23,
+ "roofline_note": "single-stream ceiling is memory_bandwidth / weight_bytes; at 100 GB/s this bfloat16 copy tops out near 186 tok/s, and a 4-bit copy near 746 tok/s"
+}

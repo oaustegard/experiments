@@ -164,6 +164,10 @@ above was produced by those exact bytes. `vendor.sh` re-copies and re-pins them.
   it for the corpus and the retrieval modules; a bare `pip install` gets the
   backends and the CLI but not a working index. `nl2sh doctor` says which.
   Packaging the corpus is the open item.
-- The accuracy table's tok/s came from runs pinned to 2 of this box's 4
-  shared vCPUs, with another model decoding on the other two. No
-  accelerator was involved anywhere. Read every latency here as a floor.
+- The accuracy table's tok/s came from runs pinned to 2 of a 4-vCPU box with
+  another model decoding on the other two, so they understate. Re-measured
+  alone at 4 threads, decode is roughly double: 20.5 tok/s for 270M float32,
+  18.6 bfloat16, 4.2 for 1B, 1.0 for 4B. Time to first token is the number
+  that decides whether this feels usable — 178 ms, 446 ms, 2.3 s and 10.5 s
+  respectively. No accelerator was involved anywhere; read every latency as a
+  floor for real hardware.
