@@ -29,6 +29,8 @@ keep() {  # keep <file> <message> — commit and push one artifact as it lands
   [ -s "$f" ] || { echo "!! $f missing or empty, not committing"; return 1; }
   ( cd "$REPO" \
     && git add "nl2sh-instantiate/$f" \
+    && { git diff --cached --quiet -- "nl2sh-instantiate/$f" \
+         && { echo "== $f already committed"; exit 0; } || true; } \
     && git -c commit.gpgsign=false -c user.email=muninn@austegard.com -c user.name=muninn \
          commit -q -m "nl2sh-instantiate: $f — $msg" \
     && { git pull --rebase -q origin "$BRANCH" && git push -q origin "$BRANCH"; } \
@@ -53,7 +55,8 @@ await_inflight() {  # let a run someone else launched finish rather than duplica
 gen() {  # gen <out> <model> <dtype> <condition> [extra args...]
   local out="$1" model="$2" dtype="$3" cond="$4"; shift 4
   await_inflight "$out"
-  if [ -s "$out" ]; then echo "== skip $out (already present)"; return 0; fi
+  if [ -s "$out" ]; then echo "== skip run for $out (already present)"
+    keep "$out" "$model $dtype, $cond, oracle sources"; return 0; fi
   echo "== $(date +%T) $out  [$model $dtype $cond $*]"
   python3 run_gen.py --model "$model" --dtype "$dtype" --condition "$cond" \
       --tldr "$TLDR" --out "$out" "$@" 2>&1 | grep -v 'max_new_tokens' | tail -4
@@ -63,7 +66,8 @@ gen() {  # gen <out> <model> <dtype> <condition> [extra args...]
 bench() {  # bench <out> <model> <dtype>
   local out="$1" model="$2" dtype="$3"
   await_inflight "$out"
-  if [ -s "$out" ]; then echo "== skip $out (already present)"; return 0; fi
+  if [ -s "$out" ]; then echo "== skip run for $out (already present)"
+    keep "$out" "laptop bar for $model at $dtype, batch=1 on 4 CPU cores"; return 0; fi
   echo "== $(date +%T) $out  [bench $model $dtype]"
   python3 bench.py --model "$model" --dtype "$dtype" --out "$out" 2>&1 | tail -20
   keep "$out" "laptop bar for $model at $dtype, batch=1 on 4 CPU cores"
@@ -72,7 +76,8 @@ bench() {  # bench <out> <model> <dtype>
 gguf() {  # gguf <out> <repo> <file> <condition> [extra args...]
   local out="$1" repo="$2" file="$3" cond="$4"; shift 4
   await_inflight "$out"
-  if [ -s "$out" ]; then echo "== skip $out (already present)"; return 0; fi
+  if [ -s "$out" ]; then echo "== skip run for $out (already present)"
+    keep "$out" "$repo $file, $cond, oracle sources, llama.cpp"; return 0; fi
   echo "== $(date +%T) $out  [$repo $file $cond $*]"
   python3 run_gen_gguf.py --model "$repo" --gguf-file "$file" --condition "$cond" \
       --tldr "$TLDR" --n-threads "$OMP_NUM_THREADS" --out "$out" "$@" 2>&1 | tail -4
