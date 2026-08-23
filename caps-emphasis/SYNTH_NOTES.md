@@ -139,3 +139,132 @@ real word, it means logical contrast (`AND`/`OR`/`NOT`/`BUT`), not urgency.
 - `synth_caps_emphasis.json` — emphatic-caps isolation pass with contexts
 - `baguettotron_vocab_caps.json` — vocabulary analysis
 - `fetch_synth.py`, `analyze_caps.py`, `emphasis_pass.py`, `curated_acronyms.txt` — code
+
+---
+
+# Markdown emphasis vs capitalisation
+
+Same 22,100-document sample (10,523,198 word tokens, fields `query` +
+`synthetic_reasoning` + `synthetic_answer`), no re-fetch. Full numbers in
+`synth_bold.json`.
+
+## Rates side by side
+
+| marker | per 1,000 words | % of docs |
+|---|---|---|
+| `### heading` (ATX) | **8.27** | 82.7% |
+| ALL CAPS, all tokens (mostly acronyms) | 8.10 | 61.8% |
+| `**bold**` | **7.78** | 52.1% |
+| line-initial `**bold**` label | 6.78 | — |
+| `*italic*` | 0.67 | 14.1% |
+| ALL CAPS, non-acronym | 0.56 | — |
+| **ALL CAPS as emphasis** | **0.34** | — |
+| `` `code` `` inline | 0.16 | 0.6% |
+| fenced code block | 0.084 | 3.3% |
+| `_italic_` | 0.0027 | 0.05% |
+| `__bold__` | **0** | 0% |
+
+**`**bold**` outnumbers emphatic ALL CAPS 23.1 : 1** (7.78 vs 0.34 per 1,000
+words), and outnumbers all non-acronym caps 13.9 : 1. That ratio lands on top of
+the pilot sweep's ~20× suppression gap between `**never**` and `NEVER`.
+
+The complement is **not** null: SYNTH has a strong, well-formed bold prior. It
+just is not primarily an *emphasis* prior — see below.
+
+## Where bold appears (200 random `**…**` spans)
+
+| bucket | count |
+|---|---|
+| heading/label (`**Key insight:**`, `**Confidence levels**:`) | **169** |
+| emphasis-in-sentence | 16 |
+| term-definition (`**capacity to suffer** = moral consideration`) | 7 |
+| structured-marker (bold label + `●`/`◐`/`○` confidence glyph) | 8 |
+| other | 0 |
+
+Verbatim examples, one per bucket:
+
+- heading/label — `**Confidence levels**: ⏎ - Regulatory framework evolution: ● ⏎ - Specific fine amounts…`
+- emphasis-in-sentence — `Key distinction: **legal positivism** vs **judicial sovereignty**.`
+- term-definition — `Jeremy Bentham (1748-1832). Utilitarian philosopher. Key insight: **capacity to suffer** = moral consideration.`
+- structured-marker — `**Consensus evidence** ● : ⏎ PET-CT = modality of choice for lymph node metastasis`
+
+Three more per bucket are in `synth_bold.json` → `buckets.examples`.
+
+Split by role, the comparison narrows sharply:
+
+| role | bold /1,000 | caps /1,000 | ratio |
+|---|---|---|---|
+| heading / label | 6.58 | 0.32 | **20×** |
+| mid-sentence emphasis | 0.62 | 0.32 | 1.9× |
+
+So SYNTH's salience convention is `### Heading` and `**Label:**`, not emphasis
+markup and not capitals. Bold beats caps ~20× as a *structural* marker and only
+~2× as in-sentence stress.
+
+## The most-bolded strings are reasoning-scaffold labels
+
+`**Key insight**` 1,273 (+1,243 with trailing colon) · `**Conclusion**` 1,111 ·
+`**Final assessment**` 939 · `**Synthesis:**` 496 · `**Physical constraints:**` 397 ·
+`**Final synthesis**` 276 · `**Initial assessment:**` 236 · `**Confidence assessment:**` 219 ·
+`**Answer structure:**` 216. These are section headers of the synthetic reasoning
+trace, not stressed words.
+
+## Directive-word head-to-head
+
+Counts in the 22,100-doc sample. "in-bold" = the word appears anywhere inside a
+`**…**` span (i.e. inside a label like `**Critical gap:**`).
+
+| word | `**word**` exact | in-bold span | ALL CAPS | plain lowercase |
+|---|---|---|---|---|
+| never | **1** | 7 | 5 | 957 |
+| always | **1** | 6 | 6 | 1,297 |
+| must | **3** | 18 | 2 | 3,730 |
+| important | **4** | 23 | 0 | 3,147 |
+| critical | **17** | 1,208 | 2 | 3,239 |
+| note | **15** | 160 | 2 | 808 |
+| required | **1** | 180 | 0 | 4,459 |
+| avoid | **13** | 28 | 0 | 916 |
+| warning | **0** | 4 | 1 | 241 |
+| caution | **0** | 1 | 0 | 108 |
+| remember | **0** | 1 | 0 | 396 |
+| should | **0** | 32 | 1 | 4,195 |
+| do not | **0** | 3 | 3 | 450 |
+| not | 25 | 237 | 256 | 28,337 |
+| only | 3 | 52 | 6 | 5,706 |
+| all | 0 | 57 | 112 | 9,789 |
+
+Bolded *directive words* are as close to zero as capitalised ones: `**never**`
+once, `**always**` once, `**must**` three times, `**do not**` never, in 10.5M
+words. `**critical**` (17) and `**note**` (15) are the only ones with any
+presence, and their 1,208 / 160 in-bold counts are almost entirely the label
+forms `**Critical gap:**`, `**Critical constraint:**`, `**Note:**`.
+
+**So the bold advantage is carried by the marker, not by the word.** The model
+has seen `**X**` 82,000 times — always meaning "this is the salient label of what
+follows" — and has essentially never seen `NEVER`. Wrapping a directive in `**`
+puts it in a heavily-attested salience frame; capitalising it puts it nowhere.
+
+## Field asymmetry — relevant to where the directive is placed
+
+| field | words | `**bold**` /1,000 | `*italic*` /1,000 |
+|---|---|---|---|
+| `query` (the user turn) | 763,630 | **0.0013** (1 occurrence total) | 0.06 |
+| `synthetic_reasoning` | 5,225,974 | **14.70** | 1.02 |
+| `synthetic_answer` | 4,533,594 | 1.12 | 0.36 |
+
+Bold is a **reasoning-trace** convention: 93% of all bold spans are in
+`synthetic_reasoning`, and the entire sample contains exactly **one** bold span in
+a user query. A `**never**` in a user turn is therefore off-distribution for the
+query register while being maximally in-distribution for the register the model
+generates. ALL CAPS at least occurs in queries (4.06/1,000, mostly acronyms).
+Worth controlling for if the pilot's directive sits in the user turn.
+
+## Bottom line
+
+Not a null. `**bold**` is 23× more frequent than emphatic ALL CAPS and appears in
+52% of documents, versus a caps-as-emphasis rate of 0.34/1,000. But the prior is
+"bold marks the label of a salient section", not "bold marks a stressed word" —
+169 of 200 sampled spans are labels/headings. Bolding a directive borrows a
+convention the model has seen ~82,000 times; capitalising it borrows one it has
+seen almost never. That asymmetry, not any word-level statistic, is the
+mechanism consistent with the pilot's 20× gap.
