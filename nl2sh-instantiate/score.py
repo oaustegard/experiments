@@ -148,7 +148,20 @@ def main() -> int:
     for p in a.results:
         d = json.loads(p.read_text())
         rows = d["rows"] if a.all_rows else [r for r in d["rows"] if not r.get("names_utility")]
-        key = f"{Path(d['summary']['model']).name}/{d['summary']['condition']}"
+        # dtype joins the key only when the run recorded one, so files made
+        # before `--dtype` existed keep the labels they have always had. Without
+        # it two runs of one model and condition at different precisions collide
+        # and the first is silently dropped — and dtype is not cosmetic here:
+        # 270M float32 vs bfloat16 on identical rows and seed differ by 0.073
+        # routing, which is larger than several effects this file is used to read.
+        sm = d["summary"]
+        key = f"{Path(sm['model']).name}/{sm['condition']}"
+        if sm.get("quant") or sm.get("dtype"):
+            key += f"/{sm.get('quant') or sm['dtype']}"
+        if key in table:
+            raise SystemExit(
+                f"two runs share the key {key!r}; refusing to drop one silently. "
+                "Give them distinguishable summaries or score them separately.")
         table[key] = {**score(rows), **{
             "decode_tok_per_s": d["summary"].get("decode_tok_per_s"),
             "mean_seconds": d["summary"].get("mean_seconds"),

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import resource
 import sys
 import time
@@ -32,6 +33,8 @@ import prompts  # noqa: E402
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="unsloth/gemma-3-270m-it")
+    ap.add_argument("--dtype", default="float32", choices=["float32", "bfloat16", "float16"],
+                    help="weight dtype. stage 1 ran float32; a 4B model does not fit 15 GB at float32.")
     ap.add_argument("--condition", default="instantiate", choices=sorted(prompts.BUILDERS))
     ap.add_argument("--n", type=int, default=12)
     ap.add_argument("--max-new-tokens", type=int, default=64)
@@ -41,9 +44,22 @@ def main() -> int:
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+    # Captured before the model loads: a run started on a busy box is not a
+    # batch=1 measurement, and the reader deserves to see that in the row.
+    #
+    # load1 alone does not settle it. It is a one-minute decaying average, so a
+    # sequential loop of bench rows inherits its predecessor's tail and reads
+    # ~3.5 on an otherwise idle 4-core box. `running` is the instantaneous
+    # count of runnable processes from /proc/loadavg's third field, minus this
+    # one — that is the field that says whether anything is actually competing.
+    load1 = os.getloadavg()[0]
+    try:
+        running = max(0, int(open("/proc/loadavg").read().split()[3].split("/")[0]) - 1)
+    except Exception:                                       # noqa: BLE001
+        running = -1
     t_load = time.perf_counter()
     tok = AutoTokenizer.from_pretrained(a.model)
-    model = AutoModelForCausalLM.from_pretrained(a.model, dtype=torch.float32).eval()
+    model = AutoModelForCausalLM.from_pretrained(a.model, dtype=getattr(torch, a.dtype)).eval()
     load_s = time.perf_counter() - t_load
     n_params = sum(p.numel() for p in model.parameters())
     weight_bytes = sum(p.numel() * p.element_size() for p in model.parameters())
@@ -81,7 +97,16 @@ def main() -> int:
     rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
     mean = lambda xs: sum(xs) / len(xs)
     summary = {
-        "model": a.model, "condition": a.condition, "dtype": "float32",
+        # Thread count and load average belong in the artifact, not only in
+        # whatever prose quotes it. Four bench rows shipped with "batch=1 on 4
+        # CPU cores" in their commit message while actually running pinned to
+        # two threads with another model decoding beside them; nothing in the
+        # JSON contradicted the claim, so nothing caught it.
+        "threads": int(os.environ.get("OMP_NUM_THREADS", 0)) or os.cpu_count(),
+        "cpu_count": os.cpu_count(),
+        "load1_at_start": round(load1, 2),
+        "other_runnable_at_start": running,
+        "model": a.model, "condition": a.condition, "dtype": a.dtype,
         "params": n_params, "weight_bytes": weight_bytes,
         "weight_gib": round(weight_bytes / 2**30, 3),
         "load_seconds": round(load_s, 1),
@@ -93,9 +118,9 @@ def main() -> int:
         "decode_tok_per_s_max": round(max(rates), 1),
         "wall_seconds_64_tokens_mean": round(mean(walls), 2),
         "roofline_note": ("single-stream ceiling is memory_bandwidth / weight_bytes; "
-                          "at 100 GB/s this fp32 model tops out near "
+                          f"at 100 GB/s this {a.dtype} copy tops out near "
                           f"{round(100e9 / weight_bytes)} tok/s, and a 4-bit copy near "
-                          f"{round(100e9 / (weight_bytes / 8))} tok/s"),
+                          f"{round(100e9 / (n_params * 0.5))} tok/s"),
     }
     a.out.write_text(json.dumps(summary, indent=1) + "\n")
     print(json.dumps(summary, indent=1))
