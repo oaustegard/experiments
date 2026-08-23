@@ -16,6 +16,9 @@ comments = json.loads(raw)
 FENCE = re.compile(r"````+\s*markdown\n(.*?)\n````+", re.S)
 MODEL = re.compile(r"^MODEL:\s*(\S+)", re.M)
 
+# Comments arrive oldest first, so the suffix is stable across re-runs: the
+# first sample a model posts is always -a, the second -b.
+seen: dict[str, int] = {}
 n = 0
 for c in comments:
     body = c["body"]
@@ -24,7 +27,9 @@ for c in comments:
         print(f"skip comment {c['id']}: no MODEL line or fence", file=sys.stderr)
         continue
     name = m.group(1).replace("claude-", "").replace("-20251001", "")
-    (OUT / f"{name}.md").write_text(f.group(1).strip() + "\n")
-    print(f"{name}.md  <- comment {c['id']}")
+    seen[name] = seen.get(name, 0) + 1
+    stem = f"{name}-{chr(ord('a') + seen[name] - 1)}"
+    (OUT / f"{stem}.md").write_text(f.group(1).strip() + "\n")
+    print(f"{stem}.md  <- comment {c['id']}")
     n += 1
-print(f"{n} sample(s)")
+print(f"{n} sample(s) across {len(seen)} model(s)")
