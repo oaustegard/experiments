@@ -1,0 +1,720 @@
+{
+  "dataset_id": "PleIAs/SYNTH",
+  "config": "default",
+  "split": "train",
+  "source": "https://datasets-server.huggingface.co/rows (partial index: 1,089,584 of 79,648,272 rows exposed); random offsets, seed 20260823",
+  "text_fields_measured": [
+    "query",
+    "synthetic_reasoning",
+    "synthetic_answer"
+  ],
+  "n_documents": 22100,
+  "n_word_tokens": 10523198,
+  "n_caps_tokens_total": 85277,
+  "doc_level": {
+    "frac_docs_with_any_caps_token": 0.6176923076923077,
+    "frac_docs_with_nonacronym_caps_token": 0.4753846153846154,
+    "n_docs_with_any_caps": 13651,
+    "n_docs_with_nonacronym_caps": 10506
+  },
+  "token_level": {
+    "caps_per_1000_words_all": 8.103715239416763,
+    "caps_per_1000_words_excl_curated_acronyms_and_roman": 5.360442709526135,
+    "caps_per_1000_words_excl_data_driven_acronyms": 1.2269083979984032,
+    "n_caps_excl_curated": 56409,
+    "n_caps_excl_data_driven": 12911,
+    "caps_token_length_hist": {
+      "2": 32296,
+      "3": 35795,
+      "4": 11041,
+      "5": 3128,
+      "6": 1385,
+      "7": 652,
+      "8": 384,
+      "9": 230,
+      "10": 181,
+      "11": 84,
+      "12": 101
+    }
+  },
+  "per_field": {
+    "query": {
+      "words": 763630,
+      "caps": 3102,
+      "caps_per_1000": 4.062176708615429
+    },
+    "synthetic_reasoning": {
+      "words": 5225974,
+      "caps": 62095,
+      "caps_per_1000": 11.881995585894611
+    },
+    "synthetic_answer": {
+      "words": 4533594,
+      "caps": 20080,
+      "caps_per_1000": 4.429157088173312
+    }
+  },
+  "other_fields": {
+    "query_seed_text": {
+      "words": 3805433,
+      "caps": 23284,
+      "caps_per_1000": 6.118620404038121
+    },
+    "constraints": {
+      "words": 393663,
+      "caps": 2029,
+      "caps_per_1000": 5.1541546957677
+    }
+  },
+  "per_exercise": {
+    "memorization": {
+      "docs": 20007,
+      "docs_with_caps": 12702,
+      "frac": 0.6348777927725296
+    },
+    "mcq": {
+      "docs": 465,
+      "docs_with_caps": 298,
+      "frac": 0.6408602150537634
+    },
+    "math exercise": {
+      "docs": 374,
+      "docs_with_caps": 64,
+      "frac": 0.1711229946524064
+    },
+    "constrained writing": {
+      "docs": 350,
+      "docs_with_caps": 137,
+      "frac": 0.3914285714285714
+    },
+    "rag": {
+      "docs": 240,
+      "docs_with_caps": 139,
+      "frac": 0.5791666666666667
+    },
+    "math mcq": {
+      "docs": 202,
+      "docs_with_caps": 45,
+      "frac": 0.22277227722772278
+    },
+    "creative writing": {
+      "docs": 187,
+      "docs_with_caps": 132,
+      "frac": 0.7058823529411765
+    },
+    "editing": {
+      "docs": 170,
+      "docs_with_caps": 83,
+      "frac": 0.48823529411764705
+    },
+    "cooking": {
+      "docs": 105,
+      "docs_with_caps": 51,
+      "frac": 0.4857142857142857
+    }
+  },
+  "top60_caps_tokens": [
+    {
+      "token": "US",
+      "count": 3977,
+      "lower_form_count": 1038,
+      "acronymish": true
+    },
+    {
+      "token": "NB",
+      "count": 3920,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "DNA",
+      "count": 2002,
+      "lower_form_count": 41,
+      "acronymish": true
+    },
+    {
+      "token": "II",
+      "count": 1475,
+      "lower_form_count": 27,
+      "acronymish": true
+    },
+    {
+      "token": "AI",
+      "count": 1423,
+      "lower_form_count": 232,
+      "acronymish": true
+    },
+    {
+      "token": "CE",
+      "count": 1236,
+      "lower_form_count": 824,
+      "acronymish": true
+    },
+    {
+      "token": "BCE",
+      "count": 1112,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "UK",
+      "count": 1080,
+      "lower_form_count": 6,
+      "acronymish": true
+    },
+    {
+      "token": "EU",
+      "count": 955,
+      "lower_form_count": 59,
+      "acronymish": true
+    },
+    {
+      "token": "GDP",
+      "count": 735,
+      "lower_form_count": 3,
+      "acronymish": true
+    },
+    {
+      "token": "WWII",
+      "count": 660,
+      "lower_form_count": 2,
+      "acronymish": true
+    },
+    {
+      "token": "AND",
+      "count": 638,
+      "lower_form_count": 137188,
+      "acronymish": false
+    },
+    {
+      "token": "III",
+      "count": 623,
+      "lower_form_count": 3,
+      "acronymish": true
+    },
+    {
+      "token": "UN",
+      "count": 596,
+      "lower_form_count": 3916,
+      "acronymish": true
+    },
+    {
+      "token": "TV",
+      "count": 552,
+      "lower_form_count": 26,
+      "acronymish": true
+    },
+    {
+      "token": "BC",
+      "count": 481,
+      "lower_form_count": 3,
+      "acronymish": true
+    },
+    {
+      "token": "OR",
+      "count": 449,
+      "lower_form_count": 25157,
+      "acronymish": false
+    },
+    {
+      "token": "IV",
+      "count": 438,
+      "lower_form_count": 7,
+      "acronymish": true
+    },
+    {
+      "token": "ATP",
+      "count": 417,
+      "lower_form_count": 2,
+      "acronymish": true
+    },
+    {
+      "token": "CD",
+      "count": 394,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "HIV",
+      "count": 387,
+      "lower_form_count": 2,
+      "acronymish": true
+    },
+    {
+      "token": "RNA",
+      "count": 323,
+      "lower_form_count": 2,
+      "acronymish": true
+    },
+    {
+      "token": "WWI",
+      "count": 297,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "CO₂",
+      "count": 294,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "FDA",
+      "count": 294,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "UV",
+      "count": 285,
+      "lower_form_count": 5,
+      "acronymish": true
+    },
+    {
+      "token": "CT",
+      "count": 275,
+      "lower_form_count": 4,
+      "acronymish": true
+    },
+    {
+      "token": "AD",
+      "count": 256,
+      "lower_form_count": 1266,
+      "acronymish": true
+    },
+    {
+      "token": "NOT",
+      "count": 256,
+      "lower_form_count": 28337,
+      "acronymish": false
+    },
+    {
+      "token": "H₂O",
+      "count": 252,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "GI",
+      "count": 250,
+      "lower_form_count": 5,
+      "acronymish": true
+    },
+    {
+      "token": "NATO",
+      "count": 249,
+      "lower_form_count": 6,
+      "acronymish": true
+    },
+    {
+      "token": "O₂",
+      "count": 248,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "CSR",
+      "count": 239,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "LGBTQ",
+      "count": 229,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "WHO",
+      "count": 221,
+      "lower_form_count": 5507,
+      "acronymish": true
+    },
+    {
+      "token": "BRCA",
+      "count": 221,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "IS",
+      "count": 218,
+      "lower_form_count": 44067,
+      "acronymish": false
+    },
+    {
+      "token": "CPU",
+      "count": 217,
+      "lower_form_count": 1,
+      "acronymish": true
+    },
+    {
+      "token": "BP",
+      "count": 207,
+      "lower_form_count": 57,
+      "acronymish": false
+    },
+    {
+      "token": "MRI",
+      "count": 205,
+      "lower_form_count": 7,
+      "acronymish": true
+    },
+    {
+      "token": "CBT",
+      "count": 200,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "DC",
+      "count": 199,
+      "lower_form_count": 3,
+      "acronymish": true
+    },
+    {
+      "token": "BUT",
+      "count": 195,
+      "lower_form_count": 34899,
+      "acronymish": false
+    },
+    {
+      "token": "CO",
+      "count": 194,
+      "lower_form_count": 1175,
+      "acronymish": false
+    },
+    {
+      "token": "IP",
+      "count": 194,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "IQ",
+      "count": 192,
+      "lower_form_count": 2,
+      "acronymish": true
+    },
+    {
+      "token": "BMI",
+      "count": 190,
+      "lower_form_count": 2,
+      "acronymish": true
+    },
+    {
+      "token": "OH",
+      "count": 186,
+      "lower_form_count": 10,
+      "acronymish": false
+    },
+    {
+      "token": "DSM",
+      "count": 178,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "NYC",
+      "count": 175,
+      "lower_form_count": 0,
+      "acronymish": true
+    },
+    {
+      "token": "THE",
+      "count": 170,
+      "lower_form_count": 222154,
+      "acronymish": false
+    },
+    {
+      "token": "NASA",
+      "count": 163,
+      "lower_form_count": 2,
+      "acronymish": true
+    },
+    {
+      "token": "USA",
+      "count": 162,
+      "lower_form_count": 31,
+      "acronymish": true
+    },
+    {
+      "token": "SEC",
+      "count": 156,
+      "lower_form_count": 45,
+      "acronymish": false
+    },
+    {
+      "token": "VI",
+      "count": 155,
+      "lower_form_count": 19,
+      "acronymish": true
+    },
+    {
+      "token": "ADHD",
+      "count": 154,
+      "lower_form_count": 4,
+      "acronymish": true
+    },
+    {
+      "token": "BBC",
+      "count": 153,
+      "lower_form_count": 3,
+      "acronymish": true
+    },
+    {
+      "token": "MS",
+      "count": 148,
+      "lower_form_count": 63,
+      "acronymish": true
+    },
+    {
+      "token": "MTU",
+      "count": 146,
+      "lower_form_count": 0,
+      "acronymish": true
+    }
+  ],
+  "directive_words": {
+    "NEVER": {
+      "caps": 5,
+      "lower": 957
+    },
+    "ALWAYS": {
+      "caps": 6,
+      "lower": 1297
+    },
+    "MUST": {
+      "caps": 2,
+      "lower": 3730
+    },
+    "IMPORTANT": {
+      "caps": 0,
+      "lower": 3147
+    },
+    "NOTE": {
+      "caps": 2,
+      "lower": 808
+    },
+    "WARNING": {
+      "caps": 1,
+      "lower": 241
+    },
+    "CRITICAL": {
+      "caps": 2,
+      "lower": 3239
+    },
+    "REQUIRED": {
+      "caps": 0,
+      "lower": 4459
+    },
+    "SHOULD": {
+      "caps": 1,
+      "lower": 4195
+    },
+    "AVOID": {
+      "caps": 0,
+      "lower": 916
+    },
+    "DO": {
+      "caps": 39,
+      "lower": 8705
+    },
+    "NOT": {
+      "caps": 256,
+      "lower": 28337
+    },
+    "CAUTION": {
+      "caps": 0,
+      "lower": 108
+    },
+    "DANGER": {
+      "caps": 1,
+      "lower": 218
+    },
+    "ATTENTION": {
+      "caps": 0,
+      "lower": 958
+    },
+    "REMEMBER": {
+      "caps": 0,
+      "lower": 396
+    },
+    "ONLY": {
+      "caps": 6,
+      "lower": 5706
+    },
+    "ALL": {
+      "caps": 112,
+      "lower": 9789
+    },
+    "DO NOT": {
+      "caps": 3,
+      "lower": 450
+    },
+    "MUST NOT": {
+      "caps": 0,
+      "lower": 35
+    },
+    "DO NOT USE": {
+      "caps": 0,
+      "lower": 4
+    },
+    "NEVER USE": {
+      "caps": 0,
+      "lower": 9
+    }
+  },
+  "buckets": {
+    "n_sampled_occurrences": 200,
+    "counts": {
+      "acronym/initialism": 165,
+      "heading/label": 11,
+      "emphasis-in-sentence": 14,
+      "structured-marker": 8,
+      "other": 2
+    },
+    "examples": {
+      "acronym/initialism": [
+        {
+          "token": "BCE",
+          "field": "synthetic_reasoning",
+          "snippet": "tion & Synthesis ⏎  ⏎ Cross-checking against Han administrative evolution: ⏎ ☑ Wu rebellion 154 BCE confirmed ⏎ ☑ Jing's reforms 145 BCE documented   ⏎ ☑ Primogeniture abolition under Wu verifi"
+        },
+        {
+          "token": "HIV",
+          "field": "synthetic_reasoning",
+          "snippet": "echanisms ● ⏎ - Nylonase frameshift hypothesis ◐ ⏎ - Comparative molecular analysis ○ ⏎  ⏎ ### 1. HIV-1 NNRTI Resistance ⏎  ⏎ Target: HIV reverse transcriptase ⏎ Mechanism: NNRTIs bind to pocket ne"
+        },
+        {
+          "token": "LHC",
+          "field": "synthetic_reasoning",
+          "snippet": "apons ⏎ - LHC visibility: underground facility, limited on-site access ⏎ - Timeline accuracy: LHC operational schedule constraints ⏎  ⏎ ∴ Collaboration likely extensive but selective ⏎ → Focus "
+        },
+        {
+          "token": "SDH",
+          "field": "synthetic_answer",
+          "snippet": "H is Synchronous Digital Hierarchy. It is an international standard managed by the ITU-T. SDH provides a flexible framework for synchronous optical transport. It is the global equival"
+        },
+        {
+          "token": "FERPA",
+          "field": "synthetic_reasoning",
+          "snippet": "Constraints ⏎  ⏎ Timeline constraint: High school typically 13-18 years old ⏎ Legal constraint: FERPA rights age-based, not grade-based ⏎ Technology constraint: Phone systems/communication meth"
+        },
+        {
+          "token": "ISD",
+          "field": "query",
+          "snippet": "How does Judge Kent's ruling in the Santa Fe ISD case reflect the evolving interpretation of the Establishment Clause regarding both schoo"
+        }
+      ],
+      "heading/label": [
+        {
+          "token": "SECRETS",
+          "field": "synthetic_answer",
+          "snippet": "TELL A STORY OF OLD EARTH. ⏎ [GIGANTIC CHROMOSOME IMAGE] ⏎  ⏎ THEY ARE A LIVING FOSSIL. ANCIENT SECRETS WRITTEN IN THEIR BLOOD. THEY REMIND US OF A WORLD LONG GONE."
+        },
+        {
+          "token": "TRANSPORT",
+          "field": "synthetic_answer",
+          "snippet": "AY TO THE BALKANS IS UNDERSCORED BY ITS FUNCTION AS A CROSSROADS FOR CAR, RAIL, AND RIVER TRANSPORT. THIS STATUS ENHANCES ITS ECONOMIC VIABILITY AND STRENGTHENS ITS POSITION AS A CORRIDOR F"
+        },
+        {
+          "token": "DEN",
+          "field": "synthetic_answer",
+          "snippet": "TISCHE BESATZUNG VOR DEM GESAMTEN WELTPUBLIKUM ANKLAGTE. DIESER HISTORISCHE SCHRITT SCHUF DEN FUNDAMENT FÜR DEN SPÄTEREN IRA-WAFFEN-ABSCHWUR UND DEN FRIEDEN IM NORDIRLANDKONFLIKT. ⏎  ⏎ * "
+        },
+        {
+          "token": "BUT",
+          "field": "synthetic_reasoning",
+          "snippet": "nufacturing ⏎ - China: massive population, strategic location → could develop differently ⏎ - BUT: colonial governance structures remain extractive ● ⏎  ⏎ ### 5. Geographic/economic constrain"
+        },
+        {
+          "token": "AVG",
+          "field": "synthetic_reasoning",
+          "snippet": "rontation, indirect activism ⏎  ⏎ ● Performance metrics (consistent high-level): ⏎ - 1947: .297 AVG, 12 HR, 23 SB ⏎ - 1948: .314 AVG, 12 HR, 21 SB   ⏎ - 1949: .298 AVG, 10 HR, 13 SB → NL MVP ⏎ - "
+        },
+        {
+          "token": "BUT",
+          "field": "synthetic_reasoning",
+          "snippet": "tern recognition from available data: ⏎ - 1999 republishing suggests sustained interest ● ⏎ - BUT: 13-year gap → market cycles unpredictable ◐ ⏎ - No trend data beyond 1999 → extrapolation "
+        }
+      ],
+      "emphasis-in-sentence": [
+        {
+          "token": "SAYS",
+          "field": "synthetic_reasoning",
+          "snippet": "m line:** Hessian diagnostic tool only. Not parameter estimator. ⏎  ⏎ ### 3. What the Hessian SAYS ABOUT FIT ⏎  ⏎ Positive definite Hessian → minimum exists → good properties. ● ⏎  ⏎ But magnitude"
+        },
+        {
+          "token": "B₁",
+          "field": "synthetic_reasoning",
+          "snippet": ") ⏎  ⏎ Label entrances: A, B, C, D. ⏎  ⏎ From entrance A: tunnels A₁, A₂ ⏎ From entrance B: tunnels B₁, B₂   ⏎ From entrance C: tunnels C₁, C₂ ⏎ From entrance D: tunnels D₁, D₂ ⏎  ⏎ Total: A₁, A₂, B₁,"
+        },
+        {
+          "token": "NOT",
+          "field": "synthetic_answer",
+          "snippet": "aling with arbitrary complex-valued martingales. A complex-valued martingale is generally NOT a time-changed complex-valued Wiener process. For example, the martingale 2Xₜ + iYₜ (wher"
+        },
+        {
+          "token": "OR",
+          "field": "synthetic_reasoning",
+          "snippet": "- Store changes ✓ ⏎  ⏎ Translation issue: \"cost more\" could mean inflation OR shipping delays OR both. User sees both simultaneously. ⏎  ⏎ ### 2. Causal Chain Analysis ⏎  ⏎ Virus → supply chain "
+        },
+        {
+          "token": "NOT",
+          "field": "synthetic_reasoning",
+          "snippet": " P ≈ 0.2-0.3 (rare for ECJ to follow AG on policy questions) ⏎  ⏎ Final assessment: ⏎ ● ECJ did NOT uphold AG recommendation ⏎ ● ECJ adopted opposite position: restrictions maintained as \"nec"
+        },
+        {
+          "token": "RR",
+          "field": "synthetic_reasoning",
+          "snippet": "eality shows opposite. OR generally much larger than RR for common outcomes. ⏎  ⏎ **Answer**: RR and OR differ significantly for large probabilities near 1. OR typically exceeds RR subst"
+        }
+      ],
+      "structured-marker": [
+        {
+          "token": "AD",
+          "field": "synthetic_answer",
+          "snippet": "Look at the right triangle ACD. ⏎ The Pythagorean theorem gives us this equation: ⏎ `(AC)² = (AD)² + (CD)²` ⏎  ⏎ Step 2: Now look at the right triangle BCD. ⏎ The Pythagorean theorem gives us "
+        },
+        {
+          "token": "TB",
+          "field": "synthetic_reasoning",
+          "snippet": "Contextualization   ⏎  ⏎ Storage evolution timeline: ⏎ - Early: ~1MB drives (1980s) ⏎ - Modern: >1TB+ (2020s) ⏎  ⏎ Two parallel improvement streams: ⏎ ├─ Physical: track density, bit density ⏎ └─ Di"
+        },
+        {
+          "token": "LOC",
+          "field": "synthetic_reasoning",
+          "snippet": "-6 points ⏎ - Total: 3-15 points ⏎  ⏎ **Severity classification:** ⏎ - Mild: GCS 13-15, PTA <24h, LOC <30min ⏎ - Moderate: GCS 9-12, PTA 24-72h, LOC 30min-24h   ⏎ - Severe: GCS 8 or less, PTA >72"
+        },
+        {
+          "token": "SELECT",
+          "field": "synthetic_reasoning",
+          "snippet": "al: ⏎ - Literal: `SELECT * FROM users WHERE name = '` + escaped_input + `'` ⏎ - Non-literal: `SELECT * FROM ` + escaped_input + ` WHERE ...` ⏎  ⏎ In second case, escaping doesn't protect against"
+        },
+        {
+          "token": "KE",
+          "field": "synthetic_answer",
+          "snippet": "etic energy about the center of mass. This separation is given by the equation KE_total = KE_translational + KE_rotational. ⏎  ⏎ In the case of a tennis ball in flight, this would repres"
+        },
+        {
+          "token": "SQ",
+          "field": "synthetic_reasoning",
+          "snippet": " these differential experiences. ⏎  ⏎ ### 3. Mathematical Logic ⏎  ⏎ Performance > Expectations → SQ > 0 (positive disconfirmation) ⏎ Performance = Expectations → SQ = 0 (neutral confirmation)"
+        }
+      ],
+      "other": [
+        {
+          "token": "N₁",
+          "field": "synthetic_reasoning",
+          "snippet": "× 2 = 2 ⏎  ⏎ No growth factor applies to t=4 term. ⏎  ⏎ # Net calculation ⏎  ⏎ Net increase = N₂(9) - N₁(9) = 2 - 512 = -510 ⏎  ⏎ Hmm. Negative? Let me double-check... ⏎  ⏎ Doctrine 1 at 9th century: "
+        },
+        {
+          "token": "ROI",
+          "field": "synthetic_reasoning",
+          "snippet": " ⏎  ⏎ Core question: Do ROI ratios drive government vaccine policy? Yes, but nuanced. ⏎  ⏎ ### 2. ROI Framework Analysis ⏎  ⏎ Standard ROI calculation: Benefits/(Direct Costs)   ⏎ Where benefits = "
+        }
+      ]
+    }
+  }
+}
