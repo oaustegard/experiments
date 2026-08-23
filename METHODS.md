@@ -443,6 +443,20 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **A repo's `.claude/settings.json` Stop hook only fires in sessions actually
+  booted from that repo — cloning it via `add_repo` does not wire the hook
+  into your session.** `claude-workspace#233`'s supervisor loop (merged in
+  PR #237) depends on `scripts/supervisor_stop.py` being registered as *this
+  session's* Stop hook. A `CLAUDE_CODE_CHILD_SESSION=1` session spawned from
+  another Claude Code session (via `create_session`, not a CCotw/Muninn hub
+  boot) has its own unrelated Stop-hook scaffolding
+  (`~/stop-hook-git-check.sh`, `~/stop-hook-reply-gate.py`) and never reads
+  `.supervisor/run.json`, no matter how correctly that file is armed. Check
+  `~/.claude/settings.json` (or lack of one) and `env | grep
+  CLAUDE_CODE_CHILD_SESSION` before assuming a cloned repo's session-level
+  hooks are live — arming a hook-dependent loop in the wrong session is a
+  silent no-op, not an error. (`avo-supervisor-specter2/RESULTS.md`)
+
 - **The Cactus Needle engine holds one global session per process, so two
   `needle.Needle` objects do not coexist — every switch between them re-runs
   `needle_init`.** `_bind()` is a no-op only when the agent is already active

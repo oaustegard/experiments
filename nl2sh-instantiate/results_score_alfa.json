@@ -1,0 +1,91 @@
+{
+ "slice": "leak-free",
+ "prior": {
+  "n": 270,
+  "most_common_utility": "find",
+  "constant_utility_prior": 0.393,
+  "distinct_utilities": 80
+ },
+ "runs": {
+  "ft_generate/generate": {
+   "n": 270,
+   "routing": 0.885,
+   "command_rate": 1.0,
+   "degenerate": 0.1,
+   "routing_nondegenerate": 0.804,
+   "exact": 0.03,
+   "bullet_echo": 0.0,
+   "utility_mentioned": 0.889,
+   "rows_with_literals": 213,
+   "literal_reproduction": 0.612,
+   "gold_arg_recall": 0.245,
+   "decode_tok_per_s": 11.9,
+   "mean_seconds": 1.57,
+   "mean_prompt_tokens": 125.3
+  },
+  "ft_instantiate_anchored/instantiate_anchored": {
+   "n": 270,
+   "routing": 0.907,
+   "command_rate": 1.0,
+   "degenerate": 0.048,
+   "routing_nondegenerate": 0.859,
+   "exact": 0.033,
+   "bullet_echo": 0.0,
+   "utility_mentioned": 0.911,
+   "rows_with_literals": 213,
+   "literal_reproduction": 0.485,
+   "gold_arg_recall": 0.296,
+   "decode_tok_per_s": 10.7,
+   "mean_seconds": 1.37,
+   "mean_prompt_tokens": 183.3
+  },
+  "gemma-3-270m-it/generate": {
+   "n": 270,
+   "routing": 0.419,
+   "command_rate": 1.0,
+   "degenerate": 0.0,
+   "routing_nondegenerate": 0.419,
+   "exact": 0.037,
+   "bullet_echo": 0.0,
+   "utility_mentioned": 0.441,
+   "rows_with_literals": 213,
+   "literal_reproduction": 0.322,
+   "gold_arg_recall": 0.1,
+   "decode_tok_per_s": 12.5,
+   "mean_seconds": 1.27,
+   "mean_prompt_tokens": 125.3
+  },
+  "gemma-3-270m-it/generate_anchored": {
+   "n": 270,
+   "routing": 0.459,
+   "command_rate": 1.0,
+   "degenerate": 0.007,
+   "routing_nondegenerate": 0.456,
+   "exact": 0.037,
+   "bullet_echo": 0.0,
+   "utility_mentioned": 0.463,
+   "rows_with_literals": 213,
+   "literal_reproduction": 0.356,
+   "gold_arg_recall": 0.113,
+   "decode_tok_per_s": 12.7,
+   "mean_seconds": 1.28,
+   "mean_prompt_tokens": 128.3
+  },
+  "gemma-3-270m-it/instantiate_anchored": {
+   "n": 270,
+   "routing": 0.096,
+   "command_rate": 1.0,
+   "degenerate": 0.0,
+   "routing_nondegenerate": 0.096,
+   "exact": 0.011,
+   "bullet_echo": 0.681,
+   "utility_mentioned": 0.385,
+   "rows_with_literals": 213,
+   "literal_reproduction": 0.456,
+   "gold_arg_recall": 0.078,
+   "decode_tok_per_s": 12.4,
+   "mean_seconds": 2.06,
+   "mean_prompt_tokens": 183.3
+  }
+ }
+}

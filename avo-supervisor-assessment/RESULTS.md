@@ -107,8 +107,40 @@ in-session).
   calls target an out-of-scope repo, so the agent proxy 403s them and
   `curl -sf … 2>/dev/null` swallows the evidence. Separate fix needed.
 
+
+## Micro-run remex-micro-1 (2026-08-22, same session — the loop works)
+
+The smallest version was built (claude-workspace PR from `claude/issue-233-mvgd7d`)
+and validated live: `scripts/supervisor_stop.py` armed with budget 5, plateau
+window 2, driving this session against `remex bench/fitness.py`.
+
+| # | candidate | recall@10 | wall |
+|---|---|---|---|
+| 1 | bits=4 rht seed=42 (baseline) | 0.8485 | 1.2 s |
+| 2 | bits=4 haar seed=42 | 0.8525 | 1.3 s |
+| 3 | bits=4 haar seed=7 | 0.8550 | 1.2 s |
+| 4 | bits=4 haar seed=123 | **0.8620** | 1.3 s |
+| 5 | #4 + two-stage rescore (class switch) | 0.8610 | 6.4 s |
+
+Net +0.0135 over baseline in 5 candidates, ~40 s of eval against ~10 min of
+session wall clock — agent-turn dominated, as Q4 predicted.
+
+Mechanics findings the assessment could not reach:
+- **Repeated exit-2 blocking works under `stop_hook_active=true`** — the
+  harness honored `{"stop_hook_active": true, "exit": 2}` and delivered the
+  directive (supervisor-log.jsonl line 3). This is the property the loop
+  rests on; the earlier one-shot test could not observe it.
+- **settings.json Stop entries added mid-session are picked up** — both the
+  new entry and the piggyback dispatch fired on the same Stop event, so
+  hook registration does not require a session restart.
+- `bench/fitness.py` shipped to remex (PR #79); ledger and supervisor log in
+  `artifacts/ledger.json` and `artifacts/supervisor-log.jsonl`.
+
 ## Artifacts
 
 - `artifacts/stop-hook-instrumentation.diff` — the temporary hook modification
 - `artifacts/stop-hook-log.jsonl` — captured Stop event + directive compliance
 - `artifacts/fitness_probe.py` — single-candidate fitness timing probe
+- `artifacts/supervisor_stop.py`, `artifacts/test_supervisor_stop.py` — copies of the
+  Stop hook and its tests as merged into claude-workspace (that repo is private; these
+  are here so the write-up links to readable code)
