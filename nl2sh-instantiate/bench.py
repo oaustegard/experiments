@@ -46,7 +46,17 @@ def main() -> int:
 
     # Captured before the model loads: a run started on a busy box is not a
     # batch=1 measurement, and the reader deserves to see that in the row.
+    #
+    # load1 alone does not settle it. It is a one-minute decaying average, so a
+    # sequential loop of bench rows inherits its predecessor's tail and reads
+    # ~3.5 on an otherwise idle 4-core box. `running` is the instantaneous
+    # count of runnable processes from /proc/loadavg's third field, minus this
+    # one — that is the field that says whether anything is actually competing.
     load1 = os.getloadavg()[0]
+    try:
+        running = max(0, int(open("/proc/loadavg").read().split()[3].split("/")[0]) - 1)
+    except Exception:                                       # noqa: BLE001
+        running = -1
     t_load = time.perf_counter()
     tok = AutoTokenizer.from_pretrained(a.model)
     model = AutoModelForCausalLM.from_pretrained(a.model, dtype=getattr(torch, a.dtype)).eval()
@@ -95,6 +105,7 @@ def main() -> int:
         "threads": int(os.environ.get("OMP_NUM_THREADS", 0)) or os.cpu_count(),
         "cpu_count": os.cpu_count(),
         "load1_at_start": round(load1, 2),
+        "other_runnable_at_start": running,
         "model": a.model, "condition": a.condition, "dtype": a.dtype,
         "params": n_params, "weight_bytes": weight_bytes,
         "weight_gib": round(weight_bytes / 2**30, 3),
