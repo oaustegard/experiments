@@ -180,6 +180,48 @@ FT(`instantiate`) from 0.024 to 0.049: it penalised the arm it was found on and
 narrowed the gap being claimed, from 7.6x to 3.7x. The rule anchors on a letter,
 because without that it fires on `100.100.100.4` and `8.8.8.8`.
 
+### Re-run: the effect is reproducible, the exact numbers are not
+
+The container that produced the tables above was reclaimed, so everything was
+re-run from the recovered scripts. **All six zero-shot conditions came back to
+the digit** — 0.427, 0.500, 0.165, 0.146, 0.140, 0.122 — because inference here
+is greedy, seeded, and bit-reproducible on CPU.
+
+Fine-tuning is not. Same seed, same 600 rows, same 300 steps, and the two runs
+differ:
+
+| n=164 leak-free | first run | re-run |
+|---|---|---|
+| FT(`generate`) routing | 0.598 | 0.610 |
+| FT(`instantiate`) routing | 0.616 | 0.616 |
+| FT(`generate`) degenerate | 0.183 | 0.226 |
+| FT(`instantiate`) degenerate | 0.049 | 0.055 |
+| FT(`generate`) usable | 0.506 | 0.470 |
+| FT(`instantiate`) usable | 0.598 | 0.585 |
+| final-step loss, `generate` | 2.1403 | 1.3017 |
+
+The **conclusion is unchanged and slightly stronger**: routing still does not
+separate (22 wins to 21, p = 1.000, against 23–20 and p = 0.76), *usable* still
+does and by more (**38 wins to 19, p = 0.016, +0.115**, against 31–16, p = 0.040,
++0.092), and the degeneracy collapse is **0.226 -> 0.055**, 4.1x, against 3.7x.
+
+Two things follow. **Quote a fine-tuned number here to two decimals, not three** —
+run-to-run drift on the routing column is about 0.012, which is two rows.
+And **the effect being replicated is the degeneracy gap, not any single cell**;
+it survived a full re-run with different weights underneath it, which is a
+stronger claim than the first run could make on its own.
+
+Same pair of rows, this run's weights:
+
+| request | FT(`generate`) | FT(`instantiate`) |
+|---|---|---|
+| show all files including hidden ones | `ls -d -d -d -d -d -d -d -d -d …` | `ls -l` |
+| recover the password for invoices2019.zip | `echo …fasttrack.txt \| awk -f 's/ // // // …` | `fcrackzip -b /usr/share/wordlists/fasttrack.txt` |
+| open authorized_keys in a text editor | `nano -e 's/ -e/ // // // // …` | ``nano -c `read -s`` |
+
+The third row is again the honest one: instantiation is not right, it is merely
+not looping.
+
 ## The published benchmark: same direction, and a prior that eats the headline
 
 `westenfelder/NL2SH-ALFA` (MIT, [arXiv:2502.06858](https://arxiv.org/abs/2502.06858))
@@ -193,8 +235,13 @@ utility; 270 of those have a tldr page and are scored here.
 | zero-shot `generate` | 0.419 | — | 0.419 | 0.000 | 0.000 |
 | zero-shot `generate_anchored` | 0.459 | 0.433 | 0.456 | 0.007 | 0.000 |
 | zero-shot `instantiate_anchored` | 0.096 | — | 0.096 | 0.000 | 0.681 |
-| FT(`generate`) | 0.911 | 0.854 | 0.800 | 0.144 | 0.000 |
-| FT(`instantiate`) | **0.919** | **0.866** | **0.841** | **0.085** | 0.000 |
+| FT(`generate`) | 0.885 | 0.811 | 0.804 | 0.100 | 0.000 |
+| FT(`instantiate`) | **0.907** | **0.848** | **0.859** | **0.048** | 0.000 |
+
+Re-run figures. The three zero-shot rows are identical to the lost run to the
+digit; the two fine-tuned rows moved with their weights — 0.911/0.919 routing
+there against 0.885/0.907 here, degeneracy 0.144/0.085 there against 0.100/0.048
+here. The gap between the arms holds its sign and its size in both.
 
 **The constant "always-`find`" prior is 0.393** — 106 of 270 golds — so 0.911 is
 mostly the skew, and the non-`find` column is the one that carries information.
@@ -203,8 +250,9 @@ why `score_gate_ft.py`'s rule of printing the prior beside the headline applies
 to the external set too rather than only to ours.
 
 Read on the non-`find` slice, the benchmark says what the cyber eval said and
-says it on rows built to be executed: routing barely separates (0.854 to 0.866),
-degeneracy nearly halves (0.144 to 0.085), and *usable* gains +0.041. Both
+says it on rows built to be executed: routing separates a little (0.811 to
+0.848), degeneracy halves (0.100 to 0.048), and *usable* gains +0.055. The lost
+run measured 0.854 to 0.866 and 0.144 to 0.085 on its own weights. Both
 fine-tuned arms sit far above the 0.459 zero-shot ceiling, and the zero-shot
 instantiation arm collapses to the same bullet echo — 0.681 of rows — that the
 cyber grid found.
