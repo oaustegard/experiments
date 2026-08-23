@@ -27,7 +27,8 @@ was not usable for this: its `model` parameter accepts four aliases
 
 Samples were delivered as comments on
 [claude-workspace#244](https://github.com/oaustegard/claude-workspace/issues/244)
-and are in `samples/`. One exception is recorded in `samples/PROVENANCE.md`:
+and are in `samples/`. That repository is private; the issue is archived verbatim
+in `ISSUE-244.md`. One exception is recorded in `samples/PROVENANCE.md`:
 `opus-5-b` was written by its session, which then refused to post it, and was
 pasted in by hand.
 
