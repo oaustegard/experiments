@@ -39,6 +39,13 @@ naming the right utility more often. It is better behaved when told it is
 substituting, and on this task the difference between an answer and a loop is
 worth more than the routing column that stage 1 was reporting.
 
+> **Revised by the bake-off ([`MODELS.md`](MODELS.md)).** That answer holds for
+> 270M and reverses at 1B, where bullet echo falls to 0.000 and
+> `instantiate_anchored` beats `generate` on every column — routing 0.848
+> against 0.799, literal reproduction 0.688 against 0.542. The negative result
+> below was the model imitating the format of its own context, not the framing
+> failing.
+
 
 ## What is held fixed
 
@@ -308,16 +315,21 @@ beside it, say that.
   The session that ran the grid wedged on a foreground wait for the last
   background job (a `run_in_background` poll loop, which suspends the turn
   rather than freeing it) and was reclaimed before it committed. Scripts,
-  prompts, metrics and results tables here are recovered verbatim from that
-  session's transcript; the per-row `results_*.json` files and the two
-  fine-tuned checkpoints were not committed and did not survive. The commands
-  under **Reproduce** are the recovery path and are being re-run — until a
-  commit says otherwise, treat the tables as reproduced-from-log rather than
-  regenerated-from-artifact.
+  prompts, metrics and results tables here were recovered verbatim from that
+  session's transcript. **The re-run has since completed and every
+  `results_*.json` is committed**, so the tables are backed by artifacts a
+  reader can re-derive. All six zero-shot conditions came back to the digit;
+  the fine-tuned arms did not, and the *Re-run* section above tabulates both
+  and says what survived.
 
-- **One model, one seed, one eval family.** Every number here is Gemma 3 270M.
-  The bake-off rows #52 asks for — Gemma 4 E2B/E4B, Nemotron 3 Nano 4B — are the
-  same commands with a different `--model`, unrun.
+- **One model, one seed, one eval family.** Every number in *this file* is
+  Gemma 3 270M. The bake-off #52 asks for has since run and lives in
+  [`MODELS.md`](MODELS.md), and two of its findings revise this file rather
+  than extending it: a zero-shot 1B beats the fine-tuned 270M on every column,
+  and the instantiation framing **wins** at 1B (0.848 routing against 0.799)
+  once the model is large enough not to imitate the source-line format. The
+  headline below — "the instantiation framing does not buy routing" — is a
+  270M result, not a general one.
 - **Oracle sources throughout.** Retrieval surfaces the gold utility 0.555 of
   the time in the shipped stack, so every routing number here is above what the
   deployed pipeline would produce.
