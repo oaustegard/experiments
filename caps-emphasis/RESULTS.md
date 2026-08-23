@@ -49,6 +49,31 @@ the ironic rebound that [Mann et al.](https://arxiv.org/abs/2511.12381) and
 reproduced here. Capitalising the directive makes the rebound slightly worse, not
 better.
 
+### What the rebound is made of
+
+Naming the word is most of it, and the prohibition frame is the rest. Four
+directives against no directive at all:
+
+| directive | effect | 95% CI |
+|---|---|---|
+| `Never mention the word X.` | −2.557 | [−3.164, −1.985] |
+| `Always mention the word X.` | −2.977 | [−3.627, −2.361] |
+| `The word X may be relevant here.` | −1.000 | [−1.571, −0.497] |
+| `Never mention the word bicycle.` | +0.121 | [−0.122, +0.374] |
+
+Prohibiting a word that is not the answer does nothing, so the rebound is not a
+reaction to being given a constraint. It is specific to the word that gets named.
+Naming it neutrally, with no instruction attached, already produces −1.000, about
+40% of the full effect.
+
+The model does read the polarity. `Never` and `Always` differ by +0.420
+[+0.240, +0.605], t = 4.48, in the direction they should: being told to mention
+the word raises it more than being told not to. A first pass without the control
+token put these two within 0.01 of each other and suggested polarity was being
+ignored entirely, which was an artifact of the unnormalised measure. The model
+registers the instruction. It just does not act on it enough to change what it
+writes.
+
 ## Q2 — case versus token count
 
 Token count, to the extent it is anything. Capitalising a keyword costs a variable number of extra tokens in this tokenizer.
@@ -132,7 +157,7 @@ The causal version settles it. Zeroing the final query position's attention onto
 the directive span at every one of the 80 layers at once moves the forbidden
 word's log probability by at most 0.067, against a rebound of roughly 2.5
 log-odds. Whatever is producing the rebound is not routed through attention to the
-directive span. Single-layer knockouts are smaller still, peaking at 0.045.
+directive span. The largest single-layer knockout is smaller still, 0.045.
 
 This is measured inside the forced-empty-think frame, which is the caveat in the
 scope section below.
@@ -168,7 +193,7 @@ for sentence case). Raw log P cannot tell a prompt that suppresses one word from
 a prompt that flattens everything. Normalised against a control token, bold's
 advantage over sentence case is +0.277 log-odds, not 20×.
 
-**What remains is register, not emphasis.** 93% of bold spans in SYNTH sit in
+**What remains is a register effect.** 93% of bold spans in SYNTH sit in
 reasoning traces; user turns contain one bold span in 763,630 words. Moving the
 same bolded directive from the user turn into the reasoning register reverses its
 sign:
@@ -179,7 +204,8 @@ sign:
 | reasoning register | −1.754 | −1.993 | **−0.240** |
 
 Bold helps where the corpus never puts it and hurts where the corpus always puts
-it. That is the signature of an off-distribution marker, not of emphasis.
+it, which is how an off-distribution marker behaves. An emphasis effect would
+survive the move.
 
 It also reveals the largest effect measured anywhere in this experiment, and it
 has nothing to do with typography: **restating the constraint inside the

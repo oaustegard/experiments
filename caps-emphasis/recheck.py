@@ -32,7 +32,8 @@ def main():
     v2, dose = load("v2.json"), load("dose2.json")
     pos, reg = load("position.json"), load("register.json")
     ko, gen = load("knockout.json"), load("generation_framed.json")
-    if not all([v2, dose, pos, reg, ko, gen]):
+    pol = load("polarity.json")
+    if not all([v2, dose, pos, reg, ko, gen, pol]):
         return report()
 
     n = v2["n_items"]
@@ -93,6 +94,20 @@ def main():
         check(f"knockout mass {mode}", float(m.group(2)), a["attention_total"], tol=0.001)
         check(f"knockout all-layer {mode}", float(m.group(4)),
               a["knockout_all_layers"], tol=0.001)
+
+    for label, key in [("`Never mention the word X.`", "prohibit"),
+                       ("`Always mention the word X.`", "require"),
+                       ("`The word X may be relevant here.`", "neutral"),
+                       ("`Never mention the word bicycle.`", "unrelated")]:
+        m = re.search(rf"^\|\s*{re.escape(label)}\s*\|\s*(\+|−|-)?([\d.]+)\s*\|", md, re.M)
+        if m:
+            check(f"polarity {key}",
+                  float(m.group(2)) * (-1 if m.group(1) in ("−", "-") else 1),
+                  pol[key]["suppression"])
+    m = re.search(r"differ by \+([\d.]+)", md)
+    if m:
+        check("polarity contrast", float(m.group(1)),
+              pol["_polarity_contrast"]["prohibit_minus_require"])
 
     # violation counts
     counts = {}
