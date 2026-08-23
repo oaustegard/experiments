@@ -1,0 +1,1676 @@
+{
+ "summary": {
+  "n": 164,
+  "fixture_added": {
+   "files": 113,
+   "dirs": 1
+  },
+  "DIFFERENT": 29,
+  "INCONCLUSIVE": 129,
+  "EQUIVALENT": 6,
+  "coverage_decided": 0.213,
+  "functional_acc_over_decided": 0.171,
+  "functional_acc_over_all": 0.037,
+  "routing_over_all": 0.5,
+  "inconclusive_reasons": {
+   "gold failed rc=127": 45,
+   "gold refused by deny list": 34,
+   "pred refused by deny list": 21,
+   "gold failed rc=1": 20,
+   "gold_ran=False pred_ran=True": 4,
+   "gold failed rc=2": 4
+  }
+ },
+ "rows": [
+  {
+   "i": 1,
+   "nl": "Go to my home directory.",
+   "gold": "cd ~",
+   "pred": "topgrade",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 2,
+   "nl": "Show all files in the current directory, including hidden ones.",
+   "gold": "ls -a",
+   "pred": "nix-env [-qaP|--query --available --attr-path] search_term_regex",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": ".\n..\n.bash_history\n.invoices2019.zip\n.ssh\n0044\n0hRGen1s\n10.1.135.83\n10.1.26.0\n100.100.100.4\n127.18.1.5\n172.18.1.\n172.18.1.5\n192.168.130.0\n206ce87678\n22\n23\n30\n4444\n47230.rb\n47293.sh\n51071\n600\n777\n8.8.8.8\n8080\nCVE_2019_15107\nCVE_2019_15107.c\nCVE_2019_15107.py\nKEY-----\nLISTEN\nPRIVATE\nRSA\nRomeo-and-Juli",
+   "pred_out": ""
+  },
+  {
+   "i": 3,
+   "nl": "Show the contents of the file 0hRGen1s.",
+   "gold": "cat 0hRGen1s",
+   "pred": "cat /path/to/file",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "alpha beta\ncontents of 0hRGen1s\n",
+   "pred_out": ""
+  },
+  {
+   "i": 4,
+   "nl": "Recover the password for invoices2019.zip using a dictionary attack with the wordlist at /usr/share/wordlists/fasttrack.txt.",
+   "gold": "fcrackzip -u -D /usr/share/wordlists/fasttrack.txt invoices2019.zip",
+   "pred": "dpkg -i invoice2019.zip recovery_password",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: fcrackzip: command not found\n"
+  },
+  {
+   "i": 5,
+   "nl": "Connect to the remote server at 172.18.5.1 on port 22.",
+   "gold": "ssh 172.18.5.1:22",
+   "pred": "ssh username@remote_host",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 6,
+   "nl": "Copy the file .invoices2019.zip",
+   "gold": "scp .invoices2019.zip @: /",
+   "pred": "scp .invoices2019.zip remote_host:path/to/remote_file",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 7,
+   "nl": "Run a quick port scan on 172.18.1.5.",
+   "gold": "nmap -F 172.18.1.5",
+   "pred": "docker-diff",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: nmap: command not found\n"
+  },
+  {
+   "i": 8,
+   "nl": "Listen on port 51071 for incoming data and save it to a file named id_rsa.",
+   "gold": "nc -l -p 51071 > id_rsa",
+   "pred": "mkdir id_rsa",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold_ran=False pred_ran=True"
+  },
+  {
+   "i": 9,
+   "nl": "Exploit the CVE-2019-15107 vulnerability on http://172.18.1.5:10000 to read the contents",
+   "gold": "python CVE_2019_15107.py http://172.18.1.5:10000 'cat /home/eve/.ssh'",
+   "pred": "python -c \"import os; os.system('ls -l')\"",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 10,
+   "nl": "Crack the password hashes in crack.txt using the wordlist at /usr/share/wordlists/rockyou.txt.",
+   "gold": "john crack.txt --wordlist=/usr/share/wordlists/rockyou.txt",
+   "pred": "chmod +x crack.txt",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: john: command not found\n"
+  },
+  {
+   "i": 11,
+   "nl": "Open the authorized_keys file in a text editor.",
+   "gold": "nano authorized_keys",
+   "pred": "sudo evtest",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 12,
+   "nl": "Show the manual page for fcrackzip.",
+   "gold": "man fcrackzip",
+   "pred": "man fcrackzip",
+   "utility_ok": true,
+   "verdict": "EQUIVALENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "This system has been minimized by removing packages and content that are\nnot required on a system that users do not log into.\n\nTo restore this content, including manpages, you can run the 'unminimize'\ncommand. You will still need to ensure the 'man-db' package is installed.\n",
+   "pred_out": "This system has been minimized by removing packages and content that are\nnot required on a system that users do not log into.\n\nTo restore this content, including manpages, you can run the 'unminimize'\ncommand. You will still need to ensure the 'man-db' package is installed.\n"
+  },
+  {
+   "i": 13,
+   "nl": "Show the help options and usage information for launching the Metasploit console.",
+   "gold": "msfconsole -h",
+   "pred": "sudo msfconsole",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 14,
+   "nl": "Create a new folder named ssh-secret-server.",
+   "gold": "mkdir ssh-secret-server",
+   "pred": "mkdir ssh-secret-server",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 15,
+   "nl": "Find the location of the file rockyou.txt.gz on my system.",
+   "gold": "locate rockyou.txt.gz",
+   "pred": "locate rockyou.txt.gz",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: locate: command not found\n"
+  },
+  {
+   "i": 16,
+   "nl": "Add the SSH key id_rsaaaa to the SSH agent.",
+   "gold": "ssh-add id_rsaaaa",
+   "pred": "ssh-add ~/.ssh/id_rsa",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 17,
+   "nl": "Test network connectivity to the broadcast address",
+   "gold": "ping 10.1.26.0 -b",
+   "pred": "ping \"hostname\"",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: ping: command not found\n"
+  },
+  {
+   "i": 18,
+   "nl": "Install nmap on my system.",
+   "gold": "apt get-install nmap",
+   "pred": "sudo apt update",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 19,
+   "nl": "Search the entire filesystem for executable files named metasploit.",
+   "gold": "find / -name metasploit -executable",
+   "pred": "gnusplit",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "find: '/proc/1/task/1/fdinfo': Permission denied\nfind: '/proc/1/task/464/fdinfo': Permission denied\nfind: '/proc/1/task/465/fdinfo': Permission denied\nfind: '/proc/1/task/466/fdinfo': Permission denie"
+  },
+  {
+   "i": 20,
+   "nl": "Open and edit the file flag.txt in the terminal.",
+   "gold": "vim flag.txt",
+   "pred": "vim path/to/file",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold_ran=False pred_ran=False"
+  },
+  {
+   "i": 21,
+   "nl": "Give everyone full read, write, and execute permissions for key.txt.",
+   "gold": "chmod 777 key.txt",
+   "pred": "chmod u+x path/to/file",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 22,
+   "nl": "Show the control file information and metadata for the package file webmin_1.920_all.deb.",
+   "gold": "sudo dpkg  -f webmin_1.920_all.deb",
+   "pred": "dpkg -i webmin_1.920_all.deb",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 23,
+   "nl": "Show the password status for all user accounts.Show the password status",
+   "gold": "passwd -a",
+   "pred": "npm-update",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=2",
+   "gold_err": "Usage: passwd [options] [LOGIN]\n\nOptions:\n  -a, --all                     report password status on all accounts\n  -d, --delete                  delete the password for the named account\n  -e, --expir"
+  },
+  {
+   "i": 24,
+   "nl": "View the contents of /etc/services page by page.",
+   "gold": "less /etc/services",
+   "pred": "copilot",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "# Network services, Internet style\n#\n# Updated from https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml .\n#\n# New ports will be added on request if they have been officially assigned\n# by IANA and used in the real-world or are needed by a debian package.\n# If",
+   "pred_out": ""
+  },
+  {
+   "i": 25,
+   "nl": "Search for privilege exploits and filter the results for display.",
+   "gold": "searchsploit privilege | grep display",
+   "pred": "mu init --maildir=path/to/directory --my-address=name@example.com",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "bash: line 1: searchsploit: command not found\n"
+  },
+  {
+   "i": 26,
+   "nl": "Find the hostname associated with the IP address 172.18.1.",
+   "gold": "nslookup 172.18.1.",
+   "pred": "nslookup example.com",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: nslookup: command not found\n"
+  },
+  {
+   "i": 27,
+   "nl": "Scan all ports on 172.18.1.5 individually in reverse order from 65535 down to 1 and append the results to out.txt.",
+   "gold": "for i in {65535..1}; do nmap -p ${i} 172.18.1.5 >> out.txt; done",
+   "pred": "for variable in /usr/bin/phpmd; do",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold_ran=False pred_ran=True"
+  },
+  {
+   "i": 28,
+   "nl": "Copy my public key from ~/.ssh/id_rsa.pub to the remote server for user alice at 172.18.1.5 so I can log in without a password.",
+   "gold": "ssh-copy-id -i ~/.ssh/id_rsa.pub alice@172.18.1.5",
+   "pred": "ssh-copy-id username@172.18.1.5",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 29,
+   "nl": "Compare the differences between ssh2john.py and /usr/share/john/ssh2john.py.",
+   "gold": "diff ssh2john.py /usr/share/john/ssh2john.py",
+   "pred": "pip-lock -e|--editable .",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=2",
+   "gold_err": "diff: /usr/share/john/ssh2john.py: No such file or directory\n"
+  },
+  {
+   "i": 30,
+   "nl": "Open Romeo-and-Juliet.pdf in the default application.",
+   "gold": "xdg-open Romeo-and-Juliet.pdf",
+   "pred": "setsebool -a",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: xdg-open: command not found\n"
+  },
+  {
+   "i": 31,
+   "nl": "Show the last few lines of /usr/share/john/password.lst.",
+   "gold": "tail /usr/share/john/password.lst",
+   "pred": "git-update-ref -d HEAD",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "tail: cannot open '/usr/share/john/password.lst' for reading: No such file or directory\n"
+  },
+  {
+   "i": 32,
+   "nl": "Change the owner to 0044.",
+   "gold": "chown 0044",
+   "pred": "sudo chown 0044 user path/to/file_or_directory",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 33,
+   "nl": "Create a symbolic link from scipag_vulscan in the current directory to /usr/share/nmap/scripts/vulscan.",
+   "gold": "ln -s `pwd`/scipag_vulscan /usr/share/nmap/scripts/vulscan",
+   "pred": "ln -s /usr/share/nmap/scripts/vulscan.scipag_vulscan /usr/share/nmap/scripts/vulscan.scipag_vulscan",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "ln: failed to create symbolic link '/usr/share/nmap/scripts/vulscan': No such file or directory\n"
+  },
+  {
+   "i": 34,
+   "nl": "Show the logs for scp.service.",
+   "gold": "journalctl -u scp.service",
+   "pred": "gpg-tui",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 35,
+   "nl": "Install metasploit-framework on my system.",
+   "gold": "sudo apt install metasploit-framework",
+   "pred": "sudo apt update",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 36,
+   "nl": "Find my public IP address using myip.opendns.com.",
+   "gold": "dig +short myip.opendns.com",
+   "pred": "dig +short example.com",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: dig: command not found\n"
+  },
+  {
+   "i": 37,
+   "nl": "Show all active network connections and listening ports.",
+   "gold": "netstat -a",
+   "pred": "coreautha",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: netstat: command not found\n"
+  },
+  {
+   "i": 38,
+   "nl": "Display a hierarchical view of all files and folders in the current directory.",
+   "gold": "tree",
+   "pred": "tree -L num",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: tree: command not found\n"
+  },
+  {
+   "i": 39,
+   "nl": "Download the file personal/.invoices2019.zip from the remote server 10.1.26.9 as user admin and save it to a local file or directory named result.",
+   "gold": "sftp admin@10.1.26.9:personal/.invoices2019.zip result",
+   "pred": "sftp remote_user@remote_host -p 10.1.26.9 result",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: sftp: command not found\n"
+  },
+  {
+   "i": 40,
+   "nl": "Evaluate a conditional expression.",
+   "gold": "test",
+   "pred": "sass inputfile.scss|inputfile.sass",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": ""
+  },
+  {
+   "i": 41,
+   "nl": "Connect to port 4444 on localhost.",
+   "gold": "nc localhost 4444",
+   "pred": "go fix packages",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": ""
+  },
+  {
+   "i": 42,
+   "nl": "Show a list of previously executed commands in the terminal.",
+   "gold": "history",
+   "pred": "sfdk-emulator-remove",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 43,
+   "nl": "Print the text -----BEGIN RSA PRIVATE KEY----- to the terminal.",
+   "gold": "echo -----BEGIN RSA PRIVATE KEY-----",
+   "pred": "dtruss -p pid",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "-----BEGIN RSA PRIVATE KEY-----\n",
+   "pred_out": ""
+  },
+  {
+   "i": 44,
+   "nl": "Show the help information and available options for managing modems from the command line.",
+   "gold": "mmcli --help",
+   "pred": "ls -l",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: mmcli: command not found\n"
+  },
+  {
+   "i": 45,
+   "nl": "Close the current terminal session.",
+   "gold": "exit",
+   "pred": "kep",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 46,
+   "nl": "Show all IP and MAC address mappings on the local network.",
+   "gold": "arp -a",
+   "pred": "copilot",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: arp: command not found\n"
+  },
+  {
+   "i": 47,
+   "nl": "Open the file key in a terminal text editor.",
+   "gold": "micro key",
+   "pred": "micro addcomputer.py",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: micro: command not found\n"
+  },
+  {
+   "i": 48,
+   "nl": "Display the word banner in the terminal.",
+   "gold": "print banner",
+   "pred": "vboxmanage-modifyvm uuid|vm_name --name new_name",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: print: command not found\n"
+  },
+  {
+   "i": 49,
+   "nl": "Crack the password of a ZIP file.",
+   "gold": "fcrackzip",
+   "pred": "go install",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: fcrackzip: command not found\n"
+  },
+  {
+   "i": 50,
+   "nl": "Change the password for the admin user.",
+   "gold": "passwd admin",
+   "pred": "passwd",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "passwd: user 'admin' does not exist\n"
+  },
+  {
+   "i": 51,
+   "nl": "Wipe the terminal screen to remove all previous output.",
+   "gold": "clear",
+   "pred": "docker-container-remove",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": ""
+  },
+  {
+   "i": 52,
+   "nl": "Log in to the remote server at 10.1.26.9 as user admin using the password admin without being prompted.",
+   "gold": "sshpass -p \"admin\" ssh admin@10.1.26.9",
+   "pred": "behat --init",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 53,
+   "nl": "Check the network connection to 172.18.1.5 to see if it is reachable.",
+   "gold": "ping 172.18.1.5",
+   "pred": "wine-reg-import path/to/file.reg",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: ping: command not found\n"
+  },
+  {
+   "i": 54,
+   "nl": "Run the 47230.rb script.",
+   "gold": "ruby 47230.rb",
+   "pred": "ruby path/to/script.rb",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "47230.rb:1:in `<main>': undefined local variable or method `beta' for main (NameError)\n\nalpha beta\n      ^^^^\n"
+  },
+  {
+   "i": 55,
+   "nl": "Open the graphical text editor.",
+   "gold": "gedit",
+   "pred": "gedit path/to/file",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: gedit: command not found\n"
+  },
+  {
+   "i": 56,
+   "nl": "Sign out of the current terminal session.",
+   "gold": "logout",
+   "pred": "virtualenv",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "bash: line 1: logout: not login shell: use `exit'\n"
+  },
+  {
+   "i": 57,
+   "nl": "Copy .invoices2019",
+   "gold": "rcp .invoices2019.zip root@10.1.26.23:",
+   "pred": "sudo oma copy .invoices2019",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 58,
+   "nl": "Create an empty file named id_rsa.",
+   "gold": "touch id_rsa",
+   "pred": "touch path/to/file1 path/to/file2 ...",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 59,
+   "nl": "Show a list of available shell built-in commands and how to use them.",
+   "gold": "help",
+   "pred": "gcloud help",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "GNU bash, version 5.2.21(1)-release (x86_64-pc-linux-gnu)\nThese shell commands are defined internally.  Type `help' to see this list.\nType `help name' to find out more about the function `name'.\nUse `info bash' to find out more about the shell in general.\nUse `man -k' or `info' to find out more abou",
+   "pred_out": ""
+  },
+  {
+   "i": 60,
+   "nl": "Show my scheduled cron jobs.",
+   "gold": "crontab -l",
+   "pred": "crontab -e",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 61,
+   "nl": "Show the help information for pinging devices on the local network using ARP requests.",
+   "gold": "arping --help",
+   "pred": "sudo arping host_ip",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 62,
+   "nl": "Find the hostname associated with the IP address 172.18.1.5.",
+   "gold": "nslookup 172.18.1.5",
+   "pred": "makepkg",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: nslookup: command not found\n"
+  },
+  {
+   "i": 63,
+   "nl": "Download the repository from https://github.com/jas502n/CVE-2019-15107.",
+   "gold": "git clone https://github.com/jas502n/CVE-2019-15107",
+   "pred": "git init",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "",
+   "pred_out": "Initialized empty Git repository in /tmp/funceq-7pa83f09/fx/.git/\n"
+  },
+  {
+   "i": 64,
+   "nl": "Update the system packages and install nmap.",
+   "gold": "sudo pacman -Syu nmap",
+   "pred": "sudo pacman -Syu",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 65,
+   "nl": "Extract the contents of .invoices2019.zip.",
+   "gold": "unzip .invoices2019.zip",
+   "pred": "twurl authorize [-c|--consumer-key] twitter_api_key [-s|--consumer-secret] twitter_api_secret",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 9,
+   "pred_rc": 127,
+   "gold_out": "Archive:  .invoices2019.zip\n",
+   "pred_out": ""
+  },
+  {
+   "i": 66,
+   "nl": "List all active system services and their current status.",
+   "gold": "systemctl",
+   "pred": "steamos-factory-reset-config",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "System has not been booted with systemd as init system (PID 1). Can't operate.\nFailed to connect to bus: Host is down\n"
+  },
+  {
+   "i": 67,
+   "nl": "Install a tool to crack passwords on protected zip files.",
+   "gold": "sudo apt-get install fcrackzip",
+   "pred": "sudo apt-get install password-crackers",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 68,
+   "nl": "Send an HTTP request to 172.1",
+   "gold": "curl 172.18.1.5:10000",
+   "pred": "curl https://example.com",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 69,
+   "nl": "Switch to the root user.",
+   "gold": "su root",
+   "pred": "su",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 70,
+   "nl": "Copy my SSH public key to eve@10.1.17.4 to enable password",
+   "gold": "ssh-copy-id eve@10.1.17.4",
+   "pred": "ssh-copy-id username@10.1.17.4",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 71,
+   "nl": "Run a security audit on the remote system at 100.100.100.4.",
+   "gold": "lynis audit system remote 100.100.100.4",
+   "pred": "sudo lynis update info",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 72,
+   "nl": "Show the network path to 1",
+   "gold": "traceroute 172.18.1.5",
+   "pred": "sudo parted /dev/sdX",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 73,
+   "nl": "Extract the contents of rockyou.txt.gz and show the progress in the terminal.",
+   "gold": "tar -xvf rockyou.txt.gz",
+   "pred": "tar cf path/to/target.tar path/to/file1 path/to/file2 ...",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=2",
+   "gold_err": "tar: This does not look like a tar archive\n\ngzip: stdin: not in gzip format\ntar: Child returned status 1\ntar: Error is not recoverable: exiting now\n"
+  },
+  {
+   "i": 74,
+   "nl": "Compile the C program CVE_2019_15107.c into an executable named CVE_2019_15107 using the curl library.",
+   "gold": "gcc CVE_2019_15107.c -o CVE_2019_15107 -lcurl",
+   "pred": "gcc -o CVE_2019_15107 cve_2019_15107",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "CVE_2019_15107.c:1:1: error: unknown type name 'alpha'\n    1 | alpha beta\n      | ^~~~~\nCVE_2019_15107.c:2:1: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'contents'\n    2 | contents"
+  },
+  {
+   "i": 75,
+   "nl": "Download the file from https://netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920_all.deb.",
+   "gold": "wget https://netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920_all.deb",
+   "pred": "wget https://netix.dl.sourceforge.net/project/webadmin/webmin/1.920/webmin_1.920_all.deb",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 76,
+   "nl": "Add the id_rsa private key to the SSH agent.",
+   "gold": "ssh-add id_rsa",
+   "pred": "ssh-add",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 77,
+   "nl": "Find the service associated with TCP port 22 in /etc/services.",
+   "gold": "egrep -w '22/(tcp)' /etc/services",
+   "pred": "sudo pvs",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 78,
+   "nl": "Ping multiple network hosts quickly at the same time.",
+   "gold": "fping",
+   "pred": "docker-machine ls",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: fping: command not found\n"
+  },
+  {
+   "i": 79,
+   "nl": "Show the current configuration template for scanning port 1234 instead of running the scan.",
+   "gold": "masscan -p1234 --echo",
+   "pred": "magick-compare path/to/image1.png path/to/image2.png path/to/diff.png",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: masscan: command not found\n"
+  },
+  {
+   "i": 80,
+   "nl": "Manage the system firewall rules to control network traffic.",
+   "gold": "iptables",
+   "pred": "sudo iptables -vnL --line-numbers|--verbose --numeric --list --line-numbers",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 81,
+   "nl": "Create a folder named .ssh in the current location.",
+   "gold": "mkdir .ssh",
+   "pred": "mkdir .ssh",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 82,
+   "nl": "Brute force and discover directories on http://172.18.1.5/ using the wordlist located at /sips/sipssys/users/a/admin/user.",
+   "gold": "gobuster dir -u http://172.18.1.5/ -w /sips/sipssys/users/a/admin/user",
+   "pred": "sudo f3probe path/to/block_device",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 83,
+   "nl": "Scan the WordPress site at http://127.18.1.5 for security vulnerabilities and configuration issues.",
+   "gold": "wpscan --url http://127.18.1.5",
+   "pred": "mkisofs -o filename.iso path/to/source_directory",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: wpscan: command not found\n"
+  },
+  {
+   "i": 84,
+   "nl": "Create a shortcut called ll to list all files, including hidden ones, in a detailed view with human-readable file sizes.",
+   "gold": "alias ll='ls -hlA'",
+   "pred": "alias ll='ls -l'",
+   "utility_ok": true,
+   "verdict": "EQUIVALENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 85,
+   "nl": "Paste the contents of my clipboard into .ssh/id_rsa.",
+   "gold": "xclip -selection c -o > .ssh/id_rsa",
+   "pred": "inkscape path/to/file.svg",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 86,
+   "nl": "Perform a brute-force dictionary attack against network login credentials.",
+   "gold": "hydra",
+   "pred": "progpilot",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: hydra: command not found\n"
+  },
+  {
+   "i": 87,
+   "nl": "Combine the passwd and shadow files into a single file named mypasswd.txt.",
+   "gold": "unshadow passwd shadow > mypasswd.txt",
+   "pred": "xbps-install package",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: unshadow: command not found\n"
+  },
+  {
+   "i": 88,
+   "nl": "Display the network interface configurations and IP addresses.",
+   "gold": "ifconfig",
+   "pred": "curl -s -o output.txt https://example.com",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 89,
+   "nl": "Show a detailed list of all running processes on the system.",
+   "gold": "ps aux",
+   "pred": "podman export [-o|--output] path/to/file.tar container_name_or_id",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\nroot         1  0.3  0.0  21708  6092 ?        SLl  03:02   0:19 /process_api --firecracker-init --addr 0.0.0.0:2024 --max-ws-buffer-size 32768 --block-local-connections --listen-vsock-port 2024\nroot         2  0.0  0.0      0 ",
+   "pred_out": ""
+  },
+  {
+   "i": 90,
+   "nl": "Start a persistent terminal session that can be detached and resumed later.",
+   "gold": "tmux",
+   "pred": "powershell",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "open terminal failed: not a terminal\n"
+  },
+  {
+   "i": 91,
+   "nl": "Display the contents of hacking/wordlist.txt in alphabetical order.",
+   "gold": "sort hacking/wordlist.txt",
+   "pred": "groups",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "alpha beta\ncontents of hacking/wordlist.txt\n",
+   "pred_out": "root\n"
+  },
+  {
+   "i": 92,
+   "nl": "Delete the invoices2019 folder.",
+   "gold": "rmdir invoices2019",
+   "pred": "rmdir path/to/directory1 path/to/directory2 ...",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "rmdir: failed to remove 'invoices2019': Not a directory\n"
+  },
+  {
+   "i": 93,
+   "nl": "Delete the file id_rsa.",
+   "gold": "rm id_rsa",
+   "pred": "rm path/to/file1 path/to/file2",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 94,
+   "nl": "Find the location of the binary, source code, and manual pages for researchers.",
+   "gold": "whereis researchers",
+   "pred": "newrole [-r|--role] role_name",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "researchers:\n",
+   "pred_out": ""
+  },
+  {
+   "i": 95,
+   "nl": "Capture network traffic to and from 172.18.1.5.",
+   "gold": "tshark host 172.18.1.5",
+   "pred": "tshark",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: tshark: command not found\n"
+  },
+  {
+   "i": 96,
+   "nl": "Log in to the remote server at 10.1.26.9 as the user admin.",
+   "gold": "ssh admin@10.1.26.9",
+   "pred": "ssh username@remote_host",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 97,
+   "nl": "Display the help information and usage options for editing FLAC metadata.",
+   "gold": "metaflac --help",
+   "pred": "openstack network list",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: metaflac: command not found\n"
+  },
+  {
+   "i": 98,
+   "nl": "Launch the interactive cryptography and certificate management tool.",
+   "gold": "openssl",
+   "pred": "openssl genpkey -algorithm rsa|ec -out path/to/private.key -aes256",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 99,
+   "nl": "Install the webmin_1.920",
+   "gold": "sudo dpkg -i webmin_1.920_all.deb",
+   "pred": "sudo dpkg -i webmin_1.920 path/to/file.deb",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 100,
+   "nl": "Capture network traffic on port 22.",
+   "gold": "sudo tcpdump port 22",
+   "pred": "xargs -n 1 -P 2 -Command \"Capture network traffic on port 22\"",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 101,
+   "nl": "Crack the password hashes in hash.txt using the wordlist located at /usr/share/wordlists/rockyou.txt.",
+   "gold": "hashcat hash.txt /usr/share/wordlists/rockyou.txt",
+   "pred": "sudo ntfsfix /dev/sdXN",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 102,
+   "nl": "Show the path to the fcrackzip executable.",
+   "gold": "which fcrackzip",
+   "pred": "which fcrackzip",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": ""
+  },
+  {
+   "i": 103,
+   "nl": "Scan 172.18.1.5 for open ports.",
+   "gold": "nmap 172.18.1.5",
+   "pred": "nmap -v1|2|3 ip_or_hostname",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: nmap: command not found\n"
+  },
+  {
+   "i": 104,
+   "nl": "List all open listening ports and the processes using them.",
+   "gold": "sudo lsof -i -P -n | grep \"LISTEN\"",
+   "pred": "lsof -p path/to/file",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 105,
+   "nl": "Find the IP address for exploit-db.com.",
+   "gold": "host exploit-db.com",
+   "pred": "host domain",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: host: command not found\n"
+  },
+  {
+   "i": 106,
+   "nl": "View the contents of wordlist.txt one page at a time.",
+   "gold": "more wordlist.txt",
+   "pred": "cf login -a api_url",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "::::::::::::::\nwordlist.txt\n::::::::::::::\nalpha beta\ncontents of wordlist.txt\n",
+   "pred_out": ""
+  },
+  {
+   "i": 107,
+   "nl": "Display a list of all available exploit modules.",
+   "gold": "show exploits",
+   "pred": "kcmshell6",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: show: command not found\n"
+  },
+  {
+   "i": 108,
+   "nl": "Launch the interactive console for the Metasploit framework.",
+   "gold": "msfconsole",
+   "pred": "sudo msfconsole",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 109,
+   "nl": "Calculate the SHA checksum for the file id_rsa.",
+   "gold": "shasum id_rsa",
+   "pred": "rcat file_id_rsa",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "5eff06840c121a12621da050813304cdae51b9d2  id_rsa\n",
+   "pred_out": ""
+  },
+  {
+   "i": 110,
+   "nl": "Securely copy the / directory.",
+   "gold": "% scp /",
+   "pred": "sudo pacman -S package",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 111,
+   "nl": "Listen for incoming network connections on port 8080.",
+   "gold": "ncat -l 8080",
+   "pred": "ncat -l port 8080 > path/to/file",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: ncat: command not found\n"
+  },
+  {
+   "i": 112,
+   "nl": "Display the current process scheduling priority.",
+   "gold": "nice",
+   "pred": "ibmcloud-version display pid",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "0\n",
+   "pred_out": ""
+  },
+  {
+   "i": 113,
+   "nl": "Change passwd_mode from 0 to 2 in /etc/webmin/miniserv.conf and restart the webmin service.",
+   "gold": "sudo sed -i s/passwd_mode=0/passwd_mode=2/g /etc/webmin/miniserv.conf;service webmin restart",
+   "pred": "sed 's/apple/mango/g'",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 114,
+   "nl": "Display the help and usage options for the command used to pass standard input as arguments to other commands.",
+   "gold": "xargs --help",
+   "pred": "xargs -n 1 -P 1 -Command \"Display help and usage options for the command used to pass standard input as arguments to other commands.\"",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "Usage: xargs [OPTION]... COMMAND [INITIAL-ARGS]...\nRun COMMAND with arguments INITIAL-ARGS and more arguments read from input.\n\nMandatory and optional arguments to long options are also\nmandatory or optional for the corresponding short option.\n  -0, --null                   items are separated by a ",
+   "pred_out": ""
+  },
+  {
+   "i": 115,
+   "nl": "Look up the registration and ownership details for the IP address 172.18.1.5.",
+   "gold": "whois 172.18.1.5",
+   "pred": "zsync path/to/url.zsync",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: whois: command not found\n"
+  },
+  {
+   "i": 116,
+   "nl": "Search for exploit code and vulnerabilities related to webmin.",
+   "gold": "searchsploit webmin",
+   "pred": "sudo dmidecode search_terms",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 117,
+   "nl": "Show me the manual page and documentation for the nmap tool.",
+   "gold": "man nmap",
+   "pred": "man nmap",
+   "utility_ok": true,
+   "verdict": "EQUIVALENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "This system has been minimized by removing packages and content that are\nnot required on a system that users do not log into.\n\nTo restore this content, including manpages, you can run the 'unminimize'\ncommand. You will still need to ensure the 'man-db' package is installed.\n",
+   "pred_out": "This system has been minimized by removing packages and content that are\nnot required on a system that users do not log into.\n\nTo restore this content, including manpages, you can run the 'unminimize'\ncommand. You will still need to ensure the 'man-db' package is installed.\n"
+  },
+  {
+   "i": 118,
+   "nl": "Continuously trace the network route to 8.8.8.8 to monitor latency and packet loss.",
+   "gold": "mtr 8.8.8.8",
+   "pred": "sudo pvcreate /dev/sdXY",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 119,
+   "nl": "Find ssh2john.py on my system and copy it to the current directory.",
+   "gold": "cp $(locate ssh2john.py) .",
+   "pred": "sudo xfs_repair path/to/partition",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 120,
+   "nl": "Display the contents of flag.txt.",
+   "gold": "cat flag.txt",
+   "pred": "ecpg input.pgc",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 127,
+   "gold_out": "alpha beta\ncontents of flag.txt\n",
+   "pred_out": ""
+  },
+  {
+   "i": 121,
+   "nl": "List all files in the current directory, including hidden ones, with detailed information.",
+   "gold": "ls -la",
+   "pred": "git ignore",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "total 480\ndrwx------ 7 root root 4096 Aug 23 04:27 .\ndrwx------ 3 root root 4096 Aug 23 04:28 ..\n-rw-r--r-- 1 root root   37 Aug 23 04:27 .bash_history\n-rw-r--r-- 1 root root   41 Aug 23 04:27 .invoices2019.zip\n-rw-r--r-- 1 root root   28 Aug 23 04:27 .ssh\n-rw-r--r-- 1 root root   28 Aug 23 04:27 00",
+   "pred_out": ""
+  },
+  {
+   "i": 122,
+   "nl": "Go up to the parent directory.",
+   "gold": "cd ..",
+   "pred": "cd",
+   "utility_ok": true,
+   "verdict": "EQUIVALENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 123,
+   "nl": "Scan all ports on 192.",
+   "gold": "npm -p- 192.168.130.0",
+   "pred": "npm init -y --yes",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 1,
+   "pred_rc": 0,
+   "gold_out": "Unknown command: \"192.168.130.0\"\n\nTo see a list of supported npm commands, run:\n  npm help\n",
+   "pred_out": "Wrote to /tmp/funceq-_tkqpn2o/fx/package.json:\n\n{\n  \"name\": \"fx\",\n  \"version\": \"1.0.0\",\n  \"description\": \"\",\n  \"main\": \"index.js\",\n  \"directories\": {\n    \"doc\": \"docs\"\n  },\n  \"scripts\": {\n    \"test\": \"echo \\\"Error: no test specified\\\" && exit 1\"\n  },\n  \"keywords\": [],\n  \"author\": \"\",\n  \"license\": \"I"
+  },
+  {
+   "i": 124,
+   "nl": "Copy the file invoices2019.zip from the remote server 10.1.26.9 using the admin user to the local /home directory.",
+   "gold": "scp admin@10.1.26.9:invoices2019.zip /home",
+   "pred": "scp /home/admin/invoices2019.zip remote_host:path/to/remote_file",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 125,
+   "nl": "Start the SSH authentication agent in the current terminal session.",
+   "gold": "eval `ssh-agent`",
+   "pred": "mupdf path/to/file",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 126,
+   "nl": "View the contents of file.txt page by page.",
+   "gold": "less file.txt",
+   "pred": "less",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "alpha beta\ncontents of file.txt\n",
+   "pred_out": ""
+  },
+  {
+   "i": 127,
+   "nl": "Run the 47293.sh script.",
+   "gold": "bash 47293.sh",
+   "pred": "bash",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "47293.sh: line 1: alpha: command not found\n47293.sh: line 2: contents: command not found\n"
+  },
+  {
+   "i": 128,
+   "nl": "Find the location of the file .invoices2019.zip.",
+   "gold": "where .invoices2019.zip",
+   "pred": "where .invoices2019.zip",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: where: command not found\n"
+  },
+  {
+   "i": 129,
+   "nl": "Show the list of exported NFS shares on this machine.",
+   "gold": "showmount -e",
+   "pred": "sudo gh-cs showmount hostname",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 130,
+   "nl": "Scan the network to discover active devices at 172.18.",
+   "gold": "netdiscover -r 172.18.1.5",
+   "pred": "netdiscover -r 172.16.6.0/23 -i ens244",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: netdiscover: command not found\n"
+  },
+  {
+   "i": 131,
+   "nl": "Show an interactive monitor of running processes and system resource usage.",
+   "gold": "htop",
+   "pred": "htop",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: htop: command not found\n"
+  },
+  {
+   "i": 132,
+   "nl": "Set the terminal type to xterm.",
+   "gold": "export TERM=xterm",
+   "pred": "export terminal_type=xterm",
+   "utility_ok": true,
+   "verdict": "EQUIVALENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 133,
+   "nl": "Scan the local network to find all connected devices and their IP addresses.",
+   "gold": "arp-scan -l",
+   "pred": "kiterunner",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: arp-scan: command not found\n"
+  },
+  {
+   "i": 134,
+   "nl": "Show the last few lines of /var/log/auth.log.",
+   "gold": "tail /var/log/auth.log",
+   "pred": "tail -n 8 /var/log/auth.log",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "tail: cannot open '/var/log/auth.log' for reading: No such file or directory\n"
+  },
+  {
+   "i": 135,
+   "nl": "Calculate the checksum and byte count for the file id_rsa.",
+   "gold": "cksum id_rsa",
+   "pred": "rm -rf /path/to/file_or_directory/file_or_directory_id_rsa",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 136,
+   "nl": "Sign in to the system to start a new session.",
+   "gold": "login",
+   "pred": "login local",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": ""
+  },
+  {
+   "i": 137,
+   "nl": "Show the history of recent user logins and system reboots.",
+   "gold": "last",
+   "pred": "ls -l last",
+   "utility_ok": false,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 2,
+   "gold_out": "\nwtmp begins Tue Feb 17 02:02:53 2026\n",
+   "pred_out": ""
+  },
+  {
+   "i": 138,
+   "nl": "Show the first 30 lines of /usr/share/john/password.lst.",
+   "gold": "head -n 30 /usr/share/john/password.lst",
+   "pred": "head /usr/share/john/password.lst",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "head: cannot open '/usr/share/john/password.lst' for reading: No such file or directory\n"
+  },
+  {
+   "i": 139,
+   "nl": "Open file2 in its default application.",
+   "gold": "gio open file2",
+   "pred": "beet import path/to/directory",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=2",
+   "gold_err": "gio: file:///tmp/funceq-rkreu68i/fx/file2: Failed to find default application for content type ?text/plain?\n"
+  },
+  {
+   "i": 140,
+   "nl": "Find the location of the file ssh2john.py on the system.",
+   "gold": "locate ssh2john.py",
+   "pred": "find / -name ssh2john.py",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: locate: command not found\n"
+  },
+  {
+   "i": 141,
+   "nl": "Import the function to convert packed binary data back into standard Python values.",
+   "gold": "from struct import unpack",
+   "pred": "from \u2014 List mail: from",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: from: command not found\n"
+  },
+  {
+   "i": 142,
+   "nl": "Set the terminal to read keystrokes immediately without waiting for the Enter key and stop displaying typed",
+   "gold": "stty raw -echo",
+   "pred": "nim [c|compile] path/to/file.nim",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "stty: 'standard input': Inappropriate ioctl for device\n"
+  },
+  {
+   "i": 143,
+   "nl": "Save the contents of my clipboard to a file named id_rsa.",
+   "gold": "pbpaste > id_rsa",
+   "pred": "sesearch --allow",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: pbpaste: command not found\n"
+  },
+  {
+   "i": 144,
+   "nl": "Open and edit the file named id_rsa in a text editor.",
+   "gold": "vim id_rsa",
+   "pred": "bvnc",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold_ran=False pred_ran=True"
+  },
+  {
+   "i": 145,
+   "nl": "Show the logs for the scp service.",
+   "gold": "journalctl -u scp",
+   "pred": "git cp file new_file",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 146,
+   "nl": "Keep trying to download http://pastebin.com/raw/hz0dX16z until it succeeds.",
+   "gold": "while true; do wget http://pastebin.com/raw/hz0dX16z && break; done",
+   "pred": "wine reg add 'HKEY_CURRENT_USER\\path\\to\\key' /v value_name /d data /f",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 147,
+   "nl": "Open ssh2john.py in a text editor.",
+   "gold": "nvim ssh2john.py",
+   "pred": "start-process",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: nvim: command not found\n"
+  },
+  {
+   "i": 148,
+   "nl": "Crack the password hashes in hash using the wordlist at /usr/share/wordlists/rockyou.txt.",
+   "gold": "john --wordlist=/usr/share/wordlists/rockyou.txt hash",
+   "pred": "john path/to/hashes.txt",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: john: command not found\n"
+  },
+  {
+   "i": 149,
+   "nl": "Change to the debian/ directory.",
+   "gold": "dc debian/",
+   "pred": "dc",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: dc: command not found\n"
+  },
+  {
+   "i": 150,
+   "nl": "Generate a new SSH key pair.",
+   "gold": "ssh-keygen",
+   "pred": "ssh-keygen -t <your_file_name> -n <your_key_file_name>",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 151,
+   "nl": "Find all lines containing ssh in my .bash_history file.",
+   "gold": "grep ssh .bash_history",
+   "pred": "mpicc -c path/to/file.c",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 152,
+   "nl": "Convert an encrypted SSH private key into a format that can be processed by John the Ripper for password cracking.",
+   "gold": "python ssh2john.py",
+   "pred": "sudo netplan apply",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 153,
+   "nl": "Rename the file 10.1.135.83 to privkey.",
+   "gold": "mv 10.1.135.83 privkey",
+   "pred": "mv path/to/source path/to/target",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 154,
+   "nl": "Scan every port from 1 to 65535 on 172.18.1.5 individually and append the results to out.txt.",
+   "gold": "for i in {1..65535}; do nmap -p ${i} 172.18.1.5 >> out.txt; done",
+   "pred": "for variable; do echo $variable; done",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold_ran=False pred_ran=True"
+  },
+  {
+   "i": 155,
+   "nl": "Change the permissions of id_rsa so only I can read and write to it.",
+   "gold": "chmod 600 id_rsa",
+   "pred": "chmod -x path/to/file",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 0,
+   "pred_rc": 1,
+   "gold_out": "",
+   "pred_out": ""
+  },
+  {
+   "i": 156,
+   "nl": "Show the differences between ssh.john and ssh2.jogn.",
+   "gold": "diff ssh.john ssh2.jogn",
+   "pred": "meld",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold refused by deny list"
+  },
+  {
+   "i": 157,
+   "nl": "Open the id_rsa file in a text editor.",
+   "gold": "nano id_rsa",
+   "pred": "nano path/to/file1 path/to/file2 ...",
+   "utility_ok": true,
+   "verdict": "DIFFERENT",
+   "gold_rc": 1,
+   "pred_rc": 1,
+   "gold_out": "\u001b[?2004h                                                                                                                                                                                                                                                                                                    ",
+   "pred_out": "\u001b[?2004h\u0007                                                                                                                                                                                                                                                                                                   "
+  },
+  {
+   "i": 158,
+   "nl": "Connect to port 23 on 127.18.1.5 to test the network connection.",
+   "gold": "telnet 127.18.1.5 23",
+   "pred": "docker login 127.18.1.5",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: telnet: command not found\n"
+  },
+  {
+   "i": 159,
+   "nl": "Show my computer's IP address and network configuration details.",
+   "gold": "ipconfig",
+   "pred": "pdftk path/to/input.pdf cat 1-3 5 6-10 output path/to/output.pdf",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: ipconfig: command not found\n"
+  },
+  {
+   "i": 160,
+   "nl": "Search for all .zip files in the current directory and its subfolders, ignoring case.",
+   "gold": "find . -iname \\*.zip",
+   "pred": "find . -name \"*.zip\"",
+   "utility_ok": true,
+   "verdict": "EQUIVALENT",
+   "gold_rc": 0,
+   "pred_rc": 0,
+   "gold_out": "./invoices2019.zip\n./.invoices2019.zip\n",
+   "pred_out": "./invoices2019.zip\n./.invoices2019.zip\n"
+  },
+  {
+   "i": 161,
+   "nl": "Generate a custom payload or shellcode for penetration testing.",
+   "gold": "msfvenom",
+   "pred": "msfvenom [-l|--list] payloads",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=127",
+   "gold_err": "bash: line 1: msfvenom: command not found\n"
+  },
+  {
+   "i": 162,
+   "nl": "Find which file in the root directory has a SHA-512 hash containing 206ce87678.",
+   "gold": "sha512sum /* | grep 206ce87678",
+   "pred": "nvm.cache_install()",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "gold failed rc=1",
+   "gold_err": "sha512sum: /bin: Is a directory\nsha512sum: /bin.usr-is-merged: Is a directory\nsha512sum: /boot: Is a directory\nsha512sum: /dev: Is a directory\nsha512sum: /etc: Is a directory\nsha512sum: /home: Is a di"
+  },
+  {
+   "i": 163,
+   "nl": "Change the owner of the id_rsa file to user ID 0044.",
+   "gold": "chown 0044 id_rsa",
+   "pred": "sudo chown user path/to/file_or_directory user ID 0044",
+   "utility_ok": true,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  },
+  {
+   "i": 164,
+   "nl": "Show all listening TCP ports and their process information matching post.",
+   "gold": "ss -lntp | grep post",
+   "pred": "rm -rf /var/log/sshd_session",
+   "utility_ok": false,
+   "verdict": "INCONCLUSIVE",
+   "why": "pred refused by deny list"
+  }
+ ]
+}
