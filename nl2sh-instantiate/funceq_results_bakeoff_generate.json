@@ -1,0 +1,46 @@
+{
+ "gemma-3-1b-it/generate": {
+  "n": 164,
+  "fixture_added": {
+   "files": 113,
+   "dirs": 1
+  },
+  "DIFFERENT": 19,
+  "EQUIVALENT": 17,
+  "INCONCLUSIVE": 128,
+  "coverage_decided": 0.22,
+  "functional_acc_over_decided": 0.472,
+  "functional_acc_over_all": 0.104,
+  "routing_over_all": 0.799,
+  "inconclusive_reasons": {
+   "gold failed rc=127": 51,
+   "gold refused by deny list": 34,
+   "gold failed rc=1": 24,
+   "pred refused by deny list": 9,
+   "gold failed rc=2": 5,
+   "gold_ran=False pred_ran=True": 3
+  }
+ },
+ "gemma-3-270m-it/generate": {
+  "n": 164,
+  "fixture_added": {
+   "files": 113,
+   "dirs": 1
+  },
+  "DIFFERENT": 29,
+  "INCONCLUSIVE": 129,
+  "EQUIVALENT": 6,
+  "coverage_decided": 0.213,
+  "functional_acc_over_decided": 0.171,
+  "functional_acc_over_all": 0.037,
+  "routing_over_all": 0.5,
+  "inconclusive_reasons": {
+   "gold failed rc=127": 45,
+   "gold refused by deny list": 34,
+   "pred refused by deny list": 21,
+   "gold failed rc=1": 20,
+   "gold_ran=False pred_ran=True": 4,
+   "gold failed rc=2": 4
+  }
+ }
+}
