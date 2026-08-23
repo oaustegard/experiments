@@ -28,7 +28,12 @@ def render(frame, keyword, word, mode):
                     for i, c in enumerate(keyword))
     else:                                    # title, lower
         k = keyword
+    at_start = s.startswith(MARK)
     s = s.replace(MARK, k)
     if mode != "lower":
         s = s[0].upper() + s[1:]
+        if at_start:
+            # sentence-casing rewrote the keyword's own first letter, so the
+            # span text the caller must search for is the cased form, not `k`
+            k = k[0].upper() + k[1:]
     return s, k
