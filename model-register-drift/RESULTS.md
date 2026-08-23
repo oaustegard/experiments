@@ -1,13 +1,15 @@
 # Register drift across model generations
 
 Six Claude models wrote the same 700–900 word technical blog post with no
-voice instruction of any kind. Each sample was scored against the 42-entry
+voice instruction of any kind. Nine samples were scored against the 42-entry
 register in the `declauding` skill.
 
 The mechanical scan and the structural pass rank the models differently, and
 the mechanical scan is the one that is wrong. Opus 5 is third-cleanest by
-linter count and roughly twice as dense in register violations as any other
-model once the entries regex cannot reach are counted.
+linter count and 47% denser in register violations than the next model once
+the entries regex cannot reach are counted. Across two samples it scores 25.2
+and 26.2 per 1000 words, against a within-model spread of 2.0 measured over
+the three models that have two samples each.
 
 ## Method
 
@@ -25,7 +27,9 @@ was not usable for this: its `model` parameter accepts four aliases
 
 Samples were delivered as comments on
 [claude-workspace#244](https://github.com/oaustegard/claude-workspace/issues/244)
-and are in `samples/`.
+and are in `samples/`. One exception is recorded in `samples/PROVENANCE.md`:
+`opus-5-b` was written by its session, which then refused to post it, and was
+pasted in by hand.
 
 Scoring ran in two stages, as `declauding/SKILL.md` prescribes:
 
@@ -56,25 +60,42 @@ Haiku 4.5 looks like the problem.
 
 ## Adjudicated register violations
 
-Counted by hand across all 42 entries, one count per distinct construction,
-with the specimen recorded.
+**These numbers are provisional.** The adjudicator drifted: samples counted
+early scored lower than samples counted late, because the register was not yet
+in working memory. Opus 4.8's two samples differ by 12.4 per 1000 words against
+1.0–2.7 for the other pairs, and re-reading its first sample found roughly
+thirteen missed violations. See `ERRORS.md`. A single-pass re-adjudication in
+randomised order is needed before the ordering below can be trusted. The one
+result that partly survives is Opus 5, whose early and late samples agree at
+25.2 and 26.2.
 
-| sample | violations | per 1k | share in the aphorism/verdict family |
-|---|---|---|---|
-| **opus-5** | **20** | **25.1** | 85% (17/20) |
-| sonnet-4-6 | 13 | 16.4 | 54% |
-| haiku-4-5 | 15 | 15.8 | 60% |
-| opus-4-8 | 13 | 15.3 | 77% |
-| sonnet-5 | 12 | 13.4 | 58% |
-| opus-4-6 | 10 | 11.4 | 50% |
+Counted by hand across all 42 entries, one count per distinct construction,
+with every specimen recorded in `adjudication.json` and tabulated by
+`adjudicated.py`.
+
+| model | samples | per 1k | mean | spread | aphorism/verdict family |
+|---|---|---|---|---|---|
+| **opus-5** | 2 | **25.2, 26.2** | **25.7** | 1.0 | 80% |
+| haiku-4-5 | 2 | 16.3, 18.6 | 17.5 | 2.3 | 58% |
+| sonnet-4-6 | 2 | 17.4, 14.7 | 16.0 | 2.7 | 44% |
+| opus-4-8 | 1 | 15.7 | 15.7 | — | 69% |
+| sonnet-5 | 1 | 13.8 | 13.8 | — | 58% |
+| opus-4-6 | 1 | 11.7 | 11.7 | — | 30% |
 
 The aphorism/verdict family is entries 3 (significance designation), 7 and 41
 (verdict and nominalised headers), 12 (aphoristic closer), 13 (self-grading),
 37 (dressed metaphor), 38 (announce-then-deliver) and 39 (welded epigram).
 
-Within the Opus line the rate rises monotonically: 11.4 → 15.3 → 25.1. The
-Sonnet line does not — 16.4 at 4.6, 13.4 at 5. The 42-entry rate is close to
-flat across everything except Opus 5, where it roughly doubles.
+Within-model spread over the three models with two samples is 2.0 per 1000
+words. Opus 5's mean sits 8.2 above the next model, four times that spread, and
+its own spread of 1.0 is the tightest of the three — the rate is not noisy, it
+is consistent.
+
+Two trends run in opposite directions along the two lines. The Opus rate rises
+11.7 → 15.7 → 25.7, and the share concentrated in the aphorism/verdict family
+rises with it, 30% → 69% → 80%. The Sonnet line does not: 16.0 at 4.6, 13.8 at
+5, with the family share flat. Everything except Opus 5 sits between 11.7 and
+17.5, which is a band about three spreads wide.
 
 ## Opus 5's twenty specimens
 
@@ -129,10 +150,16 @@ worth running as a shortlist and is not worth trusting as a score.
 
 ## Limits
 
-One prompt, one sample per model, one judge. The counts separating Sonnet 4.6,
-Haiku 4.5, Opus 4.8 and Sonnet 5 (13.4 to 16.4 per 1000) are within what a
-different adjudicator would move them by. The Opus 5 result is the only gap
-wide enough to survive that.
+One prompt, one judge, and two samples for three of the six models. The counts
+separating Sonnet 4.6, Haiku 4.5, Opus 4.8 and Sonnet 5 (13.8 to 17.5 per 1000)
+sit inside the measured spread and should be read as a tie. Opus 5 is the only
+gap wide enough to survive that. Opus 4.8, Sonnet 5 and Opus 4.6 still rest on
+one sample each, so the 11.7 → 15.7 → 25.7 trend has a measured spread only at
+its top end.
+
+A single judge counting against a 42-entry register is the weakest part of this.
+The specimens are all in `adjudication.json` with their entry numbers so the
+calls can be checked, but nobody has checked them.
 
 The prompt asked for a blog post about a counterintuitive result, which is the
 format that most invites staged reveals. A reference doc or an API description
