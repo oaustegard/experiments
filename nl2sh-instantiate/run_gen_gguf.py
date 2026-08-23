@@ -68,6 +68,25 @@ def download_gguf(repo_id: str, filename: str, cache_dir: Path) -> Path:
         return dest
 
 
+THINK_CLOSE = "</think>"
+
+
+def strip_reasoning(gen: str) -> str:
+    """Drop a reasoning trace so the shared parser reads the answer, not the thinking.
+
+    `run_gen.py`'s `extract_command` takes the first line that does not open with
+    a hedge, which on a reasoning model is the first line of its scratchpad. Text
+    after a closing `</think>` is the answer; an unterminated trace means the
+    budget ran out before the model answered at all, and the empty string is the
+    honest reading of that — not the last line of its reasoning.
+    """
+    if THINK_CLOSE in gen:
+        return gen.split(THINK_CLOSE)[-1]
+    if "<think>" in gen:
+        return ""
+    return gen
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="unsloth/gemma-3-270m-it-GGUF",
@@ -85,6 +104,14 @@ def main() -> int:
     ap.add_argument("--n-ctx", type=int, default=4096)
     ap.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE,
                     help="where downloaded GGUFs land (never inside the repo)")
+    ap.add_argument("--reasoning", default="auto", choices=["auto", "off", "on"],
+                    help="Nemotron 3 Nano and its kin emit a <think> trace before the "
+                         "answer. Under stage 1's 64-token budget that trace IS the whole "
+                         "budget: the 20-row probe scored 0.000 routing with every row "
+                         "truncated mid-reasoning. 'off' prepends the /no_think system turn "
+                         "these models document, which is what makes them comparable to the "
+                         "non-reasoning bases. 'auto' means off for a model whose name says "
+                         "nemotron, untouched otherwise.")
     ap.add_argument("--out", type=Path, required=True)
     a = ap.parse_args()
 
@@ -113,13 +140,18 @@ def main() -> int:
     build = prompts.BUILDERS[a.condition]
     rng = random.Random(a.seed)
 
+    reasoning = a.reasoning
+    if reasoning == "auto":
+        reasoning = "off" if "nemotron" in a.model.lower() else "on"
+    msgs = [{"role": "system", "content": "/no_think"}] if reasoning == "off" else []
+
     rows, t_start = [], time.perf_counter()
     for r in data:
         srcs = make_sources(r["utility"], tldr, rng, a.distractors)
         user = build(r["nl"], srcs)
         t0 = time.perf_counter()
         resp = llm.create_chat_completion(
-            messages=[{"role": "user", "content": user}],
+            messages=msgs + [{"role": "user", "content": user}],
             max_tokens=a.max_new_tokens,
             temperature=0.0,      # greedy: llama.cpp's argmax path at temp==0
             repeat_penalty=1.0,   # no repetition penalty, matching stage 1's default
@@ -130,7 +162,7 @@ def main() -> int:
         n_prompt = usage.get("prompt_tokens", 0)
         n_new = usage.get("completion_tokens", 0)
         gen = (resp["choices"][0]["message"]["content"] or "")
-        cmd = extract_command(gen)
+        cmd = extract_command(strip_reasoning(gen))
         rows.append({**r, "gold_cmd": r["cmd"], "command": cmd, "raw": gen.strip()[:400],
                      "utility_ok": bool(cmd) and G.gold_utility(cmd) == r["utility"],
                      "sources": srcs, "literals": prompts.literals(r["nl"]),
@@ -156,6 +188,7 @@ def main() -> int:
         "wall_minutes": round((time.perf_counter() - t_start) / 60, 1),
         "runner": "llama.cpp", "quant": a.gguf_file, "gguf_file": a.gguf_file,
         "gguf_bytes": gguf_size, "n_threads": a.n_threads, "n_ctx": a.n_ctx,
+        "reasoning": reasoning,
         "chat_format": chat_format, "chat_template_embedded": chat_template_embedded,
     }
     a.out.write_text(json.dumps({"summary": summary, "rows": rows}, indent=1) + "\n")
