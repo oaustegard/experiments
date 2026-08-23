@@ -206,13 +206,26 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--show-prompt", dest="show_prompt", action="store_true")
     p.add_argument("-q", "--quiet", action="store_true")
 
-    sub = p.add_subparsers(dest="cmd")
-    s = sub.add_parser("search", help="search only, never generate")
-    s.add_argument("query")
-    s.add_argument("-k", type=int)
-    s.add_argument("--json", action="store_true")
-    sub.add_parser("doctor", help="what is installed, reachable and usable")
-    sub.add_parser("config", help="resolved settings and where each came from")
+    return p
+
+
+SUBCOMMANDS = ("search", "doctor", "config")
+
+
+def build_sub_parser(name: str) -> argparse.ArgumentParser:
+    """A parser per subcommand.
+
+    argparse cannot carry an optional positional *and* subparsers: `nl2sh search
+    "..."` binds "search" to `query` and then offers the query string as the
+    subcommand, which is what shipped and broke on the first real invocation.
+    Dispatching on argv[0] before parsing keeps the bare form (`nl2sh "..."`)
+    and the subcommands unambiguous.
+    """
+    p = argparse.ArgumentParser(prog=f"nl2sh {name}")
+    if name == "search":
+        p.add_argument("query", help="what you want to do, in plain words")
+        p.add_argument("-k", type=int, help="how many utilities to retrieve")
+        p.add_argument("--json", action="store_true")
     return p
 
 
@@ -224,7 +237,14 @@ def _p_names():
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = build_parser().parse_args(argv)
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in SUBCOMMANDS:
+        name, rest = argv[0], argv[1:]
+        args = build_sub_parser(name).parse_args(rest)
+        args.cmd = name
+    else:
+        args = build_parser().parse_args(argv)
+        args.cmd = None
     cfg, warnings = cfgmod.resolve(
         backend=getattr(args, "backend", None), model=getattr(args, "model", None),
         base_url=getattr(args, "base_url", None), api_key=getattr(args, "api_key", None),
