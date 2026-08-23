@@ -228,6 +228,58 @@ differently worded prompt, and this run does not do it.
 Every judge was Sonnet 5. A single judge model has its own register preferences,
 and nothing here estimates that bias.
 
+## Two axes, and they run opposite
+
+Round 1 asked one question and got one answer. Round 2 sent the same 20 pairs to
+Opus judges and asked each of them two questions on the same pair — the staging
+question first, then the detectability question, so any anchoring pushes the
+second toward the first and works against finding a difference.
+
+**Staging:** which reads more like the writer is performing having had an
+insight, rather than reporting what happened.
+**Detectability:** which reads more like an AI language model wrote it.
+
+| model | sonnet/AI | opus/AI | opus/STAGING | staging 95% CI |
+|---|---|---|---|---|
+| opus-5 | −0.49 | −2.02 | **+1.10** | [−0.01, +1.94] |
+| opus-4-8 | −0.36 | −0.12 | +0.39 | [−0.89, +1.71] |
+| sonnet-5 | −0.72 | −0.74 | +0.07 | [−2.13, +2.17] |
+| haiku-4-5 | **+1.96** | **+2.01** | −0.33 | [−1.74, +1.01] |
+| sonnet-4-6 | −0.91 | −0.19 | −0.72 | [−1.90, +0.39] |
+| opus-4-6 | +0.32 | +1.36 | −0.96 | [−3.07, +1.31] |
+
+Three numbers characterise the design:
+
+- The same Opus judge gave different answers to the two questions on **12 of 20
+  pairs**.
+- Holding the question fixed and swapping the judge model, the fitted rankings
+  correlate **+0.66**. Judge model shifts things but does not reorder them.
+- Holding the judge fixed and swapping the question, they correlate **−0.50**.
+  The two axes are not merely distinct. They point in opposite directions.
+
+On detectability both judge models put Haiku 4.5 top by a wide margin, and both
+put Opus 5 at or near the bottom — Opus rates it −2.02, the lowest cell in the
+table. On staging the order inverts: Opus 5 goes to the top and Haiku 4.5 falls
+to below average.
+
+Opus 5 is the least detectable as machine-written and the most staged. Its prose
+is polished enough to pass as human, and the polish is what the staging question
+picks up: verdict headers, epigram closers, facts welded to maxims. Haiku 4.5 is
+the opposite — flat encyclopedic slop that any reader clocks as generated but
+that is not performing anything.
+
+Along the Opus line the staging score rises monotonically: −0.96 → +0.39 → +1.10.
+That is the same direction as the retracted hand count's family-share trend
+(30% → 69% → 80% of violations in the aphorism/verdict family), arrived at by an
+instrument that shares nothing with it. The Sonnet line rises less, −0.72 to
++0.07.
+
+Confidence intervals are wide — four comparisons per sample, two samples per
+model — and every interval except Opus 5's crosses zero. Opus 5's own barely
+clears it at [−0.01, +1.94]. The per-model ordering is not established. What is
+established is the anti-correlation between the two questions, which does not
+depend on any single cell being precise.
+
 ## Reproducing
 
 ```bash
@@ -235,5 +287,6 @@ python3 score.py samples          # mechanical scan, normalised
 python3 structure.py samples      # structural proxies with specimens
 python3 fetch_samples.py          # re-pull from issue #244
 python3 adjudicated.py            # the retracted hand count
-python3 fit_bt.py                 # Bradley-Terry over blind pairwise verdicts
+python3 fit_bt.py                 # Bradley-Terry, round 1 (sonnet, detectability)
+python3 fit_all.py                # all three arms, per model, plus the axis correlations
 ```
