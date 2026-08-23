@@ -69,6 +69,16 @@ bench() {  # bench <out> <model> <dtype>
   keep "$out" "laptop bar for $model at $dtype, batch=1 on 4 CPU cores"
 }
 
+gguf() {  # gguf <out> <repo> <file> <condition> [extra args...]
+  local out="$1" repo="$2" file="$3" cond="$4"; shift 4
+  await_inflight "$out"
+  if [ -s "$out" ]; then echo "== skip $out (already present)"; return 0; fi
+  echo "== $(date +%T) $out  [$repo $file $cond $*]"
+  python3 run_gen_gguf.py --model "$repo" --gguf-file "$file" --condition "$cond" \
+      --tldr "$TLDR" --n-threads "$OMP_NUM_THREADS" --out "$out" "$@" 2>&1 | tail -4
+  keep "$out" "$repo $file, $cond, oracle sources, llama.cpp"
+}
+
 case "$QUEUE" in
 small)
   # The dtype control. 4B cannot be float32 in 15 GB, so no cross-model row is
@@ -89,6 +99,15 @@ large)
   # the two share, which is what bakeoff_table.py is for.
   gen results_4b_instantiate_anchored.json unsloth/gemma-3-4b-it bfloat16 instantiate_anchored --limit 100
   bench results_bench_4b_bf16.json unsloth/gemma-3-4b-it bfloat16
+  ;;
+gguf)
+  # The quantised lane. Nemotron 3 Nano 4B is the row #52 most wants: a hybrid
+  # Mamba2/attention model rather than a dense transformer, and the middle point
+  # of its three-point vocabulary axis — 65k Pleias, 131k Nemotron, 262k Gemma.
+  NEM=nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF
+  NEMF=NVIDIA-Nemotron3-Nano-4B-Q4_K_M.gguf
+  gguf results_nemotron4b_q4km_generate.json            "$NEM" "$NEMF" generate
+  gguf results_nemotron4b_q4km_instantiate_anchored.json "$NEM" "$NEMF" instantiate_anchored
   ;;
 bench-only)
   bench results_bench_270m_fp32.json unsloth/gemma-3-270m-it float32
