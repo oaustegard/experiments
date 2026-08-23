@@ -60,14 +60,19 @@ Haiku 4.5 looks like the problem.
 
 ## Adjudicated register violations
 
-**These numbers are provisional.** The adjudicator drifted: samples counted
-early scored lower than samples counted late, because the register was not yet
-in working memory. Opus 4.8's two samples differ by 12.4 per 1000 words against
-1.0–2.7 for the other pairs, and re-reading its first sample found roughly
-thirteen missed violations. See `ERRORS.md`. A single-pass re-adjudication in
-randomised order is needed before the ordering below can be trusted. The one
-result that partly survives is Opus 5, whose early and late samples agree at
-25.2 and 26.2.
+**Retracted. Do not use the table below as a score.** The hand count is
+dominated by how hard the adjudicator looked, not by what the models wrote.
+Three re-scoring passes at successively stricter standards raised every sample
+and never converged: `opus-4-6-a` went 11.7 → ~25.0, `sonnet-5-a` 13.8 → ~25.7,
+`opus-4-8-a` 15.7 → ~26, and `opus-5-a` 25.2 → ~35 on a pass that was only
+looking for what the earlier ones had missed. A rubric that yields a different
+number every time the same judge applies it is not measuring the samples. See
+`ERRORS.md`.
+
+What survives: the mechanical scan in the previous section, which is
+deterministic and reproducible, and the direction of the Opus 5 result, which
+came out at or near the top on every pass. The magnitude, the gap, the
+within-model spreads and the ordering of everything below Opus 5 do not survive.
 
 Counted by hand across all 42 entries, one count per distinct construction,
 with every specimen recorded in `adjudication.json` and tabulated by
