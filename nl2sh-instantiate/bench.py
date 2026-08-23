@@ -32,6 +32,8 @@ import prompts  # noqa: E402
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="unsloth/gemma-3-270m-it")
+    ap.add_argument("--dtype", default="float32", choices=["float32", "bfloat16", "float16"],
+                    help="weight dtype. stage 1 ran float32; a 4B model does not fit 15 GB at float32.")
     ap.add_argument("--condition", default="instantiate", choices=sorted(prompts.BUILDERS))
     ap.add_argument("--n", type=int, default=12)
     ap.add_argument("--max-new-tokens", type=int, default=64)
@@ -43,7 +45,7 @@ def main() -> int:
 
     t_load = time.perf_counter()
     tok = AutoTokenizer.from_pretrained(a.model)
-    model = AutoModelForCausalLM.from_pretrained(a.model, dtype=torch.float32).eval()
+    model = AutoModelForCausalLM.from_pretrained(a.model, dtype=getattr(torch, a.dtype)).eval()
     load_s = time.perf_counter() - t_load
     n_params = sum(p.numel() for p in model.parameters())
     weight_bytes = sum(p.numel() * p.element_size() for p in model.parameters())
@@ -81,7 +83,7 @@ def main() -> int:
     rss_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
     mean = lambda xs: sum(xs) / len(xs)
     summary = {
-        "model": a.model, "condition": a.condition, "dtype": "float32",
+        "model": a.model, "condition": a.condition, "dtype": a.dtype,
         "params": n_params, "weight_bytes": weight_bytes,
         "weight_gib": round(weight_bytes / 2**30, 3),
         "load_seconds": round(load_s, 1),
@@ -93,9 +95,9 @@ def main() -> int:
         "decode_tok_per_s_max": round(max(rates), 1),
         "wall_seconds_64_tokens_mean": round(mean(walls), 2),
         "roofline_note": ("single-stream ceiling is memory_bandwidth / weight_bytes; "
-                          "at 100 GB/s this fp32 model tops out near "
+                          f"at 100 GB/s this {a.dtype} copy tops out near "
                           f"{round(100e9 / weight_bytes)} tok/s, and a 4-bit copy near "
-                          f"{round(100e9 / (weight_bytes / 8))} tok/s"),
+                          f"{round(100e9 / (n_params * 0.5))} tok/s"),
     }
     a.out.write_text(json.dumps(summary, indent=1) + "\n")
     print(json.dumps(summary, indent=1))
