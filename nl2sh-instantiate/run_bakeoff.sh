@@ -121,10 +121,19 @@ gguf)
   # `generate` on both bases before either second condition, so a queue that
   # runs out of time still leaves the primary condition on every model rather
   # than two conditions on one.
-  gguf results_nemotron4b_q4km_generate.json             "$NEM" "$NEMF" generate
+  # Gemma 4 E2B does not reason, so it runs the shared 64-token budget over the
+  # whole eval and its row sits beside every other row unqualified.
   gguf results_gemma4e2b_q4km_generate.json              "$G4"  "$G4F"  generate
-  gguf results_nemotron4b_q4km_instantiate_anchored.json "$NEM" "$NEMF" instantiate_anchored
   gguf results_gemma4e2b_q4km_instantiate_anchored.json  "$G4"  "$G4F"  instantiate_anchored
+  # Nemotron does reason, and the shared budget is not neutral for it: at 64
+  # tokens it scored 0.000 routing with every row truncated mid-thought, and a
+  # /no_think system turn did not stop it — it reasons in untagged prose instead.
+  # Given 200 tokens it answers (3 of 4 on a probe) and needs 107 new tokens on
+  # average to reach a ~15-token command. So its row runs at 200 tokens and says
+  # so, on a capped n: 65.8 s a row here means the full eval is 3.3 hours, and
+  # the latency is itself the finding for a laptop bar.
+  gguf results_nemotron4b_q4km_generate_budget200.json   "$NEM" "$NEMF" generate \
+       --max-new-tokens 200 --limit 40
   ;;
 bench-only)
   bench results_bench_270m_fp32.json unsloth/gemma-3-270m-it float32
