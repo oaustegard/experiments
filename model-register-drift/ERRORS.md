@@ -74,11 +74,40 @@ drift is not a flat offset but a failure to catch a specific class of specimen �
 mainly bolded verdict labels and closers inside bulleted sections — that Opus 5
 was being charged for from the start because its were harder to miss.
 
-That is a hypothesis, not a result. The fix is to re-adjudicate all nine samples
-in one pass at a single standard, ideally blind to which model produced which,
-and the numbers in `RESULTS.md` are marked provisional until that is done.
+That was the hypothesis. Re-adjudicating did not fix it — it made the problem
+visible. A third pass, looking only for what the second had missed, raised
+`opus-4-6-a` from 11.7 to ~25.0, `sonnet-5-a` from 13.8 to ~25.7, `opus-4-8-a`
+from 15.7 to ~26, and `opus-5-a` from 25.2 to ~35. Every sample rose. Nothing
+converged. The count is a function of adjudication effort, and adjudication
+effort has no natural stopping point, so there is no "correct" count to iterate
+toward.
+
+The numbers in `RESULTS.md` are retracted rather than provisional. Iterating my
+own passes cannot fix this, because each pass finds more and I have no way to
+tell a thorough pass from an overzealous one from the inside.
 
 The general rule: a hand-scored rubric applied across a session drifts as the
 scorer learns the rubric. Score in one sitting, in randomised order, or score
 twice and report the second pass. Counting in the order the data arrives
 guarantees the drift aligns with the variable under test.
+
+
+## What would actually work
+
+Three options, in increasing cost:
+
+1. **Deterministic scoring only.** Report `declaude_lint.py` and stop. It is
+   reproducible and it misses a third of the register, and the third it misses
+   is the interesting third — but a reproducible partial measure beats an
+   irreproducible complete one.
+2. **Independent judges.** One agent per sample, each given the register and one
+   sample, blind to which model wrote it, with the model attribution stripped
+   from the text. Disagreement between judges is then measurable, which is the
+   thing this experiment currently has no estimate of.
+3. **Forced-choice pairwise.** Skip counting. Show a judge two samples and ask
+   which reads more like an LLM wrote it. Pairwise preference is far more stable
+   than absolute counts, and a Bradley-Terry fit over enough pairs gives a
+   ranking with confidence intervals. With 10 samples that is 45 pairs.
+
+Option 3 is the right instrument for the question actually being asked, which
+was never "how many tics per 1000 words" but "which of these reads worse."
