@@ -1,8 +1,9 @@
 # Errors
 
 What was wrong during this survey, how it was caught, and which direction it
-pushed the conclusion. The base rate matters more than any single entry: seven
-errors, of which one reached a pushed commit and none changed a number.
+pushed the conclusion. The base rate matters more than any single entry: ten
+errors, of which one reached a merged commit and none changed a published
+number.
 
 ## Before the writeup
 
@@ -44,6 +45,46 @@ says exactly this and I had read the comment before running the sweep. Direction
 none — the run confirmed their claim rather than mine, which is the useful
 outcome, but the honest account is that the sweep tested a claim I had already
 been told and half-believed rather than one I derived.
+
+## During the hysnappy benchmark
+
+**Called it "hand-written WASM" in the merged writeup.** The blog says "no
+dependencies, not even memcpy, and definitely no emscripten", which I read as
+hand-authored WAT. `Makefile:19-25` is one `clang --target=wasm32 -O3 -nostdlib
+-Wl,--export-all -Wl,--no-entry` over 674 lines of C. The `memcpy` line means
+no *libc* memcpy: `-nostdlib` removes it, so `c/uncompress.c:5-37` defines
+`memcpy` and `memmove` as byte loops. Caught by cloning the repo instead of
+trusting a blog paraphrase. Direction: the corrected description is more
+useful, since "compile C to a freestanding wasm32 target with clang" is a
+recipe we could follow and "hand-written WASM" is not.
+
+**Reported a decompression figure from an unwarmed loop.** My first ad-hoc
+head-to-head gave 1,232 MB/s for hysnappy on the json-ish corpus, against
+4,653 MB/s once each timing was warmed. I nearly wrote the first number down.
+Caught by re-running with a checksummed sink and per-sweep printing when a
+3.8x swing between two runs of the same code looked wrong. Direction: would
+have understated hysnappy's decompression advantage by about 4x, i.e. reported
+2.7x when the answer is 8x.
+
+**Measured the warm-up effect in-process, where it cannot show up.** The first
+version allocated a fresh `snappyUncompressor()` per trial inside the main
+benchmark and reported a 1.2x cold spread. That measures nothing: V8 has
+already optimized the shared code paths by then, and a new closure does not
+reset the JIT. Caught because the in-process number disagreed with what five
+separate `node benchmark.js` invocations had shown. Fixed by spawning
+`hysnappy_cold.mjs` in a fresh process per trial. Direction: would have
+reported "no warm-up effect" when there is a 1.35x one.
+
+**Ran the warm-up comparison at n=5 and believed the first result.** Two
+consecutive 5-trial runs gave opposite orderings — 3.5x cold spread against
+1.4x warm, then 1.2x against 1.6x. I had already written the first into
+`NOTES.md`. `recheck.py` flagged the figure as unbacked by the artifact, which
+is what sent me back to it. At n=15 per arm the medians separate cleanly
+(3,201 vs 4,334 MB/s, Mann-Whitney one-sided p≈7e-05) and reproduced at 1.36x
+and 1.35x across two independent runs. Direction: at n=5 the sign of the
+reported effect was a coin flip. The max/min spread statistic never stabilised
+at any n and was dropped in favour of the median shift.
+
 
 ## After the first push
 
