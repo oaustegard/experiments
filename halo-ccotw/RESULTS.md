@@ -158,7 +158,7 @@ which erases what little evidence remained. This is the in-band-failure pattern
 the hub's own `CLAUDE.md` names: a probe degrading to a value the caller will act
 on, where empty stands for both "no new transcript" and "the write was refused."
 
-[claude-workspace#249](https://github.com/oaustegard/claude-workspace/pull/249)
+[claude-workspace#246](https://github.com/oaustegard/claude-workspace/pull/246)
 fixes the discovery and adds a preflight so the 403 is stated once instead of
 swallowed. It does not move the transport. `git push` still works from the
 container, so a dedicated branch is the obvious channel, but which branch and what
