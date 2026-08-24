@@ -1790,6 +1790,36 @@ the result.
   That lands on the estimate arrived at by reading every stage-1 output by hand.
   (`nl2sh-instantiate/funceq_ext.py`)
 
+- **An IVF served over HTTP Range wants its cells physically contiguous and its
+  cell ids renumbered by centroid proximity.** A hash-partitioned IVF
+  (`remex.IVFCoarseIndex`, both `lsh` and `rotated_prefix` modes) scatters the
+  `nprobe` visited cells across the file and carries an `int64` permutation of
+  8 bytes per vector, which is free for an in-memory scan and expensive for a
+  reader that must range-fetch. hypvector does two things instead: it sorts
+  rows by cluster id at write time so each cell is one contiguous byte range
+  and only per-cluster counts need storing, and it renumbers cluster ids by a
+  greedy nearest-neighbour walk in Hamming space so the nearest cells to any
+  query land in adjacent id ranges that merge into fewer requests. Both are
+  build-time-only and cost nothing per query. (`hyparam-survey/README.md`)
+
+- **In a binary-then-rerank retriever, the candidate budget is the recall
+  curve; widening the cluster probe does nothing.** Measured on 50k synthetic
+  384-dim vectors against hypvector's own exact scan: scanning all 112 clusters
+  instead of the default 28 moved recall@10 from 50% to 49% at
+  `rerankFactor: 10`, and from 86% to 82% at 50, at 2.4x the time. Raising
+  `rerankFactor` alone walked 50% → 64% → 86% → 93%. Probing wider only admits
+  more Hamming ties competing for the same fixed budget. Sizing prior is
+  `rerankFactor ≈ max(10, N/3000)`; a constant over-fetch is wrong at any scale
+  it was not tuned for. (`hyparam-survey/hypvector_probe.mjs`)
+
+- **Guard a 1-bit index against degenerate sign codes before trusting it.**
+  Embeddings whose components are all non-negative produce near-identical sign
+  codes, phase-1 ranking becomes near-random, and no amount of rerank repairs
+  it. hypvector samples 4096 rows, measures expected pairwise Hamming, and
+  refuses the binary path below `dim/16` (healthy mixed-sign embeddings measure
+  0.3–0.5 of dimension). Centering before taking signs mitigates this but does
+  not detect it. (`hyparam-survey/README.md`)
+
 ## Cache and measurement hygiene
 
 - **Fit `t = a + b·n` before reporting a crossover — a scale gate and a
