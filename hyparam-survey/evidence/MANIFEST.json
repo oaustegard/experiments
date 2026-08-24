@@ -1,0 +1,62 @@
+{
+  "package": "hypvector@0.2.2",
+  "tarball_url": "https://registry.npmjs.org/hypvector/-/hypvector-0.2.2.tgz",
+  "tarball_sha256": "5ac1eb31e4e81b19a663349a285b95be7bbcbf6ad283559882b2f62360a27f62",
+  "note": "The hypvector GitHub repo is private. This npm tarball is the public source.",
+  "excerpts": [
+    {
+      "file": "cluster-reorder.js",
+      "source": "src/cluster.js",
+      "lines": "161-203",
+      "why_cited": "Greedy nearest-neighbour renumbering of cluster ids so adjacent ids are close in Hamming space. README: 'Greedy Hamming renumbering'."
+    },
+    {
+      "file": "cluster-kmeans-head.js",
+      "source": "src/cluster.js",
+      "lines": "15-62",
+      "why_cited": "Binary k-means over the 1-bit codes: Hamming assignment, bit-majority-vote centroid update. README: 'runs k-means on the 1-bit codes'."
+    },
+    {
+      "file": "ranges-select.js",
+      "source": "src/search/ranges.js",
+      "lines": "8-59",
+      "why_cited": "Phase-1 cluster selection: rank centroids by Hamming, take the top probe fraction, merge their row ranges. README: query path step 1."
+    },
+    {
+      "file": "ranges-coalesce.js",
+      "source": "src/search/ranges.js",
+      "lines": "76-101",
+      "why_cited": "Phase-2 run coalescing with maxGap. Called with 64 in rerank.js. README: 'merging gaps <= 64 rows'."
+    },
+    {
+      "file": "constants-probe-cap.js",
+      "source": "src/constants.js",
+      "lines": "33-50",
+      "why_cited": "THE CLAIM THIS SURVEY TESTS: 'Residual misses are a rerankFactor limit, not a probe limit.' Also the defaultClusterProbeCap = 48 rationale."
+    },
+    {
+      "file": "constants-binary-spread.js",
+      "source": "src/constants.js",
+      "lines": "53-65",
+      "why_cited": "Degeneracy guard rationale: below dimension * 1/16 expected Hamming, phase-1 ranking degenerates. README: 'A degeneracy guard on the sign codes'."
+    },
+    {
+      "file": "write-auto-defaults.js",
+      "source": "src/writeVectors.js",
+      "lines": "101-120",
+      "why_cited": "Auto-binary threshold, the expectedHamming spread check, and clusterCount = round(sqrt(N)/2). README: write path."
+    },
+    {
+      "file": "rerank-phases.js",
+      "source": "src/search/rerank.js",
+      "lines": "51-110",
+      "why_cited": "Phases 1 and 2 in full: range scan, candidate set, coalesced runs, useOffsetIndex float32 fetch. README: query path steps 1-2."
+    },
+    {
+      "file": "rerank-defer-ids.js",
+      "source": "src/search/rerank.js",
+      "lines": "126-129",
+      "why_cited": "Phase 3 id deferral. README: 'Fetch the id column for the top-K winners only'."
+    }
+  ]
+}

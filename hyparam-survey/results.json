@@ -1,0 +1,90 @@
+{
+  "generated_by": "hypvector_probe.mjs",
+  "corpus": {
+    "n": 50000,
+    "dim": 384,
+    "centers": 64,
+    "noise_sigma": 0.9,
+    "seed": 42,
+    "l2_normalized": true
+  },
+  "queries": {
+    "count": 20,
+    "source": "perturbed corpus vectors",
+    "noise_sigma": 0.15,
+    "stride": 997
+  },
+  "top_k": 10,
+  "file": {
+    "path": "./v.parquet",
+    "bytes": 79969680,
+    "raw_fp32_bytes": 76800000,
+    "pct_of_raw": 104.1,
+    "sha256": "41021d17c520e127b73672dd15f1ecaae7147c578f93e528dae3480f31f2765f",
+    "write_ms": 3299
+  },
+  "env": {
+    "node": "v22.22.2",
+    "platform": "linux-x64",
+    "hypvector": "0.2.2",
+    "hyparquet": "1.27.1",
+    "hyparquet-writer": "0.16.1"
+  },
+  "runs": [
+    {
+      "label": "exact full scan",
+      "options": {
+        "rerankFactor": 0
+      },
+      "ms_per_query": 162.9,
+      "recall_at_k": 1
+    },
+    {
+      "label": "default (rerankFactor 10, probe 0.25)",
+      "options": {},
+      "ms_per_query": 15.4,
+      "recall_at_k": 0.5
+    },
+    {
+      "label": "rerankFactor 17 (their N/3000 rule)",
+      "options": {
+        "rerankFactor": 17
+      },
+      "ms_per_query": 19.1,
+      "recall_at_k": 0.64
+    },
+    {
+      "label": "rerankFactor 50",
+      "options": {
+        "rerankFactor": 50
+      },
+      "ms_per_query": 34.9,
+      "recall_at_k": 0.86
+    },
+    {
+      "label": "rerankFactor 100",
+      "options": {
+        "rerankFactor": 100
+      },
+      "ms_per_query": 53.6,
+      "recall_at_k": 0.93
+    },
+    {
+      "label": "probe 1.0, rerankFactor 10",
+      "options": {
+        "probe": 1
+      },
+      "ms_per_query": 32.8,
+      "recall_at_k": 0.49
+    },
+    {
+      "label": "probe 1.0, rerankFactor 50",
+      "options": {
+        "probe": 1,
+        "rerankFactor": 50
+      },
+      "ms_per_query": 86.2,
+      "recall_at_k": 0.82
+    }
+  ]
+}
