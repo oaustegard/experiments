@@ -24,6 +24,7 @@ README = HERE / "README.md"
 NOTES = HERE / "NOTES.md"
 RESULTS = HERE / "results.json"
 REPOS = HERE / "repos.json"
+HYSNAPPY = HERE / "hysnappy_results.json"
 EVIDENCE = HERE / "evidence"
 # hypvector sources, only present when the npm package is installed locally
 LOCAL_SRC = HERE / "node_modules" / "hypvector" / "src"
@@ -58,6 +59,15 @@ def markdown_rows(text: str, header_contains: str) -> list[list[str]]:
             continue
         rows.append(cells)
     return rows
+
+
+def section(text: str, start_marker: str, end_marker: str = "\n## ") -> str:
+    """The slice of `text` from start_marker to the next end_marker."""
+    i = text.find(start_marker)
+    if i < 0:
+        return ""
+    j = text.find(end_marker, i + len(start_marker))
+    return text[i:] if j < 0 else text[i:j]
 
 
 def check_sweep_table() -> None:
@@ -170,6 +180,48 @@ def check_notes_citations() -> None:
     check(seen > 0, "no hypvector citations found in NOTES.md — did the format change?")
 
 
+def check_hysnappy() -> None:
+    """The hysnappy numbers in README/NOTES must come from hysnappy_results.json."""
+    data = json.loads(HYSNAPPY.read_text())
+    readme = README.read_text()
+    notes = NOTES.read_text()
+
+    for module, size in data["wasm_bytes"].items():
+        check(f"{size:,}" in readme or f"{size:,}" in notes,
+              f"neither README nor NOTES quotes the {module}.wasm size {size:,}")
+    limit = data["chrome_sync_module_limit_bytes"]
+    check(data["wasm_bytes"]["uncompress"] < limit,
+          f"uncompress.wasm is {data['wasm_bytes']['uncompress']} B, over the {limit} B sync limit")
+    check(f"{limit:,}" in readme or f"{limit:,}" in notes,
+          f"neither README nor NOTES states the {limit:,}-byte limit")
+
+    # Every speedup quoted as "N.Nx" in the hysnappy sections must be a real ratio.
+    for row in data["results"]:
+        for direction in ("decompress", "compress"):
+            for engine in ("hysnappy", "snappyjs"):
+                mbps = row[f"{direction}_mbps"][engine]
+                quoted = f"{mbps:,}" in notes or str(mbps) in notes
+                check(quoted,
+                      f"NOTES does not quote {row['corpus']} {direction} {engine} {mbps} MB/s")
+    # Prose rounds; it must round from a stored ratio. Scope the scan to the
+    # hysnappy sections so unrelated multipliers elsewhere are not swept in.
+    stored = [r["decompress_speedup"] for r in data["results"]]
+    stored += [r["compress_speedup"] for r in data["results"]]
+    stored += [r["decompress_speedup_spread"] for r in data["results"]]
+    for r in data["results"]:
+        stored += r["decompress_speedup_per_sweep"]
+    w = data["warmup"]
+    stored += [w["cold_spread"], w["warm_spread"], w["warm_over_cold_median"]]
+    sections = [("NOTES", section(notes, "## hysnappy"))]
+    sections += [("README", section(readme, "- **`hysnappy`**", "\n- **"))]
+    for where, text in sections:
+        for found in re.findall(r"(\d+\.\d+)x", text):
+            value = float(found)
+            places = len(found.split(".")[1])
+            check(any(round(v, places) == value for v in stored),
+                  f"{where} quotes {found}x, which rounds from no ratio in hysnappy_results.json")
+
+
 def check_evidence(offline: bool) -> None:
     """evidence/ must still match the pinned npm tarball."""
     manifest = EVIDENCE / "MANIFEST.json"
@@ -204,6 +256,7 @@ def main() -> int:
         ("repo table vs repos.json", check_repo_table),
         ("private repos absent from repos.json", check_private_repos),
         ("NOTES.md citations in range", check_notes_citations),
+        ("hysnappy numbers vs hysnappy_results.json", check_hysnappy),
         ("evidence vs pinned tarball", lambda: check_evidence(args.offline)),
     ]:
         print(f"- {name}")

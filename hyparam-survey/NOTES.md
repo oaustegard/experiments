@@ -168,10 +168,133 @@ bare JSON numbers, and `JSON.parse` truncates them to lossy doubles).
 
 ## hysnappy
 
-Snappy decompression as hand-written WASM, under 4 KB. The reason for the size
-target, from the blog: a WASM module under 4 KB can be compiled synchronously
-by the browser, which removes the extra round trip that normally makes WASM
-slower to start than JavaScript. No emscripten, no `memcpy`.
+Snappy codec in C, compiled to WebAssembly by clang with no emscripten. Read
+in full on 2026-08-24 and benchmarked against `snappyjs`; `hysnappy_bench.mjs`
+and `hysnappy_results.json` are the artifacts.
+
+### Build
+
+`Makefile` is 45 lines and the whole toolchain is one clang invocation:
+
+```
+clang --target=wasm32 -O3 -nostdlib -Wl,--export-all -Wl,--no-entry \
+      -o uncompress.wasm c/uncompress.c
+```
+
+Then `base64 -w 0` the `.wasm` and `sed` the string into
+`const wasm64 = '...'` in `js/uncompress.js`. The `.wasm` files are gitignored;
+what ships on npm is `js/` only, with the module inlined as base64. Nothing
+in the published package fetches anything.
+
+`-nostdlib` means no libc, which is why `c/uncompress.c:5-37` defines its own
+`memcpy` and `memmove` as byte loops. The blog's "not even memcpy" means no
+libc `memcpy`; the functions exist, hand-written. The only includes are
+`stdbool.h`, `stddef.h` and `stdint.h`, all header-only.
+
+The C is adapted from `andikleen/snappy-c` (credited in the README's
+references), 476 lines for uncompress and 198 for compress.
+
+### The 4 KB rule
+
+`js/uncompress.js:64-72` instantiates with `new WebAssembly.Module(byteArray)`
+followed by `new WebAssembly.Instance(mod)`, with the comment "only works for
+payload less than 4kb". That is Chrome's limit on *synchronous* WASM
+compilation: web.dev's "Loading WebAssembly" article states Chrome disables
+`WebAssembly.Module` for buffers larger than 4 KB, and the same restriction
+applies to `new WebAssembly.Instance`. Staying under it means the module
+compiles inline during module evaluation, with no `await`, no second network
+request, and no async instantiation path in the caller.
+
+Measured from the base64 in the published package:
+
+| Module | Bytes | Headroom under 4096 |
+|---|---:|---:|
+| `uncompress.wasm` | 3,458 | 638 |
+| `compress.wasm` | 2,017 | 2,079 |
+
+638 bytes is a real design constraint, not a comfortable margin. It explains
+`-O3 -nostdlib` and the hand-written byte-loop `memcpy` rather than anything
+vectorised.
+
+### Calling convention
+
+There is no allocator. `js/uncompress.js:23-56` writes the input into WASM
+linear memory at a hardcoded offset of 68,000 bytes ("clang uses some wasm
+memory, so we need to skip past that"), puts the output immediately after it,
+grows memory by whole 64 KiB pages if the total exceeds the current buffer,
+calls `uncompress(inputStart, inputLength, outputStart)`, and slices the
+result back out. Errors come back as negative integers that the JS maps to
+messages: `-1` invalid length header, `-2` missing eof marker, `-3` premature
+end of input.
+
+`outputLength` is a required argument because there is no allocator to grow
+into. For Parquet that is free — the page header carries the uncompressed
+size — which is the sense in which this library was built for hyparquet rather
+than as a general codec.
+
+`snappyUncompressor()` instantiates once and returns a closure, so repeated
+calls skip compilation. `snappyUncompress()` is the convenience wrapper that
+instantiates per call, and hyparquet uses the former.
+
+### Measured against snappyjs
+
+Node 22 on a CCotw container, hysnappy 1.1.1 vs snappyjs 0.7.0, medians of
+three sweeps each timed after two warm calls. hysnappy's figures include the
+copy into WASM memory and the slice back out, which is what a caller actually
+pays. Full numbers in `hysnappy_results.json`.
+
+| Corpus | Ratio | Decompress MB/s | Compress MB/s |
+|---|---:|---|---|
+| json-ish, highly repetitive | 5.2% | 4,373 vs 521 = 8.39x | 5,658 vs 420 = 13.47x |
+| pseudo-random, incompressible | 100% | 2,703 vs 586 = 4.61x | 345 vs 372 = 0.93x |
+| already-compressed bytes | 99.7% | 3,034 vs 590 = 5.14x | 224 vs 303 = 0.74x |
+
+This container is noisy. Within the committed run the three sweeps of the
+json-ish decompress ratio came out 5.85x, 8.4x and 8.83x, a 1.51x spread;
+the incompressible corpora are steadier at 1.14x and 1.07x. Read the ratios to
+about one significant figure. Every row's direction held in every sweep and
+every run.
+
+Decompression wins on every corpus, by 4x to 9x. The blog claims "40% faster"
+than standard JavaScript Snappy decompression, which understates it by roughly
+an order of magnitude. That post is from 2025-07 and both libraries and V8 have
+moved since; it may also have been measuring end-to-end Parquet parsing rather
+than the codec alone.
+
+Compression is where the shape changes. On compressible input hysnappy is
+13.47x, and on input that does not compress it is *slower* than snappyjs:
+0.93x on random bytes and 0.74x on an already-compressed file, and that
+ordering held in every run. When almost every byte is emitted as a literal the
+compressor is a copy loop, and hysnappy additionally pays the JS-to-WASM copy
+in and the slice out. This costs nothing on the hyparquet read path, which only
+calls the decompressor. It is worth knowing before reaching for `hysnappy` in
+`hyparquet-writer` on a column that will not compress.
+
+### Their benchmark's missing warm-up costs it 35%
+
+`benchmark.js` reports absolute MB/s with no comparison library and no warm-up
+loop. `hysnappy_cold.mjs` reproduces that shape in a fresh process per trial:
+15 trials with no warm-up gave a median of 3,201 MB/s, against 4,334 MB/s for
+the same loop after 200 warm-up iterations. That is **1.35x**, Mann-Whitney
+one-sided z=3.9, p≈7e-05 (U=207, matching `scipy.stats.mannwhitneyu` exactly;
+the p differs in the third figure because the script uses a normal
+approximation). Read the shipped number as a floor about a third below the warm
+steady state.
+
+Two false starts are worth recording, because both produced a confident wrong
+answer:
+
+- **Measuring in-process does not work.** The first attempt allocated a fresh
+  `snappyUncompressor()` per trial inside the main benchmark and saw almost no
+  difference, because V8 had already optimized the same code paths during the
+  sweeps above and a new closure does not undo that. The subprocess is the
+  measurement.
+- **Five trials per arm is underpowered here.** At n=5 two consecutive runs
+  gave opposite orderings of the cold and warm spreads. n=15 separates them
+  cleanly and reproduced across two independent runs. The max/min spread
+  statistic never stabilised at any n, which is what an extreme-value
+  statistic does under this much noise; the median shift is the number to
+  quote. `ERRORS.md` carries the run-by-run detail.
 
 ## Blog: design rules and their numbers
 
