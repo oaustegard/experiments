@@ -24,15 +24,17 @@ Surveyed 2026-08-24 from the public repos plus the `hypvector` npm tarball.
 | [`hyparquet-writer`](https://github.com/hyparam/hyparquet-writer) | 60 | Parquet writer. Dictionary/delta/RLE encodings, bloom filters, column + offset indexes, page-size control. |
 | [`hyllama`](https://github.com/hyparam/hyllama) | 50 | GGUF metadata parser. Reads llama.cpp model headers without downloading the weights. |
 | [`squirreling`](https://github.com/hyparam/squirreling) | 38 | Streaming SQL engine, 13 KB, zero deps. Rows are AsyncGenerators, cells are async thunks. |
-| [`hysnappy`](https://github.com/hyparam/hysnappy) | 27 | Snappy decoder in hand-written WASM, under 4 KB so the browser can compile it synchronously. |
+| [`hysnappy`](https://github.com/hyparam/hysnappy) | 27 | Snappy codec in C, clang-compiled to a 3,458-byte WASM module and inlined as base64. Decodes 4-9x faster than `snappyjs`. |
 | [`hyparquet-compressors`](https://github.com/hyparam/hyparquet-compressors) | 18 | gzip/brotli/zstd/lz4/lzo for hyparquet. |
 | [`demos`](https://github.com/hyparam/demos) | 10 | Ten runnable Vite apps, one per library. |
 | [`parquet-grep`](https://github.com/hyparam/parquet-grep) | 2 | `grep` over local or remote Parquet, CLI. |
 
 `hypvector`, `hypgrep` and `hypstore` appear as demo directories and npm
 packages but their GitHub repos are not public — `git clone` returns an auth
-prompt. `hypvector`'s npm tarball ships the full unminified `src/`, which is
-what this survey read.
+prompt. The `hypvector@0.2.2` npm tarball ships the full unminified `src/`,
+1,826 lines across 14 files, and that is what this survey read. Its sha256 is
+pinned in `extract_evidence.py`, which re-derives every source passage cited
+below into `evidence/`.
 
 The blog names the design rule the whole stack follows: *round trips matter
 more than total bandwidth, and time-to-first-byte is the query optimization
@@ -127,24 +129,31 @@ their footnotes say. Treat the dollar column as the honest one.
 
 ## A 50k-vector sweep
 
-`hypvector_probe.mjs` in this directory: 50,000 synthetic 384-dim vectors,
-64 Gaussian centers with σ=0.9 noise, L2-normalized; 20 queries, each a
-perturbed corpus vector. Local file, node 22, no network. Recall is measured
-against hypvector's own exact scan, so it isolates the approximation and not
-the data.
+`hypvector_probe.mjs`: 50,000 synthetic 384-dim vectors, 64 Gaussian centers
+with σ=0.9 noise, L2-normalized; 20 queries, each a perturbed corpus vector.
+Local file, node 22, no network. Recall is scored against hypvector's own
+exact scan, which isolates the approximation and removes any question about
+whether the synthetic corpus has a well-defined ground truth.
+
+One seeded LCG drives centers, noise and queries, and hypvector's k-means
+takes seed 1 by default, so a rerun reproduces the recall column exactly and
+writes a byte-identical `v.parquet`. Only the ms column moves. `run.log` is
+the raw stdout of the committed run; `results.json` carries the same numbers
+with the corpus parameters, the locked package versions and the parquet
+sha256 attached.
 
 The written file is 79,969,680 bytes against 76,800,000 bytes of raw float32,
 104.1% of raw, in 112 clusters of one row group each.
 
 | Search | ms/query | recall@10 |
 |---|---:|---:|
-| exact full scan (`rerankFactor: 0`) | 198 | 100% |
-| default (`rerankFactor: 10`, `probe: 0.25`) | 19 | 50% |
-| `rerankFactor: 17` (their `N/3000` rule) | 21 | 64% |
-| `rerankFactor: 50` | 41 | 86% |
-| `rerankFactor: 100` | 63 | 93% |
-| `probe: 1.0`, `rerankFactor: 10` | 41 | 49% |
-| `probe: 1.0`, `rerankFactor: 50` | 100 | 82% |
+| exact full scan (`rerankFactor: 0`) | 163 | 100% |
+| default (`rerankFactor: 10`, `probe: 0.25`) | 15 | 50% |
+| `rerankFactor: 17` (their `N/3000` rule) | 19 | 64% |
+| `rerankFactor: 50` | 35 | 86% |
+| `rerankFactor: 100` | 54 | 93% |
+| `probe: 1.0`, `rerankFactor: 10` | 33 | 49% |
+| `probe: 1.0`, `rerankFactor: 50` | 86 | 82% |
 
 **The claim in `constants.js` reproduces.** Their comment says residual
 misses are a `rerankFactor` limit and not a `probe` limit. Scanning every
@@ -249,10 +258,21 @@ catches the proper nouns and identifiers a sign-bit code cannot.
   `appliedLimitOffset` flags so a source can push down what it can and let
   the engine handle the rest. That handshake is a good pattern for any
   retrieval backend with partial predicate support.
-- **`hysnappy`** exists because a WASM blob under 4 KB can be compiled
-  synchronously by the browser, which saves the extra round trip that
-  normally makes WASM slower to start than JavaScript. Useful constraint to
-  remember for any hot kernel we might want to ship to a page.
+- **`hysnappy`** is 674 lines of C compiled by clang — no emscripten — to a
+  3,458-byte WASM module, inlined into the JavaScript as base64. Measured here
+  against `snappyjs`: decompression 4.61x to 8.39x faster; compression 13.47x
+  on compressible input, and 0.74x to 0.93x on input that does not compress,
+  where it loses to the pure-JS library. It runs in Chromium 141 as published.
+  It is the right tool for reading snappy someone else wrote — Parquet, Kafka,
+  LevelDB — and the wrong one for compressing your own browser payloads:
+  `CompressionStream` is native, ships zero bytes, and produces output 1.7x to
+  8x smaller. hysnappy also implements the block format, which has no checksum,
+  and 59% of single-bit corruptions in a compressed buffer come back as wrong
+  bytes with no error. Rebuilding the decoder eight ways and running it over
+  pages from a real Parquet file puts `-msimd128` at 2 to 5% weighted over the
+  file's column mix, not the 2.7x a synthetic incompressible corpus advertises:
+  the largest column in that file is dominated by two-byte literal runs, which
+  no copy width reaches. `NOTES.md` has the full read.
 - **`icebird`** does partition pruning, manifest-level `fileMightMatch`
   filtering, position deletes and SigV4 signing from the browser. If a
   corpus ever wants versioning and time travel without a catalog service,
@@ -263,14 +283,54 @@ catches the proper nouns and identifiers a sign-bit code cannot.
 - **`hyllama`** reads GGUF headers over range requests without pulling the
   weights, which is how you inspect a 40 GB model file in a second.
 
+## Files
+
+| File | What it is |
+|---|---|
+| `README.md` | this writeup |
+| `NOTES.md` | the reading notes, at full detail, with a file and line for every claim |
+| `ERRORS.md` | what was wrong along the way and which direction it pushed |
+| `hypvector_probe.mjs` | the hypvector sweep; writes `results.json` |
+| `results.json` | the measured numbers, plus corpus parameters, locked versions, parquet sha256 |
+| `run.log` | raw stdout of the committed hypvector run |
+| `hysnappy_bench.mjs` | hysnappy vs snappyjs over three corpora; writes `hysnappy_results.json` |
+| `hysnappy_cold.mjs` | one cold decompress timing, spawned per trial to measure the warm-up effect |
+| `hysnappy_results.json`, `hysnappy_run.log` | the codec numbers and raw stdout |
+| `practicality.mjs` | format, corruption, `outputLength`, gzip comparison, and a real-Chromium run |
+| `practicality_results.json` | what that produced |
+| `wasm-variants/` | rebuilds the decoder eight ways (i64 fix, wide copy, `-msimd128`) and benchmarks them |
+| `wasm-variants/real-pages/` | the same variants over snappy pages from a real 48 MB Parquet file, with bootstrap CIs |
+| `fixtures/compressed.bin` | already-compressed bytes for the incompressible-input case |
+| `extract_evidence.py` | downloads the pinned tarball, verifies its sha256, re-derives `evidence/` |
+| `evidence/` | the nine hypvector passages this writeup cites, each with its file and line range |
+| `repos.json` | all 27 public repos as the GitHub search API returned them |
+| `recheck.py` | checks this prose against those artifacts |
+
+`v.parquet` and `node_modules/` are gitignored.
+
 ## Reproduce
 
 ```bash
 cd hyparam-survey
 npm install
-node hypvector_probe.mjs
+node hypvector_probe.mjs     # ~5 min; writes v.parquet, results.json
+node hysnappy_bench.mjs      # ~2 min; writes hysnappy_results.json
+npm i --no-save playwright-core && node practicality.mjs   # needs Chromium
+python3 wasm-variants/build_and_bench.py       # needs clang with the wasm32 target
+python3 wasm-variants/real-pages/run.py        # downloads a 48 MB real Parquet file
+python3 extract_evidence.py  # re-derive evidence/ from the pinned tarball
+python3 recheck.py           # check README against all of the above
 ```
 
-Writes an 80 MB `v.parquet` (gitignored), runs the sweep, prints the table.
-Takes about five minutes. `node node_modules/hypvector/bin/cli.js v.parquet`
-prints the format header.
+`node node_modules/hypvector/bin/cli.js v.parquet` prints the format header:
+vector count, dimension, metric, binary column, cluster count, storage overhead.
+
+`recheck.py` is the one to run after any edit to this writeup. It parses the two
+tables out of `README.md` and compares them against `results.json` and
+`repos.json` row by row, verifies the byte counts and corpus parameters are
+quoted from the artifacts rather than typed, confirms the three repos called
+private are genuinely absent from `repos.json`, checks every hypvector line
+citation in `NOTES.md` lands inside the file it names, and re-fetches the pinned
+tarball to confirm `evidence/` still matches it. Recall must match exactly;
+timings are allowed a 4x band because they are machine-dependent. It takes a few
+seconds. `--offline` skips the tarball fetch.

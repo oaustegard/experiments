@@ -1,0 +1,22 @@
+# hysnappy_bench.mjs — 2026-08-24 09:13 EDT
+
+node v22.22.2 linux-x64   hysnappy 1.1.1   snappyjs 0.7.0
+wasm: uncompress 3458 B, compress 2017 B (Chrome's synchronous new WebAssembly.Module limit is 4096 B)
+
+json-ish, highly repetitive   178 KB -> 9.3 KB (5.2%)
+  decompress  hysnappy  4373 MB/s   snappyjs   521 MB/s   8.39x
+  compress    hysnappy  5658 MB/s   snappyjs   420 MB/s   13.47x
+
+pseudo-random, incompressible   512 KB -> 512.0 KB (100%)
+  decompress  hysnappy  2703 MB/s   snappyjs   586 MB/s   4.61x
+  compress    hysnappy   345 MB/s   snappyjs   372 MB/s   0.93x
+
+already-compressed bytes   81 KB -> 80.9 KB (99.7%)
+  decompress  hysnappy  3034 MB/s   snappyjs   590 MB/s   5.14x
+  compress    hysnappy   224 MB/s   snappyjs   303 MB/s   0.74x
+
+no warm-up  n=15  median 3201 MB/s  spread 1.3x
+200 warm    n=15  median 4334 MB/s  spread 1.8x
+warm/cold median 1.35x   Mann-Whitney z=3.9 p=0.000069
+
+wrote hysnappy_results.json
