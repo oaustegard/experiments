@@ -24,7 +24,7 @@ Surveyed 2026-08-24 from the public repos plus the `hypvector` npm tarball.
 | [`hyparquet-writer`](https://github.com/hyparam/hyparquet-writer) | 60 | Parquet writer. Dictionary/delta/RLE encodings, bloom filters, column + offset indexes, page-size control. |
 | [`hyllama`](https://github.com/hyparam/hyllama) | 50 | GGUF metadata parser. Reads llama.cpp model headers without downloading the weights. |
 | [`squirreling`](https://github.com/hyparam/squirreling) | 38 | Streaming SQL engine, 13 KB, zero deps. Rows are AsyncGenerators, cells are async thunks. |
-| [`hysnappy`](https://github.com/hyparam/hysnappy) | 27 | Snappy codec in C, clang-compiled to a 3,458-byte WASM module and inlined as base64 so Chrome compiles it synchronously. |
+| [`hysnappy`](https://github.com/hyparam/hysnappy) | 27 | Snappy codec in C, clang-compiled to a 3,458-byte WASM module and inlined as base64. Decodes 4-9x faster than `snappyjs`. |
 | [`hyparquet-compressors`](https://github.com/hyparam/hyparquet-compressors) | 18 | gzip/brotli/zstd/lz4/lzo for hyparquet. |
 | [`demos`](https://github.com/hyparam/demos) | 10 | Ten runnable Vite apps, one per library. |
 | [`parquet-grep`](https://github.com/hyparam/parquet-grep) | 2 | `grep` over local or remote Parquet, CLI. |
@@ -259,15 +259,16 @@ catches the proper nouns and identifiers a sign-bit code cannot.
   the engine handle the rest. That handshake is a good pattern for any
   retrieval backend with partial predicate support.
 - **`hysnappy`** is 674 lines of C compiled by clang — no emscripten — to a
-  3,458-byte WASM module, inlined into the JavaScript as base64. It stays
-  under 4,096 bytes because that is Chrome's ceiling for *synchronous*
-  `new WebAssembly.Module`, so the module compiles during module evaluation
-  with no `await` and no second network request. Measured here against
-  `snappyjs`: decompression 4.61x to 8.39x faster; compression 13.47x on
-  compressible input, and 0.74x to 0.93x on input that does not compress,
-  where it loses to the pure-JS library. `NOTES.md` has the full read and
-  `hysnappy_results.json` the numbers. The 4 KB ceiling is the constraint to
-  remember for any hot kernel we might want to ship to a page.
+  3,458-byte WASM module, inlined into the JavaScript as base64. Measured here
+  against `snappyjs`: decompression 4.61x to 8.39x faster; compression 13.47x
+  on compressible input, and 0.74x to 0.93x on input that does not compress,
+  where it loses to the pure-JS library. It runs in Chromium 141 as published.
+  It is the right tool for reading snappy someone else wrote — Parquet, Kafka,
+  LevelDB — and the wrong one for compressing your own browser payloads:
+  `CompressionStream` is native, ships zero bytes, and produces output 1.7x to
+  8x smaller. hysnappy also implements the block format, which has no checksum,
+  and 59% of single-bit corruptions in a compressed buffer come back as wrong
+  bytes with no error. `NOTES.md` has the full read.
 - **`icebird`** does partition pruning, manifest-level `fileMightMatch`
   filtering, position deletes and SigV4 signing from the browser. If a
   corpus ever wants versioning and time travel without a catalog service,
@@ -291,6 +292,8 @@ catches the proper nouns and identifiers a sign-bit code cannot.
 | `hysnappy_bench.mjs` | hysnappy vs snappyjs over three corpora; writes `hysnappy_results.json` |
 | `hysnappy_cold.mjs` | one cold decompress timing, spawned per trial to measure the warm-up effect |
 | `hysnappy_results.json`, `hysnappy_run.log` | the codec numbers and raw stdout |
+| `practicality.mjs` | format, corruption, `outputLength`, gzip comparison, and a real-Chromium run |
+| `practicality_results.json` | what that produced |
 | `fixtures/compressed.bin` | already-compressed bytes for the incompressible-input case |
 | `extract_evidence.py` | downloads the pinned tarball, verifies its sha256, re-derives `evidence/` |
 | `evidence/` | the nine hypvector passages this writeup cites, each with its file and line range |
@@ -306,6 +309,7 @@ cd hyparam-survey
 npm install
 node hypvector_probe.mjs     # ~5 min; writes v.parquet, results.json
 node hysnappy_bench.mjs      # ~2 min; writes hysnappy_results.json
+npm i --no-save playwright-core && node practicality.mjs   # needs Chromium
 python3 extract_evidence.py  # re-derive evidence/ from the pinned tarball
 python3 recheck.py           # check README against all of the above
 ```
