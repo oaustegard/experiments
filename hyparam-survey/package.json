@@ -3,10 +3,15 @@
   "private": true,
   "type": "module",
   "description": "Reproduces the hypvector recall/latency sweep in README.md",
-  "scripts": { "probe": "node hypvector_probe.mjs" },
+  "scripts": {
+    "probe": "node hypvector_probe.mjs",
+    "bench:snappy": "node hysnappy_bench.mjs"
+  },
   "dependencies": {
     "hypvector": "0.2.2",
     "hyparquet": "1.27.1",
-    "hyparquet-writer": "0.16.1"
+    "hyparquet-writer": "0.16.1",
+    "snappyjs": "0.7.0",
+    "hysnappy": "1.1.1"
   }
 }
