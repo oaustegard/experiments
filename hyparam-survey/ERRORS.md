@@ -1,9 +1,9 @@
 # Errors
 
 What was wrong during this survey, how it was caught, and which direction it
-pushed the conclusion. The base rate matters more than any single entry: ten
-errors, of which one reached a merged commit and none changed a published
-number.
+pushed the conclusion. The base rate matters more than any single entry: twelve
+errors, of which one reached a merged commit, one shipped a wrong claim in an
+open PR, and none changed a measured number.
 
 ## Before the writeup
 
@@ -85,6 +85,34 @@ and 1.35x across two independent runs. Direction: at n=5 the sign of the
 reported effect was a coin flip. The max/min spread statistic never stabilised
 at any n and was dropped in favour of the median shift.
 
+
+**Quoted a browser limit that stopped applying in 2023.** I wrote that
+hysnappy's 3,458-byte module stays "under 4,096 bytes because that is Chrome's
+ceiling for synchronous `new WebAssembly.Module`", called the 638 bytes of
+headroom "a real design constraint, not a comfortable margin", and told Oskar
+the 4 KB ceiling was "the constraint to remember for any hot kernel we might
+want to ship to a page". Chrome raised the limit to 8 MB in Chrome 115, June
+2023. Verified in Chromium 141 by padding the real module with a valid custom
+section: 8,388,607 B accepted, 8,388,699 B rejected. My source was web.dev's
+"Loading WebAssembly" article, which still documents 4 KB, reached by
+`WebFetch` — the same figure hysnappy's own code comment cites, so the library
+and the article and I were all repeating a number none of us had tested.
+Caught only because "is this practical in-browser" sent me to run it in an
+actual browser. Direction: the correction makes the constraint *looser* by
+three orders of magnitude, so nothing built on the old advice would have
+failed — it would just have been needlessly small. The rule this earns:
+**a documented platform limit is a claim with a date on it.** Probe it. Failing
+that, read the vendor's status entry rather than a tutorial.
+
+**Reported a decompression comparison whose slow side was measuring the wrong
+thing.** The first gzip comparison put `DecompressionStream` at 73-82 MB/s
+against snappy's 900-2,800, which reads as a 30x codec gap. At 37 KB per call
+that number is mostly `CompressionStream` construction plus `new Response()`
+plumbing, not inflate. At 8 MiB the same comparison gives 216 vs 1,416 MB/s.
+Caught by re-running at a size where per-call setup could not dominate.
+Direction: would have overstated snappy's decode advantage by roughly 5x, and
+the writeup now labels which row is an API comparison and which is a codec
+comparison.
 
 ## After the first push
 

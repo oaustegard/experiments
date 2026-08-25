@@ -194,27 +194,46 @@ libc `memcpy`; the functions exist, hand-written. The only includes are
 The C is adapted from `andikleen/snappy-c` (credited in the README's
 references), 476 lines for uncompress and 198 for compress.
 
-### The 4 KB rule
+### The 4 KB rule stopped applying in 2023
 
 `js/uncompress.js:64-72` instantiates with `new WebAssembly.Module(byteArray)`
 followed by `new WebAssembly.Instance(mod)`, with the comment "only works for
-payload less than 4kb". That is Chrome's limit on *synchronous* WASM
-compilation: web.dev's "Loading WebAssembly" article states Chrome disables
-`WebAssembly.Module` for buffers larger than 4 KB, and the same restriction
-applies to `new WebAssembly.Instance`. Staying under it means the module
-compiles inline during module evaluation, with no `await`, no second network
-request, and no async instantiation path in the caller.
-
+payload less than 4kb", and the README explains the size target the same way.
 Measured from the base64 in the published package:
 
-| Module | Bytes | Headroom under 4096 |
-|---|---:|---:|
-| `uncompress.wasm` | 3,458 | 638 |
-| `compress.wasm` | 2,017 | 2,079 |
+| Module | Bytes |
+|---|---:|
+| `uncompress.wasm` | 3,458 |
+| `compress.wasm` | 2,017 |
 
-638 bytes is a real design constraint, not a comfortable margin. It explains
-`-O3 -nostdlib` and the hand-written byte-loop `memcpy` rather than anything
-vectorised.
+Chrome raised that limit from 4 KB to 8 MB in Chrome 115, June 2023
+([chromestatus 5099433642950656](https://chromestatus.com/feature/5099433642950656),
+[intent to ship](https://groups.google.com/a/chromium.org/g/blink-dev/c/nJw2zwaiJ2s/m/EYPgC5D3LwAJ)).
+The 4 KB rule dated from when V8 compiled WASM eagerly with an optimizing
+compiler; lazy compilation made synchronous compile cheap enough that they
+re-measured on a Pixel 1 and picked 8 MB.
+
+Verified in Chromium 141 by padding the real module past 4 KB with a valid
+custom section, so the only rule that could reject it was the size rule:
+
+| Module size | `new WebAssembly.Module` on the main thread |
+|---:|---|
+| 4,093 B | accepted |
+| 7,997 B | accepted |
+| 999,998 B | accepted |
+| 8,388,607 B | accepted |
+| 8,388,699 B | rejected: "disallowed on the main thread, if the buffer size is larger than 8MB" |
+
+So the ceiling is exactly 8 MiB, and hysnappy sits three orders of magnitude
+under a constraint that has not bound since 2023. The `-nostdlib` build and the
+byte-loop `memcpy` still buy a small module, which is worth having, but they are
+no longer buying synchronous instantiation. Anything under 8 MiB gets that.
+
+The useful version of this rule for us: a hot kernel we compile to WASM can be
+up to 8 MiB and still instantiate synchronously on the main thread, with no
+`await` and no second network request. web.dev's "Loading WebAssembly" article
+still documents the old 4 KB figure, which is where hysnappy's comment and my
+first reading of it both came from.
 
 ### Calling convention
 
@@ -295,6 +314,73 @@ answer:
   statistic never stabilised at any n, which is what an extreme-value
   statistic does under this much noise; the median shift is the number to
   quote. `ERRORS.md` carries the run-by-run detail.
+
+### Practical as a general in-browser compression library: no
+
+`practicality.mjs` and `practicality_results.json`. Four findings, each of
+which is about fitness rather than speed.
+
+**It speaks the block format.** Compressed output starts `0x2b 0x28 0x68 ...`;
+the framed `.sz` stream identifier `0xff 0x06 0x00 0x00 sNaPpY` is absent. So
+there is no streaming decode, no chunking, and no CRC32C. The framed format
+checksums every chunk. The block format has no checksum at all.
+
+**Corruption is usually silent.** Flipping one bit at an even stride through a
+6,680-byte compressed buffer, 400 trials: 163 threw, **237 returned wrong bytes
+with no error**, none returned correct bytes. So 59% of single-bit corruptions
+produce plausible-looking garbage. Anything crossing a network needs its own
+checksum on top.
+
+**`outputLength` is unchecked in both directions.** Pass it too small and you
+get a short buffer of wrong bytes; too large and you get the right bytes
+zero-padded to the length you asked for. Neither throws.
+
+| `outputLength` error | Result |
+|---|---|
+| -1000, -100, -1 | returns that many bytes, wrong content, no error |
+| exact | correct |
+| +1, +100 | correct prefix, zero-padded, no error |
+
+Parquet makes this a non-issue because the page header carries the uncompressed
+size. For a general library it is a trap, and combined with the missing
+checksum there is no layer that will catch a mistake.
+
+**The browser already ships a better-compressing codec.** `CompressionStream`
+with `gzip` / `deflate` / `deflate-raw` is native, costs zero shipped bytes, has
+framing, and compresses far harder:
+
+| Corpus | snappy | gzip | snappy is |
+|---|---:|---:|---|
+| API JSON, 37 KB | 6,680 B (17.9%) | 3,859 B (10.4%) | 1.73x larger |
+| English prose, 49 KB | 2,423 B (4.9%) | 304 B (0.6%) | 7.97x larger |
+
+Snappy is not a browser transport format — there is no `Content-Encoding:
+snappy` — so for bytes you control, gzip wins on the axis you are actually
+paying for.
+
+What snappy buys is CPU. On an 8 MiB payload, decode 1,208 vs 181 MB/s and
+encode 4,287 vs 91 MB/s. If you are decoding hundreds of megabytes of
+already-snappy data client-side, that gap is what you came for. If you are
+choosing a format for your own payloads, you are trading 1.7x to 8x more bytes
+for CPU you probably were not short of.
+
+### It runs in a real browser
+
+Chromium 141 headless, hysnappy loaded from its published ESM files over HTTP:
+
+| | |
+|---|---|
+| round trip | correct |
+| first `snappyUncompressor()` | 0.9 ms |
+| snappy decode | 136 MB/s |
+| gzip decode via `DecompressionStream` | 58 MB/s |
+| `CompressionStream` present | yes |
+
+The browser decode figure is well below Node's on the same corpus, and the
+gzip figure at this size is dominated by per-call `CompressionStream` plus
+`Response` setup rather than by inflate. Read the 37 KB row as an API-shape
+comparison and the 8 MiB row above as the codec comparison.
+
 
 ## Blog: design rules and their numbers
 

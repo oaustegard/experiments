@@ -25,6 +25,7 @@ NOTES = HERE / "NOTES.md"
 RESULTS = HERE / "results.json"
 REPOS = HERE / "repos.json"
 HYSNAPPY = HERE / "hysnappy_results.json"
+PRACTICAL = HERE / "practicality_results.json"
 EVIDENCE = HERE / "evidence"
 # hypvector sources, only present when the npm package is installed locally
 LOCAL_SRC = HERE / "node_modules" / "hypvector" / "src"
@@ -189,11 +190,8 @@ def check_hysnappy() -> None:
     for module, size in data["wasm_bytes"].items():
         check(f"{size:,}" in readme or f"{size:,}" in notes,
               f"neither README nor NOTES quotes the {module}.wasm size {size:,}")
-    limit = data["chrome_sync_module_limit_bytes"]
-    check(data["wasm_bytes"]["uncompress"] < limit,
-          f"uncompress.wasm is {data['wasm_bytes']['uncompress']} B, over the {limit} B sync limit")
-    check(f"{limit:,}" in readme or f"{limit:,}" in notes,
-          f"neither README nor NOTES states the {limit:,}-byte limit")
+    # The sync-compile ceiling itself is checked in check_practicality, which
+    # measured it rather than quoting the constant this file recorded.
 
     # Every speedup quoted as "N.Nx" in the hysnappy sections must be a real ratio.
     for row in data["results"]:
@@ -212,6 +210,9 @@ def check_hysnappy() -> None:
         stored += r["decompress_speedup_per_sweep"]
     w = data["warmup"]
     stored += [w["cold_spread"], w["warm_spread"], w["warm_over_cold_median"]]
+    if PRACTICAL.exists():
+        prac = json.loads(PRACTICAL.read_text())
+        stored += [r["snappy_over_gzip"] for r in prac["ratio"]]
     sections = [("NOTES", section(notes, "## hysnappy"))]
     sections += [("README", section(readme, "- **`hysnappy`**", "\n- **"))]
     for where, text in sections:
@@ -220,6 +221,58 @@ def check_hysnappy() -> None:
             places = len(found.split(".")[1])
             check(any(round(v, places) == value for v in stored),
                   f"{where} quotes {found}x, which rounds from no ratio in hysnappy_results.json")
+
+
+def check_practicality() -> None:
+    """Fitness claims in README/NOTES must come from practicality_results.json."""
+    data = json.loads(PRACTICAL.read_text())
+    notes = NOTES.read_text()
+    readme = README.read_text()
+
+    check(data["format"]["framed_sz"] is False,
+          "practicality_results says the output IS framed, but the prose says block format")
+    check("block format" in notes, "NOTES does not state the block format finding")
+
+    c = data["corruption"]
+    check(f"{c['silent_corruption_pct']}%" in notes or f"{c['silent_corruption_pct']}%" in readme,
+          f"neither doc quotes the silent-corruption rate {c['silent_corruption_pct']}%")
+    check(f"{c['returned_wrong_bytes']}" in notes,
+          f"NOTES does not quote the {c['returned_wrong_bytes']} wrong-byte trials")
+    check(f"{c['threw']}" in notes, f"NOTES does not quote the {c['threw']} that threw")
+
+    # Every outputLength row must be unchecked in the direction the prose claims.
+    exact = [r for r in data["output_length_discipline"] if r["delta"] == 0]
+    check(exact and exact[0]["bytes_correct"], "the exact outputLength row is not correct")
+    wrong = [r for r in data["output_length_discipline"] if r["delta"] != 0]
+    check(all(not r["threw"] for r in wrong),
+          "some wrong outputLength threw, but the prose says none do")
+    check(all(not r["bytes_correct"] for r in wrong),
+          "some wrong outputLength returned correct bytes")
+
+    for row in data["ratio"]:
+        check(f"{row['snappy_over_gzip']}x larger" in notes,
+              f"NOTES does not quote {row['corpus']} as {row['snappy_over_gzip']}x larger than gzip")
+        check(f"{row['snappy_bytes']:,} B" in notes,
+              f"NOTES does not quote {row['corpus']} snappy size {row['snappy_bytes']:,}")
+
+    big = data["large_payload"]
+    for key in ("snappy_decode_mbps", "gzip_decode_mbps", "snappy_encode_mbps", "gzip_encode_mbps"):
+        check(f"{big[key]:,}" in notes or str(big[key]) in notes,
+              f"NOTES does not quote large-payload {key} = {big[key]}")
+
+    b = data.get("browser", {})
+    if "skipped" in b:
+        print(f"  skip: browser half not run ({b['skipped'][:60]})")
+        return
+    check(b["round_trip_ok"], "the browser round trip failed")
+    check(b["CompressionStream"], "CompressionStream absent in the tested browser")
+    # The 8 MiB ceiling: everything at or under 8388608 accepted, above rejected.
+    for size, verdict in b["sync_module_limit"].items():
+        accepted = verdict == "accepted"
+        check(accepted == (int(size) <= 8 * 1024 * 1024),
+              f"sync module at {size} B: {verdict!r} contradicts an 8 MiB ceiling")
+    check("8 MiB" in notes or "8 MB" in notes, "NOTES does not name the 8 MB limit")
+    check("Chrome 115" in notes, "NOTES does not date the change to Chrome 115")
 
 
 def check_evidence(offline: bool) -> None:
@@ -257,6 +310,7 @@ def main() -> int:
         ("private repos absent from repos.json", check_private_repos),
         ("NOTES.md citations in range", check_notes_citations),
         ("hysnappy numbers vs hysnappy_results.json", check_hysnappy),
+        ("practicality claims vs practicality_results.json", check_practicality),
         ("evidence vs pinned tarball", lambda: check_evidence(args.offline)),
     ]:
         print(f"- {name}")
