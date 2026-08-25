@@ -1,0 +1,43 @@
+# build_and_bench.py — 2026-08-24 21:04 EDT
+
+module sizes
+  b_i64.wasm               3560 B
+  b_i64_simd.wasm          4020 B
+  base.wasm                3608 B
+  base_simd.wasm           4085 B
+  c_widecpy.wasm           3824 B
+  c_widecpy_simd.wasm      4282 B
+  e_both.wasm              3772 B
+  e_both_simd.wasm         4213 B
+
+literal
+  base_simd.wasm            11339 MB/s  2.86x base   [11353, 11317, 11339, 9816, 12117]
+  c_widecpy_simd.wasm       11286 MB/s  2.84x base   [12368, 11203, 11286, 12526, 11129]
+  e_both_simd.wasm          10984 MB/s  2.77x base   [11032, 10742, 10984, 10902, 11697]
+  c_widecpy.wasm            10893 MB/s  2.74x base   [12037, 10840, 10701, 10893, 11067]
+  e_both.wasm               10614 MB/s  2.67x base   [10088, 10699, 9987, 10614, 11089]
+  b_i64_simd.wasm           10609 MB/s  2.67x base   [10815, 10569, 12515, 10609, 9503]
+  base.wasm                  3971 MB/s  1.00x base   [3807, 3971, 3847, 4275, 4225]
+  b_i64.wasm                 3963 MB/s  1.00x base   [4075, 3809, 3691, 3963, 4289]
+
+match
+  e_both.wasm                3638 MB/s  1.02x base   [3656, 3647, 3638, 3522, 3630]
+  c_widecpy.wasm             3569 MB/s  1.00x base   [3569, 3476, 3519, 3603, 3578]
+  b_i64.wasm                 3567 MB/s  1.00x base   [3432, 3551, 3567, 3599, 3661]
+  base.wasm                  3564 MB/s  1.00x base   [3541, 3612, 3604, 3534, 3564]
+  c_widecpy_simd.wasm        3548 MB/s  1.00x base   [3555, 3548, 3605, 3463, 3464]
+  base_simd.wasm             3518 MB/s  0.99x base   [3563, 3472, 3554, 3518, 3421]
+  b_i64_simd.wasm            2292 MB/s  0.64x base   [2319, 2310, 2292, 2282, 2278]
+  e_both_simd.wasm           2288 MB/s  0.64x base   [2253, 2289, 2288, 2273, 2305]
+
+json
+  b_i64.wasm                10110 MB/s  1.22x base   [10255, 10110, 4332, 10052, 10343]
+  e_both.wasm                9911 MB/s  1.20x base   [9812, 9911, 7908, 10016, 10147]
+  b_i64_simd.wasm            9798 MB/s  1.18x base   [9440, 9798, 10440, 10542, 9584]
+  e_both_simd.wasm           8690 MB/s  1.05x base   [9801, 7961, 9469, 8690, 8551]
+  c_widecpy.wasm             8329 MB/s  1.01x base   [8333, 8739, 8329, 8106, 7596]
+  base.wasm                  8277 MB/s  1.00x base   [8277, 8316, 8404, 8259, 6667]
+  base_simd.wasm             7005 MB/s  0.85x base   [6862, 8415, 7355, 6990, 7005]
+  c_widecpy_simd.wasm        6984 MB/s  0.84x base   [7630, 7767, 6984, 6873, 6944]
+
+wrote results.json

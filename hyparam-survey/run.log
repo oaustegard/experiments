@@ -1,0 +1,13 @@
+# hypvector_probe.mjs — 2026-08-24 08:53 EDT
+# node v22.22.2, Linux x86_64
+
+write 3299 ms   file 80.0 MB   raw fp32 76.8 MB   104.1% of raw
+exact full scan                          162.9 ms/q   recall@10 100.0%
+default (rerankFactor 10, probe 0.25)     15.4 ms/q   recall@10 50.0%
+rerankFactor 17 (their N/3000 rule)       19.1 ms/q   recall@10 64.0%
+rerankFactor 50                           34.9 ms/q   recall@10 86.0%
+rerankFactor 100                          53.6 ms/q   recall@10 93.0%
+probe 1.0, rerankFactor 10                32.8 ms/q   recall@10 49.0%
+probe 1.0, rerankFactor 50                86.2 ms/q   recall@10 82.0%
+
+wrote results.json   v.parquet sha256 41021d17c520e127b73672dd15f1ecaae7147c578f93e528dae3480f31f2765f

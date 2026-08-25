@@ -1,0 +1,63 @@
+# real-pages/run.py — 2026-08-24 21:46 EDT
+
+
+trip_distance
+  b_i64.wasm                 1197 MB/s  0.97x  CI [0.95, 1.02]  no effect
+  b_i64_simd.wasm            1304 MB/s  1.05x  CI [1.04, 1.09]  FASTER
+  base.wasm                1236.8 MB/s  
+  base_simd.wasm           1300.4 MB/s  1.05x  CI [0.98, 1.09]  no effect
+  c_widecpy.wasm           1289.9 MB/s  1.04x  CI [0.99, 1.09]  no effect
+  c_widecpy_simd.wasm      1289.6 MB/s  1.04x  CI [1.01, 1.09]  FASTER
+  e_both.wasm              1299.9 MB/s  1.05x  CI [1.05, 1.10]  FASTER
+  e_both_simd.wasm         1298.5 MB/s  1.05x  CI [1.02, 1.09]  FASTER
+
+total_amount
+  b_i64.wasm               2131.1 MB/s  1.02x  CI [1.00, 1.14]  no effect
+  b_i64_simd.wasm          2950.1 MB/s  1.42x  CI [1.33, 1.54]  FASTER
+  base.wasm                2078.6 MB/s  
+  base_simd.wasm           2975.2 MB/s  1.43x  CI [1.39, 1.59]  FASTER
+  c_widecpy.wasm           2793.5 MB/s  1.34x  CI [1.27, 1.47]  FASTER
+  c_widecpy_simd.wasm      2977.4 MB/s  1.43x  CI [1.35, 1.59]  FASTER
+  e_both.wasm                2865 MB/s  1.38x  CI [1.34, 1.54]  FASTER
+  e_both_simd.wasm         2969.2 MB/s  1.43x  CI [1.39, 1.59]  FASTER
+
+tpep_pickup_datetime
+  b_i64.wasm                817.3 MB/s  0.98x  CI [0.96, 0.99]  SLOWER
+  b_i64_simd.wasm             838 MB/s  1.00x  CI [0.99, 1.02]  no effect
+  base.wasm                   836 MB/s  
+  base_simd.wasm            820.6 MB/s  0.98x  CI [0.96, 1.00]  no effect
+  c_widecpy.wasm            818.9 MB/s  0.98x  CI [0.94, 1.00]  no effect
+  c_widecpy_simd.wasm       800.4 MB/s  0.96x  CI [0.93, 0.98]  SLOWER
+  e_both.wasm               810.4 MB/s  0.97x  CI [0.96, 0.99]  SLOWER
+  e_both_simd.wasm          809.1 MB/s  0.97x  CI [0.96, 0.99]  SLOWER
+
+PULocationID
+  b_i64.wasm               1641.1 MB/s  1.02x  CI [0.96, 1.20]  no effect
+  b_i64_simd.wasm          1887.8 MB/s  1.17x  CI [1.07, 1.41]  FASTER
+  base.wasm                1614.8 MB/s  
+  base_simd.wasm           1944.8 MB/s  1.20x  CI [1.16, 1.46]  FASTER
+  c_widecpy.wasm           1910.8 MB/s  1.18x  CI [1.15, 1.43]  FASTER
+  c_widecpy_simd.wasm      1943.2 MB/s  1.20x  CI [1.17, 1.45]  FASTER
+  e_both.wasm              1925.2 MB/s  1.19x  CI [1.15, 1.44]  FASTER
+  e_both_simd.wasm         1830.3 MB/s  1.13x  CI [1.10, 1.33]  FASTER
+
+store_and_fwd_flag
+  b_i64.wasm                  559 MB/s  1.09x  CI [0.97, 1.15]  no effect
+  b_i64_simd.wasm           468.2 MB/s  0.91x  CI [0.81, 1.17]  no effect
+  base.wasm                 512.4 MB/s  
+  base_simd.wasm            462.8 MB/s  0.90x  CI [0.77, 1.07]  no effect
+  c_widecpy.wasm            541.1 MB/s  1.06x  CI [0.78, 1.12]  no effect
+  c_widecpy_simd.wasm       516.9 MB/s  1.01x  CI [0.86, 1.12]  no effect
+  e_both.wasm                 493 MB/s  0.96x  CI [0.87, 1.13]  no effect
+  e_both_simd.wasm          533.5 MB/s  1.04x  CI [0.85, 1.12]  no effect
+
+byte-weighted over the real column mix
+  base.wasm             1037.5 MB/s
+  b_i64_simd.wasm         1079.9 MB/s  1.041x  CI [1.031, 1.058]  faster
+  base_simd.wasm          1064.9 MB/s  1.026x  CI [1.012, 1.047]  faster
+  c_widecpy.wasm          1057.8 MB/s  1.020x  CI [0.986, 1.039]  no effect
+  e_both.wasm             1052.9 MB/s  1.015x  CI [1.008, 1.037]  faster
+  e_both_simd.wasm        1051.5 MB/s  1.014x  CI [1.005, 1.034]  faster
+  c_widecpy_simd.wasm     1044.5 MB/s  1.007x  CI [0.988, 1.026]  no effect
+  base.wasm               1037.5 MB/s  1.000x  CI [0.984, 1.016]  no effect
+  b_i64.wasm              1017.7 MB/s  0.981x  CI [0.967, 1.001]  no effect

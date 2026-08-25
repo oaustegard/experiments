@@ -1,45 +1,149 @@
+/**
+ * hypvector recall/latency sweep.
+ *
+ * Writes a synthetic clustered corpus to a Parquet file via hypvector's own
+ * writeVectors, then measures recall@10 of each approximate configuration
+ * against hypvector's own exact full scan. Scoring against its own exact scan
+ * isolates the approximation and removes any question about whether the
+ * synthetic corpus has a well-defined ground truth.
+ *
+ * Deterministic: one seeded LCG drives centers, noise and queries, and
+ * hypvector's k-means takes seed 1 by default. Two runs give identical recall
+ * and an identical v.parquet sha256; only the ms columns move.
+ *
+ * Writes results.json (committed) and prints a table.
+ *   npm install && node hypvector_probe.mjs
+ */
 import { fileWriter } from 'hyparquet-writer'
 import { writeVectors, searchVectors } from 'hypvector'
-import { statSync } from 'node:fs'
+import { statSync, writeFileSync, readFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 
-const N = 50000, DIM = 384, K = 10
-// Deterministic clustered synthetic data: 64 true centers + gaussian noise
-function lcg(s){let x=s>>>0;return()=>{x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296}}
-const r = lcg(42)
-function gauss(){let u=0,v=0;while(u===0)u=r();while(v===0)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
-const centers = Array.from({length:64},()=>Float32Array.from({length:DIM},gauss))
-function norm(v){let s=0;for(const x of v)s+=x*x;s=Math.sqrt(s);const o=new Float32Array(v.length);for(let i=0;i<v.length;i++)o[i]=v[i]/s;return o}
-const vecs=[]
-for(let i=0;i<N;i++){const c=centers[i%64];const v=new Float32Array(DIM)
-  for(let d=0;d<DIM;d++)v[d]=c[d]+0.9*gauss()
-  vecs.push({id:`row-${i}`,vector:norm(v)})}
+const N = 50000
+const DIM = 384
+const K = 10
+const CENTERS = 64
+const NOISE = 0.9
+const N_QUERIES = 20
+const QUERY_NOISE = 0.15
+const QUERY_STRIDE = 997
+const SEED = 42
+const PARQUET = './v.parquet'
 
-let t=Date.now()
-await writeVectors({writer:fileWriter('./v.parquet'),dimension:DIM,vectors:vecs})
-const writeMs=Date.now()-t
-const bytes=statSync('./v.parquet').size
-console.log(`write ${writeMs} ms   file ${(bytes/1e6).toFixed(1)} MB   raw fp32 ${(N*DIM*4/1e6).toFixed(1)} MB`)
-
-// queries = perturbed corpus vectors
-const queries = Array.from({length:20},(_,q)=>{const base=vecs[(q*997)%N].vector
-  const v=new Float32Array(DIM);for(let d=0;d<DIM;d++)v[d]=base[d]+0.15*gauss();return norm(v)})
-
-async function run(label, opts){
-  const t0=Date.now(); const all=[]
-  for(const q of queries) all.push(await searchVectors({source:'./v.parquet',query:q,topK:K,...opts}))
-  return {label, ms:(Date.now()-t0)/queries.length, all}
+// ── deterministic RNG ────────────────────────────────────────────────────────
+function lcg(s) {
+  let x = s >>> 0
+  return () => { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return x / 4294967296 }
 }
-const exact = await run('exact', {rerankFactor:0})
-const auto  = await run('auto (binary+cluster+rerank)', {})
-const rf17  = await run('rerankFactor=17 (their rule N/3000)', {rerankFactor:17})
-const wide  = await run('rerankFactor=50', {rerankFactor:50})
-const rf100 = await run('rerankFactor=100', {rerankFactor:100})
-const p1    = await run('probe=1.0, rerankFactor=10', {probe:1.0})
-const both  = await run('probe=1.0, rerankFactor=50', {probe:1.0, rerankFactor:50})
+const rand = lcg(SEED)
+function gauss() {
+  let u = 0, v = 0
+  while (u === 0) u = rand()
+  while (v === 0) v = rand()
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
+}
+function norm(v) {
+  let s = 0
+  for (const x of v) s += x * x
+  s = Math.sqrt(s)
+  const o = new Float32Array(v.length)
+  for (let i = 0; i < v.length; i++) o[i] = v[i] / s
+  return o
+}
 
-function recall(a,b){let hit=0,tot=0
-  for(let i=0;i<a.all.length;i++){const truth=new Set(a.all[i].map(r=>r.id));tot+=truth.size
-    for(const r of b.all[i]) if(truth.has(r.id)) hit++}
-  return hit/tot}
-for(const r of [exact,auto,rf17,wide,rf100,p1,both])
-  console.log(`${r.label.padEnd(30)} ${r.ms.toFixed(1).padStart(7)} ms/q   recall@10 ${(recall(exact,r)*100).toFixed(1)}%`)
+// ── corpus ───────────────────────────────────────────────────────────────────
+const centers = Array.from({ length: CENTERS }, () => Float32Array.from({ length: DIM }, gauss))
+const vecs = []
+for (let i = 0; i < N; i++) {
+  const c = centers[i % CENTERS]
+  const v = new Float32Array(DIM)
+  for (let d = 0; d < DIM; d++) v[d] = c[d] + NOISE * gauss()
+  vecs.push({ id: `row-${i}`, vector: norm(v) })
+}
+
+const t0Write = Date.now()
+await writeVectors({ writer: fileWriter(PARQUET), dimension: DIM, vectors: vecs })
+const writeMs = Date.now() - t0Write
+const bytes = statSync(PARQUET).size
+const rawBytes = N * DIM * 4
+console.log(`write ${writeMs} ms   file ${(bytes / 1e6).toFixed(1)} MB   raw fp32 ${(rawBytes / 1e6).toFixed(1)} MB   ${(100 * bytes / rawBytes).toFixed(1)}% of raw`)
+
+// ── queries: perturbed corpus vectors ────────────────────────────────────────
+const queries = Array.from({ length: N_QUERIES }, (_, q) => {
+  const base = vecs[q * QUERY_STRIDE % N].vector
+  const v = new Float32Array(DIM)
+  for (let d = 0; d < DIM; d++) v[d] = base[d] + QUERY_NOISE * gauss()
+  return norm(v)
+})
+
+// ── sweep ────────────────────────────────────────────────────────────────────
+async function run(label, options) {
+  const t0 = Date.now()
+  const all = []
+  for (const q of queries) all.push(await searchVectors({ source: PARQUET, query: q, topK: K, ...options }))
+  return { label, options, ms: (Date.now() - t0) / queries.length, all }
+}
+
+const CONFIGS = [
+  ['exact full scan', { rerankFactor: 0 }],
+  ['default (rerankFactor 10, probe 0.25)', {}],
+  ['rerankFactor 17 (their N/3000 rule)', { rerankFactor: 17 }],
+  ['rerankFactor 50', { rerankFactor: 50 }],
+  ['rerankFactor 100', { rerankFactor: 100 }],
+  ['probe 1.0, rerankFactor 10', { probe: 1 }],
+  ['probe 1.0, rerankFactor 50', { probe: 1, rerankFactor: 50 }],
+]
+
+const runs = []
+for (const [label, options] of CONFIGS) runs.push(await run(label, options))
+const exact = runs[0]
+
+/** recall@K of `b` against the exact scan `a`, pooled over all queries */
+function recall(a, b) {
+  let hit = 0, total = 0
+  for (let i = 0; i < a.all.length; i++) {
+    const truth = new Set(a.all[i].map(x => x.id))
+    total += truth.size
+    for (const x of b.all[i]) if (truth.has(x.id)) hit++
+  }
+  return hit / total
+}
+
+for (const x of runs) {
+  console.log(`${x.label.padEnd(38)} ${x.ms.toFixed(1).padStart(7)} ms/q   recall@${K} ${(recall(exact, x) * 100).toFixed(1)}%`)
+}
+
+// ── provenance + results.json ────────────────────────────────────────────────
+const lock = JSON.parse(readFileSync('./package-lock.json', 'utf8'))
+const locked = name => lock.packages?.[`node_modules/${name}`]?.version ?? null
+const parquetSha = createHash('sha256').update(readFileSync(PARQUET)).digest('hex')
+
+writeFileSync('./results.json', JSON.stringify({
+  generated_by: 'hypvector_probe.mjs',
+  corpus: { n: N, dim: DIM, centers: CENTERS, noise_sigma: NOISE, seed: SEED, l2_normalized: true },
+  queries: { count: N_QUERIES, source: 'perturbed corpus vectors', noise_sigma: QUERY_NOISE, stride: QUERY_STRIDE },
+  top_k: K,
+  file: {
+    path: PARQUET,
+    bytes,
+    raw_fp32_bytes: rawBytes,
+    pct_of_raw: Number((100 * bytes / rawBytes).toFixed(1)),
+    sha256: parquetSha,
+    write_ms: writeMs,
+  },
+  env: {
+    node: process.version,
+    platform: `${process.platform}-${process.arch}`,
+    hypvector: locked('hypvector'),
+    hyparquet: locked('hyparquet'),
+    'hyparquet-writer': locked('hyparquet-writer'),
+  },
+  runs: runs.map(x => ({
+    label: x.label,
+    options: x.options,
+    ms_per_query: Number(x.ms.toFixed(1)),
+    recall_at_k: Number(recall(exact, x).toFixed(3)),
+  })),
+}, null, 2) + '\n')
+
+console.log(`\nwrote results.json   v.parquet sha256 ${parquetSha}`)
