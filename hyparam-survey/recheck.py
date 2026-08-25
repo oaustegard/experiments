@@ -26,6 +26,7 @@ RESULTS = HERE / "results.json"
 REPOS = HERE / "repos.json"
 HYSNAPPY = HERE / "hysnappy_results.json"
 PRACTICAL = HERE / "practicality_results.json"
+VARIANTS = HERE / "wasm-variants" / "results.json"
 EVIDENCE = HERE / "evidence"
 # hypvector sources, only present when the npm package is installed locally
 LOCAL_SRC = HERE / "node_modules" / "hypvector" / "src"
@@ -213,6 +214,11 @@ def check_hysnappy() -> None:
     if PRACTICAL.exists():
         prac = json.loads(PRACTICAL.read_text())
         stored += [r["snappy_over_gzip"] for r in prac["ratio"]]
+    if VARIANTS.exists():
+        var = json.loads(VARIANTS.read_text())
+        for rows in var["results"].values():
+            stored += [r["vs_base"] for r in rows.values() if r != "WRONG" and "vs_base" in r]
+        stored += [1.0]  # the baseline row is written as 1.00x
     sections = [("NOTES", section(notes, "## hysnappy"))]
     sections += [("README", section(readme, "- **`hysnappy`**", "\n- **"))]
     for where, text in sections:
@@ -275,6 +281,32 @@ def check_practicality() -> None:
     check("Chrome 115" in notes, "NOTES does not date the change to Chrome 115")
 
 
+def check_variants() -> None:
+    """The wasm-variants table in NOTES must match wasm-variants/results.json."""
+    if not VARIANTS.exists():
+        print("  skip: wasm-variants/results.json absent (needs clang with wasm32)")
+        return
+    data = json.loads(VARIANTS.read_text())
+    notes = NOTES.read_text()
+    for name, size in data["sizes_bytes"].items():
+        check(f"{size:,}" in notes, f"NOTES does not quote {name} size {size:,}")
+    for corpus, rows in data["results"].items():
+        base = rows["base.wasm"]
+        check(base != "WRONG", f"the {corpus} baseline decoded wrongly")
+        for name, row in rows.items():
+            check(row != "WRONG", f"{name} produced wrong output on {corpus}")
+            if row == "WRONG":
+                continue
+            if name == "base.wasm":
+                check(f"{row['median_mbps']:,}" in notes,
+                      f"NOTES does not quote the {corpus} baseline {row['median_mbps']:,} MB/s")
+            else:
+                check(f"{row['vs_base']:.2f}x" in notes,
+                      f"NOTES does not quote {name} on {corpus} as {row['vs_base']:.2f}x")
+    check(data["upstream"]["commit"][:12] in notes or "v1.1.1" in notes,
+          "NOTES does not pin the upstream source version")
+
+
 def check_evidence(offline: bool) -> None:
     """evidence/ must still match the pinned npm tarball."""
     manifest = EVIDENCE / "MANIFEST.json"
@@ -311,6 +343,7 @@ def main() -> int:
         ("NOTES.md citations in range", check_notes_citations),
         ("hysnappy numbers vs hysnappy_results.json", check_hysnappy),
         ("practicality claims vs practicality_results.json", check_practicality),
+        ("wasm variant table vs wasm-variants/results.json", check_variants),
         ("evidence vs pinned tarball", lambda: check_evidence(args.offline)),
     ]:
         print(f"- {name}")

@@ -1,0 +1,300 @@
+{
+  "generated_by": "build_and_bench.py",
+  "upstream": {
+    "repo": "hyparam/hysnappy",
+    "commit": "fab2cda3910eea3d13dd69375de16a2100131285",
+    "file": "c/uncompress.c",
+    "sha256": "72db4af7d724dc896916a450a607d7acfc4bce363951a732963e164b5b7ebb23"
+  },
+  "toolchain": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+  "cflags": "--target=wasm32 -O3 -nostdlib -Wl,--export-all -Wl,--no-entry",
+  "method": "one fresh node process per (variant, corpus); the timing loop calls the wasm export only, with no allocation in it",
+  "trials_per_cell": 5,
+  "sizes_bytes": {
+    "base.wasm": 3608,
+    "base_simd.wasm": 4085,
+    "b_i64.wasm": 3560,
+    "b_i64_simd.wasm": 4020,
+    "c_widecpy.wasm": 3824,
+    "c_widecpy_simd.wasm": 4282,
+    "e_both.wasm": 3772,
+    "e_both_simd.wasm": 4213
+  },
+  "corpora": {
+    "literal": "4 MiB incompressible pseudo-random; every byte a literal copy",
+    "match": "4 MiB of a repeated 26-byte alphabet; almost all back-references",
+    "json": "4 MiB of tiled realistic API JSON"
+  },
+  "results": {
+    "literal": {
+      "b_i64.wasm": {
+        "median_mbps": 3963,
+        "runs": [
+          4075,
+          3809,
+          3691,
+          3963,
+          4289
+        ],
+        "vs_base": 1.0
+      },
+      "b_i64_simd.wasm": {
+        "median_mbps": 10609,
+        "runs": [
+          10815,
+          10569,
+          12515,
+          10609,
+          9503
+        ],
+        "vs_base": 2.67
+      },
+      "base.wasm": {
+        "median_mbps": 3971,
+        "runs": [
+          3807,
+          3971,
+          3847,
+          4275,
+          4225
+        ],
+        "vs_base": 1.0
+      },
+      "base_simd.wasm": {
+        "median_mbps": 11339,
+        "runs": [
+          11353,
+          11317,
+          11339,
+          9816,
+          12117
+        ],
+        "vs_base": 2.86
+      },
+      "c_widecpy.wasm": {
+        "median_mbps": 10893,
+        "runs": [
+          12037,
+          10840,
+          10701,
+          10893,
+          11067
+        ],
+        "vs_base": 2.74
+      },
+      "c_widecpy_simd.wasm": {
+        "median_mbps": 11286,
+        "runs": [
+          12368,
+          11203,
+          11286,
+          12526,
+          11129
+        ],
+        "vs_base": 2.84
+      },
+      "e_both.wasm": {
+        "median_mbps": 10614,
+        "runs": [
+          10088,
+          10699,
+          9987,
+          10614,
+          11089
+        ],
+        "vs_base": 2.67
+      },
+      "e_both_simd.wasm": {
+        "median_mbps": 10984,
+        "runs": [
+          11032,
+          10742,
+          10984,
+          10902,
+          11697
+        ],
+        "vs_base": 2.77
+      }
+    },
+    "match": {
+      "b_i64.wasm": {
+        "median_mbps": 3567,
+        "runs": [
+          3432,
+          3551,
+          3567,
+          3599,
+          3661
+        ],
+        "vs_base": 1.0
+      },
+      "b_i64_simd.wasm": {
+        "median_mbps": 2292,
+        "runs": [
+          2319,
+          2310,
+          2292,
+          2282,
+          2278
+        ],
+        "vs_base": 0.64
+      },
+      "base.wasm": {
+        "median_mbps": 3564,
+        "runs": [
+          3541,
+          3612,
+          3604,
+          3534,
+          3564
+        ],
+        "vs_base": 1.0
+      },
+      "base_simd.wasm": {
+        "median_mbps": 3518,
+        "runs": [
+          3563,
+          3472,
+          3554,
+          3518,
+          3421
+        ],
+        "vs_base": 0.99
+      },
+      "c_widecpy.wasm": {
+        "median_mbps": 3569,
+        "runs": [
+          3569,
+          3476,
+          3519,
+          3603,
+          3578
+        ],
+        "vs_base": 1.0
+      },
+      "c_widecpy_simd.wasm": {
+        "median_mbps": 3548,
+        "runs": [
+          3555,
+          3548,
+          3605,
+          3463,
+          3464
+        ],
+        "vs_base": 1.0
+      },
+      "e_both.wasm": {
+        "median_mbps": 3638,
+        "runs": [
+          3656,
+          3647,
+          3638,
+          3522,
+          3630
+        ],
+        "vs_base": 1.02
+      },
+      "e_both_simd.wasm": {
+        "median_mbps": 2288,
+        "runs": [
+          2253,
+          2289,
+          2288,
+          2273,
+          2305
+        ],
+        "vs_base": 0.64
+      }
+    },
+    "json": {
+      "b_i64.wasm": {
+        "median_mbps": 10110,
+        "runs": [
+          10255,
+          10110,
+          4332,
+          10052,
+          10343
+        ],
+        "vs_base": 1.22
+      },
+      "b_i64_simd.wasm": {
+        "median_mbps": 9798,
+        "runs": [
+          9440,
+          9798,
+          10440,
+          10542,
+          9584
+        ],
+        "vs_base": 1.18
+      },
+      "base.wasm": {
+        "median_mbps": 8277,
+        "runs": [
+          8277,
+          8316,
+          8404,
+          8259,
+          6667
+        ],
+        "vs_base": 1.0
+      },
+      "base_simd.wasm": {
+        "median_mbps": 7005,
+        "runs": [
+          6862,
+          8415,
+          7355,
+          6990,
+          7005
+        ],
+        "vs_base": 0.85
+      },
+      "c_widecpy.wasm": {
+        "median_mbps": 8329,
+        "runs": [
+          8333,
+          8739,
+          8329,
+          8106,
+          7596
+        ],
+        "vs_base": 1.01
+      },
+      "c_widecpy_simd.wasm": {
+        "median_mbps": 6984,
+        "runs": [
+          7630,
+          7767,
+          6984,
+          6873,
+          6944
+        ],
+        "vs_base": 0.84
+      },
+      "e_both.wasm": {
+        "median_mbps": 9911,
+        "runs": [
+          9812,
+          9911,
+          7908,
+          10016,
+          10147
+        ],
+        "vs_base": 1.2
+      },
+      "e_both_simd.wasm": {
+        "median_mbps": 8690,
+        "runs": [
+          9801,
+          7961,
+          9469,
+          8690,
+          8551
+        ],
+        "vs_base": 1.05
+      }
+    }
+  }
+}

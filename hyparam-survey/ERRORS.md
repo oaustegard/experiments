@@ -1,7 +1,7 @@
 # Errors
 
 What was wrong during this survey, how it was caught, and which direction it
-pushed the conclusion. The base rate matters more than any single entry: twelve
+pushed the conclusion. The base rate matters more than any single entry: thirteen
 errors, of which one reached a merged commit, one shipped a wrong claim in an
 open PR, and none changed a measured number.
 
@@ -113,6 +113,25 @@ Caught by re-running at a size where per-call setup could not dominate.
 Direction: would have overstated snappy's decode advantage by roughly 5x, and
 the writeup now labels which row is an API comparison and which is a codec
 comparison.
+
+**Invented a cause for the byte-loop `memcpy`.** I wrote that the 638 bytes of
+headroom under the 4 KB ceiling was "why the memcpy is a byte loop rather than
+anything vectorised". Nothing in the repo says that, and I never checked it.
+Oskar asked the obvious follow-up — so could they vectorise? — and building the
+variants says the claim was wrong twice over. The whole spread from byte loop to
+`-msimd128` is 150 to 674 bytes, so even the old 4 KB rule would not have forced
+the byte loop; `c_widecpy` at 3,824 B fits under 4,096. And the back-reference
+path was never a byte loop: `writer_append_from_self` already has a 16-byte fast
+path, whose own comment says it handles "70-80% of dynamic invocations". The
+byte loop is what `-nostdlib` leaves you to write, nothing more.
+
+Direction: the invented cause made a plain engineering choice sound like a
+forced one, and it would have stopped a reader from asking the question that
+turned up a 2.7x. Two rules, both of which the register already names in other
+words: a sentence of the form "X is why Y" is a claim, not connective tissue,
+and the mechanism has to be checkable. And note where it appeared — the closing
+clause of a paragraph, which is exactly the position the voice entry says my
+inventions cluster in.
 
 ## After the first push
 
