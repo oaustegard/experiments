@@ -1,0 +1,118 @@
+# practicality.mjs — 2026-08-24 20:56 EDT
+
+{
+  "generated_by": "practicality.mjs",
+  "env": {
+    "node": "v22.22.2"
+  },
+  "format": {
+    "framed_sz": false,
+    "first_bytes": [
+      "0x58",
+      "0x28",
+      "0x68",
+      "0x79",
+      "0x70",
+      "0x65"
+    ],
+    "note": "Block format: no stream header, no CRC32C, no framing, so no streaming decode."
+  },
+  "output_length_discipline": [
+    {
+      "delta": -1000,
+      "threw": false,
+      "returned_bytes": 36269,
+      "bytes_correct": false
+    },
+    {
+      "delta": -100,
+      "threw": false,
+      "returned_bytes": 37169,
+      "bytes_correct": false
+    },
+    {
+      "delta": -1,
+      "threw": false,
+      "returned_bytes": 37268,
+      "bytes_correct": false
+    },
+    {
+      "delta": 0,
+      "threw": false,
+      "returned_bytes": 37269,
+      "bytes_correct": true
+    },
+    {
+      "delta": 1,
+      "threw": false,
+      "returned_bytes": 37270,
+      "bytes_correct": false
+    },
+    {
+      "delta": 100,
+      "threw": false,
+      "returned_bytes": 37369,
+      "bytes_correct": false
+    }
+  ],
+  "corruption": {
+    "method": "single-bit flip at an even stride through the compressed bytes",
+    "compressed_bytes": 6680,
+    "trials": 400,
+    "threw": 163,
+    "returned_wrong_bytes": 237,
+    "returned_correct_bytes": 0,
+    "silent_corruption_pct": 59
+  },
+  "ratio": [
+    {
+      "corpus": "API JSON",
+      "input_bytes": 37269,
+      "snappy_bytes": 6680,
+      "snappy_pct": 17.9,
+      "gzip_bytes": 3859,
+      "gzip_pct": 10.4,
+      "deflate_raw_bytes": 3841,
+      "snappy_over_gzip": 1.73
+    },
+    {
+      "corpus": "English prose",
+      "input_bytes": 49200,
+      "snappy_bytes": 2423,
+      "snappy_pct": 4.9,
+      "gzip_bytes": 304,
+      "gzip_pct": 0.6,
+      "deflate_raw_bytes": 286,
+      "snappy_over_gzip": 7.97
+    }
+  ],
+  "large_payload": {
+    "input_bytes": 8388608,
+    "snappy_bytes": 398151,
+    "gzip_bytes": 784012,
+    "snappy_decode_mbps": 1208,
+    "gzip_decode_mbps": 181,
+    "snappy_encode_mbps": 4287,
+    "gzip_encode_mbps": 91
+  },
+  "browser": {
+    "ua": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/141.0.0.0 Safari/537.36",
+    "first_instantiate_ms": 0.9,
+    "round_trip_ok": true,
+    "input_bytes": 37269,
+    "snappy_bytes": 6680,
+    "snappy_decode_mbps": 136,
+    "CompressionStream": true,
+    "gzip_bytes": 3859,
+    "gzip_decode_mbps": 58,
+    "real_module_bytes": 3458,
+    "sync_module_limit": {
+      "4093": "accepted",
+      "7997": "accepted",
+      "999998": "accepted",
+      "8388607": "accepted",
+      "8388699": "WebAssembly.Compile is disallowed on the main thread, if the buffer size is larger than 8MB. Use Web",
+      "15999999": "WebAssembly.Compile is disallowed on the main thread, if the buffer size is larger than 8MB. Use Web"
+    }
+  }
+}
