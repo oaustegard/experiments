@@ -1,7 +1,7 @@
 # Errors
 
 What was wrong during this survey, how it was caught, and which direction it
-pushed the conclusion. The base rate matters more than any single entry: thirteen
+pushed the conclusion. The base rate matters more than any single entry: fifteen
 errors, of which one reached a merged commit, one shipped a wrong claim in an
 open PR, and none changed a measured number.
 
@@ -158,6 +158,36 @@ rerun reproduced the recall column exactly, which is the only reason the fix was
 cheap. Had the probe not been seeded, the committed table would have been
 unreproducible and the first push would have destroyed the result.
 
+**Reported a 1.22x that was inside its own noise, and called it "the best
+single change".** The `b_i64` variant — removing a `sizeof(void *) == 8` guard
+that is false on wasm32 — measured 1.22x on a synthetic JSON corpus, and I
+bolded it. The same corpus's cells had 1.15x to 2.39x max/min run-to-run
+spread, and `b_i64`'s own five runs were [10255, 10110, **4332**, 10052,
+10343]. The median hid that 4,332. I had run a Mann-Whitney on the warm-up
+finding two commits earlier and then reported this one off five raw medians
+with no interval at all. Re-measured on real Parquet pages with bootstrap CIs:
+1.009x then 0.981x, no effect in either run. Retracted. Direction: it was the
+headline of that turn, and it was noise.
+
+**Generalised from a corpus I designed to make the effect visible.** The
+synthetic literal-heavy corpus is 4 MiB of incompressible bytes, which snappy
+emits as a single literal run of four million. That is what produced 2.7x, and
+I reported it as what the byte-loop `memcpy` "leaves on the table". Oskar said
+he saw nothing conclusive, which sent me to a real 48 MB Parquet file. Its
+largest column, 55% of the bytes, has a mean literal run of **2 bytes**; across
+all five columns the means are 2 to 59 bytes and copies average 4 to 8. Weighted
+over the real mix the best variant is 1.041x to 1.053x, not 2.7x. Direction: a
+40x overstatement of the available win, produced by choosing the corpus that
+isolates the mechanism and then quoting the result as though it described the
+workload. The mechanism measurement was fine; presenting it as a workload
+number was not.
+
+The rule both of these earn, and it is one the register already has in other
+words: **a synthetic corpus measures a mechanism, never a workload.** If the
+claim is about what a change is worth, the denominator has to be real input.
+And an effect smaller than its own measurement's run-to-run spread is not a
+finding, however the medians fall.
+
 ## Unverified
 
 - **The synthetic corpus is not real embeddings.** 64 isotropic Gaussian
@@ -174,3 +204,10 @@ unreproducible and the first push would have destroyed the result.
 - **The borrows are proposals.** Nobody has built an IVF layer for `remax_kb`.
   The claim that physical cluster reordering lifts its ceiling rests on
   hypvector's measurements; we have none of our own.
+- **The variant study is Node, not a browser.** Chromium decodes the same
+  corpus at a fraction of Node's rate, so a few percent measured under Node may
+  not be visible in a page at all. Nothing here ran the variants in a browser.
+- **One real file, five columns, one codec setting.** The 2 to 5% is weighted
+  over `yellow_tripdata_2024-01`'s column mix. A file of mostly long strings or
+  mostly dictionary-encoded columns would weight differently, and nobody has
+  measured one.
