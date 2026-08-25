@@ -323,59 +323,77 @@ answer:
 
 ### Could the decoder be vectorised
 
-`wasm-variants/build_and_bench.py`. Four source variants against the pinned
-v1.1.1 `c/uncompress.c`, each built with and without `-msimd128`, each
-(variant, corpus) timed in a fresh node process with no allocation in the
-timing loop. Three corpora that separate the two copy paths: 4 MiB
-incompressible (every byte a literal copy), 4 MiB of a repeated 26-byte
-alphabet (almost all back-references), and 4 MiB of tiled API JSON.
+Yes, and on real Parquet pages it is worth 2 to 5%.
 
-| Variant | Bytes | literal | match | json |
-|---|---:|---:|---:|---:|
-| `base` (as shipped) | 3,608 | 3,971 MB/s | 3,564 | 8,277 |
-| `base` + `-msimd128` | 4,085 | **2.86x** | 0.99x | 0.85x |
-| `b_i64` | 3,560 | 1.00x | 1.00x | **1.22x** |
-| `b_i64` + `-msimd128` | 4,020 | 2.67x | **0.64x** | 1.18x |
-| `c_widecpy` | 3,824 | **2.74x** | 1.00x | 1.01x |
-| `c_widecpy` + `-msimd128` | 4,282 | 2.84x | 1.00x | 0.84x |
-| `e_both` | 3,772 | 2.67x | 1.02x | 1.20x |
-| `e_both` + `-msimd128` | 4,213 | 2.77x | **0.64x** | 1.05x |
+`wasm-variants/build_and_bench.py` builds four source variants of the pinned
+v1.1.1 `c/uncompress.c` — as shipped, with the `sizeof(void *) == 8` guard in
+`unaligned_copy64` removed, with the hand-written `memcpy` widened to 8-byte
+chunks, and both — each with and without `-msimd128`. All eight decode
+correctly and all eight instantiate in Chromium 141, which reports WASM SIMD
+as supported. Sizes run 3,560 to 4,282 bytes against a 3,608-byte baseline.
 
-Every variant decodes correctly, and all eight instantiate in Chromium 141,
-which reports WASM SIMD as supported.
+**On synthetic corpora the deltas look enormous.** 4 MiB of incompressible
+pseudo-random data decodes at 2.86x with `-msimd128` and 2.74x with the wide
+copy alone; a 4 MiB repeated-alphabet corpus regresses to 0.64x under SIMD
+combined with the i64 change.
 
-**Yes, and clang will do it for you.** Adding `-msimd128` to the existing
-source auto-vectorises the byte-loop `memcpy` and gets 2.86x on incompressible
-input for 477 more bytes. No intrinsics, no hand-written SIMD.
+**None of that survives contact with a real file.** `wasm-variants/real-pages/`
+takes NYC TLC `yellow_tripdata_2024-01.parquet` — 48 MB, 2.96M rows, real
+values — reads five columns spanning DOUBLE, INT64, INT32 and STRING, and
+re-encodes each as SNAPPY so hysnappy has something real to decode. Walking
+each page's tag stream gives the mix that decides whether a wider copy can
+help at all:
 
-**SIMD is not where the speedup comes from.** Widening the hand-written
-`memcpy` to 8-byte chunks, eight lines of C with no SIMD, lands at 2.74x on the
-same corpus.
-Adding SIMD on top moves it to 2.84x. Clang's auto-vectoriser and a manual
-8-byte loop arrive at the same place, so what matters is that the copy stops
-being one byte wide.
+| Column | Type | Share of bytes | Literal bytes | Mean literal run | Mean copy len |
+|---|---|---:|---:|---:|---:|
+| `tpep_pickup_datetime` | INT64 | 55.5% | 15.2% | **2 B** | 6.8 B |
+| `trip_distance` | DOUBLE | 22.8% | 37.1% | 12.7 B | 7.6 B |
+| `total_amount` | DOUBLE | 14.6% | 80.6% | 28.4 B | 6.5 B |
+| `PULocationID` | INT32 | 7.0% | 93.4% | 59.3 B | 4.1 B |
+| `store_and_fwd_flag` | STRING | 0.1% | 41.3% | 3.5 B | 4.2 B |
 
-**SIMD costs speed on the other two corpora.** `-msimd128` takes realistic JSON
-to 0.85x, and combined with the i64 fix it takes the back-reference corpus to
-0.64x, consistently across five trials in each of two independent runs. A blanket
-`-msimd128` would trade a large win on incompressible pages for a large loss on
-compressible ones.
+Mean literal runs of 2 to 59 bytes, and mean copy lengths of 4 to 8. The
+synthetic corpus that produced 2.7x is a single literal run of four million
+bytes. An 8-byte-chunked copy gets one to seven iterations on a real page
+before falling into its byte tail, and on the column that is 55% of the file
+it gets none.
 
-**The best single change is neither.** `unaligned_copy64` (`c/uncompress.c:198`)
-guards its 64-bit path on `sizeof(void *) == 8`. On wasm32 that is false, so the
-shipped build emits two 32-bit stores where one i64 store would do — WASM has
-i64 natively regardless of pointer width. Removing the guard gives 1.22x on
-realistic JSON and 1.00x elsewhere, and the module gets 48 bytes *smaller*.
+Per column, nine trials each in a fresh process, 95% bootstrap CI on the ratio
+of medians. The figures below are the run recorded in
+`real-pages/results.json`; the column marks what held in a second independent
+run of the whole pipeline.
 
-Which of these is worth anything depends on the pages hyparquet actually reads.
-The literal-heavy case is not exotic: a snappy-compressed Parquet page of
-high-entropy float data is mostly literals, and that is where the 2.7x sits. A
-dictionary-encoded string column is match-heavy, where none of this moves.
+| Column | best variant | vs base | held in run 1? |
+|---|---|---|---|
+| `total_amount` | `base_simd` | 1.431x, CI [1.388, 1.589] | yes, 1.39x |
+| `PULocationID` | `base_simd` | 1.204x, CI [1.164, 1.46] | yes, 1.18x |
+| `trip_distance` | `e_both` | 1.051x, CI [1.046, 1.1] | yes, 1.07x |
+| `tpep_pickup_datetime` | `e_both` | 0.969x, CI [0.96, 0.994] | **no — 1.03x faster in run 1** |
+| `store_and_fwd_flag` | none | every CI spans 1.0 | yes |
 
-Two caveats. All of it ran under Node. The browser decode figures elsewhere in
-this file are much lower, so these ratios may not carry to a page. And clang 18
-here produces a 3,608-byte baseline against the published 3,458, so the absolute
-sizes are not hyparam's; only the deltas between my own builds mean anything.
+The timestamp column changing sign between runs is the honest headline about
+precision here: a 3% effect on this machine is not reliably distinguishable
+from a 3% effect in the other direction, CI or no CI, because the CI covers
+sampling within a run and not whatever moves between them.
+
+Weighted by the file's actual byte mix, the best variant lands at **1.053x, CI
+[1.036, 1.061]** in run 1 and **1.041x, CI [1.031, 1.058]** in run 2. The
+magnitude holds; the ranking among variants does not, and a different variant
+came top in each run. `b_i64` alone measures 1.009x then 0.981x — no effect in
+either.
+
+So: adding `-msimd128` costs one flag and 477 bytes and buys a few percent on a
+real Parquet workload, with the two large-effect columns (`total_amount`,
+`PULocationID`) carrying almost all of it and small columns going either way.
+Widening the copy buys about the same. Neither is the 2.7x the synthetic
+corpus advertised, and the reason is in the mix table: the largest column in a
+real file is dominated by two-byte literal runs, which no copy width can help.
+
+An earlier draft of this section reported `b_i64` as "the best single change"
+at 1.22x on synthetic JSON. That figure sat inside its own corpus's
+run-to-run noise — the `json` cells ranged 1.15x to 2.39x max/min, one of them
+carrying a run at 4,332 MB/s among four near 10,000 — and the real-page measurement finds no effect. It is
+retracted. `ERRORS.md` carries it.
 
 
 ### Practical as a general in-browser compression library: no

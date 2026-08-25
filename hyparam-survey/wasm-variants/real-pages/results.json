@@ -1,0 +1,914 @@
+{
+  "generated_by": "drive.mjs",
+  "source": "NYC TLC yellow_tripdata_2024-01.parquet, five columns re-encoded as SNAPPY",
+  "trials": 9,
+  "ci": "95% bootstrap on the ratio of medians, 4000 resamples",
+  "mix": {
+    "trip_distance": {
+      "type": "DOUBLE",
+      "pages": 9,
+      "compressed_bytes": 816777,
+      "uncompressed_bytes": 1315618,
+      "literal_bytes": 487768,
+      "copy_bytes": 827850,
+      "literal_pct": 37.1,
+      "mean_literal_run": 12.7,
+      "mean_copy_len": 7.6
+    },
+    "total_amount": {
+      "type": "DOUBLE",
+      "pages": 10,
+      "compressed_bytes": 762650,
+      "uncompressed_bytes": 839151,
+      "literal_bytes": 676047,
+      "copy_bytes": 163104,
+      "literal_pct": 80.6,
+      "mean_literal_run": 28.4,
+      "mean_copy_len": 6.5
+    },
+    "tpep_pickup_datetime": {
+      "type": "INT64",
+      "pages": 5,
+      "compressed_bytes": 1686311,
+      "uncompressed_bytes": 3200000,
+      "literal_bytes": 485835,
+      "copy_bytes": 2714165,
+      "literal_pct": 15.2,
+      "mean_literal_run": 2,
+      "mean_copy_len": 6.8
+    },
+    "PULocationID": {
+      "type": "INT32",
+      "pages": 10,
+      "compressed_bytes": 403853,
+      "uncompressed_bytes": 403741,
+      "literal_bytes": 376996,
+      "copy_bytes": 26745,
+      "literal_pct": 93.4,
+      "mean_literal_run": 59.3,
+      "mean_copy_len": 4.1
+    },
+    "store_and_fwd_flag": {
+      "type": "STRING",
+      "pages": 10,
+      "compressed_bytes": 4302,
+      "uncompressed_bytes": 5273,
+      "literal_bytes": 2176,
+      "copy_bytes": 3097,
+      "literal_pct": 41.3,
+      "mean_literal_run": 3.5,
+      "mean_copy_len": 4.2
+    }
+  },
+  "results": {
+    "trip_distance": {
+      "b_i64.wasm": {
+        "median_mbps": 1197,
+        "runs": [
+          1223.1,
+          1220.7,
+          1224.5,
+          1261.2,
+          1148.5,
+          1197,
+          1155.5,
+          1187.9,
+          1183.7
+        ],
+        "vs_base": 0.968,
+        "ci95": [
+          0.954,
+          1.018
+        ]
+      },
+      "b_i64_simd.wasm": {
+        "median_mbps": 1304,
+        "runs": [
+          1312.9,
+          1286.1,
+          1255.4,
+          1304.7,
+          1309.9,
+          1284.5,
+          1323,
+          1278.6,
+          1304
+        ],
+        "vs_base": 1.054,
+        "ci95": [
+          1.036,
+          1.09
+        ]
+      },
+      "base.wasm": {
+        "median_mbps": 1236.8,
+        "runs": [
+          1239.3,
+          1202,
+          1232.2,
+          1170,
+          1237.9,
+          1194.8,
+          1236.8,
+          1245.3,
+          1240.8
+        ]
+      },
+      "base_simd.wasm": {
+        "median_mbps": 1300.4,
+        "runs": [
+          1301.9,
+          1292.6,
+          1165,
+          1300.4,
+          1331,
+          1308.1,
+          1209.9,
+          1330.4,
+          1274.5
+        ],
+        "vs_base": 1.051,
+        "ci95": [
+          0.982,
+          1.088
+        ]
+      },
+      "c_widecpy.wasm": {
+        "median_mbps": 1289.9,
+        "runs": [
+          1289.9,
+          1190,
+          1297.6,
+          1124.9,
+          1326.6,
+          1265.3,
+          1344.1,
+          1314.5,
+          1245.5
+        ],
+        "vs_base": 1.043,
+        "ci95": [
+          0.99,
+          1.086
+        ]
+      },
+      "c_widecpy_simd.wasm": {
+        "median_mbps": 1289.6,
+        "runs": [
+          1266,
+          1241.7,
+          1156.9,
+          1336.5,
+          1304.8,
+          1248.5,
+          1309.6,
+          1289.6,
+          1327.8
+        ],
+        "vs_base": 1.043,
+        "ci95": [
+          1.007,
+          1.09
+        ]
+      },
+      "e_both.wasm": {
+        "median_mbps": 1299.9,
+        "runs": [
+          1317.5,
+          1299.5,
+          1292.2,
+          1258.7,
+          1322.4,
+          1299.9,
+          1326.6,
+          1325.4,
+          1296.1
+        ],
+        "vs_base": 1.051,
+        "ci95": [
+          1.046,
+          1.1
+        ]
+      },
+      "e_both_simd.wasm": {
+        "median_mbps": 1298.5,
+        "runs": [
+          1271.9,
+          1307,
+          1312.7,
+          1314.7,
+          1327,
+          1264.6,
+          1158,
+          1267,
+          1298.5
+        ],
+        "vs_base": 1.05,
+        "ci95": [
+          1.022,
+          1.092
+        ]
+      }
+    },
+    "total_amount": {
+      "b_i64.wasm": {
+        "median_mbps": 2131.1,
+        "runs": [
+          2161,
+          2131.1,
+          2180.1,
+          2189.7,
+          2141.9,
+          2102,
+          2110.7,
+          2128.3,
+          2109.2
+        ],
+        "vs_base": 1.025,
+        "ci95": [
+          0.999,
+          1.144
+        ]
+      },
+      "b_i64_simd.wasm": {
+        "median_mbps": 2950.1,
+        "runs": [
+          2808.4,
+          2798.9,
+          2950.1,
+          3007.2,
+          2978,
+          2837.2,
+          2648.7,
+          3060.6,
+          2985.6
+        ],
+        "vs_base": 1.419,
+        "ci95": [
+          1.332,
+          1.545
+        ]
+      },
+      "base.wasm": {
+        "median_mbps": 2078.6,
+        "runs": [
+          2108.8,
+          1946.6,
+          1845,
+          2078.6,
+          2063.4,
+          2144.4,
+          2105.3,
+          2145.3,
+          1599
+        ]
+      },
+      "base_simd.wasm": {
+        "median_mbps": 2975.2,
+        "runs": [
+          2981.7,
+          3044.6,
+          2971.9,
+          2929,
+          2898.8,
+          2981.9,
+          2930.9,
+          2976.7,
+          2975.2
+        ],
+        "vs_base": 1.431,
+        "ci95": [
+          1.388,
+          1.589
+        ]
+      },
+      "c_widecpy.wasm": {
+        "median_mbps": 2793.5,
+        "runs": [
+          2719.3,
+          2502.3,
+          1840.6,
+          2847.2,
+          2846.8,
+          2827.3,
+          2793.5,
+          2799.5,
+          2716.3
+        ],
+        "vs_base": 1.344,
+        "ci95": [
+          1.268,
+          1.474
+        ]
+      },
+      "c_widecpy_simd.wasm": {
+        "median_mbps": 2977.4,
+        "runs": [
+          2897.6,
+          2977.4,
+          3008.8,
+          2942.7,
+          2809.6,
+          2978.3,
+          2979.8,
+          2487.9,
+          3031
+        ],
+        "vs_base": 1.432,
+        "ci95": [
+          1.352,
+          1.595
+        ]
+      },
+      "e_both.wasm": {
+        "median_mbps": 2865,
+        "runs": [
+          2888.5,
+          2873.9,
+          2810.9,
+          2824.1,
+          2955.9,
+          2865,
+          2885.5,
+          2817.9,
+          2844.2
+        ],
+        "vs_base": 1.378,
+        "ci95": [
+          1.338,
+          1.542
+        ]
+      },
+      "e_both_simd.wasm": {
+        "median_mbps": 2969.2,
+        "runs": [
+          2929.9,
+          2973.9,
+          2993.6,
+          2934.8,
+          2967.4,
+          2989.8,
+          2969.2,
+          2869.1,
+          3033.4
+        ],
+        "vs_base": 1.428,
+        "ci95": [
+          1.389,
+          1.591
+        ]
+      }
+    },
+    "tpep_pickup_datetime": {
+      "b_i64.wasm": {
+        "median_mbps": 817.3,
+        "runs": [
+          802.2,
+          803.7,
+          830.5,
+          819.5,
+          817.3,
+          812.7,
+          800.2,
+          826.1,
+          826.2
+        ],
+        "vs_base": 0.978,
+        "ci95": [
+          0.958,
+          0.995
+        ]
+      },
+      "b_i64_simd.wasm": {
+        "median_mbps": 838,
+        "runs": [
+          827.9,
+          837.1,
+          840.8,
+          846.6,
+          838.1,
+          827.7,
+          834.1,
+          838,
+          843.1
+        ],
+        "vs_base": 1.002,
+        "ci95": [
+          0.994,
+          1.017
+        ]
+      },
+      "base.wasm": {
+        "median_mbps": 836,
+        "runs": [
+          823.8,
+          837.4,
+          839.2,
+          836,
+          808.7,
+          839.9,
+          823.9,
+          831.3,
+          847.2
+        ]
+      },
+      "base_simd.wasm": {
+        "median_mbps": 820.6,
+        "runs": [
+          818.9,
+          832.9,
+          808.9,
+          802.9,
+          825.3,
+          820.6,
+          837.6,
+          830.9,
+          806.5
+        ],
+        "vs_base": 0.982,
+        "ci95": [
+          0.965,
+          1.002
+        ]
+      },
+      "c_widecpy.wasm": {
+        "median_mbps": 818.9,
+        "runs": [
+          825.3,
+          780.7,
+          737.8,
+          806.1,
+          818.9,
+          830.9,
+          825.1,
+          790,
+          824
+        ],
+        "vs_base": 0.98,
+        "ci95": [
+          0.941,
+          1
+        ]
+      },
+      "c_widecpy_simd.wasm": {
+        "median_mbps": 800.4,
+        "runs": [
+          800.4,
+          813.3,
+          803.6,
+          808.2,
+          782.3,
+          784.2,
+          776,
+          809.1,
+          791.3
+        ],
+        "vs_base": 0.957,
+        "ci95": [
+          0.934,
+          0.981
+        ]
+      },
+      "e_both.wasm": {
+        "median_mbps": 810.4,
+        "runs": [
+          765.5,
+          808.4,
+          806.5,
+          811,
+          819.1,
+          827.5,
+          826.4,
+          801.3,
+          810.4
+        ],
+        "vs_base": 0.969,
+        "ci95": [
+          0.96,
+          0.994
+        ]
+      },
+      "e_both_simd.wasm": {
+        "median_mbps": 809.1,
+        "runs": [
+          818,
+          802.9,
+          817.8,
+          823.3,
+          816.8,
+          807.6,
+          797.1,
+          805,
+          809.1
+        ],
+        "vs_base": 0.968,
+        "ci95": [
+          0.959,
+          0.993
+        ]
+      }
+    },
+    "PULocationID": {
+      "b_i64.wasm": {
+        "median_mbps": 1641.1,
+        "runs": [
+          1603.1,
+          1674.4,
+          1641.1,
+          1682.5,
+          1653.7,
+          1541.6,
+          1371,
+          1631.7,
+          1653.6
+        ],
+        "vs_base": 1.016,
+        "ci95": [
+          0.96,
+          1.204
+        ]
+      },
+      "b_i64_simd.wasm": {
+        "median_mbps": 1887.8,
+        "runs": [
+          1887.8,
+          1930.4,
+          1912,
+          1597,
+          1922.1,
+          1880.7,
+          1722,
+          1761,
+          1962.3
+        ],
+        "vs_base": 1.169,
+        "ci95": [
+          1.066,
+          1.412
+        ]
+      },
+      "base.wasm": {
+        "median_mbps": 1614.8,
+        "runs": [
+          1643.6,
+          1605.5,
+          1454.6,
+          1614.8,
+          1331.5,
+          1136.9,
+          1651.4,
+          1697,
+          1675.9
+        ]
+      },
+      "base_simd.wasm": {
+        "median_mbps": 1944.8,
+        "runs": [
+          2004.9,
+          1944.8,
+          1961.5,
+          1943.9,
+          1950.5,
+          1924.4,
+          1958.4,
+          1920.5,
+          1908.4
+        ],
+        "vs_base": 1.204,
+        "ci95": [
+          1.164,
+          1.46
+        ]
+      },
+      "c_widecpy.wasm": {
+        "median_mbps": 1910.8,
+        "runs": [
+          1956.5,
+          1900.7,
+          1948.2,
+          1964.4,
+          1899.9,
+          1909.9,
+          1945.3,
+          1884.8,
+          1910.8
+        ],
+        "vs_base": 1.183,
+        "ci95": [
+          1.151,
+          1.434
+        ]
+      },
+      "c_widecpy_simd.wasm": {
+        "median_mbps": 1943.2,
+        "runs": [
+          1943.2,
+          1974,
+          1921.9,
+          1937,
+          1931.1,
+          1952.8,
+          1944.3,
+          1962.5,
+          1924.4
+        ],
+        "vs_base": 1.203,
+        "ci95": [
+          1.165,
+          1.45
+        ]
+      },
+      "e_both.wasm": {
+        "median_mbps": 1925.2,
+        "runs": [
+          1910.4,
+          1915.9,
+          1942.3,
+          1933.7,
+          1863.3,
+          1925.2,
+          1956.3,
+          1938.8,
+          1803.1
+        ],
+        "vs_base": 1.192,
+        "ci95": [
+          1.149,
+          1.439
+        ]
+      },
+      "e_both_simd.wasm": {
+        "median_mbps": 1830.3,
+        "runs": [
+          1745.9,
+          1876.9,
+          1830.3,
+          1821.2,
+          1921.2,
+          1824.7,
+          1932,
+          1821.5,
+          1911.7
+        ],
+        "vs_base": 1.133,
+        "ci95": [
+          1.103,
+          1.328
+        ]
+      }
+    },
+    "store_and_fwd_flag": {
+      "b_i64.wasm": {
+        "median_mbps": 559,
+        "runs": [
+          576.2,
+          537.9,
+          453,
+          560.3,
+          571.9,
+          533.6,
+          559,
+          505.1,
+          580.6
+        ],
+        "vs_base": 1.091,
+        "ci95": [
+          0.969,
+          1.151
+        ]
+      },
+      "b_i64_simd.wasm": {
+        "median_mbps": 468.2,
+        "runs": [
+          437.3,
+          583.2,
+          593.8,
+          409,
+          545.1,
+          591.4,
+          468.2,
+          466.4,
+          427.4
+        ],
+        "vs_base": 0.914,
+        "ci95": [
+          0.814,
+          1.167
+        ]
+      },
+      "base.wasm": {
+        "median_mbps": 512.4,
+        "runs": [
+          537.4,
+          485.8,
+          512.4,
+          415.3,
+          575.3,
+          499.6,
+          568.1,
+          550.6,
+          502.1
+        ]
+      },
+      "base_simd.wasm": {
+        "median_mbps": 462.8,
+        "runs": [
+          434.9,
+          523.6,
+          420.1,
+          592.4,
+          411.1,
+          573.8,
+          388,
+          462.8,
+          498.5
+        ],
+        "vs_base": 0.903,
+        "ci95": [
+          0.765,
+          1.068
+        ]
+      },
+      "c_widecpy.wasm": {
+        "median_mbps": 541.1,
+        "runs": [
+          556.3,
+          472.4,
+          540.5,
+          541.1,
+          390.5,
+          389.8,
+          576.9,
+          565.3,
+          559
+        ],
+        "vs_base": 1.056,
+        "ci95": [
+          0.782,
+          1.119
+        ]
+      },
+      "c_widecpy_simd.wasm": {
+        "median_mbps": 516.9,
+        "runs": [
+          575.4,
+          466.5,
+          558.8,
+          578,
+          455.4,
+          473.7,
+          553.1,
+          473.9,
+          516.9
+        ],
+        "vs_base": 1.009,
+        "ci95": [
+          0.86,
+          1.123
+        ]
+      },
+      "e_both.wasm": {
+        "median_mbps": 493,
+        "runs": [
+          490.6,
+          493,
+          566,
+          550,
+          583.3,
+          585.4,
+          479.1,
+          464.8,
+          430
+        ],
+        "vs_base": 0.962,
+        "ci95": [
+          0.868,
+          1.133
+        ]
+      },
+      "e_both_simd.wasm": {
+        "median_mbps": 533.5,
+        "runs": [
+          533.5,
+          561.1,
+          449.3,
+          560.3,
+          561.8,
+          488.5,
+          383.5,
+          466.4,
+          546.9
+        ],
+        "vs_base": 1.041,
+        "ci95": [
+          0.847,
+          1.121
+        ]
+      }
+    }
+  },
+  "weighted": {
+    "total_bytes": 5763783,
+    "byte_share": {
+      "trip_distance": 22.8,
+      "total_amount": 14.6,
+      "tpep_pickup_datetime": 55.5,
+      "PULocationID": 7,
+      "store_and_fwd_flag": 0.1
+    },
+    "variants": {
+      "b_i64.wasm": {
+        "mbps": 1017.7,
+        "vs_base": 0.981,
+        "ci95": [
+          0.967,
+          1.001
+        ],
+        "verdict": "no effect"
+      },
+      "b_i64_simd.wasm": {
+        "mbps": 1079.9,
+        "vs_base": 1.041,
+        "ci95": [
+          1.031,
+          1.058
+        ],
+        "verdict": "faster"
+      },
+      "base.wasm": {
+        "mbps": 1037.5,
+        "vs_base": 1,
+        "ci95": [
+          0.984,
+          1.016
+        ],
+        "verdict": "no effect"
+      },
+      "base_simd.wasm": {
+        "mbps": 1064.9,
+        "vs_base": 1.026,
+        "ci95": [
+          1.012,
+          1.047
+        ],
+        "verdict": "faster"
+      },
+      "c_widecpy.wasm": {
+        "mbps": 1057.8,
+        "vs_base": 1.02,
+        "ci95": [
+          0.986,
+          1.039
+        ],
+        "verdict": "no effect"
+      },
+      "c_widecpy_simd.wasm": {
+        "mbps": 1044.5,
+        "vs_base": 1.007,
+        "ci95": [
+          0.988,
+          1.026
+        ],
+        "verdict": "no effect"
+      },
+      "e_both.wasm": {
+        "mbps": 1052.9,
+        "vs_base": 1.015,
+        "ci95": [
+          1.008,
+          1.037
+        ],
+        "verdict": "faster"
+      },
+      "e_both_simd.wasm": {
+        "mbps": 1051.5,
+        "vs_base": 1.014,
+        "ci95": [
+          1.005,
+          1.034
+        ],
+        "verdict": "faster"
+      }
+    },
+    "base_mbps": 1037.5,
+    "second_observation": {
+      "note": "Run 1 of this rollup, same machine, same inputs, gave a best variant of e_both.wasm at 1.053x CI [1.036, 1.061]; run 2 (recorded above) gives b_i64_simd.wasm at 1.041x CI [1.031, 1.058]. Both runs put every variant within a few percent of baseline and b_i64 alone at no effect. The ranking among variants is not stable between runs; the magnitude is.",
+      "run1_best": {
+        "variant": "e_both.wasm",
+        "vs_base": 1.053,
+        "ci95": [
+          1.036,
+          1.061
+        ]
+      },
+      "run2_best": {
+        "variant": "b_i64_simd.wasm",
+        "vs_base": 1.041,
+        "ci95": [
+          1.031,
+          1.058
+        ]
+      }
+    }
+  }
+}

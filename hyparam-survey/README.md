@@ -268,11 +268,11 @@ catches the proper nouns and identifiers a sign-bit code cannot.
   `CompressionStream` is native, ships zero bytes, and produces output 1.7x to
   8x smaller. hysnappy also implements the block format, which has no checksum,
   and 59% of single-bit corruptions in a compressed buffer come back as wrong
-  bytes with no error. Rebuilding the decoder shows the byte-loop `memcpy` is
-  leaving 2.7x on the table for literal-heavy pages, reachable either by
-  `-msimd128` or by eight lines of wider copy, and that a `sizeof(void *) == 8`
-  guard that is false on wasm32 costs another 1.22x on realistic data.
-  `NOTES.md` has the full read.
+  bytes with no error. Rebuilding the decoder eight ways and running it over
+  pages from a real Parquet file puts `-msimd128` at 2 to 5% weighted over the
+  file's column mix, not the 2.7x a synthetic incompressible corpus advertises:
+  the largest column in that file is dominated by two-byte literal runs, which
+  no copy width reaches. `NOTES.md` has the full read.
 - **`icebird`** does partition pruning, manifest-level `fileMightMatch`
   filtering, position deletes and SigV4 signing from the browser. If a
   corpus ever wants versioning and time travel without a catalog service,
@@ -299,6 +299,7 @@ catches the proper nouns and identifiers a sign-bit code cannot.
 | `practicality.mjs` | format, corruption, `outputLength`, gzip comparison, and a real-Chromium run |
 | `practicality_results.json` | what that produced |
 | `wasm-variants/` | rebuilds the decoder eight ways (i64 fix, wide copy, `-msimd128`) and benchmarks them |
+| `wasm-variants/real-pages/` | the same variants over snappy pages from a real 48 MB Parquet file, with bootstrap CIs |
 | `fixtures/compressed.bin` | already-compressed bytes for the incompressible-input case |
 | `extract_evidence.py` | downloads the pinned tarball, verifies its sha256, re-derives `evidence/` |
 | `evidence/` | the nine hypvector passages this writeup cites, each with its file and line range |
@@ -315,7 +316,8 @@ npm install
 node hypvector_probe.mjs     # ~5 min; writes v.parquet, results.json
 node hysnappy_bench.mjs      # ~2 min; writes hysnappy_results.json
 npm i --no-save playwright-core && node practicality.mjs   # needs Chromium
-python3 wasm-variants/build_and_bench.py   # needs clang with the wasm32 target
+python3 wasm-variants/build_and_bench.py       # needs clang with the wasm32 target
+python3 wasm-variants/real-pages/run.py        # downloads a 48 MB real Parquet file
 python3 extract_evidence.py  # re-derive evidence/ from the pinned tarball
 python3 recheck.py           # check README against all of the above
 ```

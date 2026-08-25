@@ -27,6 +27,7 @@ REPOS = HERE / "repos.json"
 HYSNAPPY = HERE / "hysnappy_results.json"
 PRACTICAL = HERE / "practicality_results.json"
 VARIANTS = HERE / "wasm-variants" / "results.json"
+REALPAGES = HERE / "wasm-variants" / "real-pages" / "results.json"
 EVIDENCE = HERE / "evidence"
 # hypvector sources, only present when the npm package is installed locally
 LOCAL_SRC = HERE / "node_modules" / "hypvector" / "src"
@@ -214,11 +215,23 @@ def check_hysnappy() -> None:
     if PRACTICAL.exists():
         prac = json.loads(PRACTICAL.read_text())
         stored += [r["snappy_over_gzip"] for r in prac["ratio"]]
-    if VARIANTS.exists():
-        var = json.loads(VARIANTS.read_text())
+    for path in (VARIANTS, REALPAGES):
+        if not path.exists():
+            continue
+        var = json.loads(path.read_text())
         for rows in var["results"].values():
             stored += [r["vs_base"] for r in rows.values() if r != "WRONG" and "vs_base" in r]
-        stored += [1.0]  # the baseline row is written as 1.00x
+        for r in var.get("weighted", {}).get("variants", {}).values():
+            stored += [r["vs_base"]]
+        obs = var.get("weighted", {}).get("second_observation", {})
+        stored += [v["vs_base"] for k, v in obs.items() if isinstance(v, dict) and "vs_base" in v]
+        # the prose also cites how far a cell moved between its own trials,
+        # which is computable from the runs the artifact stores
+        for rows in var["results"].values():
+            for r in rows.values():
+                if r != "WRONG" and r.get("runs"):
+                    stored += [round(max(r["runs"]) / min(r["runs"]), 2)]
+        stored += [1.0]
     sections = [("NOTES", section(notes, "## hysnappy"))]
     sections += [("README", section(readme, "- **`hysnappy`**", "\n- **"))]
     for where, text in sections:
@@ -282,29 +295,50 @@ def check_practicality() -> None:
 
 
 def check_variants() -> None:
-    """The wasm-variants table in NOTES must match wasm-variants/results.json."""
-    if not VARIANTS.exists():
+    """The wasm-variant claims in NOTES must match both variant artifacts."""
+    if VARIANTS.exists():
+        data = json.loads(VARIANTS.read_text())
+        notes = NOTES.read_text()
+        sizes = sorted(data["sizes_bytes"].values())
+        check(f"{sizes[0]:,}" in notes and f"{sizes[-1]:,}" in notes,
+              f"NOTES does not state the variant size range {sizes[0]:,}-{sizes[-1]:,}")
+        for corpus, rows in data["results"].items():
+            for name, row in rows.items():
+                check(row != "WRONG", f"{name} produced wrong output on synthetic {corpus}")
+        check(data["upstream"]["commit"][:12] in notes or "v1.1.1" in notes,
+              "NOTES does not pin the upstream source version")
+    else:
         print("  skip: wasm-variants/results.json absent (needs clang with wasm32)")
+
+    if not REALPAGES.exists():
+        print("  skip: real-pages/results.json absent")
         return
-    data = json.loads(VARIANTS.read_text())
+    real = json.loads(REALPAGES.read_text())
     notes = NOTES.read_text()
-    for name, size in data["sizes_bytes"].items():
-        check(f"{size:,}" in notes, f"NOTES does not quote {name} size {size:,}")
-    for corpus, rows in data["results"].items():
-        base = rows["base.wasm"]
-        check(base != "WRONG", f"the {corpus} baseline decoded wrongly")
+
+    # the mix table is the load-bearing evidence; every row must be quoted
+    for col, m in real["mix"].items():
+        check(f"{m['literal_pct']}%" in notes,
+              f"NOTES does not quote {col} literal share {m['literal_pct']}%")
+        check(f"{m['mean_literal_run']} B" in notes,
+              f"NOTES does not quote {col} mean literal run {m['mean_literal_run']} B")
+    for col, share in real["weighted"]["byte_share"].items():
+        check(f"{share}%" in notes, f"NOTES does not quote {col} byte share {share}%")
+
+    # every per-column verdict must be an artifact verdict
+    for col, rows in real["results"].items():
         for name, row in rows.items():
-            check(row != "WRONG", f"{name} produced wrong output on {corpus}")
-            if row == "WRONG":
-                continue
-            if name == "base.wasm":
-                check(f"{row['median_mbps']:,}" in notes,
-                      f"NOTES does not quote the {corpus} baseline {row['median_mbps']:,} MB/s")
-            else:
-                check(f"{row['vs_base']:.2f}x" in notes,
-                      f"NOTES does not quote {name} on {corpus} as {row['vs_base']:.2f}x")
-    check(data["upstream"]["commit"][:12] in notes or "v1.1.1" in notes,
-          "NOTES does not pin the upstream source version")
+            check(row != "WRONG", f"{name} produced wrong output on real column {col}")
+
+    # both weighted observations must appear, and b_i64 must be reported as no effect
+    w = real["weighted"]
+    for obs in ("run1_best", "run2_best"):
+        v = w["second_observation"][obs]["vs_base"]
+        check(f"{v:.3f}x" in notes, f"NOTES does not quote the {obs} figure {v:.3f}x")
+    b = w["variants"]["b_i64.wasm"]
+    check(b["verdict"] == "no effect",
+          f"b_i64 weighted verdict is {b['verdict']!r}, but the prose retracts it as no effect")
+    check("retracted" in notes.lower(), "NOTES does not carry the b_i64 retraction")
 
 
 def check_evidence(offline: bool) -> None:
