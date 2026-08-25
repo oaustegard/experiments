@@ -225,9 +225,15 @@ custom section, so the only rule that could reject it was the size rule:
 | 8,388,699 B | rejected: "disallowed on the main thread, if the buffer size is larger than 8MB" |
 
 So the ceiling is exactly 8 MiB, and hysnappy sits three orders of magnitude
-under a constraint that has not bound since 2023. The `-nostdlib` build and the
-byte-loop `memcpy` still buy a small module, which is worth having, but they are
-no longer buying synchronous instantiation. Anything under 8 MiB gets that.
+under a constraint that has not bound since 2023. The `-nostdlib` build still
+buys a small module, which is worth having, but it is no longer buying
+synchronous instantiation. Anything under 8 MiB gets that.
+
+An earlier draft of this file went further and said the 4 KB budget was *why*
+the `memcpy` is a byte loop "rather than anything vectorised". I made that up.
+`wasm-variants/` builds the alternatives and measures them: the whole spread
+from byte loop to `-msimd128` is 150 to 674 bytes, so even the old 4 KB rule
+would not have forced the byte loop.
 
 The useful version of this rule for us: a hot kernel we compile to WASM can be
 up to 8 MiB and still instantiate synchronously on the main thread, with no
@@ -314,6 +320,63 @@ answer:
   statistic never stabilised at any n, which is what an extreme-value
   statistic does under this much noise; the median shift is the number to
   quote. `ERRORS.md` carries the run-by-run detail.
+
+### Could the decoder be vectorised
+
+`wasm-variants/build_and_bench.py`. Four source variants against the pinned
+v1.1.1 `c/uncompress.c`, each built with and without `-msimd128`, each
+(variant, corpus) timed in a fresh node process with no allocation in the
+timing loop. Three corpora that separate the two copy paths: 4 MiB
+incompressible (every byte a literal copy), 4 MiB of a repeated 26-byte
+alphabet (almost all back-references), and 4 MiB of tiled API JSON.
+
+| Variant | Bytes | literal | match | json |
+|---|---:|---:|---:|---:|
+| `base` (as shipped) | 3,608 | 3,971 MB/s | 3,564 | 8,277 |
+| `base` + `-msimd128` | 4,085 | **2.86x** | 0.99x | 0.85x |
+| `b_i64` | 3,560 | 1.00x | 1.00x | **1.22x** |
+| `b_i64` + `-msimd128` | 4,020 | 2.67x | **0.64x** | 1.18x |
+| `c_widecpy` | 3,824 | **2.74x** | 1.00x | 1.01x |
+| `c_widecpy` + `-msimd128` | 4,282 | 2.84x | 1.00x | 0.84x |
+| `e_both` | 3,772 | 2.67x | 1.02x | 1.20x |
+| `e_both` + `-msimd128` | 4,213 | 2.77x | **0.64x** | 1.05x |
+
+Every variant decodes correctly, and all eight instantiate in Chromium 141,
+which reports WASM SIMD as supported.
+
+**Yes, and clang will do it for you.** Adding `-msimd128` to the existing
+source auto-vectorises the byte-loop `memcpy` and gets 2.86x on incompressible
+input for 477 more bytes. No intrinsics, no hand-written SIMD.
+
+**SIMD is not where the speedup comes from.** Widening the hand-written
+`memcpy` to 8-byte chunks, eight lines of C with no SIMD, lands at 2.74x on the
+same corpus.
+Adding SIMD on top moves it to 2.84x. Clang's auto-vectoriser and a manual
+8-byte loop arrive at the same place, so what matters is that the copy stops
+being one byte wide.
+
+**SIMD costs speed on the other two corpora.** `-msimd128` takes realistic JSON
+to 0.85x, and combined with the i64 fix it takes the back-reference corpus to
+0.64x, consistently across five trials in each of two independent runs. A blanket
+`-msimd128` would trade a large win on incompressible pages for a large loss on
+compressible ones.
+
+**The best single change is neither.** `unaligned_copy64` (`c/uncompress.c:198`)
+guards its 64-bit path on `sizeof(void *) == 8`. On wasm32 that is false, so the
+shipped build emits two 32-bit stores where one i64 store would do — WASM has
+i64 natively regardless of pointer width. Removing the guard gives 1.22x on
+realistic JSON and 1.00x elsewhere, and the module gets 48 bytes *smaller*.
+
+Which of these is worth anything depends on the pages hyparquet actually reads.
+The literal-heavy case is not exotic: a snappy-compressed Parquet page of
+high-entropy float data is mostly literals, and that is where the 2.7x sits. A
+dictionary-encoded string column is match-heavy, where none of this moves.
+
+Two caveats. All of it ran under Node. The browser decode figures elsewhere in
+this file are much lower, so these ratios may not carry to a page. And clang 18
+here produces a 3,608-byte baseline against the published 3,458, so the absolute
+sizes are not hyparam's; only the deltas between my own builds mean anything.
+
 
 ### Practical as a general in-browser compression library: no
 
