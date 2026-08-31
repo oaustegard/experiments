@@ -62,18 +62,78 @@ prompt on Gemini across all 468 (0.564 vs 0.489).
 
 | arm | @1 | @3 | @5 |
 |---|---|---|---|
-| TF-IDF: summary → tag | 0.400 | 0.604 | 0.684 |
-| TF-IDF: 5 written tags, novelty prompt | 0.200 | 0.352 | 0.452 |
-| TF-IDF: 5 written tags, register prompt | 0.500 | 0.680 | 0.728 |
-| TF-IDF: direct + register, interleaved | **0.676** | **0.848** | **0.876** |
-| MiniLM: summary → tag | 0.296 | 0.528 | 0.616 |
-| MiniLM: 5 written tags, novelty prompt | 0.212 | 0.388 | 0.500 |
-| MiniLM: 5 written tags, register prompt | 0.500 | 0.672 | 0.728 |
-| MiniLM: direct + register, interleaved | 0.640 | 0.824 | 0.860 |
+| TF-IDF: summary → tag | 0.416 | 0.628 | 0.712 |
+| TF-IDF: 5 written tags, novelty prompt | 0.208 | 0.352 | 0.424 |
+| TF-IDF: 5 written tags, register prompt | 0.508 | 0.700 | 0.792 |
+| TF-IDF: direct + register, interleaved | **0.672** | **0.852** | **0.888** |
+| MiniLM: summary → tag | 0.356 | 0.584 | 0.656 |
+| MiniLM: 5 written tags, novelty prompt | 0.244 | 0.380 | 0.460 |
+| MiniLM: 5 written tags, register prompt | 0.464 | 0.676 | 0.792 |
+| MiniLM: direct + register, interleaved | 0.640 | 0.836 | 0.888 |
+
+Rows and generations are pinned in `muninn_tags_fixture.json`; the corpus is live and
+grew by one memory mid-session, which moved an unpinned `random.sample` draw and every
+number with it (see `ERRORS.md` #6).
 
 Gemini's novelty-prompt tags: `remax-boundary`, `index-decoupling`, `s2orc-scale`,
 `brute-force-quant`. Its register-prompt tags for the same memory: `correction`,
 `architecture`, `vector-quantization`, `search`, `s2orc`.
+
+### Can a 57M / 321M model be the hallucinating half? No.
+
+Pleias `Monad` (57M) and `Baguettotron` (321M), both with `onnx-community` builds, so
+the packaging premise holds: `Monad-q4f16` is **35 MB**, `Baguettotron-q4f16` is 236 MB,
+`Xenova/all-MiniLM-L6-v2` int8 is 23 MB. A whole classifier fits in ~58 MB of browser
+download. Neither model earns its bytes.
+
+Monad has no chat template (a completion model, so few-shot `Query: / Category:` pairs);
+Baguettotron has one that forces a `<think>` block. n=40, MiniLM snapper:
+
+| generator | acc@1 | acc@3 | ms/query (CPU fp32) |
+|---|---|---|---|
+| none — snap the raw query | **0.500** | 0.650 | 0 |
+| `gemini-3.5-flash-lite`, novelty prompt | 0.575 | 0.675 | ~1,100 |
+| Monad 57M, few-shot | 0.425 | 0.500 | 645 |
+| Baguettotron 321M, few-shot | 0.400 | 0.475 | 1,408 |
+| Baguettotron 321M, chat template | — | — | 15,337 |
+
+Both land **below** the no-model control. The outputs say why: `smart coffee table` →
+`Smart coffee table`, `dinosaur` → `Dinosaur`, `turquoise pillows` → `Turquoise Pillows`.
+They echo the query, which collapses the arm onto the direct-embed control, and then lose
+ground to few-shot bleed — `chair and a half recliner` → `Chair & Recycling Bins`, copied
+from the last exemplar. The chat arm never emitted `</think>` inside 220 tokens and
+returned its own reasoning header 40 times out of 40.
+
+Reranking instead of generating does not rescue it. Give the tiny model the embedder's
+top-10 and score each candidate by `logP(label | few-shot, query)` — no format
+compliance required, no way to emit an illegal label, which removes everything a 57M
+model is worst at:
+
+| | embedder alone | Monad rerank | Baguettotron rerank | ceiling (recall@10) |
+|---|---|---|---|---|
+| MiniLM top-10 | **0.500** | 0.325 | 0.350 | 0.825 |
+| TF-IDF top-10 | 0.275 | 0.275 | 0.275 | 0.675 |
+
+The headroom is real — the right label is in the embedder's top-10 for 82.5% of queries —
+and neither model finds it more often than cosine argmax does.
+
+### The in-browser classifier is the embedder alone
+
+If the LM half subtracts, the encoder is the whole system. Full WANDS set, snapping the
+raw query, no API call anywhere:
+
+| encoder | int8 ONNX | acc@1 | acc@3 | acc@1 with a server-side register-prompt label |
+|---|---|---|---|---|
+| all-MiniLM-L6-v2 | 23 MB | 0.417 | 0.564 | 0.564 |
+| bge-small-en-v1.5 | 33 MB | 0.427 | 0.583 | 0.541 |
+| **gte-small** | **33 MB** | **0.455** | 0.594 | 0.571 |
+| all-MiniLM-L12-v2 | 33 MB | 0.423 | 0.588 | 0.571 |
+| bge-base-en-v1.5 | 109 MB | 0.462 | **0.630** | 0.575 |
+
+`gte-small` is the size/accuracy knee: 0.455 acc@1 in **33 MB**, entirely client-side,
+against MiniLM-L6's 0.417 for 10 MB less. `bge-base` buys +0.007 acc@1 for 3.3× the
+download and is only worth it for acc@3 (0.630).
+
 
 ## Findings
 
@@ -94,15 +154,15 @@ Gemini's novelty-prompt tags: `remax-boundary`, `index-decoupling`, `s2orc-scale
    worry whether the label exists", not "make it novel".
 
 3. **The long-item "boundary" was the prompt.** Under the novelty prompt, the tag corpus
-   read as a clean limit on the pattern — 0.200 against a 0.400 control, halved,
+   read as a clean limit on the pattern — 0.208 against a 0.416 control, halved,
    unrecovered by asking for 5 labels instead of 1. That result was published in the
    first commit of both downstream artifacts and then withdrawn: the register prompt
-   moves the same arm to 0.500, past the control. Long items amplify the register error
+   moves the same arm to 0.508, past the control. Long items amplify the register error
    (a distinctive vocabulary is where invented wording lands furthest from anything
    legal); they do not constitute a separate failure.
 
-4. **Interleaving the direct snap with the written-label snap is worth +17.6pp on long
-   items** (0.676 vs 0.500) and is redundant on short ones. The two rankings are
+4. **Interleaving the direct snap with the written-label snap is worth +16.4pp on long
+   items** (0.672 vs 0.508) and is redundant on short ones. The two rankings are
    complementary because a one-word label discards most of a 1,500-character document
    while the direct embedding keeps it.
 
@@ -118,7 +178,7 @@ Gemini's novelty-prompt tags: `remax-boundary`, `index-decoupling`, `s2orc-scale
 
 7. **Char-ngram TF-IDF is a serious snapper, not a fallback.** 0.528 against MiniLM's
    0.564 on WANDS, and it beats MiniLM outright on the direct half of the tag corpus
-   (0.400 vs 0.296) because a memory summary usually contains its own tag words
+   (0.416 vs 0.356) because a memory summary usually contains its own tag words
    literally. It needs no download and no GPU. Reach for MiniLM when items and labels
    share no surface wording.
 
@@ -138,7 +198,29 @@ Gemini's novelty-prompt tags: `remax-boundary`, `index-decoupling`, `s2orc-scale
 | `arm2.py` | structured-output baseline and batched hallucination |
 | `register_prompt.py` | register vs novelty on Gemini, all 468 → `register_hall.json` |
 | `score_haiku.py` | Haiku-subagent arms scored against Gemini on the same 40 |
-| `muninn_tags.py` / `muninn_tags2.py` | tag corpus, novelty prompt, 1 tag and 5 tags |
-| `muninn_tags3.py` | tag corpus, register prompt → the corrected numbers |
+| `muninn_tags.py` / `muninn_tags2.py` / `muninn_tags3.py` | first tag runs; superseded, rows not pinned |
+| `muninn_tags_pinned.py` / `muninn_tags_fixture.json` | both tag arms with rows and generations pinned — the reported numbers |
 | `haiku_arms.json` | the Haiku subagent's two label sets, verbatim |
+| `tiny.py` / `tiny_arms.json` | Monad and Baguettotron as generators |
+| `tiny_rerank.py` | the same two as likelihood rerankers over the embedder's top-k |
+| `browser_embedders.py` | ONNX-available encoders, size against accuracy |
 | `recheck.py` | re-derives every number in this file from the artifacts |
+
+8. **A 57M-321M model cannot do the hallucinating half, at either interface.** As
+   generators, Monad and Baguettotron score below the no-model control (0.425 and 0.400
+   against 0.500); as likelihood rerankers over the embedder's top-10 they score 0.325
+   and 0.350 against the same 0.500, with the gold label sitting in that top-10 for
+   82.5% of queries. The mechanism follows from finding 2: **this pattern is a knowledge
+   task wearing generation's clothes.** What `gemini-3.5-flash-lite` contributes is not
+   reasoning but the fact that retailers write `Coffee Tables` and `Wall & Accent
+   Mirrors` — a prior over how taxonomies name things, learned from web-scale
+   pretraining. A SYNTH-trained reasoner has no retail taxonomy prior and reasoning
+   capacity does not substitute for one. It is the case where small-reasoner-big-KB does
+   not apply: the KB here is the label vocabulary, it is already attached, and the
+   model's only job was the naming convention.
+
+9. **A fully client-side classifier is real, and it is the encoder by itself.**
+   `gte-small` int8 is 33 MB of ONNX and scores 0.455 acc@1 / 0.594 acc@3 on 860 labels
+   with no API call. Adding Monad costs 35 MB, ~1.2 s/query, and 17 accuracy points.
+   Adding a server-side register-prompt label instead buys +11.6pp (0.455 → 0.571), which
+   is the honest price of leaving the browser.

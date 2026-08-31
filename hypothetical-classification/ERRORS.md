@@ -76,3 +76,24 @@ says "**Grep this file before starting a new experiment**" in bold at the top.
 
 **Direction.** None on the conclusions — the prior work agrees. Cost was duplicated
 effort on the HyDE half.
+
+## 6. `recheck.py` re-sampled from a live corpus
+
+**Wrong.** The Muninn tag arms drew their 250 rows with `random.sample` from
+`MemoryIndex.build()`, which reads Turso at call time. `recheck.py` re-drew the same
+way. Both are seeded, so it looked deterministic.
+
+**Caught.** By `recheck.py` itself, on its second run: every tag number failed, one of
+them by 0.45 (`register @1` recomputed 0.056 against a claimed 0.500). The cause was
+that I had written a memory into the store between the measurement and the recheck —
+corpus 3,052 → 3,053 — which shifts the sample and zips the saved generations against
+a different 250 rows.
+
+**Direction.** None on the published conclusions: each original run sampled and
+generated inside one process, so it was internally consistent, and re-running with rows
+pinned reproduces every ordering (novelty ≈ half the control, register above it, union
+best) with numbers moving 1-2pp. But the numbers were *unverifiable*, which is nearly
+as bad in something already merged into two PRs. Rows and generations are now pinned in
+`muninn_tags_fixture.json` and `recheck.py` reads that fixture instead of resampling.
+The general form: **a seeded sample over a mutable corpus is not a fixture.** The seed
+pins the draw, not the population.

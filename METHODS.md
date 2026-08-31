@@ -2000,6 +2000,41 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **A 57M-321M model cannot be the cheap generator in hallucinate-and-snap, at any
+  interface — and the reason generalises.** Pleias `Monad` (57M) and `Baguettotron`
+  (321M) score **0.425 and 0.400** acc@1 as label writers against a **0.500** no-model
+  control (snap the raw query), echoing the query or bleeding from few-shot exemplars
+  (`chair and a half recliner` -> `Chair & Recycling Bins`). Reframed as likelihood
+  rerankers over the encoder's top-10 — asking them for no format compliance at all,
+  which removes what tiny models are worst at — they score **0.325 and 0.350** against
+  the same 0.500, with the gold label present in that top-10 for 82.5% of queries. The
+  mechanism: what a cheap model contributes to this pattern is a **prior over how
+  taxonomies name things**, not reasoning. That is world knowledge, it is the first
+  thing cut when a model shrinks, and reasoning capacity does not substitute. Before
+  swapping a small reasoner into any pipeline, ask whether the step is knowledge-shaped
+  or reasoning-shaped; small-reasoner-big-KB does not cover the case where the KB is the
+  output vocabulary and is already attached.
+  (`hypothetical-classification/RESULTS.md` findings 8-9)
+
+- **For a no-API classifier, the encoder IS the system, and `gte-small` is the knee.**
+  Snapping the raw query against 860 labels with no model call: `all-MiniLM-L6-v2` 0.417
+  acc@1 at 23 MB int8 ONNX, `bge-small-en-v1.5` 0.427 at 33 MB, **`thenlper/gte-small`
+  0.455 at 33 MB**, `bge-base-en-v1.5` 0.462/0.630 at 109 MB. gte-small is +0.038 over
+  MiniLM-L6 for 10 MB; bge-base is +0.007 over gte-small for 3.3x the download and is
+  worth it only for acc@3. A server round-trip for a register-prompt label buys
+  +11.6pp on top (0.455 -> 0.571) — that is the measured price of leaving the browser.
+  (`hypothetical-classification/browser_embedders.py`)
+
+- **A seeded sample over a mutable corpus is not a fixture.** Two tag-classification
+  measurements drew 250 rows with `random.sample(seed=...)` from a live Turso corpus at
+  call time. Writing one memory into that store between the run and its verification
+  (3,052 -> 3,053 rows) shifted the draw, so the saved generations zipped against a
+  different 250 and every number moved — one by 0.45. The seed pins the draw, not the
+  population. Persist the sampled rows next to the generations and have the recheck read
+  those. The conclusions survived a pinned re-run; only their verifiability had been
+  lost, in numbers already merged into two PRs.
+  (`hypothetical-classification/ERRORS.md` #6, `muninn_tags_fixture.json`)
+
 - **Prompt a hallucinate-and-snap classifier on the vocabulary's REGISTER, never on
   novelty — and note that a weak model hides the error.** Doug Turnbull's
   hypothetical-classification pattern (cheap model invents a label, embedder snaps it
