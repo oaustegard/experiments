@@ -1,0 +1,9 @@
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 2674.08it/s]
+arm                                             acc@1  acc@3
+--------------------------------------------------------------
+structured: verbatim exact match                0.701      -   (legal-output rate 0.991)
+structured: output snapped to label             0.701  0.744
+hallucination BATCHED x40 -> label              0.496  0.641
+
+wall-clock  structured 512s   batched 57s
+input tokens/query  structured ~5265   single-hallucination ~100   batched(40) ~6

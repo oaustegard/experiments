@@ -2000,6 +2000,50 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **Prompt a hallucinate-and-snap classifier on the vocabulary's REGISTER, never on
+  novelty — and note that a weak model hides the error.** Doug Turnbull's
+  hypothetical-classification pattern (cheap model invents a label, embedder snaps it
+  onto the legal set) ships with the prompt *"create a novel, never-seen-before
+  classification"*. That instruction is safe only with a model too weak to follow it.
+  `gemini-3.5-flash-lite` half-ignores it and writes `Salon & Styling Chairs`; a
+  Haiku 4.5 subagent obeys and writes `Hydraulic Styling Thrones`, scoring **0.100
+  acc@1 against a 0.500 no-model control** — a fifth of doing nothing. Re-anchored on
+  register (*"write the label this vocabulary WOULD file the item under, match the
+  examples' register, do not worry whether it already exists"*) the same subagent
+  scores 0.525/0.750. The register wording also beat novelty on Gemini across 468
+  WANDS queries (0.564 vs 0.489) and by **30 points** on a distinctive 1,273-tag
+  vocabulary (0.500 vs 0.200). Two consequences: swapping in a stronger cheap model
+  silently breaks a deployment tuned on a weaker one, and any measured "boundary" on
+  this pattern must be re-checked under the register prompt before it is believed —
+  one was published and withdrawn here. (`hypothetical-classification/RESULTS.md`,
+  `ERRORS.md` #2)
+
+- **Shipping the label vocabulary beats hallucinate-and-snap by 14 points whenever you
+  can afford the tokens.** On WANDS (860 labels, 468 queries), structured output over
+  the full list scored **0.701** acc@1 against the pattern's **0.564**, at 5,265 input
+  tokens per query against 6. The pattern still beats every model-free baseline
+  (direct MiniLM 0.417, char-ngram TF-IDF 0.316), so it is the right tool when the
+  vocabulary does not fit, hits a provider enum cap, or costs too much at volume — and
+  the wrong one otherwise. The source post reports the pattern working and being
+  cheaper, not the arm it loses to. Batching 40 items per call is free (0.496/0.641 vs
+  0.489/0.613 unbatched) at 1/17 the input tokens.
+  (`hypothetical-classification/RESULTS.md`)
+
+- **A Claude Code subagent costs ~32,500 tokens before it reads your prompt.** A
+  `general-purpose` Haiku 4.5 subagent asked to output the single word `ok`, with zero
+  tool calls, spent **32,539 tokens** in 1,143 ms; a 40-item classification batch spent
+  36,252. Per item that floor is 813 tokens at batch 40 and 32,500 at batch 1, so
+  per-item subagent delegation is never the cheap option it looks like — it is ~65x
+  the cost of the same call to `gemini-3.5-flash-lite` through the gateway. Batch, or
+  write the output inline in the parent turn.
+  (`hypothetical-classification/RESULTS.md` finding 6)
+
+- **Char-ngram TF-IDF is a serious label snapper, not a fallback.** 0.528 acc@1 on
+  WANDS against `all-MiniLM-L6-v2`'s 0.564, no download and no GPU — and it *beats*
+  MiniLM outright (0.400 vs 0.296) when snapping documents that contain their own
+  label words literally, which is the common case for tag vocabularies. Try it before
+  paying for an encoder. (`hypothetical-classification/RESULTS.md` finding 7)
+
 - **Query expansion lost again, in both an unsupervised and a
   cross-arm form.** Over 164 shell-documentation requests, RM3 took
   gold-in-sources from 0.262 to **0.226** and dense-PRF (feed the dense arm's
