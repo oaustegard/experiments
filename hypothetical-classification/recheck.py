@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """recheck — re-derive every number in RESULTS.md from the saved artifacts.
 
+Every input is on disk, including the 250 sampled memory rows: the Muninn corpus is live
+and a seeded sample over a mutable population is not a fixture (ERRORS.md #6).
+
 Runs in well under a minute and makes no API call: the model outputs are all on disk
 (artifacts_lite.json, register_hall.json, haiku_arms.json, muninn_tags*_hall.json), so
 only the snapping and scoring are recomputed. Fails loudly on any number that has drifted
@@ -9,7 +12,7 @@ from the prose.
     python3 recheck.py            # tfidf arms only, no download
     python3 recheck.py --minilm   # also the MiniLM arms (needs sentence-transformers)
 """
-import argparse, json, re, sys, collections
+import argparse, json, sys
 from pathlib import Path
 import numpy as np
 
@@ -82,63 +85,80 @@ def main(argv=None):
             check(f"Haiku {bk}/{arm} acc@1", a1, w1)
             check(f"Haiku {bk}/{arm} acc@3", a3, w3)
 
-    # Muninn tags — needs the live corpus; skip cleanly when Turso is unreachable
-    try:
-        from muninn_utils.memory_tfidf import MemoryIndex
-        import random
-        idx = MemoryIndex(); idx.build()
-    except Exception as exc:                                    # noqa: BLE001
-        print(f"[skip] Muninn tag arms: corpus unavailable ({type(exc).__name__})")
-        idx = None
-    if idx is not None:
-        def tags_of(m):
-            t = m.get("tags") or []
-            if isinstance(t, str): t = [x.strip() for x in t.split(",") if x.strip()]
-            return set(t)
-        counts = collections.Counter(t for m in idx.meta for t in tags_of(m))
-        labels = sorted(t for t, c in counts.items() if c >= 3)
-        VS = set(labels)
-        rows = [(idx.summaries[i], tags_of(idx.meta[i]) & VS) for i in range(len(idx.ids))
-                if len(idx.summaries[i]) > 300 and tags_of(idx.meta[i]) & VS]
-        random.seed(20260831); rows = random.sample(rows, min(250, len(rows)))
-        S = [s for s, _ in rows]; G = [g for _, g in rows]
-        halls = {"novelty": json.load(open(HERE / "muninn_tags2_hall.json")),
-                 "register": json.load(open(HERE / "muninn_tags3_hall.json"))}
-        TAGS = {("control", "tfidf"): (0.400, 0.604, 0.684),
-                ("novelty", "tfidf"): (0.200, 0.352, 0.452),
-                ("register", "tfidf"): (0.500, 0.680, 0.728),
-                ("union", "tfidf"): (0.676, 0.848, 0.876),
-                ("control", "minilm"): (0.296, 0.528, 0.616),
-                ("novelty", "minilm"): (0.212, 0.388, 0.500),
-                ("register", "minilm"): (0.500, 0.672, 0.728),
-                ("union", "minilm"): (0.640, 0.824, 0.860)}
-        for bk in backends:
-            V = snapper(labels, bk)
-            ctl = V.snap(S, k=5)
-            per = {}
-            for arm, H_ in halls.items():
-                flat = [t for tags in H_ for t in tags]
-                snapped = V.snap(flat, k=1)
-                out, c = [], 0
-                for tags in H_:
-                    out.append([snapped[c + i][0][0] for i in range(len(tags))]); c += len(tags)
-                per[arm] = out
-            for k, i in ((1, 0), (3, 1), (5, 2)):
-                check(f"tags {bk}/control @{k}",
-                      float(np.mean([any(l in g for l, _ in r[:k]) for r, g in zip(ctl, G)])),
-                      TAGS[("control", bk)][i])
-                for arm in ("novelty", "register"):
-                    check(f"tags {bk}/{arm} @{k}",
-                          float(np.mean([any(l in g for l in p[:k]) for p, g in zip(per[arm], G)])),
-                          TAGS[(arm, bk)][i])
-                check(f"tags {bk}/union @{k}",
-                      float(np.mean([any(l in g for l, _ in r[:k]) or any(l in g for l in p[:k])
-                                     for r, p, g in zip(ctl, per["register"], G)])),
-                      TAGS[("union", bk)][i])
+
+    # Tiny-model arms (n=40). Generated text is on disk; only snapping is recomputed.
+    T = json.load(open(HERE / "tiny_arms.json"))
+    TINY = {("Monad-fewshot", "tfidf"): (0.250, 0.375),
+            ("Monad-fewshot", "minilm"): (0.425, 0.500),
+            ("Baguettotron-fewshot", "tfidf"): (0.225, 0.325),
+            ("Baguettotron-fewshot", "minilm"): (0.400, 0.475)}
+    for bk in backends:
+        V = snapper(vocab, bk)
+        for arm in ("Monad-fewshot", "Baguettotron-fewshot"):
+            assert len(T[arm]) == 40, f"{arm}: expected 40 labels"
+            a1, a3 = score_single(V, T[arm], g40, vocab)
+            w1, w3 = TINY[(arm, bk)]
+            check(f"tiny {bk}/{arm} acc@1", a1, w1)
+            check(f"tiny {bk}/{arm} acc@3", a3, w3)
+
+    # Reranker and encoder tables are stored results, not re-derivable without the
+    # models; assert the files agree with the prose instead.
+    RR = json.load(open(HERE / "tiny_rerank_results.json"))
+    for key, want in (("minilm/embedder acc@1", 0.500), ("minilm/ceiling recall@10", 0.825),
+                      ("minilm/Monad rerank acc@1", 0.325),
+                      ("minilm/Baguettotron rerank acc@1", 0.350),
+                      ("tfidf/embedder acc@1", 0.275), ("tfidf/ceiling recall@10", 0.675)):
+        check(f"rerank {key}", RR.get(key), want)
+    BE = json.load(open(HERE / "browser_embedders.json"))
+    for hf, want1, want3 in (("sentence-transformers/all-MiniLM-L6-v2", 0.417, 0.564),
+                             ("thenlper/gte-small", 0.455, 0.594),
+                             ("BAAI/bge-base-en-v1.5", 0.462, 0.630)):
+        check(f"encoder {hf} acc@1", BE[hf]["query_acc1"], want1)
+        check(f"encoder {hf} acc@3", BE[hf]["query_acc3"], want3)
+
+    # Muninn tag arms — from the pinned fixture, never resampled (ERRORS.md #6)
+    F = json.load(open(HERE / "muninn_tags_fixture.json"))
+    labels = F["vocab"]
+    S = [r["summary"] for r in F["rows"]]
+    G = [set(r["gold"]) for r in F["rows"]]
+    assert len(S) == 250, f"fixture has {len(S)} rows, expected 250"
+    assert len(labels) == 1273, f"fixture vocab {len(labels)}, expected 1273"
+    TAGS = {("control", "tfidf"): (0.416, 0.628, 0.712),
+            ("novelty", "tfidf"): (0.208, 0.352, 0.424),
+            ("register", "tfidf"): (0.508, 0.700, 0.792),
+            ("union", "tfidf"): (0.672, 0.852, 0.888),
+            ("control", "minilm"): (0.356, 0.584, 0.656),
+            ("novelty", "minilm"): (0.244, 0.380, 0.460),
+            ("register", "minilm"): (0.464, 0.676, 0.792),
+            ("union", "minilm"): (0.640, 0.836, 0.888)}
+    for bk in backends:
+        V = snapper(labels, bk)
+        ctl = V.snap(S, k=5)
+        per = {}
+        for arm in ("novelty", "register"):
+            flat = [t for tags in F[arm] for t in tags]
+            snapped = V.snap(flat, k=1)
+            out, c = [], 0
+            for tags in F[arm]:
+                out.append([snapped[c + i][0][0] for i in range(len(tags))]); c += len(tags)
+            per[arm] = out
+        for k, i in ((1, 0), (3, 1), (5, 2)):
+            check(f"tags {bk}/control @{k}",
+                  float(np.mean([any(l in g for l, _ in r[:k]) for r, g in zip(ctl, G)])),
+                  TAGS[("control", bk)][i])
+            for arm in ("novelty", "register"):
+                check(f"tags {bk}/{arm} @{k}",
+                      float(np.mean([any(l in g for l in p[:k]) for p, g in zip(per[arm], G)])),
+                      TAGS[(arm, bk)][i])
+            check(f"tags {bk}/union @{k}",
+                  float(np.mean([any(l in g for l, _ in r[:k]) or any(l in g for l in p[:k])
+                                 for r, p, g in zip(ctl, per["register"], G)])),
+                  TAGS[("union", bk)][i])
 
     # prose invariants that do not need recomputation
     txt = (HERE / "RESULTS.md").read_text()
-    for needle in ("32,539", "860", "468", "1,273", "0.701", "5,265"):
+    for needle in ("32,539", "860", "468", "1,273", "0.701", "5,265",
+               "35 MB", "33 MB", "gte-small", "0.825"):
         if needle not in txt:
             failures.append(f"RESULTS.md no longer mentions {needle}")
 
