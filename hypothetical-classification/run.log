@@ -1,0 +1,14 @@
+labels=860 queries=468
+hallucinated 468 in 507s  e.g. [('salon chair', 'Salon & Styling Chairs'), ('smart coffee table', 'Connected Coffee Tables'), ('dinosaur', 'Dinosaur Decor'), ('turquoise pillows', 'Turquoise Pillows')]
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 3279.96it/s]
+encoded in 1s
+
+arm                                             acc@1  acc@3
+--------------------------------------------------------------
+lexical char-ngram: query -> label              0.329  0.472
+lexical char-ngram: hallucination -> label      0.466  0.553
+MiniLM: query -> label  [control]               0.417  0.564
+MiniLM: hallucination -> label  [Doug]          0.489  0.613
+MiniLM: (query+hallucination)/2 -> label        0.500  0.639
+
+hallucination wall-clock: 507s for 468 queries
