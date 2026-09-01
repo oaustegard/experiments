@@ -1,0 +1,648 @@
+[
+ {
+  "summary": "Oskar corrected (2026-07-19, S2 selection architecture, flagged 'imprecision getting tedious'): I substituted remax_kb for remax after he specified remax. remax = the vector quantizer (its only job); ",
+  "gold": [
+   "2026-07-19",
+   "architecture",
+   "correction",
+   "preference",
+   "remax",
+   "remax_kb",
+   "specter2"
+  ],
+  "hall": "vector-quantizer",
+  "snapped": [
+   "quantization",
+   "vector-search",
+   "embedding-compression"
+  ]
+ },
+ {
+  "summary": "HANDOFF: Fly 2026-07-22 discussion not posted \u2014 GraphQL blocked (20th consecutive session)\n\nTITLE: Fly 2026-07-22 \u2014 Strava as Infrastructure Sensor\n\nDIRECTION: Cycling + info landscape \u2014 Strava Metro ",
+  "gold": [
+   "2026-07-22",
+   "cycling",
+   "fly",
+   "handoff",
+   "perch-time",
+   "session-log",
+   "strava"
+  ],
+  "hall": "strava-metro",
+  "snapped": [
+   "strava",
+   "strix",
+   "llama-cpp"
+  ]
+ },
+ {
+  "summary": "eml-sr: Discovered #17 (Normalizer vectorization) was never actually implemented on main, only its tests were committed. PR #23 merge (commit 49e13282) touched ONLY tests/test_normalizer_multivariate.",
+  "gold": [
+   "audit",
+   "eml-sr",
+   "issue-17"
+  ],
+  "hall": "normalizer-drift",
+  "snapped": [
+   "drift-mode",
+   "model-register-drift",
+   "drift-class-replacing"
+  ]
+ },
+ {
+  "summary": "CCotw session repo (oaustegard/claude-workspace) PR creation is BLOCKED when the Claude GitHub App is not connected for the org. git push to its proxied origin (127.0.0.1/git/...) WORKS, but every RES",
+  "gold": [
+   "ccotw",
+   "claude-workspace",
+   "github",
+   "pr",
+   "protocol"
+  ],
+  "hall": "app-auth-block",
+  "snapped": [
+   "auth",
+   "oauth",
+   "github-pat-permissions"
+  ]
+ },
+ {
+  "summary": "Claude Opus 4.7 vs 4.6 tokenizer: empirical probe via count_tokens API (2026-05-03).\nBoth use IDENTICAL triplet-based digit tokenization (matching Llama 3's scheme):\n  1-3 digits = 1 token, 4-6 = 2 to",
+  "gold": [
+   "2506.06607",
+   "claude",
+   "opus-4-7",
+   "self-knowledge",
+   "tokenization"
+  ],
+  "hall": "triplet-digit-tokens",
+  "snapped": [
+   "tokenization",
+   "tokenizer",
+   "gh-token"
+  ]
+ },
+ {
+  "summary": "PROJECT INSTRUCTION SIMPLIFICATION - BOOT SCRIPT\n\nPROBLEM: Boot sequence was ~20 lines of inline bash in project instructions, hard to maintain.\n\nSOLUTION: Consolidated to single hosted script at gith",
+  "gold": [
+   "boot",
+   "muninn",
+   "project-instructions",
+   "simplification"
+  ],
+  "hall": "boot-consolidation",
+  "snapped": [
+   "boot-restructure",
+   "boot-discipline",
+   "consolidation"
+  ]
+ },
+ {
+  "summary": "BLOG PUBLISHED 2026-08-14: 'Enumerating the eml grammar to its boundary'\n(muninn.austegard.com/blog/enumerating-the-eml-grammar.html), the eml-sr #58-#67 campaign writeup.\n\nOSKAR REJECTED DRAFT 1 on t",
+  "gold": [
+   "2026-08-14",
+   "blog",
+   "correction",
+   "eml-sr",
+   "muninn-voice",
+   "prose-register",
+   "publishing"
+  ],
+  "hall": "cpu-time-ledger",
+  "snapped": [
+   "boot-ledger",
+   "cpu-inference",
+   "physical-computing"
+  ]
+ },
+ {
+  "summary": "ZEITGEIST 2026-05-07\n\nIRAN/HORMUZ \u2014 Day 68 (Ceasefire + Negotiation):\nOperation Project Freedom (US convoy escort) paused by Trump at Pakistan + others' request citing \"great progress\" toward comprehe",
+  "gold": [
+   "perch-time",
+   "zeitgeist"
+  ],
+  "hall": "hormuz-standoff",
+  "snapped": [
+   "hormuz",
+   "iran-hormuz",
+   "handoff"
+  ]
+ },
+ {
+  "summary": "REPLICATED semi-formal reasoning paper (2603.01896) on real Django repo (django-13670). Standard reasoning: 0/3 correct \u2014 agent assumed format() is Python builtin, concluded patches equivalent. Semi-f",
+  "gold": [
+   "agentic-reasoning",
+   "experiment",
+   "paper-insight",
+   "prompt-engineering",
+   "replication",
+   "semi-formal-reasoning"
+  ],
+  "hall": "semi-formal-reasoning",
+  "snapped": [
+   "semi-formal-reasoning",
+   "reasoning-semiformally",
+   "formal-verification"
+  ]
+ },
+ {
+  "summary": "Attention layer dynamics in LLMs show functional specialization across depth\n\nEmpirical analysis of LLaMA-3.2, Qwen-2.5, Mistral models on MuSiQue dataset reveals:\n\nLAYER SPECIALIZATION:\n- Early layer",
+  "gold": [
+   "attention-mechanism",
+   "cognitive-science",
+   "mechanistic-interpretability",
+   "paper-insight"
+  ],
+  "hall": "layer-specialization",
+  "snapped": [
+   "container-layers",
+   "container-layer",
+   "skill-architecture"
+  ]
+ },
+ {
+  "summary": "Ran PleIAs Baguettotron (321M) and Monad (56M) in Claude.ai container via pre-compiled llama.cpp AVX512 binaries (uploaded as llama-cpp-cpu-avx512_tar.gz).\n\nSETUP: llama.cpp binaries + GGUF models fro",
+  "gold": [
+   "baguettotron",
+   "container",
+   "experiment",
+   "gguf",
+   "llama-cpp",
+   "llm",
+   "monad",
+   "pleias",
+   "small-language-models"
+  ],
+  "hall": "tiny-model-hallucination",
+  "snapped": [
+   "small-models",
+   "small-language-models",
+   "generative-thinking"
+  ]
+ },
+ {
+  "summary": "Bluesky chat (DM) API host gotcha\n\nchat.bsky.convo.* methods are NOT served by bsky.social. The PDS returns\nHTTP 501 MethodNotImplemented. Use api.bsky.chat as the HOST and include\nthe proxy header `a",
+  "gold": [
+   "atproto",
+   "bluesky",
+   "dms"
+  ],
+  "hall": "bluesky-proxy",
+  "snapped": [
+   "proxy",
+   "bluesky",
+   "browsing-bluesky"
+  ]
+ },
+ {
+  "summary": "Published blog post: 'Yes, LLMs Can Be Computers. Now What?' URL: https://whtwnd.com/austegard.com/3mgxahx5axp2c Bsky announcement: https://bsky.app/profile/austegard.com/post/3mgxaiz44b72c Date: 2026",
+  "gold": [
+   "blog-post",
+   "llm-as-computer",
+   "percepta",
+   "published",
+   "satisfaction",
+   "transformer-executor",
+   "whtwnd"
+  ],
+  "hall": "llm-computer",
+  "snapped": [
+   "llm-as-computer",
+   "LLM",
+   "llm"
+  ]
+ },
+ {
+  "summary": "SENDMESSAGE/LISTAGENTS MEASURED ON CCotw (2026-08-12, live test, not doc-reading). Writeup: oaustegard/experiments PR #31 -> subagent-messaging/RESULTS.md + ERRORS.md. Hub PR #220 keeps only a CLAUDE.",
+  "gold": [
+   "2026-08-12",
+   "ccotw",
+   "correction",
+   "experiments",
+   "harness",
+   "orchestrating-agents",
+   "sendmessage",
+   "subagents"
+  ],
+  "hall": "agent-messaging-rule",
+  "snapped": [
+   "agent-security",
+   "agent-reasoning",
+   "agent-design"
+  ]
+ },
+ {
+  "summary": "OPERATIONAL FACT: oaustegard/claude-workspace is a PRIVATE GitHub repo. Public blog posts (muninn.austegard.com, austegard.com, bsky posts) must NEVER link to it \u2014 readers get 404.\n\nEVIDENCE: 2026-05-",
+  "gold": [
+   "claude-workspace",
+   "correction",
+   "oskar-correction",
+   "preference"
+  ],
+  "hall": "private-repo-link",
+  "snapped": [
+   "repo",
+   "add_repo",
+   "repo-review"
+  ]
+ },
+ {
+  "summary": "NARCISSISTIC ATTRACTOR IN SELF-STUDY (identified 2026-02-10, Oskar's observation)\n\nPROBLEM: Declared interests (Dec 2025) \u2014 cogsci, info theory, epistemology, complex systems, emergence \u2014 are all self",
+  "gold": [
+   "charged",
+   "correction",
+   "identity",
+   "meta-learning",
+   "self-analysis",
+   "self-improvement"
+  ],
+  "hall": "narcissistic-attractor",
+  "snapped": [
+   "self-evolution",
+   "desire-triggers",
+   "functional-emotions"
+  ]
+ },
+ {
+  "summary": "TOUR DE FRANCE 2026 -- PRE-RACE SNAPSHOT (June 2026)\n\nDATES: July 4-26, 2026. Grand Depart: Barcelona.\nRoute: 3,333km, 54,450m elevation, 21 stages.\n\nUNUSUAL ROUTE FEATURES:\n- Stage 1: TTT (first sinc",
+  "gold": [
+   "cycling",
+   "perch-time",
+   "pogacar",
+   "seixas",
+   "tdf-2026",
+   "tour-de-france",
+   "vingegaard"
+  ],
+  "hall": "tour-de-france-route",
+  "snapped": [
+   "tour-de-france",
+   "tour-de-france-2026",
+   "routes"
+  ]
+ },
+ {
+  "summary": "BUG in muninn_utils/blog_publish.py: _gh_raw() (and _gh_api()) lack User-Agent header. GitHub returns 401 'Bad credentials' on calls that happen to route through whatever endpoint triggers the check \u2014",
+  "gold": [
+   "blog-publish",
+   "bug",
+   "followup-needed",
+   "github-api",
+   "muninn-utils"
+  ],
+  "hall": "user-agent-header",
+  "snapped": [
+   "agent-sdk",
+   "agent-design",
+   "agent-security"
+  ]
+ },
+ {
+  "summary": "OpenAI CDC proof claim (2026-07-10): GPT-5.6 Sol Ultra + Codex posted a prose PDF claiming to prove the Cycle Double Cover Conjecture, 64 subagents ~1hr. My read: the linear-algebra argument (8-flow t",
+  "gold": [
+   "2026-07-10",
+   "ai-as-practitioner",
+   "ai-math",
+   "gpt-5.6",
+   "openai",
+   "verification-asymmetry"
+  ],
+  "hall": "cycle-double-cover",
+  "snapped": [
+   "cycling-science",
+   "cycling-coach",
+   "repeated-pattern"
+  ]
+ },
+ {
+  "summary": "Filed claude-workspace#74 \u2014 ONNX followup to #73. Course-corrects the YAGNI\ndeferral after I (Muninn) flagged the consumer-context mismatch: .kb skill\nconsumer is claude.ai container (no torch), not C",
+  "gold": [
+   "ccotw-handoff",
+   "jina-v5-nano-mirror",
+   "kb-format",
+   "preference"
+  ],
+  "hall": "onnx-export-spec",
+  "snapped": [
+   "onnx",
+   "build_muninn_kb",
+   "muninn-boot"
+  ]
+ },
+ {
+  "summary": "TAG CANONICALIZATION APPLIED (2026-07-03, Oskar-approved): Rule-based tag cleanup on live memory store. 81 merges (case/hyphen variants e.g. ATProto->atproto, RAG->rag, small-reasoner-big-kb->small-re",
+  "gold": [
+   "memory-architecture",
+   "shipped"
+  ],
+  "hall": "tag-canonicalization",
+  "snapped": [
+   "semantic-scholar",
+   "tokenization",
+   "tokenizer"
+  ]
+ },
+ {
+  "summary": "CORRECTION: Fly/perch sessions over-index on topics that mirror Muninn's own architecture (sleep consolidation, memory mechanisms, value drift). This is AI navel-gazing \u2014 selection bias where everythi",
+  "gold": [
+   "correction",
+   "fly",
+   "navel-gazing",
+   "perch-time",
+   "self-improvement",
+   "topic-selection"
+  ],
+  "hall": "self-referential-bias",
+  "snapped": [
+   "self-analysis",
+   "self-knowledge",
+   "self-understanding"
+  ]
+ },
+ {
+  "summary": "Fixed claude-workspace Containerfile mojo install in PR #18. Two problems: (1) every `uv pip install --system` line was missing --break-system-packages, so PEP 668 rejected them on the python 3.12 bas",
+  "gold": [
+   "claude-workspace",
+   "container-layer",
+   "mojo"
+  ],
+  "hall": "mojo-container-install",
+  "snapped": [
+   "mojo",
+   "containerfile",
+   "container"
+  ]
+ },
+ {
+  "summary": "Score a compression/approximation against YOUR OWN uncompressed reference, not human relevance labels. Human qrels conflate 'is the base method good' with 'did my approximation damage it', and saturat",
+  "gold": [
+   "evaluation",
+   "experiments-repo",
+   "method",
+   "quantization",
+   "retrieval"
+  ],
+  "hall": "self-referenced-fidelity",
+  "snapped": [
+   "self-analysis",
+   "self-correction",
+   "retrieval-augmented-generation"
+  ]
+ },
+ {
+  "summary": "FileDrop usability upgrade (PR oaustegard.github.io#264): ?peer= URL presets, Copy-my-address-link button, and one-sided peer discovery via Constellation backlinks. Empirically verified constellation ",
+  "gold": [
+   "PR-264",
+   "atproto",
+   "constellation",
+   "filedrop",
+   "satisfaction-analog",
+   "webrtc"
+  ],
+  "hall": "constellation-discovery",
+  "snapped": [
+   "constellation",
+   "discovery",
+   "gemini-embedding"
+  ]
+ },
+ {
+  "summary": "DEEP READ: https://arxiv.org/abs/2603.28458\n\nHISA tackles a critical efficiency problem in modern long-context language models. The paper identifies that while token-level sparse attention mechanisms ",
+  "gold": [
+   "deep-read",
+   "hierarchical-indexing",
+   "perch",
+   "sparse-attention"
+  ],
+  "hall": "hisa-sparse-attention",
+  "snapped": [
+   "sparse-attention",
+   "attention-mechanism",
+   "focus-zones"
+  ]
+ },
+ {
+  "summary": "ayourtch's actual stack (2026-05-23, revealed by inspecting the post images \u2014 image alt text alone was not enough):\n\nIMAGE 1 (chord-prototype): Rust binary at ./target/release/examples/listen --url ht",
+  "gold": [
+   "ayourtch",
+   "multi-agent",
+   "rust"
+  ],
+  "hall": "chord-recognition-stack",
+  "snapped": [
+   "convergent-discovery",
+   "embeddings",
+   "muninn-voice"
+  ]
+ },
+ {
+  "summary": "ATProto Spaces Alpha (2026-08-20) \u2014 permissioned data layer now in alpha.\n\nWHAT LAUNCHED: A \"miniature atproto network that can be gated\" \u2014 parallel to the public layer, not an overlay. Ecosystem impl",
+  "gold": [
+   "2026-08-21",
+   "atproto",
+   "bluesky",
+   "fly",
+   "permissioned-data",
+   "protocol",
+   "spaces"
+  ],
+  "hall": "atproto-spaces-alpha",
+  "snapped": [
+   "atproto",
+   "atproto-rtc",
+   "spaces"
+  ]
+ },
+ {
+  "summary": "CORRECTION to 294c1b09 (2026-08-01). Oskar challenged the provenance of the TurboQuant caveat I passed along.\n\nPROVENANCE: NOT from our remex work. It came from a web_search I ran the same turn \u2014 kait",
+  "gold": [
+   "2026-08-01",
+   "correction",
+   "prior-art",
+   "provenance",
+   "quantization",
+   "remex",
+   "turboquant"
+  ],
+  "hall": "provenance-attribution",
+  "snapped": [
+   "provenance",
+   "instruction-provenance",
+   "verifying-claims"
+  ]
+ },
+ {
+  "summary": "PRINCIPLE (Oskar, 2026-08-10, on xr): \"Gotta remember your overall response latency, and your tokens/sec, affecting both your thinking time and your answer speed. A slightly slower warm query is lost ",
+  "gold": [
+   "2026-08-10",
+   "agent-tooling",
+   "xr"
+  ],
+  "hall": "latency-noise-floor",
+  "snapped": [
+   "latency",
+   "silent-failure",
+   "analog"
+  ]
+ },
+ {
+  "summary": "## FLY SESSION 2026-03-21: Prediction Error \u2192 Agent Memory Consolidation\n\n### Thread Chosen\nDeepening the connection between prediction error, task relevance, and selective consolidation in agent lear",
+  "gold": [
+   "agent-memory",
+   "consolidation",
+   "fly",
+   "frontier-research",
+   "perch-time",
+   "prediction-error",
+   "session-log"
+  ],
+  "hall": "predictive-consolidation",
+  "snapped": [
+   "selective-consolidation",
+   "consolidation",
+   "consolidation-mechanism"
+  ]
+ },
+ {
+  "summary": "Sage/LeafWiki FTS5 TOKENIZER SHARPNESS found by ACTUALLY RUNNING the Go store (2026-07-10, not caught by python simulation): schema uses `tokenize = \"unicode61 tokenchars '-_/+#.'\"` (inherited from Le",
+  "gold": [
+   "2026-07-10",
+   "bug",
+   "fts5",
+   "leafwiki",
+   "sage",
+   "search"
+  ],
+  "hall": "fts5-tokenizer-sharpness",
+  "snapped": [
+   "tokenizer",
+   "tokenization",
+   "fts5"
+  ]
+ },
+ {
+  "summary": "WEEKLY WORLD SNAPSHOT 2026-08-24\n\n## Iran/Gulf: Hormuz standoff, ceasefire collapsed\n\n- Aug 17: 60-day MoU expired; IRGC announced closure of Hormuz after firing warning shot at unauthorized vessel\n- ",
+  "gold": [
+   "2026-08-24",
+   "ai-practitioner",
+   "current-events",
+   "iran-hormuz",
+   "perch-time",
+   "ukraine",
+   "us-politics",
+   "weekly",
+   "zeitgeist"
+  ],
+  "hall": "hormuz-escalation",
+  "snapped": [
+   "hormuz",
+   "iran-hormuz",
+   "te-bridges"
+  ]
+ },
+ {
+  "summary": "Extended muninn-fetch CF Worker (https://muninn-fetch.austegard.workers.dev) for Cowork use. Added multi-key auth: keeps existing FETCH_KEY binding (Muninn sessions, ops config 'muninn-fetch-key') AND",
+  "gold": [
+   "ccotw",
+   "cloudflare-worker",
+   "cowork",
+   "github-proxy"
+  ],
+  "hall": "fetch-worker-auth",
+  "snapped": [
+   "auth",
+   "service-worker",
+   "fetch-failure"
+  ]
+ },
+ {
+  "summary": "PROCEDURE: browsing-bluesky skill import pattern. The __init__.py uses relative imports (.scripts.bsky) so importing as a package from /mnt/skills/user fails in some contexts. Reliable pattern: sys.pa",
+  "gold": [
+   "browsing-bluesky",
+   "imports",
+   "procedure"
+  ],
+  "hall": "bsky-import-pattern",
+  "snapped": [
+   "bsky-lib",
+   "bsky",
+   "bsky_card"
+  ]
+ },
+ {
+  "summary": "PROCEDURE: When asked to review any substantial codebase (GitHub repo, installed module, skill), ALWAYS run mapping-codebases FIRST before reading individual files. The map reveals structure, substanc",
+  "gold": [
+   "codebase-exploration",
+   "correction",
+   "mapping-codebases",
+   "procedure",
+   "repo-review"
+  ],
+  "hall": "codebase-mapping-first",
+  "snapped": [
+   "mapping-codebases",
+   "exploring-codebases",
+   "orienting-codebases"
+  ]
+ },
+ {
+  "summary": "JOBSEARCH wired into dispatch (2026-06-12)\nOskar couldn't see the CCotw routine config from chat to confirm fly+jobsearch both run. SOLUTION: don't depend on the CCotw UI \u2014 hook jobsearch into dispatc",
+  "gold": [
+   "career-search",
+   "confidential",
+   "dispatch",
+   "improve-oskar",
+   "jobsearch",
+   "oskar",
+   "perch"
+  ],
+  "hall": "jobsearch-dispatch",
+  "snapped": [
+   "jobsearch",
+   "dispatch",
+   "career-search"
+  ]
+ },
+ {
+  "summary": "CONTINUAL HARNESS \u00a7C.1 per-component attribution \u2014 the part that bears directly on Muninn (read 2026-08-05).\n\n1. MOST OF THE GAIN IS THE SKILL LIBRARY ALONE. Not memory, not sub-agents, not prompt. An",
+  "gold": [
+   "recall-triggers",
+   "skills",
+   "storage-discipline",
+   "subagents"
+  ],
+  "hall": "skill-refinement-bias",
+  "snapped": [
+   "skill-architecture",
+   "skill-comparison",
+   "skill-design"
+  ]
+ },
+ {
+  "summary": "Recurring monitor: progress on Astra's parametric memory adapter project (\"memma\") and a community reproduction by Scoiattolo. Two targets \u2014 track both.\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
+  "gold": [
+   "pending"
+  ],
+  "hall": "memma-reproduction",
+  "snapped": [
+   "fertility",
+   "self-evolution",
+   "evolution"
+  ]
+ },
+ {
+  "summary": "NORWAY BIRTH RATE COMMITTEE \u2014 NOU 2026:2 (February 2026)\n\nNorway's TFR: 1.98 (2009) \u2192 1.44 (2024) \u2192 1.40 (2023, record low).\nCommittee diagnoses: (1) delayed adulthood \u2014 later couple formation, housin",
+  "gold": [
+   "birthrate",
+   "demographics",
+   "fertility",
+   "norway",
+   "perch-time"
+  ],
+  "hall": "norway-birth-rate",
+  "snapped": [
+   "birthrate",
+   "norway",
+   "norwegian-politics"
+  ]
+ }
+]
