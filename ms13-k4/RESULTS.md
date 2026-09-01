@@ -108,7 +108,11 @@ scaling; at `k = 4` the computation says the same of the other thirteen.
 ## The unit bound via Hoffman–Kruskal and Carathéodory
 
 The unit-demand bound `1 − 1/(k+1)` for a TU matrix has a short proof that is worth
-recording because it says exactly what Q7′ is missing. Let `P = {x ∈ [0,1]^k : ⌊Cw⌋ ≤ Cx
+recording because it says exactly what Q7′ is missing. Provenance: Doerr's 2000 EJC proof for
+the two-nonzeros-per-row case partitions the weights into extreme and moderate ones and
+balances the moderate ones by hereditary discrepancy `≤ 1`, a different route; his 2004
+Combinatorica proof for general TU matrices is described in the abstract as LP-based and is
+paywalled, so whether the argument below is his I could not check. Let `P = {x ∈ [0,1]^k : ⌊Cw⌋ ≤ Cx
 ≤ ⌈Cw⌉}`. It contains `w` and is integral (Hoffman–Kruskal), so `w` is a convex combination
 of at most `k+1` of its integer vertices `x^0, …, x^k` (Carathéodory), each with per-row
 error in `{−f_a, 1 − f_a}` where `f_a` is the fractional part of `(Cw)_a`. The errors of the
