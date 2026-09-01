@@ -243,6 +243,29 @@ sweep from running with it red or unrun. `run_ablation.py` now invokes it and
 aborts on non-zero exit — including exit 2, INCONCLUSIVE, which the `gating`
 harness returns when a gate registers no known-bad or states no coverage limit.
 
+### 2a. Fail-first branching before you call an exact B&B compute-bound
+
+`ms13-k4`: the `ms13-campaign` exact rational branch-and-bound (a
+disjunction of `(row, side)` options per rounding, one exact LP per node)
+had not finished the first `k = 4` type after 50,000 nodes and 900,000 LPs
+in lexicographic rounding order. Choosing the next rounding as the one with
+the fewest options still satisfied at the parent LP's optimum point proved
+the same type in 909 nodes and 5 s, all 14 types in ~400 s, and re-proved
+the campaign's `k = 3` theorem in 82 and 122 nodes against 15,975 and 14,440.
+Ordering cannot change the answer of an exhaustive search, so this is free
+soundness-wise. Try it before sizing a run as a no-go.
+
+### 2b. Replace a tree census with its split system (Buneman)
+
+`ms13-k4`: the campaign enumerated trees on up to 14 nodes with marked
+endpoints (NG-14: ~2,070 h at `k = 4`). Every row is a split of the `2k`
+endpoints; compatible split systems are exactly trees; refining a tree by
+moving labels to pendant leaves keeps every split and adds trivial ones. If
+the objective is monotone in the row-set, only binary trees with labels at
+leaves matter: unrooted shapes × perfect pairings of the leaves (4 × 105 at
+`k = 4`, 11 × 945 at `k = 5`). Validate by reproducing a smaller case the
+old census closed (here `k = 3`: two maximal 6-row types, identical).
+
 ### 3. Fit and evaluate on the same corpus and learned methods look better than they are
 
 - `recall-per-byte/RESULTS.md` — ITQ's apparent win over parameter-free random
