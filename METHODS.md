@@ -2000,6 +2000,85 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **A 57M-321M model cannot be the cheap generator in hallucinate-and-snap, at any
+  interface — and the reason generalises.** Pleias `Monad` (57M) and `Baguettotron`
+  (321M) score **0.425 and 0.400** acc@1 as label writers against a **0.500** no-model
+  control (snap the raw query), echoing the query or bleeding from few-shot exemplars
+  (`chair and a half recliner` -> `Chair & Recycling Bins`). Reframed as likelihood
+  rerankers over the encoder's top-10 — asking them for no format compliance at all,
+  which removes what tiny models are worst at — they score **0.325 and 0.350** against
+  the same 0.500, with the gold label present in that top-10 for 82.5% of queries. The
+  mechanism: what a cheap model contributes to this pattern is a **prior over how
+  taxonomies name things**, not reasoning. That is world knowledge, it is the first
+  thing cut when a model shrinks, and reasoning capacity does not substitute. Before
+  swapping a small reasoner into any pipeline, ask whether the step is knowledge-shaped
+  or reasoning-shaped; small-reasoner-big-KB does not cover the case where the KB is the
+  output vocabulary and is already attached.
+  (`hypothetical-classification/RESULTS.md` findings 8-9)
+
+- **For a no-API classifier, the encoder IS the system, and `gte-small` is the knee.**
+  Snapping the raw query against 860 labels with no model call: `all-MiniLM-L6-v2` 0.417
+  acc@1 at 23 MB int8 ONNX, `bge-small-en-v1.5` 0.427 at 33 MB, **`thenlper/gte-small`
+  0.455 at 33 MB**, `bge-base-en-v1.5` 0.462/0.630 at 109 MB. gte-small is +0.038 over
+  MiniLM-L6 for 10 MB; bge-base is +0.007 over gte-small for 3.3x the download and is
+  worth it only for acc@3. A server round-trip for a register-prompt label buys
+  +11.6pp on top (0.455 -> 0.571) — that is the measured price of leaving the browser.
+  (`hypothetical-classification/browser_embedders.py`)
+
+- **A seeded sample over a mutable corpus is not a fixture.** Two tag-classification
+  measurements drew 250 rows with `random.sample(seed=...)` from a live Turso corpus at
+  call time. Writing one memory into that store between the run and its verification
+  (3,052 -> 3,053 rows) shifted the draw, so the saved generations zipped against a
+  different 250 and every number moved — one by 0.45. The seed pins the draw, not the
+  population. Persist the sampled rows next to the generations and have the recheck read
+  those. The conclusions survived a pinned re-run; only their verifiability had been
+  lost, in numbers already merged into two PRs.
+  (`hypothetical-classification/ERRORS.md` #6, `muninn_tags_fixture.json`)
+
+- **Prompt a hallucinate-and-snap classifier on the vocabulary's REGISTER, never on
+  novelty — and note that a weak model hides the error.** Doug Turnbull's
+  hypothetical-classification pattern (cheap model invents a label, embedder snaps it
+  onto the legal set) ships with the prompt *"create a novel, never-seen-before
+  classification"*. That instruction is safe only with a model too weak to follow it.
+  `gemini-3.5-flash-lite` half-ignores it and writes `Salon & Styling Chairs`; a
+  Haiku 4.5 subagent obeys and writes `Hydraulic Styling Thrones`, scoring **0.100
+  acc@1 against a 0.500 no-model control** — a fifth of doing nothing. Re-anchored on
+  register (*"write the label this vocabulary WOULD file the item under, match the
+  examples' register, do not worry whether it already exists"*) the same subagent
+  scores 0.525/0.750. The register wording also beat novelty on Gemini across 468
+  WANDS queries (0.564 vs 0.489) and by **30 points** on a distinctive 1,273-tag
+  vocabulary (0.500 vs 0.200). Two consequences: swapping in a stronger cheap model
+  silently breaks a deployment tuned on a weaker one, and any measured "boundary" on
+  this pattern must be re-checked under the register prompt before it is believed —
+  one was published and withdrawn here. (`hypothetical-classification/RESULTS.md`,
+  `ERRORS.md` #2)
+
+- **Shipping the label vocabulary beats hallucinate-and-snap by 14 points whenever you
+  can afford the tokens.** On WANDS (860 labels, 468 queries), structured output over
+  the full list scored **0.701** acc@1 against the pattern's **0.564**, at 5,265 input
+  tokens per query against 6. The pattern still beats every model-free baseline
+  (direct MiniLM 0.417, char-ngram TF-IDF 0.316), so it is the right tool when the
+  vocabulary does not fit, hits a provider enum cap, or costs too much at volume — and
+  the wrong one otherwise. The source post reports the pattern working and being
+  cheaper, not the arm it loses to. Batching 40 items per call is free (0.496/0.641 vs
+  0.489/0.613 unbatched) at 1/17 the input tokens.
+  (`hypothetical-classification/RESULTS.md`)
+
+- **A Claude Code subagent costs ~32,500 tokens before it reads your prompt.** A
+  `general-purpose` Haiku 4.5 subagent asked to output the single word `ok`, with zero
+  tool calls, spent **32,539 tokens** in 1,143 ms; a 40-item classification batch spent
+  36,252. Per item that floor is 813 tokens at batch 40 and 32,500 at batch 1, so
+  per-item subagent delegation is never the cheap option it looks like — it is ~65x
+  the cost of the same call to `gemini-3.5-flash-lite` through the gateway. Batch, or
+  write the output inline in the parent turn.
+  (`hypothetical-classification/RESULTS.md` finding 6)
+
+- **Char-ngram TF-IDF is a serious label snapper, not a fallback.** 0.528 acc@1 on
+  WANDS against `all-MiniLM-L6-v2`'s 0.564, no download and no GPU — and it *beats*
+  MiniLM outright (0.400 vs 0.296) when snapping documents that contain their own
+  label words literally, which is the common case for tag vocabularies. Try it before
+  paying for an encoder. (`hypothetical-classification/RESULTS.md` finding 7)
+
 - **Query expansion lost again, in both an unsupervised and a
   cross-arm form.** Over 164 shell-documentation requests, RM3 took
   gold-in-sources from 0.262 to **0.226** and dense-PRF (feed the dense arm's
