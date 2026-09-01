@@ -134,6 +134,18 @@ raw query, no API call anywhere:
 against MiniLM-L6's 0.417 for 10 MB less. `bge-base` buys +0.007 acc@1 for 3.3× the
 download and is only worth it for acc@3 (0.630).
 
+Those rows are fp32. Shipped as int8 ONNX through transformers.js — which is what the
+33 MB figure actually buys — `gte-small` scores **0.434 / 0.588**, so quantisation costs
+about two points at rank 1 and almost nothing at rank 3.
+
+**Pin the encoder to `device: "wasm"`.** The same int8 weights on `device: "webgpu"`
+return a collapsed space: every pair of labels ~0.995 cosine, ranking is noise, `Pillow`
+answers *Wedding, Drains, Fabric, Flags, Candles* — silently, no error. fp32 PyTorch, the
+same `model_quantized.onnx` under onnxruntime, and this page's own JavaScript on a CPU
+backend all agree on *Standard Bed Pillows* at ~0.88, so the weights and the code are both
+sound. `demo/index.html` therefore runs a 24-query smoke test on load and refuses to render
+below 0.25 acc@3; it clears at 15/24.
+
 
 ## Findings
 
