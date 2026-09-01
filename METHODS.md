@@ -2000,6 +2000,38 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **transformers.js int8 on `device: "webgpu"` silently returns a collapsed embedding
+  space.** Not an error, not a warning — a plausible-looking ranked list. On
+  `Xenova/gte-small` q8 over an 860-label taxonomy, every pair of labels came back about
+  **0.995** cosine apart, so the order was noise: `Pillow` ranked *Wedding, Drains,
+  Fabric, Flags, Candles*. The weights are fine and so was the calling code; only the
+  WebGPU path is wrong. Four-way check that isolates it — fp32 PyTorch, the same
+  `model_quantized.onnx` under onnxruntime, and the page's own `embed()`/`rank()` under
+  transformers.js on Node's CPU backend all rank *Standard Bed Pillows* first at ~0.88,
+  and the CPU path reproduces acc@1 0.434 / acc@3 0.588 over 468 queries. Pin the
+  encoder to `device: "wasm"`; indexing 860 short labels is ~1s of compute, against the
+  16.6s the broken WebGPU run reported, so the fast path was buying nothing.
+  **A near-constant pairwise cosine is the signature** — check the spread of the index
+  against itself before trusting any ranking off a new backend.
+  (`hypothetical-classification/demo/`, oaustegard.github.io#345)
+
+- **A page that ships its own benchmark and wires it only to a button cannot notice it is
+  broken.** The taxonomy-snap demo carried 468 gold-labelled queries and a "score it
+  yourself" control, and still shipped a wholly broken index, because nothing ran until a
+  human pressed something. Moving 24 of those queries to a load-time gate — embed, check
+  the gold label lands in the top 3, refuse to render below 0.25 — converts a silent
+  wrong answer into a visible red state, and costs one extra batch. **Where an artifact
+  already contains its own ground truth, spend it on startup, not on a button.**
+  (`hypothetical-classification/demo/index.html`)
+
+- **Quantisation cost is small here but not zero, and the printed target has to match the
+  build that runs.** `gte-small` int8 scores acc@1 0.434 / acc@3 0.588 against fp32's
+  0.455 / 0.594 on the 468-query WANDS task — about two points at rank 1, almost nothing
+  at rank 3, for a 133 MB -> 33 MB download. The demo originally printed the fp32 figure
+  as its own target, which the int8 build it runs would have missed every time; a page
+  comparing itself against a number it cannot reach reads as broken even when it works.
+  (`hypothetical-classification/RESULTS.md`)
+
 - **A 57M-321M model cannot be the cheap generator in hallucinate-and-snap, at any
   interface — and the reason generalises.** Pleias `Monad` (57M) and `Baguettotron`
   (321M) score **0.425 and 0.400** acc@1 as label writers against a **0.500** no-model
