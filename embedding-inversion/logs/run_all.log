@@ -246,3 +246,21 @@ gen bin1/train: n=40000 greedy zero-step {"exact": 0.002075, "token_f1": 0.30447
 Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 1419.39it/s]
 Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 21088.23it/s]
 gen bin1/dev: n=1000 greedy zero-step {"exact": 0.0, "token_f1": 0.28912242122895293, "bleu": 3.9927444475294505, "cosine": 0.28872913122177124} (43s)
+== corr_bin1  2026-09-02T06:37:41Z
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 1923.89it/s]
+warm start from ckpt/zero_bin1.pt: 8 missing, 0 unexpected
+[correct_bin1 ep0] step 0 loss 3.627 8.01s/step
+[correct_bin1 ep0] step 50 loss 3.229 6.45s/step
+[correct_bin1 ep0] step 100 loss 3.271 6.22s/step
+[correct_bin1 ep0] step 150 loss 3.243 6.12s/step
+[correct_bin1 ep0] step 200 loss 3.195 6.05s/step
+[correct_bin1 ep0] step 250 loss 3.043 6.00s/step
+[correct_bin1 ep0] step 300 loss 3.130 5.97s/step
+[correct_bin1 ep0] step 350 loss 3.050 5.97s/step
+[correct_bin1 ep0] step 400 loss 3.241 5.96s/step
+[correct_bin1 ep0] step 450 loss 3.248 5.96s/step
+[correct_bin1 ep0] step 500 loss 3.250 5.96s/step
+[correct_bin1 ep0] step 550 loss 3.173 5.95s/step
+[correct_bin1 ep0] step 600 loss 3.121 5.94s/step
+[correct_bin1] epoch 0: train 3.220 dev 3.008 (3737s)
+[correct_bin1] done, best dev 3.008
