@@ -41,7 +41,7 @@ alone buys), and the zero-step top beam without verifier selection.
    word bucket is near zero while token F1 stays well above zero, i.e.
    paraphrase not verbatim.
 4. Both conditions beat the nearest-training-string control on exact match by
-   a wide margin; if they do not, the inverter is a retrieval system.
+   at least 20 points; if they do not, the inverter is a retrieval system.
 
 Not predicted, reported either way: the absolute exact-match level. vec2text
 reports 92% on 32-token GTR inputs after 5M pairs and a GPU; this is 40k pairs,
