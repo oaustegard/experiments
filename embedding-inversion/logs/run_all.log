@@ -1,0 +1,365 @@
+== skip build (done)
+== zero_float  2026-09-02T00:57:00Z
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights:   4%|▍         | 5/131 [00:00<00:03, 36.42it/s]Loading weights:   7%|▋         | 9/131 [00:00<00:14,  8.15it/s]Loading weights:  11%|█         | 14/131 [00:01<00:17,  6.53it/s]Loading weights:  15%|█▌        | 20/131 [00:02<00:12,  8.65it/s]Loading weights:  21%|██▏       | 28/131 [00:02<00:07, 14.34it/s]Loading weights:  24%|██▍       | 32/131 [00:02<00:05, 16.58it/s]Loading weights:  27%|██▋       | 36/131 [00:03<00:10,  8.81it/s]Loading weights:  35%|███▌      | 46/131 [00:05<00:14,  6.05it/s]Loading weights:  50%|█████     | 66/131 [00:07<00:07,  8.14it/s]Loading weights:  66%|██████▋   | 87/131 [00:09<00:04,  9.16it/s]Loading weights:  76%|███████▋  | 100/131 [00:11<00:03,  8.41it/s]Loading weights: 100%|██████████| 131/131 [00:11<00:00, 11.40it/s]
+[zero_float ep0] step 0 loss 9.701 17.16s/step
+[zero_float ep0] step 50 loss 4.448 4.13s/step
+[zero_float ep0] step 100 loss 4.143 3.78s/step
+[zero_float ep0] step 150 loss 3.977 3.64s/step
+[zero_float ep0] step 200 loss 3.790 3.57s/step
+[zero_float ep0] step 250 loss 3.536 3.53s/step
+[zero_float ep0] step 300 loss 3.542 3.49s/step
+[zero_float ep0] step 350 loss 3.437 3.47s/step
+[zero_float ep0] step 400 loss 3.580 3.45s/step
+[zero_float ep0] step 450 loss 3.524 3.44s/step
+[zero_float ep0] step 500 loss 3.424 3.43s/step
+[zero_float ep0] step 550 loss 3.377 3.42s/step
+[zero_float ep0] step 600 loss 3.360 3.41s/step
+[zero_float] epoch 0: train 3.774 dev 3.017 (2142s)
+[zero_float ep1] step 0 loss 3.318 3.32s/step
+[zero_float ep1] step 50 loss 3.084 3.36s/step
+[zero_float ep1] step 100 loss 3.403 3.35s/step
+[zero_float ep1] step 150 loss 3.349 3.32s/step
+[zero_float ep1] step 200 loss 3.214 3.32s/step
+[zero_float ep1] step 250 loss 3.228 3.30s/step
+[zero_float ep1] step 300 loss 3.170 3.30s/step
+[zero_float ep1] step 350 loss 3.087 3.30s/step
+[zero_float ep1] step 400 loss 3.301 3.30s/step
+[zero_float ep1] step 450 loss 3.196 3.30s/step
+[zero_float ep1] step 500 loss 3.016 3.30s/step
+[zero_float ep1] step 550 loss 3.063 3.30s/step
+[zero_float ep1] step 600 loss 3.318 3.31s/step
+[zero_float] epoch 1: train 3.162 dev 2.841 (2080s)
+[zero_float ep2] step 0 loss 3.060 3.44s/step
+[zero_float ep2] step 50 loss 2.993 3.24s/step
+[zero_float ep2] step 100 loss 2.950 3.27s/step
+[zero_float ep2] step 150 loss 3.086 3.28s/step
+[zero_float ep2] step 200 loss 3.082 3.27s/step
+[zero_float ep2] step 250 loss 3.258 3.28s/step
+[zero_float ep2] step 300 loss 2.981 3.28s/step
+[zero_float ep2] step 350 loss 3.087 3.29s/step
+[zero_float ep2] step 400 loss 2.866 3.30s/step
+[zero_float ep2] step 450 loss 2.943 3.30s/step
+[zero_float ep2] step 500 loss 2.959 3.30s/step
+[zero_float ep2] step 550 loss 3.001 3.31s/step
+[zero_float ep2] step 600 loss 3.035 3.31s/step
+[zero_float] epoch 2: train 2.996 dev 2.780 (2083s)
+[zero_float] done, best dev 2.780
+On branch feat/embedding-inversion
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   embedding-inversion/logs/train_zero_float.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	embedding-inversion/logs/STAGE_zero_float.done
+	embedding-inversion/logs/run_all.log
+
+no changes added to commit (use "git add" and/or "git commit -a")
+== hyps_float  2026-09-02T02:42:44Z
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 1254.05it/s]
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 2595.57it/s]
+gen float/train: n=40000 greedy zero-step {"exact": 0.006675, "token_f1": 0.3634325112079111, "bleu": 6.419018092040885, "cosine": 0.5492233037948608} (1458s)
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 1615.68it/s]
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 2255.67it/s]
+gen float/dev: n=1000 greedy zero-step {"exact": 0.003, "token_f1": 0.3486491533795581, "bleu": 5.862532241008239, "cosine": 0.5472006797790527} (41s)
+On branch feat/embedding-inversion
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	embedding-inversion/logs/STAGE_hyps_float.done
+	embedding-inversion/logs/run_all.log
+
+nothing added to commit but untracked files present (use "git add" to track)
+== corr_float  2026-09-02T03:07:57Z
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 2169.95it/s]
+warm start from ckpt/zero_float.pt: 8 missing, 0 unexpected
+[correct_float ep0] step 0 loss 3.596 12.95s/step
+[correct_float ep0] step 50 loss 3.046 6.63s/step
+[correct_float ep0] step 100 loss 3.067 6.28s/step
+[correct_float ep0] step 150 loss 2.972 6.13s/step
+[correct_float ep0] step 200 loss 2.881 6.04s/step
+[correct_float ep0] step 250 loss 2.868 5.99s/step
+[correct_float ep0] step 300 loss 2.958 5.95s/step
+[correct_float ep0] step 350 loss 2.778 5.93s/step
+[correct_float ep0] step 400 loss 2.962 5.91s/step
+[correct_float ep0] step 450 loss 3.071 5.91s/step
+[correct_float ep0] step 500 loss 2.922 5.89s/step
+[correct_float ep0] step 550 loss 2.914 5.87s/step
+[correct_float ep0] step 600 loss 2.926 5.86s/step
+[correct_float] epoch 0: train 2.968 dev 2.736 (3682s)
+[correct_float] done, best dev 2.736
+On branch feat/embedding-inversion
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	embedding-inversion/logs/STAGE_corr_float.done
+	embedding-inversion/logs/run_all.log
+	embedding-inversion/logs/train_correct_float.json
+
+nothing added to commit but untracked files present (use "git add" to track)
+== eval_float  2026-09-02T04:09:40Z
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 1808.36it/s]
+nn_train {'exact': 0.001, 'token_f1': 0.2706370718722367, 'bleu': 6.460776618712075, 'cosine': 0.5462966561317444}
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 2095.85it/s]
+zero_top_beam {'exact': 0.008, 'token_f1': 0.35790276477555794, 'bleu': 6.738084752725888, 'cosine': 0.5492615103721619}
+round0 {'exact': 0.014, 'token_f1': 0.3841625852509129, 'bleu': 7.523080967159733, 'cosine': 0.5970333218574524} (103s)
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 1964.92it/s]
+round1 {'exact': 0.022, 'token_f1': 0.4049926773744435, 'bleu': 8.735056436727309, 'cosine': 0.6272767186164856, 'improved_frac': 0.573} (291s)
+round2 {'exact': 0.024, 'token_f1': 0.4081602001910143, 'bleu': 8.894431294653774, 'cosine': 0.633334219455719, 'improved_frac': 0.219} (474s)
+round3 {'exact': 0.024, 'token_f1': 0.4083289103689596, 'bleu': 9.010026974634126, 'cosine': 0.6346058249473572, 'improved_frac': 0.057} (656s)
+round4 {'exact': 0.024, 'token_f1': 0.40865331807030747, 'bleu': 9.017726277900978, 'cosine': 0.6346729397773743, 'improved_frac': 0.009} (837s)
+round5 {'exact': 0.024, 'token_f1': 0.40861133638735214, 'bleu': 9.018121440853262, 'cosine': 0.634684681892395, 'improved_frac': 0.002} (1018s)
+{
+ "cond": "float",
+ "n": 1000,
+ "rounds": {
+  "nn_train": {
+   "exact": 0.001,
+   "token_f1": 0.2706370718722367,
+   "bleu": 6.460776618712075,
+   "cosine": 0.5462966561317444
+  },
+  "zero_top_beam": {
+   "exact": 0.008,
+   "token_f1": 0.35790276477555794,
+   "bleu": 6.738084752725888,
+   "cosine": 0.5492615103721619
+  },
+  "round0": {
+   "exact": 0.014,
+   "token_f1": 0.3841625852509129,
+   "bleu": 7.523080967159733,
+   "cosine": 0.5970333218574524
+  },
+  "round1": {
+   "exact": 0.022,
+   "token_f1": 0.4049926773744435,
+   "bleu": 8.735056436727309,
+   "cosine": 0.6272767186164856,
+   "improved_frac": 0.573
+  },
+  "round2": {
+   "exact": 0.024,
+   "token_f1": 0.4081602001910143,
+   "bleu": 8.894431294653774,
+   "cosine": 0.633334219455719,
+   "improved_frac": 0.219
+  },
+  "round3": {
+   "exact": 0.024,
+   "token_f1": 0.4083289103689596,
+   "bleu": 9.010026974634126,
+   "cosine": 0.6346058249473572,
+   "improved_frac": 0.057
+  },
+  "round4": {
+   "exact": 0.024,
+   "token_f1": 0.40865331807030747,
+   "bleu": 9.017726277900978,
+   "cosine": 0.6346729397773743,
+   "improved_frac": 0.009
+  },
+  "round5": {
+   "exact": 0.024,
+   "token_f1": 0.40861133638735214,
+   "bleu": 9.018121440853262,
+   "cosine": 0.634684681892395,
+   "improved_frac": 0.002
+  }
+ },
+ "by_length": {
+  "0-6": {
+   "n": 267,
+   "exact": 0.07116104868913857,
+   "token_f1": 0.5228625613604916,
+   "cosine": 0.685125470161438
+  },
+  "7-10": {
+   "n": 247,
+   "exact": 0.020242914979757085,
+   "token_f1": 0.47941020648948546,
+   "cosine": 0.6731879711151123
+  },
+  "11-16": {
+   "n": 204,
+   "exact": 0.0,
+   "token_f1": 0.3552966031596304,
+   "cosine": 0.624581515789032
+  },
+  "17-plus": {
+   "n": 282,
+   "exact": 0.0,
+   "token_f1": 0.27699363282494116,
+   "cosine": 0.5605111122131348
+  }
+ },
+ "secs": 1018.2843682765961
+}
+== zero_bin1  2026-09-02T04:26:47Z
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 2157.79it/s]
+[zero_bin1 ep0] step 0 loss 9.661 4.65s/step
+[zero_bin1 ep0] step 50 loss 4.476 3.78s/step
+[zero_bin1 ep0] step 100 loss 4.202 3.57s/step
+[zero_bin1 ep0] step 150 loss 4.111 3.50s/step
+[zero_bin1 ep0] step 200 loss 3.942 3.45s/step
+[zero_bin1 ep0] step 250 loss 3.681 3.40s/step
+[zero_bin1 ep0] step 300 loss 3.712 3.38s/step
+[zero_bin1 ep0] step 350 loss 3.633 3.36s/step
+[zero_bin1 ep0] step 400 loss 3.779 3.35s/step
+[zero_bin1 ep0] step 450 loss 3.769 3.35s/step
+[zero_bin1 ep0] step 500 loss 3.657 3.34s/step
+[zero_bin1 ep0] step 550 loss 3.562 3.33s/step
+[zero_bin1 ep0] step 600 loss 3.585 3.33s/step
+[zero_bin1] epoch 0: train 3.934 dev 3.271 (2093s)
+[zero_bin1 ep1] step 0 loss 3.529 3.53s/step
+[zero_bin1 ep1] step 50 loss 3.347 3.48s/step
+[zero_bin1 ep1] step 100 loss 3.641 3.45s/step
+[zero_bin1 ep1] step 150 loss 3.566 3.41s/step
+[zero_bin1 ep1] step 200 loss 3.440 3.39s/step
+[zero_bin1 ep1] step 250 loss 3.475 3.39s/step
+[zero_bin1 ep1] step 300 loss 3.474 3.39s/step
+[zero_bin1 ep1] step 350 loss 3.333 3.39s/step
+[zero_bin1 ep1] step 400 loss 3.522 3.38s/step
+[zero_bin1 ep1] step 450 loss 3.452 3.38s/step
+[zero_bin1 ep1] step 500 loss 3.290 3.38s/step
+[zero_bin1 ep1] step 550 loss 3.339 3.38s/step
+[zero_bin1 ep1] step 600 loss 3.552 3.37s/step
+[zero_bin1] epoch 1: train 3.407 dev 3.107 (2118s)
+[zero_bin1 ep2] step 0 loss 3.268 3.94s/step
+[zero_bin1 ep2] step 50 loss 3.312 3.38s/step
+[zero_bin1 ep2] step 100 loss 3.178 3.37s/step
+[zero_bin1 ep2] step 150 loss 3.333 3.36s/step
+[zero_bin1 ep2] step 200 loss 3.319 3.35s/step
+[zero_bin1 ep2] step 250 loss 3.442 3.35s/step
+[zero_bin1 ep2] step 300 loss 3.199 3.34s/step
+[zero_bin1 ep2] step 350 loss 3.344 3.33s/step
+[zero_bin1 ep2] step 400 loss 3.146 3.33s/step
+[zero_bin1 ep2] step 450 loss 3.213 3.33s/step
+[zero_bin1 ep2] step 500 loss 3.191 3.33s/step
+[zero_bin1 ep2] step 550 loss 3.297 3.33s/step
+[zero_bin1 ep2] step 600 loss 3.311 3.33s/step
+[zero_bin1] epoch 2: train 3.253 dev 3.051 (2087s)
+[zero_bin1] done, best dev 3.051
+== hyps_bin1  2026-09-02T06:12:07Z
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 1660.06it/s]
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 2122.22it/s]
+gen bin1/train: n=40000 greedy zero-step {"exact": 0.002075, "token_f1": 0.304471631244786, "bleu": 4.613772257100121, "cosine": 0.2954101264476776} (1476s)
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 1419.39it/s]
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 21088.23it/s]
+gen bin1/dev: n=1000 greedy zero-step {"exact": 0.0, "token_f1": 0.28912242122895293, "bleu": 3.9927444475294505, "cosine": 0.28872913122177124} (43s)
+== corr_bin1  2026-09-02T06:37:41Z
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 1923.89it/s]
+warm start from ckpt/zero_bin1.pt: 8 missing, 0 unexpected
+[correct_bin1 ep0] step 0 loss 3.627 8.01s/step
+[correct_bin1 ep0] step 50 loss 3.229 6.45s/step
+[correct_bin1 ep0] step 100 loss 3.271 6.22s/step
+[correct_bin1 ep0] step 150 loss 3.243 6.12s/step
+[correct_bin1 ep0] step 200 loss 3.195 6.05s/step
+[correct_bin1 ep0] step 250 loss 3.043 6.00s/step
+[correct_bin1 ep0] step 300 loss 3.130 5.97s/step
+[correct_bin1 ep0] step 350 loss 3.050 5.97s/step
+[correct_bin1 ep0] step 400 loss 3.241 5.96s/step
+[correct_bin1 ep0] step 450 loss 3.248 5.96s/step
+[correct_bin1 ep0] step 500 loss 3.250 5.96s/step
+[correct_bin1 ep0] step 550 loss 3.173 5.95s/step
+[correct_bin1 ep0] step 600 loss 3.121 5.94s/step
+[correct_bin1] epoch 0: train 3.220 dev 3.008 (3737s)
+[correct_bin1] done, best dev 3.008
+== eval_bin1  2026-09-02T07:40:21Z
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 1525.09it/s]
+nn_train {'exact': 0.001, 'token_f1': 0.2570875645675835, 'bleu': 6.13080585315389, 'cosine': 0.3688541352748871}
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 1666.79it/s]
+zero_top_beam {'exact': 0.003, 'token_f1': 0.3007990265796508, 'bleu': 5.0467478296759465, 'cosine': 0.2967187166213989}
+round0 {'exact': 0.005, 'token_f1': 0.31775346173753255, 'bleu': 5.313065483137096, 'cosine': 0.3469947576522827} (110s)
+Loading weights:   0%|          | 0/131 [00:00<?, ?it/s]Loading weights: 100%|██████████| 131/131 [00:00<00:00, 2099.50it/s]
+round1 {'exact': 0.007, 'token_f1': 0.33383012196785133, 'bleu': 6.038713320576052, 'cosine': 0.3788957893848419, 'improved_frac': 0.531} (294s)
+round2 {'exact': 0.009, 'token_f1': 0.3357692250836336, 'bleu': 6.2027163603113955, 'cosine': 0.3837239146232605, 'improved_frac': 0.159} (481s)
+round3 {'exact': 0.009, 'token_f1': 0.336176114361832, 'bleu': 6.124863491807314, 'cosine': 0.38456761837005615, 'improved_frac': 0.033} (668s)
+round4 {'exact': 0.009, 'token_f1': 0.33629698724539836, 'bleu': 6.138590651136648, 'cosine': 0.3847395181655884, 'improved_frac': 0.005} (850s)
+round5 {'exact': 0.009, 'token_f1': 0.3362640202124313, 'bleu': 6.1381114738753135, 'cosine': 0.38476037979125977, 'improved_frac': 0.001} (1035s)
+{
+ "cond": "bin1",
+ "n": 1000,
+ "rounds": {
+  "nn_train": {
+   "exact": 0.001,
+   "token_f1": 0.2570875645675835,
+   "bleu": 6.13080585315389,
+   "cosine": 0.3688541352748871
+  },
+  "zero_top_beam": {
+   "exact": 0.003,
+   "token_f1": 0.3007990265796508,
+   "bleu": 5.0467478296759465,
+   "cosine": 0.2967187166213989
+  },
+  "round0": {
+   "exact": 0.005,
+   "token_f1": 0.31775346173753255,
+   "bleu": 5.313065483137096,
+   "cosine": 0.3469947576522827
+  },
+  "round1": {
+   "exact": 0.007,
+   "token_f1": 0.33383012196785133,
+   "bleu": 6.038713320576052,
+   "cosine": 0.3788957893848419,
+   "improved_frac": 0.531
+  },
+  "round2": {
+   "exact": 0.009,
+   "token_f1": 0.3357692250836336,
+   "bleu": 6.2027163603113955,
+   "cosine": 0.3837239146232605,
+   "improved_frac": 0.159
+  },
+  "round3": {
+   "exact": 0.009,
+   "token_f1": 0.336176114361832,
+   "bleu": 6.124863491807314,
+   "cosine": 0.38456761837005615,
+   "improved_frac": 0.033
+  },
+  "round4": {
+   "exact": 0.009,
+   "token_f1": 0.33629698724539836,
+   "bleu": 6.138590651136648,
+   "cosine": 0.3847395181655884,
+   "improved_frac": 0.005
+  },
+  "round5": {
+   "exact": 0.009,
+   "token_f1": 0.3362640202124313,
+   "bleu": 6.1381114738753135,
+   "cosine": 0.38476037979125977,
+   "improved_frac": 0.001
+  }
+ },
+ "by_length": {
+  "0-6": {
+   "n": 267,
+   "exact": 0.018726591760299626,
+   "token_f1": 0.40896845437493157,
+   "cosine": 0.4167446792125702
+  },
+  "7-10": {
+   "n": 247,
+   "exact": 0.016194331983805668,
+   "token_f1": 0.41063987710838895,
+   "cosine": 0.4232245087623596
+  },
+  "11-16": {
+   "n": 204,
+   "exact": 0.0,
+   "token_f1": 0.2785707891952757,
+   "cosine": 0.3744126856327057
+  },
+  "17-plus": {
+   "n": 282,
+   "exact": 0.0,
+   "token_f1": 0.24401756117984488,
+   "cosine": 0.3282727301120758
+  }
+ },
+ "secs": 1034.708351612091
+}
+== ALL DONE 2026-09-02T07:57:44Z
