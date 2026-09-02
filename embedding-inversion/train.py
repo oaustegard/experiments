@@ -107,7 +107,14 @@ def main() -> None:
     tag = f"{a.mode}_{a.cond}"
     log = {"args": vars(a), "epochs": []}
     best = float("inf")
-    for ep in range(a.epochs):
+    start = 0
+    last = CKPT / f"{tag}.last.pt"
+    if last.exists():  # a container restart kills nohup jobs; resume at the epoch boundary
+        st = torch.load(last, map_location="cpu")
+        model.load_state_dict(st["model"]); opt.load_state_dict(st["opt"]); sched.load_state_dict(st["sched"])
+        log, best, start = st["log"], st["best"], st["epoch"] + 1
+        print(f"[{tag}] resumed after epoch {st['epoch']} (best dev {best:.3f})", flush=True)
+    for ep in range(start, a.epochs):
         t = time.time()
         trl = run_epoch(model, tok, tr_t, tr_e, tr_h, tr_he, a.bs, opt, sched, True, log, f"{tag} ep{ep}")
         dvl = run_epoch(model, tok, dv_t, dv_e, dv_h, dv_he, a.bs, opt, sched, False, log, tag)
@@ -116,6 +123,8 @@ def main() -> None:
         if dvl < best:
             best = dvl
             torch.save(model.state_dict(), CKPT / f"{tag}.pt")
+        torch.save({"model": model.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(),
+                    "log": log, "best": best, "epoch": ep}, last)
         (LOGS / f"train_{tag}.json").write_text(json.dumps(log, indent=1))
     print(f"[{tag}] done, best dev {best:.3f}", flush=True)
 
