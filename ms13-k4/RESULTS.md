@@ -127,7 +127,7 @@ property. That is the precise gap. A proof of Q7′ needs a substitute for "each
 takes two values one unit apart", and nothing in the campaign's routes (Doerr's
 extreme/moderate partition, Ghouila-Houri, laminarity) supplies it yet.
 
-## k = 5: enumeration complete, adversary negative, proofs partial
+## The k = 5 state
 
 `splits2.py` gives 11 shapes × 945 pairings, 416 types, **198 maximal** (`types2_k5.json`),
 and `doerr_extremal.py` finds Doerr's `(k+1)`-rows-every-`k`-independent certificate in all
