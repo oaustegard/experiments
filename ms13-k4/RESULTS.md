@@ -127,6 +127,27 @@ property. That is the precise gap. A proof of Q7′ needs a substitute for "each
 takes two values one unit apart", and nothing in the campaign's routes (Doerr's
 extreme/moderate partition, Ghouila-Houri, laminarity) supplies it yet.
 
+## k = 5: enumeration complete, adversary negative, proofs partial
+
+`splits2.py` gives 11 shapes × 945 pairings, 416 types, **198 maximal** (`types2_k5.json`),
+and `doerr_extremal.py` finds Doerr's `(k+1)`-rows-every-`k`-independent certificate in all
+198 (`doerr_k5.txt`), so every maximal type attains `5/6` at unit demands by his theorem.
+
+**Adversary.** `adversary.py` (random restarts plus coordinate hill-climbing on `(p, q)` in
+floats, best point re-evaluated in exact rationals with denominators up to 60) ran on all
+198 types with 30 restarts each. Maximum found: exactly `5/6`, on 158 of the 198 types,
+168 of them at unit demands; nothing above `5/6` anywhere (`adversary_k5.json`). This is a
+lower-bound search and proves nothing upward; it is the cheap check that Q7′ does not fail
+loudly at `k = 5`.
+
+**Exact upper bounds.** `MS13_K=5 bbk.py 5/6` on three cores: the first two types took 1,023 s
+(62,741 nodes, 1.5 M exact LPs) and 1,296 s (80,824 nodes, 1.8 M LPs), against 3 to 64 s at
+`k = 4`. At that rate all 198 need about 66 core-hours. The certificates that finished
+before this session ended are in `bb2_k5_5_6_*.json`; everything else at `k = 5` is open.
+A probe-based strong-branching variant (`bbk2.py`, `MS13_PROBE=3`) was slower than the
+one-point fail-first rule on the two hardest `k = 4` types, so it is not the next lever;
+warm-started exact LPs or a different decomposition would be.
+
 ## Prior art
 
 Two web searches (2026-09-01) for weighted or column-scaled linear discrepancy of TU or
@@ -139,9 +160,9 @@ by full-text grep of TVZ, Swamy et al. and MSW25.
 
 ## Open problems
 
-1. **Q7′ / Conjecture 12.2 for `k ≥ 5`.** The enumerator handles `k = 5` (11 shapes × 945
-   pairings) and the prover is expected to scale to 32 roundings; see `types2_k5.json` and
-   the `bb2_k5_*` files if present.
+1. **Q7′ / Conjecture 12.2 for `k ≥ 5`.** Enumerated and adversary-negative at `k = 5`;
+   exact proofs partial (see above). `k = 6` is 37 shapes × 10,395 pairings for the
+   enumerator and 64 roundings for the prover.
 2. **A proof.** The gap is stated above. The empirical regularity that *every* maximal type
    attains `k/(k+1)` at unit demands (both at `k = 3` and `k = 4`) suggests a lemma about
    binary-leaf split systems rather than about any one gadget.
@@ -156,4 +177,6 @@ by full-text grep of TVZ, Swamy et al. and MSW25.
 - `bbk.py`: fail-first exact B&B. `MS13_K=4 python3 bbk.py 4/5 0,1,…,13 0 types2_k4.json`.
 - `verify_witness.py`: independent brute-force evaluator for a `(rows, p, q)` witness.
 - `doerr_extremal.py`: Doerr's `(k+1)`-rows-every-`k`-independent test per type.
+- `adversary.py`: heuristic lower-bound search; `adversary_k5.json`.
+- `types2_k5.json`, `doerr_k5.txt`, `bb2_k5_5_6_*.json`: the `k = 5` state.
 - `k4_summary.json`, `k4_bb2_4_5_*.json`, `bb2_k4_3_4_*.json`: the certificates.
