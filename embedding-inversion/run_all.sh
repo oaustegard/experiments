@@ -19,7 +19,9 @@ stage() {  # stage <name> <cmd...>
 }
 
 keep() {  # commit + push what landed; never blocks the pipeline
-  ( cd .. && git add -A embedding-inversion/logs embedding-inversion/results_*.json embedding-inversion/data/meta.json 2>/dev/null
+  ( cd .. && for f in embedding-inversion/logs embedding-inversion/data/meta.json embedding-inversion/results_*.json; do
+      [ -e "$f" ] && git add -A "$f"   # one add per path: an unmatched glob would fail the whole add (ERRORS.md #2)
+    done
     git -c commit.gpgsign=false -c user.email=oskar@austegard.com -c user.name='Oskar Austegard' \
       commit -q -m "embedding-inversion: stage $1 landed" || true
     git push -q -u origin "$BRANCH" || echo "push failed for $1 (will retry next stage)" ) || true

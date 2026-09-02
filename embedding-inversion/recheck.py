@@ -126,12 +126,32 @@ def recheck_cond(cond: str, md: str) -> None:
         check(abs(float(row[2]) - ex) < 5e-4 and abs(ex - r["by_length"][key]["exact"]) < 1e-9, f"bucket {key} exact {row[2]}")
         check(abs(float(row[4]) - fc[m].mean()) < 5e-4, f"bucket {key} cosine {row[4]}")
     q = np.percentile(fc, [10, 50, 90])
-    m = re.search(r"p10 ([0-9]+\.[0-9]+), median ([0-9]+\.[0-9]+), p90 ([0-9]+\.[0-9]+)", sec)
+    m = re.search(r"p10 ([0-9]+\.[0-9]+),\s+median ([0-9]+\.[0-9]+),\s+p90 ([0-9]+\.[0-9]+)", sec)
     check(bool(m) and all(abs(float(m.group(k + 1)) - q[k]) < 5e-3 for k in range(3)), f"cosine quantiles {q.round(3)}")
     m = re.search(r"(\d+)% of\s+items end above 0\.8 and (\d+)% above 0\.9", sec)
-    check(bool(m) and int(m.group(1)) == round(100 * (fc >= 0.8).mean()) and int(m.group(2)) == round(100 * (fc >= 0.9).mean()),
-          f"share above 0.8 / 0.9 = {(fc>=0.8).mean():.3f} / {(fc>=0.9).mean():.3f}")
-    m = re.search(r"Exact matches by round: ([\d, ]+)\.", sec)
+    if m:  # float section only; the bin1 section reports code-space quantiles instead
+        check(int(m.group(1)) == round(100 * (fc >= 0.8).mean()) and int(m.group(2)) == round(100 * (fc >= 0.9).mean()),
+              f"share above 0.8 / 0.9 = {(fc>=0.8).mean():.3f} / {(fc>=0.9).mean():.3f}")
+    if cond == "bin1":
+        fs = r.get("float_space", {})
+        check(bool(fs), "bin1 carries the post-hoc float_space block")
+        if fs:
+            fcf = np.array([i["final_cos_float"] for i in items])
+            check(abs(fcf.mean() - fs["final_cos_mean"]) < 1e-6, f"float_space final mean recomputed {fcf.mean():.3f}")
+            arows = table_rows(sec, "strings from")
+            check(len(arows) == 5, "apples-to-apples table has 5 rows")
+            want = {"bin1 arm, round 5": fs["final_cos_mean"], "bin1 arm, round 0": fs["round0_cos_mean"],
+                    "bin1 arm, nearest training string": fs["nn_cos_mean"]}
+            for row in arows:
+                if row[0] in want:
+                    check(abs(float(row[1]) - want[row[0]]) < 5e-4, f"apples-to-apples {row[0]} = {row[1]}")
+            ff = json.loads((HERE / "results_float.json").read_text())["rounds"]
+            for row in arows:
+                if row[0] == "float arm, round 5":
+                    check(abs(float(row[1]) - ff["round5"]["cosine"]) < 5e-4, f"apples-to-apples float round 5 = {row[1]}")
+                if row[0] == "float arm, nearest training string":
+                    check(abs(float(row[1]) - ff["nn_train"]["cosine"]) < 5e-4, f"apples-to-apples float nn = {row[1]}")
+    m = re.search(r"Exact matches by round:\s+([\d,\s]+?)\.", sec)
     counts = [int(round(x * 1000)) for x in ex_by_round]
     check(bool(m) and [int(x) for x in m.group(1).split(",")] == counts, f"exact-by-round counts {counts}")
 
