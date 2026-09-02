@@ -49,6 +49,10 @@ def main() -> None:
     ap.add_argument("--n-test", type=int, default=1000)
     ap.add_argument("--max-tokens", type=int, default=40, help="bekko token cap")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--wiki-parquet", nargs="*", default=[],
+                    help="extra sentence sources: parquet files with a `sentence` column "
+                         "(sentence-transformers/wikipedia-en-sentences, 7.8M rows in two files)")
+    ap.add_argument("--questions-frac", type=float, default=0.5, help="share of the corpus that is questions")
     a = ap.parse_args()
     rng = np.random.default_rng(a.seed)
     t0 = time.time()
@@ -56,13 +60,28 @@ def main() -> None:
     nq = pq.read_table(DATA / "pair/train-00000-of-00001.parquet").to_pandas()
     ms = pq.read_table(DATA / "queries/train-00000-of-00001.parquet").to_pandas()
     total = a.n_train + a.n_dev + a.n_test
-    half = total // 2
+    half = int(total * a.questions_frac)
 
-    questions = list(dict.fromkeys(
-        [q.strip() for q in nq["query"].tolist()] + [q.strip() for q in ms["query"].tolist()]))
+    seen = set()
+    questions = []
+    for q in [q.strip() for q in nq["query"].tolist()] + [q.strip() for q in ms["query"].tolist()]:
+        if q.lower() not in seen:
+            seen.add(q.lower()); questions.append(q)
     questions = [q for q in questions if 3 <= len(q.split()) <= 32 and len(q) < 200]
     rng.shuffle(questions)
-    sents = list(dict.fromkeys(wiki_sentences(nq["answer"].tolist(), seed=a.seed)))
+    sents = wiki_sentences(nq["answer"].tolist(), seed=a.seed)
+    for wp in a.wiki_parquet:  # already one sentence per row; apply the same length/shape filter
+        extra = pq.read_table(wp, columns=["sentence"]).column("sentence").to_pylist()
+        extra = [x.strip() for x in extra if x and 6 <= len(x.split()) <= 32 and x[0].isupper()
+                 and x.strip()[-1] in ".!?" and "[" not in x and "(" not in x]
+        rng.shuffle(extra)
+        sents += extra[: total]  # more than enough after dedupe; keeps memory bounded
+        print(f"{wp}: {len(extra)} usable sentences", flush=True)
+    seen, uniq = set(), []
+    for x in sents:
+        if x.lower() not in seen:
+            seen.add(x.lower()); uniq.append(x)
+    sents = uniq
 
     enc = BekkoEncoder()
     def take(cands, n):
