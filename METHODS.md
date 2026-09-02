@@ -466,6 +466,24 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **A `nohup` driver does not survive the container restart that the next user
+  message can trigger — about a minute after the turn ends, every background
+  process is gone.** The `embedding-inversion` driver died at step 50 of its first
+  epoch when Oskar's "Status check?" resumed the session. What kept the next 7 h
+  alive: a harness-tracked `Monitor` tailing the driver's log (the container
+  stays up while one is armed; re-arm every 30 min because `persistent: true`
+  does not extend the deadline), stage sentinels so a relaunch skips finished
+  work, and a `.last.pt` checkpoint with optimizer + scheduler state at every
+  epoch boundary so a kill costs at most one epoch. Chain on sentinel files,
+  never on PIDs. (`embedding-inversion/ERRORS.md` #3, #4, #7)
+- **`git add a b results_*.json` stages nothing at all while the glob matches
+  no file — git rejects the whole pathspec list, not just the bad member.** A
+  driver's per-stage commit was a silent no-op for three stages. One `git add`
+  per path, guarded by `[ -e "$f" ]`. (`embedding-inversion/ERRORS.md` #2)
+- **With `tokenizers` padding enabled, `len(encoding.ids)` is the batch's
+  padded length, not the string's.** Count `sum(encoding.attention_mask)`. A
+  ≤ 40-token filter dropped an entire corpus because every string reported the
+  longest one's length. (`embedding-inversion/ERRORS.md` #1)
 - **A repo's `.claude/settings.json` Stop hook only fires in sessions actually
   booted from that repo — cloning it via `add_repo` does not wire the hook
   into your session.** `claude-workspace#233`'s supervisor loop (merged in
@@ -758,6 +776,23 @@ the result.
 
 ## Numerical / ML gotchas
 
+- **Verifier cosine under different quantization conditions is on different
+  rulers; re-embed both arms' outputs in one space before calling anything a
+  gap.** Cosine between two ±1 sign vectors is 1 − 2·(disagreeing-bit fraction),
+  so 0.385 in the 1-bit arm and 0.635 in the float arm of
+  `embedding-inversion` are not comparable numbers. Scoring both arms' final
+  strings with the float encoder gave 0.529 vs 0.635, and scoring both with
+  the sign code gave 69.2% vs 71.8% bit agreement, so the arm trained on the
+  code lost on the code's own metric. Pre-register the common ruler.
+  (`embedding-inversion/ERRORS.md` #8)
+- **A vec2text-style corrector refines what the zero-step base nearly has; it
+  does not rescue a base that is underfit.** Check the base's greedy cosine on
+  its own *training* set against dev before training a corrector: the same
+  number means underfitting, and no amount of correction rounds will close a
+  0.55 → 0.9 gap (the loop added 0.09 cosine and 1.6 points of exact match,
+  then converged by round 3). vec2text's base starts near 0.9 after 5M pairs;
+  40k pairs on t5-small starts at 0.55. Scale the base first.
+  (`embedding-inversion/RESULTS.md`)
 - **Measure the no-model baseline before concluding a small model earns its
   place.** Twenty ordered regex rules over structural cues routed an 18-tool
   Bluesky catalogue at **0.833** routable against 0.722 for a two-stage Cactus
@@ -2023,6 +2058,15 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **Embedding inversion on bekko-a8m at 40k pairs / t5-small / 4 vCPU recovers
+  the exact string 2.4% of the time from the float vector and 0.9% from the
+  384-bit sign code, zero past 10 words in either arm.** Not retrieval (no
+  output is a training string; outputs sit 0.09 cosine closer than any
+  training string) and not an inverter; a paraphraser that lands on topic. The
+  mechanism itself behaves as the paper says — verifier selection, one large
+  correction round, convergence. The recipe is fine and the budget is
+  125× short. Do not re-run at this scale; the code takes `--epochs` and
+  `--n-train` for the next attempt. (`embedding-inversion/RESULTS.md`)
 - **transformers.js int8 on `device: "webgpu"` silently returns a collapsed embedding
   space.** Not an error, not a warning — a plausible-looking ranked list. On
   `Xenova/gte-small` q8 over an 860-label taxonomy, every pair of labels came back about
