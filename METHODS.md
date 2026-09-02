@@ -33,6 +33,52 @@ and leave a one-line pointer here.
 
 ## Cross-cutting principles
 
+- **Min-over-k of noisy similarity scores is an order statistic — null it with
+  random probes before believing it.** `bts-coordinates` ranked a cross-field
+  target 5th of 1101 using the single best of 12 LLM-named semantic axes, and
+  read that as evidence the naming step exposed a real direction. Twelve titles
+  drawn at random from the same pool, used as axes, land the target in the top
+  10 about half the time (median best-of-12 = 10, best draw 2, over 20 draws).
+  The real axes' 5 sits near the 20th percentile of that distribution. Taking a
+  min or max over k probes buys roughly k tries at the tail, and with k = 12
+  over 1100 documents that alone reaches the top 1%. The null costs one cached
+  embedding pass and no LLM calls. Run it on any best-of-k, max-over-k, or
+  any-probe-hits metric. (`bts-coordinates/null_control.py`, `RESULTS.md`)
+
+- **A long query text is a worse dense probe against short documents than
+  averaging random short documents is.** In `bts-coordinates`, a 1300-character
+  problem statement embedded against 1101 paper titles ranked its target 496th;
+  the mean of 12 *random* titles used as probes ranked it 303rd. Any claim of
+  the form "dense retrieval fails on this task" needs a length-matched probe
+  before it means anything about semantics rather than about the asymmetry
+  between a paragraph and an eight-word string. This blocked a cleaner reading
+  of our own published claim that bridges are not near their endpoints in
+  embedding space: the experiment could not separate the two. (`bts-coordinates`)
+
+- **Paraphrase the target before believing a single-target retrieval number.**
+  Replacing only the target document's title with a meaning-preserving
+  paraphrase, holding pool, query, axes and encoder fixed, moved its rank by up
+  to 383 places and moved reads-to-hit from 1 to never — larger than every
+  effect the experiment was built to measure. Three paraphrases cost one
+  subagent call. Without them the first pass would have shipped a mechanism
+  claim built on one wording of one title. (`bts-coordinates/run_B_and_control.py`)
+
+- **Re-probe an inherited infrastructure conclusion before building around it.**
+  `claude-workspace` PR #180 killed the prior-art-probe in July 2026 because
+  arXiv keyword search failed all six queries attempted. It works now, and a
+  blind query from that same killed run returns the target at rank 77. In the
+  same session, HuggingFace weight downloads — recorded as blocked in memory
+  `6b190772` — returned 206 from `us.aws.cdn.hf.co` in the CCotw container.
+  Two of five inherited constraints were stale. A kill that was correct on its
+  evidence does not stay correct. (`bts-coordinates/RESULTS.md`, infra table)
+
+- **Retrieval depth is a likelier cause of a missing target than query quality.**
+  The first pool for the `bts-coordinates` P2 case missed its target and looked
+  like a failure of the blind term hypotheses. The target sat at rank 77 of a
+  query that was already in the blind set; the per-query cap was 40. Check the
+  cap before rewriting the queries, because rewriting queries until the target
+  appears is how the answer leaks into the corpus. (`bts-coordinates/fetch_corpus.py`)
+
 - **A 34-row eval can report the opposite sign of a real effect — grow the eval
   before you believe the direction, not after.** The retriever `nl2sh-dense`
   recommends raises gold-in-sources on both halves of its eval (0.235 -> 0.382
