@@ -148,9 +148,15 @@ def slice_tests(hidden_src, keep, package):
         text = "\n".join(lines[stmt.lineno - 1:stmt.end_lineno])
         if isinstance(stmt, (ast.Import, ast.ImportFrom)):
             head.append(text)
-        elif isinstance(stmt, ast.FunctionDef) and stmt.name in keep:
-            bodies.append(text)
-        elif not isinstance(stmt, ast.FunctionDef):
+        elif isinstance(stmt, ast.FunctionDef) and stmt.name.startswith("test_"):
+            # a test the slice does not keep is simply dropped
+            if stmt.name in keep:
+                bodies.append(text)
+        else:
+            # everything else -- constants, classes, and non-test helper functions the
+            # suite defines for its own use -- has to come along. Dropping helpers gave
+            # roman_strict and toposort_lex visible suites that died on NameError, and
+            # two pilot runs "fixed" that by injecting names through conftest.py.
             head.append(text)
     head = [re.sub(r"^from solution import", f"from {package} import", h) for h in head]
     return "\n".join(head) + "\n\n\n" + "\n\n\n".join(bodies) + "\n"
@@ -254,11 +260,22 @@ def build(seed, dest_root, verbose=True):
             raise SystemExit(f"[{task}] local_fix is a complete fix; contract class needs residue")
         visible = repaired[:MAX_VISIBLE]
 
-    # 4. materialise the shipped repo and confirm the agent actually sees a failure
+    # 4a. the visible slice must be GREEN on the unbugged split. A suite that dies on a
+    #     missing helper is also non-zero, so "red under the bug" alone cannot tell a
+    #     seeded failure from a broken test file.
+    materialise(core0, util0, visible)
+    rc_clean, clean_out = run_pytest(repo)
+    if rc_clean != 0:
+        raise SystemExit(f"[{task}] visible suite is not green without the bug -- the "
+                         f"slice is broken, not the code:\n{clean_out[-2500:]}")
+
+    # 4b. materialise the shipped repo and confirm the agent actually sees a failure
     materialise(core_b, util_b, visible)
     rc, vis_out = run_pytest(repo)
     if rc == 0:
         raise SystemExit(f"[{task}] visible suite passes on the bugged repo:\n{vis_out[-2000:]}")
+    if "NameError" in vis_out or "errors during collection" in vis_out:
+        raise SystemExit(f"[{task}] visible suite errors rather than fails:\n{vis_out[-2500:]}")
 
     # 5. contract invariant, re-checked on the shipped visible set
     contract_residue = None

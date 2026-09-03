@@ -1926,6 +1926,42 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **"The suite is red" is not evidence the seeded failure is the reason it is red.**
+  `temporal-routing-headroom` generates bug-fix tasks by slicing a visible test file out
+  of a hidden suite and seeding a bug, and its build-time check asserted the visible suite
+  failed. Two of fourteen sliced suites failed on `NameError` instead: the slicer kept
+  top-level constants and classes but dropped the non-test helper functions the hidden
+  suites define for themselves. Both checks pass on a broken fixture because a suite that
+  cannot resolve a name is also non-zero. Three of the four agent runs on those tasks then
+  "fixed" the task by injecting the missing name through the repo's root `conftest.py` —
+  a workaround for the harness, recorded as a trajectory about the bug. The invariant that
+  works is the positive one: the fixture must be **green before the seeded defect** and
+  red only after. Assert the failure mode too (no `NameError`, no collection error), not
+  just the exit code. (`temporal-routing-headroom/RESULTS.md`)
+
+- **Scope a grader to what the agent was told to edit, and revert the rest — checking the
+  one directory you expect it to cheat in is not enough.** The same experiment restored
+  `tests/` before grading, on the theory that tests are the thing worth protecting. Runs
+  that wanted a name the tests referenced wrote to `conftest.py` instead, which the check
+  never looked at. Rebuilding from the pristine fixture and overlaying only the package
+  directory costs the same and closes every path at once, and reporting the discarded
+  paths turns a silent pass into a visible one. Watch the check itself too: comparing
+  directory entries marked all 28 runs tampered because a local `pytest` had left
+  `__pycache__` in the pristine tree.
+  (`temporal-routing-headroom/harness/grade_agentic.py:out_of_bounds_edits`)
+
+- **Converting single-shot tasks into agentic ones changes the search, not the
+  difficulty — check the cheap tier can still fail before building a routing experiment
+  on them.** `temporal-routing-headroom` rebuilt `orchestrated-coding-pareto`'s 14 tasks
+  as repos with seeded bugs. The set was supposed to carry a difficulty gradient to route
+  over. Sonnet 5 at effort low solved 14/14 and Opus 5 at effort high 13/14, so the oracle
+  router reduced to the all-weak arm and no decision was left to condition on. This is the same
+  ceiling that made that experiment's round-0 orchestration arms vacuous. A one-replicate
+  pilot costs an eighth of the full run and is the cheapest way to find it: any routing,
+  cascade, or escalation experiment should measure the weak arm's failure rate first,
+  because a cheap tier that never fails makes every such design unmeasurable.
+  (`temporal-routing-headroom/RESULTS.md`)
+
 - **A generated task fixture that embeds tool output is not reproducible until you
   normalise the output.** `temporal-routing-headroom` bakes real pytest output into each
   generated bug report, and a `--check` rebuild diffed clean on the code and dirty on the

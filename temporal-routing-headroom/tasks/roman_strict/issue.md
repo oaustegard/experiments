@@ -17,7 +17,7 @@ ______________________________ test_basic_values _______________________________
         assert from_roman("CD") == 400
 >       assert from_roman("CM") == 900
                ^^^^^^^^^^^^^^^^
-tests/test_public.py:16: 
+tests/test_public.py:23: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 s = 'CM'
     def from_roman(s: str) -> int:
@@ -30,7 +30,7 @@ _________________________________ test_famous __________________________________
                ^^^^^^^^^^^^^^^^^^^^^
 ...
 FAILED tests/test_public.py::test_famous - ValueError: not a strict Roman num...
-FAILED tests/test_public.py::test_full_roundtrip_1_to_3999 - NameError: name ...
+FAILED tests/test_public.py::test_full_roundtrip_1_to_3999 - ValueError: not ...
 3 failed in <duration>
 ```
 
