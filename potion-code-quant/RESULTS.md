@@ -3,7 +3,8 @@
 Run 2026-09-03 on CCotw, 4 vCPU / 15 GiB. Oskar's two questions, in order:
 does the static Model2Vec code model hold up against our embedders, and does its
 output quantize; then, can a static table be made compatible with an index a
-transformer built, including a remax/remex-quantized SPECTER2 set. Four passes.
+transformer built. The last pass targets a remax/remex-quantized SPECTER2 set.
+Four passes.
 A Sonnet delegate ran passes 1 through 4 from `BRIEF.md` and `BRIEF_SPECTER2.md`;
 the parent session verified the pass-2 collapse and the pass-4 cosine
 (`check_centered.py`) and wrote this file.
