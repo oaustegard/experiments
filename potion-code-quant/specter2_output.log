@@ -1,0 +1,33 @@
+SPECTER2: 10000 vectors, d=768, norm mean=21.707
+split: 100 query papers, 9900 corpus papers (seed 99)
+tokenizer vocab: 31090
+tokenized 10000 texts in 6.9s
+vocab: 20395 distinct corpus tokens, 18028 kept at freq>=2
+
+=== 5-fold CV alpha selection (raw targets) ===
+  alpha=0.1   CV fit+score 178.6s  mean fold cosine=0.9562
+  alpha=1.0   CV fit+score 73.4s  mean fold cosine=0.9353
+  alpha=10.0  CV fit+score 37.5s  mean fold cosine=0.9240
+chosen alpha=0.1  (CV mean cosine=0.9562)
+held-out (1000-row, out-of-fold) cosine: mean 0.9568 median 0.9589 min 0.8812
+
+refitting on full corpus (n=9900) at alpha=0.1
+fitted table: 18028 tokens x 768 dim, fp16 = 26.41 MB
+cosine(student, teacher) on the 100 queries: mean 0.9579 median 0.9595 min 0.8734
+raw vs L2-normalized student query: top-10 rankings against teacher float index IDENTICAL (expected identical — inner-product ranking against a fixed corpus is invariant to positive query scaling)
+
+=== quantized teacher indexes ===
+sign-agreement rate (student vs teacher query, post center+rotate, n=100): mean 0.7532 median 0.7572 min 0.6198 max 0.8906  (0.5 = chance level for a random bit)
+
+=== cells (n=100 queries, 9900-paper corpus) ===
+  teacher-query/teacher-float-index           float32 bits=  32  r@10=1.000  r@100=1.000  top1=1.000
+  teacher-query/teacher-remax-1bit-index        remax bits=   1  r@10=0.645  r@100=0.990  top1=0.490
+  teacher-query/teacher-remex-2bit-index        remex bits=   2  r@10=0.478  r@100=0.953  top1=0.320
+  teacher-query/teacher-remex-4bit-index        remex bits=   4  r@10=0.731  r@100=0.999  top1=0.530
+  student-query/teacher-float-index           float32 bits=  32  r@10=0.264  r@100=0.581  top1=0.140
+  student-query/teacher-remax-1bit-index        remax bits=   1  r@10=0.288  r@100=0.701  top1=0.110
+  student-query/teacher-remex-2bit-index        remex bits=   2  r@10=0.117  r@100=0.394  top1=0.030
+  student-query/teacher-remex-4bit-index        remex bits=   4  r@10=0.195  r@100=0.532  top1=0.050
+  student-query/student-index (reference only)  float32 bits=  32  r@10=0.002  r@100=0.056  top1=0.000
+
+wrote /home/user/experiments/potion-code-quant/specter2_results.json

@@ -1,0 +1,64 @@
+box: 4
+Mem:            15Gi       782Mi        13Gi        12Mi       1.7Gi        14Gi
+
+CODE corpus: 11380 chunks, 674 files; task = n=59 file discovery
+
+identifier-poor instances: 1 / 59
+
+rg baseline done in 5.2s
+  rg baseline                            - B   r@5 0.596  r@10 0.682   +rg(RRF) r@10 0.682
+
+=== bekko-a8m fp32 d=384 ===
+  bekko-a8m fp32 d=384                1536 B   r@5 0.595  r@10 0.667   +rg(RRF) r@10 0.728
+  reference check: harness's own n=59 number was r@5 0.595; REPRODUCED (got 0.595)
+
+=== potion fp16 d=256 (as shipped) ===
+  potion fp16 d=256                    512 B   r@5 0.436  r@10 0.533   +rg(RRF) r@10 0.668
+
+=== potion dimension truncation d=128, 64 ===
+  potion d=128 (load-time)             256 B   r@5 0.423  r@10 0.506   +rg(RRF) r@10 0.627
+  potion d=128 (post-hoc slice)        256 B   r@5 0.423  r@10 0.506   +rg(RRF) r@10 0.627
+    top-10 file ranking identical for 54/59 instances at d=128
+  potion d=64 (load-time)              128 B   r@5 0.393  r@10 0.467   +rg(RRF) r@10 0.606
+  potion d=64 (post-hoc slice)         128 B   r@5 0.393  r@10 0.467   +rg(RRF) r@10 0.606
+    top-10 file ranking identical for 54/59 instances at d=64
+
+=== potion int8 table quantization d=256 ===
+  cosine(int8-table output, fp16 output) over corpus: mean 0.9983  min 0.9298
+  potion int8-table d=256              256 B   r@5 0.436  r@10 0.532   +rg(RRF) r@10 0.668
+
+=== potion output remex quantization d=256 ===
+  potion remex 1-bit d=256              32 B   r@5 0.376  r@10 0.440   +rg(RRF) r@10 0.603
+  potion remex 2-bit d=256              64 B   r@5 0.422  r@10 0.531   +rg(RRF) r@10 0.645
+  potion remex 4-bit d=256             128 B   r@5 0.434  r@10 0.524   +rg(RRF) r@10 0.647
+
+=== potion output remax quantization d=256 ===
+  potion remax k=1 d=256                32 B   r@5 0.361  r@10 0.451   +rg(RRF) r@10 0.626
+  potion remax k=2 d=256                64 B   r@5 0.432  r@10 0.513   +rg(RRF) r@10 0.596
+  potion remax k=4 d=256               128 B   r@5 0.482  r@10 0.547   +rg(RRF) r@10 0.637
+  potion remax k=8 d=256               256 B   r@5 0.474  r@10 0.536   +rg(RRF) r@10 0.659
+
+=== bekko-a8m output quantization d=384 (deployed settings) ===
+  bekko-a8m remex 2-bit d=384           96 B   r@5 0.590  r@10 0.652   +rg(RRF) r@10 0.713
+  bekko-a8m remax k=1 d=384             48 B   r@5 0.544  r@10 0.637   +rg(RRF) r@10 0.719
+
+=== timing ===
+  bekko_a8m_query_encode_total_s: 1.9626953601837158
+  bekko_a8m_per_query_latency_median_s_1thread: 0.10449361801147461
+  potion_corpus_encode_total_s: 3.3325860500335693
+  potion_corpus_chunks_per_s: 3414.7655391780113
+  potion_query_encode_total_s: 0.0721743106842041
+  potion_per_query_latency_median_s_1thread: 0.0012960433959960938
+  bekko_a8m_corpus_encode_wall_s: 282.0
+
+=== stratum split: identifier-poor vs identifier-rich, r@5 ===
+  rg               poor(n=1) r@5=0.000   rich(n=58) r@5=0.606
+  bekko-a8m fp32   poor(n=1) r@5=0.667   rich(n=58) r@5=0.594
+  potion fp16      poor(n=1) r@5=0.333   rich(n=58) r@5=0.438
+
+=== paired significance (per-instance r@5, n=59) ===
+  potion fp16 vs bekko-a8m fp32              Δr@5 -0.159  95%CI [-0.236,-0.088]  wins/losses 2/20  sign-test p=0.000  (significant)
+  potion remex 2-bit vs potion fp16          Δr@5 -0.015  95%CI [-0.057,+0.026]  wins/losses 5/6  sign-test p=1.000  (not significant)
+  potion remax k=1 vs potion fp16            Δr@5 -0.075  95%CI [-0.155,+0.004]  wins/losses 5/13  sign-test p=0.096  (not significant)
+
+wrote /home/user/experiments/potion-code-quant/results.json
