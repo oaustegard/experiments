@@ -1600,6 +1600,20 @@ the result.
   of the `MatMulNBits` gotcha above: there the table stayed fp32 and *inflated*
   naive int4. Check where a model's parameters actually live before choosing a
   quantization recipe. (`bekko-embedding-bench/RESULTS.md`)
+- **A static token table does not become a query-side substitute for the
+  transformer that built an index.** Model2Vec distillation with `pca_dims=None`
+  stays in the teacher's basis in name only: every distilled bekko-a8m vector
+  shares a 0.957 common component, cosine to the teacher is 0.26, and r@5
+  against the teacher's index is 0.017. Ridge-fitting the table to the teacher's
+  own sentence vectors (bag-of-tokens X, teacher Y, no intercept) is the better
+  route and still recovers only about half the teacher's recall against the
+  teacher's index (bekko 0.36 vs 0.60 r@5; SPECTER2 0.29 vs 0.65 r@10 on the
+  remax 1-bit index). (`potion-code-quant/RESULTS.md`)
+- **Check cosine after centering when the encoder has a shared mean.** SPECTER2
+  vectors have raw pairwise cosine 0.85 among themselves; a fitted student at
+  raw cosine 0.96 to the teacher is 0.71 centered, and the retrieval numbers
+  track the centered figure. A raw cosine near 1 on such a model measures the
+  mean, not the fit. (`potion-code-quant/check_centered.py`)
 - **Mismatched random rotation matrices collapse recall to chance**, not
   graceful degradation. Two *different* valid orthogonal projections on doc vs
   query side flip ~50% of sign bits: recall 0.78 → 0.005. Only int8-rounding of
