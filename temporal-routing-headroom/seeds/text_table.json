@@ -1,6 +1,6 @@
 {
   "task": "text_table",
-  "class": "contract",
+  "class": "paired",
   "package": "solution",
   "exports": [
     "format_table"
@@ -11,9 +11,9 @@
     "find": "    pad = width - len(text)",
     "replace": "    pad = max(0, width - len(text) - 1)"
   },
-  "local_fix": {
+  "bug2": {
     "file": "core.py",
-    "find": "    if a == \"l\":\n        return text + \" \" * pad",
-    "replace": "    if a == \"l\":\n        return text + \" \" * (width - len(text))"
+    "find": "        while len(line) > width:",
+    "replace": "        while len(line) > width - 1:"
   }
 }

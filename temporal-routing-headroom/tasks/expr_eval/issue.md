@@ -6,10 +6,10 @@ The test suite in this repository fails.
 $ python -m pytest tests/ -q
 FFF                                                                      [100%]
 =================================== FAILURES ===================================
-____________________________ test_power_right_assoc ____________________________
-    def test_power_right_assoc():
->       assert evaluate("2**3**2") == 512.0
-               ^^^^^^^^^^^^^^^^^^^
+______________________ test_unary_minus_looser_than_power ______________________
+    def test_unary_minus_looser_than_power():
+>       assert evaluate("-2**2") == -4.0
+               ^^^^^^^^^^^^^^^^^
 tests/test_public.py:6: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     v = p.expr()
@@ -29,7 +29,7 @@ self = <solution.core._Parser object at 0x...>
         if t[0] == "num":
             return t[1]
 ...
-FAILED tests/test_public.py::test_unary_after_power_binds_tight - ValueError:...
+FAILED tests/test_public.py::test_zero_power_zero - ValueError: unexpected to...
 FAILED tests/test_public.py::test_precedence_mul_vs_power - ValueError: unexp...
 3 failed in <duration>
 ```

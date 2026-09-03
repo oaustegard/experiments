@@ -63,8 +63,8 @@ def run(program, max_steps: int = 10_000):
             stack.append(a)
         elif op == "SWAP":
             b, a = pop(), pop()
-            stack.append(b)
             stack.append(a)
+            stack.append(b)
         elif op in ("ADD", "SUB", "MUL", "DIV", "MOD", "EQ", "LT", "GT"):
             a, b = pop(), pop()
             if op == "ADD":

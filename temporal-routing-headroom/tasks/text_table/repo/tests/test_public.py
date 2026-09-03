@@ -22,10 +22,9 @@ def test_header_wider_than_data():
     assert "| a      |" in out
 
 
-def test_header_wraps_too():
-    out = format_table([["a"]], ["abcdef"], max_col_width=3)
+def test_newline_then_wrap():
+    out = format_table([["ab\ncdef"]], ["h"], max_col_width=3)
     lines = out.split("\n")
-    assert lines[1] == "| abc |"
-    assert lines[2] == "| def |"
-    assert lines[3] == "+-----+"
-    assert lines[4] == "| a   |"
+    assert lines[3] == "| ab  |"
+    assert lines[4] == "| cde |"
+    assert lines[5] == "| f   |"

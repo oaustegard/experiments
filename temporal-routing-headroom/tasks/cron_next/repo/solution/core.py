@@ -15,7 +15,7 @@ def cron_next(expr: str, after: datetime) -> datetime:
         # python: Monday=0..Sunday=6; cron: Sunday=0..Saturday=6
         dow_hit = ((d.weekday() + 1) % 7) in dows
         if dom_r and dow_r:
-            return dom_hit or dow_hit
+            return dom_hit and dow_hit
         if dom_r:
             return dom_hit
         if dow_r:

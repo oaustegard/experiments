@@ -59,7 +59,7 @@ class _Parser:
         t = self.peek()
         if t == ("op", "**"):
             self.next()
-            rhs = self.unary()
+            rhs = self.atom()
             return v ** rhs
         return v
 

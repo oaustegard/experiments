@@ -81,15 +81,56 @@ def test_issue_does_not_leak_the_bug_site(task):
         assert "util" not in issue, f"{task}: issue.md points at the util module"
 
 
-@pytest.mark.parametrize("task", [t for t in SEED_NAMES
-                                 if json.loads((ROOT / "seeds" / f"{t}.json").read_text())
-                                 .get("local_fix")])
-def test_contract_tasks_have_residue(task):
+def seed_of(task):
+    return json.loads((ROOT / "seeds" / f"{task}.json").read_text())
+
+
+TRAP_TASKS = [t for t in SEED_NAMES if seed_of(t).get("local_fix") or seed_of(t).get("bug2")]
+PAIRED_TASKS = [t for t in SEED_NAMES if seed_of(t).get("bug2")]
+
+
+@pytest.mark.parametrize("task", TRAP_TASKS)
+def test_trap_tasks_have_residue(task):
     m = meta(task)
-    assert m["class"] == "contract"
-    assert m["contract_residue"], f"{task}: no hidden test survives the local fix"
+    assert m["class"] in ("contract", "paired")
+    assert m["contract_residue"], f"{task}: no hidden test survives the partial fix"
     assert not set(m["contract_residue"]) & set(m["visible_tests"]), \
-        f"{task}: residue overlaps the visible set, so the local fix does not look complete"
+        f"{task}: residue overlaps the visible set, so the partial fix does not look complete"
+
+
+@pytest.mark.parametrize("task", PAIRED_TASKS)
+def test_paired_tasks_record_two_sites(task):
+    m = meta(task)
+    assert m["class"] == "paired"
+    assert m["n_bug_sites"] == 2, f"{task}: paired class needs exactly two seeded sites"
+
+
+@pytest.mark.parametrize("task", PAIRED_TASKS)
+def test_paired_partial_fix_looks_finished_and_is_not(task):
+    """Repairing one site must green the visible suite and leave the hidden suite red.
+
+    This is the property the class exists for: an agent that finds one cause, fixes it,
+    sees the tests it was given go green and stops has shipped a wrong patch. Checked
+    live rather than trusted from meta.json, because meta.json is written by the same
+    code that would be wrong.
+    """
+    import tempfile
+    seed = seed_of(task)
+    src = ROOT.parent / "orchestrated-coding-pareto" / "tasks" / task
+    core0, util0 = B.split_module((src / "reference.py").read_text(), seed.get("move_to_util", []))
+    hidden = (src / "tests.py").read_text()
+    visible = meta(task)["visible_tests"]
+
+    # site A repaired, site B still seeded
+    core, util = B.apply_patches(core0, util0, [seed["bug2"]], f"{task} partial")
+    with tempfile.TemporaryDirectory() as tmp:
+        repo = Path(tmp) / "repo"
+        B.write_repo(repo, seed, core, util, hidden, visible)
+        rc, out = B.run_pytest(repo)
+        assert rc == 0, f"{task}: partial fix does not green the visible suite\n{out[-1200:]}"
+        residue, _ = B.failing_tests(repo, hidden, seed["package"])
+    assert residue, f"{task}: partial fix passes the hidden suite -- the sites are not coupled"
+    assert not set(residue) & set(visible)
 
 
 def test_class_spread_is_documented():
@@ -139,11 +180,17 @@ def test_visible_suite_fails_rather_than_errors(task):
     conftest.py instead of touching the seeded bug, so the trajectory measured something
     the experiment never intended to ask about.
     """
+    # Run against a copy: pytest leaves __pycache__ behind, and a check that dirties the
+    # committed tree makes the next --check report drift the seeds did not cause.
+    import shutil
     import subprocess
-    repo = ROOT / "tasks" / task / "repo"
-    proc = subprocess.run([sys.executable, "-m", "pytest", "tests/", "-q", "--no-header",
-                           "-p", "no:cacheprovider"],
-                          cwd=repo, capture_output=True, text=True, timeout=120)
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        repo = Path(tmp) / "repo"
+        shutil.copytree(ROOT / "tasks" / task / "repo", repo)
+        proc = subprocess.run([sys.executable, "-m", "pytest", "tests/", "-q", "--no-header",
+                               "-p", "no:cacheprovider"],
+                              cwd=repo, capture_output=True, text=True, timeout=120)
     out = proc.stdout + proc.stderr
     assert "NameError" not in out, f"{task}: visible suite references an undefined name\n{out[-1500:]}"
     assert "errors during collection" not in out, f"{task}: visible suite fails to collect"

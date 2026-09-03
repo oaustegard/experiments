@@ -8,9 +8,9 @@ a learned value head, and then decides whether to continue cheaply or escalate. 
 routes on task shape declared up front and cascades only on a *verified* failure. Both
 target the same waste; they disagree on what the escalation signal is.
 
-**Status: Stage-1 pilot run; see [RESULTS.md](RESULTS.md).** The task set does not
-discriminate — the weak arm solved 14/14 — so the 3-replicate run is not scheduled and
-the bugs need to be harder first.
+**Status: Stage-1 pilot run; see [RESULTS.md](RESULTS.md).** The first task set did not
+discriminate (weak arm 14/14), so six tasks were re-seeded as `paired` bugs. Those six
+are unrun.
 
 ## Relation to orchestrated-coding-pareto
 
@@ -33,21 +33,42 @@ find/replace, and the visible test file is sliced out of the hidden suite.
 
 | class | n | bug lives in | what makes it hard |
 |---|---|---|---|
-| shallow | 5 | `core.py` | the function the failing test exercises directly |
-| deep | 6 | `util.py` | a module no failing test names |
-| contract | 3 | `core.py` | a locally-plausible patch passes every visible test |
+| shallow | 4 | `core.py` | the function the failing test exercises directly |
+| deep | 4 | `util.py` | a module no failing test names |
+| paired | 6 | two sites | one broken assumption written twice |
 
-The contract class exists because a probe that predicts "the cheap model will finish
-this" can be right about finishing and wrong about correctness. `lru_ttl`, `stack_vm`, and
-`text_table` each carry an authored `local_fix`: a patch that turns the visible suite
-green and leaves named hidden tests red.
+The eight shallow and deep tasks are the control: the pilot solved all of them with
+Sonnet 5 at effort low, so they are a measured ceiling rather than a guess.
+
+A `paired` task writes one wrong assumption into two call sites. `cron_next` and
+`expr_eval` span both files — util decides which cron fields count as restricted while
+core decides what to do when two of them are; util's tokenizer emits the `**` token that
+core's parser consumes. The other four sit in `core.py`: `lru_ttl`'s expiry predicate and
+the `__len__` that has to agree with it, `stack_vm`'s binary-operand pop order and `SWAP`,
+`text_table`'s padding width and its cell wrapper, `wrap_text`'s paragraph splitter and
+its joiner.
+
+`build_tasks.py` exits non-zero on a pair unless repairing **either** site alone leaves
+the hidden suite red, and repairing the first turns the **visible** suite green. That is the trap: a run
+that finds one cause, fixes it, sees its tests pass and stops has shipped a wrong patch.
+Verified live per task rather than trusted from `meta.json`:
+
+| task | sites | hidden tests still red after fixing one |
+|---|---|---|
+| cron_next | util + core | 2 |
+| expr_eval | util + core | 2 |
+| text_table | core + core | 8 |
+| stack_vm | core + core | 1 |
+| lru_ttl | core + core | 1 |
+| wrap_text | core + core | 1 |
 
 Every task is verified at build time and refuses to ship otherwise:
 
 - the split repo, before any bug, passes the hidden suite
 - the bug turns the hidden suite red
-- the visible subset is also red, so the agent sees a failure
-- for contract tasks, the local fix passes every visible test and leaves residue
+- the visible subset is also red, so the agent sees a failure, and fails rather than errors
+- the visible slice is green on the unbugged reference, so a broken slice cannot pass as a seeded bug
+- for trap tasks, the partial fix passes every visible test and leaves residue outside it
 
 `build_tasks.py --check` rebuilds into a temp directory and diffs, so a seed edited
 without a rebuild fails `tests/`.
@@ -79,7 +100,7 @@ n=14 a one-or-two task difference is noise and token deltas are the signal to tr
 ```bash
 python3 harness/build_tasks.py                 # regenerate tasks/ from seeds/
 python3 harness/build_tasks.py --check         # confirm tasks/ matches seeds/
-python3 -m pytest tests/ -q                    # 107 invariant checks over the registry
+python3 -m pytest tests/ -q                    # 122 invariant checks over the registry
 python3 harness/grade_agentic.py --self-test   # every task repo starts red
 
 RUN=/tmp/stage1/r1

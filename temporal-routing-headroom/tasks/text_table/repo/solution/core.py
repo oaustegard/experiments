@@ -5,7 +5,7 @@ def _cell_lines(value, width):
         if line == "":
             out.append("")
             continue
-        while len(line) > width:
+        while len(line) > width - 1:
             out.append(line[:width])
             line = line[width:]
         out.append(line)
