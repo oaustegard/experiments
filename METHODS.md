@@ -1926,6 +1926,27 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Cost headroom and tier discrimination are different quantities, and an oracle number
+  reports the first while a router needs the second.** On `temporal-routing-headroom`'s
+  paired task set the oracle router costs 0.473x all-strong, which reads like ample room
+  for a router. Almost all of it comes from the nine of fourteen tasks BOTH tiers solve:
+  route those cheap and the saving follows, with nothing to predict. The tiers actually
+  disagree on one task, and four more defeat both. So the set can measure a
+  cascade that escalates on verified failure, and cannot measure a router that predicts
+  which tasks need the expensive tier. Before believing a routing experiment has signal,
+  report |W \ S| and |S \ W| next to the oracle ratio; a large ratio with a tiny symmetric
+  difference means the cheap tier is simply good enough. (`temporal-routing-headroom/RESULTS.md`)
+
+- **A frontier model at high effort falls for a stop-early trap as readily as a cheap one
+  at low effort.** The same experiment seeded bugs whose one wrong assumption appears at
+  two call sites, so repairing the first turns the visible tests green while hidden tests
+  stay red. Opus 5 at effort high and Sonnet 5 at effort low failed identically on three of
+  four such tasks. Each left the exact residue the fixture predicted. Effort and tier buy
+  depth on the cause a run is already looking at; neither prompts it to ask whether a
+  second site shares the assumption. If your eval assumes the expensive tier is more
+  thorough rather than more capable, check that assumption before routing on it.
+  (`temporal-routing-headroom/RESULTS.md`)
+
 - **A two-site bug is only coupled if you check that repairing each site alone still
   fails — three of six authored pairs did not.** `temporal-routing-headroom` needed bugs
   where one wrong assumption appears in two call sites, so a run that fixes the first and

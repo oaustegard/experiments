@@ -106,3 +106,63 @@ hidden suite is still red on between 1 and 8 tests, per the table in the README.
 Nobody has run an arm against these six yet, so whether they make the weak arm fail is
 an open question. The pilot's lesson was that a set built to be hard is not the same as
 a set measured to be hard.
+
+## Stage-1 pilot on the paired task set (2026-09-03)
+
+Second replicate on the re-seeded set. Workflow run `wf_e8f72a2c-ec2`, 28 agents, 577 s.
+Not pooled with the run above: that one measured a different set of tasks.
+
+| arm | model | effort | solved | output tokens | $/task | $/completed |
+|---|---|---|---|---|---|---|
+| weak | Sonnet 5 | low | 9/14 | 16,779 | $0.0180 | $0.0280 |
+| strong | Opus 5 | high | 10/14 | 55,674 | $0.0994 | $0.1392 |
+
+Oracle: **$0.0659** per completed task, **0.473×** all-strong. The ceiling is gone and the
+headroom is real.
+
+| set | tasks |
+|---|---|
+| both solve | csv_line, expr_eval, glob_match, parse_range, roman_strict, semver_cmp, template_render, text_table, toposort_lex |
+| strong only | stack_vm |
+| weak only | — |
+| neither | cron_next, interval_merge, lru_ttl, wrap_text |
+
+## Which failures were the trap
+
+Seven of the nine failures are **exactly** the residue the build recorded — the run
+repaired one site, watched the visible suite go green, and stopped.
+
+| task | arm | hidden tests left red |
+|---|---|---|
+| cron_next | weak, strong | test_dom_and_dow_or_rule, test_dow_step_counts_as_restricted |
+| lru_ttl | weak, strong | test_len_counts_only_live |
+| wrap_text | weak, strong | test_paragraph_with_whitespace_only_line |
+| stack_vm | weak | test_stack_manip |
+
+Opus at effort high falls for the same trap as Sonnet at effort low on three of the four.
+`expr_eval` is the one both arms escaped: the weak run found and fixed both sites, naming
+the parser's right-associativity as a second cause after the tokenizer.
+
+The two `interval_merge` failures are not the trap. It is a shallow control task, and each
+arm broke a different edge case while rewriting the merge loop — `test_duplicate_points_collapse`
+for weak, `test_point_on_end_touching` for strong. Weak solved it in the earlier pilot. A control task
+flipping between replicates is the run-to-run variance the protocol warns about.
+
+## Headroom versus discrimination
+
+The 0.473× headroom comes almost entirely from the nine tasks **both** arms solve: route
+those cheap and the saving follows. Escalating pays on exactly one task
+(`stack_vm`); on four more no tier succeeds, so escalating there buys nothing.
+
+Discrimination — tasks where the right tier differs — is therefore 1 of 14, and one of
+those flips between replicates. A cascade that runs cheap and escalates on a **verified**
+failure captures most of this headroom without conditioning on anything. That is
+`agent-routing`'s existing design, and this set can measure it.
+
+SWE-Router's claim is about discrimination: predicting, from a partial trajectory, which
+tasks need the expensive tier. Measuring that needs a set where the tiers disagree far
+more often than once in fourteen. Whether a trap can be tuned to catch the weak arm while
+the strong arm escapes is a question about task design, and nobody has answered it.
+
+`|W \ S|` is empty this replicate, so nothing here reproduces SWE-Router's above-all-strong
+synergy. The earlier pilot's single instance did not survive the change of task set.

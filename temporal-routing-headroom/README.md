@@ -8,9 +8,10 @@ a learned value head, and then decides whether to continue cheaply or escalate. 
 routes on task shape declared up front and cascades only on a *verified* failure. Both
 target the same waste; they disagree on what the escalation signal is.
 
-**Status: Stage-1 pilot run; see [RESULTS.md](RESULTS.md).** The first task set did not
-discriminate (weak arm 14/14), so six tasks were re-seeded as `paired` bugs. Those six
-are unrun.
+**Status: two Stage-1 pilots run; see [RESULTS.md](RESULTS.md).** The first task set did
+not discriminate (weak arm 14/14). On the re-seeded `paired` set the weak arm scores 9/14
+and the strong arm 10/14, the oracle is 0.473× all-strong, and seven of nine failures are
+the designed trap. Discrimination between the tiers is still only 1 task in 14.
 
 ## Relation to orchestrated-coding-pareto
 
