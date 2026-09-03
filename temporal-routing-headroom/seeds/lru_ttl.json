@@ -1,6 +1,6 @@
 {
   "task": "lru_ttl",
-  "class": "contract",
+  "class": "paired",
   "package": "solution",
   "exports": [
     "TTLCache"
@@ -9,11 +9,11 @@
   "bug": {
     "file": "core.py",
     "find": "return self.clock() - ts >= self.ttl",
-    "replace": "return self.clock() - ts >= self.ttl * 2"
+    "replace": "return self.clock() - ts > self.ttl"
   },
-  "local_fix": {
+  "bug2": {
     "file": "core.py",
-    "find": "        value, ts = self._data[key]\n        if self._expired(ts):",
-    "replace": "        value, ts = self._data[key]\n        if self.clock() - ts >= self.ttl:"
+    "find": "        return sum(1 for _, ts in self._data.values() if not self._expired(ts))",
+    "replace": "        return len(self._data)"
   }
 }

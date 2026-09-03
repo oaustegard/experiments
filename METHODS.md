@@ -1926,6 +1926,29 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **A two-site bug is only coupled if you check that repairing each site alone still
+  fails — three of six authored pairs did not.** `temporal-routing-headroom` needed bugs
+  where one wrong assumption appears in two call sites, so a run that fixes the first and
+  sees its tests go green ships a wrong patch. Authoring them by inspection produced three
+  failures the build caught: a second site the test suite never exercises (a cron `*`
+  field at its maximum value), a pair that interlocked so completely that repairing either
+  half changed nothing observable, and a pair whose seeded off-by-one made a loop stop
+  advancing, so pytest hung rather than failed. The invariants that separate a real pair
+  from a plausible one: fixing site A alone leaves the hidden suite red, fixing site B
+  alone leaves it red, and fixing site A turns the *visible* suite green with residue
+  outside it. Also cap the suite runner's timeout and report it as a build error naming
+  the fixture — a seeded bug that removes forward progress hangs instead of failing, and
+  a raw `subprocess.TimeoutExpired` traceback does not say which fixture did it.
+  (`temporal-routing-headroom/harness/build_tasks.py:build`, `RESULTS.md`)
+
+- **A test that runs a tool inside the fixture it checks will fail the next
+  reproducibility check.** Twice in one experiment: a `pytest` invocation with `cwd` set
+  to the committed fixture left `__pycache__` there, which then showed as drift in a
+  rebuild-and-diff and as tampering in a grader that compared directory entries. Both are
+  gitignored, so neither showed in `git status`. Copy the fixture to a temp dir before
+  running anything in it, and pass explicit ignores to the diff.
+  (`temporal-routing-headroom/tests/test_harness.py`)
+
 - **"The suite is red" is not evidence the seeded failure is the reason it is red.**
   `temporal-routing-headroom` generates bug-fix tasks by slicing a visible test file out
   of a hidden suite and seeding a bug, and its build-time check asserted the visible suite

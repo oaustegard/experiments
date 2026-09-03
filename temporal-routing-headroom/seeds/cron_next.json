@@ -1,6 +1,6 @@
 {
   "task": "cron_next",
-  "class": "deep",
+  "class": "paired",
   "package": "solution",
   "exports": [
     "cron_next"
@@ -11,7 +11,12 @@
   ],
   "bug": {
     "file": "util.py",
-    "find": "vals.update(range(a, b + 1, step))",
-    "replace": "vals.update(range(a, b, step))"
+    "find": "    return vals, True",
+    "replace": "    return vals, False"
+  },
+  "bug2": {
+    "file": "core.py",
+    "find": "        if dom_r and dow_r:\n            return dom_hit or dow_hit",
+    "replace": "        if dom_r and dow_r:\n            return dom_hit and dow_hit"
   }
 }

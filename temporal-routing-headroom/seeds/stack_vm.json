@@ -1,6 +1,6 @@
 {
   "task": "stack_vm",
-  "class": "contract",
+  "class": "paired",
   "package": "solution",
   "exports": [
     "run",
@@ -17,9 +17,9 @@
     "find": "            b, a = pop(), pop()\n            if op == \"ADD\":",
     "replace": "            a, b = pop(), pop()\n            if op == \"ADD\":"
   },
-  "local_fix": {
+  "bug2": {
     "file": "core.py",
-    "find": "            elif op == \"SUB\":\n                stack.append(a - b)",
-    "replace": "            elif op == \"SUB\":\n                stack.append(b - a)"
+    "find": "            b, a = pop(), pop()\n            stack.append(b)\n            stack.append(a)",
+    "replace": "            b, a = pop(), pop()\n            stack.append(a)\n            stack.append(b)"
   }
 }

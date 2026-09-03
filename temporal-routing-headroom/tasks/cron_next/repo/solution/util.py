@@ -39,5 +39,5 @@ def _parse_field(field: str, lo: int, hi: int):
             a = b = int(base)
         if a < lo or b > hi:
             raise ValueError(f"out of range: {item!r}")
-        vals.update(range(a, b, step))
-    return vals, True
+        vals.update(range(a, b + 1, step))
+    return vals, False

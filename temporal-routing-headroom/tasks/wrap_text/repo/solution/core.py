@@ -28,7 +28,7 @@ def wrap_text(text: str, width: int) -> str:
     paragraphs = []
     current = []
     for line in text.split("\n"):
-        if line.strip() == "":
+        if line == "":
             if current:
                 paragraphs.append(current)
                 current = []

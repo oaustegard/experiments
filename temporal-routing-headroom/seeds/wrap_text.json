@@ -1,6 +1,6 @@
 {
   "task": "wrap_text",
-  "class": "shallow",
+  "class": "paired",
   "package": "solution",
   "exports": [
     "wrap_text"
@@ -10,5 +10,10 @@
     "file": "core.py",
     "find": "return \"\\n\\n\".join(blocks)",
     "replace": "return \"\\n\".join(blocks)"
+  },
+  "bug2": {
+    "file": "core.py",
+    "find": "        if line.strip() == \"\":",
+    "replace": "        if line == \"\":"
   }
 }

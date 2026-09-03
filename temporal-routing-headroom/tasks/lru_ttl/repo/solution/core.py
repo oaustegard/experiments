@@ -9,7 +9,7 @@ class TTLCache:
         self._data = OrderedDict()  # key -> (value, inserted_at); end = MRU
 
     def _expired(self, ts) -> bool:
-        return self.clock() - ts >= self.ttl * 2
+        return self.clock() - ts > self.ttl
 
     def _purge(self):
         dead = [k for k, (_, ts) in self._data.items() if self._expired(ts)]
@@ -38,4 +38,4 @@ class TTLCache:
         return value
 
     def __len__(self) -> int:
-        return sum(1 for _, ts in self._data.values() if not self._expired(ts))
+        return len(self._data)

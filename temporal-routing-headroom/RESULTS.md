@@ -77,3 +77,32 @@ python3 harness/oracle.py                  # rebuild analysis_stage1.json from d
 `data/results_stage1_r1.json`, `data/tokens_stage1_r1.json` and `data/marks_stage1.json`
 are the pilot as graded, kept for the record. They were produced before the slicer fix,
 so `roman_strict` and `toposort_lex` in them carry the defect described above.
+
+## Follow-up — six `paired` tasks (unrun)
+
+`expr_eval`, `cron_next`, `wrap_text`, `lru_ttl`, `stack_vm`, and `text_table` were
+re-seeded so each carries one wrong assumption written into two call sites. Fixing either
+site alone leaves the hidden suite red, and fixing the first turns the visible suite
+green. The remaining eight stay as they are: the pilot measured them at 14/14, so they are a
+control anchor rather than a guess about what "easy" means.
+
+Three of the six first pairings did not couple, and the build rejected each:
+
+- `cron_next`: no hidden test exercises a wildcard field at its maximum value, so
+  seeding the `*` branch's inclusive bound changed no test outcome. Re-seeded onto the
+  restricted-flag contract: util decides which fields are restricted, core decides what
+  to do when both day-of-month and day-of-week are.
+- `expr_eval`: the tokenizer/parser pair interlocked completely. The tokenizer emitted a
+  token no parser branch matched, so repairing either half alone changed nothing an agent
+  could observe — harder in one sense, but it produces no stop-early trap. Re-seeded onto a separable
+  pair inside the same `**` handling.
+- `wrap_text`: at `width=1` the chunker pairing made no progress and hung pytest instead
+  of failing it. `run_pytest` now reports a timeout as a build error naming the repo. Re-seeded onto the paragraph
+  splitter and its joiner.
+
+Verified per task, live: after repairing one site, the visible suite is green and the
+hidden suite is still red on between 1 and 8 tests, per the table in the README.
+
+Nobody has run an arm against these six yet, so whether they make the weak arm fail is
+an open question. The pilot's lesson was that a set built to be hard is not the same as
+a set measured to be hard.

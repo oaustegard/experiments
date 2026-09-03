@@ -1,6 +1,6 @@
 {
   "task": "expr_eval",
-  "class": "deep",
+  "class": "paired",
   "package": "solution",
   "exports": [
     "evaluate"
@@ -13,5 +13,10 @@
     "file": "util.py",
     "find": "(\\*\\*|[+\\-*/%()])",
     "replace": "([+\\-*/%()]|\\*\\*)"
+  },
+  "bug2": {
+    "file": "core.py",
+    "find": "        if t == (\"op\", \"**\"):\n            self.next()\n            rhs = self.unary()",
+    "replace": "        if t == (\"op\", \"**\"):\n            self.next()\n            rhs = self.atom()"
   }
 }

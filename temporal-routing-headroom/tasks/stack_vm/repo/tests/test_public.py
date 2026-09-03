@@ -3,10 +3,18 @@ from solution import (run, VMError, StackUnderflow, BadJump, BadOpcode,
                       StepLimitExceeded, VMZeroDivision)
 
 
-def test_push_arith():
-    assert run([("PUSH", 7), ("PUSH", 3), ("SUB",)]) == [4]
-    assert run([("PUSH", 2), ("PUSH", 3), ("ADD",)]) == [5]
-    assert run([("PUSH", 4), ("PUSH", 5), ("MUL",)]) == [20]
+def test_neg_comparisons():
+    assert run([("PUSH", 3), ("NEG",)]) == [-3]
+    assert run([("PUSH", 2), ("PUSH", 2), ("EQ",)]) == [1]
+    assert run([("PUSH", 1), ("PUSH", 2), ("LT",)]) == [1]
+    assert run([("PUSH", 1), ("PUSH", 2), ("GT",)]) == [0]
+
+
+def test_div_mod_zero():
+    with pytest.raises(VMZeroDivision):
+        run([("PUSH", 1), ("PUSH", 0), ("DIV",)])
+    with pytest.raises(VMZeroDivision):
+        run([("PUSH", 1), ("PUSH", 0), ("MOD",)])
 
 
 def test_countdown_loop():

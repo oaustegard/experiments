@@ -114,6 +114,21 @@ def apply_patch(text, patch, what):
     return text.replace(find, replace)
 
 
+def apply_patches(core, util, patches, what):
+    """Apply a list of {file, find, replace} patches across the two module files."""
+    for i, patch in enumerate(patches):
+        tag = f"{what}[{i}]"
+        if patch["file"] == "core.py":
+            core = apply_patch(core, patch, tag)
+        elif patch["file"] == "util.py":
+            if util is None:
+                raise SystemExit(f"{tag}: targets util.py but move_to_util is empty")
+            util = apply_patch(util, patch, tag)
+        else:
+            raise SystemExit(f"{tag}: file must be core.py or util.py")
+    return core, util
+
+
 # ---------------------------------------------------------------- repo materialisation
 
 def write_repo(dest, seed, core_src, util_src, hidden_tests, visible_tests):
@@ -180,9 +195,16 @@ def run_pytest(repo, extra_test=None):
             target = ["tests_hidden.py"]
         if not target:
             return 0, ""
-        proc = subprocess.run(
-            [sys.executable, "-m", "pytest", *target, "-q", "--no-header", "-p", "no:cacheprovider"],
-            cwd=work, capture_output=True, text=True, timeout=PYTEST_TIMEOUT)
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "pytest", *target, "-q", "--no-header", "-p", "no:cacheprovider"],
+                cwd=work, capture_output=True, text=True, timeout=PYTEST_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            # A seeded bug that makes no progress hangs the suite instead of failing it.
+            # Surface it as a build error naming the repo, not a traceback from deep in
+            # subprocess.
+            raise SystemExit(f"pytest timed out after {PYTEST_TIMEOUT}s in {repo} -- a "
+                             f"seeded bug probably loops without advancing")
         return proc.returncode, proc.stdout + proc.stderr
 
 
@@ -217,48 +239,59 @@ def build(seed, dest_root, verbose=True):
     def materialise(core_src, util_src, visible):
         write_repo(repo, seed, core_src, util_src, hidden_src, visible)
 
+    def hidden_failures(core_src, util_src):
+        materialise(core_src, util_src, None)
+        return failing_tests(repo, hidden_src, pkg)
+
     # 1. pristine split must pass the hidden suite -- proves the split itself is inert
     materialise(core0, util0, None)
     ok, out = hidden_passes(repo, hidden_src, pkg)
     if not ok:
         raise SystemExit(f"[{task}] split repo fails the hidden suite before any bug:\n{out[-2500:]}")
 
-    # 2. seed the bug; the hidden suite must go red
-    bug = seed["bug"]
-    core_b, util_b = core0, util0
-    if bug["file"] == "core.py":
-        core_b = apply_patch(core0, bug, f"[{task}] bug")
-    elif bug["file"] == "util.py":
-        if util0 is None:
-            raise SystemExit(f"[{task}] bug targets util.py but move_to_util is empty")
-        util_b = apply_patch(util0, bug, f"[{task}] bug")
-    else:
-        raise SystemExit(f"[{task}] bug.file must be core.py or util.py")
-
-    materialise(core_b, util_b, None)
-    failed, out = failing_tests(repo, hidden_src, pkg)
+    # 2. seed the bug (one site, or a coordinated pair) and require the hidden suite red
+    site_a = seed["bug"]
+    site_b = seed.get("bug2")
+    patches = [site_a] + ([site_b] if site_b else [])
+    core_b, util_b = apply_patches(core0, util0, patches, f"[{task}] bug")
+    failed, out = hidden_failures(core_b, util_b)
     if not failed:
         raise SystemExit(f"[{task}] bug does not make the hidden suite fail:\n{out[-2500:]}")
 
-    # 3. choose the visible subset. With a local_fix the visible tests must be exactly
-    #    the ones that fix repairs, so a locally-plausible patch looks complete.
+    # 3. choose the visible subset -- the part an agent can turn green while still wrong.
     local_fix = seed.get("local_fix")
-    if local_fix is None:
+    contract_residue = None
+    if site_b is not None:
+        # paired: the two sites encode the same broken assumption. Repairing either one
+        # alone must leave the hidden suite red, and repairing site A alone must turn the
+        # VISIBLE suite green, so a run that stops at the first cause ships a wrong patch.
+        if seed["class"] != "paired":
+            raise SystemExit(f"[{task}] bug2 is set but class is {seed['class']!r}")
+        a_fixed, _ = hidden_failures(*apply_patches(core0, util0, [site_b], f"[{task}] b-only"))
+        b_fixed, _ = hidden_failures(*apply_patches(core0, util0, [site_a], f"[{task}] a-only"))
+        if not a_fixed:
+            raise SystemExit(f"[{task}] fixing site A alone passes the hidden suite; "
+                             f"the sites are not coupled")
+        if not b_fixed:
+            raise SystemExit(f"[{task}] fixing site B alone passes the hidden suite; "
+                             f"the sites are not coupled")
+        repaired = [t for t in failed if t not in a_fixed]
+        if not repaired:
+            raise SystemExit(f"[{task}] fixing site A repairs nothing an agent could see")
+        visible = repaired[:MAX_VISIBLE]
+        contract_residue = a_fixed
+    elif local_fix is None:
         visible = failed[:MAX_VISIBLE]
     else:
-        core_l, util_l = core_b, util_b
-        if local_fix["file"] == "core.py":
-            core_l = apply_patch(core_b, local_fix, f"[{task}] local_fix")
-        else:
-            util_l = apply_patch(util_b, local_fix, f"[{task}] local_fix")
-        materialise(core_l, util_l, None)
-        still_failing, _ = failing_tests(repo, hidden_src, pkg)
+        core_l, util_l = apply_patches(core_b, util_b, [local_fix], f"[{task}] local_fix")
+        still_failing, _ = hidden_failures(core_l, util_l)
         repaired = [t for t in failed if t not in still_failing]
         if not repaired:
             raise SystemExit(f"[{task}] local_fix repairs nothing; it must fix the visible tests")
         if not still_failing:
             raise SystemExit(f"[{task}] local_fix is a complete fix; contract class needs residue")
         visible = repaired[:MAX_VISIBLE]
+        contract_residue = still_failing
 
     # 4a. the visible slice must be GREEN on the unbugged split. A suite that dies on a
     #     missing helper is also non-zero, so "red under the bug" alone cannot tell a
@@ -277,21 +310,20 @@ def build(seed, dest_root, verbose=True):
     if "NameError" in vis_out or "errors during collection" in vis_out:
         raise SystemExit(f"[{task}] visible suite errors rather than fails:\n{vis_out[-2500:]}")
 
-    # 5. contract invariant, re-checked on the shipped visible set
-    contract_residue = None
-    if local_fix is not None:
-        core_l, util_l = core_b, util_b
-        if local_fix["file"] == "core.py":
-            core_l = apply_patch(core_b, local_fix, f"[{task}] local_fix")
-        else:
-            util_l = apply_patch(util_b, local_fix, f"[{task}] local_fix")
+    # 5. the trap, re-checked on the shipped visible set: the partial fix must look done.
+    if contract_residue is not None:
+        partial = [site_b] if site_b is not None else [local_fix]
+        base = (core0, util0) if site_b is not None else (core_b, util_b)
+        core_l, util_l = apply_patches(*base, partial, f"[{task}] partial")
         materialise(core_l, util_l, visible)
         rc_v, _ = run_pytest(repo)
         residue, _ = failing_tests(repo, hidden_src, pkg)
         if rc_v != 0:
-            raise SystemExit(f"[{task}] local_fix does not pass the visible suite")
+            raise SystemExit(f"[{task}] the partial fix does not pass the visible suite")
         if not residue:
-            raise SystemExit(f"[{task}] local_fix passes the hidden suite; not a contract task")
+            raise SystemExit(f"[{task}] the partial fix passes the hidden suite; no trap")
+        if set(residue) & set(visible):
+            raise SystemExit(f"[{task}] residue overlaps the visible set: {sorted(set(residue) & set(visible))}")
         contract_residue = residue
         materialise(core_b, util_b, visible)  # restore the shipped state
 
@@ -303,7 +335,9 @@ def build(seed, dest_root, verbose=True):
         "class": seed["class"],
         "package": pkg,
         "exports": seed["exports"],
-        "bug_file": bug["file"],
+        "bug_file": site_a["file"],
+        "bug_files": sorted({p["file"] for p in patches}),
+        "n_bug_sites": len(patches),
         "moved_to_util": seed.get("move_to_util", []),
         "hidden_failing_under_bug": failed,
         "visible_tests": visible,
@@ -311,7 +345,8 @@ def build(seed, dest_root, verbose=True):
     }, indent=2) + "\n")
     if verbose:
         extra = f" residue={len(contract_residue)}" if contract_residue else ""
-        print(f"  {task:16s} {seed['class']:8s} bug in {bug['file']:7s} "
+        sites = "+".join(p["file"].replace(".py", "") for p in patches)
+        print(f"  {task:16s} {seed['class']:8s} bug in {sites:11s} "
               f"hidden_fail={len(failed):2d} visible={len(visible)}{extra}")
     return dest
 
@@ -364,7 +399,8 @@ def main():
         rc = 0
         for path in seeds:
             a, b = TASKS / path.stem, dest_root / path.stem
-            proc = subprocess.run(["diff", "-r", str(a), str(b)], capture_output=True, text=True)
+            proc = subprocess.run(["diff", "-r", "-x", "__pycache__", "-x", ".pytest_cache",
+                                   str(a), str(b)], capture_output=True, text=True)
             if proc.returncode != 0:
                 rc = 1
                 print(f"DRIFT {path.stem}\n{proc.stdout}")
