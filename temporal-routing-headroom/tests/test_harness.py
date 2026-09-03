@@ -128,3 +128,50 @@ def test_build_is_reproducible():
     proc = subprocess.run([sys.executable, str(HARNESS / "build_tasks.py"), "--check"],
                           capture_output=True, text=True, timeout=900)
     assert proc.returncode == 0, f"committed tasks are stale:\n{proc.stdout}\n{proc.stderr}"
+
+
+@pytest.mark.parametrize("task", SEED_NAMES)
+def test_visible_suite_fails_rather_than_errors(task):
+    """A suite that dies on a missing name is red for the wrong reason.
+
+    The pilot shipped two tasks whose sliced visible suite raised NameError on a helper
+    the hidden suite defines for itself. Both runs "fixed" it by injecting the name via
+    conftest.py instead of touching the seeded bug, so the trajectory measured something
+    the experiment never intended to ask about.
+    """
+    import subprocess
+    repo = ROOT / "tasks" / task / "repo"
+    proc = subprocess.run([sys.executable, "-m", "pytest", "tests/", "-q", "--no-header",
+                           "-p", "no:cacheprovider"],
+                          cwd=repo, capture_output=True, text=True, timeout=120)
+    out = proc.stdout + proc.stderr
+    assert "NameError" not in out, f"{task}: visible suite references an undefined name\n{out[-1500:]}"
+    assert "errors during collection" not in out, f"{task}: visible suite fails to collect"
+
+
+@pytest.mark.parametrize("task", SEED_NAMES)
+def test_visible_suite_is_green_without_the_bug(task):
+    """The slice itself must be sound: green on the reference, red only under the seed."""
+    import shutil
+    import tempfile
+    seed = json.loads((ROOT / "seeds" / f"{task}.json").read_text())
+    src = ROOT.parent / "orchestrated-coding-pareto" / "tasks" / task
+    core, util = B.split_module((src / "reference.py").read_text(), seed.get("move_to_util", []))
+    with tempfile.TemporaryDirectory() as tmp:
+        repo = Path(tmp) / "repo"
+        B.write_repo(repo, seed, core, util, (src / "tests.py").read_text(),
+                     meta(task)["visible_tests"])
+        rc, out = B.run_pytest(repo)
+    assert rc == 0, f"{task}: visible slice is not green on the unbugged reference\n{out[-1500:]}"
+
+
+def test_grader_discards_edits_outside_the_package(tmp_path):
+    """Only the package is the run's to change; anything else is reverted, not trusted."""
+    import shutil
+    task = "roman_strict"
+    work = tmp_path / "w"
+    shutil.copytree(ROOT / "tasks" / task / "repo", work)
+    (work / "conftest.py").write_text("import builtins\nbuiltins.SMUGGLED = 1\n")
+    r = G.grade_one(work, task)
+    assert r["edits_outside_package"] == ["conftest.py"]
+    assert not r["passed"], "the package still carries its bug, so the run must not pass"

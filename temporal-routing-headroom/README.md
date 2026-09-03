@@ -8,8 +8,9 @@ a learned value head, and then decides whether to continue cheaply or escalate. 
 routes on task shape declared up front and cascades only on a *verified* failure. Both
 target the same waste; they disagree on what the escalation signal is.
 
-**Status: task set and harness built and verified. No model runs yet.** Nothing here
-reports a measurement.
+**Status: Stage-1 pilot run; see [RESULTS.md](RESULTS.md).** The task set does not
+discriminate — the weak arm solved 14/14 — so the 3-replicate run is not scheduled and
+the bugs need to be harder first.
 
 ## Relation to orchestrated-coding-pareto
 
@@ -78,7 +79,7 @@ n=14 a one-or-two task difference is noise and token deltas are the signal to tr
 ```bash
 python3 harness/build_tasks.py                 # regenerate tasks/ from seeds/
 python3 harness/build_tasks.py --check         # confirm tasks/ matches seeds/
-python3 -m pytest tests/ -q                    # 78 invariant checks over the registry
+python3 -m pytest tests/ -q                    # 107 invariant checks over the registry
 python3 harness/grade_agentic.py --self-test   # every task repo starts red
 
 RUN=/tmp/stage1/r1

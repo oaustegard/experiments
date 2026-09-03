@@ -12,25 +12,25 @@ ___________________________ test_two_cycle_reported ____________________________
         with pytest.raises(CycleError) as ei:
             toposort(edges)
 >       _check_cycle(ei.value, edges)
-        ^^^^^^^^^^^^
-E       NameError: name '_check_cycle' is not defined
-tests/test_public.py:9: NameError
+tests/test_public.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+exc = CycleError("cycle detected: ['b']"), edges = [('a', 'b'), ('b', 'a')]
+    def _check_cycle(exc, edges):
+        edge_set = set(edges)
+        cyc = exc.cycle
+        assert isinstance(cyc, list) and len(cyc) >= 1
+        assert len(set(cyc)) == len(cyc), "cycle nodes must be distinct"
+        for i in range(len(cyc) - 1):
+            assert (cyc[i], cyc[i + 1]) in edge_set
+>       assert (cyc[-1], cyc[0]) in edge_set
+E       AssertionError: assert ('b', 'b') in {('a', 'b'), ('b', 'a')}
+tests/test_public.py:10: AssertionError
 ___________________________ test_self_loop_reported ____________________________
     def test_self_loop_reported():
         edges = [("a", "a")]
-        with pytest.raises(CycleError) as ei:
-            toposort(edges)
->       _check_cycle(ei.value, edges)
-        ^^^^^^^^^^^^
-E       NameError: name '_check_cycle' is not defined
-tests/test_public.py:16: NameError
-__________________________ test_cycle_in_larger_graph __________________________
-    def test_cycle_in_larger_graph():
-        edges = [("a", "b"), ("b", "c"), ("c", "d"), ("d", "b"), ("a", "e")]
-        with pytest.raises(CycleError) as ei:
 ...
-FAILED tests/test_public.py::test_self_loop_reported - NameError: name '_chec...
-FAILED tests/test_public.py::test_cycle_in_larger_graph - NameError: name '_c...
+FAILED tests/test_public.py::test_self_loop_reported - assert (False)
+FAILED tests/test_public.py::test_cycle_in_larger_graph - AssertionError: ass...
 3 failed in <duration>
 ```
 
