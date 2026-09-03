@@ -1,0 +1,17 @@
+{
+  "task": "expr_eval",
+  "class": "deep",
+  "package": "solution",
+  "exports": [
+    "evaluate"
+  ],
+  "move_to_util": [
+    "_TOKEN",
+    "_tokenize"
+  ],
+  "bug": {
+    "file": "util.py",
+    "find": "(\\*\\*|[+\\-*/%()])",
+    "replace": "([+\\-*/%()]|\\*\\*)"
+  }
+}

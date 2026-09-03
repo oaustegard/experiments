@@ -1926,6 +1926,27 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **A generated task fixture that embeds tool output is not reproducible until you
+  normalise the output.** `temporal-routing-headroom` bakes real pytest output into each
+  generated bug report, and a `--check` rebuild diffed clean on the code and dirty on the
+  fixtures: `3 failed in 0.04s` against `0.03s`, then
+  `<solution.core.TTLCache object at 0x7fe53ed42c90>` against a different address. Both
+  came from pytest, neither from the generator. Strip run durations and object addresses
+  before writing captured output into a committed artifact, and keep a `--check` mode
+  that rebuilds into a temp dir and diffs, or the fixtures drift from their seeds without
+  anyone noticing. Timestamps and temp paths do the same thing in any golden file. (`temporal-routing-headroom/harness/build_tasks.py:trim_pytest`)
+
+- **A traceback in a generated prompt leaks the answer, and leaks it asymmetrically.**
+  The same experiment needs bug reports whose text does not reveal where the bug lives —
+  that is the premise it tests. Assertion failures name only the test file, but a
+  task whose bug raises an exception produces a traceback naming the source file. So the
+  presence of a source path in the report correlated with one difficulty class and
+  handed away the label. An invariant test asserting the report never names the bug's file
+  caught it on one task of fourteen. If a prompt is generated from tool output, enumerate
+  what that output can contain across all of your inputs before trusting the one you
+  read.
+  (`temporal-routing-headroom/tests/test_harness.py::test_issue_does_not_leak_the_bug_site`)
+
 - **Fit `t = a + b·n` before reporting a crossover — a scale gate and a
   constant term look identical from two data points.** Any linear scan is
   `t(n) = a + bytes_per_candidate·n / (bandwidth·efficiency)`, where `n` enters

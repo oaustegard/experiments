@@ -1,0 +1,32 @@
+{
+  "task": "stack_vm",
+  "class": "contract",
+  "package": "solution",
+  "exports": [
+    "run",
+    "VMError",
+    "StackUnderflow",
+    "BadJump",
+    "BadOpcode",
+    "StepLimitExceeded",
+    "VMZeroDivision"
+  ],
+  "bug_file": "core.py",
+  "moved_to_util": [],
+  "hidden_failing_under_bug": [
+    "test_countdown_loop",
+    "test_div_mod_zero",
+    "test_neg_comparisons",
+    "test_operand_order_div_mod",
+    "test_push_arith"
+  ],
+  "visible_tests": [
+    "test_countdown_loop",
+    "test_push_arith"
+  ],
+  "contract_residue": [
+    "test_div_mod_zero",
+    "test_neg_comparisons",
+    "test_operand_order_div_mod"
+  ]
+}

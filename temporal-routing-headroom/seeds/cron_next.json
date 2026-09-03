@@ -1,0 +1,17 @@
+{
+  "task": "cron_next",
+  "class": "deep",
+  "package": "solution",
+  "exports": [
+    "cron_next"
+  ],
+  "move_to_util": [
+    "_BOUNDS",
+    "_parse_field"
+  ],
+  "bug": {
+    "file": "util.py",
+    "find": "vals.update(range(a, b + 1, step))",
+    "replace": "vals.update(range(a, b, step))"
+  }
+}

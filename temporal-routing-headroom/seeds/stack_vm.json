@@ -1,0 +1,25 @@
+{
+  "task": "stack_vm",
+  "class": "contract",
+  "package": "solution",
+  "exports": [
+    "run",
+    "VMError",
+    "StackUnderflow",
+    "BadJump",
+    "BadOpcode",
+    "StepLimitExceeded",
+    "VMZeroDivision"
+  ],
+  "move_to_util": [],
+  "bug": {
+    "file": "core.py",
+    "find": "            b, a = pop(), pop()\n            if op == \"ADD\":",
+    "replace": "            a, b = pop(), pop()\n            if op == \"ADD\":"
+  },
+  "local_fix": {
+    "file": "core.py",
+    "find": "            elif op == \"SUB\":\n                stack.append(a - b)",
+    "replace": "            elif op == \"SUB\":\n                stack.append(b - a)"
+  }
+}

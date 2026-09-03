@@ -1,0 +1,14 @@
+{
+  "task": "interval_merge",
+  "class": "shallow",
+  "package": "solution",
+  "exports": [
+    "merge"
+  ],
+  "move_to_util": [],
+  "bug": {
+    "file": "core.py",
+    "find": "out[-1] = (pa, max(pb, b))",
+    "replace": "out[-1] = (pa, b)"
+  }
+}

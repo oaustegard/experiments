@@ -1,0 +1,14 @@
+{
+  "task": "csv_line",
+  "class": "shallow",
+  "package": "solution",
+  "exports": [
+    "parse_csv_line"
+  ],
+  "move_to_util": [],
+  "bug": {
+    "file": "core.py",
+    "find": "                    if i + 1 < n and line[i + 1] == '\"':",
+    "replace": "                    if i + 1 < n and line[i + 1] == \"'\":"
+  }
+}

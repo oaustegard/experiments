@@ -1,0 +1,25 @@
+{
+  "task": "toposort_lex",
+  "class": "deep",
+  "package": "solution",
+  "exports": [
+    "toposort",
+    "CycleError"
+  ],
+  "bug_file": "util.py",
+  "moved_to_util": [
+    "CycleError",
+    "_find_cycle"
+  ],
+  "hidden_failing_under_bug": [
+    "test_cycle_in_larger_graph",
+    "test_self_loop_reported",
+    "test_two_cycle_reported"
+  ],
+  "visible_tests": [
+    "test_cycle_in_larger_graph",
+    "test_self_loop_reported",
+    "test_two_cycle_reported"
+  ],
+  "contract_residue": null
+}
