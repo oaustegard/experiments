@@ -1,0 +1,19 @@
+{
+  "task": "text_table",
+  "class": "contract",
+  "package": "solution",
+  "exports": [
+    "format_table"
+  ],
+  "move_to_util": [],
+  "bug": {
+    "file": "core.py",
+    "find": "    pad = width - len(text)",
+    "replace": "    pad = max(0, width - len(text) - 1)"
+  },
+  "local_fix": {
+    "file": "core.py",
+    "find": "    if a == \"l\":\n        return text + \" \" * pad",
+    "replace": "    if a == \"l\":\n        return text + \" \" * (width - len(text))"
+  }
+}
