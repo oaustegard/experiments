@@ -1,0 +1,92 @@
+{
+ "teacher_reference": {
+  "r@5": 0.5949959644874898,
+  "r@10": 0.6669760559591067,
+  "rrf_r@10": 0.728369652945924
+ },
+ "vocab": {
+  "train_distinct": 15938,
+  "kept_at_min_freq": 12509,
+  "min_freq": 2
+ },
+ "variants": {
+  "A_chunks_only": {
+   "variant": "A_chunks_only",
+   "alpha": 0.1,
+   "n_fitted_tokens": 12509,
+   "table_bytes_fp16": 9606912,
+   "held_out_chunk_cosine": {
+    "mean": 0.7633184194564819,
+    "median": 0.7681602239608765,
+    "min": 0.41699349880218506
+   },
+   "query_cosine": {
+    "mean": 0.5847021341323853,
+    "median": 0.5854908227920532,
+    "min": 0.4015123248100281
+   },
+   "cells": {
+    "student/student": {
+     "r@5": 0.22966101694915253,
+     "r@10": 0.29755178907721275,
+     "rrf_r@10": 0.5125638956147431
+    },
+    "student-query/teacher-index": {
+     "r@5": 0.3220338983050847,
+     "r@10": 0.42598870056497173,
+     "rrf_r@10": 0.625531342480495
+    },
+    "student-query/teacher-index-remex2bit": {
+     "r@5": 0.3643126177024482,
+     "r@10": 0.42181867097121334,
+     "rrf_r@10": 0.6171240247511434
+    },
+    "student-query/teacher-index-remax_k1": {
+     "r@5": 0.23318536454129674,
+     "r@10": 0.32261232176486415,
+     "rrf_r@10": 0.5269437718590261
+    }
+   }
+  },
+  "B_plus_docstrings": {
+   "variant": "B_plus_docstrings",
+   "alpha": 0.1,
+   "n_fitted_tokens": 12715,
+   "table_bytes_fp16": 9765120,
+   "held_out_chunk_cosine": {
+    "mean": 0.7667917013168335,
+    "median": 0.7710411548614502,
+    "min": 0.39794230461120605
+   },
+   "query_cosine": {
+    "mean": 0.6009788513183594,
+    "median": 0.6009583473205566,
+    "min": 0.4460752606391907
+   },
+   "cells": {
+    "student/student": {
+     "r@5": 0.2354048964218456,
+     "r@10": 0.31214689265536727,
+     "rrf_r@10": 0.5210384718859296
+    },
+    "student-query/teacher-index": {
+     "r@5": 0.3596045197740113,
+     "r@10": 0.42181867097121334,
+     "rrf_r@10": 0.6274818401937046
+    },
+    "student-query/teacher-index-remex2bit": {
+     "r@5": 0.3854990583804143,
+     "r@10": 0.4376647834274953,
+     "rrf_r@10": 0.630212536992198
+    },
+    "student-query/teacher-index-remax_k1": {
+     "r@5": 0.23478611783696526,
+     "r@10": 0.3180925477535647,
+     "rrf_r@10": 0.5771051923594297
+    }
+   },
+   "n_docstrings_added": 1116
+  }
+ },
+ "failed": []
+}

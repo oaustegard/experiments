@@ -1,0 +1,40 @@
+tokenizer vocab size: 256000
+file split: 539/674 files train, 8962 train chunks / 2418 held-out chunks
+tokenized 11380 chunks in 6.8s
+vocab: 15938 distinct train tokens, 12509 kept at freq>=2
+
+=== reference: teacher/teacher ===
+  teacher/teacher  r@5 0.595  r@10 0.667  RRF r@10 0.728
+
+=== variant A_chunks_only: fitting ridge (train n=8962, vocab=12509) ===
+    alpha=0.1   fit 20.3s  held-out cosine mean=0.7633
+    alpha=1.0   fit 8.0s  held-out cosine mean=0.6721
+    alpha=10.0  fit 3.6s  held-out cosine mean=0.6268
+  chosen alpha=0.1  held-out cosine mean=0.7633
+  held-out chunk cosine: mean 0.7633 median 0.7682 min 0.4170
+  query cosine (NL bug reports, different distribution from code chunks): mean 0.5847 median 0.5855 min 0.4015
+  student/student            r@5 0.230  r@10 0.298  RRF r@10 0.513
+  student-query/TEACHER-index r@5 0.322  r@10 0.426  RRF r@10 0.626
+  student-query/teacher-remex2bit r@5 0.364  r@10 0.422  RRF r@10 0.617
+  student-query/teacher-remax_k1  r@5 0.233  r@10 0.323  RRF r@10 0.527
+  fitted table: 12509 tokens x 384 dim, fp16 = 9.16 MB
+
+=== extracting docstrings from TRAIN-split ast chunks ===
+  extracted 1116 docstrings (cap 2000)
+  encoded 1116 docstrings with the teacher in 8.0s
+  variant B vocab: 12715 kept at freq>=2 (vs 12509 in variant A)
+
+=== variant B_plus_docstrings: fitting ridge (train n=10078, vocab=12715) ===
+    alpha=0.1   fit 26.0s  held-out cosine mean=0.7668
+    alpha=1.0   fit 9.9s  held-out cosine mean=0.6761
+    alpha=10.0  fit 4.4s  held-out cosine mean=0.6280
+  chosen alpha=0.1  held-out cosine mean=0.7668
+  held-out chunk cosine: mean 0.7668 median 0.7710 min 0.3979
+  query cosine (NL bug reports, different distribution from code chunks): mean 0.6010 median 0.6010 min 0.4461
+  student/student            r@5 0.235  r@10 0.312  RRF r@10 0.521
+  student-query/TEACHER-index r@5 0.360  r@10 0.422  RRF r@10 0.627
+  student-query/teacher-remex2bit r@5 0.385  r@10 0.438  RRF r@10 0.630
+  student-query/teacher-remax_k1  r@5 0.235  r@10 0.318  RRF r@10 0.577
+  fitted table: 12715 tokens x 384 dim, fp16 = 9.31 MB
+
+wrote /home/user/experiments/potion-code-quant/results_fit_table.json

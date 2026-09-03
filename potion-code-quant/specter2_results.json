@@ -1,0 +1,115 @@
+{
+ "seed": 99,
+ "n_queries": 100,
+ "n_corpus": 9900,
+ "d": 768,
+ "vocab": {
+  "corpus_distinct_tokens": 20395,
+  "kept_at_min_freq": 18028,
+  "min_freq": 2
+ },
+ "cv_scores": {
+  "0.1": 0.956192672252655,
+  "1.0": 0.935285210609436,
+  "10.0": 0.9239776730537415
+ },
+ "chosen_alpha": 0.1,
+ "held_out_1000_cosine": {
+  "mean": 0.956773042678833,
+  "median": 0.9589117169380188,
+  "min": 0.8811968564987183
+ },
+ "query_cosine": {
+  "mean": 0.9579084515571594,
+  "median": 0.9595291614532471,
+  "min": 0.8733524084091187
+ },
+ "raw_vs_normalized_ranks_identical": true,
+ "sign_agreement": {
+  "mean": 0.7532421875,
+  "median": 0.7571614583333333,
+  "min": 0.6197916666666667,
+  "max": 0.890625
+ },
+ "table": {
+  "n_fitted_tokens": 18028,
+  "dim": 768,
+  "bytes_fp16": 27691008
+ },
+ "rows": [
+  {
+   "cell": "teacher-query/teacher-float-index",
+   "index_codec": "float32",
+   "bits": 32,
+   "r@10": 1.0,
+   "r@100": 1.0,
+   "top1": 1.0
+  },
+  {
+   "cell": "teacher-query/teacher-remax-1bit-index",
+   "index_codec": "remax",
+   "bits": 1,
+   "r@10": 0.645,
+   "r@100": 0.99,
+   "top1": 0.49
+  },
+  {
+   "cell": "teacher-query/teacher-remex-2bit-index",
+   "index_codec": "remex",
+   "bits": 2,
+   "r@10": 0.478,
+   "r@100": 0.953,
+   "top1": 0.32
+  },
+  {
+   "cell": "teacher-query/teacher-remex-4bit-index",
+   "index_codec": "remex",
+   "bits": 4,
+   "r@10": 0.731,
+   "r@100": 0.999,
+   "top1": 0.53
+  },
+  {
+   "cell": "student-query/teacher-float-index",
+   "index_codec": "float32",
+   "bits": 32,
+   "r@10": 0.264,
+   "r@100": 0.581,
+   "top1": 0.14
+  },
+  {
+   "cell": "student-query/teacher-remax-1bit-index",
+   "index_codec": "remax",
+   "bits": 1,
+   "r@10": 0.288,
+   "r@100": 0.701,
+   "top1": 0.11
+  },
+  {
+   "cell": "student-query/teacher-remex-2bit-index",
+   "index_codec": "remex",
+   "bits": 2,
+   "r@10": 0.117,
+   "r@100": 0.394,
+   "top1": 0.03
+  },
+  {
+   "cell": "student-query/teacher-remex-4bit-index",
+   "index_codec": "remex",
+   "bits": 4,
+   "r@10": 0.195,
+   "r@100": 0.532,
+   "top1": 0.05
+  },
+  {
+   "cell": "student-query/student-index (reference only)",
+   "index_codec": "float32",
+   "bits": 32,
+   "r@10": 0.002,
+   "r@100": 0.056,
+   "top1": 0.0
+  }
+ ],
+ "model2vec_comparison_skipped": "requires a SPECTER2 model download for token-level distillation; pass 2 already established that token-level distillation from a teacher's own weights is space-incompatible, so this was skipped per the brief's 'only if cheap' instruction.",
+ "failed": []
+}

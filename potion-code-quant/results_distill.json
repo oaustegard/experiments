@@ -1,0 +1,79 @@
+{
+ "cells": {
+  "teacher-query/teacher-index": {
+   "cell": "teacher-query/teacher-index",
+   "r@5": 0.5949959644874898,
+   "r@10": 0.6669760559591067,
+   "rrf_r@10": 0.728369652945924
+  },
+  "student(zipf)-query/student(zipf)-index": {
+   "cell": "student(zipf)-query/student(zipf)-index",
+   "r@5": 0.08013182674199623,
+   "r@10": 0.12344632768361581,
+   "rrf_r@10": 0.44834543987086356
+  },
+  "student(zipf)-query/teacher-index": {
+   "cell": "student(zipf)-query/teacher-index",
+   "r@5": 0.01741996233521657,
+   "r@10": 0.04048964218455744,
+   "rrf_r@10": 0.420137207425343
+  },
+  "student(nozipf)-query/student(nozipf)-index": {
+   "cell": "student(nozipf)-query/student(nozipf)-index",
+   "r@5": 0.04976459510357815,
+   "r@10": 0.10955743879472693,
+   "rrf_r@10": 0.34808985741189125
+  },
+  "student(nozipf)-query/teacher-index": {
+   "cell": "student(nozipf)-query/teacher-index",
+   "r@5": 0.018267419962335215,
+   "r@10": 0.04086629001883239,
+   "rrf_r@10": 0.36976055959106807
+  }
+ },
+ "cosines": {
+  "zipf": {
+   "corpus_mean": 0.26179206371307373,
+   "corpus_median": 0.25856107473373413,
+   "corpus_min": 0.09760881960391998,
+   "query_mean": 0.2813449800014496,
+   "query_median": 0.2828931510448456,
+   "query_min": 0.19229087233543396
+  },
+  "nozipf": {
+   "corpus_mean": 0.20776601135730743,
+   "corpus_median": 0.20577825605869293,
+   "corpus_min": 0.07970106601715088,
+   "query_mean": 0.23665376007556915,
+   "query_median": 0.2341289073228836,
+   "query_min": 0.07640989869832993
+  }
+ },
+ "tables": {
+  "zipf": {
+   "vocab": 255753,
+   "dim": 384,
+   "dtype": "float16",
+   "table_bytes": 196418304,
+   "table_mb": 187.319091796875
+  },
+  "nozipf": {
+   "vocab": 255753,
+   "dim": 384,
+   "dtype": "float16",
+   "table_bytes": 196418304,
+   "table_mb": 187.319091796875
+  }
+ },
+ "latencies": {
+  "zipf": {
+   "median_s": 0.0015628337860107422,
+   "mean_s": 0.0015547760462356825
+  },
+  "nozipf": {
+   "median_s": 0.0013871192932128906,
+   "mean_s": 0.0013709149118197167
+  }
+ },
+ "failed": []
+}
