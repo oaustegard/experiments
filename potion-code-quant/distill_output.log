@@ -1,0 +1,25 @@
+model2vec.distill.distill signature: (model_name: 'str', vocabulary: 'list[str] | None' = None, device: 'str | None' = None, pca_dims: 'PCADimType' = 256, sif_coefficient: 'float | None' = 0.0001, token_remove_pattern: 'str | None' = '\\[unused\\d+\\]', trust_remote_code: 'bool' = False, quantize_to: 'DType | str' = <DType.Float16: 'float16'>, vocabulary_quantization: 'int | None' = None, pooling: 'PoolingMode | str' = <PoolingMode.MEAN: 'mean'>) -> 'StaticModel'
+
+loading cached distillation 'zipf' from /home/user/experiments/.cache/potion-a8m-distill-zipf
+  student 'zipf': vocab=255753 dim=384 dtype=float16 table=187.3 MB
+loading cached distillation 'nozipf' from /home/user/experiments/.cache/potion-a8m-distill-nozipf
+  student 'nozipf': vocab=255753 dim=384 dtype=float16 table=187.3 MB
+
+=== teacher: bekko-a8m fp32 d=384 ===
+  teacher/teacher   r@5 0.595  r@10 0.667  RRF r@10 0.728   (matches run.py's bekko-a8m fp32 row)
+
+=== student 'zipf' ===
+  cosine(student,teacher) over 2000 corpus chunks: mean 0.2618 median 0.2586 min 0.0976
+  cosine(student,teacher) over 59 queries:         mean 0.2813 median 0.2829 min 0.1923
+  student/student   r@5 0.080  r@10 0.123  RRF r@10 0.448
+  student/TEACHER   r@5 0.017  r@10 0.040  RRF r@10 0.420
+  table: vocab=255753 dim=384 187.3 MB; per-query latency median 1.563 ms
+
+=== student 'nozipf' ===
+  cosine(student,teacher) over 2000 corpus chunks: mean 0.2078 median 0.2058 min 0.0797
+  cosine(student,teacher) over 59 queries:         mean 0.2367 median 0.2341 min 0.0764
+  student/student   r@5 0.050  r@10 0.110  RRF r@10 0.348
+  student/TEACHER   r@5 0.018  r@10 0.041  RRF r@10 0.370
+  table: vocab=255753 dim=384 187.3 MB; per-query latency median 1.387 ms
+
+wrote /home/user/experiments/potion-code-quant/results_distill.json

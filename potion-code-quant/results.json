@@ -1,0 +1,255 @@
+{
+ "box": "4\nMem:            15Gi       782Mi        13Gi        12Mi       1.7Gi        14Gi",
+ "corpus": {
+  "chunks": 11380,
+  "files": 674,
+  "instances": 59
+ },
+ "gold_coverage": 1.0,
+ "rows": [
+  {
+   "r@5": 0.5958165186978746,
+   "r@10": 0.6821630347054077,
+   "rrf_r@10": 0.6821630347054077,
+   "encoder": "rg",
+   "codec": "rg",
+   "param": null,
+   "dim": null,
+   "bytes": null
+  },
+  {
+   "r@5": 0.5949959644874898,
+   "r@10": 0.6669760559591067,
+   "rrf_r@10": 0.728369652945924,
+   "encoder": "bekko-a8m",
+   "codec": "fp32",
+   "param": 32,
+   "dim": 384,
+   "bytes": 1536
+  },
+  {
+   "r@5": 0.4364272262577347,
+   "r@10": 0.5327280064568201,
+   "rrf_r@10": 0.6677293516276567,
+   "encoder": "potion",
+   "codec": "fp16",
+   "param": 16,
+   "dim": 256,
+   "bytes": 512
+  },
+  {
+   "r@5": 0.4231772935162766,
+   "r@10": 0.5060801721818671,
+   "rrf_r@10": 0.6268630616088242,
+   "encoder": "potion",
+   "codec": "fp16-loadtime-trunc",
+   "param": 16,
+   "dim": 128,
+   "bytes": 256
+  },
+  {
+   "r@5": 0.4231772935162766,
+   "r@10": 0.5060801721818671,
+   "rrf_r@10": 0.6268630616088242,
+   "encoder": "potion",
+   "codec": "fp16-posthoc-slice",
+   "param": 16,
+   "dim": 128,
+   "bytes": 256
+  },
+  {
+   "r@5": 0.39254775356470273,
+   "r@10": 0.46717110573042775,
+   "rrf_r@10": 0.6060532687651331,
+   "encoder": "potion",
+   "codec": "fp16-loadtime-trunc",
+   "param": 16,
+   "dim": 64,
+   "bytes": 128
+  },
+  {
+   "r@5": 0.39254775356470273,
+   "r@10": 0.46717110573042775,
+   "rrf_r@10": 0.6060532687651331,
+   "encoder": "potion",
+   "codec": "fp16-posthoc-slice",
+   "param": 16,
+   "dim": 64,
+   "bytes": 128
+  },
+  {
+   "r@5": 0.4364272262577347,
+   "r@10": 0.5318805488297014,
+   "rrf_r@10": 0.6677293516276567,
+   "encoder": "potion",
+   "codec": "int8-table",
+   "param": 8,
+   "dim": 256,
+   "bytes": 256,
+   "cosine_to_fp16_mean": 0.998252809047699,
+   "cosine_to_fp16_min": 0.9298163652420044
+  },
+  {
+   "r@5": 0.3760963142319075,
+   "r@10": 0.4397228948076406,
+   "rrf_r@10": 0.603228410008071,
+   "encoder": "potion",
+   "codec": "remex",
+   "param": 1,
+   "dim": 256,
+   "bytes": 32
+  },
+  {
+   "r@5": 0.421576540220608,
+   "r@10": 0.5313155770782889,
+   "rrf_r@10": 0.6451304815711596,
+   "encoder": "potion",
+   "codec": "remex",
+   "param": 2,
+   "dim": 256,
+   "bytes": 64
+  },
+  {
+   "r@5": 0.43400591875168143,
+   "r@10": 0.5242534301856335,
+   "rrf_r@10": 0.6465429109496906,
+   "encoder": "potion",
+   "codec": "remex",
+   "param": 4,
+   "dim": 256,
+   "bytes": 128
+  },
+  {
+   "r@5": 0.3614070486951843,
+   "r@10": 0.45052461662631155,
+   "rrf_r@10": 0.6258272800645682,
+   "encoder": "potion",
+   "codec": "remax",
+   "param": 1,
+   "dim": 256,
+   "bytes": 32
+  },
+  {
+   "r@5": 0.43218993812214146,
+   "r@10": 0.5126984126984127,
+   "rrf_r@10": 0.5963545870325531,
+   "encoder": "potion",
+   "codec": "remax",
+   "param": 2,
+   "dim": 256,
+   "bytes": 64
+  },
+  {
+   "r@5": 0.4818132902878665,
+   "r@10": 0.5473231100349745,
+   "rrf_r@10": 0.6372208770513855,
+   "encoder": "potion",
+   "codec": "remax",
+   "param": 4,
+   "dim": 256,
+   "bytes": 128
+  },
+  {
+   "r@5": 0.47399784772666126,
+   "r@10": 0.5361178369652946,
+   "rrf_r@10": 0.6592547753564703,
+   "encoder": "potion",
+   "codec": "remax",
+   "param": 8,
+   "dim": 256,
+   "bytes": 256
+  },
+  {
+   "r@5": 0.5898843153080441,
+   "r@10": 0.6519101425881086,
+   "rrf_r@10": 0.713303739574926,
+   "encoder": "bekko-a8m",
+   "codec": "remex",
+   "param": 2,
+   "dim": 384,
+   "bytes": 96
+  },
+  {
+   "r@5": 0.5436507936507937,
+   "r@10": 0.6369383911756793,
+   "rrf_r@10": 0.719047619047619,
+   "encoder": "bekko-a8m",
+   "codec": "remax",
+   "param": 1,
+   "dim": 384,
+   "bytes": 48
+  }
+ ],
+ "timing": {
+  "bekko_a8m_query_encode_total_s": 1.9626953601837158,
+  "bekko_a8m_per_query_latency_median_s_1thread": 0.10449361801147461,
+  "potion_corpus_encode_total_s": 3.3325860500335693,
+  "potion_corpus_chunks_per_s": 3414.7655391780113,
+  "potion_query_encode_total_s": 0.0721743106842041,
+  "potion_per_query_latency_median_s_1thread": 0.0012960433959960938,
+  "bekko_a8m_corpus_encode_wall_s": 282.0
+ },
+ "truncation_agreement": {
+  "128": 54,
+  "64": 54
+ },
+ "strata": {
+  "rg": {
+   "n_poor": 1,
+   "r5_poor": 0.0,
+   "n_rich": 58,
+   "r5_rich": 0.6060892172961138
+  },
+  "bekko-a8m fp32": {
+   "n_poor": 1,
+   "r5_poor": 0.6666666666666666,
+   "n_rich": 58,
+   "r5_rich": 0.59376026272578
+  },
+  "potion fp16": {
+   "n_poor": 1,
+   "r5_poor": 0.3333333333333333,
+   "n_rich": 58,
+   "r5_rich": 0.43820470717022436
+  }
+ },
+ "significance": [
+  {
+   "claim": "potion fp16 vs bekko-a8m fp32",
+   "a": "potion-fp16",
+   "b": "bekko-a8m-fp32",
+   "delta_r5": -0.1585687382297551,
+   "ci_lo": -0.23587570621468934,
+   "ci_hi": -0.08785310734463286,
+   "wins": 2,
+   "losses": 20,
+   "p": 0.00012111663818359375,
+   "significant": true
+  },
+  {
+   "claim": "potion remex 2-bit vs potion fp16",
+   "a": "potion-remex2",
+   "b": "potion-fp16",
+   "delta_r5": -0.014850686037126748,
+   "ci_lo": -0.057348668280871685,
+   "ci_hi": 0.025827280064568192,
+   "wins": 5,
+   "losses": 6,
+   "p": 1.0,
+   "significant": false
+  },
+  {
+   "claim": "potion remax k=1 vs potion fp16",
+   "a": "potion-remax1",
+   "b": "potion-fp16",
+   "delta_r5": -0.07502017756255042,
+   "ci_lo": -0.1545197740112994,
+   "ci_hi": 0.004479418886198518,
+   "wins": 5,
+   "losses": 13,
+   "p": 0.09625244140625,
+   "significant": false
+  }
+ ],
+ "failed": []
+}
