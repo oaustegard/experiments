@@ -1,0 +1,91 @@
+{
+  "n_tasks": 14,
+  "arms": {
+    "weak": {
+      "arm": "weak",
+      "model": "claude-sonnet-5",
+      "solved": 9,
+      "attempted": 14,
+      "cost_usd": 0.2517,
+      "cost_per_completed": 0.028,
+      "per_replicate": [
+        {
+          "replicate": "r2",
+          "solved": 9,
+          "n": 14,
+          "cost_usd": 0.2517
+        }
+      ]
+    },
+    "strong": {
+      "arm": "strong",
+      "model": "claude-opus-5",
+      "solved": 10,
+      "attempted": 14,
+      "cost_usd": 1.3918,
+      "cost_per_completed": 0.1392,
+      "per_replicate": [
+        {
+          "replicate": "r2",
+          "solved": 10,
+          "n": 14,
+          "cost_usd": 1.3918
+        }
+      ]
+    }
+  },
+  "solve_sets": {
+    "weak_only": [],
+    "strong_only": [
+      "stack_vm"
+    ],
+    "both": [
+      "csv_line",
+      "expr_eval",
+      "glob_match",
+      "parse_range",
+      "roman_strict",
+      "semver_cmp",
+      "template_render",
+      "text_table",
+      "toposort_lex"
+    ],
+    "neither": [
+      "cron_next",
+      "interval_merge",
+      "lru_ttl",
+      "wrap_text"
+    ]
+  },
+  "disjointness": {
+    "weak_solves_strong_fails": 0,
+    "note": "non-empty is the precondition for any above-all-strong routing curve"
+  },
+  "oracle": {
+    "solved": 10.0,
+    "cost_usd": 0.6589,
+    "cost_per_completed": 0.0659,
+    "vs_all_strong": 0.473,
+    "routed": {
+      "cron_next": "strong",
+      "csv_line": "weak",
+      "expr_eval": "weak",
+      "glob_match": "weak",
+      "interval_merge": "strong",
+      "lru_ttl": "strong",
+      "parse_range": "weak",
+      "roman_strict": "weak",
+      "semver_cmp": "weak",
+      "stack_vm": "strong",
+      "template_render": "weak",
+      "text_table": "weak",
+      "toposort_lex": "weak",
+      "wrap_text": "strong"
+    }
+  },
+  "stability": {
+    "flipping": [],
+    "n_flipping": 0,
+    "note": "tasks whose pass flips across replicates carry no routing signal"
+  }
+}

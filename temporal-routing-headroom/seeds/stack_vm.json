@@ -1,0 +1,25 @@
+{
+  "task": "stack_vm",
+  "class": "paired",
+  "package": "solution",
+  "exports": [
+    "run",
+    "VMError",
+    "StackUnderflow",
+    "BadJump",
+    "BadOpcode",
+    "StepLimitExceeded",
+    "VMZeroDivision"
+  ],
+  "move_to_util": [],
+  "bug": {
+    "file": "core.py",
+    "find": "            b, a = pop(), pop()\n            if op == \"ADD\":",
+    "replace": "            a, b = pop(), pop()\n            if op == \"ADD\":"
+  },
+  "bug2": {
+    "file": "core.py",
+    "find": "            b, a = pop(), pop()\n            stack.append(b)\n            stack.append(a)",
+    "replace": "            b, a = pop(), pop()\n            stack.append(a)\n            stack.append(b)"
+  }
+}

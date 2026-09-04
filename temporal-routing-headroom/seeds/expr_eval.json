@@ -1,0 +1,22 @@
+{
+  "task": "expr_eval",
+  "class": "paired",
+  "package": "solution",
+  "exports": [
+    "evaluate"
+  ],
+  "move_to_util": [
+    "_TOKEN",
+    "_tokenize"
+  ],
+  "bug": {
+    "file": "util.py",
+    "find": "(\\*\\*|[+\\-*/%()])",
+    "replace": "([+\\-*/%()]|\\*\\*)"
+  },
+  "bug2": {
+    "file": "core.py",
+    "find": "        if t == (\"op\", \"**\"):\n            self.next()\n            rhs = self.unary()",
+    "replace": "        if t == (\"op\", \"**\"):\n            self.next()\n            rhs = self.atom()"
+  }
+}

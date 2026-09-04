@@ -1,0 +1,18 @@
+{
+  "task": "toposort_lex",
+  "class": "deep",
+  "package": "solution",
+  "exports": [
+    "toposort",
+    "CycleError"
+  ],
+  "move_to_util": [
+    "CycleError",
+    "_find_cycle"
+  ],
+  "bug": {
+    "file": "util.py",
+    "find": "return stack[i:]",
+    "replace": "return stack[i + 1:]"
+  }
+}

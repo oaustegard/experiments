@@ -1,0 +1,22 @@
+{
+  "task": "cron_next",
+  "class": "paired",
+  "package": "solution",
+  "exports": [
+    "cron_next"
+  ],
+  "move_to_util": [
+    "_BOUNDS",
+    "_parse_field"
+  ],
+  "bug": {
+    "file": "util.py",
+    "find": "    return vals, True",
+    "replace": "    return vals, False"
+  },
+  "bug2": {
+    "file": "core.py",
+    "find": "        if dom_r and dow_r:\n            return dom_hit or dow_hit",
+    "replace": "        if dom_r and dow_r:\n            return dom_hit and dow_hit"
+  }
+}

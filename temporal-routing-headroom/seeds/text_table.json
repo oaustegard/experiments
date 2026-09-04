@@ -1,0 +1,19 @@
+{
+  "task": "text_table",
+  "class": "paired",
+  "package": "solution",
+  "exports": [
+    "format_table"
+  ],
+  "move_to_util": [],
+  "bug": {
+    "file": "core.py",
+    "find": "    pad = width - len(text)",
+    "replace": "    pad = max(0, width - len(text) - 1)"
+  },
+  "bug2": {
+    "file": "core.py",
+    "find": "        while len(line) > width:",
+    "replace": "        while len(line) > width - 1:"
+  }
+}

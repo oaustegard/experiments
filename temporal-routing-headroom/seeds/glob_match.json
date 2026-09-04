@@ -1,0 +1,16 @@
+{
+  "task": "glob_match",
+  "class": "deep",
+  "package": "solution",
+  "exports": [
+    "glob_match"
+  ],
+  "move_to_util": [
+    "_parse_class"
+  ],
+  "bug": {
+    "file": "util.py",
+    "find": "hit = ch in chars or any(a <= ch <= b for a, b in ranges)",
+    "replace": "hit = ch in chars"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "task": "wrap_text",
+  "class": "paired",
+  "package": "solution",
+  "exports": [
+    "wrap_text"
+  ],
+  "move_to_util": [],
+  "bug": {
+    "file": "core.py",
+    "find": "return \"\\n\\n\".join(blocks)",
+    "replace": "return \"\\n\".join(blocks)"
+  },
+  "bug2": {
+    "file": "core.py",
+    "find": "        if line.strip() == \"\":",
+    "replace": "        if line == \"\":"
+  }
+}
