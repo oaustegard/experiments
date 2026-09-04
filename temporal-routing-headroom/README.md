@@ -13,8 +13,10 @@ three-shape capability probe. Headline: the cascade `agent-routing` prescribes �
 low effort, verify, **the same model one effort step up** carrying the failure output —
 solves **13/14 at 0.31× the cost of always-Opus**, which solves 10/14. Escalating to Opus
 instead reaches the same 13/14 for 0.76×, so the tier jump costs 2.5× and buys nothing.
-Nothing in the probe separated the tiers, and the concision lever cut rung-1 output 2.9%
-against the 37% the skill measured on generation work.
+Nothing in the probe separated the tiers; the concision lever cut rung-1 output 2.9%
+against the 37% the skill measured on generation work; and handing rung 2 the first rung's
+stated reasoning changed nothing (13/15 against 12/15, 1% fewer tokens), so the informed
+retry's value sits in the patch and the failing assertions.
 
 ## Relation to orchestrated-coding-pareto
 

@@ -1926,6 +1926,27 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **A retry needs the failed artifact and the failure output, not the failed model's
+  explanation of itself.** Two contradictory claims exist about what to hand a retry: the
+  `agent-routing` skill measures a large win for carrying the prior attempt plus raw test
+  output, and SWE-Router (arXiv 2607.00053) restarts its strong model from the task
+  description on an uncited claim that the weak model's reasoning biases it toward the
+  weak model's mistakes. Held at 5 tasks x 3 replicates with the patch and the failing
+  assertions in both arms and only the prior run's stated diagnosis varying: 13/15 with it,
+  12/15 without, 24,252 output tokens against 24,504. The whole difference was one
+  replicate of the one task that flips in every comparison. The narrative neither helps nor
+  anchors, so the win belongs entirely to the artifacts. Pass the diff and the test output;
+  do not spend tokens serialising a rationale.
+  (`temporal-routing-headroom/RESULTS.md`, `data/analysis_rung2_reasoning.json`)
+
+- **When one fixture flips in every comparison, stop reading it as a result.** Across this
+  experiment `interval_merge` was attempted 8 times spanning two models, three effort
+  levels, a concision variant and two context variants, and passed twice with no relation
+  to the arm. Its reference implementation carries a baroque touching-and-containment
+  condition that every run rewrites and most get wrong. A fixture whose outcome is
+  uncorrelated with the manipulation is measuring itself; quarantine it and report the rest
+  rather than letting it dominate a 5-task denominator.
+
 - **Escalate by raising effort on the same model before escalating to a bigger one - the
   tier jump can cost 2.5x and buy nothing.** From an identical failed first attempt plus
   the failing assertions, Opus 5 at effort high and Sonnet 5 at effort medium rescued the
