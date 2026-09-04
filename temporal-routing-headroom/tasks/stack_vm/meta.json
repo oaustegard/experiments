@@ -1,0 +1,36 @@
+{
+  "task": "stack_vm",
+  "class": "paired",
+  "package": "solution",
+  "exports": [
+    "run",
+    "VMError",
+    "StackUnderflow",
+    "BadJump",
+    "BadOpcode",
+    "StepLimitExceeded",
+    "VMZeroDivision"
+  ],
+  "bug_file": "core.py",
+  "bug_files": [
+    "core.py"
+  ],
+  "n_bug_sites": 2,
+  "moved_to_util": [],
+  "hidden_failing_under_bug": [
+    "test_countdown_loop",
+    "test_div_mod_zero",
+    "test_neg_comparisons",
+    "test_operand_order_div_mod",
+    "test_push_arith",
+    "test_stack_manip"
+  ],
+  "visible_tests": [
+    "test_countdown_loop",
+    "test_div_mod_zero",
+    "test_neg_comparisons"
+  ],
+  "contract_residue": [
+    "test_stack_manip"
+  ]
+}

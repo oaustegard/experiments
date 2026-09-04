@@ -1,0 +1,43 @@
+{
+  "task": "text_table",
+  "class": "paired",
+  "package": "solution",
+  "exports": [
+    "format_table"
+  ],
+  "bug_file": "core.py",
+  "bug_files": [
+    "core.py"
+  ],
+  "n_bug_sites": 2,
+  "moved_to_util": [],
+  "hidden_failing_under_bug": [
+    "test_center_align_extra_space_right",
+    "test_empty_rows_ok",
+    "test_exact_example",
+    "test_header_wider_than_data",
+    "test_header_wraps_too",
+    "test_multirow_wrap_heights",
+    "test_newline_in_cell",
+    "test_newline_then_wrap",
+    "test_none_renders_empty",
+    "test_right_align",
+    "test_simple_no_wrap",
+    "test_top_alignment_of_short_cells"
+  ],
+  "visible_tests": [
+    "test_exact_example",
+    "test_header_wider_than_data",
+    "test_newline_then_wrap"
+  ],
+  "contract_residue": [
+    "test_center_align_extra_space_right",
+    "test_empty_rows_ok",
+    "test_header_wraps_too",
+    "test_multirow_wrap_heights",
+    "test_newline_in_cell",
+    "test_none_renders_empty",
+    "test_simple_no_wrap",
+    "test_top_alignment_of_short_cells"
+  ]
+}

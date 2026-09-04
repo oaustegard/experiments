@@ -1,0 +1,19 @@
+{
+  "task": "semver_cmp",
+  "class": "deep",
+  "package": "solution",
+  "exports": [
+    "compare"
+  ],
+  "move_to_util": [
+    "_NUM",
+    "_ALNUM_ID",
+    "_BUILD_ID",
+    "_parse"
+  ],
+  "bug": {
+    "file": "util.py",
+    "find": "pre_ids.append((0, int(ident)))",
+    "replace": "pre_ids.append((1, ident))"
+  }
+}

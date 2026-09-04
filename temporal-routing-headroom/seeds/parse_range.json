@@ -1,0 +1,14 @@
+{
+  "task": "parse_range",
+  "class": "shallow",
+  "package": "solution",
+  "exports": [
+    "parse_range"
+  ],
+  "move_to_util": [],
+  "bug": {
+    "file": "core.py",
+    "find": "out.update(range(a, b + 1))",
+    "replace": "out.update(range(a, b))"
+  }
+}

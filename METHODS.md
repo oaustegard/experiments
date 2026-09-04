@@ -1940,6 +1940,182 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **A retry needs the failed artifact and the failure output, not the failed model's
+  explanation of itself.** Two contradictory claims exist about what to hand a retry: the
+  `agent-routing` skill measures a large win for carrying the prior attempt plus raw test
+  output, and SWE-Router (arXiv 2607.00053) restarts its strong model from the task
+  description on an uncited claim that the weak model's reasoning biases it toward the
+  weak model's mistakes. Held at 5 tasks x 3 replicates with the patch and the failing
+  assertions in both arms and only the prior run's stated diagnosis varying: 13/15 with it,
+  12/15 without, 24,252 output tokens against 24,504. The whole difference was one
+  replicate of the one task that flips in every comparison. The narrative neither helps nor
+  anchors, so the win belongs entirely to the artifacts. Pass the diff and the test output;
+  do not spend tokens serialising a rationale.
+  (`temporal-routing-headroom/RESULTS.md`, `data/analysis_rung2_reasoning.json`)
+
+- **When one fixture flips in every comparison, stop reading it as a result.** Across this
+  experiment `interval_merge` was attempted 8 times spanning two models, three effort
+  levels, a concision variant and two context variants, and passed twice with no relation
+  to the arm. Its reference implementation carries a baroque touching-and-containment
+  condition that every run rewrites and most get wrong. A fixture whose outcome is
+  uncorrelated with the manipulation is measuring itself; quarantine it and report the rest
+  rather than letting it dominate a 5-task denominator.
+
+- **Escalate by raising effort on the same model before escalating to a bigger one - the
+  tier jump can cost 2.5x and buy nothing.** From an identical failed first attempt plus
+  the failing assertions, Opus 5 at effort high and Sonnet 5 at effort medium rescued the
+  same 4 of 5 tasks and both missed the same fifth. Opus spent 32,504 output tokens,
+  Sonnet 11,691. Composed into full cascades over the same first rung: 13/14 solved at
+  0.31x the cost of always-Opus with the same-model rung, 0.76x with the tier jump. The
+  real gap is wider than the token ratio, because caches are model-scoped with no escape
+  hatch, so a tier jump discards the first rung's prefix entirely while a same-model rung
+  keeps at least the tools and system tiers (an effort change still invalidates the
+  messages cache on every model). Measure the cheap model one effort step up before
+  reaching for the expensive one.
+  (`temporal-routing-headroom/RESULTS.md`, `data/analysis_agent_routing_arm.json`)
+
+- **A prompt lever measured on long-output generation does not transfer to agentic repair
+  work.** The concision instruction that cut Sonnet output 37% on spec-dense module
+  generation cut it 2.9% on seeded-bug repair, with no quality change either way. A bug fix
+  emits a small patch and a paragraph; there is little deliberation to cut. Before carrying
+  a measured prompt lever to a new task family, check that the output shape it acted on is
+  still the output shape you have.
+
+- **A single-variable comparison can still produce disjoint failure sets.** The two rung-1
+  runs above differ only in that one instruction. Both scored 9/14, and their failure sets
+  differ by one task in each direction while four tasks failed in both. Any read of "this
+  change fixed X" from a single pair of runs at this scale is unsupported; the stable
+  intersection is the signal, the symmetric difference is noise.
+
+- **An oracle over solo arms is not an upper bound on a cascade, and calling it one will
+  make you stop too early.** `temporal-routing-headroom` computed an oracle router (send
+  each task to the cheap tier iff the cheap tier solves it) at 0.47x the cost of always
+  using the expensive tier, and treated it as the ceiling any router could reach. A
+  Sonnet-to-Opus ladder then landed at 0.76x cost while solving 13 of 14 tasks against the
+  oracle's 10, because rung 2 receives the first attempt and the failing assertions and is
+  therefore a different, stronger operation than a cold run of the same model. Oracle
+  ratios bound routing BETWEEN arms; they say nothing about a pipeline that composes them.
+  (`temporal-routing-headroom/RESULTS.md`, `data/analysis_ladder.json`)
+
+- **A cheap model plus a verified failure signal beats an expensive model plus the original
+  prompt, on the same tasks.** In the same experiment Opus 5 at effort high, starting from
+  the issue text, fell into a stop-early trap on three tasks. Opus starting from Sonnet's
+  rejected patch and the failing assertions fixed all three. Always-Opus scored 10/14;
+  Sonnet-then-Opus-on-failure scored 13/14 for less money, invoking the expensive tier on 5
+  of 14 tasks. When a pipeline underperforms, look for a missing feedback channel before
+  reaching for a bigger model.
+
+- **Do not let a worker decide it needs help — it does not know.** Across 28 agent runs
+  reporting a structured "did you finish" field, 28 said yes and 19 had actually passed the
+  held-out suite; every one of the 9 failures self-reported success. The workers were not
+  wrong about what they measured: they had passed the tests they could see, and those tests
+  were satisfiable while the task was unfinished. Self-escalation ("try it, ask for help if
+  you fail") therefore fails exactly on the tasks that need escalation. Put the escalation
+  decision wherever the stronger check lives. In a subagent fan-out that is the
+  orchestrator.
+  (`temporal-routing-headroom/RESULTS.md`)
+
+- **Cost headroom and tier discrimination are different quantities, and an oracle number
+  reports the first while a router needs the second.** On `temporal-routing-headroom`'s
+  paired task set the oracle router costs 0.473x all-strong, which reads like ample room
+  for a router. Almost all of it comes from the nine of fourteen tasks BOTH tiers solve:
+  route those cheap and the saving follows, with nothing to predict. The tiers actually
+  disagree on one task, and four more defeat both. So the set can measure a
+  cascade that escalates on verified failure, and cannot measure a router that predicts
+  which tasks need the expensive tier. Before believing a routing experiment has signal,
+  report |W \ S| and |S \ W| next to the oracle ratio; a large ratio with a tiny symmetric
+  difference means the cheap tier is simply good enough. (`temporal-routing-headroom/RESULTS.md`)
+
+- **A frontier model at high effort falls for a stop-early trap as readily as a cheap one
+  at low effort.** The same experiment seeded bugs whose one wrong assumption appears at
+  two call sites, so repairing the first turns the visible tests green while hidden tests
+  stay red. Opus 5 at effort high and Sonnet 5 at effort low failed identically on three of
+  four such tasks. Each left the exact residue the fixture predicted. Effort and tier buy
+  depth on the cause a run is already looking at; neither prompts it to ask whether a
+  second site shares the assumption. If your eval assumes the expensive tier is more
+  thorough rather than more capable, check that assumption before routing on it.
+  (`temporal-routing-headroom/RESULTS.md`)
+
+- **A two-site bug is only coupled if you check that repairing each site alone still
+  fails — three of six authored pairs did not.** `temporal-routing-headroom` needed bugs
+  where one wrong assumption appears in two call sites, so a run that fixes the first and
+  sees its tests go green ships a wrong patch. Authoring them by inspection produced three
+  failures the build caught: a second site the test suite never exercises (a cron `*`
+  field at its maximum value), a pair that interlocked so completely that repairing either
+  half changed nothing observable, and a pair whose seeded off-by-one made a loop stop
+  advancing, so pytest hung rather than failed. The invariants that separate a real pair
+  from a plausible one: fixing site A alone leaves the hidden suite red, fixing site B
+  alone leaves it red, and fixing site A turns the *visible* suite green with residue
+  outside it. Also cap the suite runner's timeout and report it as a build error naming
+  the fixture — a seeded bug that removes forward progress hangs instead of failing, and
+  a raw `subprocess.TimeoutExpired` traceback does not say which fixture did it.
+  (`temporal-routing-headroom/harness/build_tasks.py:build`, `RESULTS.md`)
+
+- **A test that runs a tool inside the fixture it checks will fail the next
+  reproducibility check.** Twice in one experiment: a `pytest` invocation with `cwd` set
+  to the committed fixture left `__pycache__` there, which then showed as drift in a
+  rebuild-and-diff and as tampering in a grader that compared directory entries. Both are
+  gitignored, so neither showed in `git status`. Copy the fixture to a temp dir before
+  running anything in it, and pass explicit ignores to the diff.
+  (`temporal-routing-headroom/tests/test_harness.py`)
+
+- **"The suite is red" is not evidence the seeded failure is the reason it is red.**
+  `temporal-routing-headroom` generates bug-fix tasks by slicing a visible test file out
+  of a hidden suite and seeding a bug, and its build-time check asserted the visible suite
+  failed. Two of fourteen sliced suites failed on `NameError` instead: the slicer kept
+  top-level constants and classes but dropped the non-test helper functions the hidden
+  suites define for themselves. Both checks pass on a broken fixture because a suite that
+  cannot resolve a name is also non-zero. Three of the four agent runs on those tasks then
+  "fixed" the task by injecting the missing name through the repo's root `conftest.py` —
+  a workaround for the harness, recorded as a trajectory about the bug. The invariant that
+  works is the positive one: the fixture must be **green before the seeded defect** and
+  red only after. Assert the failure mode too (no `NameError`, no collection error), not
+  just the exit code. (`temporal-routing-headroom/RESULTS.md`)
+
+- **Scope a grader to what the agent was told to edit, and revert the rest — checking the
+  one directory you expect it to cheat in is not enough.** The same experiment restored
+  `tests/` before grading, on the theory that tests are the thing worth protecting. Runs
+  that wanted a name the tests referenced wrote to `conftest.py` instead, which the check
+  never looked at. Rebuilding from the pristine fixture and overlaying only the package
+  directory costs the same and closes every path at once, and reporting the discarded
+  paths turns a silent pass into a visible one. Watch the check itself too: comparing
+  directory entries marked all 28 runs tampered because a local `pytest` had left
+  `__pycache__` in the pristine tree.
+  (`temporal-routing-headroom/harness/grade_agentic.py:out_of_bounds_edits`)
+
+- **Converting single-shot tasks into agentic ones changes the search, not the
+  difficulty — check the cheap tier can still fail before building a routing experiment
+  on them.** `temporal-routing-headroom` rebuilt `orchestrated-coding-pareto`'s 14 tasks
+  as repos with seeded bugs. The set was supposed to carry a difficulty gradient to route
+  over. Sonnet 5 at effort low solved 14/14 and Opus 5 at effort high 13/14, so the oracle
+  router reduced to the all-weak arm and no decision was left to condition on. This is the same
+  ceiling that made that experiment's round-0 orchestration arms vacuous. A one-replicate
+  pilot costs an eighth of the full run and is the cheapest way to find it: any routing,
+  cascade, or escalation experiment should measure the weak arm's failure rate first,
+  because a cheap tier that never fails makes every such design unmeasurable.
+  (`temporal-routing-headroom/RESULTS.md`)
+
+- **A generated task fixture that embeds tool output is not reproducible until you
+  normalise the output.** `temporal-routing-headroom` bakes real pytest output into each
+  generated bug report, and a `--check` rebuild diffed clean on the code and dirty on the
+  fixtures: `3 failed in 0.04s` against `0.03s`, then
+  `<solution.core.TTLCache object at 0x7fe53ed42c90>` against a different address. Both
+  came from pytest, neither from the generator. Strip run durations and object addresses
+  before writing captured output into a committed artifact, and keep a `--check` mode
+  that rebuilds into a temp dir and diffs, or the fixtures drift from their seeds without
+  anyone noticing. Timestamps and temp paths do the same thing in any golden file. (`temporal-routing-headroom/harness/build_tasks.py:trim_pytest`)
+
+- **A traceback in a generated prompt leaks the answer, and leaks it asymmetrically.**
+  The same experiment needs bug reports whose text does not reveal where the bug lives —
+  that is the premise it tests. Assertion failures name only the test file, but a
+  task whose bug raises an exception produces a traceback naming the source file. So the
+  presence of a source path in the report correlated with one difficulty class and
+  handed away the label. An invariant test asserting the report never names the bug's file
+  caught it on one task of fourteen. If a prompt is generated from tool output, enumerate
+  what that output can contain across all of your inputs before trusting the one you
+  read.
+  (`temporal-routing-headroom/tests/test_harness.py::test_issue_does_not_leak_the_bug_site`)
+
 - **Fit `t = a + b·n` before reporting a crossover — a scale gate and a
   constant term look identical from two data points.** Any linear scan is
   `t(n) = a + bytes_per_candidate·n / (bandwidth·efficiency)`, where `n` enters

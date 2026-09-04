@@ -1,0 +1,16 @@
+{
+  "task": "template_render",
+  "class": "deep",
+  "package": "solution",
+  "exports": [
+    "render"
+  ],
+  "move_to_util": [
+    "_NAME"
+  ],
+  "bug": {
+    "file": "util.py",
+    "find": "_NAME = re.compile(r\"[A-Za-z_][A-Za-z0-9_]*\")",
+    "replace": "_NAME = re.compile(r\"[A-Za-z_][A-Za-z0-9_]*?\")"
+  }
+}
