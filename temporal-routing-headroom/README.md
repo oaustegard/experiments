@@ -8,10 +8,11 @@ a learned value head, and then decides whether to continue cheaply or escalate. 
 routes on task shape declared up front and cascades only on a *verified* failure. Both
 target the same waste; they disagree on what the escalation signal is.
 
-**Status: two Stage-1 pilots run; see [RESULTS.md](RESULTS.md).** The first task set did
-not discriminate (weak arm 14/14). On the re-seeded `paired` set the weak arm scores 9/14
-and the strong arm 10/14, the oracle is 0.473× all-strong, and seven of nine failures are
-the designed trap. Discrimination between the tiers is still only 1 task in 14.
+**Status: see [RESULTS.md](RESULTS.md).** Two Stage-1 pilots, a Sonnet→Opus ladder arm,
+and a three-shape capability probe. Headline: a ladder that escalates to Opus only on a
+failure the orchestrator verified solves **13/14 at 0.76× the cost of always-Opus**, which
+solves 10/14. Nothing in the probe separated the tiers, and no shape yet built makes Opus
+succeed where Sonnet fails.
 
 ## Relation to orchestrated-coding-pareto
 

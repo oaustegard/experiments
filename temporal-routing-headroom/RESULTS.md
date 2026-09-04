@@ -166,3 +166,65 @@ the strong arm escapes is a question about task design, and nobody has answered 
 
 `|W \ S|` is empty this replicate, so nothing here reproduces SWE-Router's above-all-strong
 synergy. The earlier pilot's single instance did not survive the change of task set.
+
+## Sonnet-to-Opus ladder plus a capability probe (2026-09-03)
+
+Workflow `wf_6b7c41cd-2bd`, 11 agents. Rung 1 is the already-measured r2 weak arm, so only
+the escalation step is new: Opus at effort high on the five tasks Sonnet failed, carrying
+the worker's patch and the held-out failure output.
+
+| arm | solved | total $ | $/completed | vs all-strong |
+|---|---|---|---|---|
+| all-weak, Sonnet 5 @ low | 9/14 | 0.2517 | 0.0280 | 0.18× |
+| all-strong, Opus 5 @ high | 10/14 | 1.3919 | 0.1392 | 1.00× |
+| oracle over the two solo arms | 10/14 | 0.6590 | 0.0659 | 0.47× |
+| **ladder, Sonnet → Opus** | **13/14** | **1.0643** | **0.0819** | **0.76×** |
+
+Opus ran on 5 of 14 tasks and rescued 4: `cron_next`, `lru_ttl`, `stack_vm`, `wrap_text`.
+
+The ladder solves three more tasks than always-Opus at three quarters of the cost. It also
+beats the oracle, which means the oracle was misnamed: it bounds *routing between solo
+arms*, not pipelines. A cascade can exceed it because rung 2 is not the same as a cold
+Opus run.
+
+That gap is the whole result. Opus starting from the issue text fell into the paired trap
+on `cron_next`, `lru_ttl` and `wrap_text` — the same three that caught Sonnet. Opus
+starting from Sonnet's patch plus the failing assertions fixed all three. The failure
+signal was worth more than the tier.
+
+`interval_merge` failed at every tier: weak, strong, and the escalation. It is a shallow control whose
+reference carries a baroque touching-and-containment condition, and every run that
+rewrote the merge loop broke a different case. That reads as a problem with the task rather than
+evidence about the tiers.
+
+## The escalation decision
+
+The r2 arms reported success on 28 of 28 runs while passing 19. Every failing run said it
+was done. "Try it, and ask for help if you fail" cannot work on that signal, because the
+worker's verifier is the visible suite and the visible suite is satisfiable while the task
+is unfinished.
+
+The ladder works because the escalation decision is made by whoever holds the held-out
+suite. Same cascade, same rungs; the difference is who decides.
+
+## Capability probe results
+
+Three shapes, Sonnet 5 @ low against Opus 5 @ high, one run each.
+
+| shape | built from | what it targets | sonnet | opus |
+|---|---|---|---|---|
+| three_sites | text_table, 3 coupled sites | thoroughness past two sites | pass 15/15 | pass 15/15 |
+| ambiguous | interval_merge, flag branch removed | inferring intent the tests underdetermine | pass 17/17 | pass 17/17 |
+| no_tests | cron_next, no visible suite at all | correctness with no test feedback | pass 31/31 | pass 31/31 |
+
+Six for six. Sonnet at effort low solved a two-site coupled bug with **no test suite in the
+repository**. It had a symptom report and the source, and nothing else.
+
+That kills the mechanism I had assumed. The paired trap does not catch runs because the
+visible suite is a crutch; remove the crutch entirely and Sonnet still reasons to a correct
+fix. What the trap catches is a run that has a green signal and takes it.
+
+At one run per cell this rules nothing out, but three shapes aimed at three different
+hypothesised gaps all missed. Combined with Opus falling for the same traps as Sonnet in
+r2, the evidence says seeded-bug repair in a small module does not separate these tiers at
+all, and that a set built to discriminate them has to leave this task family.

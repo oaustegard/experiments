@@ -1926,6 +1926,34 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **An oracle over solo arms is not an upper bound on a cascade, and calling it one will
+  make you stop too early.** `temporal-routing-headroom` computed an oracle router (send
+  each task to the cheap tier iff the cheap tier solves it) at 0.47x the cost of always
+  using the expensive tier, and treated it as the ceiling any router could reach. A
+  Sonnet-to-Opus ladder then landed at 0.76x cost while solving 13 of 14 tasks against the
+  oracle's 10, because rung 2 receives the first attempt and the failing assertions and is
+  therefore a different, stronger operation than a cold run of the same model. Oracle
+  ratios bound routing BETWEEN arms; they say nothing about a pipeline that composes them.
+  (`temporal-routing-headroom/RESULTS.md`, `data/analysis_ladder.json`)
+
+- **A cheap model plus a verified failure signal beats an expensive model plus the original
+  prompt, on the same tasks.** In the same experiment Opus 5 at effort high, starting from
+  the issue text, fell into a stop-early trap on three tasks. Opus starting from Sonnet's
+  rejected patch and the failing assertions fixed all three. Always-Opus scored 10/14;
+  Sonnet-then-Opus-on-failure scored 13/14 for less money, invoking the expensive tier on 5
+  of 14 tasks. When a pipeline underperforms, look for a missing feedback channel before
+  reaching for a bigger model.
+
+- **Do not let a worker decide it needs help — it does not know.** Across 28 agent runs
+  reporting a structured "did you finish" field, 28 said yes and 19 had actually passed the
+  held-out suite; every one of the 9 failures self-reported success. The workers were not
+  wrong about what they measured: they had passed the tests they could see, and those tests
+  were satisfiable while the task was unfinished. Self-escalation ("try it, ask for help if
+  you fail") therefore fails exactly on the tasks that need escalation. Put the escalation
+  decision wherever the stronger check lives. In a subagent fan-out that is the
+  orchestrator.
+  (`temporal-routing-headroom/RESULTS.md`)
+
 - **Cost headroom and tier discrimination are different quantities, and an oracle number
   reports the first while a router needs the second.** On `temporal-routing-headroom`'s
   paired task set the oracle router costs 0.473x all-strong, which reads like ample room
