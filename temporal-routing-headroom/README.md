@@ -8,11 +8,13 @@ a learned value head, and then decides whether to continue cheaply or escalate. 
 routes on task shape declared up front and cascades only on a *verified* failure. Both
 target the same waste; they disagree on what the escalation signal is.
 
-**Status: see [RESULTS.md](RESULTS.md).** Two Stage-1 pilots, a Sonnet→Opus ladder arm,
-and a three-shape capability probe. Headline: a ladder that escalates to Opus only on a
-failure the orchestrator verified solves **13/14 at 0.76× the cost of always-Opus**, which
-solves 10/14. Nothing in the probe separated the tiers, and no shape yet built makes Opus
-succeed where Sonnet fails.
+**Status: see [RESULTS.md](RESULTS.md).** Two Stage-1 pilots, two ladder arms, and a
+three-shape capability probe. Headline: the cascade `agent-routing` prescribes — Sonnet at
+low effort, verify, **the same model one effort step up** carrying the failure output —
+solves **13/14 at 0.31× the cost of always-Opus**, which solves 10/14. Escalating to Opus
+instead reaches the same 13/14 for 0.76×, so the tier jump costs 2.5× and buys nothing.
+Nothing in the probe separated the tiers, and the concision lever cut rung-1 output 2.9%
+against the 37% the skill measured on generation work.
 
 ## Relation to orchestrated-coding-pareto
 
