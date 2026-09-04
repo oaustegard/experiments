@@ -288,3 +288,47 @@ different: both scored 9/14 and their failure sets differ by one task each way â
 `interval_merge` passed here and failed before, `expr_eval` the reverse. Four tasks failed
 in both. That is the disjoint-failure-set effect the protocol warns about, showing up
 inside a single-variable comparison.
+
+## Handing rung 2 the first rung's reasoning (2026-09-03)
+
+Workflow `wf_40b0f233-bd7`, 30 agents. Two arms, three replicates, five tasks. Both arms
+are `sonnet@medium` + concision from the identical starting state; the only difference is
+one inserted block carrying rung 1's stated cause, framed as a claim to check rather than
+fact. Both arms were re-run rather than comparing against the earlier n=1 figure.
+
+This is the variable `agent-routing` and SWE-Router disagree about. The skill says carry
+the prior attempt and the raw failure output. SWE-Router restarts the strong model from
+the task description, on an uncited claim that conditioning it on the weak model's
+reasoning biases it toward the weak model's mistakes.
+
+| task | with reasoning (a/b/c) | without (a/b/c) |
+|---|---|---|
+| cron_next | pass pass pass | pass pass pass |
+| lru_ttl | pass pass pass | pass pass pass |
+| stack_vm | pass pass pass | pass pass pass |
+| wrap_text | pass pass pass | pass pass pass |
+| interval_merge | fail **pass** fail | fail fail fail |
+
+**13/15 with, 12/15 without.** Output tokens 24,252 against 24,504, a 1.0% difference in
+the with-reasoning arm's favour â€” noise in both directions.
+
+The whole difference is one `interval_merge` replicate, on the one task that has flipped
+in every comparison this experiment has run. Four of five tasks pass in all six cells.
+
+So neither claim survives. The reasoning does not help, and it does not anchor. Whatever
+the informed retry is worth, the patch and the failing assertions already carry it; the
+narrative on top adds nothing measurable. `agent-routing`'s wording is right as written: it asks
+for the prior attempt and the raw failure *output*. The model's account of itself was
+never part of the prescription, and adding it changes nothing.
+
+Two smaller readings. Every with-reasoning run classified the prior diagnosis as
+`correct-but-incomplete`, which is accurate: rung 1 had fixed its site correctly and
+stopped. Being told a plausible, correct-as-far-as-it-goes diagnosis did not stop any run
+from finding the second site.
+
+And the self-report failure repeats. All 30 runs reported `confident_complete: true`; five
+of them were still failing. Every one is `interval_merge`.
+
+`interval_merge` has now been attempted 8 times across models, efforts and contexts, and
+passed twice. Its reference carries a touching-and-containment condition that every run
+rewrites and most get wrong. Treat its result as a property of the fixture.
