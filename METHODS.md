@@ -1926,6 +1926,32 @@ the result.
 
 ## Cache and measurement hygiene
 
+- **Escalate by raising effort on the same model before escalating to a bigger one - the
+  tier jump can cost 2.5x and buy nothing.** From an identical failed first attempt plus
+  the failing assertions, Opus 5 at effort high and Sonnet 5 at effort medium rescued the
+  same 4 of 5 tasks and both missed the same fifth. Opus spent 32,504 output tokens,
+  Sonnet 11,691. Composed into full cascades over the same first rung: 13/14 solved at
+  0.31x the cost of always-Opus with the same-model rung, 0.76x with the tier jump. The
+  real gap is wider than the token ratio, because caches are model-scoped with no escape
+  hatch, so a tier jump discards the first rung's prefix entirely while a same-model rung
+  keeps at least the tools and system tiers (an effort change still invalidates the
+  messages cache on every model). Measure the cheap model one effort step up before
+  reaching for the expensive one.
+  (`temporal-routing-headroom/RESULTS.md`, `data/analysis_agent_routing_arm.json`)
+
+- **A prompt lever measured on long-output generation does not transfer to agentic repair
+  work.** The concision instruction that cut Sonnet output 37% on spec-dense module
+  generation cut it 2.9% on seeded-bug repair, with no quality change either way. A bug fix
+  emits a small patch and a paragraph; there is little deliberation to cut. Before carrying
+  a measured prompt lever to a new task family, check that the output shape it acted on is
+  still the output shape you have.
+
+- **A single-variable comparison can still produce disjoint failure sets.** The two rung-1
+  runs above differ only in that one instruction. Both scored 9/14, and their failure sets
+  differ by one task in each direction while four tasks failed in both. Any read of "this
+  change fixed X" from a single pair of runs at this scale is unsupported; the stable
+  intersection is the signal, the symmetric difference is noise.
+
 - **An oracle over solo arms is not an upper bound on a cascade, and calling it one will
   make you stop too early.** `temporal-routing-headroom` computed an oracle router (send
   each task to the cheap tier iff the cheap tier solves it) at 0.47x the cost of always

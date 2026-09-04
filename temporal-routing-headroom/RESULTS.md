@@ -228,3 +228,63 @@ At one run per cell this rules nothing out, but three shapes aimed at three diff
 hypothesised gaps all missed. Combined with Opus falling for the same traps as Sonnet in
 r2, the evidence says seeded-bug repair in a small module does not separate these tiers at
 all, and that a set built to discriminate them has to leave this task family.
+
+## The cascade agent-routing prescribes (2026-09-03)
+
+Workflow `wf_335d96cd-611`, 19 agents. The skill's rung 2 is the **same model at higher
+effort**, not a tier jump, and both rungs carry the concision lever. Two phases: rung 2
+run from the identical starting state the Opus rung received, so only the model and effort
+differ, and a concision-enabled rung 1 to price the lever.
+
+### Rung 2 from an identical starting state
+
+| rung 2 | output tokens | cost | rescued |
+|---|---|---|---|
+| Opus 5 @ high | 32,504 | $0.8126 | 4/5 — cron_next, lru_ttl, stack_vm, wrap_text |
+| Sonnet 5 @ medium + concision | 11,691 | $0.1754 | 4/5 — the same four |
+
+Identical outcome, down to which task each rescued and which one (`interval_merge`)
+neither could. Sonnet's rung is **4.6× cheaper**.
+
+### Full ladders over the same rung 1
+
+| arm | solved | total $ | $/completed | vs all-strong |
+|---|---|---|---|---|
+| all-weak, rung 1 only | 9/14 | 0.2517 | 0.0280 | 0.18× |
+| all-strong, Opus 5 @ high | 10/14 | 1.3919 | 0.1392 | 1.00× |
+| ladder → Opus 5 @ high | 13/14 | 1.0643 | 0.0819 | 0.76× |
+| **agent-routing → Sonnet 5 @ medium** | **13/14** | **0.4270** | **0.0328** | **0.31×** |
+
+The skill's own prescription beats the tier jump I reached for by 2.5×, at identical
+quality. Against always-Opus it solves three more tasks for 31% of the money.
+
+Two things the skill said and this arm confirms. "Rungs can be the same model at different
+effort — often better than a tier jump, because it keeps rung 1 genuinely cheap." And the
+escalation's value is the failure evidence, not the tier: the same assertions that let Opus
+find the second site let Sonnet find it too, at one effort step up.
+
+The gap is likely wider than 2.5× on a real bill. These are output-token costs; caches are
+model-scoped with no escape hatch, so the Opus rung discards the Sonnet prefix entirely
+while the same-model rung keeps at least the tools and system tiers. An `effort` change
+does invalidate the messages cache on every model, and Sonnet 5 has no per-message effort
+escape hatch, so the same-model rung does not keep everything.
+
+### The concision lever did not transfer
+
+| rung 1 | output tokens | solved |
+|---|---|---|
+| no concision | 16,779 | 9/14 |
+| + concision | 16,294 | 9/14 |
+
+**2.9%**, against the 37% the skill measured on Sonnet. No quality change either way.
+
+The skill scopes the lever to "every long-output generation spawn", and it measured that
+37% on spec-dense module generation. A bug fix emits a small patch and a paragraph, so
+there is little deliberation to cut. The lever is not wrong; it does not reach agentic
+repair work, and the skill's wording invites applying it there.
+
+The two rung-1 runs also make a variance point. Same model, same effort, one instruction
+different: both scored 9/14 and their failure sets differ by one task each way —
+`interval_merge` passed here and failed before, `expr_eval` the reverse. Four tasks failed
+in both. That is the disjoint-failure-set effect the protocol warns about, showing up
+inside a single-variable comparison.
