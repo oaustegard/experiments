@@ -26,6 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TASKS = ROOT / "tasks"
+FIXTURES = TASKS  # overridden by --fixtures for the probe set
 PYTEST_TIMEOUT = 120
 
 _PASSED = re.compile(r"(\d+) passed")
@@ -35,6 +36,10 @@ _ERROR = re.compile(r"(\d+) error")
 
 # issue.md is placed in the worktree by emit_prompts.stage(), not by the run.
 IGNORE = {"__pycache__", ".pytest_cache", "issue.md"}
+
+
+def fixture_dir(task):
+    return FIXTURES / task
 
 
 def out_of_bounds_edits(worktree, task_dir):
@@ -65,7 +70,7 @@ def out_of_bounds_edits(worktree, task_dir):
 
 
 def grade_one(worktree, task):
-    task_dir = TASKS / task
+    task_dir = fixture_dir(task)
     hidden = (task_dir / "tests_hidden.py").read_text()
     pkg = json.loads((task_dir / "meta.json").read_text())["package"]
     outside = out_of_bounds_edits(worktree, task_dir)
@@ -75,6 +80,7 @@ def grade_one(worktree, task):
         # Rebuild from pristine, then overlay only the package the run was told to edit.
         shutil.copytree(task_dir / "repo", work, ignore=shutil.ignore_patterns(
             "__pycache__", ".pytest_cache", ".git"))
+        # a fixture with no visible suite is legitimate; grading uses the hidden one
         shutil.rmtree(work / pkg, ignore_errors=True)
         shutil.copytree(Path(worktree) / pkg, work / pkg, ignore=shutil.ignore_patterns(
             "__pycache__", ".pytest_cache", ".git"))
@@ -109,13 +115,17 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs")
     ap.add_argument("--out")
+    ap.add_argument("--fixtures", help="fixture root; defaults to tasks/, pass probe/ for the probe set")
     ap.add_argument("--self-test", action="store_true",
                     help="grade the pristine bugged repos; every task must FAIL")
     args = ap.parse_args()
+    if args.fixtures:
+        globals()["FIXTURES"] = Path(args.fixtures) if Path(args.fixtures).is_absolute() \
+            else ROOT / args.fixtures
 
     if args.self_test:
         bad = []
-        for task_dir in sorted(TASKS.iterdir()):
+        for task_dir in sorted(FIXTURES.iterdir()):
             if not (task_dir / "meta.json").exists():
                 continue
             r = grade_one(task_dir / "repo", task_dir.name)
