@@ -1937,6 +1937,16 @@ the result.
   refuses the binary path below `dim/16` (healthy mixed-sign embeddings measure
   0.3–0.5 of dimension). Centering before taking signs mitigates this but does
   not detect it. (`hyparam-survey/README.md`)
+- **A ReLU 0/1 gate multiplied by a bound M amplifies any error in the flag by
+  M, so size M just above the value range rather than "large".**
+  `rasp-numeric-select` gates an attention read with
+  `relu(val + M*v - M) - relu(-val + M*v - M)`, which is exact when `v` is 0 or
+  1 and `|val| <= M`. Under softmax attention `v` arrives as `1 - eps` and the
+  output moves by `M * eps`, so the attention sharpness the construction needs
+  rises with `log M`: the key scale at which the compiled program matched hard
+  argmax went 6.75, 9.00, 11.50, 16.00 as M went 1e2, 1e3, 1e4, 1e6 at n = 32.
+  The same trade appears in any compiled-transformer multiplication by an
+  indicator. (`rasp-numeric-select/RESULTS.md`)
 
 ## Cache and measurement hygiene
 
