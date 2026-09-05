@@ -1,0 +1,170 @@
+{
+ "definition_job": {
+  "id": "a870cdcf-fd4f-4728-9d2c-b7248fc531b9",
+  "kind": "definition",
+  "theorem_name": "EmlComplexity",
+  "theorem_title": "EML trees: size, real-branch evaluation, validity, $\\mathrm{Attains}$ and $\\mathrm{Complexity}$",
+  "formal_statement": "",
+  "natural_language_statement": "A **closed EML tree** is a full binary tree whose leaves are the constant $1$ and whose internal nodes are the operator $\\mathrm{eml}(x, y) = e^{x} - \\ln y$ (Odrzywolek 2026). This file defines the inductive type of such trees with constructors `one` and `node`, the **size** (number of internal nodes), the real-branch **evaluation** $\\mathrm{eval}(\\mathrm{node}(a,b)) = \\exp(\\mathrm{eval}\\,a) - \\ln(\\mathrm{eval}\\,b)$ using Mathlib's real `exp` and `log`, and **validity**: every logarithm in the tree is taken of a positive real, so the total `Real.log` never acts on $0$ or a negative. $\\mathrm{Attains}(c, n)$ says some valid tree of size exactly $n$ evaluates to $c$; $\\mathrm{Complexity}(c, n)$ says $c$ is attained at $n$ and at no smaller size. Simp lemmas for `size`, `eval` and `valid` on both constructors are included.",
+  "definitions": "import Mathlib.Analysis.SpecialFunctions.Log.Basic\n\n/-!\n# EML trees and the EML complexity of a real constant\n\nThe single binary operator `eml(x, y) = exp(x) - ln(y)` together with the\nconstant `1` generates all elementary functions (Odrzywolek, \"All elementary\nfunctions from a single operator\", arXiv:2603.21852, 2026). A *closed EML tree*\nis a full binary tree whose leaves are the constant `1` and whose internal\nnodes are `eml`. Its *size* is the number of `eml` nodes. On the real branch\nevery logarithm must be taken of a positive real; a tree satisfying that at\nevery node is *valid*. The *EML complexity* of a real `c` is the least size of a\nvalid closed tree evaluating exactly to `c`.\n-/\n\nnamespace EmlComplexity\n\n/-- A closed EML tree: the leaf is the constant `1`, `node a b` denotes `eml(a, b)`. -/\ninductive Tree\n  | one : Tree\n  | node : Tree \u2192 Tree \u2192 Tree\n  deriving DecidableEq, Repr\n\nnamespace Tree\n\n/-- Number of `eml` nodes. -/\ndef size : Tree \u2192 \u2115\n  | one => 0\n  | node a b => a.size + b.size + 1\n\n/-- Real-branch evaluation. `Real.log` is total in Mathlib, so a tree that takes\nthe logarithm of a non-positive real still evaluates; `valid` rules those out. -/\nnoncomputable def eval : Tree \u2192 \u211d\n  | one => 1\n  | node a b => Real.exp a.eval - Real.log b.eval\n\n/-- Every logarithm in the tree is taken of a positive real. -/\ndef valid : Tree \u2192 Prop\n  | one => True\n  | node a b => a.valid \u2227 b.valid \u2227 0 < b.eval\n\n@[simp] theorem size_one : size one = 0 := rfl\n@[simp] theorem size_node (a b : Tree) : size (node a b) = a.size + b.size + 1 := rfl\n@[simp] theorem eval_one : eval one = 1 := rfl\n@[simp] theorem eval_node (a b : Tree) : eval (node a b) = Real.exp a.eval - Real.log b.eval := rfl\n@[simp] theorem valid_one : valid one := trivial\n@[simp] theorem valid_node (a b : Tree) : valid (node a b) \u2194 a.valid \u2227 b.valid \u2227 0 < b.eval := Iff.rfl\n\nend Tree\n\n/-- `c` is the value of some valid closed EML tree with exactly `n` nodes. -/\ndef Attains (c : \u211d) (n : \u2115) : Prop := \u2203 t : Tree, t.valid \u2227 t.size = n \u2227 t.eval = c\n\n/-- The EML complexity of `c` is exactly `n`: attained at `n` and at no smaller size. -/\ndef Complexity (c : \u211d) (n : \u2115) : Prop := Attains c n \u2227 \u2200 m, m < n \u2192 \u00ac Attains c m\n\nend EmlComplexity\n",
+  "source": "Odrzywolek, All elementary functions from a single operator, arXiv:2603.21852 (2026), Section 4.1 (the grammar S -> 1 | eml(S,S)) and Table 4; oaustegard/eml-sr benchmarks/eml_complexity.md (2026-09-04) for the notion of EML complexity of a constant",
+  "tags": [
+   "elementary-functions",
+   "expression-complexity",
+   "formalization"
+  ],
+  "visibility": "public",
+  "status": "PUBLISHED",
+  "error_message": "",
+  "theorem_id": "4356d2c2-a5af-4cb4-b610-0a2b890f11c8",
+  "created_at": "2026-09-05T01:52:35.881931+00:00",
+  "updated_at": "2026-09-05T02:00:55.792892+00:00"
+ },
+ "theorems": {
+  "EmlComplexity.attains_e": {
+   "status": "PUBLISHED",
+   "theorem_id": "f3535c20-7272-4d81-8dfd-2db0e6069425",
+   "error": ""
+  },
+  "EmlComplexity.attains_e_sub_one": {
+   "status": "PUBLISHED",
+   "theorem_id": "21d4632c-20ec-4359-9f7f-35a0f892180f",
+   "error": ""
+  },
+  "EmlComplexity.attains_zero": {
+   "status": "PUBLISHED",
+   "theorem_id": "eb5c6937-e5e3-4ca5-8466-ae63ade36d41",
+   "error": ""
+  },
+  "EmlComplexity.attains_e_sub_two": {
+   "status": "PUBLISHED",
+   "theorem_id": "b5e196a4-c270-43ac-bfef-948524c86db5",
+   "error": ""
+  },
+  "EmlComplexity.attains_neg_one": {
+   "status": "PUBLISHED",
+   "theorem_id": "61d4901a-2e6e-4784-a918-71014171d527",
+   "error": ""
+  },
+  "EmlComplexity.attains_two": {
+   "status": "PUBLISHED",
+   "theorem_id": "f916205d-b1cc-473a-b26f-f06abaae8875",
+   "error": ""
+  },
+  "EmlComplexity.attains_log_two": {
+   "status": "PUBLISHED",
+   "theorem_id": "7f2bdfd8-d181-432c-9305-14f642a9aa26",
+   "error": ""
+  },
+  "EmlComplexity.attains_three": {
+   "status": "PUBLISHED",
+   "theorem_id": "9c72d39e-4bc0-467a-b57d-3b2b07c00a79",
+   "error": ""
+  },
+  "EmlComplexity.attains_half": {
+   "status": "PUBLISHED",
+   "theorem_id": "53b8878c-024c-4eee-8a16-bf358c59d2a2",
+   "error": ""
+  },
+  "EmlComplexity.attains_neg_three": {
+   "status": "PUBLISHED",
+   "theorem_id": "0baa3646-0735-44f8-89b1-10a3950aea15",
+   "error": ""
+  },
+  "EmlComplexity.attains_four": {
+   "status": "PUBLISHED",
+   "theorem_id": "3e4b157d-f83a-4756-841e-6bdd4b0ca138",
+   "error": ""
+  },
+  "EmlComplexity.not_attains_four_below_twenty_one": {
+   "status": "PUBLISHED",
+   "theorem_id": "b80a488a-5019-4d60-add5-9e0438b0e55e",
+   "error": ""
+  },
+  "EmlComplexity.complexity_four": {
+   "status": "PUBLISHED",
+   "theorem_id": "df00c0ea-1a00-4640-8fda-fe95cae58c29",
+   "error": ""
+  },
+  "EmlComplexity.complexity_two": {
+   "status": "PUBLISHED",
+   "theorem_id": "4aef18dd-2336-49b8-810b-f0a58e507c1c",
+   "error": ""
+  }
+ },
+ "submissions": {
+  "EmlComplexity.attains_e": {
+   "submission_id": "64e09c77-446f-4b66-a221-f6ab335d8900",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_e_sub_one": {
+   "submission_id": "7f7ac83e-9768-4189-a7b1-0badfd80feec",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_zero": {
+   "submission_id": "284f1698-b1e7-44a6-ac84-7e48c5087206",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_e_sub_two": {
+   "submission_id": "54370dab-1b86-4126-ac95-9c24289fca7d",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_neg_one": {
+   "submission_id": "7634d985-79bb-4e17-81b8-7466f58c3032",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_two": {
+   "submission_id": "ad40b6db-73b7-4c2c-9f78-4b5d1304fd0c",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_log_two": {
+   "submission_id": "9e7988e0-20e5-4eb9-826c-6ce4758155b1",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_three": {
+   "submission_id": "ea3e35c9-404c-4383-89b6-731662fbfab6",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_neg_three": {
+   "submission_id": "e092b2e4-9472-430d-8a22-6d096488cfb1",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_four": {
+   "submission_id": "eb5f4cb2-f57e-4c7e-b7a8-187585f3b872",
+   "status": "ACCEPTED",
+   "error": ""
+  },
+  "EmlComplexity.attains_half": {
+   "submission_id": "28d0d254-eff2-44e6-b106-96d1f0a0f159",
+   "status": "ACCEPTED",
+   "error": ""
+  }
+ },
+ "proposal_id": "9a4eba3f-014b-4079-b23c-39e21b76e053",
+ "proposal_items": {
+  "EmlComplexity": "51bd2ac5-56fa-413f-b1d0-ef51e3b6d7a0",
+  "EmlComplexity.attains_e": "947be362-5e81-427d-851d-898221e8da98",
+  "EmlComplexity.attains_e_sub_one": "938012dd-c1da-495e-a284-57dc4032112d",
+  "EmlComplexity.attains_zero": "16f9c36b-d1d0-4c96-b2fc-2c2f048685c9",
+  "EmlComplexity.attains_e_sub_two": "8b97e4d2-2070-411b-a9c3-e260a8fd7015",
+  "EmlComplexity.attains_neg_one": "463b6ec7-c9de-4300-a6a2-1c7c7026e26c",
+  "EmlComplexity.attains_two": "56d954fc-eb8f-421c-8685-1264dd477ccb",
+  "EmlComplexity.attains_log_two": "761667ed-a67c-4666-b429-fc129d07405b",
+  "EmlComplexity.attains_three": "f45dde9a-b9f3-46d8-bb31-ee5d367ecbcb",
+  "EmlComplexity.attains_half": "733f92c1-7d4a-4b32-8e9a-4acdff24e168",
+  "EmlComplexity.attains_neg_three": "8c3ee2ad-5b8d-4117-9271-57749e793392",
+  "EmlComplexity.attains_four": "3f642ab0-07e3-4e0b-8266-bf2d464bfc60",
+  "EmlComplexity.complexity_two": "7ff10393-a02d-4a91-a8d8-99014e759c31",
+  "EmlComplexity.not_attains_four_below_twenty_one": "f2e8f713-4c48-4e72-9899-77e14b7c7474",
+  "EmlComplexity.complexity_four": "5d8e1b55-56c1-40a6-b3e2-0bbbd46807e4"
+ }
+}
