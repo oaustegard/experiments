@@ -5,6 +5,10 @@ its graph IR. The parabolic-addressing theorem that the whole executor rests on
 is four tactic lines and is proved here; the hard-argmax read cannot be lowered
 to `NN.IR.Graph`, so autograd and CROWN bounds are unavailable to it.
 
+LAC's measured float32 capacity ceiling, exact reads through address 4096 and
+failure from 4097, is now a theorem over TorchLean's `FP32` arithmetic
+(`LAC/Capacity.lean`, second half of this file).
+
 Ran 2026-09-05 on CCotw against `lean-dojo/TorchLean` @ `12f5c651` (Lean 4.33.0,
 Mathlib v4.33.0).
 
@@ -89,20 +93,89 @@ The lemma is missing from TorchLean generally; LAC is one caller among others.
 
 ## The binary32 capacity ceiling
 
-LAC's measured capacity ceiling is `j² > 2^24` in fp32. That is a statement about
-the 24-bit binary32 significand, and TorchLean already carries the machinery:
-`NN/Floats/IEEEExec/Rounding/RoundDyadicToIEEE32Bounds.lean`,
-`NN/Floats/IEEEExec/Exec32/Dyadic.lean`,
-`NN/Floats/IEEEExec/Bridge/LeanFloat32.lean` (`2^23 ≤ mant < 2^24`), and
-`NN/Floats/IEEEExec/Bridge/FP32/Ulp`. Turning that measured ceiling into a
-machine-checked theorem about binary32 is the one thing TorchLean offers LAC
-that LAC does not already have, and it is not attempted here.
+LAC's measured capacity ceiling is `j² > 2^24` in fp32 (memory 5bd74ba1,
+2026-07-22: zero misaddresses through 4096, then every read fails). That is a
+statement about the 24-bit binary32 significand. `LAC/Capacity.lean` proves it
+against TorchLean's `FP32` model: `NF binaryRadix fexp32 rnd32`, the Flocq-style
+FLT(-149, 24) format with round-to-nearest-even, whose `*` and `+` round after
+every primitive. The bridge theorem `toReal_roundDyadicToIEEE32_eq_fp32Round`
+(`NN/Floats/IEEEExec/Bridge/FP32/RoundDyadic.lean`) identifies that rounding with
+the executable bit-level kernel on the finite range, so these are statements
+about IEEE-754 binary32 words.
+
+The read is modelled the way the executor computes it. Address `j` stores the
+float32 row `(fl(2j), fl(-j²))`; a read of `i` forms the float32 query `(fl(i), 1)`
+and scores every row as `fl(fl(k₀ · i) + k₁)`, TorchLean's `FP32` multiply then
+add:
+
+```lean
+noncomputable def score32 (j i : ℤ) : ℝ := ((key j).1 * query i + (key j).2).val
+```
+
+| theorem | statement |
+|---|---|
+| `r32_dyadic` | `\|m\| ≤ 2^24`, `0 ≤ k` → `fl(m · 2^k) = m · 2^k` |
+| `r32_int` | `\|n\| ≤ 2^24` → `fl(n) = n` |
+| `score32_exact` | `0 ≤ j ≤ i ≤ 4096` → `score32 j i = 2ji - j²` (every intermediate exact) |
+| `read_exact_below_ceiling` | `0 ≤ j ≤ i ≤ 4096`, `j ≠ i` → `score32 j i < score32 i i` |
+| `r32_odd_sq`, `r32_neg_odd_sq`, `r32_two_odd_sq` | odd `s`, `2^24 < s² < 2^25` → `fl(s²) = s² - 1`, `fl(-s²) = -(s² - 1)`, `fl(2s²) = 2s² - 2` |
+| `read_ties_above_ceiling` | `4097 ≤ i ≤ 5792` → `score32 (i-1) i = score32 i i` |
+| `capacity_ceiling` | the two read theorems as one conjunction |
+| `generic_even_of_ge` | a binary32 value `≥ 2^24` is an even integer |
+| `not_both_representable_above_ceiling` | `4097 ≤ i` → `i²` and `i² - 1` are not both binary32 values |
+| `kernel_tie_4097`, `kernel_distinct_4096`, `kernel_tie_11585`, `kernel_separates_11587` | bit-level instances on `IEEE32Exec.roundDyadicToIEEE32`, closed by `decide` in the kernel |
+
+`#print axioms` on the three main theorems reports `[propext, Classical.choice,
+Quot.sound]`; the kernel instances need only `[propext, Quot.sound]`. No `sorry`,
+no native evaluation. `lake env lean LACScratch/Capacity.lean` takes about 50 s
+against the built `NN.Floats` subtree (2257 jobs).
+
+The proof below the ceiling is that every quantity is a dyadic `m · 2^k` with
+`|m| ≤ 2^24`: `2j`, `i`, `j²`, the product `2ji = (ji) · 2` and the score
+`2ji - j² ∈ [0, i²]`. Rounding fixes all of them, so the float32 score is the
+exact integer score and `score_lt_self` finishes it. The proof above the ceiling
+is a parity computation in the first binade, where the grid spacing is 2. For odd
+`s` with `s²` in `(2^24, 2^25)` the tie at `s²` resolves to the even significand,
+which is `s² - 1` because `(s² - 1)/2 = 2t(t+1)`. With `i` odd both `fl(2i²)`
+and `fl(-i²)` lose one unit and the address-`i` score lands on `i² - 1`, while the
+even neighbour `i - 1` computes `i² - 1` exactly. With `i` even the roles swap:
+address `i` is exact at `i²`, and the odd neighbour's `fl(-(i-1)²)` gains one unit
+that the exact product `2(i-1)i` cancels, and that score is `i²` too. Either
+way the two scores coincide, and a leftmost-tie argmax (LAC's recency
+convention and `Spec.Tensor.argmax`'s) returns `i - 1`.
+
+`generic_even_of_ge` is the all-binade statement: any binary32 value of
+magnitude `≥ 2^24` has canonical exponent `≥ 1`, hence is an even integer, so
+the exact winner `i²` and runner-up `i² - 1` are not both on the grid. That
+bound is pipeline-independent; it does not say which way each rounds.
+
+### Numerics above the first binade
+
+`capacity_numerics.py` runs three models in numpy float32 for `i < 12000`:
+
+| model | first failure | universal-failure run | reads that succeed afterwards |
+|---|---|---|---|
+| A: `fl(i²) = fl(i² - 1)`, one rounding of the exact scores | 4097 | 4097–11586 | 11587, 11597, 11603, … |
+| B: the `score32` pipeline, keys and products rounded | 4097 | 4097–5793 | 5794, 5802, 5810, … (every 8) |
+| C: numpy float32 `K @ q` (BLAS) | 4097 | 4097–5793 | identical to B |
+
+The theorem covers 4097–5792, the whole first binade (`i² < 2^25`). Model B
+keeps failing at 5793 and then succeeds sporadically from 5794, so the
+"every address above 4096 fails" reading of the July measurement holds through
+the first binade and not beyond it. With grid spacing 4 or more, rounding the
+stored `-j²` and the product `2j·i` separately can land the winner above its
+neighbour again. Model A ties through 11586 and first separates at 11587, where
+`i² ≡ 9 (mod 32)` puts `i² - 1` on a midpoint that resolves downward while `i²`
+rounds up; `kernel_tie_11585` and `kernel_separates_11587` are those two bit
+patterns checked in the kernel. A theorem for the second binade and up would be
+a per-residue-class case analysis and is not attempted.
 
 ## Not done
 
 - The read-exactness theorem over `Mem C`, blocked on the argmax lemma above.
 - The softmax-vs-argmax agreement bound that `score_gap` was proved for.
-- The binary32 capacity theorem.
+- The capacity tie above the first binade (`i ≥ 5793`), where
+  `capacity_numerics.py` reports it is no longer universal.
 - Any of the 55-opcode ISA. Only addressing is formalized.
 
 ## Reproducing
@@ -110,11 +183,17 @@ that LAC does not already have, and it is not attempted here.
 Needs a built TorchLean (`lake exe cache get` then `lake build NN`, ~7.6 GB of
 Mathlib oleans and roughly 40 minutes on four cores; the full
 `lake build NN NNCI NNExamples NNTests` is 4352 jobs and completed clean).
+`Capacity.lean` only needs the float layer:
+`lake build NN.Floats.IEEEExec NN.Floats.FP32` (2257 jobs, about 25 minutes
+from the Mathlib cache).
 
 ```bash
 lake env lean LAC/Check.lean   # Mathlib only
 cp LAC/Core.lean <torchlean>/LACScratch/Core.lean
-cd <torchlean> && lake env lean LACScratch/Core.lean
+cp LAC/Capacity.lean <torchlean>/LACScratch/Capacity.lean
+cd <torchlean> && lake env lean LACScratch/Core.lean && lake env lean LACScratch/Capacity.lean
+python3 capacity_numerics.py 12000
 ```
 
-`recheck.py` checks this file against the two Lean sources without a toolchain.
+`recheck.py` checks this file against the three Lean sources and the numeric
+boundary claims without a toolchain.
