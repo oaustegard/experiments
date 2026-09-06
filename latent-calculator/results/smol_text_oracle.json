@@ -1,0 +1,161 @@
+{
+ "model": "smol",
+ "arm": "text",
+ "query": "oracle",
+ "k": 16,
+ "n_eval": 2000,
+ "splits": {
+  "test_in": {
+   "n": 2000,
+   "exact_match": 0.0,
+   "contains_match": 0.1855,
+   "by_op": {
+    "add": {
+     "n": 498,
+     "acc": 0.0
+    },
+    "cmp": {
+     "n": 487,
+     "acc": 0.0
+    },
+    "mul": {
+     "n": 516,
+     "acc": 0.0
+    },
+    "sub": {
+     "n": 499,
+     "acc": 0.0
+    }
+   },
+   "by_max_len": {
+    "1": {
+     "n": 6,
+     "acc": 0.0
+    },
+    "2": {
+     "n": 207,
+     "acc": 0.0
+    },
+    "3": {
+     "n": 428,
+     "acc": 0.0
+    },
+    "4": {
+     "n": 595,
+     "acc": 0.0
+    },
+    "6": {
+     "n": 764,
+     "acc": 0.0
+    }
+   },
+   "tokens_per_answer": 32.748,
+   "prompt_tokens": 12.1205,
+   "tool_tokens": 6.0915,
+   "generated_tokens": 14.536,
+   "batched_wall_seconds": 231.31534433364868,
+   "query_wall_seconds": 0.0006990432739257812,
+   "calculator_exact": 1.0,
+   "examples": [
+    {
+     "prompt": "Is 2064 greater or less than 1653?",
+     "gold": "greater",
+     "gen": "The answer is 2064 is 2064"
+    },
+    {
+     "prompt": "Which is larger, 3436 or 9549?",
+     "gold": "less",
+     "gen": "## How to convert 100000000"
+    },
+    {
+     "prompt": "What is 6790 minus 828708?",
+     "gold": "-821918",
+     "gen": "## How to calculate 6790 minus 828"
+    },
+    {
+     "prompt": "Add 5496 and 9:",
+     "gold": "5505",
+     "gen": "5505 5505 5505"
+    },
+    {
+     "prompt": "Which is larger, 222237 or 621?",
+     "gold": "greater",
+     "gen": "## What is 222237 as a fraction?"
+    }
+   ]
+  },
+  "test_len5": {
+   "n": 2000,
+   "exact_match": 0.0,
+   "contains_match": 0.182,
+   "by_op": {
+    "add": {
+     "n": 488,
+     "acc": 0.0
+    },
+    "cmp": {
+     "n": 507,
+     "acc": 0.0
+    },
+    "mul": {
+     "n": 506,
+     "acc": 0.0
+    },
+    "sub": {
+     "n": 499,
+     "acc": 0.0
+    }
+   },
+   "by_max_len": {
+    "3": {
+     "n": 4,
+     "acc": 0.0
+    },
+    "5": {
+     "n": 1683,
+     "acc": 0.0
+    },
+    "6": {
+     "n": 313,
+     "acc": 0.0
+    }
+   },
+   "tokens_per_answer": 35.043,
+   "prompt_tokens": 13.9265,
+   "tool_tokens": 6.932,
+   "generated_tokens": 14.1845,
+   "batched_wall_seconds": 226.46810579299927,
+   "query_wall_seconds": 0.0006022453308105469,
+   "calculator_exact": 1.0,
+   "examples": [
+    {
+     "prompt": "Add 19165 and 466:",
+     "gold": "19631",
+     "gen": "19165 = 19631 + 1"
+    },
+    {
+     "prompt": "57 - 47455 =",
+     "gold": "-47398",
+     "gen": "The last digit is 7, so the last digit is 7"
+    },
+    {
+     "prompt": "31397 * 80619 =",
+     "gold": "2531194743",
+     "gen": "The last two numbers are the same as the first two numbers."
+    },
+    {
+     "prompt": "Subtract 53749 from 18.",
+     "gold": "-53731",
+     "gen": "The result is 18."
+    },
+    {
+     "prompt": "76729 + 36 =",
+     "gold": "76765",
+     "gen": "The number 76765 is a composite number."
+    }
+   ]
+  }
+ },
+ "cpu_ms_per_answer_bs1": 553.5259830951691,
+ "n_timing": 200
+}
