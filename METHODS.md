@@ -1948,6 +1948,31 @@ the result.
   The same trade appears in any compiled-transformer multiplication by an
   indicator. (`rasp-numeric-select/RESULTS.md`)
 
+### The continuation's projection rule decides whether a compressed code shares directions
+
+- **Finding.** Fitting a residual-stream code by continuation (drop one dimension
+  at a time from the identity) gives different geometry depending on what the
+  SVD is taken over. Projecting onto the code's own top singular subspace made
+  every ALTA program cliff at exactly its live dimension count with exactly
+  orthogonal survivors; projecting onto the code's image of the visited states
+  let the same programs compress 20-45% below live with off-diagonals 0.4-0.5.
+  Same objective, same widths, same machine. LAC's learned-code result
+  (`llm-as-computer/experiments/superposition/RESULTS-A.md`, "refuses to
+  superpose") used the first rule and has not been rerun with the second.
+- **Rule.** Any claim of the form "this system compresses only by deletion" from
+  a continuation needs both projection rules run before it is cited; report which
+  parts of the answer depend on the rule. (`alta-superposition/RESULTS.md`)
+
+### Long compute runs: subagents write the driver, the parent runs it
+
+- A multi-hour sweep placed inside an Opus subagent's turn stalled: its compute
+  was bound to per-call tool timeouts and it went silent with no journal on disk.
+  What worked: the subagent delivers a per-unit-checkpointed, resumable trainer
+  plus a smoke test; the parent launches `nohup ./run_all.sh` once and arms an
+  hourly `send_later` that reads the journal, relaunches if the process is gone,
+  and finishes the writeup when the journal says done. Sweep completed in
+  55 minutes against a 3-4 hour estimate. (`alta-superposition/run_all.sh`)
+
 ## Cache and measurement hygiene
 
 - **A retry needs the failed artifact and the failure output, not the failed model's
