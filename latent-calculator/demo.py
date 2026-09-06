@@ -68,6 +68,9 @@ def main():
     ap.add_argument("--prompts", nargs="+", default=None)
     ap.add_argument("--max-new", type=int, default=E.MAX_NEW)
     ap.add_argument("--json", default=None)
+    ap.add_argument("--stream-arm", default="stream",
+                    choices=["stream", "stream-left"],
+                    help="which trained stream checkpoint to demo")
     args = ap.parse_args()
 
     if args.k is None:
@@ -83,12 +86,12 @@ def main():
     arms = ["none", "text"]
     skipped = {}
     enc = None
-    if os.path.exists(ckpt(args.model, "stream")):
+    if os.path.exists(ckpt(args.model, args.stream_arm)):
         enc = mu.ResultEncoder(mu.hidden_size(model), n_steps=mu.N_STREAM_STEPS)
-        enc.load_state_dict(torch.load(ckpt(args.model, "stream"))["state_dict"])
+        enc.load_state_dict(torch.load(ckpt(args.model, args.stream_arm))["state_dict"])
         enc.eval()
     else:
-        skipped["stream"] = f"missing {ckpt(args.model, 'stream')}"
+        skipped["stream"] = f"missing {ckpt(args.model, args.stream_arm)}"
 
     qh = None
     qh_path = QH.ckpt_file(args.model, args.head)
@@ -137,7 +140,8 @@ def main():
                 tool_tok = len(tok(" [" + res + "]",
                                    add_special_tokens=False)["input_ids"])
             elif arm == "stream":
-                syms = mu.result_symbols([calc_res])
+                syms = mu.result_symbols([calc_res],
+                                         align=mu.arm_align(args.stream_arm))
             gen, ntok, _ = E.generate(model, tok, [p], arm, k, vec, bs=1,
                                       max_new=args.max_new, enc=enc, syms=syms)
             ms = (time.time() - t0) * 1000

@@ -461,6 +461,15 @@ class ResultEncoder(nn.Module):
 N_STREAM_STEPS = 20          # step-embedding table size (j = -1 .. 18)
 
 
+def arm_base(arm):
+    """`stream-left` is the stream arm with left-aligned result slots."""
+    return arm.split("-")[0]
+
+
+def arm_align(arm):
+    return "left" if arm.endswith("-left") else "right"
+
+
 def stream_index(t, answer_lens, tmax):
     """Positions and step ids for the `stream` arm.
 
@@ -488,13 +497,23 @@ def answer_lengths(labels):
     return (labels != -100).sum(-1)
 
 
-def result_symbols(result_strings):
-    """Encode result strings into [N, N_RESULT_TOKENS] symbol ids."""
+def result_symbols(result_strings, align="right"):
+    """Encode result strings into [N, N_RESULT_TOKENS] symbol ids.
+
+    align="right": slot 0 is the units digit, leading slots BLANK (the
+    phase-1 layout).  align="left": slot 0 is the most significant digit,
+    trailing slots BLANK, so answer step j reads slot j directly (the
+    `stream-left` arm).
+    """
     from data import result_target
     out = torch.zeros((len(result_strings), N_RESULT_TOKENS), dtype=torch.long)
     for i, s in enumerate(result_strings):
         tgt = result_target(s)
-        out[i, :N_RESULT_SLOTS] = torch.tensor(tgt["slots"])
+        slots = list(tgt["slots"])
+        if align == "left":
+            digits = [d for d in reversed(slots) if d != BLANK]
+            slots = digits + [BLANK] * (N_RESULT_SLOTS - len(digits))
+        out[i, :N_RESULT_SLOTS] = torch.tensor(slots)
         out[i, N_RESULT_SLOTS] = SIGN_OFFSET + tgt["sign"]
         out[i, N_RESULT_SLOTS + 1] = KIND_OFFSET + tgt["kind"]
     return out

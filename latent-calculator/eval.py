@@ -164,7 +164,7 @@ def main():
     ap.add_argument("--model", required=True, choices=list(mu.MODELS))
     ap.add_argument("--arm", required=True,
                     choices=["none", "text", "residual", "kv", "delayed",
-                             "stream"])
+                             "stream", "stream-left"])
     ap.add_argument("--query", required=True, choices=["oracle", "learned"])
     ap.add_argument("--head", default="mlp", choices=["mlp", "attn"],
                     help="query head used when --query learned")
@@ -174,6 +174,9 @@ def main():
     ap.add_argument("--bs", type=int, default=16)
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
+    arm_name = args.arm                      # file names keep the variant
+    align = mu.arm_align(arm_name)           # stream-left: MSD-first slots
+    args.arm = mu.arm_base(arm_name)
 
     if args.k is None and args.arm != "none":
         with open(os.path.join(mu.repo_dir(), "results",
@@ -187,7 +190,7 @@ def main():
     enc = None
     if args.arm in ("residual", "kv", "delayed", "stream"):
         ck = torch.load(os.path.join(mu.repo_dir(), "ckpt",
-                                     f"{args.model}_{args.arm}_final.pt"))
+                                     f"{args.model}_{arm_name}_final.pt"))
         enc = mu.ResultEncoder(
             mu.hidden_size(model),
             n_steps=mu.N_STREAM_STEPS if args.arm == "stream" else 0)
@@ -196,7 +199,7 @@ def main():
     qh_cache = (load_query_head(model, args.model, args.head)
                 if args.query == "learned" and args.arm != "none" else None)
 
-    res = {"model": args.model, "arm": args.arm, "query": args.query,
+    res = {"model": args.model, "arm": arm_name, "query": args.query,
            "head": args.head, "k": k, "n_eval": args.n_eval, "splits": {}}
 
     for split in ("test_in", "test_len5"):
@@ -218,7 +221,7 @@ def main():
                 len(tok(" [" + r + "]", add_special_tokens=False)["input_ids"])
                 for r in results]
         elif args.arm == "stream":
-            syms = mu.result_symbols(results)
+            syms = mu.result_symbols(results, align=align)
         elif args.arm in ("residual", "kv", "delayed"):
             with torch.no_grad():
                 vec = enc(mu.result_symbols(results))
@@ -267,7 +270,7 @@ def main():
         p = [text_prompt(r["prompt"], rr[0])] if args.arm == "text" else [r["prompt"]]
         v, sy = None, None
         if args.arm == "stream":
-            sy = mu.result_symbols(rr)
+            sy = mu.result_symbols(rr, align=align)
         elif enc is not None:
             with torch.no_grad():
                 v = enc(mu.result_symbols(rr))
@@ -280,12 +283,12 @@ def main():
     suffix = QH.head_suffix(args.head) if args.query == "learned" else ""
     path = args.out or os.path.join(
         mu.repo_dir(), "results",
-        f"{args.model}_{args.arm}_{args.query}{suffix}.json")
+        f"{args.model}_{arm_name}_{args.query}{suffix}.json")
     mu.ensure_dir(os.path.dirname(path))
     with open(path, "w") as f:
         json.dump(res, f, indent=1)
     print(f"ms/answer {res['cpu_ms_per_answer_bs1']:.1f} -> {path}")
-    print(f"DONE eval {args.model} {args.arm} {args.query} {args.head}")
+    print(f"DONE eval {args.model} {arm_name} {args.query} {args.head}")
 
 
 if __name__ == "__main__":

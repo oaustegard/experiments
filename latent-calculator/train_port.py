@@ -123,14 +123,16 @@ def run_batch(model, enc, b, h, k, arm, syms):
     return logits
 
 
-def evaluate(model, tok, enc, rows, cache, k, arm, hidden, bs=32):
+def evaluate(model, tok, enc, rows, cache, k, arm, hidden, bs=32,
+             align="right"):
     enc.eval()
     tot, hit, loss_sum, nb = 0, 0, 0.0, 0
     with torch.no_grad():
         for i in range(0, len(rows), bs):
             idx = list(range(i, min(i + bs, len(rows))))
             b, h = make_batch(tok, rows, cache, idx, hidden)
-            syms = mu.result_symbols([rows[j]["result_string"] for j in idx])
+            syms = mu.result_symbols([rows[j]["result_string"] for j in idx],
+                                     align=align)
             logits = run_batch(model, enc, b, h, k, arm, syms)
             loss_sum += float(mu.answer_token_loss(logits, b["labels"]))
             nb += 1
@@ -147,7 +149,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True, choices=list(mu.MODELS))
     ap.add_argument("--arm", required=True,
-                    choices=["residual", "kv", "delayed", "stream"])
+                    choices=["residual", "kv", "delayed", "stream", "stream-left"])
     ap.add_argument("--k", type=int, default=None)
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--batch", type=int, default=32)
@@ -168,7 +170,7 @@ def main():
     model, tok = mu.load_model(args.model)
     hidden = mu.hidden_size(model)
     enc = mu.ResultEncoder(
-        hidden, n_steps=mu.N_STREAM_STEPS if args.arm == "stream" else 0)
+        hidden, n_steps=mu.N_STREAM_STEPS if mu.arm_base(args.arm) == "stream" else 0)
     print(f"encoder params: {mu.count_params(enc)}", flush=True)
 
     done = read_journal(args.model, args.arm) if args.resume else {}
@@ -192,7 +194,8 @@ def main():
     nbytes = sum(c.numel() * 2 for c in tr_cache) / 1e6
     print(f"cache size: {nbytes:.0f} MB", flush=True)
 
-    syms_all = mu.result_symbols([r["result_string"] for r in train_rows])
+    syms_all = mu.result_symbols([r["result_string"] for r in train_rows],
+                                 align=mu.arm_align(args.arm))
     opt = torch.optim.AdamW(enc.parameters(), lr=args.lr)
     g = torch.Generator().manual_seed(args.seed)
     mu.ensure_dir(os.path.join(mu.repo_dir(), "ckpt"))
@@ -204,7 +207,7 @@ def main():
         for i in range(0, len(perm) - args.batch + 1, args.batch):
             idx = perm[i:i + args.batch]
             b, h = make_batch(tok, train_rows, tr_cache, idx, hidden)
-            logits = run_batch(model, enc, b, h, k, args.arm, syms_all[idx])
+            logits = run_batch(model, enc, b, h, k, mu.arm_base(args.arm), syms_all[idx])
             loss = mu.answer_token_loss(logits, b["labels"])
             opt.zero_grad()
             loss.backward()
@@ -216,8 +219,8 @@ def main():
                 print(f"  ep{epoch} step {nsteps} loss {tot_loss / nsteps:.4f} "
                       f"({(time.time() - t0) / nsteps:.2f}s/step)", flush=True)
         wall = time.time() - t0
-        acc, vloss = evaluate(model, tok, enc, val_rows, va_cache, k, args.arm,
-                              hidden)
+        acc, vloss = evaluate(model, tok, enc, val_rows, va_cache, k, mu.arm_base(args.arm),
+                              hidden, align=mu.arm_align(args.arm))
         torch.save({"state_dict": enc.state_dict(), "k": k, "arm": args.arm},
                    ckpt_path(args.model, args.arm, epoch))
         torch.save({"state_dict": enc.state_dict(), "k": k, "arm": args.arm},

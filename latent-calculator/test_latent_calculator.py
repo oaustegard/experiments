@@ -463,3 +463,16 @@ def test_demo_runs_on_two_rows():
     assert out.returncode == 0, out.stdout[-3000:] + out.stderr[-3000:]
     assert "DONE demo" in out.stdout, out.stdout[-2000:]
     assert "none" in out.stdout
+
+
+def test_result_symbols_left_alignment():
+    left = mu.result_symbols(["-45", "120", "greater"], align="left")
+    right = mu.result_symbols(["-45", "120", "greater"])
+    assert left[0, :3].tolist() == [4, 5, mu.BLANK]
+    assert right[0, :3].tolist() == [5, 4, mu.BLANK]
+    assert left[1, :4].tolist() == [1, 2, 0, mu.BLANK]
+    # sign / kind columns are layout-independent
+    assert torch.equal(left[:, mu.N_RESULT_SLOTS:], right[:, mu.N_RESULT_SLOTS:])
+    assert mu.arm_base("stream-left") == "stream"
+    assert mu.arm_align("stream-left") == "left"
+    assert mu.arm_align("stream") == "right"
