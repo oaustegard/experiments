@@ -1,0 +1,62 @@
+{
+ "python/robot-name": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "....                                                                     [100%]\n4 passed in 0.01s\n"
+ },
+ "python/pov": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "ee = Tree(\"parent\", [Tree(\"a\"), Tree(\"x\"), Tree(\"b\"), Tree(\"c\")])\n        expected = [\"a\", \"parent\", \"c\"]\n>       self.assertEqual(tree.path_to(\"a\", \"c\"), expected)\n                         ^^^^^^^^^^^^^^^^^^^^^^\n\npov_test.py:139: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <pov.Tree object at 0x7f67926c4410>, from_node = 'a', to_node = 'c'\n\n    def path_to(self, from_node, to_node):\n        # Find path from from_node to to_node\n        if from_node == to_node:\n            return [from_node]\n    \n        # First, reorient tree from from_node's perspective\n        reoriented = self.from_pov(from_node)\n    \n        # Find path in reoriented tree\n        path = reoriented._find_path_to_node(to_node)\n        if path is None:\n>           raise ValueError(f\"Path from {from_node} to {to_node} does not exist\")\nE           ValueError: Path from a to c does not exist\n\npov.py:83: ValueError\n=========================== short test summary info ============================\nFAILED pov_test.py::PovTest::test_can_find_path_from_nodes_other_than_x - Val...\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n1 failed in 0.02s\n"
+ },
+ "python/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".........                                                                [100%]\n9 passed in 0.01s\n"
+ },
+ "python/poker": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "========== FAILURES ===================================\n_ PokerTest.test_multiple_hands_with_the_same_high_cards_tie_compares_next_highest_ranked_down_to_last_card _\n\nself = <poker_test.PokerTest testMethod=test_multiple_hands_with_the_same_high_cards_tie_compares_next_highest_ranked_down_to_last_card>\n\n    def test_multiple_hands_with_the_same_high_cards_tie_compares_next_highest_ranked_down_to_last_card(\n        self,\n    ):\n>       self.assertEqual(\n            best_hands([\"3S 5H 6S 8D 7H\", \"2S 5D 6D 8C 7S\"]), [\"3S 5H 6S 8D 7H\"]\n        )\nE       AssertionError: Lists differ: ['3S 5H 6S 8D 7H', '2S 5D 6D 8C 7S'] != ['3S 5H 6S 8D 7H']\nE       \nE       First list contains 1 additional elements.\nE       First extra element 1:\nE       '2S 5D 6D 8C 7S'\nE       \nE       - ['3S 5H 6S 8D 7H', '2S 5D 6D 8C 7S']\nE       + ['3S 5H 6S 8D 7H']\n\npoker_test.py:38: AssertionError\n=========================== short test summary info ============================\nFAILED poker_test.py::PokerTest::test_multiple_hands_with_the_same_high_cards_tie_compares_next_highest_ranked_down_to_last_card\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n1 failed, 26 passed in 0.04s\n"
+ },
+ "go/zebra-puzzle": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "--- FAIL: TestSolvePuzzle (0.02s)\n    zebra_puzzle_test.go:9: FAILED:\n        Expected: zebra.Solution{DrinksWater:\"Norwegian\", OwnsZebra:\"Japanese\"}\n        Actual: zebra.Solution{DrinksWater:\"\", OwnsZebra:\"\"}\nFAIL\nFAIL\tzebra\t0.022s\nFAIL\n"
+ },
+ "go/wordy": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \twordy\t0.004s\n"
+ },
+ "go/alphametics": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \talphametics\t3.442s\n"
+ },
+ "go/bottle-song": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tbottlesong\t0.003s\n"
+ },
+ "rust/book-store": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "_and_two_plus_three_groups_of_four_is_cheaper_than_one_group_of_each_size ... ok\ntest two_different_books ... ok\ntest two_each_of_first_four_books_and_one_copy_each_of_rest ... ok\ntest two_copies_of_each_book ... ok\ntest two_groups_of_four_is_cheaper_than_groups_of_five_and_three ... ok\ntest two_of_the_same_book ... ok\ntest two_groups_of_four_is_cheaper_than_group_of_five_plus_group_of_three ... ok\ntest three_each_of_first_two_books_and_two_each_of_remaining_books ... ok\ntest check_that_groups_of_four_are_created_properly_even_when_there_are_more_groups_of_three_than_groups_of_five ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling book_store v1.3.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_agentic/rust/book-store)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s\n     Running unittests src/lib.rs (_target/debug/deps/book_store-aaf2a27d2e53e140)\n     Running tests/book-store.rs (_target/debug/deps/book_store-a8cf30c41fcb7bb4)\n   Doc-tests book_store\n"
+ },
+ "rust/acronym": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "e::panicking::assert_failed\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/panicking.rs:394:5\n   4: acronym::all_caps_word\n             at ./tests/acronym.rs:35:5\n   5: acronym::all_caps_word::{{closure}}\n             at ./tests/acronym.rs:31:19\n   6: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\n   7: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n\n\nfailures:\n    all_caps_word\n\ntest result: FAILED. 9 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n   Compiling acronym v1.7.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_agentic/rust/acronym)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s\n     Running unittests src/lib.rs (_target/debug/deps/acronym-f9e68df0e8f79a8b)\n     Running tests/acronym.rs (_target/debug/deps/acronym-dc82d53964d4f939)\nerror: test failed, to rerun pass `--test acronym`\n"
+ },
+ "rust/doubly-linked-list": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok\ntest iter ... ok\ntest drop_large_list ... ok\n\ntest result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.24s\n\n\nrunning 1 test\ntest drop_no_leak_when_removing_single_element ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest drop_no_leaks ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling doubly-linked-list v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_agentic/rust/doubly-linked-list)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.44s\n     Running unittests src/lib.rs (_target/debug/deps/doubly_linked_list-2b0daa7b76bf86bc)\n     Running tests/doubly-linked-list.rs (_target/debug/deps/doubly_linked_list-3a6481eb11cbabc1)\n     Running tests/step_4_leak_test_1.rs (_target/debug/deps/step_4_leak_test_1-50dff5e14cc18f66)\n     Running tests/step_4_leak_test_2.rs (_target/debug/deps/step_4_leak_test_2-3534273a982cc134)\n   Doc-tests doubly_linked_list\n"
+ },
+ "rust/variable-length-quantity": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "_byte ... ok\ntest largest_triple_byte ... ok\ntest many_multi_byte_values ... ok\ntest maximum_32_bit_integer_input ... ok\ntest arbitrary_quadruple_byte ... ok\ntest maximum_32_bit_integer ... ok\ntest multiple_values ... ok\ntest one_byte ... ok\ntest smallest_double_byte ... ok\ntest smallest_quadruple_byte ... ok\ntest smallest_quintuple_byte ... ok\ntest smallest_triple_byte ... ok\ntest three_bytes ... ok\ntest two_bytes ... ok\ntest two_multi_byte_values ... ok\ntest two_single_byte_values ... ok\ntest zero ... ok\n\ntest result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling variable-length-quantity v1.2.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_agentic/rust/variable-length-quantity)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s\n     Running unittests src/lib.rs (_target/debug/deps/variable_length_quantity-a92a455579533d9a)\n     Running tests/variable-length-quantity.rs (_target/debug/deps/variable_length_quantity-1d100aea663f3e06)\n   Doc-tests variable_length_quantity\n"
+ }
+}
