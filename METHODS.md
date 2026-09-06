@@ -2443,6 +2443,20 @@ the result.
   write the output inline in the parent turn.
   (`hypothetical-classification/RESULTS.md` finding 6)
 
+- **A terser brief to a subagent is not a cheaper run.** Three briefs carrying
+  identical information — prose, bulleted, and Astra-style telegraphese (`lc`,
+  `casesens`, `excl`, `Append1line`) — sent to Haiku 4.5 and Sonnet 5 as
+  Agent-tool subagents. Telegraphese saved ~110 brief tokens and the receiver
+  spent 1,519 (Sonnet) to 6,266 (Haiku) more tokens, made 2–3x the tool calls
+  and took 2–2.6x the wall time re-reading the data to resolve the
+  abbreviations, and 4 of 10 Sonnet runs read `lc "svc_"` as a case-insensitive
+  prefix. Prose was 20/20; telegraphese 14/20 (Fisher p=0.02). Stripping
+  inter-word spaces saves zero tokens on o200k — BPE carries the space in the
+  word token. Bulleted-terse ties prose once its wording is unambiguous, so
+  the saving that is real comes from structure, not from grammar. Spell out any
+  rule a receiver could plausibly invert (case, inclusive/exclusive, which
+  integer is N). (`brief-compression/RESULTS.md`)
+
 - **Char-ngram TF-IDF is a serious label snapper, not a fallback.** 0.528 acc@1 on
   WANDS against `all-MiniLM-L6-v2`'s 0.564, no download and no GPU — and it *beats*
   MiniLM outright (0.400 vs 0.296) when snapping documents that contain their own
