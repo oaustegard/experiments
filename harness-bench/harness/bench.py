@@ -13,10 +13,27 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PG = Path(os.environ.get("POLYGLOT_ROOT", ROOT / "polyglot-benchmark"))
 
+SH = lambda script: ["bash", "-c", script]
+
 LANGS = {
     "python": dict(cmd=["python3", "-m", "pytest", "-x", "-q"], timeout=180),
     "go":     dict(cmd=["go", "test", "./..."],                 timeout=420),
     "rust":   dict(cmd=["cargo", "test", "--", "--include-ignored"], timeout=600),
+    # CMakeLists names the target after the exercise directory.
+    "cpp":    dict(cmd=SH('cmake -S . -B build -DEXERCISM_RUN_ALL_TESTS=1 '
+                          '&& cmake --build build -j2 '
+                          '&& ./build/"$(basename "$PWD")"'), timeout=420),
+    # node_modules is ~127 MB per exercise, so it goes away with the graded tree.
+    "javascript": dict(cmd=SH('npm install --silent --no-audit --no-fund '
+                              '&& npx jest ./* --ci'), timeout=600),
+    "java":   dict(cmd=SH('./gradlew test --no-daemon --console=plain'), timeout=900),
+}
+
+# files the agent must not see, beyond files.test
+EXTRA_HIDE = {
+    "rust": ["tests"],
+    "go":   ["*_test.go"],
+    "java": ["src/test"],
 }
 
 
@@ -73,11 +90,9 @@ def cmd_prepare(a):
         shutil.rmtree(dst / ".meta", ignore_errors=True)
         for tf in test_files(lang, task):
             (dst / tf).unlink(missing_ok=True)
-        if lang == "rust":
-            shutil.rmtree(dst / "tests", ignore_errors=True)
-        if lang == "go":
-            for p in dst.glob("*_test.go"):
-                p.unlink()
+        for pat in EXTRA_HIDE.get(lang, []):
+            for p in list(dst.glob(pat)):
+                shutil.rmtree(p, ignore_errors=True) if p.is_dir() else p.unlink()
     print(f"prepared {len(tasks)} tasks under {base}")
 
 
@@ -176,12 +191,16 @@ def cmd_grade(a):
         # (2026-09-06); cargo's fingerprint did not separate the two trees.
         env = dict(os.environ, GOFLAGS="-mod=mod", GOPATH="/tmp/gopath",
                    CARGO_TARGET_DIR=str(dst / "_target"))
+        if lang == "java":
+            env["GRADLE_USER_HOME"] = os.environ.get("GRADLE_USER_HOME", "/root/.gradle")
         try:
             r = subprocess.run(spec["cmd"], cwd=dst, capture_output=True, text=True,
                                timeout=spec["timeout"], env=env)
             ok, out = r.returncode == 0, (r.stdout + r.stderr)
         except subprocess.TimeoutExpired as e:
             ok, out = False, f"TIMEOUT after {spec['timeout']}s\n{(e.stdout or b'')[-2000:]}"
+        for junk in ("_target", "node_modules", "build", ".gradle"):
+            shutil.rmtree(dst / junk, ignore_errors=True)
         results[f"{lang}/{task}"] = dict(passed=ok, stray=stray, output=out[-6000:])
         print(f"{'PASS' if ok else 'FAIL':4} {lang}/{task}" + (f"  STRAY={stray}" if stray else ""))
     Path(a.out).write_text(json.dumps(results, indent=1))
