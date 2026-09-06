@@ -25,14 +25,29 @@ def run_one(lang, task, variant):
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(bench.ex_dir(lang, task), dst)
     if variant == "gold":
-        sol = bench.solution_files(lang, task)[0]
-        cand = [c for c in (dst / ".meta").rglob("example*") if c.is_file()]
-        if not cand:
-            return None, "no example file"
-        shutil.copy2(cand[0], dst / sol)
+        sols = bench.solution_files(lang, task)
+        exs = bench.cfg(lang, task)["files"].get("example") or []
+        # cpp declares two solution files (.cpp and .h) and two examples; java
+        # nests its reference under .meta/src/reference/java. Match positionally
+        # when the config lists them, and fall back to a glob when it does not.
+        if len(exs) == len(sols):
+            pairs = list(zip(exs, sols))
+        else:
+            cand = sorted(c for c in (dst / ".meta").rglob("example*") if c.is_file())
+            if not cand:
+                return None, "no example file"
+            pairs = [(str(cand[0].relative_to(dst)), sols[0])]
+        for src_rel, dst_rel in pairs:
+            src_p = dst / src_rel
+            if not src_p.exists():
+                return None, f"example missing: {src_rel}"
+            (dst / dst_rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src_p, dst / dst_rel)
     spec = bench.LANGS[lang]
     env = dict(os.environ, GOFLAGS="-mod=mod", GOPATH="/tmp/gopath",
                CARGO_TARGET_DIR=str(dst / "_target"))
+    if lang == "java":
+        env["GRADLE_USER_HOME"] = os.environ.get("GRADLE_USER_HOME", "/root/.gradle")
     try:
         r = subprocess.run(spec["cmd"], cwd=dst, capture_output=True, text=True,
                            timeout=spec["timeout"], env=env)
@@ -40,12 +55,13 @@ def run_one(lang, task, variant):
     except subprocess.TimeoutExpired:
         return False, "TIMEOUT"
     finally:
-        shutil.rmtree(dst / "_target", ignore_errors=True)
+        for junk in ("_target", "node_modules", "build", ".gradle"):
+            shutil.rmtree(dst / junk, ignore_errors=True)
 
 
 rng = random.Random(SEED)
 report, chosen = {}, []
-for lang in ("python", "go", "rust"):
+for lang in os.environ.get("LANGS", "python,go,rust").split(","):
     pool = sorted(p.name for p in (PG / lang / "exercises" / "practice").iterdir() if p.is_dir())
     # shuffle the WHOLE pool once and walk it in order, so the admitted set for
     # KEEP_N=4 is a prefix of the set for KEEP_N=10. rng.sample(pool, k) is not
