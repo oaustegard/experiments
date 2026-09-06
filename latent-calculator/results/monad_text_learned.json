@@ -1,0 +1,161 @@
+{
+ "model": "monad",
+ "arm": "text",
+ "query": "learned",
+ "k": 29,
+ "n_eval": 2000,
+ "splits": {
+  "test_in": {
+   "n": 2000,
+   "exact_match": 0.0,
+   "contains_match": 0.0805,
+   "by_op": {
+    "add": {
+     "n": 498,
+     "acc": 0.0
+    },
+    "cmp": {
+     "n": 487,
+     "acc": 0.0
+    },
+    "mul": {
+     "n": 516,
+     "acc": 0.0
+    },
+    "sub": {
+     "n": 499,
+     "acc": 0.0
+    }
+   },
+   "by_max_len": {
+    "1": {
+     "n": 6,
+     "acc": 0.0
+    },
+    "2": {
+     "n": 207,
+     "acc": 0.0
+    },
+    "3": {
+     "n": 428,
+     "acc": 0.0
+    },
+    "4": {
+     "n": 595,
+     "acc": 0.0
+    },
+    "6": {
+     "n": 764,
+     "acc": 0.0
+    }
+   },
+   "tokens_per_answer": 26.5915,
+   "prompt_tokens": 9.211,
+   "tool_tokens": 4.785,
+   "generated_tokens": 12.5955,
+   "batched_wall_seconds": 173.92869663238525,
+   "query_wall_seconds": 15.591477155685425,
+   "calculator_exact": 0.27,
+   "examples": [
+    {
+     "prompt": "Is 2064 greater or less than 1653?",
+     "gold": "greater",
+     "gen": "\u2234 Answer: 1653"
+    },
+    {
+     "prompt": "Which is larger, 3436 or 9549?",
+     "gold": "less",
+     "gen": "So: 3436 > 9549"
+    },
+    {
+     "prompt": "What is 6790 minus 828708?",
+     "gold": "-821918",
+     "gen": "This is clearly wrong. The problem setup is inconsistent."
+    },
+    {
+     "prompt": "Add 5496 and 9:",
+     "gold": "5505",
+     "gen": "This gives us:"
+    },
+    {
+     "prompt": "Which is larger, 222237 or 621?",
+     "gold": "greater",
+     "gen": "### 4. Verification"
+    }
+   ]
+  },
+  "test_len5": {
+   "n": 2000,
+   "exact_match": 0.0,
+   "contains_match": 0.023,
+   "by_op": {
+    "add": {
+     "n": 488,
+     "acc": 0.0
+    },
+    "cmp": {
+     "n": 507,
+     "acc": 0.0
+    },
+    "mul": {
+     "n": 506,
+     "acc": 0.0
+    },
+    "sub": {
+     "n": 499,
+     "acc": 0.0
+    }
+   },
+   "by_max_len": {
+    "3": {
+     "n": 4,
+     "acc": 0.0
+    },
+    "5": {
+     "n": 1683,
+     "acc": 0.0
+    },
+    "6": {
+     "n": 313,
+     "acc": 0.0
+    }
+   },
+   "tokens_per_answer": 29.03,
+   "prompt_tokens": 10.217,
+   "tool_tokens": 5.28,
+   "generated_tokens": 13.533,
+   "batched_wall_seconds": 174.7385151386261,
+   "query_wall_seconds": 14.654938220977783,
+   "calculator_exact": 0.219,
+   "examples": [
+    {
+     "prompt": "Add 19165 and 466:",
+     "gold": "19631",
+     "gen": "The final sum is:"
+    },
+    {
+     "prompt": "57 - 47455 =",
+     "gold": "-47398",
+     "gen": "\u2234 The final score is **-374718**."
+    },
+    {
+     "prompt": "31397 * 80619 =",
+     "gold": "2531194743",
+     "gen": "This is getting unwieldy. Let me try a different approach"
+    },
+    {
+     "prompt": "Subtract 53749 from 18.",
+     "gold": "-53731",
+     "gen": "\u2234 Final answer: 18 - 3290 = -3290"
+    },
+    {
+     "prompt": "76729 + 36 =",
+     "gold": "76765",
+     "gen": "\u2234 The total number of people in the city is **77813"
+    }
+   ]
+  }
+ },
+ "cpu_ms_per_answer_bs1": 631.519603729248,
+ "n_timing": 200
+}

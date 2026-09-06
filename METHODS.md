@@ -3114,3 +3114,33 @@ stall.**
 Cross-check liveness on a **second axis**. Failure 2 only surfaced because
 `free -g` showed 0 GB resident for a job that had to hold 3.2 GB. One signal is
 not liveness.
+
+### A tool result injected as one vector: categorical reads at 1.00, digits decay with length, and the async form is free only behind an uninformative token
+
+Injecting an exact calculator result into a frozen small LM's residual stream
+at one layer, through a trained encoder under 1M parameters, gets a
+three-way categorical answer (`greater`/`less`/`equal`) out at **1.00** on
+both Pleias Monad 56.7M and SmolLM2-135M, and a multi-digit number out at a
+rate that falls with digit count (SmolLM2: 0.93 on two-digit operands, 0.39
+on six-digit; Monad 0.65 to 0.27). Three things transfer:
+
+- **Residual add beats a single KV slot** on both models (SmolLM2 0.60 vs
+  0.34, Monad 0.39 vs 0.25), the same ordering as 2603.22329 on frozen GPT-2.
+  A KV slot the model cannot decode gets outvoted by prompt tokens it can:
+  the kv arm's wrong answers are copies of an operand.
+- **Check the first answer token before designing an async-by-one port.**
+  Injecting at position t+1 is free when token t+1 is a bare space (SmolLM2
+  numbers: delayed within 7 points of synchronous) and blind when it carries
+  the answer (`cmp` single-token words: 0.00; Monad's ` 5` first token: 0.01).
+  A fixed lead-in token before every answer makes the delay free.
+- **The text baseline for a base model needs a `contains` metric.** With the
+  result inserted as tokens, both frozen models scored exact 0.000 because
+  they wrap the number in prose (`∴ Final answer: **5505**`) or repeat it
+  (`5505 5505 5505`); `contains` was 0.19-0.39. Without the second metric the
+  text arm scores zero and the comparison says nothing.
+
+Also: a linear probe at the query token found operand digits flat at 0.57-0.69
+slot accuracy across every layer of both models, with the operator at 1.00
+from layer 1, and single-digit tokenization (SmolLM2) did not change the
+shape. A slot-wise readout at one position is the wrong query head; the
+digits live at their own tokens. (`latent-calculator/`)
