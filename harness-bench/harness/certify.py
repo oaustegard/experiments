@@ -13,7 +13,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 import bench
 
 ROOT, PG = bench.ROOT, bench.PG
-POOL_N, KEEP_N = int(sys.argv[1]) if len(sys.argv) > 1 else 9, 4
+POOL_N = int(sys.argv[1]) if len(sys.argv) > 1 else 9
+KEEP_N = int(sys.argv[2]) if len(sys.argv) > 2 else 4
+OUT = sys.argv[3] if len(sys.argv) > 3 else "results/tasks-pilot.json"
 SEED = 20260906
 
 
@@ -45,7 +47,11 @@ rng = random.Random(SEED)
 report, chosen = {}, []
 for lang in ("python", "go", "rust"):
     pool = sorted(p.name for p in (PG / lang / "exercises" / "practice").iterdir() if p.is_dir())
-    cands = rng.sample(pool, min(POOL_N, len(pool)))
+    # shuffle the WHOLE pool once and walk it in order, so the admitted set for
+    # KEEP_N=4 is a prefix of the set for KEEP_N=10. rng.sample(pool, k) is not
+    # stable across k and silently re-draws the task set when the size changes.
+    rng.shuffle(pool)
+    cands = pool[:min(POOL_N, len(pool))]
     kept = []
     for task in cands:
         if len(kept) >= KEEP_N:
@@ -62,6 +68,6 @@ for lang in ("python", "go", "rust"):
             kept.append(task)
     chosen += [dict(lang=lang, task=t) for t in kept]
 
-(ROOT / "results/certify.json").write_text(json.dumps(report, indent=1))
-(ROOT / "results/tasks-pilot.json").write_text(json.dumps(chosen, indent=1))
+(ROOT / OUT.replace("tasks-", "certify-")).write_text(json.dumps(report, indent=1))
+(ROOT / OUT).write_text(json.dumps(chosen, indent=1))
 print(f"\nadmitted {len(chosen)}: " + ", ".join(f"{c['lang']}/{c['task']}" for c in chosen))
