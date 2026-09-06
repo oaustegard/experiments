@@ -175,7 +175,7 @@ Rough totals: certification of all 225 in both directions ≈ 1.5 h, grading ≈
 per arm. Call it **4–6 hours and ~6M tokens for both arms**, or half that for
 the one-shot arm alone.
 
-What it buys is a narrower interval — ±0.03 rather than ±0.09 — and nothing else.
+What it buys is a narrower interval, ±0.03 rather than ±0.09, and nothing else.
 It does not make the number a leaderboard entry: aider's protocol is a specific
 edit format at two attempts with no test execution, so the one-shot arm is the
 only one of ours that is even close in shape.
