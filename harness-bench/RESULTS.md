@@ -146,6 +146,40 @@ in the repo where the weak arm fails often enough to leave something to measure 
 Exercism tracks because the models of the day failed them; that selection is the
 difference from a task bank we authored ourselves.
 
+## Cost of running the full 225
+
+Measured on this container, 2026-09-06, before committing to the sweep.
+
+Per-task model cost, from the six Opus batches: the one-shot arm spent 416,486
+tokens over 30 tasks and the tool loop 408,308, so roughly **13.8k tokens per
+task per arm**, or **~3.1M tokens per arm** over 225. Subagent batches of five
+took 77–355 s, six at a time.
+
+The three unrun languages all work here, with caveats measured rather than
+assumed:
+
+| language | n | runner | measured |
+|---|---|---|---|
+| cpp | 26 | cmake + vendored catch.hpp | ~1–3 s per build; offline |
+| javascript | 49 | npm install + jest | 28 s cold install, 11.5 s warm, **127 MB of node_modules each** |
+| java | 47 | `./gradlew test --no-daemon` | 21 s per run; the 8.7 distribution and Maven deps resolve through the proxy and cache to `~/.gradle` |
+
+Two engineering gaps rather than unknowns. `certify.py` copies only the first
+`example*` file, and cpp exercises declare two solution files (`.cpp` and `.h`)
+and two example files — it needs to copy the whole set. And 49 × 127 MB of
+node_modules is 6.2 GB against 26 GB free, so the js runner has to install and
+clean per task rather than leaving them in place.
+
+Rough totals: certification of all 225 in both directions ≈ 1.5 h, grading ≈
+30–40 min per arm (cold Rust compiles and gradle dominate), dispatch ≈ 30–40 min
+per arm. Call it **4–6 hours and ~6M tokens for both arms**, or half that for
+the one-shot arm alone.
+
+What it buys is a narrower interval — ±0.03 rather than ±0.09 — and nothing else.
+It does not make the number a leaderboard entry: aider's protocol is a specific
+edit format at two attempts with no test execution, so the one-shot arm is the
+only one of ours that is even close in shape.
+
 ## Reproducing
 
 ```bash
