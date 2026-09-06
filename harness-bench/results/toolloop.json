@@ -1,0 +1,62 @@
+{
+ "python/robot-name": {
+  "passed": true,
+  "stray": [],
+  "output": "....                                                                     [100%]\n4 passed in 0.01s\n"
+ },
+ "python/pov": {
+  "passed": true,
+  "stray": [],
+  "output": "...............                                                          [100%]\n15 passed in 0.02s\n"
+ },
+ "python/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output": ".........                                                                [100%]\n9 passed in 0.02s\n"
+ },
+ "python/poker": {
+  "passed": true,
+  "stray": [],
+  "output": ".....................................                                    [100%]\n37 passed in 0.04s\n"
+ },
+ "go/zebra-puzzle": {
+  "passed": false,
+  "stray": [],
+  "output": "--- FAIL: TestSolvePuzzle (3.05s)\n    zebra_puzzle_test.go:9: FAILED:\n        Expected: zebra.Solution{DrinksWater:\"Norwegian\", OwnsZebra:\"Japanese\"}\n        Actual: zebra.Solution{DrinksWater:\"Japanese\", OwnsZebra:\"Japanese\"}\nFAIL\nFAIL\tzebra\t3.049s\nFAIL\n"
+ },
+ "go/wordy": {
+  "passed": true,
+  "stray": [],
+  "output": "ok  \twordy\t0.003s\n"
+ },
+ "go/alphametics": {
+  "passed": true,
+  "stray": [],
+  "output": "ok  \talphametics\t1.844s\n"
+ },
+ "go/bottle-song": {
+  "passed": true,
+  "stray": [],
+  "output": "ok  \tbottlesong\t0.003s\n"
+ },
+ "rust/book-store": {
+  "passed": true,
+  "stray": [],
+  "output": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 18 tests\ntest empty_basket ... ok\ntest four_different_books ... ok\ntest five_different_books ... ok\ntest one_group_of_one_and_four_is_cheaper_than_one_group_of_two_and_three ... ok\ntest group_of_four_plus_group_of_two_is_cheaper_than_two_groups_of_three ... ok\ntest only_a_single_book ... ok\ntest three_copies_of_first_book_and_two_each_of_remaining ... ok\ntest three_different_books ... ok\ntest one_group_of_one_and_two_plus_three_groups_of_four_is_cheaper_than_one_group_of_each_size ... ok\ntest three_each_of_first_two_books_and_two_each_of_remaining_books ... ok\ntest two_different_books ... ok\ntest two_each_of_first_four_books_and_one_copy_each_of_rest ... ok\ntest two_copies_of_each_book ... ok\ntest two_groups_of_four_is_cheaper_than_group_of_five_plus_group_of_three ... ok\ntest two_groups_of_four_is_cheaper_than_groups_of_five_and_three ... ok\ntest two_of_the_same_book ... ok\ntest four_groups_of_four_are_cheaper_than_two_groups_each_of_five_and_three ... ok\ntest check_that_groups_of_four_are_created_properly_even_when_there_are_more_groups_of_three_than_groups_of_five ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling book_store v1.3.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_toolloop/rust/book-store)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src/lib.rs (_target/debug/deps/book_store-aaf2a27d2e53e140)\n     Running tests/book-store.rs (_target/debug/deps/book_store-a8cf30c41fcb7bb4)\n   Doc-tests book_store\n"
+ },
+ "rust/acronym": {
+  "passed": true,
+  "stray": [],
+  "output": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 10 tests\ntest basic ... ok\ntest all_caps_word ... ok\ntest apostrophes ... ok\ntest camelcase ... ok\ntest lowercase_words ... ok\ntest consecutive_delimiters ... ok\ntest punctuation_without_whitespace ... ok\ntest underscore_emphasis ... ok\ntest punctuation ... ok\ntest very_long_abbreviation ... ok\n\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling acronym v1.7.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_toolloop/rust/acronym)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.38s\n     Running unittests src/lib.rs (_target/debug/deps/acronym-f9e68df0e8f79a8b)\n     Running tests/acronym.rs (_target/debug/deps/acronym-dc82d53964d4f939)\n   Doc-tests acronym\n"
+ },
+ "rust/doubly-linked-list": {
+  "passed": true,
+  "stray": [],
+  "output": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 17 tests\ntest basics_empty_list ... ok\ntest basics_push_back_pop_front ... ok\ntest basics_push_front_pop_back ... ok\ntest basics_push_pop_at_back ... ok\ntest basics_single_element_back ... ok\ntest basics_single_element_front ... ok\ntest cursor_insert_after_in_middle ... ok\ntest cursor_insert_before_in_middle ... ok\ntest cursor_insert_before_on_empty_list ... ok\ntest cursor_next_and_peek ... ok\ntest cursor_take ... ok\ntest basics_push_pop_at_front ... ok\ntest cursor_prev_and_peek ... ok\ntest drop_no_double_frees ... ok\ntest is_generic ... ok\ntest iter ... ok\ntest drop_large_list ... ok\n\ntest result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s\n\n\nrunning 1 test\ntest drop_no_leak_when_removing_single_element ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest drop_no_leaks ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling doubly-linked-list v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_toolloop/rust/doubly-linked-list)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.46s\n     Running unittests src/lib.rs (_target/debug/deps/doubly_linked_list-2b0daa7b76bf86bc)\n     Running tests/doubly-linked-list.rs (_target/debug/deps/doubly_linked_list-3a6481eb11cbabc1)\n     Running tests/step_4_leak_test_1.rs (_target/debug/deps/step_4_leak_test_1-50dff5e14cc18f66)\n     Running tests/step_4_leak_test_2.rs (_target/debug/deps/step_4_leak_test_2-3534273a982cc134)\n   Doc-tests doubly_linked_list\n"
+ },
+ "rust/variable-length-quantity": {
+  "passed": true,
+  "stray": [],
+  "output": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 26 tests\ntest arbitrary_double_byte ... ok\ntest arbitrary_quadruple_byte ... ok\ntest arbitrary_quintuple_byte ... ok\ntest arbitrary_single_byte ... ok\ntest arbitrary_triple_byte ... ok\ntest four_bytes ... ok\ntest incomplete_sequence_causes_error ... ok\ntest incomplete_sequence_causes_error_even_if_value_is_zero ... ok\ntest largest_double_byte ... ok\ntest largest_quadruple_byte ... ok\ntest largest_single_byte ... ok\ntest largest_triple_byte ... ok\ntest many_multi_byte_values ... ok\ntest maximum_32_bit_integer ... ok\ntest maximum_32_bit_integer_input ... ok\ntest multiple_values ... ok\ntest one_byte ... ok\ntest smallest_double_byte ... ok\ntest smallest_quadruple_byte ... ok\ntest smallest_quintuple_byte ... ok\ntest smallest_triple_byte ... ok\ntest three_bytes ... ok\ntest two_bytes ... ok\ntest two_multi_byte_values ... ok\ntest two_single_byte_values ... ok\ntest zero ... ok\n\ntest result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling variable-length-quantity v1.2.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_toolloop/rust/variable-length-quantity)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s\n     Running unittests src/lib.rs (_target/debug/deps/variable_length_quantity-a92a455579533d9a)\n     Running tests/variable-length-quantity.rs (_target/debug/deps/variable_length_quantity-1d100aea663f3e06)\n   Doc-tests variable_length_quantity\n"
+ }
+}
