@@ -6,6 +6,8 @@ from pathlib import Path
 R = Path(__file__).parent
 arms = {a: json.loads((R / f"results/{a}.json").read_text())
         for a in ("oneshot", "agentic", "toolloop")}
+opus = {a: json.loads((R / f"results/{a}.json").read_text())
+        for a in ("opus-oneshot", "opus-toolloop")}
 prose = (R / "RESULTS.md").read_text()
 fail = []
 
@@ -24,6 +26,14 @@ for a, n in tot.items():
 check(all(len(d) == 12 for d in arms.values()), "12 tasks graded in every arm")
 strays = {f"{a}:{k}": v["stray"] for a, d in arms.items() for k, v in d.items() if v["stray"]}
 check(not strays, f"no files touched outside the solution set ({strays or 'none'})")
+
+
+for a, n in (("opus-oneshot", 29), ("opus-toolloop", 30)):
+    got = sum(v["passed"] for v in opus[a].values())
+    check(got == n and len(opus[a]) == 30, f"{a} scores {got}/30 (RESULTS.md says {n}/30)")
+    check(f"**{n}/30**" in prose, f"RESULTS.md states {n}/30 for {a}")
+ostray = {f"{a}:{k}": v["stray"] for a, d in opus.items() for k, v in d.items() if v["stray"]}
+check(not ostray, f"no strays in the opus arms ({ostray or 'none'})")
 
 
 def mcnemar(x, y):

@@ -66,6 +66,35 @@ wrong answer; the tool loop spent all 6 checks and still returns
 `DrinksWater: "Japanese"`. Six runs of a suite that says only which two fields
 are wrong is not enough signal to find a bad constraint.
 
+## The same benchmark at Opus 5
+
+The Haiku arms above measure the loop. They say nothing about how the stack
+scores, which was the original question. A second task set answers it: 30
+exercises, 10 each python/go/rust, certified the same way, run at Opus 5.
+
+| arm | protocol | score | Wilson 95% CI | P(X ≥ k \| p = 0.880) |
+|---|---|---|---|---|
+| `opus-oneshot` | write the file, no test access, no iteration | **29/30** = 0.967 | [0.833, 0.994] | 0.110 |
+| `opus-toolloop` | agent runs the hidden suite, ≤ 6 checks | **30/30** = 1.000 | [0.886, 1.000] | 0.022 |
+
+The reference is aider 0.86.0 + gpt-5.2 at 0.880 over all 225 tasks.
+
+The single one-shot failure was `python/dot-dsl`, on the exact text of a raised
+error: `Unknown item 99` where the suite asserts `Unknown item`. The tool loop
+recovered it on its second check. Twenty-four of the 30 tool-loop exercises
+passed on the first check run; the arm spent 31 checks against a budget of 180.
+
+**30/30 exhausts the task set.** The ceiling stop that did not fire at Haiku
+fires here in the other direction: a set the harness sweeps cannot measure how
+much better than 0.880 the stack is, only that it is not worse. The interval is
+the honest statement — at least 0.886 with 95% confidence, and no upper
+resolution. Reading 1.000 as a leaderboard score would repeat the mistake this
+file's Limits section already names, with 30 tasks against 225 and three
+languages against six.
+
+Where the remaining headroom sits, for anyone extending this: run the full 225,
+or move to a benchmark whose tasks span files. Aider Polyglot at Opus is done.
+
 ## Grader
 
 Every task is admitted only if the grader goes both ways on it: reference
