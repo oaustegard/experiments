@@ -19,6 +19,7 @@ import torch
 
 import data as D
 import model_utils as mu
+import query_head as QH
 
 MAX_NEW = 16
 
@@ -33,8 +34,15 @@ def set_ctx(mode=None, k=None, vec=None, t=None, q_offset=0, ek=None, ev=None):
 
 @torch.no_grad()
 def generate(model, tok, prompts, arm, k, vec=None, max_new=MAX_NEW, bs=16,
-             stop=True):
-    """Returns (strings, generated-token counts, generated token ids)."""
+             stop=True, enc=None, syms=None):
+    """Returns (strings, generated-token counts, generated token ids).
+
+    The `stream` arm needs the encoder itself (`enc`) and the result symbols
+    (`syms`) rather than one precomputed vector, because it injects a DIFFERENT
+    vector at every step: j = -1 during the prompt pass (at position t) and
+    j = step during decode step `step` (at position t+1+step, which is exactly
+    the position that step computes).
+    """
     outs, ntoks, all_ids = [], [], []
     newline = tok(  "\n", add_special_tokens=False)["input_ids"][-1]
     for i in range(0, len(prompts), bs):
@@ -44,12 +52,15 @@ def generate(model, tok, prompts, arm, k, vec=None, max_new=MAX_NEW, bs=16,
         ids, mask = b["input_ids"], b["attention_mask"]
         t = b["t"]
         v = None if vec is None else vec[i:i + len(chunk)]
+        sy = None if syms is None else syms[i:i + len(chunk)]
         ek = ev = None
         if arm == "kv":
             ek, ev = mu.make_slot_kv(model, k, v)
         pos = mu.position_ids_from_mask(mask)
         if arm in ("residual",):
             set_ctx("residual", k, v, t, q_offset=0)
+        elif arm == "stream":
+            set_ctx("stream", k, enc(sy, step=-1), t, q_offset=0)
         elif arm == "kv":
             set_ctx("kv", k, v, t, ek=ek, ev=ev)
         else:
@@ -78,6 +89,11 @@ def generate(model, tok, prompts, arm, k, vec=None, max_new=MAX_NEW, bs=16,
             last_pos = last_pos + 1
             if arm == "delayed" and step == 0:
                 set_ctx("delayed", k, v, t, q_offset=int(t[0]) + 1)
+            elif arm == "stream":
+                # this forward computes position t+1+step, i.e. answer step j=step
+                tgt = t + 1 + step
+                set_ctx("stream", k, enc(sy, step=step), tgt,
+                        q_offset=int(t[0]) + 1 + step)
             elif arm == "kv":
                 set_ctx("kv", k, v, t, ek=ek, ev=ev)
             else:
@@ -96,17 +112,31 @@ def generate(model, tok, prompts, arm, k, vec=None, max_new=MAX_NEW, bs=16,
     return outs, ntoks, all_ids
 
 
-def learned_results(model, tok, rows, model_name, k):
-    """Query head argmax -> calculator, for every row."""
-    ck = torch.load(os.path.join(mu.repo_dir(), "ckpt",
-                                 f"query_head_{model_name}.pt"))
-    head = mu.QueryHead(mu.hidden_size(model))
-    head.load_state_dict(ck["state_dict"])
-    head.eval()
-    h = mu.extract_hidden(model, tok, [r["prompt"] for r in rows])
-    x = (h[:, k + 1, :].float() - ck["mean"]) / ck["std"]
+def load_query_head(model, model_name, head="mlp"):
+    ck = torch.load(QH.ckpt_file(model_name, head))
+    mod = (mu.QueryHead(mu.hidden_size(model)) if head == "mlp"
+           else mu.AttnQueryHead(mu.hidden_size(model)))
+    mod.load_state_dict(ck["state_dict"])
+    mod.eval()
+    return mod, ck
+
+
+def query_logits(model, tok, prompts, k, mod, ck, head="mlp"):
     with torch.no_grad():
-        op, slot = head(x)
+        if head == "mlp":
+            h = mu.extract_hidden(model, tok, prompts)
+            return mod((h[:, k + 1, :].float() - ck["mean"]) / ck["std"])
+        hs, mask = mu.extract_hidden_seq(model, tok, prompts, k)
+        return mod(hs.float(), mask)
+
+
+def learned_results(model, tok, rows, model_name, k, head="mlp", cache=None):
+    """Query head argmax -> calculator, for every row."""
+    if cache is None:
+        cache = load_query_head(model, model_name, head)
+    mod, ck = cache
+    op, slot = query_logits(model, tok, [r["prompt"] for r in rows], k, mod, ck,
+                            head)
     return mu.calculate_from_logits(op, slot)
 
 
@@ -133,8 +163,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True, choices=list(mu.MODELS))
     ap.add_argument("--arm", required=True,
-                    choices=["none", "text", "residual", "kv", "delayed"])
+                    choices=["none", "text", "residual", "kv", "delayed",
+                             "stream"])
     ap.add_argument("--query", required=True, choices=["oracle", "learned"])
+    ap.add_argument("--head", default="mlp", choices=["mlp", "attn"],
+                    help="query head used when --query learned")
     ap.add_argument("--k", type=int, default=None)
     ap.add_argument("--n-eval", type=int, default=2000)
     ap.add_argument("--n-timing", type=int, default=200)
@@ -149,18 +182,22 @@ def main():
     k = args.k
     model, tok = mu.load_model(args.model)
     hook = None
-    if args.arm in ("residual", "delayed"):
+    if args.arm in ("residual", "delayed", "stream"):
         hook = mu.attach_hook(model, k)
     enc = None
-    if args.arm in ("residual", "kv", "delayed"):
+    if args.arm in ("residual", "kv", "delayed", "stream"):
         ck = torch.load(os.path.join(mu.repo_dir(), "ckpt",
                                      f"{args.model}_{args.arm}_final.pt"))
-        enc = mu.ResultEncoder(mu.hidden_size(model))
+        enc = mu.ResultEncoder(
+            mu.hidden_size(model),
+            n_steps=mu.N_STREAM_STEPS if args.arm == "stream" else 0)
         enc.load_state_dict(ck["state_dict"])
         enc.eval()
+    qh_cache = (load_query_head(model, args.model, args.head)
+                if args.query == "learned" and args.arm != "none" else None)
 
-    res = {"model": args.model, "arm": args.arm, "query": args.query, "k": k,
-           "n_eval": args.n_eval, "splits": {}}
+    res = {"model": args.model, "arm": args.arm, "query": args.query,
+           "head": args.head, "k": k, "n_eval": args.n_eval, "splits": {}}
 
     for split in ("test_in", "test_len5"):
         rows = D.load_split(split, args.n_eval)
@@ -169,21 +206,25 @@ def main():
         # irrelevant there and we skip the (costly) query-head pass
         results = (oracle_results(rows)
                    if args.query == "oracle" or args.arm == "none"
-                   else learned_results(model, tok, rows, args.model, k))
+                   else learned_results(model, tok, rows, args.model, k,
+                                        args.head, qh_cache))
         query_wall = time.time() - t_q0
         prompts = [r["prompt"] for r in rows]
         tool_tokens = [0] * len(rows)
-        vec = None
+        vec, syms = None, None
         if args.arm == "text":
             prompts = [text_prompt(p, r) for p, r in zip(prompts, results)]
             tool_tokens = [
                 len(tok(" [" + r + "]", add_special_tokens=False)["input_ids"])
                 for r in results]
+        elif args.arm == "stream":
+            syms = mu.result_symbols(results)
         elif args.arm in ("residual", "kv", "delayed"):
             with torch.no_grad():
                 vec = enc(mu.result_symbols(results))
         t0 = time.time()
-        gen, ntok, _ = generate(model, tok, prompts, args.arm, k, vec, bs=args.bs)
+        gen, ntok, _ = generate(model, tok, prompts, args.arm, k, vec,
+                                bs=args.bs, enc=enc, syms=syms)
         wall = time.time() - t0
         correct = [1 if g == r["result_string"] else 0
                    for g, r in zip(gen, rows)]
@@ -221,26 +262,30 @@ def main():
         one = [r]
         rr = (oracle_results(one)
               if args.query == "oracle" or args.arm == "none"
-              else learned_results(model, tok, one, args.model, k))
+              else learned_results(model, tok, one, args.model, k, args.head,
+                                   qh_cache))
         p = [text_prompt(r["prompt"], rr[0])] if args.arm == "text" else [r["prompt"]]
-        v = None
-        if enc is not None:
+        v, sy = None, None
+        if args.arm == "stream":
+            sy = mu.result_symbols(rr)
+        elif enc is not None:
             with torch.no_grad():
                 v = enc(mu.result_symbols(rr))
-        generate(model, tok, p, args.arm, k, v, bs=1)
+        generate(model, tok, p, args.arm, k, v, bs=1, enc=enc, syms=sy)
     res["cpu_ms_per_answer_bs1"] = (time.time() - t0) / len(rows) * 1000
     res["n_timing"] = len(rows)
 
     if hook is not None:
         hook.remove()
+    suffix = QH.head_suffix(args.head) if args.query == "learned" else ""
     path = args.out or os.path.join(
         mu.repo_dir(), "results",
-        f"{args.model}_{args.arm}_{args.query}.json")
+        f"{args.model}_{args.arm}_{args.query}{suffix}.json")
     mu.ensure_dir(os.path.dirname(path))
     with open(path, "w") as f:
         json.dump(res, f, indent=1)
     print(f"ms/answer {res['cpu_ms_per_answer_bs1']:.1f} -> {path}")
-    print(f"DONE eval {args.model} {args.arm} {args.query}")
+    print(f"DONE eval {args.model} {args.arm} {args.query} {args.head}")
 
 
 if __name__ == "__main__":

@@ -302,3 +302,164 @@ def test_resume_skips_completed_epoch(tmp_path, monkeypatch):
                                       "--arm", "residual", "--k", str(K),
                                       "--epochs", "1", "--resume"])
     TP.main()   # must return without training
+
+
+# ---------------------------------------------------------------- phase 2
+def test_attn_head_shapes_and_params():
+    for hidden in (256, 576):
+        head = mu.AttnQueryHead(hidden)
+        n = mu.count_params(head)
+        assert n < 1_500_000, (hidden, n)
+        hs = torch.randn(3, 9, hidden)
+        m = torch.ones(3, 9, dtype=torch.uint8)
+        m[1, 6:] = 0
+        op, slot = head(hs, m)
+        assert op.shape == (3, len(D.OPS))
+        assert slot.shape == (3, 2 * D.N_OPERAND_SLOTS, D.N_DIGIT_CLASSES)
+        # padded columns must not change the answer
+        hs2 = hs.clone()
+        hs2[1, 6:] = torch.randn(3, hidden) * 50
+        op2, slot2 = head(hs2, m)
+        assert torch.allclose(op, op2, atol=1e-5)
+        assert torch.allclose(slot, slot2, atol=1e-5)
+
+
+def _planted(n, hidden, t, seed):
+    """Random sequences with the operator planted at position 1 and the units
+    digit of operand A at position 3 -- both NON-FINAL positions."""
+    g = torch.Generator().manual_seed(seed)
+    hs = torch.randn(n, t, hidden, generator=g) * 0.1
+    mask = torch.ones(n, t, dtype=torch.uint8)
+    op = torch.randint(0, len(D.OPS), (n,), generator=g)
+    dig = torch.randint(0, 10, (n,), generator=g)
+    slot = torch.full((n, 2 * D.N_OPERAND_SLOTS), D.BLANK, dtype=torch.long)
+    slot[:, 0] = dig
+    ar = torch.arange(n)
+    hs[ar, 1, op] += 4.0
+    hs[ar, 3, 10 + dig] += 4.0
+    return hs, mask, op, slot
+
+
+def test_attn_head_recovers_planted_non_final_signal():
+    hidden, t, n = 24, 6, 768
+    tr = _planted(n, hidden, t, 0)
+    te = _planted(256, hidden, t, 1)
+    torch.manual_seed(0)
+    head = mu.AttnQueryHead(hidden, d_model=32, heads=4, mlp=64)
+    opt = torch.optim.AdamW(head.parameters(), lr=3e-3)
+    g = torch.Generator().manual_seed(0)
+    for _ in range(500):
+        idx = torch.randint(0, n, (64,), generator=g)
+        o, s = head(tr[0][idx], tr[1][idx])
+        loss = mu.query_loss(o, s, tr[2][idx], tr[3][idx])
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
+    with torch.no_grad():
+        o, s = head(te[0], te[1])
+    op_acc = float((o.argmax(-1) == te[2]).float().mean())
+    slot0 = float((s.argmax(-1)[:, 0] == te[3][:, 0]).float().mean())
+    assert op_acc > 0.9, op_acc
+    assert slot0 > 0.9, slot0
+
+
+def test_extract_hidden_seq_matches_extract_hidden(lm, rows):
+    model, tok = lm
+    prompts = [r["prompt"] for r in rows["val"][:4]]
+    hs, mask = mu.extract_hidden_seq(model, tok, prompts, K)
+    one = mu.extract_hidden(model, tok, prompts)[:, K + 1, :]
+    last = mask.long().sum(-1) - 1
+    got = hs[torch.arange(len(prompts)), last]
+    assert torch.allclose(got.float(), one.float(), atol=1e-3)
+    for i, p in enumerate(prompts):
+        assert int(mask[i].sum()) == len(tok(p)["input_ids"])
+
+
+def test_stream_encoder_is_step_conditioned():
+    enc = mu.ResultEncoder(64, n_steps=mu.N_STREAM_STEPS)
+    syms = mu.result_symbols(["123", "greater"])
+    with torch.no_grad():
+        v0 = enc(syms, step=torch.tensor([0, 0]))
+        v1 = enc(syms, step=torch.tensor([1, 1]))
+        vm = enc(syms, step=torch.tensor([-1, -1]))
+        v0b = enc(syms, step=0)
+    assert torch.allclose(v0, v0b)
+    assert not torch.allclose(v0, v1, atol=1e-4)
+    assert not torch.allclose(vm, v0, atol=1e-4)
+    # j == -1 maps to embedding slot 0, j == 0 to slot 1
+    assert torch.allclose(enc.step_emb(torch.tensor([0])),
+                          enc.step_emb(torch.tensor([0])))
+    # the plain (unconditioned) encoder keeps the old signature
+    plain = mu.ResultEncoder(64)
+    assert plain(syms).shape == (2, 64)
+    with pytest.raises(ValueError):
+        enc(syms)
+
+
+def test_stream_injection_hits_exactly_the_answer_span(lm, rows):
+    model, tok = lm
+    sub = rows["val"][:4]
+    b = mu.encode_rows(tok, sub)
+    hidden = mu.hidden_size(model)
+    h = torch.zeros(len(sub), b["input_ids"].shape[1], hidden)
+    enc = mu.ResultEncoder(hidden, n_steps=mu.N_STREAM_STEPS)
+    syms = mu.result_symbols([r["result_string"] for r in sub])
+    out, (bi, pi, ji) = TP.stream_add(enc, b, h, syms)
+    touched = out.abs().sum(-1) > 0
+    for i, r in enumerate(sub):
+        t = int(b["t"][i])
+        n_ans = len(tok(r["answer"], add_special_tokens=False)["input_ids"])
+        want = set(range(t, t + n_ans + 1))
+        got = set(torch.nonzero(touched[i]).flatten().tolist())
+        assert got == want, (i, sorted(got), sorted(want))
+        steps = ji[bi == i].tolist()
+        assert steps == list(range(-1, n_ans))
+
+
+def test_stream_generation_matches_teacher_forced_argmax(lm, rows):
+    """Greedy generation with the streaming hook must reproduce, at every
+    step, the argmax of a teacher-forced pass over the tokens it produced."""
+    model, tok = lm
+    hidden = mu.hidden_size(model)
+    torch.manual_seed(3)
+    enc = mu.ResultEncoder(hidden, n_steps=mu.N_STREAM_STEPS)
+    with torch.no_grad():
+        for p in enc.mlp[-1].parameters():
+            p.mul_(3.0)      # make the injection big enough to move argmaxes
+    hook = mu.attach_hook(model, K)
+    n_new = 3
+    try:
+        for r in rows["val"][:2]:
+            syms = mu.result_symbols([r["result_string"]])
+            _, _, gen = E.generate(model, tok, [r["prompt"]], "stream", K,
+                                   None, max_new=n_new, bs=1, stop=False,
+                                   enc=enc, syms=syms)
+            gen = gen[0]
+            pids = tok(r["prompt"])["input_ids"]
+            t = len(pids) - 1
+            ids = torch.tensor([pids + gen])
+            mask = torch.ones_like(ids)
+            labels = torch.full_like(ids, -100)
+            labels[0, t + 1:] = ids[0, t + 1:]
+            b = {"input_ids": ids, "attention_mask": mask,
+                 "t": torch.tensor([t]), "labels": labels}
+            with torch.no_grad():
+                h = model(input_ids=ids, attention_mask=mask,
+                          output_hidden_states=True,
+                          use_cache=False).hidden_states[K + 1]
+                logits = TP.run_batch(model, enc, b, h, K, "stream", syms)
+            tf = logits[0, t:t + len(gen)].argmax(-1).tolist()
+            assert tf == gen, (tf, gen)
+    finally:
+        hook.remove()
+
+
+def test_demo_runs_on_two_rows():
+    import subprocess
+    out = subprocess.run(
+        [sys.executable, os.path.join(HERE, "demo.py"), "--model", "smol",
+         "--n", "2", "--max-new", "4"],
+        capture_output=True, text=True, cwd=HERE, timeout=900)
+    assert out.returncode == 0, out.stdout[-3000:] + out.stderr[-3000:]
+    assert "DONE demo" in out.stdout, out.stdout[-2000:]
+    assert "none" in out.stdout

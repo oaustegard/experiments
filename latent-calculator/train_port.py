@@ -8,6 +8,10 @@ is n_rows * seq_len * H * 2 bytes -- 20k * ~24 * 256 * 2 = 0.25 GB for Monad and
 0.55 GB for SmolLM2, so the cache stays in memory rather than on disk (a resumed
 run simply rebuilds it, which costs one lower-stack pass).
 
+The `stream` arm scatters ResultEncoder(result, j) into the cached tensor at
+(b, t_b + 1 + j) for j = -1..J_b-1, one encoder call per (row, step) pair --
+the same positions the generation-time hook writes to, step by step (tested).
+
 For the residual/delayed arms the injection during training is a direct add into
 the cached layer-k hidden at position t (residual) or t+1 (delayed) -- exactly
 what the forward hook does at eval time (tested).  The kv arm uses the
@@ -82,7 +86,25 @@ def make_batch(tok, rows, cache, idx, hidden):
     return b, h
 
 
+def stream_add(enc, b, h, syms):
+    """Add ResultEncoder(result, j) at positions t (j=-1) .. t+J (j=J-1).
+
+    j = -1 lands on the query position itself so the first answer token is not
+    generated blind; j = 0..J-1 land on the teacher-forced answer tokens.
+    Returns the modified hidden and the (b_idx, p_idx, j_idx) it touched.
+    """
+    lens = mu.answer_lengths(b["labels"])
+    bi, pi, ji = mu.stream_index(b["t"], lens, h.shape[1])
+    vecs = enc(syms[bi], step=ji)
+    h = h.clone()
+    h.index_put_((bi, pi), vecs, accumulate=True)
+    return h, (bi, pi, ji)
+
+
 def run_batch(model, enc, b, h, k, arm, syms):
+    if arm == "stream":
+        h, _ = stream_add(enc, b, h, syms)
+        return mu.forward_upper(model, h, b["attention_mask"], k + 1)
     vec = enc(syms)
     if arm in ("residual", "delayed"):
         off = 1 if arm == "delayed" else 0
@@ -124,7 +146,8 @@ def evaluate(model, tok, enc, rows, cache, k, arm, hidden, bs=32):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True, choices=list(mu.MODELS))
-    ap.add_argument("--arm", required=True, choices=["residual", "kv", "delayed"])
+    ap.add_argument("--arm", required=True,
+                    choices=["residual", "kv", "delayed", "stream"])
     ap.add_argument("--k", type=int, default=None)
     ap.add_argument("--epochs", type=int, default=3)
     ap.add_argument("--batch", type=int, default=32)
@@ -144,7 +167,8 @@ def main():
 
     model, tok = mu.load_model(args.model)
     hidden = mu.hidden_size(model)
-    enc = mu.ResultEncoder(hidden)
+    enc = mu.ResultEncoder(
+        hidden, n_steps=mu.N_STREAM_STEPS if args.arm == "stream" else 0)
     print(f"encoder params: {mu.count_params(enc)}", flush=True)
 
     done = read_journal(args.model, args.arm) if args.resume else {}

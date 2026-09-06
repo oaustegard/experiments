@@ -6,6 +6,12 @@ residual : encoder vector is added to the residual stream at the OUTPUT of
            decoder layer k (== input of layer k+1) at the query position t.
 delayed  : identical, but at position t+1 (first answer token under teacher
            forcing / first decode step during generation).
+stream   : the encoder is step-conditioned and its vector is added to the
+           residual stream after layer k at EVERY answer position -- j = -1 at
+           the query position t (so the first answer token is not generated
+           blind) and j = 0..J-1 at t+1+j.  Phase 1 showed the single-shot
+           read decaying with digit count; this gives the upper stack one
+           vector per token it has to emit.
 kv       : one extra key/value slot appended to layer k+1's attention.  K and V
            are produced by running the encoder vector through layer k+1's own
            input_layernorm / k_proj / v_proj.  NO RoPE is applied to the slot
@@ -59,6 +65,8 @@ class InjectionContext:
         self.extra_v = None
 
     def target_positions(self):
+        # 'stream' sets ctx.t to the position it wants for the current step,
+        # so it shares the plain-residual target rule.
         return self.t + 1 if self.mode == "delayed" else self.t
 
 
@@ -125,7 +133,7 @@ if "latent_slot" not in ALL_MASK_ATTENTION_FUNCTIONS:
 
 def _residual_hook(module, args, output):
     ctx = _CTX
-    if not ctx.enabled or ctx.mode not in ("residual", "delayed"):
+    if not ctx.enabled or ctx.mode not in ("residual", "delayed", "stream"):
         return None
     h = output[0] if isinstance(output, tuple) else output
     tgt = ctx.target_positions().to(h.device) - ctx.q_offset
@@ -291,6 +299,35 @@ def extract_hidden(model, tok, prompts, layers="all", batch_size=32, verbose=Fal
     return res
 
 
+@torch.no_grad()
+def extract_hidden_seq(model, tok, prompts, k, batch_size=32, verbose=False):
+    """Layer-k hidden states at EVERY prompt position.
+
+    Returns (h, mask): h is fp16 [N, T, H] RIGHT-padded to the longest prompt
+    in `prompts`, mask is uint8 [N, T].  k == -1 is the embedding output.
+    The single-vector `extract_hidden` gathers position t out of exactly this
+    tensor; the attn query head needs the whole row because the operand digits
+    live at their own token positions, not at t.
+    """
+    rows = [{"prompt": p, "answer": ""} for p in prompts]
+    tmax = max(len(tok(p)["input_ids"]) for p in prompts)
+    hs = torch.zeros((len(rows), tmax, hidden_size(model)), dtype=torch.float16)
+    mask = torch.zeros((len(rows), tmax), dtype=torch.uint8)
+    for i in range(0, len(rows), batch_size):
+        chunk = rows[i:i + batch_size]
+        b = encode_rows(tok, chunk, with_answer=False)
+        res = model(input_ids=b["input_ids"], attention_mask=b["attention_mask"],
+                    output_hidden_states=True, use_cache=False)
+        h = res.hidden_states[k + 1]                       # [B, t_b, H]
+        n = h.shape[1]
+        hs[i:i + len(chunk), :n] = h.to(torch.float16)
+        mask[i:i + len(chunk), :n] = b["attention_mask"].to(torch.uint8)
+        if verbose and (i // batch_size) % 20 == 0:
+            print(f"  extract_seq {i}/{len(rows)}", flush=True)
+    hs = hs * mask.unsqueeze(-1)          # zero the pad columns
+    return hs, mask
+
+
 # --------------------------------------------------------------------------
 # trainable heads
 # --------------------------------------------------------------------------
@@ -317,6 +354,55 @@ class QueryHead(nn.Module):
         return op, rest
 
 
+MAX_PROMPT_POS = 64          # absolute-position table size for the attn head
+
+
+class AttnQueryHead(nn.Module):
+    """Cross-attention readout of the query over ALL layer-k prompt positions.
+
+    13 learned query vectors (1 operator + 12 digit slots: operand A slots 0-5
+    then operand B slots 0-5, right-aligned) attend over the layer-k hidden
+    states of the whole prompt.  Keys carry BOTH an absolute position embedding
+    (distance from the start) and a relative one (distance back from the last
+    prompt token), because a right-aligned slot has to be counted from the end
+    of its operand while the operator and the operand boundary are found from
+    the front.  Values carry no position.  One shared MLP trunk then maps each
+    of the 13 attended vectors to its logits.
+    """
+
+    def __init__(self, hidden, d_model=128, heads=4, mlp=512,
+                 max_pos=MAX_PROMPT_POS):
+        super().__init__()
+        self.n_slots = 2 * N_OPERAND_SLOTS
+        self.max_pos = max_pos
+        self.in_proj = nn.Linear(hidden, d_model)
+        self.in_norm = nn.LayerNorm(d_model)
+        self.pos_abs = nn.Embedding(max_pos, d_model)
+        self.pos_rel = nn.Embedding(max_pos, d_model)
+        self.queries = nn.Parameter(torch.randn(1 + self.n_slots, d_model) * 0.02)
+        self.attn = nn.MultiheadAttention(d_model, heads, batch_first=True)
+        self.trunk = nn.Sequential(nn.LayerNorm(d_model),
+                                   nn.Linear(d_model, mlp), nn.GELU())
+        self.op_head = nn.Linear(mlp, len(OPS))
+        self.slot_head = nn.Linear(mlp, N_DIGIT_CLASSES)
+
+    def forward(self, hs, mask):
+        """hs: [B, T, H] layer-k hiddens; mask: [B, T] 1 on real tokens."""
+        b, t, _ = hs.shape
+        mask = mask.to(hs.device)
+        x = self.in_norm(self.in_proj(hs))
+        ar = torch.arange(t, device=hs.device)
+        last = mask.long().sum(-1) - 1                      # [B]
+        abs_i = ar.clamp(max=self.max_pos - 1)
+        rel_i = (last.view(-1, 1) - ar.view(1, -1)).clamp(0, self.max_pos - 1)
+        keys = x + self.pos_abs(abs_i).unsqueeze(0) + self.pos_rel(rel_i)
+        q = self.queries.unsqueeze(0).expand(b, -1, -1)
+        out, _ = self.attn(q, keys, x, key_padding_mask=(mask == 0),
+                           need_weights=False)
+        h = self.trunk(out)
+        return self.op_head(h[:, 0]), self.slot_head(h[:, 1:])
+
+
 def query_loss(op_logits, slot_logits, op_t, slot_t):
     lo = nn.functional.cross_entropy(op_logits, op_t)
     ls = nn.functional.cross_entropy(
@@ -334,21 +420,72 @@ N_RESULT_TOKENS = N_RESULT_SLOTS + 2     # 12 digits + sign + kind
 class ResultEncoder(nn.Module):
     """Structured result -> a single vector in the model's hidden space."""
 
-    def __init__(self, hidden, emb=32, mlp=512):
+    def __init__(self, hidden, emb=32, mlp=512, n_steps=0):
         super().__init__()
+        self.n_steps = n_steps
         self.emb = nn.Embedding(RESULT_VOCAB, emb)
         self.pos = nn.Embedding(N_RESULT_TOKENS, emb)
+        din = N_RESULT_TOKENS * 2 * emb
+        if n_steps:
+            # step conditioning for the `stream` arm: one extra embedding
+            # concatenated before the MLP.  The digit/sign/kind half is
+            # untouched, so the arm differs from `residual` only in WHERE and
+            # HOW OFTEN the vector lands.
+            self.step_emb = nn.Embedding(n_steps, emb)
+            din += emb
         self.mlp = nn.Sequential(
-            nn.Linear(N_RESULT_TOKENS * 2 * emb, mlp), nn.GELU(),
+            nn.Linear(din, mlp), nn.GELU(),
             nn.Linear(mlp, hidden))
 
-    def forward(self, symbols):
-        """symbols: [B, N_RESULT_TOKENS] long (already offset-encoded)."""
+    def forward(self, symbols, step=None):
+        """symbols: [B, N_RESULT_TOKENS] long (already offset-encoded).
+
+        step: [B] long answer-step index for the stream arm.  j == -1 (the
+        query position itself) maps to embedding slot 0, j == 0.. to 1...
+        """
         b = symbols.shape[0]
         e = self.emb(symbols)
         p = self.pos(torch.arange(N_RESULT_TOKENS, device=symbols.device))
         x = torch.cat([e, p.unsqueeze(0).expand(b, -1, -1)], dim=-1)
-        return self.mlp(x.reshape(b, -1))
+        x = x.reshape(b, -1)
+        if self.n_steps:
+            if step is None:
+                raise ValueError("step-conditioned ResultEncoder needs `step`")
+            if not torch.is_tensor(step):
+                step = torch.full((b,), int(step), dtype=torch.long)
+            idx = (step.to(torch.long) + 1).clamp(0, self.n_steps - 1)
+            x = torch.cat([x, self.step_emb(idx.to(symbols.device))], dim=-1)
+        return self.mlp(x)
+
+
+N_STREAM_STEPS = 20          # step-embedding table size (j = -1 .. 18)
+
+
+def stream_index(t, answer_lens, tmax):
+    """Positions and step ids for the `stream` arm.
+
+    For each row: j = -1 at the query position t (so the FIRST answer token is
+    not generated blind) and j = 0..J-1 at t+1+j, the teacher-forced answer
+    token positions.  Returns (b_idx, p_idx, j_idx) long tensors, already
+    clipped to tmax.
+    """
+    bs, ps, js = [], [], []
+    for i in range(len(t)):
+        ti = int(t[i])
+        for j in range(-1, int(answer_lens[i])):
+            pos = ti + 1 + j
+            if 0 <= pos < tmax:
+                bs.append(i)
+                ps.append(pos)
+                js.append(j)
+    return (torch.tensor(bs, dtype=torch.long),
+            torch.tensor(ps, dtype=torch.long),
+            torch.tensor(js, dtype=torch.long))
+
+
+def answer_lengths(labels):
+    """Per-row count of teacher-forced answer tokens (labels != -100)."""
+    return (labels != -100).sum(-1)
 
 
 def result_symbols(result_strings):
