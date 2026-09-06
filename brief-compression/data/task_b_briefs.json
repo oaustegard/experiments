@@ -1,0 +1,2282 @@
+{
+ "b69412f": {
+  "cell": "prose_haiku_00",
+  "style": "prose",
+  "model": "haiku",
+  "i": 0,
+  "dir": "/tmp/bc/runs_b/b69412f",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b69412f/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b69412f/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b69412f/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b69412f ok N\" to the existing file /tmp/bc/runs_b/b69412f/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 283,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 49,
+   "top": [
+    [
+     "jo",
+     30545
+    ],
+    [
+     "finn",
+     20480
+    ],
+    [
+     "dee",
+     19004
+    ],
+    [
+     "Svc_ops",
+     18650
+    ],
+    [
+     "ivy",
+     13884
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c6c3fc9cd7eb77acadd5685d3dad5db4a0e2247622c5951d44c440ec253c9feb"
+  }
+ },
+ "bb83186": {
+  "cell": "prose_sonnet_00",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 0,
+  "dir": "/tmp/bc/runs_b/bb83186",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bb83186/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bb83186/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bb83186/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bb83186 ok N\" to the existing file /tmp/bc/runs_b/bb83186/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 282,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 49,
+   "top": [
+    [
+     "jo",
+     30545
+    ],
+    [
+     "finn",
+     20480
+    ],
+    [
+     "dee",
+     19004
+    ],
+    [
+     "Svc_ops",
+     18650
+    ],
+    [
+     "ivy",
+     13884
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c6c3fc9cd7eb77acadd5685d3dad5db4a0e2247622c5951d44c440ec253c9feb"
+  }
+ },
+ "b15dbf1": {
+  "cell": "telegraphic_haiku_00",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 0,
+  "dir": "/tmp/bc/runs_b/b15dbf1",
+  "brief": "Usagereport from /tmp/bc/runs_b/b15dbf1/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b15dbf1/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b15dbf1/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b15dbf1 ok N\" existing /tmp/bc/runs_b/b15dbf1/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 179,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 49,
+   "top": [
+    [
+     "jo",
+     30545
+    ],
+    [
+     "finn",
+     20480
+    ],
+    [
+     "dee",
+     19004
+    ],
+    [
+     "Svc_ops",
+     18650
+    ],
+    [
+     "ivy",
+     13884
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c6c3fc9cd7eb77acadd5685d3dad5db4a0e2247622c5951d44c440ec253c9feb"
+  }
+ },
+ "b5f178d": {
+  "cell": "telegraphic_sonnet_00",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 0,
+  "dir": "/tmp/bc/runs_b/b5f178d",
+  "brief": "Usagereport from /tmp/bc/runs_b/b5f178d/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b5f178d/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b5f178d/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b5f178d ok N\" existing /tmp/bc/runs_b/b5f178d/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 179,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 49,
+   "top": [
+    [
+     "jo",
+     30545
+    ],
+    [
+     "finn",
+     20480
+    ],
+    [
+     "dee",
+     19004
+    ],
+    [
+     "Svc_ops",
+     18650
+    ],
+    [
+     "ivy",
+     13884
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c6c3fc9cd7eb77acadd5685d3dad5db4a0e2247622c5951d44c440ec253c9feb"
+  }
+ },
+ "b6ccf63": {
+  "cell": "structured_haiku_00",
+  "style": "structured",
+  "model": "haiku",
+  "i": 0,
+  "dir": "/tmp/bc/runs_b/b6ccf63",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b6ccf63/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b6ccf63/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b6ccf63/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b6ccf63 ok N\" to existing /tmp/bc/runs_b/b6ccf63/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 49,
+   "top": [
+    [
+     "jo",
+     30545
+    ],
+    [
+     "finn",
+     20480
+    ],
+    [
+     "dee",
+     19004
+    ],
+    [
+     "Svc_ops",
+     18650
+    ],
+    [
+     "ivy",
+     13884
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c6c3fc9cd7eb77acadd5685d3dad5db4a0e2247622c5951d44c440ec253c9feb"
+  }
+ },
+ "bcc086b": {
+  "cell": "structured_sonnet_00",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 0,
+  "dir": "/tmp/bc/runs_b/bcc086b",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/bcc086b/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/bcc086b/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/bcc086b/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"bcc086b ok N\" to existing /tmp/bc/runs_b/bcc086b/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 213,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 49,
+   "top": [
+    [
+     "jo",
+     30545
+    ],
+    [
+     "finn",
+     20480
+    ],
+    [
+     "dee",
+     19004
+    ],
+    [
+     "Svc_ops",
+     18650
+    ],
+    [
+     "ivy",
+     13884
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c6c3fc9cd7eb77acadd5685d3dad5db4a0e2247622c5951d44c440ec253c9feb"
+  }
+ },
+ "bf3c464": {
+  "cell": "prose_haiku_01",
+  "style": "prose",
+  "model": "haiku",
+  "i": 1,
+  "dir": "/tmp/bc/runs_b/bf3c464",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bf3c464/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bf3c464/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bf3c464/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bf3c464 ok N\" to the existing file /tmp/bc/runs_b/bf3c464/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 287,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 47,
+   "top": [
+    [
+     "jo",
+     21464
+    ],
+    [
+     "eve",
+     16230
+    ],
+    [
+     "hal",
+     15667
+    ],
+    [
+     "finn",
+     15452
+    ],
+    [
+     "bob",
+     14402
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c112b55924fd18d315942945fe5fcbf61ee84c3dc9ead44faaef129397971c21"
+  }
+ },
+ "b91ba45": {
+  "cell": "prose_sonnet_01",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 1,
+  "dir": "/tmp/bc/runs_b/b91ba45",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b91ba45/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b91ba45/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b91ba45/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b91ba45 ok N\" to the existing file /tmp/bc/runs_b/b91ba45/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 283,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 47,
+   "top": [
+    [
+     "jo",
+     21464
+    ],
+    [
+     "eve",
+     16230
+    ],
+    [
+     "hal",
+     15667
+    ],
+    [
+     "finn",
+     15452
+    ],
+    [
+     "bob",
+     14402
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c112b55924fd18d315942945fe5fcbf61ee84c3dc9ead44faaef129397971c21"
+  }
+ },
+ "bbb9aac": {
+  "cell": "telegraphic_haiku_01",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 1,
+  "dir": "/tmp/bc/runs_b/bbb9aac",
+  "brief": "Usagereport from /tmp/bc/runs_b/bbb9aac/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/bbb9aac/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/bbb9aac/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"bbb9aac ok N\" existing /tmp/bc/runs_b/bbb9aac/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 173,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 47,
+   "top": [
+    [
+     "jo",
+     21464
+    ],
+    [
+     "eve",
+     16230
+    ],
+    [
+     "hal",
+     15667
+    ],
+    [
+     "finn",
+     15452
+    ],
+    [
+     "bob",
+     14402
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c112b55924fd18d315942945fe5fcbf61ee84c3dc9ead44faaef129397971c21"
+  }
+ },
+ "b6abef7": {
+  "cell": "telegraphic_sonnet_01",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 1,
+  "dir": "/tmp/bc/runs_b/b6abef7",
+  "brief": "Usagereport from /tmp/bc/runs_b/b6abef7/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b6abef7/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b6abef7/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b6abef7 ok N\" existing /tmp/bc/runs_b/b6abef7/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 179,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 47,
+   "top": [
+    [
+     "jo",
+     21464
+    ],
+    [
+     "eve",
+     16230
+    ],
+    [
+     "hal",
+     15667
+    ],
+    [
+     "finn",
+     15452
+    ],
+    [
+     "bob",
+     14402
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c112b55924fd18d315942945fe5fcbf61ee84c3dc9ead44faaef129397971c21"
+  }
+ },
+ "b6430b8": {
+  "cell": "structured_haiku_01",
+  "style": "structured",
+  "model": "haiku",
+  "i": 1,
+  "dir": "/tmp/bc/runs_b/b6430b8",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b6430b8/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b6430b8/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b6430b8/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b6430b8 ok N\" to existing /tmp/bc/runs_b/b6430b8/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 47,
+   "top": [
+    [
+     "jo",
+     21464
+    ],
+    [
+     "eve",
+     16230
+    ],
+    [
+     "hal",
+     15667
+    ],
+    [
+     "finn",
+     15452
+    ],
+    [
+     "bob",
+     14402
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c112b55924fd18d315942945fe5fcbf61ee84c3dc9ead44faaef129397971c21"
+  }
+ },
+ "b3ec0e1": {
+  "cell": "structured_sonnet_01",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 1,
+  "dir": "/tmp/bc/runs_b/b3ec0e1",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b3ec0e1/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b3ec0e1/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b3ec0e1/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b3ec0e1 ok N\" to existing /tmp/bc/runs_b/b3ec0e1/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 224,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 47,
+   "top": [
+    [
+     "jo",
+     21464
+    ],
+    [
+     "eve",
+     16230
+    ],
+    [
+     "hal",
+     15667
+    ],
+    [
+     "finn",
+     15452
+    ],
+    [
+     "bob",
+     14402
+    ]
+   ],
+   "top_user": "jo",
+   "sha256": "c112b55924fd18d315942945fe5fcbf61ee84c3dc9ead44faaef129397971c21"
+  }
+ },
+ "bf50415": {
+  "cell": "prose_haiku_02",
+  "style": "prose",
+  "model": "haiku",
+  "i": 2,
+  "dir": "/tmp/bc/runs_b/bf50415",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bf50415/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bf50415/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bf50415/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bf50415 ok N\" to the existing file /tmp/bc/runs_b/bf50415/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 282,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "bob",
+     20095
+    ],
+    [
+     "eve",
+     18462
+    ],
+    [
+     "ivy",
+     16102
+    ],
+    [
+     "gus",
+     15439
+    ],
+    [
+     "ada",
+     14678
+    ]
+   ],
+   "top_user": "bob",
+   "sha256": "136cc004cd24ad256fac9a2efa2cc4d5e74dd8096fff97af3ba8e76ac712baad"
+  }
+ },
+ "b6146ce": {
+  "cell": "prose_sonnet_02",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 2,
+  "dir": "/tmp/bc/runs_b/b6146ce",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b6146ce/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b6146ce/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b6146ce/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b6146ce ok N\" to the existing file /tmp/bc/runs_b/b6146ce/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 283,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "bob",
+     20095
+    ],
+    [
+     "eve",
+     18462
+    ],
+    [
+     "ivy",
+     16102
+    ],
+    [
+     "gus",
+     15439
+    ],
+    [
+     "ada",
+     14678
+    ]
+   ],
+   "top_user": "bob",
+   "sha256": "136cc004cd24ad256fac9a2efa2cc4d5e74dd8096fff97af3ba8e76ac712baad"
+  }
+ },
+ "b50a0fc": {
+  "cell": "telegraphic_haiku_02",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 2,
+  "dir": "/tmp/bc/runs_b/b50a0fc",
+  "brief": "Usagereport from /tmp/bc/runs_b/b50a0fc/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b50a0fc/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b50a0fc/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b50a0fc ok N\" existing /tmp/bc/runs_b/b50a0fc/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 179,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "bob",
+     20095
+    ],
+    [
+     "eve",
+     18462
+    ],
+    [
+     "ivy",
+     16102
+    ],
+    [
+     "gus",
+     15439
+    ],
+    [
+     "ada",
+     14678
+    ]
+   ],
+   "top_user": "bob",
+   "sha256": "136cc004cd24ad256fac9a2efa2cc4d5e74dd8096fff97af3ba8e76ac712baad"
+  }
+ },
+ "bd70c39": {
+  "cell": "telegraphic_sonnet_02",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 2,
+  "dir": "/tmp/bc/runs_b/bd70c39",
+  "brief": "Usagereport from /tmp/bc/runs_b/bd70c39/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/bd70c39/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/bd70c39/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"bd70c39 ok N\" existing /tmp/bc/runs_b/bd70c39/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 178,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "bob",
+     20095
+    ],
+    [
+     "eve",
+     18462
+    ],
+    [
+     "ivy",
+     16102
+    ],
+    [
+     "gus",
+     15439
+    ],
+    [
+     "ada",
+     14678
+    ]
+   ],
+   "top_user": "bob",
+   "sha256": "136cc004cd24ad256fac9a2efa2cc4d5e74dd8096fff97af3ba8e76ac712baad"
+  }
+ },
+ "b8f8c45": {
+  "cell": "structured_haiku_02",
+  "style": "structured",
+  "model": "haiku",
+  "i": 2,
+  "dir": "/tmp/bc/runs_b/b8f8c45",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b8f8c45/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b8f8c45/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b8f8c45/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b8f8c45 ok N\" to existing /tmp/bc/runs_b/b8f8c45/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 224,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "bob",
+     20095
+    ],
+    [
+     "eve",
+     18462
+    ],
+    [
+     "ivy",
+     16102
+    ],
+    [
+     "gus",
+     15439
+    ],
+    [
+     "ada",
+     14678
+    ]
+   ],
+   "top_user": "bob",
+   "sha256": "136cc004cd24ad256fac9a2efa2cc4d5e74dd8096fff97af3ba8e76ac712baad"
+  }
+ },
+ "b21efca": {
+  "cell": "structured_sonnet_02",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 2,
+  "dir": "/tmp/bc/runs_b/b21efca",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b21efca/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b21efca/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b21efca/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b21efca ok N\" to existing /tmp/bc/runs_b/b21efca/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 214,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "bob",
+     20095
+    ],
+    [
+     "eve",
+     18462
+    ],
+    [
+     "ivy",
+     16102
+    ],
+    [
+     "gus",
+     15439
+    ],
+    [
+     "ada",
+     14678
+    ]
+   ],
+   "top_user": "bob",
+   "sha256": "136cc004cd24ad256fac9a2efa2cc4d5e74dd8096fff97af3ba8e76ac712baad"
+  }
+ },
+ "b79b8a2": {
+  "cell": "prose_haiku_03",
+  "style": "prose",
+  "model": "haiku",
+  "i": 3,
+  "dir": "/tmp/bc/runs_b/b79b8a2",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b79b8a2/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b79b8a2/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b79b8a2/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b79b8a2 ok N\" to the existing file /tmp/bc/runs_b/b79b8a2/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 293,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 43,
+   "top": [
+    [
+     "hal",
+     18714
+    ],
+    [
+     "bob",
+     15781
+    ],
+    [
+     "ada",
+     14188
+    ],
+    [
+     "dee",
+     9745
+    ],
+    [
+     "Svc_ops",
+     9349
+    ]
+   ],
+   "top_user": "hal",
+   "sha256": "12bdd77c5c8d5e128469eb3acbc419679912ef50816a1c27c0b4fe319b444482"
+  }
+ },
+ "bb56528": {
+  "cell": "prose_sonnet_03",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 3,
+  "dir": "/tmp/bc/runs_b/bb56528",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bb56528/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bb56528/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bb56528/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bb56528 ok N\" to the existing file /tmp/bc/runs_b/bb56528/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 282,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 43,
+   "top": [
+    [
+     "hal",
+     18714
+    ],
+    [
+     "bob",
+     15781
+    ],
+    [
+     "ada",
+     14188
+    ],
+    [
+     "dee",
+     9745
+    ],
+    [
+     "Svc_ops",
+     9349
+    ]
+   ],
+   "top_user": "hal",
+   "sha256": "12bdd77c5c8d5e128469eb3acbc419679912ef50816a1c27c0b4fe319b444482"
+  }
+ },
+ "ba9aff3": {
+  "cell": "telegraphic_haiku_03",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 3,
+  "dir": "/tmp/bc/runs_b/ba9aff3",
+  "brief": "Usagereport from /tmp/bc/runs_b/ba9aff3/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/ba9aff3/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/ba9aff3/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"ba9aff3 ok N\" existing /tmp/bc/runs_b/ba9aff3/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 178,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 43,
+   "top": [
+    [
+     "hal",
+     18714
+    ],
+    [
+     "bob",
+     15781
+    ],
+    [
+     "ada",
+     14188
+    ],
+    [
+     "dee",
+     9745
+    ],
+    [
+     "Svc_ops",
+     9349
+    ]
+   ],
+   "top_user": "hal",
+   "sha256": "12bdd77c5c8d5e128469eb3acbc419679912ef50816a1c27c0b4fe319b444482"
+  }
+ },
+ "bb9f4d0": {
+  "cell": "telegraphic_sonnet_03",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 3,
+  "dir": "/tmp/bc/runs_b/bb9f4d0",
+  "brief": "Usagereport from /tmp/bc/runs_b/bb9f4d0/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/bb9f4d0/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/bb9f4d0/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"bb9f4d0 ok N\" existing /tmp/bc/runs_b/bb9f4d0/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 188,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 43,
+   "top": [
+    [
+     "hal",
+     18714
+    ],
+    [
+     "bob",
+     15781
+    ],
+    [
+     "ada",
+     14188
+    ],
+    [
+     "dee",
+     9745
+    ],
+    [
+     "Svc_ops",
+     9349
+    ]
+   ],
+   "top_user": "hal",
+   "sha256": "12bdd77c5c8d5e128469eb3acbc419679912ef50816a1c27c0b4fe319b444482"
+  }
+ },
+ "bc3e3a8": {
+  "cell": "structured_haiku_03",
+  "style": "structured",
+  "model": "haiku",
+  "i": 3,
+  "dir": "/tmp/bc/runs_b/bc3e3a8",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/bc3e3a8/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/bc3e3a8/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/bc3e3a8/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"bc3e3a8 ok N\" to existing /tmp/bc/runs_b/bc3e3a8/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 228,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 43,
+   "top": [
+    [
+     "hal",
+     18714
+    ],
+    [
+     "bob",
+     15781
+    ],
+    [
+     "ada",
+     14188
+    ],
+    [
+     "dee",
+     9745
+    ],
+    [
+     "Svc_ops",
+     9349
+    ]
+   ],
+   "top_user": "hal",
+   "sha256": "12bdd77c5c8d5e128469eb3acbc419679912ef50816a1c27c0b4fe319b444482"
+  }
+ },
+ "b1fbce9": {
+  "cell": "structured_sonnet_03",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 3,
+  "dir": "/tmp/bc/runs_b/b1fbce9",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b1fbce9/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b1fbce9/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b1fbce9/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b1fbce9 ok N\" to existing /tmp/bc/runs_b/b1fbce9/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 43,
+   "top": [
+    [
+     "hal",
+     18714
+    ],
+    [
+     "bob",
+     15781
+    ],
+    [
+     "ada",
+     14188
+    ],
+    [
+     "dee",
+     9745
+    ],
+    [
+     "Svc_ops",
+     9349
+    ]
+   ],
+   "top_user": "hal",
+   "sha256": "12bdd77c5c8d5e128469eb3acbc419679912ef50816a1c27c0b4fe319b444482"
+  }
+ },
+ "b8ffb56": {
+  "cell": "prose_haiku_04",
+  "style": "prose",
+  "model": "haiku",
+  "i": 4,
+  "dir": "/tmp/bc/runs_b/b8ffb56",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b8ffb56/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b8ffb56/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b8ffb56/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b8ffb56 ok N\" to the existing file /tmp/bc/runs_b/b8ffb56/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 288,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 44,
+   "top": [
+    [
+     "dee",
+     18422
+    ],
+    [
+     "hal",
+     17731
+    ],
+    [
+     "bob",
+     15876
+    ],
+    [
+     "eve",
+     9976
+    ],
+    [
+     "jo",
+     8638
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "731dd3f1cabb958a24e31a3c70c86140cb8cce8c2b05da68f580959d2de14b05"
+  }
+ },
+ "bd47f11": {
+  "cell": "prose_sonnet_04",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 4,
+  "dir": "/tmp/bc/runs_b/bd47f11",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bd47f11/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bd47f11/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bd47f11/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bd47f11 ok N\" to the existing file /tmp/bc/runs_b/bd47f11/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 287,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 44,
+   "top": [
+    [
+     "dee",
+     18422
+    ],
+    [
+     "hal",
+     17731
+    ],
+    [
+     "bob",
+     15876
+    ],
+    [
+     "eve",
+     9976
+    ],
+    [
+     "jo",
+     8638
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "731dd3f1cabb958a24e31a3c70c86140cb8cce8c2b05da68f580959d2de14b05"
+  }
+ },
+ "bd5e237": {
+  "cell": "telegraphic_haiku_04",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 4,
+  "dir": "/tmp/bc/runs_b/bd5e237",
+  "brief": "Usagereport from /tmp/bc/runs_b/bd5e237/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/bd5e237/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/bd5e237/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"bd5e237 ok N\" existing /tmp/bc/runs_b/bd5e237/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 178,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 44,
+   "top": [
+    [
+     "dee",
+     18422
+    ],
+    [
+     "hal",
+     17731
+    ],
+    [
+     "bob",
+     15876
+    ],
+    [
+     "eve",
+     9976
+    ],
+    [
+     "jo",
+     8638
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "731dd3f1cabb958a24e31a3c70c86140cb8cce8c2b05da68f580959d2de14b05"
+  }
+ },
+ "b7e969b": {
+  "cell": "telegraphic_sonnet_04",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 4,
+  "dir": "/tmp/bc/runs_b/b7e969b",
+  "brief": "Usagereport from /tmp/bc/runs_b/b7e969b/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b7e969b/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b7e969b/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b7e969b ok N\" existing /tmp/bc/runs_b/b7e969b/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 179,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 44,
+   "top": [
+    [
+     "dee",
+     18422
+    ],
+    [
+     "hal",
+     17731
+    ],
+    [
+     "bob",
+     15876
+    ],
+    [
+     "eve",
+     9976
+    ],
+    [
+     "jo",
+     8638
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "731dd3f1cabb958a24e31a3c70c86140cb8cce8c2b05da68f580959d2de14b05"
+  }
+ },
+ "b90a925": {
+  "cell": "structured_haiku_04",
+  "style": "structured",
+  "model": "haiku",
+  "i": 4,
+  "dir": "/tmp/bc/runs_b/b90a925",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b90a925/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b90a925/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b90a925/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b90a925 ok N\" to existing /tmp/bc/runs_b/b90a925/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 214,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 44,
+   "top": [
+    [
+     "dee",
+     18422
+    ],
+    [
+     "hal",
+     17731
+    ],
+    [
+     "bob",
+     15876
+    ],
+    [
+     "eve",
+     9976
+    ],
+    [
+     "jo",
+     8638
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "731dd3f1cabb958a24e31a3c70c86140cb8cce8c2b05da68f580959d2de14b05"
+  }
+ },
+ "b75fef5": {
+  "cell": "structured_sonnet_04",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 4,
+  "dir": "/tmp/bc/runs_b/b75fef5",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b75fef5/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b75fef5/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b75fef5/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b75fef5 ok N\" to existing /tmp/bc/runs_b/b75fef5/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 44,
+   "top": [
+    [
+     "dee",
+     18422
+    ],
+    [
+     "hal",
+     17731
+    ],
+    [
+     "bob",
+     15876
+    ],
+    [
+     "eve",
+     9976
+    ],
+    [
+     "jo",
+     8638
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "731dd3f1cabb958a24e31a3c70c86140cb8cce8c2b05da68f580959d2de14b05"
+  }
+ },
+ "bd6a4b3": {
+  "cell": "prose_haiku_05",
+  "style": "prose",
+  "model": "haiku",
+  "i": 5,
+  "dir": "/tmp/bc/runs_b/bd6a4b3",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bd6a4b3/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bd6a4b3/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bd6a4b3/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bd6a4b3 ok N\" to the existing file /tmp/bc/runs_b/bd6a4b3/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 297,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 58,
+   "top": [
+    [
+     "cy",
+     32250
+    ],
+    [
+     "ada",
+     26573
+    ],
+    [
+     "eve",
+     24594
+    ],
+    [
+     "ivy",
+     20417
+    ],
+    [
+     "jo",
+     14267
+    ]
+   ],
+   "top_user": "cy",
+   "sha256": "764fff75dd959a4e97d9ed7a564467ace87d4439e9a083d3bb0cfd4ab0419a40"
+  }
+ },
+ "bc0c99f": {
+  "cell": "prose_sonnet_05",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 5,
+  "dir": "/tmp/bc/runs_b/bc0c99f",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bc0c99f/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bc0c99f/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bc0c99f/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bc0c99f ok N\" to the existing file /tmp/bc/runs_b/bc0c99f/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 292,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 58,
+   "top": [
+    [
+     "cy",
+     32250
+    ],
+    [
+     "ada",
+     26573
+    ],
+    [
+     "eve",
+     24594
+    ],
+    [
+     "ivy",
+     20417
+    ],
+    [
+     "jo",
+     14267
+    ]
+   ],
+   "top_user": "cy",
+   "sha256": "764fff75dd959a4e97d9ed7a564467ace87d4439e9a083d3bb0cfd4ab0419a40"
+  }
+ },
+ "b0dfa18": {
+  "cell": "telegraphic_haiku_05",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 5,
+  "dir": "/tmp/bc/runs_b/b0dfa18",
+  "brief": "Usagereport from /tmp/bc/runs_b/b0dfa18/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b0dfa18/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b0dfa18/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b0dfa18 ok N\" existing /tmp/bc/runs_b/b0dfa18/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 174,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 58,
+   "top": [
+    [
+     "cy",
+     32250
+    ],
+    [
+     "ada",
+     26573
+    ],
+    [
+     "eve",
+     24594
+    ],
+    [
+     "ivy",
+     20417
+    ],
+    [
+     "jo",
+     14267
+    ]
+   ],
+   "top_user": "cy",
+   "sha256": "764fff75dd959a4e97d9ed7a564467ace87d4439e9a083d3bb0cfd4ab0419a40"
+  }
+ },
+ "b48f70d": {
+  "cell": "telegraphic_sonnet_05",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 5,
+  "dir": "/tmp/bc/runs_b/b48f70d",
+  "brief": "Usagereport from /tmp/bc/runs_b/b48f70d/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b48f70d/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b48f70d/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b48f70d ok N\" existing /tmp/bc/runs_b/b48f70d/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 179,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 58,
+   "top": [
+    [
+     "cy",
+     32250
+    ],
+    [
+     "ada",
+     26573
+    ],
+    [
+     "eve",
+     24594
+    ],
+    [
+     "ivy",
+     20417
+    ],
+    [
+     "jo",
+     14267
+    ]
+   ],
+   "top_user": "cy",
+   "sha256": "764fff75dd959a4e97d9ed7a564467ace87d4439e9a083d3bb0cfd4ab0419a40"
+  }
+ },
+ "bbe7bee": {
+  "cell": "structured_haiku_05",
+  "style": "structured",
+  "model": "haiku",
+  "i": 5,
+  "dir": "/tmp/bc/runs_b/bbe7bee",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/bbe7bee/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/bbe7bee/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/bbe7bee/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"bbe7bee ok N\" to existing /tmp/bc/runs_b/bbe7bee/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 213,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 58,
+   "top": [
+    [
+     "cy",
+     32250
+    ],
+    [
+     "ada",
+     26573
+    ],
+    [
+     "eve",
+     24594
+    ],
+    [
+     "ivy",
+     20417
+    ],
+    [
+     "jo",
+     14267
+    ]
+   ],
+   "top_user": "cy",
+   "sha256": "764fff75dd959a4e97d9ed7a564467ace87d4439e9a083d3bb0cfd4ab0419a40"
+  }
+ },
+ "bf7bb4e": {
+  "cell": "structured_sonnet_05",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 5,
+  "dir": "/tmp/bc/runs_b/bf7bb4e",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/bf7bb4e/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/bf7bb4e/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/bf7bb4e/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"bf7bb4e ok N\" to existing /tmp/bc/runs_b/bf7bb4e/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 223,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 58,
+   "top": [
+    [
+     "cy",
+     32250
+    ],
+    [
+     "ada",
+     26573
+    ],
+    [
+     "eve",
+     24594
+    ],
+    [
+     "ivy",
+     20417
+    ],
+    [
+     "jo",
+     14267
+    ]
+   ],
+   "top_user": "cy",
+   "sha256": "764fff75dd959a4e97d9ed7a564467ace87d4439e9a083d3bb0cfd4ab0419a40"
+  }
+ },
+ "b9438d8": {
+  "cell": "prose_haiku_06",
+  "style": "prose",
+  "model": "haiku",
+  "i": 6,
+  "dir": "/tmp/bc/runs_b/b9438d8",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b9438d8/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b9438d8/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b9438d8/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b9438d8 ok N\" to the existing file /tmp/bc/runs_b/b9438d8/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 288,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 45,
+   "top": [
+    [
+     "finn",
+     18948
+    ],
+    [
+     "dee",
+     18011
+    ],
+    [
+     "bob",
+     14190
+    ],
+    [
+     "jo",
+     11175
+    ],
+    [
+     "eve",
+     11042
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "3b4b00940fd836b03803b22fb34e96b9b1d36f779239fffccd7ca81ffa00e39d"
+  }
+ },
+ "b93563c": {
+  "cell": "prose_sonnet_06",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 6,
+  "dir": "/tmp/bc/runs_b/b93563c",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b93563c/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b93563c/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b93563c/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b93563c ok N\" to the existing file /tmp/bc/runs_b/b93563c/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 283,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 45,
+   "top": [
+    [
+     "finn",
+     18948
+    ],
+    [
+     "dee",
+     18011
+    ],
+    [
+     "bob",
+     14190
+    ],
+    [
+     "jo",
+     11175
+    ],
+    [
+     "eve",
+     11042
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "3b4b00940fd836b03803b22fb34e96b9b1d36f779239fffccd7ca81ffa00e39d"
+  }
+ },
+ "b0c60b5": {
+  "cell": "telegraphic_haiku_06",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 6,
+  "dir": "/tmp/bc/runs_b/b0c60b5",
+  "brief": "Usagereport from /tmp/bc/runs_b/b0c60b5/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b0c60b5/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b0c60b5/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b0c60b5 ok N\" existing /tmp/bc/runs_b/b0c60b5/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 184,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 45,
+   "top": [
+    [
+     "finn",
+     18948
+    ],
+    [
+     "dee",
+     18011
+    ],
+    [
+     "bob",
+     14190
+    ],
+    [
+     "jo",
+     11175
+    ],
+    [
+     "eve",
+     11042
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "3b4b00940fd836b03803b22fb34e96b9b1d36f779239fffccd7ca81ffa00e39d"
+  }
+ },
+ "b453039": {
+  "cell": "telegraphic_sonnet_06",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 6,
+  "dir": "/tmp/bc/runs_b/b453039",
+  "brief": "Usagereport from /tmp/bc/runs_b/b453039/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b453039/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b453039/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b453039 ok N\" existing /tmp/bc/runs_b/b453039/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 169,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 45,
+   "top": [
+    [
+     "finn",
+     18948
+    ],
+    [
+     "dee",
+     18011
+    ],
+    [
+     "bob",
+     14190
+    ],
+    [
+     "jo",
+     11175
+    ],
+    [
+     "eve",
+     11042
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "3b4b00940fd836b03803b22fb34e96b9b1d36f779239fffccd7ca81ffa00e39d"
+  }
+ },
+ "bc787e7": {
+  "cell": "structured_haiku_06",
+  "style": "structured",
+  "model": "haiku",
+  "i": 6,
+  "dir": "/tmp/bc/runs_b/bc787e7",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/bc787e7/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/bc787e7/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/bc787e7/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"bc787e7 ok N\" to existing /tmp/bc/runs_b/bc787e7/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 218,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 45,
+   "top": [
+    [
+     "finn",
+     18948
+    ],
+    [
+     "dee",
+     18011
+    ],
+    [
+     "bob",
+     14190
+    ],
+    [
+     "jo",
+     11175
+    ],
+    [
+     "eve",
+     11042
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "3b4b00940fd836b03803b22fb34e96b9b1d36f779239fffccd7ca81ffa00e39d"
+  }
+ },
+ "b22e9fa": {
+  "cell": "structured_sonnet_06",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 6,
+  "dir": "/tmp/bc/runs_b/b22e9fa",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b22e9fa/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b22e9fa/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b22e9fa/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b22e9fa ok N\" to existing /tmp/bc/runs_b/b22e9fa/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 45,
+   "top": [
+    [
+     "finn",
+     18948
+    ],
+    [
+     "dee",
+     18011
+    ],
+    [
+     "bob",
+     14190
+    ],
+    [
+     "jo",
+     11175
+    ],
+    [
+     "eve",
+     11042
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "3b4b00940fd836b03803b22fb34e96b9b1d36f779239fffccd7ca81ffa00e39d"
+  }
+ },
+ "b3977a9": {
+  "cell": "prose_haiku_07",
+  "style": "prose",
+  "model": "haiku",
+  "i": 7,
+  "dir": "/tmp/bc/runs_b/b3977a9",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b3977a9/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b3977a9/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b3977a9/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b3977a9 ok N\" to the existing file /tmp/bc/runs_b/b3977a9/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 288,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "eve",
+     20148
+    ],
+    [
+     "cy",
+     17021
+    ],
+    [
+     "dee",
+     16778
+    ],
+    [
+     "jo",
+     15789
+    ],
+    [
+     "ada",
+     14439
+    ]
+   ],
+   "top_user": "eve",
+   "sha256": "b7f5fbc52c52dbd6f3d3873de3258ebad855d46803ded96ef37c101cb9cb5ed7"
+  }
+ },
+ "bf784f2": {
+  "cell": "prose_sonnet_07",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 7,
+  "dir": "/tmp/bc/runs_b/bf784f2",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bf784f2/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bf784f2/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bf784f2/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bf784f2 ok N\" to the existing file /tmp/bc/runs_b/bf784f2/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 287,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "eve",
+     20148
+    ],
+    [
+     "cy",
+     17021
+    ],
+    [
+     "dee",
+     16778
+    ],
+    [
+     "jo",
+     15789
+    ],
+    [
+     "ada",
+     14439
+    ]
+   ],
+   "top_user": "eve",
+   "sha256": "b7f5fbc52c52dbd6f3d3873de3258ebad855d46803ded96ef37c101cb9cb5ed7"
+  }
+ },
+ "bd407af": {
+  "cell": "telegraphic_haiku_07",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 7,
+  "dir": "/tmp/bc/runs_b/bd407af",
+  "brief": "Usagereport from /tmp/bc/runs_b/bd407af/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/bd407af/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/bd407af/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"bd407af ok N\" existing /tmp/bc/runs_b/bd407af/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 173,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "eve",
+     20148
+    ],
+    [
+     "cy",
+     17021
+    ],
+    [
+     "dee",
+     16778
+    ],
+    [
+     "jo",
+     15789
+    ],
+    [
+     "ada",
+     14439
+    ]
+   ],
+   "top_user": "eve",
+   "sha256": "b7f5fbc52c52dbd6f3d3873de3258ebad855d46803ded96ef37c101cb9cb5ed7"
+  }
+ },
+ "bf335e8": {
+  "cell": "telegraphic_sonnet_07",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 7,
+  "dir": "/tmp/bc/runs_b/bf335e8",
+  "brief": "Usagereport from /tmp/bc/runs_b/bf335e8/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/bf335e8/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/bf335e8/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"bf335e8 ok N\" existing /tmp/bc/runs_b/bf335e8/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 178,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "eve",
+     20148
+    ],
+    [
+     "cy",
+     17021
+    ],
+    [
+     "dee",
+     16778
+    ],
+    [
+     "jo",
+     15789
+    ],
+    [
+     "ada",
+     14439
+    ]
+   ],
+   "top_user": "eve",
+   "sha256": "b7f5fbc52c52dbd6f3d3873de3258ebad855d46803ded96ef37c101cb9cb5ed7"
+  }
+ },
+ "b33982c": {
+  "cell": "structured_haiku_07",
+  "style": "structured",
+  "model": "haiku",
+  "i": 7,
+  "dir": "/tmp/bc/runs_b/b33982c",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b33982c/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b33982c/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b33982c/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b33982c ok N\" to existing /tmp/bc/runs_b/b33982c/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 214,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "eve",
+     20148
+    ],
+    [
+     "cy",
+     17021
+    ],
+    [
+     "dee",
+     16778
+    ],
+    [
+     "jo",
+     15789
+    ],
+    [
+     "ada",
+     14439
+    ]
+   ],
+   "top_user": "eve",
+   "sha256": "b7f5fbc52c52dbd6f3d3873de3258ebad855d46803ded96ef37c101cb9cb5ed7"
+  }
+ },
+ "b09e35f": {
+  "cell": "structured_sonnet_07",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 7,
+  "dir": "/tmp/bc/runs_b/b09e35f",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b09e35f/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b09e35f/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b09e35f/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b09e35f ok N\" to existing /tmp/bc/runs_b/b09e35f/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 56,
+   "top": [
+    [
+     "eve",
+     20148
+    ],
+    [
+     "cy",
+     17021
+    ],
+    [
+     "dee",
+     16778
+    ],
+    [
+     "jo",
+     15789
+    ],
+    [
+     "ada",
+     14439
+    ]
+   ],
+   "top_user": "eve",
+   "sha256": "b7f5fbc52c52dbd6f3d3873de3258ebad855d46803ded96ef37c101cb9cb5ed7"
+  }
+ },
+ "bf2a4d0": {
+  "cell": "prose_haiku_08",
+  "style": "prose",
+  "model": "haiku",
+  "i": 8,
+  "dir": "/tmp/bc/runs_b/bf2a4d0",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bf2a4d0/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bf2a4d0/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bf2a4d0/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bf2a4d0 ok N\" to the existing file /tmp/bc/runs_b/bf2a4d0/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 297,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 54,
+   "top": [
+    [
+     "finn",
+     22283
+    ],
+    [
+     "Svc_ops",
+     21795
+    ],
+    [
+     "eve",
+     15009
+    ],
+    [
+     "bob",
+     14730
+    ],
+    [
+     "hal",
+     13244
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "225fb42fb5616d4fdb8e38e444473d3a32f5b92d01e74006efbbafadb4394ba0"
+  }
+ },
+ "bfbc613": {
+  "cell": "prose_sonnet_08",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 8,
+  "dir": "/tmp/bc/runs_b/bfbc613",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/bfbc613/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/bfbc613/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/bfbc613/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"bfbc613 ok N\" to the existing file /tmp/bc/runs_b/bfbc613/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 282,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 54,
+   "top": [
+    [
+     "finn",
+     22283
+    ],
+    [
+     "Svc_ops",
+     21795
+    ],
+    [
+     "eve",
+     15009
+    ],
+    [
+     "bob",
+     14730
+    ],
+    [
+     "hal",
+     13244
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "225fb42fb5616d4fdb8e38e444473d3a32f5b92d01e74006efbbafadb4394ba0"
+  }
+ },
+ "b95ce66": {
+  "cell": "telegraphic_haiku_08",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 8,
+  "dir": "/tmp/bc/runs_b/b95ce66",
+  "brief": "Usagereport from /tmp/bc/runs_b/b95ce66/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b95ce66/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b95ce66/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b95ce66 ok N\" existing /tmp/bc/runs_b/b95ce66/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 174,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 54,
+   "top": [
+    [
+     "finn",
+     22283
+    ],
+    [
+     "Svc_ops",
+     21795
+    ],
+    [
+     "eve",
+     15009
+    ],
+    [
+     "bob",
+     14730
+    ],
+    [
+     "hal",
+     13244
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "225fb42fb5616d4fdb8e38e444473d3a32f5b92d01e74006efbbafadb4394ba0"
+  }
+ },
+ "ba837d5": {
+  "cell": "telegraphic_sonnet_08",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 8,
+  "dir": "/tmp/bc/runs_b/ba837d5",
+  "brief": "Usagereport from /tmp/bc/runs_b/ba837d5/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/ba837d5/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/ba837d5/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"ba837d5 ok N\" existing /tmp/bc/runs_b/ba837d5/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 178,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 54,
+   "top": [
+    [
+     "finn",
+     22283
+    ],
+    [
+     "Svc_ops",
+     21795
+    ],
+    [
+     "eve",
+     15009
+    ],
+    [
+     "bob",
+     14730
+    ],
+    [
+     "hal",
+     13244
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "225fb42fb5616d4fdb8e38e444473d3a32f5b92d01e74006efbbafadb4394ba0"
+  }
+ },
+ "b1a5160": {
+  "cell": "structured_haiku_08",
+  "style": "structured",
+  "model": "haiku",
+  "i": 8,
+  "dir": "/tmp/bc/runs_b/b1a5160",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b1a5160/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b1a5160/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b1a5160/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b1a5160 ok N\" to existing /tmp/bc/runs_b/b1a5160/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 54,
+   "top": [
+    [
+     "finn",
+     22283
+    ],
+    [
+     "Svc_ops",
+     21795
+    ],
+    [
+     "eve",
+     15009
+    ],
+    [
+     "bob",
+     14730
+    ],
+    [
+     "hal",
+     13244
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "225fb42fb5616d4fdb8e38e444473d3a32f5b92d01e74006efbbafadb4394ba0"
+  }
+ },
+ "b0e134e": {
+  "cell": "structured_sonnet_08",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 8,
+  "dir": "/tmp/bc/runs_b/b0e134e",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b0e134e/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b0e134e/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b0e134e/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b0e134e ok N\" to existing /tmp/bc/runs_b/b0e134e/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 54,
+   "top": [
+    [
+     "finn",
+     22283
+    ],
+    [
+     "Svc_ops",
+     21795
+    ],
+    [
+     "eve",
+     15009
+    ],
+    [
+     "bob",
+     14730
+    ],
+    [
+     "hal",
+     13244
+    ]
+   ],
+   "top_user": "finn",
+   "sha256": "225fb42fb5616d4fdb8e38e444473d3a32f5b92d01e74006efbbafadb4394ba0"
+  }
+ },
+ "b5b6716": {
+  "cell": "prose_haiku_09",
+  "style": "prose",
+  "model": "haiku",
+  "i": 9,
+  "dir": "/tmp/bc/runs_b/b5b6716",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b5b6716/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b5b6716/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b5b6716/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b5b6716 ok N\" to the existing file /tmp/bc/runs_b/b5b6716/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 288,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 61,
+   "top": [
+    [
+     "dee",
+     30729
+    ],
+    [
+     "eve",
+     28772
+    ],
+    [
+     "bob",
+     21995
+    ],
+    [
+     "hal",
+     15172
+    ],
+    [
+     "jo",
+     11537
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "6f710342dea904766a1b7da43eda4aef7ac4727b892e6527fb30aefe4dff570e"
+  }
+ },
+ "b9010eb": {
+  "cell": "prose_sonnet_09",
+  "style": "prose",
+  "model": "sonnet",
+  "i": 9,
+  "dir": "/tmp/bc/runs_b/b9010eb",
+  "brief": "I need a small usage report built from /tmp/bc/runs_b/b9010eb/events.csv, which is a CSV with a header row and the columns ts, user, action, bytes, status. Please keep only the rows where status is 200, action is exactly GET or PUT (case-sensitive), and the user name does not start with the lowercase prefix \"svc_\". For those rows, sum bytes per user, then take the top 5 users by that sum, descending, breaking ties by user name ascending. Write them to /tmp/bc/runs_b/b9010eb/report.tsv as tab-separated text: a header line \"user\\tbytes\" followed by exactly five rows. Then write /tmp/bc/runs_b/b9010eb/summary.json as JSON with exactly three keys: \"rows_read\" (the number of data rows in the CSV, not counting the header), \"rows_kept\" (how many rows survived the filter), and \"top_user\" (the first user in the report). After that, append exactly one line reading \"b9010eb ok N\" to the existing file /tmp/bc/runs_b/b9010eb/log.txt, where N is rows_kept. Please don't modify the CSV and don't create any other files. When you're finished, reply with exactly \"OK N\" (same N) and nothing else.",
+  "brief_chars": 1093,
+  "brief_o200k": 283,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 61,
+   "top": [
+    [
+     "dee",
+     30729
+    ],
+    [
+     "eve",
+     28772
+    ],
+    [
+     "bob",
+     21995
+    ],
+    [
+     "hal",
+     15172
+    ],
+    [
+     "jo",
+     11537
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "6f710342dea904766a1b7da43eda4aef7ac4727b892e6527fb30aefe4dff570e"
+  }
+ },
+ "ba7c820": {
+  "cell": "telegraphic_haiku_09",
+  "style": "telegraphic",
+  "model": "haiku",
+  "i": 9,
+  "dir": "/tmp/bc/runs_b/ba7c820",
+  "brief": "Usagereport from /tmp/bc/runs_b/ba7c820/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/ba7c820/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/ba7c820/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"ba7c820 ok N\" existing /tmp/bc/runs_b/ba7c820/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 178,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 61,
+   "top": [
+    [
+     "dee",
+     30729
+    ],
+    [
+     "eve",
+     28772
+    ],
+    [
+     "bob",
+     21995
+    ],
+    [
+     "hal",
+     15172
+    ],
+    [
+     "jo",
+     11537
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "6f710342dea904766a1b7da43eda4aef7ac4727b892e6527fb30aefe4dff570e"
+  }
+ },
+ "b84edbe": {
+  "cell": "telegraphic_sonnet_09",
+  "style": "telegraphic",
+  "model": "sonnet",
+  "i": 9,
+  "dir": "/tmp/bc/runs_b/b84edbe",
+  "brief": "Usagereport from /tmp/bc/runs_b/b84edbe/events.csv (csv hdr ts,user,action,bytes,status). Keep status200 + action GET/PUT casesens + user !startswith lc \"svc_\". Sumbytes peruser, top5 desc, ties userasc. Emit /tmp/bc/runs_b/b84edbe/report.tsv TSV hdr \"user\\tbytes\" + exactly5rows. Emit /tmp/bc/runs_b/b84edbe/summary.json exactly3keys rows_read (datarows exclhdr), rows_kept (postfilter), top_user (row1). Append1line \"b84edbe ok N\" existing /tmp/bc/runs_b/b84edbe/log.txt, N=rows_kept. CSVreadonly, nootherfiles. Reply exactly \"OK N\" only.",
+  "brief_chars": 540,
+  "brief_o200k": 174,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 61,
+   "top": [
+    [
+     "dee",
+     30729
+    ],
+    [
+     "eve",
+     28772
+    ],
+    [
+     "bob",
+     21995
+    ],
+    [
+     "hal",
+     15172
+    ],
+    [
+     "jo",
+     11537
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "6f710342dea904766a1b7da43eda4aef7ac4727b892e6527fb30aefe4dff570e"
+  }
+ },
+ "bcfccea": {
+  "cell": "structured_haiku_09",
+  "style": "structured",
+  "model": "haiku",
+  "i": 9,
+  "dir": "/tmp/bc/runs_b/bcfccea",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/bcfccea/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/bcfccea/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/bcfccea/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"bcfccea ok N\" to existing /tmp/bc/runs_b/bcfccea/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 213,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 61,
+   "top": [
+    [
+     "dee",
+     30729
+    ],
+    [
+     "eve",
+     28772
+    ],
+    [
+     "bob",
+     21995
+    ],
+    [
+     "hal",
+     15172
+    ],
+    [
+     "jo",
+     11537
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "6f710342dea904766a1b7da43eda4aef7ac4727b892e6527fb30aefe4dff570e"
+  }
+ },
+ "b295f8a": {
+  "cell": "structured_sonnet_09",
+  "style": "structured",
+  "model": "sonnet",
+  "i": 9,
+  "dir": "/tmp/bc/runs_b/b295f8a",
+  "brief": "Task: usage report.\n- Input: /tmp/bc/runs_b/b295f8a/events.csv (CSV, header ts,user,action,bytes,status; read-only)\n- Keep rows where: status == 200; action is exactly GET or PUT (case-sensitive); user does not start with lowercase \"svc_\"\n- Sum bytes per user; top 5 by sum desc, ties by user asc\n- Write /tmp/bc/runs_b/b295f8a/report.tsv: TSV, header line \"user\\tbytes\", then exactly 5 rows\n- Write /tmp/bc/runs_b/b295f8a/summary.json: JSON with exactly 3 keys: rows_read (data rows, excl header), rows_kept (after filter), top_user (first report row)\n- Append exactly one line \"b295f8a ok N\" to existing /tmp/bc/runs_b/b295f8a/log.txt, N = rows_kept\n- Create no other files\n- Final reply: exactly \"OK N\", nothing else",
+  "brief_chars": 719,
+  "brief_o200k": 219,
+  "gold": {
+   "rows_read": 300,
+   "rows_kept": 61,
+   "top": [
+    [
+     "dee",
+     30729
+    ],
+    [
+     "eve",
+     28772
+    ],
+    [
+     "bob",
+     21995
+    ],
+    [
+     "hal",
+     15172
+    ],
+    [
+     "jo",
+     11537
+    ]
+   ],
+   "top_user": "dee",
+   "sha256": "6f710342dea904766a1b7da43eda4aef7ac4727b892e6527fb30aefe4dff570e"
+  }
+ }
+}
