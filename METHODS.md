@@ -482,6 +482,38 @@ survives exactly the sanity checks people run.
   a cost of 0.118 routing; the prompt change buys it for free. Report the
   garbage rate as its own column, always. (`nl2sh-instantiate/RESULTS.md`)
 
+- **Certify a coding-benchmark grader in both directions before spending agent
+  tokens: reference solution must PASS, untouched stub must FAIL.** On the first
+  pilot draw this rejected `go/markdown` (a refactoring exercise whose stub
+  already passes, so it carries no signal) and caught two grader bugs that both
+  inflate scores. A shared `CARGO_TARGET_DIR` across graded trees let a
+  `todo!()` stub reuse the gold arm's compiled test binary and report
+  `23 passed`; and `cargo test` without `-- --include-ignored` scores any
+  Exercism Rust stub green at `1 passed; 11 ignored`. Both fail silently in the
+  direction that flatters the weakest arm, which is the arm an ablation rests
+  on. The check costs one compile per task and no model calls.
+  (`harness-bench/harness/certify.py`, `ERRORS.md`)
+
+- **Aider Polyglot discriminates where authored task banks do not.** Two
+  experiments here went vacuous because the cheap arm never failed —
+  `orchestrated-coding-pareto` (haiku-solo 14/14 = opus-solo 14/14) and the
+  PR #76 stage-1 pilot (sonnet-low 14/14). On 12 Aider Polyglot exercises, Haiku
+  4.5 writing one file with no test access scores **3/12**. Aider selected those
+  225 exercises from the Exercism tracks because the models of the day failed
+  them, and selection for difficulty is doing something authoring for difficulty
+  did not. Reach for it before writing a task bank by hand.
+  (`harness-bench/RESULTS.md`)
+
+- **Most of what a test-execution loop buys on single-file tasks is not
+  reasoning.** Same model, same first attempt: handing back the test output once
+  takes 3/12 to 8/12, and letting the agent run the suite itself takes it to
+  11/12 (paired, 8 recovered, 0 regressed, exact McNemar p = 0.0078). Four of the
+  first five recoveries were an unused Go import that would not compile, line
+  capitalisation, a sign parsed in the wrong order, and a `reset()` that did not
+  reseed — each stated verbatim by one build or one run. Budget an arm that gets
+  to see its own failures before concluding anything about model capability from
+  a one-shot score. (`harness-bench/RESULTS.md`)
+
 ## Portable code (extraction candidates)
 
 | What | Where | Effort |
