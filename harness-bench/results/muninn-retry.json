@@ -1,0 +1,107 @@
+{
+ "python/dot-dsl": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "...........F\n=================================== FAILURES ===================================\n_________________________ DotDslTest.test_unknown_item _________________________\n\nself = <dot_dsl_test.DotDslTest testMethod=test_unknown_item>\n\n    def test_unknown_item(self):\n        with self.assertRaises(ValueError) as err:\n            Graph([(99, 1, 2)])\n        self.assertEqual(type(err.exception), ValueError)\n>       self.assertEqual(err.exception.args[0], \"Unknown item\")\nE       AssertionError: 'Unknown item 99' != 'Unknown item'\nE       - Unknown item 99\nE       ?             ---\nE       + Unknown item\n\ndot_dsl_test.py:121: AssertionError\n=========================== short test summary info ============================\nFAILED dot_dsl_test.py::DotDslTest::test_unknown_item - AssertionError: 'Unkn...\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n1 failed, 11 passed in 0.03s\n"
+ },
+ "python/rest-api": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".........                                                                [100%]\n9 passed in 0.02s\n"
+ },
+ "go/hexadecimal": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \thexadecimal\t0.003s\n"
+ },
+ "go/robot-simulator": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "--- FAIL: TestBadCommand (0.00s)\n    robot_simulator_step3_test.go:37: Sim: undefined command \"E\" in the script of robot \"Vgr\"\n    robot_simulator_step3_test.go:37: Sim: undefined command \"T\" in the script of robot \"Vgr\"\n    robot_simulator_step3_test.go:180: Got 2 messages, want 1.\n--- FAIL: TestBadRobot (0.50s)\n    robot_simulator_step3_test.go:37: Sim: action from unknown robot \"Lore\"\n    robot_simulator_step3_test.go:37: Sim: action from unknown robot \"Lore\"\n    robot_simulator_step3_test.go:198: Got 2 messages, want 1.\nFAIL\nFAIL\trobot\t0.508s\nFAIL\n"
+ },
+ "go/simple-linked-list": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tlinkedlist\t0.003s\n"
+ },
+ "go/beer-song": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "eer.\\nTake one down and pass it around, 7 bottles of beer on the wall.\\n\\n7 bottles of beer on the wall, 7 bottles of beer.\\nTake one down and pass it around, 6 bottles of beer on the wall.\\n\\n6 bottles of beer on the wall, 6 bottles of beer.\\nTake one down and pass it around, 5 bottles of beer on the wall.\\n\\n\"\n    --- FAIL: TestSeveralVerses/a_different_set_of_verses (0.00s)\n        beer_song_test.go:97: Verse(7,5)\n             got:\"7 bottles of beer on the wall, 7 bottles of beer.\\nTake one down and pass it around, 6 bottles of beer on the wall.\\n\\n6 bottles of beer on the wall, 6 bottles of beer.\\nTake one down and pass it around, 5 bottles of beer on the wall.\\n\\n5 bottles of beer on the wall, 5 bottles of beer.\\nTake one down and pass it around, 4 bottles of beer on the wall.\\n\"\n            want:\"7 bottles of beer on the wall, 7 bottles of beer.\\nTake one down and pass it around, 6 bottles of beer on the wall.\\n\\n6 bottles of beer on the wall, 6 bottles of beer.\\nTake one down and pass it around, 5 bottles of beer on the wall.\\n\\n5 bottles of beer on the wall, 5 bottles of beer.\\nTake one down and pass it around, 4 bottles of beer on the wall.\\n\\n\"\nFAIL\nFAIL\tbeer\t0.004s\nFAIL\n"
+ },
+ "go/matrix": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "FAIL\tmatrix [build failed]\nFAIL\n# matrix [matrix.test]\n./matrix_test.go:165:16: invalid operation: got == nil (mismatched types Matrix and untyped nil)\n./matrix_test.go:285:15: invalid operation: matrix == nil (mismatched types Matrix and untyped nil)\n"
+ },
+ "go/poker": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "   --- FAIL: TestBestHandValid/four_of_a_kind_beats_a_full_house (0.00s)\n        poker_test.go:59: BestHand([4\u2664 5\u2661 4\u2662 5\u2662 4\u2661 3\u2664 3\u2661 2\u2664 3\u2662 3\u2667]) returned error: poker: invalid suit in card 4\u2664, want: [3\u2664 3\u2661 2\u2664 3\u2662 3\u2667]\n    --- FAIL: TestBestHandValid/both_hands_have_four_of_a_kind,_tie_goes_to_high_quad (0.00s)\n        poker_test.go:59: BestHand([2\u2664 2\u2661 2\u2667 8\u2662 2\u2662 4\u2664 5\u2661 5\u2664 5\u2662 5\u2667]) returned error: poker: invalid suit in card 2\u2664, want: [4\u2664 5\u2661 5\u2664 5\u2662 5\u2667]\n    --- FAIL: TestBestHandValid/with_multiple_decks,_both_hands_with_identical_four_of_a_kind,_tie_determined_by_kicker (0.00s)\n        poker_test.go:59: BestHand([3\u2664 3\u2661 2\u2664 3\u2662 3\u2667 3\u2664 3\u2661 4\u2664 3\u2662 3\u2667]) returned error: poker: invalid suit in card 3\u2664, want: [3\u2664 3\u2661 4\u2664 3\u2662 3\u2667]\n    --- FAIL: TestBestHandValid/straight_flush_beats_four_of_a_kind (0.00s)\n        poker_test.go:59: BestHand([4\u2664 5\u2661 5\u2664 5\u2662 5\u2667 7\u2664 8\u2664 9\u2664 6\u2664 10\u2664]) returned error: poker: invalid suit in card 4\u2664, want: [7\u2664 8\u2664 9\u2664 6\u2664 10\u2664]\n    --- FAIL: TestBestHandValid/both_hands_have_straight_flush,_tie_goes_to_highest-ranked_card (0.00s)\n        poker_test.go:59: BestHand([4\u2661 6\u2661 7\u2661 8\u2661 5\u2661 5\u2664 7\u2664 8\u2664 9\u2664 6\u2664]) returned error: poker: invalid suit in card 4\u2661, want: [5\u2664 7\u2664 8\u2664 9\u2664 6\u2664]\nFAIL\nFAIL\tpoker\t0.005s\nFAIL\n"
+ },
+ "go/trinary": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "--- FAIL: TestParseTrinary (0.00s)\n    trinary_test.go:31: ParseTrinary(\"2021110011022210012102010021220101220222\") = -9223372036854775808, <nil>, expected error\nFAIL\nFAIL\ttrinary\t0.003s\nFAIL\n"
+ },
+ "rust/acronym": {
+  "passed": false,
+  "stray": [],
+  "output_tail": " 3: core::panicking::assert_failed\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/panicking.rs:394:5\n   4: acronym::camelcase\n             at ./tests/acronym.rs:89:5\n   5: acronym::camelcase::{{closure}}\n             at ./tests/acronym.rs:85:15\n   6: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\n   7: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n\n\nfailures:\n    camelcase\n\ntest result: FAILED. 9 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s\n\n   Compiling acronym v1.7.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/rust/acronym)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.43s\n     Running unittests src/lib.rs (_target/debug/deps/acronym-f9e68df0e8f79a8b)\n     Running tests/acronym.rs (_target/debug/deps/acronym-dc82d53964d4f939)\nerror: test failed, to rerun pass `--test acronym`\n"
+ },
+ "rust/scale-generator": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "c_scale_with_sharps\n             at ./tests/scale-generator.rs:35:5\n   6: scale_generator::chromatic_scale_with_sharps::{{closure}}\n             at ./tests/scale-generator.rs:34:33\n   7: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\n   8: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n\n\nfailures:\n    chromatic_scale_with_flats\n    chromatic_scale_with_sharps\n\ntest result: FAILED. 15 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s\n\n   Compiling scale_generator v2.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/rust/scale-generator)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s\n     Running unittests src/lib.rs (_target/debug/deps/scale_generator-84fe007019f9b2b6)\n     Running tests/scale-generator.rs (_target/debug/deps/scale_generator-17cca2b7d4fd3955)\nerror: test failed, to rerun pass `--test scale-generator`\n"
+ },
+ "rust/xorcism": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "... ok\ntest munge_identity ... ok\ntest munge_in_place_identity ... ok\ntest munge_in_place_roundtrip ... ok\ntest munge_in_place_stateful ... ok\ntest shakespearean::slice_slice::munge_in_place ... ok\ntest shakespearean::slice_slice::munges ... ok\ntest shakespearean::slice_slice::round_trip ... ok\ntest shakespearean::str_slice::munge_in_place ... ok\ntest shakespearean::str_slice::munges ... ok\ntest shakespearean::str_slice::round_trip ... ok\ntest shakespearean::vec_vec::munge_in_place ... ok\ntest shakespearean::vec_vec::munges ... ok\ntest shakespearean::vec_vec::round_trip ... ok\ntest statefulness ... ok\n\ntest result: ok. 77 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling xorcism v0.1.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/rust/xorcism)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.81s\n     Running unittests src/lib.rs (_target/debug/deps/xorcism-465be5a91c37db74)\n     Running tests/xorcism.rs (_target/debug/deps/xorcism-ef68f6a21cbe0e7c)\n   Doc-tests xorcism\n"
+ },
+ "rust/macros": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ing 18 tests\ntest compile_fails_missing_argument ... ok\ntest compile_fails_leading_comma ... ok\ntest compile_fails_double_commas ... ok\ntest compile_fails_comma_sep ... ok\ntest compile_fails_no_comma ... ok\ntest compile_fails_only_arrow ... ok\ntest compile_fails_only_comma ... ok\ntest empty ... ok\ntest nested ... ok\ntest no_trailing_comma ... ok\ntest single ... ok\ntest test::macro_out_of_scope ... ok\ntest test::type_not_in_scope ... ok\ntest trailing_comma ... ok\ntest type_override ... ok\ntest compile_fails_single_argument ... ok\ntest compile_fails_triple_arguments ... ok\ntest compile_fails_two_arrows ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling macros v0.1.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/rust/macros)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.98s\n     Running unittests src/lib.rs (_target/debug/deps/macros-4fbd96d6e18c6123)\n     Running tests/macros.rs (_target/debug/deps/macros-6cd999f3118043b7)\n   Doc-tests macros\n"
+ },
+ "cpp/yacht": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "substitution failed:\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/cpp/yacht/yacht_test.cpp:136:35: note:   couldn\u2019t deduce template parameter \u2018Container\u2019\n  136 |         REQUIRE(10 == yacht::score({2, 2, 2, 2, 2}, \"choice\"));\n      |                       ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/cpp/yacht/yacht.h:58:5: note: candidate: \u2018int yacht::score(const std::vector<int>&, category)\u2019\n   58 | int score(const std::vector<int>& dice, category selection);\n      |     ^~~~~\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/cpp/yacht/yacht.h:58:50: note:   no known conversion for argument 2 from \u2018const char [7]\u2019 to \u2018yacht::category\u2019\n   58 | int score(const std::vector<int>& dice, category selection);\n      |                                         ~~~~~~~~~^~~~~~~~~\ngmake[2]: *** [CMakeFiles/yacht.dir/build.make:76: CMakeFiles/yacht.dir/yacht_test.cpp.o] Error 1\ngmake[2]: *** Waiting for unfinished jobs....\ngmake[1]: *** [CMakeFiles/Makefile2:85: CMakeFiles/yacht.dir/all] Error 2\ngmake: *** [Makefile:91: all] Error 2\n"
+ },
+ "cpp/all-your-base": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/cpp/all-your-base/build\n[ 50%] Building CXX object CMakeFiles/all-your-base.dir/all_your_base.cpp.o\n[ 50%] Building CXX object CMakeFiles/all-your-base.dir/all_your_base_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/all-your-base.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable all-your-base\n[100%] Built target all-your-base\n===============================================================================\nAll tests passed (17 assertions in 17 test cases)\n\n[100%] Built target test_all-your-base\n===============================================================================\nAll tests passed (17 assertions in 17 test cases)\n\n"
+ },
+ "javascript/twelve-days": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "rummers drumming\n    \u25cb skipped test lyrics recites first three verses of the song\n    \u25cb skipped test lyrics recites three verses from the middle of the song\n    \u25cb skipped test lyrics recites the whole song\n\n  \u25cf TwelveDays \u203a test verse first day a partridge in a pear tree\n\n    expect(received).toEqual(expected) // deep equality\n\n    Expected: \"On the first day of Christmas my true love gave to me: a Partridge in a Pear Tree.\n    \"\n    Received: [\"On the first day of Christmas my true love gave to me: a Partridge in a Pear Tree.\"]\n\n       5 |     const expectedVerseOne =\n       6 |       'On the first day of Christmas my true love gave to me: a Partridge in a Pear Tree.\\n';\n    >  7 |     expect(recite(1)).toEqual(expectedVerseOne);\n         |                       ^\n       8 |   });\n       9 |\n      10 |   xtest('test verse second day two turtle doves', () => {\n\n      at Object.toEqual (twelve-days.spec.js:7:23)\n\nTest Suites: 1 failed, 1 total\nTests:       1 failed, 14 skipped, 15 total\nSnapshots:   0 total\nTime:        0.758 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/twelve-days.js|.\\/twelve-days.spec.js/i.\n"
+ },
+ "javascript/resistor-color-trio": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "FAIL ./resistor-color-trio.spec.js\n  Resistor Color Trio\n    \u2715 Orange and orange and black (4 ms)\n    \u25cb skipped Blue and grey and brown\n    \u25cb skipped Red and black and red\n    \u25cb skipped Green and brown and orange\n    \u25cb skipped Yellow and violet and yellow\n    \u25cb skipped Invalid color\n\n  \u25cf Resistor Color Trio \u203a Orange and orange and black\n\n    expect(received).toEqual(expected) // deep equality\n\n    Expected: \"Resistor value: 33 ohms\"\n    Received: [Function label]\n\n       7 | describe('Resistor Color Trio', () => {\n       8 |   test('Orange and orange and black', () => {\n    >  9 |     expect(new ResistorColorTrio(['orange', 'orange', 'black']).label).toEqual(\n         |                                                                        ^\n      10 |       makeLabel({ value: 33, unit: 'ohms' }),\n      11 |     );\n      12 |   });\n\n      at Object.toEqual (resistor-color-trio.spec.js:9:72)\n\nTest Suites: 1 failed, 1 total\nTests:       1 failed, 5 skipped, 6 total\nSnapshots:   0 total\nTime:        0.726 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/resistor-color-trio.js|.\\/resistor-color-trio.spec.js/i.\n"
+ },
+ "java/zipper": {
+  "passed": false,
+  "stray": [],
+  "output_tail": ".net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n\n14 tests completed, 1 failed, 13 skipped\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':test'.\n> There were failing tests. See the report at: file:///home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/java/zipper/build/reports/tests/test/index.html\n\n* Try:\n> Run with --scan to get full insights.\n\nBUILD FAILED in 9s\n"
+ },
+ "java/bottle-song": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "t.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n\n7 tests completed, 1 failed, 6 skipped\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':test'.\n> There were failing tests. See the report at: file:///home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/java/bottle-song/build/reports/tests/test/index.html\n\n* Try:\n> Run with --scan to get full insights.\n\nBUILD FAILED in 8s\n"
+ },
+ "java/queen-attack": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/rest-api": {
+  "passed": false,
+  "stray": [],
+  "output_tail": ".net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n\n9 tests completed, 1 failed, 7 skipped\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':test'.\n> There were failing tests. See the report at: file:///home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_muninn-retry/java/rest-api/build/reports/tests/test/index.html\n\n* Try:\n> Run with --scan to get full insights.\n\nBUILD FAILED in 8s\n"
+ }
+}

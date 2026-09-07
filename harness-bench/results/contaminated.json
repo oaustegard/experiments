@@ -1,4 +1,19 @@
 {
- "excluded_from_muninn_retry": ["go/simple-linked-list", "cpp/all-your-base", "java/queen-attack"],
- "reason": ".approaches/ ships a published reference implementation for these three; prepare() stripped .meta/ but not .approaches/, so a directory-reading arm can find a worked solution. Fixed in EXTRA_HIDE; these three are reported separately rather than counted."
+ "excluded_from_muninn_retry": [
+  "go/simple-linked-list",
+  "cpp/all-your-base",
+  "java/queen-attack"
+ ],
+ "reason": ".approaches/ ships a published reference implementation for these three; prepare() stripped .meta/ but not .approaches/, so a directory-reading arm can find a worked solution. Fixed in EXTRA_HIDE; these three are reported separately rather than counted.",
+ "excluded_recall_leak": [
+  "go/hexadecimal",
+  "cpp/yacht"
+ ],
+ "recall_leak_reason": "recall() returned memory d7843d6c, written earlier in the same session, which records the graded failure output verbatim - including the literal 'undefined: HandleErrors (go/hexadecimal)' and 'cannot convert (cpp/yacht)'. The go worker wrote a HandleErrors function because the memory told it the hidden test calls one. Hidden-test information laundered through the memory store into a later arm.",
+ "result_split": {
+  "all": "7/21",
+  "contaminated": "4/5",
+  "clean": "3/16 = 0.188, 95% CI [0.066,0.430]",
+  "fisher_one_sided_p": 0.0251
+ }
 }
