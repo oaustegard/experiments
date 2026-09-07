@@ -1,6 +1,6 @@
 # neomme-remex-quant — remex and remax quantization of both NeoMME-260M-Retriever heads
 
-**Started:** 2026-09-07 · **Status:** done · **Runtime:** 39 min encode + 14 min bench on 4 vCPU
+**Started:** 2026-09-07 · **Status:** done (SciFact + ViDoRe DocVQA; ShiftProject running) · **Runtime:** SciFact 39 min encode + 14 min bench; DocVQA 50 min encode + 18 min bench, 4 vCPU
 
 ## Question
 
@@ -57,6 +57,8 @@ head, so it appears as an arm too.
 over NeoMME's two heads, self-tested against `sentence_transformers.util.mean_maxsim`.
 
 ## Results
+
+### SciFact (text)
 
 <!-- tables:start -->
 ### Dense head over 5,183 documents
@@ -133,6 +135,90 @@ over NeoMME's two heads, self-tested against `sentence_transformers.util.mean_ma
 
 `*` = 95% paired-bootstrap CI on ΔnDCG@10 excludes zero (300 queries, 5,000 resamples). Wins/losses count queries whose nDCG@10 moved vs the reference; ties omitted.
 <!-- tables:end -->
+
+### ViDoRe DocVQA page images
+
+`vidore/docvqa_test_subsampled`: 500 scanned document pages, 500 real DocVQA
+questions, one relevant page per query (its source page). Pages encoded as
+images only, no OCR text, 2,921 tokens per page on average (`encode_vidore.py`,
+settings in `data/vidore_docvqa_enc/meta.json`). Same arms, same seeds. A
+page's fp32 token index is 1.5 MB; the dense vector is still 4 KB.
+
+<!-- tables:docvqa:start -->
+### Dense head over 5,183 documents
+
+| arm | bytes/doc | nDCG@10 | Δ vs fp32 [95% CI] | wins/losses | R@10 | R@100 | top-10 overlap w/ fp32 |
+|---|---:|---:|---|---:|---:|---:|---:|
+| dense fp32 d=1024 | 4.0 KB | 0.3847 | — | 0/0 | 0.486 | 0.718 | — |
+| dense fp32 d=512 | 2.0 KB | 0.3829 | -0.0019 [-0.0105, +0.0069] | 36/44 | 0.490 | 0.730 | 0.854 |
+| dense fp32 d=256 | 1.0 KB | 0.3699 * | -0.0149 [-0.0262, -0.0035] | 36/64 | 0.472 | 0.734 | 0.782 |
+| dense ST int8 d=1024 | 1.0 KB | 0.3834 | -0.0013 [-0.0034, +0.0000] | 0/2 | 0.484 | 0.718 | 0.997 |
+| dense fp32 d=128 | 512 B | 0.3612 * | -0.0235 [-0.0361, -0.0110] | 36/73 | 0.466 | 0.720 | 0.688 |
+| dense remex 4-bit d=1024 | 512 B | 0.3779 * | -0.0069 [-0.0134, -0.0003] | 21/33 | 0.478 | 0.722 | 0.913 |
+| dense remex 4-bit d=512 | 256 B | 0.3813 | -0.0034 [-0.0127, +0.0062] | 36/43 | 0.486 | 0.728 | 0.824 |
+| dense remex 2-bit d=1024 | 256 B | 0.3798 | -0.0049 [-0.0151, +0.0053] | 40/48 | 0.488 | 0.742 | 0.770 |
+| dense remax k=2 d=1024 (asym) | 256 B | 0.3598 * | -0.0249 [-0.0369, -0.0126] | 31/62 | 0.466 | 0.730 | 0.756 |
+| dense remex 4-bit d=256 | 128 B | 0.3687 * | -0.0160 [-0.0281, -0.0043] | 35/62 | 0.466 | 0.730 | 0.735 |
+| dense remex 2-bit d=512 | 128 B | 0.3710 * | -0.0137 [-0.0263, -0.0011] | 44/70 | 0.486 | 0.730 | 0.692 |
+| dense remex 1-bit d=1024 | 128 B | 0.3598 * | -0.0249 [-0.0397, -0.0110] | 38/67 | 0.468 | 0.738 | 0.675 |
+| dense remax k=1 d=1024 (asym) | 128 B | 0.3509 * | -0.0338 [-0.0491, -0.0188] | 36/75 | 0.458 | 0.722 | 0.669 |
+| dense remax k=1 d=1024 (sym) | 128 B | 0.3157 * | -0.0691 [-0.0875, -0.0507] | 31/106 | 0.428 | 0.696 | 0.582 |
+| dense remax k=2 d=512 (asym) | 128 B | 0.3634 * | -0.0213 [-0.0361, -0.0063] | 45/72 | 0.476 | 0.728 | 0.658 |
+| dense ST binary d=1024 (asym) | 128 B | 0.3630 * | -0.0217 [-0.0357, -0.0071] | 39/70 | 0.466 | 0.712 | 0.659 |
+| dense ST binary d=1024 (sym) | 128 B | 0.3355 * | -0.0492 [-0.0657, -0.0323] | 36/97 | 0.444 | 0.700 | 0.563 |
+| dense remex 4-bit d=128 | 64 B | 0.3563 * | -0.0284 [-0.0430, -0.0146] | 38/77 | 0.462 | 0.718 | 0.659 |
+| dense remex 2-bit d=256 | 64 B | 0.3447 * | -0.0400 [-0.0570, -0.0235] | 42/90 | 0.456 | 0.716 | 0.594 |
+| dense remex 1-bit d=512 | 64 B | 0.3334 * | -0.0513 [-0.0698, -0.0332] | 43/90 | 0.446 | 0.740 | 0.575 |
+| dense remax k=1 d=512 (asym) | 64 B | 0.3394 * | -0.0454 [-0.0644, -0.0266] | 40/93 | 0.452 | 0.718 | 0.558 |
+| dense remax k=1 d=512 (sym) | 64 B | 0.3064 * | -0.0783 [-0.0997, -0.0563] | 36/113 | 0.412 | 0.696 | 0.458 |
+| dense remex 2-bit d=128 | 32 B | 0.3114 * | -0.0733 [-0.0952, -0.0521] | 41/115 | 0.436 | 0.706 | 0.477 |
+| dense remex 1-bit d=256 | 32 B | 0.2889 * | -0.0958 [-0.1186, -0.0727] | 35/132 | 0.410 | 0.714 | 0.444 |
+| dense remax k=1 d=256 (asym) | 32 B | 0.2923 * | -0.0924 [-0.1149, -0.0702] | 33/125 | 0.404 | 0.680 | 0.447 |
+| dense remax k=1 d=256 (sym) | 32 B | 0.2396 * | -0.1451 [-0.1726, -0.1180] | 27/158 | 0.346 | 0.652 | 0.331 |
+| dense remex 1-bit d=128 | 16 B | 0.2458 * | -0.1389 [-0.1658, -0.1104] | 28/150 | 0.344 | 0.676 | 0.319 |
+| dense remax k=1 d=128 (asym) | 16 B | 0.2362 * | -0.1485 [-0.1766, -0.1210] | 30/151 | 0.332 | 0.626 | 0.328 |
+| dense remax k=1 d=128 (sym) | 16 B | 0.1782 * | -0.2066 [-0.2375, -0.1754] | 19/183 | 0.268 | 0.602 | 0.225 |
+
+### Late-interaction head scored with MeanMaxSim
+
+| arm | bytes/doc | nDCG@10 | Δ vs fp32 [95% CI] | wins/losses | R@10 | R@100 | top-10 overlap w/ fp32 |
+|---|---:|---:|---|---:|---:|---:|---:|
+| late fp32 | 1460.3 KB | 0.5188 | — | 0/0 | 0.624 | 0.814 | — |
+| late fp32 pool2 | 730.2 KB | 0.5150 | -0.0038 [-0.0096, +0.0019] | 21/25 | 0.612 | 0.820 | 0.926 |
+| late fp32 pool4 | 365.3 KB | 0.5117 | -0.0070 [-0.0145, +0.0001] | 27/35 | 0.612 | 0.820 | 0.873 |
+| late remex 4-bit | 182.5 KB | 0.5162 | -0.0025 [-0.0077, +0.0024] | 20/25 | 0.616 | 0.816 | 0.943 |
+| late remex 2-bit | 91.3 KB | 0.5150 | -0.0037 [-0.0130, +0.0054] | 37/43 | 0.614 | 0.806 | 0.832 |
+| late remax k=2 (asym) | 91.3 KB | 0.5134 | -0.0053 [-0.0143, +0.0036] | 32/41 | 0.612 | 0.804 | 0.822 |
+| late remex 2-bit pool2 | 45.6 KB | 0.5126 | -0.0062 [-0.0155, +0.0025] | 37/39 | 0.618 | 0.800 | 0.808 |
+| late remex 1-bit | 45.6 KB | 0.5146 | -0.0042 [-0.0148, +0.0065] | 38/46 | 0.614 | 0.810 | 0.738 |
+| late remax k=1 (asym) | 45.6 KB | 0.5105 | -0.0083 [-0.0206, +0.0043] | 33/44 | 0.604 | 0.800 | 0.751 |
+| late remax k=1 (sym) | 45.6 KB | 0.5083 | -0.0105 [-0.0231, +0.0019] | 35/52 | 0.614 | 0.806 | 0.699 |
+| late remex 1-bit pool2 | 22.8 KB | 0.5149 | -0.0038 [-0.0149, +0.0076] | 38/42 | 0.614 | 0.808 | 0.719 |
+| late remax k=1 (asym) pool2 | 22.8 KB | 0.5048 * | -0.0140 [-0.0253, -0.0025] | 31/46 | 0.600 | 0.802 | 0.727 |
+
+### Dense top-100 candidates reranked by late interaction
+
+| arm | bytes/doc | nDCG@10 | Δ vs fp32 [95% CI] | wins/losses | R@10 | R@100 | top-10 overlap w/ fp32 |
+|---|---:|---:|---|---:|---:|---:|---:|
+| fp32 d=1024 -> late fp32 | 1464.3 KB | 0.5082 | — | 0/0 | 0.604 | 0.718 | — |
+| remex 2-bit d=1024 -> late fp32 | 1460.6 KB | 0.5145 * | +0.0063 [+0.0013, +0.0119] | 15/7 | 0.616 | 0.742 | — |
+| remax k=1 d=1024 (asym) -> late fp32 | 1460.4 KB | 0.4983 * | -0.0099 [-0.0190, -0.0016] | 10/16 | 0.590 | 0.722 | — |
+| remex 2-bit d=256 -> late fp32 | 1460.4 KB | 0.5025 | -0.0057 [-0.0154, +0.0028] | 17/13 | 0.594 | 0.716 | — |
+| fp32 d=1024 -> late remex 2-bit | 95.3 KB | 0.5082 | -0.0000 [-0.0081, +0.0083] | 33/36 | 0.604 | 0.718 | — |
+| remex 2-bit d=1024 -> late remex 2-bit | 91.5 KB | 0.5151 | +0.0069 [-0.0029, +0.0167] | 39/35 | 0.616 | 0.742 | — |
+| remax k=1 d=1024 (asym) -> late remex 2-bit | 91.4 KB | 0.4961 * | -0.0121 [-0.0238, -0.0010] | 32/45 | 0.588 | 0.722 | — |
+| remex 2-bit d=256 -> late remex 2-bit | 91.3 KB | 0.5051 | -0.0031 [-0.0158, +0.0085] | 40/36 | 0.602 | 0.716 | — |
+| fp32 d=1024 -> late remex 1-bit | 49.6 KB | 0.5030 | -0.0051 [-0.0156, +0.0052] | 35/42 | 0.592 | 0.718 | — |
+| fp32 d=1024 -> late remax k=1 (asym) | 49.6 KB | 0.5002 | -0.0079 [-0.0199, +0.0042] | 31/41 | 0.580 | 0.718 | — |
+| remex 2-bit d=1024 -> late remex 1-bit | 45.9 KB | 0.5081 | -0.0000 [-0.0112, +0.0109] | 40/45 | 0.600 | 0.742 | — |
+| remex 2-bit d=1024 -> late remax k=1 (asym) | 45.9 KB | 0.5050 | -0.0032 [-0.0158, +0.0096] | 34/44 | 0.590 | 0.742 | — |
+| remax k=1 d=1024 (asym) -> late remex 1-bit | 45.8 KB | 0.4939 * | -0.0143 [-0.0273, -0.0021] | 35/51 | 0.580 | 0.722 | — |
+| remax k=1 d=1024 (asym) -> late remax k=1 (asym) | 45.8 KB | 0.4945 | -0.0137 [-0.0281, +0.0006] | 32/45 | 0.574 | 0.722 | — |
+| remex 2-bit d=256 -> late remex 1-bit | 45.7 KB | 0.4992 | -0.0090 [-0.0227, +0.0038] | 38/47 | 0.588 | 0.716 | — |
+| remex 2-bit d=256 -> late remax k=1 (asym) | 45.7 KB | 0.4958 | -0.0123 [-0.0271, +0.0018] | 34/45 | 0.580 | 0.716 | — |
+
+`*` = 95% paired-bootstrap CI on ΔnDCG@10 excludes zero (500 queries, 5,000 resamples). Wins/losses count queries whose nDCG@10 moved vs the reference; ties omitted.
+<!-- tables:docvqa:end -->
 
 ## Findings
 
@@ -214,12 +300,49 @@ spending bytes on the reranker's precision.
 k=1 d=1024. Keeping the query in float is free at index time and is the default
 in `neomme_quant.py`.
 
+**8. On page images the 1-bit token index costs nothing measurable.** Late
+fp32 0.5188; remex 1-bit 0.5146, −0.004 [−0.015, +0.007], at 46.7 KB/page
+against 1.5 MB (32×). remex 4-bit −0.003, 2-bit −0.004. Against the dense
+head at fp32 (0.3847, 4 KB), the 1-bit token index is +0.130 [+0.103, +0.158],
+145 queries up, 29 down. On SciFact the same comparison was +0.154; the gap
+between heads survives the switch from text to pixels, at 11× the bytes for the
+token side rather than 1.25×.
+
+**9. Pooling is also nearly free on pages, so the two compose.** pool2 costs
+−0.004 [−0.010, +0.002] and pool4 −0.007 [−0.015, +0.000] on DocVQA, against
+−0.019 and −0.026 on SciFact. Ward clustering of ~2,900 patch vectors finds
+many near-duplicates (white margins, repeated background) that 320 text tokens
+do not have. pool2 + 1-bit is 23.4 KB/page, 64× under fp32, at −0.004 [−0.015,
++0.008]. This changes the SciFact verdict on pooling (finding 2): on text it
+costs more than quantization per byte; on pages it is free and stacks.
+
+**10. The dense frontier is flat from 128 B to 512 B on DocVQA.** fp32 →
+remex 4-bit d=512 (256 B) −0.003, 2-bit d=1024 (256 B) −0.005, 4-bit d=1024
+(512 B) −0.007 [−0.013, −0.000]; at 128 B, 4-bit d=256, 2-bit d=512 and ST
+binary sit within 0.006 of each other, all CIs spanning zero. What holds from
+SciFact: remex 1-bit at full width loses (−0.025 [−0.040, −0.011]) and so does
+fp32 truncated to 128 dims (−0.024 [−0.036, −0.011]) — the two ways to spend
+512 B or 128 B badly are the same on both corpora. What does not transfer: the
+strict 4-bit-narrow-beats-2-bit-wide ordering; here the two tie. Binarising the
+query still costs −0.035 on the dense head and −0.002 on the token head.
+
+**11. The pipeline cap is smaller but still there.** Dense fp32 top-100 → late
+fp32 rerank 0.5082, −0.011 [−0.020, −0.002] under the full late scan, with dense
+R@100 0.718 against late 0.814. A 1-bit reranker costs a further −0.005 (CI
+spans zero). One oddity: candidates from remex 2-bit d=1024 rerank to 0.5145,
++0.006 [+0.001, +0.012] over fp32 candidates, because that arm's R@100 came out
+0.742 against 0.718 — a quantized candidate stage that retrieves *more* of the
+relevant pages into the top 100 on this corpus. Treat as noise until a second
+corpus repeats it.
+
 ## Cost
 
 - Encode: 39.3 min for 5,183 docs + 300 queries at float32 on 4 vCPU
   (2.24 docs/s over the run; length-sorted batches of 16, longest first).
   1.66M document tokens; `mv_tokens.npy` is 424 MB at float16.
-- Bench: dense arms under 1 s each; each late arm 25–80 s (300 queries × one
+- DocVQA: 50.2 min for 500 pages at 0.17 pages/s (batch 2, no length sort; a
+  2,048-px page is ~3,000 patches); bench 18 min, pooling 107 s / 92 s.
+- Bench (SciFact): dense arms under 1 s each; each late arm 25–80 s (300 queries × one
   GEMM against 1.66M × 128 decoded tokens); pooling 15 s per factor over the
   whole corpus; 14 min total.
 - Peak memory ≈ 3 GB (decoded token matrix at float32 plus the remax k=2
@@ -227,12 +350,13 @@ in `neomme_quant.py`.
 
 ## Caveats
 
-- One corpus (SciFact, scientific claims against abstracts), one seed per
-  codec, 300 queries. The 128 B dense finding clears the seed floor against
+- Two corpora (SciFact text; DocVQA page images), one seed per codec, 300 and
+  500 queries. The 128 B dense finding clears the seed floor against
   1-bit and ST binary and not against remax asym.
-- Text only. NeoMME's headline use is page images, whose token count per
-  document runs into the thousands and where pooling has a different
-  cost/benefit; nothing here measures that.
+- DocVQA is one of ten ViDoRe v1 tasks and has one relevant page per query,
+  so per-query nDCG@10 is coarse (1/log2(rank+1) or 0); ShiftProject (1,000
+  pages, 100 queries, French/English environmental reports) is running as a
+  second image corpus.
 - nDCG@10 against SciFact's binary qrels only; no throughput or compute
   measurement. The MaxSim implementation here decodes to float32 and dots, so
   it saves storage and not FLOPs; a popcount kernel over remax codes is the
