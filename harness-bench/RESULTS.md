@@ -146,7 +146,72 @@ in the repo where the weak arm fails often enough to leave something to measure 
 Exercism tracks because the models of the day failed them; that selection is the
 difference from a task bank we authored ourselves.
 
-## Cost of running the full 225
+## The full run
+
+203 exercises, all six languages, Opus 5, single-shot: write the file, no test
+access, no iteration. Of the three arms, this one is shaped like aider's
+protocol, so it is the one to put next to the leaderboard.
+
+**182/203 = 0.897**, Wilson 95% CI [0.847, 0.931].
+
+Against aider 0.86.0 + gpt-5.2 at 0.880 over all 225 tasks:
+P(X ≥ 182 | p = 0.880, n = 203) = 0.274. The two are not separable at this
+sample size. At par is the claim the data supports.
+
+| language | score | | language | score |
+|---|---|---|---|---|
+| javascript | 46/48 = 0.958 | | java | 35/39 = 0.897 |
+| python | 32/34 = 0.941 | | rust | 20/24 = 0.833 |
+| cpp | 20/22 = 0.909 | | go | 29/36 = 0.806 |
+
+No files touched outside the declared solution set in any of the 203.
+
+### The 22 excluded exercises
+
+Certification admitted 203 of 225. Six exercises are refactoring tasks whose
+stub already passes (`ledger` in go, javascript and java, plus `go/markdown`,
+`go/counter`, `java/tree-building`) and carry no signal in either direction.
+Sixteen have reference solutions that will not build here — mostly rust reaching
+for crates the exercise `Cargo.toml` does not declare, plus 4 cpp and 6 java.
+
+The excluded 22 are not a random sample, so 0.897 over 203 is not
+interchangeable with a score over 225. Which way the exclusions push is
+unmeasured: dropping the six stub-passes removes free points, and dropping the
+sixteen gold-fails removes exercises of unknown difficulty.
+
+### Stub defects scored as failures
+
+At least two of go's seven failures are not solve failures. `go/hexadecimal` and
+`go/trinary` ship stubs like
+`func ParseHex(in string, out int64, errCase string)` — the exercise's
+test-case struct fields leaked into the signature, and the function returns
+nothing, so no test can call it. Agents wrote a callable signature and the
+compile failed against the real suite either way. They are scored as failures
+here because that is what the grader saw.
+
+### Three harness defects this run exposed
+
+All three were mine, all three were found by agents' own reports or by
+re-checking, and all three are fixed in the committed code:
+
+1. `cmd_prompts` rendered `solution_files[0]` only. cpp declares a `.cpp` and a
+   `.h`, and the hidden test includes the header, not the source — so a
+   `.cpp`-only answer could never link, whatever it contained. The cpp arm was
+   re-run from pristine stubs with both files shown. It scores 0.909; before the
+   fix it would have scored near zero for a reason unrelated to coding.
+2. Regenerating prompts **before** resetting the work tree put the previous
+   run's solutions into the prompts as "current contents", turning a re-run into
+   a retry with prior code visible. Caught when an agent reported its stub
+   "already carried a complete implementation". Order is now reset → regenerate
+   → dispatch.
+3. Resetting a work tree while an agent from the previous wave was still writing
+   to it left last-writer-wins contamination on five exercises. Those five were
+   reset and re-run with nothing in flight.
+
+Two cpp passes were discarded because defects 1 and 2 invalidated them. Neither
+was ever graded.
+
+## Cost of the full run
 
 Measured on this container, 2026-09-06, before committing to the sweep.
 
