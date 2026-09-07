@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bench: remex / remax / native levers on NeoMME-260M-Retriever, BEIR SciFact.
 
-Reads data/scifact_enc (encode.py). Writes results.json (one record per arm,
+Reads data/scifact_enc (encode.py) or any --data dir carrying its own qrels.tsv (encode_vidore.py). Writes results.json (one record per arm,
 resumable: arms already present are skipped) and perquery.npz (per-query
 nDCG@10 for paired tests).
 
@@ -37,7 +37,8 @@ def load(data: Path):
     qd = np.load(data / "q_dense.npy"); qt = np.load(data / "q_mv_tokens.npy"); qoff = np.load(data / "q_mv_offsets.npy")
     doc_ids = json.loads((data / "doc_ids.json").read_text()); qids = json.loads((data / "query_ids.json").read_text())
     qrels = defaultdict(set)
-    for _, r in pd.read_csv(HERE / "data" / "scifact" / "qrels" / "test.tsv", sep="\t").iterrows():
+    qrels_path = data / "qrels.tsv" if (data / "qrels.tsv").exists() else HERE / "data" / "scifact" / "qrels" / "test.tsv"
+    for _, r in pd.read_csv(qrels_path, sep="\t").iterrows():
         if int(r["score"]) > 0:
             qrels[str(r["query-id"])].add(str(r["corpus-id"]))
     keep = [i for i, q in enumerate(qids) if qrels[q] & set(doc_ids)]
