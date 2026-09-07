@@ -348,6 +348,23 @@ three answers, the decoded query, tokens and milliseconds per arm.
 holds the earlier right-aligned run (7 of 12) and `results/demo_smol_left.json`
 the final one (10 of 12).
 
+## In the browser
+
+`web/` runs the stream-left port client-side: SmolLM2-135M frozen and split
+after layer 16 into two ONNX graphs with an explicit KV cache, the query head
+and encoder as ONNX, onnxruntime-web, a JS port of the tokenizer and of
+`regex_query.py`. The two halves reproduce the HF model's logits exactly; the
+browser latent route matches `pipeline.py` on 3/3 prompts on fp32 and fp16;
+WASM answers in about 560 ms. A backend is trusted only after it answers
+`4567 + 89` correctly at startup, because headless Chromium's WebGPU
+initialized and returned empty strings on every prompt. Weights (fp32 540 MB,
+fp16 270 MB, the tied embedding table shipped once, every file under 90 MB)
+are at https://huggingface.co/austegard/latent-calculator-web; int8 lost 22
+points and is not shipped. GitHub release assets were measured from a real
+browser and are not fetchable cross-origin. Live page:
+https://austegard.com/ai-tools/latent-calculator/ once oaustegard.github.io#348
+merges.
+
 ## Files
 
 `data.py`, `model_utils.py`, `probe.py`, `query_head.py`, `train_port.py`,
