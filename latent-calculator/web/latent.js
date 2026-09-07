@@ -11,8 +11,30 @@
 
 import { BPETokenizer } from './bpe.js';
 
-export const MODEL_BASE = new URLSearchParams(location.search).get('model')
-  || './model/';
+// Where the weights live.  `?model=<url>` wins; otherwise the first base whose
+// meta.json answers.  Hugging Face and raw.githubusercontent both send
+// access-control-allow-origin: * and honour ranges; GitHub release assets do not.
+export const MODEL_BASES = (() => {
+  const q = new URLSearchParams(location.search).get('model');
+  if (q) return [q.endsWith('/') ? q : q + '/'];
+  const local = location.protocol === 'http:' && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+    ? ['./model/'] : [];
+  return local.concat([
+    'https://huggingface.co/austegard/latent-calculator-web/resolve/main/',
+    'https://raw.githubusercontent.com/oaustegard/experiments/latent-calculator-weights/model/',
+  ]);
+})();
+export const MODEL_BASE = MODEL_BASES[0];
+
+async function pickBase(bases) {
+  for (const b of bases) {
+    try {
+      const r = await fetch(b + 'meta.json', { cache: 'no-store' });
+      if (r.ok) return b;
+    } catch (e) { /* try the next host */ }
+  }
+  throw new Error('no model host answered: ' + bases.join(', '));
+}
 
 const MAX_NEW = 16;
 const N_OPERAND_SLOTS = 6;
@@ -170,7 +192,9 @@ export class LatentModel {
     return ort.InferenceSession.create(model, { ...opts, externalData });
   }
 
-  async init({ base = MODEL_BASE, variant = 'fp32', backend = 'auto' } = {}) {
+  async init({ base = null, variant = 'fp32', backend = 'auto' } = {}) {
+    base = base || await pickBase(MODEL_BASES);
+    this.base = base;
     this.meta = await (await fetch(base + 'meta.json')).json();
     this.tok = new BPETokenizer(
       await (await fetch(base + (this.meta.tokenizer || 'tokenizer.json'))).json());
@@ -215,6 +239,20 @@ export class LatentModel {
           this.backend = ep;
           this.variant = variant;
           this.optLevel = level;
+          // Ground truth on startup.  A backend that loads and then computes
+          // garbage looks exactly like one that works (transformers.js int8 on
+          // WebGPU did this on this site once; headless Chromium's WebGPU
+          // returned empty strings here).  One known prompt through the latent
+          // route decides whether this backend is trusted.
+          const chk = await this.answer('4567 + 89 =', 'regex');
+          const got = (chk.latent.text || '').trim();
+          if (got !== '4656') {
+            this.log(`backend ${ep} failed the startup check: latent '${got}' `
+              + `for 4567 + 89 (expected 4656); trying the next backend`);
+            this.backend = null;
+            continue outer;
+          }
+          this.log(`backend ${ep} passed the startup check (4567 + 89 = ${got})`);
           break outer;
         } catch (e) {
           lastErr = e;
