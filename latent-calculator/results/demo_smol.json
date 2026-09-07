@@ -1,0 +1,451 @@
+{
+ "model": "smol",
+ "k": 16,
+ "head": "attn",
+ "split": "test_in",
+ "n": 12,
+ "seed": 0,
+ "skipped": {},
+ "summary": {
+  "none": {
+   "n": 12,
+   "accuracy": 0.0,
+   "mean_tokens": 28.25,
+   "mean_ms": 727.8310457865397
+  },
+  "text": {
+   "n": 12,
+   "accuracy": 0.0,
+   "mean_tokens": 42.416666666666664,
+   "mean_ms": 795.8487868309021
+  },
+  "stream": {
+   "n": 12,
+   "accuracy": 0.5833333333333334,
+   "mean_tokens": 20.666666666666668,
+   "mean_ms": 364.4169370333354
+  }
+ },
+ "rows": [
+  {
+   "prompt": "52 - 604109 =",
+   "gold": "-604057",
+   "arms": {
+    "none": {
+     "gen": "100000000000000",
+     "correct": 0,
+     "tokens": 27,
+     "ms": 826.5225887298584,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "The last two numbers are the same, so we can use the same",
+     "correct": 0,
+     "tokens": 43,
+     "ms": 887.3264789581299,
+     "prompt_tokens": 19,
+     "tool_tokens": 8,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "-604057",
+     "correct": 1,
+     "tokens": 19,
+     "ms": 435.1544380187988,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 8
+    }
+   },
+   "query": "sub 52 604109",
+   "calculator": "-604057"
+  },
+  {
+   "prompt": "Which is larger, 3436 or 9549?",
+   "gold": "less",
+   "arms": {
+    "none": {
+     "gen": "The answer is 9549.",
+     "correct": 0,
+     "tokens": 28,
+     "ms": 653.2959938049316,
+     "prompt_tokens": 16,
+     "tool_tokens": 0,
+     "generated_tokens": 12
+    },
+    "text": {
+     "gen": "## How to convert 100000000",
+     "correct": 0,
+     "tokens": 38,
+     "ms": 849.9114513397217,
+     "prompt_tokens": 19,
+     "tool_tokens": 3,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "less",
+     "correct": 1,
+     "tokens": 18,
+     "ms": 164.41822052001953,
+     "prompt_tokens": 16,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 3436 9549",
+   "calculator": "less"
+  },
+  {
+   "prompt": "Is 40 greater or less than 240434?",
+   "gold": "less",
+   "arms": {
+    "none": {
+     "gen": "The answer is 40 less than 24043",
+     "correct": 0,
+     "tokens": 32,
+     "ms": 878.6478042602539,
+     "prompt_tokens": 16,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "## How to calculate 40 percent of 2404",
+     "correct": 0,
+     "tokens": 38,
+     "ms": 839.3959999084473,
+     "prompt_tokens": 19,
+     "tool_tokens": 3,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "less",
+     "correct": 1,
+     "tokens": 18,
+     "ms": 160.4630947113037,
+     "prompt_tokens": 16,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 40 240434",
+   "calculator": "less"
+  },
+  {
+   "prompt": "Is 428583 greater or less than 53?",
+   "gold": "greater",
+   "arms": {
+    "none": {
+     "gen": "The answer is 428583 is 42",
+     "correct": 0,
+     "tokens": 32,
+     "ms": 817.4235820770264,
+     "prompt_tokens": 16,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "## How to calculate 428583 percent of",
+     "correct": 0,
+     "tokens": 38,
+     "ms": 846.6441631317139,
+     "prompt_tokens": 19,
+     "tool_tokens": 3,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "greater",
+     "correct": 1,
+     "tokens": 18,
+     "ms": 155.73692321777344,
+     "prompt_tokens": 16,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 428583 53",
+   "calculator": "greater"
+  },
+  {
+   "prompt": "Compare 8891 and 65:",
+   "gold": "greater",
+   "arms": {
+    "none": {
+     "gen": "The 8891 is a 16-bit number",
+     "correct": 0,
+     "tokens": 27,
+     "ms": 814.9974346160889,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "8891 and 65: [less] 88",
+     "correct": 0,
+     "tokens": 33,
+     "ms": 844.1715240478516,
+     "prompt_tokens": 14,
+     "tool_tokens": 3,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "greater",
+     "correct": 1,
+     "tokens": 13,
+     "ms": 141.2208080291748,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 8891 65",
+   "calculator": "greater"
+  },
+  {
+   "prompt": "What is 539451 plus 927818?",
+   "gold": "1467269",
+   "arms": {
+    "none": {
+     "gen": "539451 + 927818 is",
+     "correct": 0,
+     "tokens": 34,
+     "ms": 854.6383380889893,
+     "prompt_tokens": 18,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "Is 539451 a prime number?",
+     "correct": 0,
+     "tokens": 52,
+     "ms": 857.184886932373,
+     "prompt_tokens": 27,
+     "tool_tokens": 9,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "1476629",
+     "correct": 0,
+     "tokens": 27,
+     "ms": 529.2701721191406,
+     "prompt_tokens": 18,
+     "tool_tokens": 0,
+     "generated_tokens": 9
+    }
+   },
+   "query": "add 539451 927818",
+   "calculator": "1467269"
+  },
+  {
+   "prompt": "915061 * 966343 =",
+   "gold": "884262791923",
+   "arms": {
+    "none": {
+     "gen": "100000000000000",
+     "correct": 0,
+     "tokens": 31,
+     "ms": 829.6844959259033,
+     "prompt_tokens": 15,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "The first 10000000000",
+     "correct": 0,
+     "tokens": 59,
+     "ms": 864.9930953979492,
+     "prompt_tokens": 29,
+     "tool_tokens": 14,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "772171991923",
+     "correct": 0,
+     "tokens": 29,
+     "ms": 787.452220916748,
+     "prompt_tokens": 15,
+     "tool_tokens": 0,
+     "generated_tokens": 14
+    }
+   },
+   "query": "mul 915061 966343",
+   "calculator": "884262791923"
+  },
+  {
+   "prompt": "Compute 689851 times 471707.",
+   "gold": "325407545657",
+   "arms": {
+    "none": {
+     "gen": "### Division",
+     "correct": 0,
+     "tokens": 22,
+     "ms": 328.2341957092285,
+     "prompt_tokens": 17,
+     "tool_tokens": 0,
+     "generated_tokens": 5
+    },
+    "text": {
+     "gen": "### Division",
+     "correct": 0,
+     "tokens": 50,
+     "ms": 324.9993324279785,
+     "prompt_tokens": 31,
+     "tool_tokens": 14,
+     "generated_tokens": 5
+    },
+    "stream": {
+     "gen": "299554455657",
+     "correct": 0,
+     "tokens": 31,
+     "ms": 756.068229675293,
+     "prompt_tokens": 17,
+     "tool_tokens": 0,
+     "generated_tokens": 14
+    }
+   },
+   "query": "mul 689851 471707",
+   "calculator": "325407545657"
+  },
+  {
+   "prompt": "Compare 1212 and 975558:",
+   "gold": "less",
+   "arms": {
+    "none": {
+     "gen": "The 1212 is a composite number. It can be",
+     "correct": 0,
+     "tokens": 31,
+     "ms": 820.4066753387451,
+     "prompt_tokens": 15,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "## What is 1212 in words?",
+     "correct": 0,
+     "tokens": 35,
+     "ms": 789.1602516174316,
+     "prompt_tokens": 18,
+     "tool_tokens": 3,
+     "generated_tokens": 14
+    },
+    "stream": {
+     "gen": "less",
+     "correct": 1,
+     "tokens": 17,
+     "ms": 147.08852767944336,
+     "prompt_tokens": 15,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 1212 975558",
+   "calculator": "less"
+  },
+  {
+   "prompt": "What is 105 multiplied by 36?",
+   "gold": "3780",
+   "arms": {
+    "none": {
+     "gen": "The 105 multiplied by 36 is equal to",
+     "correct": 0,
+     "tokens": 28,
+     "ms": 828.7692070007324,
+     "prompt_tokens": 12,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "105 x 36 = 3780",
+     "correct": 0,
+     "tokens": 39,
+     "ms": 802.5600910186768,
+     "prompt_tokens": 18,
+     "tool_tokens": 6,
+     "generated_tokens": 15
+    },
+    "stream": {
+     "gen": "3780",
+     "correct": 1,
+     "tokens": 18,
+     "ms": 345.29876708984375,
+     "prompt_tokens": 12,
+     "tool_tokens": 0,
+     "generated_tokens": 6
+    }
+   },
+   "query": "mul 105 36",
+   "calculator": "3780"
+  },
+  {
+   "prompt": "Add 614793 and 284983:",
+   "gold": "899776",
+   "arms": {
+    "none": {
+     "gen": "```",
+     "correct": 0,
+     "tokens": 21,
+     "ms": 276.3824462890625,
+     "prompt_tokens": 17,
+     "tool_tokens": 0,
+     "generated_tokens": 4
+    },
+    "text": {
+     "gen": "The 284983 is a safe number.",
+     "correct": 0,
+     "tokens": 49,
+     "ms": 860.1455688476562,
+     "prompt_tokens": 25,
+     "tool_tokens": 8,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "699776",
+     "correct": 0,
+     "tokens": 25,
+     "ms": 460.3867530822754,
+     "prompt_tokens": 17,
+     "tool_tokens": 0,
+     "generated_tokens": 8
+    }
+   },
+   "query": "add 614793 284983",
+   "calculator": "899776"
+  },
+  {
+   "prompt": "Add 52 and 122:",
+   "gold": "174",
+   "arms": {
+    "none": {
+     "gen": "The 52 and 122 are the same as the",
+     "correct": 0,
+     "tokens": 26,
+     "ms": 804.9697875976562,
+     "prompt_tokens": 10,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "122 + 52 = 176.",
+     "correct": 0,
+     "tokens": 35,
+     "ms": 783.6925983428955,
+     "prompt_tokens": 15,
+     "tool_tokens": 5,
+     "generated_tokens": 15
+    },
+    "stream": {
+     "gen": "147",
+     "correct": 0,
+     "tokens": 15,
+     "ms": 290.44508934020996,
+     "prompt_tokens": 10,
+     "tool_tokens": 0,
+     "generated_tokens": 5
+    }
+   },
+   "query": "add 52 122",
+   "calculator": "174"
+  }
+ ]
+}
