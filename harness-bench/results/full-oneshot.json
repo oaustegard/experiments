@@ -1,0 +1,1017 @@
+{
+ "python/pig-latin": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "......................                                                   [100%]\n22 passed in 0.02s\n"
+ },
+ "python/zipper": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "..............                                                           [100%]\n14 passed in 0.02s\n"
+ },
+ "python/dot-dsl": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "...........F\n=================================== FAILURES ===================================\n_________________________ DotDslTest.test_unknown_item _________________________\n\nself = <dot_dsl_test.DotDslTest testMethod=test_unknown_item>\n\n    def test_unknown_item(self):\n        with self.assertRaises(ValueError) as err:\n            Graph([(99, 1, 2)])\n        self.assertEqual(type(err.exception), ValueError)\n>       self.assertEqual(err.exception.args[0], \"Unknown item\")\nE       AssertionError: 'Unknown item 99' != 'Unknown item'\nE       - Unknown item 99\nE       ?             ---\nE       + Unknown item\n\ndot_dsl_test.py:121: AssertionError\n=========================== short test summary info ============================\nFAILED dot_dsl_test.py::DotDslTest::test_unknown_item - AssertionError: 'Unkn...\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n1 failed, 11 passed in 0.03s\n"
+ },
+ "python/hangman": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".......                                                                  [100%]\n7 passed in 0.02s\n"
+ },
+ "python/grade-school": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "....................                                                     [100%]\n20 passed in 0.03s\n"
+ },
+ "python/connect": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "..........                                                               [100%]\n10 passed in 0.02s\n"
+ },
+ "python/scale-generator": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".................                                                        [100%]\n17 passed in 0.02s\n"
+ },
+ "python/react": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "..............                                                           [100%]\n14 passed in 0.02s\n"
+ },
+ "python/book-store": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "....................                                                     [100%]\n20 passed in 0.03s\n"
+ },
+ "python/list-ops": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "........................                                                 [100%]\n24 passed in 0.03s\n"
+ },
+ "python/proverb": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "........                                                                 [100%]\n8 passed in 0.02s\n"
+ },
+ "python/grep": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".........................                                                [100%]\n25 passed in 0.05s\n"
+ },
+ "python/paasio": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".........................                                                [100%]\n25 passed in 0.59s\n"
+ },
+ "python/rest-api": {
+  "passed": false,
+  "stray": [],
+  "output_tail": ".g. float).\n    \n        ``parse_constant``, if specified, will be called with one of the\n        following strings: -Infinity, Infinity, NaN.\n        This can be used to raise an exception if invalid JSON numbers\n        are encountered.\n    \n        To use a custom ``JSONDecoder`` subclass, specify it with the ``cls``\n        kwarg; otherwise ``JSONDecoder`` is used.\n        \"\"\"\n        if isinstance(s, str):\n            if s.startswith('\\ufeff'):\n                raise JSONDecodeError(\"Unexpected UTF-8 BOM (decode using utf-8-sig)\",\n                                      s, 0)\n        else:\n            if not isinstance(s, (bytes, bytearray)):\n>               raise TypeError(f'the JSON object must be str, bytes or bytearray, '\n                                f'not {s.__class__.__name__}')\nE               TypeError: the JSON object must be str, bytes or bytearray, not dict\n\n/usr/lib/python3.11/json/__init__.py:339: TypeError\n=========================== short test summary info ============================\nFAILED rest_api_test.py::RestApiTest::test_add_user - TypeError: the JSON obj...\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n1 failed in 0.03s\n"
+ },
+ "python/go-counting": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "...........                                                              [100%]\n11 passed in 0.02s\n"
+ },
+ "python/simple-linked-list": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "....................                                                     [100%]\n20 passed in 0.03s\n"
+ },
+ "python/wordy": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".........................                                                [100%]\n25 passed in 0.03s\n"
+ },
+ "python/bowling": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "...............................                                          [100%]\n31 passed in 0.04s\n"
+ },
+ "python/forth": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "......................................................                   [100%]\n54 passed in 0.06s\n"
+ },
+ "python/sgf-parsing": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".......................                                                  [100%]\n23 passed in 0.03s\n"
+ },
+ "python/dominoes": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".............                                                            [100%]\n13 passed in 0.02s\n"
+ },
+ "python/tree-building": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".............                                                            [100%]\n13 passed in 0.02s\n"
+ },
+ "python/affine-cipher": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "................                                                         [100%]\n16 passed in 0.03s\n"
+ },
+ "python/transpose": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "............                                                             [100%]\n12 passed in 0.02s\n"
+ },
+ "python/zebra-puzzle": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "..                                                                       [100%]\n2 passed in 0.01s\n"
+ },
+ "python/food-chain": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "..........                                                               [100%]\n10 passed in 0.02s\n"
+ },
+ "python/phone-number": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".....................                                                    [100%]\n21 passed in 0.03s\n"
+ },
+ "python/variable-length-quantity": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "..........................                                               [100%]\n26 passed in 0.03s\n"
+ },
+ "python/beer-song": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "........                                                                 [100%]\n8 passed in 0.02s\n"
+ },
+ "python/bottle-song": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".......                                                                  [100%]\n7 passed in 0.01s\n"
+ },
+ "python/poker": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".....................................                                    [100%]\n37 passed in 0.04s\n"
+ },
+ "python/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".........                                                                [100%]\n9 passed in 0.02s\n"
+ },
+ "python/pov": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "...............                                                          [100%]\n15 passed in 0.03s\n"
+ },
+ "python/robot-name": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "....                                                                     [100%]\n4 passed in 0.01s\n"
+ },
+ "go/dominoes": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tdominoes\t0.003s\n"
+ },
+ "go/word-search": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \twordsearch\t0.004s\n"
+ },
+ "go/octal": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \toctal\t0.003s\n"
+ },
+ "go/pig-latin": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tpiglatin\t0.003s\n"
+ },
+ "go/crypto-square": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tcryptosquare\t0.004s\n"
+ },
+ "go/error-handling": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \terratum\t0.003s\n"
+ },
+ "go/connect": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tconnect\t0.003s\n"
+ },
+ "go/kindergarten-garden": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tkindergarten\t0.003s\n"
+ },
+ "go/dnd-character": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tdnd-character\t0.006s\n"
+ },
+ "go/scale-generator": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tscale\t0.003s\n"
+ },
+ "go/palindrome-products": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tpalindrome\t0.008s\n"
+ },
+ "go/protein-translation": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tprotein\t0.004s\n"
+ },
+ "go/zebra-puzzle": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tzebra\t0.003s\n"
+ },
+ "go/book-store": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tbookstore\t0.004s\n"
+ },
+ "go/bowling": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tbowling\t0.005s\n"
+ },
+ "go/hexadecimal": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "FAIL\thexadecimal [build failed]\nFAIL\n# hexadecimal [hexadecimal.test]\n./hexadecimal_test.go:75:8: undefined: HandleErrors\n"
+ },
+ "go/paasio": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tpaasio\t0.338s\n"
+ },
+ "go/robot-simulator": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "TIMEOUT after 420s\nb''"
+ },
+ "go/tree-building": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \ttree\t0.013s\n"
+ },
+ "go/forth": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tforth\t0.010s\n"
+ },
+ "go/sublist": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tsublist\t0.003s\n"
+ },
+ "go/simple-linked-list": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "--- FAIL: TestNonEmptyListToArray (0.00s)\n    simple_linked_list_test.go:75: Test non empty list to array: [3 2 1], want [1 2 3]\n--- FAIL: TestPopFromNonEmptyList (0.00s)\n    simple_linked_list_test.go:102: Pop from non empty list: [2 1], want [1 2]\n--- FAIL: TestPushToNonEmptyList (0.00s)\n    simple_linked_list_test.go:128: Push to non empty list: [4 3 2 1], want [1 2 3 4]\n--- FAIL: TestPushAndPop (0.00s)\n    simple_linked_list_test.go:142: Test push and pop: [6 4 2 1], want [1 2 4 6]\n--- FAIL: TestReverseNonEmptyList (0.00s)\n    simple_linked_list_test.go:162: Reverse non empty list: [1 2 3], want [3 2 1]\nFAIL\nFAIL\tlinkedlist\t0.004s\nFAIL\n"
+ },
+ "go/alphametics": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \talphametics\t0.004s\n"
+ },
+ "go/react": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \treact\t0.004s\n"
+ },
+ "go/pov": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tpov\t0.005s\n"
+ },
+ "go/variable-length-quantity": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tvariablelengthquantity\t0.003s\n"
+ },
+ "go/beer-song": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "eer.\\nTake one down and pass it around, 7 bottles of beer on the wall.\\n\\n7 bottles of beer on the wall, 7 bottles of beer.\\nTake one down and pass it around, 6 bottles of beer on the wall.\\n\\n6 bottles of beer on the wall, 6 bottles of beer.\\nTake one down and pass it around, 5 bottles of beer on the wall.\\n\\n\"\n    --- FAIL: TestSeveralVerses/a_different_set_of_verses (0.00s)\n        beer_song_test.go:97: Verse(7,5)\n             got:\"7 bottles of beer on the wall, 7 bottles of beer.\\nTake one down and pass it around, 6 bottles of beer on the wall.\\n\\n6 bottles of beer on the wall, 6 bottles of beer.\\nTake one down and pass it around, 5 bottles of beer on the wall.\\n\\n5 bottles of beer on the wall, 5 bottles of beer.\\nTake one down and pass it around, 4 bottles of beer on the wall.\\n\"\n            want:\"7 bottles of beer on the wall, 7 bottles of beer.\\nTake one down and pass it around, 6 bottles of beer on the wall.\\n\\n6 bottles of beer on the wall, 6 bottles of beer.\\nTake one down and pass it around, 5 bottles of beer on the wall.\\n\\n5 bottles of beer on the wall, 5 bottles of beer.\\nTake one down and pass it around, 4 bottles of beer on the wall.\\n\\n\"\nFAIL\nFAIL\tbeer\t0.004s\nFAIL\n"
+ },
+ "go/matrix": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "--- FAIL: TestNew (0.00s)\n    --- FAIL: TestNew/first_row_empty (0.00s)\n        matrix_test.go:161: New(\"\\n3 4\\n5 6\") expected error, got: [[3 4] [5 6]]\n    --- FAIL: TestNew/last_row_empty (0.00s)\n        matrix_test.go:161: New(\"1 2\\n3 4\\n\") expected error, got: [[1 2] [3 4]]\nFAIL\nFAIL\tmatrix\t0.004s\nFAIL\n"
+ },
+ "go/wordy": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \twordy\t0.004s\n"
+ },
+ "go/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \ttwobucket\t0.004s\n"
+ },
+ "go/poker": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "L: TestBestHandValid/four_of_a_kind_beats_a_full_house (0.00s)\n        poker_test.go:59: BestHand([4\u2664 5\u2661 4\u2662 5\u2662 4\u2661 3\u2664 3\u2661 2\u2664 3\u2662 3\u2667]) returned error: poker: invalid suit in card \"4\u2664\", want: [3\u2664 3\u2661 2\u2664 3\u2662 3\u2667]\n    --- FAIL: TestBestHandValid/both_hands_have_four_of_a_kind,_tie_goes_to_high_quad (0.00s)\n        poker_test.go:59: BestHand([2\u2664 2\u2661 2\u2667 8\u2662 2\u2662 4\u2664 5\u2661 5\u2664 5\u2662 5\u2667]) returned error: poker: invalid suit in card \"2\u2664\", want: [4\u2664 5\u2661 5\u2664 5\u2662 5\u2667]\n    --- FAIL: TestBestHandValid/with_multiple_decks,_both_hands_with_identical_four_of_a_kind,_tie_determined_by_kicker (0.00s)\n        poker_test.go:59: BestHand([3\u2664 3\u2661 2\u2664 3\u2662 3\u2667 3\u2664 3\u2661 4\u2664 3\u2662 3\u2667]) returned error: poker: invalid suit in card \"3\u2664\", want: [3\u2664 3\u2661 4\u2664 3\u2662 3\u2667]\n    --- FAIL: TestBestHandValid/straight_flush_beats_four_of_a_kind (0.00s)\n        poker_test.go:59: BestHand([4\u2664 5\u2661 5\u2664 5\u2662 5\u2667 7\u2664 8\u2664 9\u2664 6\u2664 10\u2664]) returned error: poker: invalid suit in card \"4\u2664\", want: [7\u2664 8\u2664 9\u2664 6\u2664 10\u2664]\n    --- FAIL: TestBestHandValid/both_hands_have_straight_flush,_tie_goes_to_highest-ranked_card (0.00s)\n        poker_test.go:59: BestHand([4\u2661 6\u2661 7\u2661 8\u2661 5\u2661 5\u2664 7\u2664 8\u2664 9\u2664 6\u2664]) returned error: poker: invalid suit in card \"4\u2661\", want: [5\u2664 7\u2664 8\u2664 9\u2664 6\u2664]\nFAIL\nFAIL\tpoker\t0.005s\nFAIL\n"
+ },
+ "go/food-chain": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tfoodchain\t0.003s\n"
+ },
+ "go/say": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tsay\t0.004s\n"
+ },
+ "go/transpose": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \ttranspose\t0.003s\n"
+ },
+ "go/trinary": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "--- FAIL: TestParseTrinary (0.00s)\n    trinary_test.go:31: ParseTrinary(\"2021110011022210012102010021220101220222\") = -9223372036854775808, <nil>, expected error\nFAIL\nFAIL\ttrinary\t0.002s\nFAIL\n"
+ },
+ "go/bottle-song": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ok  \tbottlesong\t0.004s\n"
+ },
+ "rust/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ket_one_of_size_2_and_bucket_two_of_size_3_start_with_bucket_one_and_end_with_bucket_two ... ok\ntest measure_using_bucket_one_of_size_3_and_bucket_two_of_size_5_start_with_bucket_one ... ok\ntest measure_using_bucket_one_of_size_3_and_bucket_two_of_size_5_start_with_bucket_two ... ok\ntest measure_using_bucket_one_of_size_7_and_bucket_two_of_size_11_start_with_bucket_one ... ok\ntest measure_using_bucket_one_of_size_7_and_bucket_two_of_size_11_start_with_bucket_two ... ok\ntest not_possible_to_reach_the_goal ... ok\ntest with_the_same_buckets_but_a_different_goal_then_it_is_possible ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling two-bucket v1.4.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/two-bucket)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.21s\n     Running unittests src/lib.rs (_target/debug/deps/two_bucket-82b97743a3569faf)\n     Running tests/two-bucket.rs (_target/debug/deps/two_bucket-afb9d93ffa29b055)\n   Doc-tests two_bucket\n"
+ },
+ "rust/forth": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "tors ... ok\ntest user_defined_words::can_override_other_user_defined_words ... ok\ntest user_defined_words::can_override_built_in_words ... ok\ntest user_defined_words::can_use_different_words_with_the_same_name ... ok\ntest user_defined_words::cannot_redefine_negative_numbers ... ok\ntest user_defined_words::cannot_redefine_non_negative_numbers ... ok\ntest user_defined_words::errors_if_executing_a_non_existent_word ... ok\ntest user_defined_words::execute_in_the_right_order ... ok\ntest user_defined_words::only_defines_locally ... ok\n\ntest result: ok. 49 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling forth v1.7.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/forth)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.01s\n     Running unittests src/lib.rs (_target/debug/deps/forth-d12e71315539db65)\n     Running tests/alloc-attack.rs (_target/debug/deps/alloc_attack-dd860f2b0cc0b687)\n     Running tests/forth.rs (_target/debug/deps/forth-aeff3da3beeef406)\n   Doc-tests forth\n"
+ },
+ "rust/variable-length-quantity": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "yte ... ok\ntest largest_triple_byte ... ok\ntest many_multi_byte_values ... ok\ntest arbitrary_single_byte ... ok\ntest maximum_32_bit_integer ... ok\ntest maximum_32_bit_integer_input ... ok\ntest multiple_values ... ok\ntest one_byte ... ok\ntest smallest_double_byte ... ok\ntest smallest_quadruple_byte ... ok\ntest smallest_quintuple_byte ... ok\ntest smallest_triple_byte ... ok\ntest three_bytes ... ok\ntest two_bytes ... ok\ntest two_multi_byte_values ... ok\ntest two_single_byte_values ... ok\ntest zero ... ok\n\ntest result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling variable-length-quantity v1.2.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/variable-length-quantity)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s\n     Running unittests src/lib.rs (_target/debug/deps/variable_length_quantity-a92a455579533d9a)\n     Running tests/variable-length-quantity.rs (_target/debug/deps/variable_length_quantity-1d100aea663f3e06)\n   Doc-tests variable_length_quantity\n"
+ },
+ "rust/luhn-from": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "correctly_converted_to_output_digit_9 ... ok\ntest invalid_credit_card_is_invalid ... ok\ntest invalid_canadian_sin_is_invalid ... ok\ntest single_digit_string_is_invalid ... ok\ntest single_zero_string_is_invalid ... ok\ntest strings_that_contain_non_digits_are_invalid ... ok\ntest valid_canadian_sin_is_valid ... ok\ntest you_can_validate_from_a_str ... ok\ntest you_can_validate_from_a_string ... ok\ntest you_can_validate_from_a_u16 ... ok\ntest you_can_validate_from_a_u32 ... ok\ntest you_can_validate_from_a_u64 ... ok\ntest you_can_validate_from_a_u8 ... ok\ntest you_can_validate_from_a_usize ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling luhn-from v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/luhn-from)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s\n     Running unittests src/lib.rs (_target/debug/deps/luhn_from-3098cc4c6fd9dda2)\n     Running tests/luhn-from.rs (_target/debug/deps/luhn_from-f6f18f80d8e03f66)\n   Doc-tests luhn_from\n"
+ },
+ "rust/grade-school": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sured; 0 filtered out; finished in 0.00s\n\n\nrunning 10 tests\ntest grade_is_empty_if_no_students_in_the_roster ... ok\ntest grade_is_empty_if_no_students_in_that_grade ... ok\ntest grades_for_empty_school ... ok\ntest grades_for_one_student ... ok\ntest grades_for_several_students_are_sorted ... ok\ntest grades_when_several_students_have_the_same_grade ... ok\ntest student_not_added_to_multiple_grades ... ok\ntest student_not_added_to_other_grade_for_multiple_grades ... ok\ntest student_not_added_to_same_grade_more_than_once ... ok\ntest students_are_sorted_by_name_in_a_grade ... ok\n\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling grade-school v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/grade-school)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.65s\n     Running unittests src/lib.rs (_target/debug/deps/grade_school-3d9ccfed074e659c)\n     Running tests/grade-school.rs (_target/debug/deps/grade_school-29397ac613922e0f)\n   Doc-tests grade_school\n"
+ },
+ "rust/react": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ompute_cells_update_value_when_dependencies_are_changed ... ok\ntest do_not_break_cell_if_creating_compute_cell_with_valid_and_invalid_input ... ok\ntest error_adding_callback_to_nonexistent_cell ... ok\ntest error_creating_compute_cell_if_input_doesnt_exist ... ok\ntest error_setting_a_nonexistent_input_cell ... ok\ntest input_cells_have_a_value ... ok\ntest error_removing_callback_from_nonexisting_cell ... ok\ntest removing_a_callback_multiple_times_doesnt_interfere_with_other_callbacks ... ok\n\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 2 tests\ntest src/lib.rs - ComputeCellId (line 13) - compile fail ... ok\ntest src/lib.rs - ComputeCellId (line 8) - compile fail ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s\n\n   Compiling react v2.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/react)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.74s\n     Running unittests src/lib.rs (_target/debug/deps/react-19cabed80efdc520)\n     Running tests/react.rs (_target/debug/deps/react-f26a0d636e4947ba)\n   Doc-tests react\n"
+ },
+ "rust/nucleotide-codons": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 11 tests\ntest arginine_name ... ok\ntest cysteine_tgt ... ok\ntest empty_is_invalid ... ok\ntest cysteine_tgy ... ok\ntest isoleucine ... ok\ntest methionine ... ok\ntest stop ... ok\ntest too_long_is_invalid ... ok\ntest too_short_is_invalid ... ok\ntest valine ... ok\ntest x_is_not_shorthand_so_is_invalid ... ok\n\ntest result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nwarning: no edition set: defaulting to the 2015 edition while the latest is 2024\n   Compiling nucleotide_codons v0.1.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/nucleotide-codons)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.72s\n     Running unittests src/lib.rs (_target/debug/deps/nucleotide_codons-5a2b3c12f3284868)\n     Running tests/nucleotide-codons.rs (_target/debug/deps/nucleotide_codons-4d48b2c33eadfcba)\n   Doc-tests nucleotide_codons\n"
+ },
+ "rust/parallel-letter-frequency": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 10 tests\ntest all_three_anthems_1_worker ... ok\ntest case_insensitivity ... ok\ntest many_empty_lines ... ok\ntest no_texts ... ok\ntest all_three_anthems_3_workers ... ok\ntest numbers_dont_count ... ok\ntest many_times_same_text ... ok\ntest non_integer_multiple_of_threads ... ok\ntest one_letter ... ok\ntest punctuation_doesnt_count ... ok\n\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling parallel-letter-frequency v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/parallel-letter-frequency)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.76s\n     Running unittests src/lib.rs (_target/debug/deps/parallel_letter_frequency-d410ea930cde3143)\n     Running tests/parallel-letter-frequency.rs (_target/debug/deps/parallel_letter_frequency-3cd4fb719ec543c5)\n   Doc-tests parallel_letter_frequency\n"
+ },
+ "rust/doubly-linked-list": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "st iter ... ok\ntest drop_large_list ... ok\n\ntest result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.55s\n\n\nrunning 1 test\ntest drop_no_leak_when_removing_single_element ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest drop_no_leaks ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling doubly-linked-list v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/doubly-linked-list)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.54s\n     Running unittests src/lib.rs (_target/debug/deps/doubly_linked_list-2b0daa7b76bf86bc)\n     Running tests/doubly-linked-list.rs (_target/debug/deps/doubly_linked_list-3a6481eb11cbabc1)\n     Running tests/step_4_leak_test_1.rs (_target/debug/deps/step_4_leak_test_1-50dff5e14cc18f66)\n     Running tests/step_4_leak_test_2.rs (_target/debug/deps/step_4_leak_test_2-3534273a982cc134)\n   Doc-tests doubly_linked_list\n"
+ },
+ "rust/gigasecond": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "running 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 5 tests\ntest date_only_specification_of_time ... ok\ntest full_time_with_day_roll_over ... ok\ntest full_time_specified ... ok\ntest second_test_for_date_only_specification_of_time ... ok\ntest third_test_for_date_only_specification_of_time ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Updating crates.io index\n     Locking 11 packages to latest compatible versions\n   Compiling powerfmt v0.2.0\n   Compiling time-core v0.1.9\n   Compiling num-conv v0.2.2\n   Compiling deranged v0.5.8\n   Compiling time v0.3.55\n   Compiling gigasecond v2.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/gigasecond)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.37s\n     Running unittests src/lib.rs (_target/debug/deps/gigasecond-6b7851b87893888c)\n     Running tests/gigasecond.rs (_target/debug/deps/gigasecond-abd31d5677e50ae8)\n   Doc-tests gigasecond\n"
+ },
+ "rust/acronym": {
+  "passed": false,
+  "stray": [],
+  "output_tail": " 3: core::panicking::assert_failed\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/panicking.rs:394:5\n   4: acronym::camelcase\n             at ./tests/acronym.rs:89:5\n   5: acronym::camelcase::{{closure}}\n             at ./tests/acronym.rs:85:15\n   6: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\n   7: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n\n\nfailures:\n    camelcase\n\ntest result: FAILED. 9 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s\n\n   Compiling acronym v1.7.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/acronym)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.37s\n     Running unittests src/lib.rs (_target/debug/deps/acronym-f9e68df0e8f79a8b)\n     Running tests/acronym.rs (_target/debug/deps/acronym-dc82d53964d4f939)\nerror: test failed, to rerun pass `--test acronym`\n"
+ },
+ "rust/accumulate": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest accumulate_empty ... ok\ntest accumulate_reversed_strings ... ok\ntest accumulate_recursively ... ok\ntest accumulate_upcases ... ok\ntest accumulate_squares ... ok\ntest change_in_type ... ok\ntest closure ... ok\ntest closure_floats ... ok\ntest func_single ... ok\ntest minimal_bounds_on_input_and_output ... ok\ntest mutating_closure ... ok\ntest strings ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling accumulate v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/accumulate)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s\n     Running unittests src/lib.rs (_target/debug/deps/accumulate-76dddba50ef00645)\n     Running tests/accumulate.rs (_target/debug/deps/accumulate-004d97171ee89880)\n   Doc-tests accumulate\n"
+ },
+ "rust/scale-generator": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "y/core/src/ops/function.rs:250:5\n   8: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n\n\nfailures:\n    chromatic_scale_with_flats\n    chromatic_scale_with_sharps\n    dorian_mode\n    enigmatic\n    harmonic_minor\n    hexatonic\n    locrian_mode\n    lydian_mode\n    major_scale_with_flats\n    major_scale_with_sharps\n    minor_scale_with_flats\n    minor_scale_with_sharps\n    mixolydian_mode\n    octatonic\n    pentatonic\n    phrygian_mode\n    simple_major_scale\n\ntest result: FAILED. 0 passed; 17 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s\n\n   Compiling scale_generator v2.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/scale-generator)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s\n     Running unittests src/lib.rs (_target/debug/deps/scale_generator-84fe007019f9b2b6)\n     Running tests/scale-generator.rs (_target/debug/deps/scale_generator-17cca2b7d4fd3955)\nerror: test failed, to rerun pass `--test scale-generator`\n"
+ },
+ "rust/dot-dsl": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 9 tests\ntest edges_store_attributes ... ok\ntest empty_graph ... ok\ntest graph_with_one_attribute ... ok\ntest graph_with_attributes ... ok\ntest graph_nodes_store_attributes ... ok\ntest graph_with_one_edge ... ok\ntest graph_with_one_edge_with_keywords ... ok\ntest graph_with_one_node ... ok\ntest graph_with_one_node_with_keywords ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling dot-dsl v0.1.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/dot-dsl)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.70s\n     Running unittests src/lib.rs (_target/debug/deps/dot_dsl-bfe30373aa1dc957)\n     Running tests/dot-dsl.rs (_target/debug/deps/dot_dsl-b4ab277ed6a06b40)\n   Doc-tests dot_dsl\n"
+ },
+ "rust/word-count": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 14 tests\ntest alternating_word_separators_not_detected_as_a_word ... ok\ntest count_one_of_each_word ... ok\ntest count_one_word ... ok\ntest handles_cramped_lists ... ok\ntest handles_expanded_lists ... ok\ntest ignore_punctuation ... ok\ntest include_numbers ... ok\ntest multiple_spaces_not_detected_as_a_word ... ok\ntest multiple_occurrences_of_a_word ... ok\ntest quotation_for_word_with_apostrophe ... ok\ntest substrings_from_the_beginning ... ok\ntest normalize_case ... ok\ntest with_apostrophes ... ok\ntest with_quotations ... ok\n\ntest result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling word-count v1.2.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/word-count)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.59s\n     Running unittests src/lib.rs (_target/debug/deps/word_count-be7c8f399eafd899)\n     Running tests/word-count.rs (_target/debug/deps/word_count-16e642ddb6ca0172)\n   Doc-tests word_count\n"
+ },
+ "rust/fizzy": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 7 tests\ntest custom ... ok\ntest f64 ... ok\ntest minimal_generic_bounds ... ok\ntest nonsequential ... ok\ntest u64 ... ok\ntest simple ... ok\ntest u8 ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling fizzy v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/fizzy)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s\n     Running unittests src/lib.rs (_target/debug/deps/fizzy-328de006bbf265c0)\n     Running tests/fizzy.rs (_target/debug/deps/fizzy-28f4bbc8a9cca36c)\n   Doc-tests fizzy\n"
+ },
+ "rust/xorcism": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "tures lifetime that does not appear in bounds\n  --> src/lib.rs:57:9\n   |\n10 |   impl<'a> Xorcism<'a> {\n   |        -- hidden type `Map<<Data as IntoIterator>::IntoIter, {closure@src/lib.rs:58:18: 58:29}>` captures the lifetime `'a` as defined here\n...\n51 |       pub fn munge<'b, Data>(&'b mut self, data: Data) -> impl Iterator<Item = u8> + 'b\n   |                                                           ----------------------------- opaque type defined here\n...\n57 | /         data.into_iter()\n58 | |             .map(move |byte| *byte.borrow() ^ self.next_key_byte())\n   | |___________________________________________________________________^\n   |\nhelp: add a `use<...>` bound to explicitly capture `'a`\n   |\n51 |     pub fn munge<'b, Data>(&'b mut self, data: Data) -> impl Iterator<Item = u8> + 'b + use<'b, 'a, Data>\n   |                                                                                       +++++++++++++++++++\n\nFor more information about this error, try `rustc --explain E0700`.\nerror: could not compile `xorcism` (lib) due to 1 previous error\nwarning: build failed, waiting for other jobs to finish...\nerror: could not compile `xorcism` (lib test) due to 1 previous error\n"
+ },
+ "rust/simple-cipher": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".. ok\ntest encode_returns_none_with_any_numeric_key ... ok\ntest encode_returns_none_with_empty_key ... ok\ntest encode_returns_none_with_numeric_key ... ok\ntest encode_random_uses_randomly_generated_key ... ok\n\ntest result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Updating crates.io index\n     Locking 14 packages to latest compatible versions\n      Adding rand v0.8.8 (available: v0.10.2)\n   Compiling libc v0.2.189\n   Compiling zerocopy v0.8.56\n   Compiling cfg-if v1.0.4\n   Compiling getrandom v0.2.17\n   Compiling rand_core v0.6.4\n   Compiling ppv-lite86 v0.2.21\n   Compiling rand_chacha v0.3.1\n   Compiling rand v0.8.8\n   Compiling simple-cipher v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/simple-cipher)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.37s\n     Running unittests src/lib.rs (_target/debug/deps/simple_cipher-b4d5500e9f61371e)\n     Running tests/simple-cipher.rs (_target/debug/deps/simple_cipher-5c89a48477775184)\n   Doc-tests simple_cipher\n"
+ },
+ "rust/wordy": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ber ... ok\ntest large_addition ... ok\ntest more_addition ... ok\ntest multiple_additions ... ok\ntest multiple_division ... ok\ntest multiple_multiplication ... ok\ntest multiple_subtraction ... ok\ntest multiplication ... ok\ntest non_math_question ... ok\ntest reject_postfix_notation ... ok\ntest reject_prefix_notation ... ok\ntest reject_problem_missing_an_operand ... ok\ntest division ... ok\ntest reject_problem_with_no_operands_or_operators ... ok\ntest reject_two_numbers_in_a_row ... ok\ntest reject_two_operations_in_a_row ... ok\ntest subtraction ... ok\ntest subtraction_then_addition ... ok\ntest unknown_operation ... ok\n\ntest result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling wordy v1.5.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/wordy)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.47s\n     Running unittests src/lib.rs (_target/debug/deps/wordy-250f78adf6480e3b)\n     Running tests/wordy.rs (_target/debug/deps/wordy-cb77d086a71fe209)\n   Doc-tests wordy\n"
+ },
+ "rust/ocr-numbers": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "error ... ok\ntest input_with_lines_not_multiple_of_four_is_error ... ok\ntest numbers_across_multiple_lines_are_joined_by_commas ... ok\ntest recognizes_0 ... ok\ntest recognizes_1 ... ok\ntest recognizes_110101100 ... ok\ntest recognizes_2 ... ok\ntest recognizes_3 ... ok\ntest recognizes_4 ... ok\ntest recognizes_5 ... ok\ntest recognizes_6 ... ok\ntest recognizes_8 ... ok\ntest recognizes_9 ... ok\ntest recognizes_string_of_decimal_numbers ... ok\ntest replaces_only_garbled_numbers_with_question_mark ... ok\ntest recognizes_7 ... ok\ntest unrecognized_characters_return_question_mark ... ok\n\ntest result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling ocr-numbers v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/ocr-numbers)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s\n     Running unittests src/lib.rs (_target/debug/deps/ocr_numbers-7f9a436289bbc866)\n     Running tests/ocr-numbers.rs (_target/debug/deps/ocr_numbers-2200ec69c8a45a20)\n   Doc-tests ocr_numbers\n"
+ },
+ "rust/macros": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "ok\ntest compile_fails_single_argument ... ok\ntest compile_fails_triple_arguments ... ok\ntest compile_fails_two_arrows ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.39s\n\n\nrunning 1 test\ntest src/lib.rs - hashmap (line 3) ... FAILED\n\nfailures:\n\n---- src/lib.rs - hashmap (line 3) stdout ----\nerror: cannot find macro `hashmap` in this scope\n --> src/lib.rs:4:10\n  |\n4 | let hm = hashmap!('a' => 3, 'b' => 11, 'z' => 32);\n  |          ^^^^^^^\n  |\nhelp: consider importing this macro\n  |\n3 + use macros::hashmap;\n  |\n\nerror: aborting due to 1 previous error\n\nCouldn't compile the test.\n\nfailures:\n    src/lib.rs - hashmap (line 3)\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n   Compiling macros v0.1.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/macros)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.61s\n     Running unittests src/lib.rs (_target/debug/deps/macros-4fbd96d6e18c6123)\n     Running tests/macros.rs (_target/debug/deps/macros-6cd999f3118043b7)\n   Doc-tests macros\nerror: doctest failed, to rerun pass `--doc`\n"
+ },
+ "rust/bowling": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "eros ... ok\ntest strikes_with_the_two_roll_bonus_do_not_get_a_bonus_roll ... ok\ntest ten_frames_without_a_strike_or_spare ... ok\ntest the_two_balls_after_a_final_strike_can_be_a_strike_and_non_strike ... ok\ntest the_two_balls_after_a_final_strike_cannot_be_a_non_strike_followed_by_a_strike ... ok\ntest the_two_balls_after_a_final_strike_cannot_score_an_invalid_number_of_pins ... ok\ntest twenty_zero_pin_rolls_scores_zero ... ok\ntest you_cannot_roll_more_than_ten_pins_in_a_single_frame ... ok\ntest you_cannot_roll_more_than_ten_pins_in_a_single_roll ... ok\ntest you_cannot_score_a_game_with_no_rolls ... ok\n\ntest result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling bowling v1.2.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/bowling)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s\n     Running unittests src/lib.rs (_target/debug/deps/bowling-e2759d270abbd5ad)\n     Running tests/bowling.rs (_target/debug/deps/bowling-b6e673d380f53253)\n   Doc-tests bowling\n"
+ },
+ "rust/say": {
+  "passed": true,
+  "stray": [],
+  "output_tail": " 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 19 tests\ntest fourteen ... ok\ntest max_u64 ... ok\ntest max_i64 ... ok\ntest a_big_number ... ok\ntest one_billion ... ok\ntest nine_hundred_ninety_nine ... ok\ntest ninety_nine ... ok\ntest one ... ok\ntest one_hundred_twenty_three ... ok\ntest one_million ... ok\ntest one_hundred ... ok\ntest one_million_two_thousand_three_hundred_forty_five ... ok\ntest thirty ... ok\ntest one_thousand_two_hundred_thirty_four ... ok\ntest one_thousand ... ok\ntest twenty ... ok\ntest twenty_two ... ok\ntest two_hundred ... ok\ntest zero ... ok\n\ntest result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling say v1.2.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/say)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s\n     Running unittests src/lib.rs (_target/debug/deps/say-4ec2792594a02461)\n     Running tests/say.rs (_target/debug/deps/say-437dac55e7d61907)\n   Doc-tests say\n"
+ },
+ "rust/book-store": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "hree_groups_of_four_is_cheaper_than_one_group_of_each_size ... ok\ntest only_a_single_book ... ok\ntest three_copies_of_first_book_and_two_each_of_remaining ... ok\ntest three_each_of_first_two_books_and_two_each_of_remaining_books ... ok\ntest three_different_books ... ok\ntest two_copies_of_each_book ... ok\ntest two_each_of_first_four_books_and_one_copy_each_of_rest ... ok\ntest two_groups_of_four_is_cheaper_than_group_of_five_plus_group_of_three ... ok\ntest two_groups_of_four_is_cheaper_than_groups_of_five_and_three ... ok\ntest two_of_the_same_book ... ok\ntest two_different_books ... ok\n\ntest result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling book_store v1.3.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/rust/book-store)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s\n     Running unittests src/lib.rs (_target/debug/deps/book_store-aaf2a27d2e53e140)\n     Running tests/book-store.rs (_target/debug/deps/book_store-a8cf30c41fcb7bb4)\n   Doc-tests book_store\n"
+ },
+ "cpp/parallel-letter-frequency": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "cpp.o\n[ 50%] Building CXX object CMakeFiles/parallel-letter-frequency.dir/parallel_letter_frequency.cpp.o\n[ 75%] Building CXX object CMakeFiles/parallel-letter-frequency.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable parallel-letter-frequency\n[100%] Built target parallel-letter-frequency\n===============================================================================\nAll tests passed (64 assertions in 12 test cases)\n\n[100%] Built target test_parallel-letter-frequency\n===============================================================================\nAll tests passed (64 assertions in 12 test cases)\n\nCMake Warning at CMakeLists.txt:47 (find_package):\n  By not providing \"FindTBB.cmake\" in CMAKE_MODULE_PATH this project has\n  asked CMake to find a package configuration file provided by \"TBB\", but\n  CMake did not find one.\n\n  Could not find a package configuration file provided by \"TBB\" with any of\n  the following names:\n\n    TBBConfig.cmake\n    tbb-config.cmake\n\n  Add the installation prefix of \"TBB\" to CMAKE_PREFIX_PATH or set \"TBB_DIR\"\n  to a directory containing one of the above files.  If \"TBB\" provides a\n  separate development package or SDK, be sure it has been installed.\n\n\n"
+ },
+ "cpp/complex-numbers": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/complex-numbers/build\n[ 25%] Building CXX object CMakeFiles/complex-numbers.dir/complex_numbers.cpp.o\n[ 50%] Building CXX object CMakeFiles/complex-numbers.dir/complex_numbers_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/complex-numbers.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable complex-numbers\n[100%] Built target complex-numbers\n===============================================================================\nAll tests passed (69 assertions in 40 test cases)\n\n[100%] Built target test_complex-numbers\n===============================================================================\nAll tests passed (69 assertions in 40 test cases)\n\n"
+ },
+ "cpp/diamond": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/diamond/build\n[ 25%] Building CXX object CMakeFiles/diamond.dir/diamond.cpp.o\n[ 50%] Building CXX object CMakeFiles/diamond.dir/diamond_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/diamond.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable diamond\n[100%] Built target diamond\n===============================================================================\nAll tests passed (5 assertions in 5 test cases)\n\n[100%] Built target test_diamond\n===============================================================================\nAll tests passed (5 assertions in 5 test cases)\n\n"
+ },
+ "cpp/kindergarten-garden": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/kindergarten-garden/build\n[ 50%] Building CXX object CMakeFiles/kindergarten-garden.dir/kindergarten_garden.cpp.o\n[ 50%] Building CXX object CMakeFiles/kindergarten-garden.dir/kindergarten_garden_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/kindergarten-garden.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable kindergarten-garden\n[100%] Built target kindergarten-garden\n===============================================================================\nAll tests passed (17 assertions in 17 test cases)\n\n[100%] Built target test_kindergarten-garden\n===============================================================================\nAll tests passed (17 assertions in 17 test cases)\n\n"
+ },
+ "cpp/phone-number": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/phone-number/build\n[ 25%] Building CXX object CMakeFiles/phone-number.dir/phone_number_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/phone-number.dir/phone_number.cpp.o\n[ 75%] Building CXX object CMakeFiles/phone-number.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable phone-number\n[100%] Built target phone-number\n===============================================================================\nAll tests passed (18 assertions in 18 test cases)\n\n[100%] Built target test_phone-number\n===============================================================================\nAll tests passed (18 assertions in 18 test cases)\n\n"
+ },
+ "cpp/robot-name": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/robot-name/build\n[ 50%] Building CXX object CMakeFiles/robot-name.dir/robot_name_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/robot-name.dir/robot_name.cpp.o\n[ 75%] Building CXX object CMakeFiles/robot-name.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable robot-name\n[100%] Built target robot-name\n===============================================================================\nAll tests passed (2004 assertions in 5 test cases)\n\n[100%] Built target test_robot-name\n===============================================================================\nAll tests passed (2004 assertions in 5 test cases)\n\n"
+ },
+ "cpp/dnd-character": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/dnd-character/build\n[ 50%] Building CXX object CMakeFiles/dnd-character.dir/dnd_character.cpp.o\n[ 50%] Building CXX object CMakeFiles/dnd-character.dir/dnd_character_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/dnd-character.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable dnd-character\n[100%] Built target dnd-character\n===============================================================================\nAll tests passed (24 assertions in 18 test cases)\n\n[100%] Built target test_dnd-character\n===============================================================================\nAll tests passed (24 assertions in 18 test cases)\n\n"
+ },
+ "cpp/sublist": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/sublist/build\n[ 50%] Building CXX object CMakeFiles/sublist.dir/sublist_test.cpp.o\n[ 25%] Building CXX object CMakeFiles/sublist.dir/sublist.cpp.o\n[ 75%] Building CXX object CMakeFiles/sublist.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable sublist\n[100%] Built target sublist\n===============================================================================\nAll tests passed (18 assertions in 18 test cases)\n\n[100%] Built target test_sublist\n===============================================================================\nAll tests passed (18 assertions in 18 test cases)\n\n"
+ },
+ "cpp/spiral-matrix": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/spiral-matrix/build\n[ 50%] Building CXX object CMakeFiles/spiral-matrix.dir/spiral_matrix_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/spiral-matrix.dir/spiral_matrix.cpp.o\n[ 75%] Building CXX object CMakeFiles/spiral-matrix.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable spiral-matrix\n[100%] Built target spiral-matrix\n===============================================================================\nAll tests passed (6 assertions in 6 test cases)\n\n[100%] Built target test_spiral-matrix\n===============================================================================\nAll tests passed (6 assertions in 6 test cases)\n\n"
+ },
+ "cpp/perfect-numbers": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/perfect-numbers/build\n[ 25%] Building CXX object CMakeFiles/perfect-numbers.dir/perfect_numbers_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/perfect-numbers.dir/perfect_numbers.cpp.o\n[ 75%] Building CXX object CMakeFiles/perfect-numbers.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable perfect-numbers\n[100%] Built target perfect-numbers\n===============================================================================\nAll tests passed (13 assertions in 13 test cases)\n\n[100%] Built target test_perfect-numbers\n===============================================================================\nAll tests passed (13 assertions in 13 test cases)\n\n"
+ },
+ "cpp/yacht": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "pp/yacht/yacht.h:68:38: note:   initializing argument 2 of \u2018int yacht::score(const Dice&, Category)\u2019\n   68 | int score(const Dice& dice, Category cat);\n      |                             ~~~~~~~~~^~~\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/yacht/yacht_test.cpp:136:53: error: cannot convert \u2018const char*\u2019 to \u2018yacht::Category\u2019\n  136 |         REQUIRE(10 == yacht::score({2, 2, 2, 2, 2}, \"choice\"));\n      |                                                     ^~~~~~~~\n      |                                                     |\n      |                                                     const char*\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/yacht/yacht.h:68:38: note:   initializing argument 2 of \u2018int yacht::score(const Dice&, Category)\u2019\n   68 | int score(const Dice& dice, Category cat);\n      |                             ~~~~~~~~~^~~\ngmake[2]: *** [CMakeFiles/yacht.dir/build.make:76: CMakeFiles/yacht.dir/yacht_test.cpp.o] Error 1\ngmake[2]: *** Waiting for unfinished jobs....\ngmake[1]: *** [CMakeFiles/Makefile2:85: CMakeFiles/yacht.dir/all] Error 2\ngmake: *** [Makefile:91: all] Error 2\n"
+ },
+ "cpp/linked-list": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/linked-list/build\n[ 50%] Building CXX object CMakeFiles/linked-list.dir/linked_list.cpp.o\n[ 50%] Building CXX object CMakeFiles/linked-list.dir/linked_list_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/linked-list.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable linked-list\n[100%] Built target linked-list\n===============================================================================\nAll tests passed (42 assertions in 19 test cases)\n\n[100%] Built target test_linked-list\n===============================================================================\nAll tests passed (42 assertions in 19 test cases)\n\n"
+ },
+ "cpp/bank-account": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n-- Found Threads: TRUE  \n-- Configuring done (0.4s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/bank-account/build\n[ 25%] Building CXX object CMakeFiles/bank-account.dir/bank_account_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/bank-account.dir/bank_account.cpp.o\n[ 75%] Building CXX object CMakeFiles/bank-account.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable bank-account\n[100%] Built target bank-account\n===============================================================================\nAll tests passed (17 assertions in 17 test cases)\n\n[100%] Built target test_bank-account\n===============================================================================\nAll tests passed (17 assertions in 17 test cases)\n\n"
+ },
+ "cpp/knapsack": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/knapsack/build\n[ 50%] Building CXX object CMakeFiles/knapsack.dir/knapsack.cpp.o\n[ 50%] Building CXX object CMakeFiles/knapsack.dir/knapsack_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/knapsack.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable knapsack\n[100%] Built target knapsack\n===============================================================================\nAll tests passed (7 assertions in 7 test cases)\n\n[100%] Built target test_knapsack\n===============================================================================\nAll tests passed (7 assertions in 7 test cases)\n\n"
+ },
+ "cpp/queen-attack": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/queen-attack/build\n[ 50%] Building CXX object CMakeFiles/queen-attack.dir/queen_attack_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/queen-attack.dir/queen_attack.cpp.o\n[ 75%] Building CXX object CMakeFiles/queen-attack.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable queen-attack\n[100%] Built target queen-attack\n===============================================================================\nAll tests passed (15 assertions in 14 test cases)\n\n[100%] Built target test_queen-attack\n===============================================================================\nAll tests passed (15 assertions in 14 test cases)\n\n"
+ },
+ "cpp/crypto-square": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/crypto-square/build\n[ 25%] Building CXX object CMakeFiles/crypto-square.dir/crypto_square_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/crypto-square.dir/crypto_square.cpp.o\n[ 75%] Building CXX object CMakeFiles/crypto-square.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable crypto-square\n[100%] Built target crypto-square\n===============================================================================\nAll tests passed (8 assertions in 8 test cases)\n\n[100%] Built target test_crypto-square\n===============================================================================\nAll tests passed (8 assertions in 8 test cases)\n\n"
+ },
+ "cpp/space-age": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/space-age/build\n[ 25%] Building CXX object CMakeFiles/space-age.dir/space_age_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/space-age.dir/space_age.cpp.o\n[ 75%] Building CXX object CMakeFiles/space-age.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable space-age\n[100%] Built target space-age\n===============================================================================\nAll tests passed (16 assertions in 9 test cases)\n\n[100%] Built target test_space-age\n===============================================================================\nAll tests passed (16 assertions in 9 test cases)\n\n"
+ },
+ "cpp/zebra-puzzle": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/zebra-puzzle/build\n[ 50%] Building CXX object CMakeFiles/zebra-puzzle.dir/zebra_puzzle_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/zebra-puzzle.dir/zebra_puzzle.cpp.o\n[ 75%] Building CXX object CMakeFiles/zebra-puzzle.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable zebra-puzzle\n[100%] Built target zebra-puzzle\n===============================================================================\nAll tests passed (2 assertions in 2 test cases)\n\n[100%] Built target test_zebra-puzzle\n===============================================================================\nAll tests passed (2 assertions in 2 test cases)\n\n"
+ },
+ "cpp/all-your-base": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "....\n\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/all-your-base/all_your_base_test.cpp:90: FAILED:\n  REQUIRE( expected == out_digits )\nwith expansion:\n  {  } == { 0 }\n\n-------------------------------------------------------------------------------\nmultiple_zeros\n-------------------------------------------------------------------------------\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/all-your-base/all_your_base_test.cpp:93\n...............................................................................\n\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/all-your-base/all_your_base_test.cpp:98: FAILED:\n  REQUIRE( expected == out_digits )\nwith expansion:\n  {  } == { 0 }\n\n===============================================================================\ntest cases: 17 | 14 passed | 3 failed\nassertions: 17 | 14 passed | 3 failed\n\ngmake[2]: *** [CMakeFiles/test_all-your-base.dir/build.make:70: CMakeFiles/test_all-your-base] Error 3\ngmake[1]: *** [CMakeFiles/Makefile2:111: CMakeFiles/test_all-your-base.dir/all] Error 2\ngmake: *** [Makefile:91: all] Error 2\n"
+ },
+ "cpp/clock": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/clock/build\n[ 25%] Building CXX object CMakeFiles/clock.dir/clock.cpp.o\n[ 50%] Building CXX object CMakeFiles/clock.dir/clock_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/clock.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable clock\n[100%] Built target clock\n===============================================================================\nAll tests passed (50 assertions in 3 test cases)\n\n[100%] Built target test_clock\n===============================================================================\nAll tests passed (50 assertions in 3 test cases)\n\n"
+ },
+ "cpp/grade-school": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/grade-school/build\n[ 25%] Building CXX object CMakeFiles/grade-school.dir/grade_school.cpp.o\n[ 50%] Building CXX object CMakeFiles/grade-school.dir/grade_school_test.cpp.o\n[ 75%] Building CXX object CMakeFiles/grade-school.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable grade-school\n[100%] Built target grade-school\n===============================================================================\nAll tests passed (8 assertions in 8 test cases)\n\n[100%] Built target test_grade-school\n===============================================================================\nAll tests passed (8 assertions in 8 test cases)\n\n"
+ },
+ "cpp/allergies": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.3s)\n-- Generating done (0.0s)\n-- Build files have been written to: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/cpp/allergies/build\n[ 50%] Building CXX object CMakeFiles/allergies.dir/allergies_test.cpp.o\n[ 50%] Building CXX object CMakeFiles/allergies.dir/allergies.cpp.o\n[ 75%] Building CXX object CMakeFiles/allergies.dir/test/tests-main.cpp.o\n[100%] Linking CXX executable allergies\n[100%] Built target allergies\n===============================================================================\nAll tests passed (50 assertions in 50 test cases)\n\n[100%] Built target test_allergies\n===============================================================================\nAll tests passed (50 assertions in 50 test cases)\n\n"
+ },
+ "javascript/rectangles": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./rectangles.spec.js\n  Rectangles\n    \u2713 no rows (4 ms)\n    \u25cb skipped no columns\n    \u25cb skipped no rectangles\n    \u25cb skipped one rectangle\n    \u25cb skipped two rectangles without shared parts\n    \u25cb skipped five rectangles with shared parts\n    \u25cb skipped rectangle of height 1 is counted\n    \u25cb skipped rectangle of width 1 is counted\n    \u25cb skipped 1x1 square is counted\n    \u25cb skipped only complete rectangles are counted\n    \u25cb skipped rectangles can be of different sizes\n    \u25cb skipped corner is required for a rectangle to be complete\n    \u25cb skipped large input with many rectangles\n    \u25cb skipped rectangles must have four sides\n\nTest Suites: 1 passed, 1 total\nTests:       13 skipped, 1 passed, 14 total\nSnapshots:   0 total\nTime:        0.781 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/rectangles.js|.\\/rectangles.spec.js/i.\n"
+ },
+ "javascript/tournament": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./tournament.spec.js\n  Tournament\n    \u2713 just the header if no input (3 ms)\n    \u25cb skipped a win is three points, a loss is zero points\n    \u25cb skipped a win can also be expressed as a loss\n    \u25cb skipped a different team can win\n    \u25cb skipped a draw is one point each\n    \u25cb skipped there can be more than one match\n    \u25cb skipped there can be more than one winner\n    \u25cb skipped there can be more than two teams\n    \u25cb skipped typical input\n    \u25cb skipped incomplete competition (not all pairs have played)\n    \u25cb skipped ties broken alphabetically\n    \u25cb skipped ensure points sorted numerically\n\nTest Suites: 1 passed, 1 total\nTests:       11 skipped, 1 passed, 12 total\nSnapshots:   0 total\nTime:        0.772 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/tournament.js|.\\/tournament.spec.js/i.\n"
+ },
+ "javascript/house": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./house.spec.js\n  House\n    \u2713 verse one - the house that jack built (3 ms)\n    \u25cb skipped verse two - the malt that lay\n    \u25cb skipped verse three - the rat that ate\n    \u25cb skipped verse four - the cat that killed\n    \u25cb skipped verse five - the dog that worried\n    \u25cb skipped verse six - the cow with the crumpled horn\n    \u25cb skipped verse seven - the maiden all forlorn\n    \u25cb skipped verse eight - the man all tattered and torn\n    \u25cb skipped verse nine - the priest all shaven and shorn\n    \u25cb skipped verse ten - the rooster that crowed in the morn\n    \u25cb skipped verse eleven - the farmer sowing his corn\n    \u25cb skipped verse twelve - the horse and the hound and the horn\n    \u25cb skipped multiple verses\n    \u25cb skipped full rhyme\n\nTest Suites: 1 passed, 1 total\nTests:       13 skipped, 1 passed, 14 total\nSnapshots:   0 total\nTime:        0.745 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/house.js|.\\/house.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./two-bucket.spec.js\n  TwoBucket\n    Measure using bucket one of size 3 and bucket two of size 5\n      \u2713 start with bucket one (3 ms)\n      \u25cb skipped start with bucket two\n    Measure using bucket one of size 7 and bucket two of size 11\n      \u25cb skipped start with bucket one\n      \u25cb skipped start with bucket two\n    Measure one step using bucket one of size 1 and bucket two of size 3\n      \u25cb skipped start with bucket two\n    Measure using bucket one of size 2 and bucket two of size 3\n      \u25cb skipped start with bucket one and end with bucket two\n    Reachability\n      \u25cb skipped Not possible to reach the goal, start with bucket one\n      \u25cb skipped Not possible to reach the goal, start with bucket two\n      \u25cb skipped With the same buckets but a different goal, then it is possible\n    Goal larger than both buckets\n      \u25cb skipped Is impossible\n\nTest Suites: 1 passed, 1 total\nTests:       9 skipped, 1 passed, 10 total\nSnapshots:   0 total\nTime:        0.755 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/two-bucket.js|.\\/two-bucket.spec.js/i.\n"
+ },
+ "javascript/meetup": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ed fourth Saturday of January 2013\n    \u25cb skipped fourth Saturday of February 2013\n    \u25cb skipped fourth Sunday of March 2013\n    \u25cb skipped fourth Sunday of April 2013\n    \u25cb skipped last Monday of March 2013\n    \u25cb skipped last Monday of April 2013\n    \u25cb skipped last Tuesday of May 2013\n    \u25cb skipped last Tuesday of June 2013\n    \u25cb skipped last Wednesday of July 2013\n    \u25cb skipped last Wednesday of August 2013\n    \u25cb skipped last Thursday of September 2013\n    \u25cb skipped last Thursday of October 2013\n    \u25cb skipped last Friday of November 2013\n    \u25cb skipped last Friday of December 2013\n    \u25cb skipped last Saturday of January 2013\n    \u25cb skipped last Saturday of February 2013\n    \u25cb skipped last Sunday of March 2013\n    \u25cb skipped last Sunday of April 2013\n    \u25cb skipped last Wednesday of February 2012\n    \u25cb skipped last Wednesday of December 2014\n    \u25cb skipped last Sunday of February 2015\n    \u25cb skipped first Friday of December 2012\n\nTest Suites: 1 passed, 1 total\nTests:       94 skipped, 1 passed, 95 total\nSnapshots:   0 total\nTime:        0.784 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/meetup.js|.\\/meetup.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/palindrome-products": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./palindrome-products.spec.js\n  Palindromes\n    \u2713 smallest palindrome from single digit factors (4 ms)\n    \u25cb skipped largest palindrome from single digit factors\n    \u25cb skipped smallest palindrome from double digit factors\n    \u25cb skipped largest palindrome from double digit factors\n    \u25cb skipped smallest palindrome from triple digit factors\n    \u25cb skipped largest palindrome from triple digit factors\n    \u25cb skipped smallest palindrome from four digit factors\n    \u25cb skipped largest palindrome from four digit factors\n    \u25cb skipped empty result for smallest if no palindrome in range\n    \u25cb skipped empty result for largest if no palindrome in range\n    \u25cb skipped error for smallest if min is more than max\n    \u25cb skipped error for largest if min is more than max\n\nTest Suites: 1 passed, 1 total\nTests:       11 skipped, 1 passed, 12 total\nSnapshots:   0 total\nTime:        0.807 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/palindrome-products.js|.\\/palindrome-products.spec.js/i.\n"
+ },
+ "javascript/zebra-puzzle": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./zebra-puzzle.spec.js\n  Zebra puzzle\n    \u2713 resident who drinks water (5 ms)\n    \u25cb skipped resident who owns zebra\n\nTest Suites: 1 passed, 1 total\nTests:       1 skipped, 1 passed, 2 total\nSnapshots:   0 total\nTime:        0.762 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/zebra-puzzle.js|.\\/zebra-puzzle.spec.js/i.\n"
+ },
+ "javascript/ocr-numbers": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./ocr-numbers.spec.js\n  ocr\n    \u2713 recognizes zero (2 ms)\n    \u25cb skipped recognizes one\n    \u25cb skipped recognizes two\n    \u25cb skipped recognizes three\n    \u25cb skipped recognizes four\n    \u25cb skipped recognizes five\n    \u25cb skipped recognizes six\n    \u25cb skipped recognizes seven\n    \u25cb skipped recognizes eight\n    \u25cb skipped recognizes nine\n    \u25cb skipped recognizes ten\n    \u25cb skipped identifies garble\n    \u25cb skipped converts 110101100\n    \u25cb skipped identifies garble mixed in\n    \u25cb skipped converts 1234567890\n    \u25cb skipped converts 123 456 789\n\nTest Suites: 1 passed, 1 total\nTests:       15 skipped, 1 passed, 16 total\nSnapshots:   0 total\nTime:        0.713 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/ocr-numbers.js|.\\/ocr-numbers.spec.js|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/killer-sudoku-helper": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./killer-sudoku-helper.spec.js\n  Trivial 1-digit cages\n    \u2713 1 (3 ms)\n    \u25cb skipped 2\n    \u25cb skipped 3\n    \u25cb skipped 4\n    \u25cb skipped 5\n    \u25cb skipped 6\n    \u25cb skipped 7\n    \u25cb skipped 8\n    \u25cb skipped 9\n  Other cages\n    \u25cb skipped Cage with sum 45 contains all digits 1:9\n    \u25cb skipped Cage with only 1 possible combination\n    \u25cb skipped Cage with several combinations\n    \u25cb skipped Cage with several combinations that is restricted\n\nTest Suites: 1 passed, 1 total\nTests:       12 skipped, 1 passed, 13 total\nSnapshots:   0 total\nTime:        0.73 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/killer-sudoku-helper.js|.\\/killer-sudoku-helper.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/grade-school": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./grade-school.spec.js\n  School\n    \u2713 a new school has an empty roster (3 ms)\n    \u25cb skipped adding a student adds them to the roster for the given grade\n    \u25cb skipped adding more students to the same grade adds them to the roster\n    \u25cb skipped adding students to different grades adds them to the roster\n    \u25cb skipped grade returns the students in that grade in alphabetical order\n    \u25cb skipped grade returns an empty array if there are no students in that grade\n    \u25cb skipped the students names in each grade in the roster are sorted\n    \u25cb skipped roster cannot be modified outside of module\n    \u25cb skipped roster cannot be modified outside of module using grade()\n    \u25cb skipped a student can't be in two different grades\n\nTest Suites: 1 passed, 1 total\nTests:       9 skipped, 1 passed, 10 total\nSnapshots:   0 total\nTime:        0.737 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/grade-school.js|.\\/grade-school.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/go-counting": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./go-counting.spec.js\n  Go Counting\n    getTerritory\n      \u2713 Black corner territory on 5x5 board (4 ms)\n      \u25cb skipped White center territory on 5x5 board\n      \u25cb skipped Open corner territory on 5x5 board\n      \u25cb skipped A stone and not a territory on 5x5 board\n      \u25cb skipped Invalid because X is too low for 5x5 board\n      \u25cb skipped Invalid because X is too high for 5x5 board\n      \u25cb skipped Invalid because Y is too low for 5x5 board\n      \u25cb skipped Invalid because Y is too high for 5x5 board\n    getTerritories\n      \u25cb skipped One territory is the whole board\n      \u25cb skipped Two territory rectangular board\n      \u25cb skipped Two region rectangular board\n\nTest Suites: 1 passed, 1 total\nTests:       10 skipped, 1 passed, 11 total\nSnapshots:   0 total\nTime:        0.785 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/go-counting.js|.\\/go-counting.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/parallel-letter-frequency": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./parallel-letter-frequency.spec.js\n  ParallelLetterFrequency\n    \u2713 no texts (4 ms)\n    \u25cb skipped one text with one letter\n    \u25cb skipped one text with multiple letters\n    \u25cb skipped two texts with one letter\n    \u25cb skipped two texts with multiple letters\n    \u25cb skipped ignore letter casing\n    \u25cb skipped ignore whitespace\n    \u25cb skipped ignore punctuation\n    \u25cb skipped ignore numbers\n    \u25cb skipped Unicode letters\n    \u25cb skipped combination of lower- and uppercase letters, punctuation and white space\n    \u25cb skipped large texts\n    \u25cb skipped many small texts\n\nTest Suites: 1 passed, 1 total\nTests:       12 skipped, 1 passed, 13 total\nSnapshots:   0 total\nTime:        0.789 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/parallel-letter-frequency.js|.\\/parallel-letter-frequency.spec.js/i.\n"
+ },
+ "javascript/grep": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ile, one match, file flag takes precedence over line flag\n      \u25cb skipped One file, several matches, inverted and match entire lines flags\n    Test grepping multiples files at once\n      \u2713 Multiple files, one match, print file names flag (54 ms)\n      \u25cb skipped Multiple files, one match, no flags\n      \u25cb skipped Multiple files, several matches, no flags\n      \u25cb skipped Multiple files, several matches, print line numbers flag\n      \u25cb skipped Multiple files, several matches, case-insensitive flag\n      \u25cb skipped Multiple files, several matches, inverted flag\n      \u25cb skipped Multiple files, one match, match entire lines flag\n      \u25cb skipped Multiple files, one match, multiple flags\n      \u25cb skipped Multiple files, no matches, various flags\n      \u25cb skipped Multiple files, several matches, file flag takes precedence over line number flag\n      \u25cb skipped Multiple files, several matches, inverted and match entire lines flags\n\nTest Suites: 1 passed, 1 total\nTests:       23 skipped, 2 passed, 25 total\nSnapshots:   0 total\nTime:        0.898 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/data|.\\/grep.js|.\\/grep.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/list-ops": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ning only values that satisfy the filter function\n    \u25cb skipped empty list\n    \u25cb skipped non empty list\n  returns the length of a list\n    \u25cb skipped empty list\n    \u25cb skipped non-empty list\n  returns a list of elements whose values equal the list value transformed by the mapping function\n    \u25cb skipped empty list\n    \u25cb skipped non-empty list\n  folds (reduces) the given list from the left with a function\n    \u25cb skipped empty list\n    \u25cb skipped direction independent function applied to non-empty list\n    \u25cb skipped direction dependent function applied to non-empty list\n  folds (reduces) the given list from the right with a function\n    \u25cb skipped empty list\n    \u25cb skipped direction independent function applied to non-empty list\n    \u25cb skipped direction dependent function applied to non-empty list\n  reverse the elements of a list\n    \u25cb skipped empty list\n    \u25cb skipped non-empty list\n    \u25cb skipped list of lists is not flattened\n\nTest Suites: 1 passed, 1 total\nTests:       19 skipped, 1 passed, 20 total\nSnapshots:   0 total\nTime:        0.791 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/list-ops.js|.\\/list-ops.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/twelve-days": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "rummers drumming\n    \u25cb skipped test lyrics recites first three verses of the song\n    \u25cb skipped test lyrics recites three verses from the middle of the song\n    \u25cb skipped test lyrics recites the whole song\n\n  \u25cf TwelveDays \u203a test verse first day a partridge in a pear tree\n\n    expect(received).toEqual(expected) // deep equality\n\n    Expected: \"On the first day of Christmas my true love gave to me: a Partridge in a Pear Tree.\n    \"\n    Received: [\"On the first day of Christmas my true love gave to me: a Partridge in a Pear Tree.\"]\n\n       5 |     const expectedVerseOne =\n       6 |       'On the first day of Christmas my true love gave to me: a Partridge in a Pear Tree.\\n';\n    >  7 |     expect(recite(1)).toEqual(expectedVerseOne);\n         |                       ^\n       8 |   });\n       9 |\n      10 |   xtest('test verse second day two turtle doves', () => {\n\n      at Object.toEqual (twelve-days.spec.js:7:23)\n\nTest Suites: 1 failed, 1 total\nTests:       1 failed, 14 skipped, 15 total\nSnapshots:   0 total\nTime:        0.798 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/twelve-days.js|.\\/twelve-days.spec.js/i.\n"
+ },
+ "javascript/complex-numbers": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "    \u25cb skipped Multiply numbers with real and imaginary part\n    \u25cb skipped Divide purely real numbers\n    \u25cb skipped Divide purely imaginary numbers\n    \u25cb skipped Divide numbers with real and imaginary part\n    \u25cb skipped Absolute value of a positive purely real number\n    \u25cb skipped Absolute value of a negative purely real number\n    \u25cb skipped Absolute value of a purely imaginary number with positive imaginary part\n    \u25cb skipped Absolute value of a purely imaginary number with negative imaginary part\n    \u25cb skipped Absolute value of a number with real and imaginary part\n    \u25cb skipped Conjugate a purely real number\n    \u25cb skipped Conjugate a purely imaginary number\n    \u25cb skipped Conjugate a number with real and imaginary part\n    \u25cb skipped Euler's identity/formula\n    \u25cb skipped Exponential of 0\n    \u25cb skipped Exponential of a purely real number\n    \u25cb skipped Exponential of a number with real and imaginary part\n\nTest Suites: 1 passed, 1 total\nTests:       30 skipped, 1 passed, 31 total\nSnapshots:   0 total\nTime:        0.784 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/complex-numbers.js|.\\/complex-numbers.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/word-search": {
+  "passed": true,
+  "stray": [],
+  "output_tail": " line grid\n    \u25cb skipped can locate a left to right word in a different position in a ten line grid\n    \u25cb skipped can locate a different left to right word in a ten line grid\n  can find multiple words\n    \u25cb skipped can find two words written left to right\n  different directions\n    \u25cb skipped should locate a single word written right to left\n    \u25cb skipped should locate multiple words written in different horizontal directions\n  vertical directions\n    \u25cb skipped should locate words written top to bottom\n    \u25cb skipped should locate words written bottom to top\n    \u25cb skipped should locate words written top left to bottom right\n    \u25cb skipped should locate words written bottom right to top left\n    \u25cb skipped should locate words written bottom left to top right\n    \u25cb skipped should locate words written top right to bottom left\n    word doesn't exist\n      \u25cb skipped should fail to locate a word that is not in the puzzle\n\nTest Suites: 1 passed, 1 total\nTests:       21 skipped, 1 passed, 22 total\nSnapshots:   0 total\nTime:        0.826 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/word-search.js|.\\/word-search.spec.js/i.\n"
+ },
+ "javascript/book-store": {
+  "passed": true,
+  "stray": [],
+  "output_tail": " a basket\n      \u2713 only a single book (3 ms)\n      \u25cb skipped two of the same book\n      \u25cb skipped empty basket\n      \u25cb skipped two different books\n      \u25cb skipped three different books\n      \u25cb skipped four different books\n      \u25cb skipped five different books\n      \u25cb skipped two groups of four is cheaper than group of five plus group of three\n      \u25cb skipped two groups of four is cheaper than groups of five and three\n      \u25cb skipped group of four plus group of two is cheaper than two groups of three\n      \u25cb skipped two each of first 4 books and 1 copy each of rest\n      \u25cb skipped two copies of each book\n      \u25cb skipped three copies of first book and 2 each of remaining\n      \u25cb skipped three each of first 2 books and 2 each of remaining books\n      \u25cb skipped four groups of four are cheaper than two groups each of five and three\n      \u25cb skipped two groups of four and a group of five\n      \u25cb skipped shuffled book order\n\nTest Suites: 1 passed, 1 total\nTests:       16 skipped, 1 passed, 17 total\nSnapshots:   0 total\nTime:        0.74 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/book-store.js|.\\/book-store.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/state-of-tic-tac-toe": {
+  "passed": true,
+  "stray": [],
+  "output_tail": " middle row victory\n    \u25cb skipped Finished game where O won via bottom row victory\n    \u25cb skipped Finished game where X won via falling diagonal victory\n    \u25cb skipped Finished game where X won via rising diagonal victory\n    \u25cb skipped Finished game where O won via falling diagonal victory\n    \u25cb skipped Finished game where O won via rising diagonal victory\n    \u25cb skipped Finished game where X won via a row and a column victory\n    \u25cb skipped Finished game where X won via two diagonal victories\n  Draw games\n    \u25cb skipped Draw\n    \u25cb skipped Another draw\n  Ongoing games\n    \u25cb skipped Ongoing game: one move in\n    \u25cb skipped Ongoing game: two moves in\n    \u25cb skipped Ongoing game: five moves in\n  Invalid boards\n    \u25cb skipped Invalid board: X went twice\n    \u25cb skipped Invalid board: O started\n    \u25cb skipped Invalid board: X won and O kept playing\n    \u25cb skipped Invalid board: players kept playing after a win\n\nTest Suites: 1 passed, 1 total\nTests:       26 skipped, 1 passed, 27 total\nSnapshots:   0 total\nTime:        0.815 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/state-of-tic-tac-toe.js|.\\/state-of-tic-tac-toe.spec.js/i.\n"
+ },
+ "javascript/resistor-color-trio": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "FAIL ./resistor-color-trio.spec.js\n  Resistor Color Trio\n    \u2715 Orange and orange and black (4 ms)\n    \u25cb skipped Blue and grey and brown\n    \u25cb skipped Red and black and red\n    \u25cb skipped Green and brown and orange\n    \u25cb skipped Yellow and violet and yellow\n    \u25cb skipped Invalid color\n\n  \u25cf Resistor Color Trio \u203a Orange and orange and black\n\n    expect(received).toEqual(expected) // deep equality\n\n    Expected: \"Resistor value: 33 ohms\"\n    Received: [Function label]\n\n       7 | describe('Resistor Color Trio', () => {\n       8 |   test('Orange and orange and black', () => {\n    >  9 |     expect(new ResistorColorTrio(['orange', 'orange', 'black']).label).toEqual(\n         |                                                                        ^\n      10 |       makeLabel({ value: 33, unit: 'ohms' }),\n      11 |     );\n      12 |   });\n\n      at Object.toEqual (resistor-color-trio.spec.js:9:72)\n\nTest Suites: 1 failed, 1 total\nTests:       1 failed, 5 skipped, 6 total\nSnapshots:   0 total\nTime:        0.798 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/resistor-color-trio.js|.\\/resistor-color-trio.spec.js/i.\n"
+ },
+ "javascript/food-chain": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./food-chain.spec.js\n  Food Chain\n    \u2713 fly (3 ms)\n    \u25cb skipped spider\n    \u25cb skipped bird\n    \u25cb skipped cat\n    \u25cb skipped dog\n    \u25cb skipped goat\n    \u25cb skipped cow\n    \u25cb skipped horse\n    \u25cb skipped multiple verses\n    \u25cb skipped the whole song\n\nTest Suites: 1 passed, 1 total\nTests:       9 skipped, 1 passed, 10 total\nSnapshots:   0 total\nTime:        0.718 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/food-chain.js|.\\/food-chain.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/sum-of-multiples": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./sum-of-multiples.spec.js\n  Sum Of Multiples\n    \u2713 no multiples within limit (3 ms)\n    \u25cb skipped one factor has multiples within limit\n    \u25cb skipped more than one multiple within limit\n    \u25cb skipped more than one factor with multiples within limit\n    \u25cb skipped each multiple is only counted once\n    \u25cb skipped a much larger limit\n    \u25cb skipped three factors\n    \u25cb skipped factors not relatively prime\n    \u25cb skipped some pairs of factors relatively prime and some not\n    \u25cb skipped one factor is a multiple of another\n    \u25cb skipped much larger factors\n    \u25cb skipped all numbers are multiples of 1\n    \u25cb skipped no factors means an empty sum\n    \u25cb skipped the only multiple of 0 is 0\n    \u25cb skipped the factor 0 does not affect the sum of multiples of other factors\n    \u25cb skipped solutions using include-exclude must extend to cardinality greater than 3\n\nTest Suites: 1 passed, 1 total\nTests:       15 skipped, 1 passed, 16 total\nSnapshots:   0 total\nTime:        0.715 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/sum-of-multiples.js|.\\/sum-of-multiples.spec.js/i.\n"
+ },
+ "javascript/simple-linked-list": {
+  "passed": true,
+  "stray": [],
+  "output_tail": " skipped new lists should have length 0\n    \u25cb skipped can add a element\n    \u25cb skipped adding a element increments length\n    \u25cb skipped adding two elements increments twice\n    \u25cb skipped new Lists have a null head element\n    \u25cb skipped adding an Element to an empty list sets the head Element\n    \u25cb skipped adding a second Element updates the head Element\n    \u25cb skipped can get the next Element from the head\n    \u25cb skipped can be initialized with an array\n  Lists with multiple elements\n    \u25cb skipped with correct length\n    \u25cb skipped with correct head value\n    \u25cb skipped can traverse the list\n    \u25cb skipped can convert to an array\n    \u25cb skipped head of list is final element from input array\n    \u25cb skipped can convert longer list to an array\n    \u25cb skipped can be reversed\n    \u25cb skipped can be reversed when it has more elements\n    \u25cb skipped can reverse with many elements\n    \u25cb skipped can reverse a reversal\n\nTest Suites: 1 passed, 1 total\nTests:       22 skipped, 1 passed, 23 total\nSnapshots:   0 total\nTime:        0.806 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/simple-linked-list.js|.\\/simple-linked-list.spec.js/i.\n"
+ },
+ "javascript/triangle": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./triangle.spec.js\n  Triangle\n    equilateral triangle\n      \u2713 all sides are equal (3 ms)\n      \u25cb skipped any side is unequal\n      \u25cb skipped no sides are equal\n      \u25cb skipped all zero sides is not a triangle\n      \u25cb skipped sides may be floats\n    isosceles triangle\n      \u25cb skipped last two sides are equal\n      \u25cb skipped first two sides are equal\n      \u25cb skipped first and last sides are equal\n      \u25cb skipped equilateral triangles are also isosceles\n      \u25cb skipped no sides are equal\n      \u25cb skipped first triangle inequality violation\n      \u25cb skipped second triangle inequality violation\n      \u25cb skipped third triangle inequality violation\n      \u25cb skipped sides may be floats\n    scalene triangle\n      \u25cb skipped no sides are equal\n      \u25cb skipped all sides are equal\n      \u25cb skipped two sides are equal\n      \u25cb skipped may not violate triangle inequality\n      \u25cb skipped sides may be floats\n\nTest Suites: 1 passed, 1 total\nTests:       18 skipped, 1 passed, 19 total\nSnapshots:   0 total\nTime:        0.761 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/triangle.js|.\\/triangle.spec.js/i.\n"
+ },
+ "javascript/alphametics": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./alphametics.spec.js\n  Solve the alphametics puzzle\n    \u2713 puzzle with three letters (3 ms)\n    \u25cb skipped solution must have unique value for each letter\n    \u25cb skipped leading zero solution is invalid\n    \u25cb skipped puzzle with four letters\n    \u25cb skipped puzzle with six letters\n    \u25cb skipped puzzle with seven letters\n    \u25cb skipped puzzle with eight letters\n    \u25cb skipped puzzle with ten letters\n    \u25cb skipped puzzle with ten letters and 199 addends\n\nTest Suites: 1 passed, 1 total\nTests:       8 skipped, 1 passed, 9 total\nSnapshots:   0 total\nTime:        0.776 s\nRan all test suites matching /.\\/LICENSE|.\\/alphametics.js|.\\/alphametics.spec.js|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/connect": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./connect.spec.js\n  Judging a game of connect\n    \u2713 an empty board has no winner (3 ms)\n    \u25cb skipped X can win on a 1x1 board\n    \u25cb skipped O can win on a 1x1 board\n    \u25cb skipped only edges does not make a winner\n    \u25cb skipped illegal diagonal does not make a winner\n    \u25cb skipped nobody wins crossing adjacent angles\n    \u25cb skipped X wins crossing from left to right\n    \u25cb skipped O wins crossing from top to bottom\n    \u25cb skipped X wins using a convoluted path\n    \u25cb skipped X wins using a spiral path\n\nTest Suites: 1 passed, 1 total\nTests:       9 skipped, 1 passed, 10 total\nSnapshots:   0 total\nTime:        0.849 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/connect.js|.\\/connect.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/poker": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "Q K A)\n    \u25cb skipped aces can start a straight (A 2 3 4 5)\n    \u25cb skipped both hands with a straight, tie goes to highest ranked card\n    \u25cb skipped even though an ace is usually high, a 5-high straight is the lowest-scoring straight\n    \u25cb skipped flush beats a straight\n    \u25cb skipped both hands have a flush, tie goes to high card, down to the last one if necessary\n    \u25cb skipped full house beats a flush\n    \u25cb skipped both hands have a full house, tie goes to highest-ranked triplet\n    \u25cb skipped with multiple decks, both hands have a full house with the same triplet, tie goes to the pair\n    \u25cb skipped four of a kind beats a full house\n    \u25cb skipped both hands have four of a kind, tie goes to high quad\n    \u25cb skipped with multiple decks, both hands with identical four of a kind, tie determined by kicker\n    \u25cb skipped straight flush beats four of a kind\n    \u25cb skipped both hands have straight flush, tie goes to highest-ranked card\n\nTest Suites: 1 passed, 1 total\nTests:       27 skipped, 1 passed, 28 total\nSnapshots:   0 total\nTime:        0.858 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/poker.js|.\\/poker.spec.js/i.\n"
+ },
+ "javascript/say": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./say.spec.js\n  say\n    \u2713 zero (2 ms)\n    \u25cb skipped one\n    \u25cb skipped fourteen\n    \u25cb skipped twenty\n    \u25cb skipped twenty-two\n    \u25cb skipped one hundred\n    \u25cb skipped one hundred twenty-three\n    \u25cb skipped one thousand\n    \u25cb skipped one thousand two hundred thirty-four\n    \u25cb skipped one million\n    \u25cb skipped one million two\n    \u25cb skipped one million two thousand three hundred forty-five\n    \u25cb skipped one billion\n    \u25cb skipped a really big number\n    \u25cb skipped raises an error below zero\n    \u25cb skipped raises an error above 999,999,999,999\n\nTest Suites: 1 passed, 1 total\nTests:       15 skipped, 1 passed, 16 total\nSnapshots:   0 total\nTime:        0.725 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/say.js|.\\/say.spec.js/i.\n"
+ },
+ "javascript/robot-name": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./robot-name.spec.js\n  Robot\n    \u2713 has a name (3 ms)\n    \u25cb skipped name is the same each time\n    \u25cb skipped different robots have different names\n    \u25cb skipped is able to reset the name\n    \u25cb skipped should set a unique name after reset\n    \u25cb skipped internal name cannot be modified\n    \u25cb skipped new names should not be sequential\n    \u25cb skipped names from reset should not be sequential\n    \u25cb skipped all the names can be generated\n\nTest Suites: 1 passed, 1 total\nTests:       8 skipped, 1 passed, 9 total\nSnapshots:   0 total\nTime:        0.74 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/robot-name.js|.\\/robot-name.spec.js/i.\n"
+ },
+ "javascript/react": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./react.spec.js\n  React module\n    \u2713 accepts input (3 ms)\n    \u25cb skipped allows input cell value to be set\n    \u25cb skipped allows setting compute cells\n    \u25cb skipped compute cell takes inputs in correct order\n    \u25cb skipped compute cells update value when inputs are changed\n    \u25cb skipped compute cells can depend on other compute cells\n    \u25cb skipped compute cells fire callbacks\n    \u25cb skipped callbacks fire only when output values change\n    \u25cb skipped static callbacks fire even if their own value has not changed\n    \u25cb skipped callbacks can be added and removed\n    \u25cb skipped removing a callback multiple times doesn't interfere with other callbacks\n    \u25cb skipped callbacks should only be called once, even if multiple dependencies change\n    \u25cb skipped callbacks should not be called if dependencies change but output value doesn't change\n\nTest Suites: 1 passed, 1 total\nTests:       12 skipped, 1 passed, 13 total\nSnapshots:   0 total\nTime:        0.792 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/react.js|.\\/react.spec.js/i.\n"
+ },
+ "javascript/queen-attack": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "n must have positive column\n      \u25cb skipped queen must have column on board\n      \u25cb skipped two queens cannot occupy the same space\n    Test the ability of one queen to attack another\n      \u25cb skipped queens cannot attack\n      \u25cb skipped queens can attack when they are on the same row\n      \u25cb skipped queens can attack when they are on the same column\n      \u25cb skipped queens can attack diagonally\n      \u25cb skipped queens can attack another diagonally\n      \u25cb skipped queens can attack yet another diagonally\n      \u25cb skipped queens can attack diagonally, really\n      \u25cb skipped queens can attack on a north-east/south-west diagonal\n      \u25cb skipped queens can attack on another ne/sw diagonal\n    Test the board visualisation\n      \u25cb skipped board\n      \u25cb skipped board with queens at their starting positions\n      \u25cb skipped board with the black queen at her starting positions\n      \u25cb skipped board with queens at the edges\n\nTest Suites: 1 passed, 1 total\nTests:       18 skipped, 1 passed, 19 total\nSnapshots:   0 total\nTime:        0.724 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/queen-attack.js|.\\/queen-attack.spec.js/i.\n"
+ },
+ "javascript/phone-number": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "leans numbers with multiple spaces\n      \u25cb skipped invalid when 9 digits\n      \u25cb skipped invalid when 11 digits does not start with a 1\n      \u25cb skipped valid when 11 digits and starting with 1\n      \u25cb skipped valid when 11 digits and starting with 1 even with punctuation\n      \u25cb skipped invalid when more than 11 digits\n      \u25cb skipped invalid with letters\n      \u25cb skipped invalid with punctuations\n      \u25cb skipped invalid if area code starts with 0\n      \u25cb skipped invalid if area code starts with 1\n      \u25cb skipped invalid if exchange code starts with 0\n      \u25cb skipped invalid if exchange code starts with 1\n      \u25cb skipped invalid if area code starts with 0 on valid 11-digit number\n      \u25cb skipped invalid if area code starts with 1 on valid 11-digit number\n      \u25cb skipped invalid if exchange code starts with 0 on valid 11-digit number\n      \u25cb skipped invalid if exchange code starts with 1 on valid 11-digit number\n\nTest Suites: 1 passed, 1 total\nTests:       17 skipped, 1 passed, 18 total\nSnapshots:   0 total\nTime:        0.71 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/phone-number.js|.\\/phone-number.spec.js/i.\n"
+ },
+ "javascript/pig-latin": {
+  "passed": true,
+  "stray": [],
+  "output_tail": " p\n      \u25cb skipped word beginning with k\n      \u25cb skipped word beginning with x\n      \u25cb skipped word beginning with q without a following u\n    some letter clusters are treated like a single consonant\n      \u25cb skipped word beginning with ch\n      \u25cb skipped word beginning with qu\n      \u25cb skipped word beginning with qu and a preceding consonant\n      \u25cb skipped word beginning with th\n      \u25cb skipped word beginning with thr\n      \u25cb skipped word beginning with sch\n    some letter clusters are treated like a single vowel\n      \u25cb skipped word beginning with yt\n      \u25cb skipped word beginning with xr\n    position of y in a word determines if it is a consonant or a vowel\n      \u25cb skipped y is treated like a consonant at the beginning of a word\n      \u25cb skipped y is treated like a vowel at the end of a consonant cluster\n      \u25cb skipped y as second letter in two letter word\n    phrases are translated\n      \u25cb skipped a whole phrase\n\nTest Suites: 1 passed, 1 total\nTests:       21 skipped, 1 passed, 22 total\nSnapshots:   0 total\nTime:        0.731 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/pig-latin.js|.\\/pig-latin.spec.js/i.\n"
+ },
+ "javascript/zipper": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./zipper.spec.js\n  Zipper\n    \u2713 data is retained (3 ms)\n    \u25cb skipped left, right and value\n    \u25cb skipped dead end\n    \u25cb skipped tree from deep focus\n    \u25cb skipped traversing up from top\n    \u25cb skipped left, right and up\n    \u25cb skipped setValue\n    \u25cb skipped setValue after traversing up\n    \u25cb skipped setLeft with leaf\n    \u25cb skipped setRight with null\n    \u25cb skipped setRight with subtree\n    \u25cb skipped setValue on deep focus\n    \u25cb skipped left returns a new Zipper\n    \u25cb skipped right returns a new Zipper\n    \u25cb skipped setValue returns a new Zipper\n    \u25cb skipped setRight returns a new Zipper\n    \u25cb skipped setLeft returns a new Zipper\n    \u25cb skipped up returns a new Zipper\n    \u25cb skipped should return same zipper from different paths\n\nTest Suites: 1 passed, 1 total\nTests:       18 skipped, 1 passed, 19 total\nSnapshots:   0 total\nTime:        0.759 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/zipper.js|.\\/zipper.spec.js/i.\n"
+ },
+ "javascript/promises": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "they are passed in\n      \u25cb skipped resolves even if some promises fail\n    race\n      \u25cb skipped returns a Promise\n      \u25cb skipped resolves when given no promises\n      \u25cb skipped resolves when given no arguments\n      \u25cb skipped resolves with value of the fastest successful promise\n      \u25cb skipped resolves with value of the fastest promise even if other slower promises fail\n      \u25cb skipped rejects if the fastest promise fails even if other slower promises succeed\n    any\n      \u25cb skipped returns a Promise\n      \u25cb skipped resolves when given no promises\n      \u25cb skipped resolves when given no arguments\n      \u25cb skipped resolves with value of fastest successful promise\n      \u25cb skipped resolves with value of the fastest successful promise even if slower promises fail\n      \u25cb skipped resolves with value of fastest successful promise even if faster promises fail\n      \u25cb skipped rejects with array of errors if all promises fail\n\nTest Suites: 1 passed, 1 total\nTests:       26 skipped, 1 passed, 27 total\nSnapshots:   0 total\nTime:        0.809 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/promises.js|.\\/promises.spec.js/i.\n"
+ },
+ "javascript/bowling": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "ts\n      \u25cb skipped two bonus rolls after a strike in the last frame can score more than 10 points if one is a strike\n      \u25cb skipped the second bonus rolls after a strike in the last frame cannot be a strike if the first one is not a strike\n      \u25cb skipped second bonus roll after a strike in the last frame cannot score more than 10 points\n      \u25cb skipped an unstarted game cannot be scored\n      \u25cb skipped an incomplete game cannot be scored\n      \u25cb skipped cannot roll if game already has ten frames\n      \u25cb skipped bonus rolls for a strike in the last frame must be rolled before score can be calculated\n      \u25cb skipped both bonus rolls for a strike in the last frame must be rolled before score can be calculated\n      \u25cb skipped bonus roll for a spare in the last frame must be rolled before score can be calculated\n      \u25cb skipped cannot roll after bonus roll for spare\n      \u25cb skipped cannot roll after bonus rolls for strike\n\nTest Suites: 1 passed, 1 total\nTests:       29 skipped, 1 passed, 30 total\nSnapshots:   0 total\nTime:        0.779 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/bowling.js|.\\/bowling.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/affine-cipher": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./affine-cipher.spec.js\n  Affine cipher\n    encode\n      \u2713 encode yes (3 ms)\n      \u25cb skipped encode no\n      \u25cb skipped encode OMG\n      \u25cb skipped encode O M G\n      \u25cb skipped encode mindblowingly\n      \u25cb skipped encode numbers\n      \u25cb skipped encode deep thought\n      \u25cb skipped encode all the letters\n      \u25cb skipped encode with a not coprime to m\n    decode\n      \u2713 decode exercism (1 ms)\n      \u25cb skipped decode a sentence\n      \u25cb skipped decode numbers\n      \u25cb skipped decode all the letters\n      \u25cb skipped decode with no spaces in input\n      \u25cb skipped decode with too many spaces\n      \u25cb skipped decode with a not coprime to m\n\nTest Suites: 1 passed, 1 total\nTests:       14 skipped, 2 passed, 16 total\nSnapshots:   0 total\nTime:        0.826 s\nRan all test suites matching /.\\/LICENSE|.\\/affine-cipher.js|.\\/affine-cipher.spec.js|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/bottle-song": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./bottle-song.spec.js\n  Bottle Song\n    verse\n      single verse\n        \u2713 first generic verse (3 ms)\n        \u25cb skipped last generic verse\n        \u25cb skipped verse with 2 bottles\n        \u25cb skipped verse with 1 bottle\n    lyrics\n      multiple verses\n        \u25cb skipped first two verses\n        \u25cb skipped last three verses\n        \u25cb skipped all verses\n\nTest Suites: 1 passed, 1 total\nTests:       6 skipped, 1 passed, 7 total\nSnapshots:   0 total\nTime:        0.713 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/bottle-song.js|.\\/bottle-song.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/rest-api": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./rest-api.spec.js\n  Rest API\n    user management\n      \u2713 no users (3 ms)\n      \u25cb skipped add user\n      \u25cb skipped get single user\n    iou\n      \u25cb skipped both users have 0 balance\n      \u25cb skipped borrower has negative balance\n      \u25cb skipped lender has negative balance\n      \u25cb skipped lender owes borrower\n      \u25cb skipped lender owes borrower less than new loan\n      \u25cb skipped lender owes borrower same as new loan\n\nTest Suites: 1 passed, 1 total\nTests:       8 skipped, 1 passed, 9 total\nSnapshots:   0 total\nTime:        0.788 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/rest-api.js|.\\/rest-api.spec.js/i.\n"
+ },
+ "javascript/rational-numbers": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "r\n    \u25cb skipped Raise a negative rational number to a positive integer power\n    \u25cb skipped Raise zero to an integer power\n    \u25cb skipped Raise one to an integer power\n    \u25cb skipped Raise a positive rational number to the power of zero\n    \u25cb skipped Raise a negative rational number to the power of zero\n  Exponentiation of a real number to a rational number\n    \u25cb skipped Raise a real number to a positive rational number\n    \u25cb skipped Raise a real number to a negative rational number\n    \u25cb skipped Raise a real number to a zero rational number\n  Reduction to lowest terms\n    \u25cb skipped Reduce a positive rational number to lowest terms\n    \u25cb skipped Reduce a negative rational number to lowest terms\n    \u25cb skipped Reduce a rational number with a negative denominator to lowest terms\n    \u25cb skipped Reduce zero to lowest terms\n    \u25cb skipped Reduce an integer to lowest terms\n    \u25cb skipped Reduce one to lowest terms\n\nTest Suites: 1 passed, 1 total\nTests:       35 skipped, 1 passed, 36 total\nSnapshots:   0 total\nTime:        0.878 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/rational-numbers.js|.\\/rational-numbers.spec.js/i.\n"
+ },
+ "javascript/space-age": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./space-age.spec.js\n  Space Age\n    \u2713 age on Earth (3 ms)\n    \u25cb skipped age on Mercury\n    \u25cb skipped age on Venus\n    \u25cb skipped age on Mars\n    \u25cb skipped age on Jupiter\n    \u25cb skipped age on Saturn\n    \u25cb skipped age on Uranus\n    \u25cb skipped age on Neptune\n\nTest Suites: 1 passed, 1 total\nTests:       7 skipped, 1 passed, 8 total\nSnapshots:   0 total\nTime:        0.72 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/space-age.js|.\\/space-age.spec.js/i.\n"
+ },
+ "javascript/variable-length-quantity": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "skipped arbitrary double byte\n      \u25cb skipped largest double byte\n      \u25cb skipped smallest triple byte\n      \u25cb skipped arbitrary triple byte\n      \u25cb skipped largest triple byte\n      \u25cb skipped smallest quadruple byte\n      \u25cb skipped arbitrary quadruple byte\n      \u25cb skipped largest quadruple byte\n      \u25cb skipped smallest quintuple byte\n      \u25cb skipped arbitrary quintuple byte\n      \u25cb skipped maximum 32-bit integer input\n      \u25cb skipped two single-byte values\n      \u25cb skipped two multi-byte values\n      \u25cb skipped many multi-byte values\n    Decode a series of bytes, producing a series of integers.\n      \u25cb skipped one byte\n      \u25cb skipped two bytes\n      \u25cb skipped three bytes\n      \u25cb skipped four bytes\n      \u25cb skipped maximum 32-bit integer\n      \u25cb skipped incomplete sequence causes error\n      \u25cb skipped incomplete sequence causes error, even if value is zero\n      \u25cb skipped multiple values\n\nTest Suites: 1 passed, 1 total\nTests:       25 skipped, 1 passed, 26 total\nSnapshots:   0 total\nTime:        0.772 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/variable-length-quantity.js|.\\/variable-length-quantity.spec.js/i.\n"
+ },
+ "javascript/scale-generator": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./scale-generator.spec.js\n  ScaleGenerator\n    Chromatic scales\n      \u2713 Chromatic scale with sharps (3 ms)\n      \u25cb skipped Chromatic scale with flats\n      \u25cb skipped Chromatic scale with sharps from D\n      \u25cb skipped Chromatic scale with flats from D\n    Scales with specified intervals\n      \u25cb skipped Simple major scale\n      \u25cb skipped Major scale with sharps\n      \u25cb skipped Major scale with flats\n      \u25cb skipped Minor scale with sharps\n      \u25cb skipped Minor scale with flats\n      \u25cb skipped Dorian mode\n      \u25cb skipped Phrygian mode\n      \u25cb skipped Lydian mode\n      \u25cb skipped Mixolydian mode\n      \u25cb skipped Locrian mode\n      \u25cb skipped Harmonic minor\n      \u25cb skipped Octatonic\n      \u25cb skipped Hexatonic\n      \u25cb skipped Pentatonic\n      \u25cb skipped Enigmatic\n\nTest Suites: 1 passed, 1 total\nTests:       18 skipped, 1 passed, 19 total\nSnapshots:   0 total\nTime:        0.782 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/scale-generator.js|.\\/scale-generator.spec.js/i.\n"
+ },
+ "javascript/beer-song": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./beer-song.spec.js\n  Beer Song\n    verse\n      single verse\n        \u2713 first generic verse (4 ms)\n        \u25cb skipped last generic verse\n        \u25cb skipped verse with 2 bottles\n        \u25cb skipped verse with 1 bottle\n        \u25cb skipped verse with 0 bottles\n    lyrics\n      multiple verses\n        \u25cb skipped first two verses\n        \u25cb skipped last three verses\n        \u25cb skipped all verses\n\nTest Suites: 1 passed, 1 total\nTests:       7 skipped, 1 passed, 8 total\nSnapshots:   0 total\nTime:        0.759 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/beer-song.js|.\\/beer-song.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/binary": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./binary.spec.js\n  binary\n    \u2713 0 is decimal 0 (3 ms)\n    \u25cb skipped 1 is decimal 1\n    \u25cb skipped 10 is decimal 2\n    \u25cb skipped 11 is decimal 3\n    \u25cb skipped 100 is decimal 4\n    \u25cb skipped 1001 is decimal 9\n    \u25cb skipped 11010 is decimal 26\n    \u25cb skipped 10001101000 is decimal 1128\n    \u25cb skipped ignores leading zeros\n    \u25cb skipped invalid inputs are null\n\nTest Suites: 1 passed, 1 total\nTests:       9 skipped, 1 passed, 10 total\nSnapshots:   0 total\nTime:        0.755 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/binary.js|.\\/binary.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/forth": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "hing on the stack\n      \u25cb skipped errors if there is only one value on the stack\n    user-defined words\n      \u25cb skipped can consist of built-in words\n      \u25cb skipped execute in the right order\n      \u25cb skipped can override other user-defined words\n      \u25cb skipped can override built-in words\n      \u25cb skipped can override built-in operators\n      \u25cb skipped can use different words with the same name\n      \u25cb skipped can define word that uses word with the same name\n      \u25cb skipped cannot redefine numbers\n      \u25cb skipped cannot redefine negative numbers\n      \u25cb skipped errors if executing a non-existent word\n      \u25cb skipped only defines locally\n    case-insensitivity\n      \u25cb skipped DUP is case-insensitive\n      \u25cb skipped DROP is case-insensitive\n      \u25cb skipped SWAP is case-insensitive\n      \u25cb skipped OVER is case-insensitive\n      \u25cb skipped user-defined words are case-insensitive\n      \u25cb skipped definitions are case-insensitive\n\nTest Suites: 1 passed, 1 total\nTests:       48 skipped, 1 passed, 49 total\nSnapshots:   0 total\nTime:        0.858 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/forth.js|.\\/forth.spec.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json/i.\n"
+ },
+ "javascript/wordy": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./wordy.spec.js\n  Wordy\n    \u2713 just a number (3 ms)\n    \u25cb skipped addition\n    \u25cb skipped more addition\n    \u25cb skipped addition with negative numbers\n    \u25cb skipped large addition\n    \u25cb skipped subtraction\n    \u25cb skipped multiplication\n    \u25cb skipped division\n    \u25cb skipped multiple additions\n    \u25cb skipped addition and subtraction\n    \u25cb skipped multiple subtraction\n    \u25cb skipped subtraction then addition\n    \u25cb skipped multiple multiplication\n    \u25cb skipped addition and multiplication\n    \u25cb skipped multiple division\n    \u25cb skipped unknown operation\n    \u25cb skipped Non math question\n    \u25cb skipped reject problem missing an operand\n    \u25cb skipped reject problem with no operands or operators\n    \u25cb skipped reject two operations in a row\n    \u25cb skipped reject two numbers in a row\n    \u25cb skipped reject postfix notation\n    \u25cb skipped reject prefix notation\n\nTest Suites: 1 passed, 1 total\nTests:       22 skipped, 1 passed, 23 total\nSnapshots:   0 total\nTime:        0.783 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/wordy.js|.\\/wordy.spec.js/i.\n"
+ },
+ "javascript/transpose": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "PASS ./transpose.spec.js\n  Transpose\n    \u2713 empty string (3 ms)\n    \u25cb skipped two characters in a row\n    \u25cb skipped two characters in a column\n    \u25cb skipped simple\n    \u25cb skipped single line\n    \u25cb skipped first line longer than second line\n    \u25cb skipped second line longer than first line\n    \u25cb skipped mixed line length\n    \u25cb skipped square\n    \u25cb skipped rectangle\n    \u25cb skipped triangle\n    \u25cb skipped jagged triangle\n    \u25cb skipped many lines\n\nTest Suites: 1 passed, 1 total\nTests:       12 skipped, 1 passed, 13 total\nSnapshots:   0 total\nTime:        0.726 s\nRan all test suites matching /.\\/LICENSE|.\\/babel.config.js|.\\/node_modules|.\\/package-lock.json|.\\/package.json|.\\/transpose.js|.\\/transpose.spec.js/i.\n"
+ },
+ "java/change": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/twelve-days": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/bank-account": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/state-of-tic-tac-toe": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/zebra-puzzle": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/pythagorean-triplet": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/simple-linked-list": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/house": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/phone-number": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/variable-length-quantity": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/kindergarten-garden": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/zipper": {
+  "passed": false,
+  "stray": [],
+  "output_tail": ".net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n\n14 tests completed, 1 failed, 13 skipped\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':test'.\n> There were failing tests. See the report at: file:///home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/java/zipper/build/reports/tests/test/index.html\n\n* Try:\n> Run with --scan to get full insights.\n\nBUILD FAILED in 7s\n"
+ },
+ "java/all-your-base": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/transpose": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/pov": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/custom-set": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/dominoes": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/book-store": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/protein-translation": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/series": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/wordy": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/bottle-song": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "t.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n\n7 tests completed, 1 failed, 6 skipped\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':test'.\n> There were failing tests. See the report at: file:///home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/java/bottle-song/build/reports/tests/test/index.html\n\n* Try:\n> Run with --scan to get full insights.\n\nBUILD FAILED in 7s\n"
+ },
+ "java/go-counting": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/food-chain": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/circular-buffer": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/resistor-color-trio": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/queen-attack": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "\n                                                           ^\n  symbol:   method getRow()\n  location: variable queen2 of type Queen\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/java/queen-attack/src/main/java/QueenAttackCalculator.java:19: error: cannot find symbol\n        int columnDistance = Math.abs(queen1.getColumn() - queen2.getColumn());\n                                            ^\n  symbol:   method getColumn()\n  location: variable queen1 of type Queen\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/java/queen-attack/src/main/java/QueenAttackCalculator.java:19: error: cannot find symbol\n        int columnDistance = Math.abs(queen1.getColumn() - queen2.getColumn());\n                                                                 ^\n  symbol:   method getColumn()\n  location: variable queen2 of type Queen\n8 errors\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':compileJava'.\n> Compilation failed; see the compiler error output for details.\n\n* Try:\n> Run with --info option to get more log output.\n> Run with --scan to get full insights.\n\nBUILD FAILED in 6s\n"
+ },
+ "java/react": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/word-search": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/satellite": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/sgf-parsing": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/hangman": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nNote: /home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/java/hangman/src/test/java/HangmanTest.java uses unchecked or unsafe operations.\nNote: Recompile with -Xlint:unchecked for details.\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/affine-cipher": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/pig-latin": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/palindrome-products": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/rational-numbers": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ },
+ "java/rest-api": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "api/src/main/java/RestApi.java:21: error: cannot find symbol\n            String name = user.getName();\n                              ^\n  symbol:   method getName()\n  location: variable user of type User\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/java/rest-api/src/main/java/RestApi.java:24: error: cannot find symbol\n            Map<String, ? extends Number> owes = user.getOwes();\n                                                     ^\n  symbol:   method getOwes()\n  location: variable user of type User\n/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_full-oneshot/java/rest-api/src/main/java/RestApi.java:31: error: cannot find symbol\n            Map<String, ? extends Number> owedBy = user.getOwedBy();\n                                                       ^\n  symbol:   method getOwedBy()\n  location: variable user of type User\n3 errors\n\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':compileJava'.\n> Compilation failed; see the compiler error output for details.\n\n* Try:\n> Run with --info option to get more log output.\n> Run with --scan to get full insights.\n\nBUILD FAILED in 6s\n"
+ },
+ "java/alphametics": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "sted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\nPicked up JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/root/.ccr/java-truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.trustStoreType=PKCS12 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=33137 -Dhttp.nonProxyHosts=localhost|127.0.0.1|::1|127.*|0.*|::|169.254.*|api.anthropic.com|api-staging.anthropic.com|api-pr-preview.anthropic.com|mcp-proxy.anthropic.com|mcp-proxy-staging.anthropic.com|registry.npmjs.org|jsr.io|npm.jsr.io|pypi.org|files.pythonhosted.org|index.crates.io|proxy.golang.org|host.docker.internal|10.*|172.16.*|172.17.*|172.18.*|172.19.*|172.20.*|172.21.*|172.22.*|172.23.*|172.24.*|172.25.*|172.26.*|172.27.*|172.28.*|172.29.*|172.30.*|172.31.*|192.168.*|100.64.0.0/10|*.svc.cluster.local|*.svc.cluster.local -Djdk.http.auth.tunneling.disabledSchemes= -Djdk.http.auth.proxying.disabledSchemes=\n"
+ }
+}
