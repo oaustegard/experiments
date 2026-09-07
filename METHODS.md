@@ -3147,7 +3147,45 @@ Cross-check liveness on a **second axis**. Failure 2 only surfaced because
 `free -g` showed 0 GB resident for a job that had to hold 3.2 GB. One signal is
 not liveness.
 
-### A tool result injected as one vector: categorical reads at 1.00, digits decay with length, and the async form is free only behind an uninformative token
+### Reading a number out of a frozen LM's residual stream: one vector per answer step, digits most-significant first
+
+Injecting an exact calculator result into a frozen small LM's residual
+stream at one layer went from 0.60 to 0.91 exact match on SmolLM2-135M (0.39
+to 0.50 on Monad 56.7M) through two changes to HOW the vector is delivered,
+with the encoder and its 1M parameters unchanged in size:
+
+- **One vector per answer step, not one per answer.** Adding the result
+  vector at the query position and again at every generated answer position
+  (the encoder also sees the step index) took SmolLM2 from 0.60 to 0.75 and
+  Monad from 0.39 to 0.50. A frozen upper stack serializes a number badly from
+  a single write it has to re-read through attention; it copies well from a
+  write that is present at the position doing the emitting.
+- **Store the digits in emission order.** With slot 0 = units digit (the
+  natural layout for arithmetic), the step-`j` encoder has to infer the
+  result's length before it knows which slot to emit; the errors were digit
+  transpositions (`174` → `147`) and wrong low-order digits in long results.
+  Slot 0 = most significant digit took SmolLM2 from 0.75 to 0.91 in
+  distribution and from 0.57 to 0.85 on a held-out operand length with true
+  operands; add and sub went to 0.99. Twelve-digit products stayed the hard
+  case (0.67), losing their last few digits.
+- **Read the query where the digits are.** A head that reads one vector at
+  the last prompt token recovered the full query 0.10 of the time on both
+  models at every layer (probe curve flat across depth; the operator alone at
+  1.00 from layer 1). Thirteen learned queries cross-attending over all prompt
+  positions at the same layer recovered it at 0.993 (SmolLM2) and 0.94
+  (Monad) in distribution, but 0.31 / 0.01 on an unseen operand length: with
+  absolute and relative-to-end position embeddings the head locates operand A
+  by counting back past operand B, and an unseen B length shifts the count.
+  A content-based digit-run locator is the next thing to try.
+
+Also transferable: residual add beats a single KV slot on both models (as in
+2603.22329); delayed-by-one injection is free when the first answer token is
+a format token (SmolLM2's leading space) and blind when it is the answer; and
+a text-insertion baseline for a base model needs a `contains` metric because
+the model wraps or repeats the number instead of emitting it bare.
+(`latent-calculator/`)
+
+### (superseded by the entry above) A tool result injected as one vector: categorical reads at 1.00, digits decay with length, and the async form is free only behind an uninformative token
 
 Injecting an exact calculator result into a frozen small LM's residual stream
 at one layer, through a trained encoder under 1M parameters, gets a
