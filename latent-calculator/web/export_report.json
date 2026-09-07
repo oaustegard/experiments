@@ -1,0 +1,233 @@
+{
+ "k": 16,
+ "opset": 18,
+ "config": {
+  "hidden_size": 576,
+  "intermediate_size": 1536,
+  "num_attention_heads": 9,
+  "num_key_value_heads": 3,
+  "num_hidden_layers": 30,
+  "vocab_size": 49152,
+  "rms_norm_eps": 1e-05,
+  "rope_theta": 100000.0,
+  "head_dim": 64
+ },
+ "shard_limit_bytes": 90000000,
+ "lower": {
+  "exporter": "legacy",
+  "errors": {
+   "dynamo": "TorchExportError: Failed to export the model with torch.export. \u001b[96mThis is step 1/3\u001b[0m of exporting the model to ONNX. Next steps:\n- Modify the model code for `torch.export.export` to succeed. Refer to https://pytor"
+  },
+  "max_abs_diff": 6.103515625e-05,
+  "max_rel_diff": 3.127565378343723e-06
+ },
+ "upper": {
+  "exporter": "legacy",
+  "errors": {
+   "dynamo": "TorchExportError: Failed to export the model with torch.export. \u001b[96mThis is step 1/3\u001b[0m of exporting the model to ONNX. Next steps:\n- Modify the model code for `torch.export.export` to succeed. Refer to https://pytor"
+  },
+  "max_abs_diff": 0.00013172626495361328,
+  "max_rel_diff": 4.519418826133598e-06
+ },
+ "query_head": {
+  "exporter": "dynamo",
+  "errors": {},
+  "max_abs_diff": 1.9073486328125e-05,
+  "max_rel_diff": 7.917067138312746e-07,
+  "bytes": 1014000
+ },
+ "encoder": {
+  "exporter": "dynamo",
+  "errors": {},
+  "max_abs_diff": 7.62939453125e-06,
+  "max_rel_diff": 2.403604926669018e-07,
+  "bytes": 3106188
+ },
+ "variants": {
+  "fp32": {
+   "lower": {
+    "model": "lower.onnx",
+    "model_bytes": 15564233,
+    "external": [
+     {
+      "location": "lower.w000",
+      "bytes": 89358336,
+      "shards": [
+       "lower.w000"
+      ]
+     },
+     {
+      "location": "lower.w001",
+      "bytes": 89358336,
+      "shards": [
+       "lower.w001"
+      ]
+     },
+     {
+      "location": "lower.w002",
+      "bytes": 46891008,
+      "shards": [
+       "lower.w002"
+      ]
+     },
+     {
+      "location": "embed.data",
+      "bytes": 113246208,
+      "shards": [
+       "embed.data.000",
+       "embed.data.001"
+      ]
+     }
+    ]
+   },
+   "upper": {
+    "model": "upper.onnx",
+    "model_bytes": 11906813,
+    "external": [
+     {
+      "location": "upper.w000",
+      "bytes": 89358336,
+      "shards": [
+       "upper.w000"
+      ]
+     },
+     {
+      "location": "upper.w001",
+      "bytes": 83165184,
+      "shards": [
+       "upper.w001"
+      ]
+     },
+     {
+      "location": "embed.data",
+      "bytes": 113246208,
+      "shards": [
+       "embed.data.000",
+       "embed.data.001"
+      ]
+     }
+    ]
+   },
+   "shared": [
+    "embed.data"
+   ],
+   "embedding_shared_between_halves": true,
+   "upper_table_retransposed": true,
+   "table_numerically_equal": true,
+   "total_download_mb": 538.8,
+   "largest_file_mb": 90.0,
+   "validation": {
+    "sessions_build": true,
+    "hidden16_max_abs_diff_vs_fp32": 0.0,
+    "logits_max_abs_diff_vs_fp32": 0.0,
+    "argmax_agrees_with_fp32": true
+   }
+  },
+  "fp16": {
+   "lower": {
+    "model": "lower.fp16.onnx",
+    "model_bytes": 30764139,
+    "external": [
+     {
+      "location": "lower.fp16.w000",
+      "bytes": 88473600,
+      "shards": [
+       "lower.fp16.w000"
+      ]
+     },
+     {
+      "location": "lower.fp16.w001",
+      "bytes": 1769472,
+      "shards": [
+       "lower.fp16.w001"
+      ]
+     },
+     {
+      "location": "embed.fp16.data",
+      "bytes": 56623104,
+      "shards": [
+       "embed.fp16.data"
+      ]
+     }
+    ]
+   },
+   "upper": {
+    "model": "upper.fp16.onnx",
+    "model_bytes": 23530441,
+    "external": [
+     {
+      "location": "upper.fp16.w000",
+      "bytes": 69009408,
+      "shards": [
+       "upper.fp16.w000"
+      ]
+     },
+     {
+      "location": "embed.fp16.data",
+      "bytes": 56623104,
+      "shards": [
+       "embed.fp16.data"
+      ]
+     }
+    ]
+   },
+   "shared": [
+    "embed.fp16.data"
+   ],
+   "embedding_shared_between_halves": true,
+   "upper_table_retransposed": true,
+   "table_numerically_equal": true,
+   "total_download_mb": 270.2,
+   "largest_file_mb": 88.5,
+   "validation": {
+    "sessions_build": true,
+    "hidden16_max_abs_diff_vs_fp32": 1.06640625,
+    "logits_max_abs_diff_vs_fp32": 0.04677915573120117,
+    "argmax_agrees_with_fp32": true
+   }
+  },
+  "int8": {
+   "lower": {
+    "model": "lower.int8.onnx",
+    "model_bytes": 61000484,
+    "external": [
+     {
+      "location": "embed.int8.data",
+      "bytes": 113246208,
+      "shards": [
+       "embed.int8.data.000",
+       "embed.int8.data.001"
+      ]
+     }
+    ]
+   },
+   "upper": {
+    "model": "upper.int8.onnx",
+    "model_bytes": 46653638,
+    "external": [
+     {
+      "location": "upper.int8.w000",
+      "bytes": 28311552,
+      "shards": [
+       "upper.int8.w000"
+      ]
+     }
+    ]
+   },
+   "shared": [
+    "embed.int8.data"
+   ],
+   "embedding_shared_between_halves": false,
+   "upper_table_retransposed": false,
+   "table_numerically_equal": null,
+   "total_download_mb": 249.2,
+   "largest_file_mb": 90.0,
+   "validation": {
+    "sessions_build": true,
+    "hidden16_max_abs_diff_vs_fp32": 75.13760375976562,
+    "logits_max_abs_diff_vs_fp32": 46.32272720336914,
+    "argmax_agrees_with_fp32": false
+   }
+  }
+ }
+}
