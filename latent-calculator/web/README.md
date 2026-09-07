@@ -148,3 +148,5 @@ Chromium both with and without `--enable-unsafe-webgpu
 `latent.js` is unverified and the page falls back to WASM. Before trusting it,
 compare its output token for token against the WASM path -- an int8 WebGPU
 pipeline silently collapsed an embedding space on a sibling demo in this repo.
+
+Shipped weights: https://huggingface.co/austegard/latent-calculator-web (fp32 and fp16, 815 MB, uploaded 2026-09-07).
