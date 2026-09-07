@@ -1651,6 +1651,15 @@ the result.
   ahead) and 0.012 apart on its token head (remex ahead), CIs spanning zero.
   Treat a single-seed 1-bit comparison inside ±0.02 nDCG@10 on 300 SciFact
   queries as unresolved. (`neomme-remex-quant/RESULTS.md`)
+- **Token pooling is free on page images and not on text — the same
+  `HierarchicalTokenPooling` at factor 2 costs −0.019 nDCG@10 on 320-token
+  SciFact abstracts and −0.004 on 2,900-patch DocVQA pages.** Scanned pages
+  carry many near-duplicate patch vectors (margins, background) that Ward
+  clustering merges without loss; prose tokens do not. Consequence for a
+  page-image index: pool first, then quantize — pool2 + remex 1-bit is 64x
+  under fp32 at −0.004. For a text token index, quantize and skip pooling.
+  Measure pooling per modality; do not carry a pooling verdict across.
+  (`neomme-remex-quant/RESULTS.md`, findings 2 and 9)
 - **The one-bit-beats-two inversion is a property of the encoder, so test it
   per encoder — never inherit it.** 1-bit beat 2-bit on SPECTER2 and inverted
   on Jina; on bekko-embedding-v1, **2-bit beats 1-bit in all 8 (variant x dim)
