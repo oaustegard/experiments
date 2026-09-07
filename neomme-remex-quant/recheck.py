@@ -32,12 +32,17 @@ def check(label, cond, detail=""):
     ok &= bool(cond)
 
 
-results = json.loads((HERE / "results.json").read_text()); perquery = dict(np.load(HERE / "results_perquery.npz"))
-block = report.render(results, perquery)
 s = (HERE / "RESULTS.md").read_text()
-embedded = s[s.index("<!-- tables:start -->") + len("<!-- tables:start -->"):s.index("<!-- tables:end -->")].strip()
-check("RESULTS.md tables == render(results.json)", embedded == block.strip())
-check("every arm in results.json has per-query scores", set(results) == set(perquery))
+for corpus, (stem, marker) in report.STEMS.items():
+    if not (HERE / f"{stem}.json").exists():
+        continue
+    results, perquery, _ = report.load(corpus)
+    n_q = len(next(iter(perquery.values())))
+    block = report.render(results, perquery).replace("(300 queries, 5,000 resamples)", f"({n_q:,} queries, 5,000 resamples)")
+    embedded = s[s.index(f"<!-- {marker}:start -->") + len(f"<!-- {marker}:start -->"):s.index(f"<!-- {marker}:end -->")].strip()
+    check(f"RESULTS.md {marker} == render({stem}.json)", embedded == block.strip())
+    check(f"every arm in {stem}.json has per-query scores", set(results) == set(perquery))
+results = json.loads((HERE / "results.json").read_text())
 check("dense 4x MRL x fp32/remex arms present", all(f"dense remex {b}-bit d={d}" in results for b in (4, 2, 1) for d in (128, 256, 512, 1024)))
 
 data = HERE / "data" / "scifact_enc"
