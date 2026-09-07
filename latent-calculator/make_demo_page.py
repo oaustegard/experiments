@@ -41,7 +41,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="smol")
     ap.add_argument("--demo", default=None)
-    ap.add_argument("--stream-arm", default="stream")
+    ap.add_argument("--stream-arm", default="stream-left")
     ap.add_argument("--out", default=os.path.join(HERE, "demo_body.html"))
     a = ap.parse_args()
     m = a.model
@@ -160,7 +160,8 @@ def main():
     w(f'<li><strong>Reading.</strong> An encoder turns the result (sign, digits, or a '
       'comparison word) plus the answer-step index into one vector of the model\'s hidden '
       f'size and adds it to the residual stream after layer {k}, at the query position and '
-      'again at every answer step. The frozen upper layers turn that into the next token. '
+      'again at every answer step. The digits are stored most-significant first, so answer step j '
+      'reads slot j. The frozen upper layers turn that into the next token. '
       f'Trained by the model\'s own next-token loss; {pct(oi["exact_match"])} exact with '
       'true operands.</li>')
     w('<li><strong>Cost.</strong> Zero tokens in either direction. The port\'s own compute is '
@@ -171,14 +172,15 @@ def main():
 
     # failures
     w('<section><div class="eyebrow">Where it fails</div><ul class="bullets">')
-    w(f'<li>Long results. Multiplication of two 6-digit numbers is a 12-digit answer and '
-      f'lands at {pct(li["by_op"]["mul"]["acc"])}; the wrong answers are the right length '
-      'and sign with some digits off. A one-vector-per-step channel through frozen layers '
-      'carries about six digits reliably at this size.</li>')
-    w(f'<li>Lengths it never saw. On prompts with a 5-digit operand the query head is right '
-      f'{pct(l5["calculator_exact"])} of the time and the whole pipeline {pct(l5["exact_match"])}. '
-      'The head counts digit positions from the end of the prompt, and an unseen operand length '
-      'shifts the count.</li>')
+    w(f'<li>Twelve-digit products. Multiplying two 6-digit numbers lands at '
+      f'{pct(li["by_op"]["mul"]["acc"])}; the wrong answers have the leading digits right and '
+      'the last few off. Addition and subtraction, whose results stay under eight digits, are at '
+      f'{pct(li["by_op"]["add"]["acc"])} and {pct(li["by_op"]["sub"]["acc"])}.</li>')
+    w(f'<li>Lengths it never saw. On prompts with a 5-digit operand the reading side holds up '
+      f'({pct(oracle["splits"]["test_len5"]["exact_match"])} with true operands) but the query head '
+      f'is right only {pct(l5["calculator_exact"])} of the time, so the whole pipeline lands at '
+      f'{pct(l5["exact_match"])}. The head counts digit positions from the end of the prompt, and '
+      'an unseen operand length shifts the count.</li>')
     w('<li>The text route scores zero on exact match here because a 135M base model wraps '
       'the pasted result in prose or repeats it; the "contains" column is its fair number.</li>')
     w('</ul></section>')

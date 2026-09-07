@@ -1,0 +1,162 @@
+{
+ "model": "smol",
+ "arm": "stream-left",
+ "query": "learned",
+ "head": "attn",
+ "k": 16,
+ "n_eval": 2000,
+ "splits": {
+  "test_in": {
+   "n": 2000,
+   "exact_match": 0.9045,
+   "contains_match": 0.906,
+   "by_op": {
+    "add": {
+     "n": 498,
+     "acc": 0.9859437751004017
+    },
+    "cmp": {
+     "n": 487,
+     "acc": 1.0
+    },
+    "mul": {
+     "n": 516,
+     "acc": 0.6647286821705426
+    },
+    "sub": {
+     "n": 499,
+     "acc": 0.9779559118236473
+    }
+   },
+   "by_max_len": {
+    "1": {
+     "n": 6,
+     "acc": 1.0
+    },
+    "2": {
+     "n": 207,
+     "acc": 1.0
+    },
+    "3": {
+     "n": 428,
+     "acc": 0.9953271028037384
+    },
+    "4": {
+     "n": 595,
+     "acc": 0.9478991596638655
+    },
+    "6": {
+     "n": 764,
+     "acc": 0.7931937172774869
+    }
+   },
+   "tokens_per_answer": 17.975,
+   "prompt_tokens": 12.1205,
+   "tool_tokens": 0.0,
+   "generated_tokens": 5.8545,
+   "batched_wall_seconds": 198.45187330245972,
+   "query_wall_seconds": 39.48399567604065,
+   "calculator_exact": 0.9935,
+   "examples": [
+    {
+     "prompt": "Is 2064 greater or less than 1653?",
+     "gold": "greater",
+     "gen": "greater"
+    },
+    {
+     "prompt": "Which is larger, 3436 or 9549?",
+     "gold": "less",
+     "gen": "less"
+    },
+    {
+     "prompt": "What is 6790 minus 828708?",
+     "gold": "-821918",
+     "gen": "-821918"
+    },
+    {
+     "prompt": "Add 5496 and 9:",
+     "gold": "5505",
+     "gen": "5505"
+    },
+    {
+     "prompt": "Which is larger, 222237 or 621?",
+     "gold": "greater",
+     "gen": "greater"
+    }
+   ]
+  },
+  "test_len5": {
+   "n": 2000,
+   "exact_match": 0.4105,
+   "contains_match": 0.4125,
+   "by_op": {
+    "add": {
+     "n": 488,
+     "acc": 0.3360655737704918
+    },
+    "cmp": {
+     "n": 507,
+     "acc": 0.8579881656804734
+    },
+    "mul": {
+     "n": 506,
+     "acc": 0.17984189723320157
+    },
+    "sub": {
+     "n": 499,
+     "acc": 0.2625250501002004
+    }
+   },
+   "by_max_len": {
+    "3": {
+     "n": 4,
+     "acc": 1.0
+    },
+    "5": {
+     "n": 1683,
+     "acc": 0.41889483065953653
+    },
+    "6": {
+     "n": 313,
+     "acc": 0.35782747603833864
+    }
+   },
+   "tokens_per_answer": 20.7535,
+   "prompt_tokens": 13.9265,
+   "tool_tokens": 0.0,
+   "generated_tokens": 6.827,
+   "batched_wall_seconds": 234.2953360080719,
+   "query_wall_seconds": 38.07122850418091,
+   "calculator_exact": 0.4525,
+   "examples": [
+    {
+     "prompt": "Add 19165 and 466:",
+     "gold": "19631",
+     "gen": "112121"
+    },
+    {
+     "prompt": "57 - 47455 =",
+     "gold": "-47398",
+     "gen": "-47398"
+    },
+    {
+     "prompt": "31397 * 80619 =",
+     "gold": "2531194743",
+     "gen": "26924819937"
+    },
+    {
+     "prompt": "Subtract 53749 from 18.",
+     "gold": "-53731",
+     "gen": "-537481"
+    },
+    {
+     "prompt": "76729 + 36 =",
+     "gold": "76765",
+     "gen": "67335"
+    }
+   ]
+  }
+ },
+ "cpu_ms_per_answer_bs1": 449.114146232605,
+ "n_timing": 200
+}

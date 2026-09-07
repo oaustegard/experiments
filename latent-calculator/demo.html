@@ -333,9 +333,9 @@ table td,table th{font-variant-numeric:tabular-nums}
 </section>
 <section><div class="eyebrow">Twelve prompts, three routes</div>
 <div class="grid grid--3">
-<div class="card"><div class="eyebrow">Frozen model</div><div class="bignum">0<span style="color:var(--g500)"> / 12</span></div><div class="muted">no tool · 28 tokens · 728 ms per answer</div></div>
-<div class="card"><div class="eyebrow">Tool result as text</div><div class="bignum">0<span style="color:var(--g500)"> / 12</span></div><div class="muted">pasted into the prompt · 42 tokens · 796 ms per answer</div></div>
-<div class="card"><div class="eyebrow">Latent port</div><div class="bignum">7<span style="color:var(--g500)"> / 12</span></div><div class="muted">injected after layer 16 · 21 tokens · 364 ms per answer</div></div>
+<div class="card"><div class="eyebrow">Frozen model</div><div class="bignum">0<span style="color:var(--g500)"> / 12</span></div><div class="muted">no tool · 28 tokens · 762 ms per answer</div></div>
+<div class="card"><div class="eyebrow">Tool result as text</div><div class="bignum">0<span style="color:var(--g500)"> / 12</span></div><div class="muted">pasted into the prompt · 42 tokens · 834 ms per answer</div></div>
+<div class="card"><div class="eyebrow">Latent port</div><div class="bignum">10<span style="color:var(--g500)"> / 12</span></div><div class="muted">injected after layer 16 · 21 tokens · 384 ms per answer</div></div>
 </div></section>
 <section><div class="eyebrow">Side by side</div>
 <p>Random rows from the in-distribution test split (operand lengths 1-4 and 6 digits). "Query" is what the trained head read out of the activations; the calculator ran on exactly that.</p>
@@ -346,13 +346,13 @@ table td,table th{font-variant-numeric:tabular-nums}
 <tr><td>Is 40 greater or less than 240434?</td><td><code>less</code></td><td><code>The answer is 40 less than 24043</code> <span class="badge badge--err">wrong</span></td><td><code>## How to calculate 40 percent of 2404</code> <span class="badge badge--err">wrong</span></td><td><code>less</code> <span class="badge badge--ok">right</span></td><td><code>cmp 40 240434</code> → <code>less</code></td></tr>
 <tr><td>Is 428583 greater or less than 53?</td><td><code>greater</code></td><td><code>The answer is 428583 is 42</code> <span class="badge badge--err">wrong</span></td><td><code>## How to calculate 428583 percent of</code> <span class="badge badge--err">wrong</span></td><td><code>greater</code> <span class="badge badge--ok">right</span></td><td><code>cmp 428583 53</code> → <code>greater</code></td></tr>
 <tr><td>Compare 8891 and 65:</td><td><code>greater</code></td><td><code>The 8891 is a 16-bit number</code> <span class="badge badge--err">wrong</span></td><td><code>8891 and 65: [less] 88</code> <span class="badge badge--err">wrong</span></td><td><code>greater</code> <span class="badge badge--ok">right</span></td><td><code>cmp 8891 65</code> → <code>greater</code></td></tr>
-<tr><td>What is 539451 plus 927818?</td><td><code>1467269</code></td><td><code>539451 + 927818 is</code> <span class="badge badge--err">wrong</span></td><td><code>Is 539451 a prime number?</code> <span class="badge badge--err">wrong</span></td><td><code>1476629</code> <span class="badge badge--err">wrong</span></td><td><code>add 539451 927818</code> → <code>1467269</code></td></tr>
-<tr><td>915061 * 966343 =</td><td><code>884262791923</code></td><td><code>100000000000000</code> <span class="badge badge--err">wrong</span></td><td><code>The first 10000000000</code> <span class="badge badge--err">wrong</span></td><td><code>772171991923</code> <span class="badge badge--err">wrong</span></td><td><code>mul 915061 966343</code> → <code>884262791923</code></td></tr>
-<tr><td>Compute 689851 times 471707.</td><td><code>325407545657</code></td><td><code>### Division</code> <span class="badge badge--err">wrong</span></td><td><code>### Division</code> <span class="badge badge--err">wrong</span></td><td><code>299554455657</code> <span class="badge badge--err">wrong</span></td><td><code>mul 689851 471707</code> → <code>325407545657</code></td></tr>
+<tr><td>What is 539451 plus 927818?</td><td><code>1467269</code></td><td><code>539451 + 927818 is</code> <span class="badge badge--err">wrong</span></td><td><code>Is 539451 a prime number?</code> <span class="badge badge--err">wrong</span></td><td><code>1467269</code> <span class="badge badge--ok">right</span></td><td><code>add 539451 927818</code> → <code>1467269</code></td></tr>
+<tr><td>915061 * 966343 =</td><td><code>884262791923</code></td><td><code>100000000000000</code> <span class="badge badge--err">wrong</span></td><td><code>The first 10000000000</code> <span class="badge badge--err">wrong</span></td><td><code>884267296266</code> <span class="badge badge--err">wrong</span></td><td><code>mul 915061 966343</code> → <code>884262791923</code></td></tr>
+<tr><td>Compute 689851 times 471707.</td><td><code>325407545657</code></td><td><code>### Division</code> <span class="badge badge--err">wrong</span></td><td><code>### Division</code> <span class="badge badge--err">wrong</span></td><td><code>325407545045</code> <span class="badge badge--err">wrong</span></td><td><code>mul 689851 471707</code> → <code>325407545657</code></td></tr>
 <tr><td>Compare 1212 and 975558:</td><td><code>less</code></td><td><code>The 1212 is a composite number. It ca…</code> <span class="badge badge--err">wrong</span></td><td><code>## What is 1212 in words?</code> <span class="badge badge--err">wrong</span></td><td><code>less</code> <span class="badge badge--ok">right</span></td><td><code>cmp 1212 975558</code> → <code>less</code></td></tr>
 <tr><td>What is 105 multiplied by 36?</td><td><code>3780</code></td><td><code>The 105 multiplied by 36 is equal to</code> <span class="badge badge--err">wrong</span></td><td><code>105 x 36 = 3780</code> <span class="badge badge--err">wrong</span></td><td><code>3780</code> <span class="badge badge--ok">right</span></td><td><code>mul 105 36</code> → <code>3780</code></td></tr>
-<tr><td>Add 614793 and 284983:</td><td><code>899776</code></td><td><code>```</code> <span class="badge badge--err">wrong</span></td><td><code>The 284983 is a safe number.</code> <span class="badge badge--err">wrong</span></td><td><code>699776</code> <span class="badge badge--err">wrong</span></td><td><code>add 614793 284983</code> → <code>899776</code></td></tr>
-<tr><td>Add 52 and 122:</td><td><code>174</code></td><td><code>The 52 and 122 are the same as the</code> <span class="badge badge--err">wrong</span></td><td><code>122 + 52 = 176.</code> <span class="badge badge--err">wrong</span></td><td><code>147</code> <span class="badge badge--err">wrong</span></td><td><code>add 52 122</code> → <code>174</code></td></tr>
+<tr><td>Add 614793 and 284983:</td><td><code>899776</code></td><td><code>```</code> <span class="badge badge--err">wrong</span></td><td><code>The 284983 is a safe number.</code> <span class="badge badge--err">wrong</span></td><td><code>899776</code> <span class="badge badge--ok">right</span></td><td><code>add 614793 284983</code> → <code>899776</code></td></tr>
+<tr><td>Add 52 and 122:</td><td><code>174</code></td><td><code>The 52 and 122 are the same as the</code> <span class="badge badge--err">wrong</span></td><td><code>122 + 52 = 176.</code> <span class="badge badge--err">wrong</span></td><td><code>174</code> <span class="badge badge--ok">right</span></td><td><code>add 52 122</code> → <code>174</code></td></tr>
 </tbody></table></div></section>
 <section><div class="eyebrow">Over 2,000 prompts</div>
 <p>Exact match of the generated answer. In distribution means unseen operand values at training lengths; held-out length means at least one 5-digit operand, a length never trained on.</p>
@@ -361,26 +361,26 @@ table td,table th{font-variant-numeric:tabular-nums}
 <tr><td>Frozen model</td><td>0%</td><td>0%</td><td>0.0</td><td>489</td></tr>
 <tr><td>Tool result as text (answer anywhere in output)</td><td>19%</td><td>18%</td><td>6.1</td><td>554</td></tr>
 <tr><td>Single vector, oracle operands (phase 1)</td><td>60%</td><td>34%</td><td>0.0</td><td>235</td></tr>
-<tr><td>Latent port, oracle operands</td><td>75%</td><td>57%</td><td>0.0</td><td>347</td></tr>
-<tr><td><strong>Latent port, learned query</strong></td><td>75%</td><td>31%</td><td>0.0</td><td>2901</td></tr>
+<tr><td>Latent port, oracle operands</td><td>91%</td><td>85%</td><td>0.0</td><td>357</td></tr>
+<tr><td><strong>Latent port, learned query</strong></td><td>90%</td><td>41%</td><td>0.0</td><td>449</td></tr>
 </tbody></table></div>
 <div><table><thead><tr><th>Learned query, by operator</th><th>In distribution</th><th>Held-out length</th></tr></thead><tbody>
-<tr><td><code>add</code></td><td>83%</td><td>18%</td></tr>
-<tr><td><code>sub</code></td><td>80%</td><td>16%</td></tr>
-<tr><td><code>mul</code></td><td>38%</td><td>4%</td></tr>
+<tr><td><code>add</code></td><td>99%</td><td>34%</td></tr>
+<tr><td><code>sub</code></td><td>98%</td><td>26%</td></tr>
+<tr><td><code>mul</code></td><td>66%</td><td>18%</td></tr>
 <tr><td><code>cmp</code></td><td>100%</td><td>86%</td></tr>
 </tbody></table>
-<table><thead><tr><th>By longest operand</th><th>1 digits</th><th>2 digits</th><th>3 digits</th><th>4 digits</th><th>6 digits</th></tr></thead><tbody><tr><td>in distribution</td><td>100%</td><td>99%</td><td>92%</td><td>80%</td><td>55%</td></tr></tbody></table></div>
+<table><thead><tr><th>By longest operand</th><th>1 digits</th><th>2 digits</th><th>3 digits</th><th>4 digits</th><th>6 digits</th></tr></thead><tbody><tr><td>in distribution</td><td>100%</td><td>100%</td><td>100%</td><td>95%</td><td>79%</td></tr></tbody></table></div>
 </div></section>
 <section><div class="eyebrow">How the port works</div><ul class="bullets">
 <li><strong>Asking.</strong> A cross-attention head with 13 learned queries reads the operator and twelve digit slots out of the layer-16 activations of every prompt token (232k parameters). It recovers the full query on 99% of in-distribution prompts. Reading one vector at the last token, the phase-1 design, managed 10%: the digits live at their own tokens, not at the question mark.</li>
 <li><strong>Computing.</strong> Plain Python on the decoded query. Exact.</li>
-<li><strong>Reading.</strong> An encoder turns the result (sign, digits, or a comparison word) plus the answer-step index into one vector of the model's hidden size and adds it to the residual stream after layer 16, at the query position and again at every answer step. The frozen upper layers turn that into the next token. Trained by the model's own next-token loss; 75% exact with true operands.</li>
+<li><strong>Reading.</strong> An encoder turns the result (sign, digits, or a comparison word) plus the answer-step index into one vector of the model's hidden size and adds it to the residual stream after layer 16, at the query position and again at every answer step. The digits are stored most-significant first, so answer step j reads slot j. The frozen upper layers turn that into the next token. Trained by the model's own next-token loss; 91% exact with true operands.</li>
 <li><strong>Cost.</strong> Zero tokens in either direction. The port's own compute is a few matrix products per step; the wall-clock difference in the tables is mostly that the frozen model rambles for 16 tokens and the ported one stops after the answer.</li>
 </ul></section>
 <section><div class="eyebrow">Where it fails</div><ul class="bullets">
-<li>Long results. Multiplication of two 6-digit numbers is a 12-digit answer and lands at 38%; the wrong answers are the right length and sign with some digits off. A one-vector-per-step channel through frozen layers carries about six digits reliably at this size.</li>
-<li>Lengths it never saw. On prompts with a 5-digit operand the query head is right 45% of the time and the whole pipeline 31%. The head counts digit positions from the end of the prompt, and an unseen operand length shifts the count.</li>
+<li>Twelve-digit products. Multiplying two 6-digit numbers lands at 66%; the wrong answers have the leading digits right and the last few off. Addition and subtraction, whose results stay under eight digits, are at 99% and 98%.</li>
+<li>Lengths it never saw. On prompts with a 5-digit operand the reading side holds up (85% with true operands) but the query head is right only 45% of the time, so the whole pipeline lands at 41%. The head counts digit positions from the end of the prompt, and an unseen operand length shifts the count.</li>
 <li>The text route scores zero on exact match here because a 135M base model wraps the pasted result in prose or repeats it; the "contains" column is its fair number.</li>
 </ul></section>
 <section><p class="muted">SmolLM2-135M, frozen, fp32, 4 CPU cores. Trained parts: query head 232k, result encoder about 1M. Port at layer 16 of 30, chosen by a linear-probe sweep. 20,000 synthetic training prompts over twelve templates. Code, predictions and results: <code>oaustegard/experiments/latent-calculator</code>.</p></section></main>
