@@ -101,22 +101,20 @@ PROMPT = """# Task: {task} ({lang})
 
 Working directory: {wd}
 
-Edit ONLY this file (create nothing else):
+Edit ONLY the following file(s), and create nothing else:
   {sol}
 
 ## Instructions
 
 {instr}
 
-## Current contents of {sol}
+## Current contents of the file(s) you may edit
 
-```{lang}
 {stub}
-```
 
 ## Rules
 
-- Write a complete, correct implementation into {sol}.
+- Write a complete, correct implementation into the file(s) named above.
 - Keep the public names and signatures the stub declares; a hidden test suite
   imports them exactly as written.
 - Do not create, delete or edit any other file.
@@ -145,11 +143,17 @@ def cmd_prompts(a):
         if fb and key not in fb:
             continue
         wd = base / lang / task
-        sol = solution_files(lang, task)[0]
+        sols = solution_files(lang, task)
+        sol = "\n  ".join(sols)
+        # cpp declares a .cpp and a .h; rendering only the first left the header
+        # invisible and the agent guessing an API it was required to satisfy.
+        stub = "\n\n".join(
+            f"### {s_}\n\n```{lang}\n{(wd / s_).read_text()}```"
+            for s_ in sols if (wd / s_).exists())
         extra = ONESHOT_EXTRA if not fb else RETRY_EXTRA.format(feedback=fb[key][:4000])
         body = PROMPT.format(task=task, lang=lang, wd=wd, sol=sol,
                              instr=instructions(lang, task),
-                             stub=(wd / sol).read_text(), extra=extra)
+                             stub=stub, extra=extra)
         p = outdir / f"{lang}__{task}.md"
         p.write_text(body)
         written.append(str(p))
