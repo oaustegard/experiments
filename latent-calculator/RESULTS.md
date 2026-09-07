@@ -323,6 +323,18 @@ with true operands, per-operator add 0.99, sub 0.99, mul 0.42) and the
 learned query is the whole gap: the head's calculator input is right 0.45 of
 the time there, and the pipeline lands at 0.41.
 
+**Regex query: the null model for asking.** The operands are literals the
+user typed, so `regex_query.py` lifts them from the prompt by span-bound
+regex (operator from cue words, the first two integer runs, one reversal rule
+for "subtract X from Y"), the pattern `nl2sh-retrieval/extract_params.py` and
+`monad-bsky` settled on: a model must never retype an identifier it was given.
+It is exact on every split, including the held-out length and phrasings the
+templates never used, and `eval.py --query regex` on the stream-left arm
+reproduces the oracle numbers, 0.911 and 0.846. Anything shipped should use
+it. The learned head stays as the measurement the handoff asked for, whether
+the frozen model's own activations carry the operands: in distribution yes,
+across lengths no.
+
 On the twelve demo rows (`results/demo_smol_left.json`): frozen 0, text 0,
 latent 10, at 21 tokens against 28 and 42 and 384 ms against 762 and 834.
 
