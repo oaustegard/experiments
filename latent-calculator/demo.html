@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Latent Calculator</title>
+<style>
+/* =========================================================================
+   composing-html / base.css
+   Design tokens + shared primitives. Composes with per-template CSS blocks.
+   ========================================================================= */
+
+:root {
+  /* Palette --------------------------------------------------------------- */
+  --ivory:   #FAF9F5;
+  --paper:   #FFFFFF;
+  --slate:   #141413;
+  --clay:    #D97757;
+  --clay-d:  #B85C3E;
+  --oat:     #E3DACC;
+  --olive:   #788C5D;
+  --rust:    #B04A3F;
+  --moss:    #4A6B3A;
+
+  --g100:    #F0EEE6;
+  --g150:    #EAE8DF;
+  --g200:    #E6E3DA;
+  --g300:    #D1CFC5;
+  --g500:    #87867F;
+  --g700:    #3D3D3A;
+
+  /* Severity / semantic --------------------------------------------------- */
+  --ok:      #4A6B3A;
+  --warn:    #C68A2E;
+  --err:     #B04A3F;
+  --info:    #4A6E8A;
+
+  /* Type stacks ----------------------------------------------------------- */
+  --serif: ui-serif, Georgia, "Times New Roman", Times, serif;
+  --sans:  system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono:  ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+  /* Geometry -------------------------------------------------------------- */
+  --radius-sm:    6px;
+  --radius:       10px;
+  --radius-lg:    16px;
+  --border:       1.5px solid var(--g300);
+  --border-soft:  1px solid var(--g200);
+  --shadow-card:  0 1px 2px rgba(20,20,19,.04), 0 8px 24px rgba(20,20,19,.05);
+  --shadow-pop:   0 12px 32px rgba(20,20,19,.10);
+}
+
+/* Reset + base ------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--ivory);
+  color: var(--slate);
+  font-family: var(--sans);
+  font-size: 15.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+img, svg { max-width: 100%; display: block; }
+a { color: var(--clay-d); text-decoration-color: var(--oat); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--clay); }
+
+/* Layout shell ------------------------------------------------------------- */
+.page { max-width: 1080px; margin: 0 auto; padding: 56px 32px 120px; }
+.page--wide { max-width: 1280px; }
+.page--narrow { max-width: 720px; }
+
+/* Masthead ---------------------------------------------------------------- */
+.masthead { padding-bottom: 36px; margin-bottom: 40px; border-bottom: var(--border); }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--g500);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.eyebrow::before { content: ""; width: 24px; height: 1.5px; background: var(--clay); }
+
+h1, .h1 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(34px, 4.8vw, 54px);
+  line-height: 1.08;
+  letter-spacing: -0.018em;
+  margin: 0 0 12px;
+}
+h1 em, .h1 em { font-style: italic; color: var(--clay); }
+
+h2 {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 26px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+h3 {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.3;
+  margin: 0 0 8px;
+}
+
+.subtitle, .lede {
+  font-size: 17px;
+  color: var(--g700);
+  max-width: 64ch;
+  margin: 0 0 0;
+}
+
+/* Sections ---------------------------------------------------------------- */
+section { margin: 56px 0; }
+section > h2 + .rule { margin: 6px 0 24px; }
+.rule { border: none; border-top: 1px solid var(--g300); }
+
+/* Cards ------------------------------------------------------------------- */
+.card {
+  background: var(--paper);
+  border: var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+}
+.card--soft { background: var(--g100); border-color: var(--g200); }
+.card--elev { box-shadow: var(--shadow-card); }
+
+/* Grids ------------------------------------------------------------------- */
+.grid { display: grid; gap: 20px; }
+.grid--2 { grid-template-columns: repeat(2, 1fr); }
+.grid--3 { grid-template-columns: repeat(3, 1fr); }
+.grid--4 { grid-template-columns: repeat(4, 1fr); }
+.grid--auto { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+@media (max-width: 880px) {
+  .grid--3, .grid--4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .grid--2, .grid--3, .grid--4 { grid-template-columns: 1fr; }
+}
+
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.row   { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+/* Badges + chips ---------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--g100);
+  color: var(--g700);
+  border: 1px solid var(--g200);
+  white-space: nowrap;
+}
+.badge--ok   { background: #E8EFE0; color: var(--moss); border-color: #C7D7B6; }
+.badge--warn { background: #F8ECCB; color: #8A6118; border-color: #E9D08A; }
+.badge--err  { background: #F4DAD5; color: var(--rust); border-color: #E2B4AA; }
+.badge--info { background: #DCE7EE; color: var(--info); border-color: #B7CCD8; }
+.badge--clay { background: #F4D9C8; color: var(--clay-d); border-color: #E5BFA7; }
+
+.kbd {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 2px 6px;
+  border: 1px solid var(--g300);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--paper);
+  color: var(--g700);
+}
+
+/* Code -------------------------------------------------------------------- */
+code, .mono { font-family: var(--mono); font-size: 13px; }
+:not(pre) > code {
+  background: var(--g100);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.92em;
+  color: var(--g700);
+}
+pre {
+  background: #1B1A18;
+  color: #F2EEE2;
+  padding: 18px 20px;
+  border-radius: var(--radius);
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+  position: relative;
+}
+pre code { background: transparent; padding: 0; color: inherit; font-size: inherit; }
+.code-wrap { position: relative; }
+.code-wrap .copy-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  background: rgba(255,255,255,.08);
+  color: #F2EEE2;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 5px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.code-wrap .copy-btn:hover { background: rgba(255,255,255,.16); }
+
+/* Tables ------------------------------------------------------------------ */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 14px; text-align: left; vertical-align: top; }
+thead th {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g500);
+  border-bottom: 1.5px solid var(--g300);
+}
+tbody tr { border-bottom: 1px solid var(--g150); }
+tbody tr:last-child { border-bottom: none; }
+
+/* Lists ------------------------------------------------------------------- */
+ul.clean, ol.clean { list-style: none; padding: 0; margin: 0; }
+ul.bullets li {
+  position: relative;
+  padding-left: 18px;
+  margin-bottom: 8px;
+}
+ul.bullets li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 9px;
+  width: 6px; height: 6px;
+  background: var(--clay);
+  border-radius: 50%;
+}
+
+/* Details / collapsibles -------------------------------------------------- */
+details {
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--paper);
+  padding: 14px 18px;
+  margin: 8px 0;
+}
+details[open] { background: var(--paper); }
+details > summary {
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before {
+  content: "›";
+  display: inline-block;
+  transition: transform 0.18s ease;
+  color: var(--clay);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+}
+details[open] > summary::before { transform: rotate(90deg); }
+
+/* Tabs (used by base.js initTabs) ---------------------------------------- */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--g300); margin-bottom: 16px; }
+.tabs button {
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--g500);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.tabs button[aria-selected="true"] { color: var(--slate); border-bottom-color: var(--clay); }
+.tab-panel { display: none; }
+.tab-panel[data-active="true"] { display: block; }
+
+/* Footer ------------------------------------------------------------------ */
+.colophon {
+  margin-top: 80px;
+  padding-top: 24px;
+  border-top: 1px solid var(--g200);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--g500);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Print ------------------------------------------------------------------- */
+@media print {
+  body { background: white; }
+  .page { padding: 0; max-width: none; }
+  details { break-inside: avoid; }
+  pre { white-space: pre-wrap; word-break: break-word; }
+}
+
+
+/* template extras */
+.bignum{font-family:var(--serif);font-size:2.4rem;line-height:1.1}
+.muted{color:var(--g500)}
+table td,table th{font-variant-numeric:tabular-nums}
+
+</style>
+</head>
+<body>
+<main class="page"><header class="masthead"><div class="eyebrow">oaustegard/experiments · latent-calculator</div><h1>Latent Calculator</h1><p class="subtitle">A calculator wired into a frozen 135M model between two layers, with no tokens in either direction</p></header><section>
+<p>A frozen language model, a calculator, and no tokens between them. SmolLM2-135M never sees the tool: a small trained head reads the operands out of its layer-16 activations, a Python calculator does the arithmetic, and a small trained encoder writes the result back into the residual stream after layer 16, once per answer step. Every model weight is frozen. Nothing is appended to the prompt. The model then answers as if it knew.</p>
+<p>Below: the same twelve prompts through the frozen model alone, through the usual text route (the result pasted into the prompt as tokens), and through the latent port. Then the numbers over 2,000 prompts.</p>
+</section>
+<section><div class="eyebrow">Twelve prompts, three routes</div>
+<div class="grid grid--3">
+<div class="card"><div class="eyebrow">Frozen model</div><div class="bignum">0<span style="color:var(--g500)"> / 12</span></div><div class="muted">no tool · 28 tokens · 762 ms per answer</div></div>
+<div class="card"><div class="eyebrow">Tool result as text</div><div class="bignum">0<span style="color:var(--g500)"> / 12</span></div><div class="muted">pasted into the prompt · 42 tokens · 834 ms per answer</div></div>
+<div class="card"><div class="eyebrow">Latent port</div><div class="bignum">10<span style="color:var(--g500)"> / 12</span></div><div class="muted">injected after layer 16 · 21 tokens · 384 ms per answer</div></div>
+</div></section>
+<section><div class="eyebrow">Side by side</div>
+<p>Random rows from the in-distribution test split (operand lengths 1-4 and 6 digits). "Query" is what the trained head read out of the activations; the calculator ran on exactly that.</p>
+<div style="overflow-x:auto"><table>
+<thead><tr><th>Prompt</th><th>Answer</th><th>Frozen model</th><th>Tool as text</th><th>Latent port</th><th>Query read from layer 16</th></tr></thead><tbody>
+<tr><td>52 - 604109 =</td><td><code>-604057</code></td><td><code>100000000000000</code> <span class="badge badge--err">wrong</span></td><td><code>The last two numbers are the same, so…</code> <span class="badge badge--err">wrong</span></td><td><code>-604057</code> <span class="badge badge--ok">right</span></td><td><code>sub 52 604109</code> → <code>-604057</code></td></tr>
+<tr><td>Which is larger, 3436 or 9549?</td><td><code>less</code></td><td><code>The answer is 9549.</code> <span class="badge badge--err">wrong</span></td><td><code>## How to convert 100000000</code> <span class="badge badge--err">wrong</span></td><td><code>less</code> <span class="badge badge--ok">right</span></td><td><code>cmp 3436 9549</code> → <code>less</code></td></tr>
+<tr><td>Is 40 greater or less than 240434?</td><td><code>less</code></td><td><code>The answer is 40 less than 24043</code> <span class="badge badge--err">wrong</span></td><td><code>## How to calculate 40 percent of 2404</code> <span class="badge badge--err">wrong</span></td><td><code>less</code> <span class="badge badge--ok">right</span></td><td><code>cmp 40 240434</code> → <code>less</code></td></tr>
+<tr><td>Is 428583 greater or less than 53?</td><td><code>greater</code></td><td><code>The answer is 428583 is 42</code> <span class="badge badge--err">wrong</span></td><td><code>## How to calculate 428583 percent of</code> <span class="badge badge--err">wrong</span></td><td><code>greater</code> <span class="badge badge--ok">right</span></td><td><code>cmp 428583 53</code> → <code>greater</code></td></tr>
+<tr><td>Compare 8891 and 65:</td><td><code>greater</code></td><td><code>The 8891 is a 16-bit number</code> <span class="badge badge--err">wrong</span></td><td><code>8891 and 65: [less] 88</code> <span class="badge badge--err">wrong</span></td><td><code>greater</code> <span class="badge badge--ok">right</span></td><td><code>cmp 8891 65</code> → <code>greater</code></td></tr>
+<tr><td>What is 539451 plus 927818?</td><td><code>1467269</code></td><td><code>539451 + 927818 is</code> <span class="badge badge--err">wrong</span></td><td><code>Is 539451 a prime number?</code> <span class="badge badge--err">wrong</span></td><td><code>1467269</code> <span class="badge badge--ok">right</span></td><td><code>add 539451 927818</code> → <code>1467269</code></td></tr>
+<tr><td>915061 * 966343 =</td><td><code>884262791923</code></td><td><code>100000000000000</code> <span class="badge badge--err">wrong</span></td><td><code>The first 10000000000</code> <span class="badge badge--err">wrong</span></td><td><code>884267296266</code> <span class="badge badge--err">wrong</span></td><td><code>mul 915061 966343</code> → <code>884262791923</code></td></tr>
+<tr><td>Compute 689851 times 471707.</td><td><code>325407545657</code></td><td><code>### Division</code> <span class="badge badge--err">wrong</span></td><td><code>### Division</code> <span class="badge badge--err">wrong</span></td><td><code>325407545045</code> <span class="badge badge--err">wrong</span></td><td><code>mul 689851 471707</code> → <code>325407545657</code></td></tr>
+<tr><td>Compare 1212 and 975558:</td><td><code>less</code></td><td><code>The 1212 is a composite number. It ca…</code> <span class="badge badge--err">wrong</span></td><td><code>## What is 1212 in words?</code> <span class="badge badge--err">wrong</span></td><td><code>less</code> <span class="badge badge--ok">right</span></td><td><code>cmp 1212 975558</code> → <code>less</code></td></tr>
+<tr><td>What is 105 multiplied by 36?</td><td><code>3780</code></td><td><code>The 105 multiplied by 36 is equal to</code> <span class="badge badge--err">wrong</span></td><td><code>105 x 36 = 3780</code> <span class="badge badge--err">wrong</span></td><td><code>3780</code> <span class="badge badge--ok">right</span></td><td><code>mul 105 36</code> → <code>3780</code></td></tr>
+<tr><td>Add 614793 and 284983:</td><td><code>899776</code></td><td><code>```</code> <span class="badge badge--err">wrong</span></td><td><code>The 284983 is a safe number.</code> <span class="badge badge--err">wrong</span></td><td><code>899776</code> <span class="badge badge--ok">right</span></td><td><code>add 614793 284983</code> → <code>899776</code></td></tr>
+<tr><td>Add 52 and 122:</td><td><code>174</code></td><td><code>The 52 and 122 are the same as the</code> <span class="badge badge--err">wrong</span></td><td><code>122 + 52 = 176.</code> <span class="badge badge--err">wrong</span></td><td><code>174</code> <span class="badge badge--ok">right</span></td><td><code>add 52 122</code> → <code>174</code></td></tr>
+</tbody></table></div></section>
+<section><div class="eyebrow">Over 2,000 prompts</div>
+<p>Exact match of the generated answer. In distribution means unseen operand values at training lengths; held-out length means at least one 5-digit operand, a length never trained on.</p>
+<div class="grid grid--2">
+<div><table><thead><tr><th>Route</th><th>In distribution</th><th>Held-out length</th><th>Tool tokens</th><th>ms / answer</th></tr></thead><tbody>
+<tr><td>Frozen model</td><td>0%</td><td>0%</td><td>0.0</td><td>489</td></tr>
+<tr><td>Tool result as text (answer anywhere in output)</td><td>19%</td><td>18%</td><td>6.1</td><td>554</td></tr>
+<tr><td>Single vector, oracle operands (phase 1)</td><td>60%</td><td>34%</td><td>0.0</td><td>235</td></tr>
+<tr><td>Latent port, oracle operands</td><td>91%</td><td>85%</td><td>0.0</td><td>357</td></tr>
+<tr><td><strong>Latent port, learned query</strong></td><td>90%</td><td>41%</td><td>0.0</td><td>449</td></tr>
+</tbody></table></div>
+<div><table><thead><tr><th>Learned query, by operator</th><th>In distribution</th><th>Held-out length</th></tr></thead><tbody>
+<tr><td><code>add</code></td><td>99%</td><td>34%</td></tr>
+<tr><td><code>sub</code></td><td>98%</td><td>26%</td></tr>
+<tr><td><code>mul</code></td><td>66%</td><td>18%</td></tr>
+<tr><td><code>cmp</code></td><td>100%</td><td>86%</td></tr>
+</tbody></table>
+<table><thead><tr><th>By longest operand</th><th>1 digits</th><th>2 digits</th><th>3 digits</th><th>4 digits</th><th>6 digits</th></tr></thead><tbody><tr><td>in distribution</td><td>100%</td><td>100%</td><td>100%</td><td>95%</td><td>79%</td></tr></tbody></table></div>
+</div></section>
+<section><div class="eyebrow">How the port works</div><ul class="bullets">
+<li><strong>Asking.</strong> A cross-attention head with 13 learned queries reads the operator and twelve digit slots out of the layer-16 activations of every prompt token (232k parameters). It recovers the full query on 99% of in-distribution prompts. Reading one vector at the last token, the phase-1 design, managed 10%: the digits live at their own tokens, not at the question mark.</li>
+<li><strong>Computing.</strong> Plain Python on the decoded query. Exact.</li>
+<li><strong>Reading.</strong> An encoder turns the result (sign, digits, or a comparison word) plus the answer-step index into one vector of the model's hidden size and adds it to the residual stream after layer 16, at the query position and again at every answer step. The digits are stored most-significant first, so answer step j reads slot j. The frozen upper layers turn that into the next token. Trained by the model's own next-token loss; 91% exact with true operands.</li>
+<li><strong>Cost.</strong> Zero tokens in either direction. The port's own compute is a few matrix products per step; the wall-clock difference in the tables is mostly that the frozen model rambles for 16 tokens and the ported one stops after the answer.</li>
+</ul></section>
+<section><div class="eyebrow">Where it fails</div><ul class="bullets">
+<li>Twelve-digit products. Multiplying two 6-digit numbers lands at 66%; the wrong answers have the leading digits right and the last few off. Addition and subtraction, whose results stay under eight digits, are at 99% and 98%.</li>
+<li>Lengths it never saw. On prompts with a 5-digit operand the reading side holds up (85% with true operands) but the query head is right only 45% of the time, so the whole pipeline lands at 41%. The head counts digit positions from the end of the prompt, and an unseen operand length shifts the count.</li>
+<li>The text route scores zero on exact match here because a 135M base model wraps the pasted result in prose or repeats it; the "contains" column is its fair number.</li>
+</ul></section>
+<section><p class="muted">SmolLM2-135M, frozen, fp32, 4 CPU cores. Trained parts: query head 232k, result encoder about 1M. Port at layer 16 of 30, chosen by a linear-probe sweep. 20,000 synthetic training prompts over twelve templates. Code, predictions and results: <code>oaustegard/experiments/latent-calculator</code>.</p></section></main>
+<script>
+/* =========================================================================
+   composing-html / base.js
+   Tiny vanilla helpers. No framework. Activated only if the markup needs it.
+   ========================================================================= */
+(function () {
+  'use strict';
+
+  // Copy-to-clipboard for <pre><code> blocks marked .code-wrap or any pre.
+  function initCopyButtons() {
+    document.querySelectorAll('pre').forEach(function (pre) {
+      if (pre.dataset.copyInit) return;
+      pre.dataset.copyInit = '1';
+      var wrap = pre.parentElement;
+      if (!wrap || !wrap.classList.contains('code-wrap')) {
+        wrap = document.createElement('div');
+        wrap.className = 'code-wrap';
+        pre.parentNode.insertBefore(wrap, pre);
+        wrap.appendChild(pre);
+      }
+      var btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.type = 'button';
+      btn.textContent = 'copy';
+      btn.addEventListener('click', function () {
+        var text = pre.innerText;
+        navigator.clipboard.writeText(text).then(function () {
+          btn.textContent = 'copied';
+          setTimeout(function () { btn.textContent = 'copy'; }, 1400);
+        }).catch(function () { btn.textContent = 'err'; });
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  // Tab groups: <div class="tabgroup"><div class="tabs"><button data-target="x">..</button></div>
+  //             <div class="tab-panel" data-id="x">..</div></div>
+  function initTabs() {
+    document.querySelectorAll('.tabgroup').forEach(function (group) {
+      var buttons = group.querySelectorAll('.tabs button[data-target]');
+      var panels  = group.querySelectorAll('.tab-panel[data-id]');
+      function show(id) {
+        buttons.forEach(function (b) { b.setAttribute('aria-selected', b.dataset.target === id ? 'true' : 'false'); });
+        panels.forEach(function (p)  { p.dataset.active = p.dataset.id === id ? 'true' : 'false'; });
+      }
+      buttons.forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.target); }); });
+      var first = buttons[0];
+      if (first) show(first.dataset.target);
+    });
+  }
+
+  // Slide deck: arrow-key & space navigation between .slide elements.
+  // Activated only when document.body has data-deck="true".
+  function initDeck() {
+    if (document.body.dataset.deck !== 'true') return;
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    if (!slides.length) return;
+    function currentIndex() {
+      var mid = window.innerHeight / 2;
+      for (var i = 0; i < slides.length; i++) {
+        var r = slides[i].getBoundingClientRect();
+        if (r.top <= mid && r.bottom > mid) return i;
+      }
+      return 0;
+    }
+    function go(delta) {
+      var i = Math.max(0, Math.min(slides.length - 1, currentIndex() + delta));
+      slides[i].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(+1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
+      else if (e.key === 'Home') { e.preventDefault(); slides[0].scrollIntoView({ behavior: 'smooth' }); }
+      else if (e.key === 'End')  { e.preventDefault(); slides[slides.length - 1].scrollIntoView({ behavior: 'smooth' }); }
+    });
+  }
+
+  // Drag-to-reorder for editor-style triage boards.
+  // Markup: a container with data-sortable="true" and direct children with [draggable="true"].
+  // Cross-zone moves work because `dragged` is module-scoped, not per-zone.
+  var dragged = null;
+
+  function initSortable() {
+    document.querySelectorAll('[data-sortable="true"]').forEach(function (zone) {
+      if (zone.dataset.sortInit) return;
+      zone.dataset.sortInit = '1';
+
+      zone.addEventListener('dragstart', function (e) {
+        var t = e.target.closest('[draggable="true"]');
+        if (!t || t.parentElement !== zone) return;
+        dragged = t;
+        t.style.opacity = '0.4';
+        try { e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
+      });
+
+      zone.addEventListener('dragend', function () {
+        if (dragged) dragged.style.opacity = '';
+        dragged = null;
+      });
+
+      zone.addEventListener('dragover', function (e) {
+        if (!dragged) return;
+        e.preventDefault();
+        try { e.dataTransfer.dropEffect = 'move'; } catch (_) {}
+        var after = null;
+        var children = Array.prototype.slice.call(zone.children)
+          .filter(function (c) { return c !== dragged && c.draggable; });
+        for (var i = 0; i < children.length; i++) {
+          var box = children[i].getBoundingClientRect();
+          if (e.clientY < box.top + box.height / 2) { after = children[i]; break; }
+        }
+        if (after) zone.insertBefore(dragged, after);
+        else if (dragged.parentElement !== zone || zone.lastElementChild !== dragged) zone.appendChild(dragged);
+      });
+
+      zone.addEventListener('drop', function (e) {
+        if (dragged) e.preventDefault();
+      });
+    });
+  }
+
+  // Live param controls: any [data-bind] input updates the textContent of [data-out="<name>"].
+  // Optional: [data-format="number|percent|ms"].
+  function initBindings() {
+    var fmt = {
+      number:  function (v) { return Number(v).toString(); },
+      percent: function (v) { return (Number(v) * 100).toFixed(0) + '%'; },
+      ms:      function (v) { return Number(v) + 'ms'; }
+    };
+    document.querySelectorAll('input[data-bind], select[data-bind]').forEach(function (el) {
+      function push() {
+        var name = el.dataset.bind;
+        var f = fmt[el.dataset.format] || function (v) { return v; };
+        document.querySelectorAll('[data-out="' + name + '"]').forEach(function (o) { o.textContent = f(el.value); });
+        // CSS-var bridge: --bind-<name>
+        document.documentElement.style.setProperty('--bind-' + name, el.value + (el.dataset.unit || ''));
+      }
+      el.addEventListener('input', push);
+      push();
+    });
+  }
+
+  function ready(fn) {
+    if (document.readyState !== 'loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+  }
+
+  ready(function () {
+    initCopyButtons();
+    initTabs();
+    initDeck();
+    initSortable();
+    initBindings();
+  });
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,451 @@
+{
+ "model": "monad",
+ "k": 29,
+ "head": "attn",
+ "split": "test_in",
+ "n": 12,
+ "seed": 0,
+ "skipped": {},
+ "summary": {
+  "none": {
+   "n": 12,
+   "accuracy": 0.0,
+   "mean_tokens": 23.666666666666668,
+   "mean_ms": 792.6031947135925
+  },
+  "text": {
+   "n": 12,
+   "accuracy": 0.0,
+   "mean_tokens": 34.083333333333336,
+   "mean_ms": 798.2107003529867
+  },
+  "stream": {
+   "n": 12,
+   "accuracy": 0.5,
+   "mean_tokens": 14.666666666666666,
+   "mean_ms": 261.70891523361206
+  }
+ },
+ "rows": [
+  {
+   "prompt": "52 - 604109 =",
+   "gold": "-604057",
+   "arms": {
+    "none": {
+     "gen": "-2,024,090",
+     "correct": 0,
+     "tokens": 17,
+     "ms": 537.1239185333252,
+     "prompt_tokens": 8,
+     "tool_tokens": 0,
+     "generated_tokens": 9
+    },
+    "text": {
+     "gen": "\u2234 The final score is **-604057**",
+     "correct": 0,
+     "tokens": 33,
+     "ms": 760.9522342681885,
+     "prompt_tokens": 14,
+     "tool_tokens": 6,
+     "generated_tokens": 13
+    },
+    "stream": {
+     "gen": "-6050042",
+     "correct": 0,
+     "tokens": 13,
+     "ms": 349.0166664123535,
+     "prompt_tokens": 8,
+     "tool_tokens": 0,
+     "generated_tokens": 5
+    }
+   },
+   "query": "sub 52 604109",
+   "calculator": "-604057"
+  },
+  {
+   "prompt": "Which is larger, 3436 or 9549?",
+   "gold": "less",
+   "arms": {
+    "none": {
+     "gen": "If 3436 > 9549:",
+     "correct": 0,
+     "tokens": 21,
+     "ms": 678.6253452301025,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 10
+    },
+    "text": {
+     "gen": "So: 3436 > 9549",
+     "correct": 0,
+     "tokens": 27,
+     "ms": 587.7630710601807,
+     "prompt_tokens": 14,
+     "tool_tokens": 3,
+     "generated_tokens": 10
+    },
+    "stream": {
+     "gen": "less",
+     "correct": 1,
+     "tokens": 13,
+     "ms": 135.44201850891113,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 3436 9549",
+   "calculator": "less"
+  },
+  {
+   "prompt": "Is 40 greater or less than 240434?",
+   "gold": "less",
+   "arms": {
+    "none": {
+     "gen": "Let me try: 240434 - 40 = 240160",
+     "correct": 0,
+     "tokens": 27,
+     "ms": 902.4276733398438,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "\u2234 Answer: A. 240434",
+     "correct": 0,
+     "tokens": 28,
+     "ms": 672.6000308990479,
+     "prompt_tokens": 14,
+     "tool_tokens": 3,
+     "generated_tokens": 11
+    },
+    "stream": {
+     "gen": "less",
+     "correct": 1,
+     "tokens": 13,
+     "ms": 142.21453666687012,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 40 440434",
+   "calculator": "less"
+  },
+  {
+   "prompt": "Is 428583 greater or less than 53?",
+   "gold": "greater",
+   "arms": {
+    "none": {
+     "gen": "Let me try: 53 - 428583 = -428",
+     "correct": 0,
+     "tokens": 28,
+     "ms": 950.0687122344971,
+     "prompt_tokens": 12,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "So:",
+     "correct": 0,
+     "tokens": 27,
+     "ms": 333.61196517944336,
+     "prompt_tokens": 17,
+     "tool_tokens": 5,
+     "generated_tokens": 5
+    },
+    "stream": {
+     "gen": "greater",
+     "correct": 1,
+     "tokens": 14,
+     "ms": 141.44539833068848,
+     "prompt_tokens": 12,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 428583 53",
+   "calculator": "greater"
+  },
+  {
+   "prompt": "Compare 8891 and 65:",
+   "gold": "greater",
+   "arms": {
+    "none": {
+     "gen": "- 8891: 8891 - 8891 = 0",
+     "correct": 0,
+     "tokens": 25,
+     "ms": 987.7400398254395,
+     "prompt_tokens": 9,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "= [greater] + [greater] = [gre",
+     "correct": 0,
+     "tokens": 35,
+     "ms": 994.9343204498291,
+     "prompt_tokens": 14,
+     "tool_tokens": 5,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "greater",
+     "correct": 1,
+     "tokens": 11,
+     "ms": 128.52978706359863,
+     "prompt_tokens": 9,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 8891 65",
+   "calculator": "greater"
+  },
+  {
+   "prompt": "What is 539451 plus 927818?",
+   "gold": "1467269",
+   "arms": {
+    "none": {
+     "gen": "539451 + 927818 = 155409",
+     "correct": 0,
+     "tokens": 29,
+     "ms": 926.9757270812988,
+     "prompt_tokens": 13,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "This is clearly wrong. The answer should be 1467269.",
+     "correct": 0,
+     "tokens": 41,
+     "ms": 976.3467311859131,
+     "prompt_tokens": 19,
+     "tool_tokens": 6,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "2666419",
+     "correct": 0,
+     "tokens": 18,
+     "ms": 306.85997009277344,
+     "prompt_tokens": 13,
+     "tool_tokens": 0,
+     "generated_tokens": 5
+    }
+   },
+   "query": "add 539451 927818",
+   "calculator": "1467269"
+  },
+  {
+   "prompt": "915061 * 966343 =",
+   "gold": "884262791923",
+   "arms": {
+    "none": {
+     "gen": "966343",
+     "correct": 0,
+     "tokens": 15,
+     "ms": 306.0026168823242,
+     "prompt_tokens": 10,
+     "tool_tokens": 0,
+     "generated_tokens": 5
+    },
+    "text": {
+     "gen": "This is getting unwieldy. Let me try a different approach",
+     "correct": 0,
+     "tokens": 44,
+     "ms": 1001.2037754058838,
+     "prompt_tokens": 19,
+     "tool_tokens": 9,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "11991932423",
+     "correct": 0,
+     "tokens": 18,
+     "ms": 510.97750663757324,
+     "prompt_tokens": 10,
+     "tool_tokens": 0,
+     "generated_tokens": 8
+    }
+   },
+   "query": "mul 915061 966343",
+   "calculator": "884262791923"
+  },
+  {
+   "prompt": "Compute 689851 times 471707.",
+   "gold": "325407545657",
+   "arms": {
+    "none": {
+     "gen": "This is a **complex number arithmetic problem** that requires careful attention",
+     "correct": 0,
+     "tokens": 29,
+     "ms": 971.2562561035156,
+     "prompt_tokens": 13,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "This is getting unwieldy. Let me try a different approach",
+     "correct": 0,
+     "tokens": 47,
+     "ms": 993.4868812561035,
+     "prompt_tokens": 22,
+     "tool_tokens": 9,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "47554056757",
+     "correct": 0,
+     "tokens": 21,
+     "ms": 510.0579261779785,
+     "prompt_tokens": 13,
+     "tool_tokens": 0,
+     "generated_tokens": 8
+    }
+   },
+   "query": "mul 689851 471707",
+   "calculator": "325407545657"
+  },
+  {
+   "prompt": "Compare 1212 and 975558:",
+   "gold": "less",
+   "arms": {
+    "none": {
+     "gen": "1212 + 975558 = 975558",
+     "correct": 0,
+     "tokens": 26,
+     "ms": 915.1973724365234,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 15
+    },
+    "text": {
+     "gen": "[The final number is [not]]",
+     "correct": 0,
+     "tokens": 29,
+     "ms": 720.4232215881348,
+     "prompt_tokens": 14,
+     "tool_tokens": 3,
+     "generated_tokens": 12
+    },
+    "stream": {
+     "gen": "less",
+     "correct": 1,
+     "tokens": 13,
+     "ms": 163.6810302734375,
+     "prompt_tokens": 11,
+     "tool_tokens": 0,
+     "generated_tokens": 2
+    }
+   },
+   "query": "cmp 1212 975558",
+   "calculator": "less"
+  },
+  {
+   "prompt": "What is 105 multiplied by 36?",
+   "gold": "3780",
+   "arms": {
+    "none": {
+     "gen": "105 \u00d7 36 = ?",
+     "correct": 0,
+     "tokens": 19,
+     "ms": 551.0632991790771,
+     "prompt_tokens": 10,
+     "tool_tokens": 0,
+     "generated_tokens": 9
+    },
+    "text": {
+     "gen": "This is clearly wrong. The problem likely has a typo.",
+     "correct": 0,
+     "tokens": 34,
+     "ms": 976.529598236084,
+     "prompt_tokens": 14,
+     "tool_tokens": 4,
+     "generated_tokens": 16
+    },
+    "stream": {
+     "gen": "3580",
+     "correct": 0,
+     "tokens": 13,
+     "ms": 193.90296936035156,
+     "prompt_tokens": 10,
+     "tool_tokens": 0,
+     "generated_tokens": 3
+    }
+   },
+   "query": "mul 105 36",
+   "calculator": "3780"
+  },
+  {
+   "prompt": "Add 614793 and 284983:",
+   "gold": "899776",
+   "arms": {
+    "none": {
+     "gen": "Total = 7 + 614793 + 284983",
+     "correct": 0,
+     "tokens": 29,
+     "ms": 1082.165241241455,
+     "prompt_tokens": 13,
+     "tool_tokens": 0,
+     "generated_tokens": 16
+    },
+    "text": {
+     "gen": "The final answer is **284983**.",
+     "correct": 0,
+     "tokens": 38,
+     "ms": 832.0798873901367,
+     "prompt_tokens": 19,
+     "tool_tokens": 6,
+     "generated_tokens": 13
+    },
+    "stream": {
+     "gen": "287786",
+     "correct": 0,
+     "tokens": 18,
+     "ms": 334.42234992980957,
+     "prompt_tokens": 13,
+     "tool_tokens": 0,
+     "generated_tokens": 5
+    }
+   },
+   "query": "add 614793 284983",
+   "calculator": "899776"
+  },
+  {
+   "prompt": "Add 52 and 122:",
+   "gold": "174",
+   "arms": {
+    "none": {
+     "gen": "**Final answer: -122**",
+     "correct": 0,
+     "tokens": 19,
+     "ms": 702.592134475708,
+     "prompt_tokens": 8,
+     "tool_tokens": 0,
+     "generated_tokens": 11
+    },
+    "text": {
+     "gen": "The final answer is 174.",
+     "correct": 0,
+     "tokens": 26,
+     "ms": 728.5966873168945,
+     "prompt_tokens": 12,
+     "tool_tokens": 4,
+     "generated_tokens": 10
+    },
+    "stream": {
+     "gen": "174",
+     "correct": 1,
+     "tokens": 11,
+     "ms": 223.95682334899902,
+     "prompt_tokens": 8,
+     "tool_tokens": 0,
+     "generated_tokens": 3
+    }
+   },
+   "query": "add 52 122",
+   "calculator": "174"
+  }
+ ]
+}
