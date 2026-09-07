@@ -8,6 +8,7 @@ arms = {a: json.loads((R / f"results/{a}.json").read_text())
         for a in ("oneshot", "agentic", "toolloop")}
 opus = {a: json.loads((R / f"results/{a}.json").read_text())
         for a in ("opus-oneshot", "opus-toolloop")}
+full = json.loads((R / "results/full-oneshot.json").read_text())
 prose = (R / "RESULTS.md").read_text()
 fail = []
 
@@ -34,6 +35,21 @@ for a, n in (("opus-oneshot", 29), ("opus-toolloop", 30)):
     check(f"**{n}/30**" in prose, f"RESULTS.md states {n}/30 for {a}")
 ostray = {f"{a}:{k}": v["stray"] for a, d in opus.items() for k, v in d.items() if v["stray"]}
 check(not ostray, f"no strays in the opus arms ({ostray or 'none'})")
+
+
+fk = sum(v["passed"] for v in full.values())
+check(len(full) == 203, f"full arm graded {len(full)} tasks (RESULTS.md says 203)")
+check(fk == 182, f"full arm scores {fk}/203 (RESULTS.md says 182/203)")
+check("**182/203 = 0.897**" in prose, "RESULTS.md states 182/203 = 0.897")
+fstray = {k: v["stray"] for k, v in full.items() if v["stray"]}
+check(not fstray, f"no strays in the full arm ({fstray or 'none'})")
+bylang = {}
+for k, v in full.items():
+    l = k.split("/")[0]
+    p_, t_ = bylang.get(l, (0, 0))
+    bylang[l] = (p_ + v["passed"], t_ + 1)
+for l, (p_, t_) in sorted(bylang.items()):
+    check(f"{p_}/{t_} = {p_ / t_:.3f}" in prose, f"RESULTS.md states {l} {p_}/{t_}")
 
 
 def mcnemar(x, y):
