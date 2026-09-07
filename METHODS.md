@@ -1618,6 +1618,39 @@ the result.
   matches fp32-truncated-to-128 at **48 B vs 512 B**. Truncation lost at every
   budget compared. Keep the coordinates, drop the bits.
   (`bekko-embedding-bench/RESULTS.md`)
+- **"Quantize wide rather than truncate narrow" does not hold on an encoder
+  trained at the truncation dims — measure the dim×bits grid per model.** On
+  NeoMME-260M's dense head (Matryoshka-trained at 128/256/512/1024), fp32
+  1024→256 costs 0.015 nDCG@10 on SciFact while 4→2→1 bits at 1024-d costs
+  0.020 then 0.025 more. remex 4-bit at a truncated dim wins every byte budget
+  from 64 B to 512 B: at 128 B, 4-bit d=256 beats 1-bit d=1024 by +0.024
+  [+0.001, +0.048] and beats ST binary by +0.025 [+0.005, +0.045]; at 512 B,
+  4-bit d=1024 matches fp32 (−0.002 [−0.012, +0.008]) and beats fp32 d=128 by
+  +0.036. The entry above compared bits against fp32 truncation on encoders
+  where truncation was expensive; the bits-below-4-are-expensive half holds on
+  both, the truncation half is the encoder's. (`neomme-remex-quant/RESULTS.md`)
+- **On a late-interaction (ColBERT-style) head, quantizing tokens beats pooling
+  tokens per byte saved.** NeoMME 128-d tokens, SciFact: `HierarchicalTokenPooling`
+  factor 2 (2x smaller) costs −0.019 [−0.029, −0.009] nDCG@10 and factor 4
+  −0.026; remex 2-bit (16x smaller) costs −0.013 [−0.025, −0.002] and remex
+  1-bit (32x) −0.013 [−0.028, +0.002]. Pooling's remaining case is compute:
+  MaxSim FLOPs scale with token count, and a decode-then-dot codec does not
+  change them. (`neomme-remex-quant/RESULTS.md`)
+- **A dense→late-interaction rerank pipeline is capped by the dense head's
+  R@100, and quantizing the rerank stage is free.** NeoMME on SciFact: full
+  late scan 0.7198; dense fp32 top-100 → late fp32 rerank 0.6854 (dense R@100
+  0.864 vs late 0.943). Swapping the reranker's tokens to remex 1-bit costs
+  −0.005 [−0.018, +0.007] on top. A full scan over 1-bit tokens (5.1 KB/doc)
+  beats the all-fp32 pipeline (168 KB/doc). Widen the candidate set before
+  spending bytes on reranker precision. (`neomme-remex-quant/RESULTS.md`)
+- **remex 1-bit and remax k=1 with a float query are the same code up to the
+  rotation draw; their gap is the single-seed noise floor.** On unit-norm input
+  remex at 1 bit decodes to ±c in rotated space and remax asym scores the float
+  query against ±1 — identical rankings under an identical rotation. With
+  independent RHT seeds they landed 0.006 apart on NeoMME's dense head (remax
+  ahead) and 0.012 apart on its token head (remex ahead), CIs spanning zero.
+  Treat a single-seed 1-bit comparison inside ±0.02 nDCG@10 on 300 SciFact
+  queries as unresolved. (`neomme-remex-quant/RESULTS.md`)
 - **The one-bit-beats-two inversion is a property of the encoder, so test it
   per encoder — never inherit it.** 1-bit beat 2-bit on SPECTER2 and inverted
   on Jina; on bekko-embedding-v1, **2-bit beats 1-bit in all 8 (variant x dim)
