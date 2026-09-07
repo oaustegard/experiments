@@ -29,11 +29,18 @@ LANGS = {
     "java":   dict(cmd=SH('./gradlew test --no-daemon --console=plain'), timeout=900),
 }
 
-# files the agent must not see, beyond files.test
+# files the agent must not see, beyond files.test.
+# .approaches/ ships Exercism's published approach write-ups, several of which
+# embed a complete reference implementation - go/simple-linked-list,
+# cpp/all-your-base and java/queen-attack all do. Harmless while the brief
+# forbade reading anything; a solution leak the moment it does not.
 EXTRA_HIDE = {
-    "rust": ["tests"],
-    "go":   ["*_test.go"],
-    "java": ["src/test"],
+    "rust": ["tests", ".approaches"],
+    "go":   ["*_test.go", ".approaches"],
+    "java": ["src/test", ".approaches"],
+    "python": [".approaches"],
+    "javascript": [".approaches"],
+    "cpp": [".approaches"],
 }
 
 

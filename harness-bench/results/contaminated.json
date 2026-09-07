@@ -1,0 +1,4 @@
+{
+ "excluded_from_muninn_retry": ["go/simple-linked-list", "cpp/all-your-base", "java/queen-attack"],
+ "reason": ".approaches/ ships a published reference implementation for these three; prepare() stripped .meta/ but not .approaches/, so a directory-reading arm can find a worked solution. Fixed in EXTRA_HIDE; these three are reported separately rather than counted."
+}
