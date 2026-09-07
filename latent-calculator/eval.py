@@ -140,6 +140,11 @@ def learned_results(model, tok, rows, model_name, k, head="mlp", cache=None):
     return mu.calculate_from_logits(op, slot)
 
 
+def regex_results(rows):
+    import regex_query
+    return regex_query.results_for(rows)
+
+
 def oracle_results(rows):
     return [D.compute(r["op"], r["a"], r["b"])[0] for r in rows]
 
@@ -165,7 +170,7 @@ def main():
     ap.add_argument("--arm", required=True,
                     choices=["none", "text", "residual", "kv", "delayed",
                              "stream", "stream-left"])
-    ap.add_argument("--query", required=True, choices=["oracle", "learned"])
+    ap.add_argument("--query", required=True, choices=["oracle", "learned", "regex"])
     ap.add_argument("--head", default="mlp", choices=["mlp", "attn"],
                     help="query head used when --query learned")
     ap.add_argument("--k", type=int, default=None)
@@ -209,6 +214,7 @@ def main():
         # irrelevant there and we skip the (costly) query-head pass
         results = (oracle_results(rows)
                    if args.query == "oracle" or args.arm == "none"
+                   else regex_results(rows) if args.query == "regex"
                    else learned_results(model, tok, rows, args.model, k,
                                         args.head, qh_cache))
         query_wall = time.time() - t_q0
@@ -265,6 +271,7 @@ def main():
         one = [r]
         rr = (oracle_results(one)
               if args.query == "oracle" or args.arm == "none"
+              else regex_results(one) if args.query == "regex"
               else learned_results(model, tok, one, args.model, k, args.head,
                                    qh_cache))
         p = [text_prompt(r["prompt"], rr[0])] if args.arm == "text" else [r["prompt"]]
