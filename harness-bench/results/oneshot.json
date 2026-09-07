@@ -1,0 +1,62 @@
+{
+ "python/robot-name": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "...F\n=================================== FAILURES ===================================\n________________________ RobotNameTest.test_reset_name _________________________\n\nself = <robot_name_test.RobotNameTest testMethod=test_reset_name>\n\n    def test_reset_name(self):\n        # Set a seed\n        seed = \"Totally random.\"\n    \n        # Initialize RNG using the seed\n        random.seed(seed)\n    \n        # Call the generator\n        robot = Robot()\n        name = robot.name\n    \n        # Reinitialize RNG using seed\n        random.seed(seed)\n    \n        # Call the generator again\n        robot.reset()\n        name2 = robot.name\n>       self.assertNotEqual(name, name2)\nE       AssertionError: 'EJ348' == 'EJ348'\n\nrobot_name_test.py:46: AssertionError\n=========================== short test summary info ============================\nFAILED robot_name_test.py::RobotNameTest::test_reset_name - AssertionError: '...\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n1 failed, 3 passed in 0.02s\n"
+ },
+ "python/pov": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "     expected = [\"x\", \"parent\", \"grandparent\", \"uncle\", \"cousin-1\"]\n>       self.assertEqual(tree.path_to(\"x\", \"cousin-1\"), expected)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\npov_test.py:126: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <pov.Tree object at 0x7f5ee0ef8110>, from_node = 'x'\nto_node = 'cousin-1'\n\n    def path_to(self, from_node, to_node):\n        # Find path from from_node to to_node\n        if from_node == to_node:\n            return [from_node]\n    \n        # First, reorient tree from from_node's perspective\n        reoriented = self.from_pov(from_node)\n    \n        # Find path in reoriented tree\n        path = reoriented._find_path_to_node(to_node)\n        if path is None:\n>           raise ValueError(f\"Path from {from_node} to {to_node} does not exist\")\nE           ValueError: Path from x to cousin-1 does not exist\n\npov.py:126: ValueError\n=========================== short test summary info ============================\nFAILED pov_test.py::PovTest::test_can_find_path_to_cousin - ValueError: Path ...\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n1 failed, 2 passed in 0.03s\n"
+ },
+ "python/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ".........                                                                [100%]\n9 passed in 0.01s\n"
+ },
+ "python/poker": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "..........F\n=================================== FAILURES ===================================\n_ PokerTest.test_even_though_an_ace_is_usually_high_a_5_high_straight_flush_is_the_lowest_scoring_straight_flush _\n\nself = <poker_test.PokerTest testMethod=test_even_though_an_ace_is_usually_high_a_5_high_straight_flush_is_the_lowest_scoring_straight_flush>\n\n    def test_even_though_an_ace_is_usually_high_a_5_high_straight_flush_is_the_lowest_scoring_straight_flush(\n        self,\n    ):\n>       self.assertEqual(\n            best_hands([\"2H 3H 4H 5H 6H\", \"4D AD 3D 2D 5D\"]), [\"2H 3H 4H 5H 6H\"]\n        )\nE       AssertionError: Lists differ: ['4D AD 3D 2D 5D'] != ['2H 3H 4H 5H 6H']\nE       \nE       First differing element 0:\nE       '4D AD 3D 2D 5D'\nE       '2H 3H 4H 5H 6H'\nE       \nE       - ['4D AD 3D 2D 5D']\nE       + ['2H 3H 4H 5H 6H']\n\npoker_test.py:221: AssertionError\n=========================== short test summary info ============================\nFAILED poker_test.py::PokerTest::test_even_though_an_ace_is_usually_high_a_5_high_straight_flush_is_the_lowest_scoring_straight_flush\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n1 failed, 19 passed in 0.04s\n"
+ },
+ "go/zebra-puzzle": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "TIMEOUT after 420s\nb''"
+ },
+ "go/wordy": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "--- FAIL: TestAnswer (0.00s)\n    --- FAIL: TestAnswer/multiplication (0.00s)\n        wordy_test.go:15: Answer(\"What is -3 multiplied by 25?\") returned ok=false, want: -75\n    --- FAIL: TestAnswer/division (0.00s)\n        wordy_test.go:15: Answer(\"What is 33 divided by -3?\") returned ok=false, want: -11\n    --- FAIL: TestAnswer/multiple_multiplication (0.00s)\n        wordy_test.go:15: Answer(\"What is 2 multiplied by -2 multiplied by 3?\") returned ok=false, want: -12\n    --- FAIL: TestAnswer/addition_and_multiplication (0.00s)\n        wordy_test.go:15: Answer(\"What is -3 plus 7 multiplied by -2?\") returned ok=false, want: -8\n    --- FAIL: TestAnswer/multiple_division (0.00s)\n        wordy_test.go:15: Answer(\"What is -12 divided by 2 divided by -3?\") returned ok=false, want: 2\nFAIL\nFAIL\twordy\t0.003s\nFAIL\n"
+ },
+ "go/alphametics": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "FAIL\talphametics [build failed]\nFAIL\n# alphametics [alphametics.test]\n./alphametics.go:5:2: \"regexp\" imported and not used\n"
+ },
+ "go/bottle-song": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "ing on the wall.\" \"\" \"Six green bottles hanging on the wall,\" \"Six green bottles hanging on the wall,\" \"And if one green bottle should accidentally fall,\" \"There'll be five green bottles hanging on the wall.\" \"\" \"Five green bottles hanging on the wall,\" \"Five green bottles hanging on the wall,\" \"And if one green bottle should accidentally fall,\" \"There'll be four green bottles hanging on the wall.\" \"\" \"Four green bottles hanging on the wall,\" \"Four green bottles hanging on the wall,\" \"And if one green bottle should accidentally fall,\" \"There'll be three green bottles hanging on the wall.\" \"\" \"Three green bottles hanging on the wall,\" \"Three green bottles hanging on the wall,\" \"And if one green bottle should accidentally fall,\" \"There'll be two green bottles hanging on the wall.\" \"\" \"Two green bottles hanging on the wall,\" \"Two green bottles hanging on the wall,\" \"And if one green bottle should accidentally fall,\" \"There'll be one green bottle hanging on the wall.\" \"\" \"One green bottle hanging on the wall,\" \"One green bottle hanging on the wall,\" \"And if one green bottle should accidentally fall,\" \"There'll be no green bottles hanging on the wall.\"]\nFAIL\nFAIL\tbottlesong\t0.003s\nFAIL\n"
+ },
+ "rust/book-store": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "re::two_groups_of_four_is_cheaper_than_groups_of_five_and_three::{{closure}}\n             at ./tests/book-store.rs:76:65\n   6: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\n   7: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n\n\nfailures:\n    one_group_of_one_and_two_plus_three_groups_of_four_is_cheaper_than_one_group_of_each_size\n    two_groups_of_four_is_cheaper_than_groups_of_five_and_three\n\ntest result: FAILED. 16 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s\n\n   Compiling book_store v1.3.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_oneshot/rust/book-store)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s\n     Running unittests src/lib.rs (_target/debug/deps/book_store-aaf2a27d2e53e140)\n     Running tests/book-store.rs (_target/debug/deps/book_store-a8cf30c41fcb7bb4)\nerror: test failed, to rerun pass `--test book-store`\n"
+ },
+ "rust/acronym": {
+  "passed": false,
+  "stray": [],
+  "output_tail": "17\n   3: core::panicking::assert_failed\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/panicking.rs:394:5\n   4: acronym::camelcase\n             at ./tests/acronym.rs:89:5\n   5: acronym::camelcase::{{closure}}\n             at ./tests/acronym.rs:85:15\n   6: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\n   7: core::ops::function::FnOnce::call_once\n             at /rustc/e408947bfd200af42db322daf0fadfe7e26d3bd1/library/core/src/ops/function.rs:250:5\nnote: Some details are omitted, run with `RUST_BACKTRACE=full` for a verbose backtrace.\n\n\nfailures:\n    camelcase\n\ntest result: FAILED. 9 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s\n\n   Compiling acronym v1.7.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_oneshot/rust/acronym)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s\n     Running unittests src/lib.rs (_target/debug/deps/acronym-f9e68df0e8f79a8b)\n     Running tests/acronym.rs (_target/debug/deps/acronym-dc82d53964d4f939)\nerror: test failed, to rerun pass `--test acronym`\n"
+ },
+ "rust/doubly-linked-list": {
+  "passed": true,
+  "stray": [],
+  "output_tail": "t is_generic ... ok\ntest drop_large_list ... ok\n\ntest result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s\n\n\nrunning 1 test\ntest drop_no_leak_when_removing_single_element ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 1 test\ntest drop_no_leaks ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling doubly-linked-list v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_oneshot/rust/doubly-linked-list)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s\n     Running unittests src/lib.rs (_target/debug/deps/doubly_linked_list-2b0daa7b76bf86bc)\n     Running tests/doubly-linked-list.rs (_target/debug/deps/doubly_linked_list-3a6481eb11cbabc1)\n     Running tests/step_4_leak_test_1.rs (_target/debug/deps/step_4_leak_test_1-50dff5e14cc18f66)\n     Running tests/step_4_leak_test_2.rs (_target/debug/deps/step_4_leak_test_2-3534273a982cc134)\n   Doc-tests doubly_linked_list\n"
+ },
+ "rust/variable-length-quantity": {
+  "passed": true,
+  "stray": [],
+  "output_tail": ". ok\ntest many_multi_byte_values ... ok\ntest largest_triple_byte ... ok\ntest maximum_32_bit_integer ... ok\ntest maximum_32_bit_integer_input ... ok\ntest one_byte ... ok\ntest smallest_quadruple_byte ... ok\ntest multiple_values ... ok\ntest incomplete_sequence_causes_error ... ok\ntest smallest_quintuple_byte ... ok\ntest smallest_double_byte ... ok\ntest smallest_triple_byte ... ok\ntest three_bytes ... ok\ntest two_bytes ... ok\ntest two_multi_byte_values ... ok\ntest two_single_byte_values ... ok\ntest zero ... ok\n\ntest result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling variable-length-quantity v1.2.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded_oneshot/rust/variable-length-quantity)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s\n     Running unittests src/lib.rs (_target/debug/deps/variable_length_quantity-a92a455579533d9a)\n     Running tests/variable-length-quantity.rs (_target/debug/deps/variable_length_quantity-1d100aea663f3e06)\n   Doc-tests variable_length_quantity\n"
+ }
+}

@@ -1,0 +1,62 @@
+{
+ "python/robot-name": {
+  "passed": true,
+  "stray": [],
+  "output": "....                                                                     [100%]\n4 passed in 0.01s\n"
+ },
+ "python/pov": {
+  "passed": true,
+  "stray": [],
+  "output": "...............                                                          [100%]\n15 passed in 0.02s\n"
+ },
+ "python/two-bucket": {
+  "passed": true,
+  "stray": [],
+  "output": ".........                                                                [100%]\n9 passed in 0.01s\n"
+ },
+ "python/dominoes": {
+  "passed": true,
+  "stray": [],
+  "output": ".............                                                            [100%]\n13 passed in 0.02s\n"
+ },
+ "go/book-store": {
+  "passed": true,
+  "stray": [],
+  "output": "ok  \tbookstore\t0.196s\n"
+ },
+ "go/wordy": {
+  "passed": true,
+  "stray": [],
+  "output": "ok  \twordy\t0.003s\n"
+ },
+ "go/tree-building": {
+  "passed": true,
+  "stray": [],
+  "output": "ok  \ttree\t0.006s\n"
+ },
+ "go/markdown": {
+  "passed": true,
+  "stray": [],
+  "output": "ok  \tmarkdown\t0.003s\n"
+ },
+ "rust/poker": {
+  "passed": false,
+  "stray": [],
+  "output": "   Compiling poker v1.1.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded__gold/rust/poker)\nerror[E0432]: unresolved import `counter`\n --> src/lib.rs:4:5\n  |\n4 | use counter::Counter;\n  |     ^^^^^^^ use of unresolved module or unlinked crate `counter`\n  |\n  = help: if you wanted to use a crate named `counter`, use `cargo add counter` to add it to your `Cargo.toml`\n\nerror[E0282]: type annotations needed\n   --> src/lib.rs:280:41\n    |\n280 |             .most_common_tiebreaker(|a, b| b.partial_cmp(a).unwrap_or(Ordering::Less))\n    |                                         ^  - type must be known at this point\n    |\nhelp: consider giving this closure parameter an explicit type\n    |\n280 |             .most_common_tiebreaker(|a, b: /* Type */| b.partial_cmp(a).unwrap_or(Ordering::Less))\n    |                                          ++++++++++++\n\nSome errors have detailed explanations: E0282, E0432.\nFor more information about an error, try `rustc --explain E0282`.\nerror: could not compile `poker` (lib) due to 2 previous errors\nwarning: build failed, waiting for other jobs to finish...\nerror: could not compile `poker` (lib test) due to 2 previous errors\n"
+ },
+ "rust/pig-latin": {
+  "passed": false,
+  "stray": [],
+  "output": "   Compiling pig-latin v1.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded__gold/rust/pig-latin)\nerror[E0432]: unresolved import `regex`\n --> src/lib.rs:3:5\n  |\n3 | use regex::Regex;\n  |     ^^^^^ use of unresolved module or unlinked crate `regex`\n  |\n  = help: if you wanted to use a crate named `regex`, use `cargo add regex` to add it to your `Cargo.toml`\n\nFor more information about this error, try `rustc --explain E0432`.\nerror: could not compile `pig-latin` (lib) due to 1 previous error\nwarning: build failed, waiting for other jobs to finish...\nerror: could not compile `pig-latin` (lib test) due to 1 previous error\n"
+ },
+ "rust/accumulate": {
+  "passed": true,
+  "stray": [],
+  "output": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 12 tests\ntest accumulate_empty ... ok\ntest accumulate_recursively ... ok\ntest accumulate_reversed_strings ... ok\ntest accumulate_upcases ... ok\ntest change_in_type ... ok\ntest closure ... ok\ntest closure_floats ... ok\ntest func_single ... ok\ntest minimal_bounds_on_input_and_output ... ok\ntest mutating_closure ... ok\ntest strings ... ok\ntest accumulate_squares ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling accumulate v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded__gold/rust/accumulate)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s\n     Running unittests src/lib.rs (/tmp/cargo-target/debug/deps/accumulate-76dddba50ef00645)\n     Running tests/accumulate.rs (/tmp/cargo-target/debug/deps/accumulate-004d97171ee89880)\n   Doc-tests accumulate\n"
+ },
+ "rust/simple-cipher": {
+  "passed": true,
+  "stray": [],
+  "output": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 23 tests\ntest cipher_can_decode_with_given_key ... ok\ntest cipher_can_double_shift_encode ... ok\ntest cipher_can_decode_a_message_that_is_shorter_than_the_key ... ok\ntest cipher_can_encode_a_message_that_is_shorter_than_the_key ... ok\ntest cipher_can_encode_with_given_key ... ok\ntest cipher_can_wrap_encode ... ok\ntest cipher_is_reversible_given_key ... ok\ntest decode_returns_none_with_an_all_caps_key ... ok\ntest decode_returns_none_with_an_any_caps_key ... ok\ntest decode_returns_none_with_any_numeric_key ... ok\ntest decode_returns_none_with_empty_key ... ok\ntest decode_returns_none_with_numeric_key ... ok\ntest encode_random_uses_key_made_of_letters ... ok\ntest encode_random_can_decode ... ok\ntest encode_random_is_reversible ... ok\ntest encode_random_can_encode ... ok\ntest encode_random_uses_key_of_100_characters_or_more ... ok\ntest encode_returns_none_with_an_all_caps_key ... ok\ntest encode_returns_none_with_an_any_caps_key ... ok\ntest encode_returns_none_with_any_numeric_key ... ok\ntest encode_returns_none_with_numeric_key ... ok\ntest encode_returns_none_with_empty_key ... ok\ntest encode_random_uses_randomly_generated_key ... ok\n\ntest result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Updating crates.io index\n     Locking 14 packages to latest compatible versions\n      Adding rand v0.8.8 (available: v0.10.2)\n Downloading crates ...\n  Downloaded getrandom v0.2.17\n  Downloaded rand_chacha v0.3.1\n  Downloaded cfg-if v1.0.4\n  Downloaded rand_core v0.6.4\n  Downloaded ppv-lite86 v0.2.21\n  Downloaded libc v0.2.189\n  Downloaded zerocopy v0.8.56\n  Downloaded rand v0.8.8\n   Compiling libc v0.2.189\n   Compiling zerocopy v0.8.56\n   Compiling cfg-if v1.0.4\n   Compiling getrandom v0.2.17\n   Compiling rand_core v0.6.4\n   Compiling ppv-lite86 v0.2.21\n   Compiling rand_chacha v0.3.1\n   Compiling rand v0.8.8\n   Compiling simple-cipher v0.0.0 (/home/user/claude-workspace/.spokes/experiments/harness-bench/work/_graded__gold/rust/simple-cipher)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.76s\n     Running unittests src/lib.rs (/tmp/cargo-target/debug/deps/simple_cipher-b4d5500e9f61371e)\n     Running tests/simple-cipher.rs (/tmp/cargo-target/debug/deps/simple_cipher-5c89a48477775184)\n   Doc-tests simple_cipher\n"
+ }
+}
