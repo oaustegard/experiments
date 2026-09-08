@@ -122,6 +122,13 @@ session-boot repo and was the wrong home for 37 research projects.
 
 ### `neomme-remex-quant/` — quantizing both NeoMME heads
 
+Correction, 2026-09-08: the prior-art check did not read the NeoMME paper
+(arXiv:2609.01657), whose section 5.9 already reports token pooling plus
+int8/binary asymmetric quantization on the late-interaction head, 255x at 95%
+retained. The token-head results below replicate that with a different 1-bit
+codec on ViDoRe v1; the dense-head results and the text corpus are the parts
+the paper does not cover.
+
 Tom Aarsen's thread on NeoMME did not mention quantized vectors, and the
 collection does not ship any: ten repos, safetensors only. The model does ship
 two size levers — Matryoshka dims on the dense head and token pooling on the
