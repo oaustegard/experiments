@@ -1,0 +1,559 @@
+{
+ "dense fp32 d=1024": {
+  "group": "dense",
+  "ndcg10": 0.38471997850456874,
+  "r10": 0.486,
+  "r100": 0.718,
+  "fid10": null,
+  "bytes_per_doc": 4096,
+  "sec": 0.03190946578979492
+ },
+ "dense fp32 d=512": {
+  "group": "dense",
+  "ndcg10": 0.38285832082807336,
+  "r10": 0.49,
+  "r100": 0.73,
+  "fid10": 0.8544,
+  "bytes_per_doc": 2048,
+  "sec": 0.03192496299743652
+ },
+ "dense fp32 d=256": {
+  "group": "dense",
+  "ndcg10": 0.3698612010007479,
+  "r10": 0.472,
+  "r100": 0.734,
+  "fid10": 0.7822,
+  "bytes_per_doc": 1024,
+  "sec": 0.031232357025146484
+ },
+ "dense fp32 d=128": {
+  "group": "dense",
+  "ndcg10": 0.3612415361132423,
+  "r10": 0.466,
+  "r100": 0.72,
+  "fid10": 0.6881999999999999,
+  "bytes_per_doc": 512,
+  "sec": 0.030788183212280273
+ },
+ "dense remex 4-bit d=1024": {
+  "group": "dense",
+  "ndcg10": 0.3778541959283739,
+  "r10": 0.478,
+  "r100": 0.722,
+  "fid10": 0.9128000000000001,
+  "bytes_per_doc": 512.0,
+  "sec": 0.06175589561462402
+ },
+ "dense remex 4-bit d=512": {
+  "group": "dense",
+  "ndcg10": 0.38128792684641144,
+  "r10": 0.486,
+  "r100": 0.728,
+  "fid10": 0.8240000000000001,
+  "bytes_per_doc": 256.0,
+  "sec": 0.03978085517883301
+ },
+ "dense remex 4-bit d=256": {
+  "group": "dense",
+  "ndcg10": 0.36867357018454605,
+  "r10": 0.466,
+  "r100": 0.73,
+  "fid10": 0.7346,
+  "bytes_per_doc": 128.0,
+  "sec": 0.03405594825744629
+ },
+ "dense remex 4-bit d=128": {
+  "group": "dense",
+  "ndcg10": 0.356288789168517,
+  "r10": 0.462,
+  "r100": 0.718,
+  "fid10": 0.6591999999999999,
+  "bytes_per_doc": 64.0,
+  "sec": 0.03076624870300293
+ },
+ "dense remex 2-bit d=1024": {
+  "group": "dense",
+  "ndcg10": 0.37982407636392834,
+  "r10": 0.488,
+  "r100": 0.742,
+  "fid10": 0.7698,
+  "bytes_per_doc": 256.0,
+  "sec": 0.051892995834350586
+ },
+ "dense remex 2-bit d=512": {
+  "group": "dense",
+  "ndcg10": 0.37102659948406713,
+  "r10": 0.486,
+  "r100": 0.73,
+  "fid10": 0.6918,
+  "bytes_per_doc": 128.0,
+  "sec": 0.03647732734680176
+ },
+ "dense remex 2-bit d=256": {
+  "group": "dense",
+  "ndcg10": 0.3447203270263465,
+  "r10": 0.456,
+  "r100": 0.716,
+  "fid10": 0.5944,
+  "bytes_per_doc": 64.0,
+  "sec": 0.031484365463256836
+ },
+ "dense remex 2-bit d=128": {
+  "group": "dense",
+  "ndcg10": 0.3114347739434425,
+  "r10": 0.436,
+  "r100": 0.706,
+  "fid10": 0.4774,
+  "bytes_per_doc": 32.0,
+  "sec": 0.03011941909790039
+ },
+ "dense remex 1-bit d=1024": {
+  "group": "dense",
+  "ndcg10": 0.3597905985208937,
+  "r10": 0.468,
+  "r100": 0.738,
+  "fid10": 0.6751999999999999,
+  "bytes_per_doc": 128.0,
+  "sec": 0.05178642272949219
+ },
+ "dense remex 1-bit d=512": {
+  "group": "dense",
+  "ndcg10": 0.3334356983719487,
+  "r10": 0.446,
+  "r100": 0.74,
+  "fid10": 0.5748000000000001,
+  "bytes_per_doc": 64.0,
+  "sec": 0.035219430923461914
+ },
+ "dense remex 1-bit d=256": {
+  "group": "dense",
+  "ndcg10": 0.2889321573239525,
+  "r10": 0.41,
+  "r100": 0.714,
+  "fid10": 0.44439999999999996,
+  "bytes_per_doc": 32.0,
+  "sec": 0.031656742095947266
+ },
+ "dense remex 1-bit d=128": {
+  "group": "dense",
+  "ndcg10": 0.24579391331845582,
+  "r10": 0.344,
+  "r100": 0.676,
+  "fid10": 0.31939999999999996,
+  "bytes_per_doc": 16.0,
+  "sec": 0.030511140823364258
+ },
+ "dense remax k=1 d=1024 (asym)": {
+  "group": "dense",
+  "ndcg10": 0.35091031186139854,
+  "r10": 0.458,
+  "r100": 0.722,
+  "fid10": 0.6688,
+  "bytes_per_doc": 128.0,
+  "sec": 0.039229631423950195
+ },
+ "dense remax k=1 d=512 (asym)": {
+  "group": "dense",
+  "ndcg10": 0.33936959599182887,
+  "r10": 0.452,
+  "r100": 0.718,
+  "fid10": 0.558,
+  "bytes_per_doc": 64.0,
+  "sec": 0.03259468078613281
+ },
+ "dense remax k=1 d=256 (asym)": {
+  "group": "dense",
+  "ndcg10": 0.2923214700350033,
+  "r10": 0.404,
+  "r100": 0.68,
+  "fid10": 0.44739999999999996,
+  "bytes_per_doc": 32.0,
+  "sec": 0.03039097785949707
+ },
+ "dense remax k=1 d=128 (asym)": {
+  "group": "dense",
+  "ndcg10": 0.23623080315219017,
+  "r10": 0.332,
+  "r100": 0.626,
+  "fid10": 0.3276,
+  "bytes_per_doc": 16.0,
+  "sec": 0.029371261596679688
+ },
+ "dense remax k=1 d=1024 (sym)": {
+  "group": "dense",
+  "ndcg10": 0.3156612648948558,
+  "r10": 0.428,
+  "r100": 0.696,
+  "fid10": 0.5816,
+  "bytes_per_doc": 128.0,
+  "sec": 0.04802751541137695
+ },
+ "dense remax k=1 d=512 (sym)": {
+  "group": "dense",
+  "ndcg10": 0.30643052648093067,
+  "r10": 0.412,
+  "r100": 0.696,
+  "fid10": 0.45779999999999993,
+  "bytes_per_doc": 64.0,
+  "sec": 0.03265571594238281
+ },
+ "dense remax k=1 d=256 (sym)": {
+  "group": "dense",
+  "ndcg10": 0.23963230149841988,
+  "r10": 0.346,
+  "r100": 0.652,
+  "fid10": 0.3306,
+  "bytes_per_doc": 32.0,
+  "sec": 0.02842879295349121
+ },
+ "dense remax k=1 d=128 (sym)": {
+  "group": "dense",
+  "ndcg10": 0.17815234073793348,
+  "r10": 0.268,
+  "r100": 0.602,
+  "fid10": 0.22540000000000002,
+  "bytes_per_doc": 16.0,
+  "sec": 0.02656102180480957
+ },
+ "dense remax k=2 d=1024 (asym)": {
+  "group": "dense",
+  "ndcg10": 0.35984713558013004,
+  "r10": 0.466,
+  "r100": 0.73,
+  "fid10": 0.7564000000000001,
+  "bytes_per_doc": 256.0,
+  "sec": 0.05277848243713379
+ },
+ "dense remax k=2 d=512 (asym)": {
+  "group": "dense",
+  "ndcg10": 0.36338229863860727,
+  "r10": 0.476,
+  "r100": 0.728,
+  "fid10": 0.6584000000000001,
+  "bytes_per_doc": 128.0,
+  "sec": 0.03407549858093262
+ },
+ "dense ST int8 d=1024": {
+  "group": "dense",
+  "ndcg10": 0.38340370835907595,
+  "r10": 0.484,
+  "r100": 0.718,
+  "fid10": 0.9967999999999999,
+  "bytes_per_doc": 1024.0,
+  "sec": 0.028789758682250977
+ },
+ "dense ST binary d=1024 (asym)": {
+  "group": "dense",
+  "ndcg10": 0.36301987868173036,
+  "r10": 0.466,
+  "r100": 0.712,
+  "fid10": 0.6587999999999999,
+  "bytes_per_doc": 128.0,
+  "sec": 0.028302431106567383
+ },
+ "dense ST binary d=1024 (sym)": {
+  "group": "dense",
+  "ndcg10": 0.33548909595324017,
+  "r10": 0.444,
+  "r100": 0.7,
+  "fid10": 0.5628,
+  "bytes_per_doc": 128.0,
+  "sec": 0.029136180877685547
+ },
+ "late fp32": {
+  "group": "late",
+  "ndcg10": 0.5187767181832639,
+  "r10": 0.624,
+  "r100": 0.814,
+  "fid10": null,
+  "bytes_per_doc": 1495359.488,
+  "tokens_per_doc": 2920.624,
+  "sec": 46.98735761642456
+ },
+ "late fp32 pool2": {
+  "group": "late",
+  "ndcg10": 0.5149618816297623,
+  "r10": 0.612,
+  "r100": 0.82,
+  "fid10": 0.9262000000000001,
+  "bytes_per_doc": 747696.128,
+  "tokens_per_doc": 1460.344,
+  "sec": 125.73635625839233
+ },
+ "late fp32 pool4": {
+  "group": "late",
+  "ndcg10": 0.51173089281981,
+  "r10": 0.612,
+  "r100": 0.82,
+  "fid10": 0.8730000000000001,
+  "bytes_per_doc": 374071.296,
+  "tokens_per_doc": 730.608,
+  "sec": 100.35009551048279
+ },
+ "late remex 4-bit": {
+  "group": "late",
+  "ndcg10": 0.516241833028659,
+  "r10": 0.616,
+  "r100": 0.816,
+  "fid10": 0.9434000000000001,
+  "bytes_per_doc": 186919.936,
+  "tokens_per_doc": 2920.624,
+  "sec": 61.52846932411194
+ },
+ "late remex 2-bit": {
+  "group": "late",
+  "ndcg10": 0.5150444015589016,
+  "r10": 0.614,
+  "r100": 0.806,
+  "fid10": 0.8320000000000001,
+  "bytes_per_doc": 93459.968,
+  "tokens_per_doc": 2920.624,
+  "sec": 57.78681230545044
+ },
+ "late remex 1-bit": {
+  "group": "late",
+  "ndcg10": 0.5146192669921867,
+  "r10": 0.614,
+  "r100": 0.81,
+  "fid10": 0.7375999999999999,
+  "bytes_per_doc": 46729.984,
+  "tokens_per_doc": 2920.624,
+  "sec": 55.374799966812134
+ },
+ "late remax k=1 (asym)": {
+  "group": "late",
+  "ndcg10": 0.5104989159270307,
+  "r10": 0.604,
+  "r100": 0.8,
+  "fid10": 0.7514000000000001,
+  "bytes_per_doc": 46729.984,
+  "tokens_per_doc": 2920.624,
+  "sec": 48.73511791229248
+ },
+ "late remax k=1 (sym)": {
+  "group": "late",
+  "ndcg10": 0.5082836635212735,
+  "r10": 0.614,
+  "r100": 0.806,
+  "fid10": 0.6994,
+  "bytes_per_doc": 46729.984,
+  "tokens_per_doc": 2920.624,
+  "sec": 47.787914752960205
+ },
+ "late remax k=2 (asym)": {
+  "group": "late",
+  "ndcg10": 0.5134413689228621,
+  "r10": 0.612,
+  "r100": 0.804,
+  "fid10": 0.8222,
+  "bytes_per_doc": 93459.968,
+  "tokens_per_doc": 2920.624,
+  "sec": 90.21537637710571
+ },
+ "late remex 2-bit pool2": {
+  "group": "late",
+  "ndcg10": 0.5126240386214588,
+  "r10": 0.618,
+  "r100": 0.8,
+  "fid10": 0.8076000000000001,
+  "bytes_per_doc": 46731.008,
+  "tokens_per_doc": 1460.344,
+  "sec": 23.048011541366577
+ },
+ "late remex 1-bit pool2": {
+  "group": "late",
+  "ndcg10": 0.5149426801251986,
+  "r10": 0.614,
+  "r100": 0.808,
+  "fid10": 0.7193999999999999,
+  "bytes_per_doc": 23365.504,
+  "tokens_per_doc": 1460.344,
+  "sec": 24.201074361801147
+ },
+ "late remax k=1 (asym) pool2": {
+  "group": "late",
+  "ndcg10": 0.5048045323536359,
+  "r10": 0.6,
+  "r100": 0.802,
+  "fid10": 0.7273999999999999,
+  "bytes_per_doc": 23365.504,
+  "tokens_per_doc": 1460.344,
+  "sec": 20.996838569641113
+ },
+ "pipeline fp32 d=1024 -> late fp32 @100": {
+  "group": "pipeline",
+  "ndcg10": 0.5081728472779553,
+  "r10": 0.604,
+  "r100": 0.718,
+  "fid10": null,
+  "bytes_per_doc": 1499455.488,
+  "dense_bytes": 4096,
+  "late_bytes": 1495359.488,
+  "sec": 24.232054948806763
+ },
+ "pipeline remex 2-bit d=1024 -> late fp32 @100": {
+  "group": "pipeline",
+  "ndcg10": 0.5145193350493453,
+  "r10": 0.616,
+  "r100": 0.742,
+  "fid10": null,
+  "bytes_per_doc": 1495615.488,
+  "dense_bytes": 256.0,
+  "late_bytes": 1495359.488,
+  "sec": 22.776387929916382
+ },
+ "pipeline remex 2-bit d=256 -> late fp32 @100": {
+  "group": "pipeline",
+  "ndcg10": 0.502470590635872,
+  "r10": 0.594,
+  "r100": 0.716,
+  "fid10": null,
+  "bytes_per_doc": 1495423.488,
+  "dense_bytes": 64.0,
+  "late_bytes": 1495359.488,
+  "sec": 23.006779670715332
+ },
+ "pipeline remax k=1 d=1024 (asym) -> late fp32 @100": {
+  "group": "pipeline",
+  "ndcg10": 0.4982961320584259,
+  "r10": 0.59,
+  "r100": 0.722,
+  "fid10": null,
+  "bytes_per_doc": 1495487.488,
+  "dense_bytes": 128.0,
+  "late_bytes": 1495359.488,
+  "sec": 22.617555856704712
+ },
+ "pipeline fp32 d=1024 -> late remex 2-bit @100": {
+  "group": "pipeline",
+  "ndcg10": 0.5081673937499923,
+  "r10": 0.604,
+  "r100": 0.718,
+  "fid10": null,
+  "bytes_per_doc": 97555.968,
+  "dense_bytes": 4096,
+  "late_bytes": 93459.968,
+  "sec": 23.118852853775024
+ },
+ "pipeline remex 2-bit d=1024 -> late remex 2-bit @100": {
+  "group": "pipeline",
+  "ndcg10": 0.5150838752253589,
+  "r10": 0.616,
+  "r100": 0.742,
+  "fid10": null,
+  "bytes_per_doc": 93715.968,
+  "dense_bytes": 256.0,
+  "late_bytes": 93459.968,
+  "sec": 22.344638347625732
+ },
+ "pipeline remex 2-bit d=256 -> late remex 2-bit @100": {
+  "group": "pipeline",
+  "ndcg10": 0.5051018808070579,
+  "r10": 0.602,
+  "r100": 0.716,
+  "fid10": null,
+  "bytes_per_doc": 93523.968,
+  "dense_bytes": 64.0,
+  "late_bytes": 93459.968,
+  "sec": 23.77635383605957
+ },
+ "pipeline remax k=1 d=1024 (asym) -> late remex 2-bit @100": {
+  "group": "pipeline",
+  "ndcg10": 0.4960662316807883,
+  "r10": 0.588,
+  "r100": 0.722,
+  "fid10": null,
+  "bytes_per_doc": 93587.968,
+  "dense_bytes": 128.0,
+  "late_bytes": 93459.968,
+  "sec": 22.92056703567505
+ },
+ "pipeline fp32 d=1024 -> late remex 1-bit @100": {
+  "group": "pipeline",
+  "ndcg10": 0.5030370513020902,
+  "r10": 0.592,
+  "r100": 0.718,
+  "fid10": null,
+  "bytes_per_doc": 50825.984,
+  "dense_bytes": 4096,
+  "late_bytes": 46729.984,
+  "sec": 24.04158091545105
+ },
+ "pipeline remex 2-bit d=1024 -> late remex 1-bit @100": {
+  "group": "pipeline",
+  "ndcg10": 0.5081426465651503,
+  "r10": 0.6,
+  "r100": 0.742,
+  "fid10": null,
+  "bytes_per_doc": 46985.984,
+  "dense_bytes": 256.0,
+  "late_bytes": 46729.984,
+  "sec": 22.93520736694336
+ },
+ "pipeline remex 2-bit d=256 -> late remex 1-bit @100": {
+  "group": "pipeline",
+  "ndcg10": 0.49920577041343756,
+  "r10": 0.588,
+  "r100": 0.716,
+  "fid10": null,
+  "bytes_per_doc": 46793.984,
+  "dense_bytes": 64.0,
+  "late_bytes": 46729.984,
+  "sec": 23.396058320999146
+ },
+ "pipeline remax k=1 d=1024 (asym) -> late remex 1-bit @100": {
+  "group": "pipeline",
+  "ndcg10": 0.49390282909985295,
+  "r10": 0.58,
+  "r100": 0.722,
+  "fid10": null,
+  "bytes_per_doc": 46857.984,
+  "dense_bytes": 128.0,
+  "late_bytes": 46729.984,
+  "sec": 23.445110082626343
+ },
+ "pipeline fp32 d=1024 -> late remax k=1 (asym) @100": {
+  "group": "pipeline",
+  "ndcg10": 0.5002375321105849,
+  "r10": 0.58,
+  "r100": 0.718,
+  "fid10": null,
+  "bytes_per_doc": 50825.984,
+  "dense_bytes": 4096,
+  "late_bytes": 46729.984,
+  "sec": 24.426504373550415
+ },
+ "pipeline remex 2-bit d=1024 -> late remax k=1 (asym) @100": {
+  "group": "pipeline",
+  "ndcg10": 0.504998756926747,
+  "r10": 0.59,
+  "r100": 0.742,
+  "fid10": null,
+  "bytes_per_doc": 46985.984,
+  "dense_bytes": 256.0,
+  "late_bytes": 46729.984,
+  "sec": 21.221271514892578
+ },
+ "pipeline remex 2-bit d=256 -> late remax k=1 (asym) @100": {
+  "group": "pipeline",
+  "ndcg10": 0.49584100817263244,
+  "r10": 0.58,
+  "r100": 0.716,
+  "fid10": null,
+  "bytes_per_doc": 46793.984,
+  "dense_bytes": 64.0,
+  "late_bytes": 46729.984,
+  "sec": 23.023292303085327
+ },
+ "pipeline remax k=1 d=1024 (asym) -> late remax k=1 (asym) @100": {
+  "group": "pipeline",
+  "ndcg10": 0.49448384314621285,
+  "r10": 0.574,
+  "r100": 0.722,
+  "fid10": null,
+  "bytes_per_doc": 46857.984,
+  "dense_bytes": 128.0,
+  "late_bytes": 46729.984,
+  "sec": 22.1758074760437
+ }
+}

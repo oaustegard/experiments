@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Render results.json + results_perquery.npz into the markdown tables RESULTS.md
-embeds (between <!-- tables:start --> and <!-- tables:end -->), with paired
+"""Render results*.json + results*_perquery.npz into the markdown tables RESULTS.md
+embeds (between <!-- tables:start --> and <!-- tables:end --> for SciFact;
+<!-- tables:docvqa:start --> etc. for the ViDoRe corpora; pass the corpus name), with paired
 bootstrap CIs against each head's fp32 full-width reference. recheck.py
 regenerates the same block and diffs it, so prose and data cannot drift."""
 from __future__ import annotations
@@ -44,15 +45,25 @@ def render(results: dict, perquery: dict) -> str:
     return "\n".join(out)
 
 
+STEMS = {"scifact": ("results", "tables"), "docvqa": ("results_docvqa", "tables:docvqa"), "shift": ("results_shift", "tables:shift")}
+
+
+def load(corpus):
+    stem, marker = STEMS[corpus]
+    return json.loads((HERE / f"{stem}.json").read_text()), dict(np.load(HERE / f"{stem}_perquery.npz")), marker
+
+
 def main():
-    results = json.loads((HERE / "results.json").read_text()); perquery = dict(np.load(HERE / "results_perquery.npz"))
-    block = render(results, perquery)
+    corpus = next((a for a in sys.argv[1:] if a in STEMS), "scifact")
+    results, perquery, marker = load(corpus)
+    n_q = len(next(iter(perquery.values())))
+    block = render(results, perquery).replace("(300 queries, 5,000 resamples)", f"({n_q:,} queries, 5,000 resamples)")
     if "--stdout" in sys.argv:
         print(block); return
     p = HERE / "RESULTS.md"; s = p.read_text()
-    a, b = s.index("<!-- tables:start -->"), s.index("<!-- tables:end -->")
-    p.write_text(s[:a] + "<!-- tables:start -->\n" + block + "\n" + s[b:])
-    print("RESULTS.md tables refreshed")
+    a, b = s.index(f"<!-- {marker}:start -->"), s.index(f"<!-- {marker}:end -->")
+    p.write_text(s[:a] + f"<!-- {marker}:start -->\n" + block + "\n" + s[b:])
+    print(f"RESULTS.md {marker} refreshed")
 
 
 if __name__ == "__main__":
