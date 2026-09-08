@@ -18,7 +18,7 @@ full-width ranking of the same head. Bytes per document as stored.
 """
 from __future__ import annotations
 
-import argparse, json, sys, time
+import argparse, gc, json, sys, time
 from collections import defaultdict
 from pathlib import Path
 
@@ -87,7 +87,12 @@ def main():
         arms += [DenseIndex("remex", dim=d, bits=b) for b in (4, 2, 1) for d in reversed(MRL_DIMS)]
         arms += [DenseIndex("remax", dim=d, k=1, query_mode=m) for m in ("asym", "sym") for d in reversed(MRL_DIMS)]
         arms += [DenseIndex("remax", dim=d, k=2) for d in (1024, 512)]
+        if "dense fp32 d=1024" in results and ref_dense is None:
+            S = DenseIndex("fp32", dim=1024).build(dense).scores(qd)
+            _, _, ref_dense = evaluate(lambda i: np.argsort(-S[i], kind="stable"), qids, keep, qrels, doc_ids, None)
         for a in arms:
+            if "dense " + a.name in results:
+                continue
             t = time.time(); a.build(dense); S = a.scores(qd)
             m, nd, tops = evaluate(lambda i: np.argsort(-S[i], kind="stable"), qids, keep, qrels, doc_ids, ref_dense)
             if ref_dense is None:
@@ -125,6 +130,15 @@ def main():
                 pooled_cache[pf] = (pt, po)
         return pooled_cache[pf]
 
+    def _release(idx):
+        # Drop the decoded matrix AND the codec's own caches. The arm objects stay referenced from the
+        # arm lists, so anything left on them leaks: on ShiftProject (3M tokens) each remex arm held
+        # 1.5 GB of decoded float32 plus 0.4 GB of indices, and the first run was OOM-killed (exit 137).
+        for attr in ("T", "cv", "codes"):
+            if hasattr(idx, attr):
+                delattr(idx, attr)
+        gc.collect()
+
     def run_late(a: MultiVectorIndex, pf: int):
         nonlocal ref_late
         name = a.name
@@ -139,9 +153,14 @@ def main():
         if ref_late is None:
             ref_late = tops
         record(name, "late", m, nd, dict(bytes_per_doc=a.bytes_per_doc, tokens_per_doc=a.n_tokens / a.n_docs, sec=time.time() - t))
-        del a.T
+        _release(a)
 
     if "late" in groups:
+        if "late fp32" in results and ref_late is None:      # resumed run: rebuild the fidelity reference, do not re-record it
+            ref_idx = MultiVectorIndex("fp32").build(toks, off)
+            S = np.stack([ref_idx.scores(qtok(i)) for i in keep])
+            _, _, ref_late = evaluate(lambda i: np.argsort(-S[keep.index(i)], kind="stable"), qids, keep, qrels, doc_ids, None)
+            _release(ref_idx); del S
         late_arms = [(MultiVectorIndex("fp32", pool_factor=pf), pf) for pf in (1, 2, 4)]
         late_arms += [(MultiVectorIndex("remex", bits=b), 1) for b in (4, 2, 1)]
         late_arms += [(MultiVectorIndex("remax", k=1, query_mode=m), 1) for m in ("asym", "sym")]
@@ -169,7 +188,7 @@ def main():
                     c = c_[i]; s = L.scores(qtok(i), c); return c[np.argsort(-s, kind="stable")]
                 m, nd, _ = evaluate(rank, qids, keep, qrels, doc_ids, None)
                 record(f"pipeline {ds.name} -> {ls.name} @{K_CAND}", "pipeline", m, nd, dict(bytes_per_doc=ds.bytes_per_vec + L.bytes_per_doc, dense_bytes=ds.bytes_per_vec, late_bytes=L.bytes_per_doc, sec=time.time() - t))
-            del L.T
+            _release(L)
     print("done ->", out)
 
 
