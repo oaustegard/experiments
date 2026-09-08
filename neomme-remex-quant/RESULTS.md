@@ -12,6 +12,19 @@ to build remex/remax quantization for it.
 
 ## Prior-art check
 
+**Correction (2026-09-08).** The check below stopped at the model card and the
+Hub artifacts and did not read the paper the card links
+([arXiv:2609.01657](https://arxiv.org/abs/2609.01657)). Its abstract and
+section 5.9 report exactly this study's second half on the token head: int8
+documents at 3.9× cost 0.0002 nDCG@10; sign-bit binary documents with int8
+queries cost 1.58 points at 32×; pool factor 8 + binary documents reach 6.0 kB
+per page, 255×, at 95.19% retained (ViDoRe v3, 260M). What the paper does not
+do: quantize the dense head (Matryoshka only), test on text, or rotate before
+binarising. Findings 1–4 and 12's dense results stand as novel; findings 2, 8
+and 9 are replications of the paper's pooling and binary results on ViDoRe v1
+with a different 1-bit codec, and should have been framed that way from the
+start. `ERRORS.md` #5.
+
 H Company ships no quantized vectors. All ten repos in the `Hcompany/neomme`
 collection hold `model.safetensors` and configs only. No `onnx/`, no int8, no
 binary or GGUF siblings, no derivative repos (HF search for "neomme" returns
