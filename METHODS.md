@@ -514,6 +514,36 @@ survives exactly the sanity checks people run.
   to see its own failures before concluding anything about model capability from
   a one-shot score. (`harness-bench/RESULTS.md`)
 
+- **Before believing a combinatorial decoder buys anything, measure the score
+  matrix's rank-1 energy.** If `M[i,j] = a_i * b_j` with `b` monotone in
+  position, the maximum-weight assignment is exactly `argsort(-a)` by the
+  rearrangement inequality, so the solver is a fixed-cost identity on a sort —
+  confirmed 500/500 on synthetic rank-1 draws. `spd-hungarian-decoder` found
+  arXiv:2609.01807's learned matrix at 0.809 of its Frobenius energy in one
+  singular value (0.960 for a head with no cross-item path), and sorting one
+  column of it matched the Hungarian solve to +0.0008 [-0.0028, +0.0044] NDCG@10
+  across three seeds and four Sinkhorn temperatures. One `np.linalg.svd` per
+  matrix, and it predicts the metric result before the metric is computed.
+  (`spd-hungarian-decoder/decoders.py:rank1_energy`)
+
+- **When a paper names one alternative to its mechanism, the ablation it is
+  missing is the cheap one it did not name.** arXiv:2609.01807 argues its
+  Hungarian decoder against row-argmax-with-repair and beats it (+0.0076
+  [+0.0039, +0.0113] NDCG@10, reproduced). Sorting a single column of the same
+  matrix, which the paper never tries, ties the solver. Both readings are true
+  and only one is in the paper. Write the comparator list from what a
+  practitioner would actually reach for, not from the alternatives the target
+  chose to argue against. (`spd-hungarian-decoder/RESULTS.md`)
+
+- **Headline the hyperparameter-free baseline.** In `spd-hungarian-decoder` the
+  softmax-expected-position decoder beat the Hungarian by +0.0042 [+0.0013,
+  +0.0070] NDCG@10 at one temperature and lost to it at others; sweeping its
+  decode temperature from 0.05 to 10 crossed zero twice. The column-0 sort,
+  which has no hyperparameter, tied the solver at every training temperature.
+  A baseline with a knob can be tuned into or out of a result, so the claim
+  that survives review is the one made by the baseline with no knob.
+  (`spd-hungarian-decoder/adversarial.py`)
+
 ## Portable code (extraction candidates)
 
 | What | Where | Effort |
@@ -851,6 +881,20 @@ the result.
   **detach long jobs with `nohup` and poll them with short foreground checks**,
   and **commit each artifact as it lands**, not at the end of the pipeline.
   (`nl2sh-instantiate/RESULTS.md`)
+
+- **`pyarrow` is not in the CCotw image and pandas 3.0.5 needs it for parquet.**
+  `pip install --break-system-packages pyarrow` (25.0.1, a few seconds). Every
+  HuggingFace dataset that ships `.parquet` hits this on the first read.
+  (`spd-hungarian-decoder/prep_data.py`)
+
+- **MSLR-WEB10K is on HuggingFace as `philipphager/MSLR-WEB10k`, ungated, three
+  parquets (train 260 MB, validation 85 MB, test 86 MB), one row per query with
+  `labels` and `features` as nested lists.** Real learning-to-rank data with
+  graded relevance 0-4 and 136 features, and the cheapest way to get honest
+  NDCG on 50-item slates without an LLM in the loop: take the top 50 per query
+  by feature 110 (BM25 whole document, 0-indexed 109) and the slate is a
+  realistic reranking pool. 5,323 train and 1,785 test slates survive the
+  n >= 50 filter. (`spd-hungarian-decoder/prep_data.py`)
 
 ## Numerical / ML gotchas
 
@@ -2061,6 +2105,17 @@ the result.
   hourly `send_later` that reads the journal, relaunches if the process is gone,
   and finishes the writeup when the journal says done. Sweep completed in
   55 minutes against a 3-4 hour estimate. (`alta-superposition/run_all.sh`)
+
+- **A near-rank-1 cost matrix is the shortest-augmenting-path assignment
+  solver's worst case, not its easy one.** `scipy.optimize.linear_sum_assignment`
+  on 4 vCPU: at N=2,000, 3,072 ms for `outer(a, b)` against 225 ms for iid
+  random and 126 ms for banded — 13.6x. Near-ties lengthen every augmenting-path
+  search. The empirical exponent on random matrices from N=50 to N=1,000 is
+  2.16, matching LAPJV's O(N^2) average case rather than the O(N^3) worst case
+  usually quoted. Both matter only above N ~ 250; at N=50 every structure solves
+  in 0.064-0.067 ms. If a design's matrices are near rank-1 (see the rank-1
+  energy entry above) and the slate might grow, budget from the rank-1 column.
+  (`spd-hungarian-decoder/solver_bench.py`)
 
 ## Cache and measurement hygiene
 
