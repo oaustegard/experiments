@@ -12,6 +12,22 @@ to build remex/remax quantization for it.
 
 ## Prior-art check
 
+**Correction (2026-09-08).** The check below stopped at the model card and the
+Hub artifacts and did not read the paper the card links
+([arXiv:2609.01657](https://arxiv.org/abs/2609.01657)). Its abstract and
+section 5.9 report exactly this study's second half on the token head: int8
+documents at 3.9× cost 0.0002 nDCG@10; sign-bit binary documents with int8
+queries cost 1.58 points at 32×; pool factor 8 + binary documents reach 6.0 kB
+per page, 255×, at 95.19% retained (ViDoRe v3, 260M). What the paper does not
+do: quantize the dense head (Matryoshka only), test on text, or rotate before
+binarising. Section 5.9 also states the text-vs-pages pooling asymmetry (near-lossless to
+factor 3 on text per Clavié et al., to factor 10 on pages) with the same
+explanation as finding 9. Section 5.2 is the source of the dense-then-late
+recipe finding 6 tests. Findings 1–4 and the dense half of 12 stand as novel;
+findings 2, 6, 8, 9 and 11 are replications or tests of the paper's own
+statements, and should have been framed that way from the start. `ERRORS.md`
+#5.
+
 H Company ships no quantized vectors. All ten repos in the `Hcompany/neomme`
 collection hold `model.safetensors` and configs only. No `onnx/`, no int8, no
 binary or GGUF siblings, no derivative repos (HF search for "neomme" returns
@@ -368,8 +384,9 @@ difference under about ±0.02 nDCG@10 on 300 SciFact queries is inside that
 floor; the 128 B finding in (3) clears it against 1-bit and ST binary and
 does not clear it against remax asym.
 
-**6. The dense→late pipeline caps below a full late-interaction scan, and
-quantizing its rerank stage is free.** Dense fp32 top-100 → late fp32 rerank
+**6. The dense→late pipeline (the paper's own large-corpus recipe, section 5.2,
+and the thread's) caps below a full late-interaction scan, and quantizing its
+rerank stage is free.** Dense fp32 top-100 → late fp32 rerank
 scores 0.6854, −0.034 [−0.056, −0.015] under a full late scan (0.7198),
 because dense R@100 is 0.864 against late's 0.943: a relevant document the
 dense head ranks past 100 does not reach the reranker. Swapping the rerank
