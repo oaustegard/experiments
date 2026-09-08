@@ -1659,7 +1659,22 @@ the result.
   page-image index: pool first, then quantize — pool2 + remex 1-bit is 64x
   under fp32 at −0.004. For a text token index, quantize and skip pooling.
   Measure pooling per modality; do not carry a pooling verdict across.
-  (`neomme-remex-quant/RESULTS.md`, findings 2 and 9)
+  Confirmed on a second image corpus (ShiftProject: pool2 +0.007, pool2 +
+  1-bit +0.003). (`neomme-remex-quant/RESULTS.md`, findings 2, 9 and 12)
+- **A resumed bench must rebuild its fidelity reference from the reference
+  arm, not from the first arm it happens to compute.** `bench.py` set
+  `ref_late` to the tops of whichever late arm ran first; on a resume that was
+  remex 1-bit, so seven arms' top-10 overlaps were measured against the wrong
+  ruler (nDCG unaffected). Tell-tale: the reference arm itself shows `fid None`
+  and the others show implausibly low overlap. If the reference is cheap,
+  recompute it silently on resume; if not, persist its tops next to the
+  per-query scores. (`neomme-remex-quant/ERRORS.md` #4)
+- **Per-arm caches that are invisible at 1.6M tokens are an OOM at 3M.** Arm
+  objects kept in a list keep their decoded float32 matrix and codec caches
+  alive; on ShiftProject each remex arm held 1.9 GB and the bench died with
+  exit 137 at the third. Release explicitly after each arm (`_release()`), and
+  read exit 137 in a background task's output as OOM, not as a harness kill.
+  (`neomme-remex-quant/ERRORS.md` #3)
 - **The one-bit-beats-two inversion is a property of the encoder, so test it
   per encoder — never inherit it.** 1-bit beat 2-bit on SPECTER2 and inverted
   on Jina; on bekko-embedding-v1, **2-bit beats 1-bit in all 8 (variant x dim)
