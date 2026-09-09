@@ -896,6 +896,24 @@ the result.
   realistic reranking pool. 5,323 train and 1,785 test slates survive the
   n >= 50 filter. (`spd-hungarian-decoder/prep_data.py`)
 
+- **`remax_kb`'s `KBWriter.commit()` embeds every pending chunk in ONE
+  `encode()` call.** At 1,871 chunks the Jina ONNX attention mask asks for a
+  23,542,628,352-byte buffer and onnxruntime dies at `attn_mask_reformat_full`.
+  Batch inside `encode()` by SUBCLASSING the embedder, not wrapping it —
+  `read_v2._validate_embedder` checks `fingerprint()` against the manifest, so a
+  wrapper that does not forward `fingerprint`/`prompts`/`full_dim` cannot open
+  the `.kb` it just wrote. Also: q4 Jina ONNX on 4 vCPU does ~4 chunks/s on real
+  ~400-char text, not the ~160/s a short-string microbenchmark suggests.
+  (`toc-path-remax_kb/run_arms.py`)
+- **`KB._dense_search` and `KB._bm25_search` return `Hit`s with `chunk_id=''`.**
+  Only `KB.search` resolves ids from row numbers. Scoring the legs directly
+  against gold chunk ids silently yields 0.000 at every k for every arm, which
+  reads as "both retrieval modalities fail completely" rather than as a broken
+  measurement. Resolve with `kb._chunk_id_at(h.row)`. A pre-registered positive
+  control did not catch this because the control exercised the fused path — a
+  control validates the path it runs and nothing else.
+  (`toc-path-remax_kb/rescore_modalities.py`, `ERRORS.md` #2)
+
 ## Numerical / ML gotchas
 
 - **Verifier cosine under different quantization conditions is on different
