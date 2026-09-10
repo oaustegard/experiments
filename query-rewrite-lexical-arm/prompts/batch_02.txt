@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0095: What are the five synthetic workload templates defined for the repeatable probe harness that compares competitor model endpoints across regions?
+qst_0096: When an employee is marked for immediate termination in Workday, why can a third party SaaS seat stay billable for around two weeks even after Okta deactivates the user?
+qst_0097: In the OpenAI Responses v3 compatibility work, how are overly large user-provided seeds handled to keep determinism, and where is the original seed stored for auditing?
+qst_0098: In the MedSecure logging and PII redaction POC email thread, what method did Redwood propose for pseudonymizing trace or request IDs so correlation works within a tenant but not across customers?
+qst_0099: What was the temporary mitigation applied to the internal load balancer serving the gen-infer VIPs around 03:40 UTC that immediately reduced TCP retransmits?
+qst_0100: What change was applied to reduce the latency spike caused by a KV cache and continuous batching regression on the us-west-2 inference production cluster?
+qst_0101: In the meeting about Zephyrus Labs unit cost and deployment options, what utilization threshold was mentioned as the point where a dedicated reserved setup typically becomes cheaper than hosted?
+qst_0102: What are the default significance threshold and minimum sample size guidelines for deciding whether a model regression is actionable in the causal regression investigation handbook?
+qst_0103: How is the baseline token cost computed for the per-span cost delta metric in the new tracing observability change?
+qst_0104: What is the standard amount of time a new hire buddy is expected to spend per day during the first two weeks when a long-term contractor is converted to a full-time employee?
+qst_0105: What are the proposed internal time to mitigate targets by severity for incident response, regardless of customer deployment tier?
+qst_0106: What baseline metrics are listed for the Console activation health panel in the quarterly activation plan for customer-hosted Private VPC deployments?
+qst_0107: In the Velora AI Solutions opportunity, what requirement did their security team say was non-negotiable before going live?
+qst_0108: In an internal onboarding thread for a new language model, what was the estimated GPU memory used by the attention key value cache for a single 8192 token sequence (batch 1)?
+qst_0109: What was the performance threshold for short requests that the solo iOS founder said would convince them to buy after a demo?
+qst_0110: What is the rollout ramp schedule and time window used for the canary phase when validating adaptive degradation behavior in the Redwood serving runtime?
+qst_0111: What are the acceptance thresholds for rerank performance in the mini-bundle unified inference API, including the required top-1 precision and the P95 latency limit?
+qst_0112: In the proposed small business token pricing tiers, what is the monthly included token allowance for the plan priced at $25 per month?
+qst_0113: What is the phased rollout schedule for removing the legacy compatibility proxy and migrating old persisted flag configs to a single newer schema?
+qst_0114: For the ClearSight Health pilot discussions with Redwood, what specific types of patient-related data did their security lead say should be treated as PHI for this integration?
+qst_0115: Why would a tenant start getting rate limit 429 errors on real time chat or streaming endpoints a few minutes after being upgraded to a higher tier, apparently because background catch up jobs consume the newly increased burst allowance first?
+qst_0116: In the SOC2 readiness notes, what log retention duration is mentioned as a risk for some environments?
+qst_0117: In the PRD about adding managed orchestration for multi-model inference pipelines, what are the rollout milestones and target quarters for alpha, beta, and general availability?
+qst_0118: How do we turn observed production workload patterns for inference routes into defensible latency SLO targets and cost sensitivity guidance, including clustering and profiling steps?
+qst_0119: When the audit event buffer is full or the local durable queue hits its size limit, what should happen to must-log admin actions and what HTTP status is returned?
+qst_0120: What documents did Silver Birch ScribeCo say they needed from us before they could proceed with using real customer data in their trial?
+qst_0121: When is the 48-hour throughput and latency benchmark on the dedicated pool due to be completed?
+qst_0122: Which GPU cluster or pool was flagged as having relatively low average usage but high churn, making its free capacity unreliable during a specific morning UTC window?
+qst_0123: What was the requested proof-of-concept duration for the inbound content marketing company evaluating batching and caching for high-volume templated SEO article generation?
+qst_0124: What percent reduction in monthly model or token spend was the founder of a small developer tools micro-SaaS aiming for while keeping acceptable latency?
+qst_0125: What is the formula used by the new autoscaling approach that combines a high-percentile request rate with request variability to compute effective demand, including the default weights?
+qst_0126: For IronCrest Bioinformatics evaluating Redwood, what was the typical time to get from signup to receiving the first response token using the self-serve quickstart flow?
+qst_0127: What is the phased rollout plan for the change that smooths dedicated autoscaling signals and adds an advisory gateway-to-controller backpressure mechanism?
+qst_0128: When are production changes normally allowed to be deployed, and what are the default business hours change window?
+qst_0129: What was the temporary workaround used to prevent the Windows 11 imaging task sequence from failing when a provisioning script breaks under certain non-default locale collation settings?
+qst_0130: What latency goals did the founder of Birch Branch Apps mention for short in-app chat responses during their early discovery call?
+qst_0131: What were the performance goals for the multilingual enterprise search project in terms of median and tail response time for retrieval plus reranking, and did they allow a higher tail latency for Japanese or Chinese?
+qst_0132: In a case where server-sent event streaming responses sometimes lose the very last space or period only when traffic goes through an HTTP/2 edge proxy with stream preemption, what mitigation was proposed to stop the final bytes from being dropped?
+qst_0133: What are the pass fail criteria used in the quick pull request smoke checks for the embedding robustness noise and input length evaluation suite?
+qst_0134: What was the suspected root cause behind the brief p99 latency spikes on the hosted chat inference route during small burst traffic?
+qst_0135: What is the recommended step-by-step rollback and traffic split plan to mitigate correctness issues and tail latency spikes after a healthcare customer enabled adaptive batching together with an INT8 quantized model on their dedicated production route?
+qst_0136: What was the temporary mitigation applied for the enterprise customer whose SSE streaming chat responses were getting truncated after an edge proxy handoff in us-east?
+qst_0137: What KPI targets did the customer set for improving support ticket handling time and high priority triage speed in their Zendesk automation pilot?
+qst_0138: What was the CTOs non negotiable security requirement mentioned on the early 2026 demo call for the analytics SaaS customer moving from hosted API to a dedicated VPC deployment?
+qst_0139: What false positive threshold did the prospect set for suggested code review comments in the evaluation criteria for their PR review assistant POC?
+qst_0140: What is the minimum cache time-to-live safeguard that was added to the new automated policy recommendation service to prevent cold-start issues after deploys?
+qst_0141: What was the target goal for average router queue time for very short token sequences, compared to the baseline of 28 ms, in the weekly sprint anchor about reducing staging inference queuing latency?

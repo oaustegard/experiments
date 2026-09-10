@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0236: In our multi-customer GPU inference environment, what is the CI-based tool that spins up a sandbox network setup and drives synthetic traffic patterns to catch regressions in outbound routing and bandwidth fairness before infrastructure changes land?
+qst_0237: In the vendor email thread about a dedicated GPU capacity plan for AuroraEdge, what utilization threshold and measurement window did they propose as the trigger to start billing the next ramped capacity tranche after the initial time gate?
+qst_0238: How should I structure a small prompt experiment to reduce overconfident mistakes by mixing a couple of correct examples with one intentionally wrong example plus an immediate fix, while keeping the total examples very short and tracking things like made-up details and format compliance over a few hundred test prompts?
+qst_0239: For the fintech prospect doing merchant reconciliation and dispute handling, what are the specific compliance items their ops and security teams said must be in place before moving past the pilot phase?
+qst_0240: During a multi region switchover, what is causing some customers to get bursty too many requests and occasional service unavailable responses because different parts of the traffic gatekeeper disagree briefly on the time boundary used for quota calculations?
+qst_0241: For a EU-hosted dedicated banking tenant facing a regulator check in late March 2026, how can we produce a tamper-evident 7-day audit activity export that includes per-event masking justification plus the GDPR lawful-ground and any consent time, with a signed checksum manifest and a trusted timestamp?
+qst_0242: In the partner integration call about getting a third party AI service into another companys cloud catalog, what date did the security lead target for completing the pre publication image security smoke test?
+qst_0243: In our GPU inference service that merges many request streams, what change was made to cut worst case latency spikes that happened when the attention memory footprint abruptly shifted during batch formation, while keeping median latency nearly flat?
+qst_0244: After our single sign on provider URL changed, access approvals look successful in the internal approval UI but engineers still get a forbidden error when trying to open privileged operational tools; what caused the approval to not actually translate into permissions?
+qst_0245: Which fintech support-chat prospect dropped us after their lawyers rejected non-audited compliance proof and chose a rival that could deliver a private install with formal audit paperwork?
+qst_0246: Where are the small on-node files stored that capture the GPU communication tuning fingerprints, and what should ops do with them during cluster upgrades?
+qst_0247: In the partner sales planning call between a vendor and an ISV, what were the concrete due dates in late December for each side to send the pilot inputs and the vendor deliverables?
+qst_0248: In our hiring workflow, what happens when a candidate is strong but the pay we want to offer is about 20 percent above the middle of the internal range, specifically who has to approve it?
+qst_0249: What is the step by step readiness checklist for bringing up a new managed Kubernetes cluster in the Frankfurt secondary region with preemptible GPU workers for batch inference, including the key quota checks and the basic validation command to confirm the GPUs are usable?
+qst_0250: In the dedicated GPU hosting plan with prepaid overage credits, what is the default time window after a demand spike during which any additional spikes are treated as part of the same billable overage event?
+qst_0251: For a mid sized subscription software company adding AI powered lookup across internal docs and support chats, what are the performance targets for the overnight vectorization run and the interactive top ten results response time that were discussed in the pre sales notes?
+qst_0252: In our incident response process, what is the rule for when a quick time-boxed after-action review is acceptable instead of writing the full formal analysis, based on impact duration and whether the issue hit one customer versus many?
+qst_0253: For the outsourced customer support company planning an isolated always-on deployment for AI agent guidance and end-of-chat ticket writeups, what peak simultaneous staff load and response-time target did they specify for real-time streaming suggestions?
+qst_0254: Need the account notes for a tiny two person dev shop building a browser based coding assistant that struggled with keeping API secrets safe in a serverless front end, is pushing hard for incremental responses to keep the UI snappy, and is asking about cheap usage plus some starter credit before converting from prototype to paid.
+qst_0255: When is the 45 minute video call finally locked in for the vendor walkthrough that got moved because the client team was traveling to a Denver conference in early October 2026?
+qst_0256: During a gradual rollout of a new large model on a single production tenant in early March 2026, some sessions that were supposed to stay on a customer-specified version briefly got routed to a cheaper compressed build, causing worse answers without any server error spike. What was the immediate mitigation applied at the request routing layer to prevent this kind of misrouting when a version lock is provided?
+qst_0257: For the healthcare chat rollout that ramps from a few thousand to about fifteen thousand monthly active users by month three, what was the projected total monthly language model token consumption at steady state based on the stated session and prompt/response length assumptions?
+qst_0258: In the us-east dedicated setup for a big retail tenant, what caused the multi-hour staircase of gateway failures during peak traffic when long-lived chat streams coincided with a large embedding batch, especially involving warmup connection churn and disk-backed cache write pressure?
+qst_0259: In the disconnected installer package for the on prem product, what are the mandatory items that must exist at the top level of the extracted folder before the installer will accept it (including the signed inventory files and the human instructions file)?
+qst_0260: From a late July 2025 call with a vendor, what was the specific console tuning recommendation for the search route that included both a suggested batch size and a quantization setting?
+qst_0261: In our model serving runtime, what is the new approach that chooses between two attention implementations at execution time to cut tail latency on mixed prompt lengths and avoid costly cache page swapping on very long contexts?
+qst_0262: For the EU production rollout of a card-industry regulated bank, can you provide a tamper-evident proof package for a 3-day early-March 2026 activity export to their file-drop security tool that lets them verify no per-call audit records were lost or reordered (including a hardware-backed signed index and local validation steps)?
+qst_0263: In the GPU inference runtime that mixes tiny chat requests with very long prompt processing, what is the target reduction for worst case per token latency on the latency sensitive traffic while keeping overall throughput loss under about ten percent?
+qst_0264: I need the most recent vendor continuity evidence packet for the bank security intake that includes measured switchover recovery timing samples showing a big difference when the in memory cache is prewarmed versus cold, along with a planned live non production witness window in mid August 2027; where is that packet shared and what is the confirmed demo time slot?
+qst_0265: Why do some long range analytics charts in the US East production console briefly show zero or outdated values and the drill through to traces disappears, then fixes itself after about 10 to 30 minutes?
+qst_0266: In the recent SDK update that made streaming behave the same across Python, TypeScript, and Go, what is the new wrapper layer called that handles automatic reauthentication on expired credentials and lets a client resume a dropped stream using a small persisted checkpoint token?
+qst_0267: In a recent GPU serving load test with highly uneven prompt lengths, what change gave the biggest reduction in tail latency by preventing the runtime from switching to a slower attention implementation due to temporary scratch memory growth?
+qst_0268: In the March 2026 production incident where long streamed chat replies started arriving chopped up and in the wrong order and the customers usage charges jumped because their client kept reissuing the same request, what was identified as the underlying platform cause?
+qst_0269: In our internal admin UI, what are the requirements for a small collapsible tenant sidebar that summarizes inter-region service connectivity and recent liveness, highlights the three most important issues, and includes guarded remediation actions plus an estimated failover cost impact?
+qst_0270: Which bank client got a temporary signoff to keep normal processing in Europe but let traffic switch to a US site only during disaster recovery drills or when the EU cluster is degraded, with payload logging turned off, and what were the start and end dates of that allowance?
+qst_0271: How should we handle a short term external engineering team working out of our London site so they can get into the lab and then send two sensitive prototype boards back to the US with proper custody tracking and customs clearance after the week ends?
+qst_0272: What is the default time window the company targets for routine internal approvals across operational requests?
+qst_0273: What dates did the team set for the three stage launch of the new high end compute hardware offering (restricted trial, broader preview, and public release) that follows the late July readiness work and the early August go no go decision?
+qst_0274: For the small legal document review firm that came in via a website contact form in late Feb 2026, what was their target p95 response time for an interactive single-user chat experience?
+qst_0275: Im looking for the doc about building a fast system to store and query model performance run histories and a simple UI to compare two runs plus an oncall workflow for investigating detected slowdowns, including how it groups repeated issues and how long detailed vs rolled up data is kept
+qst_0276: In our model serving stack, what change was proposed to reduce cost swings when traffic mixes tiny chat style requests with much longer generations, by dynamically choosing between a few preset group sizes under latency budgets instead of waiting for one fixed threshold?
+qst_0277: For the mid sized software company building outbound sales chat reps that trigger actions in email, calendar, and a CRM, what latency targets did they set for live token streaming and for the full message to action acknowledgement flow during their planned short evaluation?
+qst_0278: Our finance team is seeing totals in our accounting system come out a bit higher than what the payment processor exported, mostly when customers switch tiers in the middle of a billing period; what change should we make so each charge or credit line maps 1:1 and we stop the penny level rounding drift?
+qst_0279: What is the planned overnight time window in late March 2026 for rotating and rekeying the secrets used by automation accounts during a contractor to full time transition?
+qst_0280: In the rollout plan for the internal service that only hands out application secrets to verified runtime hosts using short lived machine health proofs and hardware backed key unwrapping, what is the default hot and cold retention period for the tamper resistant audit trail?
+qst_0281: In the GPU reservation proposal for a pharma company with nightly model scoring and some real time triage traffic, what was the estimated cache warmup cost expressed in token hours for the smallest configuration?
+qst_0282: During a traffic surge in the US East production cluster for a healthcare customer with dedicated capacity, why did conversations that were supposed to stay locked to a specific model version sometimes get served by an experimental fallback instead?
