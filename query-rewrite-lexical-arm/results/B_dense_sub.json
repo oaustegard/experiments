@@ -1,0 +1,93 @@
+{
+  "arm": "B_dense_sub",
+  "smoke_test": false,
+  "config": {
+    "encoder": "all-MiniLM-L6-v2",
+    "pooling": "mean",
+    "dim": 384,
+    "max_len": 256,
+    "chunk_words": 180,
+    "chunk_stride": 160,
+    "chunk_pool": 200,
+    "topk_docs": 10,
+    "n_docs": 103723,
+    "n_chunks": 386467,
+    "n_queries": 470,
+    "subcorpus": "subcorpus_20pct.json",
+    "reranker": null,
+    "mmr": null
+  },
+  "overall": {
+    "hit10": 53.19,
+    "hit1": 31.7,
+    "recall10": 47.91,
+    "mrr10": 38.68,
+    "ndcg10": 38.63
+  },
+  "by_type": {
+    "basic": {
+      "n": 175,
+      "hit10": 52.0,
+      "hit1": 26.86,
+      "recall10": 52.0,
+      "mrr10": 34.85,
+      "ndcg10": 38.95
+    },
+    "completeness": {
+      "n": 20,
+      "hit10": 75.0,
+      "hit1": 50.0,
+      "recall10": 31.14,
+      "mrr10": 57.67,
+      "ndcg10": 33.51
+    },
+    "conflicting_info": {
+      "n": 20,
+      "hit10": 70.0,
+      "hit1": 35.0,
+      "recall10": 62.5,
+      "mrr10": 47.04,
+      "ndcg10": 47.6
+    },
+    "constrained": {
+      "n": 30,
+      "hit10": 93.33,
+      "hit1": 70.0,
+      "recall10": 83.33,
+      "mrr10": 78.42,
+      "ndcg10": 74.54
+    },
+    "intra_document_reasoning": {
+      "n": 40,
+      "hit10": 50.0,
+      "hit1": 35.0,
+      "recall10": 50.0,
+      "mrr10": 40.17,
+      "ndcg10": 42.52
+    },
+    "miscellaneous": {
+      "n": 20,
+      "hit10": 90.0,
+      "hit1": 70.0,
+      "recall10": 90.0,
+      "mrr10": 75.3,
+      "ndcg10": 78.76
+    },
+    "project_related": {
+      "n": 40,
+      "hit10": 92.5,
+      "hit1": 62.5,
+      "recall10": 63.57,
+      "mrr10": 73.65,
+      "ndcg10": 59.16
+    },
+    "semantic": {
+      "n": 125,
+      "hit10": 21.6,
+      "hit1": 8.8,
+      "recall10": 21.6,
+      "mrr10": 12.6,
+      "ndcg10": 14.71
+    }
+  }
+}
