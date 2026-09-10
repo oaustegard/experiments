@@ -65,3 +65,14 @@ Recorded because the deviation it forced is material: arm B runs
 `all-MiniLM-L6-v2` at 45.3 chunks/s on a 20% subcorpus, the anchor to their
 39.22 BGE baseline is not claimed, and `PLAN.md` pre-registered that outcome as
 invalidating the external comparison only.
+
+## 5. Two arrows rewritten as "to" in one rewrite batch
+
+**Direction: negligible, and disclosed rather than found later.**
+
+The subagent generating S4 rewrites for questions `qst_0377`-`qst_0423` replaced
+the arrow in `SLO→customer impact`, `eu-west→us-east` and `Usage → Ad-hoc Query`
+with the word "to", for JSON cleanliness. The analyzer strips non-word
+characters anyway, so the arrow never reached either index, but the rewrite file
+is the arm's input and the substitution is recorded here rather than left to be
+noticed in a diff.

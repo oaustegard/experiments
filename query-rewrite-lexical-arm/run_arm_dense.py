@@ -74,6 +74,8 @@ if __name__ == "__main__":
     ap.add_argument("--name", default="B_dense")
     ap.add_argument("--queries-json", dest="queries_json", default="", help="qid->text overrides")
     ap.add_argument("--subcorpus", default="")
+    ap.add_argument("--vecs-tag", dest="vecs_tag", default="",
+                    help="reuse another run's cached embeddings (same corpus and chunking)")
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--batch", type=int, default=16)
     a = ap.parse_args()
@@ -126,8 +128,9 @@ if __name__ == "__main__":
     log(f"chunks: {n} ({n/N:.2f} per doc)")
 
     enc = Encoder(a.threads)
-    vpath = f"{WORK}/{tag}.vecs.f16.npy"
-    ppath = f"{WORK}/{tag}.progress"
+    vtag = a.vecs_tag or tag
+    vpath = f"{WORK}/{vtag}.vecs.f16.npy"
+    ppath = f"{WORK}/{vtag}.progress"
     if os.path.exists(vpath) and os.path.exists(ppath):
         vecs = np.lib.format.open_memmap(vpath, mode="r+")
         start = int(open(ppath).read().strip())
