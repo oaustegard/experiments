@@ -102,7 +102,25 @@ def render():
 
 
 if __name__ == "__main__":
-    for k, v in render().items():
-        print(f"<!-- TABLE:{k} -->")
-        print(v)
-        print()
+    import sys
+    if "--inject" in sys.argv:
+        print(f"injected {inject()} table spans into RESULTS.md")
+    else:
+        for k, v in render().items():
+            print(f"<!-- TABLE:{k} -->")
+            print(v)
+            print(f"<!-- /TABLE:{k} -->")
+            print()
+
+
+def inject(path="RESULTS.md"):
+    """Replace each <!-- TABLE:X --> ... <!-- /TABLE:X --> span with a fresh table."""
+    import re
+    md = open(path).read()
+    n = 0
+    for name, block in render().items():
+        pat = re.compile(rf"(<!-- TABLE:{name} -->\n).*?(\n<!-- /TABLE:{name} -->)", re.S)
+        md, k = pat.subn(lambda m: m.group(1) + block + m.group(2), md)
+        n += k
+    open(path, "w").write(md)
+    return n

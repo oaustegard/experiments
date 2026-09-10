@@ -43,6 +43,9 @@ if __name__ == "__main__":
     ap.add_argument("--words", type=int, default=380)
     ap.add_argument("--stride", type=int, default=340)
     ap.add_argument("--name", default="A1_chunked")
+    ap.add_argument("--collapse", choices=["docs","chunks"], default="docs",
+                    help="docs: pool 200 chunks then take 10 distinct documents. "
+                         "chunks: take the top 10 chunks and keep whatever documents they land on")
     ap.add_argument("--queries-json", dest="queries_json", default="", help="qid->text overrides")
     ap.add_argument("--subcorpus", default="", help="json list of doc_ids to keep")
     a = ap.parse_args()
@@ -99,20 +102,30 @@ if __name__ == "__main__":
     an = BS.Analyzer(STEMMER)
     t0 = time.time()
     mat, vocab = BS.build(stream, n_chunks, an, log=log)
-    log("retrieving ...")
-    idx, sc = BS.retrieve(mat, vocab, [x["text"] for x in queries], an, k=CHUNK_POOL)
+    log(f"retrieving (collapse={a.collapse}) ...")
+    k_units = CHUNK_POOL if a.collapse == "docs" else TOPK_DOCS
+    idx, sc = BS.retrieve(mat, vocab, [x["text"] for x in queries], an, k=k_units)
 
     rows = []
     for i, qq in enumerate(queries):
-        best = {}
-        for j, s in zip(idx[i], sc[i]):
-            d = int(owner[int(j)])
-            if s > best.get(d, -1e9):
-                best[d] = float(s)
-        order = sorted(best, key=lambda d: -best[d])[:TOPK_DOCS]
+        if a.collapse == "chunks":
+            order, seen = [], set()
+            for j in idx[i]:                      # top-10 chunks, in rank order
+                d = int(owner[int(j)])
+                if d not in seen:
+                    seen.add(d); order.append(d)
+            scores = [float(s) for s in sc[i][:len(order)]]
+        else:
+            best = {}
+            for j, s in zip(idx[i], sc[i]):
+                d = int(owner[int(j)])
+                if s > best.get(d, -1e9):
+                    best[d] = float(s)
+            order = sorted(best, key=lambda d: -best[d])[:TOPK_DOCS]
+            scores = [best[d] for d in order]
         ranked = [doc_ids[d] for d in order]
         rows.append(dict(qid=qq["qid"], qtype=qq["qtype"], ranked=ranked,
-                         scores=[best[d] for d in order], gold=qq["gold"],
+                         scores=scores, gold=qq["gold"],
                          **metrics(ranked, qq["gold"])))
     secs = round(time.time() - t0, 1)
 
@@ -122,7 +135,8 @@ if __name__ == "__main__":
                            chunk_words=W, chunk_stride=S, chunk_pool=CHUNK_POOL,
                            topk_docs=TOPK_DOCS, n_docs=N, n_chunks=n_chunks,
                            n_queries=len(queries), vocab=len(vocab), nnz=int(mat.nnz),
-                           subcorpus=os.path.basename(a.subcorpus) or None),
+                           subcorpus=os.path.basename(a.subcorpus) or None,
+                           collapse=a.collapse),
                overall=agg(rows),
                by_type={t: dict(n=sum(1 for r in rows if r["qtype"] == t),
                                 **agg([r for r in rows if r["qtype"] == t]))
