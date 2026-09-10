@@ -1,0 +1,661 @@
+<title>Procedural Lion</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { height: 100%; }
+  body { margin: 0; background: #000; overflow: hidden; }
+  #stage { position: fixed; inset: 0; display: grid; place-items: center; }
+  canvas { display: block; touch-action: none; }
+  #hint {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    font: 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .12em; text-transform: uppercase; color: #6b6257;
+    pointer-events: none; transition: opacity 1.2s ease; opacity: 1;
+  }
+  #hint.gone { opacity: 0; }
+</style>
+
+<div id="stage"><canvas id="c"></canvas></div>
+<div id="hint">drag to orbit · scroll to zoom</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ------------------------------------------------------------------ *
+ * Palette
+ * ------------------------------------------------------------------ */
+const PAL = {
+  fur:       0xE9BA79,
+  furWarm:   0xE7AE66,
+  cream:     0xF7E2C0,
+  maneLight: 0xF3CE96,
+  maneMid:   0xC9722F,
+  maneDeep:  0x8E3F16,
+  maneDark:  0x4E2010,
+  nose:      0xA85C34,
+  dark:      0x35190A,
+  iris:      0x6E3A16,
+};
+
+/* deterministic RNG so the pose is identical on every load */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(20260910);
+const DENSITY = innerWidth < 700 ? 0.55 : 1;      // keep phones honest
+const N = (n) => Math.round(n * DENSITY);
+const rr = (a, b) => a + (b - a) * rand();
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+/* ------------------------------------------------------------------ *
+ * Renderer / scene / camera
+ * ------------------------------------------------------------------ */
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+camera.position.set(-4.25, 1.95, 7.55);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0, 1.42, 0.10);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 3.5;
+controls.maxDistance = 18;
+controls.enablePan = false;
+
+/* ------------------------------------------------------------------ *
+ * Lights — soft studio key from front-left, warm rim, cool fill
+ * ------------------------------------------------------------------ */
+/* a small warm gradient sky, used only as the environment: it gives the plush
+   surfaces their soft falloff without lifting the black background */
+{
+  const c = document.createElement('canvas');
+  c.width = 16; c.height = 64;
+  const g = c.getContext('2d').createLinearGradient(0, 0, 0, 64);
+  g.addColorStop(0.00, '#5a3a20');
+  g.addColorStop(0.45, '#2a1a0e');
+  g.addColorStop(0.75, '#120a05');
+  g.addColorStop(1.00, '#080503');
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 16, 64);
+  const tex = new THREE.CanvasTexture(c);
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  scene.environment = tex;
+}
+
+const key = new THREE.DirectionalLight(0xfff3e2, 1.85);
+key.position.set(-6.0, 5.4, 3.4);
+scene.add(key);
+
+// the hot edge along the back and the right side of the mane
+const rim = new THREE.DirectionalLight(0xffb765, 1.55);
+rim.position.set(5.5, 2.6, -4.4);
+scene.add(rim);
+
+const fill = new THREE.DirectionalLight(0xffd9b0, 0.22);
+fill.position.set(4.5, 0.5, 4.5);
+scene.add(fill);
+
+const bounce = new THREE.PointLight(0xffc07a, 0.55, 8, 2);
+bounce.position.set(-1.6, -0.4, 2.6);
+scene.add(bounce);
+
+/* ------------------------------------------------------------------ *
+ * Materials
+ * ------------------------------------------------------------------ */
+const furMat = new THREE.MeshPhysicalMaterial({
+  color: PAL.fur, roughness: 0.92, metalness: 0,
+  sheen: 1, sheenRoughness: 0.75, sheenColor: new THREE.Color(0xffd9a5),
+});
+const creamMat = new THREE.MeshPhysicalMaterial({
+  color: PAL.cream, roughness: 0.88, metalness: 0,
+  sheen: 1, sheenRoughness: 0.7, sheenColor: new THREE.Color(0xfff0dc),
+});
+const pawMat = new THREE.MeshPhysicalMaterial({
+  color: 0xEFCE9C, roughness: 0.9, metalness: 0,
+  sheen: 1, sheenRoughness: 0.75, sheenColor: new THREE.Color(0xffe6bd),
+});
+const hairMat = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff, vertexColors: true, roughness: 0.52, metalness: 0,
+  sheen: 0.3, sheenRoughness: 0.45, sheenColor: new THREE.Color(0xffcf90),
+});
+const shellMat = new THREE.MeshStandardMaterial({ color: 0x5B2A18, roughness: 0.95 });
+const noseMat = new THREE.MeshPhysicalMaterial({
+  color: PAL.nose, roughness: 0.35, metalness: 0, clearcoat: 0.6,
+});
+const darkMat = new THREE.MeshStandardMaterial({ color: PAL.dark, roughness: 0.6 });
+const browMat = new THREE.MeshStandardMaterial({ color: 0x8E4A1E, roughness: 0.75 });
+const eyeWhiteMat = new THREE.MeshPhysicalMaterial({
+  color: 0xFFFBF4, roughness: 0.18, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.06,
+});
+const irisMat = new THREE.MeshPhysicalMaterial({
+  color: PAL.iris, roughness: 0.15, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.04,
+});
+const pupilMat = new THREE.MeshPhysicalMaterial({
+  color: 0x1A0C04, roughness: 0.1, metalness: 0, clearcoat: 1,
+});
+const glintMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const furHairMat = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff, vertexColors: true, roughness: 0.92, metalness: 0,
+  sheen: 1, sheenRoughness: 0.75, sheenColor: new THREE.Color(0xffd9a5),
+});
+
+const lion = new THREE.Group();
+scene.add(lion);
+
+const ball = (r, seg = 40) => new THREE.SphereGeometry(r, seg, seg * 0.6);
+
+function blob(mat, r, pos, scale, rot) {
+  const m = new THREE.Mesh(ball(r), mat);
+  m.position.set(...pos);
+  if (scale) m.scale.set(...scale);
+  if (rot) m.rotation.set(...rot);
+  return m;
+}
+
+/* ------------------------------------------------------------------ *
+ * Hair: tapered, slightly flattened tubes swept along a curve.
+ * Every strand lands in one merged buffer — one draw call for the mane.
+ * ------------------------------------------------------------------ */
+class HairBuilder {
+  constructor() { this.pos = []; this.nor = []; this.col = []; this.idx = []; this.v = 0; }
+
+  add(curve, { r0, r1, segs = 14, radial = 6, flat = 0.55, root, tip, taper = 0.65 }) {
+    const pts = curve.getSpacedPoints(segs);
+    const frames = curve.computeFrenetFrames(segs, false);
+    const c0 = new THREE.Color(root), c1 = new THREE.Color(tip), c = new THREE.Color();
+    const P = new THREE.Vector3(), N = new THREE.Vector3(), B = new THREE.Vector3();
+
+    for (let i = 0; i <= segs; i++) {
+      const t = i / segs;
+      const r = lerp(r0, r1, Math.pow(t, taper));
+      P.copy(pts[i]); N.copy(frames.normals[i]); B.copy(frames.binormals[i]);
+      c.copy(c0).lerp(c1, Math.pow(t, 0.8));
+      for (let j = 0; j <= radial; j++) {
+        const a = (j / radial) * Math.PI * 2;
+        const nx = Math.cos(a), ny = Math.sin(a) * flat;
+        const dx = N.x * nx + B.x * ny, dy = N.y * nx + B.y * ny, dz = N.z * nx + B.z * ny;
+        const l = Math.hypot(dx, dy, dz) || 1;
+        this.pos.push(P.x + dx * r, P.y + dy * r, P.z + dz * r);
+        this.nor.push(dx / l, dy / l, dz / l);
+        this.col.push(c.r, c.g, c.b);
+      }
+    }
+    const ring = radial + 1;
+    for (let i = 0; i < segs; i++) {
+      for (let j = 0; j < radial; j++) {
+        const a = this.v + i * ring + j, b = a + ring;
+        this.idx.push(a, b, a + 1, b, b + 1, a + 1);
+      }
+    }
+    this.v += (segs + 1) * ring;
+  }
+
+  build() {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
+    g.setIndex(this.idx);
+    return g;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Body, legs, tail
+ * ------------------------------------------------------------------ */
+const body = new THREE.Group();
+lion.add(body);
+
+body.add(blob(furMat, 1, [0, 1.31, -0.18], [0.63, 0.65, 1.00]));   // barrel
+body.add(blob(furMat, 1, [0, 1.28, -0.92], [0.64, 0.64, 0.58]));   // haunch mass
+body.add(blob(furMat, 1, [0, 1.33, 0.52], [0.60, 0.60, 0.54]));    // chest
+body.add(blob(furMat, 1, [0, 1.62, 0.78], [0.40, 0.42, 0.40]));    // neck root
+body.add(blob(pawMat, 1, [0, 1.02, 0.10], [0.42, 0.30, 0.72]));    // pale belly
+
+function leg({ top, knee, foot, r, rLow, pawZ }) {
+  const g = new THREE.Group();
+  const A = new THREE.Vector3(...top), B = new THREE.Vector3(...knee), C = new THREE.Vector3(...foot);
+  const hb = new HairBuilder();
+  hb.add(new THREE.CatmullRomCurve3([
+    A.clone().addScaledVector(B.clone().sub(A), -0.35), A,
+    A.clone().lerp(B, 0.55), B, B.clone().lerp(C, 0.5), C,
+  ]), { r0: r, r1: rLow, segs: 30, radial: 22, flat: 1, taper: 0.95,
+        root: PAL.fur, tip: PAL.fur });
+  g.add(new THREE.Mesh(hb.build(), furHairMat));
+  g.add(blob(furMat, r * 1.02, top));
+
+  // paw: rounded pad, three toes, two grooves between them
+  const paw = new THREE.Group();
+  paw.position.set(foot[0], 0.135, foot[2]);
+  paw.add(blob(pawMat, 1, [0, 0, pawZ * 0.28], [rLow * 1.34, 0.140, rLow * 1.90]));
+  for (let i = -1; i <= 1; i++) {
+    paw.add(blob(pawMat, 1,
+      [i * rLow * 0.88, -0.010, pawZ * (rLow * 1.46)],
+      [rLow * 0.54, 0.120, rLow * 0.64]));
+  }
+  {
+    const hb2 = new HairBuilder();
+    for (const sgn of [-1, 1]) {
+      const x = sgn * rLow * 0.44;
+      hb2.add(new THREE.CatmullRomCurve3([
+        new THREE.Vector3(x, 0.085, pawZ * rLow * 0.55),
+        new THREE.Vector3(x, 0.055, pawZ * rLow * 1.55),
+        new THREE.Vector3(x, -0.020, pawZ * rLow * 2.05),
+      ]), { r0: 0.014, r1: 0.010, segs: 12, radial: 6, flat: 1, taper: 1,
+             root: 0xC79A63, tip: 0xC79A63 });
+    }
+    paw.add(new THREE.Mesh(hb2.build(), hairMat.clone()));
+  }
+  g.add(paw);
+  return g;
+}
+
+// front pair (facing +Z), hind pair with a bent hock
+body.add(leg({ top: [-0.32, 1.22, 0.60], knee: [-0.35, 0.66, 0.66], foot: [-0.36, 0.16, 0.70], r: 0.31, rLow: 0.190, pawZ: 1 }));
+body.add(leg({ top: [0.30, 1.20, 0.58], knee: [0.34, 0.66, 0.62], foot: [0.35, 0.16, 0.66], r: 0.31, rLow: 0.190, pawZ: 1 }));
+body.add(leg({ top: [-0.36, 1.18, -0.92], knee: [-0.40, 0.62, -0.80], foot: [-0.41, 0.16, -0.86], r: 0.325, rLow: 0.200, pawZ: 1 }));
+body.add(leg({ top: [0.34, 1.16, -0.94], knee: [0.38, 0.62, -0.82], foot: [0.39, 0.16, -0.88], r: 0.325, rLow: 0.200, pawZ: 1 }));
+
+/* tail — sweeps back and out, then lifts; two tufts of fur on the way */
+const tailCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-0.05, 1.56, -1.05),
+  new THREE.Vector3(-0.50, 1.32, -1.38),
+  new THREE.Vector3(-0.92, 1.02, -1.62),
+  new THREE.Vector3(-1.26, 0.82, -1.80),
+  new THREE.Vector3(-1.52, 0.80, -1.93),
+]);
+{
+  const hb = new HairBuilder();
+  hb.add(tailCurve, { r0: 0.085, r1: 0.058, segs: 44, radial: 10, flat: 1,
+    root: PAL.fur, tip: PAL.furWarm, taper: 1 });
+  const tail = new THREE.Mesh(hb.build(), hairMat.clone());
+  body.add(tail);
+}
+
+/* fuzzy tuft: short strands radiating from a point */
+function tuft(center, radius, count, colA, colB, squash = 1) {
+  const hb = new HairBuilder();
+  const C = new THREE.Vector3(...center);
+  for (let i = 0; i < count; i++) {
+    const u = rand() * 2 - 1, a = rand() * Math.PI * 2, s = Math.sqrt(1 - u * u);
+    const d = new THREE.Vector3(s * Math.cos(a), u * squash, s * Math.sin(a)).normalize();
+    const L = radius * rr(0.90, 1.15);
+    const curve = new THREE.CatmullRomCurve3([
+      C.clone().add(d.clone().multiplyScalar(radius * 0.12)),
+      C.clone().add(d.clone().multiplyScalar(L * 0.55)).add(new THREE.Vector3(0, -L * 0.06, 0)),
+      C.clone().add(d.clone().multiplyScalar(L)).add(new THREE.Vector3(rr(-0.03, 0.03), -L * 0.16, rr(-0.03, 0.03))),
+    ]);
+    hb.add(curve, { r0: radius * 0.20, r1: radius * 0.03, segs: 6, radial: 5, flat: 0.7,
+      root: colA, tip: colB, taper: 0.8 });
+  }
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(hb.build(), hairMat.clone()));
+  g.add(blob(new THREE.MeshStandardMaterial({ color: colA, roughness: 0.9 }), radius * 0.55,
+    center, [1, squash, 1]));
+  return g;
+}
+// one tuft, at the tip. The reference has a second ball at the bend; that is
+// an artifact of the generated source, not lion anatomy.
+body.add(tuft([-1.63, 0.80, -1.98], 0.30, N(560), PAL.maneLight, PAL.maneDeep));
+
+/* ------------------------------------------------------------------ *
+ * Head
+ * ------------------------------------------------------------------ */
+/* head + mane ride in one group, scaled down together so the legs read long
+   enough — the reference silhouette is roughly 4 skull-heights tall */
+const crown = new THREE.Group();
+const CROWN_S = 0.88;
+lion.add(crown);
+
+const head = new THREE.Group();
+head.scale.setScalar(1.13);
+head.position.set(0, 2.06, 0.86);
+head.rotation.set(0.04, -0.36, 0.03);   // turned toward the camera, chin up a touch
+crown.add(head);
+crown.scale.setScalar(CROWN_S);
+crown.position.copy(head.position).multiplyScalar(1 - CROWN_S);
+
+const SK = 0.50;                                  // skull radius
+head.add(blob(furMat, SK, [0, 0, 0], [1.0, 0.95, 0.94]));
+head.add(blob(furMat, 1, [0, -0.14, 0.16], [0.42, 0.35, 0.30]));   // cheeks
+
+// pale patches the eyes sit in
+for (const s of [-1, 1]) head.add(blob(pawMat, 1, [s * 0.215, 0.150, 0.285], [0.220, 0.190, 0.115]));
+
+/* snout: a golden bridge over pale pads, with the nose out at the tip.
+   snoutZ() puts the mouth, freckles and whiskers on the pads' real surface. */
+const SN = { y: -0.155, z: 0.370, a: 0.300, b: 0.205, c: 0.265 };
+const snoutZ = (x, y) => SN.z + SN.c *
+  Math.sqrt(Math.max(0, 1 - (x / SN.a) ** 2 - ((y - SN.y) / SN.b) ** 2));
+
+head.add(blob(furMat, 1, [0, -0.010, 0.345], [0.200, 0.180, 0.250]));    // bridge
+head.add(blob(creamMat, 1, [0, SN.y, SN.z], [SN.a, SN.b, SN.c]));        // muzzle pads
+head.add(blob(creamMat, 1, [0, -0.335, 0.245], [0.245, 0.170, 0.230]));  // chin
+
+// nose at the tip of the bridge
+head.add(blob(noseMat, 1, [0, -0.015, 0.570], [0.122, 0.094, 0.092]));
+head.add(blob(noseMat, 1, [0, -0.070, 0.575], [0.085, 0.062, 0.080]));
+for (const s of [-1, 1]) head.add(blob(darkMat, 1, [s * 0.058, -0.018, 0.645], [0.020, 0.026, 0.018]));
+
+// smile, sampled along the pads so it sits in the fur rather than in front of it
+{
+  const hb = new HairBuilder();
+  const pts = [];
+  for (let i = 0; i <= 10; i++) {
+    const x = lerp(-0.268, 0.268, i / 10);
+    const y = -0.268 + 0.128 * Math.pow(Math.abs(x) / 0.268, 1.9);
+    pts.push(new THREE.Vector3(x, y, snoutZ(x, y) + 0.006));
+  }
+  hb.add(new THREE.CatmullRomCurve3(pts), { r0: 0.021, r1: 0.021, segs: 34, radial: 8,
+    flat: 1, root: PAL.dark, tip: PAL.dark, taper: 1 });
+
+  const ph = [];                                   // philtrum, nose down to the smile
+  for (let i = 0; i <= 4; i++) {
+    const y = lerp(-0.125, -0.250, i / 4);
+    ph.push(new THREE.Vector3(0, y, snoutZ(0, y) + 0.006));
+  }
+  hb.add(new THREE.CatmullRomCurve3(ph), { r0: 0.010, r1: 0.010, segs: 10, radial: 6,
+    flat: 1, root: PAL.dark, tip: PAL.dark, taper: 1 });
+  head.add(new THREE.Mesh(hb.build(), hairMat.clone()));
+
+  head.add(blob(darkMat, 1, [0.140, -0.222, snoutZ(0.140, -0.222) - 0.028],
+    [0.070, 0.038, 0.050]));                       // the smile opens on his left
+}
+
+// freckle dots
+{
+  const dot = new THREE.MeshStandardMaterial({ color: 0xB07A4C, roughness: 0.85 });
+  for (const s of [-1, 1]) {
+    for (let i = 0; i < 3; i++) {
+      const x = s * (0.105 + (i % 2) * 0.060), y = -0.090 - i * 0.050;
+      head.add(blob(dot, 1, [x, y, snoutZ(x, y) + 0.001], [0.015, 0.012, 0.007]));
+    }
+  }
+}
+
+// whiskers
+{
+  const hb = new HairBuilder();
+  for (const s of [-1, 1]) {
+    for (let i = 0; i < 3; i++) {
+      const y = -0.070 - i * 0.055, x = s * 0.250;
+      const a = new THREE.Vector3(x, y, snoutZ(x, y));
+      const b = new THREE.Vector3(s * 0.42, y + 0.075 - i * 0.04, 0.42);
+      const c = new THREE.Vector3(s * 0.58, y + 0.105 - i * 0.085, 0.34);
+      hb.add(new THREE.CatmullRomCurve3([a, b, c]),
+        { r0: 0.007, r1: 0.002, segs: 10, radial: 4, flat: 1,
+          root: 0xFFF6E8, tip: 0xE8CBA6, taper: 0.9 });
+    }
+  }
+  head.add(new THREE.Mesh(hb.build(), hairMat.clone()));
+}
+
+
+/* eyes — almond, tilted, with a dark upper lash line. The group is oriented
+   along the surface normal so iris, pupil and glint stack cleanly in front. */
+function eye(sx) {
+  const g = new THREE.Group();
+  const p = new THREE.Vector3(sx * 0.218, 0.150, 0.345);
+  g.position.copy(p);
+  g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), p.clone().normalize());
+  g.rotateZ(sx * -0.20);                            // outer corner rides higher
+
+  g.add(blob(eyeWhiteMat, 0.140, [0, 0, 0], [1, 0.88, 0.74]));
+  g.add(blob(irisMat, 0.098, [0, -0.008, 0.070], [1, 1, 0.42]));
+  g.add(blob(pupilMat, 0.053, [0, -0.010, 0.092], [1, 1.05, 0.40]));
+  g.add(blob(glintMat, 0.026, [-sx * 0.030, 0.040, 0.100]));
+  g.add(blob(glintMat, 0.011, [sx * 0.036, -0.042, 0.098]));
+
+  const hb = new HairBuilder();                     // lash line over the top lid
+  const pts = [];
+  for (let i = 0; i <= 8; i++) {
+    const a = lerp(Math.PI * 0.06, Math.PI * 0.94, i / 8);
+    pts.push(new THREE.Vector3(Math.cos(a) * 0.142, Math.sin(a) * 0.124, 0.030));
+  }
+  hb.add(new THREE.CatmullRomCurve3(pts), { r0: 0.014, r1: 0.014, segs: 20, radial: 6,
+    flat: 1, root: 0x4A2410, tip: 0x4A2410, taper: 1 });
+  g.add(new THREE.Mesh(hb.build(), hairMat.clone()));
+  return g;
+}
+head.add(eye(-1));
+head.add(eye(1));
+
+// brows — short strokes of hair rather than one bar
+{
+  const hb = new HairBuilder();
+  for (const s of [-1, 1]) {
+    for (let i = 0; i < 9; i++) {
+      const t = i / 8;
+      const x = s * lerp(0.105, 0.335, t);
+      const y = 0.300 + t * 0.075;
+      const z = 0.395 - t * 0.145;
+      const a = new THREE.Vector3(x, y, z);
+      const b = new THREE.Vector3(x + s * 0.045, y + 0.045, z - 0.030);
+      hb.add(new THREE.CatmullRomCurve3([a, b]), {
+        r0: 0.024, r1: 0.006, segs: 6, radial: 5, flat: 0.6, taper: 0.9,
+        root: 0x9A5426, tip: 0x6E3612,
+      });
+    }
+  }
+  head.add(new THREE.Mesh(hb.build(), hairMat.clone()));
+}
+
+
+// ears, mostly buried in the mane
+for (const s of [-1, 1]) {
+  head.add(blob(furMat, 1, [s * 0.44, 0.33, -0.06], [0.10, 0.155, 0.145], [0, 0, s * 0.3]));
+}
+
+/* ------------------------------------------------------------------ *
+ * Mane — a shell so no gaps read through, then locks, then fine strands
+ * ------------------------------------------------------------------ */
+const FACE = new THREE.Vector3(Math.sin(-0.36), -0.10, Math.cos(-0.36)).normalize();
+const HEAD_C = head.position.clone();
+const MC = HEAD_C.clone().addScaledVector(FACE, -0.34);   // mane centre, behind the face
+const MR = new THREE.Vector3(0.70, 0.72, 0.68);           // root shell radii
+const UP = new THREE.Vector3(0, 1, 0);
+const FACE_UP = UP.clone().projectOnPlane(FACE).normalize();
+const BACK = FACE.clone().negate();
+const JAW_Y = HEAD_C.y - 0.33;      // hair rooted below this is chest ruff
+const MANE_FLOOR = 1.08;            // where the mane's bottom edge lands
+
+/* the mane opening: a cone around the face, opened wider underneath so the
+   muzzle and jaw stay clear and the chest ruff starts below the chin */
+function inFaceHole(d) {
+  const u = d.dot(FACE_UP);
+  const theta = u >= 0 ? lerp(0.90, 0.62, clamp(u / 0.8, 0, 1))
+                       : lerp(0.90, 1.15, clamp(-u / 0.7, 0, 1));
+  return d.dot(FACE) > Math.cos(theta);
+}
+
+{
+  const prof = [[0.05, 0.76], [0.34, 0.62], [0.60, 0.40], [0.74, 0.10], [0.77, -0.20],
+                [0.72, -0.48], [0.60, -0.72], [0.44, -0.90], [0.24, -0.99]]
+    .map(([r, y]) => new THREE.Vector2(r, y));
+  const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 64), shellMat);
+  body.position.copy(MC);
+  crown.add(body);
+}
+
+/* how far a strand rooted in direction d hangs: long at the sides and front,
+   short over the crown and under the jaw */
+function maneLength(d) {
+  const f = d.dot(FACE);                                   // +1 face, -1 nape
+  let len = 1.05;
+  if (d.y > 0.05) len *= lerp(1.0, 0.42, clamp((d.y - 0.05) / 0.95, 0, 1));
+  if (d.y < -0.25) {                                       // trim under the jaw,
+    const back = clamp((0.25 - f) / 1.25, 0, 1);           // but keep the chest ruff long
+    len *= lerp(1.0, lerp(0.95, 0.40, back), clamp((-0.25 - d.y) / 0.75, 0, 1));
+  }
+  if (f < -0.35) len *= 0.80;
+  return len;
+}
+
+/* combed hair catches the light in bands, not as uniform noise: a few slow
+   cycles around the head, biased toward the lit side and the crown */
+function maneTone(d) {
+  const lift = clamp((d.y + 0.7) / 1.7, 0, 1);
+  const lightSide = clamp(-d.x * 0.55 + d.z * 0.40 + 0.5, 0, 1);
+  const az = Math.atan2(d.x, d.z);
+  const band = 0.5 + 0.5 * Math.sin(az * 6.5 + d.y * 2.2);
+  return clamp(lift * 0.34 + lightSide * 0.34 + band * 0.32 + rr(-0.16, 0.16), 0, 1);
+}
+
+/* deep -> mid -> light, so only the top of the tonal band goes golden */
+function maneRamp(tone) {
+  const c = new THREE.Color(PAL.maneDeep).lerp(new THREE.Color(PAL.maneMid), clamp(tone * 2, 0, 1));
+  return c.lerp(new THREE.Color(PAL.maneLight), Math.pow(clamp(tone * 2 - 1, 0, 1), 1.4));
+}
+
+function maneStrands(count, opts) {
+  const hb = new HairBuilder();
+  let made = 0, tries = 0;
+  while (made < count && tries < count * 14) {
+    tries++;
+    const u = rand() * 2 - 1, a = rand() * Math.PI * 2, s = Math.sqrt(1 - u * u);
+    const d = new THREE.Vector3(s * Math.cos(a), u, s * Math.sin(a));
+    const root = new THREE.Vector3(d.x * MR.x, d.y * MR.y, d.z * MR.z)
+      .multiplyScalar(opts.layer).add(MC);
+    if (root.y > JAW_Y && inFaceHole(d)) continue;   // clear over the face only
+    made++;
+
+    let L = maneLength(d) * rr(0.90, 1.09) * opts.lenScale;
+    const f = d.dot(FACE);
+    const nape = clamp((-0.25 - f) / 0.9, 0, 1);
+    const floorY = MANE_FLOOR + nape * 0.30 - clamp(f, 0, 1) * 0.14 + rr(-0.13, 0.13);
+    if (root.y - L < floorY) L = Math.max(0.22, root.y - floorY);
+    const thin = clamp(L / 0.85, 0.42, 1);
+
+    const combBack = clamp((d.y - 0.10) / 0.65, 0, 1) * clamp(d.dot(FACE) + 0.4, 0, 1);
+    const out = d.clone().setY(d.y * 0.35).normalize()
+      .lerp(BACK, 0.72 * combBack).normalize();              // combs down and back, not out
+    const drift = new THREE.Vector3(rr(-0.10, 0.10), 0, rr(-0.10, 0.10));
+    const wave = new THREE.Vector3(-out.z, 0, out.x).multiplyScalar(rr(-0.075, 0.075));
+    const p1 = root.clone().addScaledVector(out, L * 0.32).addScaledVector(UP, -L * 0.16);
+    const p2 = root.clone().addScaledVector(out, L * 0.46).addScaledVector(UP, -L * 0.55).add(drift.clone().multiplyScalar(0.5)).add(wave);
+    const p3 = root.clone().addScaledVector(out, L * 0.30).addScaledVector(UP, -L * 0.96).add(drift);
+    const curve = new THREE.CatmullRomCurve3([root, p1, p2, p3]);
+
+    const tone = maneTone(d);
+    const rootCol = maneRamp(tone);
+    const low = clamp((1.95 - (root.y - L)) / 0.85, 0, 1);
+    const tipCol = new THREE.Color(PAL.maneDark).lerp(new THREE.Color(PAL.maneMid), tone * 0.62)
+      .lerp(new THREE.Color(PAL.maneDark), low * 0.45);
+
+    hb.add(curve, {
+      r0: opts.r0 * thin * rr(0.82, 1.18), r1: opts.r1 * thin, segs: opts.segs, radial: opts.radial,
+      flat: opts.flat, root: rootCol, tip: tipCol, taper: 1.25,
+    });
+  }
+  return new THREE.Mesh(hb.build(), hairMat.clone());
+}
+
+// three overlapping layers: inner filler, broad locks, fine surface strands
+crown.add(maneStrands(N(400), { r0: 0.140, r1: 0.026, segs: 18, radial: 6, flat: 0.28, lenScale: 0.84, layer: 0.88 }));
+crown.add(maneStrands(N(620), { r0: 0.108, r1: 0.016, segs: 18, radial: 6, flat: 0.26, lenScale: 0.98, layer: 0.99 }));
+crown.add(maneStrands(N(520), { r0: 0.046, r1: 0.006, segs: 18, radial: 5, flat: 0.45, lenScale: 1.05, layer: 1.05 }));
+crown.add(maneStrands(N(900), { r0: 0.019, r1: 0.003, segs: 18, radial: 4, flat: 0.7, lenScale: 1.07, layer: 1.08 }));
+
+/* crown swoosh — hair off the forehead, lifting and sweeping back */
+{
+  const hb = new HairBuilder();
+  for (let i = 0; i < N(240); i++) {
+    const t = rand();
+    const spread = rr(-0.58, 0.58);
+    const d = new THREE.Vector3(spread, lerp(0.58, 0.99, t), lerp(0.76, 0.05, t)).normalize();
+    const root = new THREE.Vector3(d.x * MR.x, d.y * MR.y, d.z * MR.z).multiplyScalar(1.02).add(MC);
+    const L = rr(0.26, 0.46);
+    const back = new THREE.Vector3(spread * 0.6, 0, -1).normalize();
+    const p1 = root.clone().addScaledVector(UP, L * 0.62).addScaledVector(back, L * 0.20);
+    const p2 = root.clone().addScaledVector(UP, L * 0.86).addScaledVector(back, L * 0.80);
+    const p3 = root.clone().addScaledVector(UP, L * 0.58).addScaledVector(back, L * 1.55);
+    const dark = Math.abs(spread) < 0.20;                    // dark streak up the middle
+    const rootCol = dark ? new THREE.Color(PAL.maneDark).lerp(new THREE.Color(PAL.maneDeep), 0.5)
+      : maneRamp(rr(0.35, 1));
+    const tipCol = dark ? new THREE.Color(PAL.maneDark) : new THREE.Color(PAL.maneDeep);
+    hb.add(new THREE.CatmullRomCurve3([root, p1, p2, p3]), {
+      r0: rr(0.075, 0.150), r1: 0.012, segs: 14, radial: 6, flat: 0.30,
+      root: rootCol, tip: tipCol, taper: 0.7,
+    });
+  }
+  crown.add(new THREE.Mesh(hb.build(), hairMat.clone()));
+}
+
+/* chest ruff — rooted on the throat itself, so the hair under the chin meets
+   the side curtains instead of leaving the chest bare */
+{
+  const hb = new HairBuilder();
+  const HEM = 1.19;
+  for (let i = 0; i < N(340); i++) {
+    const a = rr(-1.75, 1.75);                       // around the throat, 0 = front
+    const t = Math.pow(rand(), 0.7);
+    const y = lerp(1.80, 1.42, t);
+    const rx = lerp(0.40, 0.68, t), rz = lerp(0.40, 0.62, t);
+    const root = new THREE.Vector3(Math.sin(a) * rx, y, 0.55 + Math.cos(a) * rz);
+    const out = new THREE.Vector3(Math.sin(a), 0, Math.cos(a)).normalize();
+    const L = Math.max(0.22, y - (HEM + rr(-0.10, 0.10)));
+    const p1 = root.clone().addScaledVector(out, L * 0.22).addScaledVector(UP, -L * 0.30);
+    const p2 = root.clone().addScaledVector(out, L * 0.30).addScaledVector(UP, -L * 0.66);
+    const p3 = root.clone().addScaledVector(out, L * 0.26).addScaledVector(UP, -L * 0.98)
+      .add(new THREE.Vector3(rr(-0.05, 0.05), 0, rr(-0.05, 0.05)));
+    const tone = clamp(0.35 + Math.cos(a) * 0.25 + rr(-0.12, 0.12), 0, 1);
+    const thin = clamp(L / 0.70, 0.45, 1);
+    hb.add(new THREE.CatmullRomCurve3([root, p1, p2, p3]), {
+      r0: (i % 3 ? 0.085 : 0.038) * thin * rr(0.85, 1.15),
+      r1: 0.010 * thin, segs: 14, radial: 6, flat: i % 3 ? 0.30 : 0.55, taper: 1.25,
+      root: maneRamp(tone * 0.85),
+      tip: new THREE.Color(PAL.maneDark).lerp(new THREE.Color(PAL.maneMid), tone * 0.5),
+    });
+  }
+  lion.add(new THREE.Mesh(hb.build(), hairMat.clone()));
+}
+
+/* ------------------------------------------------------------------ *
+ * Frame, resize, loop
+ * ------------------------------------------------------------------ */
+function resize() {
+  const s = Math.min(innerWidth, innerHeight);
+  renderer.setSize(s, s, false);
+  camera.aspect = 1;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+
+const clock = new THREE.Clock();
+function tick() {
+  const t = clock.getElapsedTime();
+  body.scale.setScalar(1 + Math.sin(t * 1.1) * 0.004);       // breathing
+  head.position.y = 2.06 + Math.sin(t * 1.1 + 0.6) * 0.008;
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+tick();
+
+setTimeout(() => document.getElementById('hint').classList.add('gone'), 4200);
+</script>
