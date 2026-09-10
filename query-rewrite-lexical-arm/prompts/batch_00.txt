@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0001: What are the default size limits for file uploads and total request size for the new multipart upload support on the OpenAI-compatible API endpoints?
+qst_0002: What is the name of the new metric added so SRE can track when server-side streaming sessions get finalized due to hitting the time limit?
+qst_0003: What are the acceptance criteria for the project introducing an algorithm to generate interactive UI color states and a Kappa-style elevation scale for dense table and grid components?
+qst_0004: In the meeting about onboarding a SaaS product to Google Cloud Marketplace, what did the GCP team recommend for handling delays where a new subscription entitlement is not immediately available during the customer onboarding flow?
+qst_0005: What failover sequence and recovery targets did MedThink specify for handling an EU region outage, including any limits on how long traffic can shift to the US?
+qst_0006: In the draft spec about extending a routing policy engine for automated regional failover, what is the proposed priority order for evaluating different failure signals when deciding whether to shift traffic or fail over?
+qst_0007: In a rolling investigation of a model regression on policy-related prompts after a recent deploy, what was the average triage rubric score change between the older baseline build and the newer optimized build in the first comparison run?
+qst_0008: In the internal shiproom runner notes, what is the target time-to-recover threshold for a verified rollback in staging?
+qst_0009: In the EdgePath evaluation email thread, what alternative Year 1 pricing package did Redwood propose instead of matching the competitor's 50 percent first-year discount and migration credit?
+qst_0010: How does the new alerting approach group model-serving requests by the stages they pass through to reduce noisy alerts and speed up root cause analysis?
+qst_0011: How long is the validity period for the telemetry driven runbook author certification from the operator training bootcamp?
+qst_0012: What was identified as the root cause of the intermittent VPN connectivity blackholes and duplicate IP warnings for users on the corporate Wi-Fi in the SF2 building behind a specific edge switch?
+qst_0013: What is the recommended two-stage process for rotating the signing credentials used by GPU image build and promotion pipelines, including how to cut over safely and roll back if something goes wrong?
+qst_0014: In the on-prem private upgrade deep dive with an air-gapped healthcare customer, what did they describe as their current rollback approach when an upgrade goes wrong?
+qst_0015: What was the high-percentile latency concern reported after a smoke test of about 50 concurrent streaming chat sessions for Satellite Grove?
+qst_0016: What is the company policy for how long contractor access should last by default before it expires, according to the access and permissions playbook?
+qst_0017: What service credit percentages were proposed in the tiered uptime SLA counteroffer for the maritime logistics SaaS customer using dedicated GPU capacity?
+qst_0018: In the incident writeup about KV cache ghost entries causing gradual memory growth and OOM during a surge, what metric name was added for counting when the sanitizer finds negative refcounts?
+qst_0019: After a recent network change at the SoMa office, users on corporate WiFi saw VPN access to an internal 10.11.x service fail and SSO logins time out because an office bridge was translating client addresses. What device mode misconfiguration caused the source IP rewrite?
+qst_0020: In the recent update to the chat completions compatibility adapter, how does the parameter normalizer handle a client sending max_tokens as null compared to leaving it out entirely?
+qst_0021: What is the expected turnaround time for security to approve access to a high risk internal tool role in Redwood's tool access governance process?
+qst_0022: What is the recommended liability cap language in the procurement legal triage SOP for vendor contracts (including the key exceptions and how the cap amount is determined)?
+qst_0023: In the customer docs plan for the opt-in quantization profile feature, what are the review roles required before the documentation can be merged?
+qst_0024: What is the default time limit for automatically expiring guest or contractor accounts in the plan to set up a temporary contractor seat pool for DossierHQ with Okta provisioning and SSO?
+qst_0025: In the enterprise tenant cutover go-live runbook, what latency threshold triggers escalation based on the 95th percentile being too high, and how long does it need to be sustained?
+qst_0026: For a customer upgrading a private deployment in their own cloud environment, what restore time did support say is typical if the upgrade fails and a rollback is needed (assuming snapshots were taken)?
+qst_0027: In the Redwood and Acme service assurance negotiation, what timing did Redwood agree to for sending an initial incident summary after a Severity 1 outage?
+qst_0028: What steps and commands were recommended for creating and pushing a signed annotated Git tag and then making a draft GitHub release for the v1.14.0 release?
+qst_0029: What caused the nightly evaluation cron jobs in the production us-east cluster to fail with an invalid refresh token error after an identity provider policy change?
+qst_0030: In the Console feature that compares canary or A-B cohorts and links metric anomalies to request traces, what customer tiers are allowed into the beta via a feature flag gate?
+qst_0031: What is the operator procedure to put a private deployment tenant into local-only telemetry mode and how can you verify the mode afterward?
+qst_0032: What performance goal was set for reducing GPU out of memory incidents in the stress tests for the windowed KV cache proposal?
+qst_0033: In the security review meeting about private cloud upgrades for a financial services customer, what was the stated minimum audit log retention period they wanted?
+qst_0034: In the Console nav redesign prototype with compact workspace chips and a contextual micro-rail, how is the micro-rail state preserved in shareable URLs?
+qst_0035: For regulated customer private VPC deployments, what is the tenant-facing monthly availability target for the inference endpoint?
+qst_0036: What telemetry events and alert threshold are required to monitor streaming responses when a downstream tool call fails but the system continues with degraded output?
+qst_0037: What caused the spike in 502 and 503 errors on the embeddings endpoint for the us-east dedicated pool around March 13, 2026?
+qst_0038: In the sandbox onboarding demo with NimbusApps, what median and p95 latency did the 50-concurrency 1-minute performance run report?
+qst_0039: In the 3-hour customer workshop plan for taking a team from initial evaluation to a proof of concept, what are the three types of go/no-go acceptance gates?
+qst_0040: What are the retention time windows for these lightweight kernel state snapshots (in-memory cache, indexed store, and any cold archive) used for post-incident diagnostics?
+qst_0041: In the security review call about buying an LLM inference service through AWS Marketplace, what was said about whether cross-region failover is enabled by default for the hosted endpoint?
+qst_0042: What was the founder building when they came in as a self-serve lead from a Hacker News thread, and what kind of stable integration did they say they wanted for it?
+qst_0043: What caused the brief p99 latency jump on the hosted text generation endpoint in us-west-2, and what mitigation was applied to bring it back down?
+qst_0044: What support response time commitments did Acme approve for being shown in their AWS and Azure marketplace listing for incident priority levels?
+qst_0045: What is the estimated compressed size for the customers requested 12 month structured audit log export for their SIEM privacy scan?
+qst_0046: In the Medicore procurement email thread about data use and telemetry, what turnaround timeline did Redwood propose for delivering the operational runbook?
+qst_0047: In some lab notes about reducing few-shot example copying, what tradeoff was noted when rotating the order of exemplars in prompts?

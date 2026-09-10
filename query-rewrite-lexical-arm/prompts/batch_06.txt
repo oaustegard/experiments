@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0283: In our long conversation serving experiments, what mitigation is suggested for the tendency to start making up references right after a retrieval step when older context has been aggressively shrunk to save memory?
+qst_0284: What phone number did the recruiter provide for the frontend engineering candidate so the interviewers could reach her quickly if she was running late?
+qst_0285: How does the proposed multi-region traffic controller proactively avoid tail-latency blowups by warming likely failover locations ahead of time and using a three-level degrade/shed mechanism before hard failures occur?
+qst_0286: For a small mobile game studio adding realtime global chat and match lobby messaging, what latency goal did they set for typical short messages so players dont notice added delay?
+qst_0287: What were the target responsiveness and peak simultaneous agent usage thresholds for the short pilot of the customer support assistant that required partial replies to appear immediately while also invoking internal lookups?
+qst_0288: In the late Q3 email thread about rescuing a near-lost senior platform hire for a customer-facing performance pipeline, what one-time pay-range exception did People Ops approve (how far above the midpoint)?
+qst_0289: What caused the March 2026 morning spike where a dedicated east coast deployment started cutting off live generated replies mid stream and briefly overcounted usage charges due to retry and double counting behavior?
+qst_0290: In the service that lets clients discover which language models are available, where is the advisory 0 to 100 score documented that helps automatic selection based on feature match between our capability names and an OpenAI style interface?
+qst_0291: For the shipping customer rollout checklist, what is the requirement for output stability across repeated cold and warm starts before approving deployment?
+qst_0292: What change reduced out of memory failures for long context transformer serving by reusing temporary GPU buffers across microbatches and adding an optional recompute mode, and what kind of memory savings was observed on an A100 at around 4k tokens?
+qst_0293: How does the temporary cross team sandbox get automatically shut down, including the default lifetime and the advance warning sent to the owners before everything is archived?
+qst_0294: In the internal workshop where we deliberately sabotage a client library via a local proxy to test resiliency, what exact fields are required in the saved run trace file format (the per-span identifiers, timestamps, and the single flattened attributes string) so our baseline and failure runs are comparable?
+qst_0295: In the late March 2026 payments rollout, what was the prior deployment version the team reverted to after the early Europe canary started restart looping due to a shutdown hook issue?
+qst_0296: Who on the team committed to producing a short animated demo to embed in the upcoming renewal business review materials, and what was the demo supposed to showcase?
+qst_0297: For the tiny production experiment that tweaks how the model serving layer keeps and evicts attention memory, what are the concrete pass or fail thresholds for error rate and tail latency during the first hour?
+qst_0298: From a partner intro call with a services firm that resells and operates enterprise AI stacks, what was the expected lead time they were told for standing up an isolated customer environment in an EU region when customer key management is required?
+qst_0299: For the short evaluation engagement with the retail client where we offered a temporary sandbox to run about a couple thousand acceptance examples and promised a signed deletion attestation afterward, what date did we say we needed to receive their materials in order to hit the staging deadline?
+qst_0300: In the internal routing performance memo that compared a nearby low latency serving path versus a centralized high throughput batching path and a split strategy that starts local then hands off when the response gets longer, which approach had the cheapest cost per 1k tokens for medium length requests and what was that cost?
+qst_0301: During the 2025-02-10 capacity incident, what two thresholds should trigger noisy-tenant detection in the runbook update, and how long were SLA targets breached?
+qst_0302: For the 90-day AcmeSec eval, what do they need to send to get Splunk HEC audit log exports wired up, and which internal team members are responsible for wiring the export and sending the pricing quote?
+qst_0303: Which teams are required to sign off on the dedicated capacity intake rubric, and what two follow-up dependencies were noted for the next steps work?
+qst_0304: For the PayRight Redwood DPA negotiation, what incident notification timeframe did PayRight request at the start and what notification window did Redwood propose in the final tracked wording before sending the DocuSign link?
+qst_0305: When using the python async batching helper for embeddings then rerank, what singleton-wrapped rerank response shape can show up during auth refresh, and what redwood.utils normalizer did the sampleapp add to fix the output shape?
+qst_0306: During the us-west-2 incident with TLS handshake failures on edge.redwood.ai, what alert triggered the PagerDuty page and what two preventative follow-ups were planned before closing the thread?
+qst_0307: For the StrataCore joint benchmark on the S100 card, what model and metrics are they benchmarking, and what artifacts will be included in the post run internal results bundle for signoff?
+qst_0308: For the Praxis Health Redwood Private connectivity plan, what hybrid approach did Redwood recommend for a customer with both on-prem colo and AWS us-west-2, and when was the proposed 30-minute follow-up call scheduled?
+qst_0309: After the docs deploy failed due to mkdocs linkcheck reporting broken anchor fragments from an include refactor, what final deploy-bot status was reported once prod was updated?
+qst_0310: In the on-prem cutover readiness weekly sync meeting, who attended, and what two checkpoint meetings (with dates) were scheduled around the staging soak test?
+qst_0311: For the Helios vendor onboarding kickoff and demo, which meeting time did they lock in, and what is the Redwood commitment 48 hours after the call?
+qst_0312: When is the updated on-call runbook due to be pushed to Confluence, and what is the Confluence path for the on-call runbook?
+qst_0313: What metric name did Billing request to replace emit_latency_ms with in the aggregated rollups for billing reconciliation, and what is the default request sampling rate for full emission span tracing?
+qst_0314: For the Jupiter Therapeutics rollout, if the target go-live is 2028-07-22 and the canary is planned as 7 days with a 10/90 traffic split, what date should the canary period start?
+qst_0315: What UI indicator did the team plan to show for tenants in escalation mode, and what default grace-window duration was chosen for the circuit-breaker?
+qst_0316: For the ProofPoint pentest artifact audit-proxy escrow, what is the default retention period, what is the standard access request turnaround time, and who is billed for the AuditWorks storage fees?
+qst_0317: In the Adaptive Log Zipper rollout plan, what dependency blocks per-tenant admission signaling in the edge gateway and what fallback mode is planned until it is added?
+qst_0318: For the Mapflow incident where a segmented batch embedding job caused a negative provisional balance and autopay to be paused, what was the job start time and what date is the full rollout of the permanent ordering-resilient hourly aggregator fix scheduled for?
+qst_0319: After the kernel-selector change caused OOMs on canary during 1k-token generations, what allocator and KV config values were hot-reloaded, and how did that change impact fallback allocations per minute in the follow-up metrics?
+qst_0320: If NimbleHealth moves from the current roughly 35k per month run rate to a 24 month annual prepay, what term discount do they get and what one time onboarding credit applies in Q1?
+qst_0321: During the initial staging rollout of decision breadcrumbs, what sampling approach and percentage are planned, and who said it would start by end of week?
+qst_0322: What config flag controls enabling the bandwidth-aware fanout planner for TP allreduce on heterogeneous link clusters, and what other new components are called out in the release notes as helping reduce comm and compute stalls?
+qst_0323: Which issue filed after two customer escalations describes transient admin privileges or permission denied after SSO due to SAML assertion ordering and session stitching, and what environment(s) was it reproduced on?
+qst_0324: For the Q3 KPI dashboard email thread, what was the quarterly uptime percentage and how far below the target was it, and which JIRA ticket was Jonas going to create to track the infra changes?
+qst_0325: For the Q2 milestone scope they locked in the chat, which items were pushed to v1 versus kept in the MVP?
+qst_0326: In the simulated cross-region restore scheduler project, what are the two regions the restore simulation runs between, and what was the blocking issue mentioned for wiring the validator failure reporting to the DR dashboard?
+qst_0327: In the Unified Inference Consumption Paradigm overview, what are the two unit primitives used for billing, and where is the referenced Confluence file that contains the pricing catalog and token definitions for them?
+qst_0328: In the recent Performance Management and PIP handbook overhaul, what passing score do managers need on the quiz and what is the due date for completing the required microlearning assignment?
+qst_0329: After the procurement kickoff call that requested a draft SLA and pricing model, what were the latency targets the bank wanted for interactive IDE edits and streaming token delivery?

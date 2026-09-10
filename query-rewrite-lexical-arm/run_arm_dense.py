@@ -72,6 +72,7 @@ if __name__ == "__main__":
     ap.add_argument("--words", type=int, default=180)
     ap.add_argument("--stride", type=int, default=160)
     ap.add_argument("--name", default="B_dense")
+    ap.add_argument("--queries-json", dest="queries_json", default="", help="qid->text overrides")
     ap.add_argument("--subcorpus", default="")
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--batch", type=int, default=16)
@@ -84,6 +85,12 @@ if __name__ == "__main__":
                for i, t, x, g in zip(q["question_id"], q["question_type"],
                                      q["question"], q["expected_doc_ids"])
                if g is not None and len(g) > 0]
+    if a.queries_json:
+        ov = json.load(open(a.queries_json))
+        n_ov = sum(1 for x in queries if x["qid"] in ov)
+        for x in queries:
+            x["text"] = ov.get(x["qid"], x["text"])
+        log(f"query overrides applied to {n_ov}/{len(queries)}")
     log(f"queries: {len(queries)}")
 
     t = pq.read_table(f"{DATA}/documents_test.parquet")

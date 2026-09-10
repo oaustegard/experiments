@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0377: If the demo tenant starts returning 429s mid-demo and the Console dashboards are empty, what are the fastest recovery steps to keep the call moving and what fixes were put in place to prevent this from happening again?
+qst_0378: What are the current suppression rules and cooldown windows for PLG signals (especially intent-only), and how do they prevent HubSpot task creation after cases like Quartz Commerce?
+qst_0379: If a Private upgrade fails on a Postgres migration lock timeout, what is the recommended operator path to recover or roll back, and what upgrade artifacts and audit events need to be captured for change management?
+qst_0380: Which template telemetry header format are we standardizing on for KPI tracking, and how do the quickstart templates behave by default when a corporate proxy blocks those headers?
+qst_0381: In the planned controlled failover game day on 2026-01-15 (Hosted API us-east → eu-west), what caused the routing automation to oscillate (flip/rollback), and what follow-up ticket and target ship date were created to fix the streaming disconnect/reconnect behavior clients saw during cross-region redirects?
+qst_0382: In the Feb 12, 2026 incident where daily usage exports briefly overstated output tokens (while invoices stayed correct), what was the root cause and what mitigation + follow-up steps were taken to prevent a repeat?
+qst_0383: In a Private/VPC deployment, some users could complete SAML SSO but then immediately hit 403s because their admin group wasn't being recognized after an IdP/AD-connector upgrade (early March 2026). What was the underlying parsing problem with the comma-separated "groups" SAML attribute (why the first group didn't match), and what server-side patch fixed it?
+qst_0384: In Runtime 1.22 on Hosted (Shared) pools, we're seeing burst-time p99 latency spikes that correlate with KV compaction activity. Which two compaction knobs should oncall tune first (and by roughly what amount), and what's the emergency kill-switch plus the specific counters/metrics to check to confirm the disable took effect?
+qst_0385: What caused the production perf-canary paging storm on 2026-02-12 right after canary coverage was expanded (and paging rules were enabled), and what immediate mitigations/config changes were applied to stop the repeated pages?
+qst_0386: In the Feb 2026 SEV-2 incident where the Dedicated autoscaler in us-west stopped scaling above minimum because its metrics query returned no data, what was the underlying cause and what hotfix restored scale-out?
+qst_0387: In a private VPC deployment using SSO via our identity-proxy, what caused the intermittent 403 RBAC denials that occurred right after an IdP group membership sync for users who were already logged in (and were fixed by logging out/in), and what mitigation plus long-term server-side fix did we apply?
+qst_0388: In the March 2026 incident where long-lived Server-Sent Events (SSE) streams would reconnect after a brief upstream TCP reset and then show duplicated heartbeat frames while sometimes never emitting the terminal end-of-stream event, what was the root cause and what server-side fix resolved it?
+qst_0389: After the Console v4.3.2 rollout (March 2026), what caused saved dashboard filter presets to revert to the default right after you edit and save a linked sub-report in the widget editor modal, and what hotfix fixed it?
+qst_0390: During a March 2026 prod us-east-1 dedicated incident where a sudden burst of high-concurrency streaming traffic caused intermittent 502/504s due to proxy ephemeral port pressure, what mitigations were applied (replica changes and any kernel/sysctl tuning) and-per the ingress proxy connection-entropy playbook-what RCA artifacts should be captured while the issue is ongoing?
+qst_0391: In the hosted API incident in late April 2026 where streaming requests started returning 502/504 and non-streaming requests also saw a sharp tail-latency increase, what was the underlying trigger (involving an edge keepalive/connection-TTL change) and what immediate mitigations were used to restore service?
+qst_0392: During the us-east canary that normalized/rotated the session cookie domain for cross-subdomain routing, long-poll streaming clients started losing their pinned model version and getting routed to a fallback model. What was the root cause in the edge/session-manager flow, and what immediate mitigations were applied (platform-side and customer-side)?
+qst_0393: After the March 9, 2026 embedding-catalog promotion that made a 1024-d embedding model the default, a dedicated Hosted API tenant (us-west with eu-west failover) saw /v1/rerank start timing out with 512-vs-1024 vector length mismatches when using the alias open-embed-default. What was the confirmed root cause, and what short-term mitigation and permanent fix did we deploy?
+qst_0394: For Incident Bot v2, when responders use break-glass during a Sev0/Sev1 incident to view tenant-scoped config diffs or run privileged telemetry queries, which audit events must be emitted and how long are those audit events retained (SIEM vs immutable archive)? Also, what baseline vs break-glass permission scopes does the bot use for these reads?
+qst_0395: What was the root cause and planned server-side fix for the March 2026 incident where function-call webhook callbacks were retried after a timeout and the JSON payload stayed the same, but the HMAC signature header changed between the first delivery and the retry due to gzip/encoding differences?
+qst_0396: After rotating a Hosted API key in the Console, why might the Usage → Ad-hoc Query still show request IDs tied to the old key and 'View trace' links that 404, and what immediate mitigation did Support/SRE apply before a proper fix shipped?
+qst_0397: In the March 2025 incident where eu-west-1 ran short on GPUs and the router temporarily failed eligible traffic over to us-east-1, what conditions/thresholds triggered enabling region fallback and which traffic was excluded? Also, per the region pinning policy, what kinds of request/response data are considered 'customer content' that must stay in-region for residency-strict traffic?
+qst_0398: In a private deployment, we saw a security bug where an RBAC exclusion rule (meant to block admin/superuser access) allowed access to an admin route when a JWT omitted the entitlements claim in mid-March 2026. What was the root cause in the policy evaluator, and what were the immediate workaround and the server-side fix plus rollout timeline?
+qst_0399: In the mid-March 2026 eu-west canary rollout where sticky fallback kept pinning requests back onto the failing canary instead of the stable quantized variant, what configuration mistake caused the loop and what mitigations were applied to stop it?
+qst_0400: For a shadow evaluation running in a private deployment using an evaluator sidecar, what fields are required in each shadow probe telemetry record, and which run-lifecycle telemetry events must the evaluator emit?
+qst_0401: After the org GPG signing-key rotation on 2026-03-09, our GitLab release promotion pipelines started failing on prod release runners during artifact verification. What was the root cause of the signature verification failures, and what immediate operational mitigations unblocked hotfix promotions while the permanent fix was rolled out?
+qst_0402: In a Redwood Private (VPC/on-prem) upgrade using the private installer, the UI has been stuck on "Running migrations" for over an hour and the migration pod logs repeatedly say it's waiting on a Postgres advisory lock (the Postgres database is externally managed, not the in-cluster StatefulSet). What's the underlying cause, what Support-guided action resolved it, and what specific logs/artifacts should be collected before attempting a retry or rollback?
+qst_0403: In the March 2026 fix for Hosted API issues where SSE streams were truncated/partial behind corporate proxies (e.g., NGINX/Envoy idle timeouts), what resume identifier format did we choose for Last-Event-ID-style reconnects, and per our 2026 partial-result checkpointing/resume standard what are the default checkpoint emission cadence and checkpoint TTL?
+qst_0404: We saw quality regressions after enabling an INT8/mixed-precision variant and suspect KV-cache rounding on long-context requests. What request header can we set as a quick mitigation to bypass the KV cache, and in the dynamic quant handoff policy for the interactive-chat route what minimum KV-cache hit-rate and max sequence length are required before routing to a quant variant?
+qst_0405: For the hosted API rollout in late June 2026 that introduced the Cost-Fallback policy engine and Telemetry Normalization v1, what HTTP response header was added for downstream billing/webhook consumers to understand the fallback reason, and which fields are required in the standardized per-fallback telemetry event envelope used for cost reconciliation?
+qst_0406: In the Feb 25, 2026 incident where Redwood Console traces showed missing child spans/incomplete request graphs for about two hours while the underlying services were healthy, what caused the span drops in the ingestion pipeline, and what immediate mitigation was used to bring drop rates back to baseline?
+qst_0407: In March 2026, what caused duplicate tool/webhook executions during *streaming* chat retries only when the idempotency key contained non-ASCII characters (e.g., emoji/diacritics) and the request went over HTTP/2 through the edge proxy-and what were the recommended workaround and the server-side fix (including what normalization we applied)?
+qst_0408: After the Feb 22, 2026 SEV-2 where Console rollout actions caused a rollback loop, which HTTP status code was wrongly treated as retryable, what server-side idempotency change was added for rollback requests, and (per the Dedicated staged rollouts audit-log spec) which service must emit the canonical audit events and what identifiers are used to de-duplicate retries?
+qst_0409: In a Private deployment incident in early March 2026, a scheduled KMS envelope key rotation caused about an 18-minute gap where audit events weren't being indexed and some requests saw stale SSO attributes that broke RBAC reconciliation. What was the root cause, and what immediate mitigation/hotfix was applied?
+qst_0410: In the EU hosted API, streaming generate requests over HTTP/2 intermittently returned 502 only when the client included a ~12KB base64-encoded user-metadata header. What was the root cause in our proxy chain, and what server-side mitigation did we deploy to stop the 502s (include the header and cutoff/behavior)?
+qst_0411: On Streamly AI's dedicated pool dp-132-usw, what % of interactive burst credits should be reserved exclusively for priority=high routes?
+qst_0412: For extraction, what price-normalization correctness is reported at temp=0.0 with strict JSON + canonicalization, and what earlier % is it compared to?
+qst_0413: Who approves terminating STALE-ORPHAN test instances after the 72h grace window-infra manager or cost-ops?
+qst_0414: INC-9821: was the degraded GPU node an OOM or intermittent driver/kernel launch stalls?
+qst_0415: What must `--deterministic true` enforce in the eval runner (decoding settings)?
+qst_0416: Copperfield Nimbus Dedicated sizing: latest baseline/growth/peak QPS and peak concurrent chat sessions?
+qst_0417: What does Redwood Private on-prem recommend for signing backup manifests?
+qst_0418: In the SLO→customer impact classifier, what score ranges map to Tiers 1-4 in v2, and what were the previous thresholds?
+qst_0419: What is the API endpoint to start a Unified Capacity Transition migration?
+qst_0420: For EXP-002 (eu-west→us-east), what egress cost rate and measurement basis does the cost penalty catalog use?
+qst_0421: Default TTL for the cross-account GPU warm-pool handoff handshake token?
+qst_0422: How do audit log exports access records older than the retention cutoff (super-admin override vs legal hold)?
+qst_0423: For the office keycard audit, how many months of access logs should we export?
