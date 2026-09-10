@@ -74,7 +74,7 @@ if __name__ == "__main__":
     ap.add_argument("--arms", nargs="+", required=True,
                     help="run-file stems, e.g. A1_chunked A2_whole_doc B_dense")
     ap.add_argument("--fuse", nargs="+", action="append", default=[],
-                    help="repeatable: names of arms to RRF together")
+                    help="repeatable: OUTNAME arm1 arm2 ... — RRF those arms into OUTNAME")
     a = ap.parse_args()
 
     loaded = {}
@@ -93,12 +93,12 @@ if __name__ == "__main__":
     print(f"arms: {list(loaded)} | shared queries: {len(qids)}")
 
     # fusion arms
-    for combo in a.fuse:
+    for spec in a.fuse:
+        name, combo = spec[0], spec[1:]
         missing = [c for c in combo if c not in loaded]
         if missing:
-            print(f"skip fusion {combo}: missing {missing}")
+            print(f"skip fusion {name}: missing {missing}")
             continue
-        name = "C_rrf_" + "_".join(c.split("_")[0] for c in combo)
         arms = [loaded[c] for c in combo]
         fused = {q: rrf(arms, q, gold[q]) for q in qids}
         loaded[name] = fused

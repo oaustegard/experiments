@@ -1,0 +1,96 @@
+{
+  "arm": "A1_chunked_chunkgran",
+  "smoke_test": false,
+  "config": {
+    "impl": "bm25_sparse (validated identical to bm25s)",
+    "analyzer": "stem+stopwords",
+    "stemmer": "snowball-english",
+    "k1": 1.5,
+    "b": 0.75,
+    "chunk_words": 380,
+    "chunk_stride": 340,
+    "chunk_pool": 200,
+    "topk_docs": 10,
+    "n_docs": 511962,
+    "n_chunks": 819990,
+    "n_queries": 470,
+    "vocab": 1192944,
+    "nnz": 162833620,
+    "subcorpus": null,
+    "collapse": "chunks"
+  },
+  "overall": {
+    "hit10": 71.91,
+    "hit1": 51.49,
+    "recall10": 66.29,
+    "mrr10": 58.67,
+    "ndcg10": 57.81
+  },
+  "by_type": {
+    "basic": {
+      "n": 175,
+      "hit10": 74.29,
+      "hit1": 55.43,
+      "recall10": 74.29,
+      "mrr10": 62.75,
+      "ndcg10": 65.6
+    },
+    "completeness": {
+      "n": 20,
+      "hit10": 80.0,
+      "hit1": 55.0,
+      "recall10": 50.43,
+      "mrr10": 65.42,
+      "ndcg10": 47.73
+    },
+    "conflicting_info": {
+      "n": 20,
+      "hit10": 90.0,
+      "hit1": 80.0,
+      "recall10": 90.0,
+      "mrr10": 85.0,
+      "ndcg10": 84.78
+    },
+    "constrained": {
+      "n": 30,
+      "hit10": 100.0,
+      "hit1": 86.67,
+      "recall10": 90.0,
+      "mrr10": 89.35,
+      "ndcg10": 82.73
+    },
+    "intra_document_reasoning": {
+      "n": 40,
+      "hit10": 87.5,
+      "hit1": 70.0,
+      "recall10": 87.5,
+      "mrr10": 74.68,
+      "ndcg10": 77.71
+    },
+    "miscellaneous": {
+      "n": 20,
+      "hit10": 90.0,
+      "hit1": 85.0,
+      "recall10": 90.0,
+      "mrr10": 87.5,
+      "ndcg10": 88.15
+    },
+    "project_related": {
+      "n": 40,
+      "hit10": 95.0,
+      "hit1": 65.0,
+      "recall10": 51.18,
+      "mrr10": 76.92,
+      "ndcg10": 51.66
+    },
+    "semantic": {
+      "n": 125,
+      "hit10": 42.4,
+      "hit1": 16.8,
+      "recall10": 42.4,
+      "mrr10": 24.74,
+      "ndcg10": 28.97
+    }
+  },
+  "seconds": 526.5
+}

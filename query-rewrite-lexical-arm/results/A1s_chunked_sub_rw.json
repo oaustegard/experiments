@@ -1,0 +1,96 @@
+{
+  "arm": "A1s_chunked_sub_rw",
+  "smoke_test": false,
+  "config": {
+    "impl": "bm25_sparse (validated identical to bm25s)",
+    "analyzer": "stem+stopwords",
+    "stemmer": "snowball-english",
+    "k1": 1.5,
+    "b": 0.75,
+    "chunk_words": 180,
+    "chunk_stride": 160,
+    "chunk_pool": 200,
+    "topk_docs": 10,
+    "n_docs": 103723,
+    "n_chunks": 386467,
+    "n_queries": 470,
+    "vocab": 383171,
+    "nnz": 45610288,
+    "subcorpus": "subcorpus_20pct.json",
+    "collapse": "docs"
+  },
+  "overall": {
+    "hit10": 77.87,
+    "hit1": 57.87,
+    "recall10": 74.72,
+    "mrr10": 64.36,
+    "ndcg10": 64.75
+  },
+  "by_type": {
+    "basic": {
+      "n": 175,
+      "hit10": 80.57,
+      "hit1": 58.29,
+      "recall10": 80.57,
+      "mrr10": 65.47,
+      "ndcg10": 69.09
+    },
+    "completeness": {
+      "n": 20,
+      "hit10": 85.0,
+      "hit1": 75.0,
+      "recall10": 61.67,
+      "mrr10": 80.0,
+      "ndcg10": 62.25
+    },
+    "conflicting_info": {
+      "n": 20,
+      "hit10": 100.0,
+      "hit1": 85.0,
+      "recall10": 100.0,
+      "mrr10": 90.17,
+      "ndcg10": 90.85
+    },
+    "constrained": {
+      "n": 30,
+      "hit10": 100.0,
+      "hit1": 86.67,
+      "recall10": 93.33,
+      "mrr10": 91.25,
+      "ndcg10": 87.0
+    },
+    "intra_document_reasoning": {
+      "n": 40,
+      "hit10": 97.5,
+      "hit1": 75.0,
+      "recall10": 97.5,
+      "mrr10": 83.4,
+      "ndcg10": 86.87
+    },
+    "miscellaneous": {
+      "n": 20,
+      "hit10": 100.0,
+      "hit1": 90.0,
+      "recall10": 100.0,
+      "mrr10": 93.06,
+      "ndcg10": 94.66
+    },
+    "project_related": {
+      "n": 40,
+      "hit10": 100.0,
+      "hit1": 75.0,
+      "recall10": 79.67,
+      "mrr10": 86.04,
+      "ndcg10": 71.31
+    },
+    "semantic": {
+      "n": 125,
+      "hit10": 47.2,
+      "hit1": 27.2,
+      "recall10": 47.2,
+      "mrr10": 32.08,
+      "ndcg10": 35.58
+    }
+  },
+  "seconds": 140.0
+}

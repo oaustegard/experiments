@@ -9,14 +9,19 @@ OUT = os.path.dirname(os.path.abspath(__file__))
 RES = f"{OUT}/results"
 
 LABEL = {
-    "A2_whole_doc":       "A2  BM25, whole document, full corpus",
-    "A1_chunked":         "A1  BM25, 380-word chunks, full corpus",
-    "A2s_whole_doc_sub":  "A2s BM25, whole document, 20% subcorpus",
-    "A1s_chunked_sub":    "A1s BM25, 180-word chunks, 20% subcorpus",
-    "B_dense_sub":        "B   MiniLM-L6-v2 dense, 180-word chunks, 20% subcorpus",
-    "C_rrf_A1s_B":        "C   rrf(A1s, B)",
-    "D_rewrite_hybrid":   "Dr  rrf of the S4 rewrite's lexical and dense legs",
-    "D_rrf_all":          "D   rrf(A1s, B, A1s-rewrite, B-rewrite)",
+    "A2_whole_doc":                "A2   BM25, whole document, full corpus",
+    "A2_whole_doc_plain":          "A2p  A2 with no stemming and no stopword list",
+    "A1_chunked":                  "A1   BM25, 380-word chunks, full corpus",
+    "A1_chunked_chunkgran":        "A1g  A1 scoring the top 10 chunks, not 10 documents",
+    "A2s_whole_doc_sub":           "A2s  BM25, whole document, 20% subcorpus",
+    "A1s_chunked_sub":             "A1s  BM25, 180-word chunks, 20% subcorpus",
+    "A1s_chunked_sub_chunkgran":   "A1sg A1s scoring the top 10 chunks, not 10 documents",
+    "B_dense_sub":                 "B    MiniLM-L6-v2 dense, 180-word chunks, 20% subcorpus",
+    "A1s_chunked_sub_rw":          "A1s' A1s queried with the S4 comparative rewrite",
+    "B_dense_sub_rw":              "B'   B queried with the S4 comparative rewrite",
+    "C_rrf_A1s_B":                 "C    rrf(A1s, B)",
+    "D_rewrite_hybrid":            "Dr   rrf(A1s', B') — the rewrite's own hybrid",
+    "D_rrf_all":                   "D    rrf(A1s, B, A1s', B')",
 }
 ORDER = list(LABEL)
 
@@ -101,6 +106,20 @@ def render():
     return {k: v for k, v in blocks.items() if v}
 
 
+def inject(path="RESULTS.md"):
+    """Replace each <!-- TABLE:X --> ... <!-- /TABLE:X --> span with a fresh table."""
+    import re
+    md = open(path).read()
+    n = 0
+    for name, block in render().items():
+        pat = re.compile(rf"<!-- TABLE:{name} -->.*?<!-- /TABLE:{name} -->", re.S)
+        md, k = pat.subn(
+            lambda m: f"<!-- TABLE:{name} -->\n{block}\n<!-- /TABLE:{name} -->", md)
+        n += k
+    open(path, "w").write(md)
+    return n
+
+
 if __name__ == "__main__":
     import sys
     if "--inject" in sys.argv:
@@ -111,16 +130,3 @@ if __name__ == "__main__":
             print(v)
             print(f"<!-- /TABLE:{k} -->")
             print()
-
-
-def inject(path="RESULTS.md"):
-    """Replace each <!-- TABLE:X --> ... <!-- /TABLE:X --> span with a fresh table."""
-    import re
-    md = open(path).read()
-    n = 0
-    for name, block in render().items():
-        pat = re.compile(rf"(<!-- TABLE:{name} -->\n).*?(\n<!-- /TABLE:{name} -->)", re.S)
-        md, k = pat.subn(lambda m: m.group(1) + block + m.group(2), md)
-        n += k
-    open(path, "w").write(md)
-    return n

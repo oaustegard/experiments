@@ -11,7 +11,17 @@ OUT = os.path.dirname(os.path.abspath(__file__))
 RES = f"{OUT}/results"
 
 # (sentence fragment that must appear in RESULTS.md, json file, dotted path, fmt)
-CLAIMS = []
+CLAIMS = [
+    ("BM25 alone scores {} HIT@10",                "A2_whole_doc.json",   "overall.hit10",   ".2f"),
+    ("Recall@10 {} against",                       "A2_whole_doc_plain.json", "overall.recall10", ".2f"),
+    ("BM25 rescues **{}%** of the dense arm's",    "analysis.json", "rescue.A1s_chunked_sub_rescues_B_dense_sub.rate", ""),
+    ("Dense rescues\n**{}%** of BM25's",           "analysis.json", "rescue.B_dense_sub_rescues_A1s_chunked_sub.rate", ""),
+    ("rescues\n**{}%** of the hybrid's misses",    "analysis.json", "rescue.A1s_chunked_sub_rw_rescues_C_rrf_A1s_B.rate", ""),
+    ("`rrf(A1s, B)` scores {} against",            "analysis.json", "arms.C_rrf_A1s_B.hit10", ".2f"),
+    ("Adding both S4 rewrite legs takes it to {}", "analysis.json", "arms.D_rrf_all.hit10",   ".2f"),
+    ("BM25 drops from 81.06 to {} ",               "analysis.json", "arms.A1s_chunked_sub_rw.hit10", ".2f"),
+    ("mean is {}%",                                "overlap.json",  "_ALL.mean_term_coverage", ".1f"),
+]
 
 def main():
     md = open(f"{OUT}/RESULTS.md").read()
