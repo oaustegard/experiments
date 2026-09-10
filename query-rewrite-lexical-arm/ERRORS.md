@@ -76,3 +76,16 @@ with the word "to", for JSON cleanliness. The analyzer strips non-word
 characters anyway, so the arrow never reached either index, but the rewrite file
 is the arm's input and the substitution is recorded here rather than left to be
 noticed in a diff.
+
+## 6. I killed the chunked full-corpus arm by running an analysis beside it
+
+**Direction: none — a crash I caused, then repeated the run.**
+
+`A1_chunked` on the full corpus died at rc=137 in pass 1, at roughly 150,000 of
+819,990 chunks. Nothing about that pass is memory-hungry; it builds a vocabulary
+dict and two small arrays. The cause was me: I ran `overlap.py` at the same
+time, and it loads the same 1.4 GB documents parquet into its own process, so
+two processes each held about 2.6 GB of corpus strings.
+
+The arm scripts are sized to run alone on this container. Re-queued to run after
+the sequence, with no corpus-loading analysis beside it.
