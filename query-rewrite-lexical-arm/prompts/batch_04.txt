@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0189: In our offline installer release process, how do we expose per-component supply chain provenance so an operator can see which build system and commit produced each piece and optionally enforce that missing or bad attestations fail the index step?
+qst_0190: In the February 2026 update to our inference tuning product, what change caused older route configuration payloads to start getting rejected with a 400 error, and what field needs to be removed to fix it?
+qst_0191: During a short surge in vector writes last March, a customer in the western US region saw search answers point to the wrong source records and also couldnt verify charges because telemetry for about twenty minutes never arrived; what was the suspected technical cause behind both symptoms?
+qst_0192: In our GPU inference runtime, what change was introduced to cut the worst-case temporary device-memory spike when short and long requests are interleaved, especially for attention-heavy ops that used to grab per-op temp buffers?
+qst_0193: For the European customer kickoff scheduled the morning of Dec 21, who is assigned as the standby person to handle operational issues during the hands-on portion?
+qst_0194: After moving a HIPAA customers production private VPC environment to a new internal token exchange service, why would an automation-run service identity start getting 403s when trying to act on behalf of a human admin for user management, even though the same action works with the humans own token?
+qst_0195: From the internal sandbox microbench in the EU West lab around May 2029, what was the estimated dollars per one million tokens for the biggest model on a single 40GB GPU when using the no-batching low-latency mode on the long output workload (about 300 tokens per response)?
+qst_0196: In the quick A100 microbenchmark notes comparing 4-bit weight compression to half precision on a 7B model at single-item batching, what speedup and quality hit were observed for the simplest run?
+qst_0197: During a major production outage, what is the prescribed sequence of actions for the first 60 to 90 minutes, from opening the live coordination call through confirming the service is healthy again?
+qst_0198: In the EU West production setup where token streaming to browsers sometimes reconnects after a short handshake reset at the CDN layer, what change on the gateway side reduced cases where the last bit of generated text never arrives even though the backend says it finished?
+qst_0199: After a recent refactor to request grouping and the per request memoization layer, what is the specific risk if the cache key canonicalization now treats a trailing slash differently between callers, especially in a multi customer environment?
+qst_0200: For the hospital system that wants to run an interactive intake chatbot and auto-generate discharge writeups entirely inside its own locked-down data center with no patient data leaving the network, what end-to-end response time target did they set for producing about 200 tokens under peak load?
+qst_0201: During the Feb 14, 2026 APAC region outage where vector generation requests intermittently failed with server errors due to a cache layer getting overloaded by a scheduled warmup task, what immediate mitigation did the oncall apply to reduce the cascading retries across downstream nodes?
+qst_0202: In the EU-only finance search and fraud alert ranking opportunity where the main technical advocate left during an internal reorg and procurement later said spending is on hold until the Q3 cycle, what date did the procurement team first communicate the company-wide spending freeze?
+qst_0203: How should we automate the creation and teardown of short-lived experiment workspaces so that a request ticket spins up the needed tracking/docs/chat area, requires an approver before access is enabled, expires on a default one month timer with a simple extension, and writes an encrypted audit bundle to object storage when it shuts down?
+qst_0204: What are the immediate follow up actions for the mid market product analytics SaaS that wants cheaper and more consistent in app assistant responses and is planning a short trial on the shared service before moving to a private network isolated deployment?
+qst_0205: What fields are included in the proposed runtime metadata JSON that apps can use as the single source of truth for whether a hosted model can do streaming or tool calls, what token ceilings apply (soft vs enforced), and what the expected output format guarantees are?
+qst_0206: In the 2027 renewal email thread about moving a customer from four capacity bands to a two level reserved plus overflow setup, what p95 response time was promised for the reranking endpoint under the base reservation assumptions?
+qst_0207: In the recent observability change for tool invocation tracking, what is the staged rollout schedule and the temporary kill switch name used to gate it?
+qst_0208: For the Fortune 500 oriented customer evaluating a dedicated inference setup for an agent assist contact center, what burst traffic level and duration did they ask the vendor to guarantee beyond their steady state request rate?
+qst_0209: For a small B2B SaaS embedding a live chat helper inside their product that needs partial replies immediately while it fetches recent user-event context, what first-response-time target and concurrent-load threshold were set as the pass criteria for their short trial?
+qst_0210: What is the numeric rule that turns recent automated test slice failure patterns plus latency and vector drift into a single 0 to 100 release risk score that decides whether to proceed, slow down, pause, or revert a staged model change?
+qst_0211: In our hosted chat streaming, a corporate gateway forces the stream into a polling style connection and after a reconnect the assistant reply consistently loses the last couple sentences and the final completion status never arrives; what is the recommended short term mitigation for customers until a server side fix is deployed?
+qst_0212: How should we set up low-noise oncall dashboards and tiered paging for a streaming text generation service so that responders can jump from a latency spike to a trace with hashed prompt references and cache hotness context and resolve issues within about 15 minutes?
+qst_0213: For a content templating company planning tens of millions of very short generations during a Q3 ramp, what was the requested plan for a time limited evaluation that included a large free usage allowance?
+qst_0214: In the mid March 2026 incident where a regional dedicated serving cluster briefly ran out of spare capacity and the automatic scaler couldnt add nodes due to provider limit type errors, what exact build version did on call revert to in order to restore capacity?
+qst_0215: On managed iPhones on corporate Wi-Fi, why do long-lived server push text streams sometimes reconnect after the app is backgrounded and then end with a few seconds of silence and a cut-off final JSON fragment instead of a clean end marker?
+qst_0216: In our cross team outage process, what is the expected update rhythm for the shared incident channel from the first message through containment, including when the interval should be shortened?
+qst_0217: In a customer owned cloud network peered to our control plane, why would big model artifact downloads over long lived encrypted multiplexed streams start hanging after a transit vendor policy change, then immediately work again when the node packet size limit is lowered?
+qst_0218: In the private network hosted cluster console, what are the planned quick actions on the compact outage summary tile that on call engineers can use to stop a risky release or switch to a safer model option?
+qst_0219: In the negotiation where a healthcare customer pushed for stronger protection against outside patent or copyright lawsuits for an AI hosting service, what dollar limit did the vendor propose per claim as the compromise?
+qst_0220: In our GPU inference runtime, what configuration change was shown to eliminate out of memory crashes caused by combining lookahead cache allocation with aggressive request coalescing on long context runs, even though it slightly increased tail latency?
+qst_0221: When someone new starts at Redwood Inference, what is the target turnaround time for getting them fully set up with accounts and tools in North America versus Europe/Asia-Pacific?
+qst_0222: Where can I find the internal one stop reference page that summarizes how our company handles approvals and SLAs for access requests, production changes, data retention, purchasing thresholds, vendor onboarding, and business travel, including links to the standard request templates?
+qst_0223: Why did our telemetry collectors in the dedicated production clusters stop being able to mint short lived credentials for a customer cloud identity when going through the AWS to GCP federation bridge, after an IAM policy tightening with conditional rules, causing missing metrics and traces for about a day in US East and EU West?
+qst_0224: In the public documentation for searching system activity records, what identifier should examples use instead of showing a persons email address to avoid exposing sensitive personal data?
+qst_0225: Before an external audit rehearsal happening in about three weeks, what are the due dates and owners for the main evidence gaps around deployment rollback proof, contractor access end date confirmation, encryption key rotation documentation placement, and two overdue third party security questionnaires?
+qst_0226: During the 10:00 UTC partial rollout that caused structured function-invocation outputs to sometimes drop or swap argument fields, what small hotfix was added in the batching/serving path to prevent argument-buffer interleaving?
+qst_0227: During a late morning April 2025 incident, why did an interactive response feed start arriving in long bursts with 15 to 30 second silences for many users, and what immediate workaround was recommended to keep conversations responsive?
+qst_0228: On Windows ARM tablets in our SF office, why does switching between the two WiFi bands make our always-on VPN still show connected but suddenly stop reaching private 10.x services until a reboot, with routes preferring the wrong network after the handoff?
+qst_0229: After a customer rotated credentials during a migration, their staging probes started alternating between auth failures complaining about a signature mismatch and throttling errors; what short lived workaround did support create so both legacy and new signing methods would be accepted during the rollout?
+qst_0230: For a chat style server sent events stream that must survive mobile disconnects without re running tool side effects, what mechanism was introduced to let a client reconnect from a safe checkpoint using a server issued marker plus an explicit receipt from the client, while keeping compatibility with existing OpenAI like streaming clients?
+qst_0231: For the healthcare client contract review about sending patient records through our connector into the vendor platform, what is the promised retention duration for ingestion related audit traces and the default way customers can obtain exports?
+qst_0232: In our agent runtime, parallel tool responses sometimes stomp each other and the final structured payload varies run to run; where is the proposal that adds a deterministic way to combine overlapping JSON outputs plus per-invocation jittered exponential retry limits to prevent retry storms?
+qst_0233: What is the target success criteria for the internal two week cross team rehearsal that practices incident response for model endpoint reliability, especially the time limit from alert to starting the incident call?
+qst_0234: During the rollout of the new version of our inference cost optimizer, what is the suggested traffic ramp schedule for moving from a small canary to full production, including the minimum stabilization wait between increases?
+qst_0235: In the email thread about an AI service pilot for a payments company, what were the four main categories of changes their procurement and counsel asked for in the first contract markup?

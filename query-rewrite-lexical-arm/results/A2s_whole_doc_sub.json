@@ -1,0 +1,94 @@
+{
+  "arm": "A2s_whole_doc_sub",
+  "smoke_test": false,
+  "config": {
+    "impl": "bm25_sparse (validated identical to bm25s)",
+    "stemmer": "snowball-english",
+    "k1": 1.5,
+    "b": 0.75,
+    "chunk_words": 100000000,
+    "chunk_stride": 100000000,
+    "chunk_pool": 200,
+    "topk_docs": 10,
+    "n_docs": 103723,
+    "n_chunks": 103723,
+    "n_queries": 470,
+    "vocab": 404285,
+    "nnz": 29561468,
+    "subcorpus": "subcorpus_20pct.json"
+  },
+  "overall": {
+    "hit10": 84.89,
+    "hit1": 64.68,
+    "recall10": 81.99,
+    "mrr10": 71.5,
+    "ndcg10": 71.8
+  },
+  "by_type": {
+    "basic": {
+      "n": 175,
+      "hit10": 88.0,
+      "hit1": 65.14,
+      "recall10": 88.0,
+      "mrr10": 73.13,
+      "ndcg10": 76.77
+    },
+    "completeness": {
+      "n": 20,
+      "hit10": 85.0,
+      "hit1": 70.0,
+      "recall10": 55.01,
+      "mrr10": 77.5,
+      "ndcg10": 56.59
+    },
+    "conflicting_info": {
+      "n": 20,
+      "hit10": 100.0,
+      "hit1": 90.0,
+      "recall10": 100.0,
+      "mrr10": 93.21,
+      "ndcg10": 93.73
+    },
+    "constrained": {
+      "n": 30,
+      "hit10": 100.0,
+      "hit1": 86.67,
+      "recall10": 93.33,
+      "mrr10": 90.78,
+      "ndcg10": 87.15
+    },
+    "intra_document_reasoning": {
+      "n": 40,
+      "hit10": 100.0,
+      "hit1": 87.5,
+      "recall10": 100.0,
+      "mrr10": 91.96,
+      "ndcg10": 93.95
+    },
+    "miscellaneous": {
+      "n": 20,
+      "hit10": 95.0,
+      "hit1": 85.0,
+      "recall10": 95.0,
+      "mrr10": 88.5,
+      "ndcg10": 90.09
+    },
+    "project_related": {
+      "n": 40,
+      "hit10": 100.0,
+      "hit1": 95.0,
+      "recall10": 85.93,
+      "mrr10": 97.5,
+      "ndcg10": 79.97
+    },
+    "semantic": {
+      "n": 125,
+      "hit10": 63.2,
+      "hit1": 33.6,
+      "recall10": 63.2,
+      "mrr10": 42.56,
+      "ndcg10": 47.45
+    }
+  },
+  "seconds": 157.0
+}

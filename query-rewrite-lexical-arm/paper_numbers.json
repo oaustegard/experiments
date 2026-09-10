@@ -1,0 +1,53 @@
+{
+  "source": "arXiv:2609.05637v2, Shanian/Yi/Ruban/MacDonald (ServiceNow), EMNLP 2026",
+  "dataset": "EnterpriseRAG-Bench, 511958 docs reported by the paper, 470 answerable questions",
+  "note": "Solo rows are 3-seed means. Ensemble and oracle rows are post-hoc seed-42 analyses.",
+  "enterprise_solo_hit10": {
+    "S1_parent": 39.22, "S2_neighbor": 41.21, "S3_synonym": 42.91,
+    "S4_comparative": 41.63, "HyDE": 39.50, "Query2Doc": 41.91
+  },
+  "enterprise_solo_ndcg10": {
+    "S1_parent": 31.99, "S2_neighbor": 29.81, "S3_synonym": 30.97,
+    "S4_comparative": 30.11, "HyDE": 31.99, "Query2Doc": 33.51
+  },
+  "enterprise_solo_mrr10": {
+    "S1_parent": 34.05, "S2_neighbor": 30.87, "S3_synonym": 32.18,
+    "S4_comparative": 31.20, "HyDE": 34.34, "Query2Doc": 35.32
+  },
+  "enterprise_solo_hit1": {
+    "S1_parent": 31.06, "S2_neighbor": 26.10, "S3_synonym": 27.23,
+    "S4_comparative": 26.24, "HyDE": 31.06, "Query2Doc": 31.49
+  },
+  "enterprise_ensembles_hit10": {
+    "S1+Query2Doc": 48.94, "S1+HyDE+Query2Doc": 50.00,
+    "S1+S3+S4+HyDE": 51.70, "S1+S3+S4+HyDE+Q2D": 52.98,
+    "all_method_oracle": 55.74
+  },
+  "enterprise_budget_matched_hit10": {
+    "S1_TopK100": 44.33, "S1_multipass_hnsw": 44.19
+  },
+  "enterprise_rescue_rate_pct_of_S1_misses": {
+    "_miss_set_size": 283,
+    "Query2Doc": 14.8, "HyDE": 14.5, "S3_synonym": 13.2,
+    "S4_comparative": 10.1, "S2_neighbor": 10.1
+  },
+  "enterprise_catastrophic_miss_pct": {
+    "S3_synonym": 57.09, "Query2Doc": 58.09, "S4_comparative": 58.37,
+    "S2_neighbor": 58.79, "HyDE": 60.50
+  },
+  "router_enterprise_hit10": {
+    "always_S1": 39.22, "router_tau_0.65": 43.55, "always_merge_S1_Q2D": 47.94,
+    "_expanded_pct": 39.0
+  },
+  "fixed_pipeline": {
+    "retriever": "bge-base-en-v1.5", "reranker": "bge-reranker-base",
+    "mmr_lambda": 0.85, "chunking": "sentence 512/50",
+    "llm": "GPT-4.1 temp 0.7",
+    "per_strategy_retrieval_depth_K": {"S1": 10, "S2": 7, "S3": 5, "S4": 8}
+  },
+  "lexical_mentions_in_full_text": {
+    "bm25": 0, "lexical": 0, "sparse": 0, "hybrid": 0,
+    "keyword": 0, "tf-idf": 0, "splade": 0,
+    "rocchio": 2, "_rocchio_note": "both in Related Work and the bibliography; never run"
+  }
+}

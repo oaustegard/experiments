@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0424: For the Interactive Latency Canvas, what are the current prompt_len_bucket cutoffs (short/medium/long)?
+qst_0425: In the Deterministic Playback Manifest v1, how is manifest signing/integrity represented (signature vs integrity fields)?
+qst_0426: What are the automated rollback trigger thresholds (safety sentinel, composite quality, business KPI) in the Optimize cohort-driven gates PRD?
+qst_0427: ClearEdge 2027 pilot: final po_fingerprint format and weekly invoice delivery time?
+qst_0428: What monthly token volume discount breakpoints apply for Hosted pricing in the enterprise playbook?
+qst_0429: Do I need to set enable_tool_signal for tool-signal in the Responses v9 OpenAI-compat streaming bridge?
+qst_0430: Does the Hosted AWS Marketplace SKU support customer-managed KMS keys (BYOK)?
+qst_0431: What is the procedure for an emergency rollback of a Serving Runtime release (Hosted and Dedicated)?
+qst_0432: Which intake channel has the most reports of "token accounting discrepancy"?
+qst_0433: What is Redwood Inference's end-to-end process for rotating secrets and credentials used by production services (including emergency rotation)?
+qst_0434: In Q4 2025, which customer industry segment was featured in the most published customer stories (case studies + one-page success stories)?
+qst_0435: How many weekly status updates for Project Orion marked the project as 'At Risk'?
+qst_0436: Across Redwood's Go, Python, and TypeScript SDKs, which SDK has the highest number of customer-reported auth-related bug reports, and what are the corresponding support ticket IDs?
+qst_0437: Across all incident postmortems, which Redwood team was assigned the most follow-up action items?
+qst_0438: Which Redwood Inference engineering team owned the most production incidents involving GPU capacity or quota exhaustion in H1 2025?
+qst_0439: How many internal incident writeups at Redwood Inference describe activating automatic fallback (to a different model or region) as part of mitigation?
+qst_0440: What is the complete SOP Redwood Inference must follow to enable "customer-managed audit log export" (to the customer's cloud storage) across Hosted, Dedicated, and Private deployments-including required prerequisites, security approvals, configuration steps, validation, customer communication, and ongoing operations/ownership?
+qst_0441: For an enterprise Redwood Private deployment upgrade, what is the complete go/no-go gate (required validations, required approvals, and required customer communications) mandated by Redwood's internal standards?
+qst_0442: What is Redwood Inference's end-to-end process for making a production change (definition, required approvals, pre-deploy verification, deploy execution, customer/internal communications, and rollback/post-change requirements) for the Hosted API and Console?
+qst_0443: List every internal communication thread (email, Slack, and meeting notes) about the Redwood Private upgrade 'rollback loop' bug (including references to RRB-17 or 'stuck rollback').
+qst_0444: What is Redwood Inference's end-to-end internal process for launching a new third-party LLM into the Hosted API model catalog-from intake to post-launch monitoring-including every required gate, owner, and artifact?
+qst_0445: "What is the complete required content of a production rollout plan for introducing a new LLM model version on Redwood Inference (hosted, dedicated, and private), including required metrics/thresholds, approvals, rollback/fallback rules, and customer-facing communications?"
+qst_0446: Has any customer other than Kestrel Labs reported timeouts specifically when using the JSON-schema structured output feature on the hosted API?
+qst_0447: What is Redwood Inference's complete end-to-end process for shipping an emergency serving-runtime hotfix to production (Hosted + Dedicated), including required approvals, checklists, rollout/rollback steps, and mandatory customer communications?
+qst_0448: Which customers have been granted an exception to Redwood’s default inference request log retention policy, and what retention period was approved for each?
+qst_0449: In March 2026, which deployment offering-Hosted API, Dedicated, or Private-had the most customer support escalations where the primary symptom was request timeouts?
+qst_0450: How many Fireflies sales-call transcripts mention a customer requirement for data residency (keeping data in a specific region/country)?
+qst_0451: In the team chat about posting jokes when an AI makes things up in production, what tagging requirement did someone propose for the memes?
+qst_0452: Who owns the messy go-to-market misc assets dump with placeholder marketing files and micro-copy ideas created during a last-minute scramble before a partner call?
+qst_0453: Who is responsible for the stock canyon hero placeholder image that is suggested for demo slides, and what is its current status?
+qst_0454: When is the professional deep cleaning scheduled for the smelly refrigerator in the 4th floor office kitchen?
+qst_0455: Are sneakers acceptable for the first few weeks of the company summer softball league, or do we need cleats right away?
+qst_0456: What time was the fantasy football mock draft scheduled for, and which time zone was it in?
+qst_0457: Do I need approval to add a large planter or wall mounted art in a Redwood office, and what details should I include in the request?
+qst_0458: How often should facilities water common-area snake plants and ZZ plants in the office?
+qst_0459: What was the deadline and time zone for paying into the office fantasy football playoff pickem?
+qst_0460: In a first round technical interview for a senior sales engineer candidate, what were the agreed next steps after the call?
+qst_0461: What is the proposed weekly cleanup schedule and routine for tidying the engineering kitchen fridge so old opened items get discarded?
+qst_0462: What caused the courtyard entrance badge kiosk to intermittently show card read errors and freeze for a few minutes after a recent vendor update?
+qst_0463: What time are people planning to start the office foosball tournament lunch bracket on Friday?
+qst_0464: For the casual soccer game being organized on Friday after work, what was the agreed maximum number of players?
+qst_0465: When are signups due for the informal company softball team being organized for summer?
+qst_0466: Who volunteered to be the captain for the office summer softball team and help organize practices?
+qst_0467: Is there an internal hackathon demo project that uses a small web UI and a fake backend to visualize model serving behavior like batching and cache hit rates, and can be run locally or deployed for a quick demo?
+qst_0468: In the chat about an office cat knocking over equipment and jokes about caching, what was the short bash command meme about forcefully ending a process named after a cat?
+qst_0469: What noise range is considered normal in the company cafeteria during the day, and what short-term maximum is allowed at lunch?
+qst_0470: In a backend inference engineer interview about multi-tenant GPU scheduling, what strategy did the candidate propose to reduce cold misses for growing attention cache in long chat histories?

@@ -1,0 +1,25 @@
+{
+  "source": "EnterpriseRAG-Bench paper, Sun/Rahmfeld/Weaver/Desai/Huang/Butler, arXiv:2605.05253, Tables 6 and 7",
+  "note": "arXiv:2609.05637 cites this paper as its benchmark source. Metric is Document Recall@10 over the 470 questions carrying gold documents; correctness is a GPT-5.4 judge, not used here.",
+  "systems": {
+    "BM25": "OpenSearch, standard analyzer, single concatenated text field, fixed top-10 documents",
+    "Vector": "OpenAI text-embedding-3-large, 3072 dimensions, cosine over Qdrant, fixed top-10 documents",
+    "BashAgent": "GPT-5.4 low reasoning with grep/find/head over the corpus directory, variable document count, 10-minute budget"
+  },
+  "overall": {
+    "BM25":      {"correctness": 68.8, "completeness": 56.0, "doc_recall": 68.4, "invalid_extra_docs": 9.0},
+    "Vector":    {"correctness": 51.4, "completeness": 42.9, "doc_recall": 46.0, "invalid_extra_docs": 9.3},
+    "BashAgent": {"correctness": 60.6, "completeness": 61.1, "doc_recall": 55.8, "invalid_extra_docs": 2.0}
+  },
+  "doc_recall_by_type": {
+    "basic":                    {"n": 175, "BM25": 77.7, "Vector": 48.6, "BashAgent": 61.7},
+    "semantic":                 {"n": 125, "BM25": 43.2, "Vector": 24.8, "BashAgent": 29.6},
+    "intra_document_reasoning": {"n": 40,  "BM25": 90.0, "Vector": 57.5, "BashAgent": 75.0},
+    "project_related":          {"n": 40,  "BM25": 65.5, "Vector": 49.2, "BashAgent": 43.2},
+    "constrained":              {"n": 30,  "BM25": 85.0, "Vector": 83.3, "BashAgent": 78.3},
+    "conflicting_info":         {"n": 20,  "BM25": 82.5, "Vector": 55.0, "BashAgent": 72.5},
+    "completeness":             {"n": 20,  "BM25": 46.5, "Vector": 33.4, "BashAgent": 59.0},
+    "miscellaneous":            {"n": 20,  "BM25": 90.0, "Vector": 75.0, "BashAgent": 100.0}
+  },
+  "authors_own_wording": "BM25 leads on correctness and document recall. Vector search underperforms expectations even on semantic questions (32.8% correctness, 24.8% recall), the category explicitly designed to favor embedding-based retrieval by limiting keyword overlap."
+}
