@@ -134,6 +134,13 @@ The `_chunkgran` arms bracket both readings by scoring the top ten chunks
 directly instead of pooling 200 and taking ten distinct documents. The gap
 between the two is how much of the difference is metric rather than modality.
 
+Two figures make that confound worth taking seriously. Sun et al. report 46.0%
+document recall for `text-embedding-3-large` with no reranker. The paper reports
+34.33% Recall@10 for a dense pipeline that adds a cross-encoder and MMR on top
+of `bge-base-en-v1.5`. A reranked pipeline landing 12 points below an
+unreranked one is consistent with a weaker encoder, and equally consistent with
+the two numbers counting different units.
+
 Nothing here measures a reranker. The paper's baseline includes
 `bge-reranker-base` and MMR; these arms include neither. A cross-encoder over a
 BM25 pool would very likely score higher than the BM25 numbers reported here,
