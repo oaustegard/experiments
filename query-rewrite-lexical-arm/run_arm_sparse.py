@@ -43,6 +43,8 @@ if __name__ == "__main__":
     ap.add_argument("--words", type=int, default=380)
     ap.add_argument("--stride", type=int, default=340)
     ap.add_argument("--name", default="A1_chunked")
+    ap.add_argument("--plain-analyzer", action="store_true",
+                    help="no stemming, no stopword list, matching OpenSearch's standard analyzer")
     ap.add_argument("--collapse", choices=["docs","chunks"], default="docs",
                     help="docs: pool 200 chunks then take 10 distinct documents. "
                          "chunks: take the top 10 chunks and keep whatever documents they land on")
@@ -99,7 +101,7 @@ if __name__ == "__main__":
         for t in texts:
             yield from parts(t)
 
-    an = BS.Analyzer(STEMMER)
+    an = BS.Analyzer(None, stopwords=False) if a.plain_analyzer else BS.Analyzer(STEMMER)
     t0 = time.time()
     mat, vocab = BS.build(stream, n_chunks, an, log=log)
     log(f"retrieving (collapse={a.collapse}) ...")
@@ -131,7 +133,8 @@ if __name__ == "__main__":
 
     res = dict(arm=a.name, smoke_test=False,
                config=dict(impl="bm25_sparse (validated identical to bm25s)",
-                           stemmer=STEMMER_NAME, k1=BS.K1, b=BS.B,
+                           analyzer="plain" if a.plain_analyzer else "stem+stopwords",
+                           stemmer=None if a.plain_analyzer else STEMMER_NAME, k1=BS.K1, b=BS.B,
                            chunk_words=W, chunk_stride=S, chunk_pool=CHUNK_POOL,
                            topk_docs=TOPK_DOCS, n_docs=N, n_chunks=n_chunks,
                            n_queries=len(queries), vocab=len(vocab), nnz=int(mat.nnz),

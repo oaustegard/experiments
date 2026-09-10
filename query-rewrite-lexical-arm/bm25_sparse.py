@@ -21,14 +21,15 @@ _STOP = frozenset(STOPWORDS_EN)
 class Analyzer:
     """Matches bm25s.tokenize(lower=True, stopwords='en', stemmer=snowball)."""
 
-    def __init__(self, stemmer=None):
+    def __init__(self, stemmer=None, stopwords=True):
         self.stemmer = stemmer
+        self.stop = _STOP if stopwords else frozenset()
         self._cache = {}
 
     def __call__(self, text):
-        out, cache, stem = [], self._cache, self.stemmer
+        out, cache, stem, stop = [], self._cache, self.stemmer, self.stop
         for w in _PAT.findall(text.lower()):
-            if w in _STOP:
+            if w in stop:
                 continue
             if stem is None:
                 out.append(w)
