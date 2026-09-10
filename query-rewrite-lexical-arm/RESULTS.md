@@ -122,13 +122,17 @@ The paper's arithmetic is not wrong. Its Appendix Table 7 rescue rates account
 for its own +12.5 without any missing arm, which is why the thesis was weakened
 before measurement rather than after.
 
-The comparison to their absolute numbers carries an unresolved confound. They
-chunk at 512/50 and retrieve K=10 per strategy. If their HIT@10 counts ten
-chunks rather than ten distinct documents, those chunks cover fewer documents
-and their figure is depressed against a ten-distinct-document collapse. The
-`_chunkgran` arms bracket this by scoring the top ten chunks directly, and the
-gap between the two readings is how much of the difference is metric rather than
-modality.
+The comparison to their absolute numbers carries an unresolved confound: the
+paper never states its retrieval unit. It says "standard IR metrics", indexes
+`sentence chunking (512/50)`, sets per-strategy retrieval depth K=10/7/5/8, and
+describes merging "top-20 lists" and "max 20 merged documents". Nowhere does it
+say whether HIT@10 counts ten chunks or ten distinct documents. If ten chunks,
+several land in the same document, so their top-10 covers fewer than ten
+documents and the figure is depressed against the collapse used here.
+
+The `_chunkgran` arms bracket both readings by scoring the top ten chunks
+directly instead of pooling 200 and taking ten distinct documents. The gap
+between the two is how much of the difference is metric rather than modality.
 
 Nothing here measures a reranker. The paper's baseline includes
 `bge-reranker-base` and MMR; these arms include neither. A cross-encoder over a
