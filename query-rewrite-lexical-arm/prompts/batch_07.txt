@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0330: What trace job ID did they queue for the prefetch triage, and where did cheng say he would upload the perf artifacts for it?
+qst_0331: In the incident where Meridian Analytics saw pinned sessions revert to the fallback variant during a tiered canary in us-east, which model rollout was affected and what type of customer contract did they have?
+qst_0332: What are the acceptance criteria for the trace export UI changes that include the corr-id copy behavior, the consent modal requirements, and the keyboard help overlay, and what else did the PM ask to include before merging?
+qst_0333: In the runtime inference forensics walkthrough for Arcadia Retail, what is their p95 latency target for interactive queries, and by what day did they say they would upload the sample requests?
+qst_0334: Why were SSE streaming connections getting cleanly closed after about 60 seconds only when going through the edge proxy, and what heartbeat change was implemented to mitigate it?
+qst_0335: For the StellarNow executive briefing to align on the mutual action plan, who is the customer executive sponsor and what time window was ultimately confirmed for the meeting?
+qst_0336: For the CartPilot Redwood trial POC, when is the kickoff sync scheduled and what peak request rate did they say they expect during bursts?
+qst_0337: In the resilient streaming schema proposal, what resume success rate is targeted in the success metrics and what resume_success_rate threshold would trigger a rollback during rollout?
+qst_0338: Who owns the mixed-priority cgroup and soft-quota playbook for multi-tenant inference, and what is the best email or Slack channel to contact for rollout coordination?
+qst_0339: For the Usage Insights reconciliation drift alert, what drift percentage and time window trigger warn vs page, and which severity level includes workspace_id in the alert labels?
+qst_0340: For the private customer collector debug bundle upload 403 escalation, what support ticket number is being updated and what request ID should be included if escalating to infra?
+qst_0341: For the Proxima Bank 429 spike after priority routing rollout, what caused the throttling and what temporary policy exception did we apply, and how do we verify it is not burning the enterprise route SLOs?
+qst_0342: Our Key Management Standard says we must not cache plaintext DEKs, but ADR-007 allows a short-lived in-memory DEK cache. What is the actual policy we should follow, and how should we describe DEK caching and KMS outage behavior in customer-facing rotation materials?
+qst_0343: What caused the savings $/day estimates in Optimization Suggestions beta to not match Arkadia Finance billing, and what UI or API changes should we make to prevent this confusion going forward?
+qst_0344: Do we need to recalculate or annotate Dedicated throughput SLO compliance for streaming-heavy deployments before the streaming double-counting fix, and how should Support handle any credit requests tied to that period?
+qst_0345: For the Trident Financial Private VPC deal, what is our approved stance on US-only data residency and 7-year audit log retention/export, and which evidence pack artifacts should we share (and how) to back it up?
+qst_0346: After the Northwind latency spike, what metric wording ended up approved for the public case study and what exactly can Sales share privately without triggering new legal approval?
+qst_0347: For an air-gapped on-prem restore into a brand new cluster, what do we need to install before running restore apply, and what will the installer check and report if those prerequisites are missing?
+qst_0348: When a tenant has a fallback model configured, which overload conditions will trigger Smart Routing to attempt the fallback versus the gateway returning a terminal 503, and how should Support explain that behavior to customers?
+qst_0349: What caused the EU-West activation funnel and onboarding email issues in late January, and which code/config changes fixed them?
+qst_0350: Why did Northpeak Search see their Dedicated Burst Usage billed higher than expected, and how do we prevent retry attempts from double-counting burst GPU-seconds now?
+qst_0351: If Console shows a canary step change to a lower percentage but one region keeps serving the old split, how do we tell whether it is cohorting key behavior, router version skew, or stale config propagation, and what is the recommended mitigation?
+qst_0352: A dedicated beta customer says the Suggestions view overstates dollar savings compared to billing after they enable caching in a partial rollout; what is causing the mismatch and what UI and estimator changes should we make to prevent this confusion?
+qst_0353: Before we re-enable paging and hook perf-canary into rollout gates, what exact baseline key, min-sample requirements, and incident-bot dedupe key should we enforce to avoid another false-positive alert storm?
+qst_0354: How should we explain and remediate a case where a customers invoice token total is higher than their Usage API export because streaming retries were double-counted, and what approvals are required before issuing a credit or changing the ledger?
+qst_0355: What is the approved wording to use when a prospect demands EU-only data residency and no non-EU support access for the Hosted API, and who do we need to escalate to if they want that as a contractual commitment?
+qst_0356: For the Acme AI dedicated failover incident with intermittent 500s and fallback churn, what v1 incident type and primary owner should we set, and what time-to-mitigate and time-to-fix targets should CS use in customer updates?
+qst_0357: A customer subscribed via AWS Marketplace but our console cannot verify the entitlement. What is the approved manual workaround, and what steps do we take afterward to link the subscription and keep marketplace metering and revenue recognition correct?
+qst_0358: Finance is seeing QTD blended $/1M output tokens jump. How do we verify whether its a rate card change or a streaming output token undercount, and what is the backfill and escalation path?
+qst_0359: Can you reconcile the current public error contract for data residency policy blocks across the ADR, the gateway implementation, and the PM requirements, and confirm the exact HTTP status and error.code/subcode fields SDKs should key off of?
+qst_0360: Customers behind strict corporate proxies are seeing 4xx failures when the quickstart templates add telemetry tags. What tagging approach and opt-out setting should we use, and how will that affect TTFS and activation KPI measurement?
+qst_0361: How do we decide whether a streaming disconnect is a client abort or a platform-caused failure for SLO and error budget accounting, and how should that be reflected in the SLA availability calculation and the customer-facing Support response?
+qst_0362: What is our v1 standard for streaming timeout enforcement and retry behavior, and do any of the Python, TypeScript, or Go SDKs still violate it based on the parity matrix and recent support tickets?
+qst_0363: Northbridge Bank reported that request log TTL was not being enforced in us-east and that audit log exports were missing key admin event types; what caused these issues and what customer-facing compliance pack artifacts should we provide to show both retention enforcement and audit log evidence are now correct?
+qst_0364: What audit event names and required fields should we emit for an Optimization Config rollback, and what should we check if the rollback succeeds in Console but never shows up in the customers SIEM export?
+qst_0365: Fast tier p99 is regressing in canary, what SLO targets and abort criteria apply and what rollback steps should we take? Which dashboards and reason codes should we use to confirm whether admission control or requeue behavior is causing it.
+qst_0366: A non-burst Dedicated tenant is seeing tail latency spikes during another tenant's burst window; what should we check first, and when do we reduce burst caps versus trigger the SLO gate or circuit breaker, and what denial reason code will burst customers see?
+qst_0367: For an enterprise ticket like SUP-1842 where streaming disconnects happen in us-east, when should we escalate from a Support bridge to a formal incident and post a status page update, and what customer update cadence and credits wording should we use?
+qst_0368: For the Northwind Analytics long-context latency regression after enabling Runtime 1.21 kernel auto-selection v2 on L40S, what mitigations were applied and what is the recommended plan and criteria to safely re-enable v2?
+qst_0369: Why were some Hosted API overload errors missing Retry-After, and what changes and alerts ensure it stays consistent across gateway, routing, and streaming paths going forward?
+qst_0370: Why can the observed canary traffic percentage in a single region diverge from what the Console rollout step shows, and what are the recommended oncall mitigations and GA preventative fixes?
+qst_0371: Which streaming event names and tool-call fields are we standardizing on for SDK examples and golden fixtures, and how should we map OpenAI-compat tool-call deltas into that model?
+qst_0372: Streaming chat requests sometimes return a generic 500 when region pinning should block them; what is the canonical residency violation error contract and where in the gateway and Python SDK do we enforce it?
+qst_0373: What is the expected workflow when a new Sev0 or Sev1 incident is created with incident_type set to unknown, including the temporary owner, when it must be reclassified, and how SLA timers and alerts behave until it is updated?
+qst_0374: For the runtime 1.19 Dedicated canary, what TP watchdog mode and default timeouts should we start with, and what specific metrics or alert conditions should trigger an immediate rollback if we see false positives or drain storms?
+qst_0375: When a quantization profile is blocked due to a quality regression, how is that enforced differently from an incompatibility fallback, and what should oncall do to verify a customer route is back on baseline using logs, dashboards, and audit history?
+qst_0376: Northbridge Bank is seeing request logs older than their configured retention window in us-east after a maintenance window. What is the recommended remediation and what customer-safe evidence artifacts should we provide to prove the retention policy is configured correctly and enforcement has caught up?

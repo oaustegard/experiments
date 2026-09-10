@@ -1,0 +1,65 @@
+You are reproducing strategy S4 ("Comparative") from arXiv:2609.05637, applied
+to an enterprise-search benchmark about a fictional company called Redwood
+Inference that sells AI model inference.
+
+For each numbered question below, write ONE comparative rewrite: a single
+question that reframes the original as a comparison against alternatives,
+siblings, or neighbouring cases. The paper's own example is
+"What are the side effects of Tylenol?" -> "How do Tylenol's side effects
+compare to Advil's?".
+
+Rules:
+- Exactly one rewrite per question, on one line.
+- Keep the original's entities and jargon verbatim. Do not expand acronyms, do
+  not invent product names, do not add facts.
+- Stay a question. Do not answer it.
+- Return ONLY a JSON object mapping question id to rewrite, no prose around it.
+
+Questions:
+qst_0142: What uptime and latency service level targets are stated for the hosted versus reserved/dedicated LLM inference offering in the SaaS go-to-market brief?
+qst_0143: What was the short-term mitigation suggested to stabilize RDMA traffic when there was packet loss and latency spikes between two racks in the same availability zone?
+qst_0144: In the recent Friday all-hands notes, what was the reported median latency improvement attributed to continuous batching?
+qst_0145: For the upcoming joint demo with a Japan-based logistics customer, what document did they prefer for trial procurement instead of a full purchase order?
+qst_0146: What change was introduced to reduce tail latency in a paged key value cache by defragmenting free space during frees and keeping frequently used key prefixes from being evicted?
+qst_0147: What is the planned cutoff date when the old model capability format may stop being accepted for new writes?
+qst_0148: In the recent SDK update that added typed streaming errors and a reconnecting iterator API across Python, TypeScript, and Go, what package versions were released for each SDK?
+qst_0149: When do reservations open for the new dedicated GPU option that is rolling out first in the EU Central and India South regions?
+qst_0150: What are the required permission scopes for an API key when SDK examples fail with a 401 unauthorized error during developer onboarding?
+qst_0151: Why did the 3am nightly release pipeline stop uploading build artifacts to the internal S3 style storage after a security sudo policy update?
+qst_0152: What caused the GPU training slowdowns in one us-east rack where same-rack pod latency jumped to tens of milliseconds and NCCL allreduce started timing out, and what network symptom on the top-of-rack switch pointed to it?
+qst_0153: In the engineering chat about a Go refactor PR, what did they change in the linter config to get CI passing when a gocritic rule complained about context parameter types in tests?
+qst_0154: What success targets were suggested for the four week micro credential pilot with SI partners (completion percentage and number of integrations started within about two months)?
+qst_0155: What are the lifecycle states and key transitions for the edge adapter service that registers with a control plane and can fall back to hosted inference?
+qst_0156: In the planning meeting about a strict deployment change freeze and automatic fallback during a model rollout, what composite health score thresholds defined green, amber, and red states?
+qst_0157: What is the corrective journal number created to move a supplier credit amount from the DEV cost center to the OPS cost center after it was posted incorrectly during the March close?
+qst_0158: What are the three default preset options in the autoscaling policy builder for the dedicated capacity trial onboarding flow?
+qst_0159: What were the two immediate options the SRE suggested when a finance customer could not reserve four A100 GPUs in eu-west-1 due to insufficient capacity?
+qst_0160: What change reduced GPU memory use and improved first-token latency by prepacking INT8 weights and fusing smoothquant dequantization into the GEMM kernel without creating intermediate tensors?
+qst_0161: In the OpenAI compatibility adapter update for Redwood deployments, what priority order does the normalizer use to resolve conflicting tool selection hints?
+qst_0162: What caused the brief period where a few tenants were not being throttled correctly after a shard reassignment happened at the same time as a runtime policy reload?
+qst_0163: What are the pass fail threshold percentages for the release guardrails for critical versus lower risk controls in the SSO and audit log compliance rollout plan?
+qst_0164: In the HyperOnboard 30-60-90 onboarding template, what are the escalation conditions that should trigger an email to people ops and the hiring manager?
+qst_0165: What was the agreed condition and timing for approving the additional senior infrastructure engineering hire under the hiring freeze plan?
+qst_0166: What procurement target date did ClearPath Health give for signing an agreement after the streaming model benchmark and security review?
+qst_0167: What configuration option was added to let repositories explicitly allow Docker-in-Docker during the staged rollout of the new GitHub composite action CI setup?
+qst_0168: What is the HTTP endpoint and method for the new service that returns recommended default profiles for batching, cache lifetimes, and quantization based on recent traffic telemetry?
+qst_0169: Who is responsible for signing off on latency regression in the weekly customer rollout tracker for Nimbus Health?
+qst_0170: What was the performance goal for response time at the 95th percentile for single-request text generation for a small SaaS lead building automated social content drafts and support triage?
+qst_0171: In a production incident during a staggered canary rollout in us-east-1, what ordering change was made to the autoscaler prewarm handshake to stop some tenant-pinned traffic from getting routed to an older model variant?
+qst_0172: In the eng-platform standup about staging 401 spikes on the generate endpoint, what header value caused the requests to miss both the primary and fallback route predicates and hit the fallthrough route?
+qst_0173: What maintenance window and expected downtime were planned for the rollout bringing up new dedicated GPU capacity nodes, including the canary and broader rollout dates?
+qst_0174: What are the required fields that each entry in the contract conformance results ledger must include?
+qst_0175: What keyboard-only interaction model is required for the compact dashboard widgets, including how focus enters the card and how users move and activate controls inside it?
+qst_0176: When does booking open for the new top end 80GB accelerator on dedicated clusters in the EU Central and India South locations?
+qst_0177: What were the final concession terms approved for the retail partner purchase through the major cloud providers marketplace, specifically the first year price reduction and the referral payout schedule after launch?
+qst_0178: In the recent change that made low bit math safer for inference, what is the default pass rate used to decide when a machine is allowed to step down from the safest numeric mode?
+qst_0179: What caused an enterprise tenant in Western Europe to suddenly get routed to a Southeast Asia edge during a short mid March 2026 load spike on the vectorization service, adding about 200ms and triggering ingestion timeouts, even though the tenant was supposed to stay in Europe?
+qst_0180: In our rollout system, what is the name of the new mechanism that prevents a candidate release from getting full user traffic until a dry run with replayed requests and smoke checks has passed?
+qst_0181: During a large overnight upload run using short lived credentials refreshed by many transient workers, what client side scheduling change was recommended to stop periodic too many requests errors after a partial worker restart caused refresh bursts?
+qst_0182: During a failover between two active locations, what is the default time window where a short-lived resume credential is accepted on the destination before doing full authentication again?
+qst_0183: What are the specific gate thresholds used to automatically decide whether a compressed model variant is allowed, canaried, or blocked, including the limits for chat similarity drop, code pass rate change, retrieval embedding quality, and acceptable latency and cost changes?
+qst_0184: When is the 60 to 90 minute technical deep dive scheduled with the healthcare client about running model serving inside their own isolated network, and what is the time window in Pacific time?
+qst_0185: What was the recommended way to split a year long commitment for about eight high end inference accelerators across North America, Europe, and Southeast Asia while keeping a small extra pool for short spikes?
+qst_0186: In the notes about keeping long, stop-and-go chat sessions cheap without replaying the whole history, what storage setup and time-to-live were proposed for keeping the compact per-session state for recent sessions versus longer retention?
+qst_0187: When a production model experiment shows a sustained increase in harmful output warnings for two evaluation windows, what automated actions should the platform take regarding traffic shifting and incident/oncall notifications?
+qst_0188: In the recent recruiting email thread about an offer being sent for signature, what were the two proposed onboarding start dates (one earlier limited-access option and one later full start) mentioned due to immigration timing?
