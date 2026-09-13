@@ -48,7 +48,33 @@ if ! curl -sf --max-time 20 "$API_BASE/models" >/dev/null; then
   log "FATAL: no model server at $API_BASE"
   exit 1
 fi
-command -v aider >/dev/null || { log "FATAL: aider not on PATH"; exit 1; }
+command -v mini >/dev/null || { log "FATAL: mini (mini-swe-agent) not on PATH"; exit 1; }
+
+# Local endpoint via litellm's OpenAI-compatible path. Cost tracking is off
+# because a local model has no price and litellm errors on an unknown one.
+export MSWEA_COST_TRACKING="ignore_errors"
+export OPENAI_API_KEY="$API_KEY"
+
+# Written per task (see write_agent_config) so limits and trajectory path are
+# per task. The limits are the unattended-safety half: a 2-bit model that
+# starts emitting malformed actions spirals, and max_consecutive_format_errors
+# stops it at three rather than at the wall clock.
+write_agent_config() {
+  local path="$1" traj="$2" secs="$3"
+  cat >"$path" <<YAML
+model:
+  model_name: "hosted_vllm/$MODEL"
+  model_kwargs:
+    custom_llm_provider: "openai"
+    api_base: "$API_BASE"
+agent:
+  cost_limit: 0
+  step_limit: ${BATCH_STEP_LIMIT:-40}
+  wall_time_limit_seconds: $secs
+  max_consecutive_format_errors: 3
+  output_path: "$traj"
+YAML
+}
 
 # Measure prompt-processing speed once and record it. Prefill is what decides
 # whether an agent loop is viable at all; if it has collapsed you want the
@@ -136,16 +162,29 @@ run_task() {
     fi
   fi
 
+  # Hand the agent the test command rather than running the loop for it.
+  # harness-bench measured both shapes at a fixed model: feeding the test
+  # output back once scored 8/12, letting the agent run the suite itself
+  # scored 11/12. The gate below is still ours — this is the agent's own
+  # check, not the acceptance check.
+  local rendered="$PROMPT
+
+Verify your work by running: $TEST_CMD
+Iterate until it passes. Do not edit the tests themselves."
+  [[ -n "$FILES" ]] && rendered="$rendered
+The relevant files are: $FILES"
+
+  write_agent_config "$dir/mini.yaml" "$dir/trajectory.json" "$TIMEOUT"
+
   log "$id: running agent (timeout ${TIMEOUT}s)"
   local t0 t1 rc
   t0=$(date +%s)
-  ( cd "$wt" && timeout "$TIMEOUT" aider \
-      --model "openai/$MODEL" \
-      --openai-api-base "$API_BASE" --openai-api-key "$API_KEY" \
-      --yes-always --no-stream --no-check-update --no-analytics \
-      --auto-test --test-cmd "$TEST_CMD" \
-      --message "$PROMPT" \
-      ${FILES:+$FILES} ) >"$dir/agent.log" 2>&1
+  # timeout(1) is the outer bound; the config's wall_time_limit_seconds lets
+  # the agent exit cleanly and write its trajectory before that fires.
+  ( cd "$wt" && timeout $(( TIMEOUT + 120 )) mini \
+      -y --exit-immediately \
+      -c "$dir/mini.yaml" \
+      -t "$rendered" ) >"$dir/agent.log" 2>&1
   rc=$?
   t1=$(date +%s)
   local mins=$(( (t1-t0)/60 ))

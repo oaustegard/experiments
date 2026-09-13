@@ -18,8 +18,9 @@ FULL_TEST_CMD="uv run pytest -x -q"
 # skip  -> no precondition
 BASELINE=green
 
-# Files put into the agent's context. Keep this tight — on a prefill-bound
-# machine every extra file is paid for on every turn of the loop.
+# Named in the prompt so the agent does not have to go looking. Keep this
+# tight — on a prefill-bound machine every token it reads is paid for on every
+# subsequent turn, since the transcript only grows.
 FILES="src/yourproject/parsers.py"
 
 MAX_DIFF_LINES=400
