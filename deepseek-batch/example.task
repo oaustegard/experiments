@@ -1,0 +1,35 @@
+# A task file is sourced as bash by deepseek-batch.sh. Treat it as code.
+# Name it with a numeric prefix — the queue runs in lexical order.
+
+REPO=~/src/yourproject
+BASE=main
+
+# The gate. Required. A task without a machine-checkable acceptance command
+# cannot be judged overnight and the runner rejects it.
+TEST_CMD="uv run pytest tests/test_parsers.py -x -q"
+
+# Collateral-damage check. Defaults to TEST_CMD, which is rarely what you want:
+# the targeted test passing tells you nothing about what else broke.
+FULL_TEST_CMD="uv run pytest -x -q"
+
+# green -> the suite must pass before the agent runs (refactor / annotation work)
+# red   -> the suite must fail before the agent runs (bug fix; proves the
+#          reproduction is real and the fix is not a no-op)
+# skip  -> no precondition
+BASELINE=green
+
+# Named in the prompt so the agent does not have to go looking. Keep this
+# tight — on a prefill-bound machine every token it reads is paid for on every
+# subsequent turn, since the transcript only grows.
+FILES="src/yourproject/parsers.py"
+
+MAX_DIFF_LINES=400
+TIMEOUT=5400
+
+# State the invariant, not just the goal. The model is running at 2-bit and
+# will take any latitude the prompt leaves it.
+PROMPT="Add complete type annotations to every public function and method in
+src/yourproject/parsers.py. Use the typing constructs already used elsewhere in
+this repo. Do not change any runtime behaviour, do not rename anything, do not
+add or remove parameters, and do not edit any other file. Every existing test
+must still pass."
