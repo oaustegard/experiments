@@ -1,0 +1,74 @@
+# Runs rht-operator-native/ci_run.py on multi-core x86, ARM and macOS runners
+# and commits each machine's JSON back to rht-operator-native/ci/. Exists
+# because the authoring container has one core, and the question it answers
+# (compiled structured RHT vs multi-threaded sgemm) is a multi-core question.
+# The fingerprints across the three machines test the cross-platform
+# bit-exactness claim, which one machine cannot.
+name: rht-operator-native
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'rht-operator-native/**'
+      - '!rht-operator-native/ci/**'
+      - '!rht-operator-native/*.md'
+      - '.github/workflows/rht-operator-native.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rht-operator-native
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, label: gha-ubuntu24-x64 }
+          - { os: ubuntu-24.04-arm, label: gha-ubuntu24-arm64 }
+          - { os: macos-15, label: gha-macos15-arm64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy==2.4.4 scipy threadpoolctl "git+https://github.com/oaustegard/remex.git@c105c3a"
+      - name: Build kernels
+        run: bash rht-operator-native/build.sh
+      - name: Run
+        working-directory: rht-operator-native
+        run: python ci_run.py ${{ matrix.label }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.label }}
+          path: rht-operator-native/ci/${{ matrix.label }}.json
+
+  collect:
+    needs: bench
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/art
+      - name: Commit results
+        run: |
+          mkdir -p rht-operator-native/ci
+          find /tmp/art -name '*.json' -exec cp {} rht-operator-native/ci/ \;
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rht-operator-native/ci
+          git diff --cached --quiet && exit 0
+          git commit -m "rht-operator-native: CI results for ${GITHUB_SHA::7}"
+          for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
