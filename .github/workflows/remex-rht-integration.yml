@@ -72,6 +72,10 @@ jobs:
           echo "SHA=$SHA" >> "$GITHUB_ENV"
           bash run_all.sh ${{ matrix.label }} "$MAIN_REF" "$BRANCH_REF"
           cp "$RUNNER_TEMP/pytest.txt" "out/${{ matrix.label }}__pytest.txt"
+          # Logs are unreadable from the authoring session; annotations are not.
+          echo "::notice title=out inventory ${{ matrix.label }}::$(du -a out | sort -n | tail -8 | tr '\n' ';')"
+          echo "::notice title=pytest ${{ matrix.label }}::$(tail -1 out/${{ matrix.label }}__pytest.txt)"
+          python -c "import json;b=json.load(open('out/${{ matrix.label }}__branch.json'));print('::notice title=native ${{ matrix.label }}::', b.get('native'), b.get('native_reason'))"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.label }}
@@ -93,6 +97,8 @@ jobs:
           path: /tmp/art
       - name: Commit results
         run: |
+          trap 'echo "::error title=collect failed::line $LINENO: $BASH_COMMAND (exit $?)"' ERR
+          echo "::notice title=artifacts::$(find /tmp/art -maxdepth 3 | head -40 | tr '\n' ';')"
           SHA=$(git -C remex-src rev-parse --short HEAD)
           rm -rf remex-src
           DEST="rht-operator-native/integration/ci/$SHA"
