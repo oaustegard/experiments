@@ -38,16 +38,31 @@ for d in (6, 100, 384, 768, 1024, 1536, 3072, 4096):
 res["bitexact"] = exact
 
 # 2. fingerprints: same input on every machine (PCG64 + Ziggurat are platform-independent)
+from remex.codebook import lloyd_max_codebook
+
+def f32_bounds(d, bits):
+    """Boundaries as midpoints of the float32 centroid table (candidate fix)."""
+    _, c = lloyd_max_codebook(d, bits)
+    return ((c[:-1].astype(np.float64) + c[1:]) / 2).astype(np.float32)
+
 fp = []
 for d in (768, 3072):
     X = np.random.default_rng(7).standard_normal((2000, d)).astype(np.float32)
     op = Op(d, 42, "native")
-    qd = Quantizer(d, 4, seed=42, rotation="rht")
-    qo = Quantizer(d, 4, seed=42, rotation="rht"); qo._rotate_rows = op.rotate_rows
-    fp.append(dict(d=d, R=sha(rht_rotation(d, 42)), op_rot=sha(op.rotate_rows(X)),
-                   dense_rot=sha(X @ rht_rotation(d, 42).T),
-                   op_codes=sha(qo.encode(X).indices), dense_codes=sha(qd.encode(X).indices)))
-    print("fingerprint", fp[-1], flush=True)
+    row = dict(d=d, R=sha(rht_rotation(d, 42)), op_rot=sha(op.rotate_rows(X)),
+               dense_rot=sha(X @ rht_rotation(d, 42).T))
+    for bits in (2, 4, 8):
+        qd = Quantizer(d, bits, seed=42, rotation="rht")
+        qo = Quantizer(d, bits, seed=42, rotation="rht"); qo._rotate_rows = op.rotate_rows
+        row[f"cents{bits}"] = sha(qd.centroids)
+        row[f"bounds{bits}"] = sha(qd.boundaries)
+        row[f"bounds{bits}_f32mid"] = sha(f32_bounds(d, bits))
+        row[f"dense_codes{bits}"] = sha(qd.encode(X).indices)
+        row[f"op_codes{bits}"] = sha(qo.encode(X).indices)
+        qo.boundaries = f32_bounds(d, bits)
+        row[f"op_codes{bits}_f32mid"] = sha(qo.encode(X).indices)
+    fp.append(row)
+    print("fingerprint", row, flush=True)
 res["fingerprints"] = fp
 
 # 3. speed, at 1 thread and at all threads, both sides limited identically
