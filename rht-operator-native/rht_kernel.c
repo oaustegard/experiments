@@ -55,7 +55,9 @@ int rht_apply(const float *X, float *out, int64_t n, int64_t d, int64_t B,
               int64_t rounds, const int32_t *perms, const float *ss,
               int32_t mode, int32_t nthreads) {
     int err = 0;
-    if (nthreads <= 1 || n <= 1) {
+    /* A thread team costs tens of microseconds to wake; below ~2^18 input
+     * floats the serial loop finishes first. */
+    if (nthreads <= 1 || n <= 1 || n * d < (1 << 18)) {
         float *buf = (float *)malloc((size_t)d * sizeof(float));
         if (!buf) return 1;
         for (int64_t i = 0; i < n; i++)

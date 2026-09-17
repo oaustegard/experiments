@@ -7,12 +7,12 @@ import numpy as np
 from threadpoolctl import threadpool_info, threadpool_limits
 from remex import Quantizer
 from remex.rotation import rht_rotation
-from rhtop import Op, plan
+from rhtop import Op, plan, ncpu as _ncpu
 from check_bitexact import numpy_ref
 
 label = sys.argv[1]
 quick = "--quick" in sys.argv
-ncpu = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else os.cpu_count()
+ncpu = _ncpu()
 res = dict(label=label, machine=platform.machine(), processor=platform.processor(),
            system=platform.system(), ncpu=ncpu, numpy=np.__version__,
            blas=[{k: i.get(k) for k in ("internal_api", "architecture", "num_threads", "version")} for i in threadpool_info()])
@@ -64,14 +64,21 @@ for threads in sorted({1, ncpu}):
         for d in dims:
             R = rht_rotation(d, 42); op = Op(d, 42, "native", threads=threads)
             q = np.random.default_rng(1).standard_normal(d).astype(np.float32)
-            cells = [("query1d", lambda: R @ q, lambda: op.rotate_query(q), 21)]
+            cells = [("query1d", lambda: R @ q, lambda: op.rotate_query(q), 51)]
             for n in (1, 64, 10000):
                 X = np.random.default_rng(n).standard_normal((n, d)).astype(np.float32)
-                cells.append((f"enc{n}", lambda X=X: X @ R.T, lambda X=X: op.rotate_rows(X), 3 if n > 64 else 21))
+                cells.append((f"enc{n}", lambda X=X: X @ R.T, lambda X=X: op.rotate_rows(X), 5 if n > 64 else 51))
             Xd = np.random.default_rng(9).standard_normal((10000, d)).astype(np.float32)
-            cells.append(("dec10000", lambda: Xd @ R, lambda: op.unrotate_rows(Xd), 3))
-            for name, fd, fo, rep in cells:
-                a, b = best(fd, rep), best(fo, rep)
+            cells.append(("dec10000", lambda: Xd @ R, lambda: op.unrotate_rows(Xd), 5))
+            # Time all dense cells, then all op cells. Both runtimes spin-wait
+            # after a call (OpenBLAS workers, libgomp team), so interleaving
+            # them makes each side run against the other's spinning threads.
+            td = {name: best(fd, rep) for name, fd, fo, rep in cells}
+            time.sleep(0.5)
+            to = {name: best(fo, rep) for name, fd, fo, rep in cells}
+            time.sleep(0.5)
+            for name, *_ in cells:
+                a, b = td[name], to[name]
                 speed.append(dict(threads=threads, d=d, shape=name, dense_s=a, op_s=b))
                 print(f"t={threads} d={d:>5} {name:>9} dense {a*1e3:9.3f} ms  op {b*1e3:9.3f} ms  op/dense {b/a:6.3f}", flush=True)
 res["speed"] = speed

@@ -5,15 +5,24 @@ import numpy as np
 from remex.rotation import _largest_pow2_divisor
 
 HERE = Path(__file__).parent
-_f32p = np.ctypeslib.ndpointer(np.float32, flags="C_CONTIGUOUS")
-_i32p = np.ctypeslib.ndpointer(np.int32, flags="C_CONTIGUOUS")
+_vp = ctypes.c_void_p
+_i64 = ctypes.c_int64
+_i32 = ctypes.c_int32
+
+
+def ncpu():
+    try:
+        return len(os.sched_getaffinity(0))
+    except AttributeError:  # macOS
+        return os.cpu_count() or 1
 
 def load(variant="native"):
     lib = ctypes.CDLL(str(HERE / f"rht_kernel_{variant}.so"))
     f = lib.rht_apply
     f.restype = ctypes.c_int
-    f.argtypes = [_f32p, _f32p, ctypes.c_int64, ctypes.c_int64, ctypes.c_int64,
-                  ctypes.c_int64, _i32p, _f32p, ctypes.c_int32, ctypes.c_int32]
+    # Raw pointers: ndpointer validation was most of a single-query call.
+    # Op._run guarantees dtype and contiguity itself.
+    f.argtypes = [_vp, _vp, _i64, _i64, _i64, _i64, _vp, _vp, _i32, _i32]
     return f
 
 def plan(d, seed=42):
@@ -32,14 +41,18 @@ def plan(d, seed=42):
 class Op:
     def __init__(self, d, seed=42, variant="native", threads=None):
         self.p = plan(d, seed); self.f = load(variant)
-        self.threads = threads or len(os.sched_getaffinity(0))
+        self.threads = threads or ncpu()
+        p = self.p
+        self._static = (p["d"], p["B"], p["rounds"], p["perms"].ctypes.data, p["ss"].ctypes.data)
     def _run(self, X, mode):
         X = np.ascontiguousarray(X, dtype=np.float32)
         one = X.ndim == 1
         X2 = X.reshape(1, -1) if one else X
+        d, B, rounds, pp, sp = self._static
+        if X2.shape[1] != d:
+            raise ValueError(f"expected d={d}, got {X2.shape[1]}")
         out = np.empty_like(X2)
-        p = self.p
-        if self.f(X2, out, X2.shape[0], p["d"], p["B"], p["rounds"], p["perms"], p["ss"], mode, self.threads):
+        if self.f(X2.ctypes.data, out.ctypes.data, X2.shape[0], d, B, rounds, pp, sp, mode, self.threads):
             raise MemoryError("rht_apply: scratch allocation failed")
         return out[0] if one else out
     def rotate_rows(self, X):   return self._run(X, 1)   # X @ R.T
