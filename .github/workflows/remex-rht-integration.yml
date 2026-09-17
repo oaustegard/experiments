@@ -103,7 +103,11 @@ jobs:
           rm -rf remex-src
           DEST="rht-operator-native/integration/ci/$SHA"
           mkdir -p "$DEST"
-          cp -r /tmp/art/*/* "$DEST/"
+          # Only this run's files, and never two with the same name.
+          for f in /tmp/art/*/*.json /tmp/art/*/*.txt; do
+            test -e "$DEST/$(basename "$f")" && { echo "::error::duplicate $(basename "$f")"; exit 1; }
+            cp "$f" "$DEST/"
+          done
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$DEST"
