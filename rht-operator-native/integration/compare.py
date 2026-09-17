@@ -27,18 +27,25 @@ for k in keys:
         b = {runs[(l, 'branch')]['fingerprints'][k][what] for l in labels if (l, 'branch') in runs}
         print(f"{k:<16} {what:<6} {len(m):>5} {len(b):>6}")
 
-print("\n# share of codes that differ, main vs branch (and main vs main2 as a control)")
-codes = D / "codes"
+print("\n# share of codes that differ, main vs branch (main vs main2 is the control)")
 for l in labels:
-    rows = []
-    for k in keys:
-        f = k.replace("/", "_")
-        a, b, c = (codes / f"{l}__{v}__{f}.npy" for v in ("main", "branch", "main2"))
-        if a.exists() and b.exists():
-            A, B = np.load(a), np.load(b)
-            ctl = (A != np.load(c)).mean() if c.exists() else float("nan")
-            rows.append(f"{k}:{(A != B).mean():.1e}(ctl {ctl:.0e})")
-    print(f"  {l}: " + "  ".join(rows))
+    f = D / f"{l}__codediff.json"
+    legacy = D / "codes"
+    if f.exists():
+        cd = json.load(open(f))
+        print(f"  {l}: " + "  ".join(
+            f"{k}:{v['branch']['coords']:.1e}(ctl {v.get('main2', {}).get('coords', float('nan')):.0e})"
+            for k, v in sorted(cd.items())))
+    elif legacy.exists():
+        rows = []
+        for k in keys:
+            fk = k.replace("/", "_")
+            a, b, c = (legacy / f"{l}__{v}__{fk}.npy" for v in ("main", "branch", "main2"))
+            if a.exists() and b.exists():
+                A, B = np.load(a), np.load(b)
+                ctl = (A != np.load(c)).mean() if c.exists() else float("nan")
+                rows.append(f"{k}:{(A != B).mean():.1e}(ctl {ctl:.0e})")
+        print(f"  {l}: " + "  ".join(rows))
 
 print("\n# speed: branch / main (main2 / main is the noise control)")
 metrics = [m for m in runs[(labels[0], "main")]["speed"][0] if m.endswith("_s")]

@@ -37,7 +37,8 @@ def best(fn, rep):
 
 # fingerprints: identical input everywhere
 fp = {}
-os.makedirs("out/codes", exist_ok=True)
+CODES = os.environ.get("CODES_DIR", "codes_tmp")  # outside out/: not uploaded
+os.makedirs(CODES, exist_ok=True)
 for d in (384, 768, 3072):
     X = np.random.default_rng(7).standard_normal((2000, d)).astype(np.float32)
     for rotation in ("rht", "haar"):
@@ -48,7 +49,7 @@ for d in (384, 768, 3072):
             c = q.encode(X)
             key = f"{rotation}/{d}/{bits}"
             fp[key] = dict(bounds=sha(q.boundaries), cents=sha(q.centroids), codes=sha(c.indices))
-            np.save(f"out/codes/{label}__{variant}__{rotation}_{d}_{bits}.npy", c.indices)
+            np.save(os.path.join(CODES, f"{label}__{variant}__{rotation}_{d}_{bits}.npy"), c.indices)
     print("fingerprints d", d, flush=True)
 out["fingerprints"] = fp
 
