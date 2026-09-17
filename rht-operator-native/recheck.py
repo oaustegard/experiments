@@ -22,20 +22,34 @@ for d in (768, 3072):
         check(same(f"cents{b}"), f"d={d}/{b}-bit: float32 centroids identical everywhere")
         check(same(f"bounds{b}_f32mid"), f"d={d}/{b}-bit: float32-midpoint boundaries identical everywhere")
         check(same(f"op_codes{b}_f32mid"), f"d={d}/{b}-bit: operator + f32-midpoint codes identical everywhere")
-# speed claims quoted in RESULTS.md (op_s / dense_s), last run
-rat = lambda x: x["op_s"] / x["dense_s"]
-big = [rat(x) for r in runs.values() for x in r["speed"] if x["d"] >= 1024]
-check(round(max(big), 2) <= 0.48 and round(min(big), 3) >= 0.007, f"d>=1024: every cell in [0.007, 0.48] (got {min(big):.3f}..{max(big):.3f})")
-x64 = runs["gha-ubuntu24-x64"]
-check(0.9 <= ratio(x64, 4, 768, "enc128") <= 1.1 and 0.9 <= ratio(x64, 4, 768, "enc256") <= 1.1, "x64 d=768 n=128/256 at parity")
-multi = [r for r in runs.values() if r["ncpu"] > 1]
-check(all(1.3 <= ratio(r, r["ncpu"], 384, f"enc{n}") <= 1.85 for r in multi for n in (64, 128, 256)), "d=384 n=64..256: dense wins 1.3-1.85 on every multi-core machine")
-arm = runs["gha-ubuntu24-arm64"]
-check(abs(ratio(arm, 4, 384, "enc10000") - 0.37) < 0.01, "ARM d=384 batch 0.37")
-check(1.35 <= ratio(arm, 4, 384, "enc256") <= 1.45 and ratio(arm, 4, 384, "enc1024") < 0.4, "ARM d=384: n=256 serial ~1.40, n=1024 parallel < 0.4")
-check(ratio(runs["local-xeon-avx512-1cpu"], 1, 384, "enc10000") > 1.0, "d=384: dense wins batch on the AVX-512 box")
-check(1.1 <= ratio(x64, 1, 384, "enc10000") <= 1.3, "x64 (SkylakeX this run) d=384 1-thread batch in 1.1-1.3")
-m = runs["gha-macos15-arm64"]
-check(0.6 < ratio(m, m["ncpu"], 768, "enc10000") < 0.9, "macOS d=768 batch in (0.6, 0.9)")
-check(all(0.15 <= ratio(r, 1, 768, "query1d") <= 0.40 for r in runs.values()), "d=768 single query 0.15-0.40 one thread")
+# speed claims quoted in RESULTS.md: ranges across every archived run
+from history import runs as hist_runs, cells, span
+H = hist_runs()
+local = json.load(open(Path(__file__).parent / "ci" / "history" / "local-xeon-avx512-1cpu.json"))
+allr = [r for m in H.values() for r in m.values()]
+by = lambda lab: [m[lab] for m in H.values()]
+def within(vals, lo, hi, msg):
+    a, b = span(vals)
+    check(a is not None and round(a, 2) >= lo and round(b, 2) <= hi, f"{msg}: [{lo}, {hi}] (got {a:.3f}..{b:.3f})")
+within((v for r in allr + [local] for d in (1024, 1536, 2048, 3072, 4096) for v in cells(r, d=d)), 0.0, 0.49, "d>=1024 every cell")
+check(round(min(v for r in allr for d in (1024, 1536, 2048, 3072, 4096) for v in cells(r, d=d)), 3) >= 0.007, "d>=1024 floor 0.007")
+within((v for r in allr for v in cells(r, "all", 768, "enc10000")), 0.19, 0.87, "d=768 batch 10k, all threads")
+within((v for r in allr + [local] for v in cells(r, 1, 768, "query1d")), 0.17, 0.41, "d=768 single query, 1 thread")
+within((v for r in by("gha-ubuntu24-x64") for n in (128, 256) for v in cells(r, "all", 768, f"enc{n}")), 0.82, 1.04, "x64 d=768 n=128/256")
+within((v for r in by("gha-macos15-arm64") for t in (1, "all") for v in cells(r, t, 768, "enc10000")), 0.66, 0.87, "macOS d=768 batch")
+within((v for r in allr if r["ncpu"] > 1 for n in (64, 128, 256) for v in cells(r, "all", 384, f"enc{n}")), 1.11, 1.81, "d=384 n=64..256 multi-core")
+check(round(next(cells(local, 1, 384, "enc10000")), 2) == 1.20, "authoring box d=384 batch 1.20")
+sky = [r for r in by("gha-ubuntu24-x64") if r["blas"][0]["architecture"] == "SkylakeX"]
+has = [r for r in by("gha-ubuntu24-x64") if r["blas"][0]["architecture"] == "Haswell"]
+check(len(sky) == 1 and len(has) == 3, "x64 kernels: 1 SkylakeX, 3 Haswell")
+within((v for r in sky for t in (1, "all") for v in cells(r, t, 384, "enc10000")), 1.16, 1.29, "x64 SkylakeX d=384 batch")
+within((v for r in has for v in cells(r, "all", 384, "enc10000")), 0.77, 0.93, "x64 Haswell d=384 batch, all threads")
+within((v for r in by("gha-macos15-arm64") for t in (1, "all") for v in cells(r, t, 384, "enc10000")), 0.74, 1.22, "macOS d=384 batch")
+within((v for r in by("gha-ubuntu24-arm64") for t in (1, "all") for v in cells(r, t, 384, "enc10000")), 0.36, 0.38, "ARM d=384 batch")
+within((v for r in by("gha-ubuntu24-arm64") for v in cells(r, "all", 384, "enc256")), 1.30, 1.40, "ARM d=384 n=256")
+within((v for r in by("gha-ubuntu24-arm64") for v in cells(r, "all", 384, "enc1024")), 0.36, 0.38, "ARM d=384 n=1024")
+for key, lim in (("enc10000", 0.011), ("query1d", 0.11)):
+    for d in (384, 768, 1024, 1536, 2048, 3072, 4096):
+        a, b = span(v for r in by("gha-ubuntu24-arm64") for v in cells(r, "all", d, key))
+        check(b - a <= lim, f"ARM run-to-run spread <= {lim} at d={d} {key} ({b - a:.3f})")
 sys.exit(1 if fails else 0)

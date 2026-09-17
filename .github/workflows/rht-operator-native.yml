@@ -10,10 +10,14 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    # Only files that change what is measured. Doc tooling (make_tables,
+    # regen_tables, recheck) and the write-up do not retrigger the benchmark.
     paths:
-      - 'rht-operator-native/**'
-      - '!rht-operator-native/ci/**'
-      - '!rht-operator-native/*.md'
+      - 'rht-operator-native/rht_kernel.c'
+      - 'rht-operator-native/build.sh'
+      - 'rht-operator-native/rhtop.py'
+      - 'rht-operator-native/ci_run.py'
+      - 'rht-operator-native/check_bitexact.py'
       - '.github/workflows/rht-operator-native.yml'
 
 permissions:
@@ -66,6 +70,9 @@ jobs:
         run: |
           mkdir -p rht-operator-native/ci
           find /tmp/art -name '*.json' -exec cp {} rht-operator-native/ci/ \;
+          # Keep every run: the write-up quotes ranges across runs.
+          mkdir -p "rht-operator-native/ci/history/${GITHUB_SHA::7}"
+          find /tmp/art -name '*.json' -exec cp {} "rht-operator-native/ci/history/${GITHUB_SHA::7}/" \;
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add rht-operator-native/ci

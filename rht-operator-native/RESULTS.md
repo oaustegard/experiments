@@ -77,9 +77,9 @@ Ratios are operator time / dense time; below 1 the operator is faster.
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
 | Xeon AVX-512, 1 vCPU (authoring container) | 1 | 1.20 | 0.64 | 0.30 | 0.35 | 0.15 | 0.18 | 0.08 |
-| GitHub ubuntu-24.04 x64 | 1 | 1.29 | 0.69 | 0.30 | 0.37 | 0.16 | 0.19 | 0.08 |
+| GitHub ubuntu-24.04 x64 | 1 | 0.93 | 0.54 | 0.20 | 0.25 | 0.10 | 0.12 | 0.05 |
 | GitHub ubuntu-24.04-arm (Neoverse V2) | 1 | 0.37 | 0.19 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 1 | 0.74 | 0.84 | 0.42 | 0.42 | 0.20 | 0.23 | 0.10 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 1 | 1.11 | 0.76 | 0.33 | 0.41 | 0.17 | 0.22 | 0.09 |
 <!-- /table -->
 
 **Batch encode, n = 10,000, all threads**
@@ -87,9 +87,9 @@ Ratios are operator time / dense time; below 1 the operator is faster.
 <!-- table: batch encode, n=10,000, all threads -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
-| GitHub ubuntu-24.04 x64 | 4 | 1.16 | 0.61 | 0.24 | 0.33 | 0.13 | 0.17 | 0.07 |
+| GitHub ubuntu-24.04 x64 | 4 | 0.79 | 0.49 | 0.16 | 0.21 | 0.09 | 0.11 | 0.05 |
 | GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 0.37 | 0.19 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.16 | 0.79 | 0.36 | 0.43 | 0.20 | 0.22 | 0.10 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.17 | 0.75 | 0.33 | 0.40 | 0.18 | 0.22 | 0.09 |
 <!-- /table -->
 
 **Single query (`R @ q`), one thread**
@@ -98,9 +98,9 @@ Ratios are operator time / dense time; below 1 the operator is faster.
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
 | Xeon AVX-512, 1 vCPU (authoring container) | 1 | 0.79 | 0.18 | 0.08 | 0.04 | 0.02 | 0.02 | 0.01 |
-| GitHub ubuntu-24.04 x64 | 1 | 0.93 | 0.17 | 0.05 | 0.04 | 0.02 | 0.02 | 0.01 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 1 | 0.61 | 0.19 | 0.09 | 0.06 | 0.03 | 0.03 | 0.01 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 1 | 1.10 | 0.23 | 0.09 | 0.12 | 0.03 | 0.02 | 0.01 |
+| GitHub ubuntu-24.04 x64 | 1 | 0.81 | 0.29 | 0.15 | 0.11 | 0.05 | 0.04 | 0.02 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 1 | 0.60 | 0.19 | 0.09 | 0.06 | 0.03 | 0.03 | 0.01 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 1 | 0.46 | 0.40 | 0.16 | 0.08 | 0.04 | 0.03 | 0.03 |
 <!-- /table -->
 
 **Small and medium batches, all threads**
@@ -110,9 +110,9 @@ n = 64:
 <!-- table: batch 64, all threads -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
-| GitHub ubuntu-24.04 x64 | 4 | 1.31 | 0.71 | 0.26 | 0.35 | 0.14 | 0.18 | 0.03 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.31 | 0.69 | 0.28 | 0.36 | 0.14 | 0.19 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.36 | 0.78 | 0.25 | 0.39 | 0.14 | 0.18 | 0.07 |
+| GitHub ubuntu-24.04 x64 | 4 | 1.54 | 0.76 | 0.30 | 0.39 | 0.15 | 0.24 | 0.05 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.30 | 0.68 | 0.28 | 0.36 | 0.14 | 0.19 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.11 | 0.73 | 0.43 | 0.48 | 0.14 | 0.11 | 0.06 |
 <!-- /table -->
 
 n = 128:
@@ -120,9 +120,9 @@ n = 128:
 <!-- table: batch 128, all threads -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
-| GitHub ubuntu-24.04 x64 | 4 | 1.73 | 0.94 | 0.36 | 0.48 | 0.09 | 0.12 | 0.05 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.36 | 0.72 | 0.29 | 0.38 | 0.04 | 0.05 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.48 | 0.81 | 0.23 | 0.39 | 0.20 | 0.18 | 0.08 |
+| GitHub ubuntu-24.04 x64 | 4 | 1.65 | 0.82 | 0.33 | 0.49 | 0.08 | 0.10 | 0.05 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.38 | 0.73 | 0.29 | 0.38 | 0.04 | 0.05 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.31 | 0.80 | 0.39 | 0.46 | 0.14 | 0.11 | 0.07 |
 <!-- /table -->
 
 n = 256:
@@ -130,9 +130,9 @@ n = 256:
 <!-- table: batch 256, all threads -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
-| GitHub ubuntu-24.04 x64 | 4 | 1.81 | 1.04 | 0.19 | 0.26 | 0.10 | 0.14 | 0.05 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.40 | 0.74 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.54 | 0.84 | 0.25 | 0.40 | 0.17 | 0.22 | 0.09 |
+| GitHub ubuntu-24.04 x64 | 4 | 1.69 | 0.88 | 0.16 | 0.24 | 0.08 | 0.13 | 0.05 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.39 | 0.74 | 0.08 | 0.24 | 0.04 | 0.05 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.46 | 0.89 | 0.42 | 0.37 | 0.15 | 0.06 | 0.08 |
 <!-- /table -->
 
 n = 1024:
@@ -140,35 +140,36 @@ n = 1024:
 <!-- table: batch 1024, all threads -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
-| GitHub ubuntu-24.04 x64 | 4 | 0.97 | 0.56 | 0.22 | 0.30 | 0.12 | 0.16 | 0.06 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 0.37 | 0.19 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.55 | 0.76 | 0.36 | 0.43 | 0.18 | 0.23 | 0.09 |
+| GitHub ubuntu-24.04 x64 | 4 | 0.76 | 0.39 | 0.15 | 0.20 | 0.08 | 0.11 | 0.04 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 0.37 | 0.19 | 0.08 | 0.19 | 0.04 | 0.05 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.45 | 0.83 | 0.35 | 0.38 | 0.18 | 0.23 | 0.08 |
 <!-- /table -->
 
 Decode (`X @ R`) tracks encode within a few percent everywhere. The tables
-are the last CI run (2c342d7); ranges below span the three runs after the
-timing fix (569e5aa, 8c3d0d2, 2c342d7).
+are the latest CI run (6c44eca). Ranges below span all four runs after the
+timing fix (569e5aa, 8c3d0d2, 2c342d7, 6c44eca), archived under
+`ci/history/`; the first of those predates the n = 128–1024 cells.
 
 - **From d=1024 up the operator is faster in every cell measured**: every
-  machine, every run, every shape and thread count, at 0.007–0.48 of dense
-  time. The worst cell is x64, 4 threads, d=1536, n=128.
+  machine, every run, every shape and thread count, at 0.007–0.49 of dense
+  time. The slowest cells are x64 at 4 threads, d=1536, n=128.
 - **d=768 is a win except where the serial cutoff bites.** Batch 10,000 runs
   at 0.19–0.87 of dense and single queries at 0.17–0.40 (one thread). At 4
-  threads on x64, batches of 128 and 256 are at parity (0.94, 1.04): at
-  d=768 the cutoff keeps every batch below 341 rows serial while `sgemm`
-  uses all cores. macOS is the weakest machine at d=768 (0.66–0.87 batch).
-- **d=384 is a split.** Dense wins batch encode on AVX-512 x86 (1.16–1.29)
-  and on macOS in two of three runs, and wins batches of 64–256 on every
-  multi-core machine (1.3–1.8). The operator wins batch encode on ARM (0.37
-  in every run) and on the x64 runner when it draws a Haswell kernel
-  (0.77–0.80).
-- **The x64 runner's numbers depend on which OpenBLAS kernel it draws.** Two
-  runs got Haswell and one SkylakeX (AVX-512); the SkylakeX run's `sgemm` was
-  faster. In that run d=768 batch rose from 0.50 to 0.61 and d=384 from 0.80
-  to 1.16.
-  ARM moved by at most 0.01 between runs.
+  threads on x64, batches of 128 and 256 come in at 0.82–1.04: at d=768 the
+  cutoff keeps every batch below 341 rows serial while `sgemm` uses all
+  cores. macOS is the weakest machine at d=768 (0.66–0.87 batch).
+- **d=384 is a split.** Batches of 64–256 lose to dense on every multi-core
+  machine in every run (1.11–1.81). Batch 10,000 loses on AVX-512 x86 (1.20
+  on the authoring box, 1.16–1.29 on the one x64 run that drew SkylakeX) and
+  is mixed on macOS (0.74–1.22). It wins on ARM (0.37 in every run) and on
+  the x64 runs that drew Haswell (0.77–0.93).
+- **The x64 runner's numbers depend on which OpenBLAS kernel it draws**:
+  Haswell in three runs, SkylakeX (AVX-512) in one. SkylakeX `sgemm` is
+  faster, so that run's ratios are the least favourable to the operator.
+  On ARM, batch ratios moved by at most 0.01 between runs and single-query
+  ratios by up to 0.11.
 - **The serial cutoff is set too high.** On ARM at d=384, n=256 (serial)
-  costs 1.40x dense while n=1024 (parallel) costs 0.37x. A cutoff near
+  costs 1.30–1.40x dense while n=1024 (parallel) costs 0.37x. A cutoff near
   2^15–2^16 input floats would likely recover most of the small-batch cells;
   that is a prediction and was not run.
 - Thread scaling at 4 threads matches `sgemm`'s: about 2x on the x64 runner
@@ -212,24 +213,24 @@ dependence. Fingerprints at d=768 (d=3072 in the same shape, same verdicts):
 |---|---|---|---|---|---|
 | `R` | `f8e83129` | `f8e83129` | `f8e83129` | `f8e83129` | **yes** |
 | `op_rot` | `6147b47e` | `6147b47e` | `6147b47e` | `6147b47e` | **yes** |
-| `dense_rot` | `45672793` | `45672793` | `e0bc6abe` | `a89191d7` | no (3 distinct) |
+| `dense_rot` | `45672793` | `65ac7490` | `e0bc6abe` | `a89191d7` | no (4 distinct) |
 | `cents2` | `2cda3067` | `2cda3067` | `2cda3067` | `2cda3067` | **yes** |
 | `bounds2` | `af4e57c4` | `af4e57c4` | `af4e57c4` | `af4e57c4` | **yes** |
 | `bounds2_f32mid` | `239f914e` | `239f914e` | `239f914e` | `239f914e` | **yes** |
-| `dense_codes2` | `63a2a33a` | `63a2a33a` | `63a2a33a` | `608dbd19` | no (2 distinct) |
+| `dense_codes2` | `63a2a33a` | `608dbd19` | `63a2a33a` | `608dbd19` | no (2 distinct) |
 | `op_codes2` | `63a2a33a` | `63a2a33a` | `63a2a33a` | `63a2a33a` | **yes** |
 | `op_codes2_f32mid` | `63a2a33a` | `63a2a33a` | `63a2a33a` | `63a2a33a` | **yes** |
 | `cents4` | `8a0ff63a` | `8a0ff63a` | `8a0ff63a` | `8a0ff63a` | **yes** |
-| `bounds4` | `bb40fae6` | `bb40fae6` | `a2f45808` | `f8102a2e` | no (3 distinct) |
+| `bounds4` | `bb40fae6` | `13a37d73` | `a2f45808` | `f8102a2e` | no (4 distinct) |
 | `bounds4_f32mid` | `d45806cf` | `d45806cf` | `d45806cf` | `d45806cf` | **yes** |
-| `dense_codes4` | `b4dd566c` | `b4dd566c` | `c02b2da8` | `44ceb088` | no (3 distinct) |
-| `op_codes4` | `44ceb088` | `44ceb088` | `44ceb088` | `44ceb088` | **yes** |
+| `dense_codes4` | `b4dd566c` | `75c8c955` | `c02b2da8` | `44ceb088` | no (4 distinct) |
+| `op_codes4` | `44ceb088` | `c02b2da8` | `44ceb088` | `44ceb088` | no (2 distinct) |
 | `op_codes4_f32mid` | `c02b2da8` | `c02b2da8` | `c02b2da8` | `c02b2da8` | **yes** |
 | `cents8` | `ef2a746b` | `ef2a746b` | `ef2a746b` | `ef2a746b` | **yes** |
-| `bounds8` | `0281de7c` | `0281de7c` | `21eb60ca` | `0fba5608` | no (3 distinct) |
+| `bounds8` | `0281de7c` | `29ebb8ac` | `21eb60ca` | `0fba5608` | no (4 distinct) |
 | `bounds8_f32mid` | `b697300d` | `b697300d` | `b697300d` | `b697300d` | **yes** |
-| `dense_codes8` | `ffb0bb33` | `ffb0bb33` | `5efdde01` | `5e2652d3` | no (3 distinct) |
-| `op_codes8` | `41cd1a9b` | `41cd1a9b` | `6c348e31` | `41cd1a9b` | no (2 distinct) |
+| `dense_codes8` | `ffb0bb33` | `61893fa8` | `5efdde01` | `5e2652d3` | no (4 distinct) |
+| `op_codes8` | `41cd1a9b` | `6c348e31` | `6c348e31` | `41cd1a9b` | no (2 distinct) |
 | `op_codes8_f32mid` | `327fcd5d` | `327fcd5d` | `327fcd5d` | `327fcd5d` | **yes** |
 <!-- /table -->
 
@@ -309,4 +310,5 @@ Each item below needs a maintainer decision before it goes into remex.
 `check_correct.py`, `check_bitexact.py`, `check_codes.py`,
 `check_blas_drift.py`, `check_simd_bisect.py`, `check_simd_codebook.py`;
 `bench_apply.py`, `bench_variants.py` (local benches); `ci_run.py`,
-`ci/*.json`, `make_tables.py`, `regen_tables.py`, `recheck.py`; `ERRORS.md`.
+`ci/*.json`, `ci/history/` (every post-fix run), `history.py`, `make_tables.py`,
+`regen_tables.py`, `recheck.py`; `ERRORS.md`.

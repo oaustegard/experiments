@@ -13,7 +13,13 @@ DIMS = (384, 768, 1024, 1536, 2048, 3072, 4096)
 
 
 def load():
-    return {k: json.load(open(CI / f"{k}.json")) for k, _ in MACHINES if (CI / f"{k}.json").exists()}
+    """The run RESULTS.md's tables quote: the last sha in ci/history/ORDER,
+    plus the authoring-box run. Top-level ci/*.json is whatever CI wrote last."""
+    H = CI / "history"
+    sha = (H / "ORDER").read_text().split()[-1]
+    out = {"local-xeon-avx512-1cpu": json.load(open(H / "local-xeon-avx512-1cpu.json"))}
+    out.update({p.stem: json.load(open(p)) for p in (H / sha).glob("*.json")})
+    return {k: out[k] for k, _ in MACHINES if k in out}
 
 
 def ratio(r, threads, d, shape):

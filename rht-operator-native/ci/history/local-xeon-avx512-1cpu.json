@@ -1,0 +1,409 @@
+{
+ "label": "local-xeon-avx512-1cpu",
+ "machine": "x86_64",
+ "processor": "x86_64",
+ "system": "Linux",
+ "ncpu": 1,
+ "numpy": "2.4.4",
+ "blas": [
+  {
+   "internal_api": "openblas",
+   "architecture": "SkylakeX",
+   "num_threads": 1,
+   "version": "0.3.31.188.0"
+  },
+  {
+   "internal_api": "openblas",
+   "architecture": "SkylakeX",
+   "num_threads": 1,
+   "version": "0.3.30"
+  }
+ ],
+ "bitexact": [
+  {
+   "d": 6,
+   "all_equal": true,
+   "variants": {
+    "native/t1": true,
+    "sse2/t1": true,
+    "nativenc/t1": true,
+    "numpy": true
+   },
+   "rel_err_vs_dense": 1.165900656019403e-07
+  },
+  {
+   "d": 100,
+   "all_equal": true,
+   "variants": {
+    "native/t1": true,
+    "sse2/t1": true,
+    "nativenc/t1": true,
+    "numpy": true
+   },
+   "rel_err_vs_dense": 2.883350873617019e-07
+  },
+  {
+   "d": 384,
+   "all_equal": true,
+   "variants": {
+    "native/t1": true,
+    "sse2/t1": true,
+    "nativenc/t1": true,
+    "numpy": true
+   },
+   "rel_err_vs_dense": 4.893082063972543e-07
+  },
+  {
+   "d": 768,
+   "all_equal": true,
+   "variants": {
+    "native/t1": true,
+    "sse2/t1": true,
+    "nativenc/t1": true,
+    "numpy": true
+   },
+   "rel_err_vs_dense": 5.92543472066609e-07
+  },
+  {
+   "d": 1024,
+   "all_equal": true,
+   "variants": {
+    "native/t1": true,
+    "sse2/t1": true,
+    "nativenc/t1": true,
+    "numpy": true
+   },
+   "rel_err_vs_dense": 5.73358931887924e-07
+  },
+  {
+   "d": 1536,
+   "all_equal": true,
+   "variants": {
+    "native/t1": true,
+    "sse2/t1": true,
+    "nativenc/t1": true,
+    "numpy": true
+   },
+   "rel_err_vs_dense": 4.058594527123205e-07
+  },
+  {
+   "d": 3072,
+   "all_equal": true,
+   "variants": {
+    "native/t1": true,
+    "sse2/t1": true,
+    "nativenc/t1": true,
+    "numpy": true
+   },
+   "rel_err_vs_dense": 4.7568218519700167e-07
+  },
+  {
+   "d": 4096,
+   "all_equal": true,
+   "variants": {
+    "native/t1": true,
+    "sse2/t1": true,
+    "nativenc/t1": true,
+    "numpy": true
+   },
+   "rel_err_vs_dense": 3.4095774026354775e-07
+  }
+ ],
+ "fingerprints": [
+  {
+   "d": 768,
+   "R": "f8e8312930952202",
+   "op_rot": "6147b47e123331c0",
+   "dense_rot": "4567279310bff81a",
+   "cents2": "2cda3067b2cd9f68",
+   "bounds2": "af4e57c48abdd59d",
+   "bounds2_f32mid": "239f914e41645103",
+   "dense_codes2": "63a2a33ad8c59cfa",
+   "op_codes2": "63a2a33ad8c59cfa",
+   "op_codes2_f32mid": "63a2a33ad8c59cfa",
+   "cents4": "8a0ff63afaded1e8",
+   "bounds4": "bb40fae6605c53d3",
+   "bounds4_f32mid": "d45806cfeee0d273",
+   "dense_codes4": "b4dd566cf0a1e74f",
+   "op_codes4": "44ceb088a24d418c",
+   "op_codes4_f32mid": "c02b2da860d72aa3",
+   "cents8": "ef2a746b890928a9",
+   "bounds8": "0281de7c89273d12",
+   "bounds8_f32mid": "b697300d5de67cb9",
+   "dense_codes8": "ffb0bb3322bac7f5",
+   "op_codes8": "41cd1a9bba06af05",
+   "op_codes8_f32mid": "327fcd5da4f48974"
+  },
+  {
+   "d": 3072,
+   "R": "774a0aff9e4378b6",
+   "op_rot": "a6a912c87f1b4bff",
+   "dense_rot": "0b3d9206e0f7b97f",
+   "cents2": "76a8116f9739426e",
+   "bounds2": "ad4951e5b7158b84",
+   "bounds2_f32mid": "68477b45ae6e0bdc",
+   "dense_codes2": "e41311ce9c214ab8",
+   "op_codes2": "e41311ce9c214ab8",
+   "op_codes2_f32mid": "e41311ce9c214ab8",
+   "cents4": "da97d564c1dd98d0",
+   "bounds4": "b5a69a475c34a568",
+   "bounds4_f32mid": "1c01298e3ac7c6f3",
+   "dense_codes4": "efaa764ad0afe69f",
+   "op_codes4": "5632a3252209a923",
+   "op_codes4_f32mid": "0fe032603935e963",
+   "cents8": "159e0e610f3c62ce",
+   "bounds8": "d041dbf429637217",
+   "bounds8_f32mid": "acab6498e12ac8e1",
+   "dense_codes8": "3e98e945bb2dd1df",
+   "op_codes8": "7d6eed9707fba554",
+   "op_codes8_f32mid": "c40bfc246ce7eccf"
+  }
+ ],
+ "speed": [
+  {
+   "threads": 1,
+   "d": 384,
+   "shape": "query1d",
+   "dense_s": 8.721999989802498e-06,
+   "op_s": 6.932999980335808e-06
+  },
+  {
+   "threads": 1,
+   "d": 384,
+   "shape": "enc1",
+   "dense_s": 8.686999990459299e-06,
+   "op_s": 6.4899999756562465e-06
+  },
+  {
+   "threads": 1,
+   "d": 384,
+   "shape": "enc64",
+   "dense_s": 0.00019683700000427962,
+   "op_s": 0.00014209199997594624
+  },
+  {
+   "threads": 1,
+   "d": 384,
+   "shape": "enc10000",
+   "dense_s": 0.020659792000003563,
+   "op_s": 0.024878150999995796
+  },
+  {
+   "threads": 1,
+   "d": 384,
+   "shape": "dec10000",
+   "dense_s": 0.021412721999979567,
+   "op_s": 0.022536020000018198
+  },
+  {
+   "threads": 1,
+   "d": 768,
+   "shape": "query1d",
+   "dense_s": 5.107699999484794e-05,
+   "op_s": 9.328000004416026e-06
+  },
+  {
+   "threads": 1,
+   "d": 768,
+   "shape": "enc1",
+   "dense_s": 5.1261999999496766e-05,
+   "op_s": 8.860000008326097e-06
+  },
+  {
+   "threads": 1,
+   "d": 768,
+   "shape": "enc64",
+   "dense_s": 0.000804439000006596,
+   "op_s": 0.0002873930000077962
+  },
+  {
+   "threads": 1,
+   "d": 768,
+   "shape": "enc10000",
+   "dense_s": 0.0792940820000183,
+   "op_s": 0.050932956999986345
+  },
+  {
+   "threads": 1,
+   "d": 768,
+   "shape": "dec10000",
+   "dense_s": 0.07984630400000015,
+   "op_s": 0.04829551399998877
+  },
+  {
+   "threads": 1,
+   "d": 1024,
+   "shape": "query1d",
+   "dense_s": 0.0001521009999976286,
+   "op_s": 1.1830000005375041e-05
+  },
+  {
+   "threads": 1,
+   "d": 1024,
+   "shape": "enc1",
+   "dense_s": 0.00015222199999698205,
+   "op_s": 1.0803999998643121e-05
+  },
+  {
+   "threads": 1,
+   "d": 1024,
+   "shape": "enc64",
+   "dense_s": 0.0014696920000005775,
+   "op_s": 0.00019724899999573609
+  },
+  {
+   "threads": 1,
+   "d": 1024,
+   "shape": "enc10000",
+   "dense_s": 0.14315732399998637,
+   "op_s": 0.043272193000007064
+  },
+  {
+   "threads": 1,
+   "d": 1024,
+   "shape": "dec10000",
+   "dense_s": 0.14325669799998764,
+   "op_s": 0.04137089200000332
+  },
+  {
+   "threads": 1,
+   "d": 1536,
+   "shape": "query1d",
+   "dense_s": 0.000332994999979519,
+   "op_s": 1.3690999992377328e-05
+  },
+  {
+   "threads": 1,
+   "d": 1536,
+   "shape": "enc1",
+   "dense_s": 0.00033341299999278817,
+   "op_s": 1.335900000754009e-05
+  },
+  {
+   "threads": 1,
+   "d": 1536,
+   "shape": "enc64",
+   "dense_s": 0.003275205000022652,
+   "op_s": 0.0005898060000220084
+  },
+  {
+   "threads": 1,
+   "d": 1536,
+   "shape": "enc10000",
+   "dense_s": 0.31149477400001047,
+   "op_s": 0.11023062900000014
+  },
+  {
+   "threads": 1,
+   "d": 1536,
+   "shape": "dec10000",
+   "dense_s": 0.3151884819999964,
+   "op_s": 0.10557444599999144
+  },
+  {
+   "threads": 1,
+   "d": 2048,
+   "shape": "query1d",
+   "dense_s": 0.000609870999994655,
+   "op_s": 1.1024000002635148e-05
+  },
+  {
+   "threads": 1,
+   "d": 2048,
+   "shape": "enc1",
+   "dense_s": 0.0006073619999824587,
+   "op_s": 1.0510999999269188e-05
+  },
+  {
+   "threads": 1,
+   "d": 2048,
+   "shape": "enc64",
+   "dense_s": 0.005959893000010652,
+   "op_s": 0.000408075999985158
+  },
+  {
+   "threads": 1,
+   "d": 2048,
+   "shape": "enc10000",
+   "dense_s": 0.5549185059999786,
+   "op_s": 0.08334137299999611
+  },
+  {
+   "threads": 1,
+   "d": 2048,
+   "shape": "dec10000",
+   "dense_s": 0.5513223859999812,
+   "op_s": 0.08517012900000509
+  },
+  {
+   "threads": 1,
+   "d": 3072,
+   "shape": "query1d",
+   "dense_s": 0.0014378930000020773,
+   "op_s": 2.2427999994079073e-05
+  },
+  {
+   "threads": 1,
+   "d": 3072,
+   "shape": "enc1",
+   "dense_s": 0.001398155999993378,
+   "op_s": 2.1868000004587884e-05
+  },
+  {
+   "threads": 1,
+   "d": 3072,
+   "shape": "enc64",
+   "dense_s": 0.01303450399998951,
+   "op_s": 0.001204544999978907
+  },
+  {
+   "threads": 1,
+   "d": 3072,
+   "shape": "enc10000",
+   "dense_s": 1.2212074830000006,
+   "op_s": 0.22014549200000033
+  },
+  {
+   "threads": 1,
+   "d": 3072,
+   "shape": "dec10000",
+   "dense_s": 1.228554043999992,
+   "op_s": 0.21526415499999985
+  },
+  {
+   "threads": 1,
+   "d": 4096,
+   "shape": "query1d",
+   "dense_s": 0.002468942000007246,
+   "op_s": 1.7466999963744456e-05
+  },
+  {
+   "threads": 1,
+   "d": 4096,
+   "shape": "enc1",
+   "dense_s": 0.0024545710000154486,
+   "op_s": 1.7055999990134296e-05
+  },
+  {
+   "threads": 1,
+   "d": 4096,
+   "shape": "enc64",
+   "dense_s": 0.023869578999978103,
+   "op_s": 0.0008692790000282002
+  },
+  {
+   "threads": 1,
+   "d": 4096,
+   "shape": "enc10000",
+   "dense_s": 2.166634321999993,
+   "op_s": 0.17149206400000594
+  },
+  {
+   "threads": 1,
+   "d": 4096,
+   "shape": "dec10000",
+   "dense_s": 2.159638177999966,
+   "op_s": 0.17340980099999115
+  }
+ ]
+}

@@ -2779,8 +2779,8 @@ the result.
 
 - **NumPy structural RHT apply does not beat BLAS; a compiled one does.**
   remex#72 measured a NumPy operator form 7–35x slower than dense on batches
-  and closed it. The same plan in C is 3–50x faster than dense from d=1024 up
-  on x86, ARM and Apple Silicon. Do not re-measure the NumPy form as evidence
+  and closed it. The same plan in C is 2–140x faster than dense in every cell
+  measured from d=1024 up on x86, ARM and Apple Silicon. Do not re-measure the NumPy form as evidence
   about the transform. (`rht-operator-native/RESULTS.md`)
 
 ## Shared code — `_lib/`
