@@ -13,11 +13,12 @@ label, variant = sys.argv[1], sys.argv[2]
 sweep = "--sweep" in sys.argv
 out = dict(label=label, variant=variant, remex_file=remex.__file__, system=platform.system(),
            machine=platform.machine(), numpy=np.__version__, python=sys.version.split()[0])
-try:
+import remex.rotation as _rot
+if hasattr(_rot, "RHTOperator"):  # branch; main has no operator (and no _native)
     from remex import _native
     out["native"] = _native.kernel() is not None
     out["native_reason"] = _native.disable_reason()
-except ImportError:
+else:
     out["native"] = None
 try:
     from threadpoolctl import threadpool_info
