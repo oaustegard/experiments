@@ -149,10 +149,13 @@ def load(name):
     return tok, model
 
 
-def forward_all(tok, model, prompts, bs=16):
-    """Residual stream at the last token, every layer (L+1, d), and the
-    next-token log-probs there. Right padding + causal attention means the
-    last real token's state is pad-independent."""
+def forward_all(tok, model, prompts, need_lp, bs=16):
+    """Residual stream at the last token, every layer (L+1, d), and, for the
+    prompts in need_lp (the pair prompts P6 compares), the next-token
+    log-probs there. Keeping log-probs for every prompt OOM-killed the 1.5B
+    run: 3780 x 151936 floats is 2.3 GB beside a 6 GB fp32 model. Right
+    padding + causal attention means the last real token's state is
+    pad-independent."""
     H, LP = {}, {}
     t0 = time.time()
     for i in range(0, len(prompts), bs):
@@ -164,7 +167,9 @@ def forward_all(tok, model, prompts, bs=16):
         hs = torch.stack(out.hidden_states, 0)  # (L+1, B, T, d)
         for j, p in enumerate(batch):
             H[p] = hs[:, j, last[j], :].numpy().astype(np.float32)
-            LP[p] = torch.log_softmax(out.logits[j, last[j]].float(), -1).numpy()
+            if p in need_lp:
+                LP[p] = torch.log_softmax(out.logits[j, last[j]].float(), -1).numpy()
+        del out, hs
         if (i // bs) % 20 == 0:
             print(f"  {i + len(batch)}/{len(prompts)}  {time.time() - t0:.0f}s", flush=True)
     return H, LP
@@ -612,7 +617,7 @@ def report(names):
     for n, R in Rs.items():
         m = R["model"].split("/")[-1]
         L = R["n_layers"]
-        out.append(f"### {m} ({L} layers, d={R['d']}, {R['n_prompts']} prompts, {R['seconds']} s)\n")
+        out.append(f"### {m} · {L} layers · d={R['d']} · {R['n_prompts']} prompts · {R['seconds']} s\n")
         out.append("Median |K| / |h(AB) − h0| over 20 pairs × 3 templates (real) and 20 random-noun pairs × 3 templates; layers = 1/2, 2/3, last−2.\n")
         out.append("| condition | " + " | ".join(f"L{R['focus'][f]['layer']}" for f in late) + " |")
         out.append("|---|---|---|---|")
@@ -683,12 +688,14 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     torch.manual_seed(SEED)
     prompts, rp, rt = build_prompts()
-    print(f"{len(prompts)} distinct prompts; random pairs {rp}", flush=True)
+    need_lp = {TEMPLATES[c]["pair"][t].format(A=X, B=Y)
+               for c in CONDS for t in range(NT) for A, B in PAIRS + rp for X, Y in ((A, B), (B, A))}
+    print(f"{len(prompts)} distinct prompts ({len(need_lp)} with log-probs kept); random pairs {rp}", flush=True)
     for name in args.models:
         t0 = time.time()
         print(f"== {name} ({MODELS[name]})", flush=True)
         tok, model = load(name)
-        H, LP = forward_all(tok, model, prompts, args.bs)
+        H, LP = forward_all(tok, model, prompts, need_lp, args.bs)
         del model
         R, per = analyse(name, tok, H, LP, rp, rt)
         R["random_pairs"] = rp

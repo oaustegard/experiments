@@ -1,0 +1,177 @@
+3780 distinct prompts (720 with log-probs kept); random pairs [('kettle', 'feather'), ('wagon', 'ladder'), ('blanket', 'lemon'), ('pumpkin', 'cloud'), ('walnut', 'bridge'), ('hammer', 'violin'), ('peach', 'parrot'), ('magnet', 'spoon'), ('mirror', 'pencil'), ('bucket', 'cabbage'), ('pillow', 'dolphin'), ('lantern', 'tunnel'), ('candle', 'needle'), ('tulip', 'ribbon'), ('sponge', 'helmet'), ('rocket', 'whistle'), ('cactus', 'lamp'), ('jacket', 'marble'), ('saddle', 'carrot'), ('turtle', 'zebra')]
+== qwen15 (Qwen/Qwen2.5-1.5B)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<01:28,  3.82it/s]Loading weights:  15%|█▌        | 52/338 [00:00<00:01, 159.57it/s]Loading weights:  23%|██▎       | 77/338 [00:00<00:01, 187.23it/s]Loading weights:  33%|███▎      | 112/338 [00:00<00:00, 235.86it/s]Loading weights:  41%|████▏     | 140/338 [00:00<00:00, 227.94it/s]Loading weights:  50%|████▉     | 168/338 [00:00<00:00, 235.18it/s]Loading weights:  57%|█████▋    | 194/338 [00:01<00:01, 90.09it/s] Loading weights:  63%|██████▎   | 213/338 [00:02<00:02, 60.28it/s]Loading weights:  67%|██████▋   | 227/338 [00:02<00:02, 54.17it/s]Loading weights:  70%|███████   | 238/338 [00:02<00:02, 45.58it/s]Loading weights:  73%|███████▎  | 247/338 [00:03<00:02, 41.25it/s]Loading weights:  75%|███████▌  | 255/338 [00:03<00:01, 43.18it/s]Loading weights:  79%|███████▉  | 267/338 [00:03<00:01, 39.50it/s]Loading weights:  83%|████████▎ | 279/338 [00:03<00:01, 46.23it/s]Loading weights:  85%|████████▍ | 286/338 [00:04<00:01, 39.63it/s]Loading weights:  86%|████████▋ | 292/338 [00:04<00:01, 36.99it/s]Loading weights:  88%|████████▊ | 297/338 [00:04<00:01, 36.00it/s]Loading weights:  90%|████████▉ | 303/338 [00:04<00:00, 39.38it/s]Loading weights:  93%|█████████▎| 315/338 [00:05<00:00, 37.05it/s]Loading weights:  95%|█████████▍| 320/338 [00:05<00:00, 35.33it/s]Loading weights:  97%|█████████▋| 327/338 [00:05<00:00, 40.19it/s]Loading weights: 100%|██████████| 338/338 [00:05<00:00, 63.02it/s]
+  16/3780  2s
+  336/3780  29s
+  656/3780  50s
+  976/3780  73s
+  1296/3780  97s
+  1616/3780  117s
+  1936/3780  140s
+  2256/3780  164s
+  2576/3780  189s
+  2896/3780  214s
+  3216/3780  237s
+  3536/3780  261s
+/home/user/experiments/noncommutative-composition/run.py:279: RuntimeWarning: invalid value encountered in scalar divide
+  rec["relK"].append(float(np.linalg.norm(k) / np.linalg.norm(dAB)))
+/home/user/experiments/noncommutative-composition/run.py:281: RuntimeWarning: invalid value encountered in scalar divide
+  rec["cosAB"].append(float(np.dot(dAB, dBA) / (np.linalg.norm(dAB) * np.linalg.norm(dBA))))
+{
+ "P1": {
+  "ratios_mid_late": [
+   1.2296702802060535,
+   1.238810575725614,
+   1.4594702015624357
+  ],
+  "verdict": "WRONG",
+  "p_values": [
+   0.000999000999000999,
+   0.013986013986013986,
+   0.002997002997002997
+  ],
+  "random_control_ratios": [
+   1.0289540885291812,
+   1.02212066133406,
+   1.2749112920882213
+  ],
+  "interaction": [
+   {
+    "log_interaction": 0.1782032302804033,
+    "ratio_of_ratios": 1.1950681705962043,
+    "p": 0.03296703296703297
+   },
+   {
+    "log_interaction": 0.1922721574129649,
+    "ratio_of_ratios": 1.212000326956245,
+    "p": 0.01898101898101898
+   },
+   {
+    "log_interaction": 0.13519689286559894,
+    "ratio_of_ratios": 1.1447621576650395,
+    "p": 0.053946053946053944
+   }
+  ]
+ },
+ "P2": {
+  "pc1_mid_late": [
+   0.15764492750167847,
+   0.12984172999858856,
+   0.13700330257415771
+  ],
+  "verdict": "RIGHT",
+  "pc1_unit_mid_late": [
+   0.13689322769641876,
+   0.1259557008743286,
+   0.1283542513847351
+  ]
+ },
+ "P3": {
+  "outside_mid_late": [
+   0.9338622689247131,
+   0.9359321892261505,
+   0.915605753660202
+  ],
+  "verdict": "RIGHT",
+  "other_pair_baseline": [
+   0.9772207140922546,
+   0.9698395431041718,
+   0.967446506023407
+  ]
+ },
+ "P4": {
+  "compound_gt_conj_sig_mid_late": [
+   false,
+   false,
+   false
+  ],
+  "verdict": "WRONG",
+  "p_values": [
+   0.017982017982017984,
+   0.013986013986013986,
+   0.015984015984015984
+  ],
+  "outside_compound": [
+   0.2561573315825727,
+   0.2650483552780416,
+   0.274213252382146
+  ],
+  "outside_conjunction": [
+   0.3455027714371681,
+   0.3863199212484889,
+   0.3887791045837932
+  ],
+  "frame_corrected": {
+   "outside_compound": [
+    0.25037554444538224,
+    0.2489723451435566,
+    0.26950249779555535
+   ],
+   "outside_conjunction": [
+    0.28664862737059593,
+    0.3110037491553359,
+    0.34803870237535905
+   ],
+   "p_values": [
+    0.011988011988011988,
+    0.011988011988011988,
+    0.017982017982017984
+   ]
+  }
+ },
+ "P5": {
+  "conj_gt_comp_sig_mid_late": [
+   false,
+   false,
+   false
+  ],
+  "verdict": "WRONG",
+  "r2_compound": [
+   0.8075710248412302,
+   0.8187068155506022,
+   0.7643134471216557
+  ],
+  "r2_conjunction": [
+   0.7187599184989886,
+   0.6988878985280835,
+   0.6704851757593637
+  ],
+  "p_values": [
+   0.001998001998001998,
+   0.001998001998001998,
+   0.00999000999000999
+  ],
+  "frame_corrected": {
+   "r2_compound": [
+    0.8626878172921764,
+    0.8578046841861786,
+    0.791870745004168
+   ],
+   "r2_conjunction": [
+    0.8343337208176822,
+    0.8328780559595923,
+    0.7652338158078811
+   ],
+   "p_values": [
+    0.42857142857142855,
+    0.3206793206793207,
+    0.5284715284715285
+   ]
+  }
+ },
+ "P6": {
+  "ratio": 2.130870363977591,
+  "ratio_random": 1.3483334459883702,
+  "verdict": "PARTIAL",
+  "p": 0.001998001998001998,
+  "interaction": {
+   "log_interaction": 0.4576611724503257,
+   "ratio_of_ratios": 1.5803734382748305,
+   "p": 0.15884115884115885
+  }
+ }
+}
+   done in 301.7s
+EXIT 0

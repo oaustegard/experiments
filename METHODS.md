@@ -2491,6 +2491,20 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **An LLM residual stream does not show the SL(n)-paper's order-generated
+  directions at the registered effect size.** The commutator of a
+  meaning-changing two-noun composition is 1.2–1.5× that of an order-inert one
+  at mid/late layers of SmolLM2-135M, Qwen2.5-0.5B and Qwen2.5-1.5B, never the
+  1.5× registered; random nouns in the same carriers give 1.0–1.3×; reversing
+  two adjacent nouns in a bag-of-words frame moves the `:` residual as much as
+  reversing a compound. The additive model h0 + a(hA − h0) + b(hB − h0) fits
+  the compound *better* than the conjunction on all three models (R² 0.76–0.91
+  vs 0.67–0.80), the opposite sign from the paper's Flickr ablation. What
+  survives is a 1.1–1.3× compounding-specific excess on the Qwen models,
+  carried by one carrier of three. Don't re-run this with more pairs at one
+  token position; a position-matched read is the untested arm.
+  (`noncommutative-composition/`)
+
 - **Embedding inversion on bekko-a8m at 40k pairs / t5-small / 4 vCPU recovers
   the exact string 2.4% of the time from the float vector and 0.9% from the
   384-bit sign code, zero past 10 words in either arm.** Not retrieval (no
@@ -3344,3 +3358,40 @@ slot accuracy across every layer of both models, with the operator at 1.00
 from layer 1, and single-digit tokenization (SmolLM2) did not change the
 shape. A slot-wise readout at one position is the wrong query head; the
 digits live at their own tokens. (`latent-calculator/`)
+
+### Subspace-fraction thresholds at d ≫ k need a mismatched-basis baseline
+
+A registered prediction said >70% of a 576-d commutator would lie outside
+span{h0, hA, hB}. It did (0.90–0.94), and so would any vector: a different
+pair's spokes scored 0.97–0.98. The prediction was scored RIGHT and labelled
+vacuous; the informative number was own-basis minus stranger-basis (−0.04 to
+−0.07, p ≤ 0.003), which ran against the prediction's intent. Before
+registering a subspace-fraction threshold, compute what a random or mismatched
+basis of the same dimension gives, and register the *difference* from it.
+(`noncommutative-composition/`)
+
+### A basis that carries one condition's function word and not the other's handicaps the second condition on every fit
+
+Additive-model R² for `Here is {A} and {B}:` used spokes `Here is {A}:` and
+h0 `Here is:`, so the `and` token had no basis vector, while the compound
+carrier's `a` was in all of its basis vectors. The conjunction lost every R²
+and span comparison by 0.1–0.15 before any composition effect was in play. The
+fix that keeps the registered model intact: add a free-coefficient frame term,
+the mean over random-noun fillers of h(carrier with X Y) − h0, leave-one-out
+when the filler is itself a random pair. It moved the gap by 0.03–0.15 and is
+reported beside the registered number, not instead of it. Match function tokens
+across conditions at design time; when you cannot, budget a frame term.
+(`noncommutative-composition/`)
+
+### The adjacent-inert control for a one-token order-swap read
+
+Reversing `A B` to `B A` puts a different noun immediately before the read
+token in every carrier. A LIST frame (`Here are two words, {A} {B}:`, order
+semantically inert, nouns adjacent as in the compound) had a commutator as
+large as the compound's on two of three models. Without that control the
+compound-vs-conjunction ratio (1.2–1.5×) would have read as semantic
+noncommutativity; with it, most of the ratio is the adjacency. Any
+representation-level order test at a single position needs the adjacent-inert
+control, and a random-filler version of every carrier so the carrier's own
+effect can be divided out (ratio of ratios, label-shuffled across real and
+random pairs). (`noncommutative-composition/`)

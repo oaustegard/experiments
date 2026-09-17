@@ -1,0 +1,364 @@
+3780 distinct prompts; random pairs [('kettle', 'feather'), ('wagon', 'ladder'), ('blanket', 'lemon'), ('pumpkin', 'cloud'), ('walnut', 'bridge'), ('hammer', 'violin'), ('peach', 'parrot'), ('magnet', 'spoon'), ('mirror', 'pencil'), ('bucket', 'cabbage'), ('pillow', 'dolphin'), ('lantern', 'tunnel'), ('candle', 'needle'), ('tulip', 'ribbon'), ('sponge', 'helmet'), ('rocket', 'whistle'), ('cactus', 'lamp'), ('jacket', 'marble'), ('saddle', 'carrot'), ('turtle', 'zebra')]
+== smol (HuggingFaceTB/SmolLM2-135M)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/272 [00:00<?, ?it/s]Loading weights:  48%|████▊     | 131/272 [00:00<00:00, 1262.85it/s]Loading weights:  95%|█████████▍| 258/272 [00:00<00:00, 593.73it/s] Loading weights: 100%|██████████| 272/272 [00:00<00:00, 644.67it/s]
+  16/3780  0s
+  336/3780  4s
+  656/3780  7s
+  976/3780  11s
+  1296/3780  14s
+  1616/3780  17s
+  1936/3780  20s
+  2256/3780  24s
+  2576/3780  27s
+  2896/3780  30s
+  3216/3780  33s
+  3536/3780  36s
+/home/user/experiments/noncommutative-composition/run.py:274: RuntimeWarning: invalid value encountered in scalar divide
+  rec["relK"].append(float(np.linalg.norm(k) / np.linalg.norm(dAB)))
+/home/user/experiments/noncommutative-composition/run.py:276: RuntimeWarning: invalid value encountered in scalar divide
+  rec["cosAB"].append(float(np.dot(dAB, dBA) / (np.linalg.norm(dAB) * np.linalg.norm(dBA))))
+{
+ "P1": {
+  "ratios_mid_late": [
+   1.1918510055958178,
+   1.1957871252405299,
+   1.4884565171020006
+  ],
+  "verdict": "WRONG",
+  "p_values": [
+   0.005994005994005994,
+   0.016983016983016984,
+   0.000999000999000999
+  ],
+  "random_control_ratios": [
+   1.1291133800050634,
+   1.0647237917962922,
+   1.2070213465693078
+  ],
+  "interaction": [
+   {
+    "log_interaction": 0.05407486024032626,
+    "ratio_of_ratios": 1.055563618943629,
+    "p": 0.44255744255744256
+   },
+   {
+    "log_interaction": 0.1160892356589739,
+    "ratio_of_ratios": 1.1230960878812721,
+    "p": 0.2097902097902098
+   },
+   {
+    "log_interaction": 0.20958406088484027,
+    "ratio_of_ratios": 1.2331650316977494,
+    "p": 0.22577422577422576
+   }
+  ]
+ },
+ "P2": {
+  "pc1_mid_late": [
+   0.17494283616542816,
+   0.2065393030643463,
+   0.17182302474975586
+  ],
+  "verdict": "RIGHT",
+  "pc1_unit_mid_late": [
+   0.1747375726699829,
+   0.1873665601015091,
+   0.15953685343265533
+  ]
+ },
+ "P3": {
+  "outside_mid_late": [
+   0.9139004647731781,
+   0.9230867624282837,
+   0.9280712306499481
+  ],
+  "verdict": "RIGHT",
+  "other_pair_baseline": [
+   0.981275737285614,
+   0.9765475690364838,
+   0.9825413823127747
+  ]
+ },
+ "P4": {
+  "compound_gt_conj_sig_mid_late": [
+   false,
+   false,
+   false
+  ],
+  "verdict": "WRONG",
+  "p_values": [
+   0.017982017982017984,
+   0.017982017982017984,
+   0.015984015984015984
+  ],
+  "outside_compound": [
+   0.13018409369720352,
+   0.12791572159363163,
+   0.15159173620243865
+  ],
+  "outside_conjunction": [
+   0.2694016219013267,
+   0.2500200660692321,
+   0.2454206595818202
+  ],
+  "frame_corrected": {
+   "outside_compound": [
+    0.12543872288531727,
+    0.12399275021420585,
+    0.15020398298899335
+   ],
+   "outside_conjunction": [
+    0.2454398030208217,
+    0.21696049347519875,
+    0.23836536581317586
+   ],
+   "p_values": [
+    0.017982017982017984,
+    0.014985014985014986,
+    0.015984015984015984
+   ]
+  }
+ },
+ "P5": {
+  "conj_gt_comp_sig_mid_late": [
+   false,
+   false,
+   false
+  ],
+  "verdict": "WRONG",
+  "r2_compound": [
+   0.8879274875414633,
+   0.9088735087133005,
+   0.8664717189950795
+  ],
+  "r2_conjunction": [
+   0.7541770426635763,
+   0.7446239878964761,
+   0.7607326990575656
+  ],
+  "p_values": [
+   0.001998001998001998,
+   0.001998001998001998,
+   0.022977022977022976
+  ],
+  "frame_corrected": {
+   "r2_compound": [
+    0.9317423460415544,
+    0.9370799793208189,
+    0.8796820476175449
+   ],
+   "r2_conjunction": [
+    0.8820158082866232,
+    0.9019754622017114,
+    0.8025572457990956
+   ],
+   "p_values": [
+    0.004995004995004995,
+    0.002997002997002997,
+    0.06493506493506493
+   ]
+  }
+ },
+ "P6": {
+  "ratio": 2.169801145369683,
+  "ratio_random": 2.743255876932952,
+  "verdict": "PARTIAL",
+  "p": 0.000999000999000999,
+  "interaction": {
+   "log_interaction": -0.2345099659365827,
+   "ratio_of_ratios": 0.7909583512113316,
+   "p": 0.3836163836163836
+  }
+ }
+}
+   done in 49.3s
+== qwen05 (Qwen/Qwen2.5-0.5B)
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<04:38,  1.04it/s]Loading weights:  51%|█████     | 148/290 [00:01<00:00, 188.93it/s]Loading weights:  79%|███████▉  | 229/290 [00:01<00:00, 201.01it/s]Loading weights:  98%|█████████▊| 283/290 [00:01<00:00, 173.37it/s]Loading weights: 100%|██████████| 290/290 [00:01<00:00, 156.31it/s]
+  16/3780  1s
+  336/3780  13s
+  656/3780  21s
+  976/3780  31s
+  1296/3780  40s
+  1616/3780  49s
+  1936/3780  58s
+  2256/3780  71s
+  2576/3780  81s
+  2896/3780  91s
+  3216/3780  100s
+  3536/3780  109s
+/home/user/experiments/noncommutative-composition/run.py:274: RuntimeWarning: invalid value encountered in scalar divide
+  rec["relK"].append(float(np.linalg.norm(k) / np.linalg.norm(dAB)))
+/home/user/experiments/noncommutative-composition/run.py:276: RuntimeWarning: invalid value encountered in scalar divide
+  rec["cosAB"].append(float(np.dot(dAB, dBA) / (np.linalg.norm(dAB) * np.linalg.norm(dBA))))
+{
+ "P1": {
+  "ratios_mid_late": [
+   1.4046447200592644,
+   1.2756707715691193,
+   1.3070511375133218
+  ],
+  "verdict": "WRONG",
+  "p_values": [
+   0.000999000999000999,
+   0.000999000999000999,
+   0.006993006993006993
+  ],
+  "random_control_ratios": [
+   1.0984800059932407,
+   0.9779131435166841,
+   1.0083479499464068
+  ],
+  "interaction": [
+   {
+    "log_interaction": 0.2458569910366135,
+    "ratio_of_ratios": 1.2787166925165752,
+    "p": 0.006993006993006993
+   },
+   {
+    "log_interaction": 0.2658065588204061,
+    "ratio_of_ratios": 1.3044826936078042,
+    "p": 0.03896103896103896
+   },
+   {
+    "log_interaction": 0.2594602612233804,
+    "ratio_of_ratios": 1.2962302720829562,
+    "p": 0.08191808191808192
+   }
+  ]
+ },
+ "P2": {
+  "pc1_mid_late": [
+   0.18634356558322906,
+   0.15100958943367004,
+   0.13512010872364044
+  ],
+  "verdict": "RIGHT",
+  "pc1_unit_mid_late": [
+   0.1544947475194931,
+   0.1455501914024353,
+   0.12318054586648941
+  ]
+ },
+ "P3": {
+  "outside_mid_late": [
+   0.9261193573474884,
+   0.9257161617279053,
+   0.9043619334697723
+  ],
+  "verdict": "RIGHT",
+  "other_pair_baseline": [
+   0.9810417890548706,
+   0.9785423874855042,
+   0.9770233631134033
+  ]
+ },
+ "P4": {
+  "compound_gt_conj_sig_mid_late": [
+   false,
+   false,
+   false
+  ],
+  "verdict": "WRONG",
+  "p_values": [
+   0.011988011988011988,
+   0.017982017982017984,
+   0.017982017982017984
+  ],
+  "outside_compound": [
+   0.20605430689950782,
+   0.20152131881978777,
+   0.20296675525605679
+  ],
+  "outside_conjunction": [
+   0.3101999941799376,
+   0.35778263873524135,
+   0.32392200496461654
+  ],
+  "frame_corrected": {
+   "outside_compound": [
+    0.19834127401312193,
+    0.1971728778961632,
+    0.20115918955869144
+   ],
+   "outside_conjunction": [
+    0.2497277727557553,
+    0.2830336114598645,
+    0.3023163001570437
+   ],
+   "p_values": [
+    0.013986013986013986,
+    0.011988011988011988,
+    0.017982017982017984
+   ]
+  }
+ },
+ "P5": {
+  "conj_gt_comp_sig_mid_late": [
+   false,
+   false,
+   false
+  ],
+  "verdict": "WRONG",
+  "r2_compound": [
+   0.8415859666493322,
+   0.8693326034685682,
+   0.8466324853683537
+  ],
+  "r2_conjunction": [
+   0.7533160091808302,
+   0.7418822812473111,
+   0.7995265657593038
+  ],
+  "p_values": [
+   0.000999000999000999,
+   0.002997002997002997,
+   0.01898101898101898
+  ],
+  "frame_corrected": {
+   "r2_compound": [
+    0.8900509553798572,
+    0.8944733343670149,
+    0.8571484913548781
+   ],
+   "r2_conjunction": [
+    0.8860153753157903,
+    0.8719259105054324,
+    0.8226041535710552
+   ],
+   "p_values": [
+    0.8631368631368631,
+    0.06493506493506493,
+    0.013986013986013986
+   ]
+  }
+ },
+ "P6": {
+  "ratio": 1.6872357882318072,
+  "ratio_random": 0.8994949033235419,
+  "verdict": "WRONG",
+  "p": 0.001998001998001998,
+  "interaction": {
+   "log_interaction": 0.6290134532987784,
+   "ratio_of_ratios": 1.87575914215594,
+   "p": 0.11288711288711288
+  }
+ }
+}
+   done in 135.8s
+== qwen15 (Qwen/Qwen2.5-1.5B)
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:   0%|          | 1/338 [00:00<01:28,  3.80it/s]Loading weights:  29%|██▉       | 99/338 [00:00<00:01, 225.88it/s]Loading weights:  36%|███▌      | 122/338 [00:00<00:01, 138.53it/s]Loading weights:  41%|████      | 138/338 [00:01<00:02, 94.62it/s] Loading weights:  44%|████▍     | 149/338 [00:01<00:02, 93.82it/s]Loading weights:  47%|████▋     | 160/338 [00:01<00:02, 85.85it/s]Loading weights:  51%|█████     | 171/338 [00:01<00:02, 82.15it/s]Loading weights:  54%|█████▍    | 183/338 [00:02<00:02, 62.75it/s]Loading weights:  58%|█████▊    | 195/338 [00:02<00:02, 66.24it/s]Loading weights:  60%|██████    | 203/338 [00:02<00:02, 64.74it/s]Loading weights:  62%|██████▏   | 210/338 [00:02<00:02, 50.34it/s]Loading weights:  65%|██████▍   | 219/338 [00:02<00:02, 55.80it/s]Loading weights:  68%|██████▊   | 231/338 [00:02<00:02, 49.62it/s]Loading weights:  72%|███████▏  | 243/338 [00:03<00:01, 48.58it/s]Loading weights:  75%|███████▌  | 255/338 [00:03<00:01, 51.39it/s]Loading weights:  80%|███████▉  | 269/338 [00:03<00:01, 64.46it/s]Loading weights:  90%|████████▉ | 304/338 [00:03<00:00, 110.30it/s]Loading weights: 100%|██████████| 338/338 [00:03<00:00, 89.36it/s] 
+  16/3780  2s
+  336/3780  27s
+  656/3780  50s
+  976/3780  73s
+  1296/3780  96s
+  1616/3780  118s
+  1936/3780  142s
+  2256/3780  168s
+  2576/3780  193s
+  2896/3780  217s
+  3216/3780  241s
+  3536/3780  265s
+EXIT 137
