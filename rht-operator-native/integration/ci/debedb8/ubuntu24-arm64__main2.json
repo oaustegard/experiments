@@ -1,0 +1,166 @@
+{
+ "label": "ubuntu24-arm64",
+ "variant": "main2",
+ "remex_file": "/home/runner/work/_temp/remex_main/remex/__init__.py",
+ "system": "Linux",
+ "machine": "aarch64",
+ "numpy": "2.4.4",
+ "python": "3.12.14",
+ "native": null,
+ "blas": [
+  {
+   "internal_api": "openblas",
+   "architecture": "neoversev2",
+   "num_threads": 4
+  },
+  {
+   "internal_api": "openblas",
+   "architecture": "neoversev2",
+   "num_threads": 4
+  }
+ ],
+ "fingerprints": {
+  "rht/384/2": {
+   "bounds": "ee00b3feb8cb2cff",
+   "cents": "c9ec29b98c161e67",
+   "codes": "1b5a31dcaca09b0c"
+  },
+  "rht/384/4": {
+   "bounds": "00592c9e26d2c3f7",
+   "cents": "1074973580c3d4fb",
+   "codes": "2e0c6940c952c906"
+  },
+  "rht/384/8": {
+   "bounds": "ba72b37f7fd8f1c9",
+   "cents": "137829cb1f631b4a",
+   "codes": "9be8f9c825613859"
+  },
+  "haar/384/2": {
+   "bounds": "ee00b3feb8cb2cff",
+   "cents": "c9ec29b98c161e67",
+   "codes": "56f2785f3bddc872"
+  },
+  "haar/384/4": {
+   "bounds": "00592c9e26d2c3f7",
+   "cents": "1074973580c3d4fb",
+   "codes": "cfaf720ff70075de"
+  },
+  "haar/384/8": {
+   "bounds": "ba72b37f7fd8f1c9",
+   "cents": "137829cb1f631b4a",
+   "codes": "69a11384ad2827d2"
+  },
+  "rht/768/2": {
+   "bounds": "af4e57c48abdd59d",
+   "cents": "2cda3067b2cd9f68",
+   "codes": "63a2a33ad8c59cfa"
+  },
+  "rht/768/4": {
+   "bounds": "a2f458082d325e03",
+   "cents": "8a0ff63afaded1e8",
+   "codes": "c02b2da860d72aa3"
+  },
+  "rht/768/8": {
+   "bounds": "21eb60ca4c2c9260",
+   "cents": "ef2a746b890928a9",
+   "codes": "5efdde01cc370e51"
+  },
+  "haar/768/2": {
+   "bounds": "af4e57c48abdd59d",
+   "cents": "2cda3067b2cd9f68",
+   "codes": "c0abf20d57ef803d"
+  },
+  "haar/768/4": {
+   "bounds": "a2f458082d325e03",
+   "cents": "8a0ff63afaded1e8",
+   "codes": "770f0d9ed96b97cc"
+  },
+  "haar/768/8": {
+   "bounds": "21eb60ca4c2c9260",
+   "cents": "ef2a746b890928a9",
+   "codes": "decb76fe62eece4f"
+  },
+  "rht/3072/2": {
+   "bounds": "ad4951e5b7158b84",
+   "cents": "76a8116f9739426e",
+   "codes": "e41311ce9c214ab8"
+  },
+  "rht/3072/4": {
+   "bounds": "9a6e18091003cf9b",
+   "cents": "da97d564c1dd98d0",
+   "codes": "a946c2c612777c81"
+  },
+  "rht/3072/8": {
+   "bounds": "073418d35ef6a387",
+   "cents": "159e0e610f3c62ce",
+   "codes": "6f66af08bd535bcf"
+  }
+ },
+ "speed": [
+  {
+   "d": 384,
+   "build_s": 0.053102718999980425,
+   "enc1_s": 1.6566999988754105e-05,
+   "enc16_s": 0.00014955099993585463,
+   "enc64_s": 0.0005467890000545594,
+   "enc256_s": 0.0021413930001017434,
+   "enc1024_s": 0.008352152999918872,
+   "enc10000_s": 0.08443090100001882,
+   "search_adc_s": 0.030303534999916337,
+   "search_s": 0.0002698780000400802,
+   "search_batch64_s": 0.014309640999954354
+  },
+  {
+   "d": 768,
+   "build_s": 0.06829865500003507,
+   "enc1_s": 3.187800007253827e-05,
+   "enc16_s": 0.00036300900001151604,
+   "enc64_s": 0.0013022059999912017,
+   "enc256_s": 0.004923985000004905,
+   "enc1024_s": 0.0194714340000246,
+   "enc10000_s": 0.1971006879999777,
+   "search_adc_s": 0.061356763000048886,
+   "search_s": 0.0005781659999684052,
+   "search_batch64_s": 0.02028528899995763
+  },
+  {
+   "d": 1024,
+   "build_s": 0.06925092799997401,
+   "enc1_s": 4.85779999053193e-05,
+   "enc16_s": 0.0005516420000049038,
+   "enc64_s": 0.0018870650000053502,
+   "enc256_s": 0.007169689999955153,
+   "enc1024_s": 0.028661800999998377,
+   "enc10000_s": 0.2890088540000306,
+   "search_adc_s": 0.08500798899990514,
+   "search_s": 0.0008296979999613541,
+   "search_batch64_s": 0.024207994999983384
+  },
+  {
+   "d": 1536,
+   "build_s": 0.1395181150001008,
+   "enc1_s": 8.916199999475793e-05,
+   "enc16_s": 0.0009791919999315724,
+   "enc64_s": 0.003328430000010485,
+   "enc256_s": 0.012733148999927835,
+   "enc1024_s": 0.05149596399996881,
+   "enc10000_s": 0.5114189949999854,
+   "search_adc_s": 0.12738907799996468,
+   "search_s": 0.00120992600000136,
+   "search_batch64_s": 0.0328148759999749
+  },
+  {
+   "d": 3072,
+   "build_s": 0.5104256620001024,
+   "enc1_s": 0.0002839090000179567,
+   "enc16_s": 0.002945154000030925,
+   "enc64_s": 0.00991792800004987,
+   "enc256_s": 0.03770053400000961,
+   "enc1024_s": 0.148864996000043,
+   "enc10000_s": 1.4744386680000616,
+   "search_adc_s": 0.26975908199995047,
+   "search_s": 0.0029557220000242523,
+   "search_batch64_s": 0.05940375499994843
+  }
+ ]
+}
