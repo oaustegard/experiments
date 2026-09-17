@@ -1,0 +1,103 @@
+# Before-merge measurement for oaustegard/remex feat/rht-operator (#86):
+# remex main and the branch installed side by side on x64, ARM, macOS and
+# Windows; public-API timing, code fingerprints, a serial-cutoff sweep, and
+# the branch's new tests. Results are committed to
+# rht-operator-native/integration/ci/<branch sha>/.
+name: remex-rht-integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      main_ref:
+        default: 'main'
+      branch_ref:
+        default: 'feat/rht-operator'
+  push:
+    branches: [main]
+    paths:
+      - 'rht-operator-native/integration/bench.py'
+      - 'rht-operator-native/integration/run_all.sh'
+      - '.github/workflows/remex-rht-integration.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: remex-rht-integration
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, label: ubuntu24-x64 }
+          - { os: ubuntu-24.04-arm, label: ubuntu24-arm64 }
+          - { os: macos-15, label: macos15-arm64 }
+          - { os: windows-2025, label: windows2025-x64 }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      MAIN_REF: ${{ inputs.main_ref || 'main' }}
+      BRANCH_REF: ${{ inputs.branch_ref || 'feat/rht-operator' }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: oaustegard/remex
+          ref: ${{ env.BRANCH_REF }}
+          path: remex-src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install shared deps
+        run: python -m pip install --quiet numpy==2.4.4 scipy threadpoolctl pytest
+      - name: Branch tests (new file) against the branch
+        working-directory: remex-src
+        run: |
+          python -m pip install --quiet -e . --no-deps
+          python -m pytest tests/test_rht_operator.py tests/test_rotation_rht.py tests/test_scalar_mode.py -q -p no:cacheprovider 2>&1 | tee "$RUNNER_TEMP/pytest.txt" | tail -20
+          python -m pip uninstall -y remex
+      - name: Bench main vs branch
+        working-directory: rht-operator-native/integration
+        run: |
+          SHA=$(git -C ../../remex-src rev-parse --short HEAD)
+          echo "SHA=$SHA" >> "$GITHUB_ENV"
+          bash run_all.sh ${{ matrix.label }} "$MAIN_REF" "$BRANCH_REF"
+          cp "$RUNNER_TEMP/pytest.txt" "out/${{ matrix.label }}__pytest.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.label }}
+          path: rht-operator-native/integration/out/
+
+  collect:
+    needs: bench
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: oaustegard/remex
+          ref: ${{ inputs.branch_ref || 'feat/rht-operator' }}
+          path: remex-src
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/art
+      - name: Commit results
+        run: |
+          SHA=$(git -C remex-src rev-parse --short HEAD)
+          rm -rf remex-src
+          DEST="rht-operator-native/integration/ci/$SHA"
+          mkdir -p "$DEST"
+          cp -r /tmp/art/*/* "$DEST/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git diff --cached --quiet && exit 0
+          git commit -m "remex-rht-integration: results for remex $SHA [skip ci]"
+          for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
