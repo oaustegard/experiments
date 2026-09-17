@@ -60,4 +60,6 @@ jobs:
                   repo-index/shape.json repo-index/manifest.json \
                   repo-index/rotation.npy
           git commit -m "repo-index: rebuild for ${GITHUB_SHA::8}"
-          git push
+          # Other workflows (rht-operator-native) also commit to main; rebase
+          # rather than fail the push when one of them landed mid-rebuild.
+          for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done

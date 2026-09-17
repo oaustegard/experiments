@@ -80,7 +80,7 @@ for threads in sorted({1, ncpu}):
             R = rht_rotation(d, 42); op = Op(d, 42, "native", threads=threads)
             q = np.random.default_rng(1).standard_normal(d).astype(np.float32)
             cells = [("query1d", lambda: R @ q, lambda: op.rotate_query(q), 51)]
-            for n in (1, 64, 10000):
+            for n in (1, 64, 128, 256, 1024, 10000):
                 X = np.random.default_rng(n).standard_normal((n, d)).astype(np.float32)
                 cells.append((f"enc{n}", lambda X=X: X @ R.T, lambda X=X: op.rotate_rows(X), 5 if n > 64 else 51))
             Xd = np.random.default_rng(9).standard_normal((10000, d)).astype(np.float32)
