@@ -555,6 +555,7 @@ survives exactly the sanity checks people run.
 | Exact continuous Lloyd-Max for N(0,1) (reproduces Max 1960), plus Gaussian-optimal m-dim VQ grids by KD-tree-accelerated Lloyd | `remex-vs-higgs-ablation/grids.py` | trivial |
 | E8 lattice: nearest-point decoder, ball-shaped codebook, normalised second moment | `remex-vs-higgs-ablation/calibrate.py` | trivial |
 | Randomized Hadamard rotation for ANY d, no power-of-two padding (rounds of permute + block-diagonal FWHT) | `remex-vs-higgs-ablation/quantizers.py::RHTRotation` | trivial |
+| Compiled randomized Hadamard apply on remex's plan (C + ctypes, OpenMP rows, bit-identical NumPy reference), any even d | `rht-operator-native/rht_kernel.c` + `rhtop.py` + `check_bitexact.py::numpy_ref` | trivial |
 | Gate audit harness: probes that demonstrate a check CANNOT FAIL (identity-rotation substitution, degenerate-trainer substitution, anchor-range gap) | `remex-vs-higgs-ablation/audit.py` | small — probes are subject-specific, the four verdicts and the six passes are not |
 | Permanent mutation-kill fixture: named mutations + the check claimed to catch each, restored after every run, plus documented equivalent mutants | `remex-vs-higgs-ablation/verify_kills.py` | trivial |
 | Paired MSE estimator with an analytic standard error (two codebooks on one sample stream, so the shared sampling fluctuation cancels) — turns a bare inequality into a margin derived from measured noise | `remex-vs-higgs-ablation/gate.py::paired_gain` | trivial |
@@ -2135,6 +2136,27 @@ the result.
   energy entry above) and the slate might grow, budget from the rank-1 column.
   (`spd-hungarian-decoder/solver_bench.py`)
 
+- **A dense `sgemm`/`sgemv` encode is not byte-reproducible across machines,
+  even with a byte-identical matrix.** Forcing four OpenBLAS kernel families
+  (`OPENBLAS_CORETYPE`) on one CPU gave four code hashes for the same remex
+  `rht` encode (flip rate 3e-7 to 1e-6), and x86, ARM and Apple Silicon all
+  differ. A transform made only of gathers, sign multiplies and pairwise
+  add/sub in a fixed order hashes identically on all of them, and a NumPy
+  reference with the same operation order matches the C build bit for bit.
+  Build with `-ffp-contract=off` so no multiply is fused into an add.
+  (`rht-operator-native/RESULTS.md`)
+- **A float32 table derived from float64 intermediates inherits their ulp
+  noise, even when the float32 results of those intermediates agree.**
+  `remex.codebook.lloyd_max_codebook` iterates through `scipy.stats.norm`,
+  whose values differ by an ulp across NumPy's SIMD dispatch (x86-64-v4 vs
+  v3). Its float32 centroids came out identical on four machines; its
+  boundaries, midpoints of the float64 centroids, differed on all four at 4
+  and 8 bits (the 4-bit middle boundary is 0.0 on one level and 3.6e-17 on
+  another). Midpoints of the float32 centroids agree everywhere. Reproduce a
+  suspected dispatch dependence locally with
+  `NPY_DISABLE_CPU_FEATURES="X86_V4"`; `numpy.show_runtime()` lists the
+  names. (`rht-operator-native/check_simd_codebook.py`)
+
 ## Cache and measurement hygiene
 
 - **A retry needs the failed artifact and the failure output, not the failed model's
@@ -2489,6 +2511,21 @@ the result.
 
 ---
 
+- **Time two multi-threaded arms in separate blocks, never interleaved.**
+  OpenBLAS workers and a libgomp team both spin-wait after returning, so
+  alternating dense and OpenMP cells runs each against the other's spinning
+  threads. It made a 4-thread OpenMP kernel scale 0.9x at d=384 while
+  `sgemm` scaled 2x; blocked timing with a 0.5 s sleep between blocks gave
+  normal scaling. (`rht-operator-native/ERRORS.md` #1)
+- **An `if (...)` clause does not make an OpenMP pragma free.** The outlined
+  parallel region compiled 37% slower single-threaded than the same loop
+  without the pragma; an explicit serial branch outside the region recovered
+  it. (`rht-operator-native/ERRORS.md` #2)
+- **`np.ctypeslib.ndpointer` argtypes cost ~10 us per call.** For a
+  microsecond kernel that is the whole single-query latency; pass
+  `arr.ctypes.data` as `c_void_p` and check dtype and contiguity once in
+  Python. (`rht-operator-native/ERRORS.md` #4)
+
 ## Negative results — do not re-derive
 
 - **An LLM residual stream does not show the SL(n)-paper's order-generated
@@ -2739,6 +2776,12 @@ the result.
   (`dc-mall-timelapse/RESULTS.md`)
 
 ---
+
+- **NumPy structural RHT apply does not beat BLAS; a compiled one does.**
+  remex#72 measured a NumPy operator form 7–35x slower than dense on batches
+  and closed it. The same plan in C is 3–50x faster than dense from d=1024 up
+  on x86, ARM and Apple Silicon. Do not re-measure the NumPy form as evidence
+  about the transform. (`rht-operator-native/RESULTS.md`)
 
 ## Shared code — `_lib/`
 

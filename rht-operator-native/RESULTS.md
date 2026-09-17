@@ -2,9 +2,12 @@
 
 **Status: done — positive.** A 60-line C kernel that applies remex's randomized
 Hadamard rotation directly (permute, sign, block FWHT) beats the materialized
-dense matrix on every call shape from d=768 up, on x86, ARM and Apple Silicon,
-at one thread and at all threads. Its output also hashes identically on all
-four machines measured, where the dense path's output differs on every one. Getting reproducible **codes** needed a
+dense matrix on every call shape measured from d=1024 up (one query, batches
+of 64 to 10,000, decode), on x86, ARM and Apple Silicon, at one thread and at
+all threads. d=768 is a win outside a band of small batches that a mis-set
+serial cutoff hands back to `sgemm`; d=384 is a split. The operator's output
+hashes identically on all four machines measured, where dense output takes
+three or four distinct values. Getting reproducible **codes** needed a
 second change, in the Lloyd-Max codebook, found along the way.
 
 Origin: a conversation about arXiv:2609.15083 (SL(n) representation learning)
@@ -70,48 +73,105 @@ Ratios are operator time / dense time; below 1 the operator is faster.
 
 **Batch encode, n = 10,000, one thread**
 
+<!-- table: batch encode, n=10,000, 1 thread -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
 | Xeon AVX-512, 1 vCPU (authoring container) | 1 | 1.20 | 0.64 | 0.30 | 0.35 | 0.15 | 0.18 | 0.08 |
-| GitHub ubuntu-24.04 x64 | 1 | 0.93 | 0.55 | 0.20 | 0.25 | 0.10 | 0.13 | 0.05 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 1 | 0.37 | 0.20 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 1 | 1.22 | 0.78 | 0.31 | 0.44 | 0.21 | 0.21 | 0.09 |
+| GitHub ubuntu-24.04 x64 | 1 | 1.29 | 0.69 | 0.30 | 0.37 | 0.16 | 0.19 | 0.08 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 1 | 0.37 | 0.19 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 1 | 0.74 | 0.84 | 0.42 | 0.42 | 0.20 | 0.23 | 0.10 |
+<!-- /table -->
 
 **Batch encode, n = 10,000, all threads**
 
+<!-- table: batch encode, n=10,000, all threads -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
-| GitHub ubuntu-24.04 x64 | 4 | 0.80 | 0.49 | 0.16 | 0.22 | 0.09 | 0.11 | 0.05 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 0.37 | 0.20 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.01 | 0.87 | 0.28 | 0.42 | 0.19 | 0.21 | 0.09 |
+| GitHub ubuntu-24.04 x64 | 4 | 1.16 | 0.61 | 0.24 | 0.33 | 0.13 | 0.17 | 0.07 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 0.37 | 0.19 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.16 | 0.79 | 0.36 | 0.43 | 0.20 | 0.22 | 0.10 |
+<!-- /table -->
 
 **Single query (`R @ q`), one thread**
 
+<!-- table: single query, 1 thread -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
 | Xeon AVX-512, 1 vCPU (authoring container) | 1 | 0.79 | 0.18 | 0.08 | 0.04 | 0.02 | 0.02 | 0.01 |
-| GitHub ubuntu-24.04 x64 | 1 | 1.11 | 0.40 | 0.16 | 0.14 | 0.05 | 0.04 | 0.01 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 1 | 0.55 | 0.19 | 0.09 | 0.06 | 0.03 | 0.03 | 0.01 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 1 | 0.53 | 0.22 | 0.11 | 0.08 | 0.04 | 0.03 | 0.01 |
+| GitHub ubuntu-24.04 x64 | 1 | 0.93 | 0.17 | 0.05 | 0.04 | 0.02 | 0.02 | 0.01 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 1 | 0.61 | 0.19 | 0.09 | 0.06 | 0.03 | 0.03 | 0.01 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 1 | 1.10 | 0.23 | 0.09 | 0.12 | 0.03 | 0.02 | 0.01 |
+<!-- /table -->
 
-**Batch of 64, all threads**
+**Small and medium batches, all threads**
 
+n = 64:
+
+<!-- table: batch 64, all threads -->
 | machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
 |---|---|---|---|---|---|---|---|---|
-| GitHub ubuntu-24.04 x64 | 4 | 1.55 | 0.74 | 0.30 | 0.39 | 0.16 | 0.20 | 0.03 |
-| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.30 | 0.70 | 0.28 | 0.36 | 0.14 | 0.19 | 0.02 |
-| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.49 | 0.76 | 0.24 | 0.32 | 0.13 | 0.16 | 0.07 |
+| GitHub ubuntu-24.04 x64 | 4 | 1.31 | 0.71 | 0.26 | 0.35 | 0.14 | 0.18 | 0.03 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.31 | 0.69 | 0.28 | 0.36 | 0.14 | 0.19 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.36 | 0.78 | 0.25 | 0.39 | 0.14 | 0.18 | 0.07 |
+<!-- /table -->
 
-Decode (`X @ R`) tracks encode within a few percent everywhere.
+n = 128:
 
-- From d=1024 up the operator is 3–50x faster on every machine and thread
-  count measured. At d=768 it is 1.3–5x faster on Linux; on macOS it is a
-  narrow win (0.78 one-thread, 0.87 three-thread).
-- **d=384 is a split.** Dense wins batch encode on the AVX-512 box (1.20) and
-  on macOS (1.22); the operator wins on ARM (0.37) and at 4 threads on x64
-  (0.80). Batches of 64 at small d stay on the serial path by design and lose
-  to multi-threaded `sgemm` (1.3–1.55 at d=384).
-- Thread scaling at 4 threads matches `sgemm`'s: 2.0x on the x64 runner
+<!-- table: batch 128, all threads -->
+| machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
+|---|---|---|---|---|---|---|---|---|
+| GitHub ubuntu-24.04 x64 | 4 | 1.73 | 0.94 | 0.36 | 0.48 | 0.09 | 0.12 | 0.05 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.36 | 0.72 | 0.29 | 0.38 | 0.04 | 0.05 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.48 | 0.81 | 0.23 | 0.39 | 0.20 | 0.18 | 0.08 |
+<!-- /table -->
+
+n = 256:
+
+<!-- table: batch 256, all threads -->
+| machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
+|---|---|---|---|---|---|---|---|---|
+| GitHub ubuntu-24.04 x64 | 4 | 1.81 | 1.04 | 0.19 | 0.26 | 0.10 | 0.14 | 0.05 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 1.40 | 0.74 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.54 | 0.84 | 0.25 | 0.40 | 0.17 | 0.22 | 0.09 |
+<!-- /table -->
+
+n = 1024:
+
+<!-- table: batch 1024, all threads -->
+| machine | threads | d=384 | d=768 | d=1024 | d=1536 | d=2048 | d=3072 | d=4096 |
+|---|---|---|---|---|---|---|---|---|
+| GitHub ubuntu-24.04 x64 | 4 | 0.97 | 0.56 | 0.22 | 0.30 | 0.12 | 0.16 | 0.06 |
+| GitHub ubuntu-24.04-arm (Neoverse V2) | 4 | 0.37 | 0.19 | 0.08 | 0.10 | 0.04 | 0.05 | 0.02 |
+| GitHub macos-15 (Apple Silicon, Accelerate) | 3 | 1.55 | 0.76 | 0.36 | 0.43 | 0.18 | 0.23 | 0.09 |
+<!-- /table -->
+
+Decode (`X @ R`) tracks encode within a few percent everywhere. The tables
+are the last CI run (2c342d7); ranges below span the three runs after the
+timing fix (569e5aa, 8c3d0d2, 2c342d7).
+
+- **From d=1024 up the operator is faster in every cell measured**: every
+  machine, every run, every shape and thread count, at 0.007–0.48 of dense
+  time. The worst cell is x64, 4 threads, d=1536, n=128.
+- **d=768 is a win except where the serial cutoff bites.** Batch 10,000 runs
+  at 0.19–0.87 of dense and single queries at 0.17–0.40 (one thread). At 4
+  threads on x64, batches of 128 and 256 are at parity (0.94, 1.04): at
+  d=768 the cutoff keeps every batch below 341 rows serial while `sgemm`
+  uses all cores. macOS is the weakest machine at d=768 (0.66–0.87 batch).
+- **d=384 is a split.** Dense wins batch encode on AVX-512 x86 (1.16–1.29)
+  and on macOS in two of three runs, and wins batches of 64–256 on every
+  multi-core machine (1.3–1.8). The operator wins batch encode on ARM (0.37
+  in every run) and on the x64 runner when it draws a Haswell kernel
+  (0.77–0.80).
+- **The x64 runner's numbers depend on which OpenBLAS kernel it draws.** Two
+  runs got Haswell and one SkylakeX (AVX-512); the SkylakeX run's `sgemm` was
+  faster. In that run d=768 batch rose from 0.50 to 0.61 and d=384 from 0.80
+  to 1.16.
+  ARM moved by at most 0.01 between runs.
+- **The serial cutoff is set too high.** On ARM at d=384, n=256 (serial)
+  costs 1.40x dense while n=1024 (parallel) costs 0.37x. A cutoff near
+  2^15–2^16 input floats would likely recover most of the small-batch cells;
+  that is a prediction and was not run.
+- Thread scaling at 4 threads matches `sgemm`'s: about 2x on the x64 runner
   (two physical cores), 3.9x on ARM.
 - **macOS is not a controlled comparison.** Apple clang has no `-fopenmp`, so
   the kernel ran serially there, and `threadpoolctl` cannot see Accelerate,
@@ -119,10 +179,6 @@ Decode (`X @ R`) tracks encode within a few percent everywhere.
 - Construction (authoring box): 29 ms → 0.08 ms at d=768, 741 ms → 0.16 ms at
   d=3072. Resident rotation state: 2.4 MB → 12 KB, 37.7 MB → 49 KB, 67 MB →
   33 KB at d=4096.
-
-The x64 runner's 1-thread column at d=1024 moved from 0.27 to 0.20 between
-two runs on different OpenBLAS kernels (SkylakeX, then Haswell): read single
-cells to about ±0.1.
 
 ## Reproducibility
 
@@ -151,34 +207,37 @@ dispatch level and 3.6e-17 at another. Taking the boundaries as midpoints of
 the float32 centroids instead (`check_simd_codebook.py`) removes the
 dependence. Fingerprints at d=768 (d=3072 in the same shape, same verdicts):
 
+<!-- table: fingerprints d=768 -->
 | field | local-xeon-avx512-1cpu | gha-ubuntu24-x64 | gha-ubuntu24-arm64 | gha-macos15-arm64 | agree |
 |---|---|---|---|---|---|
 | `R` | `f8e83129` | `f8e83129` | `f8e83129` | `f8e83129` | **yes** |
 | `op_rot` | `6147b47e` | `6147b47e` | `6147b47e` | `6147b47e` | **yes** |
-| `dense_rot` | `45672793` | `65ac7490` | `e0bc6abe` | `a89191d7` | no (4 distinct) |
+| `dense_rot` | `45672793` | `45672793` | `e0bc6abe` | `a89191d7` | no (3 distinct) |
 | `cents2` | `2cda3067` | `2cda3067` | `2cda3067` | `2cda3067` | **yes** |
 | `bounds2` | `af4e57c4` | `af4e57c4` | `af4e57c4` | `af4e57c4` | **yes** |
 | `bounds2_f32mid` | `239f914e` | `239f914e` | `239f914e` | `239f914e` | **yes** |
-| `dense_codes2` | `63a2a33a` | `608dbd19` | `63a2a33a` | `608dbd19` | no (2 distinct) |
+| `dense_codes2` | `63a2a33a` | `63a2a33a` | `63a2a33a` | `608dbd19` | no (2 distinct) |
 | `op_codes2` | `63a2a33a` | `63a2a33a` | `63a2a33a` | `63a2a33a` | **yes** |
 | `op_codes2_f32mid` | `63a2a33a` | `63a2a33a` | `63a2a33a` | `63a2a33a` | **yes** |
 | `cents4` | `8a0ff63a` | `8a0ff63a` | `8a0ff63a` | `8a0ff63a` | **yes** |
-| `bounds4` | `bb40fae6` | `13a37d73` | `a2f45808` | `f8102a2e` | no (4 distinct) |
+| `bounds4` | `bb40fae6` | `bb40fae6` | `a2f45808` | `f8102a2e` | no (3 distinct) |
 | `bounds4_f32mid` | `d45806cf` | `d45806cf` | `d45806cf` | `d45806cf` | **yes** |
-| `dense_codes4` | `b4dd566c` | `75c8c955` | `c02b2da8` | `44ceb088` | no (4 distinct) |
-| `op_codes4` | `44ceb088` | `c02b2da8` | `44ceb088` | `44ceb088` | no (2 distinct) |
+| `dense_codes4` | `b4dd566c` | `b4dd566c` | `c02b2da8` | `44ceb088` | no (3 distinct) |
+| `op_codes4` | `44ceb088` | `44ceb088` | `44ceb088` | `44ceb088` | **yes** |
 | `op_codes4_f32mid` | `c02b2da8` | `c02b2da8` | `c02b2da8` | `c02b2da8` | **yes** |
 | `cents8` | `ef2a746b` | `ef2a746b` | `ef2a746b` | `ef2a746b` | **yes** |
-| `bounds8` | `0281de7c` | `29ebb8ac` | `21eb60ca` | `0fba5608` | no (4 distinct) |
+| `bounds8` | `0281de7c` | `0281de7c` | `21eb60ca` | `0fba5608` | no (3 distinct) |
 | `bounds8_f32mid` | `b697300d` | `b697300d` | `b697300d` | `b697300d` | **yes** |
-| `dense_codes8` | `ffb0bb33` | `61893fa8` | `5efdde01` | `5e2652d3` | no (4 distinct) |
-| `op_codes8` | `41cd1a9b` | `6c348e31` | `6c348e31` | `41cd1a9b` | no (2 distinct) |
+| `dense_codes8` | `ffb0bb33` | `ffb0bb33` | `5efdde01` | `5e2652d3` | no (3 distinct) |
+| `op_codes8` | `41cd1a9b` | `41cd1a9b` | `6c348e31` | `41cd1a9b` | no (2 distinct) |
 | `op_codes8_f32mid` | `327fcd5d` | `327fcd5d` | `327fcd5d` | `327fcd5d` | **yes** |
+<!-- /table -->
 
 With both changes, codes hash identically on all four machines at 2, 4 and
 8 bits, at both dimensions. With only the operator, 4- and 8-bit codes split
 into two hash groups at d=768; with only the new boundaries, the dense
-rotation still gives four.
+rotation still gives three or four (the x64 runner matches the authoring
+box whenever it draws the same SkylakeX kernel).
 
 This bears on two existing remex claims:
 
@@ -195,32 +254,40 @@ This bears on two existing remex claims:
 
 Each item below needs a maintainer decision before it goes into remex.
 
-1. **Apply `rht` through the operator.** Faster from d=768 up, reproducible,
+1. **Apply `rht` through the operator, with a lower serial cutoff.** Faster
+   from d=1024 up and at d=768 outside the small-batch band, reproducible,
    and removes the resident matrix. `Quantizer.R` can stay a lazy property
    returning `rht_rotation(d, seed)` unchanged, so `gpu.py`, `save_params` and
    the Mojo R-parity test are untouched. Existing `rht` indexes would see
    ~1e-6 of codes move, the same size as moving them to another CPU today.
-2. **Compile at import.** remax `_native.py` is the pattern. The compiler-default
+2. **Compile at import, or ship wheels.** remax `_native.py` is the in-house
+   pattern for compiling at import. The compiler-default
    build is within ~15% of `-march=native` and avoids SIGILL on shared caches.
    Without a compiler, the NumPy fallback (same hashes) is 3–9x slower than
    today's dense batch path; falling back to dense instead keeps the speed and
-   loses the reproducibility.
+   loses the reproducibility. Locked-down deployments (distroless images,
+   read-only home, serverless) would hit that fallback silently, which argues
+   for prebuilt wheels (cibuildwheel), or at least a logged warning and a
+   setting to choose the fallback.
 3. **Boundaries from the float32 centroids.** A one-line change in
    `codebook.py`, independent of the rotation. Moves 1–65 boundaries by an ulp
-   (65 of 255 at 8 bits) and therefore a similar ~1e-6 share of codes for
-   **every** existing index, Haar included. Worth pairing with (1) in one
-   release so the drift happens once.
+   (65 of 255 at 8 bits). The centroid table does not change, so every
+   existing code, Haar included, decodes exactly as before; only newly encoded
+   coordinates within an ulp of a moved boundary can land in the neighbouring
+   cell, a ~1e-6 share, which moving an index to another CPU already causes
+   today, so the container formats need no new version. Worth pairing with
+   (1) in one release so the change happens once.
 4. **Mojo.** Parity becomes guaranteed only if the Mojo port also applies the
    operator and derives boundaries the same way. The authoring container has
    no Mojo toolchain, so the Mojo side was neither built nor timed.
 5. **Default rotation.** With the operator, `rht` is ahead of Haar on build
-   time, memory, apply speed from d=768 up, and reproducibility, at measured
+   time, memory, apply speed from d=1024 up, and reproducibility, at measured
    recall parity (experiments#11). The rotation is recorded on disk and
    `rotation_identity_gate.py` covers a default flip.
 
 ## Caveats
 
-- Speed at d=384 is machine-dependent and not a win on x86 or macOS.
+- Speed at d=384 is machine-dependent and not a win on AVX-512 x86 or macOS.
 - The x64 runner has two physical cores; no many-core machine was measured.
 - macOS: serial kernel, uncontrolled Accelerate threads (above).
 - Only 2,000 vectors per fingerprint; agreement is an observed property of
@@ -231,6 +298,10 @@ Each item below needs a maintainer decision before it goes into remex.
   be at most 14% of an `ivf` search at d=3072, so the single-query win there
   is bounded accordingly.
 - The kernel does not implement remax's multi-rotation stacked encode.
+- libgomp is not fork-safe once a parallel region has run: a pre-forking
+  server (gunicorn `--preload`, Celery prefork) that encodes before forking
+  can hang its children. A remex integration should default to one thread
+  or document this. This experiment did not test fork behaviour.
 
 ## Files
 
@@ -238,4 +309,4 @@ Each item below needs a maintainer decision before it goes into remex.
 `check_correct.py`, `check_bitexact.py`, `check_codes.py`,
 `check_blas_drift.py`, `check_simd_bisect.py`, `check_simd_codebook.py`;
 `bench_apply.py`, `bench_variants.py` (local benches); `ci_run.py`,
-`ci/*.json`, `make_tables.py`, `recheck.py`; `ERRORS.md`.
+`ci/*.json`, `make_tables.py`, `regen_tables.py`, `recheck.py`; `ERRORS.md`.
