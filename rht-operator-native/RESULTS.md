@@ -146,8 +146,8 @@ n = 1024:
 <!-- /table -->
 
 Decode (`X @ R`) tracks encode within a few percent everywhere. The tables
-are the latest CI run (6c44eca). Ranges below span all four runs after the
-timing fix (569e5aa, 8c3d0d2, 2c342d7, 6c44eca), archived under
+are the latest CI run (7be5fce). Ranges below span all four runs after the
+timing fix (6b638f2, 9bdd544, 567ec45, 7be5fce), archived under
 `ci/history/`; the first of those predates the n = 128–1024 cells.
 
 - **From d=1024 up the operator is faster in every cell measured**: every
