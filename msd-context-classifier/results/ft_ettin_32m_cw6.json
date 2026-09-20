@@ -1,0 +1,109 @@
+{
+ "n_test": 138,
+ "accuracy": 0.9420289855072463,
+ "macro_f1": 0.8277528236174854,
+ "ece_raw": 0.04133534431457522,
+ "ece_temp": 0.04093692376129869,
+ "temperature": 1.8,
+ "coverage_5pct": {
+  "threshold": 0.31299999356269836,
+  "coverage": 1.0,
+  "error_at_coverage": 0.05797101449275366
+ },
+ "per_label_f1": {
+  "assay_kits": {
+   "f1": 0.8421052631578948,
+   "n": 8
+  },
+  "platform_products": {
+   "f1": 0.4,
+   "n": 3
+  },
+  "products": {
+   "f1": 0.9772727272727273,
+   "n": 44
+  },
+  "references": {
+   "f1": 1.0,
+   "n": 44
+  },
+  "science_resources": {
+   "f1": 0.7272727272727272,
+   "n": 6
+  },
+  "services": {
+   "f1": 0.9142857142857143,
+   "n": 17
+  },
+  "support": {
+   "f1": 0.9333333333333333,
+   "n": 16
+  }
+ },
+ "arm": "ft",
+ "model": "models/ettin-encoder-32m",
+ "epochs": 6,
+ "lr": 5e-05,
+ "max_len": 256,
+ "params": 31883136,
+ "best_dev_macro_f1": 0.8906824268168807,
+ "ms_per_example_bs1_torch": 36.63556299943593,
+ "train_seconds": 320.91028356552124,
+ "queries": {
+  "n_test": 175,
+  "accuracy": 0.22285714285714286,
+  "macro_f1": 0.13928322756480394,
+  "ece_raw": 0.6459370877061571,
+  "ece_temp": 0.5145178690978459,
+  "temperature": 1.8,
+  "coverage_5pct": {
+   "threshold": 0.31299999356269836,
+   "coverage": 1.0,
+   "error_at_coverage": 0.7771428571428571
+  },
+  "per_label_f1": {
+   "assay_kits": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "platform_products": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "products": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "references": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "science_resources": {
+    "f1": 0.35000000000000003,
+    "n": 25
+   },
+   "services": {
+    "f1": 0.32558139534883723,
+    "n": 25
+   },
+   "support": {
+    "f1": 0.2994011976047904,
+    "n": 25
+   }
+  }
+ },
+ "labels": [
+  "assay_kits",
+  "platform_products",
+  "products",
+  "references",
+  "science_resources",
+  "services",
+  "support"
+ ],
+ "split": {
+  "train": 617,
+  "dev": 132,
+  "test": 138
+ }
+}

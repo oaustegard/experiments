@@ -367,6 +367,21 @@ survives exactly the sanity checks people run.
 - `phase-a-bridges`, `te-bridges` — numbered idempotent stage scripts, each
   reading the prior stage's JSON and writing its own atomically
   (tmp-then-rename), safe to re-run.
+- **A site-section classifier trained on pages routes questions to the FAQ
+  section.** `msd-context-classifier`: four fine-tuned encoders and a frozen
+  probe at 0.91–0.96 page accuracy sent 65–76% of question-shaped inputs to
+  `support`, the one section whose pages are questions. Page-fitted temperature
+  and abstention thresholds were void on questions (realized error 0.59–0.77 at
+  the dev-chosen threshold). 140 questions beat 617 pages by 53 macro-F1 points
+  on the question task and adding the pages back cost 12. Train, calibrate and
+  threshold on the distribution you will classify; a free corpus in the wrong
+  shape is worse than a one-sentence label description (0.51 zero-shot by
+  cosine). (`msd-context-classifier/RESULTS.md`, `ERRORS.md`)
+- **Unweighted cross-entropy at 14:1 imbalance on ~600 rows leaves the small
+  classes at 0.00 F1 after three epochs; a logistic regression on the same
+  frozen features does not.** Run `class_weight='balanced'` / inverse-frequency
+  loss weights before concluding that fine-tuning lost to a probe.
+  (`msd-context-classifier/ERRORS.md` #3)
 - **A shipped encoder ONNX export usually ends in the masked-LM vocab head;
   cut it before timing a classifier backbone.** `answerdotai/ModernBERT-*`,
   `onnx-community/{ettin,mmBERT}-*` `model_int8.onnx` / `model_quantized.onnx`

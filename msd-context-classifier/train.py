@@ -168,6 +168,7 @@ def main():
     ap.add_argument("--seed", type=int, default=20260920)
     ap.add_argument("--limit", type=int, default=0, help="debug: cap rows")
     ap.add_argument("--save", action="store_true", help="save final fine-tuned weights to models/final_<name>.pt")
+    ap.add_argument("--class-weight", action="store_true", help="ft: inverse-frequency class weights in the cross-entropy")
     a = ap.parse_args()
     torch.manual_seed(a.seed); np.random.seed(a.seed); random.seed(a.seed)
     out_path = os.path.join(HERE, "results", f"{a.name}.json"); os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -216,6 +217,10 @@ def main():
             res["queries"] = evaluate(a.name, ldv, ydv, lq, yq, len(labels), labels)
     else:
         model = Clf(enc, len(labels))
+        cw = None
+        if a.class_weight:
+            cnt = np.bincount(ytr, minlength=len(labels)).astype(float); cw = torch.tensor(cnt.sum() / (len(labels) * np.maximum(cnt, 1)), dtype=torch.float32)
+            log(f"class weights {dict(zip(labels, [round(float(x),2) for x in cw]))}")
         opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=0.01)
         steps_per_epoch = math.ceil(len(Xtr) / a.bs); total = steps_per_epoch * a.epochs; warm = max(1, int(0.06 * total))
         sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / warm) * max(0.0, (total - s) / max(1, total - warm)) if s >= warm else (s + 1) / warm)
@@ -234,7 +239,7 @@ def main():
                 b = idx[bi:bi + a.bs]
                 encd = tok([Xtr[i] for i in b], truncation=True, max_length=a.max_len, padding=True, return_tensors="pt")
                 logits = model(encd["input_ids"], encd["attention_mask"])
-                loss = F.cross_entropy(logits, torch.tensor(ytr[b]))
+                loss = F.cross_entropy(logits, torch.tensor(ytr[b]), weight=cw)
                 loss.backward(); torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0); opt.step(); sched.step(); opt.zero_grad(); step += 1; tl += loss.item()
                 if (bi // a.bs) % 20 == 0: log(f"ep{ep} step {bi//a.bs}/{steps_per_epoch} loss {loss.item():.3f}")
             ldv = predict_logits(model, tok, Xdv, a.max_len, 32); f = macro_f1(ldv.argmax(1), ydv, len(labels))

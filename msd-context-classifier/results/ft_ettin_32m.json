@@ -1,0 +1,109 @@
+{
+ "n_test": 138,
+ "accuracy": 0.9130434782608695,
+ "macro_f1": 0.7437768625168305,
+ "ece_raw": 0.047178868150365504,
+ "ece_temp": 0.047178868150365504,
+ "temperature": 1.0,
+ "coverage_5pct": {
+  "threshold": 0.5070000290870667,
+  "coverage": 0.9347826086956522,
+  "error_at_coverage": 0.023255813953488413
+ },
+ "per_label_f1": {
+  "assay_kits": {
+   "f1": 0.625,
+   "n": 8
+  },
+  "platform_products": {
+   "f1": 0.0,
+   "n": 3
+  },
+  "products": {
+   "f1": 0.945054945054945,
+   "n": 44
+  },
+  "references": {
+   "f1": 0.9887640449438202,
+   "n": 44
+  },
+  "science_resources": {
+   "f1": 0.8,
+   "n": 6
+  },
+  "services": {
+   "f1": 0.9142857142857143,
+   "n": 17
+  },
+  "support": {
+   "f1": 0.9333333333333333,
+   "n": 16
+  }
+ },
+ "arm": "ft",
+ "model": "models/ettin-encoder-32m",
+ "epochs": 3,
+ "lr": 5e-05,
+ "max_len": 256,
+ "params": 31883136,
+ "best_dev_macro_f1": 0.6877705627705628,
+ "ms_per_example_bs1_torch": 37.717996499850415,
+ "train_seconds": 162.66424894332886,
+ "queries": {
+  "n_test": 175,
+  "accuracy": 0.21142857142857144,
+  "macro_f1": 0.12156493295733803,
+  "ece_raw": 0.5956638496262687,
+  "ece_temp": 0.5956638496262687,
+  "temperature": 1.0,
+  "coverage_5pct": {
+   "threshold": 0.5070000290870667,
+   "coverage": 0.8971428571428571,
+   "error_at_coverage": 0.7707006369426752
+  },
+  "per_label_f1": {
+   "assay_kits": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "platform_products": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "products": {
+    "f1": 0.07692307692307693,
+    "n": 25
+   },
+   "references": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "science_resources": {
+    "f1": 0.16666666666666666,
+    "n": 25
+   },
+   "services": {
+    "f1": 0.2909090909090909,
+    "n": 25
+   },
+   "support": {
+    "f1": 0.3164556962025316,
+    "n": 25
+   }
+  }
+ },
+ "labels": [
+  "assay_kits",
+  "platform_products",
+  "products",
+  "references",
+  "science_resources",
+  "services",
+  "support"
+ ],
+ "split": {
+  "train": 617,
+  "dev": 132,
+  "test": 138
+ }
+}

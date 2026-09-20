@@ -1,0 +1,34 @@
+19:23:47 rows 887 labels 7 split 617/132/138
+19:23:47 queries 175 clear / 196 incl. ambiguous
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 8511.34it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/ettin-encoder-32m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.weight    | UNEXPECTED |  | 
+decoder.bias      | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+19:23:48 class weights {'assay_kits': 2.67, 'platform_products': 6.3, 'products': 0.44, 'references': 0.44, 'science_resources': 3.83, 'services': 1.19, 'support': 1.22}
+19:23:50 ep0 step 0/39 loss 6.849
+19:24:17 ep0 step 20/39 loss 1.197
+19:24:41 ep0 done train_loss 2.004 dev macroF1 0.701 acc 0.894 (53s)
+19:24:45 ep1 step 0/39 loss 0.864
+19:25:11 ep1 step 20/39 loss 0.067
+19:25:37 ep1 done train_loss 0.482 dev macroF1 0.729 acc 0.917 (53s)
+19:25:40 ep2 step 0/39 loss 0.123
+19:26:06 ep2 step 20/39 loss 0.162
+19:26:30 ep2 done train_loss 0.231 dev macroF1 0.862 acc 0.939 (51s)
+19:26:33 ep3 step 0/39 loss 0.001
+19:26:57 ep3 step 20/39 loss 0.008
+19:27:22 ep3 done train_loss 0.092 dev macroF1 0.863 acc 0.947 (51s)
+19:27:26 ep4 step 0/39 loss 0.000
+19:27:50 ep4 step 20/39 loss 0.000
+19:28:14 ep4 done train_loss 0.027 dev macroF1 0.891 acc 0.955 (50s)
+19:28:17 ep5 step 0/39 loss 0.001
+19:28:42 ep5 step 20/39 loss 0.003
+19:29:07 ep5 done train_loss 0.012 dev macroF1 0.891 acc 0.955 (51s)
+19:29:16 acc 0.942 macroF1 0.828 ece 0.041->0.041 cov@5% 1.00 | queries acc 0.223 f1 0.139
+done -> /home/user/experiments/msd-context-classifier/results/ft_ettin_32m_cw6.json

@@ -1,0 +1,109 @@
+{
+ "n_test": 138,
+ "accuracy": 0.9347826086956522,
+ "macro_f1": 0.7543043610406039,
+ "ece_raw": 0.03177080789337985,
+ "ece_temp": 0.038776128836300036,
+ "temperature": 1.1,
+ "coverage_5pct": {
+  "threshold": 0.39399999380111694,
+  "coverage": 1.0,
+  "error_at_coverage": 0.06521739130434778
+ },
+ "per_label_f1": {
+  "assay_kits": {
+   "f1": 0.6666666666666667,
+   "n": 8
+  },
+  "platform_products": {
+   "f1": 0.0,
+   "n": 3
+  },
+  "products": {
+   "f1": 0.9772727272727273,
+   "n": 44
+  },
+  "references": {
+   "f1": 1.0,
+   "n": 44
+  },
+  "science_resources": {
+   "f1": 0.7272727272727272,
+   "n": 6
+  },
+  "services": {
+   "f1": 0.9411764705882353,
+   "n": 17
+  },
+  "support": {
+   "f1": 0.967741935483871,
+   "n": 16
+  }
+ },
+ "arm": "ft",
+ "model": "models/ModernBERT-base",
+ "epochs": 3,
+ "lr": 5e-05,
+ "max_len": 256,
+ "params": 149014272,
+ "best_dev_macro_f1": 0.7955132052821128,
+ "ms_per_example_bs1_torch": 185.89553850051743,
+ "train_seconds": 1000.3009893894196,
+ "queries": {
+  "n_test": 175,
+  "accuracy": 0.24,
+  "macro_f1": 0.16752867609921096,
+  "ece_raw": 0.23948531593595235,
+  "ece_temp": 0.2091579828943525,
+  "temperature": 1.1,
+  "coverage_5pct": {
+   "threshold": 0.39399999380111694,
+   "coverage": 0.6114285714285714,
+   "error_at_coverage": 0.7289719626168225
+  },
+  "per_label_f1": {
+   "assay_kits": {
+    "f1": 0.22727272727272727,
+    "n": 25
+   },
+   "platform_products": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "products": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "references": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "science_resources": {
+    "f1": 0.34782608695652173,
+    "n": 25
+   },
+   "services": {
+    "f1": 0.2666666666666666,
+    "n": 25
+   },
+   "support": {
+    "f1": 0.3309352517985611,
+    "n": 25
+   }
+  }
+ },
+ "labels": [
+  "assay_kits",
+  "platform_products",
+  "products",
+  "references",
+  "science_resources",
+  "services",
+  "support"
+ ],
+ "split": {
+  "train": 617,
+  "dev": 132,
+  "test": 138
+ }
+}

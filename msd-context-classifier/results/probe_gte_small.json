@@ -1,0 +1,106 @@
+{
+ "n_test": 138,
+ "accuracy": 0.9565217391304348,
+ "macro_f1": 0.9361877317025895,
+ "ece_raw": 0.10088181862796561,
+ "ece_temp": 0.06506546252015707,
+ "temperature": 0.8,
+ "coverage_5pct": {
+  "threshold": 0.6520000100135803,
+  "coverage": 0.9057971014492754,
+  "error_at_coverage": 0.02400000000000002
+ },
+ "per_label_f1": {
+  "assay_kits": {
+   "f1": 0.875,
+   "n": 8
+  },
+  "platform_products": {
+   "f1": 0.8,
+   "n": 3
+  },
+  "products": {
+   "f1": 0.945054945054945,
+   "n": 44
+  },
+  "references": {
+   "f1": 0.9655172413793104,
+   "n": 44
+  },
+  "science_resources": {
+   "f1": 1.0,
+   "n": 6
+  },
+  "services": {
+   "f1": 1.0,
+   "n": 17
+  },
+  "support": {
+   "f1": 0.967741935483871,
+   "n": 16
+  }
+ },
+ "arm": "probe",
+ "model": "models/gte-small",
+ "C": 30.0,
+ "params": 33360000,
+ "ms_per_example_bs1_torch": 253.78567050029233,
+ "train_seconds": 261.83264350891113,
+ "queries": {
+  "n_test": 175,
+  "accuracy": 0.35428571428571426,
+  "macro_f1": 0.24988069139337535,
+  "ece_raw": 0.3568602294581278,
+  "ece_temp": 0.4111324538503374,
+  "temperature": 0.8,
+  "coverage_5pct": {
+   "threshold": 0.6520000100135803,
+   "coverage": 0.6742857142857143,
+   "error_at_coverage": 0.5932203389830508
+  },
+  "per_label_f1": {
+   "assay_kits": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "platform_products": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "products": {
+    "f1": 0.41666666666666663,
+    "n": 25
+   },
+   "references": {
+    "f1": 0.5376344086021506,
+    "n": 25
+   },
+   "science_resources": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "services": {
+    "f1": 0.3870967741935484,
+    "n": 25
+   },
+   "support": {
+    "f1": 0.40776699029126207,
+    "n": 25
+   }
+  }
+ },
+ "labels": [
+  "assay_kits",
+  "platform_products",
+  "products",
+  "references",
+  "science_resources",
+  "services",
+  "support"
+ ],
+ "split": {
+  "train": 617,
+  "dev": 132,
+  "test": 138
+ }
+}

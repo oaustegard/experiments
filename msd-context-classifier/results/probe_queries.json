@@ -1,0 +1,74 @@
+{
+ "n_questions": 175,
+ "folds": 5,
+ "arms": {
+  "desc": {
+   "macro_f1_mean": 0.5128126843916319,
+   "macro_f1_sd": 0.10178871483199697,
+   "acc_mean": 0.5085714285714286,
+   "folds_f1": [
+    0.668,
+    0.508,
+    0.474,
+    0.557,
+    0.357
+   ]
+  },
+  "pages": {
+   "macro_f1_mean": 0.24875679814846788,
+   "macro_f1_sd": 0.03752970343515862,
+   "acc_mean": 0.35428571428571426,
+   "folds_f1": [
+    0.256,
+    0.269,
+    0.175,
+    0.273,
+    0.271
+   ]
+  },
+  "q": {
+   "macro_f1_mean": 0.7819217290645862,
+   "macro_f1_sd": 0.08331112360023213,
+   "acc_mean": 0.7885714285714286,
+   "folds_f1": [
+    0.743,
+    0.739,
+    0.677,
+    0.913,
+    0.837
+   ]
+  },
+  "pages+q": {
+   "macro_f1_mean": 0.6582649096934812,
+   "macro_f1_sd": 0.05288847238510692,
+   "acc_mean": 0.6742857142857144,
+   "folds_f1": [
+    0.62,
+    0.731,
+    0.58,
+    0.667,
+    0.693
+   ]
+  }
+ },
+ "q_per_label_f1": {
+  "assay_kits": 0.88,
+  "platform_products": 0.625,
+  "products": 0.863,
+  "references": 0.902,
+  "science_resources": 0.792,
+  "services": 0.792,
+  "support": 0.653
+ },
+ "labels": [
+  "assay_kits",
+  "platform_products",
+  "products",
+  "references",
+  "science_resources",
+  "services",
+  "support"
+ ],
+ "C": 3.0,
+ "class_weight": "balanced"
+}
