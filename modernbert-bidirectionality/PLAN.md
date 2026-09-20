@@ -37,7 +37,9 @@ The two axes get separate answers. The position axis has a locality confound:
   `eager` attention path (1.1 s per batch of 8×165 tokens on 4 vCPU, same as
   sdpa), so attention weights can be read.
 - **Replication:** `jhu-clsp/ettin-encoder-32m` — same architecture recipe and
-  tokenizer, independent training run, ~6× faster. If the layer and position
+  tokenizer (10 layers, 6 heads, global at 0,3,6,9, same ±64 window),
+  independent training run, ~6× faster. Layer-axis arms are defined relative to
+  the layer count; the `*8` keep-arms are skipped on it. If the layer and position
   findings hold on both, they are properties of the recipe, not of one
   checkpoint.
 - **Corpus:** wikitext-103 raw validation split (`Salesforce/wikitext`),
@@ -162,6 +164,31 @@ diffuse in both axes and there is no cheap adaptation on this axis.
   theta 160k against 10k in local layers, so `single:l` on a global layer
   changes direction and frequency regime together. Comparisons within a layer
   type are clean; global-vs-local contrasts carry this caveat.
+
+## Amendment after the 16-sequence smoke, before the full run
+
+The smoke (8 arms, 16 sequences) showed the all-causal reference at CE 23.7,
+above the 10.8 nats of a uniform guess over the vocabulary: a bidirectional
+model with every layer causal is off its training distribution, not merely
+deprived of right context. Three additions, made before any full arm ran:
+
+- **`truncate`** — an in-distribution left-only reference: for each masked
+  position `i` the model sees tokens `0..i` plus `[SEP]` under its own
+  bidirectional attention. Smoke CE 6.19. **`retained_trunc`**, computed
+  against it, replaces `retained` as the metric the predictions are judged on;
+  `retained` (against `causal`) is still reported. Negative `retained_trunc`
+  means worse than having no right context at all, i.e. off-distribution
+  damage rather than information loss.
+- **`+special` variants** of `causal`, `single:l` and `keep:global`: the causal
+  layers may still read `[CLS]` and `[SEP]`. Smoke: `single:0` CE 11.1 but
+  `single+special:0` CE 4.0, so most of the layer-0 damage is losing the sink,
+  not losing the right context. The sweep separates the two.
+- **`anchor:first4`** (positional sinks, from the prior-art pass).
+
+The prediction thresholds are unchanged and now apply to `retained_trunc`.
+Smoke values that bear on them (n=16, not the result): `keep:global` 0.29,
+`look:8` 0.77, `anchor:punct` 0.24, `anchor:attn:10` −0.04. P2 looks likely to
+fail; it stands as written.
 
 ## Not measured here
 
