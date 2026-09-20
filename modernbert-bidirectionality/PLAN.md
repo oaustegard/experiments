@@ -138,6 +138,31 @@ If P2 holds and P4 holds, the answer to the handoff question is *layers yes,
 positions no (except locally)*. If P5 fails and P4 holds, right context is
 diffuse in both axes and there is no cheap adaptation on this axis.
 
+## Prior art (searched before the run; full notes in `PRIOR-ART.md`)
+
+- **dQwen3.5** (arXiv 2609.20751) bidirectionalises only the softmax-attention
+  layers of Qwen3.5 (6 of 24 or 8 of 32, every fourth layer) and leaves the
+  Gated DeltaNet layers causal; it never asks whether fewer attention layers
+  would do. `keep:global` (8 of 22) and `keep:every4` (6 of 22) are the
+  encoder-side version of that ratio.
+- **DecBERT** (Findings of NAACL 2022) causally masks the first two layers of
+  BERT as a stand-in for position embeddings and loses nothing on GLUE. That is
+  one point on the `prefix:k` curve; nobody has swept `single:l`.
+- **Clark et al. 2019** measured over half of BERT's attention in layers 6–10
+  landing on `[SEP]`, with `[CLS]` early and punctuation late. That is the
+  descriptive pass here; the anchor arms test whether the mass carries
+  information.
+- **Attention sinks in diffusion LMs** (arXiv 2510.15731): masking 5 sinks costs
+  1–3% in LLaDA/Dream/MMaDA, so sinks are cheap to *remove*. Whether they are
+  sufficient to *route through* is the untested direction, and P4 bets no.
+- **StreamingLLM** sinks are positional (the first ~4 tokens); BERT's are
+  type-defined. Added arm before the run: `anchor:first4` (S = positions 0–3),
+  same budget as `anchor:special` plus two.
+- **Confound (unfixable here):** ModernBERT's global layers also use RoPE
+  theta 160k against 10k in local layers, so `single:l` on a global layer
+  changes direction and frequency regime together. Comparisons within a layer
+  type are clean; global-vs-local contrasts carry this caveat.
+
 ## Not measured here
 
 Training anything; ModernBERT-large; downstream tasks (the MLM objective is
