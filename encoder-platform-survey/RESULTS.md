@@ -157,8 +157,8 @@ Read of the ladder for the three use cases:
   a per-keystroke one. Ettin-68m (87.2 GLUE, no ONNX yet, export ourselves) is
   the likely knee.
 - A **paper filter** runs in batch over abstracts, where latency is irrelevant
-  and accuracy is everything: Ettin-150m or 400m, and the question is the eval
-  set, not the model.
+  and accuracy is everything: Ettin-150m or 400m, and the eval set decides the
+  outcome.
 
 ### Recommended first experiment
 
