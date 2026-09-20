@@ -182,8 +182,9 @@ def main():
     queries = None
     if a.queries and os.path.exists(a.queries):
         queries = [json.loads(l) for l in open(a.queries) if l.strip()]
-        queries = [q for q in queries if q["label"] in lid]
-        log(f"queries {len(queries)}")
+        queries_all = [q for q in queries if q["label"] in lid]
+        queries = [q for q in queries_all if not q.get("ambiguous")]  # main transfer metric: unambiguous questions only
+        log(f"queries {len(queries)} clear / {len(queries_all)} incl. ambiguous")
 
     tok = AutoTokenizer.from_pretrained(a.model)
     enc = AutoModel.from_pretrained(a.model)

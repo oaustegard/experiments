@@ -44,7 +44,7 @@ for x in texts_of(te)[:10]:
 res = evaluate("gliclass", ldv, ydv, lte, yte, len(labels), labels,
                {"arm": "zeroshot", "model": MODEL, "label_text": label_text, "ms_per_example_bs1_torch": 1000 * float(np.median(ts)), "wall_seconds": time.time() - t0})
 if os.path.exists(qpath):
-    qs = [json.loads(l) for l in open(qpath) if l.strip()]; qs = [q for q in qs if q["label"] in lid]
+    qs = [json.loads(l) for l in open(qpath) if l.strip()]; qs = [q for q in qs if q["label"] in lid and not q.get("ambiguous")]
     lq = score([q["text"] for q in qs]); yq = np.array([lid[q["label"]] for q in qs])
     res["queries"] = evaluate("gliclass", ldv, ydv, lq, yq, len(labels), labels)
 res["labels"] = labels
