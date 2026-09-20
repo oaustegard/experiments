@@ -367,6 +367,15 @@ survives exactly the sanity checks people run.
 - `phase-a-bridges`, `te-bridges` — numbered idempotent stage scripts, each
   reading the prior stage's JSON and writing its own atomically
   (tmp-then-rename), safe to re-run.
+- **A shipped encoder ONNX export usually ends in the masked-LM vocab head;
+  cut it before timing a classifier backbone.** `answerdotai/ModernBERT-*`,
+  `onnx-community/{ettin,mmBERT}-*` `model_int8.onnx` / `model_quantized.onnx`
+  all output `[b, s, vocab]`. At 512 tokens on 4 vCPU the head is 38% of
+  ModernBERT-base's time and 3x for mmBERT-small (256k vocab). Check the output
+  shape first; `encoder-platform-survey/cut_heads.py` truncates the graph at the
+  final norm and keeps the quantized weights. `onnx-community` files also name
+  their external-data sidecar by original basename, so keep the filename.
+  (`encoder-platform-survey/ERRORS.md`)
 - `q4-official-vs-ours`, `jina-int8-remax_kb` — CCotw silently reaps
   long-running background jobs on idle; multi-minute embedding runs must
   checkpoint to memmap/`.npz` mid-run.

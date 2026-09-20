@@ -1,0 +1,127 @@
+{
+ "threads": 1,
+ "cpu": 4,
+ "n": 15,
+ "rows": [
+  {
+   "model": "ettin-17m int8",
+   "size_mb": 21.1,
+   "inputs": [
+    "input_ids",
+    "attention_mask"
+   ],
+   "ms_128": 10.0,
+   "out_128": [
+    1,
+    128,
+    256
+   ],
+   "ms_512": 76.7,
+   "out_512": [
+    1,
+    512,
+    256
+   ]
+  },
+  {
+   "model": "ettin-32m int8",
+   "size_mb": 36.3,
+   "inputs": [
+    "input_ids",
+    "attention_mask"
+   ],
+   "ms_128": 24.1,
+   "out_128": [
+    1,
+    128,
+    384
+   ],
+   "ms_512": 167.9,
+   "out_512": [
+    1,
+    512,
+    384
+   ]
+  },
+  {
+   "model": "mmBERT-small int8",
+   "size_mb": 141.5,
+   "inputs": [
+    "input_ids",
+    "attention_mask"
+   ],
+   "ms_128": 59.2,
+   "out_128": [
+    1,
+    128,
+    384
+   ],
+   "ms_512": 441.5,
+   "out_512": [
+    1,
+    512,
+    384
+   ]
+  },
+  {
+   "model": "ModernBERT-base int8",
+   "size_mb": 150.3,
+   "inputs": [
+    "input_ids",
+    "attention_mask"
+   ],
+   "ms_128": 130.0,
+   "out_128": [
+    1,
+    128,
+    768
+   ],
+   "ms_512": 938.4,
+   "out_512": [
+    1,
+    512,
+    768
+   ]
+  },
+  {
+   "model": "NeoBERT int8",
+   "size_mb": 223.2,
+   "inputs": [
+    "input_ids",
+    "attention_mask"
+   ],
+   "ms_128": 204.6,
+   "out_128": [
+    1,
+    128,
+    768
+   ],
+   "ms_512": 1105.8,
+   "out_512": [
+    1,
+    512,
+    768
+   ]
+  },
+  {
+   "model": "ModernBERT-large int8",
+   "size_mb": 397.0,
+   "inputs": [
+    "input_ids",
+    "attention_mask"
+   ],
+   "ms_128": 334.0,
+   "out_128": [
+    1,
+    128,
+    1024
+   ],
+   "ms_512": 2001.1,
+   "out_512": [
+    1,
+    512,
+    1024
+   ]
+  }
+ ]
+}
