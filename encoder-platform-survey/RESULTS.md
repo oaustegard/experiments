@@ -114,7 +114,7 @@ The model is a known recipe. The eval is where the care goes:
   to 1B. GLUE averages: 17M 79.2, 32M 83.5, 68M 87.2, 150M 88.9 (ModernBERT-base
   88.4), 400M 90.8 (ModernBERT-large 90.4), 1B 91.6. MNLI 79.5 → 91.8. The paper
   also measures that a 400M encoder beats a 1B decoder on classification, which
-  is the whole argument for encoders here.
+  is the case for encoders here.
 - **ModernBERT-base** stays the reference: 4.4M downloads, official int8 ONNX in
   the repo, and every clone above already runs on it. If Ettin-150m needs an
   export we do it with Optimum; only the 17M and 32M sizes have community ONNX.
