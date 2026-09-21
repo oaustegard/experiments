@@ -23,6 +23,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ap = argparse.ArgumentParser(); ap.add_argument("name"); ap.add_argument("model"); ap.add_argument("--pages", type=int, default=138)
 ap.add_argument("--rounds", type=int, default=3); ap.add_argument("--max-len", type=int, default=256); ap.add_argument("--seed", type=int, default=20260920)
 ap.add_argument("--corpus", default=os.path.join(HERE, "data", "corpus.jsonl"))
+ap.add_argument("--per-pass", type=int, default=1, help="targets masked per forward pass in TERM mode; 1 = no joint ambiguity between co-listed terms")
+ap.add_argument("--out-prefix", default="mlm1_")
+ap.add_argument("--control-cap", type=int, default=15, help="max control-word targets per page in TERM mode")
 a = ap.parse_args()
 torch.set_num_threads(int(os.environ.get("TORCH_THREADS", "4")))
 WORD = r"[A-Za-z][A-Za-z0-9\-/]*[A-Za-z0-9]"
@@ -70,10 +73,11 @@ with torch.no_grad():
             ce = -lp[torch.arange(len(pick)), gold]; top1 = (lp.argmax(-1) == gold)
             for j, i in enumerate(pick):
                 key = "domain" if i in dom_tok else "other"; tokagg[key][0] += float(ce[j]); tokagg[key][1] += int(top1[j]); tokagg[key][2] += 1
-        # --- term mode: batches of up to 8 non-overlapping targets, all pieces masked
+        # --- term mode: all domain targets, control words capped at --control-cap per page (seeded), all pieces masked
         rng.shuffle(targets)
-        for b in range(0, len(targets), 8):
-            batch = targets[b:b + 8]; used = set(); keep = []
+        ctrl = [t for t in targets if t[0] == 'control'][:a.control_cap]; targets = [t for t in targets if t[0] == 'domain'] + ctrl
+        for b in range(0, len(targets), a.per_pass):
+            batch = targets[b:b + a.per_pass]; used = set(); keep = []
             for kind, w, ti in batch:
                 if any(i in used or i - 1 in used or i + 1 in used for i in ti): continue
                 used.update(ti); keep.append((kind, w, ti))
@@ -86,15 +90,16 @@ with torch.no_grad():
                 T = term[kind]; T["ce_sum"] += ce; T["pieces"] += len(ti); T["n"] += 1; T["exact"] += int(exact); T["terms"][w] += 1; T["exact_terms"][w] += int(exact)
         if pi % 20 == 0: log(f"page {pi}/{len(pages)}: term-CE domain {term['domain']['ce_sum']/max(1,term['domain']['n']):.2f} control {term['control']['ce_sum']/max(1,term['control']['n']):.2f}")
 
-res = {"name": a.name, "model": a.model, "pages": len(pages), "rounds": a.rounds, "max_len": a.max_len, "vocab_size": len(tok), "seconds": time.time() - t0, "token": {}, "term": {}}
+res = {"name": a.name, "model": a.model, "pages": len(pages), "rounds": a.rounds, "max_len": a.max_len, "vocab_size": len(tok), "per_pass": a.per_pass, "seconds": time.time() - t0, "token": {}, "term": {}}
 for key in tokagg:
     s, c, n = tokagg[key]; res["token"][key] = {"n_masked": n, "ce": s / max(1, n), "top1": c / max(1, n)}
 for kind in term:
     T = term[kind]; res["term"][kind] = {"n": T["n"], "n_types": len(T["terms"]), "pieces_per_term": T["pieces"] / max(1, T["n"]), "ce_per_term": T["ce_sum"] / max(1, T["n"]),
                                        "ce_per_piece": T["ce_sum"] / max(1, T["pieces"]), "exact": T["exact"] / max(1, T["n"])}
-worst = sorted(((w, T["exact_terms"][w] / c, c) for w, c in term["domain"]["terms"].items() if c >= 3), key=lambda x: (x[1], -x[2]))[:25]
+D = term["domain"]; worst = sorted(((w, D["exact_terms"][w] / c, c) for w, c in D["terms"].items() if c >= 3), key=lambda x: (x[1], -x[2]))[:25]
+res["term"]["domain_per_type"] = {w: {"n": c, "exact": round(D["exact_terms"][w] / c, 3)} for w, c in D["terms"].items()}
 res["term"]["domain_worst_terms"] = [{"term": w, "exact": round(e, 2), "n": c} for w, e, c in worst]
-os.makedirs(os.path.join(HERE, "results"), exist_ok=True); out = os.path.join(HERE, "results", f"mlm_{a.name}.json"); json.dump(res, open(out, "w"), indent=1)
+os.makedirs(os.path.join(HERE, "results"), exist_ok=True); out = os.path.join(HERE, "results", f"{a.out_prefix}{a.name}.json"); json.dump(res, open(out, "w"), indent=1)
 d, c = res["term"]["domain"], res["term"]["control"]
 log(f"{a.name}: TERM domain CE/term {d['ce_per_term']:.2f} exact {d['exact']:.3f} (n={d['n']}, {d['pieces_per_term']:.1f} pieces) | control CE/term {c['ce_per_term']:.2f} exact {c['exact']:.3f} (n={c['n']}, {c['pieces_per_term']:.1f} pieces) | TOKEN domain CE {res['token']['domain']['ce']:.2f} other {res['token']['other']['ce']:.2f}")
 print(f"done -> {out}")

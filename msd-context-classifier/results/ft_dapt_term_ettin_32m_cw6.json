@@ -1,0 +1,109 @@
+{
+ "n_test": 138,
+ "accuracy": 0.9347826086956522,
+ "macro_f1": 0.8229542224920986,
+ "ece_raw": 0.051006890077521835,
+ "ece_temp": 0.049811038634051445,
+ "temperature": 1.9000000000000001,
+ "coverage_5pct": {
+  "threshold": 0.24799999594688416,
+  "coverage": 1.0,
+  "error_at_coverage": 0.06521739130434778
+ },
+ "per_label_f1": {
+  "assay_kits": {
+   "f1": 0.875,
+   "n": 8
+  },
+  "platform_products": {
+   "f1": 0.4,
+   "n": 3
+  },
+  "products": {
+   "f1": 0.9662921348314608,
+   "n": 44
+  },
+  "references": {
+   "f1": 1.0,
+   "n": 44
+  },
+  "science_resources": {
+   "f1": 0.7272727272727272,
+   "n": 6
+  },
+  "services": {
+   "f1": 0.8888888888888888,
+   "n": 17
+  },
+  "support": {
+   "f1": 0.9032258064516129,
+   "n": 16
+  }
+ },
+ "arm": "ft",
+ "model": "models/dapt_term_ettin_32m",
+ "epochs": 6,
+ "lr": 5e-05,
+ "max_len": 256,
+ "params": 31883136,
+ "best_dev_macro_f1": 0.8906824268168807,
+ "ms_per_example_bs1_torch": 57.976857000539894,
+ "train_seconds": 545.5138266086578,
+ "queries": {
+  "n_test": 175,
+  "accuracy": 0.2342857142857143,
+  "macro_f1": 0.16471861471861468,
+  "ece_raw": 0.5887999004977089,
+  "ece_temp": 0.41941837412970406,
+  "temperature": 1.9000000000000001,
+  "coverage_5pct": {
+   "threshold": 0.24799999594688416,
+   "coverage": 1.0,
+   "error_at_coverage": 0.7657142857142857
+  },
+  "per_label_f1": {
+   "assay_kits": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "platform_products": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "products": {
+    "f1": 0.21428571428571425,
+    "n": 25
+   },
+   "references": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "science_resources": {
+    "f1": 0.28571428571428564,
+    "n": 25
+   },
+   "services": {
+    "f1": 0.35000000000000003,
+    "n": 25
+   },
+   "support": {
+    "f1": 0.30303030303030304,
+    "n": 25
+   }
+  }
+ },
+ "labels": [
+  "assay_kits",
+  "platform_products",
+  "products",
+  "references",
+  "science_resources",
+  "services",
+  "support"
+ ],
+ "split": {
+  "train": 617,
+  "dev": 132,
+  "test": 138
+ }
+}

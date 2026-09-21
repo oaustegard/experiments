@@ -1,0 +1,305 @@
+22:23:45 start: python3 dapt.py --model models/ettin-encoder-32m --name dapt_ettin_32m --epochs 2
+22:23:51 corpus /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl: 4490 pages after holding out 270 dev/test urls
+Loading weights:   0%|          | 0/66 [00:00<?, ?it/s]Loading weights: 100%|██████████| 66/66 [00:00<00:00, 10429.27it/s]
+22:23:55 encoded 4490 pages, 1116759 tokens
+22:24:03 ep0 step 0/281 loss 2.128 (8.6s/step)
+22:25:27 ep0 step 25/281 loss 1.324 (3.5s/step)
+22:26:51 ep0 step 50/281 loss 1.458 (3.5s/step)
+22:28:23 ep0 step 75/281 loss 0.719 (3.5s/step)
+22:29:52 ep0 step 100/281 loss 0.579 (3.5s/step)
+22:31:22 ep0 step 125/281 loss 0.206 (3.6s/step)
+22:32:48 ep0 step 150/281 loss 0.518 (3.5s/step)
+22:34:19 ep0 step 175/281 loss 0.575 (3.5s/step)
+22:35:51 ep0 step 200/281 loss 0.864 (3.6s/step)
+22:37:17 ep0 step 225/281 loss 0.495 (3.5s/step)
+22:38:42 ep0 step 250/281 loss 0.445 (3.5s/step)
+22:40:03 ep0 step 275/281 loss 0.536 (3.5s/step)
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00, 20.07it/s]
+22:40:21 ep0 done train_loss 0.725 (986s) -> /home/user/experiments/msd-context-classifier/models/dapt_ettin_32m
+22:40:25 ep1 step 0/281 loss 0.617 (4.1s/step)
+22:41:51 ep1 step 25/281 loss 0.603 (3.5s/step)
+22:43:13 ep1 step 50/281 loss 0.260 (3.4s/step)
+22:44:34 ep1 step 75/281 loss 0.411 (3.3s/step)
+22:45:52 ep1 step 100/281 loss 0.487 (3.3s/step)
+22:47:12 ep1 step 125/281 loss 0.319 (3.3s/step)
+22:48:34 ep1 step 150/281 loss 0.404 (3.3s/step)
+22:49:57 ep1 step 175/281 loss 0.380 (3.3s/step)
+22:51:23 ep1 step 200/281 loss 0.254 (3.3s/step)
+22:52:45 ep1 step 225/281 loss 0.490 (3.3s/step)
+22:54:07 ep1 step 250/281 loss 0.520 (3.3s/step)
+22:55:31 ep1 step 275/281 loss 0.490 (3.3s/step)
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00, 10.31it/s]
+22:55:49 ep1 done train_loss 0.465 (928s) -> /home/user/experiments/msd-context-classifier/models/dapt_ettin_32m
+done -> /home/user/experiments/msd-context-classifier/models/dapt_ettin_32m
+22:55:50 end exit 0: python3 dapt.py --model models/ettin-encoder-32m --name dapt_ettin_32m --epochs 2
+22:55:50 start: python3 dapt.py --model models/ettin-encoder-32m --name dapt_term_ettin_32m --epochs 2 --term-mask 0.5
+22:55:54 corpus /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl: 4490 pages after holding out 270 dev/test urls
+Loading weights:   0%|          | 0/66 [00:00<?, ?it/s]Loading weights: 100%|██████████| 66/66 [00:00<00:00, 8253.06it/s]
+22:56:09 encoded 4490 pages, 1116759 tokens
+22:56:15 ep0 step 0/281 loss 2.170 (6.7s/step)
+22:57:46 ep0 step 25/281 loss 1.484 (3.7s/step)
+22:59:10 ep0 step 50/281 loss 1.748 (3.5s/step)
+23:00:33 ep0 step 75/281 loss 1.001 (3.5s/step)
+23:01:54 ep0 step 100/281 loss 0.827 (3.4s/step)
+23:03:14 ep0 step 125/281 loss 0.423 (3.4s/step)
+23:04:31 ep0 step 150/281 loss 0.696 (3.3s/step)
+23:05:50 ep0 step 175/281 loss 0.695 (3.3s/step)
+23:07:08 ep0 step 200/281 loss 1.011 (3.3s/step)
+23:08:21 ep0 step 225/281 loss 0.556 (3.2s/step)
+23:09:36 ep0 step 250/281 loss 0.496 (3.2s/step)
+23:10:47 ep0 step 275/281 loss 0.599 (3.2s/step)
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00, 25.42it/s]
+23:11:03 ep0 done train_loss 0.874 (894s) -> /home/user/experiments/msd-context-classifier/models/dapt_term_ettin_32m
+23:11:06 ep1 step 0/281 loss 0.731 (3.6s/step)
+23:12:26 ep1 step 25/281 loss 0.598 (3.2s/step)
+23:13:43 ep1 step 50/281 loss 0.424 (3.2s/step)
+23:14:59 ep1 step 75/281 loss 0.500 (3.1s/step)
+23:16:16 ep1 step 100/281 loss 0.453 (3.1s/step)
+23:17:36 ep1 step 125/281 loss 0.455 (3.1s/step)
+23:18:53 ep1 step 150/281 loss 0.512 (3.1s/step)
+23:20:09 ep1 step 175/281 loss 0.400 (3.1s/step)
+23:21:29 ep1 step 200/281 loss 0.295 (3.1s/step)
+23:22:44 ep1 step 225/281 loss 0.614 (3.1s/step)
+23:23:58 ep1 step 250/281 loss 0.652 (3.1s/step)
+23:25:14 ep1 step 275/281 loss 0.488 (3.1s/step)
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00, 10.27it/s]
+23:25:30 ep1 done train_loss 0.572 (867s) -> /home/user/experiments/msd-context-classifier/models/dapt_term_ettin_32m
+done -> /home/user/experiments/msd-context-classifier/models/dapt_term_ettin_32m
+23:25:31 end exit 0: python3 dapt.py --model models/ettin-encoder-32m --name dapt_term_ettin_32m --epochs 2 --term-mask 0.5
+23:25:31 start: python3 dapt.py --model models/ettin-encoder-32m --name dapt_vocab_ettin_32m --epochs 2 --expand-vocab 300
+23:25:36 corpus /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl: 4490 pages after holding out 270 dev/test urls
+Loading weights:   0%|          | 0/66 [00:00<?, ?it/s]Loading weights: 100%|██████████| 66/66 [00:00<00:00, 7509.74it/s]
+[transformers] The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+23:25:37 expanded vocab by 300 terms (first 12: ['IL-1', 'IL-6', 'IL-10', 'MIP-1', 'IL-2', 'IL-8', 'IL-4', 'MCP-1', 'IL-5', 'U-PLEX', 'IP-10', 'IL-12p70']); embeddings (50668, 384); tied=True
+23:25:40 encoded 4490 pages, 1108781 tokens
+23:25:45 ep0 step 0/281 loss 1.849 (5.4s/step)
+23:30:35 ep0 step 25/281 loss 1.553 (11.4s/step)
+23:36:04 ep0 step 50/281 loss 1.767 (12.2s/step)
+23:41:35 ep0 step 75/281 loss 0.636 (12.6s/step)
+23:47:04 ep0 step 100/281 loss 0.493 (12.7s/step)
+23:52:33 ep0 step 125/281 loss 0.639 (12.8s/step)
+23:57:59 ep0 step 150/281 loss 0.405 (12.8s/step)
+23:59:10 ep0 step 175/281 loss 0.490 (11.4s/step)
+00:00:19 ep0 step 200/281 loss 0.583 (10.3s/step)
+00:01:24 ep0 step 225/281 loss 0.574 (9.5s/step)
+00:02:30 ep0 step 250/281 loss 0.567 (8.8s/step)
+00:03:35 ep0 step 275/281 loss 0.477 (8.2s/step)
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.65it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.65it/s]
+00:03:50 ep0 done train_loss 0.875 (2290s) -> /home/user/experiments/msd-context-classifier/models/dapt_vocab_ettin_32m
+00:03:52 ep1 step 0/281 loss 0.965 (2.7s/step)
+00:05:01 ep1 step 25/281 loss 0.498 (2.8s/step)
+00:06:11 ep1 step 50/281 loss 0.553 (2.8s/step)
+00:07:20 ep1 step 75/281 loss 0.519 (2.8s/step)
+00:08:25 ep1 step 100/281 loss 0.645 (2.7s/step)
+00:09:30 ep1 step 125/281 loss 0.428 (2.7s/step)
+00:10:36 ep1 step 150/281 loss 0.480 (2.7s/step)
+00:11:44 ep1 step 175/281 loss 0.546 (2.7s/step)
+00:12:54 ep1 step 200/281 loss 0.620 (2.7s/step)
+00:14:02 ep1 step 225/281 loss 0.575 (2.7s/step)
+00:15:10 ep1 step 250/281 loss 0.580 (2.7s/step)
+00:16:21 ep1 step 275/281 loss 0.365 (2.7s/step)
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  4.12it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  4.12it/s]
+00:16:36 ep1 done train_loss 0.554 (766s) -> /home/user/experiments/msd-context-classifier/models/dapt_vocab_ettin_32m
+done -> /home/user/experiments/msd-context-classifier/models/dapt_vocab_ettin_32m
+00:16:37 end exit 0: python3 dapt.py --model models/ettin-encoder-32m --name dapt_vocab_ettin_32m --epochs 2 --expand-vocab 300
+00:16:37 skip (results/mlm_dapt_ettin_32m.json exists): python3 mlm_ppl.py dapt_ettin_32m models/dapt_ettin_32m --pages 60 --rounds 2
+00:16:37 skip (results/mlm_dapt_term_ettin_32m.json exists): python3 mlm_ppl.py dapt_term_ettin_32m models/dapt_term_ettin_32m --pages 60 --rounds 2
+00:16:37 start: python3 mlm_ppl.py dapt_vocab_ettin_32m models/dapt_vocab_ettin_32m --pages 60 --rounds 2
+Loading weights:   0%|          | 0/65 [00:00<?, ?it/s]Loading weights: 100%|██████████| 65/65 [00:00<00:00, 2073.07it/s]
+00:16:42 page 0/60: term-CE domain 19.30 control 3.02
+00:17:08 page 20/60: term-CE domain 3.59 control 1.57
+00:17:33 page 40/60: term-CE domain 2.76 control 0.97
+00:17:56 dapt_vocab_ettin_32m: TERM domain CE/term 2.61 exact 0.730 (n=911, 1.7 pieces) | control CE/term 0.91 exact 0.856 (n=4735, 1.1 pieces) | TOKEN domain CE 0.81 other 0.55
+done -> /home/user/experiments/msd-context-classifier/results/mlm_dapt_vocab_ettin_32m.json
+00:17:57 end exit 0: python3 mlm_ppl.py dapt_vocab_ettin_32m models/dapt_vocab_ettin_32m --pages 60 --rounds 2
+00:17:57 skip (results/retr_bm25.json exists): python3 retrieval_eval.py --arm bm25 --name bm25
+00:17:57 skip (results/retr_gte_small.json exists): python3 retrieval_eval.py --arm encoder --model models/gte-small --name gte_small
+00:17:57 start: python3 retrieval_eval.py --arm encoder --model models/ettin-encoder-32m --name ettin_32m
+00:18:01 index 3028 product pages from /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl; 147 queries with a target in the index
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 5816.30it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/ettin-encoder-32m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.weight    | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+decoder.bias      | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+00:19:32 embedded 3028 docs in 91s
+00:19:33 ettin_32m: R@1 0.007 R@10 0.048 MRR 0.021 | unseen R@10 0.034 | code R@10 0.030 no-code 0.053
+done -> /home/user/experiments/msd-context-classifier/results/retr_ettin_32m.json
+00:19:34 end exit 0: python3 retrieval_eval.py --arm encoder --model models/ettin-encoder-32m --name ettin_32m
+00:19:34 start: python3 retrieval_eval.py --arm encoder --model models/ettin-encoder-150m --name ettin_150m
+00:19:38 index 3028 product pages from /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl; 147 queries with a target in the index
+Loading weights:   0%|          | 0/134 [00:00<?, ?it/s]Loading weights: 100%|██████████| 134/134 [00:00<00:00, 7764.87it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/ettin-encoder-150m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.weight    | UNEXPECTED |  | 
+decoder.bias      | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+00:28:26 embedded 3028 docs in 528s
+00:28:32 ettin_150m: R@1 0.000 R@10 0.014 MRR 0.004 | unseen R@10 0.000 | code R@10 0.000 no-code 0.018
+done -> /home/user/experiments/msd-context-classifier/results/retr_ettin_150m.json
+00:28:33 end exit 0: python3 retrieval_eval.py --arm encoder --model models/ettin-encoder-150m --name ettin_150m
+00:28:33 start: python3 retrieval_eval.py --arm encoder --model models/dapt_ettin_32m --name dapt_ettin_32m
+00:28:37 index 3028 product pages from /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl; 147 queries with a target in the index
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 2314.41it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/dapt_ettin_32m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.bias      | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+00:30:07 embedded 3028 docs in 90s
+00:30:08 dapt_ettin_32m: R@1 0.000 R@10 0.014 MRR 0.005 | unseen R@10 0.011 | code R@10 0.000 no-code 0.018
+done -> /home/user/experiments/msd-context-classifier/results/retr_dapt_ettin_32m.json
+00:30:09 end exit 0: python3 retrieval_eval.py --arm encoder --model models/dapt_ettin_32m --name dapt_ettin_32m
+00:30:09 start: python3 retrieval_eval.py --arm encoder --model models/dapt_term_ettin_32m --name dapt_term_ettin_32m
+00:30:13 index 3028 product pages from /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl; 147 queries with a target in the index
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 2228.57it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/dapt_term_ettin_32m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.bias      | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+00:31:42 embedded 3028 docs in 89s
+00:31:43 dapt_term_ettin_32m: R@1 0.000 R@10 0.007 MRR 0.004 | unseen R@10 0.011 | code R@10 0.000 no-code 0.009
+done -> /home/user/experiments/msd-context-classifier/results/retr_dapt_term_ettin_32m.json
+00:31:44 end exit 0: python3 retrieval_eval.py --arm encoder --model models/dapt_term_ettin_32m --name dapt_term_ettin_32m
+00:31:44 start: python3 retrieval_eval.py --arm encoder --model models/dapt_vocab_ettin_32m --name dapt_vocab_ettin_32m
+00:31:48 index 3028 product pages from /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl; 147 queries with a target in the index
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 2536.28it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/dapt_vocab_ettin_32m
+Key               | Status     |  | 
+------------------+------------+--+-
+head.dense.weight | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+decoder.bias      | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+00:33:16 embedded 3028 docs in 88s
+00:33:16 dapt_vocab_ettin_32m: R@1 0.007 R@10 0.014 MRR 0.010 | unseen R@10 0.011 | code R@10 0.000 no-code 0.018
+done -> /home/user/experiments/msd-context-classifier/results/retr_dapt_vocab_ettin_32m.json
+00:33:17 end exit 0: python3 retrieval_eval.py --arm encoder --model models/dapt_vocab_ettin_32m --name dapt_vocab_ettin_32m
+00:33:17 start: python3 -
+{'ettin_bpe': {'pages': 1000, 'mean_tokens': 696.649, 'vocab': 50368}, 'ettin_bpe_plus300': {'pages': 1000, 'mean_tokens': 658.839, 'vocab': 50668}}
+00:33:26 end exit 0: python3 -
+00:33:26 ALL DAPT ARMS DONE
+00:35:30 start: dapt_vocab_term_ettin_32m
+00:35:34 corpus /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl: 4490 pages after holding out 270 dev/test urls
+Loading weights:   0%|          | 0/66 [00:00<?, ?it/s]Loading weights: 100%|██████████| 66/66 [00:00<00:00, 8074.91it/s]
+[transformers] The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+00:35:36 expanded vocab by 300 terms (first 12: ['IL-1', 'IL-6', 'IL-10', 'MIP-1', 'IL-2', 'IL-8', 'IL-4', 'MCP-1', 'IL-5', 'U-PLEX', 'IP-10', 'IL-12p70']); embeddings (50668, 384); tied=True
+00:35:48 encoded 4490 pages, 1108781 tokens
+00:35:53 ep0 step 0/281 loss 2.404 (4.4s/step)
+00:37:11 ep0 step 25/281 loss 1.957 (3.2s/step)
+00:38:22 ep0 step 50/281 loss 2.068 (3.0s/step)
+00:39:40 ep0 step 75/281 loss 0.957 (3.0s/step)
+00:40:57 ep0 step 100/281 loss 0.743 (3.1s/step)
+00:42:12 ep0 step 125/281 loss 0.919 (3.0s/step)
+00:43:28 ep0 step 150/281 loss 0.604 (3.0s/step)
+00:44:47 ep0 step 175/281 loss 0.669 (3.1s/step)
+00:46:05 ep0 step 200/281 loss 0.815 (3.1s/step)
+00:47:15 ep0 step 225/281 loss 0.815 (3.0s/step)
+00:48:25 ep0 step 250/281 loss 0.614 (3.0s/step)
+00:49:37 ep0 step 275/281 loss 0.721 (3.0s/step)
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00, 20.75it/s]
+00:49:52 ep0 done train_loss 1.164 (844s) -> /home/user/experiments/msd-context-classifier/models/dapt_vocab_term_ettin_32m
+00:49:56 ep1 step 0/281 loss 1.084 (3.4s/step)
+00:51:16 ep1 step 25/281 loss 0.613 (3.2s/step)
+00:52:34 ep1 step 50/281 loss 0.669 (3.2s/step)
+00:53:52 ep1 step 75/281 loss 0.594 (3.2s/step)
+00:55:05 ep1 step 100/281 loss 0.777 (3.1s/step)
+00:56:19 ep1 step 125/281 loss 0.478 (3.1s/step)
+00:57:33 ep1 step 150/281 loss 0.518 (3.0s/step)
+00:58:47 ep1 step 175/281 loss 0.798 (3.0s/step)
+01:00:05 ep1 step 200/281 loss 0.806 (3.0s/step)
+01:01:21 ep1 step 225/281 loss 0.789 (3.0s/step)
+01:02:38 ep1 step 250/281 loss 0.641 (3.1s/step)
+01:04:18 ep1 step 275/281 loss 0.644 (3.1s/step)
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.87it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.87it/s]
+01:05:40 ep1 done train_loss 0.722 (948s) -> /home/user/experiments/msd-context-classifier/models/dapt_vocab_term_ettin_32m
+done -> /home/user/experiments/msd-context-classifier/models/dapt_vocab_term_ettin_32m
+01:05:42 end exit 0: dapt_vocab_term_ettin_32m
+01:05:42 start: mlm1 ettin_32m
+Loading weights:   0%|          | 0/66 [00:00<?, ?it/s]Loading weights: 100%|██████████| 66/66 [00:00<00:00, 8531.31it/s]
+01:06:47 page 0/60: term-CE domain 30.90 control 4.14
+01:27:01 start: mlm1 ettin_150m
+Loading weights:   0%|          | 0/138 [00:00<?, ?it/s]Loading weights: 100%|██████████| 138/138 [00:00<00:00, 24144.41it/s]
+01:28:29 page 0/60: term-CE domain 30.25 control 3.36
+01:34:35 page 20/60: term-CE domain 8.63 control 2.78
+01:37:22 page 40/60: term-CE domain 8.74 control 2.81
+01:40:00 ettin_150m: TERM domain CE/term 8.36 exact 0.395 (n=898, 3.0 pieces) | control CE/term 2.94 exact 0.490 (n=900, 1.1 pieces) | TOKEN domain CE 1.07 other 1.69
+done -> /home/user/experiments/msd-context-classifier/results/mlm1_ettin_150m.json
+01:40:02 start: mlm1 modernbert_base
+Loading weights:   0%|          | 0/137 [00:00<?, ?it/s]Loading weights:  28%|██▊       | 38/137 [00:00<00:00, 361.46it/s]Loading weights:  65%|██████▍   | 89/137 [00:00<00:00, 443.02it/s]Loading weights: 100%|██████████| 137/137 [00:00<00:00, 520.33it/s]
+01:40:10 page 0/60: term-CE domain 26.43 control 3.04
+01:42:42 page 20/60: term-CE domain 9.52 control 4.98
+01:45:21 page 40/60: term-CE domain 9.45 control 5.16
+01:47:58 modernbert_base: TERM domain CE/term 8.99 exact 0.389 (n=898, 3.0 pieces) | control CE/term 5.13 exact 0.336 (n=900, 1.1 pieces) | TOKEN domain CE 1.13 other 1.68
+done -> /home/user/experiments/msd-context-classifier/results/mlm1_modernbert_base.json
+01:47:59 start: mlm1 bioclinical_modernbert_base
+Loading weights:   0%|          | 0/137 [00:00<?, ?it/s]Loading weights:  30%|██▉       | 41/137 [00:00<00:00, 395.62it/s]Loading weights:  71%|███████   | 97/137 [00:00<00:00, 484.65it/s]Loading weights: 100%|██████████| 137/137 [00:00<00:00, 560.83it/s]
+01:48:08 page 0/60: term-CE domain 27.46 control 2.39
+01:50:34 page 20/60: term-CE domain 9.72 control 3.05
+01:53:06 page 40/60: term-CE domain 9.74 control 3.22
+01:55:34 bioclinical_modernbert_base: TERM domain CE/term 9.15 exact 0.408 (n=898, 3.0 pieces) | control CE/term 3.34 exact 0.430 (n=900, 1.1 pieces) | TOKEN domain CE 1.50 other 1.76
+done -> /home/user/experiments/msd-context-classifier/results/mlm1_bioclinical_modernbert_base.json
+01:55:35 start: mlm1 dapt_ettin_32m
+Loading weights:   0%|          | 0/65 [00:00<?, ?it/s]Loading weights: 100%|██████████| 65/65 [00:00<00:00, 2597.81it/s]
+01:55:41 page 0/60: term-CE domain 33.84 control 3.88
+01:56:23 page 20/60: term-CE domain 6.14 control 1.64
+01:57:06 page 40/60: term-CE domain 4.85 control 1.05
+01:57:48 dapt_ettin_32m: TERM domain CE/term 4.62 exact 0.688 (n=898, 3.0 pieces) | control CE/term 1.08 exact 0.837 (n=900, 1.1 pieces) | TOKEN domain CE 0.27 other 0.52
+done -> /home/user/experiments/msd-context-classifier/results/mlm1_dapt_ettin_32m.json
+01:57:49 start: mlm1 dapt_term_ettin_32m
+Loading weights:   0%|          | 0/65 [00:00<?, ?it/s]Loading weights: 100%|██████████| 65/65 [00:00<00:00, 2312.07it/s]
+01:57:55 page 0/60: term-CE domain 20.25 control 3.88
+01:58:37 page 20/60: term-CE domain 3.39 control 1.69
+01:59:20 page 40/60: term-CE domain 2.38 control 1.11
+02:00:02 dapt_term_ettin_32m: TERM domain CE/term 2.16 exact 0.832 (n=898, 3.0 pieces) | control CE/term 1.15 exact 0.824 (n=900, 1.1 pieces) | TOKEN domain CE 0.22 other 0.55
+done -> /home/user/experiments/msd-context-classifier/results/mlm1_dapt_term_ettin_32m.json
+02:00:03 start: mlm1 dapt_vocab_ettin_32m
+Loading weights:   0%|          | 0/65 [00:00<?, ?it/s]Loading weights: 100%|██████████| 65/65 [00:00<00:00, 2294.53it/s]
+02:00:09 page 0/60: term-CE domain 18.28 control 3.44
+02:01:00 page 20/60: term-CE domain 3.41 control 1.26
+02:01:53 page 40/60: term-CE domain 2.53 control 0.85
+02:02:45 dapt_vocab_ettin_32m: TERM domain CE/term 2.37 exact 0.752 (n=934, 1.7 pieces) | control CE/term 0.85 exact 0.858 (n=900, 1.1 pieces) | TOKEN domain CE 0.81 other 0.55
+done -> /home/user/experiments/msd-context-classifier/results/mlm1_dapt_vocab_ettin_32m.json
+02:02:46 start: mlm1 dapt_vocab_term_ettin_32m
+Loading weights:   0%|          | 0/65 [00:00<?, ?it/s]Loading weights: 100%|██████████| 65/65 [00:00<00:00, 2315.92it/s]
+02:02:52 page 0/60: term-CE domain 17.06 control 3.46
+02:03:43 page 20/60: term-CE domain 2.61 control 1.34
+02:04:37 page 40/60: term-CE domain 1.74 control 0.92
+02:05:28 dapt_vocab_term_ettin_32m: TERM domain CE/term 1.58 exact 0.824 (n=934, 1.7 pieces) | control CE/term 0.93 exact 0.854 (n=900, 1.1 pieces) | TOKEN domain CE 0.56 other 0.57
+done -> /home/user/experiments/msd-context-classifier/results/mlm1_dapt_vocab_term_ettin_32m.json
+02:05:34 index 3028 product pages from /home/user/experiments/msd-context-classifier/data/full/corpus.jsonl; 147 queries with a target in the index
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 2216.26it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/dapt_vocab_term_ettin_32m
+Key               | Status     |  | 
+------------------+------------+--+-
+head.dense.weight | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+decoder.bias      | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+02:07:06 embedded 3028 docs in 93s
+02:07:07 dapt_vocab_term_ettin_32m: R@1 0.000 R@10 0.014 MRR 0.007 | unseen R@10 0.011 | code R@10 0.000 no-code 0.018
+done -> /home/user/experiments/msd-context-classifier/results/retr_dapt_vocab_term_ettin_32m.json
+02:07:08 EXTRA ARM DONE
