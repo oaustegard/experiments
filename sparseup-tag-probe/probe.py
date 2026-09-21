@@ -249,7 +249,14 @@ def main():
     ap.add_argument("--limit", type=int, default=None,
                      help="smoke-test on the first N fixture rows, using whatever data/parts exist")
     ap.add_argument("--folds", type=int, default=5)
+    ap.add_argument("--C", type=float, default=1.0,
+                     help="inverse regularisation strength, same for every arm; sweep it — "
+                          "the arms differ in feature scale (TF-IDF and gte-small rows are "
+                          "L2-normalised, SPARSEUP weights are not), so one C is not one prior")
     args = ap.parse_args()
+    global C
+    C = args.C
+    ctag = f"C{args.C:g}"
     is_smoke = args.limit is not None
 
     t0 = time.time()
@@ -312,7 +319,7 @@ def main():
     RESULTS.mkdir(exist_ok=True)
     for name, fn in arms:
         ta = time.time()
-        cache = RESULTS / f"proba_{name}.npy"
+        cache = RESULTS / f"proba_{name}_{ctag}.npy"
         if cache.exists() and not is_smoke:
             proba[name] = np.load(cache)
             print(f"  arm {name}: cached", file=sys.stderr, flush=True)
@@ -325,7 +332,13 @@ def main():
     rng = np.random.RandomState(SEED)
     perm = rng.permutation(n)
     Y_shuf = Y[perm]
-    proba["shuffled"] = cv_predict_fixed(S, Y_shuf, fold_of, args.folds)
+    cache = RESULTS / f"proba_shuffled_{ctag}.npy"
+    if cache.exists() and not is_smoke:
+        proba["shuffled"] = np.load(cache)
+    else:
+        proba["shuffled"] = cv_predict_fixed(S, Y_shuf, fold_of, args.folds)
+        if not is_smoke:
+            np.save(cache, proba["shuffled"])
     print(f"CV done in {time.time() - t0:.0f}s", file=sys.stderr)
 
     # ---- per-arm metrics
@@ -403,8 +416,17 @@ def main():
         },
     }
 
+    def scale(M):
+        M = M.tocsr() if hasattr(M, "tocsr") else M
+        norms = (np.sqrt(np.asarray(M.multiply(M).sum(1)).ravel()) if hasattr(M, "multiply")
+                 else np.linalg.norm(M, axis=1))
+        mx = float(M.max()) if hasattr(M, "max") else float(np.abs(M).max())
+        return {"max_value": mx, "mean_row_l2": float(norms.mean())}
+    feature_scale = {"sparseup": scale(S), "sparseup_binary": scale(S_bin), "gte_small": scale(D)}
+
     out = {
         "smoke_test": is_smoke,
+        "feature_scale": feature_scale,
         "n": n,
         "n_splits": args.folds,
         "seed": SEED,
@@ -416,7 +438,7 @@ def main():
         "bootstrap_ci_diff": boot,
         "wall_seconds": round(time.time() - t0, 1),
     }
-    (RESULTS / "probe.json").write_text(json.dumps(out, indent=1))
+    (RESULTS / f"probe_{ctag}.json").write_text(json.dumps(out, indent=1))
 
     print(f"\n{'SMOKE TEST — ' if is_smoke else ''}Probe: {n} labelled memories, "
           f"{args.folds}-fold CV, {L} labels")
@@ -433,7 +455,7 @@ def main():
           f"[{b1['ci_lo']:+.4f}, {b1['ci_hi']:+.4f}]")
     print(f"sparseup - sparseup_binary micro-F1: {b2['mean_diff']:+.4f} "
           f"[{b2['ci_lo']:+.4f}, {b2['ci_hi']:+.4f}]")
-    print(f"\nWrote {RESULTS / 'probe.json'} and {RESULTS / 'folds.json'}")
+    print(f"\nWrote {RESULTS / f'probe_{ctag}.json'} and {RESULTS / 'folds.json'}")
 
 
 if __name__ == "__main__":
