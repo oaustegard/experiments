@@ -12,15 +12,16 @@ RESULTS.md changes.
 (c) RESULTS.md, if it exists: every number in results/headline.json appears in
     it, formatted to 3 decimals. Skipped silently (not a failure) if RESULTS.md
     does not exist yet.
-(d) results/selected.json: each selected arm's micro-F1 recomputes to 1e-9 from
-    its cached results/proba_{arm}_C{c}.npy file and a label matrix rebuilt
-    from fixture.json + results/folds.json.
+(d) results/selected.json: each selected arm's micro-AP AND micro-F1@0.5
+    recompute to 1e-9 from its cached results/proba_{arm}_C{c}.npy file and a
+    label matrix rebuilt from fixture.json + results/folds.json.
 
 Non-zero exit on any failure.
 
 Usage: python3 recheck.py
 """
 import collections
+import importlib.util
 import json
 import sys
 import time
@@ -33,6 +34,14 @@ from probe import SEED, micro_f1
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE / "results"
+
+# select.py shares its name with the stdlib's built-in `select` module, which
+# always wins a plain `import select` (built-ins are checked before sys.path),
+# so `micro_ap` is loaded by explicit file path instead of by module name.
+_spec = importlib.util.spec_from_file_location("_local_select", HERE / "select.py")
+_local_select = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_local_select)
+micro_ap = _local_select.micro_ap
 
 failures = []
 
@@ -159,10 +168,17 @@ def check_selected_recompute():
             continue
         P = np.load(proba_path)
         y_use = Y_shuf if arm == "shuffled" else Y
-        recomputed = micro_f1(y_use, P)
-        ok = abs(recomputed - m["micro_f1"]) < 1e-9
-        check(f"selected.json micro-F1 for {arm} recomputes to 1e-9 from cached proba", ok,
-              f"stored={m['micro_f1']!r} recomputed={recomputed!r} diff={abs(recomputed - m['micro_f1']):.2e}")
+
+        recomputed_ap = micro_ap(y_use, P)
+        ok_ap = abs(recomputed_ap - m["micro_ap"]) < 1e-9
+        check(f"selected.json micro-AP for {arm} recomputes to 1e-9 from cached proba", ok_ap,
+              f"stored={m['micro_ap']!r} recomputed={recomputed_ap!r} diff={abs(recomputed_ap - m['micro_ap']):.2e}")
+
+        recomputed_f1 = micro_f1(y_use, P)
+        ok_f1 = abs(recomputed_f1 - m["micro_f1_at_0.5"]) < 1e-9
+        check(f"selected.json micro-F1@0.5 for {arm} recomputes to 1e-9 from cached proba", ok_f1,
+              f"stored={m['micro_f1_at_0.5']!r} recomputed={recomputed_f1!r} "
+              f"diff={abs(recomputed_f1 - m['micro_f1_at_0.5']):.2e}")
 
 
 def main():

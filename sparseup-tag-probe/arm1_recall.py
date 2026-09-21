@@ -1,16 +1,28 @@
 """Arm 1 — direct tag recall from SPARSEUP top-k expansion terms, no training.
 
 For every labelled memory and k in (16, 32, 64): the fraction of its labels that
-show up among its top-k expansion terms, under two hit definitions:
+show up among its top-k expansion terms, under three hit definitions:
   (a) exact-token  — the tag string (lowercased) equals a decoded top-k token
                       after stripping the BPE leading-space marker "Ġ".
   (b) all-parts    — split the tag on "-"/"_"; it hits when every part equals
                       some top-k token. A single-part tag is identical under (a).
+  (c) subword      — tokenize the tag WITH the SPARSEUP tokenizer (a leading
+                      space, add_special_tokens=False; this is how the tag's
+                      characters would actually be sliced if they appeared
+                      mid-document, unlike (a)/(b)'s naive string splits) and
+                      strip "Ġ" from every resulting piece; it hits when every
+                      piece is among the top-k tokens. A single-piece tag is
+                      identical to (a) tokenized this way, which is NOT always
+                      the same string comparison as (a) itself (raw hyphens/
+                      underscores are their own tokens under the real BPE
+                      merge, not silently dropped the way (b)'s regex split
+                      treats them).
 
 Also: how many of the 325 labels are single-token in the SPARSEUP tokenizer at
-all (bounds (a)), and a literal-mention rate per label (share of memories
-carrying that label whose text contains the tag string literally, case
-insensitive, hyphens also matching spaces).
+all (bounds (a)), how many labels have 1/2/3/4+ subword pieces, and a
+literal-mention rate per label (share of memories carrying that label whose
+text contains the tag string literally, case insensitive, hyphens also
+matching spaces).
 
 Usage:
     python3 arm1_recall.py                 # full run; requires data/topk.json (encode done)
@@ -79,11 +91,26 @@ def load_topk(limit, fixture):
     return tj["ids"], tj["topk"], False
 
 
-def single_token_bound(labels):
+def load_tokenizer():
+    from transformers import AutoTokenizer
+    return AutoTokenizer.from_pretrained(SPARSE_MODEL)
+
+
+def label_subword_pieces(tok, labels):
+    """{label: [stripped, lowercased pieces]} -- the tag tokenized WITH a
+    leading space (add_special_tokens=False), i.e. the pieces it would
+    actually decompose into inside a document, each with "Ġ" stripped. This
+    is the (c) subword hit definition's piece set."""
+    out = {}
+    for lab in labels:
+        ids = tok(" " + lab, add_special_tokens=False)["input_ids"]
+        out[lab] = [strip_tok(t) for t in tok.convert_ids_to_tokens(ids)]
+    return out
+
+
+def single_token_bound(tok, labels):
     """How many of the 325 labels tokenize to exactly one token, bare or with a
     leading space (i.e. could in principle equal a single decoded top-k token)."""
-    from transformers import AutoTokenizer
-    tok = AutoTokenizer.from_pretrained(SPARSE_MODEL)
     bare, leading, either = [], [], []
     for lab in labels:
         n_bare = len(tok(lab, add_special_tokens=False)["input_ids"])
@@ -142,10 +169,21 @@ def main():
     print(f"{'[smoke test] ' if is_smoke else ''}{len(ids)} rows available, "
           f"{len(labelled_ids)} labelled", file=sys.stderr)
 
+    # tokenizer-derived pieces (independent of --limit; needs the tokenizer only)
+    tok = load_tokenizer()
+    stb = single_token_bound(tok, fixture["labels"])
+    pieces_map = label_subword_pieces(tok, fixture["labels"])
+    pieces_bucket = {"1": 0, "2": 0, "3": 0, "4+": 0}
+    for pieces in pieces_map.values():
+        key = str(len(pieces)) if len(pieces) < 4 else "4+"
+        pieces_bucket[key] += 1
+
+    HIT_DEFS = ("exact", "all_parts", "subword")
+
     # micro (over all label instances) and per-label recall, per hit-def, per k
-    micro_hits = {hd: {k: 0 for k in KS} for hd in ("exact", "all_parts")}
+    micro_hits = {hd: {k: 0 for k in KS} for hd in HIT_DEFS}
     micro_n = {k: 0 for k in KS}
-    per_label_hits = {hd: {k: defaultdict(int) for k in KS} for hd in ("exact", "all_parts")}
+    per_label_hits = {hd: {k: defaultdict(int) for k in KS} for hd in HIT_DEFS}
     per_label_n = {k: defaultdict(int) for k in KS}
 
     for mid in labelled_ids:
@@ -155,10 +193,12 @@ def main():
         toks_by_k = {k: {strip_tok(t) for t, _w in row[:k]} for k in KS}
         for label in id_to_labels[mid]:
             parts = [p for p in SPLIT_RE.split(label) if p] or [label]
+            sw_pieces = pieces_map.get(label) or [label]
             for k in KS:
                 toks_k = toks_by_k[k]
                 hit_exact = label in toks_k
                 hit_all = all(p in toks_k for p in parts)
+                hit_subword = all(p in toks_k for p in sw_pieces)
                 micro_n[k] += 1
                 per_label_n[k][label] += 1
                 if hit_exact:
@@ -167,27 +207,27 @@ def main():
                 if hit_all:
                     micro_hits["all_parts"][k] += 1
                     per_label_hits["all_parts"][k][label] += 1
+                if hit_subword:
+                    micro_hits["subword"][k] += 1
+                    per_label_hits["subword"][k][label] += 1
 
     micro_recall = {
         hd: {str(k): (micro_hits[hd][k] / micro_n[k] if micro_n[k] else None) for k in KS}
-        for hd in ("exact", "all_parts")
+        for hd in HIT_DEFS
     }
 
     all_labels = sorted({lab for labs in id_to_labels.values() for lab in (labs or [])} |
                          set(fixture.get("labels", [])))
     per_label_recall = {}
     for lab in all_labels:
-        entry = {"n": per_label_n[KS[0]].get(lab, 0)}
-        for hd in ("exact", "all_parts"):
+        entry = {"n": per_label_n[KS[0]].get(lab, 0), "n_subword_pieces": len(pieces_map.get(lab, []))}
+        for hd in HIT_DEFS:
             entry[hd] = {
                 str(k): (per_label_hits[hd][k][lab] / per_label_n[k][lab]
                          if per_label_n[k].get(lab) else None)
                 for k in KS
             }
         per_label_recall[lab] = entry
-
-    # single-token bound (independent of --limit; needs the tokenizer only)
-    stb = single_token_bound(fixture["labels"])
 
     # literal mention rate (from data/texts.json, always fully present)
     texts_j = json.loads((DATA / "texts.json").read_text())
@@ -197,6 +237,16 @@ def main():
         per_label_recall.setdefault(lab, {"n": 0, "exact": {}, "all_parts": {}})
         per_label_recall[lab]["literal_mention_rate"] = rate
 
+    # top/bottom 10 labels by subword recall@32, n >= 20
+    K_SPOTLIGHT, N_MIN = 32, 20
+    spotlight_candidates = [
+        (lab, e["subword"][str(K_SPOTLIGHT)])
+        for lab, e in per_label_recall.items()
+        if e.get("n", 0) >= N_MIN and e["subword"].get(str(K_SPOTLIGHT)) is not None
+    ]
+    spotlight_lowest = sorted(spotlight_candidates, key=lambda t: t[1])[:10]
+    spotlight_highest = sorted(spotlight_candidates, key=lambda t: -t[1])[:10]
+
     out = {
         "smoke_test": is_smoke,
         "n_rows_used": len(ids),
@@ -205,6 +255,11 @@ def main():
         "micro_recall": micro_recall,
         "micro_n_instances": {str(k): micro_n[k] for k in KS},
         "single_token_bound": stb,
+        "subword_pieces_distribution": pieces_bucket,
+        "subword_recall_k32_spotlight": {
+            "n_min": N_MIN, "k": K_SPOTLIGHT,
+            "highest": spotlight_highest, "lowest": spotlight_lowest,
+        },
         "per_label": per_label_recall,
     }
     RESULTS.mkdir(exist_ok=True)
@@ -212,18 +267,30 @@ def main():
 
     print(f"\n{'SMOKE TEST — ' if is_smoke else ''}Arm 1: direct tag recall "
           f"({len(labelled_ids)} labelled memories, {len(ids)} rows total)")
-    print(f"{'k':>4} {'exact-token':>12} {'all-parts':>12}")
+    print(f"{'k':>4} {'exact-token':>12} {'all-parts':>12} {'subword':>12}")
     for k in KS:
         e = micro_recall["exact"][str(k)]
         a = micro_recall["all_parts"][str(k)]
-        print(f"{k:>4} {e:>12.4f} {a:>12.4f}" if e is not None else f"{k:>4} {'n/a':>12} {'n/a':>12}")
+        s = micro_recall["subword"][str(k)]
+        if e is not None:
+            print(f"{k:>4} {e:>12.4f} {a:>12.4f} {s:>12.4f}")
+        else:
+            print(f"{k:>4} {'n/a':>12} {'n/a':>12} {'n/a':>12}")
     print(f"\nSingle-token labels (bound on exact-token recall): "
           f"{stb['n_single_token_either']}/{stb['n_labels']} "
           f"(bare {stb['n_single_token_bare']}, leading-space {stb['n_single_token_leading_space']})")
+    print(f"Subword pieces per label: 1={pieces_bucket['1']} 2={pieces_bucket['2']} "
+          f"3={pieces_bucket['3']} 4+={pieces_bucket['4+']} (of {stb['n_labels']})")
     n_rated = sum(1 for v in lit_rates.values() if v is not None)
     mean_lit = (sum(v for v in lit_rates.values() if v is not None) / n_rated) if n_rated else None
     print(f"Mean literal-mention rate across {n_rated} labels: "
           f"{mean_lit:.4f}" if mean_lit is not None else "Mean literal-mention rate: n/a")
+    print(f"\nHighest subword recall@{K_SPOTLIGHT} (n>={N_MIN}):")
+    for lab, r in spotlight_highest:
+        print(f"  {r:.4f}  {lab}")
+    print(f"\nLowest subword recall@{K_SPOTLIGHT} (n>={N_MIN}):")
+    for lab, r in spotlight_lowest:
+        print(f"  {r:.4f}  {lab}")
     print(f"\nWrote {RESULTS / 'arm1.json'}")
 
 

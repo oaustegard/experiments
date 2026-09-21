@@ -1,13 +1,16 @@
 """Reads results/*.json (and data/encode_meta.json) and prints the markdown
 tables RESULTS.md will paste, each measured number next to the PLAN.md
-prediction it corresponds to. Predictions below are copied by hand from
-PLAN.md's Predictions table (pre-registered 2026-09-21) — edit them there
-only if PLAN.md's own table changes.
+prediction it corresponds to, where PLAN.md made one. Predictions below are
+copied by hand from PLAN.md's Predictions table (pre-registered 2026-09-21) —
+edit them there only if PLAN.md's own table changes.
 
-Reads results/arm1.json, results/selected.json and results/probe_C*.json.
-Does NOT read results/probe.json — that file no longer exists; probe.py now
-writes one results/probe_C{c}.json per swept C, and select.py's oracle pick
-over that grid (results/selected.json) is the authoritative per-arm number.
+Order: selected-by-micro-AP table, the C grids (micro-AP, macro-AP, micro-F1@0.5,
+P@5), binarization gap, bootstrap CIs, literal-mention split, then arm 1.
+
+Reads results/arm1.json, results/selected.json and results/probe_C*.json (for
+run-metadata only — the metrics themselves come from selected.json, which
+recomputes from cached proba and so stays consistent with recheck.py). Does
+NOT read results/probe.json — it no longer exists.
 
 Usage: python3 make_tables.py
 """
@@ -23,7 +26,7 @@ DATA = HERE / "data"
 PRED_TRUNCATED_PCT = 25.0
 PRED_ARM1_EXACT = {16: 0.15, 32: 0.20, 64: 0.30}
 PRED_ARM1_ALL_PARTS = {16: 0.22, 32: 0.30, 64: 0.42}
-PRED_ARM2_SPARSEUP = {"micro_f1": 0.55, "macro_f1": 0.35, "p_at_5": 0.45}
+PRED_ARM2_SPARSEUP = {"micro_f1": 0.55, "macro_f1": 0.35, "p_at_5": 0.45}  # F1@0.5, PLAN's own metric
 PRED_TFIDF_WORDCHAR_MICRO_F1 = 0.57
 PRED_GTE_SMALL_MICRO_F1 = 0.50
 PRED_BINARIZATION_GAP_MAX = 0.02  # arm2 - arm3, micro-F1, predicted <= this
@@ -31,7 +34,7 @@ PRED_LABELS_WHERE_SPARSEUP_BEATS_TFIDF = ("lexical labels (tag word literal in t
                                            "tags like correction/session-log/preference")
 
 ARMS_ORDER = ("sparseup", "sparseup_binary", "tfidf_word", "tfidf_char",
-              "tfidf_word+char", "gte_small", "prior", "shuffled")
+              "tfidf_word+char", "tfidf_word+char_trunc512", "gte_small", "prior", "shuffled")
 
 
 def load(name):
@@ -60,49 +63,54 @@ def discover_probe_C_files():
     return out
 
 
-def print_truncation():
-    meta_path = DATA / "encode_meta.json"
-    meta = json.loads(meta_path.read_text()) if meta_path.exists() else None
-    print("## Truncation\n")
-    print("| quantity | measured | predicted |")
-    print("|---|---|---|")
-    if meta and meta.get("n"):
-        pct = 100.0 * meta.get("n_truncated", 0) / meta["n"]
-        print(f"| memories truncated at 512 tokens | {pct:.1f}% ({meta.get('n_truncated')}/{meta['n']}) "
-              f"| ~{PRED_TRUNCATED_PCT:.0f}% |")
-    else:
-        print(f"| memories truncated at 512 tokens | n/a (encode not done) | ~{PRED_TRUNCATED_PCT:.0f}% |")
+def print_selected(selected):
+    print("## Selected by micro-AP (per-arm oracle, threshold-free) — pooled out-of-fold\n")
+    if not selected or not selected.get("selected_metrics"):
+        print("| — | results/selected.json not found — run select.py first | | | | | | | |")
+        print()
+        return
+    print(f"_{selected.get('selection_method', '')}_\n")
+    avail = selected.get("available_C_per_arm", {})
+    sm = selected["selected_metrics"]
+    print("| arm | C avail | C(AP) | C(F1@.5) | micro-AP | macro-AP | F1@.5 (micro/macro) "
+          "| best-thr | F1@thr (micro/macro) | P@5 |")
+    print("|---|---|---|---|---|---|---|---|---|---|")
+    for arm in ARMS_ORDER:
+        cs = avail.get(arm, [])
+        cs_str = ",".join(f"{c:g}" for c in cs) if cs else "—"
+        if arm in sm:
+            m = sm[arm]
+            f1c = m.get("C_by_micro_f1_secondary")
+            f1c_str = f"{f1c:g}" if f1c is not None else "—"
+            print(f"| {arm} | {cs_str} | {m['C']:g} | {f1c_str} | "
+                  f"{fmt(m['micro_ap'])} | {fmt(m['macro_ap'])} | "
+                  f"{fmt(m['micro_f1_at_0.5'])} / {fmt(m['macro_f1_at_0.5'])} | "
+                  f"{fmt(m['best_threshold'], '.3f')} | "
+                  f"{fmt(m['micro_f1_at_best_threshold'])} / {fmt(m['macro_f1_at_best_threshold'])} | "
+                  f"{fmt(m['p_at_5'])} |")
+        else:
+            print(f"| {arm} | {cs_str} | — | — | n/a | n/a | n/a | — | n/a | n/a |")
+    if "sparseup" in sm:
+        p = PRED_ARM2_SPARSEUP
+        print(f"| _predicted_ sparseup (F1@0.5/P@5 only) | — | — | — | — | — | {p['micro_f1']} / {p['macro_f1']} "
+              f"| — | — | {p['p_at_5']} |")
+    print(f"| _predicted_ tfidf_word+char (micro-F1@0.5 only) | — | — | — | — | — | {PRED_TFIDF_WORDCHAR_MICRO_F1} / — | — | — | — |")
+    print(f"| _predicted_ gte_small (micro-F1@0.5 only) | — | — | — | — | — | {PRED_GTE_SMALL_MICRO_F1} / — | — | — | — |")
     print()
 
 
-def print_arm1(arm1):
-    print("## Arm 1 — direct tag recall (micro, no training)\n")
-    if not arm1:
-        print("| — | results/arm1.json not found — run arm1_recall.py first | | | |")
-        print()
-        return
-    note = " _(smoke test — not the pre-registered run)_" if arm1.get("smoke_test") else ""
-    print(f"| k | exact-token measured | exact-token predicted | all-parts measured | all-parts predicted |{note}")
-    print("|---|---|---|---|---|")
-    mr = arm1["micro_recall"]
-    for k in arm1["ks"]:
-        e = mr["exact"].get(str(k))
-        a = mr["all_parts"].get(str(k))
-        print(f"| {k} | {fmt(e)} | {PRED_ARM1_EXACT.get(k, 'n/a')} | {fmt(a)} | {PRED_ARM1_ALL_PARTS.get(k, 'n/a')} |")
-    stb = arm1["single_token_bound"]
-    print(f"\nSingle-token labels (bound on exact-token recall): "
-          f"{stb['n_single_token_either']}/{stb['n_labels']}\n")
-
-
 def print_c_grid(selected, probe_c_files):
-    print("## C grid — micro-F1 (arm x C)\n")
     if probe_c_files:
         c_list = sorted(probe_c_files)
         meta_bits = [f"C={c:g} ({probe_c_files[c].get('wall_seconds', '?')}s)" for c in c_list]
-        print(f"_Swept: {', '.join(meta_bits)}. TF-IDF and gte-small rows are L2-normalised "
-              f"(row norm 1.0); SPARSEUP rows are not (mean row L2 norm ~32) — one C is a "
-              f"different effective prior per arm, hence the sweep._\n")
+        print(f"_probe_C*.json sweeps on record: {', '.join(meta_bits)}. An arm's actual "
+              f"available C values (used for selection) are in the 'C avail' column above and "
+              f"can be a strict subset or superset of this list — a new arm or a new C can lag "
+              f"the others. TF-IDF and gte-small rows are L2-normalised (row norm 1.0); SPARSEUP "
+              f"rows are not (mean row L2 norm ~32) — one C is a different effective prior per "
+              f"arm, hence sweeping and selecting per arm._\n")
     if not selected or not selected.get("same_C_grid"):
+        print("## C grid\n")
         print("| — | results/selected.json not found or has no C grid — run select.py first | |")
         print()
         return
@@ -112,53 +120,26 @@ def print_c_grid(selected, probe_c_files):
     header = "| arm | " + " | ".join(f"C={c:g}" for c in Cs) + " |"
     sep = "|---|" + "---|" * len(Cs)
 
-    print(header)
-    print(sep)
-    for arm in ARMS_ORDER:
-        row = [fmt(grid[t].get(arm, {}).get("micro_f1")) for t in ctags]
-        print(f"| {arm} | " + " | ".join(row) + " |")
-    print()
-
-    print("## C grid — P@5 (arm x C)\n")
-    print(header)
-    print(sep)
-    for arm in ARMS_ORDER:
-        row = [fmt(grid[t].get(arm, {}).get("p_at_5")) for t in ctags]
-        print(f"| {arm} | " + " | ".join(row) + " |")
-    print()
-
-
-def print_selected(selected):
-    print("## Selected C (per-arm oracle over the swept grid) — pooled out-of-fold\n")
-    if not selected or not selected.get("selected_metrics"):
-        print("| — | results/selected.json not found — run select.py first | | | |")
+    for title, key in (("micro-AP", "micro_ap"), ("macro-AP", "macro_ap"),
+                        ("micro-F1@0.5", "micro_f1"), ("P@5", "p_at_5")):
+        print(f"## C grid — {title} (arm x C)\n")
+        print(header)
+        print(sep)
+        for arm in ARMS_ORDER:
+            row = [fmt(grid[t].get(arm, {}).get(key)) for t in ctags]
+            print(f"| {arm} | " + " | ".join(row) + " |")
         print()
-        return
-    print(f"_{selected.get('selection_method', '')}_\n")
-    sm = selected["selected_metrics"]
-    print("| arm | best C | micro-F1 | macro-F1 | P@5 |")
-    print("|---|---|---|---|---|")
-    for arm in ARMS_ORDER:
-        if arm in sm:
-            m = sm[arm]
-            print(f"| {arm} | {m['C']:g} | {fmt(m['micro_f1'])} | {fmt(m['macro_f1'])} | {fmt(m['p_at_5'])} |")
-        else:
-            print(f"| {arm} | — | n/a (no cached proba yet) | — | — |")
-    print(f"| _predicted_ sparseup | — | {PRED_ARM2_SPARSEUP['micro_f1']} | "
-          f"{PRED_ARM2_SPARSEUP['macro_f1']} | {PRED_ARM2_SPARSEUP['p_at_5']} |")
-    print(f"| _predicted_ tfidf_word+char (micro-F1 only) | — | {PRED_TFIDF_WORDCHAR_MICRO_F1} | — | — |")
-    print(f"| _predicted_ gte_small (micro-F1 only) | — | {PRED_GTE_SMALL_MICRO_F1} | — | — |")
-    print()
 
 
 def print_binarization(selected):
-    print("## Binarization gap (sparseup best-C - sparseup_binary best-C)\n")
+    print("## Binarization gap (sparseup best-C-by-AP - sparseup_binary best-C-by-AP)\n")
     print("| metric | measured | predicted |")
     print("|---|---|---|")
     gap = selected.get("binarization_gap_sparseup_minus_binary") if selected else None
     if gap:
-        print(f"| micro-F1 | {fmt(gap['micro_f1'], '+.4f')} | <= {PRED_BINARIZATION_GAP_MAX} |")
-        print(f"| macro-F1 | {fmt(gap['macro_f1'], '+.4f')} | — |")
+        print(f"| micro-AP | {fmt(gap['micro_ap'], '+.4f')} | — |")
+        print(f"| macro-AP | {fmt(gap['macro_ap'], '+.4f')} | — |")
+        print(f"| best-threshold micro-F1 | {fmt(gap['best_threshold_micro_f1'], '+.4f')} | <= {PRED_BINARIZATION_GAP_MAX} (PLAN predicted this on F1@0.5) |")
         print(f"| P@5 | {fmt(gap['p_at_5'], '+.4f')} | — |")
     else:
         print("| — | not available yet (needs sparseup and sparseup_binary selected) | |")
@@ -166,7 +147,7 @@ def print_binarization(selected):
 
 
 def print_bootstrap(selected):
-    print("## Bootstrap 95% CI, paired differences over documents (each arm at its own selected C)\n")
+    print("## Bootstrap 95% CI, paired differences over documents (each arm at its own AP-selected C)\n")
     print("| comparison | metric | mean diff | 95% CI |")
     print("|---|---|---|---|")
     boot = selected.get("bootstrap_ci_diff") if selected else None
@@ -181,19 +162,53 @@ def print_bootstrap(selected):
 
 
 def print_literal_split(selected):
-    print("## Per-label split by literal-mention rate (arm1)\n")
-    print("| group | sparseup mean F1 | tfidf_word+char mean F1 |")
-    print("|---|---|---|")
+    print("## Per-label split by literal-mention rate (arm1), mean per-label AP\n")
     ls = selected.get("literal_mention_split") if selected else None
-    if ls:
-        hi = ls["mean_f1"]
-        print(f"| high literal-mention (>= 0.5), n={ls['n_labels_high_literal_rate_ge_0.5']} | "
-              f"{fmt(hi['sparseup']['high_literal'])} | {fmt(hi['tfidf_word+char']['high_literal'])} |")
-        print(f"| low literal-mention (< 0.5), n={ls['n_labels_low_literal_rate_lt_0.5']} | "
-              f"{fmt(hi['sparseup']['low_literal'])} | {fmt(hi['tfidf_word+char']['low_literal'])} |")
-        print(f"\n_predicted_: SPARSEUP beats TF-IDF on {PRED_LABELS_WHERE_SPARSEUP_BEATS_TFIDF}")
-    else:
+    if not ls:
         print("| — | not available yet | |")
+        print()
+        return
+    arms = list(ls["mean_ap"].keys())
+    print("| group | " + " | ".join(arms) + " |")
+    print("|---|" + "---|" * len(arms))
+    row_hi = [fmt(ls["mean_ap"][a]["high_literal"]) for a in arms]
+    row_lo = [fmt(ls["mean_ap"][a]["low_literal"]) for a in arms]
+    print(f"| high literal-mention (>= 0.5), n={ls['n_labels_high_literal_rate_ge_0.5']} | " + " | ".join(row_hi) + " |")
+    print(f"| low literal-mention (< 0.5), n={ls['n_labels_low_literal_rate_lt_0.5']} | " + " | ".join(row_lo) + " |")
+    print(f"\n_predicted_: SPARSEUP beats TF-IDF on {PRED_LABELS_WHERE_SPARSEUP_BEATS_TFIDF}")
+    print()
+
+
+def print_arm1(arm1):
+    print("## Arm 1 — direct tag recall (micro, no training)\n")
+    if not arm1:
+        print("| — | results/arm1.json not found — run arm1_recall.py first | | | | | |")
+        print()
+        return
+    note = " _(smoke test — not the pre-registered run)_" if arm1.get("smoke_test") else ""
+    print(f"| k | exact-token | (pred) | all-parts | (pred) | subword |{note}")
+    print("|---|---|---|---|---|---|")
+    mr = arm1["micro_recall"]
+    for k in arm1["ks"]:
+        e = mr["exact"].get(str(k))
+        a = mr["all_parts"].get(str(k))
+        s = mr.get("subword", {}).get(str(k))
+        print(f"| {k} | {fmt(e)} | {PRED_ARM1_EXACT.get(k, 'n/a')} | {fmt(a)} | "
+              f"{PRED_ARM1_ALL_PARTS.get(k, 'n/a')} | {fmt(s)} |")
+    stb = arm1["single_token_bound"]
+    print(f"\nSingle-token labels (bound on exact-token recall): "
+          f"{stb['n_single_token_either']}/{stb['n_labels']}\n")
+    pb = arm1.get("subword_pieces_distribution")
+    if pb:
+        print(f"Subword pieces per label: 1={pb['1']} 2={pb['2']} 3={pb['3']} 4+={pb['4+']} "
+              f"(of {stb['n_labels']})\n")
+    sw = arm1.get("subword_recall_k32_spotlight")
+    if sw:
+        print(f"Highest subword recall@{sw['k']} (n>={sw['n_min']}): " +
+              ", ".join(f"{lab} ({r:.2f})" for lab, r in sw["highest"]))
+        print(f"\nLowest subword recall@{sw['k']} (n>={sw['n_min']}): " +
+              ", ".join(f"{lab} ({r:.2f})" for lab, r in sw["lowest"]))
+    print()
 
 
 def main():
@@ -201,13 +216,12 @@ def main():
     selected = load("selected.json")
     probe_c_files = discover_probe_C_files()
 
-    print_truncation()
-    print_arm1(arm1)
-    print_c_grid(selected, probe_c_files)
     print_selected(selected)
+    print_c_grid(selected, probe_c_files)
     print_binarization(selected)
     print_bootstrap(selected)
     print_literal_split(selected)
+    print_arm1(arm1)
 
 
 if __name__ == "__main__":
