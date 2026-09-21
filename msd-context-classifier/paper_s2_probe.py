@@ -39,9 +39,17 @@ if a.knn:
     order = np.argsort(s); ranks = np.empty(len(s)); ranks[order] = np.arange(1, len(s) + 1); y = (yte == lid["msd"]).astype(int)
     auc = float((ranks[y == 1].sum() - y.sum() * (y.sum() + 1) / 2) / max(1, y.sum() * (len(y) - y.sum())))
     res["centroid_cosine_auc"] = auc; log(f"centroid-cosine AUC {auc:.3f}")
+    # k-NN vote over the training set (cosine), k=a.knn if >1 else 10: the "more like these" tool with a labelled seed set
+    k = a.knn if a.knn > 1 else 10
+    Tr = np.stack([E[r["url"]] for r in tr]); Tr = Tr / np.linalg.norm(Tr, axis=1, keepdims=True); ytr_pos = (ytr == lid["msd"]).astype(float)
+    Q = Xraw / np.linalg.norm(Xraw, axis=1, keepdims=True); S = Q @ Tr.T
+    nn = np.argsort(-S, axis=1)[:, :k]; s_knn = ytr_pos[nn].mean(1)
+    order = np.argsort(s_knn, kind="stable"); ranks = np.empty(len(s_knn)); ranks[order] = np.arange(1, len(s_knn) + 1)
+    auc_knn = float((ranks[y == 1].sum() - y.sum() * (y.sum() + 1) / 2) / max(1, y.sum() * (len(y) - y.sum())))
+    res["knn_cosine_auc"] = auc_knn; res["knn_k"] = k; log(f"{k}-NN vote AUC {auc_knn:.3f}")
 os.makedirs(os.path.join(HERE, "results"), exist_ok=True); json.dump(res, open(os.path.join(HERE, "results", f"{a.name}.json"), "w"), indent=1)
 with open(os.path.join(HERE, "results", f"{a.name}_test_preds.jsonl"), "w") as f_:
     for r, lg in zip(te, softmax(lte, res["temperature"])):
         f_.write(json.dumps({"url": r["url"], "label": r["label"], "pred": labels[int(lg.argmax())], "probs": {labels[i]: float(lg[i]) for i in range(len(labels))}}) + "\n")
-log(f"acc {res['accuracy']:.3f} macroF1 {res['macro_f1']:.3f} per-label {{ {', '.join(f'{k}: {v['f1']:.3f}' for k, v in res['per_label_f1'].items())} }}")
+log(f"acc {res['accuracy']:.3f} macroF1 {res['macro_f1']:.3f} per-label " + str({k: round(v['f1'], 3) for k, v in res['per_label_f1'].items()}))
 print(f"done -> results/{a.name}.json")

@@ -1,0 +1,48 @@
+{
+ "C": 0.03,
+ "dev_auc": 0.7425164739956169,
+ "test_auc": 0.7449987228540657,
+ "n_test_pos": 1518,
+ "n_test_neg": 1501,
+ "recall_at_fpr1": 0.07246376811594203,
+ "recall_at_fpr5": 0.19828722002635046,
+ "recall_at_fpr10": 0.3333333333333333,
+ "fpr_at_recall90": 0.5929380413057961,
+ "fpr_at_recall95": 0.7335109926715523,
+ "fpr_at_recall98": 0.8367754830113258,
+ "bibliography_recall_at_thr0": 0.3712574850299401,
+ "test_pos_cue_rate": 0.05138339920948617,
+ "cue_free_recall_at_fpr5": 0.19305555555555556,
+ "nonlinear_arms": {
+  "LR (hyperplane)": {
+   "auc": 0.7449987228540657,
+   "recall_at_fpr5": 0.19828722002635046,
+   "fpr_at_recall95": 0.7335109926715523,
+   "seconds": 0.0
+  },
+  "10-NN vote, centred cosine": {
+   "auc": 0.5781099820146253,
+   "recall_at_fpr5": 0.09025032938076416,
+   "fpr_at_recall95": 0.9260493004663558,
+   "seconds": 3.51000714302063
+  },
+  "RBF-kernel SVM": {
+   "auc": 0.7144012028871398,
+   "recall_at_fpr5": 0.15744400527009222,
+   "fpr_at_recall95": 0.7754830113257828,
+   "seconds": 257.80220007896423
+  },
+  "MLP 256 hidden": {
+   "auc": 0.712383224534544,
+   "recall_at_fpr5": 0.1732542819499341,
+   "fpr_at_recall95": 0.7668221185876083,
+   "seconds": 3.5838634967803955
+  }
+ },
+ "temporal_holdout": {
+  "train_n": 12464,
+  "test_n": 7206,
+  "test_pos": 4744,
+  "auc": 0.6870981070792059
+ }
+}

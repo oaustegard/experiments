@@ -115,6 +115,92 @@ half-wrong in that same direction.
   carry the platform names; PubMed Central's open-access subset would give the
   regex the 89% and the vocabulary adaptation something to read.
 
+## Checks run after the first result (2026-09-21, 2:15–9:30 AM Eastern)
+
+Predictions X1–X4 in the PLAN-paper.md addendum, plus two checks Oskar and a
+teammate asked for. Every number below is SPECTER2 vectors from Semantic
+Scholar's API (768-d, title + abstract, 3,443 of 3,470 PMIDs returned) unless
+it says ettin.
+
+**1. The AUC depends on how the negatives were drawn.** Same 1,004 bibliography positives,
+three negative sets:
+
+| negatives | fine-tuned ettin-32m AUC | SPECTER2 + LR AUC |
+|---|---|---|
+| my 20 topic queries (the first result above) | 0.984 | 0.966 |
+| PubMed's own "similar articles" of each positive, top 5, 1,500 sampled | 0.815 | 0.794 |
+
+Against the papers PubMed itself rates closest to MSD's, recall at 0.5 is 0.61
+at 36% false positives; at 95% precision recall is 0.07. X1 (AUC ≥ 0.95)
+**wrong**. Most of the first result was the query set. Label noise in the
+neighbour set, measured against PMC full text (below): 0.5% are MSD papers
+(1.7% of the query negatives), which moves the AUC by well under a point.
+
+**2. Semantic Scholar's SPECTER2 as the detector.** Logistic regression on the
+hosted vectors, original split: AUC 0.966, cue-free recall 0.87, two points
+under the fine-tune with no encoder of our own. X2 **right**. Cosine to the
+centroid of the positives: AUC 0.56; X3 **wrong**. MSD's bibliography is not
+one cluster in that space. 10-NN vote against the labelled set: 0.90.
+Semantic Scholar's recommendation endpoint, seeded with 100 positives and 50
+negatives, returned 499 papers all from 2026 and none of the 150 held-out
+positives: it searches recent papers only and cannot be the sweep.
+
+**3. Centring and 1-bit codes (Oskar's remex question).** Subtracting the
+training mean before cosine, the "one bit from the centre" step, takes the
+centroid detector from 0.56 to 0.91 and the k-NN vote from 0.90 to 0.93;
+SPECTER2 is anisotropic and the common direction swamps raw cosine. Logistic
+regression on 1-bit sign codes: centred 0.924, centred + random rotation
+0.942, raw 0.910, against 0.966 in float. Hard-negative FPR at 98% recall on
+the original split: ettin fine-tune 0.18, LR float 0.34, LR 1-bit rotated
+0.48, centred centroid 0.59 (`paper_s2_greedy.py`).
+
+**4. PMC full text as the labelled set.** `esearch db=pmc` for "meso scale
+discovery" OR "meso scale diagnostics": 9,999 hits returned (the endpoint's
+cap; the true count is ~14,000 against 531 PubMed abstracts), 9,927 PMIDs,
+9,818 with an abstract; 5% of those abstracts name the platform. Only 25 of
+the 1,004 bibliography papers are in it, and 99% of it is 2019 or later: the
+curated bibliography and the uncurated user population are two different
+populations. The bibliography-trained SPECTER2 detector recalls **39%** of the
+9,729 PMC papers outside the bibliography at its 0.5 point, 58% at a threshold
+passing 22% of look-alikes.
+
+**5. The modern population, properly sampled.** 9,754 PMC positives against
+9,916 of their own PubMed similar-articles (top 2 each, 116 cue-carrying
+neighbours set aside), split 70/15/15 by PMID hash, SPECTER2 vectors:
+
+| classifier | test AUC | recall at 5% neighbour-FPR | neighbour-FPR at 95% recall |
+|---|---|---|---|
+| logistic regression | **0.745** | 0.20 | 0.73 |
+| RBF-kernel SVM | 0.714 | 0.16 | 0.78 |
+| MLP, 256 hidden | 0.712 | 0.17 | 0.77 |
+| 10-NN vote, centred cosine | 0.578 | 0.09 | 0.93 |
+| logistic regression, train ≤ 2023 → test 2024+ | 0.687 | — | — |
+
+The teammate's objection that a single hyperplane cannot cover a multi-cluster
+positive class is right in principle and does not bind here: every nonlinear
+classifier on the same vectors is worse, so the limit is the information in
+the vectors, not the shape of the boundary. The PMC-trained detector recalls
+37% of the old bibliography at its 0.5 point, the mirror of check 4.
+
+**What the sequence says.** 0.98 was the bibliography against my queries; 0.82
+the bibliography against its neighbours; 0.75 the uncurated population against
+its neighbours; 0.69 across a year boundary. A title-and-abstract embedding
+trained on citation structure carries some of the "used MSD" signal, and at
+the base rate of a literature sweep, one in a few hundred at best, an AUC of
+0.75 gives a candidate list that is nearly all false positives at any usable
+recall. The abstract-level rung can rank a topic-narrowed pool; it cannot be
+the sweep.
+
+**What can.** PMC's full-text index is reachable at no cost and already returns
+~14,000 MSD papers with precision the abstract rung cannot approach; Europe
+PMC's full-text search (not reachable from this container) covers a broader
+open-access set. The pipeline that follows from this round: full-text search
+first, wherever full text exists; the SPECTER2 rung only over the non-open
+remainder, with a threshold set on the PMC-labelled positives and their
+neighbours (`paper_pmc_probe.py`), and a full-text check on whatever it
+passes. Semantic Scholar's SPECTER2 is the cheapest usable feature for that
+remainder, and nothing in this round found a better one.
+
 ## Files
 
 `PLAN-paper.md` · `paper_corpus.py` (assembly + cue regex + regex baseline
@@ -128,7 +214,7 @@ half-wrong in that same direction.
 
 - P95 thresholds chosen on test, not dev (`train.py` dumps test predictions
   only); stated above.
-- No hand check of high-scoring hard negatives; the label-noise size is
-  unknown.
+- Label noise measured against PMC full text after the first result: 1.7% of
+  the query negatives, 0.5% of the neighbour negatives.
 - One seed, one learning rate; ties are ties.
-- No full-text arm.
+- No full-text classifier arm; full-text *search* (PMC) was measured as the labelled-set source and is the recommended first rung.

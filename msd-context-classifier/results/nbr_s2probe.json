@@ -1,0 +1,39 @@
+{
+ "n_test": 520,
+ "accuracy": 0.7096153846153846,
+ "macro_f1": 0.675321184755147,
+ "ece_raw": 0.17027438569527406,
+ "ece_temp": 0.056442141647522266,
+ "temperature": 2.8,
+ "coverage_5pct": {
+  "threshold": 0.8270000219345093,
+  "coverage": 0.34423076923076923,
+  "error_at_coverage": 0.05027932960893855
+ },
+ "per_label_f1": {
+  "msd": {
+   "f1": 0.5698005698005698,
+   "n": 150
+  },
+  "not_msd": {
+   "f1": 0.7808417997097242,
+   "n": 370
+  }
+ },
+ "arm": "s2_specter2_probe",
+ "C": 0.01,
+ "n_dropped_no_embedding": 24,
+ "train_seconds": 9.793714761734009,
+ "labels": [
+  "msd",
+  "not_msd"
+ ],
+ "split": {
+  "train": 2419,
+  "dev": 518,
+  "test": 520
+ },
+ "centroid_cosine_auc": 0.7167207207207207,
+ "knn_cosine_auc": 0.6575315315315315,
+ "knn_k": 10
+}

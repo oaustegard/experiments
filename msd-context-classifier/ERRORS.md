@@ -79,3 +79,18 @@
    loss. The worker then re-woke on a Monitor to watch the parent's job until
    told to stop. A brief that says "checkpoint and resume" is not enough; the
    brief has to say "do not launch it; write the script and hand back".
+13. **The 0.98 AUC was the negative sampling.** Positives against negatives from
+   20 topic queries I wrote: AUC 0.984. The same positives against PubMed's own
+   similar-articles of each positive: 0.815. The uncurated modern population
+   against its neighbours: 0.745. Reported in the first result as a property
+   of the task; it was a property of my queries. Caught because Oskar asked
+   whether "semantics" was doing the work and the neighbour set was the cheap
+   test. Direction: every conclusion drawn from the first table overstated the
+   abstract-level detector; the recommendation changed from "regex first,
+   model second" to "full-text search first, model over the remainder".
+14. **PMC esearch returned 9,999 of ~14,000 hits** (the endpoint's retmax cap
+   without history), newest first, so the PMC positive set is 99% 2019+. The
+   temporal holdout and the bibliography-vs-PMC comparisons carry that skew.
+   Fix not applied: date-sliced queries or `usehistory`.
+15. **Semantic Scholar's recommendation endpoint is recent-papers-only**; I
+   spent one call finding that out and it is noted so nobody spends more.

@@ -1,0 +1,41 @@
+{
+ "n_test": 525,
+ "accuracy": 0.7447619047619047,
+ "macro_f1": 0.6988441780821918,
+ "ece_raw": 0.0906826895759219,
+ "ece_temp": 0.047029706750597276,
+ "temperature": 2.3,
+ "coverage_5pct": {
+  "threshold": 0.8019999861717224,
+  "coverage": 0.36,
+  "error_at_coverage": 0.03703703703703709
+ },
+ "per_label_f1": {
+  "msd": {
+   "f1": 0.58125,
+   "n": 152
+  },
+  "not_msd": {
+   "f1": 0.8164383561643835,
+   "n": 373
+  }
+ },
+ "arm": "ft",
+ "model": "models/ettin-encoder-32m",
+ "epochs": 6,
+ "lr": 5e-05,
+ "max_len": 256,
+ "params": 31883136,
+ "best_dev_macro_f1": 0.6805640711220111,
+ "ms_per_example_bs1_torch": 33.45190100003492,
+ "train_seconds": 1236.0501475334167,
+ "labels": [
+  "msd",
+  "not_msd"
+ ],
+ "split": {
+  "train": 2435,
+  "dev": 521,
+  "test": 525
+ }
+}

@@ -1,0 +1,91 @@
+nbr corpus: {('msd', 'pos'): 1004, ('not_msd', 'neighbor'): 1500, ('not_msd', 'easy'): 977}
+11:44:01 start nbr_ft_ettin_32m
+11:44:06 rows 3481 labels 2 split 2435/521/525
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 8282.27it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/ettin-encoder-32m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.bias      | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+decoder.weight    | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+11:44:13 class weights {'msd': 1.73, 'not_msd': 0.7}
+11:44:28 ep0 step 0/153 loss 0.785
+11:44:55 ep0 step 20/153 loss 0.957
+11:45:19 ep0 step 40/153 loss 0.861
+11:45:43 ep0 step 60/153 loss 0.693
+11:46:07 ep0 step 80/153 loss 0.415
+11:46:31 ep0 step 100/153 loss 0.627
+11:46:54 ep0 step 120/153 loss 0.569
+11:47:18 ep0 step 140/153 loss 0.710
+11:47:43 ep0 done train_loss 0.735 dev macroF1 0.620 acc 0.626 (210s)
+11:47:46 ep1 step 0/153 loss 0.493
+11:48:14 ep1 step 20/153 loss 0.330
+11:48:39 ep1 step 40/153 loss 0.901
+11:49:04 ep1 step 60/153 loss 0.860
+11:49:29 ep1 step 80/153 loss 0.547
+11:49:54 ep1 step 100/153 loss 0.409
+11:50:18 ep1 step 120/153 loss 0.444
+11:50:42 ep1 step 140/153 loss 0.394
+11:51:07 ep1 done train_loss 0.519 dev macroF1 0.658 acc 0.743 (202s)
+11:51:11 ep2 step 0/153 loss 0.302
+11:51:36 ep2 step 20/153 loss 0.633
+11:52:01 ep2 step 40/153 loss 0.437
+11:52:26 ep2 step 60/153 loss 0.224
+11:52:51 ep2 step 80/153 loss 0.195
+11:53:17 ep2 step 100/153 loss 0.254
+11:53:42 ep2 step 120/153 loss 0.133
+11:54:07 ep2 step 140/153 loss 0.255
+11:54:33 ep2 done train_loss 0.338 dev macroF1 0.681 acc 0.718 (204s)
+11:54:36 ep3 step 0/153 loss 0.115
+11:55:01 ep3 step 20/153 loss 0.212
+11:55:25 ep3 step 40/153 loss 0.095
+11:55:49 ep3 step 60/153 loss 0.362
+11:56:13 ep3 step 80/153 loss 0.042
+11:56:37 ep3 step 100/153 loss 0.251
+11:57:02 ep3 step 120/153 loss 0.022
+11:57:26 ep3 step 140/153 loss 0.019
+11:57:52 ep3 done train_loss 0.142 dev macroF1 0.623 acc 0.731 (197s)
+11:57:55 ep4 step 0/153 loss 0.045
+11:58:20 ep4 step 20/153 loss 0.003
+11:58:45 ep4 step 40/153 loss 0.003
+11:59:10 ep4 step 60/153 loss 0.063
+11:59:34 ep4 step 80/153 loss 0.282
+11:59:58 ep4 step 100/153 loss 0.132
+12:00:21 ep4 step 120/153 loss 0.004
+12:01:00 ep4 step 140/153 loss 0.005
+12:01:25 ep4 done train_loss 0.024 dev macroF1 0.650 acc 0.726 (211s)
+12:01:28 ep5 step 0/153 loss 0.001
+12:01:53 ep5 step 20/153 loss 0.000
+12:02:17 ep5 step 40/153 loss 0.001
+12:02:42 ep5 step 60/153 loss 0.000
+12:03:07 ep5 step 80/153 loss 0.000
+12:03:32 ep5 step 100/153 loss 0.000
+12:03:56 ep5 step 120/153 loss 0.000
+12:04:21 ep5 step 140/153 loss 0.000
+12:04:47 ep5 done train_loss 0.001 dev macroF1 0.645 acc 0.727 (200s)
+12:05:13 acc 0.745 macroF1 0.699 ece 0.091->0.047 cov@5% 0.36
+done -> /home/user/experiments/msd-context-classifier/results/nbr_ft_ettin_32m.json
+12:05:14 end nbr_ft_ettin_32m exit 0
+12:05:14 start s2 embeddings for neighbours
+1500 pmids, 3443 done, 1500 to fetch
+batch 0: 496/500 embeddings
+batch 1: 495/500 embeddings
+batch 2: 494/500 embeddings
+DONE s2. missing=15
+done -> s2_specter2.jsonl
+12:05:34 start nbr_s2probe
+12:05:40 3481 rows, 3457 with a SPECTER2 embedding (24 dropped)
+12:05:49 best C=0.01 dev macroF1=0.718 (10s)
+12:05:50 centroid-cosine AUC 0.717
+12:05:50 10-NN vote AUC 0.658
+12:05:50 acc 0.710 macroF1 0.675 per-label {'msd': 0.57, 'not_msd': 0.781}
+done -> results/nbr_s2probe.json
+12:05:50 end nbr_s2probe exit 0
+ft_ettin_32m                 AUC 0.815 | @0.5 P 0.554 R 0.612 cue-free R 0.5746268656716418 hard FPR 0.35545023696682465 | @P95 R 0.07236842105263158 cue-free R 0.007462686567164179
+s2probe                      AUC 0.794 | @0.5 P 0.498 R 0.667 cue-free R 0.6541353383458647 hard FPR 0.47619047619047616 | @P95 R None cue-free R None
+done -> results/nbr_summary.json
+12:05:51 NBR ARMS DONE

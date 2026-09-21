@@ -367,6 +367,15 @@ survives exactly the sanity checks people run.
 - `phase-a-bridges`, `te-bridges` — numbered idempotent stage scripts, each
   reading the prior stage's JSON and writing its own atomically
   (tmp-then-rename), safe to re-run.
+- **Validate a negative set with the positives' own nearest neighbours before
+  reporting an AUC.** `msd-context-classifier` round 3: bibliography positives
+  vs 20 hand-written topic queries scored AUC 0.98; vs PubMed's "similar
+  articles" of each positive 0.82; the uncurated population vs its neighbours
+  0.75; nonlinear classifiers on the same vectors all lower. A query-built
+  negative set measures how well the classifier separates your queries from
+  your positives. PubMed elink `neighbor_score` gives the hard set for free;
+  PMC full-text search gives the label-noise rate of any negative set (0.5–1.7%
+  here). (`msd-context-classifier/RESULTS-paper.md` checks 1 and 5, ERRORS #13)
 - **Before designing a vocabulary-bound task, measure how often the vocabulary
   is in the input.** `msd-context-classifier` round 3: 11% of MSD's own
   bibliography names the platform in title + abstract (predicted 30–60%), so
