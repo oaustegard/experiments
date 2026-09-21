@@ -304,6 +304,20 @@ def main():
     texts_j = json.loads((DATA / "texts.json").read_text())
     texts_by_id = dict(zip(texts_j["ids"], texts_j["texts"]))
     texts = [texts_by_id[m["id"]] for m in labelled]
+    # The encoders saw at most 512 tokens (994/3457 memories truncate); the TF-IDF arms
+    # above see the whole text. This arm gives TF-IDF the encoder's view: the same
+    # tokenizer, the same "[D] " prompt budget, decoded back to text.
+    trunc_cache = DATA / "texts_trunc512.json"
+    if trunc_cache.exists() and not is_smoke:
+        texts_trunc = json.loads(trunc_cache.read_text())
+        texts_trunc = [texts_trunc[m["id"]] for m in labelled]
+    else:
+        from transformers import AutoTokenizer
+        tok = AutoTokenizer.from_pretrained("Linkup-Platform/linkup-sparseup-embed-v1")
+        budget = 512 - len(tok("[D] ", add_special_tokens=True)["input_ids"])
+        texts_trunc = [tok.decode(tok(t, add_special_tokens=False)["input_ids"][:budget]) for t in texts]
+        if not is_smoke:
+            trunc_cache.write_text(json.dumps({m["id"]: t for m, t in zip(labelled, texts_trunc)}))
 
     print("running CV per arm ...", file=sys.stderr)
     proba = {}
@@ -315,6 +329,7 @@ def main():
         ("tfidf_word+char", lambda: cv_predict_tfidf(texts, Y, fold_of, args.folds, "word+char")),
         ("gte_small", lambda: cv_predict_fixed(D, Y, fold_of, args.folds)),
         ("prior", lambda: cv_predict_prior(Y, fold_of, args.folds)),
+        ("tfidf_word+char_trunc512", lambda: cv_predict_tfidf(texts_trunc, Y, fold_of, args.folds, "word+char")),
     ]
     RESULTS.mkdir(exist_ok=True)
     for name, fn in arms:
@@ -444,7 +459,7 @@ def main():
           f"{args.folds}-fold CV, {L} labels")
     print(f"{'arm':<18}{'micro-F1':>10}{'macro-F1':>10}{'P@5':>8}")
     for arm in ("sparseup", "sparseup_binary", "tfidf_word", "tfidf_char",
-                "tfidf_word+char", "gte_small", "prior", "shuffled"):
+                "tfidf_word+char", "tfidf_word+char_trunc512", "gte_small", "prior", "shuffled"):
         m = arm_metrics[arm]
         print(f"{arm:<18}{m['micro_f1']:>10.4f}{m['macro_f1']:>10.4f}{m['p_at_5']:>8.4f}")
     print(f"\nbinarization gap (sparseup - sparseup_binary): micro-F1 {gap['micro_f1']:+.4f}, "
