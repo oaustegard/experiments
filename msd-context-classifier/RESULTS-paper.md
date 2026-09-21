@@ -115,7 +115,7 @@ half-wrong in that same direction.
   carry the platform names; PubMed Central's open-access subset would give the
   regex the 89% and the vocabulary adaptation something to read.
 
-## Checks run after the first result (2026-09-21, 2:15–9:30 AM Eastern)
+## Later checks (2026-09-21)
 
 Predictions X1–X4 in the PLAN-paper.md addendum, plus two checks Oskar and a
 teammate asked for. Every number below is SPECTER2 vectors from Semantic
