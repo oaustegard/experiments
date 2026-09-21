@@ -208,6 +208,7 @@ def main():
         ts = []
         for x in Xte[:20]:
             t = time.perf_counter(); embed(enc, tok, [x], a.max_len, 1); ts.append(time.perf_counter() - t)
+        _test_logits = lte
         res = evaluate(a.name, ldv, ydv, lte, yte, len(labels), labels,
                        {"arm": "probe", "model": a.model, "C": C, "params": n_params, "ms_per_example_bs1_torch": 1000 * float(np.median(ts)), "train_seconds": time.time() - t0})
         if queries:
@@ -252,6 +253,7 @@ def main():
         ts = []
         for x in Xte[:20]:
             t = time.perf_counter(); predict_logits(model, tok, [x], a.max_len, 1); ts.append(time.perf_counter() - t)
+        _test_logits = lte
         res = evaluate(a.name, ldv, ydv, lte, yte, len(labels), labels,
                        {"arm": "ft", "model": a.model, "epochs": a.epochs, "lr": a.lr, "max_len": a.max_len, "params": n_params, "best_dev_macro_f1": best_f1,
                         "ms_per_example_bs1_torch": 1000 * float(np.median(ts)), "train_seconds": train_s})
@@ -266,6 +268,9 @@ def main():
             ck = os.path.join(HERE, "models", f"ckpt_{a.name}_ep{ep}.pt")
             if os.path.exists(ck): os.remove(ck)
     res["labels"] = labels; res["split"] = {"train": len(tr), "dev": len(dv), "test": len(te)}
+    with open(os.path.join(HERE, "results", f"{a.name}_test_preds.jsonl"), "w") as f_:
+        for r, lg in zip(te, softmax(_test_logits, res["temperature"])):
+            f_.write(json.dumps({"url": r["url"], "label": r["label"], "pred": labels[int(lg.argmax())], "probs": {labels[i]: float(lg[i]) for i in range(len(labels))}}) + "\n")
     json.dump(res, open(out_path, "w"), indent=1)
     log(f"acc {res['accuracy']:.3f} macroF1 {res['macro_f1']:.3f} ece {res['ece_raw']:.3f}->{res['ece_temp']:.3f} cov@5% {res['coverage_5pct']['coverage']:.2f}" + (f" | queries acc {res['queries']['accuracy']:.3f} f1 {res['queries']['macro_f1']:.3f}" if queries else ""))
     print(f"done -> {out_path}", flush=True)
