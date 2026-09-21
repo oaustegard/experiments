@@ -3551,3 +3551,31 @@ recommendation about what to train should wait for the training run
 (five arms at 32M parameters cost 2.5 hours on 4 vCPU). Pre-register both,
 score the ablation prediction against the trained result.
 (`modernbert-bidirectionality/`)
+
+### Compare probe arms on AP or at each arm's own threshold; F1 at 0.5 ranks calibration
+
+Two confounds in one one-vs-rest LR comparison across representations
+(`sparseup-tag-probe/`, 325 labels, 1–14% positives each):
+
+- **One C is a different prior per arm when feature scales differ.** TF-IDF and
+  gte-small rows are unit-norm; SPLADE-style weights ran to 3.9 with a mean row
+  norm of 32. At C = 1 TF-IDF scored micro-F1 0.16 against 0.49; at C = 10000,
+  0.45 against 0.53, and on AP TF-IDF was ahead throughout. Sweep C per arm and
+  select per arm (by a threshold-free metric), and report the grid.
+- **F1 at a fixed 0.5 orders arms by where their sigmoid sits.** Under 1% of
+  probability cells crossed 0.5 for the sparse and TF-IDF arms; the arm with the
+  best-calibrated positives won F1@0.5 and lost AP by 0.05. Use micro/macro-AP
+  and P@k, and if F1 is wanted, F1 at each arm's best single global threshold.
+  Pre-registering F1@0.5 as the metric did not make it diagnostic; the plan
+  should have named the null reading for it.
+
+Both were visible in the first table and neither was caught by re-running the
+science. A scheduled adversarial read of the numbers found the second.
+(`sparseup-tag-probe/ERRORS.md` #3–#5)
+
+### A local `select.py` is shadowed by the stdlib `select` module
+
+`from select import micro_ap` imports CPython's built-in `select` and raises
+`ImportError: cannot import name`, whatever sits in the working directory. Load
+it by path with `importlib.util.spec_from_file_location`, or name the file
+something the stdlib does not own. (`sparseup-tag-probe/recheck.py`)
