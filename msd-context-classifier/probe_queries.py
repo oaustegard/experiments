@@ -15,7 +15,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from train import load_corpus, split_rows, texts_of, embed, macro_f1, log
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MODEL = os.path.join(HERE, "models", "gte-small")
+MODEL = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "models", "gte-small")
+TAG = sys.argv[2] if len(sys.argv) > 2 else "gte_small"
 rows = load_corpus(os.path.join(HERE, "data", "corpus.jsonl")); labels = sorted({r["label"] for r in rows}); lid = {l: i for i, l in enumerate(labels)}
 tr, dv, te = split_rows(rows)
 qs = [json.loads(l) for l in open(os.path.join(HERE, "data", "queries.jsonl")) if l.strip()]
@@ -52,6 +53,6 @@ for c, l in enumerate(labels):
     p_ = tp / (tp + fp) if tp + fp else 0.0; r_ = tp / (tp + fn) if tp + fn else 0.0
     res["q_per_label_f1"][l] = round(float(2 * p_ * r_ / (p_ + r_) if p_ + r_ else 0.0), 3)
 res["labels"] = labels; res["C"] = C; res["class_weight"] = "balanced"
-out = os.path.join(HERE, "results", "probe_queries.json"); json.dump(res, open(out, "w"), indent=1)
+out = os.path.join(HERE, "results", f"probe_queries_{TAG}.json"); json.dump(res, open(out, "w"), indent=1)
 log({n: round(res["arms"][n]["macro_f1_mean"], 3) for n in per})
 print(f"done -> {out}", flush=True)
