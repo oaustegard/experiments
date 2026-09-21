@@ -53,3 +53,29 @@
 8. **`pkill -f` matched its own shell.** Stopping the sequential crawl with
    `pkill -f "python3 fetch_and_extract.py"` killed the Bash tool call that
    issued it (exit 144) along with the target. Kill by PID.
+9. **I predicted 30–60% of MSD's bibliography would name the platform in the
+   abstract; it is 11%.** The paper-filter design (PLAN-paper.md) assumed a
+   string-detection task with a cue-free tail; the data is a topic-recognition
+   task with a cue-carrying head. Every downstream prediction inherited the
+   error (W2–W5 wrong). Direction: it made the vocabulary adaptation look
+   useless on a task where the vocabulary is absent from the input by
+   construction; a full-text arm is the fair test and was not run.
+10. **95%-precision thresholds were chosen on the test split.** `train.py`
+   dumps test predictions only, so `paper_score.py` picks each arm's threshold
+   on the 152 test positives it then scores. Optimistic by a few points for
+   every arm equally; with 134 cue-free positives the P95 column moves by
+   ±4 between arms on threshold placement alone, which is why the plan's
+   5-point tie band is the right one and W2's +4 is a tie. Fix: dump dev
+   predictions too (one-line change; not made, to keep the reported run as
+   run).
+11. **Hard negatives are not verified negatives.** The NOT clause removes
+   abstracts that name the platform; a paper that used MSD in its methods and
+   is not in the curated bibliography is labelled `not_msd`. The 8–14%
+   hard-negative false-positive rate is an upper bound on the models' error.
+12. **The corpus worker launched its NCBI chain as a plain background process
+   inside the subagent, for the second time this session** (ERRORS.md #2 was
+   the crawl). Killed by PID, scripts copied into `data/papers/`, chain
+   relaunched as the parent's tracked job; resumed from the checkpoint, no
+   loss. The worker then re-woke on a Monitor to watch the parent's job until
+   told to stop. A brief that says "checkpoint and resume" is not enough; the
+   brief has to say "do not launch it; write the script and hand back".

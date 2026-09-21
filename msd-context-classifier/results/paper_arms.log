@@ -1,0 +1,279 @@
+03:12:24 start paper_probe_gte_small
+03:12:28 rows 3470 labels 2 split 2428/519/523
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 2075.32it/s]
+03:29:59 embedded in 1050s
+03:30:02 probe best C=30.0 dev macroF1=0.850
+03:30:07 acc 0.893 macroF1 0.870 ece 0.061->0.037 cov@5% 0.62
+done -> /home/user/experiments/msd-context-classifier/results/paper_probe_gte_small.json
+03:30:08 end paper_probe_gte_small exit 0
+03:30:08 start paper_ft_ettin_32m
+03:30:12 rows 3470 labels 2 split 2428/519/523
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 6983.56it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/ettin-encoder-32m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.weight    | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+decoder.bias      | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+03:30:13 class weights {'msd': 1.73, 'not_msd': 0.7}
+03:30:15 ep0 step 0/152 loss 1.784
+03:30:38 ep0 step 20/152 loss 0.693
+03:31:02 ep0 step 40/152 loss 0.406
+03:31:25 ep0 step 60/152 loss 0.160
+03:31:48 ep0 step 80/152 loss 0.092
+03:32:12 ep0 step 100/152 loss 0.523
+03:32:35 ep0 step 120/152 loss 0.127
+03:32:58 ep0 step 140/152 loss 0.041
+03:33:22 ep0 done train_loss 0.489 dev macroF1 0.871 acc 0.894 (189s)
+03:33:25 ep1 step 0/152 loss 0.174
+03:33:48 ep1 step 20/152 loss 0.093
+03:34:12 ep1 step 40/152 loss 0.383
+03:34:35 ep1 step 60/152 loss 0.014
+03:34:58 ep1 step 80/152 loss 0.256
+03:35:21 ep1 step 100/152 loss 0.207
+03:35:45 ep1 step 120/152 loss 0.063
+03:36:08 ep1 step 140/152 loss 0.008
+03:36:32 ep1 done train_loss 0.233 dev macroF1 0.901 acc 0.915 (188s)
+03:36:35 ep2 step 0/152 loss 0.195
+03:36:58 ep2 step 20/152 loss 0.233
+03:37:22 ep2 step 40/152 loss 0.008
+03:37:45 ep2 step 60/152 loss 0.017
+03:38:08 ep2 step 80/152 loss 1.266
+03:38:32 ep2 step 100/152 loss 0.111
+03:38:55 ep2 step 120/152 loss 0.593
+03:39:19 ep2 step 140/152 loss 0.094
+03:39:43 ep2 done train_loss 0.084 dev macroF1 0.897 acc 0.917 (189s)
+03:39:46 ep3 step 0/152 loss 0.000
+03:40:09 ep3 step 20/152 loss 0.011
+03:40:33 ep3 step 40/152 loss 0.405
+03:40:57 ep3 step 60/152 loss 0.000
+03:41:21 ep3 step 80/152 loss 0.000
+03:41:45 ep3 step 100/152 loss 0.000
+03:42:10 ep3 step 120/152 loss 0.000
+03:42:35 ep3 step 140/152 loss 0.000
+03:43:00 ep3 done train_loss 0.027 dev macroF1 0.903 acc 0.921 (196s)
+03:43:03 ep4 step 0/152 loss 0.000
+03:43:28 ep4 step 20/152 loss 0.000
+03:43:51 ep4 step 40/152 loss 0.000
+03:44:15 ep4 step 60/152 loss 0.000
+03:44:39 ep4 step 80/152 loss 0.000
+03:45:03 ep4 step 100/152 loss 0.000
+03:45:26 ep4 step 120/152 loss 0.000
+03:45:49 ep4 step 140/152 loss 0.000
+03:46:13 ep4 done train_loss 0.005 dev macroF1 0.904 acc 0.921 (191s)
+03:46:16 ep5 step 0/152 loss 0.000
+03:46:39 ep5 step 20/152 loss 0.000
+03:47:03 ep5 step 40/152 loss 0.000
+03:47:26 ep5 step 60/152 loss 0.000
+03:47:50 ep5 step 80/152 loss 0.000
+03:48:13 ep5 step 100/152 loss 0.000
+03:48:36 ep5 step 120/152 loss 0.000
+03:48:59 ep5 step 140/152 loss 0.000
+03:49:23 ep5 done train_loss 0.000 dev macroF1 0.904 acc 0.921 (188s)
+03:49:48 acc 0.941 macroF1 0.929 ece 0.054->0.031 cov@5% 0.91
+done -> /home/user/experiments/msd-context-classifier/results/paper_ft_ettin_32m.json
+03:49:49 end paper_ft_ettin_32m exit 0
+03:49:49 start paper_ft_dapt_term_32m
+03:49:53 rows 3470 labels 2 split 2428/519/523
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 2297.66it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/dapt_term_ettin_32m
+Key               | Status     |  | 
+------------------+------------+--+-
+head.dense.weight | UNEXPECTED |  | 
+decoder.bias      | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+03:49:54 class weights {'msd': 1.73, 'not_msd': 0.7}
+03:49:56 ep0 step 0/152 loss 1.590
+03:50:19 ep0 step 20/152 loss 0.709
+03:50:43 ep0 step 40/152 loss 0.387
+03:51:06 ep0 step 60/152 loss 0.223
+03:51:30 ep0 step 80/152 loss 0.180
+03:51:53 ep0 step 100/152 loss 0.352
+03:52:16 ep0 step 120/152 loss 0.073
+03:52:41 ep0 step 140/152 loss 0.060
+03:53:06 ep0 done train_loss 0.482 dev macroF1 0.865 acc 0.896 (192s)
+03:53:09 ep1 step 0/152 loss 0.261
+03:53:33 ep1 step 20/152 loss 0.531
+03:53:57 ep1 step 40/152 loss 0.067
+03:54:20 ep1 step 60/152 loss 0.110
+03:54:43 ep1 step 80/152 loss 0.046
+03:55:06 ep1 step 100/152 loss 0.195
+03:55:30 ep1 step 120/152 loss 0.009
+03:55:53 ep1 step 140/152 loss 0.002
+03:56:17 ep1 done train_loss 0.201 dev macroF1 0.898 acc 0.911 (190s)
+03:56:20 ep2 step 0/152 loss 0.141
+03:56:44 ep2 step 20/152 loss 0.232
+03:57:07 ep2 step 40/152 loss 0.001
+03:57:31 ep2 step 60/152 loss 0.010
+03:57:54 ep2 step 80/152 loss 1.147
+03:58:18 ep2 step 100/152 loss 0.001
+03:58:41 ep2 step 120/152 loss 0.459
+03:59:05 ep2 step 140/152 loss 0.012
+03:59:29 ep2 done train_loss 0.082 dev macroF1 0.910 acc 0.923 (190s)
+03:59:32 ep3 step 0/152 loss 0.000
+03:59:55 ep3 step 20/152 loss 0.000
+04:00:18 ep3 step 40/152 loss 0.320
+04:00:41 ep3 step 60/152 loss 0.001
+04:01:04 ep3 step 80/152 loss 0.000
+04:01:27 ep3 step 100/152 loss 0.000
+04:01:51 ep3 step 120/152 loss 0.000
+04:02:14 ep3 step 140/152 loss 0.000
+04:02:38 ep3 done train_loss 0.019 dev macroF1 0.889 acc 0.911 (187s)
+04:02:40 ep4 step 0/152 loss 0.000
+04:03:03 ep4 step 20/152 loss 0.000
+04:03:27 ep4 step 40/152 loss 0.000
+04:03:50 ep4 step 60/152 loss 0.000
+04:04:14 ep4 step 80/152 loss 0.000
+04:04:37 ep4 step 100/152 loss 0.000
+04:05:01 ep4 step 120/152 loss 0.000
+04:05:24 ep4 step 140/152 loss 0.000
+04:05:48 ep4 done train_loss 0.002 dev macroF1 0.890 acc 0.911 (189s)
+04:05:51 ep5 step 0/152 loss 0.000
+04:06:15 ep5 step 20/152 loss 0.000
+04:06:38 ep5 step 40/152 loss 0.000
+04:07:02 ep5 step 60/152 loss 0.000
+04:07:26 ep5 step 80/152 loss 0.000
+04:07:49 ep5 step 100/152 loss 0.000
+04:08:13 ep5 step 120/152 loss 0.000
+04:08:37 ep5 step 140/152 loss 0.000
+04:09:01 ep5 done train_loss 0.000 dev macroF1 0.906 acc 0.923 (191s)
+04:09:26 acc 0.927 macroF1 0.915 ece 0.059->0.018 cov@5% 0.94
+done -> /home/user/experiments/msd-context-classifier/results/paper_ft_dapt_term_32m.json
+04:09:27 end paper_ft_dapt_term_32m exit 0
+04:09:27 start paper_ft_dapt_vocab_term_32m
+04:09:31 rows 3470 labels 2 split 2428/519/523
+Loading weights:   0%|          | 0/62 [00:00<?, ?it/s]Loading weights: 100%|██████████| 62/62 [00:00<00:00, 2226.35it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/dapt_vocab_term_ettin_32m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.bias      | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+04:09:32 class weights {'msd': 1.73, 'not_msd': 0.7}
+04:09:34 ep0 step 0/152 loss 1.702
+04:09:58 ep0 step 20/152 loss 0.714
+04:10:21 ep0 step 40/152 loss 0.383
+04:10:45 ep0 step 60/152 loss 0.189
+04:11:09 ep0 step 80/152 loss 0.204
+04:11:33 ep0 step 100/152 loss 0.241
+04:11:56 ep0 step 120/152 loss 0.074
+04:12:20 ep0 step 140/152 loss 0.037
+04:12:45 ep0 done train_loss 0.471 dev macroF1 0.884 acc 0.904 (193s)
+04:12:48 ep1 step 0/152 loss 0.166
+04:13:11 ep1 step 20/152 loss 0.138
+04:13:36 ep1 step 40/152 loss 0.070
+04:13:59 ep1 step 60/152 loss 0.176
+04:14:23 ep1 step 80/152 loss 0.098
+04:14:46 ep1 step 100/152 loss 0.162
+04:15:10 ep1 step 120/152 loss 0.008
+04:15:33 ep1 step 140/152 loss 0.008
+04:15:57 ep1 done train_loss 0.163 dev macroF1 0.895 acc 0.911 (191s)
+04:16:00 ep2 step 0/152 loss 0.028
+04:16:24 ep2 step 20/152 loss 0.204
+04:16:47 ep2 step 40/152 loss 0.001
+04:17:11 ep2 step 60/152 loss 0.019
+04:17:35 ep2 step 80/152 loss 1.068
+04:18:00 ep2 step 100/152 loss 0.000
+04:18:24 ep2 step 120/152 loss 0.940
+04:18:49 ep2 step 140/152 loss 0.037
+04:19:15 ep2 done train_loss 0.082 dev macroF1 0.907 acc 0.923 (196s)
+04:19:18 ep3 step 0/152 loss 0.000
+04:19:42 ep3 step 20/152 loss 0.000
+04:20:07 ep3 step 40/152 loss 0.600
+04:20:30 ep3 step 60/152 loss 0.000
+04:20:55 ep3 step 80/152 loss 0.000
+04:21:19 ep3 step 100/152 loss 0.023
+04:21:42 ep3 step 120/152 loss 0.000
+04:22:06 ep3 step 140/152 loss 0.000
+04:22:31 ep3 done train_loss 0.024 dev macroF1 0.897 acc 0.919 (194s)
+04:22:34 ep4 step 0/152 loss 0.000
+04:22:57 ep4 step 20/152 loss 0.000
+04:23:21 ep4 step 40/152 loss 0.000
+04:23:45 ep4 step 60/152 loss 0.000
+04:24:09 ep4 step 80/152 loss 0.000
+04:24:32 ep4 step 100/152 loss 0.000
+04:24:56 ep4 step 120/152 loss 0.000
+04:25:20 ep4 step 140/152 loss 0.000
+04:25:44 ep4 done train_loss 0.002 dev macroF1 0.900 acc 0.915 (192s)
+04:25:47 ep5 step 0/152 loss 0.000
+04:26:11 ep5 step 20/152 loss 0.000
+04:26:36 ep5 step 40/152 loss 0.000
+04:27:00 ep5 step 60/152 loss 0.000
+04:27:23 ep5 step 80/152 loss 0.000
+04:27:47 ep5 step 100/152 loss 0.000
+04:28:11 ep5 step 120/152 loss 0.000
+04:28:35 ep5 step 140/152 loss 0.000
+04:28:59 ep5 done train_loss 0.000 dev macroF1 0.896 acc 0.915 (194s)
+04:29:25 acc 0.943 macroF1 0.931 ece 0.047->0.018 cov@5% 0.95
+done -> /home/user/experiments/msd-context-classifier/results/paper_ft_dapt_vocab_term_32m.json
+04:29:26 end paper_ft_dapt_vocab_term_32m exit 0
+04:29:26 start paper_ft_ettin_150m
+04:29:30 rows 3470 labels 2 split 2428/519/523
+Loading weights:   0%|          | 0/134 [00:00<?, ?it/s]Loading weights: 100%|██████████| 134/134 [00:00<00:00, 8491.78it/s]
+[transformers] [1mModernBertModel LOAD REPORT[0m from: models/ettin-encoder-150m
+Key               | Status     |  | 
+------------------+------------+--+-
+decoder.bias      | UNEXPECTED |  | 
+head.norm.weight  | UNEXPECTED |  | 
+head.dense.weight | UNEXPECTED |  | 
+decoder.weight    | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+04:29:31 class weights {'msd': 1.73, 'not_msd': 0.7}
+04:29:44 ep0 step 0/152 loss 0.808
+04:32:31 ep0 step 20/152 loss 0.438
+04:35:10 ep0 step 40/152 loss 0.352
+04:37:48 ep0 step 60/152 loss 0.220
+04:40:25 ep0 step 80/152 loss 0.500
+04:43:02 ep0 step 100/152 loss 0.020
+04:45:40 ep0 step 120/152 loss 0.091
+04:48:14 ep0 step 140/152 loss 0.476
+04:50:51 ep0 done train_loss 0.386 dev macroF1 0.876 acc 0.902 (1280s)
+04:51:10 ep1 step 0/152 loss 0.189
+04:53:41 ep1 step 20/152 loss 0.106
+04:56:14 ep1 step 40/152 loss 0.014
+04:58:46 ep1 step 60/152 loss 0.031
+05:01:19 ep1 step 80/152 loss 0.173
+05:03:52 ep1 step 100/152 loss 0.129
+05:06:26 ep1 step 120/152 loss 0.206
+05:08:59 ep1 step 140/152 loss 0.014
+05:11:36 ep1 done train_loss 0.168 dev macroF1 0.907 acc 0.923 (1234s)
+05:11:48 ep2 step 0/152 loss 0.006
+05:14:20 ep2 step 20/152 loss 0.475
+05:16:52 ep2 step 40/152 loss 0.001
+05:19:25 ep2 step 60/152 loss 0.003
+05:21:58 ep2 step 80/152 loss 0.803
+05:24:31 ep2 step 100/152 loss 0.000
+05:27:03 ep2 step 120/152 loss 0.706
+05:29:35 ep2 step 140/152 loss 0.619
+05:32:10 ep2 done train_loss 0.079 dev macroF1 0.923 acc 0.934 (1230s)
+05:32:22 ep3 step 0/152 loss 0.000
+05:34:54 ep3 step 20/152 loss 0.000
+05:37:27 ep3 step 40/152 loss 0.176
+05:40:01 ep3 step 60/152 loss 0.001
+05:42:34 ep3 step 80/152 loss 0.000
+05:45:07 ep3 step 100/152 loss 0.386
+05:47:37 ep3 step 120/152 loss 0.003
+05:50:03 ep3 step 140/152 loss 0.000
+05:52:34 ep3 done train_loss 0.021 dev macroF1 0.920 acc 0.934 (1220s)
+05:55:09 acc 0.925 macroF1 0.914 ece 0.068->0.026 cov@5% 0.94
+done -> /home/user/experiments/msd-context-classifier/results/paper_ft_ettin_150m.json
+05:55:10 end paper_ft_ettin_150m exit 0
+ft_dapt_term_32m             AUC 0.983 | @0.5 P 0.835 R 0.934 cue-free R 0.9328358208955224 hard FPR 0.1261682242990654 | @P95 R 0.7960526315789473 cue-free R 0.7985074626865671
+ft_dapt_vocab_term_32m       AUC 0.984 | @0.5 P 0.881 R 0.928 cue-free R 0.9253731343283582 hard FPR 0.08411214953271028 | @P95 R 0.7236842105263158 cue-free R 0.746268656716418
+ft_ettin_150m                AUC 0.983 | @0.5 P 0.819 R 0.954 cue-free R 0.9552238805970149 hard FPR 0.14018691588785046 | @P95 R 0.6973684210526315 cue-free R 0.6940298507462687
+ft_ettin_32m                 AUC 0.984 | @0.5 P 0.885 R 0.914 cue-free R 0.9104477611940298 hard FPR 0.0794392523364486 | @P95 R 0.75 cue-free R 0.7611940298507462
+probe_gte_small              AUC 0.952 | @0.5 P 0.820 R 0.809 cue-free R 0.7910447761194029 hard FPR 0.1261682242990654 | @P95 R 0.4407894736842105 cue-free R 0.4253731343283582
+done -> results/paper_summary.json
+05:55:10 PAPER ARMS DONE

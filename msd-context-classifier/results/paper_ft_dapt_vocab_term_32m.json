@@ -1,0 +1,41 @@
+{
+ "n_test": 523,
+ "accuracy": 0.9426386233269598,
+ "macro_f1": 0.9314871096206245,
+ "ece_raw": 0.04667904078390583,
+ "ece_temp": 0.018151729216311238,
+ "temperature": 3.4,
+ "coverage_5pct": {
+  "threshold": 0.671999990940094,
+  "coverage": 0.9464627151051626,
+  "error_at_coverage": 0.03838383838383841
+ },
+ "per_label_f1": {
+  "msd": {
+   "f1": 0.9038461538461539,
+   "n": 152
+  },
+  "not_msd": {
+   "f1": 0.9591280653950953,
+   "n": 371
+  }
+ },
+ "arm": "ft",
+ "model": "models/dapt_vocab_term_ettin_32m",
+ "epochs": 6,
+ "lr": 5e-05,
+ "max_len": 256,
+ "params": 31998336,
+ "best_dev_macro_f1": 0.9066009213936078,
+ "ms_per_example_bs1_torch": 37.873951498113456,
+ "train_seconds": 1169.1876628398895,
+ "labels": [
+  "msd",
+  "not_msd"
+ ],
+ "split": {
+  "train": 2428,
+  "dev": 519,
+  "test": 523
+ }
+}

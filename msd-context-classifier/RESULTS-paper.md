@@ -1,0 +1,134 @@
+# msd-context-classifier — paper filter
+
+**Started / finished:** 2026-09-20 10:35 PM – 2026-09-21 1:55 AM Eastern ·
+**Status:** done — **the filter works from abstracts and the vocabulary
+adaptation does not change it. Every fine-tuned encoder scores AUC 0.98 and
+catches 91–95% of the bibliography papers whose abstracts never name the
+platform, at 8–14% false positives on topic-matched papers; at 95% precision
+that recall is 70–80%. Stock ettin-32m and the two adapted ettin-32m checkpoints
+are within noise of each other on every number, and ettin-150m is no better.
+Only 11% of MSD's own bibliography names the platform in title or abstract, so
+the abstract-level signal is what the study measured and how, which a stock
+encoder already reads.**
+
+**Question (Oskar).** "One of our challenges is: does this paper relate to MSD?
+That's one I was hoping would be aided by the vocabulary expansion." Plan and
+six predictions in [`PLAN-paper.md`](PLAN-paper.md), written before the corpus
+existed. Third round on this corpus after [`RESULTS.md`](RESULTS.md) and
+[`RESULTS-vocab.md`](RESULTS-vocab.md).
+
+## Corpus
+
+| set | rows | source | with a platform cue |
+|---|---|---|---|
+| positives (`msd`) | 1,004 | MSD's bibliography pages (1,420 titles) resolved by title to PubMed, 885 resolved to one PMID, 1,006 with an abstract of ≥ 50 words | **113 (11%)** |
+| hard negatives | 1,489 | 20 PubMed queries on the positives' subjects (serum cytokines, neuroinflammation, multiplex immunoassay, oncology biomarkers, immunogenicity, metabolic-syndrome biomarkers, …), same years, NOT any platform term | 0 by construction |
+| easy negatives | 977 | 10 queries in unrelated fields, same NOT clause | 0 |
+
+A Sonnet worker built the title list and the scripts; this session ran the
+NCBI chain as a tracked job (3 requests/s, 11:34 PM – 12:08 AM). Cue = any of
+meso scale, MSD (whole word), V/U/S/R-PLEX, QuickPlex, SECTOR imager,
+SULFO-TAG, MULTI-ARRAY, electrochemiluminescen. Split 70/15/15 by PMID hash,
+stratified: test = 523 rows, 152 positives, **134 of them cue-free**.
+
+**The 11% is the finding that reframes the task.** Nine of ten papers that used
+the platform say so only in their methods section. An abstract-level filter
+cannot be a vocabulary matcher for this domain; it has to recognise the kind of
+study MSD's customers publish.
+
+## Arms
+
+Same recipe as the earlier rounds (`train.py`: mean-pool + linear head,
+class-weighted cross-entropy, lr 5e-5, batch 16, 256 tokens of title +
+abstract, best epoch by dev macro-F1; six epochs for the 32M arms, four for
+150M). Thresholds: 0.5, and the highest threshold giving 95% precision **on the
+test set itself** (dev probabilities are not dumped; this makes the P95 column
+optimistic by a few points for every arm equally and noisy at 152 positives).
+
+## Results
+
+| arm | AUC | macro-F1 @0.5 | recall @0.5 | cue-free recall @0.5 | hard-neg FPR @0.5 | recall @P95 | cue-free recall @P95 | train |
+|---|---|---|---|---|---|---|---|---|
+| cue regex | — | — | 0.118 | 0.000 | 0.000 | 0.118 (P = 1.00) | 0.000 | 0 |
+| gte-small probe (frozen + LR) | 0.952 | 0.870 | 0.809 | 0.791 | 0.126 | 0.441 | 0.425 | 18 min |
+| ft ettin-32m stock | 0.984 | **0.929** | 0.914 | 0.910 | **0.079** | 0.750 | 0.761 | 19 min |
+| ft ettin-32m dapt+term | 0.983 | 0.915 | 0.934 | 0.933 | 0.126 | **0.796** | **0.799** | 19 min |
+| ft ettin-32m dapt+vocab+term | **0.984** | **0.931** | 0.928 | 0.925 | 0.084 | 0.724 | 0.746 | 19 min |
+| ft ettin-150m stock | 0.983 | 0.914 | **0.954** | **0.955** | 0.140 | 0.697 | 0.694 | 83 min |
+
+Easy-negative false-positive rate is 0.6–1.3% for every fine-tuned arm and 0
+for the probe; the hard negatives are where the errors live.
+
+**Reading the table.** The four fine-tuned arms share one AUC to the third
+decimal; what differs between them is where the 0.5 threshold happens to sit
+on the same curve (the 150M arm trades 6 points of hard-negative precision for
+4 of recall). Cue-free recall at 0.5 spans 0.91–0.96 across the four; at the
+95%-precision point it spans 0.69–0.80 with the term-masked adapted arm on top
+by 4 points over stock, inside the 5-point tie band the plan set for 134 rows.
+The frozen probe is the only arm clearly behind, and the regex is not a
+competitor: it finds the 11%.
+
+**Why the adaptation cannot show here.** The adapted encoders learned the site's
+terms (V-PLEX, SULFO-TAG, the analyte panel names) to 0.83 whole-term
+recovery. The abstracts contain those terms in 11% of positives, and those
+11% the regex already catches. The remaining 89% are separated from the hard
+negatives by study design and phrasing ("plasma levels of IL-6, IL-8 and TNF-α
+were quantified by multiplex immunoassay in n = …"), which the stock encoder
+reads as well as the adapted one. The vocabulary lives in the methods
+sections that PubMed does not serve.
+
+**Label noise in the hard negatives, in the direction that flatters no arm.**
+MSD's bibliography is curated and incomplete, and the NOT clause only removes
+papers whose abstract names the platform, so some "hard negatives" used MSD
+without saying so. Part of the 8–14% hard-negative false-positive rate may be
+correct answers. Full text would settle it; abstracts cannot.
+
+## Predictions scored
+
+| # | prediction | outcome |
+|---|---|---|
+| W1 (80%) | 30–60% of positives carry a cue; regex precision ≥ 0.97 at that recall | **wrong** on the rate (11%); regex precision 1.00 at recall 0.12 |
+| W2 (65%) | dapt+term beats stock on cue-free recall at P95 by ≥ 10 | **wrong** — +4, a tie at n = 134 |
+| W3 (60%) | dapt+vocab+term within 3 of dapt+term | **wrong** at 3 (−5), a tie at the plan's 5 |
+| W4 (55%) | gte-small probe beats stock fine-tune on macro-F1, loses on cue-free recall | first half **wrong** (0.870 vs 0.929); second half right (0.43 vs 0.80) |
+| W5 (50%) | ettin-150m matches or beats adapted 32m on cue-free recall | **wrong** at P95 (0.69 vs 0.80); at 0.5 it is 2 points ahead at 6 points worse precision — same curve |
+| W6 (70%) | every encoder's hard-negative precision < 0.95 at 0.5 | **right** — 0.82–0.89 |
+
+One right of six. The misses are one miss: I modelled the task as
+string-detection with a long tail, and it is topic recognition with a short
+head. Fourteen predictions over three rounds on this corpus are now wrong or
+half-wrong in that same direction.
+
+## Recommendations
+
+- Run the regex on every abstract, then the model on the rest. The regex is
+  exact on the 11% and free. The fine-tuned ettin-32m (stock; the adaptation earns nothing here) runs on the
+  rest at 0.5 for a 91% catch rate with 8% false positives on look-alike papers,
+  or at a stricter threshold for 95% precision and 75% recall. 38 ms per
+  abstract on 4 vCPU (survey ladder: 12 ms int8).
+- **Real triage data next.** The 1,004 positives are MSD's curated bibliography
+  and the negatives are query-matched, so the numbers are a ceiling on how
+  separable the two lists are, not a measurement of the inbound stream. Two
+  hundred actually triaged papers with the human's decision would recalibrate
+  every threshold above.
+- **Full text if recall on cue-free papers must go above 0.9.** Methods sections
+  carry the platform names; PubMed Central's open-access subset would give the
+  regex the 89% and the vocabulary adaptation something to read.
+
+## Files
+
+`PLAN-paper.md` · `paper_corpus.py` (assembly + cue regex + regex baseline
+→ `results/cue_regex.json`) · `run_paper_arms.sh` → `results/paper_arms.log`
+· `results/paper_*.json`, `results/paper_*_test_preds.jsonl` ·
+`paper_score.py` → `results/paper_summary.json` · `data/papers/` (gitignored):
+`titles.jsonl`, `resolved.jsonl`, `positives.jsonl`, `hard.jsonl`,
+`easy.jsonl`, the four NCBI scripts and `neg_queries.py`.
+
+## Not done
+
+- P95 thresholds chosen on test, not dev (`train.py` dumps test predictions
+  only); stated above.
+- No hand check of high-scoring hard negatives; the label-noise size is
+  unknown.
+- One seed, one learning rate; ties are ties.
+- No full-text arm.

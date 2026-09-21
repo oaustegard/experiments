@@ -367,6 +367,20 @@ survives exactly the sanity checks people run.
 - `phase-a-bridges`, `te-bridges` — numbered idempotent stage scripts, each
   reading the prior stage's JSON and writing its own atomically
   (tmp-then-rename), safe to re-run.
+- **Before designing a vocabulary-bound task, measure how often the vocabulary
+  is in the input.** `msd-context-classifier` round 3: 11% of MSD's own
+  bibliography names the platform in title + abstract (predicted 30–60%), so
+  an abstract-level "does this paper use MSD" filter is topic recognition, and
+  a domain-adapted encoder that knows the platform's terms scores the same
+  AUC (0.98) as the stock one. Compute the cue rate on the positives first;
+  it decides whether adaptation, a regex, or full text is the lever.
+  (`msd-context-classifier/RESULTS-paper.md`, ERRORS.md #9)
+- **A delegate brief that allows "launch it in the background" produces an
+  untracked process that dies with the container.** Twice in one session, both
+  workers ran their long job under plain background bash despite a
+  checkpoint-and-resume instruction. Brief the worker to write the script and
+  hand back; the parent launches it as `Bash run_in_background:true`.
+  (`msd-context-classifier/ERRORS.md` #2, #12)
 - **Token-level masked-LM loss cannot see a vocabulary gap; mask whole terms.**
   `msd-context-classifier` round 2: under 15% random masking, domain-term tokens
   were *easier* than ordinary tokens for every stock encoder (ettin-150m CE 1.24

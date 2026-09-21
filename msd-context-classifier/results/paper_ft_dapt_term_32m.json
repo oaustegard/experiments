@@ -1,0 +1,41 @@
+{
+ "n_test": 523,
+ "accuracy": 0.9273422562141491,
+ "macro_f1": 0.9147506948972238,
+ "ece_raw": 0.05928847632490199,
+ "ece_temp": 0.0179224771021885,
+ "temperature": 3.7,
+ "coverage_5pct": {
+  "threshold": 0.6589999794960022,
+  "coverage": 0.9369024856596558,
+  "error_at_coverage": 0.048979591836734726
+ },
+ "per_label_f1": {
+  "msd": {
+   "f1": 0.8819875776397516,
+   "n": 152
+  },
+  "not_msd": {
+   "f1": 0.9475138121546961,
+   "n": 371
+  }
+ },
+ "arm": "ft",
+ "model": "models/dapt_term_ettin_32m",
+ "epochs": 6,
+ "lr": 5e-05,
+ "max_len": 256,
+ "params": 31883136,
+ "best_dev_macro_f1": 0.9099552378639092,
+ "ms_per_example_bs1_torch": 35.90911200080882,
+ "train_seconds": 1148.6199796199799,
+ "labels": [
+  "msd",
+  "not_msd"
+ ],
+ "split": {
+  "train": 2428,
+  "dev": 519,
+  "test": 523
+ }
+}

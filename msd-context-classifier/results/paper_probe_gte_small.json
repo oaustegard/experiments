@@ -1,0 +1,38 @@
+{
+ "n_test": 523,
+ "accuracy": 0.892925430210325,
+ "macro_f1": 0.86965035960977,
+ "ece_raw": 0.061190712406348075,
+ "ece_temp": 0.03716939231861621,
+ "temperature": 2.3,
+ "coverage_5pct": {
+  "threshold": 0.8500000238418579,
+  "coverage": 0.615678776290631,
+  "error_at_coverage": 0.01552795031055898
+ },
+ "per_label_f1": {
+  "msd": {
+   "f1": 0.8145695364238411,
+   "n": 152
+  },
+  "not_msd": {
+   "f1": 0.9247311827956989,
+   "n": 371
+  }
+ },
+ "arm": "probe",
+ "model": "models/gte-small",
+ "C": 30.0,
+ "params": 33360000,
+ "ms_per_example_bs1_torch": 256.5429209989816,
+ "train_seconds": 1058.7051627635956,
+ "labels": [
+  "msd",
+  "not_msd"
+ ],
+ "split": {
+  "train": 2428,
+  "dev": 519,
+  "test": 523
+ }
+}
