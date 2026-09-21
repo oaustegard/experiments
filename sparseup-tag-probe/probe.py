@@ -133,6 +133,11 @@ def _fit_one(Xtr, ytr, Xte):
 
 def _fit_all_labels(Xtr, Ytr, Xte):
     from joblib import Parallel, delayed
+    # joblib memmaps large arrays read-only; scipy's max() sorts indices in place,
+    # so canonicalise once here instead of copying inside every worker.
+    for M in (Xtr, Xte):
+        if hasattr(M, "sort_indices"):
+            M.sum_duplicates(); M.sort_indices()
     return Parallel(n_jobs=N_JOBS, prefer="processes", batch_size=8)(
         delayed(_fit_one)(Xtr, Ytr[:, j], Xte) for j in range(Ytr.shape[1]))
 
@@ -304,9 +309,17 @@ def main():
         ("gte_small", lambda: cv_predict_fixed(D, Y, fold_of, args.folds)),
         ("prior", lambda: cv_predict_prior(Y, fold_of, args.folds)),
     ]
+    RESULTS.mkdir(exist_ok=True)
     for name, fn in arms:
         ta = time.time()
+        cache = RESULTS / f"proba_{name}.npy"
+        if cache.exists() and not is_smoke:
+            proba[name] = np.load(cache)
+            print(f"  arm {name}: cached", file=sys.stderr, flush=True)
+            continue
         proba[name] = fn()
+        if not is_smoke:
+            np.save(cache, proba[name])
         print(f"  arm {name}: {time.time() - ta:.0f}s", file=sys.stderr, flush=True)
 
     rng = np.random.RandomState(SEED)
