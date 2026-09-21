@@ -1,0 +1,74 @@
+{
+ "arm": "causal",
+ "config": {
+  "steps": 1465,
+  "batch": 16,
+  "lr": 0.0001,
+  "eval_every": 250,
+  "seed": 20260921,
+  "model": "jhu-clsp/ettin-decoder-32m"
+ },
+ "evals": [
+  {
+   "step": 0,
+   "tokens_seen": 0,
+   "train_loss_avg": null,
+   "eval_ce": 7.249492996617367,
+   "eval_acc": 0.08079769736842106,
+   "seconds_elapsed": 7.3610639572143555
+  },
+  {
+   "step": 250,
+   "tokens_seen": 1024000,
+   "train_loss_avg": 4.876100047111511,
+   "eval_ce": 4.478977830786454,
+   "eval_acc": 0.2805304276315789,
+   "seconds_elapsed": 318.75816655158997
+  },
+  {
+   "step": 500,
+   "tokens_seen": 2048000,
+   "train_loss_avg": 4.542843893051147,
+   "eval_ce": 4.362076307597913,
+   "eval_acc": 0.2863898026315789,
+   "seconds_elapsed": 622.3974888324738
+  },
+  {
+   "step": 750,
+   "tokens_seen": 3072000,
+   "train_loss_avg": 4.45271049785614,
+   "eval_ce": 4.3075765810514755,
+   "eval_acc": 0.2936883223684211,
+   "seconds_elapsed": 923.5237987041473
+  },
+  {
+   "step": 1000,
+   "tokens_seen": 4096000,
+   "train_loss_avg": 4.393015244483948,
+   "eval_ce": 4.251255863591244,
+   "eval_acc": 0.3026315789473684,
+   "seconds_elapsed": 1225.3565680980682
+  },
+  {
+   "step": 1250,
+   "tokens_seen": 5120000,
+   "train_loss_avg": 4.367740370750427,
+   "eval_ce": 4.200933105067203,
+   "eval_acc": 0.3053042763157895,
+   "seconds_elapsed": 1525.9657366275787
+  },
+  {
+   "step": 1465,
+   "tokens_seen": 6000640,
+   "train_loss_avg": 4.313821934544763,
+   "eval_ce": 4.180829198736894,
+   "eval_acc": 0.30746299342105265,
+   "seconds_elapsed": 1784.6242763996124
+  }
+ ],
+ "final_eval_ce": 4.180829198736894,
+ "final_eval_acc": 0.30746299342105265,
+ "total_seconds": 1785.7056376934052,
+ "steps": 1465,
+ "tokens": 6000640
+}

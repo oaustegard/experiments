@@ -3495,3 +3495,19 @@ returns attention weights). Two tests keep it honest: an all-true arm must
 reproduce the stock logits to 1e-4, and under a full causal arm perturbing
 tokens after `i` must leave the output at `i` unchanged. With no padding the
 mask broadcasts over the batch. (`modernbert-bidirectionality/masks.py`)
+
+### An untrained mask ablation ranks what a trained model uses, not what a model can be trained to use
+
+On `ettin-encoder-32m`, masking the trained model down to "bidirectional in
+the 4 global layers, causal elsewhere" kept 43% of the bidirectional benefit
+and "8-token lookahead in every layer" kept 65%. Adapting the causal twin
+`ettin-decoder-32m` to the same two masks for 6M tokens reversed the order:
+the layer cut recovered 104% of what full bidirectionality recovered, the
+lookahead 86%. Training repairs a cut that leaves most layers doing their
+pretrained job and only partly repairs one that changes every layer's input
+and caps the right-context horizon. A floor measured by ablation is a floor
+for that checkpoint; it does not order adaptation targets, and a
+recommendation about what to train should wait for the training run
+(five arms at 32M parameters cost 2.5 hours on 4 vCPU). Pre-register both,
+score the ablation prediction against the trained result.
+(`modernbert-bidirectionality/`)

@@ -223,6 +223,87 @@ steps to repair what a mask breaks, and these numbers are a floor), and the
 task is the encoder's own masked-LM objective (a classification head may need
 less of the right context than token prediction does).
 
+## Adaptation test: which cut to train
+
+Pre-registered in [`PLAN-adapt.md`](PLAN-adapt.md) after the ablation, before
+any step ran. Start: `jhu-clsp/ettin-decoder-32m`, the causal twin of the
+encoder probed above (same 10-layer recipe, tokenizer and 2T tokens). Every
+arm adapts it to masked-LM at the masked position for 1,465 steps of 16 × 256
+= 6.0M wikitext-103 train tokens, identical rows and masks, AdamW 1e-4 peak
+with 5% warmup and linear decay, ~30 minutes per arm on 4 vCPU. Eval: the
+ablation's 256 validation sequences and 9,728 masked positions, under each
+arm's own mask. `closed = (CE_causal − CE_arm) / (CE_causal − CE_bidir)`.
+
+| arm | full-attention layers (0,3,6,9) | sliding layers (1,2,4,5,7,8) | final CE | top-1 | closed | gap to encoder (2.128) |
+|---|---|---|---|---|---|---|
+| `causal` (control) | j ≤ i | j ≤ i | 4.181 | 0.307 | 0.00 | 2.05 |
+| `global` (dQwen3.5 cut) | open | j ≤ i | **2.945** | **0.470** | 1.04 | 0.82 |
+| `look8` | j ≤ i+8 | j ≤ i+8 | 3.164 | 0.433 | 0.86 | 1.04 |
+| `both` | open | j ≤ i+8 | 2.946 | 0.467 | 1.04 | 0.82 |
+| `bidir` (LLM2Vec recipe) | open | open | 2.996 | 0.460 | 1.00 | 0.87 |
+
+Eval CE by step (tokens = step × 4,096):
+
+| step | 0 | 250 | 500 | 750 | 1000 | 1250 | 1465 |
+|---|---|---|---|---|---|---|---|
+| causal | 7.249 | 4.479 | 4.362 | 4.308 | 4.251 | 4.201 | 4.181 |
+| global | 11.649 | 3.539 | 3.282 | 3.138 | 3.033 | 2.977 | 2.945 |
+| look8 | 8.561 | 3.757 | 3.506 | 3.367 | 3.264 | 3.192 | 3.164 |
+| both | 8.327 | 3.555 | 3.288 | 3.150 | 3.039 | 2.975 | 2.946 |
+| bidir | 8.872 | 3.789 | 3.406 | 3.223 | 3.106 | 3.030 | 2.996 |
+
+The order is fixed from step 250 on: global ≈ both < bidir < look8 < causal.
+`global` starts worst (11.6 nats at step 0, the untrained decoder reading
+right context it never saw in its four global layers) and is best from the
+first eval. `bidir` and `global` descend at the same rate over the last 500
+steps (−0.034 and −0.032 per 250 steps), so a longer budget is not obviously
+going to reorder them; whether it does is unmeasured. Adding the lookahead to
+the global cut (`both`) changes nothing (2.946 vs 2.945).
+
+Against the untrained ablation on the encoder twin, the two cuts swap places:
+
+| cut | encoder ablation, no training (`retained_trunc`) | decoder adaptation, 6M tokens (`closed`) |
+|---|---|---|
+| global layers bidirectional | 0.43 | 1.04 |
+| 8-token lookahead everywhere | 0.65 | 0.86 |
+
+Training repairs the layer cut completely and the position cut only partly.
+Two reasons are visible in the design. The layer cut leaves 6 of 10 layers
+doing exactly what they were pretrained to do, so the gradient has four layers
+to teach and nothing to un-teach; the lookahead changes every layer's input.
+And an 8-token lookahead compounds to at most 80 tokens of right context
+across 10 layers (further capped by the ±64 window), a horizon full
+bidirectionality does not have; the ablation put 65% of the benefit inside 8
+tokens on the trained encoder, and the trained-from-causal model recovers 86%
+of what it could, not 100%.
+
+### Prediction scorecard (PLAN-adapt.md)
+
+| | prediction | result | verdict |
+|---|---|---|---|
+| P1 (75%) | causal control ends in 3.3–4.3 | 4.181 | right |
+| P2 (65%) | look8 beats global by ≥ 0.3 nats | global beats look8 by 0.22 | wrong |
+| P3 (70%) | bidir is best and ends in 2.3–3.0 | 2.996, third | half |
+| P4 (60%) | both within 0.15 of bidir | 0.05 better | right |
+| P5 (70%) | causal > global > look8 > both ≥ bidir at every eval | global < both < bidir < look8 at every eval | wrong |
+| P6 (60%) | look8 closes ≥ 60%, global ≤ 45% | 86%, 104% | half |
+
+Two right, two half, two wrong, and the two outright misses are the ones
+that carried the earlier conclusion. The recommendation in the ablation
+section ("a small lookahead window in every layer is the cheaper target") is
+withdrawn: at this scale the dQwen3.5 cut is the better target, and it is at
+least as good as making every layer bidirectional.
+
+### What this says for adaptation
+
+For an AR→bidirectional adaptation of a hybrid, leaving the recurrent layers
+causal and flipping only the attention layers costs nothing against flipping
+everything, on this evidence, and a per-layer lookahead in the recurrent
+layers is not worth building. What is still open is whether a *smaller* set
+of attention layers would do (the ablation said no; the ablation has now been
+wrong once), and whether the ordering holds past 6M tokens or on downstream
+tasks rather than masked-LM.
+
 ## What broke
 
 - The handoff body was lost between the claude.ai session and the memory
@@ -237,6 +318,9 @@ less of the right context than token prediction does).
   original spec. The amendment was applied by hand afterwards.
 - A push to `main` bounced on the repo-index bot's commit; merged, not
   rebased.
+- The adaptation script keyed its checkpoint to the arm name, so a smoke run
+  would have seeded the full run of the same arm. Re-keyed to the output
+  file name before launch; smoke artifacts deleted.
 
 ## Files
 
@@ -244,4 +328,7 @@ less of the right context than token prediction does).
 builder · `masks.py` per-layer masks and hook injection · `probe.py` the
 experiment (checkpointed per arm, resumable) · `diag.py` the two post-hoc
 `[CLS]`-row arms · `tests/test_masks.py` (14 tests) · `results/mb.json`,
-`results/ettin32.json`, `results/diag_*.json`, `results/*.log`.
+`results/ettin32.json`, `results/diag_*.json`, `results/*.log` ·
+`PLAN-adapt.md` · `data_train.py` · `adapt.py` (checkpointed, resumable) ·
+`tests/test_adapt.py` (17 tests) · `run_adapt.sh` · `results/adapt/<arm>.json`
+and `.log` (checkpoints gitignored).

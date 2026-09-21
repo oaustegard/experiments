@@ -1,0 +1,74 @@
+{
+ "arm": "bidir",
+ "config": {
+  "steps": 1465,
+  "batch": 16,
+  "lr": 0.0001,
+  "eval_every": 250,
+  "seed": 20260921,
+  "model": "jhu-clsp/ettin-decoder-32m"
+ },
+ "evals": [
+  {
+   "step": 0,
+   "tokens_seen": 0,
+   "train_loss_avg": null,
+   "eval_ce": 8.87150734349301,
+   "eval_acc": 0.026932565789473683,
+   "seconds_elapsed": 6.45106053352356
+  },
+  {
+   "step": 250,
+   "tokens_seen": 1024000,
+   "train_loss_avg": 5.207321694374085,
+   "eval_ce": 3.788922485552336,
+   "eval_acc": 0.3594777960526316,
+   "seconds_elapsed": 306.4465379714966
+  },
+  {
+   "step": 500,
+   "tokens_seen": 2048000,
+   "train_loss_avg": 3.705712637901306,
+   "eval_ce": 3.406278472197683,
+   "eval_acc": 0.4077919407894737,
+   "seconds_elapsed": 607.5035450458527
+  },
+  {
+   "step": 750,
+   "tokens_seen": 3072000,
+   "train_loss_avg": 3.4523375396728517,
+   "eval_ce": 3.222507489354987,
+   "eval_acc": 0.4296875,
+   "seconds_elapsed": 907.0178327560425
+  },
+  {
+   "step": 1000,
+   "tokens_seen": 4096000,
+   "train_loss_avg": 3.301540062904358,
+   "eval_ce": 3.106010160948101,
+   "eval_acc": 0.44757401315789475,
+   "seconds_elapsed": 1207.133808851242
+  },
+  {
+   "step": 1250,
+   "tokens_seen": 5120000,
+   "train_loss_avg": 3.2334272661209105,
+   "eval_ce": 3.0295806307541695,
+   "eval_acc": 0.45600328947368424,
+   "seconds_elapsed": 1507.2019863128662
+  },
+  {
+   "step": 1465,
+   "tokens_seen": 6000640,
+   "train_loss_avg": 3.1591209289639495,
+   "eval_ce": 2.995834463521054,
+   "eval_acc": 0.46011513157894735,
+   "seconds_elapsed": 1765.981345653534
+  }
+ ],
+ "final_eval_ce": 2.995834463521054,
+ "final_eval_acc": 0.46011513157894735,
+ "total_seconds": 1767.1413474082947,
+ "steps": 1465,
+ "tokens": 6000640
+}
