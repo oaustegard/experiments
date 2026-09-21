@@ -107,3 +107,37 @@ no encoder on our side.
 - **X4 (70%)** The neighbour set contains ≥ 3% papers with a platform cue,
   i.e. MSD papers absent from the curated bibliography, which bounds the
   label noise in every hard-negative number above from below.
+
+## Addendum 2, 2026-09-21 9:50 AM Eastern — citation-graph features, predicted before fetching
+
+Oskar: "Try the citation-graph features from Semantic Scholar next." Same
+modern population and split as check 5 (9,754 PMC full-text positives vs
+9,916 of their PubMed similar-articles, 70/15/15 by PMID hash). Every
+"known MSD" set below is built from the TRAINING positives only.
+
+Sources: Semantic Scholar batch endpoint (incoming citations, authors, venue,
+fields of study, references where the publisher has not elided them — a
+probe of 100 papers returned a median of 0 references against a stated
+median of 42, and a median of 47 incoming citations) and PubMed elink
+(`pubmed_pubmed_refs`, `pubmed_pubmed_citedin`).
+
+Features per paper: count and fraction of references that are training
+positives; count and fraction of citers that are training positives; count
+and fraction of authors who appear on a training positive; references to the
+"MSD canon" (the 100 papers most cited by training positives); a sparse
+bag-of-references and bag-of-citers logistic regression; a sparse
+bag-of-authors logistic regression; venue as a categorical. Then each alone,
+and combined with the SPECTER2 vector in one logistic regression.
+
+- **C1 (65%)** Bag-of-citers or bag-of-references alone reaches AUC ≥ 0.80:
+  MSD users cite and are cited by each other more than their topic
+  neighbours are.
+- **C2 (70%)** Author overlap alone reaches AUC ≥ 0.75 and is the strongest
+  single graph feature: labs that bought the platform keep publishing on it.
+- **C3 (60%)** SPECTER2 + graph features combined reach AUC ≥ 0.85, at least
+  ten points over the embedding alone (0.745).
+- **C4 (60%)** Semantic Scholar's references are elided for ≥ 40% of the
+  papers; PubMed elink references cover more of them.
+- **C5 (55%)** The temporal holdout (train ≤ 2023, test 2024+) of the combined
+  model stays within 5 points of its random-split AUC: graph features age
+  better than topic features because they encode who, not what.
