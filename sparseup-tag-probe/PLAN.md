@@ -75,3 +75,38 @@ controls; a second independent reader of the numbers before the write-up.
 ## Out of scope
 
 Taxonomy induction and prefix ordering (only worth it if arm 2 shows a mapping).
+
+## Round 2 (2026-09-21, after the round-1 write-up): the 2024 map step as the first layer
+
+Oskar, on the round-1 result: "is it feasible to do a two step — a multi tag
+assignment by BPE pieces and from there actual tags?" Measured on the fixture:
+a probe restricted to the 522 dims that are pieces of some tag reaches micro-AP
+0.328 against 0.612 on the full vector, and the untrained all-pieces rule fires
+12.5 tags per memory at 6% precision. Pieces are the wrong intermediate. Oskar:
+"First try the LR model" — the same probe on the 2024 idea's own first layer.
+
+Arm: candidate phrases per memory (spaCy noun chunks and entities, lowercased,
+stop-words stripped from the edges, 1–4 words) → a vocabulary of K dims selected
+inside each training fold by document frequency, with a dissimilarity filter
+(skip a candidate whose gte-small cosine to an already-selected dim is > 0.9)
+→ a binary presence vector → the same one-vs-rest LR, same folds, C swept and
+selected by micro-AP. K ∈ {128, 256, 512, 1024, 2048, all}. Controls at the same
+K: frequency-only selection (no dissimilarity filter), and binary word unigrams
+by document frequency. No LSH snapping of unseen phrases in this round.
+
+Predictions, written before the first run:
+
+| quantity | prediction |
+|---|---|
+| phrase vocabulary, K = 512, micro-AP | 0.50 |
+| phrase vocabulary, K = 2048, micro-AP | 0.60 |
+| phrase vocabulary, all dims | 0.63, still below TF-IDF word+char (0.664) |
+| dissimilarity filter over frequency-only at K = 512 | +0.01 to +0.02 |
+| binary unigrams by df at K = 512 vs phrases at K = 512 | unigrams within 0.02, either side |
+| K at which phrases pass SPARSEUP's 0.612 | ~2048 |
+
+Null reading: if the selection criterion carries nothing, phrases and unigrams
+tie at every K and the dissimilarity filter is within noise of frequency-only.
+The refutation to search for: a win for phrases at small K that comes from
+a few tags that are literally noun chunks (`perch-time`, `session-log`); the
+per-label split by literal-mention rate from round 1 is reused.
