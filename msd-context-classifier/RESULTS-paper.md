@@ -1,15 +1,62 @@
 # msd-context-classifier — paper filter
 
-**Started / finished:** 2026-09-20 10:35 PM – 2026-09-21 1:55 AM Eastern ·
-**Status:** done — **the filter works from abstracts and the vocabulary
-adaptation does not change it. Every fine-tuned encoder scores AUC 0.98 and
-catches 91–95% of the bibliography papers whose abstracts never name the
-platform, at 8–14% false positives on topic-matched papers; at 95% precision
-that recall is 70–80%. Stock ettin-32m and the two adapted ettin-32m checkpoints
-are within noise of each other on every number, and ettin-150m is no better.
-Only 11% of MSD's own bibliography names the platform in title or abstract, so
-the abstract-level signal is what the study measured and how, which a stock
-encoder already reads.**
+**Started / finished:** 2026-09-20 10:35 PM – 2026-09-21 11:30 AM Eastern ·
+**Status:** done.
+
+## The answer
+
+**Can a title + abstract embedding tell the MSD-ness of a paper?** Partly,
+and the limit is set by the abstracts, not the model. SPECTER2 vectors from
+Semantic Scholar's API with a logistic regression on top, no encoder of our
+own, separate MSD papers from the general immunoassay/biomarker literature
+well and from their closest topical neighbours poorly:
+
+| negatives | AUC | at ~95% recall, what passes |
+|---|---|---|
+| general literature (topic queries, NOT any platform term) | 0.95–0.97 | about a fifth to a third of the pool |
+| PubMed's own "similar articles" of each MSD paper | 0.75 | about three quarters of them |
+| same, train ≤ 2023 → test 2024+ | 0.69 | worse still |
+
+Nothing tried moves the second row by more than three points: a fine-tuned
+ettin on the same text, kernels, MLPs, k-NN, centring, multi-prototype,
+ensembles, rescue stages, citation-graph features, or a lexical model
+(TF-IDF + LR 0.73). Only 5–11% of MSD papers name the platform in the
+abstract; the rest read like their neighbours because they are their
+neighbours, papers that measured cytokines or biomarkers and picked one of
+several vendors. Vocabulary adaptation of the encoder changes none of this
+(the terms live in methods sections PubMed does not serve).
+
+What that buys:
+
+- **As a standalone classifier: no.** At literature base rates a candidate
+  list from the 0.75 boundary is mostly false positives at any useful recall.
+- **As a high-recall first stage: yes.** Threshold at 95% recall over a broad
+  pool and the embedding discards most unrelated literature while keeping
+  nearly every MSD paper; what survives is the topical band.
+- **The second stage has to see full text.** PMC's full-text index already
+  returns ~14,000 MSD papers with precision the abstract stage cannot reach.
+  For closed-access survivors the embedding stage is the ceiling.
+
+**Over BM25 / TF-IDF, SPECTER2 is worth one to two AUC points with 14k
+labels and about nine with 1.7k, and it is precomputed and hosted for the
+whole literature.** Lexical *retrieval* (BM25 nearest training positive) is
+below chance against the neighbour set, 0.36–0.41, because PubMed's similar
+articles are, by construction, the papers lexically nearest to an MSD
+paper; a BM25 sweep for "papers like our known ones" returns exactly the
+non-MSD look-alikes. A supervised lexical model does not have that problem
+and lands within two points of the embedding (check 7). Where the lexical
+model wins outright, 0.99 vs 0.95, is the query-built negative set, and
+that is the artefact of building negatives from query terms. On full text the
+order reverses: regex and BM25 over methods sections are the precise stage.
+
+Pipeline: full-text search wherever full text is indexed; SPECTER2 + LR
+(trained on the ~10k PMC full-text positives and their PubMed neighbours,
+`paper_pmc_probe.py`) as a recall filter over the remainder, one API pull
+per paper, no GPU; a full-text or manual check on what passes.
+
+The rest of this file is the record: round 1 (bibliography vs query
+negatives, where every encoder scored 0.98) and the checks that found the
+0.98 was the negative sampling.
 
 **Question (Oskar).** "One of our challenges is: does this paper relate to MSD?
 That's one I was hoping would be aided by the vocabulary expansion." Plan and
@@ -83,23 +130,9 @@ papers whose abstract names the platform, so some "hard negatives" used MSD
 without saying so. Part of the 8–14% hard-negative false-positive rate may be
 correct answers. Full text would settle it; abstracts cannot.
 
-## Predictions scored
+## Round-1 recommendations
 
-| # | prediction | outcome |
-|---|---|---|
-| W1 (80%) | 30–60% of positives carry a cue; regex precision ≥ 0.97 at that recall | **wrong** on the rate (11%); regex precision 1.00 at recall 0.12 |
-| W2 (65%) | dapt+term beats stock on cue-free recall at P95 by ≥ 10 | **wrong** — +4, a tie at n = 134 |
-| W3 (60%) | dapt+vocab+term within 3 of dapt+term | **wrong** at 3 (−5), a tie at the plan's 5 |
-| W4 (55%) | gte-small probe beats stock fine-tune on macro-F1, loses on cue-free recall | first half **wrong** (0.870 vs 0.929); second half right (0.43 vs 0.80) |
-| W5 (50%) | ettin-150m matches or beats adapted 32m on cue-free recall | **wrong** at P95 (0.69 vs 0.80); at 0.5 it is 2 points ahead at 6 points worse precision — same curve |
-| W6 (70%) | every encoder's hard-negative precision < 0.95 at 0.5 | **right** — 0.82–0.89 |
-
-One right of six. The misses are one miss: I modelled the task as
-string-detection with a long tail, and it is topic recognition with a short
-head. Fourteen predictions over three rounds on this corpus are now wrong or
-half-wrong in that same direction.
-
-## Recommendations
+Superseded by the checks below; kept as written.
 
 - Run the regex on every abstract, then the model on the rest. The regex is
   exact on the 11% and free. The fine-tuned ettin-32m (stock; the adaptation earns nothing here) runs on the
@@ -224,18 +257,39 @@ sparse block) I did not tune away. The temporal holdout drops the combined
 model 7.7 points, more than SPECTER2 alone dropped in check 5 (5.8): graph
 features age worse here than topic features.
 
-C1 (a bag alone ≥ 0.80) **wrong**, best 0.739. C2 (author overlap ≥ 0.75
-and strongest) **wrong**, 0.615 and fourth. C3 (combined ≥ 0.85) **wrong**,
-0.757. C4 (≥ 40% elided; PubMed covers more) **wrong** on the number, 22%,
-right on the direction by two points. C5 (temporal within 5 points) **wrong**,
-7.7. Five for five in the same direction as the previous nineteen: I keep
-expecting a new signal to be worth more than it is against negatives drawn
-from the positives' own neighbourhood. Graph features are worth about three
-AUC points over SPECTER2 on this task and cost two API pulls per paper.
+Graph features are worth about three AUC points over SPECTER2 on this task
+and cost two API pulls per paper. (C1–C5 scored at the end of the file.)
+
+**7. Lexical baselines (Oskar: what is SPECTER2 good for over BM25?).** Same
+rows and split as check 5, TF-IDF (unigram, and 1–2-gram with sublinear tf)
++ logistic regression, and BM25 similarity to the nearest training positive
+(`paper_lexical_probe.py`):
+
+| population (test rows) | SPECTER2 + LR | TF-IDF 1–2g + LR | BM25 max to a training positive | rank-average of the two LRs |
+|---|---|---|---|---|
+| modern: PMC positives vs neighbours (3,019) | 0.741 | 0.728 | 0.414 | **0.763** |
+| bibliography vs neighbours (390) | **0.694** | 0.607 | 0.358 | 0.676 |
+| bibliography vs hard query negatives (372) | 0.954 | **0.988** | 0.540 | 0.983 |
+
+Cue-free rows only, modern population: SPECTER2 0.739, TF-IDF 0.722. The
+bibliography-vs-neighbours SPECTER2 number is lower than check 1's 0.794
+because this is a 162-positive test slice under a different hash; the
+comparison within a row is what holds. Three readings. A supervised
+lexical model is one to two points behind the embedding with 14k labels
+and nine behind with 1.7k; the embedding's edge is sample efficiency and
+being precomputed for every paper Semantic Scholar indexes, not a
+different signal. BM25 *retrieval* against the known MSD papers is below
+chance on the neighbour sets: PubMed's similar-articles are the lexically
+nearest papers to each positive, so "find me papers like the ones we
+know" returns the look-alikes first. And the lexical model's win on the
+query-built negatives (0.99) is the query construction showing through:
+the NOT clause and the query terms are lexical, so a lexical model reads
+them back (ERRORS.md #13).
 
 **What the sequence says.** 0.98 was the bibliography against my queries; 0.82
 the bibliography against its neighbours; 0.75 the uncurated population against
-its neighbours, 0.77 with its citation graph; 0.69 across a year boundary. A title-and-abstract embedding
+its neighbours, 0.77 with its citation graph, 0.76 with a lexical model
+beside it; 0.69 across a year boundary. A title-and-abstract embedding
 trained on citation structure carries some of the "used MSD" signal, and at
 the base rate of a literature sweep, one in a few hundred at best, an AUC of
 0.75 gives a candidate list that is nearly all false positives at any usable
@@ -252,14 +306,35 @@ neighbours (`paper_pmc_probe.py`), and a full-text check on whatever it
 passes. Semantic Scholar's SPECTER2 is the cheapest usable feature for that
 remainder, and nothing in this round found a better one.
 
+## Pre-registered predictions (calibration record)
+
+| # | prediction | outcome |
+|---|---|---|
+| W1 (80%) | 30–60% of positives carry a cue; regex precision ≥ 0.97 at that recall | **wrong** on the rate (11%); regex precision 1.00 at recall 0.12 |
+| W2 (65%) | dapt+term beats stock on cue-free recall at P95 by ≥ 10 | **wrong** — +4, a tie at n = 134 |
+| W3 (60%) | dapt+vocab+term within 3 of dapt+term | **wrong** at 3 (−5), a tie at the plan's 5 |
+| W4 (55%) | gte-small probe beats stock fine-tune on macro-F1, loses on cue-free recall | first half **wrong** (0.870 vs 0.929); second half right (0.43 vs 0.80) |
+| W5 (50%) | ettin-150m matches or beats adapted 32m on cue-free recall | **wrong** at P95 (0.69 vs 0.80); at 0.5 it is 2 points ahead at 6 points worse precision — same curve |
+| W6 (70%) | every encoder's hard-negative precision < 0.95 at 0.5 | **right** — 0.82–0.89 |
+
+One right of six. The misses are one miss: I modelled the task as
+string-detection with a long tail, and it is topic recognition with a short
+head. Fourteen predictions over three rounds on this corpus are now wrong or
+half-wrong in that same direction.
+
+Later-check predictions: X1–X4 (addendum 1) one right of four; C1–C5
+(addendum 2, citation graph) none of five. All misses expected a new signal
+to be worth more than it is against negatives drawn from the positives' own
+neighbourhood.
+
 ## Files
 
 `PLAN-paper.md` · `paper_corpus.py` (assembly + cue regex + regex baseline
 → `results/cue_regex.json`) · `run_paper_arms.sh` → `results/paper_arms.log`
 · `results/paper_*.json`, `results/paper_*_test_preds.jsonl` ·
 `paper_score.py` → `results/paper_summary.json` · `paper_s2_probe.py`,
-`paper_s2_greedy.py`, `paper_pmc_probe.py`, `paper_graph_probe.py` →
-`results/paper_{s2,pmc,graph}_probe.json` · `data/papers/` (gitignored):
+`paper_s2_greedy.py`, `paper_pmc_probe.py`, `paper_graph_probe.py`,
+`paper_lexical_probe.py` → `results/paper_{s2,pmc,graph,lexical}_probe.json` · `data/papers/` (gitignored):
 `titles.jsonl`, `resolved.jsonl`, `positives.jsonl`, `hard.jsonl`,
 `easy.jsonl`, `neighbors*.jsonl`, `pmc_positives.jsonl`, `s2_specter2.jsonl`,
 `s2_graph.jsonl`, `pubmed_links.jsonl`, the fetch scripts and `neg_queries.py`.

@@ -1,0 +1,128 @@
+{
+ "modern: PMC positives vs PubMed neighbours": {
+  "n_train": 13729,
+  "n_test": 3019,
+  "test_pos": 1518,
+  "arms": {
+   "SPECTER2 + LR": {
+    "auc": 0.7411865958487052,
+    "recall_at_fpr5": 0.19367588932806323,
+    "fpr_at_recall95": 0.7521652231845436
+   },
+   "TF-IDF 1-1gram + LR (38267 feats)": {
+    "auc": 0.6985343104596935,
+    "recall_at_fpr5": 0.1600790513833992,
+    "fpr_at_recall95": 0.8141239173884077
+   },
+   "TF-IDF 1-2gram + LR (317958 feats)": {
+    "auc": 0.7279586994704452,
+    "recall_at_fpr5": 0.17588932806324112,
+    "fpr_at_recall95": 0.7914723517654897
+   },
+   "BM25 max vs training positives": {
+    "auc": 0.4139998016254425,
+    "recall_at_fpr5": 0.07707509881422925,
+    "fpr_at_recall95": 0.977348434377082
+   },
+   "BM25 mean of top-5": {
+    "auc": 0.43489364578203904,
+    "recall_at_fpr5": 0.05533596837944664,
+    "fpr_at_recall95": 0.9653564290473018
+   },
+   "rank-average SPECTER2 + TF-IDF": {
+    "auc": 0.7632052939673946,
+    "recall_at_fpr5": 0.20223978919631094,
+    "fpr_at_recall95": 0.7021985343104596
+   }
+  },
+  "cue_free_test_pos": 1440,
+  "cue_free_auc": {
+   "SPECTER2": 0.7385886261011178,
+   "TF-IDF": 0.7219908949589163
+  }
+ },
+ "bibliography vs PubMed neighbours": {
+  "n_train": 1733,
+  "n_test": 390,
+  "test_pos": 162,
+  "arms": {
+   "SPECTER2 + LR": {
+    "auc": 0.6944173705869612,
+    "recall_at_fpr5": 0.08024691358024691,
+    "fpr_at_recall95": 0.7850877192982456
+   },
+   "TF-IDF 1-1gram + LR (11268 feats)": {
+    "auc": 0.5788661468486029,
+    "recall_at_fpr5": 0.08641975308641975,
+    "fpr_at_recall95": 0.9210526315789473
+   },
+   "TF-IDF 1-2gram + LR (51111 feats)": {
+    "auc": 0.6068605154862465,
+    "recall_at_fpr5": 0.11728395061728394,
+    "fpr_at_recall95": 0.9254385964912281
+   },
+   "BM25 max vs training positives": {
+    "auc": 0.3582412822178904,
+    "recall_at_fpr5": 0.037037037037037035,
+    "fpr_at_recall95": 0.9736842105263158
+   },
+   "BM25 mean of top-5": {
+    "auc": 0.39284167208143816,
+    "recall_at_fpr5": 0.030864197530864196,
+    "fpr_at_recall95": 0.9517543859649122
+   },
+   "rank-average SPECTER2 + TF-IDF": {
+    "auc": 0.6756551873510938,
+    "recall_at_fpr5": 0.09876543209876543,
+    "fpr_at_recall95": 0.7894736842105263
+   }
+  },
+  "cue_free_test_pos": 148,
+  "cue_free_auc": {
+   "SPECTER2": 0.6858700806069227,
+   "TF-IDF": 0.593112849691797
+  }
+ },
+ "bibliography vs hard query negatives": {
+  "n_train": 1710,
+  "n_test": 372,
+  "test_pos": 162,
+  "arms": {
+   "SPECTER2 + LR": {
+    "auc": 0.9538212815990593,
+    "recall_at_fpr5": 0.7592592592592593,
+    "fpr_at_recall95": 0.18095238095238095
+   },
+   "TF-IDF 1-1gram + LR (11721 feats)": {
+    "auc": 0.9888594944150499,
+    "recall_at_fpr5": 0.9382716049382716,
+    "fpr_at_recall95": 0.05714285714285714
+   },
+   "TF-IDF 1-2gram + LR (51809 feats)": {
+    "auc": 0.9883891828336273,
+    "recall_at_fpr5": 0.9629629629629629,
+    "fpr_at_recall95": 0.04285714285714286
+   },
+   "BM25 max vs training positives": {
+    "auc": 0.5400058788947678,
+    "recall_at_fpr5": 0.12345679012345678,
+    "fpr_at_recall95": 0.9523809523809523
+   },
+   "BM25 mean of top-5": {
+    "auc": 0.5073192239858907,
+    "recall_at_fpr5": 0.08024691358024691,
+    "fpr_at_recall95": 0.9380952380952381
+   },
+   "rank-average SPECTER2 + TF-IDF": {
+    "auc": 0.9832745443856555,
+    "recall_at_fpr5": 0.9382716049382716,
+    "fpr_at_recall95": 0.05714285714285714
+   }
+  },
+  "cue_free_test_pos": 148,
+  "cue_free_auc": {
+   "SPECTER2": 0.9563706563706563,
+   "TF-IDF": 0.987934362934363
+  }
+ }
+}

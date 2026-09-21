@@ -100,7 +100,8 @@
    similar-articles, so they cite the positives; the positives cite older
    work that the post-2019 PMC set (#14) does not hold. The sampling that
    made check 5 honest for topic features makes citation-direction features
-   read backwards. Caught because the scalar table was printed feature by
+   read backwards, and BM25 similarity to the known positives the same way
+   (AUC 0.36–0.41, check 7): the neighbours ARE the lexically nearest papers. Caught because the scalar table was printed feature by
    feature; a combined model alone would have hidden it (LR flips the sign
    and the AUC looks fine). Not fixed: a fix needs positives across the
    whole date range (#14) or negatives sampled independently of the
