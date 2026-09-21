@@ -182,9 +182,60 @@ classifier on the same vectors is worse, so the limit is the information in
 the vectors, not the shape of the boundary. The PMC-trained detector recalls
 37% of the old bibliography at its 0.5 point, the mirror of check 4.
 
+**6. Citation-graph features (Oskar: "try the citation-graph features
+from Semantic Scholar next").** Same population and split as check 5.
+Semantic Scholar's batch endpoint returned graph fields for all 19,670 papers;
+its reference lists are non-empty for 78% (publisher elision, C4 said ≥ 40%
+missing), PubMed elink's for 81%. Incoming citations are present for 92% (Semantic
+Scholar) and 87% (PubMed). Every
+"known MSD" set (papers, authors, the 100-paper canon most cited by
+positives) is built from training positives only. Logistic regression on
+test, AUC and recall at 5% neighbour-FPR (`paper_graph_probe.py`):
+
+| features | test AUC | recall at 5% FPR |
+|---|---|---|
+| SPECTER2 alone (check 5) | 0.745 | 0.20 |
+| all 18 graph scalars | 0.727 | 0.17 |
+| bag of PubMed references (82k columns) | 0.739 | 0.22 |
+| bag of Semantic Scholar references | 0.706 | 0.19 |
+| bag of citers (PubMed / Semantic Scholar) | 0.539 / 0.586 | 0.14 / 0.15 |
+| bag of authors | 0.575 | 0.16 |
+| venue | 0.709 | 0.22 |
+| all bags, no embedding | **0.774** | **0.26** |
+| SPECTER2 + scalars | 0.749 | 0.20 |
+| SPECTER2 + scalars + all bags | 0.757 | 0.21 |
+| SPECTER2 + scalars, train ≤ 2023 → test 2024+ | 0.672 | 0.11 |
+
+The single scalars are the surprise. Every "cites known MSD papers" feature
+scores *below* 0.5: references to training positives 0.35, citers that are
+training positives 0.23, references to the canon 0.37. The neighbours cite
+known MSD papers more than the positives do. This is the sampling: a
+neighbour is PubMed's similar-article of a positive, so it sits next to the
+positives in time and topic and often cites them, while the positives' own
+reference lists point at older work that the 99%-post-2019 positive set
+does not contain (ERRORS.md #16). Citation counts run the same way
+(0.31: positives are newer and less cited). The one feature that behaves
+as predicted, author overlap, is weak: 0.61 alone, 0.58 as bag. Labs that
+published on MSD do publish again, but their neighbours share authors
+nearly as often. Reference bags beat the embedding by three points and
+every combination with the embedding lands between the two, a
+regularisation mismatch (one C over a standardised dense block and a binary
+sparse block) I did not tune away. The temporal holdout drops the combined
+model 7.7 points, more than SPECTER2 alone dropped in check 5 (5.8): graph
+features age worse here than topic features.
+
+C1 (a bag alone ≥ 0.80) **wrong**, best 0.739. C2 (author overlap ≥ 0.75
+and strongest) **wrong**, 0.615 and fourth. C3 (combined ≥ 0.85) **wrong**,
+0.757. C4 (≥ 40% elided; PubMed covers more) **wrong** on the number, 22%,
+right on the direction by two points. C5 (temporal within 5 points) **wrong**,
+7.7. Five for five in the same direction as the previous nineteen: I keep
+expecting a new signal to be worth more than it is against negatives drawn
+from the positives' own neighbourhood. Graph features are worth about three
+AUC points over SPECTER2 on this task and cost two API pulls per paper.
+
 **What the sequence says.** 0.98 was the bibliography against my queries; 0.82
 the bibliography against its neighbours; 0.75 the uncurated population against
-its neighbours; 0.69 across a year boundary. A title-and-abstract embedding
+its neighbours, 0.77 with its citation graph; 0.69 across a year boundary. A title-and-abstract embedding
 trained on citation structure carries some of the "used MSD" signal, and at
 the base rate of a literature sweep, one in a few hundred at best, an AUC of
 0.75 gives a candidate list that is nearly all false positives at any usable
@@ -206,9 +257,12 @@ remainder, and nothing in this round found a better one.
 `PLAN-paper.md` · `paper_corpus.py` (assembly + cue regex + regex baseline
 → `results/cue_regex.json`) · `run_paper_arms.sh` → `results/paper_arms.log`
 · `results/paper_*.json`, `results/paper_*_test_preds.jsonl` ·
-`paper_score.py` → `results/paper_summary.json` · `data/papers/` (gitignored):
+`paper_score.py` → `results/paper_summary.json` · `paper_s2_probe.py`,
+`paper_s2_greedy.py`, `paper_pmc_probe.py`, `paper_graph_probe.py` →
+`results/paper_{s2,pmc,graph}_probe.json` · `data/papers/` (gitignored):
 `titles.jsonl`, `resolved.jsonl`, `positives.jsonl`, `hard.jsonl`,
-`easy.jsonl`, the four NCBI scripts and `neg_queries.py`.
+`easy.jsonl`, `neighbors*.jsonl`, `pmc_positives.jsonl`, `s2_specter2.jsonl`,
+`s2_graph.jsonl`, `pubmed_links.jsonl`, the fetch scripts and `neg_queries.py`.
 
 ## Not done
 

@@ -94,3 +94,14 @@
    Fix not applied: date-sliced queries or `usehistory`.
 15. **Semantic Scholar's recommendation endpoint is recent-papers-only**; I
    spent one call finding that out and it is noted so nobody spends more.
+16. **Neighbour negatives are adversarial to citation features.** Every
+   "cites a known MSD paper" scalar scored below 0.5 (references to training
+   positives 0.35, citers 0.23): the negatives are the positives' own
+   similar-articles, so they cite the positives; the positives cite older
+   work that the post-2019 PMC set (#14) does not hold. The sampling that
+   made check 5 honest for topic features makes citation-direction features
+   read backwards. Caught because the scalar table was printed feature by
+   feature; a combined model alone would have hidden it (LR flips the sign
+   and the AUC looks fine). Not fixed: a fix needs positives across the
+   whole date range (#14) or negatives sampled independently of the
+   positives, which is the population the sweep actually faces.

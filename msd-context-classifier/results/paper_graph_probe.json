@@ -1,0 +1,133 @@
+{
+ "coverage": {
+  "s2_present": 19670,
+  "s2_refs_nonempty": 15411,
+  "pm_refs_nonempty": 15865,
+  "s2_cites_nonempty": 18091,
+  "pm_citedin_nonempty": 17121,
+  "n": 19670
+ },
+ "arms": {
+  "scalar:n_s2refs": {
+   "auc": 0.6338927320302056
+  },
+  "scalar:n_s2cites": {
+   "auc": 0.3103376844071453
+  },
+  "scalar:n_authors": {
+   "auc": 0.5290781112986599
+  },
+  "scalar:n_pmrefs": {
+   "auc": 0.6369692931984737
+  },
+  "scalar:n_pmcitedin": {
+   "auc": 0.3100954216732104
+  },
+  "scalar:refs_to_known": {
+   "auc": 0.3489720072433046
+  },
+  "scalar:frac_refs_known": {
+   "auc": 0.3568802177555762
+  },
+  "scalar:citers_known": {
+   "auc": 0.23259109649342247
+  },
+  "scalar:frac_citers_known": {
+   "auc": 0.2687953310002379
+  },
+  "scalar:pmrefs_to_known": {
+   "auc": 0.35937569946781195
+  },
+  "scalar:frac_pmrefs_known": {
+   "auc": 0.3671640952584092
+  },
+  "scalar:pmcitedin_known": {
+   "auc": 0.2309531897487753
+  },
+  "scalar:frac_pmcitedin_known": {
+   "auc": 0.2649748652413543
+  },
+  "scalar:authors_known": {
+   "auc": 0.5933927228136886
+  },
+  "scalar:frac_authors_known": {
+   "auc": 0.6148698408351393
+  },
+  "scalar:max_author_msd_papers": {
+   "auc": 0.5794661266665437
+  },
+  "scalar:refs_to_canon_s2": {
+   "auc": 0.3653796020044608
+  },
+  "scalar:refs_to_canon_pm": {
+   "auc": 0.3657013023377476
+  },
+  "all graph scalars (LR)": {
+   "auc": 0.7273389984191478,
+   "recall_at_fpr5": 0.17457180500658762,
+   "note": ""
+  },
+  "bag of S2 references": {
+   "auc": 0.7059408791152846,
+   "recall_at_fpr5": 0.18906455862977603,
+   "note": "(81552 columns)"
+  },
+  "bag of S2 citers": {
+   "auc": 0.5862257836014462,
+   "recall_at_fpr5": 0.14756258234519104,
+   "note": "(84002 columns)"
+  },
+  "bag of PubMed references": {
+   "auc": 0.7394258022100331,
+   "recall_at_fpr5": 0.21805006587615283,
+   "note": "(82381 columns)"
+  },
+  "bag of PubMed citers": {
+   "auc": 0.5390674991375973,
+   "recall_at_fpr5": 0.14031620553359683,
+   "note": "(58888 columns)"
+  },
+  "bag of authors": {
+   "auc": 0.5754279755525302,
+   "recall_at_fpr5": 0.16337285902503293,
+   "note": "(23862 columns)"
+  },
+  "venue": {
+   "auc": 0.7088282822431071,
+   "recall_at_fpr5": 0.21673254281949933,
+   "note": "(1168 columns)"
+  },
+  "SPECTER2 alone (LR)": {
+   "auc": 0.7449987228540657,
+   "recall_at_fpr5": 0.19828722002635046,
+   "note": ""
+  },
+  "SPECTER2 + graph scalars": {
+   "auc": 0.7485422542196287,
+   "recall_at_fpr5": 0.19828722002635046,
+   "note": ""
+  },
+  "SPECTER2 + scalars + all bags": {
+   "auc": 0.7569490344162302,
+   "recall_at_fpr5": 0.20948616600790515,
+   "note": ""
+  },
+  "all bags only (no embedding)": {
+   "auc": 0.7742177151990899,
+   "recall_at_fpr5": 0.25823451910408435,
+   "note": ""
+  },
+  "temporal: SPECTER2 + scalars": {
+   "auc": 0.6724295291808166,
+   "recall_at_fpr5": 0.11129848229342328,
+   "train_n": 12464,
+   "test_n": 7206
+  },
+  "temporal: scalars only": {
+   "auc": 0.6574058916440519,
+   "recall_at_fpr5": 0.09865092748735245,
+   "train_n": 12464,
+   "test_n": 7206
+  }
+ }
+}
