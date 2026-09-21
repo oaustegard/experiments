@@ -49,11 +49,11 @@ def main():
         if sp_path.exists() and de_path.exists():
             continue
         chunk = texts[i:i + BATCH]
-        with torch.inference_mode():
-            emb = enc.encode_document(chunk, batch_size=16, convert_to_sparse_tensor=True)
-        coo = emb.coalesce()
-        idx, val = coo.indices().numpy(), coo.values().numpy().astype(np.float32)
-        mat = sp.csr_matrix((val, (idx[0], idx[1])), shape=tuple(coo.shape))
+        # Dense per batch (64 x 50k floats): coalesce() on the sparse tensor trips a
+        # PyTorch internal assert under inference_mode, so densify then CSR.
+        with torch.no_grad():
+            emb = enc.encode_document(chunk, batch_size=16, convert_to_sparse_tensor=False)
+        mat = sp.csr_matrix(np.asarray(emb.to_dense() if emb.is_sparse else emb, dtype=np.float32))
         sp.save_npz(sp_path, mat)
         np.save(de_path, dense.encode(chunk, batch_size=16, normalize_embeddings=True).astype(np.float32))
         done = min(i + BATCH, len(ids))
