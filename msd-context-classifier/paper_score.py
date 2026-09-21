@@ -8,7 +8,9 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-meta = {r["url"]: r for r in (json.loads(l) for l in open(os.path.join(HERE, "data", "paper_corpus.jsonl")))}
+CORPUS = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "data", "paper_corpus.jsonl")
+PREFIX = sys.argv[2] if len(sys.argv) > 2 else "paper_"
+meta = {r["url"]: r for r in (json.loads(l) for l in open(CORPUS))}
 
 def auc(y, s):
     order = np.argsort(s); ranks = np.empty(len(s)); ranks[order] = np.arange(1, len(s) + 1)
@@ -16,11 +18,11 @@ def auc(y, s):
     return float((ranks[y == 1].sum() - npos * (npos + 1) / 2) / max(1, npos * nneg))
 
 summary = {}
-for f in sorted(glob.glob(os.path.join(HERE, "results", "paper_*_test_preds.jsonl"))):
-    name = os.path.basename(f)[len("paper_"):-len("_test_preds.jsonl")]
+for f in sorted(glob.glob(os.path.join(HERE, "results", f"{PREFIX}*_test_preds.jsonl"))):
+    name = os.path.basename(f)[len(PREFIX):-len("_test_preds.jsonl")]
     rows = [json.loads(l) for l in open(f)]
     y = np.array([1 if r["label"] == "msd" else 0 for r in rows]); s = np.array([r["probs"]["msd"] for r in rows])
-    cue = np.array([meta[r["url"]]["has_cue"] for r in rows]); hard = np.array([meta[r["url"]]["neg_set"] == "hard" for r in rows])
+    cue = np.array([meta[r["url"]]["has_cue"] for r in rows]); hard = np.array([meta[r["url"]]["neg_set"] in ("hard", "neighbor") for r in rows])
     out = {"n": len(rows), "auc": auc(y, s)}
     for thr_name, thr in [("t0.5", 0.5)]:
         p = s >= thr; tp = (p & (y == 1)).sum(); fp = (p & (y == 0)).sum(); fn = (~p & (y == 1)).sum()
@@ -41,5 +43,5 @@ for f in sorted(glob.glob(os.path.join(HERE, "results", "paper_*_test_preds.json
     else: out["p95"] = None
     summary[name] = out
     print(f"{name:28s} AUC {out['auc']:.3f} | @0.5 P {out['t0.5']['precision']:.3f} R {out['t0.5']['recall']:.3f} cue-free R {out['t0.5']['cue_free_pos_recall']} hard FPR {out['t0.5']['hard_neg_fpr']} | @P95 R {out['p95']['recall'] if out['p95'] else None} cue-free R {out['p95']['cue_free_pos_recall'] if out['p95'] else None}")
-json.dump(summary, open(os.path.join(HERE, "results", "paper_summary.json"), "w"), indent=1)
-print("done -> results/paper_summary.json")
+json.dump(summary, open(os.path.join(HERE, "results", f"{PREFIX}summary.json"), "w"), indent=1)
+print(f"done -> results/{PREFIX}summary.json")
