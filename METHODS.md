@@ -367,6 +367,23 @@ survives exactly the sanity checks people run.
 - `phase-a-bridges`, `te-bridges` — numbered idempotent stage scripts, each
   reading the prior stage's JSON and writing its own atomically
   (tmp-then-rename), safe to re-run.
+- **Token-level masked-LM loss cannot see a vocabulary gap; mask whole terms.**
+  `msd-context-classifier` round 2: under 15% random masking, domain-term tokens
+  were *easier* than ordinary tokens for every stock encoder (ettin-150m CE 1.24
+  vs 1.60) because one masked piece of `IL-6` is predicted from the other two.
+  Masking every piece of a term at once and scoring exact recovery showed the
+  gap (0.32 vs 0.39 on ordinary words for ettin-32m) and the adaptation (0.32 →
+  0.83 after two epochs with whole-term masking). Score one target per pass or
+  keep co-listed terms apart; report a per-type table from the same counters
+  the aggregate uses (ERRORS.md #5). (`msd-context-classifier/mlm_ppl.py`)
+- **Continued MLM pretraining teaches vocabulary and produces neither an
+  embedding nor a better classifier.** Whole-term recovery +51 points; mean-
+  pooled retrieval at chance before and after over 3,028 docs while gte-small,
+  with a worse tokenizer, scores 0.96 recall@10; classifiers within two points
+  of stock. Vocabulary expansion (300 tokens, mean-of-pieces init) is a length
+  optimisation (−5% tokens/page), not a knowledge one. The objective decides
+  what the model can do; adapt the vocabulary inside the objective you will
+  deploy. (`msd-context-classifier/RESULTS-vocab.md`)
 - **A site-section classifier trained on pages routes questions to the FAQ
   section.** `msd-context-classifier`: four fine-tuned encoders and a frozen
   probe at 0.91–0.96 page accuracy sent 65–76% of question-shaped inputs to

@@ -1,0 +1,109 @@
+{
+ "n_test": 138,
+ "accuracy": 0.9347826086956522,
+ "macro_f1": 0.8090393733250876,
+ "ece_raw": 0.041071419698604644,
+ "ece_temp": 0.045751693024151566,
+ "temperature": 1.9000000000000001,
+ "coverage_5pct": {
+  "threshold": 0.3409999907016754,
+  "coverage": 0.9927536231884058,
+  "error_at_coverage": 0.058394160583941646
+ },
+ "per_label_f1": {
+  "assay_kits": {
+   "f1": 0.7777777777777777,
+   "n": 8
+  },
+  "platform_products": {
+   "f1": 0.3333333333333333,
+   "n": 3
+  },
+  "products": {
+   "f1": 0.9772727272727273,
+   "n": 44
+  },
+  "references": {
+   "f1": 1.0,
+   "n": 44
+  },
+  "science_resources": {
+   "f1": 0.7272727272727272,
+   "n": 6
+  },
+  "services": {
+   "f1": 0.9142857142857143,
+   "n": 17
+  },
+  "support": {
+   "f1": 0.9333333333333333,
+   "n": 16
+  }
+ },
+ "arm": "ft",
+ "model": "models/dapt_ettin_32m",
+ "epochs": 6,
+ "lr": 5e-05,
+ "max_len": 256,
+ "params": 31883136,
+ "best_dev_macro_f1": 0.8901484889015386,
+ "ms_per_example_bs1_torch": 55.35865550154995,
+ "train_seconds": 545.0752878189087,
+ "queries": {
+  "n_test": 175,
+  "accuracy": 0.22857142857142856,
+  "macro_f1": 0.14615224531984314,
+  "ece_raw": 0.5915648267950331,
+  "ece_temp": 0.4151889274801527,
+  "temperature": 1.9000000000000001,
+  "coverage_5pct": {
+   "threshold": 0.3409999907016754,
+   "coverage": 0.96,
+   "error_at_coverage": 0.7678571428571428
+  },
+  "per_label_f1": {
+   "assay_kits": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "platform_products": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "products": {
+    "f1": 0.14285714285714285,
+    "n": 25
+   },
+   "references": {
+    "f1": 0.0,
+    "n": 25
+   },
+   "science_resources": {
+    "f1": 0.24390243902439027,
+    "n": 25
+   },
+   "services": {
+    "f1": 0.3137254901960784,
+    "n": 25
+   },
+   "support": {
+    "f1": 0.32258064516129037,
+    "n": 25
+   }
+  }
+ },
+ "labels": [
+  "assay_kits",
+  "platform_products",
+  "products",
+  "references",
+  "science_resources",
+  "services",
+  "support"
+ ],
+ "split": {
+  "train": 617,
+  "dev": 132,
+  "test": 138
+ }
+}
