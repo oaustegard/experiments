@@ -1,0 +1,74 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/66 [00:00<?, ?it/s]Loading weights: 100%|██████████| 66/66 [00:00<00:00, 8740.06it/s]
+[transformers] Ignoring clean_up_tokenization_spaces=True for BPE tokenizer TokenizersBackend. The clean_up_tokenization post-processing step is designed for WordPiece tokenizers and is destructive for BPE (it strips spaces before punctuation). Set clean_up_tokenization_spaces=False to suppress this warning, or set clean_up_tokenization_spaces_for_bpe_even_though_it_will_corrupt_output=True to force cleanup anyway.
+descriptive done
+arm=bidir ce=2.1279 acc=0.594 retained=None retained_trunc=None s=13.7
+arm=causal ce=8.3008 acc=0.067 retained=0.000 retained_trunc=None s=13.8
+arm=truncate ce=7.3510 acc=0.096 retained=0.154 retained_trunc=0.000 s=215.9
+arm=single:0 ce=2.3851 acc=0.555 retained=0.958 retained_trunc=0.951 s=11.9
+arm=single:1 ce=2.2578 acc=0.573 retained=0.979 retained_trunc=0.975 s=11.9
+arm=single:2 ce=2.4130 acc=0.547 retained=0.954 retained_trunc=0.945 s=11.7
+arm=single:3 ce=2.5481 acc=0.532 retained=0.932 retained_trunc=0.920 s=11.9
+arm=single:4 ce=2.4053 acc=0.551 retained=0.955 retained_trunc=0.947 s=11.8
+arm=single:5 ce=2.4866 acc=0.541 retained=0.942 retained_trunc=0.931 s=11.9
+arm=single:6 ce=2.3431 acc=0.562 retained=0.965 retained_trunc=0.959 s=11.8
+arm=single:7 ce=2.2798 acc=0.571 retained=0.975 retained_trunc=0.971 s=11.8
+arm=single:8 ce=2.2996 acc=0.569 retained=0.972 retained_trunc=0.967 s=11.9
+arm=single:9 ce=2.5348 acc=0.525 retained=0.934 retained_trunc=0.922 s=11.9
+arm=keep:top4 ce=4.5537 acc=0.283 retained=0.607 retained_trunc=0.536 s=11.9
+arm=prefix:1 ce=2.3851 acc=0.555 retained=0.958 retained_trunc=0.951 s=11.9
+arm=prefix:2 ce=2.7824 acc=0.501 retained=0.894 retained_trunc=0.875 s=11.9
+arm=prefix:3 ce=3.4356 acc=0.419 retained=0.788 retained_trunc=0.750 s=12.0
+arm=prefix:4 ce=4.4907 acc=0.307 retained=0.617 retained_trunc=0.548 s=12.0
+arm=prefix:5 ce=4.8032 acc=0.269 retained=0.567 retained_trunc=0.488 s=12.0
+arm=prefix:6 ce=5.3870 acc=0.206 retained=0.472 retained_trunc=0.376 s=12.0
+arm=prefix:7 ce=6.8419 acc=0.123 retained=0.236 retained_trunc=0.097 s=11.9
+arm=prefix:8 ce=7.4683 acc=0.095 retained=0.135 retained_trunc=-0.022 s=12.1
+arm=prefix:9 ce=7.9485 acc=0.076 retained=0.057 retained_trunc=-0.114 s=11.8
+arm=suffix:1 ce=8.2839 acc=0.087 retained=0.003 retained_trunc=-0.179 s=11.8
+arm=suffix:2 ce=7.3928 acc=0.120 retained=0.147 retained_trunc=-0.008 s=11.9
+arm=suffix:3 ce=6.4641 acc=0.163 retained=0.298 retained_trunc=0.170 s=11.9
+arm=suffix:4 ce=5.1763 acc=0.236 retained=0.506 retained_trunc=0.416 s=11.8
+arm=suffix:5 ce=4.4189 acc=0.312 retained=0.629 retained_trunc=0.561 s=11.9
+arm=suffix:6 ce=3.6518 acc=0.398 retained=0.753 retained_trunc=0.708 s=12.0
+arm=suffix:7 ce=3.2095 acc=0.433 retained=0.825 retained_trunc=0.793 s=12.0
+arm=suffix:8 ce=2.7880 acc=0.491 retained=0.893 retained_trunc=0.874 s=11.8
+arm=suffix:9 ce=2.5348 acc=0.525 retained=0.934 retained_trunc=0.922 s=11.7
+arm=keep:global ce=5.1235 acc=0.220 retained=0.515 retained_trunc=0.426 s=11.9
+arm=keep:local ce=4.4545 acc=0.325 retained=0.623 retained_trunc=0.555 s=11.8
+arm=keep:every4 ce=7.1281 acc=0.150 retained=0.190 retained_trunc=0.043 s=11.8
+arm=keep:first4 ce=5.1763 acc=0.236 retained=0.506 retained_trunc=0.416 s=11.8
+arm=keep:last4 ce=5.3870 acc=0.206 retained=0.472 retained_trunc=0.376 s=11.8
+arm=look:1 ce=5.0498 acc=0.277 retained=0.527 retained_trunc=0.441 s=11.8
+arm=look:2 ce=4.5887 acc=0.312 retained=0.601 retained_trunc=0.529 s=11.7
+arm=look:4 ce=4.2441 acc=0.343 retained=0.657 retained_trunc=0.595 s=11.9
+arm=look:8 ce=3.9564 acc=0.370 retained=0.704 retained_trunc=0.650 s=11.8
+arm=look:16 ce=3.7141 acc=0.394 retained=0.743 retained_trunc=0.696 s=11.8
+arm=look:32 ce=3.4709 acc=0.426 retained=0.782 retained_trunc=0.743 s=11.8
+arm=look:64 ce=3.1586 acc=0.462 retained=0.833 retained_trunc=0.803 s=11.9
+arm=look:128 ce=2.6495 acc=0.525 retained=0.916 retained_trunc=0.900 s=11.8
+arm=anchor:special ce=5.6893 acc=0.170 retained=0.423 retained_trunc=0.318 s=11.8
+arm=anchor:first4 ce=8.0925 acc=0.076 retained=0.034 retained_trunc=-0.142 s=11.8
+arm=anchor:punct ce=5.2782 acc=0.214 retained=0.490 retained_trunc=0.397 s=11.9
+arm=anchor:attn:5 ce=5.4825 acc=0.186 retained=0.457 retained_trunc=0.358 s=11.9
+arm=anchor:attn:10 ce=5.2049 acc=0.211 retained=0.502 retained_trunc=0.411 s=12.0
+arm=anchor:attn:25 ce=4.4374 acc=0.297 retained=0.626 retained_trunc=0.558 s=11.9
+arm=anchor:rand:5 ce=7.8264 acc=0.085 retained=0.077 retained_trunc=-0.091 s=11.9
+arm=anchor:rand:10 ce=7.4837 acc=0.101 retained=0.132 retained_trunc=-0.025 s=12.0
+arm=anchor:rand:25 ce=6.1141 acc=0.183 retained=0.354 retained_trunc=0.237 s=11.9
+arm=anchor:masked ce=7.3310 acc=0.117 retained=0.157 retained_trunc=0.004 s=12.1
+arm=look:8+punct ce=2.4837 acc=0.539 retained=0.942 retained_trunc=0.932 s=11.9
+arm=look:8+attn:10 ce=2.5950 acc=0.522 retained=0.924 retained_trunc=0.911 s=12.0
+arm=causal+special ce=5.6893 acc=0.170 retained=0.423 retained_trunc=0.318 s=11.8
+arm=keep:global+special ce=5.1150 acc=0.222 retained=0.516 retained_trunc=0.428 s=11.8
+arm=single+special:0 ce=2.2129 acc=0.582 retained=0.986 retained_trunc=0.984 s=11.7
+arm=single+special:1 ce=2.2583 acc=0.572 retained=0.979 retained_trunc=0.975 s=11.8
+arm=single+special:2 ce=2.4211 acc=0.547 retained=0.953 retained_trunc=0.944 s=11.8
+arm=single+special:3 ce=2.1884 acc=0.583 retained=0.990 retained_trunc=0.988 s=12.0
+arm=single+special:4 ce=2.3969 acc=0.553 retained=0.956 retained_trunc=0.949 s=12.1
+arm=single+special:5 ce=2.4903 acc=0.542 retained=0.941 retained_trunc=0.931 s=11.9
+arm=single+special:6 ce=2.2065 acc=0.579 retained=0.987 retained_trunc=0.985 s=11.8
+arm=single+special:7 ce=2.2772 acc=0.571 retained=0.976 retained_trunc=0.971 s=11.8
+arm=single+special:8 ce=2.2974 acc=0.569 retained=0.973 retained_trunc=0.968 s=11.9
+arm=single+special:9 ce=2.3930 acc=0.540 retained=0.957 retained_trunc=0.949 s=11.9
+done -> results/ettin32.json

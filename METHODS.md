@@ -3462,3 +3462,36 @@ representation-level order test at a single position needs the adjacent-inert
 control, and a random-filler version of every carrier so the carrier's own
 effect can be divided out (ratio of ratios, label-shuffled across real and
 random pairs). (`noncommutative-composition/`)
+
+### A causal mask on a bidirectional encoder is a distribution shift, not a "no right context" baseline
+
+Applying a causal mask to every layer of `answerdotai/ModernBERT-base` gives a
+masked-LM cross-entropy of 23.5 nats, above the 10.8 of a uniform guess over
+its vocabulary; the same model fed only the tokens up to the masked position
+plus `[SEP]`, under its own bidirectional attention, scores 6.5. The 17-nat
+difference is the model operating on representations it never saw in training
+(a `[CLS]` that attended only to itself, sink tokens that cannot be reached),
+not information it lacks. Any "fraction of the bidirectional benefit retained"
+computed against the all-causal arm inflates every partial arm (a punctuation
+anchor arm reads 0.83 against it and 0.20 against the truncated reference).
+Use the truncation reference for the denominator, report the all-causal number
+as the collapse it is, and add a variant that leaves the special tokens readable
+so sink loss and information loss can be told apart. ettin-encoder-32m, same
+recipe, does not collapse (8.3 vs 7.4), so check per checkpoint.
+(`modernbert-bidirectionality/`)
+
+### Per-layer attention masks in HF ModernBERT go in through a forward pre-hook, not the `attention_mask` argument
+
+`ModernBertModel.forward` turns a 2D mask into a dict keyed by layer *type*
+(`full_attention`, `sliding_attention`) and hands each layer the mask for its
+type, so there is no per-layer entry point. Register
+`layer.register_forward_pre_hook(fn, with_kwargs=True)` on each
+`model.model.layers[l]` and replace `kwargs["attention_mask"]` with a
+`(B, 1, L, L)` additive float mask (0 allowed, `finfo.min` blocked) built as
+`arm_mask AND base_mask`, where the base is all-true for global layers and
+`|i−j| ≤ config.sliding_window` (64) for local ones, with
+`attn_implementation="eager"` (same speed as sdpa on CPU at 256 tokens, and it
+returns attention weights). Two tests keep it honest: an all-true arm must
+reproduce the stock logits to 1e-4, and under a full causal arm perturbing
+tokens after `i` must leave the output at `i` unchanged. With no padding the
+mask broadcasts over the batch. (`modernbert-bidirectionality/masks.py`)
