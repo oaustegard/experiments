@@ -91,9 +91,13 @@ def tag():
     from muninn_utils.hypothetical_classifier import _invoke, _MODEL
     fx = load_fixture(); links = json.loads((DATA / "links.json").read_text())
     docs, queries, _, _ = select_docs(fx, links)
-    if VARIANT == "context":
+    if VARIANT in ("context", "refs"):
         nb = older_neighbours(fx, links, docs); tags_of = {m["id"]: m["tags"] for m in fx["memories"]}
-        (DATA / "context_neighbours.json").write_text(json.dumps(nb))
+        if VARIANT == "refs":
+            cited = {}
+            for q, t in links["pairs"]: cited.setdefault(q, []).append(t)
+            nb = {d: (cited.get(d, []) + [x for x in nb[d] if x not in cited.get(d, [])])[:5] for d in docs}
+        (DATA / f"context_neighbours_{VARIANT}.json").write_text(json.dumps(nb))
     hint = ", ".join(t for t, _ in Counter(t for m in fx["memories"] for t in m["tags"]).most_common(K_HINT))
     tj = json.loads((DATA / "texts.json").read_text()); tmap = dict(zip(tj["ids"], tj["texts"]))
     done = json.loads(RAW.read_text()) if RAW.exists() else {}
@@ -101,7 +105,7 @@ def tag():
     print(f"{len(docs)} docs ({len(queries)} queries), {len(todo)} to tag", file=sys.stderr, flush=True)
     t0 = time.time()
     def one(d):
-        if VARIANT == "context":
+        if VARIANT in ("context", "refs"):
             ctx = "\n".join(f"- [{', '.join(tags_of[x])}] {tmap[x][:150].replace(chr(10), ' ')}" for x in nb[d]) or "- (none)"
             pr = PROMPT_CONTEXT.format(context=ctx, entry=tmap[d][:6000])
         else:
@@ -150,8 +154,8 @@ def score():
     arms = {}
     base = {m["id"]: list(m["tags"]) for m in mems}
     subs = [("my tags", None), ("flash-lite snapped", snapped), ("flash-lite raw", raw)]
-    if VARIANT == "context":
-        nb = json.loads((DATA / "context_neighbours.json").read_text())
+    if VARIANT in ("context", "refs"):
+        nb = json.loads((DATA / f"context_neighbours_{VARIANT}.json").read_text())
         inherit = {d: sorted({t for x in nb[d] for t in mine[x]}) or ["__none__"] for d in docs}
         subs.append(("neighbour-tag inheritance (no model)", inherit))
         ctx_tags = {d: {t for x in nb[d] for t in mine[x]} for d in docs}
@@ -164,6 +168,18 @@ def score():
         M = tagmat(tags_of); arms[name] = R.rank_rows((M[qidx] @ M.T).toarray(), qidx)
     D = np.load(DATA / "dense.npy"); arms["gte-small"] = R.rank_rows(D[qidx] @ D.T, qidx)
     metrics = {k: R.evaluate(v, rels) for k, v in arms.items()}
+    # reverse direction: each cited memory retrieves the memories (in the 300) that cite it
+    citers = {}
+    for q in queries:
+        for t in rel[q]: citers.setdefault(t, set()).add(pos[q])
+    rq = sorted(citers); rqidx = [pos[t] for t in rq]; rrels = [citers[t] for t in rq]
+    reverse = {}
+    for name, sub in subs:
+        tags_of = dict(base)
+        if sub: tags_of.update({d: sub[d] for d in docs})
+        M = tagmat(tags_of); reverse[name] = R.evaluate(R.rank_rows((M[rqidx] @ M.T).toarray(), rqidx), rrels)
+    reverse["gte-small"] = R.evaluate(R.rank_rows(D[rqidx] @ D.T, rqidx), rrels)
+    out_extra["reverse_direction"] = {"n_queries": len(rq), "n_pairs": sum(len(r) for r in rrels), "metrics": reverse}
     m10, mm = R.per_query(arms["my tags"], rels)
     boots = {}
     for k, v in arms.items():
@@ -179,6 +195,8 @@ def score():
     print(json.dumps({k: v for k, v in out.items() if k not in ("metrics", "bootstrap_vs_my_tags")}, indent=1))
     print(f"\n{'arm':22s} R@10   R@50   MRR")
     for k, v in metrics.items(): print(f"{k:22s} {v['recall@10']:.3f}  {v['recall@50']:.3f}  {v['mrr']:.3f}")
+    print(f"\nreverse direction (cited -> citer), {len(rq)} queries:")
+    for k, v in reverse.items(): print(f"{k:22s} {v['recall@10']:.3f}  {v['recall@50']:.3f}  {v['mrr']:.3f}")
     print("\nvs my tags, R@10:")
     for k, b in boots.items(): print(f"  {k:20s} {b['recall@10']['mean']:+.3f} [{b['recall@10']['lo']:+.3f}, {b['recall@10']['hi']:+.3f}]")
     ex = [d for d in docs if d in queries][:3]

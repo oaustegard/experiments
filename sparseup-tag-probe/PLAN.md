@@ -221,3 +221,33 @@ Null reading: if context adds nothing, the context run ties the specific-names
 run at 0.461. The refutation to search for: a context win that is only the
 inheritance control, meaning the model contributes nothing over copying the
 neighbours' tags.
+
+## Round 6 (2026-09-22): the tagger with the cited memories' tags
+
+Oskar: "try the next logical thing." At remember() time the write path knows
+the memories the new one cites (`refs`). Here flash-lite's context is those
+cited memories first (tags and snippet), topped up to five with older
+neighbours as in round 5; a memory with no refs gets the round-5 context. Same
+300, same prompt otherwise, same snap. Control with no model: the union of the
+refs' tags and the neighbours' tags.
+
+The forward test (query → cited) is partly circular under this design: a
+query tagged from its cited memory's tags retrieves that memory by
+construction, which is also how my own tags got part of their score. So this
+round adds the reverse direction, cited → citer among the 300, where the cited
+memory's context never contains the citer (older only), and reports per-memory
+Jaccard with my tags, which is not circular either.
+
+Predictions, written before the first call:
+
+| quantity | prediction |
+|---|---|
+| forward R@10, flash-lite + refs context, snapped | 0.68 |
+| forward R@10, refs + neighbour tag union, no model | 0.72 (at or above my 0.697) |
+| Jaccard(flash-lite + refs context, mine) | 0.42 |
+| reverse R@10, flash-lite + refs context, within 0.08 of my tags | yes |
+| reverse R@10, round-5 context (neighbours only) vs refs context | refs context ahead by <= 0.03 |
+
+Null reading: if the cited memories' tags add nothing beyond the neighbours',
+forward and Jaccard match round 5 (0.565, 0.34). The refutation: a forward win
+that is entirely the no-model copy, and no movement on the reverse direction.
