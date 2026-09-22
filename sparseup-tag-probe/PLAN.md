@@ -195,3 +195,29 @@ ties my tags. The refutation to search for: a flash-lite win or tie that comes
 from tags copied out of the 150-tag hint (process tags such as `correction`)
 rather than from reading the memory; the per-memory Jaccard and the share of
 hint tags used are reported for that.
+
+## Round 5 (2026-09-22): the tagger with recall context
+
+Oskar: "Run the tagger with recall context on the same 300." Round 4's untested
+cause for the gap: my tags were written with related memories in context. Here
+flash-lite gets what a write-time recall would give it: the five most similar
+OLDER memories by gte-small cosine (older only, so a cited memory never sees
+the memory that cites it), each as its tags and its first 150 characters, with
+the specific-names prompt and an instruction to reuse a context tag whenever it
+fits. Same 300 memories, same snap, same retrieval test. Control with no model:
+each memory tagged with the union of its five older neighbours' tags
+(inheritance by embedding alone).
+
+Predictions, written before the first call:
+
+| quantity | prediction |
+|---|---|
+| flash-lite + context, snapped, R@10 | 0.58 |
+| neighbour-tag inheritance, no model, R@10 | 0.50 |
+| Jaccard(flash-lite + context, mine) | 0.30 |
+| share of written tags taken from the context | 40% |
+
+Null reading: if context adds nothing, the context run ties the specific-names
+run at 0.461. The refutation to search for: a context win that is only the
+inheritance control, meaning the model contributes nothing over copying the
+neighbours' tags.

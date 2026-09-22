@@ -27,6 +27,22 @@ Output the tags on one line, comma separated, nothing else.
 ENTRY:
 {entry}"""
 
+PROMPT_CONTEXT = """You are writing topic tags for a new entry in an engineering memory store.
+
+Write four to seven tags for the entry below: lowercase, single words or hyphenated phrases,
+no explanations. At least half of the tags must be the specific things the entry is about --
+the project, repo, tool, model, paper, person, place or issue it names -- written as they
+appear. The rest may be general topics. Prefer a specific name over a generic category.
+
+RELATED ENTRIES ALREADY IN THE STORE (their tags, then a snippet). When one of these tags
+fits the new entry, reuse it exactly rather than writing a variant:
+{context}
+
+Output the tags on one line, comma separated, nothing else.
+
+NEW ENTRY:
+{entry}"""
+
 # Post-hoc variant (not pre-registered): no hint list; asks for the specific names the entry
 # is about. Written after the first run showed flash-lite reusing hint tags 62% of the time.
 PROMPT_SPECIFIC = """You are writing topic tags for an entry in an engineering memory store.
@@ -56,10 +72,28 @@ def select_docs(fx, links):
     return sorted(chosen), queries, rel, pos
 
 
+def older_neighbours(fx, links, docs, k=5):
+    """Top-k gte-small neighbours among strictly older memories: the write-time recall view."""
+    from datetime import datetime
+    ids = [m["id"] for m in fx["memories"]]; pos = {m: i for i, m in enumerate(ids)}
+    def ts(s):
+        try: return datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
+        except Exception: return 0.0
+    t = np.array([ts(links["t"][m]) for m in ids]); D = np.load(DATA / "dense.npy")
+    out = {}
+    for d in docs:
+        i = pos[d]; s = D @ D[i]; s[t >= t[i]] = -np.inf; s[i] = -np.inf
+        out[d] = [ids[j] for j in np.argsort(-s)[:k] if np.isfinite(s[j])]
+    return out
+
+
 def tag():
     from muninn_utils.hypothetical_classifier import _invoke, _MODEL
     fx = load_fixture(); links = json.loads((DATA / "links.json").read_text())
     docs, queries, _, _ = select_docs(fx, links)
+    if VARIANT == "context":
+        nb = older_neighbours(fx, links, docs); tags_of = {m["id"]: m["tags"] for m in fx["memories"]}
+        (DATA / "context_neighbours.json").write_text(json.dumps(nb))
     hint = ", ".join(t for t, _ in Counter(t for m in fx["memories"] for t in m["tags"]).most_common(K_HINT))
     tj = json.loads((DATA / "texts.json").read_text()); tmap = dict(zip(tj["ids"], tj["texts"]))
     done = json.loads(RAW.read_text()) if RAW.exists() else {}
@@ -67,7 +101,11 @@ def tag():
     print(f"{len(docs)} docs ({len(queries)} queries), {len(todo)} to tag", file=sys.stderr, flush=True)
     t0 = time.time()
     def one(d):
-        pr = PROMPT.format(hint=hint, entry=tmap[d][:6000]) if VARIANT == "hint" else PROMPT_SPECIFIC.format(entry=tmap[d][:6000])
+        if VARIANT == "context":
+            ctx = "\n".join(f"- [{', '.join(tags_of[x])}] {tmap[x][:150].replace(chr(10), ' ')}" for x in nb[d]) or "- (none)"
+            pr = PROMPT_CONTEXT.format(context=ctx, entry=tmap[d][:6000])
+        else:
+            pr = PROMPT.format(hint=hint, entry=tmap[d][:6000]) if VARIANT == "hint" else PROMPT_SPECIFIC.format(entry=tmap[d][:6000])
         r = _invoke(pr, _MODEL, 200) or ""
         return d, [t.strip().strip('"').strip("'").lower() for t in re.split(r"[,\n]", r) if t.strip()][:7]
     with cf.ThreadPoolExecutor(max_workers=3) as ex:
@@ -111,7 +149,16 @@ def score():
     qidx = [pos[q] for q in queries]; rels = [{pos[t] for t in rel[q]} for q in queries]
     arms = {}
     base = {m["id"]: list(m["tags"]) for m in mems}
-    for name, sub in (("my tags", None), ("flash-lite snapped", snapped), ("flash-lite raw", raw)):
+    subs = [("my tags", None), ("flash-lite snapped", snapped), ("flash-lite raw", raw)]
+    if VARIANT == "context":
+        nb = json.loads((DATA / "context_neighbours.json").read_text())
+        inherit = {d: sorted({t for x in nb[d] for t in mine[x]}) or ["__none__"] for d in docs}
+        subs.append(("neighbour-tag inheritance (no model)", inherit))
+        ctx_tags = {d: {t for x in nb[d] for t in mine[x]} for d in docs}
+        out_extra = {"share_written_tags_from_context": float(np.mean([t in ctx_tags[d] for d, v in raw.items() for t in v]))}
+    else:
+        out_extra = {}
+    for name, sub in subs:
         tags_of = dict(base)
         if sub: tags_of.update({d: sub[d] for d in docs})
         M = tagmat(tags_of); arms[name] = R.rank_rows((M[qidx] @ M.T).toarray(), qidx)
@@ -127,7 +174,7 @@ def score():
            "tags_per_memory_mine_on_these": float(np.mean([len(mine[d]) for d in docs])),
            "snap_kinds": dict(kinds), "share_new_after_snap": kinds["new"] / sum(kinds.values()),
            "share_written_tags_in_hint": float(hint_share), "jaccard_snapped_vs_mine": float(np.mean(jacc)),
-           "metrics": metrics, "bootstrap_vs_my_tags": boots}
+           "metrics": metrics, "bootstrap_vs_my_tags": boots, **out_extra}
     (RESULTS / ("flashlite.json" if VARIANT == "hint" else f"flashlite_{VARIANT}.json")).write_text(json.dumps(out, indent=1))
     print(json.dumps({k: v for k, v in out.items() if k not in ("metrics", "bootstrap_vs_my_tags")}, indent=1))
     print(f"\n{'arm':22s} R@10   R@50   MRR")
