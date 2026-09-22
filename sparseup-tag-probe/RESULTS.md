@@ -206,3 +206,23 @@ measured, and the gap to SPARSEUP (0.612) is not closed by the whole phrase
 inventory. What the 2024 design would need is the part this round did not
 build — snapping unseen phrases onto selected dims — and the unigram column
 puts an upper bound on what that could recover at each K.
+
+## The tagger
+
+`tag_model.py` is the model round 1 pointed at: word + char TF-IDF and one
+logistic regression per tag at C = 10000, trained on the 3,315 labelled
+memories (344,968 features, 665 s single-threaded — the char n-grams and the
+high C are what the last 0.05 AP costs; word unigrams at C = 100 fit in
+seconds). Per-label thresholds come from this arm's out-of-fold scores, so the
+out-of-fold numbers at those thresholds are optimistic by construction: micro
+precision 0.667, recall 0.651, F1 0.659, 2.9 tags predicted per memory against
+2.96 assigned. The fitted model holds n-grams of memory text and stays in
+`data/`.
+
+On the three memories written after the fixture was pinned, the only unseen
+inputs available, it predicted `delegation` for the Muse note (its one tag in
+the label set) and `experiments-repo` and `muninn-utilities` for the two
+experiment write-ups, and missed `experiments`, `measured`, `negative-result`
+and `ccotw` on them. Most of their tags (`sparseup`, `tag-vectors`, `muse`)
+have fewer than ten uses and are outside the label set. Three long, atypical
+memories are not an evaluation; the out-of-fold numbers are.
