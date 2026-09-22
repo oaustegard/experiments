@@ -232,8 +232,8 @@ memories are not an evaluation; the out-of-fold numbers are.
 Oskar, after round 2: the tag vocabulary is whatever I assign at write time,
 5,827 distinct tags of which 3,603 are used once, and a sparse vector has no
 reason to prune it. The SPARSEUP-shaped object is a binary vector over the whole
-inventory, expanded with co-occurring tags at PMI weight. The test is retrieval:
-does that space find the memories a text embedding finds?
+inventory, expanded with co-occurring tags at PMI weight. The test is retrieval,
+whether that space finds the memories a text embedding finds.
 
 Relevance is the 466 `refs` links inside the fixture, from 235 memories to the
 memories they cite, written at remember() time. Each query retrieves from the
@@ -260,9 +260,9 @@ control. `retrieval.py`, predictions in `PLAN.md` round 3.
 
 Recency check, pre-registered: on the half of the pairs whose age gap is above
 the median (121 queries, 233 pairs), nearest-in-time falls to R@10 0.122 while
-tag-binary holds at 0.538 against gte-small's 0.570 (−0.033 [−0.113, +0.045]),
-TF-IDF 0.678 (+0.108), and RRF(tag-binary, gte) 0.643 (+0.073 [+0.013, +0.128]).
-The tag-space result is not recency.
+tag-binary holds at 0.534 against gte-small's 0.566 (−0.033 [−0.113, +0.045]),
+TF-IDF 0.678 (+0.112 [+0.037, +0.183]), and RRF(tag-expanded α = 0.5, gte) 0.617
+(+0.051 [−0.016, +0.116]). The tag-space result is not recency.
 
 Of the 211 relevant memories gte-small misses at k = 10, tag-expanded (α = 0.5)
 finds 79 and TF-IDF 111; the mean top-10 Jaccard between the tag space and
@@ -293,13 +293,12 @@ Three readings:
   co-occurrence learned on 3,457 memories, the expansion adds neighbours faster
   than it adds relevant ones. The SPARSEUP analogy holds for the vector shape,
   not for the expansion step.
-- **TF-IDF is the strongest single representation here, by a wide margin
-  again.** Part of that is the ground truth: refs written after a lexical
+- **TF-IDF is the strongest single representation here, as in round 1.** Part of that is the ground truth: refs written after a lexical
   recall favour lexical neighbours. Part is that I cite in the same words I
   wrote. SPARSEUP in document mode is next; its query mode, meant for short
   queries against long documents, is worse when the query is itself a memory.
 
 What this says for the store: the tags are already a retrieval channel worth
-fusing with the embedding, unexpanded, and canonicalizing the 70 surface-variant
+fusing with the embedding, unexpanded. Canonicalizing the 70 surface-variant
 families is the one cleanup that would tighten it. Expansion, if wanted, should
 be learned from text, not from co-occurrence over this few documents.

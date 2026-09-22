@@ -3599,7 +3599,7 @@ On Muninn's store (3,457 memories, 5,827 distinct tags, 5.7 per memory), a
 plain binary tag vector retrieves cited memories as well as gte-small (R@10
 0.667 vs 0.648, CI spans zero) and holds on the half of pairs with an
 above-median age gap, where a nearest-in-time ranking collapses from 0.593 to
-0.122. RRF of tag vector and embedding beats either by 0.06–0.07. Expanding the
+0.122. RRF of tag vector and embedding beats either by 0.06 on the full set. Expanding the
 tag vector with co-occurring tags at PMI weight is within noise at weight 0.25
 and costs 0.04–0.18 above that, in every sparsity variant tried; with a handful
 of tags per document and co-occurrence learned on a few thousand documents, the
