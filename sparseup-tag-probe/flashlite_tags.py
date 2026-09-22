@@ -11,7 +11,8 @@ from sklearn.preprocessing import normalize
 from common import DATA, load_fixture
 
 RESULTS = DATA.parent / "results"
-RAW = DATA / "flashlite_tags.json"
+VARIANT = sys.argv[2] if len(sys.argv) > 2 else "hint"
+RAW = DATA / ("flashlite_tags.json" if VARIANT == "hint" else f"flashlite_tags_{VARIANT}.json")
 N_DOCS, K_HINT, SNAP = 300, 150, 0.85
 PROMPT = """You are writing topic tags for an entry in an engineering memory store.
 
@@ -20,6 +21,21 @@ tags exactly: lowercase, single words or hyphenated phrases, specific, no explan
 The store's most used tags, as examples of that register (reuse them when they fit, write
 new ones in the same shape when they do not):
 {hint}
+
+Output the tags on one line, comma separated, nothing else.
+
+ENTRY:
+{entry}"""
+
+# Post-hoc variant (not pre-registered): no hint list; asks for the specific names the entry
+# is about. Written after the first run showed flash-lite reusing hint tags 62% of the time.
+PROMPT_SPECIFIC = """You are writing topic tags for an entry in an engineering memory store.
+
+Write four to seven tags for the entry below: lowercase, single words or hyphenated phrases,
+no explanations. At least half of the tags must be the specific things the entry is about --
+the project, repo, tool, model, paper, person, place or issue it names -- written as they
+appear (e.g. remex, pliny, ettin-32m, muninn-utilities-137, arxiv-2609-01807). The rest may
+be general topics. Prefer a specific name over a generic category every time.
 
 Output the tags on one line, comma separated, nothing else.
 
@@ -51,7 +67,8 @@ def tag():
     print(f"{len(docs)} docs ({len(queries)} queries), {len(todo)} to tag", file=sys.stderr, flush=True)
     t0 = time.time()
     def one(d):
-        r = _invoke(PROMPT.format(hint=hint, entry=tmap[d][:6000]), _MODEL, 200) or ""
+        pr = PROMPT.format(hint=hint, entry=tmap[d][:6000]) if VARIANT == "hint" else PROMPT_SPECIFIC.format(entry=tmap[d][:6000])
+        r = _invoke(pr, _MODEL, 200) or ""
         return d, [t.strip().strip('"').strip("'").lower() for t in re.split(r"[,\n]", r) if t.strip()][:7]
     with cf.ThreadPoolExecutor(max_workers=3) as ex:
         for i, (d, tags) in enumerate(ex.map(one, todo)):
@@ -111,7 +128,7 @@ def score():
            "snap_kinds": dict(kinds), "share_new_after_snap": kinds["new"] / sum(kinds.values()),
            "share_written_tags_in_hint": float(hint_share), "jaccard_snapped_vs_mine": float(np.mean(jacc)),
            "metrics": metrics, "bootstrap_vs_my_tags": boots}
-    (RESULTS / "flashlite.json").write_text(json.dumps(out, indent=1))
+    (RESULTS / ("flashlite.json" if VARIANT == "hint" else f"flashlite_{VARIANT}.json")).write_text(json.dumps(out, indent=1))
     print(json.dumps({k: v for k, v in out.items() if k not in ("metrics", "bootstrap_vs_my_tags")}, indent=1))
     print(f"\n{'arm':22s} R@10   R@50   MRR")
     for k, v in metrics.items(): print(f"{k:22s} {v['recall@10']:.3f}  {v['recall@50']:.3f}  {v['mrr']:.3f}")
