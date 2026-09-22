@@ -3631,3 +3631,16 @@ scored 0.581 at k = 10 and 0.756 at k = 50; the model won only MRR (0.397 vs
 context" tagging result needs that no-model control, because the context is
 itself a retrieval and its tags are a projection of the embedding
 neighbourhood. (`sparseup-tag-probe/RESULTS.md`, round 5)
+
+### Tag consistency comes from showing the tagger the cited memories' tags; test it in the direction the context cannot leak into
+
+With the tags of the memories a new memory cites in its prompt,
+gemini-3.5-flash-lite's tags retrieve those citations at R@10 0.629 against
+0.697 for frontier-written tags, and in the reverse direction (cited memory
+retrieves its citers, whose tags it never saw) 0.617 against 0.674, level
+with gte-small at 0.626. Neighbours-only context gave 0.560 on that reverse
+test. The forward test is circular by construction when the query's tags are
+copied from the target; report the reverse. Per-memory Jaccard with the
+original tags stayed at 0.34 across rounds 5 and 6 while retrieval rose, so
+agreement is the wrong yardstick for a tagger. (`sparseup-tag-probe/RESULTS.md`,
+round 6)

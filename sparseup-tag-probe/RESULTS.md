@@ -429,3 +429,59 @@ onto the existing vocabulary, retrieves at 0.565 against 0.697 for tags written
 with full session context. Writing the tags at remember() time with the cited
 memory's tags in the prompt, which is what `refs` already makes available, is
 the step this round did not test and the one most likely to close the rest.
+
+## Round 6: the tagger with the cited memories' tags
+
+Oskar: "try the next logical thing." flash-lite's context is now the memories
+the new one cites, first, topped up to five with older neighbours; a memory
+with no refs gets the round-5 context. The forward test is partly circular
+under this design, so the reverse direction is added: each cited memory
+retrieves the memories in the 300 that cite it (194 queries, 243 pairs), and
+its context never contained a citer. `flashlite_tags.py tag refs`; predictions
+in `PLAN.md` round 6.
+
+| tags on the 300 memories | forward R@10 | forward MRR | reverse R@10 | reverse MRR | Jaccard with mine |
+|---|---|---|---|---|---|
+| mine | 0.697 | 0.543 | 0.674 | 0.484 | |
+| flash-lite + cited memories' tags, snapped | 0.629 | 0.408 | 0.617 | 0.402 | 0.339 |
+| refs + neighbour tag union, no model | 0.640 | 0.383 | 0.640 | 0.358 | |
+| flash-lite + neighbours only, snapped (round 5) | 0.565 | 0.397 | 0.560 | 0.353 | 0.337 |
+| flash-lite, no context (round 4) | 0.461 | 0.350 | | | 0.207 |
+| gte-small, same queries | 0.719 | 0.513 | 0.626 | 0.430 | |
+
+Forward, flash-lite is −0.067 [−0.138, +0.000] from my tags; the no-model union
+is −0.056 [−0.138, +0.022]. Reverse, where nothing leaks, the cited memories'
+tags move flash-lite from 0.560 to 0.617, level with gte-small's 0.626, and
+0.057 under my tags. 60% of its written tags came from the context.
+
+| quantity | predicted | measured |
+|---|---|---|
+| forward R@10, flash-lite + refs context | 0.68 | 0.629 |
+| forward R@10, refs + neighbour union, no model | 0.72 | 0.640 |
+| Jaccard(flash-lite + refs context, mine) | 0.42 | 0.339 |
+| reverse R@10 within 0.08 of my tags | yes | yes, 0.057 |
+| refs context over neighbours-only context, reverse R@10 | <= +0.03 | +0.057 |
+
+The reverse gain is not leakage; it is consistency. A citer tagged from the
+cited memory's tags shares them, so the cited memory finds its citers
+whichever side the query is on. That is the mechanism my own tags had and the
+cheap tagger lacked in rounds 4 and 5, and giving it the refs supplies it.
+Jaccard with my tags did not move from round 5 (0.337 to 0.339): the tagger
+converges on my rare tags through the context and still writes different
+general ones.
+
+The no-model union again matches the model at R@10 and loses on MRR by 0.03 to
+0.04 in both directions, with thirty tags per memory against six. The model
+earns its place by producing a tag set a store would keep, not by retrieval.
+
+Where the series leaves the store, in one line each:
+
+- fuse the binary tag vector with the embedding in recall, unexpanded (round 3);
+- at remember(), pass the tags of the refs and of five older neighbours to a
+  tagger prompted for proper nouns, snap the result onto the vocabulary, and
+  keep four to seven tags (rounds 4 to 6);
+- merge the 70 surface-variant tag families once (round 1 inventory).
+
+What that buys, measured: a flash-lite tagger at a few cents per thousand
+memories retrieves cited memories within 0.06 of tags written by a frontier
+model with the session open, in both directions, and ties the text embedding.
