@@ -3619,3 +3619,15 @@ given no list scored 0.461, and snapping its names onto the existing vocabulary
 by gte-small cosine at 0.85 added 0.08 over the raw strings. When prompting a
 model to tag for retrieval, ask for the proper nouns and snap them; do not show
 it the frequent tags. (`sparseup-tag-probe/RESULTS.md`, round 4)
+
+### Recall context at tagging time is worth more than the tagger; control it with a no-model copy
+
+Giving gemini-3.5-flash-lite the tags of a memory's five nearest older
+neighbours (by gte-small) took its tags' retrieval of cited memories from R@10
+0.461 to 0.565 and agreement with the original tags from 0.21 to 0.34 Jaccard.
+Tagging each memory with the plain union of those neighbours' tags, no model,
+scored 0.581 at k = 10 and 0.756 at k = 50; the model won only MRR (0.397 vs
+0.342) by producing six tags instead of thirty. Any "LLM with retrieved
+context" tagging result needs that no-model control, because the context is
+itself a retrieval and its tags are a projection of the embedding
+neighbourhood. (`sparseup-tag-probe/RESULTS.md`, round 5)

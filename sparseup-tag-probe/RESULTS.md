@@ -378,3 +378,54 @@ and a writer that sees only the memory cannot reproduce that. A tagger given
 the tags of the memories a recall() surfaces at write time is the next
 comparison, and the same mechanism is the cheap way to get consistency into
 any store's tags.
+
+## Round 5: the tagger with recall context
+
+Oskar: "Run the tagger with recall context on the same 300." flash-lite now
+sees what a write-time recall would give it: the five most similar older
+memories by gte-small cosine (older only, so a cited memory never sees its
+citer), each as its tags and a 150-character snippet, with the specific-names
+prompt and an instruction to reuse a context tag exactly when it fits. Control
+with no model: each memory tagged with the union of its five older neighbours'
+tags, about 30 per memory. `flashlite_tags.py tag context`; predictions in
+`PLAN.md` round 5.
+
+| tags on the 300 memories | R@10 | R@50 | MRR | R@10 vs my tags |
+|---|---|---|---|---|
+| mine | 0.697 | 0.840 | 0.543 | |
+| flash-lite + context, snapped | 0.565 | 0.725 | 0.397 | −0.132 [−0.205, −0.065] |
+| flash-lite + context, raw | 0.531 | 0.699 | 0.348 | −0.166 |
+| neighbour-tag inheritance, no model | 0.581 | 0.756 | 0.342 | −0.115 [−0.199, −0.037] |
+| flash-lite, specific names, no context (round 4) | 0.461 | 0.638 | 0.350 | −0.236 |
+| gte-small, same queries | 0.719 | 0.862 | 0.513 | +0.022 |
+
+| quantity | predicted | measured |
+|---|---|---|
+| flash-lite + context, snapped, R@10 | 0.58 | 0.565 |
+| neighbour-tag inheritance, R@10 | 0.50 | 0.581 |
+| Jaccard(flash-lite + context, mine) | 0.30 | 0.337 |
+| share of written tags taken from the context | 40% | 57% |
+
+Context closes half the remaining gap: 0.461 to 0.565, and per-memory
+agreement with my tags rises from 0.21 to 0.34 Jaccard. The refutation the
+plan named is also present. Copying the neighbours' tags with no model at all
+reaches 0.581 at k = 10 and 0.756 at k = 50, above the model on both; the model
+is ahead only on MRR (0.397 against 0.342), where a six-tag vector ranks more
+sharply than a thirty-tag union. Two readings of that:
+
+- **On this relevance set, the inheritance control is embedding retrieval by
+  proxy.** Its neighbours come from gte-small, which scores 0.719 on the same
+  queries, and its tag union is a coarse projection of that neighbourhood. The
+  model's contribution shows in MRR and in producing a tag set of normal size,
+  which is the artefact the store would keep.
+- **What my tags have that neither reproduces** is the remaining 0.13: I wrote
+  the citing memory with the cited one open, and often carried its rare tags
+  forward by hand. Five neighbours by cosine recover part of that; the exact
+  memory being cited is the rest.
+
+For the store, the cheap pieces are now measured: a tagger prompted for
+specific names, shown the tags of the memories a recall() surfaces, and snapped
+onto the existing vocabulary, retrieves at 0.565 against 0.697 for tags written
+with full session context. Writing the tags at remember() time with the cited
+memory's tags in the prompt, which is what `refs` already makes available, is
+the step this round did not test and the one most likely to close the rest.
