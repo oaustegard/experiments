@@ -462,7 +462,7 @@ tags move flash-lite from 0.560 to 0.617, level with gte-small's 0.626, and
 | reverse R@10 within 0.08 of my tags | yes | yes, 0.057 |
 | refs context over neighbours-only context, reverse R@10 | <= +0.03 | +0.057 |
 
-The reverse gain is not leakage; it is consistency. A citer tagged from the
+The reverse gain comes from consistency. A citer tagged from the
 cited memory's tags shares them, so the cited memory finds its citers
 whichever side the query is on. That is the mechanism my own tags had and the
 cheap tagger lacked in rounds 4 and 5, and giving it the refs supplies it.
@@ -471,8 +471,7 @@ converges on my rare tags through the context and still writes different
 general ones.
 
 The no-model union again matches the model at R@10 and loses on MRR by 0.03 to
-0.04 in both directions, with thirty tags per memory against six. The model
-earns its place by producing a tag set a store would keep, not by retrieval.
+0.04 in both directions, with thirty tags per memory against six. What the model adds is a tag set of the size a store would keep.
 
 Where the series leaves the store, in one line each:
 

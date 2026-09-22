@@ -89,5 +89,36 @@
    }
   }
  },
- "share_written_tags_from_context": 0.5740839086563994
+ "share_written_tags_from_context": 0.5740839086563994,
+ "reverse_direction": {
+  "n_queries": 194,
+  "n_pairs": 243,
+  "metrics": {
+   "my tags": {
+    "recall@10": 0.6743986254295533,
+    "recall@50": 0.8522336769759449,
+    "mrr": 0.4838949751846696
+   },
+   "flash-lite snapped": {
+    "recall@10": 0.5599656357388316,
+    "recall@50": 0.7395189003436426,
+    "mrr": 0.3529374537153468
+   },
+   "flash-lite raw": {
+    "recall@10": 0.5298969072164949,
+    "recall@50": 0.6991408934707903,
+    "mrr": 0.30892477371270316
+   },
+   "neighbour-tag inheritance (no model)": {
+    "recall@10": 0.5632302405498282,
+    "recall@50": 0.7479381443298969,
+    "mrr": 0.3185891803319429
+   },
+   "gte-small": {
+    "recall@10": 0.6261168384879725,
+    "recall@50": 0.8402061855670103,
+    "mrr": 0.42991526270633357
+   }
+  }
+ }
 }
