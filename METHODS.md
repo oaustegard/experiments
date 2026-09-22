@@ -3607,3 +3607,15 @@ expansion adds neighbours faster than relevant ones. Fuse tags unexpanded.
 Check a citation-derived relevance set against a recency control before reading
 any similarity result from it: here the median query-to-cited gap was 0.1 days.
 (`sparseup-tag-probe/RESULTS.md`, round 3)
+
+### A tag's retrieval value is in its rarity; a hint list of frequent tags makes a cheap tagger write the useless ones
+
+On Muninn's store, the original tags with document frequency under 20 alone
+retrieve cited memories at R@10 0.742; the tags with frequency 20 or more alone
+score 0.309. gemini-3.5-flash-lite shown the 150 most used tags as register
+examples took 62% of its tags from the list and scored 0.331; the same model
+told to name the specific project, repo, tool, paper, person or issue and
+given no list scored 0.461, and snapping its names onto the existing vocabulary
+by gte-small cosine at 0.85 added 0.08 over the raw strings. When prompting a
+model to tag for retrieval, ask for the proper nouns and snap them; do not show
+it the frequent tags. (`sparseup-tag-probe/RESULTS.md`, round 4)

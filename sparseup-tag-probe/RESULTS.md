@@ -323,3 +323,58 @@ selected by frequency) and over word unigrams:
 The six model-assigned tags per memory do what about 20,000 unigram dims do and
 what 9,865 phrase dims do not. The compression is in the tagging, not in the
 vocabulary selection.
+
+## Round 4: flash-lite as the tag writer
+
+Oskar: "Run the flash-lite test on 300 memories." The round-3 vector was built
+from tags a frontier model assigned; the write-time cost of the design is
+whether a cheap model can assign tags that retrieve as well. 300 memories, the
+178 round-3 queries whose cited memories fit inside that budget plus those
+cited memories; `gemini-3.5-flash-lite` through the Cloudflare gateway writes
+four to seven tags each; each written tag snaps to the nearest existing tag by
+gte-small cosine at >= 0.85 or stays new; the round-3 retrieval runs with the
+model's tags substituted on the 300. `flashlite_tags.py`, predictions in
+`PLAN.md` round 4; 300 calls take about five minutes.
+
+| tags on the 300 memories | R@10 | R@50 | MRR | R@10 vs my tags |
+|---|---|---|---|---|
+| mine | 0.697 | 0.840 | 0.543 | |
+| flash-lite, hint prompt, snapped (pre-registered) | 0.331 | 0.652 | 0.260 | −0.365 [−0.452, −0.287] |
+| flash-lite, hint prompt, raw | 0.326 | 0.640 | 0.239 | −0.371 |
+| flash-lite, specific-names prompt, snapped (post hoc) | 0.461 | 0.638 | 0.350 | −0.236 [−0.317, −0.157] |
+| flash-lite, specific-names prompt, raw | 0.382 | 0.565 | 0.283 | −0.315 |
+| gte-small on the same queries | 0.719 | 0.862 | 0.513 | +0.022 [−0.042, +0.084] |
+
+The pre-registered prompt showed the 150 most used tags as register examples.
+flash-lite took 62% of its tags from that list, wrote tags with a median
+document frequency of 24 against 8 for mine, and its per-memory Jaccard with
+mine was 0.19. The decomposition of my own tags says where the retrieval
+lives: my tags with document frequency under 20 alone score R@10 0.742, my
+tags with frequency 20 or more alone score 0.309, which is flash-lite's level.
+Relevant pairs share 2.74 tags on average and 129 of the 666 shared instances
+are tags used fewer than five times. The linking is in the specific names
+(`pliny`, `remex-86`, `abliteration`), not in the process tags.
+
+The post-hoc prompt drops the hint and asks for the specific things the entry
+names. Hint-tag use falls to 17%, R@10 rises to 0.461, and snapping is worth
+0.08 on its own because the model's names land near canonical tags without
+matching them. Two thirds of my tags' retrieval, from a model reading each
+memory in isolation.
+
+| quantity | predicted | measured |
+|---|---|---|
+| my tags, R@10 on these queries | 0.65 | 0.697 |
+| flash-lite snapped, R@10 | 0.55 | 0.331 (hint prompt); 0.461 (specific-names prompt) |
+| flash-lite raw, R@10 | 0.50 | 0.326; 0.382 |
+| Jaccard(flash-lite snapped, mine) | 0.30 | 0.19; 0.21 |
+| tags per memory written | 5.5 | 6.5; 6.4 |
+| share of written tags new after snapping | 35% | 0.1%; 3.5% |
+
+The refutation named in the plan, a flash-lite result carried by copied hint
+tags, is what the pre-registered run was: it copied them and lost. The
+remaining gap has a candidate cause this round did not test. My tags were
+written with the cited memory in context, often by carrying its tags forward,
+and a writer that sees only the memory cannot reproduce that. A tagger given
+the tags of the memories a recall() surfaces at write time is the next
+comparison, and the same mechanism is the cheap way to get consistency into
+any store's tags.
