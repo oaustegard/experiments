@@ -159,3 +159,39 @@ Null reading: if the tag space carries nothing beyond the text, tag-expanded
 sits at or below TF-IDF and the RRF fusion is within noise of gte alone. The
 refutation to search for: a tag-space win that is really the time baseline
 (tags such as `perch-time` and dated project tags encode recency).
+
+## Round 4 (2026-09-22): can gemini-3.5-flash-lite write the tags?
+
+The round-3 vector that ties gte-small was built from tags a frontier model
+assigned at write time. Oskar: "Run the flash-lite test on 300 memories." The
+question is write-time cost: do tags from `gemini-3.5-flash-lite` (through the
+Cloudflare gateway, no training clause) retrieve as well as mine?
+
+Design: pick query memories from the round-3 set and their cited memories,
+greedily, until the union is 300 memories. flash-lite writes four to seven tags
+per memory from a register prompt that shows the 150 most frequent tags as
+examples of the vocabulary's register (it may reuse them or write new ones in
+the same shape). Each written tag is snapped to the nearest existing tag by
+gte-small cosine when that cosine is >= 0.85, otherwise kept as new. The
+round-3 retrieval test then runs on the selected queries three times: my tags
+on every memory; flash-lite's snapped tags substituted on the 300; flash-lite's
+raw tags substituted on the 300. Same corpus otherwise, same refs relevance.
+Also reported: Jaccard between flash-lite's snapped tags and mine per memory,
+tags per memory, share of written tags that were new after snapping.
+
+Predictions, written before the first call:
+
+| quantity | prediction |
+|---|---|
+| my tags, R@10 on the selected queries | 0.65 |
+| flash-lite snapped tags, R@10 | 0.55 |
+| flash-lite raw tags, R@10 | 0.50 |
+| Jaccard(flash-lite snapped, mine) | 0.30 |
+| tags per memory written | 5.5 |
+| share of written tags new after snapping | 35% |
+
+Null reading: if the tagging step carries nothing model-specific, flash-lite
+ties my tags. The refutation to search for: a flash-lite win or tie that comes
+from tags copied out of the 150-tag hint (process tags such as `correction`)
+rather than from reading the memory; the per-memory Jaccard and the share of
+hint tags used are reported for that.
