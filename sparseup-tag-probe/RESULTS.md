@@ -302,3 +302,24 @@ What this says for the store: the tags are already a retrieval channel worth
 fusing with the embedding, unexpanded. Canonicalizing the 70 surface-variant
 families is the one cleanup that would tighten it. Expansion, if wanted, should
 be learned from text, not from co-occurrence over this few documents.
+
+### Round 3 addendum: the map step without the LLM
+
+Oskar: "this seems promising for document tagging in general, my theory?" The
+2024 page's map step was spaCy phrases, not a model assigning tags. The same
+retrieval test with a binary vector over machine-extracted phrases (df >= 3,
+selected by frequency) and over word unigrams:
+
+| binary vector over | dims | R@10 | R@50 | MRR | R@10 vs gte-small |
+|---|---|---|---|---|---|
+| spaCy phrases, K = 512 | 512 | 0.223 | 0.401 | 0.195 | −0.425 |
+| spaCy phrases, K = 2048 | 2048 | 0.377 | 0.589 | 0.315 | −0.271 |
+| spaCy phrases, all | 9,865 | 0.517 | 0.724 | 0.448 | −0.131 [−0.193, −0.073] |
+| word unigrams, K = 512 | 512 | 0.371 | 0.536 | 0.300 | −0.277 |
+| word unigrams, K = 2048 | 2048 | 0.555 | 0.716 | 0.452 | −0.093 |
+| word unigrams, all | 19,563 | 0.701 | 0.839 | 0.549 | +0.054 [−0.000, +0.103] |
+| human tags (round 3) | 5,827 | 0.667 | 0.832 | 0.566 | +0.019 |
+
+The six model-assigned tags per memory do what about 20,000 unigram dims do and
+what 9,865 phrase dims do not. The compression is in the tagging, not in the
+vocabulary selection.
