@@ -352,8 +352,8 @@ mine was 0.19. The decomposition of my own tags says where the retrieval
 lives: my tags with document frequency under 20 alone score R@10 0.742, my
 tags with frequency 20 or more alone score 0.309, which is flash-lite's level.
 Relevant pairs share 2.74 tags on average and 129 of the 666 shared instances
-are tags used fewer than five times. The linking is in the specific names
-(`pliny`, `remex-86`, `abliteration`), not in the process tags.
+are tags used fewer than five times. The linking is in the specific names:
+`pliny`, `remex-86`, `abliteration`.
 
 The post-hoc prompt drops the hint and asks for the specific things the entry
 names. Hint-tag use falls to 17%, R@10 rises to 0.461, and snapping is worth
