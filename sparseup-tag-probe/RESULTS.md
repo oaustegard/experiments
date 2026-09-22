@@ -226,3 +226,80 @@ experiment write-ups, and missed `experiments`, `measured`, `negative-result`
 and `ccotw` on them. Most of their tags (`sparseup`, `tag-vectors`, `muse`)
 have fewer than ten uses and are outside the label set. Three long, atypical
 memories are not an evaluation; the out-of-fold numbers are.
+
+## Round 3: retrieval in the tag space
+
+Oskar, after round 2: the tag vocabulary is whatever I assign at write time,
+5,827 distinct tags of which 3,603 are used once, and a sparse vector has no
+reason to prune it. The SPARSEUP-shaped object is a binary vector over the whole
+inventory, expanded with co-occurring tags at PMI weight. The test is retrieval:
+does that space find the memories a text embedding finds?
+
+Relevance is the 466 `refs` links inside the fixture, from 235 memories to the
+memories they cite, written at remember() time. Each query retrieves from the
+other 3,456. Two caveats stated before the run: refs are chosen by me, often
+after a recall() that ranks by tags and full-text search, so they favour what
+lexical and tag retrieval already surface; and refs cite recent memories (median
+age gap 0.1 days, 13% over 30 days), so a nearest-in-time ranking is a serious
+control. `retrieval.py`, predictions in `PLAN.md` round 3.
+
+| arm | R@10 | R@50 | MRR | R@10 vs gte-small |
+|---|---|---|---|---|
+| tag-binary (5,827 dims, 5.7 active) | 0.667 | 0.832 | 0.566 | +0.019 [−0.033, +0.069] |
+| tag-expanded, α = 0.25 | 0.672 | 0.821 | 0.543 | +0.024 [−0.029, +0.079] |
+| tag-expanded, α = 0.5 | 0.610 | 0.803 | 0.477 | −0.038 [−0.097, +0.021] |
+| tag-expanded, α = 1.0 | 0.465 | 0.730 | 0.365 | −0.183 [−0.245, −0.117] |
+| gte-small | 0.648 | 0.824 | 0.513 | — |
+| TF-IDF word+char | **0.808** | 0.928 | **0.619** | +0.160 [+0.112, +0.207] |
+| SPARSEUP doc–doc | 0.711 | 0.872 | 0.552 | +0.063 [+0.021, +0.104] |
+| SPARSEUP query–doc | 0.657 | 0.828 | 0.509 | +0.009 [−0.035, +0.054] |
+| RRF(tag-expanded α = 0.5, gte) | 0.707 | 0.903 | 0.577 | +0.059 [+0.015, +0.101] |
+| RRF(TF-IDF, gte) | 0.753 | **0.937** | 0.595 | +0.105 [+0.072, +0.139] |
+| nearest in time | 0.593 | 0.751 | 0.421 | −0.055 [−0.122, +0.013] |
+| random | 0.005 | 0.015 | 0.004 | |
+
+Recency check, pre-registered: on the half of the pairs whose age gap is above
+the median (121 queries, 233 pairs), nearest-in-time falls to R@10 0.122 while
+tag-binary holds at 0.538 against gte-small's 0.570 (−0.033 [−0.113, +0.045]),
+TF-IDF 0.678 (+0.108), and RRF(tag-binary, gte) 0.643 (+0.073 [+0.013, +0.128]).
+The tag-space result is not recency.
+
+Of the 211 relevant memories gte-small misses at k = 10, tag-expanded (α = 0.5)
+finds 79 and TF-IDF 111; the mean top-10 Jaccard between the tag space and
+gte-small is 0.18, so the two rank different neighbourhoods.
+
+| quantity | predicted | measured |
+|---|---|---|
+| gte-small R@10 / MRR | 0.45 / 0.30 | 0.648 / 0.513 |
+| tag-binary R@10 | 0.30 | 0.667 |
+| expansion (α = 0.5) over binary, R@10 | +0.05 | −0.057; α = 0.25 +0.005 |
+| TF-IDF R@10 | within 0.03 of gte | +0.160 |
+| SPARSEUP doc–doc | within 0.03 of gte; query mode no better | +0.063; query mode −0.054 below doc–doc |
+| nearest in time R@10 | 0.15 | 0.593 (0.122 on the distant half) |
+| RRF(tag-expanded, gte) over gte | +0.05 | +0.059 |
+| gte misses rescued by the tag space at 10 | 15% | 37% |
+
+Three readings:
+
+- **Five or six human tags per memory retrieve as well as a 384-dim text
+  embedding.** tag-binary ties gte-small on the full set and on the distant
+  half, and fusing the two beats either. The tags carry a view of the memory
+  the text embedding does not (top-10 Jaccard 0.18), and 37% of what gte misses
+  at 10 the tag space has.
+- **PMI expansion does not help this space.** At α = 0.25 it is within noise of
+  the plain binary vector and every larger weight costs; three sparser
+  exploratory variants (top 3–5 per tag, pair count >= 3–5, not pre-registered)
+  land at 0.651–0.673, the same as binary. With 5.7 tags per memory and
+  co-occurrence learned on 3,457 memories, the expansion adds neighbours faster
+  than it adds relevant ones. The SPARSEUP analogy holds for the vector shape,
+  not for the expansion step.
+- **TF-IDF is the strongest single representation here, by a wide margin
+  again.** Part of that is the ground truth: refs written after a lexical
+  recall favour lexical neighbours. Part is that I cite in the same words I
+  wrote. SPARSEUP in document mode is next; its query mode, meant for short
+  queries against long documents, is worse when the query is itself a memory.
+
+What this says for the store: the tags are already a retrieval channel worth
+fusing with the embedding, unexpanded, and canonicalizing the 70 surface-variant
+families is the one cleanup that would tighten it. Expansion, if wanted, should
+be learned from text, not from co-occurrence over this few documents.

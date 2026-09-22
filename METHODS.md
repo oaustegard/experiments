@@ -3592,3 +3592,18 @@ Chunking merges the words that predict a label into rarer compounds; a curated
 few-hundred-dim vocabulary drops most of the label signal. Try unigrams by df
 before building a phrase dictionary, and measure the dictionary against them.
 (`sparseup-tag-probe/RESULTS.md`, round 2)
+
+### Human tags are a retrieval channel on their own; PMI expansion of a 6-tag vector hurts
+
+On Muninn's store (3,457 memories, 5,827 distinct tags, 5.7 per memory), a
+plain binary tag vector retrieves cited memories as well as gte-small (R@10
+0.667 vs 0.648, CI spans zero) and holds on the half of pairs with an
+above-median age gap, where a nearest-in-time ranking collapses from 0.593 to
+0.122. RRF of tag vector and embedding beats either by 0.06–0.07. Expanding the
+tag vector with co-occurring tags at PMI weight is within noise at weight 0.25
+and costs 0.04–0.18 above that, in every sparsity variant tried; with a handful
+of tags per document and co-occurrence learned on a few thousand documents, the
+expansion adds neighbours faster than relevant ones. Fuse tags unexpanded.
+Check a citation-derived relevance set against a recency control before reading
+any similarity result from it: here the median query-to-cited gap was 0.1 days.
+(`sparseup-tag-probe/RESULTS.md`, round 3)
