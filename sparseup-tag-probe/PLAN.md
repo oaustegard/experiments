@@ -110,3 +110,52 @@ tie at every K and the dissimilarity filter is within noise of frequency-only.
 The refutation to search for: a win for phrases at small K that comes from
 a few tags that are literally noun chunks (`perch-time`, `session-log`); the
 per-label split by literal-mention rate from round 1 is reused.
+
+## Round 3 (2026-09-22): retrieval in the expanded tag space
+
+Oskar, after round 2: the tag vocabulary is not 325 labels, it is whatever I
+assign at write time (5,827 distinct tags, 3,603 used once), and with sparse
+storage there is no reason to prune it. The SPARSEUP-shaped object is a binary
+vector over the whole tag inventory, expanded with co-occurring tags at PMI
+weight — the expansion Muninn's recall already computes. The question that
+decides whether it is worth anything is retrieval: does similarity in that
+space find the memories a text embedding finds, and what does it find that the
+embedding does not?
+
+Relevance: the 467 `refs` links inside the fixture (`elaborates`, `extends`,
+citations written at remember() time), from 235 query memories to the memories
+they cite. Each query retrieves from the other 3,456. Caveat stated up front:
+refs were chosen by me, often after a recall() that ranks by tags and FTS, so
+they are biased toward what lexical and tag retrieval already surfaces.
+
+Arms, all over the same corpus and queries:
+- tag-binary: cosine over the 5,827-dim binary tag vector
+- tag-expanded: the same plus co-occurring tags at weight α·PMI/PMI_max, top 20
+  per tag, PMI computed leave-one-out for the query; α ∈ {0.25, 0.5, 1.0},
+  all three reported, none selected
+- gte-small cosine; TF-IDF word+char cosine; SPARSEUP document–document dot
+  and query-mode–document dot (`encode_query` on the 235 queries)
+- RRF fusion of tag-expanded (α = 0.5) and gte-small
+- controls: random; nearest in time (|Δt|), since refs cite recent memories
+
+Metrics: recall@10, recall@50, MRR over the 235 queries; paired bootstrap
+CIs against gte-small; top-10 overlap and the share of relevant hits found by
+the tag space and missed by gte-small at k = 10.
+
+Predictions, written before the run:
+
+| quantity | prediction |
+|---|---|
+| gte-small recall@10 / MRR | 0.45 / 0.30 |
+| tag-binary recall@10 | 0.30 |
+| tag-expanded (α = 0.5) over tag-binary, recall@10 | +0.05 |
+| TF-IDF recall@10 | within 0.03 of gte-small |
+| SPARSEUP doc–doc recall@10 | within 0.03 of gte-small; query-mode no better |
+| nearest-in-time recall@10 | 0.15 |
+| RRF(tag-expanded, gte) over gte, recall@10 | +0.05 |
+| relevant hits found by tag-expanded@10 and missed by gte@10 | 15% of gte's misses |
+
+Null reading: if the tag space carries nothing beyond the text, tag-expanded
+sits at or below TF-IDF and the RRF fusion is within noise of gte alone. The
+refutation to search for: a tag-space win that is really the time baseline
+(tags such as `perch-time` and dated project tags encode recency).
