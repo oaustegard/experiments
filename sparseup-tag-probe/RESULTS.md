@@ -1,11 +1,86 @@
 # RESULTS: SPARSEUP sparse vectors as predictors of Muninn's human tags
 
-Measured 2026-09-21 on CPU (4 vCPU). Issue:
-[muninn-utilities#137](https://github.com/oaustegard/muninn-utilities/issues/137).
-Plan and predictions: [`PLAN.md`](PLAN.md), committed before the first encode.
-Errors: [`ERRORS.md`](ERRORS.md), five entries, two of which changed the reading.
+Issue: [muninn-utilities#137](https://github.com/oaustegard/muninn-utilities/issues/137).
+Six rounds, 2026-09-21 to 2026-09-22; predictions for each in [`PLAN.md`](PLAN.md),
+errors in [`ERRORS.md`](ERRORS.md). This file has three parts: the answer as it
+stands, the findings that support it, and the chronological log the answer was
+extracted from. Only the first two are maintained; the log is append-only.
 
-## Headline
+## Answer
+
+Do a learned sparse encoder's vocabulary dimensions map onto a human tag
+vocabulary? Not usefully: untrained, a memory's tags are among SPARSEUP's top-32
+expansion terms 16 to 24% of the time, and trained, a linear map from its
+vector to the tags (micro-AP 0.612) is below word and character n-gram TF-IDF
+over the same text (0.664). The tags themselves are the finding. A binary
+vector over the store's own tag inventory retrieves cited memories as well as a
+dense text embedding (R@10 0.667 vs 0.648), complements it (fusion +0.06), and
+owes that to its rare members, not its frequent ones. A cheap model can write
+such tags to within 0.06 of frontier-written ones when it is asked for proper
+nouns, shown the tags of the memories the new one cites, and snapped onto the
+existing vocabulary. Everything the 2024 design did to reduce the vocabulary
+(parser extraction, frequency selection, dissimilarity pruning, co-occurrence
+expansion) lost against the plain alternatives it replaced.
+
+What would change this: a second corpus with several authors, or a relevance
+set not derived from citations the same writer made after a lexical search.
+
+## Findings
+
+Ordered by weight, each with its round and the number that carries it.
+
+1. **Human tags are a retrieval channel equal to the embedding.** Binary over
+   5,827 tags, 5.7 active: R@10 0.667 vs gte-small 0.648, CI spans zero; holds
+   on the recency-controlled half (0.534 vs 0.566) where nearest-in-time falls
+   to 0.122; RRF of the two +0.059 [+0.015, +0.101]. (Round 3)
+2. **The value is in the rare tags.** Tags with df < 20 alone: 0.742; df >= 20
+   alone: 0.309. Cited pairs share 2.74 tags, a fifth of them used < 5 times.
+   (Round 4)
+3. **A cheap tagger reaches 0.617 to 0.629 given the cited memories' tags,
+   against 0.674 to 0.697 for the originals**, in both directions; without
+   context 0.461; with a frequent-tag hint list 0.331. Snapping written tags
+   onto the vocabulary at cosine 0.85 is worth 0.08. A no-model union of the
+   context tags matches at R@10 and loses MRR by 0.03 to 0.04. (Rounds 4 to 6)
+4. **SPARSEUP's dimensions are not the tag vocabulary.** Untrained recall@32
+   0.164 exact-token, 0.189 every BPE piece; 227 of 325 labels are two or more
+   pieces. Trained probe micro-AP 0.612 vs TF-IDF 0.664 vs gte-small 0.576.
+   Binarizing the encoder's vector costs 0.021. (Round 1)
+5. **Reducing the vocabulary loses most of the signal.** Frequency-selected
+   spaCy phrases as probe features: 0.369 at 512 dims, 0.481 with all 7,655;
+   word unigrams beat phrases at every size (0.573 with all); the embedding
+   dissimilarity filter costs up to 0.035. As a retrieval vector, 512 phrase
+   dims score 0.223. (Rounds 2 and 3)
+6. **PMI co-occurrence expansion of the tag vector never helps** and costs
+   0.04 to 0.18 above weight 0.25. (Round 3)
+7. **TF-IDF leads every single representation on this relevance set**
+   (0.808 R@10), partly because refs are written after a lexical recall.
+   (Round 3)
+8. **Two metric artefacts flipped the round-1 headline before they were
+   caught**: one C across arms with 30x different feature scales, and F1 at a
+   fixed 0.5 threshold ordering arms by calibration. Both found by structure
+   (a table read against the prediction; the scheduled adversarial pass), not
+   by re-running. (ERRORS #3 to #5)
+
+## Method
+
+Fixture: 3,457 memories (37 private excluded), tags cleaned of dates, numbers
+and hex ids, per-memory sha256, text kept out of git. Round 1 probes: one
+stratified 5-fold split shared by every arm, one-vs-rest LR, C swept per arm
+and selected by micro-AP. Rounds 3 to 6 retrieval: 466 `refs` links inside the
+fixture as relevance, each query against the other 3,456, paired bootstrap over
+queries, a nearest-in-time control and a distant-half split. Per-round
+details, tables and prediction scorecards are in the log below.
+`recheck.py` recomputes the fixture hash, fold sizes and selected-arm metrics
+and greps this file for every number in `results/headline.json`.
+
+## Log
+
+Chronological, append-only. Each round: what was asked, what ran, the table,
+predictions against measurements, and the reading at the time.
+
+### Round 1 (2026-09-21): SPARSEUP vectors against the 325-label tag set
+
+#### Headline
 
 A linear map from SPARSEUP's 50,370-dimension sparse vector to the 325-tag label
 set exists (micro-AP 0.612 against 0.043 for the label-frequency prior and 0.018
@@ -29,7 +104,7 @@ probability cells cross 0.5 for the sparse and TF-IDF arms, so that ordering
 reports calibration. At each arm's best single threshold the F1 ordering matches
 AP: TF-IDF 0.627, SPARSEUP 0.612, gte-small 0.565.
 
-## Fixture
+#### Fixture
 
 3,457 memories from the 3,494 live ones, after excluding 37 tagged
 `confidential` or a registered private scope. Tag cleanup dropped 1,098 date
@@ -43,7 +118,7 @@ Encoding: `Linkup-Platform/linkup-sparseup-embed-v1` via `encode_document`,
 per memory, 26,254 distinct dimensions used across the corpus. `thenlper/gte-small`
 at the same 512 tokens. 44.6 minutes for both.
 
-## Arms
+#### Arms
 
 | arm | representation | micro-AP | macro-AP | F1 at best thr. | P@5 |
 |---|---|---|---|---|---|
@@ -73,7 +148,7 @@ Paired bootstrap over documents, 1,000 resamples, each arm at its selected C:
 | SPARSEUP - SPARSEUP binary | +0.021 [+0.017, +0.025] | +0.008 [+0.005, +0.011] |
 | SPARSEUP - gte-small | +0.036 [+0.027, +0.044] | +0.041 [+0.036, +0.045] |
 
-## Predictions against measurements
+#### Predictions against measurements
 
 | quantity | predicted | measured |
 |---|---|---|
@@ -92,7 +167,7 @@ held everywhere was the direction of the untrained recall: below the guess, and
 capped by tokenization. `remind-nag`, `zeitgeist-digest` and `perch-time` are
 three and four BPE pieces; 227 of 325 tags are two pieces or more.
 
-## Arm 1 in detail
+#### Arm 1 in detail
 
 Three hit definitions on the top-k expansion terms, over 3,315 memories:
 
@@ -111,7 +186,7 @@ elsewhere. The literal-mention rate (the tag string appears in the memory text)
 averages 0.586 across labels, so most of what arm 1 misses is present in the
 input and not promoted to the top of the expansion.
 
-## Bearing on the 2024 tag-vector idea
+#### Bearing on the 2024 tag-vector idea
 
 The question was whether a learned sparse encoder's dimensions land on a human
 tag vocabulary closely enough to stand in for a curated one. On this corpus they
@@ -125,7 +200,7 @@ of the idea costs little; the "dimensions are concepts" half is where the gap
 is. Taxonomy induction and prefix ordering stay out of scope: the mapping exists,
 but not in a form that beats the lexical baseline it would replace.
 
-## Costs and what broke
+#### Costs and what broke
 
 Encode 44.6 min; five C sweeps 1,406 + 1,914 + 2,018 + 1,069 + 1,034 s plus 25
 min for the 512-token TF-IDF arm; three `select.py` runs at ~24 min each, most
@@ -141,7 +216,7 @@ the prediction), and F1 at a fixed 0.5 threshold ordering arms by calibration
 the fold sizes, every selected arm's micro-AP from its cached probabilities, and
 greps this file for every number in `results/headline.json`.
 
-## Round 2: the 2024 map step as the first layer
+### Round 2: the 2024 map step as the first layer
 
 Oskar, on the round-1 result: "is it feasible to do a two step — a multi tag
 assignment by BPE pieces and from there actual tags?" Two quick measurements
@@ -207,7 +282,7 @@ inventory. What the 2024 design would need is the part this round did not
 build — snapping unseen phrases onto selected dims — and the unigram column
 puts an upper bound on what that could recover at each K.
 
-## The tagger
+### Round 2b: the TF-IDF + LR tagger
 
 `tag_model.py` is the model round 1 pointed at: word + char TF-IDF and one
 logistic regression per tag at C = 10000, trained on the 3,315 labelled
@@ -227,7 +302,7 @@ and `ccotw` on them. Most of their tags (`sparseup`, `tag-vectors`, `muse`)
 have fewer than ten uses and are outside the label set. Three long, atypical
 memories are not an evaluation; the out-of-fold numbers are.
 
-## Round 3: retrieval in the tag space
+### Round 3: retrieval in the tag space
 
 Oskar, after round 2: the tag vocabulary is whatever I assign at write time,
 5,827 distinct tags of which 3,603 are used once, and a sparse vector has no
@@ -303,7 +378,7 @@ fusing with the embedding, unexpanded. Canonicalizing the 70 surface-variant
 families is the one cleanup that would tighten it. Expansion, if wanted, should
 be learned from text, not from co-occurrence over this few documents.
 
-### Round 3 addendum: the map step without the LLM
+#### Round 3 addendum: the map step without the LLM
 
 Oskar: "this seems promising for document tagging in general, my theory?" The
 2024 page's map step was spaCy phrases, not a model assigning tags. The same
@@ -324,7 +399,7 @@ The six model-assigned tags per memory do what about 20,000 unigram dims do and
 what 9,865 phrase dims do not. The compression is in the tagging, not in the
 vocabulary selection.
 
-## Round 4: flash-lite as the tag writer
+### Round 4: flash-lite as the tag writer
 
 Oskar: "Run the flash-lite test on 300 memories." The round-3 vector was built
 from tags a frontier model assigned; the write-time cost of the design is
@@ -379,7 +454,7 @@ the tags of the memories a recall() surfaces at write time is the next
 comparison, and the same mechanism is the cheap way to get consistency into
 any store's tags.
 
-## Round 5: the tagger with recall context
+### Round 5: the tagger with recall context
 
 Oskar: "Run the tagger with recall context on the same 300." flash-lite now
 sees what a write-time recall would give it: the five most similar older
@@ -430,7 +505,7 @@ with full session context. Writing the tags at remember() time with the cited
 memory's tags in the prompt, which is what `refs` already makes available, is
 the step this round did not test and the one most likely to close the rest.
 
-## Round 6: the tagger with the cited memories' tags
+### Round 6: the tagger with the cited memories' tags
 
 Oskar: "try the next logical thing." flash-lite's context is now the memories
 the new one cites, first, topped up to five with older neighbours; a memory

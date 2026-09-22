@@ -125,10 +125,40 @@ experiments that hardcoded `/home/user/claude-workspace` were left
 non-runnable by the move. If you see that prefix, it predates the split.
 Spoke checkouts resolve via `EXPERIMENTS_SPOKES_ROOT`.
 
+## RESULTS.md is a maintained answer, not a log
+
+Oskar, 2026-09-22, after six rounds of `sparseup-tag-probe/`: "It is an
+entirely unfiltered log of iterative findings with hints at some thread or
+conclusion but it's near impossible to follow. Goes for most of them." The
+failure is structural: each round appended a section, nothing at the top was
+rewritten, and the reader had to reconstruct the thread. The fix is four H2
+sections in this order, checked by `python3 _lib/results_lint.py <dir>/RESULTS.md`:
+
+1. **`## Answer`** — the question and the answer as it stands, under 250
+   words, with the two or three numbers that carry it and one sentence on what
+   would change it. Rewritten every time a round changes the answer. A reader
+   who stops here has the result.
+2. **`## Findings`** — a numbered list ordered by weight, not by date. One
+   finding per item: the claim, the number, the round or artefact in
+   parentheses. A finding a later round overturns is removed here and stays in
+   the log with the reason. Ten items is a lot.
+3. **`## Method`** — fixture, arms, metrics, controls, once. Per-round deltas
+   belong in the log.
+4. **`## Log`** — chronological and append-only, one H3 per round: what was
+   asked, what ran, the table, predictions against measurements, the reading
+   at the time. This is where the old RESULTS.md content lives. Nothing above
+   it refers to it as "above" or "below".
+
+`ERRORS.md` and `PLAN.md` are unchanged. `recheck.py` greps the Answer and
+Findings for the headline numbers, so those two sections are the ones it
+keeps honest. `sparseup-tag-probe/RESULTS.md` is the reference shape; the
+other 86 predate the rule and fail the lint until retrofitted.
+
 ## Finishing an experiment
 
-1. Results into `RESULTS.md` — including what broke, and costs/wall-clock.
-   Negative results are reported as results, not quietly dropped.
+1. Results into `RESULTS.md` in the shape above — including what broke, and
+   costs/wall-clock. Negative results are reported as results, not quietly
+   dropped. Run `python3 _lib/results_lint.py <dir>/RESULTS.md`.
 2. A row in the `README.md` index table plus a section under
    "Per-experiment notes".
 3. **An entry in `METHODS.md`** for anything that would change what a
