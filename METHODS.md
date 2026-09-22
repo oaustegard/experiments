@@ -3579,3 +3579,16 @@ science. A scheduled adversarial read of the numbers found the second.
 `ImportError: cannot import name`, whatever sits in the working directory. Load
 it by path with `importlib.util.spec_from_file_location`, or name the file
 something the stdlib does not own. (`sparseup-tag-probe/recheck.py`)
+
+### A frequency-selected phrase vocabulary is a weaker label representation than word unigrams at every size
+
+Binary presence over K spaCy noun chunks + entities, K selected per training
+fold by document frequency, probed with one-vs-rest LR against 325 human tags:
+micro-AP 0.24 / 0.37 / 0.45 / 0.48 at K = 128 / 512 / 2,048 / all 7,655.
+Document-frequency word unigrams at the same K: 0.27 / 0.40 / 0.51 / 0.57.
+Full TF-IDF word+char over the same text: 0.66. A gte-small cosine > 0.9
+dissimilarity filter on the candidates cost 0.01–0.035 rather than helping.
+Chunking merges the words that predict a label into rarer compounds; a curated
+few-hundred-dim vocabulary drops most of the label signal. Try unigrams by df
+before building a phrase dictionary, and measure the dictionary against them.
+(`sparseup-tag-probe/RESULTS.md`, round 2)

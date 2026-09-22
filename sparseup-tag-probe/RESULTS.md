@@ -140,3 +140,69 @@ the prediction), and F1 at a fixed 0.5 threshold ordering arms by calibration
 (ERRORS #5) came out of the same read. `recheck.py` recomputes the fixture hash,
 the fold sizes, every selected arm's micro-AP from its cached probabilities, and
 greps this file for every number in `results/headline.json`.
+
+## Round 2: the 2024 map step as the first layer
+
+Oskar, on the round-1 result: "is it feasible to do a two step — a multi tag
+assignment by BPE pieces and from there actual tags?" Two quick measurements
+on the fixture said the piece layer is the wrong intermediate: a probe on only
+the 522 dims that are pieces of some tag reaches micro-AP 0.328 against 0.612
+on the full vector, and the untrained rule "every piece active → tag" fires
+12.5 tags per memory at 6% precision. Oskar: "First try the LR model", so this
+round puts the same probe on the 2024 idea's own first layer.
+
+Candidate phrases per memory are spaCy `en_core_web_sm` noun chunks and
+entities, one to four words, edge stop-words stripped (median 48 per memory,
+7,655 with df >= 3). A vocabulary of K dims is selected inside each training
+fold by document frequency, with or without a dissimilarity filter (skip a
+candidate whose gte-small cosine to a chosen dim exceeds 0.9), and the memory
+becomes a binary presence vector. Controls at each K: frequency-only phrases and
+document-frequency word unigrams. Same folds, same LR, C ∈ {1 … 10000} selected
+by micro-AP. Predictions are in `PLAN.md`, round 2. `phrase_vocab.py`, 17.5 min.
+
+| K | phrases + dissimilarity | phrases, frequency only | word unigrams |
+|---|---|---|---|
+| 128 | 0.242 | 0.240 | 0.274 |
+| 256 | 0.309 | 0.302 | 0.332 |
+| 512 | 0.358 | 0.369 | 0.395 |
+| 1024 | 0.395 | 0.416 | 0.457 |
+| 2048 | 0.418 | 0.453 | 0.506 |
+| all (7,655 / 16,316) | — | 0.481 | 0.573 |
+
+micro-AP, best C per cell; C = 1 wins everywhere below K = 2048, C = 10000 only
+for the full unigram vocabulary. For comparison, round 1: SPARSEUP 0.612,
+TF-IDF word+char 0.664, gte-small 0.576.
+
+| quantity | predicted | measured |
+|---|---|---|
+| phrases, K = 512 | 0.50 | 0.369 |
+| phrases, K = 2048 | 0.60 | 0.453 |
+| phrases, all dims | 0.63 | 0.481 |
+| dissimilarity filter over frequency-only, K = 512 | +0.01 to +0.02 | −0.011 (and −0.035 at K = 2048) |
+| unigrams vs phrases, K = 512 | within 0.02 | unigrams +0.026, widening to +0.053 at K = 2048 |
+| K at which phrases pass SPARSEUP's 0.612 | ~2048 | never; the full 7,655-phrase vocabulary reaches 0.481 |
+
+Every prediction was too optimistic about the phrase layer, and by a margin
+that grows with K. Three things the table says:
+
+- **A curated few-hundred-dim vocabulary loses most of the signal.** 512
+  phrase dims carry 0.37 of the 0.66 a full TF-IDF matrix carries; 2,048 carry
+  0.45. The tags depend on a long tail of words and on phrase-internal words the
+  chunker keeps inside a longer span (`human-assigned tags` is one dim, `tags`
+  is not).
+- **Noun chunks are a worse dictionary than words.** At the same K, single
+  words beat phrases by 0.03 to 0.05, and the full unigram vocabulary (0.573)
+  beats the full phrase vocabulary (0.481) by 0.09. Chunking merges the units
+  that predict tags into rarer compounds.
+- **The dissimilarity filter costs, not buys.** Removing near-duplicates by
+  gte-small cosine takes out phrases whose surface variants are separately
+  predictive, and at K = 2048 the loss is 0.035. Selection by frequency alone is
+  the better of the two.
+
+Feasible, then, in the sense that the map step builds and trains in minutes.
+As a replacement for the encoder or the n-gram matrix it is not: at every
+vocabulary size the binary phrase vector is the weakest representation
+measured, and the gap to SPARSEUP (0.612) is not closed by the whole phrase
+inventory. What the 2024 design would need is the part this round did not
+build — snapping unseen phrases onto selected dims — and the unigram column
+puts an upper bound on what that could recover at each K.
