@@ -179,11 +179,11 @@ TF-IDF word+char 0.664, gte-small 0.576.
 | phrases, K = 2048 | 0.60 | 0.453 |
 | phrases, all dims | 0.63 | 0.481 |
 | dissimilarity filter over frequency-only, K = 512 | +0.01 to +0.02 | −0.011 (and −0.035 at K = 2048) |
-| unigrams vs phrases, K = 512 | within 0.02 | unigrams +0.026, widening to +0.053 at K = 2048 |
+| unigrams vs phrases, K = 512 | within 0.02 | unigrams +0.026 at K = 512 and +0.053 at K = 2048 |
 | K at which phrases pass SPARSEUP's 0.612 | ~2048 | never; the full 7,655-phrase vocabulary reaches 0.481 |
 
 Every prediction was too optimistic about the phrase layer, and by a margin
-that grows with K. Three things the table says:
+that grows with K. Three readings of the table:
 
 - **A curated few-hundred-dim vocabulary loses most of the signal.** 512
   phrase dims carry 0.37 of the 0.66 a full TF-IDF matrix carries; 2,048 carry
