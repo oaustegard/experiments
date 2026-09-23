@@ -1,8 +1,8 @@
 """Jev 256-tag encoder: one call per text, all 256 nouls, cached per (set, variant).
 
-Transport: Cloudflare Workers AI `typesafe/jev` through the AI Gateway (the TypeSafe
-key is stored gateway-side; CF_ACCOUNT_ID + CF_API_TOKEN + CF_GATEWAY_ID in env), or
-TypeSafe directly with TYPESAFE_API_KEY. Gateway caching is skipped on every call so
+Transport: TypeSafe directly when TYPESAFE_API_KEY is set; otherwise Cloudflare Workers AI
+`typesafe/jev` through the AI Gateway (the TypeSafe key is stored gateway-side; CF_ACCOUNT_ID +
+CF_API_TOKEN + CF_GATEWAY_ID in env), which caps the rate at 50/min. Gateway caching is skipped on every call so
 latency and the determinism check measure the model, not the cache.
 
 Cache: cache/<set>__<variant>.jsonl, one line per text, appended as each call lands
@@ -35,8 +35,9 @@ VARIANTS = {
 
 
 # The AI Gateway is configured at 50 requests per 60 s, fixed window (read from the gateway config
-# 2026-09-23). Pace request starts under it instead of backing off exponentially into it.
-RPM = float(os.environ.get("JEV_RPM", "48"))
+# 2026-09-23). Pace request starts under it instead of backing off exponentially into it. TypeSafe
+# direct allows 1,200 rpm (docs, "adjusting dynamically"); pace at half that.
+RPM = float(os.environ.get("JEV_RPM") or (600 if os.environ.get("TYPESAFE_API_KEY") else 48))
 _pace_lock = threading.Lock()
 _next_start = [0.0]
 
@@ -68,7 +69,12 @@ def call(text: str, variant: str = "about", timeout: int = 120, tags: list[str] 
     """One Jev call. Returns {"p": [256 floats], "in_tok", "out_tok", "latency_s", "model", "cache"}."""
     state = {VARIANTS[variant][0]: text}
     qs = questions(variant, tags)
-    if os.environ.get("CF_API_TOKEN") and os.environ.get("CF_ACCOUNT_ID"):
+    if os.environ.get("TYPESAFE_API_KEY"):  # direct: TypeSafe's own limit (1,200 rpm), not the gateway's 50
+        url = "https://api.typesafe.ai/v1/systemone"
+        body = {"model": "jev-1.13.0", "state": state, "questions": qs}
+        headers = {"Authorization": f"Bearer {os.environ['TYPESAFE_API_KEY']}", "Content-Type": "application/json"}
+        unwrap = lambda r: r
+    elif os.environ.get("CF_API_TOKEN") and os.environ.get("CF_ACCOUNT_ID"):
         url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CF_ACCOUNT_ID']}/ai/run"
         body = {"model": "typesafe/jev", "input": {"state": state, "questions": qs}}
         headers = {"Authorization": f"Bearer {os.environ['CF_API_TOKEN']}", "Content-Type": "application/json",
@@ -76,11 +82,6 @@ def call(text: str, variant: str = "about", timeout: int = 120, tags: list[str] 
         if os.environ.get("CF_GATEWAY_ID"):
             headers["cf-aig-gateway-id"] = os.environ["CF_GATEWAY_ID"]
         unwrap = lambda r: r["result"]["result"]
-    elif os.environ.get("TYPESAFE_API_KEY"):
-        url = "https://api.typesafe.ai/v1/systemone"
-        body = {"model": "jev-latest", "state": state, "questions": qs}
-        headers = {"Authorization": f"Bearer {os.environ['TYPESAFE_API_KEY']}", "Content-Type": "application/json"}
-        unwrap = lambda r: r
     else:
         raise RuntimeError("no Jev transport: set CF_ACCOUNT_ID+CF_API_TOKEN(+CF_GATEWAY_ID) or TYPESAFE_API_KEY")
     data = json.dumps(body).encode()
@@ -129,6 +130,11 @@ def load(set_name: str, variant: str) -> dict[str, dict]:
             if line.strip():
                 r = json.loads(line)
                 out[r["id"]] = r
+    elif (pq_path := VECTORS / f"{set_name}__{variant}.parquet").exists():
+        # a fresh clone has no cache/ (gitignored); the committed parquet holds every successful call
+        import pyarrow.parquet as pq
+        for r in pq.read_table(pq_path).to_pylist():
+            out[r["id"]] = r
     return out
 
 
