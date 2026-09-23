@@ -12,6 +12,8 @@ def j(name):
 
 s2, s3, s4, s5, s6, qe, pc, r3 = (j(n) for n in ("step2_fit", "step3_classify", "step4_retrieve", "step5_phrasing",
                                                  "step6_determinism", "quant_eval", "probe_codes", "round3_domain"))
+r4 = j("round4_rerank")
+rk = r4["rerank"]
 d3 = r3["runs"]["domain|bernoulli"]
 q3 = qe["step3"]["arms"]
 q4 = qe["step4"]
@@ -68,6 +70,23 @@ checks = [
     ("r3 own cluster top5", r3["diag"]["domain"]["own_cluster_in_top5"], 0.76),
     ("r3 q shares tag fitted", r3["diag"]["domain"]["q_shares_tag_with_relevant_doc"], 0.54),
     ("r3 q shares tag general", r3["diag"]["general"]["q_shares_tag_with_relevant_doc"], 0.99),
+    ("r4 bm25", r4["bm25"][0], 0.662),
+    ("r4 fusion fitted λ=1", r4["fusion"]["fitted"]["by_lambda_all"]["1.0"][0], 0.699),
+    ("r4 fusion fitted λ=1 delta", r4["fusion"]["fitted"]["by_lambda_all"]["1.0"][1], 0.037),
+    ("r4 fusion fitted heldout", r4["fusion"]["fitted"]["heldout_B"]["delta"], 0.045),
+    ("r4 fusion general heldout", r4["fusion"]["general"]["heldout_B"]["delta"], 0.013),
+    ("r4 rerank bm25 evidence", rk["bm25"]["evidence"]["ndcg"], 0.746),
+    ("r4 rerank bm25 evidence delta", rk["bm25"]["evidence"]["delta_vs_bm25"], 0.084),
+    ("r4 rerank fused evidence", rk["bm25+tags"]["evidence"]["ndcg"], 0.763),
+    ("r4 rerank fused evidence delta", rk["bm25+tags"]["evidence"]["delta_vs_bm25"], 0.102),
+    ("r4 rerank supports", rk["bm25"]["supports"]["delta_vs_bm25"], -0.024),
+    ("r4 oracle fused", r4["oracle_topk"]["bm25+tags"], 0.855),
+    ("r4 recall fused", r4["recall_at_k"]["bm25+tags"], 0.852),
+    ("r4 fused-stage gain", r4["fused_vs_bm25_first_stage_evidence"][1], 0.018),
+    ("r4 auc evidence", r4["pair_auc"]["evidence"]["auc"], 0.956),
+    ("r4 auc topic", r4["pair_auc"]["topic"]["auc"], 0.973),
+    ("r4 auc refutes", r4["pair_auc"]["refutes"]["auc"], 0.567),
+    ("r4 calls ok", r4["calls"]["ok"], 7466),
 ]
 bad = [(n, got, want) for n, got, want in checks if abs(got - want) > (0.0051 if abs(want) < 10 else 0.5)]
 for n, got, want in checks:

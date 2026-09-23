@@ -78,10 +78,8 @@ def questions(variant: str, tags: list[str] | None = None) -> dict:
     return {f"t{i:03d}": {"type": "noul", "instructions": tmpl.format(t)} for i, t in enumerate(tags or TAGS)}
 
 
-def call(text: str, variant: str = "about", timeout: int = 120, tags: list[str] | None = None) -> dict:
-    """One Jev call. Returns {"p": [256 floats], "in_tok", "out_tok", "latency_s", "model", "cache"}."""
-    state = {VARIANTS[variant][0]: text}
-    qs = questions(variant, tags)
+def post(state: dict, qs: dict, timeout: int = 120) -> tuple[dict, float, str | None]:
+    """One Jev request over any state and question map. Returns (result, latency_s, gateway cache status)."""
     if key := typesafe_key():  # direct: TypeSafe's own limit (1,200 rpm), not the gateway's 50
         url = "https://api.typesafe.ai/v1/systemone"
         body = {"model": "jev-1.13.0", "state": state, "questions": qs}
@@ -109,11 +107,8 @@ def call(text: str, variant: str = "about", timeout: int = 120, tags: list[str] 
                 cache = r.headers.get("cf-aig-cache-status")
             dt = time.time() - t0
             res = unwrap(raw)
-            ans = res["answers"]
-            p = [float(ans[f"t{i:03d}"]["noul"]) for i in range(256)]
-            u = res.get("usage", {})
-            return {"p": p, "in_tok": u.get("input_tokens"), "out_tok": u.get("output_tokens"),
-                    "latency_s": round(dt, 3), "model": res.get("model"), "cache": cache}
+            res["answers"]  # a missing answer map is retried below
+            return res, round(dt, 3), cache
         except urllib.error.HTTPError as e:
             txt = e.read().decode(errors="replace")
             if "you have been blocked" in txt or "Attention Required" in txt:
@@ -128,6 +123,16 @@ def call(text: str, variant: str = "about", timeout: int = 120, tags: list[str] 
             last = f"{type(e).__name__}: {str(e)[:200]}"
             time.sleep(min(60, 1.5 * 2 ** attempt))
     raise RuntimeError(f"Jev call failed after retries: {last}")
+
+
+def call(text: str, variant: str = "about", timeout: int = 120, tags: list[str] | None = None) -> dict:
+    """One Jev call. Returns {"p": [256 floats], "in_tok", "out_tok", "latency_s", "model", "cache"}."""
+    res, dt, cache = post({VARIANTS[variant][0]: text}, questions(variant, tags), timeout)
+    ans = res["answers"]
+    p = [float(ans[f"t{i:03d}"]["noul"]) for i in range(256)]
+    u = res.get("usage", {})
+    return {"p": p, "in_tok": u.get("input_tokens"), "out_tok": u.get("output_tokens"),
+            "latency_s": dt, "model": res.get("model"), "cache": cache}
 
 
 def cache_path(set_name: str, variant: str) -> Path:

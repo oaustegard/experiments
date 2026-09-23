@@ -3,20 +3,19 @@
 ## Answer
 
 Can one Jev call asking 256 "The document is about <tag>." Nouls produce a useful named document
-vector? For topic labelling, yes. For retrieval on SciFact, no, under a general taxonomy or one
-fitted to the corpus. On 600 arXiv abstracts, mapping 24 categories to tags gives micro-F1 0.636
-[0.616, 0.659] with no labels. A logistic probe on the 256 raw probabilities beats a
-gemini-embedding-2 probe at 50 labels (0.566 vs 0.517) and trails it at 500 (0.697 vs 0.778). On
-SciFact the general tags score nDCG@10 0.18 to 0.34 alone and cost 0.087 [0.059, 0.115] as a third
-RRF leg beside BM25 + dense. A taxonomy fitted to SciFact (256 KMeans clusters named by Gemini)
-raises the best standalone score to 0.386 and cuts that cost to 0.055 [0.027, 0.084], still below
-the two-leg baseline. A perfect labeller of the fitted taxonomy (query-to-centroid cosine) scores
-0.183 alone and costs 0.079. A 3-bit code matches the floats on retrieval (−0.011 [−0.031, +0.009]);
-one bit keeps zero-shot F1 and loses 0.18 micro-AP. Calls cost ~$0.00017; p50 0.59 s via gateway,
-0.46 s direct.
+vector? For topic labelling, yes: 0.636 [0.616, 0.659] micro-F1 on 24 arXiv categories with no
+labels, and a probe on the raw probabilities beats a gemini-embedding-2 probe at 50 labels (0.566 vs
+0.517), trailing at 500 (0.697 vs 0.778). As a SciFact retrieval leg beside dense, no: every RRF
+fusion loses, under the general taxonomy (−0.087 [−0.115, −0.059] as a third leg) or one fitted to
+the corpus (−0.055). Without dense, Jev carries an interpretable pipeline. BM25 scores nDCG@10
+0.662; adding λ·z(fitted tag score) to z(BM25) gives 0.699 (held-out half +0.045 [0.011, 0.081]);
+reranking that stage's top 20 with one pairwise Noul, "The document provides evidence that supports
+or refutes the claim.", gives 0.763 [0.719, 0.804], against RRF(BM25, dense) 0.774 and dense alone
+0.898. A 3-bit code matches the tag floats on retrieval (−0.011 [−0.031, +0.009]). Tag calls cost
+~$0.00017 (p50 0.59 s via gateway, 0.46 s direct); pair calls ~$0.00003.
 
-What would change this: retrieval where relevance is topical rather than evidence for one claim,
-or labels defined the way the tags are phrased instead of by arXiv cross-listing habits.
+What would change this: a first stage with recall above BM25's 0.85 at 20 (the reranker's ceiling is
+0.855), or relevance that is topical rather than evidence for one claim.
 
 ## Findings
 
@@ -32,8 +31,8 @@ or labels defined the way the tags are phrased instead of by arXiv cross-listing
    gives a rare tag wandering between 0.01 and 0.03 unit variance. Scaled vs raw: 0.347 vs 0.566
    @50, 0.620 vs 0.697 @500. Dense embeddings lose only at @50 (0.471 vs 0.517). Quantizing to
    1 to 3 bits recovers part of it (0.625 to 0.667 @500). (Round 2, `results/probe_codes.json`)
-4. **The tag vector hurts every retrieval fusion on SciFact, under the general taxonomy and under
-   one fitted to the corpus.** General: RRF(BM25, dense, Jev) 0.688 at best (Bernoulli score) vs
+4. **As an RRF leg the tag vector hurts every retrieval fusion on SciFact, under the general
+   taxonomy and under one fitted to the corpus.** General: RRF(BM25, dense, Jev) 0.688 at best (Bernoulli score) vs
    RRF(BM25, dense) 0.774; RRF(BM25, Jev) is 0.072 under BM25 alone; Bernoulli 0.337 alone, dot
    0.184, Hamming on 0.5 bits 0.102; "The query asks about" changes nothing (within 0.015).
    SciFact spreads over 58 general tags that fire on ≥ 1% of docs; "scientific study" fires on
@@ -70,6 +69,19 @@ or labels defined the way the tags are phrased instead of by arXiv cross-listing
    with one of its relevant docs 54% of the time, against 99% under the general taxonomy. The
    soft probabilities still rank: Bernoulli beats the hard-cluster ceiling alone (0.386 vs
    0.183). (`results/round3_domain.json` diag)
+11. **Added as a weighted score instead of a rank, the tags lift BM25.** z(BM25) + λ·z(Bernoulli):
+   fitted tags 0.699 at λ = 1 (+0.037 [0.023, 0.053]), flat to 0.702 at λ = 3; λ chosen on one
+   half of the queries gives +0.045 [0.011, 0.081] on the other. General tags: +0.013 [0.001,
+   0.027] held out. RRF gives the tag ranking an equal vote and buries BM25's few decisive
+   matches; z-scored addition keeps them on top and lets the tags order the rest.
+   (Round 4, `results/round4_rerank.json` fusion)
+12. **One pairwise Noul is a strong reranker.** Over 6,000 BM25 top-20 (claim, document) pairs,
+   "provides evidence that supports or refutes the claim" separates the 276 relevant pairs at AUC
+   0.956 (77.5% ≥ 0.5 vs 5.2% of non-relevant); "is about the same topic as the claim" 0.973;
+   "supports" 0.850; "refutes" 0.567. Reranking BM25's top 20 by evidence: 0.746 (+0.084 [0.055,
+   0.113]); from the BM25 + tags stage: 0.763 (+0.102 [0.072, 0.133]), 0.092 under that stage's
+   top-20 oracle (0.855). "supports" alone falls below BM25 (−0.024): it buries the refuting
+   evidence SciFact also counts as relevant. (Round 4, `results/round4_rerank.json`)
 
 ## Method
 
@@ -116,7 +128,8 @@ and retrieval fusion.
 **Cost.** 7,449 successful calls, 1 WAF block (a 20 Newsgroups post), mean 4,127 input tokens
 (~3.8k of it the 256 question strings). TypeSafe bills input only, $0.042/Mtok: ~$1.30 for the
 run. The 4,868 "output tokens" per call are the fixed size of the 256-entry answer map and are
-not billed. Round 3: 5,483 calls, 0 failures, mean 6,100 input tokens (the fitted tag names are
+not billed. Round 4: 7,466 pair calls (four Nouls each), 0 failures, mean 714 input tokens,
+~$0.22, p50 0.45 s. Round 3: 5,483 calls, 0 failures, mean 6,100 input tokens (the fitted tag names are
 longer), ~$1.40.
 
 ## Log
@@ -280,3 +293,43 @@ as a third leg. SciFact relevance is evidence for one claim, and a 256-way topic
 
 Prediction (Oskar): a corpus-fitted taxonomy should do better. It does, by 0.03 to 0.06 on the
 Bernoulli and Hamming scores, and every fusion is still below the two-leg baseline.
+
+### Round 4 (2026-09-23): interpretable retrieval without dense
+
+Asked (Oskar): say dense is out and the vectors must be interpretable; what is the best pipeline?
+Round 3's own numbers named two candidates: BM25 with the tag score added by weight instead of by
+RRF, and Jev asked about each (claim, document) pair directly. `rerank.py` runs both.
+
+Arm 1, score fusion: z(BM25) + λ·z(Bernoulli tag score), z-scored per query over the corpus. λ
+is chosen on a random half of the 300 queries (seed 98) and reported on the other half.
+
+| tags | λ = 0.1 | 0.3 | 0.5 | 1.0 | 2.0 | 3.0 | held-out half vs BM25 |
+|---|---|---|---|---|---|---|---|
+| general | 0.667 | 0.672 | 0.675 | 0.677 | 0.678 | 0.681 | +0.013 [0.001, 0.027] (λ = 0.5) |
+| fitted | 0.670 | 0.681 | 0.688 | 0.699 | 0.702 | 0.702 | +0.045 [0.011, 0.081] (λ = 3) |
+
+(λ = 2 fitted is 0.7005.) Arm 2, pairwise rerank: state `{"claim": query, "document": title +
+abstract}`, four Nouls per call. First stages: BM25, and BM25 + 1.0·fitted tags (λ = 1 read off the
+all-query curve where it flattens, so that stage is mildly tuned on the test queries; the held-out
+half above bounds how much). The top 20 is reranked; the rest keeps first-stage order. 7,466
+distinct pairs, 0 failures, p50 0.45 s, 600/min direct.
+
+| first stage (recall@20) | first stage | rerank: evidence | evidence + topic | supports | topic | oracle top 20 |
+|---|---|---|---|---|---|---|
+| BM25 (0.821) | 0.662 | 0.746 [0.700, 0.789] | 0.748 | 0.638 | 0.743 | 0.824 |
+| BM25 + tags (0.852) | 0.699 | 0.763 [0.719, 0.804] | 0.765 | 0.646 | 0.758 | 0.855 |
+
+Paired against BM25: evidence rerank +0.084 [0.055, 0.113] from BM25, +0.102 [0.072, 0.133] from
+BM25 + tags; the fused first stage adds +0.018 [0.003, 0.035] under the same reranker.
+max(supports, refutes) ties evidence (0.747 / 0.763). A 0.1 first-stage rank prior changes nothing.
+References: RRF(BM25, dense) 0.774, dense 0.898.
+
+Pair diagnostics (BM25 top 20: 276 relevant, 5,724 not): AUC evidence 0.956, topic 0.973,
+supports 0.850, refutes 0.567. Topic has the higher AUC and the lower nDCG: it fires on 12.8% of
+non-relevant candidates against evidence's 5.2%, and those same-topic distractors are what sits
+next to the relevant doc at the top. Refutes ranks near chance (AUC 0.567) because relevant pairs that
+support the claim score low on it; above 0.5 it still holds 27% of relevant pairs against 3% of
+non-relevant.
+
+Every signal in the final ranking is named: BM25's matched terms, the fitted tags the claim and
+document share, and one probability for "provides evidence about the claim".

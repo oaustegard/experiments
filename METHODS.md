@@ -2882,8 +2882,11 @@ the result.
   clusters named by an LLM) scores 0.386 alone and costs 0.055 as a third leg, still a loss; a
   perfect labeller of it (query-to-centroid cosine) scores 0.183. A claim's evidence and its
   ~20 topical neighbours share a tag set under either taxonomy. Rephrasing the query side
-  ("The query asks about") changes nothing. Test a tag vector on a task where relevance is
-  topical before concluding about tag vectors in general. (`jev-tag-encoder/RESULTS.md`)
+  ("The query asks about") changes nothing. RRF is the wrong way to add a weak leg to a strong
+  one: the same fitted tags added as z(BM25) + λ·z(tag score) lift BM25 from 0.662 to 0.699
+  (held-out half +0.045). Where the claim is known, ask Jev about the (claim, document) pair
+  instead: one "provides evidence about the claim" Noul reranks the top 20 to 0.763.
+  (`jev-tag-encoder/RESULTS.md`)
 
 ## Shared code — `_lib/`
 
