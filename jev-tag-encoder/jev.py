@@ -53,15 +53,21 @@ class Blocked(RuntimeError):
     """TypeSafe's edge WAF rejected the request bytes (arrives as HTTP 402 via the gateway)."""
 
 
-def questions(variant: str) -> dict:
+def load_tags(path: Path) -> list[str]:
+    tags = [t for line in path.read_text().splitlines() for t in line.split("|") if t]
+    assert len(tags) == 256, f"{path}: {len(tags)} tags"
+    return tags
+
+
+def questions(variant: str, tags: list[str] | None = None) -> dict:
     tmpl = VARIANTS[variant][1]
-    return {f"t{i:03d}": {"type": "noul", "instructions": tmpl.format(t)} for i, t in enumerate(TAGS)}
+    return {f"t{i:03d}": {"type": "noul", "instructions": tmpl.format(t)} for i, t in enumerate(tags or TAGS)}
 
 
-def call(text: str, variant: str = "about", timeout: int = 120) -> dict:
+def call(text: str, variant: str = "about", timeout: int = 120, tags: list[str] | None = None) -> dict:
     """One Jev call. Returns {"p": [256 floats], "in_tok", "out_tok", "latency_s", "model", "cache"}."""
     state = {VARIANTS[variant][0]: text}
-    qs = questions(variant)
+    qs = questions(variant, tags)
     if os.environ.get("CF_API_TOKEN") and os.environ.get("CF_ACCOUNT_ID"):
         url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CF_ACCOUNT_ID']}/ai/run"
         body = {"model": "typesafe/jev", "input": {"state": state, "questions": qs}}
@@ -127,7 +133,7 @@ def load(set_name: str, variant: str) -> dict[str, dict]:
 
 
 def encode(set_name: str, variant: str, items: list[tuple[str, str]], concurrency: int = 2,
-           log_every: int = 50) -> dict[str, dict]:
+           log_every: int = 50, tags: list[str] | None = None) -> dict[str, dict]:
     """Encode (id, text) items not already cached. Appends each result as it lands."""
     CACHE.mkdir(exist_ok=True)
     done = load(set_name, variant)
@@ -140,7 +146,7 @@ def encode(set_name: str, variant: str, items: list[tuple[str, str]], concurrenc
     def one(it):
         i, t = it
         try:
-            rec = {"id": i, **call(t, variant)}
+            rec = {"id": i, **call(t, variant, tags=tags)}
         except Blocked:
             rec = {"id": i, "error": "blocked"}
         except RuntimeError as e:
