@@ -22,7 +22,7 @@ def main():
     ax_test = [(r["id"], r["text"]) for r in arxiv if r["split"] == "test"]
     ax_train = [(r["id"], r["text"]) for r in arxiv if r["split"] == "train"]
     sf = DATA / "scifact"
-    qids = sorted({line.split("\t")[0] for line in open(sf / "test.tsv").read().splitlines()[1:]}, key=int)
+    qids = sorted({line.split("\t")[0] for line in (sf / "test.tsv").read_text().splitlines()[1:]}, key=int)
     queries = {r["_id"]: r["text"] for r in jsonl(sf / "queries.jsonl")}
     sf_q = [(q, queries[q]) for q in qids]
     sf_docs = [(r["_id"], f"{r['title']}. {r['text']}"[:MAX_CHARS]) for r in jsonl(sf / "corpus.jsonl")]

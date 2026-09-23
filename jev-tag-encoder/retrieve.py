@@ -41,7 +41,7 @@ def setup() -> dict:
     corpus = jsonl(sf / "corpus.jsonl")
     doc_ids = np.array([r["_id"] for r in corpus])
     qrels = {}
-    for line in open(sf / "test.tsv").read().splitlines()[1:]:
+    for line in (sf / "test.tsv").read_text().splitlines()[1:]:
         q, d, s = line.split("\t")
         if int(s) > 0:
             qrels.setdefault(q, set()).add(d)
@@ -109,16 +109,16 @@ def main():
     print("| run | nDCG@10 [95% CI] | vs rrf(bm25,dense) |\n|---|---|---|")
     ref = per_q["rrf(bm25,dense)"]
     for name, v in per_q.items():
-        c = ci(boot(lambda i: v[i].mean(), nq, seed=2))[0]
+        c = ci(boot(lambda i, v=v: v[i].mean(), nq, seed=2))[0]
         d = v - ref
-        dc = ci(boot(lambda i: d[i].mean(), nq, seed=2))[0]
+        dc = ci(boot(lambda i, d=d: d[i].mean(), nq, seed=2))[0]
         out[name] = {"ndcg10": float(v.mean()), "ci": c, "delta_vs_rrf2": float(d.mean()), "delta_ci": dc}
         print(f"| {name} | {fmt(v.mean(), c)} | {d.mean():+.3f} [{dc[0]:+.3f}, {dc[1]:+.3f}] |")
     # two-leg fusions against their single leg: does the tag leg help BM25 alone, or dense alone?
     for single in ("bm25", "dense"):
         for name in [n for n in per_q if n.startswith(f"rrf({single},jev")]:
             d = per_q[name] - per_q[single]
-            dc = ci(boot(lambda i: d[i].mean(), nq, seed=2))[0]
+            dc = ci(boot(lambda i, d=d: d[i].mean(), nq, seed=2))[0]
             out[name][f"delta_vs_{single}"] = float(d.mean())
             out[name][f"delta_vs_{single}_ci"] = dc
             print(f"  {name} - {single}: {d.mean():+.3f} [{dc[0]:+.3f}, {dc[1]:+.3f}]")

@@ -108,13 +108,13 @@ def main():
 
     out = {}
     rows = []
-    for name in arms:
+    for name, arm in arms.items():
         point = stat(name)(np.arange(n))
         bs = boot(stat(name), n, seed=1)
         c = ci(bs)
         out[name] = {"micro_f1": point[0], "macro_f1": point[1], "micro_ap": point[2], "macro_ap": point[3],
                      "ci": c, "_boot": bs}
-        seed_sd = np.std([f1s(Yte, S >= thr[name])[0] for S in arms[name]]) if len(arms[name]) > 1 else 0.0
+        seed_sd = np.std([f1s(Yte, S >= thr[name])[0] for S in arm]) if len(arm) > 1 else 0.0
         out[name]["seed_sd_micro_f1"] = float(seed_sd)
         rows.append(f"| {name} | {fmt(point[0], c[0])} | {fmt(point[1], c[1])} | {fmt(point[2], c[2])} | "
                     f"{fmt(point[3], c[3])} |")

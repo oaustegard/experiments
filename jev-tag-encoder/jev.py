@@ -36,7 +36,7 @@ VARIANTS = {
 
 # The AI Gateway is configured at 50 requests per 60 s, fixed window (read from the gateway config
 # 2026-09-23). Pace request starts under it instead of backing off exponentially into it.
-RPM = float(os.environ.get("JEV_RPM", 48))
+RPM = float(os.environ.get("JEV_RPM", "48"))
 _pace_lock = threading.Lock()
 _next_start = [0.0]
 
@@ -69,12 +69,12 @@ def call(text: str, variant: str = "about", timeout: int = 120) -> dict:
                    "cf-aig-skip-cache": "true"}
         if os.environ.get("CF_GATEWAY_ID"):
             headers["cf-aig-gateway-id"] = os.environ["CF_GATEWAY_ID"]
-        unwrap = lambda r: r["result"]["result"]  # noqa: E731
+        unwrap = lambda r: r["result"]["result"]
     elif os.environ.get("TYPESAFE_API_KEY"):
         url = "https://api.typesafe.ai/v1/systemone"
         body = {"model": "jev-latest", "state": state, "questions": qs}
         headers = {"Authorization": f"Bearer {os.environ['TYPESAFE_API_KEY']}", "Content-Type": "application/json"}
-        unwrap = lambda r: r  # noqa: E731
+        unwrap = lambda r: r
     else:
         raise RuntimeError("no Jev transport: set CF_ACCOUNT_ID+CF_API_TOKEN(+CF_GATEWAY_ID) or TYPESAFE_API_KEY")
     data = json.dumps(body).encode()

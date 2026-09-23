@@ -77,7 +77,7 @@ def get(url: str, timeout: int = 120) -> bytes:
             r = requests.get(url, headers={"User-Agent": "muninn-raven"}, timeout=timeout)
             r.raise_for_status()
             return r.content
-        except Exception as e:  # noqa: BLE001 — transient network, retried then raised
+        except Exception as e:
             if attempt == 4:
                 raise
             print(f"retry {url[:80]}: {e}")

@@ -979,6 +979,21 @@ the result.
   control validates the path it runs and nothing else.
   (`toc-path-remax_kb/rescore_modalities.py`, `ERRORS.md` #2)
 
+- **Jev (TypeSafe) from a container: only through the Cloudflare AI Gateway, and the gateway caps
+  it at 50 requests per minute.** The TypeSafe key lives in the gateway (BYOK): POST
+  `/accounts/$CF_ACCOUNT_ID/ai/run` with `{"model": "typesafe/jev", "input": {"state", "questions"}}`
+  and header `cf-aig-gateway-id`; without that header Workers AI answers 402 code 2021
+  "Insufficient balance". The gateway's own config (`GET
+  /accounts/{acct}/ai-gateway/gateways/{id}` with `CF_API_TOKEN`) reads `rate_limiting_limit: 50,
+  interval: 60, technique: fixed`; over it the gateway returns 429 code 2003 with no Retry-After.
+  Exponential backoff into a fixed window halved throughput (~0.4 docs/s); a client-side pacer at
+  48/min held it at the cap. The cap is shared with the `delegating-with-context` hook. TypeSafe
+  bills input tokens only ($0.042/Mtok); `output_tokens` is the fixed size of the answer map
+  (~19 per Noul) and is not billed, so the question strings are the cost. Pass
+  `cf-aig-skip-cache: true` for any latency or determinism measurement. (`jev-tag-encoder/jev.py`)
+- **`export.arxiv.org` answers Python `urllib` with HTTP 406 and curl or `requests` with 200 on the
+  same URL.** Use `requests`. (`jev-tag-encoder/data.py`)
+
 ## Numerical / ML gotchas
 
 - **Verifier cosine under different quantization conditions is on different
@@ -2221,6 +2236,19 @@ the result.
   `NPY_DISABLE_CPU_FEATURES="X86_V4"`; `numpy.show_runtime()` lists the
   names. (`rht-operator-native/check_simd_codebook.py`)
 
+- **Do not standardize calibrated-probability features before a linear probe.** Jev Noul
+  probabilities are 2-decimal and 87.5% of them sit at ≤ 0.02; StandardScaler gives a rare tag
+  wandering between 0.01 and 0.03 unit variance and the probe fits that noise. On 24 arXiv labels
+  the same 256-d features scored micro-F1 0.347 standardized vs 0.566 raw at 50 labels, 0.620 vs
+  0.697 at 500; dense unit-norm embeddings lost only at 50 labels (0.471 vs 0.517). Give raw
+  features a C grid that reaches 100 to 1000. Quantizing to 1 to 3 bits recovers part of the loss,
+  which is how it surfaced: a coarser code beat the floats. (`jev-tag-encoder/probe_codes.py`)
+- **Quantizing skewed probabilities: cut in logit space, not uniformly.** Sign bit plus
+  confidence buckets over Jev tag probabilities: 3 logit-spaced bits (cuts .03/.1/.25/.5/…)
+  matched the floats on Bernoulli-score retrieval (−0.011 [−0.031, +0.009] nDCG@10) and cost
+  0.043 micro-AP; 3 uniform bits cost 0.053 and 0.080. A threshold decision at 0.5 needs only the
+  sign bit, and F1 at 0.5 was identical under every code. (`jev-tag-encoder/quant_eval.py`)
+
 ## Cache and measurement hygiene
 
 - **A retry needs the failed artifact and the failure output, not the failed model's
@@ -2846,6 +2874,13 @@ the result.
   and closed it. The same plan in C is 2–140x faster than dense in every cell
   measured from d=1024 up on x86, ARM and Apple Silicon. Do not re-measure the NumPy form as evidence
   about the transform. (`rht-operator-native/RESULTS.md`)
+
+- **A fixed 256-topic tag vector is not a retrieval leg on SciFact.** Jev Noul probabilities
+  over a general taxonomy score nDCG@10 0.34 alone (Bernoulli log-likelihood; dot 0.18, Hamming
+  0.10) and lower every fusion: RRF(BM25, dense, tags) 0.688 vs RRF(BM25, dense) 0.774, RRF(BM25,
+  tags) 0.072 under BM25 alone. The corpus uses 58 of the 256 tags and "scientific study" fires
+  on 99% of documents; a claim's evidence and its neighbours share a tag set. Rephrasing the
+  query side ("The query asks about") changes nothing. (`jev-tag-encoder/RESULTS.md`)
 
 ## Shared code — `_lib/`
 
