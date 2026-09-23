@@ -72,7 +72,8 @@ def main():
         if len(chunks) < MIN_CHUNKS:
             return
         ctx, st = jf.build_context(prompt, chunks, budget)
-        rec.update({k: st[k] for k in ("windows", "jev_input_tokens", "context_tokens", "kept_ids")},
+        rec.update({k: st.get(k) for k in ("windows", "calls", "blocked_chunks", "jev_input_tokens",
+                                           "context_tokens", "kept_ids")},
                    chunks=len(chunks), seconds=round(time.time() - t0, 2))
         log(rec)
         note = ""
