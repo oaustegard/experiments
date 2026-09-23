@@ -3,18 +3,20 @@
 ## Answer
 
 Can one Jev call asking 256 "The document is about <tag>." Nouls produce a useful named document
-vector? For topic labelling, yes; for retrieval, no. On 600 arXiv abstracts with 24 cross-listed
-categories, mapping each category to its tags gives micro-F1 0.636 [0.616, 0.659] with no labels.
-Given labels, a logistic probe on the 256 raw probabilities beats a gemini-embedding-2 probe at 50
-labels (0.566 vs 0.517) and trails it at 200 (0.671 vs 0.714) and 500 (0.697 vs 0.778). On
-SciFact the tags alone score nDCG@10 0.18 to 0.34, and as a third RRF leg they cost 0.087 [0.059,
-0.115] against BM25 + dense. A 3-bit code (sign plus logit-spaced confidence buckets) matches the
-floats on retrieval (−0.011 [−0.031, +0.009]); one bit keeps zero-shot F1 exactly and loses 0.18
-micro-AP. Each doc gets 7.5 active tags; 7,449 calls ran at p50 0.59 s and ~$0.00017; reruns
-flip 5 of 7,680 values across 0.5.
+vector? For topic labelling, yes. For retrieval on SciFact, no, under a general taxonomy or one
+fitted to the corpus. On 600 arXiv abstracts, mapping 24 categories to tags gives micro-F1 0.636
+[0.616, 0.659] with no labels. A logistic probe on the 256 raw probabilities beats a
+gemini-embedding-2 probe at 50 labels (0.566 vs 0.517) and trails it at 500 (0.697 vs 0.778). On
+SciFact the general tags score nDCG@10 0.18 to 0.34 alone and cost 0.087 [0.059, 0.115] as a third
+RRF leg beside BM25 + dense. A taxonomy fitted to SciFact (256 KMeans clusters named by Gemini)
+raises the best standalone score to 0.386 and cuts that cost to 0.055 [0.027, 0.084], still below
+the two-leg baseline. A perfect labeller of the fitted taxonomy (query-to-centroid cosine) scores
+0.183 alone and costs 0.079. A 3-bit code matches the floats on retrieval (−0.011 [−0.031, +0.009]);
+one bit keeps zero-shot F1 and loses 0.18 micro-AP. Calls cost ~$0.00017; p50 0.59 s via gateway,
+0.46 s direct.
 
-What would change this: a taxonomy finer than the corpus (SciFact uses 58 of 256 tags), or labels
-defined the way the tags are phrased instead of by arXiv cross-listing habits.
+What would change this: retrieval where relevance is topical rather than evidence for one claim,
+or labels defined the way the tags are phrased instead of by arXiv cross-listing habits.
 
 ## Findings
 
@@ -30,11 +32,16 @@ defined the way the tags are phrased instead of by arXiv cross-listing habits.
    gives a rare tag wandering between 0.01 and 0.03 unit variance. Scaled vs raw: 0.347 vs 0.566
    @50, 0.620 vs 0.697 @500. Dense embeddings lose only at @50 (0.471 vs 0.517). Quantizing to
    1 to 3 bits recovers part of it (0.625 to 0.667 @500). (Round 2, `results/probe_codes.json`)
-4. **The tag vector hurts every retrieval fusion on SciFact.** RRF(BM25, dense, Jev) 0.688 at best
-   (Bernoulli score) vs RRF(BM25, dense) 0.774; RRF(BM25, Jev) is 0.072 under BM25 alone. Bernoulli
-   log-likelihood is the best Jev score (0.337 alone), dot 0.184, Hamming on 0.5 bits 0.102. "The
-   query asks about" changes nothing (within 0.015). SciFact spreads over 58 tags that fire on
-   ≥ 1% of docs; "scientific study" fires on 99%. (`results/step4_retrieve.json`)
+4. **The tag vector hurts every retrieval fusion on SciFact, under the general taxonomy and under
+   one fitted to the corpus.** General: RRF(BM25, dense, Jev) 0.688 at best (Bernoulli score) vs
+   RRF(BM25, dense) 0.774; RRF(BM25, Jev) is 0.072 under BM25 alone; Bernoulli 0.337 alone, dot
+   0.184, Hamming on 0.5 bits 0.102; "The query asks about" changes nothing (within 0.015).
+   SciFact spreads over 58 general tags that fire on ≥ 1% of docs; "scientific study" fires on
+   99%. Fitted (Round 3): Bernoulli 0.386 [0.341, 0.431] alone, −0.055 [−0.084, −0.027] as a
+   third leg (+0.032 [0.006, 0.059] paired over general), −0.050 [−0.087, −0.012] with BM25
+   alone. The cluster-centroid ceiling for the fitted taxonomy, 0.183 alone and −0.079 as a third
+   leg, puts the limit on 256 topics of ~20 docs each, which do not separate a claim's evidence
+   from its topical neighbours. (`results/step4_retrieve.json`, `results/round3_domain.json`)
 5. **3 bits per tag keep the ranking signal; 1 bit keeps only the labels.** Zero-shot F1 at 0.5 is
    identical under every code. micro-AP: float 0.610, 3-bit logit 0.567, 2-bit logit 0.527, 1-bit
    0.433. SciFact Bernoulli alone: float 0.337, 3-bit logit 0.325, 2-bit logit 0.276, 1-bit
@@ -57,6 +64,12 @@ defined the way the tags are phrased instead of by arXiv cross-listing habits.
 9. **Jev is near-deterministic, not bit-deterministic.** 30 docs re-encoded ~2.5 h later, gateway
    cache skipped: 84.7% of values identical, mean |Δ| 0.0019, max 0.10, 5 of 7,680 values flip
    across 0.5, all from within 0.05 of it. (`results/step6_determinism.json`)
+10. **"is about" gates narrow, corpus-fitted tags hard.** The fitted tags are 8-word cluster names
+   ("human genetic disorders and mutations"). Docs activate 1.29 of them, 29% activate none, and
+   a doc's own cluster is Jev's top tag for 47% of docs (top 5: 76%). A query shares an active tag
+   with one of its relevant docs 54% of the time, against 99% under the general taxonomy. The
+   soft probabilities still rank: Bernoulli beats the hard-cluster ceiling alone (0.386 vs
+   0.183). (`results/round3_domain.json` diag)
 
 ## Method
 
@@ -65,7 +78,9 @@ Gateway (TypeSafe key stored gateway-side; `cf-aig-skip-cache: true` on every ca
 {"document": text}`, 256 Noul questions `tNNN` = flattened `tags.txt` index. jev-1.13.0 answered
 every call. Vectors are 256 floats in tag order, cached per (set, phrasing) in `vectors/*.parquet`.
 The gateway is configured at 50 requests per 60 s (fixed window), so the client paces at 48/min;
-the full run took ~2.5 h wall clock.
+the full run took ~2.5 h wall clock. Round 3 called TypeSafe directly (`api.typesafe.ai/v1/systemone`,
+model jev-1.13.0) once a key was in the environment, paced at 600/min with 8 threads and no 429s:
+5,483 calls in 9.7 min, p50 0.46 s against 0.59 s through the gateway.
 
 **Fixtures** (`data.py`, seed 98). Step 2: 100 AG News test (25 per class) + 100 20 Newsgroups
 test (5 per group, headers/footers/quotes removed, ≥200 chars), truncated at 4,000 chars. Steps 3
@@ -101,7 +116,8 @@ and retrieval fusion.
 **Cost.** 7,449 successful calls, 1 WAF block (a 20 Newsgroups post), mean 4,127 input tokens
 (~3.8k of it the 256 question strings). TypeSafe bills input only, $0.042/Mtok: ~$1.30 for the
 run. The 4,868 "output tokens" per call are the fixed size of the 256-entry answer map and are
-not billed.
+not billed. Round 3: 5,483 calls, 0 failures, mean 6,100 input tokens (the fitted tag names are
+longer), ~$1.40.
 
 ## Log
 
@@ -216,3 +232,51 @@ StandardScaler inflates near-constant rare tags, with 5 seeds and raw-feature co
 
 Round 1's "a probe over the 256 tags never beats the hand mapping" was the scaler, and is
 withdrawn. Raw-feature probes are the fair comparison and now carry Findings 1 and 2.
+
+### Round 3 (2026-09-23): corpus-fitted taxonomy on SciFact
+
+Asked (Oskar): the general 256-tag taxonomy is out of distribution for SciFact; does a per-domain
+tag set change the retrieval result? `build_domain_tags.py` fits one from the corpus alone:
+KMeans (k = 256, seed 98) over the gemini-embedding-2 doc vectors, each cluster named by
+gemini-3.5-flash-lite from the titles nearest its centroid beside its 5 nearest clusters. Queries
+and qrels are never read. `encode_domain.py` re-encoded the 300 test queries and 5,183 docs with
+"The document is about <tag>."; `retrieve_domain.py` reruns Round 1's legs, scores and RRF and
+pairs each run per query against the general taxonomy.
+
+Ran: the first handoff session had no TypeSafe key; the next found it as `TYPESAFE_API_TOKEN`,
+which `jev.typesafe_key()` did not match (it required "KEY" in the name), so the lookup now also
+accepts "TOKEN". Direct calls: 5,483 of 5,483 ok, p50 0.46 s, p90 0.55 s, 9.7 min at 600/min
+with no 429s. The gateway route in Round 1 ran p50 0.59 s at 48/min.
+
+nDCG@10, 300 queries (RRF(BM25, dense) 0.774, BM25 0.662, dense 0.898):
+
+| taxonomy / code | score | alone | 3rd leg vs RRF(BM25, dense) | RRF(BM25, Jev) vs BM25 |
+|---|---|---|---|---|
+| general | Bernoulli | 0.337 [0.291, 0.382] | −0.087 [−0.117, −0.058] | −0.072 [−0.111, −0.036] |
+| general | dot | 0.184 | −0.095 | −0.145 |
+| general | Hamming | 0.102 | −0.152 | −0.230 |
+| fitted | Bernoulli | 0.386 [0.341, 0.431] | −0.055 [−0.084, −0.027] | −0.050 [−0.087, −0.012] |
+| fitted | dot | 0.200 | −0.115 | −0.193 |
+| fitted | Hamming | 0.146 | −0.093 | −0.196 |
+| fitted, 3-bit logit | Bernoulli | 0.356 | −0.047 [−0.079, −0.016] | −0.054 |
+| fitted, 2-bit logit | Bernoulli | 0.293 | −0.062 | −0.092 |
+| fitted, 1-bit sign | Bernoulli | 0.164 | −0.092 | −0.189 |
+| cluster-centroid ceiling | cosine | 0.183 [0.153, 0.215] | −0.079 [−0.107, −0.051] | −0.090 [−0.130, −0.049] |
+
+Paired fitted minus general, Bernoulli: +0.049 [−0.005, +0.102] alone, +0.032 [0.006, 0.059] as a
+third leg, +0.023 [−0.011, +0.058] with BM25. Hamming gains more (+0.059 [0.020, 0.097] as a third
+leg) because the general taxonomy's 0.5 bits were dominated by a few near-universal tags. Dot
+loses (−0.020 [−0.056, +0.016] as a third leg). The quantization codes were fit on the SciFact
+corpus vectors, since the fitted taxonomy has no mixed-corpus encoding.
+
+Diagnostics (docs ≥ 0.5): general 7.49 active per doc, 58 tags fire on ≥ 1% of docs, 3,759
+distinct 1-bit codes, largest bucket 61. Fitted: 1.29 active per doc, 27 tags on ≥ 1%, 6 never
+fire, 1,273 distinct codes, largest bucket 1,503 (the 29% of docs with no active tag). The most
+frequent fitted tag fires on 6.1% of docs. The ceiling row ranks every doc by the query
+embedding's cosine to its KMeans cluster centroid, i.e. what a labeller that always picked the
+doc's own cluster would give; it is below Jev's soft Bernoulli score alone and still costs 0.079
+as a third leg. SciFact relevance is evidence for one claim, and a 256-way topic partition puts
+~20 docs in each cell.
+
+Prediction (Oskar): a corpus-fitted taxonomy should do better. It does, by 0.03 to 0.06 on the
+Bernoulli and Hamming scores, and every fusion is still below the two-leg baseline.

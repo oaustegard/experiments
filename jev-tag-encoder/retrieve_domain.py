@@ -5,10 +5,14 @@ scifact_q_dom. Deltas are paired per query against the general-taxonomy run. Qua
 the same cut schemes as quant.py, with bucket levels fit on the SciFact corpus vectors (no labels
 involved; the general run fit them on the mixed corpus).
 """
+import json
+
 import numpy as np
+from sklearn.cluster import KMeans
 
 import jev
-from common import boot, ci, fmt, save
+from common import DATA, boot, ci, fmt, jsonl, save
+from embed import EMB
 from quant import Quantizer
 from retrieve import jev_scores, ndcgs, rrf, setup
 
@@ -43,6 +47,24 @@ def main():
                       "top_fire": [(tags[i], round(float(fire[i]), 3)) for i in np.argsort(-fire)[:6]]}
         print(name, diag[name])
 
+    # Does Jev put a doc under its own cluster's name? Refit build_domain_tags.py's KMeans (same seed) to get labels.
+    E = np.load(EMB / "scifact_docs.npy")
+    km = KMeans(256, n_init=4, random_state=98).fit(E)
+    sizes = [c["size"] for c in json.loads((jev.HERE / "clusters_scifact.json").read_text())]
+    assert np.bincount(km.labels_, minlength=256).tolist() == sizes, "KMeans refit does not reproduce the taxonomy"
+    own = Dd[np.arange(nd), km.labels_]
+    diag["domain"] |= {"own_cluster_p_ge_0.5": float((own >= 0.5).mean()),
+                       "own_cluster_is_top1": float((Dd.argmax(1) == km.labels_).mean()),
+                       "own_cluster_in_top5": float((np.argsort(-Dd, 1)[:, :5] == km.labels_[:, None]).any(1).mean()),
+                       "zero_active_docs": float(((Dd >= 0.5).sum(1) == 0).mean())}
+    print("domain agreement", {k: v for k, v in diag["domain"].items() if k.startswith(("own", "zero"))})
+
+    # Ceiling for any labeller of this taxonomy: rank docs by the query embedding's cosine to the doc's cluster centroid
+    C = km.cluster_centers_ / np.linalg.norm(km.cluster_centers_, axis=1, keepdims=True)
+    qall = [r["_id"] for r in jsonl(DATA / "scifact" / "queries.jsonl")]
+    Qe = np.load(EMB / "scifact_queries.npy")[[qall.index(q) for q in qids]]
+    ceil_rank = list(np.argsort(-(Qe @ C.T)[:, km.labels_], axis=1, kind="stable"))
+
     base2 = ndcgs([rrf([legs["bm25"][i], legs["dense"][i]], nd) for i in range(nq)], qids, qrels, doc_ids)
     bm = ndcgs(legs["bm25"], qids, qrels, doc_ids)
     dense = ndcgs(legs["dense"], qids, qrels, doc_ids)
@@ -64,6 +86,12 @@ def main():
     refs = {"alone": None, "rrf(bm25,dense,jev)": base2, "rrf(bm25,jev)": bm, "rrf(dense,jev)": dense}
     out = {"diag": diag, "baselines": {"bm25": mean_ci(bm), "dense": mean_ci(dense), "rrf(bm25,dense)": mean_ci(base2)},
            "runs": {}}
+    ceil = {"alone": ndcgs(ceil_rank, qids, qrels, doc_ids),
+            "rrf(bm25,dense,jev)": ndcgs([rrf([legs["bm25"][i], legs["dense"][i], ceil_rank[i]], nd) for i in range(nq)],
+                                        qids, qrels, doc_ids),
+            "rrf(bm25,jev)": ndcgs([rrf([legs["bm25"][i], ceil_rank[i]], nd) for i in range(nq)], qids, qrels, doc_ids)}
+    out["cluster_ceiling"] = {m: mean_ci(v if refs[m] is None else v - refs[m]) for m, v in ceil.items()}
+    print("cluster-centroid ceiling:", {m: fmt(*v) for m, v in out["cluster_ceiling"].items()})
     print("\n| taxonomy/code | score | alone | RRF(bm25,dense,jev) − RRF(bm25,dense) | RRF(bm25,jev) − bm25 | "
           "RRF(dense,jev) − dense |")
     for (cname, sname), r in runs.items():

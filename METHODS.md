@@ -2875,12 +2875,15 @@ the result.
   measured from d=1024 up on x86, ARM and Apple Silicon. Do not re-measure the NumPy form as evidence
   about the transform. (`rht-operator-native/RESULTS.md`)
 
-- **A fixed 256-topic tag vector is not a retrieval leg on SciFact.** Jev Noul probabilities
-  over a general taxonomy score nDCG@10 0.34 alone (Bernoulli log-likelihood; dot 0.18, Hamming
-  0.10) and lower every fusion: RRF(BM25, dense, tags) 0.688 vs RRF(BM25, dense) 0.774, RRF(BM25,
-  tags) 0.072 under BM25 alone. The corpus uses 58 of the 256 tags and "scientific study" fires
-  on 99% of documents; a claim's evidence and its neighbours share a tag set. Rephrasing the
-  query side ("The query asks about") changes nothing. (`jev-tag-encoder/RESULTS.md`)
+- **A 256-topic tag vector is not a retrieval leg on SciFact, general or corpus-fitted.** Jev Noul
+  probabilities over a general taxonomy score nDCG@10 0.34 alone (Bernoulli log-likelihood; dot
+  0.18, Hamming 0.10) and lower every fusion: RRF(BM25, dense, tags) 0.688 vs RRF(BM25, dense)
+  0.774, RRF(BM25, tags) 0.072 under BM25 alone. A taxonomy fitted to the corpus (256 KMeans
+  clusters named by an LLM) scores 0.386 alone and costs 0.055 as a third leg, still a loss; a
+  perfect labeller of it (query-to-centroid cosine) scores 0.183. A claim's evidence and its
+  ~20 topical neighbours share a tag set under either taxonomy. Rephrasing the query side
+  ("The query asks about") changes nothing. Test a tag vector on a task where relevance is
+  topical before concluding about tag vectors in general. (`jev-tag-encoder/RESULTS.md`)
 
 ## Shared code — `_lib/`
 

@@ -19,7 +19,7 @@ def main():
     docs = [(r["_id"], f"{r['title']}. {r['text']}"[:MAX_CHARS]) for r in jsonl(sf / "corpus.jsonl")]
     t0 = time.time()
     for set_name, items in (("scifact_q_dom", [(q, queries[q]) for q in qids]), ("scifact_dom", docs)):
-        recs = jev.encode(set_name, "about", items, tags=TAGS)
+        recs = jev.encode(set_name, "about", items, concurrency=8, tags=TAGS)  # pacing sets the rate
         ok = sum("p" in recs.get(i, {}) for i, _ in items)
         print(f"DONE {set_name}/about: {ok}/{len(items)} ok t={time.time() - t0:.0f}s", flush=True)
         jev.to_parquet(set_name, "about")

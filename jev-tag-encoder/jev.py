@@ -1,6 +1,6 @@
 """Jev 256-tag encoder: one call per text, all 256 nouls, cached per (set, variant).
 
-Transport: TypeSafe directly when TYPESAFE_API_KEY is set; otherwise Cloudflare Workers AI
+Transport: TypeSafe directly when a TypeSafe key is set (TYPESAFE_API_KEY or _TOKEN); otherwise Cloudflare Workers AI
 `typesafe/jev` through the AI Gateway (the TypeSafe key is stored gateway-side; CF_ACCOUNT_ID +
 CF_API_TOKEN + CF_GATEWAY_ID in env), which caps the rate at 50/min. Gateway caching is skipped on every call so
 latency and the determinism check measure the model, not the cache.
@@ -44,13 +44,13 @@ def _pace() -> None:
 
 def typesafe_key() -> str | None:
     """The TypeSafe key from the environment under any of the names it has been given
-    (TYPESAFE_API_KEY, typesafe_*, JEV_*), case-insensitive; None when absent."""
+    (TYPESAFE_API_KEY, TYPESAFE_API_TOKEN, typesafe_*, JEV_*), case-insensitive; None when absent."""
     for name in ("TYPESAFE_API_KEY", "typesafe_api_key", "JEV_API_KEY", "jev_api_key"):
         if os.environ.get(name):
             return os.environ[name]
     for name, val in os.environ.items():
         up = name.upper()
-        if val and "KEY" in up and up.startswith(("TYPESAFE", "JEV")):
+        if val and ("KEY" in up or "TOKEN" in up) and up.startswith(("TYPESAFE", "JEV")):
             return val
     return None
 

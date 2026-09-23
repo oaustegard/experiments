@@ -10,8 +10,9 @@ def j(name):
     return json.loads((R / f"{name}.json").read_text())
 
 
-s2, s3, s4, s5, s6, qe, pc = (j(n) for n in ("step2_fit", "step3_classify", "step4_retrieve", "step5_phrasing",
-                                             "step6_determinism", "quant_eval", "probe_codes"))
+s2, s3, s4, s5, s6, qe, pc, r3 = (j(n) for n in ("step2_fit", "step3_classify", "step4_retrieve", "step5_phrasing",
+                                                 "step6_determinism", "quant_eval", "probe_codes", "round3_domain"))
+d3 = r3["runs"]["domain|bernoulli"]
 q3 = qe["step3"]["arms"]
 q4 = qe["step4"]
 a = s3["arms"]
@@ -54,6 +55,19 @@ checks = [
     ("mentions delta", -s5["mentions"]["delta_micro_f1_vs_about"][0], 0.088),
     ("determinism flips", s6["bit_flips_total"], 5),
     ("determinism identical", s6["frac_identical"], 0.847),
+    ("r3 fitted bernoulli alone", d3["alone"][0], 0.386),
+    ("r3 fitted 3rd-leg cost", -d3["rrf(bm25,dense,jev)"][0], 0.055),
+    ("r3 fitted vs general 3rd leg", d3["rrf(bm25,dense,jev)|vs_general"][0], 0.032),
+    ("r3 fitted bm25+jev vs bm25", -d3["rrf(bm25,jev)"][0], 0.050),
+    ("r3 fitted 3bit bernoulli", r3["runs"]["domain-3bit-logit|bernoulli"]["alone"][0], 0.356),
+    ("r3 ceiling alone", r3["cluster_ceiling"]["alone"][0], 0.183),
+    ("r3 ceiling 3rd-leg cost", -r3["cluster_ceiling"]["rrf(bm25,dense,jev)"][0], 0.079),
+    ("r3 fitted active/doc", r3["diag"]["domain"]["doc_active_mean"], 1.29),
+    ("r3 fitted zero-active", r3["diag"]["domain"]["zero_active_docs"], 0.29),
+    ("r3 own cluster top1", r3["diag"]["domain"]["own_cluster_is_top1"], 0.47),
+    ("r3 own cluster top5", r3["diag"]["domain"]["own_cluster_in_top5"], 0.76),
+    ("r3 q shares tag fitted", r3["diag"]["domain"]["q_shares_tag_with_relevant_doc"], 0.54),
+    ("r3 q shares tag general", r3["diag"]["general"]["q_shares_tag_with_relevant_doc"], 0.99),
 ]
 bad = [(n, got, want) for n, got, want in checks if abs(got - want) > (0.0051 if abs(want) < 10 else 0.5)]
 for n, got, want in checks:
