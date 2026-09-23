@@ -34,20 +34,33 @@ VARIANTS = {
 }
 
 
-# The AI Gateway is configured at 50 requests per 60 s, fixed window (read from the gateway config
-# 2026-09-23). Pace request starts under it instead of backing off exponentially into it. TypeSafe
-# direct allows 1,200 rpm (docs, "adjusting dynamically"); pace at half that.
-RPM = float(os.environ.get("JEV_RPM") or (600 if os.environ.get("TYPESAFE_API_KEY") else 48))
-_pace_lock = threading.Lock()
-_next_start = [0.0]
-
-
 def _pace() -> None:
     with _pace_lock:
         now = time.time()
         start = max(now, _next_start[0])
         _next_start[0] = start + 60.0 / RPM
     time.sleep(max(0.0, start - now))
+
+
+def typesafe_key() -> str | None:
+    """The TypeSafe key from the environment under any of the names it has been given
+    (TYPESAFE_API_KEY, typesafe_*, JEV_*), case-insensitive; None when absent."""
+    for name in ("TYPESAFE_API_KEY", "typesafe_api_key", "JEV_API_KEY", "jev_api_key"):
+        if os.environ.get(name):
+            return os.environ[name]
+    for name, val in os.environ.items():
+        up = name.upper()
+        if val and "KEY" in up and up.startswith(("TYPESAFE", "JEV")):
+            return val
+    return None
+
+
+# The AI Gateway is configured at 50 requests per 60 s, fixed window (read from the gateway config
+# 2026-09-23). Pace request starts under it instead of backing off exponentially into it. TypeSafe
+# direct allows 1,200 rpm (docs, "adjusting dynamically"); pace at half that.
+RPM = float(os.environ.get("JEV_RPM") or (600 if typesafe_key() else 48))
+_pace_lock = threading.Lock()
+_next_start = [0.0]
 
 
 class Blocked(RuntimeError):
@@ -69,10 +82,10 @@ def call(text: str, variant: str = "about", timeout: int = 120, tags: list[str] 
     """One Jev call. Returns {"p": [256 floats], "in_tok", "out_tok", "latency_s", "model", "cache"}."""
     state = {VARIANTS[variant][0]: text}
     qs = questions(variant, tags)
-    if os.environ.get("TYPESAFE_API_KEY"):  # direct: TypeSafe's own limit (1,200 rpm), not the gateway's 50
+    if key := typesafe_key():  # direct: TypeSafe's own limit (1,200 rpm), not the gateway's 50
         url = "https://api.typesafe.ai/v1/systemone"
         body = {"model": "jev-1.13.0", "state": state, "questions": qs}
-        headers = {"Authorization": f"Bearer {os.environ['TYPESAFE_API_KEY']}", "Content-Type": "application/json"}
+        headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
         unwrap = lambda r: r
     elif os.environ.get("CF_API_TOKEN") and os.environ.get("CF_ACCOUNT_ID"):
         url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CF_ACCOUNT_ID']}/ai/run"
