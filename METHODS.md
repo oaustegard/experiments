@@ -3644,3 +3644,27 @@ copied from the target; report the reverse. Per-memory Jaccard with the
 original tags stayed at 0.34 across rounds 5 and 6 while retrieval rose, so
 agreement is the wrong yardstick for a tagger. (`sparseup-tag-probe/RESULTS.md`,
 round 6)
+
+### Transcript text trips provider WAFs; the AI Gateway reports it as a 402
+
+Sending chunks of Claude Code session transcripts to Jev through the Cloudflare
+AI Gateway, one condensed window failed on every retry with `HTTP 402
+{"message": "Payment error from model using BYOK: <!DOCTYPE html>..."}`. The
+wrapped page is the provider's Cloudflare "Sorry, you have been blocked" (title
+"Attention Required!"): its edge WAF rejected the request bytes. Deterministic
+for the same bytes, so backoff never helps; the same chunks clipped differently
+passed. Detect it by the body text, not the status code, and bisect the batch
+until the offending item is isolated (13 calls to isolate one of 40 chunks).
+Transcripts are full of shell commands, curl lines and file paths that read as
+attack payloads. (`subagent-context-filter/RESULTS.md`)
+
+### Claude Code transcripts: `isMeta` marks harness-injected user turns
+
+In a session JSONL, skill bodies, stop-hook feedback and messages from peer
+agents are `type: user` records with `isMeta: true`. Anything that treats user
+turns as the human's words (force-keeping them, mining corrections) has to
+exclude them; a 114k-character skill body is otherwise the longest "user
+message" in the session. `claude -p --output-format json` puts per-run token
+totals in `modelUsage`; the top-level `usage` is the last model call only.
+(`subagent-context-filter/ERRORS.md` #1, #3)
+
