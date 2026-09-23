@@ -139,6 +139,13 @@ at a 3-point cost in recall, and becomes cheaper than the fork after about
   fanned out. METHODS.md already said to start gateway concurrency at 2; the
   filter now does, and honours Retry-After.
 - **Force-keeping user-role messages filled the budget.** See ERRORS.md #1.
+- **`create_session` children need the task after the context.** The hook
+  covers `mcp__*__create_session` (an MCP tool's `updatedInput` verified with a
+  stub server and on the real remote server). Two Haiku cloud sessions got the
+  appended context (first-turn token counts match) and stalled at need-input,
+  one reading it as truncated and one as no request at all. With the block
+  labelled as reference data and the task repeated after it, the third answered
+  correctly on its first turn. n = 3; a direction, not a rate.
 
 ## Prior art
 
