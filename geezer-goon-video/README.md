@@ -1,9 +1,10 @@
 # Geezer Goon — animated music video
 
 An animated video for Oskar's song about the Wednesday G2 ("Geezer Goon") group
-ride out of Kensington, MD. The video is the release asset
-[`geezer-goon-video-v1`](https://github.com/oaustegard/experiments/releases/tag/geezer-goon-video-v1):
-1080p (104 MB) and 720p (27 MB), 4:09, 30 fps.
+ride out of Kensington, MD. The video is
+[`geezer-goon-720p.mp4`](geezer-goon-720p.mp4): 1280x720, 4:09, 30 fps, 27 MB,
+downscaled from a 1080p master (104 MB) that is over GitHub's 100 MB file limit
+and is not kept. Releases could not be created from the session that made it.
 
 Flat vector animation drawn frame by frame with pycairo and encoded with
 ffmpeg. The riders are side-on, the sky runs from golden hour to night over the
