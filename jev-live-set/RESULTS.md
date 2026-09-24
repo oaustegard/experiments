@@ -94,10 +94,35 @@ constraint.
   artifact MCP path, and whether it sounds good. The earlier Prose Physics
   artifact used the same connector call shape.
 
+## Video (`results/jev-live-set.mp4`)
+
+Oskar asked for a one-minute video. `render_video.py` runs the page's own code in headless Chromium
+with `body.video` (a 1280x720 layout at 1.5x). `offlinePerform` plays the set without a clock and
+makes one real Jev call per bar, through `jev-tag-encoder/jev.py` straight to TypeSafe rather than
+the connector. `renderAudio` schedules every hap into an OfflineAudioContext on the page's synth.
+`frameAt` steps a virtual clock, and ffmpeg muxes the screenshots with the audio. Math.random is
+seeded and every answer is cached by request hash (`runs/video-seed7-cache.json`), so a rerun
+replays the same set without new calls.
+
+Seed 7 made 26 calls over 24 bars, with a median reaction of 0.39 s. Two requests were scripted:
+"more energy, push toward a drop" at 0:17 and "switch to a different style, something dreamy" at
+0:38. Jev's phrases:
+
+- synthwave intro in A minor
+- groove
+- build (the first phrase that heard the energy request)
+- drop
+- breakdown, which turns to E minor
+- ambient groove in E minor, the first phrase after the dreamy request
+- ambient build in G major
+
+Audio peaks at −0.5 dBFS after normalizing, with a mean of −22.6 dB. Nobody has listened to it
+yet to judge quality.
+
 ## Files
 
 `page.src.html` (the page, with a `/*__STRUDEL_LIB__*/` placeholder) ·
 `build.py` (inlines `strudel-lib.js`) · `bundle/` (esbuild config for the
 Strudel IIFE: `cd bundle && npm i && npm run build`) · `harness.py`
 (selftest / random / mock-Jev runs) · `results/jev-probes.json` ·
-`results/screenshot-mock.png`
+`results/screenshot-mock.png` · `render_video.py` · `results/jev-live-set.mp4` · `runs/video-seed7*.json`

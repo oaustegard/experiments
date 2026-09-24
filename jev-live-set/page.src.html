@@ -118,6 +118,34 @@ table.quiz th{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; t
 table.quiz td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
 .tablewrap{overflow-x:auto}
 @media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important} }
+/* offline video layout, 1280 x 720 */
+body.video{padding-block:10px 0; overflow:hidden}
+body.video .wrap{max-width:none; gap:8px}
+body.video .brand p, body.video .conn, body.video .transport, body.video .about, body.video #quick, body.video #steerform, body.video .codeactions, body.video aside .panel > p.small, body.video .log, body.video .stage .hint{display:none}
+body.video .brand h1{font-size:34px}
+body.video .top{align-items:center}
+body.video .vtag{display:block!important; font-family:var(--mono); font-size:11.5px; color:var(--dim); text-align:right}
+body.video .readout b{font-size:19px}
+body.video .readout > div{padding:4px 10px 5px}
+body.video .stage canvas{height:262px}
+body.video .steer{padding:6px 12px}
+body.video .grid{grid-template-columns:minmax(0,2.2fr) minmax(0,1fr); gap:8px}
+body.video .panel{padding:8px 12px; gap:6px}
+body.video .panel h2{font-size:17px}
+body.video .phrase{grid-template-columns:repeat(4,minmax(0,1fr)); padding:6px 8px; gap:4px 10px}
+body.video .pq .pick{font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+body.video .pq .alts{font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+body.video #layers{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px}
+body.video .layer{border-top:0; padding-top:0; gap:3px; align-content:start}
+body.video .lnote{display:none}
+body.video .opt{grid-template-columns:20px minmax(0,1fr) auto; gap:5px; font-size:10.5px}
+body.video .opt .energy{display:none}
+body.video pre.code{font-size:10px; line-height:1.45; padding:6px 8px; max-height:128px; overflow:hidden}
+body.video .stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+body.video .stats > div:last-child{display:none}
+body.video .stats b{font-size:14px}
+body.video aside .panel:last-child .phead{display:none}
+body.video .opt.won .d{white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.2}
 </style>
 
 <div class="wrap">
@@ -126,6 +154,7 @@ table.quiz td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; whit
       <h1>Jev Live Set<span class="onair" id="onair" data-on="0">ON AIR</span></h1>
       <p>Jev plays this set one bar at a time. For every bar it picks drums, bass, harmony, lead and texture from a catalog of Strudel patterns, and every four bars it picks the section, chord progression, style and key. You can steer it while it plays.</p>
     </div>
+    <div class="vtag" hidden>Every part of every bar chosen by Jev · real calls, rendered offline</div>
     <div class="conn" id="conn" data-kind="idle"><span class="dot"></span><span id="conntext">Looking for the Muninn connector…</span></div>
   </header>
 
@@ -551,9 +580,9 @@ const DRUMS = new Set(Object.keys(DRUM_ROW));
 const BANK = { RolandTR808:{ kick:[120,45,.9], snap:.8, bright:.8 }, RolandTR909:{ kick:[180,50,.38], snap:1, bright:1 }, RolandTR707:{ kick:[160,55,.3], snap:1.1, bright:1.2 } };
 
 class Engine {
-  constructor(){
+  constructor(ctxIn){
     const AC = window.AudioContext || window.webkitAudioContext;
-    const ctx = this.ctx = new AC({ latencyHint: "playback" });
+    const ctx = this.ctx = ctxIn || new AC({ latencyHint: "playback" });
     this.master = ctx.createGain(); this.master.gain.value = 0.85;
     const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .2;
     this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 1024;
@@ -798,7 +827,7 @@ function phraseQuestions(p, prev, openingStyle){
 }
 
 async function askJev(state, questions){
-  const gap = 1250 - (Date.now() - S.lastCallAt); if (gap > 0) await sleep(gap);
+  const gap = (S.noPace ? 0 : 1250) - (Date.now() - S.lastCallAt); if (gap > 0) await sleep(gap);
   S.lastCallAt = Date.now();
   const t0 = performance.now();
   const res = await mcp.callTool("Muninn", "gateway", { op: "jev", state, questions }, { cache: false });
@@ -1126,7 +1155,8 @@ function renderDecision(bar){
     if (!pr){ note.textContent = "held from the previous bar"; const o = optById.get(bar.choices[L]); const row = document.createElement("div"); row.className = "opt won"; row.innerHTML = '<span class="bar"><i style="width:100%"></i></span><span class="d"></span><span class="p">held</span>'; row.querySelector(".d").textContent = o.desc; d.append(row); box.append(d); continue; }
     const entries = Object.entries(pr.pr).sort((a, b) => b[1] - a[1]);
     note.textContent = bar.by === "jev" ? (pr.pick === entries[0][0] ? "took the top pick" : "sampled below the top pick") : "uniform dice";
-    for (const [lab, p] of entries){
+    const shown = VIDEO ? entries.filter(([lab], i) => i < 3 || lab === pr.pick).slice(0, 4) : entries;
+    for (const [lab, p] of shown){
       const o = optById.get(pr.map[lab]);
       const row = document.createElement("div"); row.className = "opt" + (lab === pr.pick ? " won" : "");
       row.innerHTML = '<span class="bar"><i></i></span><span class="d"></span><span class="p"></span>';
@@ -1157,7 +1187,14 @@ const RANGE = { bass:[24,55], harmony:[48,79], lead:[55,91], texture:[40,96] };
 const HEX = { drums:"#f4a259", bass:"#ef6f6c", harmony:"#56c7b5", lead:"#f1df8a", texture:"#a893f5" };
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let lvl = 0;
+let VIDEO = null; // offline render: { time, level } replaces the audio clock
 function nowBarPos(){
+  if (VIDEO){
+    const t = VIDEO.time, b0s = S.barStart.get(0), d0 = S.bars.get(0).dur;
+    if (t < b0s) return (t - b0s) / d0;
+    let b = 0; while (S.barStart.has(b + 1) && S.barStart.get(b + 1) <= t && S.bars.has(b + 1)) b++;
+    return b + (t - S.barStart.get(b)) / S.bars.get(b).dur;
+  }
   if (!S || !S.running || !engine || S.playingBar < 0) return null;
   const b = S.playingBar, st = S.barStart.get(b), bar = S.bars.get(b); if (st === undefined || !bar) return null;
   return b + Math.max(0, Math.min(1.2, (engine.ctx.currentTime - st) / (bar.dur || 2)));
@@ -1165,6 +1202,9 @@ function nowBarPos(){
 function hapMidi(v){ if (v.note !== undefined) return typeof v.note === "number" ? v.note : core.noteToMidi(String(v.note)); return null; }
 function draw(){
   requestAnimationFrame(draw);
+  if (!VIDEO) render();
+}
+function render(){
   if (!W) return;
   const g = g2; g.setTransform(DPR, 0, 0, DPR, 0, 0);
   const labelW = W < 560 ? 58 : 84, top = 24, laneH = H - top - 6;
@@ -1175,7 +1215,8 @@ function draw(){
   const X = (bp) => playX + (bp - pos) * pxBar;
   // backdrop
   g.fillStyle = "#08090e"; g.fillRect(0, 0, W, H);
-  if (engine && !preview){ const r = engine.rms(); lvl = lvl * .85 + r * .15; }
+  if (VIDEO) lvl = lvl * .7 + VIDEO.level * .3;
+  else if (engine && !preview){ const r = engine.rms(); lvl = lvl * .85 + r * .15; }
   else lvl *= .95;
   const curBar = S && S.bars.get(Math.floor(pos)), curPh = curBar && S.phrases.get(curBar.p);
   const energy = curPh ? SECTION[curPh.section].e : 1;
@@ -1238,7 +1279,7 @@ function draw(){
   g.fillStyle = "#0c0d13"; g.fillRect(0, 0, labelW, H);
   g.textBaseline = "middle";
   for (const [L] of LANE){ const [ly, lh] = lanes[L]; g.fillStyle = HEX[L]; g.font = `700 ${W < 560 ? 10 : 11}px 'JetBrains Mono', monospace`; g.fillText(L.toUpperCase(), 10, ly + lh / 2); }
-  if (S && S.running && S.playingBar >= 0){ const beat = Math.floor((pos % 1) * 4) + 1; $("clock").textContent = `bar ${S.playingBar + 1} · beat ${beat}`; }
+  if (S && (S.running || VIDEO) && S.playingBar >= 0){ const beat = Math.floor((pos % 1) * 4) + 1; $("clock").textContent = `bar ${S.playingBar + 1} · beat ${beat}`; }
 }
 window.addEventListener("resize", fit);
 
@@ -1258,7 +1299,76 @@ function preview(){
   renderDecision(bar); renderCode(bar);
   $("dec-title").textContent = "preview · bar 1 · random, not Jev";
 }
-window.__jevlive = { STYLES, LAYERS, fillTemplate, chordOf, compile, PROGS, keyMoves, buildBar, stateText, barQuestions, phraseQuestions, get S(){ return S; }, get mode(){ return mode; } };
+// ============================================================ offline render (video)
+async function offlinePerform(opts){
+  const { seconds = 60, lead = 0.6, steers = [] } = opts || {};
+  S = freshState(); S.running = false; S.noPace = true; mode = "jev";
+  if (!mcp) throw new Error("no Jev transport");
+  const pending = steers.map(x => ({ ...x })).sort((a, b) => a.at - b.at);
+  S.steerLog = [];
+  let t = lead, b = 0;
+  S.barStart.set(0, t);
+  while (t < seconds){
+    // a request typed at time `at` is heard from the second bar after the one playing then
+    while (pending.length && pending[0].at <= t + 0.001 - 0){
+      const st = pending.shift();
+      let rb = 0; for (let x = 0; x < b; x++) if (S.barStart.get(x) <= st.at) rb = x;
+      if (b < rb + 2){ pending.unshift(st); break; }
+      S.requests.push({ text: st.text, bar: rb });
+      S.steerLog.push({ at: st.at, text: st.text, bar: rb, heard: b });
+      if (b % 4 === 0 && S.phrases.has(b / 4)) S.phrases.delete(b / 4); // phrase not started yet: re-decide it
+    }
+    const p = Math.floor(b / 4);
+    if (!S.phrases.has(p)) await decidePhrase(p);
+    await decideBar(b);
+    const bar = S.bars.get(b), dur = barDurOf(S.phrases.get(bar.p));
+    bar.start = t; bar.dur = dur; S.barStart.set(b + 1, t + dur);
+    t += dur; b++;
+  }
+  S.scheduledUpTo = b - 1; S.decidedUpTo = b - 1;
+  return { bars: b, end: t, calls: S.calls, lat: S.lat.slice(), steers: S.steerLog,
+    log: [...S.bars.values()].map(x => ({ b: x.b, p: x.p, chord: x.chord.symbol, by: x.by, ms: x.ms, choices: x.choices, probs: Object.fromEntries(Object.entries(x.probs || {}).map(([L, v]) => [L, { pick: v.pick, pr: v.pr }])) })),
+    phrases: [...S.phrases.values()].map(ph => ({ p: ph.p, style: ph.style, key: keyLabel(ph.key), section: ph.section, prog: ph.chords.map(c => c.symbol).join(" "), nextKey: keyLabel(ph.nextKey || ph.key), by: ph.by, probs: ph.probs })) };
+}
+async function renderAudio(seconds, fps){
+  const sr = 44100, total = Math.ceil((seconds + 0.5) * sr);
+  const oc = new OfflineAudioContext(2, total, sr), eng = new Engine(oc);
+  eng.master.gain.setValueAtTime(0.85, 0); eng.master.gain.setValueAtTime(0.85, seconds - 2.5); eng.master.gain.linearRampToValueAtTime(0, seconds - 0.2);
+  for (const bar of S.bars.values()){
+    for (const L of LAYERS) for (const h of bar.haps[L]){
+      const t = bar.start + (h.b0 - bar.b) * bar.dur; if (t >= seconds - 0.2) continue;
+      eng.play(h.v, t, (h.b1 - h.b0) * bar.dur, bar.dur);
+    }
+  }
+  const buf = await oc.startRendering();
+  const n = Math.floor(seconds * sr), L0 = buf.getChannelData(0), R0 = buf.getChannelData(1);
+  let peak = 0; for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(L0[i]), Math.abs(R0[i]));
+  const norm = peak > 0.98 ? 0.98 / peak : 1;
+  const pcm = new Int16Array(n * 2);
+  for (let i = 0; i < n; i++){ pcm[2 * i] = Math.max(-1, Math.min(1, L0[i] * norm)) * 32767; pcm[2 * i + 1] = Math.max(-1, Math.min(1, R0[i] * norm)) * 32767; }
+  const rms = []; const step = sr / fps, win = Math.floor(sr * 0.04);
+  for (let f = 0; f < seconds * fps; f++){ const c = Math.floor(f * step); let s2 = 0, k = 0; for (let i = Math.max(0, c - win); i < Math.min(n, c + win); i++){ const v = (L0[i] + R0[i]) * .5 * norm; s2 += v * v; k++; } rms.push(k ? Math.sqrt(s2 / k) : 0); }
+  const bytes = new Uint8Array(pcm.buffer); let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return { pcm: btoa(bin), sr, peak, rms };
+}
+function frameAt(t, level){
+  VIDEO = { time: t, level };
+  const pos = nowBarPos(), b = Math.max(0, Math.floor(pos));
+  if (pos >= 0 && b !== S.playingBar){
+    S.playingBar = b; onBarChange();
+    const done = [...S.bars.values()].filter(x => x.b <= b && x.by === "jev");
+    $("s-calls").textContent = done.length; $("s-lat").textContent = done.length ? median(done.map(x => x.ms)) + " ms" : "–";
+    $("s-late").textContent = [...S.bars.values()].filter(x => x.b <= b && x.by === "held").length;
+  }
+  const st = (S.steerLog || []).filter(x => x.at <= t).pop();
+  const note = $("steernote");
+  if (st){ const mm = Math.floor(st.at / 60) + ":" + String(Math.floor(st.at % 60)).padStart(2, "0");
+    note.innerHTML = ""; const bb = document.createElement("b"); bb.textContent = "“" + st.text + "”";
+    note.append(`Listener request at ${mm}: `, bb, pos >= st.heard ? ` · heard from bar ${st.heard + 1}` : ` · Jev re-decides from bar ${st.heard + 1}`); }
+  else note.textContent = "No listener requests yet. Jev is choosing on its own.";
+  render();
+}
+window.__jevlive = { STYLES, LAYERS, fillTemplate, chordOf, compile, PROGS, keyMoves, buildBar, stateText, barQuestions, phraseQuestions, get S(){ return S; }, get mode(){ return mode; }, offlinePerform, renderAudio, frameAt, fit };
 fit(); preview(); requestAnimationFrame(draw);
 
 (async () => {
