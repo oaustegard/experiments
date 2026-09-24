@@ -31,6 +31,8 @@ def main():
     ap.add_argument("--seconds", type=float, default=60.0)
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--test", action="store_true", help="perform + audio + 4 sample frames, no video")
+    ap.add_argument("--audio-only", action="store_true", help="perform + audio, no frames")
+    ap.add_argument("--only", default="", help="comma-separated layers to render (audio-only diagnostics)")
     a = ap.parse_args()
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     cache_path = out / "jev-cache.json"
@@ -76,12 +78,14 @@ window.claude = {{ use: (n) => n === "mcp" ? Promise.resolve({{ callTool: async 
         perf = pg.evaluate("(o) => window.__jevlive.offlinePerform(o)", {"seconds": a.seconds, "steers": STEERS})
         print(f"performed {perf['bars']} bars, {perf['calls']} Jev calls in {time.time()-t0:.1f}s; steers {perf['steers']}", flush=True)
         (out / "run.json").write_text(json.dumps({"seed": a.seed, "steers": STEERS, "perform": perf, "calls": calls}, indent=1))
-        au = pg.evaluate("([s, f]) => window.__jevlive.renderAudio(s, f)", [a.seconds, a.fps])
+        au = pg.evaluate("([s, f, o]) => window.__jevlive.renderAudio(s, f, o)", [a.seconds, a.fps, a.only.split(",") if a.only else None])
         pcm = base64.b64decode(au["pcm"])
-        with wave.open(str(out / "audio.wav"), "wb") as w:
+        with wave.open(str(out / (f"audio-{a.only}.wav" if a.only else "audio.wav")), "wb") as w:
             w.setnchannels(2); w.setsampwidth(2); w.setframerate(au["sr"]); w.writeframes(pcm)
         print(f"audio {len(pcm)/4/au['sr']:.1f}s peak {au['peak']:.2f}", flush=True)
         rms = au["rms"]
+        if a.audio_only:
+            print("errors:", errs[:5]); b.close(); return
         pg.evaluate("window.__jevlive.fit()")
         n = int(a.seconds * a.fps)
         if a.test:

@@ -119,10 +119,60 @@ Seed 7 made 26 calls over 24 bars, with a median reaction of 0.39 s. Two request
 Audio peaks at −0.5 dBFS after normalizing, with a mean of −22.6 dB. Nobody has listened to it
 yet to judge quality.
 
+## Sound pass (v2 engine)
+
+Oskar: "it's a bit thin". I can't listen, so `measure.py` puts numbers on "thin": integrated
+loudness, band energy shares, octave-band spectral slope, stereo width (side/mid RMS) and crest
+factor. Solo renders of each layer (`render_video.py --audio-only --only <layer>`) showed where the
+problem was. The seed-7 set was re-rendered from the same cached Jev answers.
+
+| | v1 | v2 |
+|---|---|---|
+| loudness | −20.6 LUFS | −12.6 LUFS |
+| crest factor | 22.4 dB | 13.0 dB |
+| stereo width | 0.05 | 0.16 |
+| harmony solo vs drums solo | −11 dB | −4 dB |
+
+Changes:
+- Doubled, detuned oscillators panned left and right.
+- Octave-up harmonics and saturation on bass notes, so small speakers reproduce them.
+- A 7-voice supersaw.
+- Cymbals from the 808's six-square metallic source.
+- Two-tone snares and a saturated kick with a click.
+- A sidechain duck of the tonal bus on each kick.
+- A decorrelated, pre-delayed reverb and a ping-pong delay.
+- A master chain: 32 Hz high-pass, −2.5 dB mud cut at 280 Hz, presence and air boosts, glue
+  compressor, limiter.
+- A per-layer mix stage: bass ×0.46, harmony ×2.2, lead ×0.7, texture ×0.45.
+
+The first attempt added sub-octave oscillators. That moved A1 bass notes' energy to 27 Hz,
+pushed the share below 120 Hz from 48% to 80%, and squashed the crest to 8 dB. I replaced them
+with octave-up harmonics.
+
+The bass layer's energy still sits almost entirely in its fundamental, as a filtered sawtooth's
+does. The mix is still dark by the 2–8 kHz share (1.5%). Whether v2 sounds better needs a
+listener.
+
+## Cost
+
+Measured from the seed-7 log: a bar call is about 1,490 input tokens, and a bar call carrying the
+phrase questions about 2,400. At TypeSafe's list price of $0.042 per million input tokens (output
+free), one call per bar gives:
+
+| style | BPM | calls/min | $/min | $/hour | $/day |
+|---|---|---|---|---|---|
+| Dub | 74 | 18.5 | 0.0013 | 0.08 | 1.92 |
+| Lo-fi | 84 | 21 | 0.0015 | 0.09 | 2.18 |
+| Synthwave | 100 | 25 | 0.0018 | 0.11 | 2.59 |
+| Techno | 128 | 32 | 0.0023 | 0.14 | 3.32 |
+
+Steering adds one re-decided call per bar that was decided but not yet locked. At most, that is
+two or three calls per request.
+
 ## Files
 
 `page.src.html` (the page, with a `/*__STRUDEL_LIB__*/` placeholder) ·
 `build.py` (inlines `strudel-lib.js`) · `bundle/` (esbuild config for the
 Strudel IIFE: `cd bundle && npm i && npm run build`) · `harness.py`
 (selftest / random / mock-Jev runs) · `results/jev-probes.json` ·
-`results/screenshot-mock.png` · `render_video.py` · `results/jev-live-set.mp4` · `runs/video-seed7*.json`
+`results/screenshot-mock.png` · `render_video.py` · `measure.py` · `results/jev-live-set.mp4` (v2 mix; v1 in git history) · `runs/video-seed7*.json`
