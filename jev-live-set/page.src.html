@@ -1,0 +1,1272 @@
+<title>Jev Live Set</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Schibsted+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --ground:#0c0d13; --panel:#141620; --panel2:#1b1e2b; --rule:#2a2e3f; --ink:#eeecf5; --dim:#9a9cb4; --faint:#62657e;
+  --drums:#f4a259; --bass:#ef6f6c; --harmony:#56c7b5; --lead:#f1df8a; --texture:#a893f5;
+  --cue:#ff5c8a;
+  --display:"Big Shoulders Display","Arial Narrow","Roboto Condensed",sans-serif;
+  --body:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--ground)}
+body{color:var(--ink); font-family:var(--body); font-size:14px; line-height:1.45; padding-inline:16px; padding-block:18px 48px}
+.wrap{max-width:1240px; margin:0 auto; display:grid; gap:14px}
+h1,h2,h3{margin:0}
+.top{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:10px 24px}
+.brand h1{font-family:var(--display); font-weight:800; font-size:clamp(34px,5.4vw,58px); line-height:.9; letter-spacing:.01em; text-transform:uppercase}
+.brand h1 .onair{display:inline-block; vertical-align:middle; margin-left:12px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; padding:4px 8px 3px; border:1px solid var(--faint); color:var(--faint); border-radius:2px; transform:translateY(-6px)}
+.brand h1 .onair[data-on="1"]{border-color:var(--cue); color:var(--cue); box-shadow:0 0 14px rgba(255,92,138,.35)}
+.brand p{margin:8px 0 0; color:var(--dim); max-width:62ch; text-wrap:pretty}
+.conn{font-family:var(--mono); font-size:12px; color:var(--dim); display:flex; align-items:center; gap:8px; max-width:48ch}
+.conn .dot{width:8px; height:8px; border-radius:50%; background:var(--faint); flex:none}
+.conn[data-kind="ok"] .dot{background:var(--harmony)}
+.conn[data-kind="warn"] .dot{background:var(--drums)}
+.conn[data-kind="err"] .dot{background:var(--bass)}
+.label{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint)}
+
+.transport{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:10px 12px; background:var(--panel); border:1px solid var(--rule); border-radius:4px}
+button,select,input{font-family:var(--body); font-size:13px; color:var(--ink)}
+button{background:var(--panel2); border:1px solid var(--rule); border-radius:3px; padding:7px 12px; cursor:pointer}
+button:hover:not(:disabled){border-color:var(--dim)}
+button:disabled{opacity:.4; cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--cue); outline-offset:2px}
+.play{background:var(--cue); border-color:var(--cue); color:#1a0710; font-weight:700; min-width:96px}
+.play[data-on="1"]{background:transparent; color:var(--cue)}
+.seg{display:inline-flex; border:1px solid var(--rule); border-radius:3px; overflow:hidden}
+.seg button{border:0; border-radius:0; background:transparent; color:var(--dim); padding:7px 11px}
+.seg button[aria-pressed="true"]{background:var(--panel2); color:var(--ink); box-shadow:inset 0 -2px 0 var(--ink)}
+select{background:var(--panel2); border:1px solid var(--rule); border-radius:3px; padding:6px 8px}
+.ctl{display:flex; align-items:center; gap:8px}
+.ctl input[type=range]{width:110px; accent-color:var(--cue)}
+.ctl output{font-family:var(--mono); font-size:12px; color:var(--dim); min-width:3.5ch; font-variant-numeric:tabular-nums}
+.spacer{flex:1}
+
+.readout{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:4px; overflow:hidden}
+.readout > div{background:var(--panel); padding:8px 12px 9px; min-width:0}
+.readout b{display:block; font-family:var(--display); font-weight:800; font-size:25px; line-height:1.05; letter-spacing:.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.readout .sec b{color:var(--cue)}
+@media (max-width:760px){ .readout{grid-template-columns:repeat(3,minmax(0,1fr))} }
+
+.stage{position:relative; border:1px solid var(--rule); border-radius:4px; overflow:hidden; background:#08090e}
+.stage canvas{display:block; width:100%; height:340px}
+@media (max-width:640px){ .stage canvas{height:260px} }
+.stage .hint{position:absolute; right:12px; top:8px; font-family:var(--mono); font-size:11px; color:var(--dim); pointer-events:none; text-align:right}
+
+.steer{display:grid; gap:8px; padding:10px 12px; background:var(--panel); border:1px solid var(--rule); border-radius:4px}
+.steerrow{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+.steer form{display:flex; gap:8px; flex:1 1 320px; min-width:0}
+.steer input[type=text]{flex:1; min-width:0; background:var(--ground); border:1px solid var(--rule); border-radius:3px; padding:8px 10px}
+.steer input[type=text]::placeholder{color:var(--faint)}
+.quick{display:flex; flex-wrap:wrap; gap:6px}
+.quick button{padding:6px 10px; font-size:12.5px}
+.steernote{font-family:var(--mono); font-size:12px; color:var(--dim); min-height:1.4em}
+.steernote b{color:var(--ink); font-weight:600}
+
+.grid{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:14px; align-items:start}
+@media (max-width:900px){ .grid{grid-template-columns:minmax(0,1fr)} }
+.panel{background:var(--panel); border:1px solid var(--rule); border-radius:4px; padding:12px 14px; display:grid; gap:10px; min-width:0; align-content:start}
+.panel h2{font-family:var(--display); font-weight:800; font-size:21px; letter-spacing:.02em; text-transform:uppercase}
+.phead{display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap}
+.muted{color:var(--dim)}
+.small{font-size:12.5px}
+
+.phrase{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 14px; padding:10px; background:var(--panel2); border-radius:3px}
+@media (max-width:520px){ .phrase{grid-template-columns:minmax(0,1fr)} }
+.pq .label{display:block; margin-bottom:2px}
+.pq .pick{font-weight:700}
+.pq .alts{font-size:12px; color:var(--dim)}
+
+.layer{display:grid; gap:4px; padding-top:8px; border-top:1px solid var(--rule)}
+.layer:first-of-type{border-top:0; padding-top:0}
+.lhead{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.lname{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:600}
+.lnote{font-family:var(--mono); font-size:11px; color:var(--faint)}
+.opt{display:grid; grid-template-columns:44px minmax(0,1fr) auto; gap:8px; align-items:center; font-size:12.5px; color:var(--faint); min-width:0}
+.opt .bar{height:8px; background:var(--ground); border-radius:1px; position:relative; overflow:hidden}
+.opt .bar i{position:absolute; inset:0 auto 0 0; background:currentColor; opacity:.55}
+.opt .d{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.opt .p{font-family:var(--mono); font-size:11.5px; font-variant-numeric:tabular-nums}
+.opt.won{color:var(--ink)}
+.opt.won .d{font-weight:600}
+.opt.won .bar i{opacity:1}
+.energy{font-family:var(--mono); font-size:10px; letter-spacing:1px; color:var(--faint)}
+
+pre.code{margin:0; background:#08090e; border:1px solid var(--rule); border-radius:3px; padding:10px 12px; font-family:var(--mono); font-size:12px; line-height:1.55; overflow-x:auto; color:#cfd0dc; white-space:pre}
+pre.code .c{color:var(--faint)}
+.codeactions{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+a{color:var(--ink)}
+a.btn{display:inline-block; text-decoration:none; background:var(--panel2); border:1px solid var(--rule); border-radius:3px; padding:6px 10px; font-size:12.5px}
+.stats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px}
+@media (max-width:480px){ .stats{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.stats b{display:block; font-family:var(--mono); font-size:16px; font-weight:600; font-variant-numeric:tabular-nums}
+.log{font-family:var(--mono); font-size:11.5px; color:var(--dim); display:grid; gap:2px; max-height:190px; overflow-y:auto}
+.log .late{color:var(--drums)}
+.log .err{color:var(--bass)}
+
+.about{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px}
+@media (max-width:900px){ .about{grid-template-columns:minmax(0,1fr)} }
+.about p{margin:0; color:var(--dim); max-width:68ch}
+.about p b{color:var(--ink)}
+table.quiz{border-collapse:collapse; width:100%; font-size:12.5px}
+table.quiz th,table.quiz td{text-align:left; padding:5px 8px 5px 0; border-bottom:1px solid var(--rule); vertical-align:top}
+table.quiz th{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); font-weight:400}
+table.quiz td.n{font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+.tablewrap{overflow-x:auto}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Jev Live Set<span class="onair" id="onair" data-on="0">ON AIR</span></h1>
+      <p>Jev plays this set one bar at a time. For every bar it picks drums, bass, harmony, lead and texture from a catalog of Strudel patterns, and every four bars it picks the section, chord progression, style and key. You can steer it while it plays.</p>
+    </div>
+    <div class="conn" id="conn" data-kind="idle"><span class="dot"></span><span id="conntext">Looking for the Muninn connector…</span></div>
+  </header>
+
+  <section class="transport" aria-label="Transport">
+    <button class="play" id="play" data-on="0">▶ Play</button>
+    <div class="seg" role="group" aria-label="Who chooses">
+      <button id="mode-jev" aria-pressed="true">Jev chooses</button>
+      <button id="mode-random" aria-pressed="false">Random dice</button>
+    </div>
+    <label class="ctl"><span class="label">Opening style</span><select id="opening"></select></label>
+    <label class="ctl" title="0 always takes Jev's top choice; higher values sample more freely from its probabilities"><span class="label">Adventure</span><input type="range" id="temp" min="0" max="150" value="80"><output id="tempv">0.80</output></label>
+    <span class="spacer"></span>
+    <span class="label" id="clock">bar – · beat –</span>
+  </section>
+
+  <section class="readout" aria-label="Now playing">
+    <div><span class="label">Style</span><b id="r-style">–</b></div>
+    <div><span class="label">Key</span><b id="r-key">–</b></div>
+    <div><span class="label">Tempo</span><b id="r-bpm">–</b></div>
+    <div class="sec"><span class="label">Section</span><b id="r-sec">–</b></div>
+    <div><span class="label">Chord</span><b id="r-chord">–</b></div>
+    <div><span class="label">Progression</span><b id="r-prog">–</b></div>
+  </section>
+
+  <section class="stage" aria-label="Score">
+    <canvas id="stage" aria-label="Scrolling score: each lane is a layer; notes to the right of the playhead are already chosen"></canvas>
+    <div class="hint" id="stagehint">Preview: four bars rolled at random. Press Play and Jev takes over.</div>
+  </section>
+
+  <section class="steer" aria-label="Steer">
+    <div class="steerrow">
+      <form id="steerform" autocomplete="off">
+        <input type="text" id="steertext" maxlength="140" placeholder="Tell Jev what you want: darker, more cowbell, go somewhere dreamy…">
+        <button type="submit">Send</button>
+      </form>
+      <div class="quick" id="quick"></div>
+    </div>
+    <div class="steernote" id="steernote">Requests reach Jev with the next decision and stay in its view for 12 bars.</div>
+  </section>
+
+  <div class="grid">
+    <section class="panel" aria-live="polite">
+      <div class="phead"><h2>Why this bar</h2><span class="label" id="dec-title">–</span></div>
+      <div class="phrase" id="phrase"></div>
+      <div id="layers"></div>
+    </section>
+    <aside style="display:grid; gap:14px; min-width:0">
+      <section class="panel">
+        <div class="phead"><h2>The code</h2><span class="label" id="code-title">bar –</span></div>
+        <pre class="code" id="code">–</pre>
+        <div class="codeactions">
+          <a class="btn" id="openstrudel" href="https://strudel.cc" target="_blank" rel="noopener">Open this bar in strudel.cc ↗</a>
+          <button id="copycode">Copy code</button>
+        </div>
+        <p class="small muted" style="margin:0">The page runs real Strudel pattern code (core, mini-notation and tonal 1.2.6) and plays it on its own Web Audio synth, because the artifact sandbox can't fetch Strudel's samples. strudel.cc plays the same patterns with its sample kits.</p>
+      </section>
+      <section class="panel">
+        <div class="phead"><h2>Jev's reactions</h2><span class="label" id="lookahead">lookahead –</span></div>
+        <div class="stats">
+          <div><span class="label">Decisions</span><b id="s-calls">0</b></div>
+          <div><span class="label">Median reaction</span><b id="s-lat">–</b></div>
+          <div><span class="label">Held bars</span><b id="s-late">0</b></div>
+          <div><span class="label">Spent</span><b id="s-cost">$0.0000</b></div>
+        </div>
+        <div class="log" id="log" aria-label="Decision log"></div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="about">
+    <div class="panel">
+      <h2>What Jev said about itself</h2>
+      <p>Before building this we asked Jev to rate itself and then quizzed it. Asked outright, it rated its music theory <b>basic to competent</b> (1.3 of 3), its Strudel knowledge <b>competent</b> (1.7 of 3) and its ability to pick the next bar <b>competent</b> (1.5 of 3). Asked whether it could predict what a Strudel snippet sounds like, it said yes with probability 0.53. It did better on the quiz than it rated itself.</p>
+      <div class="tablewrap">
+      <table class="quiz">
+        <thead><tr><th>Probe</th><th>Score</th><th>What it showed</th></tr></thead>
+        <tbody>
+          <tr><td>Music theory (keys, cadences, modes, tritone subs)</td><td class="n">11 / 11</td><td>Confidence 0.76–1.00; weakest on Dorian (0.81)</td></tr>
+          <tr><td>Strudel syntax (mini-notation, stack, jux, setcpm)</td><td class="n">10 / 11</td><td>Wrong on scale degrees: read <code>n("0 2 4").scale("C:minor")</code> as C D E♭ with 0.89 confidence</td></tr>
+          <tr><td>Next bar, one clear best option</td><td class="n">5 / 5</td><td>0.91–1.00 on the right pick</td></tr>
+          <tr><td>Next bar, all options plausible, steering “more movement, not louder”</td><td class="n">3 / 3</td><td>Picked the same-volume variation for drums, bass and keys</td></tr>
+          <tr><td>F chord from code only vs from a description</td><td class="n">0.46 vs 1.00</td><td>Right answer both times, but near chance when it has to compute pitches</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>How it is built</h2>
+      <p>Jev chooses; code does the arithmetic. Every option reaches Jev as a plain description with an energy tag, because it reads intent well and computes pitches badly. Code fills each chord's notes into the pattern, so a bass line written once follows every chord in every key.</p>
+      <p>Jev settled parts of the design. Asked how often to choose, it picked every bar for the layers and every four bars for harmony and structure (0.81). Asked what the visual should show, it picked a score with one lane per layer next to the rejected options and their probabilities (1.00). It also picked free-text steering plus buttons (0.99). It voted 0.67 to keep a single key and style; this set overrides that and offers six styles and modulation.</p>
+      <p>Each decision is one call to Jev through the Muninn connector, made one to three bars ahead of the music. If an answer comes back late, the bar holds the previous parts over the new chord, so the music never stops. <b>Random dice</b> uses the same catalog with uniform picks, so you can hear what Jev adds.</p>
+    </div>
+  </section>
+</div>
+
+<script>/*__STRUDEL_LIB__*/</script>
+<script>
+(() => {
+"use strict";
+const { core, mini } = window.StrudelLib;
+
+// ============================================================ music theory
+const SHARP = ["c","c#","d","d#","e","f","f#","g","g#","a","a#","b"];
+const FLAT  = ["c","db","d","eb","e","f","gb","g","ab","a","bb","b"];
+const FLAT_MAJOR = new Set([5,10,3,8,1]), FLAT_MINOR = new Set([2,7,0,5,10]);
+const MODES = { major:[0,2,4,5,7,9,11], minor:[0,2,3,5,7,8,10] };
+const ROMAN = ["i","ii","iii","iv","v","vi","vii"];
+const mod12 = x => ((x % 12) + 12) % 12;
+const usesFlats = k => (k.mode === "major" ? FLAT_MAJOR : FLAT_MINOR).has(k.tonic);
+const pcName = (pc, flats) => (flats ? FLAT : SHARP)[mod12(pc)];
+const noteName = (m, flats) => pcName(m, flats) + (Math.floor(m / 12) - 1);
+function prettyPc(pc, flats){ const n = pcName(pc, flats); return n[0].toUpperCase() + (n.length > 1 ? (n[1] === "#" ? "♯" : "♭") : ""); }
+const keyLabel = k => prettyPc(k.tonic, usesFlats(k)) + " " + k.mode;
+function scaleString(k, o){ const n = pcName(k.tonic, usesFlats(k)); return n[0].toUpperCase() + n.slice(1) + o + ":" + k.mode; }
+
+function chordOf(roman, key){
+  const m = /^(b|#)?([iv]+|[IV]+)(°|maj7|7)?$/.exec(roman);
+  if (!m) throw new Error("bad numeral " + roman);
+  const acc = m[1] === "b" ? -1 : m[1] === "#" ? 1 : 0, num = m[2], suf = m[3] || "";
+  const deg = ROMAN.indexOf(num.toLowerCase()), upper = num === num.toUpperCase();
+  const root = mod12(key.tonic + MODES[key.mode][deg] + acc);
+  const quality = suf === "°" ? "dim" : upper ? "maj" : "min";
+  let sev;
+  if (suf === "maj7") sev = 11; else if (suf === "7") sev = 10;
+  else if (quality === "dim") sev = 9; else if (quality === "min") sev = 10;
+  else sev = ((key.mode === "minor" && (deg === 4 || deg === 6)) || (key.mode === "major" && deg === 4)) ? 10 : 11;
+  const flats = usesFlats(key);
+  const symbol = prettyPc(root, flats) + (quality === "min" ? "m" : quality === "dim" ? "dim" : "") + (suf === "7" ? "7" : suf === "maj7" ? "maj7" : "");
+  return { roman, root, quality, third: quality === "maj" ? 4 : 3, fifth: quality === "dim" ? 6 : 7, sev, symbol, flats };
+}
+
+// {R2} root, {T2} third, {F2} fifth, {S2} seventh placed from the root in octave 2;
+// {V3} triad and {W3} seventh chord voiced upward from E3; {SC4} the key's scale for n().scale()
+function fillTemplate(code, chord, key){
+  return code.replace(/\{(SC|R|T|F|S|V|W)(\d)\}/g, (_, k, o) => {
+    o = +o;
+    const base = (o + 1) * 12 + chord.root, f = chord.flats;
+    switch (k){
+      case "R": return noteName(base, f);
+      case "T": return noteName(base + chord.third, f);
+      case "F": return noteName(base + chord.fifth, f);
+      case "S": return noteName(base + chord.sev, f);
+      case "SC": return scaleString(key, o);
+      default: {
+        const low = (o + 1) * 12 + 4;
+        const ivs = [0, chord.third, chord.fifth].concat(k === "W" ? [chord.sev] : []);
+        const ms = ivs.map(iv => low + mod12(chord.root + iv - low)).sort((a, b) => a - b);
+        return "[" + ms.map(x => noteName(x, f)).join(",") + "]";
+      }
+    }
+  });
+}
+
+// ============================================================ catalog
+const LAYERS = ["drums","bass","harmony","lead","texture"];
+const RISER = 's("white*16").hpf(saw.range(400,9000)).gain(saw.range(.05,.3)).decay(.12).sustain(0)';
+const STYLES = {
+  house: { name:"House", bpm:122, blurb:"four-on-the-floor, organ stabs, warm and bouncy", layers:{
+    drums:[
+      ["h-d1",2,"four-on-the-floor kick with offbeat open hats",'s("bd*4, [~ oh]*4").bank("RolandTR909")'],
+      ["h-d2",3,"four-on-the-floor, claps on 2 and 4, open hats, 16th closed hats",'s("bd*4, ~ cp ~ cp, [~ oh]*4, hh*16").bank("RolandTR909").gain(.85)'],
+      ["h-d3",3,"shuffled groove: kick, claps, swung hats and ghost snares",'stack(s("bd*4, ~ cp ~ cp, [~ hh hh]*4").bank("RolandTR909"), s("~ [~ sd] ~ [sd ~]").bank("RolandTR909").gain(.3))'],
+      ["h-d4",1,"kick and hats only, muffled as if from the next room",'s("bd*4, [~ hh]*4").bank("RolandTR909").lpf(700)'],
+      ["h-d5",1,"no kick: claps and hats floating in reverb",'s("~ cp ~ cp, hh*8").bank("RolandTR909").gain(.6).room(.4)'],
+      ["h-d6",4,"build: kick on every beat under a rising 16th snare roll",'s("bd*4, sd*16").bank("RolandTR909").gain(saw.range(.3,1))'],
+      ["h-d7",4,"peak: full kit with a crash on the one, ride and open hats",'s("bd*4, ~ cp ~ cp, [~ oh]*4, rd*8, cr").bank("RolandTR909").gain(.85)']],
+    bass:[
+      ["h-b1",2,"offbeat root stabs, the classic house bass",'note("[~ {R2}]*4").s("sawtooth").lpf(600).lpq(6).decay(.15).sustain(0)'],
+      ["h-b2",3,"bouncing octave eighths on the root",'note("[{R1} {R2}]*4").s("sawtooth").lpf(800).decay(.12).sustain(.2).gain(.9)'],
+      ["h-b3",3,"syncopated root and fifth groove that pushes into the next bar",'note("{R2} ~ [~ {R2}] ~ {F2} ~ [{R2} {R3}] ~").s("square").lpf(700).decay(.18).sustain(.2).gain(.8)'],
+      ["h-b4",1,"one long sub note under the chord",'note("{R1}").s("sine").attack(.02).release(.3).gain(1.1)']],
+    harmony:[
+      ["h-h1",3,"organ chord stabs on every offbeat",'note("[~ {V3}]*4").s("square").lpf(1800).decay(.12).sustain(0).gain(.4)'],
+      ["h-h2",1,"warm pad holding the chord",'note("{V3}").s("sawtooth").lpf(1100).attack(.4).release(.8).gain(.3).room(.5)'],
+      ["h-h3",2,"piano-style chord on the one and the and-of-two",'note("{V3} ~ ~ {V3} ~ ~ ~ ~").s("triangle").decay(.5).sustain(.15).gain(.55)'],
+      ["h-h4",4,"pumping supersaw chords on every beat",'note("{V3}*4").s("supersaw").lpf(2400).attack(.06).decay(.25).sustain(0).gain(.35)']],
+    lead:[
+      ["h-l1",3,"vocal-style hook on chord tones, call and response",'note("{T4} ~ {F4} ~ {R5} ~ [{F4} {T4}] ~").s("triangle").decay(.2).sustain(.4).delay(.25).room(.3).gain(.6)'],
+      ["h-l2",1,"sparse bell plinks with echoes",'note("~ {F5} ~ ~ ~ ~ {T5} ~").s("sine").decay(.3).sustain(0).delay(.5).delayfeedback(.5).room(.4).gain(.5)'],
+      ["h-l3",4,"fast 16th arpeggio of the chord",'note("[{R4} {T4} {F4} {R5}]*4").s("square").lpf(2600).decay(.1).sustain(0).gain(.3)'],
+      ["h-l4",3,"melodic run climbing through the scale",'n("0 1 2 4 5 4 2 1").scale("{SC4}").s("triangle").decay(.2).sustain(.3).gain(.55)']],
+    texture:[
+      ["h-t1",3,"white-noise riser sweeping up, for builds",RISER],
+      ["h-t2",2,"shaker sixteenths",'s("sh*16").gain("[.5 .25]*8")'],
+      ["h-t3",2,"syncopated toms like congas",'s("~ lt ~ mt [~ lt] ~ ht ~").gain(.5)']]
+  }},
+  techno: { name:"Techno", bpm:128, blurb:"driving, dark, hypnotic repetition and acid bass", layers:{
+    drums:[
+      ["t-d1",3,"driving four-on-the-floor, offbeat open hat, 16th closed hats",'s("bd*4, [~ oh]*4, hh*16").bank("RolandTR909").gain(.85)'],
+      ["t-d2",3,"rumble: kick with a dark reverb tail, offbeat hats",'stack(s("bd*4, [~ hh]*4").bank("RolandTR909"), s("bd*4").bank("RolandTR909").late(.125).lpf(180).room(.9).gain(.5))'],
+      ["t-d3",2,"stripped: kick and rimshots only",'s("bd*4, [~ rim] ~ [~ rim] [rim ~]").bank("RolandTR909")'],
+      ["t-d4",2,"broken: kick skips beat two, clap on three, euclidean hats",'s("bd ~ bd bd, ~ cp, hh(7,16)").bank("RolandTR909")'],
+      ["t-d5",4,"peak: pounding kick, clap on every beat, ride and open hats",'s("bd*4, cp*4, rd*8, [~ oh]*4").bank("RolandTR909").gain(.8)'],
+      ["t-d6",1,"no kick: hats and a clap drifting in reverb",'s("hh(5,16), ~ ~ cp ~").bank("RolandTR909").room(.7).gain(.6)'],
+      ["t-d7",4,"build: kick under a snare roll with the high-pass rising",'s("bd*4, sd*16").bank("RolandTR909").gain(saw.range(.3,1)).hpf(saw.range(40,1200))']],
+    bass:[
+      ["t-b1",3,"rolling 16th bass on the root, filter slowly breathing",'note("{R1}*16").s("sawtooth").lpf(sine.range(250,900).slow(4)).lpq(10).decay(.08).sustain(0).gain("[.5 .5 1 .5]*4")'],
+      ["t-b2",4,"acid line: squelchy resonant notes on root, octave and fifth",'note("{R2} {R2} {R3} {R2} {F2} {R2} [{R3} {R2}] {S2}").s("sawtooth").lpf(sine.range(400,2600).slow(2)).lpq(18).decay(.15).sustain(.1).distort(1.2).gain(.6)'],
+      ["t-b3",2,"offbeat sub pulses",'note("[~ {R1}]*4").s("sine").decay(.2).sustain(0).gain(1.1)'],
+      ["t-b4",1,"single low drone",'note("{R1}").s("sawtooth").lpf(220).attack(.1).release(.5).gain(.8)']],
+    harmony:[
+      ["t-h1",2,"dub-techno chord stab with trailing echoes",'note("~ {V3} ~ ~").s("sawtooth").lpf(900).decay(.15).sustain(0).delay(.6).delayfeedback(.6).room(.5).gain(.4)'],
+      ["t-h2",1,"dark pad fading in",'note("{V3}").s("supersaw").lpf(700).attack(1).release(1).gain(.25).room(.6)'],
+      ["t-h3",3,"hypnotic chord pulse, three against four",'note("{V3}(3,8)").s("square").lpf(1400).decay(.1).sustain(0).gain(.35)']],
+    lead:[
+      ["t-l1",3,"metallic motif on root, fifth and seventh, repeating hypnotically",'note("{R4} ~ {F4} ~ {S4} {F4} ~ {R4}").s("square").lpf(1600).lpq(8).decay(.1).sustain(0).delay(.4).gain(.35)'],
+      ["t-l2",2,"one high sustained tension note",'note("{F5}").s("sawtooth").lpf(2000).attack(.5).release(.8).gain(.2).room(.6)'],
+      ["t-l3",3,"rising stepwise line up the scale",'n("0 1 2 3 4 5 6 7").scale("{SC4}").s("sawtooth").lpf(1800).decay(.12).sustain(.2).gain(.3)']],
+    texture:[
+      ["t-t1",3,"white-noise riser sweeping up, for builds",RISER],
+      ["t-t2",2,"distant metallic cowbell pattern in the echo",'s("~ cb ~ ~ ~ ~ cb ~").bank("RolandTR909").gain(.35).delay(.5).room(.5)'],
+      ["t-t3",1,"radio static wash",'s("pink").lpf(1500).attack(1).release(1).gain(.08)']]
+  }},
+  lofi: { name:"Lo-fi", bpm:84, blurb:"lazy boom-bap, dusty seventh chords, vinyl crackle", layers:{
+    drums:[
+      ["l-d1",2,"lazy boom-bap: kick, snare on 2 and 4, swung hats",'s("bd ~ ~ [~ bd], ~ sd ~ sd, [hh ~ hh]*4").bank("RolandTR808").gain(.8)'],
+      ["l-d2",2,"boom-bap with a late ghost kick and a rimshot",'s("bd ~ [~ bd] ~, ~ sd ~ sd, [hh ~ hh]*4, ~ ~ ~ [~ rim]").bank("RolandTR808").gain(.8)'],
+      ["l-d3",1,"sparse: kick and rimshot only",'s("bd ~ ~ ~, ~ ~ rim ~").bank("RolandTR808").gain(.7)'],
+      ["l-d4",3,"busier: double kick, snare, open hat on the and-of-four",'s("bd [~ bd] ~ bd, ~ sd ~ sd, [hh ~ hh] [hh ~ hh] [hh ~ hh] [hh ~ oh]").bank("RolandTR808").gain(.8)'],
+      ["l-d5",1,"drums thin out to soft hats",'s("[hh ~ hh]*4").bank("RolandTR808").gain(.45)']],
+    bass:[
+      ["l-b1",2,"round laid-back bass: root, then the fifth below",'note("{R2} ~ ~ {F1} ~ ~ {R2} ~").s("sine").decay(.4).sustain(.4).gain(1)'],
+      ["l-b2",3,"walking bass through the chord tones",'note("{R2} {T2} {F2} {S2}").s("triangle").lpf(900).decay(.3).sustain(.3).gain(.9)'],
+      ["l-b3",1,"one long note per bar",'note("{R2}").s("sine").release(.4).gain(.9)']],
+    harmony:[
+      ["l-h1",2,"dusty electric-piano seventh chord, soft",'note("{W3}").s("triangle").lpf(1600).decay(.8).sustain(.3).gain(.4).room(.3)'],
+      ["l-h2",2,"seventh chord comped twice, the second hit behind the beat",'note("{W3} ~ ~ [~ {W3}] ~ ~ ~ ~").s("triangle").lpf(1400).decay(.5).sustain(.2).gain(.4)'],
+      ["l-h3",3,"muted chord plucks in a triplet swing",'note("[{W3} ~ {W3}]*2").s("square").lpf(900).decay(.1).sustain(0).gain(.28)']],
+    lead:[
+      ["l-l1",2,"lazy sine melody with lots of space",'n("4 ~ 2 ~ [1 0] ~ ~ ~").scale("{SC4}").s("sine").release(.3).delay(.3).room(.4).gain(.55)'],
+      ["l-l2",2,"vibraphone-like chord-tone arpeggio",'note("{R4} {T4} {F4} {S4}").s("sine").decay(.5).sustain(.1).room(.3).gain(.5)'],
+      ["l-l3",1,"quiet two-note answer at the end of the bar",'note("~ ~ ~ ~ ~ {F4} {T4} ~").s("triangle").decay(.4).sustain(.1).gain(.45).room(.4)']],
+    texture:[
+      ["l-t1",1,"vinyl crackle",'s("white*16").degradeBy(.6).hpf(4000).decay(.02).sustain(0).gain(.12)'],
+      ["l-t2",1,"rain-like tape hiss",'s("pink").hpf(2000).attack(.5).release(.5).gain(.05)']]
+  }},
+  ambient: { name:"Ambient", bpm:76, blurb:"slow pads, bells, space and long echoes", layers:{
+    drums:[
+      ["a-d1",1,"soft heartbeat kick on the one",'s("bd ~ ~ ~").bank("RolandTR808").lpf(300).gain(.6)'],
+      ["a-d2",1,"brushed shaker in the distance",'s("sh*8").gain("[.3 .15]*4").room(.6)'],
+      ["a-d3",2,"gentle broken beat, far away",'s("bd ~ ~ ~ ~ ~ bd ~, ~ ~ rim ~, hh(5,16)").bank("RolandTR808").gain(.45).room(.5)']],
+    bass:[
+      ["a-b1",1,"deep sine drone on the root",'note("{R1}").s("sine").attack(.8).release(1.5).gain(.9)'],
+      ["a-b2",1,"slow two-note swell, root then fifth",'note("{R1} {F1}").s("sine").attack(.5).release(1).gain(.8)']],
+    harmony:[
+      ["a-h1",1,"wide slow-attack pad",'note("{V3}").s("supersaw").lpf(900).attack(1.2).release(2).gain(.22).room(.8)'],
+      ["a-h2",1,"glassy chord bells, slowly arpeggiated",'note("{R4} {F4} {T5} {F4}").s("sine").decay(1).sustain(0).room(.8).delay(.4).gain(.35)'],
+      ["a-h3",2,"swelling seventh chord with the filter opening",'note("{W3}").s("sawtooth").lpf(sine.range(300,1800).slow(8)).attack(.6).release(1.5).gain(.28).room(.7)']],
+    lead:[
+      ["a-l1",1,"sparse high sine notes with long echoes",'n("7 ~ ~ 4 ~ ~ 2 ~").scale("{SC4}").s("sine").decay(.6).sustain(0).delay(.6).delayfeedback(.6).room(.8).gain(.4)'],
+      ["a-l2",1,"slow falling melody",'n("[9 7] [6 4]").scale("{SC4}").s("triangle").attack(.3).release(1).gain(.35).room(.7)'],
+      ["a-l3",2,"crystalline arpeggio",'note("[{R5} {F5} {T5} {F5}]*2").s("sine").decay(.25).sustain(0).delay(.5).room(.7).gain(.3)']],
+    texture:[
+      ["a-t1",1,"ocean-like noise wash",'s("pink").lpf(sine.range(300,1200).slow(4)).attack(1.5).release(2).gain(.12)'],
+      ["a-t2",2,"rising shimmer",'s("white*8").hpf(6000).gain(saw.range(0,.12)).room(.9).decay(.3).sustain(0)']]
+  }},
+  synthwave: { name:"Synthwave", bpm:100, blurb:"eighties drum machine, pulsing octaves, soaring saw leads", layers:{
+    drums:[
+      ["s-d1",3,"driving: kick on every beat, big snare on 2 and 4, eighth hats",'s("bd*4, ~ sd ~ sd, hh*8").bank("RolandTR707").room(.35)'],
+      ["s-d2",2,"half-time: kick on the one, snare on three",'s("bd ~ ~ ~, ~ ~ sd ~, hh*8").bank("RolandTR707").room(.35)'],
+      ["s-d3",3,"tom fill rolling down across the bar",'s("bd*4, [ht ht] [mt mt] [lt lt] [lt sd]").bank("RolandTR707").room(.3)'],
+      ["s-d4",1,"kick and hats only",'s("bd*4, hh*8").bank("RolandTR707").gain(.8)'],
+      ["s-d5",4,"peak: snare and clap together, open hats",'s("bd*4, ~ [sd,cp] ~ [sd,cp], [hh oh]*4").bank("RolandTR707").room(.35)']],
+    bass:[
+      ["s-b1",3,"pulsing octave eighths",'note("[{R1} {R2}]*4").s("sawtooth").lpf(1100).decay(.1).sustain(.4).gain(.75)'],
+      ["s-b2",2,"straight root eighths",'note("{R2}*8").s("sawtooth").lpf(700).decay(.1).sustain(.5).gain(.75)'],
+      ["s-b3",1,"long root under the chord",'note("{R1}").s("sawtooth").lpf(400).release(.3).gain(.8)']],
+    harmony:[
+      ["s-h1",2,"big supersaw chord pad",'note("{V3}").s("supersaw").lpf(2000).attack(.15).release(.6).gain(.28).room(.5)'],
+      ["s-h2",3,"chord stabs on the one, the and-of-two and beat four",'note("{V3} ~ ~ {V3} ~ ~ {V3} ~").s("sawtooth").lpf(2200).decay(.2).sustain(.1).gain(.35)'],
+      ["s-h3",3,"arpeggiated chord in sixteenths",'note("[{R3} {T3} {F3} {R4}]*4").s("square").lpf(1800).decay(.1).sustain(0).gain(.3).delay(.25)']],
+    lead:[
+      ["s-l1",3,"soaring saw lead on long chord tones",'note("{R5} ~ ~ {S4} {F4} ~ ~ ~").s("supersaw").lpf(3000).attack(.05).release(.4).gain(.3).room(.4).delay(.25)'],
+      ["s-l2",3,"echoing three-note hook",'note("{F4} {T4} {R4} ~ ~ ~ ~ ~").s("square").lpf(2000).decay(.2).sustain(.3).delay(.5).delayfeedback(.55).gain(.35)'],
+      ["s-l3",2,"dreamy high melody",'n("7 ~ 6 ~ 4 ~ [5 4] ~").scale("{SC4}").s("triangle").release(.5).room(.5).gain(.45)']],
+    texture:[
+      ["s-t1",3,"white-noise riser sweeping up, for builds",RISER],
+      ["s-t2",1,"tape hiss",'s("pink").hpf(3000).gain(.04)']]
+  }},
+  dub: { name:"Dub", bpm:74, blurb:"reggae one-drop, deep bass, offbeat skank and echo", layers:{
+    drums:[
+      ["d-d1",2,"one drop: kick and rimshot together on beat three, swung hats",'s("~ ~ [bd,rim] ~, [hh ~ hh]*4").bank("RolandTR808")'],
+      ["d-d2",3,"steppers: kick on every beat, rimshot on three",'s("bd*4, ~ ~ rim ~, [hh ~ hh]*4").bank("RolandTR808")'],
+      ["d-d3",2,"rockers: kick on one and three, snare on three",'s("bd ~ bd ~, ~ ~ sd ~, [~ hh]*4").bank("RolandTR808")'],
+      ["d-d4",1,"drums drop out except an echoing rimshot",'s("~ ~ rim ~").bank("RolandTR808").delay(.6).delayfeedback(.6).room(.5)'],
+      ["d-d5",2,"dub fill: snare hits spiralling into the echo",'s("~ ~ [bd,sd] [~ sd]").bank("RolandTR808").delay(.5).delayfeedback(.7).room(.4)']],
+    bass:[
+      ["d-b1",2,"deep dub bassline with space: root, fifth, seventh",'note("{R1} ~ ~ {R1} {F1} ~ {S1} ~").s("sine").decay(.5).sustain(.5).gain(1.1)'],
+      ["d-b2",3,"heavy steppers bass on every beat",'note("{R1}*4").s("sine").decay(.3).sustain(.3).gain(1.1)'],
+      ["d-b3",1,"one low note, then silence",'note("{R1} ~ ~ ~").s("sine").release(.4).gain(1)']],
+    harmony:[
+      ["d-h1",2,"offbeat skank chords, short and bright",'note("[~ {V4}]*4").s("square").hpf(500).decay(.08).sustain(0).gain(.3)'],
+      ["d-h2",2,"skank with echo trails",'note("[~ {V4}]*2").s("square").hpf(500).decay(.08).sustain(0).delay(.6).delayfeedback(.6).gain(.3)'],
+      ["d-h3",3,"organ bubble: double-time offbeat chords",'note("[~ {V3}] [{V3} {V3}] [~ {V3}] [{V3} {V3}]").s("triangle").decay(.1).sustain(.2).gain(.35)']],
+    lead:[
+      ["d-l1",2,"melodica-style phrase",'n("4 ~ [4 5] 4 2 ~ ~ ~").scale("{SC4}").s("triangle").attack(.03).release(.2).gain(.5).room(.3)'],
+      ["d-l2",1,"single stab disappearing into the delay",'note("{F4} ~ ~ ~ ~ ~ ~ ~").s("square").lpf(1500).decay(.1).sustain(0).delay(.7).delayfeedback(.7).gain(.35)']],
+    texture:[
+      ["d-t1",2,"siren call swinging between two notes",'note("{R5} {F5}").s("sine").attack(.2).release(.3).gain(.25).delay(.5)'],
+      ["d-t2",1,"spring-reverb crash of noise",'s("white ~ ~ ~").hpf(1200).decay(.4).sustain(0).room(1).gain(.2)']]
+  }},
+};
+const STYLE_IDS = Object.keys(STYLES);
+for (const sid of STYLE_IDS){
+  const st = STYLES[sid];
+  for (const L of LAYERS){
+    st.layers[L] = st.layers[L].map(([id, e, desc, code]) => ({ id, e, desc, code }));
+    st.layers[L].push({ id: sid + "-" + L + "-mute", e: 0, desc: L === "drums" ? "drums drop out" : "silent: the " + L + " drops out", code: "silence" });
+  }
+}
+const optById = new Map();
+STYLE_IDS.forEach(sid => LAYERS.forEach(L => STYLES[sid].layers[L].forEach(o => optById.set(o.id, o))));
+
+const SECTIONS = [
+  ["intro",1,"intro: sparse opening, few layers"],
+  ["groove",2,"groove: the main groove, steady and repeating"],
+  ["lift",3,"lift: the groove with more movement and a melody on top"],
+  ["build",3,"build: rising tension toward a drop, with risers, rolls and filters opening"],
+  ["drop",4,"drop: peak energy, full kit, bass and hook together"],
+  ["breakdown",1,"breakdown: drums mostly gone, pads and space"],
+  ["outro",1,"outro: winding down, layers leaving one by one"]].map(([id, e, desc]) => ({ id, e, desc }));
+const SECTION = Object.fromEntries(SECTIONS.map(s => [s.id, s]));
+
+const PROGS = {
+  minor: [["i VI III VII","bittersweet classic loop"],["i iv VII III","falling and soulful"],["i VII VI VII","epic, rocking between two chords"],
+          ["i VI iv V","dramatic, pulls hard back home"],["i i iv iv","static and brooding"],["i v VI iv","melancholic, drifting"],
+          ["VI VII i i","rising to the home chord, triumphant"],["i7 iv7 VII7 IIImaj7","jazzy minor sevenths"]],
+  major: [["I V vi IV","bright anthem loop"],["I vi IV V","nostalgic, fifties-style"],["vi IV I V","hopeful, lifting"],
+          ["I IV I V","simple, sunny back-and-forth"],["IV IV I I","calm, settling home"],["I iii IV V","climbing, optimistic"],
+          ["ii7 V7 Imaj7 vi7","jazzy two-five-one"],["Imaj7 IVmaj7 Imaj7 IVmaj7","dreamy, floating major sevenths"]]
+};
+function keyMoves(k){
+  const rel = k.mode === "minor" ? { tonic: mod12(k.tonic + 3), mode: "major" } : { tonic: mod12(k.tonic + 9), mode: "minor" };
+  return [
+    { key: k, desc: "stay in " + keyLabel(k) },
+    { key: rel, desc: "move to " + keyLabel(rel) + " (relative " + rel.mode + "): " + (rel.mode === "major" ? "brighter" : "darker") + ", shares all its notes" },
+    { key: { tonic: mod12(k.tonic + 2), mode: k.mode }, desc: "move up a whole step to " + keyLabel({ tonic: mod12(k.tonic + 2), mode: k.mode }) + ": a lift in intensity" },
+    { key: { tonic: mod12(k.tonic + 5), mode: k.mode }, desc: "move to " + keyLabel({ tonic: mod12(k.tonic + 5), mode: k.mode }) + " (a fourth up): settles, softer" },
+    { key: { tonic: mod12(k.tonic + 7), mode: k.mode }, desc: "move to " + keyLabel({ tonic: mod12(k.tonic + 7), mode: k.mode }) + " (the dominant): more tension, pushes forward" },
+    { key: { tonic: k.tonic, mode: k.mode === "minor" ? "major" : "minor" }, desc: "switch to " + keyLabel({ tonic: k.tonic, mode: k.mode === "minor" ? "major" : "minor" }) + " (same root): a sudden change of colour" }];
+}
+const sameKey = (a, b) => a.tonic === b.tonic && a.mode === b.mode;
+
+// ============================================================ safe Strudel evaluator (no eval)
+// Grammar: expr := IDENT '=>' expr | chain ('/' chain)* ; chain := primary ('.' IDENT ('(' args ')')?)* ;
+// primary := NUMBER | STRING | '-' primary | '(' expr ')' | IDENT ('(' args ')')?
+const SCOPE = Object.assign(Object.create(null), core);
+function tokenize(src){
+  const re = /\s*(?:(\d*\.\d+|\d+(?:\.\d+)?)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|([A-Za-z_$][\w$]*)|(=>|[().,\-\/]))/y, out = [];
+  let m; re.lastIndex = 0;
+  while (re.lastIndex < src.length){
+    const at = re.lastIndex; m = re.exec(src);
+    if (!m){ if (/^\s*$/.test(src.slice(at))) break; throw new Error("cannot read code at: " + src.slice(at, at + 12)); }
+    if (m[1] !== undefined) out.push({ t: "num", v: parseFloat(m[1]) });
+    else if (m[2] !== undefined) out.push({ t: "str", v: m[2].slice(1, -1).replace(/\\(.)/g, "$1") });
+    else if (m[3] !== undefined) out.push({ t: "id", v: m[3] });
+    else if (m[4] !== undefined) out.push({ t: "p", v: m[4] });
+  }
+  return out;
+}
+function parseCode(src){
+  const T = tokenize(src); let i = 0;
+  const peek = (v) => T[i] && T[i].t === "p" && T[i].v === v;
+  const need = (v) => { if (!peek(v)) throw new Error("expected " + v); i++; };
+  function args(){ const a = []; need("("); if (!peek(")")){ a.push(expr()); while (peek(",")){ i++; a.push(expr()); } } need(")"); return a; }
+  function primary(){
+    const t = T[i++];
+    if (!t) throw new Error("unexpected end");
+    if (t.t === "num") return { k: "lit", v: t.v };
+    if (t.t === "str") return { k: "lit", v: t.v };
+    if (t.t === "p" && t.v === "-"){ const x = primary(); return { k: "neg", x }; }
+    if (t.t === "p" && t.v === "("){ const x = expr(); need(")"); return x; }
+    if (t.t === "id"){ if (peek("(")) return { k: "fcall", name: t.v, args: args() }; return { k: "id", name: t.v }; }
+    throw new Error("unexpected " + t.v);
+  }
+  function chain(){
+    let x = primary();
+    while (peek(".")){ i++; const t = T[i++]; if (!t || t.t !== "id") throw new Error("expected a method name");
+      x = peek("(") ? { k: "call", obj: x, name: t.v, args: args() } : { k: "get", obj: x, name: t.v }; }
+    return x;
+  }
+  function expr(){
+    if (T[i] && T[i].t === "id" && T[i+1] && T[i+1].t === "p" && T[i+1].v === "=>"){ const param = T[i].v; i += 2; return { k: "fn", param, body: expr() }; }
+    let x = chain();
+    while (peek("/")){ i++; x = { k: "div", a: x, b: chain() }; }
+    return x;
+  }
+  const ast = expr();
+  if (i !== T.length) throw new Error("trailing code");
+  return ast;
+}
+function evalNode(n, env){
+  switch (n.k){
+    case "lit": return n.v;
+    case "neg": return -evalNode(n.x, env);
+    case "div": return evalNode(n.a, env) / evalNode(n.b, env);
+    case "id": { if (env && n.name in env) return env[n.name]; if (n.name in SCOPE) return SCOPE[n.name]; throw new Error("unknown name " + n.name); }
+    case "fcall": { const f = SCOPE[n.name]; if (typeof f !== "function") throw new Error("unknown function " + n.name); return f(...n.args.map(a => evalNode(a, env))); }
+    case "get": { const o = evalNode(n.obj, env); return o[n.name]; }
+    case "call": {
+      let o = evalNode(n.obj, env);
+      if (typeof o === "string") o = mini.mini(o);
+      const f = o && o[n.name];
+      if (typeof f !== "function") throw new Error("no method ." + n.name);
+      return f.apply(o, n.args.map(a => evalNode(a, env)));
+    }
+    case "fn": return (x) => evalNode(n.body, Object.assign({}, env, { [n.param]: x }));
+  }
+}
+const compileCache = new Map();
+function compile(code){
+  if (compileCache.has(code)) return compileCache.get(code);
+  let p = evalNode(parseCode(code), null);
+  if (typeof p === "string") p = mini.mini(p);
+  compileCache.set(code, p);
+  if (compileCache.size > 3000) compileCache.delete(compileCache.keys().next().value);
+  return p;
+}
+
+// ============================================================ synth
+const DRUM_ROW = { bd:4, sd:3, cp:3, rim:3, lt:2, mt:2, ht:2, hh:1, sh:1, oh:0, cr:0, rd:0, cb:0 };
+const DRUMS = new Set(Object.keys(DRUM_ROW));
+const BANK = { RolandTR808:{ kick:[120,45,.9], snap:.8, bright:.8 }, RolandTR909:{ kick:[180,50,.38], snap:1, bright:1 }, RolandTR707:{ kick:[160,55,.3], snap:1.1, bright:1.2 } };
+
+class Engine {
+  constructor(){
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx = this.ctx = new AC({ latencyHint: "playback" });
+    this.master = ctx.createGain(); this.master.gain.value = 0.85;
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = .004; comp.release.value = .2;
+    this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 1024;
+    this.master.connect(comp); comp.connect(this.analyser); this.analyser.connect(ctx.destination);
+    // reverb bus
+    const len = Math.floor(ctx.sampleRate * 2.8), ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++){ const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+    this.verb = ctx.createConvolver(); this.verb.buffer = ir;
+    this.verbIn = ctx.createGain(); this.verbIn.gain.value = .55; this.verbIn.connect(this.verb); this.verb.connect(this.master);
+    // delay bus
+    this.dly = ctx.createDelay(2); this.dly.delayTime.value = .3;
+    this.dlyFb = ctx.createGain(); this.dlyFb.gain.value = .45;
+    const dlyTone = ctx.createBiquadFilter(); dlyTone.type = "lowpass"; dlyTone.frequency.value = 3200;
+    this.dlyIn = ctx.createGain(); this.dlyIn.connect(this.dly); this.dly.connect(dlyTone); dlyTone.connect(this.dlyFb); this.dlyFb.connect(this.dly); dlyTone.connect(this.master);
+    // noise
+    const nl = ctx.sampleRate * 2;
+    this.white = ctx.createBuffer(1, nl, ctx.sampleRate); const w = this.white.getChannelData(0); for (let i = 0; i < nl; i++) w[i] = Math.random() * 2 - 1;
+    this.pink = ctx.createBuffer(1, nl, ctx.sampleRate); const pk = this.pink.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0; for (let i = 0; i < nl; i++){ const x = Math.random() * 2 - 1; b0 = .997 * b0 + x * .029591; b1 = .985 * b1 + x * .032534; b2 = .95 * b2 + x * .048056; pk[i] = (b0 + b1 + b2 + x * .1848) * .9; }
+    this.curves = new Map();
+    this.level = 0; this.buf = new Float32Array(this.analyser.fftSize);
+  }
+  rms(){ this.analyser.getFloatTimeDomainData(this.buf); let s = 0; for (let i = 0; i < this.buf.length; i++) s += this.buf[i] * this.buf[i]; return Math.sqrt(s / this.buf.length); }
+  curve(kind, amt){
+    const key = kind + amt; if (this.curves.has(key)) return this.curves.get(key);
+    const n = 1024, c = new Float32Array(n);
+    for (let i = 0; i < n; i++){ const x = i / (n - 1) * 2 - 1;
+      if (kind === "crush"){ const lv = Math.pow(2, Math.max(1, amt) - 1); c[i] = Math.round(x * lv) / lv; }
+      else { const k = 1 + amt * 3; c[i] = Math.tanh(k * x) / Math.tanh(k); } }
+    this.curves.set(key, c); return c;
+  }
+  noiseSrc(t, dur, which){ const s = this.ctx.createBufferSource(); s.buffer = which === "pink" ? this.pink : this.white; s.loop = true;
+    s.start(t, Math.random() * 1.5); s.stop(t + dur + .05); return s; }
+  // chain: source(s) -> in -> [hp] -> [lp] -> [shaper] -> amp -> pan -> master (+ sends)
+  chain(v, t, stopAt){
+    const ctx = this.ctx, input = ctx.createGain(); let node = input;
+    if (v.hcutoff){ const f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = Math.min(18000, v.hcutoff); f.Q.value = v.hresonance || .7; node.connect(f); node = f; }
+    if (v.cutoff){ const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = Math.min(18000, Math.max(30, v.cutoff)); f.Q.value = Math.min(25, (v.resonance || 1) * .8); node.connect(f); node = f; }
+    const dist = v.distort || v.shape; if (dist){ const ws = ctx.createWaveShaper(); ws.curve = this.curve("dist", Math.round(dist * 10) / 10); node.connect(ws); const comp = ctx.createGain(); comp.gain.value = 1 / (1 + dist * .35); ws.connect(comp); node = comp; }
+    if (v.crush){ const ws = ctx.createWaveShaper(); ws.curve = this.curve("crush", Math.round(v.crush)); node.connect(ws); node = ws; }
+    const amp = ctx.createGain(); amp.gain.value = (v.gain ?? 1) * (v.velocity ?? 1) * (v.postgain ?? 1); node.connect(amp); node = amp;
+    if (v.pan !== undefined && ctx.createStereoPanner){ const p = ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, v.pan * 2 - 1)); node.connect(p); node = p; }
+    node.connect(this.master);
+    if (v.room){ const g = ctx.createGain(); g.gain.value = Math.min(1, v.room); node.connect(g); g.connect(this.verbIn); }
+    if (v.delay){ const g = ctx.createGain(); g.gain.value = Math.min(1, v.delay); node.connect(g); g.connect(this.dlyIn);
+      if (v.delaytime) this.dly.delayTime.setValueAtTime(Math.min(1.9, v.delaytime), t);
+      if (v.delayfeedback !== undefined) this.dlyFb.gain.setValueAtTime(Math.min(.85, v.delayfeedback), t); }
+    return input;
+  }
+  play(v, t, dur, barDur){
+    if (!v || !v.s) return;
+    const s = String(v.s);
+    if (DRUMS.has(s)) return this.drum(s, v, t);
+    const ctx = this.ctx;
+    let midi = null;
+    if (v.freq) midi = 69 + 12 * Math.log2(v.freq / 440);
+    else if (v.note !== undefined) midi = typeof v.note === "number" ? v.note : core.noteToMidi(String(v.note));
+    else if (v.n !== undefined && typeof v.n === "number") midi = v.n + 48;
+    const hold = Math.max(.02, dur * (v.clip ?? 1));
+    const a = v.attack ?? .005, d = v.decay ?? .1;
+    const sus = v.sustain ?? (v.decay !== undefined ? 0 : .85);
+    const r = v.release ?? .06;
+    const stopAt = t + hold + r + .05;
+    const input = this.chain(v, t, stopAt);
+    const env = ctx.createGain(); env.connect(input);
+    const g = env.gain;
+    g.setValueAtTime(0, t); g.linearRampToValueAtTime(1, t + a);
+    g.setTargetAtTime(sus, t + a, Math.max(.005, d / 3));
+    g.cancelScheduledValues(t + hold);
+    const atHold = hold <= a ? hold / a : sus + (1 - sus) * Math.exp(-(hold - a) / Math.max(.005, d / 3));
+    g.setValueAtTime(Math.max(0, atHold), t + hold);
+    g.setTargetAtTime(0, t + hold, Math.max(.005, r / 4));
+    if (s === "white" || s === "pink" || s === "brown"){ this.noiseSrc(t, stopAt - t, s === "white" ? "white" : "pink").connect(env); return; }
+    if (midi === null || !isFinite(midi)) return;
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const LEVEL = { sine:.42, triangle:.4, square:.17, sawtooth:.2, supersaw:.085 };
+    const lv = LEVEL[s] ?? .2, out = ctx.createGain(); out.gain.value = lv; out.connect(env);
+    const oscs = s === "supersaw" ? [-17, -8, 0, 8, 17] : [0];
+    for (const cents of oscs){
+      const o = ctx.createOscillator(); o.type = s === "supersaw" ? "sawtooth" : (["sine","square","triangle","sawtooth"].includes(s) ? s : "triangle");
+      o.frequency.value = f; o.detune.value = cents; if (s === "supersaw") o.detune.value += (Math.random() - .5) * 4;
+      o.connect(out); o.start(t); o.stop(stopAt);
+    }
+  }
+  drum(s, v, t){
+    const ctx = this.ctx, bk = BANK[v.bank] || BANK.RolandTR909;
+    const input = this.chain(v, t, t + 1.3);
+    const g = (x) => { const n = ctx.createGain(); n.gain.value = x; n.connect(input); return n; };
+    const env = (node, peak, tail) => { node.gain.setValueAtTime(peak, t); node.gain.exponentialRampToValueAtTime(.0008, t + tail); };
+    if (s === "bd"){
+      const [f0, f1, tail] = bk.kick, o = ctx.createOscillator(), a = g(0);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + .09);
+      env(a, 1.0, tail); o.connect(a); o.start(t); o.stop(t + tail + .05);
+      const c = this.noiseSrc(t, .02), cg = g(0); env(cg, .25 * bk.bright, .015); c.connect(cg);
+    } else if (s === "sd" || s === "cp" || s === "rim"){
+      if (s === "sd"){
+        const o = ctx.createOscillator(); o.type = "triangle"; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(150, t + .1);
+        const a = g(0); env(a, .5, .12); o.connect(a); o.start(t); o.stop(t + .2);
+        const n = this.noiseSrc(t, .25), f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 1400;
+        const b = g(0); env(b, .55 * bk.snap, .2); n.connect(f); f.connect(b);
+      } else if (s === "cp"){
+        const n = this.noiseSrc(t, .35), f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1300; f.Q.value = 1.4; n.connect(f);
+        const b = g(0); b.gain.setValueAtTime(0, t);
+        for (const dt of [0, .011, .022]){ b.gain.setValueAtTime(.8, t + dt); b.gain.exponentialRampToValueAtTime(.05, t + dt + .009); }
+        b.gain.setValueAtTime(.55, t + .031); b.gain.exponentialRampToValueAtTime(.0008, t + .2); f.connect(b);
+      } else {
+        const o = ctx.createOscillator(); o.type = "square"; o.frequency.value = 1750; const a = g(0); env(a, .22, .035); o.connect(a); o.start(t); o.stop(t + .06);
+        const n = this.noiseSrc(t, .05), f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = 2500; const b = g(0); env(b, .25, .03); n.connect(f); f.connect(b);
+      }
+    } else if (s === "hh" || s === "oh" || s === "sh" || s === "cr" || s === "rd"){
+      const tail = { hh:.045, sh:.06, oh:.32, cr:1.2, rd:.7 }[s], peak = { hh:.32, sh:.18, oh:.28, cr:.3, rd:.16 }[s] * bk.bright;
+      const n = this.noiseSrc(t, tail + .05), f = ctx.createBiquadFilter(); f.type = "highpass"; f.frequency.value = s === "sh" ? 5500 : s === "cr" ? 4500 : 7000;
+      const f2 = ctx.createBiquadFilter(); f2.type = "peaking"; f2.frequency.value = s === "rd" ? 5200 : 10000; f2.gain.value = 6;
+      const b = g(0); env(b, peak, tail); n.connect(f); f.connect(f2); f2.connect(b);
+      if (s === "rd"){ const o = ctx.createOscillator(); o.type = "square"; o.frequency.value = 3400; const a = g(0); env(a, .03, .4); o.connect(a); o.start(t); o.stop(t + .45); }
+    } else if (s === "lt" || s === "mt" || s === "ht"){
+      const f0 = { lt:120, mt:170, ht:230 }[s], o = ctx.createOscillator(); o.frequency.setValueAtTime(f0 * 1.4, t); o.frequency.exponentialRampToValueAtTime(f0, t + .08);
+      const a = g(0); env(a, .7, .35); o.connect(a); o.start(t); o.stop(t + .4);
+    } else if (s === "cb"){
+      for (const fq of [540, 800]){ const o = ctx.createOscillator(); o.type = "square"; o.frequency.value = fq; const a = g(0); env(a, .12, .25); o.connect(a); o.start(t); o.stop(t + .3); }
+    }
+  }
+}
+
+// ============================================================ state
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const HORIZON = 12; // bars a listener request stays in view
+const PRICE = 0.042 / 1e6; // Jev input, $ per token
+let S = null, engine = null, mcp = null, mcpState = "pending";
+let mode = "jev";
+function freshState(){
+  return { running:false, gen:0, bars:new Map(), phrases:new Map(), decidedUpTo:-1, scheduledUpTo:-1, playingBar:-1,
+    barStart:new Map(), requests:[], lat:[], calls:0, late:0, cost:0, lookahead:2, lastCallAt:0, log:[], preview:false };
+}
+const barDurOf = (ph) => 240 / STYLES[ph.style].bpm;
+function phraseOfBar(b){ return S.phrases.get(Math.floor(b / 4)); }
+
+function makePhrase(p, style, key, section, progIdx, nextKey){
+  const prog = PROGS[key.mode][progIdx];
+  const romans = prog[0].split(" ");
+  return { p, style, key, section, progIdx, prog, chords: romans.map(r => chordOf(r, key)), nextKey };
+}
+function phraseCarry(p){
+  const prev = S.phrases.get(p - 1) || [...S.phrases.values()].pop();
+  const key = prev.nextKey || prev.key;
+  const progIdx = sameKey(key, prev.key) ? prev.progIdx : 0;
+  const ph = makePhrase(p, prev.style, key, prev.section, progIdx, key);
+  ph.by = "held"; return ph;
+}
+function buildBar(b, choices, meta){
+  const ph = phraseOfBar(b), chord = ph.chords[b % 4], st = STYLES[ph.style];
+  const bar = { b, p: ph.p, chord, choices:{}, codes:{}, haps:{}, ...meta };
+  for (const L of LAYERS){
+    let opt = optById.get(choices[L]);
+    if (!opt || !st.layers[L].includes(opt)) opt = st.layers[L][0];
+    bar.choices[L] = opt.id;
+    const code = fillTemplate(opt.code, chord, ph.key);
+    bar.codes[L] = code;
+    try {
+      const pat = compile(code);
+      bar.haps[L] = pat.queryArc(b, b + 1).filter(h => h.hasOnset()).map(h => ({ b0: h.whole.begin.valueOf(), b1: h.whole.end.valueOf(), v: h.value }));
+    } catch (e){ bar.haps[L] = []; bar.err = (bar.err || "") + L + ": " + e.message + " "; console.warn("pattern error", L, code, e); }
+  }
+  return bar;
+}
+
+// ============================================================ choosing
+function sampleFrom(probs, T){
+  const ks = Object.keys(probs); if (!ks.length) return null;
+  if (T <= 0.02) return ks.reduce((a, b) => probs[b] > probs[a] ? b : a, ks[0]);
+  const w = ks.map(k => Math.pow(Math.max(probs[k], 1e-6), 1 / T)), sum = w.reduce((a, b) => a + b, 0);
+  let u = Math.random() * sum; for (let i = 0; i < ks.length; i++){ u -= w[i]; if (u <= 0) return ks[i]; } return ks[ks.length - 1];
+}
+const uniform = (ids) => Object.fromEntries(ids.map(id => [id, 1 / ids.length]));
+
+function barsAgo(n){ return n === 0 ? "just now" : n === 1 ? "1 bar ago" : n + " bars ago"; }
+function activeRequests(b){ return S.requests.filter(r => b - r.bar <= HORIZON && b >= r.bar); }
+function runLength(L, id, b){ let n = 0; for (let x = b - 1; x >= 0; x--){ const bb = S.bars.get(x); if (bb && bb.choices[L] === id) n++; else break; } return n; }
+function phraseRun(field, p){ const cur = S.phrases.get(p - 1); if (!cur) return 0; let n = 0; for (let x = p - 1; x >= 0; x--){ const ph = S.phrases.get(x); if (ph && (field === "key" ? sameKey(ph.key, cur.key) : ph[field] === cur[field])) n++; else break; } return n; }
+
+function stateText(b, ph, forPhrase){
+  const st = STYLES[ph.style], lines = [];
+  lines.push("A live electronic music set, performed bar by bar by choosing each part from a catalog. One bar = 4 beats.");
+  lines.push(`Style: ${st.name} (${st.bpm} BPM, ${st.blurb}). Key: ${keyLabel(ph.key)}.`);
+  const sec = SECTION[ph.section];
+  lines.push(`Current section: ${sec.desc} (energy target ${sec.e} of 4). Phrase ${ph.p + 1}, bar ${b % 4 + 1} of 4.`);
+  lines.push(`Chord progression this phrase: ${ph.chords.map(c => c.symbol).join(" – ")} (${ph.prog[0]}, ${ph.prog[1]}). This bar's chord: ${ph.chords[b % 4].symbol}.`);
+  const hist = [];
+  for (let x = Math.max(0, b - 4); x < b; x++){ const bb = S.bars.get(x); if (!bb) continue;
+    hist.push(`  bar ${x + 1}: ` + LAYERS.map(L => `${L} "${optById.get(bb.choices[L]).desc}"`).join("; ")); }
+  if (hist.length){ lines.push("What played in the last bars (oldest first):"); lines.push(...hist); }
+  const secs = []; for (let x = Math.max(0, ph.p - 7); x <= ph.p; x++){ const pp = S.phrases.get(x); if (pp) secs.push(pp.section); }
+  if (secs.length) lines.push("Sections so far, one per phrase (oldest first): " + secs.join(", ") + ".");
+  const req = activeRequests(b);
+  if (req.length) lines.push("The listener steering the set asked: " + req.map(r => `"${r.text}" (${barsAgo(b - r.bar)})`).join("; ") + ". Honour these requests.");
+  else lines.push("No listener requests right now.");
+  return lines.join("\n");
+}
+
+function barQuestions(b, ph){
+  const st = STYLES[ph.style], sec = SECTION[ph.section], qs = {}, maps = {};
+  const pos = b % 4 === 3 ? "the last bar of the phrase, a turnaround into the next phrase" : b % 4 === 0 ? "the first bar of the phrase" : "bar " + (b % 4 + 1) + " of the phrase";
+  for (const L of LAYERS){
+    const prev = S.bars.get(b - 1), crit = {}, map = {};
+    st.layers[L].forEach((o, i) => {
+      let label = String.fromCharCode(65 + i) + ") " + o.desc + " [energy " + o.e + "]";
+      if (prev && prev.choices[L] === o.id){ const n = runLength(L, o.id, b); label += n > 1 ? ` (playing now, ${n} bars in a row)` : " (playing now)"; }
+      crit[label] = null; map[label] = o.id;
+    });
+    qs[L] = { type: "choice", criteria: crit,
+      instructions: `Choose the ${L.toUpperCase()} part for bar ${b + 1}, ${pos}, over the chord ${ph.chords[b % 4].symbol}. The section is ${ph.section} with energy target ${sec.e} of 4. Match the energy target, honour any listener request, keep continuity with the last bar, and avoid repeating the exact same part for more than 4 bars in a row unless the section calls for it.` };
+    maps[L] = map;
+  }
+  return { qs, maps };
+}
+
+function phraseQuestions(p, prev, openingStyle){
+  // decides phrase p: section, progression (in its key, already fixed), style, and the key for phrase p+1
+  const key = prev ? (prev.nextKey || prev.key) : { tonic: 9, mode: "minor" };
+  const qs = {}, maps = {};
+  const sc = {}, sm = {};
+  SECTIONS.forEach(s => { const l = s.desc + " [energy " + s.e + "]" + (prev && prev.section === s.id ? ` (current, ${phraseRun("section", p)} phrases so far)` : ""); sc[l] = null; sm[l] = s.id; });
+  qs.section = { type: "choice", criteria: sc, instructions: `Choose the section for phrase ${p + 1} (the next 4 bars). A good set moves in arcs: intro, groove, lift, build, drop, breakdown, then groove again. A build leads into a drop; a drop rarely lasts more than 2 phrases; avoid more than 3 phrases of the same section unless the listener asks.` };
+  maps.section = sm;
+  const pc = {}, pm = {};
+  PROGS[key.mode].forEach((pr, i) => { const chords = pr[0].split(" ").map(r => chordOf(r, key).symbol).join(" "); const l = `${pr[0]} (${chords}): ${pr[1]}` + (prev && sameKey(prev.key, key) && prev.progIdx === i ? " (current)" : ""); pc[l] = null; pm[l] = i; });
+  qs.progression = { type: "choice", criteria: pc, instructions: `Choose the chord progression for phrase ${p + 1}, in ${keyLabel(key)}, one chord per bar. Fit the mood of the section and the style; change progression every few phrases to keep the harmony moving.` };
+  maps.progression = pm;
+  const stc = {}, stm = {};
+  STYLE_IDS.forEach(id => { const st = STYLES[id]; const cur = prev && prev.style === id;
+    const l = (cur ? `stay in ${st.name} (${phraseRun("style", p)} phrases so far)` : prev ? `switch to ${st.name}` : st.name) + `: ${st.blurb}, ${st.bpm} BPM`; stc[l] = null; stm[l] = id; });
+  if (!openingStyle){
+    qs.style = { type: "choice", criteria: stc, instructions: prev ? "Choose the style for the next phrase. Change style rarely: stay unless the current style has lasted 6 or more phrases, the next section is an intro or breakdown, or the listener asked for a change." : "Choose the opening style of the set." };
+    maps.style = stm;
+  }
+  const kc = {}, km = {};
+  keyMoves(key).forEach((m, i) => { const l = m.desc + (i === 0 && prev ? ` (${phraseRun("key", p) + 1} phrases so far)` : ""); kc[l] = null; km[l] = m.key; });
+  qs.nextkey = { type: "choice", criteria: kc, instructions: "Choose the key for the phrase after this one. Modulate occasionally, every 4 to 8 phrases, or when the listener asks; otherwise stay." };
+  maps.nextkey = km;
+  return { qs, maps, key };
+}
+
+async function askJev(state, questions){
+  const gap = 1250 - (Date.now() - S.lastCallAt); if (gap > 0) await sleep(gap);
+  S.lastCallAt = Date.now();
+  const t0 = performance.now();
+  const res = await mcp.callTool("Muninn", "gateway", { op: "jev", state, questions }, { cache: false });
+  const ms = Math.round(performance.now() - t0);
+  let p = res && res.payload !== undefined ? res.payload : null, usage = "";
+  if (typeof p === "string"){ const cut = p.lastIndexOf("\n[usage"); if (cut >= 0){ usage = p.slice(cut); p = p.slice(0, cut); } p = JSON.parse(p); }
+  if (!p && res && res.content && res.content[0] && typeof res.content[0].text === "string"){ const t = res.content[0].text, cut = t.lastIndexOf("\n[usage"); usage = cut >= 0 ? t.slice(cut) : ""; p = JSON.parse(cut >= 0 ? t.slice(0, cut) : t); }
+  if (!p || typeof p !== "object") throw Object.assign(new Error("Jev returned no answers"), { code: "tool_error" });
+  const m = /input (\d+)/.exec(usage); const tok = m ? +m[1] : 0;
+  S.lat.push(ms); if (S.lat.length > 60) S.lat.shift();
+  S.calls++; S.cost += tok * PRICE;
+  return p;
+}
+function answerProbs(ans, map){
+  // Jev returns {choice, probabilities:{label:p}}; map labels back to ids
+  const out = {};
+  if (ans && ans.probabilities) for (const [lab, pr] of Object.entries(ans.probabilities)) if (lab in map) out[lab] = pr;
+  if (!Object.keys(out).length) for (const lab of Object.keys(map)) out[lab] = 1 / Object.keys(map).length;
+  return out;
+}
+
+async function decidePhrase(p, extra){
+  // standalone phrase decision (opening, or after a structural steer)
+  const prev = S.phrases.get(p - 1) || null;
+  const opening = $("opening").value;
+  const openingStyle = !prev && opening !== "jev" ? opening : null;
+  const pq = phraseQuestions(p, prev, openingStyle);
+  const gen = S.gen;
+  let ans = null;
+  if (mode === "jev" && mcp){
+    let state;
+    if (prev) state = stateText(p * 4 - 1, prev, true);
+    else {
+      state = "A live electronic music set, performed bar by bar by choosing each part from a catalog. The set is about to begin; nothing has played yet. Opening key: " + keyLabel(pq.key) + "." +
+        (openingStyle ? ` Style: ${STYLES[openingStyle].name} (${STYLES[openingStyle].bpm} BPM, ${STYLES[openingStyle].blurb}).` : "");
+      const req = S.requests.filter(r => r.bar <= 0);
+      if (req.length) state += "\nThe listener asked: " + req.map(r => `"${r.text}"`).join("; ") + ".";
+    }
+    ans = await askJev(state, pq.qs);
+  }
+  if (gen !== S.gen && !extra) return;
+  applyPhrase(p, prev, pq, ans, openingStyle);
+}
+function applyPhrase(p, prev, pq, ans, openingStyle){
+  const T = +$("temp").value / 100, picks = {}, probs = {};
+  for (const q of Object.keys(pq.maps)){
+    const map = pq.maps[q];
+    let pr;
+    if (ans) pr = answerProbs(ans[q], map);
+    else if (q === "style" && prev){ pr = {}; const labs = Object.keys(map); labs.forEach(l => pr[l] = map[l] === prev.style ? .75 : .25 / (labs.length - 1)); }
+    else if (q === "nextkey"){ pr = {}; const labs = Object.keys(map); labs.forEach((l, i) => pr[l] = i === 0 ? .7 : .3 / (labs.length - 1)); }
+    else pr = uniform(Object.keys(map));
+    const lab = sampleFrom(pr, ans ? Math.min(T, .6) : 1);
+    picks[q] = map[lab]; probs[q] = { pr, pick: lab };
+  }
+  const style = openingStyle || picks.style || (prev ? prev.style : "house");
+  const ph = makePhrase(p, style, pq.key, picks.section, picks.progression, picks.nextkey);
+  ph.by = ans ? "jev" : "dice"; ph.probs = probs;
+  S.phrases.set(p, ph);
+  logLine(`phrase ${p + 1}: ${ph.section} · ${STYLES[style].name} · ${keyLabel(ph.key)} · ${ph.chords.map(c => c.symbol).join(" ")}`);
+}
+
+async function decideBar(b){
+  const ph = phraseOfBar(b);
+  const bq = barQuestions(b, ph);
+  const withPhrase = b % 4 === 3 && !S.phrases.has(Math.floor(b / 4) + 1);
+  let pq = null, questions = bq.qs;
+  if (withPhrase){ pq = phraseQuestions(Math.floor(b / 4) + 1, ph, null); questions = Object.assign({}, bq.qs, Object.fromEntries(Object.entries(pq.qs).map(([k, v]) => ["phrase_" + k, v]))); }
+  const gen = S.gen, t0 = performance.now();
+  let ans = null;
+  if (mode === "jev" && mcp) ans = await askJev(stateText(b, ph), questions);
+  if (gen !== S.gen) return;
+  const T = +$("temp").value / 100, choices = {}, probs = {};
+  for (const L of LAYERS){
+    const map = bq.maps[L], pr = ans ? answerProbs(ans[L], map) : uniform(Object.keys(map));
+    const lab = sampleFrom(pr, ans ? T : 1);
+    choices[L] = map[lab]; probs[L] = { pr, pick: lab, map };
+  }
+  if (b <= S.scheduledUpTo){ logLine(`bar ${b + 1}: answer arrived after the bar was locked (${Math.round(performance.now() - t0)} ms)`, "late"); }
+  else {
+    const bar = buildBar(b, choices, { by: ans ? "jev" : "dice", probs, ms: ans ? S.lat[S.lat.length - 1] : 0 });
+    S.bars.set(b, bar); S.decidedUpTo = Math.max(S.decidedUpTo, b);
+  }
+  if (pq){
+    const nextP = Math.floor(b / 4) + 1;
+    const pans = ans ? Object.fromEntries(Object.keys(pq.qs).map(k => [k, ans["phrase_" + k]])) : null;
+    if (!S.phrases.has(nextP)) applyPhrase(nextP, ph, pq, pans, null);
+  }
+  updateLookahead();
+}
+function updateLookahead(){
+  if (mode !== "jev" || S.lat.length < 3){ S.lookahead = mode === "jev" ? 2 : 1; }
+  else {
+    const sorted = [...S.lat].sort((a, b) => a - b), p90 = sorted[Math.floor(sorted.length * .9)] / 1000;
+    const ph = phraseOfBar(Math.max(0, S.playingBar)) || S.phrases.get(0); if (!ph) return;
+    const bd = barDurOf(ph);
+    S.lookahead = Math.max(1, Math.min(3, Math.ceil((p90 + .6) / bd)));
+  }
+  $("lookahead").textContent = "deciding " + S.lookahead + " bar" + (S.lookahead > 1 ? "s" : "") + " ahead";
+}
+
+async function decider(){
+  const myRun = S;
+  while (S === myRun && S.running){
+    const next = Math.max(S.decidedUpTo, S.scheduledUpTo) + 1;
+    if (next > Math.max(S.playingBar, 0) + S.lookahead){ await sleep(50); continue; }
+    try {
+      const p = Math.floor(next / 4);
+      if (!S.phrases.has(p)) await decidePhrase(p);
+      if (S !== myRun || !S.running) break;
+      if (!S.phrases.has(p)) continue;
+      await decideBar(next);
+      setConn("ok", mode === "jev" ? "Jev is choosing through the Muninn connector." : "Random dice: uniform picks from the same catalog.");
+    } catch (e){
+      if (S !== myRun) break;
+      handleCallError(e);
+      await sleep(800);
+    }
+  }
+}
+function handleCallError(e){
+  const code = e && e.code;
+  const fatal = ["server_not_connected","needs_reauth","not_in_manifest","selection_required","blocked_by_policy","approval_required","not_granted","capability_disabled","capability_removed","consent_required","user_changed"];
+  const msg = {
+    server_not_connected: "Add the Muninn connector in claude.ai Settings → Connectors, then press Play again.",
+    needs_reauth: "Reconnect Muninn in claude.ai Settings → Connectors.",
+    not_in_manifest: "Muninn access is turned off for this page. Allow it in the connector prompt, then press Play.",
+    selection_required: "More than one Muninn connector is connected. Choose one in the prompt, then press Play.",
+    blocked_by_policy: "Your organization's policy blocks this connector call.",
+    approval_required: "Your organization requires approval for this connector call.",
+    server_unavailable: "Muninn did not answer in time; retrying on the next bar.",
+    tool_error: "Jev reported an error: " + ((e && e.message) || "no message") + (/429|rate/i.test((e && e.message) || "") ? " (rate limit)" : "")
+  }[code] || ("The call failed (" + (code || "unknown") + "): " + ((e && e.message) || ""));
+  logLine(msg, "err");
+  if (fatal.includes(code)){
+    setConn("err", msg + " Switched to random dice so the music keeps going.");
+    setMode("random", true);
+  } else setConn("warn", msg);
+}
+
+// ============================================================ steering
+const QUICK = [
+  ["More energy","more energy, push it harder"],["Calmer","calmer, less busy and softer"],["Drop it","go to a drop: full energy"],
+  ["Breakdown","take it down to a breakdown"],["New key","change key"],["New style","switch to a different style"],["Surprise me","surprise me with something unexpected but musical"]];
+function steer(text){
+  text = text.trim(); if (!text) return;
+  if (!S || !S.running){ $("steernote").textContent = "Press Play first; requests steer the live set."; return; }
+  const now = engine.ctx.currentTime, keepThrough = S.scheduledUpTo;
+  S.requests.push({ text, bar: Math.max(0, S.playingBar) });
+  S.gen++;
+  // keep the very next bar if it starts before a new answer could arrive
+  const med = median(S.lat) / 1000 || .9;
+  let keep = keepThrough;
+  const nb = keepThrough + 1, nbStart = estStart(nb);
+  if (S.bars.has(nb) && nbStart - now < med + .5) keep = nb;
+  for (const b of [...S.bars.keys()]) if (b > keep) S.bars.delete(b);
+  S.decidedUpTo = Math.min(S.decidedUpTo, keep);
+  const nextP = Math.floor(keep / 4) + 1;
+  for (const p of [...S.phrases.keys()]) if (p >= nextP && p * 4 > keep) S.phrases.delete(p);
+  const heard = keep + 2;
+  $("steernote").innerHTML = "";
+  const b = document.createElement("b"); b.textContent = "“" + text + "”";
+  $("steernote").append("Sent ", b, ` · ${mode === "jev" ? "Jev re-decides" : "the dice re-roll"} everything from bar ${heard}; section, style and key changes land at the next phrase.`);
+  logLine(`request at bar ${Math.max(1, S.playingBar + 1)}: “${text}”`);
+}
+function estStart(b){
+  if (S.barStart.has(b)) return S.barStart.get(b);
+  let last = -1; for (const k of S.barStart.keys()) if (k < b && k > last) last = k;
+  if (last < 0) return Infinity;
+  const ph = phraseOfBar(last) || [...S.phrases.values()].pop();
+  return S.barStart.get(last) + (b - last) * barDurOf(ph);
+}
+const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+
+// ============================================================ scheduler
+let schedTimer = 0;
+function ensureBar(b){
+  if (S.bars.has(b)) return S.bars.get(b);
+  const p = Math.floor(b / 4);
+  if (!S.phrases.has(p)) S.phrases.set(p, phraseCarry(p));
+  const prev = S.bars.get(b - 1);
+  const choices = prev ? { ...prev.choices } : {};
+  const bar = buildBar(b, choices, { by: "held", probs: null, ms: 0 });
+  S.bars.set(b, bar); S.late++;
+  logLine(`bar ${b + 1}: no answer in time, holding the previous parts over ${bar.chord.symbol}`, "late");
+  return bar;
+}
+function scheduleBar(b, start){
+  const bar = ensureBar(b), ph = phraseOfBar(b), dur = barDurOf(ph);
+  bar.start = start; bar.dur = dur;
+  for (const L of LAYERS){
+    for (const h of bar.haps[L]){
+      const t = start + (h.b0 - b) * dur;
+      if (t < engine.ctx.currentTime - .01) continue;
+      try { engine.play(h.v, t, (h.b1 - h.b0) * dur, dur); } catch (e){ console.warn("play", e); }
+    }
+  }
+  S.scheduledUpTo = b;
+  S.barStart.set(b + 1, start + dur);
+}
+function schedTick(){
+  if (!S || !S.running || !engine) return;
+  const now = engine.ctx.currentTime;
+  while (S.barStart.has(S.playingBar + 1) && S.barStart.get(S.playingBar + 1) <= now && S.playingBar + 1 <= S.scheduledUpTo){ S.playingBar++; onBarChange(); }
+  const margin = document.hidden ? 1.6 : .4;
+  let guard = 0;
+  while (guard++ < 3){
+    const b = S.scheduledUpTo + 1;
+    let start = S.barStart.get(b);
+    if (start === undefined) break;
+    if (start - now > margin) break;
+    if (start < now + .02){ start = now + .05; S.barStart.set(b, start); }
+    scheduleBar(b, start);
+  }
+}
+
+// ============================================================ transport
+async function startPlay(){
+  if (S && S.running) return;
+  try { engine = new Engine(); await engine.ctx.resume(); }
+  catch (e){ setConn("err", "This browser could not start audio: " + e.message); return; }
+  S = freshState(); S.running = true;
+  $("play").textContent = "■ Stop"; $("play").dataset.on = "1"; $("onair").dataset.on = "1";
+  $("stagehint").textContent = mode === "jev" ? "Jev is choosing the opening…" : "Rolling the opening…";
+  $("log").innerHTML = ""; renderStats();
+  decider();
+  const t0 = Date.now();
+  while (S.running && !(S.bars.has(0) && (S.bars.has(1) || mode === "random"))){
+    await sleep(40);
+    if (mode === "jev" && Date.now() - t0 > 3500) $("stagehint").textContent = "Waiting for Jev's first answer. The first call asks you to allow Muninn for this page.";
+    if (Date.now() - t0 > 90000){ setConn("err", "Jev did not answer within 90 s. Switched to random dice."); setMode("random", true); }
+  }
+  if (!S.running) return;
+  S.barStart.set(0, engine.ctx.currentTime + .25);
+  $("stagehint").textContent = "";
+  clearInterval(schedTimer); schedTimer = setInterval(schedTick, 30); schedTick();
+}
+function stopPlay(){
+  if (!S) return;
+  S.running = false; clearInterval(schedTimer);
+  const eng = engine; engine = null;
+  if (eng){ try { eng.master.gain.setTargetAtTime(0, eng.ctx.currentTime, .05); } catch (e){} setTimeout(() => eng.ctx.close().catch(() => {}), 400); }
+  $("play").textContent = "▶ Play"; $("play").dataset.on = "0"; $("onair").dataset.on = "0";
+  $("stagehint").textContent = "Stopped. Press Play for a new set.";
+  $("clock").textContent = "bar – · beat –";
+}
+$("play").onclick = () => (S && S.running) ? stopPlay() : startPlay();
+
+function setMode(m, forced){
+  if (m === "jev" && !mcp){ setConn("err", "Jev needs the Muninn connector, which this view cannot reach. Open the page in claude.ai with Muninn connected."); m = "random"; }
+  mode = m;
+  $("mode-jev").setAttribute("aria-pressed", String(m === "jev")); $("mode-random").setAttribute("aria-pressed", String(m === "random"));
+  if (!forced && S && S.running){ steerSilent(); }
+  if (S) updateLookahead();
+}
+function steerSilent(){ // chooser changed mid-set: re-decide what has not been locked
+  S.gen++;
+  for (const b of [...S.bars.keys()]) if (b > S.scheduledUpTo) S.bars.delete(b);
+  S.decidedUpTo = Math.min(S.decidedUpTo, S.scheduledUpTo);
+}
+$("mode-jev").onclick = () => setMode("jev");
+$("mode-random").onclick = () => setMode("random");
+$("temp").oninput = e => $("tempv").textContent = (e.target.value / 100).toFixed(2);
+const opening = $("opening");
+[["jev","Let the chooser pick"], ...STYLE_IDS.map(id => [id, STYLES[id].name])].forEach(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; opening.append(o); });
+QUICK.forEach(([label, text]) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.onclick = () => steer(text); $("quick").append(b); });
+$("steerform").addEventListener("submit", e => { e.preventDefault(); steer($("steertext").value); $("steertext").value = ""; });
+
+function setConn(kind, text){ $("conn").dataset.kind = kind; $("conntext").textContent = text; }
+function logLine(text, cls){
+  if (!S) return;
+  const d = document.createElement("div"); if (cls) d.className = cls; d.textContent = text;
+  const log = $("log"); log.prepend(d); while (log.children.length > 60) log.lastChild.remove();
+}
+function renderStats(){
+  $("s-calls").textContent = S.calls;
+  $("s-lat").textContent = S.lat.length ? median(S.lat) + " ms" : "–";
+  $("s-late").textContent = S.late;
+  $("s-cost").textContent = "$" + S.cost.toFixed(4);
+}
+
+// ============================================================ panels
+const LCOL = { drums:"var(--drums)", bass:"var(--bass)", harmony:"var(--harmony)", lead:"var(--lead)", texture:"var(--texture)" };
+function strudelCode(bar){
+  const ph = S.phrases.get(bar.p), st = STYLES[ph.style];
+  const lines = [`// bar ${bar.b + 1} · ${st.name} · ${keyLabel(ph.key)} · ${bar.chord.symbol} · ${ph.section}`, `setcpm(${st.bpm}/4)`, ""];
+  for (const L of LAYERS){ if (bar.codes[L] === "silence") continue; lines.push(`$${L}: ${bar.codes[L]}`); }
+  return lines.join("\n");
+}
+function renderCode(bar){
+  const code = strudelCode(bar);
+  const pre = $("code"); pre.innerHTML = "";
+  code.split("\n").forEach((ln, i) => { const span = document.createElement("span"); if (ln.startsWith("//")) span.className = "c"; span.textContent = ln + "\n"; pre.append(span); });
+  $("code-title").textContent = "bar " + (bar.b + 1);
+  try { $("openstrudel").href = "https://strudel.cc/#" + btoa(unescape(encodeURIComponent(code))); } catch (e){}
+  $("copycode").onclick = async () => { try { await navigator.clipboard.writeText(code); $("copycode").textContent = "Copied"; } catch (e){ const r = document.createRange(); r.selectNodeContents(pre); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); $("copycode").textContent = "Selected"; } setTimeout(() => $("copycode").textContent = "Copy code", 1400); };
+}
+function dots(e){ return "●".repeat(e) + "○".repeat(4 - e); }
+function renderDecision(bar){
+  const ph = S.phrases.get(bar.p);
+  const who = bar.by === "jev" ? `chosen by Jev in ${bar.ms} ms` : bar.by === "dice" ? "rolled by random dice" : "held: no answer in time";
+  $("dec-title").textContent = `bar ${bar.b + 1} · ${who}`;
+  // phrase block
+  const pb = $("phrase"); pb.innerHTML = "";
+  const pv = (label, text, alts) => { const d = document.createElement("div"); d.className = "pq";
+    const l = document.createElement("span"); l.className = "label"; l.textContent = label;
+    const p = document.createElement("div"); p.className = "pick"; p.textContent = text;
+    d.append(l, p); if (alts){ const a = document.createElement("div"); a.className = "alts"; a.textContent = alts; d.append(a); } pb.append(d); };
+  const alt = (q) => { const pr = ph.probs && ph.probs[q]; if (!pr) return ph.by === "held" ? "carried over" : ""; const top = Object.entries(pr.pr).sort((a, b) => b[1] - a[1]);
+    const mine = pr.pr[pr.pick]; const others = top.filter(([k]) => k !== pr.pick).slice(0, 2).map(([k, v]) => `${k.split(":")[0].replace(/\s*\(.*$/, "").trim()} ${v.toFixed(2)}`);
+    return `${ph.by === "jev" ? "Jev" : "dice"} ${mine.toFixed(2)} · next best: ${others.join(", ")}`; };
+  pv(`Section · phrase ${ph.p + 1}`, ph.section, alt("section"));
+  pv("Progression", ph.chords.map(c => c.symbol).join(" – ") + "  (" + ph.prog[1] + ")", alt("progression"));
+  pv("Style", STYLES[ph.style].name + " · " + STYLES[ph.style].bpm + " BPM", ph.probs && ph.probs.style ? alt("style") : (ph.p === 0 ? "set by the opening menu" : ""));
+  pv("Next phrase's key", keyLabel(ph.nextKey || ph.key), alt("nextkey"));
+  // layers
+  const box = $("layers"); box.innerHTML = "";
+  for (const L of LAYERS){
+    const d = document.createElement("div"); d.className = "layer"; d.style.color = LCOL[L];
+    const head = document.createElement("div"); head.className = "lhead";
+    const nm = document.createElement("span"); nm.className = "lname"; nm.textContent = L;
+    const note = document.createElement("span"); note.className = "lnote";
+    head.append(nm, note); d.append(head);
+    const pr = bar.probs && bar.probs[L];
+    if (!pr){ note.textContent = "held from the previous bar"; const o = optById.get(bar.choices[L]); const row = document.createElement("div"); row.className = "opt won"; row.innerHTML = '<span class="bar"><i style="width:100%"></i></span><span class="d"></span><span class="p">held</span>'; row.querySelector(".d").textContent = o.desc; d.append(row); box.append(d); continue; }
+    const entries = Object.entries(pr.pr).sort((a, b) => b[1] - a[1]);
+    note.textContent = bar.by === "jev" ? (pr.pick === entries[0][0] ? "took the top pick" : "sampled below the top pick") : "uniform dice";
+    for (const [lab, p] of entries){
+      const o = optById.get(pr.map[lab]);
+      const row = document.createElement("div"); row.className = "opt" + (lab === pr.pick ? " won" : "");
+      row.innerHTML = '<span class="bar"><i></i></span><span class="d"></span><span class="p"></span>';
+      row.querySelector("i").style.width = Math.max(1.5, p * 100) + "%";
+      row.querySelector(".d").textContent = o.desc;
+      row.querySelector(".d").title = o.desc;
+      const pe = row.querySelector(".p"); pe.textContent = p.toFixed(2) + "  "; const en = document.createElement("span"); en.className = "energy"; en.textContent = dots(o.e); pe.append(en);
+      d.append(row);
+    }
+    box.append(d);
+  }
+}
+function onBarChange(){
+  const bar = S.bars.get(S.playingBar); if (!bar) return;
+  const ph = S.phrases.get(bar.p), st = STYLES[ph.style];
+  $("r-style").textContent = st.name; $("r-key").textContent = keyLabel(ph.key); $("r-bpm").textContent = st.bpm + " BPM";
+  $("r-sec").textContent = ph.section; $("r-chord").textContent = bar.chord.symbol; $("r-prog").textContent = ph.chords.map(c => c.symbol).join(" ");
+  renderDecision(bar); renderCode(bar); renderStats();
+  S.requests = S.requests.filter(r => S.playingBar - r.bar <= HORIZON);
+}
+
+// ============================================================ stage
+const cv = $("stage"), g2 = cv.getContext("2d");
+let W = 0, H = 0, DPR = 1;
+function fit(){ const r = cv.getBoundingClientRect(); DPR = window.devicePixelRatio || 1; W = r.width; H = r.height; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); }
+const LANE = [["drums",.2],["bass",.18],["harmony",.22],["lead",.24],["texture",.16]];
+const RANGE = { bass:[24,55], harmony:[48,79], lead:[55,91], texture:[40,96] };
+const HEX = { drums:"#f4a259", bass:"#ef6f6c", harmony:"#56c7b5", lead:"#f1df8a", texture:"#a893f5" };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let lvl = 0;
+function nowBarPos(){
+  if (!S || !S.running || !engine || S.playingBar < 0) return null;
+  const b = S.playingBar, st = S.barStart.get(b), bar = S.bars.get(b); if (st === undefined || !bar) return null;
+  return b + Math.max(0, Math.min(1.2, (engine.ctx.currentTime - st) / (bar.dur || 2)));
+}
+function hapMidi(v){ if (v.note !== undefined) return typeof v.note === "number" ? v.note : core.noteToMidi(String(v.note)); return null; }
+function draw(){
+  requestAnimationFrame(draw);
+  if (!W) return;
+  const g = g2; g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const labelW = W < 560 ? 58 : 84, top = 24, laneH = H - top - 6;
+  let pos = nowBarPos();
+  const preview = pos === null;
+  if (preview) pos = S && S.preview ? 0.9 : 0.9;
+  const pxBar = (W - labelW) / (W < 560 ? 2.8 : 4.2), playX = labelW + pxBar * (W < 560 ? .7 : 1.15);
+  const X = (bp) => playX + (bp - pos) * pxBar;
+  // backdrop
+  g.fillStyle = "#08090e"; g.fillRect(0, 0, W, H);
+  if (engine && !preview){ const r = engine.rms(); lvl = lvl * .85 + r * .15; }
+  else lvl *= .95;
+  const curBar = S && S.bars.get(Math.floor(pos)), curPh = curBar && S.phrases.get(curBar.p);
+  const energy = curPh ? SECTION[curPh.section].e : 1;
+  const hue = [190, 175, 160, 330, 345][energy] || 190;
+  const glow = g.createRadialGradient(playX, H * .55, 10, playX, H * .55, Math.max(W, H) * (.35 + lvl * 2.5));
+  glow.addColorStop(0, `hsla(${hue},80%,55%,${.10 + Math.min(.28, lvl * 1.6)})`); glow.addColorStop(1, "hsla(0,0%,0%,0)");
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  // lanes
+  let y = top; const lanes = {};
+  for (const [L, frac] of LANE){ const h = laneH * frac; lanes[L] = [y, h]; g.fillStyle = "rgba(255,255,255,.018)"; g.fillRect(labelW, y + 1, W - labelW, h - 2); y += h; }
+  // bars
+  const b0 = Math.floor(pos) - 2, b1 = Math.floor(pos) + 5;
+  for (let b = b0; b <= b1; b++){
+    if (b < 0) continue;
+    const x0 = X(b), x1 = X(b + 1); if (x1 < labelW || x0 > W) continue;
+    const bar = S && S.bars.get(b);
+    g.strokeStyle = b % 4 === 0 ? "rgba(255,255,255,.28)" : "rgba(255,255,255,.08)"; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(Math.round(x0) + .5, top - 4); g.lineTo(Math.round(x0) + .5, H); g.stroke();
+    for (let q = 1; q < 4; q++){ const xq = X(b + q / 4); g.strokeStyle = "rgba(255,255,255,.035)"; g.beginPath(); g.moveTo(Math.round(xq) + .5, top); g.lineTo(Math.round(xq) + .5, H); g.stroke(); }
+    g.font = "600 10.5px 'JetBrains Mono', monospace"; g.textBaseline = "middle";
+    if (!bar){
+      if (b > pos - 1){
+        g.save(); g.beginPath(); g.rect(Math.max(labelW, x0), top, x1 - Math.max(labelW, x0), laneH); g.clip();
+        g.strokeStyle = "rgba(255,255,255,.05)"; for (let k = -H; k < pxBar + H; k += 10){ g.beginPath(); g.moveTo(x0 + k, top); g.lineTo(x0 + k + laneH, top + laneH); g.stroke(); }
+        g.restore();
+        if (b === (S ? Math.max(S.decidedUpTo, S.scheduledUpTo) + 1 : -9) && S && S.running){ g.fillStyle = "rgba(238,236,245,.55)"; g.fillText(mode === "jev" ? "Jev choosing…" : "rolling…", x0 + 8, top + laneH / 2); }
+      }
+      continue;
+    }
+    const ph = S.phrases.get(bar.p);
+    g.fillStyle = "rgba(238,236,245,.75)";
+    g.fillStyle = "rgba(238,236,245,.38)"; g.fillText(String(b + 1), x0 + 6, 11);
+    const nw = g.measureText(String(b + 1) + "  ").width;
+    g.fillStyle = "rgba(238,236,245,.85)";
+    g.fillText(bar.chord.symbol + (b % 4 === 0 ? `   ${ph.section.toUpperCase()} · ${STYLES[ph.style].name} · ${keyLabel(ph.key)}` : ""), x0 + 6 + nw, 11);
+    if (bar.by === "held"){ g.setLineDash([4, 4]); g.strokeStyle = "rgba(244,162,89,.6)"; g.strokeRect(x0 + 2, top + 2, pxBar - 4, laneH - 4); g.setLineDash([]); g.fillStyle = "rgba(244,162,89,.8)"; g.fillText("held", x0 + 8, H - 12); }
+    for (const [L] of LANE){
+      const [ly, lh] = lanes[L], haps = bar.haps[L]; if (!haps) continue;
+      for (const h of haps){
+        const hx0 = X(h.b0), hx1 = Math.max(hx0 + 3, X(h.b1) - 1); if (hx1 < labelW || hx0 > W) continue;
+        const active = pos >= h.b0 && pos < h.b1, past = h.b1 <= pos;
+        const amp = Math.min(1, (h.v.gain ?? 1) * (h.v.velocity ?? 1));
+        let yy, hh;
+        if (L === "drums"){ const row = DRUM_ROW[h.v.s] ?? 2; hh = lh / 5 - 3; yy = ly + row * lh / 5 + 1.5; }
+        else { const m = hapMidi(h.v); const [lo, hi] = RANGE[L];
+          if (m === null || !isFinite(m)){ hh = lh * .3; yy = ly + lh * .35; }
+          else { const f = (Math.min(hi, Math.max(lo, m)) - lo) / (hi - lo); hh = Math.max(3, lh / (hi - lo) * 2.2); yy = ly + (1 - f) * (lh - hh - 2) + 1; } }
+        const w = L === "drums" ? Math.min(hx1 - hx0, Math.max(4, pxBar / 20)) : hx1 - hx0;
+        g.globalAlpha = (past ? .28 : active ? 1 : .62) * (.45 + .55 * amp);
+        if (active && !reduced){ g.shadowColor = HEX[L]; g.shadowBlur = 14; }
+        g.fillStyle = HEX[L];
+        g.fillRect(Math.max(labelW, hx0), yy - (active ? 1 : 0), Math.min(w, hx0 + w - Math.max(labelW, hx0)), hh + (active ? 2 : 0));
+        g.shadowBlur = 0; g.globalAlpha = 1;
+      }
+    }
+  }
+  // playhead
+  g.fillStyle = "rgba(255,92,138,.9)"; g.fillRect(Math.round(playX), top - 6, 2, H - top + 6);
+  // labels
+  g.fillStyle = "#0c0d13"; g.fillRect(0, 0, labelW, H);
+  g.textBaseline = "middle";
+  for (const [L] of LANE){ const [ly, lh] = lanes[L]; g.fillStyle = HEX[L]; g.font = `700 ${W < 560 ? 10 : 11}px 'JetBrains Mono', monospace`; g.fillText(L.toUpperCase(), 10, ly + lh / 2); }
+  if (S && S.running && S.playingBar >= 0){ const beat = Math.floor((pos % 1) * 4) + 1; $("clock").textContent = `bar ${S.playingBar + 1} · beat ${beat}`; }
+}
+window.addEventListener("resize", fit);
+
+// ============================================================ preview + boot
+function preview(){
+  S = freshState(); S.preview = true;
+  const ph = makePhrase(0, "house", { tonic: 9, mode: "minor" }, "groove", 0, { tonic: 9, mode: "minor" });
+  ph.by = "dice"; S.phrases.set(0, ph);
+  const pick = ["h-d2","h-b1","h-h1","h-l1","h-t2"], alt = ["h-d3","h-b3","h-h3","h-l4","h-t2"];
+  for (let b = 0; b < 4; b++){ const src = b % 2 ? alt : pick; const ch = Object.fromEntries(LAYERS.map((L, i) => [L, src[i]]));
+    const probs = {}; for (const L of LAYERS){ const opts = STYLES.house.layers[L]; const map = {}; opts.forEach((o, i) => map[String.fromCharCode(65 + i) + ") " + o.desc] = o.id);
+      const lab = Object.keys(map).find(k => map[k] === ch[L]); probs[L] = { pr: uniform(Object.keys(map)), pick: lab, map }; }
+    S.bars.set(b, buildBar(b, ch, { by: "dice", probs, ms: 0 })); }
+  S.decidedUpTo = 3;
+  const bar = S.bars.get(0);
+  $("r-style").textContent = "House"; $("r-key").textContent = "A minor"; $("r-bpm").textContent = "122 BPM"; $("r-sec").textContent = "groove"; $("r-chord").textContent = bar.chord.symbol; $("r-prog").textContent = ph.chords.map(c => c.symbol).join(" ");
+  renderDecision(bar); renderCode(bar);
+  $("dec-title").textContent = "preview · bar 1 · random, not Jev";
+}
+window.__jevlive = { STYLES, LAYERS, fillTemplate, chordOf, compile, PROGS, keyMoves, buildBar, stateText, barQuestions, phraseQuestions, get S(){ return S; }, get mode(){ return mode; } };
+fit(); preview(); requestAnimationFrame(draw);
+
+(async () => {
+  let use = null;
+  try { use = window.claude && window.claude.use ? window.claude.use("mcp") : null; } catch (e){ use = null; }
+  mcp = use ? await use.catch(() => null) : null;
+  if (!mcp){ setConn("warn", "The Muninn connector isn't reachable in this view, so Jev can't choose. Random dice still plays. Open the page in claude.ai with Muninn connected to hear Jev."); setMode("random", true); return; }
+  setConn("ok", "Muninn connector found. Press Play; the first call asks you to allow it for this page.");
+})();
+})();
+</script>

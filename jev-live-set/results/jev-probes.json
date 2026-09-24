@@ -1,0 +1,319 @@
+{
+ "round1_quiz": {
+  "self_report": {
+   "theory": {
+    "score": 1.34,
+    "p": {
+     "none": 0.1,
+     "basic": 0.5,
+     "competent": 0.36,
+     "expert": 0.04
+    }
+   },
+   "strudel": {
+    "score": 1.69,
+    "p": {
+     "none": 0.05,
+     "basic": 0.35,
+     "competent": 0.47,
+     "expert": 0.13
+    }
+   },
+   "choose_next_bar": {
+    "score": 1.51,
+    "p": {
+     "none": 0.13,
+     "basic": 0.34,
+     "competent": 0.42,
+     "expert": 0.11
+    }
+   },
+   "noul_predict_snippet_sound": 0.53
+  },
+  "theory": [
+   [
+    "V of A harmonic minor",
+    "E major",
+    1.0,
+    true
+   ],
+   [
+    "leading tone of C",
+    "B",
+    1.0,
+    true
+   ],
+   [
+    "ii-V-I in C",
+    "Dm-G-C",
+    1.0,
+    true
+   ],
+   [
+    "F major triad",
+    "F A C",
+    0.99,
+    true
+   ],
+   [
+    "relative minor of Eb",
+    "C minor",
+    0.97,
+    true
+   ],
+   [
+    "C up to G",
+    "perfect fifth",
+    1.0,
+    true
+   ],
+   [
+    "strongest cadence in A minor",
+    "E7 -> Am",
+    1.0,
+    true
+   ],
+   [
+    "deceptive cadence",
+    "V -> vi",
+    1.0,
+    true
+   ],
+   [
+    "tritone sub of G7",
+    "Db7",
+    0.94,
+    true
+   ],
+   [
+    "minor with raised 6th",
+    "Dorian",
+    0.81,
+    true
+   ],
+   [
+    "6/8 felt as",
+    "two dotted-quarter beats",
+    1.0,
+    true
+   ]
+  ],
+  "strudel": [
+   [
+    "s(\"bd*4\")",
+    "four hits per cycle",
+    0.86,
+    true
+   ],
+   [
+    "note(\"c e g\").slow(2)",
+    "stretched over two cycles",
+    0.99,
+    true
+   ],
+   [
+    "\"<c e g>\"",
+    "one per cycle, alternating",
+    0.64,
+    true
+   ],
+   [
+    "\"[c,e,g]\"",
+    "chord",
+    0.59,
+    true
+   ],
+   [
+    "~",
+    "rest",
+    0.94,
+    true
+   ],
+   [
+    "hh(3,8)",
+    "euclidean 3 over 8",
+    0.97,
+    true
+   ],
+   [
+    "n(\"0 2 4\").scale(\"C:minor\")",
+    "C, D, Eb (correct: C, Eb, G)",
+    0.89,
+    false
+   ],
+   [
+    "bd?",
+    "50% probability",
+    0.99,
+    true
+   ],
+   [
+    ".jux(rev)",
+    "original one channel, reversed the other",
+    0.99,
+    true
+   ],
+   [
+    "stack vs +/chain/cat",
+    "stack",
+    0.8,
+    true
+   ],
+   [
+    "setcpm(30)",
+    "30 cycles per minute",
+    0.87,
+    true
+   ]
+  ],
+  "next_bar_clear": [
+   [
+    "techno build drums",
+    "snare roll with rising gain",
+    0.91,
+    true
+   ],
+   [
+    "bass over Am",
+    "a1 a1 c2 e2",
+    0.96,
+    true
+   ],
+   [
+    "ambient lead",
+    "slow sine, long release, room",
+    1.0,
+    true
+   ],
+   [
+    "house variety, same energy",
+    "same groove + snare fill",
+    0.98,
+    true
+   ],
+   [
+    "keys over F",
+    "[f3,a3,c4]",
+    0.91,
+    true
+   ]
+  ]
+ },
+ "round2_plausible_and_design": {
+  "code_only_F_chord": {
+   "pick": "n(\"[5,7,9]\").scale(\"A3:minor\") (correct)",
+   "p": 0.46,
+   "others": [
+    0.22,
+    0.2,
+    0.12
+   ]
+  },
+  "described_F_chord": {
+   "pick": "F A C (correct)",
+   "p": 1.0
+  },
+  "steer_more_movement_not_louder": {
+   "bass": [
+    "walking, same volume",
+    1.0
+   ],
+   "drums": [
+    "syncopated hats + ghost snare, same volume",
+    1.0
+   ],
+   "keys": [
+    "soft broken-chord arpeggio",
+    1.0
+   ]
+  },
+  "design": {
+   "granularity": [
+    "every bar for rhythm layers, every 4 bars for harmony/section",
+    0.81
+   ],
+   "visual": [
+    "lane score + rejected options with probabilities + audio-reactive backdrop",
+    1.0
+   ],
+   "steering": [
+    "free text + quick buttons",
+    0.99
+   ],
+   "breadth": [
+    "keep one key and one style",
+    0.67,
+    "overridden: Oskar asked for less constraint"
+   ]
+  }
+ },
+ "round3_live_requests": {
+  "note": "page-generated requests sent to the real gateway from the session",
+  "opening_phrase": {
+   "section": [
+    "intro",
+    0.99
+   ],
+   "progression": [
+    "i VI III VII (Am F C G)",
+    0.42
+   ],
+   "style": [
+    "Techno",
+    0.51,
+    "Ambient .29"
+   ],
+   "nextkey": [
+    "stay in A minor",
+    0.9
+   ]
+  },
+  "dub_outro_bar_no_request": {
+   "drums": [
+    "drums drop out except an echoing rimshot",
+    0.92
+   ],
+   "bass": [
+    "one low note, then silence",
+    0.57
+   ],
+   "harmony": [
+    "skank with echo trails",
+    0.5
+   ],
+   "lead": [
+    "silent",
+    0.78
+   ],
+   "texture": [
+    "silent",
+    0.6
+   ],
+   "expected_drum_energy": 1.02
+  },
+  "dub_outro_bar_more_energy": {
+   "drums": [
+    "one drop",
+    0.33
+   ],
+   "bass": [
+    "deep dub bassline",
+    0.47
+   ],
+   "harmony": [
+    "skank with echo trails",
+    0.37
+   ],
+   "lead": [
+    "melodica-style phrase",
+    0.51
+   ],
+   "texture": [
+    "spring-reverb crash",
+    0.51
+   ],
+   "expected_drum_energy": 2.09
+  },
+  "input_tokens_per_bar_call": 1400
+ }
+}

@@ -1,0 +1,2 @@
+{ "private": true, "dependencies": { "@strudel/core": "1.2.6", "@strudel/mini": "1.2.6", "@strudel/tonal": "1.2.6" }, "devDependencies": { "esbuild": "^0.25.0" },
+  "scripts": { "build": "esbuild entry.mjs --bundle --format=iife --global-name=StrudelLib --minify --alias:@kabelsalat/web=./stub/kabel.mjs --alias:webmidi=./stub/kabel.mjs --outfile=../strudel-lib.js" } }
