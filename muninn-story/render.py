@@ -675,7 +675,7 @@ if __name__ == "__main__":
                                "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-i", "mix.wav",
                                "-c:v", "libx264", "-preset", "slow", "-crf", "19", "-pix_fmt", "yuv420p",
                                "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", "48000", "-c:a", "aac", "-b:a", "192k",
-                               "-shortest", "-movflags", "+faststart", "muninn.mp4"], stdin=subprocess.PIPE)
+                               "-shortest", "-movflags", "+faststart", os.environ.get("MUNINN_OUT", "muninn.mp4")], stdin=subprocess.PIPE)
         with Pool(4) as pool:
             for k, b in enumerate(pool.imap(frame_bytes, range(n), chunksize=6)):
                 ff.stdin.write(b)
