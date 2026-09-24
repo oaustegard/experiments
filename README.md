@@ -26,6 +26,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`lensvlm-select-expand/`](lensvlm-select-expand/RESULTS.md) | 2026-09-24 | **done — Apple LensVLM's select-then-expand (scan a document as compressed page thumbnails, commit, then read chosen pages as text) on 20 HotpotQA docs at 5/10/15x. Opus 5.5 ranks the evidence page first 100/90/70% vs Sonnet 5's 75/15/5%, and its expansions reach evidence 100/100/95% vs 85/40/30%, on identical pixels (both models have the same 2576 px limit). Expansion adds +10 to +20 pp for Sonnet and nothing for Opus, which reads 5x text outright; answer accuracy is mostly memory (closed-book 85% Opus, 75% Sonnet), and at 10x/15x Sonnet's image-only answers fall 20 pp below its closed-book** | [`RESULTS.md`](lensvlm-select-expand/RESULTS.md) + `build_data.py` + `lens.py` + `score.py` + `runs/*/ledger.jsonl` + `examples/` | Oskar: *"try the select-then-expand pattern with Sonnet AND opus 5.5 in experiments as Opus has higher image viewing fidelity"*; paper review in memory `cdda7027` |
 | [`muninn-story/`](muninn-story/README.md) | 2026-09-24 | **done — Muninn tells its own story in a 2:14 film: ten scenes from Odin's ravens and Grímnismál 20 to boot, the ledger, a misdated backup and the flight home. Voice is a Kokoro style blend (0.65 bm_fable + 0.35 bm_lewis) chosen by measuring 12 voices, Whisper-checked at ~3% WER; score synthesized in numpy (dorian drone, Karplus-Strong lyre in the gaps between lines); procedural raven in pycairo. Final card carries memory `a02962bc`. Re-narrated the same day as `muninn-gemini.mp4` (2:31) with Gemini 3.8 Flash TTS in a designed voice (`voice_66w0iod1i7ol`), best-of-four takes per line by Whisper WER (0.007 overall); card `2a3d1ccb`** | [`README.md`](muninn-story/README.md) + `narrate.py` + `narrate_gemini.py` + `music.py` + `render.py` + `voices.py` + `voices_gemini.py` + [`muninn.mp4`](muninn-story/muninn.mp4) + [`muninn-gemini.mp4`](muninn-story/muninn-gemini.mp4) | Oskar: *"Tell your story in the form of a short video. Fly!"*; then *"worth trying re-narrating your video … using [Gemini 3.8 TTS]"* |
 | [`geezer-goon-video/`](geezer-goon-video/README.md) | 2026-09-24 | **done — 4:09 animated music video for Oskar's Wednesday-ride song, pycairo frames + ffmpeg, lyrics timed from the song file's embedded subtitle track; video is `geezer-goon-720p.mp4`** | [`README.md`](geezer-goon-video/README.md) + `render.py` + `analyze.py` + [`geezer-goon-720p.mp4`](geezer-goon-video/geezer-goon-720p.mp4) | Oskar: *"Can you make an animated music video for this?"* |
 | [`jev-live-set/`](jev-live-set/RESULTS.md) | 2026-09-24 | **done — Jev rated itself basic-to-competent on music theory (1.3/3) and Strudel (1.7/3) but scored 11/11 on theory, 10/11 on Strudel syntax (missed scale degrees at p 0.89) and 8/8 on next-bar choices; given an F chord as `n().scale()` code it was near chance (0.46), given the note names 1.00, so options reach Jev as descriptions and code fills the notes. Built an artifact that plays an endless set: six styles, five layers chosen per bar, section/progression/style/next key per phrase, real Strudel 1.2.6 patterns on a page-written Web Audio synth, a lane score with each option's probability, free-text steering. All 101,376 option×key×chord combinations compile; mock-connector runs held 0 bars; on real Jev a "more energy" request moved expected drum energy from 1.02 to 2.09 in an outro bar. Audio and the in-claude.ai connector path not verified** | [`RESULTS.md`](jev-live-set/RESULTS.md) + `page.src.html` + `build.py` + `harness.py` + `bundle/` + `results/jev-probes.json` | Oskar: *"ask Jev its confidence in its knowledge of music theory and Strudel ... work with Jev to come up with an artifact that can play a live stream of music in which Jev makes the choices"*; successor to `jev-hymnal/`. |
@@ -137,6 +138,22 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `lensvlm-select-expand/` — scanning thumbnails, then reading chosen pages
+
+LensVLM (arXiv 2605.07019) renders a long text as low-resolution page images,
+lets the model pick a page, and returns that page's text. Its Appendix 9 ran
+the pattern untrained on Sonnet 4.6 for +4.8 to +9 pp. Here each of 20
+HotpotQA documents (17 pages, ~8k tokens) is one contact sheet sized to
+5/10/15x compression under Claude's image-token formula, and a `lens.py` ledger
+forces commit-before-expand. The two halves of the pattern separate cleanly.
+Selection is where Opus 5.5 and Sonnet 5 differ: first-ranked page correct
+100/90/70% against 75/15/5%. Expansion is where the benchmark stops measuring
+anything: both models answer most HotpotQA questions from memory, so only 3 to
+5 documents per model test reading. Opus reads the 5x sheet directly and gains
+nothing from expanding; Sonnet gains 10 to 20 pp and loses answers it knew when
+shown a sheet it cannot read. Next step, if any: a post-cutoff corpus, as the
+paper used, so accuracy measures reading.
 
 ### `jev-tag-encoder/` — Jev Nouls over a fixed 256-tag taxonomy as a document vector
 

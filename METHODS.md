@@ -639,6 +639,18 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **Claude Code's Read tool caps images at 2000 x 2000 px for every current
+  model, below the API's 2576 px, and bills vision as `ceil(W/28) *
+  ceil(H/28)` tokens.** Both constants are in the CLI binary's model table
+  (`image_limits`, `Me=28`). Keep a subagent's images under 2000 px on the long
+  edge or it sees a resized copy, and remember that Sonnet 5 and Opus 5.5 share
+  one limit, so a "higher fidelity" difference between them is perceptual.
+  (`lensvlm-select-expand/RESULTS.md` Method)
+- **A subagent that is an eval participant needs `[no-context]` in its
+  prompt.** The workspace's `delegating-with-context` PreToolUse hook appends
+  whatever parts of the parent transcript it judges relevant, and a parent that
+  has printed gold labels (a build log, a manifest) can hand them to the
+  subject. (`lensvlm-select-expand/agent_prompt.md`)
 - **A `nohup` driver does not survive the container restart that the next user
   message can trigger — about a minute after the turn ends, every background
   process is gone.** The `embedding-inversion` driver died at step 50 of its first
@@ -2250,6 +2262,14 @@ the result.
   sign bit, and F1 at 0.5 was identical under every code. (`jev-tag-encoder/quant_eval.py`)
 
 ## Cache and measurement hygiene
+
+- **Run a closed-book arm before scoring document QA on a Wikipedia-derived
+  set.** On 20 hard HotpotQA questions with no document, Opus 5.5 answered 17
+  and Sonnet 5 answered 15, so only 3 to 5 questions tested reading at all, and
+  a "reads compressed images" result would have been mostly memory. The same
+  arm exposed the reverse effect: shown a sheet it could not read, Sonnet got 4
+  questions wrong that it answers right closed-book.
+  (`lensvlm-select-expand/RESULTS.md` Findings 2, 5)
 
 - **A retry needs the failed artifact and the failure output, not the failed model's
   explanation of itself.** Two contradictory claims exist about what to hand a retry: the

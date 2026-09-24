@@ -1,0 +1,22 @@
+# Closed-book questions
+
+- h00: Which building is taller Bertelsmann Building or 432 Park Avenue?
+- h01: Who was the final champion of the Thailand Masters that was from Hong Kong?
+- h02: Which swiss watch company was forced to merge by the swiss banks in 1983?
+- h03: Since what historic period has the area known for its Crottin de Chavignol goat cheese been inhabited?
+- h04: Where is the first major improved highway located?
+- h05: Mariana Kovacevic used horse placenta treatment to heal the captian of what team?
+- h06: Who commanded the Anglo-Canadian 21st Army Group and was nicknamed "Monty"?
+- h07: What team had Tony Roberts replaced by an American sportscaster from Buffalo, New York when he retired?
+- h08: What sport do The Basham Brothers and Doug Basham have in common?
+- h09: Which St. Louis Rams season was the final full season played by the 2008 winner of the Heisman Trophy?
+- h10: Worker: What professional title to both Christopher Nolan and Paul Schrader boast?
+- h11: Which president of Botswana did Naomi Jacobson immortalize as a statue?
+- h12: The College of Arts and Sciences of Ohio University is located on the university's central quadrangle lawn, which sits aligned to the cardinal directions, with what building facing true north?
+- h13: Which Missing You actor was born August 17 1993?
+- h14: The actor that plays Joe MacMillan in "Halt and Catch Fire" also starred with Carrie Coon in what 2017 horror film?
+- h15: Who wrote shorter stories, Raymond Carver or Lydia Davis?
+- h16: Who wrote more fictional works, Jim Thompson or Theodore H. White?
+- h17: When did the author of the book One More River is based on win the Nobel Prize?
+- h18: What was the release year of the song which, according to Peter Viney, appeared on most subsequent live album and compilations?
+- h19: To what team was the 2014 NBA Rookie of the Year traded in October 2016? 
