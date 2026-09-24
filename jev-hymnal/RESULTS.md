@@ -69,9 +69,53 @@ The hook result shows Jev following instructions rather than working anything ou
 - About 1,270 input tokens per call, roughly $0.014 in total.
 - Median latency 0.39 s, max 0.64 s over the 128 v2 calls. A live version would ask for bar n+1 while bar n plays, with at least 1.3 s to spare every time.
 
+## Live mode
+
+`live.py` plays in real time and takes live input. On a Mac: `pip install numpy scipy sounddevice`, export a TypeSafe key, then `python3 live.py`.
+
+**Keys:**
+
+| key | request |
+|---|---|
+| `+` / `-` | more / less energy |
+| `d` | the drop |
+| `b` | break it down |
+| `h` | play the hook |
+| `c` | change the chords |
+| `s` | go sparse |
+| `e` | end the piece |
+| `q` | quit |
+| `/` | type a direction in words, Enter to send |
+
+**Timing:**
+
+- The sound device's frame counter is the clock.
+- Bar n+1 is requested 0.7 s into bar n, together with whatever was asked so far. The answer is due 0.35 s before bar n+1 starts.
+- The synth renders a bar in about 20 ms, after a warm-up at start. Without scipy it falls back to a slower pure-Python filter.
+- If the answer is late, bar n+1 repeats bar n's patterns over the next chord, so the music never stops. The forced-late test below confirms it.
+- The Jev call runs on a daemon thread, so a slow retry cannot hold up the music or the exit.
+
+**Dry run** (`--wav`, `--script`): a simulated device drains the mixer at the real sample rate, so the same clock and deadlines run without a sound card.
+
+Run `runs/live-dry-1.jsonl` scripted seven inputs over 33 bars: `6:+, 10:d, 16:b, 20:/something eerie and slow, 24:h, 28:c, 32:e`.
+
+- **Timing:** median decision 0.40 s, max 0.56 s. Minimum slack before the deadline was 0.38 s, with 0 late bars, 0 underrun samples and no silent 100 ms windows.
+- **Reactions:** each input changed the next bar.
+  - `+` raised energy from 2.0 to 2.75.
+  - `b` dropped it from 2.75 to 1.0 (shaker, pad, no bass).
+  - "something eerie and slow" brought in the halftime drums.
+  - `h` put the hook on the next four bars.
+  - `c` switched the progression mid-phrase.
+  - `e` landed on Am and stopped.
+- **Forced late:** `--deadline 1.5` makes every answer late. All five bars repeated over advancing chords at steady loudness.
+
+**Reaction time:** a key press is heard 1.3 to 3.3 s later, depending on where in the bar it falls. A key read at 0.7 s into a bar reaches the next bar's start.
+
+**Not tested here:** the container has no audio device (PortAudio missing), so the `sounddevice` output and the TTY keyboard reader have not run. The dry run exercises the rest.
+
 ## Not done
 
-- Live playback. The movie is rendered offline from a recorded run.
+- Live playback on real speakers (see Live mode: the device and keyboard paths are untested). The movie is rendered offline from a recorded run.
 - A listening test. The arc score uses code-side energies that I assigned, which is a proxy for musical quality, not a measure of it.
 - n = 4 Jev runs. The v1-to-v2 harmony change is large enough to see at that n. The differences between v2 runs are not.
 - Any real-time input for Jev to react to, such as crowd noise or a second player. The arc is a fixed script, so this tests reading a plan, not listening.
@@ -83,3 +127,4 @@ The hook result shows Jev following instructions rather than working anything ou
 - `synth.py` — events and audio
 - `render.py` — `python3 render.py runs/v2-sampled-3.json out.mp4` (needs `pip install imageio-ffmpeg`)
 - `results/jev-hymnal.mp4` — the movie
+- `live.py` — live performer with keyboard and typed steering; `runs/live-dry-1.jsonl` — the dry-run log

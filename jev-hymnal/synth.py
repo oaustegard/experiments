@@ -65,6 +65,11 @@ def _env(n, a, d_rate):
 
 def _lp(x, cutoff):
     a = np.exp(-2 * np.pi * cutoff / SR)
+    try:  # scipy when present: live mode renders each bar inside a deadline
+        from scipy.signal import lfilter
+        return lfilter([1 - a], [1, -a], x)
+    except ImportError:
+        pass
     y = np.empty_like(x); acc = 0.0
     for i in range(len(x)):   # one-pole lowpass; buffers are short
         acc = (1 - a) * x[i] + a * acc; y[i] = acc
@@ -116,7 +121,9 @@ def voice_wave(e):
     raise ValueError(v)
 
 
-def render_audio(ev, seconds):
+def render_audio(ev, seconds, normalize=True):
+    """Mix events into stereo. normalize=False returns the raw sum (live mode applies the
+    master stage, 0.9 * tanh(1.4 x), at playback so overlapping bar tails sum before it)."""
     out = np.zeros((int(seconds * SR) + SR, 2))
     lead_bus = np.zeros(len(out))
     for e in ev:
@@ -130,6 +137,8 @@ def render_audio(ev, seconds):
     for k, g in enumerate((0.35, 0.22, 0.13, 0.08)):
         sh = d * (k + 1); ch = k % 2
         out[sh:, 1 - ch] += g * lead_bus[: len(out) - sh]
+    if not normalize:
+        return out.astype(np.float32)
     out = np.tanh(out * 1.4)
     return (out / np.max(np.abs(out)) * 0.9).astype(np.float32)
 
