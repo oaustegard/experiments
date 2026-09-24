@@ -1,65 +1,70 @@
-# RESULTS: LensVLM's select-then-expand pattern on Opus 5.5 and Sonnet 5
+# RESULTS: LensVLM's select-then-expand on Opus 5.5, Sonnet 5, Gemini 3.8 Flash and Muse Spark 1.3
 
 Source: Apple's LensVLM ([arXiv 2605.07019](https://arxiv.org/abs/2605.07019),
 [code](https://github.com/apple-aiml-research/ml-lensvlm)). Appendix 9 of the
 paper applies the pattern, untrained, to Sonnet 4.6 and reports +4.8 to +9.0 pp.
 Oskar, 2026-09-24: *"try the select-then-expand pattern with Sonnet AND opus
-5.5 in experiments as Opus has higher image viewing fidelity"*. Muninn memory
-`cdda7027` holds the paper review.
+5.5 in experiments as Opus has higher image viewing fidelity"*, then *"could we
+try Gemini and Muse?"*. Muninn memory `cdda7027` holds the paper review.
 
 ## Answer
 
-Does select-then-expand help Claude, and does Opus 5.5 do it better than
-Sonnet 5? Opus 5.5 is much better at the *select* half: shown a whole document
-as one sheet of thumbnails, it puts the evidence page first 100/90/70% of the
-time at 5x/10x/15x compression, against 75/15/5% for Sonnet 5, and its
-expansions reach the evidence 100/100/95% of the time against 85/40/30%. The
-*expand* half added little to answer accuracy for Opus (image-only 95/90/85%,
-after expansion 90/90/80%) because Opus already read the 5x and 10x sheets
-directly, and HotpotQA answers come largely from memory: 85% closed-book for
-Opus, 75% for Sonnet. For Sonnet, expansion added 20/15/10 pp over its
-image-only answers. Sonnet's image-only answers at 10x and 15x also fell
-20 pp *below* its own closed-book score: an unreadable document displaced
-answers it knew.
+Can a model find the page that matters on a sheet of unreadably small page
+thumbnails, and does reading that page then help? Three of four can. Opus 5.5, Gemini 3.8 Flash and Muse Spark 1.3 rank the evidence page first
+90 to 100% of the time at 5x and 10x compression and 50 to 75% at 15x. Sonnet 5
+manages 75/15/5%. All four got identical pixels, so the gap is perception.
+Reading beyond memory: Muse answered 5 of its 6 closed-book misses from the
+sheet alone at 5x and 10x, Gemini 3 of 4 at every ratio, Opus 2 of 3 at 5x
+falling to 0 at 15x, and Sonnet 1 of 5 at 5x, none after.
 
-The two models have the same 2576 px vision limit and got identical pixels, so
-the gap is perceptual, not a resolution cap. n = 20 documents per cell, one run
-each: the selection gaps (e.g. 100 vs 40% at 10x) are large enough to stand,
-the 5 to 10 pp accuracy differences are not. A benchmark whose answers the
-models do not already know would change the accuracy half of this answer; the
-paper's post-cutoff PubMed set is that benchmark.
+The *expand* half added little for anyone but Sonnet (+10 to +20 pp), because
+the other three already read the sheet, and HotpotQA answers come largely from
+memory (closed-book 70 to 85%). Gemini mostly skipped it: it finalized 13 or 14
+of 20 documents per ratio without reading a single page.
+
+Gemini bills every sheet at about 1,090 image tokens whatever its pixel size,
+so shrinking the image does not compress anything for Gemini: all three of its
+conditions are about 7.4x by its own count, differing only in source
+resolution. n = 20 per cell, one run: the selection gaps against Sonnet stand, 5 to
+10 pp accuracy differences do not. A post-cutoff corpus would make accuracy
+measure reading.
 
 ## Findings
 
-1. **Opus 5.5 selects evidence pages from compressed sheets far better than
-   Sonnet 5.** First-ranked page correct: Opus 100/90/70%, Sonnet 75/15/5% at
-   5x/10x/15x. Evidence reached within its expansions: Opus 100/100/95%,
-   Sonnet 85/40/30%. (`score.py`, columns sel@1 and expHit)
-2. **HotpotQA answer accuracy mostly measures memory.** Closed-book, with no
-   document: Opus 17/20, Sonnet 15/20. Only 3 (Opus) and 5 (Sonnet) documents
-   test reading at all. On those, Opus's final answer was right 2/3 at every
-   ratio; Sonnet's 4/5 at 5x and 0/5 at 10x and 15x. (closed-book arm)
-3. **Expansion adds accuracy for Sonnet and not for Opus.** Final minus
-   image-only: Sonnet +20/+15/+10 pp; Opus −5/0/−5 pp. Opus lost h02 at 5x
-   (accepted "SSIH" became "Endura" after reading) and h12 and h18 at 15x.
-4. **Opus reads 5x text outright.** Its image-only accuracy (95%) exceeds its
-   closed-book (85%) at 5x: it answered 2 of its 3 memory misses from the
-   sheet alone, 1 at 10x, 0 at 15x. Sonnet did so once, at 5x.
-5. **An unreadable sheet hurts Sonnet's answers below knowing nothing.** At 10x
-   and 15x, 4 documents Sonnet answered right closed-book went wrong
-   image-only; its image-only accuracy 55% against 75% closed-book. Opus
-   never lost a closed-book answer to the image.
-6. **Sonnet spends more to get less.** Expansions per document 1.90/2.50/2.60
-   (Opus 1.25/1.45/1.75), so effective compression 3.3/4.5/5.4x against Opus's
-   3.7/5.6/6.3x. Batches of 10 documents took Sonnet 5.0 to 11.5 min and 96k to
-   136k subagent tokens; Opus 2.3 to 3.1 min and 78k to 82k.
-7. **At 15x, Opus selects from paragraph titles, not body text.** The bracketed
-   `[Title]` headers survive as dark blobs at 136 px page width; body text does
-   not (see `examples/h00-r15.png`). Opus's 70% first-page accuracy at 15x is
-   consistent with title matching; this is an inference from the images, not
-   something the ledgers record.
+1. **Selection separates Sonnet 5 from the other three.** First-ranked page
+   correct at 5x/10x/15x: Opus 100/90/70%, Gemini 100/90/75%, Muse 90/95/50%,
+   Sonnet 75/15/5%. (`score.py` sel@1, Rounds 1 and 2)
+2. **HotpotQA accuracy is mostly memory for all four.** Closed-book, no
+   document: Opus 17/20, Gemini 16/20, Sonnet 15/20, Muse 14/20. Only 3 to 6
+   documents per model test reading. (closed-book arms)
+3. **Muse and Gemini read the most from the image alone.** Closed-book misses
+   answered from the sheet before any expansion: Muse 5/6, 5/6, 2/6; Gemini
+   3/4 at all three ratios; Opus 2/3, 1/3, 0/3; Sonnet 1/5, 0/5, 0/5.
+   Image-only accuracy: Muse 95/95/80%, Gemini 90/95/95%, Opus 95/90/85%,
+   Sonnet 70/55/55%. (Round 2)
+4. **Expansion helps only the model that cannot read the sheet.** Final minus
+   image-only: Sonnet +20/+15/+10 pp, Muse 0/0/+5, Gemini 0/0/0, Opus
+   −5/0/−5. (Rounds 1 and 2)
+5. **An unreadable sheet hurts Sonnet below knowing nothing.** At 10x and 15x,
+   4 documents Sonnet answered right closed-book went wrong image-only (55%
+   against 75%). Muse and Opus never lost a closed-book answer to the image;
+   Gemini once, at 5x. (Round 1)
+6. **Gemini's image cost is fixed near 1,090 tokens per sheet.** Its reported
+   image tokens were 1,087/1,102/1,073 for sheets Claude bills at 1,596/801/521.
+   A pixel-shrinking compression knob therefore saves Gemini nothing below
+   ~1,100 tokens and over-compresses above it; by its own count it saw ~7.4x
+   at every label. Muse's input tokens tracked the pixels (1,836/999/754 per
+   commit turn, prompt text included). (Round 2)
+7. **Gemini rarely expands; Muse always does.** Documents finalized with zero
+   expansions: Gemini 14/13/14 of 20, Muse 0. Muse spent 268k reasoning tokens
+   over 175 calls (17.9 min at concurrency 2); Gemini 24k over 84 calls
+   (2.7 min). (Round 2)
+8. **At 15x, selection runs on paragraph titles.** The bracketed `[Title]`
+   headers survive as dark blobs at 136 px page width and body text does not
+   (`examples/h00-r15.png`). An inference from the images; the ledgers do not
+   record what a model looked at.
 
-| model | ratio | closed | image-only | expand | exact-match (expand) | sel@1 | expHit | #exp | ECR |
+| model | ratio | closed | image-only | expand | exact (expand) | sel@1 | expHit | #exp | ECR* |
 |---|---|---|---|---|---|---|---|---|---|
 | Opus 5.5 | 5x | 85 | 95 | 90 | 65 | 100 | 100 | 1.25 | 3.7 |
 | Opus 5.5 | 10x | 85 | 90 | 90 | 65 | 90 | 100 | 1.45 | 5.6 |
@@ -67,9 +72,18 @@ paper's post-cutoff PubMed set is that benchmark.
 | Sonnet 5 | 5x | 75 | 70 | 90 | 65 | 75 | 85 | 1.90 | 3.3 |
 | Sonnet 5 | 10x | 75 | 55 | 70 | 40 | 15 | 40 | 2.50 | 4.5 |
 | Sonnet 5 | 15x | 75 | 55 | 65 | 35 | 5 | 30 | 2.60 | 5.4 |
+| Gemini 3.8 Flash | 5x | 80 | 90 | 90 | 60 | 100 | 30 | 0.40 | 4.6 |
+| Gemini 3.8 Flash | 10x | 80 | 95 | 95 | 60 | 90 | 35 | 0.40 | 8.7 |
+| Gemini 3.8 Flash | 15x | 80 | 95 | 95 | 60 | 75 | 30 | 0.35 | 13.1 |
+| Muse Spark 1.3 | 5x | 70 | 95 | 95 | 55 | 90 | 100 | 1.70 | 3.4 |
+| Muse Spark 1.3 | 10x | 70 | 95 | 95 | 55 | 95 | 100 | 1.65 | 5.3 |
+| Muse Spark 1.3 | 15x | 70 | 80 | 85 | 55 | 50 | 80 | 2.35 | 5.2 |
 
 Percentages over 20 documents. "closed" is the same 20 questions with no
-document, repeated on each row for comparison.
+document, repeated on each row. expHit counts only documents where the model
+expanded, over all 20, so Gemini's low figure is mostly unexpanded documents.
+*ECR uses Claude's image-token formula for every model; by Gemini's own count
+its sheets cost ~1,090 tokens at every ratio.
 
 ## Method
 
@@ -84,40 +98,55 @@ sentence (1 to 3 per document).
 **Compression.** All 17 pages go on one contact-sheet PNG with a legible
 `P<n>` label above each thumbnail. The page scale is searched so the whole
 sheet, labels and gutters included, costs `text_tokens / ratio` image tokens by
-Claude's formula `ceil(W/28) * ceil(H/28)`. Text tokens are chars/4, which
-under-counts Claude's tokenizer, so true compression is somewhat above the
-label. Achieved: 5.06x (1,596 image tokens, pages 251 x 220 px), 10.07x (801,
-173 x 152), 15.49x (521, 136 x 119). Sheets stay under Claude Code's 2000 x
-2000 Read-tool cap, so neither model's image is resized.
+Claude's formula `ceil(W/28) * ceil(H/28)`. Text tokens are chars/4. Achieved:
+5.06x (1,596 image tokens, pages 251 x 220 px), 10.07x (801, 173 x 152),
+15.49x (521, 136 x 119). Sheets stay under Claude Code's 2000 x 2000 Read-tool
+cap. Every model received the same PNG files.
 
-**Arms.** One `general-purpose` subagent per model x ratio x half (10
-documents), 12 in all, models set by the Agent tool's `opus` and `sonnet`
-aliases; every agent logged its served model id (`claude-opus-5-5`,
-`claude-sonnet-5`). Per document the agent Reads the sheet, runs
-`lens.py commit` with an image-only answer and ranked page guess, then
-`lens.py expand` up to 3 times, then `lens.py final`. `lens.py` refuses expand
-before commit and after final, caps expansions, and ledgers every call. Page
-texts sit zlib-compressed in `pages.bin`. Prompts carried `[no-context]` so the
-workspace's context hook did not append this session's transcript, which held
-the gold answers. Closed-book arm: one agent per model answers all 20
-questions with no document.
+**Claude arms.** One `general-purpose` subagent per model x ratio x half (10
+documents), 12 in all, via the Agent tool's `opus` and `sonnet` aliases; every
+agent logged its served model id (`claude-opus-5-5`, `claude-sonnet-5`). Per
+document the agent Reads the sheet, runs `lens.py commit` (image-only answer,
+ranked pages), `lens.py expand` up to 3 times, then `lens.py final`. `lens.py`
+refuses expand before commit and after final, caps expansions, and ledgers
+every call; page texts sit zlib-compressed in `pages.bin`. Prompts carried
+`[no-context]` so the workspace's context hook could not append this session's
+transcript, which held gold answers.
+
+**API arms.** `api_driver.py` plays `lens.py`'s role for models called over an
+API, writing the same ledger events. Gemini: `gemini-3.8-flash` through the
+Cloudflare AI Gateway, native multi-turn, default thinking and media
+resolution, `maxOutputTokens` 8192. Muse: `muse-spark-1.3` through
+claude-workspace `scripts/muse.py` `ask()`, the only permitted route
+(`docs/muse-contributor.md`); the gate put every call on the contributor tier
+for the declared source `public-url:` HotpotQA. `ask()` is single-turn, so each
+turn re-sends the sheet and the transcript so far. Default reasoning effort,
+`max_tokens` 32768 (8192 ran out on reasoning in the smoke test). The commit
+turn may declare a final answer immediately instead of expanding; both prompts
+allowed stopping as soon as the model could answer. The API arms did not log a
+served model id for Gemini; Muse reported `muse-spark-1.3-contributor`.
+Closed-book arms: one prompt listing all 20 questions (API) or one subagent
+(Claude).
 
 **Scoring.** `score.py`: HotpotQA normalisation; a match is exact, or
 containment with the shorter string at least 4 characters, or a hand-adjudicated
-alternate applied identically to every arm (h02 SSIH/ASUAG, h05 "Ghana national
-football team", h09 "2012 season" = the Rams' 75th, h10 "director"; reasons in
-`score.py`). Strict exact-match is reported alongside. sel@1: first committed
-page is a gold page. expHit: any expanded page is a gold page. ECR: document
-text tokens over sheet tokens plus expanded text tokens.
+alternate applied identically to every arm and model (h02 SSIH/ASUAG, h05 Ghana
+national (football) team, h06 Bernard Law Montgomery, h09 "2012 season" = the
+Rams' 75th, h10 "director"; reasons in `score.py`). Strict exact-match is
+reported alongside. sel@1: first committed page is a gold page. expHit: any
+expanded page is a gold page. ECR: document text tokens over sheet tokens plus
+expanded text tokens.
 
-**Controls not run.** No full-text arm (the whole document as text), so there
-is no text upper bound. No repeat runs, so no variance estimate. One Sonnet
-5x agent reports opening `lens.py` itself; the page texts are compressed and
-it could not have read answers from it.
+**Controls not run.** No full-text arm, so no text upper bound. No repeat
+runs, so no variance estimate. Gemini's default media resolution was not
+varied. One Sonnet 5x agent reports opening `lens.py`; page texts are
+compressed and it could not have read answers from it.
 
-**Cost.** 1.34M subagent tokens: Opus arms 479k, Sonnet arms 682k,
-closed-book 119k, pilot 60k. Roughly 32k of each agent is the harness floor
-(METHODS, "Batch the candidates").
+**Cost.** Claude arms 1.34M subagent tokens (Opus 479k, Sonnet 682k,
+closed-book 119k, pilot 60k), about 32k of each agent being the harness floor.
+Gemini 127k input, 3k output, 24k thinking tokens. Muse 305k input, 279k output
+(268k reasoning) on the contributor tier, about $0.09 at $0.10/$0.20 per
+million.
 
 ## Log
 
@@ -145,3 +174,27 @@ time rather than a test of one. Opus beat Sonnet on image-only accuracy at 10x
 equals its closed-book score. Expansion moved Sonnet +10 to +20 pp, about twice
 the paper's gain for Sonnet 4.6, and moved Opus nowhere, because its
 image-only answers had little left to recover on this benchmark.
+
+### Round 2 — 2026-09-24
+
+Asked: *"could we try Gemini and Muse?"*
+
+Built `api_driver.py`. Smoke test on h01 at 10x: Gemini answered from the
+sheet and finalized without expanding, reporting 1,102 image tokens for a sheet
+Claude bills at 801. Muse's first call ran out of an 8,192-token cap on
+reasoning alone (8,189 tokens, `finish: length`); at 32,768 it committed after
+11,041 reasoning tokens in 73 s, expanded one page, and finalized.
+
+Full run: both models over all 60 document-ratio pairs, concurrency 2 each,
+plus closed-book, as one resumable background job. 0 errors, 0 unparseable
+replies. Scoring surfaced two paraphrases the matcher missed ("Bernard Law
+Montgomery", "Ghana national team"), added to the adjudication list for every
+model; neither changed a Claude number.
+
+Reading at the time. The expectation that Opus would lead on fidelity held
+only against Sonnet: Gemini matched Opus on selection and Muse matched it at
+5x and 10x, and both read more beyond memory than Opus did. Gemini's fixed
+image budget means its "15x" row is really a ~7.4x view of a low-resolution
+source; that it still answered 95% there, and 3 of its 4 closed-book misses, is
+the strongest reading result in the experiment, from the model that expanded
+least.

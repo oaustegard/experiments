@@ -646,6 +646,15 @@ survives exactly the sanity checks people run.
   edge or it sees a resized copy, and remember that Sonnet 5 and Opus 5.5 share
   one limit, so a "higher fidelity" difference between them is perceptual.
   (`lensvlm-select-expand/RESULTS.md` Method)
+- **Gemini bills an image at a near-fixed ~1,090 tokens whatever its pixel
+  size; Claude and Muse bill by area.** Three contact sheets that Claude's
+  `ceil(W/28) * ceil(H/28)` prices at 1,596/801/521 tokens came back from
+  gemini-3.8-flash (default media resolution, via the CF gateway) as
+  1,087/1,102/1,073 image tokens, while Muse Spark's input tokens tracked the
+  pixels. So "compress by shrinking the image" is a per-model claim: for Gemini
+  it saves nothing below the budget, and a comparison across models at "equal
+  compression" needs each model's own reported image tokens.
+  (`lensvlm-select-expand/RESULTS.md` Finding 6)
 - **A subagent that is an eval participant needs `[no-context]` in its
   prompt.** The workspace's `delegating-with-context` PreToolUse hook appends
   whatever parts of the parent transcript it judges relevant, and a parent that
