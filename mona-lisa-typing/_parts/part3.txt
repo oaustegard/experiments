@@ -1,0 +1,570 @@
+
+# ======================================================================
+# dress
+# ======================================================================
+NECK_BAND = [(300, 728), (336, 752), (384, 772), (440, 786), (498, 790), (556, 780), (604, 760), (640, 734), (660, 704)]
+
+
+def paint_dress(img, body_pts):
+    body = fill_spline(body_pts, blur=1.4, t=0.4)
+    # deep olive-black bodice, warmer brown-red toward the right mantle, darkest at the edges
+    base = ramp(np.clip((XX - 120) / 800, 0, 1), [(0, rgb(20, 16, 17)), (0.35, rgb(32, 26, 21)),
+                                                 (0.7, rgb(27, 19, 20)), (1, rgb(38, 21, 20))])
+    base *= (0.85 + 0.3 * fbm(40, 4, 501))[..., None]
+    lay(img, body, base)
+    # light falls on the upper chest area of the bodice, from the left
+    lay(img, ellipse(420, 860, 170, 110, blur=60) * body, rgb(62, 52, 36), 0.6)
+    lay(img, ellipse(850, 880, 100, 160, 0.3, blur=50) * body, rgb(84, 50, 44), 0.55)   # reddish mantle, right
+
+    r = np.random.default_rng(7)
+    band = resample(NECK_BAND, 200)
+
+    # gathered pleats fanning down from the neckline
+    def pleats(c):
+        for i in range(200):
+            k = r.random()
+            x0, y0 = band[int(k * 170)]
+            if x0 > 560:
+                continue
+            spread = (x0 - 450) / 300
+            ln = 60 + r.random() * 160
+            bow = r.normal(0, 10)
+            pts = [(x0, y0 + 14)]
+            for j in range(1, 7):
+                t = j / 6
+                pts.append((x0 + spread * 90 * t + bow * np.sin(t * np.pi), y0 + 14 + ln * t))
+            v = 0.5 + 0.9 * r.random() ** 2
+            c.set_source_rgba(0.62 * v, 0.5 * v, 0.26 * v, 0.06 + 0.2 * r.random())
+            c.set_line_width(1.2 + 2.4 * r.random())
+            spline(c, pts, closed=False)
+            c.stroke()
+    col, al = rgba_layer(pleats)
+    comp(img, col, al * body * np.clip(1 - (YY - 800) / 160, 0, 1), blur=1.6)
+    # dark troughs just under the band
+    lay(img, stroke_spline([(x, y + 20) for x, y in NECK_BAND[:7]], 10, blur=6), rgb(20, 16, 14), 0.4)
+
+    # gauze drape sweeping from her left shoulder down across the bodice (fine strands)
+    def gauze(c):
+        for i in range(90):
+            a = r.random()
+            x0 = 600 + a * 150 + r.normal(0, 8)
+            y0 = 700 + a * 70 + r.normal(0, 6)
+            x3 = 300 + a * 260 + r.normal(0, 20)
+            y3 = 1010 + a * 60 + r.normal(0, 20)
+            x1, y1 = x0 - 40, y0 + 90
+            x2, y2 = x3 + 90, y3 - 120
+            v = 0.55 + 0.6 * r.random()
+            c.set_source_rgba(0.56 * v, 0.46 * v, 0.24 * v, 0.03 + 0.07 * r.random())
+            c.set_line_width(0.7 + 1.4 * r.random())
+            c.move_to(x0, y0)
+            c.curve_to(x1, y1, x2, y2, x3, y3)
+            c.stroke()
+    col, al = rgba_layer(gauze)
+    comp(img, col, al * body, blur=1.4)
+    drape = fill_spline([(560, 700), (700, 690), (790, 760), (700, 860), (600, 950), (480, 1040), (380, 1050),
+                         (470, 930), (560, 820)], blur=25)
+    lay(img, drape * body, rgb(70, 58, 36), 0.25)
+
+    return body
+
+
+def paint_shawl(img, body_pts):
+    body = fill_spline(body_pts, blur=1.4, t=0.4)
+    r = np.random.default_rng(71)
+    # the shawl over her left shoulder: a broad band of lit fabric running from the hair over the shoulder
+    band_c = [(632, 700), (680, 690), (730, 698), (780, 722), (830, 760), (874, 812), (906, 868)]
+    band_m = stroke_spline(band_c, 64, blur=10) * body * np.clip((XX - 630) / 90, 0, 1)
+    lay(img, band_m, rgb(84, 62, 38), 0.85)
+    along = np.clip((XX - 620) / 300, 0, 1)
+    lit = ramp(along, [(0, rgb(172, 136, 76)), (0.45, rgb(144, 110, 62)), (1, rgb(84, 60, 36))])
+    top_edge = stroke_spline([(p[0] - 6, p[1] - 14) for p in band_c], 26, blur=10) * body
+    lay(img, top_edge * np.clip((XX - 640) / 90, 0, 1), lit, 0.75)
+    def band_strands(c):
+        for i in range(160):
+            off = r.normal(0, 18)
+            v = 0.5 + 0.9 * r.random() ** 2
+            c.set_source_rgba(0.74 * v, 0.58 * v, 0.32 * v, 0.05 + 0.2 * r.random())
+            c.set_line_width(0.8 + 2.2 * r.random())
+            P = np.array(band_c, float)
+            nrm = np.array([0.35, -0.94])
+            k0, k1 = r.random() * 0.4, 0.6 + r.random() * 0.4
+            pts = P[int(k0 * 6):int(k1 * 6) + 1] + nrm * off
+            if len(pts) < 2:
+                continue
+            pts = pts + nrm * r.normal(0, 4, (len(pts), 1))
+            spline(c, [tuple(p) for p in pts], closed=False)
+            c.stroke()
+    col, al = rgba_layer(band_strands)
+    comp(img, col, al * body * np.clip((XX - 640) / 90, 0, 1), blur=1.2)
+    lay(img, stroke_spline([(p[0] + 8, p[1] + 26) for p in band_c], 16, blur=8) * body, rgb(28, 20, 16), 0.5)  # shadow under the band
+
+    # its end hangs down in a soft fold in front of the shoulder
+    fold = [(706, 900), (700, 870), (708, 842), (726, 820), (752, 806), (780, 800), (796, 808), (784, 826),
+            (764, 842), (746, 862), (732, 884), (724, 904)]
+    fold = [(700, 904), (694, 870), (700, 838), (720, 812), (750, 796), (784, 790), (806, 800), (800, 830),
+            (780, 856), (760, 884), (740, 910)]
+    fm = fill_spline(fold, blur=6) * 0.75
+    shade_f = ramp(np.clip((XX - 690) / 140 + (YY - 790) / 160, 0, 1), [(0, rgb(150, 118, 66)), (0.5, rgb(108, 82, 48)), (1, rgb(62, 46, 30))])
+    lay(img, fm, shade_f)
+    lay(img, ellipse(740, 830, 34, 22, -0.6, blur=10), rgb(170, 136, 80), 0.45)                  # the lit fold
+    lay(img, stroke_spline([(718, 896), (728, 868), (744, 846), (770, 828)], 3, blur=2.2), rgb(62, 44, 28), 0.4)
+    lay(img, stroke_spline([(740, 900), (752, 874), (772, 850)], 2.4, blur=2.2), rgb(70, 50, 30), 0.35)
+    for pts in ([(752, 760), (770, 784), (782, 800)], [(726, 762), (740, 786), (752, 806)]):
+        lay(img, stroke_spline(pts, 10, blur=5), rgb(104, 80, 48), 0.35)
+    lay(img, fill_spline([(724, 902), (744, 900), (764, 912), (738, 924)], blur=6), rgb(24, 16, 14), 0.45)
+
+
+def paint_embroidery(img):
+    """Knotwork border: a braided chain along the neckline with hanging knot motifs beneath."""
+    band = resample(NECK_BAND, 400)
+    tang = np.gradient(band, axis=0)
+    tang /= np.linalg.norm(tang, axis=1, keepdims=True)
+    nrm = np.stack([-tang[:, 1], tang[:, 0]], -1)          # points down/outward from the skin
+    fade = np.clip((560 - band[:, 0]) / 60, 0, 1)
+    lay(img, stroke_spline([tuple(p + nrm[i] * 7) for i, p in enumerate(band[::20])], 18, blur=1.2), rgb(74, 52, 28), 0.9)
+
+    def chain(c):
+        # braided chain: two interlaced sinusoids
+        for ph in (0, np.pi):
+            pts = [band[i] + nrm[i] * (4 + 3.2 * np.sin(i * 0.9 + ph)) for i in range(0, 330)]
+            c.set_line_width(1.3)
+            for j in range(0, len(pts) - 1, 2):
+                c.set_source_rgba(0.78, 0.6, 0.3, 0.8 * fade[j])
+                c.move_to(*pts[j]); c.line_to(*pts[j + 1]); c.stroke()
+        # hanging knot motifs: little looped figure-eights
+        for i in range(6, 324, 9):
+            p = band[i] + nrm[i] * 10
+            ang = np.arctan2(nrm[i][1], nrm[i][0])
+            c.save()
+            c.translate(*p); c.rotate(ang - np.pi / 2)
+            c.set_source_rgba(0.7, 0.52, 0.26, 0.5 * fade[i])
+            c.set_line_width(1.0)
+            c.move_to(-3, 0)
+            c.curve_to(-5, 4, 5, 4, 3, 0)
+            c.curve_to(5, 5, -2, 8, 0, 8)
+            c.curve_to(2, 8, -5, 5, -3, 0)
+            c.stroke()
+            c.restore()
+    col, al = rgba_layer(chain)
+    comp(img, col, al, blur=0.45)
+    lay(img, stroke_spline([tuple(p - nrm[i] * 1) for i, p in enumerate(band[:330:10])], 1.4, blur=0.7), rgb(150, 112, 56), 0.5)
+
+
+def paint_lap(img):
+    """Her lap under the laptop: heavy dark cloth with a few broad, soft folds."""
+    base = fill_poly([(0, 1060), (W, 1060), (W, H), (0, H)], blur=20)
+    lay(img, base * np.clip((YY - 1040) / 80, 0, 1), rgb(30, 22, 22), 0.6)
+    r = np.random.default_rng(17)
+    folds = [
+        ([(20, 1140), (90, 1220), (150, 1330), (190, 1431)], 26, rgb(66, 52, 40), 0.45),
+        ([(60, 1110), (140, 1180), (210, 1280), (260, 1431)], 16, rgb(58, 46, 36), 0.35),
+        ([(10, 1260), (60, 1330), (90, 1431)], 18, rgb(20, 14, 16), 0.5),
+        ([(940, 1120), (880, 1220), (840, 1320), (820, 1431)], 26, rgb(72, 46, 40), 0.4),
+        ([(900, 1100), (830, 1180), (770, 1300), (740, 1431)], 14, rgb(60, 40, 36), 0.35),
+        ([(960, 1260), (920, 1340), (900, 1431)], 20, rgb(22, 14, 16), 0.5),
+        ([(300, 1400), (480, 1420), (660, 1400)], 30, rgb(52, 40, 34), 0.35),
+    ]
+    for pts, w, colr, a in folds:
+        lay(img, stroke_spline(pts, w, blur=w * 0.7), colr, a)
+
+
+# ======================================================================
+# laptop
+# ======================================================================
+PITCH, CAP = 0.0185, 0.0152
+# rows from the hinge (function row) toward her (space row), legends from HER left to right
+ROWS = [
+    (0.0120, 0.0080, [("esc", 1.0)] + [(f"F{i}", 1.0) for i in range(1, 13)] + [("", 1.0)]),
+    (0.0290, CAP, [("`", 1)] + [(c, 1) for c in "1234567890-="] + [("del", 1.5)]),
+    (0.0475, CAP, [("tab", 1.5)] + [(c, 1) for c in "QWERTYUIOP[]\\"]),
+    (0.0660, CAP, [("caps", 1.75)] + [(c, 1) for c in "ASDFGHJKL;'"] + [("return", 1.75)]),
+    (0.0845, CAP, [("shift", 2.25)] + [(c, 1) for c in "ZXCVBNM,./"] + [("shift", 2.25)]),
+    (0.1030, CAP, [("fn", 1), ("ctrl", 1), ("opt", 1), ("cmd", 1.25), ("", 5.0), ("cmd", 1.25), ("opt", 1),
+                   ("<", 1), ("^", 1), (">", 1)]),
+]
+KB_W = 14.5 * PITCH
+
+
+def key_centres():
+    """{legend: (u, v)} in laptop metres, u from the viewer's frame (her left = +u)."""
+    out = {}
+    for v, hgt, keys in ROWS:
+        x = 0.0
+        for leg, wu in keys:
+            kx = x + wu * PITCH / 2
+            u = KB_W / 2 - kx
+            out.setdefault(leg, (u, v))
+            x += wu * PITCH
+    return out
+
+
+def local_path(c, L, pts_uv, h=0.0):
+    P = project(np.array([L.P(u, v, h) for u, v in pts_uv]))
+    c.move_to(*P[0])
+    for q in P[1:]:
+        c.line_to(*q)
+    c.close_path()
+
+
+def rrect_uv(u0, v0, u1, v1, r, n=6):
+    pts = []
+    for (cu, cv, a0) in [(u1 - r, v0 + r, -90), (u1 - r, v1 - r, 0), (u0 + r, v1 - r, 90), (u0 + r, v0 + r, 180)]:
+        for i in range(n + 1):
+            a = math.radians(a0 + 90 * i / n)
+            pts.append((cu + r * math.cos(a), cv + r * math.sin(a)))
+    return pts
+
+
+def paint_laptop_base(img, L):
+    w, d = L.w, L.d
+    # the deck's right side face (turned toward us by the yaw)
+    side = mask(lambda c: (c.move_to(*project(L.P(w / 2, 0, 0))), c.line_to(*project(L.P(w / 2, d, 0))),
+                           c.line_to(*project(L.P(w / 2, d, -L.tb))), c.line_to(*project(L.P(w / 2, 0, -L.tb))),
+                           c.close_path(), c.fill()), blur=0.5)
+    lay(img, side, rgb(60, 54, 46))
+    # hinge-side face of the base
+    front = mask(lambda c: (c.move_to(*project(L.P(-w / 2, 0, 0))), c.line_to(*project(L.P(w / 2, 0, 0))),
+                            c.line_to(*project(L.P(w / 2, 0, -L.tb))), c.line_to(*project(L.P(-w / 2, 0, -L.tb))),
+                            c.close_path(), c.fill()), blur=0.5)
+    lay(img, front, rgb(50, 44, 38))
+
+    # deck top: pewter aluminium, darker toward her (reflects the dark dress)
+    deck = mask(lambda c: (local_path(c, L, rrect_uv(-w / 2, 0, w / 2, d, 0.010), 0), c.fill()), blur=0.6)
+    far = project(L.P(0, d))[1]
+    near = project(L.P(0, 0))[1]
+    t = np.clip((YY - far) / (near - far), 0, 1)
+    col = ramp(t, [(0, rgb(50, 45, 39)), (0.5, rgb(82, 75, 64)), (1, rgb(104, 96, 82))])
+    col *= (0.96 + 0.08 * fbm(3, 2, 301)[..., None])                          # brushed finish
+    lx = np.clip((XX - project(L.P(-w / 2, d / 2))[0]) / 520, 0, 1)
+    col *= (1.06 - 0.14 * lx)[..., None]                                       # light from the left
+    lay(img, deck, col)
+    lay(img, stroke_spline([tuple(project(L.P(u, d - 0.001))) for u in np.linspace(-w / 2 + 0.01, w / 2 - 0.01, 8)],
+                           1.2, blur=0.6), rgb(150, 138, 112), 0.4)            # far rim catches light
+
+    # keyboard well
+    well = mask(lambda c: (local_path(c, L, rrect_uv(-KB_W / 2 - 0.003, 0.0045, KB_W / 2 + 0.003, 0.1135, 0.004), 0),
+                           c.fill()), blur=0.5)
+    lay(img, well, rgb(40, 36, 32), 0.85)
+
+    # keys: dark caps, a lighter near lip (the side facing us), legends upside down to us
+    s = cairo.ImageSurface(cairo.FORMAT_ARGB32, W, H)
+    cl = cairo.Context(s)
+    cl.select_font_face("DejaVu Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+    # rasterise all caps / lips in single passes (fast)
+    def draw_caps(c):
+        for v, hgt, keys in ROWS:
+            x = 0.0
+            for leg, wu in keys:
+                kx0, kx1 = x + 0.0016, x + wu * PITCH - 0.0016
+                u0, u1 = KB_W / 2 - kx1, KB_W / 2 - kx0
+                local_path(c, L, rrect_uv(u0, v - hgt / 2, u1, v + hgt / 2, 0.0018, 3), 0.0014)
+                x += wu * PITCH
+        c.fill()
+    def draw_lips(c):
+        for v, hgt, keys in ROWS:
+            x = 0.0
+            for leg, wu in keys:
+                kx0, kx1 = x + 0.0016, x + wu * PITCH - 0.0016
+                u0, u1 = KB_W / 2 - kx1, KB_W / 2 - kx0
+                v0 = v - hgt / 2
+                c.move_to(*project(L.P(u0, v0, 0.0014)))
+                c.line_to(*project(L.P(u1, v0, 0.0014)))
+                c.line_to(*project(L.P(u1, v0, 0.0)))
+                c.line_to(*project(L.P(u0, v0, 0.0)))
+                c.close_path()
+                x += wu * PITCH
+        c.fill()
+    lips = mask(draw_lips, blur=0.3)
+    caps = mask(draw_caps, blur=0.35)
+    lay(img, lips, rgb(56, 50, 44))
+    kc = ramp(np.clip((YY - far) / (near - far), 0, 1), [(0, rgb(20, 17, 16)), (1, rgb(34, 30, 28))])
+    lay(img, caps, kc)
+
+    # legends: an affine frame per key, mapping HER reading direction onto the screen
+    cl.set_source_rgba(0.72, 0.68, 0.6, 0.75)
+    for v, hgt, keys in ROWS:
+        x = 0.0
+        for leg, wu in keys:
+            if leg:
+                kx = x + wu * PITCH / 2
+                u = KB_W / 2 - kx
+                P0 = L.P(u, v, 0.0015)
+                p0 = project(P0)
+                e = 0.001
+                ex = (project(P0 - e * L.du) - p0) / e      # her rightward
+                ey = (project(P0 + e * L.dv) - p0) / e      # her 'down' on the page = toward her
+                cl.save()
+                cl.transform(cairo.Matrix(ex[0], ex[1], ey[0], ey[1], p0[0], p0[1]))
+                size = 0.0048 if len(leg) == 1 else 0.0028
+                cl.set_font_size(size)
+                ext = cl.text_extents(leg)
+                cl.move_to(-ext.width / 2 - ext.x_bearing, ext.height / 2)
+                cl.show_text(leg)
+                cl.restore()
+            x += wu * PITCH
+    s.flush()
+    a = np.ndarray((H, s.get_stride() // 4, 4), np.uint8, s.get_data())[:, :W, :].astype(np.float32) / 255
+    lay(img, gaussian_filter(a[..., 3], 0.4), rgb(150, 140, 120), 0.55)
+
+    # trackpad
+    tp = mask(lambda c: (local_path(c, L, rrect_uv(-0.055, 0.124, 0.055, 0.190, 0.006), 0), c.fill()), blur=0.5)
+    lay(img, tp, rgb(84, 78, 68), 0.55)
+    lay(img, mask(lambda c: (local_path(c, L, rrect_uv(-0.055, 0.124, 0.055, 0.190, 0.006), 0),
+                             c.set_line_width(1.0), c.stroke()), blur=0.4), rgb(70, 64, 56), 0.6)
+    return deck
+
+
+def paint_laptop_lid(img, L):
+    w = L.w
+    corners = [L.lidP(-w / 2, 0), L.lidP(w / 2, 0), L.lidP(w / 2, L.L), L.lidP(-w / 2, L.L)]
+    cam = -np.mean(corners, axis=0)
+    sees_screen = np.dot(L.nl, cam) > 0
+    # lid thickness: the top edge band
+    top_band = [L.lidP(-w / 2, L.L, 0), L.lidP(w / 2, L.L, 0), L.lidP(w / 2, L.L, -L.tl), L.lidP(-w / 2, L.L, -L.tl)]
+    body = [L.lidP(-w / 2, 0, -L.tl), L.lidP(w / 2, 0, -L.tl), L.lidP(w / 2, L.L, -L.tl), L.lidP(-w / 2, L.L, -L.tl),
+            L.lidP(-w / 2, L.L, 0), L.lidP(w / 2, L.L, 0), L.lidP(w / 2, 0, 0), L.lidP(-w / 2, 0, 0)]
+    hull = project(np.array(body))
+    from scipy.spatial import ConvexHull
+    hh = hull[ConvexHull(hull).vertices]
+    lidm = fill_poly([tuple(p) for p in hh], blur=0.5)
+    lay(img, lidm, rgb(64, 58, 50))
+    tb = fill_poly([tuple(p) for p in project(np.array(top_band))], blur=0.4)
+    lay(img, tb, rgb(120, 112, 96), 0.7)
+    if sees_screen:
+        paint_screen(img, L)
+    return lidm, sees_screen
+
+
+def screen_texture(tw=1200, th=760):
+    """What she sees: a document in progress, drawn upright in her frame with cairo."""
+    s = cairo.ImageSurface(cairo.FORMAT_RGB24, tw, th)
+    c = cairo.Context(s)
+    c.set_source_rgb(0.86, 0.88, 0.9); c.paint()
+    c.set_source_rgb(0.72, 0.75, 0.8); c.rectangle(0, 0, tw, 46); c.fill()          # title bar
+    for i, col in enumerate([(0.85, 0.35, 0.3), (0.9, 0.7, 0.3), (0.4, 0.7, 0.4)]):
+        c.set_source_rgb(*col); c.arc(28 + i * 30, 23, 9, 0, 6.283); c.fill()
+    c.set_source_rgb(0.97, 0.97, 0.98); c.rectangle(170, 80, tw - 340, th - 80); c.fill()   # the page
+    r = np.random.default_rng(5)
+    y = 130
+    c.set_source_rgb(0.25, 0.27, 0.3)
+    c.rectangle(230, y, 420, 26); c.fill()                                             # a heading
+    y += 70
+    while y < th - 40:
+        ln = tw - 460 - (r.random() * 300 if r.random() < 0.3 else r.random() * 60)
+        c.set_source_rgb(0.42, 0.44, 0.48)
+        c.rectangle(230, y, ln, 12); c.fill()
+        y += 30 if r.random() > 0.15 else 60
+    c.set_source_rgb(0.2, 0.4, 0.85); c.rectangle(230 + 380, y - 64, 4, 22); c.fill()       # the cursor
+    s.flush()
+    a = np.ndarray((th, s.get_stride() // 4, 4), np.uint8, s.get_data())[:, :tw, :].astype(np.float32) / 255
+    return np.stack([a[..., 2], a[..., 1], a[..., 0]], -1)
+
+
+def paint_screen(img, L):
+    """Ray-cast every pixel of the glass onto the lid plane and sample the document."""
+    w = L.w
+    bez = 0.008
+    scr_all = [L.lidP(-w / 2, 0), L.lidP(w / 2, 0), L.lidP(w / 2, L.L), L.lidP(-w / 2, L.L)]
+    lay(img, fill_poly([tuple(p) for p in project(np.array(scr_all))], blur=0.4), rgb(22, 20, 22))
+    scr = [L.lidP(-w / 2 + bez, bez), L.lidP(w / 2 - bez, bez), L.lidP(w / 2 - bez, L.L - bez), L.lidP(-w / 2 + bez, L.L - bez)]
+    sm_ = fill_poly([tuple(p) for p in project(np.array(scr))], blur=0.5)
+    ys, xs = np.nonzero(sm_ > 0.01)
+    FOC = F
+    d = np.stack([(xs + 0.5 - CX) / FOC, -(ys + 0.5 - CY) / FOC, np.ones(len(xs))], -1)
+    n = L.nl
+    P0 = L.lidP(0, 0)
+    tt = (P0 @ n) / (d @ n)
+    Pw = d * tt[:, None]
+    rel = Pw - P0
+    u = rel @ L.du
+    sl = rel @ L.dl
+    tex = screen_texture()
+    th, tw = tex.shape[:2]
+    tx = np.clip(((w / 2 - bez) - u) / (w - 2 * bez) * (tw - 1), 0, tw - 1)       # her left edge = +u
+    ty = np.clip(((L.L - bez) - sl) / (L.L - 2 * bez) * (th - 1), 0, th - 1)     # her top edge = far end of the lid
+    from scipy.ndimage import map_coordinates
+    colr = np.stack([map_coordinates(gaussian_filter(tex[..., i], 1.2), [ty, tx], order=1) for i in range(3)], -1)
+    # seen at a grazing angle the glass mostly reflects: dim and tint the image, add a sheen
+    view = -Pw / np.linalg.norm(Pw, axis=1, keepdims=True)
+    cosv = np.clip(view @ n, 0, 1)
+    colr = colr * (0.5 + 0.4 * cosv[:, None]) * np.array([0.78, 0.84, 0.82])
+    out = img.copy()
+    out[ys, xs] = colr
+    k = sm_[..., None]
+    img[:] = img * (1 - k) + out * k
+    # a faint bloom of cool light around the glass
+    glow = gaussian_filter(sm_, 10)
+    img += glow[..., None] * np.array([0.035, 0.05, 0.06], np.float32)
+    return sm_
+
+
+# ======================================================================
+# hands
+# ======================================================================
+"""Typing hands + forearms + sleeves as sphere-swept 3D bones, z-buffered, lit, supersampled."""
+FOC = F
+
+SS = 3                                   # supersampling factor
+BX0, BY0, BX1, BY1 = 0, 620, 960, 1431   # region we render
+SW, SH = (BX1 - BX0) * SS, (BY1 - BY0) * SS
+
+MAT_SKIN, MAT_NAIL, MAT_SLEEVE, MAT_CUFF, MAT_PALM = 1, 2, 3, 4, 5
+
+
+class Scene:
+    def __init__(self):
+        self.C, self.R, self.mat, self.seg, self.t, self.axis = [], [], [], [], [], []
+        self.nseg = 0
+
+    def capsule(self, a, b, ra, rb, mat, spacing=0.1):
+        a, b = np.asarray(a, float), np.asarray(b, float)
+        L = np.linalg.norm(b - a)
+        n = max(2, int(L / (min(ra, rb) * spacing)) + 1)
+        sid = self.nseg
+        self.nseg += 1
+        ax = (b - a) / max(L, 1e-9)
+        for i in range(n):
+            t = i / (n - 1)
+            self.C.append(a + (b - a) * t)
+            self.R.append(ra + (rb - ra) * t)
+            self.mat.append(mat)
+            self.seg.append(sid)
+            self.t.append(t)
+            self.axis.append(ax)
+        return sid
+
+    def sphere(self, c, r, mat):
+        sid = self.nseg
+        self.nseg += 1
+        self.C.append(np.asarray(c, float)); self.R.append(r); self.mat.append(mat)
+        self.seg.append(sid); self.t.append(0.5); self.axis.append(np.array([0, 1.0, 0]))
+        return sid
+
+    def raster(self):
+        C = np.array(self.C); R = np.array(self.R)
+        z = np.full((SH, SW), np.inf, np.float32)
+        nrm = np.zeros((SH, SW, 3), np.float32)
+        pos = np.zeros((SH, SW, 3), np.float32)
+        mat = np.zeros((SH, SW), np.int16)
+        seg = np.full((SH, SW), -1, np.int32)
+        tt = np.zeros((SH, SW), np.float32)
+        p = project(C)
+        px = (p[:, 0] - BX0) * SS
+        py = (p[:, 1] - BY0) * SS
+        rp = FOC * R / C[:, 2] * SS
+        for i in range(len(C)):
+            x0, x1 = int(max(0, px[i] - rp[i] - 1)), int(min(SW, px[i] + rp[i] + 2))
+            y0, y1 = int(max(0, py[i] - rp[i] - 1)), int(min(SH, py[i] + rp[i] + 2))
+            if x0 >= x1 or y0 >= y1:
+                continue
+            yy, xx = np.mgrid[y0:y1, x0:x1].astype(np.float32)
+            dx = (xx + 0.5 - px[i]) / rp[i]
+            dy = (yy + 0.5 - py[i]) / rp[i]
+            d2 = dx * dx + dy * dy
+            ins = d2 < 1
+            nz = np.sqrt(np.clip(1 - d2, 0, 1))
+            depth = C[i, 2] - R[i] * nz
+            zb = z[y0:y1, x0:x1]
+            upd = ins & (depth < zb)
+            if not upd.any():
+                continue
+            zb[upd] = depth[upd]
+            nb = nrm[y0:y1, x0:x1]
+            nb[upd] = np.stack([dx[upd], -dy[upd], -nz[upd]], -1)
+            pb = pos[y0:y1, x0:x1]
+            pb[upd] = C[i] + R[i] * np.stack([dx[upd], -dy[upd], -nz[upd]], -1)
+            mat[y0:y1, x0:x1][upd] = self.mat[i]
+            seg[y0:y1, x0:x1][upd] = self.seg[i]
+            tt[y0:y1, x0:x1][upd] = self.t[i]
+        self.axes = np.array(self.axis)
+        segax = np.zeros((self.nseg, 3))
+        for s_, a_ in zip(self.seg, self.axis):
+            segax[s_] = a_
+        return dict(z=z, n=nrm, pos=pos, mat=mat, seg=seg, t=tt, segax=segax)
+
+
+# ------------------------------------------------------------------ anatomy --
+FINGERS = {  # lengths (P1, P2, P3) and radii (base, tip), metres - a slender hand
+    "index": ((0.037, 0.021, 0.017), (0.0084, 0.0062)),
+    "middle": ((0.041, 0.024, 0.018), (0.0086, 0.0064)),
+    "ring": ((0.038, 0.023, 0.017), (0.0082, 0.0061)),
+    "pinky": ((0.029, 0.017, 0.015), (0.0070, 0.0053)),
+}
+SPLAY = {"index": -4.0, "middle": 0.0, "ring": 4.0, "pinky": 9.0}
+
+
+def finger_chain(mcp, fwd, up, lengths, angles):
+    """Joint positions from the MCP, bending down by the given angles (deg from horizontal)."""
+    pts = [np.asarray(mcp, float)]
+    for L_, a in zip(lengths, angles):
+        a = np.radians(a)
+        pts.append(pts[-1] + L_ * (np.cos(a) * fwd - np.sin(a) * up))
+    return pts
+
+
+def build_hand(S, L, side, keys, lifted=None, splay=0.0):
+    """side=+1 for her left hand (viewer's right), -1 for her right hand.
+    keys: {finger: legend}. The resting fingertips land on those keys."""
+    K = key_centres()
+    fwd = -L.dv                      # toward the hinge (away from her)
+    up = L.up
+    across = L.du                    # viewer's right
+    rest_angles = (14, 60, 86)
+    tips, mcps = {}, {}
+    for f, leg in keys.items():
+        u, v = K[leg]
+        lens, (rb, rt) = FINGERS[f]
+        tip = L.P(u, v, 0.0014 + rt * 0.85)
+        chain = finger_chain(np.zeros(3), fwd, up, lens, rest_angles)
+        off = chain[-1]
+        mcps[f] = tip - off
+        tips[f] = tip
+    # palm frame from the knuckles; knuckle heights follow a gentle arch
+    order = ["index", "middle", "ring", "pinky"]
+    for i, f in enumerate(order):
+        mcps[f] = mcps[f] + up * (0.004 * (1 - abs(i - 1.2) / 2.0) - 0.0022 * i) + (-fwd) * (0.004 * i)
+    mid = (mcps["middle"] + mcps["ring"]) / 2
+    wrist = mid - fwd * 0.078 - up * 0.022
+    radial = -side * across          # thumb side points toward the keyboard centre
+    # fingers
+    for f in order:
+        lens, (rb, rt) = FINGERS[f]
+        ang = rest_angles
+        if lifted and f in lifted:
+            ang = lifted[f]
+        a = np.radians(SPLAY[f] * side * -1)
+        fwd_f = np.cos(a) * fwd + np.sin(a) * across
+        pts = finger_chain(mcps[f], fwd_f, up, lens, ang)
+        r_pip, r_dip = rb * 0.84, rb * 0.76
+        S.sphere(pts[0], rb * 1.06, MAT_SKIN)                               # knuckle, soft
+        S.capsule(pts[0], pts[0] + 0.55 * (pts[1] - pts[0]), rb * 1.0, rb * 0.8, MAT_SKIN)
+        S.capsule(pts[0] + 0.55 * (pts[1] - pts[0]), pts[1], rb * 0.8, r_pip, MAT_SKIN)
+        S.capsule(pts[1], pts[1] + 0.5 * (pts[2] - pts[1]), r_pip, r_dip * 0.95, MAT_SKIN)
+        S.capsule(pts[1] + 0.5 * (pts[2] - pts[1]), pts[2], r_dip * 0.95, r_dip, MAT_SKIN)
+        tipc = pts[3] - 0.3 * (pts[3] - pts[2])
+        S.capsule(pts[2], tipc, r_dip, rt, MAT_NAIL)                        # distal (nail flagged)
+        S.sphere(tipc, rt * 0.97, MAT_SKIN)
+    # palm: a bilinear sheet of spheres between the wrist line and the knuckle line
+    w_rad = wrist + radial * 0.018
+    w_uln = wrist - radial * 0.016
+    k_rad = mcps["index"] - radial * 0.004
+    k_uln = mcps["pinky"] + radial * 0.004
+    for a in np.linspace(0, 1, 22):
+        for b in np.linspace(0, 1, 24):
+            p = (1 - b) * ((1 - a) * w_rad + a * w_uln) + b * ((1 - a) * k_rad + a * k_uln)
+            dome = 0.007 * np.sin(np.pi * (0.15 + 0.7 * a)) * np.sin(np.pi * min(1, 0.2 + b))
+            rr_ = 0.0165 - 0.0022 * b
+            S.sphere(p + up * (dome - 0.002 * b - 0.005 * a - 0.0045), rr_, MAT_PALM)
+    # thumb: from the wrist's radial side to the space bar
+    sp_u, sp_v = K[""] if "" in K else (0.0, 0.103)
+    cmc = wrist + radial * 0.02 + fwd * 0.012 - up * 0.004
+    t_tip_uv = (float(np.dot(mcps["index"] - L.H0, L.du)) + side * -0.020, 0.100)
+    t_tip = L.P(t_tip_uv[0], t_tip_uv[1], 0.0075)
+    t_mcp = cmc + (t_tip - cmc) * 0.45 + up * 0.012 + radial * 0.004
+    t_ip = cmc + (t_tip - cmc) * 0.78 + up * 0.007
+    S.capsule(cmc, t_mcp, 0.012, 0.0092, MAT_SKIN)
+    S.capsule(t_mcp, t_ip, 0.0092, 0.0082, MAT_SKIN)
+    S.capsule(t_ip, t_tip, 0.0082, 0.0072, MAT_NAIL)
+    S.sphere(t_tip, 0.0072, MAT_SKIN)
+    return wrist, radial
+
