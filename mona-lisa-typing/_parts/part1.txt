@@ -1,0 +1,597 @@
+"""Mona Lisa, typing — a pycairo + numpy homage to Leonardo (c. 1503-1519).
+
+Every pixel is drawn in code: cairo rasterises shapes, splines, strokes and text; numpy
+composites glazes, blurs (sfumato), noise and a small z-buffered sphere-swept renderer for
+the hands and sleeves; the laptop is real 3D geometry through a pinhole camera matched to
+the panel. No pixels come from the original painting.
+
+    pip install pycairo numpy scipy
+    python3 mona_lisa_typing.py            # -> mona_lisa_typing.png (960 x 1431), ~2 min on one core
+"""
+
+
+# ======================================================================
+# core
+# ======================================================================
+"""Shared helpers: cairo rasterises every shape; numpy composites, blurs, textures."""
+import math
+import cairo
+import numpy as np
+from scipy.ndimage import gaussian_filter, zoom, map_coordinates
+
+W, H = 960, 1431
+YY, XX = np.mgrid[0:H, 0:W].astype(np.float32)
+
+
+# ------------------------------------------------------------ paths --------
+def spline(c, pts, closed=True, t=0.5):
+    """Catmull-Rom through pts -> cubic Beziers appended to c."""
+    P = [np.asarray(p, float) for p in pts]
+    n = len(P)
+    if n < 2:
+        return
+    c.move_to(*P[0])
+    rng = range(n) if closed else range(n - 1)
+    for i in rng:
+        p0 = P[(i - 1) % n] if (closed or i > 0) else P[i]
+        p1 = P[i]
+        p2 = P[(i + 1) % n]
+        p3 = P[(i + 2) % n] if (closed or i + 2 < n) else P[(i + 1) % n]
+        b1 = p1 + (p2 - p0) * t / 3
+        b2 = p2 - (p3 - p1) * t / 3
+        c.curve_to(*b1, *b2, *p2)
+    if closed:
+        c.close_path()
+
+
+def poly(c, pts, closed=True):
+    c.move_to(*pts[0])
+    for p in pts[1:]:
+        c.line_to(*p)
+    if closed:
+        c.close_path()
+
+
+def mask(fn, blur=0.0, w=W, h=H):
+    """Rasterise whatever fn(c) fills/strokes into a float coverage mask."""
+    s = cairo.ImageSurface(cairo.FORMAT_A8, w, h)
+    c = cairo.Context(s)
+    c.set_source_rgba(0, 0, 0, 1)
+    c.set_line_cap(cairo.LINE_CAP_ROUND)
+    c.set_line_join(cairo.LINE_JOIN_ROUND)
+    fn(c)
+    s.flush()
+    a = np.ndarray((h, s.get_stride()), np.uint8, s.get_data())[:, :w].astype(np.float32) / 255.0
+    if blur:
+        a = gaussian_filter(a, blur)
+    return a
+
+
+def fill_spline(pts, blur=0.0, t=0.5):
+    def f(c):
+        spline(c, pts, True, t)
+        c.fill()
+    return mask(f, blur)
+
+
+def fill_poly(pts, blur=0.0):
+    def f(c):
+        poly(c, pts)
+        c.fill()
+    return mask(f, blur)
+
+
+def stroke_spline(pts, width, blur=0.0, closed=False, alpha=1.0):
+    def f(c):
+        c.set_source_rgba(0, 0, 0, alpha)
+        spline(c, pts, closed)
+        c.set_line_width(width)
+        c.stroke()
+    return mask(f, blur)
+
+
+def ellipse(cx, cy, rx, ry, rot=0.0, blur=0.0):
+    def f(c):
+        c.save()
+        c.translate(cx, cy)
+        c.rotate(rot)
+        c.scale(rx, ry)
+        c.arc(0, 0, 1, 0, 2 * math.pi)
+        c.restore()
+        c.fill()
+    return mask(f, blur)
+
+
+# ------------------------------------------------------------ colour -------
+def rgb(*v):
+    return np.array(v, np.float32) / 255.0
+
+
+def lay(img, m, col, a=1.0):
+    """Paint col (3,) or (H,W,3) through coverage m (H,W) at opacity a."""
+    k = np.clip(m * a, 0, 1)[..., None]
+    img *= (1 - k)
+    img += k * col
+
+
+def mul(img, m, col, a=1.0):
+    """Multiply-glaze: darken towards img*col through m."""
+    k = np.clip(m * a, 0, 1)[..., None]
+    img *= (1 - k) + k * np.asarray(col, np.float32)
+
+
+def ramp(t, stops):
+    """Piecewise-linear gradient map. t (H,W) in 0..1, stops [(pos, rgb)]."""
+    t = np.clip(t, 0, 1)
+    out = np.zeros(t.shape + (3,), np.float32)
+    pos = [s[0] for s in stops]
+    cols = [np.asarray(s[1], np.float32) for s in stops]
+    for ch in range(3):
+        out[..., ch] = np.interp(t, pos, [c[ch] for c in cols])
+    return out
+
+
+def vgrad(y0, y1, c0, c1):
+    t = np.clip((YY - y0) / (y1 - y0), 0, 1)[..., None]
+    return np.asarray(c0, np.float32) * (1 - t) + np.asarray(c1, np.float32) * t
+
+
+# ------------------------------------------------------------ noise --------
+def fbm(scale=64, octaves=5, seed=0, persist=0.55, h=H, w=W, aniso=(1.0, 1.0)):
+    """Value-noise fBm in ~[0,1]. aniso stretches (y, x) feature size."""
+    r = np.random.default_rng(seed)
+    acc = np.zeros((h, w), np.float32)
+    amp, tot, s = 1.0, 0.0, float(scale)
+    for _ in range(octaves):
+        gh = max(2, int(h / (s * aniso[0])) + 3)
+        gw = max(2, int(w / (s * aniso[1])) + 3)
+        g = r.random((gh, gw)).astype(np.float32)
+        z = zoom(g, (h / (gh - 2), w / (gw - 2)), order=3)[:h, :w]
+        acc += amp * z
+        tot += amp
+        amp *= persist
+        s /= 2
+        if s < 1.5:
+            break
+    acc /= tot
+    lo, hi = np.percentile(acc, 1), np.percentile(acc, 99)
+    return np.clip((acc - lo) / (hi - lo + 1e-6), 0, 1)
+
+
+def noise1d(n, scale, seed, octaves=5, persist=0.55):
+    r = np.random.default_rng(seed)
+    x = np.arange(n, dtype=np.float32)
+    acc = np.zeros(n, np.float32)
+    amp, tot, s = 1.0, 0.0, float(scale)
+    for _ in range(octaves):
+        k = int(n / s) + 4
+        g = r.random(k).astype(np.float32) * 2 - 1
+        acc += amp * np.interp(x / s, np.arange(k), g)
+        tot += amp
+        amp *= persist
+        s /= 2
+        if s < 1:
+            break
+    acc = acc / tot
+    return acc / (np.abs(acc).max() + 1e-6)
+
+
+def warp(field, dx, dy):
+    return map_coordinates(field, [np.clip(YY + dy, 0, H - 1), np.clip(XX + dx, 0, W - 1)], order=1)
+
+
+# ------------------------------------------------------------ output -------
+def save(img, path):
+    rgbf = np.clip(np.nan_to_num(img), 0, 1)
+    h, w, _ = rgbf.shape
+    s = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+    s.flush()
+    a = np.ndarray((h, s.get_stride() // 4, 4), np.uint8, s.get_data())[:, :w, :]
+    a[..., 0] = (rgbf[..., 2] * 255 + 0.5).astype(np.uint8)
+    a[..., 1] = (rgbf[..., 1] * 255 + 0.5).astype(np.uint8)
+    a[..., 2] = (rgbf[..., 0] * 255 + 0.5).astype(np.uint8)
+    a[..., 3] = 255
+    s.mark_dirty()
+    s.write_to_png(path)
+
+
+# ======================================================================
+# laptop_geo
+# ======================================================================
+"""Laptop as real 3D geometry, projected with a pinhole camera matched to the painting.
+
+Camera at the viewer's eye (the horizon sits near her eyes, as Leonardo placed it).
+f is chosen so her face (~14.5 cm wide at ~1.3 m) spans the ~210 px it does in the painting.
+World: x right, y up, z away from the viewer (metres).
+"""
+
+CX, CY, F = 480.0, 390.0, 1880.0
+
+
+def project(P):
+    P = np.asarray(P, float)
+    x = CX + F * P[..., 0] / P[..., 2]
+    y = CY - F * P[..., 1] / P[..., 2]
+    return np.stack([x, y], -1)
+
+
+def unit(v):
+    v = np.asarray(v, float)
+    return v / np.linalg.norm(v)
+
+
+class Laptop:
+    """Local frame: u metres along the hinge (+ = viewer's right), v metres from the hinge toward
+    her, h metres above the deck top. Keyboard legends are laid out from HER side."""
+
+    def __init__(self, x0=-0.02, y0=-0.50, z_hinge=1.0, yaw_deg=14.0, opening_deg=157.0,
+                 w=0.30, d=0.205, t_base=0.013, lid_len=0.19, t_lid=0.006):
+        self.w, self.d, self.tb, self.L, self.tl = w, d, t_base, lid_len, t_lid
+        psi = np.radians(yaw_deg)
+        self.dv = np.array([np.sin(psi), 0, np.cos(psi)])
+        self.du = np.array([np.cos(psi), 0, -np.sin(psi)])
+        self.up = np.array([0.0, 1.0, 0.0])
+        self.H0 = np.array([x0, y0 + t_base, z_hinge])
+        a = np.radians(opening_deg - 90.0)
+        self.dl = np.cos(a) * self.up - np.sin(a) * self.dv       # hinge -> lid top edge
+        n = np.cross(self.dl, self.du)
+        self.nl = n if np.dot(n, self.dv) > 0 else -n             # screen normal, toward her
+
+    def P(self, u, v, h=0.0):
+        return self.H0 + u * self.du + v * self.dv + h * self.up
+
+    def lidP(self, u, s, off=0.0):
+        """s metres from the hinge along the lid; off along the screen normal."""
+        return self.H0 + u * self.du + s * self.dl + off * self.nl
+
+    def screen_centre(self):
+        return self.lidP(0.0, self.L * 0.52, 0.001)
+
+    @staticmethod
+    def p(P):
+        return project(P)
+
+
+# ======================================================================
+# hair
+# ======================================================================
+rng = np.random.default_rng(42)
+
+
+def resample(pts, n):
+    P = np.asarray(pts, float)
+    seg = np.hypot(*np.diff(P, axis=0).T)
+    cum = np.concatenate([[0], np.cumsum(seg)])
+    t = np.linspace(0, cum[-1], n)
+    return np.stack([np.interp(t, cum, P[:, 0]), np.interp(t, cum, P[:, 1])], -1)
+
+
+L_OUT = [(466, 136), (420, 144), (380, 166), (338, 210), (314, 262), (300, 330), (293, 400), (292, 470), (298, 545),
+         (302, 610), (292, 660), (274, 700), (256, 734)]
+L_IN = [(455, 200), (420, 203), (380, 214), (354, 236), (347, 290), (345, 340), (350, 392), (364, 440), (390, 480),
+        (420, 520), (430, 560), (420, 592), (384, 616), (352, 650), (330, 700), (312, 740)]
+R_OUT = [(470, 136), (530, 142), (590, 176), (628, 220), (652, 272), (664, 330), (676, 395), (690, 460), (704, 525),
+         (718, 590), (740, 640), (764, 688), (784, 728)]
+R_IN = [(457, 200), (500, 204), (536, 220), (550, 262), (551, 320), (548, 372), (541, 420), (528, 462), (540, 505),
+        (556, 556), (574, 612), (590, 660), (608, 702), (630, 740), (652, 776)]
+
+
+def strands(c, outer, inner, n, col_fn, width_fn, jitter, seed, wave=0.0):
+    r = np.random.default_rng(seed)
+    O = resample(outer, 120)
+    I = resample(inner, 120)
+    for i in range(n):
+        k = r.random() ** 0.9
+        base = I * (1 - k) + O * k
+        j = r.normal(0, jitter, 2)
+        ph = r.random() * 6.28
+        pts = base + j
+        if wave:
+            tt = np.linspace(0, 1, len(pts))
+            wy = np.clip((pts[:, 1] - 330) / 250, 0, 1)
+            pts = pts + np.stack([np.sin(pts[:, 1] / 22 + ph) * wave * 2.2 * wy, np.zeros_like(tt)], -1)
+        a0 = r.random() * 0.15
+        a1 = min(1.0, a0 + 0.35 + r.random() * 0.6)
+        seg = pts[int(a0 * len(pts)):int(a1 * len(pts))]
+        if len(seg) < 4:
+            continue
+        col = col_fn(k, r)
+        c.set_source_rgba(*col)
+        c.set_line_width(width_fn(r))
+        spline(c, seg[::3], closed=False)
+        c.stroke()
+
+
+def rgba_layer(draw):
+    """Draw with colour onto a transparent ARGB surface; return (rgb, alpha) floats."""
+    s = cairo.ImageSurface(cairo.FORMAT_ARGB32, W, H)
+    c = cairo.Context(s)
+    c.set_line_cap(cairo.LINE_CAP_ROUND)
+    c.set_line_join(cairo.LINE_JOIN_ROUND)
+    draw(c)
+    s.flush()
+    a = np.ndarray((H, s.get_stride() // 4, 4), np.uint8, s.get_data())[:, :W, :].astype(np.float32) / 255
+    alpha = a[..., 3]
+    col = np.stack([a[..., 2], a[..., 1], a[..., 0]], -1) / np.maximum(alpha[..., None], 1e-4)
+    return col, alpha
+
+
+def comp(img, col, alpha, blur=0.0, a=1.0):
+    if blur:
+        pre = col * alpha[..., None]
+        pre = np.stack([gaussian_filter(pre[..., i], blur) for i in range(3)], -1)
+        alpha = gaussian_filter(alpha, blur)
+        col = pre / np.maximum(alpha[..., None], 1e-4)
+    lay(img, alpha, col, a)
+
+
+def ringlet(c, x0, y0, length, amp, turns, lean, w, col_dark, col_light, r):
+    t = np.linspace(0, 1, 90)
+    ph = r.random() * 6.28
+    xs = x0 + lean * t * length + amp * np.sin(t * turns * 6.283 + ph) * (0.6 + 0.4 * t)
+    ys = y0 + t * length
+    pts = np.stack([xs, ys], -1)
+    c.set_source_rgba(*col_dark)
+    c.set_line_width(w)
+    spline(c, pts[::3], closed=False)
+    c.stroke()
+    # highlight catches the outward-facing half of each turn
+    for k in range(int(turns) + 1):
+        a = (k + 0.18) / turns
+        b = (k + 0.5) / turns
+        if a >= 1:
+            break
+        i0, i1 = int(a * 89), int(min(b, 1) * 89)
+        if i1 - i0 < 3:
+            continue
+        c.set_source_rgba(*col_light)
+        c.set_line_width(w * 0.35)
+        spline(c, pts[i0:i1:2], closed=False)
+        c.stroke()
+
+
+def paint_hair(img, face_m):
+    hair_m = fill_spline(L_OUT[::-1] + R_OUT[1:] + [(640, 700), (360, 700)], blur=3.2)
+
+    # base colour: warm dark brown, lit crown fading to near-black sides
+    base = ramp(np.clip((YY - 140) / 520, 0, 1) + 0.25 * np.clip((XX - 470) / 200, 0, 1),
+                [(0, rgb(74, 40, 20)), (0.25, rgb(50, 24, 16)), (0.6, rgb(36, 16, 14)), (1.0, rgb(20, 9, 12))])
+    band = np.maximum(fill_spline(L_OUT + L_IN[::-1], blur=3.5, t=0.4), fill_spline(R_OUT + R_IN[::-1], blur=3.5, t=0.4))
+    vfade = np.clip((770 - YY) / 110, 0, 1) ** 0.9
+    band = band * vfade
+    cover = np.maximum(hair_m * (1 - face_m) * np.clip((740 - YY) / 60, 0, 1), band)
+    lay(img, cover, base)
+    # soft shadow the hair casts onto the skin just inside its edge
+    lay(img, np.clip(gaussian_filter(band, 5) - band, 0, 1) * face_m, rgb(80, 50, 26), 0.6)
+    # crown sheen following the skull
+    sheen = stroke_spline([(360, 196), (400, 160), (458, 146), (520, 152), (580, 182), (616, 222)], 16, blur=10)
+    lay(img, sheen * cover, rgb(150, 104, 50), 0.6)
+    lay(img, stroke_spline([(352, 236), (372, 196), (410, 166), (452, 152)], 14, blur=9) * cover, rgb(150, 106, 50), 0.5)
+    lay(img, ellipse(322, 440, 26, 150, blur=24) * cover, rgb(84, 38, 26), 0.4)     # the lit, reddish left fall of hair
+    lay(img, stroke_spline([(520, 150), (580, 180), (618, 222), (642, 270)], 10, blur=8) * hair_m, rgb(100, 62, 32), 0.35)
+
+    # long strands from the part down both sides
+    def cL(k, r):
+        v = 0.4 + 1.1 * r.random() ** 3
+        return (0.6 * v, 0.32 * v, 0.15 * v, (0.08 + 0.3 * r.random() * v) * (0.45 + 0.55 * k))
+    def cR(k, r):
+        v = 0.35 + 0.9 * r.random() ** 3
+        return (0.42 * v, 0.25 * v, 0.14 * v, (0.06 + 0.2 * r.random() * v) * (0.45 + 0.55 * k))
+    def cDark(k, r):
+        return (0.08, 0.04, 0.03, 0.25 + 0.3 * r.random())
+    col, al = rgba_layer(lambda c: (strands(c, L_OUT, L_IN, 170, cDark, lambda r: 1.5 + 2 * r.random(), 3, 1),
+                                    strands(c, R_OUT, R_IN, 170, cDark, lambda r: 1.5 + 2 * r.random(), 3, 2)))
+    comp(img, col, al * vfade, blur=1.0)
+    col, al = rgba_layer(lambda c: (strands(c, L_OUT, L_IN, 140, cL, lambda r: 0.8 + 1.6 * r.random(), 2.5, 3, wave=3.0),
+                                    strands(c, R_OUT, R_IN, 120, cR, lambda r: 0.8 + 1.4 * r.random(), 2.5, 4, wave=2.6)))
+    comp(img, col, al * vfade, blur=1.3)
+
+    # corkscrew ringlets below the ears, reddish on the lit left
+    r = np.random.default_rng(9)
+    def locks_left(c):
+        for i in range(46):
+            y0 = 330 + r.random() * 360
+            x0 = np.interp(y0, [300, 450, 600], [296, 294, 300]) + r.random() * np.interp(y0, [300, 450, 600], [50, 70, 100])
+            ln = min(30 + r.random() * 90, 740 - y0)
+            v = 0.5 + 0.6 * r.random()
+            ringlet(c, x0, y0, ln, 2 + r.random() * 4.5, ln / (10 + r.random() * 14), -0.2 + r.random() * 0.3,
+                    2 + r.random() * 3.5, (0.12, 0.05, 0.04, 0.3), (0.66 * v, 0.44 * v, 0.22 * v, 0.55), r)
+    def locks_right(c):
+        for i in range(30):
+            y0 = 400 + r.random() * 200
+            x0 = 556 + (y0 - 400) * 0.25 + r.random() * 90
+            ln = min(60 + r.random() * 110, 680 - y0)
+            ringlet(c, x0, y0, ln, 2.5 + r.random() * 3.5, ln / (14 + r.random() * 10), 0.12 + r.random() * 0.15,
+                    2.5 + r.random() * 3, (0.06, 0.03, 0.04, 0.35), (0.36, 0.22, 0.12, 0.45), r)
+    col, al = rgba_layer(locks_left)
+    comp(img, col, al * cover, blur=1.6, a=0.8)
+    col, al = rgba_layer(locks_right)
+    comp(img, col, al * cover, blur=1.6, a=0.8)
+
+    # the outer silhouette is broken by loose locks rather than blurred
+    def outer_locks(c):
+        for pts, side in ((L_OUT, -1), (R_OUT, 1)):
+            P = resample(pts, 80)
+            for i in range(6, 78):
+                x, y = P[i]
+                if rs.random() < 0.5:
+                    continue
+                d = side * (2 + rs.random() * 6)
+                c.set_source_rgba(0.14, 0.07, 0.05, 0.3 + 0.4 * rs.random())
+                c.set_line_width(1.0 + rs.random() * 2.0)
+                c.move_to(x - d, y - 10)
+                c.curve_to(x + d, y - 4, x + d * 1.2, y + 6, x + d * 0.3, y + 16)
+                c.stroke()
+    rs = np.random.default_rng(78)
+    col, al = rgba_layer(outer_locks)
+    comp(img, col, al * np.clip((720 - YY) / 80, 0, 1), blur=0.9)
+    # stray locks that break the clean line where hair meets skin
+    rs = np.random.default_rng(77)
+    def stray(c):
+        for side, pts in ((1, L_IN), (-1, R_IN)):
+            P = resample(pts, 60)
+            for i in range(12, 58, 3):
+                x, y = P[i]
+                dx = side * (2 + rs.random() * 7)
+                c.set_source_rgba(0.1, 0.05, 0.03, 0.35 + 0.3 * rs.random())
+                c.set_line_width(1.2 + rs.random() * 2.2)
+                c.move_to(x - side * 6, y - 14)
+                c.curve_to(x + dx, y - 6, x + dx, y + 8, x - side * 2, y + 18)
+                c.stroke()
+    col, al = rgba_layer(stray)
+    comp(img, col, al, blur=1.0)
+    # the veil's shadow at the top of the forehead, and warm hair roots at the hairline
+    lay(img, np.clip(1 - (YY - 204) / 30, 0, 1) * face_m * (YY > 190), rgb(150, 104, 52), 0.45)
+    # the hair part and the fine veil edge across the forehead
+    lay(img, stroke_spline([(458, 142), (457, 170), (456, 199)], 2.0, blur=1.2), rgb(150, 104, 58), 0.5)
+    veil_edge = [(348, 250), (370, 224), (410, 210), (456, 206), (505, 210), (540, 224), (552, 240)]
+    lay(img, stroke_spline(veil_edge, 1.3, blur=0.6), rgb(90, 60, 34), 0.45)
+    lay(img, stroke_spline([(p[0], p[1] - 3) for p in veil_edge], 6, blur=3), rgb(130, 90, 44), 0.3)
+    lay(img, stroke_spline([(p[0], p[1] + 2) for p in veil_edge], 1.0, blur=0.6), rgb(236, 206, 130), 0.2)
+    return hair_m
+
+
+def paint_veil(img):
+    """Transparent gauze: a faint dark halo round the head, stronger down the left side."""
+    halo = fill_spline(L_OUT[::-1] + R_OUT[1:] + [(640, 700), (360, 700)], blur=2)
+    ring = np.clip(gaussian_filter(halo, 7) * 1.6 - halo, 0, 1)
+    lay(img, ring * (YY < 700), rgb(46, 40, 28), 0.22)
+    v = fill_spline([(318, 240), (300, 300), (284, 380), (282, 470), (288, 560), (300, 640), (320, 700),
+                     (330, 690), (310, 600), (298, 520), (296, 440), (300, 350), (318, 270), (338, 222)], blur=1.5)
+    lay(img, gaussian_filter(v, 3), rgb(40, 34, 22), 0.22)
+    lay(img, stroke_spline([(318, 240), (300, 300), (284, 380), (282, 470), (288, 560), (300, 640), (320, 700)], 1.0, 0.7),
+        rgb(30, 24, 16), 0.35)
+
+
+# ======================================================================
+# landscape2
+# ======================================================================
+"""Leonardo's imaginary landscape, painted with brush touches rather than gradients."""
+
+XS = np.arange(W + 1, dtype=np.float32)
+
+
+def ridged(n, scale, seed, octaves=4):
+    acc = np.zeros(n, np.float32)
+    amp, tot, s = 1.0, 0.0, scale
+    for o in range(octaves):
+        v = 1 - np.abs(noise1d(n, s, seed + o, octaves=2))
+        acc += amp * v ** 2
+        tot += amp
+        amp *= 0.5
+        s /= 2.2
+    return acc / tot
+
+
+def region_from_top(top, bottom, x0=0, x1=W, blur=1.0):
+    sel = (XS >= x0) & (XS <= x1)
+    xs, ts = XS[sel][::2], top[sel][::2]
+    bt = bottom if np.ndim(bottom) else np.full_like(XS, bottom)
+    bs = bt[sel][::2]
+    pts = list(zip(xs, ts)) + list(zip(xs[::-1], bs[::-1]))
+    return fill_poly(pts, blur=blur)
+
+
+def strokes(img, m, n, colour, length, width, angle, jitter, alpha, seed, bbox=None, curve=0.0, blur=0.7):
+    """Scatter n brush touches inside mask m. colour(x, y, r) -> rgb 0..1."""
+    r = np.random.default_rng(seed)
+    ys, xs = np.nonzero(m > 0.5)
+    if len(xs) == 0:
+        return
+    idx = r.integers(0, len(xs), n)
+
+    def draw(c):
+        c.set_line_cap(cairo.LINE_CAP_ROUND)
+        for i in idx:
+            x, y = xs[i] + r.random() - 0.5, ys[i] + r.random() - 0.5
+            L = length * (0.5 + r.random())
+            a = angle + r.normal(0, jitter)
+            dx, dy = math.cos(a) * L / 2, math.sin(a) * L / 2
+            col = colour(x, y, r)
+            c.set_source_rgba(col[0], col[1], col[2], alpha * (0.5 + 0.5 * r.random()))
+            c.set_line_width(width * (0.6 + 0.8 * r.random()))
+            c.move_to(x - dx, y - dy)
+            if curve:
+                c.curve_to(x - dx * 0.3 + curve * dy, y - dy * 0.3 - curve * dx, x + dx * 0.3 + curve * dy,
+                           y + dy * 0.3 - curve * dx, x + dx, y + dy)
+            else:
+                c.line_to(x + dx, y + dy)
+            c.stroke()
+    col, al = rgba_layer(draw)
+    comp(img, col, al * m, blur=blur)
+
+
+def palette(stops, top_fn=None, depth=60.0, var=0.12):
+    """Colour by depth below a ridge top (lit crest -> dark base) with random variation."""
+    def f(x, y, r):
+        if top_fn is not None:
+            t = 1 - min(1.0, max(0.0, (y - top_fn(x)) / depth))
+        else:
+            t = r.random()
+        t = min(1, max(0, t + r.normal(0, var)))
+        k = t * (len(stops) - 1)
+        i = min(int(k), len(stops) - 2)
+        c = stops[i] * (1 - (k - i)) + stops[i + 1] * (k - i)
+        return c * (0.95 + 0.1 * r.random())
+    return f
+
+
+def form(img, top, bottom, x0, x1, stops, depth, n, length, width, angle, jitter, alpha, seed, var=0.1, blur=0.8, curve=0.0,
+         fade=0.0, slope_light=0.0):
+    m = region_from_top(top, bottom, x0, x1)
+    if fade:
+        m = m * np.clip((bottom - YY) / fade, 0, 1)
+    d = YY - np.interp(XX, XS, top)
+    t = np.clip(1 - d / depth, 0, 1) * 0.85 + 0.15 * fbm(18, 3, seed + 500)
+    if slope_light:
+        sl = np.gradient(gaussian_filter(top, 2.5))
+        face = np.clip(-np.interp(XX, XS, sl) * 0.8, -1, 1)          # rising to the right = faces the light
+        t = t + slope_light * face * np.exp(-np.clip(d, 0, None) / (depth * 1.2))
+    lay(img, m, ramp(t, [(i / (len(stops) - 1), c) for i, c in enumerate(stops)]))
+    strokes(img, m, n, palette(stops, lambda x: np.interp(x, XS, top), depth, var), length, width, angle, jitter,
+            alpha, seed, blur=blur, curve=curve)
+    return m
+
+
+def paint_landscape(img):
+    # ---------- sky: teal-green overhead, pale warm haze at the horizon ----------
+    img[:] = vgrad(-80, 330, rgb(80, 104, 76), rgb(176, 178, 124))
+    cl = fbm(140, 5, 3, aniso=(0.4, 2.0))
+    lay(img, np.clip((cl - 0.5) * 2, 0, 1) * np.clip(1 - YY / 320, 0, 1), rgb(150, 160, 116), 0.28)
+    sky_m = (YY < 360).astype(np.float32)
+    strokes(img, sky_m, 2500, palette([rgb(110, 128, 90), rgb(150, 158, 112), rgb(178, 178, 126)],
+                                      lambda x: -80, 400, 0.08), 26, 5, 0.0, 0.25, 0.12, 1, blur=1.5)
+    haze = rgb(176, 178, 126)
+
+    # ---------- far left: pale distant crags, then the dark tall wooded mass ----------
+    top_far = 300 + 0.03 * XS - 36 * ridged(len(XS), 50, 21) - 26 * np.exp(-((XS - 200) / 60) ** 2)
+    form(img, top_far, 500, 0, 420, [rgb(96, 112, 92), rgb(132, 144, 110), rgb(172, 176, 128)], 80,
+         1800, 16, 3.4, math.pi / 2, 0.15, 0.35, 2)
+    top_dark = 345 + 0.02 * XS - 46 * ridged(len(XS), 40, 22) * np.clip(1 - XS / 330, 0.25, 1) - 16 * noise1d(len(XS), 10, 23)
+    form(img, top_dark, 500, 0, 420, [rgb(34, 48, 40), rgb(54, 72, 56), rgb(84, 102, 76), rgb(126, 136, 98)], 110,
+         4000, 13, 3.4, math.pi / 2, 0.2, 0.45, 3, var=0.12)
+    lay(img, region_from_top(top_dark, 500, 0, 420) * np.clip((YY - 300) / 200, 0, 1), haze, 0.16)
+
+    # ---------- far right: bluish crag mass, dissolving into bright mist ----------
+    top_r = 250 + 0.14 * np.clip(XS - 650, 0, None) - 34 * ridged(len(XS), 40, 31) - 30 * np.exp(-((XS - 720) / 40) ** 2)
+    top_r = np.where(XS > 820, top_r + (XS - 820) * 0.35, top_r)
+    form(img, top_r, 420, 560, W, [rgb(72, 94, 86), rgb(104, 122, 102), rgb(146, 154, 116), rgb(186, 186, 136)], 90,
+         3000, 14, 3.2, math.pi / 2, 0.18, 0.4, 4)
+    m_r = region_from_top(top_r, 400, 560, W)
+    strokes(img, m_r * np.clip((380 - YY) / 60, 0, 1), 500, palette([rgb(70, 88, 78), rgb(96, 112, 94)], var=0.08),
+            22, 2.6, math.pi / 2, 0.12, 0.35, 17)
+    mist = np.clip((XX - 790) / 170, 0, 1) * np.clip((YY - 240) / 60, 0, 1) * np.clip((410 - YY) / 40, 0, 1)
+    lay(img, mist, rgb(192, 190, 140), 0.7)
+
+    # ---------- right lake + the dark-teal middle distance ----------
+    lake_r = region_from_top(np.full_like(XS, 366.0), np.full_like(XS, 412.0), 520, W, blur=1.5)
+    lay(img, lake_r, vgrad(366, 410, rgb(188, 186, 136), rgb(150, 156, 116)))
+    strokes(img, lake_r, 300, palette([rgb(150, 156, 116), rgb(186, 184, 136)], var=0.05), 36, 2.0, 0.0, 0.03, 0.2, 5, blur=1.4)
+    top_mr = 398 + 0.02 * (XS - 560) - 14 * ridged(len(XS), 60, 41)
+    form(img, top_mr, 650, 540, W, [rgb(38, 54, 46), rgb(58, 78, 64), rgb(88, 106, 84), rgb(128, 138, 100)], 160,
+         2600, 16, 3.0, 0.0, 0.25, 0.18, 6, var=0.12, blur=1.4)
+    m_mr = region_from_top(top_mr, 650, 540, W)
+    strokes(img, m_mr * (YY > 470), 260, palette([rgb(96, 96, 60), rgb(130, 122, 78), rgb(150, 142, 94)], var=0.08),
+            22, 4.0, 0.0, 0.25, 0.2, 16, blur=1.6)                        # ochre fields in the valley
+    lay(img, region_from_top(top_mr, 600, 540, W) * np.clip(1 - (YY - 395) / 60, 0, 1), haze, 0.3)
+
