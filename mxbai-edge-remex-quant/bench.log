@@ -1,0 +1,76 @@
+[scifact] docs=5183 tokens=1382899 (266.8/doc) queries=300
+  centering predictor ||mean||/mean||x|| = 0.936
+  late fp32                             68304.5 B/doc  nDCG@10 0.7447
+  late fp16                             34152.2 B/doc  nDCG@10 0.7456  Δ +0.0009 [-0.0002,+0.0029] ov 1.00
+  late int8                             17076.1 B/doc  nDCG@10 0.7414  Δ -0.0033 [-0.0077,+0.0009] ov 0.93
+  late remex 8-bit                      17076.1 B/doc  nDCG@10 0.7453  Δ +0.0006 [-0.0008,+0.0029] ov 0.98
+  late remex 4-bit                       8538.1 B/doc  nDCG@10 0.7401  Δ -0.0046 [-0.0143,+0.0044] ov 0.86
+  late remex 3-bit                       6403.5 B/doc  nDCG@10 0.7290  Δ -0.0157 [-0.0274,-0.0045] ov 0.76
+  late remex 2-bit                       4269.0 B/doc  nDCG@10 0.6932  Δ -0.0515 [-0.0741,-0.0304] ov 0.59
+  late remex 1-bit                       2134.5 B/doc  nDCG@10 0.5636  Δ -0.1811 [-0.2174,-0.1456] ov 0.34
+  late remex 2-bit haar s0               4269.0 B/doc  nDCG@10 0.6936  Δ -0.0511 [-0.0738,-0.0295] ov 0.60
+  late remex 2-bit haar s1               4269.0 B/doc  nDCG@10 0.6832  Δ -0.0615 [-0.0830,-0.0412] ov 0.61
+  late remex 1-bit haar s0               2134.5 B/doc  nDCG@10 0.5055  Δ -0.2392 [-0.2797,-0.1994] ov 0.29
+  late remex 1-bit haar s1               2134.5 B/doc  nDCG@10 0.6132  Δ -0.1315 [-0.1646,-0.0987] ov 0.37
+  late remex 4-bit centered              8538.1 B/doc  nDCG@10 0.7405  Δ -0.0042 [-0.0084,-0.0008] ov 0.95
+  late remex 2-bit centered              4269.0 B/doc  nDCG@10 0.7306  Δ -0.0141 [-0.0248,-0.0045] ov 0.84
+  late remex 1-bit centered              2134.5 B/doc  nDCG@10 0.6868  Δ -0.0580 [-0.0789,-0.0379] ov 0.65
+  late remax k=1 (asym)                  2134.5 B/doc  nDCG@10 0.5319  Δ -0.2128 [-0.2517,-0.1748] ov 0.32
+  late remax k=2 (asym)                  4269.0 B/doc  nDCG@10 0.6617  Δ -0.0830 [-0.1099,-0.0575] ov 0.48
+  late remax k=1 (sym)                   2134.5 B/doc  nDCG@10 0.4395  Δ -0.3052 [-0.3504,-0.2594] ov 0.23
+  [517s]
+  late plaid 4-bit                       9071.7 B/doc  nDCG@10 0.7382  Δ -0.0066 [-0.0121,-0.0017] ov 0.93
+  late plaid 2-bit                       4802.7 B/doc  nDCG@10 0.7315  Δ -0.0132 [-0.0240,-0.0035] ov 0.86
+  late plaid 1-bit                       2668.1 B/doc  nDCG@10 0.7153  Δ -0.0294 [-0.0452,-0.0142] ov 0.78
+  late plaid centroid-only                533.6 B/doc  nDCG@10 0.6873  Δ -0.0575 [-0.0786,-0.0371] ov 0.68
+  [1157s]
+  late fp32 pool2                       34216.4 B/doc  nDCG@10 0.7050  Δ -0.0397 [-0.0565,-0.0245] ov 0.81
+  late remex 2-bit pool2                 2673.2 B/doc  nDCG@10 0.6365  Δ -0.1082 [-0.1375,-0.0797] ov 0.52
+  late remex 1-bit pool2                 1603.9 B/doc  nDCG@10 0.5100  Δ -0.2348 [-0.2752,-0.1954] ov 0.30
+  [1218s]
+  dense bge-small fp32                   1536.0 B/doc  nDCG@10 0.7127  Δ -0.0320 [-0.0587,-0.0050] ov 0.43
+  dense bge-small fp16                    768.0 B/doc  nDCG@10 0.7127  Δ -0.0320 [-0.0587,-0.0050] ov 0.43
+  dense bge-small int8                    384.0 B/doc  nDCG@10 0.7097  Δ -0.0351 [-0.0617,-0.0082] ov 0.43
+  dense bge-small remex 4-bit             192.0 B/doc  nDCG@10 0.7170  Δ -0.0278 [-0.0557,+0.0006] ov 0.43
+  dense bge-small remex 2-bit              96.0 B/doc  nDCG@10 0.6800  Δ -0.0648 [-0.0950,-0.0343] ov 0.41
+  dense bge-small remex 1-bit              48.0 B/doc  nDCG@10 0.6172  Δ -0.1275 [-0.1617,-0.0934] ov 0.34
+  dense bge-small remax k=1 (asym)         48.0 B/doc  nDCG@10 0.6126  Δ -0.1321 [-0.1672,-0.0979] ov 0.34
+{"corpus": "scifact", "n_docs": 5183, "n_tokens": 1382899, "tokens_per_doc": 266.81, "pooled_tokens_per_doc": 133.66, "n_queries": 300, "centering_predictor": 0.936, "seconds": 1218.5}
+[nfcorpus] docs=3633 tokens=1037874 (285.7/doc) queries=323
+  centering predictor ||mean||/mean||x|| = 0.940
+  late fp32                             73134.0 B/doc  nDCG@10 0.3606
+  late fp16                             36567.0 B/doc  nDCG@10 0.3608  Δ +0.0003 [-0.0002,+0.0010] ov 1.00
+  late int8                             18283.5 B/doc  nDCG@10 0.3600  Δ -0.0005 [-0.0030,+0.0018] ov 0.94
+  late remex 8-bit                      18283.5 B/doc  nDCG@10 0.3612  Δ +0.0006 [-0.0009,+0.0023] ov 0.98
+  late remex 4-bit                       9141.7 B/doc  nDCG@10 0.3594  Δ -0.0012 [-0.0057,+0.0037] ov 0.81
+  late remex 3-bit                       6856.3 B/doc  nDCG@10 0.3519  Δ -0.0087 [-0.0160,-0.0016] ov 0.68
+  late remex 2-bit                       4570.9 B/doc  nDCG@10 0.3278  Δ -0.0328 [-0.0433,-0.0223] ov 0.51
+  late remex 1-bit                       2285.4 B/doc  nDCG@10 0.1995  Δ -0.1611 [-0.1857,-0.1368] ov 0.26
+  late remex 2-bit haar s0               4570.9 B/doc  nDCG@10 0.3345  Δ -0.0261 [-0.0360,-0.0166] ov 0.51
+  late remex 2-bit haar s1               4570.9 B/doc  nDCG@10 0.3216  Δ -0.0390 [-0.0519,-0.0267] ov 0.50
+  late remex 1-bit haar s0               2285.4 B/doc  nDCG@10 0.1856  Δ -0.1750 [-0.2009,-0.1495] ov 0.23
+  late remex 1-bit haar s1               2285.4 B/doc  nDCG@10 0.2352  Δ -0.1254 [-0.1460,-0.1049] ov 0.27
+  late remex 4-bit centered              9141.7 B/doc  nDCG@10 0.3605  Δ -0.0001 [-0.0025,+0.0023] ov 0.92
+  late remex 2-bit centered              4570.9 B/doc  nDCG@10 0.3580  Δ -0.0026 [-0.0086,+0.0036] ov 0.76
+  late remex 1-bit centered              2285.4 B/doc  nDCG@10 0.3382  Δ -0.0224 [-0.0326,-0.0122] ov 0.58
+  late remax k=1 (asym)                  2285.4 B/doc  nDCG@10 0.1906  Δ -0.1700 [-0.1955,-0.1449] ov 0.22
+  late remax k=2 (asym)                  4570.9 B/doc  nDCG@10 0.2593  Δ -0.1013 [-0.1218,-0.0814] ov 0.36
+  late remax k=1 (sym)                   2285.4 B/doc  nDCG@10 0.1564  Δ -0.2042 [-0.2317,-0.1765] ov 0.16
+  [266s]
+  late plaid 4-bit                       9713.1 B/doc  nDCG@10 0.3590  Δ -0.0016 [-0.0052,+0.0018] ov 0.90
+  late plaid 2-bit                       5142.2 B/doc  nDCG@10 0.3541  Δ -0.0064 [-0.0124,-0.0008] ov 0.80
+  late plaid 1-bit                       2856.8 B/doc  nDCG@10 0.3368  Δ -0.0237 [-0.0328,-0.0150] ov 0.68
+  late plaid centroid-only                571.4 B/doc  nDCG@10 0.2750  Δ -0.0856 [-0.1044,-0.0678] ov 0.49
+  [563s]
+  late fp32 pool2                       36631.0 B/doc  nDCG@10 0.3560  Δ -0.0046 [-0.0105,+0.0012] ov 0.79
+  late remex 2-bit pool2                 2861.8 B/doc  nDCG@10 0.3093  Δ -0.0513 [-0.0650,-0.0383] ov 0.46
+  late remex 1-bit pool2                 1717.1 B/doc  nDCG@10 0.1832  Δ -0.1774 [-0.2029,-0.1523] ov 0.24
+  [592s]
+  dense bge-small fp32                   1536.0 B/doc  nDCG@10 0.3436  Δ -0.0170 [-0.0358,+0.0018] ov 0.38
+  dense bge-small fp16                    768.0 B/doc  nDCG@10 0.3435  Δ -0.0171 [-0.0359,+0.0017] ov 0.38
+  dense bge-small int8                    384.0 B/doc  nDCG@10 0.3435  Δ -0.0171 [-0.0362,+0.0019] ov 0.38
+  dense bge-small remex 4-bit             192.0 B/doc  nDCG@10 0.3418  Δ -0.0187 [-0.0372,-0.0000] ov 0.38
+  dense bge-small remex 2-bit              96.0 B/doc  nDCG@10 0.3330  Δ -0.0276 [-0.0468,-0.0090] ov 0.35
+  dense bge-small remex 1-bit              48.0 B/doc  nDCG@10 0.2916  Δ -0.0690 [-0.0904,-0.0486] ov 0.29
+  dense bge-small remax k=1 (asym)         48.0 B/doc  nDCG@10 0.2963  Δ -0.0643 [-0.0849,-0.0441] ov 0.29
+{"corpus": "nfcorpus", "n_docs": 3633, "n_tokens": 1037874, "tokens_per_doc": 285.68, "pooled_tokens_per_doc": 143.09, "n_queries": 323, "centering_predictor": 0.94, "seconds": 592.4}

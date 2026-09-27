@@ -1,0 +1,34 @@
+[scifact]
+  late remex 2-bit centered haar s0        nDCG@10 0.7297  Δ -0.0151 [-0.0254,-0.0055]
+  late remex 2-bit centered haar s1        nDCG@10 0.7403  Δ -0.0044 [-0.0136,+0.0045]
+  late remex 1-bit centered haar s0        nDCG@10 0.6927  Δ -0.0521 [-0.0719,-0.0334]
+  late remex 1-bit centered haar s1        nDCG@10 0.7008  Δ -0.0439 [-0.0625,-0.0257]
+  late remax k=1 (asym) centered           nDCG@10 0.0057  Δ -0.7390 [-0.7784,-0.6973]
+  late remax k=2 (asym) centered           nDCG@10 0.0022  Δ -0.7426 [-0.7825,-0.7001]
+  geometry: {'mean_norm_of_mean': 0.936, 'random_pair_cos_mean': 0.876, 'random_pair_cos_p05': 0.789, 'centered_pair_cos_mean': 0.009, 'residual_norm_mean': 0.322}
+  late remex 2-bit centered    vs late plaid 2-bit               -0.0010 [-0.0128,+0.0109]  31/31
+  late remex 1-bit centered    vs late plaid 1-bit               -0.0286 [-0.0490,-0.0088]  40/57
+  late remex 4-bit centered    vs late plaid 4-bit               +0.0023 [-0.0021,+0.0072]  17/13
+  late remex 1-bit centered    vs late remex 1-bit               +0.1232 [+0.0913,+0.1551]  98/27
+  late remex 2-bit centered    vs dense bge-small fp32           +0.0179 [-0.0090,+0.0442]  55/49
+  late remex 2-bit centered    vs dense bge-small remex 4-bit    +0.0136 [-0.0140,+0.0413]  57/48
+  late plaid 1-bit             vs dense bge-small fp32           +0.0026 [-0.0276,+0.0326]  53/59
+  late remex 1-bit centered    vs dense bge-small fp32           -0.0259 [-0.0536,+0.0005]  43/60
+  late fp32                    vs dense bge-small fp32           +0.0320 [+0.0050,+0.0587]  60/45
+[nfcorpus]
+  late remex 2-bit centered haar s0        nDCG@10 0.3522  Δ -0.0084 [-0.0148,-0.0020]
+  late remex 2-bit centered haar s1        nDCG@10 0.3563  Δ -0.0043 [-0.0102,+0.0020]
+  late remex 1-bit centered haar s0        nDCG@10 0.3272  Δ -0.0333 [-0.0450,-0.0220]
+  late remex 1-bit centered haar s1        nDCG@10 0.3219  Δ -0.0386 [-0.0508,-0.0267]
+  late remax k=1 (asym) centered           nDCG@10 0.0186  Δ -0.3420 [-0.3781,-0.3067]
+  late remax k=2 (asym) centered           nDCG@10 0.0198  Δ -0.3408 [-0.3771,-0.3058]
+  geometry: {'mean_norm_of_mean': 0.94, 'random_pair_cos_mean': 0.883, 'random_pair_cos_p05': 0.804, 'centered_pair_cos_mean': 0.011, 'residual_norm_mean': 0.307}
+  late remex 2-bit centered    vs late plaid 2-bit               +0.0038 [-0.0038,+0.0114]  82/87
+  late remex 1-bit centered    vs late plaid 1-bit               +0.0014 [-0.0105,+0.0133]  105/89
+  late remex 4-bit centered    vs late plaid 4-bit               +0.0015 [-0.0024,+0.0054]  61/57
+  late remex 1-bit centered    vs late remex 1-bit               +0.1387 [+0.1160,+0.1624]  191/28
+  late remex 2-bit centered    vs dense bge-small fp32           +0.0144 [-0.0039,+0.0328]  116/104
+  late remex 2-bit centered    vs dense bge-small remex 4-bit    +0.0161 [-0.0016,+0.0341]  117/101
+  late plaid 1-bit             vs dense bge-small fp32           -0.0067 [-0.0258,+0.0125]  105/115
+  late remex 1-bit centered    vs dense bge-small fp32           -0.0054 [-0.0237,+0.0127]  101/118
+  late fp32                    vs dense bge-small fp32           +0.0170 [-0.0018,+0.0358]  118/99

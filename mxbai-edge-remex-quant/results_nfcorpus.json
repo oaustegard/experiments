@@ -1,0 +1,499 @@
+{
+ "meta": {
+  "corpus": "nfcorpus",
+  "n_docs": 3633,
+  "n_tokens": 1037874,
+  "tokens_per_doc": 285.68,
+  "pooled_tokens_per_doc": 143.09,
+  "n_queries": 323,
+  "centering_predictor": 0.94,
+  "seconds": 592.4
+ },
+ "rows": [
+  {
+   "arm": "late fp32",
+   "family": "late",
+   "bytes_per_doc": 73134.0,
+   "ndcg10": 0.3606,
+   "recall100": 0.3115
+  },
+  {
+   "arm": "late fp16",
+   "family": "late",
+   "bytes_per_doc": 36567.0,
+   "ndcg10": 0.3608,
+   "recall100": 0.3114,
+   "delta": 0.0003,
+   "ci": [
+    -0.0002,
+    0.001
+   ],
+   "wins": 7,
+   "losses": 2,
+   "overlap10": 0.997
+  },
+  {
+   "arm": "late int8",
+   "family": "late",
+   "bytes_per_doc": 18283.5,
+   "ndcg10": 0.36,
+   "recall100": 0.3078,
+   "delta": -0.0005,
+   "ci": [
+    -0.003,
+    0.0018
+   ],
+   "wins": 45,
+   "losses": 41,
+   "overlap10": 0.937
+  },
+  {
+   "arm": "late remex 8-bit",
+   "family": "late",
+   "bytes_per_doc": 18283.5,
+   "ndcg10": 0.3612,
+   "recall100": 0.3106,
+   "delta": 0.0006,
+   "ci": [
+    -0.0009,
+    0.0023
+   ],
+   "wins": 17,
+   "losses": 16,
+   "overlap10": 0.977
+  },
+  {
+   "arm": "late remex 4-bit",
+   "family": "late",
+   "bytes_per_doc": 9141.7,
+   "ndcg10": 0.3594,
+   "recall100": 0.3081,
+   "delta": -0.0012,
+   "ci": [
+    -0.0057,
+    0.0037
+   ],
+   "wins": 67,
+   "losses": 73,
+   "overlap10": 0.808
+  },
+  {
+   "arm": "late remex 3-bit",
+   "family": "late",
+   "bytes_per_doc": 6856.3,
+   "ndcg10": 0.3519,
+   "recall100": 0.3011,
+   "delta": -0.0087,
+   "ci": [
+    -0.016,
+    -0.0016
+   ],
+   "wins": 73,
+   "losses": 98,
+   "overlap10": 0.683
+  },
+  {
+   "arm": "late remex 2-bit",
+   "family": "late",
+   "bytes_per_doc": 4570.9,
+   "ndcg10": 0.3278,
+   "recall100": 0.274,
+   "delta": -0.0328,
+   "ci": [
+    -0.0433,
+    -0.0223
+   ],
+   "wins": 51,
+   "losses": 135,
+   "overlap10": 0.509
+  },
+  {
+   "arm": "late remex 1-bit",
+   "family": "late",
+   "bytes_per_doc": 2285.4,
+   "ndcg10": 0.1995,
+   "recall100": 0.2101,
+   "delta": -0.1611,
+   "ci": [
+    -0.1857,
+    -0.1368
+   ],
+   "wins": 21,
+   "losses": 206,
+   "overlap10": 0.263
+  },
+  {
+   "arm": "late remex 2-bit haar s0",
+   "family": "late",
+   "bytes_per_doc": 4570.9,
+   "ndcg10": 0.3345,
+   "recall100": 0.2836,
+   "delta": -0.0261,
+   "ci": [
+    -0.036,
+    -0.0166
+   ],
+   "wins": 63,
+   "losses": 122,
+   "overlap10": 0.51
+  },
+  {
+   "arm": "late remex 2-bit haar s1",
+   "family": "late",
+   "bytes_per_doc": 4570.9,
+   "ndcg10": 0.3216,
+   "recall100": 0.2735,
+   "delta": -0.039,
+   "ci": [
+    -0.0519,
+    -0.0267
+   ],
+   "wins": 59,
+   "losses": 128,
+   "overlap10": 0.502
+  },
+  {
+   "arm": "late remex 1-bit haar s0",
+   "family": "late",
+   "bytes_per_doc": 2285.4,
+   "ndcg10": 0.1856,
+   "recall100": 0.1838,
+   "delta": -0.175,
+   "ci": [
+    -0.2009,
+    -0.1495
+   ],
+   "wins": 25,
+   "losses": 205,
+   "overlap10": 0.226
+  },
+  {
+   "arm": "late remex 1-bit haar s1",
+   "family": "late",
+   "bytes_per_doc": 2285.4,
+   "ndcg10": 0.2352,
+   "recall100": 0.2236,
+   "delta": -0.1254,
+   "ci": [
+    -0.146,
+    -0.1049
+   ],
+   "wins": 32,
+   "losses": 193,
+   "overlap10": 0.274
+  },
+  {
+   "arm": "late remex 4-bit centered",
+   "family": "late",
+   "bytes_per_doc": 9141.7,
+   "ndcg10": 0.3605,
+   "recall100": 0.3034,
+   "delta": -0.0001,
+   "ci": [
+    -0.0025,
+    0.0023
+   ],
+   "wins": 52,
+   "losses": 43,
+   "overlap10": 0.92,
+   "note": "+ one corpus mean (256 B total)"
+  },
+  {
+   "arm": "late remex 2-bit centered",
+   "family": "late",
+   "bytes_per_doc": 4570.9,
+   "ndcg10": 0.358,
+   "recall100": 0.306,
+   "delta": -0.0026,
+   "ci": [
+    -0.0086,
+    0.0036
+   ],
+   "wins": 57,
+   "losses": 92,
+   "overlap10": 0.764,
+   "note": "+ one corpus mean (256 B total)"
+  },
+  {
+   "arm": "late remex 1-bit centered",
+   "family": "late",
+   "bytes_per_doc": 2285.4,
+   "ndcg10": 0.3382,
+   "recall100": 0.2921,
+   "delta": -0.0224,
+   "ci": [
+    -0.0326,
+    -0.0122
+   ],
+   "wins": 65,
+   "losses": 118,
+   "overlap10": 0.576,
+   "note": "+ one corpus mean (256 B total)"
+  },
+  {
+   "arm": "late remax k=1 (asym)",
+   "family": "late",
+   "bytes_per_doc": 2285.4,
+   "ndcg10": 0.1906,
+   "recall100": 0.1982,
+   "delta": -0.17,
+   "ci": [
+    -0.1955,
+    -0.1449
+   ],
+   "wins": 26,
+   "losses": 213,
+   "overlap10": 0.219
+  },
+  {
+   "arm": "late remax k=2 (asym)",
+   "family": "late",
+   "bytes_per_doc": 4570.9,
+   "ndcg10": 0.2593,
+   "recall100": 0.2445,
+   "delta": -0.1013,
+   "ci": [
+    -0.1218,
+    -0.0814
+   ],
+   "wins": 32,
+   "losses": 182,
+   "overlap10": 0.364
+  },
+  {
+   "arm": "late remax k=1 (sym)",
+   "family": "late",
+   "bytes_per_doc": 2285.4,
+   "ndcg10": 0.1564,
+   "recall100": 0.1667,
+   "delta": -0.2042,
+   "ci": [
+    -0.2317,
+    -0.1765
+   ],
+   "wins": 23,
+   "losses": 214,
+   "overlap10": 0.164
+  },
+  {
+   "arm": "late plaid 4-bit",
+   "family": "late",
+   "bytes_per_doc": 9713.1,
+   "ndcg10": 0.359,
+   "recall100": 0.3047,
+   "delta": -0.0016,
+   "ci": [
+    -0.0052,
+    0.0018
+   ],
+   "wins": 55,
+   "losses": 51,
+   "overlap10": 0.904,
+   "K": 8192,
+   "bytes_per_doc_with_table": 10001.7
+  },
+  {
+   "arm": "late plaid 2-bit",
+   "family": "late",
+   "bytes_per_doc": 5142.2,
+   "ndcg10": 0.3541,
+   "recall100": 0.2988,
+   "delta": -0.0064,
+   "ci": [
+    -0.0124,
+    -0.0008
+   ],
+   "wins": 65,
+   "losses": 81,
+   "overlap10": 0.799,
+   "K": 8192,
+   "bytes_per_doc_with_table": 5430.9
+  },
+  {
+   "arm": "late plaid 1-bit",
+   "family": "late",
+   "bytes_per_doc": 2856.8,
+   "ndcg10": 0.3368,
+   "recall100": 0.292,
+   "delta": -0.0237,
+   "ci": [
+    -0.0328,
+    -0.015
+   ],
+   "wins": 61,
+   "losses": 112,
+   "overlap10": 0.68,
+   "K": 8192,
+   "bytes_per_doc_with_table": 3145.4
+  },
+  {
+   "arm": "late plaid centroid-only",
+   "family": "late",
+   "bytes_per_doc": 571.4,
+   "ndcg10": 0.275,
+   "recall100": 0.288,
+   "delta": -0.0856,
+   "ci": [
+    -0.1044,
+    -0.0678
+   ],
+   "wins": 47,
+   "losses": 169,
+   "overlap10": 0.489,
+   "K": 8192,
+   "bytes_per_doc_with_table": 860.0
+  },
+  {
+   "arm": "late fp32 pool2",
+   "family": "late",
+   "bytes_per_doc": 36631.0,
+   "ndcg10": 0.356,
+   "recall100": 0.3036,
+   "delta": -0.0046,
+   "ci": [
+    -0.0105,
+    0.0012
+   ],
+   "wins": 70,
+   "losses": 79,
+   "overlap10": 0.786
+  },
+  {
+   "arm": "late remex 2-bit pool2",
+   "family": "late",
+   "bytes_per_doc": 2861.8,
+   "ndcg10": 0.3093,
+   "recall100": 0.2721,
+   "delta": -0.0513,
+   "ci": [
+    -0.065,
+    -0.0383
+   ],
+   "wins": 45,
+   "losses": 153,
+   "overlap10": 0.464,
+   "note": "includes 4 B/token norm (pooled means are not unit-norm)"
+  },
+  {
+   "arm": "late remex 1-bit pool2",
+   "family": "late",
+   "bytes_per_doc": 1717.1,
+   "ndcg10": 0.1832,
+   "recall100": 0.2141,
+   "delta": -0.1774,
+   "ci": [
+    -0.2029,
+    -0.1523
+   ],
+   "wins": 23,
+   "losses": 202,
+   "overlap10": 0.241,
+   "note": "includes 4 B/token norm (pooled means are not unit-norm)"
+  },
+  {
+   "arm": "dense bge-small fp32",
+   "family": "dense",
+   "bytes_per_doc": 1536,
+   "ndcg10": 0.3436,
+   "recall100": 0.311,
+   "delta": -0.017,
+   "ci": [
+    -0.0358,
+    0.0018
+   ],
+   "wins": 99,
+   "losses": 118,
+   "overlap10": 0.379
+  },
+  {
+   "arm": "dense bge-small fp16",
+   "family": "dense",
+   "bytes_per_doc": 768,
+   "ndcg10": 0.3435,
+   "recall100": 0.311,
+   "delta": -0.0171,
+   "ci": [
+    -0.0359,
+    0.0017
+   ],
+   "wins": 98,
+   "losses": 119,
+   "overlap10": 0.378
+  },
+  {
+   "arm": "dense bge-small int8",
+   "family": "dense",
+   "bytes_per_doc": 384,
+   "ndcg10": 0.3435,
+   "recall100": 0.3107,
+   "delta": -0.0171,
+   "ci": [
+    -0.0362,
+    0.0019
+   ],
+   "wins": 100,
+   "losses": 120,
+   "overlap10": 0.38
+  },
+  {
+   "arm": "dense bge-small remex 4-bit",
+   "family": "dense",
+   "bytes_per_doc": 192.0,
+   "ndcg10": 0.3418,
+   "recall100": 0.3134,
+   "delta": -0.0187,
+   "ci": [
+    -0.0372,
+    -0.0
+   ],
+   "wins": 98,
+   "losses": 118,
+   "overlap10": 0.376
+  },
+  {
+   "arm": "dense bge-small remex 2-bit",
+   "family": "dense",
+   "bytes_per_doc": 96.0,
+   "ndcg10": 0.333,
+   "recall100": 0.2959,
+   "delta": -0.0276,
+   "ci": [
+    -0.0468,
+    -0.009
+   ],
+   "wins": 89,
+   "losses": 129,
+   "overlap10": 0.351
+  },
+  {
+   "arm": "dense bge-small remex 1-bit",
+   "family": "dense",
+   "bytes_per_doc": 48.0,
+   "ndcg10": 0.2916,
+   "recall100": 0.2675,
+   "delta": -0.069,
+   "ci": [
+    -0.0904,
+    -0.0486
+   ],
+   "wins": 60,
+   "losses": 156,
+   "overlap10": 0.29
+  },
+  {
+   "arm": "dense bge-small remax k=1 (asym)",
+   "family": "dense",
+   "bytes_per_doc": 48.0,
+   "ndcg10": 0.2963,
+   "recall100": 0.2678,
+   "delta": -0.0643,
+   "ci": [
+    -0.0849,
+    -0.0441
+   ],
+   "wins": 67,
+   "losses": 150,
+   "overlap10": 0.294
+  }
+ ]
+}

@@ -1,0 +1,166 @@
+{
+ "rows": [
+  {
+   "arm": "late remex 2-bit centered haar s0",
+   "ndcg10": 0.7297,
+   "delta": -0.0151,
+   "ci": [
+    -0.0254,
+    -0.0055
+   ]
+  },
+  {
+   "arm": "late remex 2-bit centered haar s1",
+   "ndcg10": 0.7403,
+   "delta": -0.0044,
+   "ci": [
+    -0.0136,
+    0.0045
+   ]
+  },
+  {
+   "arm": "late remex 1-bit centered haar s0",
+   "ndcg10": 0.6927,
+   "delta": -0.0521,
+   "ci": [
+    -0.0719,
+    -0.0334
+   ]
+  },
+  {
+   "arm": "late remex 1-bit centered haar s1",
+   "ndcg10": 0.7008,
+   "delta": -0.0439,
+   "ci": [
+    -0.0625,
+    -0.0257
+   ]
+  },
+  {
+   "arm": "late remax k=1 (asym) centered",
+   "ndcg10": 0.0057,
+   "delta": -0.739,
+   "ci": [
+    -0.7784,
+    -0.6973
+   ]
+  },
+  {
+   "arm": "late remax k=2 (asym) centered",
+   "ndcg10": 0.0022,
+   "delta": -0.7426,
+   "ci": [
+    -0.7825,
+    -0.7001
+   ]
+  }
+ ],
+ "geometry": {
+  "mean_norm_of_mean": 0.936,
+  "random_pair_cos_mean": 0.876,
+  "random_pair_cos_p05": 0.789,
+  "centered_pair_cos_mean": 0.009,
+  "residual_norm_mean": 0.322
+ },
+ "paired": [
+  {
+   "a": "late remex 2-bit centered",
+   "b": "late plaid 2-bit",
+   "delta": -0.001,
+   "ci": [
+    -0.0128,
+    0.0109
+   ],
+   "wins": 31,
+   "losses": 31
+  },
+  {
+   "a": "late remex 1-bit centered",
+   "b": "late plaid 1-bit",
+   "delta": -0.0286,
+   "ci": [
+    -0.049,
+    -0.0088
+   ],
+   "wins": 40,
+   "losses": 57
+  },
+  {
+   "a": "late remex 4-bit centered",
+   "b": "late plaid 4-bit",
+   "delta": 0.0023,
+   "ci": [
+    -0.0021,
+    0.0072
+   ],
+   "wins": 17,
+   "losses": 13
+  },
+  {
+   "a": "late remex 1-bit centered",
+   "b": "late remex 1-bit",
+   "delta": 0.1232,
+   "ci": [
+    0.0913,
+    0.1551
+   ],
+   "wins": 98,
+   "losses": 27
+  },
+  {
+   "a": "late remex 2-bit centered",
+   "b": "dense bge-small fp32",
+   "delta": 0.0179,
+   "ci": [
+    -0.009,
+    0.0442
+   ],
+   "wins": 55,
+   "losses": 49
+  },
+  {
+   "a": "late remex 2-bit centered",
+   "b": "dense bge-small remex 4-bit",
+   "delta": 0.0136,
+   "ci": [
+    -0.014,
+    0.0413
+   ],
+   "wins": 57,
+   "losses": 48
+  },
+  {
+   "a": "late plaid 1-bit",
+   "b": "dense bge-small fp32",
+   "delta": 0.0026,
+   "ci": [
+    -0.0276,
+    0.0326
+   ],
+   "wins": 53,
+   "losses": 59
+  },
+  {
+   "a": "late remex 1-bit centered",
+   "b": "dense bge-small fp32",
+   "delta": -0.0259,
+   "ci": [
+    -0.0536,
+    0.0005
+   ],
+   "wins": 43,
+   "losses": 60
+  },
+  {
+   "a": "late fp32",
+   "b": "dense bge-small fp32",
+   "delta": 0.032,
+   "ci": [
+    0.005,
+    0.0587
+   ],
+   "wins": 60,
+   "losses": 45
+  }
+ ]
+}

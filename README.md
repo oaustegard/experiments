@@ -26,6 +26,7 @@ session-boot repo and was the wrong home for 37 research projects.
 
 | Experiment | Started | Status | Results | Origin |
 |---|---|---|---|---|
+| [`mxbai-edge-remex-quant/`](mxbai-edge-remex-quant/RESULTS.md) | 2026-09-27 | **done — compression curve for mxbai-edge-colbert-v0-32m's 64-d tokens on SciFact and NFCorpus. Plain remex breaks at ≤2 bits (1-bit −0.181 / −0.161 nDCG@10) because the tokens sit in a narrow cone (corpus mean norm 0.94, random-pair cosine 0.88); remex centered mode with one stored mean recovers it (2-bit −0.014 / −0.003, 1-bit −0.058 / −0.022) and ties ColBERTv2/PLAID residual compression at 4 and 2 bits with fewer bytes, PLAID ahead at 1 bit on SciFact (+0.029). Against bge-small at remex 4-bit (192 B/doc), centered 2-bit tokens (4.3 KB/doc) keep +0.014 / +0.016, CIs spanning zero. Found a remex bug: `rotation="rht"` is seed-invariant at power-of-two d** | [`RESULTS.md`](mxbai-edge-remex-quant/RESULTS.md) + `bench.py` + `extra.py` + `recheck.py` + `ERRORS.md` | Oskar, after the mxbai-edge assessment: *"Run a remex curve on compression of the mxbai vectors"* |
 | [`strudel-fm-melody/`](strudel-fm-melody/RESULTS.md) | 2026-09-27 | **done — Strudel FM's lead rewritten around a recurring two-bar hook and a contrasting line, stepwise contours with leap recovery, and diatonic per-bar fitting to the chord. Over 8,064 generated bars per version: steps 22.5 → 38.7% of intervals, repeated notes 29.1 → 16.6%, leaps recovered 20.6 → 58.6%, voicing rubs 0 → 0%. Before/after MP3 takes for four stations** | [`RESULTS.md`](strudel-fm-melody/RESULTS.md) + `gen.mjs` + `metrics.py` + `rec.mjs` + `takes/*.mp3` | Oskar: *"Can we make the tunes played by the Strudel FM app more … melodic?"* |
 | [`mona-lisa-typing/`](mona-lisa-typing/README.md) | 2026-09-25 | **done — the Mona Lisa typing on a laptop, drawn entirely in pycairo + numpy at the reference scan's 960×1431: a lit height-field face under ~60 glazes, sphere-swept z-buffered hands and satin sleeves, a laptop in real 3D with a ray-cast screen, Voronoi craquelure and yellowed varnish. Checked against the Wikimedia scan with luminance heat maps (face mean abs diff 19 → 14 of 255) and an independent critic subagent; the image is `mona_lisa_typing.png`** | [`README.md`](mona-lisa-typing/README.md) + `mona_lisa_typing.py` + [`mona_lisa_typing.png`](mona-lisa-typing/mona_lisa_typing.png) | Oskar: *"Iteratively, checking your results as you go, generate as high fidelity as you can muster, a pyCairo version of Mona Lisa typing on a laptop. Be creative and critical of your own work."* |
 | [`lensvlm-select-expand/`](lensvlm-select-expand/RESULTS.md) | 2026-09-24 | **done — Apple LensVLM's select-then-expand (scan a document as compressed page thumbnails, commit, then read chosen pages as text) on 20 HotpotQA docs at 5/10/15x, four models on identical pixels. Evidence page ranked first: Opus 5.5 100/90/70%, Gemini 3.8 Flash 100/90/75%, Muse Spark 1.3 90/95/50%, Sonnet 5 75/15/5%. Closed-book misses answered from the sheet alone: Muse 5/6 at 5x and 10x, Gemini 3/4 at every ratio, Opus 2/3 falling to 0, Sonnet 1/5 then 0. Expansion helps only Sonnet (+10 to +20 pp); accuracy is mostly memory (closed-book 70 to 85%). Gemini bills every sheet at ~1,090 image tokens regardless of size, so pixel compression saves it nothing** | [`RESULTS.md`](lensvlm-select-expand/RESULTS.md) + `build_data.py` + `lens.py` + `api_driver.py` + `score.py` + `runs/*/ledger.jsonl` + `examples/` | Oskar: *"try the select-then-expand pattern with Sonnet AND opus 5.5 in experiments as Opus has higher image viewing fidelity"*, then *"could we try Gemini and Muse?"*; paper review in memory `cdda7027` |
@@ -140,6 +141,20 @@ session-boot repo and was the wrong home for 37 research projects.
 | [`snooker-break/`](snooker-break/snooker-break.html) | 2026-05-10 | done | [`snooker-break.html`](snooker-break/snooker-break.html) (interactive) | spike — apex vs Murphy break strike |
 
 ## Per-experiment notes
+
+### `mxbai-edge-remex-quant/` — remex, remax and PLAID on a 64-d ColBERT's tokens
+
+mxbai-edge-colbert-v0-32m is the Apache-licensed small ColBERT; at fp16 it stores
+about 45x the bytes of a 384-d single vector for a BEIR score that ties one. On SciFact
+and NFCorpus its tokens compress differently from NeoMME's. Every token shares a large
+common component (the corpus mean has norm 0.94), so plain remex at 1 bit loses 0.16–0.18
+nDCG@10 and swings 0.108 between two rotation seeds. Subtracting one stored mean (remex
+`mean=`) brings 2-bit within 0.014 of fp32 and matches PLAID's k-means residual codec at 2
+and 4 bits without a centroid table. PLAID stays ahead at 1 bit on SciFact. Against
+bge-small compressed to 192 B/doc, the smallest token index that keeps mxbai's margin
+is about 22x larger and the margin is inside the noise on both corpora. The run also
+found that remex's `rht` rotation ignores its seed at power-of-two dimensions
+(`ERRORS.md` #1).
 
 ### `mona-lisa-typing/` — Leonardo's sitter at a keyboard, in pycairo
 

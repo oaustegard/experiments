@@ -1814,6 +1814,28 @@ the result.
   ahead) and 0.012 apart on its token head (remex ahead), CIs spanning zero.
   Treat a single-seed 1-bit comparison inside ±0.02 nDCG@10 on 300 SciFact
   queries as unresolved. (`neomme-remex-quant/RESULTS.md`)
+- **Measure the centering predictor before quantizing a token head; a shared
+  mean can make plain low-bit codes collapse.** mxbai-edge-colbert-v0-32m's 64-d
+  tokens have corpus-mean norm 0.94 and random-pair cosine 0.88 (0.01 after
+  centering). Plain remex 1-bit costs −0.18 / −0.16 nDCG@10 (SciFact / NFCorpus)
+  where NeoMME's 128-d tokens cost −0.013; remex `mean=corpus_mean(T)` recovers
+  +0.12 / +0.14 at 1 bit and brings 2-bit to −0.014 / −0.003. The ±0.02 1-bit
+  seed floor above does NOT transfer: uncentered 1-bit swung 0.108 between two
+  haar seeds on mxbai (centered: 0.008). `‖mean‖ / mean‖x‖` is one line of numpy
+  and decides it. (`mxbai-edge-remex-quant/RESULTS.md` findings 1–2)
+- **Centered remex (one stored mean) ties ColBERTv2/PLAID residual compression
+  (K = 8–16k centroids) at 2 and 4 bits, with 2 B/token and the centroid table
+  fewer.** 2-bit: −0.001 [−0.013, +0.011] SciFact, +0.004 [−0.004, +0.011]
+  NFCorpus. At 1 bit PLAID leads on SciFact (+0.029 [+0.009, +0.049]) and ties
+  on NFCorpus. RSLM's residual-vs-centroid result (memory e0fc3c57) predicts the
+  1-bit gap: K=1 is the degenerate case. (`mxbai-edge-remex-quant/RESULTS.md` finding 3)
+- **remex `rotation="rht"` is seed-invariant at every power-of-two d (remex 0.8.0).**
+  With block size = d, `rht_plan` uses one round, and on the encode path the
+  seed's permutation and signs land after the WHT, so rotated vectors are a signed
+  permutation of a fixed WHT and the symmetric codebook decodes identically for
+  every seed. A seed sweep at d = 64/128/256/1024 with rht measures one rotation;
+  use haar for seed floors until remex fixes it. remax floors rounds at 2 and is
+  unaffected. (`mxbai-edge-remex-quant/ERRORS.md` #1)
 - **Token pooling is free on page images and not on text — the same
   `HierarchicalTokenPooling` at factor 2 costs −0.019 nDCG@10 on 320-token
   SciFact abstracts and −0.004 on 2,900-patch DocVQA pages.** Scanned pages
