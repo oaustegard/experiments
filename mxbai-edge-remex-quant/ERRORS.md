@@ -29,6 +29,18 @@ measurably cost retrieval on these tokens.
 **Effect elsewhere.** Any seed-averaged rht result at a power-of-two d measured one
 rotation several times. Filed against remex; memory `94957b5c`.
 
+**Update, remex 1.0.0.** remex fixed this (#89) by flooring rht at two rounds,
+which changes rht codes at d=64. Re-measured on SciFact under 1.0 (default
+rotation, seed 0), plain → centered nDCG@10:
+- 1-bit: 0.527 → 0.696
+- 2-bit: 0.680 → 0.732
+- 4-bit: 0.730 → 0.743
+
+The pre-fix rht plain 1-bit row in RESULTS.md (0.564) sits inside the haar
+seed range (0.506–0.613). No haar arm was run at 4 bits, so the 4-bit shift
+(0.740 pre-fix, 0.730 under 1.0) has no seed floor to compare against. Finding 2 stands with a larger margin: +0.17
+at 1 bit on SciFact under 1.0, against +0.12 before.
+
 ## 2. remax on centered tokens was an invalid construction
 
 **What.** `extra.py` added remax k=1/2 on `T − mean`, scoring the float query against
