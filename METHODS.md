@@ -2813,6 +2813,37 @@ the result.
   rule a receiver could plausibly invert (case, inclusive/exclusive, which
   integer is N). (`brief-compression/RESULTS.md`)
 
+- **Audit what an LLM judge actually read before using its scores.** Two of 15
+  Haiku 4.5 relevance-judge subagents, each given a ~120 KB file of passages,
+  scored all 160 passages after seeing 77 and 6 of them; one loaded the file into
+  Python and scored with `if 'phosphene' in text` rules. The output files looked
+  complete. The check that caught it: collect every passage id that appears in the
+  subagent's tool results (`subagents/agent-*.jsonl`) and compare with the ids it
+  scored. A spec allowing only the Read tool, forbidding scripts, and splitting the
+  input so each file fits in one Read call gave 11/11 clean reruns.
+  (`qreason-subagent-rerank/ERRORS.md` #1)
+
+- **Replicate an LLM-judge arm before reading a single-run gap.** Two identical
+  runs of the same Haiku 4.5 graded-relevance arm matched on 59-60% of 480
+  scores (Pearson 0.73-0.80), and per-query NDCG@10 moved with SD 13-21 points.
+  A +8.8 gap between arms in run 1 was +1.7 in run 2. At 16 queries, pool two
+  runs per arm at minimum. (`qreason-subagent-rerank/RESULTS.md` finding 5)
+
+- **BRIGHT test queries are in `reasonrank_data_13k`.** 290 of 1,384 (biology
+  74/103, earth science 73/116, sustainable living 67/108, economics 55/103,
+  robotics 20/101, stackoverflow 1/117) appear verbatim in its query files.
+  ReasonRank, QReason and anything else trained on that set has seen them.
+  (`qreason-subagent-rerank/overlap/overlap.py`)
+
+- **BRIGHT without the Hugging Face CDN.** From a container whose egress refuses
+  `us.aws.cdn.hf.co` and `datasets-server.huggingface.co`: ReasonIR top-100
+  candidates with passage text per subset are GitHub LFS files in
+  `JOHNNY-fans/TFRank` (`evaluation/input/BRIGHT_reasonir_gpt4/`, via
+  `media.githubusercontent.com`), qrels are in `texttron/tevatron`
+  (`examples/ReasonIR/bright_qrels/`), and original query text is the common
+  case-insensitive prefix of two QueryGym expansion files per subset.
+  (`qreason-subagent-rerank/prep.py`)
+
 - **Char-ngram TF-IDF is a serious label snapper, not a fallback.** 0.528 acc@1 on
   WANDS against `all-MiniLM-L6-v2`'s 0.564, no download and no GPU — and it *beats*
   MiniLM outright (0.400 vs 0.296) when snapping documents that contain their own
