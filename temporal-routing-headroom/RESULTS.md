@@ -332,3 +332,63 @@ of them were still failing. Every one is `interval_merge`.
 `interval_merge` has now been attempted 8 times across models, efforts and contexts, and
 passed twice. Its reference carries a touching-and-containment condition that every run
 rewrites and most get wrong. Treat its result as a property of the fixture.
+
+## Sonnet 5.5 and Opus 5.5 on the paired set (2026-09-29)
+
+Two replicates, four arms, 14 tasks, 112 subagent runs. Workflow runs `wf_7efa81de-e85`
+(r1, arms concurrent) and `wf_e073fa41-52d` (r2, arms in sequence so `budget.spent()`
+could be read per arm). Prompts are byte-identical to `emit_prompts.py` apart from the
+run root. Data: `data/results_s55_r1.json`, `data/results_s55_r2.json`,
+`data/tokens_s55.json`. No run edited its tests or wrote outside its package.
+
+| arm | model | effort | r1 | r2 | r2 output tokens | $/task | $/completed (r2) |
+|---|---|---|---|---|---|---|---|
+| s55low | Sonnet 5.5 | low | 10/14 | 11/14 | 11,466 | $0.0082 | $0.0104 |
+| s55med | Sonnet 5.5 | medium | 11/14 | 12/14 | 10,853 | $0.0078 | $0.0090 |
+| s55high | Sonnet 5.5 | high | 12/14 | 12/14 | 14,488 | $0.0103 | $0.0121 |
+| o55high | Opus 5.5 | high | 11/14 | 13/14 | 18,464 | $0.0264 | $0.0284 |
+
+Prices $2/$10 (Sonnet 5.5) and $4/$20 (Opus 5.5) per MTok, output only. Output tokens are
+from r2 alone: r1 ran its arms concurrently, and the workflow transcripts record only the
+streaming-start usage of each message, so r1's per-arm output is not recoverable.
+
+For comparison on the same 14 tasks (r2 of the earlier pilot): Sonnet 5 at `low` solved
+9/14 with 16,779 output tokens, Opus 5 at `high` 10/14 with 55,674.
+
+Tasks that any arm missed, solves out of two replicates:
+
+| task | s55low | s55med | s55high | o55high |
+|---|---|---|---|---|
+| cron_next | 0 | 0 | 0 | 1 |
+| interval_merge | 2 | 1 | 1 | 1 |
+| lru_ttl | 0 | 1 | 2 | 1 |
+| stack_vm | 1 | 2 | 2 | 2 |
+| wrap_text | 0 | 1 | 1 | 1 |
+
+**`cron_next` measures a convention.** Seven of eight runs repaired both seeded sites and
+then failed the same hidden test, `test_dow_step_counts_as_restricted`. Each of those runs
+wrote in its summary that a `*/n` field counts as unrestricted, citing Vixie cron. The
+hidden suite expects the opposite. The failure records which convention the reference
+chose, not whether the run found the bug. Without it the arms solve 21, 23, 24 and 23 of 26.
+
+What this changes for `agent-routing`:
+
+- **`low` does not switch Sonnet 5.5's thinking off.** Sonnet 5 at `low` solved 9/14.
+  Sonnet 5.5 at `low` solved 10/14 and 11/14 and missed only paired-trap tasks. `medium`
+  used slightly fewer output tokens than `low` in r2 (10,853 against 11,466), a gap
+  inside the 23% run-to-run variance this repo has measured. On this task family the two
+  levels cost the same.
+- **Sonnet 5.5 at `high` matches Opus 5.5 at `high`.** Each solved 24 of 28 across the
+  two replicates. Sonnet cost $0.0121 per completed task against Opus's $0.0284, 0.43×.
+- **Opus 5.5 at `high` emits a third of Opus 5's output on the same tasks** (18,464
+  against 55,674), and costs $0.0264 a task against $0.0994.
+- **Effort buys the paired traps on Sonnet 5.5.** `lru_ttl` and `wrap_text` went from 0
+  of 2 at `low` to 2 of 2 and 1 of 2 at `high`. The earlier finding that Opus 5 at `high`
+  fell for the same traps as Sonnet 5 at `low` holds on 5.5 at the tier level: Opus 5.5
+  missed `lru_ttl` and `wrap_text` once each.
+
+Limits: two replicates at n=14; a one-task pass difference between arms is noise. Seeded
+repair in small modules does not separate tiers, as the 2026-09-03 probe already showed,
+so the Sonnet/Opus result here says the two are close on this family and nothing about
+harder work. Thinking share could not be measured: Claude Code omits thinking text and
+the transcripts carry no final usage.
