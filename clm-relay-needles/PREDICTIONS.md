@@ -11,3 +11,22 @@
    tokens; `jev` under a cent per episode.
 5. The labeled variant (the paper's format) is near 1.0 for both `jev` and `state`, as the paper
    reports for CLM on Needle Retention.
+
+# Phase 2: Custody Register (written before the full run, after a 3-chunk pilot where all three conditions scored 1.0)
+
+40 assets, 16 handovers per chunk among 120 filler lines. 32 chunks = 512 handovers, whose lines
+(~15k tokens) fit the 24k cap; 96 chunks = 1,536 handovers (~46k tokens), which do not. Final
+answer by one Haiku 4.5 call without tools in every condition.
+
+6. At 32 chunks `jev` and `jev_fifo` get holders right (≥ 0.9), since every line fits and the
+   answerer only needs the last mention of each asset, but miss many counts (exact < 0.7):
+   counting up to ~21 mentions per asset across 512 lines in one pass is where a tool-less
+   reader slips.
+7. At 32 chunks `state` matches on holders (≥ 0.9) and beats Jev on exact counts, because it
+   increments as it goes; single misses still accumulate, so not 1.0.
+8. At 96 chunks `jev` (evicting by score) loses both holders and counts (≤ 0.5 each): its
+   scores do not encode recency, so the lines it drops are arbitrary in time.
+9. At 96 chunks `jev_fifo` keeps holders high (≥ 0.8; most assets move within the last ~50
+   chunks) and counts collapse toward 0, since the early handovers are gone.
+10. At 96 chunks `state` has the best holders and counts of the three; exact counts fall below
+    its 32-chunk level. Relay cost about $0.12 per chunk.
