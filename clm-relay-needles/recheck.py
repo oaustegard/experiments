@@ -37,5 +37,27 @@ for k, ok in checks.items():
     if not ok:
         bad += 1
         print("FAIL", k)
+# Phase 2 table
+tally = {(r["n"], r["cond"]): r for r in json.loads((HERE / "results_tally/summary.json").read_text())}
+seen2 = 0
+for line in text.split("# Phase 2")[1].splitlines():
+    m = re.match(r"\| (\d+) \| (\d+) \| ([\w+]+) \| ([\d.]+) \| ([\d.]+) \| ([\d.]+) \| ([\d.—]+) \| ([\d.—]+) \| (\d+) \| ([\d.]+) \| ([\d.]+) \| ([\d.]+) \|", line)
+    if not m:
+        continue
+    seen2 += 1
+    r = tally[(int(m[1]), m[3])]
+    f = lambda x: "—" if x is None else f"{x:.3f}"
+    want = (r["events"], f"{r['holder_acc']:.3f}", f"{r['count_exact']:.3f}", float(r["count_mae"]), f(r["replay_holder"]),
+            f(r["replay_count"]), r["carried_tokens"], float(r["relay_usd"]), float(r["answer_usd"]), float(r["jev_usd"]))
+    got = (int(m[2]), m[4], m[5], float(m[6]), m[7], m[8], int(m[9]), float(m[10]), float(m[11]), float(m[12]))
+    if want != got:
+        bad += 1
+        print("MISMATCH phase2", m[1], m[3], "table", got, "summary", want)
+if seen2 != len(tally):
+    bad += 1
+    print(f"phase 2 table has {seen2} rows, summary has {len(tally)}")
+if round(sum(r["relay_usd"] + r["answer_usd"] + r["jev_usd"] for r in tally.values()), 2) != 15.21:
+    bad += 1
+    print("FAIL phase 2 spend $15.21")
 print("recheck:", "OK" if not bad else f"{bad} problems")
 sys.exit(1 if bad else 0)

@@ -19,3 +19,11 @@
 4. **Recall rounded twice.** `grade.py` rounded the mean to four places (0.7545) and the table
    then printed it to three, giving 0.754 for 375/497 = 0.75452. `recheck.py` caught it against
    the per-episode value; the mean is now kept unrounded and the table reads 0.755.
+5. **Phase 2 launched past the background time limit.** The 96-chunk `state` run took ~1.6
+   minutes per chunk, so with five other episodes sharing the job it needed ~2.5 hours; the
+   job was started with the 2-hour maximum and was killed at chunk 79 of 96. The per-chunk
+   checkpoint held, and a resumed single-episode run finished the last 17 chunks. No results
+   lost; `run_tally.log` shows the gap at 13:43.
+6. **An unverified mechanism in the Phase 2 draft.** The draft said the one-pass reader's 31
+   wrong holders at 96 chunks were "mostly" the giver of the asset's last handover. Checked
+   against the carried lines before committing: 5 of 31. The sentence was cut.

@@ -1,13 +1,25 @@
-# CLM context management as a relay of stateless calls — Needle Retention
+# CLM context management as a relay of stateless calls
 
-Run 2026-10-01, one seed, Haiku 4.5 subagents, Jev through the Cloudflare AI Gateway.
+Run 2026-10-01, one seed, Haiku 4.5 subagents, Jev through the Cloudflare AI Gateway. Two tasks:
+Needle Retention (keep lines verbatim) and Custody Register (keep a running result), below as
+Phase 1 and Phase 2.
 
-Jev alone kept all 497 required lines exactly and no noise at 96 chunks (about 11× a 32k
+**Phase 2 in brief.** When the thing to keep is a running result, the subagent wins. Updating a
+40-row register in place, it got every current holder right at 32 and 96 chunks and every
+handover count at 32; at 96 it was off by one on 7 of 40 counts (1,529 of 1,536 handovers
+counted), for $9.77. Jev-kept lines cannot carry the counts once the handover stream outgrows
+the cap: 0 of 40 exact at 96 chunks under either eviction rule. Keeping the most recent lines
+preserved every current holder, and a one-pass reader still found only 9 of them; the same
+lines read with tools gave 40.
+
+**Phase 1 in brief.** Jev alone kept all 497 required lines exactly and no noise at 96 chunks (about 11× a 32k
 budget) for $0.04. A Haiku 4.5 subagent keeping its own notes file kept 496 for $7.74; it lost
 the last one by retyping it with an invented hash. Running both together kept 75%: the
 subagent's notes, which were mostly commentary and bulleted re-copies of lines the filter had
 already saved, took over the shared cap and pushed 122 of the filter's lines out. That last
 result depends on how this harness splits the cap (ERRORS.md #2).
+
+# Phase 1: Needle Retention
 
 ## Question
 
@@ -112,8 +124,96 @@ Total spend $22.6 ($22.51 subagent, $0.09 Jev). Full per-episode rows in `result
 - Relay ≠ CLM. The paper's model edits its live context in place; here each step is a fresh
   process, so this tests the relay design proposed in the session, not the paper's harness.
 
+# Phase 2: Custody Register
+
+## Setup
+
+`gen_tally.py`: 40 assets with known starting holders. Each ~3.6k-token chunk carries 16
+handover lines (the same six phrasings as Phase 1) in chronological order, interleaved with 120
+filler lines; a "remains with" filler line always names the true holder. The task is the final
+holder and handover count of every asset. 32 chunks = 512 handovers, whose lines (~15k tokens)
+fit the 24k cap; 96 chunks = 1,536 handovers (~46k tokens), which do not.
+
+`relay_tally.py`, one call per chunk, same 24k cap:
+- `state`: the Phase 1 subagent, with `state.md` seeded with the initial register as a table.
+- `jev`: Jev keeps handover lines verbatim; over the cap the lowest-scored go.
+- `jev_fifo`: the same, but over the cap the oldest go.
+
+Every condition ends with one Haiku 4.5 answer call, no tools, given the task and the carried
+text. `answer_tools.py` re-answers the two Jev conditions from the same carried text with Read
+and Bash (`+tools` rows). `grade_tally.py` also replays the carried lines with a parser that is
+exact on the full stream (40/40 holders and counts at both sizes), giving the best any reader
+could do with what was stored (`replay` columns).
+
+## Results
+
+| chunks | handovers | cond | holder | count exact | count MAE | replay holder | replay count | carried tok | relay $ | answer $ | Jev $ |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 32 | 512 | state | 1.000 | 1.000 | 0.0 | — | — | 521 | 3.44 | 0.013 | 0 |
+| 32 | 512 | jev | 0.925 | 0.575 | 0.6 | 1.000 | 0.900 | 15576 | 0 | 0.165 | 0.0146 |
+| 32 | 512 | jev+tools | 1.000 | 0.900 | 0.1 | 1.000 | 0.900 | 15576 | 0 | 0.181 | 0.0146 |
+| 32 | 512 | jev_fifo | 0.950 | 0.575 | 0.78 | 1.000 | 0.900 | 15590 | 0 | 0.413 | 0.0146 |
+| 32 | 512 | jev_fifo+tools | 1.000 | 0.900 | 0.1 | 1.000 | 0.900 | 15590 | 0 | 0.237 | 0.0146 |
+| 96 | 1536 | state | 1.000 | 0.825 | 0.17 | — | — | 511 | 9.769 | 0.015 | 0 |
+| 96 | 1536 | jev | 0.200 | 0.000 | 20.7 | 0.650 | 0.000 | 23993 | 0 | 0.189 | 0.0438 |
+| 96 | 1536 | jev+tools | 0.600 | 0.000 | 19.18 | 0.650 | 0.000 | 23993 | 0 | 0.183 | 0.0438 |
+| 96 | 1536 | jev_fifo | 0.225 | 0.000 | 19.98 | 1.000 | 0.000 | 23983 | 0 | 0.19 | 0.0438 |
+| 96 | 1536 | jev_fifo+tools | 1.000 | 0.000 | 18.75 | 1.000 | 0.000 | 23983 | 0 | 0.185 | 0.0438 |
+
+Holder and count are fractions of 40 assets. Phase 2 spend $15.21, plus $0.49 for the pilot.
+Per-episode rows in `results_tally/summary.json`.
+
+## Findings
+
+5. **The register stayed at ~515 tokens for 96 chunks.** The subagent rewrote counts and
+   holders in place every step; the table never grew. All seven of its count errors at 96
+   chunks are undercounts by exactly one, on assets whose holder it still got right: a handover
+   it missed mid-stream, after which later handovers corrected the holder but nothing could
+   restore the lost increment. That is 7 misses in 1,536 events, about 0.5%, and in a running
+   count every miss is permanent.
+6. **Kept lines lose counts by construction once the stream outgrows the cap.** At 96 chunks Jev
+   kept 786 (`jev_fifo`) and 809 (`jev`) of the 1,536 handover lines. Whatever eviction rule picks the survivors, the
+   dropped handovers are gone and so is every count (replay count 0.000 for both). At 32 chunks,
+   where everything fits, Jev's own misses set the ceiling: it kept 508 of 512 handovers,
+   capping counts at 36/40.
+7. **The eviction rule decides whether holders survive.** Keeping the newest lines kept each
+   asset's latest handover (replay holder 1.000); evicting by score dropped lines regardless of
+   age and left only 26 of 40 holders recoverable (0.650). Jev's scores rate relevance, not
+   recency, so score-based eviction is the wrong rule for anything that is overwritten.
+8. **A tool-less reader fails on what was stored.** At 96 chunks `jev_fifo` carried every
+   current holder, and a one-pass Haiku answer found 9 of 40. Given Read and Bash, the same model wrote
+   a parser and hit the replay ceiling exactly (40/40). At 32 chunks the one-pass reader got
+   23 of 40 counts where 36 were recoverable. Verbatim storage moves the synthesis to the end,
+   and the end is one long read.
+9. **Cost.** The subagent cost $0.10 per chunk at both sizes and the register's size did not
+   change it: about 10.7k output tokens per step, mostly thinking through 136 lines. Jev cost
+   $0.04 for 96 chunks; its answer calls cost $0.17–0.41.
+
+## Against PREDICTIONS.md (6–10)
+
+| # | prediction | outcome |
+|---|---|---|
+| 6 | Jev at 32: holders ≥ 0.9, counts < 0.7 | held (holders 0.925 / 0.950, counts 0.575) |
+| 7 | `state` at 32: holders ≥ 0.9, beats Jev on counts, below 1.0 | held except the last clause: it scored 1.000 |
+| 8 | `jev` at 96: ≤ 0.5 on both | held (0.200 / 0.000); the reader accounts for part of it, since replay reaches 0.650 holders |
+| 9 | `jev_fifo` at 96: holders ≥ 0.8, counts → 0 | storage held (replay 1.000; 1.000 with tools); the one-pass answer scored 0.225, so as stated, wrong |
+| 10 | `state` best at 96, counts below its 32 level, ~$0.12/chunk | held: best on both, counts 1.000 → 0.825, $0.10/chunk |
+
+## Caveats
+
+- One seed. The subagent's seven misses are a rate estimate from one stream.
+- Haiku 4.5 does all the reading. A stronger one-pass reader would narrow finding 8; it would
+  not touch finding 6.
+- The task is regular enough for a 7-pattern parser to replay exactly, which is why `+tools`
+  works. Messier phrasing would make the tool-using reader's job harder too, and is the case
+  where a model-maintained register should pull further ahead.
+- No combined condition here. A store that keeps the register in model notes and recent lines
+  verbatim is the obvious next arm.
+
 ## Files
 
 `gen.py` episodes · `relay.py` runner (resumable, per-chunk checkpoints in `work/`, gitignored)
 · `grade.py` scoring → `results/summary.json` · `results/*.json` per-episode finals and step
-logs · `results/pilot/` 3-chunk pilot · `PREDICTIONS.md` · `ERRORS.md` · `recheck.py`.
+logs · `results/pilot/` 3-chunk pilot · Phase 2: `gen_tally.py`, `relay_tally.py`, `answer_tools.py`,
+`grade_tally.py` → `results_tally/` (pilot in `results_tally/pilot/`), `run_tally.log` · `PREDICTIONS.md` ·
+`ERRORS.md` · `recheck.py`.
