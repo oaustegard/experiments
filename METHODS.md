@@ -3791,3 +3791,29 @@ message" in the session. `claude -p --output-format json` puts per-run token
 totals in `modelUsage`; the top-level `usage` is the last model call only.
 (`subagent-context-filter/ERRORS.md` #1, #3)
 
+
+### Carrying state across stateless agent calls: who writes it decides what survives
+
+Lessons from relaying a long stream through one fresh `claude -p` call per chunk with a capped
+carry file (`clm-relay-needles/RESULTS.md`, one seed, Haiku 4.5):
+
+- **Facts that must survive verbatim: extract, don't have a model copy.** Jev keeping lines at
+  p ≥ 0.5 kept 835/835 needles exactly for $0.09; a subagent copying lines into its notes kept
+  496/497 at 96 chunks for $7.74 and retyped the missing one with an invented hash.
+- **A running result needs a model-maintained register.** Once the event lines outgrow the cap,
+  kept lines lose every count whatever the eviction rule; a 40-row table updated in place stayed
+  ~515 tokens over 1,536 events.
+- **Gate model-maintained state in the harness.** One rewrite reset 14 counts to zero and nothing
+  noticed. Check invariants after every step (rows present, counts monotone, increase bounded by
+  the chunk) and undo a failing edit (`relay_tally.py --guard`).
+- **When notes and verbatim lines share a cap, reserve each its share.** Sized as "cap minus the
+  other", the notes file evicted 122 of Jev's verbatim needles.
+- **Evict by recency for state that gets overwritten.** Jev scores rate relevance, not age:
+  score-based eviction left 26/40 current holders recoverable, most-recent-first left 40/40.
+- **Give the final reader tools.** A one-pass Haiku read of ~800 kept lines found 9/40 holders
+  that were present; with Read and Bash it wrote a parser and found 40/40.
+- **Headless recipe:** `claude -p --model … --tools Read Edit Write --permission-mode acceptEdits
+  --setting-sources "" --strict-mcp-config --no-session-persistence --system-prompt "…"
+  --output-format json`, run from a scratch cwd, so no project hooks, CLAUDE.md or MCP load. A
+  per-chunk relay run of 96 chunks took ~1.5 min per chunk; one job sharing six episodes
+  outran the 2-hour background limit, so checkpoint per chunk.

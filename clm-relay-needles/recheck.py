@@ -38,9 +38,10 @@ for k, ok in checks.items():
         bad += 1
         print("FAIL", k)
 # Phase 2 table
-tally = {(r["n"], r["cond"]): r for r in json.loads((HERE / "results_tally/summary.json").read_text())}
+alltally = json.loads((HERE / "results_tally/summary.json").read_text())
+tally = {(r["n"], r["cond"]): r for r in alltally if not r["cond"].startswith("both")}
 seen2 = 0
-for line in text.split("# Phase 2")[1].splitlines():
+for line in text.split("# Phase 2")[1].split("# Phase 3")[0].splitlines():
     m = re.match(r"\| (\d+) \| (\d+) \| ([\w+]+) \| ([\d.]+) \| ([\d.]+) \| ([\d.]+) \| ([\d.—]+) \| ([\d.—]+) \| (\d+) \| ([\d.]+) \| ([\d.]+) \| ([\d.]+) \|", line)
     if not m:
         continue
@@ -59,5 +60,14 @@ if seen2 != len(tally):
 if round(sum(r["relay_usd"] + r["answer_usd"] + r["jev_usd"] for r in tally.values()), 2) != 15.21:
     bad += 1
     print("FAIL phase 2 spend $15.21")
+# Phase 3: rows for `both`, and spend
+both = {r["n"]: r for r in alltally if r["cond"] == "both"}
+for n, ce in ((32, "0.975"), (96, "0.550")):
+    if f"{both[n]['count_exact']:.3f}" != ce or both[n]["holder_acc"] != 1.0:
+        bad += 1
+        print("FAIL phase 3 row", n)
+if round(sum(r["relay_usd"] + r["answer_usd"] + r["jev_usd"] for r in both.values()), 2) != 11.49:
+    bad += 1
+    print("FAIL phase 3 spend $11.49")
 print("recheck:", "OK" if not bad else f"{bad} problems")
 sys.exit(1 if bad else 0)

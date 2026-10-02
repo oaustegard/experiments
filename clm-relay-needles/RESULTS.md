@@ -12,6 +12,11 @@ the cap: 0 of 40 exact at 96 chunks under either eviction rule. Keeping the most
 preserved every current holder, and a one-pass reader still found only 9 of them; the same
 lines read with tools gave 40.
 
+**Phase 3 in brief.** Showing the subagent Jev's flagged lines cut its cost per chunk by 12–25%,
+and the register still ended with every holder right. But at 96 chunks one rewrite near chunk
+71 reset 14 counts to zero, and nothing caught it. The harness now has an edit gate for the
+register (`--guard`).
+
 **Phase 1 in brief.** Jev alone kept all 497 required lines exactly and no noise at 96 chunks (about 11× a 32k
 budget) for $0.04. A Haiku 4.5 subagent keeping its own notes file kept 496 for $7.74; it lost
 the last one by retyping it with an invented hash. Running both together kept 75%: the
@@ -210,10 +215,71 @@ Per-episode rows in `results_tally/summary.json`.
 - No combined condition here. A store that keeps the register in model notes and recent lines
   verbatim is the obvious next arm.
 
+# Phase 3: register plus Jev, combined
+
+## Setup
+
+`both` in `relay_tally.py`. Each chunk, Jev scores every line first. The subagent sees the lines
+Jev flagged as likely handovers ("usually right, check the chunk too") and updates the register,
+which has 8k of the cap reserved. The flagged lines also go to a verbatim store of the most
+recent handovers, 16k reserved, so neither store can squeeze the other (the Phase 1 failure).
+The answer call reads the register, labelled authoritative, then the recent lines.
+
+## Results
+
+| chunks | cond | holder | count exact | count MAE | relay $ per chunk | subagent output tok per step |
+|---|---|---|---|---|---|---|
+| 32 | state | 1.000 | 1.000 | 0.0 | 0.107 | 10,800 |
+| 32 | both | 1.000 | 0.975 | 0.03 | 0.080 | 7,273 |
+| 96 | state | 1.000 | 0.825 | 0.17 | 0.102 | 10,689 |
+| 96 | both | 1.000 | 0.550 | 10.05 | 0.090 | 8,807 |
+
+Phase 3 spend $11.49 (relay $11.25, answers $0.18, Jev $0.06), plus $0.25 for the pilot.
+
+## Findings
+
+10. **One rewrite erased 14 counts.** At 96 chunks the register held every holder, but 18 of
+    40 counts were wrong. Fourteen of them match the number of handovers since chunk 71 almost
+    exactly (13 of 14 within one): in one step near there the subagent rewrote the table and
+    reset those rows' counts, then counted correctly from that point on. Nothing in the
+    harness checked the register between steps, so a single bad write was permanent. Without
+    those 14, `both` had 4 wrong counts against `state`'s 7: three short by one and one high by
+    nine.
+11. **Jev's flags cut the subagent's work.** Output tokens per step fell 33% at 32 chunks and 18%
+    at 96, and cost per chunk 25% and 12%. The flags did not make its counting more reliable at
+    32 chunks (one undercount where `state` had none).
+12. **The recent-lines store did not confuse the answer.** In both runs the final answer copied
+    the register exactly.
+
+## Applied
+
+- `relay_tally.py --guard` adds an edit gate run by the harness, after the paper's own: a
+  register edit that drops a row, lowers any count, or raises the counts by more than the chunk
+  holds is undone and the subagent retries once with the reason. `test_gate.py` checks it on a
+  14-row reset. A guarded rerun of `both` at 96 chunks is in progress (`run_guard.log`).
+- METHODS.md gains the portable lessons: reserve cap shares, evict by recency for overwritten
+  state, give the final reader tools, gate model-maintained state.
+
+## Against PREDICTIONS.md (11–14)
+
+| # | prediction | outcome |
+|---|---|---|
+| 11 | holders 40/40 at both sizes | held |
+| 12 | ≤ 3 counts wrong at 96 | wrong: 18, of which 14 from one reset (4 otherwise) |
+| 13 | cheaper per chunk than `state` | held: 25% at 32, 12% at 96 |
+| 14 | recent lines don't hurt the answer | held: answer = register in both runs |
+
+## Caveats
+
+One seed, so the reset is one event: it says a single bad write can happen and is never
+repaired, not how often. Whether the flags made it more or less likely is unknown; the run
+cannot separate that from chance.
+
 ## Files
 
 `gen.py` episodes · `relay.py` runner (resumable, per-chunk checkpoints in `work/`, gitignored)
 · `grade.py` scoring → `results/summary.json` · `results/*.json` per-episode finals and step
 logs · `results/pilot/` 3-chunk pilot · Phase 2: `gen_tally.py`, `relay_tally.py`, `answer_tools.py`,
-`grade_tally.py` → `results_tally/` (pilot in `results_tally/pilot/`), `run_tally.log` · `PREDICTIONS.md` ·
+`grade_tally.py` → `results_tally/` (pilot in `results_tally/pilot/`), `run_tally.log` · Phase 3: `run_both.log`,
+`test_gate.py`, `run_guard.log` · `PREDICTIONS.md` ·
 `ERRORS.md` · `recheck.py`.
