@@ -31,6 +31,7 @@ from gen_tally import episode, task
 from relay import CAP_TOKENS, ENC, JEV_KEEP, MODEL, jev_scores, ntok, subagent
 
 HERE = Path(__file__).resolve().parent
+GUARD = False   # --guard: reject register edits that drop rows or lower counts (Phase 3 finding)
 # "both": the register and Jev's verbatim store get reserved shares of the cap, so neither can
 # squeeze the other (the Phase 1 failure, ERRORS.md #2).
 BOTH_STATE_CAP, BOTH_JEV_CAP = 8_000, CAP_TOKENS - 8_000
@@ -42,6 +43,26 @@ def fit(kept: list[list], cap: int, policy: str) -> list[list]:
     while kept and ntok("\n".join(k[0] for k in kept)) > cap:
         kept.remove(min(kept, key=lambda k: k[1] if policy == "score" else k[2]))
     return kept
+
+
+REG_ROW = re.compile(r"^\|\s*(\S+)\s*\|\s*([A-Za-z]+)\s*\|\s*(\d+)\s*\|", re.M)
+
+
+def register_violation(prev: str, new: str, assets: list[str], max_new: int) -> str | None:
+    """Edit gate for the register: every asset keeps a row, no count goes down, and the counts
+    cannot rise by more than the chunk could hold. Returns the reason, or None if the edit passes."""
+    before = {a: int(c) for a, _, c in REG_ROW.findall(prev)}
+    after = {a: int(c) for a, _, c in REG_ROW.findall(new)}
+    missing = [a for a in assets if a not in after]
+    if missing:
+        return f"rows missing for {', '.join(missing[:5])}{' ...' if len(missing) > 5 else ''}"
+    down = [f"{a} {before[a]}->{after[a]}" for a in assets if a in before and after[a] < before[a]]
+    if down:
+        return f"counts went down ({', '.join(down[:5])}{' ...' if len(down) > 5 else ''}); a count only ever increases"
+    rise = sum(after[a] - before.get(a, 0) for a in assets)
+    if rise > max_new:
+        return f"counts rose by {rise} in total, more than the {max_new} lines in this chunk"
+    return None
 
 
 ANSWER_SYS = "You answer from the material given. Output only the JSON object requested, nothing else."
@@ -68,12 +89,13 @@ def answer(task_text: str, carried: str, assets: list[str]) -> dict:
 
 
 def run_episode(cond: str, n: int, seed: int, log) -> Path:
-    out = RES / f"{cond}__{n}__{seed}.json"
+    label = cond + ("+guard" if GUARD else "")
+    out = RES / f"{label}__{n}__{seed}.json"
     if out.exists():
         return out
     ep = episode(n, seed)
     tk = task(ep)
-    wd = WORK / f"{cond}__{n}__{seed}"
+    wd = WORK / f"{label}__{n}__{seed}"
     wd.mkdir(parents=True, exist_ok=True)
     prog_f = wd / "progress.json"
     prog = json.loads(prog_f.read_text()) if prog_f.exists() else {"next": 0, "steps": [], "kept": [], "order": 0}
@@ -105,7 +127,19 @@ def run_episode(cond: str, n: int, seed: int, log) -> Path:
                 jnote = ("A line filter flagged these lines of this chunk as likely handovers, in order. It is "
                          "usually right but can miss one or flag a non-handover, so check the chunk too:\n"
                          + ("\n".join(flagged) if flagged else "(none)"))
+            prev = sf.read_text()
             r = subagent(tk, chunk, wd, note, jnote)
+            if GUARD:
+                why = register_violation(prev, sf.read_text(), ep["assets"], len(chunk.splitlines()) - 1)
+                if why:
+                    sf.write_text(prev)
+                    r2 = subagent(tk, chunk, wd, note, jnote + f"\nYour last attempt at this chunk was rejected and "
+                                  f"undone: {why}. state.md is back to its previous version; update it again.")
+                    why2 = register_violation(prev, sf.read_text(), ep["assets"], len(chunk.splitlines()) - 1)
+                    if why2:
+                        sf.write_text(prev)
+                    r = {**r2, "cost": r.get("cost", 0) + r2.get("cost", 0), "in": r.get("in", 0) + r2.get("in", 0),
+                         "out": r.get("out", 0) + r2.get("out", 0), "gate_rejected": why, "gate_retry_failed": why2}
             s = sf.read_text()
             if ntok(s) > cap:
                 sf.write_text(ENC.decode(ENC.encode(s)[:cap]))
@@ -115,7 +149,7 @@ def run_episode(cond: str, n: int, seed: int, log) -> Path:
         prog["steps"].append(step)
         prog["next"] = c + 1
         prog_f.write_text(json.dumps(prog))
-        log(f"tally {cond} n={n} s={seed} chunk {c + 1}/{n} carried={step['carried_tokens']}")
+        log(f"tally {label} n={n} s={seed} chunk {c + 1}/{n} carried={step['carried_tokens']}")
     if cond == "both":
         carried = ("REGISTER (authoritative; maintained step by step over the whole stream):\n" + sf.read_text()
                    + "\n\nMOST RECENT HANDOVER LINES (verbatim, oldest first; for reference only):\n"
@@ -123,7 +157,7 @@ def run_episode(cond: str, n: int, seed: int, log) -> Path:
     else:
         carried = (wd / "kept.md").read_text() if cond.startswith("jev") else sf.read_text()
     ans = answer(tk, carried, ep["assets"])
-    out.write_text(json.dumps({"cond": cond, "n": n, "seed": seed, "model": MODEL, "carried": carried,
+    out.write_text(json.dumps({"cond": label, "n": n, "seed": seed, "model": MODEL, "carried": carried,
                                "answer": ans, "steps": prog["steps"]}))
     return out
 
@@ -134,7 +168,10 @@ def main() -> None:
     ap.add_argument("--sizes", default="32,96")
     ap.add_argument("--seeds", default="0")
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--guard", action="store_true")
     a = ap.parse_args()
+    global GUARD
+    GUARD = a.guard
     RES.mkdir(exist_ok=True)
     lock = threading.Lock()
 
