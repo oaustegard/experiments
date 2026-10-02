@@ -69,5 +69,9 @@ for n, ce in ((32, "0.975"), (96, "0.550")):
 if round(sum(r["relay_usd"] + r["answer_usd"] + r["jev_usd"] for r in both.values()), 2) != 11.49:
     bad += 1
     print("FAIL phase 3 spend $11.49")
+g = next(r for r in alltally if r["cond"] == "both+guard")
+if (f"{g['count_exact']:.3f}", round(g["relay_usd"] + g["answer_usd"] + g["jev_usd"], 2)) != ("0.925", 8.42):
+    bad += 1
+    print("FAIL gated rerun row / $8.42")
 print("recheck:", "OK" if not bad else f"{bad} problems")
 sys.exit(1 if bad else 0)

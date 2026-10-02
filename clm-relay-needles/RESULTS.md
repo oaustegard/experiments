@@ -13,9 +13,10 @@ preserved every current holder, and a one-pass reader still found only 9 of them
 lines read with tools gave 40.
 
 **Phase 3 in brief.** Showing the subagent Jev's flagged lines cut its cost per chunk by 12–25%,
-and the register still ended with every holder right. But at 96 chunks one rewrite near chunk
-71 reset 14 counts to zero, and nothing caught it. The harness now has an edit gate for the
-register (`--guard`).
+and the register still ended with every holder right. At 96 chunks one rewrite near chunk 71
+reset 14 counts to zero, and nothing caught it. With an edit gate added (`--guard`), a rerun
+caught the same kind of reset at chunk 36, retried the step, and ended with 38 of 40 counts
+exact in the register, the best of any condition.
 
 **Phase 1 in brief.** Jev alone kept all 497 required lines exactly and no noise at 96 chunks (about 11× a 32k
 budget) for $0.04. A Haiku 4.5 subagent keeping its own notes file kept 496 for $7.74; it lost
@@ -233,8 +234,10 @@ The answer call reads the register, labelled authoritative, then the recent line
 | 32 | both | 1.000 | 0.975 | 0.03 | 0.080 | 7,273 |
 | 96 | state | 1.000 | 0.825 | 0.17 | 0.102 | 10,689 |
 | 96 | both | 1.000 | 0.550 | 10.05 | 0.090 | 8,807 |
+| 96 | both, gated | 1.000 | 0.925 | 0.85 | 0.085 | — |
 
-Phase 3 spend $11.49 (relay $11.25, answers $0.18, Jev $0.06), plus $0.25 for the pilot.
+Phase 3 spend $11.49 (relay $11.25, answers $0.18, Jev $0.06), plus $0.25 for the pilot. The gated
+rerun cost $8.42 more (relay $8.17, answer $0.20, Jev $0.04).
 
 ## Findings
 
@@ -256,7 +259,15 @@ Phase 3 spend $11.49 (relay $11.25, answers $0.18, Jev $0.06), plus $0.25 for th
 - `relay_tally.py --guard` adds an edit gate run by the harness, after the paper's own: a
   register edit that drops a row, lowers any count, or raises the counts by more than the chunk
   holds is undone and the subagent retries once with the reason. `test_gate.py` checks it on a
-  14-row reset. A guarded rerun of `both` at 96 chunks is in progress (`run_guard.log`).
+  14-row reset.
+- **Gated rerun of `both` at 96 chunks** (`run_guard.log`, `results_tally/both+guard__96__0.json`).
+  The gate fired once, at chunk 36: the subagent's edit lowered boiler-24D from 19 to 3 and
+  pump-12D from 14 to 1. The edit was undone, the retry passed, and no other step was
+  rejected. The register ended with every holder right and 38 of 40 counts exact (pump-12D
+  three high, valve-74F two low), the best of any condition; the subagent alone had 33. The
+  final answer then copied chiller-87A's count as 11 instead of the register's 40, so the
+  graded score is 37 of 40. That is the first time an answer call departed from the register,
+  and it went against prediction 14.
 - METHODS.md gains the portable lessons: reserve cap shares, evict by recency for overwritten
   state, give the final reader tools, gate model-maintained state.
 
@@ -267,7 +278,7 @@ Phase 3 spend $11.49 (relay $11.25, answers $0.18, Jev $0.06), plus $0.25 for th
 | 11 | holders 40/40 at both sizes | held |
 | 12 | ≤ 3 counts wrong at 96 | wrong: 18, of which 14 from one reset (4 otherwise) |
 | 13 | cheaper per chunk than `state` | held: 25% at 32, 12% at 96 |
-| 14 | recent lines don't hurt the answer | held: answer = register in both runs |
+| 14 | recent lines don't hurt the answer | held in the two ungated runs; in the gated rerun the answer misreported one count the register had right |
 
 ## Caveats
 
@@ -281,5 +292,5 @@ cannot separate that from chance.
 · `grade.py` scoring → `results/summary.json` · `results/*.json` per-episode finals and step
 logs · `results/pilot/` 3-chunk pilot · Phase 2: `gen_tally.py`, `relay_tally.py`, `answer_tools.py`,
 `grade_tally.py` → `results_tally/` (pilot in `results_tally/pilot/`), `run_tally.log` · Phase 3: `run_both.log`,
-`test_gate.py`, `run_guard.log` · `PREDICTIONS.md` ·
+`test_gate.py`, `run_guard.log` (gated rerun) · `PREDICTIONS.md` ·
 `ERRORS.md` · `recheck.py`.
