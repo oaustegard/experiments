@@ -30,3 +30,18 @@ answer by one Haiku 4.5 call without tools in every condition.
    chunks) and counts collapse toward 0, since the early handovers are gone.
 10. At 96 chunks `state` has the best holders and counts of the three; exact counts fall below
     its 32-chunk level. Relay cost about $0.12 per chunk.
+
+# Phase 3: combined register + recent lines (written before the run, after a 3-chunk pilot at 1.0)
+
+`both`: per chunk, Jev flags likely handovers; the subagent sees the flags and updates the
+register (8k reserved); flagged lines also go to a most-recent verbatim store (16k reserved).
+The answer call reads the register, then the recent lines.
+
+11. Holders 40/40 at both sizes, as for `state`.
+12. Fewer missed handovers than `state` at 96 chunks (≤ 3 counts wrong against 7): the flags act
+    as a second check on the subagent's reading, and Jev's per-line misses are unlikely to fall
+    on the same lines as Haiku's.
+13. Cheaper per chunk than `state` (pilot $0.075 vs $0.12), because a flagged list lets the
+    subagent skip reasoning over all 136 lines.
+14. The recent-lines store does not hurt the one-pass answer: with the register labelled
+    authoritative, the answerer copies it.

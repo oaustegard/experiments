@@ -5,6 +5,9 @@ Conditions
             register. It can overwrite counts and holders in place.
   jev       Jev keeps handover lines verbatim (p >= 0.5); over the cap the lowest-scored lines go.
   jev_fifo  same, but over the cap the oldest lines go (keeps the most recent handovers).
+  both      each chunk, Jev scores first; the subagent sees which lines Jev flagged and updates the
+            register (state.md, 8k reserved); Jev's flagged lines also go to a verbatim store of the
+            most recent handovers (16k reserved). The answer call reads both, register first.
 
 Every condition ends with the same answer call: Haiku 4.5, no tools, given the task (with the
 initial register) and whatever was carried, returns JSON {asset: {"holder", "count"}}. For the Jev
@@ -28,6 +31,9 @@ from gen_tally import episode, task
 from relay import CAP_TOKENS, ENC, JEV_KEEP, MODEL, jev_scores, ntok, subagent
 
 HERE = Path(__file__).resolve().parent
+# "both": the register and Jev's verbatim store get reserved shares of the cap, so neither can
+# squeeze the other (the Phase 1 failure, ERRORS.md #2).
+BOTH_STATE_CAP, BOTH_JEV_CAP = 8_000, CAP_TOKENS - 8_000
 WORK, RES = HERE / "work_tally", HERE / "results_tally"
 
 
@@ -77,31 +83,45 @@ def run_episode(cond: str, n: int, seed: int, log) -> Path:
                       + "".join(f"| {a} | {p} | 0 |\n" for a, p in ep["initial"].items()))
     for c in range(prog["next"], n):
         chunk, step = ep["chunks"][c], {"chunk": c}
-        if cond.startswith("jev"):
+        if cond.startswith("jev") or cond == "both":
             sc, jt = jev_scores(tk, chunk)
             order = {l: i for i, l in enumerate(chunk.splitlines())}
             new = [[l, s, prog["order"] + order[l]] for l, s in sc.items() if s >= JEV_KEEP]
             prog["order"] += 1000
-            prog["kept"] = fit(prog["kept"] + new, CAP_TOKENS, "score" if cond == "jev" else "fifo")
+            cap, rule = ((BOTH_JEV_CAP, "fifo") if cond == "both"
+                         else (CAP_TOKENS, "score" if cond == "jev" else "fifo"))
+            prog["kept"] = fit(prog["kept"] + new, cap, rule)
             prog["kept"].sort(key=lambda k: k[2])  # chronological, so the answerer can replay
             (wd / "kept.md").write_text("\n".join(k[0] for k in prog["kept"]))
             step.update(jev_new=len(new), jev_tokens=jt)
             step["carried_tokens"] = ntok((wd / "kept.md").read_text())
-        else:
+        if not cond.startswith("jev"):
+            cap = BOTH_STATE_CAP if cond == "both" else CAP_TOKENS
             used = ntok(sf.read_text())
-            note = f"state.md may hold at most {CAP_TOKENS} tokens; it holds {used} now. Anything past the limit is cut off."
-            r = subagent(tk, chunk, wd, note, "")
+            note = f"state.md may hold at most {cap} tokens; it holds {used} now. Anything past the limit is cut off."
+            jnote = ""
+            if cond == "both":
+                flagged = [l for l in chunk.splitlines() if sc.get(l, 0) >= JEV_KEEP]
+                jnote = ("A line filter flagged these lines of this chunk as likely handovers, in order. It is "
+                         "usually right but can miss one or flag a non-handover, so check the chunk too:\n"
+                         + ("\n".join(flagged) if flagged else "(none)"))
+            r = subagent(tk, chunk, wd, note, jnote)
             s = sf.read_text()
-            if ntok(s) > CAP_TOKENS:
-                sf.write_text(ENC.decode(ENC.encode(s)[:CAP_TOKENS]))
+            if ntok(s) > cap:
+                sf.write_text(ENC.decode(ENC.encode(s)[:cap]))
                 r["truncated_from"] = ntok(s)
             step["agent"] = r
-            step["carried_tokens"] = ntok(sf.read_text())
+            step["carried_tokens"] = ntok(sf.read_text()) + step.get("carried_tokens", 0)
         prog["steps"].append(step)
         prog["next"] = c + 1
         prog_f.write_text(json.dumps(prog))
         log(f"tally {cond} n={n} s={seed} chunk {c + 1}/{n} carried={step['carried_tokens']}")
-    carried = (wd / "kept.md").read_text() if cond.startswith("jev") else sf.read_text()
+    if cond == "both":
+        carried = ("REGISTER (authoritative; maintained step by step over the whole stream):\n" + sf.read_text()
+                   + "\n\nMOST RECENT HANDOVER LINES (verbatim, oldest first; for reference only):\n"
+                   + (wd / "kept.md").read_text())
+    else:
+        carried = (wd / "kept.md").read_text() if cond.startswith("jev") else sf.read_text()
     ans = answer(tk, carried, ep["assets"])
     out.write_text(json.dumps({"cond": cond, "n": n, "seed": seed, "model": MODEL, "carried": carried,
                                "answer": ans, "steps": prog["steps"]}))
