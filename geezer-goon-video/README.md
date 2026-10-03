@@ -1,54 +1,53 @@
 # Geezer Goon — animated music video
 
-An animated video for Oskar's song about the Wednesday G2 ("Geezer Goon") group
-ride out of Kensington, MD. The video is
-[`geezer-goon-720p.mp4`](geezer-goon-720p.mp4): 1280x720, 4:09, 30 fps, 27 MB,
-downscaled from a 1080p master (104 MB) that is over GitHub's 100 MB file limit
-and is not kept. Releases could not be created from the session that made it.
+An animated video for Oskar's song about the Wednesday G2 ("Geezer Goon") group ride out of Kensington, MD. 4:09, 30 fps, two versions.
 
-Flat vector animation drawn frame by frame with pycairo and encoded with
-ffmpeg. The riders are side-on, the sky runs from golden hour to night over the
-song, and the moon rises at the end. The lyrics light up word by word. Named
-riders get tags when the lyrics mention them. A bike computer shows ride
-clock (6:15 → 7:32 PM), miles, speed and climb. Scene props follow the
-lyrics: street signs, the Jones Bridge and East-West traffic lights, the
-Beach Drive half-gates (with a top-down inset of the pack going single file
-through the middle gap on each "GATE UP!"), potholes on Ridge and Ross, the
-road tilting up Mormon Hill, a flipping Tue/Thu calendar in the bridge.
+| | Files | How it's drawn |
+|---|---|---|
+| **v2** (current) | [`geezer-goon-v2-720p.mp4`](geezer-goon-v2-720p.mp4) (27 MB) · 1080p master (115 MB) in R2, `austegard-media/geezer-goon/geezer-goon-v2-1080p.mp4` | HTML canvas in headless Chromium, one frame at a time, encoded with ffmpeg. Source in [`v2/`](v2/). |
+| v1 | [`v1/geezer-goon-v1-720p.mp4`](v1/geezer-goon-v1-720p.mp4) | pycairo side-scroller. Source in [`v1/`](v1/). |
 
-## Timing source
+## v2
 
-The song's `.m4a` carries a `mov_text` subtitle track with line-timed lyrics
-and zero-length `[Section]` cues, so no speech alignment was needed. Word
-timing inside a line is spread by word length. Beats and energy come from
-librosa (150 BPM) and drive text pulse and a small camera bob.
+The road is the real terrain of a Wednesday ride. Strava's streams for the 2026-09-09 G2 (600 samples: GPS, altitude, speed) are trimmed to the ride proper, smoothed, and drive:
 
-## Rebuild
+- the road profile: the pack tilts up the real grades (horizontal 6 px/m, vertical 13 px/m, elevation exaggerated 2.2x);
+- the speedometer, which reads the ride's actual speed at that distance (about 25 mph through the bridge);
+- the odometer, climb counter and ride clock (6:15 to 7:32 PM, scaled to the 77 minutes in the lyric);
+- the route map (rotated so north is right, to fit a landscape frame; no basemap).
 
-The song itself is not in this repo.
+The song is laid onto the ride with an anchor table (`ANCH0` in `v2/web/core.js`, song second to metres along the activity). "Ridge on to Ross" lands on the real climb at 14.6 km, "Mormon Hill" on the largest climb in the trace (+35 m at 26.1 km), the bridge on the long fast stretch from Cedar to Knowles. Between anchors the rate is smoothed, so scroll speed has no kinks. Where the song skips a long stretch (the pre-chorus between Ross and the hill) the odometer fast-forwards and the HUD says so.
+
+Time of day runs from golden hour to night across the song; the lyric timing comes from the subtitle track embedded in the song's `.m4a`.
+
+Shot list: about 60 cuts over 13 scene types (side-view tracking with depth of field, top-down gate funnel, drone view of the pack, route map, bike computer, calendar, pothole chart, three-pane split, and the rest). `v2/web/timeline.js` holds the shot table, annotations and overlays in one place.
+
+### Rebuild
 
 ```bash
-pip install pycairo librosa imageio-ffmpeg
-ln -sf "$(python3 -c 'import imageio_ffmpeg as f; print(f.get_ffmpeg_exe())')" /usr/local/bin/ffmpeg
-# fonts: Anton, Bebas Neue, Permanent Marker (Google Fonts TTFs) into ~/.fonts, then fc-cache -f
-ffmpeg -i Geezer_Goon.m4a -map 0:1 subs.srt
-ffmpeg -i Geezer_Goon.m4a -ac 1 -ar 16000 song16k.wav
-python3 analyze.py
-python3 render.py still 47 121 178          # spot-check frames
-# 7481 frames; ~0.25 s each at 1080p, so split across cores:
-for i in 0 1 2 3; do python3 render.py chunk $((i*1871)) $(((i+1)*1871)) chunk$i.mp4 & done; wait
-printf "file 'chunk%d.mp4'\n" 0 1 2 3 > list.txt
-ffmpeg -f concat -safe 0 -i list.txt -i Geezer_Goon.m4a -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k -shortest out.mp4
+pip install playwright librosa imageio-ffmpeg     # Chromium comes from PLAYWRIGHT_BROWSERS_PATH; capture.py points at it
+cd v2
+# inputs not in the repo: route_raw.json (Strava streams: location, altitude, velocity_smooth),
+# subs.srt (ffmpeg -i song.m4a -map 0:1 subs.srt), analysis.json (v1/analyze.py on a 16 kHz wav of the song)
+python3 prep.py                                   # writes web/data.js (committed, so the renderer runs without the inputs)
+python3 capture.py still 28 73 168                # spot-check frames -> stills/
+./render_all.sh                                   # 12 chunks, 4 workers, then mux; needs the song as the audio input
 ```
 
-## Snags
+About 0.37 s per frame per worker, so roughly 12 minutes on 4 cores. Chunks are resumable: finished ones are skipped.
 
-- Python's `hash()` is salted per process. Used for animation phase, it made
-  each chunk's pedalling start at a different angle; phases use a character
-  sum instead.
-- A fade-out that reaches scale 0 makes cairo raise `invalid matrix`; every
-  scaled overlay returns early below k = 0.01. The first full render lost 20 s
-  of chunk 0 to this and the concat came out 3:50 instead of 4:09.
-- "GATE UP!" was first drawn as a boom barrier swinging up. It is a shouted
-  warning: gates close part of Beach Drive from each side, and the pack rides
-  single file through the gap in the middle.
+### Data
+
+`web/data.js` holds route shape in metres relative to the route's own centroid, plus altitude and speed. It carries no absolute coordinates. The first 600 m of the Strava activity, the roll from home to the start on Beach Dr, is dropped in `prep.py` (`RIDE_START`), and the raw streams are not committed.
+
+### Snags
+
+- The Strava tool returns streams inline, not as a file. Copy them to disk and check the point count and maximum step (here 600 points, no step over 78 m) before trusting a hand copy.
+- Fonts: Anton, Bebas Neue and Permanent Marker (OFL) are in `web/fonts/`.
+- Early review caught the night frames too dark, headlight glows blown out, name tags colliding with lyrics, and a single-file gate stream that overlapped bikes. A first cut of the close-up face was replaced by the real rider rig at high zoom.
+- Known flaws: on the longest chorus-2 line the lyric's last word sits under the HUD, and the two "get out the way" bubbles in the second gate scene overlap.
+- Corrections from Oskar: Karim and Angelo have no beards; the ride starts and finishes on Beach Dr near the base of the temple hill, not at his house.
+
+## v1
+
+Flat vector side-scroller: pycairo frames piped to ffmpeg, four parallel chunks. Fake terrain and speed. `v1/render.py` + `v1/analyze.py`. Lessons kept from it: Python's `hash()` is salted per process, so never use it for animation phase in a chunked render; and a fade that reaches scale 0 makes cairo raise `invalid matrix`.
