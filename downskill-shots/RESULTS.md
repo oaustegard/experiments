@@ -6,18 +6,19 @@ distilled prompt?
 ## Answer
 
 Haiku 5.5 does not need examples to apply a rule. It does need them to apply the
-rules the way the prompt's author meant. On three of the skill's own distilled
-prompts, run three ways (as shipped with examples, rules only, and a bare prompt
-of task plus label names), every arm except bare scored **40/40 on rule-determined
-items**. Bare scored 38/40; its two misses were the one default it was never told
-(`"some"` means `LIMIT 10`). On items where the rules leave a judgment call that an
-example settles, the prompt as shipped scored **22/24**, the bare prompt **20/24**,
-and rules without examples **15/24**. Removing the examples and keeping the rules is
-the worst of the three. Taken literally, the rules push Haiku off the reading both
-the examples and its own default agree on: a harsh remark about an article becomes
-FLAGGED harassment, and a feature wish that blocks adoption becomes NEGATIVE.
-A convention the model would not guess (spending counts completed orders only)
-transferred from its example in 1 of 2 runs and never without it.
+rules the way the prompt's author meant. On three of the skill's distilled prompts,
+run as shipped, as rules only, and bare (task plus label names), every arm with
+rules scored **40/40 on rule-determined items**; bare scored 38/40, missing only the
+one default it was never told. On judgment calls an example settles, the prompt as
+shipped scored **22/24**, bare **20/24**, and rules without examples **15/24**: taken
+literally, the rules push Haiku off the reading both the examples and its own default
+agree on. A convention the model would not guess transferred from its example in 1 of
+2 runs, so state it as a rule.
+
+The anti-invention examples are no longer needed against invented technical details:
+the example set that made Haiku 4.5 invent them in 19 of 20 rewrites produced 0 of 8
+on 5.5, as did every version. A no-invention rule still matters: without one, 3 of 8
+rewrites invented facts.
 
 This would change with gold labels written by someone other than a Claude model, or
 on tasks whose labels the model has no prior for: both are untested here.
@@ -37,7 +38,14 @@ on tasks whose labels the model has no prior for: both are untested here.
 4. A house convention the model would not infer barely transfers through an example:
    "top customers by spending" filtered to completed orders in 1 of 2 runs with the
    example, 0 of 4 without. State such conventions as rules.
-5. Defaults stated only in rules (`LIMIT 10` for "some") are followed 4/4 when stated
+5. Haiku 5.5 no longer invents technical details in a dry rewrite of an abstract
+   announcement, with or without anti-invention examples: 0/8 in every version,
+   including the example set that produced 19/20 on Haiku 4.5 (round 2).
+6. A no-invention rule still earns its place on 5.5. Without one, 3 of 8 rewrites
+   invented facts and 4 of 8 reversed the source's own claim ("not a paradigm shift");
+   with the rule, 0 to 1 of 8 invented anything, and the calibrated examples on top
+   took it from 1/8 to 0/8, which n=8 cannot distinguish (round 2).
+7. Defaults stated only in rules (`LIMIT 10` for "some") are followed 4/4 when stated
    and 0/2 when not: a rule earns its place by stating something the model would not
    assume.
 
@@ -101,3 +109,43 @@ but sql-full r2; sql-bare Q4 (`LIMIT 10`) in both runs. Data: `results.json`,
 
 Prediction before the run: examples would matter for conventions and not for rules.
 The first half held. The rules arm falling below bare was not predicted.
+
+### 2026-10-07: the anti-invention examples, retested on Haiku 5.5
+
+Asked by Oskar about the skill's claim that its "model the silence" examples were
+still needed: *"Why not retest?"*
+
+Fixture: the voice-rewrite task from the May Haiku 4.5 assessment
+(`muninn.austegard.com/references/haiku-assessment/`): rewrite an 85-word promotional
+announcement of a caching layer, which names no mechanism, in a dry voice at the same
+length. Four versions, 8 Haiku 5.5 runs each, prompts verbatim from that archive
+(`silence/prompts/`): the vanilla request (4/20 invented details on 4.5), the
+original down-skilled prompt whose examples drove invention (19/20 on 4.5), the
+calibrated prompt with anchored "model the silence" examples (0/5 on 4.5), and that
+calibrated prompt with its `<examples>` removed.
+
+Scoring: the archive's own term list of invented technical details (`HALLUCINATED_DETAILS`
+in `n20/score.py`: LRU, TTL, Redis, p99, in-memory and so on), plus a read of every
+output for unsupported claims (facts the source does not state) and for reversals of
+the source's claims. Labels and texts in `silence/outputs.json`.
+
+| version | invented details (term list) | unsupported claims | reverses the source | 60–90 words |
+|---|---|---|---|---|
+| vanilla | 0/8 | 3/8 | 4/8 | 7/8 |
+| original down-skilled | 0/8 | 1/8 | 0/8 | 6/8 |
+| calibrated | 0/8 | 0/8 | 0/8 | 7/8 |
+| calibrated, no examples | 0/8 | 1/8 | 0/8 | 7/8 |
+
+The unsupported claims: vanilla "We tested it across a range of workloads with
+consistent results", "Read the docs to get started", "the gains hold up in practice";
+original "consult the release documentation"; calibrated-no-examples "Future updates
+will show measured results". The reversals are all one move: the source calls the
+layer a paradigm shift and the vanilla rewrite says it is not one.
+
+None of the calibrated runs copied the process claims its own examples model ("the
+old path remains available", "adoption is opt-in"), which the term list would not
+have caught either.
+
+Reading: the failure the examples were built against is gone on 5.5 at this n. The
+rule and the fact-listing step carry the remaining work; the examples are optional.
+One task, 8 runs per version, labels by Opus 5.5.
