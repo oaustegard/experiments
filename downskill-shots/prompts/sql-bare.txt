@@ -1,0 +1,23 @@
+These are your complete task instructions. Use no tools beyond having read this file. Reply with only the requested output, nothing before or after it.
+
+<task>
+Write a SQL query (PostgreSQL) that answers the question from the schema. If the schema cannot
+answer it, output "-- Cannot answer: [reason]". Put the query in a ```sql block, then one
+sentence of explanation.
+</task>
+
+<schema>
+customers(id, name, country, signup_date), orders(id, customer_id, order_date, total, status), order_items(id, order_id, product_id, quantity, unit_price), products(id, name, category, price)
+</schema>
+
+<context>
+Answer each of these questions separately, headed Q1 to Q8, applying the format above to each.
+Q1: "Who are our top 3 customers by total spending?"
+Q2: "How many orders were placed in 2025?"
+Q3: "Which product category brings in the most revenue?"
+Q4: "List some customers from Norway."
+Q5: "What is the average order value per country?"
+Q6: "Which customers have never placed an order?"
+Q7: "What is each customer's phone number?"
+Q8: "Which month of 2025 had the most orders?"
+</context>

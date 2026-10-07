@@ -608,6 +608,15 @@ survives exactly the sanity checks people run.
   that survives review is the one made by the baseline with no knob.
   (`spd-hungarian-decoder/adversarial.py`)
 
+- **Ablate a few-shot prompt three ways, not two: with examples, rules only, and
+  bare.** Stripping the examples from a distilled Haiku 5.5 prompt and keeping its
+  rules scored 15/24 on judgment items, below the bare prompt with no rules at all
+  (20/24) and the prompt as shipped (22/24); rule-determined items were 40/40 either
+  way. Rules written next to examples get read literally once the examples are
+  gone. A with/without comparison credits the examples with work that is really
+  undoing their own rules. Split the test items into rule-determined and
+  example-settled before reading any score. (`downskill-shots/RESULTS.md`)
+
 ## Portable code (extraction candidates)
 
 | What | Where | Effort |
