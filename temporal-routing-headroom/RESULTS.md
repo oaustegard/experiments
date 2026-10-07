@@ -392,3 +392,68 @@ repair in small modules does not separate tiers, as the 2026-09-03 probe already
 so the Sonnet/Opus result here says the two are close on this family and nothing about
 harder work. Thinking share could not be measured: Claude Code omits thinking text and
 the transcripts carry no final usage.
+
+## Haiku 5.5 as rung 1, and the same-model informed retry (2026-10-07)
+
+One replicate, 14 tasks, then rung 2 on the misses two ways. 20 Agent-tool subagents
+dispatched by session 7c199534 (CCotw); prompts byte-identical to `emit_prompts.py`
+apart from the run root and a trailing `[no-context]`, which keeps the
+delegating-with-context hook from appending the parent's transcript. The Agent tool
+cannot set effort, so every run used the session's level. Every transcript names
+`claude-haiku-5-5` or `claude-sonnet-5-5`. No run edited its tests. Data:
+`data/results_h55_r1.json`, `data/results_h55_r1_rung2_h55.json`,
+`data/results_h55_r1_rung2_s55.json`, `data/cost_h55_ladder.json`.
+
+| arm | solved | input-side $ | $ per spawn |
+|---|---|---|---|
+| Haiku 5.5, rung 1 | 11/14 | 0.1082 | 0.0077 |
+| rung 2: Haiku 5.5 + patch + hidden failures | 3/3 | 0.0145 | 0.0048 |
+| rung 2: Sonnet 5.5 + patch + hidden failures | 3/3 | 0.5111 | 0.1704 |
+| **ladder Haiku → Haiku** | **14/14** | **0.1227** | — |
+| ladder Haiku → Sonnet | 14/14 | 0.6193 | — |
+
+Rung 1 missed `cron_next`, `lru_ttl` and `wrap_text`: three of the six paired traps, the
+set Sonnet 5.5 at `low` also misses (it solved 10 and 11 of 14 on 2026-09-29). All three
+Haiku runs named the second defect in their own summaries ("`day_ok` requires both to
+match... POSIX uses OR", "`__len__` still counts expired entries", "a whitespace-only line
+does not end a paragraph") and left it, because it was "outside the reported bug". They
+found the trap's second site and declined to fix it. Handed the
+patch and the hidden suite's failure output, Haiku fixed all three, as Sonnet did. On
+`cron_next` both chose the convention the reference uses (`*/7` counts as restricted),
+which seven of eight Sonnet/Opus runs on 2026-09-29 got wrong from the issue text alone.
+
+**The cost is the prefix, not the output.** Every earlier table in this file prices
+output tokens only. An Agent-tool subagent starts from a ~55K-token Claude Code prefix
+(system prompt, tools, skills list) that it writes to the 5-minute cache on its first
+request, and these runs show that prefix dominating the bill: mean cache write 45K tokens
+per Haiku rung-1 run and 59K per Sonnet rung-2 run (parallel launches share nothing).
+Priced at the 5-minute write rate (1.25× input) and the read rate (0.1×):
+
+- one Haiku 5.5 spawn: $0.005–0.011
+- one Sonnet 5.5 spawn: $0.17, which is 15× the $0.0121 output-only figure the 2026-09-29
+  `s55high` arm reported per completed task
+
+By the same input-side measure, the Haiku → Haiku ladder solved 14/14 for less than one
+Sonnet 5.5 spawn. Output does not change the order. These transcripts carry
+streaming-start usage only (`out_floor` in the data is a floor), but at $0.50/MTok a Haiku
+run would need ~340K output tokens to cost what a Sonnet spawn's prefix does.
+
+What this changes for `agent-routing`:
+
+- **The cascade precondition now holds for Haiku.** At Haiku 4.5's $1/$5, its verbosity
+  made `haiku → sonnet` worse than Sonnet alone. Haiku 5.5 is $0.10/$0.50, 20× under
+  Sonnet 5.5 on every token class, and on this battery it matched Sonnet 5.5 `low`'s pass
+  set.
+- **Rung 2 can stay on Haiku.** The informed retry, not the tier, carried the rescue, as
+  the 2026-09-03 Sonnet ladder found. Escalating to Sonnet bought nothing here and cost
+  35× per spawn.
+- **Price subagents per spawn.** In Claude Code the fixed prefix outweighs the work on
+  short repair tasks, so a tier's per-spawn input cost is the first number to compare.
+
+Limits: one replicate, n=14; three-task rung 2. The pass sets agree with the earlier
+Sonnet runs, but a one-task difference is noise here. Effort was not controlled. Haiku
+5.5 accepts `effort` on the API (default `medium`), and whether the Workflow tool's
+`agent({effort})` reaches it is unmeasured. The input-side cost assumes cold caches.
+Sequential spawns of one model share a cached prefix (32 of 36 probes did on 2026-09-28),
+which cuts a Sonnet spawn to ~$0.011 and a Haiku spawn to ~$0.0006, and leaves the ratio
+unchanged.

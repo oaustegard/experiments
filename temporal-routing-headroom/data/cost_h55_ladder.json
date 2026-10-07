@@ -1,0 +1,189 @@
+{
+ "_note": "Input-side cost per Agent-tool subagent, measured from its transcript (one usage per message id). Output tokens in Agent-tool transcripts are streaming-start values, so out_floor is a floor, not a count. Prices: claude-api skill model table cached 2026-10-06; 5-minute cache writes at 1.25x input, reads at 0.1x. Session 7c199534, 2026-10-07; subagent effort = the session's level (the Agent tool cannot set it).",
+ "h55_rung1": {
+  "cron_next": {
+   "inp": 8,
+   "cw": 63842,
+   "cr": 173753,
+   "out_floor": 52,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00972
+  },
+  "csv_line": {
+   "inp": 8,
+   "cw": 60724,
+   "cr": 172084,
+   "out_floor": 46,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00931
+  },
+  "expr_eval": {
+   "inp": 8,
+   "cw": 63569,
+   "cr": 174318,
+   "out_floor": 50,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00969
+  },
+  "glob_match": {
+   "inp": 8,
+   "cw": 60681,
+   "cr": 170892,
+   "out_floor": 33,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00929
+  },
+  "interval_merge": {
+   "inp": 12,
+   "cw": 66616,
+   "cr": 294106,
+   "out_floor": 42,
+   "turns": 6,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.01127
+  },
+  "lru_ttl": {
+   "inp": 10,
+   "cw": 62526,
+   "cr": 229568,
+   "out_floor": 37,
+   "turns": 5,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.01011
+  },
+  "parse_range": {
+   "inp": 10,
+   "cw": 59968,
+   "cr": 230135,
+   "out_floor": 63,
+   "turns": 5,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.0098
+  },
+  "roman_strict": {
+   "inp": 8,
+   "cw": 26034,
+   "cr": 205935,
+   "out_floor": 58,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00531
+  },
+  "semver_cmp": {
+   "inp": 8,
+   "cw": 27053,
+   "cr": 206367,
+   "out_floor": 53,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00545
+  },
+  "stack_vm": {
+   "inp": 8,
+   "cw": 29880,
+   "cr": 207510,
+   "out_floor": 57,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00581
+  },
+  "template_render": {
+   "inp": 8,
+   "cw": 26083,
+   "cr": 205710,
+   "out_floor": 30,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00532
+  },
+  "text_table": {
+   "inp": 8,
+   "cw": 28159,
+   "cr": 205760,
+   "out_floor": 35,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00558
+  },
+  "toposort_lex": {
+   "inp": 8,
+   "cw": 27429,
+   "cr": 206307,
+   "out_floor": 39,
+   "turns": 4,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00549
+  },
+  "wrap_text": {
+   "inp": 10,
+   "cw": 27015,
+   "cr": 265562,
+   "out_floor": 68,
+   "turns": 5,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00603
+  }
+ },
+ "h55_rung2_h55": {
+  "cron_next": {
+   "inp": 6,
+   "cw": 28547,
+   "cr": 149955,
+   "out_floor": 13,
+   "turns": 3,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00507
+  },
+  "lru_ttl": {
+   "inp": 6,
+   "cw": 26437,
+   "cr": 147948,
+   "out_floor": 37,
+   "turns": 3,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00478
+  },
+  "wrap_text": {
+   "inp": 6,
+   "cw": 25580,
+   "cr": 147421,
+   "out_floor": 34,
+   "turns": 3,
+   "model": "claude-haiku-5-5",
+   "usd_input_side": 0.00467
+  }
+ },
+ "h55_rung2_s55": {
+  "cron_next": {
+   "inp": 6,
+   "cw": 60383,
+   "cr": 115451,
+   "out_floor": 43,
+   "turns": 3,
+   "model": "claude-sonnet-5-5",
+   "usd_input_side": 0.17406
+  },
+  "lru_ttl": {
+   "inp": 6,
+   "cw": 58447,
+   "cr": 113305,
+   "out_floor": 47,
+   "turns": 3,
+   "model": "claude-sonnet-5-5",
+   "usd_input_side": 0.16879
+  },
+  "wrap_text": {
+   "inp": 6,
+   "cw": 58280,
+   "cr": 112830,
+   "out_floor": 48,
+   "turns": 3,
+   "model": "claude-sonnet-5-5",
+   "usd_input_side": 0.16828
+  }
+ }
+}
