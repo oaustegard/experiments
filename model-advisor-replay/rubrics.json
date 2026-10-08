@@ -1,0 +1,38 @@
+{
+  "2026-09-28": {
+    "claude_workspace_commit": "bb35fbb",
+    "question": "Which is the least capable model tier that would reliably complete this task well?",
+    "criteria": {
+      "haiku": "A mechanical, fully specified task a small fast model completes reliably: run a named command or script, look something up, rename or reformat, summarise one short item. No judgment, design or debugging expected.",
+      "sonnet": "A well-scoped task with a clear goal: implement or fix a described change in known code, review one document, issue or PR, answer a factual question, a routine lookup or write-up. Needs competence, not deep reasoning.",
+      "opus": "Open-ended or multi-step work that needs sustained judgment: assess claims critically, design an approach, debug an unknown cause, change many files, synthesise research across sources.",
+      "fable": "Frontier-hard work where depth matters more than cost: novel research or experiments with uncertain outcomes, subtle correctness or security reasoning, long autonomous projects spanning many hours."
+    },
+    "judgeable": "The prompt itself describes the work to be done, so its difficulty can be judged without opening a linked issue, memory id, file, paper or web page.",
+    "scope": {
+      "quick": "A single answer, a short conversation or one small change, done within minutes.",
+      "task": "A focused task of several steps, finished within about an hour.",
+      "project": "An extended session: research, experiments or many changes over hours."
+    },
+    "theta_up": 0.75,
+    "judgeable_min": 0.5
+  },
+  "2026-10-07": {
+    "claude_workspace_commit": "72b146d",
+    "question": "Which is the least capable model tier that would reliably complete this task well?",
+    "criteria": {
+      "haiku": "A mechanical or fully specified task a small fast model completes reliably: run a named command or script, look something up, rename or reformat, extract or classify, summarise one item, apply edits the prompt spells out. No judgment, design or debugging expected.",
+      "sonnet": "A bounded task whose deliverable the prompt names: implement or fix a described change in known code, review one document, issue or PR, answer a factual question, a routine lookup or write-up. Done when the named thing is done; nothing has to be found out first.",
+      "opus": "Work the prompt sets as a goal and leaves to be discovered: find what needs changing and then change it, audit and update, follow through across many files or repositories, design an approach, debug an unknown cause, assess claims critically, synthesise research across sources. Needs initiative to keep going without asking.",
+      "fable": "Frontier-hard work where depth matters more than cost: novel research or experiments with uncertain outcomes, subtle correctness or security reasoning, long autonomous projects spanning many hours."
+    },
+    "judgeable": "The prompt itself describes the work to be done, so its difficulty can be judged without opening a linked issue, memory id, file, paper or web page.",
+    "scope": {
+      "quick": "A single answer, a short conversation or one small change, done within minutes.",
+      "task": "A focused task of several steps, finished within about an hour.",
+      "project": "An extended session: research, experiments or many changes over hours."
+    },
+    "theta_up": 0.75,
+    "judgeable_min": 0.5
+  }
+}

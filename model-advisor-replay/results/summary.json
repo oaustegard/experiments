@@ -1,0 +1,85 @@
+{
+  "archive_verdicts": {
+    "2026-09-28..10-02": {
+      "model-known": 12,
+      "no-note": 4
+    },
+    "2026-10-03..10-08": {
+      "model-known": 1,
+      "blind": 21,
+      "no-note": 8,
+      "error": 3
+    }
+  },
+  "replay": {
+    "sessions": 74,
+    "start_model_actually_used": {
+      "haiku": 1,
+      "opus": 49,
+      "sonnet": 16,
+      "fable": 8
+    },
+    "rubric_2026_09_28": {
+      "decisions": {
+        "silent/agrees": 13,
+        "silent/cheaper": 4,
+        "opus/tier": 13,
+        "silent/opaque": 36,
+        "silent/unsure": 8
+      },
+      "top_tier": {
+        "sonnet": 30,
+        "haiku": 14,
+        "opus": 30
+      },
+      "fires_by_model_actually_used": {
+        "silent on haiku": 1,
+        "silent on opus": 41,
+        "opus on opus": 8,
+        "silent on sonnet": 12,
+        "opus on sonnet": 4,
+        "silent on fable": 7,
+        "opus on fable": 1
+      }
+    },
+    "rubric_2026_10_07": {
+      "decisions": {
+        "opus/tier": 22,
+        "silent/cheaper": 3,
+        "silent/opaque": 37,
+        "silent/unsure": 8,
+        "silent/agrees": 4
+      },
+      "top_tier": {
+        "opus": 52,
+        "haiku": 11,
+        "sonnet": 11
+      },
+      "fires_by_model_actually_used": {
+        "opus on haiku": 1,
+        "silent on opus": 35,
+        "opus on opus": 14,
+        "silent on sonnet": 11,
+        "opus on sonnet": 5,
+        "silent on fable": 6,
+        "opus on fable": 2
+      }
+    },
+    "p_opus_or_fable_shift": {
+      "mean": 0.206,
+      "median": 0.15
+    },
+    "mid_session_upgrades": [
+      {
+        "session": "7c199534",
+        "models": [
+          "claude-sonnet-5-5",
+          "claude-opus-5-5"
+        ],
+        "p_opus_or_fable_0928": 0.05,
+        "p_opus_or_fable_1007": 0.41,
+        "rule_1007": "unsure"
+      }
+    ]
+  }
+}
