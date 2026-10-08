@@ -1035,6 +1035,13 @@ the result.
 - **`export.arxiv.org` answers Python `urllib` with HTTP 406 and curl or `requests` with 200 on the
   same URL.** Use `requests`. (`jev-tag-encoder/data.py`)
 
+- **The `delegating-with-context` PreToolUse hook appends about 20K tokens of the parent
+  session to every Agent prompt unless the prompt contains `[no-context]`.** For eval or
+  judging subagents that is contamination: the judge sees the parent's discussion of the
+  very items it is scoring. Put `[no-context]` in every judge prompt and check the hook's
+  `appended N of M chunks` note in the tool result. The harness also caps concurrent
+  subagents at 20; a 21st launch errors rather than queues. (`transcript-assessor/`)
+
 ## Numerical / ML gotchas
 
 - **Verifier cosine under different quantization conditions is on different
@@ -3837,3 +3844,15 @@ carry file (`clm-relay-needles/RESULTS.md`, one seed, Haiku 4.5):
   --output-format json`, run from a scratch cwd, so no project hooks, CLAUDE.md or MCP load. A
   per-chunk relay run of 96 chunks took ~1.5 min per chunk; one job sharing six episodes
   outran the 2-hour background limit, so checkpoint per chunk.
+
+### Define an LLM judge's ordinal levels by an observable event, not an adjective
+
+`transcript-assessor` — Haiku 5.5 and Opus 5.5 rated session friction as
+none / low / moderate / high. With the levels described by size ("small bumps",
+"several detours"), exact agreement was 5/13. Redefining them by what happened
+(`moderate`: the person had to step in; `high`: any event that cost a large share
+of the session or the goal) moved it to 14/16 with no other prompt change to that
+section. The same run showed the compliance version: "a safeguard that fired and
+held is friction, not a compliance issue" removed most of Haiku's spurious
+`security_control_bypass` items. Write each level as a test a reader can apply to
+the transcript, and give the judge the boundary cases as rules.
