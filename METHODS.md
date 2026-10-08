@@ -617,6 +617,17 @@ survives exactly the sanity checks people run.
   undoing their own rules. Split the test items into rule-determined and
   example-settled before reading any score. (`downskill-shots/RESULTS.md`)
 
+- **A fact list in the prompt is a content filter, in both directions; test the
+  step it belongs to by removing it.** A "list the source's facts first" step was
+  credited with keeping Haiku 5.5 from inventing in rewrites; with the step hidden,
+  visible, supplied or absent, 0 of 64 rewrites invented anything, so the step was
+  doing nothing there. What it did change was content: a list the model writes
+  itself counts the source's self-description as fact and the rewrite repeats it
+  (8/8), while a list supplied in the prompt is followed so closely that a fact it
+  omitted dropped out of 2 of 8 rewrites. Before keeping a process step, run the arm
+  without it; before supplying a list, check it against the source.
+  (`downskill-shots/RESULTS.md`, round 3)
+
 ## Portable code (extraction candidates)
 
 | What | Where | Effort |

@@ -5,20 +5,19 @@ distilled prompt?
 
 ## Answer
 
-Haiku 5.5 does not need examples to apply a rule. It does need them to apply the
-rules the way the prompt's author meant. On three of the skill's distilled prompts,
-run as shipped, as rules only, and bare (task plus label names), every arm with
-rules scored **40/40 on rule-determined items**; bare scored 38/40, missing only the
-one default it was never told. On judgment calls an example settles, the prompt as
-shipped scored **22/24**, bare **20/24**, and rules without examples **15/24**: taken
-literally, the rules push Haiku off the reading both the examples and its own default
-agree on. A convention the model would not guess transferred from its example in 1 of
-2 runs, so state it as a rule.
+Haiku 5.5 does not need examples to apply a rule; it needs them to apply rules the
+way the author meant. On three distilled prompts, every arm with rules scored
+**40/40 on rule-determined items**. On judgment calls an example settles, the shipped
+prompt scored **22/24**, bare (task plus labels) **20/24**, and rules without
+examples **15/24**: taken literally, the rules push Haiku off the reading the
+examples and its own default agree on. State unguessable conventions as rules.
 
-The anti-invention examples are no longer needed against invented technical details:
-the example set that made Haiku 4.5 invent them in 19 of 20 rewrites produced 0 of 8
-on 5.5, as did every version. A no-invention rule still matters: without one, 3 of 8
-rewrites invented facts.
+Nothing tested here makes Haiku 5.5 invent technical details in a rewrite: 0 of 32
+across round 2's versions, including the example set that drove Haiku 4.5 to 19/20,
+and 0 of 64 across round 3's fact-listing variants. A no-invention rule still cuts
+unsupported claims (3/8 without it). A fact list steers what gets carried over: one
+Haiku writes itself counts the source's self-description as fact (8/8 rewrites
+repeated it), and one supplied in the prompt is followed omissions and all.
 
 This would change with gold labels written by someone other than a Claude model, or
 on tasks whose labels the model has no prior for: both are untested here.
@@ -48,6 +47,18 @@ on tasks whose labels the model has no prior for: both are untested here.
 7. Defaults stated only in rules (`LIMIT 10` for "some") are followed 4/4 when stated
    and 0/2 when not: a rule earns its place by stating something the model would not
    assume.
+8. A fact-listing step does not prevent invention on Haiku 5.5. Hidden in the
+   process, visible as a `<facts>` block, supplied in the prompt, or absent: 0/16
+   rewrites with an invented technical detail in each arm, two inputs (round 3).
+9. A fact list in the prompt steers the rewrite's content more than any instruction
+   does. Supplied lists that left out the source's promotional claims cut rewrites
+   repeating them to 0/8 and 1/8, against 5/8 to 8/8 in every other arm; a supplied
+   list that left out "it is launching" produced 2/8 rewrites calling the product
+   "in beta" (round 3).
+10. A list Haiku writes itself counts the source's claims about itself as facts
+   ("the team describes it as more than an incremental improvement"), and the rewrite
+   carries them: 8/8 with the visible list and 8/8 with the hidden step on both
+   inputs, against 5/8 and 7/8 with no step (round 3; post hoc phrase count).
 
 ## Method
 
@@ -149,3 +160,49 @@ have caught either.
 Reading: the failure the examples were built against is gone on 5.5 at this n. The
 rule and the fact-listing step carry the remaining work; the examples are optional.
 One task, 8 runs per version, labels by Opus 5.5.
+
+### 2026-10-08: does the fact-listing step do anything?
+
+Asked by Oskar after a system-card figure showed Haiku 5.5 near 0% on chain-of-thought
+controllability (following instructions about the content of its own thinking): does
+`down-skilling` 1.6.0's "keep a step that lists the source's facts before writing"
+mean anything when the prompt also says "output ONLY the rewritten paragraph"? In
+round 2's calibrated prompt the step could only run in hidden reasoning, and the
+prompt had already written the list.
+
+Arms (`silence/steps/build.py`), all from round 2's calibrated prompt without
+examples, differing only in step 1: **P** the step with the list supplied (round 2's
+shape), **H** "List the factual claims in the input" with no list, reply is the
+paragraph only, **N** no listing step, **V** the list as a visible `<facts>` block
+before a `<rewrite>` block. Two inputs: round 2's caching announcement and a new
+85-word semantic-search announcement, also naming no mechanism, with an invented-term
+list (embedding, vector, HNSW, BM25 and so on) fixed in `score.py` before any run.
+8 Haiku 5.5 Agent-tool runs per arm and input, 64 in all. Every output was read.
+
+| arm | invented details (term list) | repeats a source promotional claim, cache / search | product status wrong |
+|---|---|---|---|
+| P, list supplied | 0/16 | 0/8 / 1/8 | 2/8 (search) |
+| H, hidden step | 0/16 | 8/8 / 8/8 | 0/16 |
+| N, no step | 0/16 | 5/8 / 7/8 | 1/8 (search) |
+| V, visible list | 0/16 | 8/8 / 8/8 | 0/16 |
+
+All 64 replies kept the format and the 60–90 word range; all 16 visible lists were
+free of the invented-term list. No rewrite reversed a source claim.
+
+The promotional-claim count is post hoc: the phrase list (`incremental`, `change how
+teams/people`, `paradigm`, `upgrade`, `new way to search`, `state-of-the-art`,
+`dramatic`/`far more` and the like) was written after reading the outputs, because
+the difference was visible on reading. The status errors are "the feature is
+currently in beta" against a source that says it is launching. The search arm's
+supplied list was mine and omitted the launch; two of the eight P rewrites followed
+the list rather than the source.
+
+Reading at the time: the step is not what keeps Haiku 5.5 from inventing, since the
+no-step arm is as clean as the rest. A list the model writes is faithful but
+indiscriminate; it records the source's self-description as fact and the rewrite
+follows. A list written by whoever prepares the input is followed closely, which
+makes it a strong lever and a single point of failure. H against N (8/8 against 5/8
+on cache) suggests the hidden step does reach the output, but n=8 on one input does
+not separate it from noise. `down-skilling` 1.7.0 drops the step as an anti-invention
+measure and says what each kind of list does.
+
