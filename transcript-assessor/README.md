@@ -52,6 +52,18 @@ Compliance exact-severity agreement fell to 0.56 in v2 because Haiku still adds 
 
 Both models raised `medium` issues on real events in this archive, including a credential printed into tool output, which the regex scan also caught. The details stay out of this public writeup.
 
+## Run over one week of sessions
+
+Every session archived between 2026-10-01 and 2026-10-08 went through the pipeline: 69 sessions (26 interactive or delegated, 43 unattended scheduled runs), about 286K digest tokens from 167 MB of JSONL. Haiku 5.5 ran as subagents, as in the test, with prompt v2 unchanged. All 69 outputs were schema-valid, and the whole run took under ten minutes of wall-clock at 20 subagents at a time. Through the Batches API the same run would cost about $0.07.
+
+| | interactive / delegated | unattended |
+|---|---|---|
+| outcome achieved / mostly / partial or unclear | 13 / 9 / 4 | 34 / 8 / 1 |
+| friction none / low / moderate / high | 6 / 5 / 13 / 2 | 25 / 16 / 2 / 0 |
+| manual-hours equivalent, median per session | 7.6 | 0.35 |
+
+One session was flagged for review, at `medium`, and twelve `low` items in nine sessions stayed off the queue. The regex scan found no secrets or PII in the week. The top three interactive sessions account for 49% of the week's estimated manual hours, all of them large website or animation builds, so a total of hours saved is driven by a handful of estimates nobody has checked. The most common moderate-or-worse friction was a permission or access block (6), followed by tool or environment failures (5), misunderstood requests (4) and unverified claims (4). Per-session results stay out of this repository.
+
 ## Cost
 
 Haiku 5.5 costs $0.10 per million input tokens and $0.50 per million output tokens for prompts up to 100K tokens; batch is half price; cached prompt reads are a tenth. With about 1.0M digest tokens, a 4K-token cached system prompt and about 3K output tokens per transcript including thinking, the 241 sessions come to about $0.47 synchronous, or $0.24 through the Batches API. That is about $0.001 per transcript. A nightly run over 10,000 enterprise transcripts of this size distribution would cost about $10. The output tokens are an estimate; check them against `usage` on the first real batch.

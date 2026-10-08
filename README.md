@@ -146,6 +146,10 @@ session-boot repo and was the wrong home for 37 research projects.
 
 ## Per-experiment notes
 
+### `transcript-assessor/` — can Haiku 5.5 assess Claude transcripts for compliance, task type, friction and success?
+
+One structured-output Haiku 5.5 call per transcript over a code-built digest, with secret, PII and risky-command scans, the hour arithmetic and the review flag done in code. Readers cover Claude Code JSONL and the Compliance API's chat and session transcripts. Against Opus 5.5 on 16 sessions, prompt v2 agreed on primary task 15/16, review flag 14/16 and friction level 14/16; the friction gain came from defining levels by observable events. A run over all 69 sessions of one week returned 69 valid assessments and one review flag. Hours saved has no ground truth.
+
 ### `downskill-shots/` — do Haiku 5.5 prompts still need worked examples?
 
 Three of `down-skilling`'s distilled prompts (feedback extraction, moderation, SQL)
