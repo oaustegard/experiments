@@ -1,0 +1,1 @@
+{"summary": "Added a models.JSONField branch to django.contrib.admin.utils.display_for_field that renders the value via the form field's prepare_value (valid JSON, preserving InvalidJSONInput), falling back to display_for_value on TypeError; None still shows the empty value. Verified with a repro script (dict shows as {\"foo\": \"bar\"}) and the admin_utils test suite passing."}

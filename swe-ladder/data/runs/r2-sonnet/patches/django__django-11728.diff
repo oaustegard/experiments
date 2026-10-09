@@ -1,0 +1,47 @@
+diff --git a/django/contrib/admindocs/utils.py b/django/contrib/admindocs/utils.py
+index 1ce4594501..0f92edcc6e 100644
+--- a/django/contrib/admindocs/utils.py
++++ b/django/contrib/admindocs/utils.py
+@@ -180,6 +180,11 @@ def replace_named_groups(pattern):
+             elif val == ')' and prev_char != '\\':
+                 unmatched_open_brackets -= 1
+             prev_char = val
++        else:
++            # The end of the pattern was reached; a balanced group closing at
++            # the very end (e.g. a trailing named group) still counts.
++            if unmatched_open_brackets == 0:
++                group_pattern_and_name.append((pattern[start:], group_name))
+ 
+     # Replace the string for named capture groups with their group names.
+     for group_pattern, group_name in group_pattern_and_name:
+@@ -212,6 +217,11 @@ def replace_unnamed_groups(pattern):
+             elif val == ')' and prev_char != '\\':
+                 unmatched_open_brackets -= 1
+             prev_char = val
++        else:
++            # The end of the pattern was reached; a balanced group closing at
++            # the very end (e.g. a trailing unnamed group) still counts.
++            if unmatched_open_brackets == 0:
++                group_indices.append((start, len(pattern)))
+ 
+     # Remove unnamed group matches inside other unnamed capture groups.
+     group_start_end_indices = []
+diff --git a/tests/admin_docs/test_views.py b/tests/admin_docs/test_views.py
+index 144517ab0a..fb22f7d796 100644
+--- a/tests/admin_docs/test_views.py
++++ b/tests/admin_docs/test_views.py
+@@ -349,11 +349,14 @@ class AdminDocViewFunctionsTests(SimpleTestCase):
+             (r'^(?P<a>\w+)/b/(?P<c>\w+)/$', '/<a>/b/<c>/'),
+             (r'^(?P<a>\w+)/b/(?P<c>\w+)$', '/<a>/b/<c>'),
+             (r'^(?P<a>\w+)/b/(\w+)$', '/<a>/b/<var>'),
++            (r'^(?P<a>\w+)/b/(\w+)', '/<a>/b/<var>'),
+             (r'^(?P<a>\w+)/b/((x|y)\w+)$', '/<a>/b/<var>'),
++            (r'^(?P<a>\w+)/b/((x|y)\w+)', '/<a>/b/<var>'),
+             (r'^(?P<a>(x|y))/b/(?P<c>\w+)$', '/<a>/b/<c>'),
+             (r'^(?P<a>(x|y))/b/(?P<c>\w+)ab', '/<a>/b/<c>ab'),
+             (r'^(?P<a>(x|y)(\(|\)))/b/(?P<c>\w+)ab', '/<a>/b/<c>ab'),
+             (r'^a/?$', '/a/'),
++            (r'entries/(?P<pk>[^/.]+)/relationships/(?P<related_field>\w+)', '/entries/<pk>/relationships/<related_field>'),
+         )
+         for pattern, output in tests:
+             with self.subTest(pattern=pattern):

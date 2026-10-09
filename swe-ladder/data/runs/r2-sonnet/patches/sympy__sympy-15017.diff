@@ -1,0 +1,97 @@
+diff --git a/sympy/tensor/array/dense_ndim_array.py b/sympy/tensor/array/dense_ndim_array.py
+index 9be94a8631..30f93edc97 100644
+--- a/sympy/tensor/array/dense_ndim_array.py
++++ b/sympy/tensor/array/dense_ndim_array.py
+@@ -69,7 +69,7 @@ def slice_expand(s, dim):
+ 
+     @classmethod
+     def zeros(cls, *shape):
+-        list_length = functools.reduce(lambda x, y: x*y, shape)
++        list_length = functools.reduce(lambda x, y: x*y, shape, 1)
+         return cls._new(([0]*list_length,), shape)
+ 
+     def tomatrix(self):
+@@ -149,7 +149,7 @@ def _new(cls, iterable, shape, **kwargs):
+         self._shape = shape
+         self._array = list(flat_list)
+         self._rank = len(shape)
+-        self._loop_size = functools.reduce(lambda x,y: x*y, shape) if shape else 0
++        self._loop_size = functools.reduce(lambda x,y: x*y, shape, 1)
+         return self
+ 
+     def __setitem__(self, index, value):
+@@ -174,7 +174,7 @@ def _new(cls, iterable, shape, **kwargs):
+         self._shape = shape
+         self._array = list(flat_list)
+         self._rank = len(shape)
+-        self._loop_size = functools.reduce(lambda x,y: x*y, shape) if shape else 0
++        self._loop_size = functools.reduce(lambda x,y: x*y, shape, 1)
+         return self
+ 
+     def __setitem__(self, index, value):
+diff --git a/sympy/tensor/array/sparse_ndim_array.py b/sympy/tensor/array/sparse_ndim_array.py
+index 72b5d51299..9db9b91ccd 100644
+--- a/sympy/tensor/array/sparse_ndim_array.py
++++ b/sympy/tensor/array/sparse_ndim_array.py
+@@ -112,7 +112,7 @@ def tomatrix(self):
+     def __iter__(self):
+         def iterator():
+             for i in range(self._loop_size):
+-                yield self[i]
++                yield self._sparse_array.get(i, S.Zero)
+         return iterator()
+ 
+     def reshape(self, *newshape):
+@@ -130,7 +130,7 @@ def __new__(cls, iterable=None, shape=None, **kwargs):
+ 
+         shape, flat_list = cls._handle_ndarray_creation_inputs(iterable, shape, **kwargs)
+         shape = Tuple(*map(_sympify, shape))
+-        loop_size = functools.reduce(lambda x,y: x*y, shape) if shape else 0
++        loop_size = functools.reduce(lambda x,y: x*y, shape, 1)
+ 
+         # Sparse array:
+         if isinstance(flat_list, (dict, Dict)):
+@@ -167,7 +167,7 @@ def __new__(cls, iterable=None, shape=None, **kwargs):
+         self = object.__new__(cls)
+         self._shape = shape
+         self._rank = len(shape)
+-        self._loop_size = functools.reduce(lambda x,y: x*y, shape) if shape else 0
++        self._loop_size = functools.reduce(lambda x,y: x*y, shape, 1)
+ 
+         # Sparse array:
+         if isinstance(flat_list, (dict, Dict)):
+diff --git a/sympy/tensor/array/tests/test_immutable_ndim_array.py b/sympy/tensor/array/tests/test_immutable_ndim_array.py
+index 5a576c44f0..3e661d9689 100644
+--- a/sympy/tensor/array/tests/test_immutable_ndim_array.py
++++ b/sympy/tensor/array/tests/test_immutable_ndim_array.py
+@@ -73,11 +73,12 @@ def test_ndim_array_initiation():
+ 
+     from sympy.abc import x
+     rank_zero_array = ImmutableDenseNDimArray(x)
+-    assert len(rank_zero_array) == 0
++    assert len(rank_zero_array) == 1
+     assert rank_zero_array.shape == ()
+     assert rank_zero_array.rank() == 0
+     assert rank_zero_array[()] == x
+-    raises(ValueError, lambda: rank_zero_array[0])
++    assert rank_zero_array[0] == x
++    raises(ValueError, lambda: rank_zero_array[1])
+ 
+ 
+ def test_reshape():
+diff --git a/sympy/tensor/tensor.py b/sympy/tensor/tensor.py
+index 78355c7605..89c92fb38e 100644
+--- a/sympy/tensor/tensor.py
++++ b/sympy/tensor/tensor.py
+@@ -1041,7 +1041,10 @@ def _get(self, key):
+             srch = (key.component,) + signature
+             if srch in self._substitutions_dict_tensmul:
+                 return self._substitutions_dict_tensmul[srch]
+-            array_list = [self.data_from_tensor(key)]
++            data = self.data_from_tensor(key)
++            if data is None:
++                return None
++            array_list = [data]
+             return self.data_contract_dum(array_list, key.dum, key.ext_rank)
+ 
+         if isinstance(key, TensMul):

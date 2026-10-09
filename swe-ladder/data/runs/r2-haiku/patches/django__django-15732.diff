@@ -1,0 +1,113 @@
+diff --git a/django/db/backends/base/schema.py b/django/db/backends/base/schema.py
+index f2ca8c8df9..059720b4e2 100644
+--- a/django/db/backends/base/schema.py
++++ b/django/db/backends/base/schema.py
+@@ -528,7 +528,11 @@ class BaseDatabaseSchemaEditor:
+         # Deleted uniques
+         for fields in olds.difference(news):
+             self._delete_composed_index(
+-                model, fields, {"unique": True}, self.sql_delete_unique
++                model,
++                fields,
++                {"unique": True, "primary_key": False},
++                self.sql_delete_unique,
++                suffix="_uniq",
+             )
+         # Created uniques
+         for field_names in news.difference(olds):
+@@ -556,7 +560,9 @@ class BaseDatabaseSchemaEditor:
+             fields = [model._meta.get_field(field) for field in field_names]
+             self.execute(self._create_index_sql(model, fields=fields, suffix="_idx"))
+ 
+-    def _delete_composed_index(self, model, fields, constraint_kwargs, sql):
++    def _delete_composed_index(
++        self, model, fields, constraint_kwargs, sql, suffix=None
++    ):
+         meta_constraint_names = {
+             constraint.name for constraint in model._meta.constraints
+         }
+@@ -568,6 +574,15 @@ class BaseDatabaseSchemaEditor:
+             exclude=meta_constraint_names | meta_index_names,
+             **constraint_kwargs,
+         )
++        if len(constraint_names) > 1 and suffix is not None:
++            # A field with unique=True on its own has a constraint of its own
++            # that matches the same columns. The constraint created for the
++            # composed index is named with `suffix`, so prefer that one.
++            expected_name = self._create_index_name(
++                model._meta.db_table, columns, suffix=suffix
++            )
++            if expected_name in constraint_names:
++                constraint_names = [expected_name]
+         if len(constraint_names) != 1:
+             raise ValueError(
+                 "Found wrong number (%s) of constraints for %s(%s)"
+diff --git a/tests/migrations/test_operations.py b/tests/migrations/test_operations.py
+index f3c4ea8ffe..d925e99798 100644
+--- a/tests/migrations/test_operations.py
++++ b/tests/migrations/test_operations.py
+@@ -3271,6 +3271,28 @@ class OperationTests(OperationTestBase):
+         self.assertIndexNotExists(table_name, ["pink", "weight"])
+         self.assertUniqueConstraintExists(table_name, ["pink", "weight"])
+ 
++    def test_remove_unique_together_on_unique_field(self):
++        app_label = "test_rutouf"
++        table_name = "%s_pony" % app_label
++        create_operation = migrations.CreateModel(
++            "Pony",
++            [
++                ("id", models.AutoField(primary_key=True)),
++                ("name", models.CharField(max_length=20, unique=True)),
++            ],
++            options={"unique_together": {("name",)}},
++        )
++        project_state = self.apply_operations(
++            app_label, ProjectState(), operations=[create_operation]
++        )
++        new_state = project_state.clone()
++        operation = migrations.AlterUniqueTogether("Pony", set())
++        operation.state_forwards(app_label, new_state)
++        with connection.schema_editor() as editor:
++            operation.database_forwards(app_label, editor, project_state, new_state)
++        # The field's own unique constraint must survive.
++        self.assertUniqueConstraintExists(table_name, ["name"])
++
+     @skipUnlessDBFeature("supports_table_check_constraints")
+     def test_add_constraint(self):
+         project_state = self.set_up_test_model("test_addconstraint")
+diff --git a/tests/schema/tests.py b/tests/schema/tests.py
+index fe717f8841..3800797c7c 100644
+--- a/tests/schema/tests.py
++++ b/tests/schema/tests.py
+@@ -2570,6 +2570,31 @@ class SchemaTests(TransactionTestCase):
+         with connection.schema_editor() as editor:
+             editor.alter_unique_together(Book, [["author", "title"]], [])
+ 
++    @isolate_apps("schema")
++    def test_unique_together_on_primary_key(self):
++        """
++        Removing a unique_together constraint on a single primary key field
++        must not count the primary key constraint as a unique_together
++        constraint, which is also unique on the same column.
++        """
++
++        class PKUniqueTogether(Model):
++            class Meta:
++                app_label = "schema"
++                unique_together = (("id",),)
++
++        self.isolated_local_models = [PKUniqueTogether]
++        with connection.schema_editor() as editor:
++            editor.create_model(PKUniqueTogether)
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(
++                PKUniqueTogether, PKUniqueTogether._meta.unique_together, []
++            )
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(
++                PKUniqueTogether, [], PKUniqueTogether._meta.unique_together
++            )
++
+     @skipUnlessDBFeature("allows_multiple_constraints_on_same_fields")
+     def test_remove_unique_together_does_not_remove_meta_constraints(self):
+         with connection.schema_editor() as editor:

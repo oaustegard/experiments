@@ -1,0 +1,1 @@
+{"summary": "In _sqrt_match (sympy/simplify/sqrtdenest.py) the split_surds shortcut now only applies when every addend squares to a positive Rational, so terms like 3*I no longer reach split_surds and cause the IndexError. The issue expression now returns I (mathematically correct), and test_sqrtdenest.py and test_radsimp.py pass."}

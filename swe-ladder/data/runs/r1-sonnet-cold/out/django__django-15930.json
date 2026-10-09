@@ -1,0 +1,1 @@
+{"summary": "In When.as_sql (django/db/models/expressions.py), an empty compiled condition (e.g. from ~Q(pk__in=[])) is now replaced with a always-true predicate (Value(True), or 1=1 on backends without boolean select expressions). I verified the issue query now compiles to CASE WHEN True THEN True ELSE False END and that expressions and expressions_case tests pass."}

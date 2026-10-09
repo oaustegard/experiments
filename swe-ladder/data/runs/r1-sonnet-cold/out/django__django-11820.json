@@ -1,0 +1,1 @@
+{"summary": "In Model._check_ordering (django/db/models/base.py) the related-field loop now resolves a \"pk\" part to the current model's _meta.pk, and sets _cls to None after a non-relation field, so ordering like \"option__pk\" no longer raises models.E015. I added a regression test for \"parent__pk\" and ran invalid_models_tests, which passed."}

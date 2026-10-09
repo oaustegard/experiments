@@ -1,0 +1,63 @@
+diff --git a/sympy/sets/handlers/intersection.py b/sympy/sets/handlers/intersection.py
+index c54dc8f72a..ce1ef21288 100644
+--- a/sympy/sets/handlers/intersection.py
++++ b/sympy/sets/handlers/intersection.py
+@@ -280,6 +280,7 @@ def intersection_sets(self, other): # noqa:F811
+         from sympy.core.function import expand_complex
+         from sympy.solvers.solvers import denoms, solve_linear
+         from sympy.core.relational import Eq
++        from sympy.simplify.radsimp import fraction
+         f = self.lamda.expr
+         n = self.lamda.variables[0]
+ 
+@@ -304,19 +305,25 @@ def intersection_sets(self, other): # noqa:F811
+             return None
+         else:
+             # univarite imaginary part in same variable
+-            x, xis = zip(*[solve_linear(i, 0) for i in Mul.make_args(im) if n in i.free_symbols])
++            # im vanishes where its numerator does; the poles of im
++            # are removed by the denominator loop below
++            num = fraction(im)[0]
++            facs = [i for i in Mul.make_args(num) if n in i.free_symbols]
++            x, xis = zip(*[solve_linear(i, 0) for i in facs]) if facs else ((), ())
++            # only the points where the imaginary part vanishes are real
+             if x and all(i == n for i in x):
+-                base_set -= FiniteSet(xis)
++                base_set = base_set.intersect(FiniteSet(*xis))
+             else:
+-                base_set -= ConditionSet(n, Eq(im, 0), S.Integers)
++                base_set = base_set.intersect(
++                    ConditionSet(n, Eq(im, 0), S.Integers))
+         # exclude values that make denominators 0
+         for i in denoms(f):
+             if i.has(n):
+-                sol = list(zip(*[solve_linear(i, 0) for i in Mul.make_args(im) if n in i.free_symbols]))
++                sol = list(zip(*[solve_linear(j, 0) for j in Mul.make_args(i) if n in j.free_symbols]))
+                 if sol != []:
+                     x, xis = sol
+-                    if x and all(i == n for i in x):
+-                        base_set -= FiniteSet(xis)
++                    if x and all(j == n for j in x):
++                        base_set -= FiniteSet(*xis)
+                 else:
+                     base_set -= ConditionSet(n, Eq(i, 0), S.Integers)
+         return imageset(lam, base_set)
+diff --git a/sympy/sets/tests/test_fancysets.py b/sympy/sets/tests/test_fancysets.py
+index 098020ca4e..0dc860fb50 100644
+--- a/sympy/sets/tests/test_fancysets.py
++++ b/sympy/sets/tests/test_fancysets.py
+@@ -657,7 +657,13 @@ def test_infinitely_indexed_set_2():
+ def test_imageset_intersect_real():
+     from sympy import I
+     from sympy.abc import n
+-    assert imageset(Lambda(n, n + (n - 1)*(n + 1)*I), S.Integers).intersect(S.Reals) == Complement(S.Integers, FiniteSet((-1, 1)))
++    assert imageset(Lambda(n, n + (n - 1)*(n + 1)*I), S.Integers).intersect(S.Reals) == FiniteSet(-1, 1)
++    # the imaginary part vanishes at n=-1/2, which is not an integer
++    im = (n - 1)*(n + S.Half)*I
++    assert imageset(Lambda(n, n + im), S.Integers).intersect(S.Reals) == FiniteSet(1)
++    # zeros of the imaginary part at n=3 and n=-2; the pole at n=6 is excluded
++    assert imageset(Lambda(n, n/(n - 6) +
++        (n - 3)*(n + 2)*I/(n - 6)), S.Integers).intersect(S.Reals) == FiniteSet(-1, S(1)/4)
+     s = ImageSet(
+         Lambda(n, -I*(I*(2*pi*n - pi/4) + log(Abs(sqrt(-I))))),
+         S.Integers)

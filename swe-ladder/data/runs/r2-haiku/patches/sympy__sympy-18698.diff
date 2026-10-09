@@ -1,0 +1,102 @@
+diff --git a/sympy/polys/polytools.py b/sympy/polys/polytools.py
+index c9e77a901f..149181523d 100644
+--- a/sympy/polys/polytools.py
++++ b/sympy/polys/polytools.py
+@@ -5968,6 +5968,59 @@ def _symbolic_factor(expr, opt, method):
+         return expr
+ 
+ 
++# Largest total degree of a product whose square-free decomposition is
++# computed from its expansion by :func:`_sqf_canonical`.
++_SQF_CANONICAL_DEGREE = 100
++
++
++def _sqf_canonical(coeff, factors, opt):
++    """
++    Helper function for :func:`sqf_list`: combine the factor-by-factor
++    square-free decomposition of a product into the decomposition of the
++    expanded product.
++
++    Factors are decomposed on their own, so factors with the same multiplicity
++    greater than one, or with a common root, are not combined: the product
++    ``(x - 2)**3*(x - 3)**3`` must give one factor of multiplicity 3, and
++    ``x*(x + y)`` is square-free as a polynomial.
++
++    The product is expanded only if its total degree is at most
++    ``_SQF_CANONICAL_DEGREE``, and the result is used only if it reproduces
++    the product: :meth:`Poly.sqf_list` does not extract a common factor that
++    is not a rational constant, e.g. ``a`` in ``a*x + a``.
++    """
++    degree = sum(k*f.total_degree() for f, k in factors)
++
++    if not factors or degree > _SQF_CANONICAL_DEGREE:
++        return coeff, factors
++
++    product = Mul(*[f.as_expr()**k for f, k in factors])
++
++    gens = []
++    for f, _ in factors:
++        for gen in f.gens:
++            if gen not in gens:
++                gens.append(gen)
++
++    if not all(gen.is_Symbol for gen in gens):
++        return coeff, factors
++
++    _opt = opt.clone(dict(gens=tuple(gens), domain=None))
++
++    try:
++        poly, _ = _poly_from_expr(product, _opt)
++    except PolificationFailed:
++        return coeff, factors
++
++    _coeff, _factors = poly.sqf_list()
++    _product = _coeff*Mul(*[f.as_expr()**k for f, k in _factors])
++
++    if (_product - product).expand() != 0:
++        return coeff, factors
++
++    return coeff*_coeff, _factors
++
++
+ def _generic_factor_list(expr, gens, args, method):
+     """Helper function for :func:`sqf_list` and :func:`factor_list`. """
+     options.allowed_flags(args, ['frac', 'polys'])
+@@ -5995,6 +6048,10 @@ def _generic_factor_list(expr, gens, args, method):
+                     f, _ = _poly_from_expr(f, _opt)
+                     factors[i] = (f, k)
+ 
++        if method == 'sqf':
++            cp, fp = _sqf_canonical(cp, fp, opt)
++            cq, fq = _sqf_canonical(cq, fq, opt)
++
+         fp = _sorted_factors(fp, method)
+         fq = _sorted_factors(fq, method)
+ 
+diff --git a/sympy/polys/tests/test_polytools.py b/sympy/polys/tests/test_polytools.py
+index 82e5f4d6dd..cdc7d9679b 100644
+--- a/sympy/polys/tests/test_polytools.py
++++ b/sympy/polys/tests/test_polytools.py
+@@ -3273,7 +3273,21 @@ def test_to_rational_coeffs():
+ def test_factor_terms():
+     # issue 7067
+     assert factor_list(x*(x + y)) == (1, [(x, 1), (x + y, 1)])
+-    assert sqf_list(x*(x + y)) == (1, [(x, 1), (x + y, 1)])
++    assert sqf_list(x*(x + y)) == (1, [(x**2 + x*y, 1)])
++
++
++def test_sqf_list_factored_input():
++    # issue 18698: factors with equal multiplicity are combined
++    assert sqf_list((x**2 + 1)*(x - 1)**2*(x - 2)**3*(x - 3)**3) == \
++        (1, [(x**2 + 1, 1), (x - 1, 2), (x**2 - 5*x + 6, 3)])
++    assert sqf_list(x**5 - 2*x**4 - 2*x**3 + 4*x**2 + x - 2) == \
++        (1, [(x - 2, 1), (x**2 - 1, 2)])
++    assert sqf_list((x - 1)**2*(x**2 - 1)**3) == (1, [(x + 1, 3), (x - 1, 5)])
++    # factors that cannot be combined are kept as they are
++    assert sqf_list(a*(x + 1)) == (1, [(a, 1), (x + 1, 1)])
++    assert sqf_list(sqrt(2)*x*(x + 1)) == (sqrt(2), [(x**2 + x, 1)])
++    assert sqf_list(exp(x)*(exp(x) + 1)) == (1, [(exp(x), 1), (exp(x) + 1, 1)])
++    assert sqf_list((x**2 + 2*x + 1)**20000000) == (1, [(x + 1, 40000000)])
+ 
+ 
+ def test_as_list():

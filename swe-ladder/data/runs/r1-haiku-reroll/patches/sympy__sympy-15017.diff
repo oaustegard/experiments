@@ -1,0 +1,46 @@
+diff --git a/sympy/tensor/array/ndim_array.py b/sympy/tensor/array/ndim_array.py
+index 099b291167..95e076a615 100644
+--- a/sympy/tensor/array/ndim_array.py
++++ b/sympy/tensor/array/ndim_array.py
+@@ -174,7 +174,14 @@ def __len__(self):
+         >>> len(a)
+         9
+ 
++        A rank-0 array (scalar) holds one element:
++
++        >>> len(MutableDenseNDimArray(3))
++        1
++
+         """
++        if self._rank == 0:
++            return 1
+         return self._loop_size
+ 
+     @property
+diff --git a/sympy/tensor/array/sparse_ndim_array.py b/sympy/tensor/array/sparse_ndim_array.py
+index 72b5d51299..d8a781fcad 100644
+--- a/sympy/tensor/array/sparse_ndim_array.py
++++ b/sympy/tensor/array/sparse_ndim_array.py
+@@ -111,6 +111,9 @@ def tomatrix(self):
+ 
+     def __iter__(self):
+         def iterator():
++            if self._rank == 0:
++                yield self[()]
++                return
+             for i in range(self._loop_size):
+                 yield self[i]
+         return iterator()
+diff --git a/sympy/tensor/array/tests/test_immutable_ndim_array.py b/sympy/tensor/array/tests/test_immutable_ndim_array.py
+index 5a576c44f0..44b317a4c7 100644
+--- a/sympy/tensor/array/tests/test_immutable_ndim_array.py
++++ b/sympy/tensor/array/tests/test_immutable_ndim_array.py
+@@ -73,7 +73,7 @@ def test_ndim_array_initiation():
+ 
+     from sympy.abc import x
+     rank_zero_array = ImmutableDenseNDimArray(x)
+-    assert len(rank_zero_array) == 0
++    assert len(rank_zero_array) == 1
+     assert rank_zero_array.shape == ()
+     assert rank_zero_array.rank() == 0
+     assert rank_zero_array[()] == x

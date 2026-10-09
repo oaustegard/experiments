@@ -1,0 +1,1 @@
+{"summary": "Added a URLValidator.unsafe_chars frozenset of tab, CR and LF and made URLValidator.__call__ reject any string containing them before the scheme check, so behaviour no longer depends on whether urlsplit strips them (bpo-43882). Ran the validators and forms_tests.field_tests.test_urlfield suites with swe-test and they pass."}

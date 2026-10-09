@@ -1,0 +1,35 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 6c9e9d3707..bc6f7d283e 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -1747,7 +1747,9 @@ class Model(metaclass=ModelBase):
+                     else:
+                         _cls = None
+                 except (FieldDoesNotExist, AttributeError):
+-                    if fld is None or fld.get_transform(part) is None:
++                    if fld is None or (
++                        fld.get_transform(part) is None and fld.get_lookup(part) is None
++                    ):
+                         errors.append(
+                             checks.Error(
+                                 "'ordering' refers to the nonexistent field, "
+diff --git a/tests/invalid_models_tests/test_models.py b/tests/invalid_models_tests/test_models.py
+index 6bfdf2e736..5a1bb4cc7a 100644
+--- a/tests/invalid_models_tests/test_models.py
++++ b/tests/invalid_models_tests/test_models.py
+@@ -893,6 +893,15 @@ class OtherModelTests(SimpleTestCase):
+         with register_lookup(models.CharField, Lower):
+             self.assertEqual(Model.check(), [])
+ 
++    def test_ordering_pointing_to_lookup_not_transform(self):
++        class Model(models.Model):
++            test = models.CharField(max_length=100)
++
++            class Meta:
++                ordering = ('test__isnull',)
++
++        self.assertEqual(Model.check(), [])
++
+     def test_ordering_pointing_to_related_model_pk(self):
+         class Parent(models.Model):
+             pass

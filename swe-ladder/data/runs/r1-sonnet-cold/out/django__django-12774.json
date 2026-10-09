@@ -1,0 +1,1 @@
+{"summary": "In QuerySet.in_bulk() (django/db/models/query.py) the field_name check now also accepts fields covered by a single-field total UniqueConstraint (via Options.total_unique_constraints), in addition to unique=True. I added a UniqueConstraint on Season.year and an in_bulk test in tests/lookup, and the full lookup suite passes (49 tests OK) via swe-test."}

@@ -1,0 +1,1 @@
+{"summary": "Changed ForeignKey.validate() in django/db/models/fields/related.py to query remote_field.model._base_manager instead of _default_manager. Ran swe-test on model_fields.test_foreignkey and validation, which pass (the only error was an invalid test label I passed)."}

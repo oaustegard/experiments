@@ -1,0 +1,52 @@
+diff --git a/django/db/migrations/operations/models.py b/django/db/migrations/operations/models.py
+index 967a91fdc8..896a65a1fe 100644
+--- a/django/db/migrations/operations/models.py
++++ b/django/db/migrations/operations/models.py
+@@ -861,6 +861,15 @@ class AddIndex(IndexOperation):
+     def migration_name_fragment(self):
+         return "%s_%s" % (self.model_name_lower, self.index.name.lower())
+ 
++    def reduce(self, operation, app_label):
++        if (
++            isinstance(operation, RemoveIndex)
++            and self.model_name_lower == operation.model_name_lower
++            and self.index.name.lower() == operation.name.lower()
++        ):
++            return []
++        return super().reduce(operation, app_label)
++
+ 
+ class RemoveIndex(IndexOperation):
+     """Remove an index from a model."""
+diff --git a/tests/migrations/test_optimizer.py b/tests/migrations/test_optimizer.py
+index 8cd4c67fbd..517cc8ce13 100644
+--- a/tests/migrations/test_optimizer.py
++++ b/tests/migrations/test_optimizer.py
+@@ -114,6 +114,27 @@ class OptimizerTests(SimpleTestCase):
+             ],
+         )
+ 
++    def test_add_remove_index(self):
++        self.assertOptimizesTo(
++            [
++                migrations.AddIndex(
++                    "Pony", models.Index(fields=["weight"], name="idx_pony_weight")
++                ),
++                migrations.RemoveIndex("Pony", "idx_pony_weight"),
++            ],
++            [],
++        )
++
++    def test_add_remove_index_different_name(self):
++        self.assertDoesNotOptimize(
++            [
++                migrations.AddIndex(
++                    "Pony", models.Index(fields=["weight"], name="idx_pony_weight")
++                ),
++                migrations.RemoveIndex("Pony", "other_idx"),
++            ]
++        )
++
+     def test_create_alter_model_options(self):
+         self.assertOptimizesTo(
+             [

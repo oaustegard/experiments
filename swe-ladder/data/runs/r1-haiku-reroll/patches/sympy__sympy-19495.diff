@@ -1,0 +1,47 @@
+diff --git a/sympy/sets/conditionset.py b/sympy/sets/conditionset.py
+index 118eda6f77..f63d00a3c3 100644
+--- a/sympy/sets/conditionset.py
++++ b/sympy/sets/conditionset.py
+@@ -243,7 +243,15 @@ def _eval_subs(self, old, new):
+         cond = self.condition.subs(old, new)
+         base = self.base_set.subs(old, new)
+         if cond is S.true:
+-            return ConditionSet(new, Contains(new, base), base)
++            # The condition now holds for every element of base, so the
++            # result is base (ConditionSet(sym, True, base) is base).
++            # Keep the existing rule that a known non-member makes the
++            # set empty, but never reuse `new` as the bound variable:
++            # ConditionSet(new, Contains(new, base), base) corrupted the
++            # bound symbol when membership could not be evaluated.
++            if Contains(new, base) is S.false:
++                return S.EmptySet
++            return base
+         return self.func(self.sym, cond, base)
+ 
+     def dummy_eq(self, other, symbol=None):
+diff --git a/sympy/sets/tests/test_conditionset.py b/sympy/sets/tests/test_conditionset.py
+index 0d4527a52c..8e31f76b71 100644
+--- a/sympy/sets/tests/test_conditionset.py
++++ b/sympy/sets/tests/test_conditionset.py
+@@ -130,6 +130,21 @@ def test_subs_CondSet():
+         ).subs(f(x), y) == ConditionSet(y, y < 1, {w, z})
+ 
+ 
++def test_subs_CondSet_true_condition_keeps_bound_symbol():
++    # issue 19495: substituting a free symbol that makes the condition
++    # True must not turn the bound variable into the substituted value
++    from sympy import ImageSet, Lambda, asin, Rational
++    from sympy.core.symbol import Dummy
++    n = Dummy('n')
++    im = ImageSet(Lambda(n, 2*n*pi + asin(y)), S.Integers)
++    c = ConditionSet(x, Contains(y, Interval(-1, 1)), im)
++    r = Rational(1, 3)
++    expected = ImageSet(Lambda(n, 2*n*pi + asin(r)), S.Integers)
++    assert c.subs(y, r) == expected
++    assert c.xreplace({y: r}) == expected
++    assert c.subs({y: r}, simultaneous=True) == expected
++
++
+ def test_subs_CondSet_tebr():
+     with warns_deprecated_sympy():
+         assert ConditionSet((x, y), {x + 1, x + y}, S.Reals) == \

@@ -1,0 +1,135 @@
+diff --git a/django/db/backends/base/operations.py b/django/db/backends/base/operations.py
+index 0fcc607bcf..be822b963d 100644
+--- a/django/db/backends/base/operations.py
++++ b/django/db/backends/base/operations.py
+@@ -526,30 +526,55 @@ class BaseDatabaseOperations:
+         """
+         return value or None
+ 
+-    def year_lookup_bounds_for_date_field(self, value):
++    @staticmethod
++    def _iso_year_date_bounds(value):
++        """
++        Return the first and last date of the ISO-8601 week-numbering year
++        `value`. The first day is always a Monday, so the year can start in
++        the previous calendar year (e.g. ISO year 2015 starts on 2014-12-29).
++        """
++        first = datetime.date.fromisocalendar(value, 1, 1)
++        if value == datetime.MAXYEAR:
++            # The following ISO year is not representable, but no date is
++            # later than date.max, so it is the correct upper bound.
++            return first, datetime.date.max
++        next_year_first = datetime.date.fromisocalendar(value + 1, 1, 1)
++        return first, next_year_first - datetime.timedelta(days=1)
++
++    def year_lookup_bounds_for_date_field(self, value, iso_year=False):
+         """
+         Return a two-elements list with the lower and upper bound to be used
+         with a BETWEEN operator to query a DateField value using a year
+         lookup.
+ 
+         `value` is an int, containing the looked-up year.
++        If `iso_year` is True, return bounds for ISO-8601 week-numbering years.
+         """
+-        first = datetime.date(value, 1, 1)
+-        second = datetime.date(value, 12, 31)
++        if iso_year:
++            first, second = self._iso_year_date_bounds(value)
++        else:
++            first = datetime.date(value, 1, 1)
++            second = datetime.date(value, 12, 31)
+         first = self.adapt_datefield_value(first)
+         second = self.adapt_datefield_value(second)
+         return [first, second]
+ 
+-    def year_lookup_bounds_for_datetime_field(self, value):
++    def year_lookup_bounds_for_datetime_field(self, value, iso_year=False):
+         """
+         Return a two-elements list with the lower and upper bound to be used
+         with a BETWEEN operator to query a DateTimeField value using a year
+         lookup.
+ 
+         `value` is an int, containing the looked-up year.
++        If `iso_year` is True, return bounds for ISO-8601 week-numbering years.
+         """
+-        first = datetime.datetime(value, 1, 1)
+-        second = datetime.datetime(value, 12, 31, 23, 59, 59, 999999)
++        if iso_year:
++            first_date, last_date = self._iso_year_date_bounds(value)
++            first = datetime.datetime.combine(first_date, datetime.time.min)
++            second = datetime.datetime.combine(last_date, datetime.time.max)
++        else:
++            first = datetime.datetime(value, 1, 1)
++            second = datetime.datetime(value, 12, 31, 23, 59, 59, 999999)
+         if settings.USE_TZ:
+             tz = timezone.get_current_timezone()
+             first = timezone.make_aware(first, tz)
+diff --git a/django/db/models/lookups.py b/django/db/models/lookups.py
+index 916478d075..6c923fe1a6 100644
+--- a/django/db/models/lookups.py
++++ b/django/db/models/lookups.py
+@@ -539,11 +539,17 @@ class IRegex(Regex):
+ 
+ class YearLookup(Lookup):
+     def year_lookup_bounds(self, connection, year):
++        from django.db.models.functions import ExtractIsoYear
++        iso_year = isinstance(self.lhs, ExtractIsoYear)
+         output_field = self.lhs.lhs.output_field
+         if isinstance(output_field, DateTimeField):
+-            bounds = connection.ops.year_lookup_bounds_for_datetime_field(year)
++            bounds = connection.ops.year_lookup_bounds_for_datetime_field(
++                year, iso_year=iso_year,
++            )
+         else:
+-            bounds = connection.ops.year_lookup_bounds_for_date_field(year)
++            bounds = connection.ops.year_lookup_bounds_for_date_field(
++                year, iso_year=iso_year,
++            )
+         return bounds
+ 
+     def as_sql(self, compiler, connection):
+diff --git a/tests/db_functions/datetime/test_extract_trunc.py b/tests/db_functions/datetime/test_extract_trunc.py
+index 258600127f..c8c2ec672e 100644
+--- a/tests/db_functions/datetime/test_extract_trunc.py
++++ b/tests/db_functions/datetime/test_extract_trunc.py
+@@ -371,6 +371,40 @@ class DateFunctionTests(TestCase):
+             (week_53_day_2015, 2015),
+         ], lambda m: (m.start_datetime, m.extracted))
+ 
++    def test_iso_year_lookup_uses_iso_year_bounds(self):
++        end_datetime = datetime(2016, 6, 15, 14, 10, 50, 123)
++        # ISO year 2015 spans 2014-12-29 (Monday) through 2016-01-03 (Sunday).
++        iso_2015_days = [
++            datetime(2014, 12, 29, 13, 0),
++            datetime(2015, 12, 31, 13, 0),
++            datetime(2016, 1, 3, 13, 0),
++        ]
++        outside_days = [
++            datetime(2014, 12, 28, 13, 0),  # ISO week 52 of 2014.
++            datetime(2016, 1, 4, 13, 0),  # ISO week 1 of 2016.
++        ]
++        if settings.USE_TZ:
++            end_datetime = timezone.make_aware(end_datetime, is_dst=False)
++            iso_2015_days = [timezone.make_aware(day, is_dst=False) for day in iso_2015_days]
++            outside_days = [timezone.make_aware(day, is_dst=False) for day in outside_days]
++        for day in iso_2015_days + outside_days:
++            self.create_model(day, end_datetime)
++
++        qs = DTModel.objects.filter(start_datetime__iso_year=2015)
++        self.assertEqual(sorted(m.start_datetime for m in qs), iso_2015_days)
++        query_string = str(qs.query).lower()
++        self.assertEqual(query_string.count(' between '), 1)
++        self.assertEqual(query_string.count('extract'), 0)
++
++        qs = DTModel.objects.filter(start_date__iso_year=2015)
++        self.assertEqual(sorted(m.start_date for m in qs), [day.date() for day in iso_2015_days])
++
++        # An explicit annotation must match the lookup.
++        qs = DTModel.objects.annotate(
++            extracted=ExtractIsoYear('start_datetime'),
++        ).filter(extracted=2015)
++        self.assertEqual(sorted(m.start_datetime for m in qs), iso_2015_days)
++
+     def test_extract_month_func(self):
+         start_datetime = datetime(2015, 6, 15, 14, 30, 50, 321)
+         end_datetime = datetime(2016, 6, 15, 14, 10, 50, 123)

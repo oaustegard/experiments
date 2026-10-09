@@ -1,0 +1,1 @@
+{"summary": "Fixed PolyElement.as_expr in sympy/polys/rings.py so that explicitly passed symbols are used (default to ring.symbols only when none are given), still raising ValueError on a wrong count. Verified with a repro that as_expr(U, V, W) now yields 3*u**2*v - u*v*w + 7*w**3 + 1 and via swe-test on sympy/polys/tests/test_rings.py (64 passed)."}

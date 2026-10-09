@@ -1,0 +1,77 @@
+diff --git a/django/views/debug.py b/django/views/debug.py
+index 7a89f7bd15..aa6de55800 100644
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -424,7 +424,23 @@ class ExceptionReporter:
+         # In case there's just one exception, take the traceback from self.tb
+         exc_value = exceptions.pop()
+         tb = self.tb if not exceptions else exc_value.__traceback__
++        while True:
++            frames.extend(self.get_exception_traceback_frames(exc_value, tb))
++            try:
++                exc_value = exceptions.pop()
++            except IndexError:
++                break
++            tb = exc_value.__traceback__
++        return frames
++
++    def get_exception_traceback_frames(self, exc_value, tb):
++        def explicit_or_implicit_cause(exc_value):
++            explicit = getattr(exc_value, '__cause__', None)
++            suppress_context = getattr(exc_value, '__suppress_context__', None)
++            implicit = getattr(exc_value, '__context__', None)
++            return explicit or (None if suppress_context else implicit)
+ 
++        frames = []
+         while tb is not None:
+             # Support for __traceback_hide__ which is used by a few libraries
+             # to hide internal frames.
+@@ -460,13 +476,7 @@ class ExceptionReporter:
+                 'pre_context_lineno': pre_context_lineno + 1,
+             })
+ 
+-            # If the traceback for current exception is consumed, try the
+-            # other exception.
+-            if not tb.tb_next and exceptions:
+-                exc_value = exceptions.pop()
+-                tb = exc_value.__traceback__
+-            else:
+-                tb = tb.tb_next
++            tb = tb.tb_next
+ 
+         return frames
+ 
+diff --git a/tests/view_tests/tests/test_debug.py b/tests/view_tests/tests/test_debug.py
+index 3cbeb2e03a..0190899d2f 100644
+--- a/tests/view_tests/tests/test_debug.py
++++ b/tests/view_tests/tests/test_debug.py
+@@ -467,6 +467,29 @@ class ExceptionReporterTests(SimpleTestCase):
+         self.assertIn('<p>Request data not supplied</p>', html)
+         self.assertNotIn('During handling of the above exception', html)
+ 
++    def test_innermost_exception_without_traceback(self):
++        try:
++            try:
++                raise RuntimeError('Oops')
++            except Exception as exc:
++                new_exc = RuntimeError('My context')
++                exc.__context__ = new_exc
++                raise
++        except Exception:
++            exc_type, exc_value, tb = sys.exc_info()
++
++        reporter = ExceptionReporter(None, exc_type, exc_value, tb)
++        frames = reporter.get_traceback_frames()
++        self.assertEqual(len(frames), 1)
++        html = reporter.get_traceback_html()
++        self.assertInHTML('<h1>RuntimeError</h1>', html)
++        self.assertIn('<pre class="exception_value">Oops</pre>', html)
++        self.assertIn('<th>Exception Type:</th>', html)
++        self.assertIn('<th>Exception Value:</th>', html)
++        self.assertIn('<h2>Traceback ', html)
++        text = reporter.get_traceback_text()
++        self.assertIn('Exception Value: Oops', text)
++
+     def test_reporting_of_nested_exceptions(self):
+         request = self.rf.get('/test_view/')
+         try:

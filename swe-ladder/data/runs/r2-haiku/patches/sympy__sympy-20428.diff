@@ -1,0 +1,107 @@
+diff --git a/sympy/polys/densearith.py b/sympy/polys/densearith.py
+index bce08bb356..7fad290613 100644
+--- a/sympy/polys/densearith.py
++++ b/sympy/polys/densearith.py
+@@ -269,7 +269,7 @@ def dup_mul_ground(f, c, K):
+     if not c or not f:
+         return []
+     else:
+-        return [ cf * c for cf in f ]
++        return dup_strip([ cf * c for cf in f ])
+ 
+ 
+ def dmp_mul_ground(f, c, u, K):
+@@ -291,7 +291,7 @@ def dmp_mul_ground(f, c, u, K):
+ 
+     v = u - 1
+ 
+-    return [ dmp_mul_ground(cf, c, v, K) for cf in f ]
++    return dmp_strip([ dmp_mul_ground(cf, c, v, K) for cf in f ], u)
+ 
+ 
+ def dup_quo_ground(f, c, K):
+@@ -318,9 +318,9 @@ def dup_quo_ground(f, c, K):
+         return f
+ 
+     if K.is_Field:
+-        return [ K.quo(cf, c) for cf in f ]
++        return dup_strip([ K.quo(cf, c) for cf in f ])
+     else:
+-        return [ cf // c for cf in f ]
++        return dup_strip([ cf // c for cf in f ])
+ 
+ 
+ def dmp_quo_ground(f, c, u, K):
+@@ -346,7 +346,7 @@ def dmp_quo_ground(f, c, u, K):
+ 
+     v = u - 1
+ 
+-    return [ dmp_quo_ground(cf, c, v, K) for cf in f ]
++    return dmp_strip([ dmp_quo_ground(cf, c, v, K) for cf in f ], u)
+ 
+ 
+ def dup_exquo_ground(f, c, K):
+@@ -368,7 +368,7 @@ def dup_exquo_ground(f, c, K):
+     if not f:
+         return f
+ 
+-    return [ K.exquo(cf, c) for cf in f ]
++    return dup_strip([ K.exquo(cf, c) for cf in f ])
+ 
+ 
+ def dmp_exquo_ground(f, c, u, K):
+@@ -390,7 +390,7 @@ def dmp_exquo_ground(f, c, u, K):
+ 
+     v = u - 1
+ 
+-    return [ dmp_exquo_ground(cf, c, v, K) for cf in f ]
++    return dmp_strip([ dmp_exquo_ground(cf, c, v, K) for cf in f ], u)
+ 
+ 
+ def dup_lshift(f, n, K):
+diff --git a/sympy/polys/tests/test_polytools.py b/sympy/polys/tests/test_polytools.py
+index c774fc41e2..be75765b13 100644
+--- a/sympy/polys/tests/test_polytools.py
++++ b/sympy/polys/tests/test_polytools.py
+@@ -2161,6 +2161,41 @@ def test_content():
+     assert f.content() == 1
+ 
+ 
++def test_clear_denoms_zero_ex_stripped():
++    # The leading coefficient is zero but not auto-simplified over EX, so
++    # clear_denoms() used to leave an unstripped leading EX(0) in the DMP.
++    f = Poly(x*(1/(sqrt(3) + 1) - (sqrt(3) - 1)/2), x, domain='EX')
++    coeff, g = f.clear_denoms()
++    h = Poly(0, x, domain='EX')
++
++    assert g.rep == h.rep == DMP([], EX, None)
++    assert g.is_zero and g.as_expr() == 0
++    assert g.terms_gcd() == h.terms_gcd()
++    assert g.primitive() == h.primitive()
++
++
++def test_issue_20427():
++    # clear_denoms() of a numerically zero EX polynomial must give a
++    # stripped zero, not Poly(0, x, domain='EX') with an EX(0) leading term.
++    from sympy import sympify
++    f = Poly(sympify(
++        "-117968192370600*18**(1/3)/(217603955769048*(24201 + 253*sqrt(9165))**(1/3)"
++        " + 2273005839412*sqrt(9165)*(24201 + 253*sqrt(9165))**(1/3))"
++        " - 15720318185*2**(2/3)*3**(1/3)*(24201 + 253*sqrt(9165))**(2/3)/(217603955769048*(24201"
++        " + 253*sqrt(9165))**(1/3) + 2273005839412*sqrt(9165)*(24201 + 253*sqrt(9165))**(1/3))"
++        " + 15720318185*12**(1/3)*(24201 + 253*sqrt(9165))**(2/3)/(217603955769048*(24201"
++        " + 253*sqrt(9165))**(1/3) + 2273005839412*sqrt(9165)*(24201 + 253*sqrt(9165))**(1/3))"
++        " + 117968192370600*2**(1/3)*3**(2/3)/(217603955769048*(24201 + 253*sqrt(9165))**(1/3)"
++        " + 2273005839412*sqrt(9165)*(24201 + 253*sqrt(9165))**(1/3))"), x)
++    coeff, g = f.clear_denoms()
++    h = Poly(0, x, domain='EX')
++
++    assert g == h and g.rep == DMP([], EX, None)
++    assert g.is_zero and g.as_expr() == 0
++    assert g.terms_gcd() == h.terms_gcd()
++    assert g.primitive() == h.primitive()
++
++
+ def test_primitive():
+     f, g = 4*x + 2, 2*x + 1
+     F, G = Poly(f), Poly(g)

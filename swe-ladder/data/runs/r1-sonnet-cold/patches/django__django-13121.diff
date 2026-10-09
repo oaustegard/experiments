@@ -1,0 +1,72 @@
+diff --git a/django/db/models/expressions.py b/django/db/models/expressions.py
+index a156c5e881..9d8498efb5 100644
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -449,9 +449,14 @@ class CombinedExpression(SQLiteNumericMixin, Expression):
+             rhs_output = self.rhs.output_field
+         except FieldError:
+             rhs_output = None
++        lhs_type = lhs_output.get_internal_type() if lhs_output else None
++        rhs_type = rhs_output.get_internal_type() if rhs_output else None
++        # Durations are stored as integers (microseconds) on backends without
++        # a native duration type, so a combination of two durations is plain
++        # integer arithmetic. Only mixed combinations (e.g. a datetime and a
++        # duration) need the special handling.
+         if (not connection.features.has_native_duration_field and
+-                ((lhs_output and lhs_output.get_internal_type() == 'DurationField') or
+-                 (rhs_output and rhs_output.get_internal_type() == 'DurationField'))):
++                'DurationField' in {lhs_type, rhs_type} and lhs_type != rhs_type):
+             return DurationExpression(self.lhs, self.connector, self.rhs).as_sql(compiler, connection)
+         if (lhs_output and rhs_output and self.connector == self.SUB and
+             lhs_output.get_internal_type() in {'DateField', 'DateTimeField', 'TimeField'} and
+@@ -480,7 +485,9 @@ class CombinedExpression(SQLiteNumericMixin, Expression):
+ 
+ class DurationExpression(CombinedExpression):
+     def compile(self, side, compiler, connection):
+-        if not isinstance(side, DurationValue):
++        if isinstance(side, DurationValue):
++            return connection.ops.date_interval_sql(side.value), []
++        else:
+             try:
+                 output = side.output_field
+             except FieldError:
+@@ -710,11 +717,11 @@ class Value(Expression):
+ 
+ 
+ class DurationValue(Value):
+-    def as_sql(self, compiler, connection):
+-        connection.ops.check_expression_support(self)
+-        if connection.features.has_native_duration_field:
+-            return super().as_sql(compiler, connection)
+-        return connection.ops.date_interval_sql(self.value), []
++    """
++    A timedelta. Rendered as a plain parameter (microseconds on backends
++    without a native duration type); DurationExpression renders it as an
++    interval when combined with a non-duration operand.
++    """
+ 
+ 
+ class RawSQL(Expression):
+diff --git a/tests/expressions/tests.py b/tests/expressions/tests.py
+index 459a87797d..c8a780be0b 100644
+--- a/tests/expressions/tests.py
++++ b/tests/expressions/tests.py
+@@ -1449,6 +1449,18 @@ class FTimeDeltaTests(TestCase):
+         with self.assertRaises(DatabaseError):
+             list(Experiment.objects.filter(start=F('start') * datetime.timedelta(0)))
+ 
++    def test_duration_expressions(self):
++        for delta in self.deltas:
++            qs = Experiment.objects.annotate(duration=F('estimated_time') + delta)
++            for obj in qs:
++                self.assertEqual(obj.duration, obj.estimated_time + delta)
++            qs = Experiment.objects.annotate(duration=F('estimated_time') - delta)
++            for obj in qs:
++                self.assertEqual(obj.duration, obj.estimated_time - delta)
++        qs = Experiment.objects.annotate(duration=F('estimated_time') + F('estimated_time'))
++        for obj in qs:
++            self.assertEqual(obj.duration, obj.estimated_time * 2)
++
+     def test_durationfield_add(self):
+         zeros = [e.name for e in Experiment.objects.filter(start=F('start') + F('estimated_time'))]
+         self.assertEqual(zeros, ['e0'])

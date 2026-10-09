@@ -1,0 +1,1 @@
+{"summary": "In django/db/migrations/writer.py the import sort key is now (is_from_import, module), so plain 'import x' lines come before 'from x import y' lines, each group sorted by module, matching isort defaults. I ran the migrations.test_writer suite (52 tests) and it passes, including test_sorted_imports; I did not add a new test."}

@@ -1,0 +1,51 @@
+diff --git a/sympy/polys/polytools.py b/sympy/polys/polytools.py
+index c9e77a901f..b22df46923 100644
+--- a/sympy/polys/polytools.py
++++ b/sympy/polys/polytools.py
+@@ -5874,6 +5874,21 @@ def sqf_part(f, *gens, **args):
+         return result
+ 
+ 
++def _merge_sqf_factors(factors):
++    """Multiply together square-free factors that share a multiplicity above one. """
++    merged, result = {}, []
++
++    for poly, exp in factors:
++        if exp == 1:
++            result.append((poly, exp))
++        elif exp in merged:
++            merged[exp] = merged[exp]*poly
++        else:
++            merged[exp] = poly
++
++    return result + [(poly, exp) for exp, poly in merged.items()]
++
++
+ def _sorted_factors(factors, method):
+     """Sort a list of ``(expr, exp)`` pairs. """
+     if method == 'sqf':
+@@ -5995,6 +6010,10 @@ def _generic_factor_list(expr, gens, args, method):
+                     f, _ = _poly_from_expr(f, _opt)
+                     factors[i] = (f, k)
+ 
++        if method == 'sqf':
++            fp = _merge_sqf_factors(fp)
++            fq = _merge_sqf_factors(fq)
++
+         fp = _sorted_factors(fp, method)
+         fq = _sorted_factors(fq, method)
+ 
+diff --git a/sympy/polys/tests/test_polytools.py b/sympy/polys/tests/test_polytools.py
+index 82e5f4d6dd..8b7e49884a 100644
+--- a/sympy/polys/tests/test_polytools.py
++++ b/sympy/polys/tests/test_polytools.py
+@@ -3274,6 +3274,9 @@ def test_factor_terms():
+     # issue 7067
+     assert factor_list(x*(x + y)) == (1, [(x, 1), (x + y, 1)])
+     assert sqf_list(x*(x + y)) == (1, [(x, 1), (x + y, 1)])
++    # issue 18698
++    assert sqf_list((x**2 + 1)*(x - 1)**2*(x - 2)**3*(x - 3)**3) == \
++        (1, [(x**2 + 1, 1), (x - 1, 2), (x**2 - 5*x + 6, 3)])
+ 
+ 
+ def test_as_list():

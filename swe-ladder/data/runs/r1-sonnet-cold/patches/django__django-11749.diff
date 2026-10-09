@@ -1,0 +1,66 @@
+diff --git a/django/core/management/__init__.py b/django/core/management/__init__.py
+index 5f2e64761e..adc7d173eb 100644
+--- a/django/core/management/__init__.py
++++ b/django/core/management/__init__.py
+@@ -130,11 +130,19 @@ def call_command(command_name, *args, **options):
+                 yield opt
+ 
+     parser_actions = list(get_actions(parser))
++    mutually_exclusive_required_options = {
++        opt
++        for group in parser._mutually_exclusive_groups
++        for opt in group._group_actions if group.required
++    }
+     # Any required arguments which are passed in via **options must be passed
+     # to parse_args().
+     parse_args += [
+         '{}={}'.format(min(opt.option_strings), arg_options[opt.dest])
+-        for opt in parser_actions if opt.required and opt.dest in options
++        for opt in parser_actions if (
++            opt.dest in options and
++            (opt.required or opt in mutually_exclusive_required_options)
++        )
+     ]
+     defaults = parser.parse_args(args=parse_args)
+     defaults = dict(defaults._get_kwargs(), **arg_options)
+diff --git a/tests/user_commands/management/commands/mutually_exclusive_required.py b/tests/user_commands/management/commands/mutually_exclusive_required.py
+new file mode 100644
+index 0000000000..0520452248
+--- /dev/null
++++ b/tests/user_commands/management/commands/mutually_exclusive_required.py
+@@ -0,0 +1,13 @@
++from django.core.management.base import BaseCommand
++
++
++class Command(BaseCommand):
++
++    def add_arguments(self, parser):
++        group = parser.add_mutually_exclusive_group(required=True)
++        group.add_argument('--foo-id', type=int, nargs='?', default=None)
++        group.add_argument('--foo-name', type=str, nargs='?', default=None)
++        group.add_argument('--append_id', action='append')
++
++    def handle(self, *args, **options):
++        self.stdout.write(','.join(options))
+diff --git a/tests/user_commands/tests.py b/tests/user_commands/tests.py
+index a53c781ac6..bfd103f44e 100644
+--- a/tests/user_commands/tests.py
++++ b/tests/user_commands/tests.py
+@@ -209,6 +209,17 @@ class CommandTests(SimpleTestCase):
+         self.assertIn('need_me', out.getvalue())
+         self.assertIn('needme2', out.getvalue())
+ 
++    def test_call_command_required_mutually_exclusive_group(self):
++        out = StringIO()
++        management.call_command('mutually_exclusive_required', foo_id=1, stdout=out)
++        self.assertIn('foo_id', out.getvalue())
++        out = StringIO()
++        management.call_command('mutually_exclusive_required', foo_name='foo', stdout=out)
++        self.assertIn('foo_name', out.getvalue())
++        msg = 'Error: one of the arguments --foo-id --foo-name --append_id is required'
++        with self.assertRaisesMessage(CommandError, msg):
++            management.call_command('mutually_exclusive_required', stdout=out)
++
+     def test_command_add_arguments_after_common_arguments(self):
+         out = StringIO()
+         management.call_command('common_args', stdout=out)

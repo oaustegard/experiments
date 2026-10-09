@@ -1,0 +1,1 @@
+{"summary": "In Model._check_default_pk (django/db/models/base.py) I skip the models.W042 warning when the pk is an auto-created parent_link OneToOneField, since inherited PKs are checked on the parent model. I added a regression test for abstract and multi-table inheritance that fails without the fix, and check_framework, model_inheritance and invalid_models_tests pass."}

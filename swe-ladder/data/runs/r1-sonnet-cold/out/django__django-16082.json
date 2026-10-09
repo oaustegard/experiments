@@ -1,0 +1,1 @@
+{"summary": "Added Combinable.MOD to the mixed-type numeric connector list in django/db/models/expressions.py, so Integer %% Decimal resolves to DecimalField (and Integer/Float to FloatField) like ADD/SUB/MUL/DIV. Verified with a repro script on both operand orders via the % operator and Mod(), and the expressions.tests and db_functions.math suites pass."}

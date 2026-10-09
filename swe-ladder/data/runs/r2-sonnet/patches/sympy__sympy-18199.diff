@@ -1,0 +1,47 @@
+diff --git a/sympy/ntheory/residue_ntheory.py b/sympy/ntheory/residue_ntheory.py
+index 9a3052d4c3..c3395714ed 100644
+--- a/sympy/ntheory/residue_ntheory.py
++++ b/sympy/ntheory/residue_ntheory.py
+@@ -776,6 +776,12 @@ def nthroot_mod(a, n, p, all_roots=False):
+     if not isprime(p):
+         raise NotImplementedError("Not implemented for composite p")
+ 
++    if a % p == 0:
++        # for prime p, x**n = 0 (mod p) has only the root x = 0 (mod p)
++        if all_roots:
++            return [0]
++        return 0
++
+     if (p - 1) % n == 0:
+         return _nthroot_mod1(a, n, p, all_roots)
+     # The roots of ``x**n - a = 0 (mod p)`` are roots of
+diff --git a/sympy/ntheory/tests/test_residue.py b/sympy/ntheory/tests/test_residue.py
+index d4854547be..cb9f73a6f7 100644
+--- a/sympy/ntheory/tests/test_residue.py
++++ b/sympy/ntheory/tests/test_residue.py
+@@ -170,6 +170,11 @@ def test_residue():
+         r = nthroot_mod(a, q, p)
+         assert pow(r, q, p) == a
+     assert nthroot_mod(11, 3, 109) is None
++    # x**n = 0 (mod p) has the root 0 (mod p), and only that root
++    assert nthroot_mod(17*17, 5, 17) == 0
++    assert nthroot_mod(17*17, 5, 17, True) == [0]
++    assert nthroot_mod(0, 4, 3, True) == [0]
++    assert nthroot_mod(34, 3, 17, True) == [0]
+     raises(NotImplementedError, lambda: nthroot_mod(16, 5, 36))
+     raises(NotImplementedError, lambda: nthroot_mod(9, 16, 36))
+ 
+diff --git a/sympy/solvers/tests/test_solveset.py b/sympy/solvers/tests/test_solveset.py
+index 47eeebabd8..33b3562cfd 100644
+--- a/sympy/solvers/tests/test_solveset.py
++++ b/sympy/solvers/tests/test_solveset.py
+@@ -2242,6 +2242,9 @@ def test_solve_modular():
+     assert solveset(Mod(3**(3**x), 4) - 3, x, S.Integers) == \
+             Intersection(ImageSet(Lambda(n, Intersection({log(2*n + 1)/log(3)},
+             S.Integers)), S.Naturals0), S.Integers)
++    # x = 0 (mod m) is a root when rhs is 0 (mod m)
++    assert solveset(Mod(x**3, 7), x, S.Integers) == \
++            ImageSet(Lambda(n, 7*n), S.Integers)
+     # Not Implemented for m without primitive root
+     assert solveset(Mod(x**3, 8) - 1, x, S.Integers) == \
+             ConditionSet(x, Eq(Mod(x**3, 8) - 1, 0), S.Integers)

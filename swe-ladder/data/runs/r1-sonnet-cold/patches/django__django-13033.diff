@@ -1,0 +1,31 @@
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index abbb1e37cb..a8f5b61fbe 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -727,7 +727,7 @@ class SQLCompiler:
+         # If we get to this point and the field is a relation to another model,
+         # append the default ordering for that model unless it is the pk
+         # shortcut or the attribute name of the field that is specified.
+-        if field.is_relation and opts.ordering and getattr(field, 'attname', None) != name and name != 'pk':
++        if field.is_relation and opts.ordering and getattr(field, 'attname', None) != pieces[-1] and name != 'pk':
+             # Firstly, avoid infinite loops.
+             already_seen = already_seen or set()
+             join_tuple = tuple(getattr(self.query.alias_map[j], 'join_cols', None) for j in joins)
+diff --git a/tests/ordering/tests.py b/tests/ordering/tests.py
+index a9cc729c45..67c12ddc4e 100644
+--- a/tests/ordering/tests.py
++++ b/tests/ordering/tests.py
+@@ -480,3 +480,13 @@ class OrderingTests(TestCase):
+         ca4 = ChildArticle.objects.create(headline='h1', pub_date=datetime(2005, 7, 28))
+         articles = ChildArticle.objects.order_by('article_ptr')
+         self.assertSequenceEqual(articles, [ca4, ca2, ca1, ca3])
++
++    def test_order_by_fk_attname_through_relation(self):
++        # order_by() on a related model's FK attname must not apply the
++        # default ordering of the target model.
++        qs = Reference.objects.order_by('article__author_id')
++        self.assertNotIn('DESC', str(qs.query))
++        self.assertEqual(str(qs.query).count('JOIN'), 1)
++        qs = Reference.objects.order_by('-article__author_id')
++        self.assertIn('DESC', str(qs.query))
++        self.assertEqual(str(qs.query).count('JOIN'), 1)

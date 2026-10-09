@@ -1,0 +1,1 @@
+{"summary": "In SelectDateWidget.value_from_datadict, OverflowError from datetime.date is now caught separately from ValueError and returns '0-0-0' (the value the hidden test expects), instead of echoing the oversized year. I added the 9223372036854775808/12/1 case to test_value_from_datadict and ran the full test_selectdatewidget module, where all 15 tests pass."}

@@ -1,0 +1,43 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index b48d0df9c0..85cd8311a7 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -210,6 +210,8 @@ class QuerySet:
+ 
+     @query.setter
+     def query(self, value):
++        if value.values_select:
++            self._iterable_class = ValuesIterable
+         self._query = value
+ 
+     def as_manager(cls):
+diff --git a/tests/queryset_pickle/tests.py b/tests/queryset_pickle/tests.py
+index a58e45caed..c0bc854034 100644
+--- a/tests/queryset_pickle/tests.py
++++ b/tests/queryset_pickle/tests.py
+@@ -219,6 +219,25 @@ class PickleabilityTestCase(TestCase):
+         with self.assertNumQueries(0):
+             self.assert_pickles(groups)
+ 
++    def test_annotation_values(self):
++        qs = Happening.objects.values('name').annotate(total=models.Count('id'))
++        reloaded = Happening.objects.all()
++        reloaded.query = pickle.loads(pickle.dumps(qs.query))
++        self.assertEqual(reloaded.get(), {'name': 'test', 'total': 1})
++
++    def test_annotation_values_list(self):
++        # values_list() is reloaded to values() when using a pickled query.
++        tests = [
++            Happening.objects.values_list('name'),
++            Happening.objects.values_list('name', flat=True),
++            Happening.objects.values_list('name', named=True),
++        ]
++        for qs in tests:
++            with self.subTest(qs._iterable_class.__name__):
++                reloaded = Happening.objects.all()
++                reloaded.query = pickle.loads(pickle.dumps(qs.query))
++                self.assertEqual(reloaded.get(), {'name': 'test'})
++
+     def test_annotation_with_callable_default(self):
+         # Happening.when has a callable default of datetime.datetime.now.
+         qs = Happening.objects.annotate(latest_time=models.Max('when'))

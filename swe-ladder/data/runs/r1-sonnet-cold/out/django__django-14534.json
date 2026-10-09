@@ -1,0 +1,1 @@
+{"summary": "Changed BoundWidget.id_for_label in django/forms/boundfield.py to return self.data[\"attrs\"].get(\"id\") instead of rebuilding the id from name and index, and updated the existing auto_id=False test to expect None. Ran the forms_tests, model_forms and admin_widgets suites, which pass."}

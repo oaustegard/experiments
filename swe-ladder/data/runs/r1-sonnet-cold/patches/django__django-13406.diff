@@ -1,0 +1,31 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index b48d0df9c0..85cd8311a7 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -210,6 +210,8 @@ class QuerySet:
+ 
+     @query.setter
+     def query(self, value):
++        if value.values_select:
++            self._iterable_class = ValuesIterable
+         self._query = value
+ 
+     def as_manager(cls):
+diff --git a/tests/queryset_pickle/tests.py b/tests/queryset_pickle/tests.py
+index a58e45caed..4122f6778f 100644
+--- a/tests/queryset_pickle/tests.py
++++ b/tests/queryset_pickle/tests.py
+@@ -297,3 +297,13 @@ class InLookupTests(TestCase):
+             reloaded_events.query = reloaded
+ 
+         self.assertSequenceEqual(reloaded_events, [self.e1])
++
++
++class PickledValuesQueryTests(TestCase):
++    def test_values_annotate_query_roundtrip(self):
++        Group.objects.create(name='a')
++        qs = Group.objects.values('name').annotate(n=models.Count('id'))
++        qs2 = Group.objects.all()
++        qs2.query = pickle.loads(pickle.dumps(qs.query))
++        self.assertEqual(list(qs2), list(qs))
++        self.assertIsInstance(qs2[0], dict)

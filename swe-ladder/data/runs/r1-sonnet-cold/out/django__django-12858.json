@@ -1,0 +1,1 @@
+{"summary": "In Model._check_ordering (django/db/models/base.py) the related-field ordering check now accepts a trailing part that is a registered lookup (e.g. isnull) as well as a transform, so ordering like supply__product__parent__isnull no longer raises models.E015. I added a regression test and ran invalid_models_tests.test_models, which passes."}

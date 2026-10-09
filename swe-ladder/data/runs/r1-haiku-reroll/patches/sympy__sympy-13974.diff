@@ -1,0 +1,93 @@
+diff --git a/sympy/physics/quantum/tensorproduct.py b/sympy/physics/quantum/tensorproduct.py
+index 9dd10d219e..d06cdf86b9 100644
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -143,6 +143,12 @@ def flatten(cls, args):
+     def _eval_adjoint(self):
+         return TensorProduct(*[Dagger(i) for i in self.args])
+ 
++    def _eval_power(self, e):
++        # (A x B)**n == (A**n) x (B**n) for integer n
++        if e.is_Integer:
++            return TensorProduct(*[Pow(arg, e) for arg in self.args])
++        return None
++
+     def _eval_rewrite(self, pattern, rule, **hints):
+         sargs = self.args
+         terms = [t._eval_rewrite(pattern, rule, **hints) for t in sargs]
+@@ -345,6 +351,30 @@ def tensor_product_simp_Mul(e):
+         return e
+ 
+ 
++def tensor_product_simp_Pow(e):
++    """Evaluates ``Pow`` expressions whose base is ``TensorProduct``.
++
++    Examples
++    ========
++
++    >>> from sympy import Symbol
++    >>> from sympy.physics.quantum import TensorProduct
++    >>> from sympy.physics.quantum.tensorproduct import tensor_product_simp_Pow
++    >>> A = Symbol('A', commutative=False)
++    >>> B = Symbol('B', commutative=False)
++    >>> x = Symbol('x')
++    >>> tensor_product_simp_Pow(TensorProduct(A, B)**x)
++    (A**x)x(B**x)
++
++    """
++    if not isinstance(e, Pow):
++        return e
++
++    if isinstance(e.base, TensorProduct):
++        return TensorProduct(*[Pow(obj, e.exp) for obj in e.base.args])
++    return e
++
++
+ def tensor_product_simp(e, **hints):
+     """Try to simplify and combine TensorProducts.
+ 
+@@ -382,9 +412,14 @@ def tensor_product_simp(e, **hints):
+     if isinstance(e, Add):
+         return Add(*[tensor_product_simp(arg) for arg in e.args])
+     elif isinstance(e, Pow):
++        if isinstance(e.base, TensorProduct):
++            return tensor_product_simp_Pow(e)
+         return tensor_product_simp(e.base) ** e.exp
+     elif isinstance(e, Mul):
+-        return tensor_product_simp_Mul(e)
++        # simplify factors first so that e.g. a Pow of a TensorProduct
++        # inside a scalar-multiplied term is evaluated
++        return tensor_product_simp_Mul(
++            Mul(*[tensor_product_simp(arg) for arg in e.args]))
+     elif isinstance(e, Commutator):
+         return Commutator(*[tensor_product_simp(arg) for arg in e.args])
+     elif isinstance(e, AntiCommutator):
+diff --git a/sympy/physics/quantum/tests/test_tensorproduct.py b/sympy/physics/quantum/tests/test_tensorproduct.py
+index 9f65844c85..ebc44e0ba0 100644
+--- a/sympy/physics/quantum/tests/test_tensorproduct.py
++++ b/sympy/physics/quantum/tests/test_tensorproduct.py
+@@ -48,6 +48,24 @@ def test_tensor_product_commutator():
+ def test_tensor_product_simp():
+     assert tensor_product_simp(TP(A, B)*TP(B, C)) == TP(A*B, B*C)
+ 
++    # tests for Pow-expressions
++    D = symbols('D', commutative=False)
++    assert tensor_product_simp(TP(A, B)**x) == TP(A**x, B**x)
++    assert tensor_product_simp(x*TP(A, B)**2) == x*TP(A**2, B**2)
++    assert tensor_product_simp(x*(TP(A, B)**2)*TP(C, D)) == \
++        x*TP(A**2*C, B**2*D)
++    assert tensor_product_simp(TP(A, B) - TP(C, D)**x) == \
++        TP(A, B) - TP(C**x, D**x)
++
++
++def test_tensor_product_power():
++    # powers of tensor products with scalar or Pauli factors evaluate
++    t1 = TP(1, 1)*TP(1, 1)
++    assert tensor_product_simp(t1) == TP(1, 1)
++    assert t1.expand(tensorproduct=True) == TP(1, 1)
++    assert TP(A, B)**2 == TP(A**2, B**2)
++    assert TP(A, B).expand(tensorproduct=True) == TP(A, B)
++
+ 
+ def test_issue_5923():
+     # most of the issue regarding sympification of args has been handled

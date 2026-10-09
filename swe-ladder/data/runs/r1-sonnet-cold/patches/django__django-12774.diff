@@ -1,0 +1,58 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index d9c9b0db04..c1aa352701 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -689,7 +689,17 @@ class QuerySet:
+         """
+         assert not self.query.is_sliced, \
+             "Cannot use 'limit' or 'offset' with in_bulk"
+-        if field_name != 'pk' and not self.model._meta.get_field(field_name).unique:
++        opts = self.model._meta
++        unique_fields = [
++            constraint.fields[0]
++            for constraint in opts.total_unique_constraints
++            if len(constraint.fields) == 1
++        ]
++        if (
++            field_name != 'pk' and
++            not opts.get_field(field_name).unique and
++            field_name not in unique_fields
++        ):
+             raise ValueError("in_bulk()'s field_name must be a unique field but %r isn't." % field_name)
+         if id_list is not None:
+             if not id_list:
+diff --git a/tests/lookup/models.py b/tests/lookup/models.py
+index fbc9fa606f..9fd3f14ed3 100644
+--- a/tests/lookup/models.py
++++ b/tests/lookup/models.py
+@@ -67,6 +67,11 @@ class Season(models.Model):
+     gt = models.IntegerField(null=True, blank=True)
+     nulled_text_field = NulledTextField(null=True)
+ 
++    class Meta:
++        constraints = [
++            models.UniqueConstraint(fields=['year'], name='season_year_unique'),
++        ]
++
+     def __str__(self):
+         return str(self.year)
+ 
+diff --git a/tests/lookup/tests.py b/tests/lookup/tests.py
+index baefdf9701..815831b1b6 100644
+--- a/tests/lookup/tests.py
++++ b/tests/lookup/tests.py
+@@ -194,6 +194,14 @@ class LookupTests(TestCase):
+         with self.assertRaisesMessage(ValueError, msg):
+             Article.objects.in_bulk([self.au1], field_name='author')
+ 
++    def test_in_bulk_unique_constraint_field(self):
++        s1 = Season.objects.create(year=2013)
++        s2 = Season.objects.create(year=2014)
++        self.assertEqual(
++            Season.objects.in_bulk([2013, 2014], field_name='year'),
++            {2013: s1, 2014: s2},
++        )
++
+     def test_values(self):
+         # values() returns a list of dictionaries instead of object instances --
+         # and you can specify which fields you want to retrieve.

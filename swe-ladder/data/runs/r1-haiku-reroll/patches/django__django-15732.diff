@@ -1,0 +1,91 @@
+diff --git a/django/db/backends/base/schema.py b/django/db/backends/base/schema.py
+index f2ca8c8df9..2efacd81cf 100644
+--- a/django/db/backends/base/schema.py
++++ b/django/db/backends/base/schema.py
+@@ -527,8 +527,13 @@ class BaseDatabaseSchemaEditor:
+         news = {tuple(fields) for fields in new_unique_together}
+         # Deleted uniques
+         for fields in olds.difference(news):
++            # A primary key is never a unique_together constraint, even when
++            # the unique_together covers only the primary key field.
+             self._delete_composed_index(
+-                model, fields, {"unique": True}, self.sql_delete_unique
++                model,
++                fields,
++                {"unique": True, "primary_key": False},
++                self.sql_delete_unique,
+             )
+         # Created uniques
+         for field_names in news.difference(olds):
+@@ -568,6 +573,15 @@ class BaseDatabaseSchemaEditor:
+             exclude=meta_constraint_names | meta_index_names,
+             **constraint_kwargs,
+         )
++        if len(constraint_names) > 1 and constraint_kwargs.get("unique"):
++            # A unique_together on a field that also has its own unique=True
++            # matches both constraints. Drop the one that unique_together
++            # created, which is named deterministically.
++            composed_name = self._create_index_name(
++                model._meta.db_table, columns, suffix="_uniq"
++            )
++            if composed_name in constraint_names:
++                constraint_names = [composed_name]
+         if len(constraint_names) != 1:
+             raise ValueError(
+                 "Found wrong number (%s) of constraints for %s(%s)"
+diff --git a/tests/schema/tests.py b/tests/schema/tests.py
+index fe717f8841..4ed96258f1 100644
+--- a/tests/schema/tests.py
++++ b/tests/schema/tests.py
+@@ -2570,6 +2570,51 @@ class SchemaTests(TransactionTestCase):
+         with connection.schema_editor() as editor:
+             editor.alter_unique_together(Book, [["author", "title"]], [])
+ 
++    @skipUnlessDBFeature("allows_multiple_constraints_on_same_fields")
++    def test_remove_unique_together_on_primary_key(self):
++        """
++        Removing a unique_together on a primary key field drops only the
++        unique_together constraint and keeps the primary key.
++        """
++        with connection.schema_editor() as editor:
++            editor.create_model(Author)
++        self.local_models = [Author]
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(Author, [], [["id"]])
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(Author, [["id"]], [])
++        constraints = self.get_constraints(Author._meta.db_table)
++        self.assertTrue(any(details["primary_key"] for details in constraints.values()))
++        unique_on_id = [
++            name
++            for name, details in constraints.items()
++            if details["columns"] == ["id"]
++            and details["unique"]
++            and not details["primary_key"]
++        ]
++        self.assertEqual(unique_on_id, [])
++
++    @skipUnlessDBFeature("allows_multiple_constraints_on_same_fields")
++    def test_remove_unique_together_on_unique_field(self):
++        """
++        Removing a unique_together on a single field that also has unique=True
++        drops only the unique_together constraint.
++        """
++        with connection.schema_editor() as editor:
++            editor.create_model(Tag)
++        self.local_models = [Tag]
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(Tag, [], [["slug"]])
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(Tag, [["slug"]], [])
++        constraints = self.get_constraints(Tag._meta.db_table)
++        unique_on_slug = [
++            name
++            for name, details in constraints.items()
++            if details["columns"] == ["slug"] and details["unique"]
++        ]
++        self.assertEqual(len(unique_on_slug), 1)
++
+     @skipUnlessDBFeature("allows_multiple_constraints_on_same_fields")
+     def test_remove_unique_together_does_not_remove_meta_constraints(self):
+         with connection.schema_editor() as editor:

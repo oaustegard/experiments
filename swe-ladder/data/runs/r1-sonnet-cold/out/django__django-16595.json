@@ -1,0 +1,1 @@
+{"summary": "Added an AlterField branch to AlterField.reduce in django/db/migrations/operations/fields.py so consecutive AlterFields on the same field collapse to the last one. Checked with a repro (three AlterFields reduce to one) and by running migrations.test_optimizer and migrations.test_operations, which pass."}

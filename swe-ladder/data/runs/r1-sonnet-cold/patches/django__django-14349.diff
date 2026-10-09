@@ -1,0 +1,23 @@
+diff --git a/django/core/validators.py b/django/core/validators.py
+index a385819510..63868afe3a 100644
+--- a/django/core/validators.py
++++ b/django/core/validators.py
+@@ -64,6 +64,9 @@ class RegexValidator:
+ @deconstructible
+ class URLValidator(RegexValidator):
+     ul = '\u00a1-\uffff'  # Unicode letters range (must not be a raw string).
++    # Characters stripped by urlsplit() on Python versions patched for
++    # bpo-43882; reject them up front so they never get silently dropped.
++    unsafe_chars = frozenset('\t\r\n')
+ 
+     # IP patterns
+     ipv4_re = r'(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}'
+@@ -101,6 +104,8 @@ class URLValidator(RegexValidator):
+     def __call__(self, value):
+         if not isinstance(value, str):
+             raise ValidationError(self.message, code=self.code, params={'value': value})
++        if self.unsafe_chars.intersection(value):
++            raise ValidationError(self.message, code=self.code, params={'value': value})
+         # Check if the scheme is valid.
+         scheme = value.split('://')[0].lower()
+         if scheme not in self.schemes:

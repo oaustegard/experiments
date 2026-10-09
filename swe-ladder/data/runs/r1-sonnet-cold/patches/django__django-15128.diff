@@ -1,0 +1,106 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index aaf35ee37c..ce4c99d5d5 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -846,8 +846,6 @@ class Query(BaseExpression):
+         relabelling any references to them in select columns and the where
+         clause.
+         """
+-        assert set(change_map).isdisjoint(change_map.values())
+-
+         # 1. Update references in "select" (normal columns plus aliases),
+         # "group by" and "where".
+         self.where.relabel_aliases(change_map)
+@@ -859,20 +857,28 @@ class Query(BaseExpression):
+         }
+ 
+         # 2. Rename the alias in the internal table/alias datastructures.
+-        for old_alias, new_alias in change_map.items():
+-            if old_alias not in self.alias_map:
+-                continue
+-            alias_data = self.alias_map[old_alias].relabeled_clone(change_map)
++        # The keys and values of change_map may intersect (e.g. T4 -> T5 and
++        # T5 -> T6 when combining queries), so the aliases are renamed
++        # simultaneously: first detach all the aliases being renamed, then
++        # attach them under their new names. Renaming them one by one would
++        # overwrite, or rename a second time, an alias that was just renamed.
++        renamed = {
++            old_alias: new_alias
++            for old_alias, new_alias in change_map.items()
++            if old_alias in self.alias_map
++        }
++        detached = []
++        for old_alias, new_alias in renamed.items():
++            alias_data = self.alias_map.pop(old_alias).relabeled_clone(change_map)
++            refcount = self.alias_refcount.pop(old_alias)
++            detached.append((new_alias, alias_data, refcount))
++        for new_alias, alias_data, refcount in detached:
+             self.alias_map[new_alias] = alias_data
+-            self.alias_refcount[new_alias] = self.alias_refcount[old_alias]
+-            del self.alias_refcount[old_alias]
+-            del self.alias_map[old_alias]
+-
+-            table_aliases = self.table_map[alias_data.table_name]
+-            for pos, alias in enumerate(table_aliases):
+-                if alias == old_alias:
+-                    table_aliases[pos] = new_alias
+-                    break
++            self.alias_refcount[new_alias] = refcount
++        for table_name in {alias_data.table_name for _, alias_data, _ in detached}:
++            self.table_map[table_name] = [
++                renamed.get(alias, alias) for alias in self.table_map[table_name]
++            ]
+         self.external_aliases = {
+             # Table is aliased or it's being changed and thus is aliased.
+             change_map.get(alias, alias): (aliased or alias in change_map)
+diff --git a/tests/queries/models.py b/tests/queries/models.py
+index c3322c224e..5f8a9ff1d1 100644
+--- a/tests/queries/models.py
++++ b/tests/queries/models.py
+@@ -613,6 +613,7 @@ class OrderItem(models.Model):
+ 
+ 
+ class BaseUser(models.Model):
++    annotation = models.ForeignKey(Annotation, models.CASCADE, null=True, blank=True)
+     pass
+ 
+ 
+diff --git a/tests/queries/tests.py b/tests/queries/tests.py
+index ca982b9c6a..da87e658b2 100644
+--- a/tests/queries/tests.py
++++ b/tests/queries/tests.py
+@@ -15,7 +15,7 @@ from django.test import SimpleTestCase, TestCase, skipUnlessDBFeature
+ from django.test.utils import CaptureQueriesContext
+ 
+ from .models import (
+-    FK1, Annotation, Article, Author, BaseA, Book, CategoryItem,
++    FK1, Annotation, Article, Author, BaseA, BaseUser, Book, CategoryItem,
+     CategoryRelationship, Celebrity, Channel, Chapter, Child, ChildObjectA,
+     Classroom, CommonMixedCaseForeignKeys, Company, Cover, CustomPk,
+     CustomPkTag, DateTimePK, Detail, DumbCategory, Eaten, Employment,
+@@ -2095,6 +2095,25 @@ class QuerySetBitwiseOperationTests(TestCase):
+         cls.room_3 = Classroom.objects.create(school=cls.school, has_blackboard=True, name='Room 3')
+         cls.room_4 = Classroom.objects.create(school=cls.school, has_blackboard=False, name='Room 4')
+ 
++    def test_conflicting_aliases_during_combine(self):
++        annotation = Annotation.objects.create(name='a', tag=Tag.objects.create(name='t'))
++        annotation.notes.add(
++            Note.objects.create(note='x', misc='m'),
++            Note.objects.create(note='q', misc='m'),
++        )
++        user = BaseUser.objects.create(annotation=annotation)
++        BaseUser.objects.create()
++        Task.objects.create(title='y', owner=user, creator=user)
++        qs1 = BaseUser.objects.filter(annotation__notes__note='x').filter(owner__title='y')
++        qs2 = BaseUser.objects.filter(annotation__notes__note='q').filter(
++            annotation__notes__note='q',
++        ).filter(
++            Q(owner__title__in=Task.objects.values('title')) |
++            Q(creator__title__in=Task.objects.values('title')),
++        )
++        self.assertSequenceEqual((qs1 | qs2).distinct(), [user])
++        self.assertSequenceEqual((qs2 | qs1).distinct(), [user])
++
+     @skipUnlessDBFeature('allow_sliced_subqueries_with_in')
+     def test_or_with_rhs_slice(self):
+         qs1 = Classroom.objects.filter(has_blackboard=True)

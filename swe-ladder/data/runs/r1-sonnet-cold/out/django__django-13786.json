@@ -1,0 +1,1 @@
+{"summary": "In CreateModel.reduce(), when folding an AlterModelOptions into the CreateModel, I now drop any option in AlterModelOptions.ALTER_OPTION_KEYS that is absent from the operation options, matching state_forwards(). I ran migrations.test_optimizer and migrations.test_operations, which pass, but did not add a new test for the empty-options case."}

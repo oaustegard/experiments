@@ -1,0 +1,66 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 3ce711f3f1..960c56ee79 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -1708,9 +1708,17 @@ class Model(metaclass=ModelBase):
+             fld = None
+             for part in field.split(LOOKUP_SEP):
+                 try:
+-                    fld = _cls._meta.get_field(part)
++                    # pk is an alias that won't be found by opts.get_field.
++                    if part == 'pk':
++                        fld = _cls._meta.pk
++                    else:
++                        fld = _cls._meta.get_field(part)
+                     if fld.is_relation:
+                         _cls = fld.get_path_info()[-1].to_opts.model
++                    else:
++                        # A non-relational field ends the path; any further
++                        # part can only be a lookup/transform on it.
++                        _cls = None
+                 except (FieldDoesNotExist, AttributeError):
+                     if fld is None or fld.get_transform(part) is None:
+                         errors.append(
+diff --git a/tests/invalid_models_tests/test_models.py b/tests/invalid_models_tests/test_models.py
+index 0f1d1e4dc3..e87122713a 100644
+--- a/tests/invalid_models_tests/test_models.py
++++ b/tests/invalid_models_tests/test_models.py
+@@ -814,6 +814,38 @@ class OtherModelTests(SimpleTestCase):
+             )
+         ])
+ 
++    def test_ordering_pointing_multiple_times_to_model_fields(self):
++        class Parent(models.Model):
++            field1 = models.CharField(max_length=100)
++            field2 = models.CharField(max_length=100)
++
++        class Child(models.Model):
++            parent = models.ForeignKey(Parent, models.CASCADE)
++
++            class Meta:
++                ordering = ('parent__field1__field2',)
++
++        self.assertEqual(Child.check(), [
++            Error(
++                "'ordering' refers to the nonexistent field, related field, "
++                "or lookup 'parent__field1__field2'.",
++                obj=Child,
++                id='models.E015',
++            )
++        ])
++
++    def test_ordering_pointing_to_related_pk(self):
++        class Parent(models.Model):
++            pass
++
++        class Child(models.Model):
++            parent = models.ForeignKey(Parent, models.CASCADE)
++
++            class Meta:
++                ordering = ('parent__pk',)
++
++        self.assertEqual(Child.check(), [])
++
+     def test_ordering_allows_registered_lookups(self):
+         class Model(models.Model):
+             test = models.CharField(max_length=100)

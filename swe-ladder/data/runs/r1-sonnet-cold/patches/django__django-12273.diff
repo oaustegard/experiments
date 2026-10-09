@@ -1,0 +1,96 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 844c01e95e..21c0cfa0de 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -569,8 +569,18 @@ class Model(metaclass=ModelBase):
+         return getattr(self, meta.pk.attname)
+ 
+     def _set_pk_val(self, value):
++        # Keep the primary keys of all the parents in sync, otherwise resetting
++        # a child's pk (e.g. to None) would be undone when saving the parents.
++        self._set_parents_pk_val(self._meta, value)
+         return setattr(self, self._meta.pk.attname, value)
+ 
++    def _set_parents_pk_val(self, meta, value):
++        for parent, parent_link in meta.parents.items():
++            if parent_link:
++                setattr(self, parent_link.attname, value)
++            setattr(self, parent._meta.pk.attname, value)
++            self._set_parents_pk_val(parent._meta, value)
++
+     pk = property(_get_pk_val, _set_pk_val)
+ 
+     def get_deferred_fields(self):
+@@ -806,7 +816,15 @@ class Model(metaclass=ModelBase):
+             # Make sure the link fields are synced between parent and self.
+             if (field and getattr(self, parent._meta.pk.attname) is None and
+                     getattr(self, field.attname) is not None):
+-                setattr(self, parent._meta.pk.attname, getattr(self, field.attname))
++                if self._state.adding:
++                    setattr(self, parent._meta.pk.attname, getattr(self, field.attname))
++                else:
++                    # The instance exists in the database and the parent's
++                    # primary key was reset, so the link must be reset too
++                    # instead of resurrecting the old parent's primary key.
++                    setattr(self, field.attname, None)
++                    if field.is_cached(self):
++                        field.delete_cached_value(self)
+             parent_inserted = self._save_parents(cls=parent, using=using, update_fields=update_fields)
+             updated = self._save_table(
+                 cls=parent, using=using, update_fields=update_fields,
+diff --git a/tests/model_inheritance/models.py b/tests/model_inheritance/models.py
+index a4f9cfe696..378378ea8d 100644
+--- a/tests/model_inheritance/models.py
++++ b/tests/model_inheritance/models.py
+@@ -194,3 +194,16 @@ class Child(Parent):
+ 
+ class GrandChild(Child):
+     pass
++
++
++class Item(models.Model):
++    uid = models.AutoField(primary_key=True, editable=False)
++    f = models.BooleanField(default=False)
++
++    def reset(self):
++        self.uid = None
++        self.f = False
++
++
++class Derived(Item):
++    pass
+diff --git a/tests/model_inheritance/tests.py b/tests/model_inheritance/tests.py
+index 5eef0f5bfa..2cc027e5ec 100644
+--- a/tests/model_inheritance/tests.py
++++ b/tests/model_inheritance/tests.py
+@@ -6,7 +6,7 @@ from django.test import SimpleTestCase, TestCase
+ from django.test.utils import CaptureQueriesContext, isolate_apps
+ 
+ from .models import (
+-    Base, Chef, CommonInfo, GrandChild, GrandParent, ItalianRestaurant,
++    Base, Chef, CommonInfo, Derived, GrandChild, Item, GrandParent, ItalianRestaurant,
+     MixinModel, ParkingLot, Place, Post, Restaurant, Student, SubBase,
+     Supplier, Title, Worker,
+ )
+@@ -522,3 +522,21 @@ class InheritanceUniqueTests(TestCase):
+         msg = 'Grand parent with this First name and Last name already exists.'
+         with self.assertRaisesMessage(ValidationError, msg):
+             grand_child.validate_unique()
++
++
++class ResetPrimaryKeyTests(TestCase):
++    def test_reset_pk_attname_on_child(self):
++        derived = Derived.objects.create(f=True)
++        item = Item.objects.get(pk=derived.pk)
++        obj1 = item.derived
++        obj1.reset()
++        obj1.save()
++        self.assertEqual(Item.objects.count(), 2)
++
++    def test_reset_pk_via_pk_property(self):
++        derived = Derived.objects.create(f=True)
++        derived.pk = None
++        derived.f = False
++        derived.save()
++        self.assertEqual(Derived.objects.count(), 2)
++        self.assertTrue(Item.objects.get(pk=Item.objects.order_by('pk').first().pk).f)

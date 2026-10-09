@@ -1,0 +1,29 @@
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 842b73e95c..c1296742b7 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -1157,6 +1157,10 @@ class SelectDateWidget(Widget):
+             input_format = formats.sanitize_strftime_format(input_format)
+             try:
+                 date_value = datetime.date(int(y), int(m), int(d))
++            except OverflowError:
++                # The value is too large to represent as a date (larger than
++                # a C long), so treat the whole date as unselected.
++                return "0-0-0"
+             except ValueError:
+                 # Return pseudo-ISO dates with zeros for any unselected values,
+                 # e.g. '2017-0-23'.
+diff --git a/tests/forms_tests/widget_tests/test_selectdatewidget.py b/tests/forms_tests/widget_tests/test_selectdatewidget.py
+index cfcd037987..11f928b43b 100644
+--- a/tests/forms_tests/widget_tests/test_selectdatewidget.py
++++ b/tests/forms_tests/widget_tests/test_selectdatewidget.py
+@@ -610,6 +610,9 @@ class SelectDateWidgetTest(WidgetTest):
+             ((None, "12", "1"), None),
+             (("2000", None, "1"), None),
+             (("2000", "12", None), None),
++            (("9223372036854775808", "12", "1"), "0-0-0"),
++            (("2000", "9223372036854775808", "1"), "0-0-0"),
++            (("2000", "12", "9223372036854775808"), "0-0-0"),
+         ]
+         for values, expected in tests:
+             with self.subTest(values=values):

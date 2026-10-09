@@ -1,0 +1,215 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 9735ce10c8..d756aa00ff 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -155,6 +155,37 @@ class RawQuery:
+ ExplainInfo = namedtuple("ExplainInfo", ("format", "options"))
+ 
+ 
++def _referenced_nodes(values):
++    """
++    Return every expression node under ``values`` (expressions, or lists and
++    tuples of them; plain values are ignored), or None if some of them cannot
++    be inspected for column references: a subquery, or a non-expression column
++    reference such as a MultiColSource.
++    """
++    nodes = []
++    for value in values:
++        items = value if isinstance(value, (list, tuple)) else (value,)
++        for item in items:
++            if hasattr(item, "flatten"):
++                nodes.extend(item.flatten())
++            elif hasattr(item, "alias"):
++                return None
++    if any(isinstance(node, Query) for node in nodes):
++        return None
++    return nodes
++
++
++def _is_to_one_join(join):
++    """
++    Return True if ``join`` follows a to-one relation, so that it cannot
++    multiply the rows of the query it is part of.
++    """
++    field = getattr(join, "join_field", None)
++    return bool(
++        getattr(field, "many_to_one", False) or getattr(field, "one_to_one", False)
++    )
++
++
+ class Query(BaseExpression):
+     """A single SQL query."""
+ 
+@@ -551,8 +582,115 @@ class Query(BaseExpression):
+         """
+         obj = self.clone()
+         obj.add_annotation(Count("*"), alias="__count", is_summary=True)
++        obj._strip_unused_annotations(keep={"__count"})
+         return obj.get_aggregation(using, ["__count"])["__count"]
+ 
++    def _strip_unused_annotations(self, keep):
++        """
++        Remove the annotations (other than those in ``keep``) that no filter,
++        ordering or remaining annotation refers to, along with the joins only
++        they used, so that count() doesn't join or aggregate over them.
++
++        An unused aggregate changes the count only through the GROUP BY it
++        forces, so it is removed only from a grouped query (group_by is True),
++        and the grouping is then kept on the primary key, which still needs a
++        subquery. An unused non-aggregate annotation adds no grouping, but a
++        join it uses may multiply rows, so such a join is dropped only when it
++        is to-one. Otherwise the query is left untouched, as it is when the
++        remaining query needs a join besides the base table.
++        """
++        if (
++            isinstance(self.group_by, tuple)
++            or not self.default_cols
++            or self.select
++            or self.extra
++            or self.is_sliced
++            or self.distinct
++            or self.combinator
++        ):
++            return
++        leaves = list(self.where.leaves())
++        if not all(isinstance(leaf, Lookup) for leaf in leaves):
++            return
++        base_alias = self.get_initial_alias()
++        where_nodes = _referenced_nodes(
++            side for leaf in leaves for side in (leaf.lhs, leaf.rhs)
++        )
++        ordering = tuple(self.order_by) + tuple(self.extra_order_by)
++        order_nodes = _referenced_nodes(ordering)
++        annotations = {
++            alias: annotation
++            for alias, annotation in self.annotations.items()
++            if alias not in keep
++        }
++        annotation_nodes = {
++            alias: _referenced_nodes([annotation])
++            for alias, annotation in annotations.items()
++        }
++        if (
++            where_nodes is None
++            or order_nodes is None
++            or any(nodes is None for nodes in annotation_nodes.values())
++        ):
++            return
++
++        def referenced_aliases(nodes):
++            found = set()
++            for node in nodes:
++                if isinstance(node, Ref) and node.refs in annotations:
++                    found.add(node.refs)
++                for alias, annotation in annotations.items():
++                    if node is annotation or node == annotation:
++                        found.add(alias)
++            return found
++
++        live = referenced_aliases(where_nodes + order_nodes)
++        live.update(
++            name.lstrip("-")
++            for name in ordering
++            if isinstance(name, str) and name.lstrip("-") in annotations
++        )
++        pending = list(live)
++        while pending:
++            for alias in referenced_aliases(annotation_nodes[pending.pop()]):
++                if alias not in live:
++                    live.add(alias)
++                    pending.append(alias)
++        unused = set(annotations) - live
++        if not unused:
++            return
++        aggregate_removed = any(
++            annotations[alias].contains_aggregate for alias in unused
++        )
++        if aggregate_removed and self.group_by is not True:
++            return
++        remaining_nodes = (
++            where_nodes
++            + order_nodes
++            + [node for alias in live for node in annotation_nodes[alias]]
++        )
++        needed = {node.alias for node in remaining_nodes if isinstance(node, Col)}
++        if needed - {base_alias}:
++            return
++        dropped = [
++            alias
++            for alias, refcount in self.alias_refcount.items()
++            if alias != base_alias and refcount > 0
++        ]
++        if not aggregate_removed and not all(
++            _is_to_one_join(self.alias_map[alias]) for alias in dropped
++        ):
++            return
++
++        for alias in unused:
++            del self.annotations[alias]
++        mask = self.annotation_select_mask
++        self.set_annotation_mask(None if mask is None else mask - unused)
++        for alias in dropped:
++            self.alias_refcount[alias] = 0
++        if aggregate_removed:
++            self.group_by = (self.model._meta.pk.get_col(base_alias),)
++
+     def has_filters(self):
+         return self.where
+ 
+diff --git a/tests/aggregation/tests.py b/tests/aggregation/tests.py
+index 39c8a45707..a35e812085 100644
+--- a/tests/aggregation/tests.py
++++ b/tests/aggregation/tests.py
+@@ -2084,3 +2084,52 @@ class AggregateTestCase(TestCase):
+             exists=Exists(Author.objects.extra(where=["1=0"])),
+         )
+         self.assertEqual(len(qs), 6)
++
++
++class AggregateAnnotationPruningTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        cls.a1 = Author.objects.create(name="A1", age=30)
++        cls.a2 = Author.objects.create(name="A2", age=40)
++        cls.p = Publisher.objects.create(name="P", num_awards=1)
++        cls.b1 = Book.objects.create(
++            isbn="1", name="B1", pages=10, rating=4.0, price=Decimal("1"),
++            contact=cls.a1, publisher=cls.p, pubdate=datetime.date(2000, 1, 1),
++        )
++        cls.b2 = Book.objects.create(
++            isbn="2", name="B2", pages=20, rating=3.0, price=Decimal("2"),
++            contact=cls.a1, publisher=cls.p, pubdate=datetime.date(2001, 1, 1),
++        )
++        cls.b1.authors.add(cls.a1, cls.a2)
++        cls.b2.authors.add(cls.a1)
++
++    def _count_sql(self, qs):
++        with CaptureQueriesContext(connection) as ctx:
++            self.assertEqual(qs.count(), Book.objects.count())
++        return ctx.captured_queries[0]["sql"].lower()
++
++    def test_unreferenced_aggregate_annotation_pruned(self):
++        sql = self._count_sql(Book.objects.annotate(n=Count("authors")))
++        self.assertEqual(sql.count("select"), 2, "Subquery wrapping required")
++        self.assertNotIn("authors", sql)
++
++    def test_non_aggregate_annotation_pruned(self):
++        from django.db.models.functions import Upper
++
++        sql = self._count_sql(Book.objects.annotate(u=Upper("name")))
++        self.assertEqual(sql.count("select"), 1, "No subquery wrapping required")
++
++    def test_multivalued_non_aggregate_annotation_kept(self):
++        qs = Book.objects.annotate(a=F("authors__name"))
++        self.assertEqual(qs.count(), 3)
++
++    def test_referenced_aggregate_annotation_kept(self):
++        qs = Book.objects.annotate(n=Count("authors")).filter(n__gt=1)
++        self.assertEqual(qs.count(), 1)
++
++    def test_ordered_by_aggregate_kept(self):
++        qs = Book.objects.annotate(n=Count("authors")).order_by("n")
++        self.assertEqual(qs.count(), 2)
++
++    def test_issue_example(self):
++        self.assertEqual(Book.objects.annotate(Count("authors")).count(), 2)

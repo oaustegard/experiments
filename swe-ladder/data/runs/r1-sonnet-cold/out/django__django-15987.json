@@ -1,0 +1,1 @@
+{"summary": "In loaddata's fixture_dirs, FIXTURE_DIRS entries are now normalized with os.fspath() before the duplicate check and the app default-fixture-dir check, so Path instances are detected like strings. I added pathlib tests for both checks and ran the fixtures_regress and fixtures suites, which pass."}

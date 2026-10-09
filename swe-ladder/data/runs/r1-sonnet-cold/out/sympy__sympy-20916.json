@@ -1,0 +1,1 @@
+{"summary": "Changed the digit-suffix regex in sympy/printing/conventions.py to match any Unicode letters instead of only ASCII a-zA-Z, so names like ω0 split into base and subscript. Verified that pprint of Matrix([[-t0*ω0]]) now prints -t₀⋅ω₀ and that the pretty, conventions and latex test files pass."}

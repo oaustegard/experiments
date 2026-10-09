@@ -1,0 +1,46 @@
+diff --git a/django/contrib/admin/options.py b/django/contrib/admin/options.py
+index 66f3396a6b..4aa56f94eb 100644
+--- a/django/contrib/admin/options.py
++++ b/django/contrib/admin/options.py
+@@ -1026,11 +1026,17 @@ class ModelAdmin(BaseModelAdmin):
+             # Otherwise, use the field with icontains.
+             return "%s__icontains" % field_name
+ 
+-        may_have_duplicates = False
+         search_fields = self.get_search_fields(request)
+         if search_fields and search_term:
+             orm_lookups = [construct_search(str(search_field))
+                            for search_field in search_fields]
++            # Lookups across multi-valued relations (reverse FK, m2m) need a
++            # JOIN. Filtering the outer queryset once per search term would add
++            # one JOIN per term, so those terms are matched in a subquery.
++            spawns_duplicates = any(
++                lookup_spawns_duplicates(self.opts, search_spec)
++                for search_spec in orm_lookups
++            )
+             for bit in smart_split(search_term):
+                 if bit.startswith(('"', "'")) and bit[0] == bit[-1]:
+                     bit = unescape_string_literal(bit)
+@@ -1038,12 +1044,16 @@ class ModelAdmin(BaseModelAdmin):
+                     *((orm_lookup, bit) for orm_lookup in orm_lookups),
+                     _connector=models.Q.OR,
+                 )
+-                queryset = queryset.filter(or_queries)
+-            may_have_duplicates |= any(
+-                lookup_spawns_duplicates(self.opts, search_spec)
+-                for search_spec in orm_lookups
+-            )
+-        return queryset, may_have_duplicates
++                if spawns_duplicates:
++                    matching_pks = queryset.model._base_manager.filter(
++                        or_queries,
++                    ).values('pk')
++                    queryset = queryset.filter(pk__in=matching_pks)
++                else:
++                    queryset = queryset.filter(or_queries)
++        # The subqueries keep the outer queryset free of duplicate rows, so the
++        # search itself never requires distinct().
++        return queryset, False
+ 
+     def get_preserved_filters(self, request):
+         """

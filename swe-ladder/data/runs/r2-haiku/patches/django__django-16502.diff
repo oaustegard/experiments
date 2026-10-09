@@ -1,0 +1,74 @@
+diff --git a/django/core/servers/basehttp.py b/django/core/servers/basehttp.py
+index fef5532e58..7ed873a003 100644
+--- a/django/core/servers/basehttp.py
++++ b/django/core/servers/basehttp.py
+@@ -143,6 +143,23 @@ class ServerHandler(simple_server.ServerHandler):
+         if self.headers.get("Connection") == "close":
+             self.request_handler.close_connection = True
+ 
++    def write(self, data):
++        if self.environ.get("REQUEST_METHOD") != "HEAD":
++            super().write(data)
++            return
++        # RFC 2616, section 4.3: the response to a HEAD request must not
++        # include a body. Upstream servers normally strip it, but runserver
++        # does not. Send the headers as wsgiref would, so Content-Length
++        # reflects the real body, then discard the body data.
++        if not self.status:
++            raise AssertionError("write() before start_response()")
++        if not self.headers_sent:
++            self.bytes_sent = len(data)
++            self.send_headers()
++        else:
++            self.bytes_sent += len(data)
++        self._flush()
++
+     def close(self):
+         self.get_stdin().read()
+         super().close()
+diff --git a/tests/servers/test_basehttp.py b/tests/servers/test_basehttp.py
+index a837505feb..17abb98b5d 100644
+--- a/tests/servers/test_basehttp.py
++++ b/tests/servers/test_basehttp.py
+@@ -106,6 +106,41 @@ class WSGIRequestHandlerTestCase(SimpleTestCase):
+ 
+         self.assertEqual(body, b"HTTP_SOME_HEADER:good")
+ 
++    def test_head_request_has_no_body(self):
++        """A response to a HEAD request contains headers but no body."""
++
++        def test_app(environ, start_response):
++            start_response("200 OK", [("Content-Type", "text/plain")])
++            return [b"body"]
++
++        rfile = BytesIO(b"HEAD / HTTP/1.0\r\n\r\n")
++
++        # WSGIRequestHandler closes the output file; keep its contents readable.
++        class UnclosableBytesIO(BytesIO):
++            def close(self):
++                pass
++
++        wfile = UnclosableBytesIO()
++
++        def makefile(mode, *a, **kw):
++            if mode == "rb":
++                return rfile
++            elif mode == "wb":
++                return wfile
++
++        request = Stub(makefile=makefile)
++        server = Stub(base_environ={}, get_app=lambda: test_app)
++
++        with self.assertLogs("django.server", "INFO"):
++            WSGIRequestHandler(request, "192.168.0.2", server)
++
++        headers, _, body = wfile.getvalue().partition(b"\r\n\r\n")
++        self.assertIn(b"HTTP/1.1 200 OK", headers)
++        self.assertIn(b"Content-Type: text/plain", headers)
++        # Content-Length describes the body a GET would return.
++        self.assertIn(b"Content-Length: 4", headers)
++        self.assertEqual(body, b"")
++
+ 
+ class WSGIServerTestCase(SimpleTestCase):
+     request_factory = RequestFactory()

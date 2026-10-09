@@ -1,0 +1,1 @@
+{"summary": "Added AddIndex.reduce in django/db/migrations/operations/models.py so an AddIndex followed by a RemoveIndex of the same index name on the same model optimizes away to nothing. Verified with new optimizer tests (reduces, and does not reduce for a different name) and the migrations.test_optimizer and migrations.test_operations suites passing."}

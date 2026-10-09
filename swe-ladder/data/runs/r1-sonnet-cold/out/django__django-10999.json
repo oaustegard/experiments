@@ -1,0 +1,1 @@
+{"summary": "Changed the hours lookahead in standard_duration_re in django/utils/dateparse.py to (?=-?\\d+:-?\\d+) so negative minutes and seconds match. I checked it with a temporary script parsing several negative durations, then ran utils_tests.test_dateparse, which passed."}

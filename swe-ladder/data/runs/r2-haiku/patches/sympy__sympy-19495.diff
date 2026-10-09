@@ -1,0 +1,54 @@
+diff --git a/sympy/sets/conditionset.py b/sympy/sets/conditionset.py
+index 118eda6f77..f33ea119f0 100644
+--- a/sympy/sets/conditionset.py
++++ b/sympy/sets/conditionset.py
+@@ -243,7 +243,11 @@ def _eval_subs(self, old, new):
+         cond = self.condition.subs(old, new)
+         base = self.base_set.subs(old, new)
+         if cond is S.true:
+-            return ConditionSet(new, Contains(new, base), base)
++            # the condition no longer filters the base set, so the result
++            # is the base set, as xreplace gives (the constructor returns
++            # base_set for a True condition); rebinding the bound symbol
++            # to new is not valid when new is not a Symbol (issue 19495)
++            return base
+         return self.func(self.sym, cond, base)
+ 
+     def dummy_eq(self, other, symbol=None):
+diff --git a/sympy/sets/tests/test_conditionset.py b/sympy/sets/tests/test_conditionset.py
+index 0d4527a52c..ad423d69ff 100644
+--- a/sympy/sets/tests/test_conditionset.py
++++ b/sympy/sets/tests/test_conditionset.py
+@@ -1,7 +1,7 @@
+ from sympy.sets import (ConditionSet, Intersection, FiniteSet,
+-    EmptySet, Union, Contains)
++    EmptySet, Union, Contains, ImageSet)
+ from sympy import (Symbol, Eq, S, Abs, sin, pi, Interval,
+-    And, Mod, oo, Function)
++    And, Mod, oo, Function, Lambda, asin, Rational)
+ from sympy.testing.pytest import raises, XFAIL, warns_deprecated_sympy
+ 
+ 
+@@ -124,10 +124,21 @@ def test_subs_CondSet():
+         x + 1, x < 1, s))
+     assert ConditionSet(
+         n, n < x, Interval(0, oo)).subs(x, p) == Interval(0, oo)
++    # n is negative and p positive so the condition is True for every
++    # element of the base set: the result is the base set
+     assert ConditionSet(
+-        n, n < x, Interval(-oo, 0)).subs(x, p) == S.EmptySet
++        n, n < x, Interval(-oo, 0)).subs(x, p) == Interval(-oo, 0)
+     assert ConditionSet(f(x), f(x) < 1, {w, z}
+         ).subs(f(x), y) == ConditionSet(y, y < 1, {w, z})
++    # when the condition becomes True the result is the base set,
++    # not a ConditionSet whose bound symbol is the substituted value
++    # (issue 19495)
++    k = Symbol('k', integer=True)
++    c = ConditionSet(x, Contains(y, Interval(-1, 1)), ImageSet(
++        Lambda(k, 2*k*pi + asin(y)), S.Integers))
++    assert c.subs(y, Rational(1, 3)) == ImageSet(
++        Lambda(k, 2*k*pi + asin(Rational(1, 3))), S.Integers)
++    assert c.subs(y, Rational(1, 3)) == c.xreplace({y: Rational(1, 3)})
+ 
+ 
+ def test_subs_CondSet_tebr():

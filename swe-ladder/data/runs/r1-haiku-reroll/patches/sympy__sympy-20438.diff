@@ -1,0 +1,60 @@
+diff --git a/sympy/core/relational.py b/sympy/core/relational.py
+index e2e0b7fbcc..b805b6a9a5 100644
+--- a/sympy/core/relational.py
++++ b/sympy/core/relational.py
+@@ -305,6 +305,10 @@ def _eval_simplify(self, **kwargs):
+         r = self
+         r = r.func(*[i.simplify(**kwargs) for i in r.args])
+         if r.is_Relational:
++            if not isinstance(r.lhs, Expr) or not isinstance(r.rhs, Expr):
++                # Non-expression sides (e.g. sets) have no difference that
++                # can be tested against zero, so keep the simplified sides.
++                return r
+             dif = r.lhs - r.rhs
+             # replace dif with a valid Number that will
+             # allow a definitive comparison with 0
+diff --git a/sympy/sets/handlers/issubset.py b/sympy/sets/handlers/issubset.py
+index fdca06025a..915d35b626 100644
+--- a/sympy/sets/handlers/issubset.py
++++ b/sympy/sets/handlers/issubset.py
+@@ -1,7 +1,7 @@
+ from sympy import S, Symbol
+ from sympy.core.logic import fuzzy_and, fuzzy_bool, fuzzy_not, fuzzy_or
+ from sympy.core.relational import Eq
+-from sympy.sets.sets import FiniteSet, Interval, Set, Union
++from sympy.sets.sets import FiniteSet, Interval, ProductSet, Set, Union
+ from sympy.sets.fancysets import Complexes, Reals, Range, Rationals
+ from sympy.multipledispatch import dispatch
+ 
+@@ -31,6 +31,13 @@ def is_subset_sets(a_interval, b_fs): # noqa:F811
+     if fuzzy_not(a_interval.measure.is_zero):
+         return False
+ 
++@dispatch(ProductSet, FiniteSet)  # type: ignore # noqa:F811
++def is_subset_sets(a_ps, b_fs): # noqa:F811
++    # A ProductSet can only be a subset of a FiniteSet if it is finite, and
++    # then each of its elements (tuples) must be a member of the FiniteSet.
++    if a_ps.is_iterable:
++        return fuzzy_and(b_fs._contains(e) for e in a_ps)
++
+ @dispatch(Interval, Union)  # type: ignore # noqa:F811
+ def is_subset_sets(a_interval, b_u): # noqa:F811
+     if all(isinstance(s, (Interval, FiniteSet)) for s in b_u.args):
+diff --git a/sympy/sets/tests/test_sets.py b/sympy/sets/tests/test_sets.py
+index d29a046072..de187696ae 100644
+--- a/sympy/sets/tests/test_sets.py
++++ b/sympy/sets/tests/test_sets.py
+@@ -1601,3 +1601,13 @@ def test_issue_20379():
+     #https://github.com/sympy/sympy/issues/20379
+     x = pi - 3.14159265358979
+     assert FiniteSet(x).evalf(2) == FiniteSet(Float('3.23108914886517e-15', 2))
++
++def test_issue_20438():
++    #https://github.com/sympy/sympy/issues/20438
++    a = FiniteSet(1, 2)
++    b = ProductSet(a, a)
++    c = FiniteSet((1, 1), (1, 2), (2, 1), (2, 2))
++    assert b.is_subset(c) is True
++    assert c.is_subset(b) is True
++    assert b.is_subset(FiniteSet((1, 1), (2, 2), (3, 3))) is False
++    assert Eq(b, c).simplify() is not None

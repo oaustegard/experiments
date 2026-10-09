@@ -1,0 +1,1 @@
+{"summary": "Caught OverflowError alongside ValueError in SelectDateWidget.value_from_datadict (django/forms/widgets.py) so oversized year/month/day values fall back to the pseudo-ISO string instead of crashing. Verified with a repro using year=1234567821345678 and by running forms_tests.widget_tests.test_selectdatewidget (15 tests pass)."}

@@ -1,0 +1,98 @@
+diff --git a/django/core/servers/basehttp.py b/django/core/servers/basehttp.py
+index fef5532e58..c42ed6c030 100644
+--- a/django/core/servers/basehttp.py
++++ b/django/core/servers/basehttp.py
+@@ -129,12 +129,18 @@ class ServerHandler(simple_server.ServerHandler):
+         )
+ 
+     def cleanup_headers(self):
+-        super().cleanup_headers()
++        is_head = self.environ["REQUEST_METHOD"] == "HEAD"
++        # Don't compute a Content-Length for HEAD: no body is written, so the
++        # computed value would be wrong.
++        if not is_head:
++            super().cleanup_headers()
+         # HTTP/1.1 requires support for persistent connections. Send 'close' if
+         # the content length is unknown to prevent clients from reusing the
+-        # connection.
++        # connection. HEAD responses have no body, so their framing doesn't
++        # depend on the content length.
+         if "Content-Length" not in self.headers:
+-            self.headers["Connection"] = "close"
++            if not is_head:
++                self.headers["Connection"] = "close"
+         # Persistent connections require threading server.
+         elif not isinstance(self.request_handler.server, socketserver.ThreadingMixIn):
+             self.headers["Connection"] = "close"
+@@ -143,6 +149,25 @@ class ServerHandler(simple_server.ServerHandler):
+         if self.headers.get("Connection") == "close":
+             self.request_handler.close_connection = True
+ 
++    def finish_response(self):
++        # RFC 9110, section 9.3.2: the response to a HEAD request must not
++        # include a body. Send the headers only, discarding the body.
++        if self.environ["REQUEST_METHOD"] == "HEAD":
++            try:
++                if not self.headers_sent:
++                    # start_response() may only be called once the iterable
++                    # yields its first item (e.g. generator applications).
++                    next(iter(self.result), None)
++                    self.send_headers()
++            except BaseException:
++                if hasattr(self.result, "close"):
++                    self.result.close()
++                raise
++            else:
++                self.close()
++        else:
++            super().finish_response()
++
+     def close(self):
+         self.get_stdin().read()
+         super().close()
+diff --git a/tests/servers/test_basehttp.py b/tests/servers/test_basehttp.py
+index a837505feb..3f6f3f5e61 100644
+--- a/tests/servers/test_basehttp.py
++++ b/tests/servers/test_basehttp.py
+@@ -106,6 +106,41 @@ class WSGIRequestHandlerTestCase(SimpleTestCase):
+ 
+         self.assertEqual(body, b"HTTP_SOME_HEADER:good")
+ 
++    def test_head_request_has_no_body(self):
++        """A response to a HEAD request contains headers but no body."""
++
++        def test_app(environ, start_response):
++            start_response("200 OK", [("Content-Type", "text/plain")])
++            yield b"body"
++
++        rfile = BytesIO(b"HEAD / HTTP/1.0\r\n\r\n")
++
++        # WSGIRequestHandler closes the output file; keep its contents readable.
++        class UnclosableBytesIO(BytesIO):
++            def close(self):
++                pass
++
++        wfile = UnclosableBytesIO()
++
++        def makefile(mode, *a, **kw):
++            if mode == "rb":
++                return rfile
++            elif mode == "wb":
++                return wfile
++
++        request = Stub(makefile=makefile)
++        server = Stub(base_environ={}, get_app=lambda: test_app)
++
++        with self.assertLogs("django.server", "INFO"):
++            WSGIRequestHandler(request, "192.168.0.2", server)
++
++        headers, _, body = wfile.getvalue().partition(b"\r\n\r\n")
++        self.assertIn(b"HTTP/1.1 200 OK", headers)
++        self.assertIn(b"Content-Type: text/plain", headers)
++        self.assertNotIn(b"Content-Length", headers)
++        self.assertNotIn(b"Connection: close", headers)
++        self.assertEqual(body, b"")
++
+ 
+ class WSGIServerTestCase(SimpleTestCase):
+     request_factory = RequestFactory()

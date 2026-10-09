@@ -1,0 +1,1 @@
+{"summary": "Vector.__add__ in sympy/physics/vector/vector.py now returns self when other == 0, so sum([N.x, 0*N.x]), 0 + N.x, N.x + 0 and 0 - N.x no longer raise TypeError. I checked these with a repro script run through swe-run and ran sympy/physics/vector/tests/test_vector.py through swe-test (4 passed)."}

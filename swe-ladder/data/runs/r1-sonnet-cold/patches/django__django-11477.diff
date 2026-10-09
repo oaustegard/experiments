@@ -1,0 +1,18 @@
+diff --git a/django/urls/resolvers.py b/django/urls/resolvers.py
+index af0508f94e..fd32c9597e 100644
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -153,8 +153,11 @@ class RegexPattern(CheckURLMixin):
+             # If there are any named groups, use those as kwargs, ignoring
+             # non-named groups. Otherwise, pass all non-named arguments as
+             # positional arguments.
+-            kwargs = match.groupdict()
+-            args = () if kwargs else match.groups()
++            groupdict = match.groupdict()
++            # Drop named groups that didn't participate in the match (optional
++            # groups), so they're not passed as None to views or reverse().
++            kwargs = {k: v for k, v in groupdict.items() if v is not None}
++            args = () if groupdict else match.groups()
+             return path[match.end():], args, kwargs
+         return None
+ 

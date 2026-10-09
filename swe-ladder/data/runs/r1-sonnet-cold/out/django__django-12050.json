@@ -1,0 +1,1 @@
+{"summary": "In Query.resolve_lookup_value (django/db/models/sql/query.py) I replaced the hardcoded tuple(resolved_values) with type(value)(resolved_values), so a list input stays a list and a tuple stays a tuple. I ran the queries, expressions and lookup test suites with swe-test (556 tests, all passing)."}

@@ -1,0 +1,70 @@
+diff --git a/sympy/physics/quantum/tensorproduct.py b/sympy/physics/quantum/tensorproduct.py
+index 9dd10d219e..40783c3312 100644
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -315,9 +315,13 @@ def tensor_product_simp_Mul(e):
+     if not isinstance(e, Mul):
+         return e
+     c_part, nc_part = e.args_cnc()
++    # Turn powers of TensorProducts into TensorProducts of powers
++    nc_part = [tensor_product_simp_Pow(f) for f in nc_part]
+     n_nc = len(nc_part)
+-    if n_nc == 0 or n_nc == 1:
++    if n_nc == 0:
+         return e
++    elif n_nc == 1:
++        return Mul(*c_part) * nc_part[0]
+     elif e.has(TensorProduct):
+         current = nc_part[0]
+         if not isinstance(current, TensorProduct):
+@@ -345,6 +349,17 @@ def tensor_product_simp_Mul(e):
+         return e
+ 
+ 
++def tensor_product_simp_Pow(e):
++    """Evaluate a power of a ``TensorProduct``, ``(AxB)**n -> (A**n)x(B**n)``.
++
++    Anything that is not a ``Pow`` of a ``TensorProduct`` is returned
++    unchanged.
++    """
++    if isinstance(e, Pow) and isinstance(e.base, TensorProduct):
++        return TensorProduct(*[arg**e.exp for arg in e.base.args])
++    return e
++
++
+ def tensor_product_simp(e, **hints):
+     """Try to simplify and combine TensorProducts.
+ 
+@@ -376,13 +391,13 @@ def tensor_product_simp(e, **hints):
+     commutators and anticommutators as well:
+ 
+     >>> tensor_product_simp(e**2)
+-    (A*C)x(B*D)**2
++    ((A*C)**2)x((B*D)**2)
+ 
+     """
+     if isinstance(e, Add):
+         return Add(*[tensor_product_simp(arg) for arg in e.args])
+     elif isinstance(e, Pow):
+-        return tensor_product_simp(e.base) ** e.exp
++        return tensor_product_simp_Pow(tensor_product_simp(e.base) ** e.exp)
+     elif isinstance(e, Mul):
+         return tensor_product_simp_Mul(e)
+     elif isinstance(e, Commutator):
+diff --git a/sympy/physics/quantum/tests/test_tensorproduct.py b/sympy/physics/quantum/tests/test_tensorproduct.py
+index 9f65844c85..f796fa7239 100644
+--- a/sympy/physics/quantum/tests/test_tensorproduct.py
++++ b/sympy/physics/quantum/tests/test_tensorproduct.py
+@@ -105,3 +105,12 @@ def test_eval_trace():
+                         1.0*A*Dagger(C)*Tr(B*Dagger(D)) +
+                         1.0*C*Dagger(A)*Tr(D*Dagger(B)) +
+                         1.0*C*Dagger(C)*Tr(D*Dagger(D)))
++
++
++def test_tensor_product_simp_pow():
++    a = symbols('a', commutative=False)
++    t1 = TP(1, 1)*TP(1, 1)
++    assert tensor_product_simp(t1) == TP(1, 1)
++    assert tensor_product_simp(TP(A, B)**x) == TP(A**x, B**x)
++    assert tensor_product_simp(TP(1, a)*TP(1, a)).subs(a, 1) == TP(1, 1)
++    assert tensor_product_simp(TP(A, B)**2*TP(C, A)) == TP(A**2*C, B**2*A)

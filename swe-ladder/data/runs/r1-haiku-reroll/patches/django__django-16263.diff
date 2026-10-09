@@ -1,0 +1,112 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 9735ce10c8..a569a119b5 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -39,7 +39,14 @@ from django.db.models.query_utils import (
+ )
+ from django.db.models.sql.constants import INNER, LOUTER, ORDER_DIR, SINGLE
+ from django.db.models.sql.datastructures import BaseTable, Empty, Join, MultiJoin
+-from django.db.models.sql.where import AND, OR, ExtraWhere, NothingNode, WhereNode
++from django.db.models.sql.where import (
++    AND,
++    OR,
++    ExtraWhere,
++    NothingNode,
++    SubqueryConstraint,
++    WhereNode,
++)
+ from django.utils.functional import cached_property
+ from django.utils.regex_helper import _lazy_re_compile
+ from django.utils.tree import Node
+@@ -550,9 +557,91 @@ class Query(BaseExpression):
+         Perform a COUNT() query using the current filter constraints.
+         """
+         obj = self.clone()
++        obj.strip_unused_annotations()
+         obj.add_annotation(Count("*"), alias="__count", is_summary=True)
+         return obj.get_aggregation(using, ["__count"])["__count"]
+ 
++    def strip_unused_annotations(self):
++        """
++        Remove annotations that cannot affect the number of rows, along with
++        the joins only they use. An annotation is needed if the WHERE clause,
++        the ordering or a needed annotation references it. Leave the query
++        untouched when it has constructs whose references are not visible
++        here (subqueries, raw SQL, distinct, slicing, combinators or an
++        explicit GROUP BY), since removing anything could change the count.
++        """
++        if (
++            not self.annotations
++            or self.distinct
++            or self.is_sliced
++            or self.combinator
++            or self.extra_tables
++            or isinstance(self.group_by, tuple)
++        ):
++            return
++
++        needed_annotations = set()
++        needed_aliases = set()
++        pending = [self.where, *self.order_by]
++        while pending:
++            node = pending.pop()
++            if isinstance(node, str):
++                # Ordering by an annotation is a plain alias string.
++                name = node[1:] if node.startswith("-") else node
++                if name in self.annotations and name not in needed_annotations:
++                    needed_annotations.add(name)
++                    pending.append(self.annotations[name])
++                continue
++            if isinstance(node, (Query, ExtraWhere, SubqueryConstraint)):
++                return
++            if hasattr(node, "query"):  # Subquery and Exists wrap a query.
++                return
++            if isinstance(node, Col):
++                needed_aliases.add(node.alias)
++            elif isinstance(node, Ref):
++                pending.append(node.refs)
++            for alias, annotation in self.annotations.items():
++                if node is annotation and alias not in needed_annotations:
++                    needed_annotations.add(alias)
++                    pending.append(annotation)
++            if hasattr(node, "get_source_expressions"):
++                pending.extend(node.get_source_expressions())
++
++        removed = [
++            alias for alias in self.annotations if alias not in needed_annotations
++        ]
++        if not removed:
++            return
++
++        # Keep the join chains of the needed columns; the other joins go.
++        for alias in list(needed_aliases):
++            join = self.alias_map.get(alias)
++            while isinstance(join, Join):
++                needed_aliases.add(join.parent_alias)
++                join = self.alias_map.get(join.parent_alias)
++        joins = [
++            alias
++            for alias, join in self.alias_map.items()
++            if isinstance(join, Join) and alias in needed_aliases
++        ]
++        if self.group_by is True and not needed_annotations and joins:
++            # The implicit GROUP BY on the model's columns collapses the rows
++            # multiplied by the remaining joins. Without annotations to carry
++            # it, a COUNT(*) would count those duplicates, so keep the query.
++            return
++
++        for alias, join in self.alias_map.items():
++            if isinstance(join, Join) and alias not in needed_aliases:
++                self.alias_refcount[alias] = 0
++        for alias in removed:
++            del self.annotations[alias]
++        mask = self.annotation_select_mask
++        self.set_annotation_mask(
++            None if mask is None else mask.intersection(self.annotations)
++        )
++        if self.group_by is True and not self.annotations:
++            self.group_by = None
++
+     def has_filters(self):
+         return self.where
+ 

@@ -1,0 +1,98 @@
+diff --git a/django/forms/boundfield.py b/django/forms/boundfield.py
+index a061f15f87..461bf14ef2 100644
+--- a/django/forms/boundfield.py
++++ b/django/forms/boundfield.py
+@@ -2,7 +2,7 @@ import re
+ 
+ from django.core.exceptions import ValidationError
+ from django.forms.utils import flatatt, pretty_name
+-from django.forms.widgets import Textarea, TextInput
++from django.forms.widgets import MultiWidget, Textarea, TextInput
+ from django.utils.functional import cached_property
+ from django.utils.html import conditional_escape, format_html, html_safe
+ from django.utils.safestring import mark_safe
+@@ -233,7 +233,17 @@ class BoundField:
+         widget = widget or self.field.widget
+         attrs = dict(attrs)  # Copy attrs to avoid modifying the argument.
+         if widget.use_required_attribute(self.initial) and self.field.required and self.form.use_required_attribute:
+-            attrs['required'] = True
++            # MultiValueField has require_all_fields: if False, fall back on
++            # the subfields.
++            if (
++                hasattr(self.field, 'require_all_fields') and
++                not self.field.require_all_fields and
++                isinstance(self.field.widget, MultiWidget)
++            ):
++                for subfield, subwidget in zip(self.field.fields, widget.widgets):
++                    subwidget.attrs['required'] = subwidget.use_required_attribute(self.initial) and subfield.required
++            else:
++                attrs['required'] = True
+         if self.field.disabled:
+             attrs['disabled'] = True
+         return attrs
+diff --git a/django/forms/fields.py b/django/forms/fields.py
+index 65d6a9ec82..483cc6fe46 100644
+--- a/django/forms/fields.py
++++ b/django/forms/fields.py
+@@ -1025,7 +1025,10 @@ class MultiValueField(Field):
+             if not value or not [v for v in value if v not in self.empty_values]:
+                 if self.required:
+                     raise ValidationError(self.error_messages['required'], code='required')
+-                else:
++                # No value at all means the optional field is absent. A list of
++                # blank values still has to satisfy any required sub-field, so
++                # fall through and let the loop below report 'incomplete'.
++                if not value or not any(field.required for field in self.fields):
+                     return self.compress([])
+         else:
+             raise ValidationError(self.error_messages['invalid'], code='invalid')
+diff --git a/tests/forms_tests/field_tests/test_multivaluefield.py b/tests/forms_tests/field_tests/test_multivaluefield.py
+index 29287d0b01..edf66d7d28 100644
+--- a/tests/forms_tests/field_tests/test_multivaluefield.py
++++ b/tests/forms_tests/field_tests/test_multivaluefield.py
+@@ -172,3 +172,45 @@ class MultiValueFieldTest(SimpleTestCase):
+         })
+         form.is_valid()
+         self.assertEqual(form.cleaned_data['field1'], 'some text,JP,2007-04-25 06:24:00')
++
++    def test_optional_field_blank_values_respect_required_subfield(self):
++        class MF(MultiValueField):
++            widget = MultiWidget
++
++            def __init__(self):
++                fields = [CharField(required=False), CharField(required=True)]
++                widget = self.widget(widgets=[f.widget for f in fields], attrs={})
++                super().__init__(
++                    fields=fields, widget=widget, require_all_fields=False, required=False,
++                )
++
++            def compress(self, data_list):
++                return []
++
++        class F(Form):
++            mf = MF()
++
++        form = F({'mf_0': '', 'mf_1': ''})
++        self.assertFalse(form.is_valid())
++        self.assertEqual(form.errors['mf'], ['Enter a complete value.'])
++        form = F({'mf_0': 'xxx', 'mf_1': ''})
++        self.assertFalse(form.is_valid())
++
++    def test_render_required_attributes(self):
++        class PartiallyRequiredField(MultiValueField):
++            def __init__(self, **kwargs):
++                fields = (CharField(required=True), CharField(required=False))
++                super().__init__(fields, require_all_fields=False, **kwargs)
++
++            def compress(self, data_list):
++                return ','.join(data_list)
++
++        class PartiallyRequiredForm(Form):
++            f = PartiallyRequiredField(widget=MultiWidget(widgets=[TextInput(), TextInput()]))
++
++        form = PartiallyRequiredForm({'f_0': 'Hello', 'f_1': ''})
++        self.assertTrue(form.is_valid())
++        self.assertInHTML('<input type="text" name="f_0" value="Hello" required id="id_f_0">', form.as_p())
++        self.assertInHTML('<input type="text" name="f_1" id="id_f_1">', form.as_p())
++        form = PartiallyRequiredForm({'f_0': '', 'f_1': ''})
++        self.assertFalse(form.is_valid())

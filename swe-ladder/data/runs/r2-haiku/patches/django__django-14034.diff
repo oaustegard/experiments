@@ -1,0 +1,100 @@
+diff --git a/django/forms/boundfield.py b/django/forms/boundfield.py
+index a061f15f87..eea4049fb5 100644
+--- a/django/forms/boundfield.py
++++ b/django/forms/boundfield.py
+@@ -232,7 +232,15 @@ class BoundField:
+     def build_widget_attrs(self, attrs, widget=None):
+         widget = widget or self.field.widget
+         attrs = dict(attrs)  # Copy attrs to avoid modifying the argument.
+-        if widget.use_required_attribute(self.initial) and self.field.required and self.form.use_required_attribute:
++        # A MultiValueField with require_all_fields=False only requires some of
++        # its sub-fields, depending on what was entered. An HTML required
++        # attribute would be copied onto every sub-input, so leave that case to
++        # clean() rather than forcing the browser to demand all of them.
++        conditionally_required = getattr(self.field, 'require_all_fields', True) is False
++        if (
++            widget.use_required_attribute(self.initial) and self.field.required and
++            self.form.use_required_attribute and not conditionally_required
++        ):
+             attrs['required'] = True
+         if self.field.disabled:
+             attrs['disabled'] = True
+diff --git a/django/forms/fields.py b/django/forms/fields.py
+index 65d6a9ec82..138cdce1d9 100644
+--- a/django/forms/fields.py
++++ b/django/forms/fields.py
+@@ -1025,7 +1025,9 @@ class MultiValueField(Field):
+             if not value or not [v for v in value if v not in self.empty_values]:
+                 if self.required:
+                     raise ValidationError(self.error_messages['required'], code='required')
+-                else:
++                # An optional field with no values is valid, unless a sub-field
++                # is required: then fall through so the loop reports 'incomplete'.
++                if not value or not any(field.required for field in self.fields):
+                     return self.compress([])
+         else:
+             raise ValidationError(self.error_messages['invalid'], code='invalid')
+diff --git a/tests/forms_tests/field_tests/test_multivaluefield.py b/tests/forms_tests/field_tests/test_multivaluefield.py
+index 29287d0b01..698e0224a5 100644
+--- a/tests/forms_tests/field_tests/test_multivaluefield.py
++++ b/tests/forms_tests/field_tests/test_multivaluefield.py
+@@ -172,3 +172,59 @@ class MultiValueFieldTest(SimpleTestCase):
+         })
+         form.is_valid()
+         self.assertEqual(form.cleaned_data['field1'], 'some text,JP,2007-04-25 06:24:00')
++
++    def test_optional_field_blank_values_respect_required_subfield(self):
++        class MF(MultiValueField):
++            widget = MultiWidget
++
++            def __init__(self):
++                fields = [CharField(required=False), CharField(required=True)]
++                widget = self.widget(widgets=[f.widget for f in fields], attrs={})
++                super().__init__(
++                    fields=fields, widget=widget, require_all_fields=False, required=False,
++                )
++
++            def compress(self, data_list):
++                return []
++
++        class F(Form):
++            mf = MF()
++
++        form = F({'mf_0': '', 'mf_1': ''})
++        self.assertFalse(form.is_valid())
++        self.assertEqual(form.errors['mf'], ['Enter a complete value.'])
++        form = F({'mf_0': 'xxx', 'mf_1': ''})
++        self.assertFalse(form.is_valid())
++
++    def test_render_required_attributes(self):
++        """
++        Sub-inputs of a MultiValueField with require_all_fields=False don't
++        get an HTML required attribute, even when a sub-field is required.
++        """
++        class MW(MultiWidget):
++            def decompress(self, value):
++                return [None, None] if value is None else list(value)
++
++        class MF(MultiValueField):
++            widget = MW
++
++            def __init__(self, **kwargs):
++                fields = [CharField(required=False), CharField(required=True)]
++                widget = self.widget(widgets=[f.widget for f in fields], attrs={})
++                super().__init__(
++                    fields=fields, widget=widget, require_all_fields=False, **kwargs,
++                )
++
++            def compress(self, data_list):
++                return []
++
++        class F(Form):
++            f = MF(required=False)
++
++        class G(Form):
++            f = MF(required=True)
++
++        for form in (F(), G(), G({'f_0': '', 'f_1': ''})):
++            with self.subTest(form=form.__class__.__name__, bound=form.is_bound):
++                self.assertInHTML('<input type="text" name="f_0" id="id_f_0">', form.as_p())
++                self.assertInHTML('<input type="text" name="f_1" id="id_f_1">', form.as_p())

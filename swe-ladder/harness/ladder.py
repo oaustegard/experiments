@@ -102,8 +102,33 @@ def _prepare(run: str, m: dict, task: dict) -> str:
     return prompts.rung2(task, path, diff, failing, excerpt)
 
 
+SETTLE = 600   # seconds an out file must age before next() collects it unasked
+
+
+def _finished_running(run: str) -> list[str]:
+    """Running tasks whose out file is at least SETTLE seconds old.
+
+    Agents told to write the out file last sometimes keep testing afterwards; a
+    fresh out file does not mean the agent stopped (r2-sonnet django-16256 lost
+    its checkout mid-run to an immediate collect). Completion notices name the
+    finished ids explicitly; this only catches ones that were missed.
+    """
+    import time
+    state = fanout._load(rdir(run) / "fanout")
+    tasks = state["tasks"] if isinstance(state, dict) and "tasks" in state else state
+    tasks = tasks.values() if isinstance(tasks, dict) else tasks
+    now = time.time()
+    return [t["id"] for t in tasks if t.get("status") == "running" and Path(t["out"]).exists()
+            and now - Path(t["out"]).stat().st_mtime > SETTLE]
+
+
 def next_(a) -> None:
     d, m = rdir(a.run), meta(a.run)
+    # fanout.next_batch marks these done itself; collect their diffs first, or a
+    # sweep-promoted task's checkout would never be saved.
+    finished = _finished_running(a.run)
+    if finished:
+        done(argparse.Namespace(run=a.run, ids=finished))
     state = fanout._load(d / "fanout")
     batch = fanout.next_batch(state, a.slots)
     tasks = load_tasks({t["id"] for t in batch})

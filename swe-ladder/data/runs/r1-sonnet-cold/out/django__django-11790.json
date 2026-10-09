@@ -1,0 +1,1 @@
+{"summary": "In AuthenticationForm.__init__ (django/contrib/auth/forms.py) I now also set widget.attrs['maxlength'] to the username field's max length (falling back to 254), so the rendered input has the maxlength attribute again. I checked by rendering the form (it shows maxlength=\"150\") and by running auth_tests.test_forms and auth_tests.test_views, which pass."}

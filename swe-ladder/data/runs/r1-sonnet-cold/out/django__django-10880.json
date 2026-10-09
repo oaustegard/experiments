@@ -1,0 +1,1 @@
+{"summary": "Added a trailing space to the DISTINCT keyword in Aggregate.as_sql (django/db/models/aggregates.py) so Count(Case(...), distinct=True) renders COUNT(DISTINCT CASE WHEN ...) instead of COUNT(DISTINCTCASE ...). Ran the aggregation and aggregation_regress test suites, which pass (128 tests)."}

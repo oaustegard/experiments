@@ -1,0 +1,78 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 8ea6c05ef9..d7eb98f9c9 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -202,7 +202,11 @@ class ModelBase(type):
+                 continue
+             # Locate OneToOneField instances.
+             for field in base._meta.local_fields:
+-                if isinstance(field, OneToOneField):
++                # Only an explicit parent_link=True marks a parent link. Other
++                # OneToOneFields to the same model are ordinary relations and
++                # must not be promoted to the parent pointer, regardless of
++                # the order in which the fields were declared.
++                if isinstance(field, OneToOneField) and field.remote_field.parent_link:
+                     related = resolve_relation(new_class, field.remote_field.model)
+                     parent_links[make_model_tuple(related)] = field
+ 
+diff --git a/tests/invalid_models_tests/test_models.py b/tests/invalid_models_tests/test_models.py
+index 60b89b6f2e..d0c0cf3f58 100644
+--- a/tests/invalid_models_tests/test_models.py
++++ b/tests/invalid_models_tests/test_models.py
+@@ -3,7 +3,6 @@ import unittest
+ from django.conf import settings
+ from django.core.checks import Error, Warning
+ from django.core.checks.model_checks import _check_lazy_references
+-from django.core.exceptions import ImproperlyConfigured
+ from django.db import connection, connections, models
+ from django.db.models.functions import Lower
+ from django.db.models.signals import post_init
+@@ -1006,14 +1005,29 @@ class OtherModelTests(SimpleTestCase):
+ 
+         self.assertEqual(ShippingMethod.check(), [])
+ 
+-    def test_missing_parent_link(self):
+-        msg = 'Add parent_link=True to invalid_models_tests.ParkingLot.parent.'
+-        with self.assertRaisesMessage(ImproperlyConfigured, msg):
+-            class Place(models.Model):
+-                pass
++    def test_onetoone_with_parent_model(self):
++        # A OneToOneField to the parent without parent_link=True is an
++        # ordinary relation; the implicit parent pointer is still created.
++        class Place(models.Model):
++            pass
++
++        class ParkingLot(Place):
++            parent = models.OneToOneField(Place, models.CASCADE, related_name='parking')
++
++        self.assertEqual(ParkingLot._meta.pk.name, 'place_ptr')
++        self.assertEqual(ParkingLot.check(), [])
++
++    def test_parent_link_declared_after_other_onetoone(self):
++        # An explicit parent_link=True is used regardless of declaration order.
++        class Document(models.Model):
++            pass
++
++        class Picking(Document):
++            origin = models.OneToOneField(Document, models.PROTECT, related_name='picking')
++            document_ptr = models.OneToOneField(Document, models.CASCADE, parent_link=True, related_name='+')
+ 
+-            class ParkingLot(Place):
+-                parent = models.OneToOneField(Place, models.CASCADE)
++        self.assertEqual(Picking._meta.pk.name, 'document_ptr')
++        self.assertEqual(Picking.check(), [])
+ 
+     def test_m2m_table_name_clash(self):
+         class Foo(models.Model):
+diff --git a/tests/migrations/test_state.py b/tests/migrations/test_state.py
+index 267b75c811..ef198eb0b6 100644
+--- a/tests/migrations/test_state.py
++++ b/tests/migrations/test_state.py
+@@ -345,6 +345,7 @@ class StateTests(SimpleTestCase):
+                     'migrations.Tag',
+                     models.CASCADE,
+                     auto_created=True,
++                    parent_link=True,
+                     primary_key=True,
+                     to_field='id',
+                     serialize=False,

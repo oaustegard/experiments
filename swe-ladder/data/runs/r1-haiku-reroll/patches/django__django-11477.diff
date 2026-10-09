@@ -1,0 +1,39 @@
+diff --git a/django/urls/resolvers.py b/django/urls/resolvers.py
+index af0508f94e..8a695e78ae 100644
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -155,6 +155,10 @@ class RegexPattern(CheckURLMixin):
+             # positional arguments.
+             kwargs = match.groupdict()
+             args = () if kwargs else match.groups()
++            # Omit named groups that did not participate in the match (optional
++            # groups) so the view's defaults apply and reverse() does not get a
++            # literal None, e.g. when translate_url() reverses the match.
++            kwargs = {k: v for k, v in kwargs.items() if v is not None}
+             return path[match.end():], args, kwargs
+         return None
+ 
+diff --git a/tests/i18n/patterns/tests.py b/tests/i18n/patterns/tests.py
+index 6ed2c4ffeb..49d055adbd 100644
+--- a/tests/i18n/patterns/tests.py
++++ b/tests/i18n/patterns/tests.py
+@@ -157,6 +157,9 @@ class URLTranslationTests(URLTestCaseBase):
+             self.assertEqual(translate_url('/en/account/register/', 'nl'), '/nl/profiel/registreren/')
+             # path() URL pattern
+             self.assertEqual(translate_url('/en/account/register-as-path/', 'nl'), '/nl/profiel/registreren-als-pad/')
++            # Optional named groups missing from the URL
++            self.assertEqual(translate_url('/en/optional/foo/', 'nl'), '/nl/optional/foo/')
++            self.assertEqual(translate_url('/en/optional/foo/1/', 'nl'), '/nl/optional/foo/1/')
+             self.assertEqual(translation.get_language(), 'en')
+ 
+         with translation.override('nl'):
+diff --git a/tests/i18n/patterns/urls/default.py b/tests/i18n/patterns/urls/default.py
+index b0c2f2585e..b491aabf8f 100644
+--- a/tests/i18n/patterns/urls/default.py
++++ b/tests/i18n/patterns/urls/default.py
+@@ -17,4 +17,5 @@ urlpatterns += i18n_patterns(
+     path('prefixed.xml', view, name='prefixed_xml'),
+     re_path(_(r'^users/$'), view, name='users'),
+     re_path(_(r'^account/'), include('i18n.patterns.urls.namespace', namespace='account')),
++    re_path(r'^optional/(?P<name>.*)/(?:(?P<number>[0-9]+)/)?$', view, name='optional'),
+ )

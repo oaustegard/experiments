@@ -1,0 +1,1 @@
+{"summary": "Changed LaTeX _print_Subs in sympy/printing/latex.py to wrap the substituted expression with parenthesize(expr, PRECEDENCE[\"Mul\"], strict=True), so sums like -x+y get parentheses. Verified with a repro (3*Subs(-x+y,(x,),(1,)) now prints the parenthesized form, Subs(x*y) and Subs(x) stay unparenthesized) and ran the full test_latex.py suite."}

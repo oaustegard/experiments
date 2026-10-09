@@ -1,0 +1,44 @@
+diff --git a/sympy/printing/pycode.py b/sympy/printing/pycode.py
+index b669a2c783..aecd560573 100644
+--- a/sympy/printing/pycode.py
++++ b/sympy/printing/pycode.py
+@@ -6,7 +6,7 @@
+ from collections import defaultdict
+ from itertools import chain
+ from sympy.core import S
+-from .precedence import precedence
++from .precedence import precedence, PRECEDENCE
+ from .codeprinter import CodePrinter
+ 
+ _kw_py2and3 = {
+@@ -232,6 +232,15 @@ def _print_NegativeInfinity(self, expr):
+     def _print_ComplexInfinity(self, expr):
+         return self._print_NaN(expr)
+ 
++    def parenthesize(self, item, level, strict=False):
++        # ``Mod`` is printed as the infix operator ``%``, which binds like
++        # ``*``; unlike a function call it must be parenthesized as an operand
++        # of a product, power or unary minus: ``-(x % y)`` is not ``-x % y``.
++        from sympy.core.mod import Mod
++        if isinstance(item, Mod) and level >= PRECEDENCE["Add"]:
++            return "(%s)" % self._print(item)
++        return super().parenthesize(item, level, strict)
++
+     def _print_Mod(self, expr):
+         PREC = precedence(expr)
+         return ('{} % {}'.format(*map(lambda x: self.parenthesize(x, PREC), expr.args)))
+diff --git a/sympy/printing/tests/test_pycode.py b/sympy/printing/tests/test_pycode.py
+index cf18825eb1..ea6179ea72 100644
+--- a/sympy/printing/tests/test_pycode.py
++++ b/sympy/printing/tests/test_pycode.py
+@@ -386,3 +386,10 @@ def test_numerical_accuracy_functions():
+     assert prntr.doprint(expm1(x)) == 'numpy.expm1(x)'
+     assert prntr.doprint(log1p(x)) == 'numpy.log1p(x)'
+     assert prntr.doprint(cosm1(x)) == 'scipy.special.cosm1(x)'
++
++
++def test_issue_22080_mod_operand_parenthesized():
++    prntr = PythonCodePrinter()
++    assert prntr.doprint(-Mod(x, y)) == '-(x % y)'
++    assert prntr.doprint(2*Mod(x, y)) == '2*(x % y)'
++    assert prntr.doprint(Mod(x, y)**2) == '(x % y)**2'

@@ -1,0 +1,126 @@
+diff --git a/django/views/debug.py b/django/views/debug.py
+index 7a89f7bd15..7a270853c3 100644
+--- a/django/views/debug.py
++++ b/django/views/debug.py
+@@ -425,48 +425,49 @@ class ExceptionReporter:
+         exc_value = exceptions.pop()
+         tb = self.tb if not exceptions else exc_value.__traceback__
+ 
+-        while tb is not None:
+-            # Support for __traceback_hide__ which is used by a few libraries
+-            # to hide internal frames.
+-            if tb.tb_frame.f_locals.get('__traceback_hide__'):
++        while True:
++            while tb is not None:
++                # Support for __traceback_hide__ which is used by a few
++                # libraries to hide internal frames.
++                if tb.tb_frame.f_locals.get('__traceback_hide__'):
++                    tb = tb.tb_next
++                    continue
++                filename = tb.tb_frame.f_code.co_filename
++                function = tb.tb_frame.f_code.co_name
++                lineno = tb.tb_lineno - 1
++                loader = tb.tb_frame.f_globals.get('__loader__')
++                module_name = tb.tb_frame.f_globals.get('__name__') or ''
++                pre_context_lineno, pre_context, context_line, post_context = self._get_lines_from_file(
++                    filename, lineno, 7, loader, module_name,
++                )
++                if pre_context_lineno is None:
++                    pre_context_lineno = lineno
++                    pre_context = []
++                    context_line = '<source code not available>'
++                    post_context = []
++                frames.append({
++                    'exc_cause': explicit_or_implicit_cause(exc_value),
++                    'exc_cause_explicit': getattr(exc_value, '__cause__', True),
++                    'tb': tb,
++                    'type': 'django' if module_name.startswith('django.') else 'user',
++                    'filename': filename,
++                    'function': function,
++                    'lineno': lineno + 1,
++                    'vars': self.filter.get_traceback_frame_variables(self.request, tb.tb_frame),
++                    'id': id(tb),
++                    'pre_context': pre_context,
++                    'context_line': context_line,
++                    'post_context': post_context,
++                    'pre_context_lineno': pre_context_lineno + 1,
++                })
+                 tb = tb.tb_next
+-                continue
+-            filename = tb.tb_frame.f_code.co_filename
+-            function = tb.tb_frame.f_code.co_name
+-            lineno = tb.tb_lineno - 1
+-            loader = tb.tb_frame.f_globals.get('__loader__')
+-            module_name = tb.tb_frame.f_globals.get('__name__') or ''
+-            pre_context_lineno, pre_context, context_line, post_context = self._get_lines_from_file(
+-                filename, lineno, 7, loader, module_name,
+-            )
+-            if pre_context_lineno is None:
+-                pre_context_lineno = lineno
+-                pre_context = []
+-                context_line = '<source code not available>'
+-                post_context = []
+-            frames.append({
+-                'exc_cause': explicit_or_implicit_cause(exc_value),
+-                'exc_cause_explicit': getattr(exc_value, '__cause__', True),
+-                'tb': tb,
+-                'type': 'django' if module_name.startswith('django.') else 'user',
+-                'filename': filename,
+-                'function': function,
+-                'lineno': lineno + 1,
+-                'vars': self.filter.get_traceback_frame_variables(self.request, tb.tb_frame),
+-                'id': id(tb),
+-                'pre_context': pre_context,
+-                'context_line': context_line,
+-                'post_context': post_context,
+-                'pre_context_lineno': pre_context_lineno + 1,
+-            })
+ 
+             # If the traceback for current exception is consumed, try the
+             # other exception.
+-            if not tb.tb_next and exceptions:
+-                exc_value = exceptions.pop()
+-                tb = exc_value.__traceback__
+-            else:
+-                tb = tb.tb_next
++            if not exceptions:
++                break
++            exc_value = exceptions.pop()
++            tb = exc_value.__traceback__
+ 
+         return frames
+ 
+diff --git a/tests/view_tests/tests/test_debug.py b/tests/view_tests/tests/test_debug.py
+index 3cbeb2e03a..5013ac7340 100644
+--- a/tests/view_tests/tests/test_debug.py
++++ b/tests/view_tests/tests/test_debug.py
+@@ -467,6 +467,29 @@ class ExceptionReporterTests(SimpleTestCase):
+         self.assertIn('<p>Request data not supplied</p>', html)
+         self.assertNotIn('During handling of the above exception', html)
+ 
++    def test_innermost_exception_without_traceback(self):
++        try:
++            try:
++                raise RuntimeError('Oops')
++            except Exception as exc:
++                new_exc = RuntimeError('My context')
++                exc.__context__ = new_exc
++                raise
++        except Exception:
++            exc_type, exc_value, tb = sys.exc_info()
++
++        reporter = ExceptionReporter(None, exc_type, exc_value, tb)
++        frames = reporter.get_traceback_frames()
++        self.assertEqual(len(frames), 1)
++        html = reporter.get_traceback_html()
++        self.assertInHTML('<h1>RuntimeError</h1>', html)
++        self.assertIn('<pre class="exception_value">Oops</pre>', html)
++        self.assertIn('<th>Exception Type:</th>', html)
++        self.assertIn('<th>Exception Value:</th>', html)
++        self.assertIn('<h2>Traceback ', html)
++        self.assertIn('<h2>Request information</h2>', html)
++        self.assertIn('<p>Request data not supplied</p>', html)
++
+     def test_reporting_of_nested_exceptions(self):
+         request = self.rf.get('/test_view/')
+         try:

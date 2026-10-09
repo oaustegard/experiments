@@ -1,0 +1,40 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index b48d0df9c0..a44036d4ab 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -210,6 +210,11 @@ class QuerySet:
+ 
+     @query.setter
+     def query(self, value):
++        # A query that was built by values()/values_list() (e.g. one restored
++        # from a pickle) must yield dicts/tuples, not model instances. Don't
++        # override a values-style iterable that the queryset already has.
++        if value.values_select and self._iterable_class is ModelIterable:
++            self._iterable_class = ValuesIterable
+         self._query = value
+ 
+     def as_manager(cls):
+diff --git a/tests/queries/tests.py b/tests/queries/tests.py
+index f9a57b088a..23818100c5 100644
+--- a/tests/queries/tests.py
++++ b/tests/queries/tests.py
+@@ -692,6 +692,19 @@ class Queries1Tests(TestCase):
+             query
+         )
+ 
++    def test_values_query_pickling(self):
++        # A pickled values() query assigned to another queryset must still
++        # yield dicts rather than model instances.
++        Number.objects.create(num=1, other_num=10)
++        Number.objects.create(num=1, other_num=20)
++        Number.objects.create(num=2, other_num=30)
++        qs = Number.objects.values('num').annotate(total=Count('other_num'))
++        expected = list(qs)
++        qs2 = Number.objects.all()
++        qs2.query = pickle.loads(pickle.dumps(qs.query))
++        self.assertEqual(list(qs2), expected)
++        self.assertIsInstance(qs2[0], dict)
++
+     def test_deferred_load_qs_pickling(self):
+         # Check pickling of deferred-loading querysets
+         qs = Item.objects.defer('name', 'creator')

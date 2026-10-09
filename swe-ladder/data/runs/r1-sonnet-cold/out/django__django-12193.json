@@ -1,0 +1,1 @@
+{"summary": "CheckboxInput.get_context in django/forms/widgets.py now copies the attrs dict before setting 'checked', so the caller's dict is no longer mutated and later widgets (e.g. in SplitArrayField) are not left checked. I verified with a small repro showing attrs is unchanged and a following False value is unchecked, and ran forms_tests.widget_tests (171 tests, OK)."}

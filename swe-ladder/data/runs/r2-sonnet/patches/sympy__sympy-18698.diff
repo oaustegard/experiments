@@ -1,0 +1,41 @@
+diff --git a/sympy/polys/polytools.py b/sympy/polys/polytools.py
+index c9e77a901f..6fd129c47a 100644
+--- a/sympy/polys/polytools.py
++++ b/sympy/polys/polytools.py
+@@ -2,7 +2,8 @@
+ 
+ from __future__ import print_function, division
+ 
+-from functools import wraps
++from functools import wraps, reduce
++from operator import mul
+ 
+ from sympy.core import (
+     S, Basic, Expr, I, Integer, Add, Mul, Dummy, Tuple
+@@ -5949,7 +5950,9 @@ def _symbolic_factor_list(expr, opt, method):
+                         other.append((f, k))
+ 
+                 factors.append((_factors_product(other), exp))
+-
++    if method == 'sqf':
++        factors = [(reduce(mul, (f for f, _ in factors if _ == k)), k)
++                   for k in set(i for _, i in factors)]
+     return coeff, factors
+ 
+ 
+diff --git a/sympy/polys/tests/test_polytools.py b/sympy/polys/tests/test_polytools.py
+index 82e5f4d6dd..58649214b5 100644
+--- a/sympy/polys/tests/test_polytools.py
++++ b/sympy/polys/tests/test_polytools.py
+@@ -3273,7 +3273,10 @@ def test_to_rational_coeffs():
+ def test_factor_terms():
+     # issue 7067
+     assert factor_list(x*(x + y)) == (1, [(x, 1), (x + y, 1)])
+-    assert sqf_list(x*(x + y)) == (1, [(x, 1), (x + y, 1)])
++    assert sqf_list(x*(x + y)) == (1, [(x**2 + x*y, 1)])
++    # issue 18698
++    assert sqf_list((x**2 + 1)*(x - 1)**2*(x - 2)**3*(x - 3)**3) == \
++        (1, [(x**2 + 1, 1), (x - 1, 2), (x**2 - 5*x + 6, 3)])
+ 
+ 
+ def test_as_list():

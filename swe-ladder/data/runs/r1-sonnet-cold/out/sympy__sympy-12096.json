@@ -1,0 +1,1 @@
+{"summary": "In Function._eval_evalf (sympy/core/function.py) the _imp_ fallback now evaluates each argument with evalf(prec) before calling _imp_, so nested implemented functions like f(g(2)) evaluate numerically. A repro gave 16.0000000000000 for f(g(2)).evalf(), and test_lambdify.py and test_function.py show the same 7 pre-existing exceptions with and without the change."}

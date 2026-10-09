@@ -1,0 +1,79 @@
+diff --git a/sympy/core/power.py b/sympy/core/power.py
+index 02ec6480cb..ac42b53834 100644
+--- a/sympy/core/power.py
++++ b/sympy/core/power.py
+@@ -811,6 +811,14 @@ def _eval_transpose(self):
+             if expanded != self:
+                 return transpose(expanded)
+ 
++    def _eval_expand_tensorproduct(self, **hints):
++        """TensorProduct(a, b)**n -> TensorProduct(a**n, b**n)"""
++        from sympy.physics.quantum.tensorproduct import (TensorProduct,
++            tensor_product_simp_Pow)
++        if isinstance(self.base, TensorProduct):
++            return tensor_product_simp_Pow(self)
++        return self
++
+     def _eval_expand_power_exp(self, **hints):
+         """a**(n+m) -> a**n*a**m"""
+         b = self.base
+diff --git a/sympy/physics/quantum/tensorproduct.py b/sympy/physics/quantum/tensorproduct.py
+index 9dd10d219e..6e7e821d8b 100644
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -268,6 +268,31 @@ def _eval_trace(self, **kwargs):
+                          for idx, value in enumerate(exp.args)])
+ 
+ 
++def tensor_product_simp_Pow(e):
++    """Distribute a power over the factors of a ``TensorProduct`` base.
++
++    ``TensorProduct(A, B)**n`` becomes ``TensorProduct(A**n, B**n)``. Anything
++    that is not a ``Pow`` of a ``TensorProduct`` is returned unchanged.
++
++    Examples
++    ========
++
++    >>> from sympy import Symbol
++    >>> from sympy.physics.quantum import TensorProduct
++    >>> from sympy.physics.quantum.tensorproduct import tensor_product_simp_Pow
++    >>> A = Symbol('A', commutative=False)
++    >>> B = Symbol('B', commutative=False)
++    >>> tensor_product_simp_Pow(TensorProduct(A, B)**2)
++    (A**2)x(B**2)
++
++    """
++    if not isinstance(e, Pow):
++        return e
++    if isinstance(e.base, TensorProduct):
++        return TensorProduct(*[b**e.exp for b in e.base.args])
++    return e
++
++
+ def tensor_product_simp_Mul(e):
+     """Simplify a Mul with TensorProducts.
+ 
+@@ -315,9 +340,13 @@ def tensor_product_simp_Mul(e):
+     if not isinstance(e, Mul):
+         return e
+     c_part, nc_part = e.args_cnc()
++    # Powers of TensorProducts are TensorProducts of powers.
++    nc_part = [tensor_product_simp_Pow(arg) for arg in nc_part]
+     n_nc = len(nc_part)
+-    if n_nc == 0 or n_nc == 1:
++    if n_nc == 0:
+         return e
++    elif n_nc == 1:
++        return Mul(*c_part) * nc_part[0]
+     elif e.has(TensorProduct):
+         current = nc_part[0]
+         if not isinstance(current, TensorProduct):
+@@ -382,6 +411,8 @@ def tensor_product_simp(e, **hints):
+     if isinstance(e, Add):
+         return Add(*[tensor_product_simp(arg) for arg in e.args])
+     elif isinstance(e, Pow):
++        if isinstance(e.base, TensorProduct):
++            return tensor_product_simp_Pow(e)
+         return tensor_product_simp(e.base) ** e.exp
+     elif isinstance(e, Mul):
+         return tensor_product_simp_Mul(e)

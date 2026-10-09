@@ -1,0 +1,29 @@
+diff --git a/sympy/printing/conventions.py b/sympy/printing/conventions.py
+index 9a3be6bbe9..83d8896421 100644
+--- a/sympy/printing/conventions.py
++++ b/sympy/printing/conventions.py
+@@ -7,7 +7,7 @@
+ from collections.abc import Iterable
+ from sympy import Derivative
+ 
+-_name_with_digits_p = re.compile(r'^([a-zA-Z]+)([0-9]+)$')
++_name_with_digits_p = re.compile(r'^([^\W\d_]+)(\d+)$', re.U)
+ 
+ 
+ def split_super_sub(text):
+diff --git a/sympy/printing/pretty/tests/test_pretty.py b/sympy/printing/pretty/tests/test_pretty.py
+index 42fae775d3..53d5cea6db 100644
+--- a/sympy/printing/pretty/tests/test_pretty.py
++++ b/sympy/printing/pretty/tests/test_pretty.py
+@@ -7401,3 +7401,11 @@ def test_diffgeom():
+     assert pretty(rect) == "rect"
+     b = BaseScalarField(rect, 0)
+     assert pretty(b) == "x"
++
++def test_issue_20916_greek_subscripts():
++    w0 = Symbol('ω0')
++    assert upretty(w0) == 'ω₀'
++    assert upretty(Symbol('ωomega1')) == 'ωomega₁'
++    assert upretty(Symbol('αβ12')) == 'αβ₁₂'
++    t0 = Symbol('t0')
++    assert upretty(-t0*w0) == '-t₀⋅ω₀'

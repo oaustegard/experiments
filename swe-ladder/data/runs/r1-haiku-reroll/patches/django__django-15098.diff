@@ -1,0 +1,67 @@
+diff --git a/django/urls/resolvers.py b/django/urls/resolvers.py
+index 6ea18dd22f..3e38d2ab4e 100644
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -322,7 +322,9 @@ class LocalePrefixPattern:
+ 
+     def match(self, path):
+         language_prefix = self.language_prefix
+-        if path.startswith(language_prefix):
++        # Language tags are case-insensitive (RFC 5646), so /en-Latn-US/ matches
++        # the active language's prefix en-latn-us/.
++        if path[:len(language_prefix)].lower() == language_prefix.lower():
+             return path[len(language_prefix):], (), {}
+         return None
+ 
+diff --git a/django/utils/translation/__init__.py b/django/utils/translation/__init__.py
+index 29ac60ad1d..6dfde83769 100644
+--- a/django/utils/translation/__init__.py
++++ b/django/utils/translation/__init__.py
+@@ -204,15 +204,27 @@ def to_locale(language):
+     lang, _, country = language.lower().partition('-')
+     if not country:
+         return language[:3].lower() + language[3:]
++    # Private-use subtags (x-...) keep their hyphen; e.g. nl-nl-x-informal
++    # becomes nl_NL-x-informal.
++    country, sep, privateuse = country.partition('-x-')
++    if sep:
++        privateuse = sep + privateuse
+     # A language with > 2 characters after the dash only has its first
+     # character after the dash capitalized; e.g. sr-latn becomes sr_Latn.
+     # A language with 2 characters after the dash has both characters
+-    # capitalized; e.g. en-us becomes en_US.
+-    country, _, tail = country.partition('-')
+-    country = country.title() if len(country) > 2 else country.upper()
++    # capitalized; e.g. en-us becomes en_US. A script may be followed by a
++    # region; e.g. en-latn-us becomes en_Latn_US.
++    first, _, tail = country.partition('-')
++    if len(first) > 2:
++        locale = lang + '_' + first.title()
++        if tail:
++            region, _, tail = tail.partition('-')
++            locale += '_' + region.upper()
++    else:
++        locale = lang + '_' + first.upper()
+     if tail:
+-        country += '-' + tail
+-    return lang + '_' + country
++        locale += '-' + tail
++    return locale + privateuse
+ 
+ 
+ def get_language_from_request(request, check_path=False):
+diff --git a/django/utils/translation/trans_real.py b/django/utils/translation/trans_real.py
+index 7dcc77b46c..8d10b03cb9 100644
+--- a/django/utils/translation/trans_real.py
++++ b/django/utils/translation/trans_real.py
+@@ -43,7 +43,9 @@ language_code_re = _lazy_re_compile(
+     re.IGNORECASE
+ )
+ 
+-language_code_prefix_re = _lazy_re_compile(r'^/(\w+([@-]\w+)?)(/|$)')
++language_code_prefix_re = _lazy_re_compile(
++    r'^/(\w+(?:-[a-zA-Z]{4}-(?:[a-zA-Z]{2}|\d{3})|[@-]\w+)?)(/|$)'
++)
+ 
+ 
+ @receiver(setting_changed)

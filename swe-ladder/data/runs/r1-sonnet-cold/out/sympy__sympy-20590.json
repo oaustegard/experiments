@@ -1,0 +1,1 @@
+{"summary": "Added `__slots__ = ()` to the `Printable` mixin in sympy/core/_print_helpers.py, which was the parent class that had stopped defining slots and so gave Symbol instances a `__dict__`. I checked that Symbol, Dummy, Wild and Integer no longer have `__dict__`, and that test_basic, test_symbol and test_str still pass."}

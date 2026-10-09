@@ -1,0 +1,133 @@
+diff --git a/django/db/migrations/executor.py b/django/db/migrations/executor.py
+index aa2fe0883b..bca012e083 100644
+--- a/django/db/migrations/executor.py
++++ b/django/db/migrations/executor.py
+@@ -1,5 +1,6 @@
+ from django.apps.registry import apps as global_apps
+ from django.db import migrations, router
++from django.utils.functional import cached_property
+ 
+ from .exceptions import InvalidMigrationPlan
+ from .loader import MigrationLoader
+@@ -19,6 +20,34 @@ class MigrationExecutor:
+         self.recorder = MigrationRecorder(self.connection)
+         self.progress_callback = progress_callback
+ 
++    @cached_property
++    def migrations_allowed(self):
++        """
++        Return True if the database router allows this connection to hold the
++        django_migrations table: either the table itself, or at least one
++        model defined by the migrations, may be migrated here. Otherwise the
++        table is neither created nor written on this connection.
++        """
++        alias = self.connection.alias
++        if router.allow_migrate_model(alias, MigrationRecorder.Migration):
++            return True
++        # Check every model any migration touches, not just the final state:
++        # a model created and later deleted still needs its tables on a
++        # connection where the router allows it.
++        for migration in self.loader.graph.nodes.values():
++            for operation in migration.operations:
++                # Field and index operations carry model_name_lower; model
++                # operations (CreateModel, DeleteModel, ...) carry name_lower.
++                model_name = (
++                    getattr(operation, 'model_name_lower', None) or
++                    getattr(operation, 'name_lower', None)
++                )
++                if model_name and router.allow_migrate(
++                    alias, migration.app_label, model_name=model_name,
++                ):
++                    return True
++        return False
++
+     def migration_plan(self, targets, clean_start=False):
+         """
+         Given a set of targets, return a list of (Migration instance, backwards?).
+@@ -97,7 +126,8 @@ class MigrationExecutor:
+         """
+         # The django_migrations table must be present to record applied
+         # migrations.
+-        self.recorder.ensure_schema()
++        if self.migrations_allowed:
++            self.recorder.ensure_schema()
+ 
+         if plan is None:
+             plan = self.migration_plan(targets)
+@@ -245,6 +275,8 @@ class MigrationExecutor:
+         return state
+ 
+     def record_migration(self, migration):
++        if not self.migrations_allowed:
++            return
+         # For replacement migrations, record individual statuses
+         if migration.replaces:
+             for app_label, name in migration.replaces:
+@@ -260,10 +292,11 @@ class MigrationExecutor:
+             with self.connection.schema_editor(atomic=migration.atomic) as schema_editor:
+                 state = migration.unapply(state, schema_editor)
+         # For replacement migrations, also record individual statuses.
+-        if migration.replaces:
+-            for app_label, name in migration.replaces:
+-                self.recorder.record_unapplied(app_label, name)
+-        self.recorder.record_unapplied(migration.app_label, migration.name)
++        if self.migrations_allowed:
++            if migration.replaces:
++                for app_label, name in migration.replaces:
++                    self.recorder.record_unapplied(app_label, name)
++            self.recorder.record_unapplied(migration.app_label, migration.name)
+         # Report progress
+         if self.progress_callback:
+             self.progress_callback("unapply_success", migration, fake)
+@@ -283,7 +316,7 @@ class MigrationExecutor:
+         applied = self.recorder.applied_migrations()
+         for key, migration in self.loader.replacements.items():
+             all_applied = all(m in applied for m in migration.replaces)
+-            if all_applied and key not in applied:
++            if all_applied and key not in applied and self.migrations_allowed:
+                 self.recorder.record_applied(*key)
+ 
+     def detect_soft_applied(self, project_state, migration):
+diff --git a/tests/migrations/test_recorder.py b/tests/migrations/test_recorder.py
+new file mode 100644
+index 0000000000..09f146a47d
+--- /dev/null
++++ b/tests/migrations/test_recorder.py
+@@ -0,0 +1,37 @@
++from django.db import connections
++from django.db.migrations.executor import MigrationExecutor
++from django.db.migrations.migration import Migration
++from django.test import TestCase, override_settings
++
++
++class DefaultOnlyRouter:
++    """Allow migrating only on the 'default' connection."""
++
++    def allow_migrate(self, db, app_label, **hints):
++        return db == 'default'
++
++
++class MigrationRecorderRouterTests(TestCase):
++    databases = {'default', 'other'}
++
++    @override_settings(DATABASE_ROUTERS=[DefaultOnlyRouter()])
++    def test_router_closed_connection_records_nothing(self):
++        executor = MigrationExecutor(connections['other'])
++        self.assertFalse(executor.migrations_allowed)
++        migration = Migration('0999_router_closed', 'migrations')
++        executor.record_migration(migration)
++        self.assertNotIn(
++            ('migrations', '0999_router_closed'),
++            executor.recorder.applied_migrations(),
++        )
++
++    @override_settings(DATABASE_ROUTERS=[DefaultOnlyRouter()])
++    def test_router_allowed_connection_still_records(self):
++        executor = MigrationExecutor(connections['default'])
++        self.assertTrue(executor.migrations_allowed)
++        migration = Migration('0999_router_allowed', 'migrations')
++        executor.record_migration(migration)
++        self.assertIn(
++            ('migrations', '0999_router_allowed'),
++            executor.recorder.applied_migrations(),
++        )

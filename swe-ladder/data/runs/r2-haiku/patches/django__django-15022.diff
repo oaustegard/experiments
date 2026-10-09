@@ -1,0 +1,63 @@
+diff --git a/django/contrib/admin/options.py b/django/contrib/admin/options.py
+index 66f3396a6b..e83bd8838a 100644
+--- a/django/contrib/admin/options.py
++++ b/django/contrib/admin/options.py
+@@ -1031,6 +1031,7 @@ class ModelAdmin(BaseModelAdmin):
+         if search_fields and search_term:
+             orm_lookups = [construct_search(str(search_field))
+                            for search_field in search_fields]
++            term_queries = []
+             for bit in smart_split(search_term):
+                 if bit.startswith(('"', "'")) and bit[0] == bit[-1]:
+                     bit = unescape_string_literal(bit)
+@@ -1038,7 +1039,10 @@ class ModelAdmin(BaseModelAdmin):
+                     *((orm_lookup, bit) for orm_lookup in orm_lookups),
+                     _connector=models.Q.OR,
+                 )
+-                queryset = queryset.filter(or_queries)
++                term_queries.append(or_queries)
++            # Apply all terms in a single filter() call so that each
++            # multi-valued relation is joined once rather than once per term.
++            queryset = queryset.filter(models.Q(*term_queries))
+             may_have_duplicates |= any(
+                 lookup_spawns_duplicates(self.opts, search_spec)
+                 for search_spec in orm_lookups
+diff --git a/tests/admin_changelist/tests.py b/tests/admin_changelist/tests.py
+index 92ea0dd718..95e3b68f95 100644
+--- a/tests/admin_changelist/tests.py
++++ b/tests/admin_changelist/tests.py
+@@ -555,7 +555,9 @@ class ChangeListTests(TestCase):
+             ('Finlayson', 1),
+             ('Finlayson Hype', 0),
+             ('Jonathan Finlayson Duo', 1),
+-            ('Mary Jonathan Duo', 1),
++            # All terms must match the same related member, since they are
++            # applied in a single filter() call (#15022).
++            ('Mary Jonathan Duo', 0),
+             ('Oscar Finlayson Duo', 0),
+         ):
+             with self.subTest(search_string=search_string):
+@@ -564,6 +566,23 @@ class ChangeListTests(TestCase):
+                 group_changelist = group_model_admin.get_changelist_instance(request)
+                 self.assertEqual(group_changelist.queryset.count(), result_count)
+ 
++    def test_many_search_terms(self):
++        """
++        A search with many terms adds only one JOIN per relation (#15022).
++        """
++        parent = Parent.objects.create(name='Mary')
++        Child.objects.create(parent=parent, name='Danielle')
++        Child.objects.create(parent=parent, name='Daniel')
++
++        m = ParentAdmin(Parent, custom_site)
++        request = self.factory.get('/parent/', data={SEARCH_VAR: 'daniel ' * 80})
++        request.user = self.superuser
++
++        cl = m.get_changelist_instance(request)
++        with CaptureQueriesContext(connection) as context:
++            self.assertEqual(cl.queryset.count(), 1)
++        self.assertEqual(context.captured_queries[0]['sql'].count('JOIN'), 1)
++
+     def test_pk_in_search_fields(self):
+         band = Group.objects.create(name='The Hype')
+         Concert.objects.create(name='Woodstock', group=band)

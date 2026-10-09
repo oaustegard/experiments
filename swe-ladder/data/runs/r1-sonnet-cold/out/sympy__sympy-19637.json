@@ -1,0 +1,1 @@
+{"summary": "In kernS (sympy/core/sympify.py) I moved `hit = kern in s` inside the `if ' ' in s:` block so `kern` is only read when it was assigned, which fixes the UnboundLocalError for inputs like '(2*x)/(x-1)'. I checked it by running kernS on that input plus '2*(x + y)' and '-(x + 1)' with swe-run (all correct) and by running the existing test_kernS with swe-test (passes)."}

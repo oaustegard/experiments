@@ -1,0 +1,1 @@
+{"summary": "In Float.__eq__ (sympy/core/numbers.py) I moved the Boolean check ahead of the `if not self: return not other` shortcut, so S(0.0) == S.false is now False, matching S.false == S(0.0) and S(0) == S.false. I checked with a repro script covering both comparison orders and S.true cases, and ran test_numbers.py and test_relational.py (158 passed, 0 failed)."}

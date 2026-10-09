@@ -1,0 +1,56 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index b48d0df9c0..b786dccd9d 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -210,6 +210,10 @@ class QuerySet:
+ 
+     @query.setter
+     def query(self, value):
++        # The query decides the row shape. A values() or values_list() query
++        # (including one unpickled and assigned here) yields dicts, not model
++        # instances built from dict rows.
++        self._iterable_class = ValuesIterable if value.values_select else ModelIterable
+         self._query = value
+ 
+     def as_manager(cls):
+diff --git a/tests/queryset_pickle/tests.py b/tests/queryset_pickle/tests.py
+index a58e45caed..236ca19fb3 100644
+--- a/tests/queryset_pickle/tests.py
++++ b/tests/queryset_pickle/tests.py
+@@ -259,6 +259,36 @@ class PickleabilityTestCase(TestCase):
+         event.edition_set.create()
+         self.assert_pickles(event.edition_set.order_by('event'))
+ 
++    def test_annotation_values(self):
++        qs = Happening.objects.values('name').annotate(latest_time=models.Max('when'))
++        reloaded = Happening.objects.all()
++        reloaded.query = pickle.loads(pickle.dumps(qs.query))
++        self.assertEqual(reloaded.get(), {'name': 'test', 'latest_time': qs.get()['latest_time']})
++
++    def test_annotation_values_list(self):
++        # values_list() is reloaded to values() when using a pickled query.
++        cases = [
++            Happening.objects.annotate(latest_time=models.Max('when')).values_list('name'),
++            Happening.objects.annotate(latest_time=models.Max('when')).values_list('name', flat=True),
++            Happening.objects.annotate(latest_time=models.Max('when')).values_list('name', named=True),
++        ]
++        for qs in cases:
++            with self.subTest(iterable=qs._iterable_class.__name__):
++                reloaded = Happening.objects.all()
++                reloaded.query = pickle.loads(pickle.dumps(qs.query))
++                self.assertEqual(reloaded.get(), {'name': 'test'})
++
++    def test_values_query_assigned_to_model_queryset_yields_dicts(self):
++        qs = Happening.objects.values('name')
++        reloaded = Happening.objects.all()
++        reloaded.query = qs.query
++        self.assertEqual(list(reloaded), [{'name': 'test'}])
++
++    def test_model_query_assigned_to_values_queryset_yields_models(self):
++        qs = Happening.objects.values('name')
++        qs.query = Happening.objects.all().query
++        self.assertIsInstance(qs.get(), Happening)
++
+ 
+ class InLookupTests(TestCase):
+ 

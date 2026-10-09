@@ -1,0 +1,83 @@
+diff --git a/django/utils/functional.py b/django/utils/functional.py
+index 6d38f932f9..b5ca21b212 100644
+--- a/django/utils/functional.py
++++ b/django/utils/functional.py
+@@ -133,6 +133,12 @@ def lazy(func, *resultclasses):
+                 # Automatically triggers the evaluation of a lazy value and
+                 # applies the given magic method of the result type.
+                 res = func(*self.__args, **self.__kw)
++                # A lazy argument is evaluated too, so that e.g. lazy + lazy
++                # concatenates the values rather than raising TypeError.
++                args = tuple(
++                    arg.__cast() if isinstance(arg, Promise) else arg
++                    for arg in args
++                )
+                 return getattr(res, method_name)(*args, **kw)
+             return __wrapper__
+ 
+@@ -176,6 +182,13 @@ def lazy(func, *resultclasses):
+                 return str(self) % rhs
+             return self.__cast() % rhs
+ 
++        def __radd__(self, other):
++            # For a plain left operand such as str, list or int, Python tries
++            # the proxy's reflected method only when the left operand's own
++            # __add__ defers. str.__add__ raises TypeError instead, so the
++            # proxy has to provide the reflected operator itself.
++            return other + self.__cast()
++
+         def __deepcopy__(self, memo):
+             # Instances of this class are effectively immutable. It's just a
+             # collection of functions. So we don't need to do anything
+diff --git a/tests/template_tests/filter_tests/test_add.py b/tests/template_tests/filter_tests/test_add.py
+index 0fcc661f4a..e4355533cb 100644
+--- a/tests/template_tests/filter_tests/test_add.py
++++ b/tests/template_tests/filter_tests/test_add.py
+@@ -2,6 +2,7 @@ from datetime import date, timedelta
+ 
+ from django.template.defaultfilters import add
+ from django.test import SimpleTestCase
++from django.utils.functional import lazystr
+ 
+ from ..utils import setup
+ 
+@@ -46,6 +47,21 @@ class AddTests(SimpleTestCase):
+         output = self.engine.render_to_string('add07', {'d': date(2000, 1, 1), 't': timedelta(10)})
+         self.assertEqual(output, 'Jan. 11, 2000')
+ 
++    @setup({'add08': '{{ s|add:lazy }}'})
++    def test_add08(self):
++        output = self.engine.render_to_string('add08', {'s': 'abc', 'lazy': lazystr('def')})
++        self.assertEqual(output, 'abcdef')
++
++    @setup({'add09': '{{ lazy|add:s }}'})
++    def test_add09(self):
++        output = self.engine.render_to_string('add09', {'s': 'def', 'lazy': lazystr('abc')})
++        self.assertEqual(output, 'abcdef')
++
++    @setup({'add10': '{{ lazy|add:lazy2 }}'})
++    def test_add10(self):
++        output = self.engine.render_to_string('add10', {'lazy': lazystr('abc'), 'lazy2': lazystr('def')})
++        self.assertEqual(output, 'abcdef')
++
+ 
+ class FunctionTests(SimpleTestCase):
+ 
+diff --git a/tests/utils_tests/test_functional.py b/tests/utils_tests/test_functional.py
+index 6e454cfef3..1b0120015a 100644
+--- a/tests/utils_tests/test_functional.py
++++ b/tests/utils_tests/test_functional.py
+@@ -35,6 +35,13 @@ class FunctionalTests(SimpleTestCase):
+         t = lazy(lambda: Klazz(), Base)()
+         self.assertEqual(t.method(), 'Klazz')
+ 
++    def test_lazy_concatenation(self):
++        """Lazy proxies work as either operand of +, with str or another proxy."""
++        t = lazy(lambda: 'def', str)()
++        self.assertEqual('abc' + t, 'abcdef')
++        self.assertEqual(t + 'abc', 'defabc')
++        self.assertEqual(lazy(lambda: 'abc', str)() + t, 'abcdef')
++
+     def test_lazy_object_to_string(self):
+ 
+         class Klazz:

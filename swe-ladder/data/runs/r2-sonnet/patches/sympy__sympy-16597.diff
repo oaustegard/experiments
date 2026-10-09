@@ -1,0 +1,110 @@
+diff --git a/sympy/core/assumptions.py b/sympy/core/assumptions.py
+index ce4dd30f2e..1d2f86ca0a 100644
+--- a/sympy/core/assumptions.py
++++ b/sympy/core/assumptions.py
+@@ -164,6 +164,7 @@
+ 
+     'integer        ->  rational',
+     'rational       ->  real',
++    'rational       ->  finite',
+     'rational       ->  algebraic',
+     'algebraic      ->  complex',
+     'real           ->  complex',
+diff --git a/sympy/core/symbol.py b/sympy/core/symbol.py
+index 44674d1984..2090a7ced4 100644
+--- a/sympy/core/symbol.py
++++ b/sympy/core/symbol.py
+@@ -256,6 +256,15 @@ def _eval_subs(self, old, new):
+         if old.is_Pow:
+             return Pow(self, S.One, evaluate=False)._eval_subs(old, new)
+ 
++    def _eval_is_finite(self):
++        # Rational (so integer, even, odd), algebraic and transcendental
++        # values are finite. Symbols that are algebraic but not rational are
++        # handled here rather than by a rule in _assume_rules, because the
++        # contrapositive of such a rule would make the infinities
++        # transcendental.
++        if self.is_rational or self.is_algebraic or self.is_transcendental:
++            return True
++
+     @property
+     def assumptions0(self):
+         return dict((key, value) for key, value
+diff --git a/sympy/core/tests/test_assumptions.py b/sympy/core/tests/test_assumptions.py
+index 4db1c1c24a..28c8123d05 100644
+--- a/sympy/core/tests/test_assumptions.py
++++ b/sympy/core/tests/test_assumptions.py
+@@ -98,26 +98,26 @@ def test_infinity():
+     oo = S.Infinity
+ 
+     assert oo.is_commutative is True
+-    assert oo.is_integer is None
+-    assert oo.is_rational is None
++    assert oo.is_integer is False
++    assert oo.is_rational is False
+     assert oo.is_algebraic is None
+     assert oo.is_transcendental is None
+     assert oo.is_real is True
+     assert oo.is_complex is True
+-    assert oo.is_noninteger is None
+-    assert oo.is_irrational is None
++    assert oo.is_noninteger is True
++    assert oo.is_irrational is True
+     assert oo.is_imaginary is False
+     assert oo.is_positive is True
+     assert oo.is_negative is False
+     assert oo.is_nonpositive is False
+     assert oo.is_nonnegative is True
+-    assert oo.is_even is None
+-    assert oo.is_odd is None
++    assert oo.is_even is False
++    assert oo.is_odd is False
+     assert oo.is_finite is False
+     assert oo.is_infinite is True
+     assert oo.is_comparable is True
+     assert oo.is_prime is False
+-    assert oo.is_composite is None
++    assert oo.is_composite is False
+     assert oo.is_number is True
+ 
+ 
+@@ -125,21 +125,21 @@ def test_neg_infinity():
+     mm = S.NegativeInfinity
+ 
+     assert mm.is_commutative is True
+-    assert mm.is_integer is None
+-    assert mm.is_rational is None
++    assert mm.is_integer is False
++    assert mm.is_rational is False
+     assert mm.is_algebraic is None
+     assert mm.is_transcendental is None
+     assert mm.is_real is True
+     assert mm.is_complex is True
+-    assert mm.is_noninteger is None
+-    assert mm.is_irrational is None
++    assert mm.is_noninteger is True
++    assert mm.is_irrational is True
+     assert mm.is_imaginary is False
+     assert mm.is_positive is False
+     assert mm.is_negative is True
+     assert mm.is_nonpositive is True
+     assert mm.is_nonnegative is False
+-    assert mm.is_even is None
+-    assert mm.is_odd is None
++    assert mm.is_even is False
++    assert mm.is_odd is False
+     assert mm.is_finite is False
+     assert mm.is_infinite is True
+     assert mm.is_comparable is True
+@@ -1062,3 +1062,11 @@ def test_issue_16313():
+     assert (l*x).is_real is False
+     assert (l*x*x).is_real is None  # since x*x can be a real number
+     assert (-x).is_positive is False
++
++
++def test_issue_16597():
++    for kw in ('integer', 'even', 'odd', 'rational', 'algebraic',
++            'transcendental'):
++        assert Symbol('x', **{kw: True}).is_finite is True
++    assert Symbol('x').is_finite is None
++    assert Symbol('x', infinite=True).is_integer is False

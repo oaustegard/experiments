@@ -1,0 +1,1 @@
+{"summary": "Added an explicit `a % p == 0` check in nthroot_mod (after the prime check) that returns 0 (or [0] with all_roots=True), which also fixes cases like nthroot_mod(0, 3, 7) that previously crashed in discrete_log. Verified with a repro script over several (a, n, p) cases and the existing sympy/ntheory/tests/test_residue.py, which passes."}

@@ -1,0 +1,103 @@
+diff --git a/django/db/backends/base/schema.py b/django/db/backends/base/schema.py
+index f2ca8c8df9..1a26e8b79a 100644
+--- a/django/db/backends/base/schema.py
++++ b/django/db/backends/base/schema.py
+@@ -528,7 +528,10 @@ class BaseDatabaseSchemaEditor:
+         # Deleted uniques
+         for fields in olds.difference(news):
+             self._delete_composed_index(
+-                model, fields, {"unique": True}, self.sql_delete_unique
++                model,
++                fields,
++                {"unique": True, "primary_key": False},
++                self.sql_delete_unique,
+             )
+         # Created uniques
+         for field_names in news.difference(olds):
+@@ -568,6 +571,17 @@ class BaseDatabaseSchemaEditor:
+             exclude=meta_constraint_names | meta_index_names,
+             **constraint_kwargs,
+         )
++        if (
++            constraint_kwargs.get("unique") is True
++            and constraint_names
++            and self.connection.features.allows_multiple_constraints_on_same_fields
++        ):
++            # Constraint matching the unique_together name.
++            default_name = str(
++                self._create_index_name(model._meta.db_table, columns, suffix="_uniq")
++            )
++            if default_name in constraint_names:
++                constraint_names = [default_name]
+         if len(constraint_names) != 1:
+             raise ValueError(
+                 "Found wrong number (%s) of constraints for %s(%s)"
+diff --git a/tests/migrations/test_operations.py b/tests/migrations/test_operations.py
+index f3c4ea8ffe..8ddc245998 100644
+--- a/tests/migrations/test_operations.py
++++ b/tests/migrations/test_operations.py
+@@ -2727,6 +2727,28 @@ class OperationTests(OperationTestBase):
+             new_state.models["app", "othermodel"].fields["fo"].to_fields, ("renamed",)
+         )
+ 
++    def test_remove_unique_together_on_unique_field(self):
++        app_label = "test_rutouf"
++        project_state = self.apply_operations(
++            app_label,
++            ProjectState(),
++            operations=[
++                migrations.CreateModel(
++                    "Pony",
++                    fields=[
++                        ("id", models.AutoField(primary_key=True)),
++                        ("name", models.CharField(max_length=30, unique=True)),
++                    ],
++                    options={"unique_together": {("name",)}},
++                ),
++            ],
++        )
++        new_state = project_state.clone()
++        operation = migrations.AlterUniqueTogether("Pony", set())
++        operation.state_forwards(app_label, new_state)
++        with connection.schema_editor() as editor:
++            operation.database_forwards(app_label, editor, project_state, new_state)
++
+     def test_alter_unique_together(self):
+         """
+         Tests the AlterUniqueTogether operation.
+diff --git a/tests/schema/tests.py b/tests/schema/tests.py
+index fe717f8841..3800797c7c 100644
+--- a/tests/schema/tests.py
++++ b/tests/schema/tests.py
+@@ -2570,6 +2570,31 @@ class SchemaTests(TransactionTestCase):
+         with connection.schema_editor() as editor:
+             editor.alter_unique_together(Book, [["author", "title"]], [])
+ 
++    @isolate_apps("schema")
++    def test_unique_together_on_primary_key(self):
++        """
++        Removing a unique_together constraint on a single primary key field
++        must not count the primary key constraint as a unique_together
++        constraint, which is also unique on the same column.
++        """
++
++        class PKUniqueTogether(Model):
++            class Meta:
++                app_label = "schema"
++                unique_together = (("id",),)
++
++        self.isolated_local_models = [PKUniqueTogether]
++        with connection.schema_editor() as editor:
++            editor.create_model(PKUniqueTogether)
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(
++                PKUniqueTogether, PKUniqueTogether._meta.unique_together, []
++            )
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(
++                PKUniqueTogether, [], PKUniqueTogether._meta.unique_together
++            )
++
+     @skipUnlessDBFeature("allows_multiple_constraints_on_same_fields")
+     def test_remove_unique_together_does_not_remove_meta_constraints(self):
+         with connection.schema_editor() as editor:

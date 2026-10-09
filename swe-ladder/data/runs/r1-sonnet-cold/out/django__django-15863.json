@@ -1,0 +1,1 @@
+{"summary": "In floatformat, changed input_val = repr(text) to str(text) so Decimal inputs are parsed directly instead of failing on \"Decimal('...')\" and falling back to float. I confirmed Decimal('42.12345678901234567890') with arg 20 now renders in full, NaN/Infinity/str/None cases still behave, and template_tests.filter_tests.test_floatformat passes."}

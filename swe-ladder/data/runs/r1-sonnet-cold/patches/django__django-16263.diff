@@ -1,0 +1,147 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 9735ce10c8..e69c32952b 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -441,17 +441,41 @@ class Query(BaseExpression):
+         """
+         if not self.annotation_select:
+             return {}
+-        existing_annotations = [
+-            annotation
++        existing_annotations = {
++            alias: annotation
+             for alias, annotation in self.annotations.items()
+             if alias not in added_aggregate_names
+-        ]
++        }
++        added_aggregates = {
++            alias: annotation
++            for alias, annotation in self.annotations.items()
++            if alias in added_aggregate_names
++        }
++        # Existing usage of aggregation can be determined by the presence of
++        # selected aggregates but also by filters against aliased aggregates.
++        _, having, qualify = self.where.split_having_qualify()
++        has_existing_aggregation = bool(having) or any(
++            getattr(annotation, "contains_aggregate", True)
++            for annotation in existing_annotations.values()
++        )
++        # Existing annotations referenced by the aggregates being added.
++        referenced_aliases = set()
++        for aggregate in added_aggregates.values():
++            for expr in aggregate.flatten():
++                if isinstance(expr, Ref):
++                    referenced_aliases.add(expr.refs)
++        # Window functions cannot be inlined into aggregates.
++        references_window = any(
++            getattr(existing_annotations[alias], "contains_over_clause", False)
++            for alias in referenced_aliases
++            if alias in existing_annotations
++        )
+         # Decide if we need to use a subquery.
+         #
+-        # Existing annotations would cause incorrect results as get_aggregation()
+-        # must produce just one result and thus must not use GROUP BY. But we
+-        # aren't smart enough to remove the existing annotations from the
+-        # query, so those would force us to use GROUP BY.
++        # Existing aggregate annotations would cause incorrect results as
++        # get_aggregation() must produce just one result and thus must not use
++        # GROUP BY. Existing annotations that are not aggregates are either
++        # masked or inlined in the aggregates referencing them.
+         #
+         # If the query has limit or distinct, or uses set operations, then
+         # those operations must be done in a subquery so that the query
+@@ -460,7 +484,9 @@ class Query(BaseExpression):
+         if (
+             isinstance(self.group_by, tuple)
+             or self.is_sliced
+-            or existing_annotations
++            or has_existing_aggregation
++            or qualify
++            or references_window
+             or self.distinct
+             or self.combinator
+         ):
+@@ -482,16 +508,20 @@ class Query(BaseExpression):
+                 # query is grouped by the main model's primary key. However,
+                 # clearing the select clause can alter results if distinct is
+                 # used.
+-                has_existing_aggregate_annotations = any(
+-                    annotation
+-                    for annotation in existing_annotations
+-                    if getattr(annotation, "contains_aggregate", True)
+-                )
+-                if inner_query.default_cols and has_existing_aggregate_annotations:
++                if inner_query.default_cols and has_existing_aggregation:
+                     inner_query.group_by = (
+                         self.model._meta.pk.get_col(inner_query.get_initial_alias()),
+                     )
+                 inner_query.default_cols = False
++                if not qualify and not self.combinator and not inner_query.order_by:
++                    # Mask existing annotations that are not referenced by the
++                    # aggregates moved to the outer query. They are unnecessary
++                    # unless filtering against window functions, the query is
++                    # the result of a combinator or ordering is retained.
++                    annotation_mask = set(added_aggregate_names) | referenced_aliases
++                    inner_query.set_annotation_mask(
++                        annotation_mask & set(inner_query.annotation_select)
++                    )
+ 
+             relabels = {t: "subquery" for t in inner_query.alias_map}
+             relabels[None] = "subquery"
+@@ -525,6 +555,19 @@ class Query(BaseExpression):
+             self.select = ()
+             self.default_cols = False
+             self.extra = {}
++            if existing_annotations:
++                # Inline references to existing annotations and drop them as
++                # they are unnecessary given only the summarized aggregations
++                # are requested.
++                replacements = {
++                    Ref(alias, annotation): annotation
++                    for alias, annotation in existing_annotations.items()
++                }
++                self.annotations = {
++                    alias: aggregate.replace_expressions(replacements)
++                    for alias, aggregate in added_aggregates.items()
++                }
++                self.set_annotation_mask(added_aggregates)
+ 
+         empty_set_result = [
+             expression.empty_result_set_value
+diff --git a/tests/aggregation/tests.py b/tests/aggregation/tests.py
+index 39c8a45707..54be423776 100644
+--- a/tests/aggregation/tests.py
++++ b/tests/aggregation/tests.py
+@@ -541,6 +541,31 @@ class AggregateTestCase(TestCase):
+         sql = ctx.captured_queries[0]["sql"]
+         self.assertIn("SELECT COUNT(*) ", sql)
+ 
++    def test_count_strips_unused_annotations(self):
++        qs = Book.objects.annotate(n_authors=Count("authors"), r=F("rating") + 1)
++        with CaptureQueriesContext(connection) as ctx:
++            self.assertEqual(qs.count(), Book.objects.count())
++        sql = ctx.captured_queries[0]["sql"]
++        self.assertNotIn("n_authors", sql)
++        self.assertNotIn("aggregation_book_authors\".\"id", sql)
++        with CaptureQueriesContext(connection) as ctx:
++            qs = Book.objects.annotate(r=F("rating") + 1)
++            self.assertEqual(qs.count(), Book.objects.count())
++        self.assertNotIn("subquery", ctx.captured_queries[0]["sql"].lower())
++
++    def test_count_keeps_used_annotations(self):
++        qs = Book.objects.annotate(n_authors=Count("authors")).filter(n_authors__gt=1)
++        self.assertEqual(qs.count(), len(list(qs)))
++        qs = Book.objects.annotate(n_authors=Count("authors")).order_by("-n_authors")
++        self.assertEqual(qs[:3].count(), 3)
++
++    def test_aggregate_over_unselected_annotation_inlined(self):
++        qs = Book.objects.annotate(r=F("rating") + 1)
++        self.assertEqual(
++            qs.aggregate(total=Sum("r"))["total"],
++            Book.objects.aggregate(total=Sum(F("rating") + 1))["total"],
++        )
++
+     def test_count_distinct_expression(self):
+         aggs = Book.objects.aggregate(
+             distinct_ratings=Count(

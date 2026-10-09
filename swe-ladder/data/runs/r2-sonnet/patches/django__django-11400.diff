@@ -1,0 +1,85 @@
+diff --git a/django/contrib/admin/filters.py b/django/contrib/admin/filters.py
+index d65e01d5e2..07261929f0 100644
+--- a/django/contrib/admin/filters.py
++++ b/django/contrib/admin/filters.py
+@@ -419,4 +419,8 @@ FieldListFilter.register(lambda f: True, AllValuesFieldListFilter)
+ class RelatedOnlyFieldListFilter(RelatedFieldListFilter):
+     def field_choices(self, field, request, model_admin):
+         pk_qs = model_admin.get_queryset(request).distinct().values_list('%s__pk' % self.field_path, flat=True)
+-        return field.get_choices(include_blank=False, limit_choices_to={'pk__in': pk_qs})
++        ordering = ()
++        related_admin = model_admin.admin_site._registry.get(field.remote_field.model)
++        if related_admin is not None:
++            ordering = related_admin.get_ordering(request)
++        return field.get_choices(include_blank=False, limit_choices_to={'pk__in': pk_qs}, ordering=ordering)
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index 194514c900..65ffddf847 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -825,9 +825,14 @@ class Field(RegisterLookupMixin):
+             if hasattr(self.remote_field, 'get_related_field')
+             else 'pk'
+         )
++        qs = rel_model._default_manager.complex_filter(limit_choices_to)
++        # Only override the default ordering (Meta.ordering) when one is given;
++        # order_by() with no arguments would clear it.
++        if ordering:
++            qs = qs.order_by(*ordering)
+         return (blank_choice if include_blank else []) + [
+             (choice_func(x), str(x))
+-            for x in rel_model._default_manager.complex_filter(limit_choices_to).order_by(*ordering)
++            for x in qs
+         ]
+ 
+     def value_to_string(self, obj):
+diff --git a/django/db/models/fields/reverse_related.py b/django/db/models/fields/reverse_related.py
+index eb6b934259..1458718ef4 100644
+--- a/django/db/models/fields/reverse_related.py
++++ b/django/db/models/fields/reverse_related.py
+@@ -122,9 +122,10 @@ class ForeignObjectRel(FieldCacheMixin):
+         Analog of django.db.models.fields.Field.get_choices(), provided
+         initially for utilization by RelatedFieldListFilter.
+         """
+-        return (blank_choice if include_blank else []) + [
+-            (x.pk, str(x)) for x in self.related_model._default_manager.order_by(*ordering)
+-        ]
++        qs = self.related_model._default_manager.all()
++        if ordering:
++            qs = qs.order_by(*ordering)
++        return (blank_choice if include_blank else []) + [(x.pk, str(x)) for x in qs]
+ 
+     def is_hidden(self):
+         """Should the related object be hidden?"""
+diff --git a/tests/model_fields/models.py b/tests/model_fields/models.py
+index 98b32d0c1e..4ebab4c428 100644
+--- a/tests/model_fields/models.py
++++ b/tests/model_fields/models.py
+@@ -33,6 +33,9 @@ class Bar(models.Model):
+     b = models.CharField(max_length=10)
+     a = models.ForeignKey(Foo, models.CASCADE, default=get_foo, related_name='bars')
+ 
++    class Meta:
++        ordering = ('b',)
++
+ 
+ class Whiz(models.Model):
+     CHOICES = (
+diff --git a/tests/model_fields/tests.py b/tests/model_fields/tests.py
+index bb82c7b93d..279a0f9756 100644
+--- a/tests/model_fields/tests.py
++++ b/tests/model_fields/tests.py
+@@ -250,3 +250,14 @@ class GetChoicesOrderingTests(TestCase):
+             self.field.remote_field.get_choices(include_blank=False, ordering=('-a',)),
+             [self.bar2, self.bar1]
+         )
++
++    def test_get_choices_default_ordering(self):
++        # Meta.ordering is used when no explicit ordering is given.
++        TypedModel = Bar
++        TypedModel.objects.all().delete()
++        bar1 = Bar.objects.create(a=self.foo1, b='z')
++        bar2 = Bar.objects.create(a=self.foo1, b='y')
++        self.assertChoicesEqual(
++            self.field.remote_field.get_choices(include_blank=False),
++            [bar2, bar1],
++        )

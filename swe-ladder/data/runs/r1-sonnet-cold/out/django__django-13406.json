@@ -1,0 +1,1 @@
+{"summary": "Changed the QuerySet.query setter in django/db/models/query.py to switch _iterable_class to ValuesIterable when the assigned query has values_select, so a pickled values()/annotate() query yields dicts again. Added a roundtrip test in queryset_pickle (failed before, passes after) and ran queryset_pickle, queries and expressions tests, all passing."}

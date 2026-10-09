@@ -1,0 +1,48 @@
+diff --git a/django/urls/resolvers.py b/django/urls/resolvers.py
+index af0508f94e..d8f4260a0a 100644
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -155,6 +155,10 @@ class RegexPattern(CheckURLMixin):
+             # positional arguments.
+             kwargs = match.groupdict()
+             args = () if kwargs else match.groups()
++            # Named groups that did not participate in the match are None;
++            # drop them so they aren't passed on (and later rendered as "None"
++            # when reversing the URL).
++            kwargs = {k: v for k, v in kwargs.items() if v is not None}
+             return path[match.end():], args, kwargs
+         return None
+ 
+diff --git a/tests/urlpatterns/path_urls.py b/tests/urlpatterns/path_urls.py
+index 953fe6b6d7..b40801b39d 100644
+--- a/tests/urlpatterns/path_urls.py
++++ b/tests/urlpatterns/path_urls.py
+@@ -11,6 +11,7 @@ urlpatterns = [
+     path('users/<id>/', views.empty_view, name='user-with-id'),
+     path('included_urls/', include('urlpatterns.included_urls')),
+     re_path(r'^regex/(?P<pk>[0-9]+)/$', views.empty_view, name='regex'),
++    re_path(r'^regex_optional/(?P<arg1>\d+)/(?:(?P<arg2>\d+)/)?', views.empty_view, name='regex_optional'),
+     path('', include('urlpatterns.more_urls')),
+     path('<lang>/<path:url>/', views.empty_view, name='lang-and-path'),
+ ]
+diff --git a/tests/urlpatterns/tests.py b/tests/urlpatterns/tests.py
+index 74503e4518..9f20e38a16 100644
+--- a/tests/urlpatterns/tests.py
++++ b/tests/urlpatterns/tests.py
+@@ -54,6 +54,16 @@ class SimplifiedURLTests(SimpleTestCase):
+         self.assertEqual(match.kwargs, {'pk': '1'})
+         self.assertEqual(match.route, '^regex/(?P<pk>[0-9]+)/$')
+ 
++    def test_re_path_with_optional_parameter(self):
++        for url, kwargs in (
++            ('/regex_optional/1/', {'arg1': '1'}),
++            ('/regex_optional/1/2/', {'arg1': '1', 'arg2': '2'}),
++        ):
++            with self.subTest(url=url):
++                match = resolve(url)
++                self.assertEqual(match.url_name, 'regex_optional')
++                self.assertEqual(match.kwargs, kwargs)
++
+     def test_path_lookup_with_inclusion(self):
+         match = resolve('/included_urls/extra/something/')
+         self.assertEqual(match.url_name, 'inner-extra')
