@@ -60,7 +60,13 @@ echo '{"tools":["Bash","Read","Edit","Write","Grep","Glob"],"reason":"swe-ladder
 .venv/bin/python harness/ladder.py grade r1-haiku
 .venv/bin/python harness/ladder.py stage r2-sonnet --rung 2 --model sonnet --from r1-haiku
 .venv/bin/python harness/cost.py r1-haiku
+.venv/bin/python harness/analyze.py                           # tables -> data/analysis.json
 ```
+
+Runs in `data/runs/`: `r1-final` (rung 1, `r1-haiku` with the 30 stash-affected
+tasks replaced by `r1-haiku-redo`), `r2-haiku`, `r2-sonnet`, and two no-feedback
+controls, `r1-sonnet-cold` and `r1-haiku-reroll` (`data/cold-ids.json`,
+`data/reroll-ids.json`).
 
 Workers run as `general-purpose` subagents: a restricted agent type defined
 mid-session does not register, so the subagent allowlist does that job.

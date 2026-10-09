@@ -3881,3 +3881,44 @@ had gone stale.
 - **The Agent tool caps background subagents at 20** and refuses the 21st rather
   than queueing it; relaunch on each completion notice, not on the hand-back
   message, which arrives before the slot frees.
+
+
+### SWE-bench Verified without Docker: what it takes in a CCotw container
+
+From `swe-ladder/` (django + sympy, 295 tasks, 2026-10-09):
+
+- **Hugging Face is reachable** from this container (the plan assumed it was
+  blocked); `princeton-nlp/SWE-bench_Verified` loads directly. Pin `swebench`
+  (4.0.4 here) for its specs and log parsers only.
+- **`uv` ships CPython 3.8 and up, nothing older.** Django 2.2–3.2 tasks spec
+  Python 3.5–3.7; run them on 3.8 and let gold/empty validation drop any task
+  that breaks (none of django's did).
+- **Validate every task in your harness before using it:** the gold patch must
+  resolve it and the empty patch must not. Django at verbosity 2 prints a test's
+  docstring between its name and its verdict, and SWE-bench's parser then keys
+  the test by the docstring, so 8 of the first 11 gold patches "failed" until
+  `grade.django_docstring_lines` recorded both keys.
+- **Give concurrent agents independent clones, never worktrees of one mirror.**
+  Worktrees share `refs/stash`; agents that ran `git stash` / `git stash pop`
+  in parallel popped each other's changes (django-15127 received 15037's
+  inspectdb edits). `git clone --shared --no-checkout` costs the same disk and
+  isolates refs. Audit transcripts for stash use and redo those tasks (30 here).
+- **Collect an agent's diff on its completion notice, not when its output file
+  appears.** Agents told to write the summary file last sometimes keep testing
+  afterwards; collecting on the file deleted one checkout mid-run. If you sweep
+  for missed completions, require the file to have aged (`ladder.SETTLE`, 600 s).
+- **A fanout sweep that marks tasks done does not save their work.** Anything
+  that removes per-task state (here the checkout) has to run before the sweep,
+  or the sweep has to call it.
+
+### Retry versus escalation on real SWE tasks: measure the feedback before the model
+
+`swe-ladder/RESULTS.md`, SWE-bench Verified django + sympy, the 39 tasks Haiku 5.5
+missed out of 295. Resolved by arm: Haiku again with issue text only 8/39, Sonnet 5.5
+with issue text only 17/39, Haiku with the failing tests' names and tracebacks 30/39,
+Sonnet with the same 34/39. The failure output added 22 tasks for Haiku; switching
+models added 9 without it and 4 with it, at 9.4× the per-spawn cost. Neither
+no-feedback arm solved a task its feedback counterpart missed. Before paying for a
+bigger model at the second rung, check what signal the second rung gets. The
+feedback in that experiment was the hidden test suite, so it bounds what a real
+verifier can supply.
