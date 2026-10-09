@@ -1,0 +1,46 @@
+diff --git a/django/db/migrations/executor.py b/django/db/migrations/executor.py
+index 57042a8690..8c29bcbbab 100644
+--- a/django/db/migrations/executor.py
++++ b/django/db/migrations/executor.py
+@@ -254,8 +254,9 @@ class MigrationExecutor:
+         if migration.replaces:
+             for app_label, name in migration.replaces:
+                 self.recorder.record_unapplied(app_label, name)
+-        else:
+-            self.recorder.record_unapplied(migration.app_label, migration.name)
++        # The migration itself must be marked unapplied too, including a
++        # squashed migration whose replaced migrations are still present.
++        self.recorder.record_unapplied(migration.app_label, migration.name)
+         # Report progress
+         if self.progress_callback:
+             self.progress_callback("unapply_success", migration, fake)
+diff --git a/tests/migrations/test_executor.py b/tests/migrations/test_executor.py
+index e61d8f1276..9fa3005ed0 100644
+--- a/tests/migrations/test_executor.py
++++ b/tests/migrations/test_executor.py
+@@ -104,6 +104,25 @@ class ExecutorTests(MigrationTestBase):
+         self.assertTableNotExists("migrations_author")
+         self.assertTableNotExists("migrations_book")
+ 
++    @override_settings(MIGRATION_MODULES={"migrations": "migrations.test_migrations_squashed"})
++    def test_unapply_marks_squashed_migration_unapplied(self):
++        """
++        Unapplying a squashed migration marks the squashed migration as
++        unapplied too, not only the migrations it replaces (#14500).
++        """
++        executor = MigrationExecutor(connection)
++        executor.migrate([("migrations", "0001_squashed_0002")])
++        self.assertIn(
++            ("migrations", "0001_squashed_0002"),
++            executor.recorder.applied_migrations(),
++        )
++        executor.loader.build_graph()
++        executor.migrate([("migrations", None)])
++        applied = executor.recorder.applied_migrations()
++        self.assertNotIn(("migrations", "0001_squashed_0002"), applied)
++        self.assertNotIn(("migrations", "0001_initial"), applied)
++        self.assertNotIn(("migrations", "0002_second"), applied)
++
+     @override_settings(MIGRATION_MODULES={"migrations": "migrations.test_migrations_non_atomic"})
+     def test_non_atomic_migration(self):
+         """

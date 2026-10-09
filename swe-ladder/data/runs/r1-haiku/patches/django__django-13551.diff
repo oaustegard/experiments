@@ -1,0 +1,50 @@
+diff --git a/django/contrib/auth/tokens.py b/django/contrib/auth/tokens.py
+index 93e2d71af2..a07c64601d 100644
+--- a/django/contrib/auth/tokens.py
++++ b/django/contrib/auth/tokens.py
+@@ -85,6 +85,9 @@ class PasswordResetTokenGenerator:
+            same password is chosen, due to password salting).
+         2. The last_login field will usually be updated very shortly after
+            a password reset.
++        3. The email field will change if the user changes their email
++           address, which should also invalidate any outstanding tokens sent
++           to the old address.
+         Failing those things, settings.PASSWORD_RESET_TIMEOUT eventually
+         invalidates the token.
+ 
+@@ -94,7 +97,10 @@ class PasswordResetTokenGenerator:
+         # Truncate microseconds so that tokens are consistent even if the
+         # database doesn't support microseconds.
+         login_timestamp = '' if user.last_login is None else user.last_login.replace(microsecond=0, tzinfo=None)
+-        return str(user.pk) + user.password + str(login_timestamp) + str(timestamp)
++        # Models without an email field, or with an empty email, hash as ''.
++        email_field = user.get_email_field_name()
++        email = getattr(user, email_field, '') or ''
++        return str(user.pk) + user.password + str(login_timestamp) + str(timestamp) + str(email)
+ 
+     def _num_seconds(self, dt):
+         return int((dt - datetime(2001, 1, 1)).total_seconds())
+diff --git a/tests/auth_tests/test_tokens.py b/tests/auth_tests/test_tokens.py
+index bba435be84..3df447ecc7 100644
+--- a/tests/auth_tests/test_tokens.py
++++ b/tests/auth_tests/test_tokens.py
+@@ -63,6 +63,19 @@ class TokenGeneratorTest(TestCase):
+             )
+             self.assertIs(p4.check_token(user, tk1), False)
+ 
++    def test_token_invalidated_by_email_change(self):
++        user = User.objects.create_user('tokentestuser', 'test2@example.com', 'testpw')
++        p0 = PasswordResetTokenGenerator()
++        tk1 = p0.make_token(user)
++        user.email = 'changed@example.com'
++        self.assertIs(p0.check_token(user, tk1), False)
++
++    def test_token_with_no_email_value(self):
++        user = User.objects.create_user('tokentestuser', None, 'testpw')
++        p0 = PasswordResetTokenGenerator()
++        tk1 = p0.make_token(user)
++        self.assertIs(p0.check_token(user, tk1), True)
++
+     def test_check_token_with_nonexistent_token_and_user(self):
+         user = User.objects.create_user('tokentestuser', 'test2@example.com', 'testpw')
+         p0 = PasswordResetTokenGenerator()

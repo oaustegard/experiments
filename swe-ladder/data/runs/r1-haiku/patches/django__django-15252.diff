@@ -1,0 +1,113 @@
+diff --git a/django/contrib/admin/options.py b/django/contrib/admin/options.py
+index 100e481229..05db5511f5 100644
+--- a/django/contrib/admin/options.py
++++ b/django/contrib/admin/options.py
+@@ -1031,7 +1031,14 @@ class ModelAdmin(BaseModelAdmin):
+         if search_fields and search_term:
+             orm_lookups = [construct_search(str(search_field))
+                            for search_field in search_fields]
++<<<<<<< Updated upstream
+             term_queries = []
++=======
++            spawns_duplicates = any(
++                lookup_spawns_duplicates(self.opts, search_spec)
++                for search_spec in orm_lookups
++            )
++>>>>>>> Stashed changes
+             for bit in smart_split(search_term):
+                 if bit.startswith(('"', "'")) and bit[0] == bit[-1]:
+                     bit = unescape_string_literal(bit)
+@@ -1039,12 +1046,27 @@ class ModelAdmin(BaseModelAdmin):
+                     *((orm_lookup, bit) for orm_lookup in orm_lookups),
+                     _connector=models.Q.OR,
+                 )
++<<<<<<< Updated upstream
+                 term_queries.append(or_queries)
+             queryset = queryset.filter(models.Q(*term_queries))
+             may_have_duplicates |= any(
+                 lookup_spawns_duplicates(self.opts, search_spec)
+                 for search_spec in orm_lookups
+             )
++=======
++                if spawns_duplicates:
++                    # Each filter() on a multi-valued relation adds its own
++                    # JOIN, so one search term per filter() multiplies the
++                    # rows for every word. Match the term in a subquery
++                    # instead: the outer query gets no extra joins and no
++                    # duplicates, so distinct() is not needed.
++                    queryset = queryset.filter(pk__in=(
++                        queryset.model._base_manager.filter(or_queries)
++                        .values('pk')
++                    ))
++                else:
++                    queryset = queryset.filter(or_queries)
++>>>>>>> Stashed changes
+         return queryset, may_have_duplicates
+ 
+     def get_preserved_filters(self, request):
+diff --git a/tests/admin_changelist/tests.py b/tests/admin_changelist/tests.py
+index 86fcab531a..3f29894c2c 100644
+--- a/tests/admin_changelist/tests.py
++++ b/tests/admin_changelist/tests.py
+@@ -600,6 +600,25 @@ class ChangeListTests(TestCase):
+                 group_changelist = group_model_admin.get_changelist_instance(request)
+                 self.assertEqual(group_changelist.queryset.count(), result_count)
+ 
++    def test_search_terms_do_not_add_joins_for_multi_valued_fields(self):
++        """
++        Each search term on a multi-valued relation must not add a JOIN to the
++        changelist query (#15022).
++        """
++        band = Group.objects.create(name='The Hype')
++        lead = Musician.objects.create(name='Vox')
++        Membership.objects.create(group=band, music=lead, role='lead voice')
++        Concert.objects.create(name='Woodstock', group=band)
++        m = GroupAdmin(Group, custom_site)
++        m.search_fields = ['name', 'concert__name', 'members__name']
++        request = self.factory.get('/group/', data={SEARCH_VAR: 'the hype vox woodstock'})
++        request.user = self.superuser
++        cl = m.get_changelist_instance(request)
++        self.assertEqual(cl.queryset.count(), 1)
++        self.assertIs(cl.queryset.query.distinct, False)
++        # Only the base table is joined in the outer query.
++        self.assertEqual(len(cl.queryset.query.alias_map), 1)
++
+     def test_pk_in_search_fields(self):
+         band = Group.objects.create(name='The Hype')
+         Concert.objects.create(name='Woodstock', group=band)
+diff --git a/tests/migrations/test_loader.py b/tests/migrations/test_loader.py
+index 03a98506e3..5799f37637 100644
+--- a/tests/migrations/test_loader.py
++++ b/tests/migrations/test_loader.py
+@@ -1,6 +1,7 @@
+ import compileall
+ import os
+ from importlib import import_module
++from unittest import mock
+ 
+ from django.db import connection, connections
+ from django.db.migrations.exceptions import (
+@@ -45,6 +46,23 @@ class RecorderTests(TestCase):
+             set(),
+         )
+ 
++    @override_settings(DATABASE_ROUTERS=['migrations.routers.TestRouter'])
++    def test_router_forbidden_table_is_not_created(self):
++        """
++        The recorder does not create django_migrations on a database the
++        router forbids, and does not record migrations there while it is
++        missing.
++        """
++        recorder_other = MigrationRecorder(connections['other'])
++        self.assertFalse(recorder_other.migration_table_allowed())
++        with mock.patch.object(MigrationRecorder, 'has_table', return_value=False), \
++                mock.patch.object(connections['other'], 'schema_editor') as schema_editor:
++            recorder_other.ensure_schema()
++            recorder_other.record_applied("myapp", "0432_ponies")
++            recorder_other.record_unapplied("myapp", "0432_ponies")
++        schema_editor.assert_not_called()
++        self.assertTrue(MigrationRecorder(connection).migration_table_allowed())
++
+ 
+ class LoaderTests(TestCase):
+     """

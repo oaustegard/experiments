@@ -1,0 +1,1 @@
+{"summary": "Added an early return in ModelBackend.authenticate() when username or password is None, so no user lookup query or password hashing runs for credentials meant for another backend. Ran auth_tests (510 tests, all passing, including auth_tests.test_auth_backends) to check for regressions."}

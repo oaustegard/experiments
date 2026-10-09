@@ -1,0 +1,34 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 08d7faf194..f7d63184aa 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -455,7 +455,11 @@ class Query(BaseExpression):
+                 )
+                 if inner_query.default_cols and has_existing_aggregate_annotations:
+                     inner_query.group_by = (self.model._meta.pk.get_col(inner_query.get_initial_alias()),)
+-                inner_query.default_cols = False
++                # The columns of a combined query are those of its parts, and
++                # its ORDER BY is resolved against its own select list, so
++                # keep the default columns for combined queries.
++                if not inner_query.combinator:
++                    inner_query.default_cols = False
+ 
+             relabels = {t: 'subquery' for t in inner_query.alias_map}
+             relabels[None] = 'subquery'
+diff --git a/tests/queries/test_qs_combinators.py b/tests/queries/test_qs_combinators.py
+index 227972e8c4..fbec28c7f1 100644
+--- a/tests/queries/test_qs_combinators.py
++++ b/tests/queries/test_qs_combinators.py
+@@ -162,6 +162,12 @@ class QuerySetSetOperationTests(TestCase):
+         qs = Number.objects.filter(pk__in=[])
+         self.assertEqual(qs.union(qs).count(), 0)
+ 
++    def test_count_sliced_union_with_ordering(self):
++        qs1 = Number.objects.filter(num__lte=1)
++        qs2 = Number.objects.filter(num__gte=2, num__lte=3)
++        self.assertEqual(qs1.union(qs2).order_by('num')[:2].count(), 2)
++        self.assertEqual(qs1.union(qs2).order_by('-num')[1:].count(), 3)
++
+     @skipUnlessDBFeature('supports_select_difference')
+     def test_count_difference(self):
+         qs1 = Number.objects.filter(num__lt=10)

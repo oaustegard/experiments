@@ -1,0 +1,1 @@
+{"summary": "Added disabled=True as the default in ReadOnlyPasswordHashField.__init__ (kwargs.setdefault, so callers can still override it), so the password hash field is rendered disabled and ignores tampered submitted values without relying on clean_password. Checked by running swe-test on auth_tests (full suite, 950 tests) and admin_views, which all pass."}

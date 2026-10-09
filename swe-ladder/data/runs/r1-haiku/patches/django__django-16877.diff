@@ -1,0 +1,90 @@
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 5289ef34a0..d9aec2de51 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -498,6 +498,16 @@ def safeseq(value):
+     return [mark_safe(obj) for obj in value]
+ 
+ 
++@register.filter(is_safe=True)
++def escapeseq(value):
++    """
++    An "escape" filter for sequences. Mark each element in the sequence,
++    individually, as a string that should be auto-escaped. Return a list with
++    the results.
++    """
++    return [conditional_escape(obj) for obj in value]
++
++
+ @register.filter(is_safe=True)
+ @stringfilter
+ def striptags(value):
+diff --git a/docs/ref/templates/builtins.txt b/docs/ref/templates/builtins.txt
+index 3aa20dfc71..66b12131ad 100644
+--- a/docs/ref/templates/builtins.txt
++++ b/docs/ref/templates/builtins.txt
+@@ -1849,6 +1849,23 @@ For example:
+ If ``value`` is ``"testing\r\njavascript 'string\" <b>escaping</b>"``,
+ the output will be ``"testing\\u000D\\u000Ajavascript \\u0027string\\u0022 \\u003Cb\\u003Eescaping\\u003C/b\\u003E"``.
+ 
++.. templatefilter:: escapeseq
++
++``escapeseq``
++-------------
++
++Applies the :tfilter:`escape` filter to each element of a sequence. Useful in
++conjunction with other filters that operate on sequences, such as
++:tfilter:`join`. For example:
++
++.. code-block:: html+django
++
++    {{ some_list|escapeseq|join:", " }}
++
++You couldn't use the :tfilter:`escape` filter directly in this case, as it
++would first convert the variable into a string, rather than working with the
++individual elements of the sequence.
++
+ .. templatefilter:: filesizeformat
+ 
+ ``filesizeformat``
+diff --git a/tests/template_tests/filter_tests/test_escapeseq.py b/tests/template_tests/filter_tests/test_escapeseq.py
+new file mode 100644
+index 0000000000..645924d7e2
+--- /dev/null
++++ b/tests/template_tests/filter_tests/test_escapeseq.py
+@@ -0,0 +1,35 @@
++from django.test import SimpleTestCase
++from django.utils.safestring import mark_safe
++
++from ..utils import setup
++
++
++class EscapeseqTests(SimpleTestCase):
++    @setup({"escapeseq01": '{{ a|escapeseq|join:", " }}'})
++    def test_escapeseq01(self):
++        output = self.engine.render_to_string("escapeseq01", {"a": ["&", "<"]})
++        self.assertEqual(output, "&amp;, &lt;")
++
++    @setup(
++        {
++            "escapeseq02": (
++                '{% autoescape off %}{{ a|join:", " }} -- {{ a|escapeseq|join:", " }}'
++                "{% endautoescape %}"
++            )
++        }
++    )
++    def test_escapeseq02(self):
++        output = self.engine.render_to_string("escapeseq02", {"a": ["&", "<"]})
++        self.assertEqual(output, "&, < -- &amp;, &lt;")
++
++    @setup({"escapeseq03": "{{ a|escapeseq|join:', ' }}"})
++    def test_escapeseq03(self):
++        output = self.engine.render_to_string(
++            "escapeseq03", {"a": [mark_safe("&amp;"), "<"]}
++        )
++        self.assertEqual(output, "&amp;, &lt;")
++
++    @setup({"escapeseq04": "{{ a|escapeseq|join:', ' }}"})
++    def test_escapeseq04(self):
++        output = self.engine.render_to_string("escapeseq04", {"a": []})
++        self.assertEqual(output, "")

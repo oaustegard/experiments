@@ -1,0 +1,58 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 8ea6c05ef9..290b0f17f4 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -204,7 +204,12 @@ class ModelBase(type):
+             for field in base._meta.local_fields:
+                 if isinstance(field, OneToOneField):
+                     related = resolve_relation(new_class, field.remote_field.model)
+-                    parent_links[make_model_tuple(related)] = field
++                    key = make_model_tuple(related)
++                    # An explicit parent_link=True takes precedence over other
++                    # one-to-one fields to the same model, regardless of the
++                    # order in which they were declared.
++                    if key not in parent_links or field.remote_field.parent_link:
++                        parent_links[key] = field
+ 
+         # Track fields inherited from base models.
+         inherited_attributes = set()
+diff --git a/tests/model_inheritance/tests.py b/tests/model_inheritance/tests.py
+index 5eef0f5bfa..c923c5b658 100644
+--- a/tests/model_inheritance/tests.py
++++ b/tests/model_inheritance/tests.py
+@@ -494,6 +494,35 @@ class InheritanceSameModelNameTests(SimpleTestCase):
+         self.assertIs(Referenced.tests_referent_references.field.model, ForeignReferent)
+ 
+ 
++@isolate_apps('model_inheritance')
++class MultipleOneToOneParentLinkTests(SimpleTestCase):
++    def test_parent_link_declared_after_other_one_to_one(self):
++        class Document(models.Model):
++            pass
++
++        class Picking(Document):
++            document_ptr = models.OneToOneField(
++                Document, models.CASCADE, parent_link=True, related_name='+',
++            )
++            origin = models.OneToOneField(Document, models.PROTECT, related_name='picking')
++
++        self.assertIs(Picking._meta.pk, Picking._meta.get_field('document_ptr'))
++        self.assertEqual(Picking.check(), [])
++
++    def test_parent_link_declared_before_other_one_to_one(self):
++        class Document(models.Model):
++            pass
++
++        class Picking(Document):
++            origin = models.OneToOneField(Document, models.PROTECT, related_name='picking')
++            document_ptr = models.OneToOneField(
++                Document, models.CASCADE, parent_link=True, related_name='+',
++            )
++
++        self.assertIs(Picking._meta.pk, Picking._meta.get_field('document_ptr'))
++        self.assertEqual(Picking.check(), [])
++
++
+ class InheritanceUniqueTests(TestCase):
+     @classmethod
+     def setUpTestData(cls):

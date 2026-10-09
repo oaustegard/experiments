@@ -1,0 +1,1 @@
+{"summary": "makemigrations now calls sys.exit(1) before writing migration files when --check finds missing migrations, so --check no longer creates them (the help text and django-admin docs are updated to match). Verified with a new regression test asserting write_migration_files is not called, plus the full migrations.test_commands module (141 tests) passing under swe-test."}

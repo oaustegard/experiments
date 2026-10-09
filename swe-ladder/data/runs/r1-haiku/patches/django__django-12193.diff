@@ -1,0 +1,17 @@
+diff --git a/django/forms/widgets.py b/django/forms/widgets.py
+index 6fe220bea7..b30989685a 100644
+--- a/django/forms/widgets.py
++++ b/django/forms/widgets.py
+@@ -522,9 +522,9 @@ class CheckboxInput(Input):
+ 
+     def get_context(self, name, value, attrs):
+         if self.check_test(value):
+-            if attrs is None:
+-                attrs = {}
+-            attrs['checked'] = True
++            # Copy rather than mutate: the caller's attrs dict may be shared
++            # with other widgets (e.g. SplitArrayField's final_attrs).
++            attrs = {**(attrs or {}), 'checked': True}
+         return super().get_context(name, value, attrs)
+ 
+     def value_from_datadict(self, data, files, name):

@@ -1,0 +1,53 @@
+diff --git a/django/template/autoreload.py b/django/template/autoreload.py
+index 84c8554165..4c34d01f9c 100644
+--- a/django/template/autoreload.py
++++ b/django/template/autoreload.py
+@@ -17,7 +17,9 @@ def get_template_directories():
+         if not isinstance(backend, DjangoTemplates):
+             continue
+ 
+-        items.update(cwd / to_path(dir) for dir in backend.engine.dirs)
++        # Empty entries (e.g. DIRS of [""] from an unset env var) would resolve
++        # to the project root and make every change look like a template change.
++        items.update(cwd / to_path(dir) for dir in backend.engine.dirs if dir)
+ 
+         for loader in backend.engine.template_loaders:
+             if not hasattr(loader, "get_dirs"):
+@@ -25,7 +27,7 @@ def get_template_directories():
+             items.update(
+                 cwd / to_path(directory)
+                 for directory in loader.get_dirs()
+-                if not is_django_path(directory)
++                if directory and not is_django_path(directory)
+             )
+     return items
+ 
+diff --git a/tests/template_tests/test_autoreloader.py b/tests/template_tests/test_autoreloader.py
+index cc2c3f58a5..d89a279de2 100644
+--- a/tests/template_tests/test_autoreloader.py
++++ b/tests/template_tests/test_autoreloader.py
+@@ -103,6 +103,24 @@ class TemplateReloadTests(SimpleTestCase):
+             },
+         )
+ 
++    @override_settings(
++        TEMPLATES=[
++            {
++                "DIRS": ["", ROOT / "absolute_empty_str_check"],
++                "BACKEND": "django.template.backends.django.DjangoTemplates",
++            }
++        ]
++    )
++    @mock.patch("django.template.autoreload.reset_loaders")
++    def test_empty_template_dir_ignored(self, mock_reset):
++        # An empty DIRS entry must not resolve to the project root.
++        self.assertSetEqual(
++            autoreload.get_template_directories(),
++            {ROOT / "absolute_empty_str_check"},
++        )
++        self.assertIsNone(autoreload.template_changed(None, Path(__file__)))
++        mock_reset.assert_not_called()
++
+ 
+ @require_jinja2
+ @override_settings(INSTALLED_APPS=["template_tests"])

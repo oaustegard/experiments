@@ -1,0 +1,63 @@
+diff --git a/django/forms/models.py b/django/forms/models.py
+index 5d115458a1..5d0797046e 100644
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -97,10 +97,19 @@ def model_to_dict(instance, fields=None, exclude=None):
+ 
+ def apply_limit_choices_to_to_formfield(formfield):
+     """Apply limit_choices_to to the formfield's queryset if needed."""
++    from django.db.models import Exists, OuterRef, Q
+     if hasattr(formfield, 'queryset') and hasattr(formfield, 'get_limit_choices_to'):
+         limit_choices_to = formfield.get_limit_choices_to()
+         if limit_choices_to is not None:
+-            formfield.queryset = formfield.queryset.complex_filter(limit_choices_to)
++            complex_filter = limit_choices_to
++            if not isinstance(complex_filter, Q):
++                complex_filter = Q(**limit_choices_to)
++            complex_filter &= Q(pk=OuterRef('pk'))
++            # Use Exists() to avoid potential duplicates from joins in the
++            # limit_choices_to filter.
++            formfield.queryset = formfield.queryset.filter(
++                Exists(formfield.queryset.model._base_manager.filter(complex_filter)),
++            )
+ 
+ 
+ def fields_for_model(model, fields=None, exclude=None, widgets=None,
+diff --git a/tests/model_forms/tests.py b/tests/model_forms/tests.py
+index 9e900e35f4..34558c2108 100644
+--- a/tests/model_forms/tests.py
++++ b/tests/model_forms/tests.py
+@@ -2819,6 +2819,33 @@ class LimitChoicesToTests(TestCase):
+         fields = fields_for_model(StumpJoke, ['has_fooled_today'])
+         self.assertSequenceEqual(fields['has_fooled_today'].queryset, [self.threepwood])
+ 
++    def test_limit_choices_to_join_does_not_duplicate_options(self):
++        """
++        A limit_choices_to Q object involving a join must not produce
++        duplicate options (#13315).
++        """
++        from django.db.models import Q
++        from django.forms.models import apply_limit_choices_to_to_formfield
++
++        class LimitedField(forms.ModelChoiceField):
++            def __init__(self, limit, **kwargs):
++                super().__init__(**kwargs)
++                self._limit = limit
++
++            def get_limit_choices_to(self):
++                return self._limit
++
++        writer = Writer.objects.create(name='Dup Writer')
++        for headline in ('First', 'Second'):
++            Article.objects.create(
++                headline=headline, slug=headline.lower(),
++                pub_date=datetime.date.today(), writer=writer, article='same',
++            )
++        field = LimitedField(Q(article__article='same'), queryset=Writer.objects.all())
++        apply_limit_choices_to_to_formfield(field)
++        self.assertEqual(list(field.queryset), [writer])
++        self.assertEqual(field.queryset.count(), 1)
++
+     def test_callable_called_each_time_form_is_instantiated(self):
+         field = StumpJokeForm.base_fields['most_recently_fooled']
+         with mock.patch.object(field, 'limit_choices_to') as today_callable_dict:

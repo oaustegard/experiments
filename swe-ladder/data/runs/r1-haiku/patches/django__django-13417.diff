@@ -1,0 +1,35 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index 85cd8311a7..67ffe7f000 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -1224,7 +1224,12 @@ class QuerySet:
+             return True
+         if self.query.extra_order_by or self.query.order_by:
+             return True
+-        elif self.query.default_ordering and self.query.get_meta().ordering:
++        elif (
++            self.query.default_ordering and
++            self.query.get_meta().ordering and
++            # A default ordering doesn't affect GROUP BY queries.
++            not self.query.group_by
++        ):
+             return True
+         else:
+             return False
+diff --git a/tests/queries/tests.py b/tests/queries/tests.py
+index f9a57b088a..9dfa7f2ced 100644
+--- a/tests/queries/tests.py
++++ b/tests/queries/tests.py
+@@ -2084,6 +2084,12 @@ class QuerysetOrderedTests(unittest.TestCase):
+         self.assertIs(qs.ordered, False)
+         self.assertIs(qs.order_by('num_notes').ordered, True)
+ 
++    def test_annotated_default_ordering(self):
++        qs = Tag.objects.annotate(Count('pk'))
++        self.assertIs(qs.ordered, False)
++        self.assertIs(qs.order_by('name').ordered, True)
++        self.assertIs(Tag.objects.all().ordered, True)
++
+ 
+ @skipUnlessDBFeature('allow_sliced_subqueries_with_in')
+ class SubqueryTests(TestCase):

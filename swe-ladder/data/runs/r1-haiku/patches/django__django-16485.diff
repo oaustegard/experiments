@@ -1,0 +1,38 @@
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 23c3a08c67..2fdd48ac80 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -183,7 +183,9 @@ def floatformat(text, arg=-1):
+     tupl = d.as_tuple()
+     units = len(tupl[1])
+     units += -tupl[2] if m else tupl[2]
+-    prec = abs(p) + units + 1
++    # Zero values with several decimal places (e.g. "0.00") yield units <= 0,
++    # but Context(prec=...) requires prec >= 1.
++    prec = max(1, abs(p) + units + 1)
+ 
+     # Avoid conversion to scientific notation by accessing `sign`, `digits`,
+     # and `exponent` from Decimal.as_tuple() directly.
+diff --git a/tests/template_tests/filter_tests/test_floatformat.py b/tests/template_tests/filter_tests/test_floatformat.py
+index 361a888ce3..01e8a4008e 100644
+--- a/tests/template_tests/filter_tests/test_floatformat.py
++++ b/tests/template_tests/filter_tests/test_floatformat.py
+@@ -112,6 +112,18 @@ class FunctionTests(SimpleTestCase):
+             floatformat(0.000000000000000000015, 20), "0.00000000000000000002"
+         )
+ 
++    def test_zero_values_with_low_precision(self):
++        tests = [
++            ("0.00", 0, "0"),
++            (Decimal("0.00"), 0, "0"),
++            ("0.000", 0, "0"),
++            ("0.000", 1, "0.0"),
++            (Decimal("-0.000"), 0, "0"),
++        ]
++        for num, decimal_places, expected in tests:
++            with self.subTest(num=num, decimal_places=decimal_places):
++                self.assertEqual(floatformat(num, decimal_places), expected)
++
+     def test_negative_zero_values(self):
+         tests = [
+             (-0.01, -1, "0.0"),

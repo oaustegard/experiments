@@ -1,0 +1,33 @@
+diff --git a/django/db/models/expressions.py b/django/db/models/expressions.py
+index 5e3c7cab82..978138b865 100644
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -533,6 +533,8 @@ _connector_combinations = [
+             Combinable.SUB,
+             Combinable.MUL,
+             Combinable.DIV,
++            Combinable.MOD,
++            Combinable.POW,
+         )
+     },
+     # Bitwise operators.
+diff --git a/tests/expressions/tests.py b/tests/expressions/tests.py
+index 39e6c18b1a..8103c355ac 100644
+--- a/tests/expressions/tests.py
++++ b/tests/expressions/tests.py
+@@ -2416,7 +2416,14 @@ class CombinedExpressionTests(SimpleTestCase):
+             (IntegerField, FloatField, FloatField),
+             (FloatField, IntegerField, FloatField),
+         ]
+-        connectors = [Combinable.ADD, Combinable.SUB, Combinable.MUL, Combinable.DIV]
++        connectors = [
++            Combinable.ADD,
++            Combinable.SUB,
++            Combinable.MUL,
++            Combinable.DIV,
++            Combinable.MOD,
++            Combinable.POW,
++        ]
+         for lhs, rhs, combined in tests:
+             for connector in connectors:
+                 with self.subTest(

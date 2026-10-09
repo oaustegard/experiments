@@ -1,0 +1,19 @@
+diff --git a/sympy/core/function.py b/sympy/core/function.py
+index 1b8005e1d2..afb6c1613c 100644
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -507,7 +507,13 @@ def _eval_evalf(self, prec):
+             func = getattr(mpmath, fname)
+         except (AttributeError, KeyError):
+             try:
+-                return Float(self._imp_(*self.args), prec)
++                # Evaluate the arguments numerically first, so that nested
++                # implemented functions (e.g. f(g(2))) are evaluated too.
++                from mpmath.libmp.libmpf import prec_to_dps
++                dps = prec_to_dps(prec)
++                args = [arg.evalf(dps) if isinstance(arg, Expr) else arg
++                        for arg in self.args]
++                return Float(self._imp_(*args), prec)
+             except (AttributeError, TypeError, ValueError):
+                 return
+ 

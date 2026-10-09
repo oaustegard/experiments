@@ -1,0 +1,64 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 2428218696..fd8e0806b1 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -933,7 +933,7 @@ class Model(metaclass=ModelBase):
+                         "%s() prohibited to prevent data loss due to unsaved "
+                         "related object '%s'." % (operation_name, field.name)
+                     )
+-                elif getattr(self, field.attname) is None:
++                elif getattr(self, field.attname) in field.empty_values:
+                     # Use pk from related object if it has been saved after
+                     # an assignment.
+                     setattr(self, field.attname, obj.pk)
+diff --git a/tests/many_to_one/models.py b/tests/many_to_one/models.py
+index e9f8fbff76..1393e72aba 100644
+--- a/tests/many_to_one/models.py
++++ b/tests/many_to_one/models.py
+@@ -114,3 +114,11 @@ class School(models.Model):
+ 
+ class Student(models.Model):
+     school = models.ForeignKey(School, models.CASCADE)
++
++
++class Product(models.Model):
++    sku = models.CharField(primary_key=True, max_length=50)
++
++
++class Order(models.Model):
++    product = models.ForeignKey(Product, models.CASCADE)
+diff --git a/tests/many_to_one/tests.py b/tests/many_to_one/tests.py
+index 3c7cd0c3fa..120d9891cd 100644
+--- a/tests/many_to_one/tests.py
++++ b/tests/many_to_one/tests.py
+@@ -8,8 +8,8 @@ from django.utils.translation import gettext_lazy
+ 
+ from .models import (
+     Article, Category, Child, ChildNullableParent, City, Country, District,
+-    First, Parent, Record, Relation, Reporter, School, Student, Third,
+-    ToFieldChild,
++    First, Order, Parent, Product, Record, Relation, Reporter, School,
++    Student, Third, ToFieldChild,
+ )
+ 
+ 
+@@ -726,3 +726,19 @@ class ManyToOneTests(TestCase):
+             usa.cities.remove(chicago.pk)
+         with self.assertRaisesMessage(TypeError, msg):
+             usa.cities.set([chicago.pk])
++
++
++class NonNumericPKParentTests(TestCase):
++    def test_save_parent_after_child_assigned_non_numeric_pk(self):
++        # Assigning an unsaved parent with an empty non-numeric pk to a child,
++        # then saving the parent once its pk is set, must populate the child's
++        # foreign key with the parent's pk rather than the empty string.
++        with transaction.atomic():
++            order = Order()
++            order.product = Product()
++            order.product.sku = 'foo'
++            order.product.save()
++            order.save()
++            self.assertEqual(order.product_id, 'foo')
++            self.assertFalse(Order.objects.filter(product_id='').exists())
++            self.assertTrue(Order.objects.filter(product=order.product).exists())

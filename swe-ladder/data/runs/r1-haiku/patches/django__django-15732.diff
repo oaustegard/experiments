@@ -1,0 +1,52 @@
+diff --git a/django/db/backends/base/schema.py b/django/db/backends/base/schema.py
+index f2ca8c8df9..594b155c93 100644
+--- a/django/db/backends/base/schema.py
++++ b/django/db/backends/base/schema.py
+@@ -528,7 +528,10 @@ class BaseDatabaseSchemaEditor:
+         # Deleted uniques
+         for fields in olds.difference(news):
+             self._delete_composed_index(
+-                model, fields, {"unique": True}, self.sql_delete_unique
++                model,
++                fields,
++                {"unique": True, "primary_key": False},
++                self.sql_delete_unique,
+             )
+         # Created uniques
+         for field_names in news.difference(olds):
+diff --git a/tests/schema/tests.py b/tests/schema/tests.py
+index fe717f8841..3800797c7c 100644
+--- a/tests/schema/tests.py
++++ b/tests/schema/tests.py
+@@ -2570,6 +2570,31 @@ class SchemaTests(TransactionTestCase):
+         with connection.schema_editor() as editor:
+             editor.alter_unique_together(Book, [["author", "title"]], [])
+ 
++    @isolate_apps("schema")
++    def test_unique_together_on_primary_key(self):
++        """
++        Removing a unique_together constraint on a single primary key field
++        must not count the primary key constraint as a unique_together
++        constraint, which is also unique on the same column.
++        """
++
++        class PKUniqueTogether(Model):
++            class Meta:
++                app_label = "schema"
++                unique_together = (("id",),)
++
++        self.isolated_local_models = [PKUniqueTogether]
++        with connection.schema_editor() as editor:
++            editor.create_model(PKUniqueTogether)
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(
++                PKUniqueTogether, PKUniqueTogether._meta.unique_together, []
++            )
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(
++                PKUniqueTogether, [], PKUniqueTogether._meta.unique_together
++            )
++
+     @skipUnlessDBFeature("allows_multiple_constraints_on_same_fields")
+     def test_remove_unique_together_does_not_remove_meta_constraints(self):
+         with connection.schema_editor() as editor:

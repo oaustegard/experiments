@@ -93,7 +93,7 @@ def failure_excerpt(task: dict, log: str, failing: list[str], limit: int = 8000)
             end = heads[i + 1].start() if i + 1 < len(heads) else len(log)
             body = log[m.start():end]
             if any(f in m.group(1) for f in failing):
-                blocks.append(body.split("\n" + "=" * 20)[0].strip())
+                blocks.append(re.split(r"\n=+ tests finished", body)[0].strip())
     text = "\n\n".join(blocks)
     if not text:
         text = "(no traceback for these tests in the output; last lines of the run follow)\n" + log[-3000:]

@@ -1,0 +1,42 @@
+diff --git a/django/db/models/query_utils.py b/django/db/models/query_utils.py
+index c957ffa564..61872e0c25 100644
+--- a/django/db/models/query_utils.py
++++ b/django/db/models/query_utils.py
+@@ -40,6 +40,8 @@ class Q(tree.Node):
+         super().__init__(children=[*args, *sorted(kwargs.items())], connector=_connector, negated=_negated)
+ 
+     def _combine(self, other, conn):
++        if getattr(other, 'conditional', False) is True and not isinstance(other, Q):
++            other = Q(other)
+         if not isinstance(other, Q):
+             raise TypeError(other)
+ 
+@@ -85,7 +87,7 @@ class Q(tree.Node):
+         if path.startswith('django.db.models.query_utils'):
+             path = path.replace('django.db.models.query_utils', 'django.db.models')
+         args, kwargs = (), {}
+-        if len(self.children) == 1 and not isinstance(self.children[0], Q):
++        if len(self.children) == 1 and isinstance(self.children[0], tuple):
+             child = self.children[0]
+             kwargs = {child[0]: child[1]}
+         else:
+diff --git a/tests/queries/test_q.py b/tests/queries/test_q.py
+index 6dcf36ce02..2a1352d8e7 100644
+--- a/tests/queries/test_q.py
++++ b/tests/queries/test_q.py
+@@ -111,3 +111,15 @@ class QTests(SimpleTestCase):
+         q = q1 & q2
+         path, args, kwargs = q.deconstruct()
+         self.assertEqual(Q(*args, **kwargs), q)
++
++    def test_combine_conditional_expression(self):
++        from django.db.models import Exists
++        from django.db.models.expressions import RawSQL
++        exists = Exists(RawSQL('SELECT 1', []))
++        self.assertEqual(Q() & exists, Q(exists))
++        combined = Q(x=1) & exists
++        self.assertEqual(combined.connector, Q.AND)
++        self.assertIn(exists, combined.children)
++        combined = Q(x=1) | exists
++        self.assertEqual(combined.connector, Q.OR)
++        self.assertIn(exists, combined.children)

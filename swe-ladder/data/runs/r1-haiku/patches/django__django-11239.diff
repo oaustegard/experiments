@@ -1,0 +1,71 @@
+diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py
+index cf4df76882..0efe0d47f0 100644
+--- a/django/db/backends/postgresql/client.py
++++ b/django/db/backends/postgresql/client.py
+@@ -17,6 +17,10 @@ class DatabaseClient(BaseDatabaseClient):
+         dbname = conn_params.get('database', '')
+         user = conn_params.get('user', '')
+         passwd = conn_params.get('password', '')
++        sslmode = conn_params.get('sslmode', '')
++        sslrootcert = conn_params.get('sslrootcert', '')
++        sslcert = conn_params.get('sslcert', '')
++        sslkey = conn_params.get('sslkey', '')
+ 
+         if user:
+             args += ['-U', user]
+@@ -30,6 +34,14 @@ class DatabaseClient(BaseDatabaseClient):
+         subprocess_env = os.environ.copy()
+         if passwd:
+             subprocess_env['PGPASSWORD'] = str(passwd)
++        if sslmode:
++            subprocess_env['PGSSLMODE'] = str(sslmode)
++        if sslrootcert:
++            subprocess_env['PGSSLROOTCERT'] = str(sslrootcert)
++        if sslcert:
++            subprocess_env['PGSSLCERT'] = str(sslcert)
++        if sslkey:
++            subprocess_env['PGSSLKEY'] = str(sslkey)
+         try:
+             # Allow SIGINT to pass to psql to abort queries.
+             signal.signal(signal.SIGINT, signal.SIG_IGN)
+diff --git a/tests/dbshell/test_postgresql.py b/tests/dbshell/test_postgresql.py
+index a33e7f6482..045d43da7d 100644
+--- a/tests/dbshell/test_postgresql.py
++++ b/tests/dbshell/test_postgresql.py
+@@ -81,6 +81,36 @@ class PostgreSqlDbshellCommandTestCase(SimpleTestCase):
+             )
+         )
+ 
++    def test_ssl_certificate(self):
++        def _mock_subprocess_run(*args, env=os.environ, **kwargs):
++            self.subprocess_args = list(*args)
++            self.ssl_env = {
++                key: env.get(key)
++                for key in ('PGSSLMODE', 'PGSSLROOTCERT', 'PGSSLCERT', 'PGSSLKEY')
++            }
++            return subprocess.CompletedProcess(self.subprocess_args, 0)
++        with mock.patch('subprocess.run', new=_mock_subprocess_run):
++            DatabaseClient.runshell_db({
++                'database': 'dbname',
++                'user': 'someuser',
++                'host': 'somehost',
++                'port': '444',
++                'sslmode': 'verify-ca',
++                'sslrootcert': 'ca.crt',
++                'sslcert': 'client_cert_chain.crt',
++                'sslkey': 'client_key.key',
++            })
++        self.assertEqual(
++            self.subprocess_args,
++            ['psql', '-U', 'someuser', '-h', 'somehost', '-p', '444', 'dbname'],
++        )
++        self.assertEqual(self.ssl_env, {
++            'PGSSLMODE': 'verify-ca',
++            'PGSSLROOTCERT': 'ca.crt',
++            'PGSSLCERT': 'client_cert_chain.crt',
++            'PGSSLKEY': 'client_key.key',
++        })
++
+     def test_sigint_handler(self):
+         """SIGINT is ignored in Python and passed to psql to abort quries."""
+         def _mock_subprocess_run(*args, **kwargs):

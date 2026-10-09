@@ -1,0 +1,73 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 13a6809dd8..7a4e1c1ad8 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -403,6 +403,7 @@ class Query(BaseExpression):
+         # Store annotation mask prior to temporarily adding aggregations for
+         # resolving purpose to facilitate their subsequent removal.
+         refs_subquery = False
++        refs_window = False
+         replacements = {}
+         annotation_select_mask = self.annotation_select_mask
+         for alias, aggregate_expr in aggregate_exprs.items():
+@@ -419,6 +420,12 @@ class Query(BaseExpression):
+                 getattr(self.annotations[ref], "subquery", False)
+                 for ref in aggregate.get_refs()
+             )
++            # Aggregating over a window function cannot be done in the same
++            # SELECT as the window function, so a subquery is required.
++            refs_window |= any(
++                getattr(self.annotations[ref], "contains_over_clause", False)
++                for ref in aggregate.get_refs()
++            )
+             aggregate = aggregate.replace_expressions(replacements)
+             self.annotations[alias] = aggregate
+             replacements[Ref(alias, aggregate)] = aggregate
+@@ -451,6 +458,7 @@ class Query(BaseExpression):
+             or self.is_sliced
+             or has_existing_aggregation
+             or refs_subquery
++            or refs_window
+             or qualify
+             or self.distinct
+             or self.combinator
+diff --git a/tests/aggregation/tests.py b/tests/aggregation/tests.py
+index 366b8434e5..248d96418a 100644
+--- a/tests/aggregation/tests.py
++++ b/tests/aggregation/tests.py
+@@ -28,6 +28,7 @@ from django.db.models import (
+     Value,
+     Variance,
+     When,
++    Window,
+ )
+ from django.db.models.expressions import Func, RawSQL
+ from django.db.models.functions import (
+@@ -2207,3 +2208,27 @@ class AggregateAnnotationPruningTests(TestCase):
+         sql = ctx.captured_queries[0]["sql"].lower()
+         self.assertEqual(sql.count("select"), 3, "Subquery wrapping required")
+         self.assertEqual(aggregate, {"sum_total_books": 3})
++
++
++class AggregateOverWindowFunctionTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        cls.a1 = Author.objects.create(age=1)
++        cls.a2 = Author.objects.create(age=2)
++
++    def test_aggregate_over_window_annotation(self):
++        queryset = Author.objects.annotate(
++            cumul_age=Coalesce(Window(Sum("age"), order_by=F("age").asc()), 0),
++        )
++        aggregate = queryset.aggregate(
++            age_total=Sum("age"),
++            cumul_age_total=Sum("cumul_age"),
++        )
++        self.assertEqual(aggregate, {"age_total": 3, "cumul_age_total": 4})
++
++    def test_aggregate_over_window_count(self):
++        queryset = Author.objects.annotate(
++            row_number=Window(Count("pk"), order_by=F("age").asc()),
++        )
++        aggregate = queryset.aggregate(row_number_total=Sum("row_number"))
++        self.assertEqual(aggregate, {"row_number_total": 3})

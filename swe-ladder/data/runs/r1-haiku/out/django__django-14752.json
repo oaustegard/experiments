@@ -1,0 +1,1 @@
+{"summary": "Moved the result-dict construction in AutocompleteJsonView.get() into a new overridable serialize_result(obj, to_field_name) method that returns {\"id\", \"text\"}, so subclasses can add fields without overriding get(). Checked by running swe-test admin_views.test_autocomplete_view, which passed 18 tests with 3 Selenium tests skipped for lack of a browser."}

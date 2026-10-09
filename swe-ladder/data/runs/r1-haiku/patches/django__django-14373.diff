@@ -1,0 +1,30 @@
+diff --git a/django/utils/dateformat.py b/django/utils/dateformat.py
+index 38e89c47bb..7e0d602bf4 100644
+--- a/django/utils/dateformat.py
++++ b/django/utils/dateformat.py
+@@ -313,8 +313,8 @@ class DateFormat(TimeFormat):
+         return '%02d' % (self.data.year % 100)
+ 
+     def Y(self):
+-        "Year, 4 digits; e.g. '1999'"
+-        return self.data.year
++        "Year, 4 digits with leading zeros; e.g. '1999'"
++        return '%04d' % self.data.year
+ 
+     def z(self):
+         """Day of the year, i.e. 1 to 366."""
+diff --git a/tests/utils_tests/test_dateformat.py b/tests/utils_tests/test_dateformat.py
+index c6d3ded80f..a53d1c21d9 100644
+--- a/tests/utils_tests/test_dateformat.py
++++ b/tests/utils_tests/test_dateformat.py
+@@ -116,6 +116,10 @@ class DateFormatTests(SimpleTestCase):
+         the_future = datetime(2100, 10, 25, 0, 00)
+         self.assertEqual(dateformat.format(the_future, r'Y'), '2100')
+ 
++    def test_year_before_1000_zero_padded(self):
++        self.assertEqual(dateformat.format(date(1, 1, 1), 'Y'), '0001')
++        self.assertEqual(dateformat.format(datetime(999, 12, 31), 'Y'), '0999')
++
+     def test_day_of_year_leap(self):
+         self.assertEqual(dateformat.format(datetime(2000, 12, 31), 'z'), '366')
+ 

@@ -1,0 +1,35 @@
+diff --git a/django/utils/numberformat.py b/django/utils/numberformat.py
+index 88b35fc435..961a60e37d 100644
+--- a/django/utils/numberformat.py
++++ b/django/utils/numberformat.py
+@@ -27,6 +27,14 @@ def format(number, decimal_sep, decimal_pos=None, grouping=0, thousand_sep='',
+     # sign
+     sign = ''
+     if isinstance(number, Decimal):
++
++        if decimal_pos is not None:
++            # If the provided number is too small to affect any of the visible
++            # decimal places, consider it equal to '0'.
++            cutoff = Decimal('0.' + '1'.rjust(decimal_pos, '0'))
++            if abs(number) < cutoff:
++                number = Decimal('0')
++
+         # Format values with more than 200 digits (an arbitrary cutoff) using
+         # scientific notation to avoid high memory usage in {:f}'.format().
+         _, digits, exponent = number.as_tuple()
+diff --git a/tests/utils_tests/test_numberformat.py b/tests/utils_tests/test_numberformat.py
+index 3d656025ab..8dc2b0e29a 100644
+--- a/tests/utils_tests/test_numberformat.py
++++ b/tests/utils_tests/test_numberformat.py
+@@ -94,7 +94,10 @@ class TestNumberFormat(SimpleTestCase):
+             ('1e-10', 8, '0.00000000'),
+             ('1e-11', 8, '0.00000000'),
+             ('1' + ('0' * 300), 3, '1.000e+300'),
+-            ('0.{}1234'.format('0' * 299), 3, '1.234e-300'),
++            ('0.{}1234'.format('0' * 299), 3, '0.000'),
++            ('1e-199', 2, '0.00'),
++            ('1e-200', 2, '0.00'),
++            ('-1e-200', 2, '0.00'),
+         ]
+         for value, decimal_pos, expected_value in tests:
+             with self.subTest(value=value):

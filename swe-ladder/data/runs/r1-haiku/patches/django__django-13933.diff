@@ -1,0 +1,44 @@
+diff --git a/django/forms/models.py b/django/forms/models.py
+index 422bc5d178..a88c384841 100644
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -1284,7 +1284,11 @@ class ModelChoiceField(ChoiceField):
+                 value = getattr(value, key)
+             value = self.queryset.get(**{key: value})
+         except (ValueError, TypeError, self.queryset.model.DoesNotExist):
+-            raise ValidationError(self.error_messages['invalid_choice'], code='invalid_choice')
++            raise ValidationError(
++                self.error_messages['invalid_choice'],
++                code='invalid_choice',
++                params={'value': value},
++            )
+         return value
+ 
+     def validate(self, value):
+diff --git a/tests/model_forms/test_modelchoicefield.py b/tests/model_forms/test_modelchoicefield.py
+index 8f41ce9c40..375ee47638 100644
+--- a/tests/model_forms/test_modelchoicefield.py
++++ b/tests/model_forms/test_modelchoicefield.py
+@@ -219,6 +219,22 @@ class ModelChoiceFieldTests(TestCase):
+             ['Select a valid choice. That choice is not one of the available choices.']
+         )
+ 
++    def test_modelchoicefield_value_placeholder(self):
++        f = forms.ModelChoiceField(
++            queryset=Category.objects.all(),
++            error_messages={
++                'invalid_choice': '"%(value)s" is not one of the available choices.',
++            },
++        )
++        with self.assertRaises(ValidationError) as cm:
++            f.clean('invalid pk value')
++        self.assertEqual(cm.exception.code, 'invalid_choice')
++        self.assertEqual(cm.exception.params, {'value': 'invalid pk value'})
++        self.assertEqual(
++            cm.exception.messages,
++            ['"invalid pk value" is not one of the available choices.'],
++        )
++
+     def test_disabled_modelchoicefield_has_changed(self):
+         field = forms.ModelChoiceField(Author.objects.all(), disabled=True)
+         self.assertIs(field.has_changed('x', 'y'), False)

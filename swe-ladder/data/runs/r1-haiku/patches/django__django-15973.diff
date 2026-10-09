@@ -1,0 +1,63 @@
+diff --git a/django/db/migrations/autodetector.py b/django/db/migrations/autodetector.py
+index ad32437630..eae09eb65a 100644
+--- a/django/db/migrations/autodetector.py
++++ b/django/db/migrations/autodetector.py
+@@ -1422,7 +1422,7 @@ class MigrationAutodetector:
+         dependencies = [(dep_app_label, dep_object_name, None, True)]
+         if getattr(field.remote_field, "through", None):
+             through_app_label, through_object_name = resolve_relation(
+-                remote_field_model,
++                field.remote_field.through,
+                 app_label,
+                 model_name,
+             )
+diff --git a/tests/migrations/test_autodetector.py b/tests/migrations/test_autodetector.py
+index 4911e41150..54d8bbc9b5 100644
+--- a/tests/migrations/test_autodetector.py
++++ b/tests/migrations/test_autodetector.py
+@@ -3585,6 +3585,45 @@ class AutodetectorTests(BaseAutodetectorTests):
+             changes, "testapp", 0, 3, model_name="author", name="publishers"
+         )
+ 
++    def test_create_with_through_model_in_other_app(self):
++        """
++        A m2m whose through model lives in another app must make the migration
++        that creates the m2m depend on the through model's app, not only on the
++        app of the related model.
++        """
++        author_with_m2m_through_otherapp = ModelState(
++            "testapp",
++            "Author",
++            [
++                ("id", models.AutoField(primary_key=True)),
++                ("name", models.CharField(max_length=200)),
++                (
++                    "publishers",
++                    models.ManyToManyField(
++                        "testapp.Publisher", through="otherapp.Contract"
++                    ),
++                ),
++            ],
++        )
++        contract_otherapp = ModelState(
++            "otherapp",
++            "Contract",
++            [
++                ("id", models.AutoField(primary_key=True)),
++                ("author", models.ForeignKey("testapp.Author", models.CASCADE)),
++                ("publisher", models.ForeignKey("testapp.Publisher", models.CASCADE)),
++            ],
++        )
++        changes = self.get_changes(
++            [],
++            [author_with_m2m_through_otherapp, self.publisher, contract_otherapp],
++        )
++        self.assertNumberMigrations(changes, "testapp", 1)
++        self.assertNumberMigrations(changes, "otherapp", 2)
++        self.assertMigrationDependencies(
++            changes, "testapp", 0, [("otherapp", "auto_1")]
++        )
++
+     def test_many_to_many_removed_before_through_model(self):
+         """
+         Removing a ManyToManyField and the "through" model in the same change

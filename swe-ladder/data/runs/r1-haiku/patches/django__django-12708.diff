@@ -1,0 +1,49 @@
+diff --git a/django/db/backends/base/schema.py b/django/db/backends/base/schema.py
+index 61f88401ab..1f521cfc5c 100644
+--- a/django/db/backends/base/schema.py
++++ b/django/db/backends/base/schema.py
+@@ -393,7 +393,7 @@ class BaseDatabaseSchemaEditor:
+         news = {tuple(fields) for fields in new_index_together}
+         # Deleted indexes
+         for fields in olds.difference(news):
+-            self._delete_composed_index(model, fields, {'index': True}, self.sql_delete_index)
++            self._delete_composed_index(model, fields, {'index': True, 'unique': False}, self.sql_delete_index)
+         # Created indexes
+         for field_names in news.difference(olds):
+             fields = [model._meta.get_field(field) for field in field_names]
+diff --git a/tests/schema/tests.py b/tests/schema/tests.py
+index 9aa1e239ac..1bae66152c 100644
+--- a/tests/schema/tests.py
++++ b/tests/schema/tests.py
+@@ -2166,6 +2166,31 @@ class SchemaTests(TransactionTestCase):
+             False,
+         )
+ 
++    def test_index_together_with_unique_together(self):
++        """
++        Deleting index_together must not crash when unique_together is defined
++        on the same fields (#12708).
++        """
++        with connection.schema_editor() as editor:
++            editor.create_model(Tag)
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(Tag, [], [("slug", "title")])
++            editor.alter_index_together(Tag, [], [("slug", "title")])
++        # Removing the index_together must leave the unique constraint alone.
++        with connection.schema_editor() as editor:
++            editor.alter_index_together(Tag, [("slug", "title")], [])
++        constraints = self.get_constraints("schema_tag")
++        matching = [c for c in constraints.values() if c['columns'] == ["slug", "title"]]
++        self.assertEqual(len(matching), 1)
++        self.assertIs(matching[0]['unique'], True)
++        # Removing the unique_together afterwards still works.
++        with connection.schema_editor() as editor:
++            editor.alter_unique_together(Tag, [("slug", "title")], [])
++        constraints = self.get_constraints("schema_tag")
++        self.assertFalse(
++            any(c['unique'] for c in constraints.values() if c['columns'] == ["slug", "title"])
++        )
++
+     def test_index_together_with_fk(self):
+         """
+         Tests removing and adding index_together constraints that include

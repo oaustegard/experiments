@@ -1,0 +1,154 @@
+diff --git a/django/forms/models.py b/django/forms/models.py
+index 7effb202e3..0e6e342e81 100644
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -572,6 +572,10 @@ class BaseModelFormSet(BaseFormSet):
+     # Set of fields that must be unique among forms of this set.
+     unique_fields = set()
+ 
++    # When True, the formset only edits the existing objects in its queryset:
++    # no extra forms are displayed and no new objects are created.
++    edit_only = False
++
+     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+                  queryset=None, *, initial=None, **kwargs):
+         self.queryset = queryset
+@@ -584,6 +588,15 @@ class BaseModelFormSet(BaseFormSet):
+             return len(self.get_queryset())
+         return super().initial_form_count()
+ 
++    def total_form_count(self):
++        """Return the total number of forms in this FormSet."""
++        total_forms = super().total_form_count()
++        if self.edit_only:
++            # Never instantiate forms beyond the existing objects, even if
++            # extra forms are posted, so that no new objects can be created.
++            total_forms = min(total_forms, self.initial_form_count())
++        return total_forms
++
+     def _existing_object(self, pk):
+         if not hasattr(self, '_object_dict'):
+             self._object_dict = {o.pk: o for o in self.get_queryset()}
+@@ -813,6 +826,8 @@ class BaseModelFormSet(BaseFormSet):
+ 
+     def save_new_objects(self, commit=True):
+         self.new_objects = []
++        if self.edit_only:
++            return self.new_objects
+         for form in self.extra_forms:
+             if not form.has_changed():
+                 continue
+@@ -875,7 +890,8 @@ def modelformset_factory(model, form=ModelForm, formfield_callback=None,
+                          widgets=None, validate_max=False, localized_fields=None,
+                          labels=None, help_texts=None, error_messages=None,
+                          min_num=None, validate_min=False, field_classes=None,
+-                         absolute_max=None, can_delete_extra=True, renderer=None):
++                         absolute_max=None, can_delete_extra=True, renderer=None,
++                         edit_only=False):
+     """Return a FormSet class for the given Django model class."""
+     meta = getattr(form, 'Meta', None)
+     if (getattr(meta, 'fields', fields) is None and
+@@ -896,6 +912,7 @@ def modelformset_factory(model, form=ModelForm, formfield_callback=None,
+                               absolute_max=absolute_max, can_delete_extra=can_delete_extra,
+                               renderer=renderer)
+     FormSet.model = model
++    FormSet.edit_only = edit_only
+     return FormSet
+ 
+ 
+@@ -1076,7 +1093,8 @@ def inlineformset_factory(parent_model, model, form=ModelForm,
+                           widgets=None, validate_max=False, localized_fields=None,
+                           labels=None, help_texts=None, error_messages=None,
+                           min_num=None, validate_min=False, field_classes=None,
+-                          absolute_max=None, can_delete_extra=True, renderer=None):
++                          absolute_max=None, can_delete_extra=True, renderer=None,
++                          edit_only=False):
+     """
+     Return an ``InlineFormSet`` for the given kwargs.
+ 
+@@ -1109,6 +1127,7 @@ def inlineformset_factory(parent_model, model, form=ModelForm,
+         'absolute_max': absolute_max,
+         'can_delete_extra': can_delete_extra,
+         'renderer': renderer,
++        'edit_only': edit_only,
+     }
+     FormSet = modelformset_factory(model, **kwargs)
+     FormSet.fk = fk
+diff --git a/tests/model_formsets/tests.py b/tests/model_formsets/tests.py
+index bb1a8a8a5e..6119e204fb 100644
+--- a/tests/model_formsets/tests.py
++++ b/tests/model_formsets/tests.py
+@@ -2021,3 +2021,73 @@ class TestModelFormsetOverridesTroughFormMeta(TestCase):
+         BookFormSet = modelformset_factory(Author, fields='__all__', renderer=renderer)
+         formset = BookFormSet()
+         self.assertEqual(formset.renderer, renderer)
++
++
++class EditOnlyModelFormsetTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        cls.author = Author.objects.create(name='Charles Baudelaire')
++        cls.book = Book.objects.create(author=cls.author, title='Les Fleurs du mal')
++
++    def test_unbound_formset_has_no_extra_forms(self):
++        AuthorFormSet = modelformset_factory(Author, fields='__all__', extra=2, edit_only=True)
++        formset = AuthorFormSet(queryset=Author.objects.all())
++        self.assertEqual(formset.total_form_count(), 1)
++        self.assertEqual(len(formset.forms), 1)
++        self.assertEqual(formset.initial_form_count(), 1)
++
++    def test_bound_formset_ignores_posted_extra_forms(self):
++        AuthorFormSet = modelformset_factory(Author, fields='__all__', extra=0, edit_only=True)
++        data = {
++            'form-TOTAL_FORMS': '2',
++            'form-INITIAL_FORMS': '1',
++            'form-MIN_NUM_FORMS': '0',
++            'form-MAX_NUM_FORMS': '1000',
++            'form-0-id': str(self.author.pk),
++            'form-0-name': 'Charles Baudelaire (edited)',
++            'form-1-name': 'New Author',
++        }
++        formset = AuthorFormSet(data, queryset=Author.objects.all())
++        self.assertTrue(formset.is_valid())
++        self.assertEqual(len(formset.forms), 1)
++        self.assertEqual(formset.save(), [self.author])
++        self.assertEqual(Author.objects.count(), 1)
++        self.author.refresh_from_db()
++        self.assertEqual(self.author.name, 'Charles Baudelaire (edited)')
++
++    def test_default_formset_still_creates_objects(self):
++        AuthorFormSet = modelformset_factory(Author, fields='__all__', extra=1)
++        self.assertFalse(AuthorFormSet.edit_only)
++        data = {
++            'form-TOTAL_FORMS': '1',
++            'form-INITIAL_FORMS': '0',
++            'form-MIN_NUM_FORMS': '0',
++            'form-MAX_NUM_FORMS': '1000',
++            'form-0-name': 'New Author',
++        }
++        formset = AuthorFormSet(data, queryset=Author.objects.none())
++        self.assertTrue(formset.is_valid())
++        formset.save()
++        self.assertTrue(Author.objects.filter(name='New Author').exists())
++
++    def test_inline_formset_edit_only(self):
++        BookFormSet = inlineformset_factory(Author, Book, fields='__all__', extra=2, edit_only=True)
++        formset = BookFormSet(instance=self.author)
++        self.assertEqual(len(formset.forms), 1)
++        data = {
++            'book_set-TOTAL_FORMS': '2',
++            'book_set-INITIAL_FORMS': '1',
++            'book_set-MIN_NUM_FORMS': '0',
++            'book_set-MAX_NUM_FORMS': '1000',
++            'book_set-0-id': str(self.book.pk),
++            'book_set-0-author': str(self.author.pk),
++            'book_set-0-title': 'Les Fleurs du mal (2nd ed.)',
++            'book_set-1-author': str(self.author.pk),
++            'book_set-1-title': 'Extra Book',
++        }
++        formset = BookFormSet(data, instance=self.author)
++        self.assertTrue(formset.is_valid())
++        formset.save()
++        self.assertEqual(Book.objects.filter(author=self.author).count(), 1)
++        self.book.refresh_from_db()
++        self.assertEqual(self.book.title, 'Les Fleurs du mal (2nd ed.)')

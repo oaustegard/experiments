@@ -1,0 +1,37 @@
+diff --git a/sympy/physics/quantum/tensorproduct.py b/sympy/physics/quantum/tensorproduct.py
+index 9dd10d219e..f45ba8ff39 100644
+--- a/sympy/physics/quantum/tensorproduct.py
++++ b/sympy/physics/quantum/tensorproduct.py
+@@ -143,6 +143,12 @@ def flatten(cls, args):
+     def _eval_adjoint(self):
+         return TensorProduct(*[Dagger(i) for i in self.args])
+ 
++    def _eval_power(self, e):
++        # (A x B)**n == (A**n) x (B**n) for integer n
++        if e.is_integer:
++            return TensorProduct(*[Pow(arg, e) for arg in self.args])
++        return None
++
+     def _eval_rewrite(self, pattern, rule, **hints):
+         sargs = self.args
+         terms = [t._eval_rewrite(pattern, rule, **hints) for t in sargs]
+diff --git a/sympy/physics/quantum/tests/test_tensorproduct.py b/sympy/physics/quantum/tests/test_tensorproduct.py
+index 9f65844c85..bf57593d86 100644
+--- a/sympy/physics/quantum/tests/test_tensorproduct.py
++++ b/sympy/physics/quantum/tests/test_tensorproduct.py
+@@ -105,3 +105,15 @@ def test_eval_trace():
+                         1.0*A*Dagger(C)*Tr(B*Dagger(D)) +
+                         1.0*C*Dagger(A)*Tr(D*Dagger(B)) +
+                         1.0*C*Dagger(C)*Tr(D*Dagger(D)))
++
++
++def test_issue_13974():
++    a, b, C, d = symbols('a, b, C, d', commutative=False)
++    t1 = TP(1, 1)*TP(1, 1)
++    assert t1.expand(tensorproduct=True) == TP(1, 1)
++    assert tensor_product_simp(t1) == TP(1, 1)
++    assert tensor_product_simp(TP(1, a)*TP(1, a)) == TP(1, a**2)
++    assert tensor_product_simp(TP(1, a)*TP(1, a)).subs(a, 1) == TP(1, 1)
++    assert TP(a, b)**2 == TP(a**2, b**2)
++    assert TP(a, b)**-1 == TP(a**-1, b**-1)
++    assert tensor_product_simp(TP(1, a)**2*TP(1, a)) == TP(1, a**3)

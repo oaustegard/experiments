@@ -1,0 +1,123 @@
+diff --git a/django/core/serializers/python.py b/django/core/serializers/python.py
+index 36048601af..7ec894aa00 100644
+--- a/django/core/serializers/python.py
++++ b/django/core/serializers/python.py
+@@ -79,7 +79,12 @@ class Serializer(base.Serializer):
+                     return self._value_from_field(value, value._meta.pk)
+ 
+                 def queryset_iterator(obj, field):
+-                    return getattr(obj, field.name).only("pk").iterator()
++                    return (
++                        getattr(obj, field.name)
++                        .select_related(None)
++                        .only("pk")
++                        .iterator()
++                    )
+ 
+             m2m_iter = getattr(obj, "_prefetched_objects_cache", {}).get(
+                 field.name,
+diff --git a/django/core/serializers/xml_serializer.py b/django/core/serializers/xml_serializer.py
+index 1d3269c41a..3f9955aa23 100644
+--- a/django/core/serializers/xml_serializer.py
++++ b/django/core/serializers/xml_serializer.py
+@@ -155,7 +155,12 @@ class Serializer(base.Serializer):
+                     self.xml.addQuickElement("object", attrs={"pk": str(value.pk)})
+ 
+                 def queryset_iterator(obj, field):
+-                    return getattr(obj, field.name).only("pk").iterator()
++                    return (
++                        getattr(obj, field.name)
++                        .select_related(None)
++                        .only("pk")
++                        .iterator()
++                    )
+ 
+             m2m_iter = getattr(obj, "_prefetched_objects_cache", {}).get(
+                 field.name,
+diff --git a/tests/serializers/models/base.py b/tests/serializers/models/base.py
+index af9ca2b20a..f24d2943b6 100644
+--- a/tests/serializers/models/base.py
++++ b/tests/serializers/models/base.py
+@@ -163,3 +163,27 @@ class ComplexModel(models.Model):
+     field1 = models.CharField(max_length=10)
+     field2 = models.CharField(max_length=10)
+     field3 = models.CharField(max_length=10)
++
++
++class M2MTagMaster(models.Model):
++    name = models.CharField(max_length=120)
++
++
++class M2MTagManager(models.Manager):
++    def get_queryset(self):
++        return super().get_queryset().select_related("master")
++
++
++class M2MTag(models.Model):
++    # The custom manager is the default manager, so it is also used by the
++    # many-to-many related manager.
++    objects = M2MTagManager()
++    name = models.CharField(max_length=120)
++    master = models.ForeignKey(
++        M2MTagMaster, models.SET_NULL, null=True, related_name="tags"
++    )
++
++
++class M2MHolder(models.Model):
++    name = models.CharField(max_length=120)
++    tags = models.ManyToManyField(M2MTag, blank=True)
+diff --git a/tests/serializers/tests.py b/tests/serializers/tests.py
+index 67ae8f43de..394af0c4b2 100644
+--- a/tests/serializers/tests.py
++++ b/tests/serializers/tests.py
+@@ -8,7 +8,12 @@ from django.core.serializers import SerializerDoesNotExist
+ from django.core.serializers.base import ProgressBar
+ from django.db import connection, transaction
+ from django.http import HttpResponse
+-from django.test import SimpleTestCase, override_settings, skipUnlessDBFeature
++from django.test import (
++    SimpleTestCase,
++    TestCase,
++    override_settings,
++    skipUnlessDBFeature,
++)
+ from django.test.utils import Approximate
+ 
+ from .models import (
+@@ -20,6 +25,9 @@ from .models import (
+     Category,
+     Child,
+     ComplexModel,
++    M2MHolder,
++    M2MTag,
++    M2MTagMaster,
+     Movie,
+     Player,
+     ProxyBaseModel,
+@@ -460,6 +468,26 @@ class SerializerAPITests(SimpleTestCase):
+         )
+ 
+ 
++class M2MSelectRelatedManagerSerializationTests(TestCase):
++    """
++    Serializing an m2m whose related model has a default manager that uses
++    select_related must not raise "cannot be both deferred and traversed".
++    """
++
++    @classmethod
++    def setUpTestData(cls):
++        master = M2MTagMaster.objects.create(name="master")
++        cls.tag = M2MTag.objects.create(name="tag", master=master)
++        cls.holder = M2MHolder.objects.create(name="holder")
++        cls.holder.tags.add(cls.tag)
++
++    def test_serialize_m2m_with_select_related_default_manager(self):
++        for format_ in ["json", "xml", "python"]:
++            with self.subTest(format=format_):
++                data = serializers.serialize(format_, [self.holder])
++                self.assertIn(str(self.tag.pk), str(data))
++
++
+ class SerializersTransactionTestBase:
+     available_apps = ["serializers"]
+ 

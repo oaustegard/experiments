@@ -84,7 +84,20 @@ def main():
     src = a.tasks_dir or default_tasks_dir()
     (d / "transcripts").mkdir(exist_ok=True)
     rows = []
-    for m in map(json.loads, (d / "agents.jsonl").open()):
+    # Each worker's first message names its prompt file, data/runs/RUN/prompts/<id>.md,
+    # so transcripts map to tasks without recording agent ids at dispatch.
+    agents = {}
+    if (d / "agents.jsonl").exists():
+        agents = {m["instance_id"]: m["agent_id"] for m in map(json.loads, (d / "agents.jsonl").open())}
+    marker = f"/runs/{a.run}/prompts/"
+    for t in src.glob("*.output"):
+        with open(t, errors="replace") as f:
+            head = f.read(4000)
+        i = head.find(marker)
+        if i >= 0:
+            iid = head[i + len(marker):].split(".md", 1)[0]
+            agents.setdefault(iid, t.stem)
+    for m in ({"instance_id": k, "agent_id": v} for k, v in sorted(agents.items())):
         t = src / f"{m['agent_id']}.output"
         kept = d / "transcripts" / f"{m['instance_id']}.jsonl"
         if t.exists() and (not kept.exists() or t.stat().st_size >= kept.stat().st_size):

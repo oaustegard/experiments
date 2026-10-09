@@ -1,0 +1,104 @@
+diff --git a/django/contrib/admin/utils.py b/django/contrib/admin/utils.py
+index dd6b108ff3..b6ebfd71ff 100644
+--- a/django/contrib/admin/utils.py
++++ b/django/contrib/admin/utils.py
+@@ -157,6 +157,8 @@ def get_deleted_objects(objs, request, admin_site):
+ 
+ 
+ class NestedObjects(Collector):
++    needs_full_instances = True
++
+     def __init__(self, *args, **kwargs):
+         super().__init__(*args, **kwargs)
+         self.edges = {}  # {from_instance: [to_instances]}
+diff --git a/django/db/models/deletion.py b/django/db/models/deletion.py
+index 3a462f1c4c..b1dbf7da6c 100644
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -61,6 +61,11 @@ def get_candidate_relations_to_delete(opts):
+ 
+ 
+ class Collector:
++    # Whether cascaded related objects must be fetched with every column.
++    # Collectors that hand the instances back to callers (e.g. the admin's
++    # NestedObjects, which renders them with str()) set this to True.
++    needs_full_instances = False
++
+     def __init__(self, using):
+         self.using = using
+         # Initially, {model: {instances}}, later values become lists.
+@@ -220,8 +225,10 @@ class Collector:
+                     sub_objs = self.related_objects(related, batch)
+                     if self.can_fast_delete(sub_objs, from_field=field):
+                         self.fast_deletes.append(sub_objs)
+-                    elif sub_objs:
+-                        field.remote_field.on_delete(self, field, sub_objs, self.using)
++                    else:
++                        sub_objs = self.restrict_related_fields(related.related_model, sub_objs)
++                        if sub_objs:
++                            field.remote_field.on_delete(self, field, sub_objs, self.using)
+             for field in model._meta.private_fields:
+                 if hasattr(field, 'bulk_related_objects'):
+                     # It's something like generic foreign key.
+@@ -236,6 +243,24 @@ class Collector:
+             **{"%s__in" % related.field.name: objs}
+         )
+ 
++    def restrict_related_fields(self, model, objs):
++        """
++        Limit the columns fetched for the cascaded objects of `model` to the
++        primary key and the fields that other relations reference, so that
++        unneeded columns (which may be large or undecodable) are never read.
++        The rest are deferred. Left untouched if the instances can reach
++        signal receivers or the collector needs full instances.
++        """
++        if self.needs_full_instances or (
++                signals.pre_delete.has_listeners(model) or
++                signals.post_delete.has_listeners(model) or
++                signals.m2m_changed.has_listeners(model)):
++            return objs
++        fields = {model._meta.pk.name}
++        for rel in get_candidate_relations_to_delete(model._meta):
++            fields.update(field.name for field in rel.field.foreign_related_fields)
++        return objs.only(*fields)
++
+     def instances_with_model(self):
+         for model, instances in self.data.items():
+             for obj in instances:
+diff --git a/tests/delete/tests.py b/tests/delete/tests.py
+index ed47d0667d..ae152a1e4a 100644
+--- a/tests/delete/tests.py
++++ b/tests/delete/tests.py
+@@ -4,6 +4,7 @@ from django.db import IntegrityError, connection, models
+ from django.db.models.deletion import Collector
+ from django.db.models.sql.constants import GET_ITERATOR_CHUNK_SIZE
+ from django.test import TestCase, skipIfDBFeature, skipUnlessDBFeature
++from django.test.utils import CaptureQueriesContext
+ 
+ from .models import (
+     MR, A, Avatar, Base, Child, HiddenUser, HiddenUserProfile, M, M2MFrom,
+@@ -531,3 +532,24 @@ class FastDeleteTests(TestCase):
+                 User.objects.filter(avatar__desc='missing').delete(),
+                 (0, {'delete.User': 0})
+             )
++
++
++class CascadeFieldSelectionTests(TestCase):
++    def test_only_referenced_fields_selected(self):
++        """
++        Cascaded objects are selected with only the primary key and the fields
++        that other relations reference (#11087), not every column.
++        """
++        r = R.objects.create()
++        S.objects.create(r=r)
++        with CaptureQueriesContext(connection) as ctx:
++            r.delete()
++        quote = connection.ops.quote_name
++        s_selects = [
++            q['sql'] for q in ctx.captured_queries
++            if q['sql'].startswith('SELECT') and ('FROM %s' % quote('delete_s')) in q['sql']
++        ]
++        self.assertEqual(len(s_selects), 1)
++        self.assertTrue(s_selects[0].startswith(
++            'SELECT %s.%s FROM' % (quote('delete_s'), quote('id'))
++        ))

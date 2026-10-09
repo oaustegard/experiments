@@ -1,0 +1,1 @@
+{"summary": "Changed the regex in ASCIIUsernameValidator and UnicodeUsernameValidator from ^[\\w.@+-]+$ to \\A[\\w.@+-]+\\Z so a trailing newline no longer passes. Ran auth_tests.test_validators (22 tests, all pass) and a repro showing both validators reject \"bad\\n\" and \"\\nbad\" while still accepting valid usernames."}

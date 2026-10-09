@@ -1,0 +1,82 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index d9c9b0db04..c1aa352701 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -689,7 +689,17 @@ class QuerySet:
+         """
+         assert not self.query.is_sliced, \
+             "Cannot use 'limit' or 'offset' with in_bulk"
+-        if field_name != 'pk' and not self.model._meta.get_field(field_name).unique:
++        opts = self.model._meta
++        unique_fields = [
++            constraint.fields[0]
++            for constraint in opts.total_unique_constraints
++            if len(constraint.fields) == 1
++        ]
++        if (
++            field_name != 'pk' and
++            not opts.get_field(field_name).unique and
++            field_name not in unique_fields
++        ):
+             raise ValueError("in_bulk()'s field_name must be a unique field but %r isn't." % field_name)
+         if id_list is not None:
+             if not id_list:
+diff --git a/tests/constraints/models.py b/tests/constraints/models.py
+index 98955498d4..8b491454e5 100644
+--- a/tests/constraints/models.py
++++ b/tests/constraints/models.py
+@@ -44,6 +44,15 @@ class UniqueConstraintProduct(models.Model):
+         ]
+ 
+ 
++class UniqueConstraintSlugProduct(models.Model):
++    slug = models.CharField(max_length=255)
++
++    class Meta:
++        constraints = [
++            models.UniqueConstraint(fields=['slug'], name='%(app_label)s_%(class)s_slug_unq'),
++        ]
++
++
+ class UniqueConstraintConditionProduct(models.Model):
+     name = models.CharField(max_length=255)
+     color = models.CharField(max_length=32, null=True)
+diff --git a/tests/constraints/tests.py b/tests/constraints/tests.py
+index 85edb51aa7..f2af0d8e75 100644
+--- a/tests/constraints/tests.py
++++ b/tests/constraints/tests.py
+@@ -7,7 +7,7 @@ from django.test import SimpleTestCase, TestCase, skipUnlessDBFeature
+ 
+ from .models import (
+     ChildModel, Product, UniqueConstraintConditionProduct,
+-    UniqueConstraintProduct,
++    UniqueConstraintProduct, UniqueConstraintSlugProduct,
+ )
+ 
+ 
+@@ -124,6 +124,25 @@ class UniqueConstraintTests(TestCase):
+             UniqueConstraintProduct(name='p2'),
+         ])
+ 
++    def test_in_bulk_unique_constraint_field(self):
++        obj = UniqueConstraintSlugProduct.objects.create(slug='a')
++        self.assertEqual(
++            UniqueConstraintSlugProduct.objects.in_bulk(['a'], field_name='slug'),
++            {'a': obj},
++        )
++        self.assertEqual(
++            UniqueConstraintSlugProduct.objects.in_bulk(field_name='slug'),
++            {'a': obj},
++        )
++
++    def test_in_bulk_non_unique_field_rejected(self):
++        msg = "in_bulk()'s field_name must be a unique field but 'name' isn't."
++        with self.assertRaisesMessage(ValueError, msg):
++            UniqueConstraintProduct.objects.in_bulk(['p1'], field_name='name')
++        msg = "in_bulk()'s field_name must be a unique field but 'name' isn't."
++        with self.assertRaisesMessage(ValueError, msg):
++            UniqueConstraintConditionProduct.objects.in_bulk(['p1'], field_name='name')
++
+     def test_eq(self):
+         self.assertEqual(
+             models.UniqueConstraint(fields=['foo', 'bar'], name='unique'),

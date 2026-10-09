@@ -1,0 +1,42 @@
+diff --git a/django/utils/autoreload.py b/django/utils/autoreload.py
+index b6af5f5491..424c4f5ffd 100644
+--- a/django/utils/autoreload.py
++++ b/django/utils/autoreload.py
+@@ -223,8 +223,13 @@ def get_child_arguments():
+     # __spec__ is set when the server was started with the `-m` option,
+     # see https://docs.python.org/3/reference/import.html#main-spec
+     # __spec__ may not exist, e.g. when running in a Conda env.
+-    if getattr(__main__, '__spec__', None) is not None and __main__.__spec__.parent:
+-        args += ['-m', __main__.__spec__.parent]
++    spec = getattr(__main__, '__spec__', None)
++    if spec is not None and spec.name and spec.name != '__main__':
++        module_name = spec.name
++        # `python -m pkg` runs pkg/__main__.py, whose spec name is 'pkg.__main__'.
++        if module_name.endswith('.__main__'):
++            module_name = module_name[:-len('.__main__')]
++        args += ['-m', module_name]
+         args += sys.argv[1:]
+     elif not py_script.exists():
+         # sys.argv[0] may not exist for several reasons on Windows.
+diff --git a/tests/utils_tests/test_autoreload.py b/tests/utils_tests/test_autoreload.py
+index 7b91686bf5..c404442f48 100644
+--- a/tests/utils_tests/test_autoreload.py
++++ b/tests/utils_tests/test_autoreload.py
+@@ -182,6 +182,17 @@ class TestChildArguments(SimpleTestCase):
+             [sys.executable, '-m', 'utils_tests.test_module', 'runserver'],
+         )
+ 
++    @mock.patch('sys.argv', [__file__, 'runserver'])
++    @mock.patch('sys.warnoptions', [])
++    def test_run_as_dotted_non_package_module(self):
++        module = types.ModuleType('__main__')
++        module.__spec__ = types.SimpleNamespace(name='utils_tests.test_module', parent='utils_tests')
++        with mock.patch.dict(sys.modules, {'__main__': module}):
++            self.assertEqual(
++                autoreload.get_child_arguments(),
++                [sys.executable, '-m', 'utils_tests.test_module', 'runserver'],
++            )
++
+     @mock.patch('sys.argv', [__file__, 'runserver'])
+     @mock.patch('sys.warnoptions', ['error'])
+     def test_warnoptions(self):

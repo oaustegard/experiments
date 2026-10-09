@@ -1,0 +1,67 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 35f3c5e1ea..f8acbd3e82 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1702,7 +1702,12 @@ class Query(BaseExpression):
+         handle.
+         """
+         filter_lhs, filter_rhs = filter_expr
+-        if isinstance(filter_rhs, F):
++        if isinstance(filter_rhs, OuterRef):
++            # An OuterRef refers to the outer query of the query this exclude()
++            # belongs to, so it must pass through resolution against this query
++            # unchanged.
++            filter_expr = (filter_lhs, OuterRef(filter_rhs))
++        elif isinstance(filter_rhs, F):
+             filter_expr = (filter_lhs, OuterRef(filter_rhs.name))
+         # Generate the inner query.
+         query = Query(self.model)
+diff --git a/tests/queries/test_outerref_exclude.py b/tests/queries/test_outerref_exclude.py
+new file mode 100644
+index 0000000000..161941060c
+--- /dev/null
++++ b/tests/queries/test_outerref_exclude.py
+@@ -0,0 +1,43 @@
++from django.db.models import Exists, OuterRef, Q
++from django.test import TestCase
++from django.utils import timezone
++
++from .models import Author, ExtraInfo, Item, Note, Number, Tag
++
++
++class OuterRefExcludeTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        cls.n1 = Number.objects.create(num=1, other_num=1)
++        cls.n2 = Number.objects.create(num=2, other_num=2)
++        cls.tag = Tag.objects.create(name='t')
++        note = Note.objects.create(note='n', misc='m')
++        extra = ExtraInfo.objects.create(info='e', note=note)
++        author = Author.objects.create(name='a', num=1, extra=extra)
++        cls.item = Item.objects.create(name='i', created=timezone.now(), creator=author, note=note)
++        cls.item.tags.add(cls.tag)
++
++    def expected(self, exclude):
++        # Python model of the query: a Number matches when the single Item
++        # has (exclude=False) or does not have (exclude=True) a tag whose pk
++        # equals the Number's pk.
++        tag_ids = {t.pk for t in self.item.tags.all()}
++        return sorted(n.pk for n in Number.objects.all() if (n.pk not in tag_ids) == exclude)
++
++    def test_exists_filter(self):
++        qs = Number.objects.annotate(
++            foo=Exists(Item.objects.filter(tags__id=OuterRef('pk')))
++        ).filter(foo=True)
++        self.assertEqual(sorted(n.pk for n in qs), self.expected(exclude=False))
++
++    def test_exists_exclude(self):
++        qs = Number.objects.annotate(
++            foo=Exists(Item.objects.exclude(tags__id=OuterRef('pk')))
++        ).filter(foo=True)
++        self.assertEqual(sorted(n.pk for n in qs), self.expected(exclude=True))
++
++    def test_exists_filter_not_q(self):
++        qs = Number.objects.annotate(
++            foo=Exists(Item.objects.filter(~Q(tags__id=OuterRef('pk'))))
++        ).filter(foo=True)
++        self.assertEqual(sorted(n.pk for n in qs), self.expected(exclude=True))

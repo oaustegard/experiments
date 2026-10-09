@@ -1,0 +1,46 @@
+diff --git a/django/db/models/expressions.py b/django/db/models/expressions.py
+index d913658291..41a92036c7 100644
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -478,6 +478,24 @@ class CombinedExpression(SQLiteNumericMixin, Expression):
+         c.is_summary = summarize
+         c.lhs = c.lhs.resolve_expression(query, allow_joins, reuse, summarize, for_save)
+         c.rhs = c.rhs.resolve_expression(query, allow_joins, reuse, summarize, for_save)
++        if not isinstance(self, (DurationExpression, TemporalSubtraction)):
++            # Resolve temporal subtraction here, not only in as_sql(), so the
++            # result's DurationField output is visible to an enclosing
++            # expression during output field resolution. Otherwise, e.g.
++            # (end - start) + duration raises "mixed types".
++            datetime_fields = {'DateField', 'DateTimeField', 'TimeField'}
++            try:
++                lhs_type = c.lhs.output_field.get_internal_type()
++            except (AttributeError, FieldError):
++                lhs_type = None
++            try:
++                rhs_type = c.rhs.output_field.get_internal_type()
++            except (AttributeError, FieldError):
++                rhs_type = None
++            if c.connector == self.SUB and lhs_type in datetime_fields and lhs_type == rhs_type:
++                temporal = TemporalSubtraction(c.lhs, c.rhs)
++                temporal.is_summary = summarize
++                return temporal
+         return c
+ 
+ 
+diff --git a/tests/expressions/tests.py b/tests/expressions/tests.py
+index 72f95f0194..0584f85a56 100644
+--- a/tests/expressions/tests.py
++++ b/tests/expressions/tests.py
+@@ -1607,6 +1607,12 @@ class FTimeDeltaTests(TestCase):
+         ))
+         self.assertIsNone(queryset.first().shifted)
+ 
++    def test_datetime_subtraction_with_duration_without_wrapper(self):
++        queryset = Experiment.objects.annotate(
++            delta=F('end') - F('start') + Value(datetime.timedelta(), output_field=DurationField()),
++        )
++        self.assertEqual(queryset.first().delta, queryset.first().end - queryset.first().start)
++
+     @skipUnlessDBFeature('supports_temporal_subtraction')
+     def test_datetime_subquery_subtraction(self):
+         subquery = Experiment.objects.filter(pk=OuterRef('pk')).values('start')

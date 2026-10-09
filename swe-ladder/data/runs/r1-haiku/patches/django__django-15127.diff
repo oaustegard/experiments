@@ -1,0 +1,73 @@
+diff --git a/django/core/management/commands/inspectdb.py b/django/core/management/commands/inspectdb.py
+index d64725ca73..7155a35171 100644
+--- a/django/core/management/commands/inspectdb.py
++++ b/django/core/management/commands/inspectdb.py
+@@ -121,6 +121,7 @@ class Command(BaseCommand):
+                             rel_type = 'OneToOneField'
+                         else:
+                             rel_type = 'ForeignKey'
++<<<<<<< Updated upstream
+                             ref_pk_column = connection.introspection.get_primary_key_column(cursor, ref_db_table)
+                             if ref_pk_column and ref_pk_column != ref_db_column:
+                                 extra_params['to_field'] = ref_db_column
+@@ -128,6 +129,14 @@ class Command(BaseCommand):
+                             'self' if ref_db_table == table_name
+                             else table2model(ref_db_table)
+                         )
++=======
++                        # The relation may point at a column other than the referenced
++                        # table's primary key (e.g. a UNIQUE column), which needs to_field.
++                        ref_pk_column = connection.introspection.get_primary_key_column(cursor, ref_db_table)
++                        if ref_db_column != ref_pk_column:
++                            extra_params['to_field'] = ref_db_column
++                        rel_to = "self" if ref_db_table == table_name else table2model(ref_db_table)
++>>>>>>> Stashed changes
+                         if rel_to in known_models:
+                             field_type = '%s(%s' % (rel_type, rel_to)
+                         else:
+diff --git a/django/test/signals.py b/django/test/signals.py
+index 4d8c43e917..753b0e3ac7 100644
+--- a/django/test/signals.py
++++ b/django/test/signals.py
+@@ -207,3 +207,13 @@ def user_model_swapped(**kwargs):
+ 
+             from django.contrib.auth import views
+             views.UserModel = UserModel
++
++
++@receiver(setting_changed)
++def messages_tags_changed(**kwargs):
++    if kwargs['setting'] == 'MESSAGE_TAGS':
++        # LEVEL_TAGS is computed once at import time; rebuild it so that
++        # Message.level_tag reflects the (possibly overridden) setting.
++        from django.contrib.messages.storage import base
++        from django.contrib.messages.utils import get_level_tags
++        base.LEVEL_TAGS = get_level_tags()
+diff --git a/tests/messages_tests/test_api.py b/tests/messages_tests/test_api.py
+index 603aea437f..0c358a0952 100644
+--- a/tests/messages_tests/test_api.py
++++ b/tests/messages_tests/test_api.py
+@@ -1,5 +1,7 @@
+ from django.contrib import messages
+-from django.test import RequestFactory, SimpleTestCase
++from django.contrib.messages import constants
++from django.contrib.messages.storage.base import Message
++from django.test import RequestFactory, SimpleTestCase, override_settings
+ 
+ 
+ class DummyStorage:
+@@ -64,3 +66,14 @@ class CustomRequestApiTests(ApiTests):
+     def setUp(self):
+         super().setUp()
+         self.request = CustomRequest(self.request)
++
++
++class MessageLevelTagOverrideTests(SimpleTestCase):
++    @override_settings(MESSAGE_TAGS={constants.INFO: 'custom-info'})
++    def test_level_tag_reflects_overridden_message_tags(self):
++        self.assertEqual(Message(constants.INFO, 'msg').level_tag, 'custom-info')
++
++    def test_level_tag_restored_after_override(self):
++        with override_settings(MESSAGE_TAGS={constants.INFO: 'custom-info'}):
++            pass
++        self.assertEqual(Message(constants.INFO, 'msg').level_tag, 'info')

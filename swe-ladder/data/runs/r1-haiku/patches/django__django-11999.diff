@@ -1,0 +1,66 @@
+diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py
+index ee45bb941e..155b72cf0c 100644
+--- a/django/db/models/fields/__init__.py
++++ b/django/db/models/fields/__init__.py
+@@ -763,8 +763,16 @@ class Field(RegisterLookupMixin):
+             if not getattr(cls, self.attname, None):
+                 setattr(cls, self.attname, self.descriptor_class(self))
+         if self.choices is not None:
+-            setattr(cls, 'get_%s_display' % self.name,
+-                    partialmethod(cls._get_FIELD_display, field=self))
++            # Don't override a get_FOO_display() method defined explicitly on
++            # this class, but don't check methods derived from inheritance, to
++            # allow overriding inherited choices. For more complex inheritance
++            # structures users should override contribute_to_class().
++            if 'get_%s_display' % self.name not in cls.__dict__:
++                setattr(
++                    cls,
++                    'get_%s_display' % self.name,
++                    partialmethod(cls._get_FIELD_display, field=self),
++                )
+ 
+     def get_filter_kwargs_for_object(self, obj):
+         """
+diff --git a/tests/model_fields/models.py b/tests/model_fields/models.py
+index 98b32d0c1e..596c20cf48 100644
+--- a/tests/model_fields/models.py
++++ b/tests/model_fields/models.py
+@@ -60,6 +60,13 @@ class WhizDelayed(models.Model):
+ WhizDelayed._meta.get_field('c').choices = Whiz.CHOICES
+ 
+ 
++class WhizOverride(models.Model):
++    c = models.IntegerField(choices=((1, 'foo'), (2, 'bar')), null=True)
++
++    def get_c_display(self):
++        return 'something'
++
++
+ class WhizIter(models.Model):
+     c = models.IntegerField(choices=iter(Whiz.CHOICES), null=True)
+ 
+diff --git a/tests/model_fields/tests.py b/tests/model_fields/tests.py
+index 0d6e930b06..98aea923e8 100644
+--- a/tests/model_fields/tests.py
++++ b/tests/model_fields/tests.py
+@@ -8,7 +8,7 @@ from django.utils.functional import lazy
+ 
+ from .models import (
+     Bar, Choiceful, Foo, RenamedField, VerboseNameField, Whiz, WhizDelayed,
+-    WhizIter, WhizIterEmpty,
++    WhizIter, WhizIterEmpty, WhizOverride,
+ )
+ 
+ 
+@@ -162,6 +162,11 @@ class GetFieldDisplayTests(SimpleTestCase):
+         self.assertEqual(Whiz(c='').get_c_display(), '')        # Empty value
+         self.assertEqual(WhizDelayed(c=0).get_c_display(), 'Other')  # Delayed choices
+ 
++    def test_overriding_FIELD_display(self):
++        """A get_FOO_display() defined on the model is not replaced."""
++        self.assertEqual(WhizOverride(c=1).get_c_display(), 'something')
++        self.assertEqual(WhizOverride(c=2).get_c_display(), 'something')
++
+     def test_get_FIELD_display_translated(self):
+         """A translated display value is coerced to str."""
+         val = Whiz(c=5).get_c_display()

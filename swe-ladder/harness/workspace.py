@@ -34,9 +34,14 @@ def checkout(task: dict, run: str, name: str | None = None) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.parent.chmod(0o755)
     path.parent.parent.chmod(0o755)
-    with _locked(task["repo"]):
-        git("--git-dir", str(mirror(task["repo"])), "worktree", "add", "-q", "--detach",
-            str(path), task["base_commit"])
+    # An independent clone, not a worktree: worktrees of one mirror share
+    # refs/stash, and r1-haiku agents that ran `git stash` / `git stash pop`
+    # concurrently could pop another task's changes into their checkout
+    # (django__django-15127 got 15037's inspectdb edits, 2026-10-09).
+    git("clone", "-q", "--shared", "--no-checkout", str(mirror(task["repo"])), str(path))
+    git("checkout", "-q", "--detach", task["base_commit"], cwd=path)
+    (path / ".git" / "info").mkdir(exist_ok=True)
+    (path / ".git" / "info" / "exclude").write_text(".venv\n.swe-task.json\n__pycache__/\n*.pyc\n")
     (path / ".venv").symlink_to(ENVS / env_key(task))
     (path / TASK_MARKER).write_text(json.dumps({
         "instance_id": task["instance_id"], "repo": task["repo"],
@@ -48,11 +53,11 @@ def checkout(task: dict, run: str, name: str | None = None) -> Path:
 def remove(task: dict, path: Path) -> None:
     if not path.exists():
         return
-    # Deleting 64 MB of files is the slow part and needs no lock; only the
-    # prune touches the mirror's shared worktree list.
+    is_worktree = (path / ".git").is_file()   # checkouts made before the switch to clones
     shutil.rmtree(path)
-    with _locked(task["repo"]):
-        git("--git-dir", str(mirror(task["repo"])), "worktree", "prune", check=False)
+    if is_worktree:
+        with _locked(task["repo"]):
+            git("--git-dir", str(mirror(task["repo"])), "worktree", "prune", check=False)
 
 
 def diff(path: Path, base: str) -> str:

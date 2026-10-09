@@ -1,0 +1,73 @@
+diff --git a/django/db/migrations/loader.py b/django/db/migrations/loader.py
+index 8c308621d2..2991189c28 100644
+--- a/django/db/migrations/loader.py
++++ b/django/db/migrations/loader.py
+@@ -84,11 +84,6 @@ class MigrationLoader:
+                     continue
+                 raise
+             else:
+-                # Empty directories are namespaces.
+-                # getattr() needed on PY36 and older (replace w/attribute access).
+-                if getattr(module, '__file__', None) is None:
+-                    self.unmigrated_apps.add(app_config.label)
+-                    continue
+                 # Module is not a package (e.g. migrations.py).
+                 if not hasattr(module, '__path__'):
+                     self.unmigrated_apps.add(app_config.label)
+@@ -96,11 +91,19 @@ class MigrationLoader:
+                 # Force a reload if it's already loaded (tests need this)
+                 if was_loaded:
+                     reload(module)
+-            self.migrated_apps.add(app_config.label)
++            # Migrations are discovered from __path__, which exists for both
++            # regular packages and namespace packages (directories without an
++            # __init__.py, which have no __file__).
+             migration_names = {
+                 name for _, name, is_pkg in pkgutil.iter_modules(module.__path__)
+                 if not is_pkg and name[0] not in '_~'
+             }
++            # An empty namespace package has no migrations to load, so it is
++            # treated as unmigrated, as before.
++            if getattr(module, '__file__', None) is None and not migration_names:
++                self.unmigrated_apps.add(app_config.label)
++                continue
++            self.migrated_apps.add(app_config.label)
+             # Load migrations
+             for migration_name in migration_names:
+                 migration_path = '%s.%s' % (module_name, migration_name)
+diff --git a/tests/migrations/test_loader.py b/tests/migrations/test_loader.py
+index 0f0a590e7c..da9d5cfc44 100644
+--- a/tests/migrations/test_loader.py
++++ b/tests/migrations/test_loader.py
+@@ -197,6 +197,17 @@ class LoaderTests(TestCase):
+                 "App missing __init__.py in migrations module not in unmigrated apps."
+             )
+ 
++    def test_load_namespace_package(self):
++        """A migrations directory without __init__.py that has migrations is loaded."""
++        with override_settings(MIGRATION_MODULES={"migrations": "migrations.test_migrations_namespace_package"}):
++            loader = MigrationLoader(connection)
++            self.assertIn(
++                "migrations", loader.migrated_apps,
++                "App with a namespace migrations module not in migrated apps."
++            )
++            self.assertNotIn("migrations", loader.unmigrated_apps)
++            self.assertIn(("migrations", "0001_initial"), loader.disk_migrations)
++
+     @override_settings(
+         INSTALLED_APPS=['migrations.migrations_test_apps.migrated_app'],
+     )
+diff --git a/tests/migrations/test_migrations_namespace_package/0001_initial.py b/tests/migrations/test_migrations_namespace_package/0001_initial.py
+new file mode 100644
+index 0000000000..ee34de77e4
+--- /dev/null
++++ b/tests/migrations/test_migrations_namespace_package/0001_initial.py
+@@ -0,0 +1,8 @@
++from django.db import migrations
++
++
++class Migration(migrations.Migration):
++
++    initial = True
++
++    operations = []

@@ -1,0 +1,52 @@
+diff --git a/django/urls/resolvers.py b/django/urls/resolvers.py
+index 9b00e24509..ec1770d4ca 100644
+--- a/django/urls/resolvers.py
++++ b/django/urls/resolvers.py
+@@ -59,8 +59,14 @@ class ResolverMatch:
+         return (self.func, self.args, self.kwargs)[index]
+ 
+     def __repr__(self):
++        if isinstance(self.func, functools.partial):
++            # Show the wrapped function and its pre-bound arguments rather than
++            # the opaque "functools.partial" path.
++            func = repr(self.func)
++        else:
++            func = self._func_path
+         return "ResolverMatch(func=%s, args=%s, kwargs=%s, url_name=%s, app_names=%s, namespaces=%s, route=%s)" % (
+-            self._func_path, self.args, self.kwargs, self.url_name,
++            func, self.args, self.kwargs, self.url_name,
+             self.app_names, self.namespaces, self.route,
+         )
+ 
+diff --git a/tests/urlpatterns_reverse/tests.py b/tests/urlpatterns_reverse/tests.py
+index 09028be795..d00ac5e658 100644
+--- a/tests/urlpatterns_reverse/tests.py
++++ b/tests/urlpatterns_reverse/tests.py
+@@ -1146,6 +1146,27 @@ class ResolverMatchTests(SimpleTestCase):
+         )
+ 
+ 
++@override_settings(ROOT_URLCONF='urlpatterns_reverse.urls')
++class ResolverMatchPartialReprTests(SimpleTestCase):
++    def test_repr_functools_partial(self):
++        tests = [
++            ('partial', 'template.html'),
++            ('partial_nested', 'nested_partial.html'),
++        ]
++        for name, template_name in tests:
++            with self.subTest(name=name):
++                func = (
++                    f"functools.partial({views.empty_view}, "
++                    f"template_name='{template_name}')"
++                )
++                self.assertEqual(
++                    repr(resolve(f'/{name}/')),
++                    f"ResolverMatch(func={func}, args=(), kwargs={{}}, "
++                    f"url_name={name}, app_names=[], namespaces=[], "
++                    f"route={name}/)",
++                )
++
++
+ @override_settings(ROOT_URLCONF='urlpatterns_reverse.erroneous_urls')
+ class ErroneousViewTests(SimpleTestCase):
+ 

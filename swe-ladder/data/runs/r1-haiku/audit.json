@@ -1,0 +1,127 @@
+{
+ "django__django-11490": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11490 && git stash push -q -- django/db/models/sql/compiler.py && /tmp/jail/swe/bin/swe-test queries.test_qs_combi"
+ ],
+ "django__django-11138": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11138 && /tmp/jail/swe/bin/swe-test timezones db_functions.datetime 2>&1 | grep -E \"^(FAIL|ERROR):\" ; echo ---; gi",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11138 && echo \"== with fix ==\" && /tmp/jail/swe/bin/swe-test timezones.tests.ForcedTimeZoneDatabaseTests 2>&1 | gr",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11138 && sed -n 19,23p tests/timezones/tests.py; grep -n \"has_zoneinfo_database\" django/db/backends/*/features.py ",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11138 && echo \"== with fix ==\" && /tmp/jail/swe/bin/swe-test timezones.tests.DatabaseTimeZoneLookupTests 2>&1 | gr",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11138 && echo \"== with fix ==\" && /tmp/jail/swe/bin/swe-test timezones.tests.DatabaseTimeZoneLookupTests 2>&1 | gr",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11138 && echo \"== with fix ==\" && /tmp/jail/swe/bin/swe-test timezones.tests.DatabaseTimeZoneLookupTests 2>&1 | gr",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11138 && git stash list; ls -ld /home/user/experiments/swe-ladder/data/runs/r1-haiku/out 2>&1; ls /home/user/exper"
+ ],
+ "django__django-14007": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14007 && git stash push -q -- django/db/models/sql/compiler.py && /tmp/jail/swe/bin/swe-test from_db_value 2>&1 | "
+ ],
+ "django__django-14855": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14855 && sed -i \"s/custom_site.register(Article, ArticleRO)/custom_site.register(Article, ArticleRO)\\ncustom_site.",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14855 && sed -i \"s#urlpatterns = \\[path('custom-admin/', custom_site.urls)\\]#urlpatterns = [path('admin/', admin.s",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14855 && git status --short && echo \"--- stash list\" && git stash list && echo \"--- helpers diff\" && git diff -- d",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14855 && git log --oneline -3 && echo \"--- stash show\" && git stash show --stat stash@{0} && git log -1 --format='",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14855 && git fsck --no-reflogs --unreachable 2>/dev/null | grep commit | while read _ _ sha; do echo \"$sha $(git l",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14855 && git fsck --no-reflogs --unreachable 2>/dev/null | grep commit; echo \"--- stash reflog\"; cat .git/logs/ref"
+ ],
+ "django__django-11119": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11119 && /tmp/jail/swe/bin/swe-test template_tests.test_engine 2>&1 | tail -12; echo \"--- without fix:\"; git stash"
+ ],
+ "django__django-14053": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14053 && git stash push -- django/contrib/staticfiles/storage.py >/dev/null && /tmp/jail/swe/bin/swe-test staticfi"
+ ],
+ "django__django-11749": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11749 && git stash && /tmp/jail/swe/bin/swe-test admin_scripts.tests.StartProject.test_project_template_tarball_ur"
+ ],
+ "django__django-13212": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13212 && git stash && (/tmp/jail/swe/bin/swe-test validators 2>&1 | grep -E \"^(FAIL|ERROR|Ran|OK|FAILED)\" ); git s"
+ ],
+ "django__django-14404": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14404 && git stash push -q -- django/contrib/admin/sites.py && /tmp/jail/swe/bin/swe-test admin_views.test_tmp_scr"
+ ],
+ "django__django-11299": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11299 && /tmp/jail/swe/bin/swe-test constraints.tests.CheckConstraintTests 2>&1 | tail -8; git stash push django/d"
+ ],
+ "django__django-15037": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15037 && git stash && /tmp/jail/swe/bin/swe-test inspectdb.tests.InspectDBTestCase.test_custom_fields 2>&1 | tail ",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15037 && git status --short && git diff && git stash list | head -3",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15037 && git log --oneline -3 && git stash list && git stash show -p stash@{0} | head -60; echo ---; git reflog | ",
+  "ps -eo pid,ppid,etime,cmd 2>/dev/null | grep -v \"ps -eo\" | grep -i \"git\\|swe\\|django\\|jail\" | head -20; echo ---; cd /tmp/jail/swe/work/r1-haiku/django__django-",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15037 && git stash list; git fsck --unreachable --no-reflogs 2>/dev/null | grep commit | head -5"
+ ],
+ "django__django-15252": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15252 && git stash && /tmp/jail/swe/bin/swe-test migrations.test_commands.MigrateTests.test_migrate_fake_initial 2"
+ ],
+ "django__django-13028": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13028 && cat >> tests/queries/tests.py <<'EOF'\n\n\nclass FilterableAttributeTests(TestCase):\n    def test_filter_by_"
+ ],
+ "django__django-14787": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14787 && git stash push -q -- django/utils/decorators.py && /tmp/jail/swe/bin/swe-run python repro_14787.py 2>&1 |"
+ ],
+ "django__django-12325": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-12325 && git stash && (/tmp/jail/swe/bin/swe-test inspectdb 2>&1 | grep -E \"^(FAIL|ERROR):|^Ran|^FAILED|^OK\"); git"
+ ],
+ "django__django-13810": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13810 && git stash && /tmp/jail/swe/bin/swe-test asgi.tests.ASGITest.test_request_lifecycle_signals_dispatched_wit",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13810 && cat > repro_mw.py <<'EOF'\nfrom django.core.exceptions import MiddlewareNotUsed\nfrom django.http import Ht"
+ ],
+ "django__django-12663": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-12663 && cat >> tests/annotations/tests.py <<'EOF'\n\n    def test_lazy_object_exact_fk_output(self):\n        from d"
+ ],
+ "django__django-11551": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11551 && git stash push -q -- django/contrib/admin/checks.py && /tmp/jail/swe/bin/swe-run python _repro_11551.py; ",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11551 && sed -i 's/raise TypeError(\"PositionField-style: cannot read on class\")/raise AttributeError(\"PositionFiel"
+ ],
+ "django__django-15104": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15104 && git stash push -q -- django/db/migrations/autodetector.py && (/tmp/jail/swe/bin/swe-run python repro_1510"
+ ],
+ "django__django-13112": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13112 && git stash push -- django/db/models/fields/related.py >/dev/null && (/tmp/jail/swe/bin/swe-run python _rep"
+ ],
+ "django__django-13012": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13012 && /tmp/jail/swe/bin/swe-test aggregation.tests.AggregateTestCase.test_group_by_expression_wrapper_constant ",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13012 && git stash push -- django/db/models/expressions.py >/dev/null && /tmp/jail/swe/bin/swe-test aggregation.te"
+ ],
+ "django__django-13794": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13794 && git stash -q && /tmp/jail/swe/bin/swe-test utils_tests.test_lazyobject 2>&1 | grep -E \"^(ERROR|FAIL|Ran|O"
+ ],
+ "django__django-15127": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15127 && git stash -q && /tmp/jail/swe/bin/swe-test test_utils.tests.HTMLEqualTests.test_parsing_errors 2>&1 | tai",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15127 && git status && echo ---- && git stash list && echo ---- && git diff --stat && echo ---- && git stash show ",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15127 && cat -n django/core/management/commands/inspectdb.py | sed -n 1,400p | grep -n \"<<<<<<<\\|=======\\|>>>>>>>\"",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15127 && mkdir -p /tmp/claude-0/-home-user-claude-workspace/f3a9a5d9-e51f-53c3-985f-6cc2ab7963f7/scratchpad && S=/",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15127 && git apply -v /tmp/claude-0/-home-user-claude-workspace/f3a9a5d9-e51f-53c3-985f-6cc2ab7963f7/scratchpad/my"
+ ],
+ "django__django-13807": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13807 && cat > repro_order.py <<'EOF'\nimport django\nfrom django.conf import settings\nsettings.configure(\n    DATAB"
+ ],
+ "django__django-10914": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-10914 && /tmp/jail/swe/bin/swe-test file_storage test_utils.tests.OverrideSettingsTests 2>&1 | grep -E \"^(FAIL|ERR"
+ ],
+ "django__django-13513": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13513 && git show --stat f36862b69c | head -20 && git merge-base --is-ancestor f36862b69c HEAD && echo ANCESTOR &&"
+ ],
+ "django__django-13344": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13344 && git stash list >/dev/null; git stash push -- django/middleware/security.py django/middleware/cache.py >/d",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13344 && git status --short && git diff --stat && git stash list | head -3"
+ ],
+ "django__django-14580": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-14580 && git stash push -q -- django/db/migrations/serializer.py && /tmp/jail/swe/bin/swe-run python repro_14580.p"
+ ],
+ "django__django-11999": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11999 && git stash push -q -- django/db/models/fields/__init__.py && (/tmp/jail/swe/bin/swe-test model_fields.test"
+ ],
+ "django__django-11734": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-11734 && git stash push -- django/db/models/sql/query.py >/dev/null && /tmp/jail/swe/bin/swe-test queries.test_out"
+ ],
+ "django__django-13401": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-13401 && git stash push -- django/db/models/fields/__init__.py >/dev/null && (/tmp/jail/swe/bin/swe-test model_fie"
+ ],
+ "django__django-12754": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-12754 && git stash push -- django/db/migrations/autodetector.py >/dev/null && /tmp/jail/swe/bin/swe-test migration"
+ ],
+ "django__django-15368": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15368 && /tmp/jail/swe/bin/swe-test queries.test_bulk_update 2>&1 | tail -6; git stash push django/db/models/query"
+ ],
+ "django__django-15268": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15268 && /tmp/jail/swe/bin/swe-test migrations 2>&1 | grep \"^FAIL:\\|^ERROR:\"; git stash list | head -2; git diff -"
+ ]
+}

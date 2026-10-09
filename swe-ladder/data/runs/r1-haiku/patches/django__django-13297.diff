@@ -1,0 +1,90 @@
+diff --git a/django/views/generic/base.py b/django/views/generic/base.py
+index ea5baca08d..233b9f7804 100644
+--- a/django/views/generic/base.py
++++ b/django/views/generic/base.py
+@@ -157,29 +157,42 @@ class TemplateResponseMixin:
+ class TemplateView(TemplateResponseMixin, ContextMixin, View):
+     """Render a template."""
+     def get(self, request, *args, **kwargs):
+-        # RemovedInDjango40Warning: when the deprecation ends, replace with:
+-        #   context = self.get_context_data()
+-        context_kwargs = _wrap_url_kwargs_with_deprecation_warning(kwargs)
+-        context = self.get_context_data(**context_kwargs)
++        # get_context_data() receives the plain URL kwargs so that subclasses
++        # can use them, e.g. in database queries.
++        context = self.get_context_data(**kwargs)
++        # RemovedInDjango40Warning: when the deprecation ends, remove this.
++        context = _wrap_url_kwargs_with_deprecation_warning(context, kwargs)
+         return self.render_to_response(context)
+ 
+ 
+ # RemovedInDjango40Warning
+-def _wrap_url_kwargs_with_deprecation_warning(url_kwargs):
+-    context_kwargs = {}
+-    for key, value in url_kwargs.items():
+-        # Bind into function closure.
+-        @SimpleLazyObject
+-        def access_value(key=key, value=value):
+-            warnings.warn(
+-                'TemplateView passing URL kwargs to the context is '
+-                'deprecated. Reference %s in your template through '
+-                'view.kwargs instead.' % key,
+-                RemovedInDjango40Warning, stacklevel=2,
+-            )
+-            return value
+-        context_kwargs[key] = access_value
+-    return context_kwargs
++def _wrap_url_kwargs_with_deprecation_warning(context, url_kwargs):
++    """
++    Wrap the URL kwargs that were passed through to the template context so
++    that accessing them emits a deprecation warning. Context values that were
++    replaced by the view are left untouched.
++    """
++    wrapped = {}
++    for key, value in context.items():
++        if key in url_kwargs and value is url_kwargs[key]:
++            wrapped[key] = _deprecated_url_kwarg(key, value)
++        else:
++            wrapped[key] = value
++    return wrapped
++
++
++# RemovedInDjango40Warning
++def _deprecated_url_kwarg(key, value):
++    @SimpleLazyObject
++    def access_value():
++        warnings.warn(
++            'TemplateView passing URL kwargs to the context is '
++            'deprecated. Reference %s in your template through '
++            'view.kwargs instead.' % key,
++            RemovedInDjango40Warning, stacklevel=2,
++        )
++        return value
++    return access_value
+ 
+ 
+ class RedirectView(View):
+diff --git a/tests/generic_views/test_base.py b/tests/generic_views/test_base.py
+index d498d23a68..a584848350 100644
+--- a/tests/generic_views/test_base.py
++++ b/tests/generic_views/test_base.py
+@@ -603,3 +603,19 @@ class DeprecationTests(SimpleTestCase):
+             str(response.context['foo2'])
+         self.assertEqual(response.context['key'], 'value')
+         self.assertIsInstance(response.context['view'], View)
++
++    def test_get_context_data_receives_plain_url_kwargs(self):
++        received = {}
++
++        class KwargsView(TemplateView):
++            template_name = 'generic_views/about.html'
++
++            def get_context_data(self, **kwargs):
++                received.update(kwargs)
++                return {'slug': kwargs.get('foo', '')}
++
++        response = KwargsView.as_view()(RequestFactory().get('/'), foo='bar')
++        self.assertEqual(response.status_code, 200)
++        self.assertIs(type(received['foo']), str)
++        self.assertEqual(received['foo'], 'bar')
++        self.assertEqual(response.context_data, {'slug': 'bar'})

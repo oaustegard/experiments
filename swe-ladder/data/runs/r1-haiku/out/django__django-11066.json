@@ -1,0 +1,1 @@
+{"summary": "Changed RenameContentType._rename() in django/contrib/contenttypes/management/__init__.py to call content_type.save(using=db, update_fields={'model'}), so the save goes to the migration's database instead of the default one. Ran swe-test contenttypes_tests, which passed all 59 tests; I did not add a dedicated multi-database reproduction."}

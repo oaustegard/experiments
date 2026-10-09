@@ -1,0 +1,1 @@
+{"summary": "In django/db/models/deletion.py, the Collector's single-object fast-delete path now sets the instance's PK attname to None after delete_batch, matching the general path at the end of Collector.delete(). I added test_fast_delete_instance_set_pk_none to tests/delete/tests.py, and the delete suite (42 tests) plus delete_regress and basic (72 tests) pass via swe-test."}

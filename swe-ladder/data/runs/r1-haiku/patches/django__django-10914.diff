@@ -1,0 +1,88 @@
+diff --git a/django/conf/global_settings.py b/django/conf/global_settings.py
+index acee9887d2..bdeec80610 100644
+--- a/django/conf/global_settings.py
++++ b/django/conf/global_settings.py
+@@ -304,7 +304,7 @@ FILE_UPLOAD_TEMP_DIR = None
+ 
+ # The numeric mode to set newly-uploaded files to. The value should be a mode
+ # you'd pass directly to os.chmod; see https://docs.python.org/library/os.html#files-and-directories.
+-FILE_UPLOAD_PERMISSIONS = None
++FILE_UPLOAD_PERMISSIONS = 0o644
+ 
+ # The numeric mode to assign to newly-created directories, when uploading files.
+ # The value should be a mode as you'd pass to os.chmod;
+diff --git a/docs/ref/settings.txt b/docs/ref/settings.txt
+index 46e99af993..cb222a9640 100644
+--- a/docs/ref/settings.txt
++++ b/docs/ref/settings.txt
+@@ -1484,16 +1484,19 @@ This value mirrors the functionality and caveats of the
+ ``FILE_UPLOAD_PERMISSIONS``
+ ---------------------------
+ 
+-Default: ``None``
++Default: ``0o644``
++
++The numeric mode to set newly uploaded files to. The value should be a mode
++you'd pass directly to :func:`os.chmod`.
+ 
+-The numeric mode (i.e. ``0o644``) to set newly uploaded files to. For
+-more information about what these modes mean, see the documentation for
+-:func:`os.chmod`.
++This setting defaults to ``0o644`` so that the permissions of uploaded files
++are consistent, regardless of whether they were held in memory or in a
++temporary file during the upload. Previously, the default was ``None``, which
++gave operating-system dependent behavior: temporary files typically ended up
++with a mode of ``0o600``, while files saved from memory used the system's
++standard umask.
+ 
+-If this isn't given or is ``None``, you'll get operating-system
+-dependent behavior. On most platforms, temporary files will have a mode
+-of ``0o600``, and files saved from memory will be saved using the
+-system's standard umask.
++If set to ``None``, you'll get that operating-system dependent behavior.
+ 
+ For security reasons, these permissions aren't applied to the temporary files
+ that are stored in :setting:`FILE_UPLOAD_TEMP_DIR`.
+diff --git a/docs/releases/3.0.txt b/docs/releases/3.0.txt
+index 5d9bff086e..38629b6adf 100644
+--- a/docs/releases/3.0.txt
++++ b/docs/releases/3.0.txt
+@@ -290,6 +290,10 @@ Miscellaneous
+ * ``ContentType.__str__()`` now includes the model's ``app_label`` to
+   disambiguate model's with the same name in different apps.
+ 
++* The :setting:`FILE_UPLOAD_PERMISSIONS` setting now defaults to ``0o644``.
++  Previously, the default was ``None``, which resulted in inconsistent file
++  permissions for uploaded files depending on the upload handler used.
++
+ .. _deprecated-features-3.0:
+ 
+ Features deprecated in 3.0
+diff --git a/tests/file_storage/tests.py b/tests/file_storage/tests.py
+index 434869554c..e6171941ef 100644
+--- a/tests/file_storage/tests.py
++++ b/tests/file_storage/tests.py
+@@ -885,6 +885,10 @@ class FileStoragePermissions(unittest.TestCase):
+         shutil.rmtree(self.storage_dir)
+         os.umask(self.old_umask)
+ 
++    def test_default_file_upload_permissions_setting(self):
++        from django.conf import global_settings
++        self.assertEqual(global_settings.FILE_UPLOAD_PERMISSIONS, 0o644)
++
+     @override_settings(FILE_UPLOAD_PERMISSIONS=0o654)
+     def test_file_upload_permissions(self):
+         self.storage = FileSystemStorage(self.storage_dir)
+diff --git a/tests/test_utils/tests.py b/tests/test_utils/tests.py
+index a1a113a26e..e953eb6609 100644
+--- a/tests/test_utils/tests.py
++++ b/tests/test_utils/tests.py
+@@ -1099,7 +1099,7 @@ class OverrideSettingsTests(SimpleTestCase):
+         the file_permissions_mode attribute of
+         django.core.files.storage.default_storage.
+         """
+-        self.assertIsNone(default_storage.file_permissions_mode)
++        self.assertEqual(default_storage.file_permissions_mode, 0o644)
+         with self.settings(FILE_UPLOAD_PERMISSIONS=0o777):
+             self.assertEqual(default_storage.file_permissions_mode, 0o777)
+ 

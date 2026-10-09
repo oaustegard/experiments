@@ -1,0 +1,1 @@
+{"summary": "PasswordResetTokenGenerator._make_hash_value() now appends the user's email (via get_email_field_name(), with a '' fallback for missing or empty values) so changing the email invalidates outstanding reset tokens. I added tests for email-change invalidation and for a user with no email, and ran the full auth_tests suite (567 tests) through swe-test with all passing."}

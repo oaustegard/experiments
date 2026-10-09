@@ -188,7 +188,15 @@ def main():
     g.add_argument("--workers", type=int, default=3)
     st = sub.add_parser("status")
     st.add_argument("run")
+    c = sub.add_parser("cycle", help="done IDS, then next: one call per completion notice")
+    c.add_argument("run")
+    c.add_argument("ids", nargs="+")
+    c.add_argument("--slots", type=int, default=10)
     a = ap.parse_args()
+    if a.cmd == "cycle":
+        done(a)
+        next_(a)
+        return
     {"stage": stage, "next": next_, "done": done, "grade": grade_run, "status": status}[a.cmd](a)
 
 

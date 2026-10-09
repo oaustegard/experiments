@@ -1,0 +1,76 @@
+diff --git a/django/forms/models.py b/django/forms/models.py
+index 3fa04b821f..2cc8ca899b 100644
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -1170,14 +1170,16 @@ class BaseInlineFormSet(BaseModelFormSet):
+         if self.fk.remote_field.field_name != self.fk.remote_field.model._meta.pk.name:
+             kwargs["to_field"] = self.fk.remote_field.field_name
+ 
+-        # If we're adding a new object, ignore a parent's auto-generated key
+-        # as it will be regenerated on the save request.
++        # If we're adding a new object, ignore a parent's auto-generated pk
++        # as it will be regenerated on the save request. A non-pk to_field is
++        # not regenerated on save, and the child's foreign key refers to it,
++        # so its default value must be kept (#16950).
+         if self.instance._state.adding:
+             if kwargs.get("to_field") is not None:
+                 to_field = self.instance._meta.get_field(kwargs["to_field"])
+             else:
+                 to_field = self.instance._meta.pk
+-            if to_field.has_default():
++            if to_field.primary_key and to_field.has_default():
+                 setattr(self.instance, to_field.attname, None)
+ 
+         form.fields[name] = InlineForeignKeyField(self.instance, **kwargs)
+diff --git a/tests/model_formsets/test_uuid.py b/tests/model_formsets/test_uuid.py
+index 2097bde82b..b8d511c115 100644
+--- a/tests/model_formsets/test_uuid.py
++++ b/tests/model_formsets/test_uuid.py
+@@ -82,12 +82,43 @@ class InlineFormsetTests(TestCase):
+ 
+     def test_inlineformset_factory_nulls_default_pks_alternate_key_relation(self):
+         """
+-        #24958 - Variant of test_inlineformset_factory_nulls_default_pks for
+-        the case of a parent object with a UUID alternate key and a child
+-        object that relates to that alternate key.
++        #24958, #16950 - Variant of test_inlineformset_factory_nulls_default_pks
++        for the case of a parent object with a UUID alternate key and a child
++        object that relates to that alternate key. The alternate key is not
++        regenerated on save, so the parent's value is kept as the initial.
+         """
+         FormSet = inlineformset_factory(
+             ParentWithUUIDAlternateKey, ChildRelatedViaAK, fields="__all__"
+         )
+         formset = FormSet()
+-        self.assertIsNone(formset.forms[0].fields["parent"].initial)
++        self.assertEqual(
++            formset.forms[0].fields["parent"].initial,
++            formset.instance.uuid,
++        )
++
++    def test_inlineformset_save_new_parent_with_uuid_alternate_key(self):
++        """
++        #16950 - A new parent whose non-pk to_field has a default must keep
++        that value, since it is not regenerated on save and the child's
++        foreign key references it.
++        """
++        FormSet = inlineformset_factory(
++            ParentWithUUIDAlternateKey, ChildRelatedViaAK, fields="__all__"
++        )
++        parent = ParentWithUUIDAlternateKey(name="parent")
++        formset = FormSet(
++            {
++                "childrelatedviaak_set-TOTAL_FORMS": 1,
++                "childrelatedviaak_set-INITIAL_FORMS": 0,
++                "childrelatedviaak_set-MAX_NUM_FORMS": "",
++                "childrelatedviaak_set-0-name": "child",
++            },
++            instance=parent,
++        )
++        self.assertTrue(formset.is_valid())
++        self.assertIsNotNone(parent.uuid)
++        parent.save()
++        children = formset.save()
++        self.assertEqual(len(children), 1)
++        self.assertEqual(children[0].parent, parent)
++        self.assertEqual(children[0].parent_id, parent.uuid)

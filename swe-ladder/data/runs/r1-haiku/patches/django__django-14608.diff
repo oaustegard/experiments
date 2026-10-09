@@ -1,0 +1,45 @@
+diff --git a/django/forms/formsets.py b/django/forms/formsets.py
+index a89c35599f..1b0d4554e0 100644
+--- a/django/forms/formsets.py
++++ b/django/forms/formsets.py
+@@ -333,7 +333,7 @@ class BaseFormSet:
+         self._non_form_errors.
+         """
+         self._errors = []
+-        self._non_form_errors = self.error_class()
++        self._non_form_errors = self.error_class(error_class='nonform')
+         empty_forms_count = 0
+ 
+         if not self.is_bound:  # Stop further processing.
+@@ -380,7 +380,7 @@ class BaseFormSet:
+             # Give self.clean() a chance to do cross-form validation.
+             self.clean()
+         except ValidationError as e:
+-            self._non_form_errors = self.error_class(e.error_list)
++            self._non_form_errors = self.error_class(e.error_list, error_class='nonform')
+ 
+     def clean(self):
+         """
+diff --git a/docs/topics/forms/index.txt b/docs/topics/forms/index.txt
+index e55b6d7bf2..cb762563b8 100644
+--- a/docs/topics/forms/index.txt
++++ b/docs/topics/forms/index.txt
+@@ -616,6 +616,18 @@ errors. For example, ``{{ form.non_field_errors }}`` would look like:
+         <li>Generic validation error</li>
+     </ul>
+ 
++Similarly, non-form errors in a formset (those returned by
++``formset.non_form_errors``) are rendered with an additional class of
++``nonform``, so that they can be distinguished from both field-specific errors
++and non-field errors. For example, ``{{ formset.non_form_errors }}`` would look
++like:
++
++.. code-block:: html+django
++
++    <ul class="errorlist nonform">
++        <li>Generic formset validation error</li>
++    </ul>
++
+ See :doc:`/ref/forms/api` for more on errors, styling, and working with form
+ attributes in templates.
+ 

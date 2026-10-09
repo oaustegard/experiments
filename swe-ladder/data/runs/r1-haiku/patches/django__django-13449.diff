@@ -1,0 +1,59 @@
+diff --git a/django/db/models/expressions.py b/django/db/models/expressions.py
+index 90d90119d0..b5717303f1 100644
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -1302,7 +1302,14 @@ class Window(Expression):
+         connection.ops.check_expression_support(self)
+         if not connection.features.supports_over_clause:
+             raise NotSupportedError('This backend does not support window expressions.')
+-        expr_sql, params = compiler.compile(self.source_expression)
++        if connection.vendor == 'sqlite' and isinstance(self.source_expression, SQLiteNumericMixin):
++            # SQLiteNumericMixin wraps the function in CAST(... AS NUMERIC),
++            # which would land between the function and its OVER clause
++            # (syntax error). Compile the bare function instead; the decimal
++            # converter handles the result type.
++            expr_sql, params = self.source_expression.as_sql(compiler, connection)
++        else:
++            expr_sql, params = compiler.compile(self.source_expression)
+         window_sql, window_params = [], []
+ 
+         if self.partition_by is not None:
+diff --git a/tests/expressions_window/tests.py b/tests/expressions_window/tests.py
+index 30ed64f529..20ba9909e7 100644
+--- a/tests/expressions_window/tests.py
++++ b/tests/expressions_window/tests.py
+@@ -4,11 +4,11 @@ from unittest import mock, skipIf
+ from django.core.exceptions import FieldError
+ from django.db import NotSupportedError, connection
+ from django.db.models import (
+-    Avg, BooleanField, Case, F, Func, Max, Min, OuterRef, Q, RowRange,
+-    Subquery, Sum, Value, ValueRange, When, Window, WindowFrame,
++    Avg, BooleanField, Case, DecimalField, F, Func, Max, Min, OuterRef, Q,
++    RowRange, Subquery, Sum, Value, ValueRange, When, Window, WindowFrame,
+ )
+ from django.db.models.functions import (
+-    CumeDist, DenseRank, ExtractYear, FirstValue, Lag, LastValue, Lead,
++    Cast, CumeDist, DenseRank, ExtractYear, FirstValue, Lag, LastValue, Lead,
+     NthValue, Ntile, PercentRank, Rank, RowNumber, Upper,
+ )
+ from django.test import SimpleTestCase, TestCase, skipUnlessDBFeature
+@@ -130,6 +130,19 @@ class WindowFunctionTests(TestCase):
+             ('Johnson', 'Management', 12),
+         ], lambda entry: (entry.name, entry.department, entry.row_number))
+ 
++    def test_lag_decimalfield(self):
++        """
++        Lag() over a DecimalField must not break the OVER clause on SQLite
++        (the NUMERIC cast must not be placed between the function and OVER).
++        """
++        qs = Employee.objects.annotate(
++            lag=Window(
++                expression=Lag(Cast('salary', DecimalField(max_digits=15, decimal_places=2)), 1),
++                order_by=F('pk').asc(),
++            ),
++        ).order_by('pk')
++        self.assertEqual(len(qs), Employee.objects.count())
++
+     @skipIf(connection.vendor == 'oracle', "Oracle requires ORDER BY in row_number, ANSI:SQL doesn't")
+     def test_row_number_no_ordering(self):
+         """
