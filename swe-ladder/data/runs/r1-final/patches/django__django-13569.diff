@@ -1,0 +1,42 @@
+diff --git a/django/db/models/functions/math.py b/django/db/models/functions/math.py
+index 304e112225..9d177a6724 100644
+--- a/django/db/models/functions/math.py
++++ b/django/db/models/functions/math.py
+@@ -154,6 +154,11 @@ class Random(NumericOutputFieldMixin, Func):
+     def as_sqlite(self, compiler, connection, **extra_context):
+         return super().as_sql(compiler, connection, function='RAND', **extra_context)
+ 
++    def get_group_by_cols(self, alias=None):
++        # RANDOM() is not a grouping column; including it in GROUP BY (e.g.
++        # via order_by('?')) breaks the aggregation grouping.
++        return []
++
+ 
+ class Round(Transform):
+     function = 'ROUND'
+diff --git a/tests/aggregation/tests.py b/tests/aggregation/tests.py
+index f8aeceb2d0..c3666a6a26 100644
+--- a/tests/aggregation/tests.py
++++ b/tests/aggregation/tests.py
+@@ -1315,3 +1315,21 @@ class AggregateTestCase(TestCase):
+         # with self.assertNumQueries(1) as ctx:
+         #     self.assertSequenceEqual(books_qs, [book])
+         # self.assertEqual(ctx[0]['sql'].count('SELECT'), 2)
++
++
++class RandomOrderByAggregationTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        cls.a1 = Author.objects.create(name='Adrian Holovaty', age=34)
++        cls.a2 = Author.objects.create(name='Jacob Kaplan-Moss', age=35)
++        cls.b1 = Book.objects.create(
++            isbn='159059725', name='The Definitive Guide', pages=447,
++            rating=4.5, price=Decimal('30.00'), contact=cls.a1,
++            publisher=Publisher.objects.create(name='Apress', num_awards=3),
++            pubdate=datetime.date(2007, 12, 6),
++        )
++        cls.b1.authors.add(cls.a1, cls.a2)
++
++    def test_order_by_random_does_not_break_aggregation(self):
++        qs = Book.objects.annotate(rc=Count('authors')).order_by('?').values('id', 'rc')
++        self.assertEqual(list(qs), [{'id': self.b1.pk, 'rc': 2}])

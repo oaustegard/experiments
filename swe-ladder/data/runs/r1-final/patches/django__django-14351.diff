@@ -1,0 +1,76 @@
+diff --git a/django/db/models/fields/related_lookups.py b/django/db/models/fields/related_lookups.py
+index d745ecd5f9..b14b70b9b7 100644
+--- a/django/db/models/fields/related_lookups.py
++++ b/django/db/models/fields/related_lookups.py
+@@ -57,6 +57,21 @@ class RelatedIn(In):
+                 # only one as we don't get to the direct value branch otherwise.
+                 target_field = self.lhs.output_field.get_path_info()[-1].target_fields[-1]
+                 self.rhs = [target_field.get_prep_value(v) for v in self.rhs]
++        elif (not isinstance(self.lhs, MultiColSource) and
++                not getattr(self.rhs, 'has_select_fields', True) and
++                not getattr(self.lhs.field.target_field, 'primary_key', False)):
++            # Select the target field rather than the primary key. Done here,
++            # for the same reason as In.get_prep_lookup().
++            self.rhs.clear_select_clause()
++            if (getattr(self.lhs.output_field, 'primary_key', False) and
++                    self.lhs.output_field.model == self.rhs.model):
++                # A case like Restaurant.objects.filter(place__in=restaurant_qs),
++                # where place is a OneToOneField and the primary key of
++                # Restaurant.
++                target_field = self.lhs.field.name
++            else:
++                target_field = self.lhs.field.target_field.name
++            self.rhs.add_fields([target_field], True)
+         return super().get_prep_lookup()
+ 
+     def as_sql(self, compiler, connection):
+@@ -86,18 +101,6 @@ class RelatedIn(In):
+                     AND)
+             return root_constraint.as_sql(compiler, connection)
+         else:
+-            if (not getattr(self.rhs, 'has_select_fields', True) and
+-                    not getattr(self.lhs.field.target_field, 'primary_key', False)):
+-                self.rhs.clear_select_clause()
+-                if (getattr(self.lhs.output_field, 'primary_key', False) and
+-                        self.lhs.output_field.model == self.rhs.model):
+-                    # A case like Restaurant.objects.filter(place__in=restaurant_qs),
+-                    # where place is a OneToOneField and the primary key of
+-                    # Restaurant.
+-                    target_field = self.lhs.field.name
+-                else:
+-                    target_field = self.lhs.field.target_field.name
+-                self.rhs.add_fields([target_field], True)
+             return super().as_sql(compiler, connection)
+ 
+ 
+diff --git a/django/db/models/lookups.py b/django/db/models/lookups.py
+index 5089737034..9f01f65fad 100644
+--- a/django/db/models/lookups.py
++++ b/django/db/models/lookups.py
+@@ -376,6 +376,16 @@ class IntegerLessThan(IntegerFieldFloatRounding, LessThan):
+ class In(FieldGetDbPrepValueIterableMixin, BuiltinLookup):
+     lookup_name = 'in'
+ 
++    def get_prep_lookup(self):
++        # A subquery without an explicit select list only needs its primary
++        # key. This must happen here, when the lookup is built, and not in
++        # process_rhs(): a subquery in a HAVING clause is also rendered into
++        # the GROUP BY clause, which is compiled before the HAVING clause.
++        if not getattr(self.rhs, 'has_select_fields', True):
++            self.rhs.clear_select_clause()
++            self.rhs.add_fields(['pk'])
++        return super().get_prep_lookup()
++
+     def process_rhs(self, compiler, connection):
+         db_rhs = getattr(self.rhs, '_db', None)
+         if db_rhs is not None and db_rhs != connection.alias:
+@@ -401,9 +411,6 @@ class In(FieldGetDbPrepValueIterableMixin, BuiltinLookup):
+             placeholder = '(' + ', '.join(sqls) + ')'
+             return (placeholder, sqls_params)
+         else:
+-            if not getattr(self.rhs, 'has_select_fields', True):
+-                self.rhs.clear_select_clause()
+-                self.rhs.add_fields(['pk'])
+             return super().process_rhs(compiler, connection)
+ 
+     def get_rhs_op(self, connection, rhs):

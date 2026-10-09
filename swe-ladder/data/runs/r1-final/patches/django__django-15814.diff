@@ -1,0 +1,46 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 33cc636b22..0624b318c6 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -748,6 +748,9 @@ class Query(BaseExpression):
+                     cur_model = source.related_model
+                 else:
+                     cur_model = source.remote_field.model
++                # Proxy models share their concrete model's fields and pk, and
++                # the keys used below must be concrete models to match "seen".
++                cur_model = cur_model._meta.concrete_model
+                 opts = cur_model._meta
+                 # Even if we're "just passing through" this model, we must add
+                 # both the current model's pk and the related reference field
+diff --git a/tests/proxy_models/tests.py b/tests/proxy_models/tests.py
+index f2f465678b..fbfe8d1e71 100644
+--- a/tests/proxy_models/tests.py
++++ b/tests/proxy_models/tests.py
+@@ -398,6 +398,27 @@ class ProxyModelTests(TestCase):
+     def test_eq(self):
+         self.assertEqual(MyPerson(id=100), Person(id=100))
+ 
++    def test_select_related_only_proxy_fk(self):
++        tracker_user = TrackerUser.objects.create(name="tu", status="open")
++        reporter = BaseUser.objects.create(name="reporter")
++        bug = Bug.objects.create(
++            summary="bug", version="1.0", assignee=tracker_user, reporter=reporter
++        )
++        Improvement.objects.create(
++            summary="improve",
++            version="2.0",
++            assignee=tracker_user,
++            reporter=tracker_user,
++            associated_bug=bug,
++        )
++        obj = (
++            Improvement.objects.select_related("associated_bug")
++            .only("associated_bug__version")
++            .get()
++        )
++        self.assertEqual(obj.associated_bug.version, "1.0")
++        self.assertEqual(obj.associated_bug.pk, bug.pk)
++
+ 
+ @override_settings(ROOT_URLCONF="proxy_models.urls")
+ class ProxyModelAdminTests(TestCase):

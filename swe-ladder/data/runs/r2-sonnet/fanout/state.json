@@ -1,0 +1,453 @@
+{
+ "retries": 0,
+ "schema": {
+  "type": "object",
+  "required": [
+   "summary"
+  ],
+  "properties": {
+   "summary": {
+    "type": "string"
+   }
+  }
+ },
+ "tasks": [
+  {
+   "id": "django__django-10999",
+   "prompt": "Resolve this GitHub issue in the django/django repository.\n\nThe repository is checked out at /tmp/jail/swe/work/r2-sonnet/django__django-10999 (commit 36300ef336). A previous attempt edited it; its changes are still in the checkout (`git diff` shows them, and they are reproduced below). That attempt was rejected: hidden tests that check this issue failed on it. Their names and output are below. You cannot run the hidden tests, but you can write your own. Change the source code so those hidden tests would pass, without breaking existing behaviour. Keep, rework or discard the previous changes as you judge best.\n\nRunning code: the checkout's code runs only through two commands, used from inside the checkout:\n  /tmp/jail/swe/bin/swe-test TARGET...    the repo's own test runner; targets are Django test labels, e.g. `swe-test utils_tests.test_text` or `swe-test admin_views.tests.AdminViewBasicTest.test_changelist_view`\n  /tmp/jail/swe/bin/swe-run CMD ARGS...   anything else, e.g. `/tmp/jail/swe/bin/swe-run python repro.py`\nBoth run without network access. Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted.\n\n<issue>\nFix parse_duration() for some negative durations\nDescription\n\t\nThe \u200bhttps://docs.djangoproject.com/en/2.1/_modules/django/utils/dateparse/ defines:\nstandard_duration_re = re.compile(\n\tr'^'\n\tr'(?:(?P<days>-?\\d+) (days?, )?)?'\n\tr'((?:(?P<hours>-?\\d+):)(?=\\d+:\\d+))?'\n\tr'(?:(?P<minutes>-?\\d+):)?'\n\tr'(?P<seconds>-?\\d+)'\n\tr'(?:\\.(?P<microseconds>\\d{1,6})\\d{0,6})?'\n\tr'$'\n)\nthat doesn't match to negative durations, because of the <hours> definition final (lookahead) part does not have '-?' in it. The following will work:\n\tr'((?:(?P<hours>-?\\d+):)(?=-?\\d+:-?\\d+))?'\n(Thanks to Konstantin Senichev for finding the fix.)\n</issue>\n\n<previous_attempt_diff>\ndiff --git a/django/utils/dateparse.py b/django/utils/dateparse.py\nindex 8d08b7d1d3..a037758784 100644\n--- a/django/utils/dateparse.py\n+++ b/django/utils/dateparse.py\n@@ -29,7 +29,7 @@ datetime_re = re.compile(\n standard_duration_re = re.compile(\n     r'^'\n     r'(?:(?P<days>-?\\d+) (days?, )?)?'\n-    r'((?:(?P<hours>-?\\d+):)(?=\\d+:\\d+))?'\n+    r'((?:(?P<hours>-?\\d+):)(?=-?\\d+:-?\\d+))?'\n     r'(?:(?P<minutes>-?\\d+):)?'\n     r'(?P<seconds>-?\\d+)'\n     r'(?:\\.(?P<microseconds>\\d{1,6})\\d{0,6})?'\n</previous_attempt_diff>\n\n<hidden_test_failures>\nFailing tests: test_negative (utils_tests.test_dateparse.DurationParseTests), test_parse_postgresql_format (utils_tests.test_dateparse.DurationParseTests)\n\n======================================================================\nFAIL: test_negative (utils_tests.test_dateparse.DurationParseTests) (source='-15:30')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-10999/tests/utils_tests/test_dateparse.py\", line 125, in test_negative\n    self.assertEqual(parse_duration(source), expected)\nAssertionError: datetime.timedelta(days=-1, seconds=85530) != datetime.timedelta(days=-1, seconds=85470)\n\n======================================================================\nFAIL: test_negative (utils_tests.test_dateparse.DurationParseTests) (source='-1:15:30')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-10999/tests/utils_tests/test_dateparse.py\", line 125, in test_negative\n    self.assertEqual(parse_duration(source), expected)\nAssertionError: datetime.timedelta(days=-1, seconds=83730) != datetime.timedelta(days=-1, seconds=81870)\n\n======================================================================\nFAIL: test_negative (utils_tests.test_dateparse.DurationParseTests) (source='-00:01:01')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-10999/tests/utils_tests/test_dateparse.py\", line 125, in test_negative\n    self.assertEqual(parse_duration(source), expected)\nAssertionError: datetime.timedelta(seconds=61) != datetime.timedelta(days=-1, seconds=86339)\n\n======================================================================\nFAIL: test_negative (utils_tests.test_dateparse.DurationParseTests) (source='-01:01')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-10999/tests/utils_tests/test_dateparse.py\", line 125, in test_negative\n    self.assertEqual(parse_duration(source), expected)\nAssertionError: datetime.timedelta(days=-1, seconds=86341) != datetime.timedelta(days=-1, seconds=86339)\n\n======================================================================\nFAIL: test_negative (utils_tests.test_dateparse.DurationParseTests) (source='-01:-01')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-10999/tests/utils_tests/test_dateparse.py\", line 125, in test_negative\n    self.assertEqual(parse_duration(source), expected)\nAssertionError: datetime.timedelta(days=-1, seconds=86339) != None\n\n</hidden_test_failures>\n\nWhen you are done, and as your very last action, write /home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-10999.json containing {\"summary\": \"<two sentences: what you changed and how you checked it>\"}. Then reply with one line.\n",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-10999.json",
+   "description": "r2-sonnet django__django-10999",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791558319.1010876
+  },
+  {
+   "id": "django__django-11400",
+   "prompt": "Resolve this GitHub issue in the django/django repository.\n\nThe repository is checked out at /tmp/jail/swe/work/r2-sonnet/django__django-11400 (commit 1f8382d34d). A previous attempt edited it; its changes are still in the checkout (`git diff` shows them, and they are reproduced below). That attempt was rejected: hidden tests that check this issue failed on it. Their names and output are below. You cannot run the hidden tests, but you can write your own. Change the source code so those hidden tests would pass, without breaking existing behaviour. Keep, rework or discard the previous changes as you judge best.\n\nRunning code: the checkout's code runs only through two commands, used from inside the checkout:\n  /tmp/jail/swe/bin/swe-test TARGET...    the repo's own test runner; targets are Django test labels, e.g. `swe-test utils_tests.test_text` or `swe-test admin_views.tests.AdminViewBasicTest.test_changelist_view`\n  /tmp/jail/swe/bin/swe-run CMD ARGS...   anything else, e.g. `/tmp/jail/swe/bin/swe-run python repro.py`\nBoth run without network access. Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted.\n\n<issue>\nOrdering problem in admin.RelatedFieldListFilter and admin.RelatedOnlyFieldListFilter\nDescription\n\t\nRelatedFieldListFilter doesn't fall back to the ordering defined in Model._meta.ordering. \nOrdering gets set to an empty tuple in \u200bhttps://github.com/django/django/blob/2.2.1/django/contrib/admin/filters.py#L196 and unless ordering is defined on the related model's ModelAdmin class it stays an empty tuple. IMHO it should fall back to the ordering defined in the related model's Meta.ordering field.\nRelatedOnlyFieldListFilter doesn't order the related model at all, even if ordering is defined on the related model's ModelAdmin class.\nThat's because the call to field.get_choices \u200bhttps://github.com/django/django/blob/2.2.1/django/contrib/admin/filters.py#L422 omits the ordering kwarg entirely.\n</issue>\n\n<previous_attempt_diff>\ndiff --git a/django/contrib/admin/filters.py b/django/contrib/admin/filters.py\nindex d65e01d5e2..07261929f0 100644\n--- a/django/contrib/admin/filters.py\n+++ b/django/contrib/admin/filters.py\n@@ -419,4 +419,8 @@ FieldListFilter.register(lambda f: True, AllValuesFieldListFilter)\n class RelatedOnlyFieldListFilter(RelatedFieldListFilter):\n     def field_choices(self, field, request, model_admin):\n         pk_qs = model_admin.get_queryset(request).distinct().values_list('%s__pk' % self.field_path, flat=True)\n-        return field.get_choices(include_blank=False, limit_choices_to={'pk__in': pk_qs})\n+        ordering = ()\n+        related_admin = model_admin.admin_site._registry.get(field.remote_field.model)\n+        if related_admin is not None:\n+            ordering = related_admin.get_ordering(request)\n+        return field.get_choices(include_blank=False, limit_choices_to={'pk__in': pk_qs}, ordering=ordering)\ndiff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 194514c900..65ffddf847 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -825,9 +825,14 @@ class Field(RegisterLookupMixin):\n             if hasattr(self.remote_field, 'get_related_field')\n             else 'pk'\n         )\n+        qs = rel_model._default_manager.complex_filter(limit_choices_to)\n+        # Only override the default ordering (Meta.ordering) when one is given;\n+        # order_by() with no arguments would clear it.\n+        if ordering:\n+            qs = qs.order_by(*ordering)\n         return (blank_choice if include_blank else []) + [\n             (choice_func(x), str(x))\n-            for x in rel_model._default_manager.complex_filter(limit_choices_to).order_by(*ordering)\n+            for x in qs\n         ]\n \n     def value_to_string(self, obj):\n</previous_attempt_diff>\n\n<hidden_test_failures>\nFailing tests: test_get_choices_reverse_related_field_default_ordering (model_fields.tests.GetChoicesOrderingTests), test_relatedfieldlistfilter_reverse_relationships_default_ordering (admin_filters.tests.ListFiltersTests)\n\n======================================================================\nFAIL: test_relatedfieldlistfilter_reverse_relationships_default_ordering (admin_filters.tests.ListFiltersTests)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11400/tests/admin_filters/tests.py\", line 730, in test_relatedfieldlistfilter_reverse_relationships_default_ordering\n    self.assertEqual(filterspec.lookup_choices, expected)\nAssertionError: Lists differ: [(1, 'Djangonaut: an art of living'), (2, '[68 chars]es')] != [(2, 'Django: a biography'), (1, 'Djangonau[68 chars]ok')]\n\nFirst differing element 0:\n(1, 'Djangonaut: an art of living')\n(2, 'Django: a biography')\n\n+ [(2, 'Django: a biography'),\n- [(1, 'Djangonaut: an art of living'),\n? ^\n\n+  (1, 'Djangonaut: an art of living'),\n? ^\n\n-  (2, 'Django: a biography'),\n-  (3, 'The Django Book'),\n-  (4, 'Guitar for dummies')]\n?                           ^\n\n+  (4, 'Guitar for dummies'),\n?                           ^\n\n+  (3, 'The Django Book')]\n\n======================================================================\nFAIL: test_get_choices_reverse_related_field_default_ordering (model_fields.tests.GetChoicesOrderingTests)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11400/tests/model_fields/tests.py\", line 265, in test_get_choices_reverse_related_field_default_ordering\n    self.assertChoicesEqual(\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11400/tests/model_fields/tests.py\", line 232, in assertChoicesEqual\n    self.assertEqual(choices, [(obj.pk, str(obj)) for obj in objs])\nAssertionError: Lists differ: [(1, 'Bar object (1)'), (2, 'Bar object (2)')] != [(2, 'Bar object (2)'), (1, 'Bar object (1)')]\n\nFirst differing element 0:\n(1, 'Bar object (1)')\n(2, 'Bar object (2)')\n\n- [(1, 'Bar object (1)'), (2, 'Bar object (2)')]\n?   ^               ^      ^               ^\n\n+ [(2, 'Bar object (2)'), (1, 'Bar object (1)')]\n?   ^               ^      ^               ^\n\n\n</hidden_test_failures>\n\nWhen you are done, and as your very last action, write /home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11400.json containing {\"summary\": \"<two sentences: what you changed and how you checked it>\"}. Then reply with one line.\n",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11400.json",
+   "description": "r2-sonnet django__django-11400",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791558319.1010892
+  },
+  {
+   "id": "django__django-11477",
+   "prompt": "Resolve this GitHub issue in the django/django repository.\n\nThe repository is checked out at /tmp/jail/swe/work/r2-sonnet/django__django-11477 (commit e286711879). A previous attempt edited it; its changes are still in the checkout (`git diff` shows them, and they are reproduced below). That attempt was rejected: hidden tests that check this issue failed on it. Their names and output are below. You cannot run the hidden tests, but you can write your own. Change the source code so those hidden tests would pass, without breaking existing behaviour. Keep, rework or discard the previous changes as you judge best.\n\nRunning code: the checkout's code runs only through two commands, used from inside the checkout:\n  /tmp/jail/swe/bin/swe-test TARGET...    the repo's own test runner; targets are Django test labels, e.g. `swe-test utils_tests.test_text` or `swe-test admin_views.tests.AdminViewBasicTest.test_changelist_view`\n  /tmp/jail/swe/bin/swe-run CMD ARGS...   anything else, e.g. `/tmp/jail/swe/bin/swe-run python repro.py`\nBoth run without network access. Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted.\n\n<issue>\ntranslate_url() creates an incorrect URL when optional named groups are missing in the URL pattern\nDescription\n\t\nThere is a problem when translating urls with absent 'optional' arguments\n(it's seen in test case of the patch)\n</issue>\n\n<previous_attempt_diff>\ndiff --git a/django/urls/base.py b/django/urls/base.py\nindex 0e1c3d909c..b6c7975a2d 100644\n--- a/django/urls/base.py\n+++ b/django/urls/base.py\n@@ -170,9 +170,13 @@ def translate_url(url, lang_code):\n         pass\n     else:\n         to_be_reversed = \"%s:%s\" % (match.namespace, match.url_name) if match.namespace else match.url_name\n+        # Optional groups that did not participate in the match resolve to\n+        # None. Leave them out so reverse() doesn't render them as \"None\".\n+        args = [arg for arg in match.args if arg is not None]\n+        kwargs = {key: value for key, value in match.kwargs.items() if value is not None}\n         with override(lang_code):\n             try:\n-                url = reverse(to_be_reversed, args=match.args, kwargs=match.kwargs)\n+                url = reverse(to_be_reversed, args=args, kwargs=kwargs)\n             except NoReverseMatch:\n                 pass\n             else:\n</previous_attempt_diff>\n\n<hidden_test_failures>\nFailing tests: test_re_path_with_optional_parameter (urlpatterns.tests.SimplifiedURLTests), test_two_variable_at_start_of_path_pattern (urlpatterns.tests.SimplifiedURLTests)\n\n======================================================================\nFAIL: test_re_path_with_optional_parameter (urlpatterns.tests.SimplifiedURLTests) (url='/regex_optional/1/')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11477/tests/urlpatterns/tests.py\", line 65, in test_re_path_with_optional_parameter\n    self.assertEqual(match.kwargs, kwargs)\nAssertionError: {'arg1': '1', 'arg2': None} != {'arg1': '1'}\n- {'arg1': '1', 'arg2': None}\n+ {'arg1': '1'}\n\n</hidden_test_failures>\n\nWhen you are done, and as your very last action, write /home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11477.json containing {\"summary\": \"<two sentences: what you changed and how you checked it>\"}. Then reply with one line.\n",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11477.json",
+   "description": "r2-sonnet django__django-11477",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791558319.10109
+  },
+  {
+   "id": "django__django-11728",
+   "prompt": "Resolve this GitHub issue in the django/django repository.\n\nThe repository is checked out at /tmp/jail/swe/work/r2-sonnet/django__django-11728 (commit 0545781764). A previous attempt edited it; its changes are still in the checkout (`git diff` shows them, and they are reproduced below). That attempt was rejected: hidden tests that check this issue failed on it. Their names and output are below. You cannot run the hidden tests, but you can write your own. Change the source code so those hidden tests would pass, without breaking existing behaviour. Keep, rework or discard the previous changes as you judge best.\n\nRunning code: the checkout's code runs only through two commands, used from inside the checkout:\n  /tmp/jail/swe/bin/swe-test TARGET...    the repo's own test runner; targets are Django test labels, e.g. `swe-test utils_tests.test_text` or `swe-test admin_views.tests.AdminViewBasicTest.test_changelist_view`\n  /tmp/jail/swe/bin/swe-run CMD ARGS...   anything else, e.g. `/tmp/jail/swe/bin/swe-run python repro.py`\nBoth run without network access. Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted.\n\n<issue>\nsimplify_regexp() doesn't replace trailing groups.\nDescription\n\t\nreplace_named_groups() fails to replace the final named group if the urlpattern passed in is missing a trailing '/'.\nFor example, with input r'entries/(?P<pk>[^/.]+)/relationships/(?P<related_field>\\w+)' the \"related_field\" does not get properly replaced. A workaround is to tack on a '/' at the end and then it works.\nCode that reproduces this is attached. \nThis function is used downstream in Django REST Framework. See issue \u200b6888\n</issue>\n\n<previous_attempt_diff>\ndiff --git a/django/contrib/admindocs/utils.py b/django/contrib/admindocs/utils.py\nindex 1ce4594501..56e0b21e51 100644\n--- a/django/contrib/admindocs/utils.py\n+++ b/django/contrib/admindocs/utils.py\n@@ -180,6 +180,10 @@ def replace_named_groups(pattern):\n             elif val == ')' and prev_char != '\\\\':\n                 unmatched_open_brackets -= 1\n             prev_char = val\n+        else:\n+            # The loop didn't break, so the end of the pattern was reached\n+            # (e.g. a trailing named group with no following characters).\n+            group_pattern_and_name.append((pattern[start:], group_name))\n \n     # Replace the string for named capture groups with their group names.\n     for group_pattern, group_name in group_pattern_and_name:\ndiff --git a/tests/admin_docs/test_views.py b/tests/admin_docs/test_views.py\nindex 144517ab0a..f890648fef 100644\n--- a/tests/admin_docs/test_views.py\n+++ b/tests/admin_docs/test_views.py\n@@ -354,6 +354,7 @@ class AdminDocViewFunctionsTests(SimpleTestCase):\n             (r'^(?P<a>(x|y))/b/(?P<c>\\w+)ab', '/<a>/b/<c>ab'),\n             (r'^(?P<a>(x|y)(\\(|\\)))/b/(?P<c>\\w+)ab', '/<a>/b/<c>ab'),\n             (r'^a/?$', '/a/'),\n+            (r'entries/(?P<pk>[^/.]+)/relationships/(?P<related_field>\\w+)', '/entries/<pk>/relationships/<related_field>'),\n         )\n         for pattern, output in tests:\n             with self.subTest(pattern=pattern):\n</previous_attempt_diff>\n\n<hidden_test_failures>\nFailing tests: test_simplify_regex (admin_docs.test_views.AdminDocViewFunctionsTests), test_builtin_fields (admin_docs.test_views.TestFieldType)\n\n======================================================================\nFAIL: test_simplify_regex (admin_docs.test_views.AdminDocViewFunctionsTests) (pattern='^(?P<a>\\\\w+)/b/(\\\\w+)')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11728/tests/admin_docs/test_views.py\", line 364, in test_simplify_regex\n    self.assertEqual(simplify_regex(pattern), output)\nAssertionError: '/<a>/b/(\\\\w+)' != '/<a>/b/<var>'\n- /<a>/b/(\\w+)\n+ /<a>/b/<var>\n\n======================================================================\nFAIL: test_simplify_regex (admin_docs.test_views.AdminDocViewFunctionsTests) (pattern='^(?P<a>\\\\w+)/b/((x|y)\\\\w+)')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11728/tests/admin_docs/test_views.py\", line 364, in test_simplify_regex\n    self.assertEqual(simplify_regex(pattern), output)\nAssertionError: '/<a>/b/(<var>\\\\w+)' != '/<a>/b/<var>'\n- /<a>/b/(<var>\\w+)\n?        -     ----\n+ /<a>/b/<var>\n\n\n</hidden_test_failures>\n\nWhen you are done, and as your very last action, write /home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11728.json containing {\"summary\": \"<two sentences: what you changed and how you checked it>\"}. Then reply with one line.\n",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11728.json",
+   "description": "r2-sonnet django__django-11728",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791558319.1010902
+  },
+  {
+   "id": "django__django-11734",
+   "prompt": "Resolve this GitHub issue in the django/django repository.\n\nThe repository is checked out at /tmp/jail/swe/work/r2-sonnet/django__django-11734 (commit 999891bd80). A previous attempt edited it; its changes are still in the checkout (`git diff` shows them, and they are reproduced below). That attempt was rejected: hidden tests that check this issue failed on it. Their names and output are below. You cannot run the hidden tests, but you can write your own. Change the source code so those hidden tests would pass, without breaking existing behaviour. Keep, rework or discard the previous changes as you judge best.\n\nRunning code: the checkout's code runs only through two commands, used from inside the checkout:\n  /tmp/jail/swe/bin/swe-test TARGET...    the repo's own test runner; targets are Django test labels, e.g. `swe-test utils_tests.test_text` or `swe-test admin_views.tests.AdminViewBasicTest.test_changelist_view`\n  /tmp/jail/swe/bin/swe-run CMD ARGS...   anything else, e.g. `/tmp/jail/swe/bin/swe-run python repro.py`\nBoth run without network access. Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted.\n\n<issue>\nOuterRef in exclude() or ~Q() uses wrong model.\nDescription\n\t\nThe following test (added to tests/queries/test_qs_combinators) fails when trying to exclude results using OuterRef()\ndef test_exists_exclude(self):\n\t# filter()\n\tqs = Number.objects.annotate(\n\t\tfoo=Exists(\n\t\t\tItem.objects.filter(tags__category_id=OuterRef('pk'))\n\t\t)\n\t).filter(foo=True)\n\tprint(qs) # works\n\t# exclude()\n\tqs = Number.objects.annotate(\n\t\tfoo =Exists(\n\t\t\tItem.objects.exclude(tags__category_id=OuterRef('pk'))\n\t\t)\n\t).filter(foo=True)\n\tprint(qs) # crashes\n\t# filter(~Q())\n\tqs = Number.objects.annotate(\n\t\tfoo =Exists(\n\t\t\tItem.objects.filter(~Q(tags__category_id=OuterRef('pk')))\n\t\t)\n\t).filter(foo=True)\n\tprint(qs) # crashes\nIt results in the following error\nValueError: This queryset contains a reference to an outer query and may only be used in a subquery\n</issue>\n\n<previous_attempt_diff>\ndiff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py\nindex 35f3c5e1ea..3243b32118 100644\n--- a/django/db/models/sql/query.py\n+++ b/django/db/models/sql/query.py\n@@ -1702,7 +1702,12 @@ class Query(BaseExpression):\n         handle.\n         \"\"\"\n         filter_lhs, filter_rhs = filter_expr\n-        if isinstance(filter_rhs, F):\n+        if isinstance(filter_rhs, OuterRef):\n+            # The subquery sits one level below the query that holds the\n+            # original OuterRef, so wrap it again. Otherwise it resolves\n+            # against this query (the wrong model) instead of the outer one.\n+            filter_expr = (filter_lhs, OuterRef(filter_rhs))\n+        elif isinstance(filter_rhs, F):\n             filter_expr = (filter_lhs, OuterRef(filter_rhs.name))\n         # Generate the inner query.\n         query = Query(self.model)\ndiff --git a/tests/queries/tests.py b/tests/queries/tests.py\nindex 8339c52a02..c427c2c4b1 100644\n--- a/tests/queries/tests.py\n+++ b/tests/queries/tests.py\n@@ -6,7 +6,7 @@ from operator import attrgetter\n \n from django.core.exceptions import EmptyResultSet, FieldError\n from django.db import DEFAULT_DB_ALIAS, connection\n-from django.db.models import Count, F, Q\n+from django.db.models import Count, Exists, F, OuterRef, Q\n from django.db.models.sql.constants import LOUTER\n from django.db.models.sql.where import NothingNode, WhereNode\n from django.test import SimpleTestCase, TestCase, skipUnlessDBFeature\n@@ -3942,3 +3942,36 @@ class Ticket23622Tests(TestCase):\n             set(Ticket23605A.objects.filter(qy).values_list('pk', flat=True))\n         )\n         self.assertSequenceEqual(Ticket23605A.objects.filter(qx), [a2])\n+\n+\n+class OuterRefExcludeTests(TestCase):\n+    @classmethod\n+    def setUpTestData(cls):\n+        cls.n1 = Number.objects.create(num=1)\n+        cls.n2 = Number.objects.create(num=2)\n+        cls.category = NamedCategory.objects.create(name='cat')\n+        cls.tag = Tag.objects.create(name='t', category=cls.category)\n+        cls.note = Note.objects.create(note='n', misc='m')\n+        cls.creator = Author.objects.create(\n+            name='a', num=1, extra=ExtraInfo.objects.create(note=cls.note),\n+        )\n+        cls.item = Item.objects.create(\n+            name='i', created=datetime.datetime.now(), creator=cls.creator, note=cls.note,\n+        )\n+        cls.item.tags.add(cls.tag)\n+\n+    def test_exists_exclude_outerref(self):\n+        # The OuterRef must point at Number, not Item.\n+        expected = [self.n2]\n+        qs = Number.objects.annotate(\n+            foo=Exists(Item.objects.exclude(tags__category_id=OuterRef('pk')))\n+        ).filter(foo=True)\n+        self.assertSequenceEqual(qs, expected)\n+        qs = Number.objects.annotate(\n+            foo=Exists(Item.objects.filter(~Q(tags__category_id=OuterRef('pk'))))\n+        ).filter(foo=True)\n+        self.assertSequenceEqual(qs, expected)\n+        qs = Number.objects.annotate(\n+            foo=Exists(Item.objects.filter(tags__category_id=OuterRef('pk')))\n+        ).filter(foo=True)\n+        self.assertSequenceEqual(qs, [self.n1])\n</previous_attempt_diff>\n\n<hidden_test_failures>\nFailing tests: test_subquery_exclude_outerref (queries.tests.ExcludeTests)\n\n======================================================================\nFAIL: test_subquery_exclude_outerref (queries.tests.ExcludeTests)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-11734/tests/queries/tests.py\", line 2819, in test_subquery_exclude_outerref\n    self.assertFalse(qs.exists())\nAssertionError: True is not false\n\n</hidden_test_failures>\n\nWhen you are done, and as your very last action, write /home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11734.json containing {\"summary\": \"<two sentences: what you changed and how you checked it>\"}. Then reply with one line.\n",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11734.json",
+   "description": "r2-sonnet django__django-11734",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791558319.1010907
+  },
+  {
+   "id": "django__django-11790",
+   "prompt": "Resolve this GitHub issue in the django/django repository.\n\nThe repository is checked out at /tmp/jail/swe/work/r2-sonnet/django__django-11790 (commit b1d6b35e14). A previous attempt edited it; its changes are still in the checkout (`git diff` shows them, and they are reproduced below). That attempt was rejected: hidden tests that check this issue failed on it. Their names and output are below. You cannot run the hidden tests, but you can write your own. Change the source code so those hidden tests would pass, without breaking existing behaviour. Keep, rework or discard the previous changes as you judge best.\n\nRunning code: the checkout's code runs only through two commands, used from inside the checkout:\n  /tmp/jail/swe/bin/swe-test TARGET...    the repo's own test runner; targets are Django test labels, e.g. `swe-test utils_tests.test_text` or `swe-test admin_views.tests.AdminViewBasicTest.test_changelist_view`\n  /tmp/jail/swe/bin/swe-run CMD ARGS...   anything else, e.g. `/tmp/jail/swe/bin/swe-run python repro.py`\nBoth run without network access. Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted.\n\n<issue>\nAuthenticationForm's username field doesn't set maxlength HTML attribute.\nDescription\n\t\nAuthenticationForm's username field doesn't render with maxlength HTML attribute anymore.\nRegression introduced in #27515 and 5ceaf14686ce626404afb6a5fbd3d8286410bf13.\n\u200bhttps://groups.google.com/forum/?utm_source=digest&utm_medium=email#!topic/django-developers/qnfSqro0DlA\n\u200bhttps://forum.djangoproject.com/t/possible-authenticationform-max-length-regression-in-django-2-1/241\n</issue>\n\n<previous_attempt_diff>\ndiff --git a/django/contrib/auth/forms.py b/django/contrib/auth/forms.py\nindex a0cfed0995..dfdc9a932d 100644\n--- a/django/contrib/auth/forms.py\n+++ b/django/contrib/auth/forms.py\n@@ -191,7 +191,9 @@ class AuthenticationForm(forms.Form):\n \n         # Set the max length and label for the \"username\" field.\n         self.username_field = UserModel._meta.get_field(UserModel.USERNAME_FIELD)\n-        self.fields['username'].max_length = self.username_field.max_length or 254\n+        username_max_length = self.username_field.max_length or 254\n+        self.fields['username'].max_length = username_max_length\n+        self.fields['username'].widget.attrs['maxlength'] = str(username_max_length)\n         if self.fields['username'].label is None:\n             self.fields['username'].label = capfirst(self.username_field.verbose_name)\n</previous_attempt_diff>\n\n<hidden_test_failures>\nFailing tests: test_username_field_max_length_defaults_to_254 (auth_tests.test_forms.AuthenticationFormTest), test_username_field_max_length_matches_user_model (auth_tests.test_forms.AuthenticationFormTest)\n\n======================================================================\nFAIL: test_username_field_max_length_defaults_to_254 (auth_tests.test_forms.AuthenticationFormTest)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11790/django/test/utils.py\", line 370, in inner\n    return func(*args, **kwargs)\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11790/tests/auth_tests/test_forms.py\", line 439, in test_username_field_max_length_defaults_to_254\n    self.assertEqual(form.fields['username'].widget.attrs.get('maxlength'), 254)\nAssertionError: '254' != 254\n\n======================================================================\nFAIL: test_username_field_max_length_matches_user_model (auth_tests.test_forms.AuthenticationFormTest)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11790/django/test/utils.py\", line 370, in inner\n    return func(*args, **kwargs)\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11790/tests/auth_tests/test_forms.py\", line 426, in test_username_field_max_length_matches_user_model\n    self.assertEqual(form.fields['username'].widget.attrs.get('maxlength'), 255)\nAssertionError: '255' != 255\n\n</hidden_test_failures>\n\nWhen you are done, and as your very last action, write /home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11790.json containing {\"summary\": \"<two sentences: what you changed and how you checked it>\"}. Then reply with one line.\n",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11790.json",
+   "description": "r2-sonnet django__django-11790",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791558319.1010911
+  },
+  {
+   "id": "django__django-11820",
+   "prompt": "Resolve this GitHub issue in the django/django repository.\n\nThe repository is checked out at /tmp/jail/swe/work/r2-sonnet/django__django-11820 (commit c2678e4975). A previous attempt edited it; its changes are still in the checkout (`git diff` shows them, and they are reproduced below). That attempt was rejected: hidden tests that check this issue failed on it. Their names and output are below. You cannot run the hidden tests, but you can write your own. Change the source code so those hidden tests would pass, without breaking existing behaviour. Keep, rework or discard the previous changes as you judge best.\n\nRunning code: the checkout's code runs only through two commands, used from inside the checkout:\n  /tmp/jail/swe/bin/swe-test TARGET...    the repo's own test runner; targets are Django test labels, e.g. `swe-test utils_tests.test_text` or `swe-test admin_views.tests.AdminViewBasicTest.test_changelist_view`\n  /tmp/jail/swe/bin/swe-run CMD ARGS...   anything else, e.g. `/tmp/jail/swe/bin/swe-run python repro.py`\nBoth run without network access. Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted.\n\n<issue>\nmodels.E015 is raised when Meta.ordering contains \"pk\" of a related field.\nDescription\n\t\nmodels.E015 is raised when Meta.ordering contains __pk of a related field, e.g.:\ntest_app.SomeModel: (models.E015) 'ordering' refers to the nonexistent field, related field, or lookup 'option__pk'.\nRegression in 440505cb2cadbe1a5b9fba246bcde6c04f51d07e.\n</issue>\n\n<previous_attempt_diff>\ndiff --git a/django/db/models/base.py b/django/db/models/base.py\nindex 3ce711f3f1..cf826ee75a 100644\n--- a/django/db/models/base.py\n+++ b/django/db/models/base.py\n@@ -1708,7 +1708,11 @@ class Model(metaclass=ModelBase):\n             fld = None\n             for part in field.split(LOOKUP_SEP):\n                 try:\n-                    fld = _cls._meta.get_field(part)\n+                    # pk is an alias that won't be found by opts.get_field.\n+                    if part == 'pk':\n+                        fld = _cls._meta.pk\n+                    else:\n+                        fld = _cls._meta.get_field(part)\n                     if fld.is_relation:\n                         _cls = fld.get_path_info()[-1].to_opts.model\n                 except (FieldDoesNotExist, AttributeError):\n</previous_attempt_diff>\n\n<hidden_test_failures>\nFailing tests: test_ordering_pointing_multiple_times_to_model_fields (invalid_models_tests.test_models.OtherModelTests)\n\n======================================================================\nFAIL: test_ordering_pointing_multiple_times_to_model_fields (invalid_models_tests.test_models.OtherModelTests)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku/django__django-11820/tests/invalid_models_tests/test_models.py\", line 828, in test_ordering_pointing_multiple_times_to_model_fields\n    self.assertEqual(Child.check(), [\nAssertionError: Lists differ: [] != [<Error: level=40, msg=\"'ordering' refers [236 chars]15'>]\n\nSecond list contains 1 additional elements.\nFirst extra element 0:\n<Error: level=40, msg=\"'ordering' refers to the nonexistent field, related field, or lookup 'parent__field1__field2'.\", hint=None, obj=<class 'invalid_models_tests.test_models.OtherModelTests.test_ordering_pointing_multiple_times_to_model_fields.<locals>.Child'>, id='models.E015'>\n\n- []\n+ [<Error: level=40, msg=\"'ordering' refers to the nonexistent field, related field, or lookup 'parent__field1__field2'.\", hint=None, obj=<class 'invalid_models_tests.test_models.OtherModelTests.test_ordering_pointing_multiple_times_to_model_fields.<locals>.Child'>, id='models.E015'>]\n\n</hidden_test_failures>\n\nWhen you are done, and as your very last action, write /home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11820.json containing {\"summary\": \"<two sentences: what you changed and how you checked it>\"}. Then reply with one line.\n",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-11820.json",
+   "description": "r2-sonnet django__django-11820",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791558319.1010914
+  },
+  {
+   "id": "django__django-12325",
+   "prompt": "Resolve this GitHub issue in the django/django repository.\n\nThe repository is checked out at /tmp/jail/swe/work/r2-sonnet/django__django-12325 (commit 29c126bb34). A previous attempt edited it; its changes are still in the checkout (`git diff` shows them, and they are reproduced below). That attempt was rejected: hidden tests that check this issue failed on it. Their names and output are below. You cannot run the hidden tests, but you can write your own. Change the source code so those hidden tests would pass, without breaking existing behaviour. Keep, rework or discard the previous changes as you judge best.\n\nRunning code: the checkout's code runs only through two commands, used from inside the checkout:\n  /tmp/jail/swe/bin/swe-test TARGET...    the repo's own test runner; targets are Django test labels, e.g. `swe-test utils_tests.test_text` or `swe-test admin_views.tests.AdminViewBasicTest.test_changelist_view`\n  /tmp/jail/swe/bin/swe-run CMD ARGS...   anything else, e.g. `/tmp/jail/swe/bin/swe-run python repro.py`\nBoth run without network access. Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted.\n\n<issue>\npk setup for MTI to parent get confused by multiple OneToOne references.\nDescription\n\t\nclass Document(models.Model):\n\tpass\nclass Picking(Document):\n\tdocument_ptr = models.OneToOneField(Document, on_delete=models.CASCADE, parent_link=True, related_name='+')\n\torigin = models.OneToOneField(Document, related_name='picking', on_delete=models.PROTECT)\nproduces django.core.exceptions.ImproperlyConfigured: Add parent_link=True to appname.Picking.origin.\nclass Picking(Document):\n\torigin = models.OneToOneField(Document, related_name='picking', on_delete=models.PROTECT)\n\tdocument_ptr = models.OneToOneField(Document, on_delete=models.CASCADE, parent_link=True, related_name='+')\nWorks\nFirst issue is that order seems to matter?\nEven if ordering is required \"by design\"(It shouldn't be we have explicit parent_link marker) shouldn't it look from top to bottom like it does with managers and other things?\n</issue>\n\n<previous_attempt_diff>\ndiff --git a/django/db/models/base.py b/django/db/models/base.py\nindex 8ea6c05ef9..ad63820679 100644\n--- a/django/db/models/base.py\n+++ b/django/db/models/base.py\n@@ -204,7 +204,12 @@ class ModelBase(type):\n             for field in base._meta.local_fields:\n                 if isinstance(field, OneToOneField):\n                     related = resolve_relation(new_class, field.remote_field.model)\n-                    parent_links[make_model_tuple(related)] = field\n+                    related_key = make_model_tuple(related)\n+                    # An explicit parent_link=True takes precedence over other\n+                    # OneToOneFields to the same model, regardless of the order\n+                    # in which the fields were declared.\n+                    if related_key not in parent_links or field.remote_field.parent_link:\n+                        parent_links[related_key] = field\n \n         # Track fields inherited from base models.\n         inherited_attributes = set()\n</previous_attempt_diff>\n\n<hidden_test_failures>\nFailing tests: test_clash_parent_link (invalid_models_tests.test_relative_fields.ComplexClashTests), test_onetoone_with_parent_model (invalid_models_tests.test_models.OtherModelTests)\n\n======================================================================\nERROR: test_onetoone_with_parent_model (invalid_models_tests.test_models.OtherModelTests)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-12325/tests/invalid_models_tests/test_models.py\", line 1012, in test_onetoone_with_parent_model\n    class ParkingLot(Place):\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-12325/django/db/models/base.py\", line 325, in __new__\n    new_class._prepare()\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-12325/django/db/models/base.py\", line 338, in _prepare\n    opts._prepare(cls)\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-12325/django/db/models/options.py\", line 255, in _prepare\n    raise ImproperlyConfigured(\ndjango.core.exceptions.ImproperlyConfigured: Add parent_link=True to invalid_models_tests.ParkingLot.other_place.\n\n======================================================================\nERROR: test_clash_parent_link (invalid_models_tests.test_relative_fields.ComplexClashTests)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-12325/tests/invalid_models_tests/test_relative_fields.py\", line 1298, in test_clash_parent_link\n    class Child(Parent):\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-12325/django/db/models/base.py\", line 325, in __new__\n    new_class._prepare()\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-12325/django/db/models/base.py\", line 338, in _prepare\n    opts._prepare(cls)\n  File \"/tmp/jail/swe/work/grade-r1-haiku-redo/django__django-12325/django/db/models/options.py\", line 255, in _prepare\n    raise ImproperlyConfigured(\ndjango.core.exceptions.ImproperlyConfigured: Add parent_link=True to invalid_models_tests.Child.other_parent.\n\n</hidden_test_failures>\n\nWhen you are done, and as your very last action, write /home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-12325.json containing {\"summary\": \"<two sentences: what you changed and how you checked it>\"}. Then reply with one line.\n",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-12325.json",
+   "description": "r2-sonnet django__django-12325",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791558319.1010914
+  },
+  {
+   "id": "django__django-13212",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-13212.json",
+   "description": "r2-sonnet django__django-13212",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-13406",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-13406.json",
+   "description": "r2-sonnet django__django-13406",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-13513",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-13513.json",
+   "description": "r2-sonnet django__django-13513",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-13794",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-13794.json",
+   "description": "r2-sonnet django__django-13794",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-14034",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-14034.json",
+   "description": "r2-sonnet django__django-14034",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-14155",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-14155.json",
+   "description": "r2-sonnet django__django-14155",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-14170",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-14170.json",
+   "description": "r2-sonnet django__django-14170",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-14376",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-14376.json",
+   "description": "r2-sonnet django__django-14376",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-14534",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-14534.json",
+   "description": "r2-sonnet django__django-14534",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-15022",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-15022.json",
+   "description": "r2-sonnet django__django-15022",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-15098",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-15098.json",
+   "description": "r2-sonnet django__django-15098",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-15252",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-15252.json",
+   "description": "r2-sonnet django__django-15252",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-15732",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-15732.json",
+   "description": "r2-sonnet django__django-15732",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-16256",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-16256.json",
+   "description": "r2-sonnet django__django-16256",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-16263",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-16263.json",
+   "description": "r2-sonnet django__django-16263",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-16502",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-16502.json",
+   "description": "r2-sonnet django__django-16502",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "django__django-16667",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/django__django-16667.json",
+   "description": "r2-sonnet django__django-16667",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-13852",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-13852.json",
+   "description": "r2-sonnet sympy__sympy-13852",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-13974",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-13974.json",
+   "description": "r2-sonnet sympy__sympy-13974",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-15017",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-15017.json",
+   "description": "r2-sonnet sympy__sympy-15017",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-16597",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-16597.json",
+   "description": "r2-sonnet sympy__sympy-16597",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-18199",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-18199.json",
+   "description": "r2-sonnet sympy__sympy-18199",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-18698",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-18698.json",
+   "description": "r2-sonnet sympy__sympy-18698",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-18763",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-18763.json",
+   "description": "r2-sonnet sympy__sympy-18763",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-19495",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-19495.json",
+   "description": "r2-sonnet sympy__sympy-19495",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-20428",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-20428.json",
+   "description": "r2-sonnet sympy__sympy-20428",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-20438",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-20438.json",
+   "description": "r2-sonnet sympy__sympy-20438",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-20916",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-20916.json",
+   "description": "r2-sonnet sympy__sympy-20916",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-21596",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-21596.json",
+   "description": "r2-sonnet sympy__sympy-21596",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-21930",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-21930.json",
+   "description": "r2-sonnet sympy__sympy-21930",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  },
+  {
+   "id": "sympy__sympy-22080",
+   "prompt": "(written at dispatch)",
+   "out": "/home/user/experiments/swe-ladder/data/runs/r2-sonnet/out/sympy__sympy-22080.json",
+   "description": "r2-sonnet sympy__sympy-22080",
+   "model": "sonnet",
+   "subagent_type": "general-purpose",
+   "status": "pending",
+   "dispatches": 0,
+   "last_error": null
+  }
+ ]
+}

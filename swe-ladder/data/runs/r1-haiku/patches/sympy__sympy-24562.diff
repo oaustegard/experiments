@@ -1,0 +1,16 @@
+diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py
+index 52f7ea45ad..50d46fe757 100644
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -1625,6 +1625,11 @@ def __new__(cls, p, q=None, gcd=None):
+             q = 1
+             gcd = 1
+ 
++        if isinstance(q, str):
++            # parse a string denominator before it is scaled by p.q below,
++            # otherwise `'100' * 2` is string repetition, not multiplication
++            q = Rational(q)
++
+         if not isinstance(p, SYMPY_INTS):
+             p = Rational(p)
+             q *= p.q

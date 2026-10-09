@@ -1,6 +1,18 @@
 {
+ "sympy__sympy-14248": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-14248 && git stash push -- sympy >/dev/null && /tmp/jail/swe/bin/swe-test sympy/printing/tests/test_str.py sympy/pri",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-14248 && git stash push -- sympy >/dev/null && /tmp/jail/swe/bin/swe-test sympy/printing/pretty/tests/test_pretty.py",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-14248 && git stash push -- sympy >/dev/null && /tmp/jail/swe/bin/swe-test sympy/physics/quantum sympy/printing/prett",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-14248 && git stash list | head -3; git status --short | head -3"
+ ],
  "django__django-11490": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-11490 && git stash push -q -- django/db/models/sql/compiler.py && /tmp/jail/swe/bin/swe-test queries.test_qs_combi"
+ ],
+ "sympy__sympy-15017": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-15017 && /tmp/jail/swe/bin/swe-test sympy/printing/tests/test_latex.py sympy/printing/pretty/tests/test_pretty.py 2>",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-15017 && git stash -q && /tmp/jail/swe/bin/swe-test sympy/printing/tests/test_latex.py -k \"test_issue_8470 or test_i",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-15017 && git stash -q && /tmp/jail/swe/bin/swe-test sympy/printing/tests/test_latex.py sympy/printing/pretty/tests/t",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-15017 && git stash -q && /tmp/jail/swe/bin/swe-test sympy/core/tests/test_sympify.py 2>&1 | grep \"^____\\|tests finis"
  ],
  "django__django-11138": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-11138 && /tmp/jail/swe/bin/swe-test timezones db_functions.datetime 2>&1 | grep -E \"^(FAIL|ERROR):\" ; echo ---; gi",
@@ -22,8 +34,41 @@
   "cd /tmp/jail/swe/work/r1-haiku/django__django-14855 && git fsck --no-reflogs --unreachable 2>/dev/null | grep commit | while read _ _ sha; do echo \"$sha $(git l",
   "cd /tmp/jail/swe/work/r1-haiku/django__django-14855 && git fsck --no-reflogs --unreachable 2>/dev/null | grep commit; echo \"--- stash reflog\"; cat .git/logs/ref"
  ],
+ "django__django-16454": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-16454 && /tmp/jail/swe/bin/swe-test user_commands admin_scripts 2>&1 | grep -E \"^(FAIL|ERROR):\"; git stash -q && /"
+ ],
+ "sympy__sympy-13852": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13852 && /tmp/jail/swe/bin/swe-test sympy/functions/special/tests/test_zeta_functions.py 2>&1 | grep -E \"^(test_|_+ ",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13852 && git stash && /tmp/jail/swe/bin/swe-test sympy/functions/special/tests/test_zeta_functions.py 2>&1 | grep -E",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13852 && R=\"sympy/simplify/tests/test_hyperexpand.py sympy/printing/tests/test_latex.py sympy/core/tests/test_args.p"
+ ],
+ "sympy__sympy-18763": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-18763 && /tmp/jail/swe/bin/swe-test sympy/printing/tests/test_latex.py -k subs; /tmp/jail/swe/bin/swe-test sympy/pri",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-18763 && cp sympy/printing/latex.py /tmp/jail/swe/work/r1-haiku/latex_fixed.py.bak 2>/dev/null; git show HEAD:sympy/"
+ ],
+ "sympy__sympy-16597": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-16597 && git stash && /tmp/jail/swe/bin/swe-test sympy/assumptions/tests/test_query.py -k test_evenness_in_ternary_i"
+ ],
+ "sympy__sympy-12489": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12489 && git stash && (/tmp/jail/swe/bin/swe-test sympy/tensor/tests/test_tensor.py 2>&1 | grep -E \"^(test_|=+ tests"
+ ],
+ "django__django-15503": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15503 && /tmp/jail/swe/bin/swe-test model_fields.test_jsonfield 2>&1 | grep -E \"^(FAIL|ERROR):\"; echo ---BASELINE-"
+ ],
+ "django__django-15629": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15629 && git stash push -- django/ >/dev/null && /tmp/jail/swe/bin/swe-test schema.tests.SchemaTests.test_alter_pr"
+ ],
  "django__django-11119": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-11119 && /tmp/jail/swe/bin/swe-test template_tests.test_engine 2>&1 | tail -12; echo \"--- without fix:\"; git stash"
+ ],
+ "sympy__sympy-21379": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-21379 && cat > repro3_21379.py <<'EOF'\nfrom sympy import *\nx, y, z, w = symbols('x y z w', real=True)\nprint(\"analog "
+ ],
+ "sympy__sympy-19346": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-19346 && git stash && /tmp/jail/swe/bin/swe-test sympy/printing/tests/test_repr.py 2>&1 | grep -E \"^_+ .*test_|tests"
+ ],
+ "django__django-16502": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-16502 && git stash push -- django/core/servers/basehttp.py >/dev/null && /tmp/jail/swe/bin/swe-test servers.tests."
  ],
  "django__django-14053": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-14053 && git stash push -- django/contrib/staticfiles/storage.py >/dev/null && /tmp/jail/swe/bin/swe-test staticfi"
@@ -31,14 +76,45 @@
  "django__django-11749": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-11749 && git stash && /tmp/jail/swe/bin/swe-test admin_scripts.tests.StartProject.test_project_template_tarball_ur"
  ],
+ "django__django-15814": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15814 && /tmp/jail/swe/bin/swe-test proxy_models.tests.ProxyModelTests.test_select_related_only_proxy_fk 2>&1 | ta"
+ ],
  "django__django-13212": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-13212 && git stash && (/tmp/jail/swe/bin/swe-test validators 2>&1 | grep -E \"^(FAIL|ERROR|Ran|OK|FAILED)\" ); git s"
  ],
  "django__django-14404": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-14404 && git stash push -q -- django/contrib/admin/sites.py && /tmp/jail/swe/bin/swe-test admin_views.test_tmp_scr"
  ],
+ "sympy__sympy-14531": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-14531 && git stash && /tmp/jail/swe/bin/swe-test sympy/printing/tests/test_latex.py > /tmp/jail/swe/work/r1-haiku/sw",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-14531 && git status --short; git stash list | head -3; grep -E \"FAIL|tests finished|swe-test exit\" /tmp/jail/swe/wor"
+ ],
  "django__django-11299": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-11299 && /tmp/jail/swe/bin/swe-test constraints.tests.CheckConstraintTests 2>&1 | tail -8; git stash push django/d"
+ ],
+ "sympy__sympy-13974": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13974 && git stash -q && /tmp/jail/swe/bin/swe-test sympy/physics/quantum/tests/test_tensorproduct.py 2>&1 | grep -n",
+  "sleep 5; cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13974 && git stash list; git status --short; cat /tmp/claude-0/-home-user-claude-workspace/f3a9a5d9-e51f-53",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13974 && git stash list; git status --short; tail -5 /tmp/claude-0/-home-user-claude-workspace/f3a9a5d9-e51f-53c3-98"
+ ],
+ "django__django-15572": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15572 && /tmp/jail/swe/bin/swe-test template_tests.test_autoreloader 2>&1 | tail -8; echo ---; git stash -q -- dja"
+ ],
+ "django__django-16938": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-16938 && git stash push -- django/core/serializers/python.py django/core/serializers/xml_serializer.py && /tmp/jai",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-16938 && git status --short && git stash list | head -3"
+ ],
+ "sympy__sympy-12096": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && /tmp/jail/swe/bin/swe-test sympy/core/tests/test_evalf.py -k test_evalf_bugs 2>&1 | tail -3; git stash -q &",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && cat > /tmp/jail/swe/work/r1-haiku/bisect.py <<'EOF'\nimport sys, traceback\nsys.setrecursionlimit(1000)\nfrom ",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && echo WITH; /tmp/jail/swe/bin/swe-run python -W ignore -c \"exec(open('/tmp/jail/swe/work/r1-haiku/bisect.py'",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && cat > /tmp/jail/swe/work/r1-haiku/bisect.py <<'EOF'\nimport ast, inspect, sys\nfrom sympy.core.tests import t",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && sed -i \"s/tree = ast.parse(.*/import textwrap; tree = ast.parse(textwrap.dedent(src))/\" /tmp/jail/swe/work/",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && git stash -q; for i in 1 2 3 4 5; do /tmp/jail/swe/bin/swe-test sympy/core/tests/test_evalf.py -k test_eval",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && git stash list; git diff --stat",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && git stash -q && /tmp/jail/swe/bin/swe-test sympy/core/tests/test_evalf.py -k test_evalf_bugs 2>&1 | grep \"t",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && git stash -q && /tmp/jail/swe/bin/swe-test sympy/core/tests/test_evalf.py -k test_evalf_bugs 2>&1 | grep \"t",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12096 && git stash -q && /tmp/jail/swe/bin/swe-test sympy/core/tests/test_evalf.py -k test_evalf_bugs 2>&1 | grep \"t"
  ],
  "django__django-15037": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-15037 && git stash && /tmp/jail/swe/bin/swe-test inspectdb.tests.InspectDBTestCase.test_custom_fields 2>&1 | tail ",
@@ -48,13 +124,32 @@
   "cd /tmp/jail/swe/work/r1-haiku/django__django-15037 && git stash list; git fsck --unreachable --no-reflogs 2>/dev/null | grep commit | head -5"
  ],
  "django__django-15252": [
-  "cd /tmp/jail/swe/work/r1-haiku/django__django-15252 && git stash && /tmp/jail/swe/bin/swe-test migrations.test_commands.MigrateTests.test_migrate_fake_initial 2"
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15252 && git stash && /tmp/jail/swe/bin/swe-test migrations.test_commands.MigrateTests.test_migrate_fake_initial 2",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15252 && cat > _repro_router.py <<'EOF'\nclass Router:\n    def allow_migrate(self, db, app_label, **hints):\n       ",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15252 && git status && echo --- && git stash list && echo --- && git log --oneline -3 && echo --- && git diff --st",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15252 && git diff -- django/contrib/admin/options.py | head -60; echo ---; git stash show -p stash@{0} --stat | ta",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15252 && date && git reflog -8 refs/stash 2>/dev/null; echo ---; stat -c '%y %n' django/db/migrations/recorder.py "
  ],
  "django__django-13028": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-13028 && cat >> tests/queries/tests.py <<'EOF'\n\n\nclass FilterableAttributeTests(TestCase):\n    def test_filter_by_"
  ],
  "django__django-14787": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-14787 && git stash push -q -- django/utils/decorators.py && /tmp/jail/swe/bin/swe-run python repro_14787.py 2>&1 |"
+ ],
+ "django__django-16032": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-16032 && /tmp/jail/swe/bin/swe-test annotations aggregation queries lookup expressions expressions_case subqueries"
+ ],
+ "sympy__sympy-13091": [
+  "rm -f /home/user/claude-workspace/.spokes/fix13091.patch; cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13091 && git stash && /tmp/jail/swe/bin/swe-test sympy/cor",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13091 && for f in sympy/core/tests/test_arit.py sympy/core/tests/test_numbers.py sympy/core/tests/test_expr.py sympy",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13091 && git diff --stat && git stash list | head -3",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13091 && git stash -q && git stash list | head -2 && git diff --stat | tail -1; echo \"stashed\"",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13091 && git stash pop -q && git diff --stat | tail -1 && git stash list | wc -l",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13091 && git stash -q && git stash list | wc -l",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13091 && git stash pop -q && git diff --stat | tail -1 && git stash list | wc -l"
+ ],
+ "django__django-15569": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15569 && /tmp/jail/swe/bin/swe-test custom_lookups lookup schema.tests.SchemaTests.test_func_unique_constraint_loo"
  ],
  "django__django-12325": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-12325 && git stash && (/tmp/jail/swe/bin/swe-test inspectdb 2>&1 | grep -E \"^(FAIL|ERROR):|^Ran|^FAILED|^OK\"); git"
@@ -63,12 +158,46 @@
   "cd /tmp/jail/swe/work/r1-haiku/django__django-13810 && git stash && /tmp/jail/swe/bin/swe-test asgi.tests.ASGITest.test_request_lifecycle_signals_dispatched_wit",
   "cd /tmp/jail/swe/work/r1-haiku/django__django-13810 && cat > repro_mw.py <<'EOF'\nfrom django.core.exceptions import MiddlewareNotUsed\nfrom django.http import Ht"
  ],
+ "sympy__sympy-20428": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-20428 && git stash push -q -- sympy/polys/densearith.py && /tmp/jail/swe/bin/swe-test sympy/polys/tests/test_polytoo",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-20428 && git stash push -q -- sympy/polys/densearith.py && /tmp/jail/swe/bin/swe-test sympy/polys/tests/test_partfra"
+ ],
+ "django__django-15554": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15554 && git status --short && git diff --stat && grep -n \"def equals\" -A2 django/db/models/sql/datastructures.py "
+ ],
+ "django__django-15280": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15280 && /tmp/jail/swe/bin/swe-test prefetch_related.tests.DeferredFieldsPrefetchBackToParentTests 2>&1 | tail -4;"
+ ],
+ "sympy__sympy-19637": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-19637 && git stash && /tmp/jail/swe/bin/swe-test sympy/core/tests/test_sympify.py 2>&1 | grep -E \"^test_|tests finis"
+ ],
  "django__django-12663": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-12663 && cat >> tests/annotations/tests.py <<'EOF'\n\n    def test_lazy_object_exact_fk_output(self):\n        from d"
+ ],
+ "sympy__sympy-13647": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13647 && git stash push -- sympy/matrices/common.py && /tmp/jail/swe/bin/swe-test sympy/matrices/tests/test_matrices"
+ ],
+ "sympy__sympy-11618": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-11618 && git stash && /tmp/jail/swe/bin/swe-test sympy/geometry/tests/test_line.py 2>&1 | grep -E \"tests finished|FA",
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-11618 && git stash -q && /tmp/jail/swe/bin/swe-test sympy/geometry/tests/test_polygon.py 2>&1 | grep -E \"tests finis"
+ ],
+ "django__django-16136": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-16136 && git stash push -q -- django/views/generic/base.py && (/tmp/jail/swe/bin/swe-run python repro_16136.py 2>&"
  ],
  "django__django-11551": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-11551 && git stash push -q -- django/contrib/admin/checks.py && /tmp/jail/swe/bin/swe-run python _repro_11551.py; ",
   "cd /tmp/jail/swe/work/r1-haiku/django__django-11551 && sed -i 's/raise TypeError(\"PositionField-style: cannot read on class\")/raise AttributeError(\"PositionFiel"
+ ],
+ "sympy__sympy-19495": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-19495 && git stash && /tmp/jail/swe/bin/swe-test sympy/solvers/tests/test_solveset.py -k test_exponential_complex 2>"
+ ],
+ "django__django-15022": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15022 && /tmp/jail/swe/bin/swe-test admin_changelist 2>&1 | tail -4; git stash -q && /tmp/jail/swe/bin/swe-test ad",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15022 && git status --short && echo ---- && git stash list && echo ---- && git stash show --stat stash@{0} 2>/dev/",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15022 && echo \"== status\"; git status --short; echo \"== diff recorder (head)\"; git diff -- django/db/migrations/re",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15022 && git rev-parse HEAD && git stash list && echo \"== diff HEAD stat\" && git diff HEAD --stat && echo \"== stat",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15022 && git stash show -p stash@{0} | grep \"^+\" | head -40",
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15022 && git stash pop && git status --short && git diff --stat"
  ],
  "django__django-15104": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-15104 && git stash push -q -- django/db/migrations/autodetector.py && (/tmp/jail/swe/bin/swe-run python repro_1510"
@@ -90,6 +219,9 @@
   "cd /tmp/jail/swe/work/r1-haiku/django__django-15127 && mkdir -p /tmp/claude-0/-home-user-claude-workspace/f3a9a5d9-e51f-53c3-985f-6cc2ab7963f7/scratchpad && S=/",
   "cd /tmp/jail/swe/work/r1-haiku/django__django-15127 && git apply -v /tmp/claude-0/-home-user-claude-workspace/f3a9a5d9-e51f-53c3-985f-6cc2ab7963f7/scratchpad/my"
  ],
+ "sympy__sympy-13877": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13877 && git stash && /tmp/jail/swe/bin/swe-test sympy/matrices/tests/test_determinant.py sympy/matrices/tests/test_"
+ ],
  "django__django-13807": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-13807 && cat > repro_order.py <<'EOF'\nimport django\nfrom django.conf import settings\nsettings.configure(\n    DATAB"
  ],
@@ -102,6 +234,12 @@
  "django__django-13344": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-13344 && git stash list >/dev/null; git stash push -- django/middleware/security.py django/middleware/cache.py >/d",
   "cd /tmp/jail/swe/work/r1-haiku/django__django-13344 && git status --short && git diff --stat && git stash list | head -3"
+ ],
+ "django__django-15525": [
+  "cd /tmp/jail/swe/work/r1-haiku/django__django-15525 && /tmp/jail/swe/bin/swe-test serializers.test_natural.NaturalKeyFKMultiDBTests 2>&1 | tail -15; git stash p"
+ ],
+ "sympy__sympy-13798": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-13798 && /tmp/jail/swe/bin/swe-test sympy/printing/tests/test_latex.py 2>&1 | grep -E \"^(_+ |.*tests finished)\" > /t"
  ],
  "django__django-14580": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-14580 && git stash push -q -- django/db/migrations/serializer.py && /tmp/jail/swe/bin/swe-run python repro_14580.p"
@@ -123,5 +261,8 @@
  ],
  "django__django-15268": [
   "cd /tmp/jail/swe/work/r1-haiku/django__django-15268 && /tmp/jail/swe/bin/swe-test migrations 2>&1 | grep \"^FAIL:\\|^ERROR:\"; git stash list | head -2; git diff -"
+ ],
+ "sympy__sympy-12419": [
+  "cd /tmp/jail/swe/work/r1-haiku/sympy__sympy-12419 && git stash push -q -- sympy/concrete/summations.py sympy/matrices/expressions/matexpr.py && /tmp/jail/swe/bi"
  ]
 }

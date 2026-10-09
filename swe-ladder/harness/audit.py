@@ -44,6 +44,8 @@ def main():
     marker = f"/runs/{a.run}/prompts/"
     hits = {}
     for t in src.glob("*.output"):
+        if not t.exists():   # dangling symlink to a finished background command
+            continue
         head = t.open(errors="replace").read(4000)
         i = head.find(marker)
         if i < 0:

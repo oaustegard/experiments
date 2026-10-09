@@ -1,0 +1,68 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 35f3c5e1ea..3243b32118 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -1702,7 +1702,12 @@ class Query(BaseExpression):
+         handle.
+         """
+         filter_lhs, filter_rhs = filter_expr
+-        if isinstance(filter_rhs, F):
++        if isinstance(filter_rhs, OuterRef):
++            # The subquery sits one level below the query that holds the
++            # original OuterRef, so wrap it again. Otherwise it resolves
++            # against this query (the wrong model) instead of the outer one.
++            filter_expr = (filter_lhs, OuterRef(filter_rhs))
++        elif isinstance(filter_rhs, F):
+             filter_expr = (filter_lhs, OuterRef(filter_rhs.name))
+         # Generate the inner query.
+         query = Query(self.model)
+diff --git a/tests/queries/tests.py b/tests/queries/tests.py
+index 8339c52a02..c427c2c4b1 100644
+--- a/tests/queries/tests.py
++++ b/tests/queries/tests.py
+@@ -6,7 +6,7 @@ from operator import attrgetter
+ 
+ from django.core.exceptions import EmptyResultSet, FieldError
+ from django.db import DEFAULT_DB_ALIAS, connection
+-from django.db.models import Count, F, Q
++from django.db.models import Count, Exists, F, OuterRef, Q
+ from django.db.models.sql.constants import LOUTER
+ from django.db.models.sql.where import NothingNode, WhereNode
+ from django.test import SimpleTestCase, TestCase, skipUnlessDBFeature
+@@ -3942,3 +3942,36 @@ class Ticket23622Tests(TestCase):
+             set(Ticket23605A.objects.filter(qy).values_list('pk', flat=True))
+         )
+         self.assertSequenceEqual(Ticket23605A.objects.filter(qx), [a2])
++
++
++class OuterRefExcludeTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        cls.n1 = Number.objects.create(num=1)
++        cls.n2 = Number.objects.create(num=2)
++        cls.category = NamedCategory.objects.create(name='cat')
++        cls.tag = Tag.objects.create(name='t', category=cls.category)
++        cls.note = Note.objects.create(note='n', misc='m')
++        cls.creator = Author.objects.create(
++            name='a', num=1, extra=ExtraInfo.objects.create(note=cls.note),
++        )
++        cls.item = Item.objects.create(
++            name='i', created=datetime.datetime.now(), creator=cls.creator, note=cls.note,
++        )
++        cls.item.tags.add(cls.tag)
++
++    def test_exists_exclude_outerref(self):
++        # The OuterRef must point at Number, not Item.
++        expected = [self.n2]
++        qs = Number.objects.annotate(
++            foo=Exists(Item.objects.exclude(tags__category_id=OuterRef('pk')))
++        ).filter(foo=True)
++        self.assertSequenceEqual(qs, expected)
++        qs = Number.objects.annotate(
++            foo=Exists(Item.objects.filter(~Q(tags__category_id=OuterRef('pk'))))
++        ).filter(foo=True)
++        self.assertSequenceEqual(qs, expected)
++        qs = Number.objects.annotate(
++            foo=Exists(Item.objects.filter(tags__category_id=OuterRef('pk')))
++        ).filter(foo=True)
++        self.assertSequenceEqual(qs, [self.n1])

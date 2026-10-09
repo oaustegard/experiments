@@ -1,0 +1,30 @@
+diff --git a/sympy/physics/tests/test_secondquant.py b/sympy/physics/tests/test_secondquant.py
+index 39662ee318..a60f91b6c4 100644
+--- a/sympy/physics/tests/test_secondquant.py
++++ b/sympy/physics/tests/test_secondquant.py
+@@ -95,6 +95,9 @@ def test_create():
+     i, j, n, m = symbols('i,j,n,m')
+     o = Bd(i)
+     assert latex(o) == "b^\\dagger_{i}"
++    assert latex(Bd(i)**2) == "{b^\\dagger_{i}}^{2}"
++    assert latex(Commutator(Bd(i)**2, B(i))) == \
++        r"- \left[b_{i},{b^\dagger_{i}}^{2}\right]"
+     assert isinstance(o, CreateBoson)
+     o = o.subs(i, j)
+     assert o.atoms(Symbol) == {j}
+diff --git a/sympy/printing/latex.py b/sympy/printing/latex.py
+index 64d3207d09..fd443d76b0 100644
+--- a/sympy/printing/latex.py
++++ b/sympy/printing/latex.py
+@@ -673,6 +673,11 @@ def _helper_print_standard_power(self, expr, template):
+             and base.endswith(r'\right)')):
+             # don't use parentheses around dotted derivative
+             base = base[6: -7]  # remove outermost added parens
++        elif '^' in base and base == self._print(expr.base):
++            # an unparenthesized base that already carries a superscript,
++            # e.g. b^\dagger_{0}, must be braced before a further superscript:
++            # {b^\dagger_{0}}^{2}, not b^\dagger_{0}^{2} (issue #21930)
++            base = "{%s}" % base
+         return template % (base, exp)
+ 
+     def _print_UnevaluatedExpr(self, expr):

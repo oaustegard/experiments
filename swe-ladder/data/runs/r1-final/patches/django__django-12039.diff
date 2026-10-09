@@ -1,0 +1,40 @@
+diff --git a/django/db/backends/ddl_references.py b/django/db/backends/ddl_references.py
+index 44e49806f8..725ba0f919 100644
+--- a/django/db/backends/ddl_references.py
++++ b/django/db/backends/ddl_references.py
+@@ -83,10 +83,14 @@ class Columns(TableColumns):
+ 
+     def __str__(self):
+         def col_str(column, idx):
++            parts = [self.quote_name(column)]
+             try:
+-                return self.quote_name(column) + self.col_suffixes[idx]
++                parts.append(self.col_suffixes[idx])
+             except IndexError:
+-                return self.quote_name(column)
++                pass
++            # Empty suffixes (e.g. the ascending order of an index column)
++            # must not leave stray whitespace behind.
++            return ' '.join(part for part in parts if part)
+ 
+         return ', '.join(col_str(column, idx) for idx, column in enumerate(self.columns))
+ 
+@@ -112,12 +116,15 @@ class IndexColumns(Columns):
+         def col_str(column, idx):
+             # Index.__init__() guarantees that self.opclasses is the same
+             # length as self.columns.
+-            col = '{} {}'.format(self.quote_name(column), self.opclasses[idx])
++            # The opclass precedes the ordering, e.g. "name" text_pattern_ops DESC.
++            # Empty parts are skipped so that no stray whitespace is emitted
++            # when there is no ordering (ascending) or no opclass.
++            parts = [self.quote_name(column), self.opclasses[idx]]
+             try:
+-                col = '{} {}'.format(col, self.col_suffixes[idx])
++                parts.append(self.col_suffixes[idx])
+             except IndexError:
+                 pass
+-            return col
++            return ' '.join(part for part in parts if part)
+ 
+         return ', '.join(col_str(column, idx) for idx, column in enumerate(self.columns))
+ 

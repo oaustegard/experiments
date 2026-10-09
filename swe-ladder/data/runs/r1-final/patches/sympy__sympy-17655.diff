@@ -1,0 +1,57 @@
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 7c978c47be..99df80aa47 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -105,6 +105,11 @@ class Point(GeometryEntity):
+ 
+     is_Point = True
+ 
++    # Make SymPy numbers and expressions (Float, Integer, Symbol, ...) defer
++    # to the Point's reflected operators instead of building a Mul/Add that
++    # holds the Point as a plain argument (issue 17655).
++    _op_priority = 13.0
++
+     def __new__(cls, *args, **kwargs):
+         evaluate = kwargs.get('evaluate', global_evaluate[0])
+         on_morph = kwargs.get('on_morph', 'ignore')
+@@ -288,6 +293,19 @@ def __sub__(self, other):
+         coordinates."""
+         return self + [-x for x in other]
+ 
++    def __radd__(self, other):
++        """Reflected addition, e.g. ``sympify(2.0) + point``."""
++        return self.__add__(other)
++
++    def __rmul__(self, factor):
++        """Reflected multiplication, e.g. ``sympify(2.0) * point`` or
++        ``2 * point``; equivalent to ``point * factor``."""
++        return self.__mul__(factor)
++
++    def __rsub__(self, other):
++        """Reflected subtraction, e.g. ``sympify(2.0) - point``."""
++        return (-self).__add__(other)
++
+     @classmethod
+     def _normalize_dimension(cls, *points, **kwargs):
+         """Ensure that points have the same dimension.
+diff --git a/sympy/geometry/tests/test_point.py b/sympy/geometry/tests/test_point.py
+index 475d1d403f..8e9d2af631 100644
+--- a/sympy/geometry/tests/test_point.py
++++ b/sympy/geometry/tests/test_point.py
+@@ -400,3 +400,16 @@ def test_direction_cosine():
+     assert p2.direction_cosine(Point3D(0, 0, 0)) == [-sqrt(3) / 3, -sqrt(3) / 3, -sqrt(3) / 3]
+     assert p2.direction_cosine(Point3D(1, 1, 12)) == [0, 0, 1]
+     assert p2.direction_cosine(Point3D(12, 1, 12)) == [sqrt(2) / 2, 0, sqrt(2) / 2]
++
++
++def test_issue_17655():
++    from sympy import Float, Integer, Rational
++    point1 = Point(0, 0)
++    point2 = Point(1, 1)
++    # sympy numbers and expressions on the left of a Point
++    assert point1 + point2 * Float(2.0) == point1 + Float(2.0) * point2
++    assert Float(2.0) * point2 == point2 * Float(2.0)
++    assert Integer(2) * point2 == Point(2, 2)
++    assert Rational(1, 2) * point2 == Point(Rational(1, 2), Rational(1, 2))
++    assert 2 * point2 == Point(2, 2)
++    assert Symbol('x') * point2 == Point(Symbol('x'), Symbol('x'))

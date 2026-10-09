@@ -1,0 +1,22 @@
+diff --git a/django/core/cache/backends/db.py b/django/core/cache/backends/db.py
+index 33c79c5a14..f3bf6ac7a0 100644
+--- a/django/core/cache/backends/db.py
++++ b/django/core/cache/backends/db.py
+@@ -267,9 +267,14 @@ class DatabaseCache(BaseDatabaseCache):
+                 cursor.execute(
+                     connection.ops.cache_key_culling_sql() % table,
+                     [cull_num])
+-                cursor.execute("DELETE FROM %s "
+-                               "WHERE cache_key < %%s" % table,
+-                               [cursor.fetchone()[0]])
++                # The culling query returns no row when there is nothing to
++                # cull (e.g. the table was emptied concurrently), so only
++                # delete when a cut-off key was actually found.
++                cull_row = cursor.fetchone()
++                if cull_row is not None:
++                    cursor.execute("DELETE FROM %s "
++                                   "WHERE cache_key < %%s" % table,
++                                   [cull_row[0]])
+ 
+     def clear(self):
+         db = router.db_for_write(self.cache_model_class)

@@ -1,0 +1,29 @@
+diff --git a/django/core/management/base.py b/django/core/management/base.py
+index abc6f79a15..b86c115f31 100644
+--- a/django/core/management/base.py
++++ b/django/core/management/base.py
+@@ -6,6 +6,7 @@ import argparse
+ import os
+ import sys
+ from argparse import ArgumentParser, HelpFormatter
++from functools import partial
+ from io import TextIOBase
+ 
+ import django
+@@ -65,6 +66,16 @@ class CommandParser(ArgumentParser):
+             self.error(self.missing_args_message)
+         return super().parse_args(args, namespace)
+ 
++    def add_subparsers(self, **kwargs):
++        parser_class = kwargs.get("parser_class", type(self))
++        if issubclass(parser_class, CommandParser):
++            kwargs["parser_class"] = partial(
++                parser_class,
++                called_from_command_line=self.called_from_command_line,
++                missing_args_message=self.missing_args_message,
++            )
++        return super().add_subparsers(**kwargs)
++
+     def error(self, message):
+         if self.called_from_command_line:
+             super().error(message)

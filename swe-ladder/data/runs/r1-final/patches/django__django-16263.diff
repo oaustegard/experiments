@@ -1,0 +1,132 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 9735ce10c8..daff267bf2 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -155,6 +155,26 @@ class RawQuery:
+ ExplainInfo = namedtuple("ExplainInfo", ("format", "options"))
+ 
+ 
++def _referenced_nodes(values):
++    """
++    Return every expression node under ``values`` (expressions, or lists and
++    tuples of them; plain values are ignored), or None if some of them cannot
++    be inspected for column references: a subquery, or a non-expression column
++    reference such as a MultiColSource.
++    """
++    nodes = []
++    for value in values:
++        items = value if isinstance(value, (list, tuple)) else (value,)
++        for item in items:
++            if hasattr(item, "flatten"):
++                nodes.extend(item.flatten())
++            elif hasattr(item, "alias"):
++                return None
++    if any(isinstance(node, Query) for node in nodes):
++        return None
++    return nodes
++
++
+ class Query(BaseExpression):
+     """A single SQL query."""
+ 
+@@ -551,8 +571,100 @@ class Query(BaseExpression):
+         """
+         obj = self.clone()
+         obj.add_annotation(Count("*"), alias="__count", is_summary=True)
++        obj._strip_unused_annotations(keep={"__count"})
+         return obj.get_aggregation(using, ["__count"])["__count"]
+ 
++    def _strip_unused_annotations(self, keep):
++        """
++        Remove the aggregate annotations (other than those in ``keep``) that no
++        filter, ordering or other annotation refers to, along with the joins
++        only they used, so that count() doesn't join or aggregate over them.
++
++        The count is unchanged only if the query still counts one row per
++        base-table row: so this is done only when the remaining query needs
++        no join besides the base table, and every removed annotation is an
++        aggregate (a non-aggregate one would add to the GROUP BY). Otherwise
++        the query is left untouched.
++        """
++        if (
++            isinstance(self.group_by, tuple)
++            or not self.default_cols
++            or self.select
++            or self.extra
++            or self.is_sliced
++            or self.distinct
++            or self.combinator
++        ):
++            return
++        leaves = list(self.where.leaves())
++        if not all(isinstance(leaf, Lookup) for leaf in leaves):
++            return
++        where_nodes = _referenced_nodes(
++            side for leaf in leaves for side in (leaf.lhs, leaf.rhs)
++        )
++        ordering = tuple(self.order_by) + tuple(self.extra_order_by)
++        order_nodes = _referenced_nodes(ordering)
++        annotations = {
++            alias: annotation
++            for alias, annotation in self.annotations.items()
++            if alias not in keep
++        }
++        annotation_nodes = {
++            alias: _referenced_nodes([annotation])
++            for alias, annotation in annotations.items()
++        }
++        if (
++            where_nodes is None
++            or order_nodes is None
++            or any(nodes is None for nodes in annotation_nodes.values())
++        ):
++            return
++
++        def referenced_aliases(nodes):
++            found = set()
++            for node in nodes:
++                if isinstance(node, Ref):
++                    found.add(node.refs)
++                for alias, annotation in annotations.items():
++                    if node is annotation or node == annotation:
++                        found.add(alias)
++            return found
++
++        live = referenced_aliases(where_nodes + order_nodes)
++        live.update(
++            name.lstrip("-")
++            for name in ordering
++            if isinstance(name, str) and name.lstrip("-") in annotations
++        )
++        pending = list(live)
++        while pending:
++            for alias in referenced_aliases(annotation_nodes[pending.pop()]):
++                if alias not in live:
++                    live.add(alias)
++                    pending.append(alias)
++        unused = set(annotations) - live
++        if not unused or any(
++            not annotations[alias].contains_aggregate for alias in unused
++        ):
++            return
++        remaining_nodes = where_nodes + order_nodes + [
++            node for alias in live for node in annotation_nodes[alias]
++        ]
++        base_alias = self.get_initial_alias()
++        needed = {node.alias for node in remaining_nodes if isinstance(node, Col)}
++        if needed - {base_alias}:
++            return
++
++        for alias in unused:
++            del self.annotations[alias]
++        mask = self.annotation_select_mask
++        self.set_annotation_mask(None if mask is None else mask - unused)
++        for alias in self.alias_map:
++            if alias != base_alias:
++                self.alias_refcount[alias] = 0
++        if set(self.annotations) <= set(keep):
++            self.group_by = None
++
+     def has_filters(self):
+         return self.where
+ 

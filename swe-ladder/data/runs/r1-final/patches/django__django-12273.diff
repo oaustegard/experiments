@@ -1,0 +1,56 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index 844c01e95e..631eba5a2e 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -803,10 +803,19 @@ class Model(metaclass=ModelBase):
+         meta = cls._meta
+         inserted = False
+         for parent, field in meta.parents.items():
+-            # Make sure the link fields are synced between parent and self.
+-            if (field and getattr(self, parent._meta.pk.attname) is None and
+-                    getattr(self, field.attname) is not None):
+-                setattr(self, parent._meta.pk.attname, getattr(self, field.attname))
++            if field:
++                parent_pk = getattr(self, parent._meta.pk.attname)
++                link_value = getattr(self, field.attname)
++                if not self._state.adding and (parent_pk is None or link_value is None):
++                    # A saved instance whose primary key was reset to None is a
++                    # new object. Clear the parent's pk so the parent row is
++                    # inserted rather than overwriting the row the instance was
++                    # loaded from via the stale link value. The recursion below
++                    # propagates the reset to any further ancestors.
++                    setattr(self, parent._meta.pk.attname, None)
++                elif parent_pk is None and link_value is not None:
++                    # Make sure the link fields are synced between parent and self.
++                    setattr(self, parent._meta.pk.attname, link_value)
+             parent_inserted = self._save_parents(cls=parent, using=using, update_fields=update_fields)
+             updated = self._save_table(
+                 cls=parent, using=using, update_fields=update_fields,
+diff --git a/tests/model_inheritance_regress/tests.py b/tests/model_inheritance_regress/tests.py
+index b0156ff9ac..f92d503c82 100644
+--- a/tests/model_inheritance_regress/tests.py
++++ b/tests/model_inheritance_regress/tests.py
+@@ -181,6 +181,23 @@ class ModelInheritanceTest(TestCase):
+         self.assertEqual(r.id, orig_id)
+         self.assertEqual(r.id, r.place_ptr_id)
+ 
++    def test_reset_parent_pk_saves_new_object(self):
++        """
++        Resetting the inherited primary key of a saved child instance to None
++        and saving inserts a new object instead of overwriting the original.
++        """
++        restaurant = Restaurant.objects.create(
++            name="Guido's House of Pasta", address='944 W. Fullerton',
++            serves_hot_dogs=True, serves_pizza=False,
++        )
++        loaded = Place.objects.get(pk=restaurant.pk).restaurant
++        loaded.id = None
++        loaded.name = 'Copy'
++        loaded.save()
++        self.assertEqual(Place.objects.count(), 2)
++        self.assertEqual(Restaurant.objects.count(), 2)
++        self.assertEqual(Place.objects.get(pk=restaurant.pk).name, "Guido's House of Pasta")
++
+     def test_issue_7488(self):
+         # Regression test for #7488. This looks a little crazy, but it's the
+         # equivalent of what the admin interface has to do for the edit-inline

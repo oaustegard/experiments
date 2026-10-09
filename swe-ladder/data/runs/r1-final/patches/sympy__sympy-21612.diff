@@ -1,0 +1,32 @@
+diff --git a/sympy/printing/str.py b/sympy/printing/str.py
+index c3fdcdd435..7cad45016b 100644
+--- a/sympy/printing/str.py
++++ b/sympy/printing/str.py
+@@ -333,8 +333,8 @@ def apow(i):
+                     b.append(apow(item))
+                 else:
+                     if (len(item.args[0].args) != 1 and
+-                            isinstance(item.base, Mul)):
+-                        # To avoid situations like #14160
++                            isinstance(item.base, (Mul, Pow))):
++                        # To avoid situations like #14160 and #21612
+                         pow_paren.append(item)
+                     b.append(item.base)
+             elif item.is_Rational and item is not S.Infinity:
+diff --git a/sympy/printing/tests/test_str.py b/sympy/printing/tests/test_str.py
+index 690b1a8bbf..4deb1ec042 100644
+--- a/sympy/printing/tests/test_str.py
++++ b/sympy/printing/tests/test_str.py
+@@ -1058,3 +1058,12 @@ def test_AppliedPredicate():
+ def test_printing_str_array_expressions():
+     assert sstr(ArraySymbol("A", 2, 3, 4)) == "A"
+     assert sstr(ArrayElement("A", (2, 1/(1-x), 0))) == "A[2, 1/(1 - x), 0]"
++
++
++def test_issue_21612():
++    # Unevaluated nested fraction: the denominator must be bracketed
++    a, b, c = symbols('a b c')
++    inv = lambda x: Pow(x, -1, evaluate=False)
++    expr = Mul(Mul(a**3 + b, inv(c), evaluate=False), inv(inv(c**2)), evaluate=False)
++    assert str(expr) == '((a**3 + b)/c)/(1/(c**2))'
++    assert str(Mul(a, inv(inv(c)), evaluate=False)) == 'a/(1/c)'

@@ -1,0 +1,142 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index aaf35ee37c..508abc30e4 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -846,7 +846,11 @@ class Query(BaseExpression):
+         relabelling any references to them in select columns and the where
+         clause.
+         """
+-        assert set(change_map).isdisjoint(change_map.values())
++        # The mapping is applied simultaneously, so keys and values of
++        # change_map may intersect: e.g. {'T4': 'T5', 'T5': 'T6'} moves T4 to
++        # T5 and T5 to T6 without either move being applied twice. Each alias
++        # is looked up in change_map exactly once, so the order of the items
++        # in change_map does not matter.
+ 
+         # 1. Update references in "select" (normal columns plus aliases),
+         # "group by" and "where".
+@@ -858,21 +862,23 @@ class Query(BaseExpression):
+             key: col.relabeled_clone(change_map) for key, col in self.annotations.items()
+         }
+ 
+-        # 2. Rename the alias in the internal table/alias datastructures.
++        # 2. Rename the alias in the internal table/alias datastructures. Every
++        # old alias is removed (and its table_map position noted) before any
++        # new alias is written, so the moves cannot interfere with each other.
++        moved = []
+         for old_alias, new_alias in change_map.items():
+             if old_alias not in self.alias_map:
+                 continue
+-            alias_data = self.alias_map[old_alias].relabeled_clone(change_map)
+-            self.alias_map[new_alias] = alias_data
+-            self.alias_refcount[new_alias] = self.alias_refcount[old_alias]
+-            del self.alias_refcount[old_alias]
+-            del self.alias_map[old_alias]
+-
++            alias_data = self.alias_map.pop(old_alias)
++            refcount = self.alias_refcount.pop(old_alias)
+             table_aliases = self.table_map[alias_data.table_name]
+-            for pos, alias in enumerate(table_aliases):
+-                if alias == old_alias:
+-                    table_aliases[pos] = new_alias
+-                    break
++            pos = next((pos for pos, alias in enumerate(table_aliases) if alias == old_alias), None)
++            moved.append((table_aliases, pos, new_alias, alias_data, refcount))
++        for table_aliases, pos, new_alias, alias_data, refcount in moved:
++            if pos is not None:
++                table_aliases[pos] = new_alias
++            self.alias_map[new_alias] = alias_data.relabeled_clone(change_map)
++            self.alias_refcount[new_alias] = refcount
+         self.external_aliases = {
+             # Table is aliased or it's being changed and thus is aliased.
+             change_map.get(alias, alias): (aliased or alias in change_map)
+diff --git a/tests/queries/models.py b/tests/queries/models.py
+index c3322c224e..812daf911b 100644
+--- a/tests/queries/models.py
++++ b/tests/queries/models.py
+@@ -748,3 +748,21 @@ class JSONFieldNullable(models.Model):
+ 
+     class Meta:
+         required_db_features = {'supports_json_field'}
++
++
++class Issue15128Baz(models.Model):
++    pass
++
++
++class Issue15128Qux(models.Model):
++    bazes = models.ManyToManyField(Issue15128Baz, related_name='quxes')
++
++
++class Issue15128Foo(models.Model):
++    qux = models.ForeignKey(Issue15128Qux, models.CASCADE, related_name='foos')
++
++
++class Issue15128Bar(models.Model):
++    foo = models.ForeignKey(Issue15128Foo, models.CASCADE, related_name='bars')
++    another_foo = models.ForeignKey(Issue15128Foo, models.CASCADE, related_name='other_bars')
++    baz = models.ForeignKey(Issue15128Baz, models.CASCADE, related_name='bars')
+diff --git a/tests/queries/test_query.py b/tests/queries/test_query.py
+index 6ed766e3ae..ea856e3078 100644
+--- a/tests/queries/test_query.py
++++ b/tests/queries/test_query.py
+@@ -8,10 +8,13 @@ from django.db.models.functions import Lower
+ from django.db.models.lookups import Exact, GreaterThan, IsNull, LessThan
+ from django.db.models.sql.query import JoinPromoter, Query
+ from django.db.models.sql.where import OR
+-from django.test import SimpleTestCase
++from django.test import SimpleTestCase, TestCase
+ from django.test.utils import register_lookup
+ 
+-from .models import Author, Item, ObjectC, Ranking
++from .models import (
++    Author, Issue15128Bar, Issue15128Baz, Issue15128Foo, Issue15128Qux, Item, ObjectC,
++    Ranking,
++)
+ 
+ 
+ class TestQuery(SimpleTestCase):
+@@ -158,3 +161,43 @@ class JoinPromoterTest(SimpleTestCase):
+             repr(JoinPromoter('AND', 3, True)),
+             "JoinPromoter(connector='AND', num_children=3, negated=True)",
+         )
++
++
++class CombineSequentialAliasesTests(TestCase):
++    """
++    Combining querysets whose rhs aliases are sequential (T4, T5) and whose
++    joins are also present on the lhs must not relabel an alias twice.
++    """
++    @classmethod
++    def setUpTestData(cls):
++        cls.qux = Issue15128Qux.objects.create()
++        baz = Issue15128Baz.objects.create()
++        cls.qux.bazes.add(baz)
++        cls.foo = Issue15128Foo.objects.create(qux=cls.qux)
++        Issue15128Bar.objects.create(foo=cls.foo, another_foo=cls.foo, baz=baz)
++
++    def test_or_combine_with_sequential_rhs_aliases(self):
++        qux, foo = self.qux, self.foo
++        qs1 = qux.foos.all()
++        qs2 = Issue15128Foo.objects.filter(
++            Q(bars__baz__in=qux.bazes.all()) | Q(other_bars__baz__in=qux.bazes.all())
++        )
++        self.assertSequenceEqual(qs2 | qs1, [foo])
++        self.assertSequenceEqual(qs1 | qs2, [foo])
++        self.assertSequenceEqual(qs1 & qs2, [foo])
++        self.assertSequenceEqual(qs2 & qs1, [foo])
++
++    def test_or_combine_variants_with_shared_aliases(self):
++        qux, foo = self.qux, self.foo
++        qs1 = qux.foos.all()
++        qs2 = Issue15128Foo.objects.filter(
++            Q(bars__baz__in=qux.bazes.all()) | Q(other_bars__baz__in=qux.bazes.all())
++        )
++        qs3 = Issue15128Foo.objects.filter(bars__baz__in=qux.bazes.all())
++        qs4 = Issue15128Foo.objects.filter(other_bars__baz__in=qux.bazes.all())
++        pairs = [(qs1, qs3), (qs3, qs1), (qs3, qs2), (qs2, qs3), (qs4, qs2), (qs2, qs4), (qs3, qs4)]
++        for lhs, rhs in pairs:
++            with self.subTest(lhs=str(lhs.query), rhs=str(rhs.query)):
++                self.assertSequenceEqual(lhs | rhs, [foo])
++        self.assertSequenceEqual((qs1 | qs2) | qs3, [foo])
++        self.assertSequenceEqual(qs3 | (qs2 | qs1), [foo])

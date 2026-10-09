@@ -1,0 +1,165 @@
+diff --git a/sympy/concrete/summations.py b/sympy/concrete/summations.py
+index 372487664c..7da38fdd8f 100644
+--- a/sympy/concrete/summations.py
++++ b/sympy/concrete/summations.py
+@@ -866,6 +866,9 @@ def eval_sum(f, limits):
+                     return None
+                 newargs.append((newexpr, arg.cond))
+             return f.func(*newargs)
++        newf = _eval_sum_bounded_piecewise(f, limits)
++        if newf is not None:
++            return newf
+ 
+     if f.has(KroneckerDelta) and _has_simple_delta(f, limits[0]):
+         return deltasummation(f, limits)
+@@ -888,6 +891,72 @@ def eval_sum(f, limits):
+         return eval_sum_direct(f, (i, a, b))
+ 
+ 
++def _eval_sum_bounded_piecewise(f, limits):
++    """
++    Sum ``Piecewise((e, c), (0, True))`` when ``c`` is a conjunction of
++    integer bounds on the summation variable, by shrinking the limits to the
++    bounds that ``c`` imposes::
++
++        Sum(Piecewise((e, a <= i <= b), (0, True)), (i, lo, hi))
++            --> Sum(e, (i, Max(lo, a), Min(hi, b)))
++
++    Returns None if ``f`` does not have that shape.
++
++    Examples
++    ========
++
++    >>> from sympy import Piecewise, Symbol, Sum
++    >>> i = Symbol('i', integer=True)
++    >>> n = Symbol('n', integer=True, positive=True)
++    >>> f = Piecewise((1, (0 <= i) & (i <= n - 1)), (0, True))
++    >>> Sum(f, (i, 0, n - 1)).doit()
++    n
++    """
++    from sympy.core.relational import Relational
++    from sympy.functions import Max, Min
++
++    (i, a, b) = limits
++    if i.is_integer is not True or len(f.args) != 2:
++        return None
++    (e, c), (zero, otherwise) = f.args
++    if not (zero.is_zero and otherwise is S.true):
++        return None
++    conds = c.args if isinstance(c, And) else (c,)
++    lowers, uppers = [a], [b]
++    for rel in conds:
++        if not isinstance(rel, Relational):
++            return None
++        if rel.rhs == i and i not in rel.lhs.free_symbols:
++            rel = rel.reversed
++        x = rel.rhs
++        if rel.lhs != i or i in x.free_symbols or x.is_integer is not True:
++            return None
++        if rel.rel_op == '<=':
++            uppers.append(x)
++        elif rel.rel_op == '<':
++            uppers.append(x - 1)
++        elif rel.rel_op == '>=':
++            lowers.append(x)
++        elif rel.rel_op == '>':
++            lowers.append(x + 1)
++        elif rel.rel_op == '==':
++            lowers.append(x)
++            uppers.append(x)
++        else:
++            return None
++    lo, hi = Max(*lowers), Min(*uppers)
++    value = eval_sum(e, (i, lo, hi))
++    if value is None:
++        return None
++    # The formula for the sum is only valid when the range is non-empty.
++    nonempty = hi >= lo
++    if nonempty is S.true:
++        return value
++    if nonempty is S.false:
++        return S.Zero
++    return Piecewise((value, nonempty), (S.Zero, True))
++
++
+ def eval_sum_direct(expr, limits):
+     from sympy.core import Add
+     (i, a, b) = limits
+diff --git a/sympy/concrete/tests/test_sums_products.py b/sympy/concrete/tests/test_sums_products.py
+index 1e3a811413..ce2acd41ac 100644
+--- a/sympy/concrete/tests/test_sums_products.py
++++ b/sympy/concrete/tests/test_sums_products.py
+@@ -1,7 +1,8 @@
+ from sympy import (
+     Abs, And, binomial, Catalan, cos, Derivative, E, Eq, exp, EulerGamma,
+     factorial, Function, harmonic, I, Integral, KroneckerDelta, log,
+-    nan, Ne, Or, oo, pi, Piecewise, Product, product, Rational, S, simplify,
++    nan, Ne, Min, Or, oo, pi, Piecewise, Product, product, Rational, S,
++    simplify,
+     sin, sqrt, Sum, summation, Symbol, symbols, sympify, zeta, gamma, Le,
+     Indexed, Idx, IndexedBase, prod)
+ from sympy.abc import a, b, c, d, f, k, m, x, y, z
+@@ -544,6 +545,25 @@ def test_equality():
+     assert Sum(x, (x, 1, x)).subs(x, a) == Sum(x, (x, 1, a))
+ 
+ 
++def test_Sum_piecewise_bounds():
++    i, j = symbols('i j', integer=True)
++    np = Symbol('np', integer=True, positive=True)
++    # sum over the KroneckerDelta identity matrix entries, both orders
++    assert Sum(Sum(KroneckerDelta(i, j), (i, 0, np - 1)),
++               (j, 0, np - 1)).doit() == np
++    assert Sum(Sum(KroneckerDelta(i, j), (j, 0, np - 1)),
++               (i, 0, np - 1)).doit() == np
++    # bounds from a Piecewise condition restrict the summation range
++    assert Sum(Piecewise((1, And(S(1) <= j, j <= 3)), (0, True)),
++               (j, 0, np - 1)).doit() == \
++        Piecewise((Min(3, np - 1), Min(3, np - 1) >= 1), (0, True))
++    assert Sum(Piecewise((1, Eq(j, 2)), (0, True)),
++               (j, 0, 5)).doit() == 1
++    # a Piecewise with a condition that is not a bound is left unevaluated
++    assert isinstance(Sum(Piecewise((1, Eq(j**2, 4)), (0, True)),
++                          (j, 0, np - 1)).doit(), Sum)
++
++
+ def test_Sum_doit():
+     assert Sum(n*Integral(a**2), (n, 0, 2)).doit() == a**3
+     assert Sum(n*Integral(a**2), (n, 0, 2)).doit(deep=False) == \
+diff --git a/sympy/matrices/expressions/matexpr.py b/sympy/matrices/expressions/matexpr.py
+index b4d759836e..3620cc1f39 100644
+--- a/sympy/matrices/expressions/matexpr.py
++++ b/sympy/matrices/expressions/matexpr.py
+@@ -476,10 +476,13 @@ def conjugate(self):
+         return self
+ 
+     def _entry(self, i, j):
+-        if i == j:
++        from sympy import Eq, KroneckerDelta
++        eq = Eq(i, j)
++        if eq is S.true:
+             return S.One
+-        else:
++        elif eq is S.false:
+             return S.Zero
++        return KroneckerDelta(i, j)
+ 
+     def _eval_determinant(self):
+         return S.One
+diff --git a/sympy/matrices/expressions/tests/test_matexpr.py b/sympy/matrices/expressions/tests/test_matexpr.py
+index dbc5485948..78e79b4976 100644
+--- a/sympy/matrices/expressions/tests/test_matexpr.py
++++ b/sympy/matrices/expressions/tests/test_matexpr.py
+@@ -84,6 +84,13 @@ def test_Identity():
+     assert In.inverse() == In
+     assert In.conjugate() == In
+ 
++def test_Identity_entries():
++    i, j = symbols('i j', integer=True)
++    In = Identity(3)
++    assert In[0, 0] == 1
++    assert In[0, 1] == 0
++    assert In[i, j] == KroneckerDelta(i, j)
++
+ def test_Identity_doit():
+     Inn = Identity(Add(n, n, evaluate=False))
+     assert isinstance(Inn.rows, Add)

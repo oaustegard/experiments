@@ -1,0 +1,54 @@
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index 850734709d..c80adef227 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -127,8 +127,10 @@ class SQLCompiler:
+                 expressions.append(col)
+         for expr, (sql, params, is_ref) in order_by:
+             # Skip References to the select clause, as all expressions in the
+-            # select clause are already part of the group by.
+-            if not is_ref:
++            # select clause are already part of the group by. Also skip
++            # Meta.ordering: it is dropped from the ORDER BY clause for
++            # GROUP BY queries, so its fields must not affect grouping.
++            if not is_ref and not self._meta_ordering:
+                 expressions.extend(expr.get_group_by_cols())
+         having_group_by = self.having.get_group_by_cols() if self.having else ()
+         for expr in having_group_by:
+diff --git a/tests/aggregation_regress/tests.py b/tests/aggregation_regress/tests.py
+index 877e7b49a7..9c57d88a5e 100644
+--- a/tests/aggregation_regress/tests.py
++++ b/tests/aggregation_regress/tests.py
+@@ -1558,6 +1558,32 @@ class JoinPromotionTests(TestCase):
+         self.assertIn(' INNER JOIN ', str(qs.query))
+ 
+ 
++class MetaOrderingGroupByTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        a1 = Author.objects.create(name='a1', age=1)
++        p1 = Publisher.objects.create(name='p1', num_awards=1)
++        p2 = Publisher.objects.create(name='p2', num_awards=1)
++        for name, publisher in [('b1', p1), ('b2', p1), ('b3', p2)]:
++            Book.objects.create(
++                isbn=name, name=name, pages=1, rating=1.0, price=Decimal('1.00'),
++                contact=a1, publisher=publisher, pubdate=datetime.date(2020, 1, 1),
++            )
++
++    def test_meta_ordering_fields_not_in_group_by(self):
++        qs = Book.objects.values('publisher').annotate(total=Count('id'))
++        sql, _ = qs.query.get_compiler(using=qs.db).as_sql()
++        self.assertNotIn('ORDER BY', sql)
++        group_by = sql.split('GROUP BY ', 1)[1]
++        self.assertNotIn('name', group_by)
++
++    def test_meta_ordering_group_by_results(self):
++        totals = sorted(
++            row['total'] for row in Book.objects.values('publisher').annotate(total=Count('id'))
++        )
++        self.assertEqual(totals, [1, 2])
++
++
+ class SelfReferentialFKTests(TestCase):
+     def test_ticket_24748(self):
+         t1 = SelfRefFK.objects.create(name='t1')

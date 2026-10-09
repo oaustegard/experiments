@@ -1,0 +1,35 @@
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 593048464b..6d4b3e5bde 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -266,8 +266,17 @@ def distance(self, p):
+         sqrt(x**2 + y**2)
+ 
+         """
+-        return sqrt(sum([(a - b)**2 for a, b in zip(
+-            self.args, p.args if isinstance(p, Point) else p)]))
++        s, p = self._padded_args(p)
++        return sqrt(sum([(a - b)**2 for a, b in zip(s, p)]))
++
++    def _padded_args(self, p):
++        """Return the coordinates of self and p as tuples, padded with
++        zeros to a common dimension so that no coordinate of the higher
++        dimensional point is dropped (zip would silently truncate)."""
++        p = p.args if isinstance(p, Point) else tuple(p)
++        s = tuple(self.args)
++        n = max(len(s), len(p))
++        return s + (S.Zero,)*(n - len(s)), tuple(p) + (S.Zero,)*(n - len(p))
+ 
+     def taxicab_distance(self, p):
+         """The Taxicab Distance from self to point p.
+@@ -299,8 +308,8 @@ def taxicab_distance(self, p):
+         7
+ 
+         """
+-        p = Point(p)
+-        return sum(abs(a - b) for a, b in zip(self.args, p.args))
++        s, p = self._padded_args(p)
++        return sum(abs(a - b) for a, b in zip(s, p))
+ 
+     def midpoint(self, p):
+         """The midpoint between self and point p.

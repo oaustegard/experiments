@@ -1,0 +1,61 @@
+diff --git a/django/db/migrations/operations/models.py b/django/db/migrations/operations/models.py
+index 967a91fdc8..6239304b69 100644
+--- a/django/db/migrations/operations/models.py
++++ b/django/db/migrations/operations/models.py
+@@ -857,6 +857,15 @@ class AddIndex(IndexOperation):
+             self.model_name,
+         )
+ 
++    def reduce(self, operation, app_label):
++        if (
++            isinstance(operation, RemoveIndex)
++            and self.model_name_lower == operation.model_name_lower
++            and self.index.name == operation.name
++        ):
++            return []
++        return super().reduce(operation, app_label)
++
+     @property
+     def migration_name_fragment(self):
+         return "%s_%s" % (self.model_name_lower, self.index.name.lower())
+diff --git a/tests/migrations/test_optimizer.py b/tests/migrations/test_optimizer.py
+index 8cd4c67fbd..2e5ad5ed19 100644
+--- a/tests/migrations/test_optimizer.py
++++ b/tests/migrations/test_optimizer.py
+@@ -1158,3 +1158,36 @@ class OptimizerTests(SimpleTestCase):
+                 ),
+             ]
+         )
++
++    def test_add_remove_index(self):
++        """
++        AddIndex and RemoveIndex on the same model and index name cancel out.
++        """
++        self.assertOptimizesTo(
++            [
++                migrations.AddIndex(
++                    "Pony",
++                    models.Index(fields=["weight", "pink"], name="idx"),
++                ),
++                migrations.RemoveIndex("Pony", "idx"),
++            ],
++            [],
++        )
++        self.assertDoesNotOptimize(
++            [
++                migrations.AddIndex(
++                    "Pony",
++                    models.Index(fields=["weight", "pink"], name="idx"),
++                ),
++                migrations.RemoveIndex("Pony", "other_idx"),
++            ]
++        )
++        self.assertDoesNotOptimize(
++            [
++                migrations.AddIndex(
++                    "Pony",
++                    models.Index(fields=["weight", "pink"], name="idx"),
++                ),
++                migrations.RemoveIndex("Rabbit", "idx"),
++            ]
++        )

@@ -1,0 +1,46 @@
+diff --git a/sympy/physics/quantum/dagger.py b/sympy/physics/quantum/dagger.py
+index 17da3cfd2c..0ac411d58d 100644
+--- a/sympy/physics/quantum/dagger.py
++++ b/sympy/physics/quantum/dagger.py
+@@ -85,5 +85,13 @@ def __new__(cls, arg):
+             return obj
+         return Expr.__new__(cls, arg)
+ 
++    def __mul__(self, other):
++        # Imported here because operator.py imports this module.
++        from sympy.physics.quantum.operator import IdentityOperator, Operator
++        if (isinstance(other, IdentityOperator) and
++                isinstance(self.args[0], Operator)):
++            return self
++        return Expr.__mul__(self, other)
++
+ adjoint.__name__ = "Dagger"
+ adjoint._sympyrepr = lambda a, b: "Dagger(%s)" % b._print(a.args[0])
+diff --git a/sympy/physics/quantum/operator.py b/sympy/physics/quantum/operator.py
+index 306bfee64f..3b820f30ac 100644
+--- a/sympy/physics/quantum/operator.py
++++ b/sympy/physics/quantum/operator.py
+@@ -307,7 +307,9 @@ def _print_contents_latex(self, printer, *args):
+ 
+     def __mul__(self, other):
+ 
+-        if isinstance(other, Operator):
++        if isinstance(other, Operator) or (
++                isinstance(other, Dagger) and
++                isinstance(other.args[0], Operator)):
+             return other
+ 
+         return Mul(self, other)
+diff --git a/sympy/physics/quantum/tests/test_operator.py b/sympy/physics/quantum/tests/test_operator.py
+index 7c8574fe14..eb30b7a797 100644
+--- a/sympy/physics/quantum/tests/test_operator.py
++++ b/sympy/physics/quantum/tests/test_operator.py
+@@ -94,6 +94,8 @@ def test_identity():
+ 
+     assert I * O == O
+     assert O * I == O
++    assert Dagger(O) * I == Dagger(O)
++    assert I * Dagger(O) == Dagger(O)
+     assert isinstance(I * I, IdentityOperator)
+     assert isinstance(3 * I, Mul)
+     assert isinstance(I * x, Mul)

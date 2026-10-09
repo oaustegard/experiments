@@ -1,0 +1,52 @@
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 8419dc0d54..b2a43b9bde 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -265,8 +265,14 @@ class Query(BaseExpression):
+ 
+     @property
+     def has_select_fields(self):
++        # add_annotation(select=False), e.g. QuerySet.alias() after annotate(),
++        # sets an explicit annotation mask to hide the new alias while keeping
++        # the existing annotations. The query still selects its default columns
++        # in that case, so the mask only counts once default_cols is off.
+         return bool(
+-            self.select or self.annotation_select_mask or self.extra_select_mask
++            self.select
++            or self.extra_select_mask
++            or (self.annotation_select_mask and not self.default_cols)
+         )
+ 
+     @cached_property
+diff --git a/tests/annotations/tests.py b/tests/annotations/tests.py
+index 8de2bf1998..6ecdeeb120 100644
+--- a/tests/annotations/tests.py
++++ b/tests/annotations/tests.py
+@@ -966,6 +966,27 @@ class NonAggregateAnnotationTestCase(TestCase):
+             [{"jacob_name": "Jacob Kaplan-Moss", "james_name": "James Bennett"}],
+         )
+ 
++    def test_annotation_and_alias_filter_in_subquery(self):
++        long_books_qs = (
++            Book.objects.filter(
++                pages__gt=400,
++            )
++            .annotate(book_annotate=Value(1))
++            .alias(book_alias=Value(1))
++        )
++        publisher_books_qs = Publisher.objects.filter(book__in=long_books_qs).values(
++            "name"
++        )
++        self.assertCountEqual(
++            publisher_books_qs,
++            [
++                {"name": "Apress"},
++                {"name": "Sams"},
++                {"name": "Prentice Hall"},
++                {"name": "Morgan Kaufmann"},
++            ],
++        )
++
+     def test_annotation_filter_with_subquery(self):
+         long_books_qs = (
+             Book.objects.filter(

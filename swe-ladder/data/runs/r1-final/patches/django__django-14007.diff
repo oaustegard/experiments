@@ -1,0 +1,95 @@
+diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py
+index f02199d97c..ecbef671a8 100644
+--- a/django/db/models/sql/compiler.py
++++ b/django/db/models/sql/compiler.py
+@@ -1411,14 +1411,23 @@ class SQLInsertCompiler(SQLCompiler):
+                 cursor.execute(sql, params)
+             if not self.returning_fields:
+                 return []
++            opts = self.query.get_meta()
+             if self.connection.features.can_return_rows_from_bulk_insert and len(self.query.objs) > 1:
+-                return self.connection.ops.fetch_returned_insert_rows(cursor)
+-            if self.connection.features.can_return_columns_from_insert:
++                rows = self.connection.ops.fetch_returned_insert_rows(cursor)
++            elif self.connection.features.can_return_columns_from_insert:
+                 assert len(self.query.objs) == 1
+-                return [self.connection.ops.fetch_returned_insert_columns(cursor, self.returning_params)]
+-            return [(self.connection.ops.last_insert_id(
+-                cursor, self.query.get_meta().db_table, self.query.get_meta().pk.column
+-            ),)]
++                rows = [self.connection.ops.fetch_returned_insert_columns(cursor, self.returning_params)]
++            else:
++                rows = [(self.connection.ops.last_insert_id(
++                    cursor, opts.db_table, opts.pk.column
++                ),)]
++        # Apply the returning fields' db converters (e.g. from_db_value) so
++        # the values set on the instance match what a query would return.
++        cols = [field.get_col(opts.db_table) for field in self.returning_fields]
++        converters = self.get_converters(cols)
++        if converters:
++            rows = list(self.apply_converters(rows, converters))
++        return rows
+ 
+ 
+ class SQLDeleteCompiler(SQLCompiler):
+diff --git a/tests/returning_converters/__init__.py b/tests/returning_converters/__init__.py
+new file mode 100644
+index 0000000000..e69de29bb2
+diff --git a/tests/returning_converters/models.py b/tests/returning_converters/models.py
+new file mode 100644
+index 0000000000..e366c13640
+--- /dev/null
++++ b/tests/returning_converters/models.py
+@@ -0,0 +1,29 @@
++from django.db import models
++
++
++class MyIntWrapper:
++    def __init__(self, value):
++        self.value = value
++
++    def __repr__(self):
++        return '<MyIntWrapper: %s>' % self.value
++
++    def __eq__(self, other):
++        return isinstance(other, MyIntWrapper) and other.value == self.value
++
++
++class MyAutoField(models.BigAutoField):
++    def from_db_value(self, value, expression, connection):
++        if value is None:
++            return None
++        return MyIntWrapper(value)
++
++    def get_prep_value(self, value):
++        if value is None:
++            return None
++        return int(value)
++
++
++class AutoModel(models.Model):
++    id = MyAutoField(primary_key=True)
++
+diff --git a/tests/returning_converters/tests.py b/tests/returning_converters/tests.py
+new file mode 100644
+index 0000000000..31306636e9
+--- /dev/null
++++ b/tests/returning_converters/tests.py
+@@ -0,0 +1,17 @@
++from django.test import TestCase, skipUnlessDBFeature
++
++from .models import AutoModel, MyIntWrapper
++
++
++class ReturningFieldsConverterTests(TestCase):
++    def test_create_applies_from_db_value(self):
++        obj = AutoModel.objects.create()
++        self.assertIsInstance(obj.id, MyIntWrapper)
++        self.assertEqual(AutoModel.objects.get(pk=obj.id.value).id, obj.id)
++
++    @skipUnlessDBFeature('can_return_rows_from_bulk_insert')
++    def test_bulk_create_applies_from_db_value(self):
++        objs = AutoModel.objects.bulk_create([AutoModel()])
++        self.assertEqual(len(objs), 1)
++        self.assertIsInstance(objs[0].id, MyIntWrapper)
++        self.assertEqual(AutoModel.objects.get(pk=objs[0].id.value).id, objs[0].id)

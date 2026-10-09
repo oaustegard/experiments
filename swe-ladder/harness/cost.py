@@ -91,6 +91,8 @@ def main():
         agents = {m["instance_id"]: m["agent_id"] for m in map(json.loads, (d / "agents.jsonl").open())}
     marker = f"/runs/{a.run}/prompts/"
     for t in src.glob("*.output"):
+        if not t.exists():   # dangling symlink to a finished background command
+            continue
         with open(t, errors="replace") as f:
             head = f.read(4000)
         i = head.find(marker)

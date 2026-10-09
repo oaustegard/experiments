@@ -1,0 +1,58 @@
+diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py
+index 1c844580c6..ce7f280bdd 100644
+--- a/django/template/defaultfilters.py
++++ b/django/template/defaultfilters.py
+@@ -11,6 +11,7 @@ from urllib.parse import quote
+ from django.utils import formats
+ from django.utils.dateformat import format, time_format
+ from django.utils.encoding import iri_to_uri
++from django.utils.functional import Promise
+ from django.utils.html import (
+     avoid_wrapping, conditional_escape, escape, escapejs,
+     json_script as _json_script, linebreaks, strip_tags, urlize as _urlize,
+@@ -680,6 +681,10 @@ def add(value, arg):
+         try:
+             return value + arg
+         except Exception:
++            # Lazy strings (Promise) don't concatenate with str, so coerce
++            # both sides when both are string-like.
++            if isinstance(value, (str, Promise)) and isinstance(arg, (str, Promise)):
++                return str(value) + str(arg)
+             return ''
+ 
+ 
+diff --git a/tests/template_tests/filter_tests/test_add.py b/tests/template_tests/filter_tests/test_add.py
+index 0fcc661f4a..52be7975eb 100644
+--- a/tests/template_tests/filter_tests/test_add.py
++++ b/tests/template_tests/filter_tests/test_add.py
+@@ -2,6 +2,7 @@ from datetime import date, timedelta
+ 
+ from django.template.defaultfilters import add
+ from django.test import SimpleTestCase
++from django.utils.translation import gettext_lazy
+ 
+ from ..utils import setup
+ 
+@@ -46,8 +47,22 @@ class AddTests(SimpleTestCase):
+         output = self.engine.render_to_string('add07', {'d': date(2000, 1, 1), 't': timedelta(10)})
+         self.assertEqual(output, 'Jan. 11, 2000')
+ 
++    @setup({'add08': '{{ s|add:lazy }}'})
++    def test_add08(self):
++        output = self.engine.render_to_string('add08', {'s': 'abc', 'lazy': gettext_lazy('def')})
++        self.assertEqual(output, 'abcdef')
++
++    @setup({'add09': '{{ lazy|add:s }}'})
++    def test_add09(self):
++        output = self.engine.render_to_string('add09', {'s': 'def', 'lazy': gettext_lazy('abc')})
++        self.assertEqual(output, 'abcdef')
++
+ 
+ class FunctionTests(SimpleTestCase):
+ 
+     def test_add(self):
+         self.assertEqual(add('1', '2'), 3)
++
++    def test_add_lazy_string(self):
++        self.assertEqual(add('abc', gettext_lazy('def')), 'abcdef')
++        self.assertEqual(add(gettext_lazy('abc'), 'def'), 'abcdef')

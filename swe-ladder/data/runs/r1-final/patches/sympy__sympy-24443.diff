@@ -1,0 +1,26 @@
+diff --git a/sympy/combinatorics/homomorphisms.py b/sympy/combinatorics/homomorphisms.py
+index bb7bdf32ba..7364a61735 100644
+--- a/sympy/combinatorics/homomorphisms.py
++++ b/sympy/combinatorics/homomorphisms.py
+@@ -327,14 +327,15 @@ def _image(r):
+             # r_arr. r_arr[j] is the tuple (sym, p)
+             # where sym is the generator symbol
+             # and p is the power to which it is
+-            # raised while r[i] is a generator
+-            # (not just its symbol) or the inverse of
+-            # a generator - hence the need for
+-            # both indices
++            # raised. r[i] is a single letter, which
++            # may be the inverse of a generator; that
++            # inversion is already carried by p, so
++            # the positive generator is what is looked up
+             while i < len(r):
+                 power = r_arr[j][1]
+-                if isinstance(domain, PermutationGroup) and r[i] in gens:
+-                    s = domain.generators[gens.index(r[i])]
++                if isinstance(domain, PermutationGroup):
++                    s = r[i] if r[i] in gens else r[i]**-1
++                    s = domain.generators[gens.index(s)]
+                 else:
+                     s = r[i]
+                 if s in images:

@@ -1,0 +1,32 @@
+diff --git a/sympy/core/mod.py b/sympy/core/mod.py
+index eae25630cc..c8f2e597da 100644
+--- a/sympy/core/mod.py
++++ b/sympy/core/mod.py
+@@ -139,6 +139,13 @@ def doit(p, q):
+                 net = prod_mod1*prod_mod
+                 return prod_non_mod*cls(net, q)
+ 
++            # Mod(3*i, 2) -> Mod(i, 2): for integer i, an integer coefficient
++            # may be replaced by its residue mod q
++            coeff, rest = p.as_coeff_Mul()
++            if (q.is_Integer and coeff.is_Integer and rest.is_integer and
++                    coeff % q != coeff):
++                p = (coeff % q)*rest
++
+         # XXX other possibilities?
+ 
+         # extract gcd; any further simplification should be done by the user
+diff --git a/sympy/core/tests/test_arit.py b/sympy/core/tests/test_arit.py
+index 04d3b1ab9f..a9e811900b 100644
+--- a/sympy/core/tests/test_arit.py
++++ b/sympy/core/tests/test_arit.py
+@@ -1624,6 +1624,9 @@ def test_Mod():
+     i = Symbol('i', integer=True)
+     assert (3*i*x) % (2*i*y) == i*Mod(3*x, 2*y)
+     assert Mod(4*i, 4) == 0
++    assert Mod(3*i, 2) == Mod(i, 2)
++    assert Mod(-3*i, 2) == Mod(i, 2)
++    assert Mod(3*i*x, 2).args == (3*i*x, 2)  # x not known integer: no reduction
+ 
+     # issue 8677
+     n = Symbol('n', integer=True, positive=True)

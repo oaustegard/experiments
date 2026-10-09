@@ -1,0 +1,69 @@
+diff --git a/django/core/management/__init__.py b/django/core/management/__init__.py
+index 5f2e64761e..9f4f072dec 100644
+--- a/django/core/management/__init__.py
++++ b/django/core/management/__init__.py
+@@ -130,11 +130,22 @@ def call_command(command_name, *args, **options):
+                 yield opt
+ 
+     parser_actions = list(get_actions(parser))
++    # Options belonging to a required mutually exclusive group are not
++    # themselves marked as required, so they must be collected from the groups.
++    mutually_exclusive_required_options = {
++        opt
++        for group in parser._mutually_exclusive_groups
++        if group.required
++        for opt in group._group_actions
++    }
+     # Any required arguments which are passed in via **options must be passed
+     # to parse_args().
+     parse_args += [
+         '{}={}'.format(min(opt.option_strings), arg_options[opt.dest])
+-        for opt in parser_actions if opt.required and opt.dest in options
++        for opt in parser_actions if (
++            opt.dest in options and
++            (opt.required or opt in mutually_exclusive_required_options)
++        )
+     ]
+     defaults = parser.parse_args(args=parse_args)
+     defaults = dict(defaults._get_kwargs(), **arg_options)
+diff --git a/tests/user_commands/management/commands/mutually_exclusive_required.py b/tests/user_commands/management/commands/mutually_exclusive_required.py
+new file mode 100644
+index 0000000000..e6214c4f81
+--- /dev/null
++++ b/tests/user_commands/management/commands/mutually_exclusive_required.py
+@@ -0,0 +1,13 @@
++from django.core.management.base import BaseCommand
++
++
++class Command(BaseCommand):
++    def add_arguments(self, parser):
++        group = parser.add_mutually_exclusive_group(required=True)
++        group.add_argument('--foo-id', nargs='?', type=int, default=None, dest='foo_id')
++        group.add_argument('--foo-name', nargs='?', type=str, default=None, dest='foo_name')
++
++    def handle(self, *args, **options):
++        self.stdout.write(','.join(
++            sorted(k for k in ('foo_id', 'foo_name') if options.get(k) is not None)
++        ))
+diff --git a/tests/user_commands/tests.py b/tests/user_commands/tests.py
+index a53c781ac6..ce658a93da 100644
+--- a/tests/user_commands/tests.py
++++ b/tests/user_commands/tests.py
+@@ -102,6 +102,17 @@ class CommandTests(SimpleTestCase):
+                 cmds = find_commands(os.path.join(apps.get_app_config('commandegg').path, 'management'))
+         self.assertEqual(cmds, ['eggcommand'])
+ 
++    def test_mutually_exclusive_group_required_options(self):
++        out = StringIO()
++        management.call_command('mutually_exclusive_required', foo_id=1, stdout=out)
++        self.assertIn('foo_id', out.getvalue())
++        out = StringIO()
++        management.call_command('mutually_exclusive_required', foo_name='foo', stdout=out)
++        self.assertIn('foo_name', out.getvalue())
++        msg = 'Error: one of the arguments --foo-id --foo-name is required'
++        with self.assertRaisesMessage(CommandError, msg):
++            management.call_command('mutually_exclusive_required', stdout=StringIO())
++
+     def test_call_command_option_parsing(self):
+         """
+         When passing the long option name to call_command, the available option

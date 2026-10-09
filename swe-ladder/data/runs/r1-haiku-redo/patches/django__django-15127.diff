@@ -1,0 +1,91 @@
+diff --git a/django/test/signals.py b/django/test/signals.py
+index 4d8c43e917..345e05173b 100644
+--- a/django/test/signals.py
++++ b/django/test/signals.py
+@@ -207,3 +207,11 @@ def user_model_swapped(**kwargs):
+ 
+             from django.contrib.auth import views
+             views.UserModel = UserModel
++
++
++@receiver(setting_changed)
++def update_level_tags(**kwargs):
++    if kwargs['setting'] == 'MESSAGE_TAGS':
++        from django.contrib.messages.storage import base
++        from django.contrib.messages.utils import get_level_tags
++        base.LEVEL_TAGS = get_level_tags()
+diff --git a/tests/messages_tests/base.py b/tests/messages_tests/base.py
+index 9dad08e6c7..72ed381415 100644
+--- a/tests/messages_tests/base.py
++++ b/tests/messages_tests/base.py
+@@ -1,7 +1,7 @@
+-from django.contrib.messages import constants, get_level, set_level, utils
++from django.contrib.messages import constants, get_level, set_level
+ from django.contrib.messages.api import MessageFailure
+ from django.contrib.messages.constants import DEFAULT_LEVELS
+-from django.contrib.messages.storage import base, default_storage
++from django.contrib.messages.storage import default_storage
+ from django.contrib.messages.storage.base import Message
+ from django.http import HttpRequest, HttpResponse
+ from django.test import modify_settings, override_settings
+@@ -22,20 +22,6 @@ def add_level_messages(storage):
+     storage.add(constants.SUCCESS, 'This was a triumph.')
+ 
+ 
+-class override_settings_tags(override_settings):
+-    def enable(self):
+-        super().enable()
+-        # LEVEL_TAGS is a constant defined in the
+-        # django.contrib.messages.storage.base module, so after changing
+-        # settings.MESSAGE_TAGS, update that constant also.
+-        self.old_level_tags = base.LEVEL_TAGS
+-        base.LEVEL_TAGS = utils.get_level_tags()
+-
+-    def disable(self):
+-        super().disable()
+-        base.LEVEL_TAGS = self.old_level_tags
+-
+-
+ class BaseTests:
+     storage_class = default_storage
+     levels = {
+@@ -47,7 +33,7 @@ class BaseTests:
+     }
+ 
+     def setUp(self):
+-        self.settings_override = override_settings_tags(
++        self.settings_override = override_settings(
+             TEMPLATES=[{
+                 'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                 'DIRS': [],
+@@ -368,7 +354,7 @@ class BaseTests:
+         tags = [msg.level_tag for msg in storage]
+         self.assertEqual(tags, ['info', '', 'debug', 'warning', 'error', 'success'])
+ 
+-    @override_settings_tags(MESSAGE_TAGS={
++    @override_settings(MESSAGE_TAGS={
+         constants.INFO: 'info',
+         constants.DEBUG: '',
+         constants.WARNING: '',
+@@ -381,3 +367,21 @@ class BaseTests:
+         add_level_messages(storage)
+         tags = [msg.tags for msg in storage]
+         self.assertEqual(tags, ['info', 'custom', 'extra-tag', '', 'bad', 'success'])
++
++    @override_settings(MESSAGE_TAGS={constants.INFO: 'custom-info'})
++    def test_level_tag_override_settings(self):
++        storage = self.get_storage()
++        storage.level = 0
++        add_level_messages(storage)
++        tags = [msg.level_tag for msg in storage]
++        self.assertEqual(tags, ['custom-info', '', 'debug', 'warning', 'error', 'success'])
++
++    def test_level_tag_restored_after_override_settings(self):
++        storage = self.get_storage()
++        storage.level = 0
++        add_level_messages(storage)
++        with self.settings(MESSAGE_TAGS={constants.INFO: 'custom-info'}):
++            tags = [msg.level_tag for msg in storage]
++            self.assertEqual(tags[0], 'custom-info')
++        tags = [msg.level_tag for msg in storage]
++        self.assertEqual(tags, ['info', '', 'debug', 'warning', 'error', 'success'])

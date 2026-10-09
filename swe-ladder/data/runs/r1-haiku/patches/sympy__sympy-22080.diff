@@ -1,0 +1,49 @@
+diff --git a/sympy/printing/pycode.py b/sympy/printing/pycode.py
+index b669a2c783..098862b163 100644
+--- a/sympy/printing/pycode.py
++++ b/sympy/printing/pycode.py
+@@ -6,7 +6,8 @@
+ from collections import defaultdict
+ from itertools import chain
+ from sympy.core import S
+-from .precedence import precedence
++from sympy.core.mod import Mod
++from .precedence import precedence, PRECEDENCE
+ from .codeprinter import CodePrinter
+ 
+ _kw_py2and3 = {
+@@ -232,6 +233,19 @@ def _print_NegativeInfinity(self, expr):
+     def _print_ComplexInfinity(self, expr):
+         return self._print_NaN(expr)
+ 
++    def parenthesize(self, item, level, strict=False):
++        # The shared precedence table gives Mod the function level, so a Mod
++        # under a Mul, a negative Mul or a Pow would print bare ('-x % y',
++        # 'x % y**2'). A negative Mul is parenthesized at the Add level, so
++        # Mod is given that level: it is then wrapped under every parent that
++        # needs it and nowhere else that parenthesize is called.
++        if isinstance(item, Mod):
++            prec = PRECEDENCE["Add"]
++            if prec < level or ((not strict) and prec <= level):
++                return "(%s)" % self._print(item)
++            return self._print(item)
++        return super().parenthesize(item, level, strict=strict)
++
+     def _print_Mod(self, expr):
+         PREC = precedence(expr)
+         return ('{} % {}'.format(*map(lambda x: self.parenthesize(x, PREC), expr.args)))
+diff --git a/sympy/printing/tests/test_pycode.py b/sympy/printing/tests/test_pycode.py
+index cf18825eb1..1afef05734 100644
+--- a/sympy/printing/tests/test_pycode.py
++++ b/sympy/printing/tests/test_pycode.py
+@@ -30,6 +30,10 @@ def test_PythonCodePrinter():
+ 
+     assert prntr.doprint(x**y) == 'x**y'
+     assert prntr.doprint(Mod(x, 2)) == 'x % 2'
++    assert prntr.doprint(-Mod(x, y)) == '-(x % y)'
++    assert prntr.doprint(x + Mod(x, y)) == 'x + x % y'
++    assert prntr.doprint(2*Mod(x, y)) == '2*(x % y)'
++    assert prntr.doprint(Pow(Mod(x, y), 2)) == '(x % y)**2'
+     assert prntr.doprint(And(x, y)) == 'x and y'
+     assert prntr.doprint(Or(x, y)) == 'x or y'
+     assert not prntr.module_imports

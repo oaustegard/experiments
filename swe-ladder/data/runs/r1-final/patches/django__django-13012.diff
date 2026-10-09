@@ -1,0 +1,47 @@
+diff --git a/django/db/models/expressions.py b/django/db/models/expressions.py
+index c1a76584f0..7bf93b796b 100644
+--- a/django/db/models/expressions.py
++++ b/django/db/models/expressions.py
+@@ -863,6 +863,11 @@ class ExpressionWrapper(Expression):
+     def get_source_expressions(self):
+         return [self.expression]
+ 
++    def get_group_by_cols(self, alias=None):
++        expression = self.expression.copy()
++        expression.output_field = self.output_field
++        return expression.get_group_by_cols(alias=alias)
++
+     def as_sql(self, compiler, connection):
+         return self.expression.as_sql(compiler, connection)
+ 
+diff --git a/tests/aggregation/tests.py b/tests/aggregation/tests.py
+index a8377c9a26..44b2c5de45 100644
+--- a/tests/aggregation/tests.py
++++ b/tests/aggregation/tests.py
+@@ -6,8 +6,9 @@ from unittest import skipIf
+ from django.core.exceptions import FieldError
+ from django.db import connection
+ from django.db.models import (
+-    Avg, Case, Count, DecimalField, DurationField, Exists, F, FloatField, Func,
+-    IntegerField, Max, Min, OuterRef, Subquery, Sum, Value, When,
++    Avg, Case, Count, DecimalField, DurationField, Exists, ExpressionWrapper, F,
++    FloatField, Func, IntegerField, Max, Min, OuterRef, Subquery, Sum, Value,
++    When,
+ )
+ from django.db.models.functions import Coalesce
+ from django.test import TestCase
+@@ -1310,3 +1311,14 @@ class AggregateTestCase(TestCase):
+         # with self.assertNumQueries(1) as ctx:
+         #     self.assertSequenceEqual(books_qs, [book])
+         # self.assertEqual(ctx[0]['sql'].count('SELECT'), 2)
++
++    def test_group_by_constant_expression_wrapped_in_expression_wrapper(self):
++        qs = Book.objects.annotate(
++            expr_res=ExpressionWrapper(Value(3), output_field=IntegerField()),
++        ).values('expr_res', 'rating').annotate(total=Sum('pages'))
++        with CaptureQueriesContext(connection) as ctx:
++            list(qs)
++        sql = ctx[0]['sql']
++        group_by = sql[sql.index('GROUP BY'):]
++        self.assertNotIn('3', group_by)
++        self.assertIn('"aggregation_book"."rating"', group_by)

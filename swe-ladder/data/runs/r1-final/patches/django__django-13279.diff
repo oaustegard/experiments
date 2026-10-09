@@ -1,0 +1,60 @@
+diff --git a/django/contrib/sessions/backends/base.py b/django/contrib/sessions/backends/base.py
+index b5453160a5..ad16ffa147 100644
+--- a/django/contrib/sessions/backends/base.py
++++ b/django/contrib/sessions/backends/base.py
+@@ -108,11 +108,22 @@ class SessionBase:
+ 
+     def encode(self, session_dict):
+         "Return the given session dictionary serialized and encoded as a string."
++        # RemovedInDjango40Warning: DEFAULT_HASHING_ALGORITHM will be removed.
++        # Keep writing the pre-Django 3.1 format while running with 'sha1' so
++        # that instances not yet upgraded can still decode the session data.
++        if settings.DEFAULT_HASHING_ALGORITHM == 'sha1':
++            return self._legacy_encode(session_dict)
+         return signing.dumps(
+             session_dict, salt=self.key_salt, serializer=self.serializer,
+             compress=True,
+         )
+ 
++    def _legacy_encode(self, session_dict):
++        # RemovedInDjango40Warning: pre-Django 3.1 format will be invalid.
++        serialized = self.serializer().dumps(session_dict)
++        hash = self._hash(serialized)
++        return base64.b64encode(hash.encode() + b':' + serialized).decode('ascii')
++
+     def decode(self, session_data):
+         try:
+             return signing.loads(session_data, salt=self.key_salt, serializer=self.serializer)
+diff --git a/tests/sessions_tests/tests.py b/tests/sessions_tests/tests.py
+index 248dae82aa..00250eb11a 100644
+--- a/tests/sessions_tests/tests.py
++++ b/tests/sessions_tests/tests.py
+@@ -34,6 +34,7 @@ from django.test import (
+     RequestFactory, TestCase, ignore_warnings, override_settings,
+ )
+ from django.utils import timezone
++from django.utils.deprecation import RemovedInDjango40Warning
+ 
+ from .models import SessionStore as CustomDatabaseSession
+ 
+@@ -323,6 +324,20 @@ class SessionTestsMixin:
+             {'a test key': 'a test value'},
+         )
+ 
++    @ignore_warnings(category=RemovedInDjango40Warning)
++    @override_settings(SECRET_KEY='django_tests_secret_key')
++    def test_default_hashing_algorithm_sha1_legacy_encode(self):
++        # RemovedInDjango40Warning: pre-Django 3.1 sessions will be invalid.
++        data = {'a test key': 'a test value'}
++        with override_settings(DEFAULT_HASHING_ALGORITHM='sha1'):
++            encoded = self.session.encode(data)
++            self.assertEqual(encoded, self.session._legacy_encode(data))
++            self.assertEqual(self.session.decode(encoded), data)
++        with override_settings(DEFAULT_HASHING_ALGORITHM='sha256'):
++            encoded = self.session.encode(data)
++            self.assertNotEqual(encoded, self.session._legacy_encode(data))
++            self.assertEqual(self.session.decode(encoded), data)
++
+     def test_decode_failure_logged_to_security(self):
+         bad_encode = base64.b64encode(b'flaskdj:alkdjf').decode('ascii')
+         with self.assertLogs('django.security.SuspiciousSession', 'WARNING') as cm:

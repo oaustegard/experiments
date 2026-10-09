@@ -1,0 +1,98 @@
+diff --git a/django/db/models/query.py b/django/db/models/query.py
+index b48d0df9c0..208d121e56 100644
+--- a/django/db/models/query.py
++++ b/django/db/models/query.py
+@@ -188,14 +188,14 @@ class QuerySet:
+         self.model = model
+         self._db = using
+         self._hints = hints or {}
+-        self._query = query or sql.Query(self.model)
++        self._iterable_class = ModelIterable
++        self.query = query or sql.Query(self.model)
+         self._result_cache = None
+         self._sticky_filter = False
+         self._for_write = False
+         self._prefetch_related_lookups = ()
+         self._prefetch_done = False
+         self._known_related_objects = {}  # {rel_field: {pk: rel_obj}}
+-        self._iterable_class = ModelIterable
+         self._fields = None
+         self._defer_next_filter = False
+         self._deferred_filter = None
+@@ -210,6 +210,15 @@ class QuerySet:
+ 
+     @query.setter
+     def query(self, value):
++        # Rows follow the iterable the query was built with. Assigning a
++        # values() or values_list() query, such as an unpickled one, must not
++        # leave ModelIterable in place, or model instances are built from
++        # dict or tuple rows.
++        iterable_class = getattr(value, 'values_iterable', None)
++        if iterable_class is None and value.values_select:
++            iterable_class = ValuesIterable
++        if iterable_class is not None:
++            self._iterable_class = iterable_class
+         self._query = value
+ 
+     def as_manager(cls):
+@@ -829,6 +838,7 @@ class QuerySet:
+         fields += tuple(expressions)
+         clone = self._values(*fields, **expressions)
+         clone._iterable_class = ValuesIterable
++        clone.query.values_iterable = ValuesIterable
+         return clone
+ 
+     def values_list(self, *fields, flat=False, named=False):
+@@ -860,6 +870,7 @@ class QuerySet:
+             else FlatValuesListIterable if flat
+             else ValuesListIterable
+         )
++        clone.query.values_iterable = clone._iterable_class
+         return clone
+ 
+     def dates(self, field_name, kind, order='ASC'):
+diff --git a/django/db/models/sql/query.py b/django/db/models/sql/query.py
+index 4648daf395..d875ad6fdf 100644
+--- a/django/db/models/sql/query.py
++++ b/django/db/models/sql/query.py
+@@ -198,6 +198,9 @@ class Query(BaseExpression):
+         # Holds the selects defined by a call to values() or values_list()
+         # excluding annotation_select and extra_select.
+         self.values_select = ()
++        # The iterable class (dict rows, tuple rows, ...) chosen by the
++        # QuerySet.values() or values_list() call that set values_select.
++        self.values_iterable = None
+ 
+         # SQL annotation-related attributes
+         self.annotations = {}  # Maps alias -> Annotation Expression
+diff --git a/tests/queryset_pickle/tests.py b/tests/queryset_pickle/tests.py
+index a58e45caed..2cf0df9c1e 100644
+--- a/tests/queryset_pickle/tests.py
++++ b/tests/queryset_pickle/tests.py
+@@ -297,3 +297,26 @@ class InLookupTests(TestCase):
+             reloaded_events.query = reloaded
+ 
+         self.assertSequenceEqual(reloaded_events, [self.e1])
++
++    def test_values_query_assigned_after_reload(self):
++        """
++        A values() query reloaded from a pickle and assigned to a model
++        queryset yields dicts, not model instances.
++        """
++        qs = Event.objects.values('title').annotate(total=models.Count('id'))
++        reloaded_qs = Event.objects.all()
++        reloaded_qs.query = pickle.loads(pickle.dumps(qs.query))
++
++        self.assertEqual(list(reloaded_qs), [{'title': 'Event 1', 'total': 1}])
++
++    def test_values_list_query_assigned_after_reload(self):
++        cases = [
++            (Event.objects.values_list('title'), [('Event 1',)]),
++            (Event.objects.values_list('title', flat=True), ['Event 1']),
++            (Event.objects.values_list('title', named=True), [('Event 1',)]),
++        ]
++        for qs, expected in cases:
++            with self.subTest(iterable=qs._iterable_class.__name__):
++                reloaded_qs = Event.objects.all()
++                reloaded_qs.query = pickle.loads(pickle.dumps(qs.query))
++                self.assertEqual(list(reloaded_qs), expected)

@@ -1,0 +1,36 @@
+diff --git a/sympy/geometry/point.py b/sympy/geometry/point.py
+index 73c20334d0..11bad7ff9c 100644
+--- a/sympy/geometry/point.py
++++ b/sympy/geometry/point.py
+@@ -152,7 +152,7 @@ def __new__(cls, *args, **kwargs):
+                         'warn' or 'ignore'.'''))
+         if any(coords[dim:]):
+             raise ValueError('Nonzero coordinates cannot be removed.')
+-        if any(a.is_number and im(a) for a in coords):
++        if any(a.is_number and im(a).is_zero is False for a in coords):
+             raise ValueError('Imaginary coordinates are not permitted.')
+         if not all(isinstance(a, Expr) for a in coords):
+             raise TypeError('Coordinates must be valid SymPy expressions.')
+diff --git a/sympy/geometry/tests/test_point.py b/sympy/geometry/tests/test_point.py
+index 930d707735..bedb702fc7 100644
+--- a/sympy/geometry/tests/test_point.py
++++ b/sympy/geometry/tests/test_point.py
+@@ -325,6 +325,18 @@ def test_Point2D():
+     # test bounds
+     assert p1.bounds == (1, 5, 1, 5)
+ 
++def test_issue_22714():
++    # Integer coordinates under evaluate(False) are not imaginary: im(2)
++    # stays unevaluated and used to be truthy.
++    from sympy import evaluate
++    with evaluate(False):
++        p = S('Point2D(Integer(1),Integer(2))')
++    assert p == Point2D(1, 2)
++    raises(ValueError, lambda: Point2D(I, 1))
++    with evaluate(False):
++        raises(ValueError, lambda: Point2D(I, 1))
++
++
+ def test_issue_9214():
+     p1 = Point3D(4, -2, 6)
+     p2 = Point3D(1, 2, 3)

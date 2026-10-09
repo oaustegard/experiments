@@ -1,0 +1,97 @@
+diff --git a/django/db/models/deletion.py b/django/db/models/deletion.py
+index ae82d26340..63b7a86240 100644
+--- a/django/db/models/deletion.py
++++ b/django/db/models/deletion.py
+@@ -70,6 +70,9 @@ class Collector:
+         # fast_deletes is a list of queryset-likes that can be deleted without
+         # fetching the objects into memory.
+         self.fast_deletes = []
++        # {model: [index into fast_deletes, number of values it filters on]}
++        # for the queued fast deletes that later ones may be merged into.
++        self._fast_delete_merge = {}
+ 
+         # Tracks deletion-order dependency for databases without transactions
+         # or ability to defer constraint checks. Only concrete model classes
+@@ -159,12 +162,34 @@ class Collector:
+             )
+         )
+ 
++    def get_batch_size(self, objs, field):
++        """
++        Return the maximum number of values for the used connection that can
++        be filtered on in a single query for the given field.
++        """
++        return max(connections[self.using].ops.bulk_batch_size([field.name], objs), 1)
++
++    def add_fast_delete(self, qs, size, batch_size):
++        """
++        Queue 'qs', which filters on 'size' values, for a fast delete. If an
++        earlier queued queryset for the same model still fits within
++        'batch_size' values, it is merged into that one with OR, so rows
++        referenced through several foreign keys are deleted by a single query.
++        """
++        merge = self._fast_delete_merge.get(qs.model)
++        if merge is not None and merge[1] + size <= batch_size:
++            index = merge[0]
++            self.fast_deletes[index] = self.fast_deletes[index] | qs
++            merge[1] += size
++        else:
++            self._fast_delete_merge[qs.model] = [len(self.fast_deletes), size]
++            self.fast_deletes.append(qs)
++
+     def get_del_batches(self, objs, field):
+         """
+         Return the objs in suitably sized batches for the used connection.
+         """
+-        conn_batch_size = max(
+-            connections[self.using].ops.bulk_batch_size([field.name], objs), 1)
++        conn_batch_size = self.get_batch_size(objs, field)
+         if len(objs) > conn_batch_size:
+             return [objs[i:i + conn_batch_size]
+                     for i in range(0, len(objs), conn_batch_size)]
+@@ -222,10 +247,11 @@ class Collector:
+                 if field.remote_field.on_delete == DO_NOTHING:
+                     continue
+                 batches = self.get_del_batches(new_objs, field)
++                batch_size = self.get_batch_size(new_objs, field)
+                 for batch in batches:
+                     sub_objs = self.related_objects(related, batch)
+                     if self.can_fast_delete(sub_objs, from_field=field):
+-                        self.fast_deletes.append(sub_objs)
++                        self.add_fast_delete(sub_objs, len(batch), batch_size)
+                     else:
+                         related_model = related.related_model
+                         # Non-referenced fields can be deferred if no signal
+diff --git a/tests/delete/tests.py b/tests/delete/tests.py
+index 505fd843d7..4cf10a1a3a 100644
+--- a/tests/delete/tests.py
++++ b/tests/delete/tests.py
+@@ -7,8 +7,8 @@ from django.test import TestCase, skipIfDBFeature, skipUnlessDBFeature
+ 
+ from .models import (
+     MR, A, Avatar, Base, Child, HiddenUser, HiddenUserProfile, M, M2MFrom,
+-    M2MTo, MRNull, Origin, Parent, R, RChild, RChildChild, Referrer, S, T,
+-    User, create_a, get_default_r,
++    M2MTo, MRNull, Origin, Parent, R, RChild, RChildChild, Referrer, S,
++    SecondReferrer, T, User, create_a, get_default_r,
+ )
+ 
+ 
+@@ -571,6 +571,17 @@ class FastDeleteTests(TestCase):
+         self.assertNumQueries(2, a.delete)
+         self.assertEqual(User.objects.count(), 0)
+ 
++    def test_fast_delete_combined_relationships(self):
++        # The cascading fast-delete of SecondReferrer should be combined
++        # in a single DELETE WHERE referrer_id = ... OR other_referrer_id = ...
++        origin = Origin.objects.create()
++        referer = Referrer.objects.create(origin=origin, unique_field=42)
++        SecondReferrer.objects.create(referrer=referer, other_referrer=referer)
++        with self.assertNumQueries(2):
++            referer.delete()
++        self.assertFalse(SecondReferrer.objects.exists())
++        self.assertFalse(Referrer.objects.exists())
++
+     def test_fast_delete_empty_no_update_can_self_select(self):
+         """
+         #25932 - Fast deleting on backends that don't have the

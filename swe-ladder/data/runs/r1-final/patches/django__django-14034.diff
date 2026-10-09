@@ -1,0 +1,47 @@
+diff --git a/django/forms/fields.py b/django/forms/fields.py
+index 65d6a9ec82..483cc6fe46 100644
+--- a/django/forms/fields.py
++++ b/django/forms/fields.py
+@@ -1025,7 +1025,10 @@ class MultiValueField(Field):
+             if not value or not [v for v in value if v not in self.empty_values]:
+                 if self.required:
+                     raise ValidationError(self.error_messages['required'], code='required')
+-                else:
++                # No value at all means the optional field is absent. A list of
++                # blank values still has to satisfy any required sub-field, so
++                # fall through and let the loop below report 'incomplete'.
++                if not value or not any(field.required for field in self.fields):
+                     return self.compress([])
+         else:
+             raise ValidationError(self.error_messages['invalid'], code='invalid')
+diff --git a/tests/forms_tests/field_tests/test_multivaluefield.py b/tests/forms_tests/field_tests/test_multivaluefield.py
+index 29287d0b01..1494689974 100644
+--- a/tests/forms_tests/field_tests/test_multivaluefield.py
++++ b/tests/forms_tests/field_tests/test_multivaluefield.py
+@@ -172,3 +172,26 @@ class MultiValueFieldTest(SimpleTestCase):
+         })
+         form.is_valid()
+         self.assertEqual(form.cleaned_data['field1'], 'some text,JP,2007-04-25 06:24:00')
++
++    def test_optional_field_blank_values_respect_required_subfield(self):
++        class MF(MultiValueField):
++            widget = MultiWidget
++
++            def __init__(self):
++                fields = [CharField(required=False), CharField(required=True)]
++                widget = self.widget(widgets=[f.widget for f in fields], attrs={})
++                super().__init__(
++                    fields=fields, widget=widget, require_all_fields=False, required=False,
++                )
++
++            def compress(self, data_list):
++                return []
++
++        class F(Form):
++            mf = MF()
++
++        form = F({'mf_0': '', 'mf_1': ''})
++        self.assertFalse(form.is_valid())
++        self.assertEqual(form.errors['mf'], ['Enter a complete value.'])
++        form = F({'mf_0': 'xxx', 'mf_1': ''})
++        self.assertFalse(form.is_valid())

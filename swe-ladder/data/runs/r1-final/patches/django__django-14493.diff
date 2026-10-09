@@ -1,0 +1,14 @@
+diff --git a/django/contrib/staticfiles/storage.py b/django/contrib/staticfiles/storage.py
+index f957a667b2..0f384e618c 100644
+--- a/django/contrib/staticfiles/storage.py
++++ b/django/contrib/staticfiles/storage.py
+@@ -260,6 +260,9 @@ class HashedFilesMixin:
+                 processed_adjustable_paths[name] = (name, hashed_name, processed)
+ 
+         paths = {path: paths[path] for path in adjustable_paths}
++        # Initialize here so the check below is defined even when
++        # max_post_process_passes is 0 and the loop body never runs.
++        substitutions = False
+ 
+         for i in range(self.max_post_process_passes):
+             substitutions = False

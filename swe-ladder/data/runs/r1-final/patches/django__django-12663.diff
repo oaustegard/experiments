@@ -1,0 +1,115 @@
+diff --git a/django/db/models/lookups.py b/django/db/models/lookups.py
+index d32c891284..50f96349f3 100644
+--- a/django/db/models/lookups.py
++++ b/django/db/models/lookups.py
+@@ -14,6 +14,32 @@ from django.utils.deprecation import RemovedInDjango40Warning
+ from django.utils.functional import cached_property
+ 
+ 
++def prepare_model_rhs(lhs, value):
++    """
++    Return the key a model instance stands for when it is compared against a
++    lhs whose output field is a relation or a primary key, such as an
++    annotation or subquery over one. A SimpleLazyObject wrapping an instance
++    counts too. Other values are returned unchanged.
++
++    Lookups on a model column already get this from RelatedLookupMixin, but
++    expression lhs reach the output field's get_prep_value() directly, which
++    cannot convert a model instance to an integer.
++    """
++    from django.db.models import Model  # avoid circular import
++    from django.db.models.fields.related_lookups import get_normalized_value
++
++    if not isinstance(value, Model):
++        return value
++    output_field = lhs.output_field
++    if hasattr(output_field, 'get_path_info'):
++        if len(output_field.foreign_related_fields) == 1:
++            return get_normalized_value(value, lhs)[0]
++        return value
++    if output_field.primary_key:
++        return value.pk
++    return value
++
++
+ class Lookup:
+     lookup_name = None
+     prepare_rhs = True
+@@ -71,7 +97,8 @@ class Lookup:
+         if hasattr(self.rhs, 'resolve_expression'):
+             return self.rhs
+         if self.prepare_rhs and hasattr(self.lhs.output_field, 'get_prep_value'):
+-            return self.lhs.output_field.get_prep_value(self.rhs)
++            rhs = prepare_model_rhs(self.lhs, self.rhs)
++            return self.lhs.output_field.get_prep_value(rhs)
+         return self.rhs
+ 
+     def get_db_prep_lookup(self, value, connection):
+@@ -222,7 +249,9 @@ class FieldGetDbPrepValueIterableMixin(FieldGetDbPrepValueMixin):
+                 # alongside real values.
+                 pass
+             elif self.prepare_rhs and hasattr(self.lhs.output_field, 'get_prep_value'):
+-                rhs_value = self.lhs.output_field.get_prep_value(rhs_value)
++                rhs_value = self.lhs.output_field.get_prep_value(
++                    prepare_model_rhs(self.lhs, rhs_value)
++                )
+             prepared_values.append(rhs_value)
+         return prepared_values
+ 
+diff --git a/tests/annotations/tests.py b/tests/annotations/tests.py
+index db4413564c..61d2b6cfaf 100644
+--- a/tests/annotations/tests.py
++++ b/tests/annotations/tests.py
+@@ -619,3 +619,52 @@ class NonAggregateAnnotationTestCase(TestCase):
+             total_books=Subquery(long_books_qs, output_field=IntegerField()),
+         ).values('name')
+         self.assertCountEqual(publisher_books_qs, [{'name': 'Sams'}, {'name': 'Morgan Kaufmann'}])
++
++
++class SimpleLazyObjectNestedSubqueryTests(TestCase):
++    @classmethod
++    def setUpTestData(cls):
++        cls.author = Author.objects.create(name='Alice', age=30)
++        cls.other = Author.objects.create(name='Bob', age=40)
++        cls.publisher = Publisher.objects.create(name='P', num_awards=1)
++        Book.objects.create(
++            isbn='111111111', name='B', pages=1, rating=1.0, price=Decimal('1.00'),
++            contact=cls.author, publisher=cls.publisher, pubdate=datetime.date(2020, 1, 1),
++        )
++
++    def publishers_by_owner(self):
++        owner_qs = (
++            Book.objects.filter(publisher=OuterRef('pk'))
++            .annotate(owner=Subquery(Author.objects.values('pk')[:1]))
++            .values('owner')
++        )
++        return Publisher.objects.annotate(owner=Subquery(owner_qs))
++
++    def test_lazy_object_exact(self):
++        from django.utils.functional import SimpleLazyObject
++        lazy_author = SimpleLazyObject(lambda: Author.objects.get(name='Alice'))
++        self.assertSequenceEqual(self.publishers_by_owner().filter(owner=lazy_author), [self.publisher])
++
++    def test_model_instance_exact(self):
++        self.assertSequenceEqual(self.publishers_by_owner().filter(owner=self.author), [self.publisher])
++        self.assertSequenceEqual(self.publishers_by_owner().filter(owner=self.other), [])
++
++    def test_lazy_object_in(self):
++        from django.utils.functional import SimpleLazyObject
++        lazy_author = SimpleLazyObject(lambda: Author.objects.get(name='Alice'))
++        self.assertSequenceEqual(
++            self.publishers_by_owner().filter(owner__in=[lazy_author]), [self.publisher],
++        )
++
++    def test_lazy_object_exact_fk_output(self):
++        from django.utils.functional import SimpleLazyObject
++        owner_qs = (
++            Book.objects.filter(publisher=OuterRef('pk'))
++            .annotate(owner=Subquery(Book.objects.values('contact')))
++            .values('owner')
++        )
++        qs = Publisher.objects.annotate(owner=Subquery(owner_qs))
++        lazy_author = SimpleLazyObject(lambda: Author.objects.get(name='Alice'))
++        self.assertSequenceEqual(qs.filter(owner=lazy_author), [self.publisher])
++        self.assertSequenceEqual(qs.filter(owner=self.author), [self.publisher])
++        self.assertSequenceEqual(qs.filter(owner=self.other), [])

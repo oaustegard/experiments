@@ -1,0 +1,64 @@
+diff --git a/sympy/parsing/sympy_parser.py b/sympy/parsing/sympy_parser.py
+index 52711d1324..0bdf09591c 100644
+--- a/sympy/parsing/sympy_parser.py
++++ b/sympy/parsing/sympy_parser.py
+@@ -1118,6 +1118,14 @@ class EvaluateFalseTransformer(ast.NodeTransformer):
+         'cosh', 'coth', 'csch', 'sech', 'sinh', 'tanh',
+         'exp', 'ln', 'log', 'sqrt', 'cbrt',
+     )
++    relational_operators = {
++        ast.NotEq: 'Ne',
++        ast.Lt: 'Lt',
++        ast.LtE: 'Le',
++        ast.Gt: 'Gt',
++        ast.GtE: 'Ge',
++        ast.Eq: 'Eq',
++    }
+ 
+     def flatten(self, args, func):
+         result = []
+@@ -1186,6 +1194,22 @@ def visit_BinOp(self, node):
+             return new_node
+         return node
+ 
++    def visit_Compare(self, node):
++        # Only a single relational operator maps onto one SymPy class; chained
++        # comparisons (a < b < c) are left alone.
++        if len(node.ops) == 1 and node.ops[0].__class__ in self.relational_operators:
++            sympy_class = self.relational_operators[node.ops[0].__class__]
++            left = self.visit(node.left)
++            right = self.visit(node.comparators[0])
++            return ast.Call(
++                func=ast.Name(id=sympy_class, ctx=ast.Load()),
++                args=[left, right],
++                keywords=[ast.keyword(arg='evaluate', value=ast.NameConstant(value=False, ctx=ast.Load()))],
++                starargs=None,
++                kwargs=None
++            )
++        return self.generic_visit(node)
++
+     def visit_Call(self, node):
+         new_node = self.generic_visit(node)
+         if isinstance(node.func, ast.Name) and node.func.id in self.functions:
+diff --git a/sympy/parsing/tests/test_sympy_parser.py b/sympy/parsing/tests/test_sympy_parser.py
+index 7c43e1fce3..a9100fca04 100644
+--- a/sympy/parsing/tests/test_sympy_parser.py
++++ b/sympy/parsing/tests/test_sympy_parser.py
+@@ -359,3 +359,17 @@ def test_issue_22822():
+     raises(ValueError, lambda: parse_expr('x', {'': 1}))
+     data = {'some_parameter': None}
+     assert parse_expr('some_parameter is None', data) is True
++
++
++def test_issue_24661():
++    from sympy.core.relational import Lt, Gt, Le, Ge, Ne
++    from sympy.core.singleton import S
++    x = Symbol('x')
++    assert parse_expr('1 < 2', evaluate=False) == Lt(1, 2, evaluate=False)
++    assert parse_expr('1 < 2', evaluate=False).func is Lt
++    assert parse_expr('1 > 2', evaluate=False).func is Gt
++    assert parse_expr('1 <= 2', evaluate=False).func is Le
++    assert parse_expr('1 >= 2', evaluate=False).func is Ge
++    assert parse_expr('1 != 2', evaluate=False).func is Ne
++    assert parse_expr('x == 2', evaluate=False) == Eq(x, 2, evaluate=False)
++    assert parse_expr('1 < 2') is S.true

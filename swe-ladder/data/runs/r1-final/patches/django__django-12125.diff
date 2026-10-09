@@ -1,0 +1,39 @@
+diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py
+index 7d226955d5..ead81c398a 100644
+--- a/django/db/migrations/serializer.py
++++ b/django/db/migrations/serializer.py
+@@ -269,7 +269,7 @@ class TypeSerializer(BaseSerializer):
+             if module == builtins.__name__:
+                 return self.value.__name__, set()
+             else:
+-                return "%s.%s" % (module, self.value.__name__), {"import %s" % module}
++                return "%s.%s" % (module, self.value.__qualname__), {"import %s" % module}
+ 
+ 
+ class UUIDSerializer(BaseSerializer):
+diff --git a/tests/migrations/test_writer.py b/tests/migrations/test_writer.py
+index ca924f35ec..906f48ad9b 100644
+--- a/tests/migrations/test_writer.py
++++ b/tests/migrations/test_writer.py
+@@ -731,7 +731,20 @@ class WriterTests(SimpleTestCase):
+                 return ('DeconstructibleInstances', [], {})
+ 
+         string = MigrationWriter.serialize(models.CharField(default=DeconstructibleInstances))[0]
+-        self.assertEqual(string, "models.CharField(default=migrations.test_writer.DeconstructibleInstances)")
++        self.assertEqual(
++            string,
++            "models.CharField(default=migrations.test_writer.WriterTests.test_deconstruct_class_arguments.<locals>.DeconstructibleInstances)"
++        )
++
++    def test_serialize_nested_class(self):
++        # #12125 - Inner classes must be referenced by their qualified name.
++        class Outer:
++            class Inner(models.CharField):
++                pass
++
++        string = MigrationWriter.serialize(Outer.Inner)[0]
++        self.assertEqual(string, '%s.%s' % (Outer.__module__, Outer.Inner.__qualname__))
++        self.assertTrue(string.endswith('Outer.Inner'))
+ 
+     def test_register_serializer(self):
+         class ComplexSerializer(BaseSerializer):

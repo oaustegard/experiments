@@ -1,0 +1,108 @@
+diff --git a/django/db/models/base.py b/django/db/models/base.py
+index e3b14a41a0..7948945add 100644
+--- a/django/db/models/base.py
++++ b/django/db/models/base.py
+@@ -15,9 +15,7 @@ from django.db import (
+     DEFAULT_DB_ALIAS, DJANGO_VERSION_PICKLE_KEY, DatabaseError, connection,
+     connections, router, transaction,
+ )
+-from django.db.models import (
+-    NOT_PROVIDED, ExpressionWrapper, IntegerField, Max, Value,
+-)
++from django.db.models import ExpressionWrapper, IntegerField, Max, Value
+ from django.db.models.constants import LOOKUP_SEP
+ from django.db.models.constraints import CheckConstraint, UniqueConstraint
+ from django.db.models.deletion import CASCADE, Collector
+@@ -398,6 +396,9 @@ class ModelState:
+     # explicit (non-auto) PKs. This impacts validation only; it has no effect
+     # on the actual save.
+     adding = True
++    # The primary key value that __init__() applied from the field default, or
++    # None if the primary key was given explicitly or has no default.
++    pk_default_value = None
+     fields_cache = ModelStateFieldsCacheDescriptor()
+ 
+ 
+@@ -447,6 +448,7 @@ class Model(metaclass=ModelBase):
+ 
+         for field in fields_iter:
+             is_related_object = False
++            from_default = False
+             # Virtual field
+             if field.attname not in kwargs and field.column is None:
+                 continue
+@@ -462,6 +464,7 @@ class Model(metaclass=ModelBase):
+                             val = kwargs.pop(field.attname)
+                         except KeyError:
+                             val = field.get_default()
++                            from_default = True
+                 else:
+                     try:
+                         val = kwargs.pop(field.attname)
+@@ -471,8 +474,10 @@ class Model(metaclass=ModelBase):
+                         # get_default() to be evaluated, and then not used.
+                         # Refs #12057.
+                         val = field.get_default()
++                        from_default = True
+             else:
+                 val = field.get_default()
++                from_default = True
+ 
+             if is_related_object:
+                 # If we are passed a related instance, set it using the
+@@ -484,6 +489,8 @@ class Model(metaclass=ModelBase):
+             else:
+                 if val is not _DEFERRED:
+                     _setattr(self, field.attname, val)
++                    if from_default and field.primary_key and val is not None:
++                        self._state.pk_default_value = val
+ 
+         if kwargs:
+             property_names = opts._property_names
+@@ -840,19 +847,24 @@ class Model(metaclass=ModelBase):
+                        if f.name in update_fields or f.attname in update_fields]
+ 
+         pk_val = self._get_pk_val(meta)
++        pk_from_default = False
+         if pk_val is None:
+             pk_val = meta.pk.get_pk_value_on_save(self)
+             setattr(self, meta.pk.attname, pk_val)
++            pk_from_default = pk_val is not None
+         pk_set = pk_val is not None
+         if not pk_set and (force_update or update_fields):
+             raise ValueError("Cannot force an update in save() with no primary key.")
+         updated = False
+-        # Skip an UPDATE when adding an instance and primary key has a default.
++        # Skip an UPDATE when adding an instance whose primary key came from its
++        # default, since such a row cannot already exist. A primary key that the
++        # caller set explicitly still gets an UPDATE first, as in Django 2.2 and
++        # earlier.
+         if (
+             not force_insert and
+             self._state.adding and
+-            self._meta.pk.default and
+-            self._meta.pk.default is not NOT_PROVIDED
++            pk_set and
++            (pk_from_default or pk_val == self._state.pk_default_value)
+         ):
+             force_insert = True
+         # If possible, try an UPDATE. If that doesn't update anything, do an INSERT.
+diff --git a/tests/basic/tests.py b/tests/basic/tests.py
+index 5eada343e1..0aa36710b8 100644
+--- a/tests/basic/tests.py
++++ b/tests/basic/tests.py
+@@ -139,6 +139,14 @@ class ModelInstanceCreationTests(TestCase):
+         with self.assertNumQueries(1):
+             PrimaryKeyWithDefault().save()
+ 
++    def test_save_explicit_primary_key_with_default(self):
++        # An explicitly set primary key that already exists is updated, not
++        # inserted again, even though the primary key field has a default.
++        obj = PrimaryKeyWithDefault.objects.create()
++        with self.assertNumQueries(1):
++            PrimaryKeyWithDefault(pk=obj.pk).save()
++        self.assertEqual(PrimaryKeyWithDefault.objects.count(), 1)
++
+ 
+ class ModelTest(TestCase):
+     def test_objects_attribute_is_only_available_on_the_class_itself(self):

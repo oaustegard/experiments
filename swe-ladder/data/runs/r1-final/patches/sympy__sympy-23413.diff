@@ -1,0 +1,61 @@
+diff --git a/sympy/matrices/tests/test_normalforms.py b/sympy/matrices/tests/test_normalforms.py
+index 8e7dc0469d..0e31866b38 100644
+--- a/sympy/matrices/tests/test_normalforms.py
++++ b/sympy/matrices/tests/test_normalforms.py
+@@ -77,5 +77,10 @@ def test_hermite_normal():
+     assert hermite_normal_form(m) == hnf
+ 
+     m = Matrix([[2, 7], [0, 0], [0, 0]])
+-    hnf = Matrix(3, 0, [])
++    hnf = Matrix([[1], [0], [0]])
++    assert hermite_normal_form(m) == hnf
++
++    # Regression test for issue 23413: more rows than columns must not drop rows.
++    m = Matrix([[1, 0, 0], [12, 8, 5]]).T
++    hnf = Matrix([[1, 0], [0, 8], [0, 5]])
+     assert hermite_normal_form(m) == hnf
+diff --git a/sympy/polys/matrices/normalforms.py b/sympy/polys/matrices/normalforms.py
+index 30f5534b08..561cc206ee 100644
+--- a/sympy/polys/matrices/normalforms.py
++++ b/sympy/polys/matrices/normalforms.py
+@@ -205,16 +205,18 @@ def _hermite_normal_form(A):
+     if not A.domain.is_ZZ:
+         raise DMDomainError('Matrix must be over domain ZZ.')
+     # We work one row at a time, starting from the bottom row, and working our
+-    # way up. The total number of rows we will consider is min(m, n), where
+-    # A is an m x n matrix.
++    # way up. Every row must be considered, even when m > n: a row can hold the
++    # pivot for a column whose entries lie above the rows already processed.
++    # Processing stops early once every column already has a pivot.
+     m, n = A.shape
+-    rows = min(m, n)
+     A = A.to_dense().rep.copy()
+     # Our goal is to put pivot entries in the rightmost columns.
+     # Invariant: Before processing each row, k should be the index of the
+     # leftmost column in which we have so far put a pivot.
+     k = n
+-    for i in range(m - 1, m - 1 - rows, -1):
++    for i in range(m - 1, -1, -1):
++        if k == 0:
++            break
+         k -= 1
+         # k now points to the column in which we want to put a pivot.
+         # We want zeros in all entries to the left of the pivot column.
+diff --git a/sympy/polys/matrices/tests/test_normalforms.py b/sympy/polys/matrices/tests/test_normalforms.py
+index 1b6bdd0d6b..6e67597150 100644
+--- a/sympy/polys/matrices/tests/test_normalforms.py
++++ b/sympy/polys/matrices/tests/test_normalforms.py
+@@ -62,7 +62,12 @@ def test_hermite_normal():
+     assert hermite_normal_form(m) == hnf
+ 
+     m = DM([[2, 7], [0, 0], [0, 0]], ZZ)
+-    hnf = DM([[], [], []], ZZ)
++    hnf = DM([[1], [0], [0]], ZZ)
++    assert hermite_normal_form(m) == hnf
++
++    # Regression test for issue 23413: more rows than columns must not drop rows.
++    m = DM([[1, 0, 0], [12, 8, 5]], ZZ).transpose()
++    hnf = DM([[1, 0], [0, 8], [0, 5]], ZZ)
+     assert hermite_normal_form(m) == hnf
+ 
+     m = DM([[-2, 1], [0, 1]], ZZ)

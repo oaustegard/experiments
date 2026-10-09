@@ -1,0 +1,143 @@
+diff --git a/django/db/migrations/executor.py b/django/db/migrations/executor.py
+index aa2fe0883b..105404a8ec 100644
+--- a/django/db/migrations/executor.py
++++ b/django/db/migrations/executor.py
+@@ -19,6 +19,27 @@ class MigrationExecutor:
+         self.recorder = MigrationRecorder(self.connection)
+         self.progress_callback = progress_callback
+ 
++    def migration_allowed(self, migration):
++        """
++        Return True if the database router allows at least one operation of
++        the migration to run on this connection. A migration that touches none
++        of the connection's allowed models isn't recorded there, so the
++        connection doesn't need the django_migrations table for it.
++        """
++        if not migration.operations:
++            return True
++        return any(
++            router.allow_migrate(
++                self.connection.alias,
++                migration.app_label,
++                model_name=(
++                    getattr(operation, 'model_name_lower', None) or
++                    getattr(operation, 'name_lower', None)
++                ),
++            )
++            for operation in migration.operations
++        )
++
+     def migration_plan(self, targets, clean_start=False):
+         """
+         Given a set of targets, return a list of (Migration instance, backwards?).
+@@ -95,12 +116,12 @@ class MigrationExecutor:
+         Django first needs to create all project states before a migration is
+         (un)applied and in a second step run all the database operations.
+         """
+-        # The django_migrations table must be present to record applied
+-        # migrations.
+-        self.recorder.ensure_schema()
+-
+         if plan is None:
+             plan = self.migration_plan(targets)
++        # The django_migrations table must be present to record applied
++        # migrations, unless the router doesn't allow any of them here.
++        if not plan or any(self.migration_allowed(migration) for migration, _ in plan):
++            self.recorder.ensure_schema()
+         # Create the forwards plan Django would follow on an empty database
+         full_plan = self.migration_plan(self.loader.graph.leaf_nodes(), clean_start=True)
+ 
+@@ -245,6 +266,8 @@ class MigrationExecutor:
+         return state
+ 
+     def record_migration(self, migration):
++        if not self.migration_allowed(migration):
++            return
+         # For replacement migrations, record individual statuses
+         if migration.replaces:
+             for app_label, name in migration.replaces:
+@@ -259,11 +282,12 @@ class MigrationExecutor:
+         if not fake:
+             with self.connection.schema_editor(atomic=migration.atomic) as schema_editor:
+                 state = migration.unapply(state, schema_editor)
+-        # For replacement migrations, also record individual statuses.
+-        if migration.replaces:
+-            for app_label, name in migration.replaces:
+-                self.recorder.record_unapplied(app_label, name)
+-        self.recorder.record_unapplied(migration.app_label, migration.name)
++        if self.migration_allowed(migration):
++            # For replacement migrations, also record individual statuses.
++            if migration.replaces:
++                for app_label, name in migration.replaces:
++                    self.recorder.record_unapplied(app_label, name)
++            self.recorder.record_unapplied(migration.app_label, migration.name)
+         # Report progress
+         if self.progress_callback:
+             self.progress_callback("unapply_success", migration, fake)
+@@ -283,7 +307,7 @@ class MigrationExecutor:
+         applied = self.recorder.applied_migrations()
+         for key, migration in self.loader.replacements.items():
+             all_applied = all(m in applied for m in migration.replaces)
+-            if all_applied and key not in applied:
++            if all_applied and key not in applied and self.migration_allowed(migration):
+                 self.recorder.record_applied(*key)
+ 
+     def detect_soft_applied(self, project_state, migration):
+diff --git a/tests/migrations/test_multidb.py b/tests/migrations/test_multidb.py
+index d8986deb81..eee840a157 100644
+--- a/tests/migrations/test_multidb.py
++++ b/tests/migrations/test_multidb.py
+@@ -1,6 +1,10 @@
+-from django.db import connection, migrations, models
++from unittest import mock
++
++from django.db import connection, connections, migrations, models
++from django.db.migrations.executor import MigrationExecutor
++from django.db.migrations.recorder import MigrationRecorder
+ from django.db.migrations.state import ProjectState
+-from django.test import override_settings
++from django.test import TestCase, override_settings
+ 
+ from .test_base import OperationTestBase
+ 
+@@ -169,3 +173,40 @@ class MultiDBOperationTests(OperationTestBase):
+     @override_settings(DATABASE_ROUTERS=[MigrateWhenFooRouter()])
+     def test_run_python_migrate_foo_router_with_hints(self):
+         self._test_run_python('test_mltdb_runpython3', should_run=True, hints={'foo': True})
++
++
++class DefaultOnlyRouter:
++    """
++    A router that allows migrating everything on 'default' and nothing else.
++    """
++    def allow_migrate(self, db, app_label, **hints):
++        return db == 'default'
++
++
++@override_settings(
++    MIGRATION_MODULES={'migrations': 'migrations.test_migrations'},
++    DATABASE_ROUTERS=[DefaultOnlyRouter()],
++)
++class MigrationRecorderMultiDBTests(TestCase):
++    """
++    Migration records are neither created nor written on a connection where
++    the router doesn't allow migrating any model.
++    """
++    databases = {'default', 'other'}
++
++    def _migration(self):
++        migration = migrations.Migration('0001_initial', 'migrations')
++        migration.operations = [migrations.CreateModel('Tribble', fields=[])]
++        return migration
++
++    def test_no_records_when_no_model_allowed(self):
++        executor = MigrationExecutor(connections['other'])
++        migration = self._migration()
++        self.assertFalse(executor.migration_allowed(migration))
++        with mock.patch.object(MigrationRecorder, 'record_applied') as record_applied:
++            executor.record_migration(migration)
++        record_applied.assert_not_called()
++
++    def test_records_when_model_allowed(self):
++        executor = MigrationExecutor(connections['default'])
++        self.assertTrue(executor.migration_allowed(self._migration()))

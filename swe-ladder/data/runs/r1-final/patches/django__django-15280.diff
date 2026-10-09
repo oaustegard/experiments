@@ -1,0 +1,123 @@
+diff --git a/django/db/models/fields/related_descriptors.py b/django/db/models/fields/related_descriptors.py
+index d5aa968400..7f23bed3f1 100644
+--- a/django/db/models/fields/related_descriptors.py
++++ b/django/db/models/fields/related_descriptors.py
+@@ -144,8 +144,12 @@ class ForwardManyToOneDescriptor:
+         # we must manage the reverse relation cache manually.
+         if not remote_field.multiple:
+             for rel_obj in queryset:
+-                instance = instances_dict[rel_obj_attr(rel_obj)]
+-                remote_field.set_cached_value(rel_obj, instance)
++                # Iterating the queryset may already have run nested prefetches
++                # that cached this relation on rel_obj; keep that value rather
++                # than overwriting it with the (less deferred) parent instance.
++                if not remote_field.is_cached(rel_obj):
++                    instance = instances_dict[rel_obj_attr(rel_obj)]
++                    remote_field.set_cached_value(rel_obj, instance)
+         return queryset, rel_obj_attr, instance_attr, True, self.field.get_cache_name(), False
+ 
+     def get_object(self, instance):
+@@ -376,8 +380,12 @@ class ReverseOneToOneDescriptor:
+         # Since we're going to assign directly in the cache,
+         # we must manage the reverse relation cache manually.
+         for rel_obj in queryset:
+-            instance = instances_dict[rel_obj_attr(rel_obj)]
+-            self.related.field.set_cached_value(rel_obj, instance)
++            # Iterating the queryset may already have run nested prefetches
++            # that cached this relation on rel_obj; keep that value rather
++            # than overwriting it with the (less deferred) parent instance.
++            if not self.related.field.is_cached(rel_obj):
++                instance = instances_dict[rel_obj_attr(rel_obj)]
++                self.related.field.set_cached_value(rel_obj, instance)
+         return queryset, rel_obj_attr, instance_attr, True, self.related.get_cache_name(), False
+ 
+     def __get__(self, instance, cls=None):
+@@ -646,8 +654,11 @@ def create_reverse_many_to_one_manager(superclass, rel):
+             # Since we just bypassed this class' get_queryset(), we must manage
+             # the reverse relation manually.
+             for rel_obj in queryset:
+-                instance = instances_dict[rel_obj_attr(rel_obj)]
+-                setattr(rel_obj, self.field.name, instance)
++                # As above, don't overwrite a value already cached by a nested
++                # prefetch run while the queryset was evaluated.
++                if not self.field.is_cached(rel_obj):
++                    instance = instances_dict[rel_obj_attr(rel_obj)]
++                    setattr(rel_obj, self.field.name, instance)
+             cache_name = self.field.remote_field.get_cache_name()
+             return queryset, rel_obj_attr, instance_attr, False, cache_name, False
+ 
+diff --git a/tests/prefetch_related/models.py b/tests/prefetch_related/models.py
+index 0ded7e8b4a..d31fb9e5d2 100644
+--- a/tests/prefetch_related/models.py
++++ b/tests/prefetch_related/models.py
+@@ -163,6 +163,18 @@ class TaggedItem(models.Model):
+         ordering = ['id']
+ 
+ 
++class User15280(models.Model):
++    email = models.EmailField()
++    kind = models.CharField(
++        max_length=10, choices=[("ADMIN", "Admin"), ("REGULAR", "Regular")]
++    )
++
++
++class Profile15280(models.Model):
++    full_name = models.CharField(max_length=255)
++    user = models.OneToOneField(User15280, on_delete=models.CASCADE)
++
++
+ class Article(models.Model):
+     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+     name = models.CharField(max_length=20)
+diff --git a/tests/prefetch_related/tests.py b/tests/prefetch_related/tests.py
+index 4ea7fccd5e..4270207178 100644
+--- a/tests/prefetch_related/tests.py
++++ b/tests/prefetch_related/tests.py
+@@ -13,7 +13,8 @@ from .models import (
+     Article, Author, Author2, AuthorAddress, AuthorWithAge, Bio, Book,
+     Bookmark, BookReview, BookWithYear, Comment, Department, Employee,
+     FavoriteAuthors, House, LessonEntry, ModelIterableSubclass, Person,
+-    Qualification, Reader, Room, TaggedItem, Teacher, WordEntry,
++    Profile15280, Qualification, Reader, Room, TaggedItem, Teacher,
++    User15280, WordEntry,
+ )
+ 
+ 
+@@ -1614,3 +1615,37 @@ class ReadPrefetchedObjectsCacheTests(TestCase):
+         with self.assertNumQueries(4):
+             # AuthorWithAge -> Author -> FavoriteAuthors, Book
+             self.assertSequenceEqual(authors, [self.author1, self.author2])
++
++
++class DeferredFieldsPrefetchBackToParentTests(TestCase):
++    def test_only_related_queryset(self):
++        user = User15280.objects.create(email='test@example.com', kind='ADMIN')
++        Profile15280.objects.create(user=user, full_name='Test Tester')
++        queryset = User15280.objects.only('email').prefetch_related(
++            Prefetch(
++                'profile15280',
++                queryset=Profile15280.objects.prefetch_related(
++                    Prefetch('user', queryset=User15280.objects.only('kind'))
++                ),
++            )
++        )
++        with self.assertNumQueries(3):
++            user = queryset.first()
++        with self.assertNumQueries(0):
++            self.assertEqual(user.profile15280.user.kind, 'ADMIN')
++
++    def test_only_related_queryset_foreign_key(self):
++        book = Book.objects.create(title='Poems')
++        Author.objects.create(name='Jane', first_book=book)
++        queryset = Book.objects.only('id').prefetch_related(
++            Prefetch(
++                'first_time_authors',
++                queryset=Author.objects.prefetch_related(
++                    Prefetch('first_book', queryset=Book.objects.only('title')),
++                ),
++            ),
++        )
++        with self.assertNumQueries(3):
++            book = queryset.first()
++        with self.assertNumQueries(0):
++            self.assertEqual(book.first_time_authors.all()[0].first_book.title, 'Poems')

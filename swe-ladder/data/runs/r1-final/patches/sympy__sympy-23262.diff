@@ -1,0 +1,37 @@
+diff --git a/sympy/utilities/lambdify.py b/sympy/utilities/lambdify.py
+index da67263b19..19822807de 100644
+--- a/sympy/utilities/lambdify.py
++++ b/sympy/utilities/lambdify.py
+@@ -961,6 +961,10 @@ def _recursive_to_string(doprint, arg):
+             left, right = "()"
+         else:
+             raise NotImplementedError("unhandled type: %s, %s" % (type(arg), arg))
++        if isinstance(arg, tuple) and len(arg) == 1:
++            # a one-element tuple needs a trailing comma, otherwise "(x)" is
++            # just parenthesised x
++            return left + _recursive_to_string(doprint, arg[0]) + ',' + right
+         return left +', '.join(_recursive_to_string(doprint, e) for e in arg) + right
+     elif isinstance(arg, str):
+         return arg
+diff --git a/sympy/utilities/tests/test_lambdify.py b/sympy/utilities/tests/test_lambdify.py
+index 023c2fb55a..d23d0eed18 100644
+--- a/sympy/utilities/tests/test_lambdify.py
++++ b/sympy/utilities/tests/test_lambdify.py
+@@ -97,6 +97,17 @@ def test_nested_args():
+     assert f3(10, [[[52]], 31], 44) == [10, 52, 31, 44]
+ 
+ 
++def test_tuple_one_element():
++    # a one-element tuple must stay a tuple in the generated code
++    f = lambdify([], tuple([1]))
++    assert f() == (1,)
++    assert isinstance(f(), tuple)
++    assert lambdify([], ((1,),))() == ((1,),)
++    assert lambdify([], [(1,)])() == [(1,)]
++    assert lambdify(x, ((x,),))(3) == ((3,),)
++    assert lambdify([], ())() == ()
++
++
+ def test_str_args():
+     f = lambdify('x,y,z', 'z,y,x')
+     assert f(3, 2, 1) == (1, 2, 3)

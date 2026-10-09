@@ -1,0 +1,44 @@
+diff --git a/sympy/codegen/ast.py b/sympy/codegen/ast.py
+index a02714b174..77db8e2bbe 100644
+--- a/sympy/codegen/ast.py
++++ b/sympy/codegen/ast.py
+@@ -134,6 +134,7 @@
+ from sympy.core import Symbol, Tuple, Dummy
+ from sympy.core.basic import Basic
+ from sympy.core.expr import Expr
++from sympy.core.symbol import Str
+ from sympy.core.numbers import Float, Integer, oo
+ from sympy.core.sympify import _sympify, sympify, SympifyError
+ from sympy.utilities.iterables import (iterable, topological_sort,
+@@ -898,8 +899,17 @@ class String(Token):
+     not_in_args = ['text']
+     is_Atom = True
+ 
++    def __new__(cls, *args, **kwargs):
++        obj = super().__new__(cls, *args, **kwargs)
++        # Carry the text in ``args`` as a ``Str`` so that ``expr.func(*expr.args)``
++        # reconstructs the object, the same invariance every Basic satisfies.
++        obj._args = (Str(obj.text),)
++        return obj
++
+     @classmethod
+     def _construct_text(cls, text):
++        if isinstance(text, Str):
++            text = text.name
+         if not isinstance(text, str):
+             raise TypeError("Argument text is not a string type.")
+         return text
+diff --git a/sympy/codegen/tests/test_ast.py b/sympy/codegen/tests/test_ast.py
+index 00c5d4cf28..d789a486d7 100644
+--- a/sympy/codegen/tests/test_ast.py
++++ b/sympy/codegen/tests/test_ast.py
+@@ -267,6 +267,9 @@ def test_String():
+     assert st == String('foobar')
+     assert st.text == 'foobar'
+     assert st.func(**st.kwargs()) == st
++    assert st.func(*st.args) == st
++    assert String(*st.args) == st
++    assert QuotedString('x').func(*QuotedString('x').args) == QuotedString('x')
+ 
+ 
+     class Signifier(String):

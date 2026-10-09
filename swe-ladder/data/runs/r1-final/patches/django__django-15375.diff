@@ -1,0 +1,38 @@
+diff --git a/django/db/models/aggregates.py b/django/db/models/aggregates.py
+index 8c4eae7906..65cea9a734 100644
+--- a/django/db/models/aggregates.py
++++ b/django/db/models/aggregates.py
+@@ -65,7 +65,11 @@ class Aggregate(Func):
+         if hasattr(default, 'resolve_expression'):
+             default = default.resolve_expression(query, allow_joins, reuse, summarize)
+         c.default = None  # Reset the default argument before wrapping.
+-        return Coalesce(c, default, output_field=c._output_field_or_none)
++        coalesce = Coalesce(c, default, output_field=c._output_field_or_none)
++        # Preserve the summary flag so get_aggregation() still moves the
++        # wrapped aggregate to the outer query.
++        coalesce.is_summary = c.is_summary
++        return coalesce
+ 
+     @property
+     def default_alias(self):
+diff --git a/tests/aggregation/tests.py b/tests/aggregation/tests.py
+index 87ae945a7e..9c3e1bd864 100644
+--- a/tests/aggregation/tests.py
++++ b/tests/aggregation/tests.py
+@@ -1630,6 +1630,16 @@ class AggregateTestCase(TestCase):
+         )
+         self.assertAlmostEqual(result['value'], Decimal('61.72'), places=2)
+ 
++    def test_aggregation_default_after_annotate(self):
++        result = Author.objects.annotate(idx=F('id')).aggregate(
++            id__sum=Sum('id', default=0),
++        )
++        self.assertEqual(result['id__sum'], sum(Author.objects.values_list('id', flat=True)))
++        empty = Author.objects.annotate(idx=F('id')).filter(age__gt=100).aggregate(
++            id__sum=Sum('id', default=0),
++        )
++        self.assertEqual(empty['id__sum'], 0)
++
+     def test_exists_none_with_aggregate(self):
+         qs = Book.objects.all().annotate(
+             count=Count('id'),

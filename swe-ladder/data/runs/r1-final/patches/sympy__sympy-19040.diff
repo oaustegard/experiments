@@ -1,0 +1,78 @@
+diff --git a/sympy/polys/factortools.py b/sympy/polys/factortools.py
+index c6a5f9f063..eb0700b156 100644
+--- a/sympy/polys/factortools.py
++++ b/sympy/polys/factortools.py
+@@ -52,12 +52,12 @@
+     dup_monic, dmp_ground_monic,
+     dup_primitive, dmp_ground_primitive,
+     dmp_eval_tail,
+-    dmp_eval_in, dmp_diff_eval_in,
++    dmp_eval_in, dmp_diff_eval_in, dmp_diff_in,
+     dmp_compose,
+     dup_shift, dup_mirror)
+ 
+ from sympy.polys.euclidtools import (
+-    dmp_primitive,
++    dmp_primitive, dmp_gcd,
+     dup_inner_gcd, dmp_inner_gcd)
+ 
+ from sympy.polys.sqfreetools import (
+@@ -1146,21 +1146,30 @@ def dmp_ext_factor(f, u, K):
+     if all(d <= 0 for d in dmp_degree_list(f, u)):
+         return lc, []
+ 
+-    f, F = dmp_sqf_part(f, u, K), f
++    F = f
++
++    # dmp_sqf_part only removes repeated factors in the main variable, so it
++    # drops factors that do not involve it (y - 1 in (x - 1)*(y - 1)).  Divide
++    # by the gcd of f with all its partial derivatives instead: that keeps
++    # every irreducible factor exactly once, whatever variable it involves.
++    # Multiplicities are restored by the trial division below.
++    G = f
++    for j in range(u + 1):
++        G = dmp_gcd(G, dmp_diff_in(f, 1, j, u, K), u, K)
++
++    f = dmp_quo(f, G, u, K)
++
+     s, g, r = dmp_sqf_norm(f, u, K)
+ 
+     factors = dmp_factor_list_include(r, u, K.dom)
+ 
+-    if len(factors) == 1:
+-        factors = [f]
+-    else:
+-        H = dmp_raise([K.one, s*K.unit], u, 0, K)
++    H = dmp_raise([K.one, s*K.unit], u, 0, K)
+ 
+-        for i, (factor, _) in enumerate(factors):
+-            h = dmp_convert(factor, u, K.dom, K)
+-            h, _, g = dmp_inner_gcd(h, g, u, K)
+-            h = dmp_compose(h, H, u, K)
+-            factors[i] = h
++    for i, (factor, _) in enumerate(factors):
++        h = dmp_convert(factor, u, K.dom, K)
++        h, _, g = dmp_inner_gcd(h, g, u, K)
++        h = dmp_compose(h, H, u, K)
++        factors[i] = h
+ 
+     return lc, dmp_trial_division(F, factors, u, K)
+ 
+diff --git a/sympy/polys/tests/test_polytools.py b/sympy/polys/tests/test_polytools.py
+index b0b4cd6132..7df27dbfd4 100644
+--- a/sympy/polys/tests/test_polytools.py
++++ b/sympy/polys/tests/test_polytools.py
+@@ -3249,10 +3249,12 @@ def test_poly_matching_consistency():
+     assert Poly(x, x) * I == Poly(I*x, x)
+ 
+ 
+-@XFAIL
+ def test_issue_5786():
+     assert expand(factor(expand(
+         (x - I*y)*(z - I*t)), extension=[I])) == -I*t*x - t*y + x*z - I*y*z
++    assert factor(expand((x - 1)*(y - 1)), extension=[I]) == (x - 1)*(y - 1)
++    assert factor(expand((x - 1)*(y - 1)*(x + y)), extension=[I]) == \
++        (x - 1)*(y - 1)*(x + y)
+ 
+ 
+ def test_noncommutative():

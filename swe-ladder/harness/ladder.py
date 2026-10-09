@@ -167,6 +167,31 @@ def status(a) -> None:
                       "resolved": sum(r.get("resolved") is True for r in res.values())}))
 
 
+def merge(a) -> None:
+    """OUT = BASE with OVERRIDE's tasks replacing BASE's (patch, log, result).
+
+    Used when a subset of a run is redone: rung 2 stages from OUT.
+    """
+    import shutil
+    out, base, over = rdir(a.out), rdir(a.base), rdir(a.override)
+    if out.exists():
+        sys.exit(f"{out} exists")
+    redo = set(results(a.override))
+    missing = sorted({p.stem for p in (over / "patches").glob("*.diff")} - redo)
+    if missing:
+        sys.exit(f"{a.override} has ungraded patches: {missing[:5]}")
+    for sub in ("patches", "logs"):
+        (out / sub).mkdir(parents=True)
+        for src in (base, over):
+            for f in (src / sub).glob("*"):
+                if src is over or f.stem not in redo:
+                    shutil.copyfile(f, out / sub / f.name)
+    rows = {**results(a.base), **results(a.override)}
+    (out / "results.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows.values()))
+    (out / "meta.json").write_text(json.dumps({"merged": [a.base, a.override], "n": len(rows)}, indent=1))
+    print(f"{out}: {len(rows)} results, {len(redo)} from {a.override}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -192,7 +217,14 @@ def main():
     c.add_argument("run")
     c.add_argument("ids", nargs="+")
     c.add_argument("--slots", type=int, default=10)
+    mg = sub.add_parser("merge", help="OUT = BASE with OVERRIDE's tasks replaced")
+    mg.add_argument("out")
+    mg.add_argument("base")
+    mg.add_argument("override")
     a = ap.parse_args()
+    if a.cmd == "merge":
+        merge(a)
+        return
     if a.cmd == "cycle":
         done(a)
         next_(a)

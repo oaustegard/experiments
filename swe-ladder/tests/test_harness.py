@@ -102,3 +102,30 @@ def test_jailed_command_shape():
 
 def test_python_substitution():
     assert common.python_for("3.6") == "3.8" and common.python_for("3.11") == "3.11"
+
+
+def test_merge_replaces_redone_tasks_only(tmp_path, monkeypatch):
+    import json
+    from types import SimpleNamespace
+    import ladder
+    monkeypatch.setattr(ladder, "RUNS", tmp_path)
+
+    def run(name, rows):
+        d = tmp_path / name
+        (d / "patches").mkdir(parents=True)
+        (d / "logs").mkdir()
+        for iid, ok in rows.items():
+            (d / "patches" / f"{iid}.diff").write_text(f"{name} {iid}")
+            (d / "logs" / f"{iid}.log").write_text(f"{name} {iid}")
+        (d / "results.jsonl").write_text(
+            "".join(json.dumps({"instance_id": i, "resolved": ok}) + "\n" for i, ok in rows.items()))
+
+    run("base", {"a": True, "b": False})
+    run("redo", {"b": True})
+    ladder.merge(SimpleNamespace(out="m", base="base", override="redo"))
+    m = tmp_path / "m"
+    assert ladder.results("m") == {"a": {"instance_id": "a", "resolved": True},
+                                   "b": {"instance_id": "b", "resolved": True}}
+    assert (m / "patches" / "a.diff").read_text() == "base a"
+    assert (m / "patches" / "b.diff").read_text() == "redo b"
+    assert (m / "logs" / "b.log").read_text() == "redo b"

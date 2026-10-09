@@ -1,0 +1,49 @@
+diff --git a/django/forms/models.py b/django/forms/models.py
+index 192d9fad94..19400f5728 100644
+--- a/django/forms/models.py
++++ b/django/forms/models.py
+@@ -253,6 +253,7 @@ class ModelFormOptions:
+         self.help_texts = getattr(options, "help_texts", None)
+         self.error_messages = getattr(options, "error_messages", None)
+         self.field_classes = getattr(options, "field_classes", None)
++        self.formfield_callback = getattr(options, "formfield_callback", None)
+ 
+ 
+ class ModelFormMetaclass(DeclarativeFieldsMetaclass):
+@@ -263,7 +264,10 @@ class ModelFormMetaclass(DeclarativeFieldsMetaclass):
+                 base_formfield_callback = b.Meta.formfield_callback
+                 break
+ 
+-        formfield_callback = attrs.pop("formfield_callback", base_formfield_callback)
++        # A formfield_callback declared in the class body takes precedence,
++        # including an explicit None. Otherwise fall back to Meta.
++        class_formfield_callback_set = "formfield_callback" in attrs
++        formfield_callback = attrs.pop("formfield_callback", None)
+ 
+         new_class = super().__new__(mcs, name, bases, attrs)
+ 
+@@ -272,6 +276,11 @@ class ModelFormMetaclass(DeclarativeFieldsMetaclass):
+ 
+         opts = new_class._meta = ModelFormOptions(getattr(new_class, "Meta", None))
+ 
++        if not class_formfield_callback_set:
++            formfield_callback = opts.formfield_callback
++            if formfield_callback is None:
++                formfield_callback = base_formfield_callback
++
+         # We check if a string was passed to `fields` or `exclude`,
+         # which is likely to be a mistake where the user typed ('foo') instead
+         # of ('foo',)
+@@ -635,8 +644,10 @@ def modelform_factory(
+     # Give this new form class a reasonable name.
+     class_name = model.__name__ + "Form"
+ 
+-    # Class attributes for the new form class.
+-    form_class_attrs = {"Meta": Meta, "formfield_callback": formfield_callback}
++    # Class attributes for the new form class. The callback, if any, is carried
++    # on Meta; setting it here as a class attribute would override a callback
++    # declared on the base form's Meta.
++    form_class_attrs = {"Meta": Meta}
+ 
+     if getattr(Meta, "fields", None) is None and getattr(Meta, "exclude", None) is None:
+         raise ImproperlyConfigured(

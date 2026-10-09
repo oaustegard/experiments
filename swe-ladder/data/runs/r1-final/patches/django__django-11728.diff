@@ -1,0 +1,27 @@
+diff --git a/django/contrib/admindocs/utils.py b/django/contrib/admindocs/utils.py
+index 1ce4594501..56e0b21e51 100644
+--- a/django/contrib/admindocs/utils.py
++++ b/django/contrib/admindocs/utils.py
+@@ -180,6 +180,10 @@ def replace_named_groups(pattern):
+             elif val == ')' and prev_char != '\\':
+                 unmatched_open_brackets -= 1
+             prev_char = val
++        else:
++            # The loop didn't break, so the end of the pattern was reached
++            # (e.g. a trailing named group with no following characters).
++            group_pattern_and_name.append((pattern[start:], group_name))
+ 
+     # Replace the string for named capture groups with their group names.
+     for group_pattern, group_name in group_pattern_and_name:
+diff --git a/tests/admin_docs/test_views.py b/tests/admin_docs/test_views.py
+index 144517ab0a..f890648fef 100644
+--- a/tests/admin_docs/test_views.py
++++ b/tests/admin_docs/test_views.py
+@@ -354,6 +354,7 @@ class AdminDocViewFunctionsTests(SimpleTestCase):
+             (r'^(?P<a>(x|y))/b/(?P<c>\w+)ab', '/<a>/b/<c>ab'),
+             (r'^(?P<a>(x|y)(\(|\)))/b/(?P<c>\w+)ab', '/<a>/b/<c>ab'),
+             (r'^a/?$', '/a/'),
++            (r'entries/(?P<pk>[^/.]+)/relationships/(?P<related_field>\w+)', '/entries/<pk>/relationships/<related_field>'),
+         )
+         for pattern, output in tests:
+             with self.subTest(pattern=pattern):

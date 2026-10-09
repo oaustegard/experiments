@@ -1,0 +1,39 @@
+diff --git a/sympy/combinatorics/permutations.py b/sympy/combinatorics/permutations.py
+index 136ed5a478..68a09474ab 100644
+--- a/sympy/combinatorics/permutations.py
++++ b/sympy/combinatorics/permutations.py
+@@ -895,12 +895,10 @@ def __new__(cls, *args, **kwargs):
+         # counting starts from 1.
+ 
+         temp = flatten(args)
+-        if has_dups(temp):
+-            if is_cycle:
+-                raise ValueError('there were repeated elements; to resolve '
+-                'cycles use Cycle%s.' % ''.join([str(tuple(c)) for c in args]))
+-            else:
+-                raise ValueError('there were repeated elements.')
++        # cycles may share elements (they are applied left-to-right);
++        # only array form must have unique entries
++        if has_dups(temp) and not is_cycle:
++            raise ValueError('there were repeated elements.')
+         temp = set(temp)
+ 
+         if not is_cycle and \
+diff --git a/sympy/combinatorics/tests/test_permutations.py b/sympy/combinatorics/tests/test_permutations.py
+index 7f8cd572e7..80652816e8 100644
+--- a/sympy/combinatorics/tests/test_permutations.py
++++ b/sympy/combinatorics/tests/test_permutations.py
+@@ -349,7 +349,12 @@ def test_args():
+     raises(ValueError, lambda: Permutation([[1, 2], 0]))
+            # enclosing brackets needed on 0
+     raises(ValueError, lambda: Permutation([1, 1, 0]))
+-    raises(ValueError, lambda: Permutation([[1], [1, 2]]))
++    # non-disjoint cycles are applied left-to-right (issue 12481)
++    assert Permutation([[0, 1], [0, 1]]).array_form == [0, 1]
++    assert Permutation([[1], [1, 2]]) == Permutation([[1, 2]])
++    assert Permutation([[0, 1], [1, 2]]) == \
++        Permutation([[0, 1]]) * Permutation([[1, 2]])
++    raises(ValueError, lambda: Permutation([[1, 1], [0]]))
+     raises(ValueError, lambda: Permutation([4, 5], size=10))  # where are 0-3?
+     # but this is ok because cycles imply that only those listed moved
+     assert Permutation(4, 5) == Permutation([0, 1, 2, 3, 5, 4])

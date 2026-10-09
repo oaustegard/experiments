@@ -1,0 +1,19 @@
+diff --git a/sympy/core/symbol.py b/sympy/core/symbol.py
+index 44674d1984..b3897833b6 100644
+--- a/sympy/core/symbol.py
++++ b/sympy/core/symbol.py
+@@ -256,6 +256,14 @@ def _eval_subs(self, old, new):
+         if old.is_Pow:
+             return Pow(self, S.One, evaluate=False)._eval_subs(old, new)
+ 
++    def _eval_is_finite(self):
++        # Rational and algebraic values are finite, so even/odd/integer
++        # symbols are too. This is a handler rather than an entry in
++        # _assume_rules: a rule would also make the infinities deduce
++        # False for rational, integer, etc. through its contrapositive.
++        if self.is_rational or self.is_algebraic:
++            return True
++
+     @property
+     def assumptions0(self):
+         return dict((key, value) for key, value

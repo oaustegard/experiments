@@ -1,0 +1,65 @@
+diff --git a/django/db/models/fields/json.py b/django/db/models/fields/json.py
+index fafc1beee8..a7b472e965 100644
+--- a/django/db/models/fields/json.py
++++ b/django/db/models/fields/json.py
+@@ -378,6 +378,22 @@ class KeyTransformIsNull(lookups.IsNull):
+         return super().as_sql(compiler, connection)
+ 
+ 
++class KeyTransformIn(lookups.In):
++    # The right-hand values are JSON-encoded by JSONField.get_prep_value(), but
++    # the left-hand side is the extracted JSON value. Compare them in the same
++    # representation, as KeyTransformExact does for a single value.
++    def resolve_expression_parameter(self, compiler, connection, sql, param):
++        if hasattr(param, 'resolve_expression'):
++            return super().resolve_expression_parameter(compiler, connection, sql, param)
++        if connection.vendor in {'sqlite', 'mysql'}:
++            return "JSON_EXTRACT(%s, '$')" % sql, [param]
++        if connection.vendor == 'oracle':
++            value = json.loads(param)
++            json_function = 'JSON_QUERY' if isinstance(value, (list, dict)) else 'JSON_VALUE'
++            return "%s(%s, '$.value')" % (json_function, sql), ['{"value": %s}' % param]
++        return sql, [param]
++
++
+ class KeyTransformExact(JSONExact):
+     def process_lhs(self, compiler, connection):
+         lhs, lhs_params = super().process_lhs(compiler, connection)
+@@ -482,6 +498,7 @@ class KeyTransformGte(KeyTransformNumericLookupMixin, lookups.GreaterThanOrEqual
+ KeyTransform.register_lookup(KeyTransformExact)
+ KeyTransform.register_lookup(KeyTransformIExact)
+ KeyTransform.register_lookup(KeyTransformIsNull)
++KeyTransform.register_lookup(KeyTransformIn)
+ KeyTransform.register_lookup(KeyTransformIContains)
+ KeyTransform.register_lookup(KeyTransformStartsWith)
+ KeyTransform.register_lookup(KeyTransformIStartsWith)
+diff --git a/tests/model_fields/test_jsonfield.py b/tests/model_fields/test_jsonfield.py
+index a7648711ac..f106baa7ba 100644
+--- a/tests/model_fields/test_jsonfield.py
++++ b/tests/model_fields/test_jsonfield.py
+@@ -623,6 +623,25 @@ class TestQuerying(TestCase):
+                     expected,
+                 )
+ 
++    def test_key_in(self):
++        tests = [
++            ('value__c__in', [14], self.objs[3:5]),
++            ('value__c__in', (14,), self.objs[3:5]),
++            ('value__c__in', [14, 'foo'], self.objs[3:5]),
++            ('value__c__in', [None], []),
++            ('value__0__in', [1], [self.objs[5]]),
++            ('value__h__in', [True], [self.objs[4]]),
++            ('value__h__in', [False], []),
++            ('value__foo__in', ['bar'], [self.objs[7]]),
++            ('value__foo__in', ['"bar"'], []),
++        ]
++        for lookup, value, expected in tests:
++            with self.subTest(lookup=lookup, value=value):
++                self.assertSequenceEqual(
++                    NullableJSONModel.objects.filter(**{lookup: value}),
++                    expected,
++                )
++
+     def test_key_iexact(self):
+         self.assertIs(NullableJSONModel.objects.filter(value__foo__iexact='BaR').exists(), True)
+         self.assertIs(NullableJSONModel.objects.filter(value__foo__iexact='"BaR"').exists(), False)

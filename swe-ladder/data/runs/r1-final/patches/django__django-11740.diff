@@ -1,0 +1,56 @@
+diff --git a/django/db/migrations/autodetector.py b/django/db/migrations/autodetector.py
+index 0dc1c77c53..dc5aa1a486 100644
+--- a/django/db/migrations/autodetector.py
++++ b/django/db/migrations/autodetector.py
+@@ -963,6 +963,11 @@ class MigrationAutodetector:
+                             preserve_default = False
+                     else:
+                         field = new_field
++                    dependencies = []
++                    # A field changed to a relation (e.g. UUIDField -> ForeignKey)
++                    # must wait for the related model to exist.
++                    if getattr(new_field, 'remote_field', None) is not None:
++                        dependencies.extend(self._get_dependencies_for_foreign_key(new_field))
+                     self.add_operation(
+                         app_label,
+                         operations.AlterField(
+@@ -970,7 +975,8 @@ class MigrationAutodetector:
+                             name=field_name,
+                             field=field,
+                             preserve_default=preserve_default,
+-                        )
++                        ),
++                        dependencies=dependencies,
+                     )
+                 else:
+                     # We cannot alter between m2m and concrete fields
+diff --git a/tests/migrations/test_autodetector.py b/tests/migrations/test_autodetector.py
+index e9926ba3bf..671bd74ade 100644
+--- a/tests/migrations/test_autodetector.py
++++ b/tests/migrations/test_autodetector.py
+@@ -2251,6 +2251,25 @@ class AutodetectorTests(TestCase):
+         self.assertOperationAttributes(changes, 'testapp', 0, 0, name="book")
+         self.assertMigrationDependencies(changes, 'testapp', 0, [("otherapp", "__first__")])
+ 
++    def test_alter_field_to_fk_dependency_other_app(self):
++        """
++        #11740 - Changing a non-relational field to a ForeignKey to a model in
++        another app adds a dependency on that app.
++        """
++        book_uuid = ModelState("otherapp", "Book", [
++            ("id", models.AutoField(primary_key=True)),
++            ("author", models.UUIDField(null=True)),
++        ])
++        book_fk = ModelState("otherapp", "Book", [
++            ("id", models.AutoField(primary_key=True)),
++            ("author", models.ForeignKey("testapp.Author", models.SET_NULL, null=True)),
++        ])
++        changes = self.get_changes([self.author_empty, book_uuid], [self.author_empty, book_fk])
++        self.assertNumberMigrations(changes, 'otherapp', 1)
++        self.assertOperationTypes(changes, 'otherapp', 0, ["AlterField"])
++        self.assertOperationAttributes(changes, 'otherapp', 0, 0, name="author")
++        self.assertMigrationDependencies(changes, 'otherapp', 0, [("testapp", "__first__")])
++
+     def test_circular_dependency_mixed_addcreate(self):
+         """
+         #23315 - The dependency resolver knows to put all CreateModel

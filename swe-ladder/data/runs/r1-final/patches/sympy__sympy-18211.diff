@@ -1,0 +1,39 @@
+diff --git a/sympy/core/relational.py b/sympy/core/relational.py
+index f581bfa3c4..618209e8e0 100644
+--- a/sympy/core/relational.py
++++ b/sympy/core/relational.py
+@@ -389,10 +389,17 @@ def __nonzero__(self):
+     def _eval_as_set(self):
+         # self is univariate and periodicity(self, x) in (0, None)
+         from sympy.solvers.inequalities import solve_univariate_inequality
++        from sympy.sets.conditionset import ConditionSet
+         syms = self.free_symbols
+         assert len(syms) == 1
+         x = syms.pop()
+-        return solve_univariate_inequality(self, x, relational=False)
++        try:
++            xset = solve_univariate_inequality(self, x, relational=False)
++        except NotImplementedError:
++            # the relational cannot be solved in closed form, so its
++            # solution set over the reals is left unevaluated
++            xset = ConditionSet(x, self, S.Reals)
++        return xset
+ 
+     @property
+     def binary_symbols(self):
+diff --git a/sympy/core/tests/test_relational.py b/sympy/core/tests/test_relational.py
+index 63a8705c62..ccc52be3e8 100644
+--- a/sympy/core/tests/test_relational.py
++++ b/sympy/core/tests/test_relational.py
+@@ -426,6 +426,11 @@ def test_univariate_relational_as_set():
+ 
+     assert (x**2 >= 4).as_set() == Interval(-oo, -2) + Interval(2, oo)
+ 
++    # relationals without a closed-form solution give a ConditionSet
++    from sympy.sets.conditionset import ConditionSet
++    assert Eq(x*cos(x) - 3*sin(x), 0).as_set() == \
++        ConditionSet(x, Eq(x*cos(x) - 3*sin(x), 0), S.Reals)
++
+ 
+ @XFAIL
+ def test_multivariate_relational_as_set():

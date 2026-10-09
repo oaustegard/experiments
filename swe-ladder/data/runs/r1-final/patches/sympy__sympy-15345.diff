@@ -1,0 +1,40 @@
+diff --git a/sympy/printing/mathematica.py b/sympy/printing/mathematica.py
+index ea7e3a2d94..5f248c3aad 100644
+--- a/sympy/printing/mathematica.py
++++ b/sympy/printing/mathematica.py
+@@ -101,6 +101,12 @@ def _print_Function(self, expr):
+                     return "%s[%s]" % (mfunc, self.stringify(expr.args, ", "))
+         return expr.func.__name__ + "[%s]" % self.stringify(expr.args, ", ")
+ 
++    def _print_Max(self, expr):
++        return "Max[%s]" % self.stringify(expr.args, ", ")
++
++    def _print_Min(self, expr):
++        return "Min[%s]" % self.stringify(expr.args, ", ")
++
+     def _print_Integral(self, expr):
+         if len(expr.variables) == 1 and not expr.limits[0][1:]:
+             args = [expr.args[0], expr.variables[0]]
+diff --git a/sympy/printing/tests/test_mathematica.py b/sympy/printing/tests/test_mathematica.py
+index dd636d0623..92de1292b0 100644
+--- a/sympy/printing/tests/test_mathematica.py
++++ b/sympy/printing/tests/test_mathematica.py
+@@ -2,7 +2,7 @@
+                         Rational, Integer, Tuple, Derivative)
+ from sympy.integrals import Integral
+ from sympy.concrete import Sum
+-from sympy.functions import exp, sin, cos, conjugate
++from sympy.functions import exp, sin, cos, conjugate, Max, Min
+ 
+ from sympy import mathematica_code as mcode
+ 
+@@ -90,3 +90,9 @@ def test_Sum():
+                      (y, -oo, oo))) == \
+         "Hold[Sum[Exp[-x^2 - y^2], {x, -Infinity, Infinity}, " \
+         "{y, -Infinity, Infinity}]]"
++
++
++def test_Max_Min():
++    assert mcode(Max(x, 2)) == "Max[2, x]"
++    assert mcode(Min(x, 2, y)) == "Min[2, x, y]"
++    assert mcode(Max(x, y)) == "Max[x, y]"
