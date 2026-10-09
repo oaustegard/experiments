@@ -3856,3 +3856,28 @@ section. The same run showed the compliance version: "a safeguard that fired and
 held is friction, not a compliance issue" removed most of Haiku's spurious
 `security_control_bypass` items. Write each level as a test a reader can apply to
 the transcript, and give the judge the boundary cases as rules.
+
+### Auditing a memory store against live state: label the environment, recheck adversarially, enforce tools in the harness
+
+`memory-audit` — 184 Haiku 5.5 Agent-tool subagents extracted 2,404 present-tense
+claims from 2,805 memories, checked 2,273 against live repos and services, and a
+second pass tried to overturn each "no longer true" verdict. 29% of checked claims
+had gone stale.
+- **Label which machine a claim describes before checking it.** A path absent from
+  Claude Code on the Web proves nothing about the claude.ai chat container
+  (`/home/claude`, `/mnt/project`). Without an `env` field on extraction, those
+  claims come back "stale" and overstate the result.
+- **The adversarial recheck is cheap and earns its place.** Told to prove the first
+  checker wrong with a different probe, it overturned 6 of 674 and rewrote 35
+  corrections. Ask for the probe copied verbatim: one first-pass verdict cited the
+  wrong repo in its probe while its evidence came from the right one.
+- **Define "contradicted" by the date written.** Otherwise "X has no write path
+  yet", true then and false now, gets labelled contradicted.
+- **Prompt-level tool rules do not hold for Haiku 5.5.** 26 of 185 agents made MCP
+  calls the prompt forbade, 22 of them with empty arguments; `create_session` with
+  no arguments succeeds and left 4 empty sessions. Adding an explicit tool allowlist
+  to the prompt did not stop it. 3 agents sent POSTs despite a read-only rule. Use a
+  subagent type with restricted tools, or audit the transcripts afterwards.
+- **The Agent tool caps background subagents at 20** and refuses the 21st rather
+  than queueing it; relaunch on each completion notice, not on the hand-back
+  message, which arrives before the slot frees.

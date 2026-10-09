@@ -1,0 +1,37 @@
+[no-context]
+You are auditing a memory store for claims that may have gone stale.
+
+Input file: {IN}
+It holds {N} memories. Each starts with a header line:
+=== MEMORY <8-char id> | <type> | created <YYYY-MM-DD> | tags: ...
+
+Read the whole file with the Read tool. If Read says the output was truncated or there are more lines, keep reading with offset until you have seen the last memory, {LAST}.
+
+Find STANDING CLAIMS: statements about how things are now that could have changed since the memory was written and that can be checked today from a Linux container with git, the gh CLI (logged in as GitHub user oaustegard), curl, Python and the local filesystem.
+
+Include claims that:
+- a file, directory, script, function or config key exists at a path, or in a named repo (oaustegard/...)
+- a skill exists, has a version, or says something (skills live at /mnt/skills/user/<name>/SKILL.md)
+- a tool, CLI, package, model, API or service is available, unavailable, broken, blocked, or returns an error (403, 404, invalid token, not installed)
+- a limit, price, quota, default or count is a current fact
+- an item is open, unfixed, a TODO, pending, "not yet built" or a "next step"
+- a repo, branch, PR or issue is in a state (open, merged, private, public, deleted)
+
+Exclude: facts about other people's projects (their stars, licences, defaults, features), results of past experiments, events on a date, opinions, preferences, news about the outside world, statements about people, and anything only a human can check.
+
+Output: write one JSON object per line to {OUT}, nothing else in that file. Fields:
+- "mem": the 8-char id from the header
+- "created": the date from the header
+- "quote": the exact words from the memory that make the claim, copied character for character, at most 200 characters
+- "claim": the claim as one present-tense sentence that is either true or false today
+- "kind": one of "path", "skill", "tool", "network", "limit", "open_item", "repo_state", "other"
+- "check": one concrete way to check it: a shell command, a gh api path, or a file to read
+- "env": where the claim lives: "ccotw" (Claude Code on the Web container, /home/user/...), "claude.ai" (the claude.ai chat container: /home/claude, /mnt/user-data, /mnt/project), "github" (an oaustegard repo, branch, PR or issue), "service" (a web service, API or site), or "unclear"
+
+Rules:
+- Do not run any checks. This step only extracts.
+- Do not create or change any file except {OUT}.
+- A memory yields 0 to 5 claims. Most yield 0.
+- If no memory has a claim, write an empty file.
+
+Reply with exactly one line: memories read: <count of headers you saw>; last memory: <id>; claims written: <count>

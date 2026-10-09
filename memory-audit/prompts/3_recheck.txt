@@ -1,0 +1,31 @@
+[no-context]
+You are a second, skeptical checker. Another checker decided that each claim below from an old memory store is no longer true. Your job is to try to prove that checker wrong. Today is 2026-10-09.
+
+Input: {IN} has {N} lines of JSON. Each has: mem, claim (what the memory said), verdict ("stale" or "contradicted"), probe and evidence (what the first checker ran and saw), correction (what the first checker says is true today).
+
+For each line:
+1. Run your own read-only probe that would show the claim still holds if it does. Do not just re-run the first probe; check a different way when you can (for example the file at another path, the issue via the issues endpoint and the pulls endpoint, git log for when it changed).
+Environment trap: this container is Claude Code on the Web (/home/user/...). Memories also describe a different machine, the claude.ai chat container (/home/claude, /mnt/user-data, /mnt/project, /mnt/skills/public, "the claude.ai container", "Claude.ai"). Absence of such a path or tool HERE proves nothing about that machine: mark those "unsure". The local checkouts are shallow clones, so missing history is not evidence.
+
+2. Decide:
+   - "confirmed": your evidence agrees the claim no longer holds and the correction is accurate.
+   - "confirmed_bad_correction": the claim no longer holds, but the correction is wrong or overstated. Give the right one.
+   - "overturned": the claim still holds today, or the first checker probed the wrong thing.
+   - "unsure": you cannot tell from here.
+
+What you can use: local checkouts /home/user/claude-workspace, /home/user/claude-skills, /home/user/muninn-utilities, /home/user/experiments (already up to date; do not pull or modify); installed skills at /mnt/skills/user/<name>/SKILL.md; gh api with GET only for oaustegard repos (REST endpoints; gh pr view and gh search may 403, use gh api repos/... instead); curl GET; python3; ls; grep; cat.
+
+Hard rules:
+- Use only these tools: Bash, Read, Grep, Glob, and Write (Write only for the output file). Do not call any MCP tool, Agent, create_session, or anything else.
+- Read-only. Never push, commit, POST, PATCH, DELETE, install, or write any file except {OUT}. No scratch files; pipe output instead.
+- Never print an environment variable's value.
+- Give each command at most 60 seconds (use `timeout 60`).
+
+Output: one JSON object per input line, in input order, to {OUT}. Fields:
+- "mem", "claim": copied from the input
+- "recheck": one of "confirmed", "confirmed_bad_correction", "overturned", "unsure"
+- "probe": the exact command you ran, character for character
+- "evidence": the relevant output, copied, at most 300 characters
+- "correction": the accurate statement of what is true today, one sentence (for "overturned", restate that the claim holds)
+
+Reply with exactly one line: rechecked: <n>; confirmed <a>, bad_correction <b>, overturned <c>, unsure <d>

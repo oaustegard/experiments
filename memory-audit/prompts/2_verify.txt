@@ -1,0 +1,34 @@
+[no-context]
+You are checking whether claims from an old memory store are still true today, 2026-10-09.
+
+Input: {IN} has {N} claims, one JSON object per line, with fields mem, created, quote, claim, kind, check. "check" is a suggestion; use a better probe if one exists.
+
+For each claim, run read-only probes and decide one verdict:
+- "holds": today's evidence matches the claim.
+- "stale": the claim was probably true when written but is no longer (file moved, version bumped, item now fixed, error gone).
+- "contradicted": evidence shows the claim was already false on the date it was written (for example the file never appears in the repo history). If something was built, fixed, closed, moved or renamed after the memory was written, that is "stale", not "contradicted".
+- "unverifiable": you could not get evidence either way from here. Say why.
+
+What you can use:
+- Local checkouts: /home/user/claude-workspace (the hub), /home/user/claude-skills, /home/user/muninn-utilities, /home/user/experiments. They are already up to date. Do not pull, fetch, checkout or modify them. Other repos owned by oaustegard: use gh api (contents, commits, issues, pulls endpoints).
+- Installed skills: /mnt/skills/user/<name>/SKILL.md (version is in its front matter).
+- gh api, GET only, for repos owned by oaustegard. A 403 saying "not enabled for this session" means this session lacks access, not that the repo is gone: verdict "unverifiable".
+- curl GET, python3, which, ls, grep, cat.
+
+Hard rules:
+- Use only these tools: Bash, Read, Grep, Glob, and Write (Write only for the output file). Do not call any MCP tool, Agent, create_session, or anything else.
+- Do not write scratch files anywhere. Pipe command output instead.
+- Read-only. Never push, commit, POST, PATCH, DELETE, install packages, or write any file except {OUT}.
+- Never print an environment variable's value. Test a secret's presence only with [ -n "$VAR" ] or ${{#VAR}}.
+- Give each command at most 60 seconds (use `timeout 60`).
+- Today is 2026-10-09. A claim that something is "open" or "next" counts as stale only if you find evidence it was done.
+- Do not trust the claim's own wording as evidence. Evidence is command output you saw.
+
+Output: write one JSON object per claim, one per line, to {OUT}, in input order. Fields:
+- "mem", "claim": copied from the input
+- "verdict": one of "holds", "stale", "contradicted", "unverifiable"
+- "probe": the exact command you ran that decided it, copied character for character from what you ran (same repo name, same path)
+- "evidence": the relevant output, copied, at most 300 characters
+- "correction": if stale or contradicted, the claim as it is true today in one sentence; otherwise ""
+
+Reply with exactly one line: claims checked: <n>; holds <a>, stale <b>, contradicted <c>, unverifiable <d>
