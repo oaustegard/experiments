@@ -1,0 +1,1 @@
+{"summary": "In django/contrib/admin/options.py, _get_edited_object_pks now passes both the formset prefix and the primary key name through re.escape() before building the regex, so special characters in the prefix are matched literally instead of as regex syntax. Verified by running swe-test admin_views.tests.AdminViewListEditable (16 tests, all passing) after the change."}

@@ -1,0 +1,44 @@
+diff --git a/django/db/migrations/loader.py b/django/db/migrations/loader.py
+index 8c308621d2..088dc41cf1 100644
+--- a/django/db/migrations/loader.py
++++ b/django/db/migrations/loader.py
+@@ -84,12 +84,9 @@ class MigrationLoader:
+                     continue
+                 raise
+             else:
+-                # Empty directories are namespaces.
+-                # getattr() needed on PY36 and older (replace w/attribute access).
+-                if getattr(module, '__file__', None) is None:
+-                    self.unmigrated_apps.add(app_config.label)
+-                    continue
+                 # Module is not a package (e.g. migrations.py).
++                # Namespace packages (migrations directories without __init__.py)
++                # have no __file__ but do have a __path__, so they are allowed.
+                 if not hasattr(module, '__path__'):
+                     self.unmigrated_apps.add(app_config.label)
+                     continue
+diff --git a/tests/migrations/test_loader.py b/tests/migrations/test_loader.py
+index 0f0a590e7c..864846ccf0 100644
+--- a/tests/migrations/test_loader.py
++++ b/tests/migrations/test_loader.py
+@@ -190,11 +190,19 @@ class LoaderTests(TestCase):
+             )
+ 
+     def test_load_empty_dir(self):
++        """
++        A migrations directory without __init__.py (an implicit namespace
++        package) is treated as a migrations module.
++        """
+         with override_settings(MIGRATION_MODULES={"migrations": "migrations.faulty_migrations.namespace"}):
+             loader = MigrationLoader(connection)
+             self.assertIn(
++                "migrations", loader.migrated_apps,
++                "App missing __init__.py in migrations module not in migrated apps."
++            )
++            self.assertNotIn(
+                 "migrations", loader.unmigrated_apps,
+-                "App missing __init__.py in migrations module not in unmigrated apps."
++                "App missing __init__.py in migrations module in unmigrated apps."
+             )
+ 
+     @override_settings(
