@@ -282,6 +282,9 @@ def grade_one(run: str, lib: str, task: dict) -> dict:
     stubpass_f = DATA / "targets" / f"{lib}.stubpass.json"
     stubpass = set(json.loads(stubpass_f.read_text())) if stubpass_f.exists() else None
     oc = r["outcomes"]
+    out["exit"] = r.get("exit")
+    if r.get("chunks"):
+        out["chunks"] = r["chunks"]
     if oc is None:
         out.update(passed=0, failed=len(target), n_target=len(target), score=0.0, note="no junit (collection crash)",
                    tail=r["tail"][-1500:])

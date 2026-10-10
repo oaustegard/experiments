@@ -34,6 +34,7 @@ RECIPES = {
         "artifacts": "_statsmodels-ext",
         "test_timeout": 9000,
         "test_extra": ["--timeout=300"],
+        "test_chunks": "tests_dirs",
         "build": ["python", "setup.py", "build_ext", "--inplace", "-j", "4"],
         "build_env": {"SETUPTOOLS_SCM_PRETEND_VERSION": "0.15.0.dev0"},
     },
@@ -55,7 +56,8 @@ def register(name: str) -> dict:
             "base_commit": r["base_commit"], "reference_commit": r["reference_commit"],
             "setup": setup, "test": test, "src_dir": r["src_dir"].rstrip("/"),
             "patch_exclude": rec["patch_exclude"], "artifacts": rec["artifacts"],
-            "test_timeout": rec["test_timeout"], "test_extra": rec.get("test_extra", []), "full": True}
+            "test_timeout": rec["test_timeout"], "test_extra": rec.get("test_extra", []),
+            "test_chunks": rec.get("test_chunks"), "full": True}
     out = json.loads(FULL.read_text()) if FULL.exists() else {}
     out[name] = task
     FULL.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")

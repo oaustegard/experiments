@@ -2,6 +2,7 @@
  "statsmodels": {
   "artifacts": "_statsmodels-ext",
   "base_commit": "07351f14bb4f0e3f5eef2e21955e5c595066ffcf",
+  "chunk_timeout": 3600,
   "full": true,
   "name": "statsmodels",
   "original_repo": "statsmodels/statsmodels",
@@ -40,6 +41,7 @@
    "test_cmd": "pytest -n auto -r s --dist loadscope --skip-examples -p no:randomly",
    "test_dir": "statsmodels/"
   },
+  "test_chunks": "tests_dirs",
   "test_extra": [
    "--timeout=300"
   ],
