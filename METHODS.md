@@ -1090,6 +1090,26 @@ the result.
   `appended N of M chunks` note in the tool result. The harness also caps concurrent
   subagents at 20; a 21st launch errors rather than queues. (`transcript-assessor/`)
 
+- **Mojo 1.1 for Python extension modules** (`mojo-port-haiku/`). Install
+  `uv pip install --system --break-system-packages modular==26.6.0 --no-deps`
+  then `mojo==1.1.0 max==26.6.0`. 1.1 broke 1.0's spellings: `Pointer` not
+  `UnsafePointer`, `MutAnyOrigin` (no `MutExternalOrigin`), `p[unsafe_offset=i]`,
+  and `@export def PyInit_<name>() abi("C")`. Modular's github.com/modular/skills
+  (`mojo-syntax`, `mojo-python-interop`) track the current release; the
+  `coding-mojo` skill's table does not. A `.so` imported as `pkg._kernel` needs
+  `PyInit__kernel`. Crossing costs ~3.3 µs per call and ~1.5 µs per `str` in
+  and out, more than most per-item Python work, so move data as numpy/UTF-32
+  buffers (0.19 µs/word round trip) and batch the calls.
+- **Mojo 1.1's `std.math.log` is not double precision.** Up to 1.1e-10
+  relative error against libm (`log(10)`). Anything matching a Python
+  reference to better than 1e-9 has to call libm through `external_call`.
+- **`snowballstemmer.stemmer(lang)` silently returns PyStemmer's C stemmer when
+  PyStemmer is installed.** Use `snowballstemmer.<lang>_stemmer.<Lang>Stemmer`
+  for the pure-Python baseline. PyStemmer caches stems by default; benchmark it
+  with `Stemmer.Stemmer(lang, 0)` or repeated words flatter C. jellyfish's
+  Rust `jaro_similarity` compares grapheme clusters on non-ASCII, unlike its
+  Python fallback. (`mojo-port-haiku/`)
+
 ## Numerical / ML gotchas
 
 - **Verifier cosine under different quantization conditions is on different
@@ -3368,6 +3388,13 @@ reference/spec disagreement that would have graded spec-compliant code as wrong,
 one mangled-but-accidentally-correct reference. A hidden suite that has never
 passed a known-good solution is an unvalidated measuring instrument.
 (`orchestrated-coding-pareto/ERRORS.md`)
+
+A suite can also lose tests without failing any. Patching
+`difflib.SequenceMatcher` before `doctest.DocTestSuite(difflib)` runs makes
+doctest skip the class, because its `__module__` is no longer `difflib`: 57
+tests became 48, all green. Compare the test count against the reference
+run, not just the failures; collect such suites before patching, with
+`extraglobs`. (`mojo-port-haiku/oracle/difflib/run_upstream.py`)
 
 ### Grade early arms before building arms that depend on them
 
