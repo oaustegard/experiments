@@ -117,7 +117,7 @@ def overlay_src(task: dict, src_tree: Path, dest: Path) -> list[str]:
             and not l[3:].startswith(("babel/locale-data", "babel/global.dat"))]
 
 
-def run_tests(task: dict, tree: Path, junit_name: str = ".c0-junit.xml") -> dict:
+def run_tests(task: dict, tree: Path, junit_name: str = ".c0-junit.xml", resume: bool = False) -> dict:
     """Run the task's suite in the jail; per-test outcomes from junit xml.
 
     With task["test_chunks"] == "tests_dirs" the suite runs one `tests` directory at a
@@ -125,7 +125,7 @@ def run_tests(task: dict, tree: Path, junit_name: str = ".c0-junit.xml") -> dict
     partway through, and pytest writes junit only at the end, so one crash lost every
     outcome. A chunk that writes no junit counts as all-failing; its exit code is kept."""
     if task.get("test_chunks") == "tests_dirs":
-        return _run_chunked(task, tree, junit_name)
+        return _run_chunked(task, tree, junit_name, resume)
     junit = tree / junit_name
     if junit.exists():
         junit.unlink()
@@ -137,7 +137,7 @@ def run_tests(task: dict, tree: Path, junit_name: str = ".c0-junit.xml") -> dict
     return {"exit": p.returncode, "tail": p.stdout[-3000:], "outcomes": outcomes}
 
 
-def _run_chunked(task: dict, tree: Path, junit_name: str) -> dict:
+def _run_chunked(task: dict, tree: Path, junit_name: str, resume: bool = False) -> dict:
     src = tree / task["test"]["test_dir"].rstrip("/")
     dirs = sorted(str(d.relative_to(tree)) for d in src.rglob("tests") if d.is_dir()
                   and any(d.glob("test_*.py")))
@@ -146,6 +146,11 @@ def _run_chunked(task: dict, tree: Path, junit_name: str) -> dict:
     timeout = task.get("chunk_timeout", 3600)
     for i, d in enumerate(dirs):
         junit = tree / f"{junit_name}.{i}"
+        oc = parse_junit(junit) if resume and junit.exists() else None
+        if oc is not None:
+            chunks.append({"dir": d, "exit": None, "junit": True, "n": len(oc), "reused": True})
+            outcomes.update(oc)
+            continue
         if junit.exists():
             junit.unlink()
         p = subprocess.run(jailed(task, tree, test_argv(task, [d], junit=str(junit)), timeout),

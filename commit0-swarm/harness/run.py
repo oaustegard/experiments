@@ -268,14 +268,19 @@ def normalize_outcomes(oc: dict[str, str]) -> dict[str, str]:
     return out
 
 
-def grade_one(run: str, lib: str, task: dict) -> dict:
-    g = workspace.checkout(task, WORK / f"grade-{run}" / lib, marker={"name": lib})
+def grade_one(run: str, lib: str, task: dict, resume: bool = False) -> dict:
+    """resume: reuse an earlier grade tree whose patch was applied, and every chunk junit
+    it already holds (a chunked grade can outlive the 2-hour background-command limit)."""
+    g = WORK / f"grade-{run}" / lib
     patch = rdir(run) / "patches" / f"{lib}.diff"
     out = {"lib": lib}
     try:
-        if patch.read_text().strip():
-            git("apply", "--binary", str(patch), cwd=g)
-        r = workspace.run_tests(task, g)
+        if not (resume and (g / ".c0-patched").exists()):
+            g = workspace.checkout(task, g, marker={"name": lib})
+            if patch.read_text().strip():
+                git("apply", "--binary", str(patch), cwd=g)
+            (g / ".c0-patched").write_text(patch.name + "\n")
+        r = workspace.run_tests(task, g, resume=resume)
     except Exception as e:  # noqa: BLE001
         return {**out, "passed": None, "error": f"{type(e).__name__}: {e}"[:500]}
     target = json.loads((DATA / "targets" / f"{lib}.json").read_text())
@@ -318,7 +323,7 @@ def grade_run(a) -> None:
         (d / "results.jsonl").unlink()
 
     def one(lib):
-        r = grade_one(a.run, lib, tasks[lib])
+        r = grade_one(a.run, lib, tasks[lib], resume=a.resume)
         with _lock, (d / "results.jsonl").open("a") as f:
             f.write(json.dumps(r) + "\n")
         print(lib, r.get("passed"), "/", r.get("n_target"), r.get("score"), r.get("error", ""), flush=True)
@@ -359,6 +364,8 @@ def main():
     g.add_argument("run")
     g.add_argument("--workers", type=int, default=2)
     g.add_argument("--regrade", action="store_true")
+
+    g.add_argument("--resume", action="store_true")
     st = sub.add_parser("status")
     st.add_argument("run")
     cy = sub.add_parser("cycle", help="done IDS then refill up to the session cap")
