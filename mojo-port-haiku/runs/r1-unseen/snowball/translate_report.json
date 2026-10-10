@@ -1,0 +1,88 @@
+{
+ "ok": [
+  "armenian",
+  "basque",
+  "catalan",
+  "czech",
+  "danish",
+  "dutch",
+  "dutch_porter",
+  "english",
+  "estonian",
+  "french",
+  "german",
+  "hungarian",
+  "indonesian",
+  "irish",
+  "italian",
+  "nepali",
+  "norwegian",
+  "persian",
+  "porter",
+  "portuguese",
+  "romanian",
+  "russian",
+  "serbian",
+  "sesotho",
+  "spanish",
+  "swedish",
+  "yiddish"
+ ],
+ "failed": {
+  "arabic": "AssertionError: assert isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name)",
+  "esperanto": "ValueError: File \"/home/user/experiments/mojo-port-haiku/runs/r1-unseen/snowball/gen/translate.py\", line 327, in stmt",
+  "finnish": "AssertionError: assert len(call.args) == 3 and not call.keywords",
+  "greek": "AssertionError: assert isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name)",
+  "hindi": "AssertionError: assert len(call.args) == 3 and not call.keywords",
+  "lithuanian": "AssertionError: assert isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name)",
+  "polish": "AssertionError: assert len(call.args) == 3 and not call.keywords",
+  "tamil": "AssertionError: assert isinstance(f, ast.Attribute) and isinstance(f.value, ast.Name)",
+  "turkish": "ValueError: File \"/home/user/experiments/mojo-port-haiku/runs/r1-unseen/snowball/gen/translate.py\", line 327, in stmt"
+ },
+ "compiled": [
+  "armenian",
+  "basque",
+  "catalan",
+  "dutch_porter",
+  "english",
+  "estonian",
+  "french",
+  "german",
+  "hungarian",
+  "indonesian",
+  "irish",
+  "italian",
+  "nepali",
+  "norwegian",
+  "persian",
+  "portuguese",
+  "romanian",
+  "russian",
+  "serbian",
+  "sesotho",
+  "spanish",
+  "swedish",
+  "yiddish"
+ ],
+ "compile_errors": {
+  "czech": [
+   "'CzechStemmer' value has no attribute 'insert'",
+   "failed to parse the provided Mojo source module"
+  ],
+  "danish": [
+   "'DanishStemmer' value has no attribute 'slice_to'",
+   "invalid call to 'eq_s_b': value passed to 's' cannot be converted from 'Int' to 'StringSpan[ImmStaticOrigin]'",
+   "failed to parse the provided Mojo source module"
+  ],
+  "dutch": [
+   "'DutchStemmer' value has no attribute 'slice_to'",
+   "'DutchStemmer' value has no attribute 'insert'",
+   "'DutchStemmer' value has no attribute 'slice_to'"
+  ],
+  "porter": [
+   "'PorterStemmer' value has no attribute 'insert'",
+   "'PorterStemmer' value has no attribute 'insert'",
+   "cannot implicitly convert 'Bool' value to 'Int'"
+  ]
+ }
+}

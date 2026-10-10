@@ -1,0 +1,92 @@
+{
+ "target": "snowball",
+ "workdir": "/home/user/experiments/mojo-port-haiku/runs/r1/snowball",
+ "graded_at": "2026-10-10T18:30:45",
+ "build_ok": true,
+ "build_s": 15.9,
+ "build_log": "\n/tmp/jail/mojo-port-grade-snowball-r1/msnowball/kernel.mojo:4220:25: warning: assignment to 'v_11' was never used; assign to '_' instead?\n        var v_11: Int = 0\n                        ^\n/tmp/jail/mojo-port-grade-snowball-r1/msnowball/kernel.mojo:4221:24: warning: assignment to 'v_2' was never used; assign to '_' instead?\n        var v_2: Int = 0\n                       ^\n/tmp/jail/mojo-port-grade-snowball-r1/msnowball/kernel.mojo:4222:24: warning: assignment to 'v_3' was never used; assign to '_' instead?\n        var v_3: Int = 0\n                       ^\n/tmp/jail/mojo-port-grade-snowball-r1/msnowball/kernel.mojo:4223:24: warning: assignment to 'v_4' was never used; assign to '_' instead?\n        var v_4: Int = 0\n                       ^\n/tmp/jail/mojo-port-grade-snowball-r1/msnowball/kernel.mojo:4224:24: warning: assignment to 'v_5' was never used; assign to '_' instead?\n        var v_5: Int = 0\n                       ^\n/tmp/jail/mojo-port-grade-snowball-r1/msnowball/kernel.mojo:4225:24: warning: assignment to 'v_6' was never used; assign to '_' instead?\n        var v_6: Int = 0\n                       ^\n/tmp/jail/mojo-port-grade-snowball-r1/msnowball/kernel.mojo:4227:24: warning: assignment to 'v_8' was never used; assign to '_' instead?\n        var v_8: Int = 0\n                       ^\n/tmp/jail/mojo-port-grade-snowball-r1/msnowball/kernel.mojo:4228:24: warning: assignment to 'v_9' was never used; assign to '_' instead?\n        var v_9: Int = 0\n                       ^\n",
+ "oracle": {
+  "split": "test",
+  "langs": {
+   "english": {
+    "total": 27834,
+    "passed": 27834,
+    "single_word_mismatches": 0,
+    "examples": []
+   },
+   "german": {
+    "total": 24036,
+    "passed": 24036,
+    "single_word_mismatches": 0,
+    "examples": []
+   },
+   "russian": {
+    "total": 31402,
+    "passed": 31402,
+    "single_word_mismatches": 0,
+    "examples": []
+   },
+   "french": {
+    "total": 17336,
+    "passed": 17336,
+    "single_word_mismatches": 0,
+    "examples": []
+   }
+  },
+  "all_pass": true
+ },
+ "all_pass": true,
+ "bench": {
+  "target": "snowball",
+  "results": {
+   "english": {
+    "words": 42649,
+    "py_batch_s": 1.167377192999993,
+    "mojo_batch_s": 0.028543356000227504,
+    "c_batch_s": 0.023053265999806172,
+    "py_single_s": 0.13807581999981267,
+    "mojo_single_s": 0.020947405999777402,
+    "c_single_s": 0.003367069999967498,
+    "batch_speedup": 40.898386054908485,
+    "single_speedup": 6.5915474212549245,
+    "mojo_vs_c_batch": 0.8076578661465886
+   },
+   "german": {
+    "words": 35053,
+    "py_batch_s": 1.720732467000289,
+    "mojo_batch_s": 0.030936602000110724,
+    "c_batch_s": 0.03111160700018445,
+    "py_single_s": 0.23679600800005574,
+    "mojo_single_s": 0.021129798000401934,
+    "c_single_s": 0.004431045000274025,
+    "batch_speedup": 55.62124977378351,
+    "single_speedup": 11.206733164015642,
+    "mojo_vs_c_batch": 1.0056568914735076
+   },
+   "russian": {
+    "words": 49785,
+    "py_batch_s": 1.1911458929998844,
+    "mojo_batch_s": 0.02907093800013172,
+    "c_batch_s": 0.038276425000276504,
+    "py_single_s": 0.11662282699990101,
+    "mojo_single_s": 0.025229522000245197,
+    "c_single_s": 0.006443468000270514,
+    "batch_speedup": 40.97376882006653,
+    "single_speedup": 4.622474694477668,
+    "mojo_vs_c_batch": 1.316656001952984
+   },
+   "french": {
+    "words": 21653,
+    "py_batch_s": 1.0636119780001536,
+    "mojo_batch_s": 0.016910661999645527,
+    "c_batch_s": 0.017074175999823638,
+    "py_single_s": 0.25104251499988095,
+    "mojo_single_s": 0.021705831999952352,
+    "c_single_s": 0.004539573999863933,
+    "batch_speedup": 62.895939734497006,
+    "single_speedup": 11.56567115236274,
+    "mojo_vs_c_batch": 1.0096692843947528
+   }
+  }
+ }
+}

@@ -36,6 +36,12 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         print(json.dumps({"import_error": f"{type(e).__name__}: {e}", "all_pass": False}))
         return 1
+    # Collect difflib's doctests before patching: once difflib.SequenceMatcher
+    # is the candidate, DocTestFinder skips it (its __module__ is no longer
+    # difflib) and the class's own doctests silently drop out (57 -> 48).
+    # extraglobs makes those examples construct the candidate.
+    import doctest
+    doc_suite = doctest.DocTestSuite(difflib, extraglobs={"SequenceMatcher": cand})
     difflib.SequenceMatcher = cand
 
     # test_difflib imports test.support.findfile, which this interpreter lacks.
@@ -48,7 +54,9 @@ def main() -> int:
     sys.path.insert(0, str(HERE))
     import test_difflib  # noqa: E402
 
+    test_difflib.load_tests = lambda loader, tests, pattern: tests
     suite = unittest.defaultTestLoader.loadTestsFromModule(test_difflib)
+    suite.addTest(doc_suite)
     res = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
     failing = [str(t) for t, _ in res.failures + res.errors]
     out = {

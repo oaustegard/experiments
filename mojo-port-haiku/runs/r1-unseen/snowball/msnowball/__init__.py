@@ -10,18 +10,9 @@ from array import array
 
 from . import _kernel  # noqa: F401
 
-_NEW = {
-    "english": _kernel.new_english,
-    "german": _kernel.new_german,
-    "russian": _kernel.new_russian,
-    "french": _kernel.new_french,
-}
-_STEM = {
-    "english": _kernel.stem_english,
-    "german": _kernel.stem_german,
-    "russian": _kernel.stem_russian,
-    "french": _kernel.stem_french,
-}
+_LANGS = ['armenian', 'basque', 'catalan', 'dutch_porter', 'english', 'estonian', 'french', 'german', 'hungarian', 'indonesian', 'irish', 'italian', 'nepali', 'norwegian', 'persian', 'portuguese', 'romanian', 'russian', 'serbian', 'sesotho', 'spanish', 'swedish', 'yiddish']
+_NEW = {l: getattr(_kernel, "new_" + l) for l in _LANGS}
+_STEM = {l: getattr(_kernel, "stem_" + l) for l in _LANGS}
 # One heap-allocated Mojo stemmer per language, built on first use (the
 # Among tables are built once, not per call).
 _HANDLES = {}
