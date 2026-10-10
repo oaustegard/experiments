@@ -89,6 +89,9 @@ def test_argv(task: dict, targets: list[str], junit: str | None = None) -> list[
         cmd = ["python", "-m", "pytest", *cmd[1:]]
     # No cache dir: concurrent swarm workers share one tree and one would clobber another's.
     cmd += ["-p", "no:cacheprovider", "-p", "no:cov", "-o", "addopts="]
+    # Per-task extras, e.g. statsmodels' per-test timeout: without one, a single hung
+    # test runs the whole suite into test_timeout and pytest writes no junit at all.
+    cmd += task.get("test_extra", [])
     if junit:
         cmd += [f"--junitxml={junit}"]
     return cmd + (targets or [task["test"]["test_dir"]])

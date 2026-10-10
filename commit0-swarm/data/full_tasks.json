@@ -28,7 +28,8 @@
     "setuptools_scm[toml]~=8.0",
     "setuptools>=63.4.3",
     "pytest>=7.3.0",
-    "pytest-xdist"
+    "pytest-xdist",
+    "pytest-timeout"
    ],
    "pre_install": null,
    "python": "3.10",
@@ -39,6 +40,9 @@
    "test_cmd": "pytest -n auto -r s --dist loadscope --skip-examples -p no:randomly",
    "test_dir": "statsmodels/"
   },
-  "test_timeout": 5400
+  "test_extra": [
+   "--timeout=300"
+  ],
+  "test_timeout": 9000
  }
 }

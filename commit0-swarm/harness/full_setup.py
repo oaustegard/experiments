@@ -29,10 +29,11 @@ RECIPES = {
         "packages": ["requirements.txt"],
         "pip_packages": ["numpy<2", "scipy<1.14", "pandas<2.3", "patsy", "packaging", "matplotlib",
                          "joblib", "colorama", "cython>=0.29.33,<4", "setuptools_scm[toml]~=8.0",
-                         "setuptools>=63.4.3", "pytest>=7.3.0", "pytest-xdist"],
+                         "setuptools>=63.4.3", "pytest>=7.3.0", "pytest-xdist", "pytest-timeout"],
         "patch_exclude": [":(exclude,glob)statsmodels/**/tests/**"],
         "artifacts": "_statsmodels-ext",
-        "test_timeout": 5400,
+        "test_timeout": 9000,
+        "test_extra": ["--timeout=300"],
         "build": ["python", "setup.py", "build_ext", "--inplace", "-j", "4"],
         "build_env": {"SETUPTOOLS_SCM_PRETEND_VERSION": "0.15.0.dev0"},
     },
@@ -54,7 +55,7 @@ def register(name: str) -> dict:
             "base_commit": r["base_commit"], "reference_commit": r["reference_commit"],
             "setup": setup, "test": test, "src_dir": r["src_dir"].rstrip("/"),
             "patch_exclude": rec["patch_exclude"], "artifacts": rec["artifacts"],
-            "test_timeout": rec["test_timeout"], "full": True}
+            "test_timeout": rec["test_timeout"], "test_extra": rec.get("test_extra", []), "full": True}
     out = json.loads(FULL.read_text()) if FULL.exists() else {}
     out[name] = task
     FULL.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
