@@ -21,7 +21,7 @@ jinja. Its build pass alone reached 9,402: the swarm fails where files meet.
 On statsmodels, the largest full-Commit0 library (3,496 stub bodies, 17,667
 graded tests), neither arm finished in one night. The swarm (19 builders,
 then 19 fixers) reached 14,315 (81%) for $138.70; a chain of three solo agents
-reached CONT2_GRADE for $17.29. More fixer rounds on a larger machine would
+reached 6,303 (36%) for $17.29. More fixer rounds on a larger machine would
 move this.
 
 ## Findings
@@ -134,7 +134,7 @@ move this.
 7. **Statsmodels, one night, neither arm finished.** Swarm build 3,106 of
    17,667 (19 builders, 83 min, $90.11), then 19 fixers on contiguous shards
    of all targets: 14,315 (81%, up to 112 min, $48.59). Solo: 1,303 (79 min,
-   $4.28), then two continuations to CONT2_GRADE ($13.01 more). The swarm ran
+   $4.28), then two continuations to 6,303 (36%) ($13.01 more). The swarm ran
    8,241 turns to the solo chain's 898; about 90% of turns in both arms were
    over 100K tokens and paid the 5× rate. Fixer shards inside one or two
    test files (autoregression, ARDL) closed; shards across state space, GLM
@@ -284,7 +284,7 @@ tree; tests live inside `statsmodels/` and are excluded from patches.
 |---|---|---|---|---|
 | solo | 1 | 79 min | 1,303 | 4.28 |
 | solo, continuation 1 | 1 | 147 min | not graded (5,285 self-reported) | 6.59 |
-| solo, continuation 2 | 1 | 113 min | CONT2_GRADE | 6.42 |
+| solo, continuation 2 | 1 | 113 min | 6,303 (36%) | 6.42 |
 | swarm build | 19 | 83 min (median 56) | 3,106 | 90.11 |
 | swarm fixers | 19 | up to 112 min (stopped at the deadline) | FIX_GRADE | 48.59 |
 
