@@ -53,13 +53,13 @@ PERSIST_SWARM = """This is a long job: expect a hundred or more tool calls. Do n
 
 FIXER = """{context}
 
-The builders have finished a first pass over every file. You are fixer {i} of {k}; all {k} fixers work at the same time in this checkout. Last full-suite result: {last}.
+The builders have finished a first pass over every file. You are fixer {i} of {k}; all {k} fixers work at the same time in this checkout, each on its own share of the failing tests. Last full-suite result: {last}.
 
-Claim work before doing it. Run the suite (`{bin}/c0-test {test_dir} -q -p no:randomly 2>&1 | tail -60`), pick a test file with failures, and claim it with `mkdir {claims}/<test file name>` (for example `mkdir {claims}/test_tables.py`). If mkdir says the directory exists, another fixer has it: pick another. Fix the source so that test file passes, then claim the next one. Files you claimed stay yours; never work on a test file someone else claimed.
+Your share is the {n} failing tests listed in {shard}, one pytest node id per line (an id may need adjusting if pytest cannot find it; `{bin}/c0-test {test_dir} -q --co` lists the real ones). Make them pass by fixing the source. Run them with `{bin}/c0-test $(cat {shard}) -q 2>&1 | tail -40`, or a few at a time.
 
-You may edit any file under `{src_dir}/`, and so may the other fixers. Make small, targeted edits, and read a file again right before you edit it: it may have changed since you last saw it. If an edit fails because the file changed, re-read and redo it.
+You may edit any file under `{src_dir}/`, and so may the other fixers. Make small, targeted edits, and read a file again right before you edit it: it may have changed since you last saw it. If an edit fails because the file changed, re-read and redo it. Do not rewrite a whole file another fixer may be working in. Before you finish, run the whole suite once to check you broke nothing outside your share.
 
-Stop when every test file with failures has been claimed and the ones you claimed pass, or every remaining failure in them has had at least two real attempts.
+Stop when every test in your share passes, or every remaining one has had at least two real attempts.
 
 {finish}
 """
@@ -89,7 +89,7 @@ def swarm(task, path, i: int, k: int, files: list[str]) -> str:
                         persist_swarm=PERSIST_SWARM, finish=FINISH)
 
 
-def fixer(task, path, i: int, k: int, last: str, claims) -> str:
-    return FIXER.format(context=context(task, path), i=i, k=k, last=last, bin=BIN, claims=claims,
+def fixer(task, path, i: int, k: int, last: str, shard, n: int) -> str:
+    return FIXER.format(context=context(task, path), i=i, k=k, last=last, bin=BIN, shard=shard, n=n,
                         test_dir=task["test"]["test_dir"].rstrip("/") or ".",
                         src_dir=task["src_dir"], finish=FINISH)

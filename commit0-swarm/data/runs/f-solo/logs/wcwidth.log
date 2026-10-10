@@ -1,0 +1,53 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/jail/c0/work/grade-f-solo/wcwidth
+configfile: tox.ini
+collected 39 items
+
+tests/test_core.py F................                                     [ 43%]
+tests/test_emojis.py ........                                            [ 64%]
+tests/test_table_integrity.py s                                          [ 66%]
+tests/test_ucslevel.py .............                                     [100%]
+
+=================================== FAILURES ===================================
+_____________________________ test_package_version _____________________________
+
+    def test_package_version():
+        """wcwidth.__version__ is expected value."""
+        # given,
+>       expected = importmeta.version('wcwidth')
+
+tests/test_core.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/uvpy/cpython-3.10.20-linux-x86_64-gnu/lib/python3.10/importlib/metadata/__init__.py:996: in version
+    return distribution(distribution_name).version
+/opt/uvpy/cpython-3.10.20-linux-x86_64-gnu/lib/python3.10/importlib/metadata/__init__.py:969: in distribution
+    return Distribution.from_name(distribution_name)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'importlib.metadata.Distribution'>, name = 'wcwidth'
+
+    @classmethod
+    def from_name(cls, name):
+        """Return the Distribution for the given package name.
+    
+        :param name: The name of the distribution package to search for.
+        :return: The Distribution instance (or subclass thereof) for the named
+            package, if found.
+        :raises PackageNotFoundError: When the named package's distribution
+            metadata cannot be found.
+        """
+        for resolver in cls._discover_resolvers():
+            dists = resolver(DistributionFinder.Context(name=name))
+            dist = next(iter(dists), None)
+            if dist is not None:
+                return dist
+        else:
+>           raise PackageNotFoundError(name)
+E           importlib.metadata.PackageNotFoundError: No package metadata was found for wcwidth
+
+/opt/uvpy/cpython-3.10.20-linux-x86_64-gnu/lib/python3.10/importlib/metadata/__init__.py:548: PackageNotFoundError
+--- generated xml file: /tmp/jail/c0/work/grade-f-solo/wcwidth/.c0-junit.xml ---
+=========================== short test summary info ============================
+FAILED tests/test_core.py::test_package_version - importlib.metadata.PackageN...
+=================== 1 failed, 37 passed, 1 skipped in 0.19s ====================

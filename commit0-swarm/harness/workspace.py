@@ -46,7 +46,7 @@ def checkout(task: dict, dest: Path, commit: str | None = None, marker: dict | N
     # A --shared clone does not inherit the mirror's info/exclude.
     (dest / ".git" / "info").mkdir(parents=True, exist_ok=True)
     (dest / ".git" / "info" / "exclude").write_text(
-        ".venv\n.c0-task.json\n.c0-junit.xml\n.claims/\n__pycache__/\n*.pyc\n.pytest_cache/\n")
+        ".venv\n.c0-task.json\n.c0-junit.xml\n.c0-shard-*.txt\n__pycache__/\n*.pyc\n.pytest_cache/\n")
     (dest / ".venv").symlink_to(ENVS / task["name"])
     (dest / TASK_MARKER).write_text(json.dumps(marker or {"name": task["name"]}) + "\n")
     babel_data(task, dest)

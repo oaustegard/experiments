@@ -84,6 +84,31 @@ def partition(weights: dict[str, int], k: int) -> list[list[str]]:
     return [sorted(b[1]) for b in bins if b[1]]
 
 
+def shard(failing: list[str], k: int) -> list[list[str]]:
+    """k contiguous runs of the sorted failing ids, so related tests stay together.
+    The pilot's per-test-file claims let one fixer hold voluptuous's only test file
+    (89 failures) while the other idled."""
+    failing = sorted(failing)
+    n = math.ceil(len(failing) / k)
+    return [failing[i:i + n] for i in range(0, len(failing), n)]
+
+
+def junit_to_node(key: str, root: Path | None = None) -> str:
+    """'tests.test_x.TestC::test_m' -> 'tests/test_x.py::TestC::test_m'.
+
+    The module is the longest dotted prefix that is a file under root; without a
+    root, the prefix up to the first capitalised (class) part."""
+    cls, name = key.split("::", 1)
+    parts = cls.split(".")
+    cut = next((j for j, p in enumerate(parts) if p[:1].isupper()), len(parts))
+    if root is not None:
+        for j in range(len(parts), 0, -1):
+            if (root / ("/".join(parts[:j]) + ".py")).is_file():
+                cut = j
+                break
+    return "::".join(["/".join(parts[:cut]) + ".py", *parts[cut:], name])
+
+
 def save_patch(run: str, lib: str, task: dict) -> Path:
     t = tree(run, lib)
     git("add", "-A", "--", task["src_dir"], *EXCLUDE, cwd=t)
@@ -143,13 +168,18 @@ def stage(a) -> None:
             for i, files in enumerate(bins, 1):
                 units.append((f"{lib}.w{i}", prompts.swarm(task, t, i, len(bins), files)))
         elif a.arm == "fixer":
-            claims = t / ".claims"
-            claims.mkdir()
+            failing = json.loads((rdir(a.from_run) / "failing" / f"{lib}.json").read_text())
+            if not failing:
+                continue
             prev = json.loads((rdir(a.from_run) / "meta.json").read_text()).get("plan", {})
-            k = a.k or prev.get(lib, {}).get("k", 1)
-            plan[lib] = {"k": k}
-            for i in range(1, k + 1):
-                units.append((f"{lib}.f{i}", prompts.fixer(task, t, i, k, last_result(a.from_run, lib), claims)))
+            k = min(a.k or prev.get(lib, {}).get("k", 1), math.ceil(len(failing) / a.min_shard))
+            shards = shard(failing, k)
+            plan[lib] = {"k": len(shards), "failing": len(failing)}
+            for i, sh in enumerate(shards, 1):
+                f = t / f".c0-shard-{i}.txt"
+                f.write_text("\n".join(junit_to_node(x, t) for x in sh) + "\n")
+                units.append((f"{lib}.f{i}", prompts.fixer(task, t, i, len(shards),
+                                                          last_result(a.from_run, lib), f, len(sh))))
             workspace.opener(t)
     lines = [json.dumps({"id": u, "prompt": p, "out": str(d / "out" / f"{u}.json"),
                          "description": f"{a.run} {u}", "model": a.model,
@@ -215,6 +245,9 @@ def grade_one(run: str, lib: str, task: dict) -> dict:
                    tail=r["tail"][-1500:])
     else:
         passed = [k for k in target if oc.get(k) == "pass"]
+        failing = [k for k in target if oc.get(k) != "pass"]
+        (rdir(run) / "failing").mkdir(exist_ok=True)
+        (rdir(run) / "failing" / f"{lib}.json").write_text(json.dumps(failing, indent=0) + "\n")
         out.update(passed=len(passed), failed=len(target) - len(passed), n_target=len(target),
                    score=round(len(passed) / len(target), 4), all_pass=len(passed) == len(target))
         if stubpass is not None:
@@ -269,6 +302,7 @@ def main():
     s.add_argument("--kmax", type=int, default=8)
     s.add_argument("--per-worker", type=int, default=25, help="stubbed bodies per swarm builder")
     s.add_argument("--k", type=int, help="fixers per library (default: the source run's k)")
+    s.add_argument("--min-shard", type=int, default=5, help="fewest failing tests per fixer")
     n = sub.add_parser("next")
     n.add_argument("run")
     n.add_argument("--slots", type=int, default=10)

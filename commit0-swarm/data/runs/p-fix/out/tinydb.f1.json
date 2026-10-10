@@ -1,0 +1,1 @@
+{"summary": "Fixed Query.map in tinydb/queries.py so a path function that closes over variables (such as a lambda capturing a mutable local) makes the query non-cacheable, which resolves the stale-cache failures in test_query_cache_with_mutable_callable. The last full-suite run I saw reported 201 passed and 0 failed.", "passed": 201, "failed": 0}

@@ -1,0 +1,177 @@
+diff --git a/wcwidth/unicode_versions.py b/wcwidth/unicode_versions.py
+index 6fa22b3..7c6e529 100644
+--- a/wcwidth/unicode_versions.py
++++ b/wcwidth/unicode_versions.py
+@@ -14,4 +14,24 @@ def list_versions():
+     :returns: Supported Unicode version numbers in ascending sorted order.
+     :rtype: list[str]
+     """
+-    pass
+\ No newline at end of file
++    return (
++        "4.1.0",
++        "5.0.0",
++        "5.1.0",
++        "5.2.0",
++        "6.0.0",
++        "6.1.0",
++        "6.2.0",
++        "6.3.0",
++        "7.0.0",
++        "8.0.0",
++        "9.0.0",
++        "10.0.0",
++        "11.0.0",
++        "12.0.0",
++        "12.1.0",
++        "13.0.0",
++        "14.0.0",
++        "15.0.0",
++        "15.1.0",
++    )
+diff --git a/wcwidth/wcwidth.py b/wcwidth/wcwidth.py
+index c5ddc4c..2b0cd38 100644
+--- a/wcwidth/wcwidth.py
++++ b/wcwidth/wcwidth.py
+@@ -84,7 +84,21 @@ def _bisearch(ucs, table):
+     :rtype: int
+     :returns: 1 if ordinal value ucs is found within lookup table, else 0.
+     """
+-    pass
++    lbound = 0
++    ubound = len(table) - 1
++
++    if ucs < table[0][0] or ucs > table[ubound][1]:
++        return 0
++    while ubound >= lbound:
++        mid = (lbound + ubound) // 2
++        if ucs > table[mid][1]:
++            lbound = mid + 1
++        elif ucs < table[mid][0]:
++            ubound = mid - 1
++        else:
++            return 1
++
++    return 0
+ 
+ @lru_cache(maxsize=1000)
+ def wcwidth(wc, unicode_version='auto'):
+@@ -109,7 +123,24 @@ def wcwidth(wc, unicode_version='auto'):
+ 
+     See :ref:`Specification` for details of cell measurement.
+     """
+-    pass
++    ucs = ord(wc) if wc else 0
++
++    # printable ASCII is always one cell; early return for speed
++    if 32 <= ucs < 0x7f:
++        return 1
++
++    # C0/C1 control characters are -1 for compatibility with POSIX-like calls
++    if (ucs and ucs < 32) or 0x07F <= ucs < 0x0A0:
++        return -1
++
++    _unicode_version = _wcmatch_version(unicode_version)
++
++    # zero width
++    if _bisearch(ucs, ZERO_WIDTH[_unicode_version]):
++        return 0
++
++    # 1 or 2 width
++    return 1 + _bisearch(ucs, WIDE_EASTASIAN[_unicode_version])
+ 
+ def wcswidth(pwcs, n=None, unicode_version='auto'):
+     """
+@@ -132,7 +163,41 @@ def wcswidth(pwcs, n=None, unicode_version='auto'):
+ 
+     See :ref:`Specification` for details of cell measurement.
+     """
+-    pass
++    # this 'n' argument is a holdover for POSIX function
++    _unicode_version = None
++    end = len(pwcs) if n is None else min(n, len(pwcs))
++    width = 0
++    idx = 0
++    last_measured_char = None
++    while idx < end:
++        char = pwcs[idx]
++        if char == u'‍':
++            # Zero Width Joiner, do not measure this or next character
++            idx += 2
++            continue
++        if char == u'️' and last_measured_char:
++            # on variation selector 16 (VS16) following another character,
++            # conditionally add '1' to the measured width if that character is
++            # known to be converted from narrow to wide by the VS16 character.
++            if _unicode_version is None:
++                _unicode_version = _wcversion_value(_wcmatch_version(unicode_version))
++            if _unicode_version >= (9, 0, 0):
++                width += _bisearch(ord(last_measured_char), VS16_NARROW_TO_WIDE["9.0.0"])
++                last_measured_char = None
++            idx += 1
++            continue
++        # measure character at current index
++        wcw = wcwidth(char, unicode_version)
++        if wcw < 0:
++            # early return -1 on C0 and C1 control characters
++            return wcw
++        if wcw > 0:
++            # track last character measured to contain a cell, so that
++            # subsequent VS-16 modifiers may be understood
++            last_measured_char = char
++        width += wcw
++        idx += 1
++    return width
+ 
+ @lru_cache(maxsize=128)
+ def _wcversion_value(ver_string):
+@@ -143,7 +208,8 @@ def _wcversion_value(ver_string):
+     :rtype: tuple(int)
+     :returns: tuple of digit tuples, ``tuple(int, [...])``.
+     """
+-    pass
++    retval = tuple(int(part) for part in ver_string.split('.'))
++    return retval
+ 
+ @lru_cache(maxsize=8)
+ def _wcmatch_version(given_version):
+@@ -170,4 +236,36 @@ def _wcmatch_version(given_version):
+     :returns: unicode string, or non-unicode ``str`` type for python 2
+         when given ``version`` is also type ``str``.
+     """
+-    pass
+\ No newline at end of file
++    versions = list_versions()
++    latest = versions[-1]
++
++    if given_version == 'auto':
++        given_version = os.environ.get('UNICODE_VERSION') or 'latest'
++    if given_version in ('latest', 'auto'):
++        return latest
++    if given_version in versions:
++        return given_version
++
++    try:
++        given_value = _wcversion_value(given_version)
++    except (ValueError, AttributeError, TypeError):
++        warnings.warn('Unicode version %r is not valid, using latest %r.'
++                      % (given_version, latest), UserWarning)
++        return latest
++
++    # pad so that a bare major such as '8' compares as '8.0.0'
++    if len(given_value) < 3:
++        given_value = given_value + (0,) * (3 - len(given_value))
++
++    lowest = versions[0]
++    if given_value < _wcversion_value(lowest):
++        warnings.warn('Unicode version %r is lower than any supported version, '
++                      'using %r.' % (given_version, lowest), UserWarning)
++        return lowest
++
++    # nearest supported version at or below the given one
++    nearest = lowest
++    for version in versions:
++        if _wcversion_value(version) <= given_value:
++            nearest = version
++    return nearest
+\ No newline at end of file

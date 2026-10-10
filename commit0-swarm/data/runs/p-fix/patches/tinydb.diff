@@ -1,0 +1,957 @@
+diff --git a/tinydb/database.py b/tinydb/database.py
+index a9b6c89..ddd3a05 100644
+--- a/tinydb/database.py
++++ b/tinydb/database.py
+@@ -94,7 +94,12 @@ class TinyDB(TableBase):
+         :param name: The name of the table.
+         :param kwargs: Keyword arguments to pass to the table class constructor
+         """
+-        pass
++        if name in self._tables:
++            return self._tables[name]
++
++        table = self.table_class(self._storage, name, **kwargs)
++        self._tables[name] = table
++        return table
+ 
+     def tables(self) -> Set[str]:
+         """
+@@ -102,13 +107,14 @@ class TinyDB(TableBase):
+ 
+         :returns: a set of table names
+         """
+-        pass
++        return set(self._storage.read() or {})
+ 
+     def drop_tables(self) -> None:
+         """
+         Drop all tables from the database. **CANNOT BE REVERSED!**
+         """
+-        pass
++        self._storage.write({})
++        self._tables.clear()
+ 
+     def drop_table(self, name: str) -> None:
+         """
+@@ -116,7 +122,17 @@ class TinyDB(TableBase):
+ 
+         :param name: The name of the table to drop.
+         """
+-        pass
++        # Forget the table instance if it is currently open
++        self._tables.pop(name, None)
++
++        data = self._storage.read()
++
++        # The storage returns None if it is empty
++        if data is None or name not in data:
++            return
++
++        del data[name]
++        self._storage.write(data)
+ 
+     @property
+     def storage(self) -> Storage:
+@@ -126,7 +142,7 @@ class TinyDB(TableBase):
+         :return: This instance's storage
+         :rtype: Storage
+         """
+-        pass
++        return self._storage
+ 
+     def close(self) -> None:
+         """
+@@ -143,7 +159,8 @@ class TinyDB(TableBase):
+ 
+         Upon leaving this context, the ``close`` method will be called.
+         """
+-        pass
++        self._opened = False
++        self._storage.close()
+ 
+     def __enter__(self):
+         """
+diff --git a/tinydb/middlewares.py b/tinydb/middlewares.py
+index ba9ac98..2e94120 100644
+--- a/tinydb/middlewares.py
++++ b/tinydb/middlewares.py
+@@ -82,8 +82,38 @@ class CachingMiddleware(Middleware):
+         self.cache = None
+         self._cache_modified_count = 0
+ 
++    def read(self):
++        """
++        Return the cached state, loading it from the underlying storage the
++        first time it is needed.
++        """
++        if self.cache is None:
++            self.cache = self.storage.read()
++
++        return self.cache
++
++    def write(self, data):
++        """
++        Keep ``data`` in the cache and write it to the underlying storage once
++        :attr:`WRITE_CACHE_SIZE` writes have accumulated.
++        """
++        self.cache = data
++        self._cache_modified_count += 1
++
++        if self._cache_modified_count >= self.WRITE_CACHE_SIZE:
++            self.flush()
++
+     def flush(self):
+         """
+         Flush all unwritten data to disk.
+         """
+-        pass
+\ No newline at end of file
++        if self._cache_modified_count > 0:
++            self.storage.write(self.cache)
++            self._cache_modified_count = 0
++
++    def close(self):
++        """
++        Flush potentially unwritten data, then close the underlying storage.
++        """
++        self.flush()
++        self.storage.close()
+\ No newline at end of file
+diff --git a/tinydb/operations.py b/tinydb/operations.py
+index dcf2ff7..8fa95a2 100644
+--- a/tinydb/operations.py
++++ b/tinydb/operations.py
+@@ -12,34 +12,52 @@ def delete(field):
+     """
+     Delete a given field from the document.
+     """
+-    pass
++    def transform(doc):
++        del doc[field]
++
++    return transform
+ 
+ def add(field, n):
+     """
+     Add ``n`` to a given field in the document.
+     """
+-    pass
++    def transform(doc):
++        doc[field] += n
++
++    return transform
+ 
+ def subtract(field, n):
+     """
+     Subtract ``n`` to a given field in the document.
+     """
+-    pass
++    def transform(doc):
++        doc[field] -= n
++
++    return transform
+ 
+ def set(field, val):
+     """
+     Set a given field to ``val``.
+     """
+-    pass
++    def transform(doc):
++        doc[field] = val
++
++    return transform
+ 
+ def increment(field):
+     """
+     Increment a given field in the document by 1.
+     """
+-    pass
++    def transform(doc):
++        doc[field] += 1
++
++    return transform
+ 
+ def decrement(field):
+     """
+     Decrement a given field in the document by 1.
+     """
+-    pass
+\ No newline at end of file
++    def transform(doc):
++        doc[field] -= 1
++
++    return transform
+\ No newline at end of file
+diff --git a/tinydb/queries.py b/tinydb/queries.py
+index 78e7e99..9b43e60 100644
+--- a/tinydb/queries.py
++++ b/tinydb/queries.py
+@@ -84,6 +84,12 @@ class QueryInstance:
+     def __hash__(self) -> int:
+         return hash(self._hash)
+ 
++    def is_cacheable(self) -> bool:
++        """
++        Whether this query has a stable hash and may be used as a cache key.
++        """
++        return self._hash is not None
++
+     def __repr__(self):
+         return 'QueryImpl{}'.format(self._hash)
+ 
+@@ -174,7 +180,27 @@ class Query(QueryInstance):
+         :param hashval: The hash of the query.
+         :return: A :class:`~tinydb.queries.QueryInstance` object
+         """
+-        pass
++        if not self._path and not allow_empty_path:
++            raise ValueError('Query has no path')
++
++        def runner(value):
++            try:
++                # Resolve the path
++                for part in self._path:
++                    if isinstance(part, str):
++                        value = value[part]
++                    else:
++                        value = part(value)
++            except (KeyError, TypeError):
++                return False
++            else:
++                # Perform the specified test
++                return test(value)
++
++        return QueryInstance(
++            lambda value: runner(value),
++            (hashval if self.is_cacheable() else None)
++        )
+ 
+     def __eq__(self, rhs: Any):
+         """
+@@ -242,7 +268,10 @@ class Query(QueryInstance):
+ 
+         >>> Query().f1.exists()
+         """
+-        pass
++        def test(value):
++            return True
++
++        return self._generate_test(test, ('exists', self._path))
+ 
+     def matches(self, regex: str, flags: int=0) -> QueryInstance:
+         """
+@@ -253,7 +282,12 @@ class Query(QueryInstance):
+         :param regex: The regular expression to use for matching
+         :param flags: regex flags to pass to ``re.match``
+         """
+-        pass
++        def test(value):
++            if not isinstance(value, str):
++                return False
++            return re.match(regex, value, flags) is not None
++
++        return self._generate_test(test, ('matches', self._path, regex, flags))
+ 
+     def search(self, regex: str, flags: int=0) -> QueryInstance:
+         """
+@@ -265,7 +299,12 @@ class Query(QueryInstance):
+         :param regex: The regular expression to use for matching
+         :param flags: regex flags to pass to ``re.match``
+         """
+-        pass
++        def test(value):
++            if not isinstance(value, str):
++                return False
++            return re.search(regex, value, flags) is not None
++
++        return self._generate_test(test, ('search', self._path, regex, flags))
+ 
+     def test(self, func: Callable[[Mapping], bool], *args) -> QueryInstance:
+         """
+@@ -287,7 +326,10 @@ class Query(QueryInstance):
+                      argument
+         :param args: Additional arguments to pass to the test function
+         """
+-        pass
++        return self._generate_test(
++            lambda value: func(value, *args),
++            ('test', self._path, freeze(args))
++        )
+ 
+     def any(self, cond: Union[QueryInstance, List[Any]]) -> QueryInstance:
+         """
+@@ -311,7 +353,21 @@ class Query(QueryInstance):
+                      a list of which at least one document has to be contained
+                      in the tested document.
+         """
+-        pass
++        if isinstance(cond, QueryInstance):
++            def test(value):
++                if not isinstance(value, (list, tuple)):
++                    return False
++                return any(cond(item) for item in value)
++
++            hashval = ('any', self._path, cond) if cond.is_cacheable() else None
++        else:
++            def test(value):
++                if not isinstance(value, (list, tuple)):
++                    return False
++                return any(item in cond for item in value)
++
++            hashval = ('any', self._path, freeze(cond))
++        return self._generate_test(test, hashval)
+ 
+     def all(self, cond: Union['QueryInstance', List[Any]]) -> QueryInstance:
+         """
+@@ -333,7 +389,21 @@ class Query(QueryInstance):
+         :param cond: Either a query that all documents have to match or a list
+                      which has to be contained in the tested document.
+         """
+-        pass
++        if isinstance(cond, QueryInstance):
++            def test(value):
++                if not isinstance(value, (list, tuple)):
++                    return False
++                return all(cond(item) for item in value)
++
++            hashval = ('all', self._path, cond) if cond.is_cacheable() else None
++        else:
++            def test(value):
++                if not isinstance(value, (list, tuple)):
++                    return False
++                return all(item in value for item in cond)
++
++            hashval = ('all', self._path, freeze(cond))
++        return self._generate_test(test, hashval)
+ 
+     def one_of(self, items: List[Any]) -> QueryInstance:
+         """
+@@ -343,7 +413,8 @@ class Query(QueryInstance):
+ 
+         :param items: The list of items to check with
+         """
+-        pass
++        items = list(items)
++        return self._generate_test(lambda value: value in items, ('one_of', self._path, freeze(items)))
+ 
+     def noop(self) -> QueryInstance:
+         """
+@@ -351,17 +422,44 @@ class Query(QueryInstance):
+ 
+         Useful for having a base value when composing queries dynamically.
+         """
+-        pass
++        return self._generate_test(lambda _: True, ('noop',), allow_empty_path=True)
+ 
+     def map(self, fn: Callable[[Any], Any]) -> 'Query':
+         """
+         Add a function to the query path. Similar to __getattr__ but for
+         arbitrary functions.
++
++        A function that closes over variables (e.g. a lambda capturing a
++        mutable local) may return different results for the same input over
++        time, so a query using it is not cacheable.
++        """
++        query = type(self)()
++        query._path = self._path + (fn,)
++        stable_fn = getattr(fn, '__closure__', None) is None
++        query._hash = ('path', query._path) if self.is_cacheable() and stable_fn else None
++        return query
++
++    def fragment(self, document: Mapping) -> QueryInstance:
+         """
+-        pass
++        Match a document that contains all the key/value pairs of the given
++        fragment, ignoring any additional keys in the tested document.
++
++        >>> Query().fragment({'a': 4, 'b': True})
++
++        :param document: The key/value pairs that have to be present
++        """
++        def test(value):
++            if not isinstance(value, Mapping):
++                return False
++            for key in document:
++                if key not in value or value[key] != document[key]:
++                    return False
++            return True
++
++        return self._generate_test(test, ('fragment', freeze(document)), allow_empty_path=True)
+ 
+ def where(key: str) -> Query:
+     """
+     A shorthand for ``Query()[key]``
+     """
+-    pass
+\ No newline at end of file
++    return Query()[key]
+\ No newline at end of file
+diff --git a/tinydb/storages.py b/tinydb/storages.py
+index 86c0987..7fe91ad 100644
+--- a/tinydb/storages.py
++++ b/tinydb/storages.py
+@@ -17,7 +17,16 @@ def touch(path: str, create_dirs: bool):
+     :param path: The file to create.
+     :param create_dirs: Whether to create all missing parent directories.
+     """
+-    pass
++    if create_dirs:
++        base_dir = os.path.dirname(path)
++
++        # Create the parent directory if it is missing
++        if base_dir and not os.path.exists(base_dir):
++            os.makedirs(base_dir)
++
++    # Create the file itself if it doesn't exist yet
++    if not os.path.exists(path):
++        open(path, 'a').close()
+ 
+ class Storage(ABC):
+     """
+@@ -83,6 +92,44 @@ class JSONStorage(Storage):
+             touch(path, create_dirs=create_dirs)
+         self._handle = open(path, mode=self._mode, encoding=encoding)
+ 
++    def read(self) -> Optional[Dict[str, Dict[str, Any]]]:
++        # Get the file size
++        self._handle.seek(0, os.SEEK_END)
++        size = self._handle.tell()
++
++        if not size:
++            # An empty file means an empty database, so return None
++            return None
++
++        # Return the cursor to the beginning of the file
++        self._handle.seek(0)
++
++        # Load the JSON contents of the file
++        return json.load(self._handle)
++
++    def write(self, data: Dict[str, Dict[str, Any]]) -> None:
++        # Move the cursor to the beginning of the file just in case
++        self._handle.seek(0)
++
++        # Serialize the database state using the user-provided arguments
++        serialized = json.dumps(data, **self.kwargs)
++
++        # Write the serialized data to the file
++        try:
++            self._handle.write(serialized)
++        except io.UnsupportedOperation:
++            raise IOError('Cannot write to the database. Access mode is "{0}"'.format(self._mode))
++
++        # Ensure the file has been written to disk
++        self._handle.flush()
++        os.fsync(self._handle.fileno())
++
++        # Remove data behind the new cursor in case the file got shorter
++        self._handle.truncate()
++
++    def close(self) -> None:
++        self._handle.close()
++
+ class MemoryStorage(Storage):
+     """
+     Store the data as JSON in memory.
+@@ -93,4 +140,10 @@ class MemoryStorage(Storage):
+         Create a new instance.
+         """
+         super().__init__()
+-        self.memory = None
+\ No newline at end of file
++        self.memory = None
++
++    def read(self) -> Optional[Dict[str, Dict[str, Any]]]:
++        return self.memory
++
++    def write(self, data: Dict[str, Dict[str, Any]]) -> None:
++        self.memory = data
+\ No newline at end of file
+diff --git a/tinydb/table.py b/tinydb/table.py
+index 5f0a160..28b9734 100644
+--- a/tinydb/table.py
++++ b/tinydb/table.py
+@@ -80,14 +80,14 @@ class Table:
+         """
+         Get the table name.
+         """
+-        pass
++        return self._name
+ 
+     @property
+     def storage(self) -> Storage:
+         """
+         Get the table storage instance.
+         """
+-        pass
++        return self._storage
+ 
+     def insert(self, document: Mapping) -> int:
+         """
+@@ -96,7 +96,7 @@ class Table:
+         :param document: the document to insert
+         :returns: the inserted document's ID
+         """
+-        pass
++        return self.insert_multiple([document])[0]
+ 
+     def insert_multiple(self, documents: Iterable[Mapping]) -> List[int]:
+         """
+@@ -105,7 +105,34 @@ class Table:
+         :param documents: an Iterable of documents to insert
+         :returns: a list containing the inserted documents' IDs
+         """
+-        pass
++        # Work out every document's ID before the table is updated, so that
++        # automatically assigned IDs never collide with explicit ones in the batch
++        prepared: List[Tuple[Mapping, int]] = []
++        for document in documents:
++            if not isinstance(document, Mapping):
++                raise ValueError('Document is not a Mapping')
++
++            if isinstance(document, Document):
++                doc_id = document.doc_id
++                if self._next_id is None:
++                    self._next_id = self._compute_next_id()
++                # Keep automatically assigned IDs above explicit ones
++                if doc_id >= self._next_id:
++                    self._next_id = doc_id + 1
++            else:
++                doc_id = self._get_next_id()
++
++            prepared.append((document, doc_id))
++
++        def updater(table: Dict[int, Mapping]):
++            for document, doc_id in prepared:
++                if doc_id in table:
++                    raise ValueError(
++                        'Document with ID {} already exists'.format(doc_id))
++                table[doc_id] = dict(document)
++
++        self._update_table(updater)
++        return [doc_id for _, doc_id in prepared]
+ 
+     def all(self) -> List[Document]:
+         """
+@@ -113,7 +140,7 @@ class Table:
+ 
+         :returns: a list with all documents.
+         """
+-        pass
++        return list(iter(self))
+ 
+     def search(self, cond: QueryLike) -> List[Document]:
+         """
+@@ -122,14 +149,30 @@ class Table:
+         :param cond: the condition to check against
+         :returns: list of matching documents
+         """
+-        pass
++        # Serve the result from the query cache if this query was seen before
++        cached_results = self._query_cache.get(cond)
++        if cached_results is not None:
++            return cached_results[:]
++
++        # Apply the query to the raw documents and only convert the matches
++        docs = [
++            self.document_class(doc, self.document_id_class(doc_id))
++            for doc_id, doc in self._read_table().items()
++            if cond(doc)
++        ]
++
++        # Only cache queries whose result cannot change without the table changing
++        if getattr(cond, 'is_cacheable', lambda: True)():
++            self._query_cache[cond] = docs[:]
++
++        return docs
+ 
+     def get(self, cond: Optional[QueryLike]=None, doc_id: Optional[int]=None, doc_ids: Optional[List]=None) -> Optional[Union[Document, List[Document]]]:
+         """
+         Get exactly one document specified by a query or a document ID.
+         However, if multiple document IDs are given then returns all
+         documents in a list.
+-        
++
+         Returns ``None`` if the document doesn't exist.
+ 
+         :param cond: the condition to check against
+@@ -138,7 +181,30 @@ class Table:
+ 
+         :returns: the document(s) or ``None``
+         """
+-        pass
++        if doc_id is not None:
++            # Retrieve a document specified by its ID
++            raw_doc = self._read_table().get(str(doc_id))
++            if raw_doc is None:
++                return None
++            return self.document_class(raw_doc, self.document_id_class(doc_id))
++
++        if doc_ids is not None:
++            # Return every requested document that exists, in the order requested
++            table = self._read_table()
++            return [
++                self.document_class(table[str(i)], self.document_id_class(i))
++                for i in doc_ids
++                if str(i) in table
++            ]
++
++        if cond is not None:
++            # Return the first document matching the query, if there is one
++            for raw_id, raw_doc in self._read_table().items():
++                if cond(raw_doc):
++                    return self.document_class(raw_doc, self.document_id_class(raw_id))
++            return None
++
++        raise RuntimeError('You have to pass either cond or doc_id')
+ 
+     def contains(self, cond: Optional[QueryLike]=None, doc_id: Optional[int]=None) -> bool:
+         """
+@@ -150,7 +216,11 @@ class Table:
+         :param cond: the condition use
+         :param doc_id: the document ID to look for
+         """
+-        pass
++        if doc_id is not None:
++            return self.get(doc_id=doc_id) is not None
++        if cond is not None:
++            return self.get(cond) is not None
++        raise RuntimeError('You have to pass either cond or doc_id')
+ 
+     def update(self, fields: Union[Mapping, Callable[[Mapping], None]], cond: Optional[QueryLike]=None, doc_ids: Optional[Iterable[int]]=None) -> List[int]:
+         """
+@@ -162,7 +232,44 @@ class Table:
+         :param doc_ids: a list of document IDs
+         :returns: a list containing the updated document's ID
+         """
+-        pass
++        def perform_update(table: Dict[int, Mapping], doc_id: int):
++            if callable(fields):
++                # The callable receives the raw document and changes it in place
++                fields(table[doc_id])
++            else:
++                table[doc_id].update(fields)
++
++        if doc_ids is not None:
++            # Update the documents with the given IDs
++            updated_ids = list(doc_ids)
++
++            def updater(table: Dict[int, Mapping]):
++                for doc_id in updated_ids:
++                    perform_update(table, doc_id)
++
++        elif cond is not None:
++            # Update the documents matching the query
++            updated_ids = []
++
++            def updater(table: Dict[int, Mapping]):
++                # Iterate over a copy of the keys so the table can be safely
++                # inspected while it is traversed
++                for doc_id in list(table.keys()):
++                    if cond(table[doc_id]):
++                        updated_ids.append(doc_id)
++                        perform_update(table, doc_id)
++
++        else:
++            # Update all documents
++            updated_ids = []
++
++            def updater(table: Dict[int, Mapping]):
++                for doc_id in list(table.keys()):
++                    updated_ids.append(doc_id)
++                    perform_update(table, doc_id)
++
++        self._update_table(updater)
++        return updated_ids
+ 
+     def update_multiple(self, updates: Iterable[Tuple[Union[Mapping, Callable[[Mapping], None]], QueryLike]]) -> List[int]:
+         """
+@@ -170,7 +277,21 @@ class Table:
+ 
+         :returns: a list containing the updated document's ID
+         """
+-        pass
++        updated_ids: List[int] = []
++
++        def updater(table: Dict[int, Mapping]):
++            for fields, cond in updates:
++                for doc_id in list(table.keys()):
++                    if cond(table[doc_id]):
++                        if doc_id not in updated_ids:
++                            updated_ids.append(doc_id)
++                        if callable(fields):
++                            fields(table[doc_id])
++                        else:
++                            table[doc_id].update(fields)
++
++        self._update_table(updater)
++        return updated_ids
+ 
+     def upsert(self, document: Mapping, cond: Optional[QueryLike]=None) -> List[int]:
+         """
+@@ -185,7 +306,27 @@ class Table:
+         Document with a doc_id
+         :returns: a list containing the updated documents' IDs
+         """
+-        pass
++        # Extract the doc_id if the document carries one
++        if isinstance(document, Document) and hasattr(document, 'doc_id'):
++            doc_ids: Optional[List[int]] = [document.doc_id]
++        else:
++            doc_ids = None
++
++        # Make sure there is a way to find a matching document
++        if doc_ids is None and cond is None:
++            raise ValueError("If you don't specify a search query, you must specify a doc_id. Hint: use a table.Document object.")
++
++        try:
++            updated_docs: Optional[List[int]] = self.update(document, cond, doc_ids)
++        except KeyError:
++            # A doc_id was given but no document with that ID exists
++            updated_docs = None
++
++        if updated_docs:
++            return updated_docs
++
++        # No document matched, so insert the data as a new document
++        return [self.insert(document)]
+ 
+     def remove(self, cond: Optional[QueryLike]=None, doc_ids: Optional[Iterable[int]]=None) -> List[int]:
+         """
+@@ -195,13 +336,39 @@ class Table:
+         :param doc_ids: a list of document IDs
+         :returns: a list containing the removed documents' ID
+         """
+-        pass
++        removed_ids: List[int] = []
++
++        if doc_ids is not None:
++            def updater(table: Dict[int, Mapping]):
++                for doc_id in doc_ids:
++                    if doc_id in table:
++                        del table[doc_id]
++                        removed_ids.append(doc_id)
++
++        elif cond is not None:
++            def updater(table: Dict[int, Mapping]):
++                for doc_id in list(table.keys()):
++                    if cond(table[doc_id]):
++                        removed_ids.append(doc_id)
++                for doc_id in removed_ids:
++                    del table[doc_id]
++
++        else:
++            raise RuntimeError('Use truncate to remove all documents')
++
++        self._update_table(updater)
++        return removed_ids
+ 
+     def truncate(self) -> None:
+         """
+         Truncate the table by removing all documents.
+         """
+-        pass
++        def updater(table: Dict[int, Mapping]):
++            table.clear()
++
++        self._update_table(updater)
++        # The next ID starts over once the table is empty
++        self._next_id = None
+ 
+     def count(self, cond: QueryLike) -> int:
+         """
+@@ -209,13 +376,13 @@ class Table:
+ 
+         :param cond: the condition use
+         """
+-        pass
++        return len(self.search(cond))
+ 
+     def clear_cache(self) -> None:
+         """
+         Clear the query cache.
+         """
+-        pass
++        self._query_cache.clear()
+ 
+     def __len__(self):
+         """
+@@ -236,17 +403,43 @@ class Table:
+         """
+         Return the ID for a newly inserted document.
+         """
+-        pass
++        # The next ID is derived from the table only the first time; afterwards
++        # it is tracked here, so IDs are never reused while the table lives
++        if self._next_id is None:
++            self._next_id = self._compute_next_id()
++
++        next_id = self._next_id
++        self._next_id = next_id + 1
++        return next_id
++
++    def _compute_next_id(self) -> int:
++        """
++        Derive the ID after the highest ID currently stored in the table.
++        """
++        table = self._read_table()
++        if not table:
++            return 1
++        return max(self.document_id_class(doc_id) for doc_id in table) + 1
+ 
+     def _read_table(self) -> Dict[str, Mapping]:
+         """
+         Read the table data from the underlying storage.
+ 
+-        Documents and doc_ids are NOT yet transformed, as 
++        Documents and doc_ids are NOT yet transformed, as
+         we may not want to convert *all* documents when returning
+         only one document for example.
+         """
+-        pass
++        tables = self._storage.read()
++
++        if tables is None:
++            # The database is empty
++            return {}
++
++        try:
++            return tables[self.name]
++        except KeyError:
++            # The table does not exist yet, so it is empty
++            return {}
+ 
+     def _update_table(self, updater: Callable[[Dict[int, Mapping]], None]):
+         """
+@@ -261,4 +454,39 @@ class Table:
+         As a further optimization, we don't convert the documents into the
+         document class, as the table data will *not* be returned to the user.
+         """
+-        pass
+\ No newline at end of file
++        tables = self._storage.read()
++
++        if tables is None:
++            # The database is empty
++            tables = {}
++
++        try:
++            raw_table = tables[self.name]
++        except KeyError:
++            # The table does not exist yet, so it is empty
++            raw_table = {}
++
++        # Convert the document IDs to the document ID class, as the rest of
++        # TinyDB expects numeric IDs while the storage may hold strings. The
++        # documents are copied so a failing updater leaves the storage's
++        # data untouched.
++        table = {
++            self.document_id_class(doc_id): dict(doc)
++            for doc_id, doc in raw_table.items()
++        }
++
++        # Perform the table update operation
++        updater(table)
++
++        # Convert the document IDs back to strings, as some storages (most
++        # notably the JSON file format) only support string keys
++        tables[self.name] = {
++            str(doc_id): doc
++            for doc_id, doc in table.items()
++        }
++
++        # Write the newly updated data back to the storage
++        self._storage.write(tables)
++
++        # The table contents have changed, so cached query results are stale
++        self.clear_cache()
+diff --git a/tinydb/utils.py b/tinydb/utils.py
+index 161c511..8b72403 100644
+--- a/tinydb/utils.py
++++ b/tinydb/utils.py
+@@ -22,7 +22,9 @@ def with_typehint(baseclass: Type[T]):
+     MyPy does not. For that reason TinyDB has a MyPy plugin in
+     ``mypy_plugin.py`` that adds support for this pattern.
+     """
+-    pass
++    if TYPE_CHECKING:
++        return baseclass
++    return object
+ 
+ class LRUCache(abc.MutableMapping, Generic[K, V]):
+     """
+@@ -42,6 +44,41 @@ class LRUCache(abc.MutableMapping, Generic[K, V]):
+         self.capacity = capacity
+         self.cache: OrderedDict[K, V] = OrderedDict()
+ 
++    @property
++    def lru(self) -> List[K]:
++        """
++        The keys in least-recently used order: the first key is the oldest.
++        """
++        return list(self.cache.keys())
++
++    @property
++    def length(self) -> int:
++        return len(self.cache)
++
++    def clear(self) -> None:
++        self.cache.clear()
++
++    def get(self, key: K, default: Optional[D] = None) -> Optional[Union[V, D]]:
++        """
++        Return the value for ``key`` and mark it as most recently used. Return
++        ``default`` without touching the order if the key is absent.
++        """
++        if key not in self.cache:
++            return default
++        self.cache.move_to_end(key)
++        return self.cache[key]
++
++    def set(self, key: K, value: V) -> None:
++        """
++        Store ``value`` as the most recently used entry. If the capacity is
++        exceeded, the least recently used entries are discarded.
++        """
++        self.cache.pop(key, None)
++        self.cache[key] = value
++        if self.capacity is not None:
++            while self.length > self.capacity:
++                self.cache.popitem(last=False)
++
+     def __len__(self) -> int:
+         return self.length
+ 
+@@ -63,6 +100,9 @@ class LRUCache(abc.MutableMapping, Generic[K, V]):
+     def __iter__(self) -> Iterator[K]:
+         return iter(self.cache)
+ 
++def _immutable(self, *args, **kws):
++    raise TypeError('object is immutable')
++
+ class FrozenDict(dict):
+     """
+     An immutable dictionary.
+@@ -79,9 +119,19 @@ class FrozenDict(dict):
+     clear = _immutable
+     setdefault = _immutable
+     popitem = _immutable
++    pop = _immutable
++    update = _immutable
++    __ior__ = _immutable
+ 
+ def freeze(obj):
+     """
+     Freeze an object by making it immutable and thus hashable.
+     """
+-    pass
+\ No newline at end of file
++    if isinstance(obj, dict):
++        return FrozenDict((k, freeze(el)) for k, el in obj.items())
++    elif isinstance(obj, list):
++        return tuple(freeze(el) for el in obj)
++    elif isinstance(obj, set):
++        return frozenset(obj)
++    else:
++        return obj
+\ No newline at end of file

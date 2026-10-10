@@ -1,0 +1,126 @@
+diff --git a/deprecated/classic.py b/deprecated/classic.py
+index 5175055..c5e84fb 100644
+--- a/deprecated/classic.py
++++ b/deprecated/classic.py
+@@ -117,7 +117,29 @@ class ClassicAdapter(wrapt.AdapterFactory):
+ 
+         :return: The warning message.
+         """
+-        pass
++        return self._format_message(wrapped, instance, self.reason)
++
++    def _format_message(self, wrapped, instance, reason):
++        """
++        Build the deprecation message from a reason text (which may already be rewritten).
++        """
++        if instance is None:
++            if inspect.isclass(wrapped):
++                fmt = "Call to deprecated class {name}."
++            else:
++                fmt = "Call to deprecated function (or staticmethod) {name}."
++        else:
++            if inspect.isclass(instance):
++                fmt = "Call to deprecated class method {name}."
++            else:
++                fmt = "Call to deprecated method {name}."
++        if reason:
++            fmt += " ({reason})"
++        if self.version:
++            fmt += " -- Deprecated since version {version}."
++        return fmt.format(name=wrapped.__name__,
++                          reason=reason or "",
++                          version=self.version or "")
+ 
+     def __call__(self, wrapped):
+         """
+@@ -148,7 +170,19 @@ class ClassicAdapter(wrapt.AdapterFactory):
+                     return old_new1(cls)
+                 return old_new1(cls, *args, **kwargs)
+             wrapped.__new__ = staticmethod(wrapped_cls)
+-        return wrapped
++            return wrapped
++
++        @wrapt.decorator
++        def wrapper_function(wrapped_, instance_, args_, kwargs_):
++            msg = self.get_deprecated_msg(wrapped_, instance_)
++            if self.action:
++                with warnings.catch_warnings():
++                    warnings.simplefilter(self.action, self.category)
++                    warnings.warn(msg, category=self.category, stacklevel=_routine_stacklevel)
++            else:
++                warnings.warn(msg, category=self.category, stacklevel=_routine_stacklevel)
++            return wrapped_(*args_, **kwargs_)
++        return wrapper_function(wrapped)
+ 
+ def deprecated(*args, **kwargs):
+     """
+@@ -226,4 +260,16 @@ def deprecated(*args, **kwargs):
+            return x + y
+ 
+     """
+-    pass
+\ No newline at end of file
++    if args and isinstance(args[0], string_types):
++        kwargs['reason'] = args[0]
++        args = args[1:]
++
++    if args and not callable(args[0]):
++        raise TypeError(repr(type(args[0])))
++
++    if args:
++        adapter_cls = kwargs.pop('adapter_cls', ClassicAdapter)
++        adapter = adapter_cls(**kwargs)
++        return adapter(args[0])
++
++    return functools.partial(deprecated, **kwargs)
+\ No newline at end of file
+diff --git a/deprecated/sphinx.py b/deprecated/sphinx.py
+index 50ecd98..10a9dcb 100644
+--- a/deprecated/sphinx.py
++++ b/deprecated/sphinx.py
+@@ -24,6 +24,9 @@ import wrapt
+ from deprecated.classic import ClassicAdapter
+ from deprecated.classic import deprecated as _classic_deprecated
+ 
++# A Sphinx cross-reference such as ``:func:`bar```, ``:py:func:`bar``` or ``:r:`foo```
++_SPHINX_ROLE_RE = re.compile(r':(?:\w+:)?\w+:`([^`]*)`')
++
+ class SphinxAdapter(ClassicAdapter):
+     """
+     Sphinx adapter -- *for advanced usage only*
+@@ -123,7 +126,8 @@ class SphinxAdapter(ClassicAdapter):
+            Strip Sphinx cross-referencing syntax from warning message.
+ 
+         """
+-        pass
++        plain_reason = _SPHINX_ROLE_RE.sub(lambda match: '`' + match.group(1) + '`', self.reason)
++        return self._format_message(wrapped, instance, plain_reason)
+ 
+ def versionadded(reason='', version='', line_length=70):
+     """
+@@ -146,7 +150,7 @@ def versionadded(reason='', version='', line_length=70):
+ 
+     :return: the decorated function.
+     """
+-    pass
++    return SphinxAdapter('versionadded', reason=reason, version=version, line_length=line_length)
+ 
+ def versionchanged(reason='', version='', line_length=70):
+     """
+@@ -168,7 +172,7 @@ def versionchanged(reason='', version='', line_length=70):
+ 
+     :return: the decorated function.
+     """
+-    pass
++    return SphinxAdapter('versionchanged', reason=reason, version=version, line_length=line_length)
+ 
+ def deprecated(reason='', version='', line_length=70, **kwargs):
+     """
+@@ -205,4 +209,4 @@ def deprecated(reason='', version='', line_length=70, **kwargs):
+     .. versionchanged:: 1.2.13
+        Change the signature of the decorator to reflect the valid use cases.
+     """
+-    pass
+\ No newline at end of file
++    return SphinxAdapter('deprecated', reason=reason, version=version, line_length=line_length, **kwargs)
+\ No newline at end of file

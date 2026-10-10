@@ -58,7 +58,7 @@ def test_prompts_keep_out_placeholder_and_single_braces():
     task = {"name": "tinydb", "original_repo": "msiemens/tinydb", "src_dir": "tinydb",
             "test": {"test_dir": "tests/"}}
     for p in (prompts.solo(task, "/x"), prompts.swarm(task, "/x", 1, 2, ["tinydb/a.py"]),
-              prompts.fixer(task, "/x", 1, 2, "3 passed", "/x/.claims"),
+              prompts.fixer(task, "/x", 1, 2, "3 passed", "/x/.c0-shard-1.txt", 7),
               prompts.solo_cont(task, "/x", "3 passed")):
         assert "{out}" in p
         assert '{"summary"' in p and "{{" not in p
@@ -90,3 +90,17 @@ def test_agent_tree_has_no_history_and_patch_round_trips(tmp_path, monkeypatch):
     g = workspace.checkout(task, tmp_path / "g")
     subprocess.run(["git", "apply", "--binary", str(p)], cwd=g, check=True)
     assert (g / "tinydb" / "utils.py").read_text() == "# changed\n"
+
+
+def test_shard_contiguous_and_complete():
+    from run import shard
+    ids = [f"t::{c}" for c in "fedcba"]
+    sh = shard(ids, 4)
+    assert [x for s in sh for x in s] == sorted(ids) and len(sh) <= 4 and all(sh)
+
+
+def test_junit_to_node():
+    from run import junit_to_node
+    assert junit_to_node("tests.test_x.TestC::test_m") == "tests/test_x.py::TestC::test_m"
+    assert junit_to_node("tests.test_x::test_f[a-b]") == "tests/test_x.py::test_f[a-b]"
+    assert junit_to_node("voluptuous.tests.tests::test_y") == "voluptuous/tests/tests.py::test_y"
