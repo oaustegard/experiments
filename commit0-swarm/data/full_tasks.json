@@ -1,0 +1,44 @@
+{
+ "statsmodels": {
+  "artifacts": "_statsmodels-ext",
+  "base_commit": "07351f14bb4f0e3f5eef2e21955e5c595066ffcf",
+  "full": true,
+  "name": "statsmodels",
+  "original_repo": "statsmodels/statsmodels",
+  "patch_exclude": [
+   ":(exclude,glob)statsmodels/**/tests/**"
+  ],
+  "reference_commit": "7767ecdcd616c368ad3e1a4a79fe8997ca8e45ec",
+  "repo": "commit-0/statsmodels",
+  "setup": {
+   "install": "(deps from requirements; see full_setup.py)",
+   "packages": [
+    "requirements.txt"
+   ],
+   "pip_packages": [
+    "numpy<2",
+    "scipy<1.14",
+    "pandas<2.3",
+    "patsy",
+    "packaging",
+    "matplotlib",
+    "joblib",
+    "colorama",
+    "cython>=0.29.33,<4",
+    "setuptools_scm[toml]~=8.0",
+    "setuptools>=63.4.3",
+    "pytest>=7.3.0",
+    "pytest-xdist"
+   ],
+   "pre_install": null,
+   "python": "3.10",
+   "specification": "https://www.statsmodels.org/stable/"
+  },
+  "src_dir": "statsmodels",
+  "test": {
+   "test_cmd": "pytest -n auto -r s --dist loadscope --skip-examples -p no:randomly",
+   "test_dir": "statsmodels/"
+  },
+  "test_timeout": 5400
+ }
+}

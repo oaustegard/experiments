@@ -36,12 +36,14 @@ def main(prog: str, args: list[str]) -> int:
     task = load_tasks()[json.loads((root / TASK_MARKER).read_text())["name"]]
     if prog == "c0-test":
         argv = test_argv(task, args)
+        # 20 agents share 4 vCPUs: an agent's run gets 2 xdist workers, not one per core.
+        argv = ["2" if a == "auto" and i and argv[i - 1] == "-n" else a for i, a in enumerate(argv)]
     elif not args:
         print("c0-run: name a command, e.g. c0-run python -c 'import x'", file=sys.stderr)
         return 2
     else:
         argv = list(args)
-    cmd = jailed(task, root, argv, TIMEOUT[prog])
+    cmd = jailed(task, root, argv, task.get("test_timeout", TIMEOUT[prog]) if prog == "c0-test" else TIMEOUT[prog])
     if Path.cwd() != root:
         rel = Path.cwd().relative_to(root)
         i = cmd.index("--")

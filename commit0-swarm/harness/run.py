@@ -60,6 +60,8 @@ def stub_weights(task: dict, root: Path) -> dict[str, int]:
     mean a file is complete. The pilot's partition skipped such files."""
     out = {}
     for f in sorted((root / task["src_dir"]).rglob("*.py")):
+        if task.get("patch_exclude") and "/tests/" in str(f.relative_to(root)):
+            continue   # tests inside src_dir (statsmodels) are not anyone's to build
         try:
             mod = ast.parse(f.read_text(errors="replace"))
         except SyntaxError:
@@ -118,7 +120,9 @@ def save_patch(run: str, lib: str, task: dict) -> Path:
     has_base = subprocess.run(["git", "cat-file", "-e", task["base_commit"]], cwd=t,
                               stderr=subprocess.DEVNULL).returncode == 0
     base = task["base_commit"] if has_base else git("rev-list", "--max-parents=0", "HEAD", cwd=t).split()[-1]
-    diff = git("diff", "--cached", "--binary", base, "--", task["src_dir"], *EXCLUDE, cwd=t)
+    # Tests that live inside src_dir (statsmodels/**/tests) never enter a patch.
+    diff = git("diff", "--cached", "--binary", base, "--", task["src_dir"], *EXCLUDE,
+               *task.get("patch_exclude", []), cwd=t)
     (rdir(run) / "patches").mkdir(exist_ok=True)
     p = rdir(run) / "patches" / f"{lib}.diff"
     p.write_text(diff)

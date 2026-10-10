@@ -63,9 +63,10 @@ def load_tasks() -> dict[str, dict]:
                          "setup": setup, "test": dict(r["test"]), "src_dir": r["src_dir"].rstrip("/")}
         TASKS.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
     tasks = json.loads(TASKS.read_text())
-    control = DATA / "control_tasks.json"   # post-cutoff libraries (control_setup.py)
-    if control.exists():
-        tasks.update(json.loads(control.read_text()))
+    for extra in ("control_tasks.json",   # post-cutoff libraries (control_setup.py)
+                  "full_tasks.json"):     # non-lite Commit0 libraries (full_setup.py)
+        if (DATA / extra).exists():
+            tasks.update(json.loads((DATA / extra).read_text()))
     return tasks
 
 

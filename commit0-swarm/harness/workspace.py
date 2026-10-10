@@ -46,10 +46,12 @@ def checkout(task: dict, dest: Path, commit: str | None = None, marker: dict | N
     # A --shared clone does not inherit the mirror's info/exclude.
     (dest / ".git" / "info").mkdir(parents=True, exist_ok=True)
     (dest / ".git" / "info" / "exclude").write_text(
-        ".venv\n.c0-task.json\n.c0-junit.xml\n.c0-shard-*.txt\n__pycache__/\n*.pyc\n.pytest_cache/\n")
+        ".venv\n.c0-task.json\n.c0-junit.xml\n.c0-shard-*.txt\n__pycache__/\n*.pyc\n.pytest_cache/\n"
+        + "".join(f"/{f}\n" for f in artifact_files(task)))
     (dest / ".venv").symlink_to(ENVS / task["name"])
     (dest / TASK_MARKER).write_text(json.dumps(marker or {"name": task["name"]}) + "\n")
     babel_data(task, dest)
+    place_artifacts(task, dest)
     opener(dest)
     return dest
 
@@ -77,6 +79,29 @@ def babel_data(task: dict, dest: Path) -> None:
     shutil.copy2(BABEL_DATA / "global.dat", dest / "babel" / "global.dat")
 
 
+def artifact_dir(task: dict) -> Path | None:
+    """Build products a library's tests need and this harness cannot make per tree
+    (statsmodels' compiled Cython modules, built once from sources the stub left
+    unchanged). Copied into every checkout; never part of a patch."""
+    return ENVS / task["artifacts"] if task.get("artifacts") else None
+
+
+def artifact_files(task: dict) -> list[str]:
+    d = artifact_dir(task)
+    if d is None or not d.exists():
+        return []
+    return sorted(str(f.relative_to(d)) for f in d.rglob("*") if f.is_file())
+
+
+def place_artifacts(task: dict, dest: Path) -> None:
+    d = artifact_dir(task)
+    if d is None:
+        return
+    if not d.exists():
+        raise FileNotFoundError(f"{d} missing: run harness/full_setup.py {task['name']}")
+    shutil.copytree(d, dest, dirs_exist_ok=True)
+
+
 def overlay_src(task: dict, src_tree: Path, dest: Path) -> list[str]:
     """Copy src_dir from src_tree onto dest. Returns files changed outside src_dir
     in src_tree relative to base (reported, never copied)."""
@@ -86,6 +111,7 @@ def overlay_src(task: dict, src_tree: Path, dest: Path) -> list[str]:
         shutil.rmtree(b)
     shutil.copytree(a, b, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"), symlinks=True)
     babel_data(task, dest)
+    place_artifacts(task, dest)
     out = git("status", "--porcelain", "--untracked-files=all", cwd=src_tree)
     return [l[3:] for l in out.splitlines() if l[3:].strip() and not l[3:].startswith(src)
             and not l[3:].startswith(("babel/locale-data", "babel/global.dat"))]
@@ -97,7 +123,8 @@ def run_tests(task: dict, tree: Path, junit_name: str = ".c0-junit.xml") -> dict
     if junit.exists():
         junit.unlink()
     opener(tree)
-    p = subprocess.run(jailed(task, tree, test_argv(task, [], junit=str(junit)), TEST_TIMEOUT),
+    p = subprocess.run(jailed(task, tree, test_argv(task, [], junit=str(junit)),
+                              task.get("test_timeout", TEST_TIMEOUT)),
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace")
     outcomes = parse_junit(junit) if junit.exists() else None
     return {"exit": p.returncode, "tail": p.stdout[-3000:], "outcomes": outcomes}
