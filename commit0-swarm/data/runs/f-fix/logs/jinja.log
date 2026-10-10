@@ -1,0 +1,47 @@
+                            [ 16%]
+tests/test_core_tags.py ................................................ [ 21%]
+..............                                                           [ 23%]
+tests/test_debug.py .......                                              [ 24%]
+tests/test_ext.py ...................................................    [ 30%]
+tests/test_filters.py .................................................. [ 36%]
+........................................................................ [ 44%]
+.........                                                                [ 45%]
+tests/test_idtracking.py .....                                           [ 46%]
+tests/test_imports.py ...............                                    [ 48%]
+tests/test_inheritance.py ......................                         [ 50%]
+tests/test_lexnparse.py ................................................ [ 56%]
+........................................................................ [ 64%]
+..............................                                           [ 68%]
+tests/test_loader.py ...............F.........................           [ 73%]
+tests/test_nativetypes.py ..........................                     [ 76%]
+tests/test_nodes.py .                                                    [ 76%]
+tests/test_pickle.py .                                                   [ 76%]
+tests/test_regression.py ............................................... [ 82%]
+.....                                                                    [ 82%]
+tests/test_runtime.py .......                                            [ 83%]
+tests/test_security.py ...............                                   [ 85%]
+tests/test_tests.py .................................................... [ 91%]
+......................................................                   [ 97%]
+tests/test_utils.py ....................                                 [100%]
+
+=================================== FAILURES ===================================
+___________ TestFileSystemLoader.test_caches_template_based_on_mtime ___________
+
+self = <test_loader.TestFileSystemLoader object at 0x7f0ee83336d0>
+
+    def test_caches_template_based_on_mtime(self):
+        filesystem_loader = loaders.FileSystemLoader(self.searchpath)
+    
+        env = Environment(loader=filesystem_loader)
+        tmpl1 = env.get_template("test.html")
+        tmpl2 = env.get_template("test.html")
+        assert tmpl1 is tmpl2
+    
+>       os.utime(self.searchpath / "test.html", (time.time(), time.time()))
+E       PermissionError: [Errno 1] Operation not permitted
+
+tests/test_loader.py:157: PermissionError
+---- generated xml file: /tmp/jail/c0/work/grade-f-fix/jinja/.c0-junit.xml -----
+=========================== short test summary info ============================
+FAILED tests/test_loader.py::TestFileSystemLoader::test_caches_template_based_on_mtime
+======================== 1 failed, 850 passed in 5.66s =========================

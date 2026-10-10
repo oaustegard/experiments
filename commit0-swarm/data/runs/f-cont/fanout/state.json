@@ -1,0 +1,28 @@
+{
+ "retries": 0,
+ "schema": {
+  "type": "object",
+  "required": [
+   "summary"
+  ],
+  "properties": {
+   "summary": {
+    "type": "string"
+   }
+  }
+ },
+ "tasks": [
+  {
+   "id": "chardet.cont",
+   "prompt": "You are implementing the Python library `chardet` (upstream: chardet/chardet) from its skeleton.\n\nThe checkout at /tmp/jail/c0/work/f-cont/chardet keeps the library's structure: modules, classes, signatures and docstrings. Most function and method bodies have been replaced with `pass`, and some private helpers were deleted outright (look for names the code uses but nothing defines). The library's own test suite is in `.`. Make it pass by writing the code under `chardet/`.\n\nThe tests and docstrings are your specification, together with what you know of the real library. Only files under `chardet/` are graded; the grader discards every other change, including any edit to tests. There is no network access, so you cannot fetch the original source.\n\nRunning code: library code runs only through two commands, used from inside the checkout:\n  /tmp/jail/c0/bin/c0-test [TARGET ...]   pytest on targets (default: the whole suite), e.g. `/tmp/jail/c0/bin/c0-test . -x -q` or `/tmp/jail/c0/bin/c0-test <test_file>.py -q`\n  /tmp/jail/c0/bin/c0-run CMD ARGS...     anything else, e.g. `/tmp/jail/c0/bin/c0-run python -c 'import chardet'`\nPlain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted. The last line of each run is its exit status.\n\nA previous agent worked on this checkout and stopped; its work is still in place (`git status` and `git diff` show it). Its last full-suite result: 375 passed, 1 failed or errored (of 376 graded tests). Continue from there: run the whole suite, then fix what still fails. Keep or rework its code as you judge best.\n\nThis is a long job: expect hundreds of tool calls. Do not stop to ask questions, do not stop after the first module, and do not report early. Work until `/tmp/jail/c0/bin/c0-test` on the whole suite passes, or until every remaining failure has had at least two real attempts.\n\nWhen you are done, and as your very last action, write /home/user/experiments/commit0-swarm/data/runs/f-cont/out/chardet.cont.json containing {\"summary\": \"<two sentences: what you implemented and the last full-suite result you saw>\", \"passed\": <int from that run or -1>, \"failed\": <int or -1>}. Then reply with one line.\n",
+   "out": "/home/user/experiments/commit0-swarm/data/runs/f-cont/out/chardet.cont.json",
+   "description": "f-cont chardet.cont",
+   "model": "haiku",
+   "subagent_type": "general-purpose",
+   "status": "done",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791593897.311284
+  }
+ ]
+}

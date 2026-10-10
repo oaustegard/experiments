@@ -1,0 +1,2227 @@
+diff --git a/imapclient/config.py b/imapclient/config.py
+index 7f5c277..1217f59 100644
+--- a/imapclient/config.py
++++ b/imapclient/config.py
+@@ -8,12 +8,145 @@ import urllib.request
+ from typing import Any, Callable, Dict, Optional, Tuple, TYPE_CHECKING, TypeVar
+ import imapclient
+ 
++_BOOL_OPTIONS = ('ssl', 'starttls', 'ssl_check_hostname', 'ssl_verify_cert', 'oauth2')
++
++def get_config_defaults() -> Dict[str, Any]:
++    """Return every option a config file can set, mapped to its default.
++
++    A port of None means the IMAPClient default for the ssl setting
++    (993 with ssl, otherwise 143). A timeout of None means no timeout.
++    """
++    return {
++        'host': None,
++        'port': None,
++        'username': None,
++        'password': None,
++        'ssl': True,
++        'starttls': False,
++        'ssl_check_hostname': True,
++        'ssl_verify_cert': True,
++        'ssl_ca_file': None,
++        'timeout': None,
++        'oauth2': False,
++        'oauth2_client_id': None,
++        'oauth2_client_secret': None,
++        'oauth2_refresh_token': None,
++        'expect_failure': None,
++    }
++
++def _section_to_namespace(section: configparser.SectionProxy) -> argparse.Namespace:
++    """Build a config namespace from one INI section, filling in defaults.
++
++    Options are converted to their types. An option the config does not
++    know about raises ValueError so that a misspelt option is not
++    silently ignored.
++    """
++    defaults = get_config_defaults()
++    unknown = [key for key in section if key not in defaults]
++    if unknown:
++        raise ValueError("Unknown config option(s): %s" % ', '.join(sorted(unknown)))
++    values: Dict[str, Any] = {}
++    for key, default in defaults.items():
++        if key not in section:
++            values[key] = default
++        elif key in _BOOL_OPTIONS:
++            values[key] = section.getboolean(key)
++        elif key == 'port':
++            values[key] = section.getint(key)
++        elif key == 'timeout':
++            values[key] = section.getfloat(key)
++        else:
++            values[key] = section.get(key)
++    return argparse.Namespace(**values)
++
+ def parse_config_file(filename: str) -> argparse.Namespace:
+     """Parse INI files containing IMAP connection details.
+ 
+     Used by livetest.py and interact.py
++
++    The DEFAULT section gives the main connection settings. Every other
++    section is an alternate configuration that inherits DEFAULT and
++    overrides some of it; they are returned in the ``alternates``
++    attribute, keyed by section name.
+     """
+-    pass
++    # Interpolation is off so that '%' in a password is taken literally.
++    parser = configparser.ConfigParser(interpolation=None)
++    with open(filename, encoding='utf-8') as f:
++        parser.read_file(f, source=filename)
++    config = _section_to_namespace(parser['DEFAULT'])
++    config.alternates = {
++        name: _section_to_namespace(parser[name]) for name in parser.sections()
++    }
++    return config
++
+ T = TypeVar('T')
+ OAUTH2_REFRESH_URLS = {'imap.gmail.com': 'https://accounts.google.com/o/oauth2/token', 'imap.mail.yahoo.com': 'https://api.login.yahoo.com/oauth2/get_token'}
+-_oauth2_cache: Dict[Tuple[str, str, str, str], str] = {}
+\ No newline at end of file
++_oauth2_cache: Dict[Tuple[str, str, str, str], str] = {}
++
++def _create_ssl_context(config: argparse.Namespace) -> Optional[ssl.SSLContext]:
++    """Return the TLS context implied by the config, or None without TLS."""
++    if not (config.ssl or config.starttls):
++        return None
++    context = ssl.create_default_context(cafile=config.ssl_ca_file)
++    if not config.ssl_verify_cert:
++        # verify_mode cannot be CERT_NONE while check_hostname is set,
++        # so the hostname check has to be turned off first.
++        context.check_hostname = False
++        context.verify_mode = ssl.CERT_NONE
++    elif not config.ssl_check_hostname:
++        context.check_hostname = False
++    return context
++
++def _get_oauth2_access_token(config: argparse.Namespace) -> str:
++    """Exchange the configured refresh token for an OAUTH2 access token.
++
++    Tokens are cached per host, client and refresh token for the life of
++    the process. Raises ValueError if the host has no known refresh URL.
++    """
++    key = (config.host, config.oauth2_client_id, config.oauth2_client_secret,
++           config.oauth2_refresh_token)
++    if key in _oauth2_cache:
++        return _oauth2_cache[key]
++    refresh_url = OAUTH2_REFRESH_URLS.get(config.host)
++    if refresh_url is None:
++        raise ValueError("No OAUTH2 token refresh URL is known for host %r" % config.host)
++    data = urllib.parse.urlencode({
++        'client_id': config.oauth2_client_id,
++        'client_secret': config.oauth2_client_secret,
++        'refresh_token': config.oauth2_refresh_token,
++        'grant_type': 'refresh_token',
++    }).encode('ascii')
++    request = urllib.request.Request(refresh_url, data=data)
++    with urllib.request.urlopen(request) as response:
++        access_token = json.loads(response.read())['access_token']
++    _oauth2_cache[key] = access_token
++    return access_token
++
++def create_client_from_config(config: argparse.Namespace, login: bool = True) -> 'imapclient.IMAPClient':
++    """Connect to the server described by config and return the client.
++
++    With login=False the client stops after connecting (and after any
++    STARTTLS upgrade), without authenticating. If connecting or logging
++    in fails, the connection is shut down before the error is re-raised.
++    """
++    ssl_context = _create_ssl_context(config)
++    client = imapclient.IMAPClient(
++        config.host,
++        port=config.port,
++        ssl=config.ssl,
++        ssl_context=ssl_context if config.ssl else None,
++        timeout=config.timeout,
++    )
++    try:
++        if config.starttls:
++            client.starttls(ssl_context=ssl_context)
++        if login:
++            if config.oauth2:
++                access_token = _get_oauth2_access_token(config)
++                client.oauth2_login(config.username, access_token)
++            else:
++                client.login(config.username, config.password)
++    except BaseException:
++        client.shutdown()
++        raise
++    return client
+diff --git a/imapclient/datetime_util.py b/imapclient/datetime_util.py
+index 73dc91d..f310652 100644
+--- a/imapclient/datetime_util.py
++++ b/imapclient/datetime_util.py
+@@ -4,6 +4,12 @@ from email.utils import parsedate_tz
+ from .fixed_offset import FixedOffset
+ _SHORT_MONTHS = ' Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ')
+ 
++# INTERNALDATE style: " 9-Feb-2007 17:08:08 -0430" (sign optional, leading space optional)
++_internaldate_re = re.compile(
++    r'\s*(\d{1,2})-([A-Za-z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2}) ([+-]?)(\d{2})(\d{2})\s*$'
++)
++
++
+ def parse_to_datetime(timestamp: bytes, normalise: bool=True) -> datetime:
+     """Convert an IMAP datetime string to a datetime.
+ 
+@@ -13,7 +19,53 @@ def parse_to_datetime(timestamp: bytes, normalise: bool=True) -> datetime:
+     If normalise is False, then the returned datetime will be
+     unadjusted but will contain timezone information as per the input.
+     """
+-    pass
++    text = timestamp.decode('ascii', errors='replace')
++
++    match = _internaldate_re.match(text)
++    if match:
++        day, mon, year, hour, minute, second, sign, tz_hours, tz_mins = match.groups()
++        if mon.capitalize() not in _SHORT_MONTHS:
++            raise ValueError('invalid month in datetime: %r' % timestamp)
++        month = _SHORT_MONTHS.index(mon.capitalize())
++        offset_minutes = int(tz_hours) * 60 + int(tz_mins)
++        if sign == '-':
++            offset_minutes = -offset_minutes
++        dt = datetime(
++            int(year), month, int(day), int(hour), int(minute), int(second),
++            0, FixedOffset(offset_minutes),
++        )
++    else:
++        # RFC 822 style. Some servers use dots as the time separator and
++        # some omit the space after the weekday comma; normalise both.
++        if _rfc822_dotted_time.match(text):
++            text = text.replace('.', ':')
++        text = re.sub(r'^(\w+),(?=\S)', r'\1, ', text)
++        parsed = parsedate_tz(text)
++        if parsed is None:
++            raise ValueError('unable to parse datetime: %r' % timestamp)
++        year, month, day, hour, minute, second = parsed[:6]
++        tz_offset = parsed[9]
++        if tz_offset is None:
++            dt = datetime(year, month, day, hour, minute, second)
++        else:
++            dt = datetime(
++                year, month, day, hour, minute, second,
++                0, FixedOffset(tz_offset // 60),
++            )
++
++    if normalise:
++        return datetime_to_native(dt)
++    return dt
++
++
++def datetime_to_native(dt: datetime) -> datetime:
++    """Convert a timezone aware datetime to a native datetime.
++
++    The result is adjusted to the system local timezone and has no
++    tzinfo. A naive input is treated as being in the system local time.
++    """
++    return dt.astimezone().replace(tzinfo=None)
++
+ 
+ def datetime_to_INTERNALDATE(dt: datetime) -> str:
+     """Convert a datetime instance to a IMAP INTERNALDATE string.
+@@ -21,9 +73,22 @@ def datetime_to_INTERNALDATE(dt: datetime) -> str:
+     If timezone information is missing the current system
+     timezone is used.
+     """
+-    pass
++    if dt.utcoffset() is None:
++        dt = dt.replace(tzinfo=FixedOffset.for_system())
++
++    total_minutes = int(dt.utcoffset().total_seconds() // 60)
++    sign = '-' if total_minutes < 0 else '+'
++    tz_hours, tz_mins = divmod(abs(total_minutes), 60)
++    zoneoffset = '%s%02d%02d' % (sign, tz_hours, tz_mins)
++
++    return '%02d-%s-%04d %02d:%02d:%02d %s' % (
++        dt.day, _SHORT_MONTHS[dt.month], dt.year,
++        dt.hour, dt.minute, dt.second, zoneoffset,
++    )
++
++
+ _rfc822_dotted_time = re.compile('\\w+, ?\\d{1,2} \\w+ \\d\\d(\\d\\d)? \\d\\d?\\.\\d\\d?\\.\\d\\d?.*')
+ 
+ def format_criteria_date(dt: datetime) -> bytes:
+     """Format a date or datetime instance for use in IMAP search criteria."""
+-    pass
+\ No newline at end of file
++    return ('%02d-%s-%04d' % (dt.day, _SHORT_MONTHS[dt.month], dt.year)).encode('ascii')
+diff --git a/imapclient/fixed_offset.py b/imapclient/fixed_offset.py
+index 407a766..9653cb5 100644
+--- a/imapclient/fixed_offset.py
++++ b/imapclient/fixed_offset.py
+@@ -17,9 +17,22 @@ class FixedOffset(datetime.tzinfo):
+         hours, remaining_mins = divmod(abs(minutes), 60)
+         self.__name = '%s%02d%02d' % (sign, hours, remaining_mins)
+ 
++    def utcoffset(self, dt: Optional[datetime.datetime]) -> datetime.timedelta:
++        return self.__offset
++
++    def tzname(self, dt: Optional[datetime.datetime]) -> str:
++        return self.__name
++
++    def dst(self, dt: Optional[datetime.datetime]) -> datetime.timedelta:
++        return ZERO
++
+     @classmethod
+     def for_system(cls) -> 'FixedOffset':
+         """Return a FixedOffset instance for the current working timezone and
+         DST conditions.
+         """
+-        pass
+\ No newline at end of file
++        if time.daylight and time.localtime().tm_isdst:
++            utc_offset = -time.altzone
++        else:
++            utc_offset = -time.timezone
++        return cls(utc_offset / 60)
+\ No newline at end of file
+diff --git a/imapclient/imap4.py b/imapclient/imap4.py
+index cd18145..f77cb37 100644
+--- a/imapclient/imap4.py
++++ b/imapclient/imap4.py
+@@ -6,4 +6,14 @@ class IMAP4WithTimeout(imaplib.IMAP4):
+ 
+     def __init__(self, address: str, port: int, timeout: Optional[float]) -> None:
+         self._timeout = timeout
+-        imaplib.IMAP4.__init__(self, address, port)
+\ No newline at end of file
++        imaplib.IMAP4.__init__(self, address, port)
++
++    def _create_socket(self, timeout: Optional[float] = None) -> socket.socket:
++        # imaplib's open() passes its own timeout argument, which is None
++        # because IMAP4WithTimeout does not forward one. Connect with the
++        # timeout given to the constructor instead.
++        host = self.host or None
++        address = (host, self.port)
++        if self._timeout is None:
++            return socket.create_connection(address)
++        return socket.create_connection(address, self._timeout)
+diff --git a/imapclient/imap_utf7.py b/imapclient/imap_utf7.py
+index e88959b..1b0cb6c 100644
+--- a/imapclient/imap_utf7.py
++++ b/imapclient/imap_utf7.py
+@@ -1,15 +1,52 @@
+ import binascii
+ from typing import List, Union
+ 
++AMPERSAND_ORD = ord('&')
++DASH_ORD = ord('-')
++
++
++def _utf7_encode(chars: List[str]) -> str:
++    """Base64-encode a run of non-printable characters as modified UTF-7."""
++    s = ''.join(chars).encode('utf-16be')
++    return binascii.b2a_base64(s).rstrip(b'\n=').replace(b'/', b',').decode('ascii')
++
++
++def _utf7_decode(encoded: List[int]) -> str:
++    """Decode the base64 run (without the leading '&') of modified UTF-7."""
++    s = bytes(encoded).replace(b',', b'/')
++    rem = len(s) % 4
++    if rem:
++        s += b'=' * (4 - rem)
++    return binascii.a2b_base64(s).decode('utf-16be')
++
++
+ def encode(s: Union[str, bytes]) -> bytes:
+     """Encode a folder name using IMAP modified UTF-7 encoding.
+ 
+     Input is unicode; output is bytes (Python 3) or str (Python 2). If
+     non-unicode input is provided, the input is returned unchanged.
+     """
+-    pass
+-AMPERSAND_ORD = ord('&')
+-DASH_ORD = ord('-')
++    if not isinstance(s, str):
++        return s
++
++    r = []
++    _in: List[str] = []
++
++    def flush() -> None:
++        if _in:
++            r.extend(['&', _utf7_encode(_in), '-'])
++            del _in[:]
++
++    for c in s:
++        if 0x20 <= ord(c) <= 0x7e:
++            # Printable ASCII is passed through; '&' is escaped as '&-'.
++            flush()
++            r.append('&-' if c == '&' else c)
++        else:
++            _in.append(c)
++    flush()
++    return ''.join(r).encode('ascii')
++
+ 
+ def decode(s: Union[bytes, str]) -> str:
+     """Decode a folder name from IMAP modified UTF-7 encoding to unicode.
+@@ -18,4 +55,30 @@ def decode(s: Union[bytes, str]) -> str:
+     unicode. If non-bytes/str input is provided, the input is returned
+     unchanged.
+     """
+-    pass
+\ No newline at end of file
++    if isinstance(s, str):
++        s = s.encode('ascii')
++    elif not isinstance(s, bytes):
++        return s
++
++    r = []
++    _in: List[int] = []  # bytes of an open '&...' section, including the '&'
++    for c in s:
++        if _in:
++            if c == DASH_ORD:
++                if len(_in) == 1:
++                    # '&-' is the escape for a literal ampersand.
++                    r.append('&')
++                else:
++                    r.append(_utf7_decode(_in[1:]))
++                _in = []
++            else:
++                _in.append(c)
++        elif c == AMPERSAND_ORD:
++            _in.append(c)
++        else:
++            r.append(chr(c))
++
++    if _in:
++        # Unterminated shifted section: decode whatever was collected.
++        r.append(_utf7_decode(_in[1:]))
++    return ''.join(r)
+diff --git a/imapclient/imapclient.py b/imapclient/imapclient.py
+index 43c0b10..efe3f40 100644
+--- a/imapclient/imapclient.py
++++ b/imapclient/imapclient.py
+@@ -53,6 +53,8 @@ TRASH = b'\\Trash'
+ _POPULAR_PERSONAL_NAMESPACES = (('', ''), ('INBOX.', '.'))
+ _POPULAR_SPECIAL_FOLDERS = {SENT: ('Sent', 'Sent Items', 'Sent items'), DRAFTS: ('Drafts',), ARCHIVE: ('Archive',), TRASH: ('Trash', 'Deleted Items', 'Deleted Messages', 'Deleted'), JUNK: ('Junk', 'Spam')}
+ _RE_SELECT_RESPONSE = re.compile(b'\\[(?P<key>[A-Z-]+)( \\((?P<data>.*)\\))?\\]')
++_RE_FOLDER_LIST = re.compile(b'\\((?P<flags>[^)]*)\\) (?P<delim>"[^"]*"|NIL) (?P<name>.*)', re.DOTALL)
++_RE_SELECT_VALUE = re.compile(b'\\[(?P<key>[A-Z-]+) (?P<value>[^\\]]*)\\]')
+ 
+ class Namespace(tuple):
+ 
+@@ -106,7 +108,123 @@ class Quota:
+ 
+ def require_capability(capability):
+     """Decorator raising CapabilityError when a capability is not available."""
+-    pass
++
++    def actual_decorator(func):
++        @functools.wraps(func)
++        def wrapper(self, *args, **kwargs):
++            if not self.has_capability(capability):
++                raise exceptions.CapabilityError(
++                    'Server does not support %s capability' % capability
++                )
++            return func(self, *args, **kwargs)
++
++        return wrapper
++
++    return actual_decorator
++
++
++def normalise_text_list(items):
++    """Convert a single item or a sequence of items into a list of
++    unicode strings."""
++    if isinstance(items, (str, bytes)):
++        items = [items]
++    return [to_unicode(item) for item in items]
++
++
++def seq_to_parenstr(items):
++    """Convert a sequence of strings into a parenthesised, space
++    separated string, e.g. ['A', 'B'] -> '(A B)'."""
++    return _join_and_paren(normalise_text_list(items))
++
++
++def seq_to_parenstr_upper(items):
++    """As seq_to_parenstr but upper-cases each item."""
++    return _join_and_paren([s.upper() for s in normalise_text_list(items)])
++
++
++def _join_and_paren(items):
++    return '(%s)' % ' '.join(items)
++
++
++def _format_labels(labels):
++    """Format Gmail labels as a parenthesised, quoted, modified UTF-7 list."""
++    parts = []
++    for label in normalise_text_list(labels):
++        encoded = encode_utf7(label).decode('ascii')
++        escaped = encoded.replace('\\', '\\\\').replace('"', '\\"')
++        parts.append('"%s"' % escaped)
++    return '(%s)' % ' '.join(parts)
++
++
++def _decode_labels(result):
++    """Decode the label lists returned by a STORE of X-GM-LABELS."""
++    if result is None:
++        return None
++    return {
++        msgid: [decode_utf7(label) for label in labels]
++        for msgid, labels in result.items()
++    }
++
++
++def _decode_resp(data):
++    """Render the first element of an IMAP response for an error message."""
++    if not data:
++        return ''
++    first = data[0]
++    if isinstance(first, bytes):
++        return first.decode('utf-8', 'replace')
++    return str(first)
++
++
++def _parse_quota(quota_response):
++    """Parse GETQUOTA / GETQUOTAROOT / SETQUOTA untagged response lines
++    into a list of Quota objects."""
++    quotas = []
++    for line in quota_response:
++        if not line:
++            continue
++        if isinstance(line, bytes):
++            line = line.decode('ascii', 'replace')
++        quota_root, _, rest = line.partition(' (')
++        quota_root = quota_root.strip().strip('"')
++        values = rest.rstrip(')').split()
++        for i in range(0, len(values), 3):
++            resource = values[i]
++            usage = int(values[i + 1])
++            limit = int(values[i + 2])
++            quotas.append(Quota(quota_root, resource, usage, limit))
++    return quotas
++
++
++def _normalise_search_criteria(criteria, charset=None):
++    """Convert search criteria into a list of bytes items, applying
++    quoting and charset encoding as needed."""
++    if not criteria:
++        raise exceptions.InvalidCriteriaError(
++            'attempt to search with invalid criteria %r' % (criteria,)
++        )
++    if isinstance(criteria, (str, bytes)):
++        return [to_bytes(criteria, charset or 'us-ascii')]
++    out = []
++    for item in criteria:
++        if isinstance(item, (list, tuple)):
++            if not item:
++                raise exceptions.InvalidCriteriaError(
++                    'attempt to search with empty nested criteria'
++                )
++            inner = _normalise_search_criteria(item, charset)
++            inner[0] = b'(' + inner[0]
++            inner[-1] = inner[-1] + b')'
++            out.extend(inner)
++        elif isinstance(item, datetime) or isinstance(item, date):
++            out.append(format_criteria_date(item))
++        elif isinstance(item, int):
++            out.append(str(item).encode('ascii'))
++        elif isinstance(item, (str, bytes)):
++            out.append(_quoted.maybe(to_bytes(item, charset or 'us-ascii')))
++        else:
++            out.append(to_bytes(str(item), charset or 'us-ascii'))
++    return out
+ 
+ class IMAPClient:
+     """A connection to the IMAP server specified by *host* is made when
+@@ -223,7 +341,35 @@ class IMAPClient:
+            This includes reading from and writing to the socket,
+            as they are likely to break internal bookkeeping of messages.
+         """
+-        pass
++        warnings.warn(
++            'IMAPClient.socket() is deprecated and will be removed in a future release',
++            DeprecationWarning,
++            stacklevel=2,
++        )
++        return self._sock
++
++    @property
++    def _sock(self):
++        """The underlying socket (the SSL-wrapped one when encrypted)."""
++        sslobj = getattr(self._imap, 'sslobj', None)
++        if sslobj:
++            return sslobj
++        return self._imap.sock
++
++    def _create_IMAP4(self):
++        # Create the IMAP instance in a separate method to make unit tests easier
++        if self.stream:
++            return imaplib.IMAP4_stream(self.host)
++        if self.ssl:
++            return tls.IMAP4_TLS(
++                self.host, self.port, self.ssl_context, self._timeout.connect
++            )
++        return imap4.IMAP4WithTimeout(self.host, self.port, self._timeout.connect)
++
++    def _set_read_timeout(self):
++        sock = getattr(self._imap, 'sock', None)
++        if sock is not None:
++            sock.settimeout(self._timeout.read)
+ 
+     @require_capability('STARTTLS')
+     def starttls(self, ssl_context=None):
+@@ -243,13 +389,27 @@ class IMAPClient:
+         Raises :py:exc:`AbortError` if the server does not support STARTTLS
+         or an SSL connection is already established.
+         """
+-        pass
++        if self._starttls_done or self.ssl:
++            raise self.AbortError('TLS session already established')
++        typ, data = self._imap._simple_command('STARTTLS')
++        self._check_resp('OK', 'starttls', typ, data)
++        ssl_context = ssl_context or ssl_lib.create_default_context()
++        self._imap.sock = tls.wrap_socket(self._imap.sock, ssl_context, self.host)
++        self._imap.file = self._imap.sock.makefile('rb')
++        self._starttls_done = True
++        return data[0]
+ 
+     def login(self, username: str, password: str):
+         """Login using *username* and *password*, returning the
+         server response.
+         """
+-        pass
++        try:
++            typ, data = self._imap.login(username, password)
++        except imaplib.IMAP4.error as e:
++            raise exceptions.LoginError(str(e))
++        if typ != 'OK':
++            raise exceptions.LoginError(_decode_resp(data))
++        return data[0]
+ 
+     def oauth2_login(self, user: str, access_token: str, mech: str='XOAUTH2', vendor: Optional[str]=None):
+         """Authenticate using the OAUTH2 or XOAUTH2 methods.
+@@ -257,7 +417,11 @@ class IMAPClient:
+         Gmail and Yahoo both support the 'XOAUTH2' mechanism, but Yahoo requires
+         the 'vendor' portion in the payload.
+         """
+-        pass
++        auth_string = 'user=%s\x01auth=Bearer %s\x01' % (user, access_token)
++        if vendor:
++            auth_string += 'vendor=%s\x01' % vendor
++        auth_string += '\x01'
++        return self.sasl_login(mech, lambda _: auth_string)
+ 
+     def oauthbearer_login(self, identity, access_token):
+         """Authenticate using the OAUTHBEARER method.
+@@ -265,11 +429,16 @@ class IMAPClient:
+         This is supported by Gmail and is meant to supersede the non-standard
+         'OAUTH2' and 'XOAUTH2' mechanisms.
+         """
+-        pass
++        auth_string = 'n,a=%s,\x01auth=Bearer %s\x01\x01' % (identity, access_token)
++        return self.sasl_login('OAUTHBEARER', lambda _: auth_string)
+ 
+     def plain_login(self, identity, password, authorization_identity=None):
+         """Authenticate using the PLAIN method (requires server support)."""
+-        pass
++        if authorization_identity:
++            auth_string = '%s\x00%s\x00%s' % (authorization_identity, identity, password)
++        else:
++            auth_string = '\x00%s\x00%s' % (identity, password)
++        return self.sasl_login('PLAIN', lambda _: auth_string)
+ 
+     def sasl_login(self, mech_name, mech_callable):
+         """Authenticate using a provided SASL mechanism (requires server support).
+@@ -320,11 +489,19 @@ class IMAPClient:
+ 
+             imap.sasl_login("SCRAM-SHA-256", scram_mech)
+         """
+-        pass
++        try:
++            typ, data = self._imap.authenticate(mech_name, mech_callable)
++        except imaplib.IMAP4.error as e:
++            raise exceptions.LoginError(str(e))
++        if typ != 'OK':
++            raise exceptions.LoginError(_decode_resp(data))
++        return data[0]
+ 
+     def logout(self):
+         """Logout, returning the server response."""
+-        pass
++        typ, data = self._imap.logout()
++        self._check_resp('BYE', 'logout', typ, data)
++        return data[0]
+ 
+     def shutdown(self) -> None:
+         """Close the connection to the IMAP server (without logging out)
+@@ -332,7 +509,7 @@ class IMAPClient:
+         In most cases, :py:meth:`.logout` should be used instead of
+         this. The logout method also shutdown down the connection.
+         """
+-        pass
++        self._imap.shutdown()
+ 
+     @require_capability('ENABLE')
+     def enable(self, *capabilities):
+@@ -351,7 +528,18 @@ class IMAPClient:
+ 
+         See :rfc:`5161` for more details.
+         """
+-        pass
++        if self._imap.state != 'AUTH':
++            raise exceptions.IllegalStateError(
++                'ENABLE is only valid in the AUTH state'
++            )
++        resp = self._raw_command_untagged(
++            b'ENABLE',
++            [to_bytes(c) for c in capabilities],
++            uid=False,
++            response_name='ENABLED',
++            unpack=True,
++        )
++        return resp.split() if resp else []
+ 
+     @require_capability('ID')
+     def id_(self, parameters=None):
+@@ -361,7 +549,19 @@ class IMAPClient:
+         *parameters* should be specified as a dictionary of field/value pairs,
+         for example: ``{"name": "IMAPClient", "version": "0.12"}``
+         """
+-        pass
++        if parameters is None:
++            args = 'NIL'
++        elif isinstance(parameters, dict):
++            args = '(%s)' % ' '.join(
++                '"%s" "%s"' % (to_unicode(k), to_unicode(v))
++                for k, v in parameters.items()
++            )
++        else:
++            raise TypeError('id parameters must be a dict or None')
++        typ, data = self._imap._simple_command('ID', args)
++        self._check_resp('OK', 'ID', typ, data)
++        typ, data = self._imap._untagged_response(typ, data, 'ID')
++        return parse_response(data)
+ 
+     def capabilities(self):
+         """Returns the server capability list.
+@@ -375,11 +575,26 @@ class IMAPClient:
+         If the session is not yet authenticated, the capabilities
+         requested at connection time will be returned.
+         """
+-        pass
++        if self._cached_capabilities is not None:
++            return self._cached_capabilities
++        if 'CAPABILITY' in self._imap.untagged_responses:
++            data = self._imap.untagged_responses.pop('CAPABILITY')
++            caps = tuple(to_bytes(c) for c in data[0].split())
++            self._cached_capabilities = caps
++            return caps
++        if self._imap.state in ('AUTH', 'SELECTED') or self._starttls_done:
++            typ, data = self._imap.capability()
++            self._check_resp('OK', 'CAPABILITY', typ, data)
++            caps = tuple(to_bytes(c) for c in data[0].split())
++            if self._imap.state in ('AUTH', 'SELECTED'):
++                self._cached_capabilities = caps
++            return caps
++        return tuple(to_bytes(c) for c in self._imap.capabilities)
+ 
+     def has_capability(self, capability):
+         """Return ``True`` if the IMAP server has the given *capability*."""
+-        pass
++        wanted = to_bytes(capability).upper()
++        return any(to_bytes(c).upper() == wanted for c in self.capabilities())
+ 
+     @require_capability('NAMESPACE')
+     def namespace(self):
+@@ -395,7 +610,17 @@ class IMAPClient:
+ 
+         See :rfc:`2342` for more details.
+         """
+-        pass
++        typ, data = self._imap.namespace()
++        self._check_resp('OK', 'NAMESPACE', typ, data)
++        parsed = parse_response([data[0]])
++        return Namespace(*[self._convert_namespace(ns) for ns in parsed])
++
++    def _convert_namespace(self, ns):
++        if ns is None:
++            return None
++        return tuple(
++            (self._maybe_decode_folder(prefix), to_unicode(sep)) for prefix, sep in ns
++        )
+ 
+     def list_folders(self, directory='', pattern='*'):
+         """Get a listing of folders on the server as a list of
+@@ -418,7 +643,48 @@ class IMAPClient:
+         decoded from modified UTF-7, except if folder_decode is not
+         set.
+         """
+-        pass
++        typ, data = self._imap._simple_command(
++            'LIST', self._encode_folder_name(directory), self._encode_folder_name(pattern)
++        )
++        self._check_resp('OK', 'LIST', typ, data)
++        typ, data = self._imap._untagged_response(typ, data, 'LIST')
++        return self._proc_folder_list(data)
++
++    def _encode_folder_name(self, name):
++        if not self.folder_encode:
++            return '"%s"' % to_unicode(name)
++        return b'"' + encode_utf7(name) + b'"'
++
++    def _maybe_decode_folder(self, name):
++        if self.folder_encode and isinstance(name, bytes):
++            return decode_utf7(name)
++        return name
++
++    def _proc_folder_list(self, folder_data):
++        """Parse the untagged LIST/LSUB/XLIST response lines into
++        ``(flags, delimiter, name)`` tuples.
++        """
++        out = []
++        for item in folder_data:
++            if not item:
++                continue
++            if isinstance(item, tuple):
++                header, literal_name = item[0], item[1]
++            else:
++                header, literal_name = item, None
++            match = _RE_FOLDER_LIST.match(header)
++            assert_imap_protocol(match is not None, header)
++            flags = tuple(match.group('flags').split())
++            delim = match.group('delim')
++            delim = None if delim == b'NIL' else delim[1:-1]
++            if literal_name is not None:
++                name = literal_name
++            else:
++                name = match.group('name')
++                if len(name) >= 2 and name.startswith(b'"') and name.endswith(b'"'):
++                    name = re.sub(rb'\\(["\\])', rb'\1', name[1:-1])
++            out.append((flags, delim, self._maybe_decode_folder(name)))
++        return out
+ 
+     @require_capability('XLIST')
+     def xlist_folders(self, directory='', pattern='*'):
+@@ -450,7 +716,12 @@ class IMAPClient:
+         The *directory* and *pattern* arguments are as per
+         list_folders().
+         """
+-        pass
++        typ, data = self._imap._simple_command(
++            'XLIST', self._encode_folder_name(directory), self._encode_folder_name(pattern)
++        )
++        self._check_resp('OK', 'XLIST', typ, data)
++        typ, data = self._imap._untagged_response(typ, data, 'XLIST')
++        return self._proc_folder_list(data)
+ 
+     def list_sub_folders(self, directory='', pattern='*'):
+         """Return a list of subscribed folders on the server as
+@@ -459,7 +730,12 @@ class IMAPClient:
+         The default behaviour will list all subscribed folders. The
+         *directory* and *pattern* arguments are as per list_folders().
+         """
+-        pass
++        typ, data = self._imap._simple_command(
++            'LSUB', self._encode_folder_name(directory), self._encode_folder_name(pattern)
++        )
++        self._check_resp('OK', 'LSUB', typ, data)
++        typ, data = self._imap._untagged_response(typ, data, 'LSUB')
++        return self._proc_folder_list(data)
+ 
+     def find_special_folder(self, folder_flag):
+         """Try to locate a special folder, like the Sent or Trash folder.
+@@ -473,7 +749,18 @@ class IMAPClient:
+ 
+         Returns the name of the folder if found, or None otherwise.
+         """
+-        pass
++        if self.has_capability('SPECIAL-USE'):
++            for flags, _delim, name in self.list_folders():
++                if folder_flag in flags:
++                    return name
++        candidates = _POPULAR_SPECIAL_FOLDERS.get(folder_flag, ())
++        if candidates:
++            names = {name for _flags, _delim, name in self.list_folders()}
++            for prefix, _sep in _POPULAR_PERSONAL_NAMESPACES:
++                for candidate in candidates:
++                    if prefix + candidate in names:
++                        return prefix + candidate
++        return None
+ 
+     def select_folder(self, folder, readonly=False):
+         """Set the current folder on the server.
+@@ -493,7 +780,37 @@ class IMAPClient:
+              b'UIDNEXT': 11,
+              b'UIDVALIDITY': 1239278212}
+         """
+-        pass
++        self._command_and_check('select', self._encode_folder_name(folder), readonly)
++
++        def convert(key, values):
++            if key in (b'EXISTS', b'RECENT', b'UIDNEXT', b'UIDVALIDITY', b'HIGHESTMODSEQ'):
++                return int(values[0])
++            if key in (b'FLAGS', b'PERMANENTFLAGS'):
++                return tuple(values[0].strip(b'()').split())
++            if key == b'READ-WRITE':
++                return True
++            return values
++
++        result = {}
++        ok_lines = []
++        for raw_key, values in self._imap.untagged_responses.items():
++            key = to_bytes(raw_key).upper()
++            if key == b'OK':
++                ok_lines = values
++                continue
++            result[key] = convert(key, values)
++        # Bracketed OK lines carry the authoritative values, so they win.
++        for line in ok_lines:
++            match = _RE_SELECT_RESPONSE.search(line)
++            if match and match.group('data') is not None:
++                key = match.group('key')
++                result[key] = convert(key, [match.group('data')])
++                continue
++            match = _RE_SELECT_VALUE.search(line)
++            if match:
++                key = match.group('key')
++                result[key] = convert(key, [match.group('value')])
++        return result
+ 
+     @require_capability('UNSELECT')
+     def unselect_folder(self):
+@@ -504,7 +821,9 @@ class IMAPClient:
+ 
+         Returns the UNSELECT response string returned by the server.
+         """
+-        pass
++        typ, data = self._imap._simple_command('UNSELECT')
++        self._check_resp('OK', 'UNSELECT', typ, data)
++        return data[0]
+ 
+     def noop(self):
+         """Execute the NOOP command.
+@@ -522,7 +841,8 @@ class IMAPClient:
+               (6, b'FETCH', (b'FLAGS', (b'sne',)))])
+ 
+         """
+-        pass
++        tag = self._imap._command('NOOP')
++        return self._consume_until_tagged_response(tag, 'NOOP')
+ 
+     @require_capability('IDLE')
+     def idle(self):
+@@ -540,7 +860,13 @@ class IMAPClient:
+ 
+         See :rfc:`2177` for more information about the IDLE extension.
+         """
+-        pass
++        self._idle_tag = self._imap._command('IDLE')
++        resp = self._imap._get_response()
++        if resp is not None:
++            raise self.AbortError(
++                'unexpected response while waiting for continuation response: %r'
++                % (resp,)
++            )
+ 
+     def _poll_socket(self, sock, timeout=None):
+         """
+@@ -548,7 +874,17 @@ class IMAPClient:
+         This implementation is more scalable because it ALLOWS your process
+         to have more than 1024 file descriptors.
+         """
+-        pass
++        sock.settimeout(None)
++        sock.setblocking(0)
++        try:
++            poller = select.poll()
++            poller.register(sock.fileno(), select.POLLIN)
++            timeout_ms = None if timeout is None else int(timeout * 1000)
++            events = poller.poll(timeout_ms)
++        finally:
++            sock.setblocking(1)
++            sock.settimeout(self._timeout.read)
++        return bool(events)
+ 
+     def _select_poll_socket(self, sock, timeout=None):
+         """
+@@ -557,7 +893,28 @@ class IMAPClient:
+         has more than 1024 file descriptors.
+         We still need this for Windows and some other niche systems.
+         """
+-        pass
++        sock.settimeout(None)
++        sock.setblocking(0)
++        try:
++            readable, _, _ = select.select([sock], [], [], timeout)
++        finally:
++            sock.setblocking(1)
++            sock.settimeout(self._timeout.read)
++        return bool(readable)
++
++    def _consume_until_tagged_response(self, tag, command):
++        """Read untagged responses until the tagged response for *tag*
++        arrives. Returns (response text, list of parsed untagged responses).
++        """
++        responses = []
++        while self._imap.tagged_commands[tag] is None:
++            resp = self._imap._get_response()
++            if resp is not None:
++                assert_imap_protocol(resp.startswith(b'* '), resp)
++                responses.append(parse_response([resp[2:]]))
++        typ, data = self._imap.tagged_commands.pop(tag)
++        self._check_resp('OK', command, typ, data)
++        return data[0], responses
+ 
+     @require_capability('IDLE')
+     def idle_check(self, timeout=None):
+@@ -578,7 +935,21 @@ class IMAPClient:
+              (1, b'EXISTS'),
+              (1, b'FETCH', (b'FLAGS', (b'\\NotJunk',)))]
+         """
+-        pass
++        sock = self._sock
++        if POLL_SUPPORT:
++            ready = self._poll_socket(sock, timeout)
++        else:
++            ready = self._select_poll_socket(sock, timeout)
++        responses = []
++        if ready:
++            while True:
++                try:
++                    line = self._imap._get_line()
++                except socket.timeout:
++                    break
++                assert_imap_protocol(line.startswith(b'* '), line)
++                responses.append(parse_response([line[2:]]))
++        return responses
+ 
+     @require_capability('IDLE')
+     def idle_done(self):
+@@ -595,7 +966,10 @@ class IMAPClient:
+         any). These are returned in parsed form as per
+         ``idle_check()``.
+         """
+-        pass
++        self._imap.send(b'DONE\r\n')
++        result = self._consume_until_tagged_response(self._idle_tag, 'IDLE')
++        self._idle_tag = None
++        return result
+ 
+     def folder_status(self, folder, what=None):
+         """Return the status of *folder*.
+@@ -607,37 +981,68 @@ class IMAPClient:
+         Returns a dictionary of the status items for the folder with
+         keys matching *what*.
+         """
+-        pass
++        if what is None:
++            what = ('MESSAGES', 'RECENT', 'UIDNEXT', 'UIDVALIDITY', 'UNSEEN')
++        data = self._command_and_check(
++            'status', self._encode_folder_name(folder), seq_to_parenstr_upper(what)
++        )
++        text = b''.join(
++            item[1] if isinstance(item, tuple) else item for item in data
++        )
++        # Several mailboxes may be reported; the requested one comes last.
++        last_line = text.split(b'\n')[-1]
++        match = re.search(rb'\((.*)\)', last_line)
++        assert_imap_protocol(match is not None, last_line)
++        tokens = match.group(1).split()
++        status = {}
++        for i in range(0, len(tokens) - 1, 2):
++            status[tokens[i]] = int(tokens[i + 1])
++        return status
+ 
+     def close_folder(self):
+         """Close the currently selected folder, returning the server
+         response string.
+         """
+-        pass
++        return self._command_and_check('close', unpack=True)
+ 
+     def create_folder(self, folder):
+         """Create *folder* on the server returning the server response string."""
+-        pass
++        return self._command_and_check(
++            'create', self._encode_folder_name(folder), unpack=True
++        )
+ 
+     def rename_folder(self, old_name, new_name):
+         """Change the name of a folder on the server."""
+-        pass
++        return self._command_and_check(
++            'rename',
++            self._encode_folder_name(old_name),
++            self._encode_folder_name(new_name),
++            unpack=True,
++        )
+ 
+     def delete_folder(self, folder):
+         """Delete *folder* on the server returning the server response string."""
+-        pass
++        return self._command_and_check(
++            'delete', self._encode_folder_name(folder), unpack=True
++        )
+ 
+     def folder_exists(self, folder):
+         """Return ``True`` if *folder* exists on the server."""
+-        pass
++        return any(
++            name == folder for _flags, _delim, name in self.list_folders('', folder)
++        )
+ 
+     def subscribe_folder(self, folder):
+         """Subscribe to *folder*, returning the server response string."""
+-        pass
++        return self._command_and_check(
++            'subscribe', self._encode_folder_name(folder), unpack=True
++        )
+ 
+     def unsubscribe_folder(self, folder):
+         """Unsubscribe to *folder*, returning the server response string."""
+-        pass
++        return self._command_and_check(
++            'unsubscribe', self._encode_folder_name(folder), unpack=True
++        )
+ 
+     def search(self, criteria='ALL', charset=None):
+         """Return a list of messages ids from the currently selected
+@@ -699,7 +1104,21 @@ class IMAPClient:
+         in the search).
+ 
+         """
+-        pass
++        args = _normalise_search_criteria(criteria, charset)
++        if charset:
++            args = [b'CHARSET', to_bytes(charset)] + args
++        try:
++            data = self._raw_command_untagged(b'SEARCH', args)
++        except imaplib.IMAP4.error as e:
++            if isinstance(criteria, (str, bytes)):
++                shown = '"%s"' % to_unicode(criteria)
++            else:
++                shown = str(criteria)
++            raise exceptions.InvalidCriteriaError(
++                '%s (may have been caused by a syntax error in the criteria: %s)'
++                % (e, shown)
++            )
++        return parse_message_list(data)
+ 
+     @require_capability('X-GM-EXT-1')
+     def gmail_search(self, query, charset='UTF-8'):
+@@ -716,7 +1135,11 @@ class IMAPClient:
+         See https://developers.google.com/gmail/imap_extensions#extension_of_the_search_command_x-gm-raw
+         for more info.
+         """
+-        pass
++        raw = to_bytes(query, charset)
++        escaped = raw.replace(b'\\', b'\\\\').replace(b'"', b'\\"')
++        args = [b'CHARSET', to_bytes(charset), b'X-GM-RAW', b'"' + escaped + b'"']
++        data = self._raw_command_untagged(b'SEARCH', args)
++        return parse_message_list(data)
+ 
+     @require_capability('SORT')
+     def sort(self, sort_criteria, criteria='ALL', charset='UTF-8'):
+@@ -741,7 +1164,10 @@ class IMAPClient:
+         Note that SORT is an extension to the IMAP4 standard so it may
+         not be supported by all IMAP servers.
+         """
+-        pass
++        sort_part = to_bytes(seq_to_parenstr_upper(sort_criteria))
++        args = [sort_part, to_bytes(charset)] + _normalise_search_criteria(criteria, charset)
++        data = self._raw_command_untagged(b'SORT', args, unpack=True)
++        return parse_message_list([data])
+ 
+     def thread(self, algorithm='REFERENCES', criteria='ALL', charset='UTF-8'):
+         """Return a list of messages threads from the currently
+@@ -760,7 +1186,13 @@ class IMAPClient:
+ 
+         See :rfc:`5256` for more details.
+         """
+-        pass
++        if not self.has_capability('THREAD=%s' % algorithm.upper()):
++            raise exceptions.CapabilityError(
++                'Server does not support %s threading algorithm' % algorithm
++            )
++        args = [to_bytes(algorithm), to_bytes(charset)] + _normalise_search_criteria(criteria, charset)
++        data = self._raw_command_untagged(b'THREAD', args)
++        return parse_response(data)
+ 
+     def get_flags(self, messages):
+         """Return the flags set for each message in *messages* from
+@@ -769,7 +1201,10 @@ class IMAPClient:
+         The return value is a dictionary structured like this: ``{
+         msgid1: (flag1, flag2, ... ), }``.
+         """
+-        pass
++        return dict(
++            (msgid, data[b'FLAGS'])
++            for msgid, data in self.fetch(messages, ['FLAGS']).items()
++        )
+ 
+     def add_flags(self, messages, flags, silent=False):
+         """Add *flags* to *messages* in the currently selected folder.
+@@ -779,7 +1214,7 @@ class IMAPClient:
+         Returns the flags set for each modified message (see
+         *get_flags*), or None if *silent* is true.
+         """
+-        pass
++        return self._store(b'+FLAGS', messages, seq_to_parenstr(flags), b'FLAGS', silent)
+ 
+     def remove_flags(self, messages, flags, silent=False):
+         """Remove one or more *flags* from *messages* in the currently
+@@ -790,7 +1225,7 @@ class IMAPClient:
+         Returns the flags set for each modified message (see
+         *get_flags*), or None if *silent* is true.
+         """
+-        pass
++        return self._store(b'-FLAGS', messages, seq_to_parenstr(flags), b'FLAGS', silent)
+ 
+     def set_flags(self, messages, flags, silent=False):
+         """Set the *flags* for *messages* in the currently selected
+@@ -801,7 +1236,7 @@ class IMAPClient:
+         Returns the flags set for each modified message (see
+         *get_flags*), or None if *silent* is true.
+         """
+-        pass
++        return self._store(b'FLAGS', messages, seq_to_parenstr(flags), b'FLAGS', silent)
+ 
+     def get_gmail_labels(self, messages):
+         """Return the label set for each message in *messages* in the
+@@ -813,7 +1248,10 @@ class IMAPClient:
+         This only works with IMAP servers that support the X-GM-LABELS
+         attribute (eg. Gmail).
+         """
+-        pass
++        return dict(
++            (msgid, [decode_utf7(label) for label in data[b'X-GM-LABELS']])
++            for msgid, data in self.fetch(messages, [b'X-GM-LABELS']).items()
++        )
+ 
+     def add_gmail_labels(self, messages, labels, silent=False):
+         """Add *labels* to *messages* in the currently selected folder.
+@@ -826,7 +1264,9 @@ class IMAPClient:
+         This only works with IMAP servers that support the X-GM-LABELS
+         attribute (eg. Gmail).
+         """
+-        pass
++        return _decode_labels(
++            self._store(b'+X-GM-LABELS', messages, _format_labels(labels), b'X-GM-LABELS', silent)
++        )
+ 
+     def remove_gmail_labels(self, messages, labels, silent=False):
+         """Remove one or more *labels* from *messages* in the
+@@ -840,7 +1280,9 @@ class IMAPClient:
+         This only works with IMAP servers that support the X-GM-LABELS
+         attribute (eg. Gmail).
+         """
+-        pass
++        return _decode_labels(
++            self._store(b'-X-GM-LABELS', messages, _format_labels(labels), b'X-GM-LABELS', silent)
++        )
+ 
+     def set_gmail_labels(self, messages, labels, silent=False):
+         """Set the *labels* for *messages* in the currently selected
+@@ -854,7 +1296,9 @@ class IMAPClient:
+         This only works with IMAP servers that support the X-GM-LABELS
+         attribute (eg. Gmail).
+         """
+-        pass
++        return _decode_labels(
++            self._store(b'X-GM-LABELS', messages, _format_labels(labels), b'X-GM-LABELS', silent)
++        )
+ 
+     def delete_messages(self, messages, silent=False):
+         """Delete one or more *messages* from the currently selected
+@@ -863,7 +1307,7 @@ class IMAPClient:
+         Returns the flags set for each modified message (see
+         *get_flags*).
+         """
+-        pass
++        return self.add_flags(messages, DELETED, silent=silent)
+ 
+     def fetch(self, messages, data, modifiers=None):
+         """Retrieve selected *data* associated with one or more
+@@ -905,7 +1349,13 @@ class IMAPClient:
+                     b'SEQ': 110}}
+ 
+         """
+-        pass
++        args = [join_message_ids(messages), to_bytes(seq_to_parenstr(data))]
++        if modifiers:
++            args.append(to_bytes(seq_to_parenstr(modifiers)))
++        typ, data = self._raw_command(b'FETCH', args)
++        self._check_resp('OK', 'FETCH', typ, data)
++        typ, data = self._imap._untagged_response(typ, data, 'FETCH')
++        return parse_fetch_response(data, self.normalise_times, self.use_uid)
+ 
+     def append(self, folder, msg, flags=(), msg_time=None):
+         """Append a message to *folder*.
+@@ -924,7 +1374,18 @@ class IMAPClient:
+ 
+         Returns the APPEND response as returned by the server.
+         """
+-        pass
++        if msg_time:
++            time_arg = '"%s"' % datetime_to_INTERNALDATE(msg_time)
++        else:
++            time_arg = None
++        typ, data = self._imap.append(
++            self._encode_folder_name(folder),
++            seq_to_parenstr(flags),
++            time_arg,
++            to_bytes(msg),
++        )
++        self._check_resp('OK', 'APPEND', typ, data)
++        return data[0]
+ 
+     @require_capability('MULTIAPPEND')
+     def multiappend(self, folder, msgs):
+@@ -938,14 +1399,28 @@ class IMAPClient:
+ 
+         Returns the APPEND response from the server.
+         """
+-        pass
++        args = [self._encode_folder_name(folder)]
++        for item in msgs:
++            if isinstance(item, dict):
++                if item.get('flags'):
++                    args.append(to_bytes(seq_to_parenstr(item['flags'])))
++                if item.get('date'):
++                    args.append(('"%s"' % datetime_to_INTERNALDATE(item['date'])).encode('ascii'))
++                msg = item['msg']
++            else:
++                msg = item
++            args.append(_literal(to_bytes(msg)))
++        return self._raw_command(b'APPEND', args, uid=False)
+ 
+     def copy(self, messages, folder):
+         """Copy one or more messages from the current folder to
+         *folder*. Returns the COPY response string returned by the
+         server.
+         """
+-        pass
++        return self._command_and_check(
++            'copy', join_message_ids(messages), self._encode_folder_name(folder),
++            uid=True, unpack=True,
++        )
+ 
+     @require_capability('MOVE')
+     def move(self, messages, folder):
+@@ -956,7 +1431,10 @@ class IMAPClient:
+         :param messages: List of message UIDs to move.
+         :param folder: The destination folder name.
+         """
+-        pass
++        return self._command_and_check(
++            'move', join_message_ids(messages), self._encode_folder_name(folder),
++            uid=True, unpack=True,
++        )
+ 
+     def expunge(self, messages=None):
+         """Use of the *messages* argument is discouraged.
+@@ -991,7 +1469,12 @@ class IMAPClient:
+ 
+         See :rfc:`4315#section-2.1` section 2.1 for more details.
+         """
+-        pass
++        if messages is not None:
++            return self._command_and_check(
++                'expunge', join_message_ids(messages), uid=True
++            )
++        tag = self._imap._command('EXPUNGE')
++        return self._consume_until_tagged_response(tag, 'EXPUNGE')
+ 
+     @require_capability('UIDPLUS')
+     def uid_expunge(self, messages):
+@@ -1002,14 +1485,19 @@ class IMAPClient:
+ 
+         See :rfc:`4315#section-2.1` section 2.1 for more details.
+         """
+-        pass
++        return self._command_and_check(
++            'expunge', join_message_ids(messages), uid=True
++        )
+ 
+     @require_capability('ACL')
+     def getacl(self, folder):
+         """Returns a list of ``(who, acl)`` tuples describing the
+         access controls for *folder*.
+         """
+-        pass
++        data = self._command_and_check('getacl', self._encode_folder_name(folder))
++        tokens = data[0].split()
++        # The first token is the mailbox name, the rest are (who, acl) pairs.
++        return [(tokens[i], tokens[i + 1]) for i in range(1, len(tokens) - 1, 2)]
+ 
+     @require_capability('ACL')
+     def setacl(self, folder, who, what):
+@@ -1018,7 +1506,9 @@ class IMAPClient:
+         Set *what* to an empty string to remove an ACL. Returns the
+         server response string.
+         """
+-        pass
++        return self._command_and_check(
++            'setacl', self._encode_folder_name(folder), who, what, unpack=True
++        )
+ 
+     @require_capability('QUOTA')
+     def get_quota(self, mailbox='INBOX'):
+@@ -1026,7 +1516,7 @@ class IMAPClient:
+ 
+         Returns a list of Quota objects.
+         """
+-        pass
++        return self.get_quota_root(mailbox)[1]
+ 
+     @require_capability('QUOTA')
+     def _get_quota(self, quota_root=''):
+@@ -1038,7 +1528,8 @@ class IMAPClient:
+ 
+         Returns a list of Quota objects.
+         """
+-        pass
++        data = self._command_and_check('getquota', '"%s"' % quota_root)
++        return _parse_quota(data)
+ 
+     @require_capability('QUOTA')
+     def get_quota_root(self, mailbox):
+@@ -1051,7 +1542,23 @@ class IMAPClient:
+ 
+         Return a tuple of MailboxQuotaRoots and list of Quota associated
+         """
+-        pass
++        data = self._raw_command_untagged(
++            b'GETQUOTAROOT', to_bytes(mailbox), uid=False, response_name='QUOTAROOT'
++        )
++        roots = []
++        mailbox_name = mailbox
++        for line in data:
++            if not line:
++                continue
++            tokens = [
++                quoted or bare
++                for quoted, bare in re.findall(rb'"((?:[^"\\]|\\.)*)"|(\S+)', line)
++            ]
++            if tokens:
++                mailbox_name = to_unicode(tokens[0])
++                roots.extend(to_unicode(root) for root in tokens[1:])
++        quotas = _parse_quota(self._imap.untagged_responses.pop('QUOTA', []))
++        return MailboxQuotaRoots(mailbox_name, roots), quotas
+ 
+     @require_capability('QUOTA')
+     def set_quota(self, quotas):
+@@ -1059,14 +1566,30 @@ class IMAPClient:
+ 
+         :param quotas: list of Quota objects
+         """
+-        pass
++        by_root = {}
++        for quota in quotas:
++            by_root.setdefault(quota.quota_root, []).append(quota)
++        result = []
++        for root, root_quotas in by_root.items():
++            limits = ' '.join(
++                '%s %s' % (q.resource, q.limit) for q in root_quotas
++            )
++            data = self._raw_command_untagged(
++                b'SETQUOTA',
++                [_quoted.maybe(to_bytes(root)), to_bytes('(%s)' % limits)],
++                uid=False,
++                response_name='QUOTA',
++            )
++            result.extend(_parse_quota(data))
++        return result
+ 
+     def _check_resp(self, expected, command, typ, data):
+         """Check command responses for errors.
+ 
+         Raises IMAPClient.Error if the command fails.
+         """
+-        pass
++        if typ != expected:
++            raise self.Error('%s failed: %s' % (command, _decode_resp(data)))
+ 
+     def _raw_command(self, command, args, uid=True):
+         """Run the specific command with the arguments given. 8-bit arguments
+@@ -1079,23 +1602,88 @@ class IMAPClient:
+         *command* should be specified as bytes.
+         *args* should be specified as a list of bytes.
+         """
+-        pass
++        if not isinstance(command, bytes):
++            raise ValueError('command should be bytes, got %r' % (command,))
++        if not all(isinstance(arg, bytes) for arg in args):
++            raise ValueError('command arguments should be bytes')
++        tag = self._imap._new_tag()
++        line = tag + b' ' + (b'UID ' if uid and self.use_uid else b'') + command.upper()
++        after_literal = False
++        for arg in args:
++            if self._is_literal(arg):
++                literal_plus = self.has_capability('LITERAL+')
++                line += b' ' + (b' ' if after_literal else b'')
++                line += b'{%d%s}\r\n' % (len(arg), b'+' if literal_plus else b'')
++                self._imap.send(line)
++                line = b''
++                self._send_literal(tag, arg)
++                after_literal = True
++            else:
++                line += b' ' + arg
++                after_literal = False
++        self._imap.send(line + b'\r\n')
++        return self._imap._command_complete(command.decode(), tag)
++
++    def _is_literal(self, arg):
++        """True if *arg* must be sent as an IMAP literal."""
++        if isinstance(arg, _literal):
++            return True
++        return any(b > 127 for b in arg)
+ 
+     def _send_literal(self, tag, item):
+         """Send a single literal for the command with *tag*."""
+-        pass
++        if not self.has_capability('LITERAL+'):
++            resp = self._imap._get_response()
++            if resp is not None:
++                typ, data = self._imap.tagged_commands.pop(tag)
++                raise self.AbortError(
++                    'unexpected response while waiting for continuation response: %r'
++                    % ((typ, data),)
++                )
++        self._imap.send(item)
++
++    def _raw_command_untagged(self, command, args, uid=True, response_name=None, unpack=False):
++        """Run a command via _raw_command and return the untagged response
++        data for *response_name* (defaults to the upper-cased command name).
++        """
++        typ, data = self._raw_command(command, args, uid=uid)
++        name = command.decode().upper()
++        self._check_resp('OK', name, typ, data)
++        untagged = self._imap.untagged_responses.pop(response_name or name, [None])
++        if unpack:
++            return untagged[0]
++        return untagged
++
++    def _command_and_check(self, command, *args, unpack=False, uid=False):
++        """Run a simple IMAP command, check it succeeded and return data."""
++        if uid and self.use_uid:
++            typ, data = self._imap.uid(command, *args)
++        else:
++            typ, data = getattr(self._imap, command)(*args)
++        self._check_resp('OK', command, typ, data)
++        return data[0] if unpack else data
+ 
+     def _store(self, cmd, messages, flags, fetch_key, silent):
+         """Worker function for the various flag manipulation methods.
+ 
+         *cmd* is the STORE command to use (eg. '+FLAGS').
+         """
+-        pass
++        if silent:
++            cmd = cmd + b'.SILENT'
++        data = self._command_and_check('store', join_message_ids(messages), cmd, flags, uid=True)
++        if silent:
++            return None
++        parsed = parse_fetch_response(data, self.normalise_times, self.use_uid)
++        return {
++            msgid: fetched[fetch_key]
++            for msgid, fetched in parsed.items()
++            if fetch_key in fetched
++        }
+ 
+     @property
+     def welcome(self):
+         """access the server greeting message"""
+-        pass
++        return self._imap.welcome
+ 
+ class _literal(bytes):
+     """Hold message data that should always be sent as a literal."""
+@@ -1118,13 +1706,26 @@ class _quoted(bytes):
+         holds the quoted version of the input while also providing
+         access to the original unquoted source.
+         """
+-        pass
++        if any(c > 0x7f for c in original):
++            # 8-bit data is sent as a literal, so it is never quoted
++            return original
++        if not original:
++            return cls(b'""')
++        needs_quote = any(c in b' "\\(){}%*' or c < 0x21 or c == 0x7f for c in original)
++        if not needs_quote:
++            return original
++        escaped = original.replace(b'\\', b'\\\\').replace(b'"', b'\\"')
++        quoted = cls(b'"' + escaped + b'"')
++        quoted.original = original
++        return quoted
+ 
+ def join_message_ids(messages):
+     """Convert a sequence of messages ids or a single integer message id
+     into an id byte string for use with IMAP commands
+     """
+-    pass
++    if isinstance(messages, (int, str, bytes)):
++        messages = [messages]
++    return b','.join(to_bytes(m) for m in messages)
+ _not_present = object()
+ 
+ class _dict_bytes_normaliser:
+@@ -1134,7 +1735,12 @@ class _dict_bytes_normaliser:
+ 
+     def __init__(self, d):
+         self._d = d
+-    items = iteritems
++
++    def __getitem__(self, ink):
++        for k in self._gen_keys(ink):
++            if k in self._d:
++                return self._d[k]
++        raise KeyError(ink)
+ 
+     def __contains__(self, ink):
+         for k in self._gen_keys(ink):
+@@ -1142,5 +1748,22 @@ class _dict_bytes_normaliser:
+                 return True
+         return False
+ 
++    def _gen_keys(self, ink):
++        yield ink
++        if isinstance(ink, bytes):
++            yield ink.decode('ascii', 'replace')
++        else:
++            yield ink.encode('ascii', 'replace')
++
++    def iteritems(self):
++        for k, v in self._d.items():
++            yield to_bytes(k), v
++    items = iteritems
++
+ class IMAPlibLoggerAdapter(LoggerAdapter):
+-    """Adapter preventing IMAP secrets from going to the logging facility."""
+\ No newline at end of file
++    """Adapter preventing IMAP secrets from going to the logging facility."""
++
++    def process(self, msg, kwargs):
++        msg = re.sub(r'(LOGIN ).*', r'\1**REDACTED**', msg)
++        kwargs['extra'] = self.extra
++        return msg, kwargs
+\ No newline at end of file
+diff --git a/imapclient/interact.py b/imapclient/interact.py
+index af582e8..bbfe4b6 100644
+--- a/imapclient/interact.py
++++ b/imapclient/interact.py
+@@ -1,6 +1,113 @@
+ import argparse
++import code
++import sys
+ from getpass import getpass
+ from . import imapclient
+ from .config import create_client_from_config, get_config_defaults, parse_config_file
++from .exceptions import IMAPClientError
++
++BANNER = 'IMAPClient instance is "c"'
++
++
++def build_parser() -> argparse.ArgumentParser:
++    """Command line options. Options left at their default are not set on the
++    namespace at all, so only what the user actually typed overrides the
++    config file (and the config defaults).
++    """
++    S = argparse.SUPPRESS
++    parser = argparse.ArgumentParser(
++        prog='python -m imapclient.interact',
++        description='Connect an IMAPClient and start an interactive shell '
++                    'with the connected instance available as "c".',
++    )
++    parser.add_argument('-f', '--file', default=None,
++                        help='INI file with the connection details (see the '
++                             'configuration file format in the documentation)')
++    parser.add_argument('-H', '--host', default=S, help='IMAP server hostname')
++    parser.add_argument('-p', '--port', type=int, default=S,
++                        help='server port (default 993 with SSL, 143 without)')
++    parser.add_argument('-u', '--username', default=S, help='username to log in as')
++    parser.add_argument('-P', '--password', default=S,
++                        help='password (prompted for if not given)')
++    parser.add_argument('--ssl', action='store_true', default=S,
++                        help='use SSL/TLS (the default for interactive sessions)')
++    parser.add_argument('--no-ssl', dest='ssl', action='store_false', default=S,
++                        help='do not use SSL/TLS')
++    parser.add_argument('--starttls', action='store_true', default=S,
++                        help='use STARTTLS to upgrade the connection')
++    parser.add_argument('-t', '--timeout', type=float, default=S,
++                        help='timeout for I/O operations, in seconds')
++    parser.add_argument('--oauth2', action='store_true', default=S,
++                        help='authenticate with OAUTH2 (the password is ignored)')
++    parser.add_argument('--oauth2-client-id', default=S, help='OAUTH2 client id')
++    parser.add_argument('--oauth2-client-secret', default=S, help='OAUTH2 client secret')
++    parser.add_argument('--oauth2-refresh-token', default=S, help='OAUTH2 refresh token')
++    parser.add_argument('--ssl-ca-file', default=S,
++                        help='certificate authority file to validate the server with')
++    parser.add_argument('--no-ssl-check-hostname', dest='ssl_check_hostname',
++                        action='store_false', default=S,
++                        help="don't check the certificate against the host name")
++    parser.add_argument('--no-ssl-verify-cert', dest='ssl_verify_cert',
++                        action='store_false', default=S,
++                        help="don't verify the server certificate")
++    return parser
++
++
++def build_config(args: dict) -> dict:
++    """Merge the defaults, the config file (if any) and the command line options,
++    in increasing order of precedence. TLS is on unless turned off.
++    """
++    config_file = args.pop('file')
++    config = dict(get_config_defaults())
++    config['ssl'] = True
++    if config_file is not None:
++        config.update(vars(parse_config_file(config_file)))
++    config.update(args)
++    return config
++
++
++def prompt_for_credentials(config: dict) -> None:
++    """Ask for the username and password when they were not supplied.
++    OAUTH2 logins use tokens rather than a password, so only the username
++    is needed there.
++    """
++    if not config.get('username'):
++        config['username'] = input('Username: ')
++    if not config.get('oauth2') and not config.get('password'):
++        config['password'] = getpass('Password: ')
++
++
++def start_shell(namespace: dict) -> None:
++    """Embed an interactive shell in which *namespace* is the global scope.
++
++    IPython is used when it is installed, otherwise the standard library's
++    code.interact() is used.
++    """
++    try:
++        from IPython import embed
++    except ImportError:
++        code.interact(banner=BANNER, local=namespace)
++    else:
++        embed(banner1=BANNER, user_ns=namespace)
++
++
++def main(argv=None) -> None:
++    """Connect to the server described by the options and start a shell."""
++    parser = build_parser()
++    args = vars(parser.parse_args(argv))
++    config = build_config(args)
++    prompt_for_credentials(config)
++
++    print('Connecting...')
++    try:
++        client = create_client_from_config(argparse.Namespace(**config))
++    except (IMAPClientError, OSError) as e:
++        print('Connection failed: %s' % e, file=sys.stderr)
++        sys.exit(1)
++    print('Connected.\n')
++
++    start_shell({'c': client, 'IMAPClient': imapclient.IMAPClient})
++
++
+ if __name__ == '__main__':
+-    main()
+\ No newline at end of file
++    main()
+diff --git a/imapclient/response_lexer.py b/imapclient/response_lexer.py
+index df78bb5..2d30631 100644
+--- a/imapclient/response_lexer.py
++++ b/imapclient/response_lexer.py
+@@ -16,6 +16,10 @@ BACKSLASH = ord('\\')
+ OPEN_SQUARE = ord('[')
+ CLOSE_SQUARE = ord(']')
+ DOUBLE_QUOTE = ord('"')
++PARENS = frozenset((ord('('), ord(')')))
++# Characters that end an unquoted word. '[' does not end one: a bracketed
++# section is part of the word it follows, as in ``aaa[bbb]``.
++WORD_BREAKS = WHITESPACE | PARENS | frozenset((DOUBLE_QUOTE,))
+ 
+ class TokenSource:
+     """
+@@ -30,6 +34,19 @@ class TokenSource:
+     def __iter__(self) -> Iterator[bytes]:
+         return self.src
+ 
++    @property
++    def current_literal(self) -> Optional[bytes]:
++        """The literal belonging to the chunk currently being tokenized.
++
++        Literal data is supplied alongside the chunk text that announces
++        it, so it is only meaningful after the announcing token (for
++        example ``{7}``) has been yielded. None if there is no literal.
++        """
++        source = self.lex.current_source
++        if source is None:
++            return None
++        return source.literal
++
+ class Lexer:
+     """
+     A lexical analyzer class for IMAP
+@@ -45,6 +62,70 @@ class Lexer:
+             for tok in self.read_token_stream(iter(source)):
+                 yield bytes(tok)
+ 
++    def read_token_stream(self, src: 'PushableIterator') -> Iterator[bytearray]:
++        """Yield the tokens found in one chunk of response text."""
++        while True:
++            try:
++                c = next(src)
++            except StopIteration:
++                return
++            if c in WHITESPACE:
++                continue
++            if c in PARENS:
++                yield bytearray([c])
++            elif c == DOUBLE_QUOTE:
++                yield self.read_quoted_string(src)
++            else:
++                src.pushed.append(c)
++                yield self.read_word(src)
++
++    def read_word(self, src: 'PushableIterator') -> bytearray:
++        """Read an unquoted token, including any bracketed sections in it."""
++        token = bytearray()
++        for c in src:
++            if c in WORD_BREAKS:
++                src.pushed.append(c)
++                break
++            if c == OPEN_SQUARE:
++                token += self.read_square_bracketed(src)
++            else:
++                token.append(c)
++        return token
++
++    def read_square_bracketed(self, src: 'PushableIterator') -> bytearray:
++        """Read a ``[...]`` section verbatim, with no escape processing."""
++        token = bytearray([OPEN_SQUARE])
++        for c in src:
++            token.append(c)
++            if c == CLOSE_SQUARE:
++                return token
++        raise ValueError("No closing ']'")
++
++    def read_quoted_string(self, src: 'PushableIterator') -> bytearray:
++        """Read a ``"..."`` string, keeping the quotes.
++
++        ``\\"`` and ``\\\\`` are unescaped. Any other backslash is kept
++        as it is.
++        """
++        token = bytearray([DOUBLE_QUOTE])
++        for c in src:
++            if c == BACKSLASH:
++                try:
++                    escaped = next(src)
++                except StopIteration:
++                    break
++                if escaped in (DOUBLE_QUOTE, BACKSLASH):
++                    token.append(escaped)
++                else:
++                    token.append(c)
++                    token.append(escaped)
++            elif c == DOUBLE_QUOTE:
++                token.append(c)
++                return token
++            else:
++                token.append(c)
++        raise ValueError("No closing '\"'")
++
+ class LiteralHandlingIter:
+ 
+     def __init__(self, resp_record: Union[Tuple[bytes, bytes], bytes]):
+@@ -74,4 +155,4 @@ class PushableIterator:
+         if self.pushed:
+             return self.pushed.pop()
+         return next(self.it)
+-    next = __next__
+\ No newline at end of file
++    next = __next__
+diff --git a/imapclient/response_parser.py b/imapclient/response_parser.py
+index 9f2b02b..71fdd9f 100644
+--- a/imapclient/response_parser.py
++++ b/imapclient/response_parser.py
+@@ -21,8 +21,10 @@ def parse_response(data: List[bytes]) -> Tuple[_Atom, ...]:
+ 
+     Returns nested tuples of appropriately typed objects.
+     """
+-    pass
++    return _parse_tokens(_tokenize(data))
+ _msg_id_pattern = re.compile('(\\d+(?: +\\d+)*)')
++_modseq_pattern = re.compile('\\(modseq (\\d+)\\)', re.IGNORECASE)
++_literal_marker = re.compile(b'\\{\\d+\\}')
+ 
+ def parse_message_list(data: List[Union[bytes, str]]) -> SearchIds:
+     """Parse a list of message ids and return them as a list.
+@@ -35,7 +37,17 @@ def parse_message_list(data: List[Union[bytes, str]]) -> SearchIds:
+     attribute which contains the MODSEQ response (if returned by the
+     server).
+     """
+-    pass
++    out = SearchIds()
++    for chunk in data:
++        if chunk is None:
++            continue
++        text = chunk.decode('ascii', 'replace') if isinstance(chunk, bytes) else chunk
++        for modseq in _modseq_pattern.finditer(text):
++            out.modseq = int(modseq.group(1))
++        text = _modseq_pattern.sub(' ', text)
++        for match in _msg_id_pattern.finditer(text):
++            out.extend(int(num) for num in match.group(1).split())
++    return out
+ _ParseFetchResponseInnerDict = Dict[bytes, Optional[Union[datetime.datetime, int, BodyData, Envelope, _Atom]]]
+ 
+ def parse_fetch_response(text: List[bytes], normalise_times: bool=True, uid_is_key: bool=True) -> 'defaultdict[int, _ParseFetchResponseInnerDict]':
+@@ -44,4 +56,161 @@ def parse_fetch_response(text: List[bytes], normalise_times: bool=True, uid_is_k
+     Returns a dictionary, keyed by message ID. Each value a dictionary
+     keyed by FETCH field type (eg."RFC822").
+     """
+-    pass
+\ No newline at end of file
++    response: 'defaultdict[int, _ParseFetchResponseInnerDict]' = defaultdict(dict)
++    # A FETCH response is a flat sequence of (message id, data tuple) pairs
++    # once parsed, because each "N (...)" line contributes two top-level items.
++    items = parse_response(text)
++    if len(items) % 2:
++        raise ProtocolError('Expected message id and data pairs in FETCH response, got %r' % (items,))
++    for index in range(0, len(items), 2):
++        msg_id, data = items[index], items[index + 1]
++        if not isinstance(msg_id, int):
++            raise ProtocolError('Expected message id in FETCH response, got %r' % (msg_id,))
++        if not isinstance(data, tuple):
++            raise ProtocolError('Expected data for message %d in FETCH response, got %r' % (msg_id, data))
++        if len(data) % 2:
++            raise ProtocolError('Odd number of items in FETCH data for message %d: %r' % (msg_id, data))
++        fields: Dict[bytes, object] = {}
++        for field_index in range(0, len(data), 2):
++            name = data[field_index]
++            if not isinstance(name, bytes):
++                raise ProtocolError('Expected FETCH field name for message %d, got %r' % (msg_id, name))
++            name = name.upper()
++            fields[name] = _convert_fetch_value(name, data[field_index + 1], normalise_times)
++        key = msg_id
++        if uid_is_key and b'UID' in fields:
++            uid = fields.pop(b'UID')
++            if not isinstance(uid, int):
++                raise ProtocolError('Expected integer UID for message %d, got %r' % (msg_id, uid))
++            key = uid
++        message = response[key]
++        message.update(fields)  # type: ignore[arg-type]
++        message[b'SEQ'] = msg_id
++    return response
++
++def _tokenize(data: List[bytes]) -> List[Tuple[bytes, Optional[bytes]]]:
++    """Lex the response into (token, literal) pairs.
++
++    The literal is only set for a token that is a literal marker such as
++    ``{18}``; the literal payload itself comes from the token source.
++    """
++    chunks = [chunk for chunk in data if chunk is not None]
++    source = TokenSource(chunks)
++    tokens: List[Tuple[bytes, Optional[bytes]]] = []
++    try:
++        for token in source:
++            literal = None
++            if _literal_marker.fullmatch(token) and source.current_literal is not None:
++                literal = source.current_literal
++                expected = int(token[1:-1])
++                if len(literal) != expected:
++                    raise ProtocolError('Expecting literal of size %d, got %d' % (expected, len(literal)))
++            tokens.append((token, literal))
++    except ValueError as err:
++        raise ProtocolError(str(err)) from err
++    return tokens
++
++def _parse_tokens(tokens: List[Tuple[bytes, Optional[bytes]]]) -> Tuple[_Atom, ...]:
++    values: List[_Atom] = []
++    pos = 0
++    while pos < len(tokens):
++        token, literal = tokens[pos]
++        if token == b'(':
++            value, pos = _parse_tuple(tokens, pos)
++        elif token == b')':
++            raise ProtocolError('Unexpected ")" in IMAP response')
++        else:
++            value = _convert_atom(token, literal)
++            pos += 1
++        values.append(value)
++    return tuple(values)
++
++def _parse_tuple(tokens: List[Tuple[bytes, Optional[bytes]]], open_pos: int) -> Tuple[Tuple[_Atom, ...], int]:
++    """Parse the parenthesised list opened at tokens[open_pos].
++
++    Returns the parsed tuple and the index just past the closing paren.
++    """
++    items: List[_Atom] = []
++    pos = open_pos + 1
++    while pos < len(tokens):
++        token, literal = tokens[pos]
++        if token == b')':
++            return tuple(items), pos + 1
++        if token == b'(':
++            value, pos = _parse_tuple(tokens, pos)
++        else:
++            value = _convert_atom(token, literal)
++            pos += 1
++        items.append(value)
++    rest = b' '.join(token for token, _ in tokens[open_pos + 1:])
++    raise ProtocolError('Tuple incomplete before "(%s"' % rest.decode('ascii', 'replace'))
++
++def _convert_atom(token: bytes, literal: Optional[bytes]) -> _Atom:
++    if literal is not None:
++        return literal
++    if len(token) >= 2 and token.startswith(b'"'):
++        # The lexer keeps the surrounding quotes and has already unescaped the content.
++        return token[1:-1]
++    if token.upper() == b'NIL':
++        return None
++    if token.isdigit() and (token == b'0' or not token.startswith(b'0')):
++        return int(token)
++    return token
++
++def _convert_fetch_value(name: bytes, value: _Atom, normalise_times: bool) -> object:
++    if name in (b'BODY', b'BODYSTRUCTURE'):
++        return _to_body_data(value)
++    if name == b'ENVELOPE':
++        return _convert_envelope(value, normalise_times)
++    if name == b'INTERNALDATE':
++        return _parse_date(value, normalise_times)
++    return value
++
++def _to_body_data(value: _Atom) -> object:
++    """Turn a raw BODY/BODYSTRUCTURE tuple into BodyData, recursing into
++    multipart parts. A multipart body becomes (list_of_parts, subtype, ...)."""
++    if not isinstance(value, tuple):
++        return value
++    if value and isinstance(value[0], tuple):
++        parts: List[object] = []
++        index = 0
++        while index < len(value) and isinstance(value[index], tuple):
++            parts.append(_to_body_data(value[index]))
++            index += 1
++        return BodyData((parts,) + value[index:])  # type: ignore[arg-type]
++    return BodyData(value)  # type: ignore[arg-type]
++
++def _convert_envelope(value: _Atom, normalise_times: bool) -> Optional[Envelope]:
++    if value is None:
++        return None
++    if not isinstance(value, tuple) or len(value) != 10:
++        raise ProtocolError('Malformed ENVELOPE response: %r' % (value,))
++    date, subject, from_, sender, reply_to, to, cc, bcc, in_reply_to, message_id = value
++    return Envelope(
++        _parse_date(date, normalise_times),
++        subject,  # type: ignore[arg-type]
++        _convert_addresses(from_),
++        _convert_addresses(sender),
++        _convert_addresses(reply_to),
++        _convert_addresses(to),
++        _convert_addresses(cc),
++        _convert_addresses(bcc),
++        in_reply_to,  # type: ignore[arg-type]
++        message_id,  # type: ignore[arg-type]
++    )
++
++def _convert_addresses(value: _Atom) -> Optional[Tuple[Address, ...]]:
++    if value is None:
++        return None
++    # NIL entries inside an address list are group delimiters placeholders; skip them.
++    return tuple(Address(*addr) for addr in value if addr is not None)  # type: ignore[union-attr]
++
++def _parse_date(value: _Atom, normalise_times: bool) -> Optional[datetime.datetime]:
++    if value is None:
++        return None
++    if not isinstance(value, bytes):
++        raise ProtocolError('Expected date string, got %r' % (value,))
++    try:
++        return parse_to_datetime(value, normalise_times)
++    except ValueError:
++        return None
+diff --git a/imapclient/response_types.py b/imapclient/response_types.py
+index 992c420..0d932d8 100644
+--- a/imapclient/response_types.py
++++ b/imapclient/response_types.py
+@@ -110,4 +110,27 @@ _BodyDataType = Tuple[Union[bytes, int, 'BodyData'], '_BodyDataType']
+ class BodyData(_BodyDataType):
+     """
+     Returned when parsing BODY and BODYSTRUCTURE responses.
+-    """
+\ No newline at end of file
++    """
++
++    @classmethod
++    def create(cls, response: Any) -> 'BodyData':
++        """Build a BodyData from a parsed BODY or BODYSTRUCTURE tuple.
++
++        Multipart bodies have a list of part bodies as their first
++        element. Those parts are converted recursively so that nested
++        multipart sections also expose ``is_multipart``. Non-multipart
++        bodies are returned with their fields unchanged.
++        """
++        if isinstance(response, BodyData):
++            return response
++        if len(response) > 0 and isinstance(response[0], (list, tuple)):
++            parts = [cls.create(part) for part in response[0]]
++            return cls((parts,) + tuple(response[1:]))
++        return cls(response)
++
++    @property
++    def is_multipart(self) -> bool:
++        """True if this is a multipart body, i.e. its first element is
++        the list of part bodies.
++        """
++        return len(self) > 0 and isinstance(self[0], (list, tuple))
+\ No newline at end of file
+diff --git a/imapclient/testable_imapclient.py b/imapclient/testable_imapclient.py
+index 9a76ef6..c90aa8c 100644
+--- a/imapclient/testable_imapclient.py
++++ b/imapclient/testable_imapclient.py
+@@ -14,6 +14,10 @@ class TestableIMAPClient(IMAPClient):
+     def __init__(self) -> None:
+         super().__init__('somehost')
+ 
++    def _create_IMAP4(self):
++        # Never open a connection: every test talks to a MockIMAP4.
++        return MockIMAP4()
++
+ class MockIMAP4(Mock):
+ 
+     def __init__(self, *args: Any, **kwargs: Any):
+@@ -21,4 +25,12 @@ class MockIMAP4(Mock):
+         self.use_uid = True
+         self.sent = b''
+         self.tagged_commands: Dict[Any, Any] = {}
+-        self._starttls_done = False
+\ No newline at end of file
++        self._starttls_done = False
++
++    def send(self, data: bytes) -> None:
++        # Record everything the client writes so tests can inspect it.
++        self.sent += data
++
++    def _new_tag(self) -> bytes:
++        # Fixed tag so expected command lines and tagged_commands keys are stable.
++        return b'tag'
+diff --git a/imapclient/tls.py b/imapclient/tls.py
+index f2033a0..e93e22c 100644
+--- a/imapclient/tls.py
++++ b/imapclient/tls.py
+@@ -17,7 +17,32 @@ class IMAP4_TLS(imaplib.IMAP4):
+     """
+ 
+     def __init__(self, host: str, port: int, ssl_context: Optional[ssl.SSLContext], timeout: Optional[float]=None):
+-        self.ssl_context = ssl_context
++        self.ssl_context = ssl_context if ssl_context is not None else ssl.create_default_context()
+         self._timeout = timeout
+         imaplib.IMAP4.__init__(self, host, port)
+-        self.file: io.BufferedReader
+\ No newline at end of file
++        self.file: io.BufferedReader
++
++    def _create_socket(self, timeout: Optional[float]=None) -> socket.socket:
++        # imaplib calls this from open() with the timeout it was given. When
++        # that is None (as in the IMAP4.__init__ call above), fall back to the
++        # connect timeout stored on the instance.
++        if timeout is None:
++            timeout = self._timeout
++        sock = imaplib.IMAP4._create_socket(self, timeout)
++        return wrap_socket(sock, self.ssl_context, self.host)
++
++    def send(self, data: 'Buffer') -> None:
++        imaplib.IMAP4.send(self, data)
++
++    def socket(self) -> socket.socket:
++        return imaplib.IMAP4.socket(self)
++
++def wrap_socket(sock: socket.socket, ssl_context: Optional[ssl.SSLContext], host: str) -> ssl.SSLSocket:
++    """Wrap the plain socket *sock* in TLS, checking the certificate against *host*.
++
++    If *ssl_context* is None a default context with sensible settings is used.
++    """
++    if ssl_context is None:
++        ssl_context = ssl.create_default_context()
++    server_hostname = host if ssl.HAS_SNI else None
++    return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
+diff --git a/imapclient/util.py b/imapclient/util.py
+index 7413bc3..b9db9b0 100644
+--- a/imapclient/util.py
++++ b/imapclient/util.py
+@@ -1,6 +1,57 @@
+ import logging
+-from typing import Iterator, Optional, Tuple, Union
++from typing import Iterator, Optional, Sequence, Tuple, TypeVar, Union
+ from . import exceptions
+ logger = logging.getLogger(__name__)
++
++T = TypeVar('T')
++
+ _TupleAtomPart = Union[None, int, bytes]
+-_TupleAtom = Tuple[Union[_TupleAtomPart, '_TupleAtom'], ...]
+\ No newline at end of file
++_TupleAtom = Tuple[Union[_TupleAtomPart, '_TupleAtom'], ...]
++
++
++def assert_imap_protocol(condition: object, message: Optional[Union[bytes, str]] = None) -> None:
++    """Raise ProtocolError if condition is false.
++
++    The optional message (normally the offending server data) is
++    included in the exception to help diagnose the problem.
++    """
++    if not condition:
++        if message is None:
++            raise exceptions.ProtocolError("Protocol error")
++        raise exceptions.ProtocolError("Protocol error: %r" % (message,))
++
++
++def chunk(lst: Sequence[T], size: int) -> Iterator[Sequence[T]]:
++    """Yield successive size-sized slices of lst."""
++    for i in range(0, len(lst), size):
++        yield lst[i:i + size]
++
++
++def to_bytes(s: Union[str, bytes, int], charset: Optional[str] = 'ascii') -> bytes:
++    """Return s as bytes.
++
++    Text is encoded with charset, integers are written in decimal and
++    bytes are returned unchanged.
++    """
++    if isinstance(s, bytes):
++        return s
++    if isinstance(s, int):
++        s = str(s)
++    return s.encode(charset or 'ascii')
++
++
++def to_unicode(s: Union[str, bytes, None]) -> Union[str, None]:
++    """Return s as text.
++
++    Bytes are decoded as ASCII. Non-ASCII bytes cannot be represented
++    faithfully, so they are dropped and a warning is logged rather than
++    failing the whole response. Anything that is not bytes, including
++    None, is returned unchanged.
++    """
++    if isinstance(s, bytes):
++        try:
++            return s.decode('ascii')
++        except UnicodeDecodeError:
++            logger.warning('Ignoring non-ASCII bytes in IMAP response value %r', s)
++            return s.decode('ascii', 'ignore')
++    return s
+diff --git a/imapclient/version.py b/imapclient/version.py
+index 53ddd0b..9baf9fb 100644
+--- a/imapclient/version.py
++++ b/imapclient/version.py
+@@ -1,5 +1,14 @@
+ from typing import Tuple
+ version_info = (3, 0, 1, 'final')
++
++def _imapclient_version_string(vinfo: Tuple[int, int, int, str]) -> str:
++    """Convert a version info tuple to a string such as "2.1.0" or
++    "2.1.0-alpha".
++    """
++    ver = '%d.%d.%d' % vinfo[:3]
++    if vinfo[3] != 'final':
++        ver += '-%s' % vinfo[3]
++    return ver
+ version = _imapclient_version_string(version_info)
+ maintainer = 'IMAPClient Maintainers'
+ maintainer_email = 'imapclient@groups.io'

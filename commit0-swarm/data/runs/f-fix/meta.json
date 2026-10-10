@@ -1,0 +1,25 @@
+{
+ "arm": "fixer",
+ "model": "haiku",
+ "from": "f-swarm",
+ "libs": [
+  "imapclient",
+  "parsel",
+  "jinja"
+ ],
+ "units": 3,
+ "plan": {
+  "imapclient": {
+   "k": 1,
+   "failing": 1
+  },
+  "parsel": {
+   "k": 1,
+   "failing": 2
+  },
+  "jinja": {
+   "k": 1,
+   "failing": 2
+  }
+ }
+}

@@ -1,0 +1,54 @@
+................................................ [ 67%]
+...................................................                      [ 71%]
+tests/test_serialization.py ............................................ [ 75%]
+........................................................................ [ 80%]
+....................                                                     [ 82%]
+tests/test_utils.py ....................................                 [ 85%]
+tests/test_validate.py ................................................. [ 89%]
+........................................................................ [ 95%]
+........................................................                 [ 99%]
+tests/test_version_attributes.py F                                       [100%]
+
+=================================== FAILURES ===================================
+______________________ test_version_attributes_deprecated ______________________
+
+    def test_version_attributes_deprecated():
+        with pytest.warns(DeprecationWarning):
+>           marshmallow.__version__
+
+tests/test_version_attributes.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/marshmallow/__init__.py:34: in __getattr__
+    return importlib.metadata.version("marshmallow")
+/opt/uvpy/cpython-3.10.20-linux-x86_64-gnu/lib/python3.10/importlib/metadata/__init__.py:996: in version
+    return distribution(distribution_name).version
+/opt/uvpy/cpython-3.10.20-linux-x86_64-gnu/lib/python3.10/importlib/metadata/__init__.py:969: in distribution
+    return Distribution.from_name(distribution_name)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'importlib.metadata.Distribution'>, name = 'marshmallow'
+
+    @classmethod
+    def from_name(cls, name):
+        """Return the Distribution for the given package name.
+    
+        :param name: The name of the distribution package to search for.
+        :return: The Distribution instance (or subclass thereof) for the named
+            package, if found.
+        :raises PackageNotFoundError: When the named package's distribution
+            metadata cannot be found.
+        """
+        for resolver in cls._discover_resolvers():
+            dists = resolver(DistributionFinder.Context(name=name))
+            dist = next(iter(dists), None)
+            if dist is not None:
+                return dist
+        else:
+>           raise PackageNotFoundError(name)
+E           importlib.metadata.PackageNotFoundError: No package metadata was found for marshmallow
+
+/opt/uvpy/cpython-3.10.20-linux-x86_64-gnu/lib/python3.10/importlib/metadata/__init__.py:548: PackageNotFoundError
+- generated xml file: /tmp/jail/c0/work/grade-f-solo/marshmallow/.c0-junit.xml -
+=========================== short test summary info ============================
+FAILED tests/test_version_attributes.py::test_version_attributes_deprecated
+======================== 1 failed, 1228 passed in 3.35s ========================

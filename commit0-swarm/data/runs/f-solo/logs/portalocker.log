@@ -1,0 +1,63 @@
+-----
+Locking /tmp/pytest-of-nobody/pytest-184/test_exclusive_processes_flock0/6709234361513596 True <built-in function flock>
+a=LockResult(exception_class=None, exception_message=None, exception_repr=None)
+b=LockResult(exception_class=None, exception_message=None, exception_repr=None)
+____________________ test_exclusive_processes[flock-False] _____________________
+
+tmpfile = '/tmp/pytest-of-nobody/pytest-184/test_exclusive_processes_flock1/029186112497949446'
+fail_when_locked = False, locker = <built-in function flock>
+
+    @pytest.mark.parametrize('fail_when_locked', [True, False])
+    @pytest.mark.parametrize('locker', LOCKERS, indirect=True)
+    def test_exclusive_processes(tmpfile: str, fail_when_locked: bool, locker):
+        flags = LockFlags.EXCLUSIVE | LockFlags.NON_BLOCKING
+    
+        print('Locking', tmpfile, fail_when_locked, locker)
+        with multiprocessing.Pool(processes=2) as pool:
+            # Submit tasks individually
+            result_a = pool.apply_async(lock, [tmpfile, fail_when_locked, flags])
+            result_b = pool.apply_async(lock, [tmpfile, fail_when_locked, flags])
+    
+            try:
+                a = result_a.get(timeout=1.1)  # Wait for 'a' with timeout
+            except multiprocessing.TimeoutError:
+                a = None
+    
+            try:
+                # Lower timeout since we already waited with `a`
+                b = result_b.get(timeout=0.2)  # Wait for 'b' with timeout
+            except multiprocessing.TimeoutError:
+                b = None
+    
+            assert a or b
+            # Make sure a is always filled
+            if b:
+                b, a = b, a
+    
+            print(f'{a=}')
+            print(f'{b=}')
+    
+            # make pyright happy
+            assert a is not None
+    
+            if b:
+                # make pyright happy
+                assert b is not None
+    
+                assert not a.exception_class or not b.exception_class
+>               assert issubclass(
+                    a.exception_class or b.exception_class,  # type: ignore
+                    portalocker.LockException,
+                )
+E               TypeError: issubclass() arg 1 must be a class
+
+portalocker_tests/tests.py:383: TypeError
+----------------------------- Captured stdout call -----------------------------
+Locking /tmp/pytest-of-nobody/pytest-184/test_exclusive_processes_flock1/029186112497949446 False <built-in function flock>
+a=LockResult(exception_class=None, exception_message=None, exception_repr=None)
+b=LockResult(exception_class=None, exception_message=None, exception_repr=None)
+- generated xml file: /tmp/jail/c0/work/grade-f-solo/portalocker/.c0-junit.xml -
+=========================== short test summary info ============================
+FAILED portalocker_tests/tests.py::test_exclusive_processes[flock-True] - Typ...
+FAILED portalocker_tests/tests.py::test_exclusive_processes[flock-False] - Ty...
+=================== 2 failed, 38 passed, 1 skipped in 10.33s ===================

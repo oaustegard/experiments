@@ -55,7 +55,7 @@ FIXER = """{context}
 
 The builders have finished a first pass over every file. You are fixer {i} of {k}; all {k} fixers work at the same time in this checkout, each on its own share of the failing tests. Last full-suite result: {last}.
 
-Your share is the {n} failing tests listed in {shard}, one pytest node id per line (an id may need adjusting if pytest cannot find it; `{bin}/c0-test {test_dir} -q --co` lists the real ones). Make them pass by fixing the source. Run them with `{bin}/c0-test $(cat {shard}) -q 2>&1 | tail -40`, or a few at a time.
+Your share is the {n} failing tests listed in {shard}, one pytest node id per line (an id may need adjusting if pytest cannot find it; `{bin}/c0-test {test_dir} -q --co` lists the real ones). Make them pass by fixing the source. Run them by passing the ids to c0-test directly, a few at a time (`{bin}/c0-test <id> <id> -q 2>&1 | tail -40`; a `$(cat ...)` substitution is refused by the sandbox).
 
 You may edit any file under `{src_dir}/`, and so may the other fixers. Make small, targeted edits, and read a file again right before you edit it: it may have changed since you last saw it. If an edit fails because the file changed, re-read and redo it. Do not rewrite a whole file another fixer may be working in. Before you finish, run the whole suite once to check you broke nothing outside your share.
 

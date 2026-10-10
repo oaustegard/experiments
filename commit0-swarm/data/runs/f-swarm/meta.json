@@ -1,0 +1,394 @@
+{
+ "arm": "swarm",
+ "model": "haiku",
+ "from": null,
+ "libs": [
+  "cachetools",
+  "deprecated",
+  "wcwidth",
+  "portalocker",
+  "parsel",
+  "simpy",
+  "imapclient",
+  "cookiecutter",
+  "marshmallow",
+  "chardet",
+  "jinja",
+  "babel"
+ ],
+ "units": 60,
+ "plan": {
+  "cachetools": {
+   "k": 2,
+   "stubs": 11,
+   "bins": [
+    [
+     "src/cachetools/func.py"
+    ],
+    [
+     "src/cachetools/__init__.py",
+     "src/cachetools/keys.py"
+    ]
+   ]
+  },
+  "deprecated": {
+   "k": 1,
+   "stubs": 6,
+   "bins": [
+    [
+     "deprecated/__init__.py",
+     "deprecated/classic.py",
+     "deprecated/sphinx.py"
+    ]
+   ]
+  },
+  "wcwidth": {
+   "k": 1,
+   "stubs": 6,
+   "bins": [
+    [
+     "wcwidth/__init__.py",
+     "wcwidth/table_vs16.py",
+     "wcwidth/table_wide.py",
+     "wcwidth/table_zero.py",
+     "wcwidth/unicode_versions.py",
+     "wcwidth/wcwidth.py"
+    ]
+   ]
+  },
+  "portalocker": {
+   "k": 2,
+   "stubs": 7,
+   "bins": [
+    [
+     "portalocker/utils.py"
+    ],
+    [
+     "portalocker/__about__.py",
+     "portalocker/__init__.py",
+     "portalocker/__main__.py",
+     "portalocker/constants.py",
+     "portalocker/exceptions.py",
+     "portalocker/portalocker.py",
+     "portalocker/redis.py"
+    ]
+   ]
+  },
+  "parsel": {
+   "k": 4,
+   "stubs": 36,
+   "bins": [
+    [
+     "parsel/selector.py"
+    ],
+    [
+     "parsel/utils.py"
+    ],
+    [
+     "parsel/csstranslator.py"
+    ],
+    [
+     "parsel/__init__.py",
+     "parsel/xpathfuncs.py"
+    ]
+   ]
+  },
+  "simpy": {
+   "k": 7,
+   "stubs": 65,
+   "bins": [
+    [
+     "src/simpy/events.py"
+    ],
+    [
+     "src/simpy/core.py"
+    ],
+    [
+     "src/simpy/resources/base.py"
+    ],
+    [
+     "src/simpy/resources/resource.py"
+    ],
+    [
+     "src/simpy/__init__.py",
+     "src/simpy/resources/__init__.py",
+     "src/simpy/rt.py"
+    ],
+    [
+     "src/simpy/resources/container.py",
+     "src/simpy/util.py"
+    ],
+    [
+     "src/simpy/exceptions.py",
+     "src/simpy/resources/store.py"
+    ]
+   ]
+  },
+  "imapclient": {
+   "k": 8,
+   "stubs": 78,
+   "bins": [
+    [
+     "imapclient/imapclient.py"
+    ],
+    [
+     "imapclient/datetime_util.py"
+    ],
+    [
+     "imapclient/response_parser.py"
+    ],
+    [
+     "imapclient/imap_utf7.py",
+     "imapclient/typing_imapclient.py"
+    ],
+    [
+     "imapclient/config.py",
+     "imapclient/response_lexer.py",
+     "imapclient/util.py"
+    ],
+    [
+     "imapclient/fixed_offset.py",
+     "imapclient/response_types.py",
+     "imapclient/version.py"
+    ],
+    [
+     "imapclient/__init__.py",
+     "imapclient/imap4.py",
+     "imapclient/testable_imapclient.py"
+    ],
+    [
+     "imapclient/exceptions.py",
+     "imapclient/interact.py",
+     "imapclient/tls.py"
+    ]
+   ]
+  },
+  "cookiecutter": {
+   "k": 7,
+   "stubs": 62,
+   "bins": [
+    [
+     "cookiecutter/prompt.py"
+    ],
+    [
+     "cookiecutter/main.py",
+     "cookiecutter/utils.py"
+    ],
+    [
+     "cookiecutter/__main__.py",
+     "cookiecutter/extensions.py",
+     "cookiecutter/generate.py"
+    ],
+    [
+     "cookiecutter/exceptions.py",
+     "cookiecutter/find.py",
+     "cookiecutter/hooks.py"
+    ],
+    [
+     "cookiecutter/environment.py",
+     "cookiecutter/log.py",
+     "cookiecutter/repository.py"
+    ],
+    [
+     "cookiecutter/cli.py",
+     "cookiecutter/replay.py",
+     "cookiecutter/zipfile.py"
+    ],
+    [
+     "cookiecutter/__init__.py",
+     "cookiecutter/config.py",
+     "cookiecutter/vcs.py"
+    ]
+   ]
+  },
+  "marshmallow": {
+   "k": 7,
+   "stubs": 70,
+   "bins": [
+    [
+     "src/marshmallow/schema.py"
+    ],
+    [
+     "src/marshmallow/utils.py"
+    ],
+    [
+     "src/marshmallow/fields.py"
+    ],
+    [
+     "src/marshmallow/decorators.py"
+    ],
+    [
+     "src/marshmallow/base.py",
+     "src/marshmallow/class_registry.py",
+     "src/marshmallow/types.py"
+    ],
+    [
+     "src/marshmallow/exceptions.py",
+     "src/marshmallow/validate.py",
+     "src/marshmallow/warnings.py"
+    ],
+    [
+     "src/marshmallow/__init__.py",
+     "src/marshmallow/error_store.py",
+     "src/marshmallow/orderedset.py"
+    ]
+   ]
+  },
+  "chardet": {
+   "k": 5,
+   "stubs": 13,
+   "bins": [
+    [
+     "chardet/big5prober.py",
+     "chardet/chardistribution.py",
+     "chardet/cp949prober.py",
+     "chardet/euckrprober.py",
+     "chardet/hebrewprober.py",
+     "chardet/langbulgarianmodel.py",
+     "chardet/langthaimodel.py",
+     "chardet/mbcssm.py",
+     "chardet/sjisprober.py"
+    ],
+    [
+     "chardet/charsetgroupprober.py",
+     "chardet/escprober.py",
+     "chardet/euctwfreq.py",
+     "chardet/jisfreq.py",
+     "chardet/langgreekmodel.py",
+     "chardet/langturkishmodel.py",
+     "chardet/metadata/__init__.py",
+     "chardet/universaldetector.py",
+     "chardet/utf8prober.py"
+    ],
+    [
+     "chardet/charsetprober.py",
+     "chardet/enums.py",
+     "chardet/escsm.py",
+     "chardet/euctwprober.py",
+     "chardet/johabfreq.py",
+     "chardet/langhebrewmodel.py",
+     "chardet/latin1prober.py",
+     "chardet/metadata/languages.py",
+     "chardet/version.py"
+    ],
+    [
+     "chardet/__init__.py",
+     "chardet/cli/__init__.py",
+     "chardet/cli/chardetect.py",
+     "chardet/eucjpprober.py",
+     "chardet/gb2312freq.py",
+     "chardet/johabprober.py",
+     "chardet/langhungarianmodel.py",
+     "chardet/mbcharsetprober.py",
+     "chardet/sbcharsetprober.py"
+    ],
+    [
+     "chardet/big5freq.py",
+     "chardet/codingstatemachine.py",
+     "chardet/euckrfreq.py",
+     "chardet/gb2312prober.py",
+     "chardet/jpcntx.py",
+     "chardet/langrussianmodel.py",
+     "chardet/mbcsgroupprober.py",
+     "chardet/sbcsgroupprober.py",
+     "chardet/utf1632prober.py"
+    ]
+   ]
+  },
+  "jinja": {
+   "k": 8,
+   "stubs": 327,
+   "bins": [
+    [
+     "src/jinja2/filters.py"
+    ],
+    [
+     "src/jinja2/environment.py"
+    ],
+    [
+     "src/jinja2/compiler.py"
+    ],
+    [
+     "src/jinja2/constants.py",
+     "src/jinja2/idtracking.py",
+     "src/jinja2/nativetypes.py",
+     "src/jinja2/runtime.py"
+    ],
+    [
+     "src/jinja2/defaults.py",
+     "src/jinja2/nodes.py",
+     "src/jinja2/optimizer.py",
+     "src/jinja2/utils.py"
+    ],
+    [
+     "src/jinja2/debug.py",
+     "src/jinja2/exceptions.py",
+     "src/jinja2/ext.py",
+     "src/jinja2/tests.py"
+    ],
+    [
+     "src/jinja2/__init__.py",
+     "src/jinja2/_identifier.py",
+     "src/jinja2/bccache.py",
+     "src/jinja2/lexer.py",
+     "src/jinja2/meta.py"
+    ],
+    [
+     "src/jinja2/async_utils.py",
+     "src/jinja2/loaders.py",
+     "src/jinja2/parser.py",
+     "src/jinja2/sandbox.py",
+     "src/jinja2/visitor.py"
+    ]
+   ]
+  },
+  "babel": {
+   "k": 8,
+   "stubs": 242,
+   "bins": [
+    [
+     "babel/core.py"
+    ],
+    [
+     "babel/dates.py"
+    ],
+    [
+     "babel/numbers.py"
+    ],
+    [
+     "babel/support.py"
+    ],
+    [
+     "babel/localtime/_helpers.py",
+     "babel/messages/__init__.py",
+     "babel/messages/catalog.py",
+     "babel/messages/jslexer.py",
+     "babel/messages/plurals.py"
+    ],
+    [
+     "babel/languages.py",
+     "babel/messages/mofile.py",
+     "babel/messages/setuptools_frontend.py",
+     "babel/plural.py",
+     "babel/units.py"
+    ],
+    [
+     "babel/lists.py",
+     "babel/localedata.py",
+     "babel/localtime/__init__.py",
+     "babel/localtime/_win32.py",
+     "babel/messages/checkers.py",
+     "babel/messages/extract.py"
+    ],
+    [
+     "babel/__init__.py",
+     "babel/localtime/_fallback.py",
+     "babel/localtime/_unix.py",
+     "babel/messages/frontend.py",
+     "babel/messages/pofile.py",
+     "babel/util.py"
+    ]
+   ]
+  }
+ }
+}

@@ -1,0 +1,40 @@
+        [ 59%]
+tests/test_log.py ...                                                    [ 59%]
+tests/test_main.py ....                                                  [ 60%]
+tests/test_output_folder.py ..                                           [ 61%]
+tests/test_pre_prompt_hooks.py ...                                       [ 62%]
+tests/test_preferred_encoding.py .                                       [ 62%]
+tests/test_prompt.py ........................................sss.......  [ 76%]
+tests/test_read_repo_password.py .                                       [ 76%]
+tests/test_read_user_choice.py .....                                     [ 77%]
+tests/test_read_user_dict.py ..........                                  [ 80%]
+tests/test_read_user_variable.py ..                                      [ 80%]
+tests/test_read_user_yes_no.py ..                                        [ 81%]
+tests/test_repo_not_found.py .                                           [ 81%]
+tests/test_specify_output_dir.py ..                                      [ 82%]
+tests/test_templates.py ....                                             [ 83%]
+tests/test_time_extension.py .........                                   [ 85%]
+tests/test_utils.py .......                                              [ 87%]
+tests/vcs/test_clone.py ..............                                   [ 91%]
+tests/vcs/test_identify_repo.py .............                            [ 94%]
+tests/vcs/test_is_vcs_installed.py ....                                  [ 95%]
+tests/zipfile/test_unzip.py ...............                              [100%]
+
+=============================== warnings summary ===============================
+.venv/lib/python3.10/site-packages/_pytest/python.py:124
+  /tmp/jail/c0/work/grade-f-solo/cookiecutter/.venv/lib/python3.10/site-packages/_pytest/python.py:124: PytestRemovedIn10Warning: Passing a non-Collection iterable to parametrize is deprecated.
+  Test: tests/test_generate_context.py::test_generate_context, argvalues type: generator
+  Please convert to a list or tuple.
+  See https://docs.pytest.org/en/stable/deprecations.html#parametrize-iterators
+    metafunc.parametrize(*marker.args, **marker.kwargs, _param_mark=marker)
+
+.venv/lib/python3.10/site-packages/_pytest/python.py:124
+  /tmp/jail/c0/work/grade-f-solo/cookiecutter/.venv/lib/python3.10/site-packages/_pytest/python.py:124: PytestRemovedIn10Warning: Passing a non-Collection iterable to parametrize is deprecated.
+  Test: tests/test_read_user_choice.py::test_click_invocation, argvalues type: enumerate
+  Please convert to a list or tuple.
+  See https://docs.pytest.org/en/stable/deprecations.html#parametrize-iterators
+    metafunc.parametrize(*marker.args, **marker.kwargs, _param_mark=marker)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /tmp/jail/c0/work/grade-f-solo/cookiecutter/.c0-junit.xml -
+================== 367 passed, 4 skipped, 2 warnings in 4.51s ==================

@@ -19,6 +19,7 @@ import argparse
 import ast
 import json
 import math
+import re
 import shutil
 import subprocess
 import sys
@@ -219,11 +220,47 @@ def done(a) -> None:
     print(f"# {fanout.counts(state)}")
 
 
+def cycle(a) -> None:
+    """done IDS, then hand out as many agents as the session cap allows, counting
+    agents still running in every run under data/runs."""
+    if a.ids:
+        done(argparse.Namespace(run=a.run, ids=a.ids))
+    busy = 0
+    for d in RUNS.iterdir():
+        if (d / "fanout").exists():
+            busy += fanout.counts(fanout._load(d / "fanout")).get("running", 0)
+    free = max(0, a.cap - busy)
+    own = fanout.counts(fanout._load(rdir(a.run) / "fanout")).get("running", 0)
+    next_(argparse.Namespace(run=a.run, slots=own + free))
+
+
 def results(run: str) -> dict[str, dict]:
     f = rdir(run) / "results.jsonl"
     if not f.exists():
         return {}
     return {r["lib"]: r for r in map(json.loads, f.open())}
+
+
+_PARAM = re.compile(r"\[(.*)\]$")
+
+
+def param_key(test_id: str) -> str:
+    """Digit runs inside a parametrize id become '#'. Some ids embed the clock
+    (marshmallow: test_invalid_datetime_deserialization[00:15:10 2026-10-10]), so
+    certification and grading name the same test differently."""
+    m = _PARAM.search(test_id)
+    if not m:
+        return test_id
+    return test_id[:m.start()] + "[" + re.sub(r"\d+", "#", m.group(1)) + "]"
+
+
+def normalize_outcomes(oc: dict[str, str]) -> dict[str, str]:
+    """Collapse by param_key; a collapsed group passes only if all its members pass."""
+    out: dict[str, str] = {}
+    for k, v in oc.items():
+        nk = param_key(k)
+        out[nk] = v if nk not in out else ("pass" if out[nk] == v == "pass" else "fail")
+    return out
 
 
 def grade_one(run: str, lib: str, task: dict) -> dict:
@@ -244,15 +281,16 @@ def grade_one(run: str, lib: str, task: dict) -> dict:
         out.update(passed=0, failed=len(target), n_target=len(target), score=0.0, note="no junit (collection crash)",
                    tail=r["tail"][-1500:])
     else:
-        passed = [k for k in target if oc.get(k) == "pass"]
-        failing = [k for k in target if oc.get(k) != "pass"]
+        oc = normalize_outcomes(oc)
+        passed = [k for k in target if oc.get(param_key(k)) == "pass"]
+        failing = [k for k in target if oc.get(param_key(k)) != "pass"]
         (rdir(run) / "failing").mkdir(exist_ok=True)
         (rdir(run) / "failing" / f"{lib}.json").write_text(json.dumps(failing, indent=0) + "\n")
         out.update(passed=len(passed), failed=len(target) - len(passed), n_target=len(target),
                    score=round(len(passed) / len(target), 4), all_pass=len(passed) == len(target))
         if stubpass is not None:
             head = [k for k in target if k not in stubpass]
-            out["headroom_score"] = round(sum(oc.get(k) == "pass" for k in head) / max(1, len(head)), 4)
+            out["headroom_score"] = round(sum(oc.get(param_key(k)) == "pass" for k in head) / max(1, len(head)), 4)
             out["n_headroom"] = len(head)
     (rdir(run) / "logs").mkdir(exist_ok=True)
     (rdir(run) / "logs" / f"{lib}.log").write_text(r["tail"])
@@ -315,7 +353,14 @@ def main():
     g.add_argument("--regrade", action="store_true")
     st = sub.add_parser("status")
     st.add_argument("run")
+    cy = sub.add_parser("cycle", help="done IDS then refill up to the session cap")
+    cy.add_argument("run")
+    cy.add_argument("ids", nargs="*")
+    cy.add_argument("--cap", type=int, default=20)
     a = ap.parse_args()
+    if a.cmd == "cycle":
+        cycle(a)
+        return
     {"stage": stage, "next": next_, "done": done, "grade": grade_run, "status": status}[a.cmd](a)
 
 

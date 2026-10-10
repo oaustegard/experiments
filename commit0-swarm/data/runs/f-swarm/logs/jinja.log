@@ -1,0 +1,67 @@
+                         [ 82%]
+tests/test_runtime.py .......                                            [ 83%]
+tests/test_security.py ...............                                   [ 85%]
+tests/test_tests.py .................................................... [ 91%]
+......................................................                   [ 97%]
+tests/test_utils.py ....................                                 [100%]
+
+=================================== FAILURES ===================================
+____________________________ TestFilter.test_indent ____________________________
+
+self = <test_filters.TestFilter object at 0x7f52d1f57760>
+env = <jinja2.environment.Environment object at 0x7f52d197e980>
+
+    def test_indent(self, env):
+>       self._test_indent_multiline_template(env)
+
+tests/test_filters.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+env = <jinja2.environment.Environment object at 0x7f52d197e980>, markup = False
+
+    @staticmethod
+    def _test_indent_multiline_template(env, markup=False):
+        text = "\n".join(["", "foo bar", '"baz"', ""])
+        if markup:
+            text = Markup(text)
+        t = env.from_string("{{ foo|indent(2, false, false) }}")
+>       assert t.render(foo=text) == '\n  foo bar\n  "baz"\n'
+E       assert '\n  foo bar\n  "baz"' == '\n  foo bar\n  "baz"\n'
+E           
+E             foo bar
+E         -   "baz"
+E         ?        -
+E         +   "baz"
+
+tests/test_filters.py:165: AssertionError
+___________ TestFileSystemLoader.test_caches_template_based_on_mtime ___________
+
+self = <test_loader.TestFileSystemLoader object at 0x7f52d1671d50>
+
+    def test_caches_template_based_on_mtime(self):
+        filesystem_loader = loaders.FileSystemLoader(self.searchpath)
+    
+        env = Environment(loader=filesystem_loader)
+        tmpl1 = env.get_template("test.html")
+        tmpl2 = env.get_template("test.html")
+        assert tmpl1 is tmpl2
+    
+>       os.utime(self.searchpath / "test.html", (time.time(), time.time()))
+E       PermissionError: [Errno 1] Operation not permitted
+
+tests/test_loader.py:157: PermissionError
+_______________________________ test_environment _______________________________
+
+env = <jinja2.environment.Environment object at 0x7f52d208fcd0>
+
+    def test_environment(env):
+>       env = pickle.loads(pickle.dumps(env))
+E       AttributeError: Can't pickle local object 'async_variant.<locals>.decorator.<locals>.wrapper'
+
+tests/test_pickle.py:5: AttributeError
+--- generated xml file: /tmp/jail/c0/work/grade-f-swarm/jinja/.c0-junit.xml ----
+=========================== short test summary info ============================
+FAILED tests/test_filters.py::TestFilter::test_indent - assert '\n  foo bar\n...
+FAILED tests/test_loader.py::TestFileSystemLoader::test_caches_template_based_on_mtime
+FAILED tests/test_pickle.py::test_environment - AttributeError: Can't pickle ...
+======================== 3 failed, 848 passed in 3.24s =========================

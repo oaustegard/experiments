@@ -104,3 +104,12 @@ def test_junit_to_node():
     assert junit_to_node("tests.test_x.TestC::test_m") == "tests/test_x.py::TestC::test_m"
     assert junit_to_node("tests.test_x::test_f[a-b]") == "tests/test_x.py::test_f[a-b]"
     assert junit_to_node("voluptuous.tests.tests::test_y") == "voluptuous/tests/tests.py::test_y"
+
+
+def test_param_key_ignores_clock_in_ids():
+    from run import param_key, normalize_outcomes
+    a = "t.C::test_x[00:15:10 2026-10-10]"
+    b = "t.C::test_x[01:02:03 2026-10-11]"
+    assert param_key(a) == param_key(b)
+    assert param_key("t::plain") == "t::plain"
+    assert normalize_outcomes({a: "pass", "t.C::test_x[x1]": "fail"})[param_key(b)] == "pass"

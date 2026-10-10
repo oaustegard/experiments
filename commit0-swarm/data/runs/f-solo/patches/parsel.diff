@@ -1,0 +1,678 @@
+diff --git a/parsel/csstranslator.py b/parsel/csstranslator.py
+index b617836..b5367e0 100644
+--- a/parsel/csstranslator.py
++++ b/parsel/csstranslator.py
+@@ -1,3 +1,4 @@
++import re
+ from functools import lru_cache
+ from typing import TYPE_CHECKING, Any, Optional, Protocol
+ from cssselect import GenericTranslator as OriginalGenericTranslator
+@@ -5,13 +6,22 @@ from cssselect import HTMLTranslator as OriginalHTMLTranslator
+ from cssselect.parser import Element, FunctionalPseudoElement, PseudoElement
+ from cssselect.xpath import ExpressionError
+ from cssselect.xpath import XPathExpr as OriginalXPathExpr
++
+ if TYPE_CHECKING:
+     from typing_extensions import Self
+ 
++
+ class XPathExpr(OriginalXPathExpr):
+     textnode: bool = False
+     attribute: Optional[str] = None
+ 
++    @classmethod
++    def from_xpath(cls, xpath: OriginalXPathExpr, textnode: bool = False, attribute: Optional[str] = None) -> "XPathExpr":
++        x = cls(path=xpath.path, element=xpath.element, condition=xpath.condition)
++        x.textnode = textnode
++        x.attribute = attribute
++        return x
++
+     def __str__(self) -> str:
+         path = super().__str__()
+         if self.textnode:
+@@ -27,9 +37,11 @@ class XPathExpr(OriginalXPathExpr):
+             path += f'/@{self.attribute}'
+         return path
+ 
++
+ class TranslatorProtocol(Protocol):
+     pass
+ 
++
+ class TranslatorMixin:
+     """This mixin adds support to CSS pseudo elements via dynamic dispatch.
+ 
+@@ -40,23 +52,60 @@ class TranslatorMixin:
+         """
+         Dispatch method that transforms XPath to support pseudo-element
+         """
+-        pass
++        if isinstance(pseudo_element, FunctionalPseudoElement):
++            method_name = f"xpath_{pseudo_element.name.replace('-', '_')}_functional_pseudo_element"
++            method = getattr(self, method_name, None)
++            if method is None:
++                raise ExpressionError(f"The functional pseudo-element ::{pseudo_element.name}() is unknown")
++            return method(xpath, pseudo_element)
++        method_name = f"xpath_{pseudo_element.replace('-', '_')}_simple_pseudo_element"
++        method = getattr(self, method_name, None)
++        if method is None:
++            raise ExpressionError(f"The pseudo-element ::{pseudo_element} is unknown")
++        return method(xpath)
+ 
+     def xpath_attr_functional_pseudo_element(self, xpath: OriginalXPathExpr, function: FunctionalPseudoElement) -> XPathExpr:
+         """Support selecting attribute values using ::attr() pseudo-element"""
+-        pass
++        if function.argument_types() not in (["STRING"], ["IDENT"]):
++            raise ExpressionError(
++                f"Expected a single string or ident for ::attr(), got {function.arguments!r}"
++            )
++        return XPathExpr.from_xpath(xpath, attribute=function.arguments[0].value)
+ 
+     def xpath_text_simple_pseudo_element(self, xpath: OriginalXPathExpr) -> XPathExpr:
+         """Support selecting text nodes using ::text pseudo-element"""
+-        pass
++        return XPathExpr.from_xpath(xpath, textnode=True)
++
++    def xpath_attrib_includes(self, xpath: OriginalXPathExpr, name: str, value: Optional[str]) -> OriginalXPathExpr:
++        """Match a whitespace-separated word in an attribute such as ``class``.
++
++        cssselect 1.5+ also prepends a ``contains(name, value)`` pre-filter;
++        this keeps the plain ``concat()`` form parsel has always produced.
++        """
++        if value and _non_whitespace(value):
++            arg = self.xpath_literal(" " + value + " ")
++            xpath.add_condition(
++                f"{name} and contains(concat(' ', normalize-space({name}), ' '), {arg})"
++            )
++        else:
++            xpath.add_condition("0")
++        return xpath
++
++
++_non_whitespace = re.compile(r"^[^ \t\r\n\f]+$").match
++
+ 
+ class GenericTranslator(TranslatorMixin, OriginalGenericTranslator):
+     pass
+ 
++
+ class HTMLTranslator(TranslatorMixin, OriginalHTMLTranslator):
+     pass
++
++
+ _translator = HTMLTranslator()
+ 
++
+ def css2xpath(query: str) -> str:
+     """Return translated XPath version of a given CSS query"""
+-    pass
+\ No newline at end of file
++    return _translator.css_to_xpath(query)
+diff --git a/parsel/selector.py b/parsel/selector.py
+index a36cfa5..5b3b310 100644
+--- a/parsel/selector.py
++++ b/parsel/selector.py
+@@ -6,42 +6,103 @@ import warnings
+ from io import BytesIO
+ from typing import Any, Dict, List, Literal, Mapping, Optional, Pattern, SupportsIndex, Tuple, Type, TypedDict, TypeVar, Union
+ from warnings import warn
++
+ import jmespath
+ from lxml import etree, html
+ from packaging.version import Version
++
+ from .csstranslator import GenericTranslator, HTMLTranslator
+ from .utils import extract_regex, flatten, iflatten, shorten
++
+ _SelectorType = TypeVar('_SelectorType', bound='Selector')
+ _ParserType = Union[etree.XMLParser, etree.HTMLParser]
+ _TostringMethodType = Literal['html', 'xml']
++
+ lxml_version = Version(etree.__version__)
+ lxml_huge_tree_version = Version('4.2')
+ LXML_SUPPORTS_HUGE_TREE = lxml_version >= lxml_huge_tree_version
+ 
++
+ class CannotRemoveElementWithoutRoot(Exception):
+     pass
+ 
++
+ class CannotRemoveElementWithoutParent(Exception):
+     pass
+ 
++
+ class CannotDropElementWithoutParent(CannotRemoveElementWithoutParent):
+     pass
+ 
++
+ class SafeXMLParser(etree.XMLParser):
+ 
+     def __init__(self, *args: Any, **kwargs: Any) -> None:
+         kwargs.setdefault('resolve_entities', False)
+         super().__init__(*args, **kwargs)
+ 
++
+ class CTGroupValue(TypedDict):
+     _parser: Union[Type[etree.XMLParser], Type[html.HTMLParser]]
+     _csstranslator: Union[GenericTranslator, HTMLTranslator]
+     _tostring_method: str
++
++
+ _ctgroup: Dict[str, CTGroupValue] = {'html': {'_parser': html.HTMLParser, '_csstranslator': HTMLTranslator(), '_tostring_method': 'html'}, 'xml': {'_parser': SafeXMLParser, '_csstranslator': GenericTranslator(), '_tostring_method': 'xml'}}
+ 
++
+ def create_root_node(text: str, parser_cls: Type[_ParserType], base_url: Optional[str]=None, huge_tree: bool=LXML_SUPPORTS_HUGE_TREE, body: bytes=b'', encoding: str='utf8') -> etree._Element:
+     """Create root node for text using given parser class."""
+-    pass
++    if not huge_tree:
++        warnings.warn(
++            'huge_tree is disabled: elements nested more than 256 levels deep '
++            'may be missing from the parsed document',
++            stacklevel=3,
++        )
++    body = body.strip().replace(b'\x00', b'')
++    if not body:
++        body = text.strip().replace('\x00', '').encode('utf8')
++    if not body:
++        body = b'<html/>'
++    parser = parser_cls(recover=True, encoding=encoding, huge_tree=huge_tree)
++    root = etree.fromstring(body, parser=parser, base_url=base_url)
++    if root is None:
++        root = etree.fromstring(b'<html/>', parser=parser, base_url=base_url)
++    return root
++
++
++def _get_root_type(root: Any, *, input_type: Optional[str]) -> str:
++    if isinstance(root, etree._Element):
++        if input_type in ('json', 'text'):
++            raise ValueError(f'An lxml object as root is not supported with type {input_type!r}')
++        return input_type if input_type in ('html', 'xml') else 'html'
++    if input_type in ('html', 'xml'):
++        return input_type
++    return 'json'
++
++
++def _get_root_and_type_from_text(text: str, input_type: Optional[str], base_url: Optional[str], huge_tree: bool) -> Tuple[Any, str]:
++    if input_type in (None, 'json'):
++        try:
++            return json.loads(text), 'json'
++        except ValueError:
++            if input_type == 'json':
++                return None, 'json'
++    if input_type == 'text':
++        return text, 'text'
++    resolved = 'xml' if input_type == 'xml' else 'html'
++    root = create_root_node(text, _ctgroup[resolved]['_parser'], base_url=base_url, huge_tree=huge_tree)
++    return root, resolved
++
++
++def _get_root_and_type_from_bytes(body: bytes, encoding: str, input_type: Optional[str], base_url: Optional[str], huge_tree: bool) -> Tuple[Any, str]:
++    if input_type in ('json', 'text'):
++        text = body.decode(encoding, errors='replace')
++        return _get_root_and_type_from_text(text, input_type, base_url, huge_tree)
++    resolved = 'xml' if input_type == 'xml' else 'html'
++    root = create_root_node('', _ctgroup[resolved]['_parser'], base_url=base_url, huge_tree=huge_tree, body=body, encoding=encoding)
++    return root, resolved
++
+ 
+ class SelectorList(List[_SelectorType]):
+     """
+@@ -79,7 +140,7 @@ class SelectorList(List[_SelectorType]):
+ 
+             selector.jmespath('author.name', options=jmespath.Options(dict_cls=collections.OrderedDict))
+         """
+-        pass
++        return self.__class__(flatten([sel.jmespath(query, **kwargs) for sel in self]))
+ 
+     def xpath(self, xpath: str, namespaces: Optional[Mapping[str, str]]=None, **kwargs: Any) -> 'SelectorList[_SelectorType]':
+         """
+@@ -98,7 +159,7 @@ class SelectorList(List[_SelectorType]):
+ 
+             selector.xpath('//a[href=$url]', url="http://www.example.com")
+         """
+-        pass
++        return self.__class__(flatten([sel.xpath(xpath, namespaces=namespaces, **kwargs) for sel in self]))
+ 
+     def css(self, query: str) -> 'SelectorList[_SelectorType]':
+         """
+@@ -107,7 +168,7 @@ class SelectorList(List[_SelectorType]):
+ 
+         ``query`` is the same argument as the one in :meth:`Selector.css`
+         """
+-        pass
++        return self.__class__(flatten([sel.css(query) for sel in self]))
+ 
+     def re(self, regex: Union[str, Pattern[str]], replace_entities: bool=True) -> List[str]:
+         """
+@@ -119,7 +180,7 @@ class SelectorList(List[_SelectorType]):
+         Passing ``replace_entities`` as ``False`` switches off these
+         replacements.
+         """
+-        pass
++        return flatten([sel.re(regex, replace_entities=replace_entities) for sel in self])
+ 
+     def re_first(self, regex: Union[str, Pattern[str]], default: Optional[str]=None, replace_entities: bool=True) -> Optional[str]:
+         """
+@@ -133,14 +194,16 @@ class SelectorList(List[_SelectorType]):
+         Passing ``replace_entities`` as ``False`` switches off these
+         replacements.
+         """
+-        pass
++        for el in iflatten(sel.re(regex, replace_entities=replace_entities) for sel in self):
++            return el
++        return default
+ 
+     def getall(self) -> List[str]:
+         """
+         Call the ``.get()`` method for each element is this list and return
+         their results flattened, as a list of strings.
+         """
+-        pass
++        return [sel.get() for sel in self]
+     extract = getall
+ 
+     def get(self, default: Optional[str]=None) -> Any:
+@@ -148,7 +211,9 @@ class SelectorList(List[_SelectorType]):
+         Return the result of ``.get()`` for the first element in this list.
+         If the list is empty, return the default value.
+         """
+-        pass
++        for sel in self:
++            return sel.get()
++        return default
+     extract_first = get
+ 
+     @property
+@@ -156,21 +221,28 @@ class SelectorList(List[_SelectorType]):
+         """Return the attributes dictionary for the first element.
+         If the list is empty, return an empty dict.
+         """
+-        pass
++        for sel in self:
++            return sel.attrib
++        return {}
+ 
+     def remove(self) -> None:
+         """
+         Remove matched nodes from the parent for each element in this list.
+         """
+-        pass
++        for sel in self:
++            sel.remove()
+ 
+     def drop(self) -> None:
+         """
+         Drop matched nodes from the parent for each element in this list.
+         """
+-        pass
++        for sel in self:
++            sel.drop()
++
++
+ _NOT_SET = object()
+ 
++
+ class Selector:
+     """Wrapper for input data in HTML, JSON, or XML format, that allows
+     selecting parts of it using selection expressions.
+@@ -206,11 +278,10 @@ class Selector:
+         self.root: Any
+         if type not in ('html', 'json', 'text', 'xml', None):
+             raise ValueError(f'Invalid type: {type}')
++
+         if text is None and (not body) and (root is _NOT_SET):
+             raise ValueError('Selector needs text, body, or root arguments')
+-        if text is not None and (not isinstance(text, str)):
+-            msg = f'text argument should be of type str, got {text.__class__}'
+-            raise TypeError(msg)
++
+         if text is not None:
+             if root is not _NOT_SET:
+                 warnings.warn('Selector got both text and root, root is being ignored.', stacklevel=2)
+@@ -232,6 +303,7 @@ class Selector:
+         else:
+             self.root = root
+             self.type = _get_root_type(root, input_type=type)
++
+         self.namespaces = dict(self._default_namespaces)
+         if namespaces is not None:
+             self.namespaces.update(namespaces)
+@@ -242,6 +314,20 @@ class Selector:
+     def __getstate__(self) -> Any:
+         raise TypeError("can't pickle Selector objects")
+ 
++    def _query_type(self) -> str:
++        """Markup type used for XPath and CSS queries against this selector."""
++        if self.type in ('html', 'xml'):
++            return self.type
++        if self.type == 'json' and isinstance(self.root, str):
++            # A JSON-typed string is raw text; it is queried as HTML.
++            return 'html'
++        raise ValueError(f'Cannot use XPath or CSS on a Selector of type {self.type!r}')
++
++    def _query_node(self) -> Any:
++        if self.type == 'json':
++            return create_root_node(self.root, _ctgroup['html']['_parser'], huge_tree=self._huge_tree)
++        return self.root
++
+     def jmespath(self: _SelectorType, query: str, **kwargs: Any) -> SelectorList[_SelectorType]:
+         """
+         Find objects matching the JMESPath ``query`` and return the result as a
+@@ -256,7 +342,20 @@ class Selector:
+ 
+             selector.jmespath('author.name', options=jmespath.Options(dict_cls=collections.OrderedDict))
+         """
+-        pass
++        if self.type == 'json':
++            source = self.root
++        elif isinstance(self.root, str):
++            source = json.loads(self.root)
++        else:
++            source = json.loads(self.root.xpath('string()'))
++        data = jmespath.search(query, source, **kwargs)
++        if data is None:
++            return self.selectorlist_cls([])
++        items = data if isinstance(data, list) else [data]
++        return self.selectorlist_cls([
++            self.__class__(root=item, type='json', _expr=query, namespaces=self.namespaces, huge_tree=self._huge_tree)
++            for item in items
++        ])
+ 
+     def xpath(self: _SelectorType, query: str, namespaces: Optional[Mapping[str, str]]=None, **kwargs: Any) -> SelectorList[_SelectorType]:
+         """
+@@ -276,7 +375,24 @@ class Selector:
+ 
+             selector.xpath('//a[href=$url]', url="http://www.example.com")
+         """
+-        pass
++        result_type = self._query_type()
++        node = self._query_node()
++        try:
++            xpathev = node.xpath
++        except AttributeError:
++            return self.selectorlist_cls([])
++        nsp = dict(self.namespaces)
++        if namespaces is not None:
++            nsp.update(namespaces)
++        try:
++            result = xpathev(query, namespaces=nsp, smart_strings=self._lxml_smart_strings, **kwargs)
++        except etree.XPathError as exc:
++            msg = f'XPath error: {exc} in {query}'
++            raise ValueError(msg)
++        if type(result) is not list:
++            result = [result]
++        result = [self.__class__(root=x, _expr=query, namespaces=self.namespaces, type=result_type, huge_tree=self._huge_tree) for x in result]
++        return self.selectorlist_cls(result)
+ 
+     def css(self: _SelectorType, query: str) -> SelectorList[_SelectorType]:
+         """
+@@ -289,7 +405,8 @@ class Selector:
+ 
+         .. _cssselect: https://pypi.python.org/pypi/cssselect/
+         """
+-        pass
++        csstranslator = _ctgroup[self._query_type()]['_csstranslator']
++        return self.xpath(csstranslator.css_to_xpath(query))
+ 
+     def re(self, regex: Union[str, Pattern[str]], replace_entities: bool=True) -> List[str]:
+         """
+@@ -304,7 +421,7 @@ class Selector:
+         Passing ``replace_entities`` as ``False`` switches off these
+         replacements.
+         """
+-        pass
++        return extract_regex(regex, self.get(), replace_entities)
+ 
+     def re_first(self, regex: Union[str, Pattern[str]], default: Optional[str]=None, replace_entities: bool=True) -> Optional[str]:
+         """
+@@ -317,7 +434,9 @@ class Selector:
+         Passing ``replace_entities`` as ``False`` switches off these
+         replacements.
+         """
+-        pass
++        for el in self.re(regex, replace_entities=replace_entities):
++            return el
++        return default
+ 
+     def get(self) -> Any:
+         """
+@@ -326,14 +445,23 @@ class Selector:
+         For HTML and XML, the result is always a string, and percent-encoded
+         content is unquoted.
+         """
+-        pass
++        if self.type in ('html', 'xml'):
++            try:
++                return etree.tostring(self.root, method=_ctgroup[self.type]['_tostring_method'], encoding='unicode', with_tail=False)
++            except (AttributeError, TypeError):
++                if self.root is True:
++                    return '1'
++                if self.root is False:
++                    return '0'
++                return str(self.root)
++        return self.root
+     extract = get
+ 
+     def getall(self) -> List[str]:
+         """
+         Serialize and return the matched node in a 1-element list of strings.
+         """
+-        pass
++        return [self.get()]
+ 
+     def register_namespace(self, prefix: str, uri: str) -> None:
+         """
+@@ -341,31 +469,70 @@ class Selector:
+         Without registering namespaces you can't select or extract data from
+         non-standard namespaces. See :ref:`selector-examples-xml`.
+         """
+-        pass
++        self.namespaces[prefix] = uri
+ 
+     def remove_namespaces(self) -> None:
+         """
+         Remove all namespaces, allowing to traverse the document using
+         namespace-less xpaths. See :ref:`removing-namespaces`.
+         """
+-        pass
++        for el in self.root.iter():
++            if not isinstance(el.tag, str):
++                continue
++            if el.tag.startswith('{'):
++                el.tag = el.tag.partition('}')[2]
++            attrib = {}
++            for name, value in el.attrib.items():
++                if name.startswith('{'):
++                    name = name.partition('}')[2]
++                attrib[name] = value
++            el.attrib.clear()
++            for name, value in attrib.items():
++                el.set(name, value)
++        etree.cleanup_namespaces(self.root)
++
++    def _removal_parent(self, error_cls: Type[CannotRemoveElementWithoutParent]) -> Any:
++        try:
++            parent = self.root.getparent()
++        except AttributeError:
++            raise CannotRemoveElementWithoutRoot(
++                "The node you're trying to remove has no root element, "
++                "so it is probably a text or attribute result. Use xpath or "
++                "css to select elements instead of pseudo-elements."
++            )
++        if parent is None:
++            raise error_cls("The node you're trying to remove has no parent element.")
++        return parent
+ 
+     def remove(self) -> None:
+         """
+         Remove matched nodes from the parent element.
+         """
+-        pass
++        parent = self._removal_parent(CannotRemoveElementWithoutParent)
++        parent.remove(self.root)
+ 
+     def drop(self) -> None:
+         """
+         Drop matched nodes from the parent element.
+         """
+-        pass
++        parent = self._removal_parent(CannotDropElementWithoutParent)
++        # Keep the text that followed the element, as lxml's remove() would
++        # take it along with the element.
++        tail = self.root.tail
++        if tail:
++            previous = self.root.getprevious()
++            if previous is not None:
++                previous.tail = (previous.tail or '') + tail
++            else:
++                parent.text = (parent.text or '') + tail
++        parent.remove(self.root)
+ 
+     @property
+     def attrib(self) -> Dict[str, str]:
+         """Return the attributes dictionary for underlying element."""
+-        pass
++        if not hasattr(self.root, 'attrib'):
++            return {}
++        return dict(self.root.attrib)
+ 
+     def __bool__(self) -> bool:
+         """
+@@ -381,4 +548,4 @@ class Selector:
+ 
+     def __repr__(self) -> str:
+         data = repr(shorten(str(self.get()), width=40))
+-        return f'<{type(self).__name__} query={self._expr!r} data={data}>'
+\ No newline at end of file
++        return f'<{type(self).__name__} query={self._expr!r} data={data}>'
+diff --git a/parsel/utils.py b/parsel/utils.py
+index e0c96da..1da95b6 100644
+--- a/parsel/utils.py
++++ b/parsel/utils.py
+@@ -1,7 +1,9 @@
+ import re
+ from typing import Any, Iterable, Iterator, List, Match, Pattern, Union, cast
++
+ from w3lib.html import replace_entities as w3lib_replace_entities
+ 
++
+ def flatten(x: Iterable[Any]) -> List[Any]:
+     """flatten(sequence) -> list
+     Returns a single, flat list which contains all elements retrieved
+@@ -17,12 +19,18 @@ def flatten(x: Iterable[Any]) -> List[Any]:
+     >>> flatten(["foo", ["baz", 42], "bar"])
+     ['foo', 'baz', 42, 'bar']
+     """
+-    pass
++    return list(iflatten(x))
++
+ 
+ def iflatten(x: Iterable[Any]) -> Iterator[Any]:
+     """iflatten(sequence) -> Iterator
+     Similar to ``.flatten()``, but returns iterator instead"""
+-    pass
++    for el in x:
++        if _is_listlike(el):
++            yield from iflatten(el)
++        else:
++            yield el
++
+ 
+ def _is_listlike(x: Any) -> bool:
+     """
+@@ -45,7 +53,8 @@ def _is_listlike(x: Any) -> bool:
+     >>> _is_listlike(range(5))
+     True
+     """
+-    pass
++    return hasattr(x, "__iter__") and not isinstance(x, (str, bytes))
++
+ 
+ def extract_regex(regex: Union[str, Pattern[str]], text: str, replace_entities: bool=True) -> List[str]:
+     """Extract a list of strings from the given text/encoding using the following policies:
+@@ -53,8 +62,28 @@ def extract_regex(regex: Union[str, Pattern[str]], text: str, replace_entities:
+     * if the regex contains multiple numbered groups, all those will be returned (flattened)
+     * if the regex doesn't contain any group the entire regex matching is returned
+     """
+-    pass
++    if isinstance(regex, str):
++        regex = re.compile(regex, re.UNICODE)
++
++    match = regex.search(text)
++    if match is not None and "extract" in regex.groupindex:
++        value = match.group("extract")
++        strings: List[Any] = [] if value is None else [value]
++    else:
++        strings = regex.findall(text)
++
++    strings = flatten(strings)
++    if replace_entities:
++        strings = [w3lib_replace_entities(s, keep=["lt", "amp"]) for s in strings]
++    return strings
++
+ 
+ def shorten(text: str, width: int, suffix: str='...') -> str:
+     """Truncate the given text to fit in the given width."""
+-    pass
+\ No newline at end of file
++    if width < 0:
++        raise ValueError(f"width must not be negative, got {width}")
++    if len(text) <= width:
++        return text
++    if width <= len(suffix):
++        return suffix[:width]
++    return text[: width - len(suffix)] + suffix
+diff --git a/parsel/xpathfuncs.py b/parsel/xpathfuncs.py
+index 9f5c742..812753a 100644
+--- a/parsel/xpathfuncs.py
++++ b/parsel/xpathfuncs.py
+@@ -1,10 +1,18 @@
+ import re
+ from typing import Any, Callable, Optional
++
+ from lxml import etree
+ from w3lib.html import HTML5_WHITESPACE
++
+ regex = f'[{HTML5_WHITESPACE}]+'
+ replace_html5_whitespaces = re.compile(regex).sub
+ 
++
++def setup() -> None:
++    """Register the parsel XPath extension functions."""
++    set_xpathfunc("has-class", has_class)
++
++
+ def set_xpathfunc(fname: str, func: Optional[Callable]) -> None:
+     """Register a custom extension function to use in XPath expressions.
+ 
+@@ -19,7 +27,15 @@ def set_xpathfunc(fname: str, func: Optional[Callable]) -> None:
+     .. _`in lxml documentation`: https://lxml.de/extensions.html#xpath-extension-functions
+ 
+     """
+-    pass
++    ns = etree.FunctionNamespace(None)
++    if func is None:
++        try:
++            del ns[fname]
++        except KeyError:
++            pass
++    else:
++        ns[fname] = func
++
+ 
+ def has_class(context: Any, *classes: str) -> bool:
+     """has-class function.
+@@ -27,4 +43,11 @@ def has_class(context: Any, *classes: str) -> bool:
+     Return True if all ``classes`` are present in element's class attr.
+ 
+     """
+-    pass
+\ No newline at end of file
++    if not classes:
++        raise ValueError("has-class must have at least 1 argument")
++    for key in classes:
++        if not isinstance(key, str):
++            raise ValueError("has-class arguments must be strings")
++    class_attr = context.context_node.get("class", "")
++    available = set(replace_html5_whitespaces(" ", class_attr).split())
++    return all(key in available for key in classes)

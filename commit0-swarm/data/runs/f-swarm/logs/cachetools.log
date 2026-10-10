@@ -1,0 +1,60 @@
+is deprecated
+    cache = make_cache(maxsize)
+
+tests/test_mru.py::MRUCacheTest::test_defaults
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:8: DeprecationWarning: MRUCache is deprecated
+    cache = self.Cache(maxsize=1)
+
+tests/test_mru.py::MRUCacheTest::test_delete
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:54: DeprecationWarning: MRUCache is deprecated
+    cache = self.Cache(maxsize=2)
+
+tests/test_mru.py::MRUCacheTest::test_getsizeof_param
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:257: DeprecationWarning: MRUCache is deprecated
+    self._test_getsizeof(self.Cache(maxsize=3, getsizeof=lambda x: x))
+
+tests/test_mru.py::MRUCacheTest::test_getsizeof_subclass
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:264: DeprecationWarning: MRUCache is deprecated
+    self._test_getsizeof(Cache(maxsize=3))
+
+tests/test_mru.py::MRUCacheTest::test_insert
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:18: DeprecationWarning: MRUCache is deprecated
+    cache = self.Cache(maxsize=2)
+
+tests/test_mru.py::MRUCacheTest::test_missing
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:126: DeprecationWarning: MRUCache is deprecated
+    cache = DefaultCache(maxsize=2)
+
+tests/test_mru.py::MRUCacheTest::test_missing_getsizeof
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:188: DeprecationWarning: MRUCache is deprecated
+    cache = DefaultCache(maxsize=2, getsizeof=lambda x: x)
+
+tests/test_mru.py::MRUCacheTest::test_pickle
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:269: DeprecationWarning: MRUCache is deprecated
+    source = self.Cache(maxsize=2)
+
+tests/test_mru.py::MRUCacheTest::test_pickle_maxsize
+tests/test_mru.py::MRUCacheTest::test_pickle_maxsize
+tests/test_mru.py::MRUCacheTest::test_pickle_maxsize
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:297: DeprecationWarning: MRUCache is deprecated
+    source = self.Cache(maxsize=n)
+
+tests/test_mru.py::MRUCacheTest::test_pop
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:78: DeprecationWarning: MRUCache is deprecated
+    cache = self.Cache(maxsize=2)
+
+tests/test_mru.py::MRUCacheTest::test_popitem
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:98: DeprecationWarning: MRUCache is deprecated
+    cache = self.Cache(maxsize=2)
+
+tests/test_mru.py::MRUCacheTest::test_popitem_exception_context
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:114: DeprecationWarning: MRUCache is deprecated
+    self.Cache(maxsize=2).popitem()
+
+tests/test_mru.py::MRUCacheTest::test_update
+  /tmp/jail/c0/work/grade-f-swarm/cachetools/tests/__init__.py:36: DeprecationWarning: MRUCache is deprecated
+    cache = self.Cache(maxsize=2)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /tmp/jail/c0/work/grade-f-swarm/cachetools/.c0-junit.xml -
+======================= 215 passed, 19 warnings in 0.38s =======================

@@ -1,0 +1,55 @@
+^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_selector.py:717: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+parsel/selector.py:442: in re
+    return extract_regex(regex, self.get(), replace_entities=replace_entities)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+parsel/utils.py:73: in extract_regex
+    strings = [w3lib_replace_entities(s, keep=["lt", "amp"]) for s in strings]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/w3lib/html.py:222: in replace_entities
+    return _ent_re.sub(convert_entity, to_unicode(text, encoding))
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+text = None, encoding = 'utf-8', errors = 'strict'
+
+    def to_unicode(
+        text: str | bytes, encoding: str | None = None, errors: str = "strict"
+    ) -> str:
+        """Return the unicode representation of a bytes object `text`. If `text`
+        is already an unicode object, return it as-is."""
+        if isinstance(text, str):
+            return text
+        if not isinstance(text, (bytes, str)):
+>           raise TypeError(
+                f"to_unicode must receive bytes or str, got {type(text).__name__}"
+            )
+E           TypeError: to_unicode must receive bytes or str, got NoneType
+
+.venv/lib/python3.12/site-packages/w3lib/_util.py:19: TypeError
+_______________________ UtilCss2XPathTest.test_css2xpath _______________________
+
+self = <test_selector_csstranslator.UtilCss2XPathTest testMethod=test_css2xpath>
+
+    def test_css2xpath(self) -> None:
+        from parsel import css2xpath
+    
+        expected_xpath = (
+            "descendant-or-self::*[@class and contains("
+            "concat(' ', normalize-space(@class), ' '), ' some-class ')]"
+        )
+>       self.assertEqual(css2xpath(".some-class"), expected_xpath)
+E       AssertionError: "desc[33 chars]ains(@class, 'some-class') and contains(concat[49 chars] ')]" != "desc[33 chars]ains(concat(' ', normalize-space(@class), ' ')[14 chars] ')]"
+E       - descendant-or-self::*[@class and contains(@class, 'some-class') and contains(concat(' ', normalize-space(@class), ' '), ' some-class ')]
+E       ?                                 -----------------------------------
+E       + descendant-or-self::*[@class and contains(concat(' ', normalize-space(@class), ' '), ' some-class ')]
+
+tests/test_selector_csstranslator.py:170: AssertionError
+--- generated xml file: /tmp/jail/c0/work/grade-f-swarm/parsel/.c0-junit.xml ---
+=========================== short test summary info ============================
+FAILED tests/test_selector.py::SelectorTestCase::test_re - TypeError: to_unic...
+FAILED tests/test_selector.py::SelectorTestCaseBytes::test_re - TypeError: to...
+FAILED tests/test_selector_csstranslator.py::UtilCss2XPathTest::test_css2xpath
+=================== 3 failed, 203 passed, 2 skipped in 0.45s ===================

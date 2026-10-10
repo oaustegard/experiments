@@ -105,7 +105,7 @@ def run_jailed(task: dict, checkout: Path, argv: list[str], timeout: int) -> tup
 
 
 def git(*args, cwd: Path | None = None, check: bool = True, input: str | None = None) -> str:
-    p = subprocess.run(["git", *args], cwd=cwd, input=input, text=True,
+    p = subprocess.run(["git", *args], cwd=cwd, input=input, text=True, errors="replace",
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if check and p.returncode:
         raise RuntimeError(f"git {shlex.join(args)} failed: {p.stderr.strip()[-800:]}")

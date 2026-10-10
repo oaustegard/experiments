@@ -1,0 +1,5 @@
+{
+  "summary": "Implemented every stub in portalocker/utils.py: coalesce, open_atomic, the Lock acquire retry loop with release and file-handle helpers, plus the missing RLock acquire/release, TemporaryFileLock.release, and BoundedSemaphore slot methods. The last full-suite run gave 38 passed, 2 failed, 1 skipped; the failures are multiprocess tests whose spawned children exceed the tests' own deadlines because importing the package takes about 1.2 seconds, and all 22 utils doctests pass.",
+  "passed": 38,
+  "failed": 2
+}

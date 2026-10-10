@@ -1,0 +1,796 @@
+diff --git a/src/simpy/core.py b/src/simpy/core.py
+index c0b90a6..fce6a80 100644
+--- a/src/simpy/core.py
++++ b/src/simpy/core.py
+@@ -32,7 +32,11 @@ class BoundClass(Generic[T]):
+     def bind_early(instance: object) -> None:
+         """Bind all :class:`BoundClass` attributes of the *instance's* class
+         to the instance itself to increase performance."""
+-        pass
++        cls = type(instance)
++        for klass in cls.__mro__:
++            for name, attr in vars(klass).items():
++                if isinstance(attr, BoundClass) and name not in vars(instance):
++                    setattr(instance, name, attr.__get__(instance, cls))
+ 
+ class EmptySchedule(Exception):
+     """Thrown by an :class:`Environment` if there are no further events to be
+@@ -45,7 +49,10 @@ class StopSimulation(Exception):
+     def callback(cls, event: Event) -> None:
+         """Used as callback in :meth:`Environment.run()` to stop the simulation
+         when the *until* event occurred."""
+-        pass
++        if event.ok:
++            raise cls(event.value)
++        else:
++            raise event.value
+ SimTime = Union[int, float]
+ 
+ class Environment:
+@@ -70,12 +77,12 @@ class Environment:
+     @property
+     def now(self) -> SimTime:
+         """The current simulation time."""
+-        pass
++        return self._now
+ 
+     @property
+     def active_process(self) -> Optional[Process]:
+         """The currently active process of the environment."""
+-        pass
++        return self._active_proc
+     if TYPE_CHECKING:
+ 
+         def process(self, generator: ProcessGenerator) -> Process:
+@@ -112,12 +119,15 @@ class Environment:
+ 
+     def schedule(self, event: Event, priority: EventPriority=NORMAL, delay: SimTime=0) -> None:
+         """Schedule an *event* with a given *priority* and a *delay*."""
+-        pass
++        heappush(self._queue, (self._now + delay, priority, next(self._eid), event))
+ 
+     def peek(self) -> SimTime:
+         """Get the time of the next scheduled event. Return
+         :data:`~simpy.core.Infinity` if there is no further event."""
+-        pass
++        try:
++            return self._queue[0][0]
++        except IndexError:
++            return Infinity
+ 
+     def step(self) -> None:
+         """Process the next event.
+@@ -125,7 +135,23 @@ class Environment:
+         Raise an :exc:`EmptySchedule` if no further events are available.
+ 
+         """
+-        pass
++        try:
++            self._now, _, _, event = heappop(self._queue)
++        except IndexError:
++            raise EmptySchedule() from None
++
++        # Process the callbacks. Mark the event as processed first so that
++        # callbacks cannot modify the list while it is being iterated.
++        callbacks, event.callbacks = event.callbacks, None
++        for callback in callbacks:
++            callback(event)
++
++        if not event._ok and not event._defused:
++            # The event failed and nobody handled it: raise a copy of its
++            # exception, chained to the original so the trace shows both.
++            exc = type(event._value)(*event._value.args)
++            exc.__cause__ = event._value
++            raise exc
+ 
+     def run(self, until: Optional[Union[SimTime, Event]]=None) -> Optional[Any]:
+         """Executes :meth:`step()` until the given criterion *until* is met.
+@@ -142,4 +168,29 @@ class Environment:
+           until the environment's time reaches *until*.
+ 
+         """
+-        pass
+\ No newline at end of file
++        if until is not None:
++            if not isinstance(until, Event):
++                at = float(until)
++                if at <= self.now:
++                    raise ValueError(f'until ({until}) must be greater than the current simulation time')
++                # Schedule an urgent event that stops the simulation at *at*.
++                until = Event(self)
++                until._ok = True
++                until._value = None
++                self.schedule(until, URGENT, at - self.now)
++            else:
++                if until.callbacks is None:
++                    # The event has already been processed.
++                    return until.value
++            assert until.callbacks is not None
++            until.callbacks.append(StopSimulation.callback)
++
++        try:
++            while True:
++                self.step()
++        except StopSimulation as exc:
++            return exc.args[0]
++        except EmptySchedule:
++            if until is not None:
++                raise RuntimeError(f'No scheduled events left but "until" event was not triggered: {until}') from None
++        return None
+diff --git a/src/simpy/events.py b/src/simpy/events.py
+index 93df18c..aa1f14a 100644
+--- a/src/simpy/events.py
++++ b/src/simpy/events.py
+@@ -14,6 +14,7 @@ used, there are several specialized subclasses of it.
+ 
+ """
+ from __future__ import annotations
++import sys
+ from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, Iterable, Iterator, List, NewType, Optional, Tuple, TypeVar
+ from simpy.exceptions import Interrupt
+ if TYPE_CHECKING:
+@@ -58,7 +59,7 @@ class Event:
+ 
+     """
+     _ok: bool
+-    _defused: bool
++    _defused: bool = False
+     _value: Any = PENDING
+ 
+     def __init__(self, env: Environment):
+@@ -74,19 +75,19 @@ class Event:
+ 
+     def _desc(self) -> str:
+         """Return a string *Event()*."""
+-        pass
++        return f'{self.__class__.__name__}()'
+ 
+     @property
+     def triggered(self) -> bool:
+         """Becomes ``True`` if the event has been triggered and its callbacks
+         are about to be invoked."""
+-        pass
++        return self._value is not PENDING
+ 
+     @property
+     def processed(self) -> bool:
+         """Becomes ``True`` if the event has been processed (e.g., its
+         callbacks have been invoked)."""
+-        pass
++        return self.callbacks is None
+ 
+     @property
+     def ok(self) -> bool:
+@@ -97,7 +98,7 @@ class Event:
+         :raises AttributeError: if accessed before the event is triggered.
+ 
+         """
+-        pass
++        return self._ok
+ 
+     @property
+     def defused(self) -> bool:
+@@ -114,7 +115,11 @@ class Event:
+         processed by the :class:`~simpy.core.Environment`.
+ 
+         """
+-        pass
++        return self._defused
++
++    @defused.setter
++    def defused(self, value: bool) -> None:
++        self._defused = value
+ 
+     @property
+     def value(self) -> Optional[Any]:
+@@ -125,7 +130,9 @@ class Event:
+         Raises :exc:`AttributeError` if the value is not yet available.
+ 
+         """
+-        pass
++        if self._value is PENDING:
++            raise AttributeError(f'Value of {self} is not yet available')
++        return self._value
+ 
+     def trigger(self, event: Event) -> None:
+         """Trigger the event with the state and value of the provided *event*.
+@@ -135,7 +142,9 @@ class Event:
+         chain reactions.
+ 
+         """
+-        pass
++        self._ok = event._ok
++        self._value = event._value
++        self.env.schedule(self)
+ 
+     def succeed(self, value: Optional[Any]=None) -> Event:
+         """Set the event's value, mark it as successful and schedule it for
+@@ -144,7 +153,12 @@ class Event:
+         Raises :exc:`RuntimeError` if this event has already been triggerd.
+ 
+         """
+-        pass
++        if self._value is not PENDING:
++            raise RuntimeError(f'{self} has already been triggered')
++        self._ok = True
++        self._value = value
++        self.env.schedule(self)
++        return self
+ 
+     def fail(self, exception: Exception) -> Event:
+         """Set *exception* as the events value, mark it as failed and schedule
+@@ -155,7 +169,14 @@ class Event:
+         Raises :exc:`RuntimeError` if this event has already been triggered.
+ 
+         """
+-        pass
++        if not isinstance(exception, BaseException):
++            raise TypeError(f'{exception} is not an exception.')
++        if self._value is not PENDING:
++            raise RuntimeError(f'{self} has already been triggered')
++        self._ok = False
++        self._value = exception
++        self.env.schedule(self)
++        return self
+ 
+     def __and__(self, other: Event) -> Condition:
+         """Return a :class:`~simpy.events.Condition` that will be triggered if
+@@ -192,7 +213,9 @@ class Timeout(Event):
+ 
+     def _desc(self) -> str:
+         """Return a string *Timeout(delay[, value=value])*."""
+-        pass
++        if self._value is None:
++            return f'{self.__class__.__name__}({self._delay!r})'
++        return f'{self.__class__.__name__}({self._delay!r}, value={self._value!r})'
+ 
+ class Initialize(Event):
+     """Initializes a process. Only used internally by :class:`Process`.
+@@ -228,6 +251,16 @@ class Interruption(Event):
+             raise RuntimeError('A process is not allowed to interrupt itself.')
+         self.process = process
+         self.env.schedule(self, URGENT)
++
++    def _interrupt(self, event: Event) -> None:
++        """Throw the interrupt into the process, unless it terminated in the
++        meantime. The process stops waiting for its current target."""
++        if self.process._value is not PENDING:
++            return
++        target = self.process._target
++        if target is not None and target.callbacks is not None and self.process._resume in target.callbacks:
++            target.callbacks.remove(self.process._resume)
++        self.process._resume(self)
+ ProcessGenerator = Generator[Event, Any, Any]
+ 
+ class Process(Event):
+@@ -256,7 +289,7 @@ class Process(Event):
+ 
+     def _desc(self) -> str:
+         """Return a string *Process(process_func_name)*."""
+-        pass
++        return f'{self.__class__.__name__}({self._generator.__name__})'
+ 
+     @property
+     def target(self) -> Event:
+@@ -266,17 +299,17 @@ class Process(Event):
+         interrupted.
+ 
+         """
+-        pass
++        return self._target
+ 
+     @property
+     def name(self) -> str:
+         """Name of the function used to start the process."""
+-        pass
++        return self._generator.__name__
+ 
+     @property
+     def is_alive(self) -> bool:
+         """``True`` until the process generator exits."""
+-        pass
++        return self._value is PENDING
+ 
+     def interrupt(self, cause: Optional[Any]=None) -> None:
+         """Interrupt this process optionally providing a *cause*.
+@@ -286,13 +319,64 @@ class Process(Event):
+         cases.
+ 
+         """
+-        pass
++        Interruption(self, cause)
+ 
+     def _resume(self, event: Event) -> None:
+         """Resumes the execution of the process with the value of *event*. If
+         the process generator exits, the process itself will get triggered with
+         the return value or the exception of the generator."""
+-        pass
++        self.env._active_proc = self
++
++        while True:
++            # Pass the value of the event (or its exception) into the generator.
++            try:
++                if event._ok:
++                    event = self._generator.send(event._value)
++                else:
++                    # The exception is handed to the process, so it is defused.
++                    event._defused = True
++                    exc = type(event._value)(*event._value.args)
++                    exc.__cause__ = event._value
++                    event = self._generator.throw(exc)
++            except StopIteration as e:
++                self._ok = True
++                self._value = e.args[0] if len(e.args) else None
++                self._target = None
++                self.env.schedule(self)
++                break
++            except BaseException as e:
++                # Hide this resume() frame so the traceback starts inside the
++                # generator that raised the exception.
++                if e.__traceback__ is not None:
++                    e.__traceback__ = e.__traceback__.tb_next
++                self._ok = False
++                self._value = e
++                self._defused = False
++                self._target = None
++                self.env.schedule(self)
++                break
++
++            if not isinstance(event, Event):
++                msg = f'Invalid yield value "{event}"'
++                descr = _describe_frame(self._generator.gi_frame)
++                print(f'\n{descr}', file=sys.stderr)
++                print(msg, file=sys.stderr)
++                # Turn the invalid yield into a processed, failed event so the
++                # generator receives a RuntimeError.
++                event = Event(self.env)
++                event._ok = False
++                event._value = RuntimeError(msg)
++                event.callbacks = None
++                continue
++
++            if event.callbacks is not None:
++                # Event not yet processed: wait for it.
++                event.callbacks.append(self._resume)
++                self._target = event
++                break
++            # Event already processed: resume immediately with its value.
++
++        self.env._active_proc = None
+ 
+ class ConditionValue:
+     """Result of a :class:`~simpy.events.Condition`. It supports convenient
+@@ -324,6 +408,22 @@ class ConditionValue:
+     def __iter__(self) -> Iterator[Event]:
+         return self.keys()
+ 
++    def keys(self) -> Iterator[Event]:
++        """Return an iterator over the triggered events."""
++        return (event for event in self.events)
++
++    def values(self) -> Iterator[Any]:
++        """Return an iterator over the values of the triggered events."""
++        return (event._value for event in self.events)
++
++    def items(self) -> Iterator[Tuple[Event, Any]]:
++        """Return an iterator over ``(event, value)`` pairs."""
++        return ((event, event._value) for event in self.events)
++
++    def todict(self) -> Dict[Event, Any]:
++        """Return the triggered events and their values as a dict."""
++        return dict(self.items())
++
+ class Condition(Event):
+     """An event that gets triggered once the condition function *evaluate*
+     returns ``True`` on the given list of *events*.
+@@ -367,16 +467,23 @@ class Condition(Event):
+ 
+     def _desc(self) -> str:
+         """Return a string *Condition(evaluate, [events])*."""
+-        pass
++        return f'{self.__class__.__name__}({self._evaluate.__name__}, {self._events!r})'
+ 
+     def _populate_value(self, value: ConditionValue) -> None:
+         """Populate the *value* by recursively visiting all nested
+         conditions."""
+-        pass
++        for event in self._events:
++            if isinstance(event, Condition):
++                event._populate_value(value)
++            elif event.callbacks is None:
++                value.events.append(event)
+ 
+     def _build_value(self, event: Event) -> None:
+         """Build the value of this condition."""
+-        pass
++        self._remove_check_callbacks()
++        if event._ok:
++            self._value = ConditionValue()
++            self._populate_value(self._value)
+ 
+     def _remove_check_callbacks(self) -> None:
+         """Remove _check() callbacks from events recursively.
+@@ -387,24 +494,36 @@ class Condition(Event):
+         untriggered events.
+ 
+         """
+-        pass
++        for event in self._events:
++            if event.callbacks and self._check in event.callbacks:
++                event.callbacks.remove(self._check)
++            if isinstance(event, Condition):
++                event._remove_check_callbacks()
+ 
+     def _check(self, event: Event) -> None:
+         """Check if the condition was already met and schedule the *event* if
+         so."""
+-        pass
++        if self._value is not PENDING:
++            return
++        self._count += 1
++        if not event._ok:
++            # Abort if the event has failed and forward its exception.
++            event._defused = True
++            self.fail(event._value)
++        elif self._evaluate(self._events, self._count):
++            self.succeed()
+ 
+     @staticmethod
+     def all_events(events: Tuple[Event, ...], count: int) -> bool:
+         """An evaluation function that returns ``True`` if all *events* have
+         been triggered."""
+-        pass
++        return len(events) == count
+ 
+     @staticmethod
+     def any_events(events: Tuple[Event, ...], count: int) -> bool:
+         """An evaluation function that returns ``True`` if at least one of
+         *events* has been triggered."""
+-        pass
++        return count > 0 or len(events) == 0
+ 
+ class AllOf(Condition):
+     """A :class:`~simpy.events.Condition` event that is triggered if all of
+@@ -428,4 +547,7 @@ class AnyOf(Condition):
+ 
+ def _describe_frame(frame: FrameType) -> str:
+     """Print filename, line number and function name of a stack frame."""
+-    pass
+\ No newline at end of file
++    filename = frame.f_code.co_filename
++    lineno = frame.f_lineno
++    func = frame.f_code.co_name
++    return f'File "{filename}", line {lineno}, in {func}'
+diff --git a/src/simpy/exceptions.py b/src/simpy/exceptions.py
+index e673864..8db26e2 100644
+--- a/src/simpy/exceptions.py
++++ b/src/simpy/exceptions.py
+@@ -29,4 +29,4 @@ class Interrupt(SimPyException):
+     @property
+     def cause(self) -> Optional[Any]:
+         """The cause of the interrupt or ``None`` if no cause was provided."""
+-        pass
+\ No newline at end of file
++        return self.args[0] if self.args else None
+\ No newline at end of file
+diff --git a/src/simpy/resources/base.py b/src/simpy/resources/base.py
+index 0904619..2366a63 100644
+--- a/src/simpy/resources/base.py
++++ b/src/simpy/resources/base.py
+@@ -55,7 +55,8 @@ class Put(Event, ContextManager['Put'], Generic[ResourceType]):
+         method is called automatically.
+ 
+         """
+-        pass
++        if not self.triggered:
++            self.resource.put_queue.remove(self)
+ 
+ class Get(Event, ContextManager['Get'], Generic[ResourceType]):
+     """Generic event for requesting to get something from the *resource*.
+@@ -98,7 +99,8 @@ class Get(Event, ContextManager['Get'], Generic[ResourceType]):
+         method is called automatically.
+ 
+         """
+-        pass
++        if not self.triggered:
++            self.resource.get_queue.remove(self)
+ PutType = TypeVar('PutType', bound=Put)
+ GetType = TypeVar('GetType', bound=Get)
+ 
+@@ -137,7 +139,7 @@ class BaseResource(Generic[PutType, GetType]):
+     @property
+     def capacity(self) -> Union[float, int]:
+         """Maximum capacity of the resource."""
+-        pass
++        return self._capacity
+     if TYPE_CHECKING:
+ 
+         def put(self) -> Put:
+@@ -176,7 +178,17 @@ class BaseResource(Generic[PutType, GetType]):
+         calls :meth:`_do_put` to check if the conditions for the event are met.
+         If :meth:`_do_put` returns ``False``, the iteration is stopped early.
+         """
+-        pass
++        idx = 0
++        while idx < len(self.put_queue):
++            put_event = self.put_queue[idx]
++            proceed = self._do_put(put_event)
++            if not put_event.triggered:
++                idx += 1
++            elif self.put_queue.pop(idx) != put_event:
++                raise RuntimeError('Put queue invariant violated')
++
++            if not proceed:
++                break
+ 
+     def _do_get(self, event: GetType) -> Optional[bool]:
+         """Perform the *get* operation.
+@@ -201,4 +213,14 @@ class BaseResource(Generic[PutType, GetType]):
+         calls :meth:`_do_get` to check if the conditions for the event are met.
+         If :meth:`_do_get` returns ``False``, the iteration is stopped early.
+         """
+-        pass
+\ No newline at end of file
++        idx = 0
++        while idx < len(self.get_queue):
++            get_event = self.get_queue[idx]
++            proceed = self._do_get(get_event)
++            if not get_event.triggered:
++                idx += 1
++            elif self.get_queue.pop(idx) != get_event:
++                raise RuntimeError('Get queue invariant violated')
++
++            if not proceed:
++                break
+diff --git a/src/simpy/resources/container.py b/src/simpy/resources/container.py
+index 67b0cea..fc6eb9b 100644
+--- a/src/simpy/resources/container.py
++++ b/src/simpy/resources/container.py
+@@ -73,7 +73,7 @@ class Container(base.BaseResource):
+     @property
+     def level(self) -> ContainerAmount:
+         """The current amount of the matter in the container."""
+-        pass
++        return self._level
+     if TYPE_CHECKING:
+ 
+         def put(self, amount: ContainerAmount) -> ContainerPut:
+@@ -85,4 +85,18 @@ class Container(base.BaseResource):
+             pass
+     else:
+         put = BoundClass(ContainerPut)
+-        get = BoundClass(ContainerGet)
+\ No newline at end of file
++        get = BoundClass(ContainerGet)
++
++    def _do_put(self, event: ContainerPut) -> Optional[bool]:
++        if self._capacity - self._level >= event.amount:
++            self._level += event.amount
++            event.succeed()
++            return True
++        return False
++
++    def _do_get(self, event: ContainerGet) -> Optional[bool]:
++        if self._level >= event.amount:
++            self._level -= event.amount
++            event.succeed()
++            return True
++        return False
+\ No newline at end of file
+diff --git a/src/simpy/resources/resource.py b/src/simpy/resources/resource.py
+index 3f6d5a1..7b4e314 100644
+--- a/src/simpy/resources/resource.py
++++ b/src/simpy/resources/resource.py
+@@ -123,7 +123,11 @@ class SortedQueue(list):
+         Raise a :exc:`RuntimeError` if the queue is full.
+ 
+         """
+-        pass
++        if self.maxlen is not None and len(self) >= self.maxlen:
++            raise RuntimeError('Cannot append event. Queue is full.')
++        super().append(item)
++        # Stable sort: requests with equal keys keep their arrival order.
++        super().sort(key=lambda e: e.key)
+ 
+ class Resource(base.BaseResource):
+     """Resource with *capacity* of usage slots that can be requested by
+@@ -149,7 +153,7 @@ class Resource(base.BaseResource):
+     @property
+     def count(self) -> int:
+         """Number of users currently using the resource."""
+-        pass
++        return len(self.users)
+     if TYPE_CHECKING:
+ 
+         def request(self) -> Request:
+@@ -163,6 +167,22 @@ class Resource(base.BaseResource):
+         request = BoundClass(Request)
+         release = BoundClass(Release)
+ 
++    def _do_put(self, event: Request) -> Optional[bool]:
++        if len(self.users) < self.capacity:
++            self.users.append(event)
++            event.usage_since = self._env.now
++            event.succeed()
++            return True
++        return False
++
++    def _do_get(self, event: Release) -> Optional[bool]:
++        try:
++            self.users.remove(event.request)
++        except ValueError:
++            pass
++        event.succeed()
++        return True
++
+ class PriorityResource(Resource):
+     """A :class:`~simpy.resources.resource.Resource` supporting prioritized
+     requests.
+@@ -199,4 +219,13 @@ class PreemptiveResource(PriorityResource):
+     cause.
+ 
+     """
+-    users: List[PriorityRequest]
+\ No newline at end of file
++    users: List[PriorityRequest]
++
++    def _do_put(self, request: PriorityRequest) -> Optional[bool]:
++        if len(self.users) >= self.capacity and request.preempt:
++            # Preempt the least important user if the request is more important.
++            preempt = sorted(self.users, key=lambda e: e.key)[-1]
++            if preempt.key > request.key:
++                self.users.remove(preempt)
++                preempt.proc.interrupt(Preempted(by=request.proc, usage_since=preempt.usage_since, resource=self))
++        return super()._do_put(request)
+\ No newline at end of file
+diff --git a/src/simpy/resources/store.py b/src/simpy/resources/store.py
+index f9e9324..a8dbd3f 100644
+--- a/src/simpy/resources/store.py
++++ b/src/simpy/resources/store.py
+@@ -76,6 +76,27 @@ class Store(base.BaseResource):
+         put = BoundClass(StorePut)
+         get = BoundClass(StoreGet)
+ 
++    def _do_put(self, event: StorePut) -> Optional[bool]:
++        if len(self.items) < self._capacity:
++            self._insert(event.item)
++            event.succeed()
++            return True
++        return False
++
++    def _do_get(self, event: StoreGet) -> Optional[bool]:
++        if self.items:
++            event.succeed(self._extract())
++            return True
++        return False
++
++    def _insert(self, item: Any) -> None:
++        """Add *item* to the store (FIFO order by default)."""
++        self.items.append(item)
++
++    def _extract(self) -> Any:
++        """Remove and return the next item of the store (FIFO order by default)."""
++        return self.items.pop(0)
++
+ class PriorityItem(NamedTuple):
+     """Wrap an arbitrary *item* with an order-able *priority*.
+ 
+@@ -103,6 +124,12 @@ class PriorityStore(Store):
+ 
+     """
+ 
++    def _insert(self, item: Any) -> None:
++        heappush(self.items, item)
++
++    def _extract(self) -> Any:
++        return heappop(self.items)
++
+ class FilterStore(Store):
+     """Resource with *capacity* slots for storing arbitrary objects supporting
+     filtered get requests. Like the :class:`Store`, the *capacity* is unlimited
+@@ -131,4 +158,13 @@ class FilterStore(Store):
+             out of the store."""
+             pass
+     else:
+-        get = BoundClass(FilterStoreGet)
+\ No newline at end of file
++        get = BoundClass(FilterStoreGet)
++
++    def _do_get(self, event: FilterStoreGet) -> Optional[bool]:
++        # Other get requests may still be satisfiable, so always continue.
++        for idx, item in enumerate(self.items):
++            if event.filter(item):
++                del self.items[idx]
++                event.succeed(item)
++                break
++        return True
+\ No newline at end of file
+diff --git a/src/simpy/rt.py b/src/simpy/rt.py
+index 85f1da2..da11de2 100644
+--- a/src/simpy/rt.py
++++ b/src/simpy/rt.py
+@@ -29,14 +29,14 @@ class RealtimeEnvironment(Environment):
+     @property
+     def factor(self) -> float:
+         """Scaling factor of the real-time."""
+-        pass
++        return self._factor
+ 
+     @property
+     def strict(self) -> bool:
+         """Running mode of the environment. :meth:`step()` will raise a
+         :exc:`RuntimeError` if this is set to ``True`` and the processing of
+         events takes too long."""
+-        pass
++        return self._strict
+ 
+     def sync(self) -> None:
+         """Synchronize the internal time with the current wall-clock time.
+@@ -46,7 +46,8 @@ class RealtimeEnvironment(Environment):
+         calling :meth:`run()` or :meth:`step()`.
+ 
+         """
+-        pass
++        self.real_start = monotonic()
++        self.env_start = self.now
+ 
+     def step(self) -> None:
+         """Process the next event after enough real-time has passed for the
+@@ -57,4 +58,16 @@ class RealtimeEnvironment(Environment):
+         the event is processed too slowly.
+ 
+         """
+-        pass
+\ No newline at end of file
++        evt_time = self.peek()
++        if evt_time is Infinity:
++            raise EmptySchedule()
++
++        real_time = self.real_start + (evt_time - self.env_start) * self._factor
++        delta = real_time - monotonic()
++        if delta > 0:
++            # Sleep until the event is supposed to happen.
++            sleep(delta)
++        elif self._strict and delta < -self._factor:
++            raise RuntimeError(f'Simulation too slow for real time ({-delta:.3f}s).')
++
++        super().step()
+\ No newline at end of file
+diff --git a/src/simpy/util.py b/src/simpy/util.py
+index 07c1ae1..6c55513 100644
+--- a/src/simpy/util.py
++++ b/src/simpy/util.py
+@@ -31,7 +31,14 @@ def start_delayed(env: Environment, generator: ProcessGenerator, delay: SimTime)
+     Raise a :exc:`ValueError` if ``delay <= 0``.
+ 
+     """
+-    pass
++    if delay <= 0:
++        raise ValueError(f'delay(={delay}) must be > 0.')
++
++    def starter() -> ProcessGenerator:
++        yield env.timeout(delay)
++        return (yield env.process(generator))
++
++    return env.process(starter())
+ 
+ def subscribe_at(event: Event) -> None:
+     """Register at the *event* to receive an interrupt when it occurs.
+@@ -42,4 +49,14 @@ def subscribe_at(event: Event) -> None:
+     Raise a :exc:`RuntimeError` if ``event`` has already occurred.
+ 
+     """
+-    pass
+\ No newline at end of file
++    if event.callbacks is None:
++        raise RuntimeError(f'{event} has already occurred.')
++
++    process = event.env.active_process
++
++    def _interrupt(evt: Event) -> None:
++        # The subscriber may have terminated in the meantime.
++        if process.is_alive:
++            process.interrupt((evt, evt._value))
++
++    event.callbacks.append(_interrupt)
+\ No newline at end of file

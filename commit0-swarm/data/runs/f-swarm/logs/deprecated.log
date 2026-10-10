@@ -1,0 +1,37 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.20, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/jail/c0/work/grade-f-swarm/deprecated
+configfile: setup.cfg
+plugins: platformdirs-4.12.4
+collected 171 items
+
+tests/test.py ..                                                         [  1%]
+tests/test_deprecated.py .........................................       [ 25%]
+tests/test_deprecated_class.py .......                                   [ 29%]
+tests/test_deprecated_metaclass.py ....                                  [ 31%]
+tests/test_sphinx.py ................................................... [ 61%]
+...........................................                              [ 86%]
+tests/test_sphinx_adapter.py ............                                [ 93%]
+tests/test_sphinx_class.py .......                                       [ 97%]
+tests/test_sphinx_metaclass.py ....                                      [100%]
+
+=============================== warnings summary ===============================
+tests/test.py:2
+  /tmp/jail/c0/work/grade-f-swarm/deprecated/tests/test.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+    import pkg_resources
+
+tests/test_deprecated_class.py::test_simple_class_deprecation_with_args
+  /tmp/jail/c0/work/grade-f-swarm/deprecated/tests/test_deprecated_class.py:148: DeprecationWarning: Call to deprecated class MyClass. (kwargs class)
+    MyClass(5)
+
+tests/test_sphinx_class.py::test_isinstance_deprecated
+  /tmp/jail/c0/work/grade-f-swarm/deprecated/tests/test_sphinx_class.py:134: DeprecationWarning: Call to deprecated class DeprecatedChildCls. (some reason) -- Deprecated since version Y.Z.
+    instance = DeprecatedChildCls()
+
+tests/test_sphinx_class.py::test_isinstance_deprecated
+  /tmp/jail/c0/work/grade-f-swarm/deprecated/deprecated/classic.py:165: DeprecationWarning: Call to deprecated class DeprecatedCls. (some reason) -- Deprecated since version X.Y.
+    return old_new1(cls, *args, **kwargs)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /tmp/jail/c0/work/grade-f-swarm/deprecated/.c0-junit.xml -
+======================= 171 passed, 4 warnings in 0.65s ========================

@@ -1,0 +1,38 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/jail/c0/work/grade-f-fix/parsel
+configfile: pytest.ini
+collected 208 items
+
+tests/test_selector.py ....................................s............ [ 23%]
+.................................................................s...... [ 58%]
+...................................                                      [ 75%]
+tests/test_selector_csstranslator.py ............F..........             [ 86%]
+tests/test_selector_jmespath.py ....                                     [ 87%]
+tests/test_utils.py ...............                                      [ 95%]
+tests/test_xml_attacks.py .                                              [ 95%]
+tests/test_xpathfuncs.py .........                                       [100%]
+
+=================================== FAILURES ===================================
+_______________________ UtilCss2XPathTest.test_css2xpath _______________________
+
+self = <test_selector_csstranslator.UtilCss2XPathTest testMethod=test_css2xpath>
+
+    def test_css2xpath(self) -> None:
+        from parsel import css2xpath
+    
+        expected_xpath = (
+            "descendant-or-self::*[@class and contains("
+            "concat(' ', normalize-space(@class), ' '), ' some-class ')]"
+        )
+>       self.assertEqual(css2xpath(".some-class"), expected_xpath)
+E       AssertionError: "desc[33 chars]ains(@class, 'some-class') and contains(concat[49 chars] ')]" != "desc[33 chars]ains(concat(' ', normalize-space(@class), ' ')[14 chars] ')]"
+E       - descendant-or-self::*[@class and contains(@class, 'some-class') and contains(concat(' ', normalize-space(@class), ' '), ' some-class ')]
+E       ?                                 -----------------------------------
+E       + descendant-or-self::*[@class and contains(concat(' ', normalize-space(@class), ' '), ' some-class ')]
+
+tests/test_selector_csstranslator.py:170: AssertionError
+---- generated xml file: /tmp/jail/c0/work/grade-f-fix/parsel/.c0-junit.xml ----
+=========================== short test summary info ============================
+FAILED tests/test_selector_csstranslator.py::UtilCss2XPathTest::test_css2xpath
+=================== 1 failed, 205 passed, 2 skipped in 0.57s ===================

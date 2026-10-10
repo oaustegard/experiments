@@ -1,0 +1,1853 @@
+diff --git a/cookiecutter/cli.py b/cookiecutter/cli.py
+index aed7f8f..5784e1b 100644
+--- a/cookiecutter/cli.py
++++ b/cookiecutter/cli.py
+@@ -3,24 +3,60 @@ import collections
+ import json
+ import os
+ import sys
++
+ import click
++
+ from cookiecutter import __version__
+ from cookiecutter.config import get_user_config
+ from cookiecutter.exceptions import ContextDecodingException, FailedHookException, InvalidModeException, InvalidZipRepository, OutputDirExistsException, RepositoryCloneFailed, RepositoryNotFound, UndefinedVariableInTemplate, UnknownExtension
+ from cookiecutter.log import configure_logger
+ from cookiecutter.main import cookiecutter
++from cookiecutter.repository import repository_has_cookiecutter_json
++
+ 
+ def version_msg():
+     """Return the Cookiecutter version, location and Python powering it."""
+-    pass
++    python_version = sys.version[:3]
++    location = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
++    message = f'Cookiecutter %(version)s from {location} (Python {python_version})'
++    return message
++
+ 
+ def validate_extra_context(ctx, param, value):
+     """Validate extra context."""
+-    pass
++    for string in value:
++        if '=' not in string:
++            raise click.BadParameter(
++                f"EXTRA_CONTEXT should contain items of the form key=value; "
++                f"'{string}' doesn't match that form"
++            )
++
++    # Convert tuple -> dict and return
++    return collections.OrderedDict(s.split('=', 1) for s in value) or None
++
+ 
+ def list_installed_templates(default_config, passed_config_file):
+     """List installed (locally cloned) templates. Use cookiecutter --list-installed."""
+-    pass
++    config = get_user_config(config_file=passed_config_file, default_config=default_config)
++    cookiecutter_folder = config['cookiecutters_dir']
++
++    if not os.path.exists(cookiecutter_folder):
++        click.echo(
++            'Error: Cannot list installed templates. '
++            f'Folder does not exist: {cookiecutter_folder}'
++        )
++        sys.exit(-1)
++
++    template_names = [
++        f.name
++        for f in os.scandir(cookiecutter_folder)
++        if f.is_dir() and repository_has_cookiecutter_json(f.path)
++    ]
++
++    click.echo(f'{len(template_names)} installed templates: ')
++    for name in template_names:
++        click.echo(f' * {name}')
++
+ 
+ @click.command(context_settings=dict(help_option_names=['-h', '--help']))
+ @click.version_option(__version__, '-V', '--version', message=version_msg())
+@@ -48,6 +84,73 @@ def main(template, extra_context, no_input, checkout, verbose, replay, overwrite
+     volunteers. If you would like to help out or fund the project, please get
+     in touch at https://github.com/cookiecutter/cookiecutter.
+     """
+-    pass
++    # If you _need_ to support a local template in a directory
++    # called 'help', use a qualified path to the directory.
++    if template == 'help':
++        click.echo(click.get_current_context().get_help())
++        sys.exit(0)
++
++    configure_logger(
++        stream_level='DEBUG' if verbose else 'INFO',
++        debug_file=debug_file,
++    )
++
++    if list_installed:
++        list_installed_templates(default_config, config_file)
++        sys.exit(0)
++
++    if replay_file:
++        replay = replay_file
++
++    if accept_hooks == 'ask':
++        accept_hooks = click.prompt(
++            'Do you want to execute hooks?',
++            type=click.Choice(['yes', 'no']),
++            default='yes',
++        ) == 'yes'
++    else:
++        accept_hooks = accept_hooks == 'yes'
++
++    try:
++        cookiecutter(
++            template,
++            checkout,
++            no_input,
++            extra_context=extra_context,
++            replay=replay,
++            overwrite_if_exists=overwrite_if_exists,
++            output_dir=output_dir,
++            config_file=config_file,
++            default_config=default_config,
++            password=os.environ.get('COOKIECUTTER_REPO_PASSWORD'),
++            directory=directory,
++            skip_if_file_exists=skip_if_file_exists,
++            accept_hooks=accept_hooks,
++            keep_project_on_failure=keep_project_on_failure,
++        )
++    except InvalidModeException as e:
++        click.echo(e)
++        sys.exit(1)
++    except UnknownExtension as e:
++        click.echo(e)
++        sys.exit(1)
++    except UndefinedVariableInTemplate as undefined_err:
++        click.echo(f'{undefined_err.message}')
++        click.echo(f'Error message: {undefined_err.error.message}')
++        context_str = json.dumps(undefined_err.context, indent=4, sort_keys=True)
++        click.echo(f'Context: {context_str}')
++        sys.exit(1)
++    except (
++        ContextDecodingException,
++        FailedHookException,
++        InvalidZipRepository,
++        OutputDirExistsException,
++        RepositoryCloneFailed,
++        RepositoryNotFound,
++    ) as e:
++        click.echo(f'Error: {e}')
++        sys.exit(1)
++
++
+ if __name__ == '__main__':
+-    main()
+\ No newline at end of file
++    main()
+diff --git a/cookiecutter/config.py b/cookiecutter/config.py
+index 4a2ab5e..2b01599 100644
+--- a/cookiecutter/config.py
++++ b/cookiecutter/config.py
+@@ -12,7 +12,8 @@ DEFAULT_CONFIG = {'cookiecutters_dir': os.path.expanduser('~/.cookiecutters/'),
+ 
+ def _expand_path(path):
+     """Expand both environment variables and user home in the given path."""
+-    pass
++    expanded_path = os.path.expanduser(os.path.expandvars(str(path)))
++    return expanded_path
+ 
+ def merge_configs(default, overwrite):
+     """Recursively update a dict with the key/value pair of another.
+@@ -20,11 +21,35 @@ def merge_configs(default, overwrite):
+     Dict values that are dictionaries themselves will be updated, whilst
+     preserving existing keys.
+     """
+-    pass
++    new_config = copy.deepcopy(default)
++    for k, v in overwrite.items():
++        if isinstance(v, dict):
++            new_config[k] = merge_configs(default.get(k, {}), v)
++        else:
++            new_config[k] = v
++    return new_config
+ 
+ def get_config(config_path):
+     """Retrieve the config from the specified path, returning a config dict."""
+-    pass
++    if not os.path.exists(config_path):
++        raise ConfigDoesNotExistException(f'Config file {config_path} does not exist.')
++
++    logger.debug('config_path is %s', config_path)
++    with open(config_path, encoding='utf-8') as file_handle:
++        try:
++            yaml_dict = yaml.safe_load(file_handle) or {}
++        except yaml.YAMLError as e:
++            raise InvalidConfiguration(f'Unable to parse YAML file {config_path}.') from e
++
++    if not isinstance(yaml_dict, dict):
++        raise InvalidConfiguration(
++            f'Top-level element of YAML file {config_path} should be an object.'
++        )
++
++    config_dict = merge_configs(DEFAULT_CONFIG, yaml_dict)
++    config_dict['replay_dir'] = _expand_path(config_dict['replay_dir'])
++    config_dict['cookiecutters_dir'] = _expand_path(config_dict['cookiecutters_dir'])
++    return config_dict
+ 
+ def get_user_config(config_file=None, default_config=False):
+     """Return the user config as a dict.
+@@ -45,4 +70,25 @@ def get_user_config(config_file=None, default_config=False):
+     If the environment variable is not set, try the default config file path
+     before falling back to the default config values.
+     """
+-    pass
+\ No newline at end of file
++    # Do NOT load a config. Return defaults instead.
++    if default_config is True:
++        return copy.copy(DEFAULT_CONFIG)
++
++    # Values passed in directly are merged over the defaults
++    if isinstance(default_config, dict):
++        return merge_configs(DEFAULT_CONFIG, default_config)
++
++    # Load the given config file
++    if config_file:
++        return get_config(config_file)
++
++    # Load the config file named by the environment
++    env_config = os.environ.get('COOKIECUTTER_CONFIG')
++    if env_config:
++        return get_config(env_config)
++
++    # Fall back to the user's default config file, or the built-in defaults
++    if os.path.exists(USER_CONFIG_PATH):
++        return get_config(USER_CONFIG_PATH)
++
++    return copy.copy(DEFAULT_CONFIG)
+\ No newline at end of file
+diff --git a/cookiecutter/environment.py b/cookiecutter/environment.py
+index df924e7..ddb6fe4 100644
+--- a/cookiecutter/environment.py
++++ b/cookiecutter/environment.py
+@@ -32,7 +32,12 @@ class ExtensionLoaderMixin:
+         If context does not contain the relevant info, return an empty
+         list instead.
+         """
+-        pass
++        try:
++            extensions = context['cookiecutter']['_extensions']
++        except KeyError:
++            return []
++        else:
++            return [str(ext) for ext in extensions]
+ 
+ class StrictEnvironment(ExtensionLoaderMixin, Environment):
+     """Create strict Jinja2 environment.
+diff --git a/cookiecutter/extensions.py b/cookiecutter/extensions.py
+index 964a078..08fd030 100644
+--- a/cookiecutter/extensions.py
++++ b/cookiecutter/extensions.py
+@@ -69,4 +69,44 @@ class TimeExtension(Extension):
+ 
+     def parse(self, parser):
+         """Parse datetime template and add datetime value."""
+-        pass
+\ No newline at end of file
++        lineno = next(parser.stream).lineno
++
++        node = parser.parse_unary(with_filter=False)
++
++        if parser.stream.skip_if('add'):
++            operator = nodes.Const('+')
++            offset = parser.parse_unary(with_filter=False)
++        elif parser.stream.skip_if('sub'):
++            operator = nodes.Const('-')
++            offset = parser.parse_unary(with_filter=False)
++        else:
++            operator = nodes.Const(None)
++            offset = nodes.Const(None)
++
++        if parser.stream.skip_if('comma'):
++            datetime_format = parser.parse_expression()
++        else:
++            datetime_format = nodes.Const(None)
++
++        return nodes.Output(
++            [self.call_method('_datetime', [node, operator, offset, datetime_format])],
++            lineno=lineno,
++        )
++
++    def _datetime(self, timezone, operator, offset, datetime_format):
++        """Compute the current datetime, optionally shifted and formatted."""
++        dt = arrow.now(timezone)
++
++        if operator is not None and offset is not None:
++            shift = {}
++            for item in offset.split(','):
++                key, value = item.split('=')
++                shift[key.strip()] = int(value)
++            if operator == '-':
++                shift = {key: -value for key, value in shift.items()}
++            dt = dt.shift(**shift)
++
++        if datetime_format is None:
++            datetime_format = self.environment.datetime_format
++
++        return dt.strftime(datetime_format)
+\ No newline at end of file
+diff --git a/cookiecutter/find.py b/cookiecutter/find.py
+index 0f5f351..8dc0a14 100644
+--- a/cookiecutter/find.py
++++ b/cookiecutter/find.py
+@@ -3,7 +3,7 @@ import logging
+ import os
+ from pathlib import Path
+ from jinja2 import Environment
+-from cookiecutter.exceptions import NonTemplatedInputDirException
++from cookiecutter.exceptions import NonTemplatedInputDirException, UnknownTemplateDirException
+ logger = logging.getLogger(__name__)
+ 
+ def find_template(repo_dir: 'os.PathLike[str]', env: Environment) -> Path:
+@@ -12,4 +12,24 @@ def find_template(repo_dir: 'os.PathLike[str]', env: Environment) -> Path:
+     :param repo_dir: Local directory of newly cloned repo.
+     :return: Relative path to project template.
+     """
+-    pass
+\ No newline at end of file
++    logger.debug('Searching %s for the project template.', repo_dir)
++
++    start = env.variable_start_string
++    end = env.variable_end_string
++
++    candidates = [
++        item
++        for item in os.listdir(repo_dir)
++        if 'cookiecutter' in item and start in item and end in item
++    ]
++
++    if len(candidates) > 1:
++        raise UnknownTemplateDirException(
++            f'Multiple project template directories found in {repo_dir}: {candidates}'
++        )
++    if not candidates:
++        raise NonTemplatedInputDirException
++
++    project_template = candidates[0]
++    logger.debug('The project template appears to be %s', project_template)
++    return Path(repo_dir, project_template)
+\ No newline at end of file
+diff --git a/cookiecutter/generate.py b/cookiecutter/generate.py
+index f620d04..75e14e6 100644
+--- a/cookiecutter/generate.py
++++ b/cookiecutter/generate.py
+@@ -7,15 +7,19 @@ import shutil
+ import warnings
+ from collections import OrderedDict
+ from pathlib import Path
++
+ from binaryornot.check import is_binary
+ from jinja2 import Environment, FileSystemLoader
+ from jinja2.exceptions import TemplateSyntaxError, UndefinedError
++
+ from cookiecutter.exceptions import ContextDecodingException, OutputDirExistsException, UndefinedVariableInTemplate
+ from cookiecutter.find import find_template
+ from cookiecutter.hooks import run_hook_from_repo_dir
+ from cookiecutter.utils import create_env_with_context, make_sure_path_exists, rmtree, work_in
++
+ logger = logging.getLogger(__name__)
+ 
++
+ def is_copy_only_path(path, context):
+     """Check whether the given `path` should only be copied and not rendered.
+ 
+@@ -26,11 +30,66 @@ def is_copy_only_path(path, context):
+         should be rendered or just copied.
+     :param context: cookiecutter context.
+     """
+-    pass
++    try:
++        for dont_render in context['cookiecutter']['_copy_without_render']:
++            if fnmatch.fnmatch(path, dont_render):
++                return True
++    except KeyError:
++        return False
++
++    return False
++
+ 
+ def apply_overwrites_to_context(context, overwrite_context, *, in_dictionary_variable=False):
+-    """Modify the given context in place based on the overwrite_context."""
+-    pass
++    """Modify the given context in place based on the overwrite_context.
++
++    Raises ValueError when an overwrite is not one of a choice variable's options.
++    """
++    for variable, overwrite in overwrite_context.items():
++        if variable not in context:
++            # Unknown top-level variables are not part of the template, but
++            # dictionary variables may gain new keys
++            if in_dictionary_variable:
++                context[variable] = overwrite
++            continue
++
++        context_value = context[variable]
++
++        if isinstance(context_value, list):
++            # We are dealing with a choice variable
++            if isinstance(overwrite, list):
++                # Multichoice: every given value must be one of the choices
++                invalid = [item for item in overwrite if item not in context_value]
++                if invalid:
++                    raise ValueError(
++                        f'Invalid default received for {variable}: {invalid}'
++                    )
++                context[variable] = list(overwrite)
++            elif overwrite in context_value:
++                # This overwrite is one of the choices, so make it the default
++                context[variable] = [overwrite] + [
++                    item for item in context_value if item != overwrite
++                ]
++            else:
++                raise ValueError(f'Invalid default received for {variable}: {overwrite}')
++        elif isinstance(context_value, dict) and isinstance(overwrite, dict):
++            # Partially overwrite some keys in the original dict
++            apply_overwrites_to_context(
++                context_value, overwrite, in_dictionary_variable=True
++            )
++        else:
++            # Simply overwrite the value for this variable
++            context[variable] = overwrite
++
++
++def _apply_overwrites_with_warnings(context, overwrite_context):
++    """Apply each overwrite on its own, warning about the ones that are invalid."""
++    for variable, overwrite in overwrite_context.items():
++        try:
++            apply_overwrites_to_context(context, {variable: overwrite})
++        except ValueError as error:
++            warnings.warn(str(error), UserWarning, stacklevel=2)
++
+ 
+ def generate_context(context_file='cookiecutter.json', default_context=None, extra_context=None):
+     """Generate the context for a Cookiecutter project template.
+@@ -42,7 +101,47 @@ def generate_context(context_file='cookiecutter.json', default_context=None, ext
+     :param default_context: Dictionary containing config to take into account.
+     :param extra_context: Dictionary containing configuration overrides
+     """
+-    pass
++    context = {}
++
++    try:
++        with open(context_file, encoding='utf-8') as file_handle:
++            obj = json.load(file_handle, object_pairs_hook=OrderedDict)
++    except ValueError as e:
++        # JSON decoding error.  Let's throw a new exception that is more friendly.
++        raise ContextDecodingException(
++            f'JSON decoding error while loading "{context_file}". '
++            f'Decoding error details: "{e}"'
++        ) from e
++
++    # Add the Python object to the context dictionary
++    file_name = os.path.split(context_file)[1]
++    file_stem = os.path.splitext(file_name)[0]
++    context[file_stem] = obj
++
++    # Overwrite context variable defaults with the default context from the
++    # user's global config, if available
++    if default_context:
++        _apply_overwrites_with_warnings(obj, default_context)
++    if extra_context:
++        _apply_overwrites_with_warnings(obj, extra_context)
++
++    logger.debug('Context generated is %s', context)
++    return context
++
++
++def _newline_sequence(infile, context):
++    """Return the line ending to render `infile` with.
++
++    A `_new_lines` value in the context forces the line ending; otherwise the
++    line ending the source file already uses is kept.
++    """
++    forced = context.get('cookiecutter', {}).get('_new_lines')
++    if forced:
++        return forced
++    with open(infile, 'rb') as file_handle:
++        source = file_handle.read()
++    return '\r\n' if b'\r\n' in source else '\n'
++
+ 
+ def generate_file(project_dir, infile, context, env, skip_if_file_exists=False):
+     """Render filename of infile as name of outfile, handle infile correctly.
+@@ -65,15 +164,77 @@ def generate_file(project_dir, infile, context, env, skip_if_file_exists=False):
+     :param context: Dict for populating the cookiecutter's variables.
+     :param env: Jinja2 template execution environment.
+     """
+-    pass
++    logger.debug('Processing file %s', infile)
++
++    # Render the path to the output file (not including the root project dir)
++    outfile_tmpl = env.from_string(infile)
++
++    outfile = os.path.join(project_dir, outfile_tmpl.render(**context))
++    file_name_is_empty = os.path.isdir(outfile)
++    if file_name_is_empty:
++        logger.debug('The resulting file name is empty: %s', outfile)
++        return
++
++    if skip_if_file_exists and os.path.exists(outfile):
++        logger.debug('Skipping file %s', outfile)
++        return
++
++    # Just copy over binary files. Don't render.
++    logger.debug("Check %s to see if it's a binary", infile)
++
++    if is_binary(infile):
++        logger.debug('Copying binary %s to %s without rendering', infile, outfile)
++        shutil.copyfile(infile, outfile)
++    else:
++        # Keep the source line endings unless the context forces another one
++        env.newline_sequence = _newline_sequence(infile, context)
++
++        logger.debug('Rendering %s', infile)
++        try:
++            tmpl = env.get_template(infile)
++            rendered_file = tmpl.render(**context)
++        except TemplateSyntaxError as exception:
++            # Disable translated so that the printed exception contains verbose
++            # information about the syntax error location
++            exception.translated = False
++            raise
++
++        logger.debug('Writing %s', outfile)
++        with open(outfile, 'w', encoding='utf-8', newline='') as fh:
++            fh.write(rendered_file)
++
++    # Apply file permissions to output file
++    shutil.copymode(infile, outfile)
++
+ 
+ def render_and_create_dir(dirname: str, context: dict, output_dir: 'os.PathLike[str]', environment: Environment, overwrite_if_exists: bool=False):
+     """Render name of a directory, create the directory, return its path."""
+-    pass
++    name_tmpl = environment.from_string(dirname)
++    rendered_dirname = name_tmpl.render(**context)
++
++    dir_to_create = os.path.normpath(os.path.join(output_dir, rendered_dirname))
++
++    logger.debug('Rendered dir %s must be created, creating it', dir_to_create)
++
++    output_dir_exists = os.path.exists(dir_to_create)
++
++    if output_dir_exists:
++        if overwrite_if_exists:
++            logger.debug('Output directory %s already exists, overwriting it', dir_to_create)
++        else:
++            msg = f'"{dir_to_create}" directory already exists'
++            raise OutputDirExistsException(msg)
++    else:
++        make_sure_path_exists(dir_to_create)
++
++    return dir_to_create
++
+ 
+ def _run_hook_from_repo_dir(repo_dir, hook_name, project_dir, context, delete_project_on_failure):
+     """Run hook from repo directory, clean project directory if hook fails.
+ 
++    Deprecated: call `cookiecutter.hooks.run_hook_from_repo_dir` instead.
++
+     :param repo_dir: Project template input directory.
+     :param hook_name: The hook to execute.
+     :param project_dir: The directory to execute the script from.
+@@ -81,7 +242,16 @@ def _run_hook_from_repo_dir(repo_dir, hook_name, project_dir, context, delete_pr
+     :param delete_project_on_failure: Delete the project directory on hook
+         failure?
+     """
+-    pass
++    warnings.warn(
++        '_run_hook_from_repo_dir is deprecated, use '
++        'cookiecutter.hooks.run_hook_from_repo_dir instead.',
++        DeprecationWarning,
++        stacklevel=2,
++    )
++    run_hook_from_repo_dir(
++        repo_dir, hook_name, project_dir, context, delete_project_on_failure
++    )
++
+ 
+ def generate_files(repo_dir, context=None, output_dir='.', overwrite_if_exists=False, skip_if_file_exists=False, accept_hooks=True, keep_project_on_failure=False):
+     """Render the templates and saves them to files.
+@@ -97,4 +267,100 @@ def generate_files(repo_dir, context=None, output_dir='.', overwrite_if_exists=F
+     :param keep_project_on_failure: If `True` keep generated project directory even when
+         generation fails
+     """
+-    pass
+\ No newline at end of file
++    context = context or {}
++    env = create_env_with_context(context)
++
++    template_dir = find_template(repo_dir, env)
++    logger.debug('Generating project from %s...', template_dir)
++    unrendered_dir = os.path.split(template_dir)[1]
++
++    try:
++        rendered_project = env.from_string(unrendered_dir).render(**context)
++        project_existed = os.path.exists(
++            os.path.normpath(os.path.join(output_dir, rendered_project))
++        )
++        project_dir = render_and_create_dir(
++            unrendered_dir, context, output_dir, env, overwrite_if_exists
++        )
++    except UndefinedError as err:
++        msg = f"Unable to create project directory '{unrendered_dir}'"
++        raise UndefinedVariableInTemplate(msg, err, context) from err
++
++    project_root = os.path.abspath(project_dir)
++    # Only remove the project directory on failure if this run created it
++    delete_project_on_failure = not project_existed and not keep_project_on_failure
++
++    if accept_hooks:
++        run_hook_from_repo_dir(
++            repo_dir, 'pre_gen_project', project_root, context, delete_project_on_failure
++        )
++
++    with work_in(template_dir):
++        # Shared fragments for include/extends live in the repo's templates dir
++        env.loader = FileSystemLoader(['.', os.path.join('..', 'templates')])
++
++        for root, dirs, files in os.walk('.'):
++            # Separate the directories that are copied as they are from those
++            # that must be rendered
++            copy_dirs = []
++            render_dirs = []
++
++            for d in dirs:
++                d_ = os.path.normpath(os.path.join(root, d))
++                if is_copy_only_path(d_, context):
++                    copy_dirs.append(d)
++                else:
++                    render_dirs.append(d)
++
++            for copy_dir in copy_dirs:
++                indir = os.path.normpath(os.path.join(root, copy_dir))
++                outdir = os.path.normpath(
++                    os.path.join(project_root, env.from_string(indir).render(**context))
++                )
++                logger.debug('Copying dir %s to %s without rendering', indir, outdir)
++                shutil.copytree(indir, outdir, dirs_exist_ok=True)
++
++            # Mutate `dirs` so that os.walk only visits the render_dirs
++            dirs[:] = render_dirs
++
++            for d in dirs:
++                unrendered_subdir = os.path.normpath(os.path.join(root, d))
++                try:
++                    render_and_create_dir(
++                        unrendered_subdir, context, project_root, env, True
++                    )
++                except UndefinedError as err:
++                    if delete_project_on_failure:
++                        rmtree(project_root)
++                    _dir = os.path.relpath(
++                        os.path.join(project_root, unrendered_subdir), output_dir
++                    )
++                    msg = f"Unable to create directory '{_dir}'"
++                    raise UndefinedVariableInTemplate(msg, err, context) from err
++
++            for f in files:
++                infile = os.path.normpath(os.path.join(root, f))
++                if is_copy_only_path(infile, context):
++                    outfile_tmpl = env.from_string(infile)
++                    outfile = os.path.join(project_root, outfile_tmpl.render(**context))
++                    if skip_if_file_exists and os.path.exists(outfile):
++                        continue
++                    logger.debug('Copying file %s to %s without rendering', infile, outfile)
++                    shutil.copyfile(infile, outfile)
++                    shutil.copymode(infile, outfile)
++                    continue
++
++                try:
++                    generate_file(project_root, infile, context, env, skip_if_file_exists)
++                except UndefinedError as err:
++                    if delete_project_on_failure:
++                        rmtree(project_root)
++                    msg = f"Unable to create file '{infile}'"
++                    raise UndefinedVariableInTemplate(msg, err, context) from err
++
++    if accept_hooks:
++        run_hook_from_repo_dir(
++            repo_dir, 'post_gen_project', project_root, context, delete_project_on_failure
++        )
++
++    return project_root
+diff --git a/cookiecutter/hooks.py b/cookiecutter/hooks.py
+index 3438d86..3f618fe 100644
+--- a/cookiecutter/hooks.py
++++ b/cookiecutter/hooks.py
+@@ -8,7 +8,7 @@ import tempfile
+ from pathlib import Path
+ from jinja2.exceptions import UndefinedError
+ from cookiecutter import utils
+-from cookiecutter.exceptions import FailedHookException
++from cookiecutter.exceptions import FailedHookException, UndefinedVariableInTemplate
+ from cookiecutter.utils import create_env_with_context, create_tmp_repo_dir, rmtree, work_in
+ logger = logging.getLogger(__name__)
+ _HOOKS = ['pre_prompt', 'pre_gen_project', 'post_gen_project']
+@@ -21,7 +21,14 @@ def valid_hook(hook_file, hook_name):
+     :param hook_name: The hook to find
+     :return: The hook file validity
+     """
+-    pass
++    filename = os.path.basename(hook_file)
++    basename = os.path.splitext(filename)[0]
++
++    matching_hook = basename == hook_name
++    supported_hook = basename in _HOOKS
++    backup_file = filename.endswith('~')
++
++    return matching_hook and supported_hook and not backup_file
+ 
+ def find_hook(hook_name, hooks_dir='hooks'):
+     """Return a dict of all hook scripts provided.
+@@ -35,7 +42,21 @@ def find_hook(hook_name, hooks_dir='hooks'):
+     :param hooks_dir: The hook directory in the template
+     :return: The absolute path to the hook script or None
+     """
+-    pass
++    logger.debug('hooks_dir is %s', os.path.abspath(hooks_dir))
++
++    if not os.path.isdir(hooks_dir):
++        logger.debug('No hooks/ dir in template_dir')
++        return None
++
++    scripts = []
++    for hook_file in os.listdir(hooks_dir):
++        if valid_hook(hook_file, hook_name):
++            scripts.append(os.path.abspath(os.path.join(hooks_dir, hook_file)))
++
++    if len(scripts) == 0:
++        return None
++
++    return scripts
+ 
+ def run_script(script_path, cwd='.'):
+     """Execute a script from a working directory.
+@@ -43,7 +64,30 @@ def run_script(script_path, cwd='.'):
+     :param script_path: Absolute path to the script to run.
+     :param cwd: The directory to run the script from.
+     """
+-    pass
++    run_thru_shell = sys.platform.startswith('win')
++    if script_path.endswith('.py'):
++        script_command = [sys.executable, script_path]
++    else:
++        script_command = [script_path]
++
++    # Python scripts are run through the interpreter, so they need no execute
++    # bit; shell scripts only need it set when they do not already have it.
++    if not script_path.endswith('.py') and not os.access(script_path, os.X_OK):
++        utils.make_executable(script_path)
++
++    try:
++        proc = subprocess.Popen(script_command, shell=run_thru_shell, cwd=cwd)
++        exit_status = proc.wait()
++        if exit_status != EXIT_SUCCESS:
++            raise FailedHookException(
++                f'Hook script failed (exit status: {exit_status})'
++            )
++    except OSError as os_error:
++        if os_error.errno == errno.ENOEXEC:
++            raise FailedHookException(
++                'Hook script failed, might be an empty file or missing a shebang'
++            ) from os_error
++        raise FailedHookException(f'Hook script failed (error: {os_error})') from os_error
+ 
+ def run_script_with_context(script_path, cwd, context):
+     """Execute a script after rendering it with Jinja.
+@@ -52,7 +96,23 @@ def run_script_with_context(script_path, cwd, context):
+     :param cwd: The directory to run the script from.
+     :param context: Cookiecutter project template context.
+     """
+-    pass
++    _, extension = os.path.splitext(script_path)
++
++    with open(script_path, encoding='utf-8') as file:
++        contents = file.read()
++
++    with tempfile.NamedTemporaryFile(
++        delete=False, mode='wb', suffix=extension
++    ) as temp:
++        env = create_env_with_context(context)
++        template = env.from_string(contents)
++        output = template.render(**context)
++        temp.write(output.encode('utf-8'))
++
++    try:
++        run_script(temp.name, cwd)
++    finally:
++        os.remove(temp.name)
+ 
+ def run_hook(hook_name, project_dir, context):
+     """
+@@ -62,7 +122,13 @@ def run_hook(hook_name, project_dir, context):
+     :param project_dir: The directory to execute the script from.
+     :param context: Cookiecutter project context.
+     """
+-    pass
++    scripts = find_hook(hook_name)
++    if not scripts:
++        logger.debug('No %s hook found', hook_name)
++        return
++    logger.debug('Running hook %s', hook_name)
++    for script in scripts:
++        run_script_with_context(script, project_dir, context)
+ 
+ def run_hook_from_repo_dir(repo_dir, hook_name, project_dir, context, delete_project_on_failure):
+     """Run hook from repo directory, clean project directory if hook fails.
+@@ -74,11 +140,45 @@ def run_hook_from_repo_dir(repo_dir, hook_name, project_dir, context, delete_pro
+     :param delete_project_on_failure: Delete the project directory on hook
+         failure?
+     """
+-    pass
++    with work_in(repo_dir):
++        try:
++            run_hook(hook_name, project_dir, context)
++        except UndefinedError as err:
++            if delete_project_on_failure:
++                rmtree(project_dir)
++            _dir = os.path.relpath(project_dir)
++            msg = f"Unable to run hook '{hook_name}' in '{_dir}'"
++            raise UndefinedVariableInTemplate(msg, err, context) from err
++        except FailedHookException:
++            logger.error(
++                "Stopping generation because %s hook script didn't exit successfully",
++                hook_name,
++            )
++            if delete_project_on_failure:
++                rmtree(project_dir)
++            raise
+ 
+ def run_pre_prompt_hook(repo_dir: 'os.PathLike[str]') -> Path:
+     """Run pre_prompt hook from repo directory.
+ 
+     :param repo_dir: Project template input directory.
+     """
+-    pass
+\ No newline at end of file
++    repo_dir = Path(repo_dir)
++
++    with work_in(repo_dir):
++        scripts = find_hook('pre_prompt')
++
++    if not scripts:
++        return repo_dir
++
++    # Run the hook on a copy so the original template is never modified
++    tmp_repo_dir = Path(create_tmp_repo_dir(repo_dir))
++    try:
++        with work_in(tmp_repo_dir):
++            for script in scripts:
++                run_script(script, str(tmp_repo_dir))
++    except FailedHookException as err:
++        rmtree(tmp_repo_dir.parent)
++        raise FailedHookException('Pre-Prompt Hook script failed') from err
++
++    return tmp_repo_dir
+\ No newline at end of file
+diff --git a/cookiecutter/log.py b/cookiecutter/log.py
+index 5eb7ebd..52816fe 100644
+--- a/cookiecutter/log.py
++++ b/cookiecutter/log.py
+@@ -1,6 +1,7 @@
+ """Module for setting up logging."""
+ import logging
+ import sys
++
+ LOG_LEVELS = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO, 'WARNING': logging.WARNING, 'ERROR': logging.ERROR, 'CRITICAL': logging.CRITICAL}
+ LOG_FORMATS = {'DEBUG': '%(levelname)s %(name)s: %(message)s', 'INFO': '%(levelname)s: %(message)s'}
+ 
+@@ -10,4 +11,27 @@ def configure_logger(stream_level='DEBUG', debug_file=None):
+     Set up logging to stdout with given level. If ``debug_file`` is given set
+     up logging to file with DEBUG level.
+     """
+-    pass
+\ No newline at end of file
++    # Set up 'cookiecutter' logger
++    logger = logging.getLogger('cookiecutter')
++    logger.setLevel(logging.DEBUG)
++
++    # Remove all previous handlers
++    for handler in logger.handlers[:]:
++        logger.removeHandler(handler)
++
++    # Create a file handler if a log file is provided
++    if debug_file is not None:
++        debug_formatter = logging.Formatter(LOG_FORMATS['DEBUG'])
++        file_handler = logging.FileHandler(debug_file)
++        file_handler.setLevel(LOG_LEVELS['DEBUG'])
++        file_handler.setFormatter(debug_formatter)
++        logger.addHandler(file_handler)
++
++    # Stream handler at the requested level
++    stream_formatter = logging.Formatter(LOG_FORMATS[stream_level])
++    stream_handler = logging.StreamHandler(stream=sys.stdout)
++    stream_handler.setLevel(LOG_LEVELS[stream_level])
++    stream_handler.setFormatter(stream_formatter)
++    logger.addHandler(stream_handler)
++
++    return logger
+diff --git a/cookiecutter/main.py b/cookiecutter/main.py
+index 6a60f45..af83362 100644
+--- a/cookiecutter/main.py
++++ b/cookiecutter/main.py
+@@ -9,6 +9,7 @@ import os
+ import sys
+ from copy import copy
+ from pathlib import Path
++
+ from cookiecutter.config import get_user_config
+ from cookiecutter.exceptions import InvalidModeException
+ from cookiecutter.generate import generate_context, generate_files
+@@ -17,8 +18,10 @@ from cookiecutter.prompt import choose_nested_template, prompt_for_config
+ from cookiecutter.replay import dump, load
+ from cookiecutter.repository import determine_repo_dir
+ from cookiecutter.utils import rmtree
++
+ logger = logging.getLogger(__name__)
+ 
++
+ def cookiecutter(template, checkout=None, no_input=False, extra_context=None, replay=None, overwrite_if_exists=False, output_dir='.', config_file=None, default_config=False, password=None, directory=None, skip_if_file_exists=False, accept_hooks=True, keep_project_on_failure=False):
+     """
+     Run Cookiecutter just as if using it from the command line.
+@@ -47,7 +50,86 @@ def cookiecutter(template, checkout=None, no_input=False, extra_context=None, re
+     :param keep_project_on_failure: If `True` keep generated project directory even when
+         generation fails
+     """
+-    pass
++    if replay and ((no_input is not False) or (extra_context is not None)):
++        err_msg = (
++            'You can not use both replay and no_input or extra_context '
++            'at the same time.'
++        )
++        raise InvalidModeException(err_msg)
++
++    config_dict = get_user_config(config_file=config_file, default_config=default_config)
++
++    base_repo_dir, cleanup = determine_repo_dir(
++        template=template,
++        abbreviations=config_dict['abbreviations'],
++        clone_to_dir=config_dict['cookiecutters_dir'],
++        checkout=checkout,
++        no_input=no_input,
++        password=password,
++        directory=directory,
++    )
++    import_patch = _patch_import_path_for_repo(base_repo_dir)
++
++    with import_patch:
++        # The pre_prompt hook may have produced a modified copy of the template
++        repo_dir = str(run_pre_prompt_hook(base_repo_dir))
++        context_file = os.path.join(repo_dir, 'cookiecutter.json')
++        logger.debug('context_file is %s', context_file)
++
++        context = generate_context(
++            context_file=context_file,
++            default_context=config_dict['default_context'],
++            extra_context=extra_context,
++        )
++
++        # A template can hold several nested templates to choose from
++        nested_dir = choose_nested_template(context, repo_dir, no_input)
++        if nested_dir != repo_dir:
++            repo_dir = nested_dir
++            context = generate_context(
++                context_file=os.path.join(repo_dir, 'cookiecutter.json'),
++                default_context=config_dict['default_context'],
++                extra_context=extra_context,
++            )
++
++        # Keep the options as given, then add the invocation details
++        context['_cookiecutter'] = dict(context['cookiecutter'])
++        context['cookiecutter']['_template'] = template
++        context['cookiecutter']['_repo_dir'] = base_repo_dir
++        context['cookiecutter']['_output_dir'] = output_dir
++        context['cookiecutter']['_checkout'] = checkout
++
++        template_name = os.path.basename(os.path.abspath(base_repo_dir))
++
++        if replay:
++            if isinstance(replay, str):
++                replay_path = Path(replay)
++                context = load(str(replay_path.parent), replay_path.name)
++            else:
++                context = load(config_dict['replay_dir'], template_name)
++        else:
++            # prompt the user to manually configure at the command line.
++            context['cookiecutter'] = prompt_for_config(context, no_input)
++
++        dump(config_dict['replay_dir'], template_name, context)
++
++        # Create project from local context and project template.
++        result = generate_files(
++            repo_dir=repo_dir,
++            context=context,
++            overwrite_if_exists=overwrite_if_exists,
++            output_dir=output_dir,
++            skip_if_file_exists=skip_if_file_exists,
++            accept_hooks=accept_hooks,
++            keep_project_on_failure=keep_project_on_failure,
++        )
++
++    # Cleanup (if required)
++    if cleanup:
++        rmtree(base_repo_dir)
++
++    return result
++
+ 
+ class _patch_import_path_for_repo:
+ 
+@@ -60,4 +142,4 @@ class _patch_import_path_for_repo:
+         sys.path.append(self._repo_dir)
+ 
+     def __exit__(self, type, value, traceback):
+-        sys.path = self._path
+\ No newline at end of file
++        sys.path = self._path
+diff --git a/cookiecutter/prompt.py b/cookiecutter/prompt.py
+index cf327dd..3c1589a 100644
+--- a/cookiecutter/prompt.py
++++ b/cookiecutter/prompt.py
+@@ -5,27 +5,53 @@ import re
+ import sys
+ from collections import OrderedDict
+ from pathlib import Path
++
+ from jinja2.exceptions import UndefinedError
+ from rich.prompt import Confirm, InvalidResponse, Prompt, PromptBase
++
+ from cookiecutter.exceptions import UndefinedVariableInTemplate
+ from cookiecutter.utils import create_env_with_context, rmtree
+ 
++
++def _question_for(var_name, prompts, default):
++    """Return the human readable question for a variable, if one was given."""
++    if prompts and isinstance(prompts.get(var_name), str):
++        return prompts[var_name]
++    return default
++
++
+ def read_user_variable(var_name, default_value, prompts=None, prefix=''):
+     """Prompt user for variable and return the entered value or given default.
+ 
+     :param str var_name: Variable of the context to query the user
+     :param default_value: Value that will be returned if no input happens
+     """
+-    pass
++    question = _question_for(var_name, prompts, var_name)
++
++    # Please see https://github.com/cookiecutter/cookiecutter/pull/1549
++    while True:
++        variable = Prompt.ask(f'{prefix}{question}', default=default_value)
++        if variable is not None:
++            break
++
++    return variable
++
+ 
+ class YesNoPrompt(Confirm):
+     """A prompt that returns a boolean for yes/no questions."""
++
+     yes_choices = ['1', 'true', 't', 'yes', 'y', 'on']
+     no_choices = ['0', 'false', 'f', 'no', 'n', 'off']
+ 
+     def process_response(self, value: str) -> bool:
+         """Convert choices to a bool."""
+-        pass
++        value = value.strip().lower()
++        if value in self.yes_choices:
++            return True
++        if value in self.no_choices:
++            return False
++        raise InvalidResponse(self.validate_error_message)
++
+ 
+ def read_user_yes_no(var_name, default_value, prompts=None, prefix=''):
+     """Prompt the user to reply with 'yes' or 'no' (or equivalent values).
+@@ -41,14 +67,17 @@ def read_user_yes_no(var_name, default_value, prompts=None, prefix=''):
+     :param str question: Question to the user
+     :param default_value: Value that will be returned if no input happens
+     """
+-    pass
++    question = _question_for(var_name, prompts, var_name)
++    return YesNoPrompt.ask(f'{prefix}{question}', default=default_value)
++
+ 
+ def read_repo_password(question):
+     """Prompt the user to enter a password.
+ 
+     :param str question: Question to the user
+     """
+-    pass
++    return Prompt.ask(question, password=True)
++
+ 
+ def read_user_choice(var_name, options, prompts=None, prefix=''):
+     """Prompt the user to choose from several options for the given variable.
+@@ -59,25 +88,72 @@ def read_user_choice(var_name, options, prompts=None, prefix=''):
+     :param list options: Sequence of options that are available to select from
+     :return: Exactly one item of ``options`` that has been chosen by the user
+     """
+-    pass
++    # Require an actual Non-Empty list
++    if not isinstance(options, list):
++        raise TypeError
++    if not options:
++        raise ValueError
++
++    # Human readable labels may be given per variable, or per option
++    question = f'Select {var_name}'
++    labels = {}
++    if prompts and var_name in prompts:
++        entry = prompts[var_name]
++        if isinstance(entry, dict):
++            question = entry.get('__prompt__', question)
++            labels = entry
++        elif isinstance(entry, str):
++            question = entry
++
++    choice_map = OrderedDict(
++        (f'{idx}', value) for idx, value in enumerate(options, 1)
++    )
++    choices = list(choice_map.keys())
++    default = '1'
++
++    choice_lines = [
++        f'    [bold magenta]{idx}[/] - [bold]{labels.get(value, value)}[/]'
++        for idx, value in choice_map.items()
++    ]
++    prompt = '\n'.join((f'{prefix}{question}', '\n'.join(choice_lines), '    Choose from'))
++
++    # Prompt the user for a choice index and return the chosen option
++    user_choice = Prompt.ask(prompt, choices=choices, default=default)
++    return choice_map[user_choice]
++
++
+ DEFAULT_DISPLAY = 'default'
+ 
++
+ def process_json(user_value, default_value=None):
+     """Load user-supplied value as a JSON dict.
+ 
+     :param str user_value: User-supplied value to load as a JSON dict
+     """
+-    pass
++    try:
++        user_dict = json.loads(user_value, object_pairs_hook=OrderedDict)
++    except Exception as error:
++        # Leave it up to the caller to decide what to do with the error
++        raise InvalidResponse('Unable to decode to JSON.') from error
++
++    if not isinstance(user_dict, dict):
++        # Also, check that the user_dict is dict and not any other json type
++        raise InvalidResponse('Requires JSON dict.')
++
++    return user_dict
++
+ 
+ class JsonPrompt(PromptBase[dict]):
+     """A prompt that returns a dict from JSON string."""
++
+     default = None
+     response_type = dict
+     validate_error_message = '[prompt.invalid]  Please enter a valid JSON string'
+ 
+     def process_response(self, value: str) -> dict:
+         """Convert choices to a dict."""
+-        pass
++        return process_json(value.strip())
++
+ 
+ def read_user_dict(var_name, default_value, prompts=None, prefix=''):
+     """Prompt the user to provide a dictionary of data.
+@@ -86,7 +162,16 @@ def read_user_dict(var_name, default_value, prompts=None, prefix=''):
+     :param default_value: Value that will be returned if no input is provided
+     :return: A Python dictionary to use in the context.
+     """
+-    pass
++    # Please see https://github.com/cookiecutter/cookiecutter/pull/1549
++    if not isinstance(default_value, dict):
++        raise TypeError
++
++    question = _question_for(var_name, prompts, var_name)
++    return JsonPrompt.ask(
++        f'{prefix}{question} [cyan bold]({DEFAULT_DISPLAY})[/]',
++        default=default_value,
++    )
++
+ 
+ def render_variable(env, raw, cookiecutter_dict):
+     """Render the next variable to be displayed in the user prompt.
+@@ -105,25 +190,56 @@ def render_variable(env, raw, cookiecutter_dict):
+         being populated with variables.
+     :return: The rendered value for the default variable.
+     """
+-    pass
++    if raw is None:
++        return None
++    elif isinstance(raw, dict):
++        return {
++            render_variable(env, k, cookiecutter_dict): render_variable(
++                env, v, cookiecutter_dict
++            )
++            for k, v in raw.items()
++        }
++    elif isinstance(raw, list):
++        return [render_variable(env, v, cookiecutter_dict) for v in raw]
++    elif isinstance(raw, bool):
++        return raw
++    elif not isinstance(raw, str):
++        raw = str(raw)
++
++    template = env.from_string(raw)
++    rendered_template = template.render(cookiecutter=cookiecutter_dict)
++    return rendered_template
++
+ 
+ def _prompts_from_options(options: dict) -> dict:
+     """Process template options and return friendly prompt information."""
+-    pass
++    prompts = {'__prompt__': options.get('__prompt__', 'Select a template')}
++    for key, value in options.items():
++        if key != '__prompt__':
++            prompts[key] = value
++    return prompts
++
+ 
+ def prompt_choice_for_template(key, options, no_input):
+     """Prompt user with a set of options to choose from.
+ 
+     :param no_input: Do not prompt for user input and return the first available option.
+     """
+-    pass
++    if no_input:
++        return options[0]
++    return read_user_choice(key, options, None, '')
++
+ 
+ def prompt_choice_for_config(cookiecutter_dict, env, key, options, no_input, prompts=None, prefix=''):
+     """Prompt user with a set of options to choose from.
+ 
+     :param no_input: Do not prompt for user input and return the first available option.
+     """
+-    pass
++    rendered_options = [render_variable(env, raw, cookiecutter_dict) for raw in options]
++    if no_input:
++        return rendered_options[0]
++    return read_user_choice(key, rendered_options, prompts, prefix)
++
+ 
+ def prompt_for_config(context, no_input=False):
+     """Prompt user to enter a new config.
+@@ -131,7 +247,79 @@ def prompt_for_config(context, no_input=False):
+     :param dict context: Source for field names and sample values.
+     :param no_input: Do not prompt for user input and use only values from context.
+     """
+-    pass
++    cookiecutter_dict = OrderedDict([])
++    env = create_env_with_context(context)
++    prompts = context['cookiecutter'].pop('__prompts__', {})
++
++    # Number the questions so the user can see how far along they are
++    questions = [key for key in context['cookiecutter'] if not key.startswith('_')]
++    total = len(questions)
++    position = {key: idx for idx, key in enumerate(questions, 1)}
++
++    # First pass: simple variables and choices. These must be clean to avoid errors
++    for key, raw in context['cookiecutter'].items():
++        if key.startswith('_') and not key.startswith('__'):
++            cookiecutter_dict[key] = raw
++            continue
++        elif key.startswith('__'):
++            cookiecutter_dict[key] = render_variable(env, raw, cookiecutter_dict)
++            continue
++
++        prefix = f'  [dim][{position[key]}/{total}][/] '
++        try:
++            if isinstance(raw, list):
++                # We are dealing with a choice variable
++                val = prompt_choice_for_config(
++                    cookiecutter_dict, env, key, raw, no_input, prompts, prefix
++                )
++                cookiecutter_dict[key] = val
++            elif isinstance(raw, bool):
++                # We are dealing with a yes/no variable
++                val = render_variable(env, raw, cookiecutter_dict)
++                if not no_input:
++                    val = read_user_yes_no(key, val, prompts, prefix)
++                cookiecutter_dict[key] = val
++            elif not isinstance(raw, dict):
++                # We are dealing with a regular variable
++                val = render_variable(env, raw, cookiecutter_dict)
++                if not no_input:
++                    val = read_user_variable(key, val, prompts, prefix)
++                cookiecutter_dict[key] = val
++        except UndefinedError as err:
++            msg = f"Unable to render variable '{key}'"
++            raise UndefinedVariableInTemplate(msg, err, context) from err
++
++    # Second pass; handle the dictionaries.
++    for key, raw in context['cookiecutter'].items():
++        # Skip private type dicts not to be rendered.
++        if key.startswith('_') and not key.startswith('__'):
++            continue
++
++        try:
++            if isinstance(raw, dict):
++                # We are dealing with a dict variable
++                val = render_variable(env, raw, cookiecutter_dict)
++
++                if not no_input and not key.startswith('__'):
++                    prefix = f'  [dim][{position[key]}/{total}][/] '
++                    val = read_user_dict(key, val, prompts, prefix)
++
++                cookiecutter_dict[key] = val
++        except UndefinedError as err:
++            msg = f"Unable to render variable '{key}'"
++            raise UndefinedVariableInTemplate(msg, err, context) from err
++
++    return cookiecutter_dict
++
++
++def _is_valid_template_path(template_path) -> bool:
++    """Return True if a nested template path is non-empty and relative."""
++    if not template_path or not isinstance(template_path, str):
++        return False
++    if template_path.startswith(('/', '\\')) or re.match(r'^[A-Za-z]:', template_path):
++        return False
++    return True
++
+ 
+ def choose_nested_template(context: dict, repo_dir: str, no_input: bool=False) -> str:
+     """Prompt user to select the nested template to use.
+@@ -141,7 +329,40 @@ def choose_nested_template(context: dict, repo_dir: str, no_input: bool=False) -
+     :param no_input: Do not prompt for user input and use only values from context.
+     :returns: Path to the selected template.
+     """
+-    pass
++    cookiecutter_dict = context['cookiecutter']
++
++    if 'templates' in cookiecutter_dict:
++        # New style: a mapping of template names to their details
++        templates = cookiecutter_dict['templates']
++        names = list(templates)
++        if no_input:
++            chosen = names[0]
++        else:
++            labels = {name: templates[name].get('title', name) for name in names}
++            prompts = {'template': {'__prompt__': 'Select a template', **labels}}
++            chosen = read_user_choice('template', names, prompts, '')
++        template_path = templates[chosen]['path']
++    elif 'template' in cookiecutter_dict:
++        # Old style: a list of "name (path)" choices
++        options = cookiecutter_dict['template']
++        prompts = cookiecutter_dict.get('__prompts__', {})
++        selected = prompt_choice_for_template('template', options, no_input) \
++            if no_input else read_user_choice('template', options, prompts, '')
++        match = re.search(r'\(([^()]*)\)\s*$', selected)
++        template_path = match.group(1) if match else selected
++    else:
++        return repo_dir
++
++    if not _is_valid_template_path(template_path):
++        raise ValueError(f'Illegal template path: {template_path!r}')
++
++    repo_root = Path(repo_dir).resolve()
++    template_dir = (repo_root / template_path).resolve()
++    if repo_root not in template_dir.parents and template_dir != repo_root:
++        raise ValueError(f'Illegal template path: {template_path!r}')
++
++    return f'{template_dir}'
++
+ 
+ def prompt_and_delete(path, no_input=False):
+     """
+@@ -154,4 +375,28 @@ def prompt_and_delete(path, no_input=False):
+     :param no_input: Suppress prompt to delete repo and just delete it.
+     :return: True if the content was deleted
+     """
+-    pass
+\ No newline at end of file
++    # Suppress prompt if called via API
++    if no_input:
++        ok_to_delete = True
++    else:
++        question = (
++            f"You've downloaded {path} before. Is it okay to delete and re-download it?"
++        )
++        ok_to_delete = read_user_yes_no(question, 'yes')
++
++    if ok_to_delete:
++        if os.path.isdir(path):
++            rmtree(path)
++        else:
++            os.remove(path)
++
++        return True
++    else:
++        question = (
++            f"You've downloaded {path} before. Is it okay to re-use the existing file?"
++        )
++        ok_to_reuse = read_user_yes_no(question, 'no')
++        if ok_to_reuse:
++            return False
++
++        sys.exit()
+diff --git a/cookiecutter/replay.py b/cookiecutter/replay.py
+index 267022b..6400952 100644
+--- a/cookiecutter/replay.py
++++ b/cookiecutter/replay.py
+@@ -5,16 +5,42 @@ cookiecutter.replay.
+ """
+ import json
+ import os
++
+ from cookiecutter.utils import make_sure_path_exists
+ 
+ def get_file_name(replay_dir, template_name):
+     """Get the name of file."""
+-    pass
++    if not template_name.endswith('.json'):
++        template_name = f'{template_name}.json'
++    return os.path.join(replay_dir, template_name)
+ 
+ def dump(replay_dir: 'os.PathLike[str]', template_name: str, context: dict):
+     """Write json data to file."""
+-    pass
++    if not isinstance(template_name, str):
++        raise TypeError('Template name is required to be of type str')
++
++    if not isinstance(context, dict):
++        raise TypeError('Context is required to be of type dict')
++
++    if 'cookiecutter' not in context:
++        raise ValueError('Context is required to contain a cookiecutter key')
++
++    make_sure_path_exists(replay_dir)
++
++    replay_file = get_file_name(replay_dir, template_name)
++    with open(replay_file, 'w', encoding='utf-8') as outfile:
++        json.dump(context, outfile, indent=4)
+ 
+ def load(replay_dir, template_name):
+     """Read json data from file."""
+-    pass
+\ No newline at end of file
++    if not isinstance(template_name, str):
++        raise TypeError('Template name is required to be of type str')
++
++    replay_file = get_file_name(replay_dir, template_name)
++    with open(replay_file, encoding='utf-8') as infile:
++        context = json.load(infile)
++
++    if 'cookiecutter' not in context:
++        raise ValueError('Context is required to contain a cookiecutter key')
++
++    return context
+\ No newline at end of file
+diff --git a/cookiecutter/repository.py b/cookiecutter/repository.py
+index 6ae286e..2474676 100644
+--- a/cookiecutter/repository.py
++++ b/cookiecutter/repository.py
+@@ -8,11 +8,11 @@ REPO_REGEX = re.compile('\n# something like git:// ssh:// file:// etc.\n((((git|
+ 
+ def is_repo_url(value):
+     """Return True if value is a repository URL."""
+-    pass
++    return bool(REPO_REGEX.match(value))
+ 
+ def is_zip_file(value):
+     """Return True if value is a zip file."""
+-    pass
++    return value.lower().endswith('.zip')
+ 
+ def expand_abbreviations(template, abbreviations):
+     """Expand abbreviations in a template name.
+@@ -20,7 +20,16 @@ def expand_abbreviations(template, abbreviations):
+     :param template: The project template name.
+     :param abbreviations: Abbreviation definitions.
+     """
+-    pass
++    if template in abbreviations:
++        return abbreviations[template]
++
++    # Split on colon. If there is no colon, rest will be empty
++    # and prefix will be the whole template
++    prefix, sep, rest = template.partition(':')
++    if prefix in abbreviations:
++        return abbreviations[prefix].format(rest)
++
++    return template
+ 
+ def repository_has_cookiecutter_json(repo_directory):
+     """Determine if `repo_directory` contains a `cookiecutter.json` file.
+@@ -28,7 +37,9 @@ def repository_has_cookiecutter_json(repo_directory):
+     :param repo_directory: The candidate repository directory.
+     :return: True if the `repo_directory` is valid, else False.
+     """
+-    pass
++    repo_directory_exists = os.path.isdir(repo_directory)
++    repo_config_exists = os.path.isfile(os.path.join(repo_directory, 'cookiecutter.json'))
++    return repo_directory_exists and repo_config_exists
+ 
+ def determine_repo_dir(template, abbreviations, clone_to_dir, checkout, no_input, password=None, directory=None):
+     """
+@@ -53,4 +64,41 @@ def determine_repo_dir(template, abbreviations, clone_to_dir, checkout, no_input
+         after the template has been instantiated.
+     :raises: `RepositoryNotFound` if a repository directory could not be found.
+     """
+-    pass
+\ No newline at end of file
++    template = expand_abbreviations(template, abbreviations)
++
++    if is_zip_file(template):
++        unzipped_dir = unzip(
++            zip_uri=template,
++            is_url=is_repo_url(template),
++            clone_to_dir=clone_to_dir,
++            no_input=no_input,
++            password=password,
++        )
++        repository_candidates = [unzipped_dir]
++        cleanup = True
++    elif is_repo_url(template):
++        cloned_repo = clone(
++            repo_url=template,
++            checkout=checkout,
++            clone_to_dir=clone_to_dir,
++            no_input=no_input,
++        )
++        repository_candidates = [cloned_repo]
++        cleanup = False
++    else:
++        repository_candidates = [template, os.path.join(clone_to_dir, template)]
++        cleanup = False
++
++    if directory:
++        repository_candidates = [
++            os.path.join(s, directory) for s in repository_candidates
++        ]
++
++    for repo_candidate in repository_candidates:
++        if repository_has_cookiecutter_json(repo_candidate):
++            return repo_candidate, cleanup
++
++    raise RepositoryNotFound(
++        'A valid repository for "{}" could not be found in the following '
++        'locations:\n{}'.format(template, '\n'.join(repository_candidates))
++    )
+\ No newline at end of file
+diff --git a/cookiecutter/utils.py b/cookiecutter/utils.py
+index 84a4a23..11bca6f 100644
+--- a/cookiecutter/utils.py
++++ b/cookiecutter/utils.py
+@@ -7,31 +7,43 @@ import stat
+ import tempfile
+ from pathlib import Path
+ from typing import Dict
++
+ from jinja2.ext import Extension
++
+ from cookiecutter.environment import StrictEnvironment
++
+ logger = logging.getLogger(__name__)
+ 
++
+ def force_delete(func, path, exc_info):
+     """Error handler for `shutil.rmtree()` equivalent to `rm -rf`.
+ 
+     Usage: `shutil.rmtree(path, onerror=force_delete)`
+     From https://docs.python.org/3/library/shutil.html#rmtree-example
+     """
+-    pass
++    os.chmod(path, stat.S_IWRITE)
++    func(path)
++
+ 
+ def rmtree(path):
+     """Remove a directory and all its contents. Like rm -rf on Unix.
+ 
+     :param path: A directory path.
+     """
+-    pass
++    shutil.rmtree(path, onerror=force_delete)
++
+ 
+ def make_sure_path_exists(path: 'os.PathLike[str]') -> None:
+     """Ensure that a directory exists.
+ 
+     :param path: A directory tree path for creation.
+     """
+-    pass
++    logger.debug('Making sure path exists (creates tree if not exist): %s', path)
++    try:
++        Path(path).mkdir(parents=True, exist_ok=True)
++    except OSError as expt:
++        raise OSError(f'Unable to create directory at {path}') from expt
++
+ 
+ @contextlib.contextmanager
+ def work_in(dirname=None):
+@@ -39,23 +51,47 @@ def work_in(dirname=None):
+ 
+     When exited, returns to the working directory prior to entering.
+     """
+-    pass
++    curdir = os.getcwd()
++    try:
++        if dirname is not None:
++            os.chdir(dirname)
++        yield
++    finally:
++        os.chdir(curdir)
++
+ 
+ def make_executable(script_path):
+     """Make `script_path` executable.
+ 
+     :param script_path: The file to change
+     """
+-    pass
++    status = os.stat(script_path)
++    os.chmod(script_path, status.st_mode | stat.S_IEXEC)
++
+ 
+ def simple_filter(filter_function):
+     """Decorate a function to wrap it in a simplified jinja2 extension."""
+-    pass
++
++    class SimpleFilterExtension(Extension):
++        def __init__(self, environment):
++            super().__init__(environment)
++            environment.filters[filter_function.__name__] = filter_function
++
++    SimpleFilterExtension.__name__ = filter_function.__name__
++    return SimpleFilterExtension
++
+ 
+ def create_tmp_repo_dir(repo_dir: 'os.PathLike[str]') -> Path:
+     """Create a temporary dir with a copy of the contents of repo_dir."""
+-    pass
++    repo_dir = Path(repo_dir).resolve()
++    base_dir = tempfile.mkdtemp(prefix='cookiecutter')
++    new_dir = Path(base_dir) / repo_dir.name
++    logger.debug('Copying repo_dir from %s to %s', repo_dir, new_dir)
++    shutil.copytree(repo_dir, new_dir)
++    return new_dir
++
+ 
+ def create_env_with_context(context: Dict):
+     """Create a jinja environment using the provided context."""
+-    pass
+\ No newline at end of file
++    envvars = context.get('cookiecutter', {}).get('_jinja2_env_vars', {})
++    return StrictEnvironment(context=context, **{'keep_trailing_newline': True, **envvars})
+diff --git a/cookiecutter/vcs.py b/cookiecutter/vcs.py
+index 9cfc59a..6eff983 100644
+--- a/cookiecutter/vcs.py
++++ b/cookiecutter/vcs.py
+@@ -5,6 +5,8 @@ import subprocess
+ from pathlib import Path
+ from shutil import which
+ from typing import Optional
++import re
++
+ from cookiecutter.exceptions import RepositoryCloneFailed, RepositoryNotFound, UnknownRepoType, VCSNotInstalled
+ from cookiecutter.prompt import prompt_and_delete
+ from cookiecutter.utils import make_sure_path_exists
+@@ -19,7 +21,19 @@ def identify_repo(repo_url):
+     :param repo_url: Repo URL of unknown type.
+     :returns: ('git', repo_url), ('hg', repo_url), or None.
+     """
+-    pass
++    repo_url_values = repo_url.split('+')
++    if len(repo_url_values) == 2:
++        repo_type = repo_url_values[0]
++        if repo_type in ['git', 'hg']:
++            return repo_type, repo_url_values[1]
++        raise UnknownRepoType
++
++    if 'git' in repo_url:
++        return 'git', repo_url
++    if 'bitbucket' in repo_url:
++        return 'hg', repo_url
++
++    raise UnknownRepoType
+ 
+ def is_vcs_installed(repo_type):
+     """
+@@ -27,7 +41,7 @@ def is_vcs_installed(repo_type):
+ 
+     :param repo_type:
+     """
+-    pass
++    return bool(which(repo_type))
+ 
+ def clone(repo_url: str, checkout: Optional[str]=None, clone_to_dir: 'os.PathLike[str]'='.', no_input: bool=False):
+     """Clone a repo to the current directory.
+@@ -40,4 +54,57 @@ def clone(repo_url: str, checkout: Optional[str]=None, clone_to_dir: 'os.PathLik
+         cached resources.
+     :returns: str with path to the new directory of the repository.
+     """
+-    pass
+\ No newline at end of file
++    # Identify the repo_type
++    repo_type, repo_url = identify_repo(repo_url)
++
++    # Check that the repo_type is supported
++    if not is_vcs_installed(repo_type):
++        msg = f"'{repo_type}' is not installed."
++        raise VCSNotInstalled(msg)
++
++    repo_url = repo_url.rstrip('/')
++    tail = re.split(r'[/:]', repo_url)[-1]
++    if repo_type == 'git':
++        repo_name = tail.rsplit('.git')[0]
++    else:
++        repo_name = tail
++    repo_dir = os.path.normpath(os.path.join(clone_to_dir, repo_name))
++    logger.debug('repo_dir is %s', repo_dir)
++
++    make_sure_path_exists(clone_to_dir)
++
++    if os.path.isdir(repo_dir):
++        clone_ok = prompt_and_delete(repo_dir, no_input=no_input)
++        if not clone_ok:
++            # Reuse the existing clone without cloning again
++            return repo_dir
++
++    cmd = [repo_type, 'clone', repo_url]
++
++    try:
++        subprocess.check_output(cmd, cwd=clone_to_dir, stderr=subprocess.STDOUT)
++        if checkout is not None:
++            checkout_params = [checkout]
++            # Mercurial needs '--' to treat the checkout as a revision
++            if repo_type == 'hg':
++                checkout_params.insert(0, '--')
++            subprocess.check_output(
++                [repo_type, 'checkout', *checkout_params],
++                cwd=repo_dir,
++                stderr=subprocess.STDOUT,
++            )
++    except subprocess.CalledProcessError as clone_error:
++        output = clone_error.output.decode('utf-8', errors='replace')
++        if 'not found' in output.lower():
++            raise RepositoryNotFound(
++                f'The repository {repo_url} could not be found, '
++                'have you made a typo?'
++            ) from clone_error
++        if any(error in output for error in BRANCH_ERRORS):
++            raise RepositoryCloneFailed(
++                f'The {checkout} branch of repository {repo_url} could '
++                'not found, have you made a typo?'
++            ) from clone_error
++        raise
++
++    return repo_dir
+\ No newline at end of file
+diff --git a/cookiecutter/zipfile.py b/cookiecutter/zipfile.py
+index 4e29732..fc8438e 100644
+--- a/cookiecutter/zipfile.py
++++ b/cookiecutter/zipfile.py
+@@ -3,6 +3,7 @@ import os
+ import tempfile
+ from pathlib import Path
+ from typing import Optional
++from urllib.parse import urlparse
+ from zipfile import BadZipFile, ZipFile
+ import requests
+ from cookiecutter.exceptions import InvalidZipRepository
+@@ -23,4 +24,80 @@ def unzip(zip_uri: str, is_url: bool, clone_to_dir: 'os.PathLike[str]'='.', no_i
+         cached resources.
+     :param password: The password to use when unpacking the repository.
+     """
+-    pass
+\ No newline at end of file
++    # Ensure that clone_to_dir exists
++    clone_to_dir = os.path.expanduser(clone_to_dir)
++    make_sure_path_exists(clone_to_dir)
++
++    if is_url:
++        # Build the name of the cached zipfile,
++        # and prompt to delete if it already exists.
++        identifier = urlparse(zip_uri).path.split('/')[-1]
++        zip_path = os.path.join(clone_to_dir, identifier)
++
++        if os.path.exists(zip_path):
++            download = prompt_and_delete(zip_path, no_input=no_input)
++        else:
++            download = True
++
++        if download:
++            # (Re) download the zipfile
++            r = requests.get(zip_uri, stream=True, timeout=30)
++            with open(zip_path, 'wb') as zip_file:
++                for chunk in r.iter_content(chunk_size=1024):
++                    if chunk:
++                        zip_file.write(chunk)
++    else:
++        # Just use the local zipfile as is.
++        zip_path = os.path.abspath(zip_uri)
++
++    # Now unpack the repository. The zipfile will be unpacked
++    # into a temporary directory
++    try:
++        zip_file = ZipFile(zip_path)
++
++        if len(zip_file.namelist()) == 0:
++            raise InvalidZipRepository(f'Zip repository {zip_uri} is empty')
++
++        # The first record in the zipfile should be the directory entry for
++        # the archive. If it isn't a directory, there's a problem.
++        first_filename = zip_file.namelist()[0]
++        if not first_filename.endswith('/'):
++            raise InvalidZipRepository(
++                f'Zip repository {zip_uri} does not include '
++                'a top-level directory'
++            )
++
++        # Construct the final target directory
++        project_name = first_filename[:-1]
++        unzip_base = tempfile.mkdtemp()
++        unzip_path = os.path.join(unzip_base, project_name)
++
++        # Extract the zip file into the temporary directory
++        try:
++            zip_file.extractall(path=unzip_base)
++        except RuntimeError:
++            # File is password protected; try to get password from the
++            # environment or prompt the user
++            if no_input and password is None:
++                raise InvalidZipRepository(
++                    f'Zip repository {zip_uri} is password protected and '
++                    'no password was provided'
++                )
++            if password is None:
++                password = read_repo_password(
++                    f'Repo password for {zip_uri}'
++                )
++            zip_file.setpassword(password.encode('utf-8'))
++            try:
++                zip_file.extractall(path=unzip_base)
++            except RuntimeError as e:
++                raise InvalidZipRepository(
++                    'Invalid password provided for protected repository'
++                ) from e
++
++    except BadZipFile as e:
++        raise InvalidZipRepository(
++            f'Zip file {zip_uri} is not a valid zip archive'
++        ) from e
++
++    return unzip_path
+\ No newline at end of file
