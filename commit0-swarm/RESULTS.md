@@ -256,3 +256,66 @@ Then a Sonnet agent found 12 post-cutoff libraries (ecosyste.ms, 1,530 repos
 checked), 8 certified; solo Haiku scored 100% on all 8 with verbatim rates of
 5–42%. The first reading was withdrawn: recall is real (about 3× the unseen
 floor) but the scores do not depend on it.
+
+### Round 4 — statsmodels, the largest full-Commit0 library
+
+Asked: Oskar, after a size estimate for the 54-library set (about a day), "I
+think maybe just go for the single very biggest test?" `harness/size_full.py`
+ranked the 38 non-lite libraries by lines the stub removed: statsmodels first,
+123,651 lines, 3,496 stub bodies, 27 Cython sources the stub leaves
+byte-identical. Certified both ways: the reference passes 17,667 of 18,195
+collected tests, the stub collects nothing. The Cython modules were built once
+in the jail (`harness/full_setup.py`, 26 `.so` files) and copied into every
+tree; tests live inside `statsmodels/` and are excluded from patches.
+
+| arm | agents | wall time | graded | $ input-side |
+|---|---|---|---|---|
+| solo | 1 | 79 min | 1,303 | 4.28 |
+| solo, continuation 1 | 1 | 147 min | not graded (5,285 self-reported) | 6.59 |
+| solo, continuation 2 | 1 | 113 min | CONT2_GRADE | 6.42 |
+| swarm build | 19 | 83 min (median 56) | 3,106 | 90.11 |
+| swarm fixers | 19 | up to 112 min (stopped at the deadline) | FIX_GRADE | 48.59 |
+
+No prediction was registered for this round. Both arms fell well short of
+the ceiling in one night, and the swarm cost about 8× the solo chain.
+
+What broke, in order of cost:
+- **The machine.** 20 agents on 4 vCPUs, each running statsmodels suites
+  (a full run is about 27 minutes there at `-n 2`); load average peaked at
+  74. Fixers spent much of their time waiting on test runs.
+- **Grading.** Two whole-suite grades of the swarm build were lost: one ran
+  into the 90-minute cap at 99% and wrote no junit, one died at 19% when the
+  first continuation agent ran `pkill -f "pytest -n"`. Grading now runs one
+  `tests` directory per pytest call with its own junit, a 300-second
+  per-test timeout (`pytest-timeout`), and `--resume` to continue a grade
+  the 2-hour background limit cut off. All prompts now forbid killing a
+  process the agent did not start.
+- **Early hand-backs.** Fixers started long test runs in the background,
+  ended their turn and filed "partial" reports with stale counts; two were
+  resumed by message. Prompts now say to run tests in the foreground.
+- **A regression the second continuation flagged and could not isolate:**
+  58 MNLogit tests that passed at its start diverge at its end.
+
+Fixers whose shard fell in one or two test files closed it: four of 19
+(autoregression and ARDL) reported their 930-test shards passing or one test
+short. The rest were stopped at 08:00 UTC with partial reports.
+
+Integrity, Round 4: at least four builders and the solo agent ran library
+code with plain `python3` outside the jail (heredoc `python3 -`, `importlib`
+loads, `sys.path` inserts), which `guard_jail_route` does not catch; the code
+was the Commit0 stub plus agents' own writing. One fixer searched the whole
+filesystem for an installed `statsmodels/iolib/summary.py`, excluding the
+jail; there was none. The statsmodels certification tree (holding the
+reference) existed from 02:39 to 06:07 UTC; no transcript names `/cert` or
+searches the work directory recursively. No agent read the mirrors.
+
+Grading note: `param_key` collapses parametrised ids that differ only in
+digits, and on statsmodels 6,654 of 17,667 targets share a key. A collapsed
+group passes only if every member passes, so scores are slightly low:
+re-scoring 41 chunks of the fixer grade with exact ids first gave 8,301
+against 8,276.
+
+Costs: re-priced every run at Haiku 5.5's long rate card. `cost.py` had
+doubled every rate on prompts over 100K tokens; the claude-api skill gives
+5× ($0.50/$2.50 against $0.10/$0.50). Commit0-lite solo is $16.36, not the
+$6.71 first published, and the control $7.50, not $3.06.
