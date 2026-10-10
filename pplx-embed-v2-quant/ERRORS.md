@@ -50,4 +50,5 @@ direct 1-bit encode.
 
 **Effect.** The bench's centered rows are direct encodes and unaffected. `renest.py`
 shows that re-solving m per precision from the decoded ‖x‖ closes the gap at every
-width with no format change. Not yet filed against remex.
+width with no format change. Fixed in remex `8e9134f` on main (unreleased): `_effective_norms` re-solves m per
+precision, and `tests/test_centered_mode.py::TestNestedPrecision` guards it.

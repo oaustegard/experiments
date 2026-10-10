@@ -169,6 +169,9 @@ The centered remax rows with a float query center the query too (`extra.py`).
      A median length error of about 1% is enough to cost 0.24 nDCG@10 because
      MaxSim's per-document max compares tokens whose scores sit within a percent of
      each other. This is the same mechanism as the renorm bug fixed in remex#82.
+   - **Fixed in remex `8e9134f`** (`Quantizer._centred_lengths_at`). Re-run on these
+     tokens through the library: the 1-bit read scores 0.7650 and the 2-bit read 0.7800,
+     matching `renest.py`.
    - With the fix, centered nesting is free, where uncentered nesting still costs
      0.03 at 2 bits. So one centered 8-bit encode can serve every width from 1 to 8
      bits.
@@ -177,9 +180,9 @@ The centered remax rows with a float query center the query too (`extra.py`).
 
 Use remex centered at 2 bits: 16× smaller and indistinguishable from fp32 here. Use
 centered 1-bit if 32× matters and −0.015 to −0.019 nDCG@10 is acceptable. Store one
-512-byte corpus mean. On remex 1.1.0, encode directly at the width you will serve.
-Reading a centered 8-bit code at lower precision is broken until the length is
-re-solved per precision (finding 6). Avoid plain (uncentered) codes below 4 bits,
+512-byte corpus mean. With remex after `8e9134f` (unreleased; 1.1.0 and earlier
+have the bug in finding 6), one centered 8-bit encode serves every width. On 1.1.0,
+encode directly at the width you will serve. Avoid plain (uncentered) codes below 4 bits,
 remax k=1, and truncation.
 
 ## Limits

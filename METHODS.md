@@ -1918,8 +1918,8 @@ the result.
 - **remex centered mode + `decode(precision=p)` is broken in remex 1.1.0; the fix is
   free.** The stored length m solves ‖μ + m·û‖ = ‖x‖ for the full-precision û only.
   Read at 1 bit from an 8-bit centered code: 0.527 vs 0.765 direct. Recover ‖x‖ from the
-  full decode and re-solve m for û_p: nested matches direct at 1/2/4 bits. Until remex
-  ships it, encode centered codes at the width you serve. Uncentered nesting is a
+  full decode and re-solve m for û_p: nested matches direct at 1/2/4 bits. Fixed in
+  remex `8e9134f` (unreleased); on 1.1.0 and earlier, encode centered codes at the width you serve. Uncentered nesting is a
   separate, smaller cost (2-bit read off 8-bit −0.029 vs direct).
   (`pplx-embed-v2-quant/renest.py`, finding 6)
 - **remex `rotation="rht"` is seed-invariant at every power-of-two d (remex 0.8.0).**
