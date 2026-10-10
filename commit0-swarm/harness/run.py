@@ -112,7 +112,8 @@ def junit_to_node(key: str, root: Path | None = None) -> str:
 
 def save_patch(run: str, lib: str, task: dict) -> Path:
     t = tree(run, lib)
-    git("add", "-A", "--", task["src_dir"], *EXCLUDE, cwd=t)
+    # Pathspec excludes on add trip over gitignored files (babel/locale-data); exclude on diff only.
+    git("add", "-A", "--", task["src_dir"], cwd=t)
     # Agent trees have one root commit (the skeleton); pilot trees carried history.
     has_base = subprocess.run(["git", "cat-file", "-e", task["base_commit"]], cwd=t,
                               stderr=subprocess.DEVNULL).returncode == 0

@@ -1,0 +1,2410 @@
+diff --git a/src/aseprite/__main__.py b/src/aseprite/__main__.py
+index 506268f..a4dc19e 100644
+--- a/src/aseprite/__main__.py
++++ b/src/aseprite/__main__.py
+@@ -20,9 +20,35 @@ def main(argv: list[str] | None=None) -> int:
+     Returns:
+         A process exit status.
+     """
+-    pass
++    parser = argparse.ArgumentParser(prog='python -m aseprite')
++    commands = parser.add_subparsers(dest='command', required=True)
++    info = commands.add_parser('info', help='print sprite structure')
++    info.add_argument('path', type=Path)
++    export = commands.add_parser('export', help='export one frame as an image')
++    export.add_argument('source', type=Path)
++    export.add_argument('dest', type=Path)
++    export.add_argument('--frame', type=int, default=0)
++    args = parser.parse_args(argv)
++    try:
++        sprite = Sprite.open(args.path if args.command == 'info' else args.source)
++        if args.command == 'info':
++            _print_info(sprite, args.path)
++            return 0
++        sprite.image(args.frame).save(args.dest)
++        return 0
++    except (AsepriteError, OSError, ImportError, IndexError, ValueError) as exc:
++        print(f'error: {exc}', file=sys.stderr)
++        return 1
+ 
+ def _print_info(sprite: Sprite, path: Path) -> None:
+-    pass
++    width, height = sprite.size
++    print(f'{path}: {width}x{height} {sprite.color_mode.name}, {len(sprite.frames)} frame(s)')
++    for tag in sprite.tags:
++        print(f'tag {tag.name}: {tag.from_frame}-{tag.to_frame} {tag.direction.name}')
++    print('layers:')
++    for layer in sprite.layers:
++        indent = '  ' * (1 + layer.child_level)
++        print(f'{indent}{layer.name} ({layer.kind.name})')
++
+ if __name__ == '__main__':
+     raise SystemExit(main())
+diff --git a/src/aseprite/_binary.py b/src/aseprite/_binary.py
+index 09ff13d..a7e0f72 100644
+--- a/src/aseprite/_binary.py
++++ b/src/aseprite/_binary.py
+@@ -12,112 +12,144 @@ class Reader:
+     """Reads little-endian values from a bounded byte buffer."""
+ 
+     def __init__(self, data: bytes, pos: int=0, end: int | None=None) -> None:
+-        pass
++        if end is None:
++            end = len(data)
++        if pos < 0 or end < pos or end > len(data) or pos > len(data):
++            raise FormatError("read bounds exceed data")
++        self.data = data
++        self.pos = pos
++        self.end = end
+ 
+     def remaining(self) -> int:
+-        pass
++        return self.end - self.pos
+ 
+     def _need(self, n: int) -> None:
+-        pass
++        if n < 0 or self.pos + n > self.end:
++            raise FormatError("unexpected end of data")
+ 
+     def raw(self, n: int) -> bytes:
+-        pass
++        self._need(n)
++        out = self.data[self.pos:self.pos + n]
++        self.pos += n
++        return bytes(out)
+ 
+     def skip(self, n: int) -> None:
+-        pass
++        self._need(n)
++        self.pos += n
++
++    def _unpack(self, fmt: str):
++        size = struct.calcsize(fmt)
++        self._need(size)
++        (value,) = struct.unpack_from(fmt, self.data, self.pos)
++        self.pos += size
++        return value
+ 
+     def u8(self) -> int:
+-        pass
++        return self._unpack('<B')
+ 
+     def i8(self) -> int:
+-        pass
++        return self._unpack('<b')
+ 
+     def u16(self) -> int:
+-        pass
++        return self._unpack('<H')
+ 
+     def i16(self) -> int:
+-        pass
++        return self._unpack('<h')
+ 
+     def u32(self) -> int:
+-        pass
++        return self._unpack('<I')
+ 
+     def i32(self) -> int:
+-        pass
++        return self._unpack('<i')
+ 
+     def u64(self) -> int:
+-        pass
++        return self._unpack('<Q')
+ 
+     def i64(self) -> int:
+-        pass
++        return self._unpack('<q')
+ 
+     def f32(self) -> float:
+-        pass
++        return self._unpack('<f')
+ 
+     def f64(self) -> float:
+-        pass
++        return self._unpack('<d')
+ 
+     def string(self) -> str:
+-        pass
++        length = self.u16()
++        raw = self.raw(length)
++        try:
++            return raw.decode('utf-8')
++        except UnicodeDecodeError as exc:
++            raise FormatError('string is not valid UTF-8') from exc
+ 
+     def uuid(self) -> bytes:
+-        pass
++        return self.raw(16)
+ 
+ class Writer:
+     """Writes little-endian values into a growable buffer."""
+ 
+     def __init__(self) -> None:
+-        pass
++        self.buf = bytearray()
+ 
+     def tell(self) -> int:
+-        pass
++        return len(self.buf)
+ 
+     def raw(self, data: bytes | bytearray) -> None:
+-        pass
++        self.buf += data
+ 
+     def pad(self, n: int) -> None:
+-        pass
++        self.buf += bytes(n)
+ 
+     def _pack(self, fmt: str, value: int) -> bytes:
+-        pass
++        try:
++            return struct.pack(fmt, value)
++        except struct.error as exc:
++            raise ValueError(f'value {value!r} out of range for {fmt}') from exc
+ 
+     def u8(self, value: int) -> None:
+-        pass
++        self.buf += self._pack('<B', value)
+ 
+     def i8(self, value: int) -> None:
+-        pass
++        self.buf += self._pack('<b', value)
+ 
+     def u16(self, value: int) -> None:
+-        pass
++        self.buf += self._pack('<H', value)
+ 
+     def i16(self, value: int) -> None:
+-        pass
++        self.buf += self._pack('<h', value)
+ 
+     def u32(self, value: int) -> None:
+-        pass
++        self.buf += self._pack('<I', value)
+ 
+     def i32(self, value: int) -> None:
+-        pass
++        self.buf += self._pack('<i', value)
+ 
+     def u64(self, value: int) -> None:
+-        pass
++        self.buf += self._pack('<Q', value)
+ 
+     def i64(self, value: int) -> None:
+-        pass
++        self.buf += self._pack('<q', value)
+ 
+     def f32(self, value: float) -> None:
+-        pass
++        self.buf += struct.pack('<f', value)
+ 
+     def f64(self, value: float) -> None:
+-        pass
++        self.buf += struct.pack('<d', value)
+ 
+     def string(self, value: str) -> None:
+-        pass
++        encoded = value.encode('utf-8')
++        if len(encoded) > 0xFFFF:
++            raise ValueError('string exceeds the WORD length limit')
++        self.u16(len(encoded))
++        self.buf += encoded
+ 
+     def uuid(self, value: bytes) -> None:
+-        pass
++        if len(value) != 16:
++            raise ValueError('UUID must be 16 bytes')
++        self.buf += value
+ 
+     def patch_u32(self, offset: int, value: int) -> None:
+-        pass
++        self.buf[offset:offset + 4] = self._pack('<I', value)
+ 
+     def patch_u16(self, offset: int, value: int) -> None:
+-        pass
++        self.buf[offset:offset + 2] = self._pack('<H', value)
+diff --git a/src/aseprite/_limits.py b/src/aseprite/_limits.py
+index f0d4542..f3e778f 100644
+--- a/src/aseprite/_limits.py
++++ b/src/aseprite/_limits.py
+@@ -11,17 +11,25 @@ class DocumentBudget:
+     """Tracks pixel bytes and palette allocations for one document read."""
+ 
+     def __init__(self, limit: int) -> None:
+-        pass
++        self.limit = limit
++        self.used = 0
++        self.palette_used = 0
+ 
+     def allow(self, n: int) -> None:
+-        pass
++        if n < 0 or self.used + n > self.limit:
++            raise FormatError('document exceeds the uncompressed size limit')
+ 
+     def charge(self, n: int) -> None:
+-        pass
++        self.allow(n)
++        self.used += n
+ 
+     def charge_palette(self, n: int) -> None:
+-        pass
++        if n < 0 or self.palette_used + n > MAX_TOTAL_PALETTE_COLORS:
++            raise FormatError('palette allocation exceeds the document limit')
++        self.palette_used += n
+ 
+ def bytes_per_tile(bits_per_tile: int) -> int:
+     """Returns the stored size of one tilemap cell."""
+-    pass
++    if bits_per_tile not in (8, 16, 32):
++        raise FormatError(f'unsupported tile width: {bits_per_tile}')
++    return bits_per_tile // 8
+diff --git a/src/aseprite/_model.py b/src/aseprite/_model.py
+index c145063..ff0f44f 100644
+--- a/src/aseprite/_model.py
++++ b/src/aseprite/_model.py
+@@ -16,7 +16,12 @@ class _OpenIntEnum(IntEnum):
+ 
+     @classmethod
+     def _missing_(cls, value: object) -> Self | None:
+-        pass
++        if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
++            pseudo = int.__new__(cls, value)
++            pseudo._name_ = f'UNKNOWN_{value}'
++            pseudo._value_ = value
++            return pseudo
++        return None
+ 
+ class ColorMode(IntEnum):
+     """The pixel format of a sprite.
+@@ -33,7 +38,7 @@ class ColorMode(IntEnum):
+     @property
+     def bytes_per_pixel(self) -> int:
+         """Returns the number of bytes that store one pixel."""
+-        pass
++        return {ColorMode.RGBA: 4, ColorMode.GRAYSCALE: 2, ColorMode.INDEXED: 1}[self]
+ 
+ class BlendMode(_OpenIntEnum):
+     """A layer blend mode from the Aseprite spec.
+@@ -165,34 +170,79 @@ class Pixels:
+     compressed: bytes | None = field(default=None, compare=False, repr=False)
+ 
+     def __post_init__(self) -> None:
+-        pass
++        if self.width < 0 or self.height < 0:
++            raise ValueError('pixel dimensions must be non-negative')
++        expected = self.width * self.height * self.color_mode.bytes_per_pixel
++        if len(self.data) != expected:
++            raise ValueError(f'pixel data length {len(self.data)} does not match {expected}')
++        self.data = bytearray(self.data)
+ 
+     @classmethod
+     def blank(cls, width: int, height: int, color_mode: ColorMode) -> Pixels:
+         """Returns a transparent (or zero) buffer of the given size."""
+-        pass
++        if width < 0 or height < 0:
++            raise ValueError('pixel dimensions must be non-negative')
++        return cls(width, height, bytearray(width * height * color_mode.bytes_per_pixel), color_mode)
+ 
+     def _offset(self, key: object) -> int:
+-        pass
++        if not isinstance(key, tuple) or len(key) != 2 or not all(isinstance(v, int) for v in key):
++            raise TypeError('pixel index must be an (x, y) tuple of integers')
++        x, y = key
++        if not (0 <= x < self.width and 0 <= y < self.height):
++            raise IndexError(f'pixel index {key} is out of range')
++        return (y * self.width + x) * self.color_mode.bytes_per_pixel
+ 
+     def __getitem__(self, key: tuple[int, int]) -> Color | int:
+-        pass
++        offset = self._offset(key)
++        if self.color_mode is ColorMode.INDEXED:
++            return self.data[offset]
++        if self.color_mode is ColorMode.GRAYSCALE:
++            gray, alpha = self.data[offset], self.data[offset + 1]
++            return Color(gray, gray, gray, alpha)
++        return Color(*self.data[offset:offset + 4])
+ 
+     def __setitem__(self, key: tuple[int, int], value: Color | Sequence[int] | int) -> None:
+-        pass
++        offset = self._offset(key)
++        packed = _pack_pixel(self.color_mode, value)
++        self.data[offset:offset + len(packed)] = packed
+ 
+     def __buffer__(self, _flags: int) -> memoryview:
+-        pass
++        return memoryview(self.data)
+ 
+ def _check_color_mode(pixels: Pixels, color_mode: ColorMode, what: str) -> None:
+     """Raises ``ValueError`` if ``pixels`` are not in the sprite's color mode."""
+-    pass
++    if pixels.color_mode is not color_mode:
++        raise ValueError(f'{what} is {pixels.color_mode.name} but the sprite is {color_mode.name}')
+ 
+ def _channel(value: object) -> int:
+-    pass
++    if not isinstance(value, int) or isinstance(value, bool):
++        raise TypeError('pixel channels must be integers')
++    if not 0 <= value <= 255:
++        raise ValueError(f'pixel channel {value} is out of range 0-255')
++    return value
+ 
+ def _pack_pixel(color_mode: ColorMode, value: Color | Sequence[int] | int) -> bytes:
+-    pass
++    if color_mode is ColorMode.INDEXED:
++        if not isinstance(value, int) or isinstance(value, bool):
++            raise TypeError('indexed pixel value must be an integer palette index')
++        if not 0 <= value <= 255:
++            raise ValueError(f'indexed pixel value {value} is out of range 0-255')
++        return bytes((value,))
++    if color_mode is ColorMode.GRAYSCALE:
++        if isinstance(value, Color):
++            gray, alpha = _channel(value.r), _channel(value.a)
++        elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)) and len(value) == 2:
++            gray, alpha = _channel(value[0]), _channel(value[1])
++        else:
++            raise TypeError('grayscale pixel must be a Color or a (gray, alpha) pair')
++        return bytes((gray, alpha))
++    if isinstance(value, Color):
++        channels: tuple[object, ...] = (value.r, value.g, value.b, value.a)
++    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes)) and len(value) in (3, 4):
++        channels = tuple(value) if len(value) == 4 else (*value, 255)
++    else:
++        raise TypeError('RGBA pixel must be a Color or a 3- or 4-item sequence')
++    return bytes(_channel(c) for c in channels)
+ 
+ @dataclass(slots=True)
+ class Color:
+@@ -204,7 +254,7 @@ class Color:
+     name: str | None = None
+ 
+     def __iter__(self) -> Iterator[int]:
+-        pass
++        return iter((self.r, self.g, self.b, self.a))
+ 
+ @dataclass(slots=True)
+ class Palette:
+@@ -212,24 +262,24 @@ class Palette:
+     colors: list[Color] = field(default_factory=list)
+ 
+     def __len__(self) -> int:
+-        pass
++        return len(self.colors)
+ 
+     def __getitem__(self, index: int) -> Color:
+-        pass
++        return self.colors[index]
+ 
+     def __setitem__(self, index: int, color: Color) -> None:
+-        pass
++        self.colors[index] = color
+ 
+     def __iter__(self) -> Iterator[Color]:
+-        pass
++        return iter(self.colors)
+ 
+     def append(self, color: Color) -> None:
+         """Adds a color at the end of the palette."""
+-        pass
++        self.colors.append(color)
+ 
+     def extend(self, colors: Iterable[Color]) -> None:
+         """Adds colors at the end of the palette."""
+-        pass
++        self.colors.extend(colors)
+ 
+ @dataclass(slots=True)
+ class Grid:
+@@ -272,7 +322,12 @@ class UserData:
+     properties: list[PropertiesMap] = field(default_factory=list)
+ 
+     def __bool__(self) -> bool:
+-        pass
++        return self.text is not None or self.color is not None or bool(self.properties)
++
++def _layer_index(layer: Layer | int) -> int:
++    if isinstance(layer, Layer):
++        return layer.index
++    return int(layer)
+ 
+ @dataclass(slots=True)
+ class Layer:
+@@ -305,12 +360,37 @@ class Layer:
+     @property
+     def flags(self) -> int:
+         """Returns the layer flag bits from the file format."""
+-        pass
++        bits = 0
++        for flag, value in (
++            (self.visible, LAYER_FLAG_VISIBLE),
++            (self.editable, LAYER_FLAG_EDITABLE),
++            (self.lock_movement, LAYER_FLAG_LOCK_MOVEMENT),
++            (self.background, LAYER_FLAG_BACKGROUND),
++            (self.prefer_linked_cels, LAYER_FLAG_PREFER_LINKED),
++            (self.collapsed, LAYER_FLAG_COLLAPSED),
++            (self.reference, LAYER_FLAG_REFERENCE),
++        ):
++            if flag:
++                bits |= value
++        return bits
+ 
+     @classmethod
+     def from_flags(cls, name: str, flags: int, kind: LayerType, child_level: int, blend_mode: BlendMode, opacity: int) -> Layer:
+         """Returns a layer decoded from file flag bits."""
+-        pass
++        return cls(
++            name=name,
++            kind=kind,
++            child_level=child_level,
++            blend_mode=blend_mode,
++            opacity=opacity,
++            visible=bool(flags & LAYER_FLAG_VISIBLE),
++            editable=bool(flags & LAYER_FLAG_EDITABLE),
++            lock_movement=bool(flags & LAYER_FLAG_LOCK_MOVEMENT),
++            background=bool(flags & LAYER_FLAG_BACKGROUND),
++            prefer_linked_cels=bool(flags & LAYER_FLAG_PREFER_LINKED),
++            collapsed=bool(flags & LAYER_FLAG_COLLAPSED),
++            reference=bool(flags & LAYER_FLAG_REFERENCE),
++        )
+ 
+ @dataclass(slots=True)
+ class CelExtra:
+@@ -374,7 +454,7 @@ class Frame:
+     @property
+     def cels(self) -> list[Cel]:
+         """Returns cels in layer-index order."""
+-        pass
++        return [self._cels[key] for key in sorted(self._cels)]
+ 
+     def cel(self, layer: Layer | int) -> Cel | None:
+         """Returns the cel on the given layer, if one exists.
+@@ -382,13 +462,16 @@ class Frame:
+         Args:
+             layer: The layer object or layer index.
+         """
+-        pass
++        return self._cels.get(_layer_index(layer))
+ 
+     def __getitem__(self, layer: Layer | int) -> Cel:
+-        pass
++        index = _layer_index(layer)
++        if index not in self._cels:
++            raise KeyError(f'no cel on layer {index}')
++        return self._cels[index]
+ 
+     def __setitem__(self, layer: Layer | int, pixels: Pixels) -> None:
+-        pass
++        self.set_cel(layer, pixels)
+ 
+     def set_cel(self, layer: Layer | int, pixels: Pixels, x: int=0, y: int=0, *, opacity: int=255, z_index: int=0) -> Cel:
+         """Places image pixels on the given layer.
+@@ -404,7 +487,10 @@ class Frame:
+         Returns:
+             The created cel.
+         """
+-        pass
++        index = _layer_index(layer)
++        cel = Cel(layer_index=index, x=x, y=y, opacity=opacity, z_index=z_index, pixels=pixels)
++        self._cels[index] = cel
++        return cel
+ 
+     def set_linked_cel(self, layer: Layer | int, source_frame: int, *, x: int=0, y: int=0, opacity: int=255, z_index: int=0) -> Cel:
+         """Links this cel to the same layer in another frame.
+@@ -420,7 +506,10 @@ class Frame:
+         Returns:
+             The created cel.
+         """
+-        pass
++        index = _layer_index(layer)
++        cel = Cel(layer_index=index, x=x, y=y, opacity=opacity, z_index=z_index, link=source_frame)
++        self._cels[index] = cel
++        return cel
+ 
+     def set_tilemap_cel(self, layer: Layer | int, tilemap: Tilemap, x: int=0, y: int=0, *, opacity: int=255, z_index: int=0) -> Cel:
+         """Places a tilemap on the given layer.
+@@ -436,7 +525,10 @@ class Frame:
+         Returns:
+             The created cel.
+         """
+-        pass
++        index = _layer_index(layer)
++        cel = Cel(layer_index=index, x=x, y=y, opacity=opacity, z_index=z_index, tilemap=tilemap)
++        self._cels[index] = cel
++        return cel
+ 
+ @dataclass(slots=True)
+ class Tag:
+@@ -456,53 +548,74 @@ class _NamedList[T: _HasName](MutableSequence[T]):
+     """A mutable sequence that also looks up items by ``name``."""
+ 
+     def __init__(self, items: Iterable[T] | None=None) -> None:
+-        pass
++        self._items: list[T] = list(items) if items is not None else []
++        self._after_mutate()
+ 
+     def _after_mutate(self) -> None:
+         pass
+ 
+     def _name_of(self, item: T) -> str:
+-        pass
++        return item.name
+ 
+     @overload
+     def __getitem__(self, key: int) -> T:
+-        pass
++        ...
+ 
+     @overload
+     def __getitem__(self, key: slice) -> list[T]:
+-        pass
++        ...
+ 
+     @overload
+     def __getitem__(self, key: str) -> T:
+-        pass
++        ...
+ 
+     def __getitem__(self, key: int | slice | str) -> T | list[T]:
+-        pass
++        if isinstance(key, str):
++            for item in self._items:
++                if self._name_of(item) == key:
++                    return item
++            raise KeyError(f'no item named {key!r}')
++        return self._items[key]
+ 
+     def __setitem__(self, key: int | slice, value: T | Iterable[T]) -> None:
+-        pass
++        if isinstance(key, slice):
++            self._items[key] = list(cast(Iterable[T], value))
++        else:
++            self._items[key] = cast(T, value)
++        self._after_mutate()
+ 
+     def __delitem__(self, key: int | slice) -> None:
+-        pass
++        del self._items[key]
++        self._after_mutate()
+ 
+     def __len__(self) -> int:
+-        pass
++        return len(self._items)
+ 
+     def insert(self, index: int, value: T) -> None:
+-        pass
++        self._items.insert(index, value)
++        self._after_mutate()
+ 
+     def __contains__(self, key: object) -> bool:
+-        pass
++        if isinstance(key, str):
++            return any(self._name_of(item) == key for item in self._items)
++        return any(item is key or item == key for item in self._items)
+ 
+     def get(self, name: str, default: T | None=None) -> T | None:
+         """Returns the first item with this name, or ``default``."""
+-        pass
++        for item in self._items:
++            if self._name_of(item) == name:
++                return item
++        return default
+ 
+     def __eq__(self, other: object) -> bool:
+-        pass
++        if isinstance(other, _NamedList):
++            return self._items == other._items
++        if isinstance(other, list):
++            return self._items == other
++        return NotImplemented
+ 
+     def __iter__(self) -> Iterator[T]:
+-        pass
++        return iter(self._items)
+ 
+ class TagList(_NamedList[Tag]):
+     """A sequence of tags that supports lookup by name or index."""
+@@ -518,20 +631,51 @@ class LayerList(_NamedList[Layer]):
+     """
+ 
+     def __init__(self, items: Iterable[Layer] | None=None, *, on_remap: Callable[[dict[int, int | None]], None] | None=None) -> None:
+-        pass
++        self._on_remap = on_remap
++        super().__init__(items)
+ 
+     @staticmethod
+     def _check_unique(items: list[Layer]) -> None:
+-        pass
++        seen: set[int] = set()
++        for layer in items:
++            if id(layer) in seen:
++                raise ValueError('the same layer appears more than once in the layer list')
++            seen.add(id(layer))
++
++    def _replace(self, new_items: list[Layer]) -> None:
++        self._check_unique(new_items)
++        old_positions = {id(layer): i for i, layer in enumerate(self._items)}
++        mapping: dict[int, int | None] = {old: None for old in range(len(self._items))}
++        for new_index, layer in enumerate(new_items):
++            old = old_positions.get(id(layer))
++            if old is not None:
++                mapping[old] = new_index
++        self._items = list(new_items)
++        self._after_mutate()
++        if self._on_remap is not None:
++            self._on_remap(mapping)
+ 
+     def __setitem__(self, key: int | slice, value: Layer | Iterable[Layer]) -> None:
+-        pass
++        new_items = list(self._items)
++        if isinstance(key, slice):
++            new_items[key] = list(cast(Iterable[Layer], value))
++        else:
++            new_items[key] = cast(Layer, value)
++        self._replace(new_items)
++
++    def __delitem__(self, key: int | slice) -> None:
++        new_items = list(self._items)
++        del new_items[key]
++        self._replace(new_items)
+ 
+     def insert(self, index: int, value: Layer) -> None:
+-        pass
++        new_items = list(self._items)
++        new_items.insert(index, value)
++        self._replace(new_items)
+ 
+     def _after_mutate(self) -> None:
+-        pass
++        for position, layer in enumerate(self._items):
++            layer.index = position
+ 
+     def reverse(self) -> None:
+         """Reverses top-level layers, keeping each group's subtree intact.
+@@ -539,18 +683,38 @@ class LayerList(_NamedList[Layer]):
+         Child order and cel associations are preserved. Calling twice
+         restores the original order, including nested groups.
+         """
+-        pass
++        items = self._items
++        blocks: list[list[Layer]] = []
++        start = 0
++        while start < len(items):
++            end = start + 1
++            while end < len(items) and items[end].child_level > items[start].child_level:
++                end += 1
++            blocks.append(items[start:end])
++            start = end
++        self._replace([layer for block in reversed(blocks) for layer in block])
+ 
+     def children(self, group: Layer) -> list[Layer]:
+         """Returns the direct child layers of a group."""
+-        pass
++        level = group.child_level + 1
++        return [layer for layer in self.descendants(group) if layer.child_level == level]
+ 
+     def descendants(self, group: Layer) -> list[Layer]:
+         """Returns every descendant of a group, in file order."""
+-        pass
++        start = self._position(group)
++        return self._items[start + 1:self._descendants_end(group)]
++
++    def _position(self, group: Layer) -> int:
++        for position, layer in enumerate(self._items):
++            if layer is group:
++                return position
++        raise ValueError('layer is not in this list')
+ 
+     def _descendants_end(self, group: Layer) -> int:
+-        pass
++        end = self._position(group) + 1
++        while end < len(self._items) and self._items[end].child_level > group.child_level:
++            end += 1
++        return end
+ 
+ @dataclass(slots=True)
+ class NinePatch:
+@@ -629,6 +793,3 @@ class UnknownChunk:
+     frame_index: int
+     chunk_type: int
+     data: bytes
+-
+-def _layer_index(layer: Layer | int) -> int:
+-    pass
+diff --git a/src/aseprite/_reader.py b/src/aseprite/_reader.py
+index db26c18..edf7eb7 100644
+--- a/src/aseprite/_reader.py
++++ b/src/aseprite/_reader.py
+@@ -1,13 +1,12 @@
+ """Parse Aseprite documents from bytes."""
+ from __future__ import annotations
+ import zlib
+-from dataclasses import replace
+ from typing import TYPE_CHECKING
+ from uuid import UUID
+ from aseprite._binary import CHUNK_HEADER_SIZE, FILE_MAGIC, FRAME_HEADER_SIZE, FRAME_MAGIC, HEADER_SIZE, Reader
+ from aseprite._errors import FormatError
+ from aseprite._limits import MAX_PALETTE_COLORS, MAX_UNCOMPRESSED_BYTES, DocumentBudget, bytes_per_tile
+-from aseprite._model import HEADER_FLAG_GROUP_BLEND, HEADER_FLAG_LAYER_OPACITY, HEADER_FLAG_LAYER_UUID, BlendMode, Cel, CelExtra, CelType, Color, ColorMode, ColorProfile, ColorProfileType, ExternalFile, ExternalFileType, Grid, Layer, LayerType, LoopDirection, Mask, NinePatch, Palette, Pixels, Slice, SliceKey, Tag, Tilemap, Tileset, UnknownChunk
++from aseprite._model import HEADER_FLAG_GROUP_BLEND, HEADER_FLAG_LAYER_OPACITY, HEADER_FLAG_LAYER_UUID, TILESET_FLAG_EMBEDDED, TILESET_FLAG_EXTERNAL, BlendMode, Cel, CelExtra, CelType, Color, ColorMode, ColorProfile, ColorProfileType, ExternalFile, ExternalFileType, Frame, Grid, Layer, LayerList, LayerType, LoopDirection, Mask, NinePatch, Palette, Pixels, Slice, SliceKey, Tag, Tilemap, Tileset, UnknownChunk, UserData
+ from aseprite._userdata import read_user_data
+ if TYPE_CHECKING:
+     from aseprite._sprite import Sprite
+@@ -26,49 +25,445 @@ CHUNK_PALETTE = 8217
+ CHUNK_USER_DATA = 8224
+ CHUNK_SLICE = 8226
+ CHUNK_TILESET = 8227
++_COLOR_MODES = {32: ColorMode.RGBA, 16: ColorMode.GRAYSCALE, 8: ColorMode.INDEXED}
+ 
+ def read_sprite(data: bytes) -> Sprite:
+     """Parses bytes and returns a ``Sprite``.
+ 
+     Imported lazily from ``_sprite`` to avoid a cycle.
+     """
+-    pass
++    from aseprite._sprite import Sprite
++    if len(data) < HEADER_SIZE:
++        raise FormatError('file is shorter than the 128-byte header')
++    header = Reader(data, 0, HEADER_SIZE)
++    file_size = header.u32()
++    if file_size < HEADER_SIZE:
++        raise FormatError('file size is smaller than the header')
++    if file_size > len(data):
++        raise FormatError('truncated frame data')
++    if header.u16() != FILE_MAGIC:
++        raise FormatError('invalid file magic')
++    frame_count = header.u16()
++    width = header.u16()
++    height = header.u16()
++    depth = header.u16()
++    mode = _COLOR_MODES.get(depth)
++    if mode is None:
++        raise FormatError(f'unsupported color depth {depth}')
++    flags = header.u32()
++    speed = header.u16()
++    if width == 0 or height == 0:
++        raise FormatError('canvas size must be positive')
++    header.pos = 28
++    transparent_index = header.u8()
++    header.skip(3)
++    num_colors = header.u16()
++    pixel_width = header.u8()
++    pixel_height = header.u8()
++    grid_x = header.i16()
++    grid_y = header.i16()
++    grid_width = header.u16()
++    grid_height = header.u16()
++    sprite = Sprite(width, height, mode, empty=True)
++    sprite.valid_layer_opacity = bool(flags & HEADER_FLAG_LAYER_OPACITY)
++    sprite.group_blend = bool(flags & HEADER_FLAG_GROUP_BLEND)
++    sprite.transparent_index = transparent_index
++    sprite.num_colors = num_colors or 256
++    sprite.pixel_width = pixel_width
++    sprite.pixel_height = pixel_height
++    sprite.grid = Grid(grid_x, grid_y, grid_width, grid_height)
++    sprite.color_profile = None
++    body = Reader(data, HEADER_SIZE, len(data))
++    parser = _Parser(sprite, mode, bool(flags & HEADER_FLAG_LAYER_UUID))
++    for frame_index in range(frame_count):
++        frame_start = body.pos
++        frame_size = body.u32()
++        if frame_size < FRAME_HEADER_SIZE:
++            raise FormatError('invalid frame size')
++        frame_end = frame_start + frame_size
++        if frame_end > len(data):
++            raise FormatError('truncated frame')
++        if body.u16() != FRAME_MAGIC:
++            raise FormatError('invalid frame magic')
++        old_count = body.u16()
++        duration = body.u16()
++        body.skip(2)
++        new_count = body.u32()
++        sprite.frames.append(Frame(duration_ms=duration or speed))
++        count = new_count or old_count
++        pos = frame_start + FRAME_HEADER_SIZE
++        for _ in range(count):
++            if frame_end - pos < CHUNK_HEADER_SIZE:
++                raise FormatError('truncated chunk header')
++            chunk = Reader(data, pos, frame_end)
++            chunk_size = chunk.u32()
++            chunk_type = chunk.u16()
++            if chunk_size < CHUNK_HEADER_SIZE:
++                raise FormatError('chunk size is smaller than 6')
++            chunk_end = pos + chunk_size
++            if chunk_end > frame_end:
++                raise FormatError('chunk exceeds frame')
++            payload = Reader(data, pos + CHUNK_HEADER_SIZE, chunk_end)
++            parser.chunk(frame_index, chunk_type, payload, bytes(data[pos + CHUNK_HEADER_SIZE:chunk_end]))
++            pos = chunk_end
++        body.pos = frame_end
++    sprite.layers = LayerList(parser.layers, on_remap=sprite._remap_cels)
++    for tileset in sprite.tilesets:
++        while tileset.tile_user_data and tileset.tile_user_data[-1] is None:
++            tileset.tile_user_data.pop()
++    return sprite
++
++class _Attach:
++    """Tracks which object the next user-data chunk belongs to."""
++
++    def __init__(self, sprite: Sprite) -> None:
++        self.sprite = sprite
++        self.kind: str | None = None
++        self.obj: object = None
++        self.index = 0
++
++    def set(self, kind: str, obj: object, index: int=0) -> None:
++        self.kind = kind
++        self.obj = obj
++        self.index = index
++
++    def apply(self, data: UserData) -> None:
++        value = data if data else None
++        if self.kind is None:
++            self.sprite.user_data = value
++        elif self.kind == 'tags':
++            tags = self.obj
++            tags[self.index].user_data = value
++            self.index += 1
++            if self.index >= len(tags):
++                self.kind = None
++        elif self.kind == 'tileset':
++            tileset = self.obj
++            if self.index < 0:
++                tileset.user_data = value
++                self.index = 0
++            else:
++                tileset.tile_user_data.append(value)
++        else:
++            self.obj.user_data = value
++            self.kind = None
++
++class _Parser:
++    """Applies chunks to a sprite in file order."""
++
++    def __init__(self, sprite: Sprite, mode: ColorMode, has_uuid: bool) -> None:
++        self.sprite = sprite
++        self.mode = mode
++        self.has_uuid = has_uuid
++        self.budget = DocumentBudget(MAX_UNCOMPRESSED_BYTES)
++        self.layers: list[Layer] = []
++        self.attach = _Attach(sprite)
++        self.palette = sprite.palette
+ 
+-def _read_old_palette(r: Reader, scale: int, previous: Palette, budget: DocumentBudget) -> Palette:
+-    pass
++    def chunk(self, frame_index: int, chunk_type: int, payload: Reader, raw: bytes) -> None:
++        sprite = self.sprite
++        frame = sprite.frames[frame_index]
++        if chunk_type == CHUNK_USER_DATA:
++            self.attach.apply(read_user_data(payload))
++            return
++        if chunk_type != CHUNK_CEL_EXTRA:
++            self.attach.kind = None
++        if chunk_type in (CHUNK_OLD_PALETTE_4, CHUNK_OLD_PALETTE_11, CHUNK_OLD_PALETTE_11_ALIAS):
++            six_bit = chunk_type != CHUNK_OLD_PALETTE_4
++            if six_bit:
++                sprite._had_old_palette_11 = True
++            else:
++                sprite._had_old_palette_4 = True
++            self._set_palette(frame_index, _read_old_palette(payload, six_bit, self.palette, self.budget))
++        elif chunk_type == CHUNK_PALETTE:
++            self._set_palette(frame_index, _read_palette(payload, self.palette, self.budget))
++        elif chunk_type == CHUNK_LAYER:
++            layer = _read_layer(payload, self.has_uuid)
++            if not sprite.valid_layer_opacity:
++                layer.opacity = 255
++            self.layers.append(layer)
++            self.attach.set('layer', layer)
++        elif chunk_type == CHUNK_CEL:
++            cel = _read_cel(payload, self.mode, self.budget)
++            frame._cels[cel.layer_index] = cel
++            self.attach.set('cel', cel)
++        elif chunk_type == CHUNK_CEL_EXTRA:
++            if self.attach.kind == 'cel':
++                self.attach.obj.extra = _read_cel_extra(payload)
++        elif chunk_type == CHUNK_COLOR_PROFILE:
++            sprite.color_profile = _read_color_profile(payload)
++        elif chunk_type == CHUNK_EXTERNAL_FILES:
++            sprite.external_files.extend(_read_external_files(payload))
++        elif chunk_type == CHUNK_MASK:
++            sprite.masks.append(_read_mask(payload))
++        elif chunk_type == CHUNK_TAGS:
++            tags = _read_tags(payload)
++            sprite.tags.extend(tags)
++            if tags:
++                self.attach.set('tags', tags)
++        elif chunk_type == CHUNK_SLICE:
++            slice_ = _read_slice(payload)
++            sprite.slices.append(slice_)
++            self.attach.set('slice', slice_)
++        elif chunk_type == CHUNK_TILESET:
++            tileset = _read_tileset(payload, self.mode, self.budget)
++            sprite.tilesets.append(tileset)
++            self.attach.set('tileset', tileset, -1)
++        else:
++            sprite.unknown_chunks.append(UnknownChunk(frame_index, chunk_type, raw))
++
++    def _set_palette(self, frame_index: int, palette: Palette) -> None:
++        if frame_index == 0:
++            self.sprite.palette = palette
++        else:
++            self.sprite.frames[frame_index].palette = palette
++        self.palette = palette
++
++def _copy_colors(colors: list[Color]) -> list[Color]:
++    return [Color(c.r, c.g, c.b, c.a, c.name) for c in colors]
++
++def _set_entry(colors: list[Color], index: int, color: Color) -> None:
++    if index >= MAX_PALETTE_COLORS:
++        raise FormatError('palette size exceeds limit')
++    while len(colors) <= index:
++        colors.append(Color(0, 0, 0, 255))
++    colors[index] = color
++
++def _six_bit(value: int) -> int:
++    return (value << 2) | (value >> 4)
++
++def _read_old_palette(r: Reader, six_bit: bool, previous: Palette, budget: DocumentBudget) -> Palette:
++    colors = _copy_colors(previous.colors)
++    index = 0
++    for _ in range(r.u16()):
++        index += r.u8()
++        count = r.u8() or 256
++        for _ in range(count):
++            red, green, blue = r.u8(), r.u8(), r.u8()
++            if six_bit:
++                red, green, blue = _six_bit(red), _six_bit(green), _six_bit(blue)
++            _set_entry(colors, index, Color(red, green, blue, 255))
++            index += 1
++    budget.charge_palette(len(colors))
++    return Palette(colors)
+ 
+ def _read_palette(r: Reader, previous: Palette, budget: DocumentBudget) -> Palette:
+-    pass
++    new_size = r.u32()
++    first = r.u32()
++    last = r.u32()
++    r.skip(8)
++    if new_size == 0:
++        return Palette([])
++    if new_size > MAX_PALETTE_COLORS:
++        raise FormatError('palette size exceeds limit')
++    if last < first or last >= new_size:
++        raise FormatError('invalid palette index range')
++    budget.charge_palette(new_size)
++    colors = _copy_colors(previous.colors[:new_size])
++    while len(colors) < new_size:
++        colors.append(Color(0, 0, 0, 255))
++    for index in range(first, last + 1):
++        flags = r.u16()
++        red, green, blue, alpha = r.u8(), r.u8(), r.u8(), r.u8()
++        name = r.string() if flags & 1 else None
++        colors[index] = Color(red, green, blue, alpha, name)
++    return Palette(colors)
+ 
+ def _read_layer(r: Reader, has_uuid: bool) -> Layer:
+-    pass
++    flags = r.u16()
++    kind_code = r.u16()
++    child_level = r.u16()
++    r.u16()
++    r.u16()
++    blend = r.u16()
++    opacity = r.u8()
++    r.skip(3)
++    name = r.string()
++    try:
++        kind = LayerType(kind_code)
++    except ValueError as exc:
++        raise FormatError(f'unsupported layer type {kind_code}') from exc
++    tileset_index = r.u32() if kind is LayerType.TILEMAP else None
++    uuid = None
++    if has_uuid:
++        raw_uuid = r.uuid()
++        if any(raw_uuid):
++            uuid = UUID(bytes=raw_uuid)
++    layer = Layer.from_flags(name, flags, kind, child_level, BlendMode(blend), opacity)
++    layer.tileset_index = tileset_index
++    layer.uuid = uuid
++    return layer
+ 
+ def _pixels(width: int, height: int, data: bytes, color_mode: ColorMode, compressed: bytes | None=None) -> Pixels:
+-    pass
++    return Pixels(width, height, data, color_mode, compressed=compressed)
++
++def _pad(data: bytes, size: int) -> bytes:
++    if len(data) < size:
++        return data + bytes(size - len(data))
++    return data
+ 
+ def _decompress(raw: bytes, max_size: int, budget: DocumentBudget) -> bytes:
+-    pass
++    budget.charge(max_size)
++    decompressor = zlib.decompressobj()
++    try:
++        out = decompressor.decompress(raw, max_size + 1)
++    except zlib.error as exc:
++        raise FormatError('invalid zlib stream') from exc
++    if len(out) > max_size:
++        raise FormatError('decompressed data exceeds size limit')
++    if not decompressor.eof:
++        raise FormatError('incomplete zlib stream')
++    return bytes(out)
+ 
+ def _read_cel(r: Reader, color_mode: ColorMode, budget: DocumentBudget) -> Cel:
+-    pass
++    layer_index = r.u16()
++    x = r.i16()
++    y = r.i16()
++    opacity = r.u8()
++    cel_code = r.u16()
++    z_index = r.i16()
++    r.skip(5)
++    try:
++        cel_type = CelType(cel_code)
++    except ValueError as exc:
++        raise FormatError(f'unsupported cel type {cel_code}') from exc
++    if cel_type is CelType.LINKED:
++        return Cel(layer_index, x, y, opacity, z_index, link=r.u16())
++    width = r.u16()
++    height = r.u16()
++    bpp = color_mode.bytes_per_pixel
++    if cel_type is CelType.RAW:
++        size = width * height * bpp
++        budget.charge(size)
++        if r.remaining() < size:
++            raise FormatError(f'pixel data length {r.remaining()} is shorter than {size}')
++        pixels = _pixels(width, height, r.raw(size), color_mode)
++        return Cel(layer_index, x, y, opacity, z_index, pixels=pixels, raw=True)
++    if cel_type is CelType.COMPRESSED:
++        size = width * height * bpp
++        raw = r.raw(r.remaining())
++        data = _pad(_decompress(raw, size, budget), size)
++        pixels = _pixels(width, height, data, color_mode, compressed=raw)
++        return Cel(layer_index, x, y, opacity, z_index, pixels=pixels)
++    bits = r.u16()
++    id_mask = r.u32()
++    x_mask = r.u32()
++    y_mask = r.u32()
++    d_mask = r.u32()
++    r.skip(10)
++    size = width * height * bytes_per_tile(bits)
++    raw = r.raw(r.remaining())
++    tiles = _pad(_decompress(raw, size, budget), size)
++    tilemap = Tilemap(width, height, bits, id_mask, x_mask, y_mask, d_mask, tiles, compressed=raw)
++    return Cel(layer_index, x, y, opacity, z_index, tilemap=tilemap)
+ 
+ def _read_cel_extra(r: Reader) -> CelExtra:
+-    pass
++    r.u32()
++    precise_x = r.u32()
++    precise_y = r.u32()
++    width = r.u32()
++    height = r.u32()
++    return CelExtra(precise_x, precise_y, width, height)
+ 
+ def _read_color_profile(r: Reader) -> ColorProfile:
+-    pass
++    kind = ColorProfileType(r.u16())
++    flags = r.u16()
++    gamma = r.u32()
++    r.skip(8)
++    icc = b''
++    if kind == ColorProfileType.ICC:
++        icc = r.raw(r.u32())
++    return ColorProfile(kind, bool(flags & 1), gamma, icc)
+ 
+ def _read_external_files(r: Reader) -> list[ExternalFile]:
+-    pass
++    count = r.u32()
++    r.skip(8)
++    files = []
++    for _ in range(count):
++        entry_id = r.u32()
++        r.skip(8)
++        kind = ExternalFileType(r.u8())
++        r.skip(7)
++        files.append(ExternalFile(entry_id, kind, r.string()))
++    return files
+ 
+ def _read_mask(r: Reader) -> Mask:
+-    pass
++    x = r.i16()
++    y = r.i16()
++    width = r.u16()
++    height = r.u16()
++    r.skip(8)
++    name = r.string()
++    bitmap = r.raw(height * ((width + 7) // 8))
++    return Mask(x, y, width, height, name, bitmap)
+ 
+ def _read_tags(r: Reader) -> list[Tag]:
+-    pass
++    count = r.u16()
++    r.skip(8)
++    tags = []
++    for _ in range(count):
++        from_frame = r.u16()
++        to_frame = r.u16()
++        direction = LoopDirection(r.u8())
++        repeat = r.u16()
++        r.skip(6)
++        color = (r.u8(), r.u8(), r.u8())
++        r.skip(1)
++        tags.append(Tag(r.string(), from_frame, to_frame, direction, repeat, color))
++    return tags
+ 
+ def _read_slice(r: Reader) -> Slice:
+-    pass
++    count = r.u32()
++    flags = r.u32()
++    r.skip(4)
++    name = r.string()
++    keys = []
++    for _ in range(count):
++        frame = r.u32()
++        x = r.i32()
++        y = r.i32()
++        width = r.u32()
++        height = r.u32()
++        nine_patch = None
++        if flags & 1:
++            nine_patch = NinePatch(r.i32(), r.i32(), r.u32(), r.u32())
++        pivot = None
++        if flags & 2:
++            pivot = (r.i32(), r.i32())
++        keys.append(SliceKey(frame, x, y, width, height, nine_patch, pivot))
++    return Slice(name, keys)
+ 
+ def _read_tileset(r: Reader, color_mode: ColorMode, budget: DocumentBudget) -> Tileset:
+-    pass
++    tileset_id = r.u32()
++    flags = r.u32()
++    count = r.u32()
++    tile_width = r.u16()
++    tile_height = r.u16()
++    base_index = r.i16()
++    r.skip(14)
++    name = r.string()
++    external_file_id = None
++    external_tileset_id = None
++    if flags & TILESET_FLAG_EXTERNAL:
++        external_file_id = r.u32()
++        external_tileset_id = r.u32()
++    pixels = None
++    compressed = None
++    if flags & TILESET_FLAG_EMBEDDED:
++        compressed = r.raw(r.u32())
++        size = tile_width * tile_height * count * color_mode.bytes_per_pixel
++        data = _pad(_decompress(compressed, size, budget), size)
++        pixels = _pixels(tile_width, tile_height * count, data, color_mode)
++    return Tileset(
++        id=tileset_id,
++        name=name,
++        tile_count=count,
++        tile_width=tile_width,
++        tile_height=tile_height,
++        base_index=base_index,
++        flags=flags,
++        pixels=pixels,
++        compressed=compressed,
++        external_file_id=external_file_id,
++        external_tileset_id=external_tileset_id,
++    )
+diff --git a/src/aseprite/_render.py b/src/aseprite/_render.py
+index 501e565..5a6ae56 100644
+--- a/src/aseprite/_render.py
++++ b/src/aseprite/_render.py
+@@ -1,16 +1,24 @@
+ """Composite a frame to RGBA8."""
+ from __future__ import annotations
+-import struct
+-from dataclasses import replace
+ from typing import TYPE_CHECKING
+ from aseprite._limits import MAX_GROUP_DEPTH, MAX_PIXELS, MAX_UNCOMPRESSED_BYTES, bytes_per_tile
+-from aseprite._model import BlendMode, Cel, ColorMode, Layer, LayerType, Palette, Pixels
++from aseprite._model import Cel, ColorMode, Layer, LayerType, Palette, Pixels
+ if TYPE_CHECKING:
+     from aseprite._sprite import Sprite
+ 
+ def flatten_frame(sprite: Sprite, frame_index: int) -> bytes:
+     """Returns RGBA8 bytes for one composited frame."""
+-    pass
++    width, height = sprite.width, sprite.height
++    if width * height > MAX_PIXELS:
++        raise ValueError(f'canvas exceeds {MAX_PIXELS} pixels')
++    if any(layer.child_level > MAX_GROUP_DEPTH for layer in sprite.layers):
++        raise ValueError(f'group nesting exceeds {MAX_GROUP_DEPTH} levels')
++    layers = list(sprite.layers)
++    if sprite.color_mode is ColorMode.INDEXED:
++        return _flatten_indexed(sprite, frame_index, layers)
++    dest = bytearray(width * height * 4)
++    _composite_layers(sprite, frame_index, layers, dest, sprite.group_blend, [], 0)
++    return bytes(dest)
+ 
+ def _flatten_indexed(sprite: Sprite, frame_index: int, layers: list[Layer]) -> bytes:
+     """Composites an indexed sprite the way Aseprite does.
+@@ -20,16 +28,43 @@ def _flatten_indexed(sprite: Sprite, frame_index: int, layers: list[Layer]) -> b
+     Layer and cel opacity and group isolation do not apply. The palette is
+     applied once at the end.
+     """
+-    pass
++    width, height = sprite.width, sprite.height
++    count = width * height
++    indices = bytearray(count)
++    painted = bytearray(count)
++    transparent = sprite.transparent_index
++    for _, layer, cel in _collect_entries(sprite, frame_index, layers, False, 0):
++        pixels = _cel_pixels(sprite, frame_index, layer, cel)
++        if pixels is None:
++            continue
++        x0, y0, x1, y1 = _visible_rect(sprite, cel, pixels)
++        if x0 >= x1 or y0 >= y1:
++            continue
++        data = pixels.data
++        for y in range(y0, y1):
++            src_row = (y - cel.y) * pixels.width
++            dst_row = y * width
++            for x in range(x0, x1):
++                value = data[src_row + x - cel.x]
++                if value == transparent and not layer.background:
++                    continue
++                indices[dst_row + x] = value
++                painted[dst_row + x] = 1
++    return _apply_palette(sprite.palette_at(frame_index), indices, painted)
+ 
+ def _apply_palette(colors: Palette, indices: bytearray, painted: bytearray) -> bytes:
+     """Maps palette indices to RGBA bytes without a per-pixel Python loop."""
+-    pass
++    lut = bytearray(256 * 4)
++    for index, color in enumerate(colors.colors[:256]):
++        lut[index * 4:index * 4 + 4] = bytes((color.r, color.g, color.b, color.a))
++    out = bytearray(len(indices) * 4)
++    for position in range(len(indices)):
++        if painted[position]:
++            value = indices[position] * 4
++            out[position * 4:position * 4 + 4] = lut[value:value + 4]
++    return bytes(out)
+ 
+-def _composite_layers(sprite: Sprite, frame_index: int, layers: list[Layer], dest: bytearray, isolate_groups: bool, scratches: list[bytearray], depth: int=0) -> None:
+-    pass
+-
+-def _collect_entries(sprite: Sprite, frame_index: int, layers: list[Layer], isolate_groups: bool, depth: int) -> list[tuple[int, int, Layer, Cel | None]]:
++def _collect_entries(sprite: Sprite, frame_index: int, layers: list[Layer], isolate_groups: bool, depth: int) -> list[tuple[tuple[int, int, int], Layer, Cel | None]]:
+     """Returns the visible cels under ``layers`` in paint order.
+ 
+     Aseprite sorts cels by ``layer index + z-index`` across the whole layer
+@@ -37,38 +72,194 @@ def _collect_entries(sprite: Sprite, frame_index: int, layers: list[Layer], isol
+     isolated, each group is one entry and its children are sorted on their
+     own.
+     """
+-    pass
++    entries: list[tuple[tuple[int, int, int], Layer, Cel | None]] = []
++    count = len(layers)
++    position = 0
++    while position < count:
++        layer = layers[position]
++        if layer.kind == LayerType.GROUP:
++            end = position + 1
++            while end < count and layers[end].child_level > layer.child_level:
++                end += 1
++            if not layer.visible:
++                position = end
++                continue
++            if isolate_groups:
++                entries.append(((layer.index, 0, layer.index), layer, None))
++                position = end
++                continue
++            position += 1
++            continue
++        if layer.visible and not layer.reference:
++            cel = _resolve_cel(sprite, frame_index, layer)
++            if cel is not None:
++                entries.append(((layer.index + cel.z_index, cel.z_index, layer.index), layer, cel))
++        position += 1
++    entries.sort(key=lambda entry: entry[0])
++    return entries
+ 
+-def _composite_group(sprite: Sprite, frame_index: int, group: Layer, dest: bytearray, isolate_groups: bool, scratches: list[bytearray], depth: int) -> None:
+-    pass
++def _composite_layers(sprite: Sprite, frame_index: int, layers: list[Layer], dest: bytearray, isolate_groups: bool, scratches: list[bytearray], depth: int=0) -> None:
++    for _, layer, cel in _collect_entries(sprite, frame_index, layers, isolate_groups, depth):
++        if cel is None:
++            _composite_group(sprite, frame_index, layer, dest, scratches, depth)
++        else:
++            _blit_cel(sprite, frame_index, layer, cel, dest)
++
++def _composite_group(sprite: Sprite, frame_index: int, group: Layer, dest: bytearray, scratches: list[bytearray], depth: int) -> None:
++    size = sprite.width * sprite.height * 4
++    if size > MAX_UNCOMPRESSED_BYTES:
++        raise ValueError('isolated group buffer exceeds the memory limit')
++    if depth + 1 > MAX_GROUP_DEPTH:
++        raise ValueError(f'group nesting exceeds {MAX_GROUP_DEPTH} levels')
++    scratch = bytearray(size)
++    scratches.append(scratch)
++    descendants = sprite.layers.descendants(group)
++    _composite_layers(sprite, frame_index, descendants, scratch, True, scratches, depth + 1)
++    scratches.pop()
++    opacity = _layer_opacity(sprite, group)
++    for offset in range(0, size, 4):
++        if scratch[offset + 3]:
++            dest[offset:offset + 4] = _blend_normal(bytes(dest[offset:offset + 4]), bytes(scratch[offset:offset + 4]), opacity)
+ 
+ def _layer_opacity(sprite: Sprite, layer: Layer) -> int:
+-    pass
++    if not sprite.valid_layer_opacity or layer.background:
++        return 255
++    return layer.opacity
++
++def _resolve_cel(sprite: Sprite, frame_index: int, layer: Layer) -> Cel | None:
++    cel = sprite.frames[frame_index].cel(layer)
++    if cel is None:
++        return None
++    return cel if _source_cel(sprite, layer, cel) is not None else None
+ 
+-def _resolve_cel(sprite: Sprite, layer: Layer, frame_index: int) -> Cel | None:
+-    pass
++def _source_cel(sprite: Sprite, layer: Layer, cel: Cel) -> Cel | None:
++    """Follows linked cels to the cel that holds the pixel or tilemap data."""
++    seen: set[int] = set()
++    current = cel
++    while current.link is not None:
++        target = current.link
++        if target in seen or not 0 <= target < len(sprite.frames):
++            return None
++        seen.add(target)
++        found = sprite.frames[target].cel(layer)
++        if found is None:
++            return None
++        current = found
++    return current
+ 
+-def _cel_pixels(sprite: Sprite, layer: Layer, cel: Cel) -> Pixels | None:
+-    pass
++def _cel_pixels(sprite: Sprite, frame_index: int, layer: Layer, cel: Cel) -> Pixels | None:
++    source = _source_cel(sprite, layer, cel)
++    if source is None:
++        return None
++    if source.tilemap is not None:
++        return _tiles_to_pixels(sprite, layer, source)
++    return source.pixels
++
++def _visible_rect(sprite: Sprite, cel: Cel, pixels: Pixels) -> tuple[int, int, int, int]:
++    x0 = max(0, cel.x)
++    y0 = max(0, cel.y)
++    x1 = min(sprite.width, cel.x + pixels.width)
++    y1 = min(sprite.height, cel.y + pixels.height)
++    return x0, y0, x1, y1
++
++def _find_tileset(sprite: Sprite, layer: Layer):  # noqa: ANN201
++    for tileset in sprite.tilesets:
++        if tileset.id == layer.tileset_index:
++            return tileset
++    return None
++
++def _shift_of(mask: int) -> int:
++    return (mask & -mask).bit_length() - 1 if mask else 0
+ 
+ def _tiles_to_pixels(sprite: Sprite, layer: Layer, cel: Cel) -> Pixels | None:
+-    pass
++    """Expands a tilemap cel into a pixel buffer in the sprite's color mode."""
++    tilemap = cel.tilemap
++    tileset = _find_tileset(sprite, layer)
++    if tileset is None:
++        return None
++    out_width = tilemap.width * tileset.tile_width
++    out_height = tilemap.height * tileset.tile_height
++    if out_width * out_height > MAX_PIXELS:
++        raise ValueError('tilemap exceeds the canvas pixel limit')
++    if tileset.pixels is None:
++        return None
++    mode = sprite.color_mode
++    out = Pixels.blank(out_width, out_height, mode)
++    if mode is ColorMode.INDEXED and sprite.transparent_index:
++        out.data[:] = bytes((sprite.transparent_index,)) * len(out.data)
++    tile_width, tile_height = tileset.tile_width, tileset.tile_height
++    bpp = mode.bytes_per_pixel
++    tile_data = tileset.pixels.data
++    stride = bytes_per_tile(tilemap.bits_per_tile)
++    shift = _shift_of(tilemap.tile_id_mask)
++    for cell_y in range(tilemap.height):
++        for cell_x in range(tilemap.width):
++            cell = cell_y * tilemap.width + cell_x
++            value = int.from_bytes(tilemap.tiles[cell * stride:(cell + 1) * stride], 'little')
++            tile_id = (value & tilemap.tile_id_mask) >> shift
++            if tile_id >= tileset.tile_count:
++                continue
++            flip_x = bool(value & tilemap.x_flip_mask)
++            flip_y = bool(value & tilemap.y_flip_mask)
++            flip_d = bool(value & tilemap.d_flip_mask)
++            for y in range(tile_height):
++                for x in range(tile_width):
++                    mirror_x = tile_width - 1 - x if flip_x else x
++                    mirror_y = tile_height - 1 - y if flip_y else y
++                    src_x, src_y = (mirror_y, mirror_x) if flip_d else (mirror_x, mirror_y)
++                    if src_x >= tile_width or src_y >= tile_height:
++                        continue
++                    src = ((tile_id * tile_height + src_y) * tile_width + src_x) * bpp
++                    dst = ((cell_y * tile_height + y) * out_width + cell_x * tile_width + x) * bpp
++                    out.data[dst:dst + bpp] = tile_data[src:src + bpp]
++    return out
+ 
+-def _flip_tile(data: bytes, width: int, height: int, bpp: int, x_flip: bool, y_flip: bool, d_flip: bool, empty_pixel: bytes) -> tuple[bytes, int, int]:
+-    pass
++def _to_rgba(pixels: Pixels) -> bytes | bytearray:
++    if pixels.color_mode is ColorMode.RGBA:
++        return pixels.data
++    count = pixels.width * pixels.height
++    out = bytearray(count * 4)
++    data = pixels.data
++    for index in range(count):
++        gray = data[index * 2]
++        out[index * 4:index * 4 + 4] = bytes((gray, gray, gray, data[index * 2 + 1]))
++    return out
+ 
+-def _blit_cel(sprite: Sprite, layer: Layer, cel: Cel, dest: bytearray) -> None:
+-    pass
++def _blit_cel(sprite: Sprite, frame_index: int, layer: Layer, cel: Cel, dest: bytearray) -> None:
++    pixels = _cel_pixels(sprite, frame_index, layer, cel)
++    if pixels is None:
++        return
++    x0, y0, x1, y1 = _visible_rect(sprite, cel, pixels)
++    if x0 >= x1 or y0 >= y1:
++        return
++    source = _to_rgba(pixels)
++    width = sprite.width
++    opacity = _mul_un8(_layer_opacity(sprite, layer), cel.opacity)
++    for y in range(y0, y1):
++        src_row = (y - cel.y) * pixels.width
++        dst_row = y * width
++        for x in range(x0, x1):
++            src = (src_row + x - cel.x) * 4
++            dst = (dst_row + x) * 4
++            dest[dst:dst + 4] = _blend_normal(bytes(dest[dst:dst + 4]), bytes(source[src:src + 4]), opacity)
+ 
+ def _pixel_rgba(sprite: Sprite, layer: Layer, pixels: Pixels, x: int, y: int) -> bytes:
+-    pass
++    offset = (y * pixels.width + x) * 4
++    return bytes(pixels.data[offset:offset + 4])
+ 
+-def _blend_buffer(dest: bytearray, src: bytearray, opacity: int, blend_mode: BlendMode) -> None:
+-    pass
++def _blend_buffer(dest: bytearray, src: bytearray, opacity: int, blend_mode: object) -> None:
++    for offset in range(0, len(src), 4):
++        if src[offset + 3]:
++            dest[offset:offset + 4] = _blend_normal(bytes(dest[offset:offset + 4]), bytes(src[offset:offset + 4]), opacity)
+ 
+ def _mul_un8(a: int, b: int) -> int:
+     """Returns ``a * b / 255`` rounded the way Aseprite's ``MUL_UN8`` does."""
+-    pass
++    t = a * b + 0x80
++    return ((t >> 8) + t) >> 8
++
++def _trunc_div(numerator: int, denominator: int) -> int:
++    quotient = abs(numerator) // denominator
++    return quotient if numerator >= 0 else -quotient
+ 
+ def _blend_normal(dst: bytes, src: bytes, opacity: int) -> bytes:
+     """Blends ``src`` over ``dst`` with Aseprite's ``rgba_blender_normal``.
+@@ -76,4 +267,14 @@ def _blend_normal(dst: bytes, src: bytes, opacity: int) -> bytes:
+     The arithmetic matches the editor so that flattened pixels agree with
+     its own export, including the truncating division on each channel.
+     """
+-    pass
++    front_alpha = _mul_un8(src[3], opacity)
++    back_alpha = dst[3]
++    alpha = back_alpha + front_alpha - _mul_un8(back_alpha, front_alpha)
++    if alpha == 0:
++        return bytes((src[0], src[1], src[2], 0))
++    out = bytearray(4)
++    for channel in range(3):
++        back = dst[channel]
++        out[channel] = back + _trunc_div((src[channel] - back) * front_alpha, alpha)
++    out[3] = alpha
++    return bytes(out)
+diff --git a/src/aseprite/_sprite.py b/src/aseprite/_sprite.py
+index 8efe0e0..3d0fd4f 100644
+--- a/src/aseprite/_sprite.py
++++ b/src/aseprite/_sprite.py
+@@ -4,14 +4,25 @@ from os import PathLike, fspath
+ from pathlib import Path
+ from typing import TYPE_CHECKING, BinaryIO
+ from aseprite._model import TILESET_FLAG_EMBEDDED, TILESET_FLAG_EMPTY_IS_ZERO, BlendMode, Cel, ColorMode, ColorProfile, ExternalFile, Frame, Grid, HeaderFlags, Layer, LayerList, LayerType, LoopDirection, Mask, Palette, Pixels, Slice, SliceKey, SliceList, Tag, TagList, Tileset, TilesetList, UnknownChunk, UserData, _check_color_mode
++from aseprite._reader import read_sprite
++from aseprite._render import flatten_frame
++from aseprite._writer import write_sprite
+ if TYPE_CHECKING:
+     from PIL.Image import Image as PILImage
+ 
+ def _read_source(source: str | PathLike[str] | BinaryIO) -> bytes:
+-    pass
++    if isinstance(source, (str, PathLike)):
++        return Path(fspath(source)).read_bytes()
++    data = source.read()
++    if not isinstance(data, bytes):
++        raise TypeError('source must be a binary file object or a path')
++    return data
+ 
+ def _write_dest(dest: str | PathLike[str] | BinaryIO, data: bytes) -> None:
+-    pass
++    if isinstance(dest, (str, PathLike)):
++        Path(fspath(dest)).write_bytes(data)
++    else:
++        dest.write(data)
+ 
+ class Sprite:
+     """An Aseprite document: canvas, layers, frames, and related data.
+@@ -37,17 +48,51 @@ class Sprite:
+     """
+ 
+     def __init__(self, width: int, height: int, color_mode: ColorMode=ColorMode.RGBA, *, empty: bool=False) -> None:
+-        pass
++        if not (1 <= width <= 65535 and 1 <= height <= 65535):
++            raise ValueError('canvas size must be positive and at most 65535 pixels per side')
++        self.width = width
++        self.height = height
++        self.color_mode = color_mode
++        self.palette = Palette()
++        self.color_profile: ColorProfile | None = ColorProfile()
++        self.grid = Grid()
++        self.pixel_width = 1
++        self.pixel_height = 1
++        self.transparent_index = 0
++        self.num_colors = 256
++        self.user_data: UserData | None = None
++        self.valid_layer_opacity = True
++        self.group_blend = False
++        self.frames: list[Frame] = []
++        self.layers = LayerList(on_remap=self._remap_cels)
++        self.tags = TagList()
++        self.slices = SliceList()
++        self.tilesets = TilesetList()
++        self.external_files: list[ExternalFile] = []
++        self.masks: list[Mask] = []
++        self.unknown_chunks: list[UnknownChunk] = []
++        self._had_old_palette_4 = False
++        self._had_old_palette_11 = False
++        if not empty:
++            self.add_layer('Layer 1')
++            self.add_frame()
+ 
+     @property
+     def size(self) -> tuple[int, int]:
+         """Returns ``(width, height)`` in pixels."""
+-        pass
++        return (self.width, self.height)
+ 
+     @property
+     def flags(self) -> int:
+         """Returns the header flag bits from the file format."""
+-        pass
++        value = 0
++        if self.valid_layer_opacity:
++            value |= HeaderFlags.LAYER_OPACITY
++        if self.group_blend:
++            value |= HeaderFlags.GROUP_BLEND
++        if any(layer.uuid is not None for layer in self.layers):
++            value |= HeaderFlags.LAYER_UUID
++        return int(value)
+ 
+     @classmethod
+     def open(cls, source: str | PathLike[str] | BinaryIO) -> Sprite:
+@@ -66,7 +111,7 @@ class Sprite:
+             FormatError: If the file is not a valid Aseprite document.
+             OSError: If the file cannot be read.
+         """
+-        pass
++        return cls.from_bytes(_read_source(source))
+ 
+     @classmethod
+     def from_bytes(cls, data: bytes) -> Sprite:
+@@ -87,7 +132,7 @@ class Sprite:
+         Raises:
+             FormatError: If the bytes are not a valid Aseprite document.
+         """
+-        pass
++        return read_sprite(data)
+ 
+     def save(self, dest: str | PathLike[str] | BinaryIO) -> None:
+         """Writes this sprite to a path or binary file object.
+@@ -99,7 +144,7 @@ class Sprite:
+             ValueError: If the sprite cannot be encoded.
+             OSError: If the file cannot be written.
+         """
+-        pass
++        _write_dest(dest, self.to_bytes())
+ 
+     def to_bytes(self) -> bytes:
+         """Returns this sprite encoded as Aseprite file bytes.
+@@ -107,7 +152,7 @@ class Sprite:
+         Raises:
+             ValueError: If the sprite cannot be encoded.
+         """
+-        pass
++        return write_sprite(self)
+ 
+     def blank_pixels(self, width: int | None=None, height: int | None=None) -> Pixels:
+         """Returns a transparent buffer in this sprite's color mode.
+@@ -118,7 +163,14 @@ class Sprite:
+             width: Buffer width. The default is the canvas width.
+             height: Buffer height. The default is the canvas height.
+         """
+-        pass
++        pixels = Pixels.blank(
++            self.width if width is None else width,
++            self.height if height is None else height,
++            self.color_mode,
++        )
++        if self.color_mode is ColorMode.INDEXED and self.transparent_index:
++            pixels.data[:] = bytes((self.transparent_index,)) * len(pixels.data)
++        return pixels
+ 
+     def add_frame(self, duration_ms: int=100) -> Frame:
+         """Appends a frame and returns it.
+@@ -126,7 +178,9 @@ class Sprite:
+         Args:
+             duration_ms: The frame duration in milliseconds.
+         """
+-        pass
++        frame = Frame(duration_ms=duration_ms)
++        self.frames.append(frame)
++        return frame
+ 
+     def add_layer(self, name: str, *, parent: Layer | None=None, kind: LayerType=LayerType.IMAGE, blend_mode: BlendMode=BlendMode.NORMAL, opacity: int=255, tileset_index: int | None=None) -> Layer:
+         """Appends a layer and returns it.
+@@ -142,10 +196,35 @@ class Sprite:
+         Raises:
+             ValueError: If ``parent`` is not a group layer.
+         """
+-        pass
++        child_level = 0
++        if parent is not None:
++            if parent.kind != LayerType.GROUP:
++                raise ValueError(f'layer {parent.name!r} is not a group')
++            child_level = parent.child_level + 1
++        layer = Layer(
++            name=name,
++            kind=kind,
++            child_level=child_level,
++            blend_mode=blend_mode,
++            opacity=opacity,
++            tileset_index=tileset_index,
++        )
++        if parent is None:
++            self.layers.append(layer)
++        else:
++            self.layers.insert(self.layers._descendants_end(parent), layer)
++        return layer
+ 
+     def _remap_cels(self, mapping: dict[int, int | None]) -> None:
+-        pass
++        for frame in self.frames:
++            remapped: dict[int, Cel] = {}
++            for old_index, cel in frame._cels.items():
++                new_index = mapping.get(old_index)
++                if new_index is None:
++                    continue
++                cel.layer_index = new_index
++                remapped[new_index] = cel
++            frame._cels = remapped
+ 
+     def add_tag(self, name: str, from_frame: int, to_frame: int, *, direction: LoopDirection=LoopDirection.FORWARD, repeat: int=0) -> Tag:
+         """Adds an animation tag and returns it.
+@@ -158,7 +237,9 @@ class Sprite:
+             repeat: Repeat count from the file format.
+                 ``0`` means the UI default.
+         """
+-        pass
++        tag = Tag(name, from_frame, to_frame, direction=direction, repeat=repeat)
++        self.tags.append(tag)
++        return tag
+ 
+     def add_slice(self, name: str, keys: list[SliceKey] | None=None) -> Slice:
+         """Adds a slice and returns it.
+@@ -187,7 +268,9 @@ class Sprite:
+                     ],
+                 )
+         """
+-        pass
++        slice_ = Slice(name, list(keys) if keys is not None else [])
++        self.slices.append(slice_)
++        return slice_
+ 
+     def add_tileset(self, name: str, tile_width: int, tile_height: int, tile_count: int, *, pixels: Pixels | None=None, tileset_id: int | None=None) -> Tileset:
+         """Adds a tileset and returns it.
+@@ -208,7 +291,28 @@ class Sprite:
+             tileset_id: File-format tileset ID. Defaults to the first unused
+                 non-negative ID. Pass this ID as a tilemap layer's ``tileset_index``.
+         """
+-        pass
++        if pixels is None:
++            pixels = self.blank_pixels(tile_width, tile_height * tile_count)
++        else:
++            _check_color_mode(pixels, self.color_mode, 'tileset pixels')
++            if pixels.width != tile_width or pixels.height != tile_height * tile_count:
++                raise ValueError('tileset pixels must match tile dimensions')
++        if tileset_id is None:
++            used = {tileset.id for tileset in self.tilesets}
++            tileset_id = 0
++            while tileset_id in used:
++                tileset_id += 1
++        tileset = Tileset(
++            id=tileset_id,
++            name=name,
++            tile_count=tile_count,
++            tile_width=tile_width,
++            tile_height=tile_height,
++            flags=TILESET_FLAG_EMBEDDED | TILESET_FLAG_EMPTY_IS_ZERO,
++            pixels=pixels,
++        )
++        self.tilesets.append(tileset)
++        return tileset
+ 
+     def palette_at(self, frame: int=0) -> Palette:
+         """Returns the palette effective at a frame, including earlier changes.
+@@ -220,7 +324,16 @@ class Sprite:
+         that inherit it. Assign a new ``Palette`` to ``Frame.palette`` to
+         change colors from one frame onward without editing earlier frames.
+         """
+-        pass
++        self._check_frame(frame)
++        palette = self.palette
++        for index in range(frame + 1):
++            if self.frames[index].palette is not None:
++                palette = self.frames[index].palette
++        return palette
++
++    def _check_frame(self, frame: int) -> None:
++        if not 0 <= frame < len(self.frames):
++            raise IndexError(f'frame index {frame} is out of range')
+ 
+     def flatten(self, frame: int=0) -> bytes:
+         """Composites the given frame and returns RGBA8 bytes.
+@@ -247,7 +360,8 @@ class Sprite:
+             IndexError: If the frame index is out of range.
+             ValueError: If canvas, tilemap, or group limits are exceeded.
+         """
+-        pass
++        self._check_frame(frame)
++        return flatten_frame(self, frame)
+ 
+     def image(self, frame: int=0) -> PILImage:
+         """Composites the given frame and returns a Pillow image.
+@@ -265,10 +379,24 @@ class Sprite:
+             ImportError: If Pillow is not installed.
+             IndexError: If the frame index is out of range.
+         """
+-        pass
++        data = self.flatten(frame)
++        try:
++            from PIL import Image
++        except ImportError as exc:
++            raise ImportError('Pillow is required for Sprite.image(); install aseprite[image]') from exc
++        return Image.frombytes('RGBA', self.size, data)
+ 
+     def __repr__(self) -> str:
+-        pass
++        return (
++            f'Sprite(width={self.width}, height={self.height}, '
++            f'color_mode={self.color_mode.name}, frames={len(self.frames)}, '
++            f'layers={len(self.layers)})'
++        )
+ 
+     def __eq__(self, other: object) -> bool:
+-        pass
++        if not isinstance(other, Sprite):
++            return NotImplemented
++        try:
++            return self.to_bytes() == other.to_bytes()
++        except ValueError:
++            return False
+diff --git a/src/aseprite/_userdata.py b/src/aseprite/_userdata.py
+index 16a9557..116bf05 100644
+--- a/src/aseprite/_userdata.py
++++ b/src/aseprite/_userdata.py
+@@ -5,36 +5,215 @@ from aseprite._binary import Reader, Writer
+ from aseprite._errors import FormatError
+ from aseprite._model import Color, PropertiesMap, PropertyType, UserData, UserProperty
+ _MAX_DEPTH = 128
++_FLAG_TEXT = 1
++_FLAG_COLOR = 2
++_FLAG_PROPERTIES = 4
+ 
+ def read_user_data(r: Reader) -> UserData:
+-    pass
++    flags = r.u32()
++    text = r.string() if flags & _FLAG_TEXT else None
++    color = None
++    if flags & _FLAG_COLOR:
++        red, green, blue, alpha = r.u8(), r.u8(), r.u8(), r.u8()
++        color = Color(red, green, blue, alpha)
++    properties: list[PropertiesMap] = []
++    if flags & _FLAG_PROPERTIES:
++        size_at = r.pos
++        size = r.u32()
++        if size < 4 or size_at + size > r.end:
++            raise FormatError('user data property block exceeds chunk')
++        block_end = size_at + size
++        sub = Reader(r.data, r.pos, block_end)
++        try:
++            count = sub.u32()
++            for _ in range(count):
++                key = sub.u32()
++                nprops = sub.u32()
++                props = [_read_property(sub, 0) for _ in range(nprops)]
++                properties.append(PropertiesMap(key, props))
++        except FormatError as exc:
++            message = str(exc)
++            if 'nesting' in message or 'unsupported' in message:
++                raise
++            raise FormatError('user data properties exceed declared size') from exc
++        r.pos = block_end
++    return UserData(text=text, color=color, properties=properties)
+ 
+ def write_user_data(w: Writer, data: UserData) -> None:
+-    pass
++    flags = 0
++    if data.text is not None:
++        flags |= _FLAG_TEXT
++    if data.color is not None:
++        flags |= _FLAG_COLOR
++    if data.properties:
++        flags |= _FLAG_PROPERTIES
++    w.u32(flags)
++    if data.text is not None:
++        w.string(data.text)
++    if data.color is not None:
++        w.u8(data.color.r)
++        w.u8(data.color.g)
++        w.u8(data.color.b)
++        w.u8(data.color.a)
++    if data.properties:
++        size_at = w.tell()
++        w.u32(0)
++        w.u32(len(data.properties))
++        for pmap in data.properties:
++            w.u32(pmap.key)
++            w.u32(len(pmap.properties))
++            for prop in pmap.properties:
++                _write_property(w, prop, 0)
++        w.patch_u32(size_at, w.tell() - size_at)
+ 
+ def _property_type(code: int) -> PropertyType:
+-    pass
++    try:
++        return PropertyType(code)
++    except ValueError as exc:
++        raise FormatError(f'unsupported property type: {code}') from exc
+ 
+ def _read_property(r: Reader, depth: int) -> UserProperty:
+-    pass
++    if depth > _MAX_DEPTH:
++        raise FormatError('user data property nesting exceeds limit')
++    name = r.string()
++    kind = _property_type(r.u16())
++    value = _read_value(r, kind, depth)
++    return UserProperty(name, kind, value)
+ 
+ def _write_property(w: Writer, prop: UserProperty, depth: int) -> None:
+-    pass
++    if depth > _MAX_DEPTH:
++        raise ValueError('user data property nesting exceeds limit')
++    w.string(prop.name)
++    w.u16(int(prop.kind))
++    _write_value(w, prop.kind, prop.value, depth)
+ 
+ def _read_value(r: Reader, kind: PropertyType, depth: int) -> object:
+-    pass
++    if kind is PropertyType.BOOL:
++        return r.u8() != 0
++    if kind is PropertyType.INT8:
++        return r.i8()
++    if kind is PropertyType.UINT8:
++        return r.u8()
++    if kind is PropertyType.INT16:
++        return r.i16()
++    if kind is PropertyType.UINT16:
++        return r.u16()
++    if kind is PropertyType.INT32:
++        return r.i32()
++    if kind is PropertyType.UINT32:
++        return r.u32()
++    if kind is PropertyType.INT64:
++        return r.i64()
++    if kind is PropertyType.UINT64:
++        return r.u64()
++    if kind is PropertyType.FIXED:
++        return r.u32()
++    if kind is PropertyType.FLOAT:
++        return r.f32()
++    if kind is PropertyType.DOUBLE:
++        return r.f64()
++    if kind is PropertyType.STRING:
++        return r.string()
++    if kind in (PropertyType.POINT, PropertyType.SIZE):
++        return (r.i32(), r.i32())
++    if kind is PropertyType.RECT:
++        return (r.i32(), r.i32(), r.i32(), r.i32())
++    if kind is PropertyType.VECTOR:
++        count = r.u32()
++        element = r.u16()
++        if element == 0:
++            items = []
++            for _ in range(count):
++                item_kind = _property_type(r.u16())
++                items.append((item_kind, _read_value(r, item_kind, depth + 1)))
++            return (0, items)
++        item_kind = _property_type(element)
++        return (element, [_read_value(r, item_kind, depth + 1) for _ in range(count)])
++    if kind is PropertyType.PROPERTIES:
++        count = r.u32()
++        return [_read_property(r, depth + 1) for _ in range(count)]
++    if kind is PropertyType.UUID:
++        return UUID(bytes=r.uuid())
++    raise FormatError(f'unsupported property type: {kind}')
+ 
+ def _as_int(value: object) -> int:
+-    pass
++    if not isinstance(value, int) or isinstance(value, bool):
++        raise ValueError(f'property value must be an integer, got {value!r}')
++    return value
+ 
+ def _as_float(value: object) -> float:
+-    pass
++    if not isinstance(value, (int, float)):
++        raise ValueError(f'property value must be a number, got {value!r}')
++    return float(value)
+ 
+ def _as_pair(value: object) -> tuple[int, int]:
+-    pass
++    if not isinstance(value, (tuple, list)) or len(value) != 2:
++        raise ValueError(f'property value must be a pair of integers, got {value!r}')
++    return (_as_int(value[0]), _as_int(value[1]))
+ 
+ def _as_rect(value: object) -> tuple[int, int, int, int]:
+-    pass
++    if not isinstance(value, (tuple, list)) or len(value) != 4:
++        raise ValueError(f'property value must be four integers, got {value!r}')
++    return (_as_int(value[0]), _as_int(value[1]), _as_int(value[2]), _as_int(value[3]))
+ 
+ def _write_value(w: Writer, kind: PropertyType, value: object, depth: int) -> None:
+-    pass
++    if kind is PropertyType.BOOL:
++        w.u8(1 if value else 0)
++    elif kind is PropertyType.INT8:
++        w.i8(_as_int(value))
++    elif kind is PropertyType.UINT8:
++        w.u8(_as_int(value))
++    elif kind is PropertyType.INT16:
++        w.i16(_as_int(value))
++    elif kind is PropertyType.UINT16:
++        w.u16(_as_int(value))
++    elif kind is PropertyType.INT32:
++        w.i32(_as_int(value))
++    elif kind is PropertyType.UINT32:
++        w.u32(_as_int(value))
++    elif kind is PropertyType.INT64:
++        w.i64(_as_int(value))
++    elif kind is PropertyType.UINT64:
++        w.u64(_as_int(value))
++    elif kind is PropertyType.FIXED:
++        w.u32(_as_int(value))
++    elif kind is PropertyType.FLOAT:
++        w.f32(_as_float(value))
++    elif kind is PropertyType.DOUBLE:
++        w.f64(_as_float(value))
++    elif kind is PropertyType.STRING:
++        if not isinstance(value, str):
++            raise ValueError('string property value must be a str')
++        w.string(value)
++    elif kind in (PropertyType.POINT, PropertyType.SIZE):
++        x, y = _as_pair(value)
++        w.i32(x)
++        w.i32(y)
++    elif kind is PropertyType.RECT:
++        for part in _as_rect(value):
++            w.i32(part)
++    elif kind is PropertyType.VECTOR:
++        element, items = value  # type: ignore[misc]
++        w.u32(len(items))
++        w.u16(int(element))
++        if int(element) == 0:
++            for item_kind, item in items:
++                w.u16(int(item_kind))
++                _write_value(w, PropertyType(item_kind), item, depth + 1)
++        else:
++            for item in items:
++                _write_value(w, PropertyType(element), item, depth + 1)
++    elif kind is PropertyType.PROPERTIES:
++        props = list(value)  # type: ignore[call-overload]
++        w.u32(len(props))
++        for prop in props:
++            _write_property(w, prop, depth + 1)
++    elif kind is PropertyType.UUID:
++        if isinstance(value, UUID):
++            w.uuid(value.bytes)
++        elif isinstance(value, (bytes, bytearray)) and len(value) == 16:
++            w.uuid(bytes(value))
++        else:
++            raise ValueError('UUID property value must be a UUID or 16 bytes')
++    else:
++        raise ValueError(f'unsupported property type: {kind}')
+diff --git a/src/aseprite/_writer.py b/src/aseprite/_writer.py
+index 18cb484..a2ad57e 100644
+--- a/src/aseprite/_writer.py
++++ b/src/aseprite/_writer.py
+@@ -2,9 +2,9 @@
+ from __future__ import annotations
+ import zlib
+ from typing import TYPE_CHECKING
+-from aseprite._binary import FILE_MAGIC, FRAME_HEADER_SIZE, FRAME_MAGIC, HEADER_SIZE, Writer
++from aseprite._binary import CHUNK_HEADER_SIZE, FILE_MAGIC, FRAME_MAGIC, HEADER_SIZE, Writer
+ from aseprite._limits import MAX_PADDED_TILE_USER_DATA, MAX_PALETTE_COLORS
+-from aseprite._model import HEADER_FLAG_LAYER_UUID, TILESET_FLAG_EMBEDDED, TILESET_FLAG_EXTERNAL, ColorMode, ColorProfileType, LayerType, Palette, Pixels, UserData, _check_color_mode
++from aseprite._model import HEADER_FLAG_LAYER_UUID, TILESET_FLAG_EMBEDDED, TILESET_FLAG_EXTERNAL, CelType, ColorMode, ColorProfileType, LayerType, NinePatch, Palette, Pixels, UserData, _check_color_mode
+ from aseprite._userdata import write_user_data
+ if TYPE_CHECKING:
+     from aseprite._sprite import Sprite
+@@ -20,49 +20,321 @@ CHUNK_PALETTE = 8217
+ CHUNK_USER_DATA = 8224
+ CHUNK_SLICE = 8226
+ CHUNK_TILESET = 8227
++_BYTES_PER_TILE = {8: 1, 16: 2, 32: 4}
+ 
+ def write_sprite(sprite: Sprite) -> bytes:
+     """Returns the Aseprite file bytes for ``sprite``."""
+-    pass
++    if not sprite.frames:
++        raise ValueError('a sprite needs at least one frame to be saved')
++    if len(sprite.frames) > 0xFFFF:
++        raise ValueError('a sprite can have at most 65535 frames')
++    w = Writer()
++    _write_header(w, sprite, 0)
++    for index, frame in enumerate(sprite.frames):
++        frame_start = w.tell()
++        w.u32(0)
++        w.u16(FRAME_MAGIC)
++        chunks = _frame_chunks(sprite, index, frame)
++        w.u16(min(len(chunks), 0xFFFF))
++        w.u16(frame.duration_ms)
++        w.pad(2)
++        w.u32(len(chunks))
++        for chunk_type, body in chunks:
++            w.u32(len(body) + CHUNK_HEADER_SIZE)
++            w.u16(chunk_type)
++            w.raw(body)
++        w.patch_u32(frame_start, w.tell() - frame_start)
++    w.patch_u32(0, w.tell())
++    return bytes(w.buf)
++
++def _body(write, *args) -> bytes:  # noqa: ANN001
++    inner = Writer()
++    write(inner, *args)
++    return bytes(inner.buf)
++
++def _frame_chunks(sprite: Sprite, index: int, frame) -> list[tuple[int, bytes]]:  # noqa: ANN001
++    chunks: list[tuple[int, bytes]] = []
++    mode = sprite.color_mode
++    if index == 0:
++        if sprite.color_profile is not None:
++            chunks.append((CHUNK_COLOR_PROFILE, _body(_write_color_profile, sprite)))
++        if sprite.user_data:
++            chunks.append((CHUNK_USER_DATA, _body(write_user_data, sprite.user_data)))
++        if sprite.external_files:
++            chunks.append((CHUNK_EXTERNAL_FILES, _body(_write_external_files, sprite)))
++        for layer in sprite.layers:
++            chunks.append((CHUNK_LAYER, _body(_write_layer, layer, sprite)))
++            if layer.user_data:
++                chunks.append((CHUNK_USER_DATA, _body(write_user_data, layer.user_data)))
++        for tileset in sprite.tilesets:
++            chunks.append((CHUNK_TILESET, _body(_write_tileset, tileset, mode)))
++            chunks.append((CHUNK_USER_DATA, _body(write_user_data, tileset.user_data or UserData())))
++            for entry in _tile_user_data(tileset):
++                chunks.append((CHUNK_USER_DATA, _body(write_user_data, entry or UserData())))
++        if sprite.tags:
++            chunks.append((CHUNK_TAGS, _body(_write_tags, sprite)))
++            for tag in sprite.tags:
++                chunks.append((CHUNK_USER_DATA, _body(write_user_data, tag.user_data or UserData())))
++        for slice_ in sprite.slices:
++            chunks.append((CHUNK_SLICE, _body(_write_slice, slice_)))
++            chunks.append((CHUNK_USER_DATA, _body(write_user_data, slice_.user_data or UserData())))
++        for mask in sprite.masks:
++            chunks.append((CHUNK_MASK, _body(_write_mask, mask)))
++        if _should_write_old_palette(sprite):
++            chunks.append((CHUNK_OLD_PALETTE_4, _body(_write_old_palette, sprite.palette)))
++        else:
++            chunks.append((CHUNK_PALETTE, _body(_write_palette, sprite.palette)))
++    elif frame.palette is not None and len(frame.palette):
++        chunks.append((CHUNK_PALETTE, _body(_write_palette, frame.palette)))
++    for cel in frame.cels:
++        chunks.append((CHUNK_CEL, _body(_write_cel, cel, mode)))
++        if cel.extra is not None:
++            chunks.append((CHUNK_CEL_EXTRA, _body(_write_cel_extra, cel)))
++        if cel.user_data:
++            chunks.append((CHUNK_USER_DATA, _body(write_user_data, cel.user_data)))
++    for unknown in sprite.unknown_chunks:
++        if unknown.frame_index == index:
++            chunks.append((unknown.chunk_type, bytes(unknown.data)))
++    return chunks
++
++def _tile_user_data(tileset) -> list:  # noqa: ANN001
++    count = tileset.tile_count if tileset.tile_count <= MAX_PADDED_TILE_USER_DATA else 0
++    total = max(count, len(tileset.tile_user_data))
++    entries = list(tileset.tile_user_data)
++    return [entries[i] if i < len(entries) else None for i in range(total)]
+ 
+ def _write_header(w: Writer, sprite: Sprite, file_size: int) -> None:
+-    pass
++    w.u32(file_size)
++    w.u16(FILE_MAGIC)
++    w.u16(len(sprite.frames))
++    w.u16(sprite.width)
++    w.u16(sprite.height)
++    w.u16(int(sprite.color_mode))
++    w.u32(sprite.flags)
++    w.u16(0)
++    w.u32(0)
++    w.u32(0)
++    w.u8(sprite.transparent_index)
++    w.pad(3)
++    w.u16(sprite.num_colors)
++    w.u8(sprite.pixel_width)
++    w.u8(sprite.pixel_height)
++    grid = sprite.grid
++    w.i16(grid.x)
++    w.i16(grid.y)
++    w.u16(grid.width)
++    w.u16(grid.height)
++    w.pad(HEADER_SIZE - w.tell())
+ 
+ def _should_write_old_palette(sprite: Sprite) -> bool:
+-    pass
++    return sprite._had_old_palette_4 or sprite._had_old_palette_11
+ 
+ def _write_old_palette(w: Writer, palette: Palette) -> None:
+-    pass
++    colors = list(palette)
++    packets = [colors[i:i + 255] for i in range(0, len(colors), 255)]
++    w.u16(len(packets))
++    for packet in packets:
++        w.u8(0)
++        w.u8(len(packet))
++        for color in packet:
++            w.u8(color.r)
++            w.u8(color.g)
++            w.u8(color.b)
+ 
+ def _write_palette(w: Writer, palette: Palette) -> None:
+-    pass
++    if len(palette) == 0:
++        w.u32(0)
++        w.u32(0)
++        w.u32(0)
++        w.pad(8)
++        return
++    if len(palette) > MAX_PALETTE_COLORS:
++        raise ValueError(f'palette size {len(palette)} exceeds {MAX_PALETTE_COLORS}')
++    w.u32(len(palette))
++    w.u32(0)
++    w.u32(len(palette) - 1)
++    w.pad(8)
++    for color in palette:
++        flags = 0 if color.name is None else 1
++        w.u16(flags)
++        w.u8(color.r)
++        w.u8(color.g)
++        w.u8(color.b)
++        w.u8(color.a)
++        if flags:
++            w.string(color.name)
+ 
+-def _write_layer(w: Writer, layer, sprite: Sprite) -> None:
+-    pass
++def _write_layer(w: Writer, layer, sprite: Sprite) -> None:  # noqa: ANN001
++    w.u16(layer.flags)
++    w.u16(int(layer.kind))
++    w.u16(layer.child_level)
++    w.u16(0)
++    w.u16(0)
++    w.u16(int(layer.blend_mode))
++    w.u8(layer.opacity if sprite.valid_layer_opacity else 255)
++    w.pad(3)
++    w.string(layer.name)
++    if layer.kind == LayerType.TILEMAP:
++        w.u32(layer.tileset_index or 0)
++    if sprite.flags & HEADER_FLAG_LAYER_UUID:
++        w.uuid(layer.uuid.bytes if layer.uuid is not None else bytes(16))
+ 
+ def _compress(data: bytes | bytearray, original: bytes | None) -> bytes:
+-    pass
++    """Returns zlib bytes for ``data``, reusing ``original`` when it still matches."""
++    if original is not None:
++        checker = zlib.decompressobj()
++        try:
++            out = checker.decompress(original, len(data) + 1)
++        except zlib.error:
++            out = None
++        if out == bytes(data) and checker.eof and not checker.unconsumed_tail and not checker.unused_data:
++            return bytes(original)
++    return zlib.compress(bytes(data))
+ 
+-def _write_cel(w: Writer, cel, color_mode: ColorMode) -> None:
+-    pass
++def _write_cel(w: Writer, cel, color_mode: ColorMode) -> None:  # noqa: ANN001
++    if cel.link is not None:
++        cel_type = CelType.LINKED
++    elif cel.tilemap is not None:
++        cel_type = CelType.COMPRESSED_TILEMAP
++    elif cel.pixels is not None:
++        cel_type = CelType.RAW if cel.raw else CelType.COMPRESSED
++    else:
++        raise ValueError(f'cel on layer {cel.layer_index} has no pixel data')
++    w.u16(cel.layer_index)
++    w.i16(cel.x)
++    w.i16(cel.y)
++    w.u8(cel.opacity)
++    w.u16(int(cel_type))
++    w.i16(cel.z_index)
++    w.pad(5)
++    if cel_type is CelType.LINKED:
++        w.u16(cel.link)
++        return
++    if cel_type is CelType.COMPRESSED_TILEMAP:
++        tilemap = cel.tilemap
++        if tilemap.bits_per_tile not in _BYTES_PER_TILE:
++            raise ValueError(f'unsupported tile width {tilemap.bits_per_tile}')
++        expected = tilemap.width * tilemap.height * _BYTES_PER_TILE[tilemap.bits_per_tile]
++        if len(tilemap.tiles) != expected:
++            raise ValueError(f'tilemap tile data length {len(tilemap.tiles)} does not match {expected}')
++        w.u16(tilemap.width)
++        w.u16(tilemap.height)
++        w.u16(tilemap.bits_per_tile)
++        w.u32(tilemap.tile_id_mask)
++        w.u32(tilemap.x_flip_mask)
++        w.u32(tilemap.y_flip_mask)
++        w.u32(tilemap.d_flip_mask)
++        w.pad(10)
++        w.raw(_compress(tilemap.tiles, tilemap.compressed))
++        return
++    pixels: Pixels = cel.pixels
++    _check_color_mode(pixels, color_mode, 'pixel data')
++    w.u16(pixels.width)
++    w.u16(pixels.height)
++    if cel_type is CelType.RAW:
++        w.raw(pixels.data)
++    else:
++        w.raw(_compress(pixels.data, pixels.compressed))
+ 
+-def _write_cel_extra(w: Writer, cel) -> None:
+-    pass
++def _write_cel_extra(w: Writer, cel) -> None:  # noqa: ANN001
++    extra = cel.extra
++    w.u32(1)
++    w.u32(extra.precise_x)
++    w.u32(extra.precise_y)
++    w.u32(extra.width)
++    w.u32(extra.height)
+ 
+ def _write_color_profile(w: Writer, sprite: Sprite) -> None:
+-    pass
++    profile = sprite.color_profile
++    w.u16(int(profile.kind))
++    w.u16(1 if profile.use_fixed_gamma else 0)
++    w.u32(profile.gamma)
++    w.pad(8)
++    if profile.kind == ColorProfileType.ICC:
++        w.u32(len(profile.icc))
++        w.raw(profile.icc)
+ 
+ def _write_external_files(w: Writer, sprite: Sprite) -> None:
+-    pass
++    w.u32(len(sprite.external_files))
++    w.pad(8)
++    for entry in sprite.external_files:
++        w.u32(entry.id)
++        w.pad(8)
++        w.u8(int(entry.kind))
++        w.pad(7)
++        w.string(entry.name)
+ 
+ def _write_tags(w: Writer, sprite: Sprite) -> None:
+-    pass
++    w.u16(len(sprite.tags))
++    w.pad(8)
++    for tag in sprite.tags:
++        w.u16(tag.from_frame)
++        w.u16(tag.to_frame)
++        w.u8(int(tag.direction))
++        w.u16(tag.repeat)
++        w.pad(6)
++        red, green, blue = tag.color
++        w.u8(red)
++        w.u8(green)
++        w.u8(blue)
++        w.pad(1)
++        w.string(tag.name)
++
++def _write_slice(w: Writer, sl) -> None:  # noqa: ANN001
++    has_nine_patch = any(key.nine_patch is not None for key in sl.keys)
++    has_pivot = any(key.pivot is not None for key in sl.keys)
++    flags = (1 if has_nine_patch else 0) | (2 if has_pivot else 0)
++    w.u32(len(sl.keys))
++    w.u32(flags)
++    w.pad(4)
++    w.string(sl.name)
++    for key in sl.keys:
++        w.u32(key.frame)
++        w.i32(key.x)
++        w.i32(key.y)
++        w.u32(key.width)
++        w.u32(key.height)
++        if has_nine_patch:
++            patch = key.nine_patch or NinePatch(0, 0, 0, 0)
++            w.i32(patch.x)
++            w.i32(patch.y)
++            w.u32(patch.width)
++            w.u32(patch.height)
++        if has_pivot:
++            pivot_x, pivot_y = key.pivot or (0, 0)
++            w.i32(pivot_x)
++            w.i32(pivot_y)
+ 
+-def _write_slice(w: Writer, sl) -> None:
+-    pass
++def _write_mask(w: Writer, mask) -> None:  # noqa: ANN001
++    w.i16(mask.x)
++    w.i16(mask.y)
++    w.u16(mask.width)
++    w.u16(mask.height)
++    w.pad(8)
++    w.string(mask.name)
++    w.raw(mask.bitmap)
+ 
+-def _write_mask(w: Writer, mask) -> None:
+-    pass
++def _write_tileset(w: Writer, tileset, color_mode: ColorMode) -> None:  # noqa: ANN001
++    flags = tileset.flags
++    w.u32(tileset.id)
++    w.u32(flags)
++    w.u32(tileset.tile_count)
++    w.u16(tileset.tile_width)
++    w.u16(tileset.tile_height)
++    w.i16(tileset.base_index)
++    w.pad(14)
++    w.string(tileset.name)
++    if flags & TILESET_FLAG_EXTERNAL:
++        w.u32(tileset.external_file_id or 0)
++        w.u32(tileset.external_tileset_id or 0)
++    if flags & TILESET_FLAG_EMBEDDED:
++        pixels = tileset.pixels
++        if pixels is None or pixels.width != tileset.tile_width or pixels.height != tileset.tile_height * tileset.tile_count:
++            raise ValueError('embedded tileset pixels must match tile dimensions')
++        _check_color_mode(pixels, color_mode, 'tileset pixels')
++        compressed = _compress(pixels.data, tileset.compressed)
++        w.u32(len(compressed))
++        w.raw(compressed)
+ 
+-def _write_tileset(w: Writer, tileset, color_mode: ColorMode) -> None:
+-    pass
++def _write_user_data_block(w: Writer, data: UserData) -> None:
++    write_user_data(w, data)

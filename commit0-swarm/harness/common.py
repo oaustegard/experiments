@@ -62,7 +62,11 @@ def load_tasks() -> dict[str, dict]:
                          "base_commit": r["base_commit"], "reference_commit": r["reference_commit"],
                          "setup": setup, "test": dict(r["test"]), "src_dir": r["src_dir"].rstrip("/")}
         TASKS.write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
-    return json.loads(TASKS.read_text())
+    tasks = json.loads(TASKS.read_text())
+    control = DATA / "control_tasks.json"   # post-cutoff libraries (control_setup.py)
+    if control.exists():
+        tasks.update(json.loads(control.read_text()))
+    return tasks
 
 
 def mirror(name: str) -> Path:

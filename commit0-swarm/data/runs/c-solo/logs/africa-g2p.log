@@ -1,0 +1,30 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tmp/jail/c0/work/grade-c-solo/africa-g2p
+configfile: pyproject.toml
+plugins: platformdirs-4.12.4, hypothesis-6.168.5
+collected 214 items
+
+tests/test_convert.py ..................F......................          [ 19%]
+tests/test_english.py ssssssssssssssss                                   [ 26%]
+tests/test_fallback.py ................................................. [ 49%]
+.......................                                                  [ 60%]
+tests/test_from_ipa.py ..........                                        [ 64%]
+tests/test_g2p.py ..........................................             [ 84%]
+tests/test_packaging.py ...                                              [ 85%]
+tests/test_rule_data.py ..............................                   [100%]
+
+=================================== FAILURES ===================================
+_______________ test_convert_to_ipa_preserves_english_phonetics ________________
+
+    def test_convert_to_ipa_preserves_english_phonetics():
+        # English words in African text are phonemised via British English
+        out = convert_to_ipa("Akwaaba and welcome to our university in Accra", "twi")
+>       assert "wɛlkʌm" in out
+E       AssertionError: assert 'wɛlkʌm' in 'akʷaːba aᶯɖ ʷelcome to o͡ur universiƫ in accra'
+
+tests/test_convert.py:118: AssertionError
+- generated xml file: /tmp/jail/c0/work/grade-c-solo/africa-g2p/.c0-junit.xml --
+=========================== short test summary info ============================
+FAILED tests/test_convert.py::test_convert_to_ipa_preserves_english_phonetics
+================== 1 failed, 197 passed, 16 skipped in 4.97s ===================

@@ -1,0 +1,2720 @@
+diff --git a/src/verifactu_lint/cli.py b/src/verifactu_lint/cli.py
+index 7ee0dcc..930be1f 100644
+--- a/src/verifactu_lint/cli.py
++++ b/src/verifactu_lint/cli.py
+@@ -19,9 +19,88 @@ from verifactu_lint.salida import como_json, como_sarif, texto
+ EPILOGO = 'verifactu-lint comprueba registros de facturación y de evento ya generados. No expide\nfacturas, no las firma y no las remite a la AEAT: es una herramienta de sólo lectura y\nno constituye un sistema informático de facturación.\n\nEstá pensada para el CI de quien desarrolla un SIF, que es quien tiene estos ficheros\npor construcción. Un SIF VERI*FACTU no conserva sus registros -ya los remitió- y la\nexportación de los NO VERI*FACTU no tiene formato obligatorio, así que un fichero\nexportado puede no ser XML de registros.\n\nCada fichero se audita por separado y detectando qué contiene: los registros de\nfacturación y los de evento forman cadenas de huellas independientes.\n\nUn resultado sin errores no es una declaración responsable ni acredita conformidad\ncon el RD 1007/2023. Esa declaración la emite el productor del SIF, bajo su\nresponsabilidad.\n'
+ 
+ def _argumentos(argv: list[str] | None=None) -> argparse.Namespace:
+-    pass
++    parser = argparse.ArgumentParser(
++        prog="verifactu-lint",
++        description="Comprueba registros de facturación y de evento de un SIF, sin modificarlos.",
++        epilog=EPILOGO,
++        formatter_class=argparse.RawDescriptionHelpFormatter,
++    )
++    parser.add_argument("ficheros", nargs="+", metavar="FICHERO", help="XML a auditar")
++    parser.add_argument(
++        "--formato", choices=("texto", "json", "sarif"), default="texto", help="formato del informe"
++    )
++    parser.add_argument("--sin-color", action="store_true", help="sin colores en la salida de texto")
++    parser.add_argument(
++        "--estricto", action="store_true", help="también fallan los avisos y los hallazgos incompletos"
++    )
++    parser.add_argument(
++        "--historico", metavar="RUTA", help="histórico de instalaciones entre ejecuciones (se actualiza)"
++    )
++    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
++    return parser.parse_args(argv)
+ 
+ def main(argv: list[str] | None=None) -> int:
+-    pass
++    args = _argumentos(argv)
++    datos = None
++    if args.historico:
++        try:
++            datos = hist.lee(Path(args.historico))
++        except hist.ErrorDeHistorico as exc:
++            print(f"verifactu-lint: {exc}", file=sys.stderr)
++            return 2
++    informes: list[Informe] = []
++    for fichero in args.ficheros:
++        ruta = str(fichero)
++        try:
++            registros = lee(ruta)
++            eventos = [] if registros else lee_eventos(ruta)
++        except ErrorDeLectura as exc:
++            print(f"verifactu-lint: {exc}", file=sys.stderr)
++            continue
++        if registros:
++            informe = audita(registros, fichero=ruta)
++            if datos is not None:
++                nuevos, datos = hist.comprueba(registros, datos, ruta)
++                extra = sella(nuevos, ruta, {r.orden: r.linea_xml for r in registros})
++                informe = Informe(
++                    hallazgos=[*informe.hallazgos, *extra],
++                    registros_analizados=informe.registros_analizados,
++                    fichero=ruta,
++                )
++            informes.append(informe)
++        elif eventos:
++            informes.append(audita_eventos(eventos, fichero=ruta))
++        else:
++            print(
++                f"verifactu-lint: {ruta} no contiene registros de facturación ni de evento",
++                file=sys.stderr,
++            )
++    if not informes:
++        return 2
++    if datos is not None:
++        hist.escribe(Path(args.historico), datos)
++    con_fichero = len(informes) > 1
++    if args.formato == "texto":
++        color = not args.sin_color and sys.stdout.isatty()
++        for informe in informes:
++            print(texto(informe, color=color, con_fichero=con_fichero))
++    else:
++        if len(informes) == 1:
++            combinado = informes[0]
++        else:
++            combinado = Informe(
++                hallazgos=[h for informe in informes for h in informe.hallazgos],
++                registros_analizados=sum(i.registros_analizados for i in informes),
++                fichero="",
++            )
++        if args.formato == "json":
++            print(como_json(combinado))
++        else:
++            print(como_sarif(combinado, __version__))
++    if args.estricto:
++        fallo = any(i.errores or i.avisos or i.incompletos for i in informes)
++    else:
++        fallo = any(not i.conforme for i in informes)
++    return 1 if fallo else 0
+ if __name__ == '__main__':
+     raise SystemExit(main())
+diff --git a/src/verifactu_lint/hallazgos.py b/src/verifactu_lint/hallazgos.py
+index b0d4cbd..8410401 100644
+--- a/src/verifactu_lint/hallazgos.py
++++ b/src/verifactu_lint/hallazgos.py
+@@ -46,7 +46,14 @@ class Hallazgo:
+         `con_fichero` antepone el fichero a la referencia, para cuando el informe junta
+         varios y «#3 FA/2024/3» ya no basta para saber de dónde sale.
+         """
+-        pass
++        ubicacion = self.referencia
++        if con_fichero and self.fichero:
++            ubicacion = f"{self.fichero} · {ubicacion}" if ubicacion else self.fichero
++        etiqueta = self.severidad.value.upper()
++        cuerpo = f"{etiqueta:<10} {self.regla} "
++        if ubicacion:
++            cuerpo += f"{ubicacion}: "
++        return f"{cuerpo}{self.titulo}"
+ 
+ @dataclass
+ class Informe:
+@@ -57,15 +64,15 @@ class Informe:
+ 
+     @property
+     def errores(self) -> list[Hallazgo]:
+-        pass
++        return [h for h in self.hallazgos if h.severidad is Severidad.ERROR]
+ 
+     @property
+     def avisos(self) -> list[Hallazgo]:
+-        pass
++        return [h for h in self.hallazgos if h.severidad is Severidad.AVISO]
+ 
+     @property
+     def incompletos(self) -> list[Hallazgo]:
+-        pass
++        return [h for h in self.hallazgos if h.severidad is Severidad.INCOMPLETO]
+ 
+     @property
+     def conforme(self) -> bool:
+@@ -76,4 +83,4 @@ class Informe:
+         diferencia está escrita en el README y es la razón por la que esta
+         herramienta no emite declaraciones responsables de nadie.
+         """
+-        pass
++        return not self.errores
+diff --git a/src/verifactu_lint/historico.py b/src/verifactu_lint/historico.py
+index 117098d..a321eba 100644
+--- a/src/verifactu_lint/historico.py
++++ b/src/verifactu_lint/historico.py
+@@ -40,10 +40,10 @@ class ErrorDeHistorico(Exception):
+ 
+ def _clave(r: Registro) -> tuple[str, str, str]:
+     """La identificación universal del SIF: NIF del obligado + IdSIF + nº de instalación."""
+-    pass
++    return (r.sistema.nif or "", r.sistema.id_sistema_informatico or "", r.sistema.numero_instalacion or "")
+ 
+ def _texto(clave: tuple[str, str, str]) -> str:
+-    pass
++    return "|".join(clave)
+ 
+ def lee(ruta: Path) -> dict[str, Any]:
+     """Devuelve el histórico, o uno vacío si el fichero aún no existe.
+@@ -51,15 +51,37 @@ def lee(ruta: Path) -> dict[str, Any]:
+     Un fichero ilegible **no** se trata como vacío: sobrescribirlo en silencio
+     perdería el histórico entero, que es justo lo que da valor a la comprobación.
+     """
+-    pass
++    if not ruta.exists():
++        return {"formato": FORMATO, "instalaciones": {}}
++    try:
++        datos = json.loads(ruta.read_text(encoding="utf-8"))
++    except (OSError, ValueError) as exc:
++        raise ErrorDeHistorico(
++            f"{ruta}: no se puede leer el histórico ({exc}). No se sobrescribe."
++        ) from exc
++    if (
++        not isinstance(datos, dict)
++        or datos.get("formato") != FORMATO
++        or not isinstance(datos.get("instalaciones"), dict)
++    ):
++        raise ErrorDeHistorico(f"{ruta}: formato de histórico no reconocido. No se sobrescribe.")
++    return datos
+ 
+ def escribe(ruta: Path, datos: dict[str, Any]) -> None:
+     """Guarda el histórico. Escritura atómica: un corte a medias no lo corrompe."""
+-    pass
++    temporal = ruta.with_name(ruta.name + ".tmp")
++    temporal.write_text(
++        json.dumps(datos, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8"
++    )
++    temporal.replace(ruta)
+ 
+ def arranques(registros: list[Registro]) -> dict[tuple[str, str, str], list[str]]:
+     """Por instalación, las huellas de los registros que arrancan cadena."""
+-    pass
++    salida: dict[tuple[str, str, str], list[str]] = {}
++    for registro in registros:
++        if registro.es_primer_registro and registro.huella:
++            salida.setdefault(_clave(registro), []).append(registro.huella.upper())
++    return salida
+ 
+ def comprueba(registros: list[Registro], datos: dict[str, Any], fichero: str='') -> tuple[list[Hallazgo], dict[str, Any]]:
+     """RRSIF014 — una instalación que vuelve a arrancar su cadena.
+@@ -68,4 +90,33 @@ def comprueba(registros: list[Registro], datos: dict[str, Any], fichero: str='')
+     cuando hay hallazgos: si sólo se anotara en las ejecuciones limpias, la instalación
+     que interesa seguir sería justo la que nunca queda registrada.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    instalaciones = datos.setdefault("instalaciones", {})
++    for registro in registros:
++        if not registro.es_primer_registro or not registro.huella:
++            continue
++        clave = _texto(_clave(registro))
++        entrada = instalaciones.setdefault(clave, {"arranques": []})
++        conocidos: list[str] = entrada["arranques"]
++        huella_registro = registro.huella.upper()
++        if huella_registro in conocidos:
++            continue
++        if conocidos:
++            numero = clave.split("|")[-1]
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF014",
++                    severidad=Severidad.ERROR,
++                    titulo=f"La instalación {numero} vuelve a arrancar su cadena",
++                    detalle=(
++                        f"{registro.referencia} arranca una cadena nueva con el NumeroInstalacion "
++                        f"{numero}, que ya tenía {len(conocidos)} arranque(s) anotado(s). Una "
++                        "instalación no puede repetir número, ni tras reinstalar el software."
++                    ),
++                    norma=NORMA,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++        conocidos.append(huella_registro)
++    return hallazgos, datos
+diff --git a/src/verifactu_lint/huella.py b/src/verifactu_lint/huella.py
+index 1cc6e80..92aad3e 100644
+--- a/src/verifactu_lint/huella.py
++++ b/src/verifactu_lint/huella.py
+@@ -15,6 +15,7 @@ pasar, es este módulo el que está mal, no ellos.
+ """
+ from __future__ import annotations
+ import hashlib
++import re
+ from decimal import Decimal, InvalidOperation
+ CAMPOS_ALTA: tuple[str, ...] = ('IDEmisorFactura', 'NumSerieFactura', 'FechaExpedicionFactura', 'TipoFactura', 'CuotaTotal', 'ImporteTotal', 'Huella', 'FechaHoraHusoGenRegistro')
+ CAMPOS_ANULACION: tuple[str, ...] = ('IDEmisorFacturaAnulada', 'NumSerieFacturaAnulada', 'FechaExpedicionFacturaAnulada', 'Huella', 'FechaHoraHusoGenRegistro')
+@@ -32,7 +33,9 @@ def normaliza(valor: str | None) -> str:
+     Un campo ausente y un campo presente pero vacío son el mismo caso: la cadena
+     lleva el nombre y el `=`, sin valor.
+     """
+-    pass
++    if valor is None:
++        return ""
++    return valor.strip()
+ 
+ def cadena_canonica(campos: tuple[str, ...], valores: list[str | None]) -> str:
+     """Concatena `nombre=valor` con `&`, en el orden dado y sin separador final.
+@@ -41,7 +44,11 @@ def cadena_canonica(campos: tuple[str, ...], valores: list[str | None]) -> str:
+     perfectamente formada, de 64 caracteres, que no coincide con la de la AEAT. El
+     ejemplo en Java del documento oficial lo marca pasando `false` al último campo.
+     """
+-    pass
++    if len(campos) != len(valores):
++        raise ValueError(
++            f"se esperaban {len(campos)} valores para {len(campos)} campos, llegaron {len(valores)}"
++        )
++    return "&".join(f"{nombre}={normaliza(valor)}" for nombre, valor in zip(campos, valores))
+ 
+ def huella(cadena: str) -> str:
+     """SHA-256 de la cadena canónica, en hexadecimal y mayúsculas.
+@@ -49,7 +56,7 @@ def huella(cadena: str) -> str:
+     SHA-256 es, a fecha del documento, el único algoritmo permitido por la lista L12
+     del apartado 6 del anexo de la orden.
+     """
+-    pass
++    return hashlib.sha256(cadena.encode("utf-8")).hexdigest().upper()
+ 
+ def variantes_numericas(valor: str) -> list[str]:
+     """Formas de un importe que la orden considera equivalentes entre sí.
+@@ -68,7 +75,16 @@ def variantes_numericas(valor: str) -> list[str]:
+     Un valor no numérico se devuelve tal cual: no es trabajo de esta función decidir
+     que un campo está mal formado, sólo enumerar equivalencias cuando las hay.
+     """
+-    pass
++    if not re.fullmatch(r"-?\d+(\.\d+)?", valor):
++        return [valor]
++    formas = [valor]
++    if "." in valor:
++        exacto = Decimal(valor)
++        for n in (1, 2):
++            forma = exacto.quantize(Decimal(1).scaleb(-n))
++            if forma == exacto and f"{forma:f}" != valor:
++                formas.append(f"{forma:f}")
++    return formas
+ 
+ def huella_alta(id_emisor: str | None, num_serie: str | None, fecha_expedicion: str | None, tipo_factura: str | None, cuota_total: str | None, importe_total: str | None, huella_anterior: str | None, fecha_hora_huso: str | None) -> str:
+     """Huella de un registro de facturación de alta.
+@@ -77,11 +93,30 @@ def huella_alta(id_emisor: str | None, num_serie: str | None, fecha_expedicion:
+     exime de calcular su huella: la orden es explícita en que el campo `Huella`
+     siempre se informa, incluso cuando `PrimerRegistro` vale `S`.
+     """
+-    pass
++    return huella(
++        cadena_canonica(
++            CAMPOS_ALTA,
++            [
++                id_emisor,
++                num_serie,
++                fecha_expedicion,
++                tipo_factura,
++                cuota_total,
++                importe_total,
++                huella_anterior,
++                fecha_hora_huso,
++            ],
++        )
++    )
+ 
+ def huella_anulacion(id_emisor_anulada: str | None, num_serie_anulada: str | None, fecha_expedicion_anulada: str | None, huella_anterior: str | None, fecha_hora_huso: str | None) -> str:
+     """Huella de un registro de facturación de anulación."""
+-    pass
++    return huella(
++        cadena_canonica(
++            CAMPOS_ANULACION,
++            [id_emisor_anulada, num_serie_anulada, fecha_expedicion_anulada, huella_anterior, fecha_hora_huso],
++        )
++    )
+ 
+ def huella_evento(nif_sistema: str | None, id_otro: str | None, id_sistema_informatico: str | None, version: str | None, numero_instalacion: str | None, nif_obligado: str | None, tipo_evento: str | None, huella_evento_anterior: str | None, fecha_hora_huso: str | None) -> str:
+     """Huella de un registro de evento.
+@@ -90,4 +125,19 @@ def huella_evento(nif_sistema: str | None, id_otro: str | None, id_sistema_infor
+     queda vacío, tal y como recoge el ejemplo oficial
+     `NIF=89890001K&ID=&IdSistemaInformatico=…`.
+     """
+-    pass
++    return huella(
++        cadena_canonica(
++            CAMPOS_EVENTO,
++            [
++                nif_sistema,
++                id_otro,
++                id_sistema_informatico,
++                version,
++                numero_instalacion,
++                nif_obligado,
++                tipo_evento,
++                huella_evento_anterior,
++                fecha_hora_huso,
++            ],
++        )
++    )
+diff --git a/src/verifactu_lint/registros.py b/src/verifactu_lint/registros.py
+index 9abc8e8..ece79b3 100644
+--- a/src/verifactu_lint/registros.py
++++ b/src/verifactu_lint/registros.py
+@@ -108,17 +108,18 @@ class Registro:
+     @property
+     def es_rectificativa(self) -> bool:
+         """R1 a R5 son los tipos rectificativos del esquema."""
+-        pass
++        return self.tipo_factura in ("R1", "R2", "R3", "R4", "R5")
+ 
+     @property
+     def es_primer_registro(self) -> bool:
+         """`PrimerRegistro` vale `S`, según el diseño de registro."""
+-        pass
++        return self.primer_registro == "S"
+ 
+     @property
+     def referencia(self) -> str:
+         """Cómo se nombra este registro en un hallazgo, para que sea localizable."""
+-        pass
++        numero = self.num_serie if self.num_serie else "(sin NumSerieFactura)"
++        return f"#{self.orden} {numero}"
+ 
+ @dataclass(frozen=True)
+ class Evento:
+@@ -151,11 +152,12 @@ class Evento:
+ 
+     @property
+     def es_primer_evento(self) -> bool:
+-        pass
++        return self.primer_evento == "S"
+ 
+     @property
+     def referencia(self) -> str:
+-        pass
++        tipo = self.tipo_evento if self.tipo_evento else "(sin TipoEvento)"
++        return f"evento #{self.orden} tipo {tipo}"
+ 
+ def _local(tag: str) -> str:
+     """El nombre del elemento sin su namespace.
+@@ -164,22 +166,45 @@ def _local(tag: str) -> str:
+     emisores y versiones del esquema. Comparar por nombre local es lo que hace que
+     un fichero perfectamente válido no se lea como vacío por un prefijo distinto.
+     """
+-    pass
++    return tag.rsplit("}", 1)[-1]
+ 
+ def _texto(elemento: ET.Element | None) -> str | None:
+-    pass
++    if elemento is None:
++        return None
++    texto = (elemento.text or "").strip()
++    return texto or None
+ 
+ def _hijo(padre: ET.Element, nombre: str) -> ET.Element | None:
+-    pass
++    for hijo in padre:
++        if _local(hijo.tag) == nombre:
++            return hijo
++    return None
+ 
+ def _buscar(padre: ET.Element, *ruta: str) -> ET.Element | None:
+-    pass
++    nodo: ET.Element | None = padre
++    for paso in ruta:
++        if nodo is None:
++            return None
++        nodo = _hijo(nodo, paso)
++    return nodo
+ 
+ def _valor(padre: ET.Element, *ruta: str) -> str | None:
+-    pass
++    return _texto(_buscar(padre, *ruta))
+ 
+ def _lee_sistema(nodo: ET.Element | None) -> SistemaInformatico:
+-    pass
++    if nodo is None:
++        return SistemaInformatico()
++    return SistemaInformatico(
++        nombre_razon=_valor(nodo, "NombreRazon"),
++        nif=_valor(nodo, "NIF"),
++        id_otro=_valor(nodo, "IDOtro", "ID"),
++        id_sistema_informatico=_valor(nodo, "IdSistemaInformatico"),
++        version=_valor(nodo, "Version"),
++        numero_instalacion=_valor(nodo, "NumeroInstalacion"),
++        tipo_uso_solo_verifactu=_valor(nodo, "TipoUsoPosibleSoloVerifactu"),
++        tipo_uso_multi_ot=_valor(nodo, "TipoUsoPosibleMultiOT"),
++        indicador_multiples_ot=_valor(nodo, "IndicadorMultiplesOT"),
++    )
+ 
+ def _lee_encadenamiento(nodo: ET.Element) -> tuple[ET.Element | None, ET.Element | None]:
+     """El bloque `Encadenamiento` y, si lo hay, su `RegistroAnterior`.
+@@ -189,7 +214,10 @@ def _lee_encadenamiento(nodo: ET.Element) -> tuple[ET.Element | None, ET.Element
+     existiera — y un `<Encadenamiento/>` vacío es precisamente uno de los defectos
+     que esta herramienta debe ver, no ignorar.
+     """
+-    pass
++    encadenamiento = _hijo(nodo, "Encadenamiento")
++    if encadenamiento is None:
++        return None, None
++    return encadenamiento, _hijo(encadenamiento, "RegistroAnterior")
+ _HIJOS_DEL_REGISTRO: dict[str, frozenset[str]] = {'RegistroAlta': frozenset({'IDVersion', 'IDFactura', 'RefExterna', 'NombreRazonEmisor', 'Subsanacion', 'RechazoPrevio', 'TipoFactura', 'TipoRectificativa', 'FacturasRectificadas', 'FacturasSustituidas', 'ImporteRectificacion', 'FechaOperacion', 'DescripcionOperacion', 'FacturaSimplificadaArt7273', 'FacturaSinIdentifDestinatarioArt61d', 'Macrodato', 'EmitidaPorTerceroODestinatario', 'Tercero', 'Destinatarios', 'Cupon', 'Desglose', 'CuotaTotal', 'ImporteTotal', 'Encadenamiento', 'SistemaInformatico', 'FechaHoraHusoGenRegistro', 'NumRegistroAcuerdoFacturacion', 'IdAcuerdoSistemaInformatico', 'TipoHuella', 'Huella', 'Signature'}), 'RegistroAnulacion': frozenset({'IDVersion', 'IDFactura', 'RefExterna', 'SinRegistroPrevio', 'RechazoPrevio', 'GeneradoPor', 'Generador', 'Encadenamiento', 'SistemaInformatico', 'FechaHoraHusoGenRegistro', 'TipoHuella', 'Huella', 'Signature'})}
+ ID_FACTURA: dict[str, tuple[str, str, str]] = {'RegistroAlta': ('IDEmisorFactura', 'NumSerieFactura', 'FechaExpedicionFactura'), 'RegistroAnulacion': ('IDEmisorFacturaAnulada', 'NumSerieFacturaAnulada', 'FechaExpedicionFacturaAnulada')}
+ _HIJOS_DEL_BLOQUE: dict[str, frozenset[str]] = {'Encadenamiento': frozenset({'PrimerRegistro', 'RegistroAnterior'}), 'RegistroAnterior': frozenset({'IDEmisorFactura', 'NumSerieFactura', 'FechaExpedicionFactura', 'Huella'}), 'Desglose': frozenset({'DetalleDesglose'}), 'DetalleDesglose': frozenset({'Impuesto', 'ClaveRegimen', 'CalificacionOperacion', 'OperacionExenta', 'TipoImpositivo', 'BaseImponibleOimporteNoSujeto', 'BaseImponibleACoste', 'CuotaRepercutida', 'TipoRecargoEquivalencia', 'CuotaRecargoEquivalencia'}), 'SistemaInformatico': frozenset({'NombreRazon', 'NIF', 'IDOtro', 'NombreSistemaInformatico', 'IdSistemaInformatico', 'Version', 'NumeroInstalacion', 'TipoUsoPosibleSoloVerifactu', 'TipoUsoPosibleMultiOT', 'IndicadorMultiplesOT'})}
+@@ -197,14 +225,84 @@ _DE_VALOR = frozenset({'IDVersion', 'RefExterna', 'NombreRazonEmisor', 'Subsanac
+ 
+ def _inesperado(nodo: ET.Element, ruta: str, esperados: frozenset[str]) -> ElementoInesperado:
+     """El elemento fuera de sitio, con los esperados del bloque padre que lleva dentro."""
+-    pass
++    contiene: list[str] = []
++    for descendiente in nodo.iter():
++        if descendiente is nodo:
++            continue
++        nombre = _local(descendiente.tag)
++        if nombre in esperados and nombre not in contiene:
++            contiene.append(nombre)
++    return ElementoInesperado(ruta=ruta, contiene=tuple(contiene))
+ 
+ def _fuera_de_esquema(nodo: ET.Element) -> tuple[ElementoInesperado, ...]:
+     """Los elementos de un registro que están donde el esquema no los prevé."""
+-    pass
++    tipo = _local(nodo.tag)
++    salida: list[ElementoInesperado] = []
++
++    def recorre(padre: ET.Element, ruta: str, esperados: frozenset[str]) -> None:
++        for hijo in padre:
++            nombre = _local(hijo.tag)
++            ruta_hijo = f"{ruta}/{nombre}"
++            if nombre not in esperados:
++                salida.append(_inesperado(hijo, ruta_hijo, esperados))
++                continue
++            if nombre == "IDFactura":
++                permitidos = frozenset(ID_FACTURA[tipo])
++                for nieto in hijo:
++                    nombre_nieto = _local(nieto.tag)
++                    if nombre_nieto not in permitidos:
++                        salida.append(
++                            _inesperado(nieto, f"{ruta_hijo}/{nombre_nieto}", permitidos)
++                        )
++            elif nombre in _DE_VALOR:
++                for nieto in hijo:
++                    salida.append(
++                        ElementoInesperado(
++                            ruta=f"{ruta_hijo}/{_local(nieto.tag)}", en_un_valor=True
++                        )
++                    )
++            elif nombre in _HIJOS_DEL_BLOQUE:
++                recorre(hijo, ruta_hijo, _HIJOS_DEL_BLOQUE[nombre])
++
++    recorre(nodo, tipo, _HIJOS_DEL_REGISTRO.get(tipo, frozenset()))
++    return tuple(salida)
+ 
+ def _lee_alta(nodo: ET.Element, orden: int) -> Registro:
+-    pass
++    id_factura = _hijo(nodo, "IDFactura")
++    encadenamiento, anterior = _lee_encadenamiento(nodo)
++    return Registro(
++        tipo="alta",
++        orden=orden,
++        id_emisor=_valor(id_factura, "IDEmisorFactura") if id_factura is not None else None,
++        num_serie=_valor(id_factura, "NumSerieFactura") if id_factura is not None else None,
++        fecha_expedicion=(
++            _valor(id_factura, "FechaExpedicionFactura") if id_factura is not None else None
++        ),
++        tipo_factura=_valor(nodo, "TipoFactura"),
++        cuota_total=_valor(nodo, "CuotaTotal"),
++        importe_total=_valor(nodo, "ImporteTotal"),
++        fecha_hora_huso=_valor(nodo, "FechaHoraHusoGenRegistro"),
++        tipo_huella=_valor(nodo, "TipoHuella"),
++        huella=_valor(nodo, "Huella"),
++        primer_registro=_valor(encadenamiento, "PrimerRegistro") if encadenamiento is not None else None,
++        anterior_id_emisor=_valor(anterior, "IDEmisorFactura") if anterior is not None else None,
++        anterior_num_serie=_valor(anterior, "NumSerieFactura") if anterior is not None else None,
++        anterior_fecha_expedicion=(
++            _valor(anterior, "FechaExpedicionFactura") if anterior is not None else None
++        ),
++        anterior_huella=_valor(anterior, "Huella") if anterior is not None else None,
++        tipo_rectificativa=_valor(nodo, "TipoRectificativa"),
++        facturas_rectificadas=_cuenta(nodo, "FacturasRectificadas", "IDFacturaRectificada"),
++        facturas_sustituidas=_cuenta(nodo, "FacturasSustituidas", "IDFacturaSustituida"),
++        importe_rectificacion=_hijo(nodo, "ImporteRectificacion") is not None,
++        subsanacion=_valor(nodo, "Subsanacion"),
++        rechazo_previo=_valor(nodo, "RechazoPrevio"),
++        macrodato=_valor(nodo, "Macrodato"),
++        destinatarios=_cuenta(nodo, "Destinatarios", "IDDestinatario"),
++        desglose=_lee_desglose(_hijo(nodo, "Desglose")),
++        sistema=_lee_sistema(_hijo(nodo, "SistemaInformatico")),
++        fuera_de_esquema=_fuera_de_esquema(nodo),
++    )
+ 
+ def _cuenta(padre: ET.Element, contenedor: str, elemento: str) -> int:
+     """Cuántos `elemento` hay dentro de `contenedor`.
+@@ -212,7 +310,10 @@ def _cuenta(padre: ET.Element, contenedor: str, elemento: str) -> int:
+     Se cuenta en vez de guardar la lista porque las reglas preguntan «¿hay alguna?»
+     y «¿cuántas?», nunca por una en concreto — y el esquema admite hasta mil.
+     """
+-    pass
++    contenedor_nodo = _hijo(padre, contenedor)
++    if contenedor_nodo is None:
++        return 0
++    return sum(1 for hijo in contenedor_nodo if _local(hijo.tag) == elemento)
+ 
+ def _lee_desglose(nodo: ET.Element | None) -> tuple[DetalleDesglose, ...]:
+     """Lee los `DetalleDesglose` conservando su orden.
+@@ -220,10 +321,54 @@ def _lee_desglose(nodo: ET.Element | None) -> tuple[DetalleDesglose, ...]:
+     El orden importa para los hallazgos: «la línea 3 no cuadra» sólo es accionable si
+     esa línea es la tercera que el usuario ve en su fichero.
+     """
+-    pass
++    if nodo is None:
++        return ()
++    detalles: list[DetalleDesglose] = []
++    for hijo in nodo:
++        if _local(hijo.tag) != "DetalleDesglose":
++            continue
++        detalles.append(
++            DetalleDesglose(
++                orden=len(detalles) + 1,
++                impuesto=_valor(hijo, "Impuesto"),
++                clave_regimen=_valor(hijo, "ClaveRegimen"),
++                calificacion=_valor(hijo, "CalificacionOperacion"),
++                operacion_exenta=_valor(hijo, "OperacionExenta"),
++                tipo_impositivo=_valor(hijo, "TipoImpositivo"),
++                base=_valor(hijo, "BaseImponibleOimporteNoSujeto"),
++                base_a_coste=_valor(hijo, "BaseImponibleACoste"),
++                cuota_repercutida=_valor(hijo, "CuotaRepercutida"),
++                tipo_recargo=_valor(hijo, "TipoRecargoEquivalencia"),
++                cuota_recargo=_valor(hijo, "CuotaRecargoEquivalencia"),
++            )
++        )
++    return tuple(detalles)
+ 
+ def _lee_anulacion(nodo: ET.Element, orden: int) -> Registro:
+-    pass
++    id_factura = _hijo(nodo, "IDFactura")
++    encadenamiento, anterior = _lee_encadenamiento(nodo)
++    return Registro(
++        tipo="anulacion",
++        orden=orden,
++        id_emisor=_valor(id_factura, "IDEmisorFacturaAnulada") if id_factura is not None else None,
++        num_serie=_valor(id_factura, "NumSerieFacturaAnulada") if id_factura is not None else None,
++        fecha_expedicion=(
++            _valor(id_factura, "FechaExpedicionFacturaAnulada") if id_factura is not None else None
++        ),
++        fecha_hora_huso=_valor(nodo, "FechaHoraHusoGenRegistro"),
++        tipo_huella=_valor(nodo, "TipoHuella"),
++        huella=_valor(nodo, "Huella"),
++        primer_registro=_valor(encadenamiento, "PrimerRegistro") if encadenamiento is not None else None,
++        anterior_id_emisor=_valor(anterior, "IDEmisorFactura") if anterior is not None else None,
++        anterior_num_serie=_valor(anterior, "NumSerieFactura") if anterior is not None else None,
++        anterior_fecha_expedicion=(
++            _valor(anterior, "FechaExpedicionFactura") if anterior is not None else None
++        ),
++        anterior_huella=_valor(anterior, "Huella") if anterior is not None else None,
++        rechazo_previo=_valor(nodo, "RechazoPrevio"),
++        sistema=_lee_sistema(_hijo(nodo, "SistemaInformatico")),
++        fuera_de_esquema=_fuera_de_esquema(nodo),
++    )
+ _PROLOGO = 8192
+ _DECLARACION = re.compile(b'<\\?xml[^>]*?encoding\\s*=\\s*["\']([A-Za-z0-9._-]+)["\']')
+ 
+@@ -248,7 +393,14 @@ def _rechaza_doctype(crudo: bytes, ruta: Path) -> None:
+     dos que expat acepta. Mirar sólo la primera dejaría pasar un *billion laughs*
+     escrito en UTF-16, que es justo el agujero que este chequeo existe para cerrar.
+     """
+-    pass
++    prologo = crudo[:_PROLOGO]
++    for codificacion in ("latin-1", "utf-16-le", "utf-16-be"):
++        texto = prologo.decode(codificacion, errors="ignore")
++        if "<!DOCTYPE" in texto:
++            raise ErrorDeLectura(
++                f"{ruta}: el fichero declara un DOCTYPE (DTD interna). Se rechaza por "
++                "seguridad: los registros de facturación no declaran entidades."
++            )
+ 
+ def _explica_mal_formado(crudo: bytes, exc: Exception, ruta: Path) -> str:
+     """El mensaje de un XML que no se pudo parsear, y por qué, si se puede decir.
+@@ -258,7 +410,16 @@ def _explica_mal_formado(crudo: bytes, exc: Exception, ruta: Path) -> str:
+     ISO-8859-1 o Windows-1252, como hacen muchos ERP. El mensaje de expat («invalid
+     token») no lo dice, y la causa no es evidente para quien lo lee.
+     """
+-    pass
++    mensaje = f"{ruta}: XML mal formado ({exc})"
++    try:
++        crudo.decode("utf-8")
++    except UnicodeDecodeError:
++        mensaje += (
++            ". Los bytes no son UTF-8 válido: si el fichero está escrito en ISO-8859-1 o "
++            "Windows-1252, la cabecera tiene que declararlo (encoding=\"ISO-8859-1\") o "
++            "guardarse en UTF-8"
++        )
++    return mensaje
+ 
+ def _documento(origen: Path | str) -> tuple[ET.Element, bytes]:
+     """Lee y parsea el fichero, una sola vez y en bytes.
+@@ -271,7 +432,17 @@ def _documento(origen: Path | str) -> tuple[ET.Element, bytes]:
+     codificación declarada, que es lo que manda la especificación de XML; y si los
+     bytes no corresponden a la que declara, lo dice en vez de leer otra cosa.
+     """
+-    pass
++    try:
++        crudo = Path(origen).read_bytes()
++    except OSError as exc:
++        raise ErrorDeLectura(f"no se pudo abrir {origen}: {exc}") from exc
++    ruta = Path(origen)
++    _rechaza_doctype(crudo, ruta)
++    try:
++        raiz = ET.fromstring(crudo)
++    except ET.ParseError as exc:
++        raise ErrorDeLectura(_explica_mal_formado(crudo, exc, ruta)) from exc
++    return raiz, crudo
+ 
+ def _lineas_de(crudo: bytes, etiquetas: tuple[str, ...], esperados: int) -> list[int | None]:
+     """Línea del XML en que abre cada elemento con esas etiquetas, en orden.
+@@ -281,7 +452,12 @@ def _lineas_de(crudo: bytes, etiquetas: tuple[str, ...], esperados: int) -> list
+     el de elementos parseados —un comentario que contiene una etiqueta, un fichero en
+     UTF-16—, se devuelve `None` para todos. Una línea equivocada es peor que ninguna.
+     """
+-    pass
++    alternativas = "|".join(re.escape(etiqueta) for etiqueta in etiquetas)
++    patron = re.compile(rb"<(?:[A-Za-z_][\w.-]*:)?(?:" + alternativas.encode("ascii") + rb")[\s/>]")
++    posiciones = [m.start() for m in patron.finditer(crudo)]
++    if len(posiciones) != esperados:
++        return [None] * esperados
++    return [crudo.count(b"\n", 0, pos) + 1 for pos in posiciones]
+ 
+ def lee(origen: Path | str) -> list[Registro]:
+     """Lee un fichero XML y devuelve sus registros en orden de aparición.
+@@ -290,11 +466,45 @@ def lee(origen: Path | str) -> list[Registro]:
+     hallazgo que dice «se rompe entre el 40 y el 41» sólo es accionable si esos
+     números corresponden a lo que el usuario ve en su fichero.
+     """
+-    pass
++    raiz, crudo = _documento(origen)
++    nodos = [n for n in raiz.iter() if _local(n.tag) in ("RegistroAlta", "RegistroAnulacion")]
++    lineas = _lineas_de(crudo, ("RegistroAlta", "RegistroAnulacion"), len(nodos))
++    registros: list[Registro] = []
++    for indice, nodo in enumerate(nodos):
++        orden = indice + 1
++        if _local(nodo.tag) == "RegistroAlta":
++            registro = _lee_alta(nodo, orden)
++        else:
++            registro = _lee_anulacion(nodo, orden)
++        registros.append(replace(registro, linea_xml=lineas[indice]))
++    return registros
+ 
+ def _lee_evento(nodo: ET.Element, orden: int) -> Evento:
+     """Lee el bloque `Evento` de un `RegistroEvento`."""
+-    pass
++    enc = _hijo(nodo, "Encadenamiento")
++    anterior = _hijo(enc, "EventoAnterior") if enc is not None else None
++    datos = _hijo(nodo, "DatosPropiosEvento")
++    datos_propios = None
++    if datos is not None and len(datos):
++        datos_propios = _local(datos[0].tag)
++    return Evento(
++        orden=orden,
++        tipo_evento=_valor(nodo, "TipoEvento"),
++        fecha_hora_huso=_valor(nodo, "FechaHoraHusoGenEvento"),
++        tipo_huella=_valor(nodo, "TipoHuella"),
++        huella=_valor(nodo, "HuellaEvento"),
++        primer_evento=_valor(enc, "PrimerEvento") if enc is not None else None,
++        anterior_tipo_evento=_valor(anterior, "TipoEvento") if anterior is not None else None,
++        anterior_fecha_hora=(
++            _valor(anterior, "FechaHoraHusoGenEvento") if anterior is not None else None
++        ),
++        anterior_huella=_valor(anterior, "HuellaEvento") if anterior is not None else None,
++        nif_obligado=_valor(nodo, "ObligadoEmision", "NIF"),
++        datos_propios=datos_propios,
++        otros_datos=_valor(nodo, "OtrosDatosEvento"),
++        firmado=_hijo(nodo, "Signature") is not None,
++        sistema=_lee_sistema(_hijo(nodo, "SistemaInformatico")),
++    )
+ 
+ def lee_eventos(origen: Path | str) -> list[Evento]:
+     """Lee un fichero XML y devuelve sus registros de evento, en orden.
+@@ -304,4 +514,11 @@ def lee_eventos(origen: Path | str) -> list[Evento]:
+     un tipo más dentro de `lee`: mezclarlos produciría roturas de encadenamiento
+     inventadas entre una factura y un evento que nunca estuvieron encadenados.
+     """
+-    pass
++    raiz, crudo = _documento(origen)
++    nodos = [n for n in raiz.iter() if _local(n.tag) == "Evento"]
++    lineas = _lineas_de(crudo, ("Evento",), len(nodos))
++    eventos: list[Evento] = []
++    for indice, nodo in enumerate(nodos):
++        evento = _lee_evento(nodo, indice + 1)
++        eventos.append(replace(evento, linea_xml=lineas[indice]))
++    return eventos
+diff --git a/src/verifactu_lint/reglas/__init__.py b/src/verifactu_lint/reglas/__init__.py
+index fa31368..77230ea 100644
+--- a/src/verifactu_lint/reglas/__init__.py
++++ b/src/verifactu_lint/reglas/__init__.py
+@@ -27,14 +27,30 @@ def sella(hallazgos: list[Hallazgo], fichero: str, lineas: dict[int, int | None]
+     Se hace en un solo sitio para que ninguna regla tenga que acordarse; también lo
+     usan los hallazgos que no salen de `audita`, como los del histórico.
+     """
+-    pass
++    return [
++        replace(
++            h,
++            fichero=fichero,
++            linea_xml=lineas.get(h.orden) if h.orden is not None else None,
++        )
++        for h in hallazgos
++    ]
+ 
+ def _informe(hallazgos: list[Hallazgo], analizados: int, fichero: str, lineas: dict[int, int | None]) -> Informe:
+-    pass
++    return Informe(
++        hallazgos=sella(hallazgos, fichero, lineas),
++        registros_analizados=analizados,
++        fichero=fichero,
++    )
+ 
+ def audita(registros: list[Registro], fichero: str='', reglas: tuple[Regla, ...]=TODAS) -> Informe:
+     """Aplica las reglas de facturación y devuelve el informe."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for regla in reglas:
++        hallazgos.extend(regla(registros))
++    hallazgos = estructura.anota_cascada(hallazgos, registros)
++    lineas = {r.orden: r.linea_xml for r in registros}
++    return _informe(hallazgos, len(registros), fichero, lineas)
+ 
+ def audita_eventos(eventos_: list[Evento], fichero: str='', reglas: tuple[ReglaEvento, ...]=TODAS_EVENTOS) -> Informe:
+     """Aplica las reglas de eventos y devuelve el informe.
+@@ -43,4 +59,8 @@ def audita_eventos(eventos_: list[Evento], fichero: str='', reglas: tuple[ReglaE
+     de facturación: un evento no encadena con una factura ni al revés. Auditarlos
+     juntos produciría roturas inventadas en la frontera entre unos y otros.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for regla in reglas:
++        hallazgos.extend(regla(eventos_))
++    lineas = {e.orden: e.linea_xml for e in eventos_}
++    return _informe(hallazgos, len(eventos_), fichero, lineas)
+diff --git a/src/verifactu_lint/reglas/desglose.py b/src/verifactu_lint/reglas/desglose.py
+index 0a0057f..bdf69d6 100644
+--- a/src/verifactu_lint/reglas/desglose.py
++++ b/src/verifactu_lint/reglas/desglose.py
+@@ -33,21 +33,36 @@ NORMA_VALIDACIONES = 'Validaciones y errores AEAT v1.2.2'
+ REGIMENES_SIN_CUADRE = frozenset({'03', '05', '06', '08', '09'})
+ 
+ def _numero(valor: str | None) -> Decimal | None:
+-    pass
+-
+-def _suma(detalles: tuple[DetalleDesglose, ...], campo: str) -> Decimal | None:
++    if valor is None or not valor.strip():
++        return None
++    try:
++        numero = Decimal(valor.strip())
++    except InvalidOperation:
++        return None
++    return numero if numero.is_finite() else None
++
++def _suma(detalles: tuple[DetalleDesglose, ...], campo: str, opcional: bool = False) -> Decimal | None:
+     """Suma un campo de todas las líneas, o `None` si alguna no es un número.
+ 
+     Devolver `None` en vez de saltarse la línea es deliberado: una suma a la que le
+     falta un sumando cuadraría mal y el hallazgo culparía al total, que está bien.
+     """
+-    pass
++    total = Decimal(0)
++    for detalle in detalles:
++        valor = getattr(detalle, campo)
++        if valor is None and opcional:
++            continue
++        numero = _numero(valor)
++        if numero is None:
++            return None
++        total += numero
++    return total
+ 
+ def _referencia_linea(r: Registro, d: DetalleDesglose) -> str:
+-    pass
++    return f"{r.referencia}, línea {d.orden}"
+ 
+ def _limpio(valor: str | None) -> str:
+-    pass
++    return valor if valor else "(vacío)"
+ 
+ def _es_s1(d: DetalleDesglose) -> bool:
+     """La línea es sujeta y no exenta sin inversión: la única que repercute cuota.
+@@ -55,21 +70,38 @@ def _es_s1(d: DetalleDesglose) -> bool:
+     Una línea sin calificación ni exención no es válida, pero tampoco hay base para
+     suponerla otra cosa: se trata como S1, que es lo que comprobaba la versión anterior.
+     """
+-    pass
++    return d.calificacion == "S1" or (d.calificacion is None and d.operacion_exenta is None)
+ 
+ def _cuota_exenta_de_cuadre(r: Registro) -> bool:
+     """§15.7 no cuadra la cuota en las rectificativas por diferencias ni en R2/R3."""
+-    pass
++    return r.tipo_rectificativa == "I" or r.tipo_factura in ("R2", "R3")
+ 
+ def _regimen_sin_cuadre(r: Registro) -> str | None:
+-    pass
++    for detalle in r.desglose:
++        if detalle.clave_regimen in REGIMENES_SIN_CUADRE:
++            return detalle.clave_regimen
++    return None
+ 
+ def _severidad_del_total(diferencia: Decimal) -> Severidad:
+-    pass
++    return Severidad.AVISO if diferencia <= MARGEN_AEAT else Severidad.ERROR
+ 
+ def hay_desglose(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF040 — un registro de alta lleva desglose."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo == "alta" and not registro.desglose:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF040",
++                    severidad=Severidad.ERROR,
++                    titulo="El registro de alta no lleva desglose",
++                    detalle="Sin al menos una línea de DetalleDesglose no hay base ni cuota que declarar.",
++                    norma=NORMA_VALIDACIONES,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ 
+ def cuota_total_cuadra(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF041 — `CuotaTotal` = Σ cuotas repercutidas + Σ recargos.
+@@ -79,7 +111,43 @@ def cuota_total_cuadra(registros: list[Registro]) -> list[Hallazgo]:
+     AEAT no dice nada y aquí sale como aviso. No se aplica en los regímenes 03, 05,
+     06, 08 y 09 (§16).
+     """
+-    pass
++    def detalle_total(nombre: str, declarada: Decimal, esperada: Decimal, diferencia: Decimal, sev: Severidad, descripcion: str) -> str:
++        texto = (
++            f"{nombre} declara {declarada}; {descripcion} da {esperada}. Diferencia: {diferencia}."
++        )
++        if sev is Severidad.ERROR:
++            return texto + " Supera el margen de ±10 €: el registro entra con error y hay que subsanarlo."
++        return texto + " Dentro del margen de ±10 €: la AEAT lo admite, pero conviene corregirlo."
++
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta" or not registro.desglose or _regimen_sin_cuadre(registro):
++            continue
++        cuotas = _suma(registro.desglose, "cuota_repercutida")
++        recargos = _suma(registro.desglose, "cuota_recargo", opcional=True)
++        declarada = _numero(registro.cuota_total)
++        if cuotas is None or recargos is None or declarada is None:
++            continue
++        esperada = cuotas + recargos
++        diferencia = abs(declarada - esperada)
++        if diferencia <= TOLERANCIA_LINEA * len(registro.desglose):
++            continue
++        sev = _severidad_del_total(diferencia)
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF041",
++                severidad=sev,
++                titulo="CuotaTotal no cuadra con el desglose",
++                detalle=detalle_total(
++                    "CuotaTotal", declarada, esperada, diferencia, sev,
++                    "la suma de cuotas repercutidas y recargos",
++                ),
++                norma=f"{NORMA_VALIDACIONES}, error 2006",
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++    return hallazgos
+ 
+ def importe_total_cuadra(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF042 — `ImporteTotal` = Σ bases + Σ cuotas + Σ recargos.
+@@ -87,7 +155,44 @@ def importe_total_cuadra(registros: list[Registro]) -> list[Hallazgo]:
+     Errores **2005** (admisible) y **1210** del listado de la AEAT. Mismo margen y
+     mismas excepciones de régimen que RRSIF041 (§17).
+     """
+-    pass
++    def detalle_total(nombre: str, declarada: Decimal, esperada: Decimal, diferencia: Decimal, sev: Severidad, descripcion: str) -> str:
++        texto = (
++            f"{nombre} declara {declarada}; {descripcion} da {esperada}. Diferencia: {diferencia}."
++        )
++        if sev is Severidad.ERROR:
++            return texto + " Supera el margen de ±10 €: el registro entra con error y hay que subsanarlo."
++        return texto + " Dentro del margen de ±10 €: la AEAT lo admite, pero conviene corregirlo."
++
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta" or not registro.desglose or _regimen_sin_cuadre(registro):
++            continue
++        bases = _suma(registro.desglose, "base")
++        cuotas = _suma(registro.desglose, "cuota_repercutida")
++        recargos = _suma(registro.desglose, "cuota_recargo", opcional=True)
++        declarada = _numero(registro.importe_total)
++        if bases is None or cuotas is None or recargos is None or declarada is None:
++            continue
++        esperada = bases + cuotas + recargos
++        diferencia = abs(declarada - esperada)
++        if diferencia <= TOLERANCIA_LINEA * len(registro.desglose):
++            continue
++        sev = _severidad_del_total(diferencia)
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF042",
++                severidad=sev,
++                titulo="ImporteTotal no cuadra con el desglose",
++                detalle=detalle_total(
++                    "ImporteTotal", declarada, esperada, diferencia, sev,
++                    "la suma de bases, cuotas y recargos",
++                ),
++                norma=f"{NORMA_VALIDACIONES}, errores 2005 y 1210",
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++    return hallazgos
+ 
+ def cuota_de_la_linea_cuadra(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF043 — en S1, cuota repercutida = base por tipo impositivo.
+@@ -101,10 +206,80 @@ def cuota_de_la_linea_cuadra(registros: list[Registro]) -> list[Hallazgo]:
+     redondea artículo a artículo los tiene en casi todas sus líneas, y un aviso por
+     línea enterraría el informe.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    desvios: list[tuple[Registro, DetalleDesglose, str, Decimal]] = []
++    for registro in registros:
++        if registro.tipo != "alta" or _cuota_exenta_de_cuadre(registro):
++            continue
++        for detalle in registro.desglose:
++            if not _es_s1(detalle):
++                continue
++            coste = detalle.base_a_coste is not None
++            codigo = "1209" if coste else "1208"
++            if detalle.tipo_impositivo is None or detalle.cuota_repercutida is None:
++                hallazgos.append(
++                    Hallazgo(
++                        regla="RRSIF043",
++                        severidad=Severidad.ERROR,
++                        titulo="Una línea S1 no informa el tipo impositivo o la cuota",
++                        detalle=f"{_referencia_linea(registro, detalle)}: en S1 son obligatorios.",
++                        norma=f"{NORMA_VALIDACIONES}, error {codigo}",
++                        referencia=registro.referencia,
++                        orden=registro.orden,
++                    )
++                )
++                continue
++            base = _numero(detalle.base_a_coste if coste else detalle.base)
++            tipo = _numero(detalle.tipo_impositivo)
++            cuota = _numero(detalle.cuota_repercutida)
++            if base is None or tipo is None or cuota is None:
++                continue
++            esperada = (base * tipo / 100).quantize(Decimal("0.01"))
++            diferencia = abs(cuota - esperada)
++            if diferencia <= TOLERANCIA_LINEA:
++                continue
++            texto = (
++                f"cuota {detalle.cuota_repercutida} frente a {esperada} calculada "
++                f"(base {base} × {tipo} %)"
++            )
++            if diferencia > MARGEN_AEAT:
++                hallazgos.append(
++                    Hallazgo(
++                        regla="RRSIF043",
++                        severidad=Severidad.ERROR,
++                        titulo="La cuota de una línea S1 no sale de su base por el tipo impositivo",
++                        detalle=(
++                            f"{_referencia_linea(registro, detalle)}: {texto}. Diferencia {diferencia} €, "
++                            "por encima del margen de ±10 €: rechazo."
++                        ),
++                        norma=f"{NORMA_VALIDACIONES}, error 1142",
++                        referencia=registro.referencia,
++                        orden=registro.orden,
++                    )
++                )
++            else:
++                desvios.append((registro, detalle, texto, diferencia))
++    if desvios:
++        hallazgos.append(_desvios_dentro_del_margen(desvios))
++    return hallazgos
+ 
+ def _desvios_dentro_del_margen(desvios: list[tuple[Registro, DetalleDesglose, str, Decimal]]) -> Hallazgo:
+-    pass
++    n = len(desvios)
++    afectados = {id(r) for r, _, _, _ in desvios}
++    m = len(afectados)
++    linea_txt = "línea" if n == 1 else "líneas"
++    registro_txt = "registro" if m == 1 else "registros"
++    lineas = [f"{_referencia_linea(r, d)}: {texto}" for r, d, texto, _ in desvios[:5]]
++    if n > 5:
++        lineas.append(f"… y {n - 5} más")
++    return Hallazgo(
++        regla="RRSIF043",
++        severidad=Severidad.AVISO,
++        titulo=f"{n} {linea_txt} de {m} {registro_txt} con la cuota dentro del margen de ±10 €",
++        detalle="\n".join(lineas) + "\nSon redondeos admitidos por la AEAT, pero conviene corregirlos.",
++        norma=f"{NORMA_VALIDACIONES}, error 1142 (margen ±10 €)",
++        orden=desvios[0][0].orden,
++    )
+ 
+ def signos_coherentes(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF044 — en S1, la base y la cuota de una línea llevan el mismo signo.
+@@ -115,14 +290,67 @@ def signos_coherentes(registros: list[Registro]) -> list[Hallazgo]:
+     propia corrección. Una base negativa con cuota positiva es el patrón de un abono
+     a medio hacer: alguien invirtió el signo de un campo y no del otro.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta" or _cuota_exenta_de_cuadre(registro):
++            continue
++        for detalle in registro.desglose:
++            if not _es_s1(detalle):
++                continue
++            coste = detalle.base_a_coste is not None
++            base = _numero(detalle.base_a_coste if coste else detalle.base)
++            cuota = _numero(detalle.cuota_repercutida)
++            if base is None or cuota is None or base == 0 or cuota == 0:
++                continue
++            if (base > 0) == (cuota > 0):
++                continue
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF044",
++                    severidad=Severidad.ERROR,
++                    titulo="La base y la cuota de una línea S1 tienen signos distintos",
++                    detalle=(
++                        f"{_referencia_linea(registro, detalle)}: base {base}, cuota {cuota}. Una base "
++                        "negativa con cuota positiva (o al revés) es el patrón de un abono a medio hacer."
++                    ),
++                    norma=f"{NORMA_VALIDACIONES}, error {'1140' if coste else '1143'}",
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ 
+ def valores_de_lista(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF045 — `Impuesto`, `ClaveRegimen`, calificación y exención existen.
+ 
+     Errores **1181** (`CalificacionOperacion`) y **1182** (`OperacionExenta`).
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta":
++            continue
++        for detalle in registro.desglose:
++            comprobaciones = (
++                ("Impuesto", detalle.impuesto, IMPUESTOS, "1181"),
++                ("ClaveRegimen", detalle.clave_regimen, CLAVES_REGIMEN, "1181"),
++                ("CalificacionOperacion", detalle.calificacion, CALIFICACIONES, "1181"),
++                ("OperacionExenta", detalle.operacion_exenta, EXENCIONES, "1182"),
++            )
++            for campo, valor, admitidos, codigo in comprobaciones:
++                if valor is None or valor in admitidos:
++                    continue
++                hallazgos.append(
++                    Hallazgo(
++                        regla="RRSIF045",
++                        severidad=Severidad.ERROR,
++                        titulo=f"{campo} «{valor}» no está en la lista",
++                        detalle=f"{_referencia_linea(registro, detalle)}: valores admitidos: {', '.join(admitidos)}.",
++                        norma=f"{NORMA_VALIDACIONES}, error {codigo}",
++                        referencia=registro.referencia,
++                        orden=registro.orden,
++                    )
++                )
++    return hallazgos
+ 
+ def exenta_sin_cuota(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF046 — sólo una línea S1 repercute cuota.
+@@ -134,7 +362,40 @@ def exenta_sin_cuota(registros: list[Registro]) -> list[Hallazgo]:
+     tipo ni la cuota se informan. Hasta 0.4.0 salía como aviso porque no se había
+     localizado el código; el listado oficial lo tipifica como rechazo.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++
++    def aviso(registro: Registro, detalle: DetalleDesglose, titulo: str, codigo: str) -> None:
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF046",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=(
++                    f"{_referencia_linea(registro, detalle)}: TipoImpositivo {_limpio(detalle.tipo_impositivo)}, "
++                    f"CuotaRepercutida {_limpio(detalle.cuota_repercutida)}."
++                ),
++                norma=f"{NORMA_VALIDACIONES}, error {codigo}",
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++
++    for registro in registros:
++        if registro.tipo != "alta":
++            continue
++        for detalle in registro.desglose:
++            if detalle.operacion_exenta is not None:
++                if detalle.tipo_impositivo is not None or detalle.cuota_repercutida is not None:
++                    aviso(registro, detalle, "Una operación exenta informa tipo impositivo o cuota", "1238")
++            elif detalle.calificacion in ("N1", "N2"):
++                if detalle.tipo_impositivo is not None or detalle.cuota_repercutida is not None:
++                    aviso(registro, detalle, "Una operación no sujeta informa tipo impositivo o cuota", "1237")
++            elif detalle.calificacion == "S2":
++                tipo = _numero(detalle.tipo_impositivo)
++                cuota = _numero(detalle.cuota_repercutida)
++                if (tipo is not None and tipo != 0) or (cuota is not None and cuota != 0):
++                    aviso(registro, detalle, "En inversión del sujeto pasivo el tipo y la cuota valen 0", "1198")
++    return hallazgos
+ 
+ def recargo_de_equivalencia(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF047 — el recargo va con su tipo, y el tipo con su recargo.
+@@ -143,7 +404,49 @@ def recargo_de_equivalencia(registros: list[Registro]) -> list[Hallazgo]:
+     impositivo. Aquí se comprueban los tipos vigentes; los históricos dependen de la
+     fecha de operación y no se afirman.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta":
++            continue
++        for detalle in registro.desglose:
++            tiene_tipo = detalle.tipo_recargo is not None
++            tiene_cuota = detalle.cuota_recargo is not None
++            if tiene_tipo != tiene_cuota:
++                hallazgos.append(
++                    Hallazgo(
++                        regla="RRSIF047",
++                        severidad=Severidad.ERROR,
++                        titulo="El recargo de equivalencia no lleva a la vez tipo y cuota",
++                        detalle=f"{_referencia_linea(registro, detalle)}: TipoRecargoEquivalencia y CuotaRecargoEquivalencia van juntos.",
++                        norma=NORMA_VALIDACIONES,
++                        referencia=registro.referencia,
++                        orden=registro.orden,
++                    )
++                )
++                continue
++            if not tiene_tipo:
++                continue
++            tipo = _numero(detalle.tipo_impositivo)
++            recargo = _numero(detalle.tipo_recargo)
++            admitidos = RECARGO_POR_TIPO.get(tipo, set()) if tipo is not None else set()
++            if recargo is None or recargo not in admitidos:
++                hallazgos.append(
++                    Hallazgo(
++                        regla="RRSIF047",
++                        severidad=Severidad.ERROR,
++                        titulo=f"El recargo {detalle.tipo_recargo} no corresponde al tipo {detalle.tipo_impositivo}",
++                        detalle=(
++                            f"{_referencia_linea(registro, detalle)}: con el tipo {detalle.tipo_impositivo} "
++                            "el recargo admitido es "
++                            + (", ".join(f"{r}" for r in sorted(admitidos)) if admitidos else "ninguno")
++                            + "."
++                        ),
++                        norma=f"{NORMA_VALIDACIONES}, errores 1160 y 1162 a 1170",
++                        referencia=registro.referencia,
++                        orden=registro.orden,
++                    )
++                )
++    return hallazgos
+ 
+ def macrodato_coherente(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF048 — `Macrodato` marca los importes de ocho cifras.
+@@ -151,7 +454,40 @@ def macrodato_coherente(registros: list[Registro]) -> list[Hallazgo]:
+     Errores **1137**, **1138** y **1139**: sólo admite `S` o `N`, y tiene que valer
+     `S` exactamente cuando `ImporteTotal` alcanza ±100.000.000.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta":
++            continue
++        importe = _numero(registro.importe_total)
++        grande = importe is not None and abs(importe) >= Decimal("100000000")
++        if registro.macrodato is None:
++            if not grande:
++                continue
++            titulo = "Un importe de ocho cifras no lleva Macrodato"
++            detalle = f"ImporteTotal {registro.importe_total} alcanza ±100.000.000: falta Macrodato = S."
++        elif registro.macrodato not in ("S", "N"):
++            titulo = f"Macrodato {registro.macrodato} no es válido"
++            detalle = "Macrodato sólo admite S o N."
++        elif importe is not None and (registro.macrodato == "S") != grande:
++            titulo = "Macrodato no coincide con el importe"
++            detalle = (
++                f"Macrodato vale {registro.macrodato} con un ImporteTotal de {registro.importe_total}: "
++                "debe valer S exactamente cuando el importe alcanza ±100.000.000."
++            )
++        else:
++            continue
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF048",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=detalle,
++                norma=f"{NORMA_VALIDACIONES}, errores 1137, 1138 y 1139",
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++    return hallazgos
+ 
+ def destinatario_obligatorio(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF049 — F1, F3 y R1-R4 llevan destinatario; F2 y R5, no.
+@@ -160,5 +496,33 @@ def destinatario_obligatorio(registros: list[Registro]) -> list[Hallazgo]:
+     v1.2.2, §13). Una simplificada con `Destinatarios` no es una simplificada más
+     completa, es un registro que la AEAT rechaza.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta":
++            continue
++        if registro.tipo_factura in ("F1", "F3", "R1", "R2", "R3", "R4") and registro.destinatarios == 0:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF049",
++                    severidad=Severidad.ERROR,
++                    titulo=f"La factura {registro.tipo_factura} no identifica al destinatario",
++                    detalle="Las facturas completas y las rectificativas no simplificadas llevan Destinatarios.",
++                    norma=f"{NORMA_VALIDACIONES}, §13, error 1189",
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++        elif registro.tipo_factura in ("F2", "R5") and registro.destinatarios > 0:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF049",
++                    severidad=Severidad.ERROR,
++                    titulo=f"La factura {registro.tipo_factura} lleva destinatario",
++                    detalle="Las simplificadas no llevan Destinatarios.",
++                    norma=f"{NORMA_VALIDACIONES}, §13, error 1190",
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ REGLAS = (hay_desglose, cuota_total_cuadra, importe_total_cuadra, cuota_de_la_linea_cuadra, signos_coherentes, valores_de_lista, exenta_sin_cuota, recargo_de_equivalencia, macrodato_coherente, destinatario_obligatorio)
+diff --git a/src/verifactu_lint/reglas/encadenamiento.py b/src/verifactu_lint/reglas/encadenamiento.py
+index 42cbb7a..2e43622 100644
+--- a/src/verifactu_lint/reglas/encadenamiento.py
++++ b/src/verifactu_lint/reglas/encadenamiento.py
+@@ -28,7 +28,10 @@ def _por_obligado(registros: list[Registro]) -> list[list[Registro]]:
+     Se agrupa sólo por emisor, no por número de instalación: si una cadena cambia de
+     instalación a mitad, partirla por ahí escondería justo la rotura que hay que ver.
+     """
+-    pass
++    grupos: dict[str, list[Registro]] = {}
++    for registro in registros:
++        grupos.setdefault(registro.id_emisor or "", []).append(registro)
++    return list(grupos.values())
+ 
+ def _literal_primero(valor: str | None) -> list[str]:
+     """Las formas admisibles de un importe, empezando por la que está escrita.
+@@ -36,7 +39,11 @@ def _literal_primero(valor: str | None) -> list[str]:
+     `variantes_numericas` no garantiza ese orden —para `21.40` da primero `21.4`—, y la
+     forma escrita es la que usa quien recalcula la huella por su cuenta para comparar.
+     """
+-    pass
++    if valor is None:
++        return [""]
++    formas = [valor]
++    formas += [forma for forma in variantes_numericas(valor) if forma != valor]
++    return formas
+ 
+ class _Calculo(NamedTuple):
+     cuota: str
+@@ -59,38 +66,209 @@ def _calculos_admisibles(registro: Registro) -> list[_Calculo]:
+     El producto cartesiano está acotado a mano: dos campos numéricos con dos formas
+     cada uno son cuatro combinaciones como mucho.
+     """
+-    pass
++    if registro.tipo == "anulacion":
++        cadena = cadena_canonica(
++            CAMPOS_ANULACION,
++            [
++                registro.id_emisor,
++                registro.num_serie,
++                registro.fecha_expedicion,
++                registro.anterior_huella,
++                registro.fecha_hora_huso,
++            ],
++        )
++        return [_Calculo("", "", cadena, huella(cadena))]
++    calculos: list[_Calculo] = []
++    for cuota in _literal_primero(registro.cuota_total):
++        for importe in _literal_primero(registro.importe_total):
++            cadena = cadena_canonica(
++                CAMPOS_ALTA,
++                [
++                    registro.id_emisor,
++                    registro.num_serie,
++                    registro.fecha_expedicion,
++                    registro.tipo_factura,
++                    cuota,
++                    importe,
++                    registro.anterior_huella,
++                    registro.fecha_hora_huso,
++                ],
++            )
++            h = huella(cadena)
++            if h not in [c.huella for c in calculos]:
++                calculos.append(_Calculo(cuota, importe, cadena, h))
++    return calculos
+ 
+ def _importes(calculo: _Calculo) -> str:
+-    pass
++    return f"CuotaTotal={calculo.cuota}, ImporteTotal={calculo.importe}"
+ 
+ def _explica_calculo(calculos: list[_Calculo], es_alta: bool) -> str:
+     """El bloque «Calculada» de RRSIF001: qué se calculó y sobre qué cadena."""
+-    pass
++    literal = calculos[0]
++    if not es_alta:
++        return f"Calculada: {literal.huella} (cadena: {literal.cadena})"
++    lineas = [
++        f"Calculada: {literal.huella} (importes tal como están escritos: {literal.cadena})"
++    ]
++    for calculo in calculos[1:]:
++        lineas.append(f"Con otra forma admisible de los importes, {_importes(calculo)}: {calculo.huella}")
++    return "\n".join(lineas)
+ 
+ def huella_correcta(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF001 — la huella declarada debe salir de los campos del registro."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        calculos = _calculos_admisibles(registro)
++        declarada = registro.huella.upper() if registro.huella else None
++        if declarada is not None and any(c.huella == declarada for c in calculos):
++            continue
++        if registro.huella is None:
++            titulo = "El registro no informa la huella"
++        else:
++            titulo = "La huella no corresponde a los campos del registro"
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF001",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=(
++                    f"Declarada: {registro.huella or '(vacía)'}\n"
++                    + _explica_calculo(calculos, registro.tipo == "alta")
++                ),
++                norma=NORMA_HUELLA,
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++    return hallazgos
+ 
+ def formato_de_huella(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF002 — 64 caracteres hexadecimales en mayúsculas."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        valor = registro.huella
++        if valor is None or FORMATO_HUELLA.match(valor):
++            continue
++        if FORMATO_HUELLA.match(valor.upper()):
++            titulo = "La huella está en minúsculas"
++        else:
++            titulo = "La huella no tiene 64 caracteres hexadecimales en mayúsculas"
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF002",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=f"Huella declarada: {valor}. La huella es SHA-256 en hexadecimal y mayúsculas.",
++                norma=NORMA_HUELLA,
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++    return hallazgos
+ 
+ def cadena_continua(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF003 — cada registro encadena con la huella del anterior del mismo obligado."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for grupo in _por_obligado(registros):
++        hallazgos.extend(_cadena_continua(grupo))
++    return hallazgos
+ 
+ def _cadena_continua(registros: list[Registro]) -> list[Hallazgo]:
+-    pass
++    hallazgos: list[Hallazgo] = []
++    previo: Registro | None = None
++    for registro in registros:
++        if previo is not None and not registro.es_primer_registro and registro.anterior_huella is not None:
++            if registro.anterior_huella.upper() != (previo.huella or "").upper():
++                hallazgos.append(
++                    Hallazgo(
++                        regla="RRSIF003",
++                        severidad=Severidad.ERROR,
++                        titulo="El registro no encadena con el anterior de su obligado",
++                        detalle=(
++                            f"Su RegistroAnterior declara la huella {registro.anterior_huella}, "
++                            f"pero el registro anterior de la cadena ({previo.referencia}) tiene "
++                            f"la huella {previo.huella or '(sin huella)'}."
++                        ),
++                        norma=NORMA_HUELLA,
++                        referencia=registro.referencia,
++                        orden=registro.orden,
++                    )
++                )
++        previo = registro
++    return hallazgos
+ 
+ def primer_registro_coherente(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF004 — `PrimerRegistro` y `RegistroAnterior` son excluyentes, y sólo uno por obligado."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for grupo in _por_obligado(registros):
++        hallazgos.extend(_primer_registro_coherente(grupo))
++    return hallazgos
+ 
+ def _primer_registro_coherente(registros: list[Registro]) -> list[Hallazgo]:
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.es_primer_registro and registro.anterior_huella is not None:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF004",
++                    severidad=Severidad.ERROR,
++                    titulo="PrimerRegistro y RegistroAnterior no pueden ir juntos",
++                    detalle="Un registro es el inicio de la cadena o se encadena con otro, no las dos cosas.",
++                    norma=NORMA_HUELLA,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    primeros = [r for r in registros if r.es_primer_registro]
++    if len(primeros) > 1:
++        segundo = primeros[1]
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF004",
++                severidad=Severidad.ERROR,
++                titulo="La cadena de un obligado tiene más de un primer registro",
++                detalle=(
++                    f"Declaran PrimerRegistro = S: {', '.join(r.referencia for r in primeros)}. "
++                    "Sólo puede haber uno por cadena."
++                ),
++                norma=NORMA_HUELLA,
++                referencia=segundo.referencia,
++                orden=segundo.orden,
++            )
++        )
++    if not primeros and registros and registros[0].anterior_huella is not None:
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF004",
++                severidad=Severidad.INCOMPLETO,
++                titulo="El tramo no declara el inicio de la cadena",
++                detalle=(
++                    f"El primer registro del tramo ({registros[0].referencia}) se encadena con un "
++                    "anterior, y no hay PrimerRegistro en el fichero. Puede ser un tramo de una "
++                    "cadena más larga: revisar el registro de inicio."
++                ),
++                norma=NORMA_HUELLA,
++                referencia=registros[0].referencia,
++                orden=registros[0].orden,
++            )
++        )
++    return hallazgos
+ 
+ def tipo_de_huella(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF005 — `TipoHuella` sólo admite `01` (SHA-256) a día de hoy."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo_huella is not None and registro.tipo_huella != "01":
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF005",
++                    severidad=Severidad.ERROR,
++                    titulo=f"TipoHuella {registro.tipo_huella} no está admitido",
++                    detalle="A día de hoy sólo se admite 01 (SHA-256).",
++                    norma=NORMA_HUELLA,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ REGLAS = (huella_correcta, formato_de_huella, cadena_continua, primer_registro_coherente, tipo_de_huella)
+diff --git a/src/verifactu_lint/reglas/estructura.py b/src/verifactu_lint/reglas/estructura.py
+index 75ce20d..8a53b9a 100644
+--- a/src/verifactu_lint/reglas/estructura.py
++++ b/src/verifactu_lint/reglas/estructura.py
+@@ -33,23 +33,35 @@ _FECHA_ISO = re.compile('^\\d{4}-\\d{2}-\\d{2}$')
+ _FECHA_HORA = re.compile('^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?P<fraccion>\\.\\d+)?(?P<tzd>Z|[+-]\\d{2}:\\d{2})?$')
+ 
+ def _plural(n: int, singular: str, plural: str) -> str:
+-    pass
++    return singular if n == 1 else plural
+ 
+ def _enumera(nombres: list[str] | tuple[str, ...]) -> str:
+-    pass
++    nombres = list(nombres)
++    if not nombres:
++        return ""
++    if len(nombres) == 1:
++        return nombres[0]
++    return ", ".join(nombres[:-1]) + " y " + nombres[-1]
+ 
+ def _referencias(afectados: list[Registro], tope: int=5) -> str:
+-    pass
++    refs = [r.referencia for r in afectados]
++    texto = _enumera(refs[:tope])
++    if len(refs) > tope:
++        texto += f" y {len(refs) - tope} más"
++    return texto
+ 
+ def _explicado_por_rrsif051(registro: Registro, elemento: ElementoInesperado) -> bool:
+     """Un nombre del alta dentro del `IDFactura` de una anulación es cosa de RRSIF051.
+ 
+     Contarlo también aquí daría dos hallazgos para un solo defecto.
+     """
+-    pass
++    if registro.tipo != "anulacion":
++        return False
++    partes = elemento.ruta.split("/")
++    return len(partes) == 3 and partes[1] == "IDFactura" and partes[2] in ID_FACTURA["RegistroAlta"]
+ 
+ def _inesperados(registro: Registro) -> list[ElementoInesperado]:
+-    pass
++    return [e for e in registro.fuera_de_esquema if not _explicado_por_rrsif051(registro, e)]
+ 
+ def estructura_del_esquema(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF050 — los elementos del registro están donde el esquema los prevé.
+@@ -62,7 +74,40 @@ def estructura_del_esquema(registros: list[Registro]) -> list[Hallazgo]:
+     bloque padre —`TipoFactura` dentro de un `<Factura>` inventado—, se dice: es la
+     diferencia entre «falta TipoFactura» y «TipoFactura está en otra ruta».
+     """
+-    pass
++    afectados: list[Registro] = []
++    grupos: dict[str, tuple[ElementoInesperado, list[Registro]]] = {}
++    for registro in registros:
++        inesperados = _inesperados(registro)
++        if inesperados:
++            afectados.append(registro)
++        for elemento in inesperados:
++            if elemento.ruta not in grupos:
++                grupos[elemento.ruta] = (elemento, [])
++            grupos[elemento.ruta][1].append(registro)
++    if not afectados:
++        return []
++    total = len(registros)
++    lineas: list[str] = []
++    for ruta, (elemento, de_registros) in grupos.items():
++        linea = f"{ruta} — en {len(de_registros)} de {total} {_plural(total, 'registro', 'registros')}."
++        if elemento.en_un_valor:
++            padre = ruta.split("/")[-2]
++            linea += f" {padre} lleva un valor, no elementos."
++        elif elemento.contiene:
++            linea += f" Lleva dentro {_enumera(elemento.contiene)}."
++        lineas.append(linea)
++    n = len(afectados)
++    titulo = f"La estructura de {n} {_plural(n, 'registro', 'registros')} no corresponde al esquema"
++    return [
++        Hallazgo(
++            regla="RRSIF050",
++            severidad=Severidad.ERROR,
++            titulo=titulo,
++            detalle="\n".join(lineas),
++            norma=NORMA_ESTRUCTURA,
++            orden=afectados[0].orden,
++        )
++    ]
+ 
+ def identificacion_de_la_anulacion(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF051 — la anulación identifica la factura con sus tres campos obligatorios.
+@@ -78,14 +123,80 @@ def identificacion_de_la_anulacion(registros: list[Registro]) -> list[Hallazgo]:
+     Se agrega por causa: un generador que se equivoca de nombres lo hace en todas sus
+     anulaciones.
+     """
+-    pass
++    anulaciones = [r for r in registros if r.tipo == "anulacion"]
++    con_nombres = [
++        r for r in anulaciones if any(_explicado_por_rrsif051(r, e) for e in r.fuera_de_esquema)
++    ]
++    ids_con_nombres = {id(r) for r in con_nombres}
++    hallazgos: list[Hallazgo] = []
++    if con_nombres:
++        n = len(con_nombres)
++        titulo = (
++            "La anulación usa los nombres del registro de alta"
++            if n == 1
++            else f"{n} anulaciones usan los nombres del registro de alta"
++        )
++        detalle = (
++            f"Se esperan {_enumera(ID_FACTURA['RegistroAnulacion'])} dentro de IDFactura; "
++            f"el registro trae {_enumera(ID_FACTURA['RegistroAlta'])}, que son los nombres del alta. "
++            "Sin los nombres de anulación, el parser no lee la factura anulada y la huella no "
++            f"puede cuadrar. Afectados: {_referencias(con_nombres)}."
++        )
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF051",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=detalle,
++                norma=NORMA_ANULACION,
++                orden=con_nombres[0].orden,
++            )
++        )
++    for campo, atributo in (
++        ("IDEmisorFacturaAnulada", "id_emisor"),
++        ("NumSerieFacturaAnulada", "num_serie"),
++        ("FechaExpedicionFacturaAnulada", "fecha_expedicion"),
++    ):
++        faltan = [
++            r for r in anulaciones if id(r) not in ids_con_nombres and getattr(r, atributo) is None
++        ]
++        if not faltan:
++            continue
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF051",
++                severidad=Severidad.ERROR,
++                titulo=f"El registro de anulación no informa {campo}",
++                detalle=(
++                    f"Sin {campo} no se identifica la factura que anula. "
++                    f"Afectados: {_referencias(faltan)}."
++                ),
++                norma=NORMA_ANULACION,
++                orden=faltan[0].orden,
++            )
++        )
++    return hallazgos
+ 
+ def _campos_de_fecha(r: Registro) -> list[tuple[str, str | None]]:
+     """Las fechas `dd-mm-aaaa` que lee el parser, con su ruta en el registro."""
+-    pass
++    if r.tipo == "alta":
++        campos: list[tuple[str, str | None]] = [("FechaExpedicionFactura", r.fecha_expedicion)]
++    else:
++        campos = [("FechaExpedicionFacturaAnulada", r.fecha_expedicion)]
++    if r.anterior_fecha_expedicion is not None:
++        campos.append(("FechaExpedicionFactura del RegistroAnterior", r.anterior_fecha_expedicion))
++    return campos
+ 
+ def _es_fecha(valor: str) -> bool:
+-    pass
++    m = _FECHA.match(valor)
++    if m is None:
++        return False
++    dia, mes, anio = (int(grupo) for grupo in m.groups())
++    try:
++        date(anio, mes, dia)
++    except ValueError:
++        return False
++    return True
+ 
+ def formato_de_fecha(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF052 — las fechas de expedición van en `dd-mm-aaaa`.
+@@ -98,7 +209,49 @@ def formato_de_fecha(registros: list[Registro]) -> list[Hallazgo]:
+ 
+     Un campo vacío no es asunto de esta regla: de eso se ocupan RRSIF051 y el XSD.
+     """
+-    pass
++    grupos: dict[tuple[str, str], list[tuple[Registro, str]]] = {}
++    for registro in registros:
++        for nombre, valor in _campos_de_fecha(registro):
++            if not valor:
++                continue
++            if not _FECHA.match(valor):
++                clave = (nombre, "formato")
++            elif not _es_fecha(valor):
++                clave = (nombre, "calendario")
++            else:
++                continue
++            grupos.setdefault(clave, []).append((registro, valor))
++    hallazgos: list[Hallazgo] = []
++    for (nombre, tipo_error), casos in grupos.items():
++        lineas: list[str] = []
++        for registro, valor in casos:
++            if tipo_error == "calendario":
++                lineas.append(f"{registro.referencia}: «{valor}» no es una fecha del calendario")
++            elif _FECHA_ISO.match(valor):
++                anio, mes, dia = valor.split("-")
++                lineas.append(f"{registro.referencia}: «{valor}» → sugerido «{dia}-{mes}-{anio}»")
++            else:
++                lineas.append(f"{registro.referencia}: «{valor}»")
++        if tipo_error == "formato":
++            titulo = f"{nombre} no tiene el formato dd-mm-aaaa"
++            cabecera = (
++                "El anexo de la orden fija la fecha en dd-mm-yyyy, y la fecha entra en la huella "
++                "tal como está escrita.\n"
++            )
++        else:
++            titulo = f"{nombre} no es una fecha válida"
++            cabecera = ""
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF052",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=cabecera + "\n".join(lineas),
++                norma=NORMA_FECHA,
++                orden=casos[0][0].orden,
++            )
++        )
++    return hallazgos
+ 
+ def huso_horario(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF053 — `FechaHoraHusoGenRegistro` lleva el huso horario.
+@@ -118,7 +271,73 @@ def huso_horario(registros: list[Registro]) -> list[Hallazgo]:
+ 
+     Agregado por causa: un generador sin huso lo omite en todos sus registros.
+     """
+-    pass
++    sin_huso: list[tuple[Registro, str]] = []
++    mal_formato: list[tuple[Registro, str]] = []
++    fracciones: list[tuple[Registro, str]] = []
++    for registro in registros:
++        valor = registro.fecha_hora_huso
++        if not valor:
++            continue
++        m = _FECHA_HORA.match(valor)
++        if m is None:
++            mal_formato.append((registro, valor))
++        elif m.group("tzd") is None:
++            sin_huso.append((registro, valor))
++        elif m.group("fraccion"):
++            fracciones.append((registro, valor))
++    total = len(registros)
++    hallazgos: list[Hallazgo] = []
++
++
++    def cuenta(n: int) -> str:
++        return f"{n} de {total} {_plural(total, 'registro', 'registros')}"
++
++
++    if sin_huso:
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF053",
++                severidad=Severidad.ERROR,
++                titulo="FechaHoraHusoGenRegistro no incluye el huso horario",
++                detalle=(
++                    f"{cuenta(len(sin_huso))}: la fecha y hora de generación no lleva huso horario. "
++                    "El art. 7.g) exige el huso aplicado en el momento de generar el registro, y el "
++                    "anexo fija el formato YYYY-MM-DDThh:mm:ssTZD. "
++                    f"Afectados: {_referencias([r for r, _ in sin_huso])}."
++                ),
++                norma=NORMA_HUSO,
++                orden=sin_huso[0][0].orden,
++            )
++        )
++    if mal_formato:
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF053",
++                severidad=Severidad.ERROR,
++                titulo="FechaHoraHusoGenRegistro no tiene el formato exigido (YYYY-MM-DDThh:mm:ssTZD)",
++                detalle=(
++                    f"{cuenta(len(mal_formato))}: el valor no sigue el formato exigido. Ejemplo: "
++                    f"«{mal_formato[0][1]}» en {mal_formato[0][0].referencia}."
++                ),
++                norma=NORMA_HUSO,
++                orden=mal_formato[0][0].orden,
++            )
++        )
++    if fracciones:
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF053",
++                severidad=Severidad.AVISO,
++                titulo="FechaHoraHusoGenRegistro incluye fracciones de segundo",
++                detalle=(
++                    f"{cuenta(len(fracciones))}: el formato del anexo no incluye fracciones de "
++                    "segundo. xs:dateTime las admite y la norma no dice que invaliden el registro."
++                ),
++                norma=NORMA_HUSO,
++                orden=fracciones[0][0].orden,
++            )
++        )
++    return hallazgos
+ 
+ def anota_cascada(hallazgos: list[Hallazgo], registros: list[Registro]) -> list[Hallazgo]:
+     """Marca los hallazgos que pueden ser consecuencia de una causa raíz.
+@@ -132,5 +351,31 @@ def anota_cascada(hallazgos: list[Hallazgo], registros: list[Registro]) -> list[
+     Sólo se anota si el hallazgo de la causa raíz está en el informe: una nota que
+     remite a un hallazgo que no aparece no explica nada.
+     """
+-    pass
++    def sin_identificar(r: Registro) -> bool:
++        return r.tipo == "anulacion" and (
++            r.id_emisor is None
++            or r.num_serie is None
++            or r.fecha_expedicion is None
++            or any(_explicado_por_rrsif051(r, e) for e in r.fuera_de_esquema)
++        )
++
++    causas: dict[int, str] = {}
++    for registro in registros:
++        if _inesperados(registro):
++            causas[registro.orden] = "RRSIF050"
++        elif sin_identificar(registro):
++            causas[registro.orden] = "RRSIF051"
++    presentes = {h.regla for h in hallazgos}
++    salida: list[Hallazgo] = []
++    for h in hallazgos:
++        causa = None
++        if h.orden is not None and h.referencia and h.regla not in CAUSAS_RAIZ:
++            causa = causas.get(h.orden)
++        if causa is None or causa not in presentes:
++            salida.append(h)
++            continue
++        salida.append(
++            replace(h, detalle=f"{h.detalle}\nPuede ser consecuencia de la causa ({causa}).")
++        )
++    return salida
+ REGLAS = (estructura_del_esquema, identificacion_de_la_anulacion, formato_de_fecha, huso_horario)
+diff --git a/src/verifactu_lint/reglas/eventos.py b/src/verifactu_lint/reglas/eventos.py
+index c6b9d56..68debfa 100644
+--- a/src/verifactu_lint/reglas/eventos.py
++++ b/src/verifactu_lint/reglas/eventos.py
+@@ -16,7 +16,7 @@ from __future__ import annotations
+ import re
+ from itertools import pairwise
+ from verifactu_lint.hallazgos import Hallazgo, Severidad
+-from verifactu_lint.huella import huella_evento
++from verifactu_lint.huella import CAMPOS_EVENTO, cadena_canonica, huella
+ from verifactu_lint.registros import Evento
+ FORMATO_HUELLA = re.compile('^[0-9A-F]{64}$')
+ NORMA_EVENTOS = 'RD 1007/2023, art. 8.3; Orden HAC/1177/2024, anexo — EventosSIF.xsd'
+@@ -25,7 +25,26 @@ DATOS_POR_TIPO: dict[str, str] = {'03': 'LanzamientoProcesoDeteccionAnomaliasReg
+ 
+ def tipo_evento_valido(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF020 — `TipoEvento` debe estar en la lista del esquema."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for evento in eventos:
++        if evento.tipo_evento is None:
++            titulo = "El registro de evento no informa TipoEvento"
++        elif evento.tipo_evento not in TIPOS_EVENTO:
++            titulo = f"TipoEvento {evento.tipo_evento} no está en la lista del esquema"
++        else:
++            continue
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF020",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle="Los tipos admitidos son " + ", ".join(TIPOS_EVENTO) + ".",
++                norma=NORMA_EVENTOS,
++                referencia=evento.referencia,
++                orden=evento.orden,
++            )
++        )
++    return hallazgos
+ 
+ def huella_de_evento_correcta(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF021 — la huella del evento sale de sus propios campos.
+@@ -33,19 +52,132 @@ def huella_de_evento_correcta(eventos: list[Evento]) -> list[Hallazgo]:
+     Los nueve campos y su orden están en el documento técnico de la huella. Uno de
+     ellos, `NIF`, aparece dos veces: el del sistema informático y el del obligado.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for evento in eventos:
++        sistema = evento.sistema
++        anterior = None if evento.es_primer_evento else evento.anterior_huella
++        cadena = cadena_canonica(
++            CAMPOS_EVENTO,
++            [
++                sistema.nif,
++                sistema.id_otro,
++                sistema.id_sistema_informatico,
++                sistema.version,
++                sistema.numero_instalacion,
++                evento.nif_obligado,
++                evento.tipo_evento,
++                anterior,
++                evento.fecha_hora_huso,
++            ],
++        )
++        calculada = huella(cadena)
++        declarada = evento.huella.upper() if evento.huella else None
++        if declarada == calculada:
++            continue
++        titulo = (
++            "El registro de evento no informa HuellaEvento"
++            if evento.huella is None
++            else "La HuellaEvento no corresponde a los campos del evento"
++        )
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF021",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=(
++                    f"Declarada: {evento.huella or '(vacía)'}\n"
++                    f"Calculada: {calculada} (cadena: {cadena})"
++                ),
++                norma=NORMA_EVENTOS,
++                referencia=evento.referencia,
++                orden=evento.orden,
++            )
++        )
++    return hallazgos
+ 
+ def formato_huella_evento(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF022 — 64 caracteres hexadecimales en mayúsculas."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for evento in eventos:
++        valor = evento.huella
++        if valor is None or FORMATO_HUELLA.match(valor):
++            continue
++        if FORMATO_HUELLA.match(valor.upper()):
++            titulo = "La HuellaEvento está en minúsculas"
++        else:
++            titulo = "La HuellaEvento no tiene 64 caracteres hexadecimales en mayúsculas"
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF022",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=f"HuellaEvento declarada: {valor}. Es SHA-256 en hexadecimal y mayúsculas.",
++                norma=NORMA_EVENTOS,
++                referencia=evento.referencia,
++                orden=evento.orden,
++            )
++        )
++    return hallazgos
+ 
+ def cadena_de_eventos_continua(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF023 — cada evento encadena con la huella del evento anterior."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    previo: Evento | None = None
++    for evento in eventos:
++        if (
++            previo is not None
++            and not evento.es_primer_evento
++            and evento.anterior_huella is not None
++            and evento.anterior_huella.upper() != (previo.huella or "").upper()
++        ):
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF023",
++                    severidad=Severidad.ERROR,
++                    titulo="El evento no encadena con el anterior",
++                    detalle=(
++                        f"Su EventoAnterior declara la huella {evento.anterior_huella}, pero el evento "
++                        f"anterior ({previo.referencia}) tiene la huella {previo.huella or '(sin huella)'}."
++                    ),
++                    norma=NORMA_EVENTOS,
++                    referencia=evento.referencia,
++                    orden=evento.orden,
++                )
++            )
++        previo = evento
++    return hallazgos
+ 
+ def primer_evento_coherente(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF024 — `PrimerEvento` y `EventoAnterior` son excluyentes por esquema."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    primeros = [e for e in eventos if e.es_primer_evento]
++    for evento in primeros:
++        if evento.anterior_huella is not None:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF024",
++                    severidad=Severidad.ERROR,
++                    titulo="PrimerEvento y EventoAnterior son excluyentes",
++                    detalle="Un evento abre la cadena o encadena con otro, no las dos cosas.",
++                    norma=NORMA_EVENTOS,
++                    referencia=evento.referencia,
++                    orden=evento.orden,
++                )
++            )
++    if len(primeros) > 1:
++        segundo = primeros[1]
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF024",
++                severidad=Severidad.ERROR,
++                titulo="La cadena de eventos tiene más de un primer evento",
++                detalle=f"Declaran PrimerEvento = S: {', '.join(e.referencia for e in primeros)}.",
++                norma=NORMA_EVENTOS,
++                referencia=segundo.referencia,
++                orden=segundo.orden,
++            )
++        )
++    return hallazgos
+ 
+ def evento_firmado(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF025 — todo registro de evento lleva firma electrónica.
+@@ -54,11 +186,59 @@ def evento_firmado(eventos: list[Evento]) -> list[Hallazgo]:
+     sentido — en NO VERI*FACTU nadie ha recibido esos registros, así que la firma es
+     lo único que los ata a quien dice haberlos generado.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for evento in eventos:
++        if evento.firmado:
++            continue
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF025",
++                severidad=Severidad.ERROR,
++                titulo="El registro de evento no lleva firma electrónica",
++                detalle="ds:Signature es obligatoria en los registros de evento.",
++                norma=NORMA_EVENTOS,
++                referencia=evento.referencia,
++                orden=evento.orden,
++            )
++        )
++    return hallazgos
+ 
+ def datos_propios_coherentes(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF026 — `DatosPropiosEvento` debe corresponder al tipo de evento."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for evento in eventos:
++        esperado = DATOS_POR_TIPO.get(evento.tipo_evento or "")
++        if esperado is not None:
++            if evento.datos_propios == esperado:
++                continue
++            if evento.datos_propios is None:
++                titulo = f"El evento tipo {evento.tipo_evento} no lleva sus DatosPropiosEvento"
++            else:
++                titulo = f"El evento tipo {evento.tipo_evento} lleva DatosPropiosEvento de otro tipo"
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF026",
++                    severidad=Severidad.ERROR,
++                    titulo=titulo,
++                    detalle=f"Corresponde {esperado}; el registro lleva {evento.datos_propios or '(nada)'}.",
++                    norma=NORMA_EVENTOS,
++                    referencia=evento.referencia,
++                    orden=evento.orden,
++                )
++            )
++        elif evento.datos_propios is not None:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF026",
++                    severidad=Severidad.AVISO,
++                    titulo=f"El evento tipo {evento.tipo_evento} lleva DatosPropiosEvento que su tipo no prevé",
++                    detalle=f"Lleva {evento.datos_propios}. Revisar si el tipo de evento es el que corresponde.",
++                    norma=NORMA_EVENTOS,
++                    referencia=evento.referencia,
++                    orden=evento.orden,
++                )
++            )
++    return hallazgos
+ 
+ def ciclo_no_verifactu(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF027 — el arranque y la parada como NO VERI\\*FACTU se emparejan.
+@@ -74,7 +254,70 @@ def ciclo_no_verifactu(eventos: list[Evento]) -> list[Hallazgo]:
+     caso. Hasta 0.4.0 era siempre `AVISO`, y el estudio S1 lo encontró en un fichero de
+     un solo evento cuyo `EventoAnterior` era, precisamente, un `01` (incidencia I-5).
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    origen = any(e.es_primer_evento for e in eventos)
++    abierto: bool | None = None
++    for evento in eventos:
++        if evento.tipo_evento == "01":
++            if abierto is True:
++                hallazgos.append(
++                    Hallazgo(
++                        regla="RRSIF027",
++                        severidad=Severidad.AVISO,
++                        titulo="Dos inicios de NO VERI*FACTU seguidos, sin fin entre ellos",
++                        detalle="Falta el registro de fin (02) del periodo anterior: hay eventos perdidos.",
++                        norma=NORMA_EVENTOS,
++                        referencia=evento.referencia,
++                        orden=evento.orden,
++                    )
++                )
++            abierto = True
++        elif evento.tipo_evento == "02":
++            if abierto is False:
++                hallazgos.append(
++                    Hallazgo(
++                        regla="RRSIF027",
++                        severidad=Severidad.AVISO,
++                        titulo="Fin de NO VERI*FACTU sin inicio previo",
++                        detalle="Falta el registro de inicio (01) entre este fin y el anterior.",
++                        norma=NORMA_EVENTOS,
++                        referencia=evento.referencia,
++                        orden=evento.orden,
++                    )
++                )
++            elif abierto is None:
++                if origen:
++                    hallazgos.append(
++                        Hallazgo(
++                            regla="RRSIF027",
++                            severidad=Severidad.AVISO,
++                            titulo="Fin de NO VERI*FACTU sin inicio en el fichero",
++                            detalle=(
++                                "El fichero contiene el origen de la cadena y ningún inicio (01) "
++                                "antes de este fin: falta el registro de inicio."
++                            ),
++                            norma=NORMA_EVENTOS,
++                            referencia=evento.referencia,
++                            orden=evento.orden,
++                        )
++                    )
++                else:
++                    hallazgos.append(
++                        Hallazgo(
++                            regla="RRSIF027",
++                            severidad=Severidad.INCOMPLETO,
++                            titulo="Fin de NO VERI*FACTU cuyo inicio puede estar en otro fichero",
++                            detalle=(
++                                "El fichero no contiene el origen de la cadena. El inicio (01) puede "
++                                "estar en un fichero anterior: revisar que exista."
++                            ),
++                            norma=NORMA_EVENTOS,
++                            referencia=evento.referencia,
++                            orden=evento.orden,
++                        )
++                    )
++            abierto = False
++    return hallazgos
+ 
+ def resumen_presente(eventos: list[Evento]) -> list[Hallazgo]:
+     """RRSIF028 — debe haber registro resumen (tipo 10).
+@@ -84,5 +327,19 @@ def resumen_presente(eventos: list[Evento]) -> list[Hallazgo]:
+     fichero; por eso esto es `INCOMPLETO` y no `ERROR`: señala dónde mirar sin
+     afirmar un incumplimiento que no se puede demostrar aquí.
+     """
+-    pass
++    if not eventos or any(e.tipo_evento == "10" for e in eventos):
++        return []
++    return [
++        Hallazgo(
++            regla="RRSIF028",
++            severidad=Severidad.INCOMPLETO,
++            titulo="No hay registro resumen de eventos (tipo 10)",
++            detalle=(
++                "La AEAT lo pide cada 6 horas de operación y antes de apagar. Comprobar la cadencia "
++                "exige saber cuándo estuvo operativo el sistema: revisar en el histórico de eventos."
++            ),
++            norma=NORMA_EVENTOS,
++            orden=eventos[0].orden,
++        )
++    ]
+ REGLAS = (tipo_evento_valido, huella_de_evento_correcta, formato_huella_evento, cadena_de_eventos_continua, primer_evento_coherente, evento_firmado, datos_propios_coherentes, ciclo_no_verifactu, resumen_presente)
+diff --git a/src/verifactu_lint/reglas/identificacion.py b/src/verifactu_lint/reglas/identificacion.py
+index 017ab32..9da19f8 100644
+--- a/src/verifactu_lint/reglas/identificacion.py
++++ b/src/verifactu_lint/reglas/identificacion.py
+@@ -37,7 +37,37 @@ def numeracion_no_duplicada(registros: list[Registro]) -> list[Hallazgo]:
+     su misma terna—, que sería un hallazgo legítimo pero exige distinguir si el fichero
+     contiene el registro rechazado o no. Queda fuera a propósito.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for tipo in ("alta", "anulacion"):
++        vistos: dict[tuple[str, str, str], Registro] = {}
++        for registro in registros:
++            if registro.tipo != tipo:
++                continue
++            if tipo == "alta" and registro.subsanacion == "S":
++                continue
++            if registro.id_emisor is None or registro.num_serie is None or registro.fecha_expedicion is None:
++                continue
++            clave = (registro.id_emisor, registro.num_serie, registro.fecha_expedicion)
++            if clave not in vistos:
++                vistos[clave] = registro
++                continue
++            primero = vistos[clave]
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF010",
++                    severidad=Severidad.ERROR,
++                    titulo=f"La factura {registro.num_serie} aparece dos veces con la misma numeración",
++                    detalle=(
++                        f"{registro.referencia} repite el número de {primero.referencia}. Un número "
++                        "de factura no puede reutilizarse para otra factura. Las subsanaciones "
++                        "(Subsanacion = S) no cuentan."
++                    ),
++                    norma="FAQ desarrolladores AEAT, ap. 6 (numeración) y ap. 17 (subsanaciones)",
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ 
+ def sif_identificado(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF011 — el SIF se identifica con NIF + IdSistemaInformatico + NumeroInstalacion.
+@@ -46,7 +76,34 @@ def sif_identificado(registros: list[Registro]) -> list[Hallazgo]:
+     veinte mil facturas del mismo SIF produciría veinte mil líneas idénticas y el
+     informe dejaría de leerse.
+     """
+-    pass
++    faltan: dict[str, list[Registro]] = {}
++    for registro in registros:
++        sistema = registro.sistema
++        if sistema.nif is None and sistema.id_otro is None:
++            faltan.setdefault("NIF (o IDOtro)", []).append(registro)
++        if sistema.id_sistema_informatico is None:
++            faltan.setdefault("IdSistemaInformatico", []).append(registro)
++        if sistema.numero_instalacion is None:
++            faltan.setdefault("NumeroInstalacion", []).append(registro)
++    hallazgos: list[Hallazgo] = []
++    for campo, afectados in faltan.items():
++        refs = ", ".join(r.referencia for r in afectados[:5])
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF011",
++                severidad=Severidad.ERROR,
++                titulo=f"El SIF no informa {campo}",
++                detalle=(
++                    f"Sin {campo} el sistema no se identifica de forma universal (NIF, "
++                    f"IdSistemaInformatico y NumeroInstalacion). Afectados: {refs}"
++                    + (f" y {len(afectados) - 5} más" if len(afectados) > 5 else "")
++                    + "."
++                ),
++                norma=NORMA_ID,
++                orden=afectados[0].orden,
++            )
++        )
++    return hallazgos
+ 
+ def multiples_ot_coherente(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF012 — `IndicadorMultiplesOT` sólo cabe si el SIF admite multi-OT.
+@@ -57,9 +114,79 @@ def multiples_ot_coherente(registros: list[Registro]) -> list[Hallazgo]:
+     fichero donde todos los registros comparten el mismo valor es lo esperable
+     cuando corresponde a un solo usuario, y sospechoso cuando el SIF es multi-OT.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        sistema = registro.sistema
++        if sistema.tipo_uso_multi_ot == "N" and sistema.indicador_multiples_ot == "S":
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF012",
++                    severidad=Severidad.ERROR,
++                    titulo="IndicadorMultiplesOT vale S en un SIF que no admite multi-OT",
++                    detalle="TipoUsoPosibleMultiOT vale N: el indicador no puede valer S.",
++                    norma=NORMA_ID,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    multi = [
++        r for r in registros
++        if r.sistema.tipo_uso_multi_ot == "S" and r.sistema.indicador_multiples_ot is not None
++    ]
++    valores = {r.sistema.indicador_multiples_ot for r in multi}
++    if len(multi) > 1 and len(valores) == 1:
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF012",
++                severidad=Severidad.AVISO,
++                titulo="Todos los registros de un SIF multi-OT informan el mismo IndicadorMultiplesOT",
++                detalle=(
++                    f"Todos informan {valores.pop()}. En un SIF multi-OT el indicador se calcula por "
++                    "usuario: un valor igual en todos los registros es sospechoso."
++                ),
++                norma=NORMA_ID,
++                orden=multi[0].orden,
++            )
++        )
++    return hallazgos
+ 
+ def emisor_consistente(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF013 — todos los registros de una cadena son del mismo obligado."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    emisores = {r.id_emisor for r in registros if r.id_emisor}
++    if len(emisores) > 1 and registros:
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF013",
++                severidad=Severidad.AVISO,
++                titulo=f"El fichero contiene registros de {len(emisores)} obligados tributarios",
++                detalle=(
++                    "Cada obligado tiene su propia cadena de huellas, y se audita por separado. "
++                    "Es lo esperable en un SIF multi-OT; si no lo es, revisar el IDEmisorFactura."
++                ),
++                norma=NORMA_ID,
++                orden=registros[0].orden,
++            )
++        )
++    for registro in registros:
++        if (
++            registro.anterior_id_emisor is not None
++            and registro.id_emisor is not None
++            and registro.anterior_id_emisor != registro.id_emisor
++        ):
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF013",
++                    severidad=Severidad.ERROR,
++                    titulo="El RegistroAnterior pertenece a otro obligado",
++                    detalle=(
++                        f"Su IDEmisorFactura es {registro.id_emisor}, pero el RegistroAnterior "
++                        f"declara {registro.anterior_id_emisor}."
++                    ),
++                    norma=NORMA_ID,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ REGLAS = (numeracion_no_duplicada, sif_identificado, multiples_ot_coherente, emisor_consistente)
+diff --git a/src/verifactu_lint/reglas/rectificacion.py b/src/verifactu_lint/reglas/rectificacion.py
+index 6d38037..c455c58 100644
+--- a/src/verifactu_lint/reglas/rectificacion.py
++++ b/src/verifactu_lint/reglas/rectificacion.py
+@@ -17,11 +17,85 @@ TIPOS_RECTIFICATIVA: dict[str, str] = {'S': 'por sustitución', 'I': 'por difere
+ 
+ def tipo_factura_valido(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF030 — `TipoFactura` debe estar en la lista L2."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta":
++            continue
++        if registro.tipo_factura is None:
++            titulo = "El registro no informa TipoFactura"
++        elif registro.tipo_factura not in TIPOS_FACTURA:
++            titulo = f"TipoFactura {registro.tipo_factura} no está en la lista L2"
++        else:
++            continue
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF030",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle="Los valores admitidos son " + ", ".join(TIPOS_FACTURA) + ".",
++                norma=NORMA_TIPOS,
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++    return hallazgos
+ 
+ def rectificativa_completa(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF031 — una rectificativa declara su modalidad y a qué factura rectifica."""
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta" or not registro.es_rectificativa:
++            continue
++        if registro.tipo_rectificativa is None:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF031",
++                    severidad=Severidad.ERROR,
++                    titulo="La rectificativa no declara su modalidad",
++                    detalle="TipoRectificativa debe ser S (por sustitución) o I (por diferencias).",
++                    norma=NORMA_TIPOS,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++        elif registro.tipo_rectificativa not in TIPOS_RECTIFICATIVA:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF031",
++                    severidad=Severidad.ERROR,
++                    titulo=f"TipoRectificativa {registro.tipo_rectificativa} no es válido",
++                    detalle="Los valores admitidos son S (por sustitución) e I (por diferencias).",
++                    norma=NORMA_TIPOS,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++        if registro.facturas_rectificadas == 0:
++            if registro.tipo_factura == "R5":
++                titulo = "La rectificativa R5 no identifica las simplificadas que rectifica"
++                detalle = (
++                    "Una R5 rectifica simplificadas que pueden no identificarse una a una. Sin "
++                    "FacturasRectificadas no se puede comprobar aquí: requiere revisión humana."
++                )
++            else:
++                titulo = "La rectificativa no identifica las facturas que rectifica"
++                detalle = (
++                    "Una rectificativa sin FacturasRectificadas puede ser un rappel, que rectifica "
++                    "un periodo y no facturas concretas (FAQ AEAT, ap. 19). Con este fichero no se "
++                    "puede saber: hay que comprobar la factura de origen."
++                )
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF031",
++                    severidad=Severidad.INCOMPLETO,
++                    titulo=titulo,
++                    detalle=detalle,
++                    norma=NORMA_FAQ17,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ 
+ def rectificacion_solo_en_rectificativas(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF032 — los campos de rectificación no caben en una factura normal.
+@@ -33,7 +107,29 @@ def rectificacion_solo_en_rectificativas(registros: list[Registro]) -> list[Hall
+     conoce además la distinción entre sustitutiva y por diferencias. Duplicarlo daría
+     dos hallazgos para un solo defecto.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta" or registro.es_rectificativa:
++            continue
++        campos: list[str] = []
++        if registro.tipo_rectificativa is not None:
++            campos.append("TipoRectificativa")
++        if registro.facturas_rectificadas:
++            campos.append("FacturasRectificadas")
++        if not campos:
++            continue
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF032",
++                severidad=Severidad.ERROR,
++                titulo=f"La factura {registro.tipo_factura or 'sin TipoFactura'} lleva {' y '.join(campos)}, que sólo cabe en rectificativas",
++                detalle="Los campos de rectificación sólo existen en los tipos R1 a R5.",
++                norma=NORMA_TIPOS + " — errores 1115 y 1117 del listado AEAT",
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++    return hallazgos
+ 
+ def importe_rectificacion_correcto(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF033 — `ImporteRectificacion` va exactamente en las sustitutivas.
+@@ -44,7 +140,36 @@ def importe_rectificacion_correcto(registros: list[Registro]) -> list[Hallazgo]:
+     y el **1119** que en cualquier otro caso no debe tener valor. No es una
+     conveniencia para cuadrar a mano: es motivo de rechazo del registro.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta":
++            continue
++        sustitutiva = registro.es_rectificativa and registro.tipo_rectificativa == "S"
++        if sustitutiva and not registro.importe_rectificacion:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF033",
++                    severidad=Severidad.ERROR,
++                    titulo="Una rectificativa por sustitución debe informar ImporteRectificacion",
++                    detalle="El bloque es obligatorio en las sustitutivas (error 1118 del listado AEAT).",
++                    norma=NORMA_FAQ17 + " — error 1118",
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++        elif registro.importe_rectificacion and not sustitutiva:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF033",
++                    severidad=Severidad.ERROR,
++                    titulo="ImporteRectificacion sólo cabe en las rectificativas por sustitución",
++                    detalle="Fuera de las sustitutivas el bloque no debe tener valor (error 1119 del listado AEAT).",
++                    norma=NORMA_FAQ17 + " — error 1119",
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ 
+ def sustitucion_de_simplificadas(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF034 — F3 identifica las simplificadas a las que sustituye.
+@@ -53,7 +178,31 @@ def sustitucion_de_simplificadas(registros: list[Registro]) -> list[Hallazgo]:
+     facturadas y declaradas. Sin `FacturasSustituidas`, la operación se declara dos
+     veces y no hay forma de saberlo mirando los registros.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.tipo != "alta":
++            continue
++        if registro.tipo_factura == "F3" and registro.facturas_sustituidas == 0:
++            titulo = "Una F3 no identifica las simplificadas que sustituye"
++        elif registro.tipo_factura != "F3" and registro.facturas_sustituidas > 0:
++            titulo = "FacturasSustituidas sólo cabe en una F3"
++        else:
++            continue
++        hallazgos.append(
++            Hallazgo(
++                regla="RRSIF034",
++                severidad=Severidad.ERROR,
++                titulo=titulo,
++                detalle=(
++                    "La F3 es la factura completa que sustituye a simplificadas ya facturadas; sin "
++                    "ellas la operación se declara dos veces."
++                ),
++                norma=NORMA_TIPOS,
++                referencia=registro.referencia,
++                orden=registro.orden,
++            )
++        )
++    return hallazgos
+ 
+ def subsanacion_valida(registros: list[Registro]) -> list[Hallazgo]:
+     """RRSIF035 — `Subsanacion` y `RechazoPrevio` sólo admiten sus valores.
+@@ -63,5 +212,46 @@ def subsanacion_valida(registros: list[Registro]) -> list[Hallazgo]:
+     confundan es habitual, y la pista es un registro marcado como subsanación con
+     tipo rectificativo.
+     """
+-    pass
++    hallazgos: list[Hallazgo] = []
++    for registro in registros:
++        if registro.subsanacion is not None and registro.subsanacion not in ("S", "N"):
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF035",
++                    severidad=Severidad.ERROR,
++                    titulo=f"Subsanacion {registro.subsanacion} no es válido",
++                    detalle="Subsanacion sólo admite S o N.",
++                    norma=NORMA_FAQ17,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++        if registro.rechazo_previo is not None and registro.rechazo_previo not in ("S", "N", "X"):
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF035",
++                    severidad=Severidad.ERROR,
++                    titulo=f"RechazoPrevio {registro.rechazo_previo} no es válido",
++                    detalle="RechazoPrevio admite S, N o X.",
++                    norma=NORMA_FAQ17,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++        if registro.subsanacion == "S" and registro.tipo_rectificativa is not None:
++            hallazgos.append(
++                Hallazgo(
++                    regla="RRSIF035",
++                    severidad=Severidad.AVISO,
++                    titulo="Una subsanación lleva TipoRectificativa",
++                    detalle=(
++                        "Subsanar corrige un registro generado mal; rectificar cambia el contenido "
++                        "de una factura. Si lo que se hace es rectificar, no es subsanación."
++                    ),
++                    norma=NORMA_FAQ17,
++                    referencia=registro.referencia,
++                    orden=registro.orden,
++                )
++            )
++    return hallazgos
+ REGLAS = (tipo_factura_valido, rectificativa_completa, rectificacion_solo_en_rectificativas, importe_rectificacion_correcto, sustitucion_de_simplificadas, subsanacion_valida)
+diff --git a/src/verifactu_lint/salida.py b/src/verifactu_lint/salida.py
+index d4f3a73..6945f8a 100644
+--- a/src/verifactu_lint/salida.py
++++ b/src/verifactu_lint/salida.py
+@@ -12,16 +12,102 @@ from typing import Any
+ from verifactu_lint.hallazgos import Informe, Severidad
+ _NIVEL_SARIF = {Severidad.ERROR: 'error', Severidad.AVISO: 'warning', Severidad.INCOMPLETO: 'note'}
+ 
+-def texto(informe: Informe, color: bool=True) -> str:
++def texto(informe: Informe, color: bool=True, con_fichero: bool=False) -> str:
+     """Informe legible en terminal."""
+-    pass
++    colores = {
++        Severidad.ERROR: "\033[31m",
++        Severidad.AVISO: "\033[33m",
++        Severidad.INCOMPLETO: "\033[36m",
++    }
++    fin = "\033[0m"
++    lineas: list[str] = []
++    if informe.fichero:
++        lineas.append(informe.fichero)
++    for h in informe.hallazgos:
++        linea = h.linea(con_fichero=con_fichero)
++        if color:
++            linea = f"{colores[h.severidad]}{linea}{fin}"
++        lineas.append(linea)
++        for parte in h.detalle.split("\n"):
++            if parte:
++                lineas.append(f"    {parte}")
++        if h.norma:
++            lineas.append(f"    norma: {h.norma}")
++    veredicto = "Sin errores." if informe.conforme else "Con errores."
++    lineas.append(
++        f"{informe.registros_analizados} registros analizados: {len(informe.errores)} errores, "
++        f"{len(informe.avisos)} avisos, {len(informe.incompletos)} incompletos. {veredicto}"
++    )
++    return "\n".join(lineas)
+ 
+ def como_json(informe: Informe) -> str:
+-    pass
++    return json.dumps(
++        {
++            "fichero": informe.fichero,
++            "registros_analizados": informe.registros_analizados,
++            "conforme": informe.conforme,
++            "errores": len(informe.errores),
++            "avisos": len(informe.avisos),
++            "incompletos": len(informe.incompletos),
++            "hallazgos": [
++                {
++                    "regla": h.regla,
++                    "severidad": h.severidad.value,
++                    "titulo": h.titulo,
++                    "detalle": h.detalle,
++                    "norma": h.norma,
++                    "referencia": h.referencia,
++                    "fichero": h.fichero,
++                    "linea": h.linea_xml,
++                }
++                for h in informe.hallazgos
++            ],
++        },
++        ensure_ascii=False,
++        indent=2,
++    )
+ 
+ def _uri(fichero: str) -> str:
+     """Ruta en el formato de SARIF: barras normales, como las ve el repositorio."""
+-    pass
++    if not fichero:
++        return ""
++    return PurePath(fichero).as_posix()
+ 
+ def como_sarif(informe: Informe, version: str) -> str:
+-    pass
++    reglas: dict[str, dict[str, Any]] = {}
++    resultados: list[dict[str, Any]] = []
++    for h in informe.hallazgos:
++        reglas.setdefault(h.regla, {"id": h.regla, "shortDescription": {"text": h.regla}})
++        resultados.append(
++            {
++                "ruleId": h.regla,
++                "level": _NIVEL_SARIF[h.severidad],
++                "message": {"text": f"{h.titulo}. {h.detalle.splitlines()[0] if h.detalle else ''}".strip()},
++                "locations": [
++                    {
++                        "physicalLocation": {
++                            "artifactLocation": {"uri": _uri(h.fichero)},
++                            "region": {"startLine": h.linea_xml or 1},
++                        }
++                    }
++                ],
++            }
++        )
++    sarif = {
++        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
++        "version": "2.1.0",
++        "runs": [
++            {
++                "tool": {
++                    "driver": {
++                        "name": "verifactu-lint",
++                        "version": version,
++                        "informationUri": "https://github.com/easybytehub/verifactu-lint",
++                        "rules": list(reglas.values()),
++                    }
++                },
++                "results": resultados,
++            }
++        ],
++    }
++    return json.dumps(sarif, ensure_ascii=False, indent=2)

@@ -1,0 +1,1556 @@
+diff --git a/chardet/chardistribution.py b/chardet/chardistribution.py
+index 1b51bcd..90728ba 100644
+--- a/chardet/chardistribution.py
++++ b/chardet/chardistribution.py
+@@ -22,15 +22,55 @@ class CharDistributionAnalysis:
+ 
+     def reset(self):
+         """reset analyser, clear any state"""
+-        pass
++        # If this flag is set to True, detection is done and conclusion has
++        # been made
++        self._done = False
++        self._total_chars = 0  # Total characters encountered
++        # The number of characters whose frequency order is less than 512
++        self._freq_chars = 0
+ 
+     def feed(self, char, char_len):
+         """feed a character with known length"""
+-        pass
++        if char_len == 2:
++            # we only care about 2-bytes character in our distribution analysis
++            order = self.get_order(char)
++        else:
++            order = -1
++        if order >= 0:
++            self._total_chars += 1
++            # order is valid
++            if order < self._table_size:
++                if 512 > self._char_to_freq_order[order]:
++                    self._freq_chars += 1
+ 
+     def get_confidence(self):
+         """return confidence based on existing data"""
+-        pass
++        # if we didn't receive any character in our consideration range,
++        # return negative answer
++        if self._total_chars <= 0 or self._freq_chars <= self.MINIMUM_DATA_THRESHOLD:
++            return self.SURE_NO
++
++        if self._total_chars != self._freq_chars:
++            r = self._freq_chars / (
++                (self._total_chars - self._freq_chars) * self.typical_distribution_ratio
++            )
++            if r < self.SURE_YES:
++                return r
++
++        # normalize confidence (we don't want to be 100% sure)
++        return self.SURE_YES
++
++    def got_enough_data(self):
++        # It is not necessary to receive all data to draw conclusion.
++        # For charset detection, certain amount of data is enough
++        return self._total_chars > self.ENOUGH_DATA_THRESHOLD
++
++    def get_order(self, _):
++        # We do not handle characters based on the original encoding string,
++        # but convert this encoding string to a number, here called order.
++        # This allows multiple encodings of a language to share one frequency
++        # table.
++        return -1
+ 
+ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
+ 
+@@ -40,6 +80,16 @@ class EUCTWDistributionAnalysis(CharDistributionAnalysis):
+         self._table_size = EUCTW_TABLE_SIZE
+         self.typical_distribution_ratio = EUCTW_TYPICAL_DISTRIBUTION_RATIO
+ 
++    def get_order(self, byte_str):
++        # for euc-TW encoding, we are interested
++        #   first  byte range: 0xc4 -- 0xfe
++        #   second byte range: 0xa1 -- 0xfe
++        # no validation needed here. State machine has done that
++        first_char = byte_str[0]
++        if first_char >= 0xC4:
++            return 94 * (first_char - 0xC4) + byte_str[1] - 0xA1
++        return -1
++
+ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
+ 
+     def __init__(self):
+@@ -48,6 +98,16 @@ class EUCKRDistributionAnalysis(CharDistributionAnalysis):
+         self._table_size = EUCKR_TABLE_SIZE
+         self.typical_distribution_ratio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
+ 
++    def get_order(self, byte_str):
++        # for euc-KR encoding, we are interested
++        #   first  byte range: 0xb0 -- 0xfe
++        #   second byte range: 0xa1 -- 0xfe
++        # no validation needed here. State machine has done that
++        first_char = byte_str[0]
++        if first_char >= 0xB0:
++            return 94 * (first_char - 0xB0) + byte_str[1] - 0xA1
++        return -1
++
+ class JOHABDistributionAnalysis(CharDistributionAnalysis):
+ 
+     def __init__(self):
+@@ -56,6 +116,18 @@ class JOHABDistributionAnalysis(CharDistributionAnalysis):
+         self._table_size = EUCKR_TABLE_SIZE
+         self.typical_distribution_ratio = EUCKR_TYPICAL_DISTRIBUTION_RATIO
+ 
++    def get_order(self, byte_str):
++        # for johab encoding, we are interested
++        #   first  byte range: 0x84 -- 0xd3
++        #   second byte range: 0x31 -- 0x7e, 0x91 -- 0xfe
++        # johab hangul is mapped onto the euc-kr frequency order through
++        # JOHAB_TO_EUCKR_ORDER_TABLE; anything outside that table is -1
++        first_char = byte_str[0]
++        if 0x84 <= first_char <= 0xD3:
++            code = first_char * 256 + byte_str[1]
++            return JOHAB_TO_EUCKR_ORDER_TABLE.get(code, -1)
++        return -1
++
+ class GB2312DistributionAnalysis(CharDistributionAnalysis):
+ 
+     def __init__(self):
+@@ -64,6 +136,16 @@ class GB2312DistributionAnalysis(CharDistributionAnalysis):
+         self._table_size = GB2312_TABLE_SIZE
+         self.typical_distribution_ratio = GB2312_TYPICAL_DISTRIBUTION_RATIO
+ 
++    def get_order(self, byte_str):
++        # for GB2312 encoding, we are interested
++        #  first  byte range: 0xb0 -- 0xfe
++        #  second byte range: 0xa1 -- 0xfe
++        # no validation needed here. State machine has done that
++        first_char, second_char = byte_str[0], byte_str[1]
++        if (first_char >= 0xB0) and (second_char >= 0xA1):
++            return 94 * (first_char - 0xB0) + second_char - 0xA1
++        return -1
++
+ class Big5DistributionAnalysis(CharDistributionAnalysis):
+ 
+     def __init__(self):
+@@ -72,6 +154,18 @@ class Big5DistributionAnalysis(CharDistributionAnalysis):
+         self._table_size = BIG5_TABLE_SIZE
+         self.typical_distribution_ratio = BIG5_TYPICAL_DISTRIBUTION_RATIO
+ 
++    def get_order(self, byte_str):
++        # for big5 encoding, we are interested
++        #   first  byte range: 0xa4 -- 0xfe
++        #   second byte range: 0x40 -- 0x7e , 0xa1 -- 0xfe
++        # no validation needed here. State machine has done that
++        first_char, second_char = byte_str[0], byte_str[1]
++        if first_char >= 0xA4:
++            if second_char >= 0xA1:
++                return 157 * (first_char - 0xA4) + second_char - 0xA1 + 63
++            return 157 * (first_char - 0xA4) + second_char - 0x40
++        return -1
++
+ class SJISDistributionAnalysis(CharDistributionAnalysis):
+ 
+     def __init__(self):
+@@ -80,10 +174,37 @@ class SJISDistributionAnalysis(CharDistributionAnalysis):
+         self._table_size = JIS_TABLE_SIZE
+         self.typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
+ 
++    def get_order(self, byte_str):
++        # for sjis encoding, we are interested
++        #   first  byte range: 0x81 -- 0x9f , 0xe0 -- 0xfe
++        #   second byte range: 0x40 -- 0x7e,  0x81 -- oxfe
++        # no validation needed here. State machine has done that
++        first_char, second_char = byte_str[0], byte_str[1]
++        if 0x81 <= first_char <= 0x9F:
++            order = 188 * (first_char - 0x81)
++        elif 0xE0 <= first_char <= 0xEF:
++            order = 188 * (first_char - 0xE0 + 31)
++        else:
++            return -1
++        order = order + second_char - 0x40
++        if second_char > 0x7F:
++            order = -1
++        return order
++
+ class EUCJPDistributionAnalysis(CharDistributionAnalysis):
+ 
+     def __init__(self):
+         super().__init__()
+         self._char_to_freq_order = JIS_CHAR_TO_FREQ_ORDER
+         self._table_size = JIS_TABLE_SIZE
+-        self.typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
+\ No newline at end of file
++        self.typical_distribution_ratio = JIS_TYPICAL_DISTRIBUTION_RATIO
++
++    def get_order(self, byte_str):
++        # for euc-JP encoding, we are interested
++        #   first  byte range: 0xa0 -- 0xfe
++        #   second byte range: 0xa1 -- 0xfe
++        # no validation needed here. State machine has done that
++        char = byte_str[0]
++        if char >= 0xA0:
++            return 94 * (char - 0xA1) + byte_str[1] - 0xA1
++        return -1
+\ No newline at end of file
+diff --git a/chardet/charsetgroupprober.py b/chardet/charsetgroupprober.py
+index db44415..3dbe7b0 100644
+--- a/chardet/charsetgroupprober.py
++++ b/chardet/charsetgroupprober.py
+@@ -7,4 +7,77 @@ class CharSetGroupProber(CharSetProber):
+         super().__init__(lang_filter=lang_filter)
+         self._active_num = 0
+         self.probers = []
+-        self._best_guess_prober = None
+\ No newline at end of file
++        self._best_guess_prober = None
++
++    def reset(self):
++        super().reset()
++        self._active_num = 0
++        for prober in self.probers:
++            if prober:
++                prober.reset()
++                prober.active = True
++                self._active_num += 1
++        self._best_guess_prober = None
++
++    @property
++    def charset_name(self):
++        if not self._best_guess_prober:
++            self.get_confidence()
++            if not self._best_guess_prober:
++                return None
++        return self._best_guess_prober.charset_name
++
++    @property
++    def language(self):
++        if not self._best_guess_prober:
++            self.get_confidence()
++            if not self._best_guess_prober:
++                return None
++        return self._best_guess_prober.language
++
++    def feed(self, byte_str):
++        for prober in self.probers:
++            if not prober:
++                continue
++            if not prober.active:
++                continue
++            state = prober.feed(byte_str)
++            if not state:
++                continue
++            if state == ProbingState.FOUND_IT:
++                self._best_guess_prober = prober
++                self._state = ProbingState.FOUND_IT
++                return self.state
++            if state == ProbingState.NOT_ME:
++                prober.active = False
++                self._active_num -= 1
++                if self._active_num <= 0:
++                    self._state = ProbingState.NOT_ME
++                    return self.state
++        return self.state
++
++    def get_confidence(self):
++        state = self.state
++        if state == ProbingState.FOUND_IT:
++            return 0.99
++        if state == ProbingState.NOT_ME:
++            return 0.01
++
++        best_conf = 0.0
++        self._best_guess_prober = None
++        for prober in self.probers:
++            if not prober:
++                continue
++            if not prober.active:
++                self.logger.debug("%s not active", prober.charset_name)
++                continue
++            conf = prober.get_confidence()
++            self.logger.debug(
++                "%s %s confidence = %s", prober.charset_name, prober.language, conf
++            )
++            if conf > best_conf:
++                best_conf = conf
++                self._best_guess_prober = prober
++        if not self._best_guess_prober:
++            return 0.0
++        return best_conf
+diff --git a/chardet/charsetprober.py b/chardet/charsetprober.py
+index 7f492d7..aa52df9 100644
+--- a/chardet/charsetprober.py
++++ b/chardet/charsetprober.py
+@@ -11,6 +11,27 @@ class CharSetProber:
+         self.lang_filter = lang_filter
+         self.logger = logging.getLogger(__name__)
+ 
++    def reset(self):
++        self._state = ProbingState.DETECTING
++
++    @property
++    def charset_name(self):
++        return None
++
++    @property
++    def language(self):
++        raise NotImplementedError
++
++    def feed(self, buf):
++        pass
++
++    @property
++    def state(self):
++        return self._state
++
++    def get_confidence(self):
++        return 0.0
++
+     @staticmethod
+     def filter_international_words(buf):
+         """
+@@ -24,7 +45,26 @@ class CharSetProber:
+         are replaced by a single space ascii character.
+         This filter applies to all scripts which do not use English characters.
+         """
+-        pass
++        filtered = bytearray()
++
++        # This regex expression filters out only words that have at-least one
++        # international character. The word may include one marker character at
++        # the end.
++        words = INTERNATIONAL_WORDS_PATTERN.findall(buf)
++
++        for word in words:
++            filtered.extend(word[:-1])
++
++            # If the last character in the word is a marker, replace it with a
++            # space as markers shouldn't affect our analysis (they are used
++            # similarly across all languages and may thus have similar
++            # frequencies).
++            last_char = word[-1:]
++            if not last_char.isalpha() and last_char < b"\x80":
++                last_char = b" "
++            filtered.extend(last_char)
++
++        return filtered
+ 
+     @staticmethod
+     def remove_xml_tags(buf):
+@@ -35,4 +75,23 @@ class CharSetProber:
+         characters and extended ASCII characters, but is currently only used by
+         ``Latin1Prober``.
+         """
+-        pass
+\ No newline at end of file
++        filtered = bytearray()
++        in_tag = False
++        prev = 0
++
++        for curr, buf_char in enumerate(buf):
++            # Check if we're coming out of or entering an XML tag
++            if buf_char == ord(">"):
++                prev = curr + 1
++                in_tag = False
++            elif buf_char == ord("<"):
++                if not in_tag:
++                    # Keep the text that precedes this tag
++                    filtered.extend(buf[prev:curr])
++                in_tag = True
++
++        # If we're not inside a tag at the end of the buffer, keep the rest
++        if not in_tag:
++            filtered.extend(buf[prev:])
++
++        return filtered
+\ No newline at end of file
+diff --git a/chardet/cli/chardetect.py b/chardet/cli/chardetect.py
+index c4fb643..41b94b9 100644
+--- a/chardet/cli/chardetect.py
++++ b/chardet/cli/chardetect.py
+@@ -26,7 +26,18 @@ def description_of(lines, name='stdin'):
+     :param name: Name of file or collection of lines
+     :type name: str
+     """
+-    pass
++    u = UniversalDetector()
++    for line in lines:
++        line = bytearray(line)
++        u.feed(line)
++        # shortcut out of the loop to save reading further
++        if u.done:
++            break
++    u.close()
++    result = u.result
++    if result["encoding"]:
++        return f"{name}: {result['encoding']} with confidence {result['confidence']}"
++    return f"{name}: no result"
+ 
+ def main(argv=None):
+     """
+@@ -36,6 +47,28 @@ def main(argv=None):
+                  If None, ``sys.argv[1:]`` is used instead.
+     :type argv: list of str
+     """
+-    pass
++    parser = argparse.ArgumentParser(
++        description="Takes one or more file paths and reports their detected encodings"
++    )
++    parser.add_argument(
++        "input",
++        help="File whose encoding we would like to determine. (default: stdin)",
++        type=argparse.FileType("rb"),
++        nargs="*",
++        default=[sys.stdin.buffer],
++    )
++    parser.add_argument(
++        "--version", action="version", version=f"%(prog)s {__version__}"
++    )
++    args = parser.parse_args(argv)
++
++    for f in args.input:
++        if f.isatty():
++            print(
++                "You are running chardetect interactively. Press "
++                "CTRL-D twice at the start of the input to signal EOF."
++            )
++        print(description_of(f, f.name))
++
+ if __name__ == '__main__':
+     main()
+\ No newline at end of file
+diff --git a/chardet/codingstatemachine.py b/chardet/codingstatemachine.py
+index 14d1fa4..1ae1e8b 100644
+--- a/chardet/codingstatemachine.py
++++ b/chardet/codingstatemachine.py
+@@ -30,4 +30,26 @@ class CodingStateMachine:
+         self._curr_char_len = 0
+         self._curr_state = None
+         self.logger = logging.getLogger(__name__)
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    def reset(self):
++        self._curr_state = MachineState.START
++
++    def next_state(self, c):
++        # for each byte we get its class
++        # if it is first byte, we also get byte length
++        byte_class = self._model["class_table"][c]
++        if self._curr_state == MachineState.START:
++            self._curr_byte_pos = 0
++            self._curr_char_len = self._model["char_len_table"][byte_class]
++        # from byte's class and state_table, we get its next state
++        curr_state = self._curr_state * self._model["class_factor"] + byte_class
++        self._curr_state = self._model["state_table"][curr_state]
++        self._curr_byte_pos += 1
++        return self._curr_state
++
++    def get_current_charlen(self):
++        return self._curr_char_len
++
++    def get_coding_state_machine(self):
++        return self._model["name"]
+\ No newline at end of file
+diff --git a/chardet/enums.py b/chardet/enums.py
+index 0b0e575..eee177c 100644
+--- a/chardet/enums.py
++++ b/chardet/enums.py
+@@ -54,7 +54,7 @@ class SequenceLikelihood:
+     @classmethod
+     def get_num_categories(cls):
+         """:returns: The number of likelihood categories in the enum."""
+-        pass
++        return 4
+ 
+ class CharacterCategory:
+     """
+diff --git a/chardet/escprober.py b/chardet/escprober.py
+index f04f9fa..76b8396 100644
+--- a/chardet/escprober.py
++++ b/chardet/escprober.py
+@@ -24,4 +24,48 @@ class EscCharSetProber(CharSetProber):
+         self._detected_charset = None
+         self._detected_language = None
+         self._state = None
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    def reset(self):
++        super().reset()
++        for coding_sm in self.coding_sm:
++            if not coding_sm:
++                continue
++            coding_sm.active = True
++            coding_sm.reset()
++        self.active_sm_count = len(self.coding_sm)
++        self._detected_charset = None
++        self._detected_language = None
++
++    @property
++    def charset_name(self):
++        return self._detected_charset
++
++    @property
++    def language(self):
++        return self._detected_language
++
++    def get_confidence(self):
++        if self._detected_charset:
++            return 0.99
++        return 0.00
++
++    def feed(self, byte_str):
++        for c in byte_str:
++            for coding_sm in self.coding_sm:
++                if not coding_sm or not coding_sm.active:
++                    continue
++                coding_state = coding_sm.next_state(c)
++                if coding_state == MachineState.ERROR:
++                    coding_sm.active = False
++                    self.active_sm_count -= 1
++                    if self.active_sm_count <= 0:
++                        self._state = ProbingState.NOT_ME
++                        return self.state
++                elif coding_state == MachineState.ITS_ME:
++                    self._state = ProbingState.FOUND_IT
++                    self._detected_charset = coding_sm.get_coding_state_machine()
++                    self._detected_language = coding_sm.language
++                    return self.state
++
++        return self.state
+diff --git a/chardet/eucjpprober.py b/chardet/eucjpprober.py
+index cdbbf2f..70b169a 100644
+--- a/chardet/eucjpprober.py
++++ b/chardet/eucjpprober.py
+@@ -12,4 +12,56 @@ class EUCJPProber(MultiByteCharSetProber):
+         self.coding_sm = CodingStateMachine(EUCJP_SM_MODEL)
+         self.distribution_analyzer = EUCJPDistributionAnalysis()
+         self.context_analyzer = EUCJPContextAnalysis()
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    def reset(self):
++        super().reset()
++        self.context_analyzer.reset()
++
++    @property
++    def charset_name(self):
++        return "EUC-JP"
++
++    @property
++    def language(self):
++        return "Japanese"
++
++    def feed(self, byte_str):
++        for i in range(len(byte_str)):
++            coding_state = self.coding_sm.next_state(byte_str[i])
++            if coding_state == MachineState.ERROR:
++                self.logger.debug(
++                    "%s %s prober hit error at byte %s",
++                    self.charset_name,
++                    self.language,
++                    i,
++                )
++                self._state = ProbingState.NOT_ME
++                break
++            if coding_state == MachineState.ITS_ME:
++                self._state = ProbingState.FOUND_IT
++                break
++            if coding_state == MachineState.START:
++                char_len = self.coding_sm.get_current_charlen()
++                if i == 0:
++                    self._last_char[1] = byte_str[0]
++                    self.context_analyzer.feed(self._last_char, char_len)
++                    self.distribution_analyzer.feed(self._last_char, char_len)
++                else:
++                    self.context_analyzer.feed(byte_str[i - 1 : i + 1], char_len)
++                    self.distribution_analyzer.feed(byte_str[i - 1 : i + 1], char_len)
++
++        self._last_char[0] = byte_str[-1]
++
++        if self.state == ProbingState.DETECTING:
++            if self.context_analyzer.got_enough_data() and (
++                self.get_confidence() > self.SHORTCUT_THRESHOLD
++            ):
++                self._state = ProbingState.FOUND_IT
++
++        return self.state
++
++    def get_confidence(self):
++        context_conf = self.context_analyzer.get_confidence()
++        distrib_conf = self.distribution_analyzer.get_confidence()
++        return max(context_conf, distrib_conf)
+\ No newline at end of file
+diff --git a/chardet/euctwprober.py b/chardet/euctwprober.py
+index 8fa06d8..c69b403 100644
+--- a/chardet/euctwprober.py
++++ b/chardet/euctwprober.py
+@@ -9,4 +9,12 @@ class EUCTWProber(MultiByteCharSetProber):
+         super().__init__()
+         self.coding_sm = CodingStateMachine(EUCTW_SM_MODEL)
+         self.distribution_analyzer = EUCTWDistributionAnalysis()
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    @property
++    def charset_name(self):
++        return "EUC-TW"
++
++    @property
++    def language(self):
++        return "Taiwan"
+\ No newline at end of file
+diff --git a/chardet/hebrewprober.py b/chardet/hebrewprober.py
+index b6262c5..d8d0eec 100644
+--- a/chardet/hebrewprober.py
++++ b/chardet/hebrewprober.py
+@@ -1,6 +1,10 @@
++import re
++
+ from .charsetprober import CharSetProber
+ from .enums import ProbingState
+ 
++SPACE = 0x20
++
+ class HebrewProber(CharSetProber):
+     FINAL_KAF = 234
+     NORMAL_KAF = 235
+@@ -25,4 +29,116 @@ class HebrewProber(CharSetProber):
+         self._before_prev = None
+         self._logical_prober = None
+         self._visual_prober = None
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    def reset(self):
++        self._final_char_logical_score = 0
++        self._final_char_visual_score = 0
++        # The two last characters seen in the previous buffer,
++        # mPrev and mBeforePrev are initialized to space in order to simulate
++        # a word delimiter at the beginning of the data
++        self._prev = SPACE
++        self._before_prev = SPACE
++        # These probers are owned by the group prober.
++
++    def set_model_probers(self, logical_prober, visual_prober):
++        self._logical_prober = logical_prober
++        self._visual_prober = visual_prober
++
++    def is_final(self, c):
++        return c in [self.FINAL_KAF, self.FINAL_MEM, self.FINAL_NUN, self.FINAL_PE, self.FINAL_TSADI]
++
++    def is_non_final(self, c):
++        # The normal Tsadi is not a good Non-Final letter due to words like
++        # 'lechotet' (to chat) containing an apostrophe after the tsadi. This
++        # apostrophe is converted to a space in FilterWithoutEnglishLetters
++        # causing the Non-Final tsadi to appear at an end of a word even
++        # though this is not the case in the original text.
++        # The letters Pe and Kaf rarely display a related behavior of not being
++        # a good Non-Final letter. Words like 'Pop', 'Winamp' and 'Mubarak'
++        # for example legally end with a Non-Final Pe or Kaf. However, the
++        # benefit of these letters as Non-Final letters outweighs the damage
++        # since these words are quite rare.
++        return c in [self.NORMAL_KAF, self.NORMAL_MEM, self.NORMAL_NUN, self.NORMAL_PE]
++
++    def feed(self, byte_str):
++        # Final letter analysis for logical-visual decision.
++        # Look for evidence that the received buffer is either logical Hebrew
++        # or visual Hebrew.
++        # The following cases are checked:
++        # 1) A word longer than 1 letter, ending with a final letter. This is
++        #    an indication that the text is laid out "naturally" for reading,
++        #    since a word ending with a final letter is typical of a word
++        #    ending with a final letter in logical Hebrew.
++        # 2) A word longer than 1 letter, ending with a Normal letter. This is
++        #    an indication that the text is laid out "backwards" (visual), since
++        #    a word ending with a normal letter is typical in visual Hebrew.
++        # 3) A word starting with a final letter, preceded by a space and
++        #    followed by a non-space. This is an indication that the text is
++        #    laid out "backwards" (visual).
++        # Runs of non-high bytes are collapsed to a single space first, the
++        # same way the Hebrew model's input is filtered.
++        byte_str = re.sub(rb'[\x00-\x7F]+', b' ', byte_str)
++
++        for cur in byte_str:
++            if cur == SPACE:
++                # We stand on a space - a word just ended
++                if self._before_prev != SPACE:
++                    # next-to-last char was not a space so self._prev is not a
++                    # 1 letter word
++                    if self.is_final(self._prev):
++                        # case (1) [-2:not space][-1:final letter][cur:space]
++                        self._final_char_logical_score += 1
++                    elif self.is_non_final(self._prev):
++                        # case (2) [-2:not space][-1:Normal letter][cur:space]
++                        self._final_char_visual_score += 1
++            else:
++                # Not standing on a space
++                if (self._before_prev == SPACE) and (self.is_final(self._prev)) and (cur != SPACE):
++                    # case (3) [-2:space][-1:final letter][cur:not space]
++                    self._final_char_visual_score += 1
++            self._before_prev = self._prev
++            self._prev = cur
++
++        # Forever detecting, till the end or until both model probers return
++        # ProbingState.NOT_ME (gets to 0.01)
++        return self.state
++
++    @property
++    def state(self):
++        # Remain active as long as any of the model probers are active.
++        if (self._logical_prober.state == ProbingState.NOT_ME) and (
++            self._visual_prober.state == ProbingState.NOT_ME
++        ):
++            return ProbingState.NOT_ME
++        return ProbingState.DETECTING
++
++    def get_charset_name(self):
++        # Make the decision: is it Logical or Visual?
++        # If the final letter score distance is dominant enough, rely on it.
++        finalsub = self._final_char_logical_score - self._final_char_visual_score
++        if finalsub >= self.MIN_FINAL_CHAR_DISTANCE:
++            return self.LOGICAL_HEBREW_NAME
++        if finalsub <= -self.MIN_FINAL_CHAR_DISTANCE:
++            return self.VISUAL_HEBREW_NAME
++
++        # It's not dominant enough, try to rely on the model scores instead.
++        modelsub = self._logical_prober.get_confidence() - self._visual_prober.get_confidence()
++        if modelsub > self.MIN_MODEL_DISTANCE:
++            return self.LOGICAL_HEBREW_NAME
++        if modelsub < -self.MIN_MODEL_DISTANCE:
++            return self.VISUAL_HEBREW_NAME
++
++        # Still no good, back to final letter distance, maybe it'll save the
++        # day.
++        if finalsub < 0.0:
++            return self.VISUAL_HEBREW_NAME
++
++        # (finalsub > 0 - Logical) or (don't know - Logical)
++        return self.LOGICAL_HEBREW_NAME
++
++    def get_confidence(self):
++        # The Hebrew prober does not carry its own confidence; the decision
++        # is made by get_charset_name from the model probers and the
++        # final-letter scores.
++        return 0.0
+\ No newline at end of file
+diff --git a/chardet/johabprober.py b/chardet/johabprober.py
+index caeafe1..f54b35a 100644
+--- a/chardet/johabprober.py
++++ b/chardet/johabprober.py
+@@ -9,4 +9,12 @@ class JOHABProber(MultiByteCharSetProber):
+         super().__init__()
+         self.coding_sm = CodingStateMachine(JOHAB_SM_MODEL)
+         self.distribution_analyzer = JOHABDistributionAnalysis()
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    @property
++    def charset_name(self):
++        return "Johab"
++
++    @property
++    def language(self):
++        return "Korean"
+\ No newline at end of file
+diff --git a/chardet/jpcntx.py b/chardet/jpcntx.py
+index 0652b56..d43376e 100644
+--- a/chardet/jpcntx.py
++++ b/chardet/jpcntx.py
+@@ -15,11 +15,99 @@ class JapaneseContextAnalysis:
+         self._done = None
+         self.reset()
+ 
++    def reset(self):
++        self._total_rel = 0  # total sequence received
++        # category counters, each integer counts sequence in its category
++        self._rel_sample = [0] * self.NUM_OF_CATEGORY
++        # if last byte in current buffer is not the last byte of a character,
++        # we need to know how many bytes to skip in next buffer
++        self._need_to_skip_char_num = 0
++        self._last_char_order = -1  # The order of previous char
++        # If this flag is set to True, detection is done and conclusion has
++        # been made
++        self._done = False
++
++    def feed(self, byte_str, num_bytes):
++        if self._done:
++            return
++
++        # The buffer we got is byte oriented, and a character may span in more
++        # than one buffer. In case the last one or two bytes in the last buffer
++        # are not complete, we record how many bytes are needed to complete that
++        # character and skip them here. Skipping that character keeps the logic
++        # simple at a negligible cost in accuracy.
++        i = self._need_to_skip_char_num
++        while i < num_bytes:
++            order, char_len = self.get_order(byte_str[i:i + 2])
++            i += char_len
++            if i > num_bytes:
++                self._need_to_skip_char_num = i - num_bytes
++                self._last_char_order = -1
++            else:
++                if (order != -1) and (self._last_char_order != -1):
++                    self._total_rel += 1
++                    if self._total_rel > self.MAX_REL_THRESHOLD:
++                        self._done = True
++                        break
++                    self._rel_sample[
++                        jp2_char_context[self._last_char_order][order]
++                    ] += 1
++                self._last_char_order = order
++
++    def got_enough_data(self):
++        return self._total_rel > self.ENOUGH_REL_THRESHOLD
++
++    def get_confidence(self):
++        # This is just one way to calculate confidence. It works well for me.
++        if self._total_rel > self.MINIMUM_DATA_THRESHOLD:
++            return (self._total_rel - self._rel_sample[0]) / self._total_rel
++        return self.DONT_KNOW
++
++    def get_order(self, _):
++        return -1, 1
++
++
+ class SJISContextAnalysis(JapaneseContextAnalysis):
+ 
+     def __init__(self):
+         super().__init__()
+         self._charset_name = 'SHIFT_JIS'
+ 
++    @property
++    def charset_name(self):
++        return self._charset_name
++
++    def get_order(self, byte_str):
++        if not byte_str:
++            return -1, 1
++        # find out current char's byte length
++        first_char = byte_str[0]
++        if (0x81 <= first_char <= 0x9F) or (0xE0 <= first_char <= 0xFC):
++            char_len = 2
++            if (first_char == 0x87) or (0xFA <= first_char <= 0xFC):
++                self._charset_name = 'CP932'
++        else:
++            char_len = 1
++
++        # return its order if it is hiragana (0x82 0x9F - 0x82 0xF1)
++        if len(byte_str) > 1:
++            second_char = byte_str[1]
++            if (first_char == 0x82) and (0x9F <= second_char <= 0xF1):
++                return second_char - 0x9F, char_len
++        return -1, char_len
++
++
+ class EUCJPContextAnalysis(JapaneseContextAnalysis):
+-    pass
+\ No newline at end of file
++
++    def get_order(self, byte_str):
++        # for EUC-JP, hiragana is the 0xA4 row with trail bytes 0xA1 - 0xF3.
++        # No validation is needed here; the state machine has done that.
++        if not byte_str:
++            return -1, 1
++        first_char = byte_str[0]
++        char_len = 2 if first_char >= 0xA0 else 1
++        if len(byte_str) > 1:
++            second_char = byte_str[1]
++            if (first_char == 0xA4) and (0xA1 <= second_char <= 0xF3):
++                return second_char - 0xA1, char_len
++        return -1, char_len
+\ No newline at end of file
+diff --git a/chardet/latin1prober.py b/chardet/latin1prober.py
+index d943de4..6cc6bc8 100644
+--- a/chardet/latin1prober.py
++++ b/chardet/latin1prober.py
+@@ -19,4 +19,47 @@ class Latin1Prober(CharSetProber):
+         super().__init__()
+         self._last_char_class = None
+         self._freq_counter = None
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    def reset(self):
++        self._last_char_class = OTH
++        self._freq_counter = [0] * FREQ_CAT_NUM
++        CharSetProber.reset(self)
++
++    @property
++    def charset_name(self):
++        return "ISO-8859-1"
++
++    @property
++    def language(self):
++        return ""
++
++    def feed(self, byte_str):
++        byte_str = self.remove_xml_tags(byte_str)
++        for c in byte_str:
++            char_class = Latin1_CharToClass[c]
++            freq = Latin1ClassModel[(self._last_char_class * CLASS_NUM) + char_class]
++            if freq == 0:
++                self._state = ProbingState.NOT_ME
++                break
++            self._freq_counter[freq] += 1
++            self._last_char_class = char_class
++
++        return self.state
++
++    def get_confidence(self):
++        if self.state == ProbingState.NOT_ME:
++            return 0.01
++
++        total = sum(self._freq_counter)
++        if total < 0.01:
++            confidence = 0.0
++        else:
++            confidence = ((self._freq_counter[3] - self._freq_counter[1] * 20.0)
++                          / total)
++        if confidence < 0.0:
++            confidence = 0.0
++        # lower the confidence of latin1 so that other more accurate
++        # detector can take priority.
++        confidence = confidence * 0.73
++        return confidence
+\ No newline at end of file
+diff --git a/chardet/mbcharsetprober.py b/chardet/mbcharsetprober.py
+index 28d62fe..ca174a7 100644
+--- a/chardet/mbcharsetprober.py
++++ b/chardet/mbcharsetprober.py
+@@ -10,4 +10,56 @@ class MultiByteCharSetProber(CharSetProber):
+         super().__init__(lang_filter=lang_filter)
+         self.distribution_analyzer = None
+         self.coding_sm = None
+-        self._last_char = [0, 0]
+\ No newline at end of file
++        self._last_char = [0, 0]
++
++    def reset(self):
++        super().reset()
++        if self.coding_sm:
++            self.coding_sm.reset()
++        if self.distribution_analyzer:
++            self.distribution_analyzer.reset()
++        self._last_char = [0, 0]
++
++    @property
++    def charset_name(self):
++        raise NotImplementedError
++
++    @property
++    def language(self):
++        raise NotImplementedError
++
++    def feed(self, byte_str):
++        for i in range(len(byte_str)):
++            coding_state = self.coding_sm.next_state(byte_str[i])
++            if coding_state == MachineState.ERROR:
++                self.logger.debug(
++                    "%s %s prober hit error at byte %s",
++                    self.charset_name,
++                    self.language,
++                    i,
++                )
++                self._state = ProbingState.NOT_ME
++                break
++            if coding_state == MachineState.ITS_ME:
++                self._state = ProbingState.FOUND_IT
++                break
++            if coding_state == MachineState.START:
++                char_len = self.coding_sm.get_current_charlen()
++                if i == 0:
++                    self._last_char[1] = byte_str[0]
++                    self.distribution_analyzer.feed(self._last_char, char_len)
++                else:
++                    self.distribution_analyzer.feed(byte_str[i - 1 : i + 1], char_len)
++
++        self._last_char[0] = byte_str[-1]
++
++        if self.state == ProbingState.DETECTING:
++            if self.distribution_analyzer.got_enough_data() and (
++                self.get_confidence() > self.SHORTCUT_THRESHOLD
++            ):
++                self._state = ProbingState.FOUND_IT
++
++        return self.state
++
++    def get_confidence(self):
++        return self.distribution_analyzer.get_confidence()
+\ No newline at end of file
+diff --git a/chardet/sbcharsetprober.py b/chardet/sbcharsetprober.py
+index 003f325..0f9b71b 100644
+--- a/chardet/sbcharsetprober.py
++++ b/chardet/sbcharsetprober.py
+@@ -20,4 +20,97 @@ class SingleByteCharSetProber(CharSetProber):
+         self._total_char = None
+         self._control_char = None
+         self._freq_char = None
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    def reset(self):
++        super().reset()
++        # char order of last character
++        self._last_order = 255
++        self._seq_counters = [0] * SequenceLikelihood.get_num_categories()
++        self._total_seqs = 0
++        self._total_char = 0
++        # characters that fall in our sampling range
++        self._control_char = 0
++        # Number of recent characters that fall in the sampling range
++        self._freq_char = 0
++
++    @property
++    def charset_name(self):
++        if self._name_prober:
++            return self._name_prober.charset_name
++        return self._model.charset_name
++
++    @property
++    def language(self):
++        if self._name_prober:
++            return self._name_prober.language
++        return self._model.language
++
++    def feed(self, byte_str):
++        if not self._model.keep_ascii_letters:
++            byte_str = self.filter_international_words(byte_str)
++        if not byte_str:
++            return self.state
++        char_to_order_map = self._model.char_to_order_map
++        language_model = self._model.language_model
++        for char in byte_str:
++            order = char_to_order_map[char]
++            # XXX: This was SYMBOL_CAT_ORDER before, with a value of 250, but
++            # CharacterCategory.SYMBOL is actually 253, so we use CONTROL
++            # to make it closer to the original intent. The only difference
++            # is whether or not we count digits and control characters for
++            # _total_char purposes.
++            if order < CharacterCategory.CONTROL:
++                self._total_char += 1
++            # TODO: Follow uchardet's lead and discount confidence for frequent
++            # control characters.
++            #       See https://github.com/BYVoid/uchardet/commit/55b4f23971db61
++            if order < self.SAMPLE_SIZE:
++                self._freq_char += 1
++                if self._last_order < self.SAMPLE_SIZE:
++                    self._total_seqs += 1
++                    if not self._reversed:
++                        model = language_model[self._last_order][order]
++                    else:  # reverse the order of the letters in the lookup
++                        model = language_model[order][self._last_order]
++                    self._seq_counters[model] += 1
++            self._last_order = order
++
++        charset_name = self._model.charset_name
++        if self.state == ProbingState.DETECTING:
++            if self._total_seqs > self.SB_ENOUGH_REL_THRESHOLD:
++                confidence = self.get_confidence()
++                if confidence > self.POSITIVE_SHORTCUT_THRESHOLD:
++                    self.logger.debug(
++                        "%s confidence = %s, we have a winner", charset_name, confidence
++                    )
++                    self._state = ProbingState.FOUND_IT
++                elif confidence < self.NEGATIVE_SHORTCUT_THRESHOLD:
++                    self.logger.debug(
++                        "%s confidence = %s, below negative shortcut threshold %s",
++                        charset_name,
++                        confidence,
++                        self.NEGATIVE_SHORTCUT_THRESHOLD,
++                    )
++                    self._state = ProbingState.NOT_ME
++
++        return self.state
++
++    def get_confidence(self):
++        r = 0.01
++        if self._total_seqs > 0:
++            r = (
++                (
++                    self._seq_counters[SequenceLikelihood.POSITIVE]
++                    + 0.25 * self._seq_counters[SequenceLikelihood.LIKELY]
++                )
++                / self._total_seqs
++                / self._model.typical_positive_ratio
++            )
++            # The more control characters (proportionnaly to the size
++            # of the text), the less confident we become in the current
++            # charset
++            r = r * self._freq_char / self._total_char
++            if r >= 1.0:
++                r = 0.99
++        return r
+\ No newline at end of file
+diff --git a/chardet/universaldetector.py b/chardet/universaldetector.py
+index a0351fc..6bd31c2 100644
+--- a/chardet/universaldetector.py
++++ b/chardet/universaldetector.py
+@@ -54,13 +54,36 @@ class UniversalDetector:
+         self._has_win_bytes = None
+         self.reset()
+ 
++    @property
++    def input_state(self):
++        return self._input_state
++
++    @property
++    def has_win_bytes(self):
++        return self._has_win_bytes
++
++    @property
++    def charset_probers(self):
++        return self._charset_probers
++
+     def reset(self):
+         """
+         Reset the UniversalDetector and all of its probers back to their
+         initial states.  This is called by ``__init__``, so you only need to
+         call this directly in between analyses of different documents.
+         """
+-        pass
++        self.result = {"encoding": None, "confidence": 0.0, "language": None}
++        self.done = False
++        self._got_data = False
++        self._has_win_bytes = False
++        self._input_state = InputState.PURE_ASCII
++        self._last_char = b""
++        if self._esc_charset_prober:
++            self._esc_charset_prober.reset()
++        if self._utf1632_prober:
++            self._utf1632_prober.reset()
++        for prober in self._charset_probers:
++            prober.reset()
+ 
+     def feed(self, byte_str):
+         """
+@@ -76,7 +99,108 @@ class UniversalDetector:
+            You should always call ``close`` when you're done feeding in your
+            document if ``done`` is not already ``True``.
+         """
+-        pass
++        if self.done:
++            return
++
++        if not byte_str:
++            return
++
++        if not isinstance(byte_str, bytearray):
++            byte_str = bytearray(byte_str)
++
++        # First check for known BOMs, since these are guaranteed to be correct
++        if not self._got_data:
++            # If the data starts with BOM, we know it is UTF
++            if byte_str.startswith(codecs.BOM_UTF8):
++                # EF BB BF  UTF-8 with BOM
++                self.result = {"encoding": "UTF-8-SIG", "confidence": 1.0, "language": ""}
++            elif byte_str.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
++                # FF FE 00 00  UTF-32, little-endian BOM
++                # 00 00 FE FF  UTF-32, big-endian BOM
++                self.result = {"encoding": "UTF-32", "confidence": 1.0, "language": ""}
++            elif byte_str.startswith(b"\xFE\xFF\x00\x00"):
++                # FE FF 00 00  UCS-4, unusual octet order BOM (3412)
++                self.result = {"encoding": "X-ISO-10646-UCS-4-3412", "confidence": 1.0, "language": ""}
++            elif byte_str.startswith(b"\x00\x00\xFF\xFE"):
++                # 00 00 FF FE  UCS-4, unusual octet order BOM (2143)
++                self.result = {"encoding": "X-ISO-10646-UCS-4-2143", "confidence": 1.0, "language": ""}
++            elif byte_str.startswith((codecs.BOM_LE, codecs.BOM_BE)):
++                # FF FE  UTF-16, little endian BOM
++                # FE FF  UTF-16, big endian BOM
++                self.result = {"encoding": "UTF-16", "confidence": 1.0, "language": ""}
++
++            # InputState.PURE_ASCII is the default
++            self._got_data = True
++            if self.result["encoding"] is not None:
++                self.done = True
++                return
++
++        # If none of those matched and we've only see ASCII so far, check
++        # for high bytes and escape sequences
++        if self._input_state == InputState.PURE_ASCII:
++            if self.HIGH_BYTE_DETECTOR.search(byte_str):
++                self._input_state = InputState.HIGH_BYTE
++            elif (
++                self._input_state == InputState.PURE_ASCII
++                and self.ESC_DETECTOR.search(self._last_char + byte_str)
++            ):
++                self._input_state = InputState.ESC_ASCII
++
++        self._last_char = byte_str[-1:]
++
++        # Next we look to see if the data appears to be UTF-16 or UTF-32
++        if not self._utf1632_prober:
++            self._utf1632_prober = UTF1632Prober()
++
++        if self._utf1632_prober.state == ProbingState.DETECTING:
++            if self._utf1632_prober.feed(byte_str) == ProbingState.FOUND_IT:
++                self.result = {
++                    "encoding": self._utf1632_prober.charset_name,
++                    "confidence": self._utf1632_prober.get_confidence(),
++                    "language": "",
++                }
++                self.done = True
++                return
++
++        # If we've seen escape sequences, use the EscCharSetProber, which
++        # uses a simple state machine to check for known escape sequences in
++        # HZ and ISO-2022 encodings, since those are the only encodings that
++        # use such sequences.
++        if self._input_state == InputState.ESC_ASCII:
++            if not self._esc_charset_prober:
++                self._esc_charset_prober = EscCharSetProber(self.lang_filter)
++            if self._esc_charset_prober.feed(byte_str) == ProbingState.FOUND_IT:
++                self.result = {
++                    "encoding": self._esc_charset_prober.charset_name,
++                    "confidence": self._esc_charset_prober.get_confidence(),
++                    "language": self._esc_charset_prober.language,
++                }
++                self.done = True
++
++        # If we've seen high bytes (i.e., those with values greater than 127),
++        # we need to do more complicated checks using all our multi-byte and
++        # single-byte probers that are left.  The single-byte probers
++        # use character bigram distributions to determine the encoding, whereas
++        # the multi-byte probers use a combination of character unigram and
++        # bigram distributions.
++        elif self._input_state == InputState.HIGH_BYTE:
++            if not self._charset_probers:
++                self._charset_probers = [MBCSGroupProber(self.lang_filter)]
++                # If we're checking non-CJK encodings, use single-byte prober
++                if self.lang_filter & LanguageFilter.NON_CJK:
++                    self._charset_probers.append(SBCSGroupProber())
++                self._charset_probers.append(Latin1Prober())
++            for prober in self._charset_probers:
++                if prober.feed(byte_str) == ProbingState.FOUND_IT:
++                    self.result = {
++                        "encoding": prober.charset_name,
++                        "confidence": prober.get_confidence(),
++                        "language": prober.language,
++                    }
++                    self.done = True
++                    break
++            if self.WIN_BYTE_DETECTOR.search(byte_str):
++                self._has_win_bytes = True
+ 
+     def close(self):
+         """
+@@ -86,4 +210,70 @@ class UniversalDetector:
+         :returns:  The ``result`` attribute, a ``dict`` with the keys
+                    `encoding`, `confidence`, and `language`.
+         """
+-        pass
+\ No newline at end of file
++        # Don't bother with checks if we're already done
++        if self.done:
++            return self.result
++        self.done = True
++
++        if not self._got_data:
++            self.logger.debug("no data received!")
++
++        # Default to ASCII if it is all we've seen so far
++        elif self._input_state == InputState.PURE_ASCII:
++            self.result = {"encoding": "ascii", "confidence": 1.0, "language": ""}
++
++        # If we have seen non-ASCII, return the best that met MINIMUM_THRESHOLD
++        elif self._input_state == InputState.HIGH_BYTE:
++            prober_confidence = None
++            max_prober_confidence = 0.0
++            max_confidence_prober = None
++            for prober in self._charset_probers:
++                if not prober:
++                    continue
++                prober_confidence = prober.get_confidence()
++                if prober_confidence > max_prober_confidence:
++                    max_prober_confidence = prober_confidence
++                    max_confidence_prober = prober
++            if max_confidence_prober and (
++                max_prober_confidence > self.MINIMUM_THRESHOLD
++            ):
++                charset_name = max_confidence_prober.charset_name
++                assert charset_name is not None
++                lower_charset_name = charset_name.lower()
++                confidence = max_confidence_prober.get_confidence()
++                # Use Windows encoding name instead of ISO-8859 if we saw any
++                # extra Windows-specific bytes
++                if lower_charset_name.startswith("iso-8859"):
++                    if self._has_win_bytes:
++                        charset_name = self.ISO_WIN_MAP.get(
++                            lower_charset_name, charset_name
++                        )
++                self.result = {
++                    "encoding": charset_name,
++                    "confidence": confidence,
++                    "language": max_confidence_prober.language,
++                }
++
++        # Log all prober confidences if none met MINIMUM_THRESHOLD
++        if self.logger.getEffectiveLevel() <= logging.DEBUG:
++            if self.result["encoding"] is None:
++                self.logger.debug("no probers hit minimum threshold")
++                for group_prober in self._charset_probers:
++                    if not group_prober:
++                        continue
++                    if isinstance(group_prober, CharSetGroupProber):
++                        for prober in group_prober.probers:
++                            self.logger.debug(
++                                "%s %s confidence = %s",
++                                prober.charset_name,
++                                prober.language,
++                                prober.get_confidence(),
++                            )
++                    else:
++                        self.logger.debug(
++                            "%s %s confidence = %s",
++                            group_prober.charset_name,
++                            group_prober.language,
++                            group_prober.get_confidence(),
++                        )
++        return self.result
+diff --git a/chardet/utf1632prober.py b/chardet/utf1632prober.py
+index be3cac6..1dd3ea2 100644
+--- a/chardet/utf1632prober.py
++++ b/chardet/utf1632prober.py
+@@ -27,6 +27,149 @@ class UTF1632Prober(CharSetProber):
+         self.first_half_surrogate_pair_detected_16le = False
+         self.reset()
+ 
++    def reset(self):
++        super().reset()
++        self.position = 0
++        self.zeros_at_mod = [0] * 4
++        self.nonzeros_at_mod = [0] * 4
++        self.quad = [0, 0, 0, 0]
++        self.invalid_utf16be = False
++        self.invalid_utf16le = False
++        self.invalid_utf32be = False
++        self.invalid_utf32le = False
++        self.first_half_surrogate_pair_detected_16be = False
++        self.first_half_surrogate_pair_detected_16le = False
++
++    @property
++    def charset_name(self):
++        if self.is_likely_utf32be():
++            return "utf-32be"
++        if self.is_likely_utf32le():
++            return "utf-32le"
++        if self.is_likely_utf16be():
++            return "utf-16be"
++        if self.is_likely_utf16le():
++            return "utf-16le"
++        # default to something valid
++        return "utf-16"
++
++    @property
++    def language(self):
++        return ""
++
++    def approx_32bit_chars(self):
++        return max(1.0, self.position / 4.0)
++
++    def approx_16bit_chars(self):
++        return max(1.0, self.position / 2.0)
++
++    def is_likely_utf32be(self):
++        chars = self.approx_32bit_chars()
++        return (
++            chars >= self.MIN_CHARS_FOR_DETECTION
++            and self.zeros_at_mod[0] / chars > self.EXPECTED_RATIO
++            and self.zeros_at_mod[1] / chars > self.EXPECTED_RATIO
++            and self.zeros_at_mod[2] / chars > self.EXPECTED_RATIO
++            and self.nonzeros_at_mod[3] / chars > self.EXPECTED_RATIO
++            and not self.invalid_utf32be
++        )
++
++    def is_likely_utf32le(self):
++        chars = self.approx_32bit_chars()
++        return (
++            chars >= self.MIN_CHARS_FOR_DETECTION
++            and self.nonzeros_at_mod[0] / chars > self.EXPECTED_RATIO
++            and self.zeros_at_mod[1] / chars > self.EXPECTED_RATIO
++            and self.zeros_at_mod[2] / chars > self.EXPECTED_RATIO
++            and self.zeros_at_mod[3] / chars > self.EXPECTED_RATIO
++            and not self.invalid_utf32le
++        )
++
++    def is_likely_utf16be(self):
++        chars = self.approx_16bit_chars()
++        return (
++            chars >= self.MIN_CHARS_FOR_DETECTION
++            and (self.zeros_at_mod[0] + self.zeros_at_mod[2]) / chars > self.EXPECTED_RATIO
++            and (self.nonzeros_at_mod[1] + self.nonzeros_at_mod[3]) / chars > self.EXPECTED_RATIO
++            and not self.invalid_utf16be
++        )
++
++    def is_likely_utf16le(self):
++        chars = self.approx_16bit_chars()
++        return (
++            chars >= self.MIN_CHARS_FOR_DETECTION
++            and (self.nonzeros_at_mod[0] + self.nonzeros_at_mod[2]) / chars > self.EXPECTED_RATIO
++            and (self.zeros_at_mod[1] + self.zeros_at_mod[3]) / chars > self.EXPECTED_RATIO
++            and not self.invalid_utf16le
++        )
++
++    def feed(self, byte_str):
++        for c in byte_str:
++            mod4 = self.position % 4
++            self.quad[mod4] = c
++            if mod4 == 3:
++                self.validate_utf32_characters(self.quad)
++                self.validate_utf16_characters(self.quad[0:2])
++                self.validate_utf16_characters(self.quad[2:4])
++            if c == 0:
++                self.zeros_at_mod[mod4] += 1
++            else:
++                self.nonzeros_at_mod[mod4] += 1
++            self.position += 1
++        self._update_state()
++        return self.state
++
++    def get_confidence(self):
++        return (
++            0.85
++            if (
++                self.is_likely_utf16le()
++                or self.is_likely_utf16be()
++                or self.is_likely_utf32le()
++                or self.is_likely_utf32be()
++            )
++            else 0.00
++        )
++
++    def _update_state(self):
++        if self._state != ProbingState.DETECTING:
++            return
++        if self.get_confidence() > 0:
++            self._state = ProbingState.FOUND_IT
++        elif (
++            self.invalid_utf16be
++            and self.invalid_utf16le
++            and self.invalid_utf32be
++            and self.invalid_utf32le
++        ):
++            self._state = ProbingState.NOT_ME
++
++    @staticmethod
++    def _is_valid_utf32_value(value):
++        return value <= 0x10FFFF and not (0xD800 <= value <= 0xDFFF)
++
++    @staticmethod
++    def _step_utf16(value, invalid, first_half):
++        """
++        Advance the surrogate-pair state for one 16-bit code unit and return
++        the updated ``(invalid, first_half)`` pair.
++        """
++        if 0xD800 <= value <= 0xDBFF:
++            # A high surrogate; two in a row is invalid.
++            if first_half:
++                invalid = True
++            first_half = True
++        elif 0xDC00 <= value <= 0xDFFF:
++            # A low surrogate must follow a high surrogate.
++            if first_half:
++                first_half = False
++            else:
++                invalid = True
++        elif first_half:
++            # A high surrogate that is not followed by a low surrogate.
++            invalid = True
++        return invalid, first_half
++
+     def validate_utf32_characters(self, quad):
+         """
+         Validate if the quad of bytes is valid UTF-32.
+@@ -36,7 +179,12 @@ class UTF1632Prober(CharSetProber):
+ 
+         https://en.wikipedia.org/wiki/UTF-32
+         """
+-        pass
++        be_value = (quad[0] << 24) | (quad[1] << 16) | (quad[2] << 8) | quad[3]
++        le_value = (quad[3] << 24) | (quad[2] << 16) | (quad[1] << 8) | quad[0]
++        if not self._is_valid_utf32_value(be_value):
++            self.invalid_utf32be = True
++        if not self._is_valid_utf32_value(le_value):
++            self.invalid_utf32le = True
+ 
+     def validate_utf16_characters(self, pair):
+         """
+@@ -48,4 +196,19 @@ class UTF1632Prober(CharSetProber):
+ 
+         https://en.wikipedia.org/wiki/UTF-16
+         """
+-        pass
+\ No newline at end of file
++        be_value = (pair[0] << 8) | pair[1]
++        le_value = (pair[1] << 8) | pair[0]
++        self.invalid_utf16be, self.first_half_surrogate_pair_detected_16be = (
++            self._step_utf16(
++                be_value,
++                self.invalid_utf16be,
++                self.first_half_surrogate_pair_detected_16be,
++            )
++        )
++        self.invalid_utf16le, self.first_half_surrogate_pair_detected_16le = (
++            self._step_utf16(
++                le_value,
++                self.invalid_utf16le,
++                self.first_half_surrogate_pair_detected_16le,
++            )
++        )
+diff --git a/chardet/utf8prober.py b/chardet/utf8prober.py
+index fb6f22f..3af553b 100644
+--- a/chardet/utf8prober.py
++++ b/chardet/utf8prober.py
+@@ -10,4 +10,43 @@ class UTF8Prober(CharSetProber):
+         super().__init__()
+         self.coding_sm = CodingStateMachine(UTF8_SM_MODEL)
+         self._num_mb_chars = None
+-        self.reset()
+\ No newline at end of file
++        self.reset()
++
++    def reset(self):
++        super().reset()
++        self.coding_sm.reset()
++        self._num_mb_chars = 0
++
++    @property
++    def charset_name(self):
++        return "utf-8"
++
++    @property
++    def language(self):
++        return ""
++
++    def feed(self, byte_str):
++        for c in byte_str:
++            coding_state = self.coding_sm.next_state(c)
++            if coding_state == MachineState.ERROR:
++                self._state = ProbingState.NOT_ME
++                break
++            if coding_state == MachineState.ITS_ME:
++                self._state = ProbingState.FOUND_IT
++                break
++            if coding_state == MachineState.START:
++                if self.coding_sm.get_current_charlen() >= 2:
++                    self._num_mb_chars += 1
++
++        if self.state == ProbingState.DETECTING:
++            if self.get_confidence() > self.SHORTCUT_THRESHOLD:
++                self._state = ProbingState.FOUND_IT
++
++        return self.state
++
++    def get_confidence(self):
++        unlike = 0.99
++        if self._num_mb_chars < 6:
++            unlike *= self.ONE_CHAR_PROB**self._num_mb_chars
++            return 1.0 - unlike
++        return unlike

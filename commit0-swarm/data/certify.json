@@ -1,4 +1,54 @@
 {
+ "adaptkit": {
+  "admissible": false,
+  "n_tests": 3,
+  "name": "adaptkit",
+  "nonsrc_diff": [],
+  "reason": "ref 0/3, stub 0/0",
+  "ref_exit": 2,
+  "ref_fail": 3,
+  "ref_pass": 0,
+  "ref_tail": "el:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_evaluator_benchmark.py:7: in <module>\n    from benchmarks.openai_evaluator_benchmark import (\nbenchmarks/openai_evaluator_benchmark.py:10: in <module>\n    from dotenv import load_dotenv\nE   ModuleNotFoundError: No module named 'dotenv'\n________________ ERROR collecting tests/test_openai_examples.py ________________\nImportError while importing test module '/tmp/jail/c0/work/cert/adaptkit/ref/tests/test_openai_examples.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n/opt/uvpy/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests/test_openai_examples.py:3: in <module>\n    from examples import openai_judge, openai_prompt_router\nexamples/openai_judge.py:8: in <module>\n    from dotenv import load_dotenv\nE   ModuleNotFoundError: No module named 'dotenv'\n---- generated xml file: /tmp/jail/c0/work/cert/adaptkit/ref/.c0-junit.xml -----\n=========================== short test summary info ============================\nERROR tests/test_artifact_integrity.py\nERROR tests/test_evaluator_benchmark.py\nERROR tests/test_openai_examples.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!\n============================== 3 errors in 2.95s ===============================\n",
+  "stub_collected": 3,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "africa-g2p": {
+  "admissible": true,
+  "n_tests": 214,
+  "name": "africa-g2p",
+  "nonsrc_diff": [],
+  "ref_exit": 1,
+  "ref_fail": 1,
+  "ref_pass": 197,
+  "stub_collected": 7,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "agent-self-edit-gate": {
+  "admissible": true,
+  "n_tests": 52,
+  "name": "agent-self-edit-gate",
+  "nonsrc_diff": [],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 52,
+  "stub_collected": 52,
+  "stub_exit": 1,
+  "stub_pass_of_target": 1
+ },
+ "aseprite": {
+  "admissible": true,
+  "n_tests": 308,
+  "name": "aseprite",
+  "nonsrc_diff": [],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 260,
+  "stub_collected": 308,
+  "stub_exit": 1,
+  "stub_pass_of_target": 10
+ },
  "babel": {
   "admissible": true,
   "n_tests": 6709,
@@ -10,6 +60,18 @@
   "ref_fail": 5,
   "ref_pass": 6699,
   "stub_collected": 22,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "bslfmt": {
+  "admissible": true,
+  "n_tests": 214,
+  "name": "bslfmt",
+  "nonsrc_diff": [],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 214,
+  "stub_collected": 8,
   "stub_exit": 2,
   "stub_pass_of_target": 0
  },
@@ -26,6 +88,18 @@
   "stub_collected": 215,
   "stub_exit": 1,
   "stub_pass_of_target": 153
+ },
+ "catraca": {
+  "admissible": true,
+  "n_tests": 429,
+  "name": "catraca",
+  "nonsrc_diff": [],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 428,
+  "stub_collected": 429,
+  "stub_exit": 1,
+  "stub_pass_of_target": 24
  },
  "chardet": {
   "admissible": true,
@@ -69,6 +143,20 @@
   "stub_exit": 1,
   "stub_pass_of_target": 17
  },
+ "epub-blocks": {
+  "admissible": false,
+  "n_tests": 27,
+  "name": "epub-blocks",
+  "nonsrc_diff": [],
+  "reason": "ref 0/27, stub 0/0",
+  "ref_exit": 2,
+  "ref_fail": 27,
+  "ref_pass": 0,
+  "ref_tail": "py/cpython-3.13.14-linux-x86_64-gnu/lib/python3.13/importlib/metadata/__init__.py:409: in from_name\n    raise PackageNotFoundError(name)\nE   importlib.metadata.PackageNotFoundError: No package metadata was found for epub-blocks\n--- generated xml file: /tmp/jail/c0/work/cert/epub-blocks/ref/.c0-junit.xml ---\n=========================== short test summary info ============================\nERROR tests/test_attribute_prefixes.py\nERROR tests/test_boundaries.py\nERROR tests/test_composed_markup.py\nERROR tests/test_compressed_members.py\nERROR tests/test_content.py\nERROR tests/test_content_edges.py\nERROR tests/test_empty_doctype.py\nERROR tests/test_epub_blocks.py\nERROR tests/test_errata.py\nERROR tests/test_fragment_edges.py\nERROR tests/test_identifierless_recipes.py\nERROR tests/test_internal_invariants.py\nERROR tests/test_label_text.py\nERROR tests/test_literal_markup.py\nERROR tests/test_ordered_list_labels.py\nERROR tests/test_recipe_regressions.py\nERROR tests/test_release_edges.py\nERROR tests/test_retained_markup.py\nERROR tests/test_review_regressions.py\nERROR tests/test_safety_regressions.py\nERROR tests/test_source_path_ids.py\nERROR tests/test_validation.py\nERROR tests/test_variable_join.py\nERROR tests/test_verbatim_and_source_order.py\nERROR tests/test_whitespace.py\nERROR tests/test_wizard.py\nERROR tests/test_xml_repairs.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 27 errors during collection !!!!!!!!!!!!!!!!!!!\n============================== 27 errors in 4.05s ==============================\n",
+  "stub_collected": 27,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
  "imapclient": {
   "admissible": true,
   "n_tests": 267,
@@ -97,6 +185,18 @@
   "stub_exit": 4,
   "stub_pass_of_target": 0
  },
+ "laga": {
+  "admissible": true,
+  "n_tests": 67,
+  "name": "laga",
+  "nonsrc_diff": [],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 67,
+  "stub_collected": 67,
+  "stub_exit": 1,
+  "stub_pass_of_target": 0
+ },
  "marshmallow": {
   "admissible": false,
   "name": "marshmallow",
@@ -122,6 +222,20 @@
   "ref_tail": "st_two_grad[fast-fn0] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn1] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn2] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn3] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn4] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn5] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_reduce[fast-fn0] - NotImplementedEr...\nFAILED tests/test_tensor_general.py::test_reduce[fast-fn1] - NotImplementedEr...\nFAILED tests/test_tensor_general.py::test_reduce[fast-fn2] - NotImplementedEr...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn0] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn1] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn2] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn3] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn4] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn5] - NotI...\nFAILED tests/test_tensor_general.py::test_permute[fast] - NotImplementedError...\nFAILED tests/test_tensor_general.py::test_mm2 - NotImplementedError: Need to ...\nFAILED tests/test_tensor_general.py::test_bmm[fast] - NotImplementedError: Ne...\n======= 211 failed, 15 passed, 4 xfailed, 1 warning in 147.93s (0:02:27) =======\n",
   "stub_collected": 10,
   "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "nodrill": {
+  "admissible": false,
+  "n_tests": 0,
+  "name": "nodrill",
+  "nonsrc_diff": [],
+  "reason": "ref 0/0, stub 0/0",
+  "ref_exit": 4,
+  "ref_fail": 0,
+  "ref_pass": 0,
+  "ref_tail": "============================= test session starts ==============================\nplatform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0\nrootdir: /tmp/jail/c0/work/cert/nodrill/ref\nconfigfile: pyproject.toml\nplugins: platformdirs-4.12.4, hypothesis-6.168.5\ncollected 1151 items\n\n----- generated xml file: /tmp/jail/c0/work/cert/nodrill/ref/.c0-junit.xml -----\n============================ no tests ran in 3.56s =============================\nERROR: Unknown config option: asyncio_default_fixture_loop_scope\n\n\n",
+  "stub_collected": 1,
+  "stub_exit": 4,
   "stub_pass_of_target": 0
  },
  "parsel": {
@@ -194,6 +308,18 @@
   "stub_exit": 4,
   "stub_pass_of_target": 0
  },
+ "verifactu-lint": {
+  "admissible": true,
+  "n_tests": 254,
+  "name": "verifactu-lint",
+  "nonsrc_diff": [],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 254,
+  "stub_collected": 254,
+  "stub_exit": 1,
+  "stub_pass_of_target": 38
+ },
  "voluptuous": {
   "admissible": true,
   "n_tests": 148,
@@ -207,6 +333,18 @@
   "stub_collected": 1,
   "stub_exit": 2,
   "stub_pass_of_target": 0
+ },
+ "vstg": {
+  "admissible": true,
+  "n_tests": 117,
+  "name": "vstg",
+  "nonsrc_diff": [],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 117,
+  "stub_collected": 117,
+  "stub_exit": 1,
+  "stub_pass_of_target": 17
  },
  "wcwidth": {
   "admissible": true,

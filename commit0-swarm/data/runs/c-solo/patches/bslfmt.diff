@@ -1,0 +1,2808 @@
+diff --git a/src/bslfmt/__main__.py b/src/bslfmt/__main__.py
+index 3407c71..3f6af2a 100644
+--- a/src/bslfmt/__main__.py
++++ b/src/bslfmt/__main__.py
+@@ -18,6 +18,7 @@ from .lexer import LexerError
+ HELP = 'Использование: bslfmt [режим] ФАЙЛ [ФАЙЛ ...]\n\nФорматирует отступы и пробелы в модулях 1С (BSL). Меняет только пробелы,\nтабуляцию и переносы строк: код, строки и комментарии не трогает.\nФайлы читаются и пишутся в UTF-8; BOM и переводы строк (CRLF/LF) сохраняются.\n\nФАЙЛ              путь к .bsl-файлу; «-» — читать из стандартного ввода\n                  (единственным файлом, не с -i)\n--                дальше только файлы (для имён, начинающихся с «-»)\n\nРежимы (без режима — отформатированный текст выводится на экран):\n  -i, --in-place  переписать сами файлы. Файл без изменений не трогается,\n                  при отказе остаётся как был; файл только для чтения\n                  не переписывается (ошибка, код 2).\n                  Пример: bslfmt -i МодульОбъекта.bsl Форма.bsl\n  --check         только проверить, ничего не записывая: какие файлы\n                  нужно отформатировать.\n                  Пример: bslfmt --check МодульОбъекта.bsl\n  --diff          показать различия «было / станет»; вместе с --check —\n                  проверка с показом изменений.\n                  Пример: bslfmt --check --diff МодульОбъекта.bsl\n  --output ФАЙЛ   записать результат в новый файл (один входной файл;\n                  существующий файл не перезаписывается).\n                  Пример: bslfmt Модуль.bsl --output Модуль.новый.bsl\n  --version       показать версию.\n\nДополнительно (с любым режимом):\n  -sbc, --strip-body-comments\n                  удалить строки-комментарии внутри процедур и функций\n                  (включая закомментированный код и маркеры доработок)\n                  и строки-комментарии между строками текста запроса\n                  («//|  Поле,»). Комментарии в конце строки кода, над\n                  методами, внутри текста строки («|// …») и областей\n                  #Вставка/#Удаление остаются.\n                  Пример: bslfmt -i -sbc Модуль.bsl\n  -h, --help      показать эту справку.\n\nНесколько файлов — только с -i, --check или --diff; каждый обрабатывается\nотдельно, отказ на одном не останавливает остальные.\n\nКоды выхода:\n  0  успех (при --check — всё уже отформатировано)\n  1  --check: есть файлы, которые нужно отформатировать\n  2  ошибка аргументов, чтения/записи, кодировки или отказ форматирования\n  3  внутренняя ошибка форматтера\n\nПримеры:\n  bslfmt Модуль.bsl                 показать результат, файл не меняется\n  bslfmt -i Модуль.bsl              отформатировать файл на месте\n  bslfmt --check *.bsl              проверить несколько файлов (для CI)\n  bslfmt - < Модуль.bsl             форматировать стандартный ввод\n'
+ OK, NEEDS_FORMAT, FAILED, INTERNAL = (0, 1, 2, 3)
+ _ARGPARSE_MESSAGES = (('unrecognized arguments', 'неизвестные аргументы'), ('expected one argument', 'ожидается одно значение'), ('ignored explicit argument', 'лишнее значение у флага'), ('argument ', 'аргумент '))
++_SHORT_FLAGS = frozenset({'-h', '-i', '-sbc'})
+ 
+ class _UsageError(Exception):
+     """Неверные аргументы командной строки."""
+@@ -25,40 +26,88 @@ class _UsageError(Exception):
+ class _Parser(argparse.ArgumentParser):
+ 
+     def error(self, message: str) -> None:
+-        pass
++        for english, russian in _ARGPARSE_MESSAGES:
++            message = message.replace(english, russian)
++        raise _UsageError(message)
+ 
+ def _write(stream, text: str) -> None:
+-    pass
++    """Записать текст как UTF-8 байты (если у потока есть байтовый буфер)."""
++    if stream is None:
++        raise OSError(errno.EINVAL, "недоступен")
++    buffer = getattr(stream, 'buffer', None)
++    stream.flush()
++    if buffer is not None:
++        buffer.write(text.encode('utf-8'))
++        buffer.flush()
++    else:
++        stream.write(text)
+ 
+ def _report_error(text: str) -> None:
+-    pass
++    with contextlib.suppress(OSError, ValueError):
++        sys.stderr.write(text)
++        sys.stderr.flush()
+ _MAX_BYTES = DEFAULT_MAX_CHARS * 4
+ 
+ def _read_limited(stream) -> bytes:
+-    pass
++    data = stream.read(_MAX_BYTES + 1)
++    if len(data) > _MAX_BYTES:
++        raise _UsageError(f"ввод больше {_MAX_BYTES} байт")
++    return data
+ 
+ def _read_stdin() -> str:
+-    pass
++    if sys.stdin is None:
++        raise _UsageError("стандартный ввод недоступен")
++    buffer = getattr(sys.stdin, 'buffer', None)
++    raw = _read_limited(buffer if buffer is not None else sys.stdin)
++    if isinstance(raw, str):
++        return raw
++    return raw.decode('utf-8')
+ 
+ def _read(name: str) -> str:
+-    pass
++    if name == '-':
++        return _read_stdin()
++    status = os.stat(name)
++    if stat.S_ISDIR(status.st_mode):
++        raise IsADirectoryError(errno.EISDIR, "это каталог", name)
++    if not stat.S_ISREG(status.st_mode):
++        raise _UsageError("не обычный файл")
++    with open(name, 'rb') as handle:
++        data = handle.read(_MAX_BYTES + 1)
++    if len(data) > _MAX_BYTES:
++        raise _UsageError(f"файл больше {_MAX_BYTES} байт")
++    return data.decode('utf-8')
+ 
+ def _display_name(name: str) -> str:
+-    pass
++    return name.encode('utf-8', 'backslashreplace').decode('utf-8')
+ _OS_ERRORS = ((FileNotFoundError, 'файл не найден'), (FileExistsError, 'файл уже существует'), (IsADirectoryError, 'это каталог, а не файл'), (NotADirectoryError, 'в пути файл вместо каталога'), (PermissionError, 'нет доступа'))
+ _ERRNO_TEXTS = {errno.ENOSPC: 'нет места на диске', errno.EROFS: 'файловая система только для чтения', errno.ELOOP: 'слишком много символических ссылок', errno.ENAMETOOLONG: 'слишком длинное имя файла', errno.EBUSY: 'файл занят', errno.EIO: 'ошибка ввода-вывода', errno.EINVAL: 'недопустимый аргумент'}
+ 
+ def _same_path(a, b: str) -> bool:
+-    pass
++    try:
++        return os.path.samefile(a, b)
++    except OSError:
++        return False
+ 
+-def _describe(error: BaseException, name: str) -> str:
++def _describe(error: BaseException, name: str, show_path: bool=False) -> str:
+     """Текст ошибки по-русски; прочие ошибки — как есть.
+ 
+     strerror есть только у ошибок, созданных ОС: свои сообщения выводятся
+     без замены. Путь из ошибки добавляется, если это не сам входной файл
+     (например, файл --output).
+     """
+-    pass
++    if isinstance(error, OSError) and error.errno is not None and not isinstance(error, tuple):
++        text = next((russian for kind, russian in _OS_ERRORS if isinstance(error, kind)), None)
++        if text is None:
++            text = _ERRNO_TEXTS.get(error.errno, f"ошибка ОС {error.errno}")
++            if error.errno in _ERRNO_TEXTS:
++                text = _ERRNO_TEXTS[error.errno]
++    else:
++        text = str(error)
++    filename = getattr(error, 'filename', None)
++    if show_path and filename and filename != name:
++        text = f"{text}: {_display_name(str(filename))}"
++    return text
++
+ _PYPROJECT_FIELD = '^{}\\s*=\\s*"([^"]*)"'
+ 
+ def _source_version(root: Path | None=None) -> str | None:
+@@ -68,10 +117,25 @@ def _source_version(root: Path | None=None) -> str | None:
+     src/bslfmt → корень). У установленного пакета там нет pyproject.toml
+     с name = "bslfmt".
+     """
+-    pass
++    try:
++        base = root if root is not None else Path(__file__).resolve().parents[2]
++        text = (base / 'pyproject.toml').read_text(encoding='utf-8')
++    except (OSError, IndexError, UnicodeDecodeError):
++        return None
++    name = re.search(_PYPROJECT_FIELD.format('name'), text, re.MULTILINE)
++    version = re.search(_PYPROJECT_FIELD.format('version'), text, re.MULTILINE)
++    if name is None or version is None or name.group(1) != 'bslfmt':
++        return None
++    return version.group(1)
+ 
+ def _version() -> str:
+-    pass
++    source = _source_version()
++    if source is not None:
++        return source
++    try:
++        return metadata.version('bslfmt')
++    except metadata.PackageNotFoundError:
++        return '0.0.0'
+ 
+ def _changed_lines(source: str, formatted: str) -> int:
+     """Сколько строк изменено или удалено.
+@@ -81,15 +145,47 @@ def _changed_lines(source: str, formatted: str) -> int:
+     по порядку за один проход. Если так не сошлось — общее сравнение difflib
+     (на больших модулях оно занимало больше секунды).
+     """
+-    pass
++    a = _split_lines(source)
++    b = _split_lines(formatted)
++    changed = 0
++    i = j = 0
++    fast = True
++    while i < len(a) and j < len(b):
++        left = re.sub('\\s+', '', a[i])
++        right = re.sub('\\s+', '', b[j])
++        if a[i] == b[j]:
++            i += 1
++            j += 1
++        elif left == right:
++            changed += 1
++            i += 1
++            j += 1
++        elif not left or left.startswith('//'):
++            changed += 1
++            i += 1
++        else:
++            fast = False
++            break
++    if fast:
++        changed += (len(a) - i) + (len(b) - j)
++        return changed
++    matcher = difflib.SequenceMatcher(None, a, b)
++    return sum(max(i2 - i1, j2 - j1) for tag, i1, i2, j1, j2 in matcher.get_opcodes() if tag != 'equal')
+ _NO_NEWLINE = '\n\\ No newline at end of file\n'
+ 
+ def _diff_lines(text: str) -> list[str]:
+     """Строки для unified_diff: у последней без перевода — маркер, как в diff."""
+-    pass
++    lines = _split_lines(text)
++    result: list[str] = []
++    for line in lines:
++        if line.endswith(('\n', '\r')):
++            result.append(line)
++        else:
++            result.append(line + _NO_NEWLINE)
++    return result
+ 
+ def _diff(name: str, source: str, formatted: str) -> str:
+-    pass
++    return ''.join(difflib.unified_diff(_diff_lines(source), _diff_lines(formatted), fromfile=name, tofile=f'{name} (formatted)'))
+ 
+ def _replace_file(path: Path, text: str) -> None:
+     """Заменить содержимое файла атомарно: временный файл рядом и os.replace.
+@@ -99,11 +195,55 @@ def _replace_file(path: Path, text: str) -> None:
+     чтения не переписывается ни на одной ОС: на Windows замена всё равно
+     упала бы, а на POSIX молча обошла бы запрет.
+     """
+-    pass
+-_SHORT_FLAGS = frozenset({'-h', '-i', '-sbc'})
++    target = Path(os.path.realpath(path))
++    status = os.stat(target)
++    if not status.st_mode & 0o222:
++        raise PermissionError(errno.EACCES, 'только для чтения', str(path))
++    data = text.encode('utf-8')
++    descriptor, temp_name = tempfile.mkstemp(dir=str(target.parent), prefix='.' + target.name + '.', suffix='.tmp')
++    try:
++        with os.fdopen(descriptor, 'wb') as handle:
++            handle.write(data)
++            handle.flush()
++            os.fsync(handle.fileno())
++        os.chmod(temp_name, stat.S_IMODE(status.st_mode))
++        os.replace(temp_name, target)
++    except BaseException:
++        with contextlib.suppress(OSError):
++            Path(temp_name).unlink()
++        raise
++_SHORT_FLAG_PREFIX = re.compile('^-[^-]')
+ 
+ def _parse(argv: list[str] | None) -> argparse.Namespace:
+-    pass
++    arguments = list(sys.argv[1:] if argv is None else argv)
++    position = 0
++    while position < len(arguments):
++        value = arguments[position]
++        if value == '--':
++            break
++        if value == '--output' and position + 1 < len(arguments):
++            position += 2
++            continue
++        if value in ('-h', '--help'):
++            return argparse.Namespace(help=True, files=[], in_place=False, check=False, diff=False, output=None, version=False, strip_body_comments=False)
++        position += 1
++    for position, value in enumerate(arguments):
++        if value == '--':
++            break
++        if _SHORT_FLAG_PREFIX.match(value) and value not in _SHORT_FLAGS:
++            raise _UsageError(f"неизвестные аргументы: {value}")
++    parser = _Parser(prog='bslfmt', add_help=False, allow_abbrev=False)
++    parser.add_argument('files', nargs='*')
++    parser.add_argument('-i', '--in-place', action='store_true')
++    parser.add_argument('--check', action='store_true')
++    parser.add_argument('--diff', action='store_true')
++    parser.add_argument('--output')
++    parser.add_argument('--version', action='store_true')
++    parser.add_argument('-sbc', '--strip-body-comments', action='store_true')
++    parser.add_argument('-h', '--help', action='store_true')
++    namespace = parser.parse_intermixed_args(arguments)
++    namespace.help = False
++    return namespace
+ 
+ def _silence_stdout() -> None:
+     """Перенаправить stdout в devnull после сбоя вывода.
+@@ -111,11 +251,18 @@ def _silence_stdout() -> None:
+     Иначе Python при выходе снова попытается сбросить буфер и напечатает
+     BrokenPipeError.
+     """
+-    pass
++    with contextlib.suppress(Exception):
++        out_fd = sys.stdout.fileno()
++        devnull = os.open(os.devnull, os.O_WRONLY)
++        os.dup2(devnull, out_fd)
++        os.close(devnull)
+ 
+ def _summary(text: str) -> None:
+     """Сводка -i: файл уже записан, поэтому сбой вывода не делает его неудачным."""
+-    pass
++    try:
++        _write(sys.stdout, text)
++    except (BrokenPipeError, OSError, ValueError):
++        _silence_stdout()
+ 
+ def _write_new(path: Path, text: str) -> None:
+     """Записать текст в новый файл; при сбое удалить свой неполный файл.
+@@ -123,13 +270,138 @@ def _write_new(path: Path, text: str) -> None:
+     Режим "x" создаёт только новый файл, поэтому удаляется именно свой файл:
+     он не блокирует повторный запуск. Уборка не подменяет исходную ошибку.
+     """
+-    pass
++    data = text.encode('utf-8')
++    with open(path, 'xb') as handle:
++        try:
++            handle.write(data)
++        except BaseException:
++            handle.close()
++            with contextlib.suppress(OSError):
++                path.unlink()
++            raise
+ 
+ def _process(name: str, args: argparse.Namespace) -> int:
+-    pass
++    display = 'стандартный ввод' if name == '-' else _display_name(name)
++    try:
++        source = _read(name)
++    except _UsageError as error:
++        _report_error(f"bslfmt: {display}: {error}\n")
++        return FAILED
++    except UnicodeDecodeError:
++        _report_error(f"bslfmt: {display}: не в кодировке UTF-8\n")
++        return FAILED
++    except OSError as error:
++        _report_error(f"bslfmt: {display}: {_describe(error, name)}\n")
++        return FAILED
++    try:
++        formatted = format_code(source, strip_body_comments=args.strip_body_comments)
++    except (FormatError, LexerError) as error:
++        _report_error(f"bslfmt: {display}: {error}\n")
++        return FAILED
++    except Exception as error:
++        _report_error(f"bslfmt: {display}: внутренняя ошибка форматтера ({type(error).__name__})\n")
++        return INTERNAL
++    changed = formatted != source
++    if args.in_place:
++        if not changed:
++            _summary(f"{display}: без изменений\n")
++            return OK
++        if name != '-' and not os.stat(name).st_mode & 0o222:
++            _report_error(f"bslfmt: {display}: только для чтения\n")
++            return FAILED
++        try:
++            _replace_file(Path(name), formatted)
++        except OSError as error:
++            _report_error(f"bslfmt: {display}: {_describe(error, name)}\n")
++            return FAILED
++        except UnicodeEncodeError:
++            _report_error(f"bslfmt: {display}: результат не кодируется в UTF-8\n")
++            return FAILED
++        _summary(f"{display}: изменён (строк: {_changed_lines(source, formatted)})\n")
++        return OK
++    if args.check:
++        if args.diff and changed:
++            _write_safely(_diff(_display_name(name), source, formatted))
++        if changed:
++            _write_safely(f"{display}: нужно отформатировать\n")
++            return NEEDS_FORMAT
++        return OK
++    if args.diff:
++        if changed:
++            _write_safely(_diff(_display_name(name), source, formatted))
++        return OK
++    if args.output is not None:
++        try:
++            _write_new(Path(args.output), formatted)
++        except UnicodeEncodeError:
++            _report_error(f"bslfmt: {display}: результат не кодируется в UTF-8\n")
++            return FAILED
++        except OSError as error:
++            _report_error(f"bslfmt: {display}: {_describe(error, name, show_path=True)}\n")
++            return FAILED
++        return OK
++    if sys.stdout is None:
++        _report_error("bslfmt: стандартный вывод недоступен\n")
++        return FAILED
++    try:
++        _write(sys.stdout, formatted)
++    except (BrokenPipeError, OSError, ValueError) as error:
++        if isinstance(error, OSError) and error.errno not in (errno.EPIPE, errno.EINVAL, None):
++            _report_error(f"bslfmt: стандартный вывод: {_describe(error, name)}\n")
++            return FAILED
++    return OK
++
++def _write_safely(text: str) -> None:
++    try:
++        _write(sys.stdout, text)
++    except (BrokenPipeError, OSError, ValueError):
++        _silence_stdout()
+ 
+ def main(argv: list[str] | None=None) -> int:
+     """Запустить CLI; коды выхода — в HELP."""
+-    pass
++    try:
++        args = _parse(argv)
++    except _UsageError as error:
++        _report_error(f"bslfmt: {error}\nЗапустите bslfmt --help\n")
++        return FAILED
++    if args.help:
++        _write_safely(HELP)
++        return OK
++    if args.version:
++        _write_safely(f"bslfmt {_version()}\n")
++        return OK
++    if not args.files:
++        _report_error("bslfmt: не указан файл\nЗапустите bslfmt --help\n")
++        return FAILED
++    if any(name == '' for name in args.files):
++        _report_error("bslfmt: пустое имя файла\nЗапустите bslfmt --help\n")
++        return FAILED
++    multiple_modes = args.in_place or args.check or args.diff
++    if args.in_place and args.check:
++        _report_error("bslfmt: -i нельзя вместе с --check\nЗапустите bslfmt --help\n")
++        return FAILED
++    if args.output is not None and (args.in_place or args.check or args.diff):
++        _report_error("bslfmt: --output нельзя вместе с -i, --check или --diff\nЗапустите bslfmt --help\n")
++        return FAILED
++    if args.output == '-':
++        _report_error("bslfmt: --output: нужен путь к файлу, а не «-»\nЗапустите bslfmt --help\n")
++        return FAILED
++    if len(args.files) > 1 and not multiple_modes:
++        _report_error("bslfmt: несколько файлов только с -i, --check или --diff\nЗапустите bslfmt --help\n")
++        return FAILED
++    if args.in_place and '-' in args.files:
++        _report_error("bslfmt: -i: стандартный ввод нельзя переписать\nЗапустите bslfmt --help\n")
++        return FAILED
++    if args.output is not None and len(args.files) > 1:
++        _report_error("bslfmt: --output: несколько файлов\nЗапустите bslfmt --help\n")
++        return FAILED
++    if args.output is not None and args.files[0] != '-' and os.path.exists(args.output) and _same_path(args.output, args.files[0]):
++        _report_error("bslfmt: --output совпадает с входным файлом\n")
++        return FAILED
++    worst = OK
++    for name in args.files:
++        worst = max(worst, _process(name, args))
++    return worst
++
+ if __name__ == '__main__':
+     raise SystemExit(main())
+diff --git a/src/bslfmt/_text.py b/src/bslfmt/_text.py
+index 25d0627..a9f49e9 100644
+--- a/src/bslfmt/_text.py
++++ b/src/bslfmt/_text.py
+@@ -7,21 +7,32 @@ _KIND, _TEXT, _START, _END, _LINE = range(5)
+ def _split_lines(source: str) -> list[str]:
+     """Разбить текст на строки с переводами только по CR, LF и CRLF.
+ 
+-    В отличие от str.splitlines(), символы \x0b, \x0c, \x85, \u2028 и подобные
++    В отличие от str.splitlines(), символы \x0b, \x0c, \x85,   и подобные
+     остаются внутри строки, как и в самом лексере.
+     """
+-    pass
++    lines = []
++    start = 0
++    for match in _NEWLINE.finditer(source):
++        lines.append(source[start:match.end()])
++        start = match.end()
++    if start < len(source):
++        lines.append(source[start:])
++    return lines
+ _IDENTIFIER = re.compile('[^\\W\\d]\\w*')
+ _BLANK = ' \t\x0c'
+ _BLANK_OR_NEWLINE = ' \t\x0c\r\n'
+ 
+ def _is_word_char(char: str) -> bool:
+-    pass
++    return char == '_' or char.isalnum()
+ _PLAIN_WORD = re.compile('[A-Za-zА-Яа-яЁё]+')
+ 
+ def _fold(word: str) -> str:
+     """Слово для сравнения с таблицами ключевых слов или "" — не может им быть."""
+-    pass
++    if not word:
++        return ''
++    # lower(), а не casefold(): «ſ» у casefold() становится «s» и дал бы
++    # ложное ключевое слово Elſe == Else.
++    return word.lower()
+ 
+ def _is_name_after(text: str, start: int) -> bool:
+     """Слово с позиции start — имя, а не ключевое слово.
+@@ -29,6 +40,18 @@ def _is_name_after(text: str, start: int) -> bool:
+     После «.» — свойство или метод (Объект.Если), после «~» — метка
+     (Перейти ~Если; ~Если:): метка — идентификатор, и ключевые слова как
+     имена меток в рабочих конфигурациях встречаются. Между знаком и словом
+-    допустимы пробельные символы, кроме перевода строки (NBSP, \u2028…).
++    допустимы пробельные символы, кроме перевода строки (NBSP,  …).
+     """
+-    pass
++    position = start - 1
++    while position >= 0 and text[position].isspace() and text[position] not in '\r\n':
++        position -= 1
++    if position < 0 or text[position] not in '.~':
++        return False
++    if text[position] == '.':
++        begin = position
++        while begin > 0 and _is_word_char(text[begin - 1]):
++            begin -= 1
++        if text[begin:position][:1].isdigit():
++            # «1. Тогда»: точка после числа — часть числа, не доступ к свойству.
++            return False
++    return True
+diff --git a/src/bslfmt/breaks.py b/src/bslfmt/breaks.py
+index cc7f9a2..a582126 100644
+--- a/src/bslfmt/breaks.py
++++ b/src/bslfmt/breaks.py
+@@ -15,21 +15,54 @@ def _masked_code(source: str, tokens: list | None=None) -> tuple[str, list[tuple
+     всех литералов, включая даты, в порядке появления. tokens — готовый
+     результат _token_rows(source), если он уже есть.
+     """
+-    pass
++    rows = _token_rows(source) if tokens is None else tokens
++    pieces: list[str] = []
++    ranges: list[tuple[int, int]] = []
++    starts: list[int] = []
++    opaque_lines: set[int] = set()
++    for row in rows:
++        kind, text, start, line = row[_KIND], row[_TEXT], row[2], row[4]
++        if kind not in _MASKED_KINDS:
++            pieces.append(text)
++            continue
++        pieces.append(_NOT_NEWLINE.sub(' ', text))
++        newlines = len(_NEWLINE.findall(text))
++        if kind in ('string', 'date'):
++            starts.append(start)
++        if kind == 'string' and newlines:
++            ranges.append((line - 1, line - 1 + newlines))
++        if kind == 'opaque':
++            last_line = line - 1 + newlines - (1 if text.endswith(('\r', '\n')) else 0)
++            opaque_lines.update(range(line - 1, last_line + 1))
++    return ''.join(pieces), ranges, starts, opaque_lines
+ _CODE_AFTER_SEMICOLON = re.compile(';[ \\t\\f]*[^\\s;]')
+ _BREAK_WORD_SEARCH = tuple(((word, re.compile(word)) for word in sorted(BREAK_AFTER | BREAK_BEFORE)))
+-_NEXT_CHAR = re.compile('[ \\t\\f]*([^ \\t\\f])')
++_NEXT_CHAR = re.compile('[ \\t\\f]*([^ \\t\\f;])')
++_WORD = re.compile('\\w+')
++_LEADING_BLANKS = re.compile('[ \\t\\f]*')
+ 
+ def _break_points(masked_line: str) -> list[int]:
+     """Позиции в строке маски, где вставить перевод строки."""
+-    pass
++    points: list[int] = []
++    for match in re.finditer(';', masked_line):
++        if _CODE_AFTER_SEMICOLON.match(masked_line, match.start()):
++            points.append(match.end())
++    for match in _WORD.finditer(masked_line):
++        folded = _fold(match.group())
++        if folded in BREAK_BEFORE and masked_line[:match.start()].strip(' \t\f') and not _is_name_after(masked_line, match.start()):
++            points.append(match.start())
++        if folded in BREAK_AFTER and _NEXT_CHAR.match(masked_line, match.end()) and not _is_name_after(masked_line, match.start()):
++            points.append(match.end())
++    return sorted(set(points))
+ 
+ def _break_candidates(masked: str) -> list[int]:
+     """Позиции в маске, строки которых стоит проверить _break_points."""
+-    pass
++    return [index for index, line in enumerate(_split_lines(masked)) if _WORD.search(line) or ';' in line]
+ 
+ def _line_start(text: str, position: int) -> int:
+-    pass
++    """Начало строки, в которой стоит position."""
++    newline = max(text.rfind('\n', 0, position), text.rfind('\r', 0, position))
++    return newline + 1
+ 
+ def _break_lines(source: str, tokens=None):
+     """Разнести инструкции и тела однострочных блоков по строкам.
+@@ -45,7 +78,54 @@ def _break_lines(source: str, tokens=None):
+     если переносить нечего (текст — сам source), иначе номер (с 0) первой
+     новой строки для каждой исходной.
+     """
+-    pass
++    masked, _, _, opaque_lines = _masked_code(source, tokens)
++    newline = _NEWLINE.search(source)
++    newline_text = newline.group() if newline else '\n'
++    source_lines = _split_lines(source)
++    masked_lines = _split_lines(masked)
++    edits: list[tuple[int, int, str]] = []
++    offset = 0
++    for index, (source_line, masked_line) in enumerate(zip(source_lines, masked_lines)):
++        line_offset = offset
++        offset += len(source_line)
++        if index in opaque_lines or source_line.lstrip(' \t\f').startswith('#'):
++            continue
++        body = _NEWLINE.sub('', masked_line)
++        indent = _LEADING_BLANKS.match(body).group()
++        for point in _break_points(body):
++            # Пробелы у точки переноса (до и после) уходят, перенос берёт отступ строки.
++            start = point
++            while start > 0 and body[start - 1] in ' \t\f':
++                start -= 1
++            stop = point
++            while stop < len(body) and body[stop] in ' \t\f':
++                stop += 1
++            edits.append((line_offset + start, line_offset + stop, newline_text + indent))
++    if not edits:
++        return source, _masked_code(source, tokens), None
++    edits.sort()
++    kept: list[tuple[int, int, str]] = []
++    last_stop = -1
++    for start, stop, replacement in edits:
++        if start < last_stop:
++            continue
++        kept.append((start, stop, replacement))
++        last_stop = stop
++    pieces: list[str] = []
++    position = 0
++    for start, stop, replacement in kept:
++        pieces.append(source[position:start])
++        pieces.append(replacement)
++        position = stop
++    pieces.append(source[position:])
++    broken = ''.join(pieces)
++    first_lines: list[int] = []
++    old_offset = 0
++    for source_line in source_lines:
++        new_offset = old_offset + sum(len(rep) - (stop - start) for start, stop, rep in kept if stop <= old_offset)
++        first_lines.append(len(_NEWLINE.findall(broken[:new_offset])))
++        old_offset += len(source_line)
++    return broken, _masked_code(broken), first_lines
+ 
+ def _shift_masked(masked, strings, literal_starts, opaque_lines, first_lines, old_starts, new_starts):
+     """Маска после переноса: координаты литералов и строки областей правки.
+@@ -53,4 +133,4 @@ def _shift_masked(masked, strings, literal_starts, opaque_lines, first_lines, ol
+     old_starts/new_starts — начала кусков текста до и после переноса; позиция
+     внутри куска сдвигается вместе с ним.
+     """
+-    pass
++    return _masked_code(masked)
+diff --git a/src/bslfmt/errors.py b/src/bslfmt/errors.py
+index 2c1a902..21ca301 100644
+--- a/src/bslfmt/errors.py
++++ b/src/bslfmt/errors.py
+@@ -8,4 +8,8 @@ class FormatError(ValueError):
+     """
+ 
+     def __init__(self, message: str, line: int | None=None) -> None:
+-        pass
++        self.line = line
++        if line is None:
++            super().__init__(message)
++        else:
++            super().__init__(f"строка {line}: {message}")
+diff --git a/src/bslfmt/formatter.py b/src/bslfmt/formatter.py
+index f56031d..ed3ae69 100644
+--- a/src/bslfmt/formatter.py
++++ b/src/bslfmt/formatter.py
+@@ -1,330 +1,137 @@
+ """Консервативное форматирование структурных отступов BSL.
+ 
+-Здесь — автомат отступов (_LineFormatter) и сборка проходов в format_code.
+-Остальные проходы — в своих модулях: spacing (пробелы), breaks (маска и
+-перенос строк), verify (итоговая сверка), wrap (раскладка по ширине).
++Здесь — сборка проходов format_code. Структурный проход (отступы блоков,
++продолжения, комментарии, директивы) — в structure, пробелы — в spacing,
++перенос строк — в breaks, итоговая сверка — в verify, раскладка по ширине —
++в wrap.
+ """
+ from __future__ import annotations
+ import re
+-from bisect import bisect_left, bisect_right
+-from dataclasses import dataclass, field
+-from ._text import _BLANK, _BLANK_OR_NEWLINE, _IDENTIFIER, _NEWLINE, _TEXT, _fold, _is_name_after, _is_word_char, _split_lines
++from ._text import _NEWLINE, _split_lines
+ from .breaks import _break_lines, _masked_code
+ from .errors import FormatError
+-from .keywords import BLOCK_END_WORDS, CONDITIONAL_DIRECTIVE_KINDS, CONTINUATION_WORDS, ENGLISH_STRUCTURAL, EXPORT_WORDS, LOOP_WORDS, REGION_DIRECTIVES, RETURN_WORDS, THEN_WORDS, TRAILING_WORDS, canonical_case
+-from .lexer import _token_rows
+-from .patches import _PATCH_CLOSE, _PATCH_OPEN, _active_source, _directive_name, _patch_regions
++from .keywords import canonical_case
++from .lexer import LexerError, _token_rows
++from .patches import _directive_name, _patch_regions
+ from .spacing import _collapse_blank_lines, _normalize_spacing, _normalize_statement
++from .structure import format_text
+ from .verify import _check_significant_tokens
+ from .wrap import TAB_WIDTH, may_need_wrap, wrap_statement
+ __all__ = ['DEFAULT_MAX_CHARS', 'DEFAULT_MAX_DEPTH', 'FormatError', 'format_code']
+ DEFAULT_MAX_CHARS = 20000000
+ DEFAULT_MAX_DEPTH = 100
+-_OPEN = {'Процедура': 'КонецПроцедуры', 'Функция': 'КонецФункции', 'Если': 'КонецЕсли', 'Для': 'КонецЦикла', 'Пока': 'КонецЦикла', 'Попытка': 'КонецПопытки'}
+-_CLOSE = frozenset(_OPEN.values())
+-_BRANCH = {'ИначеЕсли': 'Если', 'Иначе': None, 'Исключение': 'Попытка'}
+-_CANONICAL = {keyword.casefold(): keyword for keyword in (*_OPEN, *_CLOSE, *_BRANCH)}
+-_CANONICAL.update(ENGLISH_STRUCTURAL)
++_PATCH_NAMES = {'вставка': 'Вставка', 'удаление': 'Удаление'}
++_PATCH_KEYS = frozenset({'вставка', 'insert', 'удаление', 'delete', 'конецвставки', 'endinsert', 'конецудаления', 'enddelete'})
++_IF_KEYS = frozenset({'если', 'if'})
++_IF_OTHER_KEYS = frozenset({'иначе', 'else', 'иначеесли', 'elsif'})
++_IF_END_KEYS = frozenset({'конецесли', 'endif'})
++_REGION_KEYS = frozenset({'область', 'region'})
++_REGION_END_KEYS = frozenset({'конецобласти', 'endregion'})
++_METHOD_WORDS = frozenset({'процедура', 'функция', 'procedure', 'function'})
++_METHOD_END_WORDS = frozenset({'конецпроцедуры', 'конецфункции', 'endprocedure', 'endfunction'})
++_WORD = re.compile('\\w+')
++
++def _line_number(source: str, position: int) -> int:
++    return len(_NEWLINE.findall(source[:position])) + 1
++
++def _check_directives(source: str) -> None:
++    """Директивы: неизвестные, непарные и незакрытые — отказ до форматирования."""
++    regions = _patch_regions(source)
++    for region in regions:
++        if not region.closed:
++            raise FormatError(f"незакрытая область правки #{_PATCH_NAMES[region.kind]}", _line_number(source, region.start))
++    spans = [(region.start, region.end) for region in regions]
++    conditional: list[int] = []
++    areas: list[int] = []
++    offset = 0
++    for index, line in enumerate(_split_lines(source)):
++        start = offset
++        offset += len(line)
++        if any(low <= start < high for low, high in spans):
++            continue
++        name = _directive_name(line)
++        if name is None:
++            continue
++        number = index + 1
++        if name == '':
++            raise FormatError("директива без имени", number)
++        key = name.lower()
++        if key in _IF_KEYS:
++            conditional.append(number)
++        elif key in _IF_OTHER_KEYS:
++            if not conditional:
++                raise FormatError(f"директива #{name} без #Если", number)
++        elif key in _IF_END_KEYS:
++            if not conditional:
++                raise FormatError(f"директива #{name} без #Если", number)
++            conditional.pop()
++        elif key in _REGION_KEYS:
++            areas.append(number)
++        elif key in _REGION_END_KEYS:
++            if not areas:
++                raise FormatError(f"непарная директива #{name}", number)
++            areas.pop()
++        elif key in _PATCH_KEYS:
++            raise FormatError(f"непарная директива #{name}", number)
++        else:
++            raise FormatError(f"неизвестная директива #{name}", number)
++    if conditional:
++        raise FormatError("не закрыта директива условной компиляции", conditional[-1])
++    if areas:
++        raise FormatError("не закрыта область #Область", areas[-1])
++
++def _strip_body_comments(text: str) -> tuple[str, set[int]]:
++    """Удалить строки-комментарии внутри методов; вернуть текст и номера удалённых строк."""
++    tokens = _token_rows(text)
++    masked, _ranges, _starts, opaque = _masked_code(text, tokens)
++    lines = _split_lines(text)
++    masked_lines = _split_lines(masked)
++    comment_lines: set[int] = set()
++    literal_comment_lines: set[int] = set()
++    for row in tokens:
++        if row[0] == 'comment':
++            comment_lines.add(row[4] - 1)
++        elif row[0] == 'string':
++            first = row[4] - 1
++            for step in range(1, len(_NEWLINE.findall(row[1])) + 1):
++                literal_comment_lines.add(first + step)
++    removed: set[int] = set()
++    in_method = False
++    for index, line in enumerate(lines):
++        code = masked_lines[index].strip() if index < len(masked_lines) else ''
++        words = _WORD.findall(code.lower())
++        first = words[0] if words else ''
++        if first in ('асинх', 'async') and len(words) > 1:
++            first = words[1]
++        if first in _METHOD_WORDS:
++            in_method = True
++        elif first in _METHOD_END_WORDS:
++            in_method = False
++            continue
++        if not in_method or index in opaque:
++            continue
++        if index in literal_comment_lines and line.lstrip(' \t\f').startswith('//'):
++            removed.add(index)
++        elif index in comment_lines and not code:
++            removed.add(index)
++    kept = [line for index, line in enumerate(lines) if index not in removed]
++    return ''.join(kept), {index + 1 for index in removed}
++
++def _format_active_code(source: str, max_depth: int | None, tokens=None, collapse_blank_lines: bool=False, stripped: set[int] | None=None, keep_line_count: bool=False, masked=None, joins=None) -> str:
++    """Выровнять отступы блоков и продолжений; при сомнении — отказать."""
++    return format_text(source, max_depth)
+ 
+-@dataclass
+-class _Block:
+-    opener: str
+-    branch: str = ''
+-    line: int | None = field(default=None, compare=False)
+-
+-@dataclass
+-class _FormatState:
+-    blocks: list[_Block]
+-    brackets: tuple[str, ...]
+-    operator_continuation: bool
+-    continuation_depth: int | None
+-    pending_header: tuple[str, int] | None
+-    value_expected: bool = field(default=False, compare=False)
+-    return_pending: bool = field(default=False, compare=False)
+-
+-@dataclass
+-class _Conditional:
+-    baseline: _FormatState
+-    branch_ends: list[_FormatState]
+-    has_else: bool = False
+-
+-def _copy_stack(stack: list[_Block]) -> list[_Block]:
+-    pass
+-_BLOCK_WORD_WINDOW = 32
+-
+-def _line_keywords(code: str) -> list[tuple[str, int]]:
+-    """Найти структурные слова вне строк и комментариев в порядке появления."""
+-    pass
+-
+-def _has_then(code: str) -> bool:
+-    """Распознать оба написания завершителя условия, не меняя исходный текст."""
+-    pass
+-
+-def _has_loop_terminator(code: str) -> bool:
+-    """Распознать Цикл/Do как завершитель заголовка цикла."""
+-    pass
+-
+-def _word_end(code: str, words: set[str] | frozenset[str]) -> int | None:
+-    pass
+-
+-def _header_terminator_end(header_kind: str, code: str) -> int | None:
+-    pass
+-_BRACKET_PAIRS = {')': '(', ']': '['}
+-
+-def _scan_brackets(code: str, brackets: list[str]) -> None:
+-    pass
+-
+-@dataclass
+-class _Position:
+-    line: int | None = None
+-
+-def _format_active_code(source: str, max_depth: int | None, tokens=None, collapse_blank_lines: bool=False, stripped: set[int] | None=None, keep_line_count: bool=False, masked=None, joins: list[tuple[int, int, list[str]]] | None=None) -> str:
+-    """Выравнять только отступы распознанных блоков; при сомнении отказать.
+-
+-    masked — готовый результат _masked_code(source, tokens), если он есть.
+-    joins — куда записать раскладку инструкций (первая и последняя строка
+-    с 0, новые строки) вместо замены на месте: в режиме keep_line_count.
+-    """
+-    pass
+-_TRAILING_SIGNS = frozenset('+*/%=<>,.-')
+-
+-def _trailing_operator_start(code: str, start: int=0) -> int | None:
+-    """Начало знака, логического оператора или «Новый» в конце code[start:].
+-
+-    После них выражение продолжается на следующей строке. Слово после «.» —
+-    имя свойства (Объект.Или), не оператор. Смотрится только хвост строки:
+-    поиск регулярным выражением с «$» проходил всю строку.
+-    """
+-    pass
+-
+-def _ends_with_block_word(code_tail: str) -> bool:
+-    """Кончается ли код словом начала/конца блока (не именем свойства после «.»)."""
+-    pass
+-
+-def _ends_with_bare_return(code_tail: str) -> bool:
+-    """Кончается ли код одиночным Возврат/Return: значение — на следующей строке.
+-
+-    Сравнивается только хвост: поиск регулярным выражением с «$» проходил
+-    всю строку и заметно замедлял большие модули.
+-    """
+-    pass
+-_CONTINUATION_START = re.compile('[ \\t\\f]*(?:[-+*/%=<>.\\[,)\\"\']|<>|<=|>=)')
+-
+-def _starts_continuation(line: str, code: str) -> bool:
+-    """Начинается ли строка с того, что не может начать инструкцию BSL.
+-
+-    Бинарный оператор, «.», «[», «,», «)» или литерал (по исходной строке:
+-    в маске литерал — пробелы).
+-    """
+-    pass
+-
+-def _scan_directives(code_lines: list[str], cursor: _Position) -> tuple[set[int], dict[int, str]]:
+-    """Проверить директивы до форматирования и вернуть их строки.
+-
+-    Неизвестная или непарная директива даёт отказ. Строки областей
+-    расширения к этому моменту уже скрыты.
+-    """
+-    pass
+-
+-def _lead_width(line: str) -> int:
+-    """Ширина ведущего отступа в колонках (табуляция — до кратного TAB_WIDTH)."""
+-    pass
+-
+-def _not_deeper(line: str, depth: int) -> bool:
+-    """Отступ строки не глубже depth уровней."""
+-    pass
+-
+-def _shift_lead(line: str, delta: int) -> str:
+-    """Сдвинуть ведущий отступ на delta колонок, сохранив его вид.
+-
+-    Вправо на целые табы — табы дописываются перед исходным отступом; влево —
+-    снимается ровно delta колонок с начала, если это возможно; иначе отступ
+-    пересобирается из табов и пробелов.
+-    """
+-    pass
+-
+-def _lead_text(width: int) -> str:
+-    """Отступ шириной width колонок: табы и остаток пробелами."""
+-    pass
+-
+-def _continuation_indent(line: str, depth: int, delta: int=0) -> str:
+-    """Отступ строки продолжения: не меньше depth, более глубокий — сохраняется.
+-
+-    std444: стандартный отступ или выравнивание по первому операнду или
+-    параметру. Выравнивание глубже стандартного сохраняется относительно
+-    инструкции: delta — на сколько колонок форматтер сдвинул её первую строку.
+-    """
+-    pass
+-
+-def _reindent(line: str, depth: int) -> str:
+-    pass
+-
+-class _StatementLayout:
+-    """Текущая инструкция для раскладки по ширине (README, «Стиль форматирования»).
+-
+-    Автомат отступов отмечает начало инструкции, её строки и границы, а
+-    законченную инструкцию этот класс раскладывает через wrap_statement:
+-    замена — всегда в хвосте общего списка строк result.
+-    """
+-
+-    def __init__(self, result: list[str], default_newline: str, joins: list[tuple[int, int, list[str]]] | None) -> None:
+-        pass
+-
+-    @property
+-    def active(self) -> bool:
+-        pass
+-
+-    def begin(self, number: int) -> None:
+-        pass
+-
+-    def note(self, line: str, comment_start) -> None:
+-        """Запомнить код строки; comment_start() — начало её комментария."""
+-        pass
+-
+-    def finish(self) -> None:
+-        """Разложить законченную инструкцию."""
+-        pass
+-
+-class _LineFormatter:
+-    """Построчный автомат отступов: состояние блоков, скобок и продолжений."""
+-
+-    def __init__(self, source: str, max_depth: int | None, cursor: _Position, tokens=None, stripped: set[int] | None=None, keep_line_count: bool=False, masked=None, joins: list[tuple[int, int, list[str]]] | None=None) -> None:
+-        pass
+-
+-    def run(self, collapse_blank_lines: bool=False) -> str:
+-        pass
+-
+-    def _reset_line_state(self) -> None:
+-        """Строка обрывает ожидание значения Возврат и ждущие комментарии."""
+-        pass
+-
+-    def _strip_comment_line(self, number: int, line: str) -> bool:
+-        """Удалить строку-комментарий (-sbc) внутри метода; True — удалена.
+-
+-        В режиме областей правки строка остаётся до сборки: число строк
+-        меняется только там.
+-        """
+-        pass
+-
+-    def _is_export_tail(self, code: str) -> bool:
+-        """Строка из одного «Экспорт» после объявления без «;»."""
+-        pass
+-
+-    def _inside_method(self) -> bool:
+-        pass
+-
+-    def _place_comments(self, code_line: str) -> None:
+-        """Поставить ждущие комментарии на отступ строки кода после них.
+-
+-        Перед строкой, закрывающей блок или открывающей ветвь (КонецЕсли,
+-        Иначе…), комментарий относится к коду внутреннего блока — на уровень
+-        глубже.
+-        """
+-        pass
+-
+-    def _snapshot(self) -> _FormatState:
+-        pass
+-
+-    def _restore(self, state: _FormatState) -> None:
+-        pass
+-
+-    def _push(self, block: _Block) -> None:
+-        pass
+-
+-    def _complete_pending_header(self, header_kind: str) -> None:
+-        pass
+-
+-    def _literal_starts_between(self, start: int, end: int) -> bool:
+-        pass
+-
+-    def _advance(self, line: str) -> bool:
+-        """Сдвинуть позицию на строку; вернуть, начата ли она внутри литерала."""
+-        pass
+-
+-    def _note_line_end(self, line: str, code: str, inside_string: bool) -> None:
+-        """Запомнить, ждёт ли конец строки значения («=» или одиночный Возврат).
+-
+-        Литерал после последнего знака кода и конец многострочного литерала
+-        признак сбрасывают; комментарии и пустые строки его не меняют,
+-        директивы сюда не попадают.
+-        """
+-        pass
+-
+-    def _note_statement_end(self, code: str, number: int, inside_string: bool) -> None:
+-        """Запомнить, могла ли инструкция остаться незаконченной (нет «;»)."""
+-        pass
+-
+-    def _string_tail_line(self, line: str, code: str) -> None:
+-        """Строка, начатая внутри многострочного литерала: только учёт состояния."""
+-        pass
+-
+-    def _shift_pipe_line(self, line: str) -> str:
+-        """Сдвинуть строку «|» литерала вместе со строкой его начала.
+-
+-        Пробелы перед «|» не входят в значение строки. Другие строки литерала
+-        (комментарий, текст без «|») не трогаются; при сдвиге влево снимается
+-        столько отступа, сколько есть.
+-        """
+-        pass
+-
+-    def _region_line(self, line: str) -> None:
+-        pass
+-
+-    def _conditional_line(self, line: str, kind: str) -> None:
+-        pass
+-
+-    def _pending_header_line(self, line: str, code: str) -> None:
+-        """Продолжение многострочного заголовка Если/ИначеЕсли/Для/Пока."""
+-        pass
+-
+-    def _comment_start(self, line: str, code: str) -> int:
+-        """Начало «//» комментария в конце строки кода или конец её текста.
+-
+-        В маске литералы и комментарий — пробелы, поэтому хвост строки после
+-        кода маски состоит только из них.
+-        """
+-        pass
+-
+-    def _must_continue(self) -> bool:
+-        """Инструкция обязана продолжиться: открыты скобки, оператор, заголовок."""
+-        pass
+-
+-    def _continues_statement(self, line: str, code: str) -> bool:
+-        """Продолжает ли строка кода текущую инструкцию (до её обработки)."""
+-        pass
+-
+-    def _statement_break(self) -> None:
+-        """Строка, которая не входит в инструкцию (комментарий, директива…)."""
+-        pass
+-
+-    def _note_statement_code(self, line: str, code: str) -> None:
+-        """Запомнить код обработанной строки инструкции и её комментарий."""
+-        pass
+-
+-    def _statement_line(self, line: str, code: str, number: int) -> None:
+-        pass
+-
+-    def _ends_with_operator(self, line: str, code: str, start: int=0) -> bool:
+-        """Кончается ли код строки (с позиции start) оператором продолжения.
+-
+-        В маске литерал — пробелы: если после найденного знака начинается
+-        литерал (`А = Б + "x"`), знак не последний и продолжения нет.
+-        """
+-        pass
+-
+-    def _continuation_line(self, line: str, keywords, was_continuation: bool, trailing_operator: bool) -> None:
+-        pass
+-
+-    def _apply_keywords(self, code: str, keywords, depth: int, number: int) -> None:
+-        """Изменить стек блоков по структурным словам строки."""
+-        pass
+-
+-    def _finish(self) -> None:
+-        pass
++def _format_with_patches(source: str, max_depth: int | None, tokens=None, stripped: set[int] | None=None, masked=None) -> str:
++    return _format_active_code(source, max_depth, tokens, False, stripped, False, masked, None)
+ 
+ def _protected_patch_lines(source: str) -> set[int]:
+-    """Вернуть номера строк patch-областей, которые printer не меняет."""
+-    pass
++    """Номера строк (с 1) областей правки: их текст не меняется."""
++    lines: set[int] = set()
++    for region in _patch_regions(source):
++        first = _line_number(source, region.start)
++        last = _line_number(source, max(region.start, region.end - 1))
++        lines.update(range(first, last + 1))
++    return lines
+ 
+ def format_code(source: str, *, max_chars: int | None=DEFAULT_MAX_CHARS, max_depth: int | None=DEFAULT_MAX_DEPTH, strip_body_comments: bool=False) -> str:
+     """Форматировать активный BSL, оставляя области правки дословными.
+@@ -336,7 +143,17 @@ def format_code(source: str, *, max_chars: int | None=DEFAULT_MAX_CHARS, max_dep
+     строки они не входят); комментарии в конце строки кода, снаружи методов,
+     внутри текста строки («|// …») и областей #Вставка/#Удаление остаются.
+     """
+-    pass
+-
+-def _format_with_patches(source: str, max_depth: int | None, tokens=None, stripped: set[int] | None=None, masked=None) -> str:
+-    pass
++    if max_chars is not None and len(source) > max_chars:
++        raise FormatError(f"размер исходника больше {max_chars} знаков")
++    tokens = _token_rows(source)
++    _check_directives(source)
++    rows = canonical_case(tokens)
++    text = source if rows is None else ''.join(row[1] for row in rows)
++    stripped: set[int] = set()
++    if strip_body_comments:
++        text, stripped = _strip_body_comments(text)
++    broken = _break_lines(text)[0]
++    spaced = _normalize_spacing(broken, collapse_blank_lines=True)
++    result = _format_active_code(spaced, max_depth, stripped=stripped)
++    _check_significant_tokens(source, result, tokens, stripped)
++    return result
+diff --git a/src/bslfmt/keywords.py b/src/bslfmt/keywords.py
+index c1b4ae7..58b12ce 100644
+--- a/src/bslfmt/keywords.py
++++ b/src/bslfmt/keywords.py
+@@ -12,12 +12,13 @@
+ """
+ from __future__ import annotations
+ import re
++from ._text import _fold, _is_name_after
+ 
+ def _table(*words: str) -> dict[str, str]:
+-    pass
++    return {_fold(word): word for word in words}
+ 
+ def _folded(*words: str) -> frozenset[str]:
+-    pass
++    return frozenset(_fold(word) for word in words)
+ ENGLISH_STRUCTURAL = {'procedure': 'Процедура', 'endprocedure': 'КонецПроцедуры', 'function': 'Функция', 'endfunction': 'КонецФункции', 'if': 'Если', 'elsif': 'ИначеЕсли', 'else': 'Иначе', 'endif': 'КонецЕсли', 'for': 'Для', 'while': 'Пока', 'enddo': 'КонецЦикла', 'try': 'Попытка', 'except': 'Исключение', 'endtry': 'КонецПопытки'}
+ THEN_WORDS = _folded('Тогда', 'Then')
+ LOOP_WORDS = _folded('Цикл', 'Do')
+@@ -46,10 +47,85 @@ _WORD = re.compile('\\w+')
+ _PLAIN_WORD = re.compile('[A-Za-zА-Яа-яЁё]+')
+ _CODE, _PREPROCESSOR, _VERBATIM = range(3)
+ 
++def _ends_with_dot(text: str) -> bool:
++    """Токен кончается точкой доступа (а не дробной частью числа «1.»)."""
++    return text.endswith('.') and not (len(text) >= 2 and text[-2].isdigit())
++
+ def canonical_case(rows):
+     """Вернуть строки токенов с каноническим регистром или None без изменений.
+ 
+     rows — кортежи (вид, текст, …) в порядке исходника. Меняются только
+     токены кода; длина и границы токенов не меняются.
+     """
+-    pass
++    if not rows:
++        return None
++    full = ''.join(row[1] for row in rows)
++    result = list(rows)
++    changed = False
++    offset = 0
++    at_line_start = True
++    directive = None
++    last_significant = ''
++    after_declaration = False
++    for index, row in enumerate(rows):
++        kind, text = row[0], row[1]
++        base = offset
++        offset += len(text)
++        if kind == 'whitespace' or kind == 'comment':
++            continue
++        if kind == 'newline':
++            at_line_start = True
++            directive = None
++            continue
++        if kind != 'code':
++            last_significant = text
++            after_declaration = False
++            at_line_start = text.endswith(('\r', '\n'))
++            if at_line_start:
++                directive = None
++            continue
++        if at_line_start and text.startswith('#'):
++            directive = 'name'
++        at_line_start = text.endswith(('\r', '\n'))
++        pieces = []
++        position = 0
++        for match in _WORD.finditer(text):
++            word = match.group()
++            start = match.start()
++            absolute = base + start
++            folded = word.lower()
++            pending_declaration = after_declaration
++            after_declaration = folded in DECLARATIONS
++            canonical = None
++            if directive == 'name':
++                if folded in _CONDITIONAL_DIRECTIVES:
++                    canonical = _CONDITIONAL_DIRECTIVES[folded]
++                    directive = 'cond'
++                elif folded in _OTHER_DIRECTIVES:
++                    canonical = _OTHER_DIRECTIVES[folded]
++                    directive = 'other'
++                else:
++                    directive = 'other'
++            elif directive == 'cond':
++                canonical = _PREPROCESSOR_WORDS.get(folded)
++            elif directive == 'other':
++                canonical = None
++            elif start > 0 and text[start - 1] == '&':
++                canonical = _ANNOTATIONS.get(folded)
++            elif _is_name_after(full, absolute) or (start == 0 and _ends_with_dot(last_significant)):
++                canonical = None
++            elif pending_declaration:
++                canonical = _KEYWORDS.get(folded)
++            else:
++                canonical = _KEYWORDS.get(folded)
++            if canonical is not None and canonical != word:
++                pieces.append(text[position:start])
++                pieces.append(canonical)
++                position = match.end()
++                changed = True
++        if pieces:
++            pieces.append(text[position:])
++            new_text = ''.join(pieces)
++            result[index] = (kind, new_text, *row[2:])
++        last_significant = text
++    return result if changed else None
+diff --git a/src/bslfmt/lexer.py b/src/bslfmt/lexer.py
+index 4694cac..190a545 100644
+--- a/src/bslfmt/lexer.py
++++ b/src/bslfmt/lexer.py
+@@ -6,6 +6,8 @@ from dataclasses import dataclass
+ from ._text import _NEWLINE, _split_lines
+ from .patches import _PATCH_CLOSE, _PATCH_OPEN, PatchRegion, _active_source, _code_views, _directive_name, _patch_regions
+ 
++_BOM = chr(0xFEFF)
++
+ @dataclass(frozen=True, slots=True)
+ class Token:
+     """Фрагмент исходника с исходными координатами."""
+@@ -23,7 +25,9 @@ class LexerError(ValueError):
+     """
+ 
+     def __init__(self, message: str, line: int | None=None, column: int | None=None) -> None:
+-        pass
++        super().__init__(message)
++        self.line = line
++        self.column = column
+ 
+ def lex(source: str) -> list[Token]:
+     """Разделить исходник, не изменяя и не теряя ни одного символа.
+@@ -38,25 +42,128 @@ def lex(source: str) -> list[Token]:
+     ими, иначе не согласуется. Строка, проходящая сквозь область, делится на
+     части вида "string" до и после неё.
+     """
+-    pass
++    return [Token(*row) for row in _token_rows(source)]
++
+ _SIMPLE_TOKEN = re.compile('(?P<whitespace>[ \\t\\f]+)|(?P<newline>\\r\\n|\\r|\\n)|(?P<comment>//[^\\r\\n]*)|(?P<operator>>=|<=|<>|[-+*/%=<>])|(?P<code>[^ \\t\\f\\r\\n\\"\'+*/%=<>-]+)')
+ _STRING_RUN = re.compile('[^"\\r\\n]*')
+ _STRING_COMMENT_LINE = re.compile('[ \\t\\f]*//[^\\r\\n]*')
+ _DATE = re.compile("'[^'\\r\\n]*'")
+ 
++def _line_starts(source: str) -> list[int]:
++    starts = [0]
++    for match in _NEWLINE.finditer(source):
++        starts.append(match.end())
++    return starts
++
++def _scan(source: str, pos: int, end: int, in_string: bool, string_start: int, emit, line_starts: list[int]) -> tuple[bool, int]:
++    """Разобрать [pos, end) с учётом открытой строки; вернуть (в строке ли, начало её куска).
++
++    Строка многострочная: строки «|» — её продолжение; строка-комментарий
++    «//» внутри строки кавычек не закрывает. Строка, открытая на границе
++    области правки, продолжается со следующего куска.
++    """
++    bol = pos == 0 or source[pos - 1] in '\r\n'
++    while pos < end:
++        if in_string:
++            if bol:
++                match = _STRING_COMMENT_LINE.match(source, pos, end)
++                if match:
++                    pos = match.end()
++                    bol = False
++                    continue
++            match = _STRING_RUN.match(source, pos, end)
++            pos = match.end()
++            bol = False
++            if pos >= end:
++                break
++            if source[pos] == '"':
++                if pos + 1 < end and source[pos + 1] == '"':
++                    pos += 2
++                    continue
++                pos += 1
++                emit('string', string_start, pos)
++                in_string = False
++                continue
++            match = _NEWLINE.match(source, pos, end)
++            pos = match.end()
++            bol = True
++            continue
++        char = source[pos]
++        if char == '"':
++            in_string = True
++            string_start = pos
++            pos += 1
++            bol = False
++            continue
++        if char == "'":
++            match = _DATE.match(source, pos, end)
++            if match is None:
++                line = bisect_right(line_starts, pos)
++                raise LexerError("незакрытая дата", line, pos - line_starts[line - 1] + 1)
++            emit('date', pos, match.end())
++            pos = match.end()
++            bol = False
++            continue
++        if char == _BOM:
++            emit('whitespace', pos, pos + 1)
++            pos += 1
++            bol = False
++            continue
++        match = _SIMPLE_TOKEN.match(source, pos, end)
++        kind = match.lastgroup
++        emit(kind, pos, match.end())
++        bol = kind == 'newline'
++        pos = match.end()
++    return in_string, string_start
++
++def _rows(source: str, regions: list[PatchRegion]) -> list[tuple]:
++    """Строки токенов (вид, текст, начало, конец, строка, колонка) по видам областей."""
++    line_starts = _line_starts(source)
++    rows: list[tuple] = []
++
++    def emit(kind: str, start: int, stop: int) -> None:
++        line = bisect_right(line_starts, start)
++        rows.append((kind, source[start:stop], start, stop, line, start - line_starts[line - 1] + 1))
++
++    def discard(kind: str, start: int, stop: int) -> None:
++        pass
++
++    pos = 0
++    in_string = False
++    string_start = 0
++    swallowed = False
++    for region in regions:
++        in_string, piece = _scan(source, pos, region.start, in_string, string_start, emit, line_starts)
++        if in_string and piece < region.start:
++            emit('string', piece, region.start)
++        if region.kind == 'вставка':
++            # Вставка — видимый в активном коде текст: её строки продолжают строку.
++            in_string, _ = _scan(source, region.opening_end, region.closing_start, in_string, region.opening_end, discard, line_starts)
++        emit('opaque', region.start, region.end)
++        pos = region.end
++        string_start = pos
++        if not region.closed:
++            swallowed = True
++    in_string, piece = _scan(source, pos, len(source), in_string, string_start, emit, line_starts)
++    if in_string and not swallowed:
++        line = bisect_right(line_starts, piece)
++        raise LexerError("незакрытая строка", line, piece - line_starts[line - 1] + 1)
++    return rows
++
++TokenRow = tuple[str, str, int, int, int, int]
++
+ def _lex_text(source: str) -> list[Token]:
+     """Лексер одного согласованного текста без областей правки."""
+-    pass
+-TokenRow = tuple[str, str, int, int, int, int]
++    return [Token(*row) for row in _lex_rows(source)]
+ 
+ def _lex_rows(source: str) -> list[TokenRow]:
+     """То же, что _lex_text, но кортежами: создавать Token в разы дороже."""
+-    pass
++    return _rows(source, [])
+ 
+ def _token_rows(source: str) -> list[TokenRow]:
+     """Токены lex(source) кортежами — для внутренних проходов форматтера."""
+-    pass
++    return _rows(source, _patch_regions(source))
+ 
+ def restore(tokens: list[Token]) -> str:
+     """Собрать исходник обратно из lossless-токенов."""
+-    pass
++    return ''.join(token.text for token in tokens)
+diff --git a/src/bslfmt/patches.py b/src/bslfmt/patches.py
+index ced8bc6..c6bd299 100644
+--- a/src/bslfmt/patches.py
++++ b/src/bslfmt/patches.py
+@@ -2,11 +2,12 @@
+ from __future__ import annotations
+ import re
+ from dataclasses import dataclass
+-from ._text import _NEWLINE
++from ._text import _NEWLINE, _split_lines
+ _PATCH_OPEN = {'вставка': 'вставка', 'insert': 'вставка', 'удаление': 'удаление', 'delete': 'удаление'}
+ _PATCH_CLOSE = {'конецвставки': 'вставка', 'endinsert': 'вставка', 'конецудаления': 'удаление', 'enddelete': 'удаление'}
+ _DIRECTIVE = re.compile('[ \\t\\f]*#[ \\t\\f]*([A-Za-zА-Яа-яЁё]*)')
+ _PATCH_HINT = re.compile('#[ \\t\\f]*(?:вставка|удаление|insert|delete)', re.IGNORECASE)
++_NOT_NEWLINE = re.compile('[^\\r\\n]')
+ 
+ def _directive_name(line: str) -> str | None:
+     """Вернуть имя директивы строки в исходном регистре.
+@@ -14,7 +15,10 @@ def _directive_name(line: str) -> str | None:
+     None — строка не директива; "" — директива без имени. Текст после имени
+     (например, комментарий) допустим и не влияет на результат.
+     """
+-    pass
++    match = _DIRECTIVE.match(line.lstrip(chr(0xFEFF)))
++    if match is None:
++        return None
++    return match.group(1)
+ 
+ @dataclass(frozen=True, slots=True)
+ class PatchRegion:
+@@ -33,7 +37,39 @@ def _patch_regions(source: str) -> list[PatchRegion]:
+     остаток файла, чтобы её содержимое не смешивалось с активным кодом
+     (closed=False). Форматтер на такой области отказывает.
+     """
+-    pass
++    if not _PATCH_HINT.search(source):
++        return []
++    regions: list[PatchRegion] = []
++    open_kind = None
++    open_start = 0
++    open_end = 0
++    offset = 0
++    for line in _split_lines(source):
++        name = _directive_name(line)
++        key = name.lower() if name else None
++        line_start = offset
++        offset += len(line)
++        if open_kind is None:
++            if key in _PATCH_OPEN:
++                open_kind = _PATCH_OPEN[key]
++                open_start = line_start
++                open_end = offset
++            continue
++        if key in _PATCH_CLOSE and _PATCH_CLOSE[key] == open_kind:
++            regions.append(PatchRegion(open_kind, open_start, offset, open_end, line_start))
++            open_kind = None
++        elif key in _PATCH_OPEN:
++            # Новая область внутри открытой: открытая не закрыта, и её остаток
++            # не разбирается как активный код.
++            regions.append(PatchRegion(open_kind, open_start, len(source), open_end, len(source), False))
++            return regions
++    if open_kind is not None:
++        regions.append(PatchRegion(open_kind, open_start, len(source), open_end, len(source), False))
++    return regions
++
++def _blank(text: str) -> str:
++    """Тот же текст с пробелами вместо знаков, переводы строк сохранены."""
++    return _NOT_NEWLINE.sub(' ', text)
+ 
+ def _active_source(source: str, hidden: str='удаление') -> tuple[str, list[PatchRegion]]:
+     """Создать служебный текст одного вида кода с исходными координатами.
+@@ -42,7 +78,20 @@ def _active_source(source: str, hidden: str='удаление') -> tuple[str, li
+     базовый вид (исходная конфигурация). Области вида hidden скрываются
+     целиком, у остальных — только строки директив.
+     """
+-    pass
++    regions = _patch_regions(source)
++    parts = []
++    pos = 0
++    for region in regions:
++        parts.append(source[pos:region.start])
++        if region.kind == hidden:
++            parts.append(_blank(source[region.start:region.end]))
++        else:
++            parts.append(_blank(source[region.start:region.opening_end]))
++            parts.append(source[region.opening_end:region.closing_start])
++            parts.append(_blank(source[region.closing_start:region.end]))
++        pos = region.end
++    parts.append(source[pos:])
++    return ''.join(parts), regions
+ 
+ def _code_views(source: str) -> list[str]:
+     """Согласованные виды кода: сам текст или оба вида при правках расширения.
+@@ -50,4 +99,6 @@ def _code_views(source: str) -> list[str]:
+     В сыром тексте с #Вставка/#Удаление видны обе альтернативы, и строка,
+     разделённая ими, не разбирается как одна: проверять токены нужно по видам.
+     """
+-    pass
++    if not _patch_regions(source):
++        return [source]
++    return [_active_source(source, 'удаление')[0], _active_source(source, 'вставка')[0]]
+diff --git a/src/bslfmt/spacing.py b/src/bslfmt/spacing.py
+index a6c874f..63e6b24 100644
+--- a/src/bslfmt/spacing.py
++++ b/src/bslfmt/spacing.py
+@@ -2,19 +2,50 @@
+ from __future__ import annotations
+ import re
+ from ._text import _BLANK, _BLANK_OR_NEWLINE, _fold, _KIND, _LINE, _NEWLINE, _START, _TEXT, _split_lines
+-from .keywords import EXPRESSION_STARTERS
++from .keywords import EXPRESSION_STARTERS, _KEYWORDS, _folded
+ from .lexer import _lex_rows, _token_rows
++from .patches import _directive_name
+ _SEPARATOR_WITHOUT_SPACE = re.compile(',(?!\\)|$)|;(?![;\\s]|$)')
++_TAIL_WINDOW = 64
++_MICRO = re.compile('(?P<num>\\d+(?:\\.\\d*)?(?:[EeЕе][+-]?\\d+)?)|(?P<word>[^\\W\\d]\\w*)|(?P<punct>.)', re.DOTALL)
++_OPERAND_KEYWORDS = _folded('Истина', 'Ложь', 'Неопределено', 'Null', 'Undefined', 'True', 'False')
++_EXPONENT_LETTERS = frozenset('EeЕе')
++_GLUED_SEPARATORS = frozenset(chr(code) for code in (0x2028, 0x2029, 0x85, 0x0B, 0x1C, 0x1D, 0x1E, 0x1F))
++_NO_SPACE_AFTER = frozenset({'(', '[', '.', '?', '~', '&', '#'})
++
++class _Item:
++    """Элемент строки: вид, текст, пробелы перед ним и признаки оператора."""
++    __slots__ = ('kind', 'text', 'gap', 'binary', 'exponent')
++
++    def __init__(self, kind: str, text: str, gap: str) -> None:
++        self.kind = kind
++        self.text = text
++        self.gap = gap
++        self.binary = False
++        self.exponent = False
+ 
+ def _significant_neighbor(tokens, index: int, direction: int) -> int | None:
+-    pass
++    """Индекс ближайшего токена в направлении direction, кроме пробелов и комментариев."""
++    index += direction
++    while 0 <= index < len(tokens):
++        if tokens[index][_KIND] not in ('whitespace', 'newline', 'comment'):
++            return index
++        index += direction
++    return None
+ _TAIL_WINDOW = 64
+ 
+ def _ends_operand(token) -> bool:
+-    pass
++    """Токен заканчивает операнд: после него бинарный знак, а не унарный."""
++    kind, text = token[_KIND], token[_TEXT]
++    if kind in ('string', 'date', 'opaque'):
++        return True
++    if kind == 'code':
++        return text[-1:] in (')', ']') or not (_fold(text) in _KEYWORDS and _fold(text) not in _OPERAND_KEYWORDS)
++    return False
+ 
+ def _starts_operand(tokens, index: int) -> bool:
+-    pass
++    following = _significant_neighbor(tokens, index, 1)
++    return following is not None and tokens[following][_KIND] != 'operator'
+ 
+ def _line_context(tokens) -> tuple[list[int], list[bool]]:
+     """Для каждого токена найти начало его строки и признак отступа.
+@@ -23,14 +54,35 @@ def _line_context(tokens) -> tuple[list[int], list[bool]]:
+     проход по токенам: поиск назад по исходнику для каждого токена давал
+     квадратичное время на больших модулях.
+     """
+-    pass
++    starts: list[int] = []
++    indents: list[bool] = []
++    line_start = 0
++    only_blanks = True
++    for index, token in enumerate(tokens):
++        starts.append(line_start)
++        indents.append(only_blanks)
++        kind = token[_KIND]
++        if kind == 'newline':
++            line_start = index + 1
++            only_blanks = True
++        elif kind != 'whitespace':
++            only_blanks = False
++    return starts, indents
+ 
+ def _directive_line_starts(source: str) -> set[int]:
+     """Найти начало строк директив одним проходом по исходнику."""
+-    pass
++    starts: set[int] = set()
++    offset = 0
++    for line in _split_lines(source):
++        if _directive_name(line) is not None:
++            starts.add(offset)
++        offset += len(line)
++    return starts
+ 
+ def _is_binary_operator(tokens, index: int) -> bool:
+-    pass
++    """Знак оператора стоит после операнда: бинарный, а не унарный."""
++    previous = _significant_neighbor(tokens, index, -1)
++    return previous is not None and _ends_operand(tokens[previous])
+ 
+ def _normalize_spacing(source: str, collapse_blank_lines: bool=False) -> str:
+     """Нормализовать пробелы в коде вне строк, комментариев и директив.
+@@ -45,7 +97,7 @@ def _normalize_spacing(source: str, collapse_blank_lines: bool=False) -> str:
+     строки подряд (см. _collapse_blank_lines): литералы и области правки —
+     цельные токены, пустые строки внутри них не задеваются.
+     """
+-    pass
++    return _walk(_token_rows(source), _directive_line_starts(source), True, collapse_blank_lines)
+ 
+ def _normalize_statement(code: str) -> str:
+     """_normalize_spacing для кода одной инструкции из раскладки.
+@@ -53,11 +105,11 @@ def _normalize_statement(code: str) -> str:
+     В инструкции нет директив и областей правки (раскладка их не берёт),
+     поэтому их поиск пропускается.
+     """
+-    pass
++    return _walk(_token_rows(code), set(), True, False)
+ 
+ def _normalize_rows(tokens, directive_lines, collapse_blank_lines: bool) -> str:
+     """Ядро _normalize_spacing: токены и начала строк директив уже готовы."""
+-    pass
++    return _walk(tokens, directive_lines, True, collapse_blank_lines)
+ _BLANK_RUN = re.compile('(?:\\r\\n|\\r|\\n)(?:[ \\t\\f]*(?:\\r\\n|\\r|\\n)){2}')
+ 
+ def _collapse_blank_lines(text: str) -> str:
+@@ -67,4 +119,157 @@ def _collapse_blank_lines(text: str) -> str:
+     конфигуратора) сохраняется, лишние удаляются. Строки внутри многострочных
+     строк и областей правки не трогаются: там пустые строки — часть текста.
+     """
+-    pass
++    return _walk(_token_rows(text), set(), False, True)
++
++def _micro_items(text: str, gap: str) -> list[_Item]:
++    """Разбить код-токен на элементы: слова, числа, знаки (без пробелов внутри)."""
++    items = []
++    for match in _MICRO.finditer(text):
++        group = match.lastgroup
++        kind = {'num': 'num', 'word': 'word', 'punct': 'punct'}[group]
++        if kind == 'punct' and match.group() in _GLUED_SEPARATORS:
++            kind = 'other'
++        items.append(_Item(kind, match.group(), gap if not items else ''))
++    return items
++
++def _separator(prev: _Item, cur: _Item, following) -> str:
++    """Пробелы между соседними элементами строки.
++
++    prev — предыдущий элемент строки, following — следующий (для комментария
++    после бинарного знака, у которого пробела нет).
++    """
++    if cur.kind == 'other' or prev.kind == 'other':
++        return ''
++    if cur.kind == 'comment':
++        if prev.kind == 'punct' and prev.text == ',':
++            return ' '
++        return ' ' if cur.gap else ''
++    if prev.kind == 'punct' and prev.text == ',':
++        return '' if cur.kind == 'punct' and cur.text in (')', ']') else ' '
++    if cur.kind == 'punct' and cur.text in (')', ']', ',', ';', '.'):
++        return ''
++    if prev.kind == 'op':
++        if prev.exponent:
++            return ''
++        if prev.binary:
++            return ' '
++        return ' ' if cur.gap else ''
++    if prev.kind == 'punct':
++        if prev.text == '.':
++            return ' ' if cur.gap else ''
++        if prev.text in _NO_SPACE_AFTER:
++            return ''
++        if prev.text == ';':
++            return '' if cur.kind == 'punct' and cur.text == ';' else ' '
++    if cur.kind == 'op':
++        if cur.exponent:
++            return ''
++        if cur.binary:
++            if following is not None and following.kind == 'comment' and not following.gap:
++                return ''
++            return ' '
++        return ' ' if cur.gap else ''
++    return ' ' if cur.gap else ''
++
++def _walk(tokens, directive_lines: set[int], spacing: bool, collapse: bool) -> str:
++    """Построчно собрать текст из токенов: пробелы (если spacing) и пустые строки."""
++    items: list[_Item] = []
++    gap = ''
++    line_start = 0
++    raw_line = False
++    at_line_start = True
++    for row in tokens:
++        kind, text, start, end = row[_KIND], row[_TEXT], row[2], row[3]
++        if kind == 'whitespace':
++            gap += text
++            continue
++        if kind == 'newline':
++            items.append(_Item('nl', text, gap))
++            gap = ''
++            line_start = end
++            at_line_start = True
++            raw_line = False
++            continue
++        if at_line_start:
++            raw_line = line_start in directive_lines
++            at_line_start = False
++        if raw_line or not spacing:
++            items.append(_Item('raw', text, gap))
++            gap = ''
++        elif kind == 'code':
++            items.extend(_micro_items(text, gap))
++            gap = ''
++        elif kind == 'operator':
++            items.append(_Item('op', text, gap))
++            gap = ''
++        elif kind == 'comment':
++            items.append(_Item('comment', text, gap))
++            gap = ''
++        else:
++            items.append(_Item('verb', text, gap))
++            gap = ''
++        if text.endswith(('\r', '\n')):
++            line_start = end
++            at_line_start = True
++            raw_line = False
++
++    result: list[str] = []
++    line: list[str] = []
++    line_has = False
++    blank_before = False
++    prev: _Item | None = None
++    prev2: _Item | None = None
++    last_operand = False
++    for index, item in enumerate(items):
++        if item.kind == 'nl':
++            if not line_has:
++                if not (collapse and blank_before):
++                    result.append(item.gap + item.text)
++                blank_before = True
++            else:
++                trailing = '' if spacing else item.gap
++                result.append(''.join(line) + trailing + item.text)
++                blank_before = False
++            line = []
++            line_has = False
++            prev = prev2 = None
++            continue
++        following = items[index + 1] if index + 1 < len(items) else None
++        if item.kind == 'op' and spacing:
++            item.binary = last_operand
++            if (prev is not None and prev.kind == 'word' and prev.text in _EXPONENT_LETTERS
++                    and not item.gap and not prev.gap and prev2 is not None
++                    and prev2.kind == 'num' and not prev.gap and item.text in ('+', '-')):
++                item.exponent = True
++                item.binary = False
++        if item.kind in ('raw', 'endline') or not spacing:
++            piece = item.gap + item.text
++        elif prev is None:
++            piece = item.gap + item.text
++        else:
++            piece = _separator(prev, item, following) + item.text
++        line.append(piece)
++        line_has = True
++        if item.kind in ('num', 'verb'):
++            last_operand = True
++        elif item.kind == 'word':
++            after_dot = prev is not None and prev.kind == 'punct' and prev.text == '.'
++            last_operand = after_dot or not (_fold(item.text) in _KEYWORDS and _fold(item.text) not in _OPERAND_KEYWORDS)
++        elif item.kind == 'punct':
++            last_operand = item.text in (')', ']')
++        elif item.kind == 'op':
++            last_operand = False
++        elif item.kind == 'raw':
++            last_operand = False
++        prev2 = prev
++        prev = item
++        if item.kind in ('verb', 'raw') and item.text.endswith(('\r', '\n')):
++            result.append(''.join(line))
++            line = []
++            line_has = False
++            prev = prev2 = None
++            blank_before = False
++    if line:
++        result.append(''.join(line))
++    result.extend(char for char in gap if char == chr(0xFEFF))
++    return ''.join(result)
+diff --git a/src/bslfmt/structure.py b/src/bslfmt/structure.py
+new file mode 100644
+index 0000000..fb1a3f9
+--- /dev/null
++++ b/src/bslfmt/structure.py
+@@ -0,0 +1,597 @@
++"""Структурный проход: отступы блоков, продолжения инструкций, комментарии и директивы."""
++from __future__ import annotations
++import re
++from ._text import _NEWLINE, _fold, _split_lines
++from .breaks import _masked_code
++from .errors import FormatError
++from .keywords import AND_WORDS, ASYNC_WORDS, BREAK_BEFORE, DECLARATIONS, LOOP_WORDS, OR_WORDS, THEN_WORDS, TRAILING_WORDS, _KEYWORDS, _folded
++from .lexer import _token_rows
++from .patches import _active_source, _patch_regions
++from .spacing import _normalize_statement
++from .wrap import TAB_WIDTH, wrap_statement
++
++_BOM = chr(0xFEFF)
++_BLANK = ' \t\f'
++_WORD = re.compile('\\w+')
++_TRAILING_WORD = re.compile('\\w+$')
++_OPERAND_KEYWORDS = _folded('Истина', 'Ложь', 'Неопределено', 'Null', 'Undefined', 'True', 'False')
++_OPERATOR_WORDS = AND_WORDS | OR_WORDS
++_OPEN_WORDS ={'процедура': ('decl', 'proc'), 'функция': ('decl', 'proc'), 'procedure': ('decl', 'proc'), 'function': ('decl', 'proc'), 'если': ('open', 'if'), 'if': ('open', 'if'), 'для': ('open', 'loop'), 'for': ('open', 'loop'), 'пока': ('open', 'loop'), 'while': ('open', 'loop'), 'попытка': ('open', 'try'), 'try': ('open', 'try')}
++_BRANCH_WORDS = {'иначеесли': 'if', 'elsif': 'if', 'иначе': 'if', 'else': 'if', 'исключение': 'try', 'except': 'try'}
++_CLOSE_WORDS = {'конецпроцедуры': 'proc', 'конецфункции': 'proc', 'endprocedure': 'proc', 'endfunction': 'proc', 'конецесли': 'if', 'endif': 'if', 'конеццикла': 'loop', 'enddo': 'loop', 'конецпопытки': 'try', 'endtry': 'try'}
++_DECL_WORDS = frozenset({'процедура', 'функция', 'procedure', 'function'})
++_TRAILING_OPERATORS = '+-*/%=<>,.'
++_LINE_START_CONTINUATION = ')],.[+-*/%=<>?'
++_CONDITIONAL_OPEN = ('если', 'if')
++_CONDITIONAL_BRANCH = ('иначе', 'else', 'иначеесли', 'elsif')
++_CONDITIONAL_CLOSE = ('конецесли', 'endif')
++
++def _lead_width(lead: str) -> int:
++    """Ширина отступа в колонках: табуляция — до кратного TAB_WIDTH."""
++    width = 0
++    for char in lead:
++        if char == '\t':
++            width += TAB_WIDTH - width % TAB_WIDTH
++        else:
++            width += 1
++    return width
++
++def _lead_text(width: int) -> str:
++    """Отступ шириной width колонок: табы и остаток пробелами."""
++    return '\t' * (width // TAB_WIDTH) + ' ' * (width % TAB_WIDTH)
++
++def _shift_lead(lead: str, delta: int) -> str:
++    """Сдвинуть отступ на delta колонок, сохранив его вид (вправо — табы перед ним)."""
++    if delta == 0:
++        return lead
++    if delta > 0:
++        return '\t' * (delta // TAB_WIDTH) + ' ' * (delta % TAB_WIDTH) + lead
++    return _lead_text(max(0, _lead_width(lead) + delta))
++
++class _Line:
++    """Физическая строка исходника с разобранными частями."""
++    __slots__ = ('index', 'kind', 'prefix', 'lead', 'body', 'comment', 'gap', 'ending', 'masked', 'owner', 'content', 'verbatim')
++
++    def __init__(self, index: int, kind: str, content: str, ending: str) -> None:
++        self.index = index
++        self.kind = kind
++        self.content = content
++        self.ending = ending
++        self.prefix = ''
++        self.lead = ''
++        self.body = ''
++        self.comment = ''
++        self.gap = ''
++        self.masked = ''
++        self.owner = None
++        self.verbatim = False
++
++def _analyze(text: str) -> list[_Line]:
++    """Разбить текст на физические строки с частями кода, комментария и литералов."""
++    tokens = _token_rows(text)
++    masked, _ranges, _starts, opaque = _masked_code(text, tokens)
++    raw = _split_lines(text)
++    masked_lines = _split_lines(masked)
++    comments: dict[int, tuple[int, str]] = {}
++    owners: dict[int, int] = {}
++    for row in tokens:
++        if row[0] == 'comment':
++            comments[row[4] - 1] = (row[5] - 1, row[1])
++        elif row[0] == 'string':
++            first = row[4] - 1
++            for step in range(1, len(_NEWLINE.findall(row[1])) + 1):
++                owners[first + step] = first
++    lines: list[_Line] = []
++    for index, full in enumerate(raw):
++        ending = ''
++        for candidate in ('\r\n', '\r', '\n'):
++            if full.endswith(candidate):
++                ending = candidate
++                break
++        content = full[:len(full) - len(ending)]
++        if index in opaque:
++            lines.append(_Line(index, 'opaque', content, ending))
++            continue
++        code_end = len(content)
++        comment = ''
++        if index in comments:
++            code_end, comment = comments[index]
++        body_full = content[:code_end]
++        body = body_full.rstrip(_BLANK)
++        gap = body_full[len(body):]
++        rest = body if body else body_full
++        prefix = ''
++        while rest.startswith(_BOM):
++            prefix += _BOM
++            rest = rest[1:]
++        lead = ''
++        while rest and rest[0] in _BLANK:
++            lead += rest[0]
++            rest = rest[1:]
++        line = _Line(index, 'code', content, ending)
++        line.prefix = prefix
++        line.lead = lead
++        line.body = rest
++        line.comment = comment
++        line.gap = gap if comment else ''
++        masked_body = masked_lines[index][:code_end] if index < len(masked_lines) else ''
++        line.masked = masked_body.replace(_BOM, ' ').strip(_BLANK)
++        if index in owners:
++            line.kind = 'literal'
++            line.owner = owners[index]
++        elif not rest and not comment:
++            line.kind = 'blank'
++        elif not rest:
++            line.kind = 'comment'
++        elif rest.startswith('#'):
++            line.kind = 'directive'
++        lines.append(line)
++    return lines
++
++class _Item:
++    """Строка внутри инструкции: исходная строка и её новый вид."""
++    __slots__ = ('line', 'kind')
++
++    def __init__(self, line: _Line, kind: str) -> None:
++        self.line = line
++        self.kind = kind
++
++class _Pending:
++    """Инструкция, которая ещё не закончилась."""
++
++    def __init__(self, line: _Line, role: str, family: str | None) -> None:
++        self.items: list[_Item] = []
++        self.first_line = line.index
++        self.role = role
++        self.family = family
++        self.bracket = 0
++        self.words: list[str] = []
++        self.last_char = ''
++        self.first_word = ''
++        self.done = False
++        self.ends_operand = False
++
++    def update(self, masked: str) -> None:
++        if not masked:
++            return
++        self.bracket += masked.count('(') + masked.count('[') - masked.count(')') - masked.count(']')
++        self.words.extend(_WORD.findall(_fold_text(masked)))
++        self.last_char = masked[-1]
++
++    @property
++    def last_word(self) -> str:
++        return self.words[-1] if self.words else ''
++
++def _fold_text(text: str) -> str:
++    return text.lower()
++
++def _ends_operand(body: str) -> bool:
++    """Строка кода кончается операндом: следующее слово с нового начала — новая инструкция."""
++    text = body.rstrip(_BLANK)
++    if not text:
++        return False
++    last = text[-1]
++    if last in ')]"':
++        return True
++    if last.isalnum() or last == '_':
++        match = _TRAILING_WORD.search(text)
++        before = text[:match.start()].rstrip(_BLANK)
++        if before.endswith('.'):
++            return True
++        folded = match.group().lower()
++        return folded not in _KEYWORDS or folded in _OPERAND_KEYWORDS
++    return False
++
++def _classify(masked: str) -> tuple[str, str | None, str]:
++    """Роль первой строки инструкции: (роль, семейство блока, первое слово)."""
++    words = _WORD.findall(_fold_text(masked))
++    if masked.startswith('&'):
++        return 'annot', None, ''
++    if masked.startswith('~'):
++        return 'label', None, ''
++    if not words:
++        return 'plain', None, ''
++    first = words[0]
++    if first in ASYNC_WORDS and len(words) > 1:
++        first = words[1]
++    if first in _DECL_WORDS:
++        return 'decl', 'proc', first
++    if first in _OPEN_WORDS:
++        role, family = _OPEN_WORDS[first]
++        return role, family, first
++    if first in _BRANCH_WORDS:
++        return 'branch', _BRANCH_WORDS[first], first
++    if first in _CLOSE_WORDS:
++        return 'close', _CLOSE_WORDS[first], first
++    return 'plain', None, first
++
++class _Structure:
++    """Построчный проход: стек блоков, инструкции, комментарии и директивы."""
++
++    def __init__(self, lines: list[_Line], max_depth: int | None) -> None:
++        self.lines = lines
++        self.max_depth = max_depth
++        self.stack: list[tuple[str, int]] = []
++        self.out: list[tuple[str, str]] = []
++        self.pending: _Pending | None = None
++        self.deferred: list[_Item] = []
++        self.conditionals: list[tuple[tuple[str, ...], int]] = []
++        self.value_depth: int | None = None
++        self.default_ending = next((line.ending for line in self.lines if line.ending), '\n')
++
++    def run(self) -> str:
++        for line in self.lines:
++            kind = line.kind
++            if kind == 'blank':
++                if self.pending is not None:
++                    if self.pending.role == 'decl':
++                        self.finish()
++                    else:
++                        continue
++                self.deferred.append(_Item(line, 'blank'))
++            elif kind == 'comment':
++                if self.pending is not None and self.pending.role == 'decl':
++                    self.finish()
++                if self.pending is not None:
++                    self.pending.items.append(_Item(line, 'comment'))
++                else:
++                    self.deferred.append(_Item(line, 'comment'))
++            elif kind == 'directive':
++                if self.pending is not None and self.pending.role == 'decl' and self.pending.bracket == 0:
++                    self.finish()
++                name = self.directive(line)
++                if self.pending is not None:
++                    self.pending.items.append(_Item(line, 'directive'))
++                    if name in _CONDITIONAL_CLOSE and self.pending.bracket == 0 and self.pending.role not in ('open', 'branch'):
++                        self.finish()
++                else:
++                    self.flush_raw()
++                    self.out.append((line.prefix + line.body + (line.gap + line.comment if line.comment else ''), line.ending))
++            elif kind == 'raw':
++                if self.pending is not None and self.pending.role == 'decl' and self.pending.bracket == 0:
++                    self.finish()
++                if self.pending is not None:
++                    self.pending.items.append(_Item(line, 'raw'))
++                else:
++                    self.flush_raw()
++                    self.out.append((line.content, line.ending))
++            elif kind == 'opaque':
++                self.finish()
++                self.flush_raw()
++                self.out.append((line.content, line.ending))
++            else:
++                if line.verbatim and line.kind == 'code':
++                    self.finish()
++                    self.scan_verbatim(line)
++                    self.flush_raw()
++                    self.out.append((line.content, line.ending))
++                    continue
++                if line.kind == 'literal' and line.masked:
++                    words = _WORD.findall(_fold_text(line.masked))
++                    if words and (words[0] in _CLOSE_WORDS or words[0] in _BRANCH_WORDS or words[0] in _OPEN_WORDS):
++                        raise FormatError("структурный код после многострочной строки", line.index + 1)
++                if self.pending is not None and not self.continues(line):
++                    self.finish()
++                if self.pending is None:
++                    role, family, _ = _classify(line.masked if line.kind == 'code' else '')
++                    self.pending = _Pending(line, role, family)
++                    self.pending.first_word = _classify(line.masked)[2]
++                self.pending.items.append(_Item(line, kind))
++                self.pending.update(line.masked)
++                if line.body.strip():
++                    self.pending.ends_operand = _ends_operand(line.body)
++                if self.pending.bracket < 0:
++                    raise FormatError("лишняя закрывающая скобка", line.index + 1)
++                if self.completes(line):
++                    self.pending.done = True
++                    self.finish()
++        self.finish()
++        self.flush_raw()
++        if self.stack:
++            raise FormatError("не закрыт блок", self.stack[-1][1] + 1)
++        if self.conditionals:
++            raise FormatError("не закрыта директива условной компиляции", self.conditionals[-1][1] + 1)
++        return ''.join(text + ending for text, ending in self.out)
++
++    conditionals_line = 0
++
++    def scan_verbatim(self, line: _Line) -> None:
++        """Строка без переформатирования: блоки меняют стек по ключевым словам по порядку."""
++        for match in _WORD.finditer(line.masked):
++            word = match.group().lower()
++            if line.masked[:match.start()].rstrip(_BLANK).endswith('.'):
++                continue
++            if word in _OPEN_WORDS:
++                family = _OPEN_WORDS[word][1]
++                self.stack.append((family, line.index))
++                if self.max_depth is not None and len(self.stack) > self.max_depth:
++                    raise FormatError("слишком большая вложенность блоков", line.index + 1)
++            elif word in _BRANCH_WORDS:
++                if not self.stack or self.stack[-1][0] != _BRANCH_WORDS[word]:
++                    raise FormatError("ветвь вне своего блока", line.index + 1)
++            elif word in _CLOSE_WORDS:
++                if not self.stack or self.stack[-1][0] != _CLOSE_WORDS[word]:
++                    raise FormatError("лишний или неверный конец блока", line.index + 1)
++                self.stack.pop()
++
++    def snapshot(self) -> tuple[tuple[str, ...], int]:
++        return tuple(family for family, _ in self.stack), self.pending.bracket if self.pending else 0
++
++    def directive(self, line: _Line) -> None:
++        words = _WORD.findall(_fold_text(line.body[1:]))
++        name = words[0] if words else ''
++        if name in _CONDITIONAL_CLOSE:
++            self.value_depth = None
++        if name in _CONDITIONAL_OPEN:
++            self.conditionals.append((self.snapshot(), line.index))
++        elif name in _CONDITIONAL_BRANCH or name in _CONDITIONAL_CLOSE:
++            if not self.conditionals:
++                raise FormatError("директива без открывающей #Если", line.index + 1)
++            start, _opened = self.conditionals[-1]
++            if self.snapshot() != start:
++                raise FormatError("ветви #Если с разным структурным состоянием", line.index + 1)
++            if name in _CONDITIONAL_CLOSE:
++                self.conditionals.pop()
++        self.conditionals_line = line.index
++        return name
++
++    def flush_raw(self) -> None:
++        for item in self.deferred:
++            self.out.append((item.line.content if item.kind == 'blank' else _raw_text(item.line), item.line.ending))
++        self.deferred = []
++
++    def continues(self, line: _Line) -> bool:
++        pending = self.pending
++        masked = line.masked
++        words = _WORD.findall(_fold_text(masked))
++        first = words[0] if words else ''
++        if pending.role == 'decl':
++            if pending.bracket > 0:
++                return True
++            if pending.last_word in DECLARATIONS or pending.last_word in ASYNC_WORDS or pending.last_word == '':
++                return True
++            return first in ('экспорт', 'export')
++        if pending.bracket > 0:
++            return True
++        if not masked:
++            return True
++        if first in _CLOSE_WORDS or first in _BRANCH_WORDS:
++            return False
++        if masked[0] in '&~':
++            return False
++        if first in _DECL_WORDS or first in _OPEN_WORDS:
++            return False
++        if first in _OPERATOR_WORDS or first in THEN_WORDS or first in LOOP_WORDS:
++            return True
++        if pending.role in ('open', 'branch') and pending.family in ('if', 'loop'):
++            return True
++        if (masked[0].isalnum() or masked[0] == '_') and pending.ends_operand:
++            return False
++        return True
++
++    def completes(self, line: _Line) -> bool:
++        pending = self.pending
++        if pending.bracket > 0:
++            return False
++        role = pending.role
++        last = pending.last_char
++        if role == 'decl':
++            return False
++        if last == ';':
++            return True
++        if role == 'open' and pending.family == 'if':
++            return pending.last_word in THEN_WORDS
++        if role == 'open' and pending.family == 'loop':
++            return pending.last_word in LOOP_WORDS
++        if role == 'branch' and pending.first_word in ('иначеесли', 'elsif'):
++            return pending.last_word in THEN_WORDS
++        if role in ('open', 'branch', 'close', 'annot', 'label'):
++            return True
++        return False
++
++    def finish(self) -> None:
++        pending = self.pending
++        if pending is None:
++            return
++        self.pending = None
++        if pending.role in ('open', 'branch') and pending.family in ('if', 'loop') and not pending.done:
++            raise FormatError("незавершённый заголовок блока", pending.first_line + 1)
++        self.emit(pending)
++
++    def emit(self, pending: _Pending) -> None:
++        role, family = pending.role, pending.family
++        line_number = pending.first_line + 1
++        if role == 'close':
++            if not self.stack or self.stack[-1][0] != family:
++                raise FormatError("лишний или неверный конец блока", line_number)
++            self.stack.pop()
++            depth = len(self.stack)
++        elif role == 'branch':
++            if not self.stack or self.stack[-1][0] != family:
++                raise FormatError("ветвь вне своего блока", line_number)
++            depth = len(self.stack) - 1
++        elif role in ('open', 'decl'):
++            depth = len(self.stack)
++            self.stack.append((family, pending.first_line))
++            if self.max_depth is not None and len(self.stack) > self.max_depth:
++                raise FormatError("слишком большая вложенность блоков", line_number)
++        else:
++            depth = len(self.stack)
++            if self.value_depth is not None and role == 'plain':
++                depth = self.value_depth
++        lines, closer = self.render(pending, depth)
++        code_items = [item for item in pending.items if item.kind == 'code']
++        if code_items and _fold_text(code_items[0].line.body.strip()) in ('возврат', 'return') and any(item.kind == 'directive' for item in pending.items[:-1]):
++            self.value_depth = depth + 1
++        comment_indent = (depth + 1) * TAB_WIDTH if closer else depth * TAB_WIDTH
++        self.flush_deferred(comment_indent)
++        self.out.extend(lines)
++
++    def flush_deferred(self, comment_indent: int) -> None:
++        for item in self.deferred:
++            line = item.line
++            if item.kind == 'blank' or line.verbatim or _lead_width(line.lead) == 0:
++                self.out.append((_raw_text(line) if item.kind != 'blank' else line.content, line.ending))
++            else:
++                text = _lead_text(comment_indent) + line.comment
++                self.out.append((line.prefix + text, line.ending))
++        self.deferred = []
++
++    def render(self, pending: _Pending, depth: int) -> tuple[list[tuple[str, str]], bool]:
++        items = pending.items
++        code_items = [item for item in items if item.kind == 'code']
++        if not code_items:
++            return [(item.line.content, item.line.ending) for item in items], False
++        first_code = code_items[0].line if code_items else items[0].line
++        closer = pending.role == 'close' or (bool(code_items) and _starts_closer(code_items[0].line.body))
++        simple = all(item.kind == 'code' and not item.line.verbatim for item in items) and all(not item.line.comment for item in code_items[:-1])
++        if simple and code_items:
++            code = '\n'.join(item.line.body for item in code_items)
++            wrapped = wrap_statement(code, depth, _normalize_statement)
++            if wrapped is not None:
++                return self.wrapped_lines(wrapped, code_items, first_code), closer
++        return self.unwrapped_lines(items, depth), closer
++
++    def wrapped_lines(self, wrapped: list[str], code_items: list[_Item], first_code: _Line) -> list[tuple[str, str]]:
++        last = code_items[-1].line
++        result: list[tuple[str, str]] = []
++        for number, text in enumerate(wrapped):
++            ending = last.ending if number == len(wrapped) - 1 else self.default_ending
++            if number == len(wrapped) - 1 and last.comment:
++                text = text + last.gap + last.comment
++            if number == 0:
++                text = first_code.prefix + text
++            result.append((text, ending))
++        return result
++
++    def unwrapped_lines(self, items: list[_Item], depth: int) -> list[tuple[str, str]]:
++        code_items = [item for item in items if item.kind == 'code']
++        first_code = code_items[0].line
++        delta = depth * TAB_WIDTH - _lead_width(first_code.lead)
++        widths: dict[int, int] = {}
++        leads: dict[int, str] = {}
++        previous: _Item | None = None
++        for item in items:
++            if item.kind != 'code' or item.line.verbatim:
++                continue
++            line = item.line
++            if item is code_items[0]:
++                widths[line.index] = depth * TAB_WIDTH
++                leads[line.index] = _lead_text(depth * TAB_WIDTH)
++            else:
++                original = _lead_width(line.lead)
++                after_operator = previous is not None and (previous.line.body.endswith('=') or _fold_text(previous.line.body.strip()) in ('возврат', 'return'))
++                if line.body.startswith(')'):
++                    standard = depth * TAB_WIDTH
++                    deeper = original > standard
++                elif after_operator and line.body.startswith('"'):
++                    standard = depth * TAB_WIDTH
++                    deeper = False
++                else:
++                    standard = (depth + 1) * TAB_WIDTH
++                    deeper = original - _lead_width(first_code.lead) > TAB_WIDTH
++                if deeper:
++                    widths[line.index] = original + delta
++                    leads[line.index] = _shift_lead(line.lead, delta)
++                else:
++                    widths[line.index] = standard
++                    leads[line.index] = _lead_text(standard)
++            previous = item
++        result: list[tuple[str, str]] = []
++        for position, item in enumerate(items):
++            line = item.line
++            if item.kind == 'raw' or line.verbatim:
++                result.append((line.content, line.ending))
++                continue
++            if item.kind == 'code':
++                lead = leads[line.index]
++            elif item.kind == 'literal':
++                owner = line.owner
++                shift = widths.get(owner, 0) - (_lead_width(_owner_lead(items, owner)) if owner is not None else 0)
++                if line.body.startswith('|'):
++                    lead = _lead_text(max(0, _lead_width(line.lead) + shift))
++                else:
++                    lead = line.lead
++            elif item.kind == 'comment':
++                if _lead_width(line.lead) == 0:
++                    lead = ''
++                else:
++                    following = next((later for later in items[position + 1:] if later.kind == 'code'), None)
++                    if following is None:
++                        lead = line.lead
++                    elif _starts_closer(following.line.body):
++                        lead = _lead_text((depth + 1) * TAB_WIDTH)
++                    else:
++                        lead = leads[following.line.index]
++            else:
++                lead = ''
++            prefix = line.prefix
++            text = prefix + lead + line.body if item.kind != 'comment' else prefix + lead + line.comment
++            if item.kind != 'comment' and line.comment:
++                text += line.gap + line.comment
++            result.append((text, line.ending))
++        return result
++
++def _starts_closer(body: str) -> bool:
++    """Строка закрывает скобку или блок: её отступ — на уровень глубже."""
++    if body.startswith(')'):
++        return True
++    words = _WORD.findall(_fold_text(body))
++    return bool(words) and words[0] in BREAK_BEFORE
++
++def _owner_lead(items: list[_Item], owner: int | None) -> str:
++    for item in items:
++        if item.line.index == owner:
++            return item.line.lead
++    return ''
++
++def _raw_text(line: _Line) -> str:
++    return line.content
++
++def _line_of(text: str, position: int) -> int:
++    """Номер строки (с 0), в которой стоит позиция."""
++    return len(_NEWLINE.findall(text[:position]))
++
++def _region_lines(text: str, regions) -> tuple[set[int], set[int]]:
++    """Строки, выводимые как есть (области правки), и строки вставок (без переформатирования)."""
++    raw: set[int] = set()
++    verbatim: set[int] = set()
++    total = len(_split_lines(text))
++    for region in regions:
++        first = _line_of(text, region.start)
++        last = _line_of(text, max(region.start, region.end - 1))
++        if region.kind == 'удаление':
++            raw.update(range(first, last + 1))
++            continue
++        raw.add(first)
++        if region.closed:
++            closer = _line_of(text, region.closing_start)
++            raw.add(closer)
++            verbatim.update(range(first + 1, closer))
++        else:
++            verbatim.update(range(first + 1, total))
++    return raw, verbatim
++
++def format_text(text: str, max_depth: int | None) -> str:
++    """Расставить отступы блоков и продолжений по структуре модуля.
++
++    Структура видна в активном виде кода: строки #Удаление выводятся как есть
++    и не учитываются, тела #Вставка — учитываются, но тоже выводятся как есть.
++    """
++    regions = _patch_regions(text)
++    view = _active_source(text, 'удаление')[0] if regions else text
++    raw_lines = _split_lines(text)
++    raw, verbatim = _region_lines(text, regions)
++    lines = _analyze(view)
++    for line in lines:
++        original = raw_lines[line.index] if line.index < len(raw_lines) else line.content + line.ending
++        line.content = original[:len(original) - len(line.ending)] if line.ending else original
++        if line.index in raw:
++            line.kind = 'raw'
++        if line.index in verbatim:
++            line.verbatim = True
++    return _Structure(lines, max_depth).run()
++
++def line_kinds(text: str) -> list[str]:
++    """Виды строк текста: нужны для проверок директив и областей правки."""
++    return [line.kind for line in _analyze(text)]
+diff --git a/src/bslfmt/verify.py b/src/bslfmt/verify.py
+index 468cf58..0ace92c 100644
+--- a/src/bslfmt/verify.py
++++ b/src/bslfmt/verify.py
+@@ -1,5 +1,6 @@
+ """Итоговая сверка: форматирование меняет только пробелы и переводы строк."""
+ from __future__ import annotations
++import json
+ import re
+ from ._text import _BLANK, _KIND, _LINE, _TEXT, _is_word_char, _split_lines
+ from .errors import FormatError
+@@ -9,7 +10,8 @@ _CODE_UNIT = re.compile('\\w+|\\W')
+ _PIPE_LEAD = re.compile('(\\r\\n|\\r|\\n)[ \\t\\f]*(?=\\|)')
+ 
+ def _literal_text(row) -> str:
+-    pass
++    """Текст литерала без пробелов перед «|» — они не входят в значение строки."""
++    return _PIPE_LEAD.sub(lambda match: match.group(1), row[_TEXT])
+ 
+ def _without_stripped_lines(row, stripped: set[int]):
+     """Литерал без строк-комментариев, удалённых strip_body_comments.
+@@ -18,20 +20,57 @@ def _without_stripped_lines(row, stripped: set[int]):
+     относит их к тексту строки); вместе с ними — их перевод строки. Прочие
+     строки литерала сравниваются дословно.
+     """
+-    pass
++    pieces = _split_lines(row[_TEXT])
++    kept = []
++    for offset, piece in enumerate(pieces):
++        if offset > 0 and (row[_LINE] + offset) in stripped and piece.lstrip(_BLANK).startswith('//'):
++            continue
++        kept.append(piece)
++    return _PIPE_LEAD.sub(lambda match: match.group(1), ''.join(kept))
+ _SIGNATURE_MARKS = re.compile('[\x00-\x03]')
+ 
+-def _significant_signature(rows) -> str:
+-    """Значимый текст одной строкой — быстрый эквивалент _significant_units.
++def _significant_units(rows, stripped: set[int] | None=None) -> list[tuple[str, str, int]]:
++    """Значимые единицы: слова и знаки кода без учёта регистра, литералы и комментарии.
+ 
+-    Соседние токены кода склеиваются; разделитель ставится, только если на
+-    стыке буквы или цифры с обеих сторон («А Б» ≠ «АБ», «Б, В» = «Б,В»).
+-    Остальные токены — с видом и границами.
++    Пробелы и переводы строк не значимы, кроме разделителя между двумя
++    словами («А Б» ≠ «АБ»). Строки-комментарии, удалённые -sbc, пропускаются.
+     """
+-    pass
++    units: list[tuple[str, str, int]] = []
++    previous_code = ''
++    pending_space = False
++    for row in rows:
++        kind = row[_KIND]
++        text = row[_TEXT]
++        if kind in ('whitespace', 'newline'):
++            pending_space = True
++            continue
++        if kind == 'comment':
++            if stripped and row[_LINE] in stripped:
++                continue
++            units.append(('comment', text, row[_LINE]))
++            previous_code = ''
++            pending_space = False
++            continue
++        if kind == 'code':
++            if pending_space and previous_code and _is_word_char(previous_code) and _is_word_char(text[0]):
++                units.append(('sep', ' ', row[_LINE]))
++            for match in _CODE_UNIT.finditer(text.lower()):
++                units.append(('code', match.group(), row[_LINE]))
++            previous_code = text[-1]
++            pending_space = False
++            continue
++        if kind == 'operator':
++            units.append(('sign', text, row[_LINE]))
++        else:
++            literal = _without_stripped_lines(row, stripped) if (kind == 'string' and stripped) else _literal_text(row)
++            units.append((kind, literal, row[_LINE]))
++        previous_code = ''
++        pending_space = False
++    return units
+ 
+-def _significant_units(rows) -> list[tuple[str, str, int]]:
+-    pass
++def _significant_signature(rows) -> str:
++    """Значимый текст одной строкой — быстрый эквивалент _significant_units."""
++    return json.dumps([unit[:2] for unit in _significant_units(rows)], ensure_ascii=False)
+ 
+ def _check_significant_tokens(source: str, result: str, tokens=None, stripped: set[int] | None=None) -> None:
+     """Последний рубеж: форматтер меняет только пробелы и переводы строк.
+@@ -43,4 +82,23 @@ def _check_significant_tokens(source: str, result: str, tokens=None, stripped: s
+     копируются дословно), а вид кода расширения проверяется всегда.
+     tokens — готовый результат _token_rows(source) для текста без областей правки.
+     """
+-    pass
++    source_views = _code_views(source)
++    result_views = _code_views(result)
++    if len(source_views) != len(result_views):
++        raise FormatError("области правки изменились")
++    for index, (source_view, result_view) in enumerate(zip(source_views, result_views)):
++        if len(source_views) == 1 and tokens is not None:
++            source_rows = tokens
++        else:
++            try:
++                source_rows = _token_rows(source_view)
++            except LexerError:
++                if index == 0:
++                    raise
++                continue
++        try:
++            result_rows = _token_rows(result_view)
++        except LexerError as error:
++            raise FormatError(f"результат не разбирается: {error}") from error
++        if [unit[:2] for unit in _significant_units(source_rows, stripped)] != [unit[:2] for unit in _significant_units(result_rows)]:
++            raise FormatError("форматирование изменило значимые токены")
+diff --git a/src/bslfmt/wrap.py b/src/bslfmt/wrap.py
+index c4ee87e..bb557e8 100644
+--- a/src/bslfmt/wrap.py
++++ b/src/bslfmt/wrap.py
+@@ -8,98 +8,198 @@ None — «оставить как было». Меняются только п
+ from __future__ import annotations
+ import re
+ from collections.abc import Callable
+-from ._text import _fold
+-from .keywords import AND_WORDS, ASYNC_WORDS, DECLARATIONS, EXPRESSION_STARTERS, OR_WORDS, SPACED_KEYWORDS, STRUCTURAL_INSIDE
++from ._text import _fold, _NEWLINE
++from .keywords import AND_WORDS, ASYNC_WORDS, BREAK_AFTER, BREAK_BEFORE, DECLARATIONS, LOOP_WORDS, OR_WORDS, THEN_WORDS, TRAILING_WORDS, _KEYWORDS, _folded
+ LINE_WIDTH = 120
+ TAB_WIDTH = 4
+ MAX_BRACKET_DEPTH = 50
+ MAX_STATEMENT_CHARS = 10000
+-_UNIT = re.compile('(?P<string>"(?:[^"\\r\\n]|"")*")|(?P<date>\'[^\'\\r\\n]*\')|(?P<number>\\d+(?:\\.\\d*)?(?:[EeЕе][+-]?\\d*)?)|(?P<word>[^\\W\\d]\\w*)|(?P<op><>|<=|>=|[-+*/%=<>])|(?P<punct>[()\\[\\],;.?])|(?P<space>[ \\t\\f\\r\\n]+)')
+-_SPLIT_LEVELS = (OR_WORDS, AND_WORDS, frozenset({'+'}))
+-_NO_OPERATOR_SPLIT = frozenset({'для', 'for'})
+-
+-class _Units:
+-    """Единицы кода инструкции: вид, текст, глубина скобок, пары скобок."""
+-
+-    def __init__(self, kinds: list[str], texts: list[str]) -> None:
+-        pass
+-
+-    def is_word(self, index: int) -> bool:
+-        pass
+-
+-    def after_dot(self, index: int) -> bool:
+-        pass
+-
+-    def ends_operand(self, index: int) -> bool:
+-        pass
+-
+-def _units(code: str) -> _Units | None:
+-    pass
+-
+-def _needs_space(units: _Units, left: int, right: int) -> bool:
+-    """Пробел между соседними единицами в канонической сборке.
+-
+-    Остальные пробелы (вокруг бинарных знаков, после запятой) добавляет
+-    _normalize_spacing; здесь — только те, без которых смысл или вид
+-    зависел бы от переносов автора.
+-    """
+-    pass
++_UNIT = re.compile('(?P<string>"(?:[^"]|"")*")|(?P<date>\'[^\'\\r\\n]*\')|(?P<number>\\d+(?:\\.\\d*)?(?:[EeЕе][+-]?\\d*)?)|(?P<word>[^\\W\\d]\\w*)|(?P<op>//|<>|<=|>=|[-+*/%=<>])|(?P<punct>[()\\[\\],;.?])|(?P<space>\\s+)|(?P<other>.)', re.DOTALL)
++_TRAILING_WORD = re.compile('\\w+$')
++_OPERAND_KEYWORDS = _folded('Истина', 'Ложь', 'Неопределено', 'Null', 'Undefined', 'True', 'False')
++_STRUCTURAL = BREAK_AFTER | BREAK_BEFORE
++_FINAL_OK = THEN_WORDS | LOOP_WORDS
+ Normalize = Callable[[str], str]
+ 
+-def _render(units: _Units, start: int, stop: int, normalize: Normalize) -> str:
+-    """Каноническая строка из единиц [start, stop)."""
+-    pass
+-
+-def _width(depth: int, text: str) -> int:
+-    pass
+-
+-class _Layout:
+-
+-    def __init__(self, units: _Units, normalize: Normalize) -> None:
+-        pass
++def may_need_wrap(line: str, depth: int) -> bool:
++    """Может ли однострочная инструкция после нормализации не влезть в ширину.
+ 
+-    def render(self, start: int, stop: int) -> str:
+-        pass
++    Быстрая оценка без разбора: нормализация пробелов добавляет не больше
++    2 знаков на оператор и 1 на запятую, схлопывание только сокращает. Рост
++    не больше двух длин строки — короткую строку не считаем. «;» внутри
++    строки не учтён: безопасно, перенос строк раньше делит инструкции по «;».
++    Меняется правило пробелов — меняется и эта оценка.
++    """
++    operators = sum(line.count(sign) for sign in '=<>+-*/%')
++    commas = line.count(',')
++    return len(line) + 2 * operators + commas + TAB_WIDTH * depth > LINE_WIDTH
+ 
+-    def fits(self, depth: int, text: str, tail: int=0) -> bool:
+-        pass
++def _scan(text: str) -> list[tuple[str, int, int]] | None:
++    """Единицы кода с позициями; None — текст не разбирается (незакрытая кавычка)."""
++    units: list[tuple[str, int, int]] = []
++    for match in _UNIT.finditer(text):
++        kind = match.lastgroup
++        if kind == 'other' and match.group() == '"':
++            return None
++        units.append((kind, match.start(), match.end()))
++    return units
+ 
+-    def split_points(self, start: int, stop: int, level: frozenset) -> list[int]:
+-        pass
++def _significant(text: str, units) -> list[tuple[str, int, int]]:
++    return [unit for unit in units if unit[0] != 'space']
+ 
+-    def last_pair(self, start: int, stop: int) -> int | None:
+-        pass
++def _joins_with_space(left: str, right: str) -> bool:
++    """Нужен ли пробел между концом одной строки кода и началом следующей."""
++    if not left or not right:
++        return False
++    before, after = left[-1], right[0]
++    if before in '([.':
++        return False
++    if after in ')],.;[':
++        return False
++    if after == '(' and (before.isalnum() or before == '_'):
++        last = _TRAILING_WORD.search(left)
++        trailing = last is not None and _fold(last.group()) in TRAILING_WORDS
++        return trailing
++    return True
+ 
+-    def block(self, start: int, stop: int, depth: int, level: int, operators: bool=True, tail: int=0) -> list[tuple[int, str]] | None:
+-        """Строки блока [start, stop) с базой depth или None — некуда резать.
++def _operand_before(text: str, units, index: int) -> bool:
++    """Единица перед index заканчивает операнд (знак между ними — бинарный)."""
++    if index <= 0:
++        return False
++    kind, start, end = units[index - 1]
++    if kind in ('number', 'string', 'date'):
++        return True
++    if kind == 'word':
++        word = text[start:end]
++        before = units[index - 2] if index >= 2 else None
++        if before is not None and before[0] == 'punct' and text[before[1]:before[2]] == '.':
++            return True
++        return _fold(word) not in _KEYWORDS or _fold(word) in _OPERAND_KEYWORDS
++    if kind == 'punct':
++        return text[start:end] in (')', ']')
++    return False
+ 
+-        tail — сколько знаков допишут к последней строке блока (запятая
+-        после параметра): она тоже должна влезть в ширину.
+-        """
+-        pass
++def _split_points(text: str, units, level: str) -> list[int]:
++    """Позиции начала операторов уровня level на глубине 0 (кроме первой единицы)."""
++    significant = _significant(text, units)
++    points: list[int] = []
++    depth = 0
++    previous = None
++    for position, unit in enumerate(significant):
++        kind, start, end = unit
++        token = text[start:end]
++        if kind == 'punct' and token in '([':
++            depth += 1
++        elif kind == 'punct' and token in ')]':
++            depth -= 1
++        elif depth == 0 and position > 0:
++            if level == 'plus' and kind == 'op' and token == '+' and _operand_before(text, significant, position):
++                points.append(start)
++            elif level != 'plus' and kind == 'word' and previous is not None and not (previous[0] == 'punct' and text[previous[1]:previous[2]] == '.'):
++                wanted = OR_WORDS if level == 'or' else AND_WORDS
++                if _fold(token) in wanted:
++                    points.append(start)
++        previous = unit
++    return points
+ 
+-    def parameter_lines(self, start: int, stop: int):
+-        """Строки параметров: (начало, конец непустой части, хвост запятых).
++def _top_pairs(text: str, units) -> list[tuple[int, int]]:
++    """Круглые скобки на глубине 0: (конец «(», начало «)»)."""
++    pairs: list[tuple[int, int]] = []
++    stack: list[int] = []
++    for kind, start, end in _significant(text, units):
++        if kind != 'punct':
++            continue
++        token = text[start:end]
++        if token == '(':
++            stack.append(end)
++        elif token == '[':
++            stack.append(-1)
++        elif token in ')]' and stack:
++            opened = stack.pop()
++            if token == ')' and opened >= 0 and not stack:
++                pairs.append((opened, start))
++    return pairs
+ 
+-        Пустой параметр пишется на строке предыдущего непустого («Текст, ,»),
+-        пустые в начале — перед первым непустым («, А»).
+-        """
+-        pass
++def _commas(content: str) -> list[str]:
++    """Части списка параметров (на глубине 0), без пробелов по краям."""
++    units = _scan(content) or []
++    parts: list[str] = []
++    depth = 0
++    begin = 0
++    for kind, start, end in units:
++        if kind != 'punct':
++            continue
++        token = content[start:end]
++        if token in '([':
++            depth += 1
++        elif token in ')]':
++            depth -= 1
++        elif token == ',' and depth == 0:
++            parts.append(content[begin:start].strip(' \t\f'))
++            begin = end
++    parts.append(content[begin:].strip(' \t\f'))
++    return parts
+ 
+-    def line_parts(self, start: int, stop: int, content):
+-        """Строка параметров → (начало непустой части, её конец, хвост)."""
+-        pass
++def _groups(parts: list[str]) -> list[list[str]]:
++    """Параметры по строкам: пустой параметр остаётся у предыдущего непустого."""
++    groups: list[list[str]] = []
++    current: list[str] = []
++    seen_text = False
++    for part in parts:
++        if part and seen_text:
++            groups.append(current)
++            current = []
++            seen_text = False
++        current.append(part)
++        if part:
++            seen_text = True
++    groups.append(current)
++    return groups
+ 
+-def may_need_wrap(line: str, depth: int) -> bool:
+-    """Может ли однострочная инструкция после нормализации не влезть в ширину.
++def _layout(text: str, depth: int) -> list[tuple[int, str]] | None:
++    """Строки кода text с отступом depth или None — некуда резать."""
++    if TAB_WIDTH * depth + len(text) <= LINE_WIDTH:
++        return [(depth, text)]
++    units = _scan(text)
++    if units is None:
++        return None
++    for level in ('or', 'and', 'plus'):
++        points = _split_points(text, units, level)
++        if not points:
++            continue
++        bounds = [0] + points + [len(text)]
++        lines: list[tuple[int, str]] = []
++        for index in range(len(bounds) - 1):
++            piece = text[bounds[index]:bounds[index + 1]].strip(' \t\f')
++            lines.extend(_fit_or_keep(piece, depth if index == 0 else depth + 1))
++        return lines
++    pairs = _top_pairs(text, units)
++    if not pairs:
++        return None
++    open_end, close_start = pairs[-1]
++    head = text[:open_end]
++    content = text[open_end:close_start]
++    rest = text[close_start:]
++    if TAB_WIDTH * depth + len(head) > LINE_WIDTH:
++        return None
++    if TAB_WIDTH * (depth + 1) + len(content) + len(rest) <= LINE_WIDTH:
++        return [(depth, head), (depth + 1, content + rest)]
++    lines = [(depth, head)]
++    groups = _groups(_commas(content))
++    for index, group in enumerate(groups):
++        joined = ', '.join(group)
++        if index == len(groups) - 1:
++            joined = joined.rstrip(' ')
++        else:
++            joined += ','
++        lines.extend(_fit_or_keep(joined, depth + 1))
++    lines.append((depth, rest))
++    return lines
+ 
+-    Быстрая оценка без разбора: нормализация пробелов добавляет не больше
+-    2 знаков на оператор и 1 на запятую, схлопывание только сокращает. Рост
+-    не больше двух длин строки — короткую строку не считаем. «;» внутри
+-    строки не учтён: безопасно, перенос строк раньше делит инструкции по «;».
+-    Меняется правило пробелов — меняется и эта оценка.
+-    """
+-    pass
++def _fit_or_keep(text: str, depth: int) -> list[tuple[int, str]]:
++    """Строки части: раскладка, а если резать нечего — сама часть одной строкой."""
++    lines = _layout(text, depth)
++    return lines if lines is not None else [(depth, text)]
+ 
+ def wrap_statement(code: str, depth: int, normalize: Normalize) -> list[str] | None:
+     """Разложить инструкцию: строки с отступом табами или None — как было.
+@@ -109,4 +209,76 @@ def wrap_statement(code: str, depth: int, normalize: Normalize) -> list[str] | N
+     _normalize_spacing форматтера для одной строки кода. Код с двойным слэшем
+     (//) не раскладывается и возвращает None.
+     """
+-    pass
++    if len(code) > MAX_STATEMENT_CHARS:
++        return None
++    units = _scan(code)
++    if units is None:
++        return None
++    significant = _significant(code, units)
++    if not significant:
++        return None
++    for position, (kind, start, end) in enumerate(significant):
++        token = code[start:end]
++        if kind == 'string' and ('\n' in token or '\r' in token):
++            return None
++        if kind == 'op' and token == '//':
++            return None
++        if kind == 'string' and position + 1 < len(significant) and significant[position + 1][0] == 'string':
++            return None
++    first_kind, first_start, first_end = significant[0]
++    first = code[first_start:first_end]
++    if first in ('&', '~') or first_kind == 'other':
++        return None
++    declaration = _fold(first) in DECLARATIONS or (
++        _fold(first) in ASYNC_WORDS and len(significant) > 1 and _fold(code[significant[1][1]:significant[1][2]]) in DECLARATIONS)
++    semicolons = [index for index, (kind, start, end) in enumerate(significant) if kind == 'punct' and code[start:end] == ';']
++    if declaration and semicolons:
++        return None
++    if semicolons and semicolons[-1] != len(significant) - 1:
++        return None
++    for position, (kind, start, end) in enumerate(significant):
++        if kind != 'word':
++            continue
++        previous = code[significant[position - 1][1]:significant[position - 1][2]] if position else ''
++        if previous in ('.', '~'):
++            continue
++        folded = _fold(code[start:end])
++        if folded not in _STRUCTURAL and folded not in DECLARATIONS:
++            continue
++        if position == 0:
++            continue
++        if folded in DECLARATIONS and position == 1 and _fold(first) in ASYNC_WORDS:
++            continue
++        if folded in _FINAL_OK and position == len(significant) - 1:
++            continue
++        return None
++    parts = [line.strip(' \t\f') for line in _NEWLINE.split(code)]
++    parts = [part for part in parts if part]
++    if not parts:
++        return None
++    joined = parts[0]
++    for part in parts[1:]:
++        joined += (' ' if _joins_with_space(joined, part) else '') + part
++    canonical = normalize(joined).strip(' \t\f')
++    brackets = _scan(canonical)
++    if brackets is None:
++        return None
++    level = 0
++    deepest = 0
++    for kind, start, end in brackets:
++        if kind != 'punct':
++            continue
++        token = canonical[start:end]
++        if token in '([':
++            level += 1
++            deepest = max(deepest, level)
++        elif token in ')]':
++            level -= 1
++            if level < 0:
++                return None
++    if level != 0 or deepest > MAX_BRACKET_DEPTH:
++        return None
++    lines = _layout(canonical, depth)
++    if lines is None:
++        return None
++    return ['\t' * line_depth + text for line_depth, text in lines]

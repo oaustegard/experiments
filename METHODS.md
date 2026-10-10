@@ -659,6 +659,24 @@ survives exactly the sanity checks people run.
 
 ## Environment gotchas (this container)
 
+- **A Commit0 stub commit is a child of its reference commit, in all 16
+  lite repos.** In a clone, `git diff HEAD~1` prints the original library. Give
+  agents a one-commit repository built from `git archive` of the stub. Clearing
+  history is not enough on its own: installing each library from PyPI for its
+  dependencies leaves the original source in the uv cache, and other libraries'
+  venvs carry targets as dependencies (cookiecutter's env holds jinja2 and
+  marshmallow). Agents run as root, so audit the paths they name rather than
+  trusting permissions. (`commit0-swarm/RESULTS.md` Integrity)
+- **Parametrised pytest ids can embed the clock.** marshmallow builds a test
+  id from `datetime.now()`, so certification and grading named the same test
+  differently and a correct implementation "failed" two tests. Normalise digit
+  runs inside the brackets before matching ids across runs.
+  (`commit0-swarm/harness/run.py` `param_key`)
+- **Multiprocess and real-time test deadlines fail under agent load.**
+  portalocker's 0.2–1.1 s deadlines and simpy's real-time tests failed with 20
+  concurrent agents on 4 vCPU and passed idle on the same code. Grade
+  timing-sensitive suites on an idle machine, best of three.
+  (`commit0-swarm/RESULTS.md` Finding 1)
 - **Claude Code's Read tool caps images at 2000 x 2000 px for every current
   model, below the API's 2576 px, and bills vision as `ceil(W/28) *
   ceil(H/28)` tokens.** Both constants are in the CLI binary's model table
@@ -2698,6 +2716,21 @@ the result.
 
 ## Negative results — do not re-derive
 
+- **Verbatim overlap with a library's source is not, by itself, evidence of
+  memorisation.** Haiku 5.5's rebuild of vstg, released after its training,
+  shared 42% of its informative lines verbatim with the original; the eight
+  post-cutoff controls ranged 5–42% (median 17%) against 10–72% (median 55%) on
+  old Commit0 libraries. Measure the floor on code the model cannot have seen
+  before reading a rate as recall, and test dependence on recall by pass rate on
+  that unseen set: there it was 100%, the same as on the famous libraries.
+  (`commit0-swarm/RESULTS.md` Finding 3)
+- **A file-partitioned agent swarm fails at the seams, not in the files.**
+  Builders that own a file each finish fast and then cannot verify, because the
+  package will not import until the core file lands. Members the stubber deleted
+  outright leave files with no empty body, which their owners call "complete":
+  chardet's build pass scored 31/376 against solo's 375. One round of fixers,
+  each given a contiguous shard of the failing test ids rather than a test file,
+  closed every gap. (`commit0-swarm/RESULTS.md` Finding 4)
 - **An LLM residual stream does not show the SL(n)-paper's order-generated
   directions at the registered effect size.** The commutator of a
   meaning-changing two-noun composition is 1.2–1.5× that of an order-inert one

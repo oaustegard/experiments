@@ -1,0 +1,947 @@
+diff --git a/src/laga/core.py b/src/laga/core.py
+index 56662cd..e51c836 100644
+--- a/src/laga/core.py
++++ b/src/laga/core.py
+@@ -1,18 +1,56 @@
+ from __future__ import annotations
++
++import argparse
+ import json
++import re
++import sys
+ from collections.abc import Iterable
+ from pathlib import Path
+ from typing import Any, Literal
++
+ from .errors import LagaError
+ from .tokenizer import _Token, _Tokenizer
+-__all__ = ['loads', 'main', 'repair', 'repair_file', 'repair_jsonl', 'repair_jsonl_to_str', 'repair_to_str']
++
++__all__ = [
++    "loads",
++    "main",
++    "repair",
++    "repair_file",
++    "repair_jsonl",
++    "repair_jsonl_to_str",
++    "repair_to_str",
++]
++
+ _MAX_NESTING_DEPTH = 256
+ _MAX_INPUT_SIZE: int | None = None
+-DuplicateKeyPolicy = Literal['last', 'error']
+-_SMART_QUOTES = str.maketrans({chr(8220): '"', chr(8221): '"', chr(8222): '"', chr(8223): '"', chr(8216): "'", chr(8217): "'", chr(8218): "'"})
+-_LITERAL_MAP = {'true': True, 'false': False, 'null': None, 'none': None}
+-
+-def repair(text: str, *, strict: bool=False, max_depth: int=_MAX_NESTING_DEPTH, max_input_size: int | None=_MAX_INPUT_SIZE, duplicate_keys: DuplicateKeyPolicy='last') -> Any:
++DuplicateKeyPolicy = Literal["last", "error"]
++
++_SMART_QUOTES = str.maketrans(
++    {
++        chr(8220): '"',
++        chr(8221): '"',
++        chr(8222): '"',
++        chr(8223): '"',
++        chr(8216): "'",
++        chr(8217): "'",
++        chr(8218): "'",
++    }
++)
++_LITERAL_MAP = {"true": True, "false": False, "null": None, "none": None}
++_FENCE_PATTERN = re.compile(r"```[^\n`]*\n(.*?)```", re.DOTALL)
++_NUMBER_PATTERN = re.compile(r"-?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?")
++_OPENERS = "{["
++_CLOSERS = "}]"
++
++
++def repair(
++    text: str,
++    *,
++    strict: bool = False,
++    max_depth: int = _MAX_NESTING_DEPTH,
++    max_input_size: int | None = _MAX_INPUT_SIZE,
++    duplicate_keys: DuplicateKeyPolicy = "last",
++) -> Any:
+     """Parse text as JSON, repairing common errors when needed.
+ 
+     Args:
+@@ -26,9 +64,37 @@ def repair(text: str, *, strict: bool=False, max_depth: int=_MAX_NESTING_DEPTH,
+     Raises:
+         LagaError: If the text cannot be repaired into valid JSON.
+     """
+-    pass
+-
+-def repair_to_str(text: str, *, strict: bool=False, max_depth: int=_MAX_NESTING_DEPTH, max_input_size: int | None=_MAX_INPUT_SIZE, duplicate_keys: DuplicateKeyPolicy='last', pretty: bool=False) -> str:
++    _validate_limits(
++        max_depth=max_depth,
++        max_input_size=max_input_size,
++        duplicate_keys=duplicate_keys,
++    )
++    _check_input_size(text, max_input_size=max_input_size)
++    if duplicate_keys == "last":
++        # Valid JSON takes the stdlib fast path; duplicate-key checking needs
++        # the parser, so it is skipped here.
++        try:
++            return json.loads(text)
++        except (ValueError, RecursionError):
++            pass
++    return _repair_text(
++        text,
++        strict=strict,
++        max_depth=max_depth,
++        max_input_size=max_input_size,
++        duplicate_keys=duplicate_keys,
++    )
++
++
++def repair_to_str(
++    text: str,
++    *,
++    strict: bool = False,
++    max_depth: int = _MAX_NESTING_DEPTH,
++    max_input_size: int | None = _MAX_INPUT_SIZE,
++    duplicate_keys: DuplicateKeyPolicy = "last",
++    pretty: bool = False,
++) -> str:
+     """Repair JSON text and return normalized JSON.
+ 
+     Args:
+@@ -42,18 +108,75 @@ def repair_to_str(text: str, *, strict: bool=False, max_depth: int=_MAX_NESTING_
+     Raises:
+         LagaError: If the text cannot be repaired into valid JSON.
+     """
+-    pass
+-
+-def repair_jsonl(text: str, *, strict: bool=False, max_depth: int=_MAX_NESTING_DEPTH, max_input_size: int | None=_MAX_INPUT_SIZE, duplicate_keys: DuplicateKeyPolicy='last') -> list[Any]:
++    value = repair(
++        text,
++        strict=strict,
++        max_depth=max_depth,
++        max_input_size=max_input_size,
++        duplicate_keys=duplicate_keys,
++    )
++    return _dump(value, pretty=pretty)
++
++
++def repair_jsonl(
++    text: str,
++    *,
++    strict: bool = False,
++    max_depth: int = _MAX_NESTING_DEPTH,
++    max_input_size: int | None = _MAX_INPUT_SIZE,
++    duplicate_keys: DuplicateKeyPolicy = "last",
++) -> list[Any]:
+     """Repair newline-delimited JSON records and return Python values."""
+-    pass
+-
+-def repair_jsonl_to_str(text: str, *, strict: bool=False, max_depth: int=_MAX_NESTING_DEPTH, max_input_size: int | None=_MAX_INPUT_SIZE, duplicate_keys: DuplicateKeyPolicy='last', pretty: bool=False) -> str:
++    _validate_limits(
++        max_depth=max_depth,
++        max_input_size=max_input_size,
++        duplicate_keys=duplicate_keys,
++    )
++    _check_input_size(text, max_input_size=max_input_size)
++    return [
++        repair(
++            line,
++            strict=strict,
++            max_depth=max_depth,
++            max_input_size=None,
++            duplicate_keys=duplicate_keys,
++        )
++        for line in text.splitlines()
++        if line.strip()
++    ]
++
++
++def repair_jsonl_to_str(
++    text: str,
++    *,
++    strict: bool = False,
++    max_depth: int = _MAX_NESTING_DEPTH,
++    max_input_size: int | None = _MAX_INPUT_SIZE,
++    duplicate_keys: DuplicateKeyPolicy = "last",
++    pretty: bool = False,
++) -> str:
+     """Repair newline-delimited JSON records and return newline-delimited JSON."""
+-    pass
++    records = repair_jsonl(
++        text,
++        strict=strict,
++        max_depth=max_depth,
++        max_input_size=max_input_size,
++        duplicate_keys=duplicate_keys,
++    )
++    return "\n".join(_dump(record, pretty=pretty) for record in records)
++
++
+ loads = repair
+ 
+-def repair_file(path: str | Path, *, strict: bool=False, max_depth: int=_MAX_NESTING_DEPTH, max_input_size: int | None=_MAX_INPUT_SIZE, duplicate_keys: DuplicateKeyPolicy='last') -> Any:
++
++def repair_file(
++    path: str | Path,
++    *,
++    strict: bool = False,
++    max_depth: int = _MAX_NESTING_DEPTH,
++    max_input_size: int | None = _MAX_INPUT_SIZE,
++    duplicate_keys: DuplicateKeyPolicy = "last",
++) -> Any:
+     """Read a file, repair its contents, and return the parsed Python value.
+ 
+     Args:
+@@ -67,9 +190,17 @@ def repair_file(path: str | Path, *, strict: bool=False, max_depth: int=_MAX_NES
+     Raises:
+         LagaError: If the file cannot be repaired into valid JSON.
+     """
+-    pass
++    text = Path(path).read_text(encoding="utf-8")
++    return repair(
++        text,
++        strict=strict,
++        max_depth=max_depth,
++        max_input_size=max_input_size,
++        duplicate_keys=duplicate_keys,
++    )
++
+ 
+-def main(argv: Iterable[str] | None=None) -> int:
++def main(argv: Iterable[str] | None = None) -> int:
+     """Run a small command line interface for manual repair checks.
+ 
+     Args:
+@@ -78,87 +209,430 @@ def main(argv: Iterable[str] | None=None) -> int:
+     Returns:
+         Process exit code.
+     """
+-    pass
++    parser = argparse.ArgumentParser(
++        prog="laga", description="Repair malformed JSON and print the result."
++    )
++    parser.add_argument("text", nargs="?", help="JSON-like text to repair")
++    parser.add_argument("--stdin", action="store_true", help="read input from stdin")
++    parser.add_argument("--input", metavar="PATH", help="read input from a file")
++    parser.add_argument("--output", metavar="PATH", help="write output to a file")
++    parser.add_argument(
++        "--in-place",
++        action="store_true",
++        help="overwrite the --input file with the repaired output",
++    )
++    parser.add_argument("--jsonl", action="store_true", help="repair one record per line")
++    format_group = parser.add_mutually_exclusive_group()
++    format_group.add_argument(
++        "--pretty", action="store_true", help="format output with two-space indentation"
++    )
++    format_group.add_argument(
++        "--compact", action="store_true", help="force compact output (the default)"
++    )
++    parser.add_argument("--quiet", action="store_true", help="suppress stdout on success")
++    parser.add_argument(
++        "--strict", action="store_true", help="reject ambiguous repairs"
++    )
++    parser.add_argument(
++        "--max-depth",
++        type=int,
++        default=_MAX_NESTING_DEPTH,
++        help="maximum nesting depth (default: %(default)s)",
++    )
++    parser.add_argument(
++        "--max-input-size",
++        type=int,
++        default=_MAX_INPUT_SIZE,
++        help="reject inputs longer than this many characters",
++    )
++    parser.add_argument(
++        "--duplicate-keys",
++        choices=["last", "error"],
++        default="last",
++        help="how to handle duplicate object keys (default: %(default)s)",
++    )
++    args = parser.parse_args(None if argv is None else list(argv))
++
++    if args.in_place and args.input is None:
++        parser.error("--in-place requires --input")
++    if args.in_place and args.output is not None:
++        parser.error("--in-place and --output are mutually exclusive")
++
++    try:
++        if args.input is not None and not args.stdin:
++            source = Path(args.input).read_text(encoding="utf-8")
++        elif args.text is not None and not args.stdin:
++            source = args.text
++        else:
++            source = sys.stdin.read()
++    except OSError as exc:
++        print(f"laga: error: {exc}", file=sys.stderr)
++        return 1
++
++    options = {
++        "strict": args.strict,
++        "max_depth": args.max_depth,
++        "max_input_size": args.max_input_size,
++        "duplicate_keys": args.duplicate_keys,
++    }
++    try:
++        if args.jsonl:
++            result = repair_jsonl_to_str(source, pretty=args.pretty, **options)
++        else:
++            result = repair_to_str(source, pretty=args.pretty, **options)
++    except ValueError as exc:
++        print(f"laga: error: {exc}", file=sys.stderr)
++        return 1
++
++    destination = args.input if args.in_place else args.output
++    if destination is not None:
++        try:
++            Path(destination).write_text(result + "\n", encoding="utf-8")
++        except OSError as exc:
++            print(f"laga: error: {exc}", file=sys.stderr)
++            return 1
++    elif not args.quiet:
++        print(result)
++    return 0
++
++
++def _repair_text(
++    text: str,
++    *,
++    strict: bool,
++    max_depth: int = _MAX_NESTING_DEPTH,
++    max_input_size: int | None = _MAX_INPUT_SIZE,
++    duplicate_keys: DuplicateKeyPolicy = "last",
++) -> Any:
++    _check_input_size(text, max_input_size=max_input_size)
++    normalized = _normalize_text(text)
++    first_error: LagaError | None = None
++    for candidate in _candidate_texts(normalized):
++        try:
++            tokens = _Tokenizer(candidate, strict=strict).tokenize()
++            parser = _Parser(
++                tokens,
++                strict=strict,
++                max_depth=max_depth,
++                duplicate_keys=duplicate_keys,
++            )
++            return parser.parse()
++        except LagaError as error:
++            if first_error is None:
++                first_error = _with_context(error, candidate)
++    if first_error is None:
++        raise LagaError("No JSON value found")
++    raise first_error
++
++
++def _validate_limits(
++    *,
++    max_depth: int,
++    max_input_size: int | None,
++    duplicate_keys: DuplicateKeyPolicy,
++) -> None:
++    if max_depth < 1:
++        raise ValueError("max_depth must be at least 1")
++    if max_input_size is not None and max_input_size < 0:
++        raise ValueError("max_input_size must not be negative")
++    if duplicate_keys not in ("last", "error"):
++        raise ValueError("duplicate_keys must be 'last' or 'error'")
+ 
+-def _repair_text(text: str, *, strict: bool, max_depth: int=_MAX_NESTING_DEPTH, max_input_size: int | None=_MAX_INPUT_SIZE, duplicate_keys: DuplicateKeyPolicy='last') -> Any:
+-    pass
+-
+-def _validate_limits(*, max_depth: int, max_input_size: int | None, duplicate_keys: DuplicateKeyPolicy) -> None:
+-    pass
+ 
+ def _check_input_size(text: str, *, max_input_size: int | None) -> None:
+-    pass
++    if max_input_size is not None and len(text) > max_input_size:
++        raise LagaError(
++            f"Input exceeds the maximum size of {max_input_size} characters"
++        )
++
+ 
+ def _with_context(error: LagaError, text: str) -> LagaError:
+-    pass
++    if error.position is None or error.line is not None:
++        return error
++    line, column = _position_to_line_column(text, error.position)
++    return LagaError(
++        error.message,
++        position=error.position,
++        line=line,
++        column=column,
++        context=_context_snippet(text, error.position),
++    )
++
+ 
+ def _position_to_line_column(text: str, position: int) -> tuple[int, int]:
+-    pass
++    position = max(0, min(position, len(text)))
++    line = text.count("\n", 0, position) + 1
++    line_start = text.rfind("\n", 0, position) + 1
++    return line, position - line_start + 1
++
++
++def _context_snippet(text: str, position: int, *, radius: int = 24) -> str:
++    start = max(0, position - radius)
++    end = min(len(text), position + radius)
++    return text[start:end]
+ 
+-def _context_snippet(text: str, position: int, *, radius: int=24) -> str:
+-    pass
+ 
+ def _normalize_text(text: str) -> str:
+-    pass
++    translated = text.translate(_SMART_QUOTES)
++    fenced = _extract_fenced_text(translated)
++    return translated if fenced is None else fenced
++
+ 
+ def _extract_fenced_text(text: str) -> str | None:
+-    pass
++    match = _FENCE_PATTERN.search(text)
++    if match is None:
++        return None
++    return match.group(1).strip()
++
+ 
+ def _candidate_texts(text: str) -> Iterable[str]:
+-    pass
++    if _extract_fenced_text(text) is not None:
++        yield text
++        return
++    found = False
++    index = 0
++    while index < len(text):
++        if text[index] in _OPENERS:
++            region = _capture_balanced_region(text, index)
++            found = True
++            yield region
++            index += len(region)
++        else:
++            index += 1
++    if not found:
++        yield text
++
+ 
+ def _capture_balanced_region(text: str, start: int) -> str:
+-    pass
++    depth = 0
++    quote: str | None = None
++    index = start
++    while index < len(text):
++        char = text[index]
++        if quote is not None:
++            if char == "\\":
++                index += 2
++                continue
++            if char == quote:
++                quote = None
++        elif char in ('"', "'"):
++            quote = char
++        elif char == "/" and _next_char(text, index) == "/":
++            index = _skip_line_comment(text, index) + 1
++            continue
++        elif char == "/" and _next_char(text, index) == "*":
++            index = _skip_block_comment(text, index) + 1
++            continue
++        elif char in _OPENERS:
++            depth += 1
++        elif char in _CLOSERS:
++            depth -= 1
++            if depth == 0:
++                return text[start : index + 1]
++        index += 1
++    return text[start:]
++
+ 
+ def _next_char(text: str, index: int) -> str | None:
+-    pass
++    if index + 1 < len(text):
++        return text[index + 1]
++    return None
++
+ 
+ def _skip_line_comment(text: str, index: int) -> int:
+-    pass
++    end = text.find("\n", index)
++    if end == -1:
++        return len(text) - 1
++    return end - 1
++
+ 
+ def _skip_block_comment(text: str, index: int) -> int:
+-    pass
++    end = text.find("*/", index + 2)
++    if end == -1:
++        return len(text) - 1
++    return end + 1
++
++
++def _convert_number(token: _Token) -> int | float:
++    if _NUMBER_PATTERN.fullmatch(token.value) is None:
++        raise LagaError("Invalid number", position=token.position)
++    if any(char in token.value for char in ".eE"):
++        return float(token.value)
++    return int(token.value)
+ 
+-class _Parser:
+ 
+-    def __init__(self, tokens: list[_Token], *, strict: bool, max_depth: int=_MAX_NESTING_DEPTH, duplicate_keys: DuplicateKeyPolicy='last') -> None:
+-        pass
++def _dump(value: Any, *, pretty: bool) -> str:
++    if pretty:
++        return json.dumps(value, indent=2, ensure_ascii=False)
++    return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
++
++
++class _Parser:
++    def __init__(
++        self,
++        tokens: list[_Token],
++        *,
++        strict: bool,
++        max_depth: int = _MAX_NESTING_DEPTH,
++        duplicate_keys: DuplicateKeyPolicy = "last",
++    ) -> None:
++        self._tokens = tokens
++        self._index = 0
++        self._depth = 0
++        self._strict = strict
++        self._max_depth = max_depth
++        self._duplicate_keys = duplicate_keys
+ 
+     def parse(self) -> Any:
+-        pass
++        value = self._parse_value()
++        trailing = self._peek()
++        if trailing is not None:
++            raise LagaError("Unexpected trailing content", position=trailing.position)
++        return value
+ 
+     def _parse_value(self) -> Any:
+-        pass
++        token = self._peek()
++        if token is None:
++            raise LagaError("Expected JSON value", position=self._current_position())
++        if token.kind == "LBRACE":
++            return self._parse_object()
++        if token.kind == "LBRACKET":
++            return self._parse_array()
++        if token.kind == "STRING":
++            self._index += 1
++            return token.value
++        if token.kind == "NUMBER":
++            self._index += 1
++            return _convert_number(token)
++        if token.kind == "IDENT":
++            if token.value.lower() not in _LITERAL_MAP:
++                raise LagaError(
++                    f"Unexpected identifier {token.value!r}", position=token.position
++                )
++            self._index += 1
++            return _LITERAL_MAP[token.value.lower()]
++        raise LagaError("Expected JSON value", position=token.position)
+ 
+     def _parse_object(self) -> dict[str, Any]:
+-        pass
++        self._enter_container()
++        self._expect("LBRACE")
++        result: dict[str, Any] = {}
++        while True:
++            token = self._peek()
++            if token is None:
++                if self._strict:
++                    raise LagaError("Unterminated object", position=self._current_position())
++                break
++            if token.kind == "RBRACE":
++                self._index += 1
++                break
++            if token.kind == "COMMA" and not self._strict:
++                self._index += 1
++                continue
++            key = self._parse_key()
++            if self._duplicate_keys == "error" and key in result:
++                raise LagaError(f"Duplicate key {key!r}", position=token.position)
++            self._expect("COLON")
++            result[key] = self._parse_value()
++            following = self._peek()
++            if following is None or following.kind == "RBRACE":
++                continue
++            if self._match("COMMA"):
++                continue
++            if self._begins_member(following):
++                if self._strict:
++                    raise LagaError(
++                        "Missing comma between object members",
++                        position=following.position,
++                    )
++                continue
++            raise LagaError("Expected comma or closing brace", position=following.position)
++        self._exit_container()
++        return result
+ 
+     def _parse_array(self) -> list[Any]:
+-        pass
++        self._enter_container()
++        self._expect("LBRACKET")
++        items: list[Any] = []
++        while True:
++            token = self._peek()
++            if token is None:
++                if self._strict:
++                    raise LagaError("Unterminated array", position=self._current_position())
++                break
++            if token.kind == "RBRACKET":
++                self._index += 1
++                break
++            if token.kind == "COMMA" and not self._strict:
++                self._index += 1
++                continue
++            items.append(self._parse_value())
++            following = self._peek()
++            if following is None or following.kind == "RBRACKET":
++                continue
++            if self._match("COMMA"):
++                continue
++            if self._begins_value(following):
++                if self._strict:
++                    raise LagaError(
++                        "Missing comma between array items",
++                        position=following.position,
++                    )
++                continue
++            raise LagaError(
++                "Expected comma or closing bracket", position=following.position
++            )
++        self._exit_container()
++        return items
+ 
+     def _parse_key(self) -> str:
+-        pass
++        token = self._peek()
++        if token is not None and token.kind in ("STRING", "IDENT"):
++            self._index += 1
++            return token.value
++        position = token.position if token is not None else self._current_position()
++        raise LagaError("Expected object key", position=position)
+ 
+     def _expect(self, kind: str) -> _Token:
+-        pass
++        token = self._peek()
++        if token is None or token.kind != kind:
++            raise LagaError(f"Expected {kind.lower()}", position=self._current_position())
++        self._index += 1
++        return token
+ 
+     def _match(self, kind: str) -> bool:
+-        pass
++        token = self._peek()
++        if token is not None and token.kind == kind:
++            self._index += 1
++            return True
++        return False
+ 
+     def _peek(self) -> _Token | None:
+-        pass
++        if self._index < len(self._tokens):
++            return self._tokens[self._index]
++        return None
+ 
+     def _current_position(self) -> int:
+-        pass
++        if self._index < len(self._tokens):
++            return self._tokens[self._index].position
++        if self._tokens:
++            last = self._tokens[-1]
++            return last.position + len(last.value)
++        return 0
+ 
+     def _begins_value(self, token: _Token) -> bool:
+-        pass
++        return token.kind in ("STRING", "NUMBER", "IDENT", "LBRACE", "LBRACKET")
+ 
+     def _begins_member(self, token: _Token) -> bool:
+-        pass
++        return token.kind in ("STRING", "IDENT")
+ 
+     def _enter_container(self) -> None:
+-        pass
++        self._depth += 1
++        if self._depth > self._max_depth:
++            raise LagaError(
++                f"JSON is too deeply nested (maximum depth is {self._max_depth})",
++                position=self._current_position(),
++            )
+ 
+     def _exit_container(self) -> None:
+-        pass
++        self._depth -= 1
+diff --git a/src/laga/errors.py b/src/laga/errors.py
+index 43a1c3f..13b6917 100644
+--- a/src/laga/errors.py
++++ b/src/laga/errors.py
+@@ -1,5 +1,6 @@
+ from __future__ import annotations
+ 
++
+ class LagaError(ValueError):
+     """Raised when JSON repair cannot produce a valid result.
+ 
+@@ -8,5 +9,27 @@ class LagaError(ValueError):
+         position: Character offset where the problem was detected, if known.
+     """
+ 
+-    def __init__(self, message: str, position: int | None=None, line: int | None=None, column: int | None=None, context: str | None=None) -> None:
+-        pass
++    def __init__(
++        self,
++        message: str,
++        position: int | None = None,
++        line: int | None = None,
++        column: int | None = None,
++        context: str | None = None,
++    ) -> None:
++        super().__init__(message)
++        self.message = message
++        self.position = position
++        self.line = line
++        self.column = column
++        self.context = context
++
++    def __str__(self) -> str:
++        text = self.message
++        if self.line is not None and self.column is not None:
++            text = f"{text} at line {self.line}, column {self.column}"
++        elif self.position is not None:
++            text = f"{text} at position {self.position}"
++        if self.context:
++            text = f"{text}, near {self.context!r}"
++        return text
+diff --git a/src/laga/tokenizer.py b/src/laga/tokenizer.py
+index 845c9cf..fa05b35 100644
+--- a/src/laga/tokenizer.py
++++ b/src/laga/tokenizer.py
+@@ -1,50 +1,210 @@
+ from __future__ import annotations
++
+ from dataclasses import dataclass
++
+ from .errors import LagaError
+ 
++_DIGITS = "0123456789"
++_PUNCTUATION = {
++    "{": "LBRACE",
++    "}": "RBRACE",
++    "[": "LBRACKET",
++    "]": "RBRACKET",
++    ":": "COLON",
++    ",": "COMMA",
++}
++_SIMPLE_ESCAPES = {
++    '"': '"',
++    "'": "'",
++    "\\": "\\",
++    "/": "/",
++    "b": "\b",
++    "f": "\f",
++    "n": "\n",
++    "r": "\r",
++    "t": "\t",
++}
++
++
+ @dataclass(frozen=True, slots=True)
+ class _Token:
+     kind: str
+     value: str
+     position: int
+ 
+-class _Tokenizer:
+ 
++class _Tokenizer:
+     def __init__(self, text: str, *, strict: bool) -> None:
+-        pass
++        self._text = text
++        self._strict = strict
++        self._pos = 0
+ 
+     def tokenize(self) -> list[_Token]:
+-        pass
++        text = self._text
++        tokens: list[_Token] = []
++        while self._pos < len(text):
++            char = text[self._pos]
++            if char.isspace():
++                self._pos += 1
++            elif char == "/":
++                following = self._peek_char(1)
++                if following == "/":
++                    self._skip_line_comment()
++                elif following == "*":
++                    self._skip_block_comment()
++                else:
++                    raise LagaError("Unexpected character '/'", position=self._pos)
++            elif char in _PUNCTUATION:
++                tokens.append(_Token(_PUNCTUATION[char], char, self._pos))
++                self._pos += 1
++            elif char in ('"', "'"):
++                tokens.append(self._consume_string(char))
++            elif char == "-" or char in _DIGITS:
++                tokens.append(self._consume_number())
++            elif _is_identifier_start(char):
++                tokens.append(self._consume_identifier())
++            else:
++                raise LagaError(f"Unexpected character {char!r}", position=self._pos)
++        return tokens
+ 
+     def _peek_char(self, offset: int) -> str | None:
+-        pass
++        index = self._pos + offset
++        if index < len(self._text):
++            return self._text[index]
++        return None
+ 
+     def _skip_line_comment(self) -> None:
+-        pass
++        end = self._text.find("\n", self._pos)
++        self._pos = len(self._text) if end == -1 else end
+ 
+     def _skip_block_comment(self) -> None:
+-        pass
++        end = self._text.find("*/", self._pos + 2)
++        if end == -1:
++            if self._strict:
++                raise LagaError("Unterminated block comment", position=self._pos)
++            self._pos = len(self._text)
++            return
++        self._pos = end + 2
+ 
+     def _consume_string(self, quote: str) -> _Token:
+-        pass
++        text = self._text
++        start = self._pos
++        self._pos += 1
++        chars: list[str] = []
++        while True:
++            if self._pos >= len(text):
++                if self._strict:
++                    raise LagaError("Unterminated string literal", position=start)
++                break
++            char = text[self._pos]
++            if char == quote:
++                self._pos += 1
++                break
++            if char == "\\":
++                if self._pos + 1 >= len(text):
++                    if self._strict:
++                        raise LagaError("Incomplete escape sequence", position=self._pos)
++                    chars.append("\\")
++                    self._pos += 1
++                    continue
++                self._pos += 1
++                chars.append(self._consume_escape(start))
++                continue
++            chars.append(char)
++            self._pos += 1
++        return _Token("STRING", "".join(chars), start)
+ 
+     def _consume_escape(self, string_start: int) -> str:
+-        pass
++        escape_pos = self._pos
++        char = self._text[self._pos]
++        self._pos += 1
++        if char in _SIMPLE_ESCAPES:
++            return _SIMPLE_ESCAPES[char]
++        if char == "u":
++            return self._consume_unicode_escape(string_start)
++        if self._strict:
++            raise LagaError("Invalid escape sequence", position=escape_pos)
++        return char
+ 
+     def _consume_unicode_escape(self, string_start: int) -> str:
+-        pass
++        text = self._text
++        digits = text[self._pos : self._pos + 4]
++        if len(digits) != 4 or not all(_is_hex_digit(char) for char in digits):
++            if self._strict:
++                raise LagaError("Invalid unicode escape", position=self._pos - 1)
++            return "u"
++        self._pos += 4
++        code = int(digits, 16)
++        if 0xD800 <= code <= 0xDBFF and text[self._pos : self._pos + 2] == "\\u":
++            low_digits = text[self._pos + 2 : self._pos + 6]
++            if len(low_digits) == 4 and all(_is_hex_digit(c) for c in low_digits):
++                low = int(low_digits, 16)
++                if 0xDC00 <= low <= 0xDFFF:
++                    self._pos += 6
++                    code = 0x10000 + ((code - 0xD800) << 10) + (low - 0xDC00)
++        return chr(code)
+ 
+     def _consume_number(self) -> _Token:
+-        pass
++        text = self._text
++        start = self._pos
++        index = start
++        if text[index] == "-":
++            index += 1
++            if index >= len(text):
++                if self._strict:
++                    raise LagaError("Incomplete number", position=start)
++                self._pos = index
++                return _Token("NUMBER", "-", start)
++        digits_start = index
++        index = self._scan_digits(index)
++        if index == digits_start:
++            return self._invalid_number(start, index)
++        if index < len(text) and text[index] == ".":
++            fraction_end = self._scan_digits(index + 1)
++            if fraction_end == index + 1:
++                index = fraction_end
++                return self._invalid_number(start, index)
++            index = fraction_end
++        if index < len(text) and text[index] in "eE":
++            index += 1
++            if index < len(text) and text[index] in "+-":
++                index += 1
++            exponent_end = self._scan_digits(index)
++            if exponent_end == index:
++                return self._invalid_number(start, exponent_end)
++            index = exponent_end
++        self._pos = index
++        return _Token("NUMBER", text[start:index], start)
++
++    def _invalid_number(self, start: int, end: int) -> _Token:
++        if self._strict:
++            raise LagaError("Invalid number", position=start)
++        self._pos = end
++        return _Token("NUMBER", self._text[start:end], start)
++
++    def _scan_digits(self, index: int) -> int:
++        text = self._text
++        while index < len(text) and text[index] in _DIGITS:
++            index += 1
++        return index
+ 
+     def _consume_identifier(self) -> _Token:
+-        pass
++        text = self._text
++        start = self._pos
++        index = start
++        while index < len(text) and _is_identifier_part(text[index]):
++            index += 1
++        self._pos = index
++        return _Token("IDENT", text[start:index], start)
++
+ 
+ def _is_hex_digit(char: str) -> bool:
+-    pass
++    return len(char) == 1 and char in "0123456789abcdefABCDEF"
++
+ 
+ def _is_identifier_start(char: str) -> bool:
+-    pass
++    return char == "_" or char == "$" or char.isalpha()
++
+ 
+ def _is_identifier_part(char: str) -> bool:
+-    pass
++    return _is_identifier_start(char) or char in _DIGITS

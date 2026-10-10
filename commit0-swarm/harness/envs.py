@@ -96,8 +96,10 @@ def requirements(task: dict) -> list[str]:
         reqs += requirement_lines(task, f)
     m = re.search(r"\.\[(.*)\]", s["install"])
     extras = m.group(1).split(",") if m else []
+    if task.get("control"):   # post-cutoff libraries: their own test extras, whatever they call them
+        extras = ["test", "tests", "testing", "dev"]
     declared = pyproject_requirements(task, extras)
-    dist = PYPI[task["name"]]
+    dist = PYPI.get(task["name"])
     if declared is not None:
         reqs += declared
     elif dist:
@@ -127,7 +129,7 @@ def build(task: dict, force: bool = False) -> Path:
             for r in reqs:  # one unresolvable extra should not sink the env
                 if uv(*pip, r, log=log):
                     print(f"[{task['name']}] skipped requirement {r}", file=log, flush=True)
-        dist = PYPI[task["name"]]
+        dist = PYPI.get(task["name"])
         if dist:
             uv("pip", "uninstall", "-q", "-p", py, dist, log=log)
     subprocess.run(["chmod", "-R", "a+rX", str(env)], check=True)

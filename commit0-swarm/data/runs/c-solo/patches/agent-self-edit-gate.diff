@@ -1,0 +1,1139 @@
+diff --git a/src/selfedit_gate/cli.py b/src/selfedit_gate/cli.py
+index 5baf6d9..aa9c84f 100644
+--- a/src/selfedit_gate/cli.py
++++ b/src/selfedit_gate/cli.py
+@@ -13,18 +13,122 @@ from .gate import check, exact_replace, guarded_write, verify_receipts
+ from .policy import load_policy
+ 
+ def _bounded_read(path: Path, limit: int, *, label: str) -> bytes:
+-    pass
++    try:
++        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC)
++    except OSError as exc:
++        raise GateError('E_INPUT_READ', f'cannot read {label}: {path}') from exc
++    try:
++        metadata = os.fstat(descriptor)
++        if not stat.S_ISREG(metadata.st_mode):
++            raise GateError('E_INPUT_TYPE', f'{label} must be a regular file')
++        if metadata.st_size > limit:
++            raise GateError('E_INPUT_SIZE', f'{label} exceeds {limit} bytes')
++        return _read_limited(descriptor, limit, label)
++    finally:
++        os.close(descriptor)
++
++def _read_limited(descriptor: int, limit: int, label: str) -> bytes:
++    chunks: list[bytes] = []
++    total = 0
++    while True:
++        chunk = os.read(descriptor, min(65536, limit + 1 - total))
++        if not chunk:
++            break
++        chunks.append(chunk)
++        total += len(chunk)
++        if total > limit:
++            raise GateError('E_INPUT_SIZE', f'{label} exceeds {limit} bytes')
++    return b''.join(chunks)
++
++def _read_input(source: str, limit: int, *, label: str) -> bytes:
++    if source != '-':
++        return _bounded_read(Path(source), limit, label=label)
++    if sys.stdin is None:
++        raise GateError('E_INPUT_READ', f'cannot read {label} from stdin')
++    stream = getattr(sys.stdin, 'buffer', sys.stdin)
++    data = stream.read(limit + 1)
++    if len(data) > limit:
++        raise GateError('E_INPUT_SIZE', f'{label} exceeds {limit} bytes')
++    return data
+ 
+ def _emit(payload: dict[str, Any], *, as_json: bool) -> None:
+-    pass
++    if as_json:
++        body = {key: value for key, value in payload.items() if key != 'text'}
++        print(json.dumps(body, sort_keys=True, separators=(',', ':')))
++    else:
++        print(payload.get('text', ''))
+ 
+ def build_parser() -> argparse.ArgumentParser:
+-    pass
++    parser = argparse.ArgumentParser(
++        prog='selfedit-gate',
++        description='Policy-enforced self-edit gateway for coding agents.',
++    )
++    parser.add_argument('--version', action='version', version=f'selfedit-gate {__version__}')
++    parser.add_argument('--policy', default='selfedit-policy.toml', help='policy file path')
++    parser.add_argument('--json', action='store_true', help='emit machine-readable output')
++    commands = parser.add_subparsers(dest='command', required=True)
++
++    check_parser = commands.add_parser('check', help='classify a target path')
++    check_parser.add_argument('path')
++
++    write_parser = commands.add_parser('write', help='replace a file with bounded content')
++    write_parser.add_argument('path')
++    write_parser.add_argument('content', help='file to read, or - for stdin')
++
++    replace_parser = commands.add_parser('replace', help='replace one exact anchor')
++    replace_parser.add_argument('path')
++    replace_parser.add_argument('old', help='file holding the anchor, or - for stdin')
++    replace_parser.add_argument('new', help='file holding the replacement, or - for stdin')
++
++    verify_parser = commands.add_parser('verify-receipts', help='verify the receipt journal')
++    verify_parser.add_argument(
++        '--no-current-files',
++        action='store_true',
++        help='verify only the journal, not the current file hashes',
++    )
++    return parser
+ 
+ def run(args: argparse.Namespace) -> dict[str, Any]:
+-    pass
++    policy = load_policy(Path(args.policy))
++    if args.command == 'check':
++        return check(policy, args.path)
++    if args.command == 'write':
++        content = _read_input(args.content, policy.max_bytes, label='content')
++        return guarded_write(policy, args.path, content, action='write')
++    if args.command == 'replace':
++        old = _read_input(args.old, policy.max_bytes, label='old text')
++        new = _read_input(args.new, policy.max_bytes, label='new text')
++        return exact_replace(policy, args.path, old, new)
++    if args.command == 'verify-receipts':
++        return verify_receipts(policy, check_files=not args.no_current_files)
++    raise GateError('E_ACTION', f'unsupported command: {args.command}')
++
++def _render(command: str, result: dict[str, Any]) -> str:
++    if command == 'check':
++        return f"mutable: {result['path']} (zone {result['zone']})"
++    if command in ('write', 'replace'):
++        label = 'written' if command == 'write' else 'updated'
++        return (
++            f"{label}: {result['path']} "
++            f"({result['content_bytes']} bytes, {result['changed_bytes']} changed)"
++        )
++    return f"valid: {result['operations']} operations, {result['records']} records"
+ 
+ def main(argv: list[str] | None=None) -> int:
+-    pass
++    parser = build_parser()
++    args = parser.parse_args(argv)
++    try:
++        result = run(args)
++    except GateError as error:
++        if args.json:
++            _emit({'error': {'code': error.code, 'message': error.message}, 'ok': False}, as_json=True)
++        else:
++            print(f'{error.code}: {error.message}', file=sys.stderr)
++        return 2
++    _emit(
++        {'ok': True, 'result': result, 'text': _render(args.command, result)},
++        as_json=args.json,
++    )
++    return 0
+ if __name__ == '__main__':
+     raise SystemExit(main())
+diff --git a/src/selfedit_gate/errors.py b/src/selfedit_gate/errors.py
+index 5ef68a0..52ba257 100644
+--- a/src/selfedit_gate/errors.py
++++ b/src/selfedit_gate/errors.py
+@@ -1,8 +1,11 @@
+ """Stable errors returned by the public CLI and Python API."""
+ from __future__ import annotations
+ 
++
+ class GateError(RuntimeError):
+     """A deterministic refusal with a stable machine-readable code."""
+ 
+     def __init__(self, code: str, message: str) -> None:
+-        pass
++        super().__init__(message)
++        self.code = code
++        self.message = message
+diff --git a/src/selfedit_gate/gate.py b/src/selfedit_gate/gate.py
+index f42b633..4d54408 100644
+--- a/src/selfedit_gate/gate.py
++++ b/src/selfedit_gate/gate.py
+@@ -1,15 +1,22 @@
+ """Guarded checks and atomic mutation operations."""
+ from __future__ import annotations
++
++import errno
+ import os
+ import secrets
+ import stat
+ from dataclasses import dataclass
+-from pathlib import Path
++from pathlib import PurePosixPath
+ from typing import Any
++
+ from .errors import GateError
+ from .policy import Policy, Target, resolve_target, sha256
+ from .receipts import ReceiptJournal, operation_pairs, read_records
+ 
++_ACTIONS = ('write', 'replace')
++_EMPTY_SHA256 = sha256(b'')
++
++
+ @dataclass(frozen=True)
+ class FileState:
+     exists: bool
+@@ -20,32 +27,311 @@ class FileState:
+     device: int | None
+     inode: int | None
+ 
++
++def _directory_flags() -> int:
++    return os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
++
++
+ def _open_parent(policy: Policy, target: Target) -> int:
+-    pass
++    components = PurePosixPath(target.relative).parts[:-1]
++    try:
++        descriptor = os.open(policy.root, _directory_flags())
++    except OSError as exc:
++        raise GateError('E_PARENT', 'policy root cannot be opened') from exc
++    try:
++        for part in components:
++            try:
++                child = os.open(part, _directory_flags(), dir_fd=descriptor)
++            except FileNotFoundError as exc:
++                raise GateError('E_PARENT', f'parent directory does not exist for {target.relative}') from exc
++            except OSError as exc:
++                if exc.errno == errno.ELOOP:  # symlink component
++                    raise GateError('E_SYMLINK', f'symlink in target path: {target.relative}') from exc
++                raise GateError('E_PARENT', f'parent is not a safe directory for {target.relative}') from exc
++            os.close(descriptor)
++            descriptor = child
++        return descriptor
++    except BaseException:
++        os.close(descriptor)
++        raise
++
++
++def _read_fd(descriptor: int, limit: int) -> bytes:
++    chunks: list[bytes] = []
++    total = 0
++    while True:
++        chunk = os.read(descriptor, min(65536, limit + 1 - total))
++        if not chunk:
++            break
++        chunks.append(chunk)
++        total += len(chunk)
++        if total > limit:
++            raise GateError('E_SIZE', 'file exceeds the configured size limit')
++    return b''.join(chunks)
++
+ 
+ def _read_state(parent_fd: int, name: str, max_bytes: int) -> FileState:
+-    pass
++    try:
++        metadata = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
++    except FileNotFoundError:
++        return FileState(False, b'', 0o600, None, None, None, None)
++    if stat.S_ISLNK(metadata.st_mode):
++        raise GateError('E_SYMLINK', f'target is a symlink: {name}')
++    if not stat.S_ISREG(metadata.st_mode):
++        raise GateError('E_TARGET_TYPE', f'target is not a regular file: {name}')
++    if metadata.st_uid != os.geteuid():
++        raise GateError('E_TARGET_OWNER', f'target is not owned by the gateway user: {name}')
++    if metadata.st_size > max_bytes:
++        raise GateError('E_SIZE', 'existing file exceeds the configured size limit')
++    try:
++        descriptor = os.open(
++            name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, dir_fd=parent_fd
++        )
++    except OSError as exc:
++        raise GateError('E_TARGET_RACE', f'target changed while reading: {name}') from exc
++    try:
++        opened = os.fstat(descriptor)
++        if (opened.st_dev, opened.st_ino) != (metadata.st_dev, metadata.st_ino):
++            raise GateError('E_TARGET_RACE', f'target changed while reading: {name}')
++        content = _read_fd(descriptor, max_bytes)
++    finally:
++        os.close(descriptor)
++    return FileState(
++        True,
++        content,
++        stat.S_IMODE(metadata.st_mode),
++        metadata.st_uid,
++        metadata.st_gid,
++        metadata.st_dev,
++        metadata.st_ino,
++    )
++
+ 
+ def _changed_bytes(before: bytes, after: bytes) -> int:
+-    pass
++    limit = min(len(before), len(after))
++    prefix = 0
++    while prefix < limit and before[prefix] == after[prefix]:
++        prefix += 1
++    suffix = 0
++    while suffix < limit - prefix and before[-1 - suffix] == after[-1 - suffix]:
++        suffix += 1
++    return (len(before) - prefix - suffix) + (len(after) - prefix - suffix)
++
+ 
+ def _validate_content(policy: Policy, state: FileState, content: bytes) -> int:
+-    pass
++    if len(content) > policy.max_bytes:
++        raise GateError('E_SIZE', 'proposed content exceeds max_bytes')
++    if b'\x00' in content:
++        raise GateError('E_BINARY', 'proposed content contains a NUL byte')
++    try:
++        content.decode('utf-8')
++    except UnicodeDecodeError as exc:
++        raise GateError('E_ENCODING', 'proposed content is not valid UTF-8') from exc
++    changed = _changed_bytes(state.content, content)
++    if changed > policy.max_changed_bytes:
++        raise GateError('E_DIFF_SIZE', 'proposed change exceeds max_changed_bytes')
++    return changed
++
+ 
+ def _assert_same_state(parent_fd: int, name: str, expected: FileState) -> None:
+-    pass
++    try:
++        current = _read_state(parent_fd, name, len(expected.content))
++    except GateError as exc:
++        raise GateError('E_TARGET_RACE', f'target changed after intent: {name}') from exc
++    if current != expected:
++        raise GateError('E_TARGET_RACE', f'target changed after intent: {name}')
++
++
++def _write_all(descriptor: int, data: bytes) -> None:
++    view = memoryview(data)
++    while view:
++        written = os.write(descriptor, view)
++        view = view[written:]
++
+ 
+ def _atomic_replace(parent_fd: int, name: str, expected: FileState, content: bytes) -> None:
+-    pass
++    temporary = f'.selfedit-{secrets.token_hex(8)}.tmp'
++    descriptor: int | None = None
++    try:
++        descriptor = os.open(
++            temporary,
++            os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
++            0o600,
++            dir_fd=parent_fd,
++        )
++        _write_all(descriptor, content)
++        os.fchmod(descriptor, expected.mode if expected.exists else 0o600)
++        if expected.exists:
++            os.fchown(descriptor, expected.uid, expected.gid)
++        os.fsync(descriptor)
++        os.close(descriptor)
++        descriptor = None
++        _assert_same_state(parent_fd, name, expected)
++        os.replace(temporary, name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd)
++        os.fsync(parent_fd)
++    except GateError:
++        _discard(parent_fd, temporary, descriptor)
++        raise
++    except OSError as exc:
++        _discard(parent_fd, temporary, descriptor)
++        raise GateError('E_ATOMIC_WRITE', f'atomic replacement failed for {name}') from exc
++
++
++def _discard(parent_fd: int, temporary: str, descriptor: int | None) -> None:
++    if descriptor is not None:
++        os.close(descriptor)
++    try:
++        os.unlink(temporary, dir_fd=parent_fd)
++    except OSError:
++        pass
++
+ 
+ def check(policy: Policy, raw_target: str) -> dict[str, Any]:
+-    pass
++    target = resolve_target(policy, raw_target)
++    return {
++        'path': target.relative,
++        'zone': target.zone.name,
++        'mode': target.zone.mode,
++        'mutable': True,
++    }
++
++
++def guarded_write(
++    policy: Policy,
++    raw_target: str,
++    content: bytes,
++    *,
++    action: str,
++    expected_before_sha256: str | None = None,
++) -> dict[str, Any]:
++    if action not in _ACTIONS:
++        raise GateError('E_ACTION', f'unsupported receipt action: {action}')
++    target = resolve_target(policy, raw_target)
++    name = target.path.name
++
++    with ReceiptJournal(policy) as journal:
++        if any(commit is None for _, commit in operation_pairs(journal.records)):
++            raise GateError('E_DANGLING_INTENT', 'an earlier operation is incomplete; verify receipts')
++        policy.assert_unchanged()
++        parent = _open_parent(policy, target)
++        try:
++            state = _read_state(parent, name, policy.max_bytes)
++            before = sha256(state.content)
++            if expected_before_sha256 is not None and expected_before_sha256 != before:
++                raise GateError('E_TARGET_STALE', f'target changed since it was read: {target.relative}')
++            if not state.exists and not policy.allow_create:
++                raise GateError('E_CREATE_DENIED', f'creating new files is not allowed: {target.relative}')
++            changed = _validate_content(policy, state, content)
++            operation_id = secrets.token_hex(16)
++            after = sha256(content)
++            fields: dict[str, Any] = {
++                'operation_id': operation_id,
++                'phase': 'intent',
++                'action': action,
++                'path': target.relative,
++                'zone': target.zone.name,
++                'policy_sha256': policy.sha256,
++                'before_sha256': before,
++                'proposed_after_sha256': after,
++                'content_bytes': len(content),
++                'changed_bytes': changed,
++            }
++            journal.append(fields)
++            policy.assert_unchanged()
++            _assert_same_state(parent, name, state)
++            _atomic_replace(parent, name, state, content)
++            journal.append({**fields, 'phase': 'commit', 'after_sha256': after})
++        finally:
++            os.close(parent)
++    return {
++        'action': action,
++        'path': target.relative,
++        'zone': target.zone.name,
++        'operation_id': operation_id,
++        'before_sha256': before,
++        'after_sha256': after,
++        'content_bytes': len(content),
++        'changed_bytes': changed,
++        'created': not state.exists,
++    }
++
++
++def _count_overlapping(haystack: bytes, needle: bytes) -> int:
++    count = 0
++    start = haystack.find(needle)
++    while start != -1:
++        count += 1
++        start = haystack.find(needle, start + 1)
++    return count
+ 
+-def guarded_write(policy: Policy, raw_target: str, content: bytes, *, action: str, expected_before_sha256: str | None=None) -> dict[str, Any]:
+-    pass
+ 
+ def exact_replace(policy: Policy, raw_target: str, old: bytes, new: bytes) -> dict[str, Any]:
+-    pass
++    if not old:
++        raise GateError('E_EMPTY_ANCHOR', 'the anchor to replace must not be empty')
++    target = resolve_target(policy, raw_target)
++    parent = _open_parent(policy, target)
++    try:
++        state = _read_state(parent, target.path.name, policy.max_bytes)
++    finally:
++        os.close(parent)
++    if not state.exists:
++        raise GateError('E_NOT_FOUND', f'target does not exist: {target.relative}')
++    if _count_overlapping(state.content, old) != 1:
++        raise GateError('E_ANCHOR_COUNT', 'the anchor must occur exactly once in the target')
++    updated = state.content.replace(old, new, 1)
++    return guarded_write(
++        policy,
++        raw_target,
++        updated,
++        action='replace',
++        expected_before_sha256=sha256(state.content),
++    )
++
++
++def _current_digest(policy: Policy, relative: str) -> str | None:
++    target = resolve_target(policy, relative)
++    parent = _open_parent(policy, target)
++    try:
++        state = _read_state(parent, target.path.name, policy.max_bytes)
++    finally:
++        os.close(parent)
++    return sha256(state.content) if state.exists else None
++
+ 
+-def verify_receipts(policy: Policy, *, check_files: bool=True) -> dict[str, Any]:
+-    pass
++def verify_receipts(policy: Policy, *, check_files: bool = True) -> dict[str, Any]:
++    policy.assert_unchanged()
++    records = read_records(policy)
++    operations = 0
++    last_after: dict[str, str] = {}
++    for intent, commit in operation_pairs(records):
++        if intent['policy_sha256'] != policy.sha256:
++            raise GateError('E_POLICY_CHANGED', 'a receipt was written under a different policy')
++        if commit is None:
++            raise GateError('E_DANGLING_INTENT', f'incomplete operation {intent["operation_id"]}')
++        for key in ('operation_id', 'action', 'path', 'zone', 'policy_sha256', 'before_sha256',
++                    'proposed_after_sha256', 'content_bytes', 'changed_bytes'):
++            if intent[key] != commit[key]:
++                raise GateError('E_RECEIPT_PAIR', f'intent and commit disagree on {key}')
++        if commit['after_sha256'] != commit['proposed_after_sha256']:
++            raise GateError('E_RECEIPT_PAIR', 'commit after hash differs from the proposed hash')
++        path = intent['path']
++        if path in last_after and intent['before_sha256'] != last_after[path]:
++            raise GateError('E_FILE_CHAIN', f'operation does not continue the chain for {path}')
++        last_after[path] = commit['after_sha256']
++        operations += 1
++    if check_files:
++        for path, digest in last_after.items():
++            try:
++                current = _current_digest(policy, path)
++            except GateError as exc:
++                raise GateError('E_CURRENT_HASH', f'current file does not verify: {path}') from exc
++            if current != digest:
++                raise GateError('E_CURRENT_HASH', f'current file does not match the last receipt: {path}')
++    return {
++        'valid': True,
++        'records': len(records),
++        'operations': operations,
++        'files': len(last_after),
++        'policy_sha256': policy.sha256,
++        'current_files_checked': check_files,
++    }
+diff --git a/src/selfedit_gate/policy.py b/src/selfedit_gate/policy.py
+index 977fe8f..a6dea3d 100644
+--- a/src/selfedit_gate/policy.py
++++ b/src/selfedit_gate/policy.py
+@@ -1,5 +1,6 @@
+ """Versioned policy loading and deny-before-allow path classification."""
+ from __future__ import annotations
++
+ import hashlib
+ import os
+ import re
+@@ -7,17 +8,51 @@ import stat
+ import tomllib
+ from dataclasses import dataclass
+ from pathlib import Path, PurePosixPath
++
+ from .errors import GateError
++
+ POLICY_SCHEMA_VERSION = 1
+ _MODES = frozenset({'mutable', 'protected', 'immutable'})
++_GATE_KEYS = frozenset({'root', 'receipt_log', 'max_bytes', 'max_changed_bytes', 'allow_create'})
++_ZONE_KEYS = frozenset({'name', 'mode', 'patterns', 'extensions'})
++_TOP_KEYS = frozenset({'schema_version', 'gate', 'zones'})
++_DEFAULT_RECEIPT_LOG = '.selfedit-gate/receipts.jsonl'
++_DEFAULT_MAX_BYTES = 262144
++_DEFAULT_MAX_CHANGED_BYTES = 65536
++
+ 
+ def sha256(data: bytes) -> str:
+     """Return a lowercase SHA-256 digest."""
+-    pass
++    return hashlib.sha256(data).hexdigest()
++
++
++def _segment_regex(segment: str) -> str:
++    pieces: list[str] = []
++    for character in segment:
++        if character == '*':
++            if not pieces or pieces[-1] != '[^/]*':
++                pieces.append('[^/]*')
++        elif character == '?':
++            pieces.append('[^/]')
++        else:
++            pieces.append(re.escape(character))
++    return ''.join(pieces)
++
+ 
+ def _compile_pattern(pattern: str) -> re.Pattern[str]:
+     """Compile a gitignore-like path glob where ``*`` never crosses ``/``."""
+-    pass
++    parts = pattern.split('/')
++    pieces: list[str] = []
++    for index, part in enumerate(parts):
++        last = index == len(parts) - 1
++        if part == '**':
++            pieces.append('.+' if last else '(?:[^/]+/)*')
++        else:
++            pieces.append(_segment_regex(part))
++            if not last:
++                pieces.append('/')
++    return re.compile(''.join(pieces))
++
+ 
+ @dataclass(frozen=True)
+ class Zone:
+@@ -29,7 +64,8 @@ class Zone:
+     _compiled: tuple[re.Pattern[str], ...]
+ 
+     def matches(self, relative: str) -> bool:
+-        pass
++        return any(pattern.fullmatch(relative) is not None for pattern in self._compiled)
++
+ 
+ @dataclass(frozen=True)
+ class Target:
+@@ -38,6 +74,7 @@ class Target:
+     relative: str
+     zone: Zone
+ 
++
+ @dataclass(frozen=True)
+ class Policy:
+     """A validated policy and the hash of its exact source bytes."""
+@@ -52,22 +89,184 @@ class Policy:
+ 
+     def assert_unchanged(self) -> None:
+         """Fail if the policy changed after the decision was made."""
+-        pass
++        try:
++            current = self.source.read_bytes()
++        except OSError as exc:
++            raise GateError('E_POLICY_CHANGED', f'policy file is unreadable: {self.source}') from exc
++        if sha256(current) != self.sha256:
++            raise GateError('E_POLICY_CHANGED', f'policy file changed after load: {self.source}')
++
++
++def _reject_unknown(mapping: dict[str, object], allowed: frozenset[str], code: str) -> None:
++    for key in mapping:
++        if key not in allowed:
++            raise GateError(code, f'unknown policy key: {key}')
++
+ 
+ def _integer(gate: dict[str, object], name: str, default: int) -> int:
+-    pass
++    value = gate.get(name, default)
++    if type(value) is not int or value <= 0:
++        raise GateError('E_POLICY_LIMITS', f'{name} must be a positive integer')
++    return value
++
++
++def _valid_pattern(pattern: object) -> bool:
++    if not isinstance(pattern, str) or not pattern or pattern.startswith('/') or '\x00' in pattern:
++        return False
++    return all(segment not in ('', '.', '..') for segment in pattern.split('/'))
++
++
++def _parse_zone(item: object) -> Zone:
++    if not isinstance(item, dict):
++        raise GateError('E_POLICY_ZONES', 'each zone must be a table')
++    _reject_unknown(item, _ZONE_KEYS, 'E_POLICY_KEY')
++    name = item.get('name')
++    if not isinstance(name, str) or not name:
++        raise GateError('E_POLICY_ZONES', 'zone name must be a non-empty string')
++    mode = item.get('mode')
++    if not isinstance(mode, str) or mode not in _MODES:
++        raise GateError('E_POLICY_ZONES', f'zone {name!r} has an invalid mode')
++    patterns = item.get('patterns')
++    if not isinstance(patterns, list) or not patterns:
++        raise GateError('E_POLICY_ZONES', f'zone {name!r} needs at least one pattern')
++    for pattern in patterns:
++        if not _valid_pattern(pattern):
++            raise GateError('E_POLICY_ZONES', f'zone {name!r} has an invalid pattern')
++    extensions = item.get('extensions', [])
++    if not isinstance(extensions, list):
++        raise GateError('E_POLICY_ZONES', f'zone {name!r} extensions must be a list')
++    for extension in extensions:
++        if not isinstance(extension, str) or not extension.startswith('.') or len(extension) < 2:
++            raise GateError('E_POLICY_ZONES', f'zone {name!r} has an invalid extension')
++    compiled = tuple(_compile_pattern(pattern) for pattern in patterns)
++    return Zone(name, mode, tuple(patterns), tuple(extensions), compiled)
++
++
++def _receipt_relative(raw: object) -> str:
++    if not isinstance(raw, str) or not raw or raw.startswith('/') or raw.endswith('/'):
++        raise GateError('E_POLICY_RECEIPTS', 'receipt_log must name a file below the root')
++    if any(segment in ('', '.', '..') for segment in raw.split('/')):
++        raise GateError('E_POLICY_RECEIPTS', 'receipt_log must name a file below the root')
++    if '\x00' in raw:
++        raise GateError('E_POLICY_RECEIPTS', 'receipt_log contains a NUL byte')
++    return raw
++
+ 
+ def load_policy(path: Path) -> Policy:
+     """Load policy schema v1 and reject unknown or ambiguous semantics."""
+-    pass
++    source = Path(path).absolute()
++    try:
++        raw = source.read_bytes()
++    except OSError as exc:
++        raise GateError('E_POLICY_READ', f'cannot read policy: {source}') from exc
++    try:
++        data = tomllib.loads(raw.decode('utf-8'))
++    except (UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
++        raise GateError('E_POLICY_TOML', f'policy is not valid TOML: {source}') from exc
++
++    _reject_unknown(data, _TOP_KEYS, 'E_POLICY_KEY')
++    version = data.get('schema_version')
++    if type(version) is not int or version != POLICY_SCHEMA_VERSION:
++        raise GateError('E_POLICY_VERSION', f'unsupported policy schema_version: {version!r}')
++
++    gate = data.get('gate')
++    if not isinstance(gate, dict):
++        raise GateError('E_POLICY_KEY', 'policy requires a [gate] table')
++    _reject_unknown(gate, _GATE_KEYS, 'E_POLICY_KEY')
++
++    raw_root = gate.get('root', '.')
++    if not isinstance(raw_root, str) or not raw_root or '\x00' in raw_root:
++        raise GateError('E_POLICY_ROOT', 'root must be a non-empty path')
++    root_path = Path(raw_root)
++    if not root_path.is_absolute():
++        root_path = source.parent / root_path
++    root = root_path.resolve()
++    if not root.is_dir():
++        raise GateError('E_POLICY_ROOT', f'root is not a directory: {root}')
++
++    receipt_relative = _receipt_relative(gate.get('receipt_log', _DEFAULT_RECEIPT_LOG))
++    max_bytes = _integer(gate, 'max_bytes', _DEFAULT_MAX_BYTES)
++    max_changed_bytes = _integer(gate, 'max_changed_bytes', _DEFAULT_MAX_CHANGED_BYTES)
++    allow_create = gate.get('allow_create', False)
++    if type(allow_create) is not bool:
++        raise GateError('E_POLICY_KEY', 'allow_create must be a boolean')
++
++    zone_items = data.get('zones')
++    if not isinstance(zone_items, list) or not zone_items:
++        raise GateError('E_POLICY_ZONES', 'policy requires one or more [[zones]] tables')
++    zones = tuple(_parse_zone(item) for item in zone_items)
++    names = [zone.name for zone in zones]
++    if len(set(names)) != len(names):
++        raise GateError('E_POLICY_ZONES', 'zone names must be unique')
++
++    mutable = [zone for zone in zones if zone.mode == 'mutable']
++    resolved_source = source.resolve()
++    try:
++        policy_relative = resolved_source.relative_to(root).as_posix()
++    except ValueError:
++        policy_relative = None
++    if policy_relative is not None and any(zone.matches(policy_relative) for zone in mutable):
++        raise GateError('E_POLICY_AUTHORITY', 'the policy file must not be mutable')
++    if any(zone.matches(receipt_relative) for zone in mutable):
++        raise GateError('E_POLICY_AUTHORITY', 'the receipt log must not be mutable')
++
++    return Policy(
++        source=source,
++        root=root,
++        receipt_log=root / receipt_relative,
++        max_bytes=max_bytes,
++        max_changed_bytes=max_changed_bytes,
++        allow_create=allow_create,
++        zones=zones,
++        sha256=sha256(raw),
++    )
++
+ 
+ def classify(policy: Policy, relative: str) -> Zone:
+     """Return the mutable zone; any protected/immutable match wins."""
+-    pass
++    matches = [zone for zone in policy.zones if zone.matches(relative)]
++    if any(zone.mode != 'mutable' for zone in matches):
++        raise GateError('E_ZONE_DENIED', f'path is in a protected or immutable zone: {relative}')
++    mutable = [zone for zone in matches if zone.mode == 'mutable']
++    if not mutable:
++        raise GateError('E_ZONE_UNMATCHED', f'path matches no mutable zone: {relative}')
++    suffix = PurePosixPath(relative).suffix.lower()
++    for zone in mutable:
++        if not zone.extensions or suffix in {item.lower() for item in zone.extensions}:
++            return zone
++    raise GateError('E_EXTENSION', f'extension is not allowed for {relative}')
++
+ 
+ def _reject_symlink_components(root: Path, relative: PurePosixPath) -> None:
+-    pass
++    current = root
++    for part in relative.parts:
++        current = current / part
++        try:
++            metadata = os.lstat(current)
++        except FileNotFoundError:
++            return
++        except NotADirectoryError:
++            return
++        if stat.S_ISLNK(metadata.st_mode):
++            raise GateError('E_SYMLINK', f'symlink in target path: {relative.as_posix()}')
++
+ 
+ def resolve_target(policy: Policy, raw: str) -> Target:
+     """Resolve a target without following any target-path symlink."""
+-    pass
++    if not isinstance(raw, str) or not raw or '\x00' in raw:
++        raise GateError('E_PATH', 'target path must be a non-empty string')
++    if '..' in raw.split('/'):
++        raise GateError('E_TRAVERSAL', f'parent traversal is refused: {raw}')
++    if raw.startswith('/'):
++        try:
++            parts = Path(raw).relative_to(policy.root).parts
++        except ValueError as exc:
++            raise GateError('E_OUTSIDE_ROOT', f'target is outside the policy root: {raw}') from exc
++    else:
++        parts = tuple(part for part in raw.split('/') if part not in ('', '.'))
++    if not parts:
++        raise GateError('E_PATH', f'target does not name a file: {raw}')
++    relative_path = PurePosixPath(*parts)
++    _reject_symlink_components(policy.root, relative_path)
++    zone = classify(policy, relative_path.as_posix())
++    return Target(path=policy.root / relative_path, relative=relative_path.as_posix(), zone=zone)
+diff --git a/src/selfedit_gate/receipts.py b/src/selfedit_gate/receipts.py
+index 421bbcc..4ac4329 100644
+--- a/src/selfedit_gate/receipts.py
++++ b/src/selfedit_gate/receipts.py
+@@ -1,5 +1,6 @@
+ """Append-only, hash-chained intent/commit receipt journal."""
+ from __future__ import annotations
++
+ import datetime as dt
+ import errno
+ import fcntl
+@@ -8,62 +9,335 @@ import os
+ import re
+ import stat
+ from collections.abc import Iterator
+-from typing import Any, BinaryIO
++from typing import Any
++
+ from .errors import GateError
+ from .policy import Policy, sha256
++
+ RECEIPT_SCHEMA_VERSION = 1
+ GENESIS_HASH = '0' * 64
+ MAX_JOURNAL_BYTES = 64 * 1024 * 1024
+ 
++_BASE_KEYS = frozenset({
++    'schema_version', 'sequence', 'timestamp', 'operation_id', 'phase', 'action', 'path', 'zone',
++    'policy_sha256', 'before_sha256', 'proposed_after_sha256', 'content_bytes', 'changed_bytes',
++    'previous_record_sha256', 'record_sha256',
++})
++_INTENT_KEYS = _BASE_KEYS
++_COMMIT_KEYS = _BASE_KEYS | frozenset({'after_sha256'})
++_ACTIONS = ('write', 'replace')
++_PHASES = ('intent', 'commit')
++_TIMESTAMP = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$')
++
++
+ def _canonical(record: dict[str, Any]) -> bytes:
+-    pass
++    return json.dumps(
++        record, ensure_ascii=True, separators=(',', ':'), sort_keys=True
++    ).encode('ascii')
++
+ 
+ def _record_hash(record: dict[str, Any]) -> str:
+-    pass
++    body = {key: value for key, value in record.items() if key != 'record_sha256'}
++    return sha256(_canonical(body))
++
+ 
+ def _directory_flags() -> int:
+-    pass
++    return os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
++
+ 
+ def _validate_receipt_directory(descriptor: int) -> None:
+-    pass
++    metadata = os.fstat(descriptor)
++    if not stat.S_ISDIR(metadata.st_mode):
++        raise GateError('E_AUDIT_PATH', 'receipt directory is not a directory')
++    if metadata.st_uid != os.geteuid() or metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
++        raise GateError('E_AUDIT_MODE', 'receipt directory is not owned or is group/world writable')
++
+ 
+ def _validate_receipt_file(metadata: os.stat_result) -> None:
+-    pass
++    if not stat.S_ISREG(metadata.st_mode):
++        raise GateError('E_AUDIT_PATH', 'receipt journal must be a regular file')
++    if metadata.st_nlink != 1:
++        raise GateError('E_AUDIT_LINK', 'receipt journal must have exactly one hard link')
++    if metadata.st_uid != os.geteuid() or metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
++        raise GateError('E_AUDIT_MODE', 'receipt journal is not owned or is group/world writable')
++
++
++def _open_receipt_parent(policy: Policy, *, create: bool) -> int | None:
++    components = policy.receipt_log.relative_to(policy.root).parts[:-1]
++    try:
++        descriptor = os.open(policy.root, _directory_flags())
++    except OSError as exc:
++        raise GateError('E_AUDIT_PATH', 'policy root cannot be opened') from exc
++    try:
++        if not components:
++            _validate_receipt_directory(descriptor)
++        for part in components:
++            try:
++                child = os.open(part, _directory_flags(), dir_fd=descriptor)
++            except FileNotFoundError:
++                if not create:
++                    os.close(descriptor)
++                    return None
++                try:
++                    os.mkdir(part, 0o700, dir_fd=descriptor)
++                    child = os.open(part, _directory_flags(), dir_fd=descriptor)
++                except OSError as exc:
++                    raise GateError('E_AUDIT_PATH', 'receipt directory cannot be created') from exc
++            except OSError as exc:
++                raise GateError('E_AUDIT_PATH', 'receipt path component is unsafe') from exc
++            os.close(descriptor)
++            descriptor = child
++            _validate_receipt_directory(descriptor)
++        return descriptor
++    except BaseException:
++        os.close(descriptor)
++        raise
+ 
+-def _open_receipt_parent(policy: Policy, *, create: bool) -> int:
+-    pass
+ 
+ def _no_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+-    pass
++    result: dict[str, Any] = {}
++    for key, value in pairs:
++        if key in result:
++            raise GateError('E_AUDIT_JSON', f'duplicate JSON key: {key}')
++        result[key] = value
++    return result
++
++
++def _reject_constant(name: str) -> None:
++    raise ValueError(f'non-finite JSON constant: {name}')
++
++
+ _HASH = re.compile('^[0-9a-f]{64}$')
+ _OPERATION = re.compile('^[0-9a-f]{32}$')
+ 
++
++def _is_int(value: object) -> bool:
++    return type(value) is int
++
++
+ def _validate_fields(record: dict[str, Any], line_number: int) -> None:
+-    pass
++    if not _is_int(record.get('schema_version')) or record['schema_version'] != RECEIPT_SCHEMA_VERSION:
++        raise GateError('E_AUDIT_VERSION', f'unsupported receipt schema at record {line_number}')
++    sequence = record.get('sequence')
++    if not _is_int(sequence) or sequence < 1:
++        raise GateError('E_AUDIT_SEQUENCE', f'invalid sequence at record {line_number}')
++    phase = record.get('phase')
++    if not isinstance(phase, str) or phase not in _PHASES:
++        raise GateError('E_RECEIPT_FIELDS', f'invalid phase at record {line_number}')
++    expected = _INTENT_KEYS if phase == 'intent' else _COMMIT_KEYS
++    if set(record) != expected:
++        raise GateError('E_RECEIPT_FIELDS', f'unexpected fields at record {line_number}')
++
++    timestamp = record['timestamp']
++    if not isinstance(timestamp, str) or not _TIMESTAMP.match(timestamp):
++        raise GateError('E_RECEIPT_FIELDS', f'invalid timestamp at record {line_number}')
++    try:
++        dt.datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
++    except ValueError as exc:
++        raise GateError('E_RECEIPT_FIELDS', f'invalid timestamp at record {line_number}') from exc
++
++    operation_id = record['operation_id']
++    if not isinstance(operation_id, str) or not _OPERATION.match(operation_id):
++        raise GateError('E_RECEIPT_FIELDS', f'invalid operation_id at record {line_number}')
++    action = record['action']
++    if not isinstance(action, str) or action not in _ACTIONS:
++        raise GateError('E_RECEIPT_FIELDS', f'invalid action at record {line_number}')
++    for key in ('path', 'zone'):
++        value = record[key]
++        if not isinstance(value, str) or not value:
++            raise GateError('E_RECEIPT_FIELDS', f'invalid {key} at record {line_number}')
++    hash_keys = [
++        'policy_sha256', 'before_sha256', 'proposed_after_sha256',
++        'previous_record_sha256', 'record_sha256',
++    ]
++    if phase == 'commit':
++        hash_keys.append('after_sha256')
++    for key in hash_keys:
++        value = record[key]
++        if not isinstance(value, str) or not _HASH.match(value):
++            raise GateError('E_RECEIPT_FIELDS', f'invalid {key} at record {line_number}')
++    for key in ('content_bytes', 'changed_bytes'):
++        value = record[key]
++        if not _is_int(value) or value < 0:
++            raise GateError('E_RECEIPT_FIELDS', f'invalid {key} at record {line_number}')
++
+ 
+ def parse_records(raw: bytes) -> list[dict[str, Any]]:
+     """Parse and validate the structural hash chain."""
+-    pass
++    if not raw:
++        return []
++    if not raw.endswith(b'\n'):
++        raise GateError('E_AUDIT_TRUNCATED', 'receipt journal does not end with a newline')
++    records: list[dict[str, Any]] = []
++    for line_number, line in enumerate(raw.split(b'\n')[:-1], start=1):
++        try:
++            text = line.decode('utf-8')
++            record = json.loads(
++                text, object_pairs_hook=_no_duplicate_keys, parse_constant=_reject_constant
++            )
++        except (UnicodeDecodeError, ValueError) as exc:
++            raise GateError('E_AUDIT_JSON', f'invalid JSON at record {line_number}') from exc
++        if not isinstance(record, dict):
++            raise GateError('E_AUDIT_JSON', f'record {line_number} is not an object')
++        _validate_fields(record, line_number)
++        if record['sequence'] != line_number:
++            raise GateError('E_AUDIT_SEQUENCE', f'out-of-order record at {line_number}')
++        if record['record_sha256'] != _record_hash(record):
++            raise GateError('E_AUDIT_HASH', f'record hash mismatch at {line_number}')
++        previous = records[-1]['record_sha256'] if records else GENESIS_HASH
++        if record['previous_record_sha256'] != previous:
++            raise GateError('E_AUDIT_CHAIN', f'hash chain broken at record {line_number}')
++        records.append(record)
++    return records
++
++
++def _open_journal(parent: int, name: str, *, create: bool) -> tuple[int, bool] | None:
++    """Return (descriptor, created) or None when the journal is absent and not created."""
++    try:
++        metadata: os.stat_result | None = os.stat(name, dir_fd=parent, follow_symlinks=False)
++    except FileNotFoundError:
++        if not create:
++            return None
++        metadata = None
++    if metadata is not None:
++        _validate_receipt_file(metadata)
++    flags = os.O_RDWR if create else os.O_RDONLY
++    flags |= os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC
++    if create:
++        flags |= os.O_CREAT | os.O_APPEND
++    try:
++        descriptor = os.open(name, flags, 0o600, dir_fd=parent)
++    except FileNotFoundError:
++        if not create:
++            return None
++        raise GateError('E_AUDIT_PATH', 'receipt journal cannot be created') from None
++    except OSError as exc:
++        code = 'E_AUDIT_PATH' if exc.errno in (errno.ELOOP, errno.ENOTDIR) else 'E_AUDIT_WRITE'
++        raise GateError(code, 'receipt journal cannot be opened safely') from exc
++    try:
++        _validate_receipt_file(os.fstat(descriptor))
++    except BaseException:
++        os.close(descriptor)
++        raise
++    return descriptor, metadata is None
++
++
++def _read_all(descriptor: int) -> bytes:
++    chunks: list[bytes] = []
++    total = 0
++    while True:
++        chunk = os.read(descriptor, min(65536, MAX_JOURNAL_BYTES + 1 - total))
++        if not chunk:
++            break
++        chunks.append(chunk)
++        total += len(chunk)
++        if total > MAX_JOURNAL_BYTES:
++            raise GateError('E_AUDIT_SIZE', 'receipt journal exceeds the size limit')
++    return b''.join(chunks)
++
++
++def _write_all(descriptor: int, data: bytes) -> None:
++    view = memoryview(data)
++    while view:
++        written = os.write(descriptor, view)
++        view = view[written:]
++
+ 
+ class ReceiptJournal:
+     """Exclusive journal transaction covering intent, write, and commit."""
+ 
+     def __init__(self, policy: Policy) -> None:
+-        pass
++        self.policy = policy
++        self.records: list[dict[str, Any]] = []
++        self._parent: int | None = None
++        self._descriptor: int | None = None
+ 
+     def __enter__(self) -> ReceiptJournal:
+-        pass
++        parent = _open_receipt_parent(self.policy, create=True)
++        assert parent is not None
++        try:
++            opened = _open_journal(parent, self.policy.receipt_log.name, create=True)
++            assert opened is not None
++            descriptor, created = opened
++            try:
++                fcntl.flock(descriptor, fcntl.LOCK_EX)
++                os.lseek(descriptor, 0, os.SEEK_SET)
++                self.records = parse_records(_read_all(descriptor))
++            except BaseException:
++                os.close(descriptor)
++                raise
++            if created:
++                os.fsync(parent)
++        except BaseException:
++            os.close(parent)
++            raise
++        self._parent = parent
++        self._descriptor = descriptor
++        return self
+ 
+     def __exit__(self, *_: object) -> None:
+-        pass
++        if self._descriptor is not None:
++            os.close(self._descriptor)
++            self._descriptor = None
++        if self._parent is not None:
++            os.close(self._parent)
++            self._parent = None
+ 
+     def append(self, fields: dict[str, Any]) -> dict[str, Any]:
+-        pass
++        if self._descriptor is None:
++            raise GateError('E_AUDIT_WRITE', 'receipt journal is not open')
++        previous = self.records[-1]['record_sha256'] if self.records else GENESIS_HASH
++        record: dict[str, Any] = dict(fields)
++        record['schema_version'] = RECEIPT_SCHEMA_VERSION
++        record['sequence'] = len(self.records) + 1
++        record['timestamp'] = dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
++        record['previous_record_sha256'] = previous
++        record['record_sha256'] = _record_hash(record)
++        _validate_fields(record, record['sequence'])
++        try:
++            _write_all(self._descriptor, _canonical(record) + b'\n')
++            os.fsync(self._descriptor)
++        except OSError as exc:
++            raise GateError('E_AUDIT_WRITE', 'receipt could not be made durable') from exc
++        self.records.append(record)
++        return record
++
+ 
+ def read_records(policy: Policy) -> list[dict[str, Any]]:
+     """Read receipts under a shared advisory lock."""
+-    pass
++    parent = _open_receipt_parent(policy, create=False)
++    if parent is None:
++        return []
++    try:
++        opened = _open_journal(parent, policy.receipt_log.name, create=False)
++        if opened is None:
++            return []
++        descriptor, _ = opened
++        try:
++            fcntl.flock(descriptor, fcntl.LOCK_SH)
++            raw = _read_all(descriptor)
++        finally:
++            os.close(descriptor)
++    finally:
++        os.close(parent)
++    return parse_records(raw)
++
+ 
+ def operation_pairs(records: list[dict[str, Any]]) -> Iterator[tuple[dict[str, Any], dict[str, Any] | None]]:
+     """Yield ordered intents and their optional commit records."""
+-    pass
++    index = 0
++    while index < len(records):
++        intent = records[index]
++        if intent['phase'] != 'intent':
++            raise GateError('E_RECEIPT_PAIR', f'commit without intent at sequence {intent["sequence"]}')
++        following = records[index + 1] if index + 1 < len(records) else None
++        if (
++            following is not None
++            and following['phase'] == 'commit'
++            and following['operation_id'] == intent['operation_id']
++        ):
++            yield intent, following
++            index += 2
++        else:
++            yield intent, None
++            index += 1

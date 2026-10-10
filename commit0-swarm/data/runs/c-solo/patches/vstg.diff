@@ -1,0 +1,1229 @@
+diff --git a/src/vstg/__init__.py b/src/vstg/__init__.py
+index 5b49eef..d4972b9 100644
+--- a/src/vstg/__init__.py
++++ b/src/vstg/__init__.py
+@@ -18,18 +18,36 @@ module for callers who want direct control over multiple independent
+ registries, custom clocks, or anything this convenience layer does
+ not anticipate.
+ """
++
+ from __future__ import annotations
++
+ from pathlib import Path
++
+ from vstg.filter import BloomFilter
+ from vstg.managed import ManagedBloomFilter
+ from vstg.persist import PersistPolicy
+ from vstg.registry import BloomFilterRegistry
+ from vstg.shard import ShardedBloomFilter
+-__all__ = ['BloomFilter', 'ManagedBloomFilter', 'ShardedBloomFilter', 'BloomFilterRegistry', 'PersistPolicy', 'init', 'register', 'might_contain', 'add', 'checkpoint_all', 'close_all']
++
++__all__ = [
++  "BloomFilter",
++  "ManagedBloomFilter",
++  "ShardedBloomFilter",
++  "BloomFilterRegistry",
++  "PersistPolicy",
++  "init",
++  "register",
++  "might_contain",
++  "add",
++  "checkpoint_all",
++  "close_all",
++]
++
+ _registry: BloomFilterRegistry | None = None
+ 
++
+ def init(directory: Path) -> None:
+-    """Configure the default registry used by every module level convenience function.
++  """Configure the default registry used by every module level convenience function.
+ 
+   Intended to be called exactly once, during application startup,
+   before any call to register, might_contain, or add. Calling it a
+@@ -47,10 +65,14 @@ def init(directory: Path) -> None:
+   Raises:
+     RuntimeError: If init has already been called in this process.
+   """
+-    pass
++  global _registry
++  if _registry is not None:
++    raise RuntimeError("vstg.init has already been called in this process")
++  _registry = BloomFilterRegistry(directory)
++
+ 
+ def _require_registry() -> BloomFilterRegistry:
+-    """Return the configured default registry, or raise a clear error if init was never called.
++  """Return the configured default registry, or raise a clear error if init was never called.
+ 
+   Centralizing this check in one place ensures every convenience
+   function in this module fails with the identical, actionable
+@@ -63,10 +85,13 @@ def _require_registry() -> BloomFilterRegistry:
+   Raises:
+     RuntimeError: If init has not yet been called in this process.
+   """
+-    pass
++  if _registry is None:
++    raise RuntimeError("vstg.init must be called before using the vstg convenience API")
++  return _registry
++
+ 
+ def register(name: str, capacity: int, error_rate: float, policy: PersistPolicy | None=None, shard_count: int | None=None) -> None:
+-    """Register a named filter against the default registry.
++  """Register a named filter against the default registry.
+ 
+   A thin delegation to BloomFilterRegistry.register. See that method
+   for the full description of each parameter.
+@@ -86,10 +111,11 @@ def register(name: str, capacity: int, error_rate: float, policy: PersistPolicy
+     RuntimeError: If init has not yet been called.
+     ValueError: If name has already been registered.
+   """
+-    pass
++  _require_registry().register(name, capacity, error_rate, policy=policy, shard_count=shard_count)
++
+ 
+ def might_contain(name: str, member: bytes) -> bool:
+-    """Test membership against a named filter registered with vstg.register.
++  """Test membership against a named filter registered with vstg.register.
+ 
+   Args:
+     name: The identifier the filter was registered under.
+@@ -103,10 +129,11 @@ def might_contain(name: str, member: bytes) -> bool:
+     RuntimeError: If init has not yet been called.
+     KeyError: If name was never registered.
+   """
+-    pass
++  return _require_registry().might_contain(name, member)
++
+ 
+ def add(name: str, member: bytes) -> None:
+-    """Insert a member into a named filter registered with vstg.register.
++  """Insert a member into a named filter registered with vstg.register.
+ 
+   Args:
+     name: The identifier the filter was registered under.
+@@ -116,28 +143,31 @@ def add(name: str, member: bytes) -> None:
+     RuntimeError: If init has not yet been called.
+     KeyError: If name was never registered.
+   """
+-    pass
++  _require_registry().add(name, member)
++
+ 
+ def checkpoint_all() -> None:
+-    """Force an immediate checkpoint of every filter in the default registry.
++  """Force an immediate checkpoint of every filter in the default registry.
+ 
+   Raises:
+     RuntimeError: If init has not yet been called.
+   """
+-    pass
++  _require_registry().checkpoint_all()
++
+ 
+ def close_all() -> None:
+-    """Perform a final checkpoint of every filter in the default registry, per each one's own policy.
++  """Perform a final checkpoint of every filter in the default registry, per each one's own policy.
+ 
+   Intended to be called once, during an orderly application shutdown.
+ 
+   Raises:
+     RuntimeError: If init has not yet been called.
+   """
+-    pass
++  _require_registry().close_all()
++
+ 
+ def _reset_for_testing() -> None:
+-    """Clear the default registry, permitting init to be called again.
++  """Clear the default registry, permitting init to be called again.
+ 
+   This exists solely to let the test suite exercise init's guard
+   behavior and its success path repeatedly within the same process,
+@@ -146,4 +176,5 @@ def _reset_for_testing() -> None:
+   application code, calling it while a registry holds unsaved state
+   discards that state without checkpointing it first.
+   """
+-    pass
++  global _registry
++  _registry = None
+diff --git a/src/vstg/core.py b/src/vstg/core.py
+index 3cd0174..f4ac288 100644
+--- a/src/vstg/core.py
++++ b/src/vstg/core.py
+@@ -8,12 +8,15 @@ mutates state, and every function is fully deterministic given its inputs,
+ which is what makes this module trivial to verify in isolation from the
+ mutable bit array that ultimately depends on it.
+ """
++
+ from __future__ import annotations
++
+ import hashlib
+ import math
+ 
++
+ def optimal_size(capacity: int, error_rate: float) -> int:
+-    """Compute the minimum bit array length required to honor a target false positive rate.
++  """Compute the minimum bit array length required to honor a target false positive rate.
+ 
+   Given an expected number of inserted members and a tolerated probability
+   of a false positive, this returns the number of bits the underlying
+@@ -37,10 +40,17 @@ def optimal_size(capacity: int, error_rate: float) -> int:
+     ValueError: If capacity is not positive, or error_rate does not fall
+                 within the open interval (0, 1).
+   """
+-    pass
++  if capacity <= 0:
++    raise ValueError(f"capacity must be positive, got {capacity}")
++  if not 0.0 < error_rate < 1.0:
++    raise ValueError(f"error_rate must lie strictly between 0 and 1, got {error_rate}")
++
++  bits = -(capacity * math.log(error_rate)) / (math.log(2) ** 2)
++  return max(1, math.ceil(bits))
++
+ 
+ def optimal_hash_count(size: int, capacity: int) -> int:
+-    """Compute the number of hash rounds that minimizes the false positive rate.
++  """Compute the number of hash rounds that minimizes the false positive rate.
+ 
+   For a bit array of fixed size and an expected member count, there exists
+   a specific number of hash rounds that minimizes collision probability
+@@ -61,10 +71,16 @@ def optimal_hash_count(size: int, capacity: int) -> int:
+   Raises:
+     ValueError: If size or capacity is not positive
+   """
+-    pass
++  if size <= 0:
++    raise ValueError(f"size must be positive, got {size}")
++  if capacity <= 0:
++    raise ValueError(f"capacity must be positive, got {capacity}")
++
++  return max(1, round((size / capacity) * math.log(2)))
++
+ 
+ def bit_indices(member: bytes, size: int, hash_count: int) -> tuple[int, ...]:
+-    """Derive the set of bit positions a member maps to within the array.
++  """Derive the set of bit positions a member maps to within the array.
+ 
+   Rather than invoking hash_count independent hash functions, which would
+   multiply the cost of every insertion and lookup, this applies the
+@@ -78,10 +94,10 @@ def bit_indices(member: bytes, size: int, hash_count: int) -> tuple[int, ...]:
+ 
+   Args:
+     member: The raw bytes of the element being hashed. Callers are
+-            responsible for encoding whatever value they hold into bytes 
+-            before calling this function; this module holds no opinion 
++            responsible for encoding whatever value they hold into bytes
++            before calling this function; this module holds no opinion
+             on serialization.
+-    size: The bit array length, in bits, that positions must be 
++    size: The bit array length, in bits, that positions must be
+           reduced into.
+     hash_count: The number of positions to derive.
+ 
+@@ -91,10 +107,21 @@ def bit_indices(member: bytes, size: int, hash_count: int) -> tuple[int, ...]:
+   Raises:
+     ValueError: If size or hash_count is not positive.
+   """
+-    pass
++  if size <= 0:
++    raise ValueError(f"size must be positive, got {size}")
++  if hash_count <= 0:
++    raise ValueError(f"hash_count must be positive, got {hash_count}")
++
++  digest = hashlib.blake2b(member, digest_size=16, person=b"vstg-bits").digest()
++  primary = int.from_bytes(digest[:8], "little") % size
++  # A zero step would collapse every derived position onto one bit.
++  secondary = (int.from_bytes(digest[8:], "little") % size) or 1
++
++  return tuple((primary + index * secondary) % size for index in range(hash_count))
++
+ 
+ def shard_index(member: bytes, shard_count: int) -> int:
+-    """Deterministically route a member to exactly one of a fixed number of shards.
++  """Deterministically route a member to exactly one of a fixed number of shards.
+ 
+   This uses a hash domain entirely distinct from the one bit_indices
+   draws from, since the two functions answer unrelated questions, this
+@@ -106,11 +133,15 @@ def shard_index(member: bytes, shard_count: int) -> int:
+   Args:
+     member: The raw bytes of the element being routed.
+     shard_count: The number of shards the member may be routed among.
+-  
++
+   Returns:
+     An integer shard index within the range [0, shard_count).
+ 
+   Raises:
+     ValueError: If shard_count is not positive.
+   """
+-    pass
++  if shard_count <= 0:
++    raise ValueError(f"shard_count must be positive, got {shard_count}")
++
++  digest = hashlib.blake2b(member, digest_size=8, person=b"vstg-shard").digest()
++  return int.from_bytes(digest, "big") % shard_count
+diff --git a/src/vstg/filter.py b/src/vstg/filter.py
+index 3e48788..08e3673 100644
+--- a/src/vstg/filter.py
++++ b/src/vstg/filter.py
+@@ -10,12 +10,14 @@ performance guarantees that justify its existence in the first place.
+ Mutability is therefore confined entirely to this module and never
+ leaks into core.py, which remains pure and independently verifiable.
+ """
++
+ from __future__ import annotations
+-import math
++
+ from vstg.core import bit_indices, optimal_hash_count, optimal_size
+ 
++
+ class BloomFilter:
+-    """A probabilistic set membership structure backed by a fixed-size bit array.
++  """A probabilistic set membership structure backed by a fixed-size bit array.
+ 
+   A BloomFilter answers a single question, has this member possibly
+   been inserted before, using a fixed amount of memory regardless of
+@@ -32,8 +34,8 @@ class BloomFilter:
+   across the underlying bytearray.
+   """
+ 
+-    def __init__(self, capacity: int, error_rate: float) -> None:
+-        """Allocate a bit array sized for the requested capacity and error rate.
++  def __init__(self, capacity: int, error_rate: float) -> None:
++    """Allocate a bit array sized for the requested capacity and error rate.
+ 
+     Args:
+       capacity: The number of members this filter is expected to hold.
+@@ -46,11 +48,15 @@ class BloomFilter:
+       ValueError: If capacity or error_rate falls outside the domain
+                   accepted by optimal_size and optimal_hash_count.
+     """
+-        pass
++    self._capacity = capacity
++    self._error_rate = error_rate
++    self._size = optimal_size(capacity, error_rate)
++    self._hash_count = optimal_hash_count(self._size, capacity)
++    self._bits = bytearray((self._size + 7) // 8)
+ 
+-    @classmethod
+-    def _restore(cls, capacity: int, error_rate: float, size: int, hash_count: int, bits: bytes) -> BloomFilter:
+-        """Reconstruct a filter instance from previously persisted state.
++  @classmethod
++  def _restore(cls, capacity: int, error_rate: float, size: int, hash_count: int, bits: bytes) -> BloomFilter:
++    """Reconstruct a filter instance from previously persisted state.
+ 
+     This bypasses the normal constructor entirely, since __init__
+     always allocates a fresh, zeroed bit array from scratch and
+@@ -73,40 +79,46 @@ class BloomFilter:
+       A fully initialized filter instance reflecting the restored
+       state.
+     """
+-        pass
+-
+-    @property
+-    def capacity(self) -> int:
+-        """The number of members this filter was sized to hold."""
+-        pass
+-
+-    @property
+-    def error_rate(self) -> float:
+-        """The false positive probability this filter was sized to honor."""
+-        pass
+-
+-    @property
+-    def size(self) -> int:
+-        """The length of the backing bit array, in bits."""
+-        pass
+-
+-    @property
+-    def hash_count(self) -> int:
+-        """The number of derived bit positions consulted per member."""
+-        pass
+-
+-    @property
+-    def bits(self) -> bytes:
+-        """An immutable snapshot of the backing bit array.
++    restored = cls.__new__(cls)
++    restored._capacity = capacity
++    restored._error_rate = error_rate
++    restored._size = size
++    restored._hash_count = hash_count
++    restored._bits = bytearray(bits)
++    return restored
++
++  @property
++  def capacity(self) -> int:
++    """The number of members this filter was sized to hold."""
++    return self._capacity
++
++  @property
++  def error_rate(self) -> float:
++    """The false positive probability this filter was sized to honor."""
++    return self._error_rate
++
++  @property
++  def size(self) -> int:
++    """The length of the backing bit array, in bits."""
++    return self._size
++
++  @property
++  def hash_count(self) -> int:
++    """The number of derived bit positions consulted per member."""
++    return self._hash_count
++
++  @property
++  def bits(self) -> bytes:
++    """An immutable snapshot of the backing bit array.
+ 
+     Returned as a fresh bytes copy rather than a reference to the
+     internal bytearray, preventing callers from mutating filter state
+     through a channel that bypasses the hashing logic in add.
+     """
+-        pass
++    return bytes(self._bits)
+ 
+-    def add(self, member: bytes) -> None:
+-        """Insert a member by setting each of its derived bit positions.
++  def add(self, member: bytes) -> None:
++    """Insert a member by setting each of its derived bit positions.
+ 
+     This operation is idempotent: inserting the same member repeatedly
+     has no effect beyond the first insertion, since the same positions
+@@ -118,10 +130,11 @@ class BloomFilter:
+               responsible for encoding whatever logical value they hold into
+               a stable byte representation before calling this method.
+     """
+-        pass
++    for position in bit_indices(member, self._size, self._hash_count):
++      self._bits[position >> 3] |= 1 << (position & 7)
+ 
+-    def might_contain(self, member: bytes) -> bool:
+-        """Test whether a member may have been previously inserted.
++  def might_contain(self, member: bytes) -> bool:
++    """Test whether a member may have been previously inserted.
+ 
+     The check short circuits on the first cleared bit it encounters,
+     since a single cleared bit is sufficient proof that the member was
+@@ -137,10 +150,13 @@ class BloomFilter:
+       probably present, subject to the false positive rate the filter
+       was constructed with.
+     """
+-        pass
++    for position in bit_indices(member, self._size, self._hash_count):
++      if not (self._bits[position >> 3] >> (position & 7)) & 1:
++        return False
++    return True
+ 
+-    def __contains__(self, member: object) -> bool:
+-        """Enable idiomatic membership testing through the in operator.
++  def __contains__(self, member: object) -> bool:
++    """Enable idiomatic membership testing through the in operator.
+ 
+     Unlike might_contain, this method accepts an object of any type,
+     matching the signature the language itself requires of anything
+@@ -159,8 +175,13 @@ class BloomFilter:
+     Raises:
+       TypeError: If member is not an instance of bytes.
+     """
+-        pass
+-
+-    def __repr__(self) -> str:
+-        """Return an unambiguous representation for debugging and logging."""
+-        pass
++    if not isinstance(member, bytes):
++      raise TypeError(f"membership test requires bytes, got {type(member).__name__}")
++    return self.might_contain(member)
++
++  def __repr__(self) -> str:
++    """Return an unambiguous representation for debugging and logging."""
++    return (
++      f"BloomFilter(capacity={self._capacity}, error_rate={self._error_rate}, "
++      f"size={self._size}, hash_count={self._hash_count})"
++    )
+diff --git a/src/vstg/managed.py b/src/vstg/managed.py
+index 2001e46..c9d5b75 100644
+--- a/src/vstg/managed.py
++++ b/src/vstg/managed.py
+@@ -10,15 +10,19 @@ the only entry point most integrations should need, insert members
+ through it, and checkpointing happens transparently whenever the
+ configured policy determines it is due.
+ """
++
+ from __future__ import annotations
++
+ import time
+ from collections.abc import Callable
+ from pathlib import Path
++
+ from vstg.filter import BloomFilter
+ from vstg.persist import PersistPolicy, load, save, should_checkpoint
+ 
++
+ class ManagedBloomFilter:
+-    """A BloomFilter paired with the state needed to checkpoint it automatically.
++  """A BloomFilter paired with the state needed to checkpoint it automatically.
+ 
+   This class owns three things a bare BloomFilter does not: the
+   destination path a checkpoint should be written to, the policy
+@@ -33,8 +37,8 @@ class ManagedBloomFilter:
+   atomic against one another.
+   """
+ 
+-    def __init__(self, bloom_filter: BloomFilter, destination: Path, policy: PersistPolicy, clock: Callable[[], float]=time.monotonic) -> None:
+-        """Bind an existing filter to a destination path and checkpoint policy.
++  def __init__(self, bloom_filter: BloomFilter, destination: Path, policy: PersistPolicy, clock: Callable[[], float]=time.monotonic) -> None:
++    """Bind an existing filter to a destination path and checkpoint policy.
+ 
+     Most callers should prefer the open classmethod over calling this
+     constructor directly, since open additionally handles resuming
+@@ -54,11 +58,16 @@ class ManagedBloomFilter:
+              must not be disturbed by system clock adjustments. Tests may
+              substitute a deterministic callable in its place.
+     """
+-        pass
++    self._bloom_filter = bloom_filter
++    self._destination = destination
++    self._policy = policy
++    self._clock = clock
++    self._last_checkpoint_at = clock()
++    self._inserts_since_checkpoint = 0
+ 
+-    @classmethod
+-    def open(cls, destination: Path, capacity: int, error_rate: float, policy: PersistPolicy, clock: Callable[[], float]=time.monotonic) -> ManagedBloomFilter:
+-        """Resume from an existing checkpoint, or begin fresh if none exists.
++  @classmethod
++  def open(cls, destination: Path, capacity: int, error_rate: float, policy: PersistPolicy, clock: Callable[[], float]=time.monotonic) -> ManagedBloomFilter:
++    """Resume from an existing checkpoint, or begin fresh if none exists.
+ 
+     This is the intended entry point for the common case: a backend
+     process starting up, which should transparently inherit whatever
+@@ -82,15 +91,19 @@ class ManagedBloomFilter:
+       A fully initialized ManagedBloomFilter, either resumed from disk
+       or freshly allocated.
+     """
+-        pass
++    if destination.exists():
++      bloom_filter = load(destination)
++    else:
++      bloom_filter = BloomFilter(capacity, error_rate)
++    return cls(bloom_filter, destination, policy, clock)
+ 
+-    @property
+-    def bloom_filter(self) -> BloomFilter:
+-        """The underlying filter instance being managed."""
+-        pass
++  @property
++  def bloom_filter(self) -> BloomFilter:
++    """The underlying filter instance being managed."""
++    return self._bloom_filter
+ 
+-    def might_contain(self, member: bytes) -> bool:
+-        """Test whether a member may have been previously inserted.
++  def might_contain(self, member: bytes) -> bool:
++    """Test whether a member may have been previously inserted.
+ 
+     Delegates directly to the underlying filter, preserving its
+     asymmetric correctness guarantee unchanged.
+@@ -102,10 +115,10 @@ class ManagedBloomFilter:
+       False if the member is certainly absent. True if the member is
+       probably present.
+     """
+-        pass
++    return self._bloom_filter.might_contain(member)
+ 
+-    def __contains__(self, member: object) -> bool:
+-        """Enable idiomatic membership testing through the in operator.
++  def __contains__(self, member: object) -> bool:
++    """Enable idiomatic membership testing through the in operator.
+ 
+     Unlike might_contain, this method accepts an object of any type,
+     matching the signature the language itself requires of anything
+@@ -123,10 +136,12 @@ class ManagedBloomFilter:
+     Raises:
+       TypeError: If member is not an instance of bytes.
+     """
+-        pass
++    if not isinstance(member, bytes):
++      raise TypeError(f"membership test requires bytes, got {type(member).__name__}")
++    return self.might_contain(member)
+ 
+-    def add(self, member: bytes) -> None:
+-        """Insert a member, then checkpoint automatically if the policy demands it.
++  def add(self, member: bytes) -> None:
++    """Insert a member, then checkpoint automatically if the policy demands it.
+ 
+     This is the sole method most integrations need to call on the
+     write path. The bookkeeping the constructor initialized is updated
+@@ -136,10 +151,13 @@ class ManagedBloomFilter:
+     Args:
+       member: The raw bytes of the element being inserted.
+     """
+-        pass
++    self._bloom_filter.add(member)
++    self._inserts_since_checkpoint += 1
++    if should_checkpoint(self._policy, self._last_checkpoint_at, self._clock(), self._inserts_since_checkpoint):
++      self.checkpoint()
+ 
+-    def checkpoint(self) -> None:
+-        """Force an immediate checkpoint, bypassing the policy's own timing.
++  def checkpoint(self) -> None:
++    """Force an immediate checkpoint, bypassing the policy's own timing.
+ 
+     Automatic checkpoints call this internally once should_checkpoint
+     returns True, but it is equally valid for a caller to invoke this
+@@ -147,22 +165,25 @@ class ManagedBloomFilter:
+     endpoint, without waiting for the policy's own conditions to be
+     met.
+     """
+-        pass
++    save(self._bloom_filter, self._destination)
++    self._last_checkpoint_at = self._clock()
++    self._inserts_since_checkpoint = 0
+ 
+-    def close(self) -> None:
+-        """Perform a final checkpoint on orderly shutdown, if configured to.
++  def close(self) -> None:
++    """Perform a final checkpoint on orderly shutdown, if configured to.
+ 
+     Whether this actually writes anything depends entirely on the
+     policy's checkpoint_on_shutdown flag, allowing a caller who has
+     already arranged their own shutdown checkpointing to disable this
+     behavior without changing how the rest of the class is used.
+     """
+-        pass
++    if self._policy.checkpoint_on_shutdown:
++      self.checkpoint()
+ 
+-    def __enter__(self) -> ManagedBloomFilter:
+-        """Support use as a context manager, guaranteeing close on exit."""
+-        pass
++  def __enter__(self) -> ManagedBloomFilter:
++    """Support use as a context manager, guaranteeing close on exit."""
++    return self
+ 
+-    def __exit__(self, *exc_info: object) -> None:
+-        """Invoke close automatically when the context manager block exits."""
+-        pass
++  def __exit__(self, *exc_info: object) -> None:
++    """Invoke close automatically when the context manager block exits."""
++    self.close()
+diff --git a/src/vstg/persist.py b/src/vstg/persist.py
+index 9e4fcd0..9699c56 100644
+--- a/src/vstg/persist.py
++++ b/src/vstg/persist.py
+@@ -10,20 +10,25 @@ function for when a checkpoint is warranted, and the atomic file
+ operations that write and restore that format without risk of leaving
+ a corrupted checkpoint behind.
+ """
++
+ from __future__ import annotations
+-import math
++
++import os
+ import struct
+ from dataclasses import dataclass
+ from pathlib import Path
++
+ from vstg.filter import BloomFilter
+-_FILE_SIGNATURE = b'VSTG'
++
++_FILE_SIGNATURE = b"VSTG"
+ _FORMAT_VERSION = 1
+-_HEADER_LAYOUT = '>4sBQdQI'
++_HEADER_LAYOUT = ">4sBQdQI"
+ _HEADER_LENGTH = struct.calcsize(_HEADER_LAYOUT)
+ 
++
+ @dataclass(frozen=True)
+ class PersistPolicy:
+-    """Configuration governing when a running filter checkpoints to disk.
++  """Configuration governing when a running filter checkpoints to disk.
+ 
+   A policy expresses up to two independent triggers for an automatic
+   checkpoint, either of which is sufficient on its own to warrant one.
+@@ -41,16 +46,25 @@ class PersistPolicy:
+                             written during an orderly shutdown, independent of how much
+                             time or how many insertions have elapsed since the previous one.
+   """
+-    checkpoint_interval_seconds: float | None = None
+-    checkpoint_insert_threshold: int | None = None
+-    checkpoint_on_shutdown: bool = True
+ 
+-    def __post_init__(self) -> None:
+-        """Reject non-positive thresholds before they can silently misbehave."""
+-        pass
++  checkpoint_interval_seconds: float | None = None
++  checkpoint_insert_threshold: int | None = None
++  checkpoint_on_shutdown: bool = True
++
++  def __post_init__(self) -> None:
++    """Reject non-positive thresholds before they can silently misbehave."""
++    if self.checkpoint_interval_seconds is not None and self.checkpoint_interval_seconds <= 0:
++      raise ValueError(
++        f"checkpoint_interval_seconds must be positive, got {self.checkpoint_interval_seconds}"
++      )
++    if self.checkpoint_insert_threshold is not None and self.checkpoint_insert_threshold <= 0:
++      raise ValueError(
++        f"checkpoint_insert_threshold must be positive, got {self.checkpoint_insert_threshold}"
++      )
++
+ 
+ def should_checkpoint(policy: PersistPolicy, last_checkpoint_at: float, current_time: float, inserts_since_checkpoint: int) -> bool:
+-    """Determine whether accumulated activity warrants an immediate checkpoint.
++  """Determine whether accumulated activity warrants an immediate checkpoint.
+ 
+   This function accepts explicit timestamps rather than reading a
+   clock internally, which keeps the decision deterministic and
+@@ -70,10 +84,19 @@ def should_checkpoint(policy: PersistPolicy, last_checkpoint_at: float, current_
+     True if either the configured interval or insertion threshold has
+     been reached or exceeded; False otherwise.
+   """
+-    pass
++  interval = policy.checkpoint_interval_seconds
++  if interval is not None and current_time - last_checkpoint_at >= interval:
++    return True
++
++  threshold = policy.checkpoint_insert_threshold
++  if threshold is not None and inserts_since_checkpoint >= threshold:
++    return True
++
++  return False
++
+ 
+ def serialize(bloom_filter: BloomFilter) -> bytes:
+-    """Encode a filter's complete state into a portable binary payload.
++  """Encode a filter's complete state into a portable binary payload.
+ 
+   The payload begins with a fixed-width header identifying the format
+   and recording the parameters required to reconstruct the filter,
+@@ -89,10 +112,20 @@ def serialize(bloom_filter: BloomFilter) -> bytes:
+   Returns:
+     The complete serialized payload, header followed by bit array.
+   """
+-    pass
++  header = struct.pack(
++    _HEADER_LAYOUT,
++    _FILE_SIGNATURE,
++    _FORMAT_VERSION,
++    bloom_filter.capacity,
++    bloom_filter.error_rate,
++    bloom_filter.size,
++    bloom_filter.hash_count,
++  )
++  return header + bloom_filter.bits
++
+ 
+ def deserialize(payload: bytes) -> BloomFilter:
+-    """Reconstruct a filter instance from a previously serialized payload.
++  """Reconstruct a filter instance from a previously serialized payload.
+ 
+   Args:
+     payload: The complete binary payload, as produced by serialize.
+@@ -107,10 +140,29 @@ def deserialize(payload: bytes) -> BloomFilter:
+                 version, or the bit array length does not match what the header
+                 declares.
+   """
+-    pass
++  if len(payload) < _HEADER_LENGTH:
++    raise ValueError(f"payload is {len(payload)} bytes, shorter than the {_HEADER_LENGTH}-byte header")
++
++  signature, version, capacity, error_rate, size, hash_count = struct.unpack(
++    _HEADER_LAYOUT, payload[:_HEADER_LENGTH]
++  )
++  if signature != _FILE_SIGNATURE:
++    raise ValueError(f"unrecognized file signature {signature!r}")
++  if version != _FORMAT_VERSION:
++    raise ValueError(f"unsupported format version {version}, expected {_FORMAT_VERSION}")
++
++  bits = payload[_HEADER_LENGTH:]
++  expected_length = (size + 7) // 8
++  if len(bits) != expected_length:
++    raise ValueError(
++      f"bit array is {len(bits)} bytes but the header declares {expected_length}"
++    )
++
++  return BloomFilter._restore(capacity, error_rate, size, hash_count, bits)
++
+ 
+ def save(bloom_filter: BloomFilter, destination: Path) -> None:
+-    """Persist a filter to disk atomically.
++  """Persist a filter to disk atomically.
+ 
+   The payload is first written in full to a temporary sibling file and
+   only then moved into place with an atomic rename, this guarantees
+@@ -124,10 +176,19 @@ def save(bloom_filter: BloomFilter, destination: Path) -> None:
+     destination: The file path the checkpoint should occupy once
+                  written.
+   """
+-    pass
++  payload = serialize(bloom_filter)
++  temporary = destination.with_name(destination.name + ".tmp")
++
++  with open(temporary, "wb") as handle:
++    handle.write(payload)
++    handle.flush()
++    os.fsync(handle.fileno())
++
++  os.replace(temporary, destination)
++
+ 
+ def load(source: Path) -> BloomFilter:
+-    """Load a previously persisted filter from disk.
++  """Load a previously persisted filter from disk.
+ 
+   Args:
+     source: The file path a checkpoint was previously written to.
+@@ -136,4 +197,4 @@ def load(source: Path) -> BloomFilter:
+     A filter instance whose state exactly matches the one that was
+     checkpointed.
+   """
+-    pass
++  return deserialize(source.read_bytes())
+diff --git a/src/vstg/registry.py b/src/vstg/registry.py
+index 6d789ea..0ebb104 100644
+--- a/src/vstg/registry.py
++++ b/src/vstg/registry.py
+@@ -10,17 +10,21 @@ such filter be configured once, by name, at process startup, and
+ retrieved from anywhere else in the codebase without threading filter
+ instances through every layer of a call stack by hand.
+ """
++
+ from __future__ import annotations
++
+ import time
+ from collections.abc import Callable
+ from pathlib import Path
+ from typing import Protocol
++
+ from vstg.managed import ManagedBloomFilter
+ from vstg.persist import PersistPolicy
+ from vstg.shard import ShardedBloomFilter
+ 
++
+ class PersistentBloomFilter(Protocol):
+-    """The common interface shared by ManagedBloomFilter and ShardedBloomFilter.
++  """The common interface shared by ManagedBloomFilter and ShardedBloomFilter.
+ 
+   BloomFilterRegistry holds filters polymorphically through this
+   protocol rather than a concrete class, since a registered filter may
+@@ -31,25 +35,26 @@ class PersistentBloomFilter(Protocol):
+   explicitly.
+   """
+ 
+-    def might_contain(self, member: bytes) -> bool:
+-        """Test whether a member may have been previously inserted."""
+-        pass
++  def might_contain(self, member: bytes) -> bool:
++    """Test whether a member may have been previously inserted."""
++    ...
++
++  def add(self, member: bytes) -> None:
++    """Insert a member, checkpointing automatically if its policy demands it."""
++    ...
+ 
+-    def add(self, member: bytes) -> None:
+-        """Insert a member, checkpointing automatically if its policy demands it."""
+-        pass
++  def checkpoint(self) -> None:
++    """Force an immediate checkpoint, bypassing the policy's own timing."""
++    ...
+ 
+-    def checkpoint(self) -> None:
+-        """Force an immediate checkpoint, bypassing the policy's own timing."""
+-        pass
++  def close(self) -> None:
++    """Perform a final checkpoint on orderly shutdown, if configured to."""
++    ...
+ 
+-    def close(self) -> None:
+-        """Perform a final checkpoint on orderly shutdown, if configured to."""
+-        pass
+ 
+ class BloomFilterRegistry:
+-    """A named collection of independently configured bloom filters.
+-  
++  """A named collection of independently configured bloom filters.
++
+   Every filter registered here checkpoints to a location beneath a
+   single base directory, keeping an application's entire bloom filter
+   state discoverable in one place on disk rather than scattered
+@@ -63,9 +68,9 @@ class BloomFilterRegistry:
+   checkpointing safe to reason about in the first place.
+   """
+ 
+-    def __init__(self, directory: Path) -> None:
+-        """Create a registry rooted at the given base directory.
+-    
++  def __init__(self, directory: Path) -> None:
++    """Create a registry rooted at the given base directory.
++
+     The directory is created immediately if it does not already
+     exist, so that registration can proceed without every caller
+     separately handling its absence.
+@@ -74,10 +79,12 @@ class BloomFilterRegistry:
+       directory: The base directory every registered filter's checkpoint
+                  file or shard subdirectory will reside beneath.
+     """
+-        pass
++    directory.mkdir(parents=True, exist_ok=True)
++    self._directory = directory
++    self._filters: dict[str, PersistentBloomFilter] = {}
+ 
+-    def register(self, name: str, capacity: int, error_rate: float, policy: PersistPolicy | None=None, shard_count: int | None=None, clock: Callable[[], float]=time.monotonic) -> None:
+-        """Configure and open a new named filter, resuming from disk if a checkpoint exists.
++  def register(self, name: str, capacity: int, error_rate: float, policy: PersistPolicy | None=None, shard_count: int | None=None, clock: Callable[[], float]=time.monotonic) -> None:
++    """Configure and open a new named filter, resuming from disk if a checkpoint exists.
+ 
+     Args:
+       name: A unique identifier this filter will be retrieved under
+@@ -86,8 +93,8 @@ class BloomFilterRegistry:
+       capacity: The number of members this filter is expected to
+                 hold. Distinct named filters are free to specify entirely
+                 different capacities from one another.
+-      error_rate: The false positive probability this filter should honor. 
+-                  Distinct named filters are free to specify entirely different 
++      error_rate: The false positive probability this filter should honor.
++                  Distinct named filters are free to specify entirely different
+                   error rates from one another, reflecting that a false positive
+                   protecting a username check and one protecting a payment
+                   idempotency check do not carry equal cost.
+@@ -106,10 +113,25 @@ class BloomFilterRegistry:
+     Raises:
+       ValueError: If name has already been registered.
+     """
+-        pass
++    if name in self._filters:
++      raise ValueError(f"a filter is already registered under {name!r}")
++
++    effective_policy = policy if policy is not None else PersistPolicy()
++
++    filter_instance: PersistentBloomFilter
++    if shard_count is None:
++      filter_instance = ManagedBloomFilter.open(
++        self._directory / f"{name}.bloom", capacity, error_rate, effective_policy, clock
++      )
++    else:
++      filter_instance = ShardedBloomFilter.open(
++        self._directory / name, shard_count, capacity, error_rate, effective_policy, clock
++      )
++
++    self._filters[name] = filter_instance
+ 
+-    def get(self, name: str) -> PersistentBloomFilter:
+-        """Retrieve a previously registered filter by name.
++  def get(self, name: str) -> PersistentBloomFilter:
++    """Retrieve a previously registered filter by name.
+ 
+     Args:
+       name: The identifier the filter was registered under.
+@@ -125,10 +147,16 @@ class BloomFilterRegistry:
+                 registration at startup, not a case a caller needs to handle
+                 gracefully at runtime.
+     """
+-        pass
++    try:
++      return self._filters[name]
++    except KeyError:
++      available = ", ".join(sorted(self._filters)) or "(none)"
++      raise KeyError(
++        f"no filter registered under {name!r}; available filters: {available}"
++      ) from None
+ 
+-    def might_contain(self, name: str, member: bytes) -> bool:
+-        """Test membership against a named filter without holding a reference to it.
++  def might_contain(self, name: str, member: bytes) -> bool:
++    """Test membership against a named filter without holding a reference to it.
+ 
+     A convenience shorthand for get(name).might_contain(member).
+ 
+@@ -140,10 +168,10 @@ class BloomFilterRegistry:
+       False if the member is certainly absent. True if the member is
+       probably present.
+     """
+-        pass
++    return self.get(name).might_contain(member)
+ 
+-    def add(self, name: str, member: bytes) -> None:
+-        """Insert a member into a named filter without holding a reference to it.
++  def add(self, name: str, member: bytes) -> None:
++    """Insert a member into a named filter without holding a reference to it.
+ 
+     A convenience shorthand for get(name).add(member).
+ 
+@@ -151,34 +179,36 @@ class BloomFilterRegistry:
+       name: The identifier the filter was registered under.
+       member: The raw bytes of the element being inserted.
+     """
+-        pass
++    self.get(name).add(member)
+ 
+-    def checkpoint_all(self) -> None:
+-        """Force an immediate checkpoint of every registered filter.
++  def checkpoint_all(self) -> None:
++    """Force an immediate checkpoint of every registered filter.
+ 
+     Useful for an operator command or a health endpoint that wants to
+     guarantee every filter's state is durable at a specific moment,
+     independent of any individual filter's own policy timing.
+     """
+-        pass
++    for filter_instance in self._filters.values():
++      filter_instance.checkpoint()
+ 
+-    def close_all(self) -> None:
+-        """Perform a final checkpoint of every registered filter, per each one's own policy.
++  def close_all(self) -> None:
++    """Perform a final checkpoint of every registered filter, per each one's own policy.
+ 
+     Intended to be called once, during an orderly application
+     shutdown. Whether any individual filter actually writes anything
+     depends entirely on its own checkpoint_on_shutdown setting.
+     """
+-        pass
++    for filter_instance in self._filters.values():
++      filter_instance.close()
+ 
+-    def __enter__(self) -> BloomFilterRegistry:
+-        """Support use as a context manager, guaranteeing close_all on exit."""
+-        pass
++  def __enter__(self) -> BloomFilterRegistry:
++    """Support use as a context manager, guaranteeing close_all on exit."""
++    return self
+ 
+-    def __exit__(self, *exc_info: object) -> None:
+-        """Invoke close_all automatically when the context manager block exits."""
+-        pass
++  def __exit__(self, *exc_info: object) -> None:
++    """Invoke close_all automatically when the context manager block exits."""
++    self.close_all()
+ 
+-    def __repr__(self) -> str:
+-        """Return an unambiguous representation for debugging and logging."""
+-        pass
++  def __repr__(self) -> str:
++    """Return an unambiguous representation for debugging and logging."""
++    return f"BloomFilterRegistry(directory={str(self._directory)!r}, names={sorted(self._filters)!r})"
+diff --git a/src/vstg/shard.py b/src/vstg/shard.py
+index ffbfc19..53ff5fd 100644
+--- a/src/vstg/shard.py
++++ b/src/vstg/shard.py
+@@ -10,17 +10,21 @@ filter across several independent BloomFilter instances, each backed by
+ its own file, and tracking which of those shards were actually touched
+ since the last checkpoint so that only the changed ones are rewritten.
+ """
++
+ from __future__ import annotations
++
+ import math
+ import time
+ from collections.abc import Callable
+ from pathlib import Path
++
+ from vstg.core import shard_index
+ from vstg.filter import BloomFilter
+ from vstg.persist import PersistPolicy, load, save, should_checkpoint
+ 
++
+ class ShardedBloomFilter:
+-    """A logically single bloom filter partitioned across multiple shard files.
++  """A logically single bloom filter partitioned across multiple shard files.
+ 
+   Every member is routed to exactly one underlying shard through
+   shard_index, and every operation, insertion, or membership testing,
+@@ -37,9 +41,9 @@ class ShardedBloomFilter:
+   underlying BloomFilter and ManagedBloomFilter are not.
+   """
+ 
+-    def __init__(self, shards: tuple[BloomFilter, ...], directory: Path, policy: PersistPolicy, clock: Callable[[], float]=time.monotonic) -> None:
+-        """Bind an already constructed set of shards to a directory and policy.
+-    
++  def __init__(self, shards: tuple[BloomFilter, ...], directory: Path, policy: PersistPolicy, clock: Callable[[], float]=time.monotonic) -> None:
++    """Bind an already constructed set of shards to a directory and policy.
++
+     Most callers should prefer the open classmethod over calling this
+     constructor directly, since open additionally handles resuming
+     each shard from its own checkpoint file if one exists.
+@@ -52,12 +56,18 @@ class ShardedBloomFilter:
+       policy: The rules governing when an automatic checkpoint occurs.
+       clock: A zero argument callable returning the current time, in seconds.
+     """
+-        pass
++    self._shards = tuple(shards)
++    self._directory = directory
++    self._policy = policy
++    self._clock = clock
++    self._dirty: set[int] = set()
++    self._last_checkpoint_at = clock()
++    self._inserts_since_checkpoint = 0
++
++  @staticmethod
++  def _shard_path(directory: Path, index: int) -> Path:
++    """Compute the deterministic file path a given shard index resides at.
+ 
+-    @staticmethod
+-    def _shard_path(directory: Path, index: int) -> Path:
+-        """Compute the deterministic file path a given shard index resides at.
+-    
+     Zero padding to four digits keeps filenames lexicographically
+     sortable up to 9_999 shards, which comfortably exceeds any
+     realistic shard count.
+@@ -69,12 +79,12 @@ class ShardedBloomFilter:
+     Returns:
+       The file path the given shard index's checkpoint occupies.
+     """
+-        pass
++    return directory / f"shard-{index:04d}.bloom"
++
++  @classmethod
++  def open(cls, directory: Path, shard_count: int, capacity: int, error_rate: float, policy: PersistPolicy, clock: Callable[[], float]=time.monotonic) -> ShardedBloomFilter:
++    """Resume each shard from its existing checkpoint, or begin fresh where none exists.
+ 
+-    @classmethod
+-    def open(cls, directory: Path, shard_count: int, capacity: int, error_rate: float, policy: PersistPolicy, clock: Callable[[], float]=time.monotonic) -> ShardedBloomFilter:
+-        """Resume each shard from its existing checkpoint, or begin fresh where none exists.
+-    
+     The requested total capacity is divided evenly across the shard
+     count, rounding upward so that the combined capacity of every
+     shard never falls short of what was requested, at the cost of
+@@ -97,28 +107,51 @@ class ShardedBloomFilter:
+     Raises:
+       ValueError: If shard_count is not positive.
+     """
+-        pass
++    if shard_count <= 0:
++      raise ValueError(f"shard_count must be positive, got {shard_count}")
++
++    directory.mkdir(parents=True, exist_ok=True)
++    per_shard_capacity = math.ceil(capacity / shard_count)
+ 
+-    @property
+-    def shard_count(self) -> int:
+-        """The number of independent shards composing this filter."""
+-        pass
++    shards: list[BloomFilter] = []
++    for index in range(shard_count):
++      path = cls._shard_path(directory, index)
++      if path.exists():
++        shards.append(load(path))
++      else:
++        shards.append(BloomFilter(per_shard_capacity, error_rate))
+ 
+-    @property
+-    def dirty_shard_count(self) -> int:
+-        """The number of shards that have received an insertion since the last checkpoint."""
+-        pass
++    return cls(tuple(shards), directory, policy, clock)
+ 
+-    def add(self, member: bytes) -> None:
+-        """Insert a member into its routed shard, then checkpoint automatically if warranted.
++  @property
++  def shard_count(self) -> int:
++    """The number of independent shards composing this filter."""
++    return len(self._shards)
++
++  @property
++  def dirty_shard_count(self) -> int:
++    """The number of shards that have received an insertion since the last checkpoint."""
++    return len(self._dirty)
++
++  def _route(self, member: bytes) -> int:
++    """Return the index of the single shard a member belongs to."""
++    return shard_index(member, len(self._shards))
++
++  def add(self, member: bytes) -> None:
++    """Insert a member into its routed shard, then checkpoint automatically if warranted.
+ 
+     Args:
+       member: The raw bytes of the element being inserted.
+     """
+-        pass
++    index = self._route(member)
++    self._shards[index].add(member)
++    self._dirty.add(index)
++    self._inserts_since_checkpoint += 1
++    if should_checkpoint(self._policy, self._last_checkpoint_at, self._clock(), self._inserts_since_checkpoint):
++      self.checkpoint()
+ 
+-    def might_contain(self, member: bytes) -> bool:
+-        """Test whether a member may have been previously inserted into its routed shard.
++  def might_contain(self, member: bytes) -> bool:
++    """Test whether a member may have been previously inserted into its routed shard.
+ 
+     Args:
+       member: The raw bytes of the element being tested.
+@@ -127,10 +160,10 @@ class ShardedBloomFilter:
+       False if the member is certainly absent from its routed shard.
+       True if the member is probably present.
+     """
+-        pass
++    return self._shards[self._route(member)].might_contain(member)
+ 
+-    def __contains__(self, member: object) -> bool:
+-        """Enable idiomatic membership testing through the in operator.
++  def __contains__(self, member: object) -> bool:
++    """Enable idiomatic membership testing through the in operator.
+ 
+     Args:
+       member: The candidate object being tested for membership.
+@@ -142,30 +175,40 @@ class ShardedBloomFilter:
+     Raises:
+       TypeError: If member is not an instance of bytes.
+     """
+-        pass
++    if not isinstance(member, bytes):
++      raise TypeError(f"membership test requires bytes, got {type(member).__name__}")
++    return self.might_contain(member)
+ 
+-    def checkpoint(self) -> None:
+-        """Persist every shard modified since the previous checkpoint, and no others.
++  def checkpoint(self) -> None:
++    """Persist every shard modified since the previous checkpoint, and no others.
+ 
+     This is the specific efficiency guarantee sharding exists to
+     provide, a checkpoint's cost scales with how much activity
+     occurred since the last one, not with the total size of the
+     filter.
+     """
+-        pass
+-
+-    def close(self) -> None:
+-        """Perform a final checkpoint of any remaining dirty shards, if configured to."""
+-        pass
+-
+-    def __enter__(self) -> ShardedBloomFilter:
+-        """Support use as a context manager, guaranteeing close on exit."""
+-        pass
+-
+-    def __exit__(self, *exc_info: object) -> None:
+-        """Invoke close automatically when the context manager block exits."""
+-        pass
+-
+-    def __repr__(self) -> str:
+-        """Return an unambiguous representation for debugging and logging."""
+-        pass
++    for index in sorted(self._dirty):
++      save(self._shards[index], self._shard_path(self._directory, index))
++    self._dirty.clear()
++    self._last_checkpoint_at = self._clock()
++    self._inserts_since_checkpoint = 0
++
++  def close(self) -> None:
++    """Perform a final checkpoint of any remaining dirty shards, if configured to."""
++    if self._policy.checkpoint_on_shutdown:
++      self.checkpoint()
++
++  def __enter__(self) -> ShardedBloomFilter:
++    """Support use as a context manager, guaranteeing close on exit."""
++    return self
++
++  def __exit__(self, *exc_info: object) -> None:
++    """Invoke close automatically when the context manager block exits."""
++    self.close()
++
++  def __repr__(self) -> str:
++    """Return an unambiguous representation for debugging and logging."""
++    return (
++      f"ShardedBloomFilter(directory={str(self._directory)!r}, "
++      f"shard_count={len(self._shards)}, dirty_shard_count={len(self._dirty)})"
++    )

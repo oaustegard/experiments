@@ -1,0 +1,5 @@
+{"unit": "chardet.f1", "high": [], "low": [], "git_history": []}
+{"unit": "chardet.f2", "high": ["Bash: /tmp/jail/c0/work\\"], "low": [], "git_history": ["cd /tmp/jail/c0/work/f-fix3/chardet && git show HEAD:chardet/codingstatemachine.py | sed -n 20,60p"]}
+{"unit": "chardet.f3", "high": [], "low": [], "git_history": ["cd /tmp/jail/c0/work/f-fix3/chardet && git diff --stat; git show HEAD --stat | tail -3; echo; cat chardet/charsetgroupprober.py; echo ====; cat chardet/eucjpprober.py | head -80", "cd /tmp/jail/c0/work/f-fix3/chardet && wc -l .c0-shard-3.txt && sed -E 's/.*-([^-\\]]+)\\]$/\\1/' .c0-shard-3.txt | sort | uniq -c; cat chardet/sbcsgroupprober.py | head -30; echo ====; cat chardet/sjisp"]}
+{"unit": "chardet.f4", "high": [], "low": [], "git_history": ["cd /tmp/jail/c0/work/f-fix3/chardet && git status --short; git diff --stat | tail -3; git show HEAD:chardet/mbcharsetprober.py | head -60; echo =====; git show HEAD:chardet/sjisprober.py | head -40"]}
+{"unit": "chardet.f5", "high": [], "low": [], "git_history": ["cd /tmp/jail/c0/work/f-fix3/chardet && git show HEAD:chardet/mbcharsetprober.py | sed -n 20,30p; git log --oneline | head -3"]}

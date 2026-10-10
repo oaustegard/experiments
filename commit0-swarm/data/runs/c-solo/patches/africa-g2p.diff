@@ -1,0 +1,1161 @@
+diff --git a/src/africa_g2p/cli.py b/src/africa_g2p/cli.py
+index d8fbca8..56055bb 100644
+--- a/src/africa_g2p/cli.py
++++ b/src/africa_g2p/cli.py
+@@ -11,6 +11,40 @@ from .g2p import G2P
+ from .loader import available_languages, registry, LanguageNotFoundError
+ 
+ def main(argv=None) -> int:
+-    pass
++    parser = argparse.ArgumentParser(prog='africa-g2p', description='Grapheme-to-phoneme and orthography conversion for African languages.')
++    parser.add_argument('lang', nargs='?', help='ISO 639-3 language code (e.g. aka, twi, dyu)')
++    parser.add_argument('text', nargs='?', help='text to convert; read from stdin when omitted')
++    parser.add_argument('--list', action='store_true', help='list all supported languages')
++    parser.add_argument('--to', dest='target', help='convert to another language code, or "universal" / "proxy"')
++    parser.add_argument('--ipa', action='store_true', help='output IPA instead of native orthography')
++    parser.add_argument('--sep', default='', help='string placed between phoneme units')
++    parser.add_argument('--strip-diacritics', action='store_true', help='drop orthographic tone marks (native output)')
++    args = parser.parse_args(argv)
++
++    if args.list:
++        reg = registry()
++        for code in available_languages():
++            name = reg.get(code, {}).get('name', '')
++            print(f'{code}\t{name}' if name else code)
++        return 0
++    if not args.lang:
++        parser.error('a language code is required (or --list)')
++
++    text = args.text if args.text is not None else sys.stdin.read().rstrip('\n')
++    try:
++        if args.target:
++            if args.target == 'proxy':
++                from .convert import PROXY
++                print(convert_lang(text, args.lang, PROXY))
++            else:
++                print(convert_lang(text, args.lang, args.target, sep=args.sep))
++        else:
++            output = 'ipa' if args.ipa else 'grapheme'
++            print(G2P(args.lang, output=output, strip_diacritics=args.strip_diacritics).convert(text, sep=args.sep))
++    except LanguageNotFoundError as exc:
++        print(f'unknown language code: {exc.args[0]}', file=sys.stderr)
++        return 2
++    return 0
++
+ if __name__ == '__main__':
+     raise SystemExit(main())
+diff --git a/src/africa_g2p/convert.py b/src/africa_g2p/convert.py
+index 4fa85d4..c8cb134 100644
+--- a/src/africa_g2p/convert.py
++++ b/src/africa_g2p/convert.py
+@@ -24,8 +24,8 @@ from pathlib import Path
+ from typing import Dict, List, Tuple
+ from functools import lru_cache
+ from .g2p import G2P
+-from .loader import load_rules, LanguageNotFoundError
+-from .normalizer import normalize_text, tie_affricates, tokenize
++from .loader import has_rules, load_rules, LanguageNotFoundError
++from .normalizer import is_mark, normalize_text, tie_affricates, tokenize
+ _DATA = Path(__file__).resolve().parent / 'data'
+ _FALLBACK_FILE = _DATA / 'universal_fallback.json'
+ _ESCAPES_FILE = _DATA / 'proxy_escapes.json'
+@@ -41,7 +41,7 @@ _ASPIRATION_TRANS = str.maketrans({'ʰ': '', 'ʱ': ''})
+ 
+ def _relax_aspiration(ipa: str) -> str:
+     """Drop aspiration/breathy marks: /tɕʰ/ -> /tɕ/, /kʰ/ -> /k/, /ɡʱ/ -> /ɡ/."""
+-    pass
++    return ipa.translate(_ASPIRATION_TRANS)
+ _VOWELS = set('aàáãäæèéêëɛəɐɑɒɔɜɞɘɚeẽiĩɪɨɤɵoõöòóôuùũüʊʉɯʏøœyỹʌǝǐịụ')
+ _UNIVERSAL_VOWEL_ALTERNATIVES = {'o': 'u', 'u': 'o', 'e': 'i', 'i': 'e', 'ɔ': 'u', 'ɛ': 'i', 'a': 'e', 'ə': 'a'}
+ _VOWEL_ALTERNATIVES = {'o': 'u', 'u': 'o', 'e': 'i', 'i': 'e', 'ɔ': 'u', 'ɛ': 'i', 'a': 'ə', 'ə': 'a'}
+@@ -51,26 +51,67 @@ try:
+ except ImportError:
+     _spell = None
+ _system_dict = None
++_TIE_CHAR = '͡'
+ 
+ def _load_system_dict() -> set:
+-    pass
++    """Lower-cased English word list from the system dictionary, or empty if none is installed."""
++    global _system_dict
++    if _system_dict is None:
++        words: set = set()
++        for path in ('/usr/share/dict/words', '/usr/dict/words'):
++            try:
++                words = {w.strip().lower() for w in Path(path).read_text(encoding='utf-8', errors='ignore').splitlines() if w.strip()}
++                break
++            except OSError:
++                continue
++        _system_dict = words
++    return _system_dict
+ 
+ def _is_english_word(word: str) -> bool:
+-    pass
++    w = word.lower()
++    if _spell is not None:
++        return bool(_spell.known([w]))
++    return w in _load_system_dict()
+ _eng_g2p_gb = None
+ 
+ def _get_eng_g2p():
+-    pass
++    global _eng_g2p_gb
++    if _eng_g2p_gb is None:
++        from .english import EnglishG2P
++        _eng_g2p_gb = EnglishG2P('eng-gb')
++    return _eng_g2p_gb
+ _SKIP_CATEGORIES = frozenset(('Mn', 'Lm', 'Cn', 'Pc', 'Pe', 'Pf', 'Po', 'Ps', 'Sm'))
+-_TIE_SPLIT = re.compile('[͜͡]')
++_TIE_SPLIT = re.compile('[͜͡]')
+ 
+ def _phone_cores(ipa: str) -> list:
+     """Base (consonant/vowel) letters of an IPA value, tie bars and all diacritic
+     marks, aspiration/glide/length modifiers and superscript prenasals removed."""
+-    pass
++    cores = []
++    for ch in ipa:
++        cat = unicodedata.category(ch)
++        if ch == _TIE_CHAR or ch.isspace() or cat in _SKIP_CATEGORIES or cat in ('Lm', 'Sk', 'Mc', 'Me'):
++            continue
++        cores.append(ch)
++    return cores
+ 
+ def _is_single_phoneme(ipa: str) -> bool:
+-    pass
++    cores = _phone_cores(ipa)
++    return len(cores) == 1 or (len(cores) == 2 and _TIE_CHAR in ipa)
++
++def _split_phonemes(unit: str) -> list:
++    """Break a unit that holds several phonemes without a tie bar (a chart value such as
++    ``oɔ``) into one unit per phoneme, so each is mapped on its own. Modifiers and marks
++    stay with the phoneme they follow; a single phoneme comes back unchanged."""
++    if _is_single_phoneme(tie_affricates(unit)):
++        return [unit]
++    pieces: list = []
++    for ch in unit:
++        cat = unicodedata.category(ch)
++        if pieces and (ch == _TIE_CHAR or cat in ('Lm', 'Sk', 'Mn', 'Mc', 'Me')):
++            pieces[-1] += ch
++        else:
++            pieces.append(ch)
++    return pieces
+ 
+ def _readable_grapheme(g: str) -> bool:
+     """A reading grapheme of the universal orthography must not start with a vowel
+@@ -78,9 +119,12 @@ def _readable_grapheme(g: str) -> bool:
+     ("an", "on", "in"...) — fine for writing, but as reading keys they would swallow
+     ordinary word-initial segments ("onyankopon" -> /õ.../). Vowel digraphs ("aa",
+     "ei") stay: they only match genuinely adjacent vowels."""
+-    pass
++    if len(g) >= 2 and g[0] in _VOWELS and g[1].isalpha() and g[1] not in _VOWELS:
++        return False
++    return True
+ _PLACEHOLDER_GRAPHEMES = {'VV', 'V', 'C', 'CC'}
+ _UNWRITTEN = {'∅', 'ʔ∅', 'ʔ', 'ː'}
++_STRIP_CATEGORIES = frozenset(('Mn', 'Mc', 'Me', 'Lm', 'Sk'))
+ 
+ def _strip_combining(text: str) -> str:
+     """Reduce a phoneme to its base letters for a last-resort lookup.
+@@ -94,18 +138,36 @@ def _strip_combining(text: str) -> str:
+     Only reached when the full unit is unmapped, so a base-letter match is always
+     better than what it replaces: passing the symbol through into the text.
+     """
+-    pass
++    kept = ''.join(c for c in unicodedata.normalize('NFD', text)
++                   if unicodedata.category(c) not in _STRIP_CATEGORIES and c != _TIE_CHAR)
++    return unicodedata.normalize('NFC', kept)
+ 
+ def _is_plain_latin(grapheme: str) -> bool:
+-    pass
++    return bool(grapheme) and all('a' <= c <= 'z' for c in grapheme)
+ 
+ def _is_usable(grapheme: str) -> bool:
+-    pass
++    return bool(grapheme) and all('a' <= c <= 'z' for c in grapheme)
+ 
++@lru_cache(maxsize=1)
+ def _universal_tables() -> Tuple[Dict[str, str], Dict[str, str]]:
+     """Forward (majority grapheme -> IPA) and reverse (IPA -> majority grapheme)
+     tables for the virtual "universal" language, loaded once from the survey output."""
+-    pass
++    data = json.loads(_UNIVERSAL_FILE.read_text(encoding='utf-8'))
++    reverse: Dict[str, str] = {}
++    for ipa, rec in data['phonemes'].items():
++        g = rec.get('grapheme') or ''
++        if g in _UNWRITTEN or g in _PLACEHOLDER_GRAPHEMES:
++            g = ''
++        reverse[ipa] = g
++    _warn_non_alphabetic(reverse)
++    forward: Dict[str, str] = {}
++    # Where one grapheme writes several IPA values, a single phoneme is the reading to keep
++    # (nk is /ᵑk/, not the two phonemes /n/ /k/), then the shortest, then lexicographic.
++    for ipa in sorted(reverse, key=lambda p: (not _is_single_phoneme(tie_affricates(p)), len(p), p)):
++        g = reverse[ipa]
++        if g and g not in forward:
++            forward[g] = ipa
++    return forward, reverse
+ 
+ def universal_non_alphabetic() -> Dict[str, str]:
+     """IPA -> universal grapheme, for every grapheme still holding a non a-z character.
+@@ -116,15 +178,22 @@ def universal_non_alphabetic() -> Dict[str, str]:
+     approximated by a letter the language does not use or dropped from the
+     transcript. Callers feeding a speech synthesiser should know which those are.
+     """
+-    pass
++    _, reverse = _universal_tables()
++    return {ipa: g for ipa, g in reverse.items() if g and not _is_usable(g)}
+ 
+ def _warn_non_alphabetic(reverse: Dict[str, str]) -> None:
+     """Warn once that some universal graphemes are not plain letters."""
+-    pass
++    bad = {ipa: g for ipa, g in reverse.items() if g and not _is_usable(g)}
++    if bad:
++        warnings.warn(f'{len(bad)} universal graphemes are not plain a-z letters, e.g. {list(bad.items())[:3]}', stacklevel=3)
+ 
++@lru_cache(maxsize=1)
+ def _universal_g2p_engine() -> G2P:
+     """G2P engine that reads the virtual universal orthography back to IPA."""
+-    pass
++    forward, _ = _universal_tables()
++    graphemes = {g: ipa.replace('(', '').replace(')', '') for g, ipa in forward.items()
++                 if _readable_grapheme(g) and _is_single_phoneme(tie_affricates(ipa))}
++    return G2P.from_rules({'code': UNIVERSAL, 'graphemes': graphemes}, output='ipa', fallback=False)
+ 
+ def _primary_grapheme(rule: dict, candidates: set) -> str:
+     """Choose the canonical written grapheme for a phoneme within one language.
+@@ -134,11 +203,24 @@ def _primary_grapheme(rule: dict, candidates: set) -> str:
+     shortest, then lexicographically — so the result is deterministic and prefers the
+     language's endorsed way of writing the sound over an allophonic variant.
+     """
+-    pass
++    for g in rule.get('alphabet') or []:
++        if g in candidates:
++            return g
++    for g in ((rule.get('scripts') or {}).get('latin') or []):
++        if g in candidates:
++            return g
++    return min(candidates, key=lambda c: (len(c), c))
+ 
+ def reverse_table(lang: str) -> Dict[str, str]:
+     """IPA -> primary grapheme for a real language's chart (cached)."""
+-    pass
++    if lang not in _reverse_cache:
++        rule = load_rules(lang)
++        groups: Dict[str, set] = {}
++        for g, ipa in (rule.get('graphemes') or {}).items():
++            if g and ipa:
++                groups.setdefault(tie_affricates(str(ipa)), set()).add(g)
++        _reverse_cache[lang] = {ipa: _primary_grapheme(rule, cands) for ipa, cands in groups.items()}
++    return _reverse_cache[lang]
+ _APOSTROPHES = "'’‘ʼʻ`ꞌꞋ"
+ 
+ def _alphabet_is_plain_latin(alphabet) -> bool:
+@@ -147,7 +229,13 @@ def _alphabet_is_plain_latin(alphabet) -> bool:
+     Distinct from the grapheme-level ``_is_plain_latin`` defined above, which
+     gates entry to the universal tables and does not tolerate apostrophes.
+     """
+-    pass
++    if not alphabet:
++        return False
++    for g in alphabet:
++        core = ''.join(c for c in g if c not in _APOSTROPHES)
++        if not _is_plain_latin(core):
++            return False
++    return True
+ _PLAIN_LATIN_FILE = _DATA / 'plain_latin_languages.json'
+ _plain_latin_registry: 'Dict[str, dict] | None' = None
+ 
+@@ -159,11 +247,15 @@ def plain_latin_languages() -> Dict[str, dict]:
+     so they are declared here rather than given a rule file asserting phonetic
+     values nobody has verified.
+     """
+-    pass
++    global _plain_latin_registry
++    if _plain_latin_registry is None:
++        codes = json.loads(_PLAIN_LATIN_FILE.read_text(encoding='utf-8'))
++        _plain_latin_registry = {c: {'code': c, 'orthography': 'plain-latin'} for c in codes}
++    return _plain_latin_registry
+ 
+ def is_plain_latin_language(code: str) -> bool:
+     """True when ``code``'s orthography needs no conversion for universal output."""
+-    pass
++    return code in plain_latin_languages()
+ 
+ @lru_cache(maxsize=1)
+ def _fallback() -> Tuple[Dict[str, str], frozenset]:
+@@ -175,12 +267,21 @@ def _fallback() -> Tuple[Dict[str, str], frozenset]:
+     them, ɔ is spelt o by 295. One table's opinion is not a consensus, so a
+     spelling needs a quorum before it is used here.
+     """
+-    pass
++    data = json.loads(_FALLBACK_FILE.read_text(encoding='utf-8'))
++    return dict(data.get('spell') or {}), frozenset(data.get('drop') or [])
+ 
+ def universal_fallback(ch: str) -> str | None:
+     """Spelling for a single letter no table of this language covers."""
+-    pass
+-_ASCII_PUNCT = {'«': '"', '»': '"', '‹': "'", '›': "'", '“': '"', '”': '"', '„': '"', '‘': "'", '’': "'", '‐': '-', '‑': '-', '‒': '-', '–': '-', '—': '-', '―': '-', '−': '-', '\xa0': ' ', '\u2007': ' ', '\u202f': ' ', '…': '...', '·': '.', '•': '.', '，': ',', '．': '.', '؛': ';', '؟': '?', '،': ',', '؞': '.', '۔': '.', '⁄': '/', '×': 'x', '′': "'", '″': '"', '‚': "'", '‛': "'", '¿': '?', '¡': '!', '‵': "'", '‶': '"', 'º': 'o', 'ª': 'a'}
++    spell, drop = _fallback()
++    if ch in drop:
++        return ''
++    if ch in spell:
++        return spell[ch]
++    if 'a' <= ch <= 'z':
++        return ch
++    return None
++_ASCII_PUNCT = {'«': '"', '»': '"', '‹': "'", '›': "'", '“': '"', '”': '"', '„': '"', '‘': "'", '’': "'", '‐': '-', '‑': '-', '‒': '-', '–': '-', '—': '-', '―': '-', '−': '-', '\xa0': ' ', ' ': ' ', ' ': ' ', '…': '...', '·': '.', '•': '.', '，': ',', '．': '.', '؛': ';', '؟': '?', '،': ',', '؞': '.', '۔': '.', '⁄': '/', '×': 'x', '′': "'", '″': '"', '‚': "'", '‛': "'", '¿': '?', '¡': '!', '‵': "'", '‶': '"', 'º': 'o', 'ª': 'a', '።': '.', '፣': ',', '፤': ';', '፥': ':', '፦': ':', '፧': '?', '፨': '|'}
++_ASCII_PUNCT_TABLE = {ord(k): v for k, v in _ASCII_PUNCT.items()}
+ 
+ def _apply_fallback(text: str) -> str:
+     """Spell any leftover non a-z character the way most tables spell it.
+@@ -192,13 +293,24 @@ def _apply_fallback(text: str) -> str:
+     asked isalpha(). A mark that carries no sound of its own is dropped; a
+     character with a spelling takes it.
+     """
+-    pass
++    text = text.translate(_ASCII_PUNCT_TABLE)
++    out = []
++    for ch in unicodedata.normalize('NFD', text):
++        if ord(ch) < 128:
++            out.append(ch)
++            continue
++        spelled = universal_fallback(ch)
++        if spelled is not None:
++            out.append(spelled)
++        elif not (is_mark(ch) or ch == _TIE_CHAR):
++            out.append(ch)
++    return ''.join(out)
+ 
+ def _nfc(s: str) -> str:
+     """Recompose. Matching runs decomposed, but callers and the normalizer work
+     in NFC -- emitting decomposed text made every accented language compare
+     unequal to its own source and looked like a system-wide collapse."""
+-    pass
++    return unicodedata.normalize('NFC', s)
+ 
+ def _greedy_units(text: str, table: Dict[str, str]) -> list:
+     """Rewrite text with the longest matching key at each position, one unit per
+@@ -218,11 +330,34 @@ def _greedy_units(text: str, table: Dict[str, str]) -> list:
+     "ah" could find a-circumflex-h -- let long keys swallow accents belonging to
+     a language's own accented graphemes, and cost more languages than it fixed.
+     """
+-    pass
++    t = unicodedata.normalize('NFD', text)
++    n = len(t)
++    maxlen = max((len(k) for k in table), default=1)
++    units = []
++    i = 0
++    while i < n:
++        length = 0
++        for cand in range(min(maxlen, n - i), 0, -1):
++            if t[i:i + cand] in table:
++                length = cand
++                break
++        if length:
++            replacement = table[t[i:i + length]]
++        else:
++            length = 1
++            replacement = t[i]
++        j = i + length
++        marks = ''
++        while j < n and is_mark(t[j]):
++            marks += t[j]
++            j += 1
++        units.append(_nfc(replacement + marks))
++        i = j
++    return units
+ 
+ def _greedy_map(text: str, table: Dict[str, str]) -> str:
+     """Rewrite text with the longest matching key at each position."""
+-    pass
++    return ''.join(_greedy_units(text, table))
+ 
+ def proxy_tables(code: str) -> Tuple[Dict[str, str], Dict[str, str]]:
+     """(grapheme -> proxy, proxy -> grapheme) for ``code``, or two empties.
+@@ -231,14 +366,21 @@ def proxy_tables(code: str) -> Tuple[Dict[str, str], Dict[str, str]]:
+     marked letter the corpus never showed still comes out as letters rather
+     than as a stray accent.
+     """
+-    pass
++    try:
++        rule = load_rules(code)
++    except LanguageNotFoundError:
++        return {}, {}
++    graphemes = list(rule.get('graphemes') or {}) + list((rule.get('diacritics') or {}))
++    forward = {g: to_proxy(g) for g in graphemes if g}
++    reverse = {p: g for g, p in forward.items()}
++    return forward, reverse
+ 
+ def proxy_supported(code: str) -> bool:
+     """True when ``code`` has a proxy alphabet to convert through."""
+-    pass
++    return has_rules(code) or is_plain_latin_language(code)
+ 
+ def _non_latin_script(ch: str) -> bool:
+-    pass
++    return ch.isalpha() and 'LATIN' not in unicodedata.name(ch, '')
+ 
+ def _romanise(text: str) -> str:
+     """Write a non-Latin script in Latin, from the baked uroman table.
+@@ -249,20 +391,51 @@ def _romanise(text: str) -> str:
+     alone did not change what those languages emitted. A token written in a
+     non-Latin script is romanised here instead of going through the chart.
+     """
+-    pass
++    spell, _ = _fallback()
++    out = []
++    for ch in unicodedata.normalize('NFD', text):
++        if _non_latin_script(ch) or is_mark(ch):
++            if ch in spell:
++                out.append(spell[ch])
++            elif not is_mark(ch):
++                out.append(ch)
++        else:
++            out.append(ch)
++    return _nfc(''.join(out))
+ 
+ @lru_cache(maxsize=1)
+ def _escapes() -> Tuple[Dict[str, str], Dict[str, str]]:
+     """(character -> payload, payload -> character) for the proxy alphabet."""
+-    pass
++    payloads = json.loads(_ESCAPES_FILE.read_text(encoding='utf-8'))['payloads']
++    forward = dict(payloads)
++    reverse = {p: c for c, p in payloads.items()}
++    return forward, reverse
+ _B25 = 'abcdefghijklmnopqrstuvwyz'
+ 
+ def _codepoint_payload(ch: str) -> str:
+     """"zz" plus the codepoint in base 26, for a character with no entry."""
+-    pass
++    n = ord(ch)
++    digits = ''
++    while True:
++        n, r = divmod(n, len(_B25))
++        digits = _B25[r] + digits
++        if n == 0:
++            break
++    return 'zz' + digits
+ 
+ def _payload_codepoint(payload: str) -> str | None:
+-    pass
++    if len(payload) < 3 or not payload.startswith('zz'):
++        return None
++    n = 0
++    for d in payload[2:]:
++        idx = _B25.find(d)
++        if idx < 0:
++            return None
++        n = n * len(_B25) + idx
++    try:
++        return chr(n)
++    except (ValueError, OverflowError):
++        return None
+ 
+ def to_proxy(text: str) -> str:
+     """Write text in the proxy alphabet: plain a-z, and exactly reversible.
+@@ -274,15 +447,46 @@ def to_proxy(text: str) -> str:
+     to check every spelling for collisions and still left 175 languages short
+     of a clean round trip.
+     """
+-    pass
++    forward, _ = _escapes()
++    out = []
++    for ch in text:
++        if 'a' <= ch <= 'z' and ch != 'x':
++            out.append(ch)
++        elif ch == 'x':
++            out.append('xx')
++        else:
++            out.append('x' + (forward.get(ch) or _codepoint_payload(ch)) + 'x')
++    return ''.join(out)
+ 
+ def from_proxy(text: str) -> str:
+     """Read proxy text back into the original orthography."""
+-    pass
++    _, reverse = _escapes()
++    out = []
++    i = 0
++    n = len(text)
++    while i < n:
++        ch = text[i]
++        if ch != 'x':
++            out.append(ch)
++            i += 1
++            continue
++        if i + 1 < n and text[i + 1] == 'x':
++            out.append('x')
++            i += 2
++            continue
++        j = text.find('x', i + 1)
++        if j < 0:
++            out.append(text[i:])
++            break
++        payload = text[i + 1:j]
++        decoded = reverse.get(payload) or _payload_codepoint(payload)
++        out.append(decoded if decoded is not None else text[i:j + 1])
++        i = j + 1
++    return ''.join(out)
+ 
+ def strip_apostrophes(text: str) -> str:
+     """Remove apostrophes, which the universal orthography does not write."""
+-    pass
++    return ''.join(c for c in text if c not in _APOSTROPHES)
+ 
+ def _drop_marks(text: str) -> str:
+     """Drop combining marks, which the universal orthography does not write.
+@@ -293,7 +497,7 @@ def _drop_marks(text: str) -> str:
+     drops them (a tone-marked phoneme falls back to its base letter), so this
+     only makes passthrough agree with it.
+     """
+-    pass
++    return _nfc(''.join(c for c in unicodedata.normalize('NFD', text) if not is_mark(c)))
+ 
+ class GraphemeConverter:
+     """Rewrite one language's graphemes in another's, per shared phonemes."""
+@@ -311,36 +515,109 @@ class GraphemeConverter:
+                     like /tɕ/, /kʰ/ like /k/. Exact target readings always win when the
+                     target does mark aspiration. Default True.
+         """
+-        pass
++        for code in (source, target):
++            if code not in _VIRTUAL and not has_rules(code) and not is_plain_latin_language(code):
++                raise LanguageNotFoundError(code)
++        self.source = source
++        self.target = target
++        self.relax_aspiration = relax_aspiration
++        self._to_universal = target == UNIVERSAL or (target not in _VIRTUAL and not has_rules(target))
++        self._from_chart = source not in _VIRTUAL and has_rules(source)
++        self._passthrough = self._to_universal and not self._from_chart and source not in _VIRTUAL
++        self._src_engine = G2P(source, output='ipa') if self._from_chart else _universal_g2p_engine()
++        self._univ_rev = _universal_tables()[1]
++        if self._to_universal or target == PROXY:
++            self._tgt = self._univ_rev
++        else:
++            self._tgt = reverse_table(target)
++        self._src_spelling = reverse_table(source) if self._from_chart else self._univ_rev
+ 
+     def convert(self, text: str, *, sep: str='', lower: bool=True) -> str:
+         """Convert a full text. Word boundaries (spacing and punctuation) are always
+         preserved; `sep` joins the phoneme units *within* a word — so the default
+         ``sep=""`` emits continuous text, while ``sep=" "`` prints every unit as a
+         separate token (the phoneme-sequence view)."""
+-        pass
++        if self.source == PROXY:
++            return from_proxy(text)
++        if self.target == PROXY:
++            return to_proxy(normalize_text(text, lower=lower))
++        out = []
++        for tok in tokenize(normalize_text(text, lower=lower)):
++            if tok.is_word:
++                out.append(self._convert_word_norm(tok.text, sep))
++            else:
++                out.append(self._non_word(tok.text))
++        return ''.join(out)
+ 
+     def convert_word(self, word: str, *, sep: str='', lower: bool=True) -> str:
+         """Convert a single word (no tokenization)."""
+-        pass
++        if self.source == PROXY:
++            return from_proxy(word)
++        if self.target == PROXY:
++            return to_proxy(normalize_text(word, lower=lower))
++        return self._convert_word_norm(normalize_text(word, lower=lower), sep)
++
++    def _convert_word_norm(self, word: str, sep: str) -> str:
++        if _is_english_word(word):
++            return word
++        if self._to_universal and any(_non_latin_script(c) for c in word):
++            return _apply_fallback(_romanise(word))
++        if self._passthrough:
++            return _apply_fallback(_drop_marks(strip_apostrophes(word)))
++        units = [p for u in self._src_engine.phonemes(word, lower=False) for p in _split_phonemes(u)]
++        return sep.join(_apply_fallback(g) if self._to_universal else g for g in self._map_units(units))
++
++    def _non_word(self, text: str) -> str:
++        """Punctuation and spacing between words: verbatim, except that a universal target
++        writes plain ASCII, so apostrophes go and other marks are spelt out."""
++        if self._to_universal:
++            return _apply_fallback(strip_apostrophes(text))
++        return text
+ 
+     def _map_units(self, units: list) -> list:
+         """Map each phoneme to a target grapheme, replacing the existing (preceding)
+         vowel in a conversion collision (between different source phonemes) with its
+         closest alternative (e.g. o -> u) while keeping true source doubles (long
+         vowels like hyɛɛ -> hyee) and converted vowels untouched."""
+-        pass
++        alts = _UNIVERSAL_VOWEL_ALTERNATIVES if self._to_universal else _VOWEL_ALTERNATIVES
++        rows = []
++        for u in units:
++            g, converted = self._map(u)
++            if rows and rows[-1][1] in alts and rows[-1][0] != u and rows[-1][1] == g:
++                rows[-1][1] = alts[rows[-1][1]]
++            rows.append([u, g, converted])
++        return [r[1] for r in rows]
+ 
+     def _map(self, ipa: str) -> tuple:
+         """Return (grapheme, converted). `converted` is True when the target writes
+         this phoneme differently from the source's own spelling (or the source has no
+         spelling for it), i.e. a merge/simplification actually happened."""
+-        pass
++        source_spelling = self._src_spelling.get(ipa, ipa)
++        relaxed = _relax_aspiration(ipa) if self.relax_aspiration else ipa
++        if self._to_universal and relaxed != ipa and relaxed in self._tgt:
++            # The universal orthography writes no aspiration: /kʰ/ takes the plain /k/ spelling.
++            g = self._tgt[relaxed]
++        else:
++            g = self._tgt.get(ipa)
++        if g is None and relaxed != ipa:
++            g = self._tgt.get(relaxed)
++        if g is None:
++            g = self._univ_rev.get(ipa)
++        if g is None and relaxed != ipa:
++            g = self._univ_rev.get(relaxed)
++        if g is None:
++            base = _strip_combining(ipa)
++            g = self._univ_rev.get(base)
++            if g is None:
++                g = universal_fallback(base) if base else None
++        if g is None:
++            g = ipa
++        return g, g != source_spelling
+ 
+ def convert_lang(text: str, source: str, target: str, *, sep: str='') -> str:
+     """One-shot converter: ``convert_lang("Onyankopɔn", "twi", "ewe")``. Words are
+     kept whole by default; pass ``sep=" "`` for per-unit (phoneme-sequence) output."""
+-    pass
++    return GraphemeConverter(source, target).convert(text, sep=sep)
+ 
+ def convert_to_ipa(text: str, source: str, *, sep: str='') -> str:
+     """G2U2P pipeline: a language's graphemes -> universal graphemes -> IPA.
+@@ -352,7 +629,17 @@ def convert_to_ipa(text: str, source: str, *, sep: str='') -> str:
+     as the single winner phoneme. ``sep=" "`` prints per-unit phonemes; the default
+     ``sep=""`` emits continuous IPA. Embedded English words are phonemised via
+     British English (eng-gb)."""
+-    pass
++    conv = GraphemeConverter(source, UNIVERSAL)
++    engine = _universal_g2p_engine()
++    out = []
++    for tok in tokenize(normalize_text(text)):
++        if not tok.is_word:
++            out.append(tok.text)
++        elif _is_english_word(tok.text):
++            out.append(_get_eng_g2p().convert(tok.text, sep=sep))
++        else:
++            out.append(engine.convert_word(conv.convert_word(tok.text), sep=sep))
++    return ''.join(out)
+ 
+ def from_ipa(ipa: str, lang: str, *, unknown: str='keep') -> str:
+     """Write an IPA string in ``lang``'s orthography.
+@@ -370,7 +657,36 @@ def from_ipa(ipa: str, lang: str, *, unknown: str='keep') -> str:
+     >>> from_ipa("ɔdɔ", "twi")
+     'ɔdɔ'
+     """
+-    pass
++    rev = reverse_table(lang)
++    maxlen = max((len(k) for k in rev), default=1)
++    out = []
++    i = 0
++    n = len(ipa)
++    while i < n:
++        ch = ipa[i]
++        if ch.isspace() or unicodedata.category(ch).startswith('P'):
++            out.append(ch)
++            i += 1
++            continue
++        length = 0
++        for cand in range(min(maxlen, n - i), 0, -1):
++            if ipa[i:i + cand] in rev:
++                length = cand
++                break
++        if not length:
++            if unknown == 'keep':
++                out.append(ch)
++            elif unknown == 'mark':
++                out.append('?')
++            i += 1
++            continue
++        key = ipa[i:i + length]
++        out.append(rev[key])
++        i += length
++        # Aspiration the language does not mark is written as its plain phoneme.
++        while i < n and ipa[i] in 'ʰʱ' and key + ipa[i] not in rev:
++            i += 1
++    return ''.join(out)
+ 
+ def roundtrip(text: str, lang: str) -> str:
+     """Write ``text`` through IPA and back into ``lang``'s own orthography.
+@@ -378,4 +694,4 @@ def roundtrip(text: str, lang: str) -> str:
+     Useful for checking that a language's chart is reversible: where it is, the
+     output equals the lower-cased input.
+     """
+-    pass
++    return from_ipa(G2P(lang, output='ipa').convert(text), lang)
+diff --git a/src/africa_g2p/english.py b/src/africa_g2p/english.py
+index d90cb87..bfc5df1 100644
+--- a/src/africa_g2p/english.py
++++ b/src/africa_g2p/english.py
+@@ -34,7 +34,18 @@ class EspeakUnavailable(RuntimeError):
+ 
+ @lru_cache(maxsize=8)
+ def _backend(voice: str):
+-    pass
++    try:
++        from phonemizer.backend import EspeakBackend
++    except ImportError as exc:
++        raise EspeakUnavailable(
++            "English G2P needs phonemizer and espeak-ng: pip install \"africa-g2p[english]\", "
++            "then apt install espeak-ng (or brew install espeak-ng)") from exc
++    try:
++        return EspeakBackend(voice, preserve_punctuation=False, with_stress=True, language_switch='remove-flags')
++    except Exception as exc:
++        raise EspeakUnavailable(
++            f"espeak-ng binary not found for voice {voice!r}: apt install espeak-ng "
++            "(or brew install espeak-ng)") from exc
+ 
+ class EnglishG2P:
+     """Phonemise English text to IPA.
+@@ -49,19 +60,48 @@ class EnglishG2P:
+     """
+ 
+     def __init__(self, code: str='eng', *, output: str='ipa') -> None:
+-        pass
++        if output != 'ipa':
++            raise ValueError("English has no rule table, so only output='ipa' is available")
++        self.code = code
++        self.output = output
++        self._voice = _VOICE.get(code, 'en-us')
+ 
+     def convert(self, text: str, *, sep: str='', lower: bool=True) -> str:
+-        pass
++        words = self._raw(text, lower=lower).split()
++        if not sep:
++            return ' '.join(words)
++        return ' '.join(sep.join(_segment(w)) for w in words)
+ 
+     def phonemes(self, text: str, *, lower: bool=True) -> List[str]:
+         """Phoneme units. Multi-character units (t͡ʃ, aɪ, oʊ, uː) are kept whole."""
+-        pass
++        return [unit for w in self._raw(text, lower=lower).split() for unit in _segment(w)]
++
++    def _raw(self, text: str, *, lower: bool=True) -> str:
++        if lower:
++            text = text.lower()
++        if not text.strip():
++            return ''
++        backend = _backend(self._voice)
++        out = backend.phonemize([text], strip=True)[0]
++        out = out.translate(_NORMALISE)
++        for plain, tied in _AFFRICATES:
++            out = out.replace(plain, tied)
++        return ' '.join(out.split())
+ 
+-    def _raw(self, text: str) -> str:
+-        pass
+ _MULTI = ('t͡ʃ', 'd͡ʒ', 'aɪ', 'aʊ', 'eɪ', 'oʊ', 'ɔɪ', 'ɪə', 'eə', 'ʊə', 'iː', 'uː', 'ɑː', 'ɔː', 'ɜː', 'ɚ', 'ɝ')
+ 
+ def _segment(s: str) -> List[str]:
+     """Longest-match segmentation, so `aɪ` is one unit rather than `a` + `ɪ`."""
+-    pass
++    units: List[str] = []
++    i = 0
++    while i < len(s):
++        for multi in sorted(_MULTI, key=len, reverse=True):
++            if s.startswith(multi, i):
++                units.append(multi)
++                i += len(multi)
++                break
++        else:
++            if s[i] != '͡':
++                units.append(s[i])
++            i += 1
++    return units
+diff --git a/src/africa_g2p/fallback.py b/src/africa_g2p/fallback.py
+index faecee1..e5e170b 100644
+--- a/src/africa_g2p/fallback.py
++++ b/src/africa_g2p/fallback.py
+@@ -21,4 +21,7 @@ SPACING_TONE: Final[frozenset] = frozenset('ˈˉˊˋˌ˗˖')
+ 
+ def fallback_ipa(char: str) -> str | None:
+     """The conventional reading for `char`, or None if there is no safe default."""
+-    pass
++    value = FALLBACK_IPA.get(char)
++    if value is None:
++        value = FALLBACK_IPA.get(char.lower())
++    return value
+diff --git a/src/africa_g2p/g2p.py b/src/africa_g2p/g2p.py
+index 9e358ba..cd13a42 100644
+--- a/src/africa_g2p/g2p.py
++++ b/src/africa_g2p/g2p.py
+@@ -10,7 +10,15 @@ import unicodedata
+ from typing import Dict, List, Optional
+ from .fallback import SPACING_TONE, fallback_ipa
+ from .loader import load_rules
+-from .normalizer import clean_ipa, fold_confusables, normalize_text, tie_affricates, tokenize
++from .normalizer import clean_ipa, fold_confusables, is_mark, normalize_text, tie_affricates, tokenize, _ORTHOGRAPHIC_ACCENTS
++
++_OUTPUTS = ('grapheme', 'ipa', 'latin')
++_UNKNOWN_MODES = ('passthrough', 'drop', 'mark')
++_DOT_BELOW = '̣'
++
++def _key(text: str) -> str:
++    """Matching form of a grapheme key: confusables folded, lower-cased, decomposed."""
++    return unicodedata.normalize('NFD', fold_confusables(text.lower()))
+ 
+ class G2P:
+     """Grapheme-to-phoneme converter for a single language."""
+@@ -44,7 +52,9 @@ class G2P:
+                    silently is worse than an error because the output still looks
+                    plausible. The language's own rules always take precedence.
+         """
+-        pass
++        rules = load_rules(code)
++        self._setup(code, output=output, unknown=unknown, clean=clean, strip_diacritics=strip_diacritics, fallback=fallback)
++        self._build_tables(rules)
+ 
+     @classmethod
+     def from_rules(cls, rules: Dict, *, output: str='ipa', unknown: str='passthrough', clean: bool=True, strip_diacritics: bool=False, fallback: bool=True) -> 'G2P':
+@@ -53,18 +63,53 @@ class G2P:
+         Used by the cross-language converter for its virtual ``"universal"`` language
+         (the per-IPA majority grapheme set), which is not a file on disk.
+         """
+-        pass
++        obj = cls.__new__(cls)
++        obj._setup(str(rules.get('code', '<rules>')), output=output, unknown=unknown, clean=clean, strip_diacritics=strip_diacritics, fallback=fallback)
++        obj._build_tables(rules)
++        return obj
++
++    def _setup(self, code: str, *, output: str, unknown: str, clean: bool, strip_diacritics: bool, fallback: bool) -> None:
++        if output not in _OUTPUTS:
++            raise ValueError(f'output must be one of {_OUTPUTS}, not {output!r}')
++        if unknown not in _UNKNOWN_MODES:
++            raise ValueError(f'unknown must be one of {_UNKNOWN_MODES}, not {unknown!r}')
++        self.code = code
++        self.output = output
++        self.unknown = unknown
++        self.clean = clean
++        self.strip_diacritics = strip_diacritics
++        self.fallback = fallback
+ 
+     def _build_tables(self, rules: Dict) -> None:
+-        pass
++        self.graphemes: Dict[str, str] = {}
++        for raw, value in (rules.get('graphemes') or {}).items():
++            key = _key(raw)
++            if key:
++                self.graphemes[key] = tie_affricates(str(value)) if value else ''
++        self._diacritics = {_key(k): str(v) for k, v in (rules.get('diacritics') or {}).items() if k}
++        self._romanization = {unicodedata.normalize('NFC', k): str(v) for k, v in (rules.get('romanization') or {}).items() if v}
++        keys = set(self.graphemes)
++        if self.output != 'ipa':
++            keys.update(_key(a) for a in (rules.get('alphabet') or []) if a)
++        self._keys = {k for k in keys if k}
++        self._maxlen = max((len(k) for k in self._keys), default=1)
++
++    # ------------------------------------------------------------------ public API
+ 
+     def convert(self, text: str, *, sep: str='', lower: bool=True) -> str:
+         """Convert a full text string to an IPA string."""
+-        pass
++        text = normalize_text(text, lower=lower)
++        out = []
++        for tok in tokenize(text):
++            if tok.is_word:
++                out.append(self._convert_word(tok.text, sep=sep))
++            else:
++                out.append(tok.text)
++        return ''.join(out)
+ 
+     def convert_word(self, word: str, *, sep: str='', lower: bool=True) -> str:
+         """Convert a single word (no tokenization) to IPA."""
+-        pass
++        return self._convert_word(normalize_text(word, lower=lower), sep=sep)
+ 
+     def phonemes(self, text: str, *, lower: bool=True, punctuation: bool=True) -> List[str]:
+         """Return a flat list of units for the text.
+@@ -82,14 +127,48 @@ class G2P:
+ 
+         Whitespace is never emitted: word boundaries are carried by the list itself.
+         """
+-        pass
++        text = normalize_text(text, lower=lower)
++        units: List[str] = []
++        for tok in tokenize(text):
++            if tok.is_word:
++                units.extend(self._segment(tok.text))
++            elif punctuation:
++                units.extend(ch for ch in tok.text if unicodedata.category(ch).startswith('P'))
++        return [u for u in units if u]
++
++    # ------------------------------------------------------------------ internals
+ 
+     def _convert_word(self, word: str, *, sep: str) -> str:
+-        pass
++        return sep.join(self._segment(word))
+ 
+     def _segment(self, word: str) -> List[str]:
+         """Segment one word into a list of IPA units."""
+-        pass
++        t = unicodedata.normalize('NFD', word)
++        n = len(t)
++        units: List[str] = []
++        i = 0
++        while i < n:
++            if is_mark(t[i]):
++                # A mark with no base carries nothing to attach to.
++                i += 1
++                continue
++            key = self._longest_base_match(t, i, n)
++            if key is None:
++                j = i + 1
++                while j < n and is_mark(t[j]):
++                    j += 1
++                unit = self._unknown_letter(t[i], t[i + 1:j])
++                i = j
++            else:
++                j = i + len(key)
++                k = j
++                while k < n and is_mark(t[k]):
++                    k += 1
++                unit = self._known_unit(key, t[j:k])
++                i = k
++            if unit:
++                units.append(unit)
++        return units
+ 
+     def _longest_base_match(self, text: str, i: int, n: int):
+         """Longest matching grapheme key at position i.
+@@ -105,10 +184,68 @@ class G2P:
+         A chunk may not *start* with a combining mark: that would attach a mark to the
+         wrong base, and a stray leading mark is handled by the caller instead.
+         """
+-        pass
++        for length in range(min(self._maxlen, n - i), 0, -1):
++            chunk = text[i:i + length]
++            if chunk in self._keys:
++                return chunk
++        return None
++
++    def _known_unit(self, key: str, marks: str) -> str:
++        """Unit for a grapheme the table defines, with the marks written after it."""
++        if self.output == 'ipa':
++            value = self.graphemes.get(key, '')
++            rest = marks
++            if self.fallback and len(key) == 1 and _DOT_BELOW in marks:
++                # Dot-below is segmental (ẹ is not e): a letter the chart does not spell
++                # with the dot takes its conventional reading when the language has none.
++                segmental = fallback_ipa(unicodedata.normalize('NFC', key + _DOT_BELOW))
++                if segmental:
++                    value = segmental
++                    rest = marks.replace(_DOT_BELOW, '', 1)
++            return self._clean(value + self._suprasegmentals(rest))
++        return self._written(key, marks)
++
++    def _unknown_letter(self, ch: str, marks: str) -> str:
++        """Unit for a base letter with no grapheme entry of its own."""
++        if self.output == 'ipa':
++            if self.fallback and _DOT_BELOW in marks:
++                segmental = fallback_ipa(unicodedata.normalize('NFC', ch + _DOT_BELOW))
++                if segmental:
++                    return self._clean(segmental + self._suprasegmentals(marks.replace(_DOT_BELOW, '', 1)))
++            value = self._handle_unknown(ch)
++            return self._clean(value + self._suprasegmentals(marks))
++        base = self._handle_unknown(ch)
++        if base != ch:
++            return base
++        return self._written(ch, marks)
++
++    def _written(self, base: str, marks: str) -> str:
++        """Grapheme-mode unit: the base as written, with its marks kept or stripped."""
++        if self.strip_diacritics:
++            marks = ''.join(m for m in marks if ord(m) not in _ORTHOGRAPHIC_ACCENTS)
++        unit = unicodedata.normalize('NFC', base + marks)
++        return self._romanization.get(unit, unit)
++
++    def _suprasegmentals(self, marks: str) -> str:
++        """IPA for trailing marks; a mark the language does not define contributes nothing."""
++        return ''.join(self._diacritics.get(m, '') for m in marks)
++
++    def _clean(self, value: str) -> str:
++        return clean_ipa(value) if self.clean else value
+ 
+     def _handle_unknown(self, ch: str) -> str:
+-        pass
++        """What an unmapped character becomes under the current options."""
++        if self.output == 'ipa' and self.fallback:
++            value = fallback_ipa(ch)
++            if value is not None:
++                return value
++            if ch in SPACING_TONE:
++                return ''
++        if self.unknown == 'drop':
++            return ''
++        if self.unknown == 'mark':
++            return '�'
++        return ch
+ 
+ def g2p(text: str, lang: str, *, output: str='grapheme', unknown: str='passthrough', clean: bool=True, strip_diacritics: bool=False, **kwargs) -> str:
+     """One-shot convenience wrapper: ``g2p("akwaaba", "aka")``.
+@@ -120,4 +257,7 @@ def g2p(text: str, lang: str, *, output: str='grapheme', unknown: str='passthrou
+     used for it. Imported here rather than at module scope to keep this module free of the
+     optional phonemizer dependency for every other language, none of which need it.
+     """
+-    pass
++    from .english import ENGLISH_CODES, EnglishG2P
++    if lang in ENGLISH_CODES:
++        return EnglishG2P(lang).convert(text, **kwargs)
++    return G2P(lang, output=output, unknown=unknown, clean=clean, strip_diacritics=strip_diacritics).convert(text, **kwargs)
+diff --git a/src/africa_g2p/loader.py b/src/africa_g2p/loader.py
+index 8488810..86fdf01 100644
+--- a/src/africa_g2p/loader.py
++++ b/src/africa_g2p/loader.py
+@@ -15,16 +15,28 @@ class LanguageNotFoundError(KeyError):
+ @lru_cache(maxsize=1)
+ def registry() -> Dict[str, dict]:
+     """Return the language registry keyed by ISO 639-3 code."""
+-    pass
++    entries = json.loads(_REGISTRY_PATH.read_text(encoding='utf-8'))
++    return {e['code']: e for e in entries if isinstance(e, dict) and e.get('code')}
+ 
+ def available_languages() -> List[str]:
+     """Return the sorted list of language codes that have a rule file."""
+-    pass
++    return sorted(p.stem for p in _LANG_DIR.glob('*.json'))
++
++def has_rules(code: str) -> bool:
++    """True when ``code`` has a rule file in the package."""
++    return isinstance(code, str) and bool(code) and '/' not in code and (_LANG_DIR / f'{code}.json').is_file()
+ 
+ @lru_cache(maxsize=256)
+ def load_rules(code: str) -> dict:
+     """Load and validate a language rule file by ISO 639-3 code."""
+-    pass
++    if not has_rules(code):
++        raise LanguageNotFoundError(code)
++    rules = json.loads((_LANG_DIR / f'{code}.json').read_text(encoding='utf-8'))
++    _validate(rules, code)
++    return rules
+ 
+ def _validate(rules: dict, code: str) -> None:
+-    pass
++    if not isinstance(rules, dict):
++        raise ValueError(f'{code}: rule file is not a JSON object')
++    if not isinstance(rules.get('graphemes'), dict):
++        raise ValueError(f'{code}: rule file has no grapheme table')
+diff --git a/src/africa_g2p/normalizer.py b/src/africa_g2p/normalizer.py
+index a905ff6..7c6b3da 100644
+--- a/src/africa_g2p/normalizer.py
++++ b/src/africa_g2p/normalizer.py
+@@ -23,19 +23,38 @@ def _mark_class() -> str:
+     could never match. Deriving the class from Unicode covers all of them and costs
+     ~20 ms once at import. Marks above the BMP are historic/musical and irrelevant here.
+     """
+-    pass
++    ranges = []
++    start = prev = None
++    for cp in range(0x10000):
++        is_mark = not (0xD800 <= cp <= 0xDFFF) and unicodedata.category(chr(cp)) in ('Mn', 'Mc', 'Me')
++        if is_mark:
++            if start is None:
++                start = cp
++            prev = cp
++        elif start is not None:
++            ranges.append((start, prev))
++            start = None
++    if start is not None:
++        ranges.append((start, prev))
++    return ''.join(f'\\u{a:04x}' if a == b else f'\\u{a:04x}-\\u{b:04x}' for a, b in ranges)
+ _WORD_RE = re.compile("[^\\W\\d_]+(?:['’ʼ" + _mark_class() + '][^\\W\\d_]*)*', re.UNICODE)
+ _CONFUSABLES = {'ε': 'ɛ', 'ι': 'ɩ', 'ɡ': 'g', 'ı': 'i', '’': "'", 'ʼ': "'", 'ↄ': 'ɔ', 'ɂ': 'ʔ'}
+ _CONFUSABLE_TABLE = {ord(k): v for k, v in _CONFUSABLES.items()}
+ 
+ def fold_confusables(text: str) -> str:
+     """Fold visually-confusable orthographic characters to a canonical form."""
+-    pass
++    return text.translate(_CONFUSABLE_TABLE)
+ _ORTHOGRAPHIC_ACCENTS = {768, 769, 770, 772, 777, 779, 780, 783, 785}
+ 
++def is_mark(ch: str) -> bool:
++    """True for a combining mark (Mn, Mc, Me) of any script."""
++    return unicodedata.category(ch) in ('Mn', 'Mc', 'Me')
++
+ def clean_ipa(text: str) -> str:
+     """Strip orthographic tone/accent marks from IPA output, keeping IPA diacritics."""
+-    pass
++    nfd = unicodedata.normalize('NFD', text)
++    kept = ''.join(c for c in nfd if ord(c) not in _ORTHOGRAPHIC_ACCENTS)
++    return unicodedata.normalize('NFC', kept)
+ 
+ def normalize_text(text: str, *, lower: bool=True) -> str:
+     """Fold confusables, optionally case-fold, and Unicode-normalize (NFC).
+@@ -45,14 +64,29 @@ def normalize_text(text: str, *, lower: bool=True) -> str:
+     composes ị -- so normalising first meant the output was not reliably NFC and
+     two canonically identical strings could compare unequal.
+     """
+-    pass
++    text = fold_confusables(text)
++    if lower:
++        text = text.lower()
++    return unicodedata.normalize('NFC', text)
+ 
+ def tokenize(text: str) -> List[Token]:
+     """Split into alternating word / non-word tokens, preserving order and content."""
+-    pass
++    tokens = []
++    pos = 0
++    for m in _WORD_RE.finditer(text):
++        if m.start() > pos:
++            tokens.append(Token(text[pos:m.start()], False))
++        tokens.append(Token(m.group(0), True))
++        pos = m.end()
++    if pos < len(text):
++        tokens.append(Token(text[pos:], False))
++    return tokens
+ _LIGATURES = {'ʧ': 't͡ʃ', 'ʤ': 'd͡ʒ', 'ʨ': 't͡ɕ', 'ʥ': 'd͡ʑ', 'ʦ': 't͡s', 'ʣ': 'd͡z'}
+ _AFFRICATE_PAIRS = (('t', 'ʃ'), ('d', 'ʒ'), ('t', 'ɕ'), ('d', 'ʑ'), ('t', 's'), ('d', 'z'), ('t', 'ʂ'), ('d', 'ʐ'), ('k', 'p'), ('ɡ', 'b'), ('p', 'f'), ('b', 'v'))
+ _TIE = '͡'
++# Combining marks that may sit between the two halves of an affricate, excluding the tie bars
++# themselves (U+0360-U+0362 and U+035C) so an existing tie is never tied twice.
++_NON_TIE_MARKS = '̀-͛͝-ͣ͟-ͯ'
+ 
+ def tie_affricates(ipa: str) -> str:
+     """Write affricates and doubly-articulated stops with a tie bar, consistently.
+@@ -61,4 +95,9 @@ def tie_affricates(ipa: str) -> str:
+     an adjacent `t` and `s` there really are one affricate. It must not be run over
+     converted text, where the same two symbols may be neighbouring phonemes.
+     """
+-    pass
++    for lig, tied in _LIGATURES.items():
++        ipa = ipa.replace(lig, tied)
++    for a, b in _AFFRICATE_PAIRS:
++        pattern = re.escape(a) + '([' + _NON_TIE_MARKS + ']*)' + re.escape(b)
++        ipa = re.sub(pattern, lambda m, a=a, b=b: a + m.group(1) + _TIE + b, ipa)
++    return ipa
+diff --git a/src/africa_g2p/pipeline.py b/src/africa_g2p/pipeline.py
+index 0d72b87..7b23c4c 100644
+--- a/src/africa_g2p/pipeline.py
++++ b/src/africa_g2p/pipeline.py
+@@ -14,11 +14,20 @@ from .loader import registry
+ class AfricaPipeline:
+ 
+     def __init__(self, lang: str, *, output: str='grapheme', unknown: str='passthrough', strip_diacritics: bool=False):
+-        pass
++        self.lang = lang
++        if lang in ENGLISH_CODES:
++            # English has no rule table: it always goes through espeak, in IPA.
++            self.output = 'ipa'
++            self._engine = EnglishG2P(lang)
++        else:
++            self.output = output
++            self._engine = G2P(lang, output=output, unknown=unknown, strip_diacritics=strip_diacritics)
+ 
+     def run(self, text: Union[str, List[str]], *, sep: str=''):
+         """Convert text (or a batch of texts) to IPA."""
+-        pass
++        if isinstance(text, str):
++            return self._engine.convert(text, sep=sep)
++        return [self._engine.convert(t, sep=sep) for t in text]
+ 
+     def __repr__(self) -> str:
+-        pass
++        return f'AfricaPipeline(lang={self.lang!r}, output={self.output!r})'

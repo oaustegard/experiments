@@ -1,6 +1,9 @@
-processes[lockf-False] _____________________
+26033461276343872 True <built-in function lockf>
+a=LockResult(exception_class=None, exception_message=None, exception_repr=None)
+b=LockResult(exception_class=None, exception_message=None, exception_repr=None)
+____________________ test_exclusive_processes[lockf-False] _____________________
 
-tmpfile = '/tmp/pytest-of-nobody/pytest-187/test_exclusive_processes_lockf1/45168775833344277'
+tmpfile = '/tmp/pytest-of-nobody/pytest-298/test_exclusive_processes_lockf1/3251211968224065'
 fail_when_locked = False, locker = <built-in function lockf>
 
     @pytest.mark.parametrize('fail_when_locked', [True, False])
@@ -49,15 +52,12 @@ E               TypeError: issubclass() arg 1 must be a class
 
 portalocker_tests/tests.py:383: TypeError
 ----------------------------- Captured stdout call -----------------------------
-Locking /tmp/pytest-of-nobody/pytest-187/test_exclusive_processes_lockf1/45168775833344277 False <built-in function lockf>
+Locking /tmp/pytest-of-nobody/pytest-298/test_exclusive_processes_lockf1/3251211968224065 False <built-in function lockf>
 a=LockResult(exception_class=None, exception_message=None, exception_repr=None)
 b=LockResult(exception_class=None, exception_message=None, exception_repr=None)
 - generated xml file: /tmp/jail/c0/work/grade-f-swarm/portalocker/.c0-junit.xml -
 =========================== short test summary info ============================
-FAILED portalocker_tests/tests.py::test_shared_processes[True] - multiprocess...
-FAILED portalocker_tests/tests.py::test_shared_processes[False] - multiproces...
-FAILED portalocker_tests/tests.py::test_exclusive_processes[flock-True] - Typ...
 FAILED portalocker_tests/tests.py::test_exclusive_processes[flock-False] - Ty...
 FAILED portalocker_tests/tests.py::test_exclusive_processes[lockf-True] - Typ...
 FAILED portalocker_tests/tests.py::test_exclusive_processes[lockf-False] - Ty...
-=================== 6 failed, 34 passed, 1 skipped in 10.19s ===================
+=================== 3 failed, 37 passed, 1 skipped in 10.63s ===================

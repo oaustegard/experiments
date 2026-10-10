@@ -1,0 +1,39 @@
+.py: 1 warning
+tests/test_confirmations.py: 16 warnings
+tests/test_gate.py: 29 warnings
+tests/test_hypothesis.py: 300 warnings
+tests/test_policy.py: 18 warnings
+  /tmp/jail/c0/work/grade-c-solo/catraca/tests/support.py:36: UserWarning: catraca: no evidence log is set, so decisions go unrecorded. Pass evidence=EvidenceLog(...), or evidence=None to say so on purpose.
+    super().__init__(registry, policy, **kw)
+
+tests/test_egress.py::StrictDefault::test_calls_without_destinations_are_fine
+  /tmp/jail/c0/work/grade-c-solo/catraca/tests/test_egress.py:175: UserWarning: catraca: no evidence log is set, so decisions go unrecorded. Pass evidence=EvidenceLog(...), or evidence=None to say so on purpose.
+    g = Gate(ContextRegistry(CFG), POLICY)
+
+tests/test_egress.py: 19 warnings
+  /tmp/jail/c0/work/grade-c-solo/catraca/tests/test_egress.py:41: UserWarning: catraca: no evidence log is set, so decisions go unrecorded. Pass evidence=EvidenceLog(...), or evidence=None to say so on purpose.
+    return Gate(reg, POLICY, egress=egress)
+
+tests/test_egress.py::StrictDefault::test_no_config_means_no_destinations_at_all
+  /tmp/jail/c0/work/grade-c-solo/catraca/tests/test_egress.py:169: UserWarning: catraca: no evidence log is set, so decisions go unrecorded. Pass evidence=EvidenceLog(...), or evidence=None to say so on purpose.
+    g = Gate(g._registry, POLICY)  # a Gate built without egress
+
+tests/test_egress.py::Provenance::test_coincidence_in_an_unconfirmed_arg_is_denied
+  /tmp/jail/c0/work/grade-c-solo/catraca/tests/test_egress.py:309: UserWarning: catraca: no evidence log is set, so decisions go unrecorded. Pass evidence=EvidenceLog(...), or evidence=None to say so on purpose.
+    g = Gate(reg, POLICY, egress=EGRESS)
+
+tests/test_egress.py::Provenance::test_coincidence_still_goes_to_confirmation
+  /tmp/jail/c0/work/grade-c-solo/catraca/tests/test_egress.py:298: UserWarning: catraca: no evidence log is set, so decisions go unrecorded. Pass evidence=EvidenceLog(...), or evidence=None to say so on purpose.
+    g = Gate(reg, pol, egress=EGRESS)
+
+tests/test_egress.py::Provenance::test_destination_field_is_checked_too
+  /tmp/jail/c0/work/grade-c-solo/catraca/tests/test_egress.py:280: UserWarning: catraca: no evidence log is set, so decisions go unrecorded. Pass evidence=EvidenceLog(...), or evidence=None to say so on purpose.
+    d = Gate(reg, pol, egress=e).decide("post", {"text": "summary"}, caller=ANA,
+
+tests/test_egress.py::Provenance::test_named_destination_isnt_a_target
+  /tmp/jail/c0/work/grade-c-solo/catraca/tests/test_egress.py:287: UserWarning: catraca: no evidence log is set, so decisions go unrecorded. Pass evidence=EvidenceLog(...), or evidence=None to say so on purpose.
+    g = Gate(ContextRegistry(CFG), POLICY, egress=e)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+--- generated xml file: /tmp/jail/c0/work/grade-c-solo/catraca/.c0-junit.xml ---
+================ 428 passed, 1 skipped, 389 warnings in 11.80s =================
