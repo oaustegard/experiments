@@ -156,6 +156,10 @@ session-boot repo and was the wrong home for 37 research projects.
 
 ## Per-experiment notes
 
+### `commit0-swarm/` — can one Haiku 5.5 agent rebuild a whole library, and does a swarm beat it?
+
+Commit0-lite skeletons (signatures and docstrings, bodies emptied) graded by each library's own suite, every repo execution in the jail. One Haiku 5.5 agent passed 11,208 of 11,209 tests over 15 libraries for $6.71, including babel's 6,699. A contamination control on 8 libraries released after its training also went 1,589/1,589: Haiku remembers the famous libraries (median 55% verbatim informative lines against 17% unseen) but does not need to. A file-partitioned swarm plus shard fixers matched solo at 1.3× the cost and 2–3× the speed on the two largest; its build pass fails at the seams between files.
+
 ### `transcript-assessor/` — can Haiku 5.5 assess Claude transcripts for compliance, task type, friction and success?
 
 One structured-output Haiku 5.5 call per transcript over a code-built digest, with secret, PII and risky-command scans, the hour arithmetic and the review flag done in code. Readers cover Claude Code JSONL and the Compliance API's chat and session transcripts. Against Opus 5.5 on 16 sessions, prompt v2 agreed on primary task 15/16, review flag 14/16 and friction level 14/16; the friction gain came from defining levels by observable events. A run over all 69 sessions of one week returned 69 valid assessments and one review flag. Hours saved has no ground truth.

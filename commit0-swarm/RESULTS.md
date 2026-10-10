@@ -2,36 +2,30 @@
 
 ## Answer
 
-Haiku 5.5 rebuilt every library it was given from Commit0-style skeletons:
-modules, classes, signatures and docstrings kept, function bodies emptied,
-with the library's own test suite as the target. One agent working alone
-passed 11,208 of 11,209 graded tests across the 15 admissible Commit0-lite
-libraries, including babel (6,699 tests, 65 minutes, 344 tool calls) and
-jinja (850 tests, 58 minutes, 287 tool calls). The one miss is a chardet test
-marked expected-to-fail that the reference happens to pass. Input-side cost
-for the 15 libraries was $6.71.
+Can one Haiku 5.5 agent rebuild a whole Python library from a Commit0
+skeleton (signatures and docstrings kept, bodies emptied, the library's own
+tests as target)? Yes, every time it was asked. Solo, it passed 11,208 of
+11,209 graded tests across the 15 admissible Commit0-lite libraries for $6.71,
+including babel (6,699 tests, 65 minutes) and jinja (850 tests, 58 minutes);
+the one miss is an expected-to-fail chardet test the reference passes.
 
-Haiku 5.5 cannot have trained on eight libraries first released after
-2026-07-01. It also rebuilt all eight to 100% (1,589 of 1,589 tests, $3.06),
-including catraca (428 tests, 5,700 source lines), aseprite (a binary file
-format, 260 tests) and verifactu-lint (254 tests). Haiku recognises the famous
-libraries: a median 55% of its informative lines are verbatim lines of the
-original, against 17% on the unseen ones. The scores do not depend on that,
-because the unseen libraries reached the same ceiling.
+On eight libraries first released after 2026-07-01, which it cannot have
+trained on, it also scored 100% (1,589 of 1,589 tests, $3.06). It remembers
+the famous libraries (a median 55% of its informative lines are verbatim
+original lines, against 17% on the unseen ones) but does not need to.
 
-A swarm of up to 8 Haiku builders per library, each owning a set of files in
-one shared checkout, followed by a wave of fixers that each took a shard of
-the failing tests, reached 11,205 of 11,209. It cost 1.3× the solo arm
-($8.64). It finished the two largest libraries two to three times sooner:
-babel in 36 agent-minutes of wall time against 65, jinja in 18 against 58.
-The build pass alone reached only 9,402 of 11,209. The gap is integration
-failure, and the fixer wave closed it.
+A swarm of up to 8 builders per library plus one round of shard fixers reached
+11,205 of 11,209 at 1.3× the cost, two to three times faster on babel and
+jinja. Its build pass alone reached 9,402: the swarm fails where files meet.
+
+A library several times babel's size is the open question: at Commit0-lite
+scale every arm sits at the ceiling.
 
 ## Findings
 
 1. **One Haiku agent rebuilds a whole library.** Fifteen Commit0-lite
    libraries, solo, one attempt each (chardet also got a continuation agent,
-   which changed nothing):
+   which changed nothing) (Round 2):
 
    | library | graded tests | solo | swarm build | swarm + fixers | builders | solo $ | swarm $ |
    |---|---|---|---|---|---|---|---|
@@ -59,7 +53,7 @@ failure, and the fixer wave closed it.
    `rt.py` has a real bug. minitorch was excluded because its reference commit
    is itself an unfinished course skeleton (reference 15/230).
 
-2. **The control: libraries Haiku cannot have seen, same result.**
+2. **The control: libraries Haiku cannot have seen, same result.** (Round 3)
 
    | control library | first PyPI release | graded tests | solo | $ | verbatim rate |
    |---|---|---|---|---|---|
@@ -95,7 +89,7 @@ failure, and the fixer wave closed it.
    old libraries is recall. Agents also named upstream specifics unprompted
    ("upstream uses `get_spontaneous_environment.cache_clear()`").
    I first read the Commit0-lite rates alone as evidence that recall drove the
-   scores. The control overturned that reading.
+   scores. The control overturned that reading. (Round 3, `data/runs/*/memorization.json`)
 
 4. **The swarm's build pass fails at the seams, and fixers close them fast.**
    Builders finish their own files in 1–7 minutes and then cannot check them,
@@ -118,22 +112,39 @@ failure, and the fixer wave closed it.
    converged on it: two of five chardet fixers and two of eight babel
    fixers made no edit, because another fixer's fix landed mid-run. The
    Edit tool's stale-file check served as the concurrency control, and no
-   fixer clobbered another's edit.
+   fixer clobbered another's edit. (Rounds 1–2)
 
 5. **Cost and time.** Solo totals $6.71 for Commit0-lite; the swarm $8.64
    (build $7.95, fixers $0.69). Agent-active wall time, solo vs swarm (build +
    fix): babel 65 vs 36 min, jinja 58 vs 18, cookiecutter 14 vs 7, imapclient
    21 vs 19, chardet 13 vs 32 (the integration failure). On libraries under
    ~1,000 tests the two are within a few minutes. The swarm figures exclude
-   the queueing a 20-agent session cap imposes between waves.
+   the queueing a 20-agent session cap imposes between waves. (Round 2, transcripts)
 
 6. **The whole experiment cost $18.41 input-side** across 116 Haiku 5.5 spawns
    (pilot $1.20, Commit0-lite solo $6.31, swarm $7.24, fixers $0.60,
    continuation $0.01, control $3.06), priced per turn with Haiku 5.5's
    double rate above 100K prompt tokens (`harness/cost.py`). Output tokens in
-   these transcripts are streaming-start floors, so the figure is input-side.
+   these transcripts are streaming-start floors, so the figure is input-side. (`data/runs/*/costs.jsonl`)
 
-## Integrity
+## Method
+
+Fixture: Commit0-lite (`wentingzhao/commit0_combined`, repos
+`github.com/commit-0/<lib>`), 16 libraries, 15 admissible after both-direction
+certification (`harness/certify.py`); minitorch's reference is itself a
+skeleton. Graded set: the tests the reference passes here. Control: 8
+post-cutoff libraries stubbed the same way (`harness/control_setup.py`).
+
+Arms: solo (one Haiku 5.5 Agent-tool subagent, continuation agent where it left
+failures); swarm (up to 8 builders sharing one checkout, files partitioned by
+stub count with every file owned, then fixers on contiguous shards of the
+failing test ids). Prompts: `harness/prompts.py`.
+
+Metrics: graded pass count (`harness/run.py grade`), input-side cost per spawn
+(`harness/cost.py`), agent-active wall time from transcript timestamps,
+verbatim rate (`harness/memorization.py`). One replicate per arm.
+
+### Integrity
 
 - **History.** In all 16 Commit0-lite repos the stub commit's parent is the
   reference commit, so in a clone `git diff HEAD~1` prints the original
@@ -164,7 +175,7 @@ failure, and the fixer wave closed it.
   reached 100% of the stub-failing tests too, except the simpy swarm and solo
   chardet's xfail.
 
-## Deviations and caveats
+### Deviations and caveats
 
 - **Grader artifacts found during the run**: marshmallow parametrises a test
   with `datetime.now()`, so its test id differs between certification and
@@ -187,7 +198,7 @@ failure, and the fixer wave closed it.
   stubs contain 3.12-only nested-quote f-strings, which the 3.10 builders
   had to rewrite.
 
-## Harness lessons
+### Harness notes
 
 - A Commit0 stub commit is a child of its reference: strip history from any
   agent checkout.
@@ -203,9 +214,43 @@ failure, and the fixer wave closed it.
   grading on an idle machine.
 - Parametrised test ids can embed the clock; normalise before matching.
 
-## Reproduce
+### Reproduce
 
 See `README.md`. Runs: `p-solo`, `p-swarm`, `p-fix` (pilot); `f-solo`,
 `f-swarm`, `f-fix`, `f-fix2`, `f-fix3`, `f-fix4`, `f-cont` (full);
 `c-solo` (control). `harness/analyze.py` rebuilds the tables from
 `data/runs/*/results.jsonl`, `costs.jsonl` and `memorization.json`.
+
+## Log
+
+### Round 1 — pilot (tinydb, pyjwt, voluptuous)
+
+Asked: Oskar, "aim higher, Haiku is 20 times cheaper than Sonnet". Ran 3 solo
+agents and 9 swarm builders, then 6 fixers claiming whole test files. Solo
+201/201, 258/258, 148/148. Swarm build 199, 0, 59: the partition assigned only
+files with empty bodies, so `jwt/utils.py` and `voluptuous/error.py` had no
+owner. File claims idled one of two voluptuous fixers (one test file held all
+89 failures). Fixers brought all three to 100%. Found here: the stub commit's
+parent is the reference (git history leak), the uv cache and certification
+trees held originals; fixed before Round 2 and audited.
+
+### Round 2 — full lite set, both arms (12 more libraries)
+
+Ran 12 solo agents and 60 swarm builders (every file owned, 12 stubs per
+builder, cap 8), then shard fixers on imapclient, parsel, jinja, chardet (5)
+and babel (8). Solo reached 100% on all but chardet's xfail. Swarm build pass:
+chardet 31/376 (prober files with deleted properties, called "complete" by
+their owners), babel 5599/6699; fixers closed both in one round. Grader fixes
+in this round: clock-dependent test ids (marshmallow), load-sensitive
+deadlines (portalocker, simpy; regraded idle, best of 3), a `save_patch`
+failure on babel's gitignored locale data.
+
+### Round 3 — contamination control
+
+Asked: Oskar, "is it possible the incredible performance is from Claude's own
+training data?" First reading, from Commit0-lite alone: 22–72% of Haiku's
+informative lines are verbatim original lines, so probably largely recall.
+Then a Sonnet agent found 12 post-cutoff libraries (ecosyste.ms, 1,530 repos
+checked), 8 certified; solo Haiku scored 100% on all 8 with verbatim rates of
+5–42%. The first reading was withdrawn: recall is real (about 3× the unseen
+floor) but the scores do not depend on it.
