@@ -1,0 +1,28 @@
+{
+ "retries": 0,
+ "schema": {
+  "type": "object",
+  "required": [
+   "summary"
+  ],
+  "properties": {
+   "summary": {
+    "type": "string"
+   }
+  }
+ },
+ "tasks": [
+  {
+   "id": "statsmodels.solo",
+   "prompt": "You are implementing the Python library `statsmodels` (upstream: statsmodels/statsmodels) from its skeleton.\n\nThe checkout at /tmp/jail/c0/work/s-solo/statsmodels keeps the library's structure: modules, classes, signatures and docstrings. Most function and method bodies have been replaced with `pass`, and some private helpers were deleted outright (look for names the code uses but nothing defines). The library's own test suite is in `statsmodels`. Make it pass by writing the code under `statsmodels/`.\n\nThe tests and docstrings are your specification, together with what you know of the real library. Only files under `statsmodels/` are graded; the grader discards every other change, including any edit to tests. There is no network access, so you cannot fetch the original source.\n\nRunning code: library code runs only through two commands, used from inside the checkout:\n  /tmp/jail/c0/bin/c0-test [TARGET ...]   pytest on targets (default: the whole suite), e.g. `/tmp/jail/c0/bin/c0-test statsmodels -x -q` or `/tmp/jail/c0/bin/c0-test statsmodels/<test_file>.py -q`\n  /tmp/jail/c0/bin/c0-run CMD ARGS...     anything else, e.g. `/tmp/jail/c0/bin/c0-run python -c 'import statsmodels'`\nPlain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted. The last line of each run is its exit status.\n\nThis is a long job: expect hundreds of tool calls. Do not stop to ask questions, do not stop after the first module, and do not report early. Work until `/tmp/jail/c0/bin/c0-test` on the whole suite passes, or until every remaining failure has had at least two real attempts.\n\nSuggested order: run the whole suite once to see what fails, read the tests for the core module, implement the core first (things everything else imports), then work outward, re-running tests as you go.\n\nWhen you are done, and as your very last action, write /home/user/experiments/commit0-swarm/data/runs/s-solo/out/statsmodels.solo.json containing {\"summary\": \"<two sentences: what you implemented and the last full-suite result you saw>\", \"passed\": <int from that run or -1>, \"failed\": <int or -1>}. Then reply with one line.\n",
+   "out": "/home/user/experiments/commit0-swarm/data/runs/s-solo/out/statsmodels.solo.json",
+   "description": "s-solo statsmodels.solo",
+   "model": "haiku",
+   "subagent_type": "general-purpose",
+   "status": "running",
+   "dispatches": 1,
+   "last_error": null,
+   "dispatched_at": 1791601044.1345253
+  }
+ ]
+}
