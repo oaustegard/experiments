@@ -1,0 +1,20 @@
+  remax k=1 (asym) centered q-centered        4813.9 B/doc  nDCG@10 0.7641 R@100 0.9667  Δ -0.0161 [-0.0346,+0.0018]
+  remax k=2 (asym) centered q-centered        9627.9 B/doc  nDCG@10 0.7766 R@100 0.9700  Δ -0.0035 [-0.0178,+0.0107]
+  remax k=4 (asym) centered q-centered       19255.7 B/doc  nDCG@10 0.7797 R@100 0.9767  Δ -0.0004 [-0.0122,+0.0111]
+  remax k=1 (asym) centered q-centered s1     4813.9 B/doc  nDCG@10 0.7314 R@100 0.9567  Δ -0.0488 [-0.0693,-0.0290]
+  remax k=1 (sym) centered s1                 4813.9 B/doc  nDCG@10 0.7201 R@100 0.9477  Δ -0.0601 [-0.0835,-0.0379]
+  remex 8-bit centered nested-from-8         38511.4 B/doc  nDCG@10 0.7811 R@100 0.9833  Δ +0.0010 [+0.0000,+0.0029]
+  remex 4-bit centered nested-from-8         19255.7 B/doc  nDCG@10 0.7759 R@100 0.9833  Δ -0.0042 [-0.0153,+0.0057]
+  remex 2-bit centered nested-from-8          9627.9 B/doc  nDCG@10 0.7373 R@100 0.9493  Δ -0.0429 [-0.0622,-0.0252]
+  remex 1-bit centered nested-from-8          4813.9 B/doc  nDCG@10 0.5270 R@100 0.9287  Δ -0.2532 [-0.2916,-0.2146]
+  remex 2-bit centered s1                     9627.9 B/doc  nDCG@10 0.7802 R@100 0.9767  Δ +0.0000 [-0.0090,+0.0096]
+  remex 1-bit centered s1                     4813.9 B/doc  nDCG@10 0.7610 R@100 0.9800  Δ -0.0192 [-0.0330,-0.0057]
+  paired (a - b):
+    remex 2-bit centered                   - plaid 2-bit                    +0.0078 [-0.0017,+0.0185] w/l 27/22
+    remex 1-bit centered                   - plaid 1-bit                    +0.0064 [-0.0101,+0.0230] w/l 38/39
+    remex 4-bit centered                   - plaid 4-bit                    +0.0031 [-0.0031,+0.0096] w/l 18/9
+    remex 1-bit centered                   - remax k=1 (sym) centered       -0.0012 [-0.0226,+0.0208] w/l 39/44
+    remax k=1 (asym) centered q-centered   - remex 1-bit centered           -0.0010 [-0.0213,+0.0193] w/l 39/36
+    remex 2-bit centered                   - trunc 64d + remex 4-bit        +0.0323 [+0.0165,+0.0503] w/l 43/21
+    remex 1-bit centered                   - remex 1-bit                    +0.1906 [+0.1543,+0.2286] w/l 120/19
+    remex 2-bit direct s0                  - remex 2-bit                    +0.0292 [+0.0104,+0.0502] w/l 46/28

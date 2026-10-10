@@ -1904,6 +1904,24 @@ the result.
   NFCorpus. At 1 bit PLAID leads on SciFact (+0.029 [+0.009, +0.049]) and ties
   on NFCorpus. RSLM's residual-vs-centroid result (memory e0fc3c57) predicts the
   1-bit gap: K=1 is the degenerate case. (`mxbai-edge-remex-quant/RESULTS.md` finding 3)
+- **pplx-embed-v2-late's 128-d tokens are a narrow cone too; center before any
+  code below 4 bits, and centered remex ties PLAID at every width.** ‖mean‖/mean‖x‖
+  0.945, random-pair cosine 0.892 (SciFact, 0.6B). Plain remex 1-bit −0.206 / −0.145
+  (two seeds); centered 2-bit +0.006 / +0.000, centered 1-bit −0.015 / −0.019 against
+  fp32 0.7802. Against PLAID K=16,384 at matched residual bits: +0.003 / +0.008 /
+  +0.006 at 4/2/1, all CIs spanning zero. The mxbai-edge 1-bit PLAID lead (+0.029)
+  did not recur. (`pplx-embed-v2-quant/RESULTS.md` findings 1–3)
+- **remax on a centered corpus must center the query too.** A sign code carries no
+  residual length, so an uncentered float query scores μ·ŝ noise: nDCG@10 0.06.
+  Centered query: k=2 −0.004, k=4 −0.000; k=1 swings 0.03–0.05 between seeds where
+  centered remex 1-bit swings 0.004. (`pplx-embed-v2-quant/ERRORS.md` #1, finding 4)
+- **remex centered mode + `decode(precision=p)` is broken in remex 1.1.0; the fix is
+  free.** The stored length m solves ‖μ + m·û‖ = ‖x‖ for the full-precision û only.
+  Read at 1 bit from an 8-bit centered code: 0.527 vs 0.765 direct. Recover ‖x‖ from the
+  full decode and re-solve m for û_p: nested matches direct at 1/2/4 bits. Until remex
+  ships it, encode centered codes at the width you serve. Uncentered nesting is a
+  separate, smaller cost (2-bit read off 8-bit −0.029 vs direct).
+  (`pplx-embed-v2-quant/renest.py`, finding 6)
 - **remex `rotation="rht"` is seed-invariant at every power-of-two d (remex 0.8.0).**
   With block size = d, `rht_plan` uses one round, and on the encode path the
   seed's permutation and signs land after the WHT, so rotated vectors are a signed

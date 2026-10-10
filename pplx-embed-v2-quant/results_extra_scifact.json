@@ -1,0 +1,215 @@
+{
+ "rows": [
+  {
+   "arm": "remax k=1 (asym) centered q-centered",
+   "bytes_per_doc": 4813.9,
+   "ndcg10": 0.7641,
+   "recall100": 0.9667,
+   "delta": -0.0161,
+   "ci": [
+    -0.0346,
+    0.0018
+   ]
+  },
+  {
+   "arm": "remax k=2 (asym) centered q-centered",
+   "bytes_per_doc": 9627.9,
+   "ndcg10": 0.7766,
+   "recall100": 0.97,
+   "delta": -0.0035,
+   "ci": [
+    -0.0178,
+    0.0107
+   ]
+  },
+  {
+   "arm": "remax k=4 (asym) centered q-centered",
+   "bytes_per_doc": 19255.7,
+   "ndcg10": 0.7797,
+   "recall100": 0.9767,
+   "delta": -0.0004,
+   "ci": [
+    -0.0122,
+    0.0111
+   ]
+  },
+  {
+   "arm": "remax k=1 (asym) centered q-centered s1",
+   "bytes_per_doc": 4813.9,
+   "ndcg10": 0.7314,
+   "recall100": 0.9567,
+   "delta": -0.0488,
+   "ci": [
+    -0.0693,
+    -0.029
+   ]
+  },
+  {
+   "arm": "remax k=1 (sym) centered s1",
+   "bytes_per_doc": 4813.9,
+   "ndcg10": 0.7201,
+   "recall100": 0.9477,
+   "delta": -0.0601,
+   "ci": [
+    -0.0835,
+    -0.0379
+   ]
+  },
+  {
+   "arm": "remex 8-bit centered nested-from-8",
+   "bytes_per_doc": 38511.4,
+   "ndcg10": 0.7811,
+   "recall100": 0.9833,
+   "delta": 0.001,
+   "ci": [
+    0.0,
+    0.0029
+   ]
+  },
+  {
+   "arm": "remex 4-bit centered nested-from-8",
+   "bytes_per_doc": 19255.7,
+   "ndcg10": 0.7759,
+   "recall100": 0.9833,
+   "delta": -0.0042,
+   "ci": [
+    -0.0153,
+    0.0057
+   ]
+  },
+  {
+   "arm": "remex 2-bit centered nested-from-8",
+   "bytes_per_doc": 9627.9,
+   "ndcg10": 0.7373,
+   "recall100": 0.9493,
+   "delta": -0.0429,
+   "ci": [
+    -0.0622,
+    -0.0252
+   ]
+  },
+  {
+   "arm": "remex 1-bit centered nested-from-8",
+   "bytes_per_doc": 4813.9,
+   "ndcg10": 0.527,
+   "recall100": 0.9287,
+   "delta": -0.2532,
+   "ci": [
+    -0.2916,
+    -0.2146
+   ]
+  },
+  {
+   "arm": "remex 2-bit centered s1",
+   "bytes_per_doc": 9627.9,
+   "ndcg10": 0.7802,
+   "recall100": 0.9767,
+   "delta": 0.0,
+   "ci": [
+    -0.009,
+    0.0096
+   ]
+  },
+  {
+   "arm": "remex 1-bit centered s1",
+   "bytes_per_doc": 4813.9,
+   "ndcg10": 0.761,
+   "recall100": 0.98,
+   "delta": -0.0192,
+   "ci": [
+    -0.033,
+    -0.0057
+   ]
+  }
+ ],
+ "paired": [
+  {
+   "a": "remex 2-bit centered",
+   "b": "plaid 2-bit",
+   "delta": 0.0078,
+   "ci": [
+    -0.0017,
+    0.0185
+   ],
+   "wins": 27,
+   "losses": 22
+  },
+  {
+   "a": "remex 1-bit centered",
+   "b": "plaid 1-bit",
+   "delta": 0.0064,
+   "ci": [
+    -0.0101,
+    0.023
+   ],
+   "wins": 38,
+   "losses": 39
+  },
+  {
+   "a": "remex 4-bit centered",
+   "b": "plaid 4-bit",
+   "delta": 0.0031,
+   "ci": [
+    -0.0031,
+    0.0096
+   ],
+   "wins": 18,
+   "losses": 9
+  },
+  {
+   "a": "remex 1-bit centered",
+   "b": "remax k=1 (sym) centered",
+   "delta": -0.0012,
+   "ci": [
+    -0.0226,
+    0.0208
+   ],
+   "wins": 39,
+   "losses": 44
+  },
+  {
+   "a": "remax k=1 (asym) centered q-centered",
+   "b": "remex 1-bit centered",
+   "delta": -0.001,
+   "ci": [
+    -0.0213,
+    0.0193
+   ],
+   "wins": 39,
+   "losses": 36
+  },
+  {
+   "a": "remex 2-bit centered",
+   "b": "trunc 64d + remex 4-bit",
+   "delta": 0.0323,
+   "ci": [
+    0.0165,
+    0.0503
+   ],
+   "wins": 43,
+   "losses": 21
+  },
+  {
+   "a": "remex 1-bit centered",
+   "b": "remex 1-bit",
+   "delta": 0.1906,
+   "ci": [
+    0.1543,
+    0.2286
+   ],
+   "wins": 120,
+   "losses": 19
+  },
+  {
+   "a": "remex 2-bit direct s0",
+   "b": "remex 2-bit",
+   "delta": 0.0292,
+   "ci": [
+    0.0104,
+    0.0502
+   ],
+   "wins": 46,
+   "losses": 28
+  }
+ ]
+}
