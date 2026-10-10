@@ -1,0 +1,62 @@
+all remaining data from the socket,
+        # which will block while the server waits for the next request.
+        # So make sure the connection gets closed after the (only)
+        # request.
+        headers["Connection"] = "close"
+        headers = {name.title(): val for name, val in headers.items()}
+    
+        if req._tunnel_host:
+            tunnel_headers = {}
+            proxy_auth_hdr = "Proxy-Authorization"
+            if proxy_auth_hdr in headers:
+                tunnel_headers[proxy_auth_hdr] = headers[proxy_auth_hdr]
+                # Proxy-Authorization should not be sent to origin
+                # server.
+                del headers[proxy_auth_hdr]
+            h.set_tunnel(req._tunnel_host, headers=tunnel_headers)
+    
+        try:
+            try:
+                h.request(req.get_method(), req.selector, req.data, headers,
+                          encode_chunked=req.has_header('Transfer-encoding'))
+            except OSError as err: # timeout error
+>               raise URLError(err)
+E               urllib.error.URLError: <urlopen error [Errno -3] Temporary failure in name resolution>
+
+/opt/uvpy/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/urllib/request.py:1347: URLError
+
+The above exception was the direct cause of the following exception:
+
+self = <tests.test_jwks_client.TestPyJWKClient object at 0x7f2610dae780>
+
+    def test_get_jwt_set_sslcontext_default(self):
+        url = "https://dev-87evx9ru.auth0.com/.well-known/jwks.json"
+        jwks_client = PyJWKClient(url, ssl_context=ssl.create_default_context())
+    
+>       jwk_set = jwks_client.get_jwk_set()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_jwks_client.py:344: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+jwt/jwks_client.py:49: in get_jwk_set
+    data = self.fetch_data()
+           ^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <jwt.jwks_client.PyJWKClient object at 0x7f2610a734d0>
+
+    def fetch_data(self) -> Any:
+        jwk_set: Any = None
+        try:
+            r = urllib.request.Request(url=self.uri, headers=self.headers)
+            with urllib.request.urlopen(r, timeout=self.timeout, context=self.ssl_context) as response:
+                jwk_set = json.loads(response.read())
+        except (URLError, TimeoutError) as e:
+>           raise PyJWKClientConnectionError(f'Fail to fetch data from the url, err: "{e}"') from e
+E           jwt.exceptions.PyJWKClientConnectionError: Fail to fetch data from the url, err: "<urlopen error [Errno -3] Temporary failure in name resolution>"
+
+jwt/jwks_client.py:38: PyJWKClientConnectionError
+---- generated xml file: /tmp/jail/c0/work/grade-p-solo/pyjwt/.c0-junit.xml ----
+=========================== short test summary info ============================
+FAILED tests/test_jwks_client.py::TestPyJWKClient::test_get_jwt_set_sslcontext_default
+============= 1 failed, 258 passed, 2 skipped, 1 xfailed in 5.72s ==============

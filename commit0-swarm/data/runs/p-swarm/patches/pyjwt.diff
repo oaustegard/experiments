@@ -1,0 +1,989 @@
+diff --git a/jwt/algorithms.py b/jwt/algorithms.py
+index b3897bf..d303837 100644
+--- a/jwt/algorithms.py
++++ b/jwt/algorithms.py
+@@ -13,7 +13,7 @@ if sys.version_info >= (3, 8):
+ else:
+     from typing_extensions import Literal
+ try:
+-    from cryptography.exceptions import InvalidSignature
++    from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
+     from cryptography.hazmat.backends import default_backend
+     from cryptography.hazmat.primitives import hashes
+     from cryptography.hazmat.primitives.asymmetric import padding
+@@ -34,11 +34,53 @@ if TYPE_CHECKING:
+     AllowedPublicKeys = RSAPublicKey | EllipticCurvePublicKey | Ed25519PublicKey | Ed448PublicKey
+ requires_cryptography = {'RS256', 'RS384', 'RS512', 'ES256', 'ES256K', 'ES384', 'ES521', 'ES512', 'PS256', 'PS384', 'PS512', 'EdDSA'}
+ 
++def _parse_jwk_object(jwk: Any, label: str) -> JWKDict:
++    """
++    Accepts a JWK as a JSON string or an already-parsed dict and returns the
++    dict. Anything else raises InvalidKeyError.
++    """
++    try:
++        if isinstance(jwk, str):
++            obj = json.loads(jwk)
++        elif isinstance(jwk, dict):
++            obj = jwk
++        else:
++            raise ValueError
++    except ValueError:
++        raise InvalidKeyError(f"{label} key must be a valid JSON object") from None
++
++    if not isinstance(obj, dict):
++        raise InvalidKeyError(f"{label} key must be a valid JSON object")
++    return obj
++
+ def get_default_algorithms() -> dict[str, Algorithm]:
+     """
+     Returns the algorithms that are implemented by the library.
+     """
+-    pass
++    default_algorithms: dict[str, Algorithm] = {
++        "none": NoneAlgorithm(),
++        "HS256": HMACAlgorithm(HMACAlgorithm.SHA256),
++        "HS384": HMACAlgorithm(HMACAlgorithm.SHA384),
++        "HS512": HMACAlgorithm(HMACAlgorithm.SHA512),
++    }
++
++    if has_crypto:
++        default_algorithms.update({
++            "RS256": RSAAlgorithm(RSAAlgorithm.SHA256),
++            "RS384": RSAAlgorithm(RSAAlgorithm.SHA384),
++            "RS512": RSAAlgorithm(RSAAlgorithm.SHA512),
++            "ES256": ECAlgorithm(ECAlgorithm.SHA256),
++            "ES256K": ECAlgorithm(ECAlgorithm.SHA256),
++            "ES384": ECAlgorithm(ECAlgorithm.SHA384),
++            "ES521": ECAlgorithm(ECAlgorithm.SHA512),
++            "ES512": ECAlgorithm(ECAlgorithm.SHA512),
++            "PS256": RSAPSSAlgorithm(RSAPSSAlgorithm.SHA256),
++            "PS384": RSAPSSAlgorithm(RSAPSSAlgorithm.SHA384),
++            "PS512": RSAPSSAlgorithm(RSAPSSAlgorithm.SHA512),
++            "EdDSA": OKPAlgorithm(),
++        })
++
++    return default_algorithms
+ 
+ class Algorithm(ABC):
+     """
+@@ -51,7 +93,18 @@ class Algorithm(ABC):
+ 
+         If there is no hash algorithm, raises a NotImplementedError.
+         """
+-        pass
++        hash_alg = getattr(self, "hash_alg", None)
++        if hash_alg is None:
++            raise NotImplementedError
++
++        if has_crypto and isinstance(hash_alg, type) and issubclass(hash_alg, hashes.HashAlgorithm):
++            # cryptography hash classes, e.g. hashes.SHA256
++            digest = hashes.Hash(hash_alg())
++            digest.update(bytestr)
++            return bytes(digest.finalize())
++
++        # hashlib constructors, e.g. hashlib.sha256
++        return bytes(hash_alg(bytestr).digest())
+ 
+     @abstractmethod
+     def prepare_key(self, key: Any) -> Any:
+@@ -99,6 +152,29 @@ class NoneAlgorithm(Algorithm):
+     operations are required.
+     """
+ 
++    def prepare_key(self, key: str | None) -> None:
++        if key == "":
++            key = None
++
++        if key is not None:
++            raise InvalidKeyError("When alg = 'none', key value must be None.")
++
++        return key
++
++    def sign(self, msg: bytes, key: None) -> bytes:
++        return b""
++
++    def verify(self, msg: bytes, key: None, sig: bytes) -> bool:
++        return False
++
++    @staticmethod
++    def to_jwk(key_obj: Any, as_dict: bool = False) -> NoReturn:
++        raise NotImplementedError()
++
++    @staticmethod
++    def from_jwk(jwk: str | JWKDict) -> NoReturn:
++        raise NotImplementedError()
++
+ class HMACAlgorithm(Algorithm):
+     """
+     Performs signing and verification operations using HMAC
+@@ -110,8 +186,71 @@ class HMACAlgorithm(Algorithm):
+ 
+     def __init__(self, hash_alg: HashlibHash) -> None:
+         self.hash_alg = hash_alg
++
++    def prepare_key(self, key: str | bytes) -> bytes:
++        key_bytes = force_bytes(key)
++
++        if is_pem_format(key_bytes) or is_ssh_key(key_bytes):
++            raise InvalidKeyError(
++                "The specified key is an asymmetric key or x509 certificate and"
++                " should not be used as an HMAC secret."
++            )
++
++        return key_bytes
++
++    @staticmethod
++    def to_jwk(key_obj: str | bytes, as_dict: bool = False) -> JWKDict | str:
++        jwk = {
++            "k": base64url_encode(force_bytes(key_obj)).decode(),
++            "kty": "oct",
++        }
++
++        if as_dict:
++            return jwk
++        return json.dumps(jwk)
++
++    @staticmethod
++    def from_jwk(jwk: str | JWKDict) -> bytes:
++        obj = _parse_jwk_object(jwk, "HMAC")
++
++        if obj.get("kty") != "oct":
++            raise InvalidKeyError("Not an HMAC key")
++
++        if "k" not in obj:
++            raise InvalidKeyError("HMAC key is missing the 'k' parameter")
++
++        try:
++            return base64url_decode(obj["k"])
++        except ValueError as err:
++            raise InvalidKeyError("Invalid HMAC key value") from err
++
++    def sign(self, msg: bytes, key: bytes) -> bytes:
++        return hmac.new(key, msg, self.hash_alg).digest()
++
++    def verify(self, msg: bytes, key: bytes, sig: bytes) -> bool:
++        return hmac.compare_digest(sig, self.sign(msg, key))
++
+ if has_crypto:
+ 
++    def _load_asymmetric_key(key_bytes: bytes, key_types: tuple[type, ...], description: str) -> Any:
++        """
++        Parses a PEM or OpenSSH key and checks it is one of ``key_types``.
++        """
++        try:
++            if is_ssh_key(key_bytes):
++                loaded = load_ssh_public_key(key_bytes)
++            else:
++                try:
++                    loaded = load_pem_private_key(key_bytes, password=None)
++                except ValueError:
++                    loaded = load_pem_public_key(key_bytes)
++        except (ValueError, UnsupportedAlgorithm):
++            raise InvalidKeyError("Could not parse the provided key.") from None
++
++        if not isinstance(loaded, key_types):
++            raise InvalidKeyError(f"The specified key is not a valid {description} key.")
++        return loaded
++
+     class RSAAlgorithm(Algorithm):
+         """
+         Performs signing and verification operations using
+@@ -124,6 +263,134 @@ if has_crypto:
+         def __init__(self, hash_alg: type[hashes.HashAlgorithm]) -> None:
+             self.hash_alg = hash_alg
+ 
++        def prepare_key(self, key: AllowedRSAKeys | str | bytes) -> AllowedRSAKeys:
++            if isinstance(key, (RSAPrivateKey, RSAPublicKey)):
++                return key
++
++            if not isinstance(key, (bytes, str)):
++                raise TypeError("Expected a string value")
++
++            return _load_asymmetric_key(force_bytes(key), (RSAPrivateKey, RSAPublicKey), "RSA")
++
++        def sign(self, msg: bytes, key: RSAPrivateKey) -> bytes:
++            return key.sign(msg, padding.PKCS1v15(), self.hash_alg())
++
++        def verify(self, msg: bytes, key: RSAPublicKey | RSAPrivateKey, sig: bytes) -> bool:
++            if isinstance(key, RSAPrivateKey):
++                key = key.public_key()
++            try:
++                key.verify(sig, msg, padding.PKCS1v15(), self.hash_alg())
++                return True
++            except (InvalidSignature, ValueError):
++                return False
++
++        @staticmethod
++        def to_jwk(key_obj: AllowedRSAKeys, as_dict: bool = False) -> JWKDict | str:
++            obj: dict[str, Any] | None = None
++
++            if hasattr(key_obj, "private_numbers"):
++                # Private key
++                numbers = key_obj.private_numbers()
++
++                obj = {
++                    "kty": "RSA",
++                    "key_ops": ["sign"],
++                    "n": to_base64url_uint(numbers.public_numbers.n).decode(),
++                    "e": to_base64url_uint(numbers.public_numbers.e).decode(),
++                    "d": to_base64url_uint(numbers.d).decode(),
++                    "p": to_base64url_uint(numbers.p).decode(),
++                    "q": to_base64url_uint(numbers.q).decode(),
++                    "dp": to_base64url_uint(numbers.dmp1).decode(),
++                    "dq": to_base64url_uint(numbers.dmq1).decode(),
++                    "qi": to_base64url_uint(numbers.iqmp).decode(),
++                }
++
++            elif hasattr(key_obj, "verify"):
++                # Public key
++                numbers = key_obj.public_numbers()
++
++                obj = {
++                    "kty": "RSA",
++                    "key_ops": ["verify"],
++                    "n": to_base64url_uint(numbers.n).decode(),
++                    "e": to_base64url_uint(numbers.e).decode(),
++                }
++            else:
++                raise InvalidKeyError("Not a public or private key")
++
++            if as_dict:
++                return obj
++            return json.dumps(obj)
++
++        @staticmethod
++        def from_jwk(jwk: str | JWKDict) -> AllowedRSAKeys:
++            obj = _parse_jwk_object(jwk, "RSA")
++
++            if obj.get("kty") != "RSA":
++                raise InvalidKeyError("Not an RSA key")
++
++            try:
++                if "d" in obj and "e" in obj and "n" in obj:
++                    # Private key
++                    if "oth" in obj:
++                        raise InvalidKeyError(
++                            "Unsupported RSA private key: > 2 primes not supported"
++                        )
++
++                    other_props = ["p", "q", "dp", "dq", "qi"]
++                    props_found = [prop in obj for prop in other_props]
++                    any_props_found = any(props_found)
++
++                    if any_props_found and not all(props_found):
++                        raise InvalidKeyError(
++                            "RSA key must include all parameters if any are present besides d"
++                        )
++
++                    public_numbers = RSAPublicNumbers(
++                        from_base64url_uint(obj["e"]),
++                        from_base64url_uint(obj["n"]),
++                    )
++
++                    if any_props_found:
++                        numbers = RSAPrivateNumbers(
++                            d=from_base64url_uint(obj["d"]),
++                            p=from_base64url_uint(obj["p"]),
++                            q=from_base64url_uint(obj["q"]),
++                            dmp1=from_base64url_uint(obj["dp"]),
++                            dmq1=from_base64url_uint(obj["dq"]),
++                            iqmp=from_base64url_uint(obj["qi"]),
++                            public_numbers=public_numbers,
++                        )
++                    else:
++                        # Only d was given: recover p and q from it
++                        d = from_base64url_uint(obj["d"])
++                        p, q = rsa_recover_prime_factors(
++                            public_numbers.n, d, public_numbers.e
++                        )
++                        numbers = RSAPrivateNumbers(
++                            d=d,
++                            p=p,
++                            q=q,
++                            dmp1=rsa_crt_dmp1(d, p),
++                            dmq1=rsa_crt_dmq1(d, q),
++                            iqmp=rsa_crt_iqmp(p, q),
++                            public_numbers=public_numbers,
++                        )
++
++                    return numbers.private_key()
++
++                # Public key
++                return RSAPublicNumbers(
++                    from_base64url_uint(obj["e"]),
++                    from_base64url_uint(obj["n"]),
++                ).public_key()
++            except KeyError as err:
++                raise InvalidKeyError(
++                    f"RSA key is missing a required parameter: {err}"
++                ) from err
++            except ValueError as err:
++                raise InvalidKeyError("Invalid RSA key parameters") from err
++
+     class ECAlgorithm(Algorithm):
+         """
+         Performs signing and verification operations using
+@@ -136,11 +403,170 @@ if has_crypto:
+         def __init__(self, hash_alg: type[hashes.HashAlgorithm]) -> None:
+             self.hash_alg = hash_alg
+ 
++        def prepare_key(self, key: AllowedECKeys | str | bytes) -> AllowedECKeys:
++            if isinstance(key, (EllipticCurvePrivateKey, EllipticCurvePublicKey)):
++                return key
++
++            if not isinstance(key, (bytes, str)):
++                raise TypeError("Expected a string value")
++
++            return _load_asymmetric_key(
++                force_bytes(key), (EllipticCurvePrivateKey, EllipticCurvePublicKey), "EC"
++            )
++
++        def sign(self, msg: bytes, key: EllipticCurvePrivateKey) -> bytes:
++            der_sig = key.sign(msg, ECDSA(self.hash_alg()))
++            return der_to_raw_signature(der_sig, key.curve)
++
++        def verify(self, msg: bytes, key: AllowedECKeys, sig: bytes) -> bool:
++            try:
++                der_sig = raw_to_der_signature(sig, key.curve)
++            except ValueError:
++                return False
++
++            public_key = key.public_key() if isinstance(key, EllipticCurvePrivateKey) else key
++            try:
++                public_key.verify(der_sig, msg, ECDSA(self.hash_alg()))
++                return True
++            except (InvalidSignature, ValueError):
++                return False
++
++        @staticmethod
++        def to_jwk(key_obj: AllowedECKeys, as_dict: bool = False) -> JWKDict | str:
++            if isinstance(key_obj, EllipticCurvePrivateKey):
++                public_numbers = key_obj.public_key().public_numbers()
++            elif isinstance(key_obj, EllipticCurvePublicKey):
++                public_numbers = key_obj.public_numbers()
++            else:
++                raise InvalidKeyError("Not a public or private key")
++
++            curve = key_obj.curve
++            if isinstance(curve, SECP256R1):
++                crv = "P-256"
++            elif isinstance(curve, SECP384R1):
++                crv = "P-384"
++            elif isinstance(curve, SECP521R1):
++                crv = "P-521"
++            elif isinstance(curve, SECP256K1):
++                crv = "secp256k1"
++            else:
++                raise InvalidKeyError(f"Invalid curve: {curve}")
++
++            # JWK coordinates are fixed-width, so pad to the curve's byte length
++            coord_len = (curve.key_size + 7) // 8
++            obj: dict[str, Any] = {
++                "x": base64url_encode(public_numbers.x.to_bytes(coord_len, byteorder="big")).decode(),
++                "y": base64url_encode(public_numbers.y.to_bytes(coord_len, byteorder="big")).decode(),
++                "kty": "EC",
++                "crv": crv,
++            }
++
++            if isinstance(key_obj, EllipticCurvePrivateKey):
++                d = key_obj.private_numbers().private_value
++                obj["d"] = base64url_encode(d.to_bytes(coord_len, byteorder="big")).decode()
++
++            if as_dict:
++                return obj
++            return json.dumps(obj)
++
++        @staticmethod
++        def from_jwk(jwk: str | JWKDict) -> AllowedECKeys:
++            obj = _parse_jwk_object(jwk, "EC")
++
++            if obj.get("kty") != "EC":
++                raise InvalidKeyError("Not an Elliptic curve key")
++
++            if "x" not in obj or "y" not in obj:
++                raise InvalidKeyError("Not an Elliptic curve key")
++
++            try:
++                x = base64url_decode(obj["x"])
++                y = base64url_decode(obj["y"])
++            except ValueError as err:
++                raise InvalidKeyError("Invalid EC coordinates") from err
++
++            curve = obj.get("crv")
++            if curve == "P-256":
++                if len(x) == len(y) == 32:
++                    el_curve: EllipticCurve = SECP256R1()
++                else:
++                    raise InvalidKeyError("Coords should be 32 bytes for curve P-256")
++            elif curve == "P-384":
++                if len(x) == len(y) == 48:
++                    el_curve = SECP384R1()
++                else:
++                    raise InvalidKeyError("Coords should be 48 bytes for curve P-384")
++            elif curve == "P-521":
++                if len(x) == len(y) == 66:
++                    el_curve = SECP521R1()
++                else:
++                    raise InvalidKeyError("Coords should be 66 bytes for curve P-521")
++            elif curve == "secp256k1":
++                if len(x) == len(y) == 32:
++                    el_curve = SECP256K1()
++                else:
++                    raise InvalidKeyError("Coords should be 32 bytes for curve secp256k1")
++            else:
++                raise InvalidKeyError(f"Invalid curve: {curve}")
++
++            public_numbers = EllipticCurvePublicNumbers(
++                x=int.from_bytes(x, byteorder="big"),
++                y=int.from_bytes(y, byteorder="big"),
++                curve=el_curve,
++            )
++
++            try:
++                if "d" not in obj:
++                    return public_numbers.public_key()
++
++                try:
++                    d = base64url_decode(obj["d"])
++                except ValueError as err:
++                    raise InvalidKeyError("Invalid EC private value") from err
++
++                if len(d) != len(x):
++                    raise InvalidKeyError(
++                        f"D should be {len(x)} bytes for curve {curve}"
++                    )
++
++                return EllipticCurvePrivateNumbers(
++                    int.from_bytes(d, byteorder="big"), public_numbers
++                ).private_key()
++            except ValueError as err:
++                raise InvalidKeyError("Invalid EC key parameters") from err
++
+     class RSAPSSAlgorithm(RSAAlgorithm):
+         """
+         Performs a signature using RSASSA-PSS with MGF1
+         """
+ 
++        def sign(self, msg: bytes, key: RSAPrivateKey) -> bytes:
++            return key.sign(
++                msg,
++                padding.PSS(
++                    mgf=padding.MGF1(self.hash_alg()),
++                    salt_length=self.hash_alg.digest_size,
++                ),
++                self.hash_alg(),
++            )
++
++        def verify(self, msg: bytes, key: RSAPublicKey | RSAPrivateKey, sig: bytes) -> bool:
++            if isinstance(key, RSAPrivateKey):
++                key = key.public_key()
++            try:
++                key.verify(
++                    sig,
++                    msg,
++                    padding.PSS(
++                        mgf=padding.MGF1(self.hash_alg()),
++                        salt_length=self.hash_alg.digest_size,
++                    ),
++                    self.hash_alg(),
++                )
++                return True
++            except (InvalidSignature, ValueError):
++                return False
++
+     class OKPAlgorithm(Algorithm):
+         """
+         Performs signing and verification operations using EdDSA
+@@ -151,6 +577,22 @@ if has_crypto:
+         def __init__(self, **kwargs: Any) -> None:
+             pass
+ 
++        def prepare_key(self, key: AllowedOKPKeys | str | bytes) -> AllowedOKPKeys:
++            if isinstance(
++                key,
++                (Ed25519PrivateKey, Ed25519PublicKey, Ed448PrivateKey, Ed448PublicKey),
++            ):
++                return key
++
++            if not isinstance(key, (str, bytes)):
++                raise InvalidKeyError("Expected a string value")
++
++            return _load_asymmetric_key(
++                force_bytes(key),
++                (Ed25519PrivateKey, Ed25519PublicKey, Ed448PrivateKey, Ed448PublicKey),
++                "Ed25519 or Ed448",
++            )
++
+         def sign(self, msg: str | bytes, key: Ed25519PrivateKey | Ed448PrivateKey) -> bytes:
+             """
+             Sign a message ``msg`` using the EdDSA private key ``key``
+@@ -159,7 +601,9 @@ if has_crypto:
+                 or :class:`.Ed448PrivateKey` isinstance
+             :return bytes signature: The signature, as bytes
+             """
+-            pass
++            if not isinstance(key, (Ed25519PrivateKey, Ed448PrivateKey)):
++                raise InvalidKeyError("Expecting a private Ed25519 or Ed448 key")
++            return key.sign(force_bytes(msg))
+ 
+         def verify(self, msg: str | bytes, key: AllowedOKPKeys, sig: str | bytes) -> bool:
+             """
+@@ -171,4 +615,66 @@ if has_crypto:
+                 A private or public EdDSA key instance
+             :return bool verified: True if signature is valid, False if not.
+             """
+-            pass
+\ No newline at end of file
++            if isinstance(key, (Ed25519PrivateKey, Ed448PrivateKey)):
++                key = key.public_key()
++            try:
++                key.verify(force_bytes(sig), force_bytes(msg))
++                return True
++            except InvalidSignature:
++                return False
++
++        @staticmethod
++        def to_jwk(key_obj: AllowedOKPKeys, as_dict: bool = False) -> JWKDict | str:
++            if isinstance(key_obj, (Ed25519PrivateKey, Ed448PrivateKey)):
++                crv = "Ed25519" if isinstance(key_obj, Ed25519PrivateKey) else "Ed448"
++                d = key_obj.private_bytes(Encoding.Raw, PrivateFormat.Raw, NoEncryption())
++                x = key_obj.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
++                obj: dict[str, Any] = {
++                    "x": base64url_encode(x).decode(),
++                    "kty": "OKP",
++                    "crv": crv,
++                    "d": base64url_encode(d).decode(),
++                }
++            elif isinstance(key_obj, (Ed25519PublicKey, Ed448PublicKey)):
++                crv = "Ed25519" if isinstance(key_obj, Ed25519PublicKey) else "Ed448"
++                x = key_obj.public_bytes(Encoding.Raw, PublicFormat.Raw)
++                obj = {
++                    "x": base64url_encode(x).decode(),
++                    "kty": "OKP",
++                    "crv": crv,
++                }
++            else:
++                raise InvalidKeyError("Not a public or private key")
++
++            if as_dict:
++                return obj
++            return json.dumps(obj)
++
++        @staticmethod
++        def from_jwk(jwk: str | JWKDict) -> AllowedOKPKeys:
++            obj = _parse_jwk_object(jwk, "OKP")
++
++            if obj.get("kty") != "OKP":
++                raise InvalidKeyError("Not an Octet Key Pair")
++
++            curve = obj.get("crv")
++            if curve not in ("Ed25519", "Ed448"):
++                raise InvalidKeyError(f"Invalid curve: {curve}")
++
++            if "x" not in obj:
++                raise InvalidKeyError('OKP should have "x" parameter')
++
++            try:
++                x = base64url_decode(obj["x"])
++
++                if "d" not in obj:
++                    if curve == "Ed25519":
++                        return Ed25519PublicKey.from_public_bytes(x)
++                    return Ed448PublicKey.from_public_bytes(x)
++
++                d = base64url_decode(obj["d"])
++                if curve == "Ed25519":
++                    return Ed25519PrivateKey.from_private_bytes(d)
++                return Ed448PrivateKey.from_private_bytes(d)
++            except ValueError as err:
++                raise InvalidKeyError("Invalid key parameter") from err
+diff --git a/jwt/api_jws.py b/jwt/api_jws.py
+index 9a20466..b6a0bbe 100644
+--- a/jwt/api_jws.py
++++ b/jwt/api_jws.py
+@@ -23,24 +23,36 @@ class PyJWS:
+             options = {}
+         self.options = {**self._get_default_options(), **options}
+ 
++    @staticmethod
++    def _get_default_options() -> dict[str, bool]:
++        return {'verify_signature': True}
++
+     def register_algorithm(self, alg_id: str, alg_obj: Algorithm) -> None:
+         """
+         Registers a new Algorithm for use when creating and verifying tokens.
+         """
+-        pass
++        if not isinstance(alg_obj, Algorithm):
++            raise TypeError('Object is not of type `Algorithm`')
++        if alg_id in self._algorithms:
++            raise ValueError('Algorithm already has a handler.')
++        self._algorithms[alg_id] = alg_obj
++        self._valid_algs.add(alg_id)
+ 
+     def unregister_algorithm(self, alg_id: str) -> None:
+         """
+         Unregisters an Algorithm for use when creating and verifying tokens
+         Throws KeyError if algorithm is not registered.
+         """
+-        pass
++        if alg_id not in self._algorithms:
++            raise KeyError('The specified algorithm could not be removed because it is not registered.')
++        del self._algorithms[alg_id]
++        self._valid_algs.discard(alg_id)
+ 
+     def get_algorithms(self) -> list[str]:
+         """
+         Returns a list of supported values for the 'alg' parameter.
+         """
+-        pass
++        return list(self._valid_algs)
+ 
+     def get_algorithm_by_name(self, alg_name: str) -> Algorithm:
+         """
+@@ -50,7 +62,12 @@ class PyJWS:
+ 
+         >>> jws_obj.get_algorithm_by_name("RS256")
+         """
+-        pass
++        try:
++            return self._algorithms[alg_name]
++        except KeyError as e:
++            if not has_crypto and alg_name in requires_cryptography:
++                raise NotImplementedError(f"Algorithm '{alg_name}' could not be found. Do you have cryptography installed?") from e
++            raise NotImplementedError('Algorithm not supported') from e
+ 
+     def get_unverified_header(self, jwt: str | bytes) -> dict[str, Any]:
+         """Returns back the JWT header parameters as a dict()
+@@ -58,7 +75,119 @@ class PyJWS:
+         Note: The signature is not verified so the header parameters
+         should not be fully trusted until signature verification is complete
+         """
+-        pass
++        header = self._load(jwt)[2]
++        self._validate_headers(header)
++        return header
++
++    def encode(self, payload: bytes, key: AllowedPrivateKeys | str | bytes | None, algorithm: str | None='HS256', headers: dict[str, Any] | None=None, json_encoder: type[json.JSONEncoder] | None=None, is_payload_detached: bool=False, sort_headers: bool=True) -> str:
++        if isinstance(payload, str):
++            payload = payload.encode('utf-8')
++        if not isinstance(payload, bytes):
++            raise TypeError('Expected a bytes object as the payload')
++        if algorithm is None:
++            algorithm = 'none'
++        if headers:
++            headers_alg = headers.get('alg')
++            if headers_alg:
++                algorithm = headers['alg']
++        header: dict[str, Any] = {'typ': self.header_typ, 'alg': algorithm}
++        if headers:
++            self._validate_headers(headers)
++            header.update(headers)
++        if not header['typ']:
++            del header['typ']
++        if is_payload_detached:
++            header['b64'] = False
++        elif header.get('b64') is True:
++            del header['b64']
++        json_header = json.dumps(header, separators=(',', ':'), cls=json_encoder, sort_keys=sort_headers).encode('utf-8')
++        header_segment = base64url_encode(json_header)
++        if header.get('b64') is False:
++            payload_segment = b''
++            signing_input = header_segment + b'.' + payload
++        else:
++            payload_segment = base64url_encode(payload)
++            signing_input = header_segment + b'.' + payload_segment
++        alg_obj = self.get_algorithm_by_name(algorithm)
++        key = alg_obj.prepare_key(key)
++        signature = alg_obj.sign(signing_input, key)
++        segments = [header_segment, payload_segment, base64url_encode(signature)]
++        return b'.'.join(segments).decode('utf-8')
++
++    def decode_complete(self, jwt: str | bytes, key: AllowedPublicKeys | str | bytes='', algorithms: list[str] | None=None, options: dict[str, Any] | None=None, detached_payload: bytes | None=None, **kwargs: Any) -> dict[str, Any]:
++        if kwargs:
++            warnings.warn(f'passing additional kwargs to decode_complete() is deprecated and will be removed in pyjwt version 3. Unsupported kwargs: {tuple(kwargs.keys())}', RemovedInPyjwt3Warning, stacklevel=2)
++        options = dict(options or {})
++        merged_options = {**self.options, **options}
++        verify_signature = merged_options['verify_signature']
++        if verify_signature and (not algorithms):
++            raise DecodeError('It is required that you pass in a value for the "algorithms" argument when calling decode().')
++        payload, signing_input, header, signature = self._load(jwt)
++        if header.get('b64', True) is False:
++            if detached_payload is None:
++                raise DecodeError('It is required that you pass in a value for the "detached_payload" argument to decode a message having the b64 header set to false.')
++            if isinstance(detached_payload, str):
++                detached_payload = detached_payload.encode('utf-8')
++            payload = detached_payload
++            header_segment = signing_input.split(b'.', 1)[0]
++            signing_input = header_segment + b'.' + detached_payload
++        if verify_signature:
++            self._verify_signature(signing_input, header, signature, key, algorithms)
++        return {'payload': payload, 'header': header, 'signature': signature}
++
++    def decode(self, jwt: str | bytes, key: AllowedPublicKeys | str | bytes='', algorithms: list[str] | None=None, options: dict[str, Any] | None=None, detached_payload: bytes | None=None, **kwargs: Any) -> bytes:
++        decoded = self.decode_complete(jwt, key=key, algorithms=algorithms, options=options, detached_payload=detached_payload, **kwargs)
++        return decoded['payload']
++
++    def _load(self, jwt: str | bytes) -> tuple[bytes, bytes, dict[str, Any], bytes]:
++        if isinstance(jwt, str):
++            jwt = jwt.encode('utf-8')
++        if not isinstance(jwt, bytes):
++            raise DecodeError(f'Invalid token type. Token must be a {bytes}')
++        try:
++            signing_input, crypto_segment = jwt.rsplit(b'.', 1)
++            header_segment, payload_segment = signing_input.split(b'.', 1)
++        except ValueError as err:
++            raise DecodeError('Not enough segments') from err
++        try:
++            header_data = base64url_decode(header_segment)
++        except (TypeError, binascii.Error) as err:
++            raise DecodeError('Invalid header padding') from err
++        try:
++            header = json.loads(header_data)
++        except ValueError as e:
++            raise DecodeError(f'Invalid header string: {e}') from e
++        if not isinstance(header, dict):
++            raise DecodeError('Invalid header string: must be a json object')
++        try:
++            payload = base64url_decode(payload_segment)
++        except (TypeError, binascii.Error) as err:
++            raise DecodeError('Invalid payload padding') from err
++        try:
++            signature = base64url_decode(crypto_segment)
++        except (TypeError, binascii.Error) as err:
++            raise DecodeError('Invalid crypto padding') from err
++        return (payload, signing_input, header, signature)
++
++    def _verify_signature(self, signing_input: bytes, header: dict[str, Any], signature: bytes, key: AllowedPublicKeys | str | bytes='', algorithms: list[str] | None=None) -> None:
++        alg = header.get('alg')
++        if not alg or (algorithms is not None and alg not in algorithms):
++            raise InvalidAlgorithmError('The specified alg value is not allowed')
++        try:
++            alg_obj = self.get_algorithm_by_name(alg)
++        except NotImplementedError as e:
++            raise InvalidAlgorithmError('Algorithm not supported') from e
++        key = alg_obj.prepare_key(key)
++        if not alg_obj.verify(signing_input, key, signature):
++            raise InvalidSignatureError('Signature verification failed')
++
++    def _validate_headers(self, headers: dict[str, Any]) -> None:
++        if 'kid' in headers:
++            self._validate_kid(headers['kid'])
++
++    def _validate_kid(self, kid: Any) -> None:
++        if not isinstance(kid, str):
++            raise InvalidTokenError('Key ID header parameter must be a string')
+ _jws_global_obj = PyJWS()
+ encode = _jws_global_obj.encode
+ decode_complete = _jws_global_obj.decode_complete
+@@ -66,4 +195,4 @@ decode = _jws_global_obj.decode
+ register_algorithm = _jws_global_obj.register_algorithm
+ unregister_algorithm = _jws_global_obj.unregister_algorithm
+ get_algorithm_by_name = _jws_global_obj.get_algorithm_by_name
+-get_unverified_header = _jws_global_obj.get_unverified_header
+\ No newline at end of file
++get_unverified_header = _jws_global_obj.get_unverified_header
+diff --git a/jwt/api_jwt.py b/jwt/api_jwt.py
+index a61eb5f..7590561 100644
+--- a/jwt/api_jwt.py
++++ b/jwt/api_jwt.py
+@@ -18,6 +18,28 @@ class PyJWT:
+             options = {}
+         self.options: dict[str, Any] = {**self._get_default_options(), **options}
+ 
++    @staticmethod
++    def _get_default_options() -> dict[str, bool | list[str]]:
++        return {
++            'verify_signature': True,
++            'verify_exp': True,
++            'verify_nbf': True,
++            'verify_iat': True,
++            'verify_aud': True,
++            'verify_iss': True,
++            'require': [],
++        }
++
++    def encode(self, payload: dict[str, Any], key: AllowedPrivateKeys | str | bytes | None, algorithm: str | None='HS256', headers: dict[str, Any] | None=None, json_encoder: type[json.JSONEncoder] | None=None, sort_headers: bool=True) -> str:
++        if not isinstance(payload, dict):
++            raise TypeError('Expecting a dict object, as JWT only supports JSON objects as payloads.')
++        payload = dict(payload)
++        for time_claim in ('exp', 'iat', 'nbf'):
++            if isinstance(payload.get(time_claim), datetime):
++                payload[time_claim] = timegm(payload[time_claim].utctimetuple())
++        json_payload = self._encode_payload(payload, headers=headers, json_encoder=json_encoder)
++        return api_jws.encode(json_payload, key, algorithm, headers, json_encoder, sort_headers=sort_headers)
++
+     def _encode_payload(self, payload: dict[str, Any], headers: dict[str, Any] | None=None, json_encoder: type[json.JSONEncoder] | None=None) -> bytes:
+         """
+         Encode a given payload to the bytes to be signed.
+@@ -25,7 +47,7 @@ class PyJWT:
+         This method is intended to be overridden by subclasses that need to
+         encode the payload in a different way, e.g. compress the payload.
+         """
+-        pass
++        return json.dumps(payload, separators=(',', ':'), cls=json_encoder).encode('utf-8')
+ 
+     def _decode_payload(self, decoded: dict[str, Any]) -> Any:
+         """
+@@ -35,8 +57,121 @@ class PyJWT:
+         decode the payload in a different way, e.g. decompress compressed
+         payloads.
+         """
+-        pass
++        try:
++            payload = json.loads(decoded['payload'])
++        except ValueError as e:
++            raise DecodeError(f'Invalid payload string: {e}') from e
++        if not isinstance(payload, dict):
++            raise DecodeError('Invalid payload string: must be a json object')
++        return payload
++
++    def decode_complete(self, jwt: str | bytes, key: AllowedPublicKeys | str | bytes='', algorithms: list[str] | None=None, options: dict[str, Any] | None=None, detached_payload: bytes | None=None, audience: str | Iterable[str] | None=None, issuer: str | Iterable[str] | None=None, leeway: float | timedelta=0, **kwargs: Any) -> dict[str, Any]:
++        if kwargs:
++            warnings.warn(f'passing additional kwargs to decode_complete() is deprecated and will be removed in pyjwt version 3. Unsupported kwargs: {tuple(kwargs.keys())}', RemovedInPyjwt3Warning, stacklevel=2)
++        options = dict(options or {})
++        verify_signature = options.get('verify_signature', self.options['verify_signature'])
++        if 'verify' in kwargs and kwargs['verify'] != verify_signature:
++            warnings.warn('The `verify` argument to `decode` does nothing in PyJWT 2.0 and newer. The equivalent is setting `verify_signature` to False in the `options` dictionary. This invocation has a mismatch between the kwarg and the option entry.', DeprecationWarning, stacklevel=2)
++        if not verify_signature:
++            for name in ('verify_exp', 'verify_nbf', 'verify_iat', 'verify_aud', 'verify_iss'):
++                options.setdefault(name, False)
++        merged_options = {**self.options, **options}
++        decoded = api_jws.decode_complete(jwt, key=key, algorithms=algorithms, options={'verify_signature': verify_signature}, detached_payload=detached_payload)
++        payload = self._decode_payload(decoded)
++        self._validate_claims(payload, merged_options, audience=audience, issuer=issuer, leeway=leeway)
++        decoded['payload'] = payload
++        return decoded
++
++    def decode(self, jwt: str | bytes, key: AllowedPublicKeys | str | bytes='', algorithms: list[str] | None=None, options: dict[str, Any] | None=None, audience: str | Iterable[str] | None=None, issuer: str | Iterable[str] | None=None, leeway: float | timedelta=0, **kwargs: Any) -> Any:
++        decoded = self.decode_complete(jwt, key=key, algorithms=algorithms, options=options, audience=audience, issuer=issuer, leeway=leeway, **kwargs)
++        return decoded['payload']
++
++    def _validate_claims(self, payload: dict[str, Any], options: dict[str, Any], audience: str | Iterable[str] | None=None, issuer: str | Iterable[str] | None=None, leeway: float | timedelta=0) -> None:
++        if isinstance(leeway, timedelta):
++            leeway = leeway.total_seconds()
++        if audience is not None and (not isinstance(audience, (str, Iterable))):
++            raise TypeError('audience must be a string, iterable or None')
++        self._validate_required_claims(payload, options)
++        now = timegm(datetime.now(tz=timezone.utc).utctimetuple())
++        if 'iat' in payload and options['verify_iat']:
++            self._validate_iat(payload, now, leeway)
++        if 'nbf' in payload and options['verify_nbf']:
++            self._validate_nbf(payload, now, leeway)
++        if 'exp' in payload and options['verify_exp']:
++            self._validate_exp(payload, now, leeway)
++        if options['verify_iss']:
++            self._validate_iss(payload, issuer)
++        if options['verify_aud']:
++            self._validate_aud(payload, audience, strict=options.get('strict_aud', False))
++
++    def _validate_required_claims(self, payload: dict[str, Any], options: dict[str, Any]) -> None:
++        for claim in options.get('require', []):
++            if claim not in payload:
++                raise MissingRequiredClaimError(claim)
++
++    def _validate_iat(self, payload: dict[str, Any], now: float, leeway: float) -> None:
++        try:
++            iat = int(payload['iat'])
++        except (ValueError, TypeError) as e:
++            raise InvalidIssuedAtError('Issued At claim (iat) must be an integer.') from e
++        if iat > now + leeway:
++            raise ImmatureSignatureError('The token is not yet valid (iat)')
++
++    def _validate_nbf(self, payload: dict[str, Any], now: float, leeway: float) -> None:
++        try:
++            nbf = int(payload['nbf'])
++        except (ValueError, TypeError) as e:
++            raise DecodeError('Not Before claim (nbf) must be an integer.') from e
++        if nbf > now + leeway:
++            raise ImmatureSignatureError('The token is not yet valid (nbf)')
++
++    def _validate_exp(self, payload: dict[str, Any], now: float, leeway: float) -> None:
++        try:
++            exp = int(payload['exp'])
++        except (ValueError, TypeError) as e:
++            raise DecodeError('Expiration Time claim (exp) must be an integer.') from e
++        if exp <= now - leeway:
++            raise ExpiredSignatureError('Signature has expired')
++
++    def _validate_aud(self, payload: dict[str, Any], audience: str | Iterable[str] | None, *, strict: bool=False) -> None:
++        if payload.get('aud') is None:
++            if audience is not None:
++                raise MissingRequiredClaimError('aud')
++            return
++        if audience is None:
++            raise InvalidAudienceError('Invalid audience')
++        audience_claims = payload['aud']
++        if strict:
++            if not isinstance(audience, str):
++                raise InvalidAudienceError('Invalid audience (strict)')
++            if not isinstance(audience_claims, str):
++                raise InvalidAudienceError('Invalid claim format in token (strict)')
++            if audience != audience_claims:
++                raise InvalidAudienceError("Audience doesn't match (strict)")
++            return
++        if isinstance(audience_claims, str):
++            audience_claims = [audience_claims]
++        if not isinstance(audience_claims, list):
++            raise InvalidAudienceError('Invalid claim format in token')
++        if any((not isinstance(c, str) for c in audience_claims)):
++            raise InvalidAudienceError('Invalid claim format in token')
++        if isinstance(audience, str):
++            audience = [audience]
++        if all((aud not in audience_claims for aud in audience)):
++            raise InvalidAudienceError("Audience doesn't match")
++
++    def _validate_iss(self, payload: dict[str, Any], issuer: str | Iterable[str] | None) -> None:
++        if issuer is None:
++            return
++        if 'iss' not in payload:
++            raise MissingRequiredClaimError('iss')
++        if isinstance(issuer, str):
++            valid = payload['iss'] == issuer
++        else:
++            valid = payload['iss'] in issuer
++        if not valid:
++            raise InvalidIssuerError('Invalid issuer')
+ _jwt_global_obj = PyJWT()
+ encode = _jwt_global_obj.encode
+ decode_complete = _jwt_global_obj.decode_complete
+-decode = _jwt_global_obj.decode
+\ No newline at end of file
++decode = _jwt_global_obj.decode
+diff --git a/jwt/help.py b/jwt/help.py
+index cae3514..bf5eb91 100644
+--- a/jwt/help.py
++++ b/jwt/help.py
+@@ -14,10 +14,28 @@ def info() -> Dict[str, Dict[str, str]]:
+     Generate information for a bug report.
+     Based on the requests package help utility module.
+     """
+-    pass
++    try:
++        platform_info = {'system': platform.system(), 'release': platform.release()}
++    except OSError:
++        platform_info = {'system': 'Unknown', 'release': 'Unknown'}
++    implementation = platform.python_implementation()
++    if implementation == 'CPython':
++        implementation_version = platform.python_version()
++    elif implementation == 'PyPy':
++        implementation_version = '{}.{}.{}'.format(sys.pypy_version_info.major, sys.pypy_version_info.minor, sys.pypy_version_info.micro)
++        if sys.pypy_version_info.releaselevel != 'final':
++            implementation_version = ''.join([implementation_version, sys.pypy_version_info.releaselevel])
++    else:
++        implementation_version = 'Unknown'
++    return {
++        'platform': platform_info,
++        'implementation': {'name': implementation, 'version': implementation_version},
++        'cryptography': {'version': cryptography_version},
++        'pyjwt': {'version': pyjwt_version},
++    }
+ 
+ def main() -> None:
+     """Pretty-print the bug information as JSON."""
+-    pass
++    print(json.dumps(info(), sort_keys=True, indent=2))
+ if __name__ == '__main__':
+-    main()
+\ No newline at end of file
++    main()

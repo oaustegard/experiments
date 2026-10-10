@@ -1,0 +1,64 @@
+{
+ "arm": "swarm",
+ "model": "haiku",
+ "from": null,
+ "libs": [
+  "tinydb",
+  "voluptuous",
+  "pyjwt"
+ ],
+ "units": 9,
+ "plan": {
+  "tinydb": {
+   "k": 4,
+   "stubs": 48,
+   "bins": [
+    [
+     "tinydb/table.py"
+    ],
+    [
+     "tinydb/queries.py"
+    ],
+    [
+     "tinydb/database.py",
+     "tinydb/storages.py"
+    ],
+    [
+     "tinydb/middlewares.py",
+     "tinydb/operations.py",
+     "tinydb/utils.py"
+    ]
+   ]
+  },
+  "voluptuous": {
+   "k": 3,
+   "stubs": 36,
+   "bins": [
+    [
+     "voluptuous/schema_builder.py"
+    ],
+    [
+     "voluptuous/validators.py"
+    ],
+    [
+     "voluptuous/humanize.py",
+     "voluptuous/util.py"
+    ]
+   ]
+  },
+  "pyjwt": {
+   "k": 2,
+   "stubs": 19,
+   "bins": [
+    [
+     "jwt/algorithms.py"
+    ],
+    [
+     "jwt/api_jws.py",
+     "jwt/api_jwt.py",
+     "jwt/help.py"
+    ]
+   ]
+  }
+ }
+}

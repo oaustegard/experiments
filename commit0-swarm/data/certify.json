@@ -1,0 +1,225 @@
+{
+ "babel": {
+  "admissible": true,
+  "n_tests": 6709,
+  "name": "babel",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 1,
+  "ref_fail": 5,
+  "ref_pass": 6699,
+  "stub_collected": 22,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "cachetools": {
+  "admissible": true,
+  "n_tests": 215,
+  "name": "cachetools",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 215,
+  "stub_collected": 215,
+  "stub_exit": 1,
+  "stub_pass_of_target": 153
+ },
+ "chardet": {
+  "admissible": true,
+  "n_tests": 383,
+  "name": "chardet",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 1,
+  "ref_fail": 1,
+  "ref_pass": 376,
+  "stub_collected": 383,
+  "stub_exit": 1,
+  "stub_pass_of_target": 1
+ },
+ "cookiecutter": {
+  "admissible": true,
+  "n_tests": 371,
+  "name": "cookiecutter",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 367,
+  "stub_collected": 371,
+  "stub_exit": 1,
+  "stub_pass_of_target": 16
+ },
+ "deprecated": {
+  "admissible": true,
+  "n_tests": 171,
+  "name": "deprecated",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 171,
+  "stub_collected": 171,
+  "stub_exit": 1,
+  "stub_pass_of_target": 17
+ },
+ "imapclient": {
+  "admissible": true,
+  "n_tests": 267,
+  "name": "imapclient",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 267,
+  "stub_collected": 18,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "jinja": {
+  "admissible": true,
+  "n_tests": 851,
+  "name": "jinja",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 1,
+  "ref_fail": 1,
+  "ref_pass": 850,
+  "stub_collected": 0,
+  "stub_exit": 4,
+  "stub_pass_of_target": 0
+ },
+ "marshmallow": {
+  "admissible": false,
+  "name": "marshmallow",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "reason": "reference produced no junit",
+  "ref_exit": 4,
+  "ref_tail": "ImportError while loading conftest '/tmp/jail/c0/work/cert/marshmallow/ref/tests/conftest.py'.\ntests/conftest.py:5: in <module>\n    from tests.base import Blog, User, UserSchema\ntests/base.py:8: in <module>\n    import pytz\nE   ModuleNotFoundError: No module named 'pytz'\n",
+  "stub_exit": 4
+ },
+ "minitorch": {
+  "admissible": false,
+  "n_tests": 230,
+  "name": "minitorch",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "reason": "ref 15/230, stub 0/15",
+  "ref_exit": 1,
+  "ref_fail": 211,
+  "ref_pass": 15,
+  "ref_tail": "st_two_grad[fast-fn0] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn1] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn2] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn3] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn4] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_two_grad[fast-fn5] - NotImplemented...\nFAILED tests/test_tensor_general.py::test_reduce[fast-fn0] - NotImplementedEr...\nFAILED tests/test_tensor_general.py::test_reduce[fast-fn1] - NotImplementedEr...\nFAILED tests/test_tensor_general.py::test_reduce[fast-fn2] - NotImplementedEr...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn0] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn1] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn2] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn3] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn4] - NotI...\nFAILED tests/test_tensor_general.py::test_two_grad_broadcast[fast-fn5] - NotI...\nFAILED tests/test_tensor_general.py::test_permute[fast] - NotImplementedError...\nFAILED tests/test_tensor_general.py::test_mm2 - NotImplementedError: Need to ...\nFAILED tests/test_tensor_general.py::test_bmm[fast] - NotImplementedError: Ne...\n======= 211 failed, 15 passed, 4 xfailed, 1 warning in 147.93s (0:02:27) =======\n",
+  "stub_collected": 10,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "parsel": {
+  "admissible": true,
+  "n_tests": 208,
+  "name": "parsel",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 1,
+  "ref_fail": 1,
+  "ref_pass": 205,
+  "stub_collected": 5,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "portalocker": {
+  "admissible": true,
+  "n_tests": 41,
+  "name": "portalocker",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 1,
+  "ref_fail": 2,
+  "ref_pass": 38,
+  "stub_collected": 0,
+  "stub_exit": 4,
+  "stub_pass_of_target": 0
+ },
+ "pyjwt": {
+  "admissible": true,
+  "n_tests": 262,
+  "name": "pyjwt",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 1,
+  "ref_fail": 1,
+  "ref_pass": 258,
+  "stub_collected": 9,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "simpy": {
+  "admissible": true,
+  "n_tests": 150,
+  "name": "simpy",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 1,
+  "ref_fail": 1,
+  "ref_pass": 149,
+  "stub_collected": 150,
+  "stub_exit": 1,
+  "stub_pass_of_target": 89
+ },
+ "tinydb": {
+  "admissible": true,
+  "n_tests": 201,
+  "name": "tinydb",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 201,
+  "stub_collected": 0,
+  "stub_exit": 4,
+  "stub_pass_of_target": 0
+ },
+ "voluptuous": {
+  "admissible": true,
+  "n_tests": 148,
+  "name": "voluptuous",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 0,
+  "ref_fail": 0,
+  "ref_pass": 148,
+  "stub_collected": 1,
+  "stub_exit": 2,
+  "stub_pass_of_target": 0
+ },
+ "wcwidth": {
+  "admissible": true,
+  "n_tests": 39,
+  "name": "wcwidth",
+  "nonsrc_diff": [
+   "spec.pdf.bz2"
+  ],
+  "ref_exit": 1,
+  "ref_fail": 1,
+  "ref_pass": 37,
+  "stub_collected": 39,
+  "stub_exit": 1,
+  "stub_pass_of_target": 0
+ }
+}

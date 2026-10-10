@@ -1,0 +1,49 @@
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_jwks_client.py:10: in <module>
+    import jwt
+jwt/__init__.py:1: in <module>
+    from .api_jwk import PyJWK, PyJWKSet
+jwt/api_jwk.py:5: in <module>
+    from .algorithms import get_default_algorithms, has_crypto, requires_cryptography
+jwt/algorithms.py:10: in <module>
+    from .utils import base64url_decode, base64url_encode, der_to_raw_signature, force_bytes, from_base64url_uint, is_pem_format, is_ssh_key, raw_to_der_signature, to_base64url_uint
+E   ImportError: cannot import name 'base64url_decode' from 'jwt.utils' (/tmp/jail/c0/work/grade-p-swarm/pyjwt/jwt/utils.py)
+______________________ ERROR collecting tests/test_jwt.py ______________________
+ImportError while importing test module '/tmp/jail/c0/work/grade-p-swarm/pyjwt/tests/test_jwt.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/uvpy/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_jwt.py:1: in <module>
+    import jwt
+jwt/__init__.py:1: in <module>
+    from .api_jwk import PyJWK, PyJWKSet
+jwt/api_jwk.py:5: in <module>
+    from .algorithms import get_default_algorithms, has_crypto, requires_cryptography
+jwt/algorithms.py:10: in <module>
+    from .utils import base64url_decode, base64url_encode, der_to_raw_signature, force_bytes, from_base64url_uint, is_pem_format, is_ssh_key, raw_to_der_signature, to_base64url_uint
+E   ImportError: cannot import name 'base64url_decode' from 'jwt.utils' (/tmp/jail/c0/work/grade-p-swarm/pyjwt/jwt/utils.py)
+_____________________ ERROR collecting tests/test_utils.py _____________________
+ImportError while importing test module '/tmp/jail/c0/work/grade-p-swarm/pyjwt/tests/test_utils.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/uvpy/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_utils.py:3: in <module>
+    from jwt.utils import force_bytes, from_base64url_uint, to_base64url_uint
+E   ImportError: cannot import name 'force_bytes' from 'jwt.utils' (/tmp/jail/c0/work/grade-p-swarm/pyjwt/jwt/utils.py)
+--- generated xml file: /tmp/jail/c0/work/grade-p-swarm/pyjwt/.c0-junit.xml ----
+=========================== short test summary info ============================
+ERROR tests/test_advisory.py
+ERROR tests/test_algorithms.py
+ERROR tests/test_api_jwk.py
+ERROR tests/test_api_jws.py
+ERROR tests/test_api_jwt.py
+ERROR tests/test_compressed_jwt.py
+ERROR tests/test_jwks_client.py
+ERROR tests/test_jwt.py
+ERROR tests/test_utils.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 9 errors during collection !!!!!!!!!!!!!!!!!!!!
+============================== 9 errors in 0.78s ===============================

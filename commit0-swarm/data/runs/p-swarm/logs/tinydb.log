@@ -1,0 +1,55 @@
+]
+tests/test_storages.py .............                                     [ 33%]
+tests/test_tables.py ............FF..............                        [ 47%]
+tests/test_tinydb.py ................................................... [ 72%]
+..............................................                           [ 95%]
+tests/test_utils.py .........                                            [100%]
+
+=================================== FAILURES ===================================
+________________ test_query_cache_with_mutable_callable[memory] ________________
+
+db = <TinyDB tables=['table', '_default'], tables_count=2, default_table_documents_count=3, all_tables_documents_count=['table=1', '_default=3']>
+
+    def test_query_cache_with_mutable_callable(db):
+        table = db.table('table')
+        table.insert({'val': 5})
+    
+        mutable = 5
+        increase = lambda x: x + mutable
+    
+        assert where('val').is_cacheable()
+>       assert not where('val').map(increase).is_cacheable()
+E       AssertionError: assert not True
+E        +  where True = <bound method QueryInstance.is_cacheable of Query()>()
+E        +    where <bound method QueryInstance.is_cacheable of Query()> = Query().is_cacheable
+E        +      where Query() = <bound method Query.map of Query()>(<function test_query_cache_with_mutable_callable.<locals>.<lambda> at 0x7f7738d0bb50>)
+E        +        where <bound method Query.map of Query()> = Query().map
+E        +          where Query() = where('val')
+
+tests/test_tables.py:85: AssertionError
+_________________ test_query_cache_with_mutable_callable[json] _________________
+
+db = <TinyDB tables=['table', '_default'], tables_count=2, default_table_documents_count=3, all_tables_documents_count=['table=1', '_default=3']>
+
+    def test_query_cache_with_mutable_callable(db):
+        table = db.table('table')
+        table.insert({'val': 5})
+    
+        mutable = 5
+        increase = lambda x: x + mutable
+    
+        assert where('val').is_cacheable()
+>       assert not where('val').map(increase).is_cacheable()
+E       AssertionError: assert not True
+E        +  where True = <bound method QueryInstance.is_cacheable of Query()>()
+E        +    where <bound method QueryInstance.is_cacheable of Query()> = Query().is_cacheable
+E        +      where Query() = <bound method Query.map of Query()>(<function test_query_cache_with_mutable_callable.<locals>.<lambda> at 0x7f7738d0b1c0>)
+E        +        where <bound method Query.map of Query()> = Query().map
+E        +          where Query() = where('val')
+
+tests/test_tables.py:85: AssertionError
+--- generated xml file: /tmp/jail/c0/work/grade-p-swarm/tinydb/.c0-junit.xml ---
+=========================== short test summary info ============================
+FAILED tests/test_tables.py::test_query_cache_with_mutable_callable[memory]
+FAILED tests/test_tables.py::test_query_cache_with_mutable_callable[json] - A...
+======================== 2 failed, 199 passed in 0.80s =========================
