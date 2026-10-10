@@ -6,8 +6,8 @@ Can one Haiku 5.5 agent rebuild a whole Python library from a Commit0
 skeleton (signatures and docstrings kept, bodies emptied, the library's own
 tests as target)? Yes, every time it was asked. Solo, it passed 11,208 of
 11,209 graded tests across the 15 admissible Commit0-lite libraries for $16.36,
-including babel (6,699 tests, 65 minutes) and jinja (850 tests, 58 minutes);
-the one miss is an expected-to-fail chardet test the reference passes.
+including babel (6,699 tests, 65 minutes); the one miss is an
+expected-to-fail chardet test the reference passes.
 
 On eight libraries first released after 2026-07-01, which it cannot have
 trained on, it also scored 100% (1,589 of 1,589 tests, $7.50). It remembers
@@ -18,8 +18,11 @@ A swarm of up to 8 builders per library plus one round of shard fixers reached
 11,205 of 11,209 at 1.2× the cost, two to three times faster on babel and
 jinja. Its build pass alone reached 9,402: the swarm fails where files meet.
 
-A library several times babel's size is the open question: at Commit0-lite
-scale every arm sits at the ceiling.
+On statsmodels, the largest full-Commit0 library (3,496 stub bodies, 17,667
+graded tests), neither arm finished in one night. The swarm (19 builders,
+then 19 fixers) reached 14,315 (81%) for $138.70; a chain of three solo agents
+reached CONT2_GRADE for $17.29. More fixer rounds on a larger machine would
+move this.
 
 ## Findings
 
@@ -126,7 +129,16 @@ scale every arm sits at the ceiling.
    continuation $0.01, control $7.50), priced per turn with Haiku 5.5's long
    rate card (5x every rate) on prompts over 100K tokens (`harness/cost.py`).
    The figures first published here (2026-10-10, $18.41 in all) used 2x for the
-   long rate and under-priced every long turn. Output tokens in
+   long rate and under-priced every long turn.
+
+7. **Statsmodels, one night, neither arm finished.** Swarm build 3,106 of
+   17,667 (19 builders, 83 min, $90.11), then 19 fixers on contiguous shards
+   of all targets: 14,315 (81%, up to 112 min, $48.59). Solo: 1,303 (79 min,
+   $4.28), then two continuations to CONT2_GRADE ($13.01 more). The swarm ran
+   8,241 turns to the solo chain's 898; about 90% of turns in both arms were
+   over 100K tokens and paid the 5× rate. Fixer shards inside one or two
+   test files (autoregression, ARDL) closed; shards across state space, GLM
+   and discrete choice stalled. (Round 4) Output tokens in
    these transcripts are streaming-start floors, so the figure is input-side. (`data/runs/*/costs.jsonl`)
 
 ## Method
