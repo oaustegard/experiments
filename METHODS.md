@@ -677,6 +677,28 @@ survives exactly the sanity checks people run.
   concurrent agents on 4 vCPU and passed idle on the same code. Grade
   timing-sensitive suites on an idle machine, best of three.
   (`commit0-swarm/RESULTS.md` Finding 1)
+- **Concurrent agents share one process table, and one `pkill` reaches all of
+  them.** A statsmodels continuation agent ran `pkill -f "pytest -n"` to clear
+  its own stalled run; the pattern also matched the grader's pytest and other
+  agents' runs, and a whole-suite grade died at 19% with no output. Tell every
+  agent in a shared container never to kill a process it did not start, and
+  build the grader so one lost process costs one chunk. (`commit0-swarm`
+  Round 4)
+- **pytest writes junit only at the end, so one crash in a long suite loses
+  every outcome.** Two whole-suite statsmodels grades (17,667 tests) were
+  killed partway (one by the 90-minute cap at 99%, one by the `pkill` above)
+  and reported nothing. Run one `tests` directory per pytest invocation, each
+  with its own junit, and add a per-test timeout (`pytest-timeout`) so one hung
+  test fails alone instead of carrying the suite past its cap.
+  (`commit0-swarm/harness/workspace.py` `_run_chunked`)
+- **A Haiku subagent that backgrounds a long test run tends to hand back
+  before the run ends.** On statsmodels, where a test file can take 15
+  minutes, fixers started runs in the background, ended their turn, and filed
+  "partial, not finished" reports with numbers from stale runs. A
+  `SendMessage` telling the agent to continue and to run tests in the
+  foreground resumed the work. Put "run tests in the foreground; do not hand
+  back while a run is going" in the prompt when a suite is slow.
+  (`commit0-swarm` Round 4)
 - **Claude Code's Read tool caps images at 2000 x 2000 px for every current
   model, below the API's 2576 px, and bills vision as `ceil(W/28) *
   ceil(H/28)` tokens.** Both constants are in the CLI binary's model table
