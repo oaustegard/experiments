@@ -13,7 +13,8 @@ Running code: library code runs only through two commands, used from inside the 
   {bin}/c0-test [TARGET ...]   pytest on targets (default: the whole suite), e.g. `{bin}/c0-test {test_dir} -x -q` or `{bin}/c0-test {example_target} -q`
   {bin}/c0-run CMD ARGS...     anything else, e.g. `{bin}/c0-run python -c 'import {import_name}'`
 Plain python, pytest or pip calls are refused. Reading files, editing them, and git are unrestricted. The last line of each run is its exit status.
-Never kill a process you did not start yourself (no `pkill`, no `killall`, no `kill` by pattern): other agents and the grader run tests on this machine at the same time."""
+Never kill a process you did not start yourself (no `pkill`, no `killall`, no `kill` by pattern): other agents and the grader run tests on this machine at the same time.
+Run tests in the foreground and read each result before going on; do not finish while a test run you started is still going."""
 
 PERSIST = """This is a long job: expect hundreds of tool calls. Do not stop to ask questions, do not stop after the first module, and do not report early. Work until `{bin}/c0-test` on the whole suite passes, or until every remaining failure has had at least two real attempts."""
 
