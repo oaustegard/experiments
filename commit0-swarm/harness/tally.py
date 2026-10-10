@@ -20,6 +20,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import DATA, git, load_tasks, mirror  # noqa: E402
 
 RUNS = DATA / "runs"
+ARMS = {"solo": ["p-solo", "f-solo", "f-cont", "c-solo", "s-solo", "s-cont1", "s-cont2", "s-cont3"],
+        "swarm": ["p-swarm", "p-fix", "f-swarm", "f-fix", "f-fix2", "f-fix3", "f-fix4", "s-swarm", "s-fix", "s-fix2"]}
 
 
 def stub_bodies(task: dict) -> int:
@@ -71,12 +73,25 @@ def main():
         libs.update(last)
         out["runs"][run.name] = {k: round(v, 3) if isinstance(v, float) else v for k, v in r.items()}
         tot.update(r)
+    # Lines written: '+' lines of each (arm, library)'s final patch. A later run's patch
+    # holds everything before it (fixers and continuations work on the same tree), so
+    # summing every run's patches would count most lines twice.
+    final = {}
+    for arm, order in ARMS.items():
+        for run in order:
+            for d in sorted((RUNS / run / "patches").glob("*.diff")) if (RUNS / run / "patches").exists() else []:
+                final[(arm, d.stem)] = d
+    lines = {f"{arm}/{lib}": added_lines(d) for (arm, lib), d in sorted(final.items())}
+    out["final_lines"] = lines
     bodies = {}
     for lib in sorted(libs):
         if lib in tasks:
             bodies[lib] = stub_bodies(tasks[lib])
     out["stub_bodies"] = bodies
+    tot.pop("lines_written", None)
+    tot.pop("tests_passed", None)
     out["totals"] = {**{k: round(v, 2) if isinstance(v, float) else v for k, v in tot.items()},
+                     "lines_written_final": sum(lines.values()),
                      "libraries": len(libs), "stub_bodies": sum(bodies.values()), "tools": dict(tools)}
     (DATA / "tally.json").write_text(json.dumps(out, indent=1) + "\n")
     print(json.dumps(out["totals"], indent=1))
