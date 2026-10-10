@@ -307,6 +307,12 @@ def grade_one(run: str, lib: str, task: dict, resume: bool = False) -> dict:
             out["n_headroom"] = len(head)
     (rdir(run) / "logs").mkdir(exist_ok=True)
     (rdir(run) / "logs" / f"{lib}.log").write_text(r["tail"])
+    # Keep the junit: rescoring (e.g. exact ids before param_key) needs it, and the
+    # tree is about to go. Gitignored (data/runs/*/junit/).
+    keep = rdir(run) / "junit" / lib
+    keep.mkdir(parents=True, exist_ok=True)
+    for j in g.glob(".c0-junit.xml*"):
+        shutil.copy2(j, keep / j.name.lstrip("."))
     shutil.rmtree(g, ignore_errors=True)
     return out
 
