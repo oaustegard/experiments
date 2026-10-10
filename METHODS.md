@@ -1942,6 +1942,15 @@ the result.
   remex `8e9134f` (unreleased); on 1.1.0 and earlier, encode centered codes at the width you serve. Uncentered nesting is a
   separate, smaller cost (2-bit read off 8-bit −0.029 vs direct).
   (`pplx-embed-v2-quant/renest.py`, finding 6)
+- **A single-vector model with Matryoshka can still lose to quantizing at full width;
+  measure where its free truncation ends.** EmbeddingGemma 2 (768-d, text-only, SciFact /
+  NFCorpus): fp32 768→512 costs +0.000 / −0.001, so d=512 and d=768 tie at matched bytes;
+  768→256 costs −0.013 / −0.020 and →128 −0.056 / −0.065, and remex centered 4-bit d=768
+  (384 B) beats fp32 d=128 (512 B) by +0.057 / +0.066. Corpus-mean norm 0.85 / 0.87:
+  centering adds +0.019 / +0.017 at 1 bit, nothing at 2+. At 1 bit, ST binary with a
+  float query (sign of raw coordinates, no rotation, no mean) ties centered remex
+  (−0.011 [−0.028, +0.007] / −0.001); plain remex 1-bit and uncentered remax k=1 trail.
+  (`embeddinggemma2-remex-quant/RESULTS.md` findings 1–4)
 - **remex `rotation="rht"` is seed-invariant at every power-of-two d (remex 0.8.0).**
   With block size = d, `rht_plan` uses one round, and on the encode path the
   seed's permutation and signs land after the WHT, so rotated vectors are a signed

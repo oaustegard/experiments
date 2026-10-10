@@ -1,0 +1,23 @@
+
+## scifact  (fp32 d=768 nDCG@10 0.8505)
+
+Pareto frontier (bytes ascending):
+       16 B  0.6754  remex centered 1-bit d=128
+       32 B  0.7807  remex centered 2-bit d=128
+       48 B  0.7883  remex centered 3-bit d=128
+       64 B  0.8265  remex centered 1-bit d=512
+       96 B  0.8388  remex centered 1-bit d=768
+      128 B  0.8438  remex centered 2-bit d=512
+      192 B  0.8500  remex 3-bit d=512
+      288 B  0.8538  remex centered 3-bit d=768
+      768 B  0.8541  int8 global d=768
+
+Matched bytes: best full-width (d=768) vs best truncated (d<768):
+      96 B  remex centered 1-bit d=768         0.8388  vs  remex centered 3-bit d=256     0.8304   Δ +0.0084 [-0.0068,+0.0252]
+     192 B  remex 2-bit d=768                  0.8486  vs  remex 3-bit d=512              0.8500   Δ -0.0014 [-0.0186,+0.0150]
+
+Vendor MRL fp32 points vs best quantized arm at <= the same bytes:
+  fp32 d=768     3072 B 0.8505  vs  int8 global d=768                    768 B 0.8541   Δ +0.0036 [+0.0001,+0.0081]
+  fp32 d=512     2048 B 0.8507  vs  int8 global d=768                    768 B 0.8541   Δ +0.0034 [-0.0062,+0.0127]
+  fp32 d=256     1024 B 0.8375  vs  int8 global d=768                    768 B 0.8541   Δ +0.0166 [+0.0053,+0.0281]
+  fp32 d=128      512 B 0.7946  vs  remex centered 3-bit d=768           288 B 0.8538   Δ +0.0592 [+0.0383,+0.0811]

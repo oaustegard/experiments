@@ -1,0 +1,23 @@
+
+## nfcorpus  (fp32 d=768 nDCG@10 0.3688)
+
+Pareto frontier (bytes ascending):
+       16 B  0.2346  remex centered 1-bit d=128
+       32 B  0.3097  remex centered 1-bit d=256
+       64 B  0.3421  remex centered 1-bit d=512
+       96 B  0.3485  remex centered 3-bit d=256
+      128 B  0.3603  remex centered 2-bit d=512
+      192 B  0.3658  remex 3-bit d=512
+      256 B  0.3676  remex centered 4-bit d=512
+      384 B  0.3699  remex centered 4-bit d=768
+      768 B  0.3706  int8 global d=768
+
+Matched bytes: best full-width (d=768) vs best truncated (d<768):
+      96 B  remex centered 1-bit d=768         0.3477  vs  remex centered 3-bit d=256     0.3485   Δ -0.0008 [-0.0113,+0.0097]
+     192 B  remex centered 2-bit d=768         0.3626  vs  remex 3-bit d=512              0.3658   Δ -0.0032 [-0.0137,+0.0059]
+
+Vendor MRL fp32 points vs best quantized arm at <= the same bytes:
+  fp32 d=768     3072 B 0.3688  vs  int8 global d=768                    768 B 0.3706   Δ +0.0018 [-0.0007,+0.0050]
+  fp32 d=512     2048 B 0.3679  vs  int8 global d=768                    768 B 0.3706   Δ +0.0027 [-0.0029,+0.0088]
+  fp32 d=256     1024 B 0.3491  vs  int8 global d=768                    768 B 0.3706   Δ +0.0215 [+0.0124,+0.0315]
+  fp32 d=128      512 B 0.3036  vs  remex centered 4-bit d=768           384 B 0.3699   Δ +0.0663 [+0.0507,+0.0833]
