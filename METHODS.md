@@ -677,6 +677,14 @@ survives exactly the sanity checks people run.
   concurrent agents on 4 vCPU and passed idle on the same code. Grade
   timing-sensitive suites on an idle machine, best of three.
   (`commit0-swarm/RESULTS.md` Finding 1)
+- **Haiku 5.5's long-prompt rate card is 5x, not 2x.** A prompt over 100K
+  tokens pays $0.50/$2.50 per MTok input/output against $0.10/$0.50, and cache
+  writes and reads scale with it (claude-api skill `models.md`,
+  `model-migration.md`). down-skilling 1.7 said "doubles", and
+  `commit0-swarm/harness/cost.py` copied it: every figure it produced on
+  2026-10-10 before the fix was 2.4x too low, because agent loops on whole
+  libraries spend most turns past 100K. At that length Haiku is 4x cheaper than
+  Sonnet 5.5, not 20x. (`commit0-swarm/harness/cost.py` `LONG_MULT`)
 - **Concurrent agents share one process table, and one `pkill` reaches all of
   them.** A statsmodels continuation agent ran `pkill -f "pytest -n"` to clear
   its own stalled run; the pattern also matched the grader's pytest and other

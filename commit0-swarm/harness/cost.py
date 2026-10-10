@@ -7,7 +7,7 @@ Each transcript is
 Pricing and method as temporal-routing-headroom/harness/subagent_cost.py: one
 usage per message id; output tokens in these transcripts are streaming-start
 values, so out_floor is a floor and the dollar figure is input-side. Haiku 5.5
-turns whose prompt exceeds 100K tokens are priced at double rates.
+turns whose prompt exceeds 100K tokens are priced at the long rate card, 5x every rate.
 The audit counts tool calls by name and the guard refusals (jail_route,
 subagent_scope) each run hit.
 """
@@ -30,6 +30,7 @@ PRICE = {  # $/MTok: input, 5m cache write, cache read, output (claude-api skill
     "claude-opus-5-5": (4.00, 5.00, 0.20, 20.0),
 }
 LONG = 100_000
+LONG_MULT = 5
 
 
 def default_tasks_dir() -> Path:
@@ -64,11 +65,14 @@ def tally(path: Path) -> dict:
             tot["inp"] += i
             tot["cw"] += w
             tot["cr"] += r
-            # Haiku 5.5 doubles every rate on a prompt over 100K tokens (down-skilling 1.7).
-            mult = 2 if model == "claude-haiku-5-5" and i + w + r > LONG else 1
+            # Haiku 5.5 has two rate cards: a prompt over 100K tokens pays $0.50/$2.50 per MTok
+            # against $0.10/$0.50, 5x on every token type (claude-api skill, models.md and
+            # model-migration.md, cached 2026-10-06). Until 2026-10-10 this read 2x (from
+            # down-skilling 1.7), which under-priced every long turn.
+            mult = LONG_MULT if model == "claude-haiku-5-5" and i + w + r > LONG else 1
             p = PRICE.get(model, (0, 0, 0, 0))
             tot["usd_e6"] += mult * (i * p[0] + w * p[1] + r * p[2])
-            tot["long_turns"] += mult == 2
+            tot["long_turns"] += mult > 1
             tot["out_floor"] += u.get("output_tokens", 0)
             tot["turns"] += 1
         elif m.get("role") == "user":
@@ -97,6 +101,11 @@ def main():
     agents = {}
     if (d / "agents.jsonl").exists():
         agents = {m["instance_id"]: m["agent_id"] for m in map(json.loads, (d / "agents.jsonl").open())}
+    # The live tasks dir only holds this session's agents; a re-price of an older run
+    # finds its agents in the previous costs.jsonl and its transcripts in RUN/transcripts.
+    if (d / "costs.jsonl").exists():
+        for r in map(json.loads, (d / "costs.jsonl").read_text().splitlines()):
+            agents.setdefault(r["instance_id"], r["agent_id"])
     marker = f"/runs/{a.run}/prompts/"
     for t in src.glob("*.output"):
         if not t.exists():   # dangling symlink to a finished background command
@@ -116,6 +125,8 @@ def main():
             print("missing transcript", m, file=sys.stderr)
             continue
         rows.append({"instance_id": m["instance_id"], "agent_id": m["agent_id"], **tally(kept)})
+    if len(rows) < len(agents):
+        sys.exit(f"{len(agents) - len(rows)} transcripts missing; costs.jsonl left as it was")
     (d / "costs.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
     usd = sum(r["usd_input_side"] for r in rows)
     other = Counter()

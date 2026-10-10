@@ -5,17 +5,17 @@
 Can one Haiku 5.5 agent rebuild a whole Python library from a Commit0
 skeleton (signatures and docstrings kept, bodies emptied, the library's own
 tests as target)? Yes, every time it was asked. Solo, it passed 11,208 of
-11,209 graded tests across the 15 admissible Commit0-lite libraries for $6.71,
+11,209 graded tests across the 15 admissible Commit0-lite libraries for $16.36,
 including babel (6,699 tests, 65 minutes) and jinja (850 tests, 58 minutes);
 the one miss is an expected-to-fail chardet test the reference passes.
 
 On eight libraries first released after 2026-07-01, which it cannot have
-trained on, it also scored 100% (1,589 of 1,589 tests, $3.06). It remembers
+trained on, it also scored 100% (1,589 of 1,589 tests, $7.50). It remembers
 the famous libraries (a median 55% of its informative lines are verbatim
 original lines, against 17% on the unseen ones) but does not need to.
 
 A swarm of up to 8 builders per library plus one round of shard fixers reached
-11,205 of 11,209 at 1.3× the cost, two to three times faster on babel and
+11,205 of 11,209 at 1.2× the cost, two to three times faster on babel and
 jinja. Its build pass alone reached 9,402: the swarm fails where files meet.
 
 A library several times babel's size is the open question: at Commit0-lite
@@ -29,21 +29,21 @@ scale every arm sits at the ceiling.
 
    | library | graded tests | solo | swarm build | swarm + fixers | builders | solo $ | swarm $ |
    |---|---|---|---|---|---|---|---|
-   | babel | 6699 | 6699 | 5599 | 6699 | 8 | 2.33 | 3.68 |
-   | marshmallow | 1228 | 1228 | 1228 | 1228 | 7 | 0.29 | 0.41 |
-   | jinja | 850 | 850 | 848 | 850 | 8 | 2.28 | 1.23 |
-   | chardet | 376 | 375 | 31 | 376 | 5 | 0.28 | 0.91 |
-   | cookiecutter | 367 | 367 | 367 | 367 | 7 | 0.41 | 0.44 |
-   | imapclient | 267 | 267 | 266 | 267 | 8 | 0.31 | 0.58 |
-   | pyjwt | 258 | 258 | 0 | 258 | 2 | 0.14 | 0.28 |
+   | babel | 6699 | 6699 | 5599 | 6699 | 8 | 5.77 | 8.76 |
+   | marshmallow | 1228 | 1228 | 1228 | 1228 | 7 | 0.71 | 0.85 |
+   | jinja | 850 | 850 | 848 | 850 | 8 | 5.65 | 2.88 |
+   | chardet | 376 | 375 | 31 | 376 | 5 | 0.66 | 2.00 |
+   | cookiecutter | 367 | 367 | 367 | 367 | 7 | 0.99 | 0.94 |
+   | imapclient | 267 | 267 | 266 | 267 | 8 | 0.77 | 1.22 |
+   | pyjwt | 258 | 258 | 0 | 258 | 2 | 0.31 | 0.57 |
    | cachetools | 215 | 215 | 215 | 215 | 2 | 0.02 | 0.03 |
-   | parsel | 205 | 205 | 203 | 205 | 4 | 0.10 | 0.15 |
-   | tinydb | 201 | 201 | 199 | 201 | 4 | 0.09 | 0.14 |
-   | deprecated | 171 | 171 | 171 | 171 | 1 | 0.03 | 0.02 |
-   | simpy | 149 | 149 | 145 | 145 | 7 | 0.10 | 0.20 |
-   | voluptuous | 148 | 148 | 59 | 148 | 3 | 0.17 | 0.38 |
-   | portalocker | 38 | 38 | 34 | 38 | 2 | 0.14 | 0.15 |
-   | wcwidth | 37 | 37 | 37 | 37 | 1 | 0.03 | 0.04 |
+   | parsel | 205 | 205 | 203 | 205 | 4 | 0.23 | 0.26 |
+   | tinydb | 201 | 201 | 199 | 201 | 4 | 0.19 | 0.20 |
+   | deprecated | 171 | 171 | 171 | 171 | 1 | 0.07 | 0.02 |
+   | simpy | 149 | 149 | 145 | 145 | 7 | 0.23 | 0.25 |
+   | voluptuous | 148 | 148 | 59 | 148 | 3 | 0.39 | 0.84 |
+   | portalocker | 38 | 38 | 34 | 38 | 2 | 0.33 | 0.36 |
+   | wcwidth | 37 | 37 | 37 | 37 | 1 | 0.04 | 0.06 |
 
    Graded tests are those the reference implementation passes in this
    harness. portalocker and simpy are graded best of three on an idle machine,
@@ -57,14 +57,14 @@ scale every arm sits at the ceiling.
 
    | control library | first PyPI release | graded tests | solo | $ | verbatim rate |
    |---|---|---|---|---|---|
-   | catraca | 2026-09-25 | 428 | 428 | 0.90 | 0.14 |
-   | aseprite | 2026-09-05 | 260 | 260 | 0.23 | 0.27 |
-   | verifactu-lint | 2026-08-07 | 254 | 254 | 0.25 | 0.20 |
-   | bslfmt | 2026-09-26 | 214 | 214 | 1.32 | 0.05 |
-   | africa-g2p | 2026-08-06 | 197 | 197 | 0.18 | 0.12 |
-   | vstg | 2026-07-27 | 117 | 117 | 0.05 | 0.42 |
-   | laga | 2026-07-24 | 67 | 67 | 0.05 | 0.23 |
-   | agent-self-edit-gate | 2026-08-29 | 52 | 52 | 0.07 | 0.12 |
+   | catraca | 2026-09-25 | 428 | 428 | 2.24 | 0.14 |
+   | aseprite | 2026-09-05 | 260 | 260 | 0.56 | 0.27 |
+   | verifactu-lint | 2026-08-07 | 254 | 254 | 0.61 | 0.20 |
+   | bslfmt | 2026-09-26 | 214 | 214 | 3.28 | 0.05 |
+   | africa-g2p | 2026-08-06 | 197 | 197 | 0.43 | 0.12 |
+   | vstg | 2026-07-27 | 117 | 117 | 0.11 | 0.42 |
+   | laga | 2026-07-24 | 67 | 67 | 0.11 | 0.23 |
+   | agent-self-edit-gate | 2026-08-29 | 52 | 52 | 0.16 | 0.12 |
 
    A Sonnet 5.5 agent found them through the ecosyste.ms package index (web
    and GitHub search were blocked in its sandbox): 1,530 repositories checked
@@ -114,17 +114,19 @@ scale every arm sits at the ceiling.
    Edit tool's stale-file check served as the concurrency control, and no
    fixer clobbered another's edit. (Rounds 1–2)
 
-5. **Cost and time.** Solo totals $6.71 for Commit0-lite; the swarm $8.64
-   (build $7.95, fixers $0.69). Agent-active wall time, solo vs swarm (build +
+5. **Cost and time.** Solo totals $16.36 for Commit0-lite; the swarm $19.24
+   (build $18.19, fixers $1.05). Agent-active wall time, solo vs swarm (build +
    fix): babel 65 vs 36 min, jinja 58 vs 18, cookiecutter 14 vs 7, imapclient
    21 vs 19, chardet 13 vs 32 (the integration failure). On libraries under
    ~1,000 tests the two are within a few minutes. The swarm figures exclude
    the queueing a 20-agent session cap imposes between waves. (Round 2, transcripts)
 
-6. **The whole experiment cost $18.41 input-side** across 116 Haiku 5.5 spawns
-   (pilot $1.20, Commit0-lite solo $6.31, swarm $7.24, fixers $0.60,
-   continuation $0.01, control $3.06), priced per turn with Haiku 5.5's
-   double rate above 100K prompt tokens (`harness/cost.py`). Output tokens in
+6. **Commit0-lite and the control cost $43.10 input-side** across 116 Haiku 5.5 spawns
+   (pilot $2.50, Commit0-lite solo $15.45, swarm $16.68, fixers $0.96,
+   continuation $0.01, control $7.50), priced per turn with Haiku 5.5's long
+   rate card (5x every rate) on prompts over 100K tokens (`harness/cost.py`).
+   The figures first published here (2026-10-10, $18.41 in all) used 2x for the
+   long rate and under-priced every long turn. Output tokens in
    these transcripts are streaming-start floors, so the figure is input-side. (`data/runs/*/costs.jsonl`)
 
 ## Method
