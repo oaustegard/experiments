@@ -162,7 +162,7 @@ def _run_chunked(task: dict, tree: Path, junit_name: str, resume: bool = False) 
             tails.append(f"== {d} exit {p.returncode}\n{p.stdout[-1500:]}")
         else:
             outcomes.update(oc)
-    return {"exit": max((c["exit"] for c in chunks), default=0), "chunks": chunks,
+    return {"exit": max((c["exit"] for c in chunks if c["exit"] is not None), default=0), "chunks": chunks,
             "tail": "\n".join(tails)[-6000:], "outcomes": outcomes}
 
 
