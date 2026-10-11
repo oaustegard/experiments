@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 470" width="720" height="470" style="width:100%;height:auto;display:block" role="img" aria-labelledby="p-scifact-t p-scifact-d" font-family="sans-serif" font-size="12">
+<title id="p-scifact-t">nDCG@10 on SciFact against bytes per document for every EmbeddingGemma 2 index measured</title>
+<desc id="p-scifact-d">Google's float32 truncation to 128 dimensions scores 0.795 at 512 bytes; remex centered 4-bit on all 768 dimensions scores 0.852 at 384 bytes against 0.851 for uncompressed float32 at 3,072 bytes.</desc>
+<rect width="720" height="470" fill="#f5f0e8"/>
+<line x1="60" x2="700" y1="408.0" y2="408.0" stroke="#d5cfc3"/><text x="52" y="412.0" text-anchor="end" fill="#8b8577">0.70</text>
+<line x1="60" x2="700" y1="362.4" y2="362.4" stroke="#d5cfc3"/><text x="52" y="366.4" text-anchor="end" fill="#8b8577">0.72</text>
+<line x1="60" x2="700" y1="316.7" y2="316.7" stroke="#d5cfc3"/><text x="52" y="320.7" text-anchor="end" fill="#8b8577">0.74</text>
+<line x1="60" x2="700" y1="271.1" y2="271.1" stroke="#d5cfc3"/><text x="52" y="275.1" text-anchor="end" fill="#8b8577">0.76</text>
+<line x1="60" x2="700" y1="225.4" y2="225.4" stroke="#d5cfc3"/><text x="52" y="229.4" text-anchor="end" fill="#8b8577">0.78</text>
+<line x1="60" x2="700" y1="179.8" y2="179.8" stroke="#d5cfc3"/><text x="52" y="183.8" text-anchor="end" fill="#8b8577">0.80</text>
+<line x1="60" x2="700" y1="134.1" y2="134.1" stroke="#d5cfc3"/><text x="52" y="138.1" text-anchor="end" fill="#8b8577">0.82</text>
+<line x1="60" x2="700" y1="88.5" y2="88.5" stroke="#d5cfc3"/><text x="52" y="92.5" text-anchor="end" fill="#8b8577">0.84</text>
+<line x1="60" x2="700" y1="42.8" y2="42.8" stroke="#d5cfc3"/><text x="52" y="46.8" text-anchor="end" fill="#8b8577">0.86</text>
+<line x1="95.3" x2="95.3" y1="20" y2="408" stroke="#d5cfc3"/><text x="95.3" y="426" text-anchor="middle" fill="#8b8577">32 B</text>
+<line x1="180.5" x2="180.5" y1="20" y2="408" stroke="#d5cfc3"/><text x="180.5" y="426" text-anchor="middle" fill="#8b8577">64 B</text>
+<line x1="265.6" x2="265.6" y1="20" y2="408" stroke="#d5cfc3"/><text x="265.6" y="426" text-anchor="middle" fill="#8b8577">128 B</text>
+<line x1="350.7" x2="350.7" y1="20" y2="408" stroke="#d5cfc3"/><text x="350.7" y="426" text-anchor="middle" fill="#8b8577">256 B</text>
+<line x1="435.8" x2="435.8" y1="20" y2="408" stroke="#d5cfc3"/><text x="435.8" y="426" text-anchor="middle" fill="#8b8577">512 B</text>
+<line x1="521.0" x2="521.0" y1="20" y2="408" stroke="#d5cfc3"/><text x="521.0" y="426" text-anchor="middle" fill="#8b8577">1 KB</text>
+<line x1="606.1" x2="606.1" y1="20" y2="408" stroke="#d5cfc3"/><text x="606.1" y="426" text-anchor="middle" fill="#8b8577">2 KB</text>
+<line x1="691.2" x2="691.2" y1="20" y2="408" stroke="#d5cfc3"/><text x="691.2" y="426" text-anchor="middle" fill="#8b8577">4 KB</text>
+<text x="380.0" y="458" text-anchor="middle" fill="#1e2a4a" font-weight="600">bytes per document (log scale)</text>
+<text transform="translate(16 214.0) rotate(-90)" text-anchor="middle" fill="#1e2a4a" font-weight="600">nDCG@10, SciFact</text>
+<path d="M95.3,223.8 L145.1,206.5 L180.5,119.3 L230.3,91.2 L265.6,79.8 L315.4,65.6 L365.2,57.0 L485.6,56.3" fill="none" stroke="#8b8577" stroke-width="2" stroke-dasharray="6 5" opacity="0.8"/>
+<line x1="60" x2="700" y1="64.5" y2="64.5" stroke="#1e2a4a" stroke-width="1" opacity="0.45"/>
+<circle cx="570.8" cy="64.3" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>fp16 d=768: 0.851 nDCG@10, 1.5 KB/doc</title></circle>
+<circle cx="485.6" cy="56.3" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>int8 global d=768: 0.854 nDCG@10, 768 B/doc</title></circle>
+<circle cx="485.6" cy="65.6" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>ST int8 d=768: 0.850 nDCG@10, 768 B/doc</title></circle>
+<circle cx="230.3" cy="115.2" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>ST binary d=768 (asym): 0.828 nDCG@10, 96 B/doc</title></circle>
+<circle cx="230.3" cy="168.8" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>ST binary d=768 (sym): 0.805 nDCG@10, 96 B/doc</title></circle>
+<circle cx="485.6" cy="67.0" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 8-bit d=768: 0.849 nDCG@10, 768 B/doc</title></circle>
+<circle cx="400.5" cy="70.9" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 4-bit d=768: 0.848 nDCG@10, 384 B/doc</title></circle>
+<circle cx="365.2" cy="68.4" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 3-bit d=768: 0.849 nDCG@10, 288 B/doc</title></circle>
+<circle cx="315.4" cy="68.8" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 2-bit d=768: 0.849 nDCG@10, 192 B/doc</title></circle>
+<circle cx="230.3" cy="133.4" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 1-bit d=768: 0.820 nDCG@10, 96 B/doc</title></circle>
+<circle cx="435.8" cy="64.5" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 8-bit d=512: 0.851 nDCG@10, 512 B/doc</title></circle>
+<circle cx="350.7" cy="75.9" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 4-bit d=512: 0.846 nDCG@10, 256 B/doc</title></circle>
+<circle cx="315.4" cy="65.6" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 3-bit d=512: 0.850 nDCG@10, 192 B/doc</title></circle>
+<circle cx="265.6" cy="91.9" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 2-bit d=512: 0.839 nDCG@10, 128 B/doc</title></circle>
+<circle cx="180.5" cy="167.2" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 1-bit d=512: 0.805 nDCG@10, 64 B/doc</title></circle>
+<circle cx="350.7" cy="94.6" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 8-bit d=256: 0.837 nDCG@10, 256 B/doc</title></circle>
+<circle cx="265.6" cy="112.4" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 4-bit d=256: 0.830 nDCG@10, 128 B/doc</title></circle>
+<circle cx="230.3" cy="115.9" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 3-bit d=256: 0.828 nDCG@10, 96 B/doc</title></circle>
+<circle cx="180.5" cy="155.1" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 2-bit d=256: 0.811 nDCG@10, 64 B/doc</title></circle>
+<circle cx="95.3" cy="359.8" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 1-bit d=256: 0.721 nDCG@10, 32 B/doc</title></circle>
+<circle cx="265.6" cy="192.3" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 8-bit d=128: 0.794 nDCG@10, 128 B/doc</title></circle>
+<circle cx="180.5" cy="214.0" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 4-bit d=128: 0.785 nDCG@10, 64 B/doc</title></circle>
+<circle cx="145.1" cy="274.3" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 3-bit d=128: 0.759 nDCG@10, 48 B/doc</title></circle>
+<circle cx="95.3" cy="389.5" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex 2-bit d=128: 0.708 nDCG@10, 32 B/doc</title></circle>
+<circle cx="265.6" cy="88.7" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex centered 4-bit d=256: 0.840 nDCG@10, 128 B/doc</title></circle>
+<circle cx="230.3" cy="110.4" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex centered 3-bit d=256: 0.830 nDCG@10, 96 B/doc</title></circle>
+<circle cx="180.5" cy="133.9" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex centered 2-bit d=256: 0.820 nDCG@10, 64 B/doc</title></circle>
+<circle cx="95.3" cy="245.3" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex centered 1-bit d=256: 0.771 nDCG@10, 32 B/doc</title></circle>
+<circle cx="180.5" cy="195.1" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex centered 4-bit d=128: 0.793 nDCG@10, 64 B/doc</title></circle>
+<circle cx="145.1" cy="206.5" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex centered 3-bit d=128: 0.788 nDCG@10, 48 B/doc</title></circle>
+<circle cx="95.3" cy="223.8" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remex centered 2-bit d=128: 0.781 nDCG@10, 32 B/doc</title></circle>
+<circle cx="230.3" cy="167.0" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remax k=1 d=768 (asym): 0.806 nDCG@10, 96 B/doc</title></circle>
+<circle cx="230.3" cy="253.0" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remax k=1 d=768 (sym): 0.768 nDCG@10, 96 B/doc</title></circle>
+<circle cx="315.4" cy="121.1" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remax k=2 d=768 (asym): 0.826 nDCG@10, 192 B/doc</title></circle>
+<circle cx="180.5" cy="217.7" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remax k=1 d=512 (asym): 0.783 nDCG@10, 64 B/doc</title></circle>
+<circle cx="180.5" cy="282.5" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remax k=1 d=512 (sym): 0.755 nDCG@10, 64 B/doc</title></circle>
+<circle cx="265.6" cy="128.0" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>remax k=2 d=512 (asym): 0.823 nDCG@10, 128 B/doc</title></circle>
+<path d="M435.8,192.1 L521.0,94.2 L606.1,64.0 L655.9,64.5" fill="none" stroke="#1e2a4a" stroke-width="2" opacity="0.7"/>
+<path d="M435.8,185.1 L442.8,192.1 L435.8,199.1 L428.8,192.1 Z" fill="#1e2a4a" stroke="#f5f0e8" stroke-width="2"><title>fp32 d=128: 0.795 nDCG@10, 512 B/doc</title></path>
+<path d="M521.0,87.2 L528.0,94.2 L521.0,101.2 L514.0,94.2 Z" fill="#1e2a4a" stroke="#f5f0e8" stroke-width="2"><title>fp32 d=256: 0.838 nDCG@10, 1.0 KB/doc</title></path>
+<path d="M606.1,57.0 L613.1,64.0 L606.1,71.0 L599.1,64.0 Z" fill="#1e2a4a" stroke="#f5f0e8" stroke-width="2"><title>fp32 d=512: 0.851 nDCG@10, 2.0 KB/doc</title></path>
+<path d="M655.9,57.5 L662.9,64.5 L655.9,71.5 L648.9,64.5 Z" fill="#1e2a4a" stroke="#f5f0e8" stroke-width="2"><title>fp32 d=768: 0.851 nDCG@10, 3.0 KB/doc</title></path>
+<path d="M230.3,91.2 L315.4,70.7 L365.2,57.0 L400.5,61.1" fill="none" stroke="#cf6853" stroke-width="2" opacity="0.7"/>
+<circle cx="230.3" cy="91.2" r="6" fill="#cf6853" stroke="#f5f0e8" stroke-width="2"><title>remex centered 1-bit d=768: 0.839 nDCG@10, 96 B/doc</title></circle>
+<circle cx="315.4" cy="70.7" r="6" fill="#cf6853" stroke="#f5f0e8" stroke-width="2"><title>remex centered 2-bit d=768: 0.848 nDCG@10, 192 B/doc</title></circle>
+<circle cx="365.2" cy="57.0" r="6" fill="#cf6853" stroke="#f5f0e8" stroke-width="2"><title>remex centered 3-bit d=768: 0.854 nDCG@10, 288 B/doc</title></circle>
+<circle cx="400.5" cy="61.1" r="6" fill="#cf6853" stroke="#f5f0e8" stroke-width="2"><title>remex centered 4-bit d=768: 0.852 nDCG@10, 384 B/doc</title></circle>
+<path d="M180.5,119.3 L265.6,79.8 L315.4,76.8 L350.7,68.4" fill="none" stroke="#2a78d6" stroke-width="2" opacity="0.7"/>
+<rect x="175.5" y="114.3" width="10" height="10" fill="#2a78d6" stroke="#f5f0e8" stroke-width="2"><title>remex centered 1-bit d=512: 0.827 nDCG@10, 64 B/doc</title></rect>
+<rect x="260.6" y="74.8" width="10" height="10" fill="#2a78d6" stroke="#f5f0e8" stroke-width="2"><title>remex centered 2-bit d=512: 0.844 nDCG@10, 128 B/doc</title></rect>
+<rect x="310.4" y="71.8" width="10" height="10" fill="#2a78d6" stroke="#f5f0e8" stroke-width="2"><title>remex centered 3-bit d=512: 0.845 nDCG@10, 192 B/doc</title></rect>
+<rect x="345.7" y="63.4" width="10" height="10" fill="#2a78d6" stroke="#f5f0e8" stroke-width="2"><title>remex centered 4-bit d=512: 0.849 nDCG@10, 256 B/doc</title></rect>
+<text x="445.8" y="196.1" text-anchor="start" fill="#1e2a4a">128 dims, float32: Google's 6×</text>
+<text x="655.9" y="50.5" text-anchor="middle" fill="#1e2a4a">768 dims</text>
+<text x="606.1" y="90.0" text-anchor="middle" fill="#1e2a4a">512 dims</text>
+<text x="521.0" y="118.2" text-anchor="middle" fill="#1e2a4a">256 dims</text>
+<text x="400.5" y="47.1" text-anchor="middle" fill="#1e2a4a">4-bit, 768 dims</text>
+<text x="271.6" y="65.8" text-anchor="middle" fill="#1e2a4a">2-bit, 512 dims</text>
+<text x="228.3" y="78.2" text-anchor="end" fill="#1e2a4a">1-bit, 768 dims</text>
+<text x="239.3" y="132.2" text-anchor="start" fill="#1e2a4a">ST binary, 1-bit</text>
+<path d="M470.0,315.0 L477.0,322.0 L470.0,329.0 L463.0,322.0 Z" fill="#1e2a4a" stroke="#f5f0e8" stroke-width="2"><title>Google's truncation, float32</title></path><text x="482" y="326" fill="#1e2a4a">Google's truncation, float32</text>
+<circle cx="470.0" cy="342.0" r="6" fill="#cf6853" stroke="#f5f0e8" stroke-width="2"><title>remex centered, all 768 dims</title></circle><text x="482" y="346" fill="#1e2a4a">remex centered, all 768 dims</text>
+<rect x="465.0" y="357.0" width="10" height="10" fill="#2a78d6" stroke="#f5f0e8" stroke-width="2"><title>remex centered, first 512 dims</title></rect><text x="482" y="366" fill="#1e2a4a">remex centered, first 512 dims</text>
+<circle cx="470.0" cy="382.0" r="4" fill="#b9b2a3" stroke="#f5f0e8" stroke-width="1.5"><title>other arms</title></circle><text x="482" y="386" fill="#1e2a4a">every other arm (hover)</text>
+<line x1="463" x2="477" y1="402" y2="402" stroke="#8b8577" stroke-width="2" stroke-dasharray="6 5"/><text x="482" y="406" fill="#1e2a4a">Pareto frontier</text>
+<line x1="463" x2="477" y1="302" y2="302" stroke="#1e2a4a" stroke-width="1" opacity="0.45"/><text x="482" y="306" fill="#1e2a4a">uncompressed, 768 dims</text>
+</svg>
