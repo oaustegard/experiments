@@ -4092,3 +4092,18 @@ reconciliation pass worked through the 393 contradictions the pages listed.
   writes, and remembering 5.22.0 warns on the signature. Write memory text through a file or a
   single-quoted heredoc, and distrust a bare decimal or a missing currency sign
   in an older digest. (`codex/RESULTS.md` round 4)
+
+### Overlapping skill descriptions: measure selection before merging skills
+
+`subagent-skill-choice` — four skills claim parallel-subagent work. Haiku,
+Sonnet and Opus 5.5, shown all 103 descriptions, picked the right one for 173
+of 174 requests, vague ones included; shown names only, 55–85%.
+- **Test the catalogue the model actually sees.** An embedding confusability
+  score flagged the same pair as near neighbours, while an LLM reading the full
+  descriptions separated them every time. Before merging or renaming skills for
+  crowding, run the selection test: forced choice over the full catalogue,
+  requests generated from each skill's body (not its description), several models.
+- **Names are what people route by.** The names-only arm stands in for a person
+  scanning a skill list, and it is where the crowding shows. Put the
+  disambiguation in human-facing docs. (`subagent-skill-choice/RESULTS.md`)
+

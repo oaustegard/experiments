@@ -1,0 +1,473 @@
+[
+ {
+  "id": "dispatching-subagents-0",
+  "query": "I have 200 markdown docs in docs/ and I need each one summarized into a JSON with title, topics, and a 2-sentence abstract. They're all independent. What's the cheapest way to farm this out to subagents without burning my parent context?",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "dispatching-subagents-1",
+  "query": "Grade 80 model answers in answers.jsonl against a rubric. Each grader should score blind, with no view of our conversation about them. Set it up to run in parallel and keep track of what each one costs.",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "dispatching-subagents-2",
+  "query": "Last time I launched a few hundred Haiku agents one by one and the bill was mostly my own main-session turns re-reading context. Do the per-file code review on these 60 files in src/ a better way.",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "dispatching-subagents-3",
+  "query": "I need to run a per-file security review on 45 Python files. The inputs are just the file contents and the output can be checked against a JSON schema. Please dispatch them in parallel and tell me how many failed and why.",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "dispatching-subagents-4",
+  "query": "I tried launching 25 agents at once and the last few errored out and got lost. How should I split up this batch of 25 independent file-extraction jobs so nothing is dropped?",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "dispatching-subagents-5",
+  "query": "Generate a short landing page blurb for each of the 120 products in products.csv, in parallel, using a cheap model. Cap spend at around $5 and rerun only the failures if some don't validate.",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "agent-routing-0",
+  "query": "I need to fan out 300 failing unit tests to subagents, one fix attempt each. Which model should each subagent use, and when should I escalate to a bigger one?",
+  "gold": [
+   "agent-routing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "agent-routing-1",
+  "query": "Is it still worth sending bulk file-summary jobs to Haiku now that prices changed, or should I just default everything to Sonnet?",
+  "gold": [
+   "agent-routing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "agent-routing-2",
+  "query": "My orchestrator keeps spawning a fresh Sonnet subagent for every tiny task and the bill is weirdly high even though outputs are short. What's going on and how should I restructure the spawns?",
+  "gold": [
+   "agent-routing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "agent-routing-3",
+  "query": "I'm about to hand a vague 'audit the repo and update whatever's outdated' goal to a worker agent. Which tier and effort level should I pick so it doesn't stall and ask questions?",
+  "gold": [
+   "agent-routing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "agent-routing-4",
+  "query": "Setting up a pipeline that classifies 10k support tickets into a fixed JSON schema. What model and effort should I use, and how do I check quality cheaply?",
+  "gold": [
+   "agent-routing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "agent-routing-5",
+  "query": "We want a separate agent to grade the outputs of our worker agents. Can the grader be the same cheap model as the workers, or should it be higher, and at what effort?",
+  "gold": [
+   "agent-routing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "orchestrating-agents-0",
+  "query": "I'm in a claude.ai project chat with no subagent tools. I need the same 40-page design doc reviewed from security, performance, and maintainability angles at once, with the shared doc cached so it doesn't cost 3x. Can you set that up with Claude API calls in parallel?",
+  "gold": [
+   "orchestrating-agents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "orchestrating-agents-1",
+  "query": "Write a Python script that runs several Claude sub-agents concurrently over the Anthropic API with httpx, all sharing one big cached system prompt containing our docs. I want the cache savings.",
+  "gold": [
+   "orchestrating-agents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "orchestrating-agents-2",
+  "query": "I want a long-running helper agent that I can keep asking follow-up questions about a refactor, with its conversation history auto-cached between turns so each round gets cheaper. Set it up through the API directly.",
+  "gold": [
+   "orchestrating-agents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "orchestrating-agents-3",
+  "query": "Quick one: how do I call claude-haiku-5-5 for a cheap first-pass triage of 200 support tickets in parallel from a python script, not using native subagents?",
+  "gold": [
+   "orchestrating-agents",
+   "dispatching-subagents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "orchestrating-agents-4",
+  "query": "I'm in a chat-only environment (no Agent or Task tool available). Fan out five different analyst personas on this contract text using Claude and collect all their answers side by side.",
+  "gold": [
+   "orchestrating-agents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "orchestrating-agents-5",
+  "query": "My orchestration code reads content[0] from the API response and sometimes gets empty or thinking output from the new Sonnet. How should I fix my parallel invocation wrapper so it returns the joined text?",
+  "gold": [
+   "orchestrating-agents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "delegating-with-context-0",
+  "query": "We've spent the last hour debugging the flaky migration test and I've got the exact error strings and file paths in this session. Spin up a subagent to write the fix for it, and don't make me re-explain everything. Just have it pick up what it needs from what we've already done.",
+  "gold": [
+   "delegating-with-context"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "delegating-with-context-1",
+  "query": "Hand off the PR #812 closing summary to a subagent. It needs the benchmark numbers we pulled earlier, and I don't want you paraphrasing them into a brief and getting them wrong.",
+  "gold": [
+   "delegating-with-context"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "delegating-with-context-2",
+  "query": "Before you delegate the changelog drafting, check which parts of our conversation would actually get passed to the subagent. I want to see that the chunk with the rate-limit config is included.",
+  "gold": [
+   "delegating-with-context"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "delegating-with-context-3",
+  "query": "The context-filter line didn't show up after your last Agent call. Is the delegation hook even working? Check the log and tell me what the last filtered delegation was.",
+  "gold": [
+   "delegating-with-context"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "delegating-with-context-4",
+  "query": "Delegate writing the follow-up memory on the xr latency findings. Keep the prompt to the task itself, since the subagent can get the background from earlier in this session automatically.",
+  "gold": [
+   "delegating-with-context"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "delegating-with-context-5",
+  "query": "I'm about to launch three subagents in parallel, each writing up one section of the postmortem from what we found today. Can you set them up so each gets only the relevant parts of the session and not a long hand-written brief from you?",
+  "gold": [
+   "delegating-with-context",
+   "dispatching-subagents"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "flowing-0",
+  "query": "I need a pipeline that pulls a CSV from our S3 bucket, validates the schema, skips the transform if no rows changed since yesterday, loads into Postgres, and posts a Slack note at the end without blocking if Slack is down. Build it as a dependency graph of Python tasks, not a long checklist.",
+  "gold": [
+   "flowing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "flowing-1",
+  "query": "Write a script where an LLM drafts a JSON config, we check it against the schema, and if it fails it regenerates up to 5 times before giving up. The check should be part of the loop structure itself.",
+  "gold": [
+   "flowing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "flowing-2",
+  "query": "My 6-step data migration keeps dying at step 5 and I'm wasting the first four steps every time. Set it up so that if the container gets killed, rerunning picks up from where it stopped and only re-executes steps whose code changed.",
+  "gold": [
+   "flowing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "flowing-3",
+  "query": "Fetch the status of these 8 microservices in parallel, bail out of downstream steps if any returns an empty payload, and write the summary to memory as a fire-and-forget step.",
+  "gold": [
+   "flowing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "flowing-4",
+  "query": "Instead of me writing 'first lint, then test, then if tests fail retry twice, then build', can you turn this release procedure into something enforced in code so steps can't be skipped?",
+  "gold": [
+   "flowing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "flowing-5",
+  "query": "I have a flaky multi-step ingest job: download, parse, dedupe, upload. I'd like to retry with backoff, add timeouts per step, and after fixing a bug in parse, re-run without redoing the download. Can you structure it?",
+  "gold": [
+   "flowing"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "invoking-gemini-0",
+  "query": "I need a header image for my blog post about ravens and knowledge graphs. Make it look like a risograph print with limited inks, wide landscape, no text. Quality matters since it's going live.",
+  "gold": [
+   "invoking-gemini"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "invoking-gemini-1",
+  "query": "Can you have Gemini read this 12-line script aloud as a narrator? Give me a low, dry, amused male British voice, and save each line as a wav.",
+  "gold": [
+   "invoking-gemini"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "invoking-gemini-2",
+  "query": "I've got 400 customer support tickets in tickets.jsonl. Run them through the cheap Gemini tier in parallel and pull out category, urgency, and a one-line summary for each, with output that strictly matches a Pydantic schema.",
+  "gold": [
+   "invoking-gemini"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "invoking-gemini-3",
+  "query": "Make me a two-person dialogue audio clip between a skeptical host and an excited guest, using Gemini speech. Different voices for each, and have the guest laugh at one point.",
+  "gold": [
+   "invoking-gemini"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "invoking-gemini-4",
+  "query": "Design a poster graphic for our bake sale that says 'SATURDAY BAKE SALE' in bold red letters. The text has to render correctly, so use the better image model.",
+  "gold": [
+   "invoking-gemini"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "invoking-gemini-5",
+  "query": "Here's a screenshot of a dashboard. Send it to Gemini and get back JSON with every chart title, its chart type (enum: bar, line, pie, other), and the axis labels. Nested objects are fine.",
+  "gold": [
+   "invoking-gemini"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "deciding-with-confidence-0",
+  "query": "I have 300 support tickets in tickets.jsonl. For each one I need a routing choice (billing, shipping, technical, other) plus a probability, and I want to flag the ones the model is unsure about so a human can review them.",
+  "gold": [
+   "deciding-with-confidence"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "deciding-with-confidence-1",
+  "query": "Is this message from a customer actually angry, or just terse? \"Third time I've emailed. Still no refund.\" Give me a probability, not just yes/no.",
+  "gold": [
+   "deciding-with-confidence"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "deciding-with-confidence-2",
+  "query": "I've got 120 labelled examples of intent classification for our bank chatbot. Can you check how well-calibrated the Haiku-based classifier is on them and fit a new temperature so the probabilities are more trustworthy?",
+  "gold": [
+   "deciding-with-confidence"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "deciding-with-confidence-3",
+  "query": "My batch of classification results keeps showing the samples disagreeing with each other on most items. What should I do, and is it worth running more samples?",
+  "gold": [
+   "deciding-with-confidence"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "deciding-with-confidence-4",
+  "query": "I want to rate bug reports as cosmetic, workaround, or blocked and get a fractional severity number like 1.4 rather than a hard label. No API key here, only a Claude Code session. How do I run that?",
+  "gold": [
+   "deciding-with-confidence"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "deciding-with-confidence-5",
+  "query": "Build me a triage step that decides whether an incoming message goes to the auto-reply bot or gets escalated, based on how sure the classifier is. What thresholds should I use to start?",
+  "gold": [
+   "deciding-with-confidence"
+  ],
+  "source": "generated"
+ },
+ {
+  "id": "boundary-0",
+  "query": "Spawn a subagent to review this diff for race conditions.",
+  "gold": [
+   "delegating-with-context"
+  ],
+  "source": "hand"
+ },
+ {
+  "id": "boundary-1",
+  "query": "Run these 12 independent extraction tasks in parallel and give me the results.",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "hand"
+ },
+ {
+  "id": "boundary-2",
+  "query": "Should this batch run as a Workflow or as separate agent calls?",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "hand"
+ },
+ {
+  "id": "boundary-3",
+  "query": "You have my go-ahead for a workflow: write the script that finds bugs in 30 files and then verifies each finding.",
+  "gold": [
+   "workflow-authoring"
+  ],
+  "source": "hand"
+ },
+ {
+  "id": "boundary-4",
+  "query": "Which model should the 50 grading agents use, and at what effort?",
+  "gold": [
+   "agent-routing"
+  ],
+  "source": "hand"
+ },
+ {
+  "id": "boundary-5",
+  "query": "From a claude.ai chat with no Agent tool, run three Claude calls in parallel on this text.",
+  "gold": [
+   "orchestrating-agents"
+  ],
+  "source": "hand"
+ },
+ {
+  "id": "boundary-6",
+  "query": "Run claude -p over these 300 prompts in parallel with a $5 budget cap.",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "hand"
+ },
+ {
+  "id": "boundary-7",
+  "query": "Each worker agent should automatically get the part of our discussion it needs, without me pasting it in.",
+  "gold": [
+   "delegating-with-context"
+  ],
+  "source": "hand"
+ },
+ {
+  "id": "vague-0",
+  "query": "Parallelize this.",
+  "gold": [
+   "dispatching-subagents",
+   "delegating-with-context"
+  ],
+  "source": "hand-vague"
+ },
+ {
+  "id": "vague-1",
+  "query": "Farm this out to some agents.",
+  "gold": [
+   "dispatching-subagents",
+   "delegating-with-context"
+  ],
+  "source": "hand-vague"
+ },
+ {
+  "id": "vague-2",
+  "query": "Use subagents for the file-by-file part.",
+  "gold": [
+   "dispatching-subagents",
+   "delegating-with-context"
+  ],
+  "source": "hand-vague"
+ },
+ {
+  "id": "vague-3",
+  "query": "Get Haiku to do the grunt work on these 60 files.",
+  "gold": [
+   "dispatching-subagents",
+   "agent-routing"
+  ],
+  "source": "hand-vague"
+ },
+ {
+  "id": "vague-4",
+  "query": "This is too slow one at a time; can agents do it?",
+  "gold": [
+   "dispatching-subagents"
+  ],
+  "source": "hand-vague"
+ },
+ {
+  "id": "vague-5",
+  "query": "Hand this off and keep going with the other thing.",
+  "gold": [
+   "delegating-with-context"
+  ],
+  "source": "hand-vague"
+ },
+ {
+  "id": "vague-6",
+  "query": "Is Haiku good enough for this or do I need Opus?",
+  "gold": [
+   "agent-routing"
+  ],
+  "source": "hand-vague"
+ },
+ {
+  "id": "vague-7",
+  "query": "Do the whole list in one go with cheap agents.",
+  "gold": [
+   "dispatching-subagents",
+   "agent-routing"
+  ],
+  "source": "hand-vague"
+ }
+]
