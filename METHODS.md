@@ -4039,12 +4039,41 @@ no-feedback arm solved a task its feedback counterpart missed. Before paying for
 bigger model at the second rung, check what signal the second rung gets. The
 feedback in that experiment was the hidden test suite, so it bounds what a real
 verifier can supply.
+
+### Compiling a memory store with cheap agents: dispatch headless, judge with a same-context control
+
+`codex` — 314 Haiku 5.5 agents compiled 3,699 memories into 149 cited pages, the
+pages went into the store, a blind A/B tested whether they improve answers, and a
+reconciliation pass worked through the 393 contradictions the pages listed.
+- **Launch volume as `claude -p` children, not Agent calls.** Each Agent-tool
+  launch and each completion is a parent turn that re-reads the session. The
+  build's 1,458 Opus parent calls cost about $160–170 to dispatch $11.61 of Haiku.
+  Headless children need no API key, since the host authenticates the CLI. They
+  run from one background command, take `--effort` and `--json-schema`, and
+  report cost per child. Five of the same verifier tasks cost $0.10 that way.
+  Runner and decision rule: claude-skills `dispatching-subagents`.
+  (`codex/RESULTS.md` finding 5)
+- **Headless children take a different permission syntax.** Under
+  `--permission-mode dontAsk`, a write is allowed by `Edit(//abs/path)`, while
+  `Write(path)` and a bare `Edit` are refused. A child that inherits
+  `CLAUDE_CODE_SESSION_ID` reports the parent's session id. About 210 MB of RAM
+  per child: 40 ran clean on 4 vCPU / 15 GB. (`dispatching-subagents` SKILL.md)
+- **Put an identical-context control in any with/without-retrieval A/B.** When
+  both arms got the same memories, Sonnet's two answers still drew a non-tie
+  verdict in 15 of 42 judge votes. Without those questions, answer-sampling noise
+  reads as an effect. Judge each pair in both orders, and count per question,
+  not per vote. (`codex/RESULTS.md` finding 3)
+- **A summary page helps "where does X stand" and not "what was the number".**
+  The pages won 13–5 on synthesis questions that retrieved them, mostly by
+  supplying the current state (currency 0.72 → 0.97). They won 0–2 on fact
+  questions. (`codex/RESULTS.md` findings 1–2)
 - **Strip tool output before costing a transcript-mining job.** Claude Code
   transcripts are almost all tool results: 320 MB of distinct sessions on the
   hub's `transcripts` branch held 1.3M characters of user and assistant prose
   (0.4%). An estimate made on raw bytes was off by two orders of magnitude.
-  (`codex/README.md`, `codex/corpus.py`)
+  (`codex/corpus.py`)
 - **`fanout.py next` counts a task free as soon as its output validates.** The
   agent may still be running, so filling those slots hits the 20-agent cap and
   the Agent call is refused. Dispatch one call per completion notification
-  instead. (`codex/README.md`)
+  instead. (`codex/RESULTS.md` round 1)
+<!-- CONTRA_METHODS -->
