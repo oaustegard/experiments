@@ -31,6 +31,7 @@ head = f"""<!DOCTYPE html>
 <style>:root{{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}}body{{margin:0}}img{{max-width:100%}}[hidden]{{display:none!important}}</style>
 """
 links = ('<p class="sitelinks"><a href="/">Muninn</a> · <a href="/scratch/">scratch</a> · '
+         '<a href="film/">the film</a> · '
          '<a href="https://github.com/oaustegard/experiments/tree/main/second-sky">how it was made</a></p>')
 html = html.replace("<canvas id=\"sky\"", "</head>\n<body>\n<canvas id=\"sky\"", 1)
 html = html.replace("</style>", ".sitelinks { margin: 8px 0 0; font: 12px var(--f-body); letter-spacing: .06em; color: var(--dim); pointer-events: auto; }\n"
