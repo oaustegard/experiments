@@ -4076,4 +4076,16 @@ reconciliation pass worked through the 393 contradictions the pages listed.
   agent may still be running, so filling those slots hits the 20-agent cap and
   the Agent call is refused. Dispatch one call per completion notification
   instead. (`codex/RESULTS.md` round 1)
-<!-- CONTRA_METHODS -->
+- **Most contradictions a summarizer lists are not errors.** Of 393 that the
+  pages listed, 193 were values from different dates or different measures. 63
+  were a wrong statement. Classify from the full notes first, send only the rest
+  to a live check, and have a second model open every cited source before
+  writing a correction. The Sonnet recheck overturned 6 of 69 proposed errors.
+  Give the checkers read-only repo snapshots (blobless clone, commit log dumped
+  to text, remote removed) rather than git or Bash: with no remote there is
+  nothing to push to. (`codex/RESULTS.md` round 4)
+- **Dollar amounts in some stored memories were eaten by shell expansion.**
+  "$7.2B" became ".2B" and "$210B" became "10B", in news digests. The likely
+  cause, not traced, is memory text passed through a double-quoted bash string. Write memory text through a file or a
+  single-quoted heredoc, and distrust a bare decimal or a missing currency sign
+  in an older digest. (`codex/RESULTS.md` round 4)

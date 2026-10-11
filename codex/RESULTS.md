@@ -16,7 +16,9 @@ their own page: 13 wins, 5 losses, 2 even (sign test p ≈ 0.10). In 5 of those 
 the page turned an outdated answer into a current one, and none went the other
 way. Fact questions gained nothing (0 wins, 2 losses of 6). Identical-context
 controls split 4–6, which is the noise floor. The pages' 393 listed
-contradictions were mostly not errors. <!-- CONTRA_ANSWER --> (round 4 in progress)
+contradictions were mostly not errors. Checked against the cited notes, 16 repo snapshots and the web, 193 were not
+errors. 48 wrong statements in 45 memories were corrected after a second
+reviewer confirmed each one, and 131 could not be settled from here.
 
 What would change this: more synthesis questions, since the p-value rests on 18
 decided ones, and a judge from outside the Claude family.
@@ -34,11 +36,16 @@ decided ones, and a judge from outside the Claude family.
    where both arms got identical memories, Sonnet's two answers drew 15 non-tie
    votes of 42. A judge comparison without that control reads noise as effect.
    (Round 3)
-4. **Most contradictions a summarizer lists are not errors.** <!-- CONTRA_FINDING --> (round 4 in progress)
+4. **Most contradictions a summarizer lists are not errors.** Of 393, 193 were two values from different dates or two
+   different measures. 63 were a statement that was wrong, and 48 of those were
+   corrected in the store. The rest were in session summaries, which are not
+   memories, or were already corrected by the 2026-10-09 audit. Haiku sent 59%
+   to a live check, and a Sonnet recheck overturned 6 of the 69 errors Haiku
+   proposed.
    (Round 4, `reconcile.py`)
 5. **Dispatching cost more than the work.** The Agent-tool build made 1,458 Opus
    parent calls, about $160–170, to launch $11.61 of Haiku agents. The A/B and
-   the reconciliation ran as headless `claude -p` children: <!-- HEADLESS_COUNT --> (round 4 in progress)
+   the reconciliation ran as headless `claude -p` children: 747
    children from about a dozen parent calls. (Rounds 1, 3, 4)
 6. **The build is accurate to its sources.** The verifier rewrote 4.4% of 11,043
    statements and cut 0.3%. A spot check of 20 random cited sentences found
@@ -168,4 +175,45 @@ $32.44 in total over 300 headless children.
 
 ### Round 4: working through the 393 contradictions (2026-10-11)
 
-<!-- CONTRA_LOG --> (round 4 in progress)
+Oskar's ask: "work through the 393 contradictions". Each page lists the
+points where its sources disagree, with the ids involved.
+
+| stage | model, tools | in | out | cost |
+|---|---|---|---|---|
+| adjudicate, one task per page | Haiku, none | 393 items on 147 pages | 89 different measures, 32 changed over time, 23 memory wrong, 17 unresolvable, 231 need a live check, 1 missing | $0.62 |
+| recheck the memory-wrong verdicts | Sonnet, none | 23 | 18 confirmed (2 with a better NOW), 5 overturned | $0.61 |
+| live check | Haiku; Read/Grep/Glob on 16 repo snapshots, WebSearch, WebFetch | 231 | 72 consistent, 46 note wrong, 113 could not check | $2.86 |
+| recheck the live note-wrong verdicts, opening every cited source | Sonnet, same minus WebSearch | 46 | 45 confirmed (1 with a better NOW), 1 overturned | $1.97 |
+
+Of the 63 confirmed errors:
+- 48 statements in 45 memories were written as a `[RECONCILED 2026-10-11 ...]`
+  header with WAS/NOW lines, on a superseding memory tagged `codex-reconciled`;
+- 9 were in session summaries, which the store does not hold;
+- 4 had already been corrected by the 2026-10-09 audit;
+- 1 quoted text that is not in the memory;
+- 1 was dropped at review: a cycling-science claim whose only evidence was a
+  search tool's paraphrase.
+
+I read every planned correction before applying it. One NOW was rewritten by
+hand: an election-result correction that read as if it replaced a later poll
+figure.
+
+Corrections by kind:
+- the owner's own repos, where a note said a PR was open, a file absent or a gate
+  missing and the snapshot showed otherwise;
+- world facts, such as a May 2026 note describing a "Labour+Centre" Norwegian
+  government that Centre had left in February 2025;
+- dates and attributions in paper citations;
+- pricing, such as the 1-hour cache write billed at 1.25× instead of 2×.
+
+The pass also found that some write path loses dollar amounts to shell
+expansion. One memory read "512 x ~5k = ~8M hardware = 0.25% of the .2B budget",
+where the session had "$35k", "$18M" and "$7.2B". Another had "spent 10B" for
+"$210B". A scan of the export finds 6 memories with a ".2B"-style remnant, all
+news digests and perch notes. Whole-number amounts cannot be found that way.
+
+Not settled: 113 live items needed Strava, the store's own timestamps,
+private services or sources the web did not show, plus 17 the notes could not
+settle. They stay listed on their pages.
+
+All four stages ran as 447 headless `claude -p` children for $6.06.
