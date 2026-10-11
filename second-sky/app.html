@@ -70,7 +70,7 @@ body { background: var(--ink); color: var(--chalk); font-family: var(--f-body); 
 .about dd { margin: 0; color: var(--dim); }
 .about a { color: var(--sea); }
 
-body.reading .controls { right: calc(min(420px, 100%) + 16px); }
+body.reading .controls { right: calc(min(420px, 100%) + 16px); top: auto; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 16px; justify-content: flex-start; }
 body.reading .hint { opacity: 0; }
 @media (max-width: 640px) {
   body.reading .controls { right: 16px; display: none; }
