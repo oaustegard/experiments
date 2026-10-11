@@ -98,6 +98,7 @@ Absent that mount, `METHODS.md` is the whole index.
 | `_lib/paths.py` | `experiment(name)` for siblings here, `spoke(name)` for checkouts outside |
 | `_lib/pipeline.py` | `retry` (jittered backoff), `chunked`, `save_json`/`load_json` (atomic checkpoints) |
 | `_lib/textnorm.py` | `ascii_fold` — the NFKD stroke-letter fix |
+| `_lib/pages_site.py` | builds the GitHub Pages site from `pages.json` |
 
 Experiment scripts run directly and are not a package, so the repo root has
 to go on `sys.path` first:
@@ -165,7 +166,13 @@ other 86 predate the rule and fail the lint until retrofitted.
    *different* experiment does. Three tests: would it save someone an hour, a
    rerun, or a wrong conclusion? Is it true outside the experiment that
    produced it? Would someone find it without knowing this experiment exists?
-4. Regenerable artifacts (logs, checkpoints, large caches, downloaded models)
+4. **An interactive page goes in `pages.json`** at the root, and
+   `.github/workflows/pages.yml` publishes it to
+   `https://austegard.com/experiments/<path>`. Listing is opt-in: a file, a list
+   of files, or a directory (its web files ship), or `url` for a page hosted
+   elsewhere. `python3 _lib/pages_site.py` builds `_site/` locally and exits 1
+   on a dead entry, and so does `test_pages_manifest_builds`.
+5. Regenerable artifacts (logs, checkpoints, large caches, downloaded models)
    into a `.gitignore` **inside that experiment's directory** — the
    convention here is per-experiment, there is no root `.gitignore`.
 

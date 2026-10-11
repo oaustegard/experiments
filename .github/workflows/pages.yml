@@ -1,0 +1,52 @@
+name: pages
+
+# Publishes the pages listed in pages.json to https://austegard.com/experiments/
+# (oaustegard.github.io/experiments, which follows the user site's custom domain).
+# Opt-in: only listed files and directories ship, never the whole 450 MB tree.
+# Requires Settings -> Pages -> Source: GitHub Actions.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pages.json'
+      - '_lib/pages_site.py'
+      - '.github/workflows/pages.yml'
+      - '**.html'
+      - '**.js'
+      - '**.mjs'
+      - '**.css'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Build site from pages.json
+        run: python3 _lib/pages_site.py _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

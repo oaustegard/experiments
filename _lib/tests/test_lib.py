@@ -245,6 +245,23 @@ def test_spoke_does_not_require_existence():
     assert spoke("definitely-not-checked-out").name == "definitely-not-checked-out"
 
 
+def test_pages_manifest_builds():
+    """Every page pages.json lists exists and copies; a dead entry fails here before CI deploys."""
+    from _lib.pages_site import build
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "site"
+        build(out)
+        assert (out / "index.html").is_file() and (out / ".nojekyll").is_file()
+        manifest = json.loads((EXPERIMENTS_ROOT / "pages.json").read_text(encoding="utf-8"))
+        for e in manifest["pages"]:
+            paths = e.get("path") or []
+            for rel in [paths] if isinstance(paths, str) else paths:
+                target = out / rel
+                assert target.exists(), rel
+                if target.is_dir():
+                    assert (target / "index.html").is_file(), rel
+
+
 if __name__ == "__main__":
     fns = [(n, f) for n, f in sorted(globals().items())
            if n.startswith("test_") and callable(f)]
