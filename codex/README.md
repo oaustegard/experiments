@@ -28,11 +28,50 @@ producing an overview.
 | tokens | 41.2M cache-write, 298.8M cache-read, 160K output; 484 of 6,184 turns past 100K |
 | cost | $11.61 at $0.10/$0.50 per MTok, 5× for turns past 100K (`METHODS.md`) — cards $0.38, writers $6.27, verifiers $4.95 |
 
-The output lives in two places. The browsable site is a private claude.ai
-artifact (index.html + codex.json, 8.9 MB with every memory's text so a citation
-opens its source). The pages as markdown are in the private hub,
-`claude-workspace/codex/pages/`, read with `scripts/codex.py find|show`. None of
-the memory text is in this public repo; this directory holds the pipeline only.
+The output lives in three places. Each page is a memory in the store (149
+compact `analysis` memories, below), so `recall` returns a topic's synthesis next
+to its raw memories on every surface: claude.ai, Claude Code, the connector. The
+browsable site is a private claude.ai artifact (index.html + codex.json, 8.9 MB
+with every memory's text so a citation opens its source). The full pages as
+markdown are in the private hub, `claude-workspace/codex/pages/`, read with
+`scripts/codex.py find|show`. None of the memory text is in this public repo;
+this directory holds the pipeline only.
+
+## Pages in the memory store
+
+Oskar's question after the first build: could the codex be used at all, given
+the pages lived in a git repo that `recall` never sees? It could not, outside a
+Claude Code session that remembered to call `codex.py`. `store.py` loads every
+page into the store as a compact memory: summary, the current-state paragraph,
+three open items and one unsettled point, each item clipped to 35 words, with
+citations inline and every cited memory id in `refs` (216 to 300 words; `recall`
+prints memories in full, so a whole 1,000-word page per hit would flood context).
+Type `analysis`, conf 0.7, tags `codex`, `codex-2026-10-11`, `codex-<section>`
+plus the topic's own tags.
+
+Measured on 18 queries against a top-10 baseline taken before any page was
+stored (`store.py measure`):
+
+| stage | queries returning a relevant codex page | codex pages per top 10 | baseline memories displaced |
+|---|---|---|---|
+| pilot, 10 pages | 7 of 10 target queries (ranks 2–8); 0 of 8 controls | 0–1 | 0–1 |
+| all 149 pages | 17 of 18 | 0–3 | 0–3 |
+
+Every page that surfaced matched the query's subject by title (Ann Arbor →
+"Ann Arbor property search" at 2, Strudel → "Strudel FM generative radio" at 1,
+polarized training → "Cycling training science" at 1). The three pilot misses
+were queries whose words the compact text lacks ("polarized", "benchmark",
+"403"): `recall` ranks a page on its words like any other memory, so length
+does not let it crowd. The worst case is a news subject spread over several
+pages: "Iran Hormuz shipping" returns three (the war page and two Zeitgeist
+brief pages), displacing three raw memories.
+
+A rebuild stores each new page, then forgets the previous build's page with the
+most citation overlap (Jaccard ≥ 0.3 over refs). `remembering.supersede()` would
+keep the chain but cannot carry refs. Two non-page memories already carried the
+`codex` tag (this run's own record, and an April analysis of OpenAI's Codex
+repo), so both the rebuild match and the monthly audit's exclusion key on the
+`CODEX PAGE:` text prefix rather than the tag.
 
 ## Pipeline
 
@@ -93,10 +132,15 @@ prompt files, one Agent call per freed slot, cap 20.
 
 - Section overview pages and a regenerate-monthly routine; the build is
   repeatable (`codex_export.py` then steps 2–7) but not scheduled.
-- No recall-quality comparison yet: whether `codex.py show` answers a question
-  better than `recall` is untested.
+- No answer-quality test: the store measurement shows pages surface for the
+  right queries, not that an answer drawn from page plus memories beats one
+  drawn from memories alone.
+- Duplicate subjects. Clustering split remex across five pages (t011, t013,
+  t057, t097, t139) and world news across several; a merge pass before writing
+  would cut the three-pages-per-query case.
 
 ## Files
 
 `corpus.py`, `cluster.py`, `tasks.py` (prompts and task lists for all three
-waves), `build.py`, `qa.py`, `site/template.html` (the viewer).
+waves), `build.py`, `qa.py`, `store.py` (load pages into the memory store,
+measure recall), `site/template.html` (the viewer).

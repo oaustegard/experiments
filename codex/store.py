@@ -95,7 +95,8 @@ def tags_for(p: dict, topic: dict) -> list[str]:
 def previous_pages(rem) -> list[dict]:
     """Stored codex pages from earlier builds, with their refs."""
     old = rem.recall(tags=["codex"], fetch_all=True, n=10_000, raw=True, use_cache=False)
-    return [m for m in old if f"codex-{BUILD}" not in json.dumps(m.get("tags"))]
+    return [m for m in old if (m.get("summary") or "").startswith("CODEX PAGE:")
+            and f"codex-{BUILD}" not in json.dumps(m.get("tags"))]
 
 
 def best_match(refs: list[str], old: list[dict]) -> dict | None:
