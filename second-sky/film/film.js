@@ -32,7 +32,7 @@
         if (j === stops.length - 1 && t > TL.outro) {         // the pull-back at the end
           const v = ease(clamp((t - TL.outro) / 7));
           const hold = { c: [c[0] + 0.4, c[1]], k: kFit(s.cons) * 1.08 };
-          return { c: d3.geoInterpolate(hold.c, TL.endCenter)(v), k: hold.k + (0.62 - hold.k) * v };
+          return { c: d3.geoInterpolate(hold.c, TL.endCenter)(v), k: hold.k + (0.5 - hold.k) * v };
         }
         return { c: [c[0] + 0.4 * u, c[1]], k: kFit(s.cons) * (1 + 0.08 * u) };
       }
@@ -68,7 +68,7 @@
     ctx.strokeStyle = `rgba(232,196,118,${alpha})`; ctx.lineWidth = 2;
     partial(screen(c.lines.map(l => [[l[0], l[1]], [l[2], l[3]]])), clamp(prog * 1.6), false);
     ctx.restore();
-    if (prog > 0.6) {                                  // the named stars
+    if (prog > 0.6 && alpha === 1) {                   // the named stars, on the figure being told only
       ctx.save(); ctx.globalAlpha = alpha * clamp((prog - 0.6) / 0.3);
       ctx.font = '15px "IM Fell English SC", Georgia, serif'; ctx.fillStyle = '#e8c476'; ctx.strokeStyle = '#e8c476';
       for (const s of c.stars) { const p = proj(s.p); if (!p) continue;
@@ -157,6 +157,7 @@
     caption(t);
     // closing card
     const ec = fade(t, TL.cut + 2.2, TL.duration + 5, 1.5);
+    if (ec > 0) { ctx.save(); ctx.fillStyle = `rgba(5,8,18,${0.62 * ec})`; ctx.fillRect(0, 0, W, H); ctx.restore(); }
     text(TL.title, W / 2, H * 0.44, '58px "IM Fell English SC", Georgia, serif', '#e8e4da', 'center', ec);
     text('The constellations of the Ilvari, a people who never lived, on the real stars', W / 2, H * 0.44 + 44, 'italic 22px "IM Fell English", Georgia, serif', '#a9c6e6', 'center', ec);
     text('THE SECOND SKY  ·  muninn.austegard.com/scratch/second-sky', W / 2, H * 0.44 + 90, '14px "IBM Plex Mono", monospace', '#8d97b3', 'center', ec);

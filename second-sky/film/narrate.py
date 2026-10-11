@@ -53,8 +53,12 @@ def main():
             sf.write(p, y, SR)
         return p
 
+    # lines that scored badly last time get extra takes (RETAKE_WER, up to RETAKES)
+    prev = {(l["seg"], l["i"]): l["wer"] for l in json.load(open(HERE / "narration.json"))} if (HERE / "narration.json").exists() else {}
+    retake = float(os.environ.get("RETAKE_WER", "9"))
+    ntakes = {(j[0], j[1]): int(os.environ.get("RETAKES", "4")) if prev.get((j[0], j[1]), 0) > retake else TAKES for j in jobs}
     with ThreadPoolExecutor(4) as ex:
-        list(ex.map(lambda a: take(*a), [(*j, n) for j in jobs for n in range(TAKES)]))
+        list(ex.map(lambda a: take(*a), [(*j, n) for j in jobs for n in range(ntakes[(j[0], j[1])])]))
 
     asr = WhisperModel("small.en", device="cpu", compute_type="int8")
     cache_p = HERE / "takes/asr.json"
@@ -62,7 +66,7 @@ def main():
     out = []
     for seg, i, t, style in jobs:
         best = None
-        for n in range(TAKES):
+        for n in range(ntakes[(seg, i)]):
             p = HERE / f"takes/s{seg:02d}_{i:02d}_{n}.wav"
             if p.name not in cache:
                 y, _ = sf.read(p, dtype="float32")
