@@ -2,7 +2,7 @@
 
 **The Second Sky** is a full set of constellations for an invented people, the Ilvari, drawn on the real stars. There are 140 figures, each with a myth, a three-line verse, named stars and directions for finding it, plus an epic told as a guided tour. The whole thing is one interactive planetarium page, built by 1,843 separate Claude Haiku 5.5 calls for $5.80 of model cost.
 
-- Page: [`second-sky.html`](second-sky.html) (self-contained, 1.1 MB; also published as a private claude.ai artifact)
+- Live: **https://muninn.austegard.com/scratch/second-sky/**. The source is [`second-sky.html`](second-sky.html), self-contained at 1.1 MB; `python3 assemble.py --site DIR` writes the hosted version with its document head and social card.
 - Drawing improvement, first draft (top) vs final (bottom): [`before-after.png`](before-after.png)
 
 The stars are real: 5,044 stars to magnitude 6 from the d3-celestial copy of the Hipparcos-derived catalogue, with its Milky Way outline. Everything else was invented by the agents, inside a one-page world bible ([`bible.md`](bible.md)). The bible sets a pantheon of eight, five houses of the sky, an alphabet, and a register: spare, maritime, a grandmother mending a net.
