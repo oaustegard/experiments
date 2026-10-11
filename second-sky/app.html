@@ -1,0 +1,376 @@
+<title>The Second Sky</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Layout: the sky is the page. One full-bleed canvas; a chart-room cartouche top-left, controls top-right,
+   and a reading panel that slides in from the right (bottom sheet on phones). Single dark look by choice: it is night. */
+:root {
+  --ink: #0a0f1f;          /* the Upper Sea */
+  --ink-2: #121a33;        /* panel ground */
+  --chalk: #d9dfeb;        /* body text */
+  --dim: #8d97b3;          /* captions */
+  --cord: #d8b36a;         /* kite-cord brass: constellation lines, accent */
+  --sea: #8fb4dc;          /* figure engravings */
+  --rule: rgba(216,179,106,.28);
+  --f-display: "IM Fell English SC", "IM Fell English", Georgia, serif;
+  --f-fell: "IM Fell English", Georgia, serif;
+  --f-body: "Alegreya Sans", "Gill Sans", "Trebuchet MS", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--ink); color: var(--chalk); font-family: var(--f-body); font-size: 16px; overflow: hidden; }
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#sky:active { cursor: grabbing; }
+
+.cartouche { position: fixed; left: 16px; top: calc(14px + env(safe-area-inset-top, 0px)); pointer-events: none; max-width: min(420px, calc(100% - 32px)); }
+.cartouche h1 { margin: 0; font-family: var(--f-display); font-weight: 400; font-size: clamp(28px, 4.4vw, 44px); letter-spacing: .04em; color: var(--chalk); line-height: 1; text-shadow: 0 0 18px var(--ink); }
+.cartouche p { margin: 6px 0 0; font-family: var(--f-fell); font-style: italic; color: var(--dim); font-size: 15px; text-shadow: 0 0 10px var(--ink); }
+.hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); color: var(--dim); font-size: 13px; letter-spacing: .06em; pointer-events: none; transition: opacity .8s; text-align: center; width: calc(100% - 32px); }
+
+.controls { position: fixed; right: 16px; top: calc(14px + env(safe-area-inset-top, 0px)); display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; max-width: calc(100% - 32px); }
+.chip { font: 500 12px/1 var(--f-body); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); background: rgba(10,15,31,.72); border: 1px solid var(--rule); border-radius: 2px; padding: 8px 10px; cursor: pointer; backdrop-filter: blur(4px); }
+.chip[aria-pressed="true"] { color: var(--cord); border-color: var(--cord); }
+.chip:hover { color: var(--chalk); }
+.chip:focus-visible, .panel button:focus-visible, #find:focus-visible { outline: 2px solid var(--cord); outline-offset: 2px; }
+.chip.tour { color: var(--ink); background: var(--cord); border-color: var(--cord); }
+#find { font: 14px var(--f-body); color: var(--chalk); background: rgba(10,15,31,.72); border: 1px solid var(--rule); border-radius: 2px; padding: 6px 10px; width: 170px; }
+#find::placeholder { color: var(--dim); }
+
+.panel { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100%); background: linear-gradient(180deg, rgba(18,26,51,.96), rgba(10,15,31,.97)); border-left: 1px solid var(--rule); transform: translateX(105%); transition: transform .45s cubic-bezier(.2,.7,.2,1); overflow-y: auto; padding: calc(22px + env(safe-area-inset-top, 0px)) 26px calc(28px + env(safe-area-inset-bottom, 0px)); box-sizing: border-box; }
+.panel.open { transform: none; }
+.panel .close { position: absolute; right: 14px; top: calc(12px + env(safe-area-inset-top, 0px)); background: none; border: 0; color: var(--dim); font-size: 26px; cursor: pointer; line-height: 1; padding: 4px 8px; }
+.house { font: 500 11px/1 var(--f-body); letter-spacing: .16em; text-transform: uppercase; color: var(--cord); }
+.panel h2 { margin: 10px 0 0; font-family: var(--f-display); font-weight: 400; font-size: 40px; line-height: 1; letter-spacing: .03em; text-wrap: balance; }
+.gloss { margin: 4px 0 0; font-family: var(--f-fell); font-style: italic; font-size: 21px; color: var(--sea); }
+.when { margin: 12px 0 0; font: 12px/1.5 var(--f-mono); color: var(--dim); }
+.myth { margin: 18px 0 0; font-size: 17px; line-height: 1.6; color: var(--chalk); }
+.verse { margin: 20px 0 0; padding: 14px 0 14px 18px; border-left: 1px solid var(--cord); font-family: var(--f-fell); font-style: italic; font-size: 19px; line-height: 1.45; white-space: pre-line; color: var(--chalk); }
+.sec { margin: 22px 0 0; font: 500 11px/1 var(--f-body); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.stars { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.stars li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
+.stars b { font-family: var(--f-fell); font-weight: 400; font-size: 18px; color: var(--chalk); }
+.stars i { font-family: var(--f-fell); color: var(--sea); }
+.stars small { grid-column: 1 / -1; font: 11.5px var(--f-mono); color: var(--dim); }
+.nbrs { margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.nbrs button { font: 15px var(--f-fell); color: var(--chalk); background: transparent; border: 1px solid var(--rule); border-radius: 2px; padding: 5px 9px; cursor: pointer; }
+.nbrs button:hover { border-color: var(--cord); color: var(--cord); }
+.blind { margin: 22px 0 0; padding-top: 14px; border-top: 1px solid var(--rule); font-size: 13.5px; line-height: 1.5; color: var(--dim); }
+.blind q { font-style: italic; color: var(--chalk); }
+.gods { margin: 8px 0 0; font-size: 14px; color: var(--dim); }
+
+.tourbar { display: flex; gap: 8px; align-items: center; margin: 22px 0 0; }
+.tourbar button { font: 500 12px/1 var(--f-body); letter-spacing: .1em; text-transform: uppercase; padding: 9px 12px; border-radius: 2px; cursor: pointer; border: 1px solid var(--cord); background: transparent; color: var(--cord); }
+.tourbar button.primary { background: var(--cord); color: var(--ink); }
+.tourbar span { font: 12px var(--f-mono); color: var(--dim); margin-left: auto; }
+.epic-title { font-family: var(--f-display); font-size: 30px; margin: 10px 0 0; line-height: 1.05; text-wrap: balance; }
+.about p { font-size: 15.5px; line-height: 1.6; margin: 12px 0 0; }
+.about dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 16px 0 0; font-size: 14px; }
+.about dt { font: 12px var(--f-mono); color: var(--cord); text-align: right; font-variant-numeric: tabular-nums; }
+.about dd { margin: 0; color: var(--dim); }
+.about a { color: var(--sea); }
+
+body.reading .controls { right: calc(min(420px, 100%) + 16px); }
+body.reading .hint { opacity: 0; }
+@media (max-width: 640px) {
+  body.reading .controls { right: 16px; display: none; }
+  body.reading .cartouche p { display: none; }
+  body.reading .cartouche h1 { font-size: 22px; }
+  .panel { top: auto; height: 62%; width: 100%; border-left: 0; border-top: 1px solid var(--rule); transform: translateY(105%); padding-left: 18px; padding-right: 18px; }
+  .panel h2 { font-size: 32px; }
+  #find { width: 120px; }
+  .controls { top: auto; bottom: calc(52px + env(safe-area-inset-bottom, 0px)); right: 16px; left: 16px; justify-content: center; }
+  .hint { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
+</style>
+
+<canvas id="sky" aria-label="Interactive star map of the Ilvari constellations"></canvas>
+<div class="cartouche">
+  <h1>The Second Sky</h1>
+  <p>The constellations of the Ilvari, a kite-flying people who never lived, drawn on the real stars</p>
+</div>
+<div class="controls" role="toolbar" aria-label="Map layers">
+  <input id="find" list="names" placeholder="Find a figure…" aria-label="Find a constellation">
+  <datalist id="names"></datalist>
+  <button class="chip" data-layer="lines" aria-pressed="true">Cords</button>
+  <button class="chip" data-layer="figures" aria-pressed="true">Figures</button>
+  <button class="chip" data-layer="names" aria-pressed="true">Names</button>
+  <button class="chip" data-layer="milky" aria-pressed="true">Milky Way</button>
+  <button class="chip" id="aboutBtn">About</button>
+  <button class="chip tour" id="tourBtn">The Cutting of the String</button>
+</div>
+<div class="hint" id="hint">Drag to turn the sky · pinch or scroll to zoom · tap a figure to hear its story</div>
+<aside class="panel" id="panel" aria-live="polite"><button class="close" id="close" aria-label="Close">×</button><div id="pbody"></div></aside>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+const SKY = /*SKY*/null;
+const IAU = {And:"Andromeda",Ant:"Antlia",Aps:"Apus",Aqr:"Aquarius",Aql:"Aquila",Ara:"Ara",Ari:"Aries",Aur:"Auriga",Boo:"Boötes",Cae:"Caelum",Cam:"Camelopardalis",Cnc:"Cancer",CVn:"Canes Venatici",CMa:"Canis Major",CMi:"Canis Minor",Cap:"Capricornus",Car:"Carina",Cas:"Cassiopeia",Cen:"Centaurus",Cep:"Cepheus",Cet:"Cetus",Cha:"Chamaeleon",Cir:"Circinus",Col:"Columba",Com:"Coma Berenices",CrA:"Corona Australis",CrB:"Corona Borealis",Crv:"Corvus",Crt:"Crater",Cru:"Crux",Cyg:"Cygnus",Del:"Delphinus",Dor:"Dorado",Dra:"Draco",Equ:"Equuleus",Eri:"Eridanus",For:"Fornax",Gem:"Gemini",Gru:"Grus",Her:"Hercules",Hor:"Horologium",Hya:"Hydra",Hyi:"Hydrus",Ind:"Indus",Lac:"Lacerta",Leo:"Leo",LMi:"Leo Minor",Lep:"Lepus",Lib:"Libra",Lup:"Lupus",Lyn:"Lynx",Lyr:"Lyra",Men:"Mensa",Mic:"Microscopium",Mon:"Monoceros",Mus:"Musca",Nor:"Norma",Oct:"Octans",Oph:"Ophiuchus",Ori:"Orion",Pav:"Pavo",Peg:"Pegasus",Per:"Perseus",Phe:"Phoenix",Pic:"Pictor",Psc:"Pisces",PsA:"Piscis Austrinus",Pup:"Puppis",Pyx:"Pyxis",Ret:"Reticulum",Sge:"Sagitta",Sgr:"Sagittarius",Sco:"Scorpius",Scl:"Sculptor",Sct:"Scutum",Ser:"Serpens",Sex:"Sextans",Tau:"Taurus",Tel:"Telescopium",Tri:"Triangulum",TrA:"Triangulum Australe",Tuc:"Tucana",UMa:"Ursa Major",UMi:"Ursa Minor",Vel:"Vela",Vir:"Virgo",Vol:"Volans",Vul:"Vulpecula"};
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const C = { cord: css('--cord'), sea: css('--sea'), chalk: css('--chalk'), dim: css('--dim'), ink: css('--ink') };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const canvas = document.getElementById('sky'), ctx = canvas.getContext('2d');
+let W = 0, H = 0, DPR = 1, base = 1;
+const proj = d3.geoStereographic().reflectX(true).clipAngle(128).precision(0.4);
+const path = d3.geoPath(proj, ctx);
+const state = { rot: [-266, -52, 0], k: 1, sel: null, layers: { lines: true, figures: true, names: true, milky: true }, drift: !reduce, tour: null, cx: innerWidth / 2, cy: innerHeight / 2 };
+
+const byId = new Map(SKY.cons.map(c => [c.id, c]));
+let geoById;
+const toVec = ([lon, lat]) => { const a = lon * Math.PI / 180, b = lat * Math.PI / 180; return [Math.cos(b) * Math.cos(a), Math.cos(b) * Math.sin(a), Math.sin(b)]; };
+const starVec = SKY.stars.map(s => toVec(s));
+const consGeo = SKY.cons.map(c => ({
+  c, vec: toVec(c.center),
+  radius: Math.max(0.03, ...c.figure.flat().concat(c.lines.flatMap(l => [[l[0], l[1]], [l[2], l[3]]])).map(p => d3.geoDistance(p, c.center))),
+  lines: { type: 'MultiLineString', coordinates: c.lines.map(l => [[l[0], l[1]], [l[2], l[3]]]) },
+  fig: { type: 'MultiLineString', coordinates: c.figure },
+}));
+geoById = new Map(consGeo.map(g => [g.c.id, g]));
+// zoom so a figure spans about 55% of the short side of the screen
+function fitK(id) { const r = geoById.get(id).radius; const side = W > 640 ? Math.min(W - 420, H) : Math.min(W, H * 0.38); return Math.max(1, Math.min(8, (0.55 * side / 2) / (base * 2 * Math.tan(r / 2)))); }
+const milky = SKY.milky.map(coords => ({ type: 'MultiPolygon', coordinates: coords }));
+
+function bvColor(bv) {
+  const stops = [[-0.3, [155,176,255]], [0, [202,215,255]], [0.4, [248,247,255]], [0.8, [255,244,232]], [1.2, [255,214,170]], [1.8, [255,180,120]]];
+  bv = Math.max(-0.3, Math.min(1.8, bv));
+  for (let i = 1; i < stops.length; i++) if (bv <= stops[i][0]) {
+    const [b0, c0] = stops[i - 1], [b1, c1] = stops[i], t = (bv - b0) / (b1 - b0);
+    return c0.map((v, j) => Math.round(v + (c1[j] - v) * t));
+  }
+  return stops[stops.length - 1][1];
+}
+const starRGB = SKY.stars.map(s => bvColor(s[3]));
+
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = canvas.clientWidth; H = canvas.clientHeight;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  base = Math.min(W, H) * 0.62;
+  draw();
+}
+
+function centerVec() { const r = proj.rotate(); return toVec([-r[0], -r[1]]); }
+
+function draw() {
+  const reading = document.body.classList.contains('reading');
+  const cx = reading && W > 640 ? (W - Math.min(420, W)) / 2 : W / 2;
+  const cy = reading && W <= 640 ? H * 0.19 : H / 2;
+  state.cx += (cx - state.cx) * 0.18; state.cy += (cy - state.cy) * 0.18;
+  if (Math.abs(cx - state.cx) > 0.5 || Math.abs(cy - state.cy) > 0.5) requestDraw();
+  proj.rotate(state.rot).scale(base * state.k).translate([state.cx, state.cy]);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.hypot(W, H) / 2);
+  g.addColorStop(0, '#111a36'); g.addColorStop(1, C.ink);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  if (state.layers.milky) {
+    ctx.fillStyle = 'rgba(150,170,225,0.045)';
+    for (const m of milky) { ctx.beginPath(); path(m); ctx.fill(); }
+  }
+  // faint equator and pole marks give orientation without a full grid
+  ctx.strokeStyle = 'rgba(141,151,179,0.12)'; ctx.lineWidth = 0.6; ctx.setLineDash([2, 5]);
+  ctx.beginPath(); path({ type: 'LineString', coordinates: d3.range(-180, 181, 5).map(l => [l, 0]) }); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const cv = centerVec(), lim = Math.cos(128 * Math.PI / 180) + 0.02;
+  const zoomR = Math.pow(state.k, 0.45);
+  // stars
+  for (let i = 0; i < SKY.stars.length; i++) {
+    const v = starVec[i]; if (v[0] * cv[0] + v[1] * cv[1] + v[2] * cv[2] < lim) continue;
+    const s = SKY.stars[i], p = proj([s[0], s[1]]); if (!p) continue;
+    const r = Math.max(0.45, (6.4 - s[2]) * 0.52) * zoomR;
+    const [R, G, B] = starRGB[i];
+    if (s[2] < 1.6) { ctx.fillStyle = `rgba(${R},${G},${B},0.13)`; ctx.beginPath(); ctx.arc(p[0], p[1], r * 3.2, 0, 7); ctx.fill(); }
+    ctx.fillStyle = `rgba(${R},${G},${B},${Math.min(1, 0.35 + (6.2 - s[2]) * 0.2)})`;
+    ctx.beginPath(); ctx.arc(p[0], p[1], r, 0, 7); ctx.fill();
+  }
+  // figures and cords
+  for (const cg of consGeo) {
+    const on = state.sel === cg.c.id;
+    if (cg.vec[0] * cv[0] + cg.vec[1] * cv[1] + cg.vec[2] * cv[2] < lim) continue;
+    if (state.layers.figures || on) {
+      ctx.strokeStyle = on ? 'rgba(143,180,220,0.95)' : 'rgba(143,180,220,0.30)';
+      ctx.lineWidth = on ? 1.6 : 0.9; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.beginPath(); path(cg.fig); ctx.stroke();
+    }
+    if (state.layers.lines || on) {
+      ctx.strokeStyle = on ? 'rgba(216,179,106,1)' : 'rgba(216,179,106,0.55)';
+      ctx.lineWidth = on ? 1.8 : 1;
+      ctx.beginPath(); path(cg.lines); ctx.stroke();
+    }
+  }
+  // labels
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (state.layers.names) {
+    for (const cg of consGeo) {
+      if (cg.vec[0] * cv[0] + cg.vec[1] * cv[1] + cg.vec[2] * cv[2] < 0.25) continue;
+      const p = proj(cg.c.center); if (!p) continue;
+      const on = state.sel === cg.c.id;
+      ctx.font = `${on ? 17 : 13}px "IM Fell English SC", Georgia, serif`;
+      ctx.fillStyle = on ? C.cord : 'rgba(217,223,235,0.62)';
+      ctx.fillText(cg.c.name, p[0], p[1] - 4);
+      if (state.k > 1.6 || on) {
+        ctx.font = `italic ${on ? 13 : 11}px "IM Fell English", Georgia, serif`;
+        ctx.fillStyle = on ? C.sea : 'rgba(141,151,179,0.75)';
+        ctx.fillText(cg.c.gloss, p[0], p[1] + 11);
+      }
+    }
+  }
+  // anatomy and star names of the selected figure
+  const sel = state.sel != null && byId.get(state.sel);
+  if (sel) {
+    ctx.textAlign = 'left'; ctx.font = 'italic 12px "IM Fell English", Georgia, serif';
+    const big = base * state.k * 2 * Math.tan(geoById.get(sel.id).radius / 2) > 140;
+    for (const a of (big ? sel.anatomy : [])) {
+      const p = proj(a.p); if (!p) continue;
+      ctx.fillStyle = 'rgba(217,223,235,0.78)'; ctx.fillText(a.part.length > 34 ? a.part.slice(0, 33) + '…' : a.part, p[0] + 7, p[1] - 7);
+    }
+    ctx.font = '14px "IM Fell English SC", Georgia, serif';
+    for (const s of sel.stars) {
+      const p = proj(s.p); if (!p) continue;
+      ctx.strokeStyle = C.cord; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(p[0], p[1], 7, 0, 7); ctx.stroke();
+      ctx.fillStyle = C.cord; ctx.fillText(s.name, p[0] + 10, p[1] + 13);
+    }
+  }
+}
+
+// ---- interaction: d3.zoom drives both drag-rotate and pinch/wheel zoom
+let prevT = d3.zoomIdentity, programmatic = false;
+const zoom = d3.zoom().scaleExtent([0.55, 9]).clickDistance(4)
+  .on('start', () => { state.drift = false; hideHint(); })
+  .on('zoom', e => {
+    const t = e.transform;
+    if (!programmatic && e.sourceEvent) {
+      const dx = t.x - prevT.x * (t.k / prevT.k), dy = t.y - prevT.y * (t.k / prevT.k);
+      if (t.k === prevT.k) {
+        const deg = 57.3 / (base * state.k);
+        state.rot[0] -= dx * deg;
+        state.rot[1] = Math.max(-90, Math.min(90, state.rot[1] - dy * deg));
+      }
+    }
+    prevT = t; state.k = t.k; requestDraw();
+  });
+d3.select(canvas).call(zoom).on('dblclick.zoom', null);
+
+let raf = 0;
+function requestDraw() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; draw(); }); }
+
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  const ll = proj.invert([e.clientX - rect.left, e.clientY - rect.top]); if (!ll) return;
+  let best = null, bd = Infinity;
+  for (const cg of consGeo) { const d = d3.geoDistance(ll, cg.c.center); if (d < bd) { bd = d; best = cg.c; } }
+  if (best && bd < 0.2) { select(best.id, true); } else { closePanel(); }
+});
+
+function fly(target, kTarget, done) {
+  state.drift = false;
+  const from = [-state.rot[0], -state.rot[1]], to = target;
+  const interp = d3.geoInterpolate(from, to), dist = d3.geoDistance(from, to);
+  const k0 = state.k, k1 = kTarget || k0, dur = reduce ? 0 : 900 + dist * 700;
+  const dip = Math.min(0.45, dist * 0.35);
+  d3.select(canvas).transition('fly').duration(dur).ease(d3.easeCubicInOut).tween('fly', () => t => {
+    const p = interp(t); state.rot = [-p[0], -p[1], 0];
+    state.k = (k0 + (k1 - k0) * t) * (1 - dip * Math.sin(Math.PI * t));
+    draw();
+  }).on('end', () => {
+    programmatic = true; d3.select(canvas).call(zoom.scaleTo, k1); programmatic = false;
+    state.k = k1; draw(); done && done();
+  });
+}
+
+const panel = document.getElementById('panel'), pbody = document.getElementById('pbody');
+function esc(s) { return String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch])); }
+function whenSeen(c) {
+  let ra = c.center[0]; if (ra < 0) ra += 360;
+  const dec = c.center[1];
+  if (dec < -30) return 'Never rises over the islands (latitude 60° N). Known only from sailors.';
+  const days = ((ra - 180 + 360) % 360) / 360 * 365.25; // days after the March equinox when it crosses the meridian at midnight
+  const d = new Date(Date.UTC(2026, 2, 20) + days * 864e5);
+  const part = d.getUTCDate() < 11 ? 'early' : d.getUTCDate() < 21 ? 'mid' : 'late';
+  const alt = Math.round(90 - 60 + dec);
+  const where = dec > 30 ? 'never sets from the islands' : alt > 50 ? 'high in the south' : alt > 20 ? 'well up in the south' : 'low over the southern sea';
+  return `Highest at midnight in ${part} ${MONTHS[d.getUTCMonth()]}, ${where}.` + `  RA ${(ra / 15).toFixed(1)}h · Dec ${dec >= 0 ? '+' : ''}${dec.toFixed(0)}°`;
+}
+function consHTML(c) {
+  const stars = c.stars.map(s => `<li><b>${esc(s.name)}</b><i>${esc(s.gloss)}</i><small>magnitude ${s.mag.toFixed(1)}${s.iau && IAU[s.iau] ? ` · a star of ${IAU[s.iau]} on our charts` : ''}</small></li>`).join('');
+  const nb = c.neighbours.map(id => byId.get(id)).filter(Boolean).map(n => `<button data-go="${n.id}">${esc(n.name)} <span style="color:var(--dim)">· ${esc(n.gloss)}</span></button>`).join('');
+  return `<div class="house">${esc(c.house)}</div><h2>${esc(c.name)}</h2><p class="gloss">${esc(c.gloss)}</p>
+  <p class="when">${esc(whenSeen(c))}</p>
+  ${c.finding ? `<p class="when" style="color:var(--chalk)">${esc(c.finding)}</p>` : ''}
+  <div class="myth">${c.myth.split(/\n+/).map(p => `<p style="margin:0 0 .8em">${esc(p)}</p>`).join('')}</div>
+  <div class="verse">${esc(c.verse)}</div>
+  ${stars ? `<div class="sec">Named stars</div><ul class="stars">${stars}</ul>` : ''}
+  <p class="gods">In this story: ${c.gods.map(esc).join(', ')}</p>
+  <div class="sec">Neighbours</div><div class="nbrs">${nb}</div>
+  ${c.blind ? `<p class="blind">Shown this drawing without its title, a reader guessed <q>${esc(c.blind)}</q>.${c.redrawn ? ` The figure was redrawn ${c.redrawn > 1 ? c.redrawn + ' times' : 'once'} after critique.` : ''}</p>` : ''}`;
+}
+function openPanel(html) { pbody.innerHTML = html; panel.classList.add('open'); document.body.classList.add('reading'); panel.scrollTop = 0; }
+function closePanel() { panel.classList.remove('open'); document.body.classList.remove('reading'); state.sel = null; state.tour = null; requestDraw(); }
+document.getElementById('close').onclick = closePanel;
+pbody.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) select(+b.dataset.go, true); });
+
+function select(id, flyTo) {
+  const c = byId.get(id); if (!c) return;
+  state.sel = id; state.tour = null; hideHint();
+  openPanel(consHTML(c));
+  if (flyTo) fly(c.center, fitK(id)); else requestDraw();
+}
+
+// ---- the epic tour
+function tourStep(i) {
+  const ep = SKY.epic; if (!ep) return;
+  const st = ep.stops[i], c = byId.get(st.id);
+  state.tour = i; state.sel = st.id; hideHint();
+  openPanel(`<div class="house">${esc(ep.title)} · ${i + 1} of ${ep.stops.length}</div>
+    <h2 class="epic-title">${esc(c.name)}</h2><p class="gloss">${esc(c.gloss)}</p>
+    <div class="myth"><p style="margin:0">${esc(st.text)}</p></div>
+    <div class="tourbar"><button id="tprev" ${i ? '' : 'disabled'}>Back</button><button class="primary" id="tnext">${i < ep.stops.length - 1 ? 'Next' : 'End'}</button><span><a href="#" id="tread" style="color:var(--sea)">Read the full myth</a></span></div>`);
+  document.getElementById('tnext').onclick = () => i < ep.stops.length - 1 ? tourStep(i + 1) : closePanel();
+  document.getElementById('tprev').onclick = () => tourStep(i - 1);
+  document.getElementById('tread').onclick = ev => { ev.preventDefault(); select(st.id, false); };
+  fly(c.center, fitK(st.id));
+}
+const tourBtn = document.getElementById('tourBtn');
+if (SKY.epic) { tourBtn.textContent = SKY.epic.title; tourBtn.onclick = () => {
+  const ep = SKY.epic;
+  state.sel = null;
+  openPanel(`<div class="house">A tour in ${ep.stops.length} figures</div><h2 class="epic-title">${esc(ep.title)}</h2>
+    <div class="myth"><p style="margin:0">${esc(ep.prologue)}</p></div>
+    <div class="tourbar"><button class="primary" id="tstart">Begin</button></div>`);
+  document.getElementById('tstart').onclick = () => tourStep(0);
+}; } else tourBtn.hidden = true;
+
+// ---- about
+document.getElementById('aboutBtn').onclick = () => {
+  const m = SKY.meta || {};
+  openPanel(`<div class="house">How this sky was made</div><h2 class="epic-title">${SKY.cons.length} figures, ${m.agents || '—'} small hands</h2><div class="about">
+  <p>The stars are real: ${SKY.stars.length.toLocaleString()} stars to magnitude 6 from the Hipparcos-derived catalogue, with the Milky Way traced behind them. Everything else is invented.</p>
+  <p>The bright stars were split into ${SKY.cons.length} patches. One small model (Claude Haiku) per patch read a short world bible about the Ilvari, looked at its stars as coordinates, and chose, named and drew a figure, then wrote its myth and a three-line verse. Code checked every answer: real star ids, one connected figure, the Ilvari alphabet.</p>
+  <p>Each drawing was then rendered and shown, without its title, to another model, which guessed what it depicted. A third compared the guess with the intended subject; failures went back to be redrawn with the image in hand. Finally each myth was rewoven to mention its neighbours in the sky, and a jury picked the epic that the tour follows.</p>
+  <dl>${(m.rows || []).map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>
+  <p>Star data: <a href="https://github.com/ofrohn/d3-celestial" target="_blank" rel="noopener">d3-celestial</a> (BSD). Built ${esc(m.date || '')}.</p></div>`);
+};
+
+// ---- layers, search, hint
+document.querySelectorAll('[data-layer]').forEach(b => b.onclick = () => {
+  const k = b.dataset.layer; state.layers[k] = !state.layers[k]; b.setAttribute('aria-pressed', state.layers[k]); requestDraw();
+});
+const dl = document.getElementById('names');
+dl.innerHTML = SKY.cons.map(c => `<option value="${esc(c.name)} · ${esc(c.gloss)}"></option>`).join('');
+document.getElementById('find').addEventListener('change', e => {
+  const q = e.target.value.toLowerCase().split(' · ')[0].trim();
+  const c = SKY.cons.find(c => c.name.toLowerCase() === q) || SKY.cons.find(c => (c.name + ' ' + c.gloss).toLowerCase().includes(q));
+  if (c) { select(c.id, true); e.target.blur(); }
+});
+const hint = document.getElementById('hint');
+function hideHint() { hint.style.opacity = 0; }
+
+window.addEventListener('resize', resize);
+resize();
+(function driftLoop() { if (state.drift) { state.rot[0] += 0.02; draw(); } requestAnimationFrame(driftLoop); })();
+document.fonts && document.fonts.ready.then(draw);
+</script>

@@ -4108,3 +4108,11 @@ of 174 requests, vague ones included; shown names only, 55–85%.
   scanning a skill list, and it is where the crowding shows. Put the
   disambiguation in human-facing docs. (`subagent-skill-choice/RESULTS.md`)
 
+### Generating figures with cheap agents: give an SVG frame, verify blind, select across versions
+
+`second-sky`: 1,843 Haiku 5.5 calls drew 140 constellations on real star coordinates, and blind recognition went from 48/140 to 96/140.
+- **Give coordinates in an SVG-style frame, y growing downward.** Given a y-up frame, Haiku labelled the top star "foot of the post" and drew the figure upside down. The pilot figures stood upright once the frame was y-down.
+- **Check a drawing with a blind reader, then a judge.** One call names the unlabelled render and a second call compares that guess to the intended subject. This catches figures the author agent believes in. Both are Haiku, so the score means Haiku-recognisable.
+- **Keep the best-judged version; never swap in a redraw unconditionally.** Two redraw rounds with critique moved recognition 48 → 62 → 64. Selecting the best-judged version per figure across those rounds gave 82, and three fresh redraws per weak figure, best of three, gave 96. A single redraw often scored worse than the draft it replaced.
+- **A rewrite pass mangles fields it was told to keep.** Asked to return `name` unchanged, the weave pass returned names wrapped in markdown or with the gloss attached (`*Lenkat* — "the Lidded Jar"`). Re-validate every field a rewrite touches against the original's rules.
+
