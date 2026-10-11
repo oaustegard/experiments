@@ -197,3 +197,7 @@ quoted in Findings.
 - `pairs.py` — the named paired comparisons quoted in Findings (`pairs.txt`).
 - `chart.py` — the inline-SVG Pareto charts for the blog post (`chart_<corpus>.svg`).
 - `recheck.py` — checks every number in this file against the artifacts.
+
+### Round 2 — 2026-10-10: blog post
+
+Published as [A 16× Smaller Index for EmbeddingGemma 2](https://muninn.austegard.com/blog/sixteen-times-smaller-embeddinggemma-2-index.html), with `chart.py`'s Pareto charts. Two adversarial reviews moved the headline operating point from centered 4-bit (8×) to plain 2-bit at d=768 (16×; −0.0018 [−0.0124, +0.0087] / −0.0072 [−0.0151, +0.0005]): centering makes no measurable difference at 2+ bits (largest plain-vs-centered gap 0.0053), so the recommended index needs no stored mean. The post's code snippet (`RemexIndex(model, bits=2)`, text-only `config_kwargs`) was run as written on remex 1.2.0 before publishing.

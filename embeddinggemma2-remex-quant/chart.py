@@ -27,6 +27,7 @@ LABELS = {  # arm -> (text, dx, dy, anchor)
     "fp32 d=512": ("512 dims", 0, 26, "middle"),
     "fp32 d=256": ("256 dims", 0, 24, "middle"),
     "remex centered 4-bit d=768": ("4-bit, 768 dims", 0, -14, "middle"),
+    "remex centered 2-bit d=768": ("2-bit, 768 dims: 16×", 4, 26, "start"),
     "remex centered 2-bit d=512": ("2-bit, 512 dims", 6, -14, "middle"),
     "remex centered 1-bit d=768": ("1-bit, 768 dims", -2, -13, "end"),
     "ST binary d=768 (asym)": ("ST binary, 1-bit", 9, 17, "start"),
@@ -48,7 +49,7 @@ def svg(corpus, title_corpus):
     Y = lambda v: B - (v - y0) / (y1 - y0) * (B - T)
     o = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" style="width:100%;height:auto;display:block" role="img" aria-labelledby="p-{corpus}-t p-{corpus}-d" font-family="sans-serif" font-size="12">',
          f'<title id="p-{corpus}-t">nDCG@10 on {title_corpus} against bytes per document for every EmbeddingGemma 2 index measured</title>',
-         f'<desc id="p-{corpus}-d">Google\'s float32 truncation to 128 dimensions scores {by["fp32 d=128"]["ndcg10"]:.3f} at 512 bytes; remex centered 4-bit on all 768 dimensions scores {by["remex centered 4-bit d=768"]["ndcg10"]:.3f} at 384 bytes against {by["fp32 d=768"]["ndcg10"]:.3f} for uncompressed float32 at 3,072 bytes.</desc>',
+         f'<desc id="p-{corpus}-d">Google\'s float32 truncation to 128 dimensions scores {by["fp32 d=128"]["ndcg10"]:.3f} at 512 bytes; remex 2-bit on all 768 dimensions scores {by["remex 2-bit d=768"]["ndcg10"]:.3f} at 192 bytes against {by["fp32 d=768"]["ndcg10"]:.3f} for uncompressed float32 at 3,072 bytes.</desc>',
          f'<rect width="{W}" height="{H}" fill="{PAPER}"/>']
     v = y0
     while v <= y1 + 1e-9:
