@@ -1,0 +1,275 @@
+<title>Muninn's Codex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a reference work. Contents rail | page | source drawer; the drawer is where a citation opens. */
+:root {
+  --paper: #eef1f2;
+  --leaf: #f8f9f9;
+  --ink: #1a222b;
+  --ink-2: #4a5763;
+  --rule: #cfd6da;
+  --patina: #2b766d;
+  --patina-wash: #dcebe8;
+  --warn: #9a5b12;
+  --warn-wash: #f4e8d6;
+  --serif: "Spectral", "Iowan Old Style", Georgia, serif;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171c; --leaf: #181e24; --ink: #dde3e7; --ink-2: #9aa7b1; --rule: #2b343c;
+    --patina: #66b8ab; --patina-wash: #1b2e2c; --warn: #e0a656; --warn-wash: #2e2416; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171c; --leaf: #181e24; --ink: #dde3e7; --ink-2: #9aa7b1; --rule: #2b343c;
+  --patina: #66b8ab; --patina-wash: #1b2e2c; --warn: #e0a656; --warn-wash: #2e2416; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 15px; line-height: 1.5; }
+a { color: var(--patina); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--patina); outline-offset: 2px; border-radius: 3px; }
+
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px;
+  padding-block: 12px; padding-inline: 20px; background: var(--paper); border-bottom: 1px solid var(--rule); }
+.brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: var(--ink); }
+.brand b { font-family: var(--serif); font-weight: 700; font-size: 1.35rem; letter-spacing: .01em; }
+.brand span { font-family: var(--mono); font-size: .72rem; color: var(--ink-2); }
+.search { flex: 1 1 260px; max-width: 520px; display: flex; }
+.search input { width: 100%; padding: 8px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--leaf);
+  color: var(--ink); font: inherit; }
+.stats { font-family: var(--mono); font-size: .72rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.frame { display: grid; grid-template-columns: 270px minmax(0, 1fr) minmax(0, 360px); gap: 0; min-height: calc(100% - 60px); }
+.rail { border-right: 1px solid var(--rule); padding-block: 16px; padding-inline: 16px; overflow-y: auto; max-height: calc(100vh - 60px);
+  position: sticky; top: 60px; }
+.rail details { border-bottom: 1px solid var(--rule); padding-block: 6px; }
+.rail summary { cursor: pointer; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2);
+  list-style: none; display: flex; justify-content: space-between; gap: 8px; padding-block: 4px; }
+.rail summary::-webkit-details-marker { display: none; }
+.rail summary .n { font-family: var(--mono); font-weight: 400; letter-spacing: 0; }
+.rail ul { list-style: none; margin: 4px 0 6px; padding: 0; display: grid; gap: 1px; }
+.rail li a { display: block; padding: 3px 8px; border-radius: 4px; color: var(--ink); text-decoration: none; font-size: .88rem; line-height: 1.35; }
+.rail li a:hover { background: var(--leaf); }
+.rail li a[aria-current="page"] { background: var(--patina-wash); color: var(--patina); font-weight: 500; }
+
+main { min-width: 0; padding-block: 28px 80px; padding-inline: 40px; }
+.leaf { max-width: 72ch; }
+.eyebrow { font-size: .74rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--patina); }
+h1 { font-family: var(--serif); font-weight: 600; font-size: 2.2rem; line-height: 1.15; margin: 6px 0 10px; text-wrap: balance; }
+.byline { font-family: var(--mono); font-size: .74rem; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 16px;
+  font-variant-numeric: tabular-nums; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+.lead { font-family: var(--serif); font-size: 1.2rem; line-height: 1.55; margin: 18px 0 8px; }
+.prose { font-family: var(--serif); font-size: 1.06rem; line-height: 1.68; }
+.prose h2, .block h2 { font-family: var(--sans); font-size: .8rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-2); margin: 30px 0 8px; }
+.prose p, .prose li { margin: 0 0 12px; }
+.prose code { font-family: var(--mono); font-size: .86em; background: var(--leaf); padding: 1px 4px; border-radius: 3px; }
+.prose pre { overflow-x: auto; background: var(--leaf); padding: 10px; border-radius: 6px; font-size: .85rem; }
+.cite { font-family: var(--mono); font-size: .68rem; vertical-align: .18em; padding: 0 4px; margin-left: 2px; border: 1px solid var(--rule);
+  border-radius: 3px; background: var(--leaf); color: var(--patina); cursor: pointer; line-height: 1.5; white-space: nowrap; }
+.cite.s { color: var(--warn); }
+.cite[aria-pressed="true"] { background: var(--patina); color: var(--leaf); border-color: var(--patina); }
+.cite.missing { color: var(--ink-2); text-decoration: line-through; cursor: default; }
+
+.block { margin-top: 8px; }
+.timeline { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; border-left: 2px solid var(--rule); }
+.timeline li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 5px 0 5px 14px; position: relative; font-size: .92rem; }
+.timeline li::before { content: ""; position: absolute; left: -5px; top: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--patina); }
+.timeline time { font-family: var(--mono); font-size: .76rem; color: var(--ink-2); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.flags { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.flags li { padding: 8px 12px; border-radius: 6px; font-size: .92rem; background: var(--leaf); border: 1px solid var(--rule); }
+.flags.warn li { background: var(--warn-wash); border-color: transparent; }
+.related { display: flex; flex-wrap: wrap; gap: 8px; }
+.related a { padding: 4px 10px; border: 1px solid var(--rule); border-radius: 999px; text-decoration: none; font-size: .85rem; color: var(--ink); background: var(--leaf); }
+.related a:hover { border-color: var(--patina); color: var(--patina); }
+.srcs { font-family: var(--mono); font-size: .74rem; display: flex; flex-wrap: wrap; gap: 4px; }
+.verify { font-size: .85rem; color: var(--ink-2); }
+.verify summary { cursor: pointer; }
+.verify li { margin-bottom: 6px; }
+
+.drawer { border-left: 1px solid var(--rule); padding-block: 20px; padding-inline: 18px; background: var(--leaf); position: sticky; top: 60px;
+  max-height: calc(100vh - 60px); overflow-y: auto; min-width: 0; }
+.drawer .empty { color: var(--ink-2); font-size: .88rem; }
+.drawer h3 { margin: 0 0 4px; font-family: var(--mono); font-size: .8rem; font-weight: 500; color: var(--patina); }
+.drawer .meta { font-family: var(--mono); font-size: .72rem; color: var(--ink-2); margin-bottom: 10px; }
+.drawer .text { font-family: var(--serif); font-size: .95rem; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.drawer .close { float: right; border: 1px solid var(--rule); background: var(--paper); border-radius: 4px; padding: 0 8px; cursor: pointer; }
+.tag { display: inline-block; font-family: var(--mono); font-size: .68rem; padding: 0 5px; margin: 0 4px 4px 0; border-radius: 3px; background: var(--patina-wash); color: var(--patina); }
+
+.home h1 { font-size: 2.6rem; }
+.home .intro { font-family: var(--serif); font-size: 1.12rem; line-height: 1.6; max-width: 66ch; }
+.figures { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 18px 0 8px; font-family: var(--mono); font-size: .8rem; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.figures b { display: block; font-family: var(--serif); font-size: 1.5rem; font-weight: 600; color: var(--ink); }
+.sec { margin-top: 30px; }
+.sec h2 { font-family: var(--serif); font-size: 1.3rem; font-weight: 600; margin: 0 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.card { display: block; padding: 12px 14px; border-radius: 6px; text-decoration: none; color: var(--ink); background: var(--leaf); border: 1px solid var(--rule); }
+.card:hover { border-color: var(--patina); }
+.card b { font-family: var(--serif); font-size: 1.02rem; font-weight: 600; display: block; margin-bottom: 4px; }
+.card span { font-size: .84rem; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card small { display: block; margin-top: 6px; font-family: var(--mono); font-size: .68rem; color: var(--ink-2); }
+mark { background: var(--patina-wash); color: inherit; padding: 0 2px; }
+.loading { padding: 40px; color: var(--ink-2); font-family: var(--mono); }
+
+@media (max-width: 1180px) {
+  .frame { grid-template-columns: 240px minmax(0, 1fr); }
+  .drawer { position: fixed; top: auto; bottom: 0; left: 0; right: 0; max-height: 55vh; border-left: 0; border-top: 1px solid var(--rule);
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 24px rgba(0,0,0,.12); z-index: 6; }
+  .drawer.idle { display: none; }
+}
+@media (max-width: 760px) {
+  .frame { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--rule); padding-inline: 16px; }
+  .rail.collapsed .secs { display: none; }
+  .railtoggle { display: block !important; }
+  main { padding-inline: 16px; }
+  h1 { font-size: 1.7rem; }
+  .home h1 { font-size: 2rem; }
+  .top { padding-inline: 16px; }
+}
+.railtoggle { display: none; width: 100%; text-align: left; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px; background: var(--leaf); cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) { .card, .related a, .rail li a { transition: border-color .15s, background .15s; } }
+</style>
+
+<header class="top">
+  <a class="brand" href="#home"><b>Muninn's Codex</b><span id="built"></span></a>
+  <form class="search" id="searchform" role="search"><label for="q" hidden>Search the codex</label>
+    <input id="q" type="search" placeholder="Search pages: remex, guards, Haiku fan-out&hellip;" autocomplete="off"></form>
+  <div class="stats" id="stats"></div>
+</header>
+<div class="frame">
+  <nav class="rail collapsed" id="rail" aria-label="Contents">
+    <button class="railtoggle" id="railtoggle" type="button" aria-expanded="false">Contents</button>
+    <div class="secs" id="secs"></div>
+  </nav>
+  <main id="main"><div class="loading">Loading the codex&hellip;</div></main>
+  <aside class="drawer idle" id="drawer" aria-live="polite"><p class="empty">Select a citation such as <span class="cite">m:1a2b3c4d</span> to read the memory or session it points to.</p></aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  let C = null, byTopic = {};
+  const CITE = /\[((?:[ms]:[0-9a-f]{8}(?:,\s*)?)+)\]/g;
+
+  function cites(html) {
+    return html.replace(CITE, (_, inner) => inner.split(/,\s*/).map(id => {
+      const ok = C.sources[id];
+      return `<button type="button" class="cite ${id[0]}${ok ? "" : " missing"}" data-id="${id}" ${ok ? "" : "disabled title=\"Source not in this build\""}>${id}</button>`;
+    }).join(""));
+  }
+  const md = s => cites(DOMPurify.sanitize(marked.parse(s || "")));
+  const inline = s => cites(esc(s));
+  const citeList = a => (a || []).map(id => `[${id}]`).join("");
+
+  function rail(active) {
+    const secs = C.meta.sections.map(sec => {
+      const ps = C.pages.filter(p => p.section === sec).sort((a, b) => a.title.localeCompare(b.title));
+      if (!ps.length) return "";
+      const open = !active || ps.some(p => p.topic === active);
+      return `<details ${open ? "open" : ""}><summary>${esc(sec.split(":")[0].split(" (")[0])}<span class="n">${ps.length}</span></summary><ul>` +
+        ps.map(p => `<li><a href="#${p.topic}" ${p.topic === active ? 'aria-current="page"' : ""}>${esc(p.title)}</a></li>`).join("") + "</ul></details>";
+    }).join("");
+    $("#secs").innerHTML = secs;
+  }
+
+  function home() {
+    const m = C.meta, k = m.checks;
+    const secs = m.sections.map(sec => {
+      const ps = C.pages.filter(p => p.section === sec).sort((a, b) => b.n_mem - a.n_mem);
+      if (!ps.length) return "";
+      return `<section class="sec"><h2>${esc(sec)}</h2><div class="cards">` + ps.map(p =>
+        `<a class="card" href="#${p.topic}"><b>${esc(p.title)}</b><span>${esc(p.summary.replace(CITE, ""))}</span><small>${p.n_mem} memories \u00b7 ${p.span[0]} to ${p.span[1]}</small></a>`).join("") +
+        "</div></section>";
+    }).join("");
+    $("#main").innerHTML = `<div class="home"><div class="eyebrow">Compiled ${esc(m.built)}</div><h1>What Muninn knows</h1>
+      <p class="intro">Every live memory in Muninn's store and every archived work session since 2026-09-10, grouped by topic and written up as one page each. Each factual sentence cites the memory or session it came from; select a citation to read the source. A second pass checked every citation against its source and cut what it could not support.</p>
+      <div class="figures"><div><b>${m.pages}</b>pages</div><div><b>${m.memories.toLocaleString()}</b>memories</div><div><b>${m.sessions}</b>sessions</div>
+      <div><b>${m.citations.toLocaleString()}</b>citations</div><div><b>${k.checked.toLocaleString()}</b>statements checked</div><div><b>${(k.fixed + k.removed).toLocaleString()}</b>fixed or cut</div></div>
+      ${secs}</div>`;
+    rail(null);
+  }
+
+  function page(t) {
+    const p = byTopic[t];
+    if (!p) return home();
+    const k = p.checks || {};
+    const tl = (p.timeline || []).length ? `<div class="block"><h2>Timeline</h2><ol class="timeline">${p.timeline.map(e =>
+      `<li><time>${esc(e.date)}</time><span>${inline(e.event + " " + citeList(e.cite))}</span></li>`).join("")}</ol></div>` : "";
+    const open = (p.open || []).length ? `<div class="block"><h2>Open</h2><ul class="flags">${p.open.map(o =>
+      `<li>${inline(o.item + " " + citeList(o.cite))}</li>`).join("")}</ul></div>` : "";
+    const con = (p.contradictions || []).length ? `<div class="block"><h2>Unsettled</h2><ul class="flags warn">${p.contradictions.map(o =>
+      `<li>${inline(o.what + " " + citeList(o.cite))}</li>`).join("")}</ul></div>` : "";
+    const rel = `<div class="block"><h2>Related</h2><div class="related">${(p.related || []).map(r => byTopic[r] ?
+      `<a href="#${r}">${esc(byTopic[r].title)}</a>` : "").join("")}</div></div>`;
+    const changes = (p.changes || []).length ? `<details class="verify"><summary>${p.changes.length} statement${p.changes.length > 1 ? "s" : ""} fixed or cut by the checker</summary><ul>${p.changes.map(c =>
+      `<li><b>${esc(c.action)}</b>: ${esc(c.was)} <i>${esc(c.why)}</i></li>`).join("")}</ul></details>` : "";
+    const srcs = `<div class="block"><h2>All ${p.mem_ids.length} memories in this topic</h2><div class="srcs">${p.mem_ids.map(i => `[m:${i}]`).map(inline).join("")}</div></div>`;
+    $("#main").innerHTML = `<article class="leaf"><div class="eyebrow">${esc(p.section)}</div><h1>${esc(p.title)}</h1>
+      <div class="byline"><span>${p.span[0]} to ${p.span[1]}</span><span>${p.n_mem} memories</span><span>${k.checked ?? "?"} checked \u00b7 ${k.fixed ?? 0} fixed \u00b7 ${k.removed ?? 0} cut</span><span>${p.topic}</span></div>
+      <p class="lead">${inline(p.summary)}</p><div class="prose">${md(p.body)}</div>${tl}${open}${con}${rel}<div class="block">${changes}</div>${srcs}</article>`;
+    rail(t);
+    window.scrollTo({ top: 0 });
+  }
+
+  function search(q) {
+    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    const scored = C.pages.map(p => {
+      const hay = [p.title, p.title, p.summary, (p.terms || []).join(" "), p.body].join(" ").toLowerCase();
+      const s = terms.reduce((a, w) => a + (hay.split(w).length - 1) + (p.title.toLowerCase().includes(w) ? 20 : 0) +
+        ((p.terms || []).some(x => x.toLowerCase().includes(w)) ? 8 : 0), 0);
+      return [s, p];
+    }).filter(([s]) => s > 0).sort((a, b) => b[0] - a[0]).slice(0, 30);
+    const hi = s => terms.reduce((h, w) => h.replace(new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), m => `<mark>${m}</mark>`), esc(s));
+    $("#main").innerHTML = `<div class="home"><div class="eyebrow">Search</div><h1>${scored.length} page${scored.length === 1 ? "" : "s"} for \u201c${esc(q)}\u201d</h1>
+      <div class="cards">${scored.map(([, p]) => `<a class="card" href="#${p.topic}"><b>${hi(p.title)}</b><span>${hi(p.summary.replace(CITE, ""))}</span><small>${esc(p.section.split(":")[0])}</small></a>`).join("") ||
+      '<p>No page mentions that. Try a repo, tool or project name.</p>'}</div></div>`;
+  }
+
+  function source(id, btn) {
+    const s = C.sources[id], d = $("#drawer");
+    if (!s) return;
+    document.querySelectorAll('.cite[aria-pressed="true"]').forEach(b => b.setAttribute("aria-pressed", "false"));
+    btn?.setAttribute("aria-pressed", "true");
+    d.classList.remove("idle");
+    d.innerHTML = `<button class="close" type="button" id="dclose" aria-label="Close source">\u00d7</button><h3>${esc(id)}</h3>
+      <div class="meta">${esc(s.kind === "session" ? "work session" : s.type + " memory")} \u00b7 ${esc(s.date)}${s.title ? " \u00b7 " + esc(s.title) : ""}</div>
+      <div>${(s.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div><div class="text">${esc(s.text)}</div>`;
+    $("#dclose").onclick = () => { d.classList.add("idle"); d.innerHTML = '<p class="empty">Select a citation to read its source.</p>'; };
+  }
+
+  function route() {
+    const h = location.hash.slice(1);
+    if (byTopic[h]) page(h); else home();
+  }
+
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".cite[data-id]");
+    if (b && !b.disabled) source(b.dataset.id, b);
+  });
+  $("#searchform").addEventListener("submit", e => { e.preventDefault(); const q = $("#q").value.trim(); if (q) search(q); });
+  $("#q").addEventListener("input", e => { const q = e.target.value.trim(); if (q.length > 2) search(q); else if (!q) route(); });
+  $("#railtoggle").addEventListener("click", e => {
+    const r = $("#rail"), c = r.classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-expanded", String(!c));
+  });
+  window.addEventListener("hashchange", route);
+
+  fetch("codex.json").then(r => r.json()).then(data => {
+    C = data;
+    C.pages.forEach(p => byTopic[p.topic] = p);
+    $("#built").textContent = `${C.meta.pages} pages \u00b7 ${C.meta.built}`;
+    $("#stats").textContent = `${C.meta.memories.toLocaleString()} memories \u00b7 ${C.meta.sessions} sessions`;
+    route();
+  }).catch(err => { $("#main").innerHTML = `<div class="loading">Could not load codex.json: ${esc(err.message)}. Reload the page to try again.</div>`; });
+})();
+</script>

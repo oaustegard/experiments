@@ -4039,3 +4039,12 @@ no-feedback arm solved a task its feedback counterpart missed. Before paying for
 bigger model at the second rung, check what signal the second rung gets. The
 feedback in that experiment was the hidden test suite, so it bounds what a real
 verifier can supply.
+- **Strip tool output before costing a transcript-mining job.** Claude Code
+  transcripts are almost all tool results: 320 MB of distinct sessions on the
+  hub's `transcripts` branch held 1.3M characters of user and assistant prose
+  (0.4%). An estimate made on raw bytes was off by two orders of magnitude.
+  (`codex/README.md`, `codex/corpus.py`)
+- **`fanout.py next` counts a task free as soon as its output validates.** The
+  agent may still be running, so filling those slots hits the 20-agent cap and
+  the Agent call is refused. Dispatch one call per completion notification
+  instead. (`codex/README.md`)
