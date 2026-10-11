@@ -64,7 +64,7 @@ instead of being asked to choose one.
   Forced choice, one sample per request and model.
 - **Name candidates** (round 2). The names-only catalogue with
   `orchestrating-agents` replaced by each candidate; gold relabelled to match.
-- **Cost.** $3.50 for round 1, $10.75 for round 2 (`run.py`; dispatched with
+- **Cost.** $3.50 for round 1, $10.53 for round 2 (`run.py`; dispatched with
   `dispatching-subagents/scripts/headless_fanout.py`).
 
 ## Log
