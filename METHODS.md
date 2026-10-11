@@ -4084,8 +4084,11 @@ reconciliation pass worked through the 393 contradictions the pages listed.
   Give the checkers read-only repo snapshots (blobless clone, commit log dumped
   to text, remote removed) rather than git or Bash: with no remote there is
   nothing to push to. (`codex/RESULTS.md` round 4)
-- **Dollar amounts in some stored memories were eaten by shell expansion.**
-  "$7.2B" became ".2B" and "$210B" became "10B", in news digests. The likely
-  cause, not traced, is memory text passed through a double-quoted bash string. Write memory text through a file or a
+- **Never pass memory text, or any text with `$` in it, through `python3 -c "..."`
+  or an unquoted heredoc.** Bash expands `$4` to nothing first: "$400B/yr" was
+  stored as "00B/yr" and the write reported success. 24 memories were damaged
+  this way (traced to the 2026-09-13 perch). Use `python3 - <<'EOF'`, a file, or
+  the Muninn `remember` tool. A hub guard now denies the pattern for store
+  writes, and remembering 5.22.0 warns on the signature. Write memory text through a file or a
   single-quoted heredoc, and distrust a bare decimal or a missing currency sign
   in an older digest. (`codex/RESULTS.md` round 4)

@@ -18,7 +18,10 @@ way. Fact questions gained nothing (0 wins, 2 losses of 6). Identical-context
 controls split 4–6, which is the noise floor. The pages' 393 listed
 contradictions were mostly not errors. Checked against the cited notes, 16 repo snapshots and the web, 193 were not
 errors. 48 wrong statements in 45 memories were corrected after a second
-reviewer confirmed each one, and 131 could not be settled from here.
+reviewer confirmed each one, and 131 could not be settled from here. The
+pass also exposed a write bug: bash had stripped dollar amounts from 24
+memories. 47 figures are now restored from dated sources, and a hub guard
+blocks the cause.
 
 What would change this: more synthesis questions, since the p-value rests on 18
 decided ones, and a judge from outside the Claude family.
@@ -43,16 +46,22 @@ decided ones, and a judge from outside the Claude family.
    to a live check, and a Sonnet recheck overturned 6 of the 69 errors Haiku
    proposed.
    (Round 4, `reconcile.py`)
-5. **Dispatching cost more than the work.** The Agent-tool build made 1,458 Opus
+5. **Memory writes through `python3 -c "..."` lost their dollar amounts.**
+   Bash expands `$4` to nothing inside double quotes, so "$400B/yr" was stored
+   as "00B/yr" and the write reported success. 24 memories were damaged, April
+   to October 2026; 47 of 53 figures were restored from dated sources. A hub
+   guard that denies such writes fired twice in 370 archived sessions, both
+   on the writes that did the damage. (Round 5, `dollars.py`)
+6. **Dispatching cost more than the work.** The Agent-tool build made 1,458 Opus
    parent calls, about $160–170, to launch $11.61 of Haiku agents. The A/B and
    the reconciliation ran as headless `claude -p` children: 747
    children from about a dozen parent calls. (Rounds 1, 3, 4)
-6. **The build is accurate to its sources.** The verifier rewrote 4.4% of 11,043
+7. **The build is accurate to its sources.** The verifier rewrote 4.4% of 11,043
    statements and cut 0.3%. A spot check of 20 random cited sentences found
    20/20 consistent. (Round 1)
-7. **Transcripts are 99.6% tool output.** 320 MB of distinct sessions held 1.3M
+8. **Transcripts are 99.6% tool output.** 320 MB of distinct sessions held 1.3M
    characters of conversation. (Round 1, `corpus.py`)
-8. **Compact pages surface by their words, not their length.** They come back at
+9. **Compact pages surface by their words, not their length.** They come back at
    ranks 1–8 for queries naming their subject, and they miss queries whose words
    the compact text lacks. A subject split across pages returns up to 3 of them.
    (Round 2, `store.py`)
@@ -217,3 +226,52 @@ private services or sources the web did not show, plus 17 the notes could not
 settle. They stay listed on their pages.
 
 All four stages ran as 447 headless `claude -p` children for $6.06.
+
+### Round 5: dollar amounts lost to shell expansion (2026-10-11)
+
+Oskar's ask, on the round-4 note that some digests had lost their dollar
+amounts: act on it.
+
+Cause, traced in the archive. The daily perch on 2026-09-13 stored "grid
+investment needs +50% by 2030 from $400B/yr" through `python3 -c "..."`. Bash
+read `$4` as an unset positional parameter, and the memory reads "from
+00B/yr". Across the 153 archived perch and inbox sessions, 84 memory writes
+went through a double-quoted `-c` and 54 through a quoted heredoc. Most of the
+damage predates the archive and came from claude.ai sessions of that period.
+Since muninn-boot 2.0.0 those write through the connector's `remember` tool,
+which never touches a shell.
+
+| stage | model, tools | in | out | cost |
+|---|---|---|---|---|
+| candidates | regex: a money word and no `$`, or the ".2B" signature | 3,908 memories | 224 | — |
+| detect | Haiku, none | 224 | 22 memories, 54 spans (high or medium); plus 1 memory the library signature found and Haiku missed | $0.30 |
+| recover | Sonnet, WebSearch + WebFetch | 53 spans in 22 memories | 48 restored, 5 cannot recover | $2.08 |
+| recheck, reopening each source | Sonnet, WebFetch | 48 | 47 confirmed, 1 overturned | $0.74 |
+
+- Round 4 had already corrected 2 of the damaged memories (`d768bac4`,
+  `7e33cb51`), so the total is 24.
+- Each of the 22 memories was superseded under a `[REPAIRED 2026-10-11 ...]`
+  header, tagged `shell-dollar-repaired`. The header lists each WAS/NOW pair
+  with its source, and the 6 spans whose figure could not be recovered.
+- Two restorations rest on the note's own figures rather than a web source:
+  OpenAI "$25B" and Anthropic "$19B" ARR, in an entry dated between two
+  entries that state them. A third ("approaching 9B ARR", five days later)
+  stays unrecovered, because "$19B", "$29B" and "$39B" all lose to "9B".
+- One citation was replaced at review. `b89ed362`'s ",500/household" was
+  restored by arithmetic, and the same statistic is sourced in three other
+  memories.
+
+Prevention:
+- **CCotw.** claude-workspace `scripts/guard_shell_dollar.py`
+  (claude-workspace 74799d83) denies a Bash call whose Python writes to the
+  store through a double-quoted `-c` or an unquoted heredoc holding an
+  expandable `$`. Replayed over 370 archived sessions, it fired twice, both on
+  the 09-13 writes. An independent Sonnet judge confirmed both. The one
+  correctly escaped write (`\$20B`, 09-25) did not fire.
+- **Library.** remembering 5.22.0 (muninn-utilities e47f27d) adds a
+  `ShellDamageWarning` to `remember()`, `supersede()` and `remember_batch()`
+  for text carrying the signature (".2B", "00B", "(~0B)", ",500"). The text
+  is already lost by then, so the warning tells the caller to re-issue the
+  write. Over the store it fired on 13 damaged memories and on one note quoting
+  the bug.
+
