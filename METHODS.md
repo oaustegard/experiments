@@ -4099,8 +4099,9 @@ reconciliation pass worked through the 393 contradictions the pages listed.
 Sonnet and Opus 5.5, shown all 103 descriptions, picked the right one for 173
 of 174 requests, vague ones included; shown names only, 55–85%.
 - **Test the catalogue the model actually sees.** An embedding confusability
-  score flagged the same pair as near neighbours, while an LLM reading the full
-  descriptions separated them every time. Before merging or renaming skills for
+  check ranked `agent-routing` and `flowing` above `dispatching-subagents` on two
+  of its own five queries; models reading the full descriptions made one such
+  error in 174 picks. Before merging or renaming skills for
   crowding, run the selection test: forced choice over the full catalogue,
   requests generated from each skill's body (not its description), several models.
 - **Names are what people route by.** The names-only arm stands in for a person
