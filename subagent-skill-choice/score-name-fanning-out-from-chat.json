@@ -1,0 +1,1362 @@
+{
+ "tag": "name-fanning-out-from-chat",
+ "models": {
+  "haiku": {
+   "top1": 0.414,
+   "top2": 0.655,
+   "n": 58
+  },
+  "opus": {
+   "top1": 0.5,
+   "top2": 0.914,
+   "n": 58
+  },
+  "sonnet": {
+   "top1": 0.328,
+   "top2": 0.621,
+   "n": 58
+  }
+ },
+ "per_gold": {
+  "agent-routing": "8/24",
+  "deciding-with-confidence": "11/18",
+  "delegating-with-context": "7/27",
+  "dispatching-subagents": "10/45",
+  "fanning-out-from-chat": "15/21",
+  "flowing": "4/18",
+  "invoking-gemini": "15/18",
+  "workflow-authoring": "2/3"
+ },
+ "confusions": [
+  [
+   "dispatching-subagents",
+   "fanning-out-from-chat",
+   34
+  ],
+  [
+   "delegating-with-context",
+   "fanning-out-from-chat",
+   16
+  ],
+  [
+   "flowing",
+   "workflow-authoring",
+   10
+  ],
+  [
+   "agent-routing",
+   "dispatching-subagents",
+   9
+  ],
+  [
+   "delegating-with-context",
+   "dispatching-subagents",
+   4
+  ],
+  [
+   "deciding-with-confidence",
+   "fanning-out-from-chat",
+   4
+  ],
+  [
+   "fanning-out-from-chat",
+   "dispatching-subagents",
+   3
+  ],
+  [
+   "agent-routing",
+   "fanning-out-from-chat",
+   3
+  ],
+  [
+   "agent-routing",
+   "down-skilling",
+   3
+  ],
+  [
+   "flowing",
+   "fanning-out-from-chat",
+   2
+  ],
+  [
+   "invoking-gemini",
+   "drawing-with-pycairo",
+   2
+  ],
+  [
+   "flowing",
+   "gating",
+   2
+  ],
+  [
+   "dispatching-subagents",
+   "workflow-authoring",
+   1
+  ],
+  [
+   "deciding-with-confidence",
+   "dispatching-subagents",
+   1
+  ],
+  [
+   "invoking-gemini",
+   "fanning-out-from-chat",
+   1
+  ],
+  [
+   "fanning-out-from-chat",
+   "none",
+   1
+  ],
+  [
+   "workflow-authoring",
+   "fanning-out-from-chat",
+   1
+  ],
+  [
+   "deciding-with-confidence",
+   "exploring-data",
+   1
+  ],
+  [
+   "deciding-with-confidence",
+   "hallucinating-labels",
+   1
+  ],
+  [
+   "fanning-out-from-chat",
+   "orchestrating-skills",
+   1
+  ],
+  [
+   "agent-routing",
+   "deciding-with-confidence",
+   1
+  ],
+  [
+   "fanning-out-from-chat",
+   "invoking-gemini",
+   1
+  ]
+ ],
+ "rows": [
+  {
+   "model": "haiku",
+   "query": "agent-routing-0",
+   "pick": "dispatching-subagents",
+   "second": "fanning-out-from-chat",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-1",
+   "pick": "dispatching-subagents",
+   "second": "fanning-out-from-chat",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-3",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-4",
+   "pick": "dispatching-subagents",
+   "second": "deciding-with-confidence",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-5",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-0",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-1",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-2",
+   "pick": "workflow-authoring",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-3",
+   "pick": "workflow-authoring",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-4",
+   "pick": "dispatching-subagents",
+   "second": "fanning-out-from-chat",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-5",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-6",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-7",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-0",
+   "pick": "dispatching-subagents",
+   "second": "deciding-with-confidence",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-1",
+   "pick": "deciding-with-confidence",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-2",
+   "pick": "deciding-with-confidence",
+   "second": "exploring-data",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-3",
+   "pick": "deciding-with-confidence",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-4",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-5",
+   "pick": "deciding-with-confidence",
+   "second": "gating",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-0",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-1",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-2",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-3",
+   "pick": "delegating-with-context",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-4",
+   "pick": "fanning-out-from-chat",
+   "second": "session-memory",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-5",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-0",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-1",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-2",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-3",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-4",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-5",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-0",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-1",
+   "pick": "workflow-authoring",
+   "second": "gating",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-2",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-3",
+   "pick": "fanning-out-from-chat",
+   "second": "session-memory",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-4",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-5",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-0",
+   "pick": "drawing-with-pycairo",
+   "second": "processing-images",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-1",
+   "pick": "invoking-gemini",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-2",
+   "pick": "fanning-out-from-chat",
+   "second": "invoking-gemini",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-3",
+   "pick": "invoking-gemini",
+   "second": "converting-files",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-4",
+   "pick": "invoking-gemini",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-5",
+   "pick": "invoking-gemini",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-0",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-1",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-2",
+   "pick": "dispatching-subagents",
+   "second": "api-credentials",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-3",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-4",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-5",
+   "pick": "none",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "vague-0",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "vague-1",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "vague-2",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-3",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-4",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "vague-5",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-6",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-7",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-0",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-1",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-3",
+   "pick": "agent-routing",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-4",
+   "pick": "agent-routing",
+   "second": "hallucinating-labels",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-5",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "boundary-0",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-1",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-2",
+   "pick": "fanning-out-from-chat",
+   "second": "workflow-authoring",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-3",
+   "pick": "fanning-out-from-chat",
+   "second": "workflow-authoring",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-4",
+   "pick": "fanning-out-from-chat",
+   "second": "agent-routing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-5",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "boundary-6",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-7",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-0",
+   "pick": "deciding-with-confidence",
+   "second": "fanning-out-from-chat",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-1",
+   "pick": "deciding-with-confidence",
+   "second": "hallucinating-labels",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-2",
+   "pick": "exploring-data",
+   "second": "charting",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-3",
+   "pick": "deciding-with-confidence",
+   "second": "hallucinating-labels",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-4",
+   "pick": "hallucinating-labels",
+   "second": "fanning-out-from-chat",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-5",
+   "pick": "deciding-with-confidence",
+   "second": "gating",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-0",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-1",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-2",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-3",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-4",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-5",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-0",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-1",
+   "pick": "dispatching-subagents",
+   "second": "fanning-out-from-chat",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-2",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-3",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-4",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-5",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "flowing-0",
+   "pick": "flowing",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "flowing-1",
+   "pick": "gating",
+   "second": "flowing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "flowing-2",
+   "pick": "flowing",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "flowing-3",
+   "pick": "flowing",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "flowing-4",
+   "pick": "workflow-authoring",
+   "second": "flowing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "flowing-5",
+   "pick": "flowing",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-0",
+   "pick": "invoking-gemini",
+   "second": "processing-images",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-1",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-2",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-3",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-4",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-5",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-0",
+   "pick": "fanning-out-from-chat",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-1",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-2",
+   "pick": "fanning-out-from-chat",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-3",
+   "pick": "fanning-out-from-chat",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-4",
+   "pick": "fanning-out-from-chat",
+   "second": "convening-experts",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-5",
+   "pick": "orchestrating-skills",
+   "second": "fanning-out-from-chat",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "vague-0",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "vague-1",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "vague-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-3",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-4",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "vague-5",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "vague-6",
+   "pick": "agent-routing",
+   "second": "down-skilling",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-7",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-0",
+   "pick": "fanning-out-from-chat",
+   "second": "down-skilling",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-1",
+   "pick": "down-skilling",
+   "second": "verifying-claims",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-3",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-4",
+   "pick": "deciding-with-confidence",
+   "second": "down-skilling",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-5",
+   "pick": "down-skilling",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-0",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-1",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-2",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-3",
+   "pick": "workflow-authoring",
+   "second": "fanning-out-from-chat",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-4",
+   "pick": "fanning-out-from-chat",
+   "second": "down-skilling",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-5",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-6",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-7",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-0",
+   "pick": "fanning-out-from-chat",
+   "second": "deciding-with-confidence",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-1",
+   "pick": "deciding-with-confidence",
+   "second": "fanning-out-from-chat",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-2",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-3",
+   "pick": "deciding-with-confidence",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-4",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-5",
+   "pick": "deciding-with-confidence",
+   "second": "gating",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-0",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-1",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-2",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-3",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-4",
+   "pick": "delegating-with-context",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-5",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-0",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-1",
+   "pick": "fanning-out-from-chat",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-2",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-3",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-4",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-5",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-0",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-1",
+   "pick": "gating",
+   "second": "iterating",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-2",
+   "pick": "workflow-authoring",
+   "second": "flowing",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-3",
+   "pick": "fanning-out-from-chat",
+   "second": "session-memory",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-4",
+   "pick": "workflow-authoring",
+   "second": "gating",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-5",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-0",
+   "pick": "drawing-with-pycairo",
+   "second": "seeing-images",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-1",
+   "pick": "invoking-gemini",
+   "second": "fanning-out-from-chat",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-2",
+   "pick": "invoking-gemini",
+   "second": "fanning-out-from-chat",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-3",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-4",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-5",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-0",
+   "pick": "fanning-out-from-chat",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-1",
+   "pick": "fanning-out-from-chat",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-2",
+   "pick": "fanning-out-from-chat",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-3",
+   "pick": "fanning-out-from-chat",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-4",
+   "pick": "fanning-out-from-chat",
+   "second": "convening-experts",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-5",
+   "pick": "invoking-gemini",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-0",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-1",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-3",
+   "pick": "fanning-out-from-chat",
+   "second": "down-skilling",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-4",
+   "pick": "fanning-out-from-chat",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-5",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-6",
+   "pick": "down-skilling",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-7",
+   "pick": "fanning-out-from-chat",
+   "second": "down-skilling",
+   "ok": false
+  }
+ ]
+}

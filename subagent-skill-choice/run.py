@@ -3,7 +3,7 @@
 
     python3 run.py queries-tasks                 # queries/tasks.jsonl: Sonnet writes queries from skill bodies
     python3 run.py queries                       # queries.json from the run (gold = source skill), then edit by hand
-    python3 run.py select CATALOGUE.json TAG     # select-TAG/tasks.jsonl: each model picks a skill per query
+    python3 run.py select CATALOGUE.json TAG [OLD=NEW ...]  # select-TAG/tasks.jsonl; OLD=NEW renames a skill
     python3 run.py score TAG                     # accuracy per model and per gold skill, confusions
 
 Each tasks.jsonl runs through dispatching-subagents/scripts/headless_fanout.py. The
@@ -84,8 +84,12 @@ def queries() -> None:
     print(f"{len(out)} queries -> queries.json (review gold by hand)")
 
 
-def select(catalogue: Path, tag: str) -> None:
+def select(catalogue: Path, tag: str, rename: dict | None = None) -> None:
     cat = json.loads(catalogue.read_text())
+    for old, new in (rename or {}).items():
+        cat[new] = cat.pop(old)
+    (HERE / f"select-{tag}").mkdir(exist_ok=True)
+    (HERE / f"select-{tag}" / "rename.json").write_text(json.dumps(rename or {}))
     names = sorted(cat)
     random.Random(7).shuffle(names)  # no skill sits first by alphabet
     listing = "\n".join(f"- {n}: {cat[n]}" for n in names)
@@ -99,6 +103,9 @@ def select(catalogue: Path, tag: str) -> None:
 
 def score(tag: str) -> dict:
     qs = {q["id"]: q for q in json.loads((HERE / "queries.json").read_text())}
+    rf = HERE / f"select-{tag}" / "rename.json"
+    rename = json.loads(rf.read_text()) if rf.exists() else {}
+    qs = {k: {**q, "gold": [rename.get(g, g) for g in q["gold"]]} for k, q in qs.items()}
     res = HERE / f"select-{tag}" / "run" / "results"
     per_model = collections.defaultdict(lambda: [0, 0, 0])  # top1, top2, n
     per_gold = collections.defaultdict(lambda: [0, 0])
@@ -136,6 +143,7 @@ if __name__ == "__main__":
     elif cmd == "queries":
         queries()
     elif cmd == "select":
-        select(Path(sys.argv[2]), sys.argv[3])
+        pairs = [a.split("=", 1) for a in sys.argv[4:]]
+        select(Path(sys.argv[2]), sys.argv[3], dict(pairs))
     elif cmd == "score":
         score(sys.argv[2])

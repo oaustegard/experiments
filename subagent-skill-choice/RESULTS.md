@@ -18,6 +18,12 @@ replaced by nothing, so that only names remained, accuracy fell to 60%
 parallel-dispatch request to `orchestrating-agents` (10 times), then sending a
 `flowing` pipeline to `workflow-authoring` (9).
 
+Renaming the worst name helped a little and only with one choice of name:
+of seven candidates, `orchestrating-chat-agents` caught 19 of the skill's 21
+requests under names only (15 for the old name) without drawing more
+misroutes (14 against 13). Every API-flavoured candidate drew 20 to 58. The
+skill now carries that name, and routing with descriptions held at 172/174.
+
 What would change this: requests written by people rather than by a model
 reading the skill bodies, and a test of whether the model loads a skill at all
 instead of being asked to choose one.
@@ -33,7 +39,12 @@ instead of being asked to choose one.
 3. **`orchestrating-agents` is the name that misleads most.** It drew 10 of 45
    dispatch picks under names only. Its content is now mostly the claude.ai
    API fan-out, which the name does not say. (`score-names.json`)
-4. **Overlap in descriptions did not cost accuracy.** `delegating-with-context`
+4. **A more literal name pulls in neighbours' work.** Names with "API" or
+   "parallel" in them caught 18–21 of 21 of the renamed skill's requests and
+   took 20–58 of other skills' requests; `orchestrating-chat-agents` took 14,
+   against 13 for the old name. One sample per model. (Round 2,
+   `select-name-*`)
+5. **Overlap in descriptions did not cost accuracy.** `delegating-with-context`
    lists "run agents in parallel" among its triggers, the same territory as
    `dispatching-subagents`, and no model confused the two with descriptions
    present. (`score-before.json`)
@@ -51,7 +62,9 @@ instead of being asked to choose one.
 - **Selection.** Each model, through headless `claude -p` with no tools and
   structured output, names the one skill it would load first and a second.
   Forced choice, one sample per request and model.
-- **Cost.** $3.50 in all (`run.py`; dispatched with
+- **Name candidates** (round 2). The names-only catalogue with
+  `orchestrating-agents` replaced by each candidate; gold relabelled to match.
+- **Cost.** $3.50 for round 1, $10.75 for round 2 (`run.py`; dispatched with
   `dispatching-subagents/scripts/headless_fanout.py`).
 
 ## Log
@@ -80,3 +93,29 @@ The vague requests scored best under names only because most accept two
 skills. Reading at the time: the routing problem is a reader's, so the fix
 went into `dispatching-subagents/README.md` as a table mapping each question
 to a skill, rather than into the descriptions.
+
+### Round 2: renaming orchestrating-agents (2026-10-11)
+
+Oskar's suggestion: deprecate the skill and create one properly named. Each
+candidate replaced the name in the names-only catalogue; all 58 requests, three
+models, one sample each. "Own" is the skill's 21 requests (7 per model);
+"stolen" counts other skills' requests sent to it.
+
+| name | own | stolen | all correct |
+|---|---|---|---|
+| orchestrating-chat-agents | 19/21 | 14 | 117/174 |
+| orchestrating-agents (old) | 15/21 | 13 | 116/174 |
+| delegating-without-subagents | 19/21 | 20 | 113/174 |
+| coordinating-api-agents | 21/21 | 41 | 99/174 |
+| orchestrating-api-calls | 20/21 | 44 | 98/174 |
+| running-parallel-api-agents | 21/21 | 55 | 90/174 |
+| fanning-out-over-the-api | 18/21 | 58 | 84/174 |
+| fanning-out-from-chat | 15/21 | 61 | 72/174 |
+
+Most stolen requests came from `dispatching-subagents` (9 to 37 per name).
+The skill shipped as `orchestrating-chat-agents` 1.0.0 (claude-skills
+14e3756); `orchestrating-agents` stays as a deprecated stub whose scripts load
+the new ones. With descriptions, on the new catalogue of 104 skills: Haiku
+57/58, Sonnet 57/58, Opus 58/58, the renamed skill 21/21, and no pick of the
+deprecated stub.
+

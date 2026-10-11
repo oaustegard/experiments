@@ -1,0 +1,1342 @@
+{
+ "tag": "name-orchestrating-api-calls",
+ "models": {
+  "haiku": {
+   "top1": 0.707,
+   "top2": 0.793,
+   "n": 58
+  },
+  "opus": {
+   "top1": 0.517,
+   "top2": 0.862,
+   "n": 58
+  },
+  "sonnet": {
+   "top1": 0.466,
+   "top2": 0.69,
+   "n": 58
+  }
+ },
+ "per_gold": {
+  "agent-routing": "5/24",
+  "deciding-with-confidence": "8/18",
+  "delegating-with-context": "22/27",
+  "dispatching-subagents": "23/45",
+  "flowing": "4/18",
+  "invoking-gemini": "14/18",
+  "orchestrating-api-calls": "20/21",
+  "workflow-authoring": "2/3"
+ },
+ "confusions": [
+  [
+   "dispatching-subagents",
+   "orchestrating-api-calls",
+   21
+  ],
+  [
+   "flowing",
+   "workflow-authoring",
+   9
+  ],
+  [
+   "agent-routing",
+   "orchestrating-api-calls",
+   8
+  ],
+  [
+   "agent-routing",
+   "dispatching-subagents",
+   7
+  ],
+  [
+   "deciding-with-confidence",
+   "orchestrating-api-calls",
+   7
+  ],
+  [
+   "delegating-with-context",
+   "dispatching-subagents",
+   5
+  ],
+  [
+   "flowing",
+   "orchestrating-api-calls",
+   5
+  ],
+  [
+   "agent-routing",
+   "down-skilling",
+   3
+  ],
+  [
+   "invoking-gemini",
+   "orchestrating-api-calls",
+   2
+  ],
+  [
+   "deciding-with-confidence",
+   "none",
+   1
+  ],
+  [
+   "deciding-with-confidence",
+   "dispatching-subagents",
+   1
+  ],
+  [
+   "orchestrating-api-calls",
+   "convening-experts",
+   1
+  ],
+  [
+   "deciding-with-confidence",
+   "hallucinating-labels",
+   1
+  ],
+  [
+   "invoking-gemini",
+   "featuring",
+   1
+  ],
+  [
+   "agent-routing",
+   "delegating-with-context",
+   1
+  ],
+  [
+   "dispatching-subagents",
+   "workflow-authoring",
+   1
+  ],
+  [
+   "workflow-authoring",
+   "orchestrating-api-calls",
+   1
+  ],
+  [
+   "invoking-gemini",
+   "drawing-with-pycairo",
+   1
+  ]
+ ],
+ "rows": [
+  {
+   "model": "haiku",
+   "query": "agent-routing-0",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-1",
+   "pick": "agent-routing",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-2",
+   "pick": "dispatching-subagents",
+   "second": "agent-routing",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-3",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-4",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "agent-routing-5",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-0",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-1",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-2",
+   "pick": "dispatching-subagents",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-3",
+   "pick": "workflow-authoring",
+   "second": "verifying-claims",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-4",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-5",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-6",
+   "pick": "dispatching-subagents",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "boundary-7",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-0",
+   "pick": "deciding-with-confidence",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-1",
+   "pick": "none",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-2",
+   "pick": "orchestrating-api-calls",
+   "second": "exploring-data",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-3",
+   "pick": "deciding-with-confidence",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-4",
+   "pick": "dispatching-subagents",
+   "second": "deciding-with-confidence",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "deciding-with-confidence-5",
+   "pick": "deciding-with-confidence",
+   "second": "agent-routing",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-0",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-1",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-2",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-3",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-4",
+   "pick": "delegating-with-context",
+   "second": "session-memory",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "delegating-with-context-5",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-0",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-1",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-3",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-4",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "dispatching-subagents-5",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-0",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-1",
+   "pick": "workflow-authoring",
+   "second": "orchestrating-api-calls",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-2",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-3",
+   "pick": "orchestrating-api-calls",
+   "second": "session-memory",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-4",
+   "pick": "workflow-authoring",
+   "second": "gating",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "flowing-5",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-0",
+   "pick": "invoking-gemini",
+   "second": "processing-images",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-1",
+   "pick": "invoking-gemini",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-2",
+   "pick": "invoking-gemini",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-3",
+   "pick": "invoking-gemini",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-4",
+   "pick": "invoking-gemini",
+   "second": "composing-html",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "invoking-gemini-5",
+   "pick": "invoking-gemini",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-0",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-1",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-2",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-3",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-4",
+   "pick": "convening-experts",
+   "second": "orchestrating-api-calls",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "orchestrating-agents-5",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-0",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-1",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-2",
+   "pick": "dispatching-subagents",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-3",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-4",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-5",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "haiku",
+   "query": "vague-6",
+   "pick": "agent-routing",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "haiku",
+   "query": "vague-7",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-0",
+   "pick": "dispatching-subagents",
+   "second": "agent-routing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-1",
+   "pick": "orchestrating-api-calls",
+   "second": "agent-routing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-2",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-3",
+   "pick": "orchestrating-api-calls",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-4",
+   "pick": "orchestrating-api-calls",
+   "second": "agent-routing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "agent-routing-5",
+   "pick": "orchestrating-api-calls",
+   "second": "agent-routing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-0",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-1",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-2",
+   "pick": "orchestrating-api-calls",
+   "second": "workflow-authoring",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-3",
+   "pick": "workflow-authoring",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "boundary-4",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-5",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "boundary-6",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "boundary-7",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-0",
+   "pick": "orchestrating-api-calls",
+   "second": "deciding-with-confidence",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-1",
+   "pick": "deciding-with-confidence",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-2",
+   "pick": "orchestrating-api-calls",
+   "second": "exploring-data",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-3",
+   "pick": "orchestrating-api-calls",
+   "second": "deciding-with-confidence",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-4",
+   "pick": "hallucinating-labels",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "deciding-with-confidence-5",
+   "pick": "deciding-with-confidence",
+   "second": "gating",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-0",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-1",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-2",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-3",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-4",
+   "pick": "delegating-with-context",
+   "second": "session-memory",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "delegating-with-context-5",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-0",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-1",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-2",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-3",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-4",
+   "pick": "dispatching-subagents",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "dispatching-subagents-5",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "flowing-0",
+   "pick": "flowing",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "flowing-1",
+   "pick": "orchestrating-api-calls",
+   "second": "gating",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "flowing-2",
+   "pick": "flowing",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "flowing-3",
+   "pick": "orchestrating-api-calls",
+   "second": "flowing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "flowing-4",
+   "pick": "workflow-authoring",
+   "second": "flowing",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "flowing-5",
+   "pick": "flowing",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-0",
+   "pick": "featuring",
+   "second": "invoking-gemini",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-1",
+   "pick": "invoking-gemini",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-2",
+   "pick": "orchestrating-api-calls",
+   "second": "invoking-gemini",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-3",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-4",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "invoking-gemini-5",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-0",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-1",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-2",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-3",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-4",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "orchestrating-agents-5",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-0",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "vague-1",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-3",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "opus",
+   "query": "vague-4",
+   "pick": "dispatching-subagents",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-5",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-6",
+   "pick": "agent-routing",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "opus",
+   "query": "vague-7",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-0",
+   "pick": "dispatching-subagents",
+   "second": "down-skilling",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-1",
+   "pick": "down-skilling",
+   "second": "deciding-with-confidence",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-3",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-4",
+   "pick": "orchestrating-api-calls",
+   "second": "down-skilling",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "agent-routing-5",
+   "pick": "down-skilling",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-0",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-1",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-2",
+   "pick": "workflow-authoring",
+   "second": "orchestrating-api-calls",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-3",
+   "pick": "orchestrating-api-calls",
+   "second": "workflow-authoring",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-4",
+   "pick": "dispatching-subagents",
+   "second": "down-skilling",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-5",
+   "pick": "orchestrating-api-calls",
+   "second": "invoking-gemini",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-6",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "boundary-7",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-0",
+   "pick": "orchestrating-api-calls",
+   "second": "deciding-with-confidence",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-1",
+   "pick": "deciding-with-confidence",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-2",
+   "pick": "orchestrating-api-calls",
+   "second": "exploring-data",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-3",
+   "pick": "deciding-with-confidence",
+   "second": "exploring-data",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-4",
+   "pick": "orchestrating-api-calls",
+   "second": "hallucinating-labels",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "deciding-with-confidence-5",
+   "pick": "deciding-with-confidence",
+   "second": "gating",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-0",
+   "pick": "delegating-with-context",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-1",
+   "pick": "delegating-with-context",
+   "second": "closing-issues",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-2",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-3",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-4",
+   "pick": "delegating-with-context",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "delegating-with-context-5",
+   "pick": "delegating-with-context",
+   "second": "dispatching-subagents",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-0",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-1",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-2",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-3",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-4",
+   "pick": "dispatching-subagents",
+   "second": "orchestrating-skills",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "dispatching-subagents-5",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-0",
+   "pick": "workflow-authoring",
+   "second": "flowing",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-1",
+   "pick": "orchestrating-api-calls",
+   "second": "iterating",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-2",
+   "pick": "flowing",
+   "second": "workflow-authoring",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-3",
+   "pick": "orchestrating-api-calls",
+   "second": "session-memory",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-4",
+   "pick": "workflow-authoring",
+   "second": "gating",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "flowing-5",
+   "pick": "workflow-authoring",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-0",
+   "pick": "drawing-with-pycairo",
+   "second": "processing-images",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-1",
+   "pick": "invoking-gemini",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-2",
+   "pick": "orchestrating-api-calls",
+   "second": "invoking-gemini",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-3",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-4",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "invoking-gemini-5",
+   "pick": "invoking-gemini",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-0",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-1",
+   "pick": "orchestrating-api-calls",
+   "second": "api-credentials",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-2",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-3",
+   "pick": "orchestrating-api-calls",
+   "second": "invoking-github",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-4",
+   "pick": "orchestrating-api-calls",
+   "second": "convening-experts",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "orchestrating-agents-5",
+   "pick": "orchestrating-api-calls",
+   "second": "none",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-0",
+   "pick": "orchestrating-api-calls",
+   "second": "dispatching-subagents",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-1",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-2",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-3",
+   "pick": "orchestrating-api-calls",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-4",
+   "pick": "dispatching-subagents",
+   "second": "orchestrating-api-calls",
+   "ok": true
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-5",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-6",
+   "pick": "down-skilling",
+   "second": "none",
+   "ok": false
+  },
+  {
+   "model": "sonnet",
+   "query": "vague-7",
+   "pick": "dispatching-subagents",
+   "second": "delegating-with-context",
+   "ok": true
+  }
+ ]
+}
