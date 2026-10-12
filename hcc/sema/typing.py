@@ -157,6 +157,9 @@ def _stmt_expr(n: N.StmtExpr):
     n.ty = TY_VOID
     while items:
         last = items[-1]
+        if isinstance(last, N.VLAExit):   # block-end VLA restore is not the value
+            items = items[:-1]
+            continue
         if isinstance(last, N.ExprStmt):
             n.ty = last.expr.ty
             return
