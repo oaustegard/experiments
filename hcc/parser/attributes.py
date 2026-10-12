@@ -30,6 +30,25 @@ class AttributeMixin:
     def at_attribute(self) -> bool:
         return self.at("__attribute__") or self.at("__declspec")
 
+    def at_std_attribute(self) -> bool:
+        """C23 `[[...]]` attribute list (two consecutive `[` punctuators)."""
+        return self.at("[") and self.peek().kind == TokenKind.PUNCT and self.peek().text == "["
+
+    def skip_std_attributes(self) -> None:
+        """Skip any C23 `[[...]]` attribute lists (no semantics applied)."""
+        while self.at_std_attribute():
+            self.next()
+            self.next()
+            depth = 2
+            while depth:
+                if self.at_eof():
+                    self.error("unterminated attribute list")
+                t = self.next()
+                if t.kind == TokenKind.PUNCT and t.text == "[":
+                    depth += 1
+                elif t.kind == TokenKind.PUNCT and t.text == "]":
+                    depth -= 1
+
     def parse_attributes(self, attr=None, ty=None) -> None:
         while self.at("__attribute__") or self.at("__declspec"):
             if self.next().text == "__declspec":

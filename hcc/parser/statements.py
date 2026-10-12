@@ -31,6 +31,9 @@ class StatementMixin:
             if self.at("__extension__"):
                 self.next()
                 continue
+            if self.at_std_attribute():
+                self.skip_std_attributes()
+                continue
             if self.is_typename() and not (self.tok.kind == TokenKind.IDENT and self.peek().text == ":"):
                 items.extend(self.local_declaration())
                 continue
@@ -39,6 +42,8 @@ class StatementMixin:
         return N.Block(loc, items)
 
     def stmt(self) -> N.Stmt:
+        if self.at_std_attribute():
+            self.skip_std_attributes()
         t = self.tok
         if t.kind == TokenKind.KEYWORD and t.text in STMT_KEYWORDS:
             return getattr(self, "_stmt_" + t.text)(self.next())

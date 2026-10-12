@@ -21,6 +21,9 @@ class TopLevelMixin:
         while not self.at_eof():
             if self.accept(";"):
                 continue
+            if self.at_std_attribute():
+                self.skip_std_attributes()
+                continue
             if self.at("_Static_assert"):
                 self.static_assert()
                 continue

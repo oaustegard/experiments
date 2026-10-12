@@ -36,6 +36,7 @@ class LocalDeclMixin:
             ty, name = self.declarator(basety)
             dattr = VarAttr()
             self.parse_attributes(dattr)
+            self.skip_std_attributes()
             self.parse_asm_label(dattr)
             if name is None:
                 self.error("identifier expected in declaration")
