@@ -71,3 +71,19 @@ built-in line-level and then token-level delta-debugging reducer. With `--mismat
 reductions stay free of undefined behaviour. With `--compile-fail`, gcc must still accept the file. `-I` adds include
 dirs; csmith failures pick theirs up from `<seed>.json`. `--preprocess` flattens the input with `gcc -E -P` first.
 The output goes to `<file>.reduced.c`, or the path given with `-o`.
+
+## Driver suites (real programs): `lua`, `sqlite`, `quickjs`
+A suite whose `suite.json` has `"driver": "<name>"` is run by `tests/drivers/<name>.py` instead of the single-file pipeline.
+The driver supplies `list_tests(suite)` (test ids are still `<suite>/<relpath>`) and `run_test(suite, rel, cc_argv, work, R)`
+returning a `Result`. `skip.txt` and `--filter` work as usual. Shared machinery is in `tests/drivers/common.py`:
+hcc-compiled objects and linked programs are cached on disk per hcc source hash (every `hcc/**/*.py` file), gcc-built
+reference programs and their outputs per gcc version and source hash, so a whole program is compiled once per hcc revision,
+not once per test. Cache: `$HCC_TEST_CACHE` or `<main checkout>/tests/cache` (shared by swarm worktrees through
+`git rev-parse --git-common-dir`); downloaded sources: `$HCC_TEST_TOOLS` or `<main checkout>/tests/tools`. Both are
+gitignored. `--cc gcc` runs the same pipeline with gcc as the "compiler under test" and must pass 100%.
+Only compilation is done by hcc; `as`, linking and running use the host tools. A compile failure caches its error, so the
+same failure is not re-derived by every test.
+
+| suite | tests | what a test is |
+|---|---|---|
+| lua | 65 (+2 skipped) | Lua 5.4.7 (`src/`, committed). `lua/src/<f>.c`: hcc compiles that one file, links it with gcc -O0 objects of the others, and `smoke.lua` must print what a gcc-built lua prints (luac.c: `luac -l -l`, `-p`, dump + run). `lua/testes/<f>.lua`: an official lua-5.4.7-tests file run by a lua built entirely by hcc with `-e"_U=true; _port=true; _soft=true; _nomsg=true"`; exit code and normalised stdout must equal the gcc-built lua's (timings, random seeds and pointers are normalised in `drivers/lua.py`). If lvm.c's computed-goto build fails, the whole-program build falls back to `-DLUA_USE_JUMPTABLE=0`; the `lua/src/lvm.c` test keeps the default. A whole-program build failure is reported as `lua build: <file>.c: <first error>` for every official test. |

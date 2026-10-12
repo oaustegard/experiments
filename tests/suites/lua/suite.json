@@ -1,0 +1,5 @@
+{
+  "description": "Lua 5.4.7 (src/, from lua.org) built by hcc. src/<f>.c: hcc compiles that file, the rest is gcc -O0, a smoke script must match a gcc-built lua. testes/<f>.lua: official lua-5.4.7-tests file run by a fully hcc-built lua in portable mode (-e'_U=true;...'), result compared with a gcc-built lua. Driver: tests/drivers/lua.py",
+  "driver": "lua",
+  "cflags": ["-DLUA_USE_POSIX"]
+}

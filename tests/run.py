@@ -194,6 +194,7 @@ class Suite:
                 cfg.update(json.load(f))
         self.cfg = cfg
         self.skips = self._load_skips()
+        self.driver = load_driver(cfg["driver"]) if cfg.get("driver") else None
 
     def subst(self, s):
         return s.replace("{suite}", self.dir).replace("{tests}", TESTS_DIR)
@@ -212,6 +213,8 @@ class Suite:
 
     def tests(self):
         """Sorted list of relative paths of test files (not skipped-filtered)."""
+        if self.driver is not None and hasattr(self.driver, "list_tests"):
+            return sorted(self.driver.list_tests(self))
         import glob as globmod
         found = set()
         for pat in self.cfg["glob"]:
@@ -227,6 +230,25 @@ class Suite:
         if is_real_cc(cc_argv):
             flags += self.cfg["gcc_cflags"]
         return [self.subst(f) for f in flags]
+
+
+DRIVERS_DIR = os.path.join(TESTS_DIR, "drivers")
+
+
+def load_driver(name):
+    """Load tests/drivers/<name>.py.  A driver lets a suite define its own test
+    pipeline (e.g. build a whole program with hcc once, then run many scripts).
+    It may define list_tests(suite) -> [relpath] and must define
+    run_test(suite, rel, cc_argv, work, R) -> R.Result, where R is this module.
+    See tests/README.md."""
+    import importlib.util
+    if DRIVERS_DIR not in sys.path:
+        sys.path.insert(0, DRIVERS_DIR)
+    spec = importlib.util.spec_from_file_location(
+        "hcc_driver_" + name, os.path.join(DRIVERS_DIR, name + ".py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def list_suites():
@@ -305,6 +327,9 @@ def run_test(suite, rel, cc_argv, workroot, keep):
 
 
 def _run_test(suite, src, cc_argv, work):
+    if suite.driver is not None:
+        return suite.driver.run_test(suite, os.path.relpath(src, suite.dir), cc_argv,
+                                     work, sys.modules[__name__])
     cflags = suite.cflags(cc_argv)
     if os.path.exists(src + ".flags"):  # per-test extra cflags, whitespace separated
         with open(src + ".flags") as f:
