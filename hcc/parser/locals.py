@@ -157,6 +157,13 @@ class LocalDeclMixin:
                     # C11 6.2.2p4: the visible prior declaration has no linkage (a
                     # block-scope object), so this extern names a new identifier
                     # with its own declared type; the file-scope object is not reused.
+                    # GCC still links such an extern to the file-scope object, so an
+                    # internal-linkage file-scope object of the same name is a conflict.
+                    file_obj = self.scopes[0].vars.get(name.text)
+                    if file_obj is not None and isinstance(file_obj.var, N.Var) \
+                            and file_obj.var.is_static and not file_obj.var.is_local:
+                        self.error(f"variable '{name.text}' previously declared 'static' "
+                                   f"redeclared 'extern'", name)
                     var = N.Var(name.text, ty, loc=name.loc, align=ty.align)
                     var.is_extern = True
                     var.is_definition = False
