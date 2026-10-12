@@ -20,6 +20,7 @@ import os
 import shutil
 import subprocess
 import tarfile
+import threading
 import zipfile
 
 import common as C
@@ -82,6 +83,10 @@ def tmpdir(work, name):
 
 # ------------------------------------------------------------------ project
 
+# At most this many hcc compiles run at once inside one test process, however many tests wait for objects
+# (the swarm box is shared: $HCC_TEST_COMPILE_JOBS, default 2).
+_COMPILE_SEM = threading.Semaphore(int(os.environ.get("HCC_TEST_COMPILE_JOBS", "2")))
+
 class Project:
     """units: {name: source path}.  flags: cflags for hcc and gcc (hcc additionally gets the
     suite's cflags for a real cc via suite.cflags).  unit_flags: {name: extra flags}."""
@@ -91,6 +96,7 @@ class Project:
         self.units, self.flags, self.ldflags = dict(units), list(flags), list(ldflags)
         self.unit_flags = unit_flags or {}
         self.key = key
+        self.extra_objs = []  # objects linked into every program (e.g. assembled .S files)
         self.hflags = list(suite.cflags(cc_argv)) + self.flags
         self.gflags = list(suite.cfg["cflags"]) + self.flags
 
@@ -99,19 +105,22 @@ class Project:
         return list(self.unit_flags.get(name, []))
 
     def hobj(self, name, timeout=900):
-        return C.cached_object(self.R, self.cc_argv, self.hflags + self._extra(name), self.units[name],
-                               "%s/%s" % (self.tag, name), timeout, extra_key=self.key)
+        with _COMPILE_SEM:
+            return C.cached_object(self.R, self.cc_argv, self.hflags + self._extra(name), self.units[name],
+                                   "%s/%s" % (self.tag, name), timeout, extra_key=self.key)
 
     def gobj(self, name):
         return C.gcc_object(self.gflags + self._extra(name), self.units[name], "%s/%s" % (self.tag, name))
 
     # -- programs
-    def _link(self, out, names, hcc_names, ldflags, extra_objs=()):
+    def _link(self, out, names, hcc_names, ldflags, extra_objs=(), degrade=False):
         objs, first = [], None
         for n in names:
             if n in hcc_names:
                 o, fail = self.hobj(n)
-                if fail:
+                if fail and degrade:
+                    objs.append(self.gobj(n))  # unit hcc cannot compile yet: the gcc object stands in
+                elif fail:
                     first = first or C.Failure(fail.status, fail.stage, "%s build: %s: %s" % (self.tag, n, fail.reason), fail.log)
                 else:
                     objs.append(o)
@@ -119,7 +128,7 @@ class Project:
                 objs.append(self.gobj(n))
         if first:
             return first
-        return C.link(self.R, out, objs + list(extra_objs), list(ldflags) + self.ldflags, os.path.dirname(out) or ".")
+        return C.link(self.R, out, objs + list(extra_objs) + list(self.extra_objs), list(ldflags) + self.ldflags, os.path.dirname(out) or ".")
 
     def mixed(self, out, names, hcc_names, ldflags=(), extra_objs=()):
         """Link `names` into out; units in hcc_names come from hcc.  Returns None or a Failure."""
@@ -129,14 +138,16 @@ class Project:
         srcs = [C.file_sha(self.units[n]) for n in names]
         return [label, " ".join(self.flags), self.key, *srcs, *[" ".join(self._extra(n)) for n in names]]
 
-    def full(self, label, names, ldflags=(), jobs=2):
-        """Cached program with every unit built by the compiler under test (hcc objects compile `jobs` at a time)."""
-        key = [C.compiler_fingerprint(self.R, self.cc_argv)] + self._key(label, names) + [" ".join(self.hflags)]
+    def full(self, label, names, ldflags=(), jobs=2, degrade=False):
+        """Cached program with every unit built by the compiler under test.  With degrade=True a unit that fails
+        to compile is replaced by its gcc object, so the program exists whenever it links (the failing unit has its
+        own test); otherwise the first failure is returned."""
+        key = [C.compiler_fingerprint(self.R, self.cc_argv)] + self._key(label, names) + [" ".join(self.hflags), str(degrade)]
 
         def build(out):
             with concurrent.futures.ThreadPoolExecutor(jobs) as ex:
                 list(ex.map(self.hobj, names))  # warm the object cache in parallel; failures are cached too
-            return self._link(out, names, set(names), ldflags)
+            return self._link(out, names, set(names), ldflags, degrade=degrade)
         return C.cached_program(self.R, self.tag + "-hcc", key, build)
 
     def ref(self, label, names, ldflags=()):

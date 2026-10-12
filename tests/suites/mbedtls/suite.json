@@ -1,0 +1,5 @@
+{
+  "description": "Mbed TLS 3.6.2 (release tarball, sha256-pinned, fetched into tests/tools) built by hcc, default config. The upstream unit tests (tests/suites/test_suite_*, generated as tests/Makefile does) are one program per suite: generated test_suite_X.c + 22 helper files + 108 library files. case/<suite>/<n>_<slug>: one test case of the hcc-built program (units hcc cannot compile yet are replaced by their gcc objects), compared with the all-gcc build's status. src/*: one library or helper file by hcc, rest gcc, smoke suites. suite/*: the generated suite file by hcc. manifest.json lists the cases (tests/scripts/gen_mbedtls_manifest.py). Driver: tests/drivers/mbedtls.py",
+  "driver": "mbedtls",
+  "cflags": ["-w"]
+}
