@@ -42,3 +42,32 @@ class RedeclTypesMixin:
             return
         if redecl_conflicts(prev_var.ty, ty):
             self.error(f"conflicting types for '{name}'", loc)
+
+
+def composite_redecl(prev: Type, new: Type, depth: int = 0) -> Type:
+    """Composite type of two compatible declarations of one object (C11 6.2.7p3).
+
+    An incomplete array takes the length of a complete one at any level of
+    pointer/array nesting: `int (*[])[]` and `int (*[])[5]` compose to
+    `int (*[])[5]`. Anything else keeps `prev`."""
+    if depth > 16 or prev is new or prev is None or new is None:
+        return prev
+    if prev.kind == TypeKind.ARRAY and new.kind == TypeKind.ARRAY and prev.base is not None \
+            and new.base is not None:
+        if prev.array_len < 0 and new.array_len >= 0:
+            out = new.copy()
+        elif new.array_len < 0 or prev.array_len >= 0:
+            out = prev.copy()
+        else:
+            return prev
+        out.base = composite_redecl(prev.base, new.base, depth + 1)
+        return out
+    if prev.kind == TypeKind.PTR and new.kind == TypeKind.PTR and prev.base is not None \
+            and new.base is not None:
+        base = composite_redecl(prev.base, new.base, depth + 1)
+        if base is prev.base:
+            return prev
+        out = prev.copy()
+        out.base = base
+        return out
+    return prev

@@ -14,6 +14,7 @@ from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import VarAttr, VarScope
 from hcc.parser.declspec import constexpr_type
 from hcc.sema.compat import is_compatible
+from hcc.parser.redecl_types import composite_redecl, redecl_conflicts
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 from hcc.parser.attributes import mode_type
@@ -87,6 +88,10 @@ class TopLevelMixin:
             unavail = attr.is_unavailable or dattr.is_unavailable
             if attr.is_typedef:
                 ty = self.typedef_aligned(ty, attr, dattr, name.text)
+                prev_td = self.scopes[0].vars.get(name.text)
+                if prev_td is not None and prev_td.type_def is not None \
+                        and redecl_conflicts(prev_td.type_def, ty):
+                    self.error(f"conflicting types for '{name.text}'", name.loc)
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty, unavailable=unavail)
             elif ty.kind == T.TypeKind.FUNC:
                 if attr.is_register or attr.is_tls:
@@ -194,6 +199,7 @@ class TopLevelMixin:
             if ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
                     var.ty.array_len < 0 and ty.kind == T.TypeKind.ARRAY and ty.array_len >= 0:
                 var.ty = ty
+            var.ty = composite_redecl(var.ty, ty)
         var.is_static |= attr.is_static
         var.is_tls |= attr.is_tls
         var.is_weak |= attr.is_weak or dattr.is_weak

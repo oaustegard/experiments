@@ -9,12 +9,17 @@ enclosing block's names; codegen reaches outer locals through a static link
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc.sema.compat import is_compatible
 
 
 class NestedFnMixin:
 
     def nested_function(self, ty, name, attr, dattr) -> None:
         outer = self.fn
+        prior = self.find_var(name.text)
+        if prior is not None and isinstance(prior.var, N.Function) \
+                and not is_compatible(prior.var.ty, self.block_func_composite(ty, name.text)):
+            self.error(f"conflicting types for '{name.text}'", name.loc)
         self.anon_count += 1
         fn = N.Function(name.text, ty, loc=name.loc)
         fn.is_static = True
