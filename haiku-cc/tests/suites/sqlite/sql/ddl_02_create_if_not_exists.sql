@@ -1,0 +1,4 @@
+CREATE TABLE t(a);
+CREATE TABLE IF NOT EXISTS t(a, b);
+CREATE TABLE t(a);
+.tables

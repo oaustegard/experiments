@@ -1,0 +1,4 @@
+CREATE TABLE t(a);
+INSERT INTO t VALUES(9223372036854775807),(1);
+SELECT total(a), typeof(total(a)) FROM t;
+SELECT sum(a) FROM t;

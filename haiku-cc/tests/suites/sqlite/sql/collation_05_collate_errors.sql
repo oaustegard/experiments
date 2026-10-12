@@ -1,0 +1,3 @@
+SELECT 'a' COLLATE nosuchcollation;
+CREATE TABLE t(a COLLATE nosuch);
+SELECT 'a' < 'b' COLLATE BINARY COLLATE NOCASE;

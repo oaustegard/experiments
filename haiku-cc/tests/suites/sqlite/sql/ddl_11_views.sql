@@ -1,0 +1,8 @@
+CREATE TABLE t(a,b);
+INSERT INTO t VALUES(1,'x'),(2,'y'),(3,'z');
+CREATE VIEW v AS SELECT a*2 AS d, b FROM t WHERE a>1;
+SELECT * FROM v;
+CREATE VIEW w(p,q) AS SELECT d, upper(b) FROM v;
+SELECT * FROM w ORDER BY p DESC;
+DROP VIEW v;
+SELECT * FROM w;

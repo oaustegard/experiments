@@ -1,0 +1,6 @@
+CREATE TABLE t(a);
+INSERT INTO t VALUES(1),(2),(3),(4),(5),(6);
+DELETE FROM t WHERE a%2=0;
+SELECT * FROM t;
+DELETE FROM t;
+SELECT count(*) FROM t;

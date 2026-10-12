@@ -1,0 +1,5 @@
+CREATE TABLE t(a INTEGER CHECK(a > 0), b TEXT CHECK(length(b) < 4));
+INSERT INTO t VALUES(1,'abc');
+INSERT INTO t VALUES(0,'abc');
+INSERT INTO t VALUES(1,'abcd');
+SELECT count(*) FROM t;

@@ -1,0 +1,4 @@
+CREATE TABLE a(x); CREATE TABLE b(y);
+INSERT INTO a VALUES(1),(2),(3); INSERT INTO b VALUES('p'),('q');
+SELECT x,y FROM a CROSS JOIN b ORDER BY x,y;
+SELECT count(*) FROM a, a AS a2, a AS a3;
