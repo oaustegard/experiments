@@ -41,6 +41,8 @@ class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, FloatM
             elif isinstance(obj, N.Var):
                 if obj.is_definition and not obj.is_extern:
                     self.emit_data(obj)
+                elif obj.alias_of and not obj.is_definition:
+                    self.emit_alias(obj)
         self.directive('.section .note.GNU-stack,"",@progbits')
         return "\n".join(self.out) + "\n"
 

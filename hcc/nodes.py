@@ -64,6 +64,7 @@ class Var(Obj):
     is_weak: bool = False
     section: str | None = None
     visibility: str | None = None
+    alias_of: str | None = None             # __attribute__((alias("sym")))
 
 
 @dataclass(eq=False)

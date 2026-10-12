@@ -112,6 +112,7 @@ class TopLevelMixin:
         var.asm_name = dattr.asm_name or var.asm_name
         var.section = dattr.section or attr.section or var.section
         var.visibility = dattr.visibility or attr.visibility or var.visibility
+        var.alias_of = dattr.alias or attr.alias or var.alias_of
         al = max(attr.align, dattr.align)
         var.align = max(var.align, al, var.ty.align)
         if not attr.is_extern:
