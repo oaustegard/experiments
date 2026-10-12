@@ -6,6 +6,7 @@ from hcc import diag
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.builtins import builtin_parser
+from hcc.sema.incomplete import is_incomplete_object
 
 
 @builtin_parser("__builtin_va_start")
@@ -41,6 +42,9 @@ def _parse_va_arg(self, tok):
     ap = self.typed(self.assign())
     self.expect(",")
     ty = self.typename()
+    # the second argument must be a complete object type (C11 7.16.1.1p2)
+    if ty.kind == T.TypeKind.VOID or is_incomplete_object(ty):
+        diag.error(tok.loc, f"second argument to 'va_arg' is of incomplete type '{ty}'", "sema")
     # va_arg yields an rvalue; an array type can never be produced by it
     if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):
         diag.error(tok.loc, "invalid use of non-lvalue array")
