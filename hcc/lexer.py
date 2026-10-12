@@ -18,6 +18,7 @@ from __future__ import annotations
 import re
 
 from hcc import diag
+from hcc.ident_ranges import in_c11_identifier_range
 from hcc.tokens import Loc, Token, TokenKind
 
 PUNCTUATORS = [
@@ -99,7 +100,10 @@ _UCN_TAIL_RE = re.compile(r"\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}")
 
 def _xid_ok(c: str, start: bool) -> bool:
     """C23 6.4.2.1 / XID_Start, XID_Continue: may character c begin/continue an identifier."""
-    return c.isidentifier() if start else ("a" + c).isidentifier()
+    if start:
+        return c.isidentifier()
+    # Continuation: XID_Continue, or the C11 Annex D.1 ranges gcc accepts (e.g. `a¾`).
+    return ("a" + c).isidentifier() or in_c11_identifier_range(c)
 
 
 def _split_id(s: str) -> list[tuple[str, str]]:

@@ -128,11 +128,13 @@ class PrimaryMixin:
     def string_var(self, tok):
         """Storage for a string literal. Identical literals in one translation
         unit share one object (GCC merges string constants, so `"Hello" + 1`
-        and `p + 1` with `p = "Hello"` compare equal)."""
+        and `p + 1` with `p = "Hello"` compare equal). Only literals with the same
+        element type are merged: L"\xffffffff" (int) and U"\xffffffff" (unsigned) differ."""
         pool = getattr(self, "_string_pool", None)
         if pool is None:
             pool = self._string_pool = {}
-        key = (tok.ty.size, bytes(tok.value))
+        elem = tok.ty.base
+        key = (tok.ty.size, bytes(tok.value), elem.kind, elem.size, elem.is_unsigned)
         var = pool.get(key)
         if var is None:
             var = self.new_anon_gvar(tok.ty, tok.loc)
