@@ -23,12 +23,14 @@ class PostfixMixin:
     def postfix(self):
         if self.at("(") and self.is_typename(self.peek()):
             save = self.pos
+            allow = self.compound_lit_follows()
+            is_static = allow and self.compound_lit_is_static()
             self.next()
-            ty = self.typename()
+            ty = self.typename(allow_storage=allow)
             self.expect(")")
             if self.at("{"):
                 ty, pre = self.vla_bind(ty, self.tok.loc)
-                return self.postfix_ops(self.vla_prefix(pre, self.compound_literal(ty), self.tok.loc))
+                return self.postfix_ops(self.vla_prefix(pre, self.compound_literal(ty, is_static), self.tok.loc))
             self.pos = save
         return self.postfix_ops(self.primary())
 
@@ -112,9 +114,9 @@ class PostfixMixin:
             node.ret_buffer = self.new_temp(fty.return_ty)
         return self.typed(node)
 
-    def compound_literal(self, ty):
+    def compound_literal(self, ty, is_static=False):
         loc = self.tok.loc
-        if self.fn is None or self.in_static_init:
+        if self.fn is None or self.in_static_init or is_static:   # `static` => static storage
             # Static storage: the literal is itself a static object whose address/value
             # the enclosing constant initializer refers to (see sema/initializers.py).
             var = self.new_anon_gvar(ty, loc)

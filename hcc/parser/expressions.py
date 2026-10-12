@@ -123,8 +123,9 @@ class ExpressionMixin:
     def cast_expr(self):
         if self.at("(") and self.is_typename(self.peek()):
             start = self.pos
+            allow = self.compound_lit_follows()
             loc = self.next().loc
-            ty = self.typename()
+            ty = self.typename(allow_storage=allow)
             self.expect(")")
             if self.at("{"):                      # compound literal
                 self.pos = start
@@ -210,8 +211,9 @@ class ExpressionMixin:
         t = self.next()
         if self.at("(") and self.is_typename(self.peek()):
             start = self.pos
+            allow = self.compound_lit_follows()
             self.next()
-            ty = self.scoped_typename()
+            ty = self.scoped_typename(allow_storage=allow)
             self.expect(")")
             if self.at("{"):
                 self.pos = start

@@ -197,17 +197,54 @@ class DeclaratorMixin:
             self.error("size of array is negative", expr)
         return T.array_of(ty, n)
 
-    def typename(self):
-        ty = self.declspec(None)
+    def typename(self, allow_storage=False):
+        # allow_storage: C23 compound literal `(static int){1}`; storage class
+        # specifiers are otherwise rejected (casts, sizeof, _Alignof).
+        ty = self.declspec(VarAttr() if allow_storage else None)
         return self.abstract_declarator(ty)
 
-    def scoped_typename(self):
+    def compound_lit_follows(self):
+        """At '(' : True if the matching ')' is followed by '{'."""
+        end = self._paren_end()
+        if end is None:
+            return False
+        nxt = self.toks[min(end + 1, len(self.toks) - 1)]
+        return nxt.kind == TokenKind.PUNCT and nxt.text == "{"
+
+    def compound_lit_is_static(self):
+        """At '(' : True if `static` appears directly inside the parens."""
+        end = self._paren_end()
+        if end is None:
+            return False
+        depth = 0
+        for t in self.toks[self.pos:end]:
+            if t.kind == TokenKind.PUNCT and t.text in ("(", "[", "{"):
+                depth += 1
+            elif t.kind == TokenKind.PUNCT and t.text in (")", "]", "}"):
+                depth -= 1
+            elif depth == 1 and t.text == "static":
+                return True
+        return False
+
+    def _paren_end(self):
+        depth = 0
+        for i in range(self.pos, len(self.toks)):
+            t = self.toks[i]
+            if t.kind == TokenKind.PUNCT and t.text in ("(", "[", "{"):
+                depth += 1
+            elif t.kind == TokenKind.PUNCT and t.text in (")", "]", "}"):
+                depth -= 1
+                if depth == 0:
+                    return i
+        return None
+
+    def scoped_typename(self, allow_storage=False):
         """typename() for sizeof/_Alignof/typeof: tags and enumerators declared
         inside the type name are local to it (PR c/67784), so they do not leak
         into the enclosing block scope."""
         self.enter_scope()
         try:
-            return self.typename()
+            return self.typename(allow_storage)
         finally:
             self.leave_scope()
 
