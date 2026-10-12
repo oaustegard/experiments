@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from hcc import nodes as N
 from hcc import typesys as T
+from hcc.parser.addr_operand import is_rvalue_operand
 
 _RMW_OPS = ("add", "sub", "and", "or", "xor", "nand")
 
@@ -42,6 +43,29 @@ ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUI
                    | _LOCK_FREE_NAMES)
 
 
+# Generic (size-taking) forms: index of each pointer operand after the first.
+_GENERIC_PTR_ARGS = {
+    "__atomic_load": (1,), "__atomic_store": (1,), "__atomic_exchange": (1, 2),
+    "__atomic_compare_exchange": (1, 2),
+}
+
+
+def _check_operand_pointers(parser, name, args, tok):
+    """gcc: argument 1 must be a non-void pointer; the other pointer operands of the
+    generic __atomic_* forms must be pointers."""
+    pointee = args[0].ty.base
+    if pointee is None or pointee.unqual().kind is T.TypeKind.VOID or _rvalue_array(args[0]):
+        parser.error(f"argument 1 of '{name}' must be a non-void pointer type", tok)
+    for idx in _GENERIC_PTR_ARGS.get(name, ()):
+        if idx < len(args) and (not T.is_pointer_like(args[idx].ty) or _rvalue_array(args[idx])):
+            parser.error(f"argument {idx + 1} of '{name}' must be a pointer type", tok)
+
+
+def _rvalue_array(node):
+    """An array that is not an lvalue (e.g. a member of a call result) does not decay."""
+    return node.ty.kind is T.TypeKind.ARRAY and is_rvalue_operand(node)
+
+
 def atomic_call(parser, tok):
     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
     name = tok.text
@@ -69,6 +93,7 @@ def atomic_call(parser, tok):
             # gcc (PR 68966): arithmetic/bitwise RMW on _Bool would break its representation.
             parser.error(f"operand type '{args[0].ty.base}' is incompatible with argument 1 "
                          f"of '{name}'", tok)
+        _check_operand_pointers(parser, name, args, tok)
         if name in _VALUE_RET or name in _SYNC_VALUE_RET:
             ty = args[0].ty.base.unqual()
         elif name in _INT_RET or name in _SYNC_INT_RET:
