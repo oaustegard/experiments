@@ -14,6 +14,7 @@ from hcc import nodes as N
 from hcc.sema.arith import _addressed_place, compound_assign, inc_dec, new_add, new_binop, new_sub
 from hcc.sema.bitfield_width import narrow_wide_bitfield_unary
 from hcc.sema.constexpr import eval_const
+from hcc.sema.incomplete import is_incomplete_object
 from hcc.sema.strict_overflow import simplify_mul_div
 from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
@@ -371,3 +372,5 @@ def _check_cast_target(parser, loc, ty) -> None:
         parser.error("cast specifies array type", loc)
     if ty.kind == TypeKind.FUNC:
         parser.error("cast specifies function type", loc)
+    if is_incomplete_object(ty):   # C11 6.5.4p2: the type name must be void or a scalar type
+        parser.error("conversion to incomplete type", loc)
