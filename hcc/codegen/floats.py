@@ -75,9 +75,14 @@ class FloatMixin:
                 self.emit("setp %dl")
                 self.emit("or %dl, %al")
         else:
+            # Ordered relations: fcomip sets CF=1 for unordered (NaN) operands, so
+            # setb/setbe would be true there. '>' and '>=' swap the operands and use
+            # seta/setae, which are false on unordered (CF=1), as C requires.
+            if op in (">", ">="):
+                self.emit("fxch %st(1)")             # st0 = lhs, st1 = rhs
             self.emit("fcomip")
             self.emit("fstp %st(0)")
-            cc = {"<": "seta", "<=": "setae", ">": "setb", ">=": "setbe"}[op]
+            cc = {"<": "seta", "<=": "setae", ">": "seta", ">=": "setae"}[op]
             self.emit(f"{cc} %al")
         self.emit("movzbl %al, %eax")
 
