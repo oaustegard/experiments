@@ -14,6 +14,7 @@ from hcc import nodes as N
 from hcc.sema.arith import _addressed_place, compound_assign, inc_dec, new_add, new_binop, new_sub
 from hcc.sema.bitfield_width import narrow_wide_bitfield_unary
 from hcc.sema.constexpr import eval_const
+from hcc.sema.strict_overflow import simplify_mul_div
 from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
 from hcc.sema.conversions import new_cast
@@ -146,6 +147,8 @@ class ExpressionMixin:
                 continue
             node, rhs = promote_vector_operands(self, t.loc, t.text, node, rhs)
             node = new_binop(t.text, node, rhs, t.loc)
+            if t.text == "/" and not getattr(self.opts, "wrapv", False):
+                node = simplify_mul_div(node, t.loc)  # signed overflow is UB (-fno-wrapv)
             if isinstance(node, N.Binary) and node.ty.is_vector:
                 node.result_buf = self.new_temp(node.ty, t.loc)
 

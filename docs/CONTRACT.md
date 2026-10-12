@@ -195,6 +195,7 @@ hcc/
                        new_cast(), implicit conversion on assign/return/args
     arith.py           new_add/new_sub (pointer arithmetic), compound
                        assignment and ++/-- lowering
+    strict_overflow.py (x*c)/c -> x for signed x (UB overflow); parser applies it unless -fwrapv
     constexpr.py       integer constant evaluation, address constants
     initializers.py    Initializer -> local assignment exprs; Initializer ->
                        static bytes + relocations (GlobalData)

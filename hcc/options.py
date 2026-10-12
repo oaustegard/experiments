@@ -26,6 +26,7 @@ class Options:
     no_asm: bool = False               # -fno-asm (asm/typeof are not keywords)
     plan9_extensions: bool = False     # -fplan9-extensions (`struct S;` member is anonymous)
     short_wchar: bool = False          # -fshort-wchar (wchar_t is unsigned short, L"" units are 16-bit)
+    wrapv: bool = False                # -fwrapv (signed overflow wraps; default -fno-wrapv: undefined)
     linker_args: list[str] = field(default_factory=list)
     keep_temps: bool = False
     dump_ast: bool = False
