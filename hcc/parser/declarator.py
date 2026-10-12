@@ -175,7 +175,8 @@ class DeclaratorMixin:
         return fty
 
     def array_dims(self, ty):
-        while self.at("static") or self.at("const") or self.at("volatile") or self.at("restrict"):
+        while (self.at("static") or self.at("const") or self.at("volatile")
+               or self.at("restrict") or self.at("_Atomic")):
             self.next()
         if self.accept("]"):
             ty = self.type_suffix(ty)
