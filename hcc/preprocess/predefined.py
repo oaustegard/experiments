@@ -29,7 +29,6 @@ PREDEFINED = r"""
 #define __GNUC__ 4
 #define __GNUC_MINOR__ 2
 #define __GNUC_PATCHLEVEL__ 1
-#define __GNUC_STDC_INLINE__ 1
 #define __VERSION__ "hcc 0.1 (gcc 4.2 compatible)"
 #define __x86_64__ 1
 #define __x86_64 1
@@ -331,6 +330,12 @@ def predefined_source(opts) -> str:
     lines = [PREDEFINED, FLOATN_MACROS, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201710L')}"]
     if std.startswith("c"):
         lines.append("#define __STRICT_ANSI__ 1")
+    # gnu89 inline semantics (-fgnu89-inline or C89/gnu89 modes) reflect
+    # __GNUC_GNU_INLINE__; otherwise C99 inline semantics: __GNUC_STDC_INLINE__.
+    if opts.gnu89_inline or std in ("c89", "c90", "gnu89", "gnu90"):
+        lines.append("#define __GNUC_GNU_INLINE__ 1")
+    else:
+        lines.append("#define __GNUC_STDC_INLINE__ 1")
     if STD_VERSIONS.get(std, "") >= "202000L":
         # C23 makes static_assert a keyword (C11/C17 provide it via <assert.h>)
         lines.append("#define static_assert _Static_assert")
