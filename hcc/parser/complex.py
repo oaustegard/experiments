@@ -34,7 +34,8 @@ from hcc.parser.complex_div import recover_division
 from hcc.sema.conversions import common_type, new_cast
 from hcc.typesys import TY_DOUBLE, TypeKind, complex_of, is_flonum, is_integer
 
-_RANK = {TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3}
+_RANK = {TypeKind.FLOAT16: 0, TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3,
+         TypeKind.FLOAT128: 4}
 
 
 def complex_decl_type(p, ty):
