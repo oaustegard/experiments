@@ -14,7 +14,7 @@ def run() -> int:
 
     def target():
         result[0] = main(sys.argv[1:])
-    sys.setrecursionlimit(100000)
+    sys.setrecursionlimit(2000000)
     threading.stack_size(512 * 1024 * 1024)
     t = threading.Thread(target=target)
     t.start()
