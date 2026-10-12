@@ -578,6 +578,11 @@ class BuiltinParseMixin:
         cur = ty
         first = True
         while True:
+            if not first and self.accept("->"):
+                # GCC extension: `arr->m` in offsetof means `arr[0].m`
+                if cur.kind == T.TypeKind.ARRAY:
+                    cur = cur.base
+                first = True
             if first or self.accept("."):
                 first = False
                 name = self.expect_ident()
