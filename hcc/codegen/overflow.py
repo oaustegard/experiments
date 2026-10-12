@@ -19,6 +19,19 @@ class OverflowMixin:
     def builtin_mul_overflow(self, node) -> None:
         self._overflow_op(node, "mul")
 
+    def builtin_mul_overflow_p(self, node) -> None:
+        """Like mul_overflow but only reports whether the product fits the type
+        of the third argument; nothing is stored."""
+        sa = not node.args[0].ty.is_unsigned
+        sb = not node.args[1].ty.is_unsigned
+        for arg in node.args:
+            self.gen_expr(arg)
+            self.push()
+        self.pop("%rcx")     # b
+        self.pop("%rsi")     # a
+        self._exact_mul(sa, sb)
+        self._store_and_check(node.type_arg, store=False)
+
     def _overflow_op(self, node, op: str) -> None:
         sa = not node.args[0].ty.is_unsigned
         sb = not node.args[1].ty.is_unsigned
@@ -78,21 +91,25 @@ class OverflowMixin:
         self.emit(f"add {s}, %rdx")
         self.label(done)
 
-    def _store_and_check(self, T) -> None:
-        """Store low bits of %rax to (%r8); %eax = 1 iff %rdx:%rax does not fit T."""
+    def _store_and_check(self, T, store: bool = True) -> None:
+        """Store low bits of %rax to (%r8) (if store); %eax = 1 iff %rdx:%rax does not fit T."""
         size = T.size if T.size in (1, 2, 4, 8) else 8
         signed = not T.is_unsigned
         if size == 1:
-            self.emit("mov %al, (%r8)")
+            if store:
+                self.emit("mov %al, (%r8)")
             self.emit("movsbq %al, %r9" if signed else "movzbq %al, %r9")
         elif size == 2:
-            self.emit("mov %ax, (%r8)")
+            if store:
+                self.emit("mov %ax, (%r8)")
             self.emit("movswq %ax, %r9" if signed else "movzwq %ax, %r9")
         elif size == 4:
-            self.emit("mov %eax, (%r8)")
+            if store:
+                self.emit("mov %eax, (%r8)")
             self.emit("movslq %eax, %r9" if signed else "movl %eax, %r9d")
         else:
-            self.emit("mov %rax, (%r8)")
+            if store:
+                self.emit("mov %rax, (%r8)")
             self.emit("mov %rax, %r9")
         # The value fits iff its sign/zero extension equals the exact result.
         self.emit("xor %r11d, %r11d")
