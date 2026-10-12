@@ -16,6 +16,9 @@ class NestedFnMixin:
 
     def nested_function(self, ty, name, attr, dattr) -> None:
         outer = self.fn
+        if attr.is_weak or dattr.is_weak:
+            # a nested function has no linkage (it is internal), so it cannot be weak
+            self.error(f"weak declaration of '{name.text}' must be public", name)
         prior = self.find_var(name.text)
         if prior is not None and isinstance(prior.var, N.Function) \
                 and not is_compatible(prior.var.ty, self.block_func_composite(ty, name.text)):

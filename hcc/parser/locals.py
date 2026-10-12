@@ -151,6 +151,9 @@ class LocalDeclMixin:
                 var = self.declare_global_var(ty, name, attr, dattr)
                 self.push_scope_entry(name.text).var = var
                 continue
+            if (attr.is_weak or dattr.is_weak) and not attr.is_extern:
+                # block-scope objects have no linkage, so they cannot be weak
+                self.error(f"weak declaration of '{name.text}' must be public", name)
             if attr.is_static:
                 check_redecl(self, self.scopes[-1], name, "var")
                 self.anon_count += 1
