@@ -168,6 +168,8 @@ class DeclSpecMixin:
             if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "__label__"):
                 self.next()
                 is_const |= s in ("const", "constexpr")  # C23 constexpr objects are const
+                if s == "constexpr" and attr is not None:
+                    attr.is_constexpr = True
                 is_volatile |= s == "volatile"
                 continue
             if s == "_Atomic":

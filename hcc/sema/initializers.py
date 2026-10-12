@@ -163,8 +163,10 @@ def _write_le(init, ty, gd, offset) -> None:
 
 
 def _static_compound_literal(expr):
-    """File-scope compound literal used as a static initializer: its GlobalData, else None."""
-    if isinstance(expr, N.VarRef) and not getattr(expr.var, "is_local", False):
+    """File-scope compound literal used as a static initializer: its GlobalData, else None.
+    A C23 constexpr object (also block-scope) is a constant too: its bytes are copied."""
+    if isinstance(expr, N.VarRef) and (not getattr(expr.var, "is_local", False)
+                                       or getattr(expr.var, "is_constexpr", False)):
         src = getattr(expr.var, "init_data", None)
         if src is not None:
             return src

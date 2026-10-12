@@ -155,6 +155,7 @@ hcc/
     arith.py           new_add/new_sub (pointer arithmetic), compound
                        assignment and ++/-- lowering
     constexpr.py       integer constant evaluation, address constants
+    constexpr_cx.py    C23 constexpr temps: their initializing stores may be skipped when folding
     initializers.py    Initializer -> local assignment exprs; Initializer ->
                        static bytes + relocations (GlobalData)
     compat.py          type compatibility (is_compatible)

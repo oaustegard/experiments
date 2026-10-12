@@ -16,6 +16,7 @@ from hcc.floatbits import pack_float32
 from hcc.typesys import TypeKind, is_flonum, is_integer, round_to_half
 from hcc.sema.constexpr_math import fold_int_call, fold_math_call
 from hcc.sema.constexpr_rel import fold_rel_equal
+from hcc.sema.constexpr_cx import is_cx_init as _is_cx_init
 
 
 class NotConstant(Exception):
@@ -219,7 +220,8 @@ def _eval(node):
     if t is N.Cond:
         return _eval(node.then) if _num(node.cond) else _eval(node.els)
     if t is N.Comma:
-        _eval(node.lhs)          # must itself be constant, else folding would drop its side effects
+        if not _is_cx_init(node.lhs):
+            _eval(node.lhs)      # must itself be constant, else folding would drop its side effects
         return _eval(node.rhs)
     if t is N.Cast:
         if is_flonum(node.operand.ty) and is_integer(node.ty):
@@ -337,18 +339,20 @@ _CMP_OPS = ("==", "!=", "<", "<=", ">", ">=")
 def _const_var_value(var) -> int:
     """GCC extension: a const-qualified, non-volatile integer global (or a scalar compound
     literal in a static initializer) whose initializer is a plain number folds to that
-    number when read (e.g. `static const int le = 1;`)."""
+    number when read (e.g. `static const int le = 1;`). C23 `constexpr` objects (also
+    block-scope ones, and null pointers) are constants too."""
     ty = var.ty
-    if getattr(var, "is_local", False):             # block-scope const, see parser/initializers.py
-        if getattr(var, "const_value", None) is None:
-            raise NotConstant
-        return wrap(var.const_value, ty)
+    cx = getattr(var, "is_constexpr", False)
+    if getattr(var, "is_local", False) and getattr(var, "const_value", None) is not None:
+        return wrap(var.const_value, ty)            # block-scope const, see parser/initializers.py
     data = getattr(var, "init_data", None)
     if data is None or data.relocs:
         raise NotConstant
+    if ty.kind == TypeKind.PTR and cx and not ty.is_volatile:
+        return int.from_bytes(bytes(data.data[:8]), "little")
     if not is_integer(ty) or ty.is_volatile:
         raise NotConstant
-    if not (ty.is_const or getattr(var, "is_compound_literal", False)):
+    if not (ty.is_const or cx or getattr(var, "is_compound_literal", False)):
         raise NotConstant
     raw = int.from_bytes(bytes(data.data[:ty.size]), "little")
     return wrap(raw, ty)
@@ -359,16 +363,21 @@ def _const_member_value(node) -> int:
     global with a plain-number initializer folds to the member's value. Bitfields and
     anything else raise NotConstant."""
     off, base = 0, node
-    while type(base) is N.Member_:
-        if base.member.is_bitfield or base.operand.ty is None:
-            raise NotConstant
-        off += base.member.offset
-        base = base.operand
-    if type(base) is not N.VarRef or getattr(base.var, "is_local", False):
+    while True:
+        if type(base) is N.Comma and _is_cx_init(base.lhs):   # (constexpr T){...}.m
+            base = base.rhs
+        elif type(base) is N.Member_:
+            if base.member.is_bitfield or base.operand.ty is None:
+                raise NotConstant
+            off += base.member.offset
+            base = base.operand
+        else:
+            break
+    if type(base) is not N.VarRef:
         raise NotConstant
     var = base.var
     data = getattr(var, "init_data", None)
-    if data is None or data.relocs or var.ty.is_volatile or not var.ty.is_const:
+    if data is None or data.relocs or var.ty.is_volatile or not (var.ty.is_const or var.is_constexpr):
         raise NotConstant
     ty = node.ty
     if off < 0 or off + ty.size > len(data.data):

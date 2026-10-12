@@ -104,6 +104,7 @@ class TopLevelMixin:
             else:
                 check_redecl(self, self.scopes[0], name, "var")
                 var = self.declare_global_var(ty, name, attr, dattr)
+                var.is_constexpr = attr.is_constexpr
                 if self.accept("="):
                     self.global_initializer(var)
                     var.is_definition = True

@@ -57,12 +57,39 @@ class InitializerMixin:
         return init, ty
 
     def local_initializer(self, var) -> N.Expr:
+        if var.is_constexpr:
+            return self.constexpr_local_initializer(var)
         init, ty = self.parse_initializer(var.ty)
         var.ty = ty
         if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
             # GCC folds `const int a = 0;` when it is read in a constant initializer.
             var.const_value = try_eval_const(init.expr)
         return lower_local_init(init, var, self.typed)
+
+    def constexpr_local_initializer(self, var) -> N.Expr:
+        """C23 `constexpr` block-scope object: the initializer must be constant, so its
+        bytes are kept in var.init_data (read by sema/constexpr.py) and it is also
+        lowered to ordinary stores at run time."""
+        saved = self.in_static_init
+        self.in_static_init = True
+        try:
+            init, ty = self.parse_initializer(var.ty)
+        finally:
+            self.in_static_init = saved
+        var.ty = ty
+        var.init_data = serialize_global_init(init, ty)
+        if (T.is_integer(ty) or ty.kind == T.TypeKind.PTR) and init.expr is not None:
+            var.const_value = try_eval_const(init.expr)
+        return lower_local_init(init, var, self.typed)
+
+    def constexpr_value(self, var, expr) -> None:
+        """Record the constant value of a C23 constexpr object whose initializer is the
+        expression `expr` (used by `auto constexpr x = expr;`)."""
+        init = new_initializer(var.ty, False)
+        init.expr = expr
+        var.init_data = serialize_global_init(init, var.ty)
+        if (T.is_integer(var.ty) or var.ty.kind == T.TypeKind.PTR):
+            var.const_value = try_eval_const(expr)
 
     def global_initializer(self, var) -> None:
         saved = self.in_static_init
@@ -191,7 +218,7 @@ class InitializerMixin:
             return
         init.expr = self.typed(self.assign())
         if init.ty.is_complex or init.expr.ty.is_complex:
-            if self.fn is None:
+            if self.fn is None or self.in_static_init:   # static storage or constexpr object
                 CC.set_global_init(self, init)
             else:
                 init.expr = CPX.convert(self, init.expr, init.ty, init.expr.loc)

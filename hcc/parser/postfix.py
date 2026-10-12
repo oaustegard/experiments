@@ -43,6 +43,7 @@ class PostfixMixin:
             allow = self.compound_lit_follows()
             is_tls = allow and self.compound_lit_is_static(("_Thread_local",))
             is_static = allow and (is_tls or self.compound_lit_is_static())
+            is_cx = allow and self.compound_lit_is_static(("constexpr",))
             self.next()
             ty = self.typename(allow_storage=allow)
             self.expect(")")
@@ -50,7 +51,7 @@ class PostfixMixin:
                 if _array_chain_is_vla(ty):
                     self.error("compound literal has variable size", self.tok)
                 ty, pre = self.vla_bind(ty, self.tok.loc)
-                lit = self.compound_literal(ty, is_static, is_tls)
+                lit = self.compound_literal(ty, is_static, is_tls, is_cx)
                 return self.postfix_ops(self.vla_prefix(pre, lit, self.tok.loc))
             self.pos = save
         return self.postfix_ops(self.primary())
@@ -165,17 +166,19 @@ class PostfixMixin:
             node.ret_buffer = self.new_temp(fty.return_ty)
         return self.typed(node)
 
-    def compound_literal(self, ty, is_static=False, is_tls=False):
+    def compound_literal(self, ty, is_static=False, is_tls=False, is_cx=False):
         loc = self.tok.loc
         if self.fn is None or self.in_static_init or is_static:   # `static` => static storage
             # Static storage: the literal is itself a static object whose address/value
             # the enclosing constant initializer refers to (see sema/initializers.py).
             var = self.new_anon_gvar(ty, loc)
             var.is_compound_literal = True
+            var.is_constexpr = is_cx
             var.is_tls = is_tls                 # `thread_local` => per-thread storage
             self.global_initializer(var)
             return self.typed(N.VarRef(loc, var))
         var = self.new_temp(ty, loc)
+        var.is_constexpr = is_cx
         init = self.local_initializer(var)
         return self.typed(N.Comma(loc, init, self.typed(N.VarRef(loc, var)), lvalue=True))
 

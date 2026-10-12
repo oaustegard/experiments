@@ -14,6 +14,7 @@ from hcc.parser.scope import VarAttr
 from hcc.parser.attributes import mode_type
 from hcc.parser.redecl import check_redecl
 from hcc.parser.toplevel import is_incomplete_object
+from hcc.sema.constexpr import try_eval_const
 
 # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
 GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
@@ -51,7 +52,13 @@ class LocalDeclMixin:
                 ty = e.ty
                 if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):   # arrays decay (VLAs too)
                     ty = T.pointer_to(ty.base)
+                if attr.is_constexpr:           # `auto constexpr x = e;` is const
+                    ty = ty.copy()
+                    ty.is_const = True
                 var = self.new_lvar(name.text, ty, name.loc)
+                if attr.is_constexpr:
+                    var.is_constexpr = True
+                    self.constexpr_value(var, e)
                 items.append(N.ExprStmt(name.loc, self.typed(N.Assign(name.loc, self.typed(N.VarRef(name.loc, var)), e))))
                 continue
             ty, name = self.declarator(basety)
@@ -99,7 +106,7 @@ class LocalDeclMixin:
                 self.anon_count += 1
                 var = N.Var(f"{name.text}.{self.anon_count}", ty, is_static=True, loc=name.loc,
                             is_definition=True, align=max(attr.align, dattr.align) or ty.align,
-                            is_tls=attr.is_tls)
+                            is_tls=attr.is_tls, is_constexpr=attr.is_constexpr)
                 self.objs.append(var)
                 self.push_scope_entry(name.text).var = var
                 if self.accept("="):
@@ -130,6 +137,7 @@ class LocalDeclMixin:
             check_redecl(self, self.scopes[-1], name, "var", block_obj=True)
             var = self.new_lvar(name.text, ty, name.loc)
             var.is_register = attr.is_register
+            var.is_constexpr = attr.is_constexpr
             reg = (dattr.asm_name or "").lstrip("%")
             if reg in GP64_REGS and self.fn is not None:
                 # Register-bound local: its value is the register's contents at function entry.
