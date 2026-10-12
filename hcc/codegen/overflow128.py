@@ -12,6 +12,7 @@ does not fit.
 from __future__ import annotations
 
 from hcc.codegen.overflow_narrow import narrow_fit_check
+from hcc.codegen.overflow128_mul import emit_mul128
 
 
 class Overflow128Mixin:
@@ -28,14 +29,17 @@ class Overflow128Mixin:
         self.pop128_args()               # b -> %rsi:%rdi, a -> %rdx:%rax
         if store:
             self.pop("%r8")
-        if op == "add":
-            self.emit("add %rdi, %rax")
-            self.emit("adc %rsi, %rdx")
+        if op == "mul":
+            emit_mul128(self, dom_signed)    # %rdx:%rax wrapped, %ecx = flag
         else:
-            self.emit("sub %rdi, %rax")
-            self.emit("sbb %rsi, %rdx")
-        self.emit("seto %cl" if dom_signed else "setc %cl")
-        self.emit("movzbl %cl, %ecx")    # %ecx = domain overflow flag
+            if op == "add":
+                self.emit("add %rdi, %rax")
+                self.emit("adc %rsi, %rdx")
+            else:
+                self.emit("sub %rdi, %rax")
+                self.emit("sbb %rsi, %rdx")
+            self.emit("seto %cl" if dom_signed else "setc %cl")
+            self.emit("movzbl %cl, %ecx")    # %ecx = domain overflow flag
         if T.size == 16:
             self.emit("xor %r11d, %r11d")
             if T.is_unsigned and dom_signed:

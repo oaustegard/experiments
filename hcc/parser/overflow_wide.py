@@ -34,8 +34,6 @@ def _unsigned_operand(a) -> bool:
 def wide_overflow_operands(parser, name: str, args, res_ty):
     if not (any(_is_i128(a.ty) for a in args) or _is_i128(res_ty)):
         return None
-    if name == "mul":
-        parser.error("__builtin_mul_overflow with __int128 operands is not supported")
     all_unsigned = all(_unsigned_operand(a) for a in args)
     if all_unsigned and any(_is_i128(a.ty) for a in args):
         dom = T.TY_UINT128
