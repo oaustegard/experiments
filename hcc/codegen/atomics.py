@@ -126,6 +126,24 @@ class AtomicMixin:
         self.emit(f"xchg{s} {c}, (%rdi)")
         self.emit(f"mov{s} {c}, (%rdx)")
 
+    def _sync_cas(self, node, want_value: bool) -> None:
+        """__sync_(bool|val)_compare_and_swap(p, old, new): old is a value, not a pointer."""
+        sz, signed = self._atomic_size(node)
+        s, a, d = _SUF[sz], _r("a", sz), _r("d", sz)
+        self._gen_args(node.args[:3], ["%rdi", "%rsi", "%rdx"])
+        self.emit(f"mov{s} {_r('si', sz)}, {a}")
+        self.emit(f"lock cmpxchg{s} {d}, (%rdi)")
+        if want_value:
+            self._extend_rax(sz, signed)
+        else:
+            self.emit("sete %al")
+            self.emit("movzbl %al, %eax")
+
+    def _sync_release(self, node) -> None:
+        sz, _ = self._atomic_size(node)
+        self.gen_expr(node.args[0])
+        self.emit(f"mov{_SUF[sz]} $0, (%rax)")
+
     # ---- dispatch targets: builtin_<node.name> ---------------------------
     def builtin_atomic_fetch_add(self, node) -> None: self._rmw(node, "add", True)
     def builtin_atomic_fetch_sub(self, node) -> None: self._rmw(node, "sub", True)
@@ -153,3 +171,21 @@ class AtomicMixin:
 
     def builtin_atomic_signal_fence(self, node) -> None:
         pass
+
+    # __sync_* (legacy gcc intrinsics)
+    def builtin_sync_fetch_and_add(self, node) -> None: self._rmw(node, "add", True)
+    def builtin_sync_fetch_and_sub(self, node) -> None: self._rmw(node, "sub", True)
+    def builtin_sync_fetch_and_and(self, node) -> None: self._rmw(node, "and", True)
+    def builtin_sync_fetch_and_or(self, node) -> None: self._rmw(node, "or", True)
+    def builtin_sync_fetch_and_xor(self, node) -> None: self._rmw(node, "xor", True)
+    def builtin_sync_fetch_and_nand(self, node) -> None: self._rmw(node, "nand", True)
+    def builtin_sync_add_and_fetch(self, node) -> None: self._rmw(node, "add", False)
+    def builtin_sync_sub_and_fetch(self, node) -> None: self._rmw(node, "sub", False)
+    def builtin_sync_and_and_fetch(self, node) -> None: self._rmw(node, "and", False)
+    def builtin_sync_or_and_fetch(self, node) -> None: self._rmw(node, "or", False)
+    def builtin_sync_xor_and_fetch(self, node) -> None: self._rmw(node, "xor", False)
+    def builtin_sync_nand_and_fetch(self, node) -> None: self._rmw(node, "nand", False)
+    def builtin_sync_bool_compare_and_swap(self, node) -> None: self._sync_cas(node, False)
+    def builtin_sync_val_compare_and_swap(self, node) -> None: self._sync_cas(node, True)
+    def builtin_sync_lock_test_and_set(self, node) -> None: self._exchange_n(node)
+    def builtin_sync_lock_release(self, node) -> None: self._sync_release(node)
