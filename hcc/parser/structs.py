@@ -295,10 +295,13 @@ def _layout_dyn_tail(ty, m, bits: int, align: int) -> None:
         diag.error(m.tok, "variably modified member must be the last member of a struct", "parse")
     if T.is_dyn_struct(m.ty):
         diag.error(m.tok, "unsupported: struct with variably modified member nested in a struct", "parse")
-    if ty.is_packed or ty.is_ms_struct or ty.is_reverse_sso:
+    if ty.is_ms_struct or ty.is_reverse_sso:
         diag.error(m.tok, "unsupported: variably modified member in packed or reversed struct", "parse")
     elem = m.ty.base
-    m.align = max(m.explicit_align, elem.align)     # a VLA's own align is its slot size
+    if ty.is_packed or m.is_packed:     # packed drops natural alignment; explicit aligned(N) still applies
+        m.align = m.explicit_align or 1
+    else:
+        m.align = max(m.explicit_align, elem.align)     # a VLA's own align is its slot size
     off = T.align_to(bits // 8, m.align)
     m.offset = off
     ty.dyn_tail = m.ty
