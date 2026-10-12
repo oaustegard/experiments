@@ -215,8 +215,12 @@ class TopLevelMixin:
                 self.error(f"conflicting types for '{name.text}'", name.loc)
             self.check_proto_after_knr_def(fn, ty, name)
             # C11 6.2.2p7: a file-scope `static` declaration may not follow a
-            # declaration with external linkage (a previous non-static one).
-            if len(self.scopes) == 1 and (attr.is_static or dattr.is_static) and not fn.is_static:
+            # declaration with external linkage (a previous non-static one). A gnu89
+            # `extern inline` body (body kept, is_definition False) has no external
+            # symbol, so GCC accepts a `static` redeclaration after it.
+            gnu89_inline_only = fn.body is not None and not fn.is_definition
+            if len(self.scopes) == 1 and (attr.is_static or dattr.is_static) and not fn.is_static \
+                    and not gnu89_inline_only:
                 self.error(f"static declaration of '{name.text}' follows non-static declaration", name.loc)
             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
