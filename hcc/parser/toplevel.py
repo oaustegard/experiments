@@ -108,6 +108,8 @@ class TopLevelMixin:
                     self.global_initializer(var, is_constexpr=attr.is_constexpr)
                     var.is_definition = True
                     var.is_tentative = False
+                else:
+                    self.check_c23_incomplete_global(ty, name, attr)
             if self.accept(";"):
                 return
 
@@ -214,6 +216,18 @@ class TopLevelMixin:
                     if o.ty.kind == T.TypeKind.ARRAY and o.ty.array_len < 0:
                         o.ty = T.array_of(o.ty.base, 1)
                     self.check_global_complete(o)
+
+    def check_c23_incomplete_global(self, ty, name, attr) -> None:
+        """C23 (as GCC): a file-scope `static` or `thread_local` object without
+        an initializer is not a tentative definition, so an incomplete array
+        type there is an error instead of an implicit one-element array."""
+        if attr.is_extern or ty.kind != T.TypeKind.ARRAY or ty.array_len >= 0:
+            return
+        if not self.c23_mode() or not (attr.is_static or attr.is_tls):
+            return
+        if attr.is_static:
+            self.error(f"array size missing in '{name.text}'", name.loc)
+        self.error(f"storage size of '{name.text}' isn't known", name.loc)
 
     def check_global_complete(self, var) -> None:
         """A file-scope object defined without an initializer must have a
