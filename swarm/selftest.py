@@ -6,7 +6,8 @@ Builds a git repo in a temp dir with a fake tests/run.py (a test passes iff
 hcc/_fake_fixes/<suite>__<name> exists) and this swarm/ copied in, then drives
 run.py --fake through every gate path and asserts the ledger outcome:
 fix -> merged, tests/ edit -> rejected, noop -> failed, break -> rejected by
-the gate sample or reverted by the full refresh, two conflicting candidates -> one merged.
+the gate sample or reverted by the full refresh, two conflicting candidates -> one merged,
+two candidates with conflicting doc edits -> both merged.
 """
 
 from __future__ import annotations
@@ -123,6 +124,10 @@ def main(argv: list[str] | None = None) -> int:
     if not ok:
         failures.append("conflict")
         print(out[-2000:])
+    out = run(root, wt, "--fake-mode", "docs", "--max-workers", "2", "--concurrency", "2",
+              "--batch", "2", "--poll", "2", "--full-every", "99")
+    check("conflicting doc edits -> both merged (code only for one)", out,
+          {"w00008": "merged", "w00009": "merged"})
     log = sh(root, "git", "log", "--format=%an %s")
     if "Oskar Austegard" not in log:
         failures.append("author")

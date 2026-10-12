@@ -18,12 +18,16 @@ You are one worker in a swarm of small agents building **hcc**, a C11 compiler w
 4. **Find the owning module** (CONTRACT.md + `Grep`). Read only the files you need.
 5. **Make the minimal GENERAL fix** in `hcc/`. It must implement the C semantics properly for every program, not just this test.
    - NEVER special-case a test name, file name, a specific constant or a specific identifier from the test.
-   - NEVER edit anything under `tests/` or `swarm/`, nor `docs/CONTRACT.md`. Edits there are rejected automatically.
+   - NEVER edit anything under `tests/` or `swarm/`. Edits there are rejected automatically.
+   - Add a selftest reproducing the bug: `hcc/selftest/<area>_<what>.c` with the `// EXPECT-...` header described in CONTRACT.md (section 9). Make it a minimal program, not a copy of the test-suite file.
+   - Docs: you may add a line to the module map in `docs/CONTRACT.md` (only if you created a new file) or to `docs/STATUS.md`. Do not rewrite other parts of the contract. Doc edits that conflict with other workers' edits are dropped, so keep them to one or two lines.
+   - Ignore CONTRACT.md's "commit" instructions: you never commit; the orchestrator does.
    - Keep to the existing style and interfaces. If a file would pass 600 lines, put the new concern in a new module next to it and say so in notes.
    - If you discover a bigger missing feature, implement the smallest coherent piece of it that fixes your tests, cleanly.
 6. **Verify.** Re-run your representative tests (they should now PASS), then the smoke suite against your baseline:
    `python3 tests/run.py --suite smoke --jobs 2 --quiet --baseline /tmp/<task id>/smoke_before.json`
-   It must report no regressions (no test that passed before may fail now). If it does, fix that before finishing. If you also tried the "other cluster members" listed in the task, note which now pass.
+   It must report no regressions (no test that passed before may fail now). If it does, fix that before finishing.
+   Also run the selftests of the area you touched: `python3 -m hcc.selftest -k <area> -j 2` (all must pass). If you also tried the "other cluster members" listed in the task, note which now pass.
 7. **Write the result JSON** to the out path given in the task (it is outside your worktree; use the Write tool) and stop:
    ```json
    {"status": "fixed | partial | failed",

@@ -10,6 +10,7 @@ out JSON. Modes (default from env SWARM_FAKE_MODE, else "fix"):
   break  like fix, but also delete one existing fix marker (a regression)
   tests  edit a file under tests/ (must be rejected by the gate)
   conflict  like fix, plus write hcc/_fake_conflict.txt (two of these conflict)
+  docs   like fix, plus write docs/STATUS.md (two of these conflict on docs only)
 """
 
 from __future__ import annotations
@@ -42,7 +43,11 @@ def main(argv: list[str] | None = None) -> int:
     if mode == "conflict":
         (a.cwd / "hcc" / "_fake_conflict.txt").write_text(task["id"] + "\n")
         changed.append("hcc/_fake_conflict.txt")
-    if mode in ("fix", "break", "conflict"):
+    if mode == "docs":
+        (a.cwd / "docs").mkdir(exist_ok=True)
+        (a.cwd / "docs" / "STATUS.md").write_text(f"done by {task['id']}\n")
+        changed.append("docs/STATUS.md")
+    if mode in ("fix", "break", "conflict", "docs"):
         fixdir.mkdir(parents=True, exist_ok=True)
         for t in tests:
             p = fixdir / t.replace("/", "__")

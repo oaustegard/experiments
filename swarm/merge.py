@@ -3,8 +3,9 @@
     python3 swarm/merge.py TASK_ID [TASK_ID ...]     gate these finished workers
     python3 swarm/merge.py --refresh                 full-suite baseline (+ bisect/revert)
 
-Per candidate: diff its worktree against its base commit (only hcc/ and
-docs/notes/ are taken; any edit under tests/ rejects the candidate), 3-way
+Per candidate: diff its worktree against its base commit (hcc/ must apply;
+edits to docs/CONTRACT.md, docs/STATUS.md, docs/notes/ are applied best effort
+and dropped on conflict; any edit under tests/ or swarm/ rejects the candidate), 3-way
 apply onto current main in the gate worktree (wt_root/_gate), commit it with
 the worker's root_cause as message. Up to ctx.batch candidates are stacked and
 tested together:
@@ -25,6 +26,7 @@ if __name__ == "__main__":
     import _boot  # noqa: F401
 
 import argparse
+import re
 import sys
 import time
 from pathlib import Path
@@ -33,7 +35,9 @@ from swarm import testrun as tr
 from swarm.common import (Ctx, GitError, add_worktree, append_jsonl, git, head, ledger, ledger_put,
                           link_untracked_suites, log, read_json, read_jsonl, write_json)
 
-ALLOWED = ("hcc/", "docs/notes/")       # paths a worker may change
+CODE = ("hcc/",)                        # a worker's real change; must apply cleanly
+DOCS = ("docs/CONTRACT.md", "docs/STATUS.md", "docs/notes/")  # best effort: dropped on conflict
+ALLOWED = CODE + DOCS
 FORBIDDEN = ("tests/", "swarm/")        # touching these rejects the candidate
 JUNK = ("__pycache__/", ".pyc")
 MAX_MAIN_RACES = 3
@@ -58,7 +62,7 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
     if bad:
         return "", changed, f"edited forbidden paths: {', '.join(bad[:5])}"
     files = [f for f in changed if f.startswith(ALLOWED) and not any(j in f for j in JUNK)]
-    if not files:
+    if not any(f.startswith(CODE) for f in files):
         return "", changed, "empty diff (no changes under hcc/)"
     # --no-renames: a rename would list only the new path and drop the deletion
     patch = git(wt, "diff", "--cached", "--no-renames", "--binary", rec["base"], "--", *files)
@@ -81,10 +85,28 @@ def prepare_gate(ctx: Ctx, commit: str) -> Path:
     return g
 
 
+def split_patch(patch: str) -> tuple[str, str]:
+    """(code part, docs part) of a git diff, split per file."""
+    code, docs = [], []
+    for chunk in re.split(r"(?m)^(?=diff --git )", patch):
+        if chunk.strip():
+            m = re.match(r"diff --git a/(\S+)", chunk)
+            (docs if m and m.group(1).startswith(DOCS) else code).append(chunk)
+    return "".join(code), "".join(docs)
+
+
 def commit_patch(ctx: Ctx, g: Path, rec: dict, patch: str) -> str | None:
-    """Apply + commit in the gate tree; returns the new sha or None on conflict."""
+    """Apply + commit in the gate tree; returns the new sha or None on conflict.
+    Doc edits go first and are dropped (not fatal) if they conflict."""
+    code, docs = split_patch(patch)
+    if docs:
+        try:
+            git(g, "apply", "--3way", "--index", "--whitespace=nowarn", "-", input=docs)
+        except GitError:
+            git(g, "reset", "--hard", "-q")
+            log(f"note   {rec['id']}: doc edits conflict with main; merging code only")
     try:
-        git(g, "apply", "--3way", "--index", "--whitespace=nowarn", "-", input=patch)
+        git(g, "apply", "--3way", "--index", "--whitespace=nowarn", "-", input=code)
     except GitError as e:
         git(g, "reset", "--hard", "-q")
         errs = [x for x in str(e).splitlines() if x.startswith("error:")]

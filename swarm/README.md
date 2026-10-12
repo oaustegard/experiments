@@ -36,8 +36,9 @@ candidates per gate run), `--sample` (150), `--full-every` (25 merges), `--suite
    `{status: fixed|partial|failed, test_ids_fixed, files_changed, root_cause, notes}`.
 4. **Reap**: cost/turns/denials come from the runner's `ledger.jsonl`. Only `fixed` goes to
    the gate; `partial`/`failed` are recorded (their notes feed the next attempt).
-5. **Gate** (`merge.merge_batch`, serial): diff the worktree vs its base (only `hcc/` and
-   `docs/notes/`; any `tests/` or `swarm/` edit rejects), `git apply --3way` onto main in
+5. **Gate** (`merge.merge_batch`, serial): diff the worktree vs its base (`hcc/` must apply;
+   `docs/CONTRACT.md`, `docs/STATUS.md`, `docs/notes/` best effort, dropped on conflict;
+   any `tests/` or `swarm/` edit rejects), `git apply --3way` onto main in
    `/home/user/haiku-cc-wt/_gate`, commit (subject = root_cause, author Oskar Austegard).
    Up to `--batch` candidates are stacked and tested once: smoke + each candidate's targets
    (≤20 cluster members) + a fixed sample of known-passing tests (seeded by the baseline
