@@ -10,6 +10,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
+from hcc.sema.constexpr import try_eval_const
 from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_integer, is_numeric, pointer_to)
 
 
@@ -81,8 +82,18 @@ def _assign(n: N.Assign):
     n.ty = lt
 
 
+def _is_null_const(node) -> bool:
+    """True for an integer constant expression 0 (possibly cast to a pointer)."""
+    return (is_integer(node.ty) or node.ty.kind == TypeKind.PTR) and try_eval_const(node) == 0
+
+
+def _func_decay(t):
+    """A function designator decays to a pointer to that function."""
+    return pointer_to(t) if t.kind == TypeKind.FUNC else t
+
+
 def _cond(n: N.Cond):
-    a, b = n.then.ty, n.els.ty
+    a, b = _func_decay(n.then.ty), _func_decay(n.els.ty)
     if a.kind == TypeKind.VOID or b.kind == TypeKind.VOID:
         n.ty = TY_VOID
     elif is_numeric(a) and is_numeric(b):
@@ -90,15 +101,17 @@ def _cond(n: N.Cond):
         n.ty = n.then.ty
     elif a.kind in (TypeKind.STRUCT, TypeKind.UNION):
         n.ty = a
-    elif a.base is not None or a.kind == TypeKind.FUNC:
-        if b.base is not None and a.base is not None and a.base.kind == TypeKind.VOID:
-            n.ty = pointer_to(a.base)
+    elif a.base is not None or b.base is not None:
+        if a.base is not None and b.base is not None and _is_null_const(n.els):
+            n.ty = a  # a null pointer constant takes the other operand's type
+        elif a.base is not None and b.base is not None and _is_null_const(n.then):
+            n.ty = b
+        elif a.base is not None and a.base.kind == TypeKind.VOID:
+            n.ty = a
         elif b.base is not None and b.base.kind == TypeKind.VOID:
-            n.ty = pointer_to(b.base)
+            n.ty = b
         else:
-            n.ty = pointer_to(a.base) if a.base is not None else pointer_to(a)
-    elif b.base is not None or b.kind == TypeKind.FUNC:
-        n.ty = pointer_to(b.base) if b.base is not None else pointer_to(b)
+            n.ty = a if a.base is not None else b
     else:
         n.ty = a
 
