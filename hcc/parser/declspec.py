@@ -10,6 +10,7 @@ yield OTHER.
 """
 from __future__ import annotations
 
+from hcc import nodes as N
 from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
 from hcc.parser.scope import VarAttr
@@ -274,6 +275,9 @@ class DeclSpecMixin:
             node = self.expr()
             add_type(node)
             ty = node.ty
+            if isinstance(node, N.Member_) and node.member.is_bitfield:
+                # C: typeof/typeof_unqual of a bit-field member is a constraint violation.
+                self.error("'typeof' applied to a bit-field")
             if _has_vla_type(ty):
                 # typeof(vm-expr) evaluates expr; locals.py emits it as a statement.
                 self.vm_typeof.append(node)
