@@ -82,7 +82,12 @@ class LocalDeclMixin:
                 size = self.vla_size_expr(ty, name.loc)
                 items.append(N.VLAAlloc(name.loc, var, self.vla_block_slot(), size))
                 if self.accept("="):
-                    self.error("variable-sized object may not be initialized", name)
+                    # Only empty braces are allowed (zero-filled), as GCC does.
+                    if not (self.at("{") and self.peek().text == "}"):
+                        self.error("variable-sized object may not be initialized", name)
+                    self.next()
+                    self.next()
+                    items.append(N.VLAZero(name.loc, var, self.vla_size_expr(ty, name.loc)))
                 continue
             if ty.kind == T.TypeKind.PTR:          # `int (*p)[n];` evaluates n here
                 ty, pre = self.vla_bind(ty, name.loc)

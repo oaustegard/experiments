@@ -282,6 +282,13 @@ class VLAAlloc(Stmt):
 
 
 @dataclass(eq=False)
+class VLAZero(Stmt):
+    """`T vla[n] = {};` on a VLA: zero-fill `size` bytes at the address held in `var`."""
+    var: Var
+    size: Expr
+
+
+@dataclass(eq=False)
 class ExprStmt(Stmt):
     expr: Expr
 

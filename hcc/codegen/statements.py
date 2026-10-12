@@ -62,6 +62,14 @@ class StatementMixin:
         self.emit("mov %rcx, %rsp")
         self.emit(f"mov %rsp, {node.var.offset}(%rbp)")
 
+    def stmt_VLAZero(self, node) -> None:
+        # Empty braces (GNU/C23): zero the whole variable-length object.
+        self.gen_expr(node.size)
+        self.emit("mov %rax, %rcx")
+        self.emit(f"mov {node.var.offset}(%rbp), %rdi")
+        self.emit("mov $0, %al")
+        self.emit("rep stosb")
+
     def stmt_If(self, node) -> None:
         taken = try_eval_const(node.cond)
         if taken is not None:
