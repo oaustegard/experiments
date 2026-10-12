@@ -22,6 +22,17 @@ from hcc.typesys import TypeKind, is_struct_like
 from hcc.parser.va_pack import is_pack_placeholder
 
 
+def _array_chain_is_vla(ty):
+    """True when ty is a VLA or an array (of arrays) whose element type is a VLA.
+
+    C forbids compound literals of variable length type (gcc: "compound literal
+    has variable size"); pointers to VLAs are fine and are not followed here.
+    """
+    while ty is not None and ty.kind == TypeKind.ARRAY:
+        ty = ty.base
+    return ty is not None and ty.kind == TypeKind.VLA
+
+
 class PostfixMixin:
 
     def postfix(self):
@@ -34,6 +45,8 @@ class PostfixMixin:
             ty = self.typename(allow_storage=allow)
             self.expect(")")
             if self.at("{"):
+                if _array_chain_is_vla(ty):
+                    self.error("compound literal has variable size", self.tok)
                 ty, pre = self.vla_bind(ty, self.tok.loc)
                 lit = self.compound_literal(ty, is_static, is_tls)
                 return self.postfix_ops(self.vla_prefix(pre, lit, self.tok.loc))
