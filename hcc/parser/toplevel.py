@@ -82,6 +82,9 @@ class TopLevelMixin:
             self.check_designated_init(dattr, ty.kind == T.TypeKind.STRUCT, name)
             if name is None:
                 self.error("identifier expected in declaration")
+            if ty.kind == T.TypeKind.FUNC and not ty.has_proto \
+                    and (attr.nonnull_noargs or dattr.nonnull_noargs):
+                self.error("'nonnull' attribute without arguments on a non-prototype", name)
             if dattr.vector_size:
                 ty = T.vector_of(ty, dattr.vector_size)
             if dattr.mode:

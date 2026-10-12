@@ -224,6 +224,8 @@ class AttributeMixin:
             attr.warn_if_not_aligned = True
         elif name == "noreturn" and attr is not None:
             attr.is_noreturn = True
+        elif name == "nonnull" and attr is not None and not args:
+            attr.nonnull_noargs = True
         elif name == "gnu_inline" and attr is not None:
             attr.is_gnu_inline = True
         elif name == "weak" and attr is not None:

@@ -48,6 +48,7 @@ class VarAttr:
     warn_if_not_aligned: bool = False   # type-only attribute: rejected on objects/functions/fields
     is_packed: bool = False
     is_designated_init: bool = False  # __attribute__((designated_init)): struct-only (checked)
+    nonnull_noargs: bool = False    # bare __attribute__((nonnull)): invalid on a non-prototype
     is_ms_struct: bool = False
     reverse_sso: bool = False       # scalar_storage_order("big-endian")
     section: str | None = None
