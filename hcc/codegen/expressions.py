@@ -12,6 +12,7 @@ from hcc.floatbits import pack_float32, pack_float64
 from hcc.codegen.bitfield_rev import assign_rev_bitfield, load_rev_bitfield
 from hcc.codegen.bitfield_rev_wide import assign_rev_wide, load_rev_wide
 from hcc.codegen.bitfield_wide import assign_wide_bitfield, load_wide_bitfield
+from hcc.codegen.bitfield_straddle import assign_straddle_bitfield, load_straddle_bitfield
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
 from dataclasses import fields, is_dataclass
@@ -104,6 +105,9 @@ class ExpressionMixin:
         elif m.is_bitfield and m.ty.size == 16:
             load_wide_bitfield(self, m)
             return
+        elif m.is_bitfield and m.bit_offset + m.bit_width > 64:
+            load_straddle_bitfield(self, m)
+            return
         elif m.is_bitfield and m.bit_offset + m.bit_width > m.ty.size * 8:
             # Packed bitfield straddling its type's storage unit: load 8 bytes.
             self.emit("mov (%rax), %rax")
@@ -139,6 +143,10 @@ class ExpressionMixin:
             return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.ty.size == 16:
             assign_wide_bitfield(self, node)
+            return
+        if (type(lhs).__name__ == "Member_" and lhs.member.is_bitfield
+                and lhs.member.bit_offset + lhs.member.bit_width > 64):
+            assign_straddle_bitfield(self, node)
             return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield:
             m = lhs.member
