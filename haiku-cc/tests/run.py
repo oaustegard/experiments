@@ -408,7 +408,10 @@ def main(argv=None):
     ap.add_argument("--filter", action="append",
                     help="glob on test id, e.g. 'smoke/*struct*' (repeatable)")
     ap.add_argument("--json", help="write {test_id: {status, reason, stage}} here")
-    ap.add_argument("--cc", default="python3 -m hcc", help="compiler command (may contain spaces)")
+    # hcc-auto (tests/bin/hcc-auto, installed on PATH) picks PyPy for large inputs. It must be a
+    # tree-independent name: driver caches key on the compiler command.
+    ap.add_argument("--cc", default=os.environ.get("HCC_CC") or ("hcc-auto" if shutil.which("hcc-auto") else "python3 -m hcc"),
+                    help="compiler command (may contain spaces); default hcc-auto if on PATH")
     ap.add_argument("--verbose", "-v", action="store_true", help="print full log of non-passing tests")
     ap.add_argument("--keep", metavar="DIR", help="keep each test's work dir (t.s, t, log.txt) under DIR")
     ap.add_argument("--baseline", metavar="JSON", help="previous --json; report regressions/fixes")

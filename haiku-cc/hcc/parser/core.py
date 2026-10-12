@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.nodes import Expr, Function, StrLit, Var
+from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import Scope, VarScope
 from hcc.sema.typing import add_type
 from hcc.tokens import Token, TokenKind
@@ -25,19 +26,30 @@ class ParserBase:
         self.opts = opts
         self.scopes: list[Scope] = [Scope()]
         self.objs: list = []                 # TranslationUnit order
+        self.pack_align = 0                  # #pragma pack current maximum alignment (0 = none)
+        self.pack_stack: list[int] = []      # #pragma pack(push) saved values
+        # -fsso-struct default; #pragma scalar_storage_order default restores it
+        self.sso_default = getattr(opts, "sso_struct", "") == "big-endian"
+        self.sso_reverse = self.sso_default  # #pragma scalar_storage_order in effect
         self.fn: Function | None = None      # function being parsed
         self.locals: list[Var] = []
         self.label_count = 0
         self.anon_count = 0
+        self.in_proto_params = False         # parsing a prototype parameter declarator
+        self.in_param_decl = False           # inside a parameter declaration (no `({...})`)
+        self.vm_typeof: list = []            # VLA-typed typeof operands (side effects)
         self.brk_label: str | None = None
         self.cont_label: str | None = None
         self.cur_switch = None
         self.goto_names: list[Token] = []
         self.label_names: set[str] = set()
+        self.jump_scope = JumpScopes()       # gotos into VM scopes (current function)
         self.in_static_init = False          # inside a static-storage initializer
+        self.constexpr_init = False          # inside a C23 constexpr object's initializer
         self.scope_stack: list[int] = [0]    # ids of enclosing block scopes (0 = file scope)
         self.scope_seq = 0
         self.stmt_expr_base: int | None = None  # scope depth of the outermost ({ }) being parsed
+        self.auto_init_depth = 0                # >0 while parsing the initializer of `auto x = ...`
 
     # ---- token cursor -------------------------------------------------------
     @property
@@ -102,6 +114,7 @@ class ParserBase:
         self.scope_stack.append(self.scope_seq)
 
     def leave_scope(self) -> None:
+        self.check_nested_decls(self.scopes[-1])
         self.scopes.pop()
         self.scope_stack.pop()
 
@@ -131,6 +144,12 @@ class ParserBase:
         self.scopes[-1].vars[name] = vs
         return vs
 
+    def check_unavailable(self, name: str, tok) -> None:
+        """Error if `name` (an identifier use) names an unavailable object or typedef."""
+        vs = self.find_var(name)
+        if vs is not None and (vs.unavailable or (vs.var is not None and vs.var.is_unavailable)):
+            self.error(f"'{name}' is unavailable", tok)
+
     def find_typedef(self, tok: Token) -> Type | None:
         if tok.kind != TokenKind.IDENT:
             return None
@@ -141,6 +160,9 @@ class ParserBase:
     def new_lvar(self, name: str, ty: Type, loc=None) -> Var:
         v = Var(name, ty, loc=loc, is_local=True, is_definition=True, align=ty.align,
                 scope=self.var_scope_path())
+        prev = self.scopes[-1].vars.get(name)
+        if prev is not None and isinstance(prev.var, Var):
+            self.check_redecl_type(prev.var, name, ty, loc)
         self.push_scope_entry(name).var = v
         self.locals.append(v)
         return v

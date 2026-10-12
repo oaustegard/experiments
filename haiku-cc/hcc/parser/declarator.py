@@ -10,12 +10,31 @@ DeclaratorMixin provides:
 """
 from __future__ import annotations
 
+from dataclasses import fields
+
 from hcc.parser.scope import VarAttr
-from hcc.nodes import Var
+from hcc.parser.vla import _has_vla as _has_vla_type
+from hcc.parser.declspec import constexpr_type
+from hcc import nodes as N
+from hcc.nodes import Node, Var
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
 from hcc import typesys as T
+
+# PTRDIFF_MAX on x86-64: the largest object GCC accepts.
+_MAX_OBJECT_SIZE = (1 << 63) - 1
+
+
+def _names_variable(node) -> bool:
+    """True if the expression tree refers to a variable (not a function)."""
+    if isinstance(node, Node):
+        if isinstance(node, N.VarRef) and not isinstance(node.var, N.Function):
+            return True
+        return any(_names_variable(getattr(node, f.name)) for f in fields(node))
+    if isinstance(node, (list, tuple)):
+        return any(_names_variable(x) for x in node)
+    return False
 
 
 class DeclaratorMixin:
@@ -63,6 +82,11 @@ class DeclaratorMixin:
             name = self.next()
             self.skip_std_attributes()  # `void f [[]] (void);`
         ty = self.type_suffix(ty)
+        if name is not None and self.fn is not None and ty.kind == T.TypeKind.FUNC \
+                and _has_vla_type(ty.return_ty):
+            # C11 6.7.5.2p2 / GCC: a block-scope function declaration (not a
+            # nested function definition) may not return a variably modified type
+            self.error("non-nested function with variably modified type", name)
         return ty, name
 
     def _paren_starts_params(self) -> bool:
@@ -104,7 +128,9 @@ class DeclaratorMixin:
         self.skip_std_attributes()  # `int g [2] [[]] [3] [[]];`
         if self.at("("):
             self.next()
-            return self.func_params(ty)
+            fty = self.func_params(ty)
+            self.skip_std_attributes()  # `void (int) [[gnu::format(...)]]`
+            return fty
         if self.at("["):
             self.next()
             return self.array_dims(ty)
@@ -117,7 +143,9 @@ class DeclaratorMixin:
             self.next()
             return fty
         if self.accept(")"):
-            fty.has_proto = False
+            # C23 6.7.6.3p15: `()` means `(void)` (a prototype); earlier
+            # standards leave the parameter list unspecified.
+            fty.has_proto = self.c23_mode()
             return fty
         # K&R identifier list: int f(a, b) int a; ...
         if self.tok.kind == TokenKind.IDENT and not self.is_typename() and \
@@ -138,6 +166,8 @@ class DeclaratorMixin:
         # dimensions (`int b[a++]`); their Vars are reused by the definition.
         self.enter_scope()
         fwd = self._param_forward_decls()
+        outer_proto = getattr(self, "in_proto_params", False)
+        self.in_proto_params = True     # sizeof(*b) of `[*]` params is allowed here
         while not self.accept(")"):
             if params:
                 self.expect(",")
@@ -148,7 +178,21 @@ class DeclaratorMixin:
             self.skip_std_attributes()
             attr = VarAttr()
             base = self.declspec(attr)
-            pty, name = self.declarator(base)
+            if attr.is_static or attr.is_extern or attr.is_typedef:
+                self.error("storage class specified for parameter")
+            saved_proto = self.in_proto_params
+            saved_pdecl = self.in_param_decl
+            self.in_proto_params = True     # sizeof in a prototype is unevaluated
+            self.in_param_decl = True
+            try:
+                pty, name = self.declarator(base)
+            finally:
+                self.in_proto_params = saved_proto
+                self.in_param_decl = saved_pdecl
+            if pty.kind == T.TypeKind.VOID and (pty.is_const or pty.is_volatile or attr.is_register):
+                # C23 6.7.6.3p10: a parameter of type void may not be qualified
+                # (`const void`, `cv` typedef, `register void`); `const void *` is fine.
+                self.error("'void' as only parameter may not be qualified")
             self.parse_attributes()
             dim = None
             if (pty.kind == T.TypeKind.ARRAY and not pty.is_vector) or pty.kind == T.TypeKind.VLA:
@@ -168,12 +212,23 @@ class DeclaratorMixin:
                            is_definition=True, align=pty.align)
                 pvar.is_param = True
                 self.push_scope_entry(name.text).var = pvar
+            if name is not None and any(n is not None and n.text == name.text for n in names):
+                self.error(f"redefinition of parameter '{name.text}'", name.loc)
             params.append(pty)
             names.append(name)
             pvars.append(pvar)
             pdims.append(dim)
+        matched = {n.text for n in names if n is not None}
+        for fname, fvar in fwd.items():
+            if fname not in matched:
+                self.error("parameter '%s' has just a forward declaration" % fname, fvar.loc)
         fty.proto_scope = self.scopes[-1]
+        self.in_proto_params = outer_proto
         self.leave_scope()
+        if len(params) == 1 and names[0] is None and params[0].kind == T.TypeKind.VOID:
+            # C23 6.7.6.3p10: a sole unnamed parameter of type void (e.g. from
+            # `typeof (*vp)`, not just the keyword) means an empty `(void)` list.
+            params, names, pvars, pdims = [], [], [], []
         fty.params = params
         fty.param_names = names
         fty.param_vars = pvars
@@ -222,34 +277,81 @@ class DeclaratorMixin:
                 count += 1
         return count
 
+    def check_array_elem(self, ty):
+        """Reject arrays whose element type is incomplete (C11 6.7.6.2p1)."""
+        if ty.kind == T.TypeKind.VLA:
+            return
+        if ty.kind == T.TypeKind.VOID:
+            # C11 6.7.6.2p1: the element type of an array must be a complete object type
+            self.error("declaration of type name as array of voids", self.tok)
+        if ty.kind == T.TypeKind.FUNC:
+            # C11 6.7.6.2p1: an element type must not be a function type
+            self.error("declaration as array of functions", self.tok)
+        if (ty.kind == T.TypeKind.ARRAY and ty.array_len < 0) or \
+                (ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not ty.is_complete):
+            self.error("array type has incomplete element type", self.tok)
+        elif ty.align > 0 and ty.size % ty.align != 0 and ty.is_complete:
+            # GCC: `aligned` on a typedef raises the alignment without padding the size,
+            # so the element stride would be misaligned; gcc rejects such arrays.
+            self.error("size of array element is not a multiple of its alignment", self.tok)
+
     def array_dims(self, ty):
+        has_static = False
         while (self.at("static") or self.at("const") or self.at("volatile")
                or self.at("restrict") or self.at("_Atomic")):
+            if self.at("static"):
+                has_static = True
             self.next()
+        if has_static and self.at("]"):
+            # C99 6.7.5.2p1: `static` requires a size expression
+            self.error("'static' may not be used without an array size")
+        if has_static and self.at("*") and self.peek().text == "]":
+            self.error("'static' may not be used with an unspecified variable length array size")
         if self.accept("]"):
             ty = self.type_suffix(ty)
+            self.check_array_elem(ty)
             return T.array_of(ty, -1)
         if self.at("*") and self.peek().text == "]":
+            # C11 6.7.6.2p4: `[*]` only in a prototype's parameter list
+            if not getattr(self, "in_proto_params", False):
+                self.error("'[*]' not allowed in other than function prototype scope")
             self.next()
             self.next()
             ty = self.type_suffix(ty)
             return T.vla_of(ty, None)
-        expr = self.conditional()
+        expr = self.assign()
         self.expect("]")
+        add_type(expr)
+        if not T.is_integer(expr.ty):
+            self.error("size of array has non-integer type", expr)
         ty = self.type_suffix(ty)
+        self.check_array_elem(ty)
         n = try_eval_const(expr)
-        if n is None or ty.kind == T.TypeKind.VLA:
+        # C: a block-scope object (even const-qualified) is not an integer constant
+        # expression, so `char [i]` with `const int i = 1;` is still a VLA.
+        if self.fn is not None and n is not None and _names_variable(expr):
+            n = None
+        if n is None or ty.kind == T.TypeKind.VLA or T.is_dyn_struct(ty):
+            # an array of run-time-sized structs has a run-time size too (`struct S a[2][n]`)
             add_type(expr)
             return T.vla_of(ty, expr)
         if n < 0:
             self.error("size of array is negative", expr)
+        # C/GCC: an object may not exceed PTRDIFF_MAX bytes on x86-64 (LP64)
+        if ty.is_complete and n * ty.size > _MAX_OBJECT_SIZE:
+            self.error(f"size '{n * ty.size}' of array exceeds maximum object size "
+                       f"'{_MAX_OBJECT_SIZE}'", expr)
         return T.array_of(ty, n)
 
     def typename(self, allow_storage=False):
         # allow_storage: C23 compound literal `(static int){1}`; storage class
         # specifiers are otherwise rejected (casts, sizeof, _Alignof).
-        ty = self.declspec(VarAttr() if allow_storage else None)
-        return self.abstract_declarator(ty)
+        attr = VarAttr() if allow_storage else None
+        ty = self.declspec(attr)
+        ty = self.abstract_declarator(ty)
+        if attr is not None and attr.is_constexpr:
+            ty = constexpr_type(ty)          # `(constexpr T){...}`: the literal object is const
+        return ty
 
     def compound_lit_follows(self):
         """At '(' : True if the matching ')' is followed by '{'."""
@@ -259,8 +361,8 @@ class DeclaratorMixin:
         nxt = self.toks[min(end + 1, len(self.toks) - 1)]
         return nxt.kind == TokenKind.PUNCT and nxt.text == "{"
 
-    def compound_lit_is_static(self):
-        """At '(' : True if `static` appears directly inside the parens."""
+    def compound_lit_is_static(self, words=("static",)):
+        """At '(' : True if one of `words` (default `static`) appears directly inside the parens."""
         end = self._paren_end()
         if end is None:
             return False
@@ -270,7 +372,7 @@ class DeclaratorMixin:
                 depth += 1
             elif t.kind == TokenKind.PUNCT and t.text in (")", "]", "}"):
                 depth -= 1
-            elif depth == 1 and t.text == "static":
+            elif depth == 1 and t.text in words:
                 return True
         return False
 
@@ -287,14 +389,11 @@ class DeclaratorMixin:
         return None
 
     def scoped_typename(self, allow_storage=False):
-        """typename() for sizeof/_Alignof/typeof: tags and enumerators declared
-        inside the type name are local to it (PR c/67784), so they do not leak
-        into the enclosing block scope."""
-        self.enter_scope()
-        try:
-            return self.typename(allow_storage)
-        finally:
-            self.leave_scope()
+        """typename() for sizeof/_Alignof/typeof. Tags and enumerators declared
+        inside the type name go to the innermost scope: the block, or the
+        if/while/do/for/switch statement whose controlling expression holds them
+        (PR c/67784)."""
+        return self.typename(allow_storage)
 
     def abstract_declarator(self, ty):
         ty, name = self.declarator(ty)

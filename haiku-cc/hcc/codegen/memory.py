@@ -12,7 +12,9 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.codegen.scalar_rev import load_rev_scalar, store_rev_scalar
-from hcc.typesys import TypeKind
+from hcc.typesys import TypeKind, is_dyn_struct
+from hcc.codegen.half import LOAD_HALF, STORE_HALF
+from hcc.codegen.decimal import DEC_LOAD, DEC_STORE
 
 _NO_LOAD = (TypeKind.ARRAY, TypeKind.STRUCT, TypeKind.UNION, TypeKind.FUNC, TypeKind.VLA)
 
@@ -23,11 +25,11 @@ class MemoryMixin:
         if isinstance(var, N.Var) and var.is_local:
             if self.is_outer_local(var):
                 return self.outer_var_addr(var)
-            if var.ty.kind == TypeKind.VLA:
+            if var.ty.kind == TypeKind.VLA or is_dyn_struct(var.ty):
                 # VLA object: its frame slot holds the address of its storage.
                 self.emit(f"mov {var.offset}(%rbp), %rax")
                 return
-            self.emit(f"lea {var.offset}(%rbp), %rax")
+            self.frame_lea(var.offset, "%rax")
             return
         if isinstance(var, N.Var) and var.is_tls:
             self.emit("mov %fs:0, %rax")
@@ -53,7 +55,7 @@ class MemoryMixin:
         if t is N.Member_:
             self.gen_addr(node.operand)
             if node.member.offset:
-                self.emit(f"add ${node.member.offset}, %rax")
+                self.add_offset_rax(node.member.offset)
             return
         if t is N.Cast:
             self.gen_addr(node.operand)
@@ -64,25 +66,41 @@ class MemoryMixin:
             return
         diag.error(node, "lvalue required", "codegen")
 
+    def add_offset_rax(self, off: int) -> None:
+        """%rax += off. Offsets outside imm32 (huge arrays in packed structs)
+        go through %r11, since x86 has no 64-bit immediate add."""
+        if -(1 << 31) <= off < (1 << 31):
+            self.emit(f"add ${off}, %rax")
+        else:
+            self.emit(f"movabs ${off}, %r11")
+            self.emit("add %r11, %rax")
+
     def load(self, ty) -> None:
         k = ty.kind
         if k in _NO_LOAD:
             return
         if ty.is_rev_order:
             load_rev_scalar(self, ty)
+        elif k == TypeKind.FLOAT16:
+            self.emit(LOAD_HALF)
         elif k == TypeKind.FLOAT:
             self.emit("movss (%rax), %xmm0")
         elif k == TypeKind.DOUBLE:
             self.emit("movsd (%rax), %xmm0")
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k in DEC_LOAD:              # _Decimal: BID bits, carried like float bits
+            self.emit(DEC_LOAD[k] + " (%rax), %xmm0")
+        elif k == TypeKind.LDOUBLE:
             self.emit("fldt (%rax)")
+        elif k == TypeKind.FLOAT128:
+            self.f128_load()
         elif ty.size == 1:
             self.emit(f"{'movzbl' if ty.is_unsigned else 'movsbl'} (%rax), %eax")
         elif ty.size == 2:
             self.emit(f"{'movzwl' if ty.is_unsigned else 'movswl'} (%rax), %eax")
         elif ty.size == 4:
             self.emit("movslq (%rax), %rax")
-        elif ty.size == 16:          # __int128: low half only (TODO)
+        elif ty.size == 16:          # __int128: %rdx:%rax = high:low
+            self.emit("mov 8(%rax), %rdx")
             self.emit("mov (%rax), %rax")
         else:
             self.emit("mov (%rax), %rax")
@@ -95,23 +113,28 @@ class MemoryMixin:
             return
         if ty.is_rev_order:
             store_rev_scalar(self, ty)
+        elif k == TypeKind.FLOAT16:
+            self.emit(STORE_HALF)
         elif k == TypeKind.FLOAT:
             self.emit("movss %xmm0, (%rdi)")
         elif k == TypeKind.DOUBLE:
             self.emit("movsd %xmm0, (%rdi)")
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k in DEC_STORE:
+            self.emit(DEC_STORE[k] + " %xmm0, (%rdi)")
+        elif k == TypeKind.LDOUBLE:
             self.emit("fstpt (%rdi)")
             self.emit("fldt (%rdi)")
+        elif k == TypeKind.FLOAT128:
+            self.f128_store()
         elif ty.size == 1:
             self.emit("mov %al, (%rdi)")
         elif ty.size == 2:
             self.emit("mov %ax, (%rdi)")
         elif ty.size == 4:
             self.emit("mov %eax, (%rdi)")
-        elif ty.size == 16:
+        elif ty.size == 16:          # __int128: %rdx:%rax = high:low
             self.emit("mov %rax, (%rdi)")
-            self.emit("sar $63, %rax")
-            self.emit("mov %rax, 8(%rdi)")
+            self.emit("mov %rdx, 8(%rdi)")
         else:
             self.emit("mov %rax, (%rdi)")
 

@@ -11,10 +11,16 @@ Public API:
 """
 from __future__ import annotations
 
+from fractions import Fraction
+
 from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
-from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_INT, TY_LDOUBLE, TY_LLONG,
-                       TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG, TY_USHORT, Type, array_of)
+from hcc.halfbits import round_to_half
+from hcc.ldouble_lit import exact_decimal, x87_from_text
+from hcc.f128_lit import binary128_from_text
+from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_FLOAT16, TY_FLOAT128,
+                       TY_INT, TY_LDOUBLE, TY_LLONG, TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG,
+                       TY_USHORT, Type, TypeKind, array_of, complex_of, is_flonum)
 
 KEYWORD_ALIASES = {
     "__restrict": "restrict", "__restrict__": "restrict",
@@ -30,14 +36,24 @@ KEYWORD_ALIASES = {
     "__complex__": "_Complex", "__complex": "_Complex",
     "__real": "__real__", "__imag": "__imag__",
     "__int128_t": "__int128",
+    "__typeof_unqual": "typeof_unqual", "__typeof_unqual__": "typeof_unqual",
+}
+# C23 typeof_unqual (plain spelling only in C23 mode; the __ spellings are always keywords).
+TYPEOF_UNQUAL_SPELLINGS = frozenset(("typeof_unqual", "__typeof_unqual", "__typeof_unqual__"))
+
+# C23 keywords that are ordinary identifiers before C23; they map onto the C11 spellings.
+C23_KEYWORD_ALIASES = {
+    "alignas": "_Alignas", "alignof": "_Alignof",
+    "static_assert": "_Static_assert", "thread_local": "_Thread_local",
 }
 
+_HEX = frozenset("0123456789abcdefABCDEF")
 _ESCAPES = {"a": 7, "b": 8, "f": 12, "n": 10, "r": 13, "t": 9, "v": 11, "e": 27, "E": 27,
             "\\": 92, "'": 39, '"': 34, "?": 63}
 
 
 def parse_int_literal(tok: Token) -> tuple[int, Type]:
-    s = tok.text.lower()
+    s = tok.text.replace("'", "").lower()        # C23 digit separators
     suffix_start = len(s)
     if s.startswith(("0x", "0b")):
         digits_ok = "0123456789abcdef" if s[1] == "x" else "01"
@@ -78,26 +94,89 @@ def parse_int_literal(tok: Token) -> tuple[int, Type]:
     return val & ((1 << 64) - 1), ty
 
 
+# floating suffixes, longest first; the _FloatN/_FloatNx forms are GCC's TS 18661 suffixes.
+# w/W is GCC's __float80 suffix, q/Q its __float128 suffix, d/D a (non-decimal) double suffix.
+_FLOAT_SUFFIXES = (("f16", TY_FLOAT16), ("f32x", TY_DOUBLE), ("f32", TY_FLOAT),
+                   ("f64x", TY_LDOUBLE), ("f64", TY_DOUBLE), ("f128x", TY_FLOAT128),
+                   ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE),
+                   ("w", TY_LDOUBLE), ("q", TY_FLOAT128), ("d", TY_DOUBLE))
+
+
+def _split_float_suffixes(s: str) -> tuple[str, Type, bool]:
+    """Strip one floating-type suffix and one imaginary marker (i/j), in either
+    order (`2.5i`, `2.5fi`, `2.5if`).  Returns (body, type, is_imaginary)."""
+    body, ty, imag = s, None, False
+    for _ in range(2):
+        low = body.lower()
+        if not imag and low.endswith(("i", "j")):
+            imag, body = True, body[:-1]
+            continue
+        if ty is None:
+            for suf, suf_ty in _FLOAT_SUFFIXES:
+                if low.endswith(suf):
+                    ty, body = suf_ty, body[: -len(suf)]
+                    break
+    return body, ty or TY_DOUBLE, imag
+
+
+def _round_decimal_to_f32(fr: Fraction) -> float:
+    """Correctly round an exact rational to IEEE binary32 (no double rounding)."""
+    if fr == 0:
+        return 0.0
+    a = abs(fr)
+    e = a.numerator.bit_length() - a.denominator.bit_length()
+    if a < Fraction(2) ** e:
+        e -= 1
+    q = max(e, -126) - 23          # quantum of the binary32 significand
+    n = round(a / Fraction(2) ** q)  # round-half-even
+    if n * 2 ** q >= 2 ** 128:
+        return float("-inf") if fr < 0 else float("inf")
+    val = float(n) * 2.0 ** q
+    return -val if fr < 0 else val
+
+
 def parse_number(tok: Token):
-    s = tok.text
+    s = tok.text.replace("'", "")                # C23 digit separators
     low = s.lower()
     is_hex = low.startswith("0x")
     if not is_hex and ("." in s or "e" in low) or is_hex and ("." in s or "p" in low):
-        ty = TY_DOUBLE
-        body = s
-        if low.endswith("f") and not is_hex or (is_hex and low.endswith("f") and "p" in low):
-            ty, body = TY_FLOAT, s[:-1]
-        elif low.endswith("l"):
-            ty, body = TY_LDOUBLE, s[:-1]
-        for suf in ("f16", "f32", "f64", "f128", "f32x", "f64x"):
-            if body.lower().endswith(suf):
-                body = body[: -len(suf)]
-        try:
-            val = float.fromhex(body) if is_hex else float(body)
-        except ValueError:
-            diag.error(tok, f"invalid floating constant '{s}'")
+        body, ty, imag = _split_float_suffixes(s)
+        val = _float_value(tok, s, body, ty, is_hex)
+        if imag:                                  # GNU imaginary constant: 2.5i, 2.5fi
+            return val, complex_of(ty)
         return val, ty
+    if low.endswith(("i", "j")):                 # GNU imaginary constant: 1i, 1j
+        return _parse_imaginary(tok, s[:-1])
     return parse_int_literal(tok)
+
+
+def _float_value(tok: Token, s: str, body: str, ty: Type, is_hex: bool):
+    try:
+        if ty.kind == TypeKind.FLOAT128:                       # exact binary128 encoding
+            return binary128_from_text(body, is_hex)
+        if ty.kind == TypeKind.LDOUBLE:                        # exact x87 encoding
+            return x87_from_text(body, is_hex)
+        if is_hex:
+            val = float.fromhex(body)
+        elif ty is TY_FLOAT:
+            val = _round_decimal_to_f32(exact_decimal(body))
+        else:
+            val = float(body)
+    except OverflowError:
+        # hex constant beyond double range: C says the value is +/-inf
+        val = float("-inf") if body.startswith("-") else float("inf")
+    except ValueError:
+        diag.error(tok, f"invalid floating constant '{s}'")
+    if ty.kind == TypeKind.FLOAT16:
+        val = round_to_half(val)
+    return val
+
+
+def _check_ucn(tok: Token, cp: int) -> None:
+    """C11 6.4.3: a UCN may not designate a code point below 00A0 (other than
+    $, @, `), a surrogate (D800-DFFF), or a value above 10FFFF."""
+    if (cp < 0xA0 and cp not in (0x24, 0x40, 0x60)) or 0xD800 <= cp <= 0xDFFF or cp > 0x10FFFF:
+        diag.error(tok, "\\u%s is not a valid universal character" % ("%04x" % cp if cp <= 0xFFFF else "%08x" % cp))
 
 
 def _decode(tok: Token, body: str, wide: bool) -> list[int]:
@@ -130,17 +209,49 @@ def _decode(tok: Token, body: str, wide: bool) -> list[int]:
                 j += 1
             out.append(int(body[i:j], 8) & (0xFFFFFFFF if wide else 0xFF))
             i = j
+        elif c == "x" and i + 1 < n and body[i + 1] == "{":
+            # P2290 delimited escape: \x{hex-digits}
+            j = body.find("}", i + 2)
+            digits = body[i + 2:j] if j >= 0 else ""
+            if j < 0 or not digits or any(d not in _HEX for d in digits):
+                diag.error(tok, "\\x{...} needs hex digits and a closing brace")
+            out.append(int(digits, 16) & (0xFFFFFFFF if wide else 0xFF))
+            i = j + 1
+        elif c == "o" and i + 1 < n and body[i + 1] == "{":
+            # P2290 delimited escape: \o{octal-digits}
+            j = body.find("}", i + 2)
+            digits = body[i + 2:j] if j >= 0 else ""
+            if j < 0 or not digits or any(d not in "01234567" for d in digits):
+                diag.error(tok, "\\o{...} needs octal digits and a closing brace")
+            out.append(int(digits, 8) & (0xFFFFFFFF if wide else 0xFF))
+            i = j + 1
         elif c == "x":
             j = i + 1
-            while j < n and body[j] in "0123456789abcdefABCDEF":
+            while j < n and body[j] in _HEX:
                 j += 1
             if j == i + 1:
                 diag.error(tok, "\\x used with no following hex digits")
             out.append(int(body[i + 1:j], 16) & (0xFFFFFFFF if wide else 0xFF))
             i = j
+        elif c == "u" and i + 1 < n and body[i + 1] == "{":
+            # P2290 delimited universal character name: \u{hex-digits}
+            j = body.find("}", i + 2)
+            digits = body[i + 2:j] if j >= 0 else ""
+            if j < 0 or not digits or any(d not in _HEX for d in digits):
+                diag.error(tok, "\\u{...} needs hex digits and a closing brace")
+            cp = int(digits, 16)
+            i = j + 1
+            if wide:
+                out.append(cp)
+            else:
+                out.extend(chr(cp).encode("utf-8", errors="surrogatepass"))
         elif c in "uU":
             k = 4 if c == "u" else 8
-            cp = int(body[i + 1:i + 1 + k], 16)
+            digits = body[i + 1:i + 1 + k]
+            if len(digits) != k or any(d not in _HEX for d in digits):
+                diag.error(tok, "incomplete universal character name")
+            cp = int(digits, 16)
+            _check_ucn(tok, cp)
             i += 1 + k
             if wide:
                 out.append(cp)
@@ -172,6 +283,8 @@ def parse_char_literal(tok: Token) -> tuple[int, Type]:
         v &= 0xFFFFFFFF
         return (v - (1 << 32) if v >= 1 << 31 else v), TY_INT
     units = _decode(tok, body, True)
+    if not units:
+        diag.error(tok, "empty character constant")
     v = units[-1] if units else 0
     ty = {"L": TY_INT, "u": TY_USHORT, "U": TY_UINT, "u8": TY_UCHAR}[prefix]
     return v & ((1 << (ty.size * 8)) - 1), ty
@@ -204,10 +317,25 @@ def string_bytes(units: list[int], elem: Type) -> bytes:
     return b"".join((u & ((1 << (8 * sz)) - 1)).to_bytes(sz, "little") for u in units + [0])
 
 
+def _parse_imaginary(tok: Token, body: str):
+    """`1i` / `2.5fi`: the value is the imaginary part of a _Complex constant
+    (an integer body gives _Complex double, as in GCC)."""
+    sub = tok.copy()
+    sub.text = body
+    val, ty = parse_number(sub)
+    if not is_flonum(ty):
+        return float(val), complex_of(TY_DOUBLE)
+    return val, complex_of(ty)
+
+
 def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
-                   c23: bool = False) -> list[Token]:
+                   c23: bool = False, off_keywords: frozenset = frozenset(),
+                   short_wchar: bool = False) -> list[Token]:
     """`u8_unsigned`: C23 types u8"" literals as unsigned char arrays.
-    `c23`: `constexpr` is a keyword (it is an ordinary identifier otherwise)."""
+    `c23`: `constexpr` is a keyword (it is an ordinary identifier otherwise).
+    `off_keywords`: spellings that stay identifiers (e.g. `typeof` in strict ISO modes).
+    `short_wchar`: -fshort-wchar, L'x' and L"" use the 16-bit wchar_t (unsigned short)."""
+    wchar_elem = TY_USHORT if short_wchar else TY_INT
     out: list[Token] = []
     i, n = 0, len(toks)
     while i < n:
@@ -216,21 +344,28 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
         if k == TokenKind.IDENT:
             if c23 and t.text in ("true", "false"):
                 t = _c23_bool_const(t)
-            elif t.text in KEYWORDS or (c23 and t.text == "constexpr"):
+            elif (t.text in KEYWORDS and t.text not in off_keywords) or (c23 and t.text == "constexpr") \
+                    or (t.text in TYPEOF_UNQUAL_SPELLINGS and (c23 or t.text.startswith("__"))):
                 t = t.copy()
                 t.kind = TokenKind.KEYWORD
                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
+            elif c23 and t.text in C23_KEYWORD_ALIASES:
+                t = t.copy()
+                t.kind = TokenKind.KEYWORD
+                t.text = C23_KEYWORD_ALIASES[t.text]
         elif k == TokenKind.NUMBER:
             t = t.copy()
             t.value, t.ty = parse_number(t)
         elif k == TokenKind.CHAR:
             t = t.copy()
             t.value, t.ty = parse_char_literal(t)
+            if short_wchar and t.text.startswith("L'"):
+                t.value, t.ty = t.value & 0xFFFF, TY_USHORT
         elif k == TokenKind.STRING:
             j = i + 1
             while j < n and toks[j].kind == TokenKind.STRING:
                 j += 1
-            t = _concat_strings(toks[i:j], TY_UCHAR if u8_unsigned else TY_CHAR)
+            t = _concat_strings(toks[i:j], TY_UCHAR if u8_unsigned else TY_CHAR, wchar_elem)
             out.append(t)
             i = j
             continue
@@ -250,16 +385,21 @@ def _c23_bool_const(t: Token) -> Token:
     return t
 
 
-def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR) -> Token:
+def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR,
+                    wchar_elem: Type = TY_INT) -> Token:
     """Concatenate adjacent string literals (C11 6.4.5p5)."""
     prefix = ""
     has_u8 = False
+    seen: set[str] = set()
     for p in pieces:
         pre, _ = _prefix(p.text)
+        if pre:
+            seen.add(pre)
         has_u8 = has_u8 or pre == "u8"
+        if len(seen) > 1:
+            # GCC rejects mixing distinct encoding prefixes (incl. u8 with u/U/L).
+            diag.error(p, "unsupported non-standard concatenation of string literals")
         if pre and pre != "u8":
-            if prefix and prefix != pre:
-                diag.error(p, "unsupported non-standard concatenation of string literals")
             prefix = pre
     units: list[int] = []
     for p in pieces:
@@ -270,6 +410,8 @@ def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR) -> Token:
         else:
             units += parse_string_literal(p)[0]
     elem = STRING_ELEM[prefix] if prefix else (u8_elem if has_u8 else TY_CHAR)
+    if prefix == "L":
+        elem = wchar_elem
     t = pieces[0].copy()
     t.value = string_bytes(units, elem)
     t.ty = array_of(elem, len(t.value) // elem.size)

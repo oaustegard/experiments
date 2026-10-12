@@ -10,6 +10,7 @@ every RMW is already a full barrier.
 from __future__ import annotations
 
 from hcc import diag
+from hcc.sema.constexpr import try_eval_const
 
 _SUF = {1: "b", 2: "w", 4: "l", 8: "q"}
 _REG = {
@@ -165,6 +166,33 @@ class AtomicMixin:
     def builtin_atomic_load(self, node) -> None: self._generic_load(node)
     def builtin_atomic_store(self, node) -> None: self._generic_store(node)
     def builtin_atomic_exchange(self, node) -> None: self._generic_exchange(node)
+
+    def builtin_atomic_test_and_set(self, node) -> None:
+        # Set the flag byte with an implicitly locked xchg; result is (old != 0).
+        self._gen_args(node.args[:1], ["%rdi"])
+        self.emit("mov $1, %eax")
+        self.emit("xchgb %al, (%rdi)")
+        self.emit("test %al, %al")
+        self.emit("setne %al")
+        self.emit("movzbl %al, %eax")
+
+    def builtin_atomic_clear(self, node) -> None:
+        # Clear the flag byte with a locked xchg (full barrier, like store_n).
+        self._gen_args(node.args[:1], ["%rdi"])
+        self.emit("xor %eax, %eax")
+        self.emit("xchgb %al, (%rdi)")
+
+    def builtin_atomic_is_lock_free(self, node) -> None:
+        # Operand size is a compile-time constant; the object pointer is only evaluated.
+        size = try_eval_const(node.args[0])
+        if size is None:
+            diag.error(node, "__atomic_is_lock_free: size must be a constant", "codegen")
+        self.gen_expr(node.args[1])
+        self.emit(f"mov ${int(size in _SUF)}, %eax")
+
+    def builtin_atomic_always_lock_free(self, node) -> None:
+        # Only reached when the size is not a constant (sema folds the usual case).
+        self.builtin_atomic_is_lock_free(node)
 
     def builtin_atomic_thread_fence(self, node) -> None:
         self.emit("mfence")

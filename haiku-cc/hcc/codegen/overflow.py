@@ -7,6 +7,8 @@ and the builtin yields 1 iff the exact result does not fit that type.
 """
 from __future__ import annotations
 
+from hcc.typesys import TypeKind
+
 
 class OverflowMixin:
 
@@ -31,6 +33,8 @@ class OverflowMixin:
         self._overflow_p(node, "mul")
 
     def _overflow_p(self, node, op: str) -> None:
+        if node.args[0].ty.kind == TypeKind.INT128:
+            return self.overflow128(node, op, store=False)
         sa = not node.args[0].ty.is_unsigned
         sb = not node.args[1].ty.is_unsigned
         for arg in node.args[:2]:
@@ -45,6 +49,8 @@ class OverflowMixin:
         self._store_and_check(node.type_arg, store=False)
 
     def _overflow_op(self, node, op: str) -> None:
+        if node.args[0].ty.kind == TypeKind.INT128:
+            return self.overflow128(node, op, store=True)
         sa = not node.args[0].ty.is_unsigned
         sb = not node.args[1].ty.is_unsigned
         T = node.type_arg

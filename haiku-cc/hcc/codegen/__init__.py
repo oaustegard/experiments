@@ -2,39 +2,39 @@
 
     generate(tu, opts=None) -> str
 
-CodeGen is assembled from one mixin per concern (CONTRACT section 2/7).
+CodeGen is assembled from one mixin per concern (CONTRACT section 2/7): every
+`*Mixin` class defined in a module of this package, found by hcc.registry.
 Stack-machine design: expressions leave their value in %rax / %xmm0 / st(0).
 """
 from __future__ import annotations
 
+import re
+
 from hcc import nodes as N
-from hcc.codegen.arith import ArithMixin
-from hcc.codegen.atomics import AtomicMixin
-from hcc.codegen.asm import AsmMixin
-from hcc.codegen.builtins import BuiltinMixin
-from hcc.codegen.calls import CallMixin
-from hcc.codegen.casts import CastMixin
 from hcc.codegen.context import CodeGenBase
-from hcc.codegen.data import DataMixin
-from hcc.codegen.expressions import ExpressionMixin
-from hcc.codegen.floats import FloatMixin
-from hcc.codegen.functions import FunctionMixin
-from hcc.codegen.nested import NestedMixin
-from hcc.codegen.memory import MemoryMixin
-from hcc.codegen.overflow import OverflowMixin
-from hcc.codegen.statements import StatementMixin
-from hcc.codegen.varargs import VarargsMixin
-from hcc.codegen.vector_ops import VectorOpsMixin
-from hcc.codegen.vector_wide import VectorWideMixin
+from hcc.codegen.lazy_inline import lazy_functions, needed_lazy
+from hcc.registry import assemble_mixins
+
+_ASM_WEAK_RE = re.compile(r"\.weak\s+([A-Za-z_.$][\w.$]*)")
 
 
-class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
-              CastMixin, CallMixin, VarargsMixin, BuiltinMixin, OverflowMixin, AsmMixin, MemoryMixin,
-              DataMixin, VectorOpsMixin, VectorWideMixin, CodeGenBase):
+# Every `*Mixin` class in a module of hcc/codegen/ is a base (hcc/registry.py):
+# a new concern is a new file, with no import or base list to edit here.
+class CodeGen(*assemble_mixins("hcc.codegen", CodeGenBase)):
 
     def run(self) -> str:
         self.directive(f'.file "{getattr(self.opts, "source_name", "") or "hcc"}"')
+        # `#pragma weak sym` arrives as file-scope asm ".weak sym": such a symbol
+        # is weak even though its Var is not flagged, so it must not become .comm.
+        self.asm_weak_syms = {m.group(1) for obj in self.tu.objs
+                              if isinstance(obj, N.Asm)
+                              for m in _ASM_WEAK_RE.finditer(obj.text)}
+        lazy = lazy_functions(self.tu)
+        lazy_ids = {id(f) for f in lazy}
+        needed = needed_lazy(self.tu, lazy) if lazy else set()
         for obj in self.tu.objs:
+            if id(obj) in lazy_ids:
+                continue          # emitted below, if referenced
             if isinstance(obj, N.Asm):
                 self.emit_toplevel_asm(obj)
             elif isinstance(obj, N.Function):
@@ -44,11 +44,25 @@ class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, Arith
                     self.emit_alias(obj)
                 elif obj.ifunc_of:
                     self.emit_ifunc(obj)
+                elif obj.is_weak:
+                    # Weak declaration without a definition here: the symbol
+                    # is an undefined weak reference (resolves to 0 if absent).
+                    self.directive(f".weak {obj.symbol}")
             elif isinstance(obj, N.Var):
-                if obj.is_definition and not obj.is_extern:
+                if obj.alias_of and obj.init_data is None:
+                    # `T A __attribute__((alias("a")))`: the symbol names a's storage
+                    self.emit_alias(obj)
+                elif obj.is_definition and not obj.is_extern:
                     self.emit_data(obj)
                 elif obj.alias_of and not obj.is_definition:
                     self.emit_alias(obj)
+                elif obj.is_weak and not obj.is_definition:
+                    self.directive(f".weak {obj.symbol}")
+        for fn in lazy:
+            if id(fn) in needed:
+                fn.is_weak = True     # no inline-only definition is unique across TUs
+                self.emit_function(fn)
+        self.emit_init_fini()
         self.directive('.section .note.GNU-stack,"",@progbits')
         return "\n".join(self.out) + "\n"
 

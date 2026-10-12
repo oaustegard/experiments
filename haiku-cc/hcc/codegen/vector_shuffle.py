@@ -35,7 +35,7 @@ def shuffle(gen, node) -> None:
     else:
         gen.pop("%r10")
         gen.emit("mov %r10, %r9")
-    gen.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+    gen.frame_lea(node.result_buf.offset, "%rdi")
     index_mask = 2 * n - 1 if two else n - 1
     load, store = _STORE_ELEM[es]
     for i in range(n):

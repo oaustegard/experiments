@@ -8,7 +8,7 @@ Long double and __int128 classification is still TODO (memory class for long dou
 """
 from __future__ import annotations
 
-from hcc.typesys import TypeKind
+from hcc.typesys import TypeKind, is_dyn_struct
 
 
 def has_flonum(ty, lo: int, hi: int, offset: int = 0) -> bool:
@@ -23,7 +23,7 @@ def has_flonum(ty, lo: int, hi: int, offset: int = 0) -> bool:
             if not has_flonum(ty.base, lo, hi, offset + ty.base.size * i):
                 return False
         return True
-    return offset < lo or hi <= offset or k in (TypeKind.FLOAT, TypeKind.DOUBLE)
+    return offset < lo or hi <= offset or k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE)
 
 
 def has_ldouble(ty) -> bool:
@@ -52,14 +52,26 @@ def has_unaligned(ty) -> bool:
     return False
 
 
+def is_x87_complex(ty) -> bool:
+    """`_Complex long double` (SysV COMPLEX_X87): returned in st(0)=real, st(1)=imag;
+    passed in memory like any other 32-byte aggregate."""
+    return ty.is_complex and ty.base.kind == TypeKind.LDOUBLE
+
+
 def is_memory_struct(ty) -> bool:
     """Struct/union returned via a hidden pointer (SysV MEMORY class)."""
+    if is_dyn_struct(ty):
+        return True             # run-time size: always through the caller's result block
+    if is_x87_complex(ty):
+        return False
     return ty.size > 16 or has_unaligned(ty)
 
 
 def struct_arg_regs(ty):
     """Like struct_in_regs, but structs holding long double are memory class
     when passed as arguments (X87 eightbytes are never passed in registers)."""
+    if is_dyn_struct(ty):
+        return (False, False)       # passed as a pointer to the copy (parser/dyn_struct_args.py)
     if has_ldouble(ty):
         return None
     return struct_in_regs(ty)

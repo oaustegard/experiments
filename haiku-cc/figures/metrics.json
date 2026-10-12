@@ -1,0 +1,393 @@
+{
+ "as_of": "2026-10-12T18:19+00:00",
+ "hub_running": true,
+ "hub_head": "9f2d24a1",
+ "fetch_failed": [],
+ "elapsed_h": 15.39,
+ "hub": {
+  "workers": 869,
+  "status": {
+   "merged": 369,
+   "rejected": 245,
+   "failed": 239,
+   "launched": 8,
+   "finished": 7,
+   "reverted": 1
+  },
+  "spend_usd": 24.33,
+  "merges_on_main": 460,
+  "merges_on_main_by_source": {
+   "hub": 370,
+   "s1": 72,
+   "s3": 9,
+   "esc3": 9
+  },
+  "reverts": 1,
+  "runner_tokens": {
+   "in": 29330,
+   "cache_write": 22797331,
+   "cache_read": 535461701,
+   "out_tok": 10376946,
+   "turns": 15778
+  },
+  "last_activity": "2026-10-12T18:19+00:00"
+ },
+ "siblings": {
+  "s1": {
+   "branch": "hcc/stats/s1",
+   "sha": "5ce8513b",
+   "workers": 271,
+   "status": {
+    "rejected": 165,
+    "merged": 72,
+    "failed": 34
+   },
+   "spend_usd": 7.98,
+   "turns": 4561,
+   "local_merges": 101,
+   "local_merges_lost_on_rebase": 29,
+   "ingested_on_hub": {
+    "merged": 72,
+    "rejected": 22
+   },
+   "landed_on_hub_main": 72,
+   "first": "2026-10-12T11:27+00:00",
+   "last": "2026-10-12T15:30+00:00"
+  },
+  "s2": {
+   "branch": "hcc/stats/s2",
+   "sha": "d709585d",
+   "workers": 40,
+   "status": {
+    "rejected": 27,
+    "finished": 7,
+    "failed": 5,
+    "launched": 1
+   },
+   "spend_usd": 0.34,
+   "turns": 559,
+   "local_merges": 0,
+   "local_merges_lost_on_rebase": 0,
+   "ingested_on_hub": {},
+   "landed_on_hub_main": 0,
+   "first": "2026-10-12T11:27+00:00",
+   "last": "2026-10-12T12:58+00:00"
+  },
+  "s3": {
+   "branch": "hcc/stats/s3",
+   "sha": "7b7a59ef",
+   "workers": 55,
+   "status": {
+    "failed": 27,
+    "rejected": 19,
+    "merged": 9
+   },
+   "spend_usd": 5.34,
+   "turns": 1360,
+   "local_merges": 12,
+   "local_merges_lost_on_rebase": 3,
+   "ingested_on_hub": {
+    "merged": 9,
+    "rejected": 2
+   },
+   "landed_on_hub_main": 9,
+   "first": "2026-10-12T11:27+00:00",
+   "last": "2026-10-12T12:19+00:00"
+  }
+ },
+ "total": {
+  "workers": 1235,
+  "spend_usd": 37.99,
+  "merges_on_main": 460,
+  "sibling_local_merges": 113,
+  "siblings_counted": [
+   "s1",
+   "s2",
+   "s3"
+  ]
+ },
+ "escalation": {
+  "run 1": {
+   "branch": "hcc/exp/escalation",
+   "sha": "8158cb07",
+   "design": "40 random failing clusters",
+   "clusters": 40,
+   "arms": {
+    "haiku": {
+     "runs": 80,
+     "solved": 76,
+     "solve_rate": 0.95,
+     "clusters_solved": 38,
+     "usd": 0.81,
+     "usd_per_solve": 0.011,
+     "median_turns": 14.0,
+     "median_secs": 63.5
+    },
+    "sonnet": {
+     "runs": 80,
+     "solved": 80,
+     "solve_rate": 1.0,
+     "clusters_solved": 40,
+     "usd": 6.01,
+     "usd_per_solve": 0.075,
+     "median_turns": 9.0,
+     "median_secs": 45.0
+    }
+   },
+   "only_sonnet": [
+    "c06",
+    "c16"
+   ],
+   "only_haiku_arms": [],
+   "neither": []
+  },
+  "run 2": {
+   "branch": "hcc/exp/escalation2",
+   "sha": "8be7e22d",
+   "design": "4 clusters Haiku had failed",
+   "clusters": 4,
+   "arms": {
+    "haiku": {
+     "runs": 8,
+     "solved": 8,
+     "solve_rate": 1.0,
+     "clusters_solved": 4,
+     "usd": 0.1,
+     "usd_per_solve": 0.012,
+     "median_turns": 14.5,
+     "median_secs": 125.0
+    },
+    "haiku-high": {
+     "runs": 8,
+     "solved": 8,
+     "solve_rate": 1.0,
+     "clusters_solved": 4,
+     "usd": 0.18,
+     "usd_per_solve": 0.023,
+     "median_turns": 23.0,
+     "median_secs": 108.0
+    },
+    "sonnet": {
+     "runs": 8,
+     "solved": 8,
+     "solve_rate": 1.0,
+     "clusters_solved": 4,
+     "usd": 0.61,
+     "usd_per_solve": 0.077,
+     "median_turns": 12.0,
+     "median_secs": 91.0
+    }
+   },
+   "only_sonnet": [],
+   "only_haiku_arms": [],
+   "neither": []
+  },
+  "run 3": {
+   "branch": "hcc/exp/escalation3",
+   "sha": "8b970ee2",
+   "design": "10 clusters the swarm abandoned",
+   "clusters": 10,
+   "arms": {
+    "haiku": {
+     "runs": 20,
+     "solved": 19,
+     "solve_rate": 0.95,
+     "clusters_solved": 10,
+     "usd": 0.22,
+     "usd_per_solve": 0.012,
+     "median_turns": 14.0,
+     "median_secs": 77.5
+    },
+    "haiku-high": {
+     "runs": 20,
+     "solved": 20,
+     "solve_rate": 1.0,
+     "clusters_solved": 10,
+     "usd": 0.35,
+     "usd_per_solve": 0.018,
+     "median_turns": 18.0,
+     "median_secs": 87.0
+    },
+    "sonnet": {
+     "runs": 20,
+     "solved": 20,
+     "solve_rate": 1.0,
+     "clusters_solved": 10,
+     "usd": 1.74,
+     "usd_per_solve": 0.087,
+     "median_turns": 9.0,
+     "median_secs": 47.0
+    }
+   },
+   "only_sonnet": [],
+   "only_haiku_arms": [],
+   "neither": []
+  }
+ },
+ "hub_workers": 869,
+ "merges": 460,
+ "spend_usd": 24.33,
+ "workers_by_kind": {
+  "standard": {
+   "rejected": 169,
+   "merged": 283,
+   "failed": 224,
+   "reverted": 1,
+   "finished": 7,
+   "launched": 8
+  },
+  "feature": {
+   "rejected": 28,
+   "failed": 9,
+   "merged": 9
+  },
+  "rebase": {
+   "rejected": 48,
+   "merged": 77,
+   "failed": 6
+  },
+  "sibling (ingested)": {
+   "rejected": 24,
+   "merged": 81
+  },
+  "escalation (ingested)": {
+   "merged": 9,
+   "finished": 1
+  }
+ },
+ "runner": {
+  "in": 29330,
+  "cache_write": 22797331,
+  "cache_read": 535461701,
+  "out_tok": 10376946,
+  "turns": 15778
+ },
+ "top_loss_reasons": [
+  [
+   "worker reported failed",
+   194
+  ],
+  [
+   "conflict applying onto main",
+   176
+  ],
+  [
+   "empty diff (no changes under hcc/)",
+   64
+  ],
+  [
+   "worker reported partial",
+   43
+  ],
+  [
+   "no target test flipped to PASS",
+   2
+  ],
+  [
+   "no result",
+   2
+  ],
+  [
+   "regressions (10)",
+   1
+  ],
+  [
+   "regressions (5)",
+   1
+  ]
+ ],
+ "tests_tracked": 42358,
+ "tests_passing": 42181,
+ "suites": {
+  "bzip2": {
+   "pass": 48,
+   "total": 48
+  },
+  "c-testsuite": {
+   "pass": 220,
+   "total": 220
+  },
+  "chibicc": {
+   "pass": 40,
+   "total": 41
+  },
+  "chibicc-self": {
+   "pass": 101,
+   "total": 101
+  },
+  "cjson": {
+   "pass": 183,
+   "total": 183
+  },
+  "cpython": {
+   "pass": 5723,
+   "total": 5723
+  },
+  "csmith": {
+   "pass": 239,
+   "total": 239
+  },
+  "doom": {
+   "pass": 93,
+   "total": 93
+  },
+  "gcc-compile": {
+   "pass": 1926,
+   "total": 1926
+  },
+  "gcc-dg": {
+   "pass": 2269,
+   "total": 2269
+  },
+  "gcc-dg-compile": {
+   "pass": 7918,
+   "total": 7919
+  },
+  "gcc-torture": {
+   "pass": 1632,
+   "total": 1632
+  },
+  "llvm-single": {
+   "pass": 278,
+   "total": 278
+  },
+  "lua": {
+   "pass": 122,
+   "total": 122
+  },
+  "mbedtls": {
+   "pass": 11950,
+   "total": 11970
+  },
+  "quickjs": {
+   "pass": 4508,
+   "total": 4510
+  },
+  "redis": {
+   "pass": 2375,
+   "total": 2475
+  },
+  "reject-gcc-dg": {
+   "pass": 835,
+   "total": 888
+  },
+  "smoke": {
+   "pass": 34,
+   "total": 34
+  },
+  "sqlite": {
+   "pass": 1273,
+   "total": 1273
+  },
+  "tcc": {
+   "pass": 333,
+   "total": 333
+  },
+  "zlib": {
+   "pass": 81,
+   "total": 81
+  }
+ },
+ "hcc_lines": 21536,
+ "selftests": 630
+}

@@ -26,7 +26,7 @@ GNU case ranges, computed goto (`&&label`), K&R function definitions,
 ## TODO (good swarm tasks; each should come with a selftest)
 * VLAs (`parser/locals.py`, `codegen` alloca of `vla_size`), sizeof on VLA
 * `__int128` arithmetic (currently loads/stores low half only)
-* `_Complex` / `__complex__`, imaginary constants (`1.0i`)
+* `_Complex`: done for + - * / == != unary -, __real__/__imag__, imaginary constants, conversions; TODO: complex long double across calls (x87 ABI), `++`/`--`, complex in switch, `__divdc3`-exact division (inf/NaN)
 * GNU vector extensions (`__attribute__((vector_size(N)))`)
 * extended inline asm operands (`codegen/asm.py`)
 * `__builtin_*`: mul/add/sub_overflow, bswap, clz/ctz/popcount, prefetch,
@@ -34,7 +34,8 @@ GNU case ranges, computed goto (`&&label`), K&R function definitions,
 * va_arg of structs with SSE-class eightbytes (`codegen/varargs.py`)
 * `#pragma pack`, `#line` (`preprocess/directives.py`)
 * nested functions (gcc extension) — probably never
-* alloca when temporaries are pushed (`codegen/builtins.py`)
+* alloca when temporaries are pushed (`hcc/builtins/alloca.py`)
 * `-fPIC` code generation for shared libraries (GOT for extern data)
 * x87 values across calls (long double binary ops with calls in rhs)
 * cast of NaN in conditions (ucomis parity)
+* _Float32 is a distinct float type (TY_FLOAT32, no default promotion). Caveat: with __GNUC__ 4.2, glibc's bits/floatn-common.h typedefs `_Float32` to float, so after <stdio.h>/<stdlib.h> it is plain float. gcc-dg/torture/float32-nan*.c (sNaN + fenv) and _Float32 imaginary suffixes (1.if32) are still open.

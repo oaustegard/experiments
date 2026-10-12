@@ -81,7 +81,7 @@ def vector_compare(gen, node) -> None:
     gen.gen_expr(node.lhs)                       # %rax = lhs address
     gen.emit("mov %rax, %rsi")
     gen.pop("%r8")
-    gen.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+    gen.frame_lea(node.result_buf.offset, "%rdi")
     if is_flonum(lty.base):
         _float_compare(gen, node, size, es)
         gen.emit("mov %rdi, %rax")

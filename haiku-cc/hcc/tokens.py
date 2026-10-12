@@ -32,7 +32,7 @@ class Loc:
 class Token:
     """One token. `hideset` is used only by the preprocessor."""
 
-    __slots__ = ("kind", "text", "loc", "bol", "space", "hideset", "value", "ty")
+    __slots__ = ("kind", "text", "loc", "bol", "space", "hideset", "value", "ty", "spell")
 
     def __init__(self, kind: TokenKind, text: str, loc: Loc,
                  bol: bool = False, space: bool = False,
@@ -45,11 +45,13 @@ class Token:
         self.hideset = hideset
         self.value = None
         self.ty = None
+        self.spell = None   # original digraph spelling ('%:'), for #
 
     def copy(self) -> "Token":
         t = Token(self.kind, self.text, self.loc, self.bol, self.space, self.hideset)
         t.value = self.value
         t.ty = self.ty
+        t.spell = self.spell
         return t
 
     def is_(self, text: str) -> bool:
@@ -69,7 +71,7 @@ _Static_assert _Thread_local __complex__ __complex
 __attribute__ __attribute __asm__ __asm asm __extension__ __typeof__ __typeof typeof
 __restrict __restrict__ __inline __inline__ __const __const__ __volatile__ __volatile
 __signed__ __signed __alignof__ __alignof __thread __label__
-__builtin_va_list __int128 __int128_t __uint128_t __float128
+__builtin_va_list __int128 __int128_t __uint128_t __float128 __float80
 __auto_type __builtin_va_arg __builtin_offsetof __complex__ __complex
 __builtin_types_compatible_p __real__ __imag__ __real __imag
 """.split())

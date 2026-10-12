@@ -31,16 +31,74 @@ _add(_CHAR_PTR, "strcpy stpcpy strncpy strcat strncat strchr strrchr strstr strp
 _add(_SIZE_T, "strlen strnlen")
 _add(T.TY_VOID, "abort exit _Exit free")
 _add(T.TY_DOUBLE, "sqrt sin cos tan exp log log10 pow floor ceil fabs atan atan2 copysign")
+_add(T.TY_DOUBLE, "asin acos sinh cosh tanh log2 exp2 cbrt trunc round fmod hypot fmin fmax")
 _add(T.TY_FLOAT, "sqrtf sinf cosf fabsf floorf ceilf powf copysignf")
 _add(T.TY_LDOUBLE, "sqrtl sinl cosl tanl expl logl log10l powl floorl ceill fabsl atanl atan2l copysignl")
-_add(T.TY_INT, "abs")
+_add(T.TY_INT, "abs memcmp strcmp strncmp")
 _add(T.TY_LONG, "labs imaxabs")
 _add(T.TY_LLONG, "llabs")
+
+_add(T.TY_FLOAT, "tanf expf logf log10f log2f exp2f atanf atan2f asinf acosf fmodf hypotf")
+_add(T.TY_DOUBLE, "fma nextafter")
+_add(T.TY_FLOAT, "fmaf nextafterf")
+_add(T.TY_LDOUBLE, "fmal nextafterl")
+
+# Builtin math functions take fixed floating parameters: GCC converts the
+# arguments to them, so `__builtin_log2(an_unsigned_long)` works. Only the
+# names listed here get a prototype; the rest keep the unprototyped call.
+_MATH_ARGS: dict[str, list[T.Type]] = {}
+for _names, _n in (("sqrt sin cos tan exp log log10 floor ceil fabs atan asin acos sinh cosh tanh "
+                    "log2 exp2 cbrt trunc round", 1),
+                   ("pow atan2 copysign fmod hypot fmin fmax", 2)):
+    for _nm in _names.split():
+        _MATH_ARGS[_nm] = [T.TY_DOUBLE] * _n
+        _MATH_ARGS[_nm + "f"] = [T.TY_FLOAT] * _n
 
 
 def libc_return_type(name: str):
     """Return type GCC assumes for builtin library function `name`, or None."""
     return _TABLE.get(name)
+
+
+# Floating libm builtins taking two operands (base name, before any f/l suffix);
+# every other entry takes one.
+_LIBM_TWO_ARG = frozenset(
+    "pow copysign atan2 fmod hypot fmin fmax nextafter".split())
+_LIBM_THREE_ARG = frozenset("fma fmaf fmal".split())
+_LIBM_FLOAT_KINDS = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
+
+
+def _libm_arity(name: str) -> int:
+    if name in _LIBM_THREE_ARG:
+        return 3
+    if name in _LIBM_TWO_ARG or (name[-1:] in ("f", "l") and name[:-1] in _LIBM_TWO_ARG):
+        return 2
+    return 1
+
+
+def libm_param_types(name: str, rty):
+    """Parameter types GCC gives an implicit call of libm builtin `name` (a
+    floating function with return type `rty`): each operand has the function's
+    own type, so float arguments are not promoted to double. None when the
+    name has no such builtin prototype."""
+    if rty is None or rty.kind not in _LIBM_FLOAT_KINDS or _TABLE.get(name) is not rty:
+        return None
+    return [rty] * _libm_arity(name)
+
+
+# __builtin_powi{f,,l}(x, n): integer power, expanded by libgcc as __powi{sf,df,xf}2.
+# Maps the builtin's libm-style name to (libgcc helper, C type of x and result).
+POWI_HELPERS = {
+    "powif": ("__powisf2", T.TY_FLOAT),
+    "powi": ("__powidf2", T.TY_DOUBLE),
+    "powil": ("__powixf2", T.TY_LDOUBLE),
+}
+
+
+def libc_param_types(name: str):
+    """Parameter types of builtin math function `name` (a new list), or None."""
+    ps = _MATH_ARGS.get(name)
+    return None if ps is None else list(ps)
 
 
 # Integer abs() functions that GCC expands inline (bit width of the operand).

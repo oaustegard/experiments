@@ -24,7 +24,8 @@ class DataMixin:
         size = max(ty.size, 0)
         if var.init_data is None:
             if not var.is_static and not var.is_tls and not var.section \
-                    and not var.is_weak:
+                    and not var.is_weak and not var.is_nocommon \
+                    and sym not in self.asm_weak_syms:
                 # Tentative definition (C11 6.9.2): emit as a common symbol so
                 # that it merges with a real definition in another object.
                 self.directive(f".comm {sym},{max(size, 1)},{align}")
@@ -64,6 +65,7 @@ class DataMixin:
                     chunk = []
                 sign = "+" if r.addend >= 0 else "-"
                 sub = f"-{r.minus}" if r.minus else ""
+                sub += "".join(f"{'+' if sg > 0 else '-'}{lab}" for sg, lab in r.extra)
                 d = {1: ".byte", 2: ".short", 4: ".long"}.get(r.size, ".quad")
                 self.directive(f"{d} {r.label}{sub}{sign}{abs(r.addend)}")
                 pos += r.size

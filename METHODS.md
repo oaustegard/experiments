@@ -738,6 +738,17 @@ survives exactly the sanity checks people run.
   work, and a `.last.pt` checkpoint with optimizer + scheduler state at every
   epoch boundary so a kill costs at most one epoch. Chain on sentinel files,
   never on PIDs. (`embedding-inversion/ERRORS.md` #3, #4, #7)
+- **`cmd | tail -n 20 && git commit` commits even when `cmd` fails.** Without
+  `pipefail` only the last command's exit status reaches `&&`, and `tail` succeeds. Gate a
+  commit on the command's own exit code (`set -o pipefail`, or `${PIPESTATUS[0]}`), never on
+  a pipeline that ends in `tail`, `grep` or `tee`. (`haiku-cc/RESULTS.md` Finding 11)
+- **A Bash `run_in_background` job with no `timeout` stops at 30 minutes; the maximum is 2
+  hours.** Pass `timeout: 7200000` for long loops and make the loop resumable, so a
+  check-in can relaunch it where it stopped. (`haiku-cc/RESULTS.md` Finding 11)
+- **A subagent's background job dies with the subagent.** A long validation started in a
+  subagent's background ended when the subagent handed back. Run long validations from the
+  coordinator, as the delegate-brief entry under Cross-cutting principles says for jobs.
+  (`haiku-cc/RESULTS.md` Finding 11)
 - **`git add a b results_*.json` stages nothing at all while the glob matches
   no file — git rejects the whole pathspec list, not just the bad member.** A
   driver's per-stage commit was a silent no-op for three stages. One `git add`
@@ -4092,6 +4103,60 @@ reconciliation pass worked through the 393 contradictions the pages listed.
   writes, and remembering 5.22.0 warns on the signature. Write memory text through a file or a
   single-quoted heredoc, and distrust a bare decimal or a missing currency sign
   in an older digest. (`codex/RESULTS.md` round 4)
+
+### Building one large system with a cheap-agent swarm: gate, queue and container lessons
+
+`haiku-cc` — 1,235 Haiku 5.5 workers built a C11 compiler against 42K tests behind a serial
+no-regression merge gate, on a hub container and three sibling containers. Each item below
+cost hours before it was fixed. (`haiku-cc/RESULTS.md`)
+- **Refresh the whole cluster after a merge, or the swarm farms ghosts.** The gate re-ran
+  at most 20 tests of a cluster. One merge fixed the QuickJS build, about 3,900 QuickJS tests
+  stayed FAIL in the gate's known state, and about 100 workers were launched on tests that
+  already passed. After every merge, re-run every known-failing member of the merged
+  cluster. (`haiku-cc/swarm/merge.py` `recheck_clusters`)
+- **A test that stops running is not a regression.** A skip-list commit made 42 tests
+  "newly failing" and 27 good patches were rejected for them. Drop a skipped or removed
+  test from the known state instead of comparing against it. (`haiku-cc` Finding 6)
+- **Sample every cheap suite in every node's gate, not only the node's partition.** A hub
+  merge broke a test only sibling s1 ran; s1's gate then rejected 57 of 63 candidates for
+  "regressing" it and stopped. Exclude only the expensive whole-program builds.
+  (`haiku-cc` Finding 7)
+- **In a shared tree, conflicts are the largest loss; make them rebase tasks and remove
+  their cause.** 176 hub rejections were conflicts. Hand a conflicted diff to the next
+  worker as a rebase task and do not count it as a failed attempt (77 merges from 131
+  rebase workers). Shared registry files (lists of builtins, keywords, mixins) are conflict
+  hot spots: every fix appends to them. Self-registering modules, where a new entry is a
+  new file, removed that; the failure review traced at least 58 of 128 conflicts to such
+  lists. Do not shard a fully concrete signature either: the shards write the same fix.
+  (`haiku-cc/hcc/registry.py`)
+- **Parallelism has two dimensions: agents per container and containers.** When each
+  worker compiles and runs tests, one container's 4 vCPU caps the swarm however the
+  workers are launched; the hub ran about 8 hours at load 10 to 22. Plan sibling
+  sessions (`create_session`, each its own container) from the start and give each a
+  partition of the work. (`haiku-cc` Finding 8)
+- **Every per-worker artefact needs a delete at reap time.** Worker scratch in
+  `/tmp/<task id>/` (up to 170 MB each) filled the disk after about 680 workers, and the
+  symptom was the loop failing on `git worktree add`: a full disk looks like a git error.
+  Delete worktrees, scratch and caches when a worker is reaped, and check `df` at every
+  check-in. (`haiku-cc` Finding 9)
+- **A tail the harness created looks like a capability limit.** The queue parks a test
+  after 3 attempts without a merge, and attempts wasted by harness faults (stale state,
+  skip-as-regression, conflicts) counted. Of 33 clusters no node dispatched any more, 23
+  already passed and Haiku solved the other 10. After fixing a harness fault, set an
+  attempt epoch so earlier attempts stop counting toward parking, and re-check parked tests
+  at the current base. (`haiku-cc/swarm/queue.py` `SWARM_ATTEMPT_EPOCH`)
+- **Check the cheap model on the tail before escalating, and sample the tail at the
+  current base.** On 54 failing compiler clusters graded in isolation, Sonnet 5.5 cost about
+  7× Haiku 5.5 per solve, and every cluster only Sonnet solved was later fixed by Haiku
+  workers given the whole feature. A comparison drawn from a live swarm's failing set
+  saturates, because the swarm fixes its own tail while the comparison runs; 14 of 18
+  "Haiku failed it" clusters were already fixed at the pinned base. Sample the abandoned
+  tail and base-check each cluster first. (`haiku-cc/analysis/escalation.py`)
+- **PyPy for large inputs only, chosen per input.** PyPy ran the pure-Python compiler 2.1×
+  faster on large translation units and 1.8× slower on small tests. Dispatch per input (a
+  size threshold, 200 KB there), keep per-worktree paths out of cache keys, and pin the
+  code to Python 3.11 syntax, the newest PyPy supports, with a gate that byte-compiles under
+  PyPy. (`haiku-cc/tests/bin/hcc-auto`, `hcc-pycheck`)
 
 ### Overlapping skill descriptions: measure selection before merging skills
 

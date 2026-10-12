@@ -10,8 +10,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from hcc import diag
+from hcc.preprocess import assertions
 from hcc.preprocess.macros import Macro
 from hcc.tokens import Token, TokenKind
+
+PRAGMA_PACK_MARK = "__hcc_pragma_pack"   # marker token: parser applies the #pragma pack state
+PRAGMA_SSO_MARK = "__hcc_pragma_sso"     # marker token: #pragma scalar_storage_order state
 
 
 # -f math flags reflected as predefined macros: macro -> (on flag, off flag).
@@ -104,7 +108,11 @@ class DirectiveMixin:
     # ---- include ------------------------------------------------------------
     def dir_include(self, hash_tok, name_tok, next_=False):
         line = self.read_line()
-        if line and line[0].kind not in (TokenKind.STRING,) and line[0].text != "<":
+        # A "<...>" header name is taken verbatim only when the closing '>'
+        # is on the line; otherwise the tokens after '<' are macro-expanded.
+        angle_closed = any(t.text == ">" for t in line)
+        if line and line[0].kind not in (TokenKind.STRING,) and (
+                line[0].text != "<" or not angle_closed):
             line = self.expand_list(line)
         if not line:
             diag.error(name_tok, "#include expects \"FILENAME\" or <FILENAME>")
@@ -227,9 +235,10 @@ class DirectiveMixin:
         """Record a `#line N "name"` (or GNU `# N "name"`) for later lines."""
         if line and line[0].kind != TokenKind.STRING:
             line = self.expand_list(line)
-        if not line or line[0].kind != TokenKind.NUMBER or not line[0].text.isdigit():
+        digits = line[0].text.replace("'", "") if line else ""
+        if not line or line[0].kind != TokenKind.NUMBER or not digits.isdigit():
             diag.error(hash_tok, "invalid line number in #line directive")
-        n = int(line[0].text)
+        n = int(digits)
         if len(line) > 1 and line[1].kind != TokenKind.STRING:
             diag.error(line[1], "invalid filename in #line directive")
         start = hash_tok.loc.line + 1          # first physical line affected
@@ -256,12 +265,56 @@ class DirectiveMixin:
 
     def dir_pragma(self, hash_tok, name_tok):
         line = self.read_line()
+        for t in line:
+            # an unterminated string/char literal inside a pragma is a lexical
+            # error in gcc, even though the pragma itself is then ignored
+            if t.kind == TokenKind.PUNCT and t.text in ('"', "'"):
+                diag.error(t, f'missing terminating {t.text} character', "preprocess")
         if line and line[0].text == "once":
             self.pragma_once.add(hash_tok.loc.file)
         elif line and line[0].text in ("push_macro", "pop_macro"):
             self._macro_pragma(line)
         elif len(line) >= 2 and line[0].text == "GCC" and line[1].text == "optimize":
             self._optimize_pragma(line[2:])
+        elif line and line[0].text == "pack":
+            self._pack_pragma(hash_tok, line[1:])
+        elif line and line[0].text == "weak":
+            self._weak_pragma(hash_tok, line[1:])
+        elif line and line[0].text == "scalar_storage_order":
+            self._sso_pragma(hash_tok, line[1:])
+
+    def _sso_pragma(self, hash_tok, args: list[Token]) -> None:
+        """#pragma scalar_storage_order big-endian|little-endian|default is forwarded
+        to the parser as a marker token (value = the argument texts)."""
+        texts = [t.text for t in args]
+        marker = Token(TokenKind.PUNCT, PRAGMA_SSO_MARK, hash_tok.loc)
+        marker.value = texts
+        self.stack.append(marker)
+
+    def _weak_pragma(self, hash_tok, line: list[Token]) -> None:
+        """#pragma weak sym  /  #pragma weak sym = target: forwarded to the
+        parser as file-scope `asm(".weak sym" [ ".set sym, target" ])`."""
+        if not line or line[0].kind != TokenKind.IDENT:
+            return
+        sym = line[0].text
+        asm = f"\\t.weak {sym}"
+        if len(line) == 3 and line[1].text == "=" and line[2].kind == TokenKind.IDENT:
+            asm += f"\\n\\t.set {sym}, {line[2].text}"
+        elif len(line) != 1:
+            return
+        loc = hash_tok.loc
+        toks = [Token(TokenKind.IDENT, "asm", loc), Token(TokenKind.PUNCT, "(", loc),
+                Token(TokenKind.STRING, f'"{asm}"', loc), Token(TokenKind.PUNCT, ")", loc),
+                Token(TokenKind.PUNCT, ";", loc)]
+        self.stack.extend(reversed(toks))
+
+    def _pack_pragma(self, hash_tok, args: list[Token]) -> None:
+        """#pragma pack(...) is forwarded to the parser as one marker token
+        (text PRAGMA_PACK_MARK, value = argument texts) placed back in the stream."""
+        texts = [t.text for t in args if t.text not in ("(", ")")]
+        marker = Token(TokenKind.PUNCT, PRAGMA_PACK_MARK, hash_tok.loc)
+        marker.value = texts
+        self.stack.append(marker)
 
     def _optimize_pragma(self, line: list[Token]) -> None:
         """#pragma GCC optimize "-fno-math-errno" toggles __NO_MATH_ERRNO__ (and
@@ -298,5 +351,8 @@ class DirectiveMixin:
         self.read_line()
 
     dir_sccs = dir_ident
-    dir_assert = dir_ident
-    dir_unassert = dir_ident
+    def dir_assert(self, hash_tok, name_tok):
+        assertions.dir_assert(self, hash_tok, self.read_line())
+
+    def dir_unassert(self, hash_tok, name_tok):
+        assertions.dir_unassert(self, hash_tok, self.read_line())

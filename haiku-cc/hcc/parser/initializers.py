@@ -11,11 +11,17 @@ initialization of char/wchar arrays, flexible (incomplete) arrays.
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc.parser import complex as CPX
+from hcc.parser import complex_const as CC
 from hcc.parser.structs import find_member
 from hcc.sema.constexpr import try_eval_const
+from hcc.parser.constexpr_init import check_scalar, check_string_units
 from hcc.sema.initializers import lower_local_init, serialize_global_init
 from hcc.tokens import TokenKind
+from hcc import diag
+from hcc.diag import CompileError
 from hcc import typesys as T
+from hcc.sema.compat import is_compatible
 
 
 def new_initializer(ty, is_flexible: bool) -> N.Initializer:
@@ -45,6 +51,7 @@ class InitializerMixin:
     def parse_initializer(self, ty):
         init = new_initializer(ty, True)
         self.initializer2(init)
+        self._check_flex_nesting(init, root=True)
         if ty.kind == T.TypeKind.ARRAY and ty.array_len < 0 and init.expr is not None:
             ty = init.expr.ty           # `int a[] = (int[4]){...};` takes the literal's size
             init.ty = ty
@@ -53,25 +60,59 @@ class InitializerMixin:
             init.ty = ty
         return init, ty
 
-    def local_initializer(self, var) -> N.Expr:
-        init, ty = self.parse_initializer(var.ty)
-        var.ty = ty
-        if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
-            # GCC folds `const int a = 0;` when it is read in a constant initializer.
-            var.const_value = try_eval_const(init.expr)
-        return lower_local_init(init, var, self.typed)
-
-    def global_initializer(self, var) -> None:
-        saved = self.in_static_init
-        self.in_static_init = True
+    def local_initializer(self, var, is_constexpr=False) -> N.Expr:
+        saved = self.constexpr_init
+        self.constexpr_init = is_constexpr
         try:
             init, ty = self.parse_initializer(var.ty)
         finally:
-            self.in_static_init = saved
+            self.constexpr_init = saved
+        var.ty = ty
+        self._check_auto_flex_init(init)
+        if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
+            # GCC folds `const int a = 0;` when it is read in a constant initializer.
+            var.const_value = try_eval_const(init.expr)
+        elif ty.is_const and not ty.is_volatile and not T.is_integer(ty):
+            # `constexpr struct S s = {...};`: static bytes, so `s.m` folds in constant expressions
+            var.const_data = const_bytes(init, ty)
+        return lower_local_init(init, var, self.typed)
+
+    def global_initializer(self, var, is_constexpr=False) -> None:
+        saved = self.in_static_init, self.constexpr_init
+        self.in_static_init = True
+        self.constexpr_init = is_constexpr
+        try:
+            init, ty = self.parse_initializer(var.ty)
+        finally:
+            self.in_static_init, self.constexpr_init = saved
         var.ty = ty
         var.init_data = serialize_global_init(init, ty)
 
     # ---- helpers --------------------------------------------------------------
+    def _check_flex_nesting(self, init, root: bool) -> None:
+        """GCC: a trailing `T x[]` member may only be initialized when its struct
+        is the object being initialized itself, not a sub-object of an aggregate."""
+        if not root and init.ty.kind == T.TypeKind.STRUCT and init.ty.members and \
+                init.ty.members[-1].open_array and isinstance(init.children, list) and \
+                init.children:
+            last = init.children[-1]
+            if last.children or last.expr is not None:
+                self.error("initialization of flexible array member in a nested context")
+        for _, child in N.present_children(init.children):
+            self._check_flex_nesting(child, root=False)
+
+    def _check_auto_flex_init(self, init) -> None:
+        """GCC: automatic-storage objects may not initialize a struct's trailing
+        flexible array member (`struct S s = {1, "x"};` with `T x[];`)."""
+        if init.ty.kind == T.TypeKind.STRUCT and init.ty.members and \
+                init.ty.members[-1].open_array and isinstance(init.children, list) and \
+                init.children:
+            last = init.children[-1]
+            if last.children or last.expr is not None:
+                self.error("non-static initialization of a flexible array member")
+        for _, child in N.present_children(init.children):
+            self._check_auto_flex_init(child)
+
     def _at_end(self) -> bool:
         return self.at("}") or (self.at(",") and self.peek().text == "}")
 
@@ -90,11 +131,29 @@ class InitializerMixin:
 
     def _grow(self, init, i: int) -> bool:
         """Make child i exist for flexible arrays. False if out of range."""
+        if i < 0:
+            return False
         if init.is_flexible:
             while len(init.children) <= i:
                 init.children.append(new_initializer(init.ty.base, False))
             return True
         return i < len(init.children)
+
+    def _init_element(self, child) -> None:
+        """Initialize one brace-list element. A brace-elided aggregate with no
+        room (zero-length array, empty struct) consumes no tokens; its excess
+        elements are then skipped (GCC: "excess elements in initializer")."""
+        save = self.pos
+        self.initializer2(child)
+        if self.pos == save:
+            self._skip_excess()
+
+    def _skip_excess_group(self) -> None:
+        """An aggregate has no element left for a `{...}` group: GCC rejects it
+        ("extra brace group at end of initializer"). Scalars still skip excess."""
+        if self.at("{"):
+            self.error("extra brace group at end of initializer")
+        self._skip_excess()
 
     def _skip_excess(self) -> None:
         if self.at("{"):
@@ -125,6 +184,10 @@ class InitializerMixin:
             save = self.pos
             expr = self.typed(self.assign())
             if expr.ty.is_vector:     # `vec v = other_vec;` copies the value
+                if expr.ty.size != ty.size or expr.ty.base.size != ty.base.size or \
+                        T.is_flonum(expr.ty.base) != T.is_flonum(ty.base):
+                    self.error(f"incompatible types when initializing type '{T.type_str(ty)}' "
+                               f"using type '{T.type_str(expr.ty)}'", expr.loc)
                 init.expr = expr
                 return
             self.pos = save
@@ -142,7 +205,7 @@ class InitializerMixin:
             else:
                 self.array_initializer2(init, 0)
             return
-        if ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        if ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not ty.is_complex:
             if self.at("{"):
                 self.struct_initializer1(init)
                 return
@@ -161,21 +224,42 @@ class InitializerMixin:
                 init.expr = N.IntLit(self.tok.loc, 0, ty=T.TY_INT)
                 return
             self.initializer2(init)
-            self._consume_end()
+            while not self._consume_end():   # `int *p = {0, NULL};`: excess elements are skipped
+                self.expect(",")
+                self._skip_excess()
             return
         init.expr = self.typed(self.assign())
+        if self.constexpr_init:
+            check_scalar(self, init)
+        if T.is_integer(init.ty) and init.ty.kind != T.TypeKind.BOOL and init.expr.ty.kind == T.TypeKind.ARRAY:
+            # `char c = "abc";` / `int x = arr;`: an array decays to a pointer, not an integer
+            diag.error(init.expr, "initialization of integer object from an array (pointer)")
+        if init.ty.is_complex or init.expr.ty.is_complex:
+            if self.fn is None or self.in_static_init:    # file scope or static local
+                CC.set_global_init(self, init)
+            else:
+                init.expr = CPX.convert(self, init.expr, init.ty, init.expr.loc)
 
     def string_initializer(self, init) -> None:
         tok = self.next()
         elem = init.ty.base
         sz = elem.size
         data = tok.value
+        if not (sz == 1 and tok.ty.base.size == 1) and \
+                not is_compatible(elem.unqual(), tok.ty.base.unqual()):
+            # C11 6.7.9p14: the literal's element type must match the array's (char arrays
+            # take any 1-byte literal; wide/UTF-16/UTF-32 literals need the matching type).
+            diag.error(tok.loc, f"cannot initialize array of '{T.type_str(elem)}' "
+                                f"from a string literal with type array of "
+                                f"'{T.type_str(tok.ty.base)}'")
         n = len(data) // tok.ty.base.size
         units = [int.from_bytes(data[i * tok.ty.base.size:(i + 1) * tok.ty.base.size], "little")
                  for i in range(n)]
         if init.is_flexible:
             self._grow(init, n - 1)
         count = min(len(init.children), n)
+        if self.constexpr_init:
+            check_string_units(self, tok, units[:count], elem)
         for i in range(count):
             v = units[i]
             if not elem.is_unsigned and v >= 1 << (sz * 8 - 1):
@@ -202,9 +286,9 @@ class InitializerMixin:
                 i = self.array_designator(init)
                 continue
             if self._grow(init, i):
-                self.initializer2(init.children[i])
+                self._init_element(init.children[i])
             else:
-                self._skip_excess()
+                self._skip_excess_group()
             i += 1
 
     def array_initializer2(self, init, i: int) -> None:
@@ -217,27 +301,45 @@ class InitializerMixin:
             if self.at("[") or self.at("."):
                 return
             self._grow(init, i)
-            self.initializer2(init.children[i])
+            self._init_element(init.children[i])
             i += 1
 
-    def array_designator(self, init) -> int:
-        """`[i] ...= x` inside an array initializer; returns next index."""
+    def array_designator(self, init, tail: bool = True, dkinds: str = "") -> int:
+        """`[i] ...= x` inside an array initializer; returns next index.
+        A range `[lo ... hi]` re-parses the designation once per index; the
+        brace-elided tail after it (`, 5, 6`) is consumed only once, by the
+        last index (`tail` False: an enclosing range is not on its last index)."""
         self.expect("[")
-        lo = self.const_expr()
+        lo, lo_ty = self.const_expr_typed()
+        if not T.is_integer(lo_ty):
+            self.error("array index in initializer not of integer type")
         hi = lo
         if self.accept("..."):
-            hi = self.const_expr()
+            hi, hi_ty = self.const_expr_typed()
+            if not T.is_integer(hi_ty):
+                self.error("array index in initializer not of integer type")
         self.expect("]")
         save = self.pos
         for idx in range(lo, hi + 1):
             self.pos = save
             if not self._grow(init, idx):
                 self.error("array index in initializer exceeds array bounds")
-            self.designation(init.children[idx])
+            self.designation(init.children[idx], tail and idx == hi, dkinds + "[")
         return hi + 1
 
-    def designation(self, init) -> None:
-        """Continue a designator chain into `init`, then parse `= value`."""
+    def _tail_follows(self, init, nxt: int) -> bool:
+        """True when a brace-elided value follows a designated sub-object and
+        fits in the enclosing aggregate after index `nxt`."""
+        if not self.at(",") or self._at_designator_after_comma() or self._at_end():
+            return False
+        if T.is_struct_like(init.ty):
+            return init.ty.kind == T.TypeKind.STRUCT and nxt < len(init.ty.members)
+        return init.is_flexible or nxt < len(init.children)
+
+    def designation(self, init, tail: bool = True, dkinds: str = "") -> None:
+        """Continue a designator chain into `init`, then parse `= value`.
+        `dkinds` holds the kinds of the designators already consumed ("[", ".", "n"
+        for GNU `name:`). Without `=` only a single `[i]` or `name:` is accepted."""
         if init.expr is not None and (self.at("[") or self.at(".")):
             # A sub-object was already set as a whole (`T y[] = {x, [0].b=3}`):
             # the designator re-initializes it from zero (other members -> 0).
@@ -246,20 +348,31 @@ class InitializerMixin:
         if self.at("["):
             if init.ty.kind != T.TypeKind.ARRAY:
                 self.error("array index in non-array initializer")
-            nxt = self.array_designator(init)
+            nxt = self.array_designator(init, tail, dkinds)
             # Following brace-elided values continue inside the designated
             # sub-aggregate (C11 6.7.9p17), e.g. `[0][1]=7, 8` sets x[0][2].
-            if self.at(",") and (init.is_flexible or nxt < len(init.children)) and \
-                    not self._at_designator_after_comma() and not self._at_end():
+            if tail and self._tail_follows(init, nxt):
                 self.next()
                 self.array_initializer2(init, nxt)
             return
         if self.at("."):
             if not T.is_struct_like(init.ty):
                 self.error("field name not in record or union initializer")
-            self.member_designator(init)
+            nxt = self.member_designator(init, tail, dkinds)
+            # `.k[0]=1, 2` / `.a=1, 2`: the brace-elided tail continues with the
+            # siblings after the designated member (struct only; unions take one).
+            if tail and self._tail_follows(init, nxt):
+                self.next()
+                self.struct_initializer2(init, nxt)
             return
-        self.accept("=")
+        if not self.accept("="):
+            if dkinds not in ("[", "n"):
+                self.error("expected '=' before initializer value")
+        if self.at("{") and (init.children is not None or init.expr is not None):
+            # `[i] = { ... }` / `.f = { ... }` initializes the whole sub-object: values set
+            # by earlier initializers for it are dropped (C11 6.7.9p19), others become 0.
+            fresh = new_initializer(init.ty, init.is_flexible)
+            init.expr, init.children, init.mem = None, fresh.children, None
         self.initializer2(init)
 
     def at_member_designator(self) -> bool:
@@ -268,9 +381,10 @@ class InitializerMixin:
             return True
         return self.tok.kind == TokenKind.IDENT and self.peek().text == ":"
 
-    def member_designator(self, init) -> int:
+    def member_designator(self, init, tail: bool = True, dkinds: str = "") -> int:
         """`.name ...= x` (or GNU `name: x`) inside a struct/union initializer;
         returns next index."""
+        kind = "." if self.at(".") else "n"
         if self.at("."):
             self.expect(".")
         name = self.expect_ident()
@@ -287,7 +401,7 @@ class InitializerMixin:
         m = path[-1]
         if cur.ty.kind == T.TypeKind.UNION:
             cur.mem = m
-        self.designation(cur.children[m.idx])
+        self.designation(cur.children[m.idx], tail, dkinds + kind)
         return path[0].idx + 1
 
     def struct_initializer1(self, init) -> None:
@@ -309,10 +423,10 @@ class InitializerMixin:
             if i < len(members) and not (is_union and i > 0):
                 if is_union:
                     init.mem = members[i]
-                self.initializer2(init.children[i])
+                self._init_element(init.children[i])
                 i += 1
             else:
-                self._skip_excess()
+                self._skip_excess_group()
 
     def struct_initializer2(self, init, i: int) -> None:
         members = init.ty.members
@@ -331,7 +445,7 @@ class InitializerMixin:
             first = False
             if is_union:
                 init.mem = members[i]
-            self.initializer2(init.children[i])
+            self._init_element(init.children[i])
             i += 1
 
     @staticmethod
@@ -340,3 +454,14 @@ class InitializerMixin:
         while i < len(members) and members[i].is_bitfield and members[i].name is None:
             i += 1
         return i
+
+
+def const_bytes(init, ty):
+    """Static image of a constant local initializer, or None if it is not constant."""
+    e = init.expr
+    if isinstance(e, N.VarRef) and getattr(e.var, "const_data", None) is not None:
+        return e.var.const_data             # `constexpr struct S t = s;` copies a constant s
+    try:
+        return serialize_global_init(init, ty)
+    except CompileError:
+        return None

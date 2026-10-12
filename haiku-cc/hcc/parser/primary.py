@@ -10,7 +10,8 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.parser.builtins import SPECIAL_BUILTINS, floatn_libc_name
-from hcc.parser.libc_builtins import libc_return_type
+from hcc.parser.libc_builtins import POWI_HELPERS, libc_param_types, libc_return_type, libm_param_types
+from hcc.parser import complex as CPX
 from hcc.parser.scope import VarScope
 from hcc.sema.compat import is_compatible
 from hcc.tokens import TokenKind
@@ -24,12 +25,16 @@ class PrimaryMixin:
         k = t.kind
         if k == TokenKind.PUNCT and t.text == "(":
             if self.peek().text == "{" and self.peek().kind == TokenKind.PUNCT:
+                if self.in_param_decl:
+                    self.error("braced-group within expression allowed only inside a function")
                 self.next()
                 self.next()
                 outer_base = self.stmt_expr_base
                 if outer_base is None:
                     self.stmt_expr_base = len(self.scope_stack)
+                self.jump_scope.enter_stmt_expr()
                 body = self.compound_stmt_body(t.loc)
+                self.jump_scope.leave_stmt_expr()
                 self.stmt_expr_base = outer_base
                 self.expect(")")
                 return self.typed(N.StmtExpr(t.loc, body))
@@ -39,8 +44,10 @@ class PrimaryMixin:
             return node
         if k == TokenKind.NUMBER:
             self.next()
+            if t.ty.is_complex:                   # imaginary constant (GNU 2i)
+                return CPX.complex_literal(self, t.loc, t.value, t.ty)
             if T.is_flonum(t.ty):
-                return N.FloatLit(t.loc, t.value, ty=t.ty)
+                return N.FloatLit(t.loc, t.value, ty=t.ty, bits=getattr(t.value, "x87", None))
             return N.IntLit(t.loc, t.value, ty=t.ty)
         if k == TokenKind.CHAR:
             self.next()
@@ -61,21 +68,33 @@ class PrimaryMixin:
         name = t.text
         vs = self.find_var(name)
         if vs is not None:
+            self.check_unavailable(name, t)
             if vs.var is not None:
+                self.check_block_func_visible(name, vs.var, t, self.at("("))
                 return self.typed(N.VarRef(t.loc, vs.var))
             if vs.enum_ty is not None:
                 v = vs.enum_val
-                ty = T.TY_INT if -(1 << 31) <= v < (1 << 31) else T.TY_LONG
+                ty = vs.enum_cty or (T.TY_INT if -(1 << 31) <= v < (1 << 31) else T.TY_LONG)
                 return N.IntLit(t.loc, v, ty=ty)
             self.error(f"unexpected type name '{name}': expected expression", t)
         if name in ("__func__", "__FUNCTION__", "__PRETTY_FUNCTION__") and self.fn is not None:
             return self.typed(N.VarRef(t.loc, self.func_name_var()))
+        if name in ("__func__", "__FUNCTION__", "__PRETTY_FUNCTION__") and self.fn is None:
+            # Outside a function GCC yields an empty string (warning for __func__ only).
+            if name == "__func__":
+                diag.warn(t, "'__func__' is not defined outside of function scope")
+            var = self.new_anon_gvar(T.array_of(T.TY_CHAR, 1), t.loc)
+            var.init_data = N.GlobalData(bytearray(b"\0"))
+            return self.typed(N.VarRef(t.loc, var))
         if name == "nullptr" and self.c23_mode():
             # C23 nullptr constant: a null pointer constant (approximated as void *).
-            return N.Cast(t.loc, N.IntLit(t.loc, 0, ty=T.TY_INT), ty=T.pointer_to(T.TY_VOID))
+            return N.Cast(t.loc, N.IntLit(t.loc, 0, ty=T.TY_INT), ty=T.pointer_to(T.TY_VOID),
+                          nullptr_const=True)
         is_call = self.at("(")
         if name.startswith("__builtin_"):
             bname = name[len("__builtin_"):]
+            if is_call and bname in POWI_HELPERS:
+                return self.typed(N.VarRef(t.loc, self.powi_helper(t, bname)))
             if is_call or libc_return_type(bname) is not None:
                 # &__builtin_abs and __builtin_abs(...) both name the library function.
                 name = floatn_libc_name(bname)
@@ -83,12 +102,22 @@ class PrimaryMixin:
                 if vs is not None and vs.var is not None:
                     return self.typed(N.VarRef(t.loc, vs.var))
                 is_call = True
+            else:
+                # A bare __builtin_<fn> used as a value (e.g. in `c ? __builtin_printf : f`)
+                # names the library function <fn> itself.
+                vs = self.find_var(bname)
+                if vs is not None and vs.var is not None:
+                    return self.typed(N.VarRef(t.loc, vs.var))
+                return self.typed(N.VarRef(t.loc, self.implicit_function(bname, t, T.TY_INT)))
         if is_call:
             rty = libc_return_type(name)
             if rty is None:
                 diag.warn(t, f"implicit declaration of function '{name}'")
                 rty = T.TY_INT
-            return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty)))
+            params = libm_param_types(name, rty)
+            if params is None:
+                params = libc_param_types(name)
+            return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty, params)))
         self.error(f"'{name}' undeclared", t)
 
     def c23_mode(self):
@@ -96,9 +125,19 @@ class PrimaryMixin:
         return std in ("c2x", "gnu2x", "c23", "gnu23")
 
     def string_var(self, tok):
-        var = self.new_anon_gvar(tok.ty, tok.loc)
-        var.init_data = N.GlobalData(bytearray(tok.value))
-        var.is_string_literal = True     # __builtin_constant_p folds these to 1
+        """Storage for a string literal. Identical literals in one translation
+        unit share one object (GCC merges string constants, so `"Hello" + 1`
+        and `p + 1` with `p = "Hello"` compare equal)."""
+        pool = getattr(self, "_string_pool", None)
+        if pool is None:
+            pool = self._string_pool = {}
+        key = (tok.ty.size, bytes(tok.value))
+        var = pool.get(key)
+        if var is None:
+            var = self.new_anon_gvar(tok.ty, tok.loc)
+            var.init_data = N.GlobalData(bytearray(tok.value))
+            var.is_string_literal = True     # __builtin_constant_p folds these to 1
+            pool[key] = var
         return var
 
     def func_name_var(self):
@@ -109,11 +148,31 @@ class PrimaryMixin:
             self._func_name_var = (self.fn, var)
         return self._func_name_var[1]
 
-    def implicit_function(self, name, tok, ret_ty=None):
+    def implicit_function(self, name, tok, ret_ty=None, params=None):
         fty = T.func_type(ret_ty or T.TY_INT)
         fty.has_proto = False
+        if params is not None:          # builtin with a known prototype
+            fty.params = params
+            fty.has_proto = True
         fn = N.Function(name, fty, loc=tok.loc)
         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
+        self.objs.append(fn)
+        if params is not None:
+            # A later explicit declaration replaces this hidden builtin prototype.
+            self.implicit_protos = getattr(self, "implicit_protos", set()) | {id(fn)}
+        return fn
+
+    def powi_helper(self, tok, bname):
+        """The libgcc helper behind __builtin_powi{f,,l}, declared once with a
+        prototype (T x, int n) so that x is converted to its C type."""
+        helper, ty = POWI_HELPERS[bname]
+        vs = self.find_var(helper)
+        if vs is not None and vs.var is not None:
+            return vs.var
+        fty = T.func_type(ty)
+        fty.params = [ty, T.TY_INT]
+        fn = N.Function(helper, fty, loc=tok.loc)
+        self.scopes[0].vars.setdefault(helper, VarScope()).var = fn
         self.objs.append(fn)
         return fn
 

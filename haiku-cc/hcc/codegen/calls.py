@@ -10,16 +10,18 @@ CallMixin.expr_Call(node):
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import abi_kind, is_memory_struct, struct_arg_regs, struct_in_regs
+from hcc.builtins.alloca import alloca_call
+from hcc.codegen.abi import abi_kind, is_memory_struct, is_x87_complex, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS64
-from hcc.typesys import TypeKind, align_to
+from hcc.codegen.half import FROM_ABI_HALF, TO_ABI_HALF
+from hcc.typesys import TypeKind, align_to, is_dyn_struct
 
 
 def _stack_footprint(ty) -> int:
     """Bytes a stack-passed argument of type ty occupies (as pushed)."""
     if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
         return align_to(ty.size, 8)
-    if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+    if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.INT128, TypeKind.DEC128):
         return 16
     return 8
 
@@ -52,14 +54,25 @@ class CallMixin:
                         by_stack = True
                 if by_stack:
                     stack += align_to(ty.size, 8) // 8
-            elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.DEC32, TypeKind.DEC64, TypeKind.DEC128):
                 if fp >= 8:
                     by_stack = True
-                    stack += 1
+                    stack += 2 if k == TypeKind.DEC128 else 1
                 fp += 1
-            elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+            elif k == TypeKind.FLOAT128:
+                if fp >= 8:
+                    by_stack = True
+                    stack += 2
+                fp += 1
+            elif k == TypeKind.LDOUBLE:
                 by_stack = True
                 stack += 2
+            elif k == TypeKind.INT128:
+                if gp + 2 <= 6:
+                    gp += 2
+                else:
+                    by_stack = True
+                    stack += 2
             else:
                 if gp >= 6:
                     by_stack = True
@@ -90,19 +103,30 @@ class CallMixin:
             self.depth += sz // 8
             self.emit("mov %rsp, %rdi")
             self.copy_struct(a.ty.size)
-        elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+        elif k == TypeKind.FLOAT16:
+            self.emit(TO_ABI_HALF)          # passed as half bits in the low 16 bits
             self.pushf()
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k in (TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.DEC32, TypeKind.DEC64):
+            self.pushf()
+        elif k == TypeKind.DEC128:
+            self._dec_push(a.ty)
+        elif k == TypeKind.FLOAT128:
+            self.f128_push()
+        elif k == TypeKind.LDOUBLE:
             self.emit("sub $16, %rsp")
             self.emit("fstpt (%rsp)")
             self.depth += 2
+        elif k == TypeKind.INT128:
+            self.push128()                  # low word on top: lowest address
         else:
             self.push()
 
     def expr_Call(self, node) -> None:
         if node.func.ty.kind == TypeKind.FUNC and type(node.func).__name__ == "VarRef" and \
-                node.func.var.name == "alloca":
-            return self.builtin_alloca_call(node)
+                node.func.var.name == "alloca" and len(node.args) == 1:
+            return alloca_call(self, node)
+        if node.static_chain is not None:
+            self.gen_expr(node.static_chain)   # stores the chain value into chain_slot
         on_stack, _ = self._classify_args(node)
         offs, total = self._stack_layout(node, on_stack)
         stack = align_to(total, 8) // 8
@@ -132,7 +156,10 @@ class CallMixin:
         ret = node.ty
         big_ret = abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and is_memory_struct(ret)
         if big_ret:
-            self.emit(f"lea {node.ret_buffer.offset}(%rbp), %rax")
+            if is_dyn_struct(ret):     # the slot holds the result block's address
+                self.emit(f"mov {node.ret_buffer.offset}(%rbp), %rax")
+            else:
+                self.frame_lea(node.ret_buffer.offset, "%rax")
             self.push()
         self.gen_expr(node.func)
         gp = fp = 0
@@ -154,14 +181,36 @@ class CallMixin:
                     else:
                         self.pop(ARG_REGS64[gp])
                         gp += 1
-            elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.DEC32, TypeKind.DEC64):
                 self.popf(fp)
                 fp += 1
+            elif k == TypeKind.DEC128:
+                self._dec_pop(a.ty, fp)
+                fp += 1
+            elif k == TypeKind.FLOAT128:
+                self.f128_pop(fp)
+                fp += 1
+            elif k == TypeKind.INT128:
+                self.pop(ARG_REGS64[gp])        # low word
+                self.pop(ARG_REGS64[gp + 1])    # high word
+                gp += 2
             else:
                 self.pop(ARG_REGS64[gp])
                 gp += 1
         callee = self.nested_callee(node)
-        if callee is not None:
+        if node.static_chain is not None:
+            # chain value was saved in chain_slot; load it into %r10 just before the call
+            chain_src = f"{node.chain_slot.offset}(%rbp)"
+            if callee is not None:
+                self.emit(f"mov ${fp}, %eax")
+                self.emit(f"mov {chain_src}, %r10")
+                self.emit(f"call {callee.symbol}")
+            else:
+                self.emit("mov %rax, %r11")
+                self.emit(f"mov ${fp}, %eax")
+                self.emit(f"mov {chain_src}, %r10")
+                self.emit("call *%r11")
+        elif callee is not None:
             self.emit_static_link(callee)
             self.emit(f"mov ${fp}, %eax")
             self.emit(f"call {callee.symbol}")
@@ -172,6 +221,8 @@ class CallMixin:
         if stack:
             self.emit(f"add ${stack * 8}, %rsp")
             self.depth -= stack
+        if ret.kind == TypeKind.FLOAT16:
+            self.emit(FROM_ABI_HALF)
         k = ret.kind
         if k == TypeKind.BOOL:
             self.emit("movzbl %al, %eax")
@@ -180,9 +231,14 @@ class CallMixin:
                 self.emit(f"{'movzbl' if ret.is_unsigned else 'movsbl'} %al, %eax")
             else:
                 self.emit(f"{'movzwl' if ret.is_unsigned else 'movswl'} %ax, %eax")
-        if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and not big_ret:
+        if is_x87_complex(ret):
+            self.frame_lea(node.ret_buffer.offset, "%rdi")
+            self.emit("fstpt (%rdi)")        # st(0) = real part
+            self.emit("fstpt 16(%rdi)")      # st(1) = imaginary part
+            self.frame_lea(node.ret_buffer.offset, "%rax")
+        elif abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and not big_ret:
             self.copy_ret_regs_to_buffer(ret, node.ret_buffer.offset)
-            self.emit(f"lea {node.ret_buffer.offset}(%rbp), %rax")
+            self.frame_lea(node.ret_buffer.offset, "%rax")
 
     def copy_ret_regs_to_buffer(self, ty, off: int) -> None:
         """After a call returning a small struct in rax/rdx/xmm0/xmm1."""
@@ -192,7 +248,7 @@ class CallMixin:
         fp1, fp2 = regs
         gp_regs = ["%rax", "%rdx"]
         fp_n = gp_n = 0
-        self.emit(f"lea {off}(%rbp), %rdi")
+        self.frame_lea(off, "%rdi")
         for chunk, is_fp in enumerate([fp1, fp2][: 1 if ty.size <= 8 else 2]):
             base = chunk * 8
             n = min(8, ty.size - base)

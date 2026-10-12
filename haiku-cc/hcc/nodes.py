@@ -32,6 +32,9 @@ class Reloc:
     addend: int
     size: int = 8
     minus: str | None = None
+    # further assembler-resolved address terms: (sign, label) pairs, e.g. the
+    # `+ (&&c - &&d)` of `(&&a - &&b) + (&&c - &&d)`; emitted after `minus`
+    extra: tuple = ()
 
 
 @dataclass(eq=False)
@@ -48,6 +51,7 @@ class Obj:
     is_static: bool = False        # internal linkage (file scope) or static local
     asm_name: str | None = None    # from `__asm__("sym")`; overrides symbol name
     loc: Loc | None = None
+    is_unavailable: bool = False   # __attribute__((unavailable)): any use is an error
 
     @property
     def symbol(self) -> str:
@@ -62,14 +66,17 @@ class Var(Obj):
     is_tentative: bool = False
     is_tls: bool = False
     is_param: bool = False
+    is_register: bool = False               # `register` storage class: address may not be taken
     align: int = 0
     offset: int = 0                         # %rbp-relative, set by codegen
     init_data: GlobalData | None = None
     is_weak: bool = False
+    is_nocommon: bool = False               # __attribute__((nocommon)) on a tentative definition
     section: str | None = None
     visibility: str | None = None
     alias_of: str | None = None             # __attribute__((alias("sym")))
     is_compound_literal: bool = False       # anon static object of a compound literal in a static init
+    const_data: object = None               # block-scope const aggregate: static image (GlobalData)
     const_value: int | None = None          # block-scope const integer with a constant initializer (GNU folding)
     scope: tuple = ()                       # enclosing block ids (outermost first); sibling blocks share frame slots
 
@@ -83,6 +90,8 @@ class Function(Obj):
     is_definition: bool = False
     is_noreturn: bool = False
     is_weak: bool = False
+    is_weakref_decl: bool = False           # weakref("t") declaration with no body (a later body is an error)
+    fn_attrs: set = field(default_factory=set)  # other recorded attrs (leaf, returns_nonnull)
     va_area: Var | None = None
     va_tmp: Var | None = None
     alloca_bottom: Var | None = None
@@ -90,9 +99,12 @@ class Function(Obj):
     visibility: str | None = None
     alias_of: str | None = None
     ifunc_of: str | None = None             # __attribute__((ifunc("resolver")))
+    init_kind: str | None = None            # "init" (constructor) / "fini" (destructor)
+    init_prio: int | None = None            # constructor(N) / destructor(N) priority (None: default)
     align: int = 0                          # from __attribute__((aligned(N)))
     outer: "Function | None" = None         # GNU nested function: enclosing function
     chain_var: Var | None = None            # nested fn: slot holding the static link
+    reg_vars: list = field(default_factory=list)  # (Var, reg) for `register T x __asm__("reg")`
     labels: set = field(default_factory=set)  # names of labels defined in this body
 
 
@@ -119,6 +131,7 @@ class FloatLit(Expr):
     value: float
     # Exact IEEE encoding for the literal's own width (float/double), when the
     # Python float would lose it (e.g. signaling NaNs are quieted by a round trip).
+    # For long double/_Float128 literals: the exact 80-bit x87 encoding (ldouble_lit.py).
     bits: int | None = field(default=None, kw_only=True)
 
 
@@ -200,6 +213,8 @@ class Comma(Expr):
 class Cast(Expr):
     """Conversion of `operand` to `self.ty`."""
     operand: Expr
+    # True for the C23 `nullptr` constant (typed as void *, but not a plain (void *)0).
+    nullptr_const: bool = field(default=False, kw_only=True)
 
 
 @dataclass(eq=False)
@@ -208,6 +223,13 @@ class Call(Expr):
     args: list[Expr]
     func_ty: Type
     ret_buffer: Var | None = None     # temp for struct returns
+    # __builtin_call_with_static_chain: `static_chain` stores the chain value into
+    # `chain_slot` (a frame temp) before the call; codegen loads it into %r10.
+    static_chain: Expr | None = None
+    chain_slot: Var | None = None
+    # Struct with a variably modified member returned by value: `ret_buffer` is a pointer
+    # slot filled by `dyn_alloc` (a VLAAlloc codegen hoists before the enclosing statement).
+    dyn_alloc: object = None
 
 
 @dataclass(eq=False)
@@ -230,7 +252,7 @@ class MemZero(Expr):
 
 @dataclass(eq=False)
 class BuiltinCall(Expr):
-    """__builtin_* intrinsic; lowered in codegen/builtins.py.
+    """__builtin_* intrinsic; lowered by @builtin_codegen handlers (hcc/builtins/).
 
     result_buf: for vector-valued builtins (__builtin_shuffle), the anonymous
     local that holds the result (set by the parser).
@@ -291,6 +313,14 @@ class VLAZero(Stmt):
     """`T vla[n] = {};` on a VLA: zero-fill `size` bytes at the address held in `var`."""
     var: Var
     size: Expr
+
+
+@dataclass(eq=False)
+class CleanupDecl(Stmt):
+    """Follows the declaration of a local with __attribute__((cleanup(f))): `call` is
+    f(&var). Codegen runs it when the enclosing block exits (codegen/cleanup.py)."""
+    var: "Var"
+    call: "Expr"
 
 
 @dataclass(eq=False)
@@ -371,6 +401,7 @@ class Label(Stmt):
 @dataclass(eq=False)
 class Return(Stmt):
     expr: Expr | None
+    size: Expr | None = None      # run-time byte size when returning a struct with a VLA member
 
 
 @dataclass(eq=False)
@@ -381,6 +412,8 @@ class Asm(Stmt):
     clobbers: list = field(default_factory=list)
     is_volatile: bool = False
     goto_labels: list = field(default_factory=list)   # asm goto: [label name]
+    names: dict = field(default_factory=dict)   # [sym] operand name -> GCC operand index
+    extended: bool = False   # written with a ':' section (extended asm, even with no operands)
 
 
 # --------------------------------------------------------------------------

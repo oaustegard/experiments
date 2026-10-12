@@ -8,10 +8,17 @@ Results are wrapped to the node's type width/signedness.
 """
 from __future__ import annotations
 
+import struct
+
 from hcc import diag
 from hcc import nodes as N
-from hcc.typesys import TypeKind, is_flonum, is_integer
+from hcc.builtins import builtin_fold
+from hcc.floatbits import pack_float32
+from hcc.typesys import TypeKind, is_flonum, is_integer, round_to_half
 from hcc.sema.constexpr_math import fold_int_call, fold_math_call
+from hcc.sema.constexpr_ptr import const_ptr_value
+from hcc.sema.constexpr_rel import fold_rel_equal
+from hcc.sema.constexpr_intfloat import int_to_flonum
 
 
 class NotConstant(Exception):
@@ -86,11 +93,23 @@ def _ieee_div(a: float, b: float) -> float:
     return math.copysign(math.inf, a) * math.copysign(1.0, b)
 
 
+def _round_to_flonum(v: float, ty) -> float:
+    """Value of the float constant `v` once it is stored in `ty` (_Float16 and
+    float round; double and wider are kept as Python floats)."""
+    if ty.kind == TypeKind.FLOAT16:
+        return round_to_half(v)
+    if ty.kind == TypeKind.FLOAT:
+        return struct.unpack("<f", pack_float32(v))[0]
+    return v
+
+
 def eval_float(node) -> float:
     if isinstance(node, N.FloatLit):
-        return node.value
+        return _round_to_flonum(node.value, node.ty)
     if isinstance(node, N.Cast) and is_flonum(node.operand.ty):
-        return eval_float(node.operand)
+        return _round_to_flonum(eval_float(node.operand), node.ty)
+    if isinstance(node, N.Cast) and is_integer(node.operand.ty) and is_flonum(node.ty):
+        return _round_to_flonum(int_to_flonum(_num(node.operand), node.ty), node.ty)
     if isinstance(node, N.Unary) and node.op == "-":
         return -eval_float(node.operand)
     if isinstance(node, N.Binary) and node.op in "+-*/":
@@ -117,6 +136,10 @@ def _num(node) -> int:
 
 def _eval(node):
     t = type(node)
+    cv = getattr(node, "cval", None)
+    if cv is not None and node.ty is not None and is_integer(node.ty):
+        # a lowered complex expression with a folded value (e.g. `(_Complex float)x == 0.5`)
+        return None, int(cv[0])
     if t is N.IntLit:
         return None, node.value
     if t is N.FloatLit:
@@ -157,6 +180,10 @@ def _eval(node):
             fa, fb = eval_float(node.lhs), eval_float(node.rhs)     # float comparison folds too
             return None, int({"==": fa == fb, "!=": fa != fb, "<": fa < fb, "<=": fa <= fb,
                               ">": fa > fb, ">=": fa >= fb}[op])
+        if op in ("==", "!=") and type(node.lhs) is N.Binary and type(node.rhs) is N.Binary:
+            r = fold_rel_equal(node, try_eval_const)     # e.g. (a < b) != (b > a)
+            if r is not None:
+                return None, r
         a, b = _num(node.lhs), _num(node.rhs)
         u = node.lhs.ty.is_unsigned if node.lhs.ty is not None else False
         if op in ("/", "%"):
@@ -168,6 +195,10 @@ def _eval(node):
                 b &= (1 << (node.lhs.ty.size * 8)) - 1
             q = abs(a) // abs(b) * (1 if (a >= 0) == (b >= 0) else -1)
             return None, wrap(q if op == "/" else a - q * b, node.ty)
+        if op in (">>", "<<"):
+            # Shift counts outside [0, width) are undefined behaviour: do not fold them.
+            if b < 0 or b >= node.ty.size * 8:
+                raise NotConstant
         if op == ">>":
             if u:
                 a &= (1 << (node.lhs.ty.size * 8)) - 1
@@ -195,6 +226,8 @@ def _eval(node):
     if t is N.Cond:
         return _eval(node.then) if _num(node.cond) else _eval(node.els)
     if t is N.Comma:
+        if node.lvalue and type(node.rhs) is N.VarRef and getattr(node.rhs.var, "const_value", None) is not None:
+            return _eval(node.rhs)   # constexpr compound literal with a constant initializer
         _eval(node.lhs)          # must itself be constant, else folding would drop its side effects
         return _eval(node.rhs)
     if t is N.Cast:
@@ -209,8 +242,14 @@ def _eval(node):
     if t is N.AddrOf:
         return _eval_addr(node.operand)
     if t is N.VarRef:
-        if node.var.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC) and not getattr(node.var, "is_local", False):
+        if node.var.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC) and _has_link_address(node.var):
             return node.var.symbol, 0
+        if node.var.ty.kind == TypeKind.PTR:
+            cp = const_ptr_value(node.var)
+            if cp is None:
+                raise NotConstant
+            label, v = cp
+            return (label, v) if label is not None else (None, wrap(v, node.var.ty))
         return None, _const_var_value(node.var)
     if t is N.StrLit:
         raise NotConstant
@@ -223,9 +262,14 @@ def _eval(node):
     if t is N.Deref and node.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC):
         return _eval(node.operand)
     if t is N.Deref and is_integer(node.ty):
-        return None, _string_char(node)
-    if t is N.BuiltinCall and node.name == "__builtin_constant_p":
-        return None, builtin_constant_p(node.args[0])
+        try:
+            return None, _string_char(node)
+        except NotConstant:
+            return None, _const_object_read(node)
+    if t is N.BuiltinCall:                           # @builtin_fold in hcc/builtins/<family>.py
+        fold = builtin_fold.get(node.name)
+        if fold is not None:
+            return None, wrap(fold(node, _num), node.ty)
     if t is N.Call and is_integer(node.ty):          # integer-valued libm call, e.g. lround
         v = fold_int_call(node, eval_float)
         if v is not None:
@@ -281,10 +325,18 @@ def _compare(op, a, b) -> bool:
     return {"==": a == b, "!=": a != b, "<": a < b, "<=": a <= b, ">": a > b, ">=": a >= b}[op]
 
 
+def _has_link_address(var) -> bool:
+    """True when `var` has a link-time symbol usable in a static initializer. Block-scope
+    objects, thread-local objects (their address is per-thread) and GNU nested functions
+    (which need the enclosing frame) do not."""
+    return not (getattr(var, "is_local", False) or getattr(var, "is_tls", False)
+                or getattr(var, "outer", None) is not None)
+
+
 def _eval_addr(node):
     t = type(node)
     if t is N.VarRef:
-        if getattr(node.var, "is_local", False):
+        if not _has_link_address(node.var):
             raise NotConstant
         return node.var.symbol, 0
     if t is N.Deref:
@@ -330,10 +382,12 @@ def _const_member_value(node) -> int:
             raise NotConstant
         off += base.member.offset
         base = base.operand
-    if type(base) is not N.VarRef or getattr(base.var, "is_local", False):
+        if type(base) is N.Comma and base.lvalue and type(base.rhs) is N.VarRef:
+            base = base.rhs             # `(constexpr struct S){...}.m`: the literal's temp
+    if type(base) is not N.VarRef:
         raise NotConstant
     var = base.var
-    data = getattr(var, "init_data", None)
+    data = getattr(var, "const_data" if getattr(var, "is_local", False) else "init_data", None)
     if data is None or data.relocs or var.ty.is_volatile or not var.ty.is_const:
         raise NotConstant
     ty = node.ty
@@ -392,6 +446,90 @@ def _string_char(node) -> int:
     if not 0 <= k < len(data):
         raise NotConstant
     return wrap(data[k], node.ty)
+
+
+def _const_object_read(node) -> int:
+    """GCC extension: an integer read at a constant offset inside a const-qualified,
+    non-volatile static object with a plain-byte initializer, e.g. `a[27]` for
+    `static const char a[] = "..."` or `e[1].c[4]` for a const member. Raises
+    NotConstant otherwise."""
+    var, off, is_const = _ptr_obj(node.operand)
+    data = getattr(var, "init_data", None)
+    ty = node.ty
+    if data is None or data.relocs or ty.is_volatile:
+        raise NotConstant
+    if not (is_const or ty.is_const):
+        raise NotConstant
+    if off < 0 or off + ty.size > len(data.data):
+        raise NotConstant
+    raw = int.from_bytes(bytes(data.data[off:off + ty.size]), "little")
+    return wrap(raw, ty)
+
+
+def _decayed_obj(node) -> tuple:
+    """_ptr_obj for a pointer, or _obj_addr for an array lvalue (which decays)."""
+    if node.ty is not None and node.ty.kind == TypeKind.ARRAY:
+        return _obj_addr(node)
+    return _ptr_obj(node)
+
+
+def _elem_const(ty) -> tuple:
+    """(is_const, is_volatile) of an object type: `const char a[]` qualifies the element."""
+    while ty.kind == TypeKind.ARRAY:
+        ty = ty.base
+    return ty.is_const, ty.is_volatile
+
+
+def _ptr_obj(node) -> tuple:
+    """(static VarRef var, byte offset, const-qualified path) of a pointer-valued
+    expression pointing into a non-local object. Raises NotConstant otherwise."""
+    t = type(node)
+    if t is N.Cast and node.operand.ty is not None and \
+            node.operand.ty.kind in (TypeKind.PTR, TypeKind.ARRAY):
+        return _ptr_obj(node.operand)
+    if t is N.VarRef and node.var.ty.kind == TypeKind.ARRAY:
+        if getattr(node.var, "is_local", False):
+            raise NotConstant
+        c, v = _elem_const(node.var.ty)
+        if v:
+            raise NotConstant
+        return node.var, 0, c
+    if t is N.AddrOf:
+        return _obj_addr(node.operand)
+    if t is N.Deref and node.ty is not None and node.ty.kind == TypeKind.ARRAY:
+        return _obj_addr(node)
+    if t is N.Binary and node.op in ("+", "-") and node.ty.kind == TypeKind.PTR:
+        if node.lhs.ty is not None and node.lhs.ty.kind in (TypeKind.PTR, TypeKind.ARRAY):
+            var, off, c = _decayed_obj(node.lhs)
+            k = _num(node.rhs)
+        elif node.op == "+":
+            var, off, c = _decayed_obj(node.rhs)
+            k = _num(node.lhs)
+        else:
+            raise NotConstant
+        return var, off + (k if node.op == "+" else -k), c
+    raise NotConstant
+
+
+def _obj_addr(node) -> tuple:
+    """(static VarRef var, byte offset, const-qualified path) of an array/struct lvalue."""
+    t = type(node)
+    if t is N.VarRef:
+        if getattr(node.var, "is_local", False):
+            raise NotConstant
+        c, v = _elem_const(node.var.ty)
+        if v:
+            raise NotConstant
+        return node.var, 0, c
+    if t is N.Deref:
+        return _ptr_obj(node.operand)
+    if t is N.Member_ and not node.member.is_bitfield:
+        var, off, c = _obj_addr(node.operand)
+        mc, mv = _elem_const(node.member.ty)
+        if mv:
+            raise NotConstant
+        return var, off + node.member.offset, c or mc
+    raise NotConstant
 
 
 def _eval_sub(node) -> tuple:

@@ -31,33 +31,58 @@ DIGRAPHS = {"<:": "[", ":>": "]", "<%": "{", "%>": "}", "%:": "#", "%:%:": "##"}
 _TOKEN_SRC = r"""
     (?P<nl>\n)
   | (?P<ws>[ \t\f\v\r]+)
+  | (?P<bad>[\udc80-\udcff])
   | (?P<lc>//[^\n]*)
   | (?P<bc>/\*.*?\*/)
   | (?P<ubc>/\*)
-  | (?P<num>\.?[0-9](?:[eEpP][+-]|[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+  | (?P<num>\.?0[xX](?:[pP][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*
+            |\.?[0-9](?:[eE][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
   | (?P<str>(?:u8|u|U|L)?"(?:[^"\\\n]|\\.)*")
   | (?P<chr>(?:u8|u|U|L)?'(?:[^'\\\n]|\\.)*')
-  | (?P<id>(?:[A-Za-z_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
-             (?:[A-Za-z0-9_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+  | (?P<id>(?:[A-Za-z_$\u0080-\udc7f\udd00-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
+             (?:[A-Za-z0-9_$\u0080-\udc7f\udd00-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
   | (?P<other>.)
 """
-def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
+def _make_scanner(line_comments: bool, u8_chars: bool, c90_literals: bool = False) -> "re.Pattern[str]":
     src = _TOKEN_SRC
+    if c90_literals:
+        # gnu89/gnu90 (and C89/C90) have no u8/u/U literal prefixes: `u"a"` is the
+        # identifier `u` followed by a string (dg utf-dflt, utf-dflt2).
+        src = src.replace("(?:u8|u|U|L)?", "(?:L)?")
     if not line_comments:
         # C89/C90 have no `//` comments: drop the `lc` alternative.
         src = src.replace(r"  | (?P<lc>//[^\n]*)" + "\n", "")
         # C89/C90 do not allow extended (non-ASCII) characters in identifiers.
-        src = src.replace(r"\u0080-\U0010ffff", "")
+        src = src.replace(r"\u0080-\udc7f\udd00-\U0010ffff", "")
+        # ... and no universal character names (\uXXXX) inside identifiers
+        # either: `aª` lexes as `a`, `\`, `u00aa` (GCC -std=c89).
+        head, sep, tail = src.partition("(?P<id>")
+        tail = tail.replace(r"|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}", "")
+        src = head + sep + tail
+        # ... and only `L` is a literal prefix (C90 has no u8/u/U prefixes):
+        # gnu89 `u'a'` lexes as identifier `u` then char constant (dg utf-dflt).
+        src = src.replace("(?:u8|u|U|L)?", "(?:L)?")
+        # C90 pp-numbers have no hex exponent sign: `0x1p+f` is `0x1p`, `+`, `f`
+        # (the sign is part of a pp-number only from C99 on).
+        src = src.replace("[pP][+-]|", "")
     if not u8_chars:
         # u8'x' character constants exist only in C23; before that `u8` is an identifier.
         src = src.replace("(?P<chr>(?:u8|u|U|L)?", "(?P<chr>(?:u|U|L)?")
+        # C23 digit separators (`1'000`) exist only in C23; before that `'` ends a number.
+        src = src.replace("DIGSEP", "")
+    else:
+        # C23 digit separator: pp-number ' digit / pp-number ' nondigit (6.4.9).
+        src = src.replace("DIGSEP", "'(?=[0-9A-Za-z_\u0080-\U0010ffff])|")
     return re.compile(src, re.VERBOSE | re.DOTALL)
 
 
-_SCANNERS = {(lc, u8): _make_scanner(lc, u8) for lc in (True, False) for u8 in (True, False)}
-# -std values that do not recognise `//` comments
-C90_STDS = frozenset({"c89", "c90", "gnu89", "gnu90", "iso9899:1990", "ansi"})
+_SCANNERS = {(lc, u8, c90): _make_scanner(lc, u8, c90) for lc in (True, False)
+             for u8 in (True, False) for c90 in (True, False)}
+# Strict -std values that do not recognise `//` comments (GCC: gnu89/gnu90 keep them)
+C90_STDS = frozenset({"c89", "c90", "iso9899:1990", "iso9899:199409", "ansi"})
+# -std values without u8/u/U literal prefixes (pre-C11; gnu89/gnu90 included)
+C90_LITERAL_STDS = C90_STDS | frozenset({"gnu89", "gnu90"})
 
 _UCN_RE = re.compile(r"\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})")
 
@@ -112,7 +137,8 @@ def replace_trigraphs(text: str) -> str:
 
 
 def tokenize(text: str, path: str, line_comments: bool = True,
-             u8_chars: bool = False, trigraphs: bool = False) -> list[Token]:
+             u8_chars: bool = False, trigraphs: bool = False,
+             c90_literals: bool = False) -> list[Token]:
     if trigraphs:
         text = replace_trigraphs(text)
     text = remove_splices(text)
@@ -121,7 +147,7 @@ def tokenize(text: str, path: str, line_comments: bool = True,
     line_start = 0
     bol = True
     space = False
-    scanner = _SCANNERS[(bool(line_comments), bool(u8_chars))]
+    scanner = _SCANNERS[(bool(line_comments), bool(u8_chars), bool(c90_literals))]
     for m in scanner.finditer(text):
         kind = m.lastgroup
         if kind == "nl":
@@ -130,7 +156,9 @@ def tokenize(text: str, path: str, line_comments: bool = True,
             bol = True
             space = False
             continue
-        if kind in ("ws", "lc"):
+        if kind in ("ws", "lc", "bad"):
+            # "bad" = a byte that is not valid UTF-8 outside a literal or comment
+            # (surrogateescape): GCC treats it as a stray token that vanishes.
             space = True
             continue
         if kind == "bc":
@@ -144,11 +172,15 @@ def tokenize(text: str, path: str, line_comments: bool = True,
         if kind == "ubc":
             diag.error(loc, "unterminated comment", "preprocess")
         s = m.group()
+        spell = None
         if kind == "punct" and s in DIGRAPHS:
+            spell = s
             s = DIGRAPHS[s]
         elif kind == "id":
             s = _decode_ucns(s)
-        toks.append(Token(_KIND[kind], s, loc, bol, space))
+        tok = Token(_KIND[kind], s, loc, bol, space)
+        tok.spell = spell
+        toks.append(tok)
         bol = False
         space = False
     toks.append(Token(TokenKind.EOF, "", Loc(path, line, 1), True, False))
@@ -165,5 +197,6 @@ def read_source(path: str) -> str:
 
 
 def tokenize_file(path: str, line_comments: bool = True,
-                  u8_chars: bool = False, trigraphs: bool = False) -> list[Token]:
-    return tokenize(read_source(path), path, line_comments, u8_chars, trigraphs)
+                  u8_chars: bool = False, trigraphs: bool = False,
+                  c90_literals: bool = False) -> list[Token]:
+    return tokenize(read_source(path), path, line_comments, u8_chars, trigraphs, c90_literals)

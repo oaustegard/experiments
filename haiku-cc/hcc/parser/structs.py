@@ -11,14 +11,23 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.parser.scope import VarAttr
+from hcc.parser.bitfield_width import bitfield_width_value
+from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
+from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
+from hcc.parser.vector_limits import vector_of_checked
 from hcc.tokens import TokenKind
 from hcc import typesys as T
+
+
+def _kind_word(kind) -> str:
+    return "struct" if kind == T.TypeKind.STRUCT else "union"
 
 
 class StructMixin:
 
     def struct_decl(self, kind):
         attr = VarAttr()
+        attr.reverse_sso = self.sso_reverse     # #pragma scalar_storage_order default
         self.parse_attributes(attr)
         tag = None
         if self.tok.kind == TokenKind.IDENT:
@@ -26,25 +35,55 @@ class StructMixin:
         self.parse_attributes(attr)
         if tag is not None and not self.at("{"):
             ty = self.find_tag(tag.text)
+            if ty is not None and self.at(";"):
+                # empty declaration: a visible tag of either kind is noted for the declspec check
+                self.empty_tag_hit = (tag, ty.kind != kind)
             if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
                 return ty
+            self.check_tag_in_auto_init(tag)
             ty = T.struct_type(kind)
             ty.tag = tag.text
             self.scopes[-1].tags[tag.text] = ty
             return ty
+        brace_pos = self.pos
+        def_pos = self.__dict__.setdefault("struct_def_pos", {})   # id(ty) -> '{' index
         self.expect("{")
         ty = None
         if tag is not None:
             prev = self.scopes[-1].tags.get(tag.text)
+            if prev is not None and prev.is_complete and prev.kind == kind:
+                kw = "struct" if kind == T.TypeKind.STRUCT else "union"
+                self.error(f"redefinition of '{kw} {tag.text}'", tag)
+            # body still open in this scope (`struct s { struct s {..} *p; }`); a body
+            # open in an enclosing scope is shadowed by a new tag, not redefined
+            open_prev = self.scopes[-1].tags.get(tag.text)
+            if open_prev is not None and not open_prev.is_complete and id(open_prev) in def_pos \
+                    and def_pos[id(open_prev)] != brace_pos:
+                # the same tag's body is still being parsed (`struct s { struct s {..} *p; }`)
+                kw = _kind_word(kind)
+                self.error(f"nested redefinition of '{kw} {tag.text}'", tag)
             if prev is not None and not prev.is_complete and prev.kind == kind:
                 ty = prev
+            elif prev is not None and prev.is_complete and prev.kind == kind:
+                # a second body for the same tag in one scope; a re-parse of the
+                # same declaration (compound-literal backtrack) is not a redefinition
+                # (types stay alive in the scopes that name them, so id() is stable)
+                if def_pos.get(id(prev)) != brace_pos:
+                    diag.error(tag, f"redefinition of '{_kind_word(kind)} {tag.text}'")
         if ty is None:
+            self.check_tag_in_auto_init(tag)
             ty = T.struct_type(kind)
             ty.tag = tag.text if tag else None
             if tag is not None:
                 self.scopes[-1].tags[tag.text] = ty
+                def_pos[id(ty)] = brace_pos
         members = self.struct_members()
         self.parse_attributes(attr)
+        self.check_designated_init(attr, kind == T.TypeKind.STRUCT, self.toks[brace_pos])
+        self.check_mode_target(attr, self.toks[brace_pos])
+        check_duplicate_members(members, self.toks[brace_pos])
+        if kind == T.TypeKind.UNION:
+            check_union_flexible(members, self.toks[brace_pos])
         ty.members = members
         ty.is_packed = attr.is_packed
         ty.is_ms_struct = attr.is_ms_struct
@@ -59,6 +98,8 @@ class StructMixin:
         if ty.is_reverse_sso:
             mirror_reverse_bitfields(ty)
             mark_reverse_scalars(ty)
+        elif attr.reverse_sso:          # scalar_storage_order on a union
+            mark_reverse_scalars(ty)
         ty.is_complete = True
         return ty
 
@@ -69,6 +110,12 @@ class StructMixin:
     def struct_members(self) -> list:
         members = []
         while not self.accept("}"):
+            if at_pack_marker(self):        # #pragma pack inside the body applies to later members
+                consume_pack_marker(self)
+                continue
+            if at_sso_marker(self):
+                consume_sso_marker(self)
+                continue
             if self.at("_Static_assert"):
                 self.static_assert()
                 continue
@@ -76,45 +123,171 @@ class StructMixin:
                 continue
             self.skip_std_attributes()     # `[[gnu::x]] char c[];`
             attr = VarAttr()
+            start = self.pos
             basety = self.declspec(attr)
-            if self.accept(";"):
+            single_tok = self.pos == start + 1      # the declspec was one bare identifier
+            # GNU: a struct/union specifier may end a member list without its `;`
+            # (`struct { struct { int a; } }`), which is treated as an anonymous member.
+            missing_semi = self.at("}") and basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION)
+            if self.accept(";") or missing_semi:
                 # anonymous struct/union member; `struct S;` (tagged) declares nothing
-                if basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and basety.tag is None:
+                # unless -fplan9-extensions makes it an anonymous member of type S
+                plan9 = self.opts is not None and self.opts.plan9_extensions
+                if basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and (basety.tag is None or plan9):
                     m = T.Member(None, basety, 0, attr.align or basety.align)
+                    m.pack_cap = self.pack_align
+                    tok0 = self.toks[start]
+                    if plan9 and single_tok and tok0.kind == TokenKind.IDENT:
+                        m.alias = tok0.text     # `typedef struct {..} D; struct { D; };` names it D
                     members.append(m)
                 continue
             first = True
             while not self.accept(";"):
+                if not first and self.at("}"):
+                    # GNU: `struct { int a }` — the last member lacks ';' before '}'
+                    diag.warn(self.toks[self.pos], "no semicolon at end of struct or union")
+                    break
                 if not first:
                     self.expect(",")
                 first = False
                 mattr = VarAttr()
                 ty, name = self.declarator(basety)
                 self.parse_attributes(mattr)
+                if mattr.vector_size and ty.kind != T.TypeKind.FUNC:
+                    # `double s __attribute__((vector_size(16)));` after the declarator
+                    ty = vector_of_checked(self, ty, mattr.vector_size, self.toks[start])
+                    mattr.vector_size = 0
+                check_member_complete(ty, name, self.toks[start])
                 m = T.Member(name.text if name else None, ty)
                 m.tok = name
+                m.pack_cap = self.pack_align
                 # aligned/_Alignas on a member can only raise its alignment
                 m.explicit_align = max(mattr.align, attr.align)
                 m.align = max(ty.align, m.explicit_align)
-                if attr.is_packed:
-                    m.align = 1
+                if attr.is_packed:      # leading `__attribute__((packed | copy(..)))` on the member
+                    m.align = m.explicit_align or 1     # packed keeps an explicit aligned(N)
+                    m.is_packed = True
                 if self.accept(":"):
                     m.is_bitfield = True
-                    m.bit_width = self.const_expr()
+                    m.bit_width = bitfield_width_value(self.conditional(), name, self.toks[start])
+                    check_bitfield_width(m, name, self.toks[start])
                 self.parse_attributes(mattr)
+                if mattr.warn_if_not_aligned:
+                    self.error("'warn_if_not_aligned' may not be specified for '%s'" % (name.text if name else ''), name or self.toks[start])
+                if m.is_bitfield:
+                    check_bitfield_type(m, name, self.toks[start], mattr.vector_size)
                 m.explicit_align = max(m.explicit_align, mattr.align)
                 if m.explicit_align:
                     m.align = max(m.align, m.explicit_align)
                 if mattr.is_packed:
-                    m.align = 1
+                    m.align = m.explicit_align or 1     # packed keeps an explicit aligned(N)
                     m.is_packed = True
                 members.append(m)
         if members and members[-1].ty.kind == T.TypeKind.ARRAY and members[-1].ty.array_len < 0:
             last = members[-1]
             last.ty = T.array_of(last.ty.base, 0)
+            last.open_array = True
+        check_flexible_members(members, self.toks[self.pos])
         for i, m in enumerate(members):
             m.idx = i
         return members
+
+
+def check_flexible_members(members, where) -> None:
+    """C11 6.7.2.1p2-3: an incomplete array member (`T a[]`, also via a typedef)
+    must be the last member, and the struct needs at least one other named member."""
+    for m in members[:-1]:
+        if m.ty.kind == T.TypeKind.ARRAY and m.ty.array_len < 0:
+            diag.error(m.tok or where, "flexible array member not at end of struct")
+    if not members or not getattr(members[-1], "open_array", False):
+        return
+    last = members[-1]
+    others = [m for m in members[:-1] if not (m.name is None and m.is_bitfield)]
+    if not others:
+        diag.error(last.tok or where, "flexible array member in a struct with no named members")
+
+
+def check_union_flexible(members, where) -> None:
+    """C11 6.7.2.1p3: a union may not have a flexible array member (`T a[]`,
+    also through a typedef)."""
+    for m in members:
+        if getattr(m, "open_array", False) or (m.ty.kind == T.TypeKind.ARRAY and m.ty.array_len < 0):
+            diag.error(m.tok or where, "flexible array member in union")
+            return
+
+
+def _member_names(members, out) -> None:
+    """Append (name, tok) for every name a member list contributes to its
+    enclosing struct/union scope: named members, Plan 9 aliases, and (recursively)
+    the names of anonymous struct/union members."""
+    for m in members:
+        if m.name is not None:
+            out.append((m.name, m.tok))
+        elif m.alias is not None:
+            out.append((m.alias, None))
+        elif m.ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+            _member_names(complete_struct(m.ty).members, out)
+
+
+def check_duplicate_members(members, where) -> None:
+    """C11 6.7.2.1: member names in one struct/union (including those reached
+    through anonymous members) must be distinct."""
+    names = []
+    _member_names(members, names)
+    seen = set()
+    for name, tok in names:
+        if name in seen:
+            diag.error(tok or where, f"duplicate member '{name}'")
+        seen.add(name)
+
+
+def check_bitfield_width(m, name, where) -> None:
+    """A bit-field's width must be non-negative and must fit its declared type
+    (C11 6.7.2.1p4; _Bool bit-fields are limited to 1 bit, as in gcc)."""
+    width = m.bit_width
+    if width < 0:
+        diag.error(name or where, "negative width in bit-field" if name is None
+                   else f"negative width in bit-field '{name.text}'")
+    limit = 1 if m.ty.kind == T.TypeKind.BOOL else m.ty.size * 8
+    if width > limit:
+        label = f"'{name.text}'" if name is not None else "bit-field"
+        diag.error(name or where, f"width of {label} exceeds its type")
+
+
+def check_bitfield_type(m, name, where, trailing_vector) -> None:
+    """C11 6.7.2.1p5: a bit-field must have an integer (or _Bool/enum) type.
+    `trailing_vector` is a vector_size attribute written after the width, which
+    would make the bit-field's type a vector (gcc: "has invalid type")."""
+    ty = m.ty
+    ok = (ty.kind in (T.TypeKind.BOOL, T.TypeKind.ENUM) or T.is_integer(ty)) \
+        and not ty.is_vector and not trailing_vector
+    if not ok:
+        label = f"'{name.text}'" if name is not None else ""
+        diag.error(name or where, f"bit-field {label} has invalid type".replace("  ", " "))
+
+
+def check_member_complete(ty, name, where) -> None:
+    """A member's type (after array dimensions) must be a complete struct/union.
+    Pointers to incomplete types and flexible array members (`T a[]`) are fine."""
+    base = ty
+    while base is not None and base.kind == T.TypeKind.ARRAY:
+        base = base.base
+    if base is not None and base.kind == T.TypeKind.VOID and ty.kind == T.TypeKind.ARRAY:
+        # C11 6.7.2.1: a member cannot be an array of void (gcc: "declaration of 'x' as array of voids")
+        where2 = name or where
+        diag.error(where2, f"declaration of '{name.text if name else '?'}' as array of voids")
+    if base is not None and base.kind == T.TypeKind.ENUM and base.enum_consts == "fwd":
+        # C11 6.7.2.2: an enum without a body and without a fixed underlying type is incomplete
+        # (gcc: "field 'x' has incomplete type"), also when used as a bit-field's type.
+        diag.error(name or where, f"field '{name.text}' has incomplete type" if name is not None
+                   else "field has incomplete type")
+    if base is None or base.kind not in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        return
+    if complete_struct(base).is_complete:
+        return
+    if name is not None:
+        diag.error(name, f"field '{name.text}' has incomplete type")
+    diag.error(where, "field has incomplete type")
 
 
 def _unnamed_bitfield(m) -> bool:
@@ -123,28 +296,72 @@ def _unnamed_bitfield(m) -> bool:
 
 
 def layout_struct(ty) -> None:
+    """Each member's `pack_cap` is the #pragma pack maximum alignment in effect where it was declared."""
     bits = 0
     align = 1
     packed = ty.is_packed
     ms = ty.is_ms_struct
     unit = 0        # ms: bits of the last bit-field's declared-type storage unit
+    unit_end = 0    # ms: bit just past that storage unit (the next different-type field starts here)
+    zero_width_prev = False
     if members_flexible(ty):
         ty.is_flexible = True
+    dyn_region = False  # a run-time-sized member was seen: later offsets are run-time
+    dyn_cur = None      # open bit-field group in the dynamic region: (bit cursor, unit bytes)
     for m in ty.members:
-        if packed:      # packed drops natural alignment; explicit aligned(N) still applies
-            m.align = 1 if m.is_packed else (m.explicit_align or 1)
-        if m.is_bitfield and m.bit_width == 0:
-            bits = T.align_to(bits, m.ty.size * 8)
+        if packed or m.is_packed:   # packed drops natural alignment; explicit aligned(N) still applies
+            m.align = m.explicit_align or 1
+        if m.pack_cap and not m.is_bitfield and not m.explicit_align and m.align > m.pack_cap:
+            m.align = m.pack_cap    # #pragma pack caps natural member alignment
+        if dyn_region and m.is_bitfield:
+            dyn_cur = _dyn_bitfield(m, dyn_cur)
+            if align < m.align and not _unnamed_bitfield(m):
+                align = m.align
             continue
+        if dyn_region or is_dyn_member_type(m.ty):
+            dyn_cur = None
+            _check_dyn_struct(ty, m)
+            _dyn_member_align(ty, m)
+            if not dyn_region:
+                dyn_region = True
+                # static prefix: the first run-time member's offset (later ones: run-time)
+                m.offset = T.align_to((bits + 7) // 8, m.align)
+                ty.size = m.offset
+            else:
+                m.offset = 0       # run-time offset (see dyn_members.dyn_member_offset_expr)
+            ty.dyn_tail = m.ty     # the last run-time-sized member's type
+            if align < m.align and not _unnamed_bitfield(m):
+                align = m.align
+            continue
+        if m.is_bitfield and m.bit_width == 0:
+            if ms and zero_width_prev:      # MS: back-to-back zero-width bit-fields do not pad again
+                continue
+            if ms and not unit:             # MS: a zero-width bit-field after a plain member is ignored
+                continue
+            if ms and align < m.ty.size:    # MS: a padding zero-width bit-field aligns the struct
+                align = m.ty.size
+            bits = T.align_to(bits, m.ty.size * 8)
+            unit = 0
+            zero_width_prev = True
+            continue
+        zero_width_prev = False
         if m.is_bitfield:
             sz = m.ty.size
             loose = packed or m.is_packed
             if ms and not unit and bits:    # MS: a bit-field never shares a unit with plain data
                 bits = T.align_to(bits, sz * 8)
+            elif ms and unit and unit != sz * 8:
+                # MS: a bit-field of a different-size type never shares the previous unit
+                bits = T.align_to(unit_end, sz * 8)
             if not loose and bits // (sz * 8) != (bits + m.bit_width - 1) // (sz * 8):
                 bits = T.align_to(bits, sz * 8)
+            if m.explicit_align and m.align > 1 and bits % (sz * 8) == 0:
+                # `int d : 2 __attribute__((aligned(16)))` opening a new storage unit
+                # starts at the attribute's alignment (GCC; a unit-sharing field does not move)
+                bits = T.align_to(bits, m.align * 8)
             m.offset = (bits // 8) // sz * sz if not loose else bits // 8
             m.bit_offset = bits - m.offset * 8
+            unit_end = (bits // (sz * 8)) * (sz * 8) + sz * 8
             bits += m.bit_width
             unit = sz * 8
         else:
@@ -157,7 +374,62 @@ def layout_struct(ty) -> None:
         if align < m.align and not _unnamed_bitfield(m):
             align = m.align
     ty.align = align
+    if dyn_region:      # ty.size is the static prefix; the run-time size is added by sizeof
+        return
     ty.size = T.align_to(T.align_to(bits, 8) // 8, align)
+
+
+def _dyn_bitfield(m, cur):
+    """Bit-field after a run-time-sized member. Its bit_offset is relative to the run-time
+    byte offset of its group (see dyn_members.py); a group is a run of same-size bit-fields
+    packed in one unit window. A group start has bit_offset 0. Returns the open group state."""
+    if m.bit_width == 0:
+        diag.error(m.tok, "unsupported: zero-width bit-field after a variably modified member", "parse")
+    sz = m.ty.size
+    w = m.bit_width
+    start = None
+    if cur is not None and cur[1] == sz:
+        start = cur[0]
+        if start // (sz * 8) != (start + w - 1) // (sz * 8):
+            start = T.align_to(start, sz * 8)
+        if start + w > sz * 8:
+            start = None
+    if start is None:
+        start = 0
+    m.offset = 0
+    m.bit_offset = start
+    return (start + w, sz)
+
+
+def _check_dyn_struct(ty, m) -> None:
+    if ty.is_ms_struct or ty.is_reverse_sso:
+        diag.error(m.tok, "unsupported: variably modified member in packed or reversed struct", "parse")
+
+
+def _dyn_member_align(ty, m) -> int:
+    """Alignment of a run-time-sized member (its slot's own align is not its alignment)."""
+    if ty.is_packed or m.is_packed:     # packed drops natural alignment; explicit aligned(N) still applies
+        m.align = m.explicit_align or 1
+    else:
+        m.align = max(m.explicit_align, dyn_elem_align(m.ty))
+    return m.align
+
+
+def dyn_elem_align(t) -> int:
+    """Natural alignment of the innermost element of an array/VLA chain (or the type)."""
+    while t.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA) and t.base is not None:
+        t = t.base
+    return t.align
+
+
+def is_dyn_member_type(t) -> bool:
+    """Member whose size is only known at run time: a VLA, a struct with a
+    variably modified member, or an array of those (`A a[2]`, A a VLA typedef)."""
+    while t is not None and t.kind == T.TypeKind.ARRAY:
+        t = t.base
+    if t is None:
+        return False
+    return (t.kind == T.TypeKind.VLA and t.vla_len is not None) or T.is_dyn_struct(t)
 
 
 def mirror_reverse_bitfields(ty) -> None:
@@ -192,6 +464,10 @@ def mark_reverse_scalars(ty) -> None:
 
 def _reverse_type(ty, tok):
     k = ty.kind
+    if k == T.TypeKind.STRUCT and ty.is_complex:
+        # _Complex T is two scalars: each part is stored big-endian, real first
+        base = _reverse_type(ty.base, tok)
+        return ty if base is ty.base else T.complex_of(base)
     if k in (T.TypeKind.STRUCT, T.TypeKind.UNION):
         return ty                       # nested aggregate keeps its own order
     if k == T.TypeKind.ARRAY:
@@ -248,6 +524,8 @@ def find_member(ty, name: str):
     """Return the member path to `name` (through anonymous members) or None."""
     ty = complete_struct(ty)
     for m in ty.members:
+        if m.name is None and m.alias == name:
+            return [m]
         if m.name is None and m.ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
             sub = find_member(m.ty, name)
             if sub is not None:

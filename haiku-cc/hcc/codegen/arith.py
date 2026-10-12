@@ -5,10 +5,26 @@ ArithMixin.expr_Binary(node): rhs -> push, lhs -> %rax, pop rhs -> %rdi.
 """
 from __future__ import annotations
 
-from hcc.typesys import TypeKind, is_flonum
+from dataclasses import fields, is_dataclass
+
+from hcc.codegen.expressions import _contains_call
+from hcc.sema.constexpr import try_eval_const
+from hcc.typesys import TypeKind, is_decimal, is_flonum
 
 _SETCC = {"==": ("sete", "sete"), "!=": ("setne", "setne"), "<": ("setl", "setb"),
           "<=": ("setle", "setbe"), ">": ("setg", "seta"), ">=": ("setge", "setae")}
+
+
+def _contains_comma(node) -> bool:
+    """True if the tree holds a Comma (e.g. a VLA length binding from vla_prefix)."""
+    if type(node).__name__ == "Comma":
+        return True
+    if isinstance(node, list):
+        return any(_contains_comma(x) for x in node)
+    if not is_dataclass(node):
+        return False
+    return any(_contains_comma(getattr(node, f.name, None)) for f in fields(node)
+               if f.name not in ("ty", "var", "member", "loc", "scope"))
 
 
 class ArithMixin:
@@ -17,12 +33,28 @@ class ArithMixin:
         if node.result_buf is not None:
             return self.vector_binary(node)
         lty = node.lhs.ty
+        if is_decimal(lty):
+            return self.decimal_binary(node)
         if is_flonum(lty):
             return self.float_binary(node)
-        self.gen_expr(node.rhs)
-        self.push()
-        self.gen_expr(node.lhs)
-        self.pop("%rdi")
+        if lty.kind == TypeKind.INT128:
+            return self.int128_binary(node)
+        # lhs-first when the lhs holds a VLA length binding (a Comma from
+        # vla_prefix) that the rhs reads, e.g. `(*(int (*)[n])p)[1]`.
+        rc = None if is_flonum(node.rhs.ty) or node.rhs.ty.size > 8 else try_eval_const(node.rhs)
+        if rc is not None:
+            # constant rhs: no operand needs parking on the stack
+            self.gen_expr(node.lhs)
+            self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+        else:
+            # Left-to-right, as gcc -O0 does: `f() - g()` calls f first, and
+            # programs whose output depends on that order (e.g. doom's
+            # `P_Random()-P_Random()`) must match the gcc reference.
+            self.gen_expr(node.lhs)
+            self.push()
+            self.gen_expr(node.rhs)
+            self.emit("mov %rax, %rdi")
+            self.pop("%rax")
         wide = lty.size == 8 or lty.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.FUNC) or \
             lty.size > 8
         ax, di, dx = ("%rax", "%rdi", "%rdx") if wide else ("%eax", "%edi", "%edx")
@@ -52,12 +84,6 @@ class ArithMixin:
         elif op == "<<":
             self.emit("mov %rdi, %rcx")
             self.emit(f"shl %cl, {ax}")
-            if lty.size == 16:
-                # hcc keeps 128-bit values in one 64-bit word: a count of 64 or
-                # more must clear it (x86 would wrap the count modulo 64).
-                self.emit("xor %edx, %edx")
-                self.emit("cmp $64, %rcx")
-                self.emit("cmovae %rdx, %rax")
         elif op == ">>":
             self.emit("mov %rdi, %rcx")
             self.emit(f"{'shr' if lty.is_unsigned else 'sar'} %cl, {ax}")

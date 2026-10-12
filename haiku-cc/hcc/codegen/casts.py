@@ -6,7 +6,8 @@ _Bool target is handled by cmp_zero. Add new conversions to TABLE only.
 """
 from __future__ import annotations
 
-from hcc.typesys import TypeKind
+from hcc.typesys import TypeKind, is_decimal
+from hcc.codegen.half import ROUND_HALF
 
 I8, I16, I32, I64, U8, U16, U32, U64, F32, F64, F80 = range(11)
 
@@ -60,6 +61,12 @@ _F64.update({F32: "cvtsd2ss %xmm0, %xmm0", F80: "movsd %xmm0, -8(%rsp); fldl -8(
 
 _F80_1 = "fnstcw -10(%rsp); movzwl -10(%rsp), %eax; or $12, %ah; mov %ax, -12(%rsp); fldcw -12(%rsp); "
 _F80_2 = " -24(%rsp); fldcw -10(%rsp); "
+# long double -> uint64: fistp only covers the signed range, so for x >= 2^63
+# subtract 2^63 (a x87 m80 constant at -40(%rsp)), convert, and set bit 63.
+# Leaves the converted value in -24(%rsp); the caller loads it.
+_F80_U64 = ("movabs $0x8000000000000000, %rax; mov %rax, -40(%rsp); movw $16446, -32(%rsp); "
+            "fldt -40(%rsp); fcomi %st(1), %st; fstp %st(0); jbe 1f; fistpq -24(%rsp); jmp 2f; "
+            "1: fldt -40(%rsp); fsubr %st(1), %st; fstp %st(1); fistpq -24(%rsp); btcq $63, -24(%rsp); 2: ")
 _F80 = {
     I8: _F80_1 + "fistps" + _F80_2 + "movsbl -24(%rsp), %eax",
     U8: _F80_1 + "fistps" + _F80_2 + "movzbl -24(%rsp), %eax",
@@ -68,7 +75,7 @@ _F80 = {
     I32: _F80_1 + "fistpl" + _F80_2 + "mov -24(%rsp), %eax",
     U32: _F80_1 + "fistpq" + _F80_2 + "mov -24(%rsp), %eax",
     I64: _F80_1 + "fistpq" + _F80_2 + "mov -24(%rsp), %rax",
-    U64: _F80_1 + "fistpq" + _F80_2 + "mov -24(%rsp), %rax",
+    U64: _F80_1 + _F80_U64 + "mov -24(%rsp), %rax; fldcw -10(%rsp)",
     F32: "fstps -8(%rsp); movss -8(%rsp), %xmm0",
     F64: "fstpl -8(%rsp); movsd -8(%rsp), %xmm0",
 }
@@ -92,7 +99,7 @@ TABLE = [
 
 def type_id(ty) -> int:
     k = ty.kind
-    if k == TypeKind.FLOAT:
+    if k in (TypeKind.FLOAT, TypeKind.FLOAT16):
         return F32
     if k == TypeKind.DOUBLE:
         return F64
@@ -115,16 +122,23 @@ class CastMixin:
 
     def cmp_zero(self, ty) -> None:
         k = ty.kind
-        if k == TypeKind.FLOAT:
+        if is_decimal(ty):
+            return self.decimal_cmp_zero(ty)
+        if k in (TypeKind.FLOAT16, TypeKind.FLOAT):
             self.emit("xorps %xmm1, %xmm1")
             self.emit("ucomiss %xmm1, %xmm0")
         elif k == TypeKind.DOUBLE:
             self.emit("xorpd %xmm1, %xmm1")
             self.emit("ucomisd %xmm1, %xmm0")
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k == TypeKind.FLOAT128:
+            self.f128_is_zero()
+        elif k == TypeKind.LDOUBLE:
             self.emit("fldz")
             self.emit("fucomip")
             self.emit("fstp %st(0)")
+        elif k == TypeKind.INT128:
+            self.emit("mov %rax, %r11")  # ZF = both halves are zero
+            self.emit("or %rdx, %r11")
         elif ty.size <= 4 and k not in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.FUNC):
             self.emit("cmp $0, %eax")
         else:
@@ -133,6 +147,8 @@ class CastMixin:
     def cast(self, frm, to) -> None:
         if to.kind == TypeKind.VOID:
             return
+        if is_decimal(frm) or is_decimal(to):
+            return self.decimal_cast(frm, to)
         if to.kind == TypeKind.BOOL:
             self.cmp_zero(frm)
             self.emit("setne %al")
@@ -142,7 +158,18 @@ class CastMixin:
             return
         if frm.kind == TypeKind.VOID:
             return
+        if TypeKind.FLOAT128 in (frm.kind, to.kind):
+            self.f128_cast(frm, to)
+            if to.kind == TypeKind.FLOAT16:
+                self.emit(ROUND_HALF)
+            return
+        if (frm.kind == TypeKind.INT128 or to.kind == TypeKind.INT128) and self.cast128(frm, to):
+            if to.kind == TypeKind.FLOAT16:
+                self.emit(ROUND_HALF)
+            return
         code = TABLE[type_id(frm)][type_id(to)]
         if code:
             for part in code.split("; "):
                 self.emit(part)
+        if to.kind == TypeKind.FLOAT16 and frm.kind != TypeKind.FLOAT16:
+            self.emit(ROUND_HALF)       # the register value must be exactly a half

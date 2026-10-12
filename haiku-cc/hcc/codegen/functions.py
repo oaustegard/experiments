@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from hcc.codegen.abi import abi_kind, is_memory_struct, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS8, ARG_REGS16, ARG_REGS32, ARG_REGS64
-from hcc.typesys import TypeKind, align_to
+from hcc.typesys import TypeKind, align_to, is_dyn_struct
 
 
 class FunctionMixin:
@@ -39,12 +39,20 @@ class FunctionMixin:
                         where = ("struct", gp, fp)
                         fp += nfp
                         gp += ngp
-            elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.DEC32, TypeKind.DEC64, TypeKind.DEC128):
                 if fp < 8:
                     where = ("fp", fp)
                 fp += 1
-            elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+            elif k == TypeKind.FLOAT128:
+                if fp < 8:
+                    where = ("fp", fp)
+                fp += 1
+            elif k == TypeKind.LDOUBLE:
                 pass
+            elif k == TypeKind.INT128:
+                if gp + 2 <= 6:
+                    where = ("i128", gp)
+                    gp += 2
             else:
                 if gp < 6:
                     where = ("gp", gp)
@@ -108,6 +116,7 @@ class FunctionMixin:
 
     def emit_function(self, fn) -> None:
         self.fn = fn
+        self.cleanup_stack = []
         sym = fn.symbol
         self.directive(".text" if not fn.section else f".section {fn.section},\"ax\",@progbits")
         if not fn.is_static:
@@ -118,6 +127,7 @@ class FunctionMixin:
             self.directive(f".{fn.visibility} {sym}")
         self.directive(f".type {sym}, @function")
         self.label(sym)
+        self.unwind_begin()
         params, gp_named, fp_named, stack_end = self._classify_params(fn)
         stack_params = {p for p, w in params if w[0] == "stack"}
         for p, w in params:
@@ -126,14 +136,22 @@ class FunctionMixin:
         size = self.layout_frame(fn, stack_params)
         self.va_info = (gp_named, fp_named, stack_end)
         self.emit("push %rbp")
+        self.directive(".cfi_def_cfa_offset 16")
+        self.directive(".cfi_offset 6, -16")
         self.emit("mov %rsp, %rbp")
-        if size:
+        self.directive(".cfi_def_cfa_register 6")
+        if size and size < (1 << 31):
             self.emit(f"sub ${size}, %rsp")
+        elif size:
+            self.emit(f"movabs ${size}, %r11")
+            self.emit("sub %r11, %rsp")
         if self.canary_offset is not None:
             self.emit("mov %fs:0x28, %r11")
             self.emit(f"mov %r11, {self.canary_offset}(%rbp)")
         if fn.alloca_bottom is not None:        # no alloca memory yet (see statements.py)
             self.emit(f"movq $-1, {fn.alloca_bottom.offset}(%rbp)")
+        for var, reg in fn.reg_vars:
+            self.emit(f"mov %{reg}, {var.offset}(%rbp)")
         if fn.chain_var is not None:
             self.emit(f"mov %r10, {fn.chain_var.offset}(%rbp)")
         self.depth = 0
@@ -144,15 +162,26 @@ class FunctionMixin:
             for i, r in enumerate(ARG_REGS64):
                 self.emit(f"mov {r}, {off + i * 8}(%rbp)")
             for i in range(8):
-                self.emit(f"movsd %xmm{i}, {off + 48 + i * 16}(%rbp)")
+                self.emit(f"movdqu %xmm{i}, {off + 48 + i * 16}(%rbp)")   # full 16 bytes: _Float128 args
         for p, w in params:
             if w[0] == "gp":
                 self.store_gp_param(w[1], p.offset, p.ty.size)
             elif w[0] == "fp":
-                ins = "movss" if p.ty.kind == TypeKind.FLOAT else "movsd"
-                self.emit(f"{ins} %xmm{w[1]}, {p.offset}(%rbp)")
+                if p.ty.kind == TypeKind.FLOAT16:       # ABI: half bits in low 16
+                    self.emit(f"movd %xmm{w[1]}, %eax")
+                    self.emit(f"mov %ax, {p.offset}(%rbp)")
+                    continue
+                if p.ty.kind == TypeKind.FLOAT128:
+                    self.emit(f"movdqu %xmm{w[1]}, {self.frame_ref(p.offset)}")
+                    continue
+                ins = {TypeKind.FLOAT: "movss", TypeKind.DEC32: "movss",
+                       TypeKind.DEC128: "movups"}.get(p.ty.kind, "movsd")
+                self.emit(f"{ins} %xmm{w[1]}, {self.frame_ref(p.offset)}")
             elif w[0] == "struct":
                 self.store_struct_param(p, w[1], w[2])
+            elif w[0] == "i128":
+                self.emit(f"mov {ARG_REGS64[w[1]]}, {p.offset}(%rbp)")
+                self.emit(f"mov {ARG_REGS64[w[1] + 1]}, {p.offset + 8}(%rbp)")
         self.gen_stmt(fn.body)
         assert self.depth == 0, f"stack depth {self.depth} in {fn.name}"
         self.emit("mov $0, %eax")
@@ -164,26 +193,49 @@ class FunctionMixin:
             self.emit(f"je {ok}")
             self.emit("call __stack_chk_fail")
             self.label(ok)
+        self.directive(".cfi_remember_state")
         self.emit("mov %rbp, %rsp")
         self.emit("pop %rbp")
+        self.directive(".cfi_def_cfa 7, 8")
         self.emit("ret")
+        self.directive(".cfi_restore_state")
+        self.unwind_finish(sym, size)
         self.directive(f".size {sym}, .-{sym}")
         self.directive(f".set .Lframe.{sym}, {size}")
         self.fn = None
 
-    def store_gp_param(self, reg: int, off: int, size: int) -> None:
-        if size == 1:
-            self.emit(f"mov {ARG_REGS8[reg]}, {off}(%rbp)")
-        elif size == 2:
-            self.emit(f"mov {ARG_REGS16[reg]}, {off}(%rbp)")
-        elif size == 4:
-            self.emit(f"mov {ARG_REGS32[reg]}, {off}(%rbp)")
+    def frame_ref(self, off: int) -> str:
+        """Memory operand for a %rbp-relative slot.  Offsets beyond disp32 (frames
+        holding huge arrays) are formed in %r11, which is free in the prologue."""
+        if -(1 << 31) <= off < (1 << 31):
+            return f"{off}(%rbp)"
+        self.emit(f"movabs ${off}, %r11")
+        self.emit("add %rbp, %r11")
+        return "(%r11)"
+
+    def frame_lea(self, off, reg: str) -> None:
+        """reg = address of the %rbp-relative slot at `off` (see frame_ref)."""
+        if -(1 << 31) <= off < (1 << 31):
+            self.emit(f"lea {off}(%rbp), {reg}")
         else:
-            self.emit(f"mov {ARG_REGS64[reg]}, {off}(%rbp)")
+            self.emit(f"movabs ${off}, {reg}")
+            self.emit(f"add %rbp, {reg}")
+
+    def store_gp_param(self, reg: int, off: int, size: int) -> None:
+        m = self.frame_ref(off)
+        if size == 1:
+            self.emit(f"mov {ARG_REGS8[reg]}, {m}")
+        elif size == 2:
+            self.emit(f"mov {ARG_REGS16[reg]}, {m}")
+        elif size == 4:
+            self.emit(f"mov {ARG_REGS32[reg]}, {m}")
+        else:
+            self.emit(f"mov {ARG_REGS64[reg]}, {m}")
 
     def store_struct_param(self, p, gp: int, fp: int) -> None:
         ty = p.ty
-        fp1, fp2 = struct_in_regs(ty)
+        # a by-value run-time sized struct arrives as its copy's address (one INTEGER slot)
+        fp1, fp2 = (False, False) if is_dyn_struct(ty) else struct_in_regs(ty)
         for chunk, is_fp in enumerate([fp1, fp2][: 1 if ty.size <= 8 else 2]):
             base = p.offset + chunk * 8
             n = min(8, ty.size - chunk * 8)

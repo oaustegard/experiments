@@ -5,7 +5,9 @@ StatementMixin: one `stmt_<NodeClass>` method per statement node.
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import abi_kind, is_memory_struct, struct_in_regs
+from hcc.codegen.abi import abi_kind, is_memory_struct, is_x87_complex, struct_in_regs
+from hcc.codegen.half import TO_ABI_HALF
+from hcc.nodes import BuiltinCall as BuiltinCallNode, ExprStmt as ExprStmtNode
 from hcc.sema.constexpr import try_eval_const
 from hcc.typesys import TypeKind
 
@@ -19,13 +21,28 @@ def _sext(v: int, bits: int) -> int:
 class StatementMixin:
 
     def stmt_Block(self, node) -> None:
+        # After __builtin_unreachable()/__builtin_trap() the rest of the block
+        # is dead: only labelled parts stay (reachable by goto), so calls such
+        # as `unreachable(); not_defined();` never reach the assembler.
+        after_trap = False
+        mark = len(self.cleanup_stack)
         for s in node.items:
-            self.gen_stmt(s)
+            if after_trap:
+                self.gen_dead_stmt(s)
+            else:
+                self.gen_stmt(s)
+                after_trap = self._is_trap_stmt(s)
+        self.end_cleanup_scope(mark, not after_trap)
+
+    @staticmethod
+    def _is_trap_stmt(s) -> bool:
+        return (isinstance(s, ExprStmtNode) and isinstance(s.expr, BuiltinCallNode)
+                and s.expr.name == "trap")
 
     def discard_value(self, ty) -> None:
         # A long double result lives on the x87 register stack; a discarded
         # value must be popped or the 8-slot stack overflows (-> NaN).
-        if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        if ty.kind == TypeKind.LDOUBLE:
             self.emit("fstp %st(0)")
 
     def stmt_ExprStmt(self, node) -> None:
@@ -130,6 +147,8 @@ class StatementMixin:
 
     def stmt_For(self, node) -> None:
         begin = self.new_label()
+        self.reject_loop_cleanup(node.init)
+        self.note_loop_cleanups(node.brk_label, node.cont_label)
         if node.init is not None:
             self.gen_stmt(node.init)
         self.label(begin)
@@ -148,6 +167,7 @@ class StatementMixin:
 
     def stmt_DoWhile(self, node) -> None:
         begin = self.new_label()
+        self.note_loop_cleanups(node.brk_label, node.cont_label)
         self.label(begin)
         if node.body is not None:
             self.gen_stmt(node.body)
@@ -158,10 +178,15 @@ class StatementMixin:
         self.label(node.brk_label)
 
     def stmt_Switch(self, node) -> None:
+        self.note_loop_cleanups(node.brk_label)
         self.gen_expr(node.cond)
         wide = node.cond.ty.size == 8
         ax, di = ("%rax", "%rdi") if wide else ("%eax", "%edi")
-        for c in node.cases:
+        cases = node.cases
+        if node.cond.ty.kind == TypeKind.INT128:
+            self.int128_switch_cases(cases)     # compares both words
+            cases = []
+        for c in cases:
             if c.lo == c.hi:
                 v = c.lo
                 if -(1 << 31) <= v < (1 << 31):
@@ -207,12 +232,15 @@ class StatementMixin:
             self.gen_stmt(node.body)
 
     def stmt_Break(self, node) -> None:
+        self.cleanup_break(node.label)
         self.emit(f"jmp {node.label}")
 
     def stmt_Continue(self, node) -> None:
+        self.cleanup_break(node.label)
         self.emit(f"jmp {node.label}")
 
     def stmt_Goto(self, node) -> None:
+        self.reject_goto_cleanup(node)
         owner = self.fn
         while owner.outer is not None and node.name not in owner.labels:
             owner = owner.outer
@@ -228,6 +256,7 @@ class StatementMixin:
         self.emit(f"jmp .L.{owner.name}.{node.name}")
 
     def stmt_GotoExpr(self, node) -> None:
+        self.reject_goto_cleanup(node)
         self.gen_expr(node.target)
         self.emit("jmp *%rax")
 
@@ -237,10 +266,20 @@ class StatementMixin:
             self.gen_stmt(node.body)
 
     def stmt_Return(self, node) -> None:
+        if node.size is not None:
+            self.return_dyn_struct(node)
+            self.cleanup_return(node.expr.ty)
+            self.emit(f"jmp .L.return.{self.fn.symbol}")
+            return
         if node.expr is not None:
             self.gen_expr(node.expr)
             ty = node.expr.ty
-            if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
+            if ty.kind == TypeKind.FLOAT16:
+                self.emit(TO_ABI_HALF)
+            if is_x87_complex(ty):
+                self.emit("fldt 16(%rax)")   # imaginary part first: real ends up in st(0)
+                self.emit("fldt (%rax)")
+            elif abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
                 if ty.size == 0:
                     pass  # empty struct: nothing to return
                 elif not is_memory_struct(ty):
@@ -249,6 +288,7 @@ class StatementMixin:
                     self.emit(f"mov {self.ret_ptr_offset}(%rbp), %rdi")
                     self.copy_struct(ty.size)
                     self.emit("mov %rdi, %rax")
+        self.cleanup_return(node.expr.ty if node.expr is not None else None)
         self.emit(f"jmp .L.return.{self.fn.symbol}")
 
     def struct_to_regs(self, ty) -> None:

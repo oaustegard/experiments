@@ -29,7 +29,7 @@ PREDEFINED = r"""
 #define __GNUC__ 4
 #define __GNUC_MINOR__ 2
 #define __GNUC_PATCHLEVEL__ 1
-#define __GNUC_STDC_INLINE__ 1
+#define __PRAGMA_REDEFINE_EXTNAME 1
 #define __VERSION__ "hcc 0.1 (gcc 4.2 compatible)"
 #define __x86_64__ 1
 #define __x86_64 1
@@ -54,11 +54,11 @@ PREDEFINED = r"""
 #define __SIZEOF_FLOAT__ 4
 #define __SIZEOF_DOUBLE__ 8
 #define __SIZEOF_LONG_DOUBLE__ 16
+#define __SIZEOF_INT128__ 16
 #define __SIZEOF_SIZE_T__ 8
 #define __SIZEOF_WCHAR_T__ 4
 #define __SIZEOF_WINT_T__ 4
 #define __SIZEOF_PTRDIFF_T__ 8
-#define __SIZEOF_INT128__ 16
 #define __BIGGEST_ALIGNMENT__ 16
 #define __SIZE_TYPE__ unsigned long
 #define __PTRDIFF_TYPE__ long
@@ -68,6 +68,7 @@ PREDEFINED = r"""
 #define __UINTMAX_TYPE__ unsigned long
 #define __INTPTR_TYPE__ long
 #define __UINTPTR_TYPE__ unsigned long
+#define __CHAR8_TYPE__ unsigned char
 #define __CHAR16_TYPE__ unsigned short
 #define __CHAR32_TYPE__ unsigned int
 #define __INT8_TYPE__ signed char
@@ -88,6 +89,24 @@ PREDEFINED = r"""
 #define __WINT_MIN__ 0U
 #define __WINT_MAX__ 0xffffffffU
 #define __WINT_WIDTH__ 32
+#define __SCHAR_WIDTH__ 8
+#define __SHRT_WIDTH__ 16
+#define __INT_WIDTH__ 32
+#define __LONG_WIDTH__ 64
+#define __LONG_LONG_WIDTH__ 64
+#define __PTRDIFF_WIDTH__ 64
+#define __SIZE_WIDTH__ 64
+#define __WCHAR_WIDTH__ 32
+#define __INTMAX_WIDTH__ 64
+#define __INTPTR_WIDTH__ 64
+#define __INT_LEAST8_WIDTH__ 8
+#define __INT_LEAST16_WIDTH__ 16
+#define __INT_LEAST32_WIDTH__ 32
+#define __INT_LEAST64_WIDTH__ 64
+#define __INT_FAST8_WIDTH__ 8
+#define __INT_FAST16_WIDTH__ 64
+#define __INT_FAST32_WIDTH__ 64
+#define __INT_FAST64_WIDTH__ 64
 #define __SIZE_MAX__ 0xffffffffffffffffUL
 #define __PTRDIFF_MAX__ 0x7fffffffffffffffL
 #define __INTMAX_MAX__ 0x7fffffffffffffffL
@@ -98,6 +117,24 @@ PREDEFINED = r"""
 #define __SIG_ATOMIC_MAX__ 0x7fffffff
 #define __SIG_ATOMIC_MIN__ (-__SIG_ATOMIC_MAX__ - 1)
 #define __SIG_ATOMIC_WIDTH__ 32
+#define __SCHAR_WIDTH__ 8
+#define __SHRT_WIDTH__ 16
+#define __INT_WIDTH__ 32
+#define __INTPTR_WIDTH__ 64
+#define __WCHAR_WIDTH__ 32
+#define __LONG_WIDTH__ 64
+#define __LONG_LONG_WIDTH__ 64
+#define __SIZE_WIDTH__ 64
+#define __PTRDIFF_WIDTH__ 64
+#define __INTMAX_WIDTH__ 64
+#define __INT_LEAST8_WIDTH__ 8
+#define __INT_LEAST16_WIDTH__ 16
+#define __INT_LEAST32_WIDTH__ 32
+#define __INT_LEAST64_WIDTH__ 64
+#define __INT_FAST8_WIDTH__ 8
+#define __INT_FAST16_WIDTH__ 64
+#define __INT_FAST32_WIDTH__ 64
+#define __INT_FAST64_WIDTH__ 64
 #define __INT8_MAX__ 0x7f
 #define __INT16_MAX__ 0x7fff
 #define __INT32_MAX__ 0x7fffffff
@@ -213,8 +250,138 @@ PREDEFINED = r"""
 #define __ATOMIC_RELEASE 3
 #define __ATOMIC_ACQ_REL 4
 #define __ATOMIC_SEQ_CST 5
+#define __SCHAR_WIDTH__ 8
+#define __SHRT_WIDTH__ 16
+#define __INT_WIDTH__ 32
+#define __LONG_WIDTH__ 64
+#define __LONG_LONG_WIDTH__ 64
+#define __WCHAR_WIDTH__ 32
+#define __PTRDIFF_WIDTH__ 64
+#define __SIZE_WIDTH__ 64
+#define __INTMAX_WIDTH__ 64
+#define __INTPTR_WIDTH__ 64
+#define __INT_LEAST8_WIDTH__ 8
+#define __INT_LEAST16_WIDTH__ 16
+#define __INT_LEAST32_WIDTH__ 32
+#define __INT_LEAST64_WIDTH__ 64
+#define __INT_FAST8_WIDTH__ 8
+#define __INT_FAST16_WIDTH__ 64
+#define __INT_FAST32_WIDTH__ 64
+#define __INT_FAST64_WIDTH__ 64
+#define __GCC_ATOMIC_BOOL_LOCK_FREE 2
+#define __GCC_ATOMIC_CHAR_LOCK_FREE 2
+#define __GCC_ATOMIC_CHAR8_T_LOCK_FREE 2
+#define __GCC_ATOMIC_CHAR16_T_LOCK_FREE 2
+#define __GCC_ATOMIC_CHAR32_T_LOCK_FREE 2
+#define __GCC_ATOMIC_WCHAR_T_LOCK_FREE 2
+#define __GCC_ATOMIC_SHORT_LOCK_FREE 2
+#define __GCC_ATOMIC_INT_LOCK_FREE 2
+#define __GCC_ATOMIC_LONG_LOCK_FREE 2
+#define __GCC_ATOMIC_LLONG_LOCK_FREE 2
+#define __GCC_ATOMIC_POINTER_LOCK_FREE 2
+#define __GCC_ATOMIC_TEST_AND_SET_TRUEVAL 1
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 1
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 1
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4 1
+#define __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8 1
 #define __alignof__ _Alignof
 #define __builtin_va_end(ap) ((void)(ap))
+#define __FLT16_HAS_QUIET_NAN__ 1
+#define __FLT128_MAX_10_EXP__ 4932
+#define __FLT32_MIN_EXP__ (-125)
+#define __FLT32X_DECIMAL_DIG__ 17
+#define __FLT64_DECIMAL_DIG__ 17
+#define __FLT32X_MAX_EXP__ 1024
+#define __FLT32_HAS_DENORM__ 1
+#define __FLT32_MAX_10_EXP__ 38
+#define __FLT64X_MAX_10_EXP__ 4932
+#define __FLT64X_HAS_QUIET_NAN__ 1
+#define __FLT128_DENORM_MIN__ 6.47517511943802511092443895822764655e-4966F128
+#define __FLT128_MIN_EXP__ (-16381)
+#define __FLT128_MIN_10_EXP__ (-4931)
+#define __FLT32X_IS_IEC_60559__ 1
+#define __FLT128_MANT_DIG__ 113
+#define __FLT32X_MANT_DIG__ 53
+#define __FLT64X_EPSILON__ 1.08420217248550443400745280086994171e-19F64x
+#define __FLT32_IS_IEC_60559__ 1
+#define __FLT64X_DENORM_MIN__ 3.64519953188247460252840593361941982e-4951F64x
+#define __FLT32X_HAS_INFINITY__ 1
+#define __FLT64_EPSILON__ 2.22044604925031308084726333618164062e-16F64
+#define __FLT128_IS_IEC_60559__ 1
+#define __FLT64X_MIN_10_EXP__ (-4931)
+#define __FLT16_MIN_EXP__ (-13)
+#define __FLT64_MANT_DIG__ 53
+#define __FLT64X_MANT_DIG__ 64
+#define __FLT64_MAX_10_EXP__ 308
+#define __FLT16_MAX_10_EXP__ 4
+#define __FLT32X_HAS_DENORM__ 1
+#define __FLT128_HAS_INFINITY__ 1
+#define __FLT32_MAX__ 3.40282346638528859811704183484516925e+38F32
+#define __FLT16_DECIMAL_DIG__ 5
+#define __FLT64X_MIN_EXP__ (-16381)
+#define __FLT32_MAX_EXP__ 128
+#define __FLT64_DENORM_MIN__ 4.94065645841246544176568792868221372e-324F64
+#define __FLT16_DENORM_MIN__ 5.96046447753906250000000000000000000e-8F16
+#define __FLT128_EPSILON__ 1.92592994438723585305597794258492732e-34F128
+#define __FLT64X_NORM_MAX__ 1.18973149535723176502126385303097021e+4932F64x
+#define __FLT32X_EPSILON__ 2.22044604925031308084726333618164062e-16F32x
+#define __FLT64_MIN_EXP__ (-1021)
+#define __FLT64_MIN_10_EXP__ (-307)
+#define __FLT16_MIN_10_EXP__ (-4)
+#define __FLT64X_DECIMAL_DIG__ 21
+#define __FLT32_MIN__ 1.17549435082228750796873653722224568e-38F32
+#define __FLT128_MAX_EXP__ 16384
+#define __FLT32_MANT_DIG__ 24
+#define __FLT32X_MIN_EXP__ (-1021)
+#define __FLT128_HAS_DENORM__ 1
+#define __FLT32_DECIMAL_DIG__ 9
+#define __FLT128_DIG__ 33
+#define __FLT64X_DIG__ 18
+#define __FLT16_DIG__ 3
+#define __FLT32X_MIN__ 2.22507385850720138309023271733240406e-308F32x
+#define __FLT64X_HAS_INFINITY__ 1
+#define __FLT32_HAS_INFINITY__ 1
+#define __FLT64_IS_IEC_60559__ 1
+#define __FLT16_IS_IEC_60559__ 1
+#define __FLT16_MAX_EXP__ 16
+#define __FLT64_DIG__ 15
+#define __FLT16_EPSILON__ 9.76562500000000000000000000000000000e-4F16
+#define __FLT64X_HAS_DENORM__ 1
+#define __FLT16_NORM_MAX__ 6.55040000000000000000000000000000000e+4F16
+#define __FLT32_DENORM_MIN__ 1.40129846432481707092372958328991613e-45F32
+#define __FLT16_MAX__ 6.55040000000000000000000000000000000e+4F16
+#define __FLT128_MIN__ 3.36210314311209350626267781732175260e-4932F128
+#define __FLT128_MAX__ 1.18973149535723176508575932662800702e+4932F128
+#define __FLT64_HAS_QUIET_NAN__ 1
+#define __FLT32_MIN_10_EXP__ (-37)
+#define __FLT32X_DIG__ 15
+#define __FLT64_HAS_INFINITY__ 1
+#define __FLT64X_MAX__ 1.18973149535723176502126385303097021e+4932F64x
+#define __FLT16_HAS_INFINITY__ 1
+#define __FLT16_MANT_DIG__ 11
+#define __FLT64X_MAX_EXP__ 16384
+#define __FLT32_NORM_MAX__ 3.40282346638528859811704183484516925e+38F32
+#define __FLT64_MAX__ 1.79769313486231570814527423731704357e+308F64
+#define __FLT32X_MAX_10_EXP__ 308
+#define __FLT16_MIN__ 6.10351562500000000000000000000000000e-5F16
+#define __FLT64X_IS_IEC_60559__ 1
+#define __FLT64_MAX_EXP__ 1024
+#define __FLT128_NORM_MAX__ 1.18973149535723176508575932662800702e+4932F128
+#define __FLT64_NORM_MAX__ 1.79769313486231570814527423731704357e+308F64
+#define __FLT128_HAS_QUIET_NAN__ 1
+#define __FLT64X_MIN__ 3.36210314311209350626267781732175260e-4932F64x
+#define __FLT64_HAS_DENORM__ 1
+#define __FLT32_EPSILON__ 1.19209289550781250000000000000000000e-7F32
+#define __FLT16_HAS_DENORM__ 1
+#define __FLT32X_MAX__ 1.79769313486231570814527423731704357e+308F32x
+#define __FLT32_DIG__ 6
+#define __FLT32X_NORM_MAX__ 1.79769313486231570814527423731704357e+308F32x
+#define __FLT64_MIN__ 2.22507385850720138309023271733240406e-308F64
+#define __FLT32X_HAS_QUIET_NAN__ 1
+#define __FLT32X_DENORM_MIN__ 4.94065645841246544176568792868221372e-324F32x
+#define __FLT32X_MIN_10_EXP__ (-307)
+#define __FLT128_DECIMAL_DIG__ 36
+#define __FLT32_HAS_QUIET_NAN__ 1
 """
 
 STD_VERSIONS = {"c89": "199409L", "c90": "199409L", "gnu89": "199409L", "gnu90": "199409L",
@@ -235,11 +402,29 @@ def predefined_source(opts) -> str:
     lines = [PREDEFINED, FLOATN_MACROS, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201710L')}"]
     if std.startswith("c"):
         lines.append("#define __STRICT_ANSI__ 1")
+    # gnu89 inline semantics (-fgnu89-inline or C89/gnu89 modes) reflect
+    # __GNUC_GNU_INLINE__; otherwise C99 inline semantics: __GNUC_STDC_INLINE__.
+    if opts.gnu89_inline or std in ("c89", "c90", "gnu89", "gnu90"):
+        lines.append("#define __GNUC_GNU_INLINE__ 1")
+    else:
+        lines.append("#define __GNUC_STDC_INLINE__ 1")
     if STD_VERSIONS.get(std, "") >= "202000L":
         # C23 makes static_assert a keyword (C11/C17 provide it via <assert.h>)
         lines.append("#define static_assert _Static_assert")
+    # gcc: -fgnu89-inline (or a gnu89 -std=) defines __GNUC_GNU_INLINE__,
+    # otherwise __GNUC_STDC_INLINE__ is defined.
+    if opts.gnu89_inline or std in ("c89", "c90", "gnu89", "gnu90"):
+        lines.append("#define __GNUC_GNU_INLINE__ 1")
+    else:
+        lines.append("#define __GNUC_STDC_INLINE__ 1")
+    if opts.short_wchar:
+        lines.append("#define __WCHAR_TYPE__ unsigned short\n#define __WCHAR_MAX__ 0xffff\n"
+                     "#define __WCHAR_MIN__ 0\n#define __WCHAR_WIDTH__ 16\n"
+                     "#define __SIZEOF_WCHAR_T__ 2")
     if opts.pic:
         lines.append("#define __PIC__ 2\n#define __pic__ 2")
+    if opts.pic and opts.pie:
+        lines.append("#define __PIE__ 2\n#define __pie__ 2")
     return "\n".join(lines) + "\n"
 
 

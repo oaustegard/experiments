@@ -16,6 +16,8 @@ ARG_REGS16 = ["%di", "%si", "%dx", "%cx", "%r8w", "%r9w"]
 ARG_REGS8 = ["%dil", "%sil", "%dl", "%cl", "%r8b", "%r9b"]
 
 
+from hcc.codegen.peephole import fuse_setcc_branch
+
 class CodeGenBase:
 
     def __init__(self, tu, opts=None):
@@ -25,12 +27,22 @@ class CodeGenBase:
         self.depth = 0
         self.label_count = 0
         self.fn = None
+        self.cleanup_stack: list = []   # pending __attribute__((cleanup)) calls (codegen/cleanup.py)
+        self.cleanup_marks: dict = {}   # loop/switch label -> cleanup_stack depth at that loop
         self.dead_code = False       # set while generating a statically dead branch
+        self.unwind_sites: list = []     # (start, end, pad label|None) per call (codegen/unwind.py)
+        self.unwind_pads: dict = {}      # active-cleanup prefix key -> (pad label, prefix)
+        self.unwind_override = None      # cleanup calls active for unwinding, when not cleanup_stack
         self._expr_dispatch: dict = {}
         self._stmt_dispatch: dict = {}
 
     # ---- output -------------------------------------------------------------
     def emit(self, line: str) -> None:
+        if line[:2] in ("je", "jn") and fuse_setcc_branch(self.out, line):
+            return
+        if line[:5] == "call " and self.fn is not None:
+            self.unwind_call(line)      # call-site range for the unwinder (codegen/unwind.py)
+            return
         self.out.append("  " + line)
 
     def label(self, name: str) -> None:
@@ -84,4 +96,5 @@ class CodeGenBase:
             if fn is None:
                 diag.error(node, f"codegen: unsupported statement {cls.__name__}", "codegen")
             self._stmt_dispatch[cls] = fn
+        self.hoist_dyn_allocs(node)
         fn(node)

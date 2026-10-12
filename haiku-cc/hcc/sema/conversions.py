@@ -8,11 +8,17 @@
 """
 from __future__ import annotations
 
+from hcc import diag
 from hcc import nodes as N
-from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_flonum,
-                       is_integer, pointer_to)
+from hcc.sema.incomplete import check_value_operands
+from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_decimal,
+                       is_flonum, is_integer, pointer_to)
 
-_FLOAT_RANK = {TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3, TypeKind.FLOAT128: 4}
+_FLOAT_RANK = {TypeKind.FLOAT16: 1, TypeKind.FLOAT: 2, TypeKind.DOUBLE: 3, TypeKind.LDOUBLE: 4,
+               TypeKind.FLOAT128: 5}
+
+
+_DEC_RANK = {TypeKind.DEC32: 1, TypeKind.DEC64: 2, TypeKind.DEC128: 3}
 
 
 def int_promote(ty: Type) -> Type:
@@ -30,6 +36,12 @@ def common_type(a: Type, b: Type) -> Type:
         return pointer_to(a)
     if b.kind == TypeKind.FUNC:
         return pointer_to(b)
+    if is_decimal(a) or is_decimal(b):
+        if is_flonum(a) or is_flonum(b):
+            diag.error(None, "both decimal floating and binary floating types in an operation", "sema")
+        ra = _DEC_RANK.get(a.kind, 0)
+        rb = _DEC_RANK.get(b.kind, 0)
+        return a if ra >= rb else b
     if is_flonum(a) or is_flonum(b):
         ra = _FLOAT_RANK.get(a.kind, 0)
         rb = _FLOAT_RANK.get(b.kind, 0)
@@ -51,8 +63,12 @@ def same_scalar(a: Type, b: Type) -> bool:
 def new_cast(expr: N.Expr, ty: Type) -> N.Expr:
     from hcc.sema.typing import add_type
     add_type(expr)
+    check_value_operands(N.Cast(expr.loc, expr, ty=ty))   # lvalue conversion of an incomplete object
     if expr.ty is ty:
         return expr
+    if expr.ty.is_complex or ty.is_complex:
+        # complex conversions are lowered by the parser (parser/complex.py); reaching here is a gap
+        diag.error(expr, f"unsupported conversion from '{expr.ty}' to '{ty}'", "sema")
     if same_scalar(expr.ty, ty) and ty.kind != TypeKind.PTR:
         return expr
     c = N.Cast(expr.loc, expr, ty=ty.unqual() if ty.kind != TypeKind.VOID else ty)
@@ -75,7 +91,8 @@ def usual_arith_conv(lhs: N.Expr, rhs: N.Expr):
 
 
 def default_arg_promote(expr: N.Expr) -> N.Expr:
-    if expr.ty.kind == TypeKind.FLOAT:
+    # _FloatN types are not subject to default argument promotions (TS 18661-3).
+    if expr.ty.kind == TypeKind.FLOAT and not expr.ty.is_floatn:
         return new_cast(expr, TY_DOUBLE)
     if is_integer(expr.ty) and expr.ty.size < 4:
         return new_cast(expr, int_promote(expr.ty))

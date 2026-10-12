@@ -6,6 +6,7 @@ FPU stack (st1 = lhs, st0 = rhs).
 """
 from __future__ import annotations
 
+from hcc.codegen.half import ROUND_HALF
 from hcc.typesys import TypeKind
 
 
@@ -13,9 +14,11 @@ class FloatMixin:
 
     def float_binary(self, node) -> None:
         k = node.lhs.ty.kind
-        if k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        if k == TypeKind.FLOAT128:
+            return self.f128_binary(node)
+        if k == TypeKind.LDOUBLE:
             return self.x87_binary(node)
-        sz = "ss" if k == TypeKind.FLOAT else "sd"
+        sz = "ss" if k in (TypeKind.FLOAT16, TypeKind.FLOAT) else "sd"
         self.gen_expr(node.rhs)
         self.pushf()
         self.gen_expr(node.lhs)
@@ -24,6 +27,8 @@ class FloatMixin:
         if op in ("+", "-", "*", "/"):
             ins = {"+": "add", "-": "sub", "*": "mul", "/": "div"}[op]
             self.emit(f"{ins}{sz} %xmm1, %xmm0")
+            if node.ty.kind == TypeKind.FLOAT16:
+                self.emit(ROUND_HALF)       # half arithmetic: round the float result
             return
         if op == "==":
             self.emit(f"ucomi{sz} %xmm1, %xmm0")
@@ -72,9 +77,14 @@ class FloatMixin:
                 self.emit("setp %dl")
                 self.emit("or %dl, %al")
         else:
+            # Ordered relations: fcomip sets CF=1 for unordered (NaN) operands, so
+            # setb/setbe would be true there. '>' and '>=' swap the operands and use
+            # seta/setae, which are false on unordered (CF=1), as C requires.
+            if op in (">", ">="):
+                self.emit("fxch %st(1)")             # st0 = lhs, st1 = rhs
             self.emit("fcomip")
             self.emit("fstp %st(0)")
-            cc = {"<": "seta", "<=": "setae", ">": "setb", ">=": "setbe"}[op]
+            cc = {"<": "seta", "<=": "setae", ">": "seta", ">=": "setae"}[op]
             self.emit(f"{cc} %al")
         self.emit("movzbl %al, %eax")
 
@@ -86,6 +96,8 @@ class FloatMixin:
         name = node.name
         swap = name in ("isless", "islessequal")
         lhs, rhs = node.args
+        if lhs.ty.kind == TypeKind.FLOAT128:
+            return self.f128_fp_cmp(name, lhs, rhs)
         if lhs.ty.kind == TypeKind.LDOUBLE:
             self.gen_expr(lhs)
             self.gen_expr(rhs)                       # st0 = rhs, st1 = lhs

@@ -9,12 +9,20 @@ enclosing block's names; codegen reaches outer locals through a static link
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc.sema.compat import is_compatible
 
 
 class NestedFnMixin:
 
     def nested_function(self, ty, name, attr, dattr) -> None:
         outer = self.fn
+        if attr.is_weak or dattr.is_weak:
+            # a nested function has no linkage (it is internal), so it cannot be weak
+            self.error(f"weak declaration of '{name.text}' must be public", name)
+        prior = self.find_var(name.text)
+        if prior is not None and isinstance(prior.var, N.Function) \
+                and not is_compatible(prior.var.ty, self.block_func_composite(ty, name.text)):
+            self.error(f"conflicting types for '{name.text}'", name.loc)
         self.anon_count += 1
         fn = N.Function(name.text, ty, loc=name.loc)
         fn.is_static = True
@@ -24,12 +32,17 @@ class NestedFnMixin:
         fn.outer = outer
         self.push_scope_entry(name.text).var = fn
         self.objs.append(fn)
-        saved = (self.fn, self.locals, self.label_names, self.goto_names)
+        saved = (self.fn, self.locals, self.label_names, self.goto_names,
+                 self.brk_label, self.cont_label, self.cur_switch)
         self.locals = []
+        # break/continue/case inside a nested function never see the enclosing
+        # loop or switch (C11 6.8.6.2/6.8.6.1 apply per function body).
+        self.brk_label = self.cont_label = self.cur_switch = None
         try:
             self.function_definition(fn, ty)
             # gotos to labels not in this body belong to the enclosing function
             pending = [g for g in self.goto_names if g.text not in self.label_names]
         finally:
-            self.fn, self.locals, self.label_names, self.goto_names = saved
+            (self.fn, self.locals, self.label_names, self.goto_names,
+             self.brk_label, self.cont_label, self.cur_switch) = saved
         self.goto_names.extend(pending)

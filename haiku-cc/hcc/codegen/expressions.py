@@ -10,18 +10,24 @@ import struct
 
 from hcc.floatbits import pack_float32, pack_float64
 from hcc.codegen.bitfield_rev import assign_rev_bitfield, load_rev_bitfield
+from hcc.codegen.complex_rev import assign_complex_rev, needs_part_swap
+from hcc.codegen.bitfield_rev_wide import assign_rev_wide, load_rev_wide
 from hcc.codegen.bitfield_wide import assign_wide_bitfield, load_wide_bitfield
+from hcc.codegen.bitfield_straddle import assign_straddle_bitfield, load_straddle_bitfield
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
 from dataclasses import fields, is_dataclass
 
-from hcc.typesys import TypeKind, is_flonum, is_integer
+from hcc.typesys import TypeKind, is_decimal, is_flonum, is_integer
+from hcc.halfbits import half_bits, half_to_float_bits
 
 
 def _contains_call(node) -> bool:
     """True if the expression tree under `node` contains a function call."""
     if type(node).__name__ == "Call":
         return True
+    if type(node).__name__ == "BuiltinCall" and node.name == "setjmp":
+        return True                 # re-entered by longjmp: a call-like point
     if isinstance(node, list):
         return any(_contains_call(x) for x in node)
     if not is_dataclass(node):
@@ -41,12 +47,18 @@ def _calls_before_store(node) -> bool:
     return _contains_call(node.rhs)
 
 
+_DIRECT_KINDS = (TypeKind.CHAR, TypeKind.SHORT, TypeKind.INT, TypeKind.LONG,
+                 TypeKind.LLONG, TypeKind.ENUM, TypeKind.PTR)
+
+
 class ExpressionMixin:
 
     def expr_IntLit(self, node) -> None:
         if is_flonum(node.ty):
             return self.expr_FloatLit(node)
         v = node.value
+        if node.ty is not None and node.ty.kind == TypeKind.INT128:
+            return self.int128_lit(v)
         if -(1 << 31) <= v < (1 << 31):
             self.emit(f"mov ${v}, %rax")
         else:
@@ -55,7 +67,11 @@ class ExpressionMixin:
     def expr_FloatLit(self, node) -> None:
         k = node.ty.kind
         v = float(node.value)
-        if k == TypeKind.FLOAT:
+        if k == TypeKind.FLOAT16:           # register form: float holding an exact half value
+            bits = half_to_float_bits(half_bits(v))
+            self.emit(f"mov ${bits}, %eax")
+            self.emit("movq %rax, %xmm0")
+        elif k == TypeKind.FLOAT:
             bits = struct.unpack("<I", pack_float32(v))[0]
             if node.bits is not None:
                 bits = node.bits & 0xFFFFFFFF
@@ -67,8 +83,11 @@ class ExpressionMixin:
                 bits = node.bits & 0xFFFFFFFFFFFFFFFF
             self.emit(f"movabs ${bits}, %rax")
             self.emit("movq %rax, %xmm0")
+        elif k == TypeKind.FLOAT128:
+            self.f128_literal(node)
         else:
-            raw = float_to_x87(v)
+            raw = (node.bits.to_bytes(10, "little") if node.bits is not None
+                   else float_to_x87(v))
             lo = int.from_bytes(raw[:8], "little")
             hi = int.from_bytes(raw[8:10], "little")
             self.emit(f"movabs ${lo}, %rax")
@@ -77,8 +96,32 @@ class ExpressionMixin:
             self.emit("fldt -16(%rsp)")
 
     def expr_VarRef(self, node) -> None:
+        if self._local_int_load(node):
+            return
         self.gen_addr(node)
         self.load(node.ty)
+
+    def _local_int_load(self, node) -> bool:
+        """Load a plain integer/pointer local directly from its frame slot."""
+        var, ty = node.var, node.ty
+        if not getattr(var, "is_local", False) or self.is_outer_local(var):
+            return False
+        if ty.is_rev_order or ty.kind not in _DIRECT_KINDS or ty.size not in (1, 2, 4, 8):
+            return False
+        off = var.offset
+        if not -(1 << 31) <= off < (1 << 31):
+            return False
+        m = f"{off}(%rbp)"
+        uns = ty.is_unsigned
+        if ty.size == 1:
+            self.emit(f"{'movzbl' if uns else 'movsbl'} {m}, %eax")
+        elif ty.size == 2:
+            self.emit(f"{'movzwl' if uns else 'movswl'} {m}, %eax")
+        elif ty.size == 4:
+            self.emit(f"movslq {m}, %rax")
+        else:
+            self.emit(f"mov {m}, %rax")
+        return True
 
     def expr_Deref(self, node) -> None:
         self.gen_expr(node.operand)
@@ -90,10 +133,16 @@ class ExpressionMixin:
     def expr_Member_(self, node) -> None:
         self.gen_addr(node)
         m = node.member
+        if m.is_bitfield and m.rev_bytes > 8:
+            load_rev_wide(self, m)
+            return
         if m.is_bitfield and m.rev_bytes:
             load_rev_bitfield(self, m)
         elif m.is_bitfield and m.ty.size == 16:
             load_wide_bitfield(self, m)
+            return
+        elif m.is_bitfield and m.bit_offset + m.bit_width > 64:
+            load_straddle_bitfield(self, m)
             return
         elif m.is_bitfield and m.bit_offset + m.bit_width > m.ty.size * 8:
             # Packed bitfield straddling its type's storage unit: load 8 bytes.
@@ -105,6 +154,9 @@ class ExpressionMixin:
             self.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - m.bit_width}, %rax")
 
     def expr_Assign(self, node) -> None:
+        if needs_part_swap(node.lhs.ty, node.rhs.ty):
+            assign_complex_rev(self, node)
+            return
         if _calls_before_store(node):
             # Evaluate a call-containing scalar rhs first so no lhs address
             # temp is live across the call (setjmp/longjmp re-entry would
@@ -122,11 +174,18 @@ class ExpressionMixin:
         self.push()
         self.gen_expr(node.rhs)
         lhs = node.lhs
+        if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.rev_bytes > 8:
+            assign_rev_wide(self, node)
+            return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.rev_bytes:
             assign_rev_bitfield(self, node)
             return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.ty.size == 16:
             assign_wide_bitfield(self, node)
+            return
+        if (type(lhs).__name__ == "Member_" and lhs.member.is_bitfield
+                and lhs.member.bit_offset + lhs.member.bit_width > 64):
+            assign_straddle_bitfield(self, node)
             return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield:
             m = lhs.member
@@ -168,7 +227,9 @@ class ExpressionMixin:
             # constant float->int conversions are folded (saturating, like GCC)
             folded = try_eval_const(node)
             if folded is not None:
-                self.emit(f"movabs ${folded}, %rax")
+                if node.ty.kind == TypeKind.INT128:
+                    return self.int128_lit(folded)
+                self.emit(f"movabs ${folded & ((1 << 64) - 1)}, %rax")
                 return
         self.gen_expr(node.operand)
         if node.operand.ty.is_vector:
@@ -180,8 +241,17 @@ class ExpressionMixin:
 
     def expr_MemZero(self, node) -> None:
         v = node.var
-        self.emit(f"mov ${v.ty.size}, %rcx")
-        self.emit(f"lea {v.offset}(%rbp), %rdi")
+        size = v.ty.size
+        self.frame_lea(v.offset, "%rdi")
+        if size <= 128:
+            # small objects: plain zero stores (no rep stosb in hot loops)
+            pos = 0
+            for width, suffix in ((8, "q"), (4, "l"), (2, "w"), (1, "b")):
+                while size - pos >= width:
+                    self.emit(f"mov{suffix} $0, {pos}(%rdi)")
+                    pos += width
+            return
+        self.emit(f"mov ${size}, %rcx")
         self.emit("mov $0, %al")
         self.emit("rep stosb")
 
@@ -203,6 +273,8 @@ class ExpressionMixin:
             else:
                 self.vector_not(node)
             return
+        if is_decimal(node.operand.ty):
+            return self.decimal_unary(node)
         self.gen_expr(node.operand)
         ty = node.operand.ty
         if node.op == "!":
@@ -210,11 +282,13 @@ class ExpressionMixin:
             self.emit("sete %al")
             self.emit("movzbl %al, %eax")
             return
+        if ty.kind == TypeKind.INT128:
+            return self.int128_unary(node.op, node)
         if node.op == "~":
             self.emit("not %rax")
             return
         k = node.ty.kind
-        if k == TypeKind.FLOAT:
+        if k in (TypeKind.FLOAT16, TypeKind.FLOAT):
             self.emit("mov $1, %rax")
             self.emit("shl $31, %rax")
             self.emit("movq %rax, %xmm1")
@@ -224,7 +298,9 @@ class ExpressionMixin:
             self.emit("shl $63, %rax")
             self.emit("movq %rax, %xmm1")
             self.emit("xorpd %xmm1, %xmm0")
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k == TypeKind.FLOAT128:
+            self.f128_neg()
+        elif k == TypeKind.LDOUBLE:
             self.emit("fchs")
         else:
             self.emit("neg %rax")
@@ -245,6 +321,7 @@ class ExpressionMixin:
         self.label(end)
 
     def expr_StmtExpr(self, node) -> None:
+        self.reject_stmt_expr_cleanup(node)
         for s in node.body.items:
             self.gen_stmt(s)
 
@@ -257,7 +334,7 @@ class ExpressionMixin:
         self.gen_expr(node.operand)                  # %rax = source address
         buf = node.result_buf
         size = node.operand.ty.size
-        self.emit(f"lea {buf.offset}(%rbp), %rdi")
+        self.frame_lea(buf.offset, "%rdi")
         self.copy_struct(size)                       # %rdi = dest, %rax = src
         i = 0
         while i + 8 <= size:

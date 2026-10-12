@@ -21,9 +21,9 @@ class VarargsMixin:
         self.gen_expr(node.args[0])
         self.emit(f"movl ${gp * 8}, (%rax)")
         self.emit(f"movl ${48 + fp * 16}, 4(%rax)")
-        self.emit(f"lea {stack_end}(%rbp), %rdx")
+        self.frame_lea(stack_end, "%rdx")
         self.emit("mov %rdx, 8(%rax)")
-        self.emit(f"lea {self.fn.va_area.offset}(%rbp), %rdx")
+        self.frame_lea(self.fn.va_area.offset, "%rdx")
         self.emit("mov %rdx, 16(%rax)")
 
     def builtin_va_copy(self, node) -> None:
@@ -62,7 +62,7 @@ class VarargsMixin:
             self.emit("mov (%rax), %rax")
             self.emit(f"mov %rax, {base + 8 * i}(%rbp)")
             self.emit(f"addl ${16 if is_fp else 8}, {off_field}(%rcx)")
-        self.emit(f"lea {base}(%rbp), %rax")
+        self.frame_lea(base, "%rax")
         self.emit(f"jmp {done}")
 
     def builtin_va_arg(self, node) -> None:
@@ -72,7 +72,8 @@ class VarargsMixin:
         self.emit("mov %rax, %rcx")
         k = ty.kind
         stack, done = self.new_label(), self.new_label()
-        if k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+        if k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.FLOAT128):
+            # _Float128 is SSE class too: one 16-byte xmm slot (fp_offset <= 160 fits)
             self.emit("movl 4(%rcx), %eax")
             self.emit("cmp $160, %eax")
             self.emit(f"ja {stack}")
@@ -91,6 +92,13 @@ class VarargsMixin:
                 self.emit(f"jmp {done}")
             elif regs is not None:
                 self.va_arg_split_struct(ty, regs, stack, done)
+        elif k == TypeKind.INT128:          # two INTEGER eightbytes in consecutive GP slots
+            self.emit("movl (%rcx), %eax")
+            self.emit("cmp $32, %eax")
+            self.emit(f"ja {stack}")
+            self.emit("addl $16, (%rcx)")
+            self.emit("add 16(%rcx), %rax")
+            self.emit(f"jmp {done}")
         elif k not in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
             self.emit("movl (%rcx), %eax")
             self.emit("cmp $40, %eax")

@@ -26,6 +26,7 @@ if __name__ == "__main__":
     import _boot  # noqa: F401
 
 import argparse
+import os
 import re
 import sys
 import time
@@ -51,7 +52,7 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
     cached = tdir / "patch.diff"
     if cached.exists():
         files = read_json(tdir / "patch_files.json", [])
-        return cached.read_text(), files, None
+        return cached.read_text(errors="surrogateescape"), files, None
     wt = ctx.worktree(rec["id"])
     if not wt.exists():
         return "", [], "worktree missing"
@@ -66,7 +67,9 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
         return "", changed, "empty diff (no changes under hcc/)"
     # --no-renames: a rename would list only the new path and drop the deletion
     patch = git(wt, "diff", "--cached", "--no-renames", "--binary", rec["base"], "--", *files)
-    cached.write_text(patch)
+    if re.search(r"^\+(<{7}|>{7}) ", patch, re.M) or re.search(r"^\+={7}$", patch, re.M):
+        return "", changed, "unresolved conflict markers in the diff"
+    cached.write_text(patch, errors="surrogateescape")
     write_json(tdir / "patch_files.json", files)
     return patch, files, None
 
@@ -83,6 +86,27 @@ def prepare_gate(ctx: Ctx, commit: str) -> Path:
         git(g, "clean", "-fdq")             # untracked, but keeps gitignored suites/tools
         link_untracked_suites(ctx, g)
     return g
+
+
+def pycheck(g: Path) -> str | None:
+    """hcc is pinned to Python 3.11 syntax: byte-compile the gate tree's hcc/ under PyPy 3.11
+    (tests/bin/hcc-pycheck; exits 0 when PyPy is absent). Returns the first error line or None.
+    $SWARM_PYCHECK overrides the command (selftest)."""
+    import shutil
+    import subprocess
+    cmd = os.environ.get("SWARM_PYCHECK") or shutil.which("hcc-pycheck") or str(g / "tests" / "bin" / "hcc-pycheck")
+    if not Path(cmd.split()[0]).exists() and not shutil.which(cmd.split()[0]):
+        return None
+    try:
+        p = subprocess.run([*cmd.split(), str(g / "hcc")], capture_output=True, text=True, timeout=600, check=False)
+    except subprocess.TimeoutExpired:
+        return None
+    if p.returncode == 0:
+        return None
+    lines = [x.strip() for x in (p.stdout + "\n" + p.stderr).splitlines() if x.strip()]
+    first = next((x for x in lines if "SyntaxError" in x or "IndentationError" in x),
+                 next((x for x in lines if "Error" in x), lines[0] if lines else f"exit {p.returncode}"))
+    return first[:240]
 
 
 def split_patch(patch: str) -> tuple[str, str]:
@@ -135,13 +159,38 @@ def ff_main(ctx: Ctx, expected_parent: str, sha: str) -> bool:
 
 # ---------------------------------------------------------------- evaluation
 
+def in_suites(ctx: Ctx, t: str) -> bool:
+    return not ctx.suites or tr.suite_of(t) in ctx.suites
+
+
+# Suites cheap enough for any node's gate sample: compile-only or small runtime tests, no
+# whole-program build. Sampling them on every node stops one partition's merge from silently
+# regressing another's (2026-10-12: a hub merge broke gcc-dg-compile/pr112488-2.c, which only
+# s1 ran, and s1 then rejected 57 candidates for "regressing" it).
+CHEAP_SUITES = {"smoke", "c-testsuite", "chibicc", "gcc-torture", "gcc-compile", "gcc-dg",
+                "gcc-dg-compile", "reject-gcc-dg", "llvm-single", "csmith"}
+
+
+def sample(ctx: Ctx, n: int, seed: str) -> list[str]:
+    """tr.sample_ids restricted to --suites plus CHEAP_SUITES (never another node's expensive
+    program builds)."""
+    if not ctx.suites:
+        return tr.sample_ids(ctx, n, seed)
+    import hashlib
+    passing = sorted(t for t, r in tr.known(ctx).items() if tr.is_pass(r)
+                     and (in_suites(ctx, t) or tr.suite_of(t) in CHEAP_SUITES))
+    return sorted(passing, key=lambda t: hashlib.sha1(f"{seed}:{t}".encode()).hexdigest())[:n]
+
+
 def gate_ids(ctx: Ctx, recs: list[dict]) -> list[str]:
     k = tr.known(ctx)
     base = read_json(ctx.state / "baseline.json", {}) or {}
     ids = {t for t in k if tr.suite_of(t) == "smoke"}
     for r in recs:
-        ids.update(r.get("targets") or r["tests"])
-    ids.update(tr.sample_ids(ctx, ctx.sample_size, base.get("commit", "seed")))
+        targets = r.get("targets") or r["tests"]
+        # an ingested sibling candidate was verified on its own partition; run only what is cheap here
+        ids.update(t for t in targets if not r.get("ingest") or in_suites(ctx, t))
+    ids.update(sample(ctx, ctx.sample_size, base.get("commit", "seed")))
     return sorted(ids)
 
 
@@ -169,9 +218,9 @@ def gains(ctx: Ctx, res: dict, targets: list[str]) -> list[str]:
 def reject(ctx: Ctx, rec: dict, reason: str) -> None:
     rec.update(status="rejected", reason=reason, t_gate=time.time())
     patch = ctx.task_dir(rec["id"]) / "patch.diff"
-    body = patch.read_text() if patch.exists() else ""
+    body = patch.read_text(errors="surrogateescape") if patch.exists() else ""
     (ctx.rejected / f"{rec['id']}.diff").write_text(
-        f"# task {rec['id']}\n# cluster {rec['signature']}\n# rejected: {reason}\n{body}")
+        f"# task {rec['id']}\n# cluster {rec['signature']}\n# rejected: {reason}\n{body}", errors="surrogateescape")
     ledger_put(ctx, rec)
     log(f"REJECT {rec['id']}: {reason}")
 
@@ -203,9 +252,10 @@ def recheck_clusters(ctx: Ctx, g, commit: str, recs: list[dict]) -> None:
     cause (e.g. a whole-program build) leaves thousands of stale FAILs in known.json and
     the queue keeps dispatching workers on tests that already pass."""
     from swarm import queue as workqueue
-    sigs = {r.get("signature") for r in recs}
+    sigs = {r.get("signature") for r in recs if not r.get("ingest")}
     k = tr.known(ctx)
-    ids = [t for t, rec in k.items() if not tr.is_pass(rec) and workqueue.signature(rec) in sigs]
+    ids = [t for t, rec in k.items() if not tr.is_pass(rec) and workqueue.signature(rec) in sigs
+           and in_suites(ctx, t)]
     if not ids:
         return
     res = tr.run_ids(ctx, g, ids[:RECHECK_MAX])
@@ -231,7 +281,11 @@ def merge_batch(ctx: Ctx, recs: list[dict]) -> int:
         stacked: list[tuple[dict, str, str]] = []
         for r, patch in pending:
             sha = commit_patch(ctx, g, r, patch)
-            if sha is not None:
+            bad = pycheck(g) if sha is not None else None
+            if bad:
+                git(g, "reset", "--hard", "-q", stacked[-1][2] if stacked else main)
+                reject(ctx, r, f"python 3.11 syntax: {bad}")
+            elif sha is not None:
                 stacked.append((r, patch, sha))
             elif stacked:
                 log(f"defer  {r['id']}: conflicts with another candidate in this batch")
@@ -247,19 +301,33 @@ def merge_batch(ctx: Ctx, recs: list[dict]) -> int:
             r = stacked[0][0]
             reject(ctx, r, f"regressions ({len(regs)}): {', '.join(regs[:6])}")
             return merged
-        no_gain = [(r, p) for r, p, _ in stacked if not gains(ctx, res, r.get("targets") or r["tests"])]
+        no_gain = [(r, p) for r, p, _ in stacked
+                   if not r.get("ingest") and not gains(ctx, res, r.get("targets") or r["tests"])]
         if no_gain:
             for r, _ in no_gain:
                 reject(ctx, r, "no target test flipped to PASS")
             pending = [(r, p) for r, p, _ in stacked if (r, p) not in no_gain]
             continue
+        fixed = {}
+        for r, _, _ in stacked:
+            got = gains(ctx, res, r.get("targets") or r["tests"])
+            if r.get("ingest"):   # the sibling's gate-verified fixes, plus anything seen flipping here
+                got = sorted(set(got) | {t for t in r.get("targets") or [] if t not in res})
+            fixed[r["id"]] = got
+        if ctx.stamp_fixed:       # sibling: carry the verified fixes to the hub in a Fixed: trailer
+            from swarm import federation
+            new = federation.restamp(g, main, [s for _, _, s in stacked], [fixed[r["id"]] for r, _, _ in stacked])
+            stacked = [(r, p, s) for (r, p, _), s in zip(stacked, new)]
         top = stacked[-1][2]
         if not ff_main(ctx, main, top):
             log("main moved during gate; re-gating on new HEAD")
             pending = [(r, p) for r, p, _ in stacked]
             continue
-        fixed = {r["id"]: gains(ctx, res, r.get("targets") or r["tests"]) for r, _, _ in stacked}
         tr.record(ctx, top, res)
+        claimed = {t: {"status": "PASS", "reason": "", "stage": ""} for r, _, _ in stacked if r.get("ingest")
+                   for t in fixed[r["id"]] if t not in res}
+        if claimed:
+            tr.record(ctx, top, claimed)
         parent = main
         for r, _, sha in stacked:
             accept(ctx, r, sha, parent, fixed[r["id"]])
@@ -301,7 +369,12 @@ def refresh(ctx: Ctx, do_bisect: bool = True) -> dict:
         res.update(again)
         regs = [t for t in regs if not tr.is_pass(again.get(t))]
     main = head(ctx)
+    keep = {t: v for t, v in prev.items() if not in_suites(ctx, t)} if ctx.suites else {}
     tr.record(ctx, main, res, replace_known=True)
+    if keep:          # suites outside --suites belong to other federated nodes: keep their entries
+        k = tr.known(ctx)
+        k.update({t: v for t, v in keep.items() if t not in k})
+        write_json(ctx.state / "known.json", k)
     c = read_json(ctx.state / "counters.json", {}) or {}
     c["merges_since_full"] = 0
     write_json(ctx.state / "counters.json", c)

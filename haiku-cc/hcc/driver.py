@@ -73,12 +73,30 @@ def parse_args(argv: list[str]) -> Options:
             o.std = "c89"
         elif a == "-trigraphs":
             o.trigraphs = True
+        elif a == "-pedantic-errors":
+            o.pedantic_errors = True
         elif a == "-fgnu89-inline":
             o.gnu89_inline = True
+        elif a == "-fno-asm":
+            o.no_asm = True
+        elif a.startswith("-fsso-struct="):
+            o.sso_struct = a.split("=", 1)[1]
+        elif a == "-fplan9-extensions":
+            o.plan9_extensions = True
+        elif a in ("-fshort-wchar", "-fno-short-wchar"):
+            o.short_wchar = a == "-fshort-wchar"
+        elif a in ("-funsigned-char", "-fsigned-char"):
+            o.char_unsigned = a == "-funsigned-char"
+        elif a in ("-fwrapv", "-fno-wrapv"):
+            o.wrapv = a == "-fwrapv"
         elif a == "-nostdinc":
             o.nostdinc = True
-        elif a in ("-fPIC", "-fpic", "-fPIE", "-fpie"):
-            o.pic = a in ("-fPIC", "-fpic")
+        elif a in ("-fPIC", "-fpic"):
+            o.pic, o.pie = True, False
+        elif a in ("-fPIE", "-fpie"):
+            o.pic, o.pie = True, True
+        elif a in ("-fno-pic", "-fno-PIC", "-fno-pie", "-fno-PIE"):
+            o.pic, o.pie = False, False
         elif a in _MATH_FLAG_MACROS:
             o.defines.append(("-D", _MATH_FLAG_MACROS[a]))
         elif a == "-x":
@@ -130,7 +148,20 @@ def compile_to_asm(path: str, opts: Options) -> str:
     toks = preprocess_file(path, opts)
     with diag.stage("parse"):
         c23 = (opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
-        toks = convert_tokens(toks, u8_unsigned=c23, c23=c23)
+        # `asm` is an extension keyword: off in strict ISO modes and under -fno-asm.
+        # `typeof` is an extension keyword before C23 but a standard one from C23 on.
+        strict = not (opts.std or "gnu17").lower().startswith("gnu")
+        off = set()
+        if strict or opts.no_asm:
+            off.add("asm")
+        if (strict and not c23) or opts.no_asm:
+            off.add("typeof")
+        # -fno-asm also makes `inline` an identifier in pre-C99 modes (not from C99 on).
+        if opts.no_asm and (opts.std or "").lower() in ("c89", "c90", "gnu89", "gnu90"):
+            off.add("inline")
+        off = frozenset(off)
+        toks = convert_tokens(toks, u8_unsigned=c23, c23=c23, off_keywords=off,
+                              short_wchar=opts.short_wchar)
         tu = parse(toks, opts)
     if opts.dump_ast:
         for o in tu.objs:

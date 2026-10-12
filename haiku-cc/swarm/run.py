@@ -25,6 +25,7 @@ if __name__ == "__main__":
 import argparse
 import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -33,6 +34,7 @@ import time
 from collections import Counter
 from pathlib import Path
 
+from swarm import federation as fed
 from swarm import merge
 from swarm import queue as workqueue
 from swarm import testrun as tr
@@ -56,6 +58,24 @@ def source_size(ctx: Ctx):
     return size
 
 
+def premerge_rebase(wt: Path, patch: str) -> list[str] | None:
+    """Re-apply a conflicted worker's diff into a fresh worktree with `git apply --3way`, leaving
+    conflict markers in place for the rebase worker to resolve. Returns the conflicted files ([] when
+    it applied cleanly), or None when it could not be applied at all (the worker then re-applies by
+    hand from the diff path)."""
+    p = subprocess.run(["git", "-C", str(wt), "apply", "--3way", "--whitespace=nowarn", patch],
+                       capture_output=True, text=True)
+    unmerged = subprocess.run(["git", "-C", str(wt), "diff", "--name-only", "--diff-filter=U"],
+                              capture_output=True, text=True).stdout.split()
+    if p.returncode != 0 and not unmerged:
+        subprocess.run(["git", "-C", str(wt), "checkout", "--", "."], capture_output=True)
+        subprocess.run(["git", "-C", str(wt), "clean", "-fdq", "hcc"], capture_output=True)
+        return None
+    # Leave conflicted files as plain working-tree edits: the orchestrator diffs with `git add -A`.
+    subprocess.run(["git", "-C", str(wt), "reset", "-q"], capture_output=True)
+    return unmerged
+
+
 def is_conflict(r: dict) -> bool:
     return r.get("status") == "rejected" and str(r.get("reason", "")).startswith(("conflict", "main kept moving"))
 
@@ -72,7 +92,7 @@ Never make a construct parse-and-silently-miscompile: unsupported parts must sti
 
 
 def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_notes: list[str],
-                rebase_patch: str | None = None) -> str:
+                rebase_patch: str | None = None, conflicted_files: list[str] | None = None) -> str:
     wt = ctx.worktree(tid)
     lines = [f"Task id: {tid}", f"Your worktree (current directory): {wt}", f"Result JSON out path: {out}",
              f"Scratch dir: /tmp/{tid}/", "",
@@ -91,7 +111,14 @@ def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_no
     if prev_notes:
         lines += ["", "Notes from earlier workers on this cluster (their fixes were not merged):"]
         lines += [f"  * {n[:400]}" for n in prev_notes[-2:]]
-    if rebase_patch:
+    if rebase_patch and conflicted_files is not None:
+        lines += ["", "REBASE: an earlier worker fixed this cluster, but its diff conflicted with newer main.",
+                  f"It has been re-applied to your worktree with `git apply --3way` (original diff: {rebase_patch}).",
+                  ("Files with conflict markers (<<<<<<< ours / ======= / >>>>>>> theirs): " + ", ".join(conflicted_files))
+                  if conflicted_files else "It applied without conflicts this time; just verify it.",
+                  "Resolve each conflict keeping the intent of BOTH sides (main's newer code and the earlier fix),",
+                  "remove every marker line, then verify as usual. The gate rejects any leftover marker."]
+    elif rebase_patch:
         lines += ["", f"REBASE: an earlier worker fixed this cluster, but its diff no longer applies because main moved on.",
                   f"Its diff is at {rebase_patch}. Read it, re-apply the same change by hand to the current code",
                   "(the surrounding code may have changed), then verify as usual. Start from that diff, not from scratch."]
@@ -103,7 +130,7 @@ def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_no
 
 
 def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) -> dict:
-    tid = f"w{seq:05d}"
+    tid = f"{ctx.id_prefix}w{seq:05d}"
     base = head(ctx)
     wt = ctx.worktree(tid)
     add_worktree(ctx, wt, base)
@@ -120,11 +147,20 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
                   and r["id"] not in used and (ctx.task_dir(r["id"]) / "patch.diff").exists()]
     rebase_of = conflicted[-1]["id"] if conflicted else None
     rebase_patch = str(ctx.task_dir(rebase_of) / "patch.diff") if rebase_of else None
-    task = {"id": tid, "prompt": task_prompt(ctx, tid, item, out, prev, rebase_patch) + (f"\n[fake:{a.fake_mode}]" if a.fake_mode else ""),
+    conflicted_files = premerge_rebase(wt, rebase_patch) if rebase_patch else None
+    task = {"id": tid, "prompt": task_prompt(ctx, tid, item, out, prev, rebase_patch, conflicted_files) + (f"\n[fake:{a.fake_mode}]" if a.fake_mode else ""),
             "out": str(out), "model": a.model, "tools": TOOLS,
             "allow": [f"Edit(/{wt}/**)", "Edit(//tmp/**)", "Bash"],
             "system_prompt": (ctx.swarm / "worker_prompt.md").read_text(), "timeout": a.timeout}
-    feature = len(prev) >= FEATURE_AFTER
+    # A rebase of a feature worker's diff is feature-sized too: the small budget cannot re-apply it
+    # (28 of the first 29 feature rejections were conflicts that then died as small rebases).
+    feature = len(prev) >= FEATURE_AFTER or bool(rebase_of and (led.get(rebase_of) or {}).get("feature"))
+    # Effort ladder (agent-routing: rung 2 is the same model one effort step up, before any tier
+    # jump): the first attempt on a signature runs at the run's --effort, any attempt after a real
+    # failure (a lost merge race is not one) and all feature work runs at high.
+    nfail = sum(1 for r in led.values() if r.get("signature") == item.signature
+                and r.get("status") in ("failed", "rejected", "reverted") and not is_conflict(r))
+    effort = "high" if (feature or nfail >= 1) else a.effort
     timeout = max(a.timeout, 3600) if feature else a.timeout
     task["timeout"] = timeout
     (tdir / "task.jsonl").write_text(json.dumps(task) + "\n")
@@ -138,17 +174,17 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
                "--model", a.model, "--concurrency", "1", "--retries", "0", "--timeout", str(timeout)]
         if a.per_task_usd:
             cmd += ["--max-usd-per-task", str(max(a.per_task_usd, 5.0) if feature else a.per_task_usd)]
-        if a.effort:
-            cmd += ["--effort", a.effort]
+        if effort:
+            cmd += ["--effort", effort]
     logf = open(tdir / "runner.log", "w")
     p = subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                          start_new_session=True)
     rec = {"id": tid, "key": item.key, "signature": item.signature, "tests": item.tests,
            "targets": item.targets, "base": base, "status": "launched", "pid": p.pid,
            "cost_usd": 0.0, "result": None, "merged_commit": None, "reason": "",
-           "t_launch": time.time(), "model": "fake" if a.fake else a.model, "feature": feature, "rebase_of": rebase_of}
+           "t_launch": time.time(), "model": "fake" if a.fake else a.model, "feature": feature, "rebase_of": rebase_of, "effort": effort}
     ledger_put(ctx, rec)
-    log(f"LAUNCH {tid} [{item.priority}] {'FEATURE ' if feature else ''}{'REBASE ' if rebase_of else ''}{item.key}  tests: {', '.join(item.tests)}")
+    log(f"LAUNCH {tid} [{item.priority}] {'FEATURE ' if feature else ''}{'REBASE ' if rebase_of else ''}{'HIGH ' if effort == 'high' else ''}{item.key}  tests: {', '.join(item.tests)}")
     return {"rec": rec, "proc": p}
 
 
@@ -181,6 +217,9 @@ def reap(ctx: Ctx, rec: dict) -> dict:
         rec.update(status="finished")
     ledger_put(ctx, rec)
     log(f"DONE   {rec['id']} {rec['status']} ${rec['cost_usd']:.3f} {rec.get('reason', '')}")
+    # The worker's /tmp/<task id>/ scratch is never needed after it exits; 600 workers' worth
+    # (up to 170 MB each) filled the disk on 2026-10-12.
+    shutil.rmtree(f"/tmp/{rec['id']}", ignore_errors=True)
     if rec["status"] == "failed":
         remove_worktree(ctx, ctx.worktree(rec["id"]))
     return rec
@@ -235,20 +274,61 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
     if errs and not a.force:
         log("fix these or pass --force")
         return 2
-    if not (ctx.state / "baseline.json").exists() or not tr.known(ctx):
+    refresher: threading.Thread | None = None
+    if a.sibling or a.federate:
+        fed.ensure_remote(ctx, a.fed_remote)
+    if a.sibling:
+        # Seed the baseline from the hub, rebase onto hcc/main, then re-baseline this node's
+        # suites in the background (the seeded entries were measured on the hub, maybe hours ago).
+        fed.sibling_fetch(ctx, a.sibling)
+        fed.seed(ctx)
+        fed.sibling_rebase(ctx, a.sibling)
+        fst = fed.fstate(ctx)
+        if fst.get("initial_refresh") != a.suites:
+            fst["initial_refresh"] = a.suites
+            fed.fstate_put(ctx, fst)
+            refresher = threading.Thread(target=merge.refresh, args=(ctx,), kwargs={"do_bisect": False}, daemon=True)
+            refresher.start()
+    if refresher is None and (not (ctx.state / "baseline.json").exists() or not tr.known(ctx)):
         merge.refresh(ctx, do_bisect=False)
+    last_poll = last_rebase = last_pub = 0.0
+    pub_head = ""
+    if a.sibling:
+        last_rebase = time.time()
+    stop_launch = bool(a.no_launch)
     procs: dict[str, subprocess.Popen | None] = {}
     for r in ledger(ctx).values():            # adopt survivors of an interrupted run
         if r["status"] == "launched":
             procs[r["id"]] = None
     launched = 0
     idle_tree, idle_since = None, None
+    # Worktrees of workers that ended in an earlier run of the loop are never needed again
+    # (their patch is cached in the task dir); 40 of them held 5.6 GB on 2026-10-12.
+    led0 = ledger(ctx)
+    stale = [d for d in (ctx.wt_root.iterdir() if ctx.wt_root.exists() else [])
+             if d.is_dir() and (led0.get(d.name) or {}).get("status") in ("merged", "rejected", "failed", "reverted")]
+    for d in stale:
+        remove_worktree(ctx, d)
+    if stale:
+        log(f"removed {len(stale)} worktrees of workers that ended in earlier runs")
     tree_checked = 0.0
-    stop_launch = False
     # Full refresh runs in a thread (it can take many minutes); launching and
     # reaping continue meanwhile, merging waits for it.
-    refresher: threading.Thread | None = None
     while True:
+        busy = refresher is not None and refresher.is_alive()
+        if a.federate and not busy and time.time() - last_poll >= a.fed_poll:
+            last_poll = time.time()
+            try:
+                fed.poll_candidates(ctx)
+            except Exception as e:  # noqa: BLE001 -- the transport must never stop the loop
+                log(f"fed    poll error: {e}")
+        if a.sibling and not busy and time.time() - last_rebase >= a.rebase_every:
+            last_rebase = time.time()
+            try:
+                if fed.sibling_fetch(ctx, a.sibling):
+                    fed.sibling_rebase(ctx, a.sibling)
+            except Exception as e:  # noqa: BLE001
+                log(f"fed    rebase error: {e}")
         led = ledger(ctx)
         for tid in list(procs):
             p = procs[tid]
@@ -290,6 +370,12 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 refresher = threading.Thread(target=merge.refresh, args=(ctx,), daemon=True)
                 refresher.start()
                 refreshing = True
+        if (a.federate or a.sibling) and (time.time() - last_pub >= 60 or head(ctx) != pub_head):
+            last_pub, pub_head = time.time(), head(ctx)
+            try:
+                fed.hub_publish(ctx) if a.federate else fed.publish_cand(ctx, a.sibling)
+            except Exception as e:  # noqa: BLE001
+                log(f"fed    publish error: {e}")
         if a.max_usd and spent(ctx) >= a.max_usd and not stop_launch:
             log(f"spend ${spent(ctx):.2f} reached --max-usd; no more launches")
             stop_launch = True
@@ -313,7 +399,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 if time.time() - idle_since > a.idle_max:
                     log("queue empty and nothing in flight")
                     break
-                time.sleep(60)
+                time.sleep(min(60, a.idle_max))
                 continue
             seq = len(ledger(ctx)) + 1
             led = ledger(ctx)
@@ -334,7 +420,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 procs[w["rec"]["id"]] = w["proc"]
                 seq += 1
                 launched += 1
-        if stop_launch and not procs and not refreshing and \
+        if stop_launch and not procs and not refreshing and (not a.federate or a.no_launch) and \
                 not any(r["status"] == "finished" for r in ledger(ctx).values()):
             break
         time.sleep(a.poll)
@@ -380,7 +466,8 @@ def status(ctx: Ctx) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", nargs="?", default="run", choices=["run", "status", "queue", "refresh"])
+    ap.add_argument("cmd", nargs="?", default="run",
+                    choices=["run", "status", "queue", "refresh", "fed-publish", "fed-poll", "fed-status"])
     ap.add_argument("--root", type=Path, default=Ctx().root)
     ap.add_argument("--wt-root", type=Path, default=Ctx().wt_root)
     ap.add_argument("--max-workers", type=int, default=0, help="launches in this invocation (0 = no cap)")
@@ -406,10 +493,27 @@ def main(argv: list[str] | None = None) -> int:
                     help="seconds to wait with an empty queue for new tests/ commits before exiting")
     ap.add_argument("--max-load", type=float, default=3.0 * (os.cpu_count() or 4),
                     help="no new launches while the 1-min load average is above this")
+    ap.add_argument("--sibling", default="", metavar="NAME",
+                    help="federated sibling: ids NAME-wNNNNN, rebase onto hcc/main, push hcc/cand/NAME")
+    ap.add_argument("--federate", action="store_true",
+                    help="federated hub: ingest hcc/cand/* candidates, push hcc/main and hcc/state")
+    ap.add_argument("--fed-remote", default=fed.DEFAULT_URL, help="git URL (or path) of the transport repo")
+    ap.add_argument("--fed-poll", type=float, default=180, help="hub: seconds between candidate polls")
+    ap.add_argument("--rebase-every", type=float, default=900, help="sibling: seconds between rebases")
+    ap.add_argument("--no-launch", action="store_true", help="launch no workers (hub: ingest only)")
     a = ap.parse_args(argv)
     ctx = Ctx(root=a.root.resolve(), wt_root=a.wt_root, jobs=a.jobs, batch=a.batch,
               sample_size=a.sample, full_every=a.full_every,
-              suites=[s for s in a.suites.split(",") if s])
+              suites=[s for s in a.suites.split(",") if s],
+              id_prefix=f"{a.sibling}-" if a.sibling else "", stamp_fixed=bool(a.sibling))
+    if a.cmd.startswith("fed-"):
+        fed.ensure_remote(ctx, a.fed_remote)
+        if a.cmd == "fed-publish":
+            fed.hub_publish(ctx, force_state=True)
+        elif a.cmd == "fed-poll":
+            print(f"{fed.poll_candidates(ctx)} new candidates")
+        fed.status(ctx)
+        return 0
     if a.cmd == "status":
         return status(ctx)
     if a.cmd == "refresh":

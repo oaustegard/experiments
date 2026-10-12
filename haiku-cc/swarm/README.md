@@ -65,8 +65,30 @@ candidates per gate run), `--sample` (150), `--full-every` (25 merges), `--suite
 Resume: just rerun `run`. Live workers from the previous process are adopted by pid,
 dead ones are reaped, finished ones are merged.
 
+## Federation (`federation.py`, `../federation/`)
+Several containers share the work through branches of one transport repo (default
+`oaustegard/experiments`), all append-only: `hcc/main` (the hub's main), `hcc/state`
+(`federation/{known,baseline,ingest,meta}.json`), `hcc/cand/<NAME>` (a sibling's local main).
+```
+python3 swarm/run.py run --federate --only 'gcc-dg/*,...' --suites smoke,...   # hub: ingest + publish
+bash federation/setup.sh s1                                                    # sibling container bootstrap
+python3 swarm/run.py run --sibling s1 --only 'reject-gcc-dg/*,...' --suites smoke,c-testsuite,...
+python3 swarm/run.py fed-publish | fed-poll | fed-status                       # one-shot hub actions
+```
+A sibling seeds `state/` from `hcc/state`, re-baselines its `--suites` in the background, prefixes
+task ids with `NAME-`, gates locally (sample limited to `--suites`), stamps merged commits with a
+`Fixed:` trailer and pushes its main to `hcc/cand/NAME`. Every `--rebase-every` s it rebases onto
+`hcc/main`: commits the hub merged (by `Swarm-Task:`) or rejected (`ingest.json`) are dropped, a
+commit that no longer applies is marked a conflict so its cluster is re-dispatched as a REBASE
+worker. The branch is re-stacked with a bookkeeping merge (first parent = new main), so it only
+fast-forwards. The hub polls `hcc/cand/*` every `--fed-poll` s; each new first-parent commit not
+in main becomes a `finished` ledger record (`ingest: true`) and goes through the normal gate,
+lighter: targets outside `--suites` are not run, no target must flip, the claimed fixes are
+recorded as PASS. A conflict is final for that sha (the sibling's rebase makes a new one).
+Every gate also byte-compiles `hcc/` under PyPy 3.11 (`hcc-pycheck`) per stacked candidate.
+
 ## Modules
-`common.py` (Ctx paths, git helpers, atomic JSON, ledger) · `testrun.py` (tests/run.py
+`common.py` (Ctx paths, git helpers, atomic JSON, ledger) · `federation.py` (transport, ingest, sibling rebase) · `testrun.py` (tests/run.py
 adapter, results cache, sample) · `queue.py` · `merge.py` · `run.py` · `fake_worker.py`
 (modes fix/noop/break/tests) · `_boot.py` (stops `swarm/queue.py` shadowing stdlib `queue`).
 

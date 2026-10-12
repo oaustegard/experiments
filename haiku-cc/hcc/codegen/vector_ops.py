@@ -9,7 +9,7 @@ result buffer, and leaves %rax = address of the result.
 from __future__ import annotations
 
 from hcc.codegen.vector_cmp import vector_compare
-from hcc.typesys import is_flonum
+from hcc.typesys import is_decimal, is_flonum
 
 _CMP_OPS = ("==", "!=", "<", "<=", ">", ">=")
 
@@ -43,7 +43,7 @@ class VectorOpsMixin:
         self.gen_expr(node.lhs)
         self.emit("mov %rax, %rsi")
         self.pop("%r8")
-        self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+        self.frame_lea(node.result_buf.offset, "%rdi")
         mov = "movss" if es == 4 else "movsd"
         for i in range(0, size, es):
             self.emit(f"{mov} {i}(%rsi), %xmm0")
@@ -56,6 +56,8 @@ class VectorOpsMixin:
         lty = node.lhs.ty
         if node.op in _CMP_OPS:
             return vector_compare(self, node)
+        if is_decimal(lty.base):
+            return self.vector_decimal_binary(node)
         if is_flonum(lty.base):
             return self.vector_float_binary(node)
         if lty.base.size == 16:
@@ -67,7 +69,7 @@ class VectorOpsMixin:
         self.gen_expr(node.lhs)                      # %rax = lhs address
         self.emit("mov %rax, %rsi")
         self.pop("%r8")
-        self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+        self.frame_lea(node.result_buf.offset, "%rdi")
         for i in range(0, size, es):
             self._vec_load(es, signed, i, "%rsi", "%rax", "%eax")
             self._vec_load(es, signed, i, "%r8", "%rcx", "%ecx")
@@ -94,13 +96,15 @@ class VectorOpsMixin:
     def vector_neg(self, node) -> None:
         """`-v` on a GCC integer vector: negate each element into the result buffer."""
         ty = node.operand.ty
+        if is_decimal(ty.base):
+            return self.vector_decimal_neg(node)
         if ty.base.size == 16:
             return self.vector_wide_neg(node)
         size, es = ty.size, ty.base.size
         signed = not ty.base.is_unsigned
         self.gen_expr(node.operand)                  # %rax = source address
         self.emit("mov %rax, %rsi")
-        self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+        self.frame_lea(node.result_buf.offset, "%rdi")
         for i in range(0, size, es):
             self._vec_load(es, signed, i, "%rsi", "%rax", "%eax")
             self.emit("neg %rax")

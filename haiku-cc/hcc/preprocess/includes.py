@@ -68,7 +68,8 @@ class IncludeMixin:
     def file_tokens(self, path: str) -> list[Token]:
         toks = self.token_cache.get(path)
         if toks is None:
-            toks = tokenize_file(path, self.line_comments, self.u8_chars, self.trigraphs)
+            toks = tokenize_file(path, self.line_comments, self.u8_chars, self.trigraphs,
+                                   self.c90_literals)
             self.token_cache[path] = toks
             guard = detect_include_guard(toks)
             if guard:

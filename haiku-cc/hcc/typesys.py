@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from hcc.halfbits import round_to_half   # re-exported: binary16 rounding lives in halfbits
+
 
 class TypeKind(Enum):
     VOID = "void"
@@ -19,10 +21,14 @@ class TypeKind(Enum):
     LONG = "long"
     LLONG = "long long"
     INT128 = "__int128"
+    FLOAT16 = "_Float16"
     FLOAT = "float"
     DOUBLE = "double"
     LDOUBLE = "long double"
     FLOAT128 = "_Float128"
+    DEC32 = "_Decimal32"
+    DEC64 = "_Decimal64"
+    DEC128 = "_Decimal128"
     ENUM = "enum"
     PTR = "pointer"
     ARRAY = "array"
@@ -34,7 +40,10 @@ class TypeKind(Enum):
 
 INTEGER_KINDS = frozenset({TypeKind.BOOL, TypeKind.CHAR, TypeKind.SHORT, TypeKind.INT,
                            TypeKind.LONG, TypeKind.LLONG, TypeKind.INT128, TypeKind.ENUM})
-FLOAT_KINDS = frozenset({TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE, TypeKind.FLOAT128})
+FLOAT_KINDS = frozenset({TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE,
+                         TypeKind.FLOAT128})
+# C23/TR 24732 decimal floating types: BID encoding, never mixed with binary floats.
+DECIMAL_KINDS = frozenset({TypeKind.DEC32, TypeKind.DEC64, TypeKind.DEC128})
 
 
 class Member:
@@ -42,10 +51,11 @@ class Member:
 
     __slots__ = ("name", "ty", "offset", "align", "idx", "is_bitfield",
                  "bit_offset", "bit_width", "tok", "rev_bytes", "is_packed",
-                 "explicit_align")
+                 "explicit_align", "alias", "pack_cap", "open_array")
 
     def __init__(self, name, ty, offset=0, align=1, idx=0):
         self.name: str | None = name
+        self.alias: str | None = None   # plan9: anonymous member declared by typedef name
         self.ty: Type = ty
         self.offset = offset
         self.align = align
@@ -57,6 +67,8 @@ class Member:
         self.rev_bytes = 0      # >0: bitfield in a scalar_storage_order("big-endian") struct
         self.is_packed = False  # member carries __attribute__((packed)): no alignment, may straddle units
         self.explicit_align = 0  # _Alignas / __attribute__((aligned(N))) on the member (survives struct packed)
+        self.pack_cap = 0       # #pragma pack alignment in effect where the member was declared (0 = none)
+        self.open_array = False  # trailing `T x[]` member (incomplete; stored as length 0)
 
     def __repr__(self):
         return f"Member({self.name}, {self.ty}, off={self.offset})"
@@ -68,7 +80,7 @@ class Type:
                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
-                 "proto_scope", "is_rev_order")
+                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -90,6 +102,8 @@ class Type:
         self.is_reverse_sso = False
         self.is_ms_struct = False   # __attribute__((ms_struct)): MS bit-field layout
         self.is_rev_order = False   # scalar stored big-endian (scalar_storage_order)
+        self.is_floatn = False      # _Float32/_Float32x-style type: no default argument promotion
+        self.floatn: str | None = None   # the _FloatN spelling (tgmath/overloads tell e.g. _Float32x from double)
         self.is_complete = True
         self.return_ty: Type | None = None
         self.params: list[Type] = []
@@ -103,6 +117,9 @@ class Type:
         self.param_vars: list = []   # FUNC: parse-time Var per named param (or None)
         self.param_dims: list = []   # FUNC: VLA-dimension expr per param (or None)
         self.proto_scope = None      # FUNC: parser Scope of the parameter list (tags stay visible in the body)
+        self.is_complex = False      # C99 _Complex: a STRUCT {re, im} of base (see complex_of)
+        self.dyn_tail = None         # STRUCT: VLA type of a trailing variably-sized member (size = prefix)
+        self.dyn_size = None         # bound dynamic STRUCT: ulong expr of its run-time sizeof (pointer strides)
 
     def copy(self) -> "Type":
         t = Type.__new__(Type)
@@ -134,6 +151,8 @@ def type_str(t: Type) -> str:
     if k == TypeKind.FUNC:
         ps = ", ".join(type_str(p) for p in t.params) + (", ..." if t.is_variadic else "")
         return f"{type_str(t.return_ty)}({ps})"
+    if t.is_complex:
+        return f"{q}_Complex {type_str(t.base)}"
     if k in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ENUM):
         return f"{q}{k.value} {t.tag or '<anon>'}"
     u = "unsigned " if t.is_unsigned and k not in (TypeKind.BOOL,) else ""
@@ -158,10 +177,28 @@ TY_UINT = _base(TypeKind.INT, 4, 4, True)
 TY_ULONG = _base(TypeKind.LONG, 8, 8, True)
 TY_ULLONG = _base(TypeKind.LLONG, 8, 8, True)
 TY_UINT128 = _base(TypeKind.INT128, 16, 16, True)
+TY_FLOAT16 = _base(TypeKind.FLOAT16, 2, 2)
 TY_FLOAT = _base(TypeKind.FLOAT, 4, 4)
+TY_FLOAT32 = _base(TypeKind.FLOAT, 4, 4)   # _Float32: same layout as float, but not promoted in varargs
+TY_FLOAT32.is_floatn = True
+TY_FLOAT32.floatn = "_Float32"
+# _Float64, _Float32x, _Float64x: distinct types with the representation of double /
+# long double (tgmath and overloads tell them apart through the `floatn` spelling)
+TY_FLOAT64 = _base(TypeKind.DOUBLE, 8, 8)
+TY_FLOAT64.is_floatn = True
+TY_FLOAT64.floatn = "_Float64"
+TY_FLOAT32X = _base(TypeKind.DOUBLE, 8, 8)
+TY_FLOAT32X.is_floatn = True
+TY_FLOAT32X.floatn = "_Float32x"
+TY_FLOAT64X = _base(TypeKind.LDOUBLE, 16, 16)
+TY_FLOAT64X.is_floatn = True
+TY_FLOAT64X.floatn = "_Float64x"
 TY_DOUBLE = _base(TypeKind.DOUBLE, 8, 8)
 TY_LDOUBLE = _base(TypeKind.LDOUBLE, 16, 16)
 TY_FLOAT128 = _base(TypeKind.FLOAT128, 16, 16)
+TY_DEC32 = _base(TypeKind.DEC32, 4, 4)
+TY_DEC64 = _base(TypeKind.DEC64, 8, 8)
+TY_DEC128 = _base(TypeKind.DEC128, 16, 16)
 
 
 def is_integer(t: Type) -> bool:
@@ -172,8 +209,12 @@ def is_flonum(t: Type) -> bool:
     return t.kind in FLOAT_KINDS
 
 
+def is_decimal(t: Type) -> bool:
+    return t.kind in DECIMAL_KINDS
+
+
 def is_numeric(t: Type) -> bool:
-    return is_integer(t) or is_flonum(t)
+    return is_integer(t) or is_flonum(t) or is_decimal(t)
 
 
 def is_pointer_like(t: Type) -> bool:
@@ -218,6 +259,11 @@ def vector_of(base: Type, nbytes: int) -> Type:
     return t
 
 
+def is_dyn_struct(t) -> bool:
+    """Struct whose last member is a VLA (GNU extension): its size is run-time."""
+    return t is not None and t.kind == TypeKind.STRUCT and t.dyn_tail is not None
+
+
 def vla_of(base: Type, length_expr) -> Type:
     t = Type(TypeKind.VLA, 8, 8)
     t.base = base
@@ -251,6 +297,22 @@ def va_list_type() -> Type:
                  Member("reg_save_area", pointer_to(TY_VOID), 16, 8, 3)]
     s.size, s.align, s.is_complete = 24, 8, True
     return array_of(s, 1)
+
+
+def complex_of(base: Type) -> Type:
+    """C99 `_Complex base`: a two-member struct {re, im} laid out like `base[2]`.
+    Its `base` is the element type; values are copied and passed like structs."""
+    t = Type(TypeKind.STRUCT, base.size * 2, base.align)
+    t.is_complex = True
+    t.base = base
+    t.tag = None
+    t.members = [Member("re", base, 0, base.align, 0),
+                 Member("im", base, base.size, base.align, 1)]
+    return t
+
+
+def is_complex(t: Type) -> bool:
+    return t.is_complex
 
 
 def int_type_for(size: int, unsigned: bool) -> Type:
