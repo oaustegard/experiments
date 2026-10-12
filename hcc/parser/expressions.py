@@ -133,15 +133,15 @@ class ExpressionMixin:
         cond = self.logor()
         if not self.at("?"):
             return cond
-        cond = CPX.truth(self, cond)
         loc = self.next().loc
-        if self.at(":"):                  # GNU a ?: b
+        if self.at(":"):                  # GNU a ?: b: the value is the condition itself
             self.next()
             tmp = self.new_temp(_comma_result_type(cond.ty))
             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
             rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
             return self.typed(N.Comma(loc, lhs, rhs))
+        cond = CPX.truth(self, cond)
         then = self.expr()
         self.expect(":")
         els = self.conditional()
