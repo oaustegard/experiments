@@ -77,6 +77,8 @@ def has_attribute_call(parser, tok) -> N.Expr:
         found = found or member_has_attr(decl, want)
     var = getattr(decl, "var", None)
     field = FUNCTION_ATTRS.get(want)
-    if field is not None and isinstance(var, N.Function):
-        found = found or bool(getattr(var, field))
+    if isinstance(var, N.Function):
+        if field is not None:
+            found = found or bool(getattr(var, field))
+        found = found or want in var.fn_attrs
     return N.IntLit(tok.loc, int(found), ty=T.TY_INT)
