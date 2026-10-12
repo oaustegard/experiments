@@ -43,7 +43,9 @@ def _comma_result_type(t):
         return pointer_to(t)
     if t.kind == TypeKind.ARRAY and not t.is_vector:
         return pointer_to(t.base)
-    return t
+    if t.kind in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.VOID):
+        return t
+    return t.unqual()        # lvalue conversion: the result of a comma is never qualified
 
 
 def _side_effect_free(node) -> bool:

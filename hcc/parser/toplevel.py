@@ -205,7 +205,10 @@ class TopLevelMixin:
         fn = vs.var if vs is not None and isinstance(vs.var, N.Function) else None
         builtin = libc_prototype(name.text)
         if builtin is not None and ty.has_proto and not builtin_shape_matches(builtin, ty):
-            self.error(f"conflicting types for '{name.text}'", name.loc)
+            if builtin.is_variadic != ty.is_variadic or len(builtin.params) != len(ty.params):
+                self.error(f"conflicting types for '{name.text}'", name.loc)
+            # GCC: a different return/parameter kind only warns (-Wbuiltin-declaration-mismatch)
+            diag.warn(name.loc, f"conflicting types for built-in function '{name.text}'")
         if fn is None:
             fn = N.Function(name.text, ty, loc=name.loc)
             self.scopes[0].vars[name.text] = VarScope(var=fn)

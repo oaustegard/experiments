@@ -13,7 +13,7 @@ from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.void_value import require_value
 from hcc.sema.incomplete import check_value_operands
-from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_decimal, is_dyn_struct, is_integer, is_numeric, pointer_to)
+from hcc.typesys import (TY_INT, TY_VOID, Type, TypeKind, is_decimal, is_dyn_struct, is_integer, is_numeric, pointer_to)
 
 
 def add_type(node) -> None:
@@ -24,6 +24,14 @@ def add_type(node) -> None:
         diag.error(node, f"sema: cannot type {type(node).__name__}", "sema")
     check_value_operands(node)
     h(node)
+
+
+def _rvalue(t: Type) -> Type:
+    """Type of a non-lvalue result: lvalue conversion drops qualifiers of scalars (C11 6.3.2.1p2)."""
+    if t is None or t.kind in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.VLA,
+                               TypeKind.VOID):
+        return t
+    return t.unqual()
 
 
 def _var(n: N.VarRef):
@@ -45,7 +53,7 @@ def _unary(n: N.Unary):
     if n.op == "~" and not is_integer(t):
         diag.error(n, "wrong type argument to bit-complement", "sema")
     n.operand = new_cast(n.operand, int_promote(t))
-    n.ty = n.operand.ty
+    n.ty = _rvalue(n.operand.ty)
 
 
 def _addr(n: N.AddrOf):
@@ -197,7 +205,7 @@ def _cond(n: N.Cond):
         n.ty = TY_VOID
     elif is_numeric(a) and is_numeric(b):
         n.then, n.els = usual_arith_conv(n.then, n.els)
-        n.ty = n.then.ty
+        n.ty = _rvalue(n.then.ty)
     elif a.kind in (TypeKind.STRUCT, TypeKind.UNION):
         n.ty = a
     elif a.base is not None or b.base is not None:
@@ -215,10 +223,11 @@ def _cond(n: N.Cond):
             n.ty = a if a.base is not None else b
     else:
         n.ty = a
+    n.ty = _rvalue(n.ty)
 
 
 def _comma(n: N.Comma):
-    n.ty = n.rhs.ty
+    n.ty = _rvalue(n.rhs.ty)
 
 
 def _member(n: N.Member_):

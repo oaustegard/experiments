@@ -51,6 +51,16 @@ def _param_compatible(x: Type, y: Type) -> bool:
     return is_compatible(x, y)
 
 
+def _enum_compat_int(e: Type, other: Type) -> bool:
+    """An enum is compatible with its underlying integer type. The implementation picks that
+    type from the enumerator values, so a 64-bit enum also matches either long or long long
+    of the same signedness."""
+    if is_compatible(_enum_as_int(e), other):
+        return True
+    return (other.kind in (TypeKind.LONG, TypeKind.LLONG) and e.size == 8 and other.size == 8
+            and bool(other.is_unsigned) == bool(e.is_unsigned))
+
+
 def is_compatible(a: Type, b: Type) -> bool:
     if a is b:
         return True
@@ -65,9 +75,9 @@ def is_compatible(a: Type, b: Type) -> bool:
         return a.array_len < 0 or b.array_len < 0 or a.array_len == b.array_len
     if a.kind != b.kind:
         if a.kind == TypeKind.ENUM and b.kind != TypeKind.ENUM:
-            return is_compatible(_enum_as_int(a), b)
+            return _enum_compat_int(a, b)
         if b.kind == TypeKind.ENUM and a.kind != TypeKind.ENUM:
-            return is_compatible(a, _enum_as_int(b))
+            return _enum_compat_int(b, a)
         return False
     if a.is_complex or b.is_complex:      # _Complex T: compatible iff the element types are
         return a.is_complex and b.is_complex and is_compatible(a.base, b.base)
