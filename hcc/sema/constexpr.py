@@ -443,9 +443,11 @@ def _string_char(node) -> int:
     while type(ptr) is N.Cast:
         ptr = ptr.operand
     data = ptr.var.init_data.data
-    if not 0 <= k < len(data):
+    # k is a byte offset (sema scales the index); read one whole element.
+    width = node.ty.size
+    if not 0 <= k or k + width > len(data):
         raise NotConstant
-    return wrap(data[k], node.ty)
+    return wrap(int.from_bytes(data[k:k + width], "little"), node.ty)
 
 
 def _const_object_read(node) -> int:
