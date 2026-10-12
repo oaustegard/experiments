@@ -183,6 +183,7 @@ def layout_struct(ty) -> None:
     packed = ty.is_packed
     ms = ty.is_ms_struct
     unit = 0        # ms: bits of the last bit-field's declared-type storage unit
+    unit_end = 0    # ms: bit just past that storage unit (the next different-type field starts here)
     zero_width_prev = False
     if members_flexible(ty):
         ty.is_flexible = True
@@ -193,6 +194,8 @@ def layout_struct(ty) -> None:
             m.align = m.pack_cap    # #pragma pack caps natural member alignment
         if m.is_bitfield and m.bit_width == 0:
             if ms and zero_width_prev:      # MS: back-to-back zero-width bit-fields do not pad again
+                continue
+            if ms and not unit:             # MS: a zero-width bit-field after a plain member is ignored
                 continue
             if ms and align < m.ty.size:    # MS: a padding zero-width bit-field aligns the struct
                 align = m.ty.size
@@ -206,10 +209,14 @@ def layout_struct(ty) -> None:
             loose = packed or m.is_packed
             if ms and not unit and bits:    # MS: a bit-field never shares a unit with plain data
                 bits = T.align_to(bits, sz * 8)
+            elif ms and unit and unit != sz * 8:
+                # MS: a bit-field of a different-size type never shares the previous unit
+                bits = T.align_to(unit_end, sz * 8)
             if not loose and bits // (sz * 8) != (bits + m.bit_width - 1) // (sz * 8):
                 bits = T.align_to(bits, sz * 8)
             m.offset = (bits // 8) // sz * sz if not loose else bits // 8
             m.bit_offset = bits - m.offset * 8
+            unit_end = (bits // (sz * 8)) * (sz * 8) + sz * 8
             bits += m.bit_width
             unit = sz * 8
         else:

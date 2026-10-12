@@ -43,6 +43,22 @@ def libc_return_type(name: str):
     return _TABLE.get(name)
 
 
+# Floating libm builtins taking two operands; every other entry takes one.
+_LIBM_TWO_ARG = frozenset(
+    "pow copysign atan2 powf copysignf atan2f powl copysignl atan2l".split())
+_LIBM_FLOAT_KINDS = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
+
+
+def libm_param_types(name: str, rty):
+    """Parameter types GCC gives an implicit call of libm builtin `name` (a
+    floating function with return type `rty`): each operand has the function's
+    own type, so float arguments are not promoted to double. None when the
+    name has no such builtin prototype."""
+    if rty is None or rty.kind not in _LIBM_FLOAT_KINDS or _TABLE.get(name) is not rty:
+        return None
+    return [rty] * (2 if name in _LIBM_TWO_ARG else 1)
+
+
 # __builtin_powi{f,,l}(x, n): integer power, expanded by libgcc as __powi{sf,df,xf}2.
 # Maps the builtin's libm-style name to (libgcc helper, C type of x and result).
 POWI_HELPERS = {
