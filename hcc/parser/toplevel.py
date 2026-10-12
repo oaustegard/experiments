@@ -80,6 +80,8 @@ class TopLevelMixin:
                 check_redecl(self, self.scopes[0], name, "typedef")
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty)
             elif ty.kind == T.TypeKind.FUNC:
+                if attr.is_register:
+                    self.error(f"invalid storage class for function '{name.text}'", name)
                 check_redecl(self, self.scopes[0], name, "func")
                 fn = self.declare_function(ty, name, attr, dattr)
                 if ty.enum_consts == "knr" and not self.at(";") and not self.at(","):
