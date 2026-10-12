@@ -45,6 +45,10 @@ class FunctionMixin:
                 fp += 1
             elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
                 pass
+            elif k == TypeKind.INT128:            # two INTEGER eightbytes, both or neither
+                if gp <= 4:
+                    where = ("gp2", gp)
+                    gp += 2
             else:
                 if gp < 6:
                     where = ("gp", gp)
@@ -153,6 +157,9 @@ class FunctionMixin:
         for p, w in params:
             if w[0] == "gp":
                 self.store_gp_param(w[1], p.offset, p.ty.size)
+            elif w[0] == "gp2":
+                self.store_gp_param(w[1], p.offset, 8)
+                self.store_gp_param(w[1] + 1, p.offset + 8, 8)
             elif w[0] == "fp":
                 if p.ty.kind == TypeKind.FLOAT16:       # ABI: half bits in low 16
                     self.emit(f"movd %xmm{w[1]}, %eax")

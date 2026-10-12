@@ -56,6 +56,10 @@ class ExpressionMixin:
         if is_flonum(node.ty):
             return self.expr_FloatLit(node)
         v = node.value
+        if node.ty is not None and node.ty.kind == TypeKind.INT128:
+            self.emit(f"movabs ${v & ((1 << 64) - 1)}, %rax")
+            self.emit(f"movabs ${(v >> 64) & ((1 << 64) - 1)}, %rdx")
+            return
         if -(1 << 31) <= v < (1 << 31):
             self.emit(f"mov ${v}, %rax")
         else:
@@ -149,7 +153,7 @@ class ExpressionMixin:
             self.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - m.bit_width}, %rax")
 
     def expr_Assign(self, node) -> None:
-        if _calls_before_store(node):
+        if _calls_before_store(node) and node.ty.kind != TypeKind.INT128:
             # Evaluate a call-containing scalar rhs first so no lhs address
             # temp is live across the call (setjmp/longjmp re-entry would
             # otherwise find the saved address clobbered).
@@ -215,7 +219,7 @@ class ExpressionMixin:
         self.gen_expr(node.rhs)
 
     def expr_Cast(self, node) -> None:
-        if is_flonum(node.operand.ty) and is_integer(node.ty):
+        if is_flonum(node.operand.ty) and is_integer(node.ty) and node.ty.size <= 8:
             # constant float->int conversions are folded (saturating, like GCC)
             folded = try_eval_const(node)
             if folded is not None:
@@ -265,6 +269,8 @@ class ExpressionMixin:
             return
         self.gen_expr(node.operand)
         ty = node.operand.ty
+        if ty.kind == TypeKind.INT128:
+            return self.int128_unary(node.op)
         if node.op == "!":
             self.cmp_zero(ty)
             self.emit("sete %al")

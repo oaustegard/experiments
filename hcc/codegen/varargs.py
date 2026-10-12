@@ -92,10 +92,11 @@ class VarargsMixin:
             elif regs is not None:
                 self.va_arg_split_struct(ty, regs, stack, done)
         elif k not in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+            need = 16 if k == TypeKind.INT128 else 8     # two GP eightbytes for __int128
             self.emit("movl (%rcx), %eax")
-            self.emit("cmp $40, %eax")
+            self.emit(f"cmp ${48 - need}, %eax")
             self.emit(f"ja {stack}")
-            self.emit("addl $8, (%rcx)")
+            self.emit(f"addl ${need}, (%rcx)")
             self.emit("add 16(%rcx), %rax")
             self.emit(f"jmp {done}")
         self.label(stack)

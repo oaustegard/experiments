@@ -35,6 +35,8 @@ class ArithMixin:
         lty = node.lhs.ty
         if is_flonum(lty):
             return self.float_binary(node)
+        if lty.kind == TypeKind.INT128 or (node.op not in ("<<", ">>") and node.rhs.ty.kind == TypeKind.INT128):
+            return self.int128_binary(node)
         # lhs-first when the lhs holds a VLA length binding (a Comma from
         # vla_prefix) that the rhs reads, e.g. `(*(int (*)[n])p)[1]`.
         rc = None if is_flonum(node.rhs.ty) or node.rhs.ty.size > 8 else try_eval_const(node.rhs)

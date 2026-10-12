@@ -132,6 +132,8 @@ class CastMixin:
             self.emit("fldz")
             self.emit("fucomip")
             self.emit("fstp %st(0)")
+        elif k == TypeKind.INT128:
+            self.emit("or %rdx, %rax")
         elif ty.size <= 4 and k not in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.FUNC):
             self.emit("cmp $0, %eax")
         else:
@@ -140,6 +142,8 @@ class CastMixin:
     def cast(self, frm, to) -> None:
         if to.kind == TypeKind.VOID:
             return
+        if frm.kind == TypeKind.INT128 and to.kind != TypeKind.INT128:
+            return self.int128_cast(frm, to)
         if to.kind == TypeKind.BOOL:
             self.cmp_zero(frm)
             self.emit("setne %al")
@@ -149,6 +153,8 @@ class CastMixin:
             return
         if frm.kind == TypeKind.VOID:
             return
+        if frm.kind == TypeKind.INT128 or to.kind == TypeKind.INT128:
+            return self.int128_cast(frm, to)
         code = TABLE[type_id(frm)][type_id(to)]
         if code:
             for part in code.split("; "):

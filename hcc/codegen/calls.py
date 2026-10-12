@@ -20,7 +20,7 @@ def _stack_footprint(ty) -> int:
     """Bytes a stack-passed argument of type ty occupies (as pushed)."""
     if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
         return align_to(ty.size, 8)
-    if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+    if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.INT128):
         return 16
     return 8
 
@@ -61,6 +61,12 @@ class CallMixin:
             elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
                 by_stack = True
                 stack += 2
+            elif k == TypeKind.INT128:
+                if gp <= 4:
+                    gp += 2
+                else:
+                    by_stack = True
+                    stack += 2
             else:
                 if gp >= 6:
                     by_stack = True
@@ -99,6 +105,10 @@ class CallMixin:
         elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
             self.emit("sub $16, %rsp")
             self.emit("fstpt (%rsp)")
+            self.depth += 2
+        elif k == TypeKind.INT128:          # low eightbyte at the lower address
+            self.emit("push %rdx")
+            self.emit("push %rax")
             self.depth += 2
         else:
             self.push()
@@ -163,6 +173,10 @@ class CallMixin:
             elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE):
                 self.popf(fp)
                 fp += 1
+            elif k == TypeKind.INT128:
+                self.pop(ARG_REGS64[gp])
+                self.pop(ARG_REGS64[gp + 1])
+                gp += 2
             else:
                 self.pop(ARG_REGS64[gp])
                 gp += 1

@@ -48,14 +48,26 @@ def _movabs_and(cg, imm: int, reg: str) -> None:
 
 
 def load_wide_bitfield(cg, m) -> None:
-    """%rax = the field at (%rax) (address of the member), extended to 64 bits."""
+    """%rax = the field at (%rax) (address of the member). A __int128 field
+    yields %rdx:%rax (sign/zero-extended to 128 bits)."""
     bo, w = m.bit_offset, m.bit_width
+    shift = "shr" if m.ty.is_unsigned else "sar"
     cg.emit("mov (%rax), %r10")
     cg.emit("mov 8(%rax), %r11")
     _shr128(cg, bo)
+    if w > 64:                               # high word of the field
+        cg.emit(f"shl ${128 - w}, %r11")
+        cg.emit(f"{shift} ${128 - w}, %r11")
+        cg.emit("mov %r11, %rdx")
     if w < 64:
         cg.emit(f"shl ${64 - w}, %r10")
-        cg.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - w}, %r10")
+        cg.emit(f"{shift} ${64 - w}, %r10")
+    if w <= 64:
+        if m.ty.is_unsigned:
+            cg.emit("xor %edx, %edx")
+        else:
+            cg.emit("mov %r10, %rdx")
+            cg.emit("sar $63, %rdx")
     cg.emit("mov %r10, %rax")
 
 
@@ -67,11 +79,10 @@ def assign_wide_bitfield(cg, node) -> None:
     bo, w = m.bit_offset, m.bit_width
     field = ((1 << w) - 1) << bo              # 128-bit mask of the field
     cg.emit("mov %rax, %r8")                  # value low word
-    if m.ty.is_unsigned:
-        cg.emit("xor %r9d, %r9d")             # value high word
+    if w > 64:
+        cg.emit("mov %rdx, %r9")              # value high word (rhs has the 128-bit field type)
     else:
-        cg.emit("mov %r8, %r9")
-        cg.emit("sar $63, %r9")
+        cg.emit("xor %r9d, %r9d")
     _movabs_and(cg, (1 << min(w, 64)) - 1, "%r8")          # keep w bits
     _movabs_and(cg, (1 << max(0, min(w - 64, 64))) - 1, "%r9")
     _shl128(cg, bo)
@@ -84,6 +95,6 @@ def assign_wide_bitfield(cg, node) -> None:
     cg.emit("or %r9, %r11")
     cg.emit("mov %r10, (%rdi)")
     cg.emit("mov %r11, 8(%rdi)")
-    if w < 64:
-        cg.emit(f"shl ${64 - w}, %rax")
-        cg.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - w}, %rax")
+    # the value of the assignment is the field as stored (rdi still holds the address)
+    cg.emit("mov %rdi, %rax")
+    load_wide_bitfield(cg, m)
