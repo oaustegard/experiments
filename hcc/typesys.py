@@ -65,7 +65,8 @@ class Type:
                  "is_restrict", "is_atomic", "base", "array_len", "vla_len", "vla_size",
                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
-                 "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims")
+                 "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
+                 "proto_scope")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -97,6 +98,7 @@ class Type:
         self.is_vector = False    # GCC vector_size: an ARRAY with value semantics
         self.param_vars: list = []   # FUNC: parse-time Var per named param (or None)
         self.param_dims: list = []   # FUNC: VLA-dimension expr per param (or None)
+        self.proto_scope = None      # FUNC: parser Scope of the parameter list (tags stay visible in the body)
 
     def copy(self) -> "Type":
         t = Type.__new__(Type)

@@ -203,7 +203,11 @@ class TopLevelMixin:
         # (`int a[i++]`) are parsed before this point and may create temps
         self.label_names = set()
         self.goto_names = []
-        self.enter_scope()
+        # parameter-list tags and names share the body's outermost scope (C11 6.2.1p4)
+        if ty.proto_scope is not None:
+            self.scopes.append(ty.proto_scope)
+        else:
+            self.enter_scope()
         params = []
         vla_inits = []
         for i, pty in enumerate(ty.params):

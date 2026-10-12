@@ -113,6 +113,9 @@ def _cond(n: N.Cond):
             n.ty = a
         elif b.base is not None and b.base.kind == TypeKind.VOID:
             n.ty = b
+        elif a.base is not None and b.base is not None and not a.base.is_complete \
+                and b.base.is_complete:
+            n.ty = b  # composite of `T (*)[]` and `T (*)[N]` is `T (*)[N]`
         else:
             n.ty = a if a.base is not None else b
     else:

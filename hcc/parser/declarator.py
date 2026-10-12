@@ -166,6 +166,7 @@ class DeclaratorMixin:
             names.append(name)
             pvars.append(pvar)
             pdims.append(dim)
+        fty.proto_scope = self.scopes[-1]
         self.leave_scope()
         fty.params = params
         fty.param_names = names
