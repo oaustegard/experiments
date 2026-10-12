@@ -1,0 +1,13 @@
+#!/bin/bash
+# Run hcc under PyPy for large inputs, CPython for small ones.
+# Measured 2026-10-12: quickjs.c 53 s PyPy vs 114 s CPython (identical asm);
+# 86 small gcc-torture tests 51 s PyPy vs 29 s CPython (JIT warm-up dominates).
+PYPY=${HCC_PYPY:-$(ls /opt/uvpy/pypy-3.11*/bin/pypy3 2>/dev/null | head -1)}
+size=0
+for a in "$@"; do
+  case "$a" in *.c|*.i) [ -f "$a" ] && size=$((size + $(stat -c %s "$a"))) ;; esac
+done
+if [ -n "$PYPY" ] && [ -x "$PYPY" ] && [ "$size" -gt "${HCC_PYPY_MIN_BYTES:-200000}" ]; then
+  exec "$PYPY" -m hcc "$@"
+fi
+exec python3 -m hcc "$@"
