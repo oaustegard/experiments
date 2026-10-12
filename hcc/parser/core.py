@@ -49,6 +49,7 @@ class ParserBase:
         self.scope_stack: list[int] = [0]    # ids of enclosing block scopes (0 = file scope)
         self.scope_seq = 0
         self.stmt_expr_base: int | None = None  # scope depth of the outermost ({ }) being parsed
+        self.auto_init_depth = 0                # >0 while parsing the initializer of `auto x = ...`
 
     # ---- token cursor -------------------------------------------------------
     @property

@@ -39,6 +39,7 @@ class StructMixin:
                 self.empty_tag_hit = (tag, ty.kind != kind)
             if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
                 return ty
+            self.check_tag_in_auto_init(tag)
             ty = T.struct_type(kind)
             ty.tag = tag.text
             self.scopes[-1].tags[tag.text] = ty
@@ -67,6 +68,7 @@ class StructMixin:
                 if def_pos.get(id(prev)) != brace_pos:
                     diag.error(tag, f"redefinition of '{_kind_word(kind)} {tag.text}'")
         if ty is None:
+            self.check_tag_in_auto_init(tag)
             ty = T.struct_type(kind)
             ty.tag = tag.text if tag else None
             if tag is not None:

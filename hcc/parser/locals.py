@@ -55,6 +55,11 @@ class LocalDeclMixin:
             kind = "static" if attr.is_static else ("extern" if attr.is_extern else "thread-local")
             self.error(f"declaration of {kind} variable '{name.text}'{where}", name)
 
+    def check_tag_in_auto_init(self, tag) -> None:
+        """A new tag declared inside an `auto` initializer would escape its scope (GNU C23)."""
+        if self.auto_init_depth and tag is not None:
+            self.error(f"'{tag.text}' declared in underspecified object initializer", tag)
+
     def local_declaration(self, for_init: bool = False) -> list:
         attr = VarAttr()
         self.vm_typeof = []
@@ -70,7 +75,11 @@ class LocalDeclMixin:
             if basety is None:                       # __auto_type x = expr;
                 name = self.auto_declarator_name()
                 self.expect("=")
-                e = self.typed(self.assign())
+                self.auto_init_depth += 1
+                try:
+                    e = self.typed(self.assign())
+                finally:
+                    self.auto_init_depth -= 1
                 ty = e.ty
                 if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):   # arrays decay (VLAs too)
                     ty = T.pointer_to(ty.base)

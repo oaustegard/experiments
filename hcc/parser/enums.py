@@ -50,6 +50,7 @@ class EnumMixin:
         if tag is not None and not self.at("{"):
             ty = self.find_tag(tag.text)
             if ty is None:
+                self.check_tag_in_auto_init(tag)
                 ty = T.enum_type()
                 ty.tag = tag.text
                 self.scopes[-1].tags[tag.text] = ty
@@ -78,6 +79,7 @@ class EnumMixin:
             ty = prev_fwd                 # the body completes an earlier `enum e;` in this scope
             ty.enum_consts = None
         else:
+            self.check_tag_in_auto_init(tag)
             ty = T.enum_type()
         ty.tag = tag.text if tag else None
         if tag is not None:
