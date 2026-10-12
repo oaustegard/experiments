@@ -154,6 +154,7 @@ def _eval(node):
     if t is N.Cond:
         return _eval(node.then) if _num(node.cond) else _eval(node.els)
     if t is N.Comma:
+        _eval(node.lhs)          # must itself be constant, else folding would drop its side effects
         return _eval(node.rhs)
     if t is N.Cast:
         if is_flonum(node.operand.ty) and is_integer(node.ty):

@@ -150,11 +150,41 @@ def compound_assign(op, lhs, rhs, loc, new_temp):
     return _t(N.Comma(loc, e1, e2))
 
 
+def _addressed_place(lhs, loc, new_temp):
+    """Return (pre, make_place): `pre` evaluates the address of lhs once into
+    a temp; make_place() rebuilds an lvalue for that same object. Bitfields
+    have no address, so their container's address is taken instead."""
+    if isinstance(lhs, N.Member_) and lhs.member.is_bitfield:
+        tmp = new_temp(pointer_to(lhs.operand.ty))
+        pre = [_t(N.Assign(loc, _t(N.VarRef(loc, tmp)), _t(N.AddrOf(loc, lhs.operand))))]
+        member = lhs.member
+
+        def make_place():
+            return _t(N.Member_(loc, _t(N.Deref(loc, _t(N.VarRef(loc, tmp)))), member))
+        return pre, make_place
+    tmp = new_temp(pointer_to(lhs.ty))
+    pre = [_t(N.Assign(loc, _t(N.VarRef(loc, tmp)), _t(N.AddrOf(loc, lhs))))]
+
+    def make_place():
+        return _t(N.Deref(loc, _t(N.VarRef(loc, tmp))))
+    return pre, make_place
+
+
 def inc_dec(lhs, delta: int, is_post: bool, loc, new_temp):
+    """++/--. Post forms yield the old value, saved in a temp before the
+    update (reversing the arithmetic is wrong when the store truncates)."""
     add_type(lhs)
     one = N.IntLit(loc, delta, ty=TY_INT)
     if not is_post:
         return compound_assign("+", lhs, one, loc, new_temp)
-    assign = compound_assign("+", lhs, one, loc, new_temp)
-    back = new_add(assign, N.IntLit(loc, -delta, ty=TY_INT), loc)
-    return new_cast(back, lhs.ty)
+    if isinstance(lhs, N.VarRef):
+        pre, make_place = [], (lambda: lhs)
+    else:
+        pre, make_place = _addressed_place(lhs, loc, new_temp)
+    old = new_temp(lhs.ty)
+    save = _t(N.Assign(loc, _t(N.VarRef(loc, old)), make_place()))
+    update = compound_assign("+", make_place(), one, loc, new_temp)
+    result = _t(N.Comma(loc, save, _t(N.Comma(loc, update, _t(N.VarRef(loc, old))))))
+    for stmt in reversed(pre):
+        result = _t(N.Comma(loc, stmt, result))
+    return result

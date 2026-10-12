@@ -190,7 +190,8 @@ class TopLevelMixin:
             self.error(f"redefinition of '{fn.name}'", fn.loc)
         fn.is_definition = True
         self.fn = fn
-        self.locals = []
+        # keep temps made while parsing the prototype: VLA parameter dimensions
+        # (`int a[i++]`) are parsed before this point and may create temps
         self.label_names = set()
         self.goto_names = []
         self.enter_scope()

@@ -28,8 +28,8 @@ _add(_VOID_PTR, "memcpy memmove memset memchr malloc calloc realloc alloca")
 _add(_CHAR_PTR, "strcpy strncpy strcat strncat strchr strrchr strstr strpbrk")
 _add(_SIZE_T, "strlen strnlen")
 _add(T.TY_VOID, "abort exit _Exit free")
-_add(T.TY_DOUBLE, "sqrt sin cos tan exp log log10 pow floor ceil fabs atan atan2")
-_add(T.TY_FLOAT, "sqrtf sinf cosf fabsf floorf ceilf powf")
+_add(T.TY_DOUBLE, "sqrt sin cos tan exp log log10 pow floor ceil fabs atan atan2 copysign")
+_add(T.TY_FLOAT, "sqrtf sinf cosf fabsf floorf ceilf powf copysignf")
 
 
 def libc_return_type(name: str):
