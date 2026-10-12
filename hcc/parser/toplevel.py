@@ -25,6 +25,7 @@ from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 from hcc.parser.knr_check import knr_param_index
 from hcc.parser.redecl import check_redecl
 from hcc.parser.libc_protos import libc_prototype
+from hcc.parser.vector_limits import vector_of_checked
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
@@ -93,7 +94,7 @@ class TopLevelMixin:
                     and (attr.nonnull_noargs or dattr.nonnull_noargs):
                 self.error("'nonnull' attribute without arguments on a non-prototype", name)
             if dattr.vector_size:
-                ty = T.vector_of(ty, dattr.vector_size)
+                ty = vector_of_checked(self, ty, dattr.vector_size)
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
             if (dattr.warn_if_not_aligned or attr.warn_if_not_aligned) and not attr.is_typedef:

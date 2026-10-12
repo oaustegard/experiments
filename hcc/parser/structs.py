@@ -14,6 +14,7 @@ from hcc.parser.scope import VarAttr
 from hcc.parser.bitfield_width import bitfield_width_value
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
+from hcc.parser.vector_limits import vector_of_checked
 from hcc.tokens import TokenKind
 from hcc import typesys as T
 
@@ -152,7 +153,7 @@ class StructMixin:
                 self.parse_attributes(mattr)
                 if mattr.vector_size and ty.kind != T.TypeKind.FUNC:
                     # `double s __attribute__((vector_size(16)));` after the declarator
-                    ty = T.vector_of(ty, mattr.vector_size)
+                    ty = vector_of_checked(self, ty, mattr.vector_size, self.toks[start])
                     mattr.vector_size = 0
                 check_member_complete(ty, name, self.toks[start])
                 m = T.Member(name.text if name else None, ty)

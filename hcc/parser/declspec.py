@@ -19,6 +19,7 @@ from hcc.parser.typespecs import type_specifier
 from hcc import typesys as T
 from hcc.parser.vla import _has_vla as _has_vla_type
 from hcc.parser.complex import complex_decl_type
+from hcc.parser.vector_limits import vector_of_checked
 
 
 def constexpr_type(ty):
@@ -282,10 +283,10 @@ class DeclSpecMixin:
         if is_complex:
             ty = complex_decl_type(self, ty)
         if attr is not None and attr.vector_size and ty is not None:
-            ty = T.vector_of(ty, attr.vector_size)
+            ty = vector_of_checked(self, ty, attr.vector_size)
             attr.vector_size = 0
         elif attr is None and vsize and ty is not None:
-            ty = T.vector_of(ty, vsize)
+            ty = vector_of_checked(self, ty, vsize)
         if attr is not None and attr.mode:
             # __attribute__((mode(QI/HI/SI/DI/TI))) re-sizes an integer base type
             ty = mode_type(ty, attr.mode)
