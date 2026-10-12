@@ -56,7 +56,7 @@ STORAGE = frozenset(("typedef", "static", "extern", "inline", "_Thread_local", "
 # ISO/IEC TS 18661-3 _FloatN / _FloatNx names. They are plain identifiers to the
 # lexer (so headers may still typedef them); they map onto the base float type
 # with the same representation; _Float16 is IEEE binary16 (see codegen/half.py).
-FLOATN_TYPES = {"_Float16": T.TY_FLOAT16, "_Float32": T.TY_FLOAT, "_Float64": T.TY_DOUBLE,
+FLOATN_TYPES = {"_Float16": T.TY_FLOAT16, "_Float32": T.TY_FLOAT32, "_Float64": T.TY_DOUBLE,
                 "_Float32x": T.TY_DOUBLE, "_Float64x": T.TY_LDOUBLE,
                 "_Float128": T.TY_FLOAT128, "_Float128x": T.TY_FLOAT128}
 

@@ -207,8 +207,8 @@ class TopLevelMixin:
         params = []
         for n in fty.param_names:
             ty = decls.get(n.text, T.TY_INT)
-            if ty.kind == T.TypeKind.FLOAT:
-                ty = T.TY_DOUBLE        # default argument promotion
+            if ty.kind == T.TypeKind.FLOAT and not ty.is_floatn:
+                ty = T.TY_DOUBLE        # default argument promotion (not for _Float32)
             params.append(ty)
         fty.params = params
 

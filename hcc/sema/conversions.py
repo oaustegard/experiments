@@ -76,7 +76,8 @@ def usual_arith_conv(lhs: N.Expr, rhs: N.Expr):
 
 
 def default_arg_promote(expr: N.Expr) -> N.Expr:
-    if expr.ty.kind == TypeKind.FLOAT:
+    # _FloatN types are not subject to default argument promotions (TS 18661-3).
+    if expr.ty.kind == TypeKind.FLOAT and not expr.ty.is_floatn:
         return new_cast(expr, TY_DOUBLE)
     if is_integer(expr.ty) and expr.ty.size < 4:
         return new_cast(expr, int_promote(expr.ty))

@@ -38,3 +38,4 @@ GNU case ranges, computed goto (`&&label`), K&R function definitions,
 * `-fPIC` code generation for shared libraries (GOT for extern data)
 * x87 values across calls (long double binary ops with calls in rhs)
 * cast of NaN in conditions (ucomis parity)
+* _Float32 is a distinct float type (TY_FLOAT32, no default promotion). Caveat: with __GNUC__ 4.2, glibc's bits/floatn-common.h typedefs `_Float32` to float, so after <stdio.h>/<stdlib.h> it is plain float. gcc-dg/torture/float32-nan*.c (sNaN + fenv) and _Float32 imaginary suffixes (1.if32) are still open.

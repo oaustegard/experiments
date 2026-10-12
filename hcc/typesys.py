@@ -73,7 +73,7 @@ class Type:
                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
-                 "proto_scope", "is_rev_order")
+                 "proto_scope", "is_rev_order", "is_floatn")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -95,6 +95,7 @@ class Type:
         self.is_reverse_sso = False
         self.is_ms_struct = False   # __attribute__((ms_struct)): MS bit-field layout
         self.is_rev_order = False   # scalar stored big-endian (scalar_storage_order)
+        self.is_floatn = False      # _Float32/_Float32x-style type: no default argument promotion
         self.is_complete = True
         self.return_ty: Type | None = None
         self.params: list[Type] = []
@@ -165,6 +166,8 @@ TY_ULLONG = _base(TypeKind.LLONG, 8, 8, True)
 TY_UINT128 = _base(TypeKind.INT128, 16, 16, True)
 TY_FLOAT16 = _base(TypeKind.FLOAT16, 2, 2)
 TY_FLOAT = _base(TypeKind.FLOAT, 4, 4)
+TY_FLOAT32 = _base(TypeKind.FLOAT, 4, 4)   # _Float32: same layout as float, but not promoted in varargs
+TY_FLOAT32.is_floatn = True
 TY_DOUBLE = _base(TypeKind.DOUBLE, 8, 8)
 TY_LDOUBLE = _base(TypeKind.LDOUBLE, 16, 16)
 TY_FLOAT128 = _base(TypeKind.FLOAT128, 16, 16)
