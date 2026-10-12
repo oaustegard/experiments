@@ -10,9 +10,18 @@ CallMixin.expr_Call(node):
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import struct_in_regs
+from hcc.codegen.abi import struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS64
 from hcc.typesys import TypeKind, align_to
+
+
+def _stack_footprint(ty) -> int:
+    """Bytes a stack-passed argument of type ty occupies (as pushed)."""
+    if ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
+        return align_to(ty.size, 8)
+    if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        return 16
+    return 8
 
 
 class CallMixin:
@@ -29,7 +38,7 @@ class CallMixin:
             k = ty.kind
             by_stack = False
             if k in (TypeKind.STRUCT, TypeKind.UNION):
-                regs = struct_in_regs(ty)
+                regs = struct_arg_regs(ty)
                 if regs is None:
                     by_stack = True
                 else:
@@ -59,6 +68,19 @@ class CallMixin:
             on_stack.append(by_stack)
         return on_stack, stack
 
+    def _stack_layout(self, node, on_stack):
+        """Byte offsets of stack-passed args (relative to the %rsp at the
+        call) and the total size; mirrors functions._classify_params."""
+        offs = {}
+        soff = 0
+        for i, a in enumerate(node.args):
+            if not on_stack[i]:
+                continue
+            soff = align_to(soff, max(8, min(a.ty.align, 16)))
+            offs[i] = soff
+            soff += _stack_footprint(a.ty)
+        return offs, soff
+
     def _push_arg(self, a) -> None:
         self.gen_expr(a)
         k = a.ty.kind
@@ -81,15 +103,29 @@ class CallMixin:
         if node.func.ty.kind == TypeKind.FUNC and type(node.func).__name__ == "VarRef" and \
                 node.func.var.name == "alloca":
             return self.builtin_alloca_call(node)
-        on_stack, stack = self._classify_args(node)
+        on_stack, _ = self._classify_args(node)
+        offs, total = self._stack_layout(node, on_stack)
+        stack = align_to(total, 8) // 8
         if (self.depth + stack) % 2 == 1:
             self.emit("sub $8, %rsp")
             self.depth += 1
             stack += 1
         args = node.args
+        # Stack args are pushed right to left; `cur` tracks the byte offset
+        # (from the final %rsp) of the most recently pushed arg, and gaps
+        # reproduce the callee's SysV slot alignment.
+        cur = align_to(total, 8)
         for i in range(len(args) - 1, -1, -1):
             if on_stack[i]:
+                gap = cur - offs[i] - _stack_footprint(args[i].ty)
+                if gap:
+                    self.emit(f"sub ${gap}, %rsp")
+                    self.depth += gap // 8
                 self._push_arg(args[i])
+                cur = offs[i]
+        if cur:
+            self.emit(f"sub ${cur}, %rsp")
+            self.depth += cur // 8
         for i in range(len(args) - 1, -1, -1):
             if not on_stack[i]:
                 self._push_arg(args[i])

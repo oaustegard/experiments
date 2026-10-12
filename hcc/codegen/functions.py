@@ -10,7 +10,7 @@ Struct return: >16 bytes uses the hidden pointer saved at self.ret_ptr_offset.
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import struct_in_regs
+from hcc.codegen.abi import struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS8, ARG_REGS16, ARG_REGS32, ARG_REGS64
 from hcc.typesys import TypeKind, align_to
 
@@ -30,7 +30,7 @@ class FunctionMixin:
             k = ty.kind
             where = None
             if k in (TypeKind.STRUCT, TypeKind.UNION):
-                regs = struct_in_regs(ty)
+                regs = struct_arg_regs(ty)
                 if regs is not None:
                     fp1, fp2 = regs
                     nfp = int(fp1) + (int(fp2) if ty.size > 8 else 0)

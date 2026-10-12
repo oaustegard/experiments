@@ -8,7 +8,7 @@ prologue by functions.py. self.va_info = (named gp, named fp, stack end).
 from __future__ import annotations
 
 from hcc import diag
-from hcc.codegen.abi import struct_in_regs
+from hcc.codegen.abi import struct_arg_regs
 from hcc.typesys import TypeKind, align_to
 
 
@@ -80,7 +80,7 @@ class VarargsMixin:
             self.emit("add 16(%rcx), %rax")
             self.emit(f"jmp {done}")
         elif k in (TypeKind.STRUCT, TypeKind.UNION):
-            regs = struct_in_regs(ty)
+            regs = struct_arg_regs(ty)
             if regs is not None and not any(regs):
                 need = 8 if ty.size <= 8 else 16
                 self.emit("movl (%rcx), %eax")

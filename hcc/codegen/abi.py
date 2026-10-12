@@ -25,6 +25,23 @@ def has_flonum(ty, lo: int, hi: int, offset: int = 0) -> bool:
     return offset < lo or hi <= offset or k in (TypeKind.FLOAT, TypeKind.DOUBLE)
 
 
+def has_ldouble(ty) -> bool:
+    k = ty.kind
+    if k in (TypeKind.STRUCT, TypeKind.UNION):
+        return any(has_ldouble(m.ty) for m in ty.members)
+    if k == TypeKind.ARRAY:
+        return ty.array_len > 0 and has_ldouble(ty.base)
+    return k == TypeKind.LDOUBLE
+
+
+def struct_arg_regs(ty):
+    """Like struct_in_regs, but structs holding long double are memory class
+    when passed as arguments (X87 eightbytes are never passed in registers)."""
+    if has_ldouble(ty):
+        return None
+    return struct_in_regs(ty)
+
+
 def struct_in_regs(ty):
     if ty.size > 16 or ty.size == 0:
         return None
