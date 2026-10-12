@@ -118,9 +118,19 @@ class PrimaryMixin:
         return std in ("c2x", "gnu2x", "c23", "gnu23")
 
     def string_var(self, tok):
-        var = self.new_anon_gvar(tok.ty, tok.loc)
-        var.init_data = N.GlobalData(bytearray(tok.value))
-        var.is_string_literal = True     # __builtin_constant_p folds these to 1
+        """Storage for a string literal. Identical literals in one translation
+        unit share one object (GCC merges string constants, so `"Hello" + 1`
+        and `p + 1` with `p = "Hello"` compare equal)."""
+        pool = getattr(self, "_string_pool", None)
+        if pool is None:
+            pool = self._string_pool = {}
+        key = (tok.ty.size, bytes(tok.value))
+        var = pool.get(key)
+        if var is None:
+            var = self.new_anon_gvar(tok.ty, tok.loc)
+            var.init_data = N.GlobalData(bytearray(tok.value))
+            var.is_string_literal = True     # __builtin_constant_p folds these to 1
+            pool[key] = var
         return var
 
     def func_name_var(self):

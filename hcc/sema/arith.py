@@ -201,8 +201,11 @@ def _addressed_place(lhs, loc, new_temp):
 
 
 def inc_dec(lhs, delta: int, is_post: bool, loc, new_temp):
-    """++/--. Post forms yield the old value, saved in a temp before the
-    update (reversing the arithmetic is wrong when the store truncates)."""
+    """`++a` / `--a` yield the new value; `a++` / `a--` yield the old value.
+
+    The post form saves the old value in a temp instead of subtracting delta
+    afterwards: the store may wrap (e.g. a 1-bit bit-field), so `new - delta`
+    is wrong in general.  The lvalue address is evaluated only once."""
     add_type(lhs)
     one = N.IntLit(loc, delta, ty=TY_INT)
     if not is_post:

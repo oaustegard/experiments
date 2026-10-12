@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from hcc import nodes as N
 from hcc.sema.arith import _addressed_place, compound_assign, inc_dec, new_add, new_binop, new_sub
+from hcc.sema.bitfield_width import narrow_wide_bitfield_unary
 from hcc.sema.constexpr import eval_const
 from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
@@ -190,7 +191,7 @@ class ExpressionMixin:
                 if self.typed(operand).ty.is_complex:
                     return CPX.negate(self, operand, t.loc)
                 buf = self.new_temp(operand.ty, t.loc) if operand.ty.is_vector else None
-                return self.typed(N.Unary(t.loc, "-", operand, result_buf=buf))
+                return narrow_wide_bitfield_unary(self.typed(N.Unary(t.loc, "-", operand, result_buf=buf)))
             if s == "!":
                 self.next()
                 return self.typed(N.Unary(t.loc, "!", CPX.truth(self, self.typed(self.cast_expr()))))
@@ -200,7 +201,7 @@ class ExpressionMixin:
                 if self.typed(operand).ty.is_complex:
                     return CPX.conjugate(self, operand, t.loc)
                 buf = self.new_temp(operand.ty, t.loc) if operand.ty.is_vector else None
-                return self.typed(N.Unary(t.loc, "~", operand, result_buf=buf))
+                return narrow_wide_bitfield_unary(self.typed(N.Unary(t.loc, "~", operand, result_buf=buf)))
             if s == "&":
                 self.next()
                 operand = self.cast_expr()
