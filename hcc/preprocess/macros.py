@@ -148,16 +148,20 @@ class MacroMixin:
             if t.kind == TokenKind.PUNCT and t.text == "##":
                 if not out:
                     diag.error(t, "'##' cannot appear at start of macro expansion")
-                if i + 1 >= n:
+                # A run of consecutive '##' operators acts as a single one.
+                rhs_i = i + 1
+                while nxt_is(rhs_i, "##"):
+                    rhs_i += 1
+                if rhs_i >= n:
                     diag.error(t, "'##' cannot appear at end of macro expansion")
-                if is_param(i + 1):
-                    a = args[body[i + 1].text]
+                if is_param(rhs_i):
+                    a = args[body[rhs_i].text]
                     if a:
                         out[-1] = self.paste(out[-1], a[0])
                         out.extend(x.copy() for x in a[1:])
                 else:
-                    out[-1] = self.paste(out[-1], body[i + 1])
-                i += 2
+                    out[-1] = self.paste(out[-1], body[rhs_i])
+                i = rhs_i + 1
                 continue
             if t.kind == TokenKind.IDENT and t.text == "__VA_OPT__" and nxt_is(i + 1, "("):
                 j, depth, inner = i + 2, 0, []
