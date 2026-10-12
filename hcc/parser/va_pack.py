@@ -141,7 +141,7 @@ class _PackSpecialiser:
             pack_vars.append(var)
             clone.params.append(var)
             clone.locals.append(var)
-            ty = target.ty.copy()
+        ty = target.ty.copy()
         ty.params = list(target.ty.params) + [v.ty for v in pack_vars]
         ty.is_variadic = False
         ty.has_proto = True
