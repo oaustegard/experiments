@@ -244,6 +244,14 @@ def main(argv: list[str] | None = None) -> int:
     if "Oskar Austegard" not in log:
         failures.append("author")
     print(f"{'ok  ' if 'Oskar Austegard' in log else 'FAIL'} merge commits authored by Oskar Austegard")
+    # quick refresh: a merge triggers it (--quick-every 1); it must run the quick suites and finish
+    out = run(root, wt, "--max-workers", "1", "--concurrency", "1", "--full-every", "99",
+              "--quick-every", "1", "--quick-suites", "smoke,c-testsuite")
+    ok = "quick refresh at" in out and "quick refresh done" in out
+    print(f"{'ok  ' if ok else 'FAIL'} quick refresh runs after a merge and completes")
+    if not ok:
+        failures.append("quick refresh")
+        print(out[-2000:])
     print(f"{len(failures)} failures" + (f": {failures}" if failures else ""))
     if a.keep:
         print(f"kept {tmp}")

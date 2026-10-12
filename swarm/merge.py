@@ -236,6 +236,7 @@ def accept(ctx: Ctx, rec: dict, sha: str, parent: str, fixed: list[str]) -> None
 def bump_merge_counter(ctx: Ctx, n: int) -> int:
     c = read_json(ctx.state / "counters.json", {}) or {}
     c["merges_since_full"] = c.get("merges_since_full", 0) + n
+    c["merges_since_quick"] = c.get("merges_since_quick", 0) + n
     c["merges_total"] = c.get("merges_total", 0) + n
     write_json(ctx.state / "counters.json", c)
     return c["merges_since_full"]
@@ -386,9 +387,51 @@ def refresh(ctx: Ctx, do_bisect: bool = True) -> dict:
     return res
 
 
-def bisect(ctx: Ctx, regs: list[str]) -> str | None:
-    """First swarm merge commit since the last baseline at which any of `regs` fails."""
-    base = (read_json(ctx.state / "baseline.json", {}) or {}).get("time", 0)
+def quick_refresh(ctx: Ctx, suites: list[str]) -> dict:
+    """Fast suites at main HEAD every few merges, bisecting only over merges since the previous
+    quick refresh. The gate's random sample misses regressions and the full refresh is too rare to
+    revert them: on 2026-10-12 a 200-merge refresh found 82 regressions whose culprit sat 256
+    commits back and could not be reverted."""
+    main = head(ctx)
+    g = prepare_gate(ctx, main)
+    st = read_json(ctx.state / "quick.json", {}) or {}
+    since = st.get("time") or (read_json(ctx.state / "baseline.json", {}) or {}).get("time", 0)
+    log(f"quick refresh at {main[:10]} ({', '.join(suites)})")
+    res: dict = {}
+    for s in suites:
+        res.update(tr.run_suite(g, s, ctx.jobs))
+    prev = tr.known(ctx)
+    regs = [t for t in res if tr.is_pass(prev.get(t)) and not tr.is_pass(res[t])]
+    if regs:
+        again = tr.run_ids(ctx, g, regs, jobs=max(1, ctx.jobs // 2))
+        res.update(again)
+        regs = [t for t in regs if not tr.is_pass(again.get(t))]
+    for _round in range(3):
+        if not regs:
+            break
+        log(f"quick refresh found {len(regs)} regressions: {', '.join(regs[:6])}")
+        culprit = bisect(ctx, regs, since=since)
+        if not culprit or not revert(ctx, culprit, regs):
+            log("quick refresh: could not locate/revert culprit; recording the failures")
+            break
+        g = prepare_gate(ctx, head(ctx))
+        lost = [t for m in read_jsonl(ctx.state / "merges.jsonl") if m["commit"] == culprit for t in m["fixed"]]
+        again = tr.run_ids(ctx, g, regs + lost)
+        res.update(again)
+        regs = [t for t in regs if not tr.is_pass(again.get(t))]
+    tr.record(ctx, head(ctx), res)
+    write_json(ctx.state / "quick.json", {"time": time.time(), "commit": head(ctx)})
+    c = read_json(ctx.state / "counters.json", {}) or {}
+    c["merges_since_quick"] = 0
+    write_json(ctx.state / "counters.json", c)
+    log(f"quick refresh done: {sum(map(tr.is_pass, res.values()))}/{len(res)} pass")
+    return res
+
+
+def bisect(ctx: Ctx, regs: list[str], since: float | None = None) -> str | None:
+    """First swarm merge commit since `since` (default: the last full baseline) at which any of
+    `regs` fails."""
+    base = since if since is not None else (read_json(ctx.state / "baseline.json", {}) or {}).get("time", 0)
     reverted = {r.get("merged_commit") for r in ledger(ctx).values() if r.get("status") == "reverted"}
     commits = [m["commit"] for m in read_jsonl(ctx.state / "merges.jsonl")
                if m["time"] >= base and m["commit"] not in reverted]

@@ -371,8 +371,14 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 merge.merge_batch(ctx, batch)
                 for r in batch:
                     remove_worktree(ctx, ctx.worktree(r["id"]))
-            if (read_json(ctx.state / "counters.json", {}) or {}).get("merges_since_full", 0) >= ctx.full_every:
+            cnt = read_json(ctx.state / "counters.json", {}) or {}
+            if cnt.get("merges_since_full", 0) >= ctx.full_every:
                 refresher = threading.Thread(target=merge.refresh, args=(ctx,), daemon=True)
+                refresher.start()
+                refreshing = True
+            elif a.quick_every and cnt.get("merges_since_quick", 0) >= a.quick_every:
+                quick = [x for x in a.quick_suites.split(",") if x]
+                refresher = threading.Thread(target=merge.quick_refresh, args=(ctx, quick), daemon=True)
                 refresher.start()
                 refreshing = True
         if (a.federate or a.sibling) and (time.time() - last_pub >= 60 or head(ctx) != pub_head):
@@ -488,6 +494,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--batch", type=int, default=4)
     ap.add_argument("--sample", type=int, default=150)
     ap.add_argument("--full-every", type=int, default=100)
+    ap.add_argument("--quick-every", type=int, default=25,
+                    help="merges between quick refreshes of --quick-suites (0 = off)")
+    ap.add_argument("--quick-suites", default="smoke,c-testsuite,chibicc,gcc-torture")
     ap.add_argument("--final-refresh", action="store_true", help="full run after the loop ends")
     ap.add_argument("--suites", default="", help="comma list; default every dir in tests/suites")
     ap.add_argument("--poll", type=float, default=POLL_SECS)
