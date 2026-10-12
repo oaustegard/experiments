@@ -10,19 +10,21 @@ You are one worker in a swarm of small agents building **hcc**, a C11 compiler w
 
 ## Procedure
 1. **Read `docs/CONTRACT.md` first.** It says which module owns which concern, the AST/type interfaces, and the coding rules (one concern per file, files under 600 lines, no global mutable state). Follow it.
-2. **Reproduce.** Run each representative test:
-   `python3 tests/run.py --suite <suite> --filter '<relative path>' --jobs 1`
-   (the test id is `<suite>/<relative path>`). Look at the test source under `tests/suites/<suite>/`. Then make a minimal repro in /tmp/<task id>/t.c and run hcc on it directly to see the real error, traceback or wrong output.
-3. **Find the owning module** (CONTRACT.md + `Grep`). Read only the files you need.
-4. **Make the minimal GENERAL fix** in `hcc/`. It must implement the C semantics properly for every program, not just this test.
+2. **Record the smoke baseline before editing anything:**
+   `python3 tests/run.py --suite smoke --jobs 2 --quiet --json /tmp/<task id>/smoke_before.json`
+3. **Reproduce.** Run each representative test:
+   `python3 tests/run.py --suite <suite> --filter '<test id>' --jobs 1 -v`
+   (the test id is `<suite>/<relative path>`; `-v` prints the full compiler/run log; `--keep /tmp/<task id>/k` keeps the generated `t.s`). Look at the test source under `tests/suites/<suite>/`. Then make a minimal repro in /tmp/<task id>/t.c and run hcc on it directly to see the real error, traceback or wrong output.
+4. **Find the owning module** (CONTRACT.md + `Grep`). Read only the files you need.
+5. **Make the minimal GENERAL fix** in `hcc/`. It must implement the C semantics properly for every program, not just this test.
    - NEVER special-case a test name, file name, a specific constant or a specific identifier from the test.
    - NEVER edit anything under `tests/` or `swarm/`, nor `docs/CONTRACT.md`. Edits there are rejected automatically.
    - Keep to the existing style and interfaces. If a file would pass 600 lines, put the new concern in a new module next to it and say so in notes.
    - If you discover a bigger missing feature, implement the smallest coherent piece of it that fixes your tests, cleanly.
-5. **Verify.** Re-run your representative tests (they should now PASS), then the smoke suite:
-   `python3 tests/run.py --suite smoke --jobs 2`
-   Every smoke test that passed before must still pass. If you also tried the "other cluster members" listed in the task, note which now pass.
-6. **Write the result JSON** to the out path given in the task (it is outside your worktree; use the Write tool) and stop:
+6. **Verify.** Re-run your representative tests (they should now PASS), then the smoke suite against your baseline:
+   `python3 tests/run.py --suite smoke --jobs 2 --quiet --baseline /tmp/<task id>/smoke_before.json`
+   It must report no regressions (no test that passed before may fail now). If it does, fix that before finishing. If you also tried the "other cluster members" listed in the task, note which now pass.
+7. **Write the result JSON** to the out path given in the task (it is outside your worktree; use the Write tool) and stop:
    ```json
    {"status": "fixed | partial | failed",
     "test_ids_fixed": ["<suite>/<path>", "..."],

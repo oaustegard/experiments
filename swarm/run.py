@@ -63,10 +63,10 @@ def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_no
              f"({item.size} failing tests share this signature)", "",
              "Representative tests to fix:"]
     for t in item.tests:
-        suite, _, rel = t.partition("/")
+        suite = t.split("/", 1)[0]
         lines += [f"  - {t}",
                   f"    reason: {item.reasons.get(t, '')}",
-                  f"    run: python3 tests/run.py --suite {suite} --filter '*{rel}' --jobs 1"]
+                  f"    run: python3 tests/run.py --suite {suite} --filter '{t}' --jobs 1 -v"]
     others = [t for t in item.targets if t not in item.tests]
     if others:
         lines += ["", "Other members of the cluster (optional; note in test_ids_fixed any your fix also passes):",

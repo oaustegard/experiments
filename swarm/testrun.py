@@ -1,7 +1,8 @@
 """Adapter around tests/run.py plus the per-commit results cache.
 
 tests/run.py contract (owned by tests/, not by the swarm):
-    python3 tests/run.py --suite NAME [--jobs N] [--filter GLOB] [--json OUT] [--cc CC]
+    python3 tests/run.py --suite NAME[,NAME] [--jobs N] [--filter GLOB]... [--json OUT] [--quiet]
+    --filter is a repeatable glob on the test id; tests in a suite's skip.txt are not run.
     --json OUT writes {test_id: {status, reason, stage}}; test_id = "<suite>/<relpath>";
     status in PASS | FAIL | TIMEOUT | CRASH (anything else is treated as not passing).
 
@@ -14,8 +15,6 @@ Results cache (all under swarm/state/):
 
 from __future__ import annotations
 
-import concurrent.futures as cf
-import fnmatch
 import os
 import subprocess
 import tempfile
@@ -25,8 +24,6 @@ from pathlib import Path
 from swarm.common import Ctx, log, read_json, write_json
 
 TEST_TIMEOUT = 3600   # whole tests/run.py invocation
-# Above this fraction of a suite, run the whole suite instead of per-test filters.
-WHOLE_SUITE_FRACTION = 0.25
 
 
 def is_pass(rec: dict | None) -> bool:
@@ -50,52 +47,45 @@ def _env(tree: Path) -> dict:
     return env
 
 
-def run_suite(tree: Path, suite: str, jobs: int, filt: str | None = None) -> dict:
-    """Run one suite (optionally filtered) in `tree`; returns {test_id: rec}."""
+def _invoke(tree: Path, suites: list[str], jobs: int, filters: list[str]) -> dict:
+    """One tests/run.py invocation in `tree`; returns {test_id: rec} ({} on failure)."""
     with tempfile.TemporaryDirectory(prefix="swarm-tr-") as td:
         out = Path(td) / "r.json"
-        cmd = ["python3", "tests/run.py", "--suite", suite, "--jobs", str(jobs), "--json", str(out)]
-        if filt:
-            cmd += ["--filter", filt]
+        cmd = ["python3", "tests/run.py", "--suite", ",".join(suites), "--jobs", str(jobs),
+               "--json", str(out), "--quiet"]
+        for f in filters:
+            cmd += ["--filter", f]
         try:
             p = subprocess.run(cmd, cwd=tree, env=_env(tree), capture_output=True, text=True,
                                timeout=TEST_TIMEOUT, check=False)
         except subprocess.TimeoutExpired:
-            log(f"tests/run.py --suite {suite} timed out in {tree}")
+            log(f"tests/run.py --suite {','.join(suites)} timed out in {tree}")
             return {}
         res = read_json(out, None)
         if res is None:
-            log(f"tests/run.py --suite {suite} wrote no JSON (rc={p.returncode}): {p.stderr[-300:]}")
+            log(f"tests/run.py wrote no JSON (rc={p.returncode}): {p.stderr[-300:]}")
             return {}
         return res
 
 
-def suite_ids(ctx: Ctx, suite: str) -> list[str]:
-    """Known test ids of a suite (from known.json)."""
-    return [t for t in known(ctx) if suite_of(t) == suite]
+def run_suite(tree: Path, suite: str, jobs: int) -> dict:
+    return _invoke(tree, [suite], jobs, [])
+
+
+def glob_escape(test_id: str) -> str:
+    return "".join(f"[{c}]" if c in "*?[]" else c for c in test_id)
 
 
 def run_ids(ctx: Ctx, tree: Path, ids: list[str], jobs: int | None = None) -> dict:
-    """Run exactly these test ids in `tree`. Missing results come back as status MISSING."""
-    jobs = jobs or ctx.jobs
-    by_suite: dict[str, list[str]] = {}
-    for t in sorted(set(ids)):
-        by_suite.setdefault(suite_of(t), []).append(t)
+    """Run exactly these test ids in `tree` (one invocation, one --filter per id).
+    Ids with no result come back as status MISSING."""
+    ids = sorted(set(ids))
     out: dict = {}
-    for suite, tids in by_suite.items():
-        total = max(1, len(suite_ids(ctx, suite)))
-        if len(tids) / total > WHOLE_SUITE_FRACTION:
-            res = run_suite(tree, suite, jobs)
-            out.update({t: res[t] for t in tids if t in res})
-            continue
-        # One filtered invocation per test, `jobs` at a time, each single-job.
-        def one(tid: str) -> dict:
-            rel = tid.split("/", 1)[1] if "/" in tid else tid
-            pat = "*" + "".join(f"[{c}]" if c in "*?[]" else c for c in rel)
-            return {k: v for k, v in run_suite(tree, suite, 1, pat).items() if k == tid}
-        with cf.ThreadPoolExecutor(jobs) as ex:
-            for r in ex.map(one, tids):
-                out.update(r)
+    for i in range(0, len(ids), 400):         # keep argv a sane length
+        chunk = ids[i:i + 400]
+        suites = sorted({suite_of(t) for t in chunk})
+        res = _invoke(tree, suites, jobs or ctx.jobs, [glob_escape(t) for t in chunk])
+        out.update({t: res[t] for t in chunk if t in res})
     for t in ids:
         out.setdefault(t, {"status": "MISSING", "reason": "no result from tests/run.py", "stage": "run"})
     return out
@@ -148,7 +138,3 @@ def sample_ids(ctx: Ctx, n: int, seed: str) -> list[str]:
     passing = sorted(t for t, r in known(ctx).items() if is_pass(r))
     key = lambda t: hashlib.sha1(f"{seed}:{t}".encode()).hexdigest()
     return sorted(passing, key=key)[:n]
-
-
-def matches(test_id: str, glob: str) -> bool:
-    return fnmatch.fnmatchcase(test_id, glob)
