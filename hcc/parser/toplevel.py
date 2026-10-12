@@ -259,9 +259,15 @@ class TopLevelMixin:
         """K&R parameter declarations between `)` and `{`. `proto` is the
         prior prototype of the same function, if any, that they must match."""
         decls = {}
+        pnames = {n.text for n in fty.param_names}
         while not self.at("{"):
             attr = VarAttr()
+            enums_before = {k: v for k, v in self.scopes[-1].vars.items() if v.enum_ty is not None}
             basety = self.declspec(attr)
+            # An enumerator declared in the list (`enum b { a }`) is a non-parameter.
+            for k, v in self.scopes[-1].vars.items():
+                if v.enum_ty is not None and enums_before.get(k) is not v and k in pnames:
+                    self.error(f"'{k}' declared as a non-parameter", self.tok.loc)
             while True:
                 ty, name = self.declarator(basety)
                 dattr = VarAttr()           # `int foo __attribute__((unused));`
