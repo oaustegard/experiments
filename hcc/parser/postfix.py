@@ -20,6 +20,7 @@ from hcc.parser import complex as CPX
 from hcc.sema.conversions import default_arg_promote, new_cast
 from hcc.typesys import TypeKind, is_struct_like
 from hcc.parser.va_pack import is_pack_placeholder
+from hcc.parser.arg_check import check_call_arg
 
 
 def _array_chain_is_vla(ty):
@@ -135,6 +136,7 @@ class PostfixMixin:
                 continue
             if i < len(params):
                 pty = params[i]
+                check_call_arg(self, a, pty)
                 if pty.is_complex or a.ty.is_complex:
                     a = CPX.convert(self, a, pty, loc)
                 elif not is_struct_like(pty):
