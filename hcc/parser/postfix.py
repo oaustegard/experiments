@@ -18,6 +18,7 @@ from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.sema.arith import inc_dec, new_add
 from hcc.parser import complex as CPX
 from hcc.sema.conversions import default_arg_promote, new_cast
+from hcc.typesys import TypeKind
 from hcc.typesys import TypeKind, is_struct_like
 from hcc.parser.va_pack import is_pack_placeholder
 from hcc.parser.arg_check import check_call_arg
@@ -62,7 +63,11 @@ class PostfixMixin:
                 self.next()
                 idx = self.expr()
                 self.expect("]")
-                node = self.typed(N.Deref(t.loc, new_add(node, idx, t.loc)))
+                ptr = new_add(node, idx, t.loc)
+                self.typed(ptr)
+                if ptr.ty.base is not None and ptr.ty.base.kind == TypeKind.FUNC:
+                    diag.error(t.loc, "subscripted value is pointer to function", "sema")
+                node = self.typed(N.Deref(t.loc, ptr))
             elif s == "(" and t.kind.name == "PUNCT":
                 self.next()
                 node = self.funcall(node, t.loc)
