@@ -70,7 +70,7 @@ def build_with(cc_argv, src, base, inc, split):
     if to:
         return "TIMEOUT", "compile >%ds" % runner.COMPILE_TIMEOUT, err_s
     if rc != 0 or not os.path.exists(asm):
-        crashed = rc < 0 or "Traceback (most recent call last)" in err_s
+        crashed = runner.is_compiler_crash(rc, err_s)
         stage = runner.stage_from_stderr(err_s) or "?"
         reason = "%s: %s" % (stage, runner.first_error_line(err_s))
         return ("CRASH" if crashed else "COMPILE_FAIL"), runner.short(reason), err_s

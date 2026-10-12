@@ -159,8 +159,16 @@ def stage_from_stderr(err):
     return None
 
 
+def is_compiler_crash(rc, err):
+    """docs/CONTRACT.md: internal compiler error => exit 70 (+ traceback)."""
+    return rc < 0 or rc == 70 or "Traceback (most recent call last)" in err
+
+
 def first_error_line(err):
     lines = [l for l in err.splitlines() if l.strip()]
+    for l in lines:
+        if "internal compiler error" in l:
+            return l
     if "Traceback (most recent call last)" in err:
         return lines[-1] if lines else "traceback"
     for l in lines:
@@ -263,7 +271,7 @@ def compile_failure(cc_argv, cflags, src, work, rc, err):
     """Classify a failed compile into a Result."""
     err_s = text(err)
     stage = stage_from_stderr(err_s)
-    crashed = rc < 0 or "Traceback (most recent call last)" in err_s
+    crashed = is_compiler_crash(rc, err_s)
     if stage is None:
         # Disambiguate: does preprocessing alone succeed?
         prc, _, _, _ = run_cmd(cc_argv + cflags + ["-E", "-o", os.devnull, src],
