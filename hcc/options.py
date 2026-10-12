@@ -18,7 +18,7 @@ class Options:
     after_dirs: list[str] = field(default_factory=list)       # -idirafter
     defines: list[tuple[str, str | None]] = field(default_factory=list)  # (-D|-U, text)
     includes: list[str] = field(default_factory=list)         # -include FILE
-    std: str = "gnu11"
+    std: str = "gnu17"
     nostdinc: bool = False
     linker_args: list[str] = field(default_factory=list)
     keep_temps: bool = False

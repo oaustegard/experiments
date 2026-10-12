@@ -215,9 +215,16 @@ STD_VERSIONS = {"c89": "199409L", "c90": "199409L", "gnu89": "199409L", "gnu90":
                 "c2x": "202000L", "gnu2x": "202000L", "c23": "202311L", "gnu23": "202311L"}
 
 
+# GCC spellings of the ISO standard names (-std=iso9899:2017 etc.).
+STD_ALIASES = {"iso9899:1990": "c90", "iso9899:199409": "c89", "iso9899:1999": "c99",
+               "iso9899:2011": "c11", "iso9899:2017": "c17", "iso9899:2018": "c17",
+               "c1x": "c11", "gnu1x": "gnu11"}
+
+
 def predefined_source(opts) -> str:
-    std = (opts.std or "gnu11").lower()
-    lines = [PREDEFINED, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201112L')}"]
+    std = (opts.std or "gnu17").lower()
+    std = STD_ALIASES.get(std, std)
+    lines = [PREDEFINED, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201710L')}"]
     if std.startswith("c"):
         lines.append("#define __STRICT_ANSI__ 1")
     if STD_VERSIONS.get(std, "") >= "202000L":

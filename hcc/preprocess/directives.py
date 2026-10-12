@@ -249,6 +249,20 @@ class DirectiveMixin:
             self.pragma_once.add(hash_tok.loc.file)
         elif line and line[0].text in ("push_macro", "pop_macro"):
             self._macro_pragma(line)
+        elif len(line) >= 2 and line[0].text == "GCC" and line[1].text == "optimize":
+            self._optimize_pragma(line[2:])
+
+    def _optimize_pragma(self, line: list[Token]) -> None:
+        """#pragma GCC optimize "-fno-math-errno" toggles __NO_MATH_ERRNO__."""
+        for t in line:
+            if t.kind != TokenKind.STRING:
+                continue
+            flag = t.text[1:-1]
+            if flag == "-fno-math-errno":
+                one = Token(TokenKind.NUMBER, "1", t.loc, False, True)
+                self.macros["__NO_MATH_ERRNO__"] = Macro("__NO_MATH_ERRNO__", True, body=[one])
+            elif flag == "-fmath-errno":
+                self.macros.pop("__NO_MATH_ERRNO__", None)
 
     def _macro_pragma(self, line: list[Token]) -> None:
         """#pragma push_macro("NAME") / pop_macro("NAME")."""
