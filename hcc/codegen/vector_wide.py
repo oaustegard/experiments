@@ -3,14 +3,14 @@
 Each element is handled as two 64-bit halves (low at +0, high at +8).
 Add/sub use carry/borrow across the halves; bitwise ops act on each half;
 shifts use shld/shrd plus a cmov for counts >= 64 (count taken mod 128).
-Multiplication, division and remainder need a real 128-bit multiplier/divider
-and are reported as unsupported rather than miscompiled.
+Multiplication is the low 128 bits (mulq + two imul cross terms). Division and
+remainder need a real 128-bit divider and are reported as unsupported.
 """
 from __future__ import annotations
 
 from hcc import diag
 
-_WIDE_OPS = ("+", "-", "&", "|", "^", "<<", ">>")
+_WIDE_OPS = ("+", "-", "*", "&", "|", "^", "<<", ">>")
 
 
 def _wide_shift(self, op: str, signed: bool) -> None:
@@ -42,6 +42,26 @@ def _wide_shift(self, op: str, signed: bool) -> None:
         self.emit("cmovnzq %r11, %rdx")
 
 
+def _wide_mul(self, i: int) -> None:
+    """Low 128 bits of (%rsi+i) * (%r8+i) stored at (%rdi+i).
+    The low 128 bits of a product do not depend on signedness.
+    lo*lo gives the full 128-bit product; the two cross products only
+    contribute their low 64 bits to the high half. Clobbers %rax, %rdx,
+    %rcx, %r9, %r10, %r11."""
+    self.emit(f"movq {i}(%rsi), %r10")       # a_lo
+    self.emit(f"movq {i + 8}(%rsi), %r11")   # a_hi
+    self.emit(f"movq {i}(%r8), %rcx")        # b_lo
+    self.emit(f"movq {i + 8}(%r8), %r9")     # b_hi
+    self.emit("movq %r10, %rax")
+    self.emit("mulq %rcx")                   # rdx:rax = a_lo * b_lo
+    self.emit("imulq %r9, %r10")             # a_lo * b_hi (low 64)
+    self.emit("imulq %rcx, %r11")            # a_hi * b_lo (low 64)
+    self.emit("addq %r10, %rdx")
+    self.emit("addq %r11, %rdx")
+    self.emit(f"movq %rax, {i}(%rdi)")
+    self.emit(f"movq %rdx, {i + 8}(%rdi)")
+
+
 class VectorWideMixin:
 
     def vector_wide_binary(self, node) -> None:
@@ -58,6 +78,9 @@ class VectorWideMixin:
         self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
         signed = not node.lhs.ty.base.is_unsigned
         for i in range(0, size, 16):
+            if node.op == "*":
+                _wide_mul(self, i)
+                continue
             self.emit(f"movq {i}(%rsi), %rax")
             self.emit(f"movq {i + 8}(%rsi), %rdx")
             self.emit(f"movq {i}(%r8), %rcx")
