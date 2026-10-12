@@ -105,11 +105,17 @@ class FpClassifyMixin:
         self.emit("and $0xff, %ecx")
         self.emit("and $0x7fffff, %edx")
         if half:
+            # Below 2^-14 the float fraction is not the half fraction (2^-20 has
+            # fraction 0 as a float), so replace it by "magnitude is nonzero".
             self.emit("movd %xmm0, %r9d")
             self.emit("and $0x7fffffff, %r9d")
+            self.emit("test %r9d, %r9d")
+            self.emit("setnz %r10b")
+            self.emit("movzbl %r10b, %r10d")
             self.emit(f"cmp ${_HALF_MIN_NORMAL_BITS}, %r9d")
-            self.emit("mov $0, %r10d")
-            self.emit("cmovb %r10d, %ecx")
+            self.emit("mov $0, %r11d")
+            self.emit("cmovb %r11d, %ecx")
+            self.emit("cmovb %r10d, %edx")
         self._fp_tail(0xFF, x87=False)
 
     def _fp_tail(self, emax: int, x87: bool) -> None:
