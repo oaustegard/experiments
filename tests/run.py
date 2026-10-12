@@ -294,6 +294,9 @@ def run_test(suite, rel, cc_argv, workroot, keep):
 
 def _run_test(suite, src, cc_argv, work):
     cflags = suite.cflags(cc_argv)
+    if os.path.exists(src + ".flags"):  # per-test extra cflags, whitespace separated
+        with open(src + ".flags") as f:
+            cflags += shlex.split(f.read())
     asm = os.path.join(work, "t.s")
     obj = os.path.join(work, "t.o")
     exe = os.path.join(work, "t")
