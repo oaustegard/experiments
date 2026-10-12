@@ -317,8 +317,10 @@ class TopLevelMixin:
                 saved_pdecl = self.in_param_decl
                 self.in_param_decl = True   # GNU: no braced-group in a parameter's array size
                 try:
+                    self.param_outer_array = True   # K&R parameter: outermost array
                     ty, name = self.declarator(basety)
                 finally:
+                    self.param_outer_array = False
                     self.in_param_decl = saved_pdecl
                 dattr = VarAttr()           # `int foo __attribute__((unused));`
                 self.parse_attributes(dattr)

@@ -60,6 +60,10 @@ class DeclaratorMixin:
         return ty
 
     def declarator(self, ty):
+        # One-shot flag: this declarator is a parameter's, so an array suffix it
+        # applies directly (its outermost array) may use `static`/qualifiers.
+        outer_ok = getattr(self, "param_outer_array", False)
+        self.param_outer_array = False
         ty = self.pointers(ty)
         self.parse_attributes()
         ty = self.pointers(ty)          # `int (__attribute__((x)) *)(void)`
@@ -70,7 +74,7 @@ class DeclaratorMixin:
             # skip the inner declarator to find what follows it
             self._skip_declarator()
             self.expect(")")
-            ty = self.type_suffix(ty)
+            ty = self.type_suffix(ty)   # `int (*p)[static 2]`: not outermost
             end = self.pos
             self.pos = start + 1
             ty, name = self.declarator(ty)
@@ -81,7 +85,9 @@ class DeclaratorMixin:
         if self.tok.kind == TokenKind.IDENT:
             name = self.next()
             self.skip_std_attributes()  # `void f [[]] (void);`
+        self.param_outer_array = outer_ok
         ty = self.type_suffix(ty)
+        self.param_outer_array = False
         if name is not None and self.fn is not None and ty.kind == T.TypeKind.FUNC \
                 and _has_vla_type(ty.return_ty):
             # C11 6.7.5.2p2 / GCC: a block-scope function declaration (not a
@@ -185,8 +191,10 @@ class DeclaratorMixin:
             self.in_proto_params = True     # sizeof in a prototype is unevaluated
             self.in_param_decl = True
             try:
+                self.param_outer_array = True   # the parameter's outermost array
                 pty, name = self.declarator(base)
             finally:
+                self.param_outer_array = False
                 self.in_proto_params = saved_proto
                 self.in_param_decl = saved_pdecl
             if pty.kind == T.TypeKind.VOID and (pty.is_const or pty.is_volatile or attr.is_register):
@@ -296,12 +304,20 @@ class DeclaratorMixin:
             self.error("size of array element is not a multiple of its alignment", self.tok)
 
     def array_dims(self, ty):
+        outer_ok = getattr(self, "param_outer_array", False)
+        self.param_outer_array = False
         has_static = False
+        quals = False
         while (self.at("static") or self.at("const") or self.at("volatile")
                or self.at("restrict") or self.at("_Atomic")):
             if self.at("static"):
                 has_static = True
+            else:
+                quals = True
             self.next()
+        if (has_static or quals) and not outer_ok:
+            # C99 6.7.5.2p1: only the outermost array of a parameter may use these
+            self.error("static or type qualifiers in non-parameter array declarator")
         if has_static and self.at("]"):
             # C99 6.7.5.2p1: `static` requires a size expression
             self.error("'static' may not be used without an array size")

@@ -4,6 +4,6 @@
 void f(int [_Atomic]);
 void g(int [_Atomic 2]);
 int main(void) {
-    int _Atomic x[_Atomic 3];
+    int _Atomic x[3];
     return (int)sizeof x == 3 * (int)sizeof(int) ? 0 : 1;
 }
