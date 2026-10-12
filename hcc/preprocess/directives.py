@@ -107,7 +107,11 @@ class DirectiveMixin:
     # ---- include ------------------------------------------------------------
     def dir_include(self, hash_tok, name_tok, next_=False):
         line = self.read_line()
-        if line and line[0].kind not in (TokenKind.STRING,) and line[0].text != "<":
+        # A "<...>" header name is taken verbatim only when the closing '>'
+        # is on the line; otherwise the tokens after '<' are macro-expanded.
+        angle_closed = any(t.text == ">" for t in line)
+        if line and line[0].kind not in (TokenKind.STRING,) and (
+                line[0].text != "<" or not angle_closed):
             line = self.expand_list(line)
         if not line:
             diag.error(name_tok, "#include expects \"FILENAME\" or <FILENAME>")
