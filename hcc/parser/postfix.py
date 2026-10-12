@@ -13,7 +13,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.parser.libc_builtins import fabs_float_call, int_abs_call
-from hcc.parser.structs import find_member
+from hcc.parser.structs import find_member, complete_struct
 from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.sema.arith import inc_dec, new_add
 from hcc.parser import complex as CPX
@@ -48,6 +48,9 @@ class PostfixMixin:
             if self.at("{"):
                 if _array_chain_is_vla(ty):
                     self.error("compound literal has variable size", self.tok)
+                if ty.kind in (TypeKind.STRUCT, TypeKind.UNION) and \
+                        not complete_struct(ty).is_complete:
+                    self.error(f"invalid use of undefined type '{ty}'", self.tok)
                 ty, pre = self.vla_bind(ty, self.tok.loc)
                 lit = self.compound_literal(ty, is_static, is_tls)
                 return self.postfix_ops(self.vla_prefix(pre, lit, self.tok.loc))
