@@ -38,6 +38,9 @@ _OTHER_MODES = frozenset({
     "V8SI", "V16HI", "V32QI", "V2SF", "V4SF", "V2DF", "V8SF", "V4DF", "V1TI",
 })
 
+# accepted tls_model("...") arguments (as raw bytes of the string literal)
+TLS_MODELS = frozenset({b"global-dynamic", b"local-dynamic", b"initial-exec", b"local-exec"})
+
 # GCC-accepted argument counts (min, max) for attributes that take a fixed
 # number of arguments; anything outside the range is a hard error.
 ARG_COUNTS = {
@@ -183,6 +186,8 @@ class AttributeMixin:
         if name == "malloc":
             from hcc.parser.attr_malloc import check_malloc_attr
             check_malloc_attr(self, args_start, args)
+        if name == "tls_model":
+            self._check_tls_model(args, args_start)
         counts = ARG_COUNTS.get(name)
         if counts is not None:
             n = count_attr_args(args)
@@ -285,6 +290,15 @@ class AttributeMixin:
         if val > OBJECT_FILE_MAX_ALIGN:
             self.error("requested alignment '%d' exceeds object file maximum %d"
                        % (val, OBJECT_FILE_MAX_ALIGN), where)
+
+    def _check_tls_model(self, args, args_start) -> None:
+        """tls_model("...") must be a string naming one of the four TLS models."""
+        loc = self.toks[args_start - 1] if args_start > 0 else None
+        if not args or args[0].kind != TokenKind.STRING:
+            self.error("'tls_model' argument not a string", loc)
+        elif args[0].value.rstrip(b"\0") not in TLS_MODELS:
+            self.error("'tls_model' argument must be one of 'global-dynamic', "
+                       "'local-dynamic', 'initial-exec' or 'local-exec'", loc)
 
     def typedef_aligned(self, ty, attr, dattr, name=None):
         """`typedef T X __attribute__((aligned(N)))`: raise the typedef's alignment.
