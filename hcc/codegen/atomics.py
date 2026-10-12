@@ -190,6 +190,10 @@ class AtomicMixin:
         self.gen_expr(node.args[1])
         self.emit(f"mov ${int(size in _SUF)}, %eax")
 
+    def builtin_atomic_always_lock_free(self, node) -> None:
+        # Only reached when the size is not a constant (sema folds the usual case).
+        self.builtin_atomic_is_lock_free(node)
+
     def builtin_atomic_thread_fence(self, node) -> None:
         self.emit("mfence")
 

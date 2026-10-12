@@ -24,6 +24,9 @@ _VOID_RET = frozenset(["__atomic_store_n", "__atomic_load", "__atomic_store", "_
                        "__atomic_thread_fence", "__atomic_signal_fence", "__atomic_clear"])
 # __atomic_is_lock_free(size, ptr): the first argument is a size, not a pointer.
 _LOCK_FREE = "__atomic_is_lock_free"
+# __atomic_always_lock_free(size, ptr): same argument shape, folded to a constant.
+_ALWAYS_LOCK_FREE = "__atomic_always_lock_free"
+_LOCK_FREE_NAMES = frozenset([_LOCK_FREE, _ALWAYS_LOCK_FREE])
 # Legacy gcc __sync_* builtins share the same lowering (full barriers on x86).
 _SYNC_VALUE_RET = frozenset(
     [f"__sync_fetch_and_{o}" for o in _RMW_OPS] + [f"__sync_{o}_and_fetch" for o in _RMW_OPS]
@@ -32,7 +35,7 @@ _SYNC_INT_RET = frozenset(["__sync_bool_compare_and_swap"])
 _SYNC_VOID_RET = frozenset(["__sync_lock_release", "__sync_synchronize"])
 SYNC_BUILTINS = _SYNC_VALUE_RET | _SYNC_INT_RET | _SYNC_VOID_RET
 ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUILTINS
-                   | frozenset([_LOCK_FREE]))
+                   | _LOCK_FREE_NAMES)
 
 
 def atomic_call(parser, tok):
@@ -47,7 +50,7 @@ def atomic_call(parser, tok):
         if args:
             parser.error(f"'{name}' expects no arguments", tok)
         ty = T.TY_VOID
-    elif name == _LOCK_FREE:
+    elif name in _LOCK_FREE_NAMES:
         if len(args) != 2:
             parser.error(f"'{name}' expects 2 arguments", tok)
         ty = T.TY_BOOL
