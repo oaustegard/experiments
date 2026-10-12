@@ -17,7 +17,7 @@ from hcc.parser.initializers import const_bytes
 from hcc.parser.attributes import mode_type
 from hcc.parser.vla import vla_slot_type
 from hcc.sema.compat import is_compatible
-from hcc.parser.redecl_types import redecl_conflicts
+from hcc.parser.redecl_types import redecl_conflicts, typedef_conflicts
 from hcc.parser.redecl import check_redecl
 
 # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
@@ -119,7 +119,7 @@ class LocalDeclMixin:
                 ty = self.typedef_aligned(ty, attr, dattr, name.text)
                 prev_td = self.scopes[-1].vars.get(name.text)
                 if prev_td is not None and prev_td.type_def is not None \
-                        and redecl_conflicts(prev_td.type_def, ty):
+                        and typedef_conflicts(prev_td.type_def, ty):
                     self.error(f"conflicting types for '{name.text}'", name)
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)

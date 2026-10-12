@@ -34,6 +34,22 @@ def redecl_conflicts(prev: Type, new: Type) -> bool:
     return not is_compatible(prev, new)
 
 
+def typedef_conflicts(prev: Type, new: Type) -> bool:
+    """True when a typedef redeclaration does not denote the same type (C11 6.7p3).
+
+    Unlike objects, typedefs must name the *same* type, so an enum is not
+    interchangeable with its compatible integer type, and two different tags
+    never match even though a tag is exempt from the compatibility check."""
+    if prev is new:
+        return False
+    if prev.kind in _TAGGED or new.kind in _TAGGED:
+        if prev.kind != new.kind:
+            return True
+        if prev.tag is None or prev.tag != new.tag:
+            return True
+    return redecl_conflicts(prev, new)
+
+
 class RedeclTypesMixin:
 
     def check_redecl_type(self, prev_var, name: str, ty: Type, loc) -> None:
