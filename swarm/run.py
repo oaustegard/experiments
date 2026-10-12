@@ -302,6 +302,15 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             procs[r["id"]] = None
     launched = 0
     idle_tree, idle_since = None, None
+    # Worktrees of workers that ended in an earlier run of the loop are never needed again
+    # (their patch is cached in the task dir); 40 of them held 5.6 GB on 2026-10-12.
+    led0 = ledger(ctx)
+    stale = [d for d in (ctx.wt_root.iterdir() if ctx.wt_root.exists() else [])
+             if d.is_dir() and (led0.get(d.name) or {}).get("status") in ("merged", "rejected", "failed", "reverted")]
+    for d in stale:
+        remove_worktree(ctx, d)
+    if stale:
+        log(f"removed {len(stale)} worktrees of workers that ended in earlier runs")
     tree_checked = 0.0
     # Full refresh runs in a thread (it can take many minutes); launching and
     # reaping continue meanwhile, merging waits for it.
