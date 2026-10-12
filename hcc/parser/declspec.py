@@ -338,7 +338,13 @@ class DeclSpecMixin:
     def typeof_specifier(self, unqual=False):
         self.expect("(")
         if self.is_typename():
-            ty = self.scoped_typename()
+            # a VM type operand of typeof is not an object declaration (C23 6.7.2.5p2)
+            prev = getattr(self, "in_typeof_operand", False)
+            self.in_typeof_operand = True
+            try:
+                ty = self.scoped_typename()
+            finally:
+                self.in_typeof_operand = prev
         else:
             node = self.expr()
             add_type(node)
