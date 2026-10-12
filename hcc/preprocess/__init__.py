@@ -18,6 +18,7 @@ import os
 from hcc import diag
 from hcc.lexer import C90_STDS, TRIGRAPH_STDS, tokenize
 from hcc.preprocess.macros import Macro
+from hcc.preprocess.padding import fold_pad, is_pad
 from hcc.preprocess.predefined import DYNAMIC_MACROS, predefined_source
 from hcc.registry import assemble_mixins
 from hcc.tokens import Token, TokenKind
@@ -99,14 +100,20 @@ class Preprocessor(*assemble_mixins("hcc.preprocess", object)):
         stack = self.stack
         macros = self.macros
         IDENT, EOF, PUNCT = TokenKind.IDENT, TokenKind.EOF, TokenKind.PUNCT
+        pad_src = None      # padding seen since the last token: sets that token's space
         while True:
             stack = self.stack
             tok = stack.pop()
             kind = tok.kind
+            if kind == PUNCT and not tok.text:
+                pad_src = fold_pad(pad_src, tok)      # padding (preprocess/padding.py)
+                continue
+            if pad_src is not None:
+                tok.space, pad_src = pad_src, None
             if kind == IDENT:
                 if tok.text in macros and self.expand_macro(tok):
                     continue
-                if tok.text == "_Pragma" and stack and stack[-1].text == "(":
+                if tok.text == "_Pragma" and self._lparen_index() >= 0:
                     self._skip_pragma_operator(tok)
                     continue
                 out.append(tok)
@@ -123,7 +130,7 @@ class Preprocessor(*assemble_mixins("hcc.preprocess", object)):
             out.append(tok)
 
     def _skip_pragma_operator(self, tok: Token) -> None:
-        self.stack.pop()          # (
+        del self.stack[self._lparen_index():]    # ( (and padding before it)
         depth = 1
         while depth:
             t = self.stack.pop()

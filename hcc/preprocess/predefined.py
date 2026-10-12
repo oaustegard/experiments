@@ -417,6 +417,10 @@ def predefined_source(opts) -> str:
         lines.append("#define __GNUC_GNU_INLINE__ 1")
     else:
         lines.append("#define __GNUC_STDC_INLINE__ 1")
+    if opts.short_wchar:
+        lines.append("#define __WCHAR_TYPE__ unsigned short\n#define __WCHAR_MAX__ 0xffff\n"
+                     "#define __WCHAR_MIN__ 0\n#define __WCHAR_WIDTH__ 16\n"
+                     "#define __SIZEOF_WCHAR_T__ 2")
     if opts.pic:
         lines.append("#define __PIC__ 2\n#define __pic__ 2")
     if opts.pic and opts.pie:

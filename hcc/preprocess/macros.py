@@ -13,7 +13,13 @@ from dataclasses import dataclass, field
 
 from hcc import diag
 from hcc.lexer import tokenize
+from hcc.preprocess.padding import fold_pad, is_pad, make_avoid, make_pad, strip_pads
 from hcc.tokens import Token, TokenKind
+
+
+def _real(toks: list[Token]) -> list[Token]:
+    """The non-padding tokens of an argument (empty test, paste operands)."""
+    return [t for t in toks if not is_pad(t)]
 
 
 @dataclass
@@ -48,10 +54,11 @@ class MacroMixin:
                 c.bol = False
             self._finish_expansion(tok, out)
             return True
-        # function-like: must be followed by '('
-        if not self.stack or not self.stack[-1].is_("(") or self.stack[-1].kind == TokenKind.EOF:
+        # function-like: must be followed by '(' (padding in between is skipped)
+        j = self._lparen_index()
+        if j < 0:
             return False
-        self.stack.pop()
+        del self.stack[j:]
         args, rparen = self.read_macro_args(m, tok)
         hs = (tok.hideset & rparen.hideset) | {name}
         out = self.subst(m, args, tok)
@@ -62,10 +69,21 @@ class MacroMixin:
         self._finish_expansion(tok, out)
         return True
 
+    def _lparen_index(self) -> int:
+        """Stack index of the '(' that follows a function-like macro name, or -1."""
+        stack = self.stack
+        j = len(stack) - 1
+        while j >= 0 and is_pad(stack[j]):
+            j -= 1
+        if j >= 0 and stack[j].kind != TokenKind.EOF and stack[j].is_("("):
+            return j
+        return -1
+
     def _finish_expansion(self, tok: Token, out: list[Token]) -> None:
         if out:
             out[0].space = tok.space
-        self.push_tokens(out)
+        # libcpp: padding for the macro name, then avoid_paste when the context ends
+        self.push_tokens([make_pad(tok)] + out + [make_avoid(tok.loc)])
 
     def push_tokens(self, toks: list[Token]) -> None:
         """Make `toks` the next tokens to be read."""
@@ -85,6 +103,8 @@ class MacroMixin:
             t = stack.pop()
             if t.kind == TokenKind.EOF:
                 diag.error(name_tok, f"unterminated call to macro '{m.name}'")
+            if is_pad(t) and not cur:
+                continue            # collect_args drops leading padding
             if t.kind == TokenKind.PUNCT and t.bol and t.text == "#" and not t.hideset:
                 # directives may appear inside macro arguments (C11 6.10.3p11)
                 self.directive(t)
@@ -104,7 +124,7 @@ class MacroMixin:
                     continue
             cur.append(t)
         result: dict[str, list[Token]] = {}
-        if nparams == 0 and not m.va_name and len(args) == 1 and not args[0]:
+        if nparams == 0 and not m.va_name and len(args) == 1 and not _real(args[0]):
             return result, rparen
         if m.va_name:
             if len(args) == nparams:          # variadic part omitted
@@ -141,7 +161,7 @@ class MacroMixin:
                 i += 2
                 continue
             if t.text == "," and nxt_is(i + 1, "##") and i + 2 < n and body[i + 2].text == m.va_name:
-                if not args[m.va_name]:
+                if not _real(args[m.va_name]):
                     i += 3
                 else:
                     out.append(t.copy())
@@ -157,7 +177,7 @@ class MacroMixin:
                 if j >= n:
                     diag.error(t, "'##' cannot appear at end of macro expansion")
                 if is_param(j):
-                    a = args[body[j].text]
+                    a = _real(args[body[j].text])
                     if a:
                         out[-1] = self.paste(out[-1], a[0])
                         out.extend(x.copy() for x in a[1:])
@@ -174,13 +194,13 @@ class MacroMixin:
                         depth -= 1
                     inner.append(body[j])
                     j += 1
-                if m.va_name and args.get(m.va_name):
+                if m.va_name and _real(args.get(m.va_name, [])):
                     sub = Macro(m.name, False, m.params, m.va_name, inner)
                     out.extend(self.subst(sub, args, call_tok))
                 i = j + 1
                 continue
             if is_param(i):
-                a = args[t.text]
+                a = _real(args[t.text])
                 if nxt_is(i + 1, "##"):
                     if not a:
                         rhs_i = i + 2
@@ -200,11 +220,15 @@ class MacroMixin:
                     i += 1
                     continue
                 if t.text not in expanded:
-                    expanded[t.text] = self.expand_list(a)
+                    expanded[t.text] = self._expand_arg(args[t.text])
                 ex = [x.copy() for x in expanded[t.text]]
                 if ex:
                     ex[0].space = t.space
+                # libcpp replace_args: padding around a substituted argument
+                if i:
+                    out.append(make_pad(t))
                 out.extend(ex)
+                out.append(make_avoid(t.loc))
                 i += 1
                 continue
             out.append(t.copy())
@@ -213,9 +237,14 @@ class MacroMixin:
 
     def stringize(self, hash_tok: Token, arg: list[Token]) -> Token:
         parts = []
-        for k, t in enumerate(arg):
-            if k and t.space:
+        source = None       # libcpp stringify_arg: PREV_WHITE of pending padding source
+        for t in arg:
+            if is_pad(t):
+                source = fold_pad(source, t)
+                continue
+            if parts and (t.space if source is None else source):
                 parts.append(" ")
+            source = None
             if t.kind in (TokenKind.STRING, TokenKind.CHAR):
                 parts.append(t.text.replace("\\", "\\\\").replace('"', '\\"'))
             else:
@@ -241,6 +270,10 @@ class MacroMixin:
     # ---- helpers ------------------------------------------------------------
     def expand_list(self, toks: list[Token]) -> list[Token]:
         """Fully macro-expand a token list in isolation (no directives)."""
+        return strip_pads(self._expand_arg(toks))
+
+    def _expand_arg(self, toks: list[Token]) -> list[Token]:
+        """expand_list keeping the padding that stringify needs (macro arguments)."""
         if not toks:
             return []
         if not any(t.kind == TokenKind.IDENT and t.text in self.macros for t in toks):

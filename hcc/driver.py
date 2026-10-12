@@ -81,6 +81,8 @@ def parse_args(argv: list[str]) -> Options:
             o.sso_struct = a.split("=", 1)[1]
         elif a == "-fplan9-extensions":
             o.plan9_extensions = True
+        elif a in ("-fshort-wchar", "-fno-short-wchar"):
+            o.short_wchar = a == "-fshort-wchar"
         elif a == "-nostdinc":
             o.nostdinc = True
         elif a in ("-fPIC", "-fpic"):
@@ -151,7 +153,8 @@ def compile_to_asm(path: str, opts: Options) -> str:
         if opts.no_asm:
             off.add("inline")  # -fno-asm: plain `inline` is an identifier too
         off = frozenset(off)
-        toks = convert_tokens(toks, u8_unsigned=c23, c23=c23, off_keywords=off)
+        toks = convert_tokens(toks, u8_unsigned=c23, c23=c23, off_keywords=off,
+                              short_wchar=opts.short_wchar)
         tu = parse(toks, opts)
     if opts.dump_ast:
         for o in tu.objs:

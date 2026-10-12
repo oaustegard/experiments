@@ -251,8 +251,11 @@ class InitializerMixin:
             self._init_element(init.children[i])
             i += 1
 
-    def array_designator(self, init) -> int:
-        """`[i] ...= x` inside an array initializer; returns next index."""
+    def array_designator(self, init, tail: bool = True) -> int:
+        """`[i] ...= x` inside an array initializer; returns next index.
+        A range `[lo ... hi]` re-parses the designation once per index; the
+        brace-elided tail after it (`, 5, 6`) is consumed only once, by the
+        last index (`tail` False: an enclosing range is not on its last index)."""
         self.expect("[")
         lo = self.const_expr()
         hi = lo
@@ -264,10 +267,19 @@ class InitializerMixin:
             self.pos = save
             if not self._grow(init, idx):
                 self.error("array index in initializer exceeds array bounds")
-            self.designation(init.children[idx])
+            self.designation(init.children[idx], tail and idx == hi)
         return hi + 1
 
-    def designation(self, init) -> None:
+    def _tail_follows(self, init, nxt: int) -> bool:
+        """True when a brace-elided value follows a designated sub-object and
+        fits in the enclosing aggregate after index `nxt`."""
+        if not self.at(",") or self._at_designator_after_comma() or self._at_end():
+            return False
+        if T.is_struct_like(init.ty):
+            return init.ty.kind == T.TypeKind.STRUCT and nxt < len(init.ty.members)
+        return init.is_flexible or nxt < len(init.children)
+
+    def designation(self, init, tail: bool = True) -> None:
         """Continue a designator chain into `init`, then parse `= value`."""
         if init.expr is not None and (self.at("[") or self.at(".")):
             # A sub-object was already set as a whole (`T y[] = {x, [0].b=3}`):
@@ -277,18 +289,22 @@ class InitializerMixin:
         if self.at("["):
             if init.ty.kind != T.TypeKind.ARRAY:
                 self.error("array index in non-array initializer")
-            nxt = self.array_designator(init)
+            nxt = self.array_designator(init, tail)
             # Following brace-elided values continue inside the designated
             # sub-aggregate (C11 6.7.9p17), e.g. `[0][1]=7, 8` sets x[0][2].
-            if self.at(",") and (init.is_flexible or nxt < len(init.children)) and \
-                    not self._at_designator_after_comma() and not self._at_end():
+            if tail and self._tail_follows(init, nxt):
                 self.next()
                 self.array_initializer2(init, nxt)
             return
         if self.at("."):
             if not T.is_struct_like(init.ty):
                 self.error("field name not in record or union initializer")
-            self.member_designator(init)
+            nxt = self.member_designator(init, tail)
+            # `.k[0]=1, 2` / `.a=1, 2`: the brace-elided tail continues with the
+            # siblings after the designated member (struct only; unions take one).
+            if tail and self._tail_follows(init, nxt):
+                self.next()
+                self.struct_initializer2(init, nxt)
             return
         self.accept("=")
         if self.at("{") and (init.children is not None or init.expr is not None):
@@ -304,7 +320,7 @@ class InitializerMixin:
             return True
         return self.tok.kind == TokenKind.IDENT and self.peek().text == ":"
 
-    def member_designator(self, init) -> int:
+    def member_designator(self, init, tail: bool = True) -> int:
         """`.name ...= x` (or GNU `name: x`) inside a struct/union initializer;
         returns next index."""
         if self.at("."):
@@ -323,7 +339,7 @@ class InitializerMixin:
         m = path[-1]
         if cur.ty.kind == T.TypeKind.UNION:
             cur.mem = m
-        self.designation(cur.children[m.idx])
+        self.designation(cur.children[m.idx], tail)
         return path[0].idx + 1
 
     def struct_initializer1(self, init) -> None:

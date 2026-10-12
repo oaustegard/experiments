@@ -141,6 +141,7 @@ hcc/
     includes.py        include search path resolution, file reading/caching
     predefined.py      predefined macros (__x86_64__, __LP64__, __GNUC__, ...)
     floatn_macros.py   gcc-predefined __FLT16_/__FLT32_/... values read by <float.h>
+    padding.py         libcpp-style padding tokens (empty text) around macro expansions; only #x reads them
                        and builtin dynamic macros (__FILE__, __LINE__, ...)
 
   parser/

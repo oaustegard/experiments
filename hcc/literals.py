@@ -329,10 +329,13 @@ def _parse_imaginary(tok: Token, body: str):
 
 
 def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
-                   c23: bool = False, off_keywords: frozenset = frozenset()) -> list[Token]:
+                   c23: bool = False, off_keywords: frozenset = frozenset(),
+                   short_wchar: bool = False) -> list[Token]:
     """`u8_unsigned`: C23 types u8"" literals as unsigned char arrays.
     `c23`: `constexpr` is a keyword (it is an ordinary identifier otherwise).
-    `off_keywords`: spellings that stay identifiers (e.g. `typeof` in strict ISO modes)."""
+    `off_keywords`: spellings that stay identifiers (e.g. `typeof` in strict ISO modes).
+    `short_wchar`: -fshort-wchar, L'x' and L"" use the 16-bit wchar_t (unsigned short)."""
+    wchar_elem = TY_USHORT if short_wchar else TY_INT
     out: list[Token] = []
     i, n = 0, len(toks)
     while i < n:
@@ -356,11 +359,13 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
         elif k == TokenKind.CHAR:
             t = t.copy()
             t.value, t.ty = parse_char_literal(t)
+            if short_wchar and t.text.startswith("L'"):
+                t.value, t.ty = t.value & 0xFFFF, TY_USHORT
         elif k == TokenKind.STRING:
             j = i + 1
             while j < n and toks[j].kind == TokenKind.STRING:
                 j += 1
-            t = _concat_strings(toks[i:j], TY_UCHAR if u8_unsigned else TY_CHAR)
+            t = _concat_strings(toks[i:j], TY_UCHAR if u8_unsigned else TY_CHAR, wchar_elem)
             out.append(t)
             i = j
             continue
@@ -380,7 +385,8 @@ def _c23_bool_const(t: Token) -> Token:
     return t
 
 
-def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR) -> Token:
+def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR,
+                    wchar_elem: Type = TY_INT) -> Token:
     """Concatenate adjacent string literals (C11 6.4.5p5)."""
     prefix = ""
     has_u8 = False
@@ -400,6 +406,8 @@ def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR) -> Token:
         else:
             units += parse_string_literal(p)[0]
     elem = STRING_ELEM[prefix] if prefix else (u8_elem if has_u8 else TY_CHAR)
+    if prefix == "L":
+        elem = wchar_elem
     t = pieces[0].copy()
     t.value = string_bytes(units, elem)
     t.ty = array_of(elem, len(t.value) // elem.size)
