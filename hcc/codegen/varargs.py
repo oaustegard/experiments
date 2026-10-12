@@ -91,6 +91,13 @@ class VarargsMixin:
                 self.emit(f"jmp {done}")
             elif regs is not None:
                 self.va_arg_split_struct(ty, regs, stack, done)
+        elif k == TypeKind.INT128:          # two INTEGER eightbytes in consecutive GP slots
+            self.emit("movl (%rcx), %eax")
+            self.emit("cmp $32, %eax")
+            self.emit(f"ja {stack}")
+            self.emit("addl $16, (%rcx)")
+            self.emit("add 16(%rcx), %rax")
+            self.emit(f"jmp {done}")
         elif k not in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
             self.emit("movl (%rcx), %eax")
             self.emit("cmp $40, %eax")

@@ -1,10 +1,13 @@
 // EXPECT-EXIT: 0
-// hcc does not implement full 128-bit scalar arithmetic (values are one 64-bit
-// word), so it must not advertise __SIZEOF_INT128__: libraries such as QuickJS
-// then take their portable limb path instead of the broken 128-bit one.
-#ifdef __SIZEOF_INT128__
-#error __SIZEOF_INT128__ must not be defined
+// __SIZEOF_INT128__ is advertised (__int128 has full arithmetic in codegen/int128.py),
+// so `__SIZEOF_INT128__ * __CHAR_BIT__` must be usable in #if and in constant expressions.
+#ifndef __SIZEOF_INT128__
+#error __SIZEOF_INT128__ must be defined
 #endif
+#if __SIZEOF_INT128__ != 16
+#error __SIZEOF_INT128__ must be 16
+#endif
+_Static_assert (__SIZEOF_INT128__ * __CHAR_BIT__ == 128, "int128 width");
 int main(void) {
     return 0;
 }
