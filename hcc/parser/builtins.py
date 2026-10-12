@@ -33,6 +33,7 @@ __builtin_trap __builtin_alloca __builtin_alloca_with_align __builtin_choose_exp
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
 __builtin_add_overflow_p __builtin_sub_overflow_p
 __builtin_prefetch __builtin_return_address __builtin_frame_address __builtin_assoc_barrier
+__builtin_assume_aligned
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
@@ -328,6 +329,18 @@ class BuiltinParseMixin:
     def _b_assoc_barrier(self, tok):
         # Identity on the value: it only stops reassociation of floating expressions.
         return self._args(1)[0]
+
+    def _b_assume_aligned(self, tok):
+        """__builtin_assume_aligned(p, align[, offset]) yields p unchanged (the
+        alignment is only an optimisation hint); the other arguments are evaluated
+        for their side effects, as in __builtin_prefetch."""
+        args = self._args()
+        if not 2 <= len(args) <= 3:
+            self.error("builtin expects 2 or 3 arguments")
+        node = args[0]
+        for a in reversed(args[1:]):
+            node = N.Comma(tok.loc, N.Cast(tok.loc, a, ty=T.TY_VOID), node, ty=node.ty)
+        return node
 
     def _b_expect(self, tok):
         args = self._args(2)
