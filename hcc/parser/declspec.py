@@ -222,6 +222,8 @@ class DeclSpecMixin:
                     self.parse_attributes(attr)
                 continue
             if s == "_Alignas":
+                if attr is None:      # type names (casts, sizeof, _Alignof, _Atomic(T), ...) take no alignment
+                    self.error("'_Alignas' specified for type name")
                 self.next()
                 self.expect("(")
                 if self.is_typename():
