@@ -47,6 +47,7 @@ class InitializerMixin:
     def parse_initializer(self, ty):
         init = new_initializer(ty, True)
         self.initializer2(init)
+        self._check_flex_nesting(init, root=True)
         if ty.kind == T.TypeKind.ARRAY and ty.array_len < 0 and init.expr is not None:
             ty = init.expr.ty           # `int a[] = (int[4]){...};` takes the literal's size
             init.ty = ty
@@ -74,6 +75,18 @@ class InitializerMixin:
         var.init_data = serialize_global_init(init, ty)
 
     # ---- helpers --------------------------------------------------------------
+    def _check_flex_nesting(self, init, root: bool) -> None:
+        """GCC: a trailing `T x[]` member may only be initialized when its struct
+        is the object being initialized itself, not a sub-object of an aggregate."""
+        if not root and init.ty.kind == T.TypeKind.STRUCT and init.ty.members and \
+                init.ty.members[-1].open_array and isinstance(init.children, list) and \
+                init.children:
+            last = init.children[-1]
+            if last.children or last.expr is not None:
+                self.error("initialization of flexible array member in a nested context")
+        for _, child in N.present_children(init.children):
+            self._check_flex_nesting(child, root=False)
+
     def _at_end(self) -> bool:
         return self.at("}") or (self.at(",") and self.peek().text == "}")
 
