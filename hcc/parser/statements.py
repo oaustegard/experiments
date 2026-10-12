@@ -135,7 +135,8 @@ class StatementMixin:
         self.expect("(")
         cond = self.typed(self.expr())
         require_value(cond)
-        cond = CPX.truth(self, cond)
+        if not T.is_integer(cond.ty):
+            self.error("switch quantity not an integer", t)
         self.expect(")")
         from hcc.sema.conversions import int_promote
         cond = new_cast(cond, int_promote(cond.ty))
