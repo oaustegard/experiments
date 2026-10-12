@@ -56,15 +56,24 @@ class EnumMixin:
             if fixed is not None:
                 self.apply_fixed_underlying(ty, fixed)
             return ty
+        brace_pos = self.pos
+        def_pos = self.__dict__.setdefault("enum_def_pos", {})   # id(ty) -> '{' index
         self.expect("{")
         open_defs = self.__dict__.setdefault("enum_open_defs", set())
         if tag is not None:
             prev = self.find_tag(tag.text)     # visible from enclosing scopes too (sizeof(...) opens one)
             if prev is not None and id(prev) in open_defs:
                 self.error(f"nested redefinition of 'enum {tag.text}'", tag)
+            # A second body for the same tag in one scope is a redeclaration.
+            # A re-parse of the same declaration (backtrack) is not.
+            prev = self.scopes[-1].tags.get(tag.text)
+            if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                    and def_pos[id(prev)] != brace_pos):
+                self.error(f"redeclaration of 'enum {tag.text}'", tag)
         ty = T.enum_type()
         ty.tag = tag.text if tag else None
         if tag is not None:
+            def_pos[id(ty)] = brace_pos
             # The tag is visible from its declaration on, so enumerator
             # expressions may refer to it (GNU: `enum A { B = sizeof(enum A*) }`).
             self.scopes[-1].tags[tag.text] = ty
