@@ -27,6 +27,7 @@ ARG_COUNTS = {
     "alloc_align": (1, 1),
     "assume": (1, 1),
     "access": (2, 3),
+    "nonnull_if_nonzero": (2, 3),
 }
 
 
