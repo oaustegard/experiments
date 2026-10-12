@@ -38,9 +38,21 @@ def exact_decimal(body: str) -> Fraction:
     ip, _, fp = mant.partition(".")
     digits = ip + fp
     e10 = (int(exp) if exp else 0) - len(fp)
-    if not digits.strip("0"):
+    sig = digits.lstrip("0")
+    if not sig:
         return Fraction(0)
+    # The value lies in [10^(len(sig)-1+e10), 10^(len(sig)+e10)). Beyond +-6000
+    # decimal orders every IEEE format (up to binary128/x87) already rounds to
+    # inf or 0, so clamp instead of building a huge power of ten.
+    mag = len(sig) + e10
+    if mag > _DEC_CLAMP:
+        return Fraction(10) ** _DEC_CLAMP
+    if mag < -_DEC_CLAMP:
+        return Fraction(1, 10 ** _DEC_CLAMP)
     return Fraction(_int_from_digits(digits)) * Fraction(10) ** e10
+
+
+_DEC_CLAMP = 6000
 
 
 def _parse_text(body: str, is_hex: bool) -> Fraction:
