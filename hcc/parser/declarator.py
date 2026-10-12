@@ -10,12 +10,26 @@ DeclaratorMixin provides:
 """
 from __future__ import annotations
 
+from dataclasses import fields
+
 from hcc.parser.scope import VarAttr
-from hcc.nodes import Var
+from hcc import nodes as N
+from hcc.nodes import Node, Var
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
 from hcc import typesys as T
+
+
+def _names_variable(node) -> bool:
+    """True if the expression tree refers to a variable (not a function)."""
+    if isinstance(node, Node):
+        if isinstance(node, N.VarRef) and not isinstance(node.var, N.Function):
+            return True
+        return any(_names_variable(getattr(node, f.name)) for f in fields(node))
+    if isinstance(node, (list, tuple)):
+        return any(_names_variable(x) for x in node)
+    return False
 
 
 class DeclaratorMixin:
@@ -260,6 +274,10 @@ class DeclaratorMixin:
         ty = self.type_suffix(ty)
         self.check_array_elem(ty)
         n = try_eval_const(expr)
+        # C: a block-scope object (even const-qualified) is not an integer constant
+        # expression, so `char [i]` with `const int i = 1;` is still a VLA.
+        if self.fn is not None and n is not None and _names_variable(expr):
+            n = None
         if n is None or ty.kind == T.TypeKind.VLA:
             add_type(expr)
             return T.vla_of(ty, expr)
