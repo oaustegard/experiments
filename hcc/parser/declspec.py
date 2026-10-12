@@ -303,7 +303,8 @@ class DeclSpecMixin:
             for bad in bads:      # C23 `auto` is type inference, not a storage class
                 if bad in seen_storage:
                     self.error(f"'__thread' used with '{bad}'")
-        if auto_infer and counter == 0 and attr is not None:
+        # GNU `const __auto_type x = e;` also yields no type here (ty is None): keep its qualifiers.
+        if attr is not None and (auto_infer and counter == 0 or ty is None and counter == OTHER):
             attr.auto_const = is_const          # qualifiers of `const auto x = e;` (see auto_qualified)
             attr.auto_volatile = is_volatile
             return None         # type comes from the initializer, as for __auto_type

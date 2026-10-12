@@ -23,6 +23,15 @@ def _root(t: Type) -> Type:
     return t
 
 
+def _ret_unqualified(t: Type) -> Type:
+    """Return type with top-level const/volatile dropped (no copy when none present)."""
+    if t is None or not (t.is_const or t.is_volatile):
+        return t
+    t = t.copy()
+    t.is_const = t.is_volatile = False
+    return t
+
+
 def _enum_as_int(t: Type) -> Type:
     """An enum type is compatible with its underlying integer type (C11 6.7.2.2):
     the signed/unsigned integer type of the same size (char, short, int or long)."""
@@ -60,7 +69,9 @@ def is_compatible(a: Type, b: Type) -> bool:
     if k == TypeKind.PTR:
         return is_compatible(a.base, b.base)
     if k == TypeKind.FUNC:
-        if not is_compatible(a.return_ty, b.return_ty):
+        # GCC ignores top-level const/volatile on a function's return type
+        # (`int f(); const int f() {...}` is a valid redeclaration); _Atomic is kept.
+        if not is_compatible(_ret_unqualified(a.return_ty), _ret_unqualified(b.return_ty)):
             return False
         if not a.has_proto or not b.has_proto:
             # Unprototyped vs prototyped (C11 6.7.6.3p15): the prototype must not be
