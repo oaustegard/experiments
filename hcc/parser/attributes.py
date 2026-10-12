@@ -248,6 +248,8 @@ class AttributeMixin:
             attr.is_weakref = True
         elif name == "unavailable" and attr is not None:
             attr.is_unavailable = True
+            if args and args[0].kind == TokenKind.STRING:
+                attr.unavail_msg = args[0].value.rstrip(b"\0").decode("utf-8", "replace")
         elif name in RECORDED_FN_ATTRS and attr is not None:
             attr.fn_attrs.add(name)
         elif name == "copy" and attr is not None and args:

@@ -44,6 +44,7 @@ class VarAttr:
     is_weak: bool = False
     is_weakref: bool = False        # __attribute__((weakref("t"))) on a declaration
     is_unavailable: bool = False    # __attribute__((unavailable)) on the declaration
+    unavail_msg: str | None = None  # the unavailable("msg") text, if any
     fn_attrs: set = field(default_factory=set)  # leaf, returns_nonnull, ... (names only)
     is_nocommon: bool = False       # __attribute__((nocommon)): tentative def goes to .bss
     warn_if_not_aligned: bool = False   # type-only attribute: rejected on objects/functions/fields

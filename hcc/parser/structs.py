@@ -88,6 +88,8 @@ class StructMixin:
         ty.members = members
         ty.is_packed = attr.is_packed
         ty.is_ms_struct = attr.is_ms_struct
+        if attr.is_unavailable:      # struct {...} __attribute__((unavailable)): the type is unavailable
+            ty.unavail_msg = attr.unavail_msg or ""
         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
         if kind == T.TypeKind.STRUCT:
             layout_struct(ty)
