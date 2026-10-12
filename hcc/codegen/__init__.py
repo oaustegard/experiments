@@ -8,10 +8,14 @@ Stack-machine design: expressions leave their value in %rax / %xmm0 / st(0).
 """
 from __future__ import annotations
 
+import re
+
 from hcc import nodes as N
 from hcc.codegen.context import CodeGenBase
 from hcc.codegen.lazy_inline import lazy_functions, needed_lazy
 from hcc.registry import assemble_mixins
+
+_ASM_WEAK_RE = re.compile(r"\.weak\s+([A-Za-z_.$][\w.$]*)")
 
 
 # Every `*Mixin` class in a module of hcc/codegen/ is a base (hcc/registry.py):
@@ -20,6 +24,11 @@ class CodeGen(*assemble_mixins("hcc.codegen", CodeGenBase)):
 
     def run(self) -> str:
         self.directive(f'.file "{getattr(self.opts, "source_name", "") or "hcc"}"')
+        # `#pragma weak sym` arrives as file-scope asm ".weak sym": such a symbol
+        # is weak even though its Var is not flagged, so it must not become .comm.
+        self.asm_weak_syms = {m.group(1) for obj in self.tu.objs
+                              if isinstance(obj, N.Asm)
+                              for m in _ASM_WEAK_RE.finditer(obj.text)}
         lazy = lazy_functions(self.tu)
         lazy_ids = {id(f) for f in lazy}
         needed = needed_lazy(self.tu, lazy) if lazy else set()

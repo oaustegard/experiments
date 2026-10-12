@@ -24,7 +24,8 @@ class DataMixin:
         size = max(ty.size, 0)
         if var.init_data is None:
             if not var.is_static and not var.is_tls and not var.section \
-                    and not var.is_weak and not var.is_nocommon:
+                    and not var.is_weak and not var.is_nocommon \
+                    and sym not in self.asm_weak_syms:
                 # Tentative definition (C11 6.9.2): emit as a common symbol so
                 # that it merges with a real definition in another object.
                 self.directive(f".comm {sym},{max(size, 1)},{align}")
