@@ -22,6 +22,7 @@ from hcc.typesys import TypeKind
 from hcc.typesys import TypeKind, is_struct_like
 from hcc.parser.va_pack import is_pack_placeholder
 from hcc.parser.arg_check import check_call_arg
+from hcc.parser.incomplete_check import check_value_use
 
 
 def _array_chain_is_vla(ty):
@@ -110,6 +111,7 @@ class PostfixMixin:
             if args:
                 self.expect(",")
             args.append(self.typed(self.assign()))
+            check_value_use(self, args[-1])
         return self.build_call(fn, args, loc)
 
     def call_type(self, fn, loc):

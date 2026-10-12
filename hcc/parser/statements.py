@@ -10,6 +10,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser import complex as CPX
+from hcc.parser.incomplete_check import check_value_use
 from hcc.sema.constexpr import eval_const
 from hcc.sema.void_value import require_value
 from hcc.sema.conversions import new_cast
@@ -78,6 +79,7 @@ class StatementMixin:
         if self.is_typename() and t.text != "__extension__":
             return N.Block(t.loc, self.local_declaration())     # declaration after label
         node = self.expr()
+        check_value_use(self, node)
         self.expect(";")
         return N.ExprStmt(t.loc, node)
 

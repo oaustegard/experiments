@@ -16,6 +16,7 @@ from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 from hcc.parser.attributes import mode_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
+from hcc.parser.incomplete_check import is_incomplete_object
 from hcc.parser.redecl import check_redecl
 from hcc.parser.knr_check import knr_param_index
 
@@ -103,6 +104,9 @@ class TopLevelMixin:
                     return
             else:
                 check_redecl(self, self.scopes[0], name, "var")
+                if not attr.is_extern and ty.kind == T.TypeKind.ENUM and is_incomplete_object(ty):
+                    # An enum forward reference can never gain a body, so the size stays unknown.
+                    self.error(f"storage size of '{name.text}' isn't known", name)
                 var = self.declare_global_var(ty, name, attr, dattr)
                 var.is_constexpr = attr.is_constexpr
                 if self.accept("="):

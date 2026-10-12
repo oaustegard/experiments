@@ -15,6 +15,7 @@ from dataclasses import fields
 from hcc.parser.scope import VarAttr
 from hcc import nodes as N
 from hcc.nodes import Node, Var
+from hcc.parser.incomplete_check import check_value_use
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
@@ -266,6 +267,7 @@ class DeclaratorMixin:
             return T.vla_of(ty, None)
         expr = self.assign()
         self.expect("]")
+        check_value_use(self, self.typed(expr))
         ty = self.type_suffix(ty)
         self.check_array_elem(ty)
         n = try_eval_const(expr)
