@@ -178,7 +178,7 @@ class InitializerMixin:
             return
         init.expr = self.typed(self.assign())
         if init.ty.is_complex or init.expr.ty.is_complex:
-            if self.fn is None:
+            if self.fn is None or self.in_static_init:    # file scope or static local
                 CC.set_global_init(self, init)
             else:
                 init.expr = CPX.convert(self, init.expr, init.ty, init.expr.loc)

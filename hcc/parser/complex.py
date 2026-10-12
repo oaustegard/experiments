@@ -17,6 +17,7 @@ Division uses the textbook formula (no C Annex G inf/NaN recovery).
 
     complex_decl_type(p, ty)      declspec: `_Complex` applied to a base type
     complex_literal(p, loc, v, cty)   imaginary constant -> complex temporary
+    make_complex(p, loc, re, im)  __builtin_complex(re, im)
     binary(p, op, lhs, rhs, loc)  arithmetic / equality with a complex operand
     negate(p, operand, loc)       unary minus on a complex operand
     part(p, operand, which, loc)  __real__ (0) / __imag__ (1) lvalue or rvalue
@@ -179,6 +180,22 @@ def negate(p, operand, loc):
     return CC.attach(_seq(p, loc, pre, _vref(p, res, loc)), cval, operand.ty.base)
 
 
+def make_complex(p, loc, re, im):
+    """`__builtin_complex(re, im)`: both parts real floating values of one type T
+    (the wider one if they differ) give a `_Complex T`."""
+    for e in (re, im):
+        if e.ty.is_complex or not is_flonum(e.ty):
+            p.error("__builtin_complex operands must be real floating-point values", loc)
+    base = _common_base(p, [re, im], loc)
+    cty = complex_of(base)
+    tmp = p.new_temp(cty, loc)
+    pre = [_assign(p, loc, _part(p, tmp, 0, loc), new_cast(re, base)),
+           _assign(p, loc, _part(p, tmp, 1, loc), new_cast(im, base))]
+    vr, vi = CC.real_value(re), CC.real_value(im)
+    cval = (vr, vi) if vr is not None and vi is not None else None
+    return CC.attach(_seq(p, loc, pre, _vref(p, tmp, loc)), cval, base)
+
+
 def part(p, operand, which, loc):
     """`__real__ operand` (which=0) or `__imag__ operand` (which=1)."""
     t = operand.ty
@@ -219,6 +236,8 @@ def convert(p, expr, ty, loc):
         if not (is_integer(ty) or is_flonum(ty)):
             p.error(f"invalid conversion from '{expr.ty}' to '{ty}'", loc)
         tmp = p.new_temp(expr.ty, loc)
-        return _seq(p, loc, [_assign(p, loc, _vref(p, tmp, loc), expr)],
+        cv = CC.value_of(expr)
+        real = _seq(p, loc, [_assign(p, loc, _vref(p, tmp, loc), expr)],
                     new_cast(_part(p, tmp, 0, loc), ty))
+        return CC.attach(real, None if cv is None else (cv[0], 0), ty) if cv is not None else real
     return new_cast(expr, ty)

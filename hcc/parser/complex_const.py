@@ -26,7 +26,21 @@ def value_of(node):
         return (node.value, 0)
     if isinstance(node, N.FloatLit):
         return (node.value, 0.0)
+    if isinstance(node, N.Unary) and node.op in ("-", "+") and not node.ty.is_complex:
+        cv = value_of(node.operand)
+        if cv is not None:
+            return (store_value(node.ty, -cv[0] if node.op == "-" else cv[0]), 0)
+    if isinstance(node, N.Cast) and not node.ty.is_complex and (is_flonum(node.ty) or is_integer(node.ty)):
+        cv = value_of(node.operand)      # a real cast, or the real part of a complex constant
+        if cv is not None:
+            return (store_value(node.ty, cv[0]), 0)
     return None
+
+
+def real_value(node):
+    """Compile-time value of a real operand (literals and casts of them), or None."""
+    cv = value_of(node)
+    return None if cv is None else cv[0]
 
 
 def store_value(base, v):
@@ -82,12 +96,17 @@ def attach(node, cval, base):
 
 def set_global_init(p, init) -> None:
     """File-scope complex initializer: one constant leaf per part (struct children)."""
-    if not init.ty.is_complex:
-        p.error("complex value used to initialize a real object is not supported", init.expr.loc)
     loc = init.expr.loc
     cv = value_of(init.expr)
     if cv is None:
         p.error("initializer element is not constant", loc)
+    if not init.ty.is_complex:         # a real object takes the real part (GNU)
+        if not (is_flonum(init.ty) or is_integer(init.ty)):
+            p.error("complex value used to initialize a non-arithmetic object", loc)
+        v = store_value(init.ty, cv[0])
+        init.expr = p.typed(N.FloatLit(loc, float(v), ty=init.ty) if is_flonum(init.ty)
+                            else N.IntLit(loc, int(v), ty=init.ty))
+        return
     base = init.ty.base
     init.children = [N.Initializer(base), N.Initializer(base)]
     for child, v in zip(init.children, store_value_pair(base, cv)):

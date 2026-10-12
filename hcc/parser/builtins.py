@@ -26,6 +26,7 @@ from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
 from hcc.parser.vector_shufflevector import lower_shufflevector
 from hcc.parser.tgmath import tgmath_call
+from hcc.parser.complex import make_complex
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
 from hcc.sema.conversions import new_cast
@@ -55,6 +56,7 @@ __builtin_fpclassify __builtin_isnormal __builtin_isinf_sign
 __builtin_isless __builtin_islessequal __builtin_islessgreater
 __builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
 __builtin_object_size __builtin_dynamic_object_size __builtin_has_attribute
+__builtin_complex
 """.split())
 
 # SSE4.2 CRC32 builtins: (crc, value) -> CRC-32C accumulated over the value's width.
@@ -117,6 +119,11 @@ class BuiltinParseMixin:
             node = getattr(self, "_b_" + name)(tok)
         self.expect(")")
         return node
+
+    def _b_complex(self, tok):
+        """__builtin_complex(re, im): a _Complex value (see parser/complex.py)."""
+        re, im = self._args(2)
+        return make_complex(self, tok.loc, re, im)
 
     def _b_tgmath(self, tok):
         return tgmath_call(self, tok)

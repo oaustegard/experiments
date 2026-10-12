@@ -183,36 +183,39 @@ def _same_size_operand(expr, ty):
     return expr
 
 
-def _label_difference(expr):
-    """`&&a - &&b` (possibly cast) -> (a, b, addend) for an assembler-resolved reloc, else None."""
+def _label_terms(expr, sign, terms):
+    """Accumulate `sign * (label terms + constant)` of an address-constant sum/difference
+    into `terms` ({label: coefficient}); returns the constant part. Raises NotConstant."""
     while isinstance(expr, N.Cast):
         expr = expr.operand
     # pointer difference is lowered to (a - b) / elemsize; only elemsize 1 is a plain byte difference
     if isinstance(expr, N.Binary) and expr.op == "/" and isinstance(expr.rhs, N.IntLit) and expr.rhs.value == 1:
         expr = expr.lhs
-    if not (isinstance(expr, N.Binary) and expr.op in ("+", "-")):
-        return None
-    if expr.op == "-":
-        try:
-            la, a = eval_reloc(expr.lhs)
-            lb, b = eval_reloc(expr.rhs)
-        except NotConstant:
-            la = None
-        else:
-            if la is not None and lb is not None:
-                return la, lb, a - b
-    # `(&&a - &&b) +/- k`: a label difference plus an integer constant
-    base = _label_difference(expr.lhs)
-    if base is None:
-        return None
+    if isinstance(expr, N.Binary) and expr.op in ("+", "-"):
+        rsign = sign if expr.op == "+" else -sign
+        return (_label_terms(expr.lhs, sign, terms)
+                + _label_terms(expr.rhs, rsign, terms))
+    label, v = eval_reloc(expr)
+    if label is not None:
+        terms[label] = terms.get(label, 0) + sign
+    return sign * v
+
+
+def _label_difference(expr):
+    """`&&a - &&b` (possibly cast, summed or with an integer constant) -> (a, b, addend)
+    for an assembler-resolved reloc, else None. Labels cancel: `(&&a-&&b)+(&&c-&&a)`
+    is `&&c - &&b`."""
+    terms: dict = {}
     try:
-        lc, c = eval_reloc(expr.rhs)
+        addend = _label_terms(expr, 1, terms)
     except NotConstant:
         return None
-    if lc is not None:
+    live = {lab: c for lab, c in terms.items() if c != 0}
+    pos = [lab for lab, c in live.items() if c == 1]
+    neg = [lab for lab, c in live.items() if c == -1]
+    if len(live) != 2 or len(pos) != 1 or len(neg) != 1:
         return None
-    a, b, addend = base
-    return a, b, addend + (c if expr.op == "+" else -c)
+    return pos[0], neg[0], addend
 
 
 def _static_scalar(expr, ty):
