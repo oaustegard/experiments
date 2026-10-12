@@ -174,6 +174,7 @@ class TopLevelMixin:
     def declare_global_var(self, ty, name, attr, dattr) -> N.Var:
         vs = self.scopes[0].vars.get(name.text)
         var = vs.var if vs is not None and isinstance(vs.var, N.Var) else None
+        self.check_redecl_type(var, name.text, ty, name)
         if var is None:
             var = N.Var(name.text, ty, loc=name.loc, align=ty.align)
             self.scopes[0].vars[name.text] = VarScope(var=var)

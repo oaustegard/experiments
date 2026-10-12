@@ -150,6 +150,9 @@ class ParserBase:
     def new_lvar(self, name: str, ty: Type, loc=None) -> Var:
         v = Var(name, ty, loc=loc, is_local=True, is_definition=True, align=ty.align,
                 scope=self.var_scope_path())
+        prev = self.scopes[-1].vars.get(name)
+        if prev is not None and isinstance(prev.var, Var):
+            self.check_redecl_type(prev.var, name, ty, loc)
         self.push_scope_entry(name).var = v
         self.locals.append(v)
         return v
