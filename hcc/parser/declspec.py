@@ -76,7 +76,9 @@ STORAGE_CLASSES = frozenset(("typedef", "static", "extern", "auto", "register"))
 # with the same representation; _Float16 is IEEE binary16 (see codegen/half.py).
 FLOATN_TYPES = {"_Float16": T.TY_FLOAT16, "_Float32": T.TY_FLOAT32, "_Float64": T.TY_FLOAT64,
                 "_Float32x": T.TY_FLOAT32X, "_Float64x": T.TY_FLOAT64X,
-                "_Float128": T.TY_FLOAT128, "_Float128x": T.TY_FLOAT128}
+                "_Float128": T.TY_FLOAT128}
+# _Float128x is deliberately absent: like gcc on x86-64 it is not a supported type, so
+# it stays a plain identifier and is rejected as an unknown type name.
 # _Decimal32/64/128 (TR 24732): BID-encoded decimal floating types, see codegen/decimal.py.
 DECIMAL_TYPES = {"_Decimal32": T.TY_DEC32, "_Decimal64": T.TY_DEC64, "_Decimal128": T.TY_DEC128}
 NAMED_SCALAR_TYPES = {**FLOATN_TYPES, **DECIMAL_TYPES}
