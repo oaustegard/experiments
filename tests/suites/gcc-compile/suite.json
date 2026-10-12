@@ -1,0 +1,6 @@
+{
+  "description": "gcc.c-torture/compile (2016 files, GCC master). Compile-only: PASS = the compiler's -S succeeds and `as` accepts the output (driver compileonly). skip.txt lists dg-error tests, other-target/unsupported-feature tests and tests gcc -O0 -w itself rejects. Per-test flags from dg-options in <test>.c.flags. Regenerate with tests/scripts/import_gcc_compile.py.",
+  "driver": "compileonly",
+  "glob": ["*.c"],
+  "cflags": ["-w"]
+}
