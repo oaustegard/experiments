@@ -131,8 +131,12 @@ class TopLevelMixin:
             fn = N.Function(name.text, ty, loc=name.loc)
             self.scopes[0].vars[name.text] = VarScope(var=fn)
             self.objs.append(fn)
-        elif ty.has_proto or not fn.ty.has_proto:
-            fn.ty = ty
+        else:
+            if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
+                    (fn.is_definition or fn.alias_of or fn.ifunc_of):
+                self.error(f"redefinition of '{name.text}'", name.loc)
+            if ty.has_proto or not fn.ty.has_proto:
+                fn.ty = ty
         fn.is_static |= attr.is_static
         fn.is_inline |= attr.is_inline
         fn.is_noreturn |= attr.is_noreturn or dattr.is_noreturn
