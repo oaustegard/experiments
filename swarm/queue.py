@@ -24,6 +24,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import re
 import sys
 from dataclasses import asdict, dataclass, field
@@ -123,12 +124,18 @@ def build(results: dict, ledger: dict | None = None, source_size=None, limit: in
     busy_keys, busy_tests = set(), set()
     attempts: dict[str, int] = {}
     sig_fails: dict[str, int] = {}
+    # SWARM_ATTEMPT_EPOCH (unix time): attempts launched before it don't count toward parking. Set it
+    # after a harness fix, so tests parked on harness failures get fresh attempts (2026-10-12: Haiku
+    # solved 10/10 abandoned clusters cold once the harness bugs that parked them were fixed).
+    epoch = float(os.environ.get("SWARM_ATTEMPT_EPOCH") or 0)
     for r in ledger.values():
         if r.get("status") in ("launched", "finished"):
             busy_keys.add(r.get("key"))
             busy_tests.update(r.get("tests", []))
         elif r.get("status") == "rejected" and str(r.get("reason", "")).startswith(("conflict", "main kept moving")):
             continue   # a good fix that lost a merge race: the next worker rebases it, no penalty
+        elif (r.get("t_launch") or 0) < epoch:
+            continue
         elif r.get("status") in ("rejected", "failed", "reverted"):
             sig_fails[r.get("signature")] = sig_fails.get(r.get("signature"), 0) + 1
             # a worker that died without a result (rate limit, timeout) counts half
