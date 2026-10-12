@@ -127,7 +127,7 @@ class DeclSpecMixin:
         counter = 0
         vsize = 0
         auto_infer = False
-        is_const = is_volatile = is_atomic = False
+        is_const = is_volatile = is_atomic = is_complex = False
         while self.is_typename():
             if self.at_std_attribute():
                 self.skip_std_attributes()
@@ -155,8 +155,11 @@ class DeclSpecMixin:
                 elif s == "auto":
                     auto_infer = self.c23_mode()    # C23 `auto x = expr;`: no type given
                 continue
-            if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "_Complex",
-                     "__complex__", "__complex", "__label__"):
+            if s in ("_Complex", "__complex__", "__complex"):
+                self.next()
+                is_complex = True
+                continue
+            if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "__label__"):
                 self.next()
                 is_const |= s in ("const", "constexpr")  # C23 constexpr objects are const
                 is_volatile |= s == "volatile"
@@ -234,6 +237,8 @@ class DeclSpecMixin:
             ty = _BASE_TYPES[counter]
         if auto_infer and counter == 0 and attr is not None:
             return None         # type comes from the initializer, as for __auto_type
+        if is_complex:
+            ty = self.complex_specifier(ty, counter)
         if attr is not None and attr.vector_size and ty is not None:
             ty = T.vector_of(ty, attr.vector_size)
             attr.vector_size = 0
@@ -243,7 +248,7 @@ class DeclSpecMixin:
             # __attribute__((mode(QI/HI/SI/DI/TI))) re-sizes an integer base type
             ty = mode_type(ty, attr.mode)
             attr.mode = None
-        if counter == 0 and attr is None and not (is_const or is_volatile):
+        if counter == 0 and attr is None and not (is_const or is_volatile or is_complex):
             self.error("expected type")
         if ty is not None and (is_const or is_volatile or is_atomic):
             ty = ty.copy()
@@ -251,6 +256,15 @@ class DeclSpecMixin:
             ty.is_volatile |= is_volatile
             ty.is_atomic |= is_atomic
         return ty
+
+    def complex_specifier(self, ty, counter):
+        """`_Complex` (GNU/C99): `_Complex` alone is `_Complex double`."""
+        if ty is None or counter == 0:
+            return T.complex_of(T.TY_DOUBLE)
+        is_int = T.is_integer(ty) and ty.size <= 8 and ty.kind != T.TypeKind.BOOL
+        if not is_int and ty.kind not in (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE):
+            self.error(f"'_Complex' cannot be applied to '{ty}'")
+        return T.complex_of(ty)
 
     def typeof_specifier(self, unqual=False):
         self.expect("(")

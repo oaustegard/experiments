@@ -11,6 +11,7 @@ CallMixin.expr_Call(node):
 from __future__ import annotations
 
 from hcc.codegen.abi import abi_kind, is_memory_struct, struct_arg_regs, struct_in_regs
+from hcc.codegen.complex_ld import is_ld_complex, ld_store_result
 from hcc.codegen.context import ARG_REGS64
 from hcc.codegen.half import FROM_ABI_HALF, TO_ABI_HALF
 from hcc.typesys import TypeKind, align_to
@@ -206,6 +207,8 @@ class CallMixin:
 
     def copy_ret_regs_to_buffer(self, ty, off: int) -> None:
         """After a call returning a small struct in rax/rdx/xmm0/xmm1."""
+        if is_ld_complex(ty):
+            return ld_store_result(self, off)
         regs = struct_in_regs(ty)
         if regs is None:
             return

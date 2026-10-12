@@ -10,6 +10,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.arith import new_add
+from hcc.sema.complex import complex_static_parts
 from hcc.sema.constexpr import NotConstant, eval_float, eval_reloc, float_to_int
 from hcc import typesys as T
 from hcc.floatbits import pack_float32, pack_float64
@@ -131,21 +132,26 @@ def _write_le(init, ty, gd, offset) -> None:
         gd.relocs.extend(N.Reloc(offset + r.offset, r.label, r.addend, r.size, r.minus)
                          for r in src.relocs)
         return
+    if T.is_complex(ty):
+        try:
+            re, im = complex_static_parts(expr)
+        except NotConstant:
+            diag.error(expr, "initializer element is not constant", "sema")
+        if T.is_integer(ty.base):                 # _Complex <integer>: truncate each part
+            for i, v in enumerate((int(re), int(im))):
+                off = offset + i * ty.base.size
+                gd.data[off:off + ty.base.size] = (v & ((1 << (ty.base.size * 8)) - 1)).to_bytes(
+                    ty.base.size, "little")
+            return
+        _write_flonum(gd, offset, ty.base, re)
+        _write_flonum(gd, offset + ty.base.size, ty.base, im)
+        return
     if T.is_flonum(ty):
         try:
             v = eval_float(expr)
         except NotConstant:
             diag.error(expr, "initializer element is not constant", "sema")
-        if ty.kind == T.TypeKind.FLOAT16:
-            gd.data[offset:offset + 2] = half_bits(v).to_bytes(2, "little")
-        elif ty.kind == T.TypeKind.FLOAT:
-            gd.data[offset:offset + 4] = pack_float32(v)
-        elif ty.kind == T.TypeKind.DOUBLE:
-            gd.data[offset:offset + 8] = pack_float64(v)
-        else:
-            exact = _exact_x87_bits(expr)
-            gd.data[offset:offset + 10] = (exact.to_bytes(10, "little") if exact is not None
-                                           else float_to_x87(v))
+        _write_flonum(gd, offset, ty, v, expr)
         return
     try:
         label, v = _static_scalar(expr, ty)
@@ -156,6 +162,20 @@ def _write_le(init, ty, gd, offset) -> None:
         return
     size = ty.size
     gd.data[offset:offset + size] = (v & ((1 << (size * 8)) - 1)).to_bytes(size, "little")
+
+
+def _write_flonum(gd, offset, ty, v, src=None) -> None:
+    """Store float value v of type ty at offset; src is the literal node (exact long double bits)."""
+    if ty.kind == T.TypeKind.FLOAT16:
+        gd.data[offset:offset + 2] = half_bits(v).to_bytes(2, "little")
+    elif ty.kind == T.TypeKind.FLOAT:
+        gd.data[offset:offset + 4] = pack_float32(v)
+    elif ty.kind == T.TypeKind.DOUBLE:
+        gd.data[offset:offset + 8] = pack_float64(v)
+    else:
+        exact = _exact_x87_bits(src) if src is not None else None
+        gd.data[offset:offset + 10] = (exact.to_bytes(10, "little") if exact is not None
+                                       else float_to_x87(v))
 
 
 def _static_compound_literal(expr):

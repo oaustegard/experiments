@@ -142,6 +142,7 @@ hcc/
     atomic_builtins.py __atomic_* (stdatomic.h) parsing; codegen/atomics.py lowers them
     vector_shuffle.py  __builtin_shuffle on GCC vectors, lowered to element stores
     vector_shufflevector.py  __builtin_shufflevector on GCC vectors (constant indices), element stores
+    complex_temps.py   result buffers for _Complex values (Binary/Unary/Cast/ComplexLit/Call)
 
   sema/
     __init__.py        re-exports
@@ -154,6 +155,7 @@ hcc/
     initializers.py    Initializer -> local assignment exprs; Initializer ->
                        static bytes + relocations (GlobalData)
     compat.py          type compatibility (is_compatible)
+    complex.py         _Complex operand rules, constant complex parts (static init, ==)
 
   codegen/
     __init__.py        generate(tu, opts) -> str ; CodeGen class assembly
@@ -180,6 +182,7 @@ hcc/
     atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs
     asm.py             inline asm statements (basic + extended)
     fpclassify.py      __builtin_fpclassify / isnormal / isinf_sign (bit-level classes)
+    complex.py         _Complex (float/double): literals, casts, + - * / ==, neg; complex_int.py / complex_ld.py: integer and x87 parts
 
   include/             (optional) hcc's own override headers, searched before
                        the system dirs (e.g. a future stdatomic.h)

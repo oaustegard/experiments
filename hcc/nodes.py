@@ -128,6 +128,24 @@ class FloatLit(Expr):
 
 
 @dataclass(eq=False)
+class ComplexPart(Expr):
+    """`__real__ z` (imag=False) or `__imag__ z` of a complex operand; ty is the part type."""
+    imag: bool
+    operand: Expr
+
+
+@dataclass(eq=False)
+class ComplexLit(Expr):
+    """Imaginary constant `1.5i` (re=0.0) or a complex value; ty is `_Complex T`.
+
+    result_buf: anonymous local holding the two parts (set by the parser).
+    """
+    re: float
+    im: float
+    result_buf: Obj | None = field(default=None, kw_only=True)
+
+
+@dataclass(eq=False)
 class StrLit(Expr):
     """String literal; `data` includes the terminating NUL (element-sized)."""
     data: bytes
@@ -203,8 +221,12 @@ class Comma(Expr):
 
 @dataclass(eq=False)
 class Cast(Expr):
-    """Conversion of `operand` to `self.ty`."""
+    """Conversion of `operand` to `self.ty`.
+
+    result_buf: for complex-valued casts, the anonymous local that holds the result.
+    """
     operand: Expr
+    result_buf: Obj | None = field(default=None, kw_only=True)
 
 
 @dataclass(eq=False)

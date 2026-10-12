@@ -5,7 +5,9 @@ StatementMixin: one `stmt_<NodeClass>` method per statement node.
 """
 from __future__ import annotations
 
+from hcc import diag
 from hcc.codegen.abi import abi_kind, is_memory_struct, struct_in_regs
+from hcc.codegen.complex_ld import is_ld_complex, ld_return
 from hcc.codegen.half import TO_ABI_HALF
 from hcc.nodes import BuiltinCall as BuiltinCallNode, ExprStmt as ExprStmtNode
 from hcc.sema.constexpr import try_eval_const
@@ -255,6 +257,10 @@ class StatementMixin:
         if node.expr is not None:
             self.gen_expr(node.expr)
             ty = node.expr.ty
+            if is_ld_complex(ty):
+                ld_return(self)
+                self.emit(f"jmp .L.return.{self.fn.symbol}")
+                return
             if ty.kind == TypeKind.FLOAT16:
                 self.emit(TO_ABI_HALF)
             if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):

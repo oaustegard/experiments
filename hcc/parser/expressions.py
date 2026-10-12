@@ -11,6 +11,7 @@ Postfix and primary expressions live in postfix.py / primary.py.
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc import typesys as T
 from hcc.sema.arith import compound_assign, inc_dec, new_add, new_binop, new_sub
 from hcc.sema.constexpr import eval_const
 from hcc.parser.vector_broadcast import promote_vector_operands
@@ -73,6 +74,8 @@ class ExpressionMixin:
     def check_assignable(self, node, tok) -> None:
         if isinstance(node, (N.VarRef, N.Deref, N.Member_)):
             return
+        if isinstance(node, N.ComplexPart) and isinstance(node.operand, (N.VarRef, N.Deref, N.Member_)):
+            return      # __real__ z / __imag__ z of an lvalue z
         if isinstance(node, N.Comma) and node.lvalue:     # compound literal
             return
         if isinstance(node, N.Cast) and isinstance(node.operand, (N.VarRef, N.Deref, N.Member_)) \
@@ -144,8 +147,9 @@ class ExpressionMixin:
             lowered = lower_scalar_to_vector(self, loc, self.typed(operand), ty.unqual())
             if lowered is not None:
                 return self.vla_prefix(pre, lowered, loc)
-            node = N.Cast(loc, operand, ty=ty.unqual())
             self.typed(operand)
+            _check_complex_cast(self, loc, ty, operand)
+            node = N.Cast(loc, operand, ty=ty.unqual())
             return self.vla_prefix(pre, node, loc)
         return self.unary()
 
@@ -223,7 +227,7 @@ class ExpressionMixin:
                 return self.cast_expr()
             if s in ("__real__", "__imag__"):
                 self.next()
-                return self.cast_expr()       # TODO: _Complex
+                return complex_part(self, t, s == "__imag__", self.cast_expr())
         return self.postfix()
 
     def sizeof_expr(self):
@@ -255,3 +259,24 @@ class ExpressionMixin:
 
 
 __all__ = ["ExpressionMixin", "new_add", "new_sub", "new_cast", "inc_dec", "TY_INT"]
+
+
+def complex_part(parser, t, imag: bool, operand):
+    """GNU `__real__ z` / `__imag__ z`. A real operand is its own real part
+    and has imaginary part 0 (C99 Annex G.6.3)."""
+    if T.is_complex(operand.ty):
+        return parser.typed(N.ComplexPart(t.loc, imag, operand))
+    if imag:
+        return new_cast(N.IntLit(t.loc, 0, ty=T.TY_INT), operand.ty)
+    return operand
+
+
+def _check_complex_cast(parser, loc, ty, operand) -> None:
+    """C99 6.3.1.7: only arithmetic types convert to and from complex types."""
+    src = operand.ty
+    if T.is_complex(ty) and not (T.is_numeric(src) or T.is_complex(src)):
+        what = "aggregate value" if src.kind in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY) \
+            else "pointer value"
+        parser.error(f"{what} used where a complex was expected")
+    if T.is_complex(src) and not (T.is_numeric(ty) or T.is_complex(ty)):
+        parser.error("complex value used where a non-complex scalar was expected")

@@ -17,7 +17,7 @@ from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
 from dataclasses import fields, is_dataclass
 
-from hcc.typesys import TypeKind, is_flonum, is_integer
+from hcc.typesys import TypeKind, is_complex, is_flonum, is_integer
 from hcc.halfbits import half_bits, half_to_float_bits
 
 
@@ -187,6 +187,8 @@ class ExpressionMixin:
         self.gen_expr(node.rhs)
 
     def expr_Cast(self, node) -> None:
+        if is_complex(node.ty) or is_complex(node.operand.ty):
+            return self.complex_cast(node)
         if is_flonum(node.operand.ty) and is_integer(node.ty):
             # constant float->int conversions are folded (saturating, like GCC)
             folded = try_eval_const(node)
@@ -220,6 +222,8 @@ class ExpressionMixin:
         self.label(end)
 
     def expr_Unary(self, node) -> None:
+        if is_complex(node.ty):
+            return self.complex_neg(node)
         if node.result_buf is not None:
             if node.op == "-":
                 self.vector_neg(node)

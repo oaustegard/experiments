@@ -15,7 +15,7 @@ from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
 from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_flonum, is_integer,
-                         is_numeric, pointer_to, vector_of)
+                         is_complex, is_numeric, pointer_to, vector_of)
 
 
 def _t(node):
@@ -46,6 +46,10 @@ def _func_decay(node):
     return node
 
 
+def _arith(ty) -> bool:
+    return is_numeric(ty) or is_complex(ty)
+
+
 def _is_ptr(ty) -> bool:
     return ty.base is not None and ty.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.VLA)
 
@@ -54,7 +58,7 @@ def new_add(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
     lhs, rhs = _func_decay(lhs), _func_decay(rhs)
-    if is_numeric(lhs.ty) and is_numeric(rhs.ty):
+    if _arith(lhs.ty) and _arith(rhs.ty):
         return _t(narrow_wide_bitfield_result("+", lhs, rhs, _t(N.Binary(loc, "+", lhs, rhs))))
     if _is_ptr(lhs.ty) and _is_ptr(rhs.ty):
         diag.error(loc, "invalid operands to binary +", "sema")
@@ -71,7 +75,7 @@ def new_sub(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
     lhs, rhs = _func_decay(lhs), _func_decay(rhs)
-    if is_numeric(lhs.ty) and is_numeric(rhs.ty):
+    if _arith(lhs.ty) and _arith(rhs.ty):
         return _t(narrow_wide_bitfield_result("-", lhs, rhs, _t(N.Binary(loc, "-", lhs, rhs))))
     if _is_ptr(lhs.ty) and is_numeric(rhs.ty):
         size = _elem_size(lhs.ty, loc)

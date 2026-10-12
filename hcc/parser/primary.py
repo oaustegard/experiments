@@ -41,6 +41,8 @@ class PrimaryMixin:
             self.next()
             if T.is_flonum(t.ty):
                 return N.FloatLit(t.loc, t.value, ty=t.ty, bits=getattr(t.value, "x87", None))
+            if T.is_complex(t.ty):          # imaginary constant: 0 + value*i
+                return N.ComplexLit(t.loc, 0.0, t.value, ty=t.ty)
             return N.IntLit(t.loc, t.value, ty=t.ty)
         if k == TokenKind.CHAR:
             self.next()

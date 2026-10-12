@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import fields, is_dataclass
 
 from hcc.codegen.expressions import _contains_call
-from hcc.typesys import TypeKind, is_flonum
+from hcc.typesys import TypeKind, is_complex, is_flonum
 
 _SETCC = {"==": ("sete", "sete"), "!=": ("setne", "setne"), "<": ("setl", "setb"),
           "<=": ("setle", "setbe"), ">": ("setg", "seta"), ">=": ("setge", "setae")}
@@ -29,6 +29,8 @@ def _contains_comma(node) -> bool:
 class ArithMixin:
 
     def expr_Binary(self, node) -> None:
+        if is_complex(node.lhs.ty):
+            return self.complex_binary(node)
         if node.result_buf is not None:
             return self.vector_binary(node)
         lty = node.lhs.ty

@@ -23,6 +23,8 @@ def has_flonum(ty, lo: int, hi: int, offset: int = 0) -> bool:
             if not has_flonum(ty.base, lo, hi, offset + ty.base.size * i):
                 return False
         return True
+    if k == TypeKind.COMPLEX:            # float/double parts are SSE; integer parts are INTEGER
+        return ty.base.kind in (TypeKind.FLOAT, TypeKind.DOUBLE)
     return offset < lo or hi <= offset or k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE)
 
 
@@ -53,7 +55,10 @@ def has_unaligned(ty) -> bool:
 
 
 def is_memory_struct(ty) -> bool:
-    """Struct/union returned via a hidden pointer (SysV MEMORY class)."""
+    """Struct/union returned via a hidden pointer (SysV MEMORY class).
+    Complex long double is returned in x87 registers (codegen/complex_ld.py)."""
+    if ty.kind == TypeKind.COMPLEX:
+        return False
     return ty.size > 16 or has_unaligned(ty)
 
 
@@ -74,9 +79,10 @@ def struct_in_regs(ty):
 
 
 def abi_kind(ty):
-    """TypeKind used for call/return ABI decisions: GCC vector values are
-    passed and returned like structs (their address is the value)."""
-    return TypeKind.STRUCT if ty.is_vector else ty.kind
+    """TypeKind used for call/return ABI decisions: GCC vector values and
+    _Complex values are passed and returned like structs (their address is the
+    value; complex parts are SSE eightbytes, see has_flonum)."""
+    return TypeKind.STRUCT if ty.is_vector or ty.kind == TypeKind.COMPLEX else ty.kind
 
 
 def eightbytes(ty) -> int:

@@ -21,6 +21,7 @@ class TypeKind(Enum):
     LONG = "long"
     LLONG = "long long"
     INT128 = "__int128"
+    COMPLEX = "_Complex"
     FLOAT16 = "_Float16"
     FLOAT = "float"
     DOUBLE = "double"
@@ -142,6 +143,8 @@ def type_str(t: Type) -> str:
         return f"{type_str(t.return_ty)}({ps})"
     if k in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ENUM):
         return f"{q}{k.value} {t.tag or '<anon>'}"
+    if k == TypeKind.COMPLEX:
+        return f"{q}_Complex {type_str(t.base)}"
     u = "unsigned " if t.is_unsigned and k not in (TypeKind.BOOL,) else ""
     return f"{q}{u}{k.value}"
 
@@ -225,6 +228,17 @@ def vector_of(base: Type, nbytes: int) -> Type:
     if nbytes & (nbytes - 1) == 0:
         t.align = max(t.align, nbytes)   # GCC aligns a vector to its own size (power of two)
     return t
+
+
+def complex_of(base: Type) -> Type:
+    """C99 `_Complex T` (T float/double/long double): two adjacent T in memory."""
+    t = Type(TypeKind.COMPLEX, 2 * base.size, base.align)
+    t.base = base
+    return t
+
+
+def is_complex(t: Type) -> bool:
+    return t.kind == TypeKind.COMPLEX
 
 
 def vla_of(base: Type, length_expr) -> Type:

@@ -122,6 +122,8 @@ class CastMixin:
 
     def cmp_zero(self, ty) -> None:
         k = ty.kind
+        if k == TypeKind.COMPLEX:
+            return self.complex_cmp_zero(ty)
         if k in (TypeKind.FLOAT16, TypeKind.FLOAT):
             self.emit("xorps %xmm1, %xmm1")
             self.emit("ucomiss %xmm1, %xmm0")

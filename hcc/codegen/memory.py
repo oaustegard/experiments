@@ -15,7 +15,8 @@ from hcc.codegen.scalar_rev import load_rev_scalar, store_rev_scalar
 from hcc.typesys import TypeKind
 from hcc.codegen.half import LOAD_HALF, STORE_HALF
 
-_NO_LOAD = (TypeKind.ARRAY, TypeKind.STRUCT, TypeKind.UNION, TypeKind.FUNC, TypeKind.VLA)
+_NO_LOAD = (TypeKind.ARRAY, TypeKind.STRUCT, TypeKind.UNION, TypeKind.FUNC, TypeKind.VLA,
+            TypeKind.COMPLEX)
 
 
 class MemoryMixin:
@@ -58,6 +59,11 @@ class MemoryMixin:
             return
         if t is N.Cast:
             self.gen_addr(node.operand)
+            return
+        if t is N.ComplexPart:
+            self.gen_addr(node.operand)           # __real__/__imag__ z is an lvalue
+            if node.imag:
+                self.emit(f"add ${node.operand.ty.base.size}, %rax")
             return
         if t in (N.Call, N.Assign, N.Cond, N.StmtExpr, N.BuiltinCall) and \
                 node.ty.kind in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY):
@@ -102,7 +108,7 @@ class MemoryMixin:
     def store(self, ty) -> None:
         self.pop("%rdi")
         k = ty.kind
-        if k in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY):
+        if k in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.COMPLEX):
             self.copy_struct(ty.size)
             return
         if ty.is_rev_order:

@@ -16,6 +16,7 @@ from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 from hcc.parser.attributes import mode_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
+from hcc.parser.complex_temps import attach_complex_temps
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
@@ -286,6 +287,7 @@ class TopLevelMixin:
             fn.va_tmp = self.new_temp(T.array_of(T.TY_CHAR, 16))  # va_arg scratch for split structs
         body_tok = self.expect("{")
         fn.body = self.compound_stmt_body(body_tok.loc)
+        attach_complex_temps(self, fn.body)
         # VLA-typed params (`int b[a++]`): the dimension is evaluated on entry
         dims = [d for d in ty.param_dims if d is not None]
         if dims:

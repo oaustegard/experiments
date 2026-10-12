@@ -13,7 +13,7 @@ import struct
 from hcc import diag
 from hcc import nodes as N
 from hcc.floatbits import pack_float32
-from hcc.typesys import TypeKind, is_flonum, is_integer, round_to_half
+from hcc.typesys import TypeKind, is_complex, is_flonum, is_integer, round_to_half
 from hcc.sema.constexpr_math import fold_int_call, fold_math_call
 from hcc.sema.constexpr_rel import fold_rel_equal
 
@@ -109,6 +109,9 @@ def _round_to_flonum(v: float, ty) -> float:
 def eval_float(node) -> float:
     if isinstance(node, N.FloatLit):
         return _round_to_flonum(node.value, node.ty)
+    if is_complex(getattr(node, "ty", None)):      # real part of a complex constant
+        from hcc.sema.complex import complex_static_parts
+        return complex_static_parts(node)[0]
     if isinstance(node, N.Cast) and is_flonum(node.operand.ty):
         return _round_to_flonum(eval_float(node.operand), node.ty)
     if isinstance(node, N.Unary) and node.op == "-":
@@ -144,6 +147,9 @@ def _eval(node):
         # true, not 0). Float->int casts fold via eval_float; truth tests on
         # floats fall back to the runtime path.
         raise NotConstant
+    if t is N.Binary and is_complex(node.lhs.ty) and node.op in ("==", "!="):
+        from hcc.sema.complex import complex_compare_const
+        return None, complex_compare_const(node)
     if t is N.Binary:
         op = node.op
         if op == "-":

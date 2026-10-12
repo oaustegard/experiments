@@ -10,8 +10,9 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
+from hcc.sema.complex import complex_check_op
 from hcc.sema.constexpr import try_eval_const
-from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_integer, is_numeric, pointer_to)
+from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_complex, is_integer, is_numeric, pointer_to)
 
 
 def add_type(node) -> None:
@@ -31,6 +32,9 @@ def _unary(n: N.Unary):
     t = n.operand.ty
     if n.op == "!":
         n.ty = TY_INT
+        return
+    if t.kind == TypeKind.COMPLEX and n.op == "-":
+        n.ty = t                    # -z negates both parts (codegen/complex.py)
         return
     if n.op in ("~", "-") and t.is_vector and is_integer(t.base):
         n.ty = t                    # element-wise complement/negation keeps the vector type
@@ -68,6 +72,8 @@ def _binary(n: N.Binary):
         n.rhs = new_cast(n.rhs, int_promote(n.rhs.ty))
         n.ty = n.lhs.ty
         return
+    if is_complex(n.lhs.ty) or is_complex(n.rhs.ty):
+        complex_check_op(n)
     n.lhs, n.rhs = usual_arith_conv(n.lhs, n.rhs)
     n.ty = TY_INT if n.op in COMPARES else n.lhs.ty
 
@@ -88,6 +94,10 @@ def _assign(n: N.Assign):
 def _is_null_const(node) -> bool:
     """True for an integer constant expression 0 (possibly cast to a pointer)."""
     return (is_integer(node.ty) or node.ty.kind == TypeKind.PTR) and try_eval_const(node) == 0
+
+
+def _arith(t) -> bool:
+    return is_numeric(t) or is_complex(t)
 
 
 def _func_decay(t):
@@ -122,7 +132,7 @@ def _cond(n: N.Cond):
     a, b = _func_decay(n.then.ty), _func_decay(n.els.ty)
     if a.kind == TypeKind.VOID or b.kind == TypeKind.VOID:
         n.ty = TY_VOID
-    elif is_numeric(a) and is_numeric(b):
+    elif _arith(a) and _arith(b):
         n.then, n.els = usual_arith_conv(n.then, n.els)
         n.ty = n.then.ty
     elif a.kind in (TypeKind.STRUCT, TypeKind.UNION):
@@ -180,6 +190,14 @@ def _void(n):
     n.ty = TY_VOID
 
 
+def _void_typed(n):          # ComplexLit is built with its type already set
+    return
+
+
+def _complex_part(n):
+    n.ty = n.operand.ty.base
+
+
 def _label_addr(n):
     n.ty = pointer_to(TY_VOID)
 
@@ -188,5 +206,6 @@ _HANDLERS = {
     N.VarRef: _var, N.Unary: _unary, N.AddrOf: _addr, N.Deref: _deref,
     N.Binary: _binary, N.Logical: _logical, N.Assign: _assign, N.Cond: _cond,
     N.Comma: _comma, N.Member_: _member, N.StmtExpr: _stmt_expr, N.Call: _call,
-    N.MemZero: _void, N.LabelAddr: _label_addr,
+    N.MemZero: _void, N.LabelAddr: _label_addr, N.ComplexLit: _void_typed,
+    N.ComplexPart: _complex_part,
 }

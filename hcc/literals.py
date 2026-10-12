@@ -17,7 +17,7 @@ from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
 from hcc.halfbits import round_to_half
 from hcc.ldouble_lit import exact_decimal, x87_from_text
-from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_FLOAT16, TY_FLOAT128,
+from hcc.typesys import (complex_of, TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_FLOAT16, TY_FLOAT128,
                        TY_INT, TY_LDOUBLE, TY_LLONG, TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG,
                        TY_USHORT, Type, TypeKind, array_of)
 
@@ -93,10 +93,32 @@ def parse_int_literal(tok: Token) -> tuple[int, Type]:
     return val & ((1 << 64) - 1), ty
 
 
-# floating suffixes, longest first; the _FloatN/_FloatNx forms are GCC's TS 18661 suffixes
+# floating suffixes, longest first; the _FloatN/_FloatNx forms are GCC's TS 18661 suffixes.
+# "d" is GCC's double suffix (1.1d); "w"/"q" are GCC's __float80/__float128 suffixes;
+# decimal-float d/df/dd/dl are not supported.
 _FLOAT_SUFFIXES = (("f16", TY_FLOAT16), ("f32x", TY_DOUBLE), ("f32", TY_FLOAT),
                    ("f64x", TY_LDOUBLE), ("f64", TY_DOUBLE), ("f128x", TY_FLOAT128),
-                   ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE))
+                   ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE), ("d", TY_DOUBLE),
+                   ("w", TY_LDOUBLE), ("q", TY_FLOAT128))   # GCC's __float80 (w) and __float128 (q) suffixes
+
+
+def _split_float_suffixes(s: str):
+    """Strip the float suffix and the imaginary marker (i/j, either order:
+    1.0i, 1.0if, 1.0fi, 1.0iF) from a floating pp-number.
+    Returns (body, real_ty_or_None, is_imaginary)."""
+    ty, imag, body = None, False, s
+    for _ in range(2):
+        low = body.lower()
+        if ty is None:
+            for suf, suf_ty in _FLOAT_SUFFIXES:
+                if low.endswith(suf) and len(low) > len(suf):
+                    ty, body = suf_ty, body[: -len(suf)]
+                    break
+            if ty is not None:
+                continue
+        if not imag and low[-1:] in ("i", "j") and len(low) > 1:
+            imag, body = True, body[:-1]
+    return body, ty, imag
 
 
 def _round_decimal_to_f32(fr: Fraction) -> float:
@@ -120,15 +142,13 @@ def parse_number(tok: Token):
     low = s.lower()
     is_hex = low.startswith("0x")
     if not is_hex and ("." in s or "e" in low) or is_hex and ("." in s or "p" in low):
-        ty, body = TY_DOUBLE, s
-        for suf, suf_ty in _FLOAT_SUFFIXES:
-            if low.endswith(suf):
-                ty, body = suf_ty, s[: -len(suf)]
-                break
+        body, ty, imag = _split_float_suffixes(s)
+        if ty is None:
+            ty = TY_DOUBLE
         try:
             if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):   # exact x87 encoding
-                return x87_from_text(body, is_hex, ty.kind == TypeKind.FLOAT128), ty
-            if is_hex:
+                val = x87_from_text(body, is_hex, ty.kind == TypeKind.FLOAT128)
+            elif is_hex:
                 val = float.fromhex(body)
             elif ty is TY_FLOAT:
                 val = _round_decimal_to_f32(exact_decimal(body))
@@ -145,6 +165,8 @@ def parse_number(tok: Token):
             val = float("inf")
         if ty.kind == TypeKind.FLOAT16:
             val = round_to_half(val)
+        if imag:
+            return val, complex_of(ty)
         return val, ty
     return parse_int_literal(tok)
 

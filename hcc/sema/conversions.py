@@ -9,8 +9,8 @@
 from __future__ import annotations
 
 from hcc import nodes as N
-from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_flonum,
-                       is_integer, pointer_to)
+from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, complex_of,
+                       is_flonum, is_integer, pointer_to)
 
 _FLOAT_RANK = {TypeKind.FLOAT16: 1, TypeKind.FLOAT: 2, TypeKind.DOUBLE: 3, TypeKind.LDOUBLE: 4,
                TypeKind.FLOAT128: 5}
@@ -25,6 +25,11 @@ def int_promote(ty: Type) -> Type:
 
 
 def common_type(a: Type, b: Type) -> Type:
+    if a.kind == TypeKind.COMPLEX or b.kind == TypeKind.COMPLEX:
+        # C99 6.3.1.8: complex wins; the parts get the common real type
+        ea = a.base if a.kind == TypeKind.COMPLEX else a
+        eb = b.base if b.kind == TypeKind.COMPLEX else b
+        return complex_of(common_type(ea, eb))
     if a.base is not None and a.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.VLA):
         return pointer_to(a.base)
     if a.kind == TypeKind.FUNC:
@@ -46,7 +51,7 @@ def common_type(a: Type, b: Type) -> Type:
 
 def same_scalar(a: Type, b: Type) -> bool:
     return a.kind == b.kind and a.size == b.size and a.is_unsigned == b.is_unsigned and \
-        a.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY)
+        a.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.COMPLEX)
 
 
 def new_cast(expr: N.Expr, ty: Type) -> N.Expr:
@@ -54,7 +59,7 @@ def new_cast(expr: N.Expr, ty: Type) -> N.Expr:
     add_type(expr)
     if expr.ty is ty:
         return expr
-    if same_scalar(expr.ty, ty) and ty.kind != TypeKind.PTR:
+    if same_scalar(expr.ty, ty) and ty.kind not in (TypeKind.PTR, TypeKind.COMPLEX):
         return expr
     c = N.Cast(expr.loc, expr, ty=ty.unqual() if ty.kind != TypeKind.VOID else ty)
     return c
