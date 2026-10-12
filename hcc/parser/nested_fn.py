@@ -32,12 +32,17 @@ class NestedFnMixin:
         fn.outer = outer
         self.push_scope_entry(name.text).var = fn
         self.objs.append(fn)
-        saved = (self.fn, self.locals, self.label_names, self.goto_names)
+        saved = (self.fn, self.locals, self.label_names, self.goto_names,
+                 self.brk_label, self.cont_label, self.cur_switch)
         self.locals = []
+        # break/continue/case inside a nested function never see the enclosing
+        # loop or switch (C11 6.8.6.2/6.8.6.1 apply per function body).
+        self.brk_label = self.cont_label = self.cur_switch = None
         try:
             self.function_definition(fn, ty)
             # gotos to labels not in this body belong to the enclosing function
             pending = [g for g in self.goto_names if g.text not in self.label_names]
         finally:
-            self.fn, self.locals, self.label_names, self.goto_names = saved
+            (self.fn, self.locals, self.label_names, self.goto_names,
+             self.brk_label, self.cont_label, self.cur_switch) = saved
         self.goto_names.extend(pending)
