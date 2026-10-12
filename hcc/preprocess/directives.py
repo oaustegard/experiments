@@ -265,6 +265,11 @@ class DirectiveMixin:
 
     def dir_pragma(self, hash_tok, name_tok):
         line = self.read_line()
+        for t in line:
+            # an unterminated string/char literal inside a pragma is a lexical
+            # error in gcc, even though the pragma itself is then ignored
+            if t.kind == TokenKind.PUNCT and t.text in ('"', "'"):
+                diag.error(t, f'missing terminating {t.text} character', "preprocess")
         if line and line[0].text == "once":
             self.pragma_once.add(hash_tok.loc.file)
         elif line and line[0].text in ("push_macro", "pop_macro"):
