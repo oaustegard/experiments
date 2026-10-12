@@ -71,6 +71,7 @@ class StructMixin:
                 continue
             if self.accept(";"):
                 continue
+            self.skip_std_attributes()     # `[[gnu::x]] char c[];`
             attr = VarAttr()
             basety = self.declspec(attr)
             if self.accept(";"):           # anonymous struct/union member

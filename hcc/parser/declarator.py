@@ -34,7 +34,7 @@ class DeclaratorMixin:
                     ty.is_volatile = True
                 elif self.at("restrict"):
                     self.next()
-                elif self.at("__attribute__"):
+                elif self.at("__attribute__") or self.at_std_attribute():
                     self.parse_attributes()
                 else:
                     break
@@ -61,6 +61,7 @@ class DeclaratorMixin:
         name = None
         if self.tok.kind == TokenKind.IDENT:
             name = self.next()
+            self.skip_std_attributes()  # `void f [[]] (void);`
         ty = self.type_suffix(ty)
         return ty, name
 
@@ -140,6 +141,7 @@ class DeclaratorMixin:
                 fty.is_variadic = True
                 self.expect(")")
                 break
+            self.skip_std_attributes()
             attr = VarAttr()
             base = self.declspec(attr)
             pty, name = self.declarator(base)

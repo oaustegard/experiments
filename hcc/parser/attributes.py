@@ -50,7 +50,10 @@ class AttributeMixin:
                     depth -= 1
 
     def parse_attributes(self, attr=None, ty=None) -> None:
-        while self.at("__attribute__") or self.at("__declspec"):
+        while self.at_attribute() or self.at_std_attribute():
+            if self.at_std_attribute():
+                self.skip_std_attributes()
+                continue
             if self.next().text == "__declspec":
                 self.skip_balanced()
                 continue
