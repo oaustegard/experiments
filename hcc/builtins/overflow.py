@@ -16,6 +16,9 @@ def _parse_overflow(self, tok):
     res = args[2]
     if res.ty.kind != T.TypeKind.PTR or res.ty.base is None:
         self.error(f"'__builtin_{name}_overflow' expects a pointer as third argument")
+    if res.ty.base.is_atomic:
+        self.error(f"argument 3 in call to function '__builtin_{name}_overflow' "
+                   "has pointer to '_Atomic' type")
     ops = wide_overflow_operands(self, name, args[:2], res.ty.base)
     if ops is None:
         ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
