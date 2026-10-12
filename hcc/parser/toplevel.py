@@ -21,6 +21,7 @@ from hcc.sema.incomplete import is_incomplete_object
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 from hcc.parser.attributes import mode_type
+from hcc.parser.transparent_union import apply_transparent_union
 from hcc.parser.vla import vla_slot_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
@@ -113,6 +114,7 @@ class TopLevelMixin:
                 ty = vector_of_checked(self, ty, dattr.vector_size)
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
+            ty = apply_transparent_union(ty, attr, dattr)
             if (dattr.warn_if_not_aligned or attr.warn_if_not_aligned) and not attr.is_typedef:
                 self.error("'warn_if_not_aligned' may not be specified for '%s'" % name.text, name)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:

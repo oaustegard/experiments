@@ -36,6 +36,7 @@ class VarAttr:
     is_auto: bool = False           # `auto` storage class (block-scope nested function decls)
     auto_const: bool = False        # C23 `const auto x = e;` qualifiers (see declspec.auto_qualified)
     auto_volatile: bool = False
+    is_transparent_union: bool = False  # transparent_union attribute seen (applied by parser/transparent_union.py)
     is_inline: bool = False
     is_gnu_inline: bool = False     # __attribute__((gnu_inline)): gnu89 inline semantics
     is_tls: bool = False

@@ -228,6 +228,11 @@ class AttributeMixin:
                 attr.is_packed = True
             if ty is not None:
                 ty.is_packed = True
+        elif name == "transparent_union":
+            if attr is not None:
+                attr.is_transparent_union = True
+            elif ty is not None and ty.kind == T.TypeKind.UNION:
+                ty.is_transparent_union = True
         elif name == "ms_struct" and attr is not None:
             attr.is_ms_struct = True
         elif name == "designated_init" and attr is not None:

@@ -39,6 +39,18 @@ def _enum_as_int(t: Type) -> Type:
     return Type(kind, t.size, t.align, bool(t.is_unsigned))
 
 
+def _param_compatible(x: Type, y: Type) -> bool:
+    """Parameter types of compatible functions. A transparent union parameter is
+    compatible with its first member's type (GCC: the union is passed as that member)."""
+    x = x.unqual()
+    y = y.unqual()
+    if x.kind == TypeKind.UNION and x.is_transparent_union and y.kind != TypeKind.UNION and x.members:
+        x = x.members[0].ty.unqual()
+    elif y.kind == TypeKind.UNION and y.is_transparent_union and x.kind != TypeKind.UNION and y.members:
+        y = y.members[0].ty.unqual()
+    return is_compatible(x, y)
+
+
 def is_compatible(a: Type, b: Type) -> bool:
     if a is b:
         return True
@@ -82,7 +94,7 @@ def is_compatible(a: Type, b: Type) -> bool:
             return not proto.is_variadic and all(_promotion_stable(p) for p in proto.params)
         if a.is_variadic != b.is_variadic or len(a.params) != len(b.params):
             return False
-        return all(is_compatible(x.unqual(), y.unqual()) for x, y in zip(a.params, b.params))
+        return all(_param_compatible(x, y) for x, y in zip(a.params, b.params))
     if k == TypeKind.ARRAY:
         if not is_compatible(a.base, b.base):
             return False

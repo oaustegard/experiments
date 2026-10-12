@@ -80,7 +80,8 @@ class Type:
                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
-                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size", "unavail_msg")
+                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size", "unavail_msg",
+                 "is_transparent_union")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -99,6 +100,7 @@ class Type:
         self.tag: str | None = None
         self.is_flexible = False
         self.is_packed = False
+        self.is_transparent_union = False  # union with __attribute__((transparent_union))
         self.is_reverse_sso = False
         self.is_ms_struct = False   # __attribute__((ms_struct)): MS bit-field layout
         self.is_rev_order = False   # scalar stored big-endian (scalar_storage_order)

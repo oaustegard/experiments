@@ -15,6 +15,7 @@ from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inli
 from hcc.sema.constexpr import try_eval_const
 from hcc.parser.initializers import const_bytes
 from hcc.parser.attributes import mode_type
+from hcc.parser.transparent_union import apply_transparent_union
 from hcc.parser.vla import vla_slot_type, _has_vla as _has_vla_type
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import redecl_conflicts, typedef_conflicts
@@ -115,6 +116,7 @@ class LocalDeclMixin:
                 self.error("'warn_if_not_aligned' may not be specified for '%s'" % name.text, name)
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
+            ty = apply_transparent_union(ty, attr, dattr)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
                 ty = self.var_aligned(ty, attr, dattr, name)      # `T x __attribute__((aligned(N)))`
             if attr.is_typedef:
