@@ -157,6 +157,9 @@ class PrimaryMixin:
         fn = N.Function(name, fty, loc=tok.loc)
         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
         self.objs.append(fn)
+        if params is not None:
+            # A later explicit declaration replaces this hidden builtin prototype.
+            self.implicit_protos = getattr(self, "implicit_protos", set()) | {id(fn)}
         return fn
 
     def powi_helper(self, tok, bname):

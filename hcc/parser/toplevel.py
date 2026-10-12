@@ -188,6 +188,11 @@ class TopLevelMixin:
             fn = N.Function(name.text, ty, loc=name.loc)
             self.scopes[0].vars[name.text] = VarScope(var=fn)
             self.objs.append(fn)
+        elif id(fn) in getattr(self, "implicit_protos", ()):
+            # GCC: an implicit builtin prototype (e.g. from __builtin_ceil) is not a
+            # real declaration; the program's own declaration of the name replaces it.
+            self.implicit_protos.discard(id(fn))
+            fn.ty = ty
         else:
             if not is_compatible(fn.ty, ty):
                 self.error(f"conflicting types for '{name.text}'", name.loc)
