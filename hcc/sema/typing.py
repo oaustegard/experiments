@@ -65,6 +65,18 @@ def _deref(n: N.Deref):
 
 SHIFTS = ("<<", ">>")
 COMPARES = ("==", "!=", "<", "<=", ">", ">=")
+ARITH_ONLY = ("*", "/", "%", "&", "|", "^")
+NON_ARITH_KINDS = (TypeKind.PTR, TypeKind.ARRAY, TypeKind.VLA, TypeKind.FUNC,
+                   TypeKind.STRUCT, TypeKind.UNION, TypeKind.VOID)
+
+
+def _check_arith_operands(n: N.Binary):
+    """`* / % & | ^` need arithmetic operands; pointers, aggregates and
+    void are rejected rather than silently converted (C11 6.5.5-6.5.12)."""
+    for t in (n.lhs.ty, n.rhs.ty):
+        if not t.is_vector and t.kind in NON_ARITH_KINDS:
+            diag.error(n, f"invalid operands to binary {n.op} ('{n.lhs.ty}' and '{n.rhs.ty}')", "sema")
+            return
 
 
 def _check_shift_operands(n: N.Binary):
@@ -78,6 +90,8 @@ def _check_shift_operands(n: N.Binary):
 def _binary(n: N.Binary):
     require_value(n.lhs)
     require_value(n.rhs)
+    if n.op in ARITH_ONLY:
+        _check_arith_operands(n)
     if n.op in SHIFTS:
         _check_shift_operands(n)
         n.lhs = new_cast(n.lhs, int_promote(n.lhs.ty))
