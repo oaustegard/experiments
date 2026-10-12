@@ -318,7 +318,10 @@ class AttributeMixin:
 
     def check_align_limit(self, val, where=None) -> None:
         """Reject alignments above the x86-64 ELF object file maximum (2**28),
-        as GCC does for objects, functions and typedefs alike (MAX_OFILE_ALIGNMENT)."""
+        as GCC does for objects, functions and typedefs alike (MAX_OFILE_ALIGNMENT).
+        Nonzero alignments must also be positive powers of two (zero is ignored by GCC)."""
+        if val != 0 and (val < 0 or val & (val - 1)):
+            self.error("requested alignment '%d' is not a positive power of 2" % val, where)
         if val > OBJECT_FILE_MAX_ALIGN:
             self.error("requested alignment '%d' exceeds object file maximum %d"
                        % (val, OBJECT_FILE_MAX_ALIGN), where)
