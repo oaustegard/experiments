@@ -25,6 +25,8 @@ def _contains_call(node) -> bool:
     """True if the expression tree under `node` contains a function call."""
     if type(node).__name__ == "Call":
         return True
+    if type(node).__name__ == "BuiltinCall" and node.name == "setjmp":
+        return True                 # re-entered by longjmp: a call-like point
     if isinstance(node, list):
         return any(_contains_call(x) for x in node)
     if not is_dataclass(node):

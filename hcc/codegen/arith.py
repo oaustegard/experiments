@@ -5,6 +5,7 @@ ArithMixin.expr_Binary(node): rhs -> push, lhs -> %rax, pop rhs -> %rdi.
 """
 from __future__ import annotations
 
+from hcc.codegen.expressions import _contains_call
 from hcc.typesys import TypeKind, is_flonum
 
 _SETCC = {"==": ("sete", "sete"), "!=": ("setne", "setne"), "<": ("setl", "setb"),
@@ -19,10 +20,20 @@ class ArithMixin:
         lty = node.lhs.ty
         if is_flonum(lty):
             return self.float_binary(node)
-        self.gen_expr(node.rhs)
-        self.push()
-        self.gen_expr(node.lhs)
-        self.pop("%rdi")
+        if _contains_call(node.lhs) and not _contains_call(node.rhs):
+            # Only a call-free operand may be parked on the stack: a value
+            # pushed before a call (e.g. setjmp, whose resumption reuses the
+            # stack slot) would be clobbered. Evaluate the call side first.
+            self.gen_expr(node.lhs)
+            self.push()
+            self.gen_expr(node.rhs)
+            self.emit("mov %rax, %rdi")
+            self.pop("%rax")
+        else:
+            self.gen_expr(node.rhs)
+            self.push()
+            self.gen_expr(node.lhs)
+            self.pop("%rdi")
         wide = lty.size == 8 or lty.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.FUNC) or \
             lty.size > 8
         ax, di, dx = ("%rax", "%rdi", "%rdx") if wide else ("%eax", "%edi", "%edx")
