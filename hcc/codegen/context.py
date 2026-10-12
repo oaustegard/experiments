@@ -27,6 +27,8 @@ class CodeGenBase:
         self.depth = 0
         self.label_count = 0
         self.fn = None
+        self.cleanup_stack: list = []   # pending __attribute__((cleanup)) calls (codegen/cleanup.py)
+        self.cleanup_marks: dict = {}   # loop/switch label -> cleanup_stack depth at that loop
         self.dead_code = False       # set while generating a statically dead branch
         self._expr_dispatch: dict = {}
         self._stmt_dispatch: dict = {}

@@ -60,6 +60,9 @@ class LocalDeclMixin:
             self.parse_asm_label(dattr)
             if name is None:
                 self.error("identifier expected in declaration")
+            cleanup = dattr.cleanup or attr.cleanup
+            if cleanup and (attr.is_static or attr.is_extern or attr.is_typedef):
+                self.error("cleanup attribute on a non-automatic variable", name)
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
@@ -147,7 +150,21 @@ class LocalDeclMixin:
                 items.append(N.ExprStmt(name.loc, e))
             if not var.ty.is_complete or var.ty.size < 0:
                 self.error(f"storage size of '{name.text}' isn't known", name)
+            if cleanup:
+                items.append(self.cleanup_decl(var, cleanup, name))
         return items
+
+    def cleanup_decl(self, var, handler: str, name):
+        """__attribute__((cleanup(f))) on a local: the statement f(&var), which codegen
+        runs when the variable's block is left (see codegen/cleanup.py)."""
+        vs = self.find_var(handler)
+        if vs is None or not isinstance(vs.var, N.Function):
+            self.error(f"'{handler}' is not a function usable as a cleanup handler", name)
+        fn = vs.var
+        callee = self.typed(N.VarRef(name.loc, fn))
+        arg = self.typed(N.AddrOf(name.loc, self.typed(N.VarRef(name.loc, var))))
+        call = self.typed(N.Call(name.loc, callee, [arg], fn.ty))
+        return N.CleanupDecl(name.loc, var, call)
 
     def block_func_composite(self, ty, name: str):
         """Block-scope function declaration `T *f(void);` that names a function

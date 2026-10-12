@@ -427,15 +427,19 @@ class BuiltinParseMixin:
         return self._nan_lit(tok, T.TY_LDOUBLE)
 
     def _snan_lit(self, tok, ty):
-        """__builtin_nans*(tag): a signaling NaN (quiet bit clear, payload 1). Only the
-        double/float bit patterns are exact; long double is carried as a double."""
+        """__builtin_nans*(tag): a signaling NaN, as GCC encodes the empty payload: the
+        quiet bit clear and the bit below it set. Only the float/double/x87 patterns are
+        exact; the tag string only selects a payload, which is not modelled."""
         self._args(1)
         if ty.kind == T.TypeKind.FLOAT:
-            bits = 0x7F800001
+            bits = 0x7FA00000
             val = struct.unpack("<f", struct.pack("<I", bits))[0]
-        else:
-            bits = 0x7FF0000000000001
+        elif ty.kind == T.TypeKind.DOUBLE:
+            bits = 0x7FF4000000000000
             val = struct.unpack("<d", struct.pack("<Q", bits))[0]
+        else:       # x87: exponent 0x7fff, integer bit set, quiet bit clear (as GCC)
+            bits = (0x7FFF << 64) | 0xA000000000000000
+            val = float("nan")
         return N.FloatLit(tok.loc, val, ty=ty, bits=bits)
 
     def _b_nans(self, tok):

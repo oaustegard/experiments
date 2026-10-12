@@ -112,6 +112,7 @@ class FunctionMixin:
 
     def emit_function(self, fn) -> None:
         self.fn = fn
+        self.cleanup_stack = []
         sym = fn.symbol
         self.directive(".text" if not fn.section else f".section {fn.section},\"ax\",@progbits")
         if not fn.is_static:

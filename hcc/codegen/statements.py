@@ -25,12 +25,14 @@ class StatementMixin:
         # is dead: only labelled parts stay (reachable by goto), so calls such
         # as `unreachable(); not_defined();` never reach the assembler.
         after_trap = False
+        mark = len(self.cleanup_stack)
         for s in node.items:
             if after_trap:
                 self.gen_dead_stmt(s)
             else:
                 self.gen_stmt(s)
                 after_trap = self._is_trap_stmt(s)
+        self.end_cleanup_scope(mark, not after_trap)
 
     @staticmethod
     def _is_trap_stmt(s) -> bool:
@@ -145,6 +147,8 @@ class StatementMixin:
 
     def stmt_For(self, node) -> None:
         begin = self.new_label()
+        self.reject_loop_cleanup(node.init)
+        self.note_loop_cleanups(node.brk_label, node.cont_label)
         if node.init is not None:
             self.gen_stmt(node.init)
         self.label(begin)
@@ -163,6 +167,7 @@ class StatementMixin:
 
     def stmt_DoWhile(self, node) -> None:
         begin = self.new_label()
+        self.note_loop_cleanups(node.brk_label, node.cont_label)
         self.label(begin)
         if node.body is not None:
             self.gen_stmt(node.body)
@@ -173,6 +178,7 @@ class StatementMixin:
         self.label(node.brk_label)
 
     def stmt_Switch(self, node) -> None:
+        self.note_loop_cleanups(node.brk_label)
         self.gen_expr(node.cond)
         wide = node.cond.ty.size == 8
         ax, di = ("%rax", "%rdi") if wide else ("%eax", "%edi")
@@ -226,12 +232,15 @@ class StatementMixin:
             self.gen_stmt(node.body)
 
     def stmt_Break(self, node) -> None:
+        self.cleanup_break(node.label)
         self.emit(f"jmp {node.label}")
 
     def stmt_Continue(self, node) -> None:
+        self.cleanup_break(node.label)
         self.emit(f"jmp {node.label}")
 
     def stmt_Goto(self, node) -> None:
+        self.reject_goto_cleanup(node)
         owner = self.fn
         while owner.outer is not None and node.name not in owner.labels:
             owner = owner.outer
@@ -247,6 +256,7 @@ class StatementMixin:
         self.emit(f"jmp .L.{owner.name}.{node.name}")
 
     def stmt_GotoExpr(self, node) -> None:
+        self.reject_goto_cleanup(node)
         self.gen_expr(node.target)
         self.emit("jmp *%rax")
 
@@ -273,6 +283,7 @@ class StatementMixin:
                     self.emit(f"mov {self.ret_ptr_offset}(%rbp), %rdi")
                     self.copy_struct(ty.size)
                     self.emit("mov %rdi, %rax")
+        self.cleanup_return(node.expr.ty if node.expr is not None else None)
         self.emit(f"jmp .L.return.{self.fn.symbol}")
 
     def struct_to_regs(self, ty) -> None:

@@ -311,6 +311,7 @@ class ExpressionMixin:
         self.label(end)
 
     def expr_StmtExpr(self, node) -> None:
+        self.reject_stmt_expr_cleanup(node)
         for s in node.body.items:
             self.gen_stmt(s)
 

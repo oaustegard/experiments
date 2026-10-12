@@ -193,6 +193,8 @@ class AttributeMixin:
                 # copy(expr): inherit `packed` from the expression's member or type
                 from hcc.parser.attr_copy import apply_copy_expr
                 apply_copy_expr(self, args_start, attr)
+        elif name == "cleanup" and attr is not None and args:
+            attr.cleanup = args[0].text
         elif name == "nocommon" and attr is not None:
             attr.is_nocommon = True
         elif name == "section" and attr is not None and args:

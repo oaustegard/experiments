@@ -139,11 +139,15 @@ def _write_le(init, ty, gd, offset) -> None:
         if ty.kind == T.TypeKind.FLOAT16:
             gd.data[offset:offset + 2] = half_bits(v).to_bytes(2, "little")
         elif ty.kind == T.TypeKind.FLOAT:
-            gd.data[offset:offset + 4] = pack_float32(v)
+            exact = _exact_bits(expr, 31)     # keeps signaling NaN bits a Python float loses
+            gd.data[offset:offset + 4] = (pack_float32(v) if exact is None
+                                          else exact.to_bytes(4, "little"))
         elif ty.kind == T.TypeKind.DOUBLE:
-            gd.data[offset:offset + 8] = pack_float64(v)
+            exact = _exact_bits(expr, 63)
+            gd.data[offset:offset + 8] = (pack_float64(v) if exact is None
+                                          else exact.to_bytes(8, "little"))
         else:
-            exact = _exact_x87_bits(expr)
+            exact = _exact_bits(expr, 79)
             gd.data[offset:offset + 10] = (exact.to_bytes(10, "little") if exact is not None
                                            else float_to_x87(v))
         return
@@ -246,14 +250,16 @@ def _write_bits(gd, off, m, v) -> None:
     gd.data[off:off + size] = cur.to_bytes(size, order)
 
 
-def _exact_x87_bits(node) -> int | None:
-    """Exact x87 encoding of a long double literal, optionally negated (-1e-4940L
-    would underflow to -0.0 through a Python float); None when not a literal."""
+def _exact_bits(node, sign_bit: int) -> int | None:
+    """Exact IEEE/x87 encoding of a floating literal (float, double or long double
+    width; `sign_bit` is its sign position), optionally negated: -1e-4940L would
+    underflow to -0.0 through a Python float, and a signaling NaN is quieted by one.
+    None when the expression is not a literal."""
     if isinstance(node, N.FloatLit):
         return node.bits
     if isinstance(node, N.Unary) and node.op == "-":
-        bits = _exact_x87_bits(node.operand)
-        return None if bits is None else bits ^ (1 << 79)
+        bits = _exact_bits(node.operand, sign_bit)
+        return None if bits is None else bits ^ (1 << sign_bit)
     return None
 
 

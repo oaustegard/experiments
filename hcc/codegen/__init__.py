@@ -13,6 +13,7 @@ from hcc.codegen.atomics import AtomicMixin
 from hcc.codegen.asm import AsmMixin
 from hcc.codegen.builtins import BuiltinMixin
 from hcc.codegen.calls import CallMixin
+from hcc.codegen.cleanup import CleanupMixin
 from hcc.codegen.casts import CastMixin
 from hcc.codegen.context import CodeGenBase
 from hcc.codegen.lazy_inline import lazy_functions, needed_lazy
@@ -33,7 +34,7 @@ from hcc.codegen.vector_ops import VectorOpsMixin
 from hcc.codegen.vector_wide import VectorWideMixin
 
 
-class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
+class CodeGen(FunctionMixin, NestedMixin, StatementMixin, CleanupMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
               CastMixin, CallMixin, VarargsMixin, BuiltinMixin, FpClassifyMixin, OverflowMixin, Overflow128Mixin, AsmMixin, MemoryMixin,
               DataMixin, VectorOpsMixin, VectorWideMixin, InitFiniMixin, Int128Mixin, CodeGenBase):
 

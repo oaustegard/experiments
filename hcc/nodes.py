@@ -305,6 +305,14 @@ class VLAZero(Stmt):
 
 
 @dataclass(eq=False)
+class CleanupDecl(Stmt):
+    """Follows the declaration of a local with __attribute__((cleanup(f))): `call` is
+    f(&var). Codegen runs it when the enclosing block exits (codegen/cleanup.py)."""
+    var: "Var"
+    call: "Expr"
+
+
+@dataclass(eq=False)
 class ExprStmt(Stmt):
     expr: Expr
 

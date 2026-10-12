@@ -179,6 +179,7 @@ hcc/
                        for struct args/returns
     varargs.py         va_start/va_arg/va_copy, register save area
     statements.py      statements, switch dispatch, goto/labels
+    cleanup.py         __attribute__((cleanup(f))): pending cleanup calls, run at block exit/break/return
     data.py            .data/.bss/.rodata emission, string literals, relocs
     builtins.py        __builtin_* lowering (alloca, expect, clz, ...)
     atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs
