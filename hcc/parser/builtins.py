@@ -33,7 +33,12 @@ __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf
 __builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
 __builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_convertvector
 __builtin_isinf __builtin_isnan __builtin_isfinite
+__builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
 """.split())
+
+# SSE4.2 CRC32 builtins: (crc, value) -> CRC-32C accumulated over the value's width.
+# The value operand width gives the codegen suffix; `di` works on 64-bit operands.
+CRC32_BUILTINS = {"qi": T.TY_UCHAR, "hi": T.TY_USHORT, "si": T.TY_UINT, "di": T.TY_ULLONG}
 
 # Bit-counting builtins: {clz,ctz,popcount,parity,ffs}{,l,ll}. The suffix picks
 # the operand width (int = 32 bit, long/long long = 64 bit).
@@ -196,6 +201,26 @@ class BuiltinParseMixin:
 
     def _b_bswap64(self, tok):
         return self._bswap(tok, 64, T.TY_ULONG)
+
+    def _crc32(self, tok, width):
+        """__builtin_ia32_crc32{qi,hi,si,di}(crc, v): crc is unsigned int (unsigned
+        long long for di); the result has the same type as crc."""
+        crc_ty = T.TY_ULLONG if width == "di" else T.TY_UINT
+        crc, val = self._args(2)
+        args = [new_cast(crc, crc_ty), new_cast(val, CRC32_BUILTINS[width])]
+        return self._call(tok, f"ia32_crc32{width}", args, crc_ty)
+
+    def _b_ia32_crc32qi(self, tok):
+        return self._crc32(tok, "qi")
+
+    def _b_ia32_crc32hi(self, tok):
+        return self._crc32(tok, "hi")
+
+    def _b_ia32_crc32si(self, tok):
+        return self._crc32(tok, "si")
+
+    def _b_ia32_crc32di(self, tok):
+        return self._crc32(tok, "di")
 
     def _b_alloca(self, tok):
         args = [new_cast(a, T.TY_ULONG) for a in self._args(1)]

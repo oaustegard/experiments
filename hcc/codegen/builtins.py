@@ -64,6 +64,27 @@ class BuiltinMixin:
         self.emit("xor %rdx, %rax")
         self.emit("sub %rdx, %rax")
 
+    def _crc32(self, node, insn: str, src: str, acc: str) -> None:
+        """crc = CRC-32C step over the value (args[1]): value is evaluated first and
+        parked on the stack so the crc expression can use %rax freely."""
+        self.gen_expr(node.args[1])
+        self.push()
+        self.gen_expr(node.args[0])
+        self.pop("%rcx")
+        self.emit(f"{insn} {src}, {acc}")
+
+    def builtin_ia32_crc32qi(self, node) -> None:
+        self._crc32(node, "crc32b", "%cl", "%eax")
+
+    def builtin_ia32_crc32hi(self, node) -> None:
+        self._crc32(node, "crc32w", "%cx", "%eax")
+
+    def builtin_ia32_crc32si(self, node) -> None:
+        self._crc32(node, "crc32l", "%ecx", "%eax")
+
+    def builtin_ia32_crc32di(self, node) -> None:
+        self._crc32(node, "crc32q", "%rcx", "%rax")
+
     def builtin_signbit(self, node) -> None:
         self.gen_expr(node.args[0])  # double in %xmm0
         self.emit("movq %xmm0, %rax")
