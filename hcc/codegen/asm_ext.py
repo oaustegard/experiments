@@ -10,7 +10,8 @@ Constraints: GPR letters (r q g R l x ...), fixed a c d S D, memory (m o V),
 immediate (i n ...) for constant operands, matching digits, and =, +, &.
 x87 operands (t/u/f, long double): inputs are staged as 16-byte slots and
 loaded onto the FPU before the template; outputs are stored with fstpt after it.
-Float and aggregate operands are otherwise rejected.
+Float/double operands with GPR constraints travel as their raw bits (movd/movq
+from %xmm0). Aggregate operands are rejected.
 """
 from __future__ import annotations
 
@@ -26,8 +27,7 @@ _REG_LETTERS = set("rqgRlxyQabcdSDXp")  # X (any) and p (address) use a GPR
 _MEM_LETTERS = set("moV")
 _X87_LETTERS = set("tuf")
 _IMM_LETTERS = set("inIJKLMNeEFZs")
-_BAD_KINDS = (TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE, TypeKind.FLOAT128,
-              TypeKind.STRUCT, TypeKind.UNION)
+_BAD_KINDS = (TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.STRUCT, TypeKind.UNION)
 # Arrays and functions decay to their address when used as register operands.
 _DECAY_KINDS = (TypeKind.ARRAY, TypeKind.FUNC)
 
@@ -43,9 +43,28 @@ def _norm_size(size: int) -> int:
     return size if size in (1, 2, 4, 8) else 8
 
 
+def _sse_to_gpr(cg, ty) -> None:
+    """A float/double value in %xmm0 is moved to %rax as its raw bits."""
+    if ty.kind == TypeKind.FLOAT:
+        cg.emit("movd %xmm0, %eax")
+    elif ty.kind == TypeKind.DOUBLE:
+        cg.emit("movq %xmm0, %rax")
+
+
+def _pick_alternative(cons: str) -> str:
+    """Multi-alternative constraints ("=r,m"): keep the first alternative that
+    the register/immediate/matching machinery can satisfy, else the first."""
+    alts = cons.split(",")
+    for alt in alts:
+        c = "".join(ch for ch in alt if ch not in "=+&%")
+        if c and (c.isdigit() or set(c) & (_REG_LETTERS | _IMM_LETTERS)):
+            return alt
+    return alts[0]
+
+
 class _Op:
     def __init__(self, cons: str, expr, is_out: bool):
-        self.cons = cons
+        self.cons = _pick_alternative(cons)
         self.expr = expr
         self.is_out = is_out
         self.rw = "+" in cons
@@ -86,7 +105,7 @@ def _classify(op: _Op) -> None:
             diag.error(where, "codegen: asm immediate operand is not constant", "codegen")
     else:
         diag.error(where, f"codegen: unsupported asm constraint '{op.cons}'", "codegen")
-    if op.kind != "imm" and op.expr.ty.kind in _BAD_KINDS and op.kind == "reg":
+    if op.kind == "reg" and op.expr.ty.kind in _BAD_KINDS:
         diag.error(where, "codegen: float/aggregate asm operands are not supported", "codegen")
 
 
@@ -214,8 +233,10 @@ def lower_extended(cg, node) -> None:
             k = outs.index(op)
             cg.emit(f"mov {8 * (units + m - 1 - k)}(%rsp), %rax")
             cg.load(op.expr.ty)
+            _sse_to_gpr(cg, op.expr.ty)
         else:
             cg.gen_expr(op.expr)
+            _sse_to_gpr(cg, op.expr.ty)
         cg.push()
         units += 1
         pushes.append(op)
