@@ -6,6 +6,7 @@ StatementMixin: one `stmt_<NodeClass>` method per statement node.
 from __future__ import annotations
 
 from hcc.codegen.abi import struct_in_regs
+from hcc.sema.constexpr import try_eval_const
 from hcc.typesys import TypeKind
 
 
@@ -19,6 +20,10 @@ class StatementMixin:
         self.gen_expr(node.expr)
 
     def stmt_If(self, node) -> None:
+        taken = try_eval_const(node.cond)
+        if taken is not None:
+            self.gen_const_if(node, bool(taken))
+            return
         els, end = self.new_label(), self.new_label()
         self.gen_expr(node.cond)
         self.cmp_zero(node.cond.ty)
@@ -29,6 +34,40 @@ class StatementMixin:
         if node.els is not None:
             self.gen_stmt(node.els)
         self.label(end)
+
+    def gen_const_if(self, node, taken: bool) -> None:
+        """`if` with a constant condition: only the taken branch runs.
+
+        The dead branch is still generated so that labels inside it (e.g.
+        `case` labels) exist, but the instructions before its first label are
+        unreachable and dropped, so calls like `link_error()` never reach asm.
+        """
+        end = self.new_label()
+        live, dead = (node.then, node.els) if taken else (node.els, node.then)
+        if taken:
+            if live is not None:
+                self.gen_stmt(live)
+            self.emit(f"jmp {end}")
+            self.gen_dead_stmt(dead)
+        else:
+            skip = self.new_label()
+            self.emit(f"jmp {skip}")
+            self.gen_dead_stmt(dead)
+            self.label(skip)
+            if live is not None:
+                self.gen_stmt(live)
+        self.label(end)
+
+    def gen_dead_stmt(self, node) -> None:
+        if node is None:
+            return
+        start = len(self.out)
+        self.gen_stmt(node)
+        seg = self.out[start:]
+        first = next((i for i, ln in enumerate(seg)
+                      if ln.endswith(":") and not ln.startswith(" ")), len(seg))
+        keep = [ln for ln in seg[:first] if ln.startswith("  .")]
+        self.out[start:] = keep + seg[first:]
 
     def stmt_For(self, node) -> None:
         begin = self.new_label()
