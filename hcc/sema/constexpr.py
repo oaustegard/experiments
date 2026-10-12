@@ -245,7 +245,10 @@ def _eval(node):
     if t is N.Deref and node.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC):
         return _eval(node.operand)
     if t is N.Deref and is_integer(node.ty):
-        return None, _string_char(node)
+        try:
+            return None, _string_char(node)
+        except NotConstant:
+            return None, _const_object_read(node)
     if t is N.BuiltinCall and node.name == "__builtin_constant_p":
         return None, builtin_constant_p(node.args[0])
     if t is N.BuiltinCall and node.name in _BSWAP_BYTES:
@@ -418,6 +421,90 @@ def _string_char(node) -> int:
     if not 0 <= k < len(data):
         raise NotConstant
     return wrap(data[k], node.ty)
+
+
+def _const_object_read(node) -> int:
+    """GCC extension: an integer read at a constant offset inside a const-qualified,
+    non-volatile static object with a plain-byte initializer, e.g. `a[27]` for
+    `static const char a[] = "..."` or `e[1].c[4]` for a const member. Raises
+    NotConstant otherwise."""
+    var, off, is_const = _ptr_obj(node.operand)
+    data = getattr(var, "init_data", None)
+    ty = node.ty
+    if data is None or data.relocs or ty.is_volatile:
+        raise NotConstant
+    if not (is_const or ty.is_const):
+        raise NotConstant
+    if off < 0 or off + ty.size > len(data.data):
+        raise NotConstant
+    raw = int.from_bytes(bytes(data.data[off:off + ty.size]), "little")
+    return wrap(raw, ty)
+
+
+def _decayed_obj(node) -> tuple:
+    """_ptr_obj for a pointer, or _obj_addr for an array lvalue (which decays)."""
+    if node.ty is not None and node.ty.kind == TypeKind.ARRAY:
+        return _obj_addr(node)
+    return _ptr_obj(node)
+
+
+def _elem_const(ty) -> tuple:
+    """(is_const, is_volatile) of an object type: `const char a[]` qualifies the element."""
+    while ty.kind == TypeKind.ARRAY:
+        ty = ty.base
+    return ty.is_const, ty.is_volatile
+
+
+def _ptr_obj(node) -> tuple:
+    """(static VarRef var, byte offset, const-qualified path) of a pointer-valued
+    expression pointing into a non-local object. Raises NotConstant otherwise."""
+    t = type(node)
+    if t is N.Cast and node.operand.ty is not None and \
+            node.operand.ty.kind in (TypeKind.PTR, TypeKind.ARRAY):
+        return _ptr_obj(node.operand)
+    if t is N.VarRef and node.var.ty.kind == TypeKind.ARRAY:
+        if getattr(node.var, "is_local", False):
+            raise NotConstant
+        c, v = _elem_const(node.var.ty)
+        if v:
+            raise NotConstant
+        return node.var, 0, c
+    if t is N.AddrOf:
+        return _obj_addr(node.operand)
+    if t is N.Deref and node.ty is not None and node.ty.kind == TypeKind.ARRAY:
+        return _obj_addr(node)
+    if t is N.Binary and node.op in ("+", "-") and node.ty.kind == TypeKind.PTR:
+        if node.lhs.ty is not None and node.lhs.ty.kind in (TypeKind.PTR, TypeKind.ARRAY):
+            var, off, c = _decayed_obj(node.lhs)
+            k = _num(node.rhs)
+        elif node.op == "+":
+            var, off, c = _decayed_obj(node.rhs)
+            k = _num(node.lhs)
+        else:
+            raise NotConstant
+        return var, off + (k if node.op == "+" else -k), c
+    raise NotConstant
+
+
+def _obj_addr(node) -> tuple:
+    """(static VarRef var, byte offset, const-qualified path) of an array/struct lvalue."""
+    t = type(node)
+    if t is N.VarRef:
+        if getattr(node.var, "is_local", False):
+            raise NotConstant
+        c, v = _elem_const(node.var.ty)
+        if v:
+            raise NotConstant
+        return node.var, 0, c
+    if t is N.Deref:
+        return _ptr_obj(node.operand)
+    if t is N.Member_ and not node.member.is_bitfield:
+        var, off, c = _obj_addr(node.operand)
+        mc, mv = _elem_const(node.member.ty)
+        if mv:
+            raise NotConstant
+        return var, off + node.member.offset, c or mc
+    raise NotConstant
 
 
 def _eval_sub(node) -> tuple:
