@@ -170,6 +170,11 @@ class TopLevelMixin:
             basety = self.declspec(attr)
             while True:
                 ty, name = self.declarator(basety)
+                dattr = VarAttr()           # `int foo __attribute__((unused));`
+                self.parse_attributes(dattr)
+                self.skip_std_attributes()
+                if dattr.mode:
+                    ty = mode_type(ty, dattr.mode)
                 if name is not None:        # empty declaration (`int;`) is ignored
                     if ty.kind == T.TypeKind.ARRAY:
                         ty = T.pointer_to(ty.base)
