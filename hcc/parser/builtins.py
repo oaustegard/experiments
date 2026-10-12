@@ -25,6 +25,7 @@ __builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit
+__builtin_setjmp __builtin_longjmp
 """.split())
 
 # Bit-counting builtins: {clz,ctz,popcount,parity,ffs}{,l,ll}. The suffix picks
@@ -132,6 +133,17 @@ class BuiltinParseMixin:
     def _b_alloca(self, tok):
         args = [new_cast(a, T.TY_ULONG) for a in self._args(1)]
         return self._call(tok, "alloca", args, T.pointer_to(T.TY_VOID))
+
+    def _b_setjmp(self, tok):
+        """__builtin_setjmp(buf): buf is a void *[5]-style record; returns 0."""
+        args = [new_cast(a, T.pointer_to(T.TY_VOID)) for a in self._args(1)]
+        return self._call(tok, "setjmp", args, T.TY_INT)
+
+    def _b_longjmp(self, tok):
+        """__builtin_longjmp(buf, 1): resumes the matching __builtin_setjmp."""
+        args = self._args(2)
+        args = [new_cast(args[0], T.pointer_to(T.TY_VOID)), new_cast(args[1], T.TY_INT)]
+        return self._call(tok, "longjmp", args, T.TY_VOID)
 
     def _overflow(self, tok, name):
         """__builtin_{add,sub,mul}_overflow(a, b, &res): operands are widened to

@@ -181,6 +181,30 @@ class BuiltinMixin:
         self.emit("imul %rcx, %rax")
         self.emit("shr $56, %rax")
 
+    def builtin_setjmp(self, node) -> None:
+        """Save {rbp, resume address, rsp} into buf[0], buf[1], buf[2] (gcc
+        layout) and return 0; a __builtin_longjmp to buf lands on `resume`
+        with %eax = 1."""
+        self.gen_expr(node.args[0])
+        resume, end = self.new_label(), self.new_label()
+        self.emit("mov %rbp, (%rax)")
+        self.emit(f"lea {resume}(%rip), %rcx")
+        self.emit("mov %rcx, 8(%rax)")
+        self.emit("mov %rsp, 16(%rax)")
+        self.emit("xor %eax, %eax")
+        self.emit(f"jmp {end}")
+        self.label(resume)
+        self.emit("mov $1, %eax")
+        self.label(end)
+
+    def builtin_longjmp(self, node) -> None:
+        self.gen_expr(node.args[1])          # value is always 1 for resumption
+        self.gen_expr(node.args[0])
+        self.emit("mov 8(%rax), %rcx")
+        self.emit("mov 16(%rax), %rsp")
+        self.emit("mov (%rax), %rbp")
+        self.emit("jmp *%rcx")
+
     def builtin_alloca(self, node) -> None:
         self.gen_expr(node.args[0])
         self._alloca_rax()
