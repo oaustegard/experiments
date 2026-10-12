@@ -242,6 +242,7 @@ class LocalDeclMixin:
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
             check_redecl(self, self.scopes[-1], name, "var", block_obj=True)
+            self.check_unavailable_declarator(ty, name)
             var = self.new_lvar(name.text, ty, name.loc)
             var.is_register = attr.is_register
             var.is_unavailable = attr.is_unavailable or dattr.is_unavailable

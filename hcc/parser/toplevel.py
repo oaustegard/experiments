@@ -116,6 +116,7 @@ class TopLevelMixin:
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
                 ty = self.var_aligned(ty, attr, dattr, name)      # `T x __attribute__((aligned(N)))`
             unavail = attr.is_unavailable or dattr.is_unavailable
+            self.check_unavailable_declarator(ty, name)
             if (attr.is_weakref or dattr.is_weakref) and not attr.is_typedef and not attr.is_static:
                 # GCC: a weakref alias must be an internal (static) symbol
                 self.error(f"'weakref' symbol '{name.text}' must have static linkage", name.loc)
