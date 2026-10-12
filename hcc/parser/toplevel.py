@@ -14,6 +14,7 @@ from hcc.parser.scope import VarAttr, VarScope
 from hcc.sema.compat import is_compatible
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
+from hcc.parser.attributes import mode_type
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
@@ -62,6 +63,10 @@ class TopLevelMixin:
                 self.error("identifier expected in declaration")
             if dattr.vector_size:
                 ty = T.vector_of(ty, dattr.vector_size)
+            if dattr.mode:
+                ty = mode_type(ty, dattr.mode)
+            if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
+                ty = self.typedef_aligned(ty, attr, dattr)     # `T x __attribute__((aligned(N)))`
             if attr.is_typedef:
                 ty = self.typedef_aligned(ty, attr, dattr, name.text)
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty)

@@ -12,6 +12,7 @@ from __future__ import annotations
 from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
 from hcc.parser.scope import VarAttr
+from hcc.parser.attributes import mode_type
 from hcc import typesys as T
 
 VOID, BOOL, CHAR, SHORT, INT, LONG = 1 << 0, 1 << 2, 1 << 4, 1 << 6, 1 << 8, 1 << 10
@@ -37,9 +38,6 @@ _BASE_TYPES = {
 _COUNTS = {"void": VOID, "_Bool": BOOL, "char": CHAR, "short": SHORT, "int": INT, "long": LONG,
            "float": FLOAT, "double": DOUBLE, "signed": SIGNED, "unsigned": UNSIGNED,
            "__int128": INT128}
-
-# byte sizes for __attribute__((mode(...))) integer modes
-_MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16}
 
 TYPE_KEYWORDS = frozenset(_COUNTS) | frozenset("""
 typedef static extern inline _Thread_local auto register _Noreturn const volatile restrict
@@ -168,7 +166,7 @@ class DeclSpecMixin:
                 elif s == "union":
                     ty = self.struct_decl(T.TypeKind.UNION)
                 elif s == "enum":
-                    ty = self.enum_specifier()
+                    ty = self.enum_specifier(attr)
                 elif s == "typeof":
                     ty = self.typeof_specifier()
                 elif s == "__builtin_va_list":
@@ -201,9 +199,7 @@ class DeclSpecMixin:
             ty = T.vector_of(ty, vsize)
         if attr is not None and attr.mode:
             # __attribute__((mode(QI/HI/SI/DI/TI))) re-sizes an integer base type
-            size = _MODE_SIZES.get(attr.mode)
-            if size is not None and ty is not None and T.is_integer(ty):
-                ty = T.int_type_for(size, ty.is_unsigned)
+            ty = mode_type(ty, attr.mode)
             attr.mode = None
         if counter == 0 and attr is None and not (is_const or is_volatile):
             self.error("expected type")

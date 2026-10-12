@@ -11,6 +11,27 @@ AttributeMixin provides:
 from __future__ import annotations
 
 from hcc.tokens import TokenKind
+from hcc import typesys as T
+
+# byte sizes for __attribute__((mode(...))) integer modes (x86-64: word = DI)
+MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
+
+
+def mode_type(ty, mode):
+    """Re-size an integer or enum type to the byte size named by a mode attribute.
+
+    Returns `ty` unchanged for unknown modes or non-integer types; never mutates
+    `ty` (enums are copied, integers come from the shared base-type table)."""
+    size = MODE_SIZES.get(mode)
+    if size is None or ty is None:
+        return ty
+    if ty.kind == T.TypeKind.ENUM:
+        ty = ty.copy()
+        ty.size = ty.align = size
+        return ty
+    if T.is_integer(ty):
+        return T.int_type_for(size, ty.is_unsigned)
+    return ty
 
 
 class AttributeMixin:

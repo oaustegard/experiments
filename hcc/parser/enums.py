@@ -14,7 +14,7 @@ from hcc import typesys as T
 
 class EnumMixin:
 
-    def enum_specifier(self):
+    def enum_specifier(self, attr=None):
         self.parse_attributes(VarAttr())
         tag = None
         if self.tok.kind == TokenKind.IDENT:
@@ -61,7 +61,7 @@ class EnumMixin:
             ty.is_unsigned = False
         elif hi >= 1 << 32:
             ty.size = ty.align = 8
-        self.parse_attributes(VarAttr())
+        self.parse_attributes(attr if attr is not None else VarAttr())   # `enum {..} __attribute__((mode(word)))`
         if tag is not None:
             self.scopes[-1].tags[tag.text] = ty
         return ty
@@ -83,3 +83,5 @@ class EnumMixin:
     def apply_fixed_underlying(self, ty, under):
         ty.size = ty.align = under.size
         ty.is_unsigned = under.is_unsigned
+        if under.kind == T.TypeKind.BOOL:
+            ty.kind = T.TypeKind.BOOL     # `enum e : _Bool`: conversions to it are `!= 0`
