@@ -98,6 +98,38 @@ PREDEFINED = r"""
 #define __UINT16_MAX__ 0xffff
 #define __UINT32_MAX__ 0xffffffffU
 #define __UINT64_MAX__ 0xffffffffffffffffUL
+#define __INT_LEAST8_TYPE__ signed char
+#define __INT_LEAST16_TYPE__ short
+#define __INT_LEAST32_TYPE__ int
+#define __INT_LEAST64_TYPE__ long
+#define __UINT_LEAST8_TYPE__ unsigned char
+#define __UINT_LEAST16_TYPE__ unsigned short
+#define __UINT_LEAST32_TYPE__ unsigned int
+#define __UINT_LEAST64_TYPE__ unsigned long
+#define __INT_FAST8_TYPE__ signed char
+#define __INT_FAST16_TYPE__ long
+#define __INT_FAST32_TYPE__ long
+#define __INT_FAST64_TYPE__ long
+#define __UINT_FAST8_TYPE__ unsigned char
+#define __UINT_FAST16_TYPE__ unsigned long
+#define __UINT_FAST32_TYPE__ unsigned long
+#define __UINT_FAST64_TYPE__ unsigned long
+#define __INT_LEAST8_MAX__ 0x7f
+#define __INT_LEAST16_MAX__ 0x7fff
+#define __INT_LEAST32_MAX__ 0x7fffffff
+#define __INT_LEAST64_MAX__ 0x7fffffffffffffffL
+#define __UINT_LEAST8_MAX__ 0xff
+#define __UINT_LEAST16_MAX__ 0xffff
+#define __UINT_LEAST32_MAX__ 0xffffffffU
+#define __UINT_LEAST64_MAX__ 0xffffffffffffffffUL
+#define __INT_FAST8_MAX__ 0x7f
+#define __INT_FAST16_MAX__ 0x7fffffffffffffffL
+#define __INT_FAST32_MAX__ 0x7fffffffffffffffL
+#define __INT_FAST64_MAX__ 0x7fffffffffffffffL
+#define __UINT_FAST8_MAX__ 0xff
+#define __UINT_FAST16_MAX__ 0xffffffffffffffffUL
+#define __UINT_FAST32_MAX__ 0xffffffffffffffffUL
+#define __UINT_FAST64_MAX__ 0xffffffffffffffffUL
 #define __INT8_C(c) c
 #define __INT16_C(c) c
 #define __INT32_C(c) c
