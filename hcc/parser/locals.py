@@ -119,6 +119,7 @@ class LocalDeclMixin:
                 var = self.new_lvar(name.text, ty, name.loc)
                 size = self.vla_size_expr(ty, name.loc)
                 items.append(N.VLAAlloc(name.loc, var, self.vla_block_slot(), size))
+                self.block_vla_saves.append(var)   # later VLAs of this block stack below it
                 if self.accept("="):
                     # Only empty braces are allowed (zero-filled), as GCC does.
                     if not (self.at("{") and self.peek().text == "}"):
