@@ -88,7 +88,10 @@ class BuiltinParseMixin:
 
     def _b_expect(self, tok):
         args = self._args(2)
-        return new_cast(args[0], T.TY_LONG)
+        # The second argument (the expected value) is still evaluated for its
+        # side effects; the result is the first argument.
+        seq = self.typed(N.Comma(tok.loc, args[1], args[0]))
+        return new_cast(seq, T.TY_LONG)
 
     def _b_constant_p(self, tok):
         args = self._args(1)

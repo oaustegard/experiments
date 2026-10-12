@@ -148,7 +148,9 @@ class FunctionMixin:
             else:
                 reg = ARG_REGS64[gp]
                 gp += 1
-                self.emit(f"mov {reg}, %r8")
+                # %r11 is scratch: later GP argument registers (e.g. %r8)
+                # may still hold incoming arguments.
+                self.emit(f"mov {reg}, %r11")
                 for b in range(n):
-                    self.emit(f"mov %r8b, {base + b}(%rbp)")
-                    self.emit("shr $8, %r8")
+                    self.emit(f"mov %r11b, {base + b}(%rbp)")
+                    self.emit("shr $8, %r11")
