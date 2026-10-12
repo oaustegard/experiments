@@ -260,6 +260,8 @@ class DeclSpecMixin:
             ty = mode_type(ty, tmode)
         if counter == 0 and attr is None and not (is_const or is_volatile or is_complex):
             self.error("expected type")
+        if ty is not None and ty.is_vector and (is_const or is_volatile):
+            ty = _qualified_vector(ty, is_const, is_volatile)   # elements carry the qualifiers
         if ty is not None and (is_const or is_volatile or is_atomic):
             ty = ty.copy()
             ty.is_const |= is_const
@@ -287,3 +289,11 @@ class DeclSpecMixin:
             ty = ty.copy()
             ty.is_const = ty.is_volatile = ty.is_atomic = False
         return ty
+
+
+def _qualified_vector(vty, is_const, is_volatile):
+    """Rebuild a GCC vector type whose element type carries const/volatile."""
+    elem = vty.base.copy()
+    elem.is_const |= is_const
+    elem.is_volatile |= is_volatile
+    return T.vector_of(elem, vty.size)
