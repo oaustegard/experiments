@@ -63,7 +63,7 @@ class Type:
                  "is_restrict", "is_atomic", "base", "array_len", "vla_len", "vla_size",
                  "members", "tag", "is_flexible", "is_packed", "is_complete",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
-                 "origin", "name", "enum_consts")
+                 "origin", "name", "enum_consts", "is_vector")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -91,6 +91,7 @@ class Type:
         self.origin: Type | None = None
         self.name = None          # declarator name Token while parsing
         self.enum_consts = None
+        self.is_vector = False    # GCC vector_size: an ARRAY with value semantics
 
     def copy(self) -> "Type":
         t = Type.__new__(Type)
@@ -192,6 +193,15 @@ def array_of(base: Type, n: int) -> Type:
     t.base = base
     t.array_len = n
     t.is_complete = n >= 0
+    return t
+
+
+def vector_of(base: Type, nbytes: int) -> Type:
+    """GCC `__attribute__((vector_size(nbytes)))`: fixed array, copied as a value."""
+    n = nbytes // base.size if base.size else 0
+    t = array_of(base, n)
+    t.size = nbytes
+    t.is_vector = True
     return t
 
 

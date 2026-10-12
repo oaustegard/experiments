@@ -51,6 +51,8 @@ class TopLevelMixin:
             self.parse_attributes(dattr)
             if name is None:
                 self.error("identifier expected in declaration")
+            if dattr.vector_size:
+                ty = T.vector_of(ty, dattr.vector_size)
             if attr.is_typedef:
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty)
             elif ty.kind == T.TypeKind.FUNC:

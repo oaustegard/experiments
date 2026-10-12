@@ -84,7 +84,10 @@ class AttributeMixin:
         elif name == "alias" and attr is not None and args:
             attr.alias = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name == "vector_size" and attr is not None and args:
-            attr.vector_size = args[0].value if isinstance(args[0].value, int) else 16
+            save = self.pos
+            self.pos = args_start + 1
+            attr.vector_size = self.const_expr()
+            self.pos = save
         elif name == "mode" and attr is not None and args:
             attr.mode = args[0].text.strip("_")
 

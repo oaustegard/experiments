@@ -143,6 +143,9 @@ class DeclSpecMixin:
                     pass
                 self.error(f"invalid type: '{s}' here")
             ty = _BASE_TYPES[counter]
+        if attr is not None and attr.vector_size and ty is not None:
+            ty = T.vector_of(ty, attr.vector_size)
+            attr.vector_size = 0
         if counter == 0 and attr is None and not (is_const or is_volatile):
             self.error("expected type")
         if ty is not None and (is_const or is_volatile or is_atomic):

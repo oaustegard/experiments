@@ -75,9 +75,9 @@ def _logical(n: N.Logical):
 
 def _assign(n: N.Assign):
     lt = n.lhs.ty
-    if lt.kind == TypeKind.ARRAY:
+    if lt.kind == TypeKind.ARRAY and not lt.is_vector:
         diag.error(n, "assignment to expression with array type", "sema")
-    if lt.kind not in (TypeKind.STRUCT, TypeKind.UNION):
+    if lt.kind not in (TypeKind.STRUCT, TypeKind.UNION) and not lt.is_vector:
         n.rhs = new_cast(n.rhs, lt)
     n.ty = lt
 

@@ -94,6 +94,13 @@ class InitializerMixin:
             self.string_initializer(init)
             self.expect(")")
             return
+        if ty.kind == T.TypeKind.ARRAY and ty.is_vector and not self.at("{"):
+            save = self.pos
+            expr = self.typed(self.assign())
+            if expr.ty.is_vector:     # `vec v = other_vec;` copies the value
+                init.expr = expr
+                return
+            self.pos = save
         if ty.kind == T.TypeKind.ARRAY:
             if self.at("{"):
                 self.array_initializer1(init)
