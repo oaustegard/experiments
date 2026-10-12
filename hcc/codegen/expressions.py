@@ -46,6 +46,10 @@ def _calls_before_store(node) -> bool:
     return _contains_call(node.rhs)
 
 
+_DIRECT_KINDS = (TypeKind.CHAR, TypeKind.SHORT, TypeKind.INT, TypeKind.LONG,
+                 TypeKind.LLONG, TypeKind.ENUM, TypeKind.PTR)
+
+
 class ExpressionMixin:
 
     def expr_IntLit(self, node) -> None:
@@ -89,8 +93,32 @@ class ExpressionMixin:
             self.emit("fldt -16(%rsp)")
 
     def expr_VarRef(self, node) -> None:
+        if self._local_int_load(node):
+            return
         self.gen_addr(node)
         self.load(node.ty)
+
+    def _local_int_load(self, node) -> bool:
+        """Load a plain integer/pointer local directly from its frame slot."""
+        var, ty = node.var, node.ty
+        if not getattr(var, "is_local", False) or self.is_outer_local(var):
+            return False
+        if ty.is_rev_order or ty.kind not in _DIRECT_KINDS or ty.size not in (1, 2, 4, 8):
+            return False
+        off = var.offset
+        if not -(1 << 31) <= off < (1 << 31):
+            return False
+        m = f"{off}(%rbp)"
+        uns = ty.is_unsigned
+        if ty.size == 1:
+            self.emit(f"{'movzbl' if uns else 'movsbl'} {m}, %eax")
+        elif ty.size == 2:
+            self.emit(f"{'movzwl' if uns else 'movswl'} {m}, %eax")
+        elif ty.size == 4:
+            self.emit(f"movslq {m}, %rax")
+        else:
+            self.emit(f"mov {m}, %rax")
+        return True
 
     def expr_Deref(self, node) -> None:
         self.gen_expr(node.operand)
@@ -207,8 +235,17 @@ class ExpressionMixin:
 
     def expr_MemZero(self, node) -> None:
         v = node.var
-        self.emit(f"mov ${v.ty.size}, %rcx")
+        size = v.ty.size
         self.frame_lea(v.offset, "%rdi")
+        if size <= 128:
+            # small objects: plain zero stores (no rep stosb in hot loops)
+            pos = 0
+            for width, suffix in ((8, "q"), (4, "l"), (2, "w"), (1, "b")):
+                while size - pos >= width:
+                    self.emit(f"mov{suffix} $0, {pos}(%rdi)")
+                    pos += width
+            return
+        self.emit(f"mov ${size}, %rcx")
         self.emit("mov $0, %al")
         self.emit("rep stosb")
 
