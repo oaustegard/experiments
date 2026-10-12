@@ -146,6 +146,7 @@ hcc/
     complex.py         C99 _Complex: complex = STRUCT{re,im} (typesys.complex_of); ops lowered to temps
     complex_const.py   file-scope complex constants (cval folding -> struct initializer leaves)
     complex_div.py     C Annex G complex division recovery (NaN quotient -> libgcc __divdc3/__divsc3)
+    dyn_struct_args.py  by-value struct with VLA tail: caller passes a pointer to a fresh copy
 
   sema/
     __init__.py        re-exports

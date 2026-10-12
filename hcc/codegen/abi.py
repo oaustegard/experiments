@@ -8,7 +8,7 @@ Long double and __int128 classification is still TODO (memory class for long dou
 """
 from __future__ import annotations
 
-from hcc.typesys import TypeKind
+from hcc.typesys import TypeKind, is_dyn_struct
 
 
 def has_flonum(ty, lo: int, hi: int, offset: int = 0) -> bool:
@@ -68,6 +68,8 @@ def is_memory_struct(ty) -> bool:
 def struct_arg_regs(ty):
     """Like struct_in_regs, but structs holding long double are memory class
     when passed as arguments (X87 eightbytes are never passed in registers)."""
+    if is_dyn_struct(ty):
+        return (False, False)       # passed as a pointer to the copy (parser/dyn_struct_args.py)
     if has_ldouble(ty):
         return None
     return struct_in_regs(ty)

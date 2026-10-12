@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
+from hcc import typesys as T
+from hcc.parser.dyn_struct_args import dyn_struct_arg
 from hcc.parser.libc_builtins import fabs_float_call, int_abs_call
 from hcc.parser.structs import find_member, complete_struct
 from hcc.parser.plan9_ptr import plan9_pointer_conv
@@ -160,6 +162,7 @@ class PostfixMixin:
             fabs_node = fabs_float_call(loc, fn.var.name, args[0])
             if fabs_node is not None:
                 return self.typed(fabs_node)
+        conv = [dyn_struct_arg(self, a, loc) if T.is_dyn_struct(a.ty) else a for a in conv]
         node = N.Call(loc, fn, conv, fty)
         if is_struct_like(fty.return_ty) or fty.return_ty.is_vector:
             node.ret_buffer = self.new_temp(fty.return_ty)

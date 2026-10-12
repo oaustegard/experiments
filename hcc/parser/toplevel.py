@@ -15,6 +15,7 @@ from hcc.sema.compat import is_compatible
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 from hcc.parser.attributes import mode_type
+from hcc.parser.vla import vla_slot_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
@@ -288,6 +289,8 @@ class TopLevelMixin:
             pvar = ty.param_vars[i] if i < len(ty.param_vars) else None
             self.check_param_complete(i, pty, pname, fn.loc)
             pty = self.bind_vla_param(pty, vla_inits, pname.loc if pname else fn.loc)
+            if T.is_dyn_struct(pty):    # by-value dynamic struct: slot holds the copy's address
+                pty = vla_slot_type(pty)
             if pname is not None and pvar is not None:
                 # reuse the Var the prototype parse already put in scope
                 v = pvar

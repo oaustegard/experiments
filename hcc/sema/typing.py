@@ -175,9 +175,6 @@ def _stmt_expr(n: N.StmtExpr):
 
 
 def _call(n: N.Call):
-    for a in n.args:
-        if is_dyn_struct(a.ty):
-            diag.error(n, "unsupported: passing a struct with a variably modified member by value", "sema")
     n.ty = n.func_ty.return_ty
 
 
