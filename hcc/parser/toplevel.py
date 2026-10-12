@@ -209,6 +209,8 @@ class TopLevelMixin:
         return fn
 
     def declare_global_var(self, ty, name, attr, dattr) -> N.Var:
+        if attr.strict_flex_array or dattr.strict_flex_array:
+            self.error("'strict_flex_array' attribute may not be specified for '%s'" % name.text, name.loc)
         vs = self.scopes[0].vars.get(name.text)
         var = vs.var if vs is not None and isinstance(vs.var, N.Var) else None
         self.check_redecl_type(var, name.text, ty, name)

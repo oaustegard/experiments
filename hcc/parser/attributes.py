@@ -50,6 +50,7 @@ ARG_COUNTS = {
     "assume": (1, 1),
     "access": (2, 3),
     "nonnull_if_nonzero": (2, 3),
+    "strict_flex_array": (1, 1),
 }
 
 
@@ -284,6 +285,8 @@ class AttributeMixin:
             if attr.vector_size > VECTOR_SIZE_MAX:
                 self.error("'vector_size' attribute argument value '%d' exceeds %d"
                            % (attr.vector_size, VECTOR_SIZE_MAX), self.toks[args_start])
+        elif name == "strict_flex_array" and attr is not None:
+            attr.strict_flex_array = True
         elif name == "mode" and attr is not None and args:
             attr.mode = args[0].text.strip("_")
 

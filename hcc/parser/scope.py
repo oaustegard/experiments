@@ -52,6 +52,7 @@ class VarAttr:
     is_ms_struct: bool = False
     reverse_sso: bool = False       # scalar_storage_order("big-endian")
     section: str | None = None
+    strict_flex_array: bool = False  # __attribute__((strict_flex_array(N))) on a field
     visibility: str | None = None
     alias: str | None = None
     ifunc: str | None = None        # __attribute__((ifunc("resolver")))
