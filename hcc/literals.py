@@ -151,6 +151,13 @@ def parse_number(tok: Token):
     return parse_int_literal(tok)
 
 
+def _check_ucn(tok: Token, cp: int) -> None:
+    """C11 6.4.3: a UCN may not designate a code point below 00A0 (other than
+    $, @, `), a surrogate (D800-DFFF), or a value above 10FFFF."""
+    if (cp < 0xA0 and cp not in (0x24, 0x40, 0x60)) or 0xD800 <= cp <= 0xDFFF or cp > 0x10FFFF:
+        diag.error(tok, "\\u%s is not a valid universal character" % ("%04x" % cp if cp <= 0xFFFF else "%08x" % cp))
+
+
 def _decode(tok: Token, body: str, wide: bool) -> list[int]:
     """Decode escapes; returns code units (bytes for narrow, code points for wide)."""
     out: list[int] = []
@@ -223,6 +230,7 @@ def _decode(tok: Token, body: str, wide: bool) -> list[int]:
             if len(digits) != k or any(d not in _HEX for d in digits):
                 diag.error(tok, "incomplete universal character name")
             cp = int(digits, 16)
+            _check_ucn(tok, cp)
             i += 1 + k
             if wide:
                 out.append(cp)
