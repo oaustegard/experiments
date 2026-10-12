@@ -229,12 +229,21 @@ class DeclaratorMixin:
                 count += 1
         return count
 
+    def check_array_elem(self, ty):
+        """Reject arrays whose element type is incomplete (C11 6.7.6.2p1)."""
+        if ty.kind == T.TypeKind.VLA:
+            return
+        if (ty.kind == T.TypeKind.ARRAY and ty.array_len < 0) or \
+                (ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not ty.is_complete):
+            self.error("array type has incomplete element type", self.tok)
+
     def array_dims(self, ty):
         while (self.at("static") or self.at("const") or self.at("volatile")
                or self.at("restrict") or self.at("_Atomic")):
             self.next()
         if self.accept("]"):
             ty = self.type_suffix(ty)
+            self.check_array_elem(ty)
             return T.array_of(ty, -1)
         if self.at("*") and self.peek().text == "]":
             self.next()
@@ -244,6 +253,7 @@ class DeclaratorMixin:
         expr = self.assign()
         self.expect("]")
         ty = self.type_suffix(ty)
+        self.check_array_elem(ty)
         n = try_eval_const(expr)
         if n is None or ty.kind == T.TypeKind.VLA:
             add_type(expr)
