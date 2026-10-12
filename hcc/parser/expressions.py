@@ -156,6 +156,7 @@ class ExpressionMixin:
             if self.at("{"):                      # compound literal
                 self.pos = start
                 return self.unary()
+            _check_cast_target(self, loc, ty)
             ty, pre = self.vla_bind(ty, loc)      # `(int (*)[++i])p` evaluates ++i
             operand = self.cast_expr()
             if ty.kind == TypeKind.VOID:
@@ -296,3 +297,11 @@ class ExpressionMixin:
 
 
 __all__ = ["ExpressionMixin", "new_add", "new_sub", "new_cast", "inc_dec", "TY_INT"]
+
+
+def _check_cast_target(parser, loc, ty) -> None:
+    """C99 6.5.4: a cast's type name must not be an array or function type."""
+    if ty.kind in (TypeKind.ARRAY, TypeKind.VLA) and not ty.is_vector:   # GCC vectors are casts
+        parser.error("cast specifies array type", loc)
+    if ty.kind == TypeKind.FUNC:
+        parser.error("cast specifies function type", loc)
