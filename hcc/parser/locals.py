@@ -108,13 +108,19 @@ class LocalDeclMixin:
             if T.is_dyn_struct(ty):
                 # `struct { int x[n]; } s;`: storage is allocated like a VLA;
                 # the frame slot holds its address (size 8, see vla_slot_type).
-                if self.at("="):
+                has_init = self.accept("=")
+                if has_init and not (self.at("{") and self.peek().text == "}"):
                     self.error("variably modified struct may not be initialized", name)
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
                 var = self.new_lvar(name.text, vla_slot_type(ty), name.loc)
                 size = self.vla_size_expr(ty, name.loc)
                 items.append(N.VLAAlloc(name.loc, var, self.vla_block_slot(), size))
+                if has_init:
+                    # Only empty braces: zero-fill the storage, as for VLA arrays.
+                    self.next()
+                    self.next()
+                    items.append(N.VLAZero(name.loc, var, self.vla_size_expr(ty, name.loc)))
                 continue
             if ty.kind == T.TypeKind.VLA:
                 ty, pre = self.vla_bind(ty, name.loc)
