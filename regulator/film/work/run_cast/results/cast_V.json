@@ -1,0 +1,165 @@
+{
+ "duration_api_ms": 11427,
+ "stop_reason": "tool_use",
+ "session_id": "bd93daae-3ac4-4804-9f30-ccd84adab896",
+ "total_cost_usd": 0.00205587,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4064,
+  "cache_read_input_tokens": 7857,
+  "output_tokens": 1756,
+  "output_tokens_details": {
+   "thinking_tokens": 795
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4064,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1619,
+    "cache_read_input_tokens": 4447,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1455,
+   "outputTokens": 2038,
+   "cacheReadInputTokens": 7857,
+   "cacheCreationInputTokens": 4064,
+   "webSearchRequests": 0,
+   "costUSD": 0.00205587,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1054,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/cast/V_0.png\",\"match\":4,\"flaws\":[\"Sleeves are rolled and the waistcoat is dark, as specified.\",\"Build reads more upright and solid than 'lean, stooped'; the torso is fairly broad, and the posture only leans slightly.\",\"Expression is a warm, kindly smile rather than a 'sharp, amused' mouth; it reads as gentle more than wry.\",\"Spectacles are pushed up on the forehead, but a cord or chain runs from the frame down the cheek to the chest, which is an odd detail if the glasses are meant to rest on the forehead.\",\"Hands are slightly elongated and the right hand on the table has overly smooth, lightly rendered fingers; the blue-black ink marks are present but patchy.\",\"Loupe on a cord is present at the chest; it reads as a camera-like lens rather than a clearly jeweller's loupe.\",\"No visible text or lettering, and no extra people. Period props (oil lamp, books, watch movement) are appropriate for 1899.\"]},{\"file\":\"/home/user/experiments/regulator/film/cast/V_1.png\",\"match\":3,\"flaws\":[\"Shirt is full white linen with sleeves hanging loose and unrolled, which contradicts 'shirtsleeves rolled'.\",\"Build is broader and fuller through the chest and shoulders; it does not read as lean or stooped.\",\"Expression is a pleasant smile with some amusement, closer to the 'sharp amused mouth' than V_0, but it is soft rather than sharp.\",\"Spectacles are correctly pushed up on the forehead, and the short white beard and close-cropped grey hair match.\",\"Hands are awkward: the tweezers-holding hand has a stiff, unnatural grip, and the lower hand on the watch is bulky with unclear finger structure; ink marks are faint.\",\"Loupe on a cord hangs at the chest and reads clearly as a loupe, which is a plus.\",\"No visible text or lettering, and no extra people. Props (brass oil lamp, watch movement, tweezers, small ink bottle) suit the period and the trade.\"]}],\"best\":\"/home/user/experiments/regulator/film/cast/V_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/cast/V_0.png",
+    "match": 4,
+    "flaws": [
+     "Sleeves are rolled and the waistcoat is dark, as specified.",
+     "Build reads more upright and solid than 'lean, stooped'; the torso is fairly broad, and the posture only leans slightly.",
+     "Expression is a warm, kindly smile rather than a 'sharp, amused' mouth; it reads as gentle more than wry.",
+     "Spectacles are pushed up on the forehead, but a cord or chain runs from the frame down the cheek to the chest, which is an odd detail if the glasses are meant to rest on the forehead.",
+     "Hands are slightly elongated and the right hand on the table has overly smooth, lightly rendered fingers; the blue-black ink marks are present but patchy.",
+     "Loupe on a cord is present at the chest; it reads as a camera-like lens rather than a clearly jeweller's loupe.",
+     "No visible text or lettering, and no extra people. Period props (oil lamp, books, watch movement) are appropriate for 1899."
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/cast/V_1.png",
+    "match": 3,
+    "flaws": [
+     "Shirt is full white linen with sleeves hanging loose and unrolled, which contradicts 'shirtsleeves rolled'.",
+     "Build is broader and fuller through the chest and shoulders; it does not read as lean or stooped.",
+     "Expression is a pleasant smile with some amusement, closer to the 'sharp amused mouth' than V_0, but it is soft rather than sharp.",
+     "Spectacles are correctly pushed up on the forehead, and the short white beard and close-cropped grey hair match.",
+     "Hands are awkward: the tweezers-holding hand has a stiff, unnatural grip, and the lower hand on the watch is bulky with unclear finger structure; ink marks are faint.",
+     "Loupe on a cord hangs at the chest and reads clearly as a loupe, which is a plus.",
+     "No visible text or lettering, and no extra people. Props (brass oil lamp, watch movement, tweezers, small ink bottle) suit the period and the trade."
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/cast/V_0.png"
+ },
+ "ttft_ms": 1260,
+ "type": "result",
+ "duration_ms": 11539,
+ "uuid": "3a404005-5c6d-4dea-8f4b-3a661fd40252",
+ "ttft_stream_ms": 1008,
+ "time_to_request_ms": 652,
+ "time_to_request_phases_ms": {
+  "other": 77,
+  "system_prompt": 70,
+  "resume_other": 0,
+  "process_user_input": 17,
+  "input_attachments": 56,
+  "input_hooks": 28,
+  "tool_pool_refresh": 2,
+  "init_message": 28,
+  "engine_pickup": 4,
+  "message_prep": 5,
+  "model_config_wait": 302,
+  "autocompact": 8,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 12,
+  "message_normalization": 7,
+  "client_creation": 20,
+  "request_build": 15
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 324,
+ "time_to_request_cpu_ms": 238,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "model",
+  "slowest_producer_ms": 28,
+  "cpu_ms": 16,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1009,
+ "time_to_request_from_spawn_ms": 4306218,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084870.0364,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

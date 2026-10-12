@@ -1,0 +1,162 @@
+{
+ "duration_api_ms": 9682,
+ "stop_reason": "tool_use",
+ "session_id": "ca5d37c7-4ee5-4dfa-9374-bccd646338e8",
+ "total_cost_usd": 0.00191624,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4191,
+  "cache_read_input_tokens": 8104,
+  "output_tokens": 1450,
+  "output_tokens_details": {
+   "thinking_tokens": 775
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4191,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1309,
+    "cache_read_input_tokens": 4632,
+    "cache_creation_input_tokens": 3031,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3031
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1575,
+   "outputTokens": 1679,
+   "cacheReadInputTokens": 8104,
+   "cacheCreationInputTokens": 4191,
+   "webSearchRequests": 0,
+   "costUSD": 0.00191624,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 986,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/morbier_0.png\",\"match\":4,\"flaws\":[\"Clock face is frontal and well lit, and the hour and minute hands are discernible, which the brief says should not be readable\",\"No small notebook visible; the inspector's hands are mostly out of frame and the bowler is cropped at the bottom edge\",\"Hallway is long and receding, so the clock is not placed as the focal point of a dim hall at dawn; the scene reads more as a corridor\",\"Snow on shoulders, dark overcoat, moustache and upward gaze all match the brief\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/morbier_1.png\",\"match\":3,\"flaws\":[\"Inspector faces the viewer and does not look up at the clock, so the 'looking up thoughtfully' action is missing\",\"Clock face is in shadow and its hands are not readable, which matches the brief\",\"Bowler hat and small notebook are both visible in hand, matching the props\",\"Window light suggests a cold morning, but there is no clear dawn hall setting; the scene looks like a room rather than a hall\",\"Inspector's expression is steady and watchful rather than clearly thoughtful, and the eyes are not obviously grey\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/morbier_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/morbier_0.png",
+    "match": 4,
+    "flaws": [
+     "Clock face is frontal and well lit, and the hour and minute hands are discernible, which the brief says should not be readable",
+     "No small notebook visible; the inspector's hands are mostly out of frame and the bowler is cropped at the bottom edge",
+     "Hallway is long and receding, so the clock is not placed as the focal point of a dim hall at dawn; the scene reads more as a corridor",
+     "Snow on shoulders, dark overcoat, moustache and upward gaze all match the brief"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/morbier_1.png",
+    "match": 3,
+    "flaws": [
+     "Inspector faces the viewer and does not look up at the clock, so the 'looking up thoughtfully' action is missing",
+     "Clock face is in shadow and its hands are not readable, which matches the brief",
+     "Bowler hat and small notebook are both visible in hand, matching the props",
+     "Window light suggests a cold morning, but there is no clear dawn hall setting; the scene looks like a room rather than a hall",
+     "Inspector's expression is steady and watchful rather than clearly thoughtful, and the eyes are not obviously grey"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/morbier_0.png"
+ },
+ "ttft_ms": 1503,
+ "type": "result",
+ "duration_ms": 9347,
+ "uuid": "6f3594e7-a6b7-492c-8809-75c9db8358e3",
+ "ttft_stream_ms": 1428,
+ "time_to_request_ms": 845,
+ "time_to_request_phases_ms": {
+  "other": 121,
+  "system_prompt": 181,
+  "resume_other": 0,
+  "process_user_input": 28,
+  "input_attachments": 115,
+  "input_hooks": 14,
+  "tool_pool_refresh": 16,
+  "init_message": 38,
+  "engine_pickup": 11,
+  "message_prep": 9,
+  "model_config_wait": 143,
+  "autocompact": 1,
+  "query_setup": 5,
+  "model_gates": 21,
+  "tool_schema_build": 39,
+  "message_normalization": 22,
+  "client_creation": 46,
+  "request_build": 35
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 740,
+ "time_to_request_cpu_ms": 200,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 29,
+  "cpu_ms": 12,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1429,
+ "time_to_request_from_spawn_ms": 4604511,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765385904.8914,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

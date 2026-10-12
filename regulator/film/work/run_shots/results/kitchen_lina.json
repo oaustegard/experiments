@@ -1,0 +1,164 @@
+{
+ "duration_api_ms": 14519,
+ "stop_reason": "tool_use",
+ "session_id": "785a3589-3db6-4596-bd9e-f2d7491945b9",
+ "total_cost_usd": 0.00237354,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4289,
+  "cache_read_input_tokens": 8194,
+  "output_tokens": 2282,
+  "output_tokens_details": {
+   "thinking_tokens": 1651
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4289,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2133,
+    "cache_read_input_tokens": 4722,
+    "cache_creation_input_tokens": 3039,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3039
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1668,
+   "outputTokens": 2534,
+   "cacheReadInputTokens": 8194,
+   "cacheCreationInputTokens": 4289,
+   "webSearchRequests": 0,
+   "costUSD": 0.00237354,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1883,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/kitchen_lina_0.png\",\"match\":4,\"flaws\":[\"Lina's posture is slouched and leaning on the stove rather than very straight\",\"Rosa's expression reads stern rather than frightened but proud\",\"Rosa's hand and the glass she polishes are slightly malformed\",\"The alarm clock's hands are small and borderline; they could be read as a rough time\",\"Lina's loupe is not clearly visible; the pendant at her neck could be read as a medallion\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/kitchen_lina_1.png\",\"match\":3,\"flaws\":[\"Lina's hair is dark brown, not fair\",\"Rosa's cap is grey-blue rather than white, and her face is less rosy\",\"Lina sits apart from the stove rather than holding the watch by it, and her pose is less pale and still\",\"The pocket watch is too small to read as a detail\",\"Lina's loupe is not clearly identifiable at her neck\",\"The trailing fabric behind Lina looks odd\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/kitchen_lina_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/kitchen_lina_0.png",
+    "match": 4,
+    "flaws": [
+     "Lina's posture is slouched and leaning on the stove rather than very straight",
+     "Rosa's expression reads stern rather than frightened but proud",
+     "Rosa's hand and the glass she polishes are slightly malformed",
+     "The alarm clock's hands are small and borderline; they could be read as a rough time",
+     "Lina's loupe is not clearly visible; the pendant at her neck could be read as a medallion"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/kitchen_lina_1.png",
+    "match": 3,
+    "flaws": [
+     "Lina's hair is dark brown, not fair",
+     "Rosa's cap is grey-blue rather than white, and her face is less rosy",
+     "Lina sits apart from the stove rather than holding the watch by it, and her pose is less pale and still",
+     "The pocket watch is too small to read as a detail",
+     "Lina's loupe is not clearly identifiable at her neck",
+     "The trailing fabric behind Lina looks odd"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/kitchen_lina_0.png"
+ },
+ "ttft_ms": 1791,
+ "type": "result",
+ "duration_ms": 13757,
+ "uuid": "86ab6326-85c3-4f20-bb2b-46fe5f44ee24",
+ "ttft_stream_ms": 1606,
+ "time_to_request_ms": 1070,
+ "time_to_request_phases_ms": {
+  "other": 176,
+  "system_prompt": 148,
+  "resume_other": 2,
+  "process_user_input": 7,
+  "input_attachments": 58,
+  "input_hooks": 41,
+  "tool_pool_refresh": 39,
+  "init_message": 42,
+  "engine_pickup": 19,
+  "message_prep": 1,
+  "model_config_wait": 134,
+  "autocompact": 13,
+  "query_setup": 9,
+  "model_gates": 0,
+  "tool_schema_build": 65,
+  "message_normalization": 22,
+  "client_creation": 211,
+  "request_build": 83
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 1014,
+ "time_to_request_cpu_ms": 195,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 44,
+  "cpu_ms": 12,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1608,
+ "time_to_request_from_spawn_ms": 4590496,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765368665.3733,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

@@ -1,0 +1,164 @@
+{
+ "duration_api_ms": 13484,
+ "stop_reason": "tool_use",
+ "session_id": "5411af6a-e245-479e-96ab-8e085e1caada",
+ "total_cost_usd": 0.0022287699999999997,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4166,
+  "cache_read_input_tokens": 8077,
+  "output_tokens": 2297,
+  "output_tokens_details": {
+   "thinking_tokens": 1565
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4166,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2154,
+    "cache_read_input_tokens": 4605,
+    "cache_creation_input_tokens": 3033,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3033
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1553,
+   "outputTokens": 2319,
+   "cacheReadInputTokens": 8077,
+   "cacheCreationInputTokens": 4166,
+   "webSearchRequests": 0,
+   "costUSD": 0.0022287699999999997,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1565,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/kitchen_0.png\",\"match\":4,\"flaws\":[\"Rosa's face is not clearly round and rosy; she looks downcast and her expression reads more tired than frightened-but-proud\",\"The alarm clock is very small at the top of the shelf and is hard to identify as a cheap American alarm clock\",\"Extra props not in the brief (kettle, oil lamp, copper pan, cutting board) crowd the frame, though none is anachronistic\",\"The long table fills the lower right foreground and pulls focus from the range and maid\",\"Her reaching left hand on the range edge is slightly awkward in shape\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/kitchen_1.png\",\"match\":3,\"flaws\":[\"The alarm clock is lit by the window and its face and hands are clearly visible, which contradicts the brief that the hands cannot be read\",\"The clock sits on a windowsill rather than the shelf the brief specifies\",\"The maid's expression is somber and fits 'frightened' better than 'proud', and her face is not especially rosy\",\"The table with the glasses is on the left, so the range and the maid's relation to the table are less clear than the brief implies\",\"A dangling cord or pull-ring on the wall near the window is ambiguous and could read as a modern electric wire\",\"No visible text, no letterboxing, and no anachronism beyond that\"],\"fatal\":true}],\"best\":\"/home/user/experiments/regulator/film/stills/kitchen_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/kitchen_0.png",
+    "match": 4,
+    "flaws": [
+     "Rosa's face is not clearly round and rosy; she looks downcast and her expression reads more tired than frightened-but-proud",
+     "The alarm clock is very small at the top of the shelf and is hard to identify as a cheap American alarm clock",
+     "Extra props not in the brief (kettle, oil lamp, copper pan, cutting board) crowd the frame, though none is anachronistic",
+     "The long table fills the lower right foreground and pulls focus from the range and maid",
+     "Her reaching left hand on the range edge is slightly awkward in shape"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/kitchen_1.png",
+    "match": 3,
+    "flaws": [
+     "The alarm clock is lit by the window and its face and hands are clearly visible, which contradicts the brief that the hands cannot be read",
+     "The clock sits on a windowsill rather than the shelf the brief specifies",
+     "The maid's expression is somber and fits 'frightened' better than 'proud', and her face is not especially rosy",
+     "The table with the glasses is on the left, so the range and the maid's relation to the table are less clear than the brief implies",
+     "A dangling cord or pull-ring on the wall near the window is ambiguous and could read as a modern electric wire",
+     "No visible text, no letterboxing, and no anachronism beyond that"
+    ],
+    "fatal": true
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/kitchen_0.png"
+ },
+ "ttft_ms": 1443,
+ "type": "result",
+ "duration_ms": 13592,
+ "uuid": "e08b9256-4a2c-4b34-97c0-dd6a5349f05c",
+ "ttft_stream_ms": 1256,
+ "time_to_request_ms": 797,
+ "time_to_request_phases_ms": {
+  "other": 220,
+  "system_prompt": 108,
+  "resume_other": 18,
+  "process_user_input": 5,
+  "input_attachments": 90,
+  "input_hooks": 29,
+  "tool_pool_refresh": 2,
+  "init_message": 62,
+  "engine_pickup": 1,
+  "message_prep": 30,
+  "model_config_wait": 131,
+  "autocompact": 31,
+  "query_setup": 0,
+  "model_gates": 1,
+  "tool_schema_build": 20,
+  "message_normalization": 22,
+  "client_creation": 9,
+  "request_build": 18
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 652,
+ "time_to_request_cpu_ms": 184,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 45,
+  "cpu_ms": 26,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1256,
+ "time_to_request_from_spawn_ms": 4590970,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765368638.9172,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

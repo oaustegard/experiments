@@ -1,0 +1,139 @@
+{
+ "duration_api_ms": 97136,
+ "stop_reason": "tool_use",
+ "session_id": "082aac73-ccde-4695-a55f-4eaa34ce0d73",
+ "total_cost_usd": 0.01124914,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 506,
+  "cache_read_input_tokens": 5924,
+  "output_tokens": 21327,
+  "output_tokens_details": {
+   "thinking_tokens": 20190
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 506,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 21327,
+    "cache_read_input_tokens": 5924,
+    "cache_creation_input_tokens": 506,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 506
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 4137,
+   "outputTokens": 21350,
+   "cacheReadInputTokens": 5924,
+   "cacheCreationInputTokens": 506,
+   "webSearchRequests": 0,
+   "costUSD": 0.01124914,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 20190,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"murderer\":\"Dr Casimir Vauthier\",\"time\":\"10:38\",\"reasoning\":\"Time of the blow. Fix the offsets first, using the temple bell (true time) and the two watch-comparison anchors.\\n- Hall clock: Lina says it struck ten when the regulator read 9:48, so it runs 12 minutes fast. Bastien's entry check (hall face 11:02, entry at 10:46 by his watch) only fits this if his watch is 4 minutes slow.\\n- F\u00e9lix's watch is 20 minutes slow (8:40 at the nine o'clock bell).\\n- Bastien's watch is 4 minutes slow.\\n- The kitchen clock is about 25 minutes fast, not the 15 Rosa believes. Lina enters at true 10:21, and Rosa reads 10:47 on the kitchen clock at that moment. Monnier's afternoon tampering with it explains the gap.\\n\\nConverted to true time:\\n- Repeater: F\u00e9lix's thump at 10:18 by his watch is 10:38 true. Bastien's \\\"faint quick bells\\\" at 10:34 by his watch is 10:38 true. The repeater's strike is ten hours, then doubled quarter notes, then minutes, which gives 10:38. The murder was at 10:38.\\n- Piano: Bastien hears it start at 10:29 by his watch, which is 10:33 true. Rosa and Lina put the start at 10:58 on the kitchen clock, which is 10:33 true. Stop: 11:11 kitchen is 10:46 true, which matches the hall clock striking eleven (10:48 true) a moment after the doctor sat down.\\n- F\u00e9lix hears someone go up past the library at 10:35 true and come down at 10:41 true. The blow falls in between.\\n\\nAlibis:\\n- Lina and Rosa were together in the kitchen from about 10:21 to 11:00 true. Both are cleared.\\n- Odile was at the piano from 10:33 to 10:46 true, and Rosa and Lina heard it throughout. Odile is cleared.\\n- Bastien was outside under the windows from about 10:25 to 10:50 true, with F\u00e9lix's timings placing him in the library from 10:52. He had no time to reach the atelier before 10:38.\\n- F\u00e9lix's testimony about someone passing his door is independent of the others, and his account of the stair traffic fits the murder.\\n\\nThe lie: Dr Vauthier says he left the salon at a quarter to eleven by his watch. His watch was 2 minutes fast at dinner, so that is 10:43 true. But Odile says the piano began the moment he went out, and the piano began at 10:33 true, confirmed by Bastien, by the kitchen clock, and by Odile herself. So the doctor left at 10:33 and not 10:43. He was out of the salon from 10:33 to about 10:46, which covers the murder. The stair traffic at 10:35 and 10:41 is consistent with him going up, striking at 10:38 with the brass mallet, and coming back down. The false regulator reading of 10:05 points at Lina, who was in the atelier with Monnier at that hour, so the murderer was framing her.\\n\\nThe murderer was the doctor, and the blow fell at 10:38 true.\"}",
+ "structured_output": {
+  "murderer": "Dr Casimir Vauthier",
+  "time": "10:38",
+  "reasoning": "Time of the blow. Fix the offsets first, using the temple bell (true time) and the two watch-comparison anchors.\n- Hall clock: Lina says it struck ten when the regulator read 9:48, so it runs 12 minutes fast. Bastien's entry check (hall face 11:02, entry at 10:46 by his watch) only fits this if his watch is 4 minutes slow.\n- F\u00e9lix's watch is 20 minutes slow (8:40 at the nine o'clock bell).\n- Bastien's watch is 4 minutes slow.\n- The kitchen clock is about 25 minutes fast, not the 15 Rosa believes. Lina enters at true 10:21, and Rosa reads 10:47 on the kitchen clock at that moment. Monnier's afternoon tampering with it explains the gap.\n\nConverted to true time:\n- Repeater: F\u00e9lix's thump at 10:18 by his watch is 10:38 true. Bastien's \"faint quick bells\" at 10:34 by his watch is 10:38 true. The repeater's strike is ten hours, then doubled quarter notes, then minutes, which gives 10:38. The murder was at 10:38.\n- Piano: Bastien hears it start at 10:29 by his watch, which is 10:33 true. Rosa and Lina put the start at 10:58 on the kitchen clock, which is 10:33 true. Stop: 11:11 kitchen is 10:46 true, which matches the hall clock striking eleven (10:48 true) a moment after the doctor sat down.\n- F\u00e9lix hears someone go up past the library at 10:35 true and come down at 10:41 true. The blow falls in between.\n\nAlibis:\n- Lina and Rosa were together in the kitchen from about 10:21 to 11:00 true. Both are cleared.\n- Odile was at the piano from 10:33 to 10:46 true, and Rosa and Lina heard it throughout. Odile is cleared.\n- Bastien was outside under the windows from about 10:25 to 10:50 true, with F\u00e9lix's timings placing him in the library from 10:52. He had no time to reach the atelier before 10:38.\n- F\u00e9lix's testimony about someone passing his door is independent of the others, and his account of the stair traffic fits the murder.\n\nThe lie: Dr Vauthier says he left the salon at a quarter to eleven by his watch. His watch was 2 minutes fast at dinner, so that is 10:43 true. But Odile says the piano began the moment he went out, and the piano began at 10:33 true, confirmed by Bastien, by the kitchen clock, and by Odile herself. So the doctor left at 10:33 and not 10:43. He was out of the salon from 10:33 to about 10:46, which covers the murder. The stair traffic at 10:35 and 10:41 is consistent with him going up, striking at 10:38 with the brass mallet, and coming back down. The false regulator reading of 10:05 points at Lina, who was in the atelier with Monnier at that hour, so the murderer was framing her.\n\nThe murderer was the doctor, and the blow fell at 10:38 true."
+ },
+ "ttft_ms": 90916,
+ "type": "result",
+ "duration_ms": 95709,
+ "uuid": "0f2f40fb-ed7a-4119-a7e4-2e1a81d9266c",
+ "ttft_stream_ms": 1488,
+ "time_to_request_ms": 1006,
+ "time_to_request_phases_ms": {
+  "other": 117,
+  "system_prompt": 372,
+  "resume_other": 0,
+  "process_user_input": 85,
+  "input_attachments": 124,
+  "input_hooks": 40,
+  "tool_pool_refresh": 28,
+  "init_message": 61,
+  "engine_pickup": 18,
+  "message_prep": 3,
+  "model_config_wait": 3,
+  "autocompact": 10,
+  "query_setup": 1,
+  "model_gates": 16,
+  "tool_schema_build": 16,
+  "message_normalization": 2,
+  "client_creation": 45,
+  "request_build": 65
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 928,
+ "time_to_request_cpu_ms": 193,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "environment",
+  "slowest_producer_ms": 73,
+  "cpu_ms": 17,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1488,
+ "time_to_request_from_spawn_ms": 4315426,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084127.653,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

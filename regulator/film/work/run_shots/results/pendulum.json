@@ -1,0 +1,162 @@
+{
+ "duration_api_ms": 11330,
+ "stop_reason": "tool_use",
+ "session_id": "34066807-173c-427b-b03b-3e1643c7cd86",
+ "total_cost_usd": 0.0020161,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4059,
+  "cache_read_input_tokens": 7970,
+  "output_tokens": 1798,
+  "output_tokens_details": {
+   "thinking_tokens": 1094
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4059,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1655,
+    "cache_read_input_tokens": 4498,
+    "cache_creation_input_tokens": 3033,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3033
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1446,
+   "outputTokens": 1960,
+   "cacheReadInputTokens": 7970,
+   "cacheCreationInputTokens": 4059,
+   "webSearchRequests": 0,
+   "costUSD": 0.0020161,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1236,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/pendulum_0.png\",\"match\":4,\"flaws\":[\"Dial is cropped off at the top edge, so the hands and numerals cannot be checked\",\"Man is cut off at the top, so the face is out of frame as intended, but the upper body reads as a large, oddly cropped figure rather than a clearly portly man\",\"Hand on the pendulum rod is slightly ambiguous where it meets the bob; the grip could read more clearly as stilling the pendulum\",\"Lamp and shelves are plausible for 1899 but the top-left bottles are soft and hard to identify\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/pendulum_1.png\",\"match\":3,\"flaws\":[\"The black sleeve emerges from behind an easel or wooden stand with no visible shoulder or body, so the arm looks disembodied and the figure is not shown at all\",\"No portly man is visible, so the character look is missing\",\"Dial numerals are visible and legible as Roman numerals; hands are not clearly readable\",\"Hand reaching the rod is plausible but the grip is small and somewhat unclear on the pendulum\",\"Atelier setting with easels, canvases and a lamp fits the scene, but the lamp and studio clutter are weaker on the intended dark workshop mood\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/pendulum_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/pendulum_0.png",
+    "match": 4,
+    "flaws": [
+     "Dial is cropped off at the top edge, so the hands and numerals cannot be checked",
+     "Man is cut off at the top, so the face is out of frame as intended, but the upper body reads as a large, oddly cropped figure rather than a clearly portly man",
+     "Hand on the pendulum rod is slightly ambiguous where it meets the bob; the grip could read more clearly as stilling the pendulum",
+     "Lamp and shelves are plausible for 1899 but the top-left bottles are soft and hard to identify"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/pendulum_1.png",
+    "match": 3,
+    "flaws": [
+     "The black sleeve emerges from behind an easel or wooden stand with no visible shoulder or body, so the arm looks disembodied and the figure is not shown at all",
+     "No portly man is visible, so the character look is missing",
+     "Dial numerals are visible and legible as Roman numerals; hands are not clearly readable",
+     "Hand reaching the rod is plausible but the grip is small and somewhat unclear on the pendulum",
+     "Atelier setting with easels, canvases and a lamp fits the scene, but the lamp and studio clutter are weaker on the intended dark workshop mood"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/pendulum_0.png"
+ },
+ "ttft_ms": 993,
+ "type": "result",
+ "duration_ms": 10464,
+ "uuid": "2fc45d3f-fc27-4674-ae45-c3eaea7c77b6",
+ "ttft_stream_ms": 805,
+ "time_to_request_ms": 389,
+ "time_to_request_phases_ms": {
+  "other": 50,
+  "system_prompt": 89,
+  "resume_other": 0,
+  "process_user_input": 12,
+  "input_attachments": 69,
+  "input_hooks": 32,
+  "tool_pool_refresh": 13,
+  "init_message": 15,
+  "engine_pickup": 2,
+  "message_prep": 1,
+  "model_config_wait": 27,
+  "autocompact": 11,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 16,
+  "message_normalization": 5,
+  "client_creation": 18,
+  "request_build": 28
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 339,
+ "time_to_request_cpu_ms": 158,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "model",
+  "slowest_producer_ms": 40,
+  "cpu_ms": 12,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 806,
+ "time_to_request_from_spawn_ms": 4607688,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765388327.8506,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

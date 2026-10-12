@@ -1,0 +1,139 @@
+{
+ "duration_api_ms": 349398,
+ "stop_reason": "tool_use",
+ "session_id": "9b319131-1ee8-4c68-b0e7-fbed60fbe069",
+ "total_cost_usd": 0.03948684,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 507,
+  "cache_read_input_tokens": 5924,
+  "output_tokens": 77802,
+  "output_tokens_details": {
+   "thinking_tokens": 77150
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 507,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 77802,
+    "cache_read_input_tokens": 5924,
+    "cache_creation_input_tokens": 507,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 507
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 4137,
+   "outputTokens": 77825,
+   "cacheReadInputTokens": 5924,
+   "cacheCreationInputTokens": 507,
+   "webSearchRequests": 0,
+   "costUSD": 0.03948684,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 77150,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"murderer\":\"Dr Casimir Vauthier\",\"time\":\"10:38\",\"reasoning\":\"Time. F\u00e9lix's watch runs 20 minutes slow (Odile saw it at nine: 8:40 when the temple struck nine), so his 10:18 thump is 10:38 true. The repeater was pressed as Monnier fell, so the blow is at the chime. Its hours and doubled quarters (10:30 to 10:44) fit 10:38. Bastien's \\\"faint quick bells\\\" at 10:34 by his watch, and the 10:50 and 10:52 arrival times, fit the same clock set, and Lina's kitchen arrival at 10:22 respects the five-minute rule. Those offsets rest on the piano start and Rosa's clock, which Monnier had moved that afternoon, so the 15-minute figure Rosa believed is wrong.\\n\\nMurderer. Between 10:35 and 10:41 someone went up past the library and came back down. Rosa and Lina were together in the kitchen from 10:22, and Odile was audibly at the piano from 10:33 to 10:46, so both are cleared. Girard was outside and heard the bells at 10:38. That leaves F\u00e9lix and the doctor. The regulator reads 10:05, which Lina's 10:20 sighting of it running rules out. The false 10:05 gives the doctor a witnessed alibi with Odile at the piquet table and would point at Lina, who alone was with Monnier then. F\u00e9lix gained nothing from that time. So the tamperer is the one who needed 10:05 instead of 10:38, and that is the doctor. His hall trip is the one unwitnessed interval covering 10:38. The doctor's watch offset is the weakest link, so this rests on inference, not proof.\"}",
+ "structured_output": {
+  "murderer": "Dr Casimir Vauthier",
+  "time": "10:38",
+  "reasoning": "Time. F\u00e9lix's watch runs 20 minutes slow (Odile saw it at nine: 8:40 when the temple struck nine), so his 10:18 thump is 10:38 true. The repeater was pressed as Monnier fell, so the blow is at the chime. Its hours and doubled quarters (10:30 to 10:44) fit 10:38. Bastien's \"faint quick bells\" at 10:34 by his watch, and the 10:50 and 10:52 arrival times, fit the same clock set, and Lina's kitchen arrival at 10:22 respects the five-minute rule. Those offsets rest on the piano start and Rosa's clock, which Monnier had moved that afternoon, so the 15-minute figure Rosa believed is wrong.\n\nMurderer. Between 10:35 and 10:41 someone went up past the library and came back down. Rosa and Lina were together in the kitchen from 10:22, and Odile was audibly at the piano from 10:33 to 10:46, so both are cleared. Girard was outside and heard the bells at 10:38. That leaves F\u00e9lix and the doctor. The regulator reads 10:05, which Lina's 10:20 sighting of it running rules out. The false 10:05 gives the doctor a witnessed alibi with Odile at the piquet table and would point at Lina, who alone was with Monnier then. F\u00e9lix gained nothing from that time. So the tamperer is the one who needed 10:05 instead of 10:38, and that is the doctor. His hall trip is the one unwitnessed interval covering 10:38. The doctor's watch offset is the weakest link, so this rests on inference, not proof."
+ },
+ "ttft_ms": 346313,
+ "type": "result",
+ "duration_ms": 349271,
+ "uuid": "5ab719a0-1bab-4fd4-8107-5c577d37b1b7",
+ "ttft_stream_ms": 1715,
+ "time_to_request_ms": 1253,
+ "time_to_request_phases_ms": {
+  "other": 236,
+  "system_prompt": 254,
+  "resume_other": 0,
+  "process_user_input": 25,
+  "input_attachments": 143,
+  "input_hooks": 34,
+  "tool_pool_refresh": 30,
+  "init_message": 58,
+  "engine_pickup": 38,
+  "message_prep": 33,
+  "model_config_wait": 224,
+  "autocompact": 11,
+  "query_setup": 1,
+  "model_gates": 1,
+  "tool_schema_build": 52,
+  "message_normalization": 29,
+  "client_creation": 35,
+  "request_build": 49
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 916,
+ "time_to_request_cpu_ms": 189,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "model",
+  "slowest_producer_ms": 82,
+  "cpu_ms": 24,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1720,
+ "time_to_request_from_spawn_ms": 4315236,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765083930.4001,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

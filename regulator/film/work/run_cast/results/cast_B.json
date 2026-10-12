@@ -1,0 +1,159 @@
+{
+ "duration_api_ms": 13993,
+ "stop_reason": "tool_use",
+ "session_id": "7308140b-2660-4859-bf01-909bc5bc1a70",
+ "total_cost_usd": 0.0026452100000000003,
+ "usage": {
+  "input_tokens": 8,
+  "cache_creation_input_tokens": 5888,
+  "cache_read_input_tokens": 15261,
+  "output_tokens": 2316,
+  "output_tokens_details": {
+   "thinking_tokens": 1132
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5888,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 4,
+    "output_tokens": 360,
+    "cache_read_input_tokens": 7439,
+    "cache_creation_input_tokens": 1859,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1859
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1425,
+   "outputTokens": 2345,
+   "cacheReadInputTokens": 15261,
+   "cacheCreationInputTokens": 5888,
+   "webSearchRequests": 0,
+   "costUSD": 0.0026452100000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1132,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 5,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/cast/B_0.png\",\"match\":4,\"flaws\":[\"Expression reads wary and stern rather than blunt and impatient\",\"Cigar hand is soft and blobby in the fingers, hard to read at this size\",\"Left arm and hand are mostly hidden in the coat, so the pose looks unfinished\",\"Build is heavy but not especially big-framed\"]},{\"file\":\"/home/user/experiments/regulator/film/cast/B_1.png\",\"match\":4,\"flaws\":[\"Cigar hand is awkward: ambiguous thumb and bulky knuckles\",\"Lamp is cropped at the right edge\",\"Unclear partial glass shape at the bottom right\",\"Eyes look slightly unequal in size and placement\"]}],\"best\":\"/home/user/experiments/regulator/film/cast/B_1.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/cast/B_0.png",
+    "match": 4,
+    "flaws": [
+     "Expression reads wary and stern rather than blunt and impatient",
+     "Cigar hand is soft and blobby in the fingers, hard to read at this size",
+     "Left arm and hand are mostly hidden in the coat, so the pose looks unfinished",
+     "Build is heavy but not especially big-framed"
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/cast/B_1.png",
+    "match": 4,
+    "flaws": [
+     "Cigar hand is awkward: ambiguous thumb and bulky knuckles",
+     "Lamp is cropped at the right edge",
+     "Unclear partial glass shape at the bottom right",
+     "Eyes look slightly unequal in size and placement"
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/cast/B_1.png"
+ },
+ "ttft_ms": 1131,
+ "type": "result",
+ "duration_ms": 16262,
+ "uuid": "a1d57b90-ced6-4a0d-8b34-d833c38fd8e8",
+ "ttft_stream_ms": 936,
+ "time_to_request_ms": 505,
+ "time_to_request_phases_ms": {
+  "other": 91,
+  "system_prompt": 84,
+  "resume_other": 1,
+  "process_user_input": 7,
+  "input_attachments": 121,
+  "input_hooks": 20,
+  "tool_pool_refresh": 19,
+  "init_message": 11,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 9,
+  "autocompact": 12,
+  "query_setup": 7,
+  "model_gates": 0,
+  "tool_schema_build": 32,
+  "message_normalization": 12,
+  "client_creation": 57,
+  "request_build": 20
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 412,
+ "time_to_request_cpu_ms": 192,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 20,
+  "cpu_ms": 49,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 937,
+ "time_to_request_from_spawn_ms": 4306404,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084573.0684,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

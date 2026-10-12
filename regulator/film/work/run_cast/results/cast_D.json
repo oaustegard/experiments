@@ -1,0 +1,161 @@
+{
+ "duration_api_ms": 13282,
+ "stop_reason": "tool_use",
+ "session_id": "5b2ffad8-3a19-4c66-9a26-b68a8ae192a5",
+ "total_cost_usd": 0.0022251099999999998,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4058,
+  "cache_read_input_tokens": 7851,
+  "output_tokens": 2063,
+  "output_tokens_details": {
+   "thinking_tokens": 1426
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4058,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1926,
+    "cache_read_input_tokens": 4441,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1445,
+   "outputTokens": 2381,
+   "cacheReadInputTokens": 7851,
+   "cacheCreationInputTokens": 4058,
+   "webSearchRequests": 0,
+   "costUSD": 0.0022251099999999998,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1722,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/cast/D_0.png\",\"match\":3,\"flaws\":[\"Beard is a full white beard joined under the chin, not neat silver mutton-chop whiskers.\",\"Expression reads stern and tight-lipped rather than genial and warm; the heavy-lidded eyes are present but not warm.\",\"Left arm is a large dark mass at the lower left with no clear hand or wrist, so the pose is hard to read.\",\"Cigar-holding hand has soft, blobby finger shapes at display size.\",\"Age looks closer to 60-65 than 58 (judged by eye).\"]},{\"file\":\"/home/user/experiments/regulator/film/cast/D_1.png\",\"match\":4,\"flaws\":[\"Beard is a full white beard joined under the chin, not neat silver mutton-chop whiskers.\",\"Right edge is cropped: the shoulder merges into an unclear chair back, and the far arm is not readable.\",\"Desk at lower left has an indistinct object (paper or blotter) that is hard to identify.\",\"Cigar-holding hand is slightly stiff at the fingers at display size.\",\"Hair is more tousled than neatly brushed back.\"]}],\"best\":\"/home/user/experiments/regulator/film/cast/D_1.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/cast/D_0.png",
+    "match": 3,
+    "flaws": [
+     "Beard is a full white beard joined under the chin, not neat silver mutton-chop whiskers.",
+     "Expression reads stern and tight-lipped rather than genial and warm; the heavy-lidded eyes are present but not warm.",
+     "Left arm is a large dark mass at the lower left with no clear hand or wrist, so the pose is hard to read.",
+     "Cigar-holding hand has soft, blobby finger shapes at display size.",
+     "Age looks closer to 60-65 than 58 (judged by eye)."
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/cast/D_1.png",
+    "match": 4,
+    "flaws": [
+     "Beard is a full white beard joined under the chin, not neat silver mutton-chop whiskers.",
+     "Right edge is cropped: the shoulder merges into an unclear chair back, and the far arm is not readable.",
+     "Desk at lower left has an indistinct object (paper or blotter) that is hard to identify.",
+     "Cigar-holding hand is slightly stiff at the fingers at display size.",
+     "Hair is more tousled than neatly brushed back."
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/cast/D_1.png"
+ },
+ "ttft_ms": 973,
+ "type": "result",
+ "duration_ms": 13471,
+ "uuid": "4a49e75d-db33-4fc9-83e8-07ec98d29acf",
+ "ttft_stream_ms": 792,
+ "time_to_request_ms": 440,
+ "time_to_request_phases_ms": {
+  "other": 57,
+  "system_prompt": 38,
+  "resume_other": 0,
+  "process_user_input": 36,
+  "input_attachments": 11,
+  "input_hooks": 6,
+  "tool_pool_refresh": 2,
+  "init_message": 6,
+  "engine_pickup": 2,
+  "message_prep": 13,
+  "model_config_wait": 216,
+  "autocompact": 10,
+  "query_setup": 0,
+  "model_gates": 1,
+  "tool_schema_build": 6,
+  "message_normalization": 2,
+  "client_creation": 10,
+  "request_build": 24
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 184,
+ "time_to_request_cpu_ms": 227,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 6,
+  "cpu_ms": 14,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 795,
+ "time_to_request_from_spawn_ms": 4306464,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084535.6694,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

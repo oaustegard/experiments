@@ -1,0 +1,162 @@
+{
+ "duration_api_ms": 8856,
+ "stop_reason": "tool_use",
+ "session_id": "af3b83ca-d9d9-45e9-bd27-0b5e6139213f",
+ "total_cost_usd": 0.00182619,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4162,
+  "cache_read_input_tokens": 8079,
+  "output_tokens": 1495,
+  "output_tokens_details": {
+   "thinking_tokens": 891
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4162,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1358,
+    "cache_read_input_tokens": 4607,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1550,
+   "outputTokens": 1516,
+   "cacheReadInputTokens": 8079,
+   "cacheCreationInputTokens": 4162,
+   "webSearchRequests": 0,
+   "costUSD": 0.00182619,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 891,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/library_0.png\",\"match\":4,\"flaws\":[\"Watch is small and its hands are not readable, and the open-palm hand is somewhat awkwardly drawn with splayed fingers\",\"Legs and lower body blend into the armchair and are hard to read\",\"Face reads a little older than 28\",\"Hair and moustache, loosened white tie, tailcoat, flushed cheeks, and slumped pose with upward gaze all match the brief\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/library_1.png\",\"match\":3,\"flaws\":[\"Brandy glass sits on the side table rather than in the young man's hand, so the scene's 'glass of brandy' is only partly shown\",\"White tie is a neat bow tie rather than a loosened white tie\",\"Pose is more upright and less slumped than the brief describes\",\"Watch is held in the left hand but is small and its face is not readable\",\"Flushing on cheeks is faint; hair, moustache, tailcoat, and upward gaze match\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/library_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/library_0.png",
+    "match": 4,
+    "flaws": [
+     "Watch is small and its hands are not readable, and the open-palm hand is somewhat awkwardly drawn with splayed fingers",
+     "Legs and lower body blend into the armchair and are hard to read",
+     "Face reads a little older than 28",
+     "Hair and moustache, loosened white tie, tailcoat, flushed cheeks, and slumped pose with upward gaze all match the brief"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/library_1.png",
+    "match": 3,
+    "flaws": [
+     "Brandy glass sits on the side table rather than in the young man's hand, so the scene's 'glass of brandy' is only partly shown",
+     "White tie is a neat bow tie rather than a loosened white tie",
+     "Pose is more upright and less slumped than the brief describes",
+     "Watch is held in the left hand but is small and its face is not readable",
+     "Flushing on cheeks is faint; hair, moustache, tailcoat, and upward gaze match"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/library_0.png"
+ },
+ "ttft_ms": 766,
+ "type": "result",
+ "duration_ms": 8365,
+ "uuid": "43d975b6-23d5-4c95-848f-fa270afe24c6",
+ "ttft_stream_ms": 569,
+ "time_to_request_ms": 161,
+ "time_to_request_phases_ms": {
+  "other": 18,
+  "system_prompt": 12,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 10,
+  "input_hooks": 3,
+  "tool_pool_refresh": 2,
+  "init_message": 7,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 89,
+  "autocompact": 2,
+  "query_setup": 0,
+  "model_gates": 0,
+  "tool_schema_build": 6,
+  "message_normalization": 1,
+  "client_creation": 2,
+  "request_build": 4
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 61,
+ "time_to_request_cpu_ms": 196,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 5,
+  "cpu_ms": 24,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 569,
+ "time_to_request_from_spawn_ms": 4599472,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765382644.8535,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

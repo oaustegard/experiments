@@ -1,0 +1,164 @@
+{
+ "duration_api_ms": 13401,
+ "stop_reason": "tool_use",
+ "session_id": "c1bd0f0f-c3f1-4188-bafb-dcd2c78cd28a",
+ "total_cost_usd": 0.0028127100000000004,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 7458,
+  "cache_read_input_tokens": 4431,
+  "output_tokens": 2244,
+  "output_tokens_details": {
+   "thinking_tokens": 986
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7458,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2107,
+    "cache_read_input_tokens": 4431,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1433,
+   "outputTokens": 2267,
+   "cacheReadInputTokens": 4431,
+   "cacheCreationInputTokens": 7458,
+   "webSearchRequests": 0,
+   "costUSD": 0.0028127100000000004,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 986,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/cast/L_0.png\",\"match\":4,\"flaws\":[\"Left forearm and sleeve hard to read; arm looks elongated where it meets the table\",\"Lower-right hand blended into the sleeve\",\"Irregular, unclear table edge at lower left\",\"Lamp chimney cropped at top\",\"No visible text, no extra people; green oil lamp is period-appropriate\"]},{\"file\":\"/home/user/experiments/regulator/film/cast/L_1.png\",\"match\":3,\"flaws\":[\"Painting sits inside a wide blurred brown border (outpainting/letterbox artifact), needs cropping\",\"Hair looser with flyaways, not tightly pinned\",\"Hands clasped with no tool, weakening 'capable hands'\",\"Posture more relaxed and slightly slumped than very straight\",\"Unclear dark mass at bottom where the skirt should resolve\",\"Small framed picture on left wall adds clutter\",\"Face slightly asymmetric\",\"No visible text, no extra people\"]}],\"best\":\"/home/user/experiments/regulator/film/cast/L_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/cast/L_0.png",
+    "match": 4,
+    "flaws": [
+     "Left forearm and sleeve hard to read; arm looks elongated where it meets the table",
+     "Lower-right hand blended into the sleeve",
+     "Irregular, unclear table edge at lower left",
+     "Lamp chimney cropped at top",
+     "No visible text, no extra people; green oil lamp is period-appropriate"
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/cast/L_1.png",
+    "match": 3,
+    "flaws": [
+     "Painting sits inside a wide blurred brown border (outpainting/letterbox artifact), needs cropping",
+     "Hair looser with flyaways, not tightly pinned",
+     "Hands clasped with no tool, weakening 'capable hands'",
+     "Posture more relaxed and slightly slumped than very straight",
+     "Unclear dark mass at bottom where the skirt should resolve",
+     "Small framed picture on left wall adds clutter",
+     "Face slightly asymmetric",
+     "No visible text, no extra people"
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/cast/L_0.png"
+ },
+ "ttft_ms": 1334,
+ "type": "result",
+ "duration_ms": 15468,
+ "uuid": "303d6442-981c-418e-a8c1-564c6154c507",
+ "ttft_stream_ms": 1122,
+ "time_to_request_ms": 667,
+ "time_to_request_phases_ms": {
+  "other": 131,
+  "system_prompt": 192,
+  "resume_other": 1,
+  "process_user_input": 3,
+  "input_attachments": 35,
+  "input_hooks": 31,
+  "tool_pool_refresh": 14,
+  "init_message": 37,
+  "engine_pickup": 12,
+  "message_prep": 13,
+  "model_config_wait": 82,
+  "autocompact": 5,
+  "query_setup": 24,
+  "model_gates": 4,
+  "tool_schema_build": 21,
+  "message_normalization": 10,
+  "client_creation": 18,
+  "request_build": 34
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 574,
+ "time_to_request_cpu_ms": 267,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 19,
+  "cpu_ms": 19,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1123,
+ "time_to_request_from_spawn_ms": 4305706,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084536.2524,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

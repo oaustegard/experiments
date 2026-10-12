@@ -1,0 +1,162 @@
+{
+ "duration_api_ms": 12673,
+ "stop_reason": "tool_use",
+ "session_id": "872e31dd-9d67-479a-a7c7-86e59aa5c3c8",
+ "total_cost_usd": 0.0021010300000000003,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4226,
+  "cache_read_input_tokens": 8143,
+  "output_tokens": 1767,
+  "output_tokens_details": {
+   "thinking_tokens": 1089
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4226,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1630,
+    "cache_read_input_tokens": 4671,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1614,
+   "outputTokens": 2026,
+   "cacheReadInputTokens": 8143,
+   "cacheCreationInputTokens": 4226,
+   "webSearchRequests": 0,
+   "costUSD": 0.0021010300000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1332,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/body_0.png\",\"match\":4,\"flaws\":[\"Spectacles sit on the face/ear area instead of being pushed up on the forehead as briefed\",\"Face is hidden, so the lean, sharp-mouthed character look cannot be confirmed; only grey hair and a short beard edge are visible\",\"Sprawled body and legs run under the bench and out to the right, a slightly awkward pose versus the brief's back-and-arm framing\",\"Wall portrait frame and small round wall object are present but contain no readable text or clock hands (not a fault, noted for checking)\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/body_1.png\",\"match\":3,\"flaws\":[\"Body is cropped by the right frame edge, so the legs and feet are cut off; the brief expects the full back and arm composition\",\"Face turned into the floorboards; the back of the head is shown, but no spectacles or beard profile can be checked against the character\",\"Oil lamp stands on a side shelf by the window rather than on the workbench under the tall windows as briefed\",\"Workbench is pushed to the left background, weakening the atelier-under-windows layout\",\"Wall clock at top is partly cut off; no readable hands or text, which is acceptable\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/body_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/body_0.png",
+    "match": 4,
+    "flaws": [
+     "Spectacles sit on the face/ear area instead of being pushed up on the forehead as briefed",
+     "Face is hidden, so the lean, sharp-mouthed character look cannot be confirmed; only grey hair and a short beard edge are visible",
+     "Sprawled body and legs run under the bench and out to the right, a slightly awkward pose versus the brief's back-and-arm framing",
+     "Wall portrait frame and small round wall object are present but contain no readable text or clock hands (not a fault, noted for checking)"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/body_1.png",
+    "match": 3,
+    "flaws": [
+     "Body is cropped by the right frame edge, so the legs and feet are cut off; the brief expects the full back and arm composition",
+     "Face turned into the floorboards; the back of the head is shown, but no spectacles or beard profile can be checked against the character",
+     "Oil lamp stands on a side shelf by the window rather than on the workbench under the tall windows as briefed",
+     "Workbench is pushed to the left background, weakening the atelier-under-windows layout",
+     "Wall clock at top is partly cut off; no readable hands or text, which is acceptable"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/body_0.png"
+ },
+ "ttft_ms": 1758,
+ "type": "result",
+ "duration_ms": 12734,
+ "uuid": "c8dd6d71-a2fa-4c36-b960-c7438b4acdb2",
+ "ttft_stream_ms": 1568,
+ "time_to_request_ms": 1065,
+ "time_to_request_phases_ms": {
+  "other": 87,
+  "system_prompt": 238,
+  "resume_other": 0,
+  "process_user_input": 37,
+  "input_attachments": 151,
+  "input_hooks": 32,
+  "tool_pool_refresh": 2,
+  "init_message": 24,
+  "engine_pickup": 2,
+  "message_prep": 3,
+  "model_config_wait": 322,
+  "autocompact": 2,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 23,
+  "message_normalization": 4,
+  "client_creation": 87,
+  "request_build": 50
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 872,
+ "time_to_request_cpu_ms": 182,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 63,
+  "cpu_ms": 15,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1569,
+ "time_to_request_from_spawn_ms": 4589594,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765368584.1658,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

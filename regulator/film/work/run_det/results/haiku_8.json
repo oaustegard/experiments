@@ -1,0 +1,139 @@
+{
+ "duration_api_ms": 221533,
+ "stop_reason": "tool_use",
+ "session_id": "a7801347-ccf7-4059-85c8-42b67604f69d",
+ "total_cost_usd": 0.02524274,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 504,
+  "cache_read_input_tokens": 5924,
+  "output_tokens": 49118,
+  "output_tokens_details": {
+   "thinking_tokens": 48006
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 504,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 49118,
+    "cache_read_input_tokens": 5924,
+    "cache_creation_input_tokens": 504,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 504
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 4137,
+   "outputTokens": 49338,
+   "cacheReadInputTokens": 5924,
+   "cacheCreationInputTokens": 504,
+   "webSearchRequests": 0,
+   "costUSD": 0.02524274,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 48203,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"murderer\":\"Bastien Girard\",\"time\":\"10:38\",\"reasoning\":\"Clock corrections (true time = the temple's time):\\n- F\u00e9lix's watch is 20 minutes slow (Odile: it read 8:40 when the temple struck nine). F\u00e9lix's 10:15, 10:18 and 10:21 are therefore 10:35, 10:38 and 10:41 true.\\n- Rosa's kitchen clock is 15 minutes fast. Piano start at 10:58 kitchen is 10:43 true, and stop at 11:11 kitchen is 10:56 true. Vauthier's watch is 2 minutes fast (Lina), so his 10:45 departure is 10:43 true, which agrees.\\n- Girard's watch is 14 minutes slow, fixed by the piano start (10:29 watch = 10:43 true). His 10:46 return is then 11:00 true, which agrees with the hall striking eleven. The hall clock is 2 minutes fast (Rosa's 11:13 kitchen = 10:58 true).\\n\\nAlibis for the window 10:35\u201310:41 (true):\\n- Odile and Vauthier played piquet in the salon from 10:00 until 10:43, and each vouches for the other. Neither could have been upstairs.\\n- Lina reached the kitchen at 10:32 (Rosa's kitchen clock), and she and Rosa vouch for each other until after eleven. Neither could have been upstairs.\\n- F\u00e9lix says he stayed in the library. He reports someone passing upstairs at 10:35 and coming down at 10:41, with the thump and repeater at 10:38, and nothing in the other testimony contradicts him.\\n\\nSo the only person left who could have gone up at 10:35 and come down at 10:41 is Girard.\\n\\nThe statements that conflict are F\u00e9lix's and Girard's, and only one of them can be right:\\n- Girard says the repeater's bells came from the master's window at 10:48 true. F\u00e9lix's thump and repeater are at 10:38. The two cannot both be the same pressing.\\n- F\u00e9lix says Girard came into the library at 10:52 true. Girard says he came in at 11:00 true.\\n\\nGirard is the one whose account is false. He claims to have gone out at 10:35 true, the exact minute someone went quickly up the stairs past the library. The 10:48 bells point at the doctor, who was out of the salon from 10:43 to 10:56, so they look like a frame. Taking F\u00e9lix's testimony as accurate, the repeater sounded 10:38 true, which puts the blow at 10:38, with the thump and the repeater together as Monnier fell. The regulator stopped at 10:05 is a decoy, since it cannot be a true stop time when the regulator was running at 10:20.\\n\\nSequence: Girard goes up at 10:35, strikes Monnier from behind at 10:38 as the slide is pressed, and comes down at 10:41. He then reaches the library by 10:52 (F\u00e9lix's account).\\n\\nCaveat: F\u00e9lix counted only the ten hour strokes. The doubled and high notes were not counted, so the minute 10:38 rests on the watch corrections and the thump timing rather than on the repeater's own count.\"}",
+ "structured_output": {
+  "murderer": "Bastien Girard",
+  "time": "10:38",
+  "reasoning": "Clock corrections (true time = the temple's time):\n- F\u00e9lix's watch is 20 minutes slow (Odile: it read 8:40 when the temple struck nine). F\u00e9lix's 10:15, 10:18 and 10:21 are therefore 10:35, 10:38 and 10:41 true.\n- Rosa's kitchen clock is 15 minutes fast. Piano start at 10:58 kitchen is 10:43 true, and stop at 11:11 kitchen is 10:56 true. Vauthier's watch is 2 minutes fast (Lina), so his 10:45 departure is 10:43 true, which agrees.\n- Girard's watch is 14 minutes slow, fixed by the piano start (10:29 watch = 10:43 true). His 10:46 return is then 11:00 true, which agrees with the hall striking eleven. The hall clock is 2 minutes fast (Rosa's 11:13 kitchen = 10:58 true).\n\nAlibis for the window 10:35\u201310:41 (true):\n- Odile and Vauthier played piquet in the salon from 10:00 until 10:43, and each vouches for the other. Neither could have been upstairs.\n- Lina reached the kitchen at 10:32 (Rosa's kitchen clock), and she and Rosa vouch for each other until after eleven. Neither could have been upstairs.\n- F\u00e9lix says he stayed in the library. He reports someone passing upstairs at 10:35 and coming down at 10:41, with the thump and repeater at 10:38, and nothing in the other testimony contradicts him.\n\nSo the only person left who could have gone up at 10:35 and come down at 10:41 is Girard.\n\nThe statements that conflict are F\u00e9lix's and Girard's, and only one of them can be right:\n- Girard says the repeater's bells came from the master's window at 10:48 true. F\u00e9lix's thump and repeater are at 10:38. The two cannot both be the same pressing.\n- F\u00e9lix says Girard came into the library at 10:52 true. Girard says he came in at 11:00 true.\n\nGirard is the one whose account is false. He claims to have gone out at 10:35 true, the exact minute someone went quickly up the stairs past the library. The 10:48 bells point at the doctor, who was out of the salon from 10:43 to 10:56, so they look like a frame. Taking F\u00e9lix's testimony as accurate, the repeater sounded 10:38 true, which puts the blow at 10:38, with the thump and the repeater together as Monnier fell. The regulator stopped at 10:05 is a decoy, since it cannot be a true stop time when the regulator was running at 10:20.\n\nSequence: Girard goes up at 10:35, strikes Monnier from behind at 10:38 as the slide is pressed, and comes down at 10:41. He then reaches the library by 10:52 (F\u00e9lix's account).\n\nCaveat: F\u00e9lix counted only the ten hour strokes. The doubled and high notes were not counted, so the minute 10:38 rests on the watch corrections and the thump timing rather than on the repeater's own count."
+ },
+ "ttft_ms": 215462,
+ "type": "result",
+ "duration_ms": 220373,
+ "uuid": "5da98341-d791-48ed-8390-2314b6b996bb",
+ "ttft_stream_ms": 923,
+ "time_to_request_ms": 551,
+ "time_to_request_phases_ms": {
+  "other": 151,
+  "system_prompt": 48,
+  "resume_other": 0,
+  "process_user_input": 22,
+  "input_attachments": 24,
+  "input_hooks": 10,
+  "tool_pool_refresh": 9,
+  "init_message": 21,
+  "engine_pickup": 5,
+  "message_prep": 6,
+  "model_config_wait": 63,
+  "autocompact": 3,
+  "query_setup": 0,
+  "model_gates": 21,
+  "tool_schema_build": 42,
+  "message_normalization": 2,
+  "client_creation": 45,
+  "request_build": 79
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 437,
+ "time_to_request_cpu_ms": 174,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 15,
+  "cpu_ms": 14,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 923,
+ "time_to_request_from_spawn_ms": 4314875,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765083846.1782,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

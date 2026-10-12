@@ -1,0 +1,153 @@
+{
+ "duration_api_ms": 46469,
+ "stop_reason": "tool_use",
+ "session_id": "b41026fc-0658-4f67-bee2-7b08bbdbf859",
+ "total_cost_usd": 0.08081699999999999,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 5652,
+  "cache_read_input_tokens": 0,
+  "output_tokens": 5778,
+  "output_tokens_details": {
+   "thinking_tokens": 4322
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 5652,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 5778,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 5652,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 5652
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 4135,
+   "outputTokens": 23,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.00042500000000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5-5": {
+   "inputTokens": 2,
+   "outputTokens": 5778,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 5652,
+   "webSearchRequests": 0,
+   "costUSD": 0.08039199999999999,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 4322,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"murderer\":\"Dr Casimir Vauthier\",\"time\":\"22:38\",\"reasoning\":\"Offsets, taking the temple bell as true time. Hall clock is 12 min fast (struck ten when the regulator, exact at 10:00, showed 9:48). Rosa's kitchen clock is actually 25 min fast, not 15: Lina left the atelier at 10:20 true and reached the kitchen at 10:47 kitchen time, and Monnier had fiddled with the clock that afternoon. Rosa heard the hall strike eleven at 11:13 kitchen, which is 10:48 true, matching a clock 12 fast. Piano ran 10:33-10:46 true. Girard's watch is 4 min slow: hall face 11:02 (10:50 true) when he came in at 10:46 by his watch; piano start 10:29 converts to 10:33; bells at 10:34 convert to 10:38. F\u00e9lix's watch is 20 min slow: runner up at 10:15 = 10:35 true, thump and repeater at 10:18 = 10:38 true, runner down at 10:21 = 10:41 true. Rosa and Lina were together in the kitchen; Girard was outside and F\u00e9lix in the library; Odile was at the piano 10:33-10:46. Only the doctor was unaccounted for. He left the salon when the piano began (about 10:33) but claimed he left at 10:45 by his watch (10:43 true), shifting his absence about 10 min later. The regulator was set back to 10:05 as a false clue. Blow = thump and repeater = 22:38.\"}",
+ "structured_output": {
+  "murderer": "Dr Casimir Vauthier",
+  "time": "22:38",
+  "reasoning": "Offsets, taking the temple bell as true time. Hall clock is 12 min fast (struck ten when the regulator, exact at 10:00, showed 9:48). Rosa's kitchen clock is actually 25 min fast, not 15: Lina left the atelier at 10:20 true and reached the kitchen at 10:47 kitchen time, and Monnier had fiddled with the clock that afternoon. Rosa heard the hall strike eleven at 11:13 kitchen, which is 10:48 true, matching a clock 12 fast. Piano ran 10:33-10:46 true. Girard's watch is 4 min slow: hall face 11:02 (10:50 true) when he came in at 10:46 by his watch; piano start 10:29 converts to 10:33; bells at 10:34 convert to 10:38. F\u00e9lix's watch is 20 min slow: runner up at 10:15 = 10:35 true, thump and repeater at 10:18 = 10:38 true, runner down at 10:21 = 10:41 true. Rosa and Lina were together in the kitchen; Girard was outside and F\u00e9lix in the library; Odile was at the piano 10:33-10:46. Only the doctor was unaccounted for. He left the salon when the piano began (about 10:33) but claimed he left at 10:45 by his watch (10:43 true), shifting his absence about 10 min later. The regulator was set back to 10:05 as a false clue. Blow = thump and repeater = 22:38."
+ },
+ "ttft_ms": 37074,
+ "type": "result",
+ "duration_ms": 49049,
+ "uuid": "b714c02d-939a-4419-b4f8-9d0b8ed823a4",
+ "ttft_stream_ms": 2176,
+ "time_to_request_ms": 1220,
+ "time_to_request_phases_ms": {
+  "other": 168,
+  "system_prompt": 203,
+  "resume_other": 1,
+  "process_user_input": 15,
+  "input_attachments": 109,
+  "input_hooks": 28,
+  "tool_pool_refresh": 34,
+  "init_message": 78,
+  "engine_pickup": 29,
+  "message_prep": 2,
+  "model_config_wait": 349,
+  "autocompact": 42,
+  "query_setup": 0,
+  "model_gates": 29,
+  "tool_schema_build": 20,
+  "message_normalization": 2,
+  "client_creation": 45,
+  "request_build": 66
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 993,
+ "time_to_request_cpu_ms": 200,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 49,
+  "cpu_ms": 17,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 2177,
+ "time_to_request_from_spawn_ms": 4315572,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084265.7397,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

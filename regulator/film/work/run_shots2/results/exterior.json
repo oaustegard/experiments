@@ -1,0 +1,182 @@
+{
+ "duration_api_ms": 14061,
+ "stop_reason": "tool_use",
+ "session_id": "4e949265-dd55-446a-8f94-a012a5f80188",
+ "total_cost_usd": 0.0030387799999999996,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 7283,
+  "cache_read_input_tokens": 8198,
+  "output_tokens": 2643,
+  "output_tokens_details": {
+   "thinking_tokens": 1639
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7283,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2364,
+    "cache_read_input_tokens": 4726,
+    "cache_creation_input_tokens": 6029,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6029
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1672,
+   "outputTokens": 2666,
+   "cacheReadInputTokens": 8198,
+   "cacheCreationInputTokens": 7283,
+   "webSearchRequests": 0,
+   "costUSD": 0.0030387799999999996,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1639,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 6,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/exterior_0.png\",\"match\":4,\"flaws\":[\"Man is smaller in frame than the 'heavy man' brief suggests; his build reads more average than big and broad-shouldered\",\"Beard is closer to stubble than a short brown beard\",\"Slightly stiff hand and cigar pose, though the cigar and smoke read clearly\",\"Church tower is faint and small at the far right, as requested\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/exterior_1.png\",\"match\":3,\"flaws\":[\"Visible lettering or signature in the bottom-right corner, which the brief forbids\",\"Man's build and coat match the brief well, with a ruddy face, beard and cigar\",\"Continuous row of amber workshop windows on the upper floor and a distant church tower both read well\"],\"fatal\":true},{\"file\":\"/home/user/experiments/regulator/film/stills/exterior_2.png\",\"match\":4,\"flaws\":[\"Man is somewhat small and stiff, standing centre-left in the snow rather than under the windows\",\"Face is fairly small, so the blunt, impatient expression is hard to read\",\"Lanterns visible inside the windows are fine but add some warm detail the brief did not ask for\",\"No visible text, signature or distorted hands\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/exterior_3.png\",\"match\":3,\"flaws\":[\"Hand raised to the mouth is blurred and partly fused with the cigar, so it reads as distorted\",\"Man stands at the right edge, under the shuttered ground-floor windows rather than the lit workshop row\",\"Upper-floor workshop windows are continuous and amber, and the church tower is visible on the left\",\"No visible text or letterbox borders\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/exterior_2.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/exterior_0.png",
+    "match": 4,
+    "flaws": [
+     "Man is smaller in frame than the 'heavy man' brief suggests; his build reads more average than big and broad-shouldered",
+     "Beard is closer to stubble than a short brown beard",
+     "Slightly stiff hand and cigar pose, though the cigar and smoke read clearly",
+     "Church tower is faint and small at the far right, as requested"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/exterior_1.png",
+    "match": 3,
+    "flaws": [
+     "Visible lettering or signature in the bottom-right corner, which the brief forbids",
+     "Man's build and coat match the brief well, with a ruddy face, beard and cigar",
+     "Continuous row of amber workshop windows on the upper floor and a distant church tower both read well"
+    ],
+    "fatal": true
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/exterior_2.png",
+    "match": 4,
+    "flaws": [
+     "Man is somewhat small and stiff, standing centre-left in the snow rather than under the windows",
+     "Face is fairly small, so the blunt, impatient expression is hard to read",
+     "Lanterns visible inside the windows are fine but add some warm detail the brief did not ask for",
+     "No visible text, signature or distorted hands"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/exterior_3.png",
+    "match": 3,
+    "flaws": [
+     "Hand raised to the mouth is blurred and partly fused with the cigar, so it reads as distorted",
+     "Man stands at the right edge, under the shuttered ground-floor windows rather than the lit workshop row",
+     "Upper-floor workshop windows are continuous and amber, and the church tower is visible on the left",
+     "No visible text or letterbox borders"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/exterior_2.png"
+ },
+ "ttft_ms": 860,
+ "type": "result",
+ "duration_ms": 13398,
+ "uuid": "362f1e89-8d38-467c-80d6-1d41c9be392c",
+ "ttft_stream_ms": 660,
+ "time_to_request_ms": 180,
+ "time_to_request_phases_ms": {
+  "other": 20,
+  "system_prompt": 39,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 11,
+  "input_hooks": 4,
+  "tool_pool_refresh": 1,
+  "init_message": 5,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 42,
+  "autocompact": 1,
+  "query_setup": 3,
+  "model_gates": 1,
+  "tool_schema_build": 8,
+  "message_normalization": 3,
+  "client_creation": 32,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 71,
+ "time_to_request_cpu_ms": 150,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "model",
+  "slowest_producer_ms": 5,
+  "cpu_ms": 13,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 661,
+ "time_to_request_from_spawn_ms": 4676679,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765458525.9438,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

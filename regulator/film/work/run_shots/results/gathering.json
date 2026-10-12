@@ -1,0 +1,165 @@
+{
+ "duration_api_ms": 13593,
+ "stop_reason": "tool_use",
+ "session_id": "387bd031-31ce-4569-828e-52c8322cdbd1",
+ "total_cost_usd": 0.00246742,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4779,
+  "cache_read_input_tokens": 8692,
+  "output_tokens": 2396,
+  "output_tokens_details": {
+   "thinking_tokens": 1647
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4779,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2255,
+    "cache_read_input_tokens": 5220,
+    "cache_creation_input_tokens": 3031,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3031
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 2167,
+   "outputTokens": 2416,
+   "cacheReadInputTokens": 8692,
+   "cacheCreationInputTokens": 4779,
+   "webSearchRequests": 0,
+   "costUSD": 0.00246742,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1647,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/gathering_0.png\",\"match\":3,\"flaws\":[\"Missing Odile Monnier, the severe widow in black: only 6 of the 7 specified characters appear\",\"Girard holds a cigarette rather than the specified cheap thin cigar\",\"Lina has no visible watchmaker's loupe at her neck\",\"Lina's face and freckles are soft and indistinct, so her look is hard to confirm\",\"Mantel clock on the right has no legible hands, so no clock-reading issue, but the object is vague\",\"Overall composition is a seated row around one table with the inspector at the fireplace, close to the brief's layout apart from the missing widow\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/gathering_1.png\",\"match\":4,\"flaws\":[\"F\u00e9lix's tarnished silver pocket watch and chain are not clearly visible, and his evening tailcoat reads as a dark jacket with waistcoat\",\"Lina's loupe reads as a pendant at her neck rather than a clearly recognisable watchmaker's loupe\",\"Matthey stands by the window and mirror at the back left, not directly at the mantelpiece as briefed\",\"Vauthier's mutton-chop whiskers are not clearly distinct; his beard reads more generally\",\"Dr Vauthier's cigar is held loosely near his face and the lighting makes it hard to confirm he is lighting it\",\"Mantel clock on the wall has no legible hands, so no clock-reading issue\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/gathering_1.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/gathering_0.png",
+    "match": 3,
+    "flaws": [
+     "Missing Odile Monnier, the severe widow in black: only 6 of the 7 specified characters appear",
+     "Girard holds a cigarette rather than the specified cheap thin cigar",
+     "Lina has no visible watchmaker's loupe at her neck",
+     "Lina's face and freckles are soft and indistinct, so her look is hard to confirm",
+     "Mantel clock on the right has no legible hands, so no clock-reading issue, but the object is vague",
+     "Overall composition is a seated row around one table with the inspector at the fireplace, close to the brief's layout apart from the missing widow"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/gathering_1.png",
+    "match": 4,
+    "flaws": [
+     "F\u00e9lix's tarnished silver pocket watch and chain are not clearly visible, and his evening tailcoat reads as a dark jacket with waistcoat",
+     "Lina's loupe reads as a pendant at her neck rather than a clearly recognisable watchmaker's loupe",
+     "Matthey stands by the window and mirror at the back left, not directly at the mantelpiece as briefed",
+     "Vauthier's mutton-chop whiskers are not clearly distinct; his beard reads more generally",
+     "Dr Vauthier's cigar is held loosely near his face and the lighting makes it hard to confirm he is lighting it",
+     "Mantel clock on the wall has no legible hands, so no clock-reading issue"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/gathering_1.png"
+ },
+ "ttft_ms": 1450,
+ "type": "result",
+ "duration_ms": 14277,
+ "uuid": "9fa61e79-80dd-4def-8f67-fb6544df3686",
+ "ttft_stream_ms": 1264,
+ "time_to_request_ms": 834,
+ "time_to_request_phases_ms": {
+  "other": 175,
+  "system_prompt": 146,
+  "resume_other": 1,
+  "process_user_input": 238,
+  "input_attachments": 72,
+  "input_hooks": 23,
+  "tool_pool_refresh": 7,
+  "init_message": 66,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 37,
+  "autocompact": 2,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 22,
+  "message_normalization": 2,
+  "client_creation": 20,
+  "request_build": 20
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 787,
+ "time_to_request_cpu_ms": 251,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "environment",
+  "slowest_producer_ms": 49,
+  "cpu_ms": 33,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1264,
+ "time_to_request_from_spawn_ms": 4605325,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765385904.8591,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

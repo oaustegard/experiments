@@ -1,0 +1,166 @@
+{
+ "duration_api_ms": 12018,
+ "stop_reason": "tool_use",
+ "session_id": "021eae84-62c0-4a85-be3a-ab41a65810c2",
+ "total_cost_usd": 0.00205624,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4041,
+  "cache_read_input_tokens": 7834,
+  "output_tokens": 1738,
+  "output_tokens_details": {
+   "thinking_tokens": 946
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4041,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1601,
+    "cache_read_input_tokens": 4424,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1432,
+   "outputTokens": 2053,
+   "cacheReadInputTokens": 7834,
+   "cacheCreationInputTokens": 4041,
+   "webSearchRequests": 0,
+   "costUSD": 0.00205624,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1241,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/cast/M_0.png\",\"match\":4,\"flaws\":[\"Expression reads as grave or neutral rather than clearly patient\",\"Overcoat is dark green-black with snow flecks on the left shoulder and sleeve, which fits the brief\",\"Bowler is held low at the hip in the gloved left hand, so it is partly hidden and reads less clearly as a hat held in hand\",\"Notebook is small, mostly obscured by the gloved hand, and its pages are blank\",\"Gloved hands are slightly ambiguous in shape where the hat and book meet\",\"Right edge is cropped through a chair with a heart cutout; no visible text or lettering\",\"No extra people, no obvious anachronisms, face and eyes look anatomically sound\"]},{\"file\":\"/home/user/experiments/regulator/film/cast/M_1.png\",\"match\":3,\"flaws\":[\"Overcoat is mid grey to brown-grey rather than dark, and looks bulkier, so the build reads less lean\",\"Snow on shoulders and sleeves is present, but the coat's tone is lighter than the brief describes\",\"Notebook pages carry scribbled, text-like marks that could be read as lettering\",\"Hand anatomy is off: the fingers gripping the bowler are bunched, and the right hand holding the notebook is partly cut off at the bottom edge\",\"Bowler is large and overlaps the coat front, crowding the composition\",\"Lamp at lower left and door at right are cropped awkwardly at the frame edges\",\"Moustache, clean-shaven face, and grey eyes match the brief; expression is more stern than patient\",\"No extra people\"]}],\"best\":\"/home/user/experiments/regulator/film/cast/M_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/cast/M_0.png",
+    "match": 4,
+    "flaws": [
+     "Expression reads as grave or neutral rather than clearly patient",
+     "Overcoat is dark green-black with snow flecks on the left shoulder and sleeve, which fits the brief",
+     "Bowler is held low at the hip in the gloved left hand, so it is partly hidden and reads less clearly as a hat held in hand",
+     "Notebook is small, mostly obscured by the gloved hand, and its pages are blank",
+     "Gloved hands are slightly ambiguous in shape where the hat and book meet",
+     "Right edge is cropped through a chair with a heart cutout; no visible text or lettering",
+     "No extra people, no obvious anachronisms, face and eyes look anatomically sound"
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/cast/M_1.png",
+    "match": 3,
+    "flaws": [
+     "Overcoat is mid grey to brown-grey rather than dark, and looks bulkier, so the build reads less lean",
+     "Snow on shoulders and sleeves is present, but the coat's tone is lighter than the brief describes",
+     "Notebook pages carry scribbled, text-like marks that could be read as lettering",
+     "Hand anatomy is off: the fingers gripping the bowler are bunched, and the right hand holding the notebook is partly cut off at the bottom edge",
+     "Bowler is large and overlaps the coat front, crowding the composition",
+     "Lamp at lower left and door at right are cropped awkwardly at the frame edges",
+     "Moustache, clean-shaven face, and grey eyes match the brief; expression is more stern than patient",
+     "No extra people"
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/cast/M_0.png"
+ },
+ "ttft_ms": 1200,
+ "type": "result",
+ "duration_ms": 11795,
+ "uuid": "124631c9-1811-467e-9a24-0c4809c37aa5",
+ "ttft_stream_ms": 995,
+ "time_to_request_ms": 549,
+ "time_to_request_phases_ms": {
+  "other": 91,
+  "system_prompt": 28,
+  "resume_other": 1,
+  "process_user_input": 20,
+  "input_attachments": 80,
+  "input_hooks": 22,
+  "tool_pool_refresh": 18,
+  "init_message": 27,
+  "engine_pickup": 1,
+  "message_prep": 14,
+  "model_config_wait": 129,
+  "autocompact": 2,
+  "query_setup": 1,
+  "model_gates": 1,
+  "tool_schema_build": 32,
+  "message_normalization": 15,
+  "client_creation": 22,
+  "request_build": 45
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 421,
+ "time_to_request_cpu_ms": 238,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 29,
+  "cpu_ms": 23,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 995,
+ "time_to_request_from_spawn_ms": 4307321,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084610.211,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

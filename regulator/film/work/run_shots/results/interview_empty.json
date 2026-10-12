@@ -1,0 +1,164 @@
+{
+ "duration_api_ms": 14294,
+ "stop_reason": "tool_use",
+ "session_id": "df4ac2db-e580-41c2-b1e6-a9679972dd9f",
+ "total_cost_usd": 0.0022655699999999997,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4048,
+  "cache_read_input_tokens": 7957,
+  "output_tokens": 2448,
+  "output_tokens_details": {
+   "thinking_tokens": 1730
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4048,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2303,
+    "cache_read_input_tokens": 4485,
+    "cache_creation_input_tokens": 3035,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3035
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1429,
+   "outputTokens": 2467,
+   "cacheReadInputTokens": 7957,
+   "cacheCreationInputTokens": 4048,
+   "webSearchRequests": 0,
+   "costUSD": 0.0022655699999999997,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1730,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/interview_empty_0.png\",\"match\":4,\"flaws\":[\"Only five chairs are clearly visible, not six. The count is front-left, back-left, back-right, front-right and far-right.\",\"The candle looks unlit with no visible flame, so it doesn't read as guttered.\",\"The front-right chair's legs are malformed and seem to run into the floor at odd angles.\",\"A small orange light spot in the window is ambiguous but not readable as a figure.\",\"No visible text, signatures, clock, or letterboxing. The framed picture on the wall is blank.\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/interview_empty_1.png\",\"match\":3,\"flaws\":[\"The book is open, not a closed notebook as specified.\",\"The candle is an unlit black candle with no flame, so it doesn't read as guttered.\",\"A backless stool sits under the table in the centre, which is not in the brief.\",\"The hanging lamp has a glowing bulb inside a shade, which reads more like an electric fixture than a turned-low oil lamp. This is a mild anachronism risk.\",\"The front-right chair's legs and seat are awkwardly drawn where they meet the table and floor.\",\"Six chairs are present and clearly placed, which matches the brief. No visible text, signatures, clock, or letterboxing.\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/interview_empty_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/interview_empty_0.png",
+    "match": 4,
+    "flaws": [
+     "Only five chairs are clearly visible, not six. The count is front-left, back-left, back-right, front-right and far-right.",
+     "The candle looks unlit with no visible flame, so it doesn't read as guttered.",
+     "The front-right chair's legs are malformed and seem to run into the floor at odd angles.",
+     "A small orange light spot in the window is ambiguous but not readable as a figure.",
+     "No visible text, signatures, clock, or letterboxing. The framed picture on the wall is blank."
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/interview_empty_1.png",
+    "match": 3,
+    "flaws": [
+     "The book is open, not a closed notebook as specified.",
+     "The candle is an unlit black candle with no flame, so it doesn't read as guttered.",
+     "A backless stool sits under the table in the centre, which is not in the brief.",
+     "The hanging lamp has a glowing bulb inside a shade, which reads more like an electric fixture than a turned-low oil lamp. This is a mild anachronism risk.",
+     "The front-right chair's legs and seat are awkwardly drawn where they meet the table and floor.",
+     "Six chairs are present and clearly placed, which matches the brief. No visible text, signatures, clock, or letterboxing."
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/interview_empty_0.png"
+ },
+ "ttft_ms": 1018,
+ "type": "result",
+ "duration_ms": 14444,
+ "uuid": "435b0b90-b968-419b-b2ab-0b496f45e6e4",
+ "ttft_stream_ms": 816,
+ "time_to_request_ms": 316,
+ "time_to_request_phases_ms": {
+  "other": 29,
+  "system_prompt": 69,
+  "resume_other": 0,
+  "process_user_input": 6,
+  "input_attachments": 11,
+  "input_hooks": 15,
+  "tool_pool_refresh": 2,
+  "init_message": 5,
+  "engine_pickup": 1,
+  "message_prep": 5,
+  "model_config_wait": 149,
+  "autocompact": 7,
+  "query_setup": 0,
+  "model_gates": 1,
+  "tool_schema_build": 5,
+  "message_normalization": 1,
+  "client_creation": 5,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 121,
+ "time_to_request_cpu_ms": 182,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 7,
+  "cpu_ms": 12,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 816,
+ "time_to_request_from_spawn_ms": 4604427,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765385566.5127,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

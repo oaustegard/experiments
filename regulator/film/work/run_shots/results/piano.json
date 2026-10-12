@@ -1,0 +1,170 @@
+{
+ "duration_api_ms": 12465,
+ "stop_reason": "tool_use",
+ "session_id": "89d2eab4-83d1-4f8e-b1f6-eca00a34c338",
+ "total_cost_usd": 0.00208125,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4150,
+  "cache_read_input_tokens": 8065,
+  "output_tokens": 1851,
+  "output_tokens_details": {
+   "thinking_tokens": 1101
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4150,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1712,
+    "cache_read_input_tokens": 4593,
+    "cache_creation_input_tokens": 3029,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3029
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1536,
+   "outputTokens": 2034,
+   "cacheReadInputTokens": 8065,
+   "cacheCreationInputTokens": 4150,
+   "webSearchRequests": 0,
+   "costUSD": 0.00208125,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1264,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/piano_0.png\",\"match\":4,\"flaws\":[\"Odile's face is in strict profile, so the cool grey eyes cannot be seen\",\"Her back is upright and the pose matches the brief\",\"The cameo brooch is only a small pale spot at the high collar\",\"The empty card-table chair and the cards are there, but the table top is dull grey rather than felt\",\"A second chair behind her is partly hidden by her skirt, which reads as slightly cluttered\",\"Sheet music on the rack has smudged marks, not legible text\",\"Hands on the keys are a little soft, though not clearly malformed\",\"Candle sconce and oil lamp are both present, which is a reasonable candlelit look\",\"No letterboxing, no visible signature, no readable clock\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/piano_1.png\",\"match\":3,\"flaws\":[\"She leans forward over the keys, so the back is not as straight as the brief asks\",\"Her face is angled down, so the composed expression and cool grey eyes do not read\",\"The empty chair at the card table is cropped at the right edge and mostly hidden, so the scene is less clear\",\"The card table with green felt and the cigar in its dish match the brief well\",\"Right hand over the keys looks crowded and slightly fused\",\"A partly visible clock shape at top left shows no readable hands\",\"Sheet music has smudged marks, not legible text\",\"No letterboxing, no visible signature\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/piano_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/piano_0.png",
+    "match": 4,
+    "flaws": [
+     "Odile's face is in strict profile, so the cool grey eyes cannot be seen",
+     "Her back is upright and the pose matches the brief",
+     "The cameo brooch is only a small pale spot at the high collar",
+     "The empty card-table chair and the cards are there, but the table top is dull grey rather than felt",
+     "A second chair behind her is partly hidden by her skirt, which reads as slightly cluttered",
+     "Sheet music on the rack has smudged marks, not legible text",
+     "Hands on the keys are a little soft, though not clearly malformed",
+     "Candle sconce and oil lamp are both present, which is a reasonable candlelit look",
+     "No letterboxing, no visible signature, no readable clock"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/piano_1.png",
+    "match": 3,
+    "flaws": [
+     "She leans forward over the keys, so the back is not as straight as the brief asks",
+     "Her face is angled down, so the composed expression and cool grey eyes do not read",
+     "The empty chair at the card table is cropped at the right edge and mostly hidden, so the scene is less clear",
+     "The card table with green felt and the cigar in its dish match the brief well",
+     "Right hand over the keys looks crowded and slightly fused",
+     "A partly visible clock shape at top left shows no readable hands",
+     "Sheet music has smudged marks, not legible text",
+     "No letterboxing, no visible signature"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/piano_0.png"
+ },
+ "ttft_ms": 1739,
+ "type": "result",
+ "duration_ms": 12693,
+ "uuid": "c4f82941-ed26-4a1b-9951-353c7fa28b33",
+ "ttft_stream_ms": 1519,
+ "time_to_request_ms": 1059,
+ "time_to_request_phases_ms": {
+  "other": 211,
+  "system_prompt": 145,
+  "resume_other": 0,
+  "process_user_input": 23,
+  "input_attachments": 94,
+  "input_hooks": 56,
+  "tool_pool_refresh": 21,
+  "init_message": 55,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 31,
+  "autocompact": 31,
+  "query_setup": 0,
+  "model_gates": 13,
+  "tool_schema_build": 58,
+  "message_normalization": 35,
+  "client_creation": 253,
+  "request_build": 31
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 930,
+ "time_to_request_cpu_ms": 188,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 42,
+  "cpu_ms": 20,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1520,
+ "time_to_request_from_spawn_ms": 4589319,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765368672.3862,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

@@ -1,0 +1,161 @@
+{
+ "duration_api_ms": 7787,
+ "stop_reason": "tool_use",
+ "session_id": "b94d8820-b3ac-4ba3-9895-db1dbbb3892f",
+ "total_cost_usd": 0.0017462900000000002,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4058,
+  "cache_read_input_tokens": 7969,
+  "output_tokens": 1400,
+  "output_tokens_details": {
+   "thinking_tokens": 803
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4058,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1257,
+    "cache_read_input_tokens": 4497,
+    "cache_creation_input_tokens": 3033,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3033
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1440,
+   "outputTokens": 1422,
+   "cacheReadInputTokens": 7969,
+   "cacheCreationInputTokens": 4058,
+   "webSearchRequests": 0,
+   "costUSD": 0.0017462900000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 803,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/ceiling_0.png\",\"match\":4,\"flaws\":[\"The light comes through a broad plank-width gap rather than a thin crack between boards, so it reads more like an open hatch than a crack.\",\"Dust is shown only as faint haze streaks, not as distinct drifting motes.\",\"Blurry, undefined shape in the lower-left foreground.\",\"The hook hangs from a chain and reads as a chandelier hook, as intended.\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/ceiling_1.png\",\"match\":4,\"flaws\":[\"The ceiling is steeply angled with rafters, so it reads more like an attic or roof space than a library ceiling.\",\"The bright shape in the lower-left corner is ambiguous; it may read as a window or wall edge.\",\"The hook is a single S-hook on a beam rather than a clear chandelier hook.\",\"Dust is visible as small specks in the light shaft, which fits the brief.\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/ceiling_1.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/ceiling_0.png",
+    "match": 4,
+    "flaws": [
+     "The light comes through a broad plank-width gap rather than a thin crack between boards, so it reads more like an open hatch than a crack.",
+     "Dust is shown only as faint haze streaks, not as distinct drifting motes.",
+     "Blurry, undefined shape in the lower-left foreground.",
+     "The hook hangs from a chain and reads as a chandelier hook, as intended."
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/ceiling_1.png",
+    "match": 4,
+    "flaws": [
+     "The ceiling is steeply angled with rafters, so it reads more like an attic or roof space than a library ceiling.",
+     "The bright shape in the lower-left corner is ambiguous; it may read as a window or wall edge.",
+     "The hook is a single S-hook on a beam rather than a clear chandelier hook.",
+     "Dust is visible as small specks in the light shaft, which fits the brief."
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/ceiling_1.png"
+ },
+ "ttft_ms": 740,
+ "type": "result",
+ "duration_ms": 7740,
+ "uuid": "3afc10e3-c0fc-4479-827b-8429bf0edf84",
+ "ttft_stream_ms": 548,
+ "time_to_request_ms": 183,
+ "time_to_request_phases_ms": {
+  "other": 19,
+  "system_prompt": 14,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 13,
+  "input_hooks": 4,
+  "tool_pool_refresh": 2,
+  "init_message": 5,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 102,
+  "autocompact": 2,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 5,
+  "message_normalization": 2,
+  "client_creation": 4,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 78,
+ "time_to_request_cpu_ms": 192,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 6,
+  "cpu_ms": 11,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 549,
+ "time_to_request_from_spawn_ms": 4600913,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765383933.1597,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

@@ -1,0 +1,153 @@
+{
+ "duration_api_ms": 91369,
+ "stop_reason": "tool_use",
+ "session_id": "fd03d318-f17b-43aa-9a53-6c4bb86f243c",
+ "total_cost_usd": 0.1165794,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 509,
+  "cache_read_input_tokens": 5144,
+  "output_tokens": 11360,
+  "output_tokens_details": {
+   "thinking_tokens": 10484
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 509,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 11360,
+    "cache_read_input_tokens": 5144,
+    "cache_creation_input_tokens": 509,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 509
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 4135,
+   "outputTokens": 23,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.00042500000000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5-5": {
+   "inputTokens": 2,
+   "outputTokens": 11360,
+   "cacheReadInputTokens": 5144,
+   "cacheCreationInputTokens": 509,
+   "webSearchRequests": 0,
+   "costUSD": 0.1161544,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 10484,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"murderer\":\"Dr Casimir Vauthier\",\"time\":\"22:38\",\"reasoning\":\"Clock calibration. The temple bell is true time. Lina's regulator matched the bell at ten, so it was true then. The hall clock struck ten when the regulator read 9:48, so the hall strike runs 12 minutes fast. The hall clock's eleven strike was therefore at true 22:48. Rosa's kitchen clock read 23:13 at that strike, so it is 25 minutes fast. Rosa believed it was 15 fast, but Monnier had adjusted it that afternoon. At the nine o'clock bell, F\u00e9lix's watch read 8:40, so it is 20 minutes slow. The doctor's watch is 2 minutes fast.\\n\\nPiano timing. By the kitchen clock the piano began at 22:58 and stopped at 23:11. That is true 22:33 to 22:46, with the hall strike at 22:48. Lina left the atelier at true 22:20 and reached the kitchen at 22:47 kitchen time, which is true 22:22. That is only 2 minutes of travel, so her account holds.\\n\\nGirard's watch. Girard heard the piano start at 22:29 on his watch, true 22:33, so his watch is 4 minutes slow. He came in at 22:46 on his watch, true 22:50, and went up to the library. F\u00e9lix puts his arrival at 22:32 on F\u00e9lix's watch, which is true 22:52. That fits. Girard's faint bells at 22:34 on his watch are true 22:38.\\n\\nF\u00e9lix's account. He heard the thump and the repeater at 22:18 on his watch, which is true 22:38. That matches Girard's bells at 22:38. Someone went up at true 22:35 and came down at 22:41. The blow was at 22:38.\\n\\nThe liar. The doctor says he left the salon at 22:45 on his watch, which is true 22:43, and that the piano began as he went out. The piano actually began at true 22:33, so he left the salon about 10 minutes earlier than he claims. He was therefore out of the room and unaccounted for at 22:38. Odile carefully avoided saying when he left. Everyone else is placed. Lina and Rosa were in the kitchen, Girard was in the street, and F\u00e9lix was in the library, below the atelier, where he heard it. Odile was at the piano, heard through the house. The regulator stopped at 10:05 was the doctor's false-time staging.\"}",
+ "structured_output": {
+  "murderer": "Dr Casimir Vauthier",
+  "time": "22:38",
+  "reasoning": "Clock calibration. The temple bell is true time. Lina's regulator matched the bell at ten, so it was true then. The hall clock struck ten when the regulator read 9:48, so the hall strike runs 12 minutes fast. The hall clock's eleven strike was therefore at true 22:48. Rosa's kitchen clock read 23:13 at that strike, so it is 25 minutes fast. Rosa believed it was 15 fast, but Monnier had adjusted it that afternoon. At the nine o'clock bell, F\u00e9lix's watch read 8:40, so it is 20 minutes slow. The doctor's watch is 2 minutes fast.\n\nPiano timing. By the kitchen clock the piano began at 22:58 and stopped at 23:11. That is true 22:33 to 22:46, with the hall strike at 22:48. Lina left the atelier at true 22:20 and reached the kitchen at 22:47 kitchen time, which is true 22:22. That is only 2 minutes of travel, so her account holds.\n\nGirard's watch. Girard heard the piano start at 22:29 on his watch, true 22:33, so his watch is 4 minutes slow. He came in at 22:46 on his watch, true 22:50, and went up to the library. F\u00e9lix puts his arrival at 22:32 on F\u00e9lix's watch, which is true 22:52. That fits. Girard's faint bells at 22:34 on his watch are true 22:38.\n\nF\u00e9lix's account. He heard the thump and the repeater at 22:18 on his watch, which is true 22:38. That matches Girard's bells at 22:38. Someone went up at true 22:35 and came down at 22:41. The blow was at 22:38.\n\nThe liar. The doctor says he left the salon at 22:45 on his watch, which is true 22:43, and that the piano began as he went out. The piano actually began at true 22:33, so he left the salon about 10 minutes earlier than he claims. He was therefore out of the room and unaccounted for at 22:38. Odile carefully avoided saying when he left. Everyone else is placed. Lina and Rosa were in the kitchen, Girard was in the street, and F\u00e9lix was in the library, below the atelier, where he heard it. Odile was at the piano, heard through the house. The regulator stopped at 10:05 was the doctor's false-time staging."
+ },
+ "ttft_ms": 85155,
+ "type": "result",
+ "duration_ms": 90690,
+ "uuid": "6485bda9-82a8-4b95-915e-e3a458e20ca3",
+ "ttft_stream_ms": 1815,
+ "time_to_request_ms": 703,
+ "time_to_request_phases_ms": {
+  "other": 116,
+  "system_prompt": 276,
+  "resume_other": 1,
+  "process_user_input": 17,
+  "input_attachments": 48,
+  "input_hooks": 13,
+  "tool_pool_refresh": 19,
+  "init_message": 32,
+  "engine_pickup": 5,
+  "message_prep": 14,
+  "model_config_wait": 59,
+  "autocompact": 3,
+  "query_setup": 0,
+  "model_gates": 36,
+  "tool_schema_build": 29,
+  "message_normalization": 8,
+  "client_creation": 16,
+  "request_build": 11
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 436,
+ "time_to_request_cpu_ms": 185,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 20,
+  "cpu_ms": 13,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1815,
+ "time_to_request_from_spawn_ms": 4316571,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084166.1768,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

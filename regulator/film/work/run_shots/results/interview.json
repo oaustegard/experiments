@@ -1,0 +1,163 @@
+{
+ "duration_api_ms": 11761,
+ "stop_reason": "tool_use",
+ "session_id": "b43a73d9-c2b4-4292-92df-5f038b37165a",
+ "total_cost_usd": 0.00202329,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4154,
+  "cache_read_input_tokens": 8069,
+  "output_tokens": 1715,
+  "output_tokens_details": {
+   "thinking_tokens": 1098
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4154,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1576,
+    "cache_read_input_tokens": 4597,
+    "cache_creation_input_tokens": 3029,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3029
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1543,
+   "outputTokens": 1915,
+   "cacheReadInputTokens": 8069,
+   "cacheCreationInputTokens": 4154,
+   "webSearchRequests": 0,
+   "costUSD": 0.00202329,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1277,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/interview_0.png\",\"match\":3,\"flaws\":[\"Reflected face in the upper-right window pane reads as a second person, which breaks the one-man scene\",\"Bowler hat in hand is missing\",\"Empty chair opposite is only loosely placed: the chair at lower right sits at the table's edge, not clearly across from the sitter\",\"Sitter is pushed to the left edge with a cramped, partly cropped lower body\",\"Lamp, frost on panes, snow on coat and notebook are present\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/interview_1.png\",\"match\":4,\"flaws\":[\"Bowler hat in hand is missing\",\"Sitter is seated at the right end of the table rather than at the cleared table facing an empty chair, though the empty chair at front left reads as opposite\",\"Writing with a pen instead of a closed or resting notebook; acceptable for 1899 but not what was specified\",\"Expression is stern rather than patient\",\"Fine hand and finger detail is hard to verify at this resolution\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/interview_1.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/interview_0.png",
+    "match": 3,
+    "flaws": [
+     "Reflected face in the upper-right window pane reads as a second person, which breaks the one-man scene",
+     "Bowler hat in hand is missing",
+     "Empty chair opposite is only loosely placed: the chair at lower right sits at the table's edge, not clearly across from the sitter",
+     "Sitter is pushed to the left edge with a cramped, partly cropped lower body",
+     "Lamp, frost on panes, snow on coat and notebook are present"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/interview_1.png",
+    "match": 4,
+    "flaws": [
+     "Bowler hat in hand is missing",
+     "Sitter is seated at the right end of the table rather than at the cleared table facing an empty chair, though the empty chair at front left reads as opposite",
+     "Writing with a pen instead of a closed or resting notebook; acceptable for 1899 but not what was specified",
+     "Expression is stern rather than patient",
+     "Fine hand and finger detail is hard to verify at this resolution"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/interview_1.png"
+ },
+ "ttft_ms": 928,
+ "type": "result",
+ "duration_ms": 11322,
+ "uuid": "61b36846-9fe8-41fc-b018-caa9a901e611",
+ "ttft_stream_ms": 759,
+ "time_to_request_ms": 364,
+ "time_to_request_phases_ms": {
+  "other": 66,
+  "system_prompt": 81,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 37,
+  "input_hooks": 24,
+  "tool_pool_refresh": 1,
+  "init_message": 17,
+  "engine_pickup": 5,
+  "message_prep": 0,
+  "model_config_wait": 67,
+  "autocompact": 22,
+  "query_setup": 1,
+  "model_gates": 4,
+  "tool_schema_build": 7,
+  "message_normalization": 1,
+  "client_creation": 16,
+  "request_build": 12
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 304,
+ "time_to_request_cpu_ms": 142,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 16,
+  "cpu_ms": 13,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 763,
+ "time_to_request_from_spawn_ms": 4590105,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765368621.5588,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

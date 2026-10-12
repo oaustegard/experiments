@@ -1,0 +1,139 @@
+{
+ "duration_api_ms": 305405,
+ "stop_reason": "tool_use",
+ "session_id": "5f55788c-f604-48ce-a1bc-020e6f5197e9",
+ "total_cost_usd": 0.03423214,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 506,
+  "cache_read_input_tokens": 5924,
+  "output_tokens": 67296,
+  "output_tokens_details": {
+   "thinking_tokens": 66266
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 506,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 67296,
+    "cache_read_input_tokens": 5924,
+    "cache_creation_input_tokens": 506,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 506
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 4137,
+   "outputTokens": 67316,
+   "cacheReadInputTokens": 5924,
+   "cacheCreationInputTokens": 506,
+   "webSearchRequests": 0,
+   "costUSD": 0.03423214,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 66266,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"murderer\":\"Bastien Girard\",\"time\":\"10:38\",\"reasoning\":\"Offsets, anchored to the temple bell (true time) and to the fixed points the witnesses agree on:\\n- Dr Vauthier's watch is 2 min fast (Lina). Kitchen clock is 15 min fast (Rosa). Hall clock is 2 min fast (Rosa's 11:13 kitchen reading at the strike = 10:58 true; Bastien's face reading of 11:02 at about 11:00 agrees). Lina's watch is exact.\\n- F\u00e9lix's watch is 20 min slow (Odile: 8:40 at the nine o'clock dinner), so true = watch + 20.\\n- Bastien's watch is 14 min slow. The piano start, 10:43 true, is confirmed by Dr Vauthier (10:45 by his watch), by Rosa and Lina (10:58 kitchen), and by Bastien's own 10:29 reading.\\n\\nConverting F\u00e9lix's sounds: someone went up at 10:35 true, the blow/thump and repeater were at 10:38, and someone came down at 10:41. Lina's watch-based 10:20 departure, Rosa's 10:32 arrival, and the piano timings place Lina and Rosa in the kitchen together from 10:32 on. Odile and Dr Vauthier were at piquet in the salon until 10:43, each vouching for the other, so neither could have been upstairs at 10:35-10:41. F\u00e9lix was in the library and reported the stair traffic, so the 10:35 visitor was not F\u00e9lix. That leaves Bastien as the only unaccounted-for person.\\n\\nBastien's account conflicts with the others. He says he went out at 10:35 and stayed outside, but F\u00e9lix's 10:35 upstairs trip and 10:41 return put him inside at exactly the time of the blow. F\u00e9lix's account has Bastien entering the library at 10:52 true, but Bastien says 11:00. His \\\"faint bells\\\" at 10:48 cannot be the repeater, since the only person who could press it was already downstairs by 10:41 and F\u00e9lix heard no second visit. A fabricated 10:48 time would also point at Dr Vauthier, who was out of the salon from 10:43 to 10:56, but the 10:35 visitor rules that out. Bastien's 10:43 piano and cigar detail fits someone stepping out of the house right after 10:41.\\n\\nThis makes Bastien the one liar and the murderer, with the blow at 10:38 true (the repeater, pressed as Monnier fell, reads 10 hours, two quarter notes, and 8 minutes, which matches F\u00e9lix's description). The regulator's 10:05 setting is the murderer's false alteration, and it points at Lina, the only person in the atelier at that hour. Confidence is moderate: the answer depends on treating F\u00e9lix's 20-minute offset as correct and on Bastien being the liar.\"}",
+ "structured_output": {
+  "murderer": "Bastien Girard",
+  "time": "10:38",
+  "reasoning": "Offsets, anchored to the temple bell (true time) and to the fixed points the witnesses agree on:\n- Dr Vauthier's watch is 2 min fast (Lina). Kitchen clock is 15 min fast (Rosa). Hall clock is 2 min fast (Rosa's 11:13 kitchen reading at the strike = 10:58 true; Bastien's face reading of 11:02 at about 11:00 agrees). Lina's watch is exact.\n- F\u00e9lix's watch is 20 min slow (Odile: 8:40 at the nine o'clock dinner), so true = watch + 20.\n- Bastien's watch is 14 min slow. The piano start, 10:43 true, is confirmed by Dr Vauthier (10:45 by his watch), by Rosa and Lina (10:58 kitchen), and by Bastien's own 10:29 reading.\n\nConverting F\u00e9lix's sounds: someone went up at 10:35 true, the blow/thump and repeater were at 10:38, and someone came down at 10:41. Lina's watch-based 10:20 departure, Rosa's 10:32 arrival, and the piano timings place Lina and Rosa in the kitchen together from 10:32 on. Odile and Dr Vauthier were at piquet in the salon until 10:43, each vouching for the other, so neither could have been upstairs at 10:35-10:41. F\u00e9lix was in the library and reported the stair traffic, so the 10:35 visitor was not F\u00e9lix. That leaves Bastien as the only unaccounted-for person.\n\nBastien's account conflicts with the others. He says he went out at 10:35 and stayed outside, but F\u00e9lix's 10:35 upstairs trip and 10:41 return put him inside at exactly the time of the blow. F\u00e9lix's account has Bastien entering the library at 10:52 true, but Bastien says 11:00. His \"faint bells\" at 10:48 cannot be the repeater, since the only person who could press it was already downstairs by 10:41 and F\u00e9lix heard no second visit. A fabricated 10:48 time would also point at Dr Vauthier, who was out of the salon from 10:43 to 10:56, but the 10:35 visitor rules that out. Bastien's 10:43 piano and cigar detail fits someone stepping out of the house right after 10:41.\n\nThis makes Bastien the one liar and the murderer, with the blow at 10:38 true (the repeater, pressed as Monnier fell, reads 10 hours, two quarter notes, and 8 minutes, which matches F\u00e9lix's description). The regulator's 10:05 setting is the murderer's false alteration, and it points at Lina, the only person in the atelier at that hour. Confidence is moderate: the answer depends on treating F\u00e9lix's 20-minute offset as correct and on Bastien being the liar."
+ },
+ "ttft_ms": 300888,
+ "type": "result",
+ "duration_ms": 305456,
+ "uuid": "2c15857b-d9e9-46d1-bdba-90d218ca53b8",
+ "ttft_stream_ms": 1528,
+ "time_to_request_ms": 997,
+ "time_to_request_phases_ms": {
+  "other": 287,
+  "system_prompt": 240,
+  "resume_other": 0,
+  "process_user_input": 33,
+  "input_attachments": 61,
+  "input_hooks": 45,
+  "tool_pool_refresh": 35,
+  "init_message": 67,
+  "engine_pickup": 2,
+  "message_prep": 2,
+  "model_config_wait": 1,
+  "autocompact": 30,
+  "query_setup": 0,
+  "model_gates": 10,
+  "tool_schema_build": 30,
+  "message_normalization": 1,
+  "client_creation": 69,
+  "request_build": 84
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 922,
+ "time_to_request_cpu_ms": 168,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 42,
+  "cpu_ms": 14,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1554,
+ "time_to_request_from_spawn_ms": 4314910,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765083968.1868,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

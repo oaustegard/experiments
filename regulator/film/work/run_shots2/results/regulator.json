@@ -1,0 +1,183 @@
+{
+ "duration_api_ms": 11725,
+ "stop_reason": "tool_use",
+ "session_id": "b07166a0-fa7b-44a1-b60f-81c147dcb5eb",
+ "total_cost_usd": 0.0027677400000000003,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 7149,
+  "cache_read_input_tokens": 8064,
+  "output_tokens": 2057,
+  "output_tokens_details": {
+   "thinking_tokens": 1103
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7149,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1778,
+    "cache_read_input_tokens": 4592,
+    "cache_creation_input_tokens": 6029,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6029
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1533,
+   "outputTokens": 2208,
+   "cacheReadInputTokens": 8064,
+   "cacheCreationInputTokens": 7149,
+   "webSearchRequests": 0,
+   "costUSD": 0.0027677400000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1238,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 6,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/regulator_0.png\",\"match\":3,\"flaws\":[\"Dial is small and sits at the top edge rather than filling the upper half of the frame\",\"Case front is a solid wood panel, not a glazed case\",\"Wide, full-height workshop composition rather than a close view of the clock\",\"Lamp and workshop background add period detail, but they are not in the brief\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/regulator_1.png\",\"match\":4,\"flaws\":[\"Pendulum bob is cropped off the bottom of the frame\",\"Dial is roughly a third of the frame width, not filling the upper half\",\"Odd dark oval reflection on the right edge that reads as a second object\",\"Lamp at left is cut off, and the overall framing is still more medium than close\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/regulator_2.png\",\"match\":1,\"flaws\":[\"Dial has Roman numerals, which breaks the plain-dial requirement and reads as visible lettering\",\"Dial shows three center pins or screws that do not match a plain dial\",\"Dial is small and cropped at the top\",\"Framing is low and shows the case base and lamp, not a close view of the upper dial\"],\"fatal\":true},{\"file\":\"/home/user/experiments/regulator/film/stills/regulator_3.png\",\"match\":4,\"flaws\":[\"Brass pendulum bob is cropped at the bottom edge\",\"Right edge shows a cabinet door and hinge that slightly clutter the frame\",\"Glossy highlight on the dial is heavier than a plain enamel face would show\",\"Glazing is only suggested by a reflection, so the case reads as partly solid\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/regulator_3.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/regulator_0.png",
+    "match": 3,
+    "flaws": [
+     "Dial is small and sits at the top edge rather than filling the upper half of the frame",
+     "Case front is a solid wood panel, not a glazed case",
+     "Wide, full-height workshop composition rather than a close view of the clock",
+     "Lamp and workshop background add period detail, but they are not in the brief"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/regulator_1.png",
+    "match": 4,
+    "flaws": [
+     "Pendulum bob is cropped off the bottom of the frame",
+     "Dial is roughly a third of the frame width, not filling the upper half",
+     "Odd dark oval reflection on the right edge that reads as a second object",
+     "Lamp at left is cut off, and the overall framing is still more medium than close"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/regulator_2.png",
+    "match": 1,
+    "flaws": [
+     "Dial has Roman numerals, which breaks the plain-dial requirement and reads as visible lettering",
+     "Dial shows three center pins or screws that do not match a plain dial",
+     "Dial is small and cropped at the top",
+     "Framing is low and shows the case base and lamp, not a close view of the upper dial"
+    ],
+    "fatal": true
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/regulator_3.png",
+    "match": 4,
+    "flaws": [
+     "Brass pendulum bob is cropped at the bottom edge",
+     "Right edge shows a cabinet door and hinge that slightly clutter the frame",
+     "Glossy highlight on the dial is heavier than a plain enamel face would show",
+     "Glazing is only suggested by a reflection, so the case reads as partly solid"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/regulator_3.png"
+ },
+ "ttft_ms": 824,
+ "type": "result",
+ "duration_ms": 10741,
+ "uuid": "77ff380f-6101-4f58-aa6f-734ffeaabfbb",
+ "ttft_stream_ms": 641,
+ "time_to_request_ms": 242,
+ "time_to_request_phases_ms": {
+  "other": 26,
+  "system_prompt": 66,
+  "resume_other": 0,
+  "process_user_input": 8,
+  "input_attachments": 22,
+  "input_hooks": 5,
+  "tool_pool_refresh": 3,
+  "init_message": 7,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 82,
+  "autocompact": 2,
+  "query_setup": 2,
+  "model_gates": 1,
+  "tool_schema_build": 7,
+  "message_normalization": 2,
+  "client_creation": 2,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 142,
+ "time_to_request_cpu_ms": 165,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 11,
+  "cpu_ms": 12,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 642,
+ "time_to_request_from_spawn_ms": 4677087,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765458520.5837,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

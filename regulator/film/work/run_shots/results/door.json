@@ -1,0 +1,162 @@
+{
+ "duration_api_ms": 12142,
+ "stop_reason": "tool_use",
+ "session_id": "2af55fc6-50e2-46c5-bca1-c2eb43f5453d",
+ "total_cost_usd": 0.00193527,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4030,
+  "cache_read_input_tokens": 7947,
+  "output_tokens": 1656,
+  "output_tokens_details": {
+   "thinking_tokens": 937
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4030,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1519,
+    "cache_read_input_tokens": 4475,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1418,
+   "outputTokens": 1816,
+   "cacheReadInputTokens": 7947,
+   "cacheCreationInputTokens": 4030,
+   "webSearchRequests": 0,
+   "costUSD": 0.00193527,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1080,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/door_0.png\",\"match\":4,\"flaws\":[\"No people visible in the room, which is correct for the scene, but the two shoes are small and low in the frame, so the 'feet passing' read is weak at full view\",\"Light under the door is a warm strip with feet silhouetted in it rather than a clear shadow break across the line of light; the shadow reads more as the feet standing in the gap\",\"Foreground desk and chair at left are cropped and somewhat murky; no text, clock, or lettering visible\",\"No anachronisms or modern objects seen; lamp, books, and furnishings suit 1899 La Chaux-de-Fonds\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/door_1.png\",\"match\":3,\"flaws\":[\"Image is a narrow central panel with washed-out, ghosted duplicate content (bookshelves, a lamp) filling the left and right borders, a letterbox/outpainting artifact\",\"Light and feet at the door base are small; the feet are barely legible at this scale\",\"Light spills as diagonal shadow streaks across the floor, which reads as light from the stairwell but the feet shadows are not clearly broken into the light line as described\",\"Ghosted oil lamp in the right border is a second lamp outside the room framing, which contradicts a single-room view\",\"No visible text, clock, or distorted hands or faces\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/door_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/door_0.png",
+    "match": 4,
+    "flaws": [
+     "No people visible in the room, which is correct for the scene, but the two shoes are small and low in the frame, so the 'feet passing' read is weak at full view",
+     "Light under the door is a warm strip with feet silhouetted in it rather than a clear shadow break across the line of light; the shadow reads more as the feet standing in the gap",
+     "Foreground desk and chair at left are cropped and somewhat murky; no text, clock, or lettering visible",
+     "No anachronisms or modern objects seen; lamp, books, and furnishings suit 1899 La Chaux-de-Fonds"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/door_1.png",
+    "match": 3,
+    "flaws": [
+     "Image is a narrow central panel with washed-out, ghosted duplicate content (bookshelves, a lamp) filling the left and right borders, a letterbox/outpainting artifact",
+     "Light and feet at the door base are small; the feet are barely legible at this scale",
+     "Light spills as diagonal shadow streaks across the floor, which reads as light from the stairwell but the feet shadows are not clearly broken into the light line as described",
+     "Ghosted oil lamp in the right border is a second lamp outside the room framing, which contradicts a single-room view",
+     "No visible text, clock, or distorted hands or faces"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/door_0.png"
+ },
+ "ttft_ms": 1812,
+ "type": "result",
+ "duration_ms": 11636,
+ "uuid": "d1fb112e-38d1-481b-b862-92beda69345e",
+ "ttft_stream_ms": 1629,
+ "time_to_request_ms": 1004,
+ "time_to_request_phases_ms": {
+  "other": 184,
+  "system_prompt": 132,
+  "resume_other": 0,
+  "process_user_input": 27,
+  "input_attachments": 59,
+  "input_hooks": 46,
+  "tool_pool_refresh": 14,
+  "init_message": 48,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 238,
+  "autocompact": 33,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 43,
+  "message_normalization": 22,
+  "client_creation": 105,
+  "request_build": 50
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 649,
+ "time_to_request_cpu_ms": 192,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 33,
+  "cpu_ms": 10,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1629,
+ "time_to_request_from_spawn_ms": 4604322,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765385050.3992,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

@@ -1,0 +1,163 @@
+{
+ "duration_api_ms": 11759,
+ "stop_reason": "tool_use",
+ "session_id": "e1f75720-194e-4826-a866-452ee07c831a",
+ "total_cost_usd": 0.0020771500000000003,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4180,
+  "cache_read_input_tokens": 8095,
+  "output_tokens": 1982,
+  "output_tokens_details": {
+   "thinking_tokens": 1335
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4180,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1843,
+    "cache_read_input_tokens": 4623,
+    "cache_creation_input_tokens": 3029,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3029
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1572,
+   "outputTokens": 2006,
+   "cacheReadInputTokens": 8095,
+   "cacheCreationInputTokens": 4180,
+   "webSearchRequests": 0,
+   "costUSD": 0.0020771500000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1335,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/hall_0.png\",\"match\":4,\"flaws\":[\"Clock face is not fully obscured: the hour and minute hands are visible, which the brief forbids\",\"Staircase is wooden with turned balusters, not the stone house the brief describes\",\"No cigar visible, though the brief calls for one\",\"Man is only moderately broad-shouldered, a little lighter in build than the brief's description of Bastien Girard\",\"Man's hand on the door handle is slightly stiff, but not grossly distorted\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/hall_1.png\",\"match\":3,\"flaws\":[\"Clock face is not fully obscured: the hands are visible near the top of the dial, which the brief forbids\",\"The man is already inside the hall beside the stairs, not entering through the front door as the scene requires\",\"Left arm and hand at the lower left edge are cropped and awkwardly drawn\",\"Stone staircase and lit wall lantern fit the stone house setting well\",\"Cigar and snow on the shoulders match the character, and the man is big and bearded with a blunt expression, though the face is somewhat soft\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/hall_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/hall_0.png",
+    "match": 4,
+    "flaws": [
+     "Clock face is not fully obscured: the hour and minute hands are visible, which the brief forbids",
+     "Staircase is wooden with turned balusters, not the stone house the brief describes",
+     "No cigar visible, though the brief calls for one",
+     "Man is only moderately broad-shouldered, a little lighter in build than the brief's description of Bastien Girard",
+     "Man's hand on the door handle is slightly stiff, but not grossly distorted"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/hall_1.png",
+    "match": 3,
+    "flaws": [
+     "Clock face is not fully obscured: the hands are visible near the top of the dial, which the brief forbids",
+     "The man is already inside the hall beside the stairs, not entering through the front door as the scene requires",
+     "Left arm and hand at the lower left edge are cropped and awkwardly drawn",
+     "Stone staircase and lit wall lantern fit the stone house setting well",
+     "Cigar and snow on the shoulders match the character, and the man is big and bearded with a blunt expression, though the face is somewhat soft"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/hall_0.png"
+ },
+ "ttft_ms": 1438,
+ "type": "result",
+ "duration_ms": 12200,
+ "uuid": "ec12e79c-c32e-4187-80f1-08d12996385f",
+ "ttft_stream_ms": 1261,
+ "time_to_request_ms": 799,
+ "time_to_request_phases_ms": {
+  "other": 69,
+  "system_prompt": 348,
+  "resume_other": 0,
+  "process_user_input": 5,
+  "input_attachments": 30,
+  "input_hooks": 10,
+  "tool_pool_refresh": 7,
+  "init_message": 27,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 216,
+  "autocompact": 10,
+  "query_setup": 0,
+  "model_gates": 1,
+  "tool_schema_build": 18,
+  "message_normalization": 6,
+  "client_creation": 26,
+  "request_build": 24
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 677,
+ "time_to_request_cpu_ms": 186,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 12,
+  "cpu_ms": 11,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1261,
+ "time_to_request_from_spawn_ms": 4605073,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765385498.6072,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

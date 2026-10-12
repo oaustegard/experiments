@@ -1,0 +1,165 @@
+{
+ "duration_api_ms": 13190,
+ "stop_reason": "tool_use",
+ "session_id": "5e915a42-07d7-4996-9707-8deb8704067d",
+ "total_cost_usd": 0.0021803,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4047,
+  "cache_read_input_tokens": 7840,
+  "output_tokens": 2058,
+  "output_tokens_details": {
+   "thinking_tokens": 1131
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4047,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1921,
+    "cache_read_input_tokens": 4430,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1440,
+   "outputTokens": 2297,
+   "cacheReadInputTokens": 7840,
+   "cacheCreationInputTokens": 4047,
+   "webSearchRequests": 0,
+   "costUSD": 0.0021803,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1350,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/cast/F_0.png\",\"match\":4,\"flaws\":[\"Jacket reads as a dark lounge or suit jacket with notched lapels, not an evening tailcoat; no tails or satin facing are visible.\",\"The pocket watch is held in the fingers at chest height rather than tarnished silver on a chain at the waistcoat. The chain runs down out of frame, so the watch's tarnish and condition are hard to judge.\",\"The hand holding the watch is anatomically ambiguous: finger joints and knuckles blend together.\",\"The figure is cropped at the lower edge and right shoulder, and the right arm runs off the frame.\",\"The oil lamp at left is not in the description. It is period-appropriate, but it adds a prop the brief did not ask for.\",\"Age, build, hair, moustache, loosened white tie, flushed cheeks and anxious eyes all match well. The tie is a loosened white cravat-style tie, as described.\"]},{\"file\":\"/home/user/experiments/regulator/film/cast/F_1.png\",\"match\":3,\"flaws\":[\"Wears a neat white bow tie rather than a loosened white tie, which is a direct mismatch with the brief.\",\"Black dinner jacket with satin lapels and a waistcoat is closer to evening dress than F_0, so clothing is a partial plus.\",\"The pocket watch hangs on a chain from the waistcoat and is visible and clean, but it does not look tarnished.\",\"Brandy flush is weak: the cheeks show only faint colour, so the figure reads as pale and tired rather than flushed.\",\"The face is stiff and blank, with a slightly unbalanced eye treatment. The expression reads more sad or dazed than anxious and charming.\",\"Hair is dark and wavy, but it sits flatter on top, and the moustache is thin and correct.\",\"The lamp is cut off at the left edge. The right third is a large dark wood panel or doorframe that adds nothing to the portrait.\",\"No hands are shown, so hand anatomy cannot be assessed.\"]}],\"best\":\"/home/user/experiments/regulator/film/cast/F_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/cast/F_0.png",
+    "match": 4,
+    "flaws": [
+     "Jacket reads as a dark lounge or suit jacket with notched lapels, not an evening tailcoat; no tails or satin facing are visible.",
+     "The pocket watch is held in the fingers at chest height rather than tarnished silver on a chain at the waistcoat. The chain runs down out of frame, so the watch's tarnish and condition are hard to judge.",
+     "The hand holding the watch is anatomically ambiguous: finger joints and knuckles blend together.",
+     "The figure is cropped at the lower edge and right shoulder, and the right arm runs off the frame.",
+     "The oil lamp at left is not in the description. It is period-appropriate, but it adds a prop the brief did not ask for.",
+     "Age, build, hair, moustache, loosened white tie, flushed cheeks and anxious eyes all match well. The tie is a loosened white cravat-style tie, as described."
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/cast/F_1.png",
+    "match": 3,
+    "flaws": [
+     "Wears a neat white bow tie rather than a loosened white tie, which is a direct mismatch with the brief.",
+     "Black dinner jacket with satin lapels and a waistcoat is closer to evening dress than F_0, so clothing is a partial plus.",
+     "The pocket watch hangs on a chain from the waistcoat and is visible and clean, but it does not look tarnished.",
+     "Brandy flush is weak: the cheeks show only faint colour, so the figure reads as pale and tired rather than flushed.",
+     "The face is stiff and blank, with a slightly unbalanced eye treatment. The expression reads more sad or dazed than anxious and charming.",
+     "Hair is dark and wavy, but it sits flatter on top, and the moustache is thin and correct.",
+     "The lamp is cut off at the left edge. The right third is a large dark wood panel or doorframe that adds nothing to the portrait.",
+     "No hands are shown, so hand anatomy cannot be assessed."
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/cast/F_0.png"
+ },
+ "ttft_ms": 1406,
+ "type": "result",
+ "duration_ms": 14487,
+ "uuid": "bd5368a9-5614-4905-aba6-631d8cb5b9fa",
+ "ttft_stream_ms": 1226,
+ "time_to_request_ms": 737,
+ "time_to_request_phases_ms": {
+  "other": 185,
+  "system_prompt": 32,
+  "resume_other": 0,
+  "process_user_input": 14,
+  "input_attachments": 52,
+  "input_hooks": 47,
+  "tool_pool_refresh": 3,
+  "init_message": 31,
+  "engine_pickup": 30,
+  "message_prep": 1,
+  "model_config_wait": 109,
+  "autocompact": 27,
+  "query_setup": 1,
+  "model_gates": 24,
+  "tool_schema_build": 46,
+  "message_normalization": 11,
+  "client_creation": 85,
+  "request_build": 39
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 591,
+ "time_to_request_cpu_ms": 238,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 27,
+  "cpu_ms": 21,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1227,
+ "time_to_request_from_spawn_ms": 4306684,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084582.9177,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

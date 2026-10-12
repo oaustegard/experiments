@@ -1,0 +1,180 @@
+{
+ "duration_api_ms": 18128,
+ "stop_reason": "tool_use",
+ "session_id": "919e1d03-1cf2-4d2d-b9c1-aad5e60bcee8",
+ "total_cost_usd": 0.00346854,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 7125,
+  "cache_read_input_tokens": 8044,
+  "output_tokens": 3384,
+  "output_tokens_details": {
+   "thinking_tokens": 2418
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7125,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3109,
+    "cache_read_input_tokens": 4572,
+    "cache_creation_input_tokens": 6025,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6025
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1511,
+   "outputTokens": 3624,
+   "cacheReadInputTokens": 8044,
+   "cacheCreationInputTokens": 7125,
+   "webSearchRequests": 0,
+   "costUSD": 0.00346854,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 2640,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 6,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/letter_0.png\",\"match\":4,\"flaws\":[\"Envelope has visible handwriting, which the brief forbids for the letter shot\",\"Pen is a quill feather rather than a pen, a minor deviation from the brief\",\"Lamp is lit and the room is dim, which fits dawn but is a slight departure from the requested daylight-at-dawn read\"],\"fatal\":true},{\"file\":\"/home/user/experiments/regulator/film/stills/letter_1.png\",\"match\":2,\"flaws\":[\"Two dark human-like silhouettes are visible through the frosted window, so the room does not read as empty\",\"Envelope has visible handwriting, which the brief forbids\",\"Window glass reads as misted rather than frosted, and the desk is cropped so the composition is off-brief\"],\"fatal\":true},{\"file\":\"/home/user/experiments/regulator/film/stills/letter_2.png\",\"match\":4,\"flaws\":[\"The letter sheet beside the envelope has visible handwriting lines, which counts as visible text\",\"The letter is open and folded rather than sealed; only the envelope is sealed\",\"A chair and a lamp are in the background, which is acceptable for an empty room but adds clutter\"],\"fatal\":true},{\"file\":\"/home/user/experiments/regulator/film/stills/letter_3.png\",\"match\":3,\"flaws\":[\"The envelope set has three envelopes and a letter, so there is no single sealed letter as briefed\",\"The sealed envelope has no visible wax seal; the blank envelopes show no seal either\",\"The folded letter has visible handwriting, which counts as visible text\",\"The window is leaded diamond glass rather than frosted, so the frost requirement is not met\"],\"fatal\":true}],\"best\":\"/home/user/experiments/regulator/film/stills/letter_2.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/letter_0.png",
+    "match": 4,
+    "flaws": [
+     "Envelope has visible handwriting, which the brief forbids for the letter shot",
+     "Pen is a quill feather rather than a pen, a minor deviation from the brief",
+     "Lamp is lit and the room is dim, which fits dawn but is a slight departure from the requested daylight-at-dawn read"
+    ],
+    "fatal": true
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/letter_1.png",
+    "match": 2,
+    "flaws": [
+     "Two dark human-like silhouettes are visible through the frosted window, so the room does not read as empty",
+     "Envelope has visible handwriting, which the brief forbids",
+     "Window glass reads as misted rather than frosted, and the desk is cropped so the composition is off-brief"
+    ],
+    "fatal": true
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/letter_2.png",
+    "match": 4,
+    "flaws": [
+     "The letter sheet beside the envelope has visible handwriting lines, which counts as visible text",
+     "The letter is open and folded rather than sealed; only the envelope is sealed",
+     "A chair and a lamp are in the background, which is acceptable for an empty room but adds clutter"
+    ],
+    "fatal": true
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/letter_3.png",
+    "match": 3,
+    "flaws": [
+     "The envelope set has three envelopes and a letter, so there is no single sealed letter as briefed",
+     "The sealed envelope has no visible wax seal; the blank envelopes show no seal either",
+     "The folded letter has visible handwriting, which counts as visible text",
+     "The window is leaded diamond glass rather than frosted, so the frost requirement is not met"
+    ],
+    "fatal": true
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/letter_2.png"
+ },
+ "ttft_ms": 911,
+ "type": "result",
+ "duration_ms": 16813,
+ "uuid": "d7b29b87-e2a0-4c1e-96ed-0d428d3b13d4",
+ "ttft_stream_ms": 717,
+ "time_to_request_ms": 258,
+ "time_to_request_phases_ms": {
+  "other": 35,
+  "system_prompt": 26,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 24,
+  "input_hooks": 12,
+  "tool_pool_refresh": 18,
+  "init_message": 14,
+  "engine_pickup": 6,
+  "message_prep": 1,
+  "model_config_wait": 68,
+  "autocompact": 5,
+  "query_setup": 0,
+  "model_gates": 1,
+  "tool_schema_build": 13,
+  "message_normalization": 3,
+  "client_creation": 24,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 155,
+ "time_to_request_cpu_ms": 151,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 6,
+  "cpu_ms": 14,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 717,
+ "time_to_request_from_spawn_ms": 4676460,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765458525.4944,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

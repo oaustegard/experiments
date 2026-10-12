@@ -1,0 +1,163 @@
+{
+ "duration_api_ms": 15431,
+ "stop_reason": "tool_use",
+ "session_id": "a7521d4d-42ad-44d6-afd0-c6d5e845b652",
+ "total_cost_usd": 0.0024098699999999997,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4328,
+  "cache_read_input_tokens": 8237,
+  "output_tokens": 2250,
+  "output_tokens_details": {
+   "thinking_tokens": 1542
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4328,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2105,
+    "cache_read_input_tokens": 4765,
+    "cache_creation_input_tokens": 3035,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3035
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1709,
+   "outputTokens": 2582,
+   "cacheReadInputTokens": 8237,
+   "cacheCreationInputTokens": 4328,
+   "webSearchRequests": 0,
+   "costUSD": 0.0024098699999999997,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1856,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/atelier_day_0.png\",\"match\":4,\"flaws\":[\"Old master's spectacles sit on his nose rather than pushed up on his forehead\",\"Regulator clock is a wall clock with a short case, less tall than the brief implies; its hands are not readable\",\"Bench is a single long row only partly; the woman works at a separate table set at an angle, not a shared continuous workbench\",\"Freckles on the r\u00e9gleuse are not visible at this resolution\",\"No visible text, anachronism, or distortion of the two figures' hands or faces was found; no letterbox borders\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/atelier_day_1.png\",\"match\":3,\"flaws\":[\"Two kerosene lamps are lit on the bench, which conflicts with the winter daylight in the brief\",\"Old master's spectacles are pushed onto the forehead area but the loupe is not clearly on a cord; he is not holding a loupe to his eye\",\"Regulator clock is a small wall clock, not a tall regulator; its hands are not readable\",\"The woman's hand holding the tool is awkwardly rendered, and her loupe is only faintly visible at the neck\",\"Lots of extra props (boxes, tools, lamp) crowd the frame; no visible text or letterbox borders found\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/atelier_day_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/atelier_day_0.png",
+    "match": 4,
+    "flaws": [
+     "Old master's spectacles sit on his nose rather than pushed up on his forehead",
+     "Regulator clock is a wall clock with a short case, less tall than the brief implies; its hands are not readable",
+     "Bench is a single long row only partly; the woman works at a separate table set at an angle, not a shared continuous workbench",
+     "Freckles on the r\u00e9gleuse are not visible at this resolution",
+     "No visible text, anachronism, or distortion of the two figures' hands or faces was found; no letterbox borders"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/atelier_day_1.png",
+    "match": 3,
+    "flaws": [
+     "Two kerosene lamps are lit on the bench, which conflicts with the winter daylight in the brief",
+     "Old master's spectacles are pushed onto the forehead area but the loupe is not clearly on a cord; he is not holding a loupe to his eye",
+     "Regulator clock is a small wall clock, not a tall regulator; its hands are not readable",
+     "The woman's hand holding the tool is awkwardly rendered, and her loupe is only faintly visible at the neck",
+     "Lots of extra props (boxes, tools, lamp) crowd the frame; no visible text or letterbox borders found"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/atelier_day_0.png"
+ },
+ "ttft_ms": 2354,
+ "type": "result",
+ "duration_ms": 15352,
+ "uuid": "6ec2d7c8-a6dc-4a74-906d-d7d721868e42",
+ "ttft_stream_ms": 2162,
+ "time_to_request_ms": 1624,
+ "time_to_request_phases_ms": {
+  "other": 188,
+  "system_prompt": 268,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 149,
+  "input_hooks": 80,
+  "tool_pool_refresh": 30,
+  "init_message": 48,
+  "engine_pickup": 40,
+  "message_prep": 1,
+  "model_config_wait": 532,
+  "autocompact": 29,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 39,
+  "message_normalization": 2,
+  "client_creation": 127,
+  "request_build": 87
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 1228,
+ "time_to_request_cpu_ms": 203,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 111,
+  "cpu_ms": 11,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 2163,
+ "time_to_request_from_spawn_ms": 4589692,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765368618.6416,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

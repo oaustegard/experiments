@@ -1,0 +1,185 @@
+{
+ "duration_api_ms": 19895,
+ "stop_reason": "tool_use",
+ "session_id": "a015b549-3f8f-41d4-826f-f6aa1ead84d7",
+ "total_cost_usd": 0.00387045,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 7880,
+  "cache_read_input_tokens": 8795,
+  "output_tokens": 3944,
+  "output_tokens_details": {
+   "thinking_tokens": 2818
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 7880,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 3665,
+    "cache_read_input_tokens": 5323,
+    "cache_creation_input_tokens": 6029,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 6029
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 2265,
+   "outputTokens": 3960,
+   "cacheReadInputTokens": 8795,
+   "cacheCreationInputTokens": 7880,
+   "webSearchRequests": 0,
+   "costUSD": 0.00387045,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 2818,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 6,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/dinner_0.png\",\"match\":2,\"fatal\":true,\"flaws\":[\"F\u00e9lix Monnier is missing: only six people are present (Girard, Odile, Monnier, Lina, Vauthier, Rosa), and the chair at the front of the table is empty\",\"Monnier is not wearing the jeweller's loupe on a cord, and his shirtsleeves are not clearly rolled\",\"The watch dials are too small to confirm the hands are absent\",\"Lina's watch is partly hidden, so the 'everyone holds up a watch' beat is weaker\"]},{\"file\":\"/home/user/experiments/regulator/film/stills/dinner_1.png\",\"match\":2,\"fatal\":true,\"flaws\":[\"F\u00e9lix Monnier is missing: only six people are present (Lina, Odile, Monnier, Vauthier, Girard, Rosa)\",\"Figures are seated in a wider composition, so the head-of-table lecture framing is less clear\",\"Monnier's loupe is not visible and the watch dials are too small to confirm the hands are absent\",\"Girard's hand holding the watch is hard to read and looks slightly stiff\"]},{\"file\":\"/home/user/experiments/regulator/film/stills/dinner_2.png\",\"match\":4,\"fatal\":false,\"flaws\":[\"Vauthier's cigar is not clearly shown, which weakens the character read\",\"Monnier's loupe on a cord is not visible\",\"Watch dials are small, so the absence of hands cannot be confirmed; the watches are held in an unclear way\",\"Girard's right hand holding the watch is slightly awkward in its anatomy\",\"Table is busy with soup bowls, napkins and bread, which is plausible but adds clutter\"]},{\"file\":\"/home/user/experiments/regulator/film/stills/dinner_3.png\",\"match\":4,\"fatal\":false,\"flaws\":[\"Monnier's loupe on a cord is not clearly visible\",\"Odile holds no watch, so the 'everyone holds out a watch' beat is incomplete\",\"Watch dials are small, so the absence of hands cannot be confirmed\",\"Framed pictures on the walls are too dim to confirm they have no legible text\",\"Girard's hands are partly hidden, so his watch gesture is hard to read\"]}],\"best\":\"/home/user/experiments/regulator/film/stills/dinner_3.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/dinner_0.png",
+    "match": 2,
+    "fatal": true,
+    "flaws": [
+     "F\u00e9lix Monnier is missing: only six people are present (Girard, Odile, Monnier, Lina, Vauthier, Rosa), and the chair at the front of the table is empty",
+     "Monnier is not wearing the jeweller's loupe on a cord, and his shirtsleeves are not clearly rolled",
+     "The watch dials are too small to confirm the hands are absent",
+     "Lina's watch is partly hidden, so the 'everyone holds up a watch' beat is weaker"
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/dinner_1.png",
+    "match": 2,
+    "fatal": true,
+    "flaws": [
+     "F\u00e9lix Monnier is missing: only six people are present (Lina, Odile, Monnier, Vauthier, Girard, Rosa)",
+     "Figures are seated in a wider composition, so the head-of-table lecture framing is less clear",
+     "Monnier's loupe is not visible and the watch dials are too small to confirm the hands are absent",
+     "Girard's hand holding the watch is hard to read and looks slightly stiff"
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/dinner_2.png",
+    "match": 4,
+    "fatal": false,
+    "flaws": [
+     "Vauthier's cigar is not clearly shown, which weakens the character read",
+     "Monnier's loupe on a cord is not visible",
+     "Watch dials are small, so the absence of hands cannot be confirmed; the watches are held in an unclear way",
+     "Girard's right hand holding the watch is slightly awkward in its anatomy",
+     "Table is busy with soup bowls, napkins and bread, which is plausible but adds clutter"
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/dinner_3.png",
+    "match": 4,
+    "fatal": false,
+    "flaws": [
+     "Monnier's loupe on a cord is not clearly visible",
+     "Odile holds no watch, so the 'everyone holds out a watch' beat is incomplete",
+     "Watch dials are small, so the absence of hands cannot be confirmed",
+     "Framed pictures on the walls are too dim to confirm they have no legible text",
+     "Girard's hands are partly hidden, so his watch gesture is hard to read"
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/dinner_3.png"
+ },
+ "ttft_ms": 772,
+ "type": "result",
+ "duration_ms": 19403,
+ "uuid": "261c06b6-18d7-4950-b703-d3506acb07e7",
+ "ttft_stream_ms": 587,
+ "time_to_request_ms": 218,
+ "time_to_request_phases_ms": {
+  "other": 35,
+  "system_prompt": 73,
+  "resume_other": 0,
+  "process_user_input": 7,
+  "input_attachments": 30,
+  "input_hooks": 7,
+  "tool_pool_refresh": 3,
+  "init_message": 16,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 21,
+  "autocompact": 2,
+  "query_setup": 0,
+  "model_gates": 1,
+  "tool_schema_build": 6,
+  "message_normalization": 2,
+  "client_creation": 6,
+  "request_build": 7
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 97,
+ "time_to_request_cpu_ms": 169,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 26,
+  "cpu_ms": 20,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 591,
+ "time_to_request_from_spawn_ms": 4676203,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765458531.2957,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

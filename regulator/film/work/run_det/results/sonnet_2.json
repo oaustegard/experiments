@@ -1,0 +1,153 @@
+{
+ "duration_api_ms": 96153,
+ "stop_reason": "tool_use",
+ "session_id": "a1763cb4-1e67-4e3a-971f-c24e4843abd4",
+ "total_cost_usd": 0.1250794,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 509,
+  "cache_read_input_tokens": 5144,
+  "output_tokens": 12210,
+  "output_tokens_details": {
+   "thinking_tokens": 10537
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 509,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 12210,
+    "cache_read_input_tokens": 5144,
+    "cache_creation_input_tokens": 509,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 509
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 4135,
+   "outputTokens": 23,
+   "cacheReadInputTokens": 0,
+   "cacheCreationInputTokens": 0,
+   "webSearchRequests": 0,
+   "costUSD": 0.00042500000000000003,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 0,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  },
+  "claude-sonnet-5-5": {
+   "inputTokens": 2,
+   "outputTokens": 12210,
+   "cacheReadInputTokens": 5144,
+   "cacheCreationInputTokens": 509,
+   "webSearchRequests": 0,
+   "costUSD": 0.1246544,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 10537,
+   "canonicalModel": "claude-sonnet-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"murderer\":\"Dr Casimir Vauthier\",\"time\":\"22:38\",\"reasoning\":\"The temple bell is true time and the regulator matched it at 22:00. The hall clock therefore runs 12 minutes fast, since it struck ten when the regulator showed 9:48. F\u00e9lix's watch is 20 minutes slow (Odile), and the doctor's is 2 minutes fast (Lina). The regulator was running at 22:20 per Lina, yet its stopped hands read 10:05, so the murderer set it back. The hall clock struck eleven at true 22:48. Rosa heard that strike at 11:13 on her kitchen clock, which makes the kitchen clock 25 minutes fast, not 15. Monnier had fiddled with it that afternoon, so Rosa is honestly mistaken. That puts the piano at 22:33-22:46 true, and Lina reached the kitchen at 22:22, just after leaving the atelier at 22:20. Girard's watch then comes out 4 minutes slow. His return at 22:50 and F\u00e9lix's note that he entered the library at 10:32 (22:52 true) agree. Girard's quick bells at 10:34 are 22:38 true, and F\u00e9lix's thump and repeater at 10:18 on his watch are also 22:38 true. F\u00e9lix also heard someone go up at 22:35 and come down at 22:41. During that window Lina and Rosa were together in the kitchen, Girard was in the street, F\u00e9lix was alone below, and Odile was at the piano, heard by Rosa, Lina and Girard. Only the doctor was out of the salon. His claim of leaving 'at a quarter to eleven by my watch' is the lie. It shifts his absence about ten minutes later, to roughly 22:43-22:56, after the blow, so that at 22:38 he seems to be playing piquet with Odile. Blow at 22:38.\"}",
+ "structured_output": {
+  "murderer": "Dr Casimir Vauthier",
+  "time": "22:38",
+  "reasoning": "The temple bell is true time and the regulator matched it at 22:00. The hall clock therefore runs 12 minutes fast, since it struck ten when the regulator showed 9:48. F\u00e9lix's watch is 20 minutes slow (Odile), and the doctor's is 2 minutes fast (Lina). The regulator was running at 22:20 per Lina, yet its stopped hands read 10:05, so the murderer set it back. The hall clock struck eleven at true 22:48. Rosa heard that strike at 11:13 on her kitchen clock, which makes the kitchen clock 25 minutes fast, not 15. Monnier had fiddled with it that afternoon, so Rosa is honestly mistaken. That puts the piano at 22:33-22:46 true, and Lina reached the kitchen at 22:22, just after leaving the atelier at 22:20. Girard's watch then comes out 4 minutes slow. His return at 22:50 and F\u00e9lix's note that he entered the library at 10:32 (22:52 true) agree. Girard's quick bells at 10:34 are 22:38 true, and F\u00e9lix's thump and repeater at 10:18 on his watch are also 22:38 true. F\u00e9lix also heard someone go up at 22:35 and come down at 22:41. During that window Lina and Rosa were together in the kitchen, Girard was in the street, F\u00e9lix was alone below, and Odile was at the piano, heard by Rosa, Lina and Girard. Only the doctor was out of the salon. His claim of leaving 'at a quarter to eleven by my watch' is the lie. It shifts his absence about ten minutes later, to roughly 22:43-22:56, after the blow, so that at 22:38 he seems to be playing piquet with Odile. Blow at 22:38."
+ },
+ "ttft_ms": 84773,
+ "type": "result",
+ "duration_ms": 98420,
+ "uuid": "5d7b54b3-76ef-4644-86b9-776a9a45f380",
+ "ttft_stream_ms": 1775,
+ "time_to_request_ms": 942,
+ "time_to_request_phases_ms": {
+  "other": 249,
+  "system_prompt": 157,
+  "resume_other": 0,
+  "process_user_input": 11,
+  "input_attachments": 94,
+  "input_hooks": 74,
+  "tool_pool_refresh": 1,
+  "init_message": 70,
+  "engine_pickup": 29,
+  "message_prep": 20,
+  "model_config_wait": 111,
+  "autocompact": 25,
+  "query_setup": 4,
+  "model_gates": 7,
+  "tool_schema_build": 42,
+  "message_normalization": 2,
+  "client_creation": 15,
+  "request_build": 31
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 650,
+ "time_to_request_cpu_ms": 180,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 59,
+  "cpu_ms": 30,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1776,
+ "time_to_request_from_spawn_ms": 4316475,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084221.5132,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

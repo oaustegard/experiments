@@ -1,0 +1,139 @@
+{
+ "duration_api_ms": 397093,
+ "stop_reason": "tool_use",
+ "session_id": "0db1cd3f-884e-4936-9f60-bbea97df3ab2",
+ "total_cost_usd": 0.04432384,
+ "usage": {
+  "input_tokens": 2,
+  "cache_creation_input_tokens": 507,
+  "cache_read_input_tokens": 5924,
+  "output_tokens": 87476,
+  "output_tokens_details": {
+   "thinking_tokens": 86524
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 507,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 87476,
+    "cache_read_input_tokens": 5924,
+    "cache_creation_input_tokens": 507,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 507
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 4137,
+   "outputTokens": 87499,
+   "cacheReadInputTokens": 5924,
+   "cacheCreationInputTokens": 507,
+   "webSearchRequests": 0,
+   "costUSD": 0.04432384,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 86524,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 2,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"murderer\":\"Bastien Girard\",\"time\":\"10:38\",\"reasoning\":\"Time of the blow. At dinner F\u00e9lix's watch read 8:40 when the temple struck nine, so F\u00e9lix's watch runs 20 minutes slow. F\u00e9lix heard the thump at 10:18 by that watch, and the repeater sounded straight after, so true time is 10:38. The repeater fits: ten low notes (10 o'clock), two doubled notes (10:15 and 10:30 quarters), then eight high notes for 10:38. The temple keeps true time, and the regulator agreed with it at 10:00, so the stopped regulator at 10:05 is a false reading set by the murderer.\\n\\nPositions at 10:38. Odile and Dr Vauthier were at piquet in the salon until 10:43 and vouch for each other. Lina and Rosa were in the kitchen from about 10:32 (Rosa's clock is 15 minutes fast, which the piano timing confirms: piano began at 10:43 true, when the doctor left). F\u00e9lix was alone in the library, but he reports traffic on the stairs: someone went up at 10:35 true and came down at 10:41 true. That fits a visit of about three minutes upstairs, and only F\u00e9lix himself is unaccounted for on those stairs.\\n\\nBastien's account is the one that does not fit. His watch was hidden at dinner. Using the hall clock he was describing (face 11:02 just after the strike, which is consistent with the hall running 2 minutes fast after the evening), his watch is 14 minutes slow. That puts his watch-time claims at true time: out at 10:35 (the moment someone went up), piano heard at 10:43 (consistent with the doctor's account), and entry at 11:00. But F\u00e9lix says Bastien came into the library at 10:52 true, and Bastien says 11:00. His bells claim, 10:34 by his watch, is 10:48 true, ten minutes after the only repeater sounding. Bastien's account can't be true at any single watch offset that also fits the hall clock. A murderer who stepped out at 10:41 to smoke would produce exactly the piano-at-10:43 and entry-at-10:52 pattern that F\u00e9lix's witnessing gives. Bastien also had a motive: the quarrel over the repeater's price. The hall clock's conflicting readings (Lina's 9:48 before the murder, Rosa's 10:58 after) are consistent with the murderer touching it, which the inspector's rule allows.\\n\\nConfidence is moderate. The puzzle is internally inconsistent on the hall clock unless a clock was touched, and I am relying on that. The time 10:38 is the most secure part of the answer.\"}",
+ "structured_output": {
+  "murderer": "Bastien Girard",
+  "time": "10:38",
+  "reasoning": "Time of the blow. At dinner F\u00e9lix's watch read 8:40 when the temple struck nine, so F\u00e9lix's watch runs 20 minutes slow. F\u00e9lix heard the thump at 10:18 by that watch, and the repeater sounded straight after, so true time is 10:38. The repeater fits: ten low notes (10 o'clock), two doubled notes (10:15 and 10:30 quarters), then eight high notes for 10:38. The temple keeps true time, and the regulator agreed with it at 10:00, so the stopped regulator at 10:05 is a false reading set by the murderer.\n\nPositions at 10:38. Odile and Dr Vauthier were at piquet in the salon until 10:43 and vouch for each other. Lina and Rosa were in the kitchen from about 10:32 (Rosa's clock is 15 minutes fast, which the piano timing confirms: piano began at 10:43 true, when the doctor left). F\u00e9lix was alone in the library, but he reports traffic on the stairs: someone went up at 10:35 true and came down at 10:41 true. That fits a visit of about three minutes upstairs, and only F\u00e9lix himself is unaccounted for on those stairs.\n\nBastien's account is the one that does not fit. His watch was hidden at dinner. Using the hall clock he was describing (face 11:02 just after the strike, which is consistent with the hall running 2 minutes fast after the evening), his watch is 14 minutes slow. That puts his watch-time claims at true time: out at 10:35 (the moment someone went up), piano heard at 10:43 (consistent with the doctor's account), and entry at 11:00. But F\u00e9lix says Bastien came into the library at 10:52 true, and Bastien says 11:00. His bells claim, 10:34 by his watch, is 10:48 true, ten minutes after the only repeater sounding. Bastien's account can't be true at any single watch offset that also fits the hall clock. A murderer who stepped out at 10:41 to smoke would produce exactly the piano-at-10:43 and entry-at-10:52 pattern that F\u00e9lix's witnessing gives. Bastien also had a motive: the quarrel over the repeater's price. The hall clock's conflicting readings (Lina's 9:48 before the murder, Rosa's 10:58 after) are consistent with the murderer touching it, which the inspector's rule allows.\n\nConfidence is moderate. The puzzle is internally inconsistent on the hall clock unless a clock was touched, and I am relying on that. The time 10:38 is the most secure part of the answer."
+ },
+ "ttft_ms": 392564,
+ "type": "result",
+ "duration_ms": 396844,
+ "uuid": "d0e9ce8e-ad53-4301-ac08-b1efe558ab8a",
+ "ttft_stream_ms": 1500,
+ "time_to_request_ms": 1133,
+ "time_to_request_phases_ms": {
+  "other": 186,
+  "system_prompt": 252,
+  "resume_other": 1,
+  "process_user_input": 54,
+  "input_attachments": 75,
+  "input_hooks": 50,
+  "tool_pool_refresh": 17,
+  "init_message": 34,
+  "engine_pickup": 25,
+  "message_prep": 2,
+  "model_config_wait": 327,
+  "autocompact": 2,
+  "query_setup": 18,
+  "model_gates": 2,
+  "tool_schema_build": 22,
+  "message_normalization": 4,
+  "client_creation": 20,
+  "request_build": 42
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 786,
+ "time_to_request_cpu_ms": 221,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 49,
+  "cpu_ms": 16,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1501,
+ "time_to_request_from_spawn_ms": 4315713,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765083760.5884,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

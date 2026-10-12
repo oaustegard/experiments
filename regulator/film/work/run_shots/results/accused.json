@@ -1,0 +1,160 @@
+{
+ "duration_api_ms": 10556,
+ "stop_reason": "tool_use",
+ "session_id": "ba4efb60-a89a-4427-9525-0f93adfe79ea",
+ "total_cost_usd": 0.00196508,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4173,
+  "cache_read_input_tokens": 8088,
+  "output_tokens": 1601,
+  "output_tokens_details": {
+   "thinking_tokens": 1058
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4173,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1462,
+    "cache_read_input_tokens": 4616,
+    "cache_creation_input_tokens": 3029,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3029
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1561,
+   "outputTokens": 1787,
+   "cacheReadInputTokens": 8088,
+   "cacheCreationInputTokens": 4173,
+   "webSearchRequests": 0,
+   "costUSD": 0.00196508,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1224,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/accused_0.png\",\"match\":4,\"flaws\":[\"Stray floating gold oval object above the window frame, an unexplained artifact\",\"Window is behind him as briefed, but the light reads more as bright daytime than dawn\",\"Face is ruddier and less clearly grey and resigned than the brief asks\",\"Pince-nez sits slightly askew against the face, though the glasses and gold chain are present\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/accused_1.png\",\"match\":4,\"flaws\":[\"Window is at the left of the frame, not behind him as briefed; the background is a dark wall\",\"Partly visible framed picture at top right is an unidentified dark image, not a clear detail\",\"Light is pale and cool, which suits dawn, but the lamp and table dominate the left foreground\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/accused_1.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/accused_0.png",
+    "match": 4,
+    "flaws": [
+     "Stray floating gold oval object above the window frame, an unexplained artifact",
+     "Window is behind him as briefed, but the light reads more as bright daytime than dawn",
+     "Face is ruddier and less clearly grey and resigned than the brief asks",
+     "Pince-nez sits slightly askew against the face, though the glasses and gold chain are present"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/accused_1.png",
+    "match": 4,
+    "flaws": [
+     "Window is at the left of the frame, not behind him as briefed; the background is a dark wall",
+     "Partly visible framed picture at top right is an unidentified dark image, not a clear detail",
+     "Light is pale and cool, which suits dawn, but the lamp and table dominate the left foreground"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/accused_1.png"
+ },
+ "ttft_ms": 987,
+ "type": "result",
+ "duration_ms": 9579,
+ "uuid": "41f1ba7c-5a3d-4919-bad7-48b89df4aa41",
+ "ttft_stream_ms": 815,
+ "time_to_request_ms": 294,
+ "time_to_request_phases_ms": {
+  "other": 29,
+  "system_prompt": 39,
+  "resume_other": 1,
+  "process_user_input": 2,
+  "input_attachments": 14,
+  "input_hooks": 5,
+  "tool_pool_refresh": 2,
+  "init_message": 19,
+  "engine_pickup": 2,
+  "message_prep": 2,
+  "model_config_wait": 66,
+  "autocompact": 3,
+  "query_setup": 1,
+  "model_gates": 1,
+  "tool_schema_build": 11,
+  "message_normalization": 28,
+  "client_creation": 43,
+  "request_build": 26
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 185,
+ "time_to_request_cpu_ms": 172,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 8,
+  "cpu_ms": 15,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 816,
+ "time_to_request_from_spawn_ms": 4607429,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765388426.2886,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

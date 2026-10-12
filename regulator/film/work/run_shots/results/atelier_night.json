@@ -1,0 +1,164 @@
+{
+ "duration_api_ms": 12691,
+ "stop_reason": "tool_use",
+ "session_id": "8c7588a7-8df0-44eb-965a-f48eea996fb3",
+ "total_cost_usd": 0.00222943,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4294,
+  "cache_read_input_tokens": 8203,
+  "output_tokens": 2222,
+  "output_tokens_details": {
+   "thinking_tokens": 1528
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4294,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2077,
+    "cache_read_input_tokens": 4731,
+    "cache_creation_input_tokens": 3035,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3035
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1676,
+   "outputTokens": 2242,
+   "cacheReadInputTokens": 8203,
+   "cacheCreationInputTokens": 4294,
+   "webSearchRequests": 0,
+   "costUSD": 0.00222943,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1528,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/atelier_night_0.png\",\"match\":4,\"flaws\":[\"Master's wire spectacles sit on his nose, not pushed up on his forehead as briefed\",\"A ghostly reflection of a seated figure in the window behind the master could read as an extra person\",\"Wall clock is small and wall-hung rather than a tall regulator; its Roman numerals are legible-style lettering and its hands are not readable\",\"R\u00e9gleuse's freckles are not visible at this scale\",\"Her right side and the chair are cropped by the frame edge\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/atelier_night_1.png\",\"match\":3,\"flaws\":[\"Positions are reversed: the r\u00e9gleuse is on the left and the master on the right, with a different table layout\",\"Her loupe sits over her eye like a patch, which looks unnatural\",\"Reflections in both side windows show seated figures and lamps that could read as extra people\",\"Clock has Roman numerals and its hands are not readable; it is a tall case clock, which matches the regulator better than file 0\",\"Master's spectacles are pushed up on his forehead as briefed, and his loupe cord is visible\",\"R\u00e9gleuse's freckles and fair hair are not clearly visible; her face is slightly flat\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/atelier_night_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/atelier_night_0.png",
+    "match": 4,
+    "flaws": [
+     "Master's wire spectacles sit on his nose, not pushed up on his forehead as briefed",
+     "A ghostly reflection of a seated figure in the window behind the master could read as an extra person",
+     "Wall clock is small and wall-hung rather than a tall regulator; its Roman numerals are legible-style lettering and its hands are not readable",
+     "R\u00e9gleuse's freckles are not visible at this scale",
+     "Her right side and the chair are cropped by the frame edge"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/atelier_night_1.png",
+    "match": 3,
+    "flaws": [
+     "Positions are reversed: the r\u00e9gleuse is on the left and the master on the right, with a different table layout",
+     "Her loupe sits over her eye like a patch, which looks unnatural",
+     "Reflections in both side windows show seated figures and lamps that could read as extra people",
+     "Clock has Roman numerals and its hands are not readable; it is a tall case clock, which matches the regulator better than file 0",
+     "Master's spectacles are pushed up on his forehead as briefed, and his loupe cord is visible",
+     "R\u00e9gleuse's freckles and fair hair are not clearly visible; her face is slightly flat"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/atelier_night_0.png"
+ },
+ "ttft_ms": 1703,
+ "type": "result",
+ "duration_ms": 12968,
+ "uuid": "cd69134c-c24f-4ae8-9217-5380d4940d8f",
+ "ttft_stream_ms": 1506,
+ "time_to_request_ms": 1111,
+ "time_to_request_phases_ms": {
+  "other": 154,
+  "system_prompt": 301,
+  "resume_other": 0,
+  "process_user_input": 32,
+  "input_attachments": 119,
+  "input_hooks": 29,
+  "tool_pool_refresh": 1,
+  "init_message": 20,
+  "engine_pickup": 2,
+  "message_prep": 12,
+  "model_config_wait": 218,
+  "autocompact": 1,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 17,
+  "message_normalization": 18,
+  "client_creation": 31,
+  "request_build": 155
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 802,
+ "time_to_request_cpu_ms": 237,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "model",
+  "slowest_producer_ms": 71,
+  "cpu_ms": 20,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1506,
+ "time_to_request_from_spawn_ms": 4591448,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765368670.7751,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

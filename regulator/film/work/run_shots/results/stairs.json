@@ -1,0 +1,164 @@
+{
+ "duration_api_ms": 11362,
+ "stop_reason": "tool_use",
+ "session_id": "0c50287e-f9d3-46eb-b692-01df1e186d8f",
+ "total_cost_usd": 0.00203211,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4148,
+  "cache_read_input_tokens": 8061,
+  "output_tokens": 1917,
+  "output_tokens_details": {
+   "thinking_tokens": 1261
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4148,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1776,
+    "cache_read_input_tokens": 4589,
+    "cache_creation_input_tokens": 3031,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3031
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1534,
+   "outputTokens": 1937,
+   "cacheReadInputTokens": 8061,
+   "cacheCreationInputTokens": 4148,
+   "webSearchRequests": 0,
+   "costUSD": 0.00203211,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1261,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/stills/stairs_0.png\",\"match\":4,\"flaws\":[\"Woman stands on the landing or floor rather than climbing the stairs, and the camera is roughly level, not looking up from below\",\"Shadow is large and reads as a head-and-shoulders silhouette, but the cap is not clearly outlined\",\"Right hand on the tray is partly hidden and its fingers are unclear\",\"Face looks older than 40, closer to 50-55\",\"Foreground railing cuts diagonally across the frame and makes the stair geometry hard to read\"],\"fatal\":false},{\"file\":\"/home/user/experiments/regulator/film/stills/stairs_1.png\",\"match\":3,\"flaws\":[\"Camera is from the side at roughly eye level, not from below\",\"Woman's pose is ambiguous: her torso leans against the stair rail and her lower body merges into the steps, so she reads as sitting or leaning rather than climbing\",\"Shadow is on the left wall and only moderately large, not the huge shadow the scene calls for\",\"Right hand under the tray is unclear\",\"Face looks older than 40, closer to 50-55\",\"A dark vertical opening at the far right is unexplained\"],\"fatal\":false}],\"best\":\"/home/user/experiments/regulator/film/stills/stairs_0.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/stills/stairs_0.png",
+    "match": 4,
+    "flaws": [
+     "Woman stands on the landing or floor rather than climbing the stairs, and the camera is roughly level, not looking up from below",
+     "Shadow is large and reads as a head-and-shoulders silhouette, but the cap is not clearly outlined",
+     "Right hand on the tray is partly hidden and its fingers are unclear",
+     "Face looks older than 40, closer to 50-55",
+     "Foreground railing cuts diagonally across the frame and makes the stair geometry hard to read"
+    ],
+    "fatal": false
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/stills/stairs_1.png",
+    "match": 3,
+    "flaws": [
+     "Camera is from the side at roughly eye level, not from below",
+     "Woman's pose is ambiguous: her torso leans against the stair rail and her lower body merges into the steps, so she reads as sitting or leaning rather than climbing",
+     "Shadow is on the left wall and only moderately large, not the huge shadow the scene calls for",
+     "Right hand under the tray is unclear",
+     "Face looks older than 40, closer to 50-55",
+     "A dark vertical opening at the far right is unexplained"
+    ],
+    "fatal": false
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/stills/stairs_0.png"
+ },
+ "ttft_ms": 1270,
+ "type": "result",
+ "duration_ms": 11966,
+ "uuid": "930bfd78-6b69-4edb-a924-465c84402758",
+ "ttft_stream_ms": 1087,
+ "time_to_request_ms": 588,
+ "time_to_request_phases_ms": {
+  "other": 24,
+  "system_prompt": 239,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 13,
+  "input_hooks": 4,
+  "tool_pool_refresh": 1,
+  "init_message": 5,
+  "engine_pickup": 1,
+  "message_prep": 2,
+  "model_config_wait": 276,
+  "autocompact": 2,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 5,
+  "message_normalization": 3,
+  "client_creation": 4,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 324,
+ "time_to_request_cpu_ms": 149,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 7,
+  "cpu_ms": 14,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1087,
+ "time_to_request_from_spawn_ms": 4589368,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765368577.9783,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

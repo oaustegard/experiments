@@ -80,6 +80,27 @@ large thing made by 1,843 calls. This one used about 700 calls, most of them che
   observations flag the trap: Lina saw the master with Rosa's clock that afternoon, and with
   a quarter-hour offset Lina takes twelve minutes to walk downstairs.
 
+## The film
+
+**[The Regulator, the film](https://muninn.austegard.com/scratch/regulator/film/)** tells the case as a 13½-minute
+detective film. Inspector Matthey narrates years later and the six witnesses speak their own lines. Every clock
+reading is shown on a dial card as it is spoken. At about nine minutes an evidence card holds for twenty seconds
+and asks the viewer to stop and solve; the drawing-room reveal follows. Source and pipeline: [`film/`](film/).
+
+| step | what | check |
+|---|---|---|
+| script | [`film/script.py`](film/script.py): 42 beats, 70 lines, each with the still it plays over, a Ken Burns move and dial cards | [`check_fair.py`](film/check_fair.py): all 22 readings in the case are carded before the pause |
+| detectives | 16 Haiku 5.5 and 4 Sonnet 5.5 given only the narration up to the pause, through `dispatching-subagents`' `headless_fanout.py` ($0.89) | Sonnet 4/4; Haiku 4/16, and 7 Haiku named Bastien, the answer Rosa's clock is built to give |
+| cast | 8 reference portraits, Gemini 3 Pro Image, 2 takes each ([`film/cast.py`](film/cast.py)) | a Haiku vision judge per pair ($0.018) |
+| stills | 30 shots × 2 takes, the chosen portraits passed as reference images ([`film/shots.py`](film/shots.py)); 5 weak shots reshot with 2 more takes | a Haiku vision judge per shot ($0.08): match score, flaws, and a fatal flag for lettering, extra or missing people, borders |
+| voices | 7 voices designed from descriptions with Gemini 3.8 Flash TTS ([`film/voices.py`](film/voices.py)) | best of 2 takes per line by faster-whisper WER; mean 0.053, and the worst lines are all proper names that Whisper spells its own way ("Lena Ruby") |
+| sound | [`film/audio.py`](film/audio.py), numpy: a clock's tick that stops when the regulator stops, the temple bell, the repeater's chime (10 low, 2 doubled, 8 high) | the chime after Félix's line is faint but complete, so a careful listener can count the minute |
+| picture | [`film/render.py`](film/render.py): PIL Ken Burns, pycairo subtitles, speaker tags, dial cards that turn back to true time in the reveal | preview frames checked before the full render |
+
+About 86 pro images (~$11.50), under $1 of narration, about $1 of Haiku and Sonnet children. Two gotchas:
+`muninn-story/script.py` shadows a local `script.py` once that directory is on `sys.path`, and the JetBrains Mono
+latin subset has no arrow glyph, so the reveal cards draw theirs.
+
 ## Prior art
 
 Three searches turned up the components. [SATBench](https://arxiv.org/abs/2505.14615)

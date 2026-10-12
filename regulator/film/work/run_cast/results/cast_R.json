@@ -1,0 +1,163 @@
+{
+ "duration_api_ms": 11960,
+ "stop_reason": "tool_use",
+ "session_id": "a4329310-c51e-47a6-b4f6-4531776a46a2",
+ "total_cost_usd": 0.00200047,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4024,
+  "cache_read_input_tokens": 7817,
+  "output_tokens": 1720,
+  "output_tokens_details": {
+   "thinking_tokens": 972
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4024,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1583,
+    "cache_read_input_tokens": 4407,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1415,
+   "outputTokens": 1952,
+   "cacheReadInputTokens": 7817,
+   "cacheCreationInputTokens": 4024,
+   "webSearchRequests": 0,
+   "costUSD": 0.00200047,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1182,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/cast/R_0.png\",\"match\":3,\"flaws\":[\"Expression reads as weary or sad more than frightened-but-proud; the gaze is off to the side and the mouth is downturned with no visible pride\",\"Face is fairly narrow and drawn, not the sturdy, round, rosy face described\",\"Cap has a stiff, hard-edged shape that looks more like a folded paper hat than a soft white linen cap\",\"Hands and forearms are cropped by the bottom edge, so the hand and sleeve detail can't be checked\",\"Hair, white apron over dark blue dress, and rolled sleeves all match the description\",\"No visible text, no extra people, no anachronisms (oil lamp and plain interior suit 1899)\"]},{\"file\":\"/home/user/experiments/regulator/film/cast/R_1.png\",\"match\":4,\"flaws\":[\"Expression is more stern and neutral than frightened; the frightened part of the brief is weak\",\"Cap is a large, loose white cloth that bunches above the head; it reads a bit more like a bonnet than a close maid's cap\",\"Lamp is cut off at the left edge and the bottom of the frame crops the hands and forearms\",\"Lower-left forearm and hand area is ambiguous and hard to read\",\"Round rosy face, sturdy build, brown hair, white apron over dark blue dress, and rolled sleeves all match well; the frontal, direct pose conveys the proud side\",\"No visible text, no extra people, no anachronisms\"]}],\"best\":\"/home/user/experiments/regulator/film/cast/R_1.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/cast/R_0.png",
+    "match": 3,
+    "flaws": [
+     "Expression reads as weary or sad more than frightened-but-proud; the gaze is off to the side and the mouth is downturned with no visible pride",
+     "Face is fairly narrow and drawn, not the sturdy, round, rosy face described",
+     "Cap has a stiff, hard-edged shape that looks more like a folded paper hat than a soft white linen cap",
+     "Hands and forearms are cropped by the bottom edge, so the hand and sleeve detail can't be checked",
+     "Hair, white apron over dark blue dress, and rolled sleeves all match the description",
+     "No visible text, no extra people, no anachronisms (oil lamp and plain interior suit 1899)"
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/cast/R_1.png",
+    "match": 4,
+    "flaws": [
+     "Expression is more stern and neutral than frightened; the frightened part of the brief is weak",
+     "Cap is a large, loose white cloth that bunches above the head; it reads a bit more like a bonnet than a close maid's cap",
+     "Lamp is cut off at the left edge and the bottom of the frame crops the hands and forearms",
+     "Lower-left forearm and hand area is ambiguous and hard to read",
+     "Round rosy face, sturdy build, brown hair, white apron over dark blue dress, and rolled sleeves all match well; the frontal, direct pose conveys the proud side",
+     "No visible text, no extra people, no anachronisms"
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/cast/R_1.png"
+ },
+ "ttft_ms": 1426,
+ "type": "result",
+ "duration_ms": 12341,
+ "uuid": "ae14409e-0db0-4423-b8a6-d3b7e7fdc7a6",
+ "ttft_stream_ms": 1213,
+ "time_to_request_ms": 747,
+ "time_to_request_phases_ms": {
+  "other": 104,
+  "system_prompt": 36,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 25,
+  "input_hooks": 13,
+  "tool_pool_refresh": 4,
+  "init_message": 27,
+  "engine_pickup": 1,
+  "message_prep": 4,
+  "model_config_wait": 74,
+  "autocompact": 2,
+  "query_setup": 51,
+  "model_gates": 23,
+  "tool_schema_build": 59,
+  "message_normalization": 15,
+  "client_creation": 146,
+  "request_build": 160
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 652,
+ "time_to_request_cpu_ms": 211,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 13,
+  "cpu_ms": 24,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1214,
+ "time_to_request_from_spawn_ms": 4306257,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084598.5454,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

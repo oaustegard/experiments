@@ -1,0 +1,161 @@
+{
+ "duration_api_ms": 11607,
+ "stop_reason": "tool_use",
+ "session_id": "796fcacd-2d98-433b-84c4-eceb5b957176",
+ "total_cost_usd": 0.00196,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 4027,
+  "cache_read_input_tokens": 7820,
+  "output_tokens": 1845,
+  "output_tokens_details": {
+   "thinking_tokens": 1115
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 4027,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1708,
+    "cache_read_input_tokens": 4410,
+    "cache_creation_input_tokens": 3027,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 3027
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1419,
+   "outputTokens": 1869,
+   "cacheReadInputTokens": 7820,
+   "cacheCreationInputTokens": 4027,
+   "webSearchRequests": 0,
+   "costUSD": 0.00196,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1115,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 4,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"scores\":[{\"file\":\"/home/user/experiments/regulator/film/cast/O_0.png\",\"match\":4,\"flaws\":[\"Seated, so the 'tall, upright' build is not conveyed; the figure reads as compact and the height is unverifiable.\",\"Hair is a rounded bun at the crown with loose strands at the temple and ear rather than a severe, smooth chignon.\",\"Hands are cropped below the frame, so they cannot be checked for distortion.\",\"Chair back is a plain wooden chair with no period detail; the lamp is a plausible 1899 oil lamp.\",\"No visible text, no extra people, no anachronisms in clothing (high neck, cameo brooch, black silk present).\"]},{\"file\":\"/home/user/experiments/regulator/film/cast/O_1.png\",\"match\":4,\"flaws\":[\"Hands are cut off at the bottom edge, and the lower-left hand shape is ambiguous, so distortion can't be ruled out.\",\"Small dark marks on the right-hand door panel near the bottom (around x=1020, y=690) could be a painter's signature or stray lettering; needs a closer look.\",\"Face is rendered at smaller scale with less detail than O_0, so the pale composed face reads less clearly.\",\"Bodice and sleeves are period-plausible for 1899, though the shoulder fullness is a little soft.\",\"Standing pose, upright posture, grey-streaked chignon, high-necked black silk and cameo brooch all match; no extra people.\"]}],\"best\":\"/home/user/experiments/regulator/film/cast/O_1.png\"}",
+ "structured_output": {
+  "scores": [
+   {
+    "file": "/home/user/experiments/regulator/film/cast/O_0.png",
+    "match": 4,
+    "flaws": [
+     "Seated, so the 'tall, upright' build is not conveyed; the figure reads as compact and the height is unverifiable.",
+     "Hair is a rounded bun at the crown with loose strands at the temple and ear rather than a severe, smooth chignon.",
+     "Hands are cropped below the frame, so they cannot be checked for distortion.",
+     "Chair back is a plain wooden chair with no period detail; the lamp is a plausible 1899 oil lamp.",
+     "No visible text, no extra people, no anachronisms in clothing (high neck, cameo brooch, black silk present)."
+    ]
+   },
+   {
+    "file": "/home/user/experiments/regulator/film/cast/O_1.png",
+    "match": 4,
+    "flaws": [
+     "Hands are cut off at the bottom edge, and the lower-left hand shape is ambiguous, so distortion can't be ruled out.",
+     "Small dark marks on the right-hand door panel near the bottom (around x=1020, y=690) could be a painter's signature or stray lettering; needs a closer look.",
+     "Face is rendered at smaller scale with less detail than O_0, so the pale composed face reads less clearly.",
+     "Bodice and sleeves are period-plausible for 1899, though the shoulder fullness is a little soft.",
+     "Standing pose, upright posture, grey-streaked chignon, high-necked black silk and cameo brooch all match; no extra people."
+    ]
+   }
+  ],
+  "best": "/home/user/experiments/regulator/film/cast/O_1.png"
+ },
+ "ttft_ms": 1172,
+ "type": "result",
+ "duration_ms": 12743,
+ "uuid": "9de5c71c-f7fa-4c21-8bea-cc480dbd2627",
+ "ttft_stream_ms": 996,
+ "time_to_request_ms": 529,
+ "time_to_request_phases_ms": {
+  "other": 63,
+  "system_prompt": 70,
+  "resume_other": 2,
+  "process_user_input": 10,
+  "input_attachments": 15,
+  "input_hooks": 25,
+  "tool_pool_refresh": 11,
+  "init_message": 34,
+  "engine_pickup": 18,
+  "message_prep": 2,
+  "model_config_wait": 122,
+  "autocompact": 7,
+  "query_setup": 0,
+  "model_gates": 3,
+  "tool_schema_build": 18,
+  "message_normalization": 7,
+  "client_creation": 85,
+  "request_build": 37
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 371,
+ "time_to_request_cpu_ms": 285,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 10,
+  "cpu_ms": 15,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 996,
+ "time_to_request_from_spawn_ms": 4307102,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791765084575.0913,
+ "queued_turn_count": 0,
+ "result_index": 0
+}
