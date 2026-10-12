@@ -63,7 +63,7 @@ class LocalDeclMixin:
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
-                ty = self.typedef_aligned(ty, attr, dattr)     # `T x __attribute__((aligned(N)))`
+                ty = self.var_aligned(ty, attr, dattr)      # `T x __attribute__((aligned(N)))`
             if attr.is_typedef:
                 ty = self.typedef_aligned(ty, attr, dattr, name.text)
                 ty, pre = self.vla_bind(ty, name.loc)
