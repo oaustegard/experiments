@@ -30,6 +30,10 @@ def simplify_mul_div(node, loc=None):
         return node
     if not (_signed_int(mul.ty) and _signed_int(node.ty) and mul.ty is node.ty):
         return node
+    if try_eval_const(mul) is not None:
+        # a constant product is folded with wrap-around semantics (as gcc does);
+        # the UB rewrite only concerns products that depend on a runtime value
+        return node
     divisor = try_eval_const(node.rhs)
     if divisor is None or divisor == 0:
         return node
