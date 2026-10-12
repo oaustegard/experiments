@@ -114,9 +114,7 @@ class PostfixMixin:
             return self.typed(N.VarRef(loc, var))
         var = self.new_temp(ty, loc)
         init = self.local_initializer(var)
-        if var.ty is not ty:
-            pass
-        return self.typed(N.Comma(loc, init, self.typed(N.VarRef(loc, var))))
+        return self.typed(N.Comma(loc, init, self.typed(N.VarRef(loc, var)), lvalue=True))
 
 
 __all__ = ["PostfixMixin", "diag"]

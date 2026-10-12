@@ -52,6 +52,8 @@ class ExpressionMixin:
     def check_assignable(self, node, tok) -> None:
         if isinstance(node, (N.VarRef, N.Deref, N.Member_)):
             return
+        if isinstance(node, N.Comma) and node.lvalue:     # compound literal
+            return
         if isinstance(node, N.Cast) and isinstance(node.operand, (N.VarRef, N.Deref, N.Member_)) \
                 and node.ty.size == node.operand.ty.size:
             return      # GNU lvalue casts in old code; tolerated

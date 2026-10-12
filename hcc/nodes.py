@@ -167,6 +167,7 @@ class Cond(Expr):
 class Comma(Expr):
     lhs: Expr
     rhs: Expr
+    lvalue: bool = False    # True for a local compound literal: init, then the object
 
 
 @dataclass(eq=False)
