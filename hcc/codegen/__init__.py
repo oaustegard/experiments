@@ -40,7 +40,10 @@ class CodeGen(*assemble_mixins("hcc.codegen", CodeGenBase)):
                     # is an undefined weak reference (resolves to 0 if absent).
                     self.directive(f".weak {obj.symbol}")
             elif isinstance(obj, N.Var):
-                if obj.is_definition and not obj.is_extern:
+                if obj.alias_of and obj.init_data is None:
+                    # `T A __attribute__((alias("a")))`: the symbol names a's storage
+                    self.emit_alias(obj)
+                elif obj.is_definition and not obj.is_extern:
                     self.emit_data(obj)
                 elif obj.alias_of and not obj.is_definition:
                     self.emit_alias(obj)

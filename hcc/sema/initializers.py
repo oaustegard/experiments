@@ -69,9 +69,24 @@ def _lower(init, ty, lhs, out, typed, loc) -> None:
 
 
 def serialize_global_init(init, ty) -> N.GlobalData:
-    gd = N.GlobalData(bytearray(ty.size))
+    gd = N.GlobalData(bytearray(max(ty.size, _flex_extent(init, ty))))
     _write(init, ty, gd, 0)
     return gd
+
+
+def _flex_extent(init, ty) -> int:
+    """Bytes needed by a struct's trailing flexible array member (`char b[]`)
+    when it is initialized with elements past the struct's own size, e.g.
+    `struct T t = { 1, .b[2] = 'a' };` needs 4 + 3 bytes of storage."""
+    if ty.kind != T.TypeKind.STRUCT or not ty.members or init.expr is not None:
+        return 0
+    last = ty.members[-1]
+    if not getattr(last, "open_array", False) or not isinstance(init.children, list):
+        return 0
+    child = init.children[-1]
+    if child is None or child.expr is not None or not isinstance(child.children, list):
+        return 0
+    return last.offset + len(child.children) * last.ty.base.size
 
 
 def _write(init, ty, gd, offset) -> None:

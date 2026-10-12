@@ -135,6 +135,10 @@ class StructMixin:
                 mattr = VarAttr()
                 ty, name = self.declarator(basety)
                 self.parse_attributes(mattr)
+                if mattr.vector_size and ty.kind != T.TypeKind.FUNC:
+                    # `double s __attribute__((vector_size(16)));` after the declarator
+                    ty = T.vector_of(ty, mattr.vector_size)
+                    mattr.vector_size = 0
                 check_member_complete(ty, name, self.toks[start])
                 m = T.Member(name.text if name else None, ty)
                 m.tok = name
