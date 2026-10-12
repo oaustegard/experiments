@@ -24,7 +24,7 @@ __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_m
 __builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
-__builtin_inf __builtin_inff __builtin_infl
+__builtin_inf __builtin_inff __builtin_infl __builtin_signbit
 """.split())
 
 # Bit-counting builtins: {clz,ctz,popcount,parity,ffs}{,l,ll}. The suffix picks
@@ -191,6 +191,12 @@ class BuiltinParseMixin:
 
     def _b_infl(self, tok):
         return self._inf_lit(tok, T.TY_LDOUBLE)
+
+    def _b_signbit(self, tok):
+        """__builtin_signbit(x): operand widened exactly to double (keeps the
+        sign bit, also for NaN and float/long double); codegen reads bit 63."""
+        args = [new_cast(a, T.TY_DOUBLE) for a in self._args(1)]
+        return self._call(tok, "signbit", args, T.TY_INT)
 
     def _b_unreachable(self, tok):
         return self._call(tok, "trap", [], T.TY_VOID)

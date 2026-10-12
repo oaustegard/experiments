@@ -45,6 +45,11 @@ class BuiltinMixin:
         self.gen_expr(node.args[0])
         self.emit("bswap %rax")
 
+    def builtin_signbit(self, node) -> None:
+        self.gen_expr(node.args[0])  # double in %xmm0
+        self.emit("movq %xmm0, %rax")
+        self.emit("shr $63, %rax")
+
     # Bit-counting builtins. Results are fully defined even for a zero
     # argument (GCC leaves clz/ctz of 0 undefined): clz/ctz give the width,
     # ffs gives 0, popcount/parity give 0.
