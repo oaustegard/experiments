@@ -42,6 +42,8 @@ class DeclaratorMixin:
     def declarator(self, ty):
         ty = self.pointers(ty)
         self.parse_attributes()
+        ty = self.pointers(ty)          # `int (__attribute__((x)) *)(void)`
+        self.parse_attributes()
         if self.at("(") and not self._paren_starts_params():
             start = self.pos
             self.next()
@@ -63,7 +65,21 @@ class DeclaratorMixin:
 
     def _paren_starts_params(self) -> bool:
         """In an abstract declarator, `(` may begin a parameter list: `int (int)`."""
-        nxt = self.peek()
+        i = 1
+        # skip attribute groups: `(__attribute__((x)) *)` starts a declarator, not params
+        while self.peek(i).text in ("__attribute__", "__declspec"):
+            i += 1
+            depth = 0
+            while self.peek(i).kind != TokenKind.EOF:
+                t = self.peek(i)
+                i += 1
+                if t.kind == TokenKind.PUNCT and t.text == "(":
+                    depth += 1
+                elif t.kind == TokenKind.PUNCT and t.text == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+        nxt = self.peek(i)
         return nxt.text == ")" and nxt.kind == TokenKind.PUNCT or self.is_typename(nxt)
 
     def _skip_declarator(self) -> None:
