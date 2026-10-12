@@ -160,7 +160,40 @@ def spent(ctx: Ctx) -> float:
 
 # ---------------------------------------------------------------- loop
 
+def preflight(ctx: Ctx, a: argparse.Namespace) -> list[str]:
+    """Problems that would waste a long run; empty when good to go."""
+    import shutil
+    errs = []
+    if not a.fake and not shutil.which("claude"):
+        errs.append("`claude` not on PATH")
+    if not a.fake and not FANOUT.exists():
+        errs.append(f"runner missing: {FANOUT}")
+    for rel in ("tests/run.py", "docs/CONTRACT.md", "swarm/worker_prompt.md"):
+        if not (ctx.root / rel).exists():
+            errs.append(f"missing {rel}")
+    try:
+        head(ctx)
+    except Exception as e:  # noqa: BLE001
+        errs.append(f"no branch/commit in {ctx.root}: {e}")
+    dirty = [x for x in git_status(ctx) if x[3:].startswith(("hcc/", "tests/"))]
+    if dirty:
+        errs.append(f"main checkout has uncommitted changes under hcc/ or tests/ "
+                    f"(fast-forward merges may fail): {', '.join(x[3:] for x in dirty[:5])}")
+    return errs
+
+
+def git_status(ctx: Ctx) -> list[str]:
+    from swarm.common import git
+    return [x for x in git(ctx.root, "status", "--porcelain", check=False).splitlines() if x]
+
+
 def run(ctx: Ctx, a: argparse.Namespace) -> int:
+    errs = preflight(ctx, a)
+    for e in errs:
+        log(f"preflight: {e}")
+    if errs and not a.force:
+        log("fix these or pass --force")
+        return 2
     if not (ctx.state / "baseline.json").exists() or not tr.known(ctx):
         merge.refresh(ctx, do_bisect=False)
     procs: dict[str, subprocess.Popen | None] = {}
@@ -238,7 +271,7 @@ def status(ctx: Ctx) -> int:
     cost = spent(ctx)
     merged = by.get("merged", 0)
     print(f"workers: {len(led)} total  " + "  ".join(f"{k} {v}" for k, v in sorted(by.items())))
-    print(f"spend: ${cost:.2f}" + (f"  (${cost / merged:.3f} per merge)" if merged else ""))
+    print(f"spend: ${cost:.3f}" + (f"  (${cost / merged:.3f} per merge)" if merged else ""))
     c = read_json(ctx.state / "counters.json", {}) or {}
     print(f"merges since last full run: {c.get('merges_since_full', 0)}")
     hist = read_jsonl(ctx.state / "history.jsonl")
@@ -286,6 +319,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--suites", default="", help="comma list; default every dir in tests/suites")
     ap.add_argument("--poll", type=float, default=POLL_SECS)
     ap.add_argument("--top", type=int, default=20)
+    ap.add_argument("--force", action="store_true", help="run despite preflight problems")
     a = ap.parse_args(argv)
     ctx = Ctx(root=a.root.resolve(), wt_root=a.wt_root, jobs=a.jobs, batch=a.batch,
               sample_size=a.sample, full_every=a.full_every,
