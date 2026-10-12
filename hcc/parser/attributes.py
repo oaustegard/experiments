@@ -138,7 +138,7 @@ class AttributeMixin:
             attr.ifunc = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name in ("constructor", "destructor") and attr is not None:
             attr.init_kind = "init" if name == "constructor" else "fini"
-            attr.init_prio = 0
+            attr.init_prio = None
             if args:
                 save = self.pos
                 self.pos = args_start + 1

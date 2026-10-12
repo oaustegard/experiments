@@ -46,7 +46,7 @@ class VarAttr:
     alias: str | None = None
     ifunc: str | None = None        # __attribute__((ifunc("resolver")))
     init_kind: str | None = None    # "init" for constructor, "fini" for destructor
-    init_prio: int = 0              # constructor(N) / destructor(N) priority
+    init_prio: int | None = None    # constructor(N) / destructor(N) priority (None: default)
     asm_name: str | None = None
     vector_size: int = 0
     mode: str | None = None
