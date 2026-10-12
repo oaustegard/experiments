@@ -13,13 +13,15 @@ return, casts, scalar local initializers, binary operands).
 Not supported (clear error): complex integers, complex long double (its ABI
 differs from the struct ABI), complex in boolean context.
 
-Division uses the textbook formula (no C Annex G inf/NaN recovery).
+Division uses the textbook formula, falling back to libgcc __divdc3/__divsc3
+(complex_div.py) when the quotient is NaN+iNaN (C Annex G).
 
     complex_decl_type(p, ty)      declspec: `_Complex` applied to a base type
     complex_literal(p, loc, v, cty)   imaginary constant -> complex temporary
     make_complex(p, loc, re, im)  __builtin_complex(re, im)
     binary(p, op, lhs, rhs, loc)  arithmetic / equality with a complex operand
     negate(p, operand, loc)       unary minus on a complex operand
+    conjugate(p, operand, loc)    GCC `~z` on a complex operand
     part(p, operand, which, loc)  __real__ (0) / __imag__ (1) lvalue or rvalue
     convert(p, expr, ty, loc)     implicit/explicit conversion to ty
 """
@@ -28,6 +30,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.sema.arith import new_binop
 from hcc.parser import complex_const as CC
+from hcc.parser.complex_div import recover_division
 from hcc.sema.conversions import common_type, new_cast
 from hcc.typesys import TY_DOUBLE, TypeKind, complex_of, is_flonum, is_integer
 
@@ -165,6 +168,9 @@ def binary(p, op, lhs, rhs, loc):
         p.error(f"unsupported operator '{op}' on complex operands", loc)
     r = p.new_temp(cty, loc)
     pre += [_assign(p, loc, _part(p, r, 0, loc), re), _assign(p, loc, _part(p, r, 1, loc), im)]
+    if op == "/" and cty.base.kind != TypeKind.LDOUBLE:
+        # complex long double has its own libgcc helper (__divxc3) and ABI: not lowered
+        pre.append(recover_division(p, loc, a, b, r, cty))
     return CC.attach(_seq(p, loc, pre, _vref(p, r, loc)), cval, cty.base)
 
 
@@ -177,6 +183,19 @@ def negate(p, operand, loc):
         pre.append(_assign(p, loc, _part(p, res, i, loc), neg))
     cv = CC.value_of(operand)
     cval = (-cv[0], -cv[1]) if cv is not None else None
+    return CC.attach(_seq(p, loc, pre, _vref(p, res, loc)), cval, operand.ty.base)
+
+
+def conjugate(p, operand, loc):
+    """`~z` (GCC extension): the complex conjugate, imaginary part negated."""
+    tmp = p.new_temp(operand.ty, loc)
+    res = p.new_temp(operand.ty, loc)
+    pre = [_assign(p, loc, _vref(p, tmp, loc), operand),
+           _assign(p, loc, _part(p, res, 0, loc), _part(p, tmp, 0, loc)),
+           _assign(p, loc, _part(p, res, 1, loc),
+                   p.typed(N.Unary(loc, "-", _part(p, tmp, 1, loc))))]
+    cv = CC.value_of(operand)
+    cval = (cv[0], -cv[1]) if cv is not None else None
     return CC.attach(_seq(p, loc, pre, _vref(p, res, loc)), cval, operand.ty.base)
 
 

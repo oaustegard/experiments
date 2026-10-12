@@ -193,6 +193,8 @@ class ExpressionMixin:
             if s == "~":
                 self.next()
                 operand = self.cast_expr()
+                if self.typed(operand).ty.is_complex:
+                    return CPX.conjugate(self, operand, t.loc)
                 buf = self.new_temp(operand.ty, t.loc) if operand.ty.is_vector else None
                 return self.typed(N.Unary(t.loc, "~", operand, result_buf=buf))
             if s == "&":
