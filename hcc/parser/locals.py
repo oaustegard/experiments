@@ -276,6 +276,18 @@ class LocalDeclMixin:
         if attr.is_typedef or ty.kind == T.TypeKind.FUNC:
             return
         vs = self.scopes[-1].vars.get(name.text)
-        if vs is not None and vs.var is not None and not isinstance(vs.var, N.Function) \
-                and not is_compatible(vs.var.ty, ty):
+        if vs is None or vs.var is None or isinstance(vs.var, N.Function):
+            return
+        # C11 6.7p3: an identifier with no linkage has at most one declaration in
+        # its scope; only two block-scope `extern` declarations (external linkage)
+        # may coexist. A prior declaration has linkage when it is an extern
+        # object or the file-scope object itself (block `extern` names are
+        # registered there too, see declare_global_var).
+        file_obj = self.scopes[0].vars.get(name.text)
+        prior_linkage = getattr(vs.var, "is_extern", False) or \
+            (file_obj is not None and file_obj.var is vs.var)
+        if not (prior_linkage and attr.is_extern):
+            self.error(f"redeclaration of '{name.text}' with no linkage", name)
+            return
+        if not is_compatible(vs.var.ty, ty):
             self.error(f"conflicting types for '{name.text}'", name)
