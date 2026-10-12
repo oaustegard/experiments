@@ -15,10 +15,15 @@ from hcc import nodes as N
 from hcc.floatbits import pack_float32
 from hcc.typesys import TypeKind, is_flonum, is_integer, round_to_half
 from hcc.sema.constexpr_math import fold_int_call, fold_math_call
+from hcc.sema.constexpr_rel import fold_rel_equal
 
 
 class NotConstant(Exception):
     pass
+
+
+# __builtin_bswapN (parser/builtins.py) -> byte width
+_BSWAP_BYTES = {"bswap16": 2, "bswap32": 4, "bswap64": 8}
 
 
 def wrap(v: int, ty) -> int:
@@ -170,6 +175,10 @@ def _eval(node):
             fa, fb = eval_float(node.lhs), eval_float(node.rhs)     # float comparison folds too
             return None, int({"==": fa == fb, "!=": fa != fb, "<": fa < fb, "<=": fa <= fb,
                               ">": fa > fb, ">=": fa >= fb}[op])
+        if op in ("==", "!=") and type(node.lhs) is N.Binary and type(node.rhs) is N.Binary:
+            r = fold_rel_equal(node, try_eval_const)     # e.g. (a < b) != (b > a)
+            if r is not None:
+                return None, r
         a, b = _num(node.lhs), _num(node.rhs)
         u = node.lhs.ty.is_unsigned if node.lhs.ty is not None else False
         if op in ("/", "%"):
@@ -239,6 +248,10 @@ def _eval(node):
         return None, _string_char(node)
     if t is N.BuiltinCall and node.name == "__builtin_constant_p":
         return None, builtin_constant_p(node.args[0])
+    if t is N.BuiltinCall and node.name in _BSWAP_BYTES:
+        nbytes = _BSWAP_BYTES[node.name]
+        v = _num(node.args[0]) & ((1 << (8 * nbytes)) - 1)
+        return None, wrap(int.from_bytes(v.to_bytes(nbytes, "little"), "big"), node.ty)
     if t is N.Call and is_integer(node.ty):          # integer-valued libm call, e.g. lround
         v = fold_int_call(node, eval_float)
         if v is not None:
