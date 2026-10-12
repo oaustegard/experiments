@@ -10,7 +10,7 @@ CallMixin.expr_Call(node):
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import abi_kind, struct_arg_regs, struct_in_regs
+from hcc.codegen.abi import abi_kind, is_memory_struct, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS64
 from hcc.typesys import TypeKind, align_to
 
@@ -30,7 +30,7 @@ class CallMixin:
         """Returns (on_stack: list[bool], stack_slots: int)."""
         gp = fp = stack = 0
         ret = node.ty
-        if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16:
+        if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and is_memory_struct(ret):
             gp += 1
         on_stack = []
         for a in node.args:
@@ -130,7 +130,7 @@ class CallMixin:
             if not on_stack[i]:
                 self._push_arg(args[i])
         ret = node.ty
-        big_ret = abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16
+        big_ret = abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and is_memory_struct(ret)
         if big_ret:
             self.emit(f"lea {node.ret_buffer.offset}(%rbp), %rax")
             self.push()

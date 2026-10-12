@@ -45,7 +45,7 @@ def _unary(n: N.Unary):
 
 def _addr(n: N.AddrOf):
     t = n.operand.ty
-    n.ty = pointer_to(t.base) if t.kind == TypeKind.ARRAY else pointer_to(t)
+    n.ty = pointer_to(t)     # &array is a pointer to the whole array, not its element
 
 
 def _deref(n: N.Deref):

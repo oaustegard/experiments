@@ -10,7 +10,32 @@ import struct
 
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
+from dataclasses import fields, is_dataclass
+
 from hcc.typesys import TypeKind, is_flonum, is_integer
+
+
+def _contains_call(node) -> bool:
+    """True if the expression tree under `node` contains a function call."""
+    if type(node).__name__ == "Call":
+        return True
+    if isinstance(node, list):
+        return any(_contains_call(x) for x in node)
+    if not is_dataclass(node):
+        return False
+    return any(_contains_call(getattr(node, f.name, None)) for f in fields(node)
+               if f.name not in ("ty", "var", "member", "loc", "scope"))
+
+
+def _calls_before_store(node) -> bool:
+    """Scalar integer/pointer assignment whose rhs contains a call and whose
+    lhs is not a bitfield: the rhs may be evaluated before the lhs address."""
+    lhs, ty = node.lhs, node.ty
+    if ty is None or not (is_integer(ty) or ty.kind == TypeKind.PTR) or ty.size > 8:
+        return False
+    if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield:
+        return False
+    return _contains_call(node.rhs)
 
 
 class ExpressionMixin:
@@ -64,6 +89,19 @@ class ExpressionMixin:
             self.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - m.bit_width}, %rax")
 
     def expr_Assign(self, node) -> None:
+        if _calls_before_store(node):
+            # Evaluate a call-containing scalar rhs first so no lhs address
+            # temp is live across the call (setjmp/longjmp re-entry would
+            # otherwise find the saved address clobbered).
+            self.gen_expr(node.rhs)
+            self.push()                     # value
+            self.gen_addr(node.lhs)
+            self.push()                     # address (popped by store)
+            self.emit("mov 8(%rsp), %rax")  # value back into %rax
+            self.store(node.ty)
+            self.emit("add $8, %rsp")       # drop the saved value slot
+            self.depth -= 1
+            return
         self.gen_addr(node.lhs)
         self.push()
         self.gen_expr(node.rhs)

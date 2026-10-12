@@ -5,7 +5,7 @@ StatementMixin: one `stmt_<NodeClass>` method per statement node.
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import abi_kind, struct_in_regs
+from hcc.codegen.abi import abi_kind, is_memory_struct, struct_in_regs
 from hcc.sema.constexpr import try_eval_const
 from hcc.typesys import TypeKind
 
@@ -206,7 +206,7 @@ class StatementMixin:
             if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
                 if ty.size == 0:
                     pass  # empty struct: nothing to return
-                elif ty.size <= 16:
+                elif not is_memory_struct(ty):
                     self.struct_to_regs(ty)
                 else:
                     self.emit(f"mov {self.ret_ptr_offset}(%rbp), %rdi")
