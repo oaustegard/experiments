@@ -12,7 +12,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import VarAttr, VarScope
-from hcc.parser.declspec import constexpr_type, check_empty_inline
+from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inline
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import composite_redecl, redecl_conflicts, typedef_conflicts
 from hcc.sema.incomplete import is_incomplete_object
@@ -170,6 +170,7 @@ class TopLevelMixin:
         ty = self.typed(self.assign()).ty
         if ty.kind == T.TypeKind.ARRAY:
             ty = T.pointer_to(ty.base)
+        ty = auto_qualified(ty, attr)
         if attr.is_constexpr:
             ty = constexpr_type(ty)
         self.pos = start                    # re-parse the initializer with the real type

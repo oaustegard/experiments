@@ -22,6 +22,19 @@ from hcc.parser.complex import complex_decl_type
 from hcc.parser.vector_limits import vector_of_checked
 
 
+def auto_qualified(ty, attr):
+    """C23 `auto x = e;`: the type is the initializer's type after lvalue conversion
+    (top-level qualifiers dropped); `const auto` / `volatile auto` add them back."""
+    if ty is None:
+        return ty
+    ty = ty.unqual()
+    if attr.auto_const or attr.auto_volatile:
+        ty = ty.copy()
+        ty.is_const |= attr.auto_const
+        ty.is_volatile |= attr.auto_volatile
+    return ty
+
+
 def constexpr_type(ty):
     """C23 `constexpr` object: the object's own (top-level) type is const-qualified,
     e.g. `constexpr int *p` is `int *const p` (not `const int *`)."""
@@ -167,12 +180,16 @@ class DeclSpecMixin:
             if s in STORAGE:
                 if attr is None:
                     self.error("storage class specifier is not allowed in this context")
-                if s in STORAGE_CLASSES:
+                c23_auto = s == "auto" and self.c23_mode()   # C23 type inference, not a storage class
+                if c23_auto:
+                    if auto_infer:
+                        self.error("duplicate 'auto'")
+                elif s in STORAGE_CLASSES:
                     if s in seen_storage:
                         self.error(f"duplicate '{s}'")
                     if seen_storage & STORAGE_CLASSES:
                         self.error("multiple storage classes in declaration specifiers")
-                if s not in ("inline", "_Noreturn"):
+                if s not in ("inline", "_Noreturn") and not c23_auto:
                     seen_storage.add(s)
                 self.next()
                 if s == "typedef":
@@ -285,6 +302,8 @@ class DeclSpecMixin:
                 if bad in seen_storage:
                     self.error(f"'__thread' used with '{bad}'")
         if auto_infer and counter == 0 and attr is not None:
+            attr.auto_const = is_const          # qualifiers of `const auto x = e;` (see auto_qualified)
+            attr.auto_volatile = is_volatile
             return None         # type comes from the initializer, as for __auto_type
         if is_complex:
             ty = complex_decl_type(self, ty)

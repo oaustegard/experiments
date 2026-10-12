@@ -11,7 +11,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser.scope import VarAttr
-from hcc.parser.declspec import constexpr_type, check_empty_inline
+from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inline
 from hcc.sema.constexpr import try_eval_const
 from hcc.parser.initializers import const_bytes
 from hcc.parser.attributes import mode_type
@@ -84,6 +84,7 @@ class LocalDeclMixin:
                 ty = e.ty
                 if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):   # arrays decay (VLAs too)
                     ty = T.pointer_to(ty.base)
+                ty = auto_qualified(ty, attr)
                 if attr.is_constexpr:
                     ty = constexpr_type(ty)
                 var = self.new_lvar(name.text, ty, name.loc)
