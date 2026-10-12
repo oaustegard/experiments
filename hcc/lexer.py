@@ -36,7 +36,8 @@ _TOKEN_SRC = r"""
   | (?P<num>\.?[0-9](?:[eEpP][+-]|[0-9A-Za-z_.\u0080-￿])*)
   | (?P<str>(?:u8|u|U|L)?"(?:[^"\\\n]|\\.)*")
   | (?P<chr>(?:u8|u|U|L)?'(?:[^'\\\n]|\\.)*')
-  | (?P<id>[A-Za-z_$\u0080-\U0010ffff][A-Za-z0-9_$\u0080-\U0010ffff]*)
+  | (?P<id>(?:[A-Za-z_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
+             (?:[A-Za-z0-9_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
   | (?P<other>.)
 """
@@ -46,6 +47,16 @@ _TOKEN_RE_C90 = re.compile(_TOKEN_SRC.replace(r"  | (?P<lc>//[^\n]*)" + "\n", ""
                            re.VERBOSE | re.DOTALL)
 # -std values that do not recognise `//` comments
 C90_STDS = frozenset({"c89", "c90", "gnu89", "gnu90", "iso9899:1990", "ansi"})
+
+_UCN_RE = re.compile(r"\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})")
+
+
+def _decode_ucns(s: str) -> str:
+    """Replace universal character names (C11 6.4.3) in an identifier."""
+    if "\\" not in s:
+        return s
+    return _UCN_RE.sub(lambda m: chr(int(m.group(1) or m.group(2), 16)), s)
+
 
 _KIND = {"num": TokenKind.NUMBER, "str": TokenKind.STRING, "chr": TokenKind.CHAR,
          "id": TokenKind.IDENT, "punct": TokenKind.PUNCT, "other": TokenKind.PUNCT}
@@ -104,6 +115,8 @@ def tokenize(text: str, path: str, line_comments: bool = True) -> list[Token]:
         s = m.group()
         if kind == "punct" and s in DIGRAPHS:
             s = DIGRAPHS[s]
+        elif kind == "id":
+            s = _decode_ucns(s)
         toks.append(Token(_KIND[kind], s, loc, bol, space))
         bol = False
         space = False
