@@ -418,7 +418,9 @@ def lower_extended(cg, node) -> None:
         pushes.append(op)
     for op in reversed(pushes):
         cg.pop("%" + op.reg)
-        if op.pair:
+        # Only register pairs were pushed as two slots; a complex operand
+        # passed by address ("m") is a single slot.
+        if op.pair and op.kind == "reg":
             cg.pop("%" + op.reg2)
     # Phase 2c: load x87 inputs; the deepest st(N) goes first.
     for idx, op in sorted(enumerate(x87_in), key=lambda p: -p[1].reg):
