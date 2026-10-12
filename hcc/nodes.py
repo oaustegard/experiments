@@ -213,6 +213,8 @@ class Comma(Expr):
 class Cast(Expr):
     """Conversion of `operand` to `self.ty`."""
     operand: Expr
+    # True for the C23 `nullptr` constant (typed as void *, but not a plain (void *)0).
+    nullptr_const: bool = field(default=False, kw_only=True)
 
 
 @dataclass(eq=False)

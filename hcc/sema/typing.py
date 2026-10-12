@@ -84,8 +84,30 @@ def _binary(n: N.Binary):
         n.rhs = new_cast(n.rhs, int_promote(n.rhs.ty))
         n.ty = n.lhs.ty
         return
+    if n.op in COMPARES:
+        _check_nullptr_compare(n)
     n.lhs, n.rhs = usual_arith_conv(n.lhs, n.rhs)
     n.ty = TY_INT if n.op in COMPARES else n.lhs.ty
+
+
+def _is_nullptr(node) -> bool:
+    return isinstance(node, N.Cast) and node.nullptr_const
+
+
+def _check_nullptr_compare(n):
+    """C23 nullptr compares only with pointers or nullptr (ordered: never)."""
+    l_np, r_np = _is_nullptr(n.lhs), _is_nullptr(n.rhs)
+    if not (l_np or r_np):
+        return
+    if n.op not in ("==", "!="):
+        diag.error(n, "ordered comparison with nullptr is invalid", "sema")
+        return
+    other = n.rhs if l_np else n.lhs
+    if r_np and l_np:
+        return
+    if not (other.ty.kind == TypeKind.PTR or other.ty.kind == TypeKind.ARRAY
+            or _is_nullptr(other) or _is_null_const(other)):
+        diag.error(n, f"invalid operands to binary {n.op} ('{n.lhs.ty}' and '{n.rhs.ty}')", "sema")
 
 
 def _logical(n: N.Logical):

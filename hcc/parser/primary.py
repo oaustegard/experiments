@@ -88,7 +88,8 @@ class PrimaryMixin:
             return self.typed(N.VarRef(t.loc, var))
         if name == "nullptr" and self.c23_mode():
             # C23 nullptr constant: a null pointer constant (approximated as void *).
-            return N.Cast(t.loc, N.IntLit(t.loc, 0, ty=T.TY_INT), ty=T.pointer_to(T.TY_VOID))
+            return N.Cast(t.loc, N.IntLit(t.loc, 0, ty=T.TY_INT), ty=T.pointer_to(T.TY_VOID),
+                          nullptr_const=True)
         is_call = self.at("(")
         if name.startswith("__builtin_"):
             bname = name[len("__builtin_"):]
