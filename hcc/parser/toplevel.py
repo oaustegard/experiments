@@ -252,6 +252,11 @@ class TopLevelMixin:
         else:
             if not is_compatible(var.ty, ty):
                 self.error(f"conflicting types for '{name.text}'", name.loc)
+            # GCC: thread-local-ness must agree across all file-scope declarations.
+            if bool(attr.is_tls) != bool(var.is_tls):
+                kind = "thread-local" if attr.is_tls else "non-thread-local"
+                prev = "thread-local" if var.is_tls else "non-thread-local"
+                self.error(f"{kind} declaration of '{name.text}' follows {prev} declaration", name.loc)
             if ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
                     var.ty.array_len < 0 and ty.kind == T.TypeKind.ARRAY and ty.array_len >= 0:
                 var.ty = ty
