@@ -1,0 +1,519 @@
+<title>The Regulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,600;1,6..96,400&family=Spectral:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow reading column for the dossier; the bench and caseback widen to a working table. */
+:root {
+  --ground: #eef0ec;   /* old enamel */
+  --panel: #e3e6e0;
+  --ink: #16202b;
+  --soft: #56606b;
+  --rule: #c3c8c0;
+  --blue: #234f8a;     /* blued steel */
+  --brass: #8c6a22;
+  --red: #b0372b;
+  --green: #2c7149;
+  --f-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --f-body: "Spectral", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --col: 42rem;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ground: #0c1420; --panel: #132033; --ink: #e4e2da; --soft: #97a1ad; --rule: #273548;
+  --blue: #86aee6; --brass: #d3a95b; --red: #e57e70; --green: #80c99c; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --ground: #0c1420; --panel: #132033; --ink: #e4e2da; --soft: #97a1ad; --rule: #273548;
+  --blue: #86aee6; --brass: #d3a95b; --red: #e57e70; --green: #80c99c; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font: 400 1.0625rem/1.6 var(--f-body); }
+.wrap { padding-inline: 16px; padding-block: 0 4rem; }
+.col { max-width: var(--col); margin-inline: auto; }
+.wide { max-width: 64rem; margin-inline: auto; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 400; text-wrap: balance; line-height: 1.15; }
+h2 { font-size: clamp(1.7rem, 4vw, 2.3rem); margin: 0 0 .4rem; }
+h3 { font-size: 1.3rem; margin: 1.6rem 0 .4rem; }
+p { margin: 0 0 .9rem; }
+a { color: var(--blue); }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.eyebrow { font: 500 .72rem/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--brass); margin: 0 0 .6rem; }
+.dim { color: var(--soft); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 15rem); gap: 2rem; align-items: center; padding-block: 2.5rem 1.5rem; }
+.hero h1 { font-size: clamp(2.8rem, 9vw, 5.2rem); margin: 0; letter-spacing: -.01em; }
+.hero .sub { font-style: italic; color: var(--soft); margin: .4rem 0 1rem; font-size: 1.15rem; }
+.hero .dial { width: 100%; max-width: 15rem; justify-self: end; }
+@media (max-width: 40rem) { .hero { grid-template-columns: 1fr; } .hero .dial { justify-self: center; max-width: 12rem; order: -1; } }
+
+nav.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--ground); border-block: 1px solid var(--rule); }
+nav.tabs .in { display: flex; gap: .2rem; overflow-x: auto; max-width: 64rem; margin-inline: auto; }
+nav.tabs a { font: 500 .78rem/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--soft); text-decoration: none; padding: .85rem .7rem; white-space: nowrap; }
+nav.tabs a:hover, nav.tabs a.on { color: var(--ink); }
+section { padding-top: 3rem; scroll-margin-top: 3rem; }
+
+/* premise */
+.premise h3 { font-size: 1.15rem; }
+.premise ol li, .premise ul li { margin-bottom: .45rem; }
+.house { margin: 1.4rem 0 .4rem; overflow-x: auto; }
+.house svg { width: 100%; min-width: 34rem; height: auto; display: block; }
+.house text { font-family: var(--f-mono); font-size: 11px; fill: var(--soft); letter-spacing: .04em; }
+.house .room { fill: var(--panel); stroke: var(--rule); }
+.house .rn { fill: var(--ink); font-family: var(--f-body); font-size: 14px; letter-spacing: 0; }
+.house .clk { fill: var(--ground); stroke: var(--brass); stroke-width: 1.5; }
+.house .clk-h { stroke: var(--brass); stroke-width: 1.4; }
+.house .stair { stroke: var(--soft); stroke-width: 1; fill: none; }
+
+/* interviews */
+.who { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1rem 0 1.4rem; }
+.who button { font: 500 .8rem/1 var(--f-mono); letter-spacing: .04em; background: transparent; color: var(--soft); border: 1px solid var(--rule); border-radius: 2px; padding: .55rem .7rem; cursor: pointer; }
+.who button[aria-selected="true"] { color: var(--ground); background: var(--ink); border-color: var(--ink); }
+.transcript .head { font-style: italic; color: var(--soft); margin-bottom: 1.2rem; }
+.transcript .ln { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: .8rem; margin-bottom: .55rem; }
+.transcript .sp { font: 500 .7rem/1.9 var(--f-mono); letter-spacing: .08em; color: var(--soft); text-align: right; }
+.transcript .ln.m .tx { color: var(--soft); font-style: italic; }
+@media (max-width: 34rem) { .transcript .ln { grid-template-columns: 1fr; gap: 0; } .transcript .sp { text-align: left; } }
+mark.t { background: none; color: inherit; border-bottom: 1.5px solid var(--brass); padding-bottom: 1px; font-variant-numeric: tabular-nums; }
+
+/* bench */
+.bench-intro { max-width: var(--col); }
+.pieces { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr)); gap: .8rem; margin: 1.2rem 0; }
+.piece { border: 1px solid var(--rule); padding: .7rem; display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: .6rem; align-items: center; background: var(--ground); }
+.piece svg { width: 3rem; height: 3rem; }
+.piece .nm { font-size: .88rem; line-height: 1.25; }
+.piece .ctl { display: flex; align-items: center; gap: .3rem; margin-top: .35rem; }
+.piece button, .btn { font: 500 .85rem/1 var(--f-mono); border: 1px solid var(--rule); background: var(--panel); color: var(--ink); border-radius: 2px; cursor: pointer; }
+.piece button { width: 1.8rem; height: 1.8rem; }
+.piece .v { font: 500 .78rem/1 var(--f-mono); flex: 1; min-width: 0; text-align: center; font-variant-numeric: tabular-nums; }
+.btn { padding: .6rem .8rem; }
+.btn.primary { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+.belief { font-size: .95rem; border-left: 2px solid var(--brass); padding: .2rem 0 .2rem .8rem; margin: .4rem 0 1rem; }
+.belief button { margin-left: .4rem; }
+.aside { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: .6rem 0 1.2rem; }
+.aside .lab { font: 500 .72rem/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--soft); margin-right: .4rem; }
+.aside button { font: .9rem/1 var(--f-body); background: transparent; color: var(--ink); border: 1px solid var(--rule); border-radius: 999px; padding: .4rem .75rem; cursor: pointer; }
+.aside button[aria-pressed="true"] { background: var(--ink); color: var(--ground); border-color: var(--ink); text-decoration: line-through; }
+.status { font-family: var(--f-mono); font-size: .9rem; padding: .7rem .9rem; border: 1px solid var(--rule); margin: .6rem 0; }
+.status.ok { border-color: var(--green); color: var(--green); }
+.status.bad { border-color: var(--red); color: var(--red); }
+.tl { overflow-x: auto; border: 1px solid var(--rule); background: var(--ground); }
+.tl svg { display: block; min-width: 50rem; width: 100%; height: auto; }
+.tl text { font-family: var(--f-mono); font-size: 10.5px; fill: var(--soft); }
+.tl .rowlab { fill: var(--ink); font-family: var(--f-body); font-size: 13px; }
+.tl .grid { stroke: var(--rule); stroke-width: 1; }
+.tl .bar { fill: var(--panel); stroke: var(--rule); }
+.tl .barlab { fill: var(--ink); font-size: 10px; }
+.tl .mk { fill: var(--blue); }
+.tl .mk.bad { fill: var(--red); }
+.tl .clash { stroke: var(--red); stroke-width: 2; }
+.tl .chime { stroke: var(--brass); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.tl .chimelab { fill: var(--brass); }
+.tl .piano { fill: var(--brass); opacity: .22; }
+.cols2 { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 1.5rem; margin-top: 1.2rem; }
+@media (max-width: 46rem) { .cols2 { grid-template-columns: 1fr; } }
+.discords { list-style: none; padding: 0; margin: 0; font-size: .95rem; }
+.discords li { border-top: 1px solid var(--rule); padding: .55rem 0; }
+.discords .k { font: 500 .7rem/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--red); display: block; margin-bottom: .25rem; }
+.sid { font: 500 .78rem/1 var(--f-mono); color: var(--blue); border: 1px solid var(--rule); padding: .1rem .3rem; border-radius: 2px; cursor: help; white-space: nowrap; }
+table.where { width: 100%; border-collapse: collapse; font-size: .95rem; }
+table.where td { border-top: 1px solid var(--rule); padding: .45rem .3rem; vertical-align: top; }
+table.where td:first-child { white-space: nowrap; padding-right: .8rem; }
+.none { color: var(--red); }
+
+/* accuse */
+.accuse { display: flex; flex-wrap: wrap; gap: .7rem; align-items: end; margin: 1rem 0; }
+.accuse label { display: grid; gap: .3rem; font: 500 .72rem/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--soft); }
+.accuse select, .accuse input { font: 1rem var(--f-body); padding: .5rem .6rem; border: 1px solid var(--rule); background: var(--ground); color: var(--ink); border-radius: 2px; }
+.accuse input { width: 6.5rem; font-family: var(--f-mono); }
+#verdict { min-height: 1.6rem; font-style: italic; }
+.confirm { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin-top: .6rem; font-size: .95rem; }
+
+/* caseback */
+#caseback[hidden] { display: none; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps li { counter-increment: s; position: relative; padding-left: 2.6rem; margin-bottom: 1rem; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: .1rem; font: 400 1.5rem/1 var(--f-display); color: var(--brass); }
+.trains { display: grid; gap: 1rem; }
+.train { border-top: 1px solid var(--rule); padding-top: .8rem; }
+.train h4 { font: 500 .78rem/1.3 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; margin: 0 0 .5rem; color: var(--soft); }
+.train ol { margin: 0; padding-left: 1.2rem; font-size: .95rem; }
+.train li { margin-bottom: .25rem; }
+.letter { font-style: italic; border-left: 1px solid var(--brass); padding-left: 1.2rem; white-space: pre-line; }
+table.stats { border-collapse: collapse; width: 100%; font-size: .93rem; }
+table.stats td, table.stats th { border-top: 1px solid var(--rule); padding: .45rem .4rem; text-align: left; vertical-align: top; }
+table.stats th { font: 500 .7rem/1.2 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--soft); }
+table.stats td.n { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.statwrap { overflow-x: auto; }
+footer { margin-top: 4rem; font-size: .85rem; color: var(--soft); }
+@media (prefers-reduced-motion: no-preference) { .hand { transition: transform .5s cubic-bezier(.3,1.4,.5,1); } }
+</style>
+
+<div class="wrap">
+  <header class="hero wide">
+    <div>
+      <p class="eyebrow">La Chaux-de-Fonds · 31 December 1899</p>
+      <h1>The Regulator</h1>
+      <p class="sub">A master watchmaker is dead in his atelier. Every clock in the house keeps its own time, and one witness is lying.</p>
+      <p class="dim" style="max-width:34rem">Read the inspector's note and the six interviews. Then use the bench to set each clock's error and to set aside the witness you think is lying, until the house runs true. Name the murderer and the true minute of the blow.</p>
+    </div>
+    <svg class="dial" id="hero-dial" viewBox="0 0 240 240" role="img" aria-label="The stopped regulator: its hands stand at five past ten"></svg>
+  </header>
+</div>
+
+<nav class="tabs" aria-label="Sections"><div class="in">
+  <a href="#case">The case</a><a href="#interviews">Interviews</a><a href="#bench">The bench</a><a href="#accuse">Accuse</a><a href="#caseback">The caseback</a>
+</div></nav>
+
+<div class="wrap">
+  <section id="case" class="col premise">
+    <p class="eyebrow">Inspecteur Léon Matthey, Sûreté de Neuchâtel</p>
+    <h2>The case</h2>
+    <div class="house" id="house"></div>
+    <div id="premise"></div>
+  </section>
+
+  <section id="interviews" class="col">
+    <p class="eyebrow">Six interviews, taken between one and four in the morning</p>
+    <h2>Interviews</h2>
+    <p class="dim">Readings of clocks and watches are underlined. The interviews are in the order the inspector took them.</p>
+    <div class="who" role="tablist" id="who"></div>
+    <div class="transcript" id="transcript" role="tabpanel"></div>
+  </section>
+
+  <section id="bench" class="wide">
+    <div class="bench-intro">
+      <p class="eyebrow">Your workbench</p>
+      <h2>The bench</h2>
+      <p>Every statement in the interviews is laid out here as a time on a named clock or watch. Set how far each timepiece ran fast or slow, and the bench converts every reading to true time and shows where the accounts disagree. When you think you know who lied, set that witness aside. If no disagreement remains, the house runs true.</p>
+    </div>
+    <div class="pieces" id="pieces"></div>
+    <p class="belief" id="belief"></p>
+    <div class="aside" id="aside"><span class="lab">Set aside</span></div>
+    <div class="status" id="status" role="status"></div>
+    <div class="tl" id="timeline"></div>
+    <div class="cols2">
+      <div><h3>Disagreements</h3><ul class="discords" id="discords"></ul></div>
+      <div><h3 id="where-h">When the repeater sounded</h3><table class="where" id="where"></table></div>
+    </div>
+  </section>
+
+  <section id="accuse" class="col">
+    <p class="eyebrow">The question</p>
+    <h2>Accuse</h2>
+    <p>Who struck Aurèle Monnier, and at what true time, to the minute?</p>
+    <form class="accuse" id="accuse-form">
+      <label for="acc-who">Murderer<select id="acc-who"></select></label>
+      <label for="acc-time">True time<input id="acc-time" inputmode="numeric" placeholder="HH:MM" autocomplete="off"></label>
+      <button class="btn primary" type="submit">Accuse</button>
+    </form>
+    <p id="verdict" role="status"></p>
+    <div class="confirm" id="giveup"><button class="btn" type="button" id="giveup-btn">Open the caseback without solving</button></div>
+  </section>
+
+  <section id="caseback" class="wide" hidden>
+    <div class="col">
+      <p class="eyebrow">The movement behind the dial</p>
+      <h2>The caseback</h2>
+      <p>The answer is <strong>Dr Casimir Vauthier</strong>, at <strong class="mono">22:38</strong>.</p>
+      <ol class="steps">
+        <li><strong>The minute of the blow.</strong> The repeater sounded at the blow. Félix heard it at 10:18 by his watch, and at dinner his watch showed twenty to nine when the temple struck nine, so it runs twenty minutes slow (Odile and Félix both say so). The blow fell at 22:38. Félix counted ten low notes, so the repeater agrees on the hour.</li>
+        <li><strong>The hall clock.</strong> In the atelier, Lina heard the Morbier strike ten when the regulator showed 9:48, and at ten the regulator agreed with the temple exactly. The Morbier runs twelve minutes fast, and it struck its eleven at 22:48 by the true time.</li>
+        <li><strong>Rosa's clock.</strong> Rosa believes it runs a quarter of an hour fast. But she heard the Morbier strike eleven, at 22:48, when her clock showed 11:13, so that evening it was twenty-five minutes fast. Lina saw the master with that clock in his hands in the afternoon. Lina's walk confirms it: she left the atelier at 22:20 and went straight down, and Rosa's clock showed 10:47 when she arrived, which is 22:22.</li>
+        <li><strong>The piano.</strong> It began at 10:58 by Rosa's clock, which is 22:33. Bastien's watch says the same. He came in at 10:46 by his watch, just as the Morbier, twelve fast, showed 11:02, so his watch runs four minutes slow. He heard the piano begin at 10:29 by it (22:33) and the bells from the master's window at 10:34 (22:38, the same minute Félix gives).</li>
+        <li><strong>The lie.</strong> The doctor says he left the salon at a quarter to eleven by his watch, which runs two minutes fast (he and Lina both say so), so at 22:43. He and Odile agree that the piano began as he went out. The piano began at 22:33. His account seats him at the card table when the repeater sounded, and it cannot be true. Only the murderer lies, so the murderer is the doctor.</li>
+        <li><strong>The rest fits.</strong> He left the salon at 22:33. Félix heard someone go up past the library at 22:35 and come down at 22:41. The doctor struck at 22:38, stopped the regulator and set its hands to five past ten, an hour when he had been at cards in plain sight. He was back in the salon at 22:46, when the piano stopped, and the Morbier struck its eleven a moment later.</li>
+        <li><strong>The trap.</strong> Take Rosa at her word and the piano begins at 22:43, the minute the doctor says he left. His story then looks corroborated and Bastien's watch looks wrong. Set the kitchen clock to fifteen minutes on the bench to watch it happen.</li>
+      </ol>
+      <h3>Why it cannot be anyone else</h3>
+      <p>A solver (z3) checked the formal case, which is every statement as constraints on clocks and moments. If any of the other five were the murderer, the accounts of the remaining people would contradict each other. For each of them, these are the shortest sets of statements that cannot all be true together, out of the minimal sets the solver found.</p>
+    </div>
+    <div class="trains wide" id="trains"></div>
+    <div class="col">
+      <h3>The true evening</h3>
+      <p>The bench below is set to the true errors, with the doctor set aside.</p>
+    </div>
+    <div class="tl" id="truth-tl"></div>
+    <div class="col">
+      <h3>A letter left at dawn</h3>
+      <div class="letter" id="letter"></div>
+      <h3>How it was made</h3>
+      <div id="made"></div>
+    </div>
+  </section>
+
+  <footer class="col" id="foot">
+    Written by Muninn with Claude Haiku 5.5 subagents. The case is fiction; La Chaux-de-Fonds is real, and its grid of watchmakers' houses is a UNESCO World Heritage site.
+  </footer>
+</div>
+
+<script>
+const CASE = {"premise": "<h3>The inspector's note<\/h3>\n<p>I was called to the house of Aurèle Monnier, master watchmaker, Rue du Progrès, shortly after the bells had rung in the new century. Monnier was dead on the floor of his atelier, struck once from behind with the brass mallet from his own bench. His maid, Rosa Häfeli, had found him a little before midnight, when she went up to fetch him for the toast.<\/p>\n<p>The house has three floors. At the top is the atelier, with the master's bench under the long windows and the precision regulator on the wall. The atelier's pine floor is the library's ceiling. On the ground floor are the hall, where the stairs come down and an old Morbier long-case clock stands; the salon at the front, with the piano and a marble mantel clock; the dining room; and the kitchen at the back. The salon and atelier windows look over the street.<\/p>\n<p>Six people were in the house that evening besides the dead man: his wife Odile; his nephew Félix; Lina Ruedi, the régleuse from his atelier; Dr Casimir Vauthier, physician and friend of the family; Bastien Girard, an établisseur from Le Locle; and Rosa.<\/p>\n<p>I found these things in the atelier.<\/p>\n<ul><li><strong>The regulator had stopped.<\/strong> Its hands stood at five past ten and its pendulum hung<\/li><\/ul>\n<p>still.<\/p>\n<ul><li><strong>Monnier's new repeater was in his right hand, its slide pressed home.<\/strong> A minute<\/li><\/ul>\n<p>repeater sounds the time when the slide is pressed: one low note for each hour, one doubled note for each quarter past the hour, and one high note for each minute past the quarter. He had pressed it as he fell.<\/p>\n<p>I interviewed all six, one at a time, in the dining room, between one and four in the morning. My clerk's transcripts follow, in the order I took them.<\/p>\n<h3>What I hold to be true<\/h3>\n<ol><li>One of the six struck the blow. Whoever it was stood in the atelier when the repeater sounded, because the repeater sounded at the moment of the blow.<\/li><li>The murderer has lied to me. The other five have told me honestly what they saw and heard. What any of them believes about a clock is another matter.<\/li><li>Every clock and watch in this house keeps its own time, and most of them disagree. None was adjusted between dinner and midnight except by the murderer's hand. When an honest witness tells me what a timepiece showed, that is what it showed.<\/li><li>The bell of the Grand Temple strikes the true hour.<\/li><li>Nobody in this house needs more than five minutes to go from any room to any other.<\/li><\/ol>\n<h3>The question<\/h3>\n<p>Who struck Aurèle Monnier, and at what true time, to the minute?<\/p>", "people": {"O": "Odile Monnier", "F": "Félix Monnier", "L": "Lina Ruedi", "D": "Dr Casimir Vauthier", "B": "Bastien Girard", "R": "Rosa Häfeli"}, "roles": {"O": "Odile Monnier, the widow", "F": "Félix Monnier, the nephew", "L": "Lina Ruedi, the régleuse", "D": "Dr Casimir Vauthier, the family physician", "B": "Bastien Girard, the établisseur", "R": "Rosa Häfeli, the maid and cook"}, "victim": "Aurèle Monnier", "order": ["R", "D", "O", "L", "F", "B"], "transcripts": {"R": {"head": "Interview with Rosa Häfeli, maid and cook, in the dining room. First interview of the night.", "lines": [{"who": "MATTHEY", "text": "Sit down, please, Madame Häfeli. You are not in any trouble. I only want to know about the house, the master, and this evening. Take your time."}, {"who": "ROSA", "text": "Ja, Monsieur. I have been in this house since I came down from the Emmental as a girl. I cook, I keep the house, I see to the linen and the silver. Monsieur Aurèle was hard to please about bread and harder about watches, but he paid his people, and he was never unkind to me."}, {"who": "MATTHEY", "text": "Tell me about him."}, {"who": "ROSA", "text": "He was always up in the atelier, under the long windows, from the morning. He came down only for his meals. He has been at one watch for a very long time, and he would not have anyone near his bench while he worked, only Fräulein Lina, because she was the only one who could do the work he wanted done."}, {"who": "MATTHEY", "text": "Let us come to this evening. What clock do you keep in the kitchen?"}, {"who": "ROSA", "text": "My kitchen clock is a quarter of an hour fast. I keep it so on purpose, so nothing is ever late. The master teased me for it, but the bread was never late and neither was the dinner. Ask anyone in the house."}, {"who": "MATTHEY", "text": "Then tell me what happened by your clock."}, {"who": "ROSA", "text": "Fräulein Lina came down into the kitchen at <mark class=\"t\">thirteen minutes to eleven<\/mark> by my kitchen clock, and she stayed with me until after the temple <mark class=\"t\">struck eleven<\/mark>. She was very white. She sat by the stove and did not want to talk, which is not like her. She usually tells me about the movements the way other girls tell about their sweethearts."}, {"who": "MATTHEY", "text": "While she was with you, did you hear anything?"}, {"who": "ROSA", "text": "We heard Madame's piano begin at <mark class=\"t\">two minutes to eleven<\/mark> by my kitchen clock, and stop at <mark class=\"t\">eleven minutes past eleven<\/mark> by my kitchen clock. Madame plays the Chopin, as she always does, and she plays it very well. I know the sound of that piano through two floors and a stove."}, {"who": "MATTHEY", "text": "Did you hear anything else?"}, {"who": "ROSA", "text": "I heard the hall clock <mark class=\"t\">strike eleven<\/mark> when my kitchen clock showed <mark class=\"t\">thirteen minutes past eleven<\/mark>. I looked at my clock, as I always do when the hall strikes. That is all I heard that I can tell you."}, {"who": "MATTHEY", "text": "Let us go on to the toast. What was happening in the kitchen then?"}, {"who": "ROSA", "text": "The champagne glasses were ready on the tray. I had washed them myself that morning and polished them twice, because Madame wanted them for the new year. When it was time for the toast, I went up the stairs to fetch the master."}, {"who": "MATTHEY", "text": "Tell me what you found."}, {"who": "ROSA", "text": "He was on the floor of the atelier, by his bench. There was blood on the boards. The brass mallet from his bench was on the floor beside him. The regulator on the wall had stopped. His little watch, the one that strikes when you press the slide, was in his hand. Herrgott, Monsieur, I did not touch him. I went down the stairs and I could not speak for a while."}, {"who": "MATTHEY", "text": "You are frightened of me, I think."}, {"who": "ROSA", "text": "Ja, Monsieur. I have never been asked anything by the police. My papers are in order and I have done nothing wrong. But I do not want to be put in a cell for a thing I did not do, and I do not want Madame made to suffer more than she must. She is a proud woman. She will not cry in front of you, so do not expect it."}, {"who": "MATTHEY", "text": "Thank you, Rosa. Is there anything you would like to add?"}, {"who": "ROSA", "text": "Only that the kitchen is clean and the glasses are ready. Whatever you need, Monsieur, you will find me there."}]}, "D": {"head": "Interview with Dr Casimir Vauthier, physician, in the dining room. Second interview of the night.", "lines": [{"who": "MATTHEY", "text": "Thank you for waiting, Doctor. You dined here tonight. Tell me about the evening, in your own order."}, {"who": "DR VAUTHIER", "text": "My own order is the only one I have left at this hour, Inspector. Aurèle gave his dinner as he has given it for thirty years. When the temple bell <mark class=\"t\">struck nine<\/mark> he made us all bring out our watches, and he went round the table like a jeweller at a fair, telling each of us what was wrong with ours. Mine was two minutes ahead of the bell. He said so with some satisfaction and told me to leave it alone, which I have never once managed to do."}, {"who": "MATTHEY", "text": "And after dinner?"}, {"who": "DR VAUTHIER", "text": "Madame and I played piquet in the salon. She beats me more often than I care to admit, though I have the better of her on the cards with a Latin tag, which she finds unforgivable. <em>Tempus edax rerum<\/em>, Inspector. Piquet is the most honest way I know of losing an hour. We played until <mark class=\"t\">a quarter to eleven<\/mark> by my watch. Then I wanted my cigar case, which was in my coat in the hall, so I went out to fetch it. Madame began to play the piano as I went out. She played Chopin, as she does when she is thinking of something she will not say. She stopped when I came back."}, {"who": "MATTHEY", "text": "Was the cigar case where you had left it?"}, {"who": "DR VAUTHIER", "text": "It was. I have no talent for hiding things, which is why I am a physician and not a policeman. I sat down again and lit a cigar, and the hall clock <mark class=\"t\">struck eleven<\/mark> a moment after I sat down again."}, {"who": "MATTHEY", "text": "You have seen Monnier's body."}, {"who": "DR VAUTHIER", "text": "I have. Rosa was in a terrible state, as you can imagine, and I took what I had in my bag, which was foolish, because nothing in it could help him. There was a blow to the back of the head, from behind, with something heavy. I could see at once that he had not suffered for long. Death would have been very quick. I will say that to Odile if she asks me, and I will say it kindly, though I doubt she will ask."}, {"who": "MATTHEY", "text": "And the regulator on the wall?"}, {"who": "DR VAUTHIER", "text": "Stopped. I looked at it, I confess, because I could not look at him for long."}, {"who": "MATTHEY", "text": "You knew the family well before this evening."}, {"who": "DR VAUTHIER", "text": "I knew them all, and I knew Aurèle longest of anyone outside his own house. I attended Jules Monnier in his last illness, in 1889. Aurèle sat by that bed and did not once look at his watch, which for Aurèle was a sign of grief greater than any he ever showed to me. He was a difficult man to be fond of and an impossible one not to be fond of. Those are the two things I shall remember when the rest of this becomes a report."}, {"who": "MATTHEY", "text": "Did he speak to you tonight about his repeater?"}, {"who": "DR VAUTHIER", "text": "He spoke of nothing else in the last years, and of nothing but its price in the last weeks. Girard wanted it and Aurèle would not sell it, and they quarrelled over it at table as men will quarrel over a thing they cannot have. I took no part. I am a doctor. I only hold the coats."}, {"who": "MATTHEY", "text": "Thank you, Doctor. I must ask you not to leave the town until we have finished."}, {"who": "DR VAUTHIER", "text": "I have no intention of leaving a game of piquet unfinished, Inspector. Madame will see to that, and she will see to it that I lose."}]}, "O": {"head": "Interview with Madame Odile Monnier, in the dining room. Third interview of the night.", "lines": [{"who": "MATTHEY", "text": "Madame Monnier, I am sorry to keep you up. I know the sergeant has already asked you some of these questions."}, {"who": "MME MONNIER", "text": "He has asked me everything, Inspector, and I have answered everything. I do not think I have anything left that is not already in his book. But I suppose you will want it in yours."}, {"who": "MATTHEY", "text": "I would like to begin with the evening, if you are able. Not the end of it yet."}, {"who": "MME MONNIER", "text": "The evening was the same as every year. My husband gave the dinner and he gave the guests their lesson."}, {"who": "MATTHEY", "text": "Their lesson?"}, {"who": "MME MONNIER", "text": "When the temple <mark class=\"t\">struck nine<\/mark> he made everyone take out their watch and hold it up to him. He has done it since we were married. Nobody is allowed to be wrong at his table, and nobody is allowed to be right without being told so. Félix's watch showed <mark class=\"t\">twenty minutes to nine<\/mark>. Aurèle scolded him for it."}, {"who": "MATTHEY", "text": "Did your husband say anything more about the watch?"}, {"who": "MME MONNIER", "text": "He said a watch that old should not be carried by a man who will not have it cleaned. That was all. It was not kind, but it was not unusual."}, {"who": "MATTHEY", "text": "And after dinner?"}, {"who": "MME MONNIER", "text": "The doctor and I played piquet in the salon. Casimir plays badly, and he cheats only when he is losing, which is most of the time. We played without a break. The temple <mark class=\"t\">struck ten<\/mark> while we were playing, and we went on after that."}, {"who": "MATTHEY", "text": "Did he leave the table at any point?"}, {"who": "MME MONNIER", "text": "He left the cards when he went out to fetch his cigars. He had run out. I did not look at the clock when he went, Inspector. I have told the sergeant so. I never look at clocks when I am playing with Casimir. It is the only way I have ever won."}, {"who": "MATTHEY", "text": "As he went out, did he say anything to you?"}, {"who": "MME MONNIER", "text": "He asked me to play for him."}, {"who": "MATTHEY", "text": "And did you?"}, {"who": "MME MONNIER", "text": "I sat down at the piano at once and played Chopin, which is what I always play when I am asked for music. My husband used to say it was the only thing I did that was worth the price of the piano. I played until he came back, and I stopped when he came in."}, {"who": "MATTHEY", "text": "Do you remember when the hall clock struck?"}, {"who": "MME MONNIER", "text": "A moment after he came back, the hall clock <mark class=\"t\">struck eleven<\/mark>."}, {"who": "MATTHEY", "text": "Thank you. Now I must ask you about the quarrel at dinner."}, {"who": "MME MONNIER", "text": "Between my husband and Monsieur Girard? They quarrelled about the price of the repeater. Aurèle would not take less and Monsieur Girard would not pay more. It was not the first time they had quarrelled over that watch, and I do not suppose it was the last."}, {"who": "MATTHEY", "text": "Was there bad feeling between them?"}, {"who": "MME MONNIER", "text": "There was bad feeling between my husband and most men who wanted something from him. Monsieur Girard simply said so more loudly."}, {"who": "MATTHEY", "text": "And Félix?"}, {"who": "MME MONNIER", "text": "Félix owes money. Some of it, I believe, is owed to Monsieur Girard. I told my husband so last spring. He told me it was not my concern, and that Félix would learn what debt costs when he was ready to learn it."}, {"who": "MATTHEY", "text": "Had your husband been generous with Félix in the past?"}, {"who": "MME MONNIER", "text": "He was generous with Félix's father, when Jules was alive. He was less generous with Jules's son. You may write that down."}, {"who": "MATTHEY", "text": "Casimir Vauthier has been a friend of your family for a long time."}, {"who": "MME MONNIER", "text": "For thirty years. He sat with Jules in his last illness, and he has sat at our table ever since. He is the oldest friend either of us has, which is not the same as saying he is the closest."}, {"who": "MATTHEY", "text": "Madame, you have been married thirty years."}, {"who": "MME MONNIER", "text": "Thirty-one, in the spring. We were fond of each other, Inspector. That is not the same as being in love, and at our age I think it is better. It does not wear through so quickly."}, {"who": "MATTHEY", "text": "I am sorry to ask this, but how would you describe your feelings for him now?"}, {"who": "MME MONNIER", "text": "You want me to weep for him in front of a policeman. I will not do it. I will answer your questions, and I will answer them correctly, and that is all I have to give you tonight."}]}, "L": {"head": "Interview with Mademoiselle Lina Ruedi, régleuse, in the dining room. Fourth interview of the night.", "lines": [{"who": "MATTHEY", "text": "Mademoiselle, thank you for waiting. Please tell me about the evening in order, and take your time."}, {"who": "MLLE RUEDI", "text": "At nine, when the temple struck, the master had us all show our watches. He does it every year. He tells each person what is wrong with theirs."}, {"who": "MATTHEY", "text": "And yours?"}, {"who": "MLLE RUEDI", "text": "Mine was exact. I regulated it myself."}, {"who": "MATTHEY", "text": "Who else showed theirs?"}, {"who": "MLLE RUEDI", "text": "Dr Vauthier's was two minutes ahead. Monsieur Girard would not take his out of his pocket."}, {"who": "MATTHEY", "text": "After dinner, where did you go?"}, {"who": "MLLE RUEDI", "text": "Up to the atelier. I worked beside the master at his bench, as I always do."}, {"who": "MATTHEY", "text": "Tell me what you saw of the clocks while you were working."}, {"who": "MLLE RUEDI", "text": "The hall clock downstairs <mark class=\"t\">struck ten<\/mark>. At that moment the regulator showed <mark class=\"t\">twelve minutes to ten<\/mark>. The master said what he always says about that clock."}, {"who": "MATTHEY", "text": "What does he say?"}, {"who": "MLLE RUEDI", "text": "It is an old remark between him and the clock. I will not repeat it, Inspector, it is not evidence."}, {"who": "MATTHEY", "text": "Understood. And when the temple <mark class=\"t\">struck ten<\/mark>?"}, {"who": "MLLE RUEDI", "text": "The regulator agreed with the bell exactly."}, {"who": "MATTHEY", "text": "When did he send you downstairs?"}, {"who": "MLLE RUEDI", "text": "When the regulator showed <mark class=\"t\">twenty past ten<\/mark>. The regulator was running then, and he was well. I went straight down to the kitchen."}, {"who": "MATTHEY", "text": "Had anything troubled him that evening?"}, {"who": "MLLE RUEDI", "text": "Not that I saw. He was himself."}, {"who": "MATTHEY", "text": "Had you seen the master in the kitchen earlier in the day?"}, {"who": "MLLE RUEDI", "text": "That afternoon, yes. I saw him in the kitchen with Rosa's American alarm clock in his hands. He was laughing."}, {"who": "MATTHEY", "text": "Do you know why he had it?"}, {"who": "MLLE RUEDI", "text": "I did not ask him why."}, {"who": "MATTHEY", "text": "Let us return to the evening. Where were you when Madame began to play?"}, {"who": "MLLE RUEDI", "text": "In the kitchen with Rosa. When the piano began, I looked at the kitchen clock, which is Rosa's American alarm clock. It showed <mark class=\"t\">two minutes to eleven<\/mark>."}, {"who": "MATTHEY", "text": "And when the piano stopped?"}, {"who": "MLLE RUEDI", "text": "I looked again. The kitchen clock, Rosa's American alarm clock, showed <mark class=\"t\">eleven minutes past eleven<\/mark>."}, {"who": "MATTHEY", "text": "You are certain of both readings?"}, {"who": "MLLE RUEDI", "text": "I read them as I read any dial. I am certain."}, {"who": "MATTHEY", "text": "Did you remain in the kitchen?"}, {"who": "MLLE RUEDI", "text": "I stayed in the kitchen with Rosa until after the temple <mark class=\"t\">struck eleven<\/mark>."}, {"who": "MATTHEY", "text": "I want to ask about the repeater, the watch the master was making. Do you know how it speaks?"}, {"who": "MLLE RUEDI", "text": "Yes. The low notes give the hours. Each quarter is a doubled note. The high notes give the minutes past the quarter. He worked on it for four years. He meant it to strike the first minute of the new century."}, {"who": "MATTHEY", "text": "You knew the work well."}, {"who": "MLLE RUEDI", "text": "I was the best hand in that atelier, Inspector, and he knew it. I do not say that with pride. It is only a fact, like a reading."}, {"who": "MATTHEY", "text": "Is there anything about the master that you think I should know?"}, {"who": "MLLE RUEDI", "text": "Only that he was exact. He was exact in his work and in his habits. He was not a man who would be late for anything."}, {"who": "MATTHEY", "text": "Thank you, Mademoiselle. Please do not leave the house until I have spoken with the others."}, {"who": "MLLE RUEDI", "text": "I will not leave. I have work to finish, and it will be here."}]}, "F": {"head": "Interview with Monsieur Félix Monnier, nephew of the deceased, in the dining room. Fifth interview of the night.", "lines": [{"who": "MATTHEY", "text": "Monsieur Monnier, thank you for waiting. I am sorry to keep you up. Your uncle, Monsieur Aurèle Monnier, was found dead in his atelier. You are his nephew?"}, {"who": "FÉLIX", "text": "His brother's son, yes. My father was Jules. He died in 1889, you will have that in your book already. Uncle Aurèle brought me into the business after that, or he tried to. I suppose I am his heir, and you are going to ask me that, and so will everyone else in town."}, {"who": "MATTHEY", "text": "I will ask you about the evening first. Take your time, and tell me in your own words."}, {"who": "FÉLIX", "text": "Uncle has done the same thing every year since I was a boy. When the temple bell <mark class=\"t\">struck nine<\/mark> he made us all put our watches on the cloth, and then he told each man what was wrong with his. Very entertaining, if you are not the one being told. When the temple bell <mark class=\"t\">struck nine<\/mark>, my watch showed <mark class=\"t\">twenty minutes to nine<\/mark>. He made a scene about it in front of everyone. Said a man who could not keep his own father's watch going had no business in his house. He was laughing when he said it. Not enough, I thought."}, {"who": "MATTHEY", "text": "Your watch. Is it the silver one?"}, {"who": "FÉLIX", "text": "My father's silver watch. It has been behind for ten years. I have never let anyone regulate it, not a watchmaker, not even Uncle, and he is the best hand in the canton. He asked to see inside it at dinner. I said no. Everyone laughed at that too."}, {"who": "MATTHEY", "text": "And after dinner?"}, {"who": "FÉLIX", "text": "I went up to the library. I had brandy, I will admit that, more than I should have. I stayed there alone. I did not want to talk about money, which is what everyone wanted to talk about."}, {"who": "MATTHEY", "text": "Did you hear anything from the library?"}, {"who": "FÉLIX", "text": "I did. At <mark class=\"t\">a quarter past ten<\/mark> by my watch, someone went quickly up the stairs past the library door. I did not see who. The door was shut."}, {"who": "MATTHEY", "text": "Go on."}, {"who": "FÉLIX", "text": "At <mark class=\"t\">eighteen minutes past ten<\/mark> by my watch I heard a thump on the floor right above me, in the atelier. Then my uncle's repeater sounding. Ten slow deep notes, I counted those. Then some doubled notes, and then quick high ones, which I did not count. I know that sound, Inspector. He played it for anyone who would sit still. I thought he had dropped something, or that he was showing somebody the piece. I stayed in the library."}, {"who": "MATTHEY", "text": "And after that?"}, {"who": "FÉLIX", "text": "At <mark class=\"t\">twenty-one minutes past ten<\/mark> by my watch, someone came quickly down. Again I did not see who. The door was shut."}, {"who": "MATTHEY", "text": "You do not know who it was."}, {"who": "FÉLIX", "text": "I do not know, and I would rather not guess aloud. I am the one in this house who was alone directly below the atelier, and I can count as well as anybody what that will look like. You need not say it. I can hear it already."}, {"who": "MATTHEY", "text": "I am only asking what you saw and heard. Who came to the library after that?"}, {"who": "FÉLIX", "text": "Bastien Girard. He came in at <mark class=\"t\">thirty-two minutes past ten<\/mark> by my watch, and we sat together there until the temple <mark class=\"t\">struck eleven<\/mark>. He wanted to buy the rights to the repeater. Uncle would not take his price, and they quarrelled about it at dinner. I owe Girard money too, some of it. So you see, I was not pleased to have him sitting in my library, and I was less pleased to have him talk about the repeater as if it were already his."}, {"who": "MATTHEY", "text": "What did the repeater mean to your uncle?"}, {"who": "FÉLIX", "text": "Everything. Four years on one watch, and he meant it to strike the first minute of the new century. He would have wanted the whole town to hear it. I think he loved that piece more than anything in the house, and I think he loved it more than he loved the people in it. That is unkind of me. I have had a good deal of brandy."}, {"who": "MATTHEY", "text": "Thank you, Monsieur Monnier. Please remain in the house until I have spoken to the others."}, {"who": "FÉLIX", "text": "Of course. And if you are wondering, Inspector, I do not think you will want my watch. Nobody would give you a franc for it. Ask anyone."}]}, "B": {"head": "Interview with Monsieur Bastien Girard, établisseur of Le Locle, in the dining room. Sixth interview of the night.", "lines": [{"who": "MATTHEY", "text": "Monsieur Girard, you know why you are here. Aurèle Monnier was found dead in his atelier on the top floor of this house. I need to know what you did this evening and where you were. Tell it in your own order, and take your time."}, {"who": "GIRARD", "text": "I am no part of his household, Inspecteur. I buy movements from him now and then, and parts when I need them. He asked the trade men of the town to dine with the family on the last evening of the year, as he did every year. I came up from Le Locle for it. That is all my connection with the house."}, {"who": "MATTHEY", "text": "Tell me about the dinner."}, {"who": "GIRARD", "text": "The master made us show our watches and tell him what was wrong with them. He does it every year, and he enjoys it. I would not show him mine. A merchant's watch is his business and not a parlour game. He can say what he likes about my watch to my face, but he does not get to look at it first."}, {"who": "MATTHEY", "text": "Who was at the table?"}, {"who": "GIRARD", "text": "Madame Monnier, the nephew Félix, Dr Vauthier, the girl from his atelier, and myself. I dislike the doctor's company, and I will say so plainly. He talks as if every room were a lecture hall and every guest a student who has not done his reading."}, {"who": "MATTHEY", "text": "Was there any disagreement at dinner?"}, {"who": "GIRARD", "text": "There was. I had asked him for the rights to the repeater he has been building these four years. I offered him a fair price to sell it under my firm's name. He said it was not for sale at any price I could pay. We quarrelled about the figure across the table, and the quarrel did not end when the soup was taken away."}, {"who": "MATTHEY", "text": "And Monsieur Félix Monnier?"}, {"who": "GIRARD", "text": "Félix owes me money. It is not a great sum, but he owes it, and I am not a man who hides his bills. I do not raise it at a dinner table, but I will not pretend I am sorry to be paid by a man who is about to inherit. You may ask him about it. He will tell you more than I would."}, {"who": "MATTHEY", "text": "After dinner, what did you do?"}, {"who": "GIRARD", "text": "I sat on alone in the dining room with the brandy. I heard the temple <mark class=\"t\">strike ten<\/mark> there. I did not look at my watch."}, {"who": "MATTHEY", "text": "Why not?"}, {"who": "GIRARD", "text": "Because I had no need of it. A man in my trade knows the hour without taking his watch from his waistcoat, and I was not waiting for anything."}, {"who": "MATTHEY", "text": "What happened next?"}, {"who": "GIRARD", "text": "I went out into the street to smoke. I had one of my Brissago cigars, the cheap ones I buy by the box. It was <mark class=\"t\">twenty-one minutes past ten<\/mark> by my watch when I went out. It was a hard frost, with old snow in the street. I stayed under the front windows of the house. I like the cold when I want to think, and I stood there with a figure to think about."}, {"who": "MATTHEY", "text": "Did anything happen while you stood there?"}, {"who": "GIRARD", "text": "The piano started up in the salon just as I lit my cigar. It was <mark class=\"t\">twenty-nine minutes past ten<\/mark> by my watch."}, {"who": "MATTHEY", "text": "Go on."}, {"who": "GIRARD", "text": "At <mark class=\"t\">twenty-six minutes to eleven<\/mark> by my watch I heard faint quick bells from the master's window up above."}, {"who": "MATTHEY", "text": "Quick bells. Describe them as you heard them, if you can."}, {"who": "GIRARD", "text": "Faint, and quick, and from the top of the house. That is all I have to say of them."}, {"who": "MATTHEY", "text": "And when did you come back into the house?"}, {"who": "GIRARD", "text": "At <mark class=\"t\">fourteen minutes to eleven<\/mark> by my watch. The hall clock had just <mark class=\"t\">struck eleven<\/mark>, and its face showed <mark class=\"t\">two minutes past eleven<\/mark>. I went straight up to Félix in the library."}, {"who": "MATTHEY", "text": "Thank you, Monsieur Girard. Please do not leave the town until I have spoken to you again."}, {"who": "GIRARD", "text": "I have no wish to leave it, Inspecteur. It is far too cold to travel."}]}}, "statements": [{"id": "O1", "who": "O", "gloss": "At dinner, when the bell struck nine, Félix's watch showed twenty to nine; Aurèle scolded him for it.", "atoms": [["read", "bell9", "wF", "20:40"]], "lie": false}, {"id": "O2", "who": "O", "gloss": "She and the doctor played piquet in the salon from the end of dinner, through the temple striking ten, until he went out for his cigars. She did not look at the clock when he went.", "atoms": [["at", "O", "salon", "dinner_end", "d_out"], ["at", "D", "salon", "dinner_end", "d_out"], ["during", "bell10", "dinner_end", "d_out"]], "lie": false}, {"id": "O3", "who": "O", "gloss": "As he went he asked her to play for him; she began at once, played until he came back, and stopped then.", "atoms": [["gap", "d_out", "p_start", 0, 0], ["gap", "d_back", "p_stop", 0, 0], ["at", "O", "salon", "d_out", "d_back"]], "lie": false}, {"id": "O4", "who": "O", "gloss": "A moment after he came back, the hall clock struck eleven.", "atoms": [["gap", "d_back", "morb11", 0, 3], ["read", "morb11", "morbier", "23:00"]], "lie": false}, {"id": "F1", "who": "F", "gloss": "His watch showed twenty to nine when the bell struck nine at dinner; his uncle made a scene over it.", "atoms": [["read", "bell9", "wF", "20:40"]], "lie": false}, {"id": "F2", "who": "F", "gloss": "He went up to the library after dinner and stayed there alone.", "atoms": [["at", "F", "library", "dinner_end", "b_lib"]], "lie": false}, {"id": "F3", "who": "F", "gloss": "At 10:18 by his watch he heard a thump overhead and then his uncle's repeater: ten slow deep strokes, then doubled notes, then quick high ones he did not count.", "atoms": [["read", "chime", "wF", "22:18"]], "lie": false}, {"id": "F4", "who": "F", "gloss": "At 10:15 by his watch someone went quickly up the stairs past the library door; at 10:21 someone came quickly down.", "atoms": [["read", "steps_up", "wF", "22:15"], ["read", "steps_down", "wF", "22:21"]], "lie": false}, {"id": "F5", "who": "F", "gloss": "Bastien came into the library at 10:32 by his watch and they sat together until the temple struck eleven.", "atoms": [["read", "b_lib", "wF", "22:32"], ["at", "F", "library", "b_lib", "bell11"], ["at", "B", "library", "b_lib", "bell11"]], "lie": false}, {"id": "L1", "who": "L", "gloss": "At dinner, when the bell struck nine, her watch was exact and the doctor's two minutes ahead; Bastien would not show his.", "atoms": [["read", "bell9", "wL", "21:00"], ["read", "bell9", "wD", "21:02"]], "lie": false}, {"id": "L2", "who": "L", "gloss": "She worked with the master in the atelier after dinner. The hall clock struck ten downstairs when the regulator showed 9:48, and when the temple struck ten the regulator agreed with it exactly.", "atoms": [["at", "L", "atelier", "dinner_end", "l_down"], ["read", "morb10", "regulator", "21:48"], ["read", "morb10", "morbier", "22:00"], ["read", "bell10", "regulator", "22:00"]], "lie": false}, {"id": "L3", "who": "L", "gloss": "He sent her down when the regulator showed 10:20; it was running, and he was well. She went straight down to the kitchen.", "atoms": [["read", "l_down", "regulator", "22:20"], ["gap", "l_down", "chime", 1, null], ["gap", "l_down", "l_kitchen", 0, 5]], "lie": false}, {"id": "L4", "who": "L", "gloss": "That afternoon she had seen the master in the kitchen with Rosa's clock in his hands, laughing.", "atoms": [], "lie": false}, {"id": "L5", "who": "L", "gloss": "In the kitchen she looked at Rosa's clock when Madame's piano began, 10:58, and when it stopped, 11:11.", "atoms": [["read", "p_start", "kitchen", "22:58"], ["read", "p_stop", "kitchen", "23:11"]], "lie": false}, {"id": "L6", "who": "L", "gloss": "She stayed in the kitchen with Rosa until after the temple struck eleven.", "atoms": [["at", "L", "kitchen", "l_kitchen", "bell11"], ["at", "R", "kitchen", "l_kitchen", "bell11"]], "lie": false}, {"id": "R1", "who": "R", "gloss": "Mademoiselle Lina came down at 10:47 by the kitchen clock and stayed with her until after the temple struck eleven.", "atoms": [["read", "l_kitchen", "kitchen", "22:47"], ["at", "L", "kitchen", "l_kitchen", "bell11"], ["at", "R", "kitchen", "l_kitchen", "bell11"]], "lie": false}, {"id": "R2", "who": "R", "gloss": "The piano began at 10:58 by her clock and stopped at 11:11.", "atoms": [["read", "p_start", "kitchen", "22:58"], ["read", "p_stop", "kitchen", "23:11"]], "lie": false}, {"id": "R3", "who": "R", "gloss": "She heard the hall clock strike eleven when her clock showed 11:13.", "atoms": [["read", "morb11", "kitchen", "23:13"], ["read", "morb11", "morbier", "23:00"]], "lie": false}, {"id": "B1", "who": "B", "gloss": "He would not show his watch at dinner. He sat on in the dining room after dinner and heard the temple strike ten there.", "atoms": [["at", "B", "dining", "dinner_end", "b_out"], ["during", "bell10", "dinner_end", "b_out"]], "lie": false}, {"id": "B2", "who": "B", "gloss": "He went out into the street to smoke at 10:21 by his watch, and stayed under the front windows.", "atoms": [["read", "b_out", "wB", "22:21"], ["at", "B", "street", "b_out", "b_in"]], "lie": false}, {"id": "B3", "who": "B", "gloss": "The piano started in the salon as he lit his cigar, at 10:29 by his watch.", "atoms": [["read", "p_start", "wB", "22:29"]], "lie": false}, {"id": "B4", "who": "B", "gloss": "At 10:34 by his watch he heard faint quick bells from the master's window above.", "atoms": [["read", "chime", "wB", "22:34"]], "lie": false}, {"id": "B5", "who": "B", "gloss": "He came in at 10:46 by his watch; the hall clock had just struck eleven and showed two minutes past. He went straight up to Félix in the library.", "atoms": [["read", "b_in", "wB", "22:46"], ["read", "b_in", "morbier", "23:02"], ["read", "morb11", "morbier", "23:00"], ["gap", "morb11", "b_in", 0, 3], ["gap", "b_in", "b_lib", 0, 5]], "lie": false}, {"id": "D1", "who": "D", "gloss": "At dinner his watch was two minutes ahead of the bell.", "atoms": [["read", "bell9", "wD", "21:02"]], "lie": false}, {"id": "D2", "who": "D", "gloss": "He played piquet with Madame until 10:45 by his watch, when he went out to the hall for his cigar case. Madame began to play as he went out and stopped when he came back.", "atoms": [["at", "D", "salon", "dinner_end", "d_out"], ["read", "d_out", "wD", "22:45"], ["gap", "d_out", "p_start", 0, 0], ["gap", "d_back", "p_stop", 0, 0]], "lie": true}, {"id": "D3", "who": "D", "gloss": "The hall clock struck eleven a moment after he sat down again.", "atoms": [["gap", "d_back", "morb11", 0, 3], ["read", "morb11", "morbier", "23:00"]], "lie": false}], "beliefs": [{"id": "R0", "who": "R", "gloss": "Her kitchen clock is a quarter of an hour fast; she keeps it so.", "claimed": ["offset", "kitchen", 15]}], "events": {"bell9": "the temple bell strikes nine, during dinner", "morb10": "the Morbier strikes ten", "dinner_end": "dinner ends", "bell10": "the temple bell strikes ten", "l_down": "Lina leaves the atelier", "l_kitchen": "Lina reaches the kitchen", "b_out": "Bastien goes out into the street", "d_out": "the doctor leaves the salon", "p_start": "the piano begins", "steps_up": "footsteps go up past the library door", "chime": "the repeater chimes in the atelier (the attack)", "steps_down": "footsteps come down past the library door", "d_back": "the doctor returns to the salon", "p_stop": "the piano stops", "morb11": "the Morbier strikes eleven", "b_in": "Bastien comes back into the house", "b_lib": "Bastien enters the library", "bell11": "the temple bell strikes eleven"}, "clocks": {"kitchen": "the kitchen clock (American alarm clock)", "morbier": "the hall clock (Morbier long-case; strikes the hours by its own face)", "regulator": "the atelier regulator", "wF": "Félix's pocket watch", "wB": "Bastien's pocket watch", "wD": "the doctor's pocket watch", "wL": "Lina's pocket watch"}, "truth": {"off": {"kitchen": 25, "morbier": 12, "regulator": 0, "wF": -20, "wB": -4, "wD": 2, "wL": 0}, "events": {"bell9": 60, "morb10": 108, "dinner_end": 72, "bell10": 120, "l_down": 140, "l_kitchen": 142, "b_out": 145, "d_out": 153, "p_start": 153, "steps_up": 155, "chime": 158, "steps_down": 161, "d_back": 166, "p_stop": 166, "morb11": 168, "b_in": 170, "b_lib": 172, "bell11": 180}}, "solution": {"murderer": "D", "attack": 158}, "trains": {"O": [["D2", "L1", "L2", "L5", "R3"], ["D1", "D2", "L2", "L5", "R3"], ["D2", "L1", "L2", "R2", "R3"]], "F": [["D2", "L1", "L2", "L5", "O4"], ["D1", "D2", "L2", "L5", "O4"], ["D2", "L1", "L2", "O4", "R2"]], "L": [["B3", "B5", "D1", "D2", "F5", "O1"], ["B3", "B4", "D1", "D2", "F3", "O1"], ["B3", "B4", "F3", "O1", "R1", "R2"]], "B": [["D2", "L1", "L2", "L5", "O4"], ["D1", "D2", "L2", "L5", "O4"], ["D2", "L1", "L2", "O4", "R2"]], "R": [["F3", "L2", "L3", "L6", "O1"], ["D2", "L1", "L2", "L5", "O4"], ["B3", "B5", "D2", "F5", "L1", "O1"]]}, "ntrains": {"O": 12, "F": 12, "L": 12, "B": 12, "R": 12}, "detectives": {"sonnet": {"Dr Casimir Vauthier at 22:48": 2, "Dr Casimir Vauthier at 22:38": 3}, "haiku": {"Dr Casimir Vauthier at 22:48": 4, "Bastien Girard at 22:38": 4, "Dr Casimir Vauthier at 22:38": 9, "Dr Casimir Vauthier at 22:47": 1, "Félix Monnier at 22:48": 1}, "opus": {"Dr Casimir Vauthier at 22:38": 3}}, "confession": "Monsieur l'Inspecteur,\n\nBy the time you read this I shall be out in the frost, and you will know why I did not wait for you. I will not repeat what is already in your notes. I will tell you what I did not say in the dining room, and what the piano had to do with it.\n\nOdile and I had been at piquet in the salon since the table was cleared. When I rose to fetch my cigars I asked her to play for me. She played the second of the Op. 9 nocturnes, which she plays better than anyone I have heard, and she did not ask why I wanted it. I had chosen the music for its length and its volume. The piano would cover my steps on the stairs.\n\nAurèle had told me in the hall, before dinner, that he would tell Félix at midnight and the authorities after. \"At the turn of the century I settle my accounts,\" he said, and went in to be looked at by his guests. He had found his brother's last letter among the papers. It described the doses. I had written them in my own hand, and I had signed the certificate beneath them.\n\nI went up past the library door, which was shut, and I made no sound on the stairs that the piano did not cover. Aurèle was at his bench under the long windows with the repeater in his hand. He did not turn; he never turned from the bench for anyone. I struck him once from behind with the mallet from his own bench. He fell, and his hand closed on the slide, and the repeater sounded. You have had it described to you: the hours low, the quarter doubled, the minutes high. I counted it as anyone in this town would count it. It said ten thirty-eight.\n\nI stood there some moments. Then I did the only thing a physician thinks of with a clock. I stopped the pendulum and moved the hands back to five past ten, an hour when I had sat at cards with Odile in plain view of the whole salon.\n\nI came down, took the cigar case from my coat in the hall, and went back into the salon. Odile stopped playing when I came in. She did not look up. In thirty years she has never once asked me where I have been, and she did not ask then. The hall clock struck eleven a moment after I sat down.\n\nWhen you questioned me I told you I had gone out at a quarter to eleven by my watch, after the repeater would have sounded. That was false in every part. My watch runs two minutes fast. I have never corrected it, from vanity, and you will find it so in my waistcoat. The rest I told you truly.\n\nI ask you to see that Odile is not made to answer the newspapers. She has done nothing but play the piano in her own house. Rosa is to have her wages through the end of the month, and I should be obliged if Félix were told that his uncle meant to speak to him at midnight, and that it was not Félix's fault that he did not.\n\nI have no more to add.\n\nCasimir Vauthier\n", "stats": {"rows": {"v1 / detectives / Sonnet": [5, 0.1409997, 186.89999999999998], "v1 / detectives / Haiku": [14, 0.1613281, 1563.5], "v1 / final triple check / Haiku": [54, 0.12266602, 1622.5999999999997], "v2 / confession / Haiku": [6, 0.018318, 141.1], "v2 / confession jury / Haiku": [7, 0.033996200000000004, 195.9], "v2 / draft / Haiku": [30, 0.11391690000000002, 1300.0999999999995], "v2 / repair / Haiku": [15, 0.050135900000000004, 311.09999999999997], "v2 / detectives / Sonnet": [5, 0.2330648, 221.1], "v2 / detectives / Haiku": [20, 0.3046336700000001, 3001.2000000000003], "v2 / final triple check / Haiku": [54, 0.12050021, 1698.7999999999997], "v2 / ambiguity hunt / Haiku": [52, 0.11068515000000002, 1575.8], "v2 / fidelity judge / Haiku": [45, 0.11501353, 1037.8999999999999], "v2 / jury / Haiku": [30, 0.08644152999999999, 1086.0], "v2 / blind extract / Haiku": [45, 0.12936127000000003, 1772.9], "v3 / draft / Haiku": [30, 0.11586089999999999, 1238.4], "v3 / repair / Haiku": [18, 0.0638918, 403.09999999999997], "v3 / detectives / Sonnet": [5, 0.3235688, 311.9], "v3 / detectives / Haiku": [19, 0.6541606499999999, 6092.5], "v3 / detectives / Opus": [3, 0.4873324, 120.9], "v3 / final triple check / Haiku": [54, 0.11708584, 1633.1000000000004], "v3 / ambiguity hunt / Haiku": [52, 0.11806080999999997, 1079.3999999999999], "v3 / fidelity judge / Haiku": [48, 0.11650988000000002, 995.2], "v3 / jury / Haiku": [30, 0.09035354999999998, 605.9], "v3 / blind extract / Haiku": [48, 0.13748044000000004, 1222.3999999999999]}, "totals": {"Sonnet_n": 15, "Sonnet_cost": 0.6976333, "Haiku_n": 671, "Haiku_cost": 2.780400349999998, "Opus_n": 3, "Opus_cost": 0.4873324}, "html": "<div class=\"statwrap\"><table class=\"stats\"><tr><th>Stage<\/th><th>Model<\/th><th>Calls<\/th><th>Cost<\/th><th>Rounds<\/th><\/tr>\n<tr><td>detectives<\/td><td>Sonnet<\/td><td class=\"n\">15<\/td><td class=\"n\">$0.70<\/td><td>v1, v2, v3<\/td><\/tr>\n<tr><td>detectives<\/td><td>Haiku<\/td><td class=\"n\">53<\/td><td class=\"n\">$1.12<\/td><td>v1, v2, v3<\/td><\/tr>\n<tr><td>final triple check<\/td><td>Haiku<\/td><td class=\"n\">162<\/td><td class=\"n\">$0.36<\/td><td>v1, v2, v3<\/td><\/tr>\n<tr><td>confession<\/td><td>Haiku<\/td><td class=\"n\">6<\/td><td class=\"n\">$0.02<\/td><td>v2<\/td><\/tr>\n<tr><td>confession jury<\/td><td>Haiku<\/td><td class=\"n\">7<\/td><td class=\"n\">$0.03<\/td><td>v2<\/td><\/tr>\n<tr><td>draft<\/td><td>Haiku<\/td><td class=\"n\">60<\/td><td class=\"n\">$0.23<\/td><td>v2, v3<\/td><\/tr>\n<tr><td>repair<\/td><td>Haiku<\/td><td class=\"n\">33<\/td><td class=\"n\">$0.11<\/td><td>v2, v3<\/td><\/tr>\n<tr><td>ambiguity hunt<\/td><td>Haiku<\/td><td class=\"n\">104<\/td><td class=\"n\">$0.23<\/td><td>v2, v3<\/td><\/tr>\n<tr><td>fidelity judge<\/td><td>Haiku<\/td><td class=\"n\">93<\/td><td class=\"n\">$0.23<\/td><td>v2, v3<\/td><\/tr>\n<tr><td>jury<\/td><td>Haiku<\/td><td class=\"n\">60<\/td><td class=\"n\">$0.18<\/td><td>v2, v3<\/td><\/tr>\n<tr><td>blind extract<\/td><td>Haiku<\/td><td class=\"n\">93<\/td><td class=\"n\">$0.27<\/td><td>v2, v3<\/td><\/tr>\n<tr><td>detectives<\/td><td>Opus<\/td><td class=\"n\">3<\/td><td class=\"n\">$0.49<\/td><td>v3<\/td><\/tr>\n<tr><th>All<\/th><th><\/th><th class=\"n\">689<\/th><th class=\"n\">$3.97<\/th><th><\/th><\/tr><\/table><\/div>", "versions": {"v1": {"sonnet": [5, 5], "haiku": [10, 14]}, "v2": {"sonnet": [5, 5], "haiku": [19, 20]}, "v3": {"sonnet": [3, 5], "haiku": [9, 19], "opus": [3, 3]}}, "intro": "<p>The case was built backwards from a ground truth: a minute-by-minute evening, eight timepieces with fixed errors, and 28 statements written as constraints, each one a reading of a named clock at a named moment, an order of events, or a person in a room. The z3 solver checks that the honest accounts are true of that evening and the doctor's is not, that exactly one person can be the murderer, and that the blow falls on exactly one minute. It also finds, for each innocent, the small sets of statements that cannot all be true if that person did it. Those are the chains listed above.<\/p>\n<p>Claude Haiku 5.5 wrote the interviews from first-person fact cards, five drafts per witness. Each draft was checked before anyone read it. A blind reader who never saw the facts listed every clock reading it could find, and code compared that list with the expected one. A judge holding the facts marked each fact exact, altered or missing, and listed anything a detective could use that the facts did not give. Failed drafts were repaired once. Adversarial readers then hunted the survivors for ways a careful solver could misread them, and a jury of five Haiku ranked them as writing. I edited the six winners by hand, and the checks ran three more times on the edited text. They caught one bug I had introduced, a \"he\" that read as the dead man.<\/p>\n<p>The first two versions were too easy. On the second, Haiku solved 19 of 20 and Sonnet 5 of 5: every witness had read a clock against the temple bell, so the doctor's lie fell out of simple arithmetic. The third version removed most of those direct readings, so errors have to be carried from clock to clock through shared sounds (the piano, the hall clock's strikes, the repeater), and it added Rosa's mistaken belief about her own clock. On this version, Haiku solved 9 of 19, Sonnet 3 of 5 and Opus 3 of 3. One more Haiku detective was still working after fifteen minutes and was stopped. The rest took four to seven minutes each, against about a minute on the second version.<\/p>"}};
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const m = s => { let [h, mm] = s.split(":").map(Number); if (h < 12) h += 24; return (h - 20) * 60 + mm; };
+const fmt = x => { const t = Math.round(x), h = 20 + Math.floor(t / 60), mm = ((t % 60) + 60) % 60; return String(h % 24).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); };
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+const SHORT = { bell9: "temple strikes nine", morb10: "hall clock strikes ten", dinner_end: "dinner ends", bell10: "temple strikes ten",
+  l_down: "Lina leaves the atelier", l_kitchen: "Lina reaches the kitchen", b_out: "Bastien goes out", d_out: "doctor leaves the salon",
+  p_start: "piano begins", steps_up: "steps going up", chime: "the repeater sounds", steps_down: "steps coming down",
+  d_back: "doctor returns", p_stop: "piano stops", morb11: "hall clock strikes eleven", b_in: "Bastien comes in",
+  b_lib: "Bastien reaches the library", bell11: "temple strikes eleven" };
+const SHORTNAME = { O: "Odile", F: "Félix", L: "Lina", D: "Dr Vauthier", B: "Bastien", R: "Rosa" };
+const ROOM = { atelier: "atelier", library: "library", salon: "salon", dining: "dining room", hall: "hall", kitchen: "kitchen", street: "street" };
+const CLOCKIN = { kitchen: "Rosa's clock", morbier: "the hall clock", regulator: "the regulator", wF: "Félix's watch", wB: "Bastien's watch", wD: "the doctor's watch", wL: "Lina's watch" };
+const CLOCKNAME = { kitchen: "Rosa's kitchen clock", morbier: "Hall clock (Morbier)", regulator: "Atelier regulator", wF: "Félix's watch", wB: "Bastien's watch", wD: "Doctor's watch", wL: "Lina's watch" };
+
+/* ---------- dials ---------- */
+function regulatorDial(svg, hh, mmn, opts = {}) {
+  svg.innerHTML = "";
+  const c = 120, R = 112;
+  el("circle", { cx: c, cy: c, r: R, fill: "var(--ground)", stroke: "var(--brass)", "stroke-width": 3 }, svg);
+  el("circle", { cx: c, cy: c, r: R - 8, fill: "none", stroke: "var(--rule)", "stroke-width": 1 }, svg);
+  for (let i = 0; i < 60; i++) {
+    const a = i / 60 * 2 * Math.PI, r1 = R - 8, r2 = i % 5 ? R - 13 : R - 19;
+    el("line", { x1: c + r1 * Math.sin(a), y1: c - r1 * Math.cos(a), x2: c + r2 * Math.sin(a), y2: c - r2 * Math.cos(a), stroke: "var(--ink)", "stroke-width": i % 5 ? .8 : 1.6 }, svg);
+    if (i % 5 === 0) { const t = el("text", { x: c + (R - 31) * Math.sin(a), y: c - (R - 31) * Math.cos(a) + 5, "text-anchor": "middle", "font-family": "var(--f-display)", "font-size": 13, fill: "var(--ink)" }, svg); t.textContent = i === 0 ? "60" : i; }
+  }
+  // hour subdial at 12, seconds subdial at 6: the layout of a real regulator
+  const sub = (cy, n, lab) => { el("circle", { cx: c, cy, r: 22, fill: "none", stroke: "var(--rule)" }, svg);
+    for (let i = 0; i < n; i++) { const a = i / n * 2 * Math.PI; el("line", { x1: c + 22 * Math.sin(a), y1: cy - 22 * Math.cos(a), x2: c + 18 * Math.sin(a), y2: cy - 18 * Math.cos(a), stroke: "var(--soft)", "stroke-width": .8 }, svg); }
+    const t = el("text", { x: c, y: cy + 4, "text-anchor": "middle", "font-family": "var(--f-mono)", "font-size": 6.5, fill: "var(--soft)", "letter-spacing": ".1em" }, svg); t.textContent = lab; };
+  sub(c - 46, 12, "HEURES"); sub(c + 46, 60, "SECONDES");
+  const hand = (cx, cy, len, deg, w, col) => { const g = el("g", { class: "hand", style: `transform-origin:${cx}px ${cy}px;transform:rotate(${deg}deg)` }, svg);
+    el("line", { x1: cx, y1: cy + len * .18, x2: cx, y2: cy - len, stroke: col, "stroke-width": w, "stroke-linecap": "round" }, g);
+    el("circle", { cx, cy, r: w * 1.3, fill: col }, svg); return g; };
+  hand(c, c - 46, 17, (hh % 12) * 30 + mmn * .5, 2, "var(--blue)");
+  hand(c, c + 46, 17, opts.sec ?? 0, 1, "var(--brass)");
+  hand(c, c, R - 22, mmn * 6, 2.4, "var(--blue)");
+  const t = el("text", { x: c, y: c + 15, "text-anchor": "middle", "font-family": "var(--f-mono)", "font-size": 6, fill: "var(--soft)", "letter-spacing": ".18em" }, svg); t.textContent = "A. MONNIER";
+}
+regulatorDial($("#hero-dial"), 10, 5);
+
+function miniDial(svg, minutes) { // shows the face when the temple strikes ten
+  svg.innerHTML = ""; svg.setAttribute("viewBox", "0 0 60 60");
+  el("circle", { cx: 30, cy: 30, r: 27, fill: "var(--ground)", stroke: "var(--brass)", "stroke-width": 1.5 }, svg);
+  for (let i = 0; i < 12; i++) { const a = i / 12 * 2 * Math.PI; el("line", { x1: 30 + 25 * Math.sin(a), y1: 30 - 25 * Math.cos(a), x2: 30 + 21 * Math.sin(a), y2: 30 - 21 * Math.cos(a), stroke: "var(--ink)", "stroke-width": i % 3 ? .8 : 1.6 }, svg); }
+  const t = 22 * 60 + minutes, hh = Math.floor(t / 60) % 12, mm = ((t % 60) + 60) % 60;
+  const h = el("g", { class: "hand", style: `transform-origin:30px 30px;transform:rotate(${hh * 30 + mm * .5}deg)` }, svg); el("line", { x1: 30, y1: 30, x2: 30, y2: 16, stroke: "var(--blue)", "stroke-width": 2, "stroke-linecap": "round" }, h);
+  const mn = el("g", { class: "hand", style: `transform-origin:30px 30px;transform:rotate(${mm * 6}deg)` }, svg); el("line", { x1: 30, y1: 30, x2: 30, y2: 8, stroke: "var(--blue)", "stroke-width": 1.3, "stroke-linecap": "round" }, mn);
+  el("circle", { cx: 30, cy: 30, r: 2, fill: "var(--blue)" }, svg);
+}
+
+/* ---------- house ---------- */
+function house() {
+  const svg = el("svg", { viewBox: "0 0 720 330", role: "img", "aria-label": "Cross-section of the house: atelier on top, library below it, salon, hall, dining room and kitchen on the ground floor, the street in front" });
+  const room = (x, y, w, h, name, note) => { el("rect", { x, y, width: w, height: h, class: "room" }, svg); const t = el("text", { x: x + 10, y: y + 22, class: "rn" }, svg); t.textContent = name; if (note) { const n = el("text", { x: x + 10, y: y + 38 }, svg); n.textContent = note; } };
+  const clock = (x, y, label) => { el("circle", { cx: x, cy: y, r: 9, class: "clk" }, svg); el("line", { x1: x, y1: y, x2: x, y2: y - 6, class: "clk-h" }, svg); el("line", { x1: x, y1: y, x2: x + 4, y2: y + 1, class: "clk-h" }, svg); const t = el("text", { x, y: y + 22, "text-anchor": "middle" }, svg); t.textContent = label; };
+  const X = 110;
+  room(X, 20, 590, 90, "Atelier", "the bench under the long windows"); clock(X + 520, 62, "regulator");
+  for (let i = 0; i < 5; i++) el("rect", { x: X + 4, y: 30 + i * 0, width: 0, height: 0 }, svg);
+  el("line", { x1: X, y1: 30, x2: X, y2: 100, stroke: "var(--blue)", "stroke-width": 4 }, svg);
+  room(X, 110, 300, 90, "Library", "under the atelier's pine floor");
+  room(X + 300, 110, 290, 90, "Landing and bedrooms");
+  room(X, 200, 150, 100, "Salon", "piano, mantel clock"); clock(X + 120, 262, "salon");
+  room(X + 150, 200, 140, 100, "Hall", "stairs"); clock(X + 255, 262, "Morbier");
+  room(X + 290, 200, 150, 100, "Dining room");
+  room(X + 440, 200, 150, 100, "Kitchen"); clock(X + 560, 262, "Rosa's");
+  el("path", { d: `M${X + 160} 298 L${X + 230} 205 M${X + 310} 196 L${X + 380} 116`, class: "stair" }, svg);
+  el("line", { x1: 0, y1: 300, x2: 720, y2: 300, stroke: "var(--ink)", "stroke-width": 1.2 }, svg);
+  const s = el("text", { x: 14, y: 290 }, svg); s.textContent = "STREET";
+  const s2 = el("text", { x: 14, y: 318 }, svg); s2.textContent = "Rue du Progrès · front";
+  const b = el("text", { x: 706, y: 318, "text-anchor": "end" }, svg); b.textContent = "back";
+  const tm = el("text", { x: 14, y: 40 }, svg); tm.textContent = "TEMPLE BELL";
+  const tm2 = el("text", { x: 14, y: 56 }, svg); tm2.textContent = "over the roofs";
+  $("#house").appendChild(svg);
+}
+
+/* ---------- interviews ---------- */
+function interviews() {
+  const who = $("#who");
+  CASE.order.forEach((w, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.role = "tab"; b.id = "tab-" + w;
+    b.textContent = `${i + 1} · ${CASE.people[w]}`; b.onclick = () => show(w); who.appendChild(b);
+  });
+  function show(w) {
+    who.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.id === "tab-" + w));
+    const t = CASE.transcripts[w];
+    $("#transcript").innerHTML = `<p class="head">${esc(t.head)}</p>` + t.lines.map(l =>
+      `<div class="ln ${l.who === "MATTHEY" ? "m" : ""}"><span class="sp">${esc(l.who)}</span><span class="tx">${l.text}</span></div>`).join("");
+    store.set("reg-tab", w);
+  }
+  show(store.get("reg-tab") && CASE.transcripts[store.get("reg-tab")] ? store.get("reg-tab") : CASE.order[0]);
+}
+
+/* ---------- the evaluator ---------- */
+function evaluate(off, aside) {
+  const stmts = CASE.statements.filter(s => !aside.has(s.who));
+  const parent = {}; const find = e => parent[e] && parent[e] !== e ? (parent[e] = find(parent[e])) : e;
+  for (const s of stmts) for (const a of s.atoms) if (a[0] === "gap" && a[3] === 0 && a[4] === 0) { const r1 = find(a[1]), r2 = find(a[2]); if (r1 !== r2) parent[r2] = r1; }
+  const cands = {};
+  const add = (e, c) => { const r = find(e); (cands[r] ||= []).push({ ...c, ev: e }); };
+  add("bell9", { t: m("21:00"), sid: "bell", bell: true }); add("bell10", { t: m("22:00"), sid: "bell", bell: true }); add("bell11", { t: m("23:00"), sid: "bell", bell: true });
+  for (const s of stmts) for (const a of s.atoms) if (a[0] === "read") add(a[1], { t: m(a[3]) - off[a[2]], sid: s.id, clock: a[2], reading: a[3] });
+  const est = {}, discords = [];
+  for (const r in cands) {
+    const cs = cands[r], bell = cs.find(c => c.bell), ts = cs.map(c => c.t);
+    est[r] = bell ? bell.t : Math.round(ts.reduce((a, b) => a + b, 0) / ts.length);
+    const lo = Math.min(...ts), hi = Math.max(...ts);
+    if (hi - lo > 0) discords.push({ kind: "clash", r, cs, spread: hi - lo });
+  }
+  const T = e => est[find(e)];
+  for (const s of stmts) for (const a of s.atoms) {
+    if (a[0] === "gap" && !(a[3] === 0 && a[4] === 0)) {
+      const t1 = T(a[1]), t2 = T(a[2]); if (t1 === undefined || t2 === undefined) continue;
+      const d = t2 - t1; if (d < a[3] || (a[4] !== null && d > a[4])) discords.push({ kind: "gap", s, a, d });
+    }
+    if (a[0] === "during") { const t = T(a[1]), t1 = T(a[2]), t2 = T(a[3]); if ([t, t1, t2].includes(undefined)) continue; if (!(t1 < t && t < t2)) discords.push({ kind: "during", s, a }); }
+  }
+  const iv = [];
+  for (const s of stmts) for (const a of s.atoms) if (a[0] === "at") iv.push({ who: a[1], room: a[2], s: T(a[3]) ?? m("21:12"), e: T(a[4]) ?? m("23:00"), sid: s.id, e1: a[3], e2: a[4] });
+  for (let i = 0; i < iv.length; i++) for (let j = i + 1; j < iv.length; j++) {
+    const A = iv[i], B = iv[j]; if (A.who !== B.who || A.room === B.room) continue;
+    if (A.s < B.e && B.s < A.e) discords.push({ kind: "overlap", A, B });
+  }
+  return { est, cands, discords, iv, find, T };
+}
+
+/* ---------- bench UI ---------- */
+const state = { off: Object.fromEntries(Object.keys(CASE.clocks).map(k => [k, 0])), aside: new Set() };
+try { const s = JSON.parse(store.get("reg-bench") || "null"); if (s) { Object.assign(state.off, s.off); state.aside = new Set(s.aside); } } catch (e) {}
+
+function sidChip(id) { const s = CASE.statements.find(x => x.id === id); return `<span class="sid" title="${esc(s ? SHORTNAME[s.who] + ": " + s.gloss : id)}">${id}</span>`; }
+function offText(v) { return v === 0 ? "exact" : v > 0 ? `${v} min fast` : `${-v} min slow`; }
+
+function pieces() {
+  const box = $("#pieces"); box.innerHTML = "";
+  for (const k of Object.keys(CASE.clocks)) {
+    const d = document.createElement("div"); d.className = "piece";
+    d.innerHTML = `<svg aria-hidden="true"></svg><div><div class="nm">${CLOCKNAME[k]}</div><div class="ctl">
+      <button type="button" aria-label="${CLOCKNAME[k]}: one minute slower">−</button><span class="v" aria-live="polite"></span><button type="button" aria-label="${CLOCKNAME[k]}: one minute faster">+</button></div></div>`;
+    const [minus, plus] = d.querySelectorAll("button");
+    minus.onclick = () => { state.off[k] = Math.max(-45, state.off[k] - 1); refresh(); };
+    plus.onclick = () => { state.off[k] = Math.min(45, state.off[k] + 1); refresh(); };
+    d.dataset.k = k; box.appendChild(d);
+  }
+  const bl = CASE.beliefs[0];
+  $("#belief").innerHTML = `Rosa believes her kitchen clock is a quarter of an hour fast. <button class="btn" type="button" id="use-belief">Set it to 15 fast</button> <button class="btn" type="button" id="reset">Reset the bench</button>`;
+  $("#use-belief").onclick = () => { state.off.kitchen = 15; refresh(); };
+  $("#reset").onclick = () => { for (const k in state.off) state.off[k] = 0; state.aside.clear(); refresh(); };
+  const aside = $("#aside");
+  for (const w of CASE.order) { const b = document.createElement("button"); b.type = "button"; b.textContent = SHORTNAME[w]; b.dataset.w = w;
+    b.onclick = () => { state.aside.has(w) ? state.aside.delete(w) : state.aside.add(w); refresh(); }; aside.appendChild(b); }
+}
+
+function describe(d) {
+  if (d.kind === "clash") {
+    const lab = [...new Set(d.cs.map(c => SHORT[c.ev]))].join(" = ");
+    return `<span class="k">${d.spread} minutes apart</span><strong>${esc(lab[0].toUpperCase() + lab.slice(1))}</strong>: ` +
+      d.cs.map(c => c.bell ? `the temple bell says ${fmt(c.t)}` : `${sidChip(c.sid)} ${c.reading.replace(/^(2[0-3])/, h => h - 12)} on ${CLOCKIN[c.clock]} → ${fmt(c.t)}`).join("; ");
+  }
+  if (d.kind === "gap") { const [, e1, e2, lo, hi] = d.a;
+    const span = hi === null ? `at least ${lo}` : lo === hi ? `${lo}` : `${lo} to ${hi}`;
+    return `<span class="k">Out of order</span>${sidChip(d.s.id)} From “${SHORT[e1]}” to “${SHORT[e2]}” should take ${span} min; on your bench it takes ${d.d}.`; }
+  if (d.kind === "during") return `<span class="k">Out of order</span>${sidChip(d.s.id)} “${SHORT[d.a[1]]}” should fall between “${SHORT[d.a[2]]}” and “${SHORT[d.a[3]]}”.`;
+  if (d.kind === "overlap") return `<span class="k">Two places at once</span>${SHORTNAME[d.A.who]} is in the ${ROOM[d.A.room]} (${sidChip(d.A.sid)}) and the ${ROOM[d.B.room]} (${sidChip(d.B.sid)}) between ${fmt(Math.max(d.A.s, d.B.s))} and ${fmt(Math.min(d.A.e, d.B.e))}.`;
+}
+
+function drawTimeline(box, R, opts = {}) {
+  const W = 980, L = 120, t0 = m("20:35"), t1 = m("23:10"), x = t => L + (t - t0) / (t1 - t0) * (W - L - 20);
+  const rows = ["sounds", ...CASE.order]; const RH = 34, top = 30, H = top + rows.length * RH + 10;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Timeline of the evening in true time" });
+  for (let t = m("21:00"); t <= m("23:10"); t += 10) {
+    el("line", { x1: x(t), y1: top - 6, x2: x(t), y2: H - 6, class: "grid", "stroke-opacity": t % 30 ? .45 : 1 }, svg);
+    if (t % 30 === 0) { const tx = el("text", { x: x(t), y: 16, "text-anchor": "middle" }, svg); tx.textContent = fmt(t); }
+  }
+  rows.forEach((r, i) => { const y = top + i * RH; const tx = el("text", { x: 8, y: y + 21, class: "rowlab" }, svg); tx.textContent = r === "sounds" ? "Bells & sounds" : SHORTNAME[r]; if (r !== "sounds" && opts.aside?.has(r)) { tx.setAttribute("text-decoration", "line-through"); tx.setAttribute("fill-opacity", .5); } });
+  const rowOf = ev => ({ d_out: "D", d_back: "D", l_down: "L", l_kitchen: "L", b_out: "B", b_in: "B", b_lib: "B" })[ev] || "sounds";
+  const yOf = w => top + rows.indexOf(w) * RH;
+  // presence bars
+  for (const v of R.iv) { const y = yOf(v.who); if (y === undefined || v.e <= v.s) continue;
+    el("rect", { x: x(v.s), y: y + 6, width: Math.max(1, x(v.e) - x(v.s)), height: 22, class: "bar" }, svg);
+    if (x(v.e) - x(v.s) > 46) { const t = el("text", { x: x(v.s) + 5, y: y + 21, class: "barlab" }, svg); t.textContent = ROOM[v.room]; } }
+  // piano band
+  const ps = R.T("p_start"), pe = R.T("p_stop");
+  if (ps !== undefined && pe !== undefined && pe > ps) { el("rect", { x: x(ps), y: top + 4, width: x(pe) - x(ps), height: 26, class: "piano" }, svg);
+    const t = el("text", { x: x(ps) + 3, y: top + 13 }, svg); t.textContent = "piano"; }
+  // event marks
+  const bad = new Set(R.discords.filter(d => d.kind === "clash").map(d => d.r));
+  for (const r in R.cands) { const cs = R.cands[r]; const ev = cs[0].ev; const y = yOf(rowOf(cs.find(c => rowOf(c.ev) !== "sounds")?.ev || ev)) + 17;
+    const ts = cs.map(c => c.t), lo = Math.min(...ts), hi = Math.max(...ts);
+    if (hi > lo) el("line", { x1: x(lo), y1: y, x2: x(hi), y2: y, class: "clash" }, svg);
+    for (const c of cs) { const g = el("rect", { x: x(c.t) - 3.5, y: y - 3.5, width: 7, height: 7, transform: `rotate(45 ${x(c.t)} ${y})`, class: "mk" + (bad.has(r) ? " bad" : "") }, svg);
+      const tt = el("title", {}, g); tt.textContent = `${SHORT[c.ev]}: ${c.bell ? "temple bell" : c.sid + ", " + CLOCKNAME[c.clock] + " " + c.reading} → ${fmt(c.t)}`; }
+  }
+  const ch = R.T("chime");
+  if (ch !== undefined) { el("line", { x1: x(ch), y1: top - 4, x2: x(ch), y2: H - 6, class: "chime" }, svg);
+    const t = el("text", { x: x(ch) + 4, y: H - 10, class: "chimelab" }, svg); t.textContent = "repeater " + fmt(ch); }
+  box.innerHTML = ""; box.appendChild(svg);
+}
+
+function refresh() {
+  document.querySelectorAll(".piece").forEach(p => { const k = p.dataset.k; p.querySelector(".v").textContent = offText(state.off[k]); miniDial(p.querySelector("svg"), state.off[k]); });
+  document.querySelectorAll("#aside button").forEach(b => b.setAttribute("aria-pressed", state.aside.has(b.dataset.w)));
+  const R = evaluate(state.off, state.aside);
+  const st = $("#status"), n = R.discords.length;
+  if (n === 0) { st.className = "status ok"; st.textContent = state.aside.size ? `The house runs true with ${[...state.aside].map(w => SHORTNAME[w]).join(" and ")} set aside.` : "The house runs true. Every account agrees."; }
+  else { st.className = "status bad"; st.textContent = `${n} disagreement${n > 1 ? "s" : ""} on your bench.`; }
+  if (state.aside.size > 1) st.textContent += " The inspector holds that only one witness lied.";
+  $("#discords").innerHTML = R.discords.map(d => `<li>${describe(d)}</li>`).join("") || `<li class="dim">None.</li>`;
+  const ch = R.T("chime");
+  $("#where-h").textContent = ch === undefined ? "When the repeater sounded" : `When the repeater sounded, at ${fmt(ch)} on your bench`;
+  $("#where").innerHTML = CASE.order.map(w => {
+    if (state.aside.has(w)) return `<tr><td>${SHORTNAME[w]}</td><td class="dim">set aside</td></tr>`;
+    const hit = ch === undefined ? [] : R.iv.filter(v => v.who === w && v.s <= ch && ch <= v.e);
+    return `<tr><td>${SHORTNAME[w]}</td><td>${hit.length ? hit.map(v => `${ROOM[v.room]} ${sidChip(v.sid)}`).join(", ") : '<span class="none">no account places them</span>'}</td></tr>`;
+  }).join("");
+  drawTimeline($("#timeline"), R, { aside: state.aside });
+  store.set("reg-bench", JSON.stringify({ off: state.off, aside: [...state.aside] }));
+}
+
+/* ---------- accuse + caseback ---------- */
+function accuse() {
+  const sel = $("#acc-who"); sel.innerHTML = `<option value="">Choose…</option>` + CASE.order.map(w => `<option value="${w}">${CASE.people[w]}</option>`).join("");
+  $("#accuse-form").addEventListener("submit", ev => { ev.preventDefault();
+    const w = sel.value, t = $("#acc-time").value.trim().replace(".", ":");
+    const v = $("#verdict");
+    if (!w || !/^\d{1,2}:\d{2}$/.test(t)) { v.textContent = "Choose a person and give a time as HH:MM."; return; }
+    const tm = m(t.padStart(5, "0"));
+    const okW = w === CASE.solution.murderer, okT = tm === CASE.solution.attack;
+    if (okW && okT) { v.textContent = "Correct. The movement is open below."; openCaseback(); }
+    else if (okW) v.textContent = `${SHORTNAME[w]} is right, but the blow did not fall at ${t}. Check which clock you trusted.`;
+    else if (okT) v.textContent = `The minute is right. ${SHORTNAME[w]} did not lie to the inspector.`;
+    else v.textContent = "No. Go back to the bench.";
+  });
+  let armed = false;
+  $("#giveup-btn").onclick = () => { if (!armed) { armed = true; $("#giveup-btn").textContent = "Show me the answer"; return; } openCaseback(); };
+}
+function openCaseback() {
+  const cb = $("#caseback"); cb.hidden = false; store.set("reg-open", "1");
+  if (!cb.dataset.built) { cb.dataset.built = 1; buildCaseback(); }
+  cb.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+function buildCaseback() {
+  $("#trains").innerHTML = CASE.order.filter(w => w !== CASE.solution.murderer).map(w => {
+    const tr = CASE.trains[w];
+    return `<div class="train col"><h4>If ${CASE.people[w]} were the murderer · ${CASE.ntrains[w]}${CASE.ntrains[w] >= 12 ? "+" : ""} minimal contradictions found</h4>` +
+      tr.slice(0, 2).map((chain, i) => `<p class="dim" style="margin:.3rem 0">${i ? "Another:" : "The shortest:"}</p><ol>` + chain.map(id => { const s = CASE.statements.find(x => x.id === id); return `<li>${sidChip(id)} ${SHORTNAME[s.who]}: ${esc(s.gloss)}</li>`; }).join("") + "</ol>").join("") + "</div>";
+  }).join("");
+  const R = evaluate(CASE.truth.off, new Set([CASE.solution.murderer]));
+  drawTimeline($("#truth-tl"), R, { aside: new Set([CASE.solution.murderer]) });
+  $("#letter").textContent = CASE.confession;
+  const S = CASE.stats || {}, det = CASE.detectives || {};
+  const detRows = Object.entries(det).map(([mdl, c]) => { const n = Object.values(c).reduce((a, b) => a + b, 0);
+    const right = c["Dr Casimir Vauthier at 22:38"] || 0;
+    return `<tr><td>${mdl === "haiku" ? "Claude Haiku 5.5" : mdl === "sonnet" ? "Claude Sonnet 5.5" : mdl}</td><td class="n">${right} / ${n}</td><td>${Object.entries(c).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${esc(k)} (${v})`).join("; ")}</td></tr>`; }).join("");
+  $("#made").innerHTML = (S.intro || "") + (S.html || "") + (detRows ? `<p>Each detective read the whole dossier once and answered. "Right" means both the person and the minute.</p><div class="statwrap"><table class="stats"><tr><th>Detective</th><th>Right</th><th>Answers</th></tr>${detRows}</table></div>` : "");
+}
+
+/* ---------- boot ---------- */
+house(); $("#premise").innerHTML = CASE.premise; interviews(); pieces(); refresh(); accuse();
+if (store.get("reg-open") === "1") { const cb = $("#caseback"); cb.hidden = false; cb.dataset.built = 1; buildCaseback(); }
+const links = [...document.querySelectorAll("nav.tabs a")];
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); }), { rootMargin: "-40% 0px -55% 0px" });
+document.querySelectorAll("section").forEach(s => io.observe(s));
+</script>
