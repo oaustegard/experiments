@@ -22,8 +22,8 @@ from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
 from hcc.parser.vector_shufflevector import lower_shufflevector
 from hcc.sema.compat import is_compatible
-from hcc.sema.constexpr import builtin_constant_p, try_eval_const
-from hcc.sema.conversions import new_cast
+from hcc.sema.constexpr import NotConstant, builtin_constant_p, eval_float, try_eval_const
+from hcc.sema.conversions import common_type, new_cast
 from hcc import typesys as T
 
 SPECIAL_BUILTINS = frozenset("""
@@ -42,7 +42,7 @@ __builtin_isinf __builtin_isnan __builtin_isfinite
 __builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
 __builtin_isless __builtin_islessequal __builtin_islessgreater
 __builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
-__builtin_object_size
+__builtin_object_size __builtin_complex
 """.split())
 
 # SSE4.2 CRC32 builtins: (crc, value) -> CRC-32C accumulated over the value's width.
@@ -80,6 +80,14 @@ def floatn_libc_name(name: str) -> str:
         if name.endswith(tail) and len(name) > len(tail):
             return name[:-len(tail)] + sfx
     return name
+
+
+def _is_constant_operand(expr) -> bool:
+    try:
+        eval_float(expr)
+        return True
+    except NotConstant:
+        return try_eval_const(expr) is not None
 
 
 class BuiltinParseMixin:
@@ -321,6 +329,17 @@ class BuiltinParseMixin:
         # side effects; the result is the first argument.
         seq = self.typed(N.Comma(tok.loc, args[1], args[0]))
         return new_cast(seq, T.TY_LONG)
+
+    def _b_complex(self, tok):
+        """__builtin_complex(re, im): _Complex is not modelled, so this yields the real part
+        converted to the common real type. A non-constant imaginary operand is still
+        evaluated for its side effects; a constant one is dropped."""
+        re, im = self._args(2)
+        ty = common_type(re.ty, im.ty)
+        val = new_cast(re, ty)
+        if not _is_constant_operand(im):
+            val = N.Comma(tok.loc, N.Cast(tok.loc, im, ty=T.TY_VOID), val, ty=ty)
+        return val
 
     def _b_constant_p(self, tok):
         args = self._args(1)
