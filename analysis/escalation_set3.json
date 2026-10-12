@@ -1,0 +1,607 @@
+{
+ "base": "2eefd0e71e155c4df4ac1843d426bf2681fd87d9",
+ "items": [
+  {
+   "key": "c00",
+   "signature": "compare: stdout line <n>: expected '<id>' got '<id>'",
+   "tests": [
+    "doom/demo/demo1",
+    "doom/demo/demo2",
+    "doom/demo/demo3"
+   ],
+   "members": [
+    "doom/demo/demo1",
+    "doom/demo/demo2",
+    "doom/demo/demo3",
+    "doom/src/p_mobj.c",
+    "doom/src/p_pspr.c",
+    "quickjs/js/builtin_08_bigint.js",
+    "tcc/t2/134_double_to_signed.c"
+   ],
+   "reasons": {
+    "doom/demo/demo1": "stdout line 43: expected 'frame 100 hash f5f6dfa720ba329b' got 'frame 100 hash a07c819c7aa33093'",
+    "doom/demo/demo2": "stdout line 43: expected 'frame 100 hash 564d48e94cacb8db' got 'frame 100 hash 7aef6ba7637a5feb'",
+    "doom/demo/demo3": "stdout line 44: expected 'frame 150 hash e185c15c59489bdb' got 'frame 150 hash d541bb006e75dc23'"
+   }
+  },
+  {
+   "key": "c01",
+   "signature": "parse: error: [parse] too many arguments to function",
+   "tests": [
+    "gcc-dg-compile/builtins-1.c",
+    "gcc-dg-compile/pr59717.c",
+    "gcc-dg-compile/torture/pr120951-1.c"
+   ],
+   "members": [
+    "gcc-dg-compile/builtins-1.c",
+    "gcc-dg-compile/pr59717.c",
+    "gcc-dg-compile/torture/pr120951-1.c",
+    "gcc-dg-compile/torture/pr71020.c",
+    "gcc-dg-compile/tree-ssa/backprop-4.c",
+    "gcc-dg-compile/tree-ssa/backprop-5.c",
+    "gcc-dg-compile/tree-ssa/pr125214.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/builtins-1.c": "error: [parse] too many arguments to function",
+    "gcc-dg-compile/pr59717.c": "error: [parse] too many arguments to function",
+    "gcc-dg-compile/torture/pr120951-1.c": "error: [parse] too many arguments to function"
+   }
+  },
+  {
+   "key": "c02",
+   "signature": "timeout: compile >60s",
+   "tests": [
+    "gcc-dg-compile/float-range-1.c",
+    "gcc-dg-compile/float-range-3.c",
+    "gcc-dg-compile/float-range-4.c"
+   ],
+   "members": [
+    "gcc-dg-compile/float-range-1.c",
+    "gcc-dg-compile/float-range-3.c",
+    "gcc-dg-compile/float-range-4.c",
+    "gcc-dg-compile/float-range-5.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/float-range-1.c": "compile >60s",
+    "gcc-dg-compile/float-range-3.c": "compile >60s",
+    "gcc-dg-compile/float-range-4.c": "compile >60s"
+   }
+  },
+  {
+   "key": "c03",
+   "signature": "sema: error: [sema] invalid operands to binary + ('int' and '<id>')",
+   "tests": [
+    "gcc-dg-compile/c23-complex-4.c"
+   ],
+   "members": [
+    "gcc-dg-compile/c23-complex-4.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/c23-complex-4.c": "error: [sema] invalid operands to binary + ('int' and '_Complex float')"
+   }
+  },
+  {
+   "key": "c04",
+   "signature": "parse: error: [parse] expected ',' before ')'",
+   "tests": [
+    "gcc-dg-compile/cpp/ucnid-7-utf8.c"
+   ],
+   "members": [
+    "gcc-dg-compile/cpp/ucnid-7-utf8.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/cpp/ucnid-7-utf8.c": "error: [parse] expected ',' before ')'"
+   }
+  },
+  {
+   "key": "c05",
+   "signature": "parse: error: [parse] nested redefinition of '<id>'",
+   "tests": [
+    "gcc-dg-compile/gnu23-tag-composite-7.c"
+   ],
+   "members": [
+    "gcc-dg-compile/gnu23-tag-composite-7.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/gnu23-tag-composite-7.c": "error: [parse] nested redefinition of 'struct fo2'"
+   }
+  },
+  {
+   "key": "c06",
+   "signature": "parse: error: [parse] __builtin_mul_overflow: signed __int128 result with unsigned __int128 operands is not supported",
+   "tests": [
+    "gcc-dg-compile/pr85414.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pr85414.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pr85414.c": "error: [parse] __builtin_mul_overflow: signed __int128 result with unsigned __int128 operands is not supported"
+   }
+  },
+  {
+   "key": "c07",
+   "signature": "parse: error: [parse] too few arguments to function",
+   "tests": [
+    "gcc-dg-compile/pr89520-1.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pr89520-1.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pr89520-1.c": "error: [parse] too few arguments to function"
+   }
+  },
+  {
+   "key": "c08",
+   "signature": "assemble: Error: symbol `vfoo1d' can not be both weak and common",
+   "tests": [
+    "gcc-dg-compile/weak/weak-4.c"
+   ],
+   "members": [
+    "gcc-dg-compile/weak/weak-4.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/weak/weak-4.c": "Error: symbol `vfoo1d' can not be both weak and common"
+   }
+  },
+  {
+   "key": "c09",
+   "signature": "run: killed by SIGSEGV",
+   "tests": [
+    "llvm-single/UnitTests/conditional-gnu-ext.c"
+   ],
+   "members": [
+    "llvm-single/UnitTests/conditional-gnu-ext.c"
+   ],
+   "reasons": {
+    "llvm-single/UnitTests/conditional-gnu-ext.c": "killed by SIGSEGV"
+   }
+  },
+  {
+   "key": "c10",
+   "signature": "codegen: mbedtls build: lib/base64: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/base64.c"
+   ],
+   "members": [
+    "mbedtls/src/base64.c"
+   ],
+   "reasons": {
+    "mbedtls/src/base64.c": "mbedtls build: lib/base64: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c11",
+   "signature": "codegen: mbedtls build: lib/bignum: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/bignum.c"
+   ],
+   "members": [
+    "mbedtls/src/bignum.c"
+   ],
+   "reasons": {
+    "mbedtls/src/bignum.c": "mbedtls build: lib/bignum: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c12",
+   "signature": "codegen: mbedtls build: lib/bignum_core: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/bignum_core.c"
+   ],
+   "members": [
+    "mbedtls/src/bignum_core.c"
+   ],
+   "reasons": {
+    "mbedtls/src/bignum_core.c": "mbedtls build: lib/bignum_core: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c13",
+   "signature": "codegen: mbedtls build: lib/cipher: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/cipher.c"
+   ],
+   "members": [
+    "mbedtls/src/cipher.c"
+   ],
+   "reasons": {
+    "mbedtls/src/cipher.c": "mbedtls build: lib/cipher: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c14",
+   "signature": "codegen: mbedtls build: lib/cmac: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/cmac.c"
+   ],
+   "members": [
+    "mbedtls/src/cmac.c"
+   ],
+   "reasons": {
+    "mbedtls/src/cmac.c": "mbedtls build: lib/cmac: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c15",
+   "signature": "codegen: mbedtls build: lib/constant_time: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/constant_time.c"
+   ],
+   "members": [
+    "mbedtls/src/constant_time.c"
+   ],
+   "reasons": {
+    "mbedtls/src/constant_time.c": "mbedtls build: lib/constant_time: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c16",
+   "signature": "codegen: mbedtls build: lib/ecp_curves: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/ecp_curves.c"
+   ],
+   "members": [
+    "mbedtls/src/ecp_curves.c"
+   ],
+   "reasons": {
+    "mbedtls/src/ecp_curves.c": "mbedtls build: lib/ecp_curves: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c17",
+   "signature": "codegen: mbedtls build: lib/nist_kw: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/nist_kw.c"
+   ],
+   "members": [
+    "mbedtls/src/nist_kw.c"
+   ],
+   "reasons": {
+    "mbedtls/src/nist_kw.c": "mbedtls build: lib/nist_kw: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c18",
+   "signature": "codegen: mbedtls build: lib/rsa: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/rsa.c"
+   ],
+   "members": [
+    "mbedtls/src/rsa.c"
+   ],
+   "reasons": {
+    "mbedtls/src/rsa.c": "mbedtls build: lib/rsa: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c19",
+   "signature": "codegen: mbedtls build: lib/ssl_msg: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/ssl_msg.c"
+   ],
+   "members": [
+    "mbedtls/src/ssl_msg.c"
+   ],
+   "reasons": {
+    "mbedtls/src/ssl_msg.c": "mbedtls build: lib/ssl_msg: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c20",
+   "signature": "codegen: mbedtls build: lib/ssl_tls12_server: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/ssl_tls12_server.c"
+   ],
+   "members": [
+    "mbedtls/src/ssl_tls12_server.c"
+   ],
+   "reasons": {
+    "mbedtls/src/ssl_tls12_server.c": "mbedtls build: lib/ssl_tls12_server: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c21",
+   "signature": "codegen: mbedtls build: tests/bignum_helpers: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/src/tests/bignum_helpers.c"
+   ],
+   "members": [
+    "mbedtls/src/tests/bignum_helpers.c"
+   ],
+   "reasons": {
+    "mbedtls/src/tests/bignum_helpers.c": "mbedtls build: tests/bignum_helpers: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c22",
+   "signature": "codegen: mbedtls build: suite/base64: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/suite/base64"
+   ],
+   "members": [
+    "mbedtls/suite/base64"
+   ],
+   "reasons": {
+    "mbedtls/suite/base64": "mbedtls build: suite/base64: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c23",
+   "signature": "codegen: mbedtls build: suite/bignum.generated: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/suite/bignum.generated"
+   ],
+   "members": [
+    "mbedtls/suite/bignum.generated"
+   ],
+   "reasons": {
+    "mbedtls/suite/bignum.generated": "mbedtls build: suite/bignum.generated: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c24",
+   "signature": "codegen: mbedtls build: suite/bignum.misc: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/suite/bignum.misc"
+   ],
+   "members": [
+    "mbedtls/suite/bignum.misc"
+   ],
+   "reasons": {
+    "mbedtls/suite/bignum.misc": "mbedtls build: suite/bignum.misc: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c25",
+   "signature": "codegen: mbedtls build: suite/bignum_core.generated: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/suite/bignum_core.generated"
+   ],
+   "members": [
+    "mbedtls/suite/bignum_core.generated"
+   ],
+   "reasons": {
+    "mbedtls/suite/bignum_core.generated": "mbedtls build: suite/bignum_core.generated: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c26",
+   "signature": "codegen: mbedtls build: suite/bignum_core.misc: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/suite/bignum_core.misc"
+   ],
+   "members": [
+    "mbedtls/suite/bignum_core.misc"
+   ],
+   "reasons": {
+    "mbedtls/suite/bignum_core.misc": "mbedtls build: suite/bignum_core.misc: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c27",
+   "signature": "codegen: mbedtls build: suite/bignum_random: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/suite/bignum_random"
+   ],
+   "members": [
+    "mbedtls/suite/bignum_random"
+   ],
+   "reasons": {
+    "mbedtls/suite/bignum_random": "mbedtls build: suite/bignum_random: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c28",
+   "signature": "codegen: mbedtls build: suite/constant_time: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/suite/constant_time"
+   ],
+   "members": [
+    "mbedtls/suite/constant_time"
+   ],
+   "reasons": {
+    "mbedtls/suite/constant_time": "mbedtls build: suite/constant_time: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c29",
+   "signature": "codegen: mbedtls build: suite/ecp: error: [codegen] codegen: unknown asm label operand '<id>'",
+   "tests": [
+    "mbedtls/suite/ecp"
+   ],
+   "members": [
+    "mbedtls/suite/ecp"
+   ],
+   "reasons": {
+    "mbedtls/suite/ecp": "mbedtls build: suite/ecp: error: [codegen] codegen: unknown asm label operand 'x'"
+   }
+  },
+  {
+   "key": "c30",
+   "signature": "compare: exit <n>, expected <n> at <eval> (more_28_recursion_depth_tail.js:<n>:<n>)",
+   "tests": [
+    "quickjs/js/more_28_recursion_depth_tail.js"
+   ],
+   "members": [
+    "quickjs/js/more_28_recursion_depth_tail.js"
+   ],
+   "reasons": {
+    "quickjs/js/more_28_recursion_depth_tail.js": "exit 1, expected 0 at <eval> (more_28_recursion_depth_tail.js:1:82)"
+   }
+  },
+  {
+   "key": "c31",
+   "signature": "compare: exit <n>, expected <n> at <eval> (program_10_closures_in_loops_memory.js:<n>:<n>)",
+   "tests": [
+    "quickjs/js/program_10_closures_in_loops_memory.js"
+   ],
+   "members": [
+    "quickjs/js/program_10_closures_in_loops_memory.js"
+   ],
+   "reasons": {
+    "quickjs/js/program_10_closures_in_loops_memory.js": "exit 1, expected 0 at <eval> (program_10_closures_in_loops_memory.js:2:100)"
+   }
+  },
+  {
+   "key": "c32",
+   "signature": "run: case did not ...",
+   "tests": [
+    "redis/case/unit.acl/0036_ACLs-can-include-single-subcommands",
+    "redis/case/unit.acl/0037_ACLs-can-exclude-single-subcommands-case-1",
+    "redis/case/unit.acl/0038_ACLs-can-exclude-single-subcommands-case-2"
+   ],
+   "members": [
+    "redis/case/unit.acl/0036_ACLs-can-include-single-subcommands",
+    "redis/case/unit.acl/0037_ACLs-can-exclude-single-subcommands-case-1",
+    "redis/case/unit.acl/0038_ACLs-can-exclude-single-subcommands-case-2",
+    "redis/case/unit.acl/0039_ACLs-cannot-include-a-subcommand-with-a-specific",
+    "redis/case/unit.acl/0040_ACLs-cannot-exclude-or-include-a-container-comma",
+    "redis/case/unit.acl/0041_ACLs-cannot-exclude-or-include-a-container-comma",
+    "redis/case/unit.acl/0042_ACLs-including-of-a-type-includes-also-subcomman",
+    "redis/case/unit.acl/0043_ACLs-can-block-SELECT-of-all-but-a-specific-DB",
+    "redis/case/unit.acl/0044_ACLs-can-block-all-DEBUG-subcommands-except-one",
+    "redis/case/unit.acl/0045_ACLs-set-can-include-subcommands-if-already-full",
+    "redis/case/unit.acl/0046_ACLs-set-can-exclude-subcommands-if-already-full",
+    "redis/case/unit.acl/0047_ACL-SETUSER-RESET-reverting-to-default-newly-cre",
+    "redis/case/unit.acl/0048_ACL-GETUSER-is-able-to-translate-back-command-pe",
+    "redis/case/unit.acl/0049_ACL-GETUSER-provides-reasonable-results",
+    "redis/case/unit.acl/0050_ACL-GETUSER-provides-correct-results",
+    "redis/case/unit.acl/0051_ACL-CAT-with-illegal-arguments",
+    "redis/case/unit.acl/0052_ACL-CAT-without-category-list-all-categories",
+    "redis/case/unit.acl/0053_ACL-CAT-category-list-all-commands-subcommands-t",
+    "redis/case/unit.acl/0054_ACL-requires-explicit-permission-for-scripting-f",
+    "redis/case/unit.acl/0055_ACL-5998-regression-memory-leaks-adding-removing"
+   ],
+   "reasons": {
+    "redis/case/unit.acl/0036_ACLs-can-include-single-subcommands": "case did not run (37 of 102 cases ran, exit 1) \" (procedure \"test_client_main\" line 10) invoked from within \"test_client_main $::test_server_port \" Killing s...",
+    "redis/case/unit.acl/0037_ACLs-can-exclude-single-subcommands-case-1": "case did not run (37 of 102 cases ran, exit 1) \" (procedure \"test_client_main\" line 10) invoked from within \"test_client_main $::test_server_port \" Killing s...",
+    "redis/case/unit.acl/0038_ACLs-can-exclude-single-subcommands-case-2": "case did not run (37 of 102 cases ran, exit 1) \" (procedure \"test_client_main\" line 10) invoked from within \"test_client_main $::test_server_port \" Killing s..."
+   }
+  }
+ ],
+ "sample": [
+  "c-testsuite/00012.c",
+  "c-testsuite/00026.c",
+  "c-testsuite/00034.c",
+  "c-testsuite/00049.c",
+  "c-testsuite/00057.c",
+  "c-testsuite/00064.c",
+  "c-testsuite/00070.c",
+  "c-testsuite/00083.c",
+  "c-testsuite/00084.c",
+  "c-testsuite/00120.c",
+  "c-testsuite/00125.c",
+  "c-testsuite/00129.c",
+  "c-testsuite/00148.c",
+  "c-testsuite/00153.c",
+  "c-testsuite/00161.c",
+  "c-testsuite/00167.c",
+  "c-testsuite/00171.c",
+  "c-testsuite/00178.c",
+  "c-testsuite/00181.c",
+  "c-testsuite/00186.c",
+  "c-testsuite/00195.c",
+  "c-testsuite/00218.c",
+  "chibicc/decl.c",
+  "chibicc/enum.c",
+  "chibicc/vla.c",
+  "gcc-torture/20000113-1.c",
+  "gcc-torture/20000412-5.c",
+  "gcc-torture/20000603-1.c",
+  "gcc-torture/20000801-1.c",
+  "gcc-torture/20000801-3.c",
+  "gcc-torture/20001112-1.c",
+  "gcc-torture/20001130-2.c",
+  "gcc-torture/20001229-1.c",
+  "gcc-torture/20011019-1.c",
+  "gcc-torture/20011219-1.c",
+  "gcc-torture/20020127-1.c",
+  "gcc-torture/20021120-2.c",
+  "gcc-torture/20030109-1.c",
+  "gcc-torture/20030224-2.c",
+  "gcc-torture/20040313-1.c",
+  "gcc-torture/20040331-1.c",
+  "gcc-torture/20040709-3.c",
+  "gcc-torture/20050111-1.c",
+  "gcc-torture/20060110-1.c",
+  "gcc-torture/20060127-1.c",
+  "gcc-torture/20060905-1.c",
+  "gcc-torture/20080719-1.c",
+  "gcc-torture/20081103-1.c",
+  "gcc-torture/20090623-1.c",
+  "gcc-torture/20140425-1.c",
+  "gcc-torture/20180131-1.c",
+  "gcc-torture/20180226-1.c",
+  "gcc-torture/920710-1.c",
+  "gcc-torture/930429-1.c",
+  "gcc-torture/930614-2.c",
+  "gcc-torture/931004-12.c",
+  "gcc-torture/931004-9.c",
+  "gcc-torture/931110-2.c",
+  "gcc-torture/940122-1.c",
+  "gcc-torture/950710-1.c",
+  "gcc-torture/960219-1.c",
+  "gcc-torture/960405-1.c",
+  "gcc-torture/980223.c",
+  "gcc-torture/980506-3.c",
+  "gcc-torture/980608-1.c",
+  "gcc-torture/981001-1.c",
+  "gcc-torture/990208-1.c",
+  "gcc-torture/990513-1.c",
+  "gcc-torture/991019-1.c",
+  "gcc-torture/991216-2.c",
+  "gcc-torture/991221-1.c",
+  "gcc-torture/bitops-1.c",
+  "gcc-torture/cmpsi-1.c",
+  "gcc-torture/divcmp-4.c",
+  "gcc-torture/fprintf-2.c",
+  "gcc-torture/frame-address.c",
+  "gcc-torture/loop-2d.c",
+  "gcc-torture/loop-ivopts-1.c",
+  "gcc-torture/mayalias-2.c",
+  "gcc-torture/pr106032.c",
+  "gcc-torture/pr110115.c",
+  "gcc-torture/pr110817-1.c",
+  "gcc-torture/pr110817-2.c",
+  "gcc-torture/pr119291.c",
+  "gcc-torture/pr15262-1.c",
+  "gcc-torture/pr17133.c",
+  "gcc-torture/pr20466-1.c",
+  "gcc-torture/pr22429.c",
+  "gcc-torture/pr35456.c",
+  "gcc-torture/pr36077.c",
+  "gcc-torture/pr44942.c",
+  "gcc-torture/pr47925.c",
+  "gcc-torture/pr48717.c",
+  "gcc-torture/pr49123.c",
+  "gcc-torture/pr49161.c",
+  "gcc-torture/pr54985.c",
+  "gcc-torture/pr56962.c",
+  "gcc-torture/pr57281.c",
+  "gcc-torture/pr57568.c",
+  "gcc-torture/pr57877.c",
+  "gcc-torture/pr58831.c",
+  "gcc-torture/pr60003.c",
+  "gcc-torture/pr68143_1.c",
+  "gcc-torture/pr69320-1.c",
+  "gcc-torture/pr71550.c",
+  "gcc-torture/pr80421.c",
+  "gcc-torture/pr83477.c",
+  "gcc-torture/pr85582-1.c",
+  "gcc-torture/pr85582-2.c",
+  "gcc-torture/pr85582-3.c",
+  "gcc-torture/pr93744-2.c",
+  "gcc-torture/pr95731.c",
+  "gcc-torture/pr98853-2.c",
+  "gcc-torture/pr99079.c",
+  "gcc-torture/shiftdi.c",
+  "gcc-torture/stdarg-4.c",
+  "gcc-torture/struct-ret-1.c",
+  "gcc-torture/usmul.c",
+  "gcc-torture/va-arg-16.c",
+  "smoke/29_bitfields.c"
+ ],
+ "selection": "tests still failing after the swarm stopped dispatching (every suite except reject-gcc-dg), 2026-10-12 16:20Z"
+}
