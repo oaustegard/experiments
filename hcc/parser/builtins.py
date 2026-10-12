@@ -1,4 +1,126 @@
-"""Parsing of __builtin_* that take types or are special (va_arg, offsetof, types_compatible_p, ...).
+"""Parsing of special __builtin_* forms (those taking types, or needing
+compile-time evaluation). Plain library builtins such as __builtin_memcpy
+are handled in primary.py by calling the libc function of the same name.
 
-TODO: not implemented yet (skeleton).
+BuiltinParseMixin.parse_builtin(name_tok) -> Expr
+To add one: put the name in SPECIAL_BUILTINS and add a `_b_<name>` method
+(name without the `__builtin_` prefix); lower it in codegen/builtins.py if it
+produces a BuiltinCall.
 """
+from __future__ import annotations
+
+from hcc import nodes as N
+from hcc.parser.structs import find_member
+from hcc.sema.compat import is_compatible
+from hcc.sema.constexpr import try_eval_const
+from hcc.sema.conversions import new_cast
+from hcc import typesys as T
+
+SPECIAL_BUILTINS = frozenset("""
+__builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin_offsetof
+__builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
+__builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
+""".split())
+
+
+class BuiltinParseMixin:
+
+    def parse_builtin(self, tok):
+        name = tok.text[len("__builtin_"):]
+        self.expect("(")
+        node = getattr(self, "_b_" + name)(tok)
+        self.expect(")")
+        return node
+
+    def _args(self, n=None):
+        args = []
+        while not self.at(")"):
+            if args:
+                self.expect(",")
+            args.append(self.typed(self.assign()))
+        if n is not None and len(args) != n:
+            self.error(f"builtin expects {n} arguments")
+        return args
+
+    def _call(self, tok, name, args, ty, type_arg=None):
+        return N.BuiltinCall(tok.loc, name, args, type_arg, ty=ty)
+
+    def _b_va_start(self, tok):
+        args = self._args()
+        return self._call(tok, "va_start", args[:1], T.TY_VOID)
+
+    def _b_va_end(self, tok):
+        self._args()
+        return N.Cast(tok.loc, N.IntLit(tok.loc, 0, ty=T.TY_INT), ty=T.TY_VOID)
+
+    def _b_va_copy(self, tok):
+        return self._call(tok, "va_copy", self._args(2), T.TY_VOID)
+
+    def _b_va_arg(self, tok):
+        ap = self.typed(self.assign())
+        self.expect(",")
+        ty = self.typename()
+        return self._call(tok, "va_arg", [ap], ty, ty)
+
+    def _b_alloca(self, tok):
+        args = [new_cast(a, T.TY_ULONG) for a in self._args(1)]
+        return self._call(tok, "alloca", args, T.pointer_to(T.TY_VOID))
+
+    def _b_expect(self, tok):
+        args = self._args(2)
+        return new_cast(args[0], T.TY_LONG)
+
+    def _b_constant_p(self, tok):
+        args = self._args(1)
+        return N.IntLit(tok.loc, int(try_eval_const(args[0]) is not None), ty=T.TY_INT)
+
+    def _b_unreachable(self, tok):
+        return self._call(tok, "trap", [], T.TY_VOID)
+
+    def _b_trap(self, tok):
+        return self._call(tok, "trap", [], T.TY_VOID)
+
+    def _b_classify_type(self, tok):
+        args = self._args(1)
+        t = args[0].ty
+        v = 1 if T.is_integer(t) else 8 if T.is_flonum(t) else 5 if t.base is not None else 12
+        return N.IntLit(tok.loc, v, ty=T.TY_INT)
+
+    def _b_types_compatible_p(self, tok):
+        a = self.typename().unqual()
+        self.expect(",")
+        b = self.typename().unqual()
+        return N.IntLit(tok.loc, int(is_compatible(a, b)), ty=T.TY_INT)
+
+    def _b_choose_expr(self, tok):
+        c = self.const_expr()
+        self.expect(",")
+        a = self.assign()
+        self.expect(",")
+        b = self.assign()
+        return a if c else b
+
+    def _b_offsetof(self, tok):
+        ty = self.typename()
+        self.expect(",")
+        off = 0
+        cur = ty
+        first = True
+        while True:
+            if first or self.accept("."):
+                first = False
+                name = self.expect_ident()
+                path = find_member(cur, name.text)
+                if path is None:
+                    self.error(f"'{cur}' has no member named '{name.text}'", name)
+                for m in path:
+                    off += m.offset
+                    cur = m.ty
+            elif self.accept("["):
+                idx = self.const_expr()
+                self.expect("]")
+                off += idx * cur.base.size
+                cur = cur.base
+            else:
+                break
+        return N.IntLit(tok.loc, off, ty=T.TY_ULONG)

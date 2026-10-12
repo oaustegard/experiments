@@ -1,4 +1,76 @@
-"""Integer promotion, usual arithmetic conversions, new_cast(), implicit conversions on assign/return/args.
+"""Integer promotion, usual arithmetic conversions and cast construction.
 
-TODO: not implemented yet (skeleton).
+    int_promote(ty) -> Type
+    common_type(a, b) -> Type           (C11 6.3.1.8, pointers win)
+    new_cast(expr, ty) -> Expr          (typed Cast node; no-op casts elided)
+    usual_arith_conv(lhs, rhs) -> (lhs', rhs')
+    default_arg_promote(expr) -> Expr   (float -> double for varargs)
 """
+from __future__ import annotations
+
+from hcc import nodes as N
+from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_flonum,
+                       is_integer, pointer_to)
+
+_FLOAT_RANK = {TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3, TypeKind.FLOAT128: 4}
+
+
+def int_promote(ty: Type) -> Type:
+    if ty.kind == TypeKind.ENUM:
+        return TY_UINT if ty.is_unsigned else TY_INT
+    if is_integer(ty) and ty.size < 4:
+        return TY_INT
+    return ty
+
+
+def common_type(a: Type, b: Type) -> Type:
+    if a.base is not None and a.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.VLA):
+        return pointer_to(a.base)
+    if a.kind == TypeKind.FUNC:
+        return pointer_to(a)
+    if b.kind == TypeKind.FUNC:
+        return pointer_to(b)
+    if is_flonum(a) or is_flonum(b):
+        ra = _FLOAT_RANK.get(a.kind, 0)
+        rb = _FLOAT_RANK.get(b.kind, 0)
+        return a if ra >= rb else b
+    a = int_promote(a)
+    b = int_promote(b)
+    if a.size != b.size:
+        return a if a.size > b.size else b
+    if b.is_unsigned:
+        return b
+    return a
+
+
+def same_scalar(a: Type, b: Type) -> bool:
+    return a.kind == b.kind and a.size == b.size and a.is_unsigned == b.is_unsigned and \
+        a.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY)
+
+
+def new_cast(expr: N.Expr, ty: Type) -> N.Expr:
+    from hcc.sema.typing import add_type
+    add_type(expr)
+    if expr.ty is ty:
+        return expr
+    if same_scalar(expr.ty, ty) and ty.kind != TypeKind.PTR:
+        return expr
+    c = N.Cast(expr.loc, expr, ty=ty.unqual() if ty.kind != TypeKind.VOID else ty)
+    return c
+
+
+def usual_arith_conv(lhs: N.Expr, rhs: N.Expr):
+    ty = common_type(lhs.ty, rhs.ty)
+    return new_cast(lhs, ty), new_cast(rhs, ty)
+
+
+def default_arg_promote(expr: N.Expr) -> N.Expr:
+    if expr.ty.kind == TypeKind.FLOAT:
+        return new_cast(expr, TY_DOUBLE)
+    if is_integer(expr.ty) and expr.ty.size < 4:
+        return new_cast(expr, int_promote(expr.ty))
+    return expr
+
+
+__all__ = ["int_promote", "common_type", "new_cast", "usual_arith_conv",
+           "default_arg_promote", "TY_LDOUBLE"]
