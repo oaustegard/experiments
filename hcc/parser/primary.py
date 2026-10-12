@@ -70,6 +70,7 @@ class PrimaryMixin:
         if vs is not None:
             self.check_unavailable(name, t)
             if vs.var is not None:
+                self.check_block_func_visible(name, vs.var, t, self.at("("))
                 return self.typed(N.VarRef(t.loc, vs.var))
             if vs.enum_ty is not None:
                 v = vs.enum_val

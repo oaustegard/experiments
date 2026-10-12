@@ -138,7 +138,10 @@ class LocalDeclMixin:
             if ty.kind == T.TypeKind.FUNC:
                 check_redecl(self, self.scopes[-1], name, "func")
                 ty = self.block_func_composite(ty, name.text)
+                file_prior = self.scopes[0].vars.get(name.text)
                 fn = self.declare_function(ty, name, attr, dattr)
+                if file_prior is None or file_prior.var is None:
+                    fn.block_decl_only = True       # external, but lexically block-scoped
                 fn.is_unavailable |= attr.is_unavailable or dattr.is_unavailable
                 self.push_scope_entry(name.text).var = fn
                 if self.at("{"):                     # GNU nested function definition

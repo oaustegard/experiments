@@ -192,6 +192,8 @@ class TopLevelMixin:
                 self.error(f"redefinition of '{name.text}'", name.loc)
             if ty.has_proto or not fn.ty.has_proto:
                 fn.ty = ty
+        if len(self.scopes) == 1:
+            fn.block_decl_only = False       # a file-scope declaration makes it visible
         fn.is_static |= attr.is_static
         fn.is_inline |= attr.is_inline
         fn.is_noreturn |= attr.is_noreturn or dattr.is_noreturn
