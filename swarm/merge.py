@@ -163,13 +163,22 @@ def in_suites(ctx: Ctx, t: str) -> bool:
     return not ctx.suites or tr.suite_of(t) in ctx.suites
 
 
+# Suites cheap enough for any node's gate sample: compile-only or small runtime tests, no
+# whole-program build. Sampling them on every node stops one partition's merge from silently
+# regressing another's (2026-10-12: a hub merge broke gcc-dg-compile/pr112488-2.c, which only
+# s1 ran, and s1 then rejected 57 candidates for "regressing" it).
+CHEAP_SUITES = {"smoke", "c-testsuite", "chibicc", "gcc-torture", "gcc-compile", "gcc-dg",
+                "gcc-dg-compile", "reject-gcc-dg", "llvm-single", "csmith"}
+
+
 def sample(ctx: Ctx, n: int, seed: str) -> list[str]:
-    """tr.sample_ids restricted to --suites (a federated node gates on its cheap suites
-    plus its own partition, never on another node's expensive program builds)."""
+    """tr.sample_ids restricted to --suites plus CHEAP_SUITES (never another node's expensive
+    program builds)."""
     if not ctx.suites:
         return tr.sample_ids(ctx, n, seed)
     import hashlib
-    passing = sorted(t for t, r in tr.known(ctx).items() if tr.is_pass(r) and in_suites(ctx, t))
+    passing = sorted(t for t, r in tr.known(ctx).items() if tr.is_pass(r)
+                     and (in_suites(ctx, t) or tr.suite_of(t) in CHEAP_SUITES))
     return sorted(passing, key=lambda t: hashlib.sha1(f"{seed}:{t}".encode()).hexdigest())[:n]
 
 
