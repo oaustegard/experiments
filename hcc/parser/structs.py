@@ -272,6 +272,11 @@ def check_member_complete(ty, name, where) -> None:
         # C11 6.7.2.1: a member cannot be an array of void (gcc: "declaration of 'x' as array of voids")
         where2 = name or where
         diag.error(where2, f"declaration of '{name.text if name else '?'}' as array of voids")
+    if base is not None and base.kind == T.TypeKind.ENUM and base.enum_consts == "fwd":
+        # C11 6.7.2.2: an enum without a body and without a fixed underlying type is incomplete
+        # (gcc: "field 'x' has incomplete type"), also when used as a bit-field's type.
+        diag.error(name or where, f"field '{name.text}' has incomplete type" if name is not None
+                   else "field has incomplete type")
     if base is None or base.kind not in (T.TypeKind.STRUCT, T.TypeKind.UNION):
         return
     if complete_struct(base).is_complete:
