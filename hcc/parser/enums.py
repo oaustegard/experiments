@@ -119,6 +119,8 @@ class EnumMixin:
             vs.enum_cty = cty
             consts.append(val)
             val += 1
+        if not consts:
+            self.error("empty enum is invalid", self.toks[self.pos - 1])
         lo = min(consts, default=0)
         hi = max(consts, default=0)
         if fixed is not None:
