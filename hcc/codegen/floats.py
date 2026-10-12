@@ -35,17 +35,18 @@ class FloatMixin:
             self.emit("setne %al")
             self.emit("setp %dl")
             self.emit("or %dl, %al")
+        # Ordered relations use comis: C requires FE_INVALID for any NaN here.
         elif op == "<":
-            self.emit(f"ucomi{sz} %xmm0, %xmm1")
+            self.emit(f"comi{sz} %xmm0, %xmm1")
             self.emit("seta %al")
         elif op == "<=":
-            self.emit(f"ucomi{sz} %xmm0, %xmm1")
+            self.emit(f"comi{sz} %xmm0, %xmm1")
             self.emit("setae %al")
         elif op == ">":
-            self.emit(f"ucomi{sz} %xmm1, %xmm0")
+            self.emit(f"comi{sz} %xmm1, %xmm0")
             self.emit("seta %al")
         elif op == ">=":
-            self.emit(f"ucomi{sz} %xmm1, %xmm0")
+            self.emit(f"comi{sz} %xmm1, %xmm0")
             self.emit("setae %al")
         else:
             self.error_unsupported(node)
@@ -59,10 +60,22 @@ class FloatMixin:
         if op in ("+", "-", "*", "/"):
             self.emit({"+": "faddp", "-": "fsubrp", "*": "fmulp", "/": "fdivrp"}[op])
             return
-        self.emit("fcomip")
-        self.emit("fstp %st(0)")
-        cc = {"==": "sete", "!=": "setne", "<": "seta", "<=": "setae", ">": "setb", ">=": "setbe"}[op]
-        self.emit(f"{cc} %al")
+        if op in ("==", "!="):  # quiet compare; unordered sets ZF and PF
+            self.emit("fucomip %st(1), %st")
+            self.emit("fstp %st(0)")
+            if op == "==":
+                self.emit("sete %al")
+                self.emit("setnp %dl")
+                self.emit("and %dl, %al")
+            else:
+                self.emit("setne %al")
+                self.emit("setp %dl")
+                self.emit("or %dl, %al")
+        else:
+            self.emit("fcomip")
+            self.emit("fstp %st(0)")
+            cc = {"<": "seta", "<=": "setae", ">": "setb", ">=": "setbe"}[op]
+            self.emit(f"{cc} %al")
         self.emit("movzbl %al, %eax")
 
     def fp_cmp_builtin(self, node) -> None:
