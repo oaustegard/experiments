@@ -171,7 +171,7 @@ class TopLevelMixin:
             v.is_param = True
             params.append(v)
         if ty.is_variadic:
-            fn.va_area = self.new_temp(T.array_of(T.TY_CHAR, 176))
+            fn.va_area = self.new_temp(T.array_of(T.TY_CHAR, 176))  # SysV register save area
         body_tok = self.expect("{")
         fn.body = self.compound_stmt_body(body_tok.loc)
         self.leave_scope()
