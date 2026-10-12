@@ -218,6 +218,8 @@ def _eval(node):
         return f".L.{node.func}.{node.label}", 0
     if t is N.Member_ and node.ty.kind == TypeKind.ARRAY:
         return _eval_addr(node)
+    if t is N.Member_ and is_integer(node.ty):
+        return None, _const_member_value(node)
     if t is N.Deref and node.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC):
         return _eval(node.operand)
     if t is N.Deref and is_integer(node.ty):
@@ -315,6 +317,29 @@ def _const_var_value(var) -> int:
     if not (ty.is_const or getattr(var, "is_compound_literal", False)):
         raise NotConstant
     raw = int.from_bytes(bytes(data.data[:ty.size]), "little")
+    return wrap(raw, ty)
+
+
+def _const_member_value(node) -> int:
+    """GCC extension: `v.m` (or `v.a.b`) where `v` is a const-qualified, non-volatile
+    global with a plain-number initializer folds to the member's value. Bitfields and
+    anything else raise NotConstant."""
+    off, base = 0, node
+    while type(base) is N.Member_:
+        if base.member.is_bitfield or base.operand.ty is None:
+            raise NotConstant
+        off += base.member.offset
+        base = base.operand
+    if type(base) is not N.VarRef or getattr(base.var, "is_local", False):
+        raise NotConstant
+    var = base.var
+    data = getattr(var, "init_data", None)
+    if data is None or data.relocs or var.ty.is_volatile or not var.ty.is_const:
+        raise NotConstant
+    ty = node.ty
+    if off < 0 or off + ty.size > len(data.data):
+        raise NotConstant
+    raw = int.from_bytes(bytes(data.data[off:off + ty.size]), "little")
     return wrap(raw, ty)
 
 

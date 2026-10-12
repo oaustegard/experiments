@@ -426,6 +426,7 @@ class BuiltinParseMixin:
         ty = self.typename()
         self.expect(",")
         off = 0
+        dyn = []      # run-time terms: array subscripts that are not integer constants
         cur = ty
         first = True
         while True:
@@ -439,10 +440,21 @@ class BuiltinParseMixin:
                     off += m.offset
                     cur = m.ty
             elif self.accept("["):
-                idx = self.const_expr()
+                idx = self.conditional()
                 self.expect("]")
-                off += idx * cur.base.size
+                k = try_eval_const(idx)
+                if k is not None:
+                    off += k * cur.base.size
+                else:       # GCC: a non-constant designator is evaluated at run time
+                    term = N.Binary(tok.loc, "*", N.Cast(tok.loc, idx, ty=T.TY_LONG),
+                                    N.IntLit(tok.loc, cur.base.size, ty=T.TY_LONG))
+                    dyn.append(self.typed(term))
                 cur = cur.base
             else:
                 break
-        return N.IntLit(tok.loc, off, ty=T.TY_ULONG)
+        if not dyn:
+            return N.IntLit(tok.loc, off, ty=T.TY_ULONG)
+        node = N.IntLit(tok.loc, off, ty=T.TY_LONG)
+        for term in dyn:
+            node = self.typed(N.Binary(tok.loc, "+", node, term))
+        return self.typed(N.Cast(tok.loc, node, ty=T.TY_ULONG))
