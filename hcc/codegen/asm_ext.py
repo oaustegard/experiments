@@ -22,7 +22,7 @@ _POOL = ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"]
 _FIXED = {"a": "rax", "c": "rcx", "d": "rdx", "S": "rsi", "D": "rdi"}
 _LEGACY = {"rax": "ax", "rcx": "cx", "rdx": "dx", "rsi": "si", "rdi": "di"}
 _LEGACY8 = {"rax": "al", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil"}
-_REG_LETTERS = set("rqgRlxyQabcdSD")
+_REG_LETTERS = set("rqgRlxyQabcdSDXp")  # X (any) and p (address) use a GPR
 _MEM_LETTERS = set("moV")
 _X87_LETTERS = set("tuf")
 _IMM_LETTERS = set("inIJKLMNeEFZs")
@@ -59,7 +59,8 @@ class _Op:
 
 
 def _classify(op: _Op) -> None:
-    c = "".join(ch for ch in op.cons if ch not in "=+&%")
+    # Constraints may list alternatives ("1,p", "=m,m"); use the first one.
+    c = "".join(ch for ch in op.cons if ch not in "=+&%").split(",")[0]
     where = op.expr
     if c.isdigit():
         op.match = int(c)
