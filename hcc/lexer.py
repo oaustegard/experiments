@@ -94,6 +94,44 @@ def _decode_ucns(s: str) -> str:
     return _UCN_RE.sub(lambda m: chr(int(m.group(1) or m.group(2), 16)), s)
 
 
+_UCN_TAIL_RE = re.compile(r"\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}")
+
+
+def _xid_ok(c: str, start: bool) -> bool:
+    """C23 6.4.2.1 / XID_Start, XID_Continue: may character c begin/continue an identifier."""
+    return c.isidentifier() if start else ("a" + c).isidentifier()
+
+
+def _split_id(s: str) -> list[tuple[str, str]]:
+    """Split a raw identifier match into (kind, text) pieces. Non-ASCII characters
+    that are not XID characters end the identifier and become single stray tokens
+    (GCC: `int ² = 42;` says "stray '\\302' in program")."""
+    if s.isascii():
+        return [("id", _decode_ucns(s))]
+    out: list[tuple[str, str]] = []
+    cur = ""
+    i = 0
+    while i < len(s):
+        c = s[i]
+        if c == "\\":
+            m = _UCN_TAIL_RE.match(s, i)
+            if m:
+                cur += m.group()
+                i = m.end()
+                continue
+        if ord(c) < 0x80 or _xid_ok(c, start=(cur == "")):
+            cur += c
+        else:
+            if cur:
+                out.append(("id", _decode_ucns(cur)))
+                cur = ""
+            out.append(("other", c))
+        i += 1
+    if cur:
+        out.append(("id", _decode_ucns(cur)))
+    return out
+
+
 _KIND = {"num": TokenKind.NUMBER, "str": TokenKind.STRING, "chr": TokenKind.CHAR,
          "id": TokenKind.IDENT, "punct": TokenKind.PUNCT, "other": TokenKind.PUNCT}
 
@@ -172,15 +210,16 @@ def tokenize(text: str, path: str, line_comments: bool = True,
         if kind == "ubc":
             diag.error(loc, "unterminated comment", "preprocess")
         s = m.group()
-        spell = None
-        if kind == "punct" and s in DIGRAPHS:
-            spell = s
-            s = DIGRAPHS[s]
-        elif kind == "id":
-            s = _decode_ucns(s)
-        tok = Token(_KIND[kind], s, loc, bol, space)
-        tok.spell = spell
-        toks.append(tok)
+        pieces = _split_id(s) if kind == "id" else [(kind, s)]
+        for idx, (pkind, s) in enumerate(pieces):
+            spell = None
+            if pkind == "punct" and s in DIGRAPHS:
+                spell = s
+                s = DIGRAPHS[s]
+            tok = Token(_KIND[pkind], s, loc, bol if idx == 0 else False,
+                        space if idx == 0 else False)
+            tok.spell = spell
+            toks.append(tok)
         bol = False
         space = False
     toks.append(Token(TokenKind.EOF, "", Loc(path, line, 1), True, False))
