@@ -192,8 +192,8 @@ def _cond(n: N.Cond):
     require_value(n.cond)
     a, b = _func_decay(n.then.ty), _func_decay(n.els.ty)
     if a.kind == TypeKind.VOID or b.kind == TypeKind.VOID:
-        if a.kind != b.kind:
-            diag.error(n, "type mismatch in conditional expression", "sema")
+        # GCC extension (also accepted by gcc for pointer/scalar/struct partners):
+        # if either operand is void, the result is void.
         n.ty = TY_VOID
     elif is_numeric(a) and is_numeric(b):
         n.then, n.els = usual_arith_conv(n.then, n.els)
