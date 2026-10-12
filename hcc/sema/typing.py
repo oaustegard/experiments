@@ -148,7 +148,7 @@ def _assign(n: N.Assign):
     _check_struct_scalar_mix(n, lt, _func_decay(n.rhs.ty))
     if lt.kind not in (TypeKind.STRUCT, TypeKind.UNION) and not lt.is_vector:
         n.rhs = new_cast(n.rhs, lt)
-    n.ty = lt
+    n.ty = _rvalue(lt)      # the value of an assignment is an rvalue (qualifiers dropped)
 
 
 def _check_struct_scalar_mix(n, lt, rt):
@@ -164,8 +164,18 @@ def _check_struct_scalar_mix(n, lt, rt):
 
 
 def _is_null_const(node) -> bool:
-    """True for an integer constant expression 0 (possibly cast to a pointer)."""
-    return (is_integer(node.ty) or node.ty.kind == TypeKind.PTR) and try_eval_const(node) == 0
+    """True for an integer constant expression 0, or such an expression cast to `void *`
+    (C11 6.3.2.3p3). A zero cast to another pointer type is not a null pointer constant."""
+    if node.ty.kind == TypeKind.PTR:
+        # only the cast spelling counts: a void * object that happens to fold to 0 does not
+        if node.ty.base is None or node.ty.base.kind != TypeKind.VOID or not isinstance(node, N.Cast):
+            return False
+        if node.nullptr_const:
+            return True
+        node = node.operand
+    elif not is_integer(node.ty):
+        return False
+    return try_eval_const(node) == 0
 
 
 def _func_decay(t):
@@ -255,7 +265,8 @@ def _stmt_expr(n: N.StmtExpr):
 
 
 def _call(n: N.Call):
-    n.ty = n.func_ty.return_ty
+    # a call yields an rvalue: top-level qualifiers of a scalar return type are dropped (6.5.2.2p5)
+    n.ty = _rvalue(n.func_ty.return_ty)
 
 
 def _void(n):

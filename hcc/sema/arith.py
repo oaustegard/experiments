@@ -257,7 +257,12 @@ def inc_dec(lhs, delta: int, is_post: bool, loc, new_temp):
     add_type(lhs)
     one = N.IntLit(loc, delta, ty=TY_INT)
     if not is_post:
-        return compound_assign("+", lhs, one, loc, new_temp)
+        res = compound_assign("+", lhs, one, loc, new_temp)
+        if res.ty is not None and (res.ty.is_const or res.ty.is_volatile or res.ty.is_atomic) \
+                and res.ty.kind not in (TypeKind.STRUCT, TypeKind.UNION):
+            # the value of ++x is an rvalue: qualifiers of the scalar are dropped (6.3.2.1p2)
+            res = _t(N.Cast(loc, res, ty=res.ty.unqual()))
+        return res
     rmw = atomic_rmw("+", lhs, one, loc, want_old=True)
     if rmw is not None:
         return rmw

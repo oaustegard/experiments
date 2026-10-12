@@ -46,10 +46,14 @@ class DeclaratorMixin:
                     self.next()
                     ty = ty.copy()
                     ty.is_const = True
-                elif self.at("volatile") or self.at("_Atomic"):
+                elif self.at("volatile"):
                     self.next()
                     ty = ty.copy()
                     ty.is_volatile = True
+                elif self.at("_Atomic"):
+                    self.next()
+                    ty = ty.copy()
+                    ty.is_atomic = True
                 elif self.at("restrict"):
                     self.next()
                 elif self.at("__attribute__") or self.at_std_attribute():

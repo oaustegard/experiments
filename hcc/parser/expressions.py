@@ -79,9 +79,11 @@ def _plus_result(parser, operand, loc):
     """Unary '+' yields an rvalue: an lvalue operand gets an explicit (promoting) cast so that
     `+x = 1` and `&+x` are rejected like any other non-lvalue expression."""
     t = parser.typed(operand).ty
-    if isinstance(operand, (N.VarRef, N.Deref, N.Member_)) and is_scalar(t) \
-            and not t.is_complex and not t.is_vector:
-        return parser.typed(N.Cast(loc, operand, ty=int_promote(t).unqual()))
+    if is_scalar(t) and not t.is_complex and not t.is_vector:
+        promoted = int_promote(t)
+        if isinstance(operand, (N.VarRef, N.Deref, N.Member_)) or promoted is not t:
+            # an enum/short-sized rvalue (e.g. an enumerator) still promotes to int
+            return parser.typed(N.Cast(loc, operand, ty=promoted.unqual()))
     return operand
 
 

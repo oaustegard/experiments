@@ -25,6 +25,8 @@ def int_promote(ty: Type) -> Type:
     if ty.kind == TypeKind.ENUM:
         if ty.size > 4:      # an enum with a 64-bit underlying type keeps that width
             return TY_ULONG if ty.is_unsigned else TY_LONG
+        if ty.size < 4:      # underlying char/short/bool: every value fits in int (6.3.1.1p2)
+            return TY_INT
         return TY_UINT if ty.is_unsigned else TY_INT
     if is_integer(ty) and ty.size < 4:
         return TY_INT
