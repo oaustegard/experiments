@@ -64,6 +64,7 @@ class DataMixin:
                     chunk = []
                 sign = "+" if r.addend >= 0 else "-"
                 sub = f"-{r.minus}" if r.minus else ""
+                sub += "".join(f"{'+' if sg > 0 else '-'}{lab}" for sg, lab in r.extra)
                 d = {1: ".byte", 2: ".short", 4: ".long"}.get(r.size, ".quad")
                 self.directive(f"{d} {r.label}{sub}{sign}{abs(r.addend)}")
                 pos += r.size
