@@ -231,6 +231,29 @@ def _subst(tpl: str, ops, loc) -> str:
     return "".join(out)
 
 
+_LVALUE_NODES = ("VarRef", "Deref", "Member_")
+
+
+def _is_lvalue(node) -> bool:
+    """True if the expression denotes an object whose address can be taken."""
+    if node.ty.kind in (TypeKind.ARRAY, TypeKind.STRUCT, TypeKind.UNION, TypeKind.FUNC):
+        return True
+    name = type(node).__name__
+    if name in _LVALUE_NODES:
+        return True
+    if name == "Cast":
+        return _is_lvalue(node.operand)
+    if name == "Comma":
+        return _is_lvalue(node.rhs)
+    return False
+
+
+def _gen_value(cg, node) -> None:
+    """Evaluate a scalar expression into %rax as raw 8-byte bits."""
+    cg.gen_expr(node)
+    _sse_to_gpr(cg, node.ty)
+
+
 def lower_extended(cg, node) -> None:
     outs_all = [_Op(c, e, True) for c, e in node.outputs]
     ins_all = [_Op(c, e, False) for c, e in node.inputs]
@@ -261,6 +284,15 @@ def lower_extended(cg, node) -> None:
     nx = len(x87_in)
     if sorted(op.reg for op in x87_in) != list(range(nx)):
         diag.error(node, "codegen: unsupported x87 asm operand arrangement", "codegen")
+    # Phase 0: a "m" input that is not an lvalue (e.g. a statement expression)
+    # is spilled to a stack slot that lives until the template is done.
+    spill_depth = {}
+    for op in ops:
+        if op.kind == "mem" and not op.is_out and not _is_lvalue(op.expr):
+            _gen_value(cg, op.expr)
+            cg.push()
+            spill_depth[id(op)] = cg.depth
+    nspill = len(spill_depth)
     # Phase 1: addresses of outputs (register and x87).
     for op in outs:
         cg.gen_addr(op.expr)
@@ -278,7 +310,9 @@ def lower_extended(cg, node) -> None:
     for op in ops:
         if op.kind in ("imm", "x87", "label") or op.implicit or (op.is_out and op.kind == "reg" and not op.rw):
             continue
-        if op.kind == "mem":
+        if op.kind == "mem" and id(op) in spill_depth:
+            cg.emit(f"lea {8 * (cg.depth - spill_depth[id(op)])}(%rsp), %rax")
+        elif op.kind == "mem":
             cg.gen_addr(op.expr)
         elif op.is_out and op.rw:
             k = outs.index(op)
@@ -322,6 +356,9 @@ def lower_extended(cg, node) -> None:
     if m:
         cg.emit(f"add ${8 * (r + m)}, %rsp")
     cg.depth -= m       # phase-1 address slots are released here
+    if nspill:
+        cg.emit(f"add ${8 * nspill}, %rsp")
+        cg.depth -= nspill
     # Phase 5 (asm goto): a jump to a label leaves the template with the phase-1
     # output addresses still pushed, so each label is reached through a stub
     # that pops them and continues at the C label.
