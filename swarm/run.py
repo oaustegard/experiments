@@ -178,7 +178,9 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 log(f"KILL   {tid}: over time")
                 try:
                     os.killpg(rec["pid"], signal.SIGKILL)
-                except OSError:
+                    if p:
+                        p.wait(timeout=10)
+                except (OSError, subprocess.TimeoutExpired):
                     pass
                 running = False
             if not running:
@@ -199,7 +201,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             stop_launch = True
         if not stop_launch and len(procs) < a.concurrency:
             items = workqueue.build(tr.known(ctx), ledger(ctx), source_size(ctx))
-            if not items and not procs:
+            if not items and not procs and not finished:
                 log("queue empty and nothing in flight")
                 break
             seq = len(ledger(ctx)) + 1
@@ -210,7 +212,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 procs[w["rec"]["id"]] = w["proc"]
                 seq += 1
                 launched += 1
-        if stop_launch and not procs:
+        if stop_launch and not procs and not any(r["status"] == "finished" for r in ledger(ctx).values()):
             break
         time.sleep(a.poll)
     if a.final_refresh:

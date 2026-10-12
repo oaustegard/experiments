@@ -118,8 +118,9 @@ def build(results: dict, ledger: dict | None = None, source_size=None, limit: in
             busy_tests.update(r.get("tests", []))
         elif r.get("status") in ("rejected", "failed", "reverted"):
             sig_fails[r.get("signature")] = sig_fails.get(r.get("signature"), 0) + 1
+            # a worker that died without a result (rate limit, timeout) counts half
             for t in r.get("tests", []):
-                attempts[t] = attempts.get(t, 0) + 1
+                attempts[t] = attempts.get(t, 0) + (1 if r.get("result") else 0.5)
     size_of = source_size or (lambda t: 0)
     items: list[WorkItem] = []
     for sig, tids in clusters(results).items():

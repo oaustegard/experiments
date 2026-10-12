@@ -9,6 +9,7 @@ out JSON. Modes (default from env SWARM_FAKE_MODE, else "fix"):
   noop   change nothing, report failed
   break  like fix, but also delete one existing fix marker (a regression)
   tests  edit a file under tests/ (must be rejected by the gate)
+  conflict  like fix, plus write hcc/_fake_conflict.txt (two of these conflict)
 """
 
 from __future__ import annotations
@@ -38,7 +39,10 @@ def main(argv: list[str] | None = None) -> int:
     time.sleep(0.5)
     fixdir = a.cwd / "hcc" / "_fake_fixes"
     changed = []
-    if mode in ("fix", "break"):
+    if mode == "conflict":
+        (a.cwd / "hcc" / "_fake_conflict.txt").write_text(task["id"] + "\n")
+        changed.append("hcc/_fake_conflict.txt")
+    if mode in ("fix", "break", "conflict"):
         fixdir.mkdir(parents=True, exist_ok=True)
         for t in tests:
             p = fixdir / t.replace("/", "__")

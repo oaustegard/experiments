@@ -85,7 +85,8 @@ def commit_patch(ctx: Ctx, g: Path, rec: dict, patch: str) -> str | None:
         git(g, "apply", "--3way", "--index", "--whitespace=nowarn", "-", input=patch)
     except GitError as e:
         git(g, "reset", "--hard", "-q")
-        rec["reason"] = f"conflict applying onto main: {str(e)[-200:]}"
+        errs = [x for x in str(e).splitlines() if x.startswith("error:")]
+        rec["reason"] = f"conflict applying onto main: {'; '.join(errs[:3])[:300] or str(e).split('): ', 1)[-1][:300]}"
         return None
     res = rec.get("result") or {}
     subject = (res.get("root_cause") or rec["signature"]).strip().splitlines()[0][:72]
@@ -186,10 +187,12 @@ def merge_batch(ctx: Ctx, recs: list[dict]) -> int:
         stacked: list[tuple[dict, str, str]] = []
         for r, patch in pending:
             sha = commit_patch(ctx, g, r, patch)
-            if sha is None:
-                reject(ctx, r, r["reason"])
-            else:
+            if sha is not None:
                 stacked.append((r, patch, sha))
+            elif stacked:
+                log(f"defer  {r['id']}: conflicts with another candidate in this batch")
+            else:
+                reject(ctx, r, r["reason"])
         if not stacked:
             return merged
         res, regs = evaluate(ctx, g, gate_ids(ctx, [r for r, _, _ in stacked]))
