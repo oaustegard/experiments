@@ -25,6 +25,7 @@ __builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit
+__builtin_nan __builtin_nanf __builtin_nanl
 __builtin_setjmp __builtin_longjmp
 """.split())
 
@@ -185,6 +186,21 @@ class BuiltinParseMixin:
     def _inf_lit(self, tok, ty):
         """__builtin_huge_val*()/__builtin_inf*(): a constant +infinity."""
         return N.FloatLit(tok.loc, float("inf"), ty=ty)
+
+    def _nan_lit(self, tok, ty):
+        """__builtin_nan*(tag): a constant quiet NaN (the tag string only
+        selects a payload, which is not modelled)."""
+        self._args(1)
+        return N.FloatLit(tok.loc, float("nan"), ty=ty)
+
+    def _b_nan(self, tok):
+        return self._nan_lit(tok, T.TY_DOUBLE)
+
+    def _b_nanf(self, tok):
+        return self._nan_lit(tok, T.TY_FLOAT)
+
+    def _b_nanl(self, tok):
+        return self._nan_lit(tok, T.TY_LDOUBLE)
 
     def _b_huge_val(self, tok):
         return self._inf_lit(tok, T.TY_DOUBLE)
