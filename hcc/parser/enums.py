@@ -109,6 +109,8 @@ class EnumMixin:
             self.parse_attributes(VarAttr())
             if self.accept("="):
                 val, ety = self.const_expr_typed()
+                if not T.is_integer(ety):
+                    self.error(f"enumerator value for '{name.text}' is not an integer constant", name)
                 cty = enumerator_type(val, ety)
             elif not fits_type(val, cty):
                 cty = widen_type(cty)
