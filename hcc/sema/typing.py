@@ -11,6 +11,7 @@ from hcc import diag
 from hcc import nodes as N
 from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
 from hcc.sema.constexpr import try_eval_const
+from hcc.sema.void_value import require_value
 from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_integer, is_numeric, pointer_to)
 
 
@@ -28,6 +29,7 @@ def _var(n: N.VarRef):
 
 
 def _unary(n: N.Unary):
+    require_value(n.operand)
     t = n.operand.ty
     if n.op == "!":
         n.ty = TY_INT
@@ -63,6 +65,8 @@ COMPARES = ("==", "!=", "<", "<=", ">", ">=")
 
 
 def _binary(n: N.Binary):
+    require_value(n.lhs)
+    require_value(n.rhs)
     if n.op in SHIFTS:
         n.lhs = new_cast(n.lhs, int_promote(n.lhs.ty))
         n.rhs = new_cast(n.rhs, int_promote(n.rhs.ty))
@@ -73,10 +77,13 @@ def _binary(n: N.Binary):
 
 
 def _logical(n: N.Logical):
+    require_value(n.lhs)
+    require_value(n.rhs)
     n.ty = TY_INT
 
 
 def _assign(n: N.Assign):
+    require_value(n.rhs)
     lt = n.lhs.ty
     if lt.kind == TypeKind.ARRAY and not lt.is_vector:
         diag.error(n, "assignment to expression with array type", "sema")
@@ -119,8 +126,11 @@ def _void_ptr_composite(pa, pb):
 
 
 def _cond(n: N.Cond):
+    require_value(n.cond)
     a, b = _func_decay(n.then.ty), _func_decay(n.els.ty)
     if a.kind == TypeKind.VOID or b.kind == TypeKind.VOID:
+        if a.kind != b.kind:
+            diag.error(n, "type mismatch in conditional expression", "sema")
         n.ty = TY_VOID
     elif is_numeric(a) and is_numeric(b):
         n.then, n.els = usual_arith_conv(n.then, n.els)

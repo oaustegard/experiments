@@ -14,6 +14,7 @@ from hcc import nodes as N
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
+from hcc.sema.void_value import require_value
 from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_flonum, is_integer,
                          is_numeric, pointer_to, vector_of)
 
@@ -53,6 +54,8 @@ def _is_ptr(ty) -> bool:
 def new_add(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
+    require_value(lhs)
+    require_value(rhs)
     lhs, rhs = _func_decay(lhs), _func_decay(rhs)
     if is_numeric(lhs.ty) and is_numeric(rhs.ty):
         return _t(narrow_wide_bitfield_result("+", lhs, rhs, _t(N.Binary(loc, "+", lhs, rhs))))
@@ -70,6 +73,8 @@ def new_add(lhs, rhs, loc):
 def new_sub(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
+    require_value(lhs)
+    require_value(rhs)
     lhs, rhs = _func_decay(lhs), _func_decay(rhs)
     if is_numeric(lhs.ty) and is_numeric(rhs.ty):
         return _t(narrow_wide_bitfield_result("-", lhs, rhs, _t(N.Binary(loc, "-", lhs, rhs))))
@@ -116,6 +121,8 @@ def vector_binop(op, lhs, rhs, loc):
 def new_binop(op, lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
+    require_value(lhs)
+    require_value(rhs)
     vec = vector_binop(op, lhs, rhs, loc)
     if vec is not None:
         return vec
@@ -141,6 +148,8 @@ def compound_assign(op, lhs, rhs, loc, new_temp):
     """Lower `lhs op= rhs` so that lhs is evaluated only once."""
     add_type(lhs)
     add_type(rhs)
+    require_value(lhs)
+    require_value(rhs)
     if isinstance(lhs, N.VarRef):           # simple variable: no temp needed
         return _t(N.Assign(loc, lhs, _binop_buf(op, lhs, rhs, loc, new_temp)))
     if isinstance(lhs, N.Member_) and lhs.member.is_bitfield:
