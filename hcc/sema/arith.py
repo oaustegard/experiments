@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
+from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
 from hcc.typesys import TY_INT, TY_LONG, TypeKind, is_numeric, pointer_to
@@ -36,7 +37,7 @@ def new_add(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
     if is_numeric(lhs.ty) and is_numeric(rhs.ty):
-        return _t(N.Binary(loc, "+", lhs, rhs))
+        return _t(narrow_wide_bitfield_result("+", lhs, rhs, _t(N.Binary(loc, "+", lhs, rhs))))
     if _is_ptr(lhs.ty) and _is_ptr(rhs.ty):
         diag.error(loc, "invalid operands to binary +", "sema")
     if not _is_ptr(lhs.ty):
@@ -52,7 +53,7 @@ def new_sub(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
     if is_numeric(lhs.ty) and is_numeric(rhs.ty):
-        return _t(N.Binary(loc, "-", lhs, rhs))
+        return _t(narrow_wide_bitfield_result("-", lhs, rhs, _t(N.Binary(loc, "-", lhs, rhs))))
     if _is_ptr(lhs.ty) and is_numeric(rhs.ty):
         size = N.IntLit(loc, _elem_size(lhs.ty), ty=TY_LONG)
         off = N.Binary(loc, "*", new_cast(rhs, TY_LONG), size, ty=TY_LONG)
@@ -68,7 +69,8 @@ def new_binop(op, lhs, rhs, loc):
         return new_add(lhs, rhs, loc)
     if op == "-":
         return new_sub(lhs, rhs, loc)
-    return _t(N.Binary(loc, op, lhs, rhs))
+    node = _t(N.Binary(loc, op, lhs, rhs))
+    return _t(narrow_wide_bitfield_result(op, lhs, rhs, node))
 
 
 def compound_assign(op, lhs, rhs, loc, new_temp):
