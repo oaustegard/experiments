@@ -10,6 +10,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.parser.builtins import SPECIAL_BUILTINS
+from hcc.parser.libc_builtins import libc_return_type
 from hcc.parser.scope import VarScope
 from hcc.sema.compat import is_compatible
 from hcc.tokens import TokenKind
@@ -71,8 +72,11 @@ class PrimaryMixin:
                 vs = self.find_var(name)
                 if vs is not None and vs.var is not None:
                     return self.typed(N.VarRef(t.loc, vs.var))
-            diag.warn(t, f"implicit declaration of function '{name}'")
-            return self.typed(N.VarRef(t.loc, self.implicit_function(name, t)))
+            rty = libc_return_type(name)
+            if rty is None:
+                diag.warn(t, f"implicit declaration of function '{name}'")
+                rty = T.TY_INT
+            return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty)))
         self.error(f"'{name}' undeclared", t)
 
     def string_var(self, tok):
@@ -88,8 +92,8 @@ class PrimaryMixin:
             self._func_name_var = (self.fn, var)
         return self._func_name_var[1]
 
-    def implicit_function(self, name, tok):
-        fty = T.func_type(T.TY_INT)
+    def implicit_function(self, name, tok, ret_ty=None):
+        fty = T.func_type(ret_ty or T.TY_INT)
         fty.has_proto = False
         fn = N.Function(name, fty, loc=tok.loc)
         self.scopes[0].vars.setdefault(name, VarScope()).var = fn

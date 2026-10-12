@@ -247,6 +247,25 @@ class DirectiveMixin:
         line = self.read_line()
         if line and line[0].text == "once":
             self.pragma_once.add(hash_tok.loc.file)
+        elif line and line[0].text in ("push_macro", "pop_macro"):
+            self._macro_pragma(line)
+
+    def _macro_pragma(self, line: list[Token]) -> None:
+        """#pragma push_macro("NAME") / pop_macro("NAME")."""
+        if len(line) < 4 or line[1].text != "(" or line[3].text != ")":
+            return
+        if line[2].kind != TokenKind.STRING:
+            return
+        name = line[2].text[1:-1]
+        saved = self.pushed_macros.setdefault(name, [])
+        if line[0].text == "push_macro":
+            saved.append(self.macros.get(name))
+        elif saved:
+            prev = saved.pop()
+            if prev is None:
+                self.macros.pop(name, None)
+            else:
+                self.macros[name] = prev
 
     def dir_ident(self, hash_tok, name_tok):
         self.read_line()
