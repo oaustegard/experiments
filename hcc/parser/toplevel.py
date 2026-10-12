@@ -10,6 +10,7 @@ Redeclarations reuse the first Obj, so `extern int x; int x = 1;` is one Var.
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc import diag
 from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import VarAttr, VarScope
 from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inline
@@ -214,8 +215,15 @@ class TopLevelMixin:
         else:
             # A K&R definition's parameter types are checked against the prototype
             # by knr_params (before default promotion), not by the plain compat rule.
+            # GCC: a block-scope declaration that conflicts with an earlier implicit
+            # declaration (`g(); { void g(); }`) is a warning and keeps the implicit type.
+            implicit_block = len(self.scopes) > 1 and getattr(fn, "implicit_decl", False)
             if ty.enum_consts != "knr" and not is_compatible(fn.ty, ty):
-                self.error(f"conflicting types for '{name.text}'", name.loc)
+                msg = f"conflicting types for '{name.text}'"
+                if implicit_block or getattr(self.opts, "permissive", False):    # -fpermissive: permerror
+                    diag.warn(name.loc, msg)
+                else:
+                    self.error(msg, name.loc)
             self.check_proto_after_knr_def(fn, ty, name)
             # C11 6.2.2p7: a file-scope `static` declaration may not follow a
             # declaration with external linkage (a previous non-static one). A gnu89
@@ -232,7 +240,7 @@ class TopLevelMixin:
             if (attr.is_weak or dattr.is_weak) and fn.is_static and fn.is_definition:
                 self.error(f"weak declaration of '{name.text}' being applied to a already "
                            f"existing, static definition", name.loc)
-            if ty.has_proto or not fn.ty.has_proto:
+            if not implicit_block and (ty.has_proto or not fn.ty.has_proto):
                 fn.ty = ty
         if len(self.scopes) == 1:
             fn.block_decl_only = False       # a file-scope declaration makes it visible

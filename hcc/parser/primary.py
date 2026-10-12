@@ -118,7 +118,9 @@ class PrimaryMixin:
             params = libm_param_types(name, rty)
             if params is None:
                 params = libc_param_types(name)
-            return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty, params)))
+            fn = self.implicit_function(name, t, rty, params)
+            fn.implicit_decl = params is None       # a later declaration may conflict (warning)
+            return self.typed(N.VarRef(t.loc, fn))
         self.error(f"'{name}' undeclared", t)
 
     def c23_mode(self):
