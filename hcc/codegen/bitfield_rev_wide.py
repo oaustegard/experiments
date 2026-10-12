@@ -3,14 +3,13 @@ is wider than 8 bytes, e.g. a 124-bit `__uint128_t` field.
 
 The span is a big-endian integer B of n (<= 16) bytes at (%rsi). It is kept in
 %r11:%r10 (high:low word) while being manipulated. The field is
-B >> bo, masked to bit_width. As everywhere else in hcc, only the low 64 bits
-of a field value travel in %rax. Register use: %rsi span address, %rdi the
-saved rhs value (assignments), %r8/%r9 the shifted value, %r10/%r11 span
+B >> bo, masked to bit_width. The field value travels as a 128-bit value in %rdx:%rax.
+Register use: %rsi span address, %r8/%r9 the shifted value, %r10/%r11 span
 words, %rcx mask scratch, %rdx byte scratch.
 """
 from __future__ import annotations
 
-from hcc.codegen.bitfield_wide import _M64, _movabs_and, _shl128, _shr128
+from hcc.codegen.bitfield_wide import _M64, _movabs_and, _shl128, _shr128, field_to_rdx_rax
 
 
 def _load_be_span(cg, n: int) -> None:
@@ -41,15 +40,12 @@ def _store_be_span(cg, n: int) -> None:
 
 
 def load_rev_wide(cg, m) -> None:
-    """Address of the member in %rax -> field value in %rax."""
+    """Address of the member in %rax -> field value in %rdx:%rax (128 bits)."""
     w, bo, n = m.bit_width, m.bit_offset, m.rev_bytes
     cg.emit("mov %rax, %rsi")
     _load_be_span(cg, n)
     _shr128(cg, bo)
-    if w < 64:
-        cg.emit(f"shl ${64 - w}, %r10")
-        cg.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - w}, %r10")
-    cg.emit("mov %r10, %rax")
+    field_to_rdx_rax(cg, w, m.ty.is_unsigned)
 
 
 def assign_rev_wide(cg, node) -> None:
@@ -59,13 +55,8 @@ def assign_rev_wide(cg, node) -> None:
     m = node.lhs.member
     w, bo, n = m.bit_width, m.bit_offset, m.rev_bytes
     field = ((1 << w) - 1) << bo              # field bits inside the span
-    cg.emit("mov %rax, %rdi")                 # value to return
     cg.emit("mov %rax, %r8")                  # value low word
-    if m.ty.is_unsigned or w <= 64:
-        cg.emit("xor %r9d, %r9d")             # value high word
-    else:
-        cg.emit("mov %r8, %r9")
-        cg.emit("sar $63, %r9")
+    cg.emit("mov %rdx, %r9")                  # value high word
     _movabs_and(cg, (1 << min(w, 64)) - 1, "%r8")
     _movabs_and(cg, (1 << max(0, min(w - 64, 64))) - 1, "%r9")
     _shl128(cg, bo)
@@ -76,7 +67,5 @@ def assign_rev_wide(cg, node) -> None:
     cg.emit("or %r8, %r10")
     cg.emit("or %r9, %r11")
     _store_be_span(cg, n)
-    cg.emit("mov %rdi, %rax")
-    if w < 64:
-        cg.emit(f"shl ${64 - w}, %rax")
-        cg.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - w}, %rax")
+    cg.emit("mov %rsi, %rax")                 # the assignment yields the stored field
+    load_rev_wide(cg, m)

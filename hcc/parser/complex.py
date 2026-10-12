@@ -223,7 +223,8 @@ def part(p, operand, which, loc):
     if not t.is_complex:
         if which == 0:
             return operand
-        return _zero(p, t, loc)
+        # __imag__ of a real operand is 0, but the operand is still evaluated (PR 33192).
+        return _seq(p, loc, [operand], _zero(p, t, loc))
     if isinstance(operand, (N.VarRef, N.Deref, N.Member_)):
         return p.typed(N.Member_(loc, operand, t.members[which]))
     tmp = p.new_temp(t, loc)
