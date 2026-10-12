@@ -22,6 +22,7 @@ from hcc.parser.vla import vla_slot_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 from hcc.parser.knr_check import knr_param_index
+from hcc.parser.redecl import check_redecl
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
@@ -92,10 +93,12 @@ class TopLevelMixin:
                 if prev_td is not None and prev_td.type_def is not None \
                         and redecl_conflicts(prev_td.type_def, ty):
                     self.error(f"conflicting types for '{name.text}'", name.loc)
+                check_redecl(self, self.scopes[0], name, "typedef")
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty, unavailable=unavail)
             elif ty.kind == T.TypeKind.FUNC:
                 if attr.is_register or attr.is_tls:
                     self.error(f"invalid storage class for function '{name.text}'", name)
+                check_redecl(self, self.scopes[0], name, "func")
                 fn = self.declare_function(ty, name, attr, dattr)
                 fn.is_unavailable |= unavail
                 if not self.at("{") and (attr.is_weakref or dattr.is_weakref):
@@ -109,6 +112,7 @@ class TopLevelMixin:
                     self.function_definition(fn, ty, self.gnu89_extern_inline(attr))
                     return
             else:
+                check_redecl(self, self.scopes[0], name, "var")
                 var = self.declare_global_var(ty, name, attr, dattr)
                 var.is_unavailable |= unavail
                 if self.accept("="):
@@ -382,7 +386,7 @@ class TopLevelMixin:
             fn.va_area = self.new_temp(T.array_of(T.TY_CHAR, 176))  # SysV register save area
             fn.va_tmp = self.new_temp(T.array_of(T.TY_CHAR, 16))  # va_arg scratch for split structs
         body_tok = self.expect("{")
-        fn.body = self.compound_stmt_body(body_tok.loc)
+        fn.body = self.compound_stmt_body(body_tok.loc, same_scope=True)
         # VLA-typed params (`int b[a++]`): the dimension is evaluated on entry
         dims = [d for d in ty.param_dims if d is not None]
         if dims:

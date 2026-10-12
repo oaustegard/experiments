@@ -24,9 +24,12 @@ STMT_KEYWORDS = frozenset(("return", "if", "switch", "case", "default", "for", "
 
 class StatementMixin:
 
-    def compound_stmt_body(self, loc) -> N.Block:
+    def compound_stmt_body(self, loc, same_scope=False) -> N.Block:
+        """`same_scope`: a function body shares the scope that already holds its
+        parameters (C11 6.2.1p4), so it neither opens nor closes one."""
         items = []
-        self.enter_scope()
+        if not same_scope:
+            self.enter_scope()
         self.jump_scope.enter_block()
         outer_saves = getattr(self, "block_vla_saves", None)
         self.block_vla_saves = []
@@ -46,7 +49,8 @@ class StatementMixin:
                 items.extend(self.local_declaration())
                 continue
             items.append(self.stmt())
-        self.leave_scope()
+        if not same_scope:
+            self.leave_scope()
         self.jump_scope.leave_block()
         saves = self.block_vla_saves
         self.block_vla_saves = outer_saves

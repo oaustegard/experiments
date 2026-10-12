@@ -18,6 +18,7 @@ from hcc.parser.attributes import mode_type
 from hcc.parser.vla import vla_slot_type
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import redecl_conflicts
+from hcc.parser.redecl import check_redecl
 
 # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
 GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
@@ -109,6 +110,7 @@ class LocalDeclMixin:
                     self.error(f"conflicting types for '{name.text}'", name)
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
+                check_redecl(self, self.scopes[-1], name, "typedef")
                 self.push_scope_entry(name.text).type_def = ty
                 self.scopes[-1].vars[name.text].unavailable = attr.is_unavailable or dattr.is_unavailable
                 continue
@@ -121,6 +123,7 @@ class LocalDeclMixin:
                 self.nested_function(ty, name, attr, dattr)
                 return items
             if ty.kind == T.TypeKind.FUNC:
+                check_redecl(self, self.scopes[-1], name, "func")
                 ty = self.block_func_composite(ty, name.text)
                 fn = self.declare_function(ty, name, attr, dattr)
                 fn.is_unavailable |= attr.is_unavailable or dattr.is_unavailable
@@ -141,10 +144,12 @@ class LocalDeclMixin:
                     self.push_scope_entry(name.text).var = var
                     continue
                 self.check_extern_completes_tentative(prior, ty, name)
+                check_redecl(self, self.scopes[-1], name, "var")
                 var = self.declare_global_var(ty, name, attr, dattr)
                 self.push_scope_entry(name.text).var = var
                 continue
             if attr.is_static:
+                check_redecl(self, self.scopes[-1], name, "var")
                 self.anon_count += 1
                 var = N.Var(f"{name.text}.{self.anon_count}", ty, is_static=True, loc=name.loc,
                             is_definition=True, align=max(attr.align, dattr.align) or ty.align,
@@ -180,6 +185,7 @@ class LocalDeclMixin:
                     items.append(N.VLAZero(name.loc, var, self.vla_size_expr(ty, name.loc)))
                 continue
             if ty.kind == T.TypeKind.VLA:
+                check_redecl(self, self.scopes[-1], name, "var", block_obj=True)
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
                 var = self.new_lvar(name.text, ty, name.loc)
@@ -197,6 +203,7 @@ class LocalDeclMixin:
             if ty.kind == T.TypeKind.PTR:          # `int (*p)[n];` evaluates n here
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
+            check_redecl(self, self.scopes[-1], name, "var", block_obj=True)
             var = self.new_lvar(name.text, ty, name.loc)
             var.is_register = attr.is_register
             var.is_unavailable = attr.is_unavailable or dattr.is_unavailable
