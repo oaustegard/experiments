@@ -137,7 +137,7 @@ def cc_env():
 
 TRACEBACK_RE = re.compile(r'File "([^"]*)", line \d+, in ')
 STAGE_MARKER_RE = re.compile(
-    r"\b(?:stage[=:]\s*|\[)(preprocess|parse|sema|codegen)\b"
+    r"(?:\bstage[=:]\s*|\[)(preprocess|parse|sema|codegen)\b"
     r"|\b(preprocess|parse|sema|codegen)(?:or)? error\b", re.I)
 
 # Map hcc module file names to stages (first matching keyword wins).
