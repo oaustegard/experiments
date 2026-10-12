@@ -77,8 +77,7 @@ class MemoryMixin:
             self.emit(f"{'movzwl' if ty.is_unsigned else 'movswl'} (%rax), %eax")
         elif ty.size == 4:
             self.emit("movslq (%rax), %rax")
-        elif k == TypeKind.INT128:   # __int128: %rdx:%rax (high:low)
-            self.emit("mov 8(%rax), %rdx")
+        elif ty.size == 16:          # __int128: low half only (TODO)
             self.emit("mov (%rax), %rax")
         else:
             self.emit("mov (%rax), %rax")
@@ -102,9 +101,10 @@ class MemoryMixin:
             self.emit("mov %ax, (%rdi)")
         elif ty.size == 4:
             self.emit("mov %eax, (%rdi)")
-        elif k == TypeKind.INT128:
+        elif ty.size == 16:
             self.emit("mov %rax, (%rdi)")
-            self.emit("mov %rdx, 8(%rdi)")
+            self.emit("sar $63, %rax")
+            self.emit("mov %rax, 8(%rdi)")
         else:
             self.emit("mov %rax, (%rdi)")
 
