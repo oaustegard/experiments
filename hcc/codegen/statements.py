@@ -10,6 +10,12 @@ from hcc.sema.constexpr import try_eval_const
 from hcc.typesys import TypeKind
 
 
+def _sext(v: int, bits: int) -> int:
+    """Interpret unsigned `v` (of `bits` width) as a signed value."""
+    v &= (1 << bits) - 1
+    return v - (1 << bits) if v >> (bits - 1) else v
+
+
 class StatementMixin:
 
     def stmt_Block(self, node) -> None:
@@ -111,9 +117,7 @@ class StatementMixin:
                     self.emit(f"cmp {di}, {ax}")
                 self.emit(f"je {c.label}")
             else:
-                self.emit(f"mov {ax}, {di}")
-                self.emit(f"sub ${c.lo}, {di}")
-                self.emit(f"cmp ${c.hi - c.lo}, {di}")
+                self.case_range_test(c, wide, ax, di)
                 self.emit(f"jbe {c.label}")
         if node.default is not None:
             self.emit(f"jmp {node.default.label}")
@@ -121,6 +125,27 @@ class StatementMixin:
         if node.body is not None:
             self.gen_stmt(node.body)
         self.label(node.brk_label)
+
+    def case_range_test(self, c, wide: bool, ax: str, di: str) -> None:
+        """Set flags so that `jbe` is taken iff lo <= value <= hi (unsigned).
+
+        x86 immediates are 32-bit (sign-extended for 64-bit ops), so
+        constants that do not fit go through %rcx via movabs/mov.
+        """
+        mask = (1 << (64 if wide else 32)) - 1
+        lo = c.lo & mask
+        span = (c.hi - c.lo) & mask
+        self.emit(f"mov {ax}, {di}")
+        if wide and not (-(1 << 31) <= _sext(lo, 64) < (1 << 31)):
+            self.emit(f"movabs ${lo}, %rcx")
+            self.emit(f"sub %rcx, {di}")
+        else:
+            self.emit(f"sub ${_sext(lo, 64) if wide else lo}, {di}")
+        if span < (1 << 31):
+            self.emit(f"cmp ${span}, {di}")
+        else:
+            self.emit(f"movabs ${span}, %rcx" if wide else f"mov ${span}, %ecx")
+            self.emit(f"cmp %rcx, {di}" if wide else f"cmp %ecx, {di}")
 
     def stmt_Case(self, node) -> None:
         self.label(node.label)
