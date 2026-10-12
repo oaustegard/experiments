@@ -24,5 +24,10 @@ def consume_sso_marker(parser) -> None:
         parser.sso_reverse = False
     elif arg == "default":
         parser.sso_reverse = parser.sso_default
+    elif arg == "":
+        # GCC: a bare pragma only warns; the current storage order is kept.
+        diag.warn(tok, "missing 'big-endian', 'little-endian', or 'default' "
+                       "in '#pragma scalar_storage_order'")
     else:
-        diag.error(tok, "unknown argument to '#pragma scalar_storage_order'")
+        diag.warn(tok, "expected 'big-endian', 'little-endian', or 'default' "
+                       "in '#pragma scalar_storage_order'")
