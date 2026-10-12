@@ -278,6 +278,9 @@ class DeclaratorMixin:
             return T.vla_of(ty, None)
         expr = self.assign()
         self.expect("]")
+        add_type(expr)
+        if not T.is_integer(expr.ty):
+            self.error("size of array has non-integer type", expr)
         ty = self.type_suffix(ty)
         self.check_array_elem(ty)
         n = try_eval_const(expr)
