@@ -272,6 +272,16 @@ class BuiltinMixin:
         self.gen_expr(node.args[0])
         self._alloca_rax()
 
+    def builtin_alloca_align(self, node) -> None:
+        """__builtin_alloca_with_align: over-allocate by align-1, then round up."""
+        align = node.args[1].value
+        self.gen_expr(node.args[0])
+        self.emit(f"add ${align - 1}, %rax")
+        self._alloca_rax()
+        self.emit(f"add ${align - 1}, %rax")
+        self.emit(f"mov ${-align}, %r10")
+        self.emit("and %r10, %rax")
+
     def builtin_alloca_call(self, node) -> None:
         """A plain call to `alloca(n)` (glibc's alloca.h maps it here)."""
         self.gen_expr(node.args[0])

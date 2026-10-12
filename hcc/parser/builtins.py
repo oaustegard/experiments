@@ -29,7 +29,7 @@ from hcc import typesys as T
 SPECIAL_BUILTINS = frozenset("""
 __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin_offsetof
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
-__builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
+__builtin_trap __builtin_alloca __builtin_alloca_with_align __builtin_choose_expr __builtin_classify_type
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
 __builtin_add_overflow_p __builtin_sub_overflow_p
 __builtin_prefetch __builtin_return_address __builtin_frame_address __builtin_assoc_barrier
@@ -261,6 +261,17 @@ class BuiltinParseMixin:
     def _b_alloca(self, tok):
         args = [new_cast(a, T.TY_ULONG) for a in self._args(1)]
         return self._call(tok, "alloca", args, T.pointer_to(T.TY_VOID))
+
+    def _b_alloca_with_align(self, tok):
+        """__builtin_alloca_with_align(size, align_in_bits): align must be a constant.
+        The second argument of the lowered call is the alignment in bytes."""
+        size, align = self._args(2)
+        align_val = try_eval_const(align)
+        byte_align = (align_val or 0) // 8
+        if byte_align <= 0 or byte_align & (byte_align - 1):
+            self.error("__builtin_alloca_with_align: alignment must be a power of two (in bits)")
+        args = [new_cast(size, T.TY_ULONG), N.IntLit(tok.loc, byte_align, ty=T.TY_ULONG)]
+        return self._call(tok, "alloca_align", args, T.pointer_to(T.TY_VOID))
 
     def _b_setjmp(self, tok):
         """__builtin_setjmp(buf): buf is a void *[5]-style record; returns 0."""
