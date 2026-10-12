@@ -61,7 +61,7 @@ def fgit(cwd: Path, *args: str, input: str | None = None, timeout: int = NET_TIM
     env = dict(os.environ, GIT_AUTHOR_NAME=AUTHOR_NAME, GIT_AUTHOR_EMAIL=AUTHOR_EMAIL,
                GIT_COMMITTER_NAME=AUTHOR_NAME, GIT_COMMITTER_EMAIL=AUTHOR_EMAIL, GIT_TERMINAL_PROMPT="0")
     try:
-        p = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, input=input,
+        p = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, errors="surrogateescape", input=input,
                            env=env, timeout=timeout, check=False)
     except subprocess.TimeoutExpired:
         p = subprocess.CompletedProcess(args, 124, "", f"git {args[0]} timed out after {timeout}s")
@@ -267,7 +267,7 @@ def poll_candidates(ctx: Ctx) -> int:
                              else "empty diff (no changes under hcc/)")
                 continue
             (tdir / "patch.diff").write_text(
-                fgit(ctx.root, "diff", "--no-renames", "--binary", base, c, "--", *files).stdout)
+                fgit(ctx.root, "diff", "--no-renames", "--binary", base, c, "--", *files).stdout, errors="surrogateescape")
             write_json(tdir / "patch_files.json", files)
             ledger_put(ctx, rec)
             log(f"INGEST {tid} from {name} {c[:10]}: {rec['result']['root_cause'][:80]}")

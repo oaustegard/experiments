@@ -52,7 +52,7 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
     cached = tdir / "patch.diff"
     if cached.exists():
         files = read_json(tdir / "patch_files.json", [])
-        return cached.read_text(), files, None
+        return cached.read_text(errors="surrogateescape"), files, None
     wt = ctx.worktree(rec["id"])
     if not wt.exists():
         return "", [], "worktree missing"
@@ -69,7 +69,7 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
     patch = git(wt, "diff", "--cached", "--no-renames", "--binary", rec["base"], "--", *files)
     if re.search(r"^\+(<{7}|>{7}) ", patch, re.M) or re.search(r"^\+={7}$", patch, re.M):
         return "", changed, "unresolved conflict markers in the diff"
-    cached.write_text(patch)
+    cached.write_text(patch, errors="surrogateescape")
     write_json(tdir / "patch_files.json", files)
     return patch, files, None
 
@@ -209,9 +209,9 @@ def gains(ctx: Ctx, res: dict, targets: list[str]) -> list[str]:
 def reject(ctx: Ctx, rec: dict, reason: str) -> None:
     rec.update(status="rejected", reason=reason, t_gate=time.time())
     patch = ctx.task_dir(rec["id"]) / "patch.diff"
-    body = patch.read_text() if patch.exists() else ""
+    body = patch.read_text(errors="surrogateescape") if patch.exists() else ""
     (ctx.rejected / f"{rec['id']}.diff").write_text(
-        f"# task {rec['id']}\n# cluster {rec['signature']}\n# rejected: {reason}\n{body}")
+        f"# task {rec['id']}\n# cluster {rec['signature']}\n# rejected: {reason}\n{body}", errors="surrogateescape")
     ledger_put(ctx, rec)
     log(f"REJECT {rec['id']}: {reason}")
 

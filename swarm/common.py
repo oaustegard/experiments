@@ -75,7 +75,9 @@ def git(cwd: Path, *args: str, check: bool = True, input: str | None = None) -> 
     env = dict(os.environ, GIT_AUTHOR_NAME=AUTHOR_NAME, GIT_AUTHOR_EMAIL=AUTHOR_EMAIL,
                GIT_COMMITTER_NAME=AUTHOR_NAME, GIT_COMMITTER_EMAIL=AUTHOR_EMAIL)
     for attempt in range(20):
-        p = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True,
+        # surrogateescape: diffs can carry non-UTF-8 bytes (Latin-1 C sources); they must round-trip
+        # through patch files and `git apply` unchanged rather than crash the loop.
+        p = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, errors="surrogateescape",
                            input=input, env=env, check=False)
         if p.returncode != 0 and "index.lock" in p.stderr and attempt < 19:
             time.sleep(0.5 + attempt * 0.25)
