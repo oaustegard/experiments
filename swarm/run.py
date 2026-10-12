@@ -220,6 +220,11 @@ def reap(ctx: Ctx, rec: dict) -> dict:
     # The worker's /tmp/<task id>/ scratch is never needed after it exits; 600 workers' worth
     # (up to 170 MB each) filled the disk on 2026-10-12.
     shutil.rmtree(f"/tmp/{rec['id']}", ignore_errors=True)
+    # Claude Code keeps each session's background-task output under /tmp/claude-<uid>/<cwd with
+    # '/' -> '-'>; one runaway worker wrote 4.3 GB there on 2026-10-12.
+    enc = "-" + str(ctx.worktree(rec["id"])).strip("/").replace("/", "-")
+    for d in Path("/tmp").glob(f"claude-*/{enc}"):
+        shutil.rmtree(d, ignore_errors=True)
     if rec["status"] == "failed":
         remove_worktree(ctx, ctx.worktree(rec["id"]))
     return rec
