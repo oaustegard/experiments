@@ -131,6 +131,9 @@ class TopLevelMixin:
                     return
             else:
                 check_redecl(self, self.scopes[0], name, "var")
+                if attr.is_register and not (dattr.asm_name or attr.asm_name):
+                    # GCC: a file-scope `register` variable needs a register name
+                    self.error(f"register name not specified for '{name.text}'", name)
                 var = self.declare_global_var(ty, name, attr, dattr)
                 var.is_unavailable |= unavail
                 if self.accept("="):
