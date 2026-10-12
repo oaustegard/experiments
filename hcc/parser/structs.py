@@ -54,7 +54,9 @@ class StructMixin:
             if prev is not None and prev.is_complete and prev.kind == kind:
                 kw = "struct" if kind == T.TypeKind.STRUCT else "union"
                 self.error(f"redefinition of '{kw} {tag.text}'", tag)
-            open_prev = self.find_tag(tag.text)     # body still open in an enclosing scope/sizeof
+            # body still open in this scope (`struct s { struct s {..} *p; }`); a body
+            # open in an enclosing scope is shadowed by a new tag, not redefined
+            open_prev = self.scopes[-1].tags.get(tag.text)
             if open_prev is not None and not open_prev.is_complete and id(open_prev) in def_pos \
                     and def_pos[id(open_prev)] != brace_pos:
                 # the same tag's body is still being parsed (`struct s { struct s {..} *p; }`)
