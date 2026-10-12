@@ -2,6 +2,7 @@
 va_arg_pack placeholders are resolved by parser/va_pack.py."""
 from __future__ import annotations
 
+from hcc import diag
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.builtins import builtin_parser
@@ -40,6 +41,9 @@ def _parse_va_arg(self, tok):
     ap = self.typed(self.assign())
     self.expect(",")
     ty = self.typename()
+    # va_arg yields an rvalue; an array type can never be produced by it
+    if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):
+        diag.error(tok.loc, "invalid use of non-lvalue array")
     # a va_list may be consumed by any function (not only variadic ones,
     # e.g. `void f(va_list ap)`), so make sure the split-struct scratch exists
     fn = getattr(self, "fn", None)
