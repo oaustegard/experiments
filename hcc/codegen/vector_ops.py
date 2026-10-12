@@ -43,7 +43,7 @@ class VectorOpsMixin:
         self.gen_expr(node.lhs)
         self.emit("mov %rax, %rsi")
         self.pop("%r8")
-        self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+        self.frame_lea(node.result_buf.offset, "%rdi")
         mov = "movss" if es == 4 else "movsd"
         for i in range(0, size, es):
             self.emit(f"{mov} {i}(%rsi), %xmm0")
@@ -67,7 +67,7 @@ class VectorOpsMixin:
         self.gen_expr(node.lhs)                      # %rax = lhs address
         self.emit("mov %rax, %rsi")
         self.pop("%r8")
-        self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+        self.frame_lea(node.result_buf.offset, "%rdi")
         for i in range(0, size, es):
             self._vec_load(es, signed, i, "%rsi", "%rax", "%eax")
             self._vec_load(es, signed, i, "%r8", "%rcx", "%ecx")
@@ -100,7 +100,7 @@ class VectorOpsMixin:
         signed = not ty.base.is_unsigned
         self.gen_expr(node.operand)                  # %rax = source address
         self.emit("mov %rax, %rsi")
-        self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+        self.frame_lea(node.result_buf.offset, "%rdi")
         for i in range(0, size, es):
             self._vec_load(es, signed, i, "%rsi", "%rax", "%eax")
             self.emit("neg %rax")

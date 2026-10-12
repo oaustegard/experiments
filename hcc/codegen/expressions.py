@@ -204,7 +204,7 @@ class ExpressionMixin:
     def expr_MemZero(self, node) -> None:
         v = node.var
         self.emit(f"mov ${v.ty.size}, %rcx")
-        self.emit(f"lea {v.offset}(%rbp), %rdi")
+        self.frame_lea(v.offset, "%rdi")
         self.emit("mov $0, %al")
         self.emit("rep stosb")
 
@@ -280,7 +280,7 @@ class ExpressionMixin:
         self.gen_expr(node.operand)                  # %rax = source address
         buf = node.result_buf
         size = node.operand.ty.size
-        self.emit(f"lea {buf.offset}(%rbp), %rdi")
+        self.frame_lea(buf.offset, "%rdi")
         self.copy_struct(size)                       # %rdi = dest, %rax = src
         i = 0
         while i + 8 <= size:

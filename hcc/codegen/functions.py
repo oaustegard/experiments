@@ -127,8 +127,11 @@ class FunctionMixin:
         self.va_info = (gp_named, fp_named, stack_end)
         self.emit("push %rbp")
         self.emit("mov %rsp, %rbp")
-        if size:
+        if size and size < (1 << 31):
             self.emit(f"sub ${size}, %rsp")
+        elif size:
+            self.emit(f"movabs ${size}, %r11")
+            self.emit("sub %r11, %rsp")
         if self.canary_offset is not None:
             self.emit("mov %fs:0x28, %r11")
             self.emit(f"mov %r11, {self.canary_offset}(%rbp)")
@@ -154,7 +157,7 @@ class FunctionMixin:
                     self.emit(f"mov %ax, {p.offset}(%rbp)")
                     continue
                 ins = "movss" if p.ty.kind == TypeKind.FLOAT else "movsd"
-                self.emit(f"{ins} %xmm{w[1]}, {p.offset}(%rbp)")
+                self.emit(f"{ins} %xmm{w[1]}, {self.frame_ref(p.offset)}")
             elif w[0] == "struct":
                 self.store_struct_param(p, w[1], w[2])
         self.gen_stmt(fn.body)
@@ -175,15 +178,33 @@ class FunctionMixin:
         self.directive(f".set .Lframe.{sym}, {size}")
         self.fn = None
 
-    def store_gp_param(self, reg: int, off: int, size: int) -> None:
-        if size == 1:
-            self.emit(f"mov {ARG_REGS8[reg]}, {off}(%rbp)")
-        elif size == 2:
-            self.emit(f"mov {ARG_REGS16[reg]}, {off}(%rbp)")
-        elif size == 4:
-            self.emit(f"mov {ARG_REGS32[reg]}, {off}(%rbp)")
+    def frame_ref(self, off: int) -> str:
+        """Memory operand for a %rbp-relative slot.  Offsets beyond disp32 (frames
+        holding huge arrays) are formed in %r11, which is free in the prologue."""
+        if -(1 << 31) <= off < (1 << 31):
+            return f"{off}(%rbp)"
+        self.emit(f"movabs ${off}, %r11")
+        self.emit("add %rbp, %r11")
+        return "(%r11)"
+
+    def frame_lea(self, off, reg: str) -> None:
+        """reg = address of the %rbp-relative slot at `off` (see frame_ref)."""
+        if -(1 << 31) <= off < (1 << 31):
+            self.emit(f"lea {off}(%rbp), {reg}")
         else:
-            self.emit(f"mov {ARG_REGS64[reg]}, {off}(%rbp)")
+            self.emit(f"movabs ${off}, {reg}")
+            self.emit(f"add %rbp, {reg}")
+
+    def store_gp_param(self, reg: int, off: int, size: int) -> None:
+        m = self.frame_ref(off)
+        if size == 1:
+            self.emit(f"mov {ARG_REGS8[reg]}, {m}")
+        elif size == 2:
+            self.emit(f"mov {ARG_REGS16[reg]}, {m}")
+        elif size == 4:
+            self.emit(f"mov {ARG_REGS32[reg]}, {m}")
+        else:
+            self.emit(f"mov {ARG_REGS64[reg]}, {m}")
 
     def store_struct_param(self, p, gp: int, fp: int) -> None:
         ty = p.ty

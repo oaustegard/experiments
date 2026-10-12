@@ -21,9 +21,9 @@ class VarargsMixin:
         self.gen_expr(node.args[0])
         self.emit(f"movl ${gp * 8}, (%rax)")
         self.emit(f"movl ${48 + fp * 16}, 4(%rax)")
-        self.emit(f"lea {stack_end}(%rbp), %rdx")
+        self.frame_lea(stack_end, "%rdx")
         self.emit("mov %rdx, 8(%rax)")
-        self.emit(f"lea {self.fn.va_area.offset}(%rbp), %rdx")
+        self.frame_lea(self.fn.va_area.offset, "%rdx")
         self.emit("mov %rdx, 16(%rax)")
 
     def builtin_va_copy(self, node) -> None:
@@ -62,7 +62,7 @@ class VarargsMixin:
             self.emit("mov (%rax), %rax")
             self.emit(f"mov %rax, {base + 8 * i}(%rbp)")
             self.emit(f"addl ${16 if is_fp else 8}, {off_field}(%rcx)")
-        self.emit(f"lea {base}(%rbp), %rax")
+        self.frame_lea(base, "%rax")
         self.emit(f"jmp {done}")
 
     def builtin_va_arg(self, node) -> None:

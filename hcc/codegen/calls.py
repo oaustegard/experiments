@@ -136,7 +136,7 @@ class CallMixin:
         ret = node.ty
         big_ret = abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and is_memory_struct(ret)
         if big_ret:
-            self.emit(f"lea {node.ret_buffer.offset}(%rbp), %rax")
+            self.frame_lea(node.ret_buffer.offset, "%rax")
             self.push()
         self.gen_expr(node.func)
         gp = fp = 0
@@ -188,7 +188,7 @@ class CallMixin:
                 self.emit(f"{'movzwl' if ret.is_unsigned else 'movswl'} %ax, %eax")
         if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and not big_ret:
             self.copy_ret_regs_to_buffer(ret, node.ret_buffer.offset)
-            self.emit(f"lea {node.ret_buffer.offset}(%rbp), %rax")
+            self.frame_lea(node.ret_buffer.offset, "%rax")
 
     def copy_ret_regs_to_buffer(self, ty, off: int) -> None:
         """After a call returning a small struct in rax/rdx/xmm0/xmm1."""
@@ -198,7 +198,7 @@ class CallMixin:
         fp1, fp2 = regs
         gp_regs = ["%rax", "%rdx"]
         fp_n = gp_n = 0
-        self.emit(f"lea {off}(%rbp), %rdi")
+        self.frame_lea(off, "%rdi")
         for chunk, is_fp in enumerate([fp1, fp2][: 1 if ty.size <= 8 else 2]):
             base = chunk * 8
             n = min(8, ty.size - base)
