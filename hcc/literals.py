@@ -390,12 +390,16 @@ def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR,
     """Concatenate adjacent string literals (C11 6.4.5p5)."""
     prefix = ""
     has_u8 = False
+    seen: set[str] = set()
     for p in pieces:
         pre, _ = _prefix(p.text)
+        if pre:
+            seen.add(pre)
         has_u8 = has_u8 or pre == "u8"
+        if len(seen) > 1:
+            # GCC rejects mixing distinct encoding prefixes (incl. u8 with u/U/L).
+            diag.error(p, "unsupported non-standard concatenation of string literals")
         if pre and pre != "u8":
-            if prefix and prefix != pre:
-                diag.error(p, "unsupported non-standard concatenation of string literals")
             prefix = pre
     units: list[int] = []
     for p in pieces:
