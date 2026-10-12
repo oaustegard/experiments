@@ -27,6 +27,7 @@ KEYWORD_ALIASES = {
     "__asm": "asm", "__asm__": "asm",
     "__attribute": "__attribute__",
     "__thread": "_Thread_local",
+    "__complex__": "_Complex", "__complex": "_Complex",
     "__real": "__real__", "__imag": "__imag__",
     "__int128_t": "__int128",
 }
