@@ -161,7 +161,9 @@ class InitializerMixin:
                 init.expr = N.IntLit(self.tok.loc, 0, ty=T.TY_INT)
                 return
             self.initializer2(init)
-            self._consume_end()
+            while not self._consume_end():   # `int *p = {0, NULL};`: excess elements are skipped
+                self.expect(",")
+                self._skip_excess()
             return
         init.expr = self.typed(self.assign())
 
