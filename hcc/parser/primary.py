@@ -64,6 +64,7 @@ class PrimaryMixin:
         name = t.text
         vs = self.find_var(name)
         if vs is not None:
+            self.check_unavailable(name, t)
             if vs.var is not None:
                 return self.typed(N.VarRef(t.loc, vs.var))
             if vs.enum_ty is not None:

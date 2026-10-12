@@ -141,6 +141,12 @@ class ParserBase:
         self.scopes[-1].vars[name] = vs
         return vs
 
+    def check_unavailable(self, name: str, tok) -> None:
+        """Error if `name` (an identifier use) names an unavailable object or typedef."""
+        vs = self.find_var(name)
+        if vs is not None and (vs.unavailable or (vs.var is not None and vs.var.is_unavailable)):
+            self.error(f"'{name}' is unavailable", tok)
+
     def find_typedef(self, tok: Token) -> Type | None:
         if tok.kind != TokenKind.IDENT:
             return None

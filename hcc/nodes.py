@@ -51,6 +51,7 @@ class Obj:
     is_static: bool = False        # internal linkage (file scope) or static local
     asm_name: str | None = None    # from `__asm__("sym")`; overrides symbol name
     loc: Loc | None = None
+    is_unavailable: bool = False   # __attribute__((unavailable)): any use is an error
 
     @property
     def symbol(self) -> str:

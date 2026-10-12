@@ -17,6 +17,7 @@ class VarScope:
     enum_ty: Type | None = None
     enum_val: int = 0
     enum_cty: Type | None = None    # C23 type of the enumerator constant itself
+    unavailable: bool = False       # typedef declared with __attribute__((unavailable))
 
 
 @dataclass
@@ -40,6 +41,7 @@ class VarAttr:
     align: int = 0
     is_weak: bool = False
     is_weakref: bool = False        # __attribute__((weakref("t"))) on a declaration
+    is_unavailable: bool = False    # __attribute__((unavailable)) on the declaration
     fn_attrs: set = field(default_factory=set)  # leaf, returns_nonnull, ... (names only)
     is_nocommon: bool = False       # __attribute__((nocommon)): tentative def goes to .bss
     is_packed: bool = False

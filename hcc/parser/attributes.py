@@ -200,6 +200,8 @@ class AttributeMixin:
             attr.is_weak = True
         elif name == "weakref" and attr is not None:
             attr.is_weakref = True
+        elif name == "unavailable" and attr is not None:
+            attr.is_unavailable = True
         elif name in RECORDED_FN_ATTRS and attr is not None:
             attr.fn_attrs.add(name)
         elif name == "copy" and attr is not None and args:

@@ -83,13 +83,15 @@ class TopLevelMixin:
                 ty = mode_type(ty, dattr.mode)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
                 ty = self.var_aligned(ty, attr, dattr)      # `T x __attribute__((aligned(N)))`
+            unavail = attr.is_unavailable or dattr.is_unavailable
             if attr.is_typedef:
                 ty = self.typedef_aligned(ty, attr, dattr, name.text)
-                self.scopes[0].vars[name.text] = VarScope(type_def=ty)
+                self.scopes[0].vars[name.text] = VarScope(type_def=ty, unavailable=unavail)
             elif ty.kind == T.TypeKind.FUNC:
                 if attr.is_register or attr.is_tls:
                     self.error(f"invalid storage class for function '{name.text}'", name)
                 fn = self.declare_function(ty, name, attr, dattr)
+                fn.is_unavailable |= unavail
                 if not self.at("{") and (attr.is_weakref or dattr.is_weakref):
                     fn.is_weakref_decl = True
                 if ty.enum_consts == "knr" and not self.at(";") and not self.at(","):
@@ -102,6 +104,7 @@ class TopLevelMixin:
                     return
             else:
                 var = self.declare_global_var(ty, name, attr, dattr)
+                var.is_unavailable |= unavail
                 if self.accept("="):
                     if var.init_data is not None:
                         self.error(f"redefinition of '{name.text}'", name.loc)

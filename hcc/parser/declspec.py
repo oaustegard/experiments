@@ -225,6 +225,8 @@ class DeclSpecMixin:
             if spec is not None or td is not None or is_floatn:
                 if counter:
                     break          # e.g. "typedef int T; int T;" -> T is a declarator
+                if td is not None:
+                    self.check_unavailable(tok.text, tok)
                 self.next()
                 if spec is not None:
                     ty = spec(self, tok, attr)

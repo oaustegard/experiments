@@ -93,6 +93,7 @@ class LocalDeclMixin:
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
                 self.push_scope_entry(name.text).type_def = ty
+                self.scopes[-1].vars[name.text].unavailable = attr.is_unavailable or dattr.is_unavailable
                 continue
             if ty.kind == T.TypeKind.FUNC:
                 self.check_block_func_storage(attr, name)
@@ -105,6 +106,7 @@ class LocalDeclMixin:
             if ty.kind == T.TypeKind.FUNC:
                 ty = self.block_func_composite(ty, name.text)
                 fn = self.declare_function(ty, name, attr, dattr)
+                fn.is_unavailable |= attr.is_unavailable or dattr.is_unavailable
                 self.push_scope_entry(name.text).var = fn
                 if self.at("{"):                     # GNU nested function definition
                     self.nested_function_definition(fn, ty)
@@ -179,6 +181,7 @@ class LocalDeclMixin:
                 items.extend(pre)
             var = self.new_lvar(name.text, ty, name.loc)
             var.is_register = attr.is_register
+            var.is_unavailable = attr.is_unavailable or dattr.is_unavailable
             reg = (dattr.asm_name or "").lstrip("%")
             if reg in GP64_REGS and self.fn is not None:
                 # Register-bound local: its value is the register's contents at function entry.
