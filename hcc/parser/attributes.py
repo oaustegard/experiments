@@ -122,6 +122,8 @@ class AttributeMixin:
             attr.reverse_sso = args[0].value.rstrip(b"\0") == b"big-endian"
         elif name == "noreturn" and attr is not None:
             attr.is_noreturn = True
+        elif name == "gnu_inline" and attr is not None:
+            attr.is_gnu_inline = True
         elif name == "weak" and attr is not None:
             attr.is_weak = True
         elif name == "nocommon" and attr is not None:

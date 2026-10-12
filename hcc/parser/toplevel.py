@@ -240,7 +240,7 @@ class TopLevelMixin:
         """gnu89 inline semantics: `extern inline` with a body is only an
         inline definition and provides no external symbol."""
         o = self.opts
-        gnu89 = o is not None and (o.gnu89_inline or o.std in GNU89_STDS)
+        gnu89 = o is not None and (o.gnu89_inline or o.std in GNU89_STDS) or attr.is_gnu_inline
         return bool(gnu89 and attr.is_extern and attr.is_inline)
 
     def function_definition(self, fn, ty, inline_only=False) -> None:
