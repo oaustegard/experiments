@@ -18,8 +18,10 @@ from hcc.sema.constexpr import try_eval_const
 from hcc.parser.constexpr_init import check_scalar, check_string_units
 from hcc.sema.initializers import lower_local_init, serialize_global_init
 from hcc.tokens import TokenKind
+from hcc import diag
 from hcc.diag import CompileError
 from hcc import typesys as T
+from hcc.sema.compat import is_compatible
 
 
 def new_initializer(ty, is_flexible: bool) -> N.Initializer:
@@ -214,6 +216,13 @@ class InitializerMixin:
         elem = init.ty.base
         sz = elem.size
         data = tok.value
+        if not (sz == 1 and tok.ty.base.size == 1) and \
+                not is_compatible(elem.unqual(), tok.ty.base.unqual()):
+            # C11 6.7.9p14: the literal's element type must match the array's (char arrays
+            # take any 1-byte literal; wide/UTF-16/UTF-32 literals need the matching type).
+            diag.error(tok.loc, f"cannot initialize array of '{T.type_str(elem)}' "
+                                f"from a string literal with type array of "
+                                f"'{T.type_str(tok.ty.base)}'")
         n = len(data) // tok.ty.base.size
         units = [int.from_bytes(data[i * tok.ty.base.size:(i + 1) * tok.ty.base.size], "little")
                  for i in range(n)]
