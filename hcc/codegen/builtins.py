@@ -6,11 +6,15 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.codegen.vector_shuffle import shuffle
+from hcc.codegen.crc import crc_builtin
 
 
 class BuiltinMixin:
 
     def expr_BuiltinCall(self, node) -> None:
+        if "_data" in node.name and "crc" in node.name:
+            crc_builtin(self, node)
+            return
         fn = getattr(self, "builtin_" + node.name, None)
         if fn is None:
             diag.error(node, f"codegen: unsupported builtin '__builtin_{node.name}'", "codegen")
