@@ -9,7 +9,7 @@ result buffer, and leaves %rax = address of the result.
 from __future__ import annotations
 
 from hcc.codegen.vector_cmp import vector_compare
-from hcc.typesys import is_flonum
+from hcc.typesys import is_decimal, is_flonum
 
 _CMP_OPS = ("==", "!=", "<", "<=", ">", ">=")
 
@@ -56,6 +56,8 @@ class VectorOpsMixin:
         lty = node.lhs.ty
         if node.op in _CMP_OPS:
             return vector_compare(self, node)
+        if is_decimal(lty.base):
+            return self.vector_decimal_binary(node)
         if is_flonum(lty.base):
             return self.vector_float_binary(node)
         if lty.base.size == 16:
@@ -94,6 +96,8 @@ class VectorOpsMixin:
     def vector_neg(self, node) -> None:
         """`-v` on a GCC integer vector: negate each element into the result buffer."""
         ty = node.operand.ty
+        if is_decimal(ty.base):
+            return self.vector_decimal_neg(node)
         if ty.base.size == 16:
             return self.vector_wide_neg(node)
         size, es = ty.size, ty.base.size

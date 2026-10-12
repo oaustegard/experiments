@@ -16,7 +16,7 @@ from hcc.sema.compat import is_compatible
 from hcc.sema.dyn_struct_size import dyn_struct_bytes
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
-from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_dyn_struct, is_flonum, is_integer,
+from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_decimal, is_dyn_struct, is_flonum, is_integer,
                          is_numeric, pointer_to, vector_of)
 
 
@@ -125,7 +125,7 @@ def vector_binop(op, lhs, rhs, loc):
             return None
         res = vector_of(int_type_for(lhs.ty.base.size, False), lhs.ty.size)  # lanes: -1 / 0
         return _t(N.Binary(loc, op, lhs, rhs, ty=res))
-    if is_flonum(lhs.ty.base):
+    if is_flonum(lhs.ty.base) or is_decimal(lhs.ty.base):
         if op not in ("+", "-", "*", "/"):
             return None
     elif not is_integer(lhs.ty.base):

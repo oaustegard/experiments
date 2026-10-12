@@ -21,7 +21,7 @@ def _stack_footprint(ty) -> int:
     """Bytes a stack-passed argument of type ty occupies (as pushed)."""
     if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
         return align_to(ty.size, 8)
-    if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.INT128):
+    if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.INT128, TypeKind.DEC128):
         return 16
     return 8
 
@@ -54,10 +54,10 @@ class CallMixin:
                         by_stack = True
                 if by_stack:
                     stack += align_to(ty.size, 8) // 8
-            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE):
+            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.DEC32, TypeKind.DEC64, TypeKind.DEC128):
                 if fp >= 8:
                     by_stack = True
-                    stack += 1
+                    stack += 2 if k == TypeKind.DEC128 else 1
                 fp += 1
             elif k == TypeKind.FLOAT128:
                 if fp >= 8:
@@ -106,8 +106,10 @@ class CallMixin:
         elif k == TypeKind.FLOAT16:
             self.emit(TO_ABI_HALF)          # passed as half bits in the low 16 bits
             self.pushf()
-        elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+        elif k in (TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.DEC32, TypeKind.DEC64):
             self.pushf()
+        elif k == TypeKind.DEC128:
+            self._dec_push(a.ty)
         elif k == TypeKind.FLOAT128:
             self.f128_push()
         elif k == TypeKind.LDOUBLE:
@@ -179,8 +181,11 @@ class CallMixin:
                     else:
                         self.pop(ARG_REGS64[gp])
                         gp += 1
-            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE):
+            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.DEC32, TypeKind.DEC64):
                 self.popf(fp)
+                fp += 1
+            elif k == TypeKind.DEC128:
+                self._dec_pop(a.ty, fp)
                 fp += 1
             elif k == TypeKind.FLOAT128:
                 self.f128_pop(fp)

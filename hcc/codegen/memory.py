@@ -14,6 +14,7 @@ from hcc import nodes as N
 from hcc.codegen.scalar_rev import load_rev_scalar, store_rev_scalar
 from hcc.typesys import TypeKind, is_dyn_struct
 from hcc.codegen.half import LOAD_HALF, STORE_HALF
+from hcc.codegen.decimal import DEC_LOAD, DEC_STORE
 
 _NO_LOAD = (TypeKind.ARRAY, TypeKind.STRUCT, TypeKind.UNION, TypeKind.FUNC, TypeKind.VLA)
 
@@ -86,6 +87,8 @@ class MemoryMixin:
             self.emit("movss (%rax), %xmm0")
         elif k == TypeKind.DOUBLE:
             self.emit("movsd (%rax), %xmm0")
+        elif k in DEC_LOAD:              # _Decimal: BID bits, carried like float bits
+            self.emit(DEC_LOAD[k] + " (%rax), %xmm0")
         elif k == TypeKind.LDOUBLE:
             self.emit("fldt (%rax)")
         elif k == TypeKind.FLOAT128:
@@ -116,6 +119,8 @@ class MemoryMixin:
             self.emit("movss %xmm0, (%rdi)")
         elif k == TypeKind.DOUBLE:
             self.emit("movsd %xmm0, (%rdi)")
+        elif k in DEC_STORE:
+            self.emit(DEC_STORE[k] + " %xmm0, (%rdi)")
         elif k == TypeKind.LDOUBLE:
             self.emit("fstpt (%rdi)")
             self.emit("fldt (%rdi)")
