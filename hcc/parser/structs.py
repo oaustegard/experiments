@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.parser.scope import VarAttr
+from hcc.parser.bitfield_width import bitfield_width_value
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 from hcc.tokens import TokenKind
@@ -158,7 +159,7 @@ class StructMixin:
                     m.is_packed = True
                 if self.accept(":"):
                     m.is_bitfield = True
-                    m.bit_width = self.const_expr()
+                    m.bit_width = bitfield_width_value(self.conditional(), name, self.toks[start])
                     check_bitfield_width(m, name, self.toks[start])
                 self.parse_attributes(mattr)
                 m.explicit_align = max(m.explicit_align, mattr.align)
