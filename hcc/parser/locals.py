@@ -9,9 +9,12 @@ objects: TODO (currently a parse error).
 from __future__ import annotations
 
 from hcc import nodes as N
-from hcc.parser.scope import VarAttr
 from hcc import typesys as T
+from hcc.parser.scope import VarAttr
 from hcc.parser.attributes import mode_type
+
+# 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
+GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
 
 
 class LocalDeclMixin:
@@ -103,6 +106,10 @@ class LocalDeclMixin:
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
             var = self.new_lvar(name.text, ty, name.loc)
+            reg = (dattr.asm_name or "").lstrip("%")
+            if reg in GP64_REGS and self.fn is not None:
+                # Register-bound local: its value is the register's contents at function entry.
+                self.fn.reg_vars.append((var, reg))
             al = max(attr.align, dattr.align)
             if al:
                 var.align = max(al, ty.align)

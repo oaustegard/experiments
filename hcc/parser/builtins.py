@@ -31,6 +31,7 @@ __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin
 __builtin_va_arg_pack __builtin_va_arg_pack_len
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_alloca_with_align __builtin_choose_expr __builtin_classify_type
+__builtin_call_with_static_chain
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
 __builtin_add_overflow_p __builtin_sub_overflow_p
 __builtin_prefetch __builtin_return_address __builtin_frame_address __builtin_assoc_barrier
@@ -350,6 +351,17 @@ class BuiltinParseMixin:
         for a in reversed(args[1:]):
             node = N.Comma(tok.loc, N.Cast(tok.loc, a, ty=T.TY_VOID), node, ty=node.ty)
         return node
+
+    def _b_call_with_static_chain(self, tok):
+        # (call, chain): perform `call` with the static chain register (%r10) set to `chain`.
+        args = self._args(2)
+        call = args[0]
+        if type(call) is not N.Call:
+            self.error("first argument of __builtin_call_with_static_chain must be a call")
+        slot = self.new_temp(args[1].ty, tok.loc)
+        call.chain_slot = slot
+        call.static_chain = self.typed(N.Assign(tok.loc, self.typed(N.VarRef(tok.loc, slot)), args[1]))
+        return call
 
     def _b_expect(self, tok):
         args = self._args(2)

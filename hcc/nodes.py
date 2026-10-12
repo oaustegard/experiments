@@ -96,6 +96,7 @@ class Function(Obj):
     align: int = 0                          # from __attribute__((aligned(N)))
     outer: "Function | None" = None         # GNU nested function: enclosing function
     chain_var: Var | None = None            # nested fn: slot holding the static link
+    reg_vars: list = field(default_factory=list)  # (Var, reg) for `register T x __asm__("reg")`
     labels: set = field(default_factory=set)  # names of labels defined in this body
 
 
@@ -212,6 +213,10 @@ class Call(Expr):
     args: list[Expr]
     func_ty: Type
     ret_buffer: Var | None = None     # temp for struct returns
+    # __builtin_call_with_static_chain: `static_chain` stores the chain value into
+    # `chain_slot` (a frame temp) before the call; codegen loads it into %r10.
+    static_chain: Expr | None = None
+    chain_slot: Var | None = None
 
 
 @dataclass(eq=False)

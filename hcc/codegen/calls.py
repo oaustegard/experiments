@@ -107,6 +107,8 @@ class CallMixin:
         if node.func.ty.kind == TypeKind.FUNC and type(node.func).__name__ == "VarRef" and \
                 node.func.var.name == "alloca" and len(node.args) == 1:
             return self.builtin_alloca_call(node)
+        if node.static_chain is not None:
+            self.gen_expr(node.static_chain)   # stores the chain value into chain_slot
         on_stack, _ = self._classify_args(node)
         offs, total = self._stack_layout(node, on_stack)
         stack = align_to(total, 8) // 8
@@ -165,7 +167,19 @@ class CallMixin:
                 self.pop(ARG_REGS64[gp])
                 gp += 1
         callee = self.nested_callee(node)
-        if callee is not None:
+        if node.static_chain is not None:
+            # chain value was saved in chain_slot; load it into %r10 just before the call
+            chain_src = f"{node.chain_slot.offset}(%rbp)"
+            if callee is not None:
+                self.emit(f"mov ${fp}, %eax")
+                self.emit(f"mov {chain_src}, %r10")
+                self.emit(f"call {callee.symbol}")
+            else:
+                self.emit("mov %rax, %r11")
+                self.emit(f"mov ${fp}, %eax")
+                self.emit(f"mov {chain_src}, %r10")
+                self.emit("call *%r11")
+        elif callee is not None:
             self.emit_static_link(callee)
             self.emit(f"mov ${fp}, %eax")
             self.emit(f"call {callee.symbol}")

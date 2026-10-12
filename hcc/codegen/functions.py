@@ -137,6 +137,8 @@ class FunctionMixin:
             self.emit(f"mov %r11, {self.canary_offset}(%rbp)")
         if fn.alloca_bottom is not None:        # no alloca memory yet (see statements.py)
             self.emit(f"movq $-1, {fn.alloca_bottom.offset}(%rbp)")
+        for var, reg in fn.reg_vars:
+            self.emit(f"mov %{reg}, {var.offset}(%rbp)")
         if fn.chain_var is not None:
             self.emit(f"mov %r10, {fn.chain_var.offset}(%rbp)")
         self.depth = 0
