@@ -24,6 +24,7 @@ from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser import complex as CPX
 from hcc.parser.dyn_struct_ret import dyn_struct_assign
+from hcc.parser.assign_struct_check import check_struct_assign
 
 ASSIGN_OPS = {"=": None, "+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "&=": "&",
               "|=": "|", "^=": "^", "<<=": "<<", ">>=": ">>"}
@@ -87,6 +88,7 @@ class ExpressionMixin:
             op = ASSIGN_OPS[t.text]
             self.check_assignable(node, t)
             if op is None:
+                check_struct_assign(self, self.typed(node).ty, self.typed(rhs).ty, t)
                 if is_dyn_struct(self.typed(node).ty):
                     return dyn_struct_assign(self, node, self.typed(rhs), t.loc)
                 rhs = plan9_pointer_conv(self, rhs, self.typed(node).ty)
