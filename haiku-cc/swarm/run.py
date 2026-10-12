@@ -56,6 +56,17 @@ def source_size(ctx: Ctx):
     return size
 
 
+FEATURE_AFTER = 2   # failed attempts on a signature before a worker gets the feature mandate
+FEATURE_MODE = """FEATURE MODE. Earlier workers on this cluster stopped because the fix needs a whole missing
+feature (see their notes), not a local patch. Your mandate overrides the "minimal fix" and budget rules:
+implement that feature end to end, across every module it touches (typesys, parser, sema, codegen, builtins),
+in the contract's style, with new modules where a file would pass 600 lines. Plan first: list the pieces
+in /tmp/<task id>/plan.md, then build them in order, running the representative tests and a selftest per
+piece. You have up to ~150 tool calls and about an hour. A coherent subset that makes at least one
+representative test PASS with no smoke regressions is a success (status fixed); say in notes what is left.
+Never make a construct parse-and-silently-miscompile: unsupported parts must still raise a clear error."""
+
+
 def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_notes: list[str]) -> str:
     wt = ctx.worktree(tid)
     lines = [f"Task id: {tid}", f"Your worktree (current directory): {wt}", f"Result JSON out path: {out}",
@@ -75,6 +86,8 @@ def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_no
     if prev_notes:
         lines += ["", "Notes from earlier workers on this cluster (their fixes were not merged):"]
         lines += [f"  * {n[:400]}" for n in prev_notes[-2:]]
+    if len(prev_notes) >= FEATURE_AFTER:
+        lines += ["", FEATURE_MODE]
     lines += ["", "Follow the procedure in your instructions. Read docs/CONTRACT.md first.",
               f"Finish by writing the result JSON to {out}."]
     return "\n".join(lines)
@@ -96,6 +109,9 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
             "out": str(out), "model": a.model, "tools": TOOLS,
             "allow": [f"Edit(/{wt}/**)", "Edit(//tmp/**)", "Bash"],
             "system_prompt": (ctx.swarm / "worker_prompt.md").read_text(), "timeout": a.timeout}
+    feature = len(prev) >= FEATURE_AFTER
+    timeout = max(a.timeout, 3600) if feature else a.timeout
+    task["timeout"] = timeout
     (tdir / "task.jsonl").write_text(json.dumps(task) + "\n")
     work = tdir / "fanout"
     if a.fake:
@@ -104,9 +120,9 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
     else:
         cmd = [sys.executable, str(FANOUT), "run", str(tdir / "task.jsonl"), "--work", str(work),
                "--schema", str(ctx.swarm / "worker_result.schema.json"), "--cwd", str(wt),
-               "--model", a.model, "--concurrency", "1", "--retries", "0", "--timeout", str(a.timeout)]
+               "--model", a.model, "--concurrency", "1", "--retries", "0", "--timeout", str(timeout)]
         if a.per_task_usd:
-            cmd += ["--max-usd-per-task", str(a.per_task_usd)]
+            cmd += ["--max-usd-per-task", str(max(a.per_task_usd, 5.0) if feature else a.per_task_usd)]
         if a.effort:
             cmd += ["--effort", a.effort]
     logf = open(tdir / "runner.log", "w")
@@ -115,9 +131,9 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
     rec = {"id": tid, "key": item.key, "signature": item.signature, "tests": item.tests,
            "targets": item.targets, "base": base, "status": "launched", "pid": p.pid,
            "cost_usd": 0.0, "result": None, "merged_commit": None, "reason": "",
-           "t_launch": time.time(), "model": "fake" if a.fake else a.model}
+           "t_launch": time.time(), "model": "fake" if a.fake else a.model, "feature": feature}
     ledger_put(ctx, rec)
-    log(f"LAUNCH {tid} [{item.priority}] {item.key}  tests: {', '.join(item.tests)}")
+    log(f"LAUNCH {tid} [{item.priority}] {'FEATURE ' if feature else ''}{item.key}  tests: {', '.join(item.tests)}")
     return {"rec": rec, "proc": p}
 
 
@@ -212,6 +228,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             procs[r["id"]] = None
     launched = 0
     idle_tree, idle_since = None, None
+    tree_checked = 0.0
     stop_launch = False
     # Full refresh runs in a thread (it can take many minutes); launching and
     # reaping continue meanwhile, merging waits for it.
@@ -236,6 +253,18 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 del procs[tid]
         finished = [r for r in ledger(ctx).values() if r["status"] == "finished"]
         refreshing = refresher is not None and refresher.is_alive()
+        if not refreshing and time.time() - tree_checked > 120:
+            # A suite builder committed to tests/ on main: baseline the new tests now,
+            # not after the next --full-every merges.
+            tree_checked = time.time()
+            tree = subprocess.run(["git", "-C", str(ctx.root), "rev-parse", "HEAD:tests"],
+                                  capture_output=True, text=True).stdout.strip()
+            if tree and idle_tree and tree != idle_tree:
+                log(f"tests/ tree changed ({tree[:10]}); background refresh")
+                refresher = threading.Thread(target=merge.refresh, args=(ctx,), daemon=True)
+                refresher.start()
+                refreshing = True
+            idle_tree = tree or idle_tree
         if not refreshing:                    # the gate tree and known.json belong to refresh
             for i in range(0, len(finished), ctx.batch):
                 batch = finished[i:i + ctx.batch]
@@ -272,9 +301,19 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 time.sleep(60)
                 continue
             seq = len(ledger(ctx)) + 1
-            for item in items[:a.concurrency - len(procs)]:
+            led = ledger(ctx)
+            fails = Counter(r.get("signature") for r in led.values()
+                            if r.get("status") in ("failed", "rejected", "reverted") and (r.get("result") or {}).get("notes"))
+            flying = {r.get("signature") for r in led.values() if r.get("status") == "launched"}
+            for item in [i for i in items if not (fails[i.signature] >= FEATURE_AFTER and i.signature in flying)]:
+                if len(procs) >= a.concurrency:
+                    break
                 if a.max_workers and launched >= a.max_workers:
                     break
+                if fails[item.signature] >= FEATURE_AFTER:
+                    if item.signature in flying:
+                        continue          # one feature worker per signature: shards would collide
+                    flying.add(item.signature)
                 w = launch(ctx, a, item, seq)
                 procs[w["rec"]["id"]] = w["proc"]
                 seq += 1
@@ -340,7 +379,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--jobs", type=int, default=4, help="test parallelism in gate/baseline")
     ap.add_argument("--batch", type=int, default=4)
     ap.add_argument("--sample", type=int, default=150)
-    ap.add_argument("--full-every", type=int, default=25)
+    ap.add_argument("--full-every", type=int, default=100)
     ap.add_argument("--final-refresh", action="store_true", help="full run after the loop ends")
     ap.add_argument("--suites", default="", help="comma list; default every dir in tests/suites")
     ap.add_argument("--poll", type=float, default=POLL_SECS)

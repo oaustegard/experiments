@@ -1,0 +1,15 @@
+{
+ "cflags": [
+  "-w",
+  "-I{suite}/include"
+ ],
+ "description": "csmith programs (github.com/csmith-project/csmith, built by tests/csmith/build.sh), differential vs gcc -O0. fail/: reduced repros of hcc failures found by tests/csmith/diff.py (seeds 1..2000 plus wider csmith configurations), at most 5 per error signature; the file name is the signature slug plus the seed. fixed/: programs that failed when found and pass now (regression guard). pass/: 200 programs hcc always compiled correctly. Pass = exit 0 and stdout == .expected (stdout of a gcc -O0 build). Collected by tests/csmith/collect.py.",
+ "gcc_cflags": [
+  "-O0"
+ ],
+ "glob": [
+  "fail/*.c",
+  "fixed/*.c",
+  "pass/*.c"
+ ]
+}

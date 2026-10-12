@@ -134,6 +134,7 @@ hcc/
                        _Generic, sizeof/_Alignof
     builtins.py        parsing of __builtin_* that take types or are special
                        (va_arg, offsetof, types_compatible_p, ...)
+    atomic_builtins.py __atomic_* (stdatomic.h) parsing; codegen/atomics.py lowers them
 
   sema/
     __init__.py        re-exports
@@ -168,6 +169,7 @@ hcc/
     statements.py      statements, switch dispatch, goto/labels
     data.py            .data/.bss/.rodata emission, string literals, relocs
     builtins.py        __builtin_* lowering (alloca, expect, clz, ...)
+    atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs
     asm.py             inline asm statements (basic + extended)
 
   include/             (optional) hcc's own override headers, searched before

@@ -1,0 +1,21 @@
+{
+  "description": "gcc/testsuite/gcc.dg tests whose applicable dg-do is `run` (top level, torture, tree-ssa, ipa, atomic, sso, tls, cpp, special, debug, charset, weak, rtl). Pass = exit 0 (and stdout equal to the gcc -O0 binary's where the test has a dg-output). Per-test flags from dg-options in <test>.c.flags; skip.txt lists inapplicable tests and tests gcc -O0 itself fails. Regenerate with tests/scripts/import_gcc_dg.py.",
+  "glob": [
+    "*.c",
+    "torture/*.c",
+    "tree-ssa/*.c",
+    "ipa/*.c",
+    "atomic/*.c",
+    "sso/*.c",
+    "tls/*.c",
+    "cpp/*.c",
+    "special/*.c",
+    "debug/*.c",
+    "charset/*.c",
+    "weak/*.c",
+    "rtl/*.c"
+  ],
+  "cflags": [
+    "-w"
+  ]
+}

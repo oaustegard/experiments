@@ -1,0 +1,6 @@
+CREATE TABLE t(id INTEGER PRIMARY KEY, g, i, r);
+INSERT INTO t VALUES(0,'c',NULL,0.5),(1,'b',-1,5e-324),(2,NULL,-2147483648,5e-324),(3,'c',1000,2.5),(4,'b',2147483647,100.0),(5,'a',NULL,-0.5),(6,NULL,123456789012,1.5),(7,'c',9007199254740993,5e-324),(8,'a',255,1.7976931348623157e308),(9,'c',7,1e10),(10,'b',10,1e10),(11,'a',2,0.5),(12,NULL,65535,1e100),(13,'a',NULL,0.7),(14,'a',2,5e-324),(15,'a',4294967296,5e-324),(16,'c',0,9.99999999999999e22),(17,'a',9223372036854775807,0.0),(18,'b',9007199254740993,1e10),(19,'a',7,1.5),(20,'a',7,123456.789),(21,'c',255,0.0),(22,'a',-9223372036854775807,0.0),(23,'a',0,5e-324),(24,'b',65535,0.0),(25,'a',255,1e10),(26,'b',1000,0.5),(27,'a',10,100.0),(28,'b',9007199254740993,4.35),(29,'c',2,123456.789),(30,'a',-2147483648,123456.789);
+SELECT g, count(*), count(i), sum(i), total(i), avg(i), min(i), max(i), sum(r), avg(r), group_concat(i) FROM t GROUP BY g ORDER BY g;
+SELECT g, i, r, row_number() OVER (PARTITION BY g ORDER BY i, id), sum(r) OVER (ORDER BY id ROWS 3 PRECEDING), rank() OVER (ORDER BY i), lag(i) OVER (ORDER BY id), ntile(3) OVER (ORDER BY id) FROM t ORDER BY id;
+SELECT * FROM t WHERE i > 5 OR r < 1.0 ORDER BY r, i, id LIMIT 20;
+SELECT i, r, i + r, i * r, i / (r + 1) FROM t ORDER BY id;

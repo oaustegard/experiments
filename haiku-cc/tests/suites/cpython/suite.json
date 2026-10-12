@@ -1,0 +1,5 @@
+{
+  "description": "CPython 3.12.7 (git tag, commit-pinned, fetched into tests/tools) built by hcc: the 156 objects of the python executable are compiled by hcc with the flags the gcc build used (generated sources and extension modules come from the gcc-built reference tree), linked by gcc. case/<module>/<n>_<slug>: one unittest method of a standard-library test module (`python -m test -v`), same status as under the gcc-built python (objects hcc cannot compile yet are replaced by gcc objects). src/*: one object by hcc, the rest gcc, smoke modules test_grammar and test_list. manifest.json lists the cases (tests/scripts/gen_cpython_manifest.py). Driver: tests/drivers/cpython.py",
+  "driver": "cpython",
+  "cflags": ["-w"]
+}

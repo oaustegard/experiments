@@ -7,6 +7,11 @@ Test ids:
         Expected: exit code, stdout and stderr of the same script under a gcc -O0 build.
   sqlite/build/sqlite3.c, sqlite/build/shell.c   hcc compiles that file (no run).
   sqlite/build/version   the hcc-built shell starts and answers a trivial query.
+  sqlite/tcl/<name>.test   one file of SQLite's own Tcl test suite, run by `testfixture` whose engine
+        (sqlite3.c, built with the test options) is compiled by the compiler under test; see below.
+  sqlite/debug/..., sqlite/ext/...   the same kinds of test under other build configurations (CONFIGS
+        below): SQLITE_DEBUG (assertions, trace code), and an extended build (threads, FTS3/4, GeoPoly,
+        STAT4, session, extra vtabs); ext/sql-ext/ holds scripts that need those options.
 
 sqlite3.c is 9 MB: hcc compiles it ONCE per hcc source hash (tests/drivers/common.py
 caches the object, and a failure's error text), never once per test.  The amalgamation
@@ -14,7 +19,12 @@ caches the object, and a failure's error text), never once per test.  The amalga
 verified against a pinned sha256.
 """
 import glob
+import json
 import os
+import re
+import shlex
+import shutil
+import subprocess
 import zipfile
 
 import common as C
@@ -27,9 +37,56 @@ COMPILE_TIMEOUT = 3600
 RUN_TIMEOUT = 120
 
 
+# Build configurations.  "" is the suite.json configuration; the others replace -DSQLITE_THREADSAFE and add
+# options.  debug: assertions and trace code compiled in (SQLITE_DEBUG).  ext: threads on, FTS3/4, GeoPoly,
+# STAT4, bytecode/dbpage/stmt vtabs, session/preupdate, soundex, ... (its scripts: the hand-written sql/ ones
+# plus sql-ext/).
+CONFIGS = {
+    "": ([], []),
+    "debug": (["-DSQLITE_DEBUG", "-DSQLITE_MEMDEBUG", "-DSQLITE_ENABLE_API_ARMOR", "-DSQLITE_ENABLE_EXPLAIN_COMMENTS",
+               "-DSQLITE_ENABLE_SELECTTRACE", "-DSQLITE_ENABLE_WHERETRACE", "-DSQLITE_ENABLE_TREETRACE",
+               "-DSQLITE_ENABLE_STMT_SCANSTATUS"], []),
+    "ext": (["-DSQLITE_THREADSAFE=1", "-DSQLITE_ENABLE_FTS3", "-DSQLITE_ENABLE_FTS3_PARENTHESIS", "-DSQLITE_ENABLE_FTS4",
+             "-DSQLITE_ENABLE_GEOPOLY", "-DSQLITE_ENABLE_STAT4", "-DSQLITE_ENABLE_BYTECODE_VTAB", "-DSQLITE_ENABLE_DBPAGE_VTAB",
+             "-DSQLITE_ENABLE_STMTVTAB", "-DSQLITE_ENABLE_COLUMN_METADATA", "-DSQLITE_ENABLE_PREUPDATE_HOOK",
+             "-DSQLITE_ENABLE_SESSION", "-DSQLITE_ENABLE_MEMORY_MANAGEMENT", "-DSQLITE_ENABLE_NORMALIZE",
+             "-DSQLITE_ENABLE_SNAPSHOT", "-DSQLITE_SOUNDEX", "-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT",
+             "-DSQLITE_ENABLE_UNLOCK_NOTIFY"], ["-lpthread"]),
+}
+
+
+def split_rel(rel):
+    """'debug/sql/x.sql' -> ('debug', 'sql/x.sql'); 'sql/x.sql' -> ('', 'sql/x.sql')."""
+    head, _, rest = rel.partition("/")
+    if head in CONFIGS and head:
+        return head, rest
+    return "", rel
+
+
+SRC_ZIP_URL = "https://www.sqlite.org/2025/sqlite-src-3490100.zip"
+SRC_ZIP_SHA256 = "4404d93cbce818b1b98ca7259d0ba9b45db76f2fdd9373e56f2d29b519f4d43b"
+TCL_RUN_TIMEOUT = 600
+
+
+def tcl_manifest(suite):
+    p = os.path.join(suite.dir, "tcl-tests.txt")
+    if not os.path.exists(p):
+        return []
+    with open(p) as f:
+        return [l.strip() for l in f if l.strip()]
+
+
 def list_tests(suite):
-    out = ["sql/" + os.path.basename(p) for p in glob.glob(os.path.join(suite.dir, "sql", "*.sql"))]
-    return out + ["build/sqlite3.c", "build/shell.c", "build/version"]
+    sql = sorted(os.path.basename(p) for p in glob.glob(os.path.join(suite.dir, "sql", "*.sql")))
+    ext = sorted(os.path.basename(p) for p in glob.glob(os.path.join(suite.dir, "sql-ext", "*.sql")))
+    out = ["sql/" + n for n in sql]
+    out += ["debug/sql/" + n for n in sql]
+    out += ["ext/sql/" + n for n in sql if not n.startswith("gen_")] + ["ext/sql-ext/" + n for n in ext]
+    for cfg in CONFIGS:
+        pre = cfg + "/" if cfg else ""
+        out += [pre + "build/sqlite3.c", pre + "build/shell.c", pre + "build/version"]
+    out += ["tcl/%s.test" % n for n in tcl_manifest(suite)] + ["tcl/build/sqlite3.c", "tcl/build/testfixture"]
+    return out
 
 
 def source_dir():
@@ -45,30 +102,37 @@ def source_dir():
     return d
 
 
-def flags(suite, cc_argv):
-    return suite.cflags(cc_argv)
+def cfg_flags(base, cfg):
+    extra = CONFIGS[cfg][0]
+    if any(f.startswith("-DSQLITE_THREADSAFE") for f in extra):
+        base = [f for f in base if not f.startswith("-DSQLITE_THREADSAFE")]
+    return base + extra
 
 
-def gcc_flags(suite):
-    return list(suite.cfg["cflags"])
+def flags(suite, cc_argv, cfg=""):
+    return cfg_flags(suite.cflags(cc_argv), cfg)
 
 
-def ref_shell(R, suite):
+def gcc_flags(suite, cfg=""):
+    return cfg_flags(list(suite.cfg["cflags"]), cfg)
+
+
+def ref_shell(R, suite, cfg=""):
     d = source_dir()
-    objs = [C.gcc_object(gcc_flags(suite), os.path.join(d, f), "sqlite/" + f) for f in ("sqlite3.c", "shell.c")]
+    objs = [C.gcc_object(gcc_flags(suite, cfg), os.path.join(d, f), "sqlite/" + f) for f in ("sqlite3.c", "shell.c")]
 
     def build(out):
-        return C.link(R, out, objs, LDFLAGS, os.path.dirname(out))
+        return C.link(R, out, objs, LDFLAGS + CONFIGS[cfg][1], os.path.dirname(out))
     path, fail = C.cached_program(R, "sqlite-ref", [C.gcc_fingerprint(), C.file_sha(os.path.join(d, "sqlite3.c")),
-                                                    C.file_sha(os.path.join(d, "shell.c")), " ".join(gcc_flags(suite))], build)
+                                                    C.file_sha(os.path.join(d, "shell.c")), " ".join(gcc_flags(suite, cfg))], build)
     if fail:
         raise RuntimeError("reference sqlite shell failed to link: " + fail.reason)
     return path
 
 
-def hcc_shell(R, suite, cc_argv):
+def hcc_shell(R, suite, cc_argv, cfg=""):
     d = source_dir()
-    fl = flags(suite, cc_argv)
+    fl = flags(suite, cc_argv, cfg)
 
     def build(out):
         objs = []
@@ -81,7 +145,7 @@ def hcc_shell(R, suite, cc_argv):
                 objs.append(obj)
         if first:
             return first
-        return C.link(R, out, objs, LDFLAGS, os.path.dirname(out))
+        return C.link(R, out, objs, LDFLAGS + CONFIGS[cfg][1], os.path.dirname(out))
     return C.cached_program(R, "sqlite-hcc", [C.compiler_fingerprint(R, cc_argv), C.file_sha(os.path.join(d, "sqlite3.c")),
                                               C.file_sha(os.path.join(d, "shell.c")), " ".join(fl)], build)
 
@@ -95,21 +159,161 @@ def run_script(R, shell, script_path, work):
     return r
 
 
-def run_test(suite, rel, cc_argv, work, R):
-    if rel in ("build/sqlite3.c", "build/shell.c"):
-        f = rel.split("/")[1]
-        obj, fail = C.cached_object(R, cc_argv, flags(suite, cc_argv), os.path.join(source_dir(), f), "sqlite/" + f, COMPILE_TIMEOUT)
+# ---------------------------------------------------------------- SQLite's own Tcl test suite
+# `tcl/<name>.test`: the upstream test/<name>.test run by `testfixture`, the Tcl-linked test program
+# (test*.c + ext/misc/*.c harness + the amalgamation compiled with the test options).  Only the engine,
+# sqlite3.c (9 MB), is compiled by the compiler under test; the harness C files, Tcl itself and the
+# generated sources come from the host (gcc / jimsh / tclsh8.6; needs tcl8.6-dev).  The hcc-built
+# testfixture must report the same "N errors out of M tests" and the same failing test names as the
+# gcc-built one (the manifest tcl-tests.txt lists files that are clean and fast under gcc).
+
+def src_dist_dir():
+    root = os.path.join(C.tools_root(), "sqlite-srcdist")
+    d = os.path.join(root, "sqlite-src-3490100")
+    if os.path.exists(os.path.join(d, "configure")):
+        return d
+    zpath = C.fetch(SRC_ZIP_URL, os.path.join(root, "dl", os.path.basename(SRC_ZIP_URL)), SRC_ZIP_SHA256)
+    with C.locked(d):
+        if not os.path.exists(os.path.join(d, "configure")):
+            with zipfile.ZipFile(zpath) as z:
+                z.extractall(root)
+            for rel in ("configure",) + tuple(os.path.join("autosetup", n) for n in os.listdir(os.path.join(d, "autosetup"))):
+                with __import__("contextlib").suppress(OSError):
+                    os.chmod(os.path.join(d, rel), 0o755)
+    return d
+
+
+def tcl_tree():
+    """Configure + generate sqlite3.c once (host tools) and record the testfixture compile line.
+    Returns a dict {dir, flags, srcs, libs} or raises RuntimeError."""
+    src = src_dist_dir()
+    key = C.sha(C.file_sha(os.path.join(C.tools_root(), "sqlite-srcdist", "dl", os.path.basename(SRC_ZIP_URL))), C.gcc_fingerprint())
+    d = os.path.join(C.cache_root(), "sqlite-tcl-tree", key)
+    info = os.path.join(d, "tree.json")
+    with C.locked(d):
+        t = C.read_json(info)
+        if t:
+            C.touch(d)
+            return t
+        shutil.rmtree(d, ignore_errors=True)
+        os.makedirs(d)
+        script = ("set -e; cd %s; %s/configure --disable-readline --with-tcl=/usr/lib/tcl8.6 >configure.log 2>&1; "
+                  "make sqlite3.c >make1.log 2>&1; make -n testfixture CFLAGS=-O0 >plan.txt 2>&1") % (shlex.quote(d), shlex.quote(src))
+        r = subprocess.run(["sh", "-c", script], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise RuntimeError("sqlite tcl tree setup failed (is tcl8.6-dev installed?): " + (r.stderr or r.stdout)[-300:])
+        plan = open(os.path.join(d, "plan.txt")).read().replace("\\\n", " ")
+        line = [l for l in plan.splitlines() if re.search(r"\s-o\s+testfixture\s", l)][0]
+        toks = shlex.split(line.split(" cc ", 1)[1] if " cc " in line else line)
+        flags, srcs, libs, skip = [], [], [], False
+        tcl_inc = subprocess.run(["sh", "-c", ". /usr/lib/tcl8.6/tclConfig.sh; echo $TCL_INCLUDE_SPEC"], capture_output=True, text=True).stdout.split()
+        tcl_lib = subprocess.run(["sh", "-c", ". /usr/lib/tcl8.6/tclConfig.sh; echo $TCL_LIB_SPEC"], capture_output=True, text=True).stdout.split()
+        for t in toks:
+            if skip:
+                skip = False
+            elif t == "-o":
+                skip = True
+            elif t == "$TCL_LIB_SPEC":
+                libs += tcl_lib
+            elif t == "$TCL_INCLUDE_SPEC":
+                flags += tcl_inc
+            elif t.endswith(".c"):
+                srcs.append(t if os.path.isabs(t) else os.path.join(d, t))
+            elif t.startswith("-l") or t.startswith("-Wl"):
+                libs.append(t)
+            elif t.startswith(("-D", "-I", "-U")):
+                flags.append(t)
+        flags = ["-I" + d if f == "-I." else f for f in flags]
+        tree = {"dir": d, "flags": flags, "srcs": srcs, "libs": libs}
+        C.atomic_write(info, json.dumps(tree))
+        return tree
+
+
+def tcl_objects(R, cc_argv):
+    """(harness objects by gcc, sqlite3.c object by the compiler under test or the failure)."""
+    tree = tcl_tree()
+    harness = []
+    for sp in tree["srcs"]:
+        if os.path.basename(sp) == "sqlite3.c":
+            continue
+        harness.append(C.gcc_object(tree["flags"], sp, "sqlite-tcl/" + os.path.basename(sp)))
+    amal = os.path.join(tree["dir"], "sqlite3.c")
+    obj, fail = C.cached_object(R, cc_argv, list(tree["flags"]) + (flags_gcc_extra(cc_argv, R)), amal, "sqlite-tcl/sqlite3.c", COMPILE_TIMEOUT)
+    return tree, harness, amal, obj, fail
+
+
+def flags_gcc_extra(cc_argv, R):
+    return ["-O0"] if R.is_real_cc(cc_argv) else []
+
+
+def tcl_testfixture(R, cc_argv, ref=False):
+    """Linked testfixture: ref=True is all gcc; else sqlite3.c comes from the compiler under test."""
+    if ref:
+        tree = tcl_tree()
+        objs = [C.gcc_object(tree["flags"], sp, "sqlite-tcl/" + os.path.basename(sp)) for sp in tree["srcs"]]
+        key = [C.gcc_fingerprint(), "ref", " ".join(tree["flags"])] + [C.file_sha(o) for o in objs[-1:]]
+
+        def build_ref(out):
+            return C.link(R, out, objs, tree["libs"], os.path.dirname(out))
+        path, fail = C.cached_program(R, "sqlite-tcl-ref", key, build_ref)
+        if fail:
+            raise RuntimeError("reference testfixture failed to link: " + fail.reason)
+        return path, None
+    tree, harness, amal, obj, fail = tcl_objects(R, cc_argv)
+    if fail:
+        return None, C.Failure(fail.status, fail.stage, "sqlite tcl build: sqlite3.c: " + fail.reason, fail.log)
+
+    def build(out):
+        return C.link(R, out, harness + [obj], tree["libs"], os.path.dirname(out))
+    return C.cached_program(R, "sqlite-tcl-hcc", [C.compiler_fingerprint(R, cc_argv), C.file_sha(amal), " ".join(tree["flags"])], build)
+
+
+def run_tcl_test(R, tf, name, work):
+    test = os.path.join(src_dist_dir(), "test", name + ".test")
+    r = C.run_and_capture(R, [tf, test], TCL_RUN_TIMEOUT, work, env=dict(os.environ, TMPDIR=work, TZ="UTC"))
+    lines = r["out"].splitlines()
+    keep = [l for l in lines if l.startswith("!") or re.search(r"\d+ errors out of \d+ tests", l) or "Failures on these tests" in l]
+    r["out"] = "\n".join(keep) + "\n"
+    r["err"] = r["err"][-800:]
+    return r
+
+
+def run_tcl(suite, rel, cc_argv, work, R):
+    if rel == "tcl/build/sqlite3.c":
+        tree, harness, amal, obj, fail = tcl_objects(R, cc_argv)
         return fail.result(R) if fail else R.Result("PASS")
-    shell, fail = hcc_shell(R, suite, cc_argv)
+    tf, fail = tcl_testfixture(R, cc_argv)
     if fail:
         return fail.result(R)
-    ref = ref_shell(R, suite)
-    if rel == "build/version":
+    ref, _ = tcl_testfixture(R, cc_argv, ref=True)
+    if rel == "tcl/build/testfixture":
+        return R.Result("PASS")
+    name = os.path.basename(rel)[:-5]
+    test = os.path.join(src_dist_dir(), "test", name + ".test")
+    want = C.cached_value("sqlite-tcl-ref-run", [C.gcc_fingerprint(), C.file_sha(ref), C.file_sha(test), C.file_sha(__file__)],
+                          lambda: run_tcl_test(R, ref, name, _tmp(work, "ref")))
+    got = run_tcl_test(R, tf, name, _tmp(work, "got"))
+    return C.compare_runs(R, got, want)
+
+
+def run_test(suite, rel, cc_argv, work, R):
+    if rel.startswith("tcl/"):
+        return run_tcl(suite, rel, cc_argv, work, R)
+    cfg, rest = split_rel(rel)
+    if rest in ("build/sqlite3.c", "build/shell.c"):
+        f = rest.split("/")[1]
+        obj, fail = C.cached_object(R, cc_argv, flags(suite, cc_argv, cfg), os.path.join(source_dir(), f), "sqlite/" + f, COMPILE_TIMEOUT)
+        return fail.result(R) if fail else R.Result("PASS")
+    shell, fail = hcc_shell(R, suite, cc_argv, cfg)
+    if fail:
+        return fail.result(R)
+    ref = ref_shell(R, suite, cfg)
+    if rest == "build/version":
         script = os.path.join(work, "version.sql")
         with open(script, "w") as f:
-            f.write("SELECT sqlite_version(), sqlite_source_id(), 1+1;\n.version\n")
+            f.write("SELECT sqlite_version(), sqlite_source_id(), 1+1, sqlite_compileoption_used('THREADSAFE=0');\n")
     else:
-        script = os.path.join(suite.dir, rel)
+        script = os.path.join(suite.dir, rest)
     want = C.cached_value("sqlite-ref-run", [C.gcc_fingerprint(), C.file_sha(ref), C.file_sha(script), C.file_sha(__file__)],
                           lambda: run_script(R, ref, script, _tmp(work, "ref")))
     got = run_script(R, shell, script, _tmp(work, "got"))

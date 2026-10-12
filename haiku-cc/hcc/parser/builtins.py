@@ -10,6 +10,7 @@ produces a BuiltinCall.
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.structs import find_member
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
@@ -24,7 +25,8 @@ __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_m
 __builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
-__builtin_inf __builtin_inff __builtin_infl __builtin_signbit
+__builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
+__builtin_nan __builtin_nanf __builtin_nanl
 __builtin_setjmp __builtin_longjmp
 """.split())
 
@@ -34,12 +36,17 @@ BIT_BUILTINS = frozenset(
     f"__builtin_{base}{suffix}"
     for base in ("clz", "ctz", "popcount", "parity", "ffs", "clrsb")
     for suffix in ("", "l", "ll"))
-SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS
+SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS
 
 
 class BuiltinParseMixin:
 
     def parse_builtin(self, tok):
+        if tok.text in ATOMIC_BUILTINS:
+            self.expect("(")
+            node = atomic_call(self, tok)
+            self.expect(")")
+            return node
         name = tok.text[len("__builtin_"):]
         self.expect("(")
         if tok.text in BIT_BUILTINS:
@@ -186,6 +193,21 @@ class BuiltinParseMixin:
         """__builtin_huge_val*()/__builtin_inf*(): a constant +infinity."""
         return N.FloatLit(tok.loc, float("inf"), ty=ty)
 
+    def _nan_lit(self, tok, ty):
+        """__builtin_nan*(tag): a constant quiet NaN (the tag string only
+        selects a payload, which is not modelled)."""
+        self._args(1)
+        return N.FloatLit(tok.loc, float("nan"), ty=ty)
+
+    def _b_nan(self, tok):
+        return self._nan_lit(tok, T.TY_DOUBLE)
+
+    def _b_nanf(self, tok):
+        return self._nan_lit(tok, T.TY_FLOAT)
+
+    def _b_nanl(self, tok):
+        return self._nan_lit(tok, T.TY_LDOUBLE)
+
     def _b_huge_val(self, tok):
         return self._inf_lit(tok, T.TY_DOUBLE)
 
@@ -209,6 +231,12 @@ class BuiltinParseMixin:
         sign bit, also for NaN and float/long double); codegen reads bit 63."""
         args = [new_cast(a, T.TY_DOUBLE) for a in self._args(1)]
         return self._call(tok, "signbit", args, T.TY_INT)
+
+    def _b_signbitf(self, tok):
+        return self._b_signbit(tok)
+
+    def _b_signbitl(self, tok):
+        return self._b_signbit(tok)
 
     def _b_unreachable(self, tok):
         return self._call(tok, "trap", [], T.TY_VOID)

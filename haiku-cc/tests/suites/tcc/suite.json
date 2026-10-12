@@ -1,0 +1,5 @@
+{
+  "description": "TinyCC (mob, commit-pinned, fetched into tests/tools) built by hcc as 11 translation units. src/<u>.c: hcc compiles one unit, gcc the rest, smoke set must match the reference. t2/*: upstream tests/tests2 run by an hcc-built tcc; pp/*: tests/pp; obj/*: object files byte-identical to the reference tcc's; self/*: upstream tests/Makefile targets (test1, test3 self-compilation, cross compilers, ...); lib/*: libtcc used from C. Reference = upstream gcc build of the same tree. Driver: tests/drivers/tcc.py",
+  "driver": "tcc",
+  "cflags": ["-w"]
+}

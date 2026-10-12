@@ -116,6 +116,7 @@ def record(ctx: Ctx, commit: str, results: dict, replace_known: bool = False) ->
     k = {} if replace_known else known(ctx)
     for t, r in results.items():
         if r.get("status") == "MISSING":
+            k.pop(t, None)        # skipped or removed upstream: forget it so it is neither gated nor queued
             continue
         k[t] = {"status": r.get("status"), "reason": r.get("reason", ""), "stage": r.get("stage", ""),
                 "commit": commit}

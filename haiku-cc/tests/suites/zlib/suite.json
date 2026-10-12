@@ -1,0 +1,5 @@
+{
+  "description": "zlib 1.3.1 (release tarball, sha256-pinned, fetched into tests/tools) built by hcc. src/<f>.c: hcc compiles one library file, linked with gcc -O0 objects of the rest into example+minigzip, which must behave like an all-gcc build. test/*.c: upstream make-test programs built entirely by hcc. gz/<input>-<mode>: hcc-built minigzip must produce the same gzip bytes as the gcc build and round-trip them. Driver: tests/drivers/zlib.py",
+  "driver": "zlib",
+  "cflags": ["-w"]
+}

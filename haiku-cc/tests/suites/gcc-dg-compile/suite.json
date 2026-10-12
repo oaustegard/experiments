@@ -1,0 +1,22 @@
+{
+  "description": "gcc/testsuite/gcc.dg tests whose applicable dg-do is compile/assemble (or unspecified), without dg-error (top level, torture, tree-ssa, ipa, atomic, sso, tls, cpp, special, debug, charset, weak, rtl). Compile-only: PASS = the compiler's -S succeeds and `as` accepts the output (driver compileonly). Per-test flags from dg-options in <test>.c.flags; skip.txt lists inapplicable tests and tests gcc -O0 -w itself rejects. Regenerate with tests/scripts/import_gcc_dg.py. SAMPLED: 8007 candidates; to keep a full run near 12 minutes every test hcc failed at import time (407) plus a deterministic hash-ranked 2893 of the 7600 it passed are active, the rest are in skip.txt as 'sampled out' (tests/scripts/sample_suite.py).",
+  "glob": [
+    "*.c",
+    "torture/*.c",
+    "tree-ssa/*.c",
+    "ipa/*.c",
+    "atomic/*.c",
+    "sso/*.c",
+    "tls/*.c",
+    "cpp/*.c",
+    "special/*.c",
+    "debug/*.c",
+    "charset/*.c",
+    "weak/*.c",
+    "rtl/*.c"
+  ],
+  "cflags": [
+    "-w"
+  ],
+  "driver": "compileonly"
+}

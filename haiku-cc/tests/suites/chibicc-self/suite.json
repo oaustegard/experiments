@@ -1,0 +1,5 @@
+{
+  "description": "chibicc (rui314/chibicc, commit-pinned, fetched into tests/tools) built by hcc and then used as a compiler. src/<u>.c: hcc compiles one of the 9 units, gcc the rest; the result must emit byte-identical assembly for 6 test files. test/<n>.c: upstream `make test` with the all-hcc chibicc (also byte-identical -S output vs the gcc-built chibicc). driver: test/driver.sh. stage2/<u>.c: the hcc-built chibicc compiles chibicc's own sources. stage2-test/<n>.c: upstream test-stage2. Driver: tests/drivers/chibicc_self.py",
+  "driver": "chibicc_self",
+  "cflags": ["-w"]
+}

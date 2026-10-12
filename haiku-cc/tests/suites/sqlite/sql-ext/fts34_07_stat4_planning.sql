@@ -1,0 +1,13 @@
+CREATE TABLE t(a, b, c);
+CREATE INDEX tab ON t(a, b);
+CREATE INDEX tc ON t(c);
+WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM n WHERE i<3000)
+INSERT INTO t SELECT i%100, i%7, CASE WHEN i%1000=0 THEN 'rare' ELSE 'common' END FROM n;
+ANALYZE;
+SELECT idx, count(*) FROM sqlite_stat4 GROUP BY idx ORDER BY idx;
+EXPLAIN QUERY PLAN SELECT * FROM t WHERE c = 'rare';
+EXPLAIN QUERY PLAN SELECT * FROM t WHERE c = 'common' AND a = 5;
+EXPLAIN QUERY PLAN SELECT * FROM t WHERE a = 50 AND b > 2;
+SELECT count(*) FROM t WHERE c = 'rare';
+SELECT count(*) FROM t WHERE a = 50 AND b > 2;
+SELECT tbl, idx, stat FROM sqlite_stat1 ORDER BY 1, 2;
