@@ -16,6 +16,7 @@ from hcc import nodes as N
 from hcc.halfbits import half_to_double
 from hcc.parser.fp_classify import FP_CLASS_STEMS
 from hcc.parser.float16_math import F16_MATH_NAMES, f16_math_call
+from hcc.parser.has_attribute import has_attribute_call
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.crc_builtins import CRC_BUILTINS, crc_call
 from hcc.parser.object_size import lower_object_size
@@ -53,7 +54,7 @@ __builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
 __builtin_fpclassify __builtin_isnormal __builtin_isinf_sign
 __builtin_isless __builtin_islessequal __builtin_islessgreater
 __builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
-__builtin_object_size __builtin_dynamic_object_size
+__builtin_object_size __builtin_dynamic_object_size __builtin_has_attribute
 """.split())
 
 # SSE4.2 CRC32 builtins: (crc, value) -> CRC-32C accumulated over the value's width.
@@ -161,6 +162,9 @@ class BuiltinParseMixin:
 
     def _b_shuffle(self, tok):
         return lower_shuffle(self, tok.loc, self._args())
+
+    def _b_has_attribute(self, tok):
+        return has_attribute_call(self, tok)
 
     def _b_shufflevector(self, tok):
         return lower_shufflevector(self, tok.loc, self._args())

@@ -95,6 +95,13 @@ class PrimaryMixin:
                 if vs is not None and vs.var is not None:
                     return self.typed(N.VarRef(t.loc, vs.var))
                 is_call = True
+            else:
+                # A bare __builtin_<fn> used as a value (e.g. in `c ? __builtin_printf : f`)
+                # names the library function <fn> itself.
+                vs = self.find_var(bname)
+                if vs is not None and vs.var is not None:
+                    return self.typed(N.VarRef(t.loc, vs.var))
+                return self.typed(N.VarRef(t.loc, self.implicit_function(bname, t, T.TY_INT)))
         if is_call:
             rty = libc_return_type(name)
             if rty is None:

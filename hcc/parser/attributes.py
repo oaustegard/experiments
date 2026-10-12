@@ -126,6 +126,13 @@ class AttributeMixin:
             attr.is_gnu_inline = True
         elif name == "weak" and attr is not None:
             attr.is_weak = True
+        elif name == "copy" and attr is not None and args:
+            # copy(f): inherit the attributes hcc records on the function f
+            from hcc import nodes as N
+            vs = self.find_var(args[0].text)
+            if vs is not None and isinstance(vs.var, N.Function):
+                attr.is_noreturn |= vs.var.is_noreturn
+                attr.is_weak |= vs.var.is_weak
         elif name == "nocommon" and attr is not None:
             attr.is_nocommon = True
         elif name == "section" and attr is not None and args:
