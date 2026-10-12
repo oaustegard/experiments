@@ -36,6 +36,7 @@ class VarAttr:
     is_noreturn: bool = False
     align: int = 0
     is_weak: bool = False
+    is_gnu_inline: bool = False     # __attribute__((gnu_inline))
     is_nocommon: bool = False       # __attribute__((nocommon)): tentative def goes to .bss
     is_packed: bool = False
     is_ms_struct: bool = False

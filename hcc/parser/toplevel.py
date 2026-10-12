@@ -241,7 +241,7 @@ class TopLevelMixin:
         inline definition and provides no external symbol."""
         o = self.opts
         gnu89 = o is not None and (o.gnu89_inline or o.std in GNU89_STDS)
-        return bool(gnu89 and attr.is_extern and attr.is_inline)
+        return bool((gnu89 or attr.is_gnu_inline) and attr.is_extern and attr.is_inline)
 
     def function_definition(self, fn, ty, inline_only=False) -> None:
         if fn.is_definition:
