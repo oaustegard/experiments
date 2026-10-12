@@ -8,6 +8,7 @@ to (unsigned) long when values don't fit in 32 bits.
 from __future__ import annotations
 
 from hcc.parser.scope import VarAttr
+from hcc.parser.redecl import check_redecl
 from hcc.tokens import TokenKind
 from hcc import typesys as T
 
@@ -79,6 +80,7 @@ class EnumMixin:
                 cty = enumerator_type(val, ety)
             elif not fits_type(val, cty):
                 cty = widen_type(cty)
+            check_redecl(self, self.scopes[-1], name, "enum")
             vs = self.push_scope_entry(name.text)
             vs.enum_ty = ty
             vs.enum_val = val
