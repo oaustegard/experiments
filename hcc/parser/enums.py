@@ -141,10 +141,10 @@ class EnumMixin:
             self.error("empty enum is invalid", self.toks[self.pos - 1])
         lo = min(consts, default=0)
         hi = max(consts, default=0)
+        if fixed is None and tag is not None:
+            self.__dict__.setdefault("enum_nofixed_ids", {})[id(ty)] = ty   # keeps ty alive: no id reuse
         if fixed is not None:
             pass
-        elif tag is not None:
-            self.__dict__.setdefault("enum_nofixed_ids", {})[id(ty)] = ty   # keeps ty alive: no id reuse
         elif lo < 0:
             if lo < -(1 << 31) or hi >= 1 << 31:
                 ty.size = ty.align = 8
