@@ -42,7 +42,7 @@ __builtin_isinf __builtin_isnan __builtin_isfinite
 __builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
 __builtin_isless __builtin_islessequal __builtin_islessgreater
 __builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
-__builtin_object_size
+__builtin_object_size __builtin_dynamic_object_size
 """.split())
 
 # SSE4.2 CRC32 builtins: (crc, value) -> CRC-32C accumulated over the value's width.
@@ -309,6 +309,9 @@ class BuiltinParseMixin:
         return self._overflow_p(tok, "sub")
 
     def _b_object_size(self, tok):
+        return lower_object_size(self, tok)
+
+    def _b_dynamic_object_size(self, tok):
         return lower_object_size(self, tok)
 
     def _b_assoc_barrier(self, tok):
