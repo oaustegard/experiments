@@ -20,7 +20,7 @@ SPECIAL_BUILTINS = frozenset("""
 __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin_offsetof
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
-__builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow
+__builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_prefetch
 """.split())
 
 
@@ -62,6 +62,17 @@ class BuiltinParseMixin:
         self.expect(",")
         ty = self.typename()
         return self._call(tok, "va_arg", [ap], ty, ty)
+
+    def _b_prefetch(self, tok):
+        """__builtin_prefetch(addr[, rw[, locality]]) is only a cache hint: it
+        evaluates its arguments (for side effects) and yields void."""
+        args = self._args()
+        if not 1 <= len(args) <= 3:
+            self.error("builtin expects 1 to 3 arguments")
+        node = N.Cast(tok.loc, N.IntLit(tok.loc, 0, ty=T.TY_INT), ty=T.TY_VOID)
+        for a in reversed(args):
+            node = N.Comma(tok.loc, N.Cast(tok.loc, a, ty=T.TY_VOID), node, ty=T.TY_VOID)
+        return node
 
     def _b_alloca(self, tok):
         args = [new_cast(a, T.TY_ULONG) for a in self._args(1)]
