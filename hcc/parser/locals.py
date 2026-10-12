@@ -47,6 +47,9 @@ class LocalDeclMixin:
                 items.extend(pre)
                 self.push_scope_entry(name.text).type_def = ty
                 continue
+            if ty.kind == T.TypeKind.FUNC and ty.enum_consts == "knr" \
+                    and not self.at(";") and not self.at(","):
+                self.knr_params(ty)              # GNU nested K&R definition
             if ty.kind == T.TypeKind.FUNC and self.at("{"):
                 self.nested_function(ty, name, attr, dattr)
                 return items
