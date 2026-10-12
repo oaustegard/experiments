@@ -78,9 +78,14 @@ class TopLevelMixin:
             if attr.is_constexpr:
                 ty = constexpr_type(ty)
             dattr = VarAttr()
+            post_pos = self.pos
             self.parse_attributes(dattr)
             self.parse_asm_label(dattr)
             self.parse_attributes(dattr)
+            if self.pos != post_pos and ty.kind == T.TypeKind.FUNC and self.at("{"):
+                # GCC: attributes after the declarator of a function definition
+                self.error("attributes should be specified before the declarator "
+                           "in a function definition")
             self.check_designated_init(dattr, ty.kind == T.TypeKind.STRUCT, name)
             if name is None:
                 self.error("identifier expected in declaration")
