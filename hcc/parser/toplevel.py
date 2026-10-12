@@ -282,6 +282,8 @@ class TopLevelMixin:
         pnames = {n.text for n in fty.param_names}
         while not self.at("{"):
             attr = VarAttr()
+            if self.at(";"):            # a declaration needs declaration specifiers
+                self.error("expected declaration specifiers before ';' token")
             enums_before = {k: v for k, v in self.scopes[-1].vars.items() if v.enum_ty is not None}
             basety = self.declspec(attr)
             # An enumerator declared in the list (`enum b { a }`) is a non-parameter.
