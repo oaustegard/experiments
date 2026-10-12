@@ -39,6 +39,13 @@ def _size_expr(t, loc):
     return N.IntLit(loc, t.size, ty=TY_LONG)
 
 
+def _func_decay(node):
+    """A function designator used as an arithmetic operand decays to a pointer."""
+    if node.ty.kind == TypeKind.FUNC:
+        return new_cast(node, pointer_to(node.ty))
+    return node
+
+
 def _is_ptr(ty) -> bool:
     return ty.base is not None and ty.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.VLA)
 
@@ -46,6 +53,7 @@ def _is_ptr(ty) -> bool:
 def new_add(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
+    lhs, rhs = _func_decay(lhs), _func_decay(rhs)
     if is_numeric(lhs.ty) and is_numeric(rhs.ty):
         return _t(narrow_wide_bitfield_result("+", lhs, rhs, _t(N.Binary(loc, "+", lhs, rhs))))
     if _is_ptr(lhs.ty) and _is_ptr(rhs.ty):
@@ -62,6 +70,7 @@ def new_add(lhs, rhs, loc):
 def new_sub(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
+    lhs, rhs = _func_decay(lhs), _func_decay(rhs)
     if is_numeric(lhs.ty) and is_numeric(rhs.ty):
         return _t(narrow_wide_bitfield_result("-", lhs, rhs, _t(N.Binary(loc, "-", lhs, rhs))))
     if _is_ptr(lhs.ty) and is_numeric(rhs.ty):
