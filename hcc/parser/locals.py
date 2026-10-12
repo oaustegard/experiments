@@ -16,6 +16,7 @@ from hcc.sema.constexpr import try_eval_const
 from hcc.parser.initializers import const_bytes
 from hcc.parser.attributes import mode_type
 from hcc.parser.vla import vla_slot_type
+from hcc.sema.compat import is_compatible
 
 # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
 GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
@@ -78,6 +79,7 @@ class LocalDeclMixin:
             self.parse_asm_label(dattr)
             if name is None:
                 self.error("identifier expected in declaration")
+            self.check_block_redecl(name, ty, attr)
             cleanup = dattr.cleanup or attr.cleanup
             if cleanup and (attr.is_static or attr.is_extern or attr.is_typedef):
                 self.error("cleanup attribute on a non-automatic variable", name)
@@ -228,3 +230,13 @@ class LocalDeclMixin:
         self.function_definition(fn, ty)
         (self.fn, self.locals, self.label_names, self.goto_names,
          self.brk_label, self.cont_label, self.cur_switch) = saved
+
+    def check_block_redecl(self, name, ty, attr) -> None:
+        """A second declaration of a variable in the same block scope must have a
+        compatible type (C11 6.7p3, 6.2.7); e.g. `int i; unsigned i[1];`."""
+        if attr.is_typedef or ty.kind == T.TypeKind.FUNC:
+            return
+        vs = self.scopes[-1].vars.get(name.text)
+        if vs is not None and vs.var is not None and not isinstance(vs.var, N.Function) \
+                and not is_compatible(vs.var.ty, ty):
+            self.error(f"conflicting types for '{name.text}'", name)

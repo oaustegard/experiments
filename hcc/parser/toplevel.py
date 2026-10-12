@@ -145,6 +145,8 @@ class TopLevelMixin:
             self.scopes[0].vars[name.text] = VarScope(var=fn)
             self.objs.append(fn)
         else:
+            if not is_compatible(fn.ty, ty):
+                self.error(f"conflicting types for '{name.text}'", name.loc)
             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
                 self.error(f"redefinition of '{name.text}'", name.loc)
@@ -174,9 +176,12 @@ class TopLevelMixin:
             self.scopes[0].vars[name.text] = VarScope(var=var)
             self.objs.append(var)
             var.is_definition = False
-        elif ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
-                var.ty.array_len < 0 and ty.kind == T.TypeKind.ARRAY and ty.array_len >= 0:
-            var.ty = ty
+        else:
+            if not is_compatible(var.ty, ty):
+                self.error(f"conflicting types for '{name.text}'", name.loc)
+            if ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
+                    var.ty.array_len < 0 and ty.kind == T.TypeKind.ARRAY and ty.array_len >= 0:
+                var.ty = ty
         var.is_static |= attr.is_static
         var.is_tls |= attr.is_tls
         var.is_weak |= attr.is_weak or dattr.is_weak
