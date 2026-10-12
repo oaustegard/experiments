@@ -25,6 +25,7 @@ if __name__ == "__main__":
 import argparse
 import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -210,6 +211,9 @@ def reap(ctx: Ctx, rec: dict) -> dict:
         rec.update(status="finished")
     ledger_put(ctx, rec)
     log(f"DONE   {rec['id']} {rec['status']} ${rec['cost_usd']:.3f} {rec.get('reason', '')}")
+    # The worker's /tmp/<task id>/ scratch is never needed after it exits; 600 workers' worth
+    # (up to 170 MB each) filled the disk on 2026-10-12.
+    shutil.rmtree(f"/tmp/{rec['id']}", ignore_errors=True)
     if rec["status"] == "failed":
         remove_worktree(ctx, ctx.worktree(rec["id"]))
     return rec
