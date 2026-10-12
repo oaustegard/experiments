@@ -109,6 +109,13 @@ def _write(init, ty, gd, offset) -> None:
         a, b, addend = diff
         gd.relocs.append(N.Reloc(offset, a, addend, ty.size, b))
         return
+    inner = _same_size_operand(expr, ty)
+    src = _static_compound_literal(inner) if _is_anon_compound(inner, ty) else None
+    if src is not None:                  # scalar file-scope compound literal, e.g. (int){1}
+        gd.data[offset:offset + ty.size] = src.data[:ty.size]
+        gd.relocs.extend(N.Reloc(offset + r.offset, r.label, r.addend, r.size, r.minus)
+                         for r in src.relocs)
+        return
     if T.is_flonum(ty):
         try:
             v = eval_float(expr)
@@ -139,6 +146,22 @@ def _static_compound_literal(expr):
         if src is not None:
             return src
     return None
+
+
+def _is_anon_compound(expr, ty) -> bool:
+    """True for a VarRef to the anonymous global the parser makes for a file-scope scalar
+    compound literal of the target's size. String literals are anonymous too (and decay
+    to arrays), so arrays never qualify."""
+    return (isinstance(expr, N.VarRef) and expr.var.name.startswith(".L..anon.")
+            and expr.var.ty.kind != T.TypeKind.ARRAY and expr.var.ty.size == ty.size)
+
+
+def _same_size_operand(expr, ty):
+    """Strip casts that keep the byte representation (e.g. `(int){1}` cast to int)."""
+    while isinstance(expr, N.Cast) and expr.operand.ty is not None and expr.operand.ty.size == ty.size \
+            and not T.is_flonum(expr.operand.ty) and not T.is_flonum(ty):
+        expr = expr.operand
+    return expr
 
 
 def _label_difference(expr):

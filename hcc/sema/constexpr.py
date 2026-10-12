@@ -112,10 +112,18 @@ def _eval(node):
             la, a = _eval(node.lhs)
             lb, b = _eval(node.rhs)
             if lb is not None:
-                if op == "-" or la is not None:
+                if op == "-":
+                    if la == lb:             # &x.f - &x: same object, plain integer difference
+                        return None, wrap(a - b, node.ty)
+                    raise NotConstant
+                if la is not None:
                     raise NotConstant
                 return lb, wrap(a + b, node.ty)
             return la, wrap(a + b if op == "+" else a - b, node.ty) if la is None else (a + b if op == "+" else a - b)
+        if op in ("==", "!=", "<", "<=", ">", ">="):
+            folded = _fold_address_compare(node)
+            if folded is not None:
+                return None, folded
         a, b = _num(node.lhs), _num(node.rhs)
         u = node.lhs.ty.is_unsigned if node.lhs.ty is not None else False
         if op in ("/", "%"):
@@ -195,6 +203,41 @@ def builtin_constant_p(node) -> int:
     if type(inner) is N.VarRef and getattr(inner.var, "is_string_literal", False):
         return 1
     return int(try_eval_const(node) is not None)
+
+
+_SWAPPED_REL = {"==": "==", "!=": "!=", "<": ">", "<=": ">=", ">": "<", ">=": "<="}
+
+
+def _fold_address_compare(node):
+    """Fold a comparison involving address constants: two addresses of the same
+    object compare by offset; an object's address compared with null is known
+    (objects are never null). Returns 0/1, or None if not foldable here."""
+    try:
+        la, a = _eval(node.lhs)
+        lb, b = _eval(node.rhs)
+    except NotConstant:
+        return None
+    op = node.op
+    if la is not None and lb is not None:
+        if la != lb:
+            return None
+        return int(_compare(op, a, b))
+    if la is None and lb is None:
+        return None
+    # exactly one side is an address: it must be compared against a null constant
+    if la is None:                       # 0 OP &x: swap so the address is on the left
+        op, b = _SWAPPED_REL[op], a
+    if b != 0:
+        return None
+    if op == "==":
+        return 0
+    if op == "!=":
+        return 1
+    return int(op in (">", ">="))
+
+
+def _compare(op, a, b) -> bool:
+    return {"==": a == b, "!=": a != b, "<": a < b, "<=": a <= b, ">": a > b, ">=": a >= b}[op]
 
 
 def _eval_addr(node):
