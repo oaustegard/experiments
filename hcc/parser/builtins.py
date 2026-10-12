@@ -20,6 +20,7 @@ from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.crc_builtins import CRC_BUILTINS, crc_call
 from hcc.parser.object_size import lower_object_size
 from hcc.parser.structs import find_member
+from hcc.parser.overflow_wide import wide_overflow_operands
 from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
 from hcc.parser.vector_shufflevector import lower_shufflevector
@@ -305,10 +306,12 @@ class BuiltinParseMixin:
         """__builtin_{add,sub,mul}_overflow(a, b, &res): operands are widened to
         exact 64-bit LONG/ULONG (by their own signedness); codegen does the check."""
         args = self._args(3)
-        ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
         res = args[2]
         if res.ty.kind != T.TypeKind.PTR or res.ty.base is None:
             self.error(f"'__builtin_{name}_overflow' expects a pointer as third argument")
+        ops = wide_overflow_operands(self, name, args[:2], res.ty.base)
+        if ops is None:
+            ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
         return self._call(tok, name + "_overflow", ops + [res], T.TY_INT, res.ty.base)
 
     def _b_add_overflow(self, tok):
@@ -324,7 +327,9 @@ class BuiltinParseMixin:
         """__builtin_{add,sub,mul}_overflow_p(a, b, c): 1 iff a OP b does not fit
         the type of c. Only the type of c is used (its value is never read or stored)."""
         args = self._args(3)
-        ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
+        ops = wide_overflow_operands(self, name, args[:2], args[2].ty)
+        if ops is None:
+            ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
         return self._call(tok, name + "_overflow_p", ops, T.TY_INT, args[2].ty)
 
     def _b_mul_overflow_p(self, tok):

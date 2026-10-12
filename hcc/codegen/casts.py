@@ -132,6 +132,9 @@ class CastMixin:
             self.emit("fldz")
             self.emit("fucomip")
             self.emit("fstp %st(0)")
+        elif k == TypeKind.INT128:
+            self.emit("mov %rax, %r11")  # ZF = both halves are zero
+            self.emit("or %rdx, %r11")
         elif ty.size <= 4 and k not in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.FUNC):
             self.emit("cmp $0, %eax")
         else:
@@ -148,6 +151,10 @@ class CastMixin:
         if frm.kind in (TypeKind.STRUCT, TypeKind.UNION) or to.kind in (TypeKind.STRUCT, TypeKind.UNION):
             return
         if frm.kind == TypeKind.VOID:
+            return
+        if (frm.kind == TypeKind.INT128 or to.kind == TypeKind.INT128) and self.cast128(frm, to):
+            if to.kind == TypeKind.FLOAT16:
+                self.emit(ROUND_HALF)
             return
         code = TABLE[type_id(frm)][type_id(to)]
         if code:

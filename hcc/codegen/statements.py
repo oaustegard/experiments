@@ -176,7 +176,11 @@ class StatementMixin:
         self.gen_expr(node.cond)
         wide = node.cond.ty.size == 8
         ax, di = ("%rax", "%rdi") if wide else ("%eax", "%edi")
-        for c in node.cases:
+        cases = node.cases
+        if node.cond.ty.kind == TypeKind.INT128:
+            self.int128_switch_cases(cases)     # compares both words
+            cases = []
+        for c in cases:
             if c.lo == c.hi:
                 v = c.lo
                 if -(1 << 31) <= v < (1 << 31):

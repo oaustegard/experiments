@@ -45,6 +45,10 @@ class FunctionMixin:
                 fp += 1
             elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
                 pass
+            elif k == TypeKind.INT128:
+                if gp + 2 <= 6:
+                    where = ("i128", gp)
+                    gp += 2
             else:
                 if gp < 6:
                     where = ("gp", gp)
@@ -162,6 +166,9 @@ class FunctionMixin:
                 self.emit(f"{ins} %xmm{w[1]}, {self.frame_ref(p.offset)}")
             elif w[0] == "struct":
                 self.store_struct_param(p, w[1], w[2])
+            elif w[0] == "i128":
+                self.emit(f"mov {ARG_REGS64[w[1]]}, {p.offset}(%rbp)")
+                self.emit(f"mov {ARG_REGS64[w[1] + 1]}, {p.offset + 8}(%rbp)")
         self.gen_stmt(fn.body)
         assert self.depth == 0, f"stack depth {self.depth} in {fn.name}"
         self.emit("mov $0, %eax")

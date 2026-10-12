@@ -34,6 +34,8 @@ class ArithMixin:
         lty = node.lhs.ty
         if is_flonum(lty):
             return self.float_binary(node)
+        if lty.kind == TypeKind.INT128:
+            return self.int128_binary(node)
         # lhs-first when the lhs holds a VLA length binding (a Comma from
         # vla_prefix) that the rhs reads, e.g. `(*(int (*)[n])p)[1]`.
         if (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
@@ -80,12 +82,6 @@ class ArithMixin:
         elif op == "<<":
             self.emit("mov %rdi, %rcx")
             self.emit(f"shl %cl, {ax}")
-            if lty.size == 16:
-                # hcc keeps 128-bit values in one 64-bit word: a count of 64 or
-                # more must clear it (x86 would wrap the count modulo 64).
-                self.emit("xor %edx, %edx")
-                self.emit("cmp $64, %rcx")
-                self.emit("cmovae %rdx, %rax")
         elif op == ">>":
             self.emit("mov %rdi, %rcx")
             self.emit(f"{'shr' if lty.is_unsigned else 'sar'} %cl, {ax}")
