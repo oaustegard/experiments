@@ -83,7 +83,10 @@ class StructMixin:
             start = self.pos
             basety = self.declspec(attr)
             single_tok = self.pos == start + 1      # the declspec was one bare identifier
-            if self.accept(";"):
+            # GNU: a struct/union specifier may end a member list without its `;`
+            # (`struct { struct { int a; } }`), which is treated as an anonymous member.
+            missing_semi = self.at("}") and basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION)
+            if self.accept(";") or missing_semi:
                 # anonymous struct/union member; `struct S;` (tagged) declares nothing
                 # unless -fplan9-extensions makes it an anonymous member of type S
                 plan9 = self.opts is not None and self.opts.plan9_extensions
