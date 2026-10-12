@@ -307,7 +307,7 @@ class StatementMixin:
         self.expect("(")
         text = ""
         while self.tok.kind == TokenKind.STRING:
-            text += self.next().value.rstrip(b"\0").decode("utf-8", "replace")
+            text += self.asm_text(self.next())
         node = N.Asm(t.loc, text, is_volatile=is_volatile, extended=self.at(":"))
         sections = [node.outputs, node.inputs]
         for sec in sections:
@@ -320,7 +320,7 @@ class StatementMixin:
                     sym = self.expect_ident().text
                     self.expect("]")
                 cons_tok = self.next()
-                cons = cons_tok.value.rstrip(b"\0").decode()
+                cons = self.asm_text(cons_tok)
                 if is_output and "=" not in cons and "+" not in cons:
                     self.error("output operand constraint lacks '='", cons_tok)
                 self.expect("(")
@@ -334,7 +334,7 @@ class StatementMixin:
         else:
             if self.accept(":"):
                 while self.tok.kind == TokenKind.STRING:
-                    node.clobbers.append(self.next().value.rstrip(b"\0").decode())
+                    node.clobbers.append(self.asm_text(self.next()))
                     if not self.accept(","):
                         break
                 if self.accept(":"):            # asm goto labels

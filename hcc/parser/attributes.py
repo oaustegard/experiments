@@ -344,7 +344,7 @@ class AttributeMixin:
             while not self.at(")"):
                 t = self.next()
                 if t.kind == TokenKind.STRING:
-                    parts.append(t.value.rstrip(b"\0").decode("utf-8", "replace"))
+                    parts.append(self.asm_text(t))
             self.expect(")")
             if attr is not None:
                 attr.asm_name = "".join(parts)
