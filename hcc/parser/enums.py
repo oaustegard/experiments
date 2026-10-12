@@ -177,10 +177,10 @@ class EnumMixin:
             packed_enum_size(ty, lo, hi)     # `__attribute__((packed))`: smallest integer that fits
         self.check_designated_init(attr, False, self.toks[self.pos - 1])
         self.check_enum_mode_fits(attr, lo, hi, self.toks[self.pos - 1])
-        if fixed is not None or ty.size != 4 or ty.is_unsigned:
-            for vs in entries:          # GCC: once an enum has a non-int underlying type, its
-                vs.enum_cty = ty        # constants (used after the body) have the enum's type
-                                        # (C23: always so for a fixed underlying type)
+        if fixed is not None or any(not -2**31 <= v < 2**31 for v in consts):
+            for vs in entries:          # C23 6.7.2.2: when a value does not fit in int, or the
+                vs.enum_cty = ty        # underlying type is fixed, the constants (used after the
+                                        # body) have the enum's type; otherwise they stay int
         if tag is not None:
             self.scopes[-1].tags[tag.text] = ty
         return ty
