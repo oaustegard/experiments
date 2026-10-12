@@ -157,6 +157,7 @@ class StructMixin:
                 if self.accept(":"):
                     m.is_bitfield = True
                     m.bit_width = self.const_expr()
+                    check_bitfield_width(m, name, self.toks[start])
                 self.parse_attributes(mattr)
                 m.explicit_align = max(m.explicit_align, mattr.align)
                 if m.explicit_align:
@@ -212,6 +213,19 @@ def check_duplicate_members(members, where) -> None:
         if name in seen:
             diag.error(tok or where, f"duplicate member '{name}'")
         seen.add(name)
+
+
+def check_bitfield_width(m, name, where) -> None:
+    """A bit-field's width must be non-negative and must fit its declared type
+    (C11 6.7.2.1p4; _Bool bit-fields are limited to 1 bit, as in gcc)."""
+    width = m.bit_width
+    if width < 0:
+        diag.error(name or where, "negative width in bit-field" if name is None
+                   else f"negative width in bit-field '{name.text}'")
+    limit = 1 if m.ty.kind == T.TypeKind.BOOL else m.ty.size * 8
+    if width > limit:
+        label = f"'{name.text}'" if name is not None else "bit-field"
+        diag.error(name or where, f"width of {label} exceeds its type")
 
 
 def check_member_complete(ty, name, where) -> None:
