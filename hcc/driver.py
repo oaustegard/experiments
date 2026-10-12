@@ -83,6 +83,8 @@ def parse_args(argv: list[str]) -> Options:
             o.plan9_extensions = True
         elif a in ("-fshort-wchar", "-fno-short-wchar"):
             o.short_wchar = a == "-fshort-wchar"
+        elif a in ("-funsigned-char", "-fsigned-char"):
+            o.char_unsigned = a == "-funsigned-char"
         elif a in ("-fwrapv", "-fno-wrapv"):
             o.wrapv = a == "-fwrapv"
         elif a == "-nostdinc":

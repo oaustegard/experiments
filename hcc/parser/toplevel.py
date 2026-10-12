@@ -105,7 +105,7 @@ class TopLevelMixin:
                 if self.accept("="):
                     if var.init_data is not None:
                         self.error(f"redefinition of '{name.text}'", name.loc)
-                    self.global_initializer(var)
+                    self.global_initializer(var, is_constexpr=attr.is_constexpr)
                     var.is_definition = True
                     var.is_tentative = False
             if self.accept(";"):
@@ -124,7 +124,7 @@ class TopLevelMixin:
             ty = constexpr_type(ty)
         self.pos = start                    # re-parse the initializer with the real type
         var = self.declare_global_var(ty, name, attr, VarAttr())
-        self.global_initializer(var)
+        self.global_initializer(var, is_constexpr=attr.is_constexpr)
         var.is_definition = True
         var.is_tentative = False
         self.expect(";")

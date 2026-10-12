@@ -122,7 +122,7 @@ class LocalDeclMixin:
                 self.objs.append(var)
                 self.push_scope_entry(name.text).var = var
                 if self.accept("="):
-                    self.global_initializer(var)
+                    self.global_initializer(var, is_constexpr=attr.is_constexpr)
                 elif not ty.is_complete and ty.kind != T.TypeKind.ARRAY:
                     self.error(f"storage size of '{name.text}' isn't known", name)
                 continue
@@ -179,7 +179,7 @@ class LocalDeclMixin:
             if self.accept("="):
                 if _has_vla_member(var.ty) and not (self.at("{") and self.peek().text == "}"):
                     self.error("variable-sized object may not be initialized except with an empty initializer", name)
-                e = self.local_initializer(var)
+                e = self.local_initializer(var, is_constexpr=attr.is_constexpr)
                 items.append(N.ExprStmt(name.loc, e))
             if not var.ty.is_complete or var.ty.size < 0:
                 self.error(f"storage size of '{name.text}' isn't known", name)

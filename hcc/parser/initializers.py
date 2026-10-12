@@ -15,6 +15,7 @@ from hcc.parser import complex as CPX
 from hcc.parser import complex_const as CC
 from hcc.parser.structs import find_member
 from hcc.sema.constexpr import try_eval_const
+from hcc.parser.constexpr_init import check_scalar, check_string_units
 from hcc.sema.initializers import lower_local_init, serialize_global_init
 from hcc.tokens import TokenKind
 from hcc.diag import CompileError
@@ -57,8 +58,13 @@ class InitializerMixin:
             init.ty = ty
         return init, ty
 
-    def local_initializer(self, var) -> N.Expr:
-        init, ty = self.parse_initializer(var.ty)
+    def local_initializer(self, var, is_constexpr=False) -> N.Expr:
+        saved = self.constexpr_init
+        self.constexpr_init = is_constexpr
+        try:
+            init, ty = self.parse_initializer(var.ty)
+        finally:
+            self.constexpr_init = saved
         var.ty = ty
         if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
             # GCC folds `const int a = 0;` when it is read in a constant initializer.
@@ -68,13 +74,14 @@ class InitializerMixin:
             var.const_data = const_bytes(init, ty)
         return lower_local_init(init, var, self.typed)
 
-    def global_initializer(self, var) -> None:
-        saved = self.in_static_init
+    def global_initializer(self, var, is_constexpr=False) -> None:
+        saved = self.in_static_init, self.constexpr_init
         self.in_static_init = True
+        self.constexpr_init = is_constexpr
         try:
             init, ty = self.parse_initializer(var.ty)
         finally:
-            self.in_static_init = saved
+            self.in_static_init, self.constexpr_init = saved
         var.ty = ty
         var.init_data = serialize_global_init(init, ty)
 
@@ -194,6 +201,8 @@ class InitializerMixin:
                 self._skip_excess()
             return
         init.expr = self.typed(self.assign())
+        if self.constexpr_init:
+            check_scalar(self, init)
         if init.ty.is_complex or init.expr.ty.is_complex:
             if self.fn is None or self.in_static_init:    # file scope or static local
                 CC.set_global_init(self, init)
@@ -211,6 +220,8 @@ class InitializerMixin:
         if init.is_flexible:
             self._grow(init, n - 1)
         count = min(len(init.children), n)
+        if self.constexpr_init:
+            check_string_units(self, tok, units[:count], elem)
         for i in range(count):
             v = units[i]
             if not elem.is_unsigned and v >= 1 << (sz * 8 - 1):

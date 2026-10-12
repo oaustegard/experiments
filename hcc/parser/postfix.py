@@ -46,6 +46,7 @@ class PostfixMixin:
             allow = self.compound_lit_follows()
             is_tls = allow and self.compound_lit_is_static(("_Thread_local",))
             is_static = allow and (is_tls or self.compound_lit_is_static())
+            is_cexpr = allow and self.compound_lit_is_static(("constexpr",))
             self.next()
             outer_vm = self.vm_typeof
             self.vm_typeof = []
@@ -60,7 +61,7 @@ class PostfixMixin:
                         not complete_struct(ty).is_complete:
                     self.error(f"invalid use of undefined type '{ty}'", self.tok)
                 ty, pre = self.vla_bind(ty, self.tok.loc)
-                lit = self.compound_literal(ty, is_static, is_tls)
+                lit = self.compound_literal(ty, is_static, is_tls, is_cexpr)
                 lit = self.vla_prefix(pre, lit, self.tok.loc)
                 for e in reversed(effects):
                     lit = self.typed(N.Comma(self.tok.loc, e, lit,
@@ -186,7 +187,7 @@ class PostfixMixin:
             node.ret_buffer = self.new_temp(fty.return_ty)
         return self.typed(node)
 
-    def compound_literal(self, ty, is_static=False, is_tls=False):
+    def compound_literal(self, ty, is_static=False, is_tls=False, is_constexpr=False):
         loc = self.tok.loc
         # A literal inside a parameter list (`int a[(int){x}]`) has automatic storage of the
         # enclosing block: its dimension is evaluated on entry to the function body.
@@ -198,10 +199,10 @@ class PostfixMixin:
             var = self.new_anon_gvar(ty, loc)
             var.is_compound_literal = True
             var.is_tls = is_tls                 # `thread_local` => per-thread storage
-            self.global_initializer(var)
+            self.global_initializer(var, is_constexpr=is_constexpr)
             return self.typed(N.VarRef(loc, var))
         var = self.new_temp(ty, loc)
-        init = self.local_initializer(var)
+        init = self.local_initializer(var, is_constexpr=is_constexpr)
         return self.typed(N.Comma(loc, init, self.typed(N.VarRef(loc, var)), lvalue=True))
 
 
