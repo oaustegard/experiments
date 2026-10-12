@@ -250,6 +250,8 @@ class StatementMixin:
     def _stmt_goto(self, t):
         if self.accept("*"):
             target = self.typed(self.expr())
+            if not T.is_pointer_like(target.ty):
+                self.error("computed goto must be pointer type", t)
             self.expect(";")
             return N.GotoExpr(t.loc, target)
         name = self.expect_ident()
