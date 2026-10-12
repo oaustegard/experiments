@@ -44,7 +44,8 @@ candidates per gate run), `--sample` (150), `--full-every` (25 merges), `--suite
    re-run to filter timeouts) and ≥1 target newly PASS per candidate. A regressing batch is
    re-gated one by one. Then `git merge --ff-only` on main; if main moved, re-gate.
    Rejected diffs go to `swarm/rejected/<id>.diff` with the reason.
-6. **Refresh** every `--full-every` merges: full suites; tests that were PASS in
+6. **Refresh** every `--full-every` merges, in a background thread (launching continues,
+   merging pauses): full suites; tests that were PASS in
    `known.json` but fail are bisected over swarm merge commits since the last baseline
    (only the regressed tests are run per step) and the culprit is `git revert`ed (its
    ledger row becomes `reverted`, its cluster is re-queued). Up to 3 culprits per refresh.

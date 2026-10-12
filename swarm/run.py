@@ -28,6 +28,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 from collections import Counter
 from pathlib import Path
@@ -168,6 +169,9 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             procs[r["id"]] = None
     launched = 0
     stop_launch = False
+    # Full refresh runs in a thread (it can take many minutes); launching and
+    # reaping continue meanwhile, merging waits for it.
+    refresher: threading.Thread | None = None
     while True:
         led = ledger(ctx)
         for tid in list(procs):
@@ -187,13 +191,17 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 reap(ctx, rec)
                 del procs[tid]
         finished = [r for r in ledger(ctx).values() if r["status"] == "finished"]
-        for i in range(0, len(finished), ctx.batch):
-            batch = finished[i:i + ctx.batch]
-            merge.merge_batch(ctx, batch)
-            for r in batch:
-                remove_worktree(ctx, ctx.worktree(r["id"]))
-        if (read_json(ctx.state / "counters.json", {}) or {}).get("merges_since_full", 0) >= ctx.full_every:
-            merge.refresh(ctx)
+        refreshing = refresher is not None and refresher.is_alive()
+        if not refreshing:                    # the gate tree and known.json belong to refresh
+            for i in range(0, len(finished), ctx.batch):
+                batch = finished[i:i + ctx.batch]
+                merge.merge_batch(ctx, batch)
+                for r in batch:
+                    remove_worktree(ctx, ctx.worktree(r["id"]))
+            if (read_json(ctx.state / "counters.json", {}) or {}).get("merges_since_full", 0) >= ctx.full_every:
+                refresher = threading.Thread(target=merge.refresh, args=(ctx,), daemon=True)
+                refresher.start()
+                refreshing = True
         if a.max_usd and spent(ctx) >= a.max_usd and not stop_launch:
             log(f"spend ${spent(ctx):.2f} reached --max-usd; no more launches")
             stop_launch = True
@@ -201,7 +209,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             stop_launch = True
         if not stop_launch and len(procs) < a.concurrency:
             items = workqueue.build(tr.known(ctx), ledger(ctx), source_size(ctx))
-            if not items and not procs and not finished:
+            if not items and not procs and not finished and not refreshing:
                 log("queue empty and nothing in flight")
                 break
             seq = len(ledger(ctx)) + 1
@@ -212,7 +220,8 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 procs[w["rec"]["id"]] = w["proc"]
                 seq += 1
                 launched += 1
-        if stop_launch and not procs and not any(r["status"] == "finished" for r in ledger(ctx).values()):
+        if stop_launch and not procs and not refreshing and \
+                not any(r["status"] == "finished" for r in ledger(ctx).values()):
             break
         time.sleep(a.poll)
     if a.final_refresh:
