@@ -302,8 +302,13 @@ class StatementMixin:
 
     def asm_stmt(self, t) -> N.Asm:
         is_volatile = False
+        seen_quals = set()
         while self.at("volatile") or self.at("inline") or self.at("goto"):
-            is_volatile |= self.next().text == "volatile"
+            qual_tok = self.next()
+            if qual_tok.text in seen_quals:
+                self.error("duplicate 'asm' qualifier '%s'" % qual_tok.text, qual_tok)
+            seen_quals.add(qual_tok.text)
+            is_volatile |= qual_tok.text == "volatile"
         self.expect("(")
         text = ""
         while self.tok.kind == TokenKind.STRING:
