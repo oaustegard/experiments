@@ -14,6 +14,7 @@ from __future__ import annotations
 import struct
 
 from hcc import nodes as N
+from hcc.sema.constexpr import NotConstant, eval_float
 from hcc.typesys import TypeKind, is_flonum, is_integer
 
 
@@ -26,7 +27,12 @@ def value_of(node):
         return (node.value, 0)
     if isinstance(node, N.FloatLit):
         return (node.value, 0.0)
-    return None
+    if node.ty is None or node.ty.is_complex or not (is_flonum(node.ty) or is_integer(node.ty)):
+        return None
+    try:                                  # e.g. (float) 1.0 or 3 / 2.0 as a real part
+        return (eval_float(node), 0.0)
+    except NotConstant:
+        return None
 
 
 def store_value(base, v):

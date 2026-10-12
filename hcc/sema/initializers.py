@@ -7,6 +7,8 @@
 """
 from __future__ import annotations
 
+import dataclasses
+
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.arith import new_add
@@ -116,20 +118,18 @@ def _write_le(init, ty, gd, offset) -> None:
         if src is None:
             diag.error(expr, "initializer element is not constant", "sema")
         gd.data[offset:offset + ty.size] = src.data[:ty.size]
-        gd.relocs.extend(N.Reloc(offset + r.offset, r.label, r.addend, r.size, r.minus)
-                         for r in src.relocs)
+        gd.relocs.extend(dataclasses.replace(r, offset=offset + r.offset) for r in src.relocs)
         return
     diff = _label_difference(expr)
     if diff is not None:
-        a, b, addend = diff
-        gd.relocs.append(N.Reloc(offset, a, addend, ty.size, b))
+        label, minus, extra, addend = diff
+        gd.relocs.append(N.Reloc(offset, label, addend, ty.size, minus, extra))
         return
     inner = _same_size_operand(expr, ty)
     src = _static_compound_literal(inner) if _is_anon_compound(inner, ty) else None
     if src is not None:                  # scalar file-scope compound literal, e.g. (int){1}
         gd.data[offset:offset + ty.size] = src.data[:ty.size]
-        gd.relocs.extend(N.Reloc(offset + r.offset, r.label, r.addend, r.size, r.minus)
-                         for r in src.relocs)
+        gd.relocs.extend(dataclasses.replace(r, offset=offset + r.offset) for r in src.relocs)
         return
     if T.is_flonum(ty):
         try:
@@ -183,36 +183,53 @@ def _same_size_operand(expr, ty):
     return expr
 
 
-def _label_difference(expr):
-    """`&&a - &&b` (possibly cast) -> (a, b, addend) for an assembler-resolved reloc, else None."""
+def _label_form(expr):
+    """Linear form of an address expression: (terms, const) where terms is a list of
+    (sign, label) and const an integer, or None when `expr` is not made of address
+    constants, integer constants, casts and +/- (and unary -)."""
     while isinstance(expr, N.Cast):
         expr = expr.operand
     # pointer difference is lowered to (a - b) / elemsize; only elemsize 1 is a plain byte difference
     if isinstance(expr, N.Binary) and expr.op == "/" and isinstance(expr.rhs, N.IntLit) and expr.rhs.value == 1:
         expr = expr.lhs
-    if not (isinstance(expr, N.Binary) and expr.op in ("+", "-")):
-        return None
-    if expr.op == "-":
-        try:
-            la, a = eval_reloc(expr.lhs)
-            lb, b = eval_reloc(expr.rhs)
-        except NotConstant:
-            la = None
-        else:
-            if la is not None and lb is not None:
-                return la, lb, a - b
-    # `(&&a - &&b) +/- k`: a label difference plus an integer constant
-    base = _label_difference(expr.lhs)
-    if base is None:
-        return None
+    if isinstance(expr, N.Binary) and expr.op in ("+", "-"):
+        lhs = _label_form(expr.lhs)
+        rhs = _label_form(expr.rhs)
+        if lhs is None or rhs is None:
+            return None
+        sg = 1 if expr.op == "+" else -1
+        return lhs[0] + [(sg * s, lab) for s, lab in rhs[0]], lhs[1] + sg * rhs[1]
+    if isinstance(expr, N.Unary) and expr.op == "-":
+        inner = _label_form(expr.operand)
+        if inner is None:
+            return None
+        return [(-s, lab) for s, lab in inner[0]], -inner[1]
     try:
-        lc, c = eval_reloc(expr.rhs)
+        label, v = eval_reloc(expr)
     except NotConstant:
         return None
-    if lc is not None:
+    return ([] if label is None else [(1, label)]), v
+
+
+def _label_difference(expr):
+    """An address expression with at least one label subtracted, e.g. `&&a - &&b`,
+    `(&&a - &&b) - 1` or `(&&a - &&b) + (&&c - &&d)`, as (label, minus, extra, addend)
+    for an assembler-resolved reloc: value = label - minus + sum(extra) + addend.
+    None when the expression has no subtracted label or is not a valid linear form."""
+    form = _label_form(expr)
+    if form is None or not any(s < 0 for s, _ in form[0]):
         return None
-    a, b, addend = base
-    return a, b, addend + (c if expr.op == "+" else -c)
+    terms, addend = form
+    if sum(s for s, _ in terms) not in (0, 1):
+        return None
+    pos = [lab for s, lab in terms if s > 0]
+    neg = [lab for s, lab in terms if s < 0]
+    label = pos[0] if pos else None
+    minus = neg[0] if neg else None
+    if minus is None or label is None:
+        return None
+    rest = [(1, lab) for lab in pos[1:]] + [(-1, lab) for lab in neg[1:]]
+    return label, minus, tuple(rest), addend
 
 
 def _static_scalar(expr, ty):
