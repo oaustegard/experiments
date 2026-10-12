@@ -22,6 +22,8 @@ class StatementMixin:
     def compound_stmt_body(self, loc) -> N.Block:
         items = []
         self.enter_scope()
+        outer_saves = getattr(self, "block_vla_saves", None)
+        self.block_vla_saves = []
         while not self.accept("}"):
             if self.at_eof():
                 self.error("expected '}' at end of input")
@@ -39,6 +41,10 @@ class StatementMixin:
                 continue
             items.append(self.stmt())
         self.leave_scope()
+        saves = self.block_vla_saves
+        self.block_vla_saves = outer_saves
+        if saves:
+            items = [N.VLAEnter(loc, saves[0])] + items + [N.VLAExit(loc, saves[0])]
         return N.Block(loc, items)
 
     def stmt(self) -> N.Stmt:

@@ -69,7 +69,14 @@ class LocalDeclMixin:
             if ty.kind == T.TypeKind.VOID:
                 self.error(f"variable '{name.text}' declared void", name)
             if ty.kind == T.TypeKind.VLA:
-                self.error("variable length arrays are not supported yet", name)
+                ty, pre = self.vla_bind(ty, name.loc)
+                items.extend(pre)
+                var = self.new_lvar(name.text, ty, name.loc)
+                size = self.vla_size_expr(ty, name.loc)
+                items.append(N.VLAAlloc(name.loc, var, self.vla_block_slot(), size))
+                if self.accept("="):
+                    self.error("variable-sized object may not be initialized", name)
+                continue
             var = self.new_lvar(name.text, ty, name.loc)
             al = max(attr.align, dattr.align)
             if al:

@@ -32,6 +32,14 @@ class VlaMixin:
         new.base = base
         return new, pre + base_pre
 
+    def vla_block_slot(self):
+        """Hidden ulong slot holding %rsp at entry of the innermost block that
+        declares VLAs (created on first use; see compound_stmt_body)."""
+        saves = self.block_vla_saves
+        if not saves:
+            saves.append(self.new_temp(T.TY_ULONG))
+        return saves[0]
+
     def vla_size_expr(self, ty, loc):
         if ty.kind != T.TypeKind.VLA:
             return self.typed(N.IntLit(loc, ty.size, ty=T.TY_ULONG))

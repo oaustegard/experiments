@@ -252,6 +252,26 @@ class Block(Stmt):
 
 
 @dataclass(eq=False)
+class VLAEnter(Stmt):
+    """Block with VLA declarations: save %rsp into the hidden `saved` slot."""
+    saved: Var
+
+
+@dataclass(eq=False)
+class VLAExit(Stmt):
+    """Block end: restore %rsp from the hidden `saved` slot (frees its VLAs)."""
+    saved: Var
+
+
+@dataclass(eq=False)
+class VLAAlloc(Stmt):
+    """VLA declaration: rsp = saved - size (16-aligned); `var`'s slot gets the address."""
+    var: Var
+    saved: Var
+    size: Expr
+
+
+@dataclass(eq=False)
 class ExprStmt(Stmt):
     expr: Expr
 

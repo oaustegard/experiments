@@ -25,6 +25,23 @@ class StatementMixin:
     def stmt_ExprStmt(self, node) -> None:
         self.gen_expr(node.expr)
 
+    def stmt_VLAEnter(self, node) -> None:
+        self.emit(f"mov %rsp, {node.saved.offset}(%rbp)")
+
+    def stmt_VLAExit(self, node) -> None:
+        self.emit(f"mov {node.saved.offset}(%rbp), %rsp")
+
+    def stmt_VLAAlloc(self, node) -> None:
+        # Reset %rsp to the block's saved value first so that re-executing a
+        # declaration (goto backwards) frees the previous storage.
+        self.gen_expr(node.size)
+        self.emit("add $15, %rax")
+        self.emit("and $-16, %rax")
+        self.emit(f"mov {node.saved.offset}(%rbp), %rcx")
+        self.emit("sub %rax, %rcx")
+        self.emit("mov %rcx, %rsp")
+        self.emit(f"mov %rsp, {node.var.offset}(%rbp)")
+
     def stmt_If(self, node) -> None:
         taken = try_eval_const(node.cond)
         if taken is not None:
