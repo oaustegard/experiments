@@ -19,6 +19,7 @@ from hcc.parser.vla import vla_slot_type
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import redecl_conflicts, typedef_conflicts
 from hcc.parser.redecl import check_redecl
+from hcc.parser.toplevel import is_incomplete_object
 
 # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
 GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
@@ -240,7 +241,7 @@ class LocalDeclMixin:
                     self.error("variable-sized object may not be initialized except with an empty initializer", name)
                 e = self.local_initializer(var, is_constexpr=attr.is_constexpr)
                 items.append(N.ExprStmt(name.loc, e))
-            if not var.ty.is_complete or var.ty.size < 0:
+            if not var.ty.is_complete or var.ty.size < 0 or is_incomplete_object(var.ty):
                 self.error(f"storage size of '{name.text}' isn't known", name)
             if cleanup:
                 items.append(self.cleanup_decl(var, cleanup, name))
