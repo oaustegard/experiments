@@ -89,6 +89,7 @@ class Function(Obj):
     is_definition: bool = False
     is_noreturn: bool = False
     is_weak: bool = False
+    is_weakref_decl: bool = False           # weakref("t") declaration with no body (a later body is an error)
     fn_attrs: set = field(default_factory=set)  # other recorded attrs (leaf, returns_nonnull)
     va_area: Var | None = None
     va_tmp: Var | None = None

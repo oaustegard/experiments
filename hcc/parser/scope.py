@@ -39,6 +39,7 @@ class VarAttr:
     is_constexpr: bool = False      # C23 `constexpr` object (declspec)
     align: int = 0
     is_weak: bool = False
+    is_weakref: bool = False        # __attribute__((weakref("t"))) on a declaration
     fn_attrs: set = field(default_factory=set)  # leaf, returns_nonnull, ... (names only)
     is_nocommon: bool = False       # __attribute__((nocommon)): tentative def goes to .bss
     is_packed: bool = False
