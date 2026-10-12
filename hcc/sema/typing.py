@@ -90,9 +90,22 @@ def _assign(n: N.Assign):
         diag.error(n, "unsupported: assignment of a struct with a variably modified member", "sema")
     if lt.kind == TypeKind.ARRAY and not lt.is_vector:
         diag.error(n, "assignment to expression with array type", "sema")
+    _check_struct_scalar_mix(n, lt, _func_decay(n.rhs.ty))
     if lt.kind not in (TypeKind.STRUCT, TypeKind.UNION) and not lt.is_vector:
         n.rhs = new_cast(n.rhs, lt)
     n.ty = lt
+
+
+def _check_struct_scalar_mix(n, lt, rt):
+    """A struct/union never converts to or from a scalar (C11 6.5.16.1)."""
+    if lt.is_vector or rt.is_vector:
+        return
+    l_agg = lt.kind in (TypeKind.STRUCT, TypeKind.UNION)
+    r_agg = rt.kind in (TypeKind.STRUCT, TypeKind.UNION)
+    l_scalar = lt.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.VOID)
+    r_scalar = rt.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.VOID)
+    if (l_agg and r_scalar) or (r_agg and l_scalar):
+        diag.error(n, "incompatible types when assigning to this type from this type", "sema")
 
 
 def _is_null_const(node) -> bool:
