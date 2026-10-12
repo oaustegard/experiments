@@ -92,6 +92,10 @@ class StructMixin:
                 continue
             first = True
             while not self.accept(";"):
+                if not first and self.at("}"):
+                    # GNU: `struct { int a }` — the last member lacks ';' before '}'
+                    diag.warn(self.toks[self.pos], "no semicolon at end of struct or union")
+                    break
                 if not first:
                     self.expect(",")
                 first = False
