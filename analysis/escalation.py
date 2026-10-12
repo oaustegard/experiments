@@ -1,11 +1,12 @@
 """Haiku vs Sonnet on the hcc failing tail: same clusters, prompt, budget and base commit.
 
-    python3 analysis/escalation.py select --n 40 --out analysis/escalation_set.json   # on the hub
+    python3 analysis/escalation.py select --n 60 --out analysis/escalation_set.json   # on the hub
     python3 analysis/escalation.py run   --set analysis/escalation_set.json --work runs/esc --concurrency 8
     python3 analysis/escalation.py report --work runs/esc
 
-`select` samples failing clusters from swarm/state/known.json, stratified by suite, and pins the base
-commit. `run` launches every (cluster, arm, replicate) as one headless worker in its own worktree at
+`select` samples failing clusters from swarm/state/known.json that Haiku has already failed (>= --min-fails
+failed attempts in the swarm ledger, or a parked test), most-failed first, stratified by suite, and pins the
+base commit. `run` launches every (cluster, arm, replicate) as one headless worker in its own worktree at
 that base, then grades each patch in isolation at the base: SOLVED = at least one representative test
 flips to PASS and no test in smoke + a fixed sample of known-passing tests regresses. Nothing is merged.
 Resumable: finished (cluster, arm, rep) results are kept in <work>/results.jsonl.
@@ -62,15 +63,49 @@ def is_pass(r):
 
 # ---------------------------------------------------------------- select
 
+def haiku_failures(paths: list[Path]) -> tuple[dict[str, float], dict[str, float]]:
+    """Failed Haiku attempts per signature and per test, counted as swarm/queue.build does:
+    a lost merge race is no failure, a worker that died without a result counts half."""
+    recs = {}
+    for p in paths:
+        for line in p.read_text().splitlines():
+            if line.strip():
+                r = json.loads(line)
+                recs[r["id"]] = r                                    # last record per id wins
+    by_sig, by_test = collections.Counter(), collections.Counter()
+    for r in recs.values():
+        if r.get("status") not in ("rejected", "failed", "reverted") or "haiku" not in str(r.get("model") or "haiku"):
+            continue
+        if r.get("status") == "rejected" and str(r.get("reason", "")).startswith(("conflict", "main kept moving")):
+            continue
+        w = 1 if r.get("result") else 0.5
+        by_sig[r.get("signature")] += w
+        for t in r.get("tests", []):
+            by_test[t] += w
+    return by_sig, by_test
+
+
 def select(a):
     known = json.loads((ROOT / "swarm" / "state" / "known.json").read_text())
-    clusters = workqueue.clusters({t: r for t, r in known.items() if t.split("/", 1)[0] in CHEAP})
-    by_suite = collections.defaultdict(list)
+    suites = None if a.all_suites else CHEAP
+    clusters = workqueue.clusters({t: r for t, r in known.items() if suites is None or t.split("/", 1)[0] in suites})
+    # Only clusters Haiku has already failed: a random failing cluster is usually one the swarm
+    # simply has not reached yet, and both arms solve those (38/40 in the first run).
+    by_sig, by_test = haiku_failures([Path(p) for p in a.ledger])
+    hard = []
     for sig, tids in clusters.items():
-        by_suite[tids[0].split("/", 1)[0]].append((sig, sorted(tids)))
+        fails = max(by_sig.get(sig, 0), max((by_test.get(t, 0) for t in tids), default=0))
+        parked = any(by_test.get(t, 0) >= workqueue.MAX_TEST_ATTEMPTS for t in tids)
+        if fails >= a.min_fails or parked:
+            hard.append((sig, sorted(tids, key=lambda t: (-by_test.get(t, 0), t)), fails))
+    print(f"{len(hard)} of {len(clusters)} failing clusters have >= {a.min_fails} failed Haiku attempts or a parked test")
+    by_suite = collections.defaultdict(list)
+    for sig, tids, fails in hard:
+        by_suite[tids[0].split("/", 1)[0]].append((sig, tids, fails))
     rng = random.Random(20261012)
     for v in by_suite.values():
         rng.shuffle(v)
+        v.sort(key=lambda c: c[2])                                  # most-failed popped first
     picked = []
     while len(picked) < a.n and any(by_suite.values()):        # round-robin across suites
         for s in sorted(by_suite):
@@ -79,8 +114,8 @@ def select(a):
     passing = sorted(t for t, r in known.items() if is_pass(r) and t.split("/", 1)[0] in ("smoke", "c-testsuite", "chibicc", "gcc-torture"))
     sample = sorted(rng.sample(passing, min(SAMPLE, len(passing))))
     base = sh("git", "rev-parse", "HEAD").stdout.strip()
-    items = [{"key": f"c{i:02d}", "signature": sig, "tests": tids[:3], "members": tids[:20],
-              "reasons": {t: known[t].get("reason", "") for t in tids[:3]}} for i, (sig, tids) in enumerate(picked)]
+    items = [{"key": f"c{i:02d}", "signature": sig, "tests": tids[:3], "members": tids[:20], "haiku_fails": fails,
+              "reasons": {t: known[t].get("reason", "") for t in tids[:3]}} for i, (sig, tids, fails) in enumerate(picked)]
     Path(a.out).write_text(json.dumps({"base": base, "items": items, "sample": sample}, indent=1))
     print(f"{len(items)} clusters at {base[:10]}:", collections.Counter(i["tests"][0].split("/")[0] for i in items))
 
@@ -226,6 +261,10 @@ def main():
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
     p = sp.add_parser("select"); p.add_argument("--n", type=int, default=120, help="pool size (run keeps 40)"); p.add_argument("--out", required=True)
+    p.add_argument("--ledger", nargs="+", default=[str(ROOT / "swarm" / "state" / "ledger.jsonl")],
+                   help="swarm ledger(s) to count failed Haiku attempts from (hub plus any peers)")
+    p.add_argument("--min-fails", type=float, default=2, help="failed Haiku attempts a cluster needs to qualify")
+    p.add_argument("--all-suites", action="store_true", help="do not restrict to the cheap suites")
     p = sp.add_parser("run"); p.add_argument("--set", required=True); p.add_argument("--work", required=True)
     p.add_argument("--concurrency", type=int, default=8); p.add_argument("--reps", type=int, default=2)
     p.add_argument("--n", type=int, default=40, help="clusters kept from the pool after the base check")
