@@ -280,6 +280,8 @@ def parse_char_literal(tok: Token) -> tuple[int, Type]:
         v &= 0xFFFFFFFF
         return (v - (1 << 32) if v >= 1 << 31 else v), TY_INT
     units = _decode(tok, body, True)
+    if not units:
+        diag.error(tok, "empty character constant")
     v = units[-1] if units else 0
     ty = {"L": TY_INT, "u": TY_USHORT, "U": TY_UINT, "u8": TY_UCHAR}[prefix]
     return v & ((1 << (ty.size * 8)) - 1), ty
