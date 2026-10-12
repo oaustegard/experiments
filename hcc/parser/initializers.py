@@ -201,10 +201,20 @@ class InitializerMixin:
         self.accept("=")
         self.initializer2(init)
 
+    def at_member_designator(self) -> bool:
+        """`.name` or the obsolete GNU form `name:` starting a member designator."""
+        if self.at("."):
+            return True
+        return self.tok.kind == TokenKind.IDENT and self.peek().text == ":"
+
     def member_designator(self, init) -> int:
-        """`.name ...= x` inside a struct/union initializer; returns next index."""
-        self.expect(".")
+        """`.name ...= x` (or GNU `name: x`) inside a struct/union initializer;
+        returns next index."""
+        if self.at("."):
+            self.expect(".")
         name = self.expect_ident()
+        if self.at(":"):
+            self.expect(":")
         path = find_member(init.ty, name.text)
         if path is None:
             self.error(f"unknown field '{name.text}' specified in initializer", name)
@@ -231,7 +241,7 @@ class InitializerMixin:
                 if self._consume_end():
                     break
             first = False
-            if self.at("."):
+            if self.at_member_designator():
                 i = self.member_designator(init)
                 continue
             i = self._next_named(members, i)
@@ -253,7 +263,7 @@ class InitializerMixin:
                 return
             if not first:
                 self.expect(",")
-            if self.at(".") or self.at("["):
+            if self.at_member_designator() or self.at("["):
                 return
             first = False
             if is_union:
