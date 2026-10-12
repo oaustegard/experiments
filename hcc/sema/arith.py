@@ -37,6 +37,8 @@ def _size_expr(t, loc):
     if t.kind == TypeKind.VLA and t.vla_len is not None:
         n = new_cast(t.vla_len, TY_LONG)
         return _t(N.Binary(loc, "*", n, _size_expr(t.base, loc), ty=TY_LONG))
+    if t.kind == TypeKind.STRUCT and t.dyn_size is not None:   # bound struct with a VLA member
+        return new_cast(t.dyn_size, TY_LONG)
     return N.IntLit(loc, t.size, ty=TY_LONG)
 
 

@@ -45,6 +45,8 @@ def _rebind_struct(self, ty, loc):
             new.dyn_tail = mty
         members.append(m)
     new.members = members
+    # run-time sizeof of the bound struct: pointer strides use it (sema/arith._size_expr)
+    new.dyn_size = dyn_struct_size_expr(self, new, loc)
     return new, pre
 
 
@@ -83,6 +85,14 @@ class VlaMixin:
         base, base_pre = self.vla_bind(ty.base, loc)
         new.base = base
         return new, pre + base_pre
+
+    def vla_dyn_array(self, ty, loc):
+        """`struct S s[2][3]` with S variably modified: the array is a VLA chain
+        with constant lengths, so its storage and element strides are run-time."""
+        if ty.kind != T.TypeKind.ARRAY or not _has_vla(ty):
+            return ty
+        length = self.typed(N.IntLit(loc, ty.array_len, ty=T.TY_LONG))
+        return T.vla_of(self.vla_dyn_array(ty.base, loc), length)
 
     def vla_prefix(self, pre, expr, loc):
         for st in reversed(pre):

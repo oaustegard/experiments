@@ -75,7 +75,7 @@ class Type:
                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
-                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail")
+                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -114,6 +114,7 @@ class Type:
         self.proto_scope = None      # FUNC: parser Scope of the parameter list (tags stay visible in the body)
         self.is_complex = False      # C99 _Complex: a STRUCT {re, im} of base (see complex_of)
         self.dyn_tail = None         # STRUCT: VLA type of a trailing variably-sized member (size = prefix)
+        self.dyn_size = None         # bound dynamic STRUCT: ulong expr of its run-time sizeof (pointer strides)
 
     def copy(self) -> "Type":
         t = Type.__new__(Type)

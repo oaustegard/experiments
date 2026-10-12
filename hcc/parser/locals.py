@@ -30,6 +30,13 @@ def _has_vla_member(ty) -> bool:
     return any(_has_vla_member(m.ty) for m in ty.members)
 
 
+def _has_vla_struct(ty) -> bool:
+    """True for an array (of arrays) whose element is a struct with a VLA member."""
+    while ty.kind == T.TypeKind.ARRAY and ty.base is not None:
+        ty = ty.base
+    return T.is_dyn_struct(ty)
+
+
 class LocalDeclMixin:
 
     def local_declaration(self) -> list:
@@ -105,12 +112,15 @@ class LocalDeclMixin:
                 continue
             if ty.kind == T.TypeKind.VOID:
                 self.error(f"variable '{name.text}' declared void", name)
-            if T.is_dyn_struct(ty):
+            if T.is_dyn_struct(ty) or (ty.kind == T.TypeKind.ARRAY and _has_vla_struct(ty)):
                 # `struct { int x[n]; } s;`: storage is allocated like a VLA;
                 # the frame slot holds its address (size 8, see vla_slot_type).
+                # `struct {...} s[2]`: the array becomes a VLA chain (vla_dyn_array).
                 has_init = self.accept("=")
                 if has_init and not (self.at("{") and self.peek().text == "}"):
                     self.error("variably modified struct may not be initialized", name)
+                if ty.kind == T.TypeKind.ARRAY:
+                    ty = self.vla_dyn_array(ty, name.loc)
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
                 var = self.new_lvar(name.text, vla_slot_type(ty), name.loc)
