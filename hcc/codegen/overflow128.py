@@ -46,6 +46,11 @@ class Overflow128Mixin:
                 self.emit("mov %rdx, %r10")
                 self.emit("shr $63, %r10")
                 self.emit("or %r10d, %r11d")
+            elif not T.is_unsigned and not dom_signed:
+                # unsigned domain value >= 2^127 does not fit a signed 128-bit T
+                self.emit("mov %rdx, %r10")
+                self.emit("shr $63, %r10")
+                self.emit("or %r10d, %r11d")
             self.emit("or %ecx, %r11d")
             if store:
                 self.emit("mov %rax, (%r8)")

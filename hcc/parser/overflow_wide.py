@@ -36,10 +36,7 @@ def wide_overflow_operands(parser, name: str, args, res_ty):
         return None
     all_unsigned = all(_unsigned_operand(a) for a in args)
     if all_unsigned and any(_is_i128(a.ty) for a in args):
-        dom = T.TY_UINT128
-        if not res_ty.is_unsigned and res_ty.kind != T.TypeKind.BOOL:
-            parser.error("__builtin_%s_overflow: signed __int128 result with unsigned "
-                         "__int128 operands is not supported" % name)
+        dom = T.TY_UINT128       # any result type: codegen checks the exact value
     else:
         if any(_is_i128(a.ty) and a.ty.is_unsigned for a in args):   # unsigned 128-bit + signed
             parser.error("__builtin_%s_overflow: mixing unsigned __int128 with a signed "
