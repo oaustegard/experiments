@@ -167,6 +167,8 @@ class ExpressionMixin:
                 operand = self.cast_expr()
                 if isinstance(operand, N.Member_) and operand.member.is_bitfield:
                     self.error("cannot take address of bit-field", t)
+                if operand.ty is not None and operand.ty.is_rev_order:
+                    self.error("cannot take address of scalar with reverse storage order", t)
                 return self.typed(N.AddrOf(t.loc, operand))
             if s == "*":
                 self.next()

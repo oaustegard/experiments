@@ -66,7 +66,7 @@ class Type:
                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
-                 "proto_scope")
+                 "proto_scope", "is_rev_order")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -86,6 +86,7 @@ class Type:
         self.is_flexible = False
         self.is_packed = False
         self.is_reverse_sso = False
+        self.is_rev_order = False   # scalar stored big-endian (scalar_storage_order)
         self.is_complete = True
         self.return_ty: Type | None = None
         self.params: list[Type] = []

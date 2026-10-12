@@ -70,6 +70,19 @@ def serialize_global_init(init, ty) -> N.GlobalData:
 
 
 def _write(init, ty, gd, offset) -> None:
+    if not ty.is_rev_order or init.expr is None:
+        return _write_le(init, ty, gd, offset)
+    # scalar_storage_order("big-endian"): write the little-endian image, then
+    # reverse its bytes in place.
+    nrel = len(gd.relocs)
+    _write_le(init, ty, gd, offset)
+    if len(gd.relocs) != nrel:
+        diag.error(init.expr, "address constant in a reverse-order struct "
+                   "is not supported", "sema")
+    gd.data[offset:offset + ty.size] = gd.data[offset:offset + ty.size][::-1]
+
+
+def _write_le(init, ty, gd, offset) -> None:
     if ty.kind == T.TypeKind.ARRAY and init.expr is None:
         if init.children:
             sz = ty.base.size

@@ -9,6 +9,7 @@ layout_struct()/layout_union(), following the SysV/gcc rules.
 """
 from __future__ import annotations
 
+from hcc import diag
 from hcc.parser.scope import VarAttr
 from hcc.tokens import TokenKind
 from hcc import typesys as T
@@ -56,6 +57,7 @@ class StructMixin:
             ty.size = T.align_to(ty.size, ty.align)
         if ty.is_reverse_sso:
             mirror_reverse_bitfields(ty)
+            mark_reverse_scalars(ty)
         ty.is_complete = True
         return ty
 
@@ -159,6 +161,42 @@ def mirror_reverse_bitfields(ty) -> None:
         m.offset = ty.size - 1 - j1
         m.bit_offset = q - 8 * j0
         m.rev_bytes = j1 - j0 + 1
+
+
+def mark_reverse_scalars(ty) -> None:
+    """scalar_storage_order("big-endian"): integer and floating members are
+    stored byte-reversed. The member type becomes a reverse-order variant
+    (Type.is_rev_order) so loads, stores and derefs of it swap bytes; arrays
+    get a reverse-order element type. Pointers stay in native order (as gcc
+    does). Scalars wider than 8 bytes and long double are rejected instead of
+    miscompiled."""
+    for m in ty.members:
+        if not m.is_bitfield:
+            m.ty = _reverse_type(m.ty, m.tok)
+
+
+def _reverse_type(ty, tok):
+    k = ty.kind
+    if k in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        return ty                       # nested aggregate keeps its own order
+    if k == T.TypeKind.ARRAY:
+        if ty.base is None:
+            return ty
+        base = _reverse_type(ty.base, tok)
+        if base is ty.base:
+            return ty
+        arr = ty.copy()
+        arr.base = base
+        return arr
+    if ty.size == 1 or ty.is_rev_order or k == T.TypeKind.PTR:
+        return ty                       # byte-sized or pointer: same image either way
+    if k in (T.TypeKind.LDOUBLE, T.TypeKind.FLOAT128, T.TypeKind.VLA, T.TypeKind.INT128) \
+            or ty.size > 8:
+        diag.error(tok, "scalar_storage_order: unsupported member type in "
+                   "reverse-order struct", "parse")
+    rev = ty.copy()
+    rev.is_rev_order = True
+    return rev
 
 
 def layout_union(ty) -> None:
