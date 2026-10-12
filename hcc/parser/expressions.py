@@ -200,11 +200,17 @@ class ExpressionMixin:
                 return self.sizeof_expr()
             if s == "_Alignof":
                 self.next()
+                ty = None
                 if self.at("(") and self.is_typename(self.peek()):
+                    start = self.pos
+                    allow = self.compound_lit_follows()
                     self.next()
-                    ty = self.scoped_typename()
+                    ty = self.scoped_typename(allow_storage=allow)
                     self.expect(")")
-                else:
+                    if self.at("{"):            # `_Alignof (T){...}`: compound literal operand
+                        self.pos = start
+                        ty = None
+                if ty is None:
                     node = self.unary()
                     ty = node.ty
                     if isinstance(node, N.VarRef) and isinstance(node.var, N.Function) and node.var.align:
