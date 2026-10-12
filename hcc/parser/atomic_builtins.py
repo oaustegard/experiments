@@ -32,6 +32,9 @@ _LOCK_FREE = "__atomic_is_lock_free"
 # __atomic_always_lock_free(size, ptr): same argument shape, folded to a constant.
 _ALWAYS_LOCK_FREE = "__atomic_always_lock_free"
 _LOCK_FREE_NAMES = frozenset([_LOCK_FREE, _ALWAYS_LOCK_FREE])
+# Generic (size-less) __atomic_* forms: every pointer argument points at a data object.
+_GENERIC_NAMES = frozenset(["__atomic_load", "__atomic_store", "__atomic_exchange",
+                            "__atomic_compare_exchange"])
 # Legacy gcc __sync_* builtins share the same lowering (full barriers on x86).
 _SYNC_VALUE_RET = frozenset(
     [f"__sync_fetch_and_{o}" for o in _RMW_OPS] + [f"__sync_{o}_and_fetch" for o in _RMW_OPS]
@@ -89,6 +92,13 @@ def atomic_call(parser, tok):
     else:
         if not args or not T.is_pointer_like(args[0].ty):
             parser.error(f"'{name}' expects a pointer as first argument", tok)
+        if name in _GENERIC_NAMES:
+            # gcc: the generic (size-less) forms take pointers to data objects; a pointer
+            # to a function in any pointer slot after the first is rejected.
+            for i, a in enumerate(args[1:], start=2):
+                if (T.is_pointer_like(a.ty) and a.ty.base.kind is T.TypeKind.FUNC):
+                    parser.error(f"argument {i} of '{name}' must not be a pointer to a function",
+                                 tok)
         if name in _RMW_ARITH_NAMES and args[0].ty.base.unqual().kind is T.TypeKind.BOOL:
             # gcc (PR 68966): arithmetic/bitwise RMW on _Bool would break its representation.
             parser.error(f"operand type '{args[0].ty.base}' is incompatible with argument 1 "
