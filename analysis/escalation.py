@@ -31,7 +31,8 @@ from swarm import _boot  # noqa: F401,E402
 from swarm import queue as workqueue  # noqa: E402
 from swarm.common import FANOUT  # noqa: E402
 
-ARMS = {"haiku": {"model": "haiku", "effort": None}, "sonnet": {"model": "sonnet", "effort": "medium"}}
+ARMS = {"haiku": {"model": "haiku", "effort": None}, "haiku-high": {"model": "haiku", "effort": "high"},
+        "sonnet": {"model": "sonnet", "effort": "medium"}}
 CHEAP = ("smoke", "c-testsuite", "chibicc", "gcc-torture", "gcc-compile", "gcc-dg", "gcc-dg-compile",
          "reject-gcc-dg", "llvm-single", "csmith", "doom", "quickjs")
 TIMEOUT, USD_CAP, SAMPLE = 1500, 3.0, 120
@@ -251,10 +252,12 @@ def report(a):
         print(f"| {arm} | {len(rs)} | {solved} | {solved / len(rs):.0%} | {len(keys)} | {cost:.2f} | "
               f"{cost / solved if solved else float('nan'):.3f} | {med([r['turns'] or 0 for r in rs])} | {med([r['secs'] for r in rs])} |")
     ks = {r["key"] for r in rows}
-    h = {r["key"] for r in by.get("haiku", []) if r["solved"]}
-    s = {r["key"] for r in by.get("sonnet", []) if r["solved"]}
-    print(f"\nclusters: {len(ks)}; both solved {len(h & s)}, only haiku {len(h - s)}, only sonnet {len(s - h)}, "
-          f"neither {len(ks - h - s)}")
+    solved = {arm: {r["key"] for r in rs if r["solved"]} for arm, rs in by.items()}
+    s = solved.get("sonnet", set())
+    for arm in ("haiku", "haiku-high"):
+        h = solved.get(arm, set())
+        print(f"\nclusters: {len(ks)}; {arm} vs sonnet: both {len(h & s)}, only {arm} {len(h - s)}, "
+              f"only sonnet {len(s - h)}, neither {len(ks - h - s)}")
 
 
 def main():
