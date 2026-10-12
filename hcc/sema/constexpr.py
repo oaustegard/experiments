@@ -192,6 +192,10 @@ def _eval(node):
                 b &= (1 << (node.lhs.ty.size * 8)) - 1
             q = abs(a) // abs(b) * (1 if (a >= 0) == (b >= 0) else -1)
             return None, wrap(q if op == "/" else a - q * b, node.ty)
+        if op in (">>", "<<"):
+            # Shift counts outside [0, width) are undefined behaviour: do not fold them.
+            if b < 0 or b >= node.ty.size * 8:
+                raise NotConstant
         if op == ">>":
             if u:
                 a &= (1 << (node.lhs.ty.size * 8)) - 1
