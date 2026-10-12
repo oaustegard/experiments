@@ -95,6 +95,29 @@ def _func_decay(t):
     return pointer_to(t) if t.kind == TypeKind.FUNC else t
 
 
+def _elem_quals(t):
+    """Const/volatile qualifiers of a pointee, looking through array element types."""
+    c = v = False
+    while t is not None:
+        c = c or t.is_const
+        v = v or t.is_volatile
+        if t.kind != TypeKind.ARRAY:
+            break
+        t = t.base
+    return c, v
+
+
+def _void_ptr_cond_type(a, b):
+    """C23: `cond ? T * : void *` is `void *` carrying the qualifiers of both
+    pointees (the array element qualifiers count); _Atomic is dropped."""
+    c1, v1 = _elem_quals(a.base)
+    c2, v2 = _elem_quals(b.base)
+    void_t = TY_VOID.copy()
+    void_t.is_const = c1 or c2
+    void_t.is_volatile = v1 or v2
+    return pointer_to(void_t)
+
+
 def _cond(n: N.Cond):
     a, b = _func_decay(n.then.ty), _func_decay(n.els.ty)
     if a.kind == TypeKind.VOID or b.kind == TypeKind.VOID:
@@ -104,6 +127,10 @@ def _cond(n: N.Cond):
         n.ty = n.then.ty
     elif a.kind in (TypeKind.STRUCT, TypeKind.UNION):
         n.ty = a
+    elif a.base is not None and b.base is not None and \
+            (a.base.kind == TypeKind.VOID or b.base.kind == TypeKind.VOID) and \
+            not _is_null_const(n.els) and not _is_null_const(n.then):
+        n.ty = _void_ptr_cond_type(a, b)
     elif a.base is not None or b.base is not None:
         if a.base is not None and b.base is not None and _is_null_const(n.els):
             n.ty = a  # a null pointer constant takes the other operand's type
