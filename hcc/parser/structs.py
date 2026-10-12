@@ -194,6 +194,10 @@ def check_member_complete(ty, name, where) -> None:
     base = ty
     while base is not None and base.kind == T.TypeKind.ARRAY:
         base = base.base
+    if base is not None and base.kind == T.TypeKind.VOID and ty.kind == T.TypeKind.ARRAY:
+        # C11 6.7.2.1: a member cannot be an array of void (gcc: "declaration of 'x' as array of voids")
+        where2 = name or where
+        diag.error(where2, f"declaration of '{name.text if name else '?'}' as array of voids")
     if base is None or base.kind not in (T.TypeKind.STRUCT, T.TypeKind.UNION):
         return
     if complete_struct(base).is_complete:
