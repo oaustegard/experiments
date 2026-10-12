@@ -68,6 +68,7 @@ class InitializerMixin:
         finally:
             self.constexpr_init = saved
         var.ty = ty
+        self._check_auto_flex_init(init)
         if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
             # GCC folds `const int a = 0;` when it is read in a constant initializer.
             var.const_value = try_eval_const(init.expr)
@@ -99,6 +100,18 @@ class InitializerMixin:
                 self.error("initialization of flexible array member in a nested context")
         for _, child in N.present_children(init.children):
             self._check_flex_nesting(child, root=False)
+
+    def _check_auto_flex_init(self, init) -> None:
+        """GCC: automatic-storage objects may not initialize a struct's trailing
+        flexible array member (`struct S s = {1, "x"};` with `T x[];`)."""
+        if init.ty.kind == T.TypeKind.STRUCT and init.ty.members and \
+                init.ty.members[-1].open_array and isinstance(init.children, list) and \
+                init.children:
+            last = init.children[-1]
+            if last.children or last.expr is not None:
+                self.error("non-static initialization of a flexible array member")
+        for _, child in N.present_children(init.children):
+            self._check_auto_flex_init(child)
 
     def _at_end(self) -> bool:
         return self.at("}") or (self.at(",") and self.peek().text == "}")
