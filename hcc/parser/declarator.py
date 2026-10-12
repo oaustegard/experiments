@@ -11,6 +11,7 @@ DeclaratorMixin provides:
 from __future__ import annotations
 
 from hcc.parser.scope import VarAttr
+from hcc.nodes import Var
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
@@ -128,7 +129,10 @@ class DeclaratorMixin:
             fty.is_variadic = False
             fty.enum_consts = "knr"       # marker: K&R definition follows
             return fty
-        params, names = [], []
+        params, names, pvars, pdims = [], [], [], []
+        # Prototype scope: earlier named params are visible in later array
+        # dimensions (`int b[a++]`); their Vars are reused by the definition.
+        self.enter_scope()
         while not self.accept(")"):
             if params:
                 self.expect(",")
@@ -140,16 +144,29 @@ class DeclaratorMixin:
             base = self.declspec(attr)
             pty, name = self.declarator(base)
             self.parse_attributes()
+            dim = None
             if pty.kind == T.TypeKind.ARRAY or pty.kind == T.TypeKind.VLA:
                 q = pty
+                dim = q.vla_len if q.kind == T.TypeKind.VLA else None
                 pty = T.pointer_to(pty.base)
                 pty.is_const = q.is_const
             elif pty.kind == T.TypeKind.FUNC:
                 pty = T.pointer_to(pty)
+            pvar = None
+            if name is not None:
+                pvar = Var(name.text, pty, loc=name.loc, is_local=True,
+                           is_definition=True, align=pty.align)
+                pvar.is_param = True
+                self.push_scope_entry(name.text).var = pvar
             params.append(pty)
             names.append(name)
+            pvars.append(pvar)
+            pdims.append(dim)
+        self.leave_scope()
         fty.params = params
         fty.param_names = names
+        fty.param_vars = pvars
+        fty.param_dims = pdims
         return fty
 
     def array_dims(self, ty):

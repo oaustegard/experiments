@@ -167,7 +167,13 @@ class TopLevelMixin:
         params = []
         for i, pty in enumerate(ty.params):
             pname = ty.param_names[i] if i < len(ty.param_names) else None
-            if pname is not None:
+            pvar = ty.param_vars[i] if i < len(ty.param_vars) else None
+            if pname is not None and pvar is not None:
+                # reuse the Var the prototype parse already put in scope
+                v = pvar
+                self.locals.append(v)
+                self.push_scope_entry(pname.text).var = v
+            elif pname is not None:
                 v = self.new_lvar(pname.text, pty, pname.loc)
             else:
                 v = self.new_temp(pty)
@@ -177,6 +183,10 @@ class TopLevelMixin:
             fn.va_area = self.new_temp(T.array_of(T.TY_CHAR, 176))  # SysV register save area
         body_tok = self.expect("{")
         fn.body = self.compound_stmt_body(body_tok.loc)
+        # VLA-typed params (`int b[a++]`): the dimension is evaluated on entry
+        dims = [d for d in ty.param_dims if d is not None]
+        if dims:
+            fn.body.items[0:0] = [N.ExprStmt(d.loc, d) for d in dims]
         self.leave_scope()
         for g in self.goto_names:
             if g.text not in self.label_names:
