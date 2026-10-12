@@ -57,7 +57,6 @@ PREDEFINED = r"""
 #define __SIZEOF_WCHAR_T__ 4
 #define __SIZEOF_WINT_T__ 4
 #define __SIZEOF_PTRDIFF_T__ 8
-#define __SIZEOF_INT128__ 16
 #define __BIGGEST_ALIGNMENT__ 16
 #define __SIZE_TYPE__ unsigned long
 #define __PTRDIFF_TYPE__ long
