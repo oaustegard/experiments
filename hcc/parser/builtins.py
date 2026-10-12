@@ -12,7 +12,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.parser.structs import find_member
 from hcc.sema.compat import is_compatible
-from hcc.sema.constexpr import try_eval_const
+from hcc.sema.constexpr import builtin_constant_p, try_eval_const
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 
@@ -168,7 +168,7 @@ class BuiltinParseMixin:
 
     def _b_constant_p(self, tok):
         args = self._args(1)
-        return N.IntLit(tok.loc, int(try_eval_const(args[0]) is not None), ty=T.TY_INT)
+        return N.IntLit(tok.loc, builtin_constant_p(args[0]), ty=T.TY_INT)
 
     def _inf_lit(self, tok, ty):
         """__builtin_huge_val*()/__builtin_inf*(): a constant +infinity."""

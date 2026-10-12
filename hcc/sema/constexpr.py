@@ -179,8 +179,21 @@ def _eval(node):
     if t is N.Deref and node.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC):
         return _eval(node.operand)
     if t is N.BuiltinCall and node.name == "__builtin_constant_p":
-        return None, int(try_eval_const(node.args[0]) is not None)
+        return None, builtin_constant_p(node.args[0])
     raise NotConstant
+
+
+def builtin_constant_p(node) -> int:
+    """Value of __builtin_constant_p(node): 1 for constant expressions and for
+    string literals (possibly array-decayed), which gcc folds to 1."""
+    inner = node
+    while isinstance(inner, N.Cast):
+        inner = inner.operand
+    if type(inner) is N.StrLit:
+        return 1
+    if type(inner) is N.VarRef and getattr(inner.var, "is_string_literal", False):
+        return 1
+    return int(try_eval_const(node) is not None)
 
 
 def _eval_addr(node):

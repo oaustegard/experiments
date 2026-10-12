@@ -82,6 +82,7 @@ class PrimaryMixin:
     def string_var(self, tok):
         var = self.new_anon_gvar(tok.ty, tok.loc)
         var.init_data = N.GlobalData(bytearray(tok.value))
+        var.is_string_literal = True     # __builtin_constant_p folds these to 1
         return var
 
     def func_name_var(self):
