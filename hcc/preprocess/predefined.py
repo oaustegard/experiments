@@ -220,6 +220,9 @@ def predefined_source(opts) -> str:
     lines = [PREDEFINED, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201112L')}"]
     if std.startswith("c"):
         lines.append("#define __STRICT_ANSI__ 1")
+    if STD_VERSIONS.get(std, "") >= "202000L":
+        # C23 makes static_assert a keyword (C11/C17 provide it via <assert.h>)
+        lines.append("#define static_assert _Static_assert")
     if opts.pic:
         lines.append("#define __PIC__ 2\n#define __pic__ 2")
     return "\n".join(lines) + "\n"

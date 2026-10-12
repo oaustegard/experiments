@@ -50,6 +50,13 @@ __builtin_va_list __auto_type __float128 __uint128_t _Complex __complex__ __comp
 STORAGE = frozenset(("typedef", "static", "extern", "inline", "_Thread_local", "auto",
                      "register", "_Noreturn"))
 
+# ISO/IEC TS 18661-3 _FloatN / _FloatNx names. They are plain identifiers to the
+# lexer (so headers may still typedef them); they map onto the base float type
+# with the same representation. _Float16 is not supported (no half codegen).
+FLOATN_TYPES = {"_Float32": T.TY_FLOAT, "_Float64": T.TY_DOUBLE,
+                "_Float32x": T.TY_DOUBLE, "_Float64x": T.TY_LDOUBLE,
+                "_Float128": T.TY_FLOAT128, "_Float128x": T.TY_FLOAT128}
+
 
 class DeclSpecMixin:
 
@@ -57,6 +64,8 @@ class DeclSpecMixin:
         tok = tok or self.tok
         if tok.kind == TokenKind.KEYWORD:
             return tok.text in TYPE_KEYWORDS
+        if tok.kind == TokenKind.IDENT and tok.text in FLOATN_TYPES and self.find_typedef(tok) is None:
+            return True
         return self.find_typedef(tok) is not None
 
     def declspec(self, attr=None):
@@ -120,8 +129,9 @@ class DeclSpecMixin:
                 continue
             # user-defined / special types
             td = self.find_typedef(tok)
+            is_floatn = tok.kind == TokenKind.IDENT and s in FLOATN_TYPES and td is None
             if s in ("struct", "union", "enum", "typeof", "__builtin_va_list", "__auto_type",
-                     "__float128", "__uint128_t") or td is not None:
+                     "__float128", "__uint128_t") or td is not None or is_floatn:
                 if counter:
                     break          # e.g. "typedef int T; int T;" -> T is a declarator
                 self.next()
@@ -141,6 +151,8 @@ class DeclSpecMixin:
                     ty = T.TY_UINT128
                 elif s == "__auto_type":
                     ty = None       # resolved by the declaration's initializer
+                elif is_floatn:
+                    ty = FLOATN_TYPES[s]
                 else:
                     ty = td
                 counter += OTHER
