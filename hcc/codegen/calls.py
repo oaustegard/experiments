@@ -10,6 +10,7 @@ CallMixin.expr_Call(node):
 """
 from __future__ import annotations
 
+from hcc.builtins.alloca import alloca_call
 from hcc.codegen.abi import abi_kind, is_memory_struct, is_x87_complex, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS64
 from hcc.codegen.half import FROM_ABI_HALF, TO_ABI_HALF
@@ -114,7 +115,7 @@ class CallMixin:
     def expr_Call(self, node) -> None:
         if node.func.ty.kind == TypeKind.FUNC and type(node.func).__name__ == "VarRef" and \
                 node.func.var.name == "alloca" and len(node.args) == 1:
-            return self.builtin_alloca_call(node)
+            return alloca_call(self, node)
         if node.static_chain is not None:
             self.gen_expr(node.static_chain)   # stores the chain value into chain_slot
         on_stack, _ = self._classify_args(node)

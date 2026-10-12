@@ -1,6 +1,6 @@
 """Parsing of the __atomic_* builtins (the ones gcc's <stdatomic.h> expands to).
 
-ATOMIC_BUILTINS is merged into SPECIAL_BUILTINS by parser/builtins.py.
+ATOMIC_BUILTINS is registered with the builtin parser by hcc/builtins/atomic.py.
 atomic_call(parser, tok) -> BuiltinCall; the node name is the builtin name
 without its `__` prefix (e.g. "atomic_fetch_add"); codegen/atomics.py lowers it.
 Operand sizes are taken from the pointer argument in codegen.

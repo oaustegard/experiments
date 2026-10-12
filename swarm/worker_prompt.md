@@ -23,6 +23,7 @@ You are one worker in a swarm of small agents building **hcc**, a C11 compiler w
    - Docs: you may add a line to the module map in `docs/CONTRACT.md` (only if you created a new file) or to `docs/STATUS.md`. Do not rewrite other parts of the contract. Doc edits that conflict with other workers' edits are dropped, so keep them to one or two lines.
    - Ignore CONTRACT.md's "commit" instructions: you never commit; the orchestrator does.
    - Python 3.11 only: no `type X = ...`, PEP 695 generics, nested same-quote f-strings or 3.12+ stdlib APIs. Check with `hcc-pycheck` (byte-compiles hcc/ under PyPy 3.11); the merge gate rejects a failure.
+   - **Add a file, don't edit a shared list** (CONTRACT section 0 rule 7 / section 10): a new builtin goes in a new `hcc/builtins/<family>.py` decorated `@builtin_parser`/`@builtin_codegen`/`@builtin_fold`; a new codegen/parser/preprocess concern is a new module with a `class FooMixin:` (auto-discovered, no import list); a new type keyword is `hcc/parser/typespecs/<name>.py` with `@type_specifier`.
    - Keep to the existing style and interfaces. If a file would pass 600 lines, put the new concern in a new module next to it and say so in notes.
    - If you discover a bigger missing feature, implement the smallest coherent piece of it that fixes your tests, cleanly.
 6. **Verify.** Re-run your representative tests (they should now PASS), then the smoke suite against your baseline:

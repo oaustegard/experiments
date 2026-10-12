@@ -2,42 +2,21 @@
 
     generate(tu, opts=None) -> str
 
-CodeGen is assembled from one mixin per concern (CONTRACT section 2/7).
+CodeGen is assembled from one mixin per concern (CONTRACT section 2/7): every
+`*Mixin` class defined in a module of this package, found by hcc.registry.
 Stack-machine design: expressions leave their value in %rax / %xmm0 / st(0).
 """
 from __future__ import annotations
 
 from hcc import nodes as N
-from hcc.codegen.arith import ArithMixin
-from hcc.codegen.atomics import AtomicMixin
-from hcc.codegen.asm import AsmMixin
-from hcc.codegen.builtins import BuiltinMixin
-from hcc.codegen.calls import CallMixin
-from hcc.codegen.cleanup import CleanupMixin
-from hcc.codegen.casts import CastMixin
 from hcc.codegen.context import CodeGenBase
 from hcc.codegen.lazy_inline import lazy_functions, needed_lazy
-from hcc.codegen.data import DataMixin
-from hcc.codegen.expressions import ExpressionMixin
-from hcc.codegen.floats import FloatMixin
-from hcc.codegen.fpclassify import FpClassifyMixin
-from hcc.codegen.functions import FunctionMixin
-from hcc.codegen.initfini import InitFiniMixin
-from hcc.codegen.int128 import Int128Mixin
-from hcc.codegen.nested import NestedMixin
-from hcc.codegen.memory import MemoryMixin
-from hcc.codegen.overflow import OverflowMixin
-from hcc.codegen.overflow128 import Overflow128Mixin
-from hcc.codegen.statements import StatementMixin
-from hcc.codegen.dyn_struct_ret import DynStructRetMixin
-from hcc.codegen.varargs import VarargsMixin
-from hcc.codegen.vector_ops import VectorOpsMixin
-from hcc.codegen.vector_wide import VectorWideMixin
+from hcc.registry import assemble_mixins
 
 
-class CodeGen(FunctionMixin, NestedMixin, StatementMixin, DynStructRetMixin, CleanupMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
-              CastMixin, CallMixin, VarargsMixin, BuiltinMixin, FpClassifyMixin, OverflowMixin, Overflow128Mixin, AsmMixin, MemoryMixin,
-              DataMixin, VectorOpsMixin, VectorWideMixin, InitFiniMixin, Int128Mixin, CodeGenBase):
+# Every `*Mixin` class in a module of hcc/codegen/ is a base (hcc/registry.py):
+# a new concern is a new file, with no import or base list to edit here.
+class CodeGen(*assemble_mixins("hcc.codegen", CodeGenBase)):
 
     def run(self) -> str:
         self.directive(f'.file "{getattr(self.opts, "source_name", "") or "hcc"}"')

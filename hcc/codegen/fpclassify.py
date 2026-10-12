@@ -1,7 +1,7 @@
 """Bit-level floating classification builtins (C99 <math.h> type-generic macros).
 
   __builtin_fpclassify(nan, inf, normal, subnormal, zero, x) -> one of the five
-  constants (the first five args are integer constants, see parser/builtins.py)
+  constants (the first five args are integer constants, see hcc/builtins/fpclass.py)
   __builtin_isnormal(x)      -> 1 for a normal finite value, else 0
   __builtin_isinf_sign(x)    -> -1 / 1 for -inf / +inf, else 0
 

@@ -34,11 +34,23 @@ the stable interfaces keep working and `python3 -m hcc.selftest` passes.
    or bug fix.
 6. **Don't reformat files you aren't changing.** Small diffs merge cleanly
    when 1000 agents work concurrently.
-7. Dispatch is by **naming convention**, not big if/elif chains:
-   codegen for AST class `Foo` lives in a method `expr_Foo` / `stmt_Foo` in
-   the mixin file that owns that concern. To add a node: add the dataclass to
-   `hcc/nodes.py`, have the parser build it, have `sema/typing.py` type it (if
-   it's an expression), and add the `expr_Foo`/`stmt_Foo` method.
+7. **Add a file, don't edit a list.** Dispatch is by naming convention or by
+   self-registration (`hcc/registry.py`), never by a shared table, name set,
+   import list or if/elif chain, so two workers adding unrelated features
+   never touch the same lines:
+   * a builtin: a module `hcc/builtins/<family>.py` with `@builtin_parser`,
+     `@builtin_codegen` (and optionally `@builtin_fold`) handlers;
+   * a codegen / parser / preprocessor concern: a new module in
+     `hcc/codegen/`, `hcc/parser/` or `hcc/preprocess/` defining a class whose
+     name ends in `Mixin`; it is found automatically (no import or base list).
+     Mixins must not define the same attribute (it raises at import);
+   * a type-specifier keyword: `hcc/parser/typespecs/<name>.py` with
+     `@type_specifier("<kw>")`.
+   Codegen for AST class `Foo` is a method `expr_Foo` / `stmt_Foo` on any
+   codegen mixin. To add a node: add the dataclass to `hcc/nodes.py`, have the
+   parser build it, have `sema/typing.py` type it (if it's an expression), and
+   add the `expr_Foo`/`stmt_Foo` method (in a new mixin file if no existing
+   file owns the concern).
 
 ---------------------------------------------------------------------------
 
@@ -101,9 +113,25 @@ hcc/
   typesys.py             Type, Member, TypeKind, LP64 base types, constructors (STABLE)
   nodes.py               all AST node dataclasses + Obj (Var/Function)        (STABLE)
   ldouble_lit.py         exact long double literals (decimal/hex -> 80-bit x87)
+  registry.py            Registry (decorator tables, modules imported on first lookup)
+                         and assemble_mixins (bases = every *Mixin class of a package)
+
+  builtins/            GCC builtins, one family per module; each registers
+                       @builtin_parser("__builtin_x") (Parser, between '(' and ')'),
+                       @builtin_codegen("x") (CodeGen, BuiltinCall.name) and
+                       @builtin_fold("x") (integer constant folding).
+                       New builtin = new module here (or a function in its family's
+                       module); no module-map line needed. Families now: alloca
+                       atomic bitops bswap complex (complex, conj) crc (GCC
+                       crc<N>_data<D>) floatconst (inf/nan, _FloatN and f16
+                       spellings) fpclass fpcompare frame has_attribute hints
+                       (expect, constant_p, prefetch, trap, ...) ia32_crc32 int_abs
+                       object_size offsetof overflow setjmp signbit static_chain
+                       tgmath typequery varargs vector x86_sse (ia32 SSE/MMX table)
 
   preprocess/
-    __init__.py        Preprocessor class: main expansion loop, public API
+    __init__.py        Preprocessor class: main expansion loop, public API;
+                       bases = every *Mixin class in this package (auto-discovered)
     macros.py          Macro dataclass, argument collection, substitution,
                        stringify (#), paste (##), __VA_ARGS__/__VA_OPT__
     directives.py      #define #undef #include #include_next #if... #line
@@ -115,12 +143,18 @@ hcc/
                        and builtin dynamic macros (__FILE__, __LINE__, ...)
 
   parser/
-    __init__.py        parse(tokens) and the Parser class (mixin assembly)
+    __init__.py        parse(tokens) and the Parser class: bases = every *Mixin
+                       class in a module of parser/ (auto-discovered; a new grammar
+                       area is a new file, no list to edit)
     core.py            ParserBase: token cursor, expect/accept, scopes,
                        labels, current-function context, temp vars
     scope.py           Scope, VarScope, TagScope objects
     declspec.py        declaration specifiers: base types, storage class,
-                       qualifiers, typedef names, _Alignas, __typeof__
+                       qualifiers, typedef names, _Alignas
+    typespecs/         type-specifier keywords that build a type, one module per
+                       family, @type_specifier("kw"): tagged (struct/union/enum),
+                       typeof (typeof/typeof_unqual), gnu_types (__builtin_va_list,
+                       __float128, __float80, __uint128_t, __auto_type)
     declarator.py      declarators, abstract declarators, typename,
                        function params, array dims
     structs.py         struct/union declarations, member layout, bitfields
@@ -137,9 +171,10 @@ hcc/
     postfix.py         postfix exprs: calls, [], ., ->, ++/--, compound lits
     primary.py         primary exprs: identifiers, literals, ( ), stmt-exprs,
                        _Generic, sizeof/_Alignof
-    builtins.py        parsing of __builtin_* that take types or are special
-                       (va_arg, offsetof, types_compatible_p, ...)
-    atomic_builtins.py __atomic_* (stdatomic.h) parsing; codegen/atomics.py lowers them
+    builtins.py        BuiltinParseMixin: dispatch of special __builtin_* to the
+                       hcc/builtins/ registry, shared _args/_call helpers
+    atomic_builtins.py __atomic_* (stdatomic.h) parsing (registered by builtins/atomic.py);
+                       codegen/atomics.py lowers them
     tgmath.py          __builtin_tgmath: candidate choice by common floating type (uses build_call)
     vector_shuffle.py  __builtin_shuffle on GCC vectors, lowered to element stores
     vector_shufflevector.py  __builtin_shufflevector on GCC vectors (constant indices), element stores
@@ -164,7 +199,8 @@ hcc/
     compat.py          type compatibility (is_compatible)
 
   codegen/
-    __init__.py        generate(tu, opts) -> str ; CodeGen class assembly
+    __init__.py        generate(tu, opts) -> str ; CodeGen class: bases = every
+                       *Mixin class in a module of codegen/ (auto-discovered)
     bitfield_rev.py    bitfields in scalar_storage_order("big-endian") structs
     context.py         CodeGenBase: output buffer, emit(), labels,
                        push/pop with stack-depth tracking, current function
@@ -186,10 +222,12 @@ hcc/
     cleanup.py         __attribute__((cleanup(f))): pending cleanup calls, run at block exit/break/return
     dyn_struct_ret.py  VLA-tail struct results: hoisted result-block allocs per statement, return copy
     data.py            .data/.bss/.rodata emission, string literals, relocs
-    builtins.py        __builtin_* lowering (alloca, expect, clz, ...)
+    builtins.py        expr_BuiltinCall: dispatch to the hcc/builtins/ registry,
+                       then to builtin_<name> mixin methods (atomics, varargs, ...)
     atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs
     asm.py             inline asm statements (basic + extended)
-    x86_sse.py        lowering of __builtin_ia32_* SSE/MMX intrinsics (table-driven)
+    x86_sse.py        lowering of __builtin_ia32_* SSE/MMX intrinsics (table-driven;
+                      registered by builtins/x86_sse.py)
     lazy_inline.py    gnu_inline/gnu89 extern-inline bodies: emitted only when referenced
     fpclassify.py      __builtin_fpclassify / isnormal / isinf_sign (bit-level classes)
 
@@ -341,7 +379,7 @@ Lowering conventions (performed by parser/sema so codegen stays simple):
 | `Member_` | `operand, member: typesys.Member` | `s.m` (trailing underscore avoids a clash with `typesys.Member`; codegen method `expr_Member_`) |
 | `StmtExpr` | `body: Block` | GNU `({ ... })` |
 | `MemZero` | `var: Var` | zero a local (initializers) |
-| `BuiltinCall` | `name: str, args: list[Expr], type_arg: Type\|None` | `__builtin_*` handled in codegen/builtins.py |
+| `BuiltinCall` | `name: str, args: list[Expr], type_arg: Type\|None` | `__builtin_*`, lowered by `@builtin_codegen(name)` in hcc/builtins/ |
 | `LabelAddr` | `label: str` | GNU `&&label` |
 | `VLAPtr` | `var: Var` | pointer to VLA storage |
 
@@ -383,10 +421,10 @@ Locals are lowered to assignments; statics/globals are serialized by
 | `__extension__` | ignored (parsed as a no-op prefix in decls and exprs) |
 | `__restrict`, `__restrict__`, `__inline`, `__inline__`, `__const`, `__volatile__`, `__signed__`, `__alignof__`, `__typeof`, `__typeof__` | keyword aliases in `literals.py` `KEYWORD_ALIASES` |
 | `__builtin_va_list` | builtin type (table in section 4) |
-| `__typeof__(expr\|type)` | `parser/declspec.py` |
+| `__typeof__(expr\|type)` | `parser/typespecs/typeof.py` -> `DeclSpecMixin.typeof_specifier` |
 | `({ ... })` statement expressions | `ast.StmtExpr` |
 | `__int128`, `_Float128`, `__float128`, `_Float32/64/32x/64x` | parse; sizes per section 4 |
-| `__builtin_offsetof`, `__builtin_types_compatible_p`, `__builtin_expect`, `__builtin_constant_p` | `parser/builtins.py` |
+| `__builtin_offsetof`, `__builtin_types_compatible_p`, `__builtin_expect`, `__builtin_constant_p` | `hcc/builtins/` (offsetof, typequery, hints) |
 | `_Static_assert` | `parser/toplevel.py` / statements |
 | `__label__`, nested functions | not supported |
 
@@ -407,7 +445,9 @@ file was found in.
 
 ## 7. Codegen conventions — `hcc/codegen/`
 
-* `CodeGen` is assembled from mixins in `codegen/__init__.py`. Methods:
+* `CodeGen` is assembled from every `*Mixin` class in `codegen/*.py`
+  (`hcc.registry.assemble_mixins`; mixins must not redefine each other's
+  attributes). Methods:
   `gen_expr(node)` (result in accumulator), `gen_stmt(node)`,
   `gen_addr(node)` (address of lvalue in %rax), `load(ty)`, `store(ty)`
   (stores %rax/%xmm0 to address on top of stack), `push()`/`pop(reg)`,
@@ -470,10 +510,24 @@ Run `python3 -m hcc.selftest` (all), `-k struct` (filter), `-j 4`.
    `[sema]`, `[codegen]`.
 3. Find the home in the module map (section 2). Read only that file plus
    `nodes.py`/`typesys.py` as needed.
-4. Keep the change local: new node -> `nodes.py` + parser + `sema/typing.py` +
-   one `expr_X`/`stmt_X` method. New type rule -> `sema/conversions.py`.
-   New builtin -> `parser/builtins.py` (if it takes a type) and
-   `codegen/builtins.py` (`builtin_<name>` method).
+4. Keep the change local, and prefer a new file to an edit of a shared one
+   (rule 7):
+   * new builtin -> add a file `hcc/builtins/<family>.py` (or a function in
+     the existing family's file) and decorate the handlers:
+     `@builtin_parser("__builtin_foo")` `def _parse_foo(self, tok)` (self =
+     Parser, after the `(`; parse args with `self._args(n)`, build the node
+     with `self._call(tok, "foo", args, ty)`), `@builtin_codegen("foo")`
+     `def _gen_foo(self, node)` (self = CodeGen), optionally
+     `@builtin_fold("foo")` `def _fold_foo(node, num)` for constant
+     expressions. Template and rules: `hcc/builtins/__init__.py`.
+   * new node -> `nodes.py` + parser + `sema/typing.py` + one
+     `expr_X`/`stmt_X` method; a new codegen/parser/preprocessor concern ->
+     add a file in that package with a `class FooMixin:` (picked up
+     automatically; no import or base list to edit).
+   * new type-specifier keyword -> add a file `hcc/parser/typespecs/<name>.py`
+     decorated `@type_specifier("<kw>")` (the spelling must be a keyword in
+     `tokens.KEYWORDS`).
+   * new type rule -> `sema/conversions.py`.
 5. If a file would exceed 600 lines, split it and update section 2.
 6. Run `python3 -m hcc.selftest`; commit with a message naming the feature.
 7. Do not change STABLE interfaces (sections 3–5) without editing this file
@@ -485,9 +539,10 @@ Run `python3 -m hcc.selftest` (all), `-k struct` (filter), `-j 4`.
   never `copy()` a struct type just to attach information.
 * `Parser.typed(node)` must be called on every new Expr (sema.typing.add_type).
 * `Parser.new_temp(ty)` creates an anonymous local (used by lowering).
-* Statement keywords dispatch to `StatementMixin._stmt_<keyword>`;
-  special builtins to `BuiltinParseMixin._b_<name>`; preprocessing directives
-  to `DirectiveMixin.dir_<name>`.
+* Statement keywords dispatch to `_stmt_<keyword>` methods; special builtins
+  to `@builtin_parser` handlers in `hcc/builtins/`; preprocessing directives
+  to `dir_<name>` methods. Methods may live on any mixin of the class, so a
+  new keyword or directive family can be a new mixin file.
 
 ### Status / not yet implemented (v1 slice)
 See `docs/STATUS.md` (kept up to date by contributors) — anything listed

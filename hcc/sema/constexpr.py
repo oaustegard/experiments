@@ -12,6 +12,7 @@ import struct
 
 from hcc import diag
 from hcc import nodes as N
+from hcc.builtins import builtin_fold
 from hcc.floatbits import pack_float32
 from hcc.typesys import TypeKind, is_flonum, is_integer, round_to_half
 from hcc.sema.constexpr_math import fold_int_call, fold_math_call
@@ -21,12 +22,6 @@ from hcc.sema.constexpr_intfloat import int_to_flonum
 
 class NotConstant(Exception):
     pass
-
-
-# __builtin_bswapN (parser/builtins.py) -> byte width
-_BSWAP_BYTES = {"bswap16": 2, "bswap32": 4, "bswap64": 8}
-# operand sizes that x86-64 performs lock-free (matches codegen/atomics.py _SUF)
-_ALWAYS_LOCK_FREE_SIZES = frozenset([1, 2, 4, 8])
 
 
 def wrap(v: int, ty) -> int:
@@ -262,15 +257,10 @@ def _eval(node):
             return None, _string_char(node)
         except NotConstant:
             return None, _const_object_read(node)
-    if t is N.BuiltinCall and node.name == "__builtin_constant_p":
-        return None, builtin_constant_p(node.args[0])
-    if t is N.BuiltinCall and node.name == "atomic_always_lock_free":
-        size = _num(node.args[0])     # size is constant; ptr only feeds alignment (ignored)
-        return None, int(size in _ALWAYS_LOCK_FREE_SIZES)
-    if t is N.BuiltinCall and node.name in _BSWAP_BYTES:
-        nbytes = _BSWAP_BYTES[node.name]
-        v = _num(node.args[0]) & ((1 << (8 * nbytes)) - 1)
-        return None, wrap(int.from_bytes(v.to_bytes(nbytes, "little"), "big"), node.ty)
+    if t is N.BuiltinCall:                           # @builtin_fold in hcc/builtins/<family>.py
+        fold = builtin_fold.get(node.name)
+        if fold is not None:
+            return None, wrap(fold(node, _num), node.ty)
     if t is N.Call and is_integer(node.ty):          # integer-valued libm call, e.g. lround
         v = fold_int_call(node, eval_float)
         if v is not None:

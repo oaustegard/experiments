@@ -34,7 +34,7 @@ GNU case ranges, computed goto (`&&label`), K&R function definitions,
 * va_arg of structs with SSE-class eightbytes (`codegen/varargs.py`)
 * `#pragma pack`, `#line` (`preprocess/directives.py`)
 * nested functions (gcc extension) — probably never
-* alloca when temporaries are pushed (`codegen/builtins.py`)
+* alloca when temporaries are pushed (`hcc/builtins/alloca.py`)
 * `-fPIC` code generation for shared libraries (GOT for extern data)
 * x87 values across calls (long double binary ops with calls in rhs)
 * cast of NaN in conditions (ucomis parity)

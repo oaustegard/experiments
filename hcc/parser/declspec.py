@@ -4,8 +4,9 @@ DeclSpecMixin provides:
     is_typename(tok=None) -> bool    does a type/declaration start here?
     declspec(attr: VarAttr | None) -> Type
 Base type keywords are counted chibicc-style (e.g. `long long unsigned int`)
-and mapped through _BASE_TYPES. Struct/union/enum/typedef/typeof/
-__builtin_va_list/__auto_type yield OTHER.
+and mapped through _BASE_TYPES. Typedef names, _FloatN and the keywords
+registered in hcc/parser/typespecs/ (struct, union, enum, typeof, __auto_type, ...)
+yield OTHER.
 """
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
 from hcc.parser.scope import VarAttr
 from hcc.parser.attributes import mode_type
+from hcc.parser.typespecs import type_specifier
 from hcc import typesys as T
 from hcc.parser.vla import _has_vla as _has_vla_type
 from hcc.parser.complex import complex_decl_type
@@ -41,10 +43,12 @@ _COUNTS = {"void": VOID, "_Bool": BOOL, "char": CHAR, "short": SHORT, "int": INT
            "float": FLOAT, "double": DOUBLE, "signed": SIGNED, "unsigned": UNSIGNED,
            "__int128": INT128}
 
+# Keywords that start a declaration, besides the registered type specifiers
+# (hcc/parser/typespecs/: struct, union, enum, typeof, __builtin_va_list, ...).
 TYPE_KEYWORDS = frozenset(_COUNTS) | frozenset("""
 typedef static extern inline _Thread_local auto register _Noreturn const volatile restrict
-_Atomic _Alignas struct union enum typeof typeof_unqual __attribute__ __declspec __extension__
-__builtin_va_list __auto_type __float128 __float80 __uint128_t _Complex __complex__ __complex __label__
+_Atomic _Alignas __attribute__ __declspec __extension__
+_Complex __complex__ __complex __label__
 constexpr
 """.split())
 
@@ -110,7 +114,7 @@ class DeclSpecMixin:
                     return self.is_typename(self.toks[i])
             return False
         if tok.kind == TokenKind.KEYWORD:
-            return tok.text in TYPE_KEYWORDS
+            return tok.text in TYPE_KEYWORDS or tok.text in type_specifier
         if tok.kind == TokenKind.IDENT and tok.text in FLOATN_TYPES and self.find_typedef(tok) is None:
             return True
         if self.is_c23_bool(tok):
@@ -200,31 +204,13 @@ class DeclSpecMixin:
             # user-defined / special types
             td = self.find_typedef(tok)
             is_floatn = tok.kind == TokenKind.IDENT and s in FLOATN_TYPES and td is None
-            if s in ("struct", "union", "enum", "typeof", "typeof_unqual", "__builtin_va_list",
-                     "__auto_type", "__float128", "__float80", "__uint128_t") or td is not None or is_floatn:
+            spec = type_specifier.get(s)      # hcc/parser/typespecs/<name>.py
+            if spec is not None or td is not None or is_floatn:
                 if counter:
                     break          # e.g. "typedef int T; int T;" -> T is a declarator
                 self.next()
-                if s == "struct":
-                    ty = self.struct_decl(T.TypeKind.STRUCT)
-                elif s == "union":
-                    ty = self.struct_decl(T.TypeKind.UNION)
-                elif s == "enum":
-                    ty = self.enum_specifier(attr)
-                elif s == "typeof":
-                    ty = self.typeof_specifier()
-                elif s == "typeof_unqual":
-                    ty = self.typeof_specifier(unqual=True)
-                elif s == "__builtin_va_list":
-                    ty = T.va_list_type()
-                elif s == "__float128":
-                    ty = T.TY_FLOAT128
-                elif s == "__float80":
-                    ty = T.TY_LDOUBLE       # x87 extended precision: long double on x86-64
-                elif s == "__uint128_t":
-                    ty = T.TY_UINT128
-                elif s == "__auto_type":
-                    ty = None       # resolved by the declaration's initializer
+                if spec is not None:
+                    ty = spec(self, tok, attr)
                 elif is_floatn:
                     ty = FLOATN_TYPES[s]
                 else:

@@ -7,8 +7,9 @@ Public API:
 
 Implementation: a reversed token stack (`self.stack`, stack[-1] is next)
 fed by files and macro expansions. The main loop is `_loop`.
-Mixins: MacroMixin (macros.py), DirectiveMixin (directives.py),
-ConditionalMixin (conditionals.py), IncludeMixin (includes.py).
+Mixins (every `*Mixin` class of this package, found by hcc.registry): MacroMixin
+(macros.py), DirectiveMixin (directives.py), ConditionalMixin (conditionals.py),
+IncludeMixin (includes.py).
 """
 from __future__ import annotations
 
@@ -16,15 +17,15 @@ import os
 
 from hcc import diag
 from hcc.lexer import C90_STDS, TRIGRAPH_STDS, tokenize
-from hcc.preprocess.conditionals import ConditionalMixin
-from hcc.preprocess.directives import DirectiveMixin
-from hcc.preprocess.includes import IncludeMixin
-from hcc.preprocess.macros import Macro, MacroMixin
+from hcc.preprocess.macros import Macro
 from hcc.preprocess.predefined import DYNAMIC_MACROS, predefined_source
+from hcc.registry import assemble_mixins
 from hcc.tokens import Token, TokenKind
 
 
-class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
+# Every `*Mixin` class in a module of hcc/preprocess/ is a base (hcc/registry.py):
+# a new directive family is a new file with a mixin defining `dir_<name>`.
+class Preprocessor(*assemble_mixins("hcc.preprocess", object)):
 
     def __init__(self, opts):
         self.opts = opts

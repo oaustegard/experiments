@@ -248,7 +248,7 @@ class MemZero(Expr):
 
 @dataclass(eq=False)
 class BuiltinCall(Expr):
-    """__builtin_* intrinsic; lowered in codegen/builtins.py.
+    """__builtin_* intrinsic; lowered by @builtin_codegen handlers (hcc/builtins/).
 
     result_buf: for vector-valued builtins (__builtin_shuffle), the anonymous
     local that holds the result (set by the parser).
