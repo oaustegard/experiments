@@ -18,6 +18,18 @@ from hcc.parser.redecl import check_redecl
 GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
 
 
+def _has_vla_member(ty) -> bool:
+    """True when an object of type ty is, or contains by value, a VLA
+    (e.g. a struct with a variable-length array member, or an array of such)."""
+    while ty is not None and ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):
+        if ty.kind == T.TypeKind.VLA:
+            return True
+        ty = ty.base
+    if ty is None or ty.kind not in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        return False
+    return any(_has_vla_member(m.ty) for m in ty.members)
+
+
 class LocalDeclMixin:
 
     def local_declaration(self) -> list:
@@ -122,6 +134,8 @@ class LocalDeclMixin:
             if al:
                 var.align = max(al, ty.align)
             if self.accept("="):
+                if _has_vla_member(var.ty) and not (self.at("{") and self.peek().text == "}"):
+                    self.error("variable-sized object may not be initialized except with an empty initializer", name)
                 e = self.local_initializer(var)
                 items.append(N.ExprStmt(name.loc, e))
             if not var.ty.is_complete or var.ty.size < 0:
