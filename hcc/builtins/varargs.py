@@ -44,6 +44,8 @@ def _parse_va_arg(self, tok):
     # va_arg yields an rvalue; an array type can never be produced by it
     if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):
         diag.error(tok.loc, "invalid use of non-lvalue array")
+    if ty.kind == T.TypeKind.FUNC:
+        diag.error(tok.loc, "second argument to 'va_arg' is a function type")
     # a va_list may be consumed by any function (not only variadic ones,
     # e.g. `void f(va_list ap)`), so make sure the split-struct scratch exists
     fn = getattr(self, "fn", None)
