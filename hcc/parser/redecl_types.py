@@ -27,6 +27,17 @@ def _has_tag(t: Type, depth: int = 0) -> bool:
     return False
 
 
+def has_anon_aggregate_param(t: Type) -> bool:
+    """True for a function type with an untagged struct/union parameter.
+
+    GCC's old extension: `int f(union { int a; });` is not truly compatible with a
+    later `int f(int)`, but it is accepted with a warning, not an error."""
+    if t is None or t.kind != TypeKind.FUNC:
+        return False
+    return any(p is not None and p.kind in (TypeKind.STRUCT, TypeKind.UNION) and p.tag is None
+               for p in t.params)
+
+
 def redecl_conflicts(prev: Type, new: Type) -> bool:
     """True when two declarations of one object name cannot describe the same object."""
     if prev is new or _has_tag(prev) or _has_tag(new):

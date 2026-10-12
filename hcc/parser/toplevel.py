@@ -9,13 +9,14 @@ Redeclarations reuse the first Obj, so `extern int x; int x = 1;` is one Var.
 """
 from __future__ import annotations
 
-from hcc import nodes as N
 from hcc import diag
+from hcc import nodes as N
 from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import VarAttr, VarScope
 from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inline
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import composite_redecl, redecl_conflicts, typedef_conflicts
+from hcc.parser.redecl_types import has_anon_aggregate_param
 from hcc.sema.incomplete import is_incomplete_object
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
@@ -222,6 +223,9 @@ class TopLevelMixin:
                 msg = f"conflicting types for '{name.text}'"
                 if implicit_block or getattr(self.opts, "permissive", False):    # -fpermissive: permerror
                     diag.warn(name.loc, msg)
+                elif has_anon_aggregate_param(fn.ty) or has_anon_aggregate_param(ty):
+                    # old GCC extension: an untagged struct/union parameter is only a warning
+                    diag.warn(name.loc, f"'{name.text}' is not truly compatible with its earlier declaration")
                 else:
                     self.error(msg, name.loc)
             self.check_proto_after_knr_def(fn, ty, name)

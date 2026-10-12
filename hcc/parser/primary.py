@@ -10,6 +10,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.parser.builtins import SPECIAL_BUILTINS, floatn_libc_name
+from hcc.parser.libc_builtins import float128_libm_call
 from hcc.parser.libc_builtins import POWI_HELPERS, libc_param_types, libc_return_type, libm_param_types
 from hcc.parser import complex as CPX
 from hcc.parser.scope import VarScope
@@ -92,8 +93,10 @@ class PrimaryMixin:
             return N.Cast(t.loc, N.IntLit(t.loc, 0, ty=T.TY_INT), ty=T.pointer_to(T.TY_VOID),
                           nullptr_const=True)
         is_call = self.at("(")
+        spelled = ""                     # the __builtin_<fn> spelling, when this is one
         if name.startswith("__builtin_"):
             bname = name[len("__builtin_"):]
+            spelled = bname
             if is_call and bname in POWI_HELPERS:
                 return self.typed(N.VarRef(t.loc, self.powi_helper(t, bname)))
             if is_call or libc_return_type(bname) is not None:
@@ -111,6 +114,10 @@ class PrimaryMixin:
                     return self.typed(N.VarRef(t.loc, vs.var))
                 return self.typed(N.VarRef(t.loc, self.implicit_function(bname, t, T.TY_INT)))
         if is_call:
+            f128 = float128_libm_call(spelled) if spelled else None
+            if f128 is not None:
+                name, rty, params = f128
+                return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty, params)))
             rty = libc_return_type(name)
             if rty is None:
                 diag.warn(t, f"implicit declaration of function '{name}'")

@@ -49,6 +49,15 @@ _add(T.TY_LONG, "labs imaxabs")
 _add(T.TY_LLONG, "llabs")
 
 _add(T.TY_FLOAT, "tanf expf logf log10f log2f exp2f atanf atan2f asinf acosf fmodf hypotf")
+_add(T.TY_DOUBLE, "asinh acosh atanh erf erfc expm1 lgamma log1p logb tgamma")
+_add(T.TY_FLOAT, "asinhf acoshf atanhf erff erfcf expm1f lgammaf log1pf logbf tgammaf")
+_add(T.TY_LDOUBLE, "asinhl acoshl atanhl erfl erfcl expm1l lgammal log1pl logbl tgammal")
+_add(T.TY_DOUBLE, "fdim remainder ldexp scalbn scalbln frexp modf remquo")
+_add(T.TY_FLOAT, "fdimf remainderf ldexpf scalbnf scalblnf frexpf modff remquof")
+_add(T.TY_LDOUBLE, "fdiml remainderl ldexpl scalbnl scalblnl frexpl modfl remquol")
+_add(T.TY_INT, "ilogb ilogbf ilogbl")
+_add(T.TY_LONG, "lrint lround lrintf lroundf lrintl lroundl")
+_add(T.TY_LLONG, "llrint llround llrintf llroundf llrintl llroundl")
 _add(T.TY_DOUBLE, "fma nextafter")
 _add(T.TY_FLOAT, "fmaf nextafterf")
 _add(T.TY_LDOUBLE, "fmal nextafterl")
@@ -69,6 +78,26 @@ for _names, _n in (("sqrt sin cos tan exp log log10 floor ceil fabs atan asin ac
 def libc_return_type(name: str):
     """Return type GCC assumes for builtin library function `name`, or None."""
     return _TABLE.get(name)
+
+
+_FLOAT_RET = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
+
+
+def float128_libm_call(spelled: str):
+    """`__builtin_<fn>f128[x](...)` returns _Float128, not long double. Given the
+    spelling `<fn>f128` / `<fn>f128x` (after `__builtin_`), return
+    (`<fn>f128`, _Float128, [_Float128]*arity) so the call uses the binary128 libm
+    function, or None when the spelling is not a floating f128 builtin."""
+    for sfx in ("f128x", "f128"):
+        if spelled.endswith(sfx) and len(spelled) > len(sfx):
+            base = spelled[:-len(sfx)]
+            brty = _TABLE.get(base)
+            if brty is None or brty.kind not in _FLOAT_RET:
+                return None
+            arity = _libm_arity(base)
+            params = None if arity is None else [T.TY_FLOAT128] * arity
+            return base + "f128", T.TY_FLOAT128, params
+    return None
 
 
 # Floating libm builtins taking two operands (base name, before any f/l suffix);
