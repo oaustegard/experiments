@@ -7,6 +7,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc.codegen.vector_shuffle import shuffle
 from hcc.codegen.crc import crc_builtin
+from hcc.codegen.x86_sse import lower_x86
 
 
 class BuiltinMixin:
@@ -16,6 +17,9 @@ class BuiltinMixin:
             crc_builtin(self, node)
             return
         fn = getattr(self, "builtin_" + node.name, None)
+        if fn is None and node.name.startswith("ia32_"):
+            lower_x86(self, node)
+            return
         if fn is None:
             diag.error(node, f"codegen: unsupported builtin '__builtin_{node.name}'", "codegen")
         fn(node)

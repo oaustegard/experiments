@@ -24,6 +24,7 @@ from hcc.parser.structs import find_member
 from hcc.parser.overflow_wide import wide_overflow_operands
 from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
+from hcc.parser.x86_sse_sigs import X86_BUILTINS, x86_call
 from hcc.parser.vector_shufflevector import lower_shufflevector
 from hcc.parser.tgmath import tgmath_call
 from hcc.sema.compat import is_compatible
@@ -80,7 +81,7 @@ FLOATN_BUILTIN_MAP = {
 FLOAT16_BUILTINS = frozenset(f"__builtin_{base}f16" for base in
                              ("inf", "huge_val", "nan", "nans") + F16_MATH_NAMES)
 SPECIAL_BUILTINS = (SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS | frozenset(FLOATN_BUILTIN_MAP)
-                    | FLOAT16_BUILTINS | CRC_BUILTINS)
+                    | FLOAT16_BUILTINS | CRC_BUILTINS | X86_BUILTINS)
 
 
 def floatn_libc_name(name: str) -> str:
@@ -113,6 +114,8 @@ class BuiltinParseMixin:
             node = self._bitop(tok, name)
         elif tok.text in CRC_BUILTINS:
             node = crc_call(self, tok)
+        elif tok.text in X86_BUILTINS:
+            node = x86_call(self, tok)
         else:
             node = getattr(self, "_b_" + name)(tok)
         self.expect(")")
