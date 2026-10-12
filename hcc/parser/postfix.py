@@ -164,7 +164,11 @@ class PostfixMixin:
 
     def compound_literal(self, ty, is_static=False, is_tls=False):
         loc = self.tok.loc
-        if self.fn is None or self.in_static_init or is_static:   # `static` => static storage
+        # A literal inside a parameter list (`int a[(int){x}]`) has automatic storage of the
+        # enclosing block: its dimension is evaluated on entry to the function body.
+        in_proto = getattr(self, "in_proto_params", False) and not is_static
+        if (self.fn is None and not in_proto) or self.in_static_init or is_static:
+            # `static` => static storage
             # Static storage: the literal is itself a static object whose address/value
             # the enclosing constant initializer refers to (see sema/initializers.py).
             var = self.new_anon_gvar(ty, loc)
