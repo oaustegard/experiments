@@ -185,6 +185,7 @@ class TopLevelMixin:
             params.append(v)
         if ty.is_variadic:
             fn.va_area = self.new_temp(T.array_of(T.TY_CHAR, 176))  # SysV register save area
+            fn.va_tmp = self.new_temp(T.array_of(T.TY_CHAR, 16))  # va_arg scratch for split structs
         body_tok = self.expect("{")
         fn.body = self.compound_stmt_body(body_tok.loc)
         # VLA-typed params (`int b[a++]`): the dimension is evaluated on entry

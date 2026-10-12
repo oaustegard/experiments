@@ -35,6 +35,36 @@ class VarargsMixin:
             self.emit(f"mov {off}(%rdi), %rdx")
             self.emit(f"mov %rdx, {off}(%rax)")
 
+    def va_arg_split_struct(self, ty, regs, stack: str, done: str) -> None:
+        """A <=16-byte struct with SSE and/or INTEGER eightbytes: its
+        eightbytes live in separate save-area slots, so copy each one into
+        the function's va_tmp scratch slot and leave its address in %rax.
+        Expects the va_list pointer in %rcx; jumps to `stack` when the
+        registers needed are exhausted (nothing is consumed then)."""
+        chunks = [regs[0]] + ([regs[1]] if ty.size > 8 else [])
+        nfp = sum(1 for f in chunks if f)
+        ngp = len(chunks) - nfp
+        if ngp:
+            self.emit("movl (%rcx), %eax")
+            self.emit(f"cmp ${48 - 8 * ngp}, %eax")
+            self.emit(f"ja {stack}")
+        if nfp:
+            self.emit("movl 4(%rcx), %eax")
+            self.emit(f"cmp ${176 - 16 * nfp}, %eax")
+            self.emit(f"ja {stack}")
+        base = self.fn.va_tmp.offset
+        for i, is_fp in enumerate(chunks):
+            # Each eightbyte is read as 8 bytes from its 8- or 16-byte slot.
+            off_field = 4 if is_fp else 0
+            self.emit(f"movl {off_field}(%rcx), %edx")
+            self.emit("mov 16(%rcx), %rax")
+            self.emit("add %rdx, %rax")
+            self.emit("mov (%rax), %rax")
+            self.emit(f"mov %rax, {base + 8 * i}(%rbp)")
+            self.emit(f"addl ${16 if is_fp else 8}, {off_field}(%rcx)")
+        self.emit(f"lea {base}(%rbp), %rax")
+        self.emit(f"jmp {done}")
+
     def builtin_va_arg(self, node) -> None:
         """Leaves the ADDRESS of the next argument in %rax, then loads it."""
         ty = node.type_arg
@@ -51,7 +81,7 @@ class VarargsMixin:
             self.emit(f"jmp {done}")
         elif k in (TypeKind.STRUCT, TypeKind.UNION):
             regs = struct_in_regs(ty)
-            if regs is not None and not regs[0] and not (ty.size > 8 and regs[1]):
+            if regs is not None and not any(regs):
                 need = 8 if ty.size <= 8 else 16
                 self.emit("movl (%rcx), %eax")
                 self.emit(f"cmp ${48 - need}, %eax")
@@ -59,7 +89,8 @@ class VarargsMixin:
                 self.emit(f"addl ${need}, (%rcx)")
                 self.emit("add 16(%rcx), %rax")
                 self.emit(f"jmp {done}")
-            # TODO: SSE-class and mixed structs in registers
+            elif regs is not None:
+                self.va_arg_split_struct(ty, regs, stack, done)
         elif k not in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
             self.emit("movl (%rcx), %eax")
             self.emit("cmp $40, %eax")

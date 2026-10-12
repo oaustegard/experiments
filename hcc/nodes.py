@@ -81,6 +81,7 @@ class Function(Obj):
     is_noreturn: bool = False
     is_weak: bool = False
     va_area: Var | None = None
+    va_tmp: Var | None = None
     alloca_bottom: Var | None = None
     section: str | None = None
     visibility: str | None = None
