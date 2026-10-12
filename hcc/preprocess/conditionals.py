@@ -34,6 +34,7 @@ class _Eval:
         self.toks = toks
         self.i = 0
         self.where = where
+        self.skip = 0  # >0 while evaluating an unevaluated operand
 
     def peek(self) -> str:
         return self.toks[self.i].text if self.i < len(self.toks) else ""
@@ -60,9 +61,13 @@ class _Eval:
         c = self.binary(0)
         if self.peek() == "?":
             self.take()
+            self.skip += (not c[0])
             a = self.cond()
+            self.skip -= (not c[0])
             self.expect(":")
+            self.skip += bool(c[0])
             b = self.cond()
+            self.skip -= bool(c[0])
             u = a[1] or b[1]
             return (_wrap((a if c[0] else b)[0], u), u)
         return c
@@ -76,13 +81,13 @@ class _Eval:
         lhs = self.binary(level + 1)
         while self.peek() in self.PREC[level] and self.i < len(self.toks) and self.toks[self.i].kind == TokenKind.PUNCT:
             op = self.take().text
-            if op == "&&":
+            if op in ("&&", "||"):
+                short = (not lhs[0]) if op == "&&" else bool(lhs[0])
+                self.skip += short
                 rhs = self.binary(level + 1)
-                lhs = (int(bool(lhs[0]) and bool(rhs[0])), False)
-                continue
-            if op == "||":
-                rhs = self.binary(level + 1)
-                lhs = (int(bool(lhs[0]) or bool(rhs[0])), False)
+                self.skip -= short
+                r = bool(rhs[0]) if not short else False
+                lhs = (int(bool(lhs[0]) and r) if op == "&&" else int(bool(lhs[0]) or r), False)
                 continue
             rhs = self.binary(level + 1)
             lhs = self.apply(op, lhs, rhs)
@@ -96,6 +101,8 @@ class _Eval:
             x = a[0] & MASK64 if u else a[0]
             return (_wrap(x << y if op == "<<" else x >> y, u), u)
         if op in ("/", "%"):
+            if y == 0 and self.skip:
+                return (0, u)
             if y == 0:
                 diag.error(self.where, "#if: division by zero")
             q = abs(x) // abs(y) * (1 if (x >= 0) == (y >= 0) else -1)
