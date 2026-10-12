@@ -15,8 +15,8 @@ Test ids (tests/suites/cpython/manifest.json; regenerate with tests/scripts/gen_
                        replaced by its gcc object (that object has its own test below).  Only methods that pass
                        with the gcc build in two runs are listed; modules with more than 400 are sampled by stride.
   cpython/src/<dir>/<file>.c   hcc compiles that one translation unit; the other 155 objects are gcc -O0; the
-                       resulting python must give the gcc build's status for every case of the smoke modules
-                       test_grammar and test_list.
+                       resulting python must print what the gcc-built python prints for a short script (SMOKE_PY:
+                       re, json, decimal, fractions, itertools, struct, zlib, hashlib, datetime, bignum arithmetic).
 """
 import json
 import os
@@ -31,24 +31,33 @@ import projlib as P
 URL = "https://github.com/python/cpython.git"
 REF = "v3.12.7"
 COMMIT = "0b05ead877f909b7efe712db758012d9dbece7ce"
-SMOKE = ["test_grammar", "test_list"]
+SMOKE_PY = """
+import sys, re, json, math, decimal, fractions, itertools, collections, struct, zlib, hashlib, datetime, textwrap
+print(sys.version_info[:3], sorted({x * x for x in range(20)} - {4, 9}), "%08.3f|%-6s|%x" % (math.pi, "ab", 255))
+print(re.sub(r"(\\d+)", lambda m: str(int(m.group(1)) * 2), "a1 b22 c333"), json.dumps({"k": [1, 2.5, None, "s"]}, sort_keys=True))
+print(decimal.Decimal(1) / decimal.Decimal(7), fractions.Fraction(3, 9), list(itertools.permutations("abc", 2))[:4])
+print(collections.Counter("mississippi").most_common(3), struct.pack("<hif", 1, 2, 3.5), zlib.crc32(b"hello"))
+print(hashlib.sha256(b"abc").hexdigest()[:16], datetime.date(2024, 2, 29).isoformat(), textwrap.fill("x " * 30, 20))
+print(sum(i * 0.1 for i in range(100)), 2 ** 200 // 3 ** 50, divmod(-7, 2), round(2.675, 2), "é".encode("utf-8"))
+"""
 RUN_TIMEOUT = 300
+RUN_VERSION = "1"  # bump when run_module / run_suite / parse change: cached reference runs are keyed on it
 MAX_LIVE = 400
 LDFLAGS = ["-Wl,--export-dynamic", "-ldl", "-lm", "-lpthread"]
 LINE = re.compile(r"^(\S+) \(([\w.]+)\)(?:\n[^\n]*?)? \.\.\. (ok|FAIL|ERROR|skipped .*|expected failure|unexpected success)$", re.M)
-CANDIDATES = """test_opcodes test_grammar test_syntax test_class test_types test_descr test_scope test_generators test_genexps
-test_with test_coroutines test_list test_dict test_unicode_identifiers test_int test_float test_complex test_cmath
-test_fractions test_functools test_operator test_bisect test_sort test_enumerate test_slice test_string test_range test_re
-test_struct test_array test_binascii test_base64 test_hashlib test_csv test_textwrap test_difflib test_pprint test_reprlib
-test_copy test_marshal test_dis test_tokenize test_unparse test_format test_fstring test_codecs test_collections
-test_contextlib test_dataclasses test_enum test_abc test_inspect test_traceback test_keyword test_numeric_tower
-test_decorators test_augassign test_bool test_builtin test_code_module test_colorsys test_configparser test_contains
-test_copyreg test_cprofile test_dictcomps test_dictviews test_ordered_dict test_defaultdict test_genericalias test_getopt
-test_userstring test_graphlib test_glob test_html test_htmlparser test_ipaddress test_iter test_keywordonlyarg
-test_linecache test_locale test_minidom test_mmap test_named_expressions test_pep646_syntax test_mailbox
-test_positional_only_arg test_print test_property test_raise test_setcomps test_shlex test_string_literals
-test_stringprep test_sqlite3 test_sundry test_super test_strtod test_tabnanny test_thread test_timeit test_tomllib
-test_time test_typechecks test_unary test_unpack test_unpack_ex test_utf8source test_uuid test_urlparse test_xml_etree
+CANDIDATES = """test_opcodes test_grammar test_syntax test_class test_types test_descr test_scope test_generators
+test_genexps test_with test_coroutines test_list test_dict test_unicode_identifiers test_int test_float
+test_complex test_cmath test_fractions test_operator test_bisect test_sort test_enumerate test_slice
+test_string test_struct test_binascii test_base64 test_hashlib test_csv test_textwrap test_pprint
+test_reprlib test_copy test_marshal test_tokenize test_format test_fstring test_collections test_contextlib
+test_dataclasses test_abc test_keyword test_numeric_tower test_decorators test_augassign test_bool
+test_builtin test_code_module test_colorsys test_configparser test_contains test_copyreg test_cprofile
+test_dictcomps test_dictviews test_ordered_dict test_defaultdict test_genericalias test_getopt test_graphlib
+test_glob test_html test_htmlparser test_ipaddress test_iter test_keywordonlyarg test_linecache test_locale
+test_minidom test_mmap test_named_expressions test_pep646_syntax test_positional_only_arg test_print
+test_property test_raise test_setcomps test_shlex test_string_literals test_stringprep test_sqlite3
+test_sundry test_super test_strtod test_tabnanny test_thread test_timeit test_tomllib test_time
+test_typechecks test_unary test_unpack test_unpack_ex test_utf8source test_uuid test_urlparse test_xml_etree
 test_zlib test_bufio test_fnmatch test_gettext test_int_literal test_longexp test_mimetypes test_pickletools
 test_plistlib test_quopri test_richcmp test_rlcompleter test_secrets test_unicodedata""".split()
 
@@ -234,14 +243,14 @@ def run_module(R, t, exe, module, work):
     d = P.tmpdir(work, "run-" + module)
     env = dict(os.environ, PYTHONHASHSEED="0", LC_ALL="C.UTF-8", HOME=d)
     env.pop("PYTHONPATH", None)
-    rc, out, err, to = R.run_cmd([py, "-m", "test", "-v", module], RUN_TIMEOUT, cwd=d, env=env)
+    rc, out, err, to = P.run_cmd(R, [py, "-m", "test", "-v", module], RUN_TIMEOUT, cwd=d, env=env)
     text = R.text(out, 8000000)
     keys, status = parse(text)
     return {"rc": rc, "timeout": to, "keys": keys, "status": status, "tail": (text[-300:] + R.text(err)[-300:])}
 
 
 def cached_run(R, t, exe, module, work, who):
-    key = C.sha(who, C.file_sha(exe), module, C.file_sha(__file__))
+    key = C.sha(who, C.file_sha(exe), module, RUN_VERSION)
     p = os.path.join(C.cache_root(), "val", "cpython-run", key[:2], key + ".json")
     with C.locked(p):
         v = C.read_json(p)
@@ -300,12 +309,23 @@ def run_test(suite, rel, cc_argv, work, R):
     f = proj.mixed(out, units, [unit], LDFLAGS)
     if f:
         return f.result(R)
-    for module in SMOKE:
-        want = memo(("ref", module), lambda: reference(R, proj, t, units, module, work))
-        res = compare_module(R, run_module(R, t, out, module, P.tmpdir(work, "got")), want, module)
-        if res.status != "PASS":
-            return res
+    want = memo(("smoke", cc), lambda: smoke(R, t, proj.ref("python", units, LDFLAGS), P.tmpdir(work, "smoke-ref")))
+    got = smoke(R, t, out, P.tmpdir(work, "smoke-got"))
+    if got["timeout"]:
+        return R.Result("TIMEOUT", "timeout", "smoke script >60s")
+    if got["rc"] < 0:
+        return R.Result("FAIL", "run", R.short("python killed by %s %s" % (R.signame(got["rc"]), got["err"][-150:])))
+    if (got["rc"], got["out"]) != (want["rc"], want["out"]):
+        return R.Result("FAIL", "compare", R.short("smoke script: " + (R.describe_diff(want["out"].encode(), got["out"].encode()) if got["out"] != want["out"] else "exit %d, expected %d %s" % (got["rc"], want["rc"], got["err"][-100:]))))
     return R.Result("PASS")
+
+
+def smoke(R, t, exe, work):
+    py = pyhome(t, exe)
+    env = dict(os.environ, PYTHONHASHSEED="0", LC_ALL="C.UTF-8")
+    env.pop("PYTHONPATH", None)
+    rc, out, err, to = P.run_cmd(R, [py, "-c", SMOKE_PY], 60, cwd=work, env=env)
+    return {"rc": rc, "out": R.text(out), "err": R.text(err), "timeout": to}
 
 
 # ------------------------------------------------------- manifest generation

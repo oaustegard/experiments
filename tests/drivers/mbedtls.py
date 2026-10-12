@@ -33,6 +33,7 @@ URL = "https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-3.6.2/mbedt
 SHA256 = "8b54fb9bcf4d5a7078028e0520acddefb7900b3e66fec7f7175bb5b7d85ccdca"
 SMOKE = ["md"]
 RUN_TIMEOUT = 300
+RUN_VERSION = "1"  # bump when run_module / run_suite / parse change: cached reference runs are keyed on it
 STATUS = re.compile(r"^(.*?)(?: \.+)? (PASS|FAILED|----)$")
 MAX_LIVE = 600
 # suites left out to keep a full run near ten minutes: slow under an unoptimised compiler (gcc -O0 needs >5 s) or
@@ -154,7 +155,7 @@ def run_suite(R, t, exe, name, work):
     link = os.path.join(d, "framework")
     if not os.path.lexists(link):
         os.symlink(os.path.join(t, "framework"), link)
-    rc, out, err, to = R.run_cmd([exe, os.path.join(t, "tests", "test_suite_%s.datax" % name)], RUN_TIMEOUT, cwd=os.path.join(d, "tests"))
+    rc, out, err, to = P.run_cmd(R, [exe, os.path.join(t, "tests", "test_suite_%s.datax" % name)], RUN_TIMEOUT, cwd=os.path.join(d, "tests"))
     text = out[:4000000].decode("utf-8", "replace")
     statuses, details = parse(text)
     return {"rc": rc, "timeout": to, "statuses": statuses, "descs": [m.group(1) for m in map(STATUS.match, text.splitlines()) if m],
@@ -162,7 +163,7 @@ def run_suite(R, t, exe, name, work):
 
 
 def cached_run(R, t, exe, name, work, who):
-    key = C.sha(who, C.file_sha(exe), name, C.file_sha(__file__))
+    key = C.sha(who, C.file_sha(exe), name, RUN_VERSION)
     p = os.path.join(C.cache_root(), "val", "mbedtls-run", key[:2], key + ".json")
     with C.locked(p):
         v = C.read_json(p)

@@ -77,7 +77,7 @@ def sha(b):
 
 
 def runb(R, argv, cwd, stdin_data=None, timeout=RUN_TIMEOUT):
-    rc, out, err, to = R.run_cmd(argv, timeout, cwd=cwd, stdin_data=stdin_data)
+    rc, out, err, to = P.run_cmd(R, argv, timeout, cwd=cwd, stdin_data=stdin_data)
     return rc, out, R.text(err), to
 
 

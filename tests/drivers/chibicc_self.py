@@ -67,7 +67,7 @@ def rundir(r, exe, d):
 
 
 def runb(R, argv, cwd, timeout=TIMEOUT):
-    rc, out, err, to = R.run_cmd(argv, timeout, cwd=cwd)
+    rc, out, err, to = P.run_cmd(R, argv, timeout, cwd=cwd)
     return {"rc": rc, "out": R.text(out), "err": R.text(err), "timeout": to}
 
 
