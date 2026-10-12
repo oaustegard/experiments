@@ -216,6 +216,9 @@ class InitializerMixin:
         init.expr = self.typed(self.assign())
         if self.constexpr_init:
             check_scalar(self, init)
+        if T.is_integer(init.ty) and init.ty.kind != T.TypeKind.BOOL and init.expr.ty.kind == T.TypeKind.ARRAY:
+            # `char c = "abc";` / `int x = arr;`: an array decays to a pointer, not an integer
+            diag.error(init.expr, "initialization of integer object from an array (pointer)")
         if init.ty.is_complex or init.expr.ty.is_complex:
             if self.fn is None or self.in_static_init:    # file scope or static local
                 CC.set_global_init(self, init)

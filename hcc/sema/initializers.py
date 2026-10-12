@@ -159,6 +159,8 @@ def _write_le(init, ty, gd, offset) -> None:
         return
     diff = _label_difference(expr)
     if diff is not None:
+        if ty.size > 8:     # a label difference is a 32/64-bit assembler reloc
+            diag.error(expr, "initializer element is not computable at load time", "sema")
         label, minus, extra, addend = diff
         gd.relocs.append(N.Reloc(offset, label, addend, ty.size, minus, extra))
         return
