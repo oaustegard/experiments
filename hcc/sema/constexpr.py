@@ -102,9 +102,10 @@ def _eval(node):
     if t is N.IntLit:
         return None, node.value
     if t is N.FloatLit:
-        if node.value != node.value or node.value in (float("inf"), float("-inf")):
-            raise NotConstant  # inf/nan has no integer value
-        return None, int(node.value)
+        # A float value has no integer-constant meaning on its own (e.g. 0.1 is
+        # true, not 0). Float->int casts fold via eval_float; truth tests on
+        # floats fall back to the runtime path.
+        raise NotConstant
     if t is N.Binary:
         op = node.op
         if op in ("+", "-"):
