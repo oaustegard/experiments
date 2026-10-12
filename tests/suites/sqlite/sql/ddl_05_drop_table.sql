@@ -1,0 +1,5 @@
+CREATE TABLE a(x); CREATE TABLE b(y);
+DROP TABLE a;
+DROP TABLE IF EXISTS nothere;
+DROP TABLE nothere;
+.tables

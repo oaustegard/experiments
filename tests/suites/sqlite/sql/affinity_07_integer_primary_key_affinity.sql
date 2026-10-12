@@ -1,0 +1,6 @@
+CREATE TABLE t(id INTEGER PRIMARY KEY, v);
+INSERT INTO t VALUES(1,'a'),('2','b'),(3.0,'c');
+INSERT INTO t VALUES(4.5,'d');
+INSERT INTO t VALUES('x','e');
+INSERT INTO t VALUES(NULL,'f');
+SELECT id, typeof(id), v FROM t;

@@ -1,0 +1,4 @@
+CREATE TABLE t(v); INSERT INTO t VALUES(3),(7),(11);
+SELECT 5 > (SELECT min(v) FROM t), 5 > (SELECT max(v) FROM t);
+SELECT v FROM t WHERE v > (SELECT avg(v) FROM t);
+SELECT v FROM t WHERE v = (SELECT max(v) FROM t WHERE v < 10);

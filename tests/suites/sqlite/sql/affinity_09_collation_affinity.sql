@@ -1,0 +1,6 @@
+CREATE TABLE t(a TEXT COLLATE NOCASE, b TEXT, c TEXT COLLATE RTRIM);
+INSERT INTO t VALUES('Hello','Hello','Hello  ');
+SELECT a='HELLO', b='HELLO', c='Hello', a COLLATE BINARY='HELLO', c='Hello ' FROM t;
+CREATE INDEX ia ON t(a);
+SELECT count(*) FROM t WHERE a='hELLO';
+SELECT 'a' = 'A' COLLATE NOCASE, 'a' = 'A', 'b' > 'A' COLLATE NOCASE, 'abc  ' = 'abc' COLLATE RTRIM;

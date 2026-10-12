@@ -1,0 +1,2 @@
+SELECT 'a' IN ('A') , 'a' COLLATE NOCASE IN ('A'), ('a' COLLATE NOCASE) BETWEEN 'A' AND 'B', max('a' COLLATE NOCASE, 'B'), 'Z' COLLATE NOCASE > 'a';
+SELECT 'abc' LIKE 'ABC', 'abc' = 'ABC' COLLATE NOCASE, 'abc' GLOB 'ABC';

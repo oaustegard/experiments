@@ -1,0 +1,5 @@
+CREATE TABLE t(id,v); CREATE TABLE u(id,n);
+INSERT INTO t VALUES(1,0),(2,0),(3,0);
+INSERT INTO u VALUES(1,5),(3,7);
+UPDATE t SET v=u.n FROM u WHERE t.id=u.id;
+SELECT * FROM t;

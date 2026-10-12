@@ -1,0 +1,10 @@
+CREATE VIRTUAL TABLE a USING fts5(t, tokenize='porter unicode61');
+CREATE VIRTUAL TABLE b USING fts5(t, tokenize='unicode61 remove_diacritics 2');
+CREATE VIRTUAL TABLE c USING fts5(t, tokenize='trigram');
+INSERT INTO a VALUES('running runs ran'),('jumped jumping');
+INSERT INTO b VALUES('Café résumé'),('naive');
+INSERT INTO c VALUES('hello world'),('help wanted');
+SELECT rowid FROM a WHERE a MATCH 'run' ORDER BY 1;
+SELECT rowid FROM a WHERE a MATCH 'jump' ORDER BY 1;
+SELECT rowid FROM b WHERE b MATCH 'cafe' ORDER BY 1;
+SELECT rowid FROM c WHERE c MATCH 'ell' ORDER BY 1;
