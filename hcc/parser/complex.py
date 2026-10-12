@@ -206,12 +206,6 @@ def truth(p, node):
     return _seq(p, loc, pre, p.typed(N.Logical(loc, "||", re_nz, im_nz)))
 
 
-def check_abi(p, ty, loc):
-    """Complex long double is returned in x87 registers, not as a struct: refuse it at calls/returns."""
-    if ty.is_complex and ty.base.kind == TypeKind.LDOUBLE:
-        p.error("complex long double passed or returned by value is not supported", loc)
-
-
 def convert(p, expr, ty, loc):
     """Implicit or explicit conversion of `expr` to `ty` when either side is complex."""
     if ty.is_complex:

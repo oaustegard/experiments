@@ -10,7 +10,7 @@ CallMixin.expr_Call(node):
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import abi_kind, is_memory_struct, struct_arg_regs, struct_in_regs
+from hcc.codegen.abi import abi_kind, is_memory_struct, is_x87_complex, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS64
 from hcc.codegen.half import FROM_ABI_HALF, TO_ABI_HALF
 from hcc.typesys import TypeKind, align_to
@@ -212,7 +212,12 @@ class CallMixin:
                 self.emit(f"{'movzbl' if ret.is_unsigned else 'movsbl'} %al, %eax")
             else:
                 self.emit(f"{'movzwl' if ret.is_unsigned else 'movswl'} %ax, %eax")
-        if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and not big_ret:
+        if is_x87_complex(ret):
+            self.frame_lea(node.ret_buffer.offset, "%rdi")
+            self.emit("fstpt (%rdi)")        # st(0) = real part
+            self.emit("fstpt 16(%rdi)")      # st(1) = imaginary part
+            self.frame_lea(node.ret_buffer.offset, "%rax")
+        elif abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and not big_ret:
             self.copy_ret_regs_to_buffer(ret, node.ret_buffer.offset)
             self.frame_lea(node.ret_buffer.offset, "%rax")
 

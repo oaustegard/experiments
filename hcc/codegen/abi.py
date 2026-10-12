@@ -52,8 +52,16 @@ def has_unaligned(ty) -> bool:
     return False
 
 
+def is_x87_complex(ty) -> bool:
+    """`_Complex long double` (SysV COMPLEX_X87): returned in st(0)=real, st(1)=imag;
+    passed in memory like any other 32-byte aggregate."""
+    return ty.is_complex and ty.base.kind == TypeKind.LDOUBLE
+
+
 def is_memory_struct(ty) -> bool:
     """Struct/union returned via a hidden pointer (SysV MEMORY class)."""
+    if is_x87_complex(ty):
+        return False
     return ty.size > 16 or has_unaligned(ty)
 
 

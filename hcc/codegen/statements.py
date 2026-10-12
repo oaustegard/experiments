@@ -5,7 +5,7 @@ StatementMixin: one `stmt_<NodeClass>` method per statement node.
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import abi_kind, is_memory_struct, struct_in_regs
+from hcc.codegen.abi import abi_kind, is_memory_struct, is_x87_complex, struct_in_regs
 from hcc.codegen.half import TO_ABI_HALF
 from hcc.nodes import BuiltinCall as BuiltinCallNode, ExprStmt as ExprStmtNode
 from hcc.sema.constexpr import try_eval_const
@@ -261,7 +261,10 @@ class StatementMixin:
             ty = node.expr.ty
             if ty.kind == TypeKind.FLOAT16:
                 self.emit(TO_ABI_HALF)
-            if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
+            if is_x87_complex(ty):
+                self.emit("fldt 16(%rax)")   # imaginary part first: real ends up in st(0)
+                self.emit("fldt (%rax)")
+            elif abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
                 if ty.size == 0:
                     pass  # empty struct: nothing to return
                 elif not is_memory_struct(ty):

@@ -85,7 +85,6 @@ class StatementMixin:
         if rty.kind == TypeKind.VOID:
             return N.Return(t.loc, e)
         if rty.is_complex or e.ty.is_complex:
-            CPX.check_abi(self, rty, t.loc)
             e = CPX.convert(self, e, rty, t.loc)
             return N.Return(t.loc, e)
         if rty.kind not in (TypeKind.STRUCT, TypeKind.UNION):

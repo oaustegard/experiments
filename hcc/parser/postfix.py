@@ -140,7 +140,6 @@ class PostfixMixin:
             if fabs_node is not None:
                 return self.typed(fabs_node)
         node = N.Call(loc, fn, conv, fty)
-        CPX.check_abi(self, fty.return_ty, loc)
         if is_struct_like(fty.return_ty) or fty.return_ty.is_vector:
             node.ret_buffer = self.new_temp(fty.return_ty)
         return self.typed(node)
