@@ -134,6 +134,14 @@ class AttributeMixin:
             attr.alias = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name == "ifunc" and attr is not None and args:
             attr.ifunc = args[0].value.rstrip(b"\0").decode() if args[0].value else None
+        elif name in ("constructor", "destructor") and attr is not None:
+            attr.init_kind = "init" if name == "constructor" else "fini"
+            attr.init_prio = 0
+            if args:
+                save = self.pos
+                self.pos = args_start + 1
+                attr.init_prio = self.const_expr()
+                self.pos = save
         elif name == "vector_size" and attr is not None and args:
             save = self.pos
             self.pos = args_start + 1

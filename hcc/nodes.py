@@ -91,6 +91,8 @@ class Function(Obj):
     visibility: str | None = None
     alias_of: str | None = None
     ifunc_of: str | None = None             # __attribute__((ifunc("resolver")))
+    init_kind: str | None = None            # "init" (constructor) / "fini" (destructor)
+    init_prio: int = 0                      # constructor(N) / destructor(N) priority
     align: int = 0                          # from __attribute__((aligned(N)))
     outer: "Function | None" = None         # GNU nested function: enclosing function
     chain_var: Var | None = None            # nested fn: slot holding the static link

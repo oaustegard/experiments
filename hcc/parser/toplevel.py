@@ -126,6 +126,9 @@ class TopLevelMixin:
         fn.visibility = dattr.visibility or attr.visibility or fn.visibility
         fn.alias_of = dattr.alias or attr.alias or fn.alias_of
         fn.ifunc_of = dattr.ifunc or attr.ifunc or fn.ifunc_of
+        for a in (attr, dattr):
+            if a.init_kind:
+                fn.init_kind, fn.init_prio = a.init_kind, a.init_prio
         fn.align = max(fn.align, attr.align, dattr.align)
         return fn
 
