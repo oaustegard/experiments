@@ -160,9 +160,24 @@ class StructMixin:
             last = members[-1]
             last.ty = T.array_of(last.ty.base, 0)
             last.open_array = True
+        check_flexible_members(members, self.toks[self.pos])
         for i, m in enumerate(members):
             m.idx = i
         return members
+
+
+def check_flexible_members(members, where) -> None:
+    """C11 6.7.2.1p2-3: an incomplete array member (`T a[]`, also via a typedef)
+    must be the last member, and the struct needs at least one other named member."""
+    for m in members[:-1]:
+        if m.ty.kind == T.TypeKind.ARRAY and m.ty.array_len < 0:
+            diag.error(m.tok or where, "flexible array member not at end of struct")
+    if not members or not getattr(members[-1], "open_array", False):
+        return
+    last = members[-1]
+    others = [m for m in members[:-1] if not (m.name is None and m.is_bitfield)]
+    if not others:
+        diag.error(last.tok or where, "flexible array member in a struct with no named members")
 
 
 def _member_names(members, out) -> None:
