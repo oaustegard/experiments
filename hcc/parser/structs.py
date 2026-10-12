@@ -176,8 +176,8 @@ class StructMixin:
                     m.bit_width = bitfield_width_value(self.conditional(), name, self.toks[start])
                     check_bitfield_width(m, name, self.toks[start])
                 self.parse_attributes(mattr)
-                if mattr.warn_if_not_aligned:
-                    self.error("'warn_if_not_aligned' may not be specified for '%s'" % (name.text if name else ''), name or self.toks[start])
+                # GCC accepts warn_if_not_aligned on fields (it only warns about the
+                # offset); the attribute is accepted and otherwise has no effect here.
                 if m.is_bitfield:
                     check_bitfield_type(m, name, self.toks[start], mattr.vector_size)
                 m.explicit_align = max(m.explicit_align, mattr.align)
