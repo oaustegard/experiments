@@ -76,6 +76,10 @@ class VectorOpsMixin:
                     self.emit("div %rcx")
                 if op == "%":
                     self.emit("mov %rdx, %rax")
+            elif op == "<<":
+                self.emit("shl %cl, %rax")
+            elif op == ">>":
+                self.emit("sar %cl, %rax" if signed else "shr %cl, %rax")
             mn, reg = _STORE[es]
             self.emit(f"{mn} {reg}, {i}(%rdi)")
         self.emit("mov %rdi, %rax")

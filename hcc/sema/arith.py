@@ -73,7 +73,7 @@ def new_sub(lhs, rhs, loc):
     diag.error(loc, f"invalid operands to binary - ('{lhs.ty}' and '{rhs.ty}')", "sema")
 
 
-VECTOR_OPS = ("+", "-", "*", "/", "%", "&", "|", "^")
+VECTOR_OPS = ("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")
 
 
 def vector_binop(op, lhs, rhs, loc):
