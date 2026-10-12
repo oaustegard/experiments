@@ -15,7 +15,7 @@ from hcc.parser.declspec import auto_qualified, constexpr_type, check_empty_inli
 from hcc.sema.constexpr import try_eval_const
 from hcc.parser.initializers import const_bytes
 from hcc.parser.attributes import mode_type
-from hcc.parser.vla import vla_slot_type
+from hcc.parser.vla import vla_slot_type, _has_vla as _has_vla_type
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import redecl_conflicts, typedef_conflicts
 from hcc.parser.redecl import check_redecl
@@ -134,6 +134,11 @@ class LocalDeclMixin:
             if ty.kind == T.TypeKind.FUNC and ty.enum_consts == "knr" \
                     and not self.at(";") and not self.at(","):
                 self.knr_params(ty)              # GNU nested K&R definition
+            if ty.kind == T.TypeKind.FUNC and not self.at("{") and name is not None \
+                    and _has_vla_type(ty.return_ty):
+                # C11 6.7.5.2p2 / GCC: a block-scope function declaration (not a
+                # nested function definition) may not return a variably modified type
+                self.error("non-nested function with variably modified type", name)
             if ty.kind == T.TypeKind.FUNC and self.at("{"):
                 self.nested_function(ty, name, attr, dattr)
                 return items

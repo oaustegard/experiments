@@ -13,7 +13,6 @@ from __future__ import annotations
 from dataclasses import fields
 
 from hcc.parser.scope import VarAttr
-from hcc.parser.vla import _has_vla as _has_vla_type
 from hcc.parser.declspec import constexpr_type
 from hcc import nodes as N
 from hcc.nodes import Node, Var
@@ -88,11 +87,6 @@ class DeclaratorMixin:
         self.param_outer_array = outer_ok
         ty = self.type_suffix(ty)
         self.param_outer_array = False
-        if name is not None and self.fn is not None and ty.kind == T.TypeKind.FUNC \
-                and _has_vla_type(ty.return_ty):
-            # C11 6.7.5.2p2 / GCC: a block-scope function declaration (not a
-            # nested function definition) may not return a variably modified type
-            self.error("non-nested function with variably modified type", name)
         return ty, name
 
     def _paren_starts_params(self) -> bool:
