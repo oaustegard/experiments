@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import struct
 
+from hcc.floatbits import pack_float32, pack_float64
 from hcc.codegen.bitfield_rev import assign_rev_bitfield, load_rev_bitfield
 from hcc.codegen.bitfield_wide import assign_wide_bitfield, load_wide_bitfield
 from hcc.sema.constexpr import try_eval_const
@@ -55,11 +56,11 @@ class ExpressionMixin:
         k = node.ty.kind
         v = float(node.value)
         if k == TypeKind.FLOAT:
-            bits = struct.unpack("<I", struct.pack("<f", v))[0]
+            bits = struct.unpack("<I", pack_float32(v))[0]
             self.emit(f"mov ${bits}, %eax")
             self.emit("movq %rax, %xmm0")
         elif k == TypeKind.DOUBLE:
-            bits = struct.unpack("<Q", struct.pack("<d", v))[0]
+            bits = struct.unpack("<Q", pack_float64(v))[0]
             self.emit(f"movabs ${bits}, %rax")
             self.emit("movq %rax, %xmm0")
         else:

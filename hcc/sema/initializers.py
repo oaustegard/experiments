@@ -7,13 +7,12 @@
 """
 from __future__ import annotations
 
-import struct
-
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.arith import new_add
 from hcc.sema.constexpr import NotConstant, eval_float, eval_reloc, float_to_int
 from hcc import typesys as T
+from hcc.floatbits import pack_float32, pack_float64
 
 
 def _has_value(init) -> bool:
@@ -122,9 +121,9 @@ def _write(init, ty, gd, offset) -> None:
         except NotConstant:
             diag.error(expr, "initializer element is not constant", "sema")
         if ty.kind == T.TypeKind.FLOAT:
-            gd.data[offset:offset + 4] = struct.pack("<f", v)
+            gd.data[offset:offset + 4] = pack_float32(v)
         elif ty.kind == T.TypeKind.DOUBLE:
-            gd.data[offset:offset + 8] = struct.pack("<d", v)
+            gd.data[offset:offset + 8] = pack_float64(v)
         else:
             gd.data[offset:offset + 10] = float_to_x87(v)
         return
