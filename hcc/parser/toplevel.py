@@ -236,7 +236,9 @@ class TopLevelMixin:
             fn.body.items[0:0] = vla_inits
         self.leave_scope()
         for g in self.goto_names:
-            if g.text not in self.label_names:
+            # a nested function's gotos may target labels of the enclosing
+            # function; nested_fn.py forwards them to the enclosing check
+            if g.text not in self.label_names and fn.outer is None:
                 self.error(f"label '{g.text}' used but not defined", g)
         fn.params = params
         fn.locals = self.locals

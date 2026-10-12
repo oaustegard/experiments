@@ -28,5 +28,8 @@ class NestedFnMixin:
         self.locals = []
         try:
             self.function_definition(fn, ty)
+            # gotos to labels not in this body belong to the enclosing function
+            pending = [g for g in self.goto_names if g.text not in self.label_names]
         finally:
             self.fn, self.locals, self.label_names, self.goto_names = saved
+        self.goto_names.extend(pending)
