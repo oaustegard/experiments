@@ -60,12 +60,20 @@ def libc_return_type(name: str):
     return _TABLE.get(name)
 
 
-# Floating libm builtins taking two operands; every other entry takes one.
+# Floating libm builtins taking two operands (base name, before any f/l suffix);
+# every other entry takes one.
 _LIBM_TWO_ARG = frozenset(
-    "pow copysign atan2 powf copysignf atan2f powl copysignl atan2l "
-    "nextafter nextafterf nextafterl".split())
+    "pow copysign atan2 fmod hypot fmin fmax nextafter".split())
 _LIBM_THREE_ARG = frozenset("fma fmaf fmal".split())
 _LIBM_FLOAT_KINDS = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
+
+
+def _libm_arity(name: str) -> int:
+    if name in _LIBM_THREE_ARG:
+        return 3
+    if name in _LIBM_TWO_ARG or (name[-1:] in ("f", "l") and name[:-1] in _LIBM_TWO_ARG):
+        return 2
+    return 1
 
 
 def libm_param_types(name: str, rty):
@@ -75,8 +83,7 @@ def libm_param_types(name: str, rty):
     name has no such builtin prototype."""
     if rty is None or rty.kind not in _LIBM_FLOAT_KINDS or _TABLE.get(name) is not rty:
         return None
-    n = 3 if name in _LIBM_THREE_ARG else 2 if name in _LIBM_TWO_ARG else 1
-    return [rty] * n
+    return [rty] * _libm_arity(name)
 
 
 # __builtin_powi{f,,l}(x, n): integer power, expanded by libgcc as __powi{sf,df,xf}2.
