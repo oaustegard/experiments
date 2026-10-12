@@ -1,0 +1,72 @@
+diff --git a/hcc/codegen/context.py b/hcc/codegen/context.py
+index 0282612f..b2946de7 100644
+--- a/hcc/codegen/context.py
++++ b/hcc/codegen/context.py
+@@ -33,6 +33,7 @@ class CodeGenBase:
+         self.unwind_sites: list = []     # (start, end, pad label|None) per call (codegen/unwind.py)
+         self.unwind_pads: dict = {}      # active-cleanup prefix key -> (pad label, prefix)
+         self.unwind_override = None      # cleanup calls active for unwinding, when not cleanup_stack
++        self.asm_weak_syms = None        # names given .weak by file-scope asm (codegen/data.py)
+         self._expr_dispatch: dict = {}
+         self._stmt_dispatch: dict = {}
+ 
+diff --git a/hcc/codegen/data.py b/hcc/codegen/data.py
+index 6f371b21..d87208a6 100644
+--- a/hcc/codegen/data.py
++++ b/hcc/codegen/data.py
+@@ -6,9 +6,26 @@ anonymous static Vars created by the parser (see parser/primary.py).
+ """
+ from __future__ import annotations
+ 
++import re
++
++from hcc import nodes as N
++
++_WEAK_DIRECTIVE = re.compile(r"(?<![\w.])\.weak\s+([A-Za-z_$.][\w$.]*)")
++
+ 
+ class DataMixin:
+ 
++    def is_asm_weak(self, sym: str) -> bool:
++        """True if file-scope asm (e.g. `#pragma weak sym`) marks `sym` as .weak.
++        A weak symbol may not also be a .comm (common) symbol, so such a tentative
++        definition is emitted in .bss instead."""
++        if self.asm_weak_syms is None:
++            self.asm_weak_syms = set()
++            for obj in self.tu.objs:
++                if isinstance(obj, N.Asm):
++                    self.asm_weak_syms.update(_WEAK_DIRECTIVE.findall(obj.text))
++        return sym in self.asm_weak_syms
++
+     def emit_data(self, var) -> None:
+         sym = var.symbol
+         ty = var.ty
+@@ -24,7 +41,8 @@ class DataMixin:
+         size = max(ty.size, 0)
+         if var.init_data is None:
+             if not var.is_static and not var.is_tls and not var.section \
+-                    and not var.is_weak and not var.is_nocommon:
++                    and not var.is_weak and not var.is_nocommon \
++                    and not self.is_asm_weak(sym):
+                 # Tentative definition (C11 6.9.2): emit as a common symbol so
+                 # that it merges with a real definition in another object.
+                 self.directive(f".comm {sym},{max(size, 1)},{align}")
+diff --git a/hcc/selftest/codegen_weak_pragma_tentative.c b/hcc/selftest/codegen_weak_pragma_tentative.c
+new file mode 100644
+index 00000000..36c4c7ae
+--- /dev/null
++++ b/hcc/selftest/codegen_weak_pragma_tentative.c
+@@ -0,0 +1,13 @@
++// EXPECT-EXIT: 7
++/* #pragma weak on a tentative definition: the symbol must be .weak and
++   must not also be emitted as a common (.comm) symbol. */
++#pragma weak wvar
++int wvar;
++int later;
++#pragma weak later
++
++int main(void) {
++    wvar = 3;
++    later = 4;
++    return wvar + later;
++}

@@ -1,0 +1,90 @@
+diff --git a/hcc/parser/complex_incdec.py b/hcc/parser/complex_incdec.py
+new file mode 100644
+index 00000000..ad8a8287
+--- /dev/null
++++ b/hcc/parser/complex_incdec.py
+@@ -0,0 +1,30 @@
++"""`++a`, `a++`, `--a`, `a--` on a complex operand (C23 / GCC: allowed).
++
++The value is `a op= 1` (op is + or -), lowered through complex_compound so the
++parser's complex arithmetic does the work. The post forms save the old value in
++a temporary first. Scalar operands go to sema.arith.inc_dec unchanged.
++"""
++from __future__ import annotations
++
++from hcc import nodes as N
++from hcc.sema.arith import _addressed_place, inc_dec
++from hcc.typesys import TY_INT
++
++
++class ComplexIncDecMixin:
++    def inc_dec_node(self, operand, delta, is_post, loc):
++        if not self.typed(operand).ty.is_complex:
++            return inc_dec(operand, delta, is_post, loc, self.new_temp)
++        op = "+" if delta > 0 else "-"
++        one = N.IntLit(loc, 1, ty=TY_INT)
++        if not is_post:
++            return self.complex_compound(op, operand, one, loc)
++        pre, place = _addressed_place(operand, loc, self.new_temp)
++        old = self.new_temp(operand.ty)
++        save = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, old)), place()))
++        update = self.complex_compound(op, place(), one, loc)
++        read = self.typed(N.VarRef(loc, old))
++        result = self.typed(N.Comma(loc, save, self.typed(N.Comma(loc, update, read))))
++        for e in reversed(pre):
++            result = self.typed(N.Comma(loc, e, result))
++        return result
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..b1af7736 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -263,7 +263,7 @@ class ExpressionMixin:
+             if s in ("++", "--"):
+                 self.next()
+                 operand = self.unary()
+-                return inc_dec(operand, 1 if s == "++" else -1, False, t.loc, self.new_temp)
++                return self.inc_dec_node(operand, 1 if s == "++" else -1, False, t.loc)
+             if s == "&&":                        # GNU label address
+                 self.next()
+                 name = self.expect_ident()
+diff --git a/hcc/parser/postfix.py b/hcc/parser/postfix.py
+index 98bc1322..fc0632c4 100644
+--- a/hcc/parser/postfix.py
++++ b/hcc/parser/postfix.py
+@@ -98,7 +98,7 @@ class PostfixMixin:
+                 node = self.struct_ref(self.typed(N.Deref(t.loc, node)), self.expect_ident())
+             elif s in ("++", "--") and t.kind.name == "PUNCT":
+                 self.next()
+-                node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
++                node = self.inc_dec_node(node, 1 if s == "++" else -1, True, t.loc)
+             else:
+                 return node
+ 
+diff --git a/hcc/selftest/complex_incdec.c b/hcc/selftest/complex_incdec.c
+new file mode 100644
+index 00000000..be44f0f1
+--- /dev/null
++++ b/hcc/selftest/complex_incdec.c
+@@ -0,0 +1,22 @@
++// EXPECT-EXIT: 0
++// Increment and decrement on complex lvalues (pre and post forms).
++_Complex float a;
++double _Complex d[2];
++int calls;
++double _Complex *pick(void) { calls++; return &d[1]; }
++int main(void) {
++    _Complex float old;
++    a = 1.0f + 2.0f * 1.0fi;
++    ++a;
++    if (__real__ a != 2.0f || __imag__ a != 2.0f) return 1;
++    old = a++;
++    if (__real__ old != 2.0f || __real__ a != 3.0f) return 2;
++    old = a--;
++    if (__real__ old != 3.0f || __real__ a != 2.0f) return 3;
++    old = --a;
++    if (__real__ old != 1.0f || __real__ a != 1.0f) return 4;
++    d[1] = 5.0 + 0.0 * 1.0i;
++    old = (*pick())++;
++    if (calls != 1 || __real__ old != 5.0 || __real__ d[1] != 6.0) return 5;
++    return 0;
++}

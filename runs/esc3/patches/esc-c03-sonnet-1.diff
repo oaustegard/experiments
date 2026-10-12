@@ -1,0 +1,65 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..ab3d8c42 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -263,6 +263,8 @@ class ExpressionMixin:
+             if s in ("++", "--"):
+                 self.next()
+                 operand = self.unary()
++                if self.typed(operand).ty.is_complex:
++                    return self.complex_incdec(operand, s, False, t.loc)
+                 return inc_dec(operand, 1 if s == "++" else -1, False, t.loc, self.new_temp)
+             if s == "&&":                        # GNU label address
+                 self.next()
+@@ -303,6 +305,18 @@ class ExpressionMixin:
+                 return CPX.part(self, self.typed(operand), 0 if s == "__real__" else 1, t.loc)
+         return self.postfix()
+ 
++    def complex_incdec(self, node, s, is_post, loc):
++        """`++`/`--` on a complex operand: `a += 1` / `a -= 1` (post: yields the old value)."""
++        one = self.typed(N.IntLit(loc, 1, ty=TY_INT))
++        op = "+" if s == "++" else "-"
++        if not is_post or not _side_effect_free(node):
++            return self.complex_compound(op, node, one, loc)
++        old = self.new_temp(node.ty, loc)
++        save = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, old)), node))
++        upd = self.complex_compound(op, node, one, loc)
++        return self.typed(N.Comma(loc, self.typed(N.Comma(loc, save, upd)),
++                                  self.typed(N.VarRef(loc, old))))
++
+     def complex_compound(self, op, node, rhs, loc):
+         """`a op= b` on a complex operand: `a = a op b`. When `a` has side effects its
+         address is evaluated once into a temporary (as for scalar compound assignment)."""
+diff --git a/hcc/parser/postfix.py b/hcc/parser/postfix.py
+index 98bc1322..a9541a61 100644
+--- a/hcc/parser/postfix.py
++++ b/hcc/parser/postfix.py
+@@ -98,6 +98,9 @@ class PostfixMixin:
+                 node = self.struct_ref(self.typed(N.Deref(t.loc, node)), self.expect_ident())
+             elif s in ("++", "--") and t.kind.name == "PUNCT":
+                 self.next()
++                if self.typed(node).ty.is_complex:
++                    node = self.complex_incdec(node, s, True, t.loc)
++                    continue
+                 node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
+             else:
+                 return node
+diff --git a/hcc/selftest/parser_complex_incdec.c b/hcc/selftest/parser_complex_incdec.c
+new file mode 100644
+index 00000000..299b81b7
+--- /dev/null
++++ b/hcc/selftest/parser_complex_incdec.c
+@@ -0,0 +1,13 @@
++// EXPECT-EXIT: 0
++int main(void) {
++    _Complex double a = 1.0 + 2.0i;
++    _Complex double b;
++    a++;
++    ++a;
++    b = a--;
++    if (__real__ a != 2 || __imag__ a != 2) return 1;
++    if (__real__ b != 3 || __imag__ b != 2) return 2;
++    --a;
++    if (__real__ a != 1) return 3;
++    return 0;
++}

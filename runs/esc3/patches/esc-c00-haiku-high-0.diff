@@ -1,0 +1,58 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 7bf6e4ef..279ab7f1 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -15,6 +15,18 @@ _SETCC = {"==": ("sete", "sete"), "!=": ("setne", "setne"), "<": ("setl", "setb"
+           "<=": ("setle", "setbe"), ">": ("setg", "seta"), ">=": ("setge", "setae")}
+ 
+ 
++def _contains_setjmp(node) -> bool:
++    """True if the tree holds a setjmp call (a point that longjmp re-enters)."""
++    if type(node).__name__ == "BuiltinCall" and node.name == "setjmp":
++        return True
++    if isinstance(node, list):
++        return any(_contains_setjmp(x) for x in node)
++    if not is_dataclass(node):
++        return False
++    return any(_contains_setjmp(getattr(node, f.name, None)) for f in fields(node)
++               if f.name not in ("ty", "var", "member", "loc", "scope"))
++
++
+ def _contains_comma(node) -> bool:
+     """True if the tree holds a Comma (e.g. a VLA length binding from vla_prefix)."""
+     if type(node).__name__ == "Comma":
+@@ -46,11 +58,13 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
++        elif (_contains_call(node.lhs) and not _contains_setjmp(node.rhs)) or \
+                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
+-            # Only a call-free operand may be parked on the stack: a value
+-            # pushed before a call (e.g. setjmp, whose resumption reuses the
+-            # stack slot) would be clobbered. Evaluate the call side first.
++            # Like gcc -O0, a call on the lhs is evaluated before the rhs
++            # (`P_Random() - P_Random()` runs left to right). The lhs is parked
++            # across an rhs call, which is safe unless the rhs is a setjmp:
++            # a value pushed before a call that longjmp re-enters would be
++            # clobbered. Then the call side goes first.
+             self.gen_expr(node.lhs)
+             self.push()
+             self.gen_expr(node.rhs)
+diff --git a/hcc/selftest/codegen_binary_call_order.c b/hcc/selftest/codegen_binary_call_order.c
+new file mode 100644
+index 00000000..910a28ae
+--- /dev/null
++++ b/hcc/selftest/codegen_binary_call_order.c
+@@ -0,0 +1,11 @@
++// EXPECT-EXIT: 0
++// EXPECT-STDOUT: 12-1
++// A binary operator whose lhs and rhs both call functions evaluates the lhs
++// first, as gcc -O0 does (P_Random()-P_Random() in Doom depends on it).
++#include <stdio.h>
++static int f(int x) { putchar('0' + x); return x; }
++int main(void) {
++  int r = f(1) - f(2);
++  printf("%d\n", r);
++  return 0;
++}

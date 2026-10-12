@@ -1,0 +1,30 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 7bf6e4ef..314d0bfc 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -46,8 +46,9 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
++        elif _contains_call(node.lhs) or \
+                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
++            # Calls in both operands: lhs first (matches gcc's order).
+             # Only a call-free operand may be parked on the stack: a value
+             # pushed before a call (e.g. setjmp, whose resumption reuses the
+             # stack slot) would be clobbered. Evaluate the call side first.
+diff --git a/hcc/selftest/arith_call_operand_order.c b/hcc/selftest/arith_call_operand_order.c
+new file mode 100644
+index 00000000..0176419b
+--- /dev/null
++++ b/hcc/selftest/arith_call_operand_order.c
+@@ -0,0 +1,9 @@
++// EXPECT-STDOUT: -1
++// EXPECT-STDOUT: -2
++// EXPECT-STDOUT: -1
++// EXPECT-STDOUT: 1
++// Binary operands that both call functions are evaluated lhs first (gcc order).
++#include <stdio.h>
++int n; int R(void){return ++n;}
++int main(){ int a=R()-R(); printf("%d\n",a); int b=(R()-R())<<1; printf("%d\n",b); int c; c=0; c+=R()-R(); printf("%d\n",c);
++ unsigned d=5; d+=(R()-R())<<2; printf("%u\n",d); return 0;}

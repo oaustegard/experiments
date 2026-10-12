@@ -1,0 +1,39 @@
+diff --git a/hcc/lexer.py b/hcc/lexer.py
+index 1e638808..a22a3c5a 100644
+--- a/hcc/lexer.py
++++ b/hcc/lexer.py
+@@ -38,8 +38,8 @@ _TOKEN_SRC = r"""
+             |\.?[0-9](?:[eE][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+   | (?P<str>(?:u8|u|U|L)?"(?:[^"\\\n]|\\.)*")
+   | (?P<chr>(?:u8|u|U|L)?'(?:[^'\\\n]|\\.)*')
+-  | (?P<id>(?:[A-Za-z_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
+-             (?:[A-Za-z0-9_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
++  | (?P<id>(?:[A-Za-z_$\u0080-퟿-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
++             (?:[A-Za-z0-9_$\u0080-퟿-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
+   | (?P<other>.)
+ """
+@@ -53,7 +53,7 @@ def _make_scanner(line_comments: bool, u8_chars: bool, c90_literals: bool = Fals
+         # C89/C90 have no `//` comments: drop the `lc` alternative.
+         src = src.replace(r"  | (?P<lc>//[^\n]*)" + "\n", "")
+         # C89/C90 do not allow extended (non-ASCII) characters in identifiers.
+-        src = src.replace(r"\u0080-\U0010ffff", "")
++        src = src.replace(r"\u0080-퟿-\U0010ffff", "")
+         # ... and no universal character names (\uXXXX) inside identifiers
+         # either: `aª` lexes as `a`, `\`, `u00aa` (GCC -std=c89).
+         head, sep, tail = src.partition("(?P<id>")
+diff --git a/hcc/selftest/lexer_invalid_utf8_stray.c b/hcc/selftest/lexer_invalid_utf8_stray.c
+new file mode 100644
+index 00000000..e4ec7a29
+--- /dev/null
++++ b/hcc/selftest/lexer_invalid_utf8_stray.c
+@@ -0,0 +1,9 @@
++// EXPECT-EXIT: 0
++// A byte that is not valid UTF-8 is a stray token, not an identifier character:
++// `a<stray>` must not form one identifier, so the object-like macro a still expands.
++#define a b(
++#define b(x) q
++int main(void) {
++int a�);
++    return 0;
++}

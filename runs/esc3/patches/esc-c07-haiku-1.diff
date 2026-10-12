@@ -1,0 +1,61 @@
+diff --git a/hcc/nodes.py b/hcc/nodes.py
+index a02f4f7c..1952325f 100644
+--- a/hcc/nodes.py
++++ b/hcc/nodes.py
+@@ -91,6 +91,7 @@ class Function(Obj):
+     is_noreturn: bool = False
+     is_weak: bool = False
+     is_weakref_decl: bool = False           # weakref("t") declaration with no body (a later body is an error)
++    is_implicit_builtin: bool = False       # prototype made up for a __builtin_<libfn> call; a user declaration replaces it
+     fn_attrs: set = field(default_factory=set)  # other recorded attrs (leaf, returns_nonnull)
+     va_area: Var | None = None
+     va_tmp: Var | None = None
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index e29aa90c..0e025f74 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -151,6 +151,7 @@ class PrimaryMixin:
+             fty.params = params
+             fty.has_proto = True
+         fn = N.Function(name, fty, loc=tok.loc)
++        fn.is_implicit_builtin = params is not None
+         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
+         self.objs.append(fn)
+         return fn
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 22234f05..2f2a927a 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -172,13 +172,16 @@ class TopLevelMixin:
+             self.scopes[0].vars[name.text] = VarScope(var=fn)
+             self.objs.append(fn)
+         else:
+-            if not is_compatible(fn.ty, ty):
++            # gcc: a user declaration of a libm name that was implicitly called as a
++            # __builtin_ crosses no type check; the user's type replaces the builtin's
++            if not is_compatible(fn.ty, ty) and not fn.is_implicit_builtin:
+                 self.error(f"conflicting types for '{name.text}'", name.loc)
+             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
+                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
+                 self.error(f"redefinition of '{name.text}'", name.loc)
+-            if ty.has_proto or not fn.ty.has_proto:
++            if ty.has_proto or not fn.ty.has_proto or fn.is_implicit_builtin:
+                 fn.ty = ty
++            fn.is_implicit_builtin = False
+         fn.is_static |= attr.is_static
+         fn.is_inline |= attr.is_inline
+         fn.is_noreturn |= attr.is_noreturn or dattr.is_noreturn
+diff --git a/hcc/selftest/builtin_implicit_redecl.c b/hcc/selftest/builtin_implicit_redecl.c
+new file mode 100644
+index 00000000..c4976a84
+--- /dev/null
++++ b/hcc/selftest/builtin_implicit_redecl.c
+@@ -0,0 +1,8 @@
++// EXPECT-EXIT: 0
++// Redeclaring a libm function after an implicit __builtin_<fn> call must
++// replace the made-up prototype: calling it with no arguments is legal.
++typedef __typeof (__builtin_ceil (0)) D;
++D ceil ();
++float ceilf ();
++long ceil1 () { return ceil (); }
++int main (void) { return 0; }

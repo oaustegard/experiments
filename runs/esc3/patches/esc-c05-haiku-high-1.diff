@@ -1,0 +1,71 @@
+diff --git a/hcc/parser/core.py b/hcc/parser/core.py
+index 1c380d45..ef5030bf 100644
+--- a/hcc/parser/core.py
++++ b/hcc/parser/core.py
+@@ -48,6 +48,7 @@ class ParserBase:
+         self.scope_stack: list[int] = [0]    # ids of enclosing block scopes (0 = file scope)
+         self.scope_seq = 0
+         self.stmt_expr_base: int | None = None  # scope depth of the outermost ({ }) being parsed
++        self.stmt_expr_depths: list[int] = []   # scope depth of each enclosing ({ }), innermost last
+ 
+     # ---- token cursor -------------------------------------------------------
+     @property
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index e29aa90c..5a0e94c1 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -31,7 +31,9 @@ class PrimaryMixin:
+                 if outer_base is None:
+                     self.stmt_expr_base = len(self.scope_stack)
+                 self.jump_scope.enter_stmt_expr()
++                self.stmt_expr_depths.append(len(self.scope_stack))
+                 body = self.compound_stmt_body(t.loc)
++                self.stmt_expr_depths.pop()
+                 self.jump_scope.leave_stmt_expr()
+                 self.stmt_expr_base = outer_base
+                 self.expect(")")
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 009d58ae..3d264247 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -52,7 +52,10 @@ class StructMixin:
+             if prev is not None and prev.is_complete and prev.kind == kind:
+                 kw = "struct" if kind == T.TypeKind.STRUCT else "union"
+                 self.error(f"redefinition of '{kw} {tag.text}'", tag)
+-            open_prev = self.find_tag(tag.text)     # body still open in an enclosing scope/sizeof
++            # body still open in an enclosing scope/sizeof; a statement expression
++            # starts a new tag level, so an outer open body does not count across it
++            base = self.stmt_expr_depths[-1] if self.stmt_expr_depths else 0
++            open_prev = self.find_tag_from(tag.text, base)
+             if open_prev is not None and not open_prev.is_complete and id(open_prev) in def_pos \
+                     and def_pos[id(open_prev)] != brace_pos:
+                 # the same tag's body is still being parsed (`struct s { struct s {..} *p; }`)
+@@ -97,6 +100,14 @@ class StructMixin:
+         ty.is_complete = True
+         return ty
+ 
++    def find_tag_from(self, name: str, base: int):
++        """Innermost tag `name` among scopes[base:] (None if only outer scopes have it)."""
++        for sc in reversed(self.scopes[base:]):
++            t = sc.tags.get(name)
++            if t is not None:
++                return t
++        return None
++
+     def tag_is_shadow_decl(self, name: str) -> bool:
+         """`struct S;` in an inner scope declares a new incomplete type."""
+         return name not in self.scopes[-1].tags
+diff --git a/hcc/selftest/parse_struct_stmt_expr_tag.c b/hcc/selftest/parse_struct_stmt_expr_tag.c
+new file mode 100644
+index 00000000..9eda7410
+--- /dev/null
++++ b/hcc/selftest/parse_struct_stmt_expr_tag.c
+@@ -0,0 +1,8 @@
++// EXPECT-EXIT: 0
++// A statement expression opens a new tag level: a struct tag whose body is
++// still open outside it may be defined again inside it.
++int main(void)
++{
++    struct fo { int a; } *q = ({ struct fo { int b; } tmp; &tmp; });
++    return 0;
++}

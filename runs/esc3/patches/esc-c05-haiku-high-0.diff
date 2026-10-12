@@ -1,0 +1,65 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 69f57926..7a3ce375 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -63,7 +63,8 @@ class EnumMixin:
+         self.expect("{")
+         open_defs = self.__dict__.setdefault("enum_open_defs", set())
+         if tag is not None:
+-            prev = self.find_tag(tag.text)     # visible from enclosing scopes too (sizeof(...) opens one)
++            # body still open in this scope (a statement expression opens a new scope)
++            prev = self.scopes[-1].tags.get(tag.text)
+             if prev is not None and id(prev) in open_defs:
+                 self.error(f"nested redefinition of 'enum {tag.text}'", tag)
+             # A second body for the same tag in one scope is a redeclaration.
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 009d58ae..b7887227 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -52,7 +52,9 @@ class StructMixin:
+             if prev is not None and prev.is_complete and prev.kind == kind:
+                 kw = "struct" if kind == T.TypeKind.STRUCT else "union"
+                 self.error(f"redefinition of '{kw} {tag.text}'", tag)
+-            open_prev = self.find_tag(tag.text)     # body still open in an enclosing scope/sizeof
++            # body still open in this scope (a statement expression or block opens a new
++            # scope, where the same tag is a fresh type: `struct s { ({ struct s {..}; }) }`)
++            open_prev = self.scopes[-1].tags.get(tag.text)
+             if open_prev is not None and not open_prev.is_complete and id(open_prev) in def_pos \
+                     and def_pos[id(open_prev)] != brace_pos:
+                 # the same tag's body is still being parsed (`struct s { struct s {..} *p; }`)
+diff --git a/hcc/selftest/parse_stmt_expr_enum_scope.c b/hcc/selftest/parse_stmt_expr_enum_scope.c
+new file mode 100644
+index 00000000..d957ddc7
+--- /dev/null
++++ b/hcc/selftest/parse_stmt_expr_enum_scope.c
+@@ -0,0 +1,10 @@
++// EXPECT-EXIT: 0
++// As for struct tags: an enum defined inside a statement expression while the same
++// enum's body is still open in the enclosing scope is a new type, not a redefinition.
++extern void abort(void);
++enum e { X = sizeof(({ enum e { Y, Z } v; 1; })) };
++int main(void) {
++  if (X != sizeof(int))
++    abort();
++  return 0;
++}
+diff --git a/hcc/selftest/parse_stmt_expr_tag_scope.c b/hcc/selftest/parse_stmt_expr_tag_scope.c
+new file mode 100644
+index 00000000..e5c848dd
+--- /dev/null
++++ b/hcc/selftest/parse_stmt_expr_tag_scope.c
+@@ -0,0 +1,14 @@
++// EXPECT-EXIT: 0
++// A statement expression opens a block scope: a tag defined inside it, while the
++// same tag's body is still open in the enclosing struct, is a new type (not a
++// nested redefinition). A tag defined again directly in the body is still an error.
++extern void abort(void);
++struct s {
++  int a[sizeof(({ struct s { char c[3]; } *p = 0; 1; }))];
++  char buf[2];
++} v;
++int main(void) {
++  if (sizeof(struct s) == 0)
++    abort();
++  return 0;
++}

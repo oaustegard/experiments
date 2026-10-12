@@ -1,0 +1,29 @@
+diff --git a/hcc/ldouble_lit.py b/hcc/ldouble_lit.py
+index 423adffa..21ec5921 100644
+--- a/hcc/ldouble_lit.py
++++ b/hcc/ldouble_lit.py
+@@ -40,6 +40,11 @@ def exact_decimal(body: str) -> Fraction:
+     e10 = (int(exp) if exp else 0) - len(fp)
+     if not digits.strip("0"):
+         return Fraction(0)
++    mag = e10 + len(digits.lstrip("0"))       # decimal order of magnitude
++    if mag > 6000:                             # beyond every format: overflows
++        return Fraction(10) ** 6000
++    if mag < -6000:                            # below every format: underflows to 0
++        return Fraction(1, 10 ** 6000)
+     return Fraction(_int_from_digits(digits)) * Fraction(10) ** e10
+ 
+ 
+diff --git a/hcc/selftest/literal_huge_exponent.c b/hcc/selftest/literal_huge_exponent.c
+new file mode 100644
+index 00000000..34f1fc41
+--- /dev/null
++++ b/hcc/selftest/literal_huge_exponent.c
+@@ -0,0 +1,7 @@
++// EXPECT-EXIT: 0
++int main(void) {
++    double a = 1e+100000000;
++    float b = 3.3E-10000000000000000000f;
++    long double c = 1e+100000000l;
++    return !(a > 1e300 && b == 0 && c > 1e300L);
++}

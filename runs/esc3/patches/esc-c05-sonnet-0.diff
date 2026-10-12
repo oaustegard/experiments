@@ -1,0 +1,25 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 009d58ae..c2796f71 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -54,7 +54,7 @@ class StructMixin:
+                 self.error(f"redefinition of '{kw} {tag.text}'", tag)
+             open_prev = self.find_tag(tag.text)     # body still open in an enclosing scope/sizeof
+             if open_prev is not None and not open_prev.is_complete and id(open_prev) in def_pos \
+-                    and def_pos[id(open_prev)] != brace_pos:
++                    and def_pos[id(open_prev)] != brace_pos and open_prev is prev:
+                 # the same tag's body is still being parsed (`struct s { struct s {..} *p; }`)
+                 kw = _kind_word(kind)
+                 self.error(f"nested redefinition of '{kw} {tag.text}'", tag)
+diff --git a/hcc/selftest/parser_nested_tag_in_stmtexpr.c b/hcc/selftest/parser_nested_tag_in_stmtexpr.c
+new file mode 100644
+index 00000000..42464521
+--- /dev/null
++++ b/hcc/selftest/parser_nested_tag_in_stmtexpr.c
+@@ -0,0 +1,6 @@
++// EXPECT-EXIT: 0
++int main(void){
++    struct s { typeof(*({ struct s { int a; } t = {0}; &t; })) *x; int b; } q;
++    q.b = 0;
++    return q.b;
++}

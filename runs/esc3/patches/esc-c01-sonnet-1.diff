@@ -1,0 +1,31 @@
+diff --git a/hcc/parser/libc_builtins.py b/hcc/parser/libc_builtins.py
+index ef23adac..7dbe2f1e 100644
+--- a/hcc/parser/libc_builtins.py
++++ b/hcc/parser/libc_builtins.py
+@@ -39,7 +39,7 @@ _add(T.TY_LONG, "labs imaxabs")
+ _add(T.TY_LLONG, "llabs")
+ 
+ _add(T.TY_FLOAT, "tanf expf logf log10f log2f exp2f atanf atan2f asinf acosf fmodf hypotf")
+-_add(T.TY_DOUBLE, "fma nextafter")
++_add(T.TY_DOUBLE, "fma nextafter fdim remainder")
+ _add(T.TY_FLOAT, "fmaf nextafterf")
+ _add(T.TY_LDOUBLE, "fmal nextafterl")
+ 
+@@ -63,6 +63,8 @@ def libc_return_type(name: str):
+ # Floating libm builtins taking two operands; every other entry takes one.
+ _LIBM_TWO_ARG = frozenset(
+     "pow copysign atan2 powf copysignf atan2f powl copysignl atan2l "
++    "fmod fmodf fmodl hypot hypotf hypotl fmin fminf fminl fmax fmaxf fmaxl "
++    "fdim fdimf fdiml remainder remainderf remainderl "
+     "nextafter nextafterf nextafterl".split())
+ _LIBM_THREE_ARG = frozenset("fma fmaf fmal".split())
+ _LIBM_FLOAT_KINDS = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
+diff --git a/hcc/selftest/parse_libm_two_arg_builtin.c b/hcc/selftest/parse_libm_two_arg_builtin.c
+new file mode 100644
+index 00000000..d872670c
+--- /dev/null
++++ b/hcc/selftest/parse_libm_two_arg_builtin.c
+@@ -0,0 +1,3 @@
++// EXPECT-EXIT: 0
++double f(double r, double i) { return __builtin_fmod(r, i) + __builtin_fmax(r, i); }
++int main(void) { return f(5.0, 3.0) == 7.0 ? 0 : 1; }

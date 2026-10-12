@@ -1,0 +1,54 @@
+diff --git a/hcc/codegen/overflow128.py b/hcc/codegen/overflow128.py
+index e8d12c52..fc0469c8 100644
+--- a/hcc/codegen/overflow128.py
++++ b/hcc/codegen/overflow128.py
+@@ -46,6 +46,11 @@ class Overflow128Mixin:
+                 self.emit("mov %rdx, %r10")
+                 self.emit("shr $63, %r10")
+                 self.emit("or %r10d, %r11d")
++            if not T.is_unsigned and not dom_signed:
++                # signed T in an unsigned domain: values >= 2^127 do not fit
++                self.emit("mov %rdx, %r10")
++                self.emit("shr $63, %r10")
++                self.emit("or %r10d, %r11d")
+             self.emit("or %ecx, %r11d")
+             if store:
+                 self.emit("mov %rax, (%r8)")
+diff --git a/hcc/parser/overflow_wide.py b/hcc/parser/overflow_wide.py
+index cac8193a..c860d551 100644
+--- a/hcc/parser/overflow_wide.py
++++ b/hcc/parser/overflow_wide.py
+@@ -36,10 +36,7 @@ def wide_overflow_operands(parser, name: str, args, res_ty):
+         return None
+     all_unsigned = all(_unsigned_operand(a) for a in args)
+     if all_unsigned and any(_is_i128(a.ty) for a in args):
+-        dom = T.TY_UINT128
+-        if not res_ty.is_unsigned and res_ty.kind != T.TypeKind.BOOL:
+-            parser.error("__builtin_%s_overflow: signed __int128 result with unsigned "
+-                         "__int128 operands is not supported" % name)
++        dom = T.TY_UINT128     # any result type: codegen checks the exact value
+     else:
+         if any(_is_i128(a.ty) and a.ty.is_unsigned for a in args):   # unsigned 128-bit + signed
+             parser.error("__builtin_%s_overflow: mixing unsigned __int128 with a signed "
+diff --git a/hcc/selftest/builtins_mul_overflow_p_u128_signed_res.c b/hcc/selftest/builtins_mul_overflow_p_u128_signed_res.c
+new file mode 100644
+index 00000000..4eed0f3f
+--- /dev/null
++++ b/hcc/selftest/builtins_mul_overflow_p_u128_signed_res.c
+@@ -0,0 +1,16 @@
++// EXPECT-EXIT: 0
++int main(void) {
++    unsigned __int128 c = 0;
++    // unsigned __int128 operands, narrow signed result type: 0 fits short
++    if (__builtin_mul_overflow_p(59, -c, (short)0) != 0) return 1;
++    // 2^64 * 2 does not fit a signed 64-bit result; 1 * 5 does
++    unsigned __int128 big = (unsigned __int128)1 << 64;
++    if (__builtin_mul_overflow_p(big, (unsigned __int128)2, (long)0) != 1) return 2;
++    if (__builtin_mul_overflow_p((unsigned __int128)1, (unsigned __int128)5, (long)0) != 0) return 3;
++    // value 2^127 does not fit a signed 128-bit result (it is >= 2^127)
++    unsigned __int128 h = (unsigned __int128)1 << 127;
++    __int128 sr;
++    if (__builtin_mul_overflow(h, (unsigned __int128)1, &sr) != 1) return 4;
++    if (__builtin_mul_overflow((unsigned __int128)3, (unsigned __int128)4, &sr) || sr != 12) return 5;
++    return 0;
++}

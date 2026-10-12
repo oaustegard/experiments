@@ -1,0 +1,72 @@
+diff --git a/hcc/codegen/overflow128.py b/hcc/codegen/overflow128.py
+index e8d12c52..849cc925 100644
+--- a/hcc/codegen/overflow128.py
++++ b/hcc/codegen/overflow128.py
+@@ -46,10 +46,28 @@ class Overflow128Mixin:
+                 self.emit("mov %rdx, %r10")
+                 self.emit("shr $63, %r10")
+                 self.emit("or %r10d, %r11d")
++            elif not T.is_unsigned and not dom_signed:
++                # unsigned domain: a value >= 2^127 does not fit a signed 128-bit T
++                self.emit("mov %rdx, %r10")
++                self.emit("shr $63, %r10")
++                self.emit("or %r10d, %r11d")
+             self.emit("or %ecx, %r11d")
+             if store:
+                 self.emit("mov %rax, (%r8)")
+                 self.emit("mov %rdx, 8(%r8)")
+         else:
+             narrow_fit_check(self, T, store)     # %r11d := not fit, includes %ecx
++            if not T.is_unsigned and not dom_signed:
++                self.unsigned_domain_signed_fit(T)
+         self.emit("movzbl %r11b, %eax")
++
++    def unsigned_domain_signed_fit(self, T) -> None:
++        """Unsigned domain, narrow signed T: the exact value is >= 0, so it fits only
++        if %rdx:%rax is below 2^63 in the top bit (the sign-extension check of
++        narrow_fit_check alone accepts 2^64-1 for a signed T). Sets %r11b on failure."""
++        self.emit("mov %rax, %r9")
++        self.emit("shr $63, %r9")
++        self.emit("or %rdx, %r9")
++        self.emit("test %r9, %r9")
++        self.emit("setne %r9b")
++        self.emit("or %r9b, %r11b")
+diff --git a/hcc/parser/overflow_wide.py b/hcc/parser/overflow_wide.py
+index cac8193a..a1d835ef 100644
+--- a/hcc/parser/overflow_wide.py
++++ b/hcc/parser/overflow_wide.py
+@@ -36,10 +36,7 @@ def wide_overflow_operands(parser, name: str, args, res_ty):
+         return None
+     all_unsigned = all(_unsigned_operand(a) for a in args)
+     if all_unsigned and any(_is_i128(a.ty) for a in args):
+-        dom = T.TY_UINT128
+-        if not res_ty.is_unsigned and res_ty.kind != T.TypeKind.BOOL:
+-            parser.error("__builtin_%s_overflow: signed __int128 result with unsigned "
+-                         "__int128 operands is not supported" % name)
++        dom = T.TY_UINT128       # signed results are checked in codegen (overflow128.py)
+     else:
+         if any(_is_i128(a.ty) and a.ty.is_unsigned for a in args):   # unsigned 128-bit + signed
+             parser.error("__builtin_%s_overflow: mixing unsigned __int128 with a signed "
+diff --git a/hcc/selftest/builtins_mul_overflow_u128_signed_res.c b/hcc/selftest/builtins_mul_overflow_u128_signed_res.c
+new file mode 100644
+index 00000000..f2884eb7
+--- /dev/null
++++ b/hcc/selftest/builtins_mul_overflow_u128_signed_res.c
+@@ -0,0 +1,17 @@
++// EXPECT-EXIT: 0
++int main(void) {
++    unsigned __int128 u = 5, z = 0, big = ~(unsigned __int128)0;
++    int sr = 0;
++    long lr = 0;
++    __int128 wr = 0;
++    if (__builtin_mul_overflow_p(59, -z, (short)0)) return 1;
++    if (__builtin_mul_overflow(u, 3, &sr) || sr != 15) return 2;
++    if (__builtin_mul_overflow_p(u, 3, (unsigned char)0) != 0) return 3;
++    if (__builtin_mul_overflow_p((unsigned __int128)0xFFFFFFFFu, 1, (int)0) != 1) return 4;
++    if (__builtin_mul_overflow_p((unsigned __int128)0xFFFFFFFFFFFFFFFFu, 1, lr) != 1) return 5;
++    if (__builtin_mul_overflow_p((unsigned __int128)0x7FFFFFFFFFFFFFFFu, 1, lr) != 0) return 6;
++    if (__builtin_mul_overflow_p(big, 1, wr) != 1) return 7;
++    if (__builtin_mul_overflow_p(((unsigned __int128)1 << 127) - 1, 1, wr) != 0) return 8;
++    if (__builtin_mul_overflow_p((unsigned __int128)1 << 127, 1, wr) != 1) return 9;
++    return 0;
++}

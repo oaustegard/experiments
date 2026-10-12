@@ -1,0 +1,47 @@
+diff --git a/hcc/codegen/__init__.py b/hcc/codegen/__init__.py
+index 0961fb3c..6b0c7beb 100644
+--- a/hcc/codegen/__init__.py
++++ b/hcc/codegen/__init__.py
+@@ -8,6 +8,8 @@ Stack-machine design: expressions leave their value in %rax / %xmm0 / st(0).
+ """
+ from __future__ import annotations
+ 
++import re
++
+ from hcc import nodes as N
+ from hcc.codegen.context import CodeGenBase
+ from hcc.codegen.lazy_inline import lazy_functions, needed_lazy
+@@ -23,6 +25,9 @@ class CodeGen(*assemble_mixins("hcc.codegen", CodeGenBase)):
+         lazy = lazy_functions(self.tu)
+         lazy_ids = {id(f) for f in lazy}
+         needed = needed_lazy(self.tu, lazy) if lazy else set()
++        # `#pragma weak sym` arrives as toplevel asm; such a symbol can't be common
++        self.asm_weak = {m for o in self.tu.objs if isinstance(o, N.Asm)
++                         for m in re.findall(r"\.weak\s+([\w.$]+)", o.text)}
+         for obj in self.tu.objs:
+             if id(obj) in lazy_ids:
+                 continue          # emitted below, if referenced
+diff --git a/hcc/codegen/data.py b/hcc/codegen/data.py
+index 6f371b21..3de3fe4b 100644
+--- a/hcc/codegen/data.py
++++ b/hcc/codegen/data.py
+@@ -24,7 +24,8 @@ class DataMixin:
+         size = max(ty.size, 0)
+         if var.init_data is None:
+             if not var.is_static and not var.is_tls and not var.section \
+-                    and not var.is_weak and not var.is_nocommon:
++                    and not var.is_weak and not var.is_nocommon \
++                    and sym not in getattr(self, "asm_weak", ()):
+                 # Tentative definition (C11 6.9.2): emit as a common symbol so
+                 # that it merges with a real definition in another object.
+                 self.directive(f".comm {sym},{max(size, 1)},{align}")
+diff --git a/hcc/selftest/data_pragma_weak_common.c b/hcc/selftest/data_pragma_weak_common.c
+new file mode 100644
+index 00000000..0d150c45
+--- /dev/null
++++ b/hcc/selftest/data_pragma_weak_common.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 0
++#pragma weak v
++int v;
++int main(void) { return &v == 0; }

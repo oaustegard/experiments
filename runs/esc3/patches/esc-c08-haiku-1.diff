@@ -1,0 +1,54 @@
+diff --git a/hcc/codegen/data.py b/hcc/codegen/data.py
+index 6f371b21..fefd8cc6 100644
+--- a/hcc/codegen/data.py
++++ b/hcc/codegen/data.py
+@@ -23,8 +23,9 @@ class DataMixin:
+             self.directive(f".{var.visibility} {sym}")
+         size = max(ty.size, 0)
+         if var.init_data is None:
++            no_common = self.opts is not None and getattr(self.opts, "no_common", False)
+             if not var.is_static and not var.is_tls and not var.section \
+-                    and not var.is_weak and not var.is_nocommon:
++                    and not var.is_weak and not var.is_nocommon and not no_common:
+                 # Tentative definition (C11 6.9.2): emit as a common symbol so
+                 # that it merges with a real definition in another object.
+                 self.directive(f".comm {sym},{max(size, 1)},{align}")
+diff --git a/hcc/driver.py b/hcc/driver.py
+index d3648276..d094264f 100644
+--- a/hcc/driver.py
++++ b/hcc/driver.py
+@@ -85,6 +85,8 @@ def parse_args(argv: list[str]) -> Options:
+             o.short_wchar = a == "-fshort-wchar"
+         elif a in ("-funsigned-char", "-fsigned-char"):
+             o.char_unsigned = a == "-funsigned-char"
++        elif a in ("-fcommon", "-fno-common"):
++            o.no_common = a == "-fno-common"
+         elif a in ("-fwrapv", "-fno-wrapv"):
+             o.wrapv = a == "-fwrapv"
+         elif a == "-nostdinc":
+diff --git a/hcc/options.py b/hcc/options.py
+index 9d79e0d5..9a9da58b 100644
+--- a/hcc/options.py
++++ b/hcc/options.py
+@@ -27,6 +27,7 @@ class Options:
+     plan9_extensions: bool = False     # -fplan9-extensions (`struct S;` member is anonymous)
+     short_wchar: bool = False          # -fshort-wchar (wchar_t is unsigned short, L"" units are 16-bit)
+     char_unsigned: bool = False        # -funsigned-char (plain char is unsigned; only checked by constexpr)
++    no_common: bool = False            # -fno-common (tentative definitions go to .bss, not .comm)
+     wrapv: bool = False                # -fwrapv (signed overflow wraps; default -fno-wrapv: undefined)
+     linker_args: list[str] = field(default_factory=list)
+     keep_temps: bool = False
+diff --git a/hcc/selftest/weak_no_common_tentative.c b/hcc/selftest/weak_no_common_tentative.c
+new file mode 100644
+index 00000000..dc611b4f
+--- /dev/null
++++ b/hcc/selftest/weak_no_common_tentative.c
+@@ -0,0 +1,8 @@
++// EXPECT-EXIT: 0
++// EXPECT-FLAGS: -fno-common
++// A weak tentative definition must go to .bss under -fno-common (`as` rejects weak+common).
++#pragma weak vfoo
++int vfoo;
++int main(void) {
++    return vfoo != 0;
++}

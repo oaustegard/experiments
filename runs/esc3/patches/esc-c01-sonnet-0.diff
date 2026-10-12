@@ -1,0 +1,23 @@
+diff --git a/hcc/parser/libc_builtins.py b/hcc/parser/libc_builtins.py
+index ef23adac..73e26add 100644
+--- a/hcc/parser/libc_builtins.py
++++ b/hcc/parser/libc_builtins.py
+@@ -63,7 +63,8 @@ def libc_return_type(name: str):
+ # Floating libm builtins taking two operands; every other entry takes one.
+ _LIBM_TWO_ARG = frozenset(
+     "pow copysign atan2 powf copysignf atan2f powl copysignl atan2l "
+-    "nextafter nextafterf nextafterl".split())
++    "nextafter nextafterf nextafterl".split()
++    + [b + s for b in "fmod hypot fmin fmax fdim remainder".split() for s in ("", "f", "l")])
+ _LIBM_THREE_ARG = frozenset("fma fmaf fmal".split())
+ _LIBM_FLOAT_KINDS = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
+ 
+diff --git a/hcc/selftest/parse_implicit_libm_two_arg.c b/hcc/selftest/parse_implicit_libm_two_arg.c
+new file mode 100644
+index 00000000..0efeb933
+--- /dev/null
++++ b/hcc/selftest/parse_implicit_libm_two_arg.c
+@@ -0,0 +1,3 @@
++// EXPECT-EXIT: 0
++double fmod(double, double);
++int main(void) { double r = __builtin_fmod(5.0, 3.0); return r == 2.0 ? 0 : 1; }

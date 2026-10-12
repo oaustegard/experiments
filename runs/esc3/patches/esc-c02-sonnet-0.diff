@@ -1,0 +1,42 @@
+diff --git a/hcc/ldouble_lit.py b/hcc/ldouble_lit.py
+index 423adffa..17c58095 100644
+--- a/hcc/ldouble_lit.py
++++ b/hcc/ldouble_lit.py
+@@ -40,6 +40,11 @@ def exact_decimal(body: str) -> Fraction:
+     e10 = (int(exp) if exp else 0) - len(fp)
+     if not digits.strip("0"):
+         return Fraction(0)
++    mag = e10 + len(digits.lstrip("0"))          # ~decimal magnitude: clamp absurd exponents
++    if mag > 10000:
++        return Fraction(10) ** 10000
++    if mag < -10000:
++        return Fraction(1, 10 ** 10000)
+     return Fraction(_int_from_digits(digits)) * Fraction(10) ** e10
+ 
+ 
+@@ -58,7 +63,12 @@ def _parse_text(body: str, is_hex: bool) -> Fraction:
+     else:
+         ip, fp = mant, ""
+     digits = int((ip + fp) or "0", 16)
+-    return Fraction(digits) * Fraction(2) ** (e - 4 * len(fp))
++    e -= 4 * len(fp)
++    if digits and e + digits.bit_length() > 40000:
++        return Fraction(2) ** 40000
++    if digits and e + digits.bit_length() < -40000:
++        return Fraction(1, 2 ** 40000)
++    return Fraction(digits) * Fraction(2) ** e
+ 
+ 
+ def encode_x87(q: Fraction) -> int:
+diff --git a/hcc/selftest/lit_huge_float_exp.c b/hcc/selftest/lit_huge_float_exp.c
+new file mode 100644
+index 00000000..1cd00841
+--- /dev/null
++++ b/hcc/selftest/lit_huge_float_exp.c
+@@ -0,0 +1,6 @@
++// EXPECT-EXIT: 0
++int main(void) {
++    float a = 1e+100000000f; double b = 1e+100000000; long double c = 1e+100000000l;
++    double z = 1e-100000000; double h = 0x1p+100000000;
++    return !(a > 1e38f && b > 1e300 && c > 1e300L && z == 0 && h > 1e300);
++}

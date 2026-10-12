@@ -1,0 +1,86 @@
+diff --git a/hcc/ldouble_lit.py b/hcc/ldouble_lit.py
+index 423adffa..0c7e0195 100644
+--- a/hcc/ldouble_lit.py
++++ b/hcc/ldouble_lit.py
+@@ -32,6 +32,18 @@ def _int_from_digits(digits: str) -> int:
+     return n
+ 
+ 
++# Magnitudes beyond these decimal/binary exponents overflow or underflow every
++# C floating type (largest long double/_Float128 ~1.2e4932 = 2^16384, smallest
++# subnormal ~3.6e-4951 = 2^-16445). Such values are replaced by a representative
++# with the same rounding outcome, so 1e100000000 never builds a 10^8-digit integer.
++_DEC_CLAMP_HI = 5000
++_DEC_CLAMP_LO = -5000
++_BIN_CLAMP_HI = 17000
++_BIN_CLAMP_LO = -17000
++_DEC_REP_BIG = Fraction(10 ** 6000)
++_DEC_REP_SMALL = Fraction(1, 10 ** 6000)
++
++
+ def exact_decimal(body: str) -> Fraction:
+     """Exact rational of a decimal floating body (no suffix), for any digit count."""
+     mant, _, exp = body.lower().partition("e")
+@@ -40,6 +52,12 @@ def exact_decimal(body: str) -> Fraction:
+     e10 = (int(exp) if exp else 0) - len(fp)
+     if not digits.strip("0"):
+         return Fraction(0)
++    # value lies in [10^(mag-1), 10^mag)
++    mag = len(digits.lstrip("0")) + e10
++    if mag > _DEC_CLAMP_HI:
++        return _DEC_REP_BIG
++    if mag < _DEC_CLAMP_LO:
++        return _DEC_REP_SMALL
+     return Fraction(_int_from_digits(digits)) * Fraction(10) ** e10
+ 
+ 
+@@ -58,7 +76,16 @@ def _parse_text(body: str, is_hex: bool) -> Fraction:
+     else:
+         ip, fp = mant, ""
+     digits = int((ip + fp) or "0", 16)
+-    return Fraction(digits) * Fraction(2) ** (e - 4 * len(fp))
++    if digits == 0:
++        return Fraction(0)
++    e2 = e - 4 * len(fp)
++    # value lies in [2^(mag-1), 2^mag)
++    mag = digits.bit_length() + e2
++    if mag > _BIN_CLAMP_HI:
++        return Fraction(2 ** _BIN_CLAMP_HI)
++    if mag < _BIN_CLAMP_LO:
++        return Fraction(1, 2 ** -_BIN_CLAMP_LO)
++    return Fraction(digits) * Fraction(2) ** e2
+ 
+ 
+ def encode_x87(q: Fraction) -> int:
+diff --git a/hcc/selftest/literals_float_huge_exponent.c b/hcc/selftest/literals_float_huge_exponent.c
+new file mode 100644
+index 00000000..c1881bb0
+--- /dev/null
++++ b/hcc/selftest/literals_float_huge_exponent.c
+@@ -0,0 +1,26 @@
++// EXPECT-EXIT: 0
++// Decimal/hex floating constants with huge exponents must compile quickly and
++// round to inf (overflow) or 0 (underflow) in every floating type; moderate
++// exponents still give finite values.
++int main(void) {
++    float inf_f = 1e+100000000f;
++    double inf_d = 1e+100000000;
++    long double inf_l = 1e+100000000l;
++    long double inf_h = 0x1p+200000l;
++    float zero_f = 1e-100000000f;
++    double zero_d = 1e-100000000;
++    long double zero_l = 1e-100000000l;
++    long double zero_h = 0x1p-200000l;
++    long double big = 1e4000l;
++    if (inf_f != 1.0f / 0.0f) return 1;
++    if (inf_d != 1.0 / 0.0) return 2;
++    if (inf_l != 1.0L / 0.0L) return 3;
++    if (inf_h != 1.0L / 0.0L) return 4;
++    if (zero_f != 0.0f) return 5;
++    if (zero_d != 0.0) return 6;
++    if (zero_l != 0.0L) return 7;
++    if (zero_h != 0.0L) return 8;
++    if (big == 1.0L / 0.0L) return 9;
++    if (big <= 1e4000L / 2.0L) return 10;
++    return 0;
++}

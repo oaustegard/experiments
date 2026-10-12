@@ -1,0 +1,110 @@
+diff --git a/hcc/parser/complex_incdec.py b/hcc/parser/complex_incdec.py
+new file mode 100644
+index 00000000..c218b96c
+--- /dev/null
++++ b/hcc/parser/complex_incdec.py
+@@ -0,0 +1,37 @@
++"""`++z` / `--z` / `z++` / `z--` on a _Complex operand (C23 allows it).
++
++The step is the complex value `delta + 0i`: it is applied through
++Parser.complex_compound (`z = z + delta`), so the complex arithmetic and
++conversions stay in complex.py.  The post form saves the old value in a
++temporary; the lvalue address is evaluated only once (as for scalars)."""
++from __future__ import annotations
++
++from hcc import nodes as N
++from hcc.sema.arith import _addressed_place
++from hcc.typesys import TY_INT
++
++
++def _side_effect_free(node) -> bool:
++    if isinstance(node, (N.VarRef, N.IntLit, N.FloatLit)):
++        return True
++    if isinstance(node, (N.Member_, N.Deref)):
++        return _side_effect_free(node.operand)
++    return False
++
++
++def complex_inc_dec(p, operand, delta: int, is_post: bool, loc):
++    if _side_effect_free(operand):
++        pre, place = [], (lambda: operand)
++    else:
++        pre, place = _addressed_place(operand, loc, p.new_temp)
++    one = N.IntLit(loc, delta, ty=TY_INT)
++    if not is_post:
++        result = p.complex_compound("+", place(), one, loc)
++    else:
++        old = p.new_temp(operand.ty)
++        save = p.typed(N.Assign(loc, p.typed(N.VarRef(loc, old)), p.typed(place())))
++        update = p.complex_compound("+", place(), one, loc)
++        result = p.typed(N.Comma(loc, save, p.typed(N.Comma(loc, update, p.typed(N.VarRef(loc, old))))))
++    for e in reversed(pre):
++        result = p.typed(N.Comma(loc, e, result))
++    return result
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..fc6face6 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -23,6 +23,7 @@ from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, is_scalar, po
+ from hcc.parser.plan9_ptr import plan9_pointer_conv
+ from hcc.parser.addr_operand import is_rvalue_operand
+ from hcc.parser import complex as CPX
++from hcc.parser.complex_incdec import complex_inc_dec
+ from hcc.parser.dyn_struct_ret import dyn_struct_assign
+ from hcc.parser.assign_struct_check import check_struct_assign
+ 
+@@ -263,6 +264,8 @@ class ExpressionMixin:
+             if s in ("++", "--"):
+                 self.next()
+                 operand = self.unary()
++                if self.typed(operand).ty.is_complex:
++                    return complex_inc_dec(self, operand, 1 if s == "++" else -1, False, t.loc)
+                 return inc_dec(operand, 1 if s == "++" else -1, False, t.loc, self.new_temp)
+             if s == "&&":                        # GNU label address
+                 self.next()
+diff --git a/hcc/parser/postfix.py b/hcc/parser/postfix.py
+index 98bc1322..73a472fa 100644
+--- a/hcc/parser/postfix.py
++++ b/hcc/parser/postfix.py
+@@ -21,6 +21,7 @@ from hcc.parser.structs import find_member, complete_struct
+ from hcc.parser.plan9_ptr import plan9_pointer_conv
+ from hcc.sema.arith import inc_dec, new_add
+ from hcc.parser import complex as CPX
++from hcc.parser.complex_incdec import complex_inc_dec
+ from hcc.sema.conversions import default_arg_promote, new_cast
+ from hcc.typesys import TypeKind
+ from hcc.typesys import TypeKind, is_struct_like
+@@ -98,7 +99,10 @@ class PostfixMixin:
+                 node = self.struct_ref(self.typed(N.Deref(t.loc, node)), self.expect_ident())
+             elif s in ("++", "--") and t.kind.name == "PUNCT":
+                 self.next()
+-                node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
++                if self.typed(node).ty.is_complex:
++                    node = complex_inc_dec(self, node, 1 if s == "++" else -1, True, t.loc)
++                else:
++                    node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
+             else:
+                 return node
+ 
+diff --git a/hcc/selftest/complex_incdec.c b/hcc/selftest/complex_incdec.c
+new file mode 100644
+index 00000000..d701a9a1
+--- /dev/null
++++ b/hcc/selftest/complex_incdec.c
+@@ -0,0 +1,16 @@
++// EXPECT-EXIT: 0
++// EXPECT-STDOUT: 2 2
++// EXPECT-STDOUT: 3 2 | 2 2
++// EXPECT-STDOUT: 2 2
++// C23: ++/-- on a _Complex operand step the real part by 1; post form yields old value.
++#include <stdio.h>
++int main(void) {
++    _Complex float a = 1.0f + 2.0fi;
++    ++a;
++    printf("%g %g\n", __real__ a, __imag__ a);
++    _Complex float b = a++;
++    printf("%g %g | %g %g\n", __real__ a, __imag__ a, __real__ b, __imag__ b);
++    --a;
++    printf("%g %g\n", __real__ a, __imag__ a);
++    return 0;
++}

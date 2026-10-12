@@ -1,0 +1,39 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..0dc5a0d2 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -131,15 +131,16 @@ class ExpressionMixin:
+         cond = self.logor()
+         if not self.at("?"):
+             return cond
+-        cond = CPX.truth(self, cond)
+         loc = self.next().loc
+         if self.at(":"):                  # GNU a ?: b
+             self.next()
++            # the value of `a` (possibly complex) is the result; only its truth is tested
+             tmp = self.new_temp(_comma_result_type(cond.ty))
+             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
+             rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
+                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
+             return self.typed(N.Comma(loc, lhs, rhs))
++        cond = CPX.truth(self, cond)
+         then = self.expr()
+         self.expect(":")
+         els = self.conditional()
+diff --git a/hcc/selftest/parser_elvis_complex.c b/hcc/selftest/parser_elvis_complex.c
+new file mode 100644
+index 00000000..cff179cb
+--- /dev/null
++++ b/hcc/selftest/parser_elvis_complex.c
+@@ -0,0 +1,11 @@
++// EXPECT-EXIT: 0
++// GNU `a ?: b` with a complex `a` must yield a's complex value, not its truth value.
++int main() {
++  _Complex int rhs = 5;
++  _Complex int c = 1 + 2i;
++  _Complex int x = c ?: rhs;
++  if (__real__ x != 1 || __imag__ x != 2) return 1;
++  _Complex int z = 0 ?: rhs;
++  if (__real__ z != 5) return 2;
++  return 0;
++}

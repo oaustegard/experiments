@@ -1,0 +1,38 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..d5613904 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -131,15 +131,18 @@ class ExpressionMixin:
+         cond = self.logor()
+         if not self.at("?"):
+             return cond
+-        cond = CPX.truth(self, cond)
++        raw = cond
++        cond = None
+         loc = self.next().loc
+         if self.at(":"):                  # GNU a ?: b
++            cond = raw
+             self.next()
+             tmp = self.new_temp(_comma_result_type(cond.ty))
+             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
+             rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
+                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
+             return self.typed(N.Comma(loc, lhs, rhs))
++        cond = CPX.truth(self, raw)
+         then = self.expr()
+         self.expect(":")
+         els = self.conditional()
+diff --git a/hcc/selftest/expr_elvis_complex.c b/hcc/selftest/expr_elvis_complex.c
+new file mode 100644
+index 00000000..ff81a961
+--- /dev/null
++++ b/hcc/selftest/expr_elvis_complex.c
+@@ -0,0 +1,8 @@
++// EXPECT-EXIT: 0
++static int n;
++_Complex int g(_Complex int v) { n++; return v; }
++int main() {
++  _Complex int r = 0;
++  g(1+2i) ?: r;
++  return n == 1 ? 0 : 1;
++}

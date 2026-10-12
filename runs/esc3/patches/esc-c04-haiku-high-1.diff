@@ -1,0 +1,26 @@
+diff --git a/hcc/lexer.py b/hcc/lexer.py
+index 1e638808..28ff8b17 100644
+--- a/hcc/lexer.py
++++ b/hcc/lexer.py
+@@ -72,7 +72,10 @@ def _make_scanner(line_comments: bool, u8_chars: bool, c90_literals: bool = Fals
+         src = src.replace("DIGSEP", "")
+     else:
+         # C23 digit separator: pp-number ' digit / pp-number ' nondigit (6.4.9).
+-        src = src.replace("DIGSEP", "'(?=[0-9A-Za-z_\u0080-\U0010ffff])|")
++        src = src.replace("DIGSEP", r"'(?=[0-9A-Za-z_\u0080-\U0010ffff])|")
++    # Invalid UTF-8 bytes are read as lone surrogates (surrogateescape). They are
++    # stray characters, not identifier characters: `a\xcf)` is `a`, stray, `)`.
++    src = src.replace(r"\u0080-\U0010ffff", r"\u0080-퟿-\U0010ffff")
+     return re.compile(src, re.VERBOSE | re.DOTALL)
+ 
+ 
+diff --git a/hcc/selftest/lexer_invalid_utf8_stray.c b/hcc/selftest/lexer_invalid_utf8_stray.c
+new file mode 100644
+index 00000000..1657c5c4
+--- /dev/null
++++ b/hcc/selftest/lexer_invalid_utf8_stray.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 5
++#define a b(
++#define b(x) 5
++int main(void) { return a�); }

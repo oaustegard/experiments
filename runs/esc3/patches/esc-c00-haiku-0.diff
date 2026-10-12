@@ -1,0 +1,48 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 7bf6e4ef..711c2215 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -46,21 +46,15 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
+-                (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
+-            # Only a call-free operand may be parked on the stack: a value
+-            # pushed before a call (e.g. setjmp, whose resumption reuses the
+-            # stack slot) would be clobbered. Evaluate the call side first.
++        else:
++            # Left-to-right, as gcc -O0 does: `f() - g()` calls f first, and
++            # programs whose output depends on that order (e.g. doom's
++            # `P_Random()-P_Random()`) must match the gcc reference.
+             self.gen_expr(node.lhs)
+             self.push()
+             self.gen_expr(node.rhs)
+             self.emit("mov %rax, %rdi")
+             self.pop("%rax")
+-        else:
+-            self.gen_expr(node.rhs)
+-            self.push()
+-            self.gen_expr(node.lhs)
+-            self.pop("%rdi")
+         wide = lty.size == 8 or lty.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.FUNC) or \
+             lty.size > 8
+         ax, di, dx = ("%rax", "%rdi", "%rdx") if wide else ("%eax", "%edi", "%edx")
+diff --git a/hcc/selftest/codegen_binary_lhs_first.c b/hcc/selftest/codegen_binary_lhs_first.c
+new file mode 100644
+index 00000000..600efc79
+--- /dev/null
++++ b/hcc/selftest/codegen_binary_lhs_first.c
+@@ -0,0 +1,12 @@
++// EXPECT-EXIT: 0
++// Binary operators evaluate their operands left to right (as gcc -O0 does),
++// so side effects in both operands of `-` and `*`/`+` happen lhs first.
++static int c;
++static int nx(void) { return ++c; }
++int main(void) {
++    int a = nx() - nx();
++    int b = nx() * 10 + nx();
++    if (a != -1) return 1;
++    if (b != 34) return 2;
++    return 0;
++}

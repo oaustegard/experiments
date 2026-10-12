@@ -1,0 +1,43 @@
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index e29aa90c..c352d8c3 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -151,6 +151,7 @@ class PrimaryMixin:
+             fty.params = params
+             fty.has_proto = True
+         fn = N.Function(name, fty, loc=tok.loc)
++        fn.implicit_decl = True         # an explicit declaration replaces this type
+         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
+         self.objs.append(fn)
+         return fn
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 22234f05..346b6079 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -172,13 +172,14 @@ class TopLevelMixin:
+             self.scopes[0].vars[name.text] = VarScope(var=fn)
+             self.objs.append(fn)
+         else:
+-            if not is_compatible(fn.ty, ty):
++            if not getattr(fn, "implicit_decl", False) and not is_compatible(fn.ty, ty):
+                 self.error(f"conflicting types for '{name.text}'", name.loc)
+             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
+                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
+                 self.error(f"redefinition of '{name.text}'", name.loc)
+-            if ty.has_proto or not fn.ty.has_proto:
++            if ty.has_proto or not fn.ty.has_proto or getattr(fn, "implicit_decl", False):
+                 fn.ty = ty
++            fn.implicit_decl = False
+         fn.is_static |= attr.is_static
+         fn.is_inline |= attr.is_inline
+         fn.is_noreturn |= attr.is_noreturn or dattr.is_noreturn
+diff --git a/hcc/selftest/parse_builtin_typeof_redecl.c b/hcc/selftest/parse_builtin_typeof_redecl.c
+new file mode 100644
+index 00000000..b5f8be10
+--- /dev/null
++++ b/hcc/selftest/parse_builtin_typeof_redecl.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 0
++__typeof(__builtin_ceil(0)) ceil();
++long c1(void) { return ceil(); }
++int main(void) { return 0; }

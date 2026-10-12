@@ -1,0 +1,28 @@
+diff --git a/hcc/parser/overflow_wide.py b/hcc/parser/overflow_wide.py
+index cac8193a..9cc8911a 100644
+--- a/hcc/parser/overflow_wide.py
++++ b/hcc/parser/overflow_wide.py
+@@ -37,7 +37,7 @@ def wide_overflow_operands(parser, name: str, args, res_ty):
+     all_unsigned = all(_unsigned_operand(a) for a in args)
+     if all_unsigned and any(_is_i128(a.ty) for a in args):
+         dom = T.TY_UINT128
+-        if not res_ty.is_unsigned and res_ty.kind != T.TypeKind.BOOL:
++        if _is_i128(res_ty) and not res_ty.is_unsigned:
+             parser.error("__builtin_%s_overflow: signed __int128 result with unsigned "
+                          "__int128 operands is not supported" % name)
+     else:
+diff --git a/hcc/selftest/builtin_mul_overflow_u128_signed_narrow.c b/hcc/selftest/builtin_mul_overflow_u128_signed_narrow.c
+new file mode 100644
+index 00000000..98d21b2a
+--- /dev/null
++++ b/hcc/selftest/builtin_mul_overflow_u128_signed_narrow.c
+@@ -0,0 +1,9 @@
++// EXPECT-EXIT: 0
++int main(void) {
++  unsigned __int128 a = 3, b = 5;
++  short r;
++  if (__builtin_mul_overflow(a, b, &r) || r != 15) return 1;
++  a = (unsigned __int128)1 << 100;
++  if (!__builtin_mul_overflow(a, b, &r)) return 2;
++  return 0;
++}

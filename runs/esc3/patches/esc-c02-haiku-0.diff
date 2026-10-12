@@ -1,0 +1,46 @@
+diff --git a/hcc/ldouble_lit.py b/hcc/ldouble_lit.py
+index 423adffa..b0002fde 100644
+--- a/hcc/ldouble_lit.py
++++ b/hcc/ldouble_lit.py
+@@ -38,11 +38,23 @@ def exact_decimal(body: str) -> Fraction:
+     ip, _, fp = mant.partition(".")
+     digits = ip + fp
+     e10 = (int(exp) if exp else 0) - len(fp)
+-    if not digits.strip("0"):
++    sig = digits.lstrip("0")
++    if not sig:
+         return Fraction(0)
++    # The value lies in [10^(len(sig)-1+e10), 10^(len(sig)+e10)). Beyond +-6000
++    # decimal orders every IEEE format (up to binary128/x87) already rounds to
++    # inf or 0, so clamp instead of building a huge power of ten.
++    mag = len(sig) + e10
++    if mag > _DEC_CLAMP:
++        return Fraction(10) ** _DEC_CLAMP
++    if mag < -_DEC_CLAMP:
++        return Fraction(1, 10 ** _DEC_CLAMP)
+     return Fraction(_int_from_digits(digits)) * Fraction(10) ** e10
+ 
+ 
++_DEC_CLAMP = 6000
++
++
+ def _parse_text(body: str, is_hex: bool) -> Fraction:
+     """Exact rational value of a C floating literal body (suffix already removed)."""
+     if not is_hex:
+diff --git a/hcc/selftest/float_huge_exponent_literal.c b/hcc/selftest/float_huge_exponent_literal.c
+new file mode 100644
+index 00000000..71033776
+--- /dev/null
++++ b/hcc/selftest/float_huge_exponent_literal.c
+@@ -0,0 +1,11 @@
++// EXPECT-EXIT: 0
++// Huge decimal exponents must compile quickly and saturate to inf / 0.
++int main(void) {
++    float a = 1e+100000000f;
++    double b = 1e100000000;
++    long double c = 1e-100000000l;
++    if (a != 1.0f / 0.0f) return 1;
++    if (b != 1.0 / 0.0) return 2;
++    if (c != 0.0L) return 3;
++    return 0;
++}

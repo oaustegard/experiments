@@ -1,0 +1,43 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 7bf6e4ef..bed07fdc 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -46,8 +46,10 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
++        elif _contains_call(node.lhs) or \
+                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
++            # Calls are evaluated lhs-first, as gcc -O0 does (`P_Random() -
++            # P_Random()` must consume the random sequence in source order).
+             # Only a call-free operand may be parked on the stack: a value
+             # pushed before a call (e.g. setjmp, whose resumption reuses the
+             # stack slot) would be clobbered. Evaluate the call side first.
+diff --git a/hcc/selftest/codegen_binary_call_order.c b/hcc/selftest/codegen_binary_call_order.c
+new file mode 100644
+index 00000000..da20fa93
+--- /dev/null
++++ b/hcc/selftest/codegen_binary_call_order.c
+@@ -0,0 +1,21 @@
++// EXPECT-EXIT: 0
++// Both operands of a binary operator contain calls: the lhs call runs first
++// (gcc -O0 order), so a stateful sequence such as P_Random()-P_Random() matches.
++static int n;
++static int f(void) { return ++n; }
++int main(void) {
++    int a, c, d;
++    n = 0;
++    a = f() - f();          /* 1 - 2 */
++    if (a != -1) return 1;
++    n = 0;
++    c = f() * 10 + f();     /* 1 * 10 + 2 */
++    if (c != 12) return 2;
++    n = 0;
++    d = (f() < f());        /* 1 < 2 */
++    if (d != 1) return 3;
++    n = 0;
++    a = (f() - f()) << 3;   /* -8 */
++    if (a != -8) return 4;
++    return 0;
++}

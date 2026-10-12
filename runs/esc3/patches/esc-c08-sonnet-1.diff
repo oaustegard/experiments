@@ -1,0 +1,38 @@
+diff --git a/hcc/codegen/data.py b/hcc/codegen/data.py
+index 6f371b21..76035733 100644
+--- a/hcc/codegen/data.py
++++ b/hcc/codegen/data.py
+@@ -9,6 +9,13 @@ from __future__ import annotations
+ 
+ class DataMixin:
+ 
++    def _asm_weak(self, sym: str) -> bool:
++        """True if file-scope asm (e.g. from `#pragma weak`) marks sym weak;
++        a weak symbol cannot be common."""
++        return any(type(o).__name__ == "Asm" and f".weak {sym}" in (o.text or "")
++                   and (o.text.split(f".weak {sym}", 1)[1][:1] in ("", "\n", "\\", " ", "\t"))
++                   for o in self.tu.objs)
++
+     def emit_data(self, var) -> None:
+         sym = var.symbol
+         ty = var.ty
+@@ -24,7 +31,8 @@ class DataMixin:
+         size = max(ty.size, 0)
+         if var.init_data is None:
+             if not var.is_static and not var.is_tls and not var.section \
+-                    and not var.is_weak and not var.is_nocommon:
++                    and not var.is_weak and not var.is_nocommon \
++                    and not self._asm_weak(sym):
+                 # Tentative definition (C11 6.9.2): emit as a common symbol so
+                 # that it merges with a real definition in another object.
+                 self.directive(f".comm {sym},{max(size, 1)},{align}")
+diff --git a/hcc/selftest/data_pragma_weak_tentative.c b/hcc/selftest/data_pragma_weak_tentative.c
+new file mode 100644
+index 00000000..907f9281
+--- /dev/null
++++ b/hcc/selftest/data_pragma_weak_tentative.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 0
++#pragma weak v
++int v;
++int main(void) { return &v ? 0 : 1; }

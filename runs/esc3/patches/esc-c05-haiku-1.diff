@@ -1,0 +1,36 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 009d58ae..9c314824 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -52,7 +52,10 @@ class StructMixin:
+             if prev is not None and prev.is_complete and prev.kind == kind:
+                 kw = "struct" if kind == T.TypeKind.STRUCT else "union"
+                 self.error(f"redefinition of '{kw} {tag.text}'", tag)
+-            open_prev = self.find_tag(tag.text)     # body still open in an enclosing scope/sizeof
++            # body still open in this scope (`struct s { struct s {..} *p; }`); a tag
++            # open in an enclosing scope is shadowed by a new block-scope definition
++            # (e.g. inside a statement expression within a member's typeof)
++            open_prev = self.scopes[-1].tags.get(tag.text)
+             if open_prev is not None and not open_prev.is_complete and id(open_prev) in def_pos \
+                     and def_pos[id(open_prev)] != brace_pos:
+                 # the same tag's body is still being parsed (`struct s { struct s {..} *p; }`)
+diff --git a/hcc/selftest/parse_struct_nested_redef.c b/hcc/selftest/parse_struct_nested_redef.c
+new file mode 100644
+index 00000000..0714422d
+--- /dev/null
++++ b/hcc/selftest/parse_struct_nested_redef.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// A struct body may not define its own tag in the same scope.
++struct s { struct s { int a; } *p; };
++int main(void) { return 0; }
+diff --git a/hcc/selftest/parse_struct_stmtexpr_tag_shadow.c b/hcc/selftest/parse_struct_stmtexpr_tag_shadow.c
+new file mode 100644
+index 00000000..5b893f98
+--- /dev/null
++++ b/hcc/selftest/parse_struct_stmtexpr_tag_shadow.c
+@@ -0,0 +1,4 @@
++// A struct tag defined inside a statement expression within a member's typeof
++// is a new block-scope type, not a nested redefinition of the enclosing body.
++struct fo { __typeof__(({ struct fo { int a; } tmp; &tmp; })) *x; int b; };
++int main(void) { return 0; }

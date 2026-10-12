@@ -1,0 +1,37 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..9d506bcd 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -131,15 +131,15 @@ class ExpressionMixin:
+         cond = self.logor()
+         if not self.at("?"):
+             return cond
+-        cond = CPX.truth(self, cond)
+         loc = self.next().loc
+-        if self.at(":"):                  # GNU a ?: b
++        if self.at(":"):                  # GNU a ?: b: the value is the condition itself
+             self.next()
+             tmp = self.new_temp(_comma_result_type(cond.ty))
+             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
+             rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
+                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
+             return self.typed(N.Comma(loc, lhs, rhs))
++        cond = CPX.truth(self, cond)
+         then = self.expr()
+         self.expect(":")
+         els = self.conditional()
+diff --git a/hcc/selftest/complex_gnu_elvis_omitted.c b/hcc/selftest/complex_gnu_elvis_omitted.c
+new file mode 100644
+index 00000000..7df7add5
+--- /dev/null
++++ b/hcc/selftest/complex_gnu_elvis_omitted.c
+@@ -0,0 +1,9 @@
++// EXPECT-EXIT: 7
++// GNU `a ?: b` with a complex condition: the value is the complex condition
++// itself (not its truth value), and the else arm is taken only when it is zero.
++int main(void) {
++    __complex__ int z = 0;
++    __complex__ int v = (__complex__ int)(3 + 4i) ?: z;
++    __complex__ int w = z ?: (__complex__ int)(3 + 4i);
++    return __real__ v + __imag__ v - __real__ w - __imag__ w + 7 - 0;
++}

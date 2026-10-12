@@ -1,0 +1,50 @@
+diff --git a/hcc/lexer.py b/hcc/lexer.py
+index 1e638808..43d63e32 100644
+--- a/hcc/lexer.py
++++ b/hcc/lexer.py
+@@ -34,12 +34,12 @@ _TOKEN_SRC = r"""
+   | (?P<lc>//[^\n]*)
+   | (?P<bc>/\*.*?\*/)
+   | (?P<ubc>/\*)
+-  | (?P<num>\.?0[xX](?:[pP][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*
+-            |\.?[0-9](?:[eE][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
++  | (?P<num>\.?0[xX](?:[pP][+-]|DIGSEP[0-9A-Za-z_.\u0080-\ud7ff\ue000-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*
++            |\.?[0-9](?:[eE][+-]|DIGSEP[0-9A-Za-z_.\u0080-\ud7ff\ue000-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+   | (?P<str>(?:u8|u|U|L)?"(?:[^"\\\n]|\\.)*")
+   | (?P<chr>(?:u8|u|U|L)?'(?:[^'\\\n]|\\.)*')
+-  | (?P<id>(?:[A-Za-z_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
+-             (?:[A-Za-z0-9_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
++  | (?P<id>(?:[A-Za-z_$\u0080-\ud7ff\ue000-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
++             (?:[A-Za-z0-9_$\u0080-\ud7ff\ue000-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
+   | (?P<other>.)
+ """
+@@ -53,7 +53,7 @@ def _make_scanner(line_comments: bool, u8_chars: bool, c90_literals: bool = Fals
+         # C89/C90 have no `//` comments: drop the `lc` alternative.
+         src = src.replace(r"  | (?P<lc>//[^\n]*)" + "\n", "")
+         # C89/C90 do not allow extended (non-ASCII) characters in identifiers.
+-        src = src.replace(r"\u0080-\U0010ffff", "")
++        src = src.replace(r"\u0080-\ud7ff\ue000-\U0010ffff", "")
+         # ... and no universal character names (\uXXXX) inside identifiers
+         # either: `aª` lexes as `a`, `\`, `u00aa` (GCC -std=c89).
+         head, sep, tail = src.partition("(?P<id>")
+@@ -72,7 +72,7 @@ def _make_scanner(line_comments: bool, u8_chars: bool, c90_literals: bool = Fals
+         src = src.replace("DIGSEP", "")
+     else:
+         # C23 digit separator: pp-number ' digit / pp-number ' nondigit (6.4.9).
+-        src = src.replace("DIGSEP", "'(?=[0-9A-Za-z_\u0080-\U0010ffff])|")
++        src = src.replace("DIGSEP", "'(?=[0-9A-Za-z_\u0080-\ud7ff\ue000-\U0010ffff])|")
+     return re.compile(src, re.VERBOSE | re.DOTALL)
+ 
+ 
+diff --git a/hcc/selftest/lexer_invalid_utf8_stray.c b/hcc/selftest/lexer_invalid_utf8_stray.c
+new file mode 100644
+index 00000000..297efb8f
+--- /dev/null
++++ b/hcc/selftest/lexer_invalid_utf8_stray.c
+@@ -0,0 +1,5 @@
++// EXPECT-EXIT: 0
++#define a b(
++#define b(x) q
++int a�);
++int main(void) { return 0; }

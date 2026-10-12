@@ -1,0 +1,84 @@
+diff --git a/hcc/codegen/__init__.py b/hcc/codegen/__init__.py
+index 0961fb3c..d6c48ff0 100644
+--- a/hcc/codegen/__init__.py
++++ b/hcc/codegen/__init__.py
+@@ -11,6 +11,7 @@ from __future__ import annotations
+ from hcc import nodes as N
+ from hcc.codegen.context import CodeGenBase
+ from hcc.codegen.lazy_inline import lazy_functions, needed_lazy
++from hcc.codegen.weak_asm import asm_weak_symbols
+ from hcc.registry import assemble_mixins
+ 
+ 
+@@ -20,6 +21,7 @@ class CodeGen(*assemble_mixins("hcc.codegen", CodeGenBase)):
+ 
+     def run(self) -> str:
+         self.directive(f'.file "{getattr(self.opts, "source_name", "") or "hcc"}"')
++        self.asm_weak = asm_weak_symbols(self.tu)   # symbols made weak by top-level asm
+         lazy = lazy_functions(self.tu)
+         lazy_ids = {id(f) for f in lazy}
+         needed = needed_lazy(self.tu, lazy) if lazy else set()
+diff --git a/hcc/codegen/data.py b/hcc/codegen/data.py
+index 6f371b21..2c1e02a2 100644
+--- a/hcc/codegen/data.py
++++ b/hcc/codegen/data.py
+@@ -15,16 +15,17 @@ class DataMixin:
+         align = max(var.align or 1, ty.align or 1)
+         if ty.kind.name == "ARRAY" and ty.size >= 16:
+             align = max(align, 16)
++        is_weak = var.is_weak or sym in self.asm_weak
+         if not var.is_static:
+             self.directive(f".globl {sym}")
+-        if var.is_weak:
++        if is_weak:
+             self.directive(f".weak {sym}")
+         if var.visibility in ("hidden", "internal", "protected"):
+             self.directive(f".{var.visibility} {sym}")
+         size = max(ty.size, 0)
+         if var.init_data is None:
+             if not var.is_static and not var.is_tls and not var.section \
+-                    and not var.is_weak and not var.is_nocommon:
++                    and not is_weak and not var.is_nocommon:
+                 # Tentative definition (C11 6.9.2): emit as a common symbol so
+                 # that it merges with a real definition in another object.
+                 self.directive(f".comm {sym},{max(size, 1)},{align}")
+diff --git a/hcc/codegen/weak_asm.py b/hcc/codegen/weak_asm.py
+new file mode 100644
+index 00000000..de217d4c
+--- /dev/null
++++ b/hcc/codegen/weak_asm.py
+@@ -0,0 +1,19 @@
++"""Symbols made weak by top-level asm: `#pragma weak sym` is forwarded by the
++preprocessor as file-scope `asm(".weak sym")`. A tentative definition of such a
++symbol must not be emitted as `.comm` (GAS: "can not be both weak and common"),
++so codegen collects these names up front (see codegen/data.py)."""
++from __future__ import annotations
++
++import re
++
++from hcc import nodes as N
++
++_WEAK_DIRECTIVE = re.compile(r"^\s*\.weak\s+([^\s,;]+)", re.MULTILINE)
++
++
++def asm_weak_symbols(tu) -> frozenset:
++    names = set()
++    for obj in tu.objs:
++        if isinstance(obj, N.Asm):
++            names.update(_WEAK_DIRECTIVE.findall(obj.text or ""))
++    return frozenset(names)
+diff --git a/hcc/selftest/link_pragma_weak_tentative.c b/hcc/selftest/link_pragma_weak_tentative.c
+new file mode 100644
+index 00000000..1dfb2706
+--- /dev/null
++++ b/hcc/selftest/link_pragma_weak_tentative.c
+@@ -0,0 +1,9 @@
++// EXPECT-EXIT: 0
++// #pragma weak before a tentative definition: the symbol is weak, not common,
++// so the assembler must accept it (no ".comm" for a weak symbol).
++#pragma weak wvar
++int wvar;
++int *get(void) { return &wvar; }
++int main(void) {
++    return get() == &wvar ? 0 : 1;
++}

@@ -1,0 +1,101 @@
+diff --git a/hcc/parser/complex_incdec.py b/hcc/parser/complex_incdec.py
+new file mode 100644
+index 00000000..bdbf2863
+--- /dev/null
++++ b/hcc/parser/complex_incdec.py
+@@ -0,0 +1,29 @@
++"""`++z`, `z++`, `--z`, `z--` on a complex operand (C23 / GCC: allowed by default).
++
++`z += 1` is lowered by Parser.complex_compound (complex arithmetic with a real 1);
++the post forms save the old value in a temporary first, the lvalue's address
++being evaluated only once (as for scalar post increment in sema/arith.py).
++"""
++from __future__ import annotations
++
++from hcc import nodes as N
++from hcc.sema.arith import _addressed_place
++from hcc.typesys import TY_INT
++
++
++def complex_inc_dec(p, operand, delta: int, is_post: bool, loc):
++    one = p.typed(N.IntLit(loc, 1, ty=TY_INT))
++    op = "+" if delta > 0 else "-"
++    if not is_post:
++        return p.complex_compound(op, operand, one, loc)
++    if isinstance(operand, N.VarRef):
++        pre, place = [], (lambda: operand)
++    else:
++        pre, place = _addressed_place(operand, loc, p.new_temp)
++    old = p.new_temp(operand.ty)
++    save = p.typed(N.Assign(loc, p.typed(N.VarRef(loc, old)), place()))
++    update = p.complex_compound(op, place(), one, loc)
++    result = p.typed(N.Comma(loc, save, p.typed(N.Comma(loc, update, p.typed(N.VarRef(loc, old))))))
++    for e in reversed(pre):
++        result = p.typed(N.Comma(loc, e, result))
++    return result
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..fc6face6 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -23,6 +23,7 @@ from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, is_scalar, po
+ from hcc.parser.plan9_ptr import plan9_pointer_conv
+ from hcc.parser.addr_operand import is_rvalue_operand
+ from hcc.parser import complex as CPX
++from hcc.parser.complex_incdec import complex_inc_dec
+ from hcc.parser.dyn_struct_ret import dyn_struct_assign
+ from hcc.parser.assign_struct_check import check_struct_assign
+ 
+@@ -263,6 +264,8 @@ class ExpressionMixin:
+             if s in ("++", "--"):
+                 self.next()
+                 operand = self.unary()
++                if self.typed(operand).ty.is_complex:
++                    return complex_inc_dec(self, operand, 1 if s == "++" else -1, False, t.loc)
+                 return inc_dec(operand, 1 if s == "++" else -1, False, t.loc, self.new_temp)
+             if s == "&&":                        # GNU label address
+                 self.next()
+diff --git a/hcc/parser/postfix.py b/hcc/parser/postfix.py
+index 98bc1322..73a472fa 100644
+--- a/hcc/parser/postfix.py
++++ b/hcc/parser/postfix.py
+@@ -21,6 +21,7 @@ from hcc.parser.structs import find_member, complete_struct
+ from hcc.parser.plan9_ptr import plan9_pointer_conv
+ from hcc.sema.arith import inc_dec, new_add
+ from hcc.parser import complex as CPX
++from hcc.parser.complex_incdec import complex_inc_dec
+ from hcc.sema.conversions import default_arg_promote, new_cast
+ from hcc.typesys import TypeKind
+ from hcc.typesys import TypeKind, is_struct_like
+@@ -98,7 +99,10 @@ class PostfixMixin:
+                 node = self.struct_ref(self.typed(N.Deref(t.loc, node)), self.expect_ident())
+             elif s in ("++", "--") and t.kind.name == "PUNCT":
+                 self.next()
+-                node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
++                if self.typed(node).ty.is_complex:
++                    node = complex_inc_dec(self, node, 1 if s == "++" else -1, True, t.loc)
++                else:
++                    node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
+             else:
+                 return node
+ 
+diff --git a/hcc/selftest/complex_incdec.c b/hcc/selftest/complex_incdec.c
+new file mode 100644
+index 00000000..a4396632
+--- /dev/null
++++ b/hcc/selftest/complex_incdec.c
+@@ -0,0 +1,15 @@
++// EXPECT-EXIT: 0
++// C23 complex ++/--: the post forms yield the old value, the prefix forms the new one.
++int main(void) {
++    _Complex float a = 1.0f + 2.0fi;
++    _Complex float o = a++;          /* o = 1+2i, a = 2+2i */
++    if (__real__ o != 1.0f || __imag__ o != 2.0f) return 1;
++    if (__real__ a != 2.0f) return 2;
++    o = ++a;                         /* a = 3+2i, o = 3+2i */
++    if (__real__ o != 3.0f || __real__ a != 3.0f) return 3;
++    o = a--;                         /* o = 3+2i, a = 2+2i */
++    if (__real__ o != 3.0f || __real__ a != 2.0f) return 4;
++    o = --a;                         /* a = 1+2i */
++    if (__real__ o != 1.0f || __imag__ a != 2.0f) return 5;
++    return 0;
++}

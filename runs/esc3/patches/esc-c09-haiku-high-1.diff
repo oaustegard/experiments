@@ -1,0 +1,39 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..46a64472 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -131,15 +131,17 @@ class ExpressionMixin:
+         cond = self.logor()
+         if not self.at("?"):
+             return cond
+-        cond = CPX.truth(self, cond)
+         loc = self.next().loc
+         if self.at(":"):                  # GNU a ?: b
+             self.next()
++            # the operand keeps its own type (a complex value stays complex); only the
++            # test of the temp is reduced to a truth value
+             tmp = self.new_temp(_comma_result_type(cond.ty))
+             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
+             rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
+                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
+             return self.typed(N.Comma(loc, lhs, rhs))
++        cond = CPX.truth(self, cond)
+         then = self.expr()
+         self.expect(":")
+         els = self.conditional()
+diff --git a/hcc/selftest/complex_elvis_gnu.c b/hcc/selftest/complex_elvis_gnu.c
+new file mode 100644
+index 00000000..b3b5b3b2
+--- /dev/null
++++ b/hcc/selftest/complex_elvis_gnu.c
+@@ -0,0 +1,10 @@
++// EXPECT-EXIT: 3
++// GNU `a ?: b` with a complex first operand: the operand keeps its complex type
++// (it is not reduced to its truth value), the result is the complex value itself.
++_Complex int pick(_Complex int v) { return v; }
++int main(void) {
++    _Complex int zero = 0;
++    _Complex int r = pick(1 + 2i) ? : zero;   /* nonzero: r = 1+2i */
++    _Complex int s = zero ?: pick(3 + 0i);    /* zero: s = 3 */
++    return (int)(__real__ r + __imag__ r) - 2 + (int)__real__ s - 1 + (int)__imag__ s;
++}

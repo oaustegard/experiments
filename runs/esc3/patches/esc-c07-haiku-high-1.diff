@@ -1,0 +1,62 @@
+diff --git a/hcc/nodes.py b/hcc/nodes.py
+index a02f4f7c..181d9d70 100644
+--- a/hcc/nodes.py
++++ b/hcc/nodes.py
+@@ -91,6 +91,7 @@ class Function(Obj):
+     is_noreturn: bool = False
+     is_weak: bool = False
+     is_weakref_decl: bool = False           # weakref("t") declaration with no body (a later body is an error)
++    implicit_decl: bool = False             # made by a __builtin_<libc>() call, not yet declared by the user
+     fn_attrs: set = field(default_factory=set)  # other recorded attrs (leaf, returns_nonnull)
+     va_area: Var | None = None
+     va_tmp: Var | None = None
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index e29aa90c..b192df78 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -151,7 +151,12 @@ class PrimaryMixin:
+             fty.params = params
+             fty.has_proto = True
+         fn = N.Function(name, fty, loc=tok.loc)
+-        self.scopes[0].vars.setdefault(name, VarScope()).var = fn
++        fn.implicit_decl = True
++        # Only the first implicit declaration becomes the file-scope name; a user
++        # declaration of `name` already in scope must keep its own type.
++        vs = self.scopes[0].vars.get(name)
++        if vs is None or vs.var is None:
++            self.scopes[0].vars[name] = VarScope(var=fn)
+         self.objs.append(fn)
+         return fn
+ 
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 22234f05..8c54c5aa 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -171,6 +171,10 @@ class TopLevelMixin:
+             fn = N.Function(name.text, ty, loc=name.loc)
+             self.scopes[0].vars[name.text] = VarScope(var=fn)
+             self.objs.append(fn)
++        elif fn.implicit_decl:
++            # The user's declaration replaces the implicit builtin prototype (C11 6.5.2.2).
++            fn.implicit_decl = False
++            fn.ty = ty
+         else:
+             if not is_compatible(fn.ty, ty):
+                 self.error(f"conflicting types for '{name.text}'", name.loc)
+diff --git a/hcc/selftest/decl_implicit_builtin_redecl.c b/hcc/selftest/decl_implicit_builtin_redecl.c
+new file mode 100644
+index 00000000..dd777d0c
+--- /dev/null
++++ b/hcc/selftest/decl_implicit_builtin_redecl.c
+@@ -0,0 +1,11 @@
++// EXPECT-EXIT: 0
++// A __builtin_<libc>() call makes an implicit prototype; a later non-prototype
++// declaration of the same name replaces it, so a zero-argument call is valid.
++double ceil();
++double x = __builtin_ceil(2.5);
++double g(void) { return ceil(); }
++int main(void) {
++    double y = __builtin_floor(1.5);
++    if (g == 0) return 1;
++    return (int)x + (int)y - 4;
++}

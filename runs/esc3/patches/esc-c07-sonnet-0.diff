@@ -1,0 +1,55 @@
+diff --git a/hcc/nodes.py b/hcc/nodes.py
+index a02f4f7c..410b0ddc 100644
+--- a/hcc/nodes.py
++++ b/hcc/nodes.py
+@@ -90,6 +90,7 @@ class Function(Obj):
+     is_definition: bool = False
+     is_noreturn: bool = False
+     is_weak: bool = False
++    is_implicit: bool = False               # made by a builtin/implicit call; a real declaration replaces its type
+     is_weakref_decl: bool = False           # weakref("t") declaration with no body (a later body is an error)
+     fn_attrs: set = field(default_factory=set)  # other recorded attrs (leaf, returns_nonnull)
+     va_area: Var | None = None
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index e29aa90c..eeba4ec0 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -151,6 +151,7 @@ class PrimaryMixin:
+             fty.params = params
+             fty.has_proto = True
+         fn = N.Function(name, fty, loc=tok.loc)
++        fn.is_implicit = True
+         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
+         self.objs.append(fn)
+         return fn
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 22234f05..1626cd20 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -172,13 +172,14 @@ class TopLevelMixin:
+             self.scopes[0].vars[name.text] = VarScope(var=fn)
+             self.objs.append(fn)
+         else:
+-            if not is_compatible(fn.ty, ty):
++            if not (fn.is_implicit and fn.ty.has_proto) and not is_compatible(fn.ty, ty):
+                 self.error(f"conflicting types for '{name.text}'", name.loc)
+             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
+                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
+                 self.error(f"redefinition of '{name.text}'", name.loc)
+-            if ty.has_proto or not fn.ty.has_proto:
++            if ty.has_proto or not fn.ty.has_proto or fn.is_implicit:
+                 fn.ty = ty
++            fn.is_implicit = False
+         fn.is_static |= attr.is_static
+         fn.is_inline |= attr.is_inline
+         fn.is_noreturn |= attr.is_noreturn or dattr.is_noreturn
+diff --git a/hcc/selftest/parser_builtin_redecl_noproto.c b/hcc/selftest/parser_builtin_redecl_noproto.c
+new file mode 100644
+index 00000000..b5f8be10
+--- /dev/null
++++ b/hcc/selftest/parser_builtin_redecl_noproto.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 0
++__typeof(__builtin_ceil(0)) ceil();
++long c1(void) { return ceil(); }
++int main(void) { return 0; }

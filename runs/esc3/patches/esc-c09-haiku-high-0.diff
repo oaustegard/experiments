@@ -1,0 +1,38 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..ff837241 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -131,15 +131,15 @@ class ExpressionMixin:
+         cond = self.logor()
+         if not self.at("?"):
+             return cond
+-        cond = CPX.truth(self, cond)
+         loc = self.next().loc
+-        if self.at(":"):                  # GNU a ?: b
++        if self.at(":"):                  # GNU a ?: b (the value itself is kept, not its truth)
+             self.next()
+             tmp = self.new_temp(_comma_result_type(cond.ty))
+             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
+             rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
+                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
+             return self.typed(N.Comma(loc, lhs, rhs))
++        cond = CPX.truth(self, cond)
+         then = self.expr()
+         self.expect(":")
+         els = self.conditional()
+diff --git a/hcc/selftest/complex_gnu_elvis_cond.c b/hcc/selftest/complex_gnu_elvis_cond.c
+new file mode 100644
+index 00000000..53a4de4e
+--- /dev/null
++++ b/hcc/selftest/complex_gnu_elvis_cond.c
+@@ -0,0 +1,10 @@
++// EXPECT-EXIT: 0
++// EXPECT-STDOUT: 1 2
++#include <stdio.h>
++_Complex int getC(_Complex int val) { return val; }
++int main(void) {
++    _Complex int r = 5;
++    _Complex int x = getC(1 + 2i) ? : r;    // GNU ?: keeps the complex value
++    printf("%d %d\n", __real__ x, __imag__ x);
++    return 0;
++}

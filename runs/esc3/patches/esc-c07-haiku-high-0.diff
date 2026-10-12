@@ -1,0 +1,54 @@
+diff --git a/hcc/nodes.py b/hcc/nodes.py
+index a02f4f7c..e69ed3d6 100644
+--- a/hcc/nodes.py
++++ b/hcc/nodes.py
+@@ -106,6 +106,7 @@ class Function(Obj):
+     chain_var: Var | None = None            # nested fn: slot holding the static link
+     reg_vars: list = field(default_factory=list)  # (Var, reg) for `register T x __asm__("reg")`
+     labels: set = field(default_factory=set)  # names of labels defined in this body
++    is_implicit_builtin: bool = False       # prototype implied by a builtin call (not a declaration)
+ 
+ 
+ @dataclass(eq=False)
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index e29aa90c..a9538f49 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -150,7 +150,7 @@ class PrimaryMixin:
+         if params is not None:          # builtin with a known prototype
+             fty.params = params
+             fty.has_proto = True
+-        fn = N.Function(name, fty, loc=tok.loc)
++        fn = N.Function(name, fty, loc=tok.loc, is_implicit_builtin=params is not None)
+         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
+         self.objs.append(fn)
+         return fn
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 22234f05..2220d998 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -172,7 +172,11 @@ class TopLevelMixin:
+             self.scopes[0].vars[name.text] = VarScope(var=fn)
+             self.objs.append(fn)
+         else:
+-            if not is_compatible(fn.ty, ty):
++            if fn.is_implicit_builtin:
++                # The builtin prototype a call like `__builtin_ceil(0)` implied is not a
++                # declaration: the program's own declaration gives the type (GCC: `double ceil();`).
++                fn.ty, fn.is_implicit_builtin = ty, False
++            elif not is_compatible(fn.ty, ty):
+                 self.error(f"conflicting types for '{name.text}'", name.loc)
+             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
+                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
+diff --git a/hcc/selftest/parser_builtin_proto_redecl.c b/hcc/selftest/parser_builtin_proto_redecl.c
+new file mode 100644
+index 00000000..fcf10542
+--- /dev/null
++++ b/hcc/selftest/parser_builtin_proto_redecl.c
+@@ -0,0 +1,6 @@
++// EXPECT-EXIT: 0
++// A prototype implied by a builtin call (__builtin_ceil(0)) is not a declaration:
++// a later non-prototype declaration of the same libm name takes its own type.
++__typeof (__builtin_ceil (0)) ceil ();
++long f1 (void) { return ceil (); }
++int main(void) { return 0; }

@@ -1,0 +1,76 @@
+diff --git a/hcc/ldouble_lit.py b/hcc/ldouble_lit.py
+index 423adffa..92d55b29 100644
+--- a/hcc/ldouble_lit.py
++++ b/hcc/ldouble_lit.py
+@@ -32,14 +32,31 @@ def _int_from_digits(digits: str) -> int:
+     return n
+ 
+ 
++# Magnitudes beyond these limits overflow / underflow every C floating type
++# (largest finite ~1.2e4932 = 2^16384, smallest subnormal ~6.5e-4966 = 2^-16445).
++# Such values are replaced by a saturated sentinel of the same class (2^+-_EXP_LIMIT)
++# so exact arithmetic never builds a 10^100000000 integer or a 2^-100000000 denominator.
++_EXP_LIMIT = 20000
++_DEC_LIMIT = 5000                 # decimal magnitude: 10^_DEC_LIMIT >> 2^16384
++_OVER = Fraction(2) ** _EXP_LIMIT
++_UNDER = Fraction(1, 2 ** _EXP_LIMIT)
++
++
+ def exact_decimal(body: str) -> Fraction:
+-    """Exact rational of a decimal floating body (no suffix), for any digit count."""
++    """Exact rational of a decimal floating body (no suffix), for any digit count
++    and exponent. Out-of-range magnitudes return a saturated sentinel."""
+     mant, _, exp = body.lower().partition("e")
+     ip, _, fp = mant.partition(".")
+-    digits = ip + fp
+-    e10 = (int(exp) if exp else 0) - len(fp)
+-    if not digits.strip("0"):
++    digits = (ip + fp).lstrip("0")
++    if not digits:
+         return Fraction(0)
++    e10 = (int(exp) if exp else 0) - len(fp)
++    mag = len(digits) + e10                       # 10^(mag-1) <= value < 10^mag
++    if mag > _DEC_LIMIT:                          # value >= 10^5000: overflows
++        return _OVER
++    if mag < -_DEC_LIMIT:                         # value < 10^-5000: rounds to zero
++        return _UNDER
++        return _UNDER
+     return Fraction(_int_from_digits(digits)) * Fraction(10) ** e10
+ 
+ 
+@@ -57,8 +74,13 @@ def _parse_text(body: str, is_hex: bool) -> Fraction:
+         ip, fp = mant.split(".", 1)
+     else:
+         ip, fp = mant, ""
++    shift = e - 4 * len(fp)
++    if 4 * len(ip + fp) + shift > _EXP_LIMIT:     # value < 2^top
++        return _OVER
++    if 4 * len(ip + fp) + shift < -_EXP_LIMIT:
++        return _UNDER
+     digits = int((ip + fp) or "0", 16)
+-    return Fraction(digits) * Fraction(2) ** (e - 4 * len(fp))
++    return Fraction(digits) * Fraction(2) ** shift
+ 
+ 
+ def encode_x87(q: Fraction) -> int:
+diff --git a/hcc/selftest/literals_huge_float_exponent.c b/hcc/selftest/literals_huge_float_exponent.c
+new file mode 100644
+index 00000000..e8755d13
+--- /dev/null
++++ b/hcc/selftest/literals_huge_float_exponent.c
+@@ -0,0 +1,15 @@
++// EXPECT-EXIT: 0
++// Floating literals with huge exponents must saturate quickly (no 10^N bigint)
++int printf(const char *, ...);
++int main(void) {
++    float a = 1e+100000000f;
++    double b = 1e+100000000;
++    long double c = 1e+100000000l;
++    long double d = 1e-100000000l;
++    float e = 1e-100000000f;
++    int ok = 1;
++    if (a != 1e38f * 1e38f || b < 1e308 || c < 1e4000L) ok = 0;
++    if (d != 0.0L || e != 0.0f) ok = 0;
++    printf("%d\n", ok);
++    return ok ? 0 : 1;
++}

@@ -1,0 +1,27 @@
+diff --git a/hcc/parser/libc_builtins.py b/hcc/parser/libc_builtins.py
+index ef23adac..d2087a1a 100644
+--- a/hcc/parser/libc_builtins.py
++++ b/hcc/parser/libc_builtins.py
+@@ -63,7 +63,8 @@ def libc_return_type(name: str):
+ # Floating libm builtins taking two operands; every other entry takes one.
+ _LIBM_TWO_ARG = frozenset(
+     "pow copysign atan2 powf copysignf atan2f powl copysignl atan2l "
+-    "nextafter nextafterf nextafterl".split())
++    "nextafter nextafterf nextafterl fmod fmodf fmodl fmin fminf fminl "
++    "fmax fmaxf fmaxl hypot hypotf hypotl".split())
+ _LIBM_THREE_ARG = frozenset("fma fmaf fmal".split())
+ _LIBM_FLOAT_KINDS = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
+ 
+diff --git a/hcc/selftest/parse_implicit_libm_two_arg.c b/hcc/selftest/parse_implicit_libm_two_arg.c
+new file mode 100644
+index 00000000..33fa3ed9
+--- /dev/null
++++ b/hcc/selftest/parse_implicit_libm_two_arg.c
+@@ -0,0 +1,7 @@
++// EXPECT-EXIT: 0
++// Implicit calls (no <math.h>) of two-operand libm functions must accept both operands.
++int main(void) {
++    double r = __builtin_fmod(7.5, 2.0);
++    double s = fmax(1.0, 2.0);
++    return (r == 1.5 && s == 2.0) ? 0 : 1;
++}

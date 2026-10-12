@@ -1,0 +1,48 @@
+diff --git a/hcc/ldouble_lit.py b/hcc/ldouble_lit.py
+index 423adffa..6a9150fe 100644
+--- a/hcc/ldouble_lit.py
++++ b/hcc/ldouble_lit.py
+@@ -38,11 +38,24 @@ def exact_decimal(body: str) -> Fraction:
+     ip, _, fp = mant.partition(".")
+     digits = ip + fp
+     e10 = (int(exp) if exp else 0) - len(fp)
+-    if not digits.strip("0"):
++    sig = digits.lstrip("0")
++    if not sig:
+         return Fraction(0)
++    # Decimal exponent of the value is in [mag-1, mag).  Beyond any float format's
++    # range the exact power of ten is pointless (and 10**1e8 takes minutes): clamp
++    # to a rational that still overflows / underflows to the same result.
++    mag = len(sig) + e10
++    if mag > _DEC_CLAMP:
++        return Fraction(2) ** _BIN_CLAMP
++    if mag < -_DEC_CLAMP:
++        return Fraction(1, 2 ** _BIN_CLAMP)
+     return Fraction(_int_from_digits(digits)) * Fraction(10) ** e10
+ 
+ 
++_DEC_CLAMP = 5000     # > log10 of the largest finite long double / _Float128
++_BIN_CLAMP = 20000    # 2**20000: far past every format's range in either direction
++
++
+ def _parse_text(body: str, is_hex: bool) -> Fraction:
+     """Exact rational value of a C floating literal body (suffix already removed)."""
+     if not is_hex:
+diff --git a/hcc/selftest/literals_huge_float_exponent.c b/hcc/selftest/literals_huge_float_exponent.c
+new file mode 100644
+index 00000000..6821b3f8
+--- /dev/null
++++ b/hcc/selftest/literals_huge_float_exponent.c
+@@ -0,0 +1,12 @@
++// EXPECT-EXIT: 0
++// A floating literal with a huge decimal exponent must compile quickly (no exact 10**N)
++// and still overflow / underflow to the right value.
++extern void abort(void);
++int main(void) {
++    float a = 1e+100000000f;
++    double b = 1e+100000000;
++    long double c = 1e+100000000l;
++    double d = 1e-100000000;
++    if (a < 3.4e38f || b < 1e300 || c < 1e300L || d != 0.0) abort();
++    return 0;
++}

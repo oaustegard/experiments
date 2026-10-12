@@ -1,0 +1,42 @@
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index e29aa90c..ec156500 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -153,6 +153,9 @@ class PrimaryMixin:
+         fn = N.Function(name, fty, loc=tok.loc)
+         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
+         self.objs.append(fn)
++        if params is not None:
++            # A later explicit declaration replaces this hidden builtin prototype.
++            self.implicit_protos = getattr(self, "implicit_protos", set()) | {id(fn)}
+         return fn
+ 
+     def powi_helper(self, tok, bname):
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 22234f05..ad57c613 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -171,6 +171,11 @@ class TopLevelMixin:
+             fn = N.Function(name.text, ty, loc=name.loc)
+             self.scopes[0].vars[name.text] = VarScope(var=fn)
+             self.objs.append(fn)
++        elif id(fn) in getattr(self, "implicit_protos", ()):
++            # GCC: an implicit builtin prototype (e.g. from __builtin_ceil) is not a
++            # real declaration; the program's own declaration of the name replaces it.
++            self.implicit_protos.discard(id(fn))
++            fn.ty = ty
+         else:
+             if not is_compatible(fn.ty, ty):
+                 self.error(f"conflicting types for '{name.text}'", name.loc)
+diff --git a/hcc/selftest/parse_implicit_builtin_redecl.c b/hcc/selftest/parse_implicit_builtin_redecl.c
+new file mode 100644
+index 00000000..4293a7e3
+--- /dev/null
++++ b/hcc/selftest/parse_implicit_builtin_redecl.c
+@@ -0,0 +1,6 @@
++// EXPECT-EXIT: 0
++// A declaration with an empty parameter list replaces the hidden prototype
++// that a __builtin_<libm>(...) call implicitly created.
++__typeof (__builtin_ceil (0)) ceil (); 
++long ceil1 (void) { return ceil (); }
++int main (void) { return 0; }

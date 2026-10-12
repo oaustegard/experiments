@@ -1,0 +1,102 @@
+diff --git a/hcc/parser/complex_incdec.py b/hcc/parser/complex_incdec.py
+new file mode 100644
+index 00000000..30a0667b
+--- /dev/null
++++ b/hcc/parser/complex_incdec.py
+@@ -0,0 +1,34 @@
++"""`++z` / `--z` / `z++` / `z--` on a _Complex operand (C23 / GNU).
++
++sema's inc_dec only knows real scalars, so the parser routes complex operands
++here.  The step is `z = z + delta` (delta is an int, so it adds 1 to the real
++part only through the complex binary lowering: `z + 1` is `(re+1) + i*im`).
++The operand's address is evaluated once, as for compound assignment; the post
++form yields the old value saved in a temporary.
++"""
++from __future__ import annotations
++
++from hcc import nodes as N
++from hcc.sema.arith import _addressed_place
++from hcc.parser import complex as CPX
++from hcc.typesys import TY_INT
++
++
++def complex_inc_dec(p, node, delta: int, is_post: bool, loc):
++    p.typed(node)
++    if isinstance(node, N.VarRef):
++        pre, place = [], (lambda: node)
++    else:
++        pre, place = _addressed_place(node, loc, p.new_temp)
++    one = N.IntLit(loc, delta, ty=TY_INT)
++    value = CPX.binary(p, "+", place(), one, loc)
++    update = p.typed(N.Assign(loc, place(), CPX.convert(p, value, node.ty, loc)))
++    result = update
++    if is_post:
++        old = p.new_temp(node.ty)
++        save = p.typed(N.Assign(loc, p.typed(N.VarRef(loc, old)), place()))
++        tail = p.typed(N.Comma(loc, update, p.typed(N.VarRef(loc, old))))
++        result = p.typed(N.Comma(loc, save, tail))
++    for e in reversed(pre):
++        result = p.typed(N.Comma(loc, e, result))
++    return result
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index b0740bb4..fc6face6 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -23,6 +23,7 @@ from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, is_scalar, po
+ from hcc.parser.plan9_ptr import plan9_pointer_conv
+ from hcc.parser.addr_operand import is_rvalue_operand
+ from hcc.parser import complex as CPX
++from hcc.parser.complex_incdec import complex_inc_dec
+ from hcc.parser.dyn_struct_ret import dyn_struct_assign
+ from hcc.parser.assign_struct_check import check_struct_assign
+ 
+@@ -263,6 +264,8 @@ class ExpressionMixin:
+             if s in ("++", "--"):
+                 self.next()
+                 operand = self.unary()
++                if self.typed(operand).ty.is_complex:
++                    return complex_inc_dec(self, operand, 1 if s == "++" else -1, False, t.loc)
+                 return inc_dec(operand, 1 if s == "++" else -1, False, t.loc, self.new_temp)
+             if s == "&&":                        # GNU label address
+                 self.next()
+diff --git a/hcc/parser/postfix.py b/hcc/parser/postfix.py
+index 98bc1322..73a472fa 100644
+--- a/hcc/parser/postfix.py
++++ b/hcc/parser/postfix.py
+@@ -21,6 +21,7 @@ from hcc.parser.structs import find_member, complete_struct
+ from hcc.parser.plan9_ptr import plan9_pointer_conv
+ from hcc.sema.arith import inc_dec, new_add
+ from hcc.parser import complex as CPX
++from hcc.parser.complex_incdec import complex_inc_dec
+ from hcc.sema.conversions import default_arg_promote, new_cast
+ from hcc.typesys import TypeKind
+ from hcc.typesys import TypeKind, is_struct_like
+@@ -98,7 +99,10 @@ class PostfixMixin:
+                 node = self.struct_ref(self.typed(N.Deref(t.loc, node)), self.expect_ident())
+             elif s in ("++", "--") and t.kind.name == "PUNCT":
+                 self.next()
+-                node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
++                if self.typed(node).ty.is_complex:
++                    node = complex_inc_dec(self, node, 1 if s == "++" else -1, True, t.loc)
++                else:
++                    node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
+             else:
+                 return node
+ 
+diff --git a/hcc/selftest/sema_complex_incdec.c b/hcc/selftest/sema_complex_incdec.c
+new file mode 100644
+index 00000000..1eb7c19d
+--- /dev/null
++++ b/hcc/selftest/sema_complex_incdec.c
+@@ -0,0 +1,11 @@
++// EXPECT-EXIT: 0
++// Complex ++/-- (C23): pre and post forms on a complex variable.
++_Complex float a;
++int main(void) {
++  _Complex float r;
++  r = a++;
++  r = ++a;
++  r = a--;
++  r = --a;
++  return 0;
++}
