@@ -14,6 +14,7 @@ from hcc.tokens import TokenKind
 from hcc.parser.scope import VarAttr
 from hcc.parser.attributes import mode_type
 from hcc import typesys as T
+from hcc.parser.vla import _has_vla as _has_vla_type
 
 VOID, BOOL, CHAR, SHORT, INT, LONG = 1 << 0, 1 << 2, 1 << 4, 1 << 6, 1 << 8, 1 << 10
 FLOAT, DOUBLE, OTHER, SIGNED, UNSIGNED, INT128 = 1 << 12, 1 << 14, 1 << 16, 1 << 17, 1 << 18, 1 << 19
@@ -251,5 +252,8 @@ class DeclSpecMixin:
             node = self.expr()
             add_type(node)
             ty = node.ty
+            if _has_vla_type(ty):
+                # typeof(vm-expr) evaluates expr; locals.py emits it as a statement.
+                self.vm_typeof.append(node)
         self.expect(")")
         return ty

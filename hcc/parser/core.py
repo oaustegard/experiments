@@ -31,6 +31,7 @@ class ParserBase:
         self.locals: list[Var] = []
         self.label_count = 0
         self.anon_count = 0
+        self.vm_typeof: list = []            # VLA-typed typeof operands (side effects)
         self.brk_label: str | None = None
         self.cont_label: str | None = None
         self.cur_switch = None

@@ -18,8 +18,10 @@ class LocalDeclMixin:
 
     def local_declaration(self) -> list:
         attr = VarAttr()
+        self.vm_typeof = []
         basety = self.declspec(attr)
-        items = []
+        items = [N.ExprStmt(e.loc, e) for e in self.vm_typeof]
+        self.vm_typeof = []
         first = True
         while not self.accept(";"):
             if not first:

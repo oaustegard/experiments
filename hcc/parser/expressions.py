@@ -213,6 +213,7 @@ class ExpressionMixin:
 
     def sizeof_expr(self):
         t = self.next()
+        node = None
         if self.at("(") and self.is_typename(self.peek()):
             start = self.pos
             allow = self.compound_lit_follows()
@@ -221,13 +222,18 @@ class ExpressionMixin:
             self.expect(")")
             if self.at("{"):
                 self.pos = start
-                ty = self.unary().ty
+                node = self.unary()
+                ty = node.ty
         else:
             node = self.unary()
             self.typed(node)
             ty = node.ty
         if ty.kind == TypeKind.VLA:
-            return self.vla_size_expr(ty, t.loc)
+            size = self.vla_size_expr(ty, t.loc)
+            if node is not None:
+                # `sizeof expr` on a VLA still evaluates expr (its side effects).
+                size = self.typed(N.Comma(t.loc, node, size))
+            return size
         if not ty.is_complete and ty.kind != TypeKind.VOID and ty.kind != TypeKind.FUNC:
             self.error(f"invalid application of 'sizeof' to incomplete type '{ty}'", t)
         return N.IntLit(t.loc, ty.size, ty=TY_ULONG)
