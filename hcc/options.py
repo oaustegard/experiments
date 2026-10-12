@@ -28,5 +28,7 @@ class Options:
     keep_temps: bool = False
     dump_ast: bool = False
     dump_tokens: bool = False
-    pic: bool = False
+    # PIC mode, gcc defaults to PIE on Linux: "pie2" (default, -fPIE), "pie1" (-fpie),
+    # "pic2" (-fPIC), "pic1" (-fpic), "none" (-fno-pie/-fno-pic/-no-pie).
+    pic: str = "pie2"
     language: str | None = None        # -x c / -x assembler

@@ -399,8 +399,15 @@ def predefined_source(opts) -> str:
         lines.append("#define __GNUC_GNU_INLINE__ 1")
     else:
         lines.append("#define __GNUC_STDC_INLINE__ 1")
-    if opts.pic:
-        lines.append("#define __PIC__ 2\n#define __pic__ 2")
+    # Values match gcc on x86-64 Linux (-fPIE => PIE 2, -fpie => PIE 1, etc.)
+    pic_defs = {
+        "pie2": "#define __PIC__ 2\n#define __pic__ 2\n#define __PIE__ 2\n#define __pie__ 2",
+        "pie1": "#define __PIC__ 1\n#define __pic__ 1\n#define __PIE__ 1\n#define __pie__ 1",
+        "pic2": "#define __PIC__ 2\n#define __pic__ 2",
+        "pic1": "#define __PIC__ 1\n#define __pic__ 1",
+    }
+    if opts.pic in pic_defs:
+        lines.append(pic_defs[opts.pic])
     return "\n".join(lines) + "\n"
 
 

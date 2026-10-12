@@ -18,6 +18,10 @@ from hcc.options import Options
 # flags that take a separate argument we ignore or pass to the linker
 _IGNORED_WITH_ARG = {"-MF", "-MT", "-MQ", "-arch", "-target", "--param", "-aux-info"}
 _LINKER_WITH_ARG = {"-L", "-l", "-Xlinker", "-T", "-u", "-z"}
+# -fPIE/-fPIC style flags -> predefined PIC/PIE mode (see predefined.py)
+_PIC_MODES = {"-fPIE": "pie2", "-fpie": "pie1", "-fPIC": "pic2", "-fpic": "pic1",
+              "-fno-PIE": "none", "-fno-pie": "none", "-no-pie": "none",
+              "-fno-PIC": "none", "-fno-pic": "none"}
 # -f flags that gcc reflects as predefined macros (non-default settings only)
 _MATH_FLAG_MACROS = {"-fno-math-errno": "__NO_MATH_ERRNO__",
                      "-fassociative-math": "__ASSOCIATIVE_MATH__",
@@ -81,8 +85,8 @@ def parse_args(argv: list[str]) -> Options:
             o.plan9_extensions = True
         elif a == "-nostdinc":
             o.nostdinc = True
-        elif a in ("-fPIC", "-fpic", "-fPIE", "-fpie"):
-            o.pic = a in ("-fPIC", "-fpic")
+        elif a in _PIC_MODES:
+            o.pic = _PIC_MODES[a]
         elif a in _MATH_FLAG_MACROS:
             o.defines.append(("-D", _MATH_FLAG_MACROS[a]))
         elif a == "-x":
