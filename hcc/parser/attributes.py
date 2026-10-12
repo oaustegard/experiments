@@ -133,6 +133,10 @@ class AttributeMixin:
             if vs is not None and isinstance(vs.var, N.Function):
                 attr.is_noreturn |= vs.var.is_noreturn
                 attr.is_weak |= vs.var.is_weak
+            else:
+                # copy(expr): inherit `packed` from the expression's member or type
+                from hcc.parser.attr_copy import apply_copy_expr
+                apply_copy_expr(self, args_start, attr)
         elif name == "nocommon" and attr is not None:
             attr.is_nocommon = True
         elif name == "section" and attr is not None and args:
