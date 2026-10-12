@@ -38,21 +38,25 @@ def is_pack_placeholder(node) -> bool:
     return type(node) is N.BuiltinCall and node.name == PACK
 
 
-def _uses_pack(node, seen=None) -> bool:
-    # The AST is a DAG in places (Switch.cases shares its Case nodes with the
-    # switch body), so every node is visited once; otherwise nested switches
-    # cost 2^depth.
-    if seen is None:
-        seen = set()
-    if type(node) is N.BuiltinCall and node.name in PLACEHOLDERS:
-        return True
-    if isinstance(node, N.Node):
-        if id(node) in seen:
-            return False
-        seen.add(id(node))
-        return any(_uses_pack(getattr(node, f.name, None), seen) for f in fields(node))
-    if isinstance(node, list):
-        return any(_uses_pack(x, seen) for x in node)
+def _uses_pack(node) -> bool:
+    """Iterative scan: label/case chains can nest tens of thousands of levels deep.
+    Nodes are visited once (Switch.cases and Case.body share sub-chains)."""
+    todo = [node]
+    seen: set[int] = set()
+    while todo:
+        cur = todo.pop()
+        if type(cur) is N.BuiltinCall and cur.name in PLACEHOLDERS:
+            return True
+        if isinstance(cur, N.Node):
+            if id(cur) in seen:
+                continue
+            seen.add(id(cur))
+            for f in fields(cur):
+                val = getattr(cur, f.name, None)
+                if isinstance(val, (N.Node, list)):
+                    todo.append(val)
+        elif isinstance(cur, list):
+            todo.extend(x for x in cur if isinstance(x, (N.Node, list)))
     return False
 
 
