@@ -139,6 +139,7 @@ class StatementMixin:
 
     def _stmt_for(self, t):
         self.expect("(")
+        self.skip_std_attributes()  # `for ([[]] int i = 0; ...)`
         self.enter_scope()
         init = None
         if self.is_typename():
