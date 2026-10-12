@@ -271,6 +271,7 @@ class TopLevelMixin:
             if g.text not in self.label_names and fn.outer is None:
                 self.error(f"label '{g.text}' used but not defined", g)
         fn.params = params
+        fn.labels = set(self.label_names)
         fn.locals = self.locals
         self.fn = None
         self.locals = []

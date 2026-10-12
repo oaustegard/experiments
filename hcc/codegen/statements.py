@@ -213,7 +213,19 @@ class StatementMixin:
         self.emit(f"jmp {node.label}")
 
     def stmt_Goto(self, node) -> None:
-        self.emit(f"jmp {self.user_label(node.name)}")
+        owner = self.fn
+        while owner.outer is not None and node.name not in owner.labels:
+            owner = owner.outer
+        if owner is self.fn:
+            self.emit(f"jmp {self.user_label(node.name)}")
+            return
+        # GNU non-local goto from a nested function into an enclosing one:
+        # restore the enclosing %rbp and its frame-bottom %rsp (labels are
+        # reached at statement depth 0, where %rsp == %rbp - frame size).
+        self.frame_of(owner)
+        self.emit("mov %r11, %rbp")
+        self.emit(f"lea -.Lframe.{owner.symbol}(%rbp), %rsp")
+        self.emit(f"jmp .L.{owner.name}.{node.name}")
 
     def stmt_GotoExpr(self, node) -> None:
         self.gen_expr(node.target)

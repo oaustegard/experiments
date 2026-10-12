@@ -168,6 +168,7 @@ class FunctionMixin:
         self.emit("pop %rbp")
         self.emit("ret")
         self.directive(f".size {sym}, .-{sym}")
+        self.directive(f".set .Lframe.{sym}, {size}")
         self.fn = None
 
     def store_gp_param(self, reg: int, off: int, size: int) -> None:
