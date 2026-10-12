@@ -75,6 +75,8 @@ def parse_args(argv: list[str]) -> Options:
             o.trigraphs = True
         elif a == "-pedantic-errors":
             o.pedantic_errors = True
+        elif a == "-fpermissive":
+            o.permissive = True
         elif a == "-fgnu89-inline":
             o.gnu89_inline = True
         elif a == "-fno-asm":

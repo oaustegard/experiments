@@ -29,6 +29,7 @@ class Options:
     short_wchar: bool = False          # -fshort-wchar (wchar_t is unsigned short, L"" units are 16-bit)
     char_unsigned: bool = False        # -funsigned-char (plain char is unsigned; only checked by constexpr)
     wrapv: bool = False                # -fwrapv (signed overflow wraps; default -fno-wrapv: undefined)
+    permissive: bool = False           # -fpermissive (int-conversion errors become warnings)
     linker_args: list[str] = field(default_factory=list)
     keep_temps: bool = False
     dump_ast: bool = False
