@@ -6,7 +6,7 @@ _Bool target is handled by cmp_zero. Add new conversions to TABLE only.
 """
 from __future__ import annotations
 
-from hcc.typesys import TypeKind
+from hcc.typesys import TypeKind, is_decimal
 from hcc.codegen.half import ROUND_HALF
 
 I8, I16, I32, I64, U8, U16, U32, U64, F32, F64, F80 = range(11)
@@ -122,6 +122,8 @@ class CastMixin:
 
     def cmp_zero(self, ty) -> None:
         k = ty.kind
+        if is_decimal(ty):
+            return self.decimal_cmp_zero(ty)
         if k in (TypeKind.FLOAT16, TypeKind.FLOAT):
             self.emit("xorps %xmm1, %xmm1")
             self.emit("ucomiss %xmm1, %xmm0")
@@ -145,6 +147,8 @@ class CastMixin:
     def cast(self, frm, to) -> None:
         if to.kind == TypeKind.VOID:
             return
+        if is_decimal(frm) or is_decimal(to):
+            return self.decimal_cast(frm, to)
         if to.kind == TypeKind.BOOL:
             self.cmp_zero(frm)
             self.emit("setne %al")

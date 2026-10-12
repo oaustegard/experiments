@@ -18,7 +18,7 @@ from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
 from dataclasses import fields, is_dataclass
 
-from hcc.typesys import TypeKind, is_flonum, is_integer
+from hcc.typesys import TypeKind, is_decimal, is_flonum, is_integer
 from hcc.halfbits import half_bits, half_to_float_bits
 
 
@@ -273,6 +273,8 @@ class ExpressionMixin:
             else:
                 self.vector_not(node)
             return
+        if is_decimal(node.operand.ty):
+            return self.decimal_unary(node)
         self.gen_expr(node.operand)
         ty = node.operand.ty
         if node.op == "!":
