@@ -56,6 +56,10 @@ def source_size(ctx: Ctx):
     return size
 
 
+def is_conflict(r: dict) -> bool:
+    return r.get("status") == "rejected" and str(r.get("reason", "")).startswith(("conflict", "main kept moving"))
+
+
 FEATURE_AFTER = 2   # failed attempts on a signature before a worker gets the feature mandate
 FEATURE_MODE = """FEATURE MODE. Earlier workers on this cluster stopped because the fix needs a whole missing
 feature (see their notes), not a local patch. Your mandate overrides the "minimal fix" and budget rules:
@@ -67,7 +71,8 @@ representative test PASS with no smoke regressions is a success (status fixed); 
 Never make a construct parse-and-silently-miscompile: unsupported parts must still raise a clear error."""
 
 
-def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_notes: list[str]) -> str:
+def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_notes: list[str],
+                rebase_patch: str | None = None) -> str:
     wt = ctx.worktree(tid)
     lines = [f"Task id: {tid}", f"Your worktree (current directory): {wt}", f"Result JSON out path: {out}",
              f"Scratch dir: /tmp/{tid}/", "",
@@ -86,6 +91,10 @@ def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_no
     if prev_notes:
         lines += ["", "Notes from earlier workers on this cluster (their fixes were not merged):"]
         lines += [f"  * {n[:400]}" for n in prev_notes[-2:]]
+    if rebase_patch:
+        lines += ["", f"REBASE: an earlier worker fixed this cluster, but its diff no longer applies because main moved on.",
+                  f"Its diff is at {rebase_patch}. Read it, re-apply the same change by hand to the current code",
+                  "(the surrounding code may have changed), then verify as usual. Start from that diff, not from scratch."]
     if len(prev_notes) >= FEATURE_AFTER:
         lines += ["", FEATURE_MODE]
     lines += ["", "Follow the procedure in your instructions. Read docs/CONTRACT.md first.",
@@ -102,10 +111,16 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
     out.parent.mkdir(parents=True, exist_ok=True)
     out.unlink(missing_ok=True)
     tdir = ctx.task_dir(tid)
-    prev = [r["result"]["notes"] for r in ledger(ctx).values()
+    led = ledger(ctx)
+    prev = [r["result"]["notes"] for r in led.values()
             if r.get("signature") == item.signature and r.get("status") in ("failed", "rejected", "reverted")
-            and (r.get("result") or {}).get("notes")]
-    task = {"id": tid, "prompt": task_prompt(ctx, tid, item, out, prev) + (f"\n[fake:{a.fake_mode}]" if a.fake_mode else ""),
+            and not is_conflict(r) and (r.get("result") or {}).get("notes")]
+    used = {r.get("rebase_of") for r in led.values()}
+    conflicted = [r for r in led.values() if r.get("signature") == item.signature and is_conflict(r)
+                  and r["id"] not in used and (ctx.task_dir(r["id"]) / "patch.diff").exists()]
+    rebase_of = conflicted[-1]["id"] if conflicted else None
+    rebase_patch = str(ctx.task_dir(rebase_of) / "patch.diff") if rebase_of else None
+    task = {"id": tid, "prompt": task_prompt(ctx, tid, item, out, prev, rebase_patch) + (f"\n[fake:{a.fake_mode}]" if a.fake_mode else ""),
             "out": str(out), "model": a.model, "tools": TOOLS,
             "allow": [f"Edit(/{wt}/**)", "Edit(//tmp/**)", "Bash"],
             "system_prompt": (ctx.swarm / "worker_prompt.md").read_text(), "timeout": a.timeout}
@@ -131,9 +146,9 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
     rec = {"id": tid, "key": item.key, "signature": item.signature, "tests": item.tests,
            "targets": item.targets, "base": base, "status": "launched", "pid": p.pid,
            "cost_usd": 0.0, "result": None, "merged_commit": None, "reason": "",
-           "t_launch": time.time(), "model": "fake" if a.fake else a.model, "feature": feature}
+           "t_launch": time.time(), "model": "fake" if a.fake else a.model, "feature": feature, "rebase_of": rebase_of}
     ledger_put(ctx, rec)
-    log(f"LAUNCH {tid} [{item.priority}] {'FEATURE ' if feature else ''}{item.key}  tests: {', '.join(item.tests)}")
+    log(f"LAUNCH {tid} [{item.priority}] {'FEATURE ' if feature else ''}{'REBASE ' if rebase_of else ''}{item.key}  tests: {', '.join(item.tests)}")
     return {"rec": rec, "proc": p}
 
 
@@ -303,7 +318,8 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             seq = len(ledger(ctx)) + 1
             led = ledger(ctx)
             fails = Counter(r.get("signature") for r in led.values()
-                            if r.get("status") in ("failed", "rejected", "reverted") and (r.get("result") or {}).get("notes"))
+                            if r.get("status") in ("failed", "rejected", "reverted") and not is_conflict(r)
+                            and (r.get("result") or {}).get("notes"))
             flying = {r.get("signature") for r in led.values() if r.get("status") == "launched"}
             for item in [i for i in items if not (fails[i.signature] >= FEATURE_AFTER and i.signature in flying)]:
                 if len(procs) >= a.concurrency:

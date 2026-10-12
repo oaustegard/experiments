@@ -124,6 +124,8 @@ def build(results: dict, ledger: dict | None = None, source_size=None, limit: in
         if r.get("status") in ("launched", "finished"):
             busy_keys.add(r.get("key"))
             busy_tests.update(r.get("tests", []))
+        elif r.get("status") == "rejected" and str(r.get("reason", "")).startswith(("conflict", "main kept moving")):
+            continue   # a good fix that lost a merge race: the next worker rebases it, no penalty
         elif r.get("status") in ("rejected", "failed", "reverted"):
             sig_fails[r.get("signature")] = sig_fails.get(r.get("signature"), 0) + 1
             # a worker that died without a result (rate limit, timeout) counts half
