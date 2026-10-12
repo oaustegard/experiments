@@ -281,10 +281,14 @@ class InitializerMixin:
         brace-elided tail after it (`, 5, 6`) is consumed only once, by the
         last index (`tail` False: an enclosing range is not on its last index)."""
         self.expect("[")
-        lo = self.const_expr()
+        lo, lo_ty = self.const_expr_typed()
+        if not T.is_integer(lo_ty):
+            self.error("array index in initializer not of integer type")
         hi = lo
         if self.accept("..."):
-            hi = self.const_expr()
+            hi, hi_ty = self.const_expr_typed()
+            if not T.is_integer(hi_ty):
+                self.error("array index in initializer not of integer type")
         self.expect("]")
         save = self.pos
         for idx in range(lo, hi + 1):
