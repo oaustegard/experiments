@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from hcc.codegen.abi import abi_kind, is_memory_struct, struct_in_regs
 from hcc.codegen.half import TO_ABI_HALF
+from hcc.nodes import BuiltinCall as BuiltinCallNode, ExprStmt as ExprStmtNode
 from hcc.sema.constexpr import try_eval_const
 from hcc.typesys import TypeKind
 
@@ -20,8 +21,21 @@ def _sext(v: int, bits: int) -> int:
 class StatementMixin:
 
     def stmt_Block(self, node) -> None:
+        # After __builtin_unreachable()/__builtin_trap() the rest of the block
+        # is dead: only labelled parts stay (reachable by goto), so calls such
+        # as `unreachable(); not_defined();` never reach the assembler.
+        after_trap = False
         for s in node.items:
-            self.gen_stmt(s)
+            if after_trap:
+                self.gen_dead_stmt(s)
+            else:
+                self.gen_stmt(s)
+                after_trap = self._is_trap_stmt(s)
+
+    @staticmethod
+    def _is_trap_stmt(s) -> bool:
+        return (isinstance(s, ExprStmtNode) and isinstance(s.expr, BuiltinCallNode)
+                and s.expr.name == "trap")
 
     def discard_value(self, ty) -> None:
         # A long double result lives on the x87 register stack; a discarded
