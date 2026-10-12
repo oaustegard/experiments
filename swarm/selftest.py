@@ -29,6 +29,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 from swarm.common import read_json, read_jsonl, write_json
@@ -261,7 +262,9 @@ def main(argv: list[str] | None = None) -> int:
         print(out[-2000:])
     # selftest gate: a candidate that fixes its targets but breaks an hcc selftest is rejected
     before = set(records(root))
+    os.environ["SWARM_ATTEMPT_EPOCH"] = str(time.time())   # earlier cases parked what is left
     out = run(root, wt, "--fake-mode", "selftest", "--max-workers", "1", "--concurrency", "1", "--full-every", "99")
+    del os.environ["SWARM_ATTEMPT_EPOCH"]
     new = [r for k, r in records(root).items() if k not in before]
     ok = bool(new) and new[0].get("status") == "rejected" and \
         str(new[0].get("reason", "")).startswith("selftest regressions (1): fake_selftest.c")
