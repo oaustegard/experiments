@@ -144,11 +144,15 @@ def tokenize(text: str, path: str, line_comments: bool = True,
         if kind == "ubc":
             diag.error(loc, "unterminated comment", "preprocess")
         s = m.group()
+        spell = None
         if kind == "punct" and s in DIGRAPHS:
+            spell = s
             s = DIGRAPHS[s]
         elif kind == "id":
             s = _decode_ucns(s)
-        toks.append(Token(_KIND[kind], s, loc, bol, space))
+        tok = Token(_KIND[kind], s, loc, bol, space)
+        tok.spell = spell
+        toks.append(tok)
         bol = False
         space = False
     toks.append(Token(TokenKind.EOF, "", Loc(path, line, 1), True, False))

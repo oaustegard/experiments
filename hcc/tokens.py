@@ -32,7 +32,7 @@ class Loc:
 class Token:
     """One token. `hideset` is used only by the preprocessor."""
 
-    __slots__ = ("kind", "text", "loc", "bol", "space", "hideset", "value", "ty")
+    __slots__ = ("kind", "text", "loc", "bol", "space", "hideset", "value", "ty", "spell")
 
     def __init__(self, kind: TokenKind, text: str, loc: Loc,
                  bol: bool = False, space: bool = False,
@@ -45,11 +45,13 @@ class Token:
         self.hideset = hideset
         self.value = None
         self.ty = None
+        self.spell = None   # original digraph spelling ('%:'), for #
 
     def copy(self) -> "Token":
         t = Token(self.kind, self.text, self.loc, self.bol, self.space, self.hideset)
         t.value = self.value
         t.ty = self.ty
+        t.spell = self.spell
         return t
 
     def is_(self, text: str) -> bool:

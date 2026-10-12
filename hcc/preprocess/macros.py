@@ -41,13 +41,11 @@ class MacroMixin:
             return True
         if m.is_objlike:
             hs = tok.hideset | {name}
-            out = []
-            for t in m.body:
-                c = t.copy()
+            out = self.subst(m, {}, tok)
+            for c in out:
                 c.hideset = c.hideset | hs
                 c.loc = tok.loc
                 c.bol = False
-                out.append(c)
             self._finish_expansion(tok, out)
             return True
         # function-like: must be followed by '('
@@ -136,7 +134,7 @@ class MacroMixin:
 
         while i < n:
             t = body[i]
-            if t.kind == TokenKind.PUNCT and t.text == "#":
+            if t.kind == TokenKind.PUNCT and t.text == "#" and not m.is_objlike:
                 if not is_param(i + 1):
                     diag.error(t, "'#' is not followed by a macro parameter")
                 out.append(self.stringize(t, args[body[i + 1].text]))
@@ -186,6 +184,12 @@ class MacroMixin:
                 if nxt_is(i + 1, "##"):
                     if not a:
                         rhs_i = i + 2
+                        if is_param(rhs_i) and nxt_is(rhs_i + 1, "##"):
+                            # Empty lhs placemarker: the rhs operand is handled
+                            # by the next iteration so that a chain such as
+                            # `x ## y ## z` with x and y empty still pastes.
+                            i = rhs_i
+                            continue
                         if is_param(rhs_i):
                             out.extend(x.copy() for x in args[body[rhs_i].text])
                         elif rhs_i < n:
@@ -215,7 +219,7 @@ class MacroMixin:
             if t.kind in (TokenKind.STRING, TokenKind.CHAR):
                 parts.append(t.text.replace("\\", "\\\\").replace('"', '\\"'))
             else:
-                parts.append(t.text)
+                parts.append(t.spell or t.text)
         s = "".join(parts)
         # GCC: an odd run of trailing backslashes would escape the closing
         # quote; warn and drop the final backslash (as cpp does).
@@ -226,7 +230,7 @@ class MacroMixin:
         return Token(TokenKind.STRING, f'"{s}"', hash_tok.loc, False, hash_tok.space)
 
     def paste(self, lhs: Token, rhs: Token) -> Token:
-        text = lhs.text + rhs.text
+        text = (lhs.spell or lhs.text) + (rhs.spell or rhs.text)
         toks = tokenize(text, lhs.loc.file)
         if len(toks) != 2:
             diag.error(lhs, f"pasting forms '{text}', an invalid token")
