@@ -13,6 +13,14 @@ from hcc.tokens import TokenKind
 from hcc import typesys as T
 
 
+def enum_fits_largest(v, cty):
+    """Enumeration values must fit the largest integer type of the enumerator's
+    signedness (__int128 or unsigned __int128); a larger value overflows."""
+    if cty.is_unsigned:
+        return 0 <= v < (1 << 128)
+    return -(1 << 127) <= v < (1 << 127)
+
+
 def fits_type(v, ty):
     """True if integer value v is representable in integer type ty."""
     bits = ty.size * 8
@@ -114,6 +122,8 @@ class EnumMixin:
                 cty = enumerator_type(val, ety)
             elif not fits_type(val, cty):
                 cty = widen_type(cty)
+            if not enum_fits_largest(val, cty):
+                self.error("overflow in enumeration values", name)
             check_redecl(self, self.scopes[-1], name, "enum")
             vs = self.push_scope_entry(name.text)
             vs.enum_ty = ty
