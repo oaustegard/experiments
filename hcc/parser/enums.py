@@ -45,6 +45,8 @@ class EnumMixin:
             tag = self.next()
         self.parse_attributes(VarAttr())
         fixed = self.fixed_underlying()
+        if tag is not None and fixed is not None:
+            self.check_fwd_fixed(tag)
         if tag is not None and not self.at("{"):
             ty = self.find_tag(tag.text)
             if ty is None:
@@ -143,6 +145,13 @@ class EnumMixin:
             return None
         self.next()
         return self.declspec()
+
+    def check_fwd_fixed(self, tag):
+        """`enum e;` (no fixed type) followed by `enum e : T` in the same scope is
+        an error: the enum was declared both with and without a fixed type."""
+        prev = self.scopes[-1].tags.get(tag.text)
+        if prev is not None and prev.kind == T.TypeKind.ENUM and prev.enum_consts == "fwd":
+            self.error(f"'enum' declared both with and without fixed underlying type", tag)
 
     def apply_fixed_underlying(self, ty, under):
         ty.size = ty.align = under.size
