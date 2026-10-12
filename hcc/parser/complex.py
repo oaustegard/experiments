@@ -31,7 +31,8 @@ from hcc.parser import complex_const as CC
 from hcc.sema.conversions import common_type, new_cast
 from hcc.typesys import TY_DOUBLE, TypeKind, complex_of, is_flonum, is_integer
 
-_RANK = {TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3}
+_RANK = {TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3, TypeKind.FLOAT128: 4}
+_X87_PARTS = (TypeKind.LDOUBLE, TypeKind.FLOAT128)   # hcc models both with x87 precision
 
 
 def complex_decl_type(p, ty):
@@ -209,7 +210,7 @@ def truth(p, node):
 
 def check_abi(p, ty, loc):
     """Complex long double is returned in x87 registers, not as a struct: refuse it at calls/returns."""
-    if ty.is_complex and ty.base.kind == TypeKind.LDOUBLE:
+    if ty.is_complex and ty.base.kind in _X87_PARTS:
         p.error("complex long double passed or returned by value is not supported", loc)
 
 
