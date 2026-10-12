@@ -142,6 +142,8 @@ class LocalDeclMixin:
                 fn = self.declare_function(ty, name, attr, dattr)
                 if file_prior is None or file_prior.var is None:
                     fn.block_decl_only = True       # external, but lexically block-scoped
+                if attr.is_auto:
+                    fn.nested_decl = True       # GNU nested function declaration: needs a body
                 fn.is_unavailable |= attr.is_unavailable or dattr.is_unavailable
                 self.push_scope_entry(name.text).var = fn
                 if self.at("{"):                     # GNU nested function definition

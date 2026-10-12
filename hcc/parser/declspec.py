@@ -188,6 +188,7 @@ class DeclSpecMixin:
                 elif s == "_Noreturn":
                     attr.is_noreturn = True
                 elif s == "auto":
+                    attr.is_auto = True
                     auto_infer = self.c23_mode()    # C23 `auto x = expr;`: no type given
                 continue
             if s in ("_Complex", "__complex__", "__complex"):

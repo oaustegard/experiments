@@ -114,6 +114,7 @@ class ParserBase:
         self.scope_stack.append(self.scope_seq)
 
     def leave_scope(self) -> None:
+        self.check_nested_decls(self.scopes[-1])
         self.scopes.pop()
         self.scope_stack.pop()
 
