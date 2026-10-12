@@ -16,6 +16,7 @@ class VarScope:
     type_def: Type | None = None
     enum_ty: Type | None = None
     enum_val: int = 0
+    enum_cty: Type | None = None    # C23 type of the enumerator constant itself
 
 
 @dataclass
