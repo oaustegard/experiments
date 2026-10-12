@@ -42,6 +42,23 @@ class FpClassifyMixin:
         self.emit("sete %al")
         self.emit("movzbl %al, %eax")
 
+    def builtin_isnan(self, node) -> None:
+        self._classify_flag(node.args[0], "e", _NAN)
+
+    def builtin_isinf(self, node) -> None:
+        self._classify_flag(node.args[0], "e", _INF)
+
+    def builtin_isfinite(self, node) -> None:
+        # zero, subnormal and normal are the categories 2..4 (see _NAN.._ZERO order)
+        self._classify_flag(node.args[0], "ae", _NORMAL)
+
+    def _classify_flag(self, x, cond: str, cat: int) -> None:
+        """0/1 result: category == cat ("e") or category >= cat ("ae") in %eax."""
+        self._classify(x)
+        self.emit(f"cmp ${cat}, %eax")
+        self.emit("sete %al" if cond == "e" else "setae %al")
+        self.emit("movzbl %al, %eax")
+
     def builtin_isinf_sign(self, node) -> None:
         self._classify(node.args[0])
         l_zero = self.new_label()

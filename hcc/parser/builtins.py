@@ -14,6 +14,7 @@ import struct
 
 from hcc import nodes as N
 from hcc.halfbits import half_to_double
+from hcc.parser.fp_classify import FP_CLASS_STEMS
 from hcc.parser.float16_math import F16_MATH_NAMES, f16_math_call
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.crc_builtins import CRC_BUILTINS, crc_call
@@ -43,6 +44,8 @@ __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf
 __builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
 __builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_shufflevector __builtin_convertvector
 __builtin_isinf __builtin_isnan __builtin_isfinite __builtin_isnormal
+__builtin_isinff __builtin_isinfl __builtin_isnanf __builtin_isnanl __builtin_isfinitef __builtin_isfinitel
+__builtin_finite __builtin_finitef __builtin_finitel
 __builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
 __builtin_fpclassify __builtin_isnormal __builtin_isinf_sign
 __builtin_isless __builtin_islessequal __builtin_islessgreater
@@ -418,15 +421,14 @@ class BuiltinParseMixin:
         return self._snan_lit(tok, T.TY_LDOUBLE)
 
     def _fp_class_call(self, tok, base):
-        """__builtin_isinf/isnan/isfinite(x): call the libc classifier for x's own
-        width (isinf/isinff/isinfl, ...) so long double arguments are not narrowed."""
+        """__builtin_isnan/isinf/isfinite[f|l](x): a 0/1 predicate on x's bit pattern at
+        its own width (codegen/fpclassify.py); the f/l spellings convert x first."""
         arg = self._args(1)[0]
-        kind = arg.ty.kind
-        sfx = {T.TypeKind.FLOAT: "f", T.TypeKind.LDOUBLE: "l"}.get(kind, "")
-        cty = {"f": T.TY_FLOAT, "l": T.TY_LDOUBLE}.get(sfx, T.TY_DOUBLE)
-        fn = self.implicit_function(base + sfx, tok, T.TY_INT)
-        callee = self.typed(N.VarRef(tok.loc, fn))
-        return self.typed(N.Call(tok.loc, callee, [new_cast(arg, cty)], fn.ty))
+        spelled = tok.text[len("__builtin_"):]
+        sfx = "" if spelled in FP_CLASS_STEMS else spelled[-1]
+        ty = {"f": T.TY_FLOAT, "l": T.TY_LDOUBLE}.get(sfx)
+        operand = new_cast(arg, ty) if ty is not None else self._fp_value(arg)
+        return self._call(tok, base, [operand], T.TY_INT)
 
     def _fpcmp(self, tok, name):
         """__builtin_is<op>(a, b): quiet comparison of two real floats; both
@@ -481,11 +483,29 @@ class BuiltinParseMixin:
     def _b_isinf(self, tok):
         return self._fp_class_call(tok, "isinf")
 
+    def _b_isinff(self, tok):
+        return self._fp_class_call(tok, "isinf")
+
+    def _b_isinfl(self, tok):
+        return self._fp_class_call(tok, "isinf")
+
     def _b_isnan(self, tok):
         return self._fp_class_call(tok, "isnan")
 
+    def _b_isnanf(self, tok):
+        return self._fp_class_call(tok, "isnan")
+
+    def _b_isnanl(self, tok):
+        return self._fp_class_call(tok, "isnan")
+
     def _b_isfinite(self, tok):
-        return self._fp_class_call(tok, "finite")
+        return self._fp_class_call(tok, "isfinite")
+
+    def _b_isfinitef(self, tok):
+        return self._fp_class_call(tok, "isfinite")
+
+    def _b_isfinitel(self, tok):
+        return self._fp_class_call(tok, "isfinite")
 
     def _b_isnormal(self, tok):
         """__builtin_isnormal(x) == (__fpclassify{,f,l}(x) == FP_NORMAL). glibc has
@@ -513,6 +533,15 @@ class BuiltinParseMixin:
                                     N.FloatLit(tok.loc, -lim, ty=T.TY_DOUBLE)))))
             res = self.typed(N.Logical(tok.loc, "&&", res, big))
         return self.typed(N.Comma(tok.loc, store, res))
+
+    def _b_finite(self, tok):
+        return self._fp_class_call(tok, "isfinite")
+
+    def _b_finitef(self, tok):
+        return self._fp_class_call(tok, "isfinite")
+
+    def _b_finitel(self, tok):
+        return self._fp_class_call(tok, "isfinite")
 
     def _b_huge_val(self, tok):
         return self._inf_lit(tok, T.TY_DOUBLE)
