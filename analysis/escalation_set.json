@@ -1,0 +1,757 @@
+{
+ "base": "dec8d7dbd852ab6adc6cdb5d5f56ab7139536aa7",
+ "items": [
+  {
+   "key": "c00",
+   "signature": "compare: exit <n>, expected <n> add_millions() => <n> expected but got <n>",
+   "tests": [
+    "chibicc/atomic.c"
+   ],
+   "members": [
+    "chibicc/atomic.c"
+   ],
+   "reasons": {
+    "chibicc/atomic.c": "exit 1, expected 0 add_millions() => 6000000 expected but got 5744111"
+   }
+  },
+  {
+   "key": "c01",
+   "signature": "compare: stdout line <n>: expected '<id>' got '<id>'",
+   "tests": [
+    "doom/demo/demo1",
+    "doom/demo/demo2",
+    "doom/demo/demo3"
+   ],
+   "members": [
+    "doom/demo/demo1",
+    "doom/demo/demo2",
+    "doom/demo/demo3",
+    "doom/src/p_mobj.c",
+    "doom/src/p_pspr.c",
+    "quickjs/js/builtin_08_bigint.js"
+   ],
+   "reasons": {
+    "doom/demo/demo1": "stdout line 43: expected 'frame 100 hash f5f6dfa720ba329b' got 'frame 100 hash a07c819c7aa33093'",
+    "doom/demo/demo2": "stdout line 43: expected 'frame 100 hash 564d48e94cacb8db' got 'frame 100 hash 7aef6ba7637a5feb'",
+    "doom/demo/demo3": "stdout line 44: expected 'frame 150 hash e185c15c59489bdb' got 'frame 150 hash d541bb006e75dc23'"
+   }
+  },
+  {
+   "key": "c02",
+   "signature": "run: killed by abort()",
+   "tests": [
+    "gcc-dg/cleanup-10.c",
+    "gcc-dg/cleanup-11.c",
+    "gcc-dg/cleanup-12.c"
+   ],
+   "members": [
+    "gcc-dg/cleanup-10.c",
+    "gcc-dg/cleanup-11.c",
+    "gcc-dg/cleanup-12.c",
+    "gcc-dg/cleanup-13.c",
+    "gcc-dg/cleanup-5.c",
+    "gcc-dg/cleanup-8.c",
+    "gcc-dg/cleanup-9.c",
+    "gcc-dg/cpp/strify5.c",
+    "gcc-dg/fshort-wchar.c",
+    "gcc-dg/fwrapv-2.c",
+    "gcc-dg/gnu99-init-1.c",
+    "gcc-dg/pr116891.c",
+    "gcc-dg/sso-6.c",
+    "gcc-dg/sso-8.c",
+    "gcc-dg/torture/float128-extendxf-underflow.c",
+    "gcc-dg/torture/float128-floath.c",
+    "gcc-dg/torture/float128-tg-3.c",
+    "gcc-dg/vla-12.c",
+    "gcc-dg/vla-16.c",
+    "llvm-single/Regression/C/gcc-c-torture/execute/ieee/hugeval.c"
+   ],
+   "reasons": {
+    "gcc-dg/cleanup-10.c": "killed by abort()",
+    "gcc-dg/cleanup-11.c": "killed by abort()",
+    "gcc-dg/cleanup-12.c": "killed by abort()"
+   }
+  },
+  {
+   "key": "c03",
+   "signature": "parse: error: [parse] expected ',' before 'struct'",
+   "tests": [
+    "gcc-dg-compile/gnu23-constexpr-1.c"
+   ],
+   "members": [
+    "gcc-dg-compile/gnu23-constexpr-1.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/gnu23-constexpr-1.c": "error: [parse] expected ',' before 'struct'"
+   }
+  },
+  {
+   "key": "c04",
+   "signature": "compare: exit <n>, expected <n> at <eval> (program_10_closures_in_loops_memory.js:<n>:<n>)",
+   "tests": [
+    "quickjs/js/program_10_closures_in_loops_memory.js"
+   ],
+   "members": [
+    "quickjs/js/program_10_closures_in_loops_memory.js"
+   ],
+   "reasons": {
+    "quickjs/js/program_10_closures_in_loops_memory.js": "exit 1, expected 0 at <eval> (program_10_closures_in_loops_memory.js:2:100)"
+   }
+  },
+  {
+   "key": "c05",
+   "signature": "compare: accepted an invalid program; gcc says: second argument to '<id>' is of incomplete type 'void'",
+   "tests": [
+    "reject-gcc-dg/pr65901.c"
+   ],
+   "members": [
+    "reject-gcc-dg/pr65901.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/pr65901.c": "accepted an invalid program; gcc says: second argument to \u2018va_arg\u2019 is of incomplete type \u2018void\u2019"
+   }
+  },
+  {
+   "key": "c06",
+   "signature": "parse: error: [sema] initializer element is not constant",
+   "tests": [
+    "gcc-dg-compile/Wc90-c99-compat-1.c",
+    "gcc-dg-compile/Wc90-c99-compat-2.c",
+    "gcc-dg-compile/Wc90-c99-compat-3.c"
+   ],
+   "members": [
+    "gcc-dg-compile/Wc90-c99-compat-1.c",
+    "gcc-dg-compile/Wc90-c99-compat-2.c",
+    "gcc-dg-compile/Wc90-c99-compat-3.c",
+    "gcc-dg-compile/Wc90-c99-compat-4.c",
+    "gcc-dg-compile/Wc90-c99-compat-5.c",
+    "gcc-dg-compile/Wc90-c99-compat-6.c",
+    "gcc-dg-compile/c23-constexpr-1.c",
+    "gcc-dg-compile/torture/pr66178.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/Wc90-c99-compat-1.c": "error: [sema] initializer element is not constant",
+    "gcc-dg-compile/Wc90-c99-compat-2.c": "error: [sema] initializer element is not constant",
+    "gcc-dg-compile/Wc90-c99-compat-3.c": "error: [sema] initializer element is not constant"
+   }
+  },
+  {
+   "key": "c07",
+   "signature": "compare: exit <n>, expected <n> at <eval> (more_28_recursion_depth_tail.js:<n>:<n>)",
+   "tests": [
+    "quickjs/js/more_28_recursion_depth_tail.js"
+   ],
+   "members": [
+    "quickjs/js/more_28_recursion_depth_tail.js"
+   ],
+   "reasons": {
+    "quickjs/js/more_28_recursion_depth_tail.js": "exit 1, expected 0 at <eval> (more_28_recursion_depth_tail.js:1:82)"
+   }
+  },
+  {
+   "key": "c08",
+   "signature": "compare: accepted an invalid program; gcc says: '<id>' may not be specified for '<id>'",
+   "tests": [
+    "reject-gcc-dg/pr53037-4.c"
+   ],
+   "members": [
+    "reject-gcc-dg/pr53037-4.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/pr53037-4.c": "accepted an invalid program; gcc says: \u2018warn_if_not_aligned\u2019 may not be specified for \u2018foo1\u2019"
+   }
+  },
+  {
+   "key": "c09",
+   "signature": "parse: error: [parse] invalid floating constant '<id>'",
+   "tests": [
+    "gcc-dg-compile/Wconversion-complex-gnu.c",
+    "gcc-dg-compile/Wdouble-promotion.c",
+    "gcc-dg-compile/complex-4.c"
+   ],
+   "members": [
+    "gcc-dg-compile/Wconversion-complex-gnu.c",
+    "gcc-dg-compile/Wdouble-promotion.c",
+    "gcc-dg-compile/complex-4.c",
+    "gcc-dg-compile/const-elim-1.c",
+    "gcc-dg-compile/cpp/syshdr3.c",
+    "gcc-dg-compile/debug/pr41717.c",
+    "gcc-dg-compile/fold-complex-1.c",
+    "gcc-dg-compile/ipa/ipa-icf-5.c",
+    "gcc-dg-compile/ipa/pr64307.c",
+    "gcc-dg-compile/pr126775.c",
+    "gcc-dg-compile/pr21709-1.c",
+    "gcc-dg-compile/pr30172-1.c",
+    "gcc-dg-compile/pr44214-2.c",
+    "gcc-dg-compile/pr56837.c",
+    "gcc-dg-compile/pr87929.c",
+    "gcc-dg-compile/pr88074-2.c",
+    "gcc-dg-compile/pr92263.c",
+    "gcc-dg-compile/torture/builtin-math-5.c",
+    "gcc-dg-compile/torture/pr26869.c",
+    "gcc-dg-compile/torture/pr35227.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/Wconversion-complex-gnu.c": "error: [parse] invalid floating constant '1.i'",
+    "gcc-dg-compile/Wdouble-promotion.c": "error: [parse] invalid floating constant '1.0iF'",
+    "gcc-dg-compile/complex-4.c": "error: [parse] invalid floating constant '1.0i'"
+   }
+  },
+  {
+   "key": "c10",
+   "signature": "compare: accepted an invalid program; gcc says: non-floating-point arguments in call to function '<id>'",
+   "tests": [
+    "reject-gcc-dg/unordered-1.c"
+   ],
+   "members": [
+    "reject-gcc-dg/unordered-1.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/unordered-1.c": "accepted an invalid program; gcc says: non-floating-point arguments in call to function \u2018__builtin_isgreater\u2019"
+   }
+  },
+  {
+   "key": "c11",
+   "signature": "parse: error: [parse] __builtin_convertvector expects vector operands",
+   "tests": [
+    "gcc-dg-compile/torture/pr123144.c"
+   ],
+   "members": [
+    "gcc-dg-compile/torture/pr123144.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/torture/pr123144.c": "error: [parse] __builtin_convertvector expects vector operands"
+   }
+  },
+  {
+   "key": "c12",
+   "signature": "compare: accepted an invalid program; gcc says: register name not specified for '<id>'",
+   "tests": [
+    "reject-gcc-dg/register-var-3.c"
+   ],
+   "members": [
+    "reject-gcc-dg/register-var-3.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/register-var-3.c": "accepted an invalid program; gcc says: register name not specified for \u2018r0\u2019"
+   }
+  },
+  {
+   "key": "c13",
+   "signature": "parse: error: [codegen] codegen: vector operator '<<' on <n>-bit elements is not supported",
+   "tests": [
+    "gcc-dg-compile/pr78644-2.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pr78644-2.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pr78644-2.c": "error: [codegen] codegen: vector operator '<<' on 128-bit elements is not supported"
+   }
+  },
+  {
+   "key": "c14",
+   "signature": "compare: accepted an invalid program; gcc says: conflicting type qualifiers for '<id>'",
+   "tests": [
+    "reject-gcc-dg/noncompile/redecl-1.c",
+    "reject-gcc-dg/redecl-20.c"
+   ],
+   "members": [
+    "reject-gcc-dg/noncompile/redecl-1.c",
+    "reject-gcc-dg/redecl-20.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/noncompile/redecl-1.c": "accepted an invalid program; gcc says: conflicting type qualifiers for \u2018bar\u2019",
+    "reject-gcc-dg/redecl-20.c": "accepted an invalid program; gcc says: conflicting type qualifiers for \u2018b\u2019"
+   }
+  },
+  {
+   "key": "c15",
+   "signature": "parse: error: [parse] expected ',' before '<id>'",
+   "tests": [
+    "gcc-dg-compile/pr104511.c",
+    "gcc-dg-compile/pr105173.c",
+    "gcc-dg-compile/pr105263.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pr104511.c",
+    "gcc-dg-compile/pr105173.c",
+    "gcc-dg-compile/pr105263.c",
+    "gcc-dg-compile/pr105376.c",
+    "gcc-dg-compile/pr96370.c",
+    "gcc-dg-compile/pr96579.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pr104511.c": "error: [parse] expected ',' before 'D'",
+    "gcc-dg-compile/pr105173.c": "error: [parse] expected ',' before 'd'",
+    "gcc-dg-compile/pr105263.c": "error: [parse] expected ',' before 'U'"
+   }
+  },
+  {
+   "key": "c16",
+   "signature": "compare: accepted an invalid program; gcc says: argument <n> of '<id>' must be a non-void pointer type",
+   "tests": [
+    "reject-gcc-dg/pr82112.c"
+   ],
+   "members": [
+    "reject-gcc-dg/pr82112.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/pr82112.c": "accepted an invalid program; gcc says: argument 1 of \u2018__atomic_load\u2019 must be a non-void pointer type"
+   }
+  },
+  {
+   "key": "c17",
+   "signature": "parse: error: [sema] invalid operands to binary != ('<id>' and '<id>')",
+   "tests": [
+    "gcc-dg-compile/pr104464.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pr104464.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pr104464.c": "error: [sema] invalid operands to binary != ('double[2]' and 'double[2]')"
+   }
+  },
+  {
+   "key": "c18",
+   "signature": "compare: accepted an invalid program; gcc says: attribute '<id>' mode '\" \"' is not an identifier; expected one of '<id>",
+   "tests": [
+    "reject-gcc-dg/attr-access-3.c"
+   ],
+   "members": [
+    "reject-gcc-dg/attr-access-3.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/attr-access-3.c": "accepted an invalid program; gcc says: attribute \u2018access\u2019 mode \u2018\" \"\u2019 is not an identifier; expected one of \u2018read_only\u2019, \u2018read_write\u2019, \u2018write_only\u2019, or \u2018none\u2019"
+   }
+  },
+  {
+   "key": "c19",
+   "signature": "parse: error: [parse] '<id>' undeclared",
+   "tests": [
+    "gcc-dg-compile/Wzero-as-null-pointer-constant.c",
+    "gcc-dg-compile/c23-complit-3.c",
+    "gcc-dg-compile/c99-stdint-5.c"
+   ],
+   "members": [
+    "gcc-dg-compile/Wzero-as-null-pointer-constant.c",
+    "gcc-dg-compile/c23-complit-3.c",
+    "gcc-dg-compile/c99-stdint-5.c",
+    "gcc-dg-compile/float16-align.c",
+    "gcc-dg-compile/limits-width-1.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/Wzero-as-null-pointer-constant.c": "error: [parse] 'bool' undeclared",
+    "gcc-dg-compile/c23-complit-3.c": "error: [parse] 'thread_local' undeclared",
+    "gcc-dg-compile/c99-stdint-5.c": "error: [parse] '__SIG_ATOMIC_TYPE__' undeclared"
+   }
+  },
+  {
+   "key": "c20",
+   "signature": "compare: accepted an invalid program; gcc says: redeclaration of enumerator '<id>'",
+   "tests": [
+    "reject-gcc-dg/decl-3.c"
+   ],
+   "members": [
+    "reject-gcc-dg/decl-3.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/decl-3.c": "accepted an invalid program; gcc says: redeclaration of enumerator \u2018CODES\u2019"
+   }
+  },
+  {
+   "key": "c21",
+   "signature": "preprocess: error: [preprocess] expected parameter name",
+   "tests": [
+    "gcc-dg-compile/cpp/ucnid-12.c"
+   ],
+   "members": [
+    "gcc-dg-compile/cpp/ucnid-12.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/cpp/ucnid-12.c": "error: [preprocess] expected parameter name"
+   }
+  },
+  {
+   "key": "c22",
+   "signature": "compare: accepted an invalid program; gcc says: '<id>' is unavailable",
+   "tests": [
+    "reject-gcc-dg/attr-unavailable-1.c",
+    "reject-gcc-dg/attr-unavailable-3.c"
+   ],
+   "members": [
+    "reject-gcc-dg/attr-unavailable-1.c",
+    "reject-gcc-dg/attr-unavailable-3.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/attr-unavailable-1.c": "accepted an invalid program; gcc says: \u2018INT1\u2019 is unavailable",
+    "reject-gcc-dg/attr-unavailable-3.c": "accepted an invalid program; gcc says: \u2018func\u2019 is unavailable"
+   }
+  },
+  {
+   "key": "c23",
+   "signature": "parse: error: [parse] expected expression before 'static'",
+   "tests": [
+    "gcc-dg-compile/gnu23-complit-1.c"
+   ],
+   "members": [
+    "gcc-dg-compile/gnu23-complit-1.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/gnu23-complit-1.c": "error: [parse] expected expression before 'static'"
+   }
+  },
+  {
+   "key": "c24",
+   "signature": "compare: accepted an invalid program; gcc says: mode '<id>' applied to inappropriate type",
+   "tests": [
+    "reject-gcc-dg/attr-mode-1.c"
+   ],
+   "members": [
+    "reject-gcc-dg/attr-mode-1.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/attr-mode-1.c": "accepted an invalid program; gcc says: mode \u2018SI\u2019 applied to inappropriate type"
+   }
+  },
+  {
+   "key": "c25",
+   "signature": "parse: error: [sema] invalid operands to binary < ('<id>' and '<id>')",
+   "tests": [
+    "gcc-dg-compile/pr70317.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pr70317.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pr70317.c": "error: [sema] invalid operands to binary < ('double[32]' and 'double[32]')"
+   }
+  },
+  {
+   "key": "c26",
+   "signature": "compare: accepted an invalid program; gcc says: used union type value where scalar is required",
+   "tests": [
+    "reject-gcc-dg/noncompile/20001228-1.c",
+    "reject-gcc-dg/noncompile/20040203-2.c"
+   ],
+   "members": [
+    "reject-gcc-dg/noncompile/20001228-1.c",
+    "reject-gcc-dg/noncompile/20040203-2.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/noncompile/20001228-1.c": "accepted an invalid program; gcc says: used union type value where scalar is required",
+    "reject-gcc-dg/noncompile/20040203-2.c": "accepted an invalid program; gcc says: used union type value where scalar is required"
+   }
+  },
+  {
+   "key": "c27",
+   "signature": "assemble: Error: operand type mismatch for `sub'",
+   "tests": [
+    "gcc-dg-compile/pr105094.c",
+    "gcc-dg-compile/pr82389.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pr105094.c",
+    "gcc-dg-compile/pr82389.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pr105094.c": "Error: operand type mismatch for `sub'",
+    "gcc-dg-compile/pr82389.c": "Error: operand type mismatch for `sub'"
+   }
+  },
+  {
+   "key": "c28",
+   "signature": "compare: accepted an invalid program; gcc says: 'void' as only parameter may not be qualified",
+   "tests": [
+    "reject-gcc-dg/noncompile/voidparam-1.c",
+    "reject-gcc-dg/pr68533.c"
+   ],
+   "members": [
+    "reject-gcc-dg/noncompile/voidparam-1.c",
+    "reject-gcc-dg/pr68533.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/noncompile/voidparam-1.c": "accepted an invalid program; gcc says: \u2018void\u2019 as only parameter may not be qualified",
+    "reject-gcc-dg/pr68533.c": "accepted an invalid program; gcc says: \u2018void\u2019 as only parameter may not be qualified"
+   }
+  },
+  {
+   "key": "c29",
+   "signature": "parse: error: [parse] expected '{' before '['",
+   "tests": [
+    "gcc-dg-compile/c23-attr-nodiscard-1.c",
+    "gcc-dg-compile/pr116892.c"
+   ],
+   "members": [
+    "gcc-dg-compile/c23-attr-nodiscard-1.c",
+    "gcc-dg-compile/pr116892.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/c23-attr-nodiscard-1.c": "error: [parse] expected '{' before '['",
+    "gcc-dg-compile/pr116892.c": "error: [parse] expected '{' before '['"
+   }
+  },
+  {
+   "key": "c30",
+   "signature": "compare: accepted an invalid program; gcc says: output operand constraint lacks '='",
+   "tests": [
+    "reject-gcc-dg/pr18164.c",
+    "reject-gcc-dg/pr18725.c"
+   ],
+   "members": [
+    "reject-gcc-dg/pr18164.c",
+    "reject-gcc-dg/pr18725.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/pr18164.c": "accepted an invalid program; gcc says: output operand constraint lacks \u2018=\u2019",
+    "reject-gcc-dg/pr18725.c": "accepted an invalid program; gcc says: output operand constraint lacks \u2018=\u2019"
+   }
+  },
+  {
+   "key": "c31",
+   "signature": "preprocess: error: [parse] expected ',' before ')'",
+   "tests": [
+    "gcc-dg-compile/cpp/ucnid-7-utf8.c"
+   ],
+   "members": [
+    "gcc-dg-compile/cpp/ucnid-7-utf8.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/cpp/ucnid-7-utf8.c": "error: [parse] expected ',' before ')'"
+   }
+  },
+  {
+   "key": "c32",
+   "signature": "compare: accepted an invalid program; gcc says: request for member '<id>' in something not a structure or union",
+   "tests": [
+    "reject-gcc-dg/gnu23-tag-composite-5.c"
+   ],
+   "members": [
+    "reject-gcc-dg/gnu23-tag-composite-5.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/gnu23-tag-composite-5.c": "accepted an invalid program; gcc says: request for member \u2018y\u2019 in something not a structure or union"
+   }
+  },
+  {
+   "key": "c33",
+   "signature": "sema: hcc: internal compiler error [parse]: OverflowError: float too large to pack with f format",
+   "tests": [
+    "gcc-dg-compile/fold-overflow-1.c",
+    "gcc-dg-compile/init-rounding-math-1.c"
+   ],
+   "members": [
+    "gcc-dg-compile/fold-overflow-1.c",
+    "gcc-dg-compile/init-rounding-math-1.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/fold-overflow-1.c": "hcc: internal compiler error [parse]: OverflowError: float too large to pack with f format",
+    "gcc-dg-compile/init-rounding-math-1.c": "hcc: internal compiler error [parse]: OverflowError: float too large to pack with f format"
+   }
+  },
+  {
+   "key": "c34",
+   "signature": "compare: accepted an invalid program; gcc says: requested alignment '<id>' is not a positive power of <n>",
+   "tests": [
+    "reject-gcc-dg/attr-aligned-2.c"
+   ],
+   "members": [
+    "reject-gcc-dg/attr-aligned-2.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/attr-aligned-2.c": "accepted an invalid program; gcc says: requested alignment \u20183\u2019 is not a positive power of 2"
+   }
+  },
+  {
+   "key": "c35",
+   "signature": "preprocess: error: [preprocess] #error __PIC__ is not <n> !",
+   "tests": [
+    "gcc-dg-compile/pie-2.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pie-2.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pie-2.c": "error: [preprocess] #error __PIC__ is not 2 !"
+   }
+  },
+  {
+   "key": "c36",
+   "signature": "compare: accepted an invalid program; gcc says: undefined named operand '<id>'",
+   "tests": [
+    "reject-gcc-dg/ucnid-13-utf8.c",
+    "reject-gcc-dg/ucnid-13.c"
+   ],
+   "members": [
+    "reject-gcc-dg/ucnid-13-utf8.c",
+    "reject-gcc-dg/ucnid-13.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/ucnid-13-utf8.c": "accepted an invalid program; gcc says: undefined named operand \u2018\u00c3\u2019",
+    "reject-gcc-dg/ucnid-13.c": "accepted an invalid program; gcc says: undefined named operand \u2018\u00c3\u2019"
+   }
+  },
+  {
+   "key": "c37",
+   "signature": "parse: error: [parse] expected ',' before '?'",
+   "tests": [
+    "gcc-dg-compile/pr18502-1.c"
+   ],
+   "members": [
+    "gcc-dg-compile/pr18502-1.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/pr18502-1.c": "error: [parse] expected ',' before '?'"
+   }
+  },
+  {
+   "key": "c38",
+   "signature": "compare: accepted an invalid program; gcc says: argument <n> of '<id>' must not be a pointer to a function",
+   "tests": [
+    "reject-gcc-dg/pr71514.c"
+   ],
+   "members": [
+    "reject-gcc-dg/pr71514.c"
+   ],
+   "reasons": {
+    "reject-gcc-dg/pr71514.c": "accepted an invalid program; gcc says: argument 2 of \u2018__atomic_exchange\u2019 must not be a pointer to a function"
+   }
+  },
+  {
+   "key": "c39",
+   "signature": "preprocess: hcc: internal compiler error [parse]: ValueError: invalid literal for int() with base <n>: '<id>'",
+   "tests": [
+    "gcc-dg-compile/cpp/c23-delimited-escape-seq-1.c"
+   ],
+   "members": [
+    "gcc-dg-compile/cpp/c23-delimited-escape-seq-1.c"
+   ],
+   "reasons": {
+    "gcc-dg-compile/cpp/c23-delimited-escape-seq-1.c": "hcc: internal compiler error [parse]: ValueError: invalid literal for int() with base 16: '{123'"
+   }
+  }
+ ],
+ "sample": [
+  "c-testsuite/00014.c",
+  "c-testsuite/00128.c",
+  "c-testsuite/00142.c",
+  "c-testsuite/00153.c",
+  "c-testsuite/00164.c",
+  "c-testsuite/00176.c",
+  "c-testsuite/00199.c",
+  "c-testsuite/00219.c",
+  "chibicc/complit.c",
+  "chibicc/sizeof.c",
+  "chibicc/tls.c",
+  "chibicc/typedef.c",
+  "chibicc/typeof.c",
+  "gcc-torture/20000113-1.c",
+  "gcc-torture/20000402-1.c",
+  "gcc-torture/20000605-2.c",
+  "gcc-torture/20000715-2.c",
+  "gcc-torture/20000717-4.c",
+  "gcc-torture/20010118-1.c",
+  "gcc-torture/20010122-1.c",
+  "gcc-torture/20010222-1.c",
+  "gcc-torture/20010403-1.c",
+  "gcc-torture/20020904-1.c",
+  "gcc-torture/20030330-1.c",
+  "gcc-torture/20030403-1.c",
+  "gcc-torture/20030718-1.c",
+  "gcc-torture/20040218-1.c",
+  "gcc-torture/20040409-1.c",
+  "gcc-torture/20040820-1.c",
+  "gcc-torture/20040831-1.c",
+  "gcc-torture/20041113-1.c",
+  "gcc-torture/20050502-1.c",
+  "gcc-torture/20071210-1.c",
+  "gcc-torture/20071213-1.c",
+  "gcc-torture/20080604-1.c",
+  "gcc-torture/20090623-1.c",
+  "gcc-torture/20101013-1.c",
+  "gcc-torture/20111227-1.c",
+  "gcc-torture/20120111-1.c",
+  "gcc-torture/20141022-1.c",
+  "gcc-torture/20230509-1.c",
+  "gcc-torture/20230630-4.c",
+  "gcc-torture/920711-1.c",
+  "gcc-torture/920909-1.c",
+  "gcc-torture/930713-1.c",
+  "gcc-torture/931004-3.c",
+  "gcc-torture/931004-5.c",
+  "gcc-torture/941015-1.c",
+  "gcc-torture/941025-1.c",
+  "gcc-torture/951115-1.c",
+  "gcc-torture/960419-2.c",
+  "gcc-torture/970217-1.c",
+  "gcc-torture/970923-1.c",
+  "gcc-torture/980701-1.c",
+  "gcc-torture/990127-2.c",
+  "gcc-torture/990413-2.c",
+  "gcc-torture/990604-1.c",
+  "gcc-torture/990811-1.c",
+  "gcc-torture/991023-1.c",
+  "gcc-torture/align-1.c",
+  "gcc-torture/bitfld-8.c",
+  "gcc-torture/builtin-bitops-1.c",
+  "gcc-torture/builtin-constant.c",
+  "gcc-torture/compare-2.c",
+  "gcc-torture/complex-7.c",
+  "gcc-torture/ffs-2.c",
+  "gcc-torture/loop-15.c",
+  "gcc-torture/mayalias-3.c",
+  "gcc-torture/memset-4.c",
+  "gcc-torture/pr101188.c",
+  "gcc-torture/pr107881-1.c",
+  "gcc-torture/pr110115.c",
+  "gcc-torture/pr110252-4.c",
+  "gcc-torture/pr110817-1.c",
+  "gcc-torture/pr110817-3.c",
+  "gcc-torture/pr121957.c",
+  "gcc-torture/pr126747.c",
+  "gcc-torture/pr15262-2.c",
+  "gcc-torture/pr16790-1.c",
+  "gcc-torture/pr17078-1.c",
+  "gcc-torture/pr27073.c",
+  "gcc-torture/pr33142.c",
+  "gcc-torture/pr33779-1.c",
+  "gcc-torture/pr33870-1.c",
+  "gcc-torture/pr34176.c",
+  "gcc-torture/pr37125.c",
+  "gcc-torture/pr39240.c",
+  "gcc-torture/pr40386.c",
+  "gcc-torture/pr42691.c",
+  "gcc-torture/pr46316.c",
+  "gcc-torture/pr49281.c",
+  "gcc-torture/pr51933.c",
+  "gcc-torture/pr56866.c",
+  "gcc-torture/pr57131.c",
+  "gcc-torture/pr58387.c",
+  "gcc-torture/pr58431.c",
+  "gcc-torture/pr58574.c",
+  "gcc-torture/pr60454.c",
+  "gcc-torture/pr65215-3.c",
+  "gcc-torture/pr65401.c",
+  "gcc-torture/pr65648.c",
+  "gcc-torture/pr69320-2.c",
+  "gcc-torture/pr70127.c",
+  "gcc-torture/pr78622.c",
+  "gcc-torture/pr79450.c",
+  "gcc-torture/pr80421.c",
+  "gcc-torture/pr81423.c",
+  "gcc-torture/pr81503.c",
+  "gcc-torture/pr85582-3.c",
+  "gcc-torture/pr86714.c",
+  "gcc-torture/pr88714.c",
+  "gcc-torture/pr91450-2.c",
+  "gcc-torture/pr96549.c",
+  "gcc-torture/pr97888-2.c",
+  "gcc-torture/simd-1.c",
+  "gcc-torture/strlen-6.c",
+  "gcc-torture/struct-ini-3.c",
+  "gcc-torture/va-arg-9.c",
+  "smoke/25_preprocessor.c",
+  "smoke/30_logical_shortcircuit.c"
+ ]
+}
