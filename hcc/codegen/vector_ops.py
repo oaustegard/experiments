@@ -8,6 +8,10 @@ result buffer, and leaves %rax = address of the result.
 """
 from __future__ import annotations
 
+from hcc.typesys import is_flonum
+
+_FBIN = {"+": "add", "-": "sub", "*": "mul", "/": "div"}
+
 _LOAD_MN = {(1, True): "movsbq", (1, False): "movzbq", (2, True): "movswq",
             (2, False): "movzwq", (4, True): "movslq", (8, True): "movq",
             (8, False): "movq"}
@@ -25,8 +29,30 @@ class VectorOpsMixin:
         else:
             self.emit(f"{_LOAD_MN[(size, signed)]} {off}({base}), {reg64}")
 
+    def vector_float_binary(self, node) -> None:
+        """`a op b` on GCC float/double vectors, element by element via SSE."""
+        lty = node.lhs.ty
+        size, es = lty.size, lty.base.size
+        sfx = "ss" if es == 4 else "sd"
+        mn = _FBIN[node.op] + sfx
+        self.gen_expr(node.rhs)
+        self.push()
+        self.gen_expr(node.lhs)
+        self.emit("mov %rax, %rsi")
+        self.pop("%r8")
+        self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+        mov = "movss" if es == 4 else "movsd"
+        for i in range(0, size, es):
+            self.emit(f"{mov} {i}(%rsi), %xmm0")
+            self.emit(f"{mov} {i}(%r8), %xmm1")
+            self.emit(f"{mn} %xmm1, %xmm0")
+            self.emit(f"{mov} %xmm0, {i}(%rdi)")
+        self.emit("mov %rdi, %rax")
+
     def vector_binary(self, node) -> None:
         lty = node.lhs.ty
+        if is_flonum(lty.base):
+            return self.vector_float_binary(node)
         size, es = lty.size, lty.base.size
         signed = not lty.base.is_unsigned
         self.gen_expr(node.rhs)                      # %rax = rhs address

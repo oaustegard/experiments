@@ -14,7 +14,7 @@ from hcc import nodes as N
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
-from hcc.typesys import TY_INT, TY_LONG, TypeKind, is_integer, is_numeric, pointer_to
+from hcc.typesys import TY_INT, TY_LONG, TypeKind, is_flonum, is_integer, is_numeric, pointer_to
 
 
 def _t(node):
@@ -68,11 +68,17 @@ VECTOR_OPS = ("+", "-", "*", "/", "%", "&", "|", "^")
 
 
 def vector_binop(op, lhs, rhs, loc):
-    """Element-wise `lhs op rhs` on two integer GCC vectors of equal size.
+    """Element-wise `lhs op rhs` on two GCC vectors of equal size (integer
+    elements for all VECTOR_OPS, floating elements for + - * /).
     Returns None when the operands are not such a pair."""
     if op not in VECTOR_OPS or not (lhs.ty.is_vector and rhs.ty.is_vector):
         return None
-    if lhs.ty.size != rhs.ty.size or not is_integer(lhs.ty.base):
+    if lhs.ty.size != rhs.ty.size:
+        return None
+    if is_flonum(lhs.ty.base):
+        if op not in ("+", "-", "*", "/"):
+            return None
+    elif not is_integer(lhs.ty.base):
         return None
     return _t(N.Binary(loc, op, lhs, rhs, ty=lhs.ty))
 
@@ -93,26 +99,34 @@ def new_binop(op, lhs, rhs, loc):
     return _t(narrow_wide_bitfield_result(op, lhs, rhs, node))
 
 
+def _binop_buf(op, lhs, rhs, loc, new_temp):
+    """new_binop, plus the result buffer a vector-valued Binary needs."""
+    node = new_binop(op, lhs, rhs, loc)
+    if isinstance(node, N.Binary) and node.ty.is_vector and node.result_buf is None:
+        node.result_buf = new_temp(node.ty)
+    return node
+
+
 def compound_assign(op, lhs, rhs, loc, new_temp):
     """Lower `lhs op= rhs` so that lhs is evaluated only once."""
     add_type(lhs)
     add_type(rhs)
     if isinstance(lhs, N.VarRef):           # simple variable: no temp needed
-        return _t(N.Assign(loc, lhs, new_binop(op, lhs, rhs, loc)))
+        return _t(N.Assign(loc, lhs, _binop_buf(op, lhs, rhs, loc, new_temp)))
     if isinstance(lhs, N.Member_) and lhs.member.is_bitfield:
         tmp = new_temp(pointer_to(lhs.operand.ty))
         e1 = _t(N.Assign(loc, _t(N.VarRef(loc, tmp)), _t(N.AddrOf(loc, lhs.operand))))
 
         def obj():
             return _t(N.Member_(loc, _t(N.Deref(loc, _t(N.VarRef(loc, tmp)))), lhs.member))
-        e2 = _t(N.Assign(loc, obj(), new_binop(op, obj(), rhs, loc)))
+        e2 = _t(N.Assign(loc, obj(), _binop_buf(op, obj(), rhs, loc, new_temp)))
         return _t(N.Comma(loc, e1, e2))
     tmp = new_temp(pointer_to(lhs.ty))
     e1 = _t(N.Assign(loc, _t(N.VarRef(loc, tmp)), _t(N.AddrOf(loc, lhs))))
 
     def deref():
         return _t(N.Deref(loc, _t(N.VarRef(loc, tmp))))
-    e2 = _t(N.Assign(loc, deref(), new_binop(op, deref(), rhs, loc)))
+    e2 = _t(N.Assign(loc, deref(), _binop_buf(op, deref(), rhs, loc, new_temp)))
     return _t(N.Comma(loc, e1, e2))
 
 
