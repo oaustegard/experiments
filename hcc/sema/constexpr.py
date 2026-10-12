@@ -16,6 +16,7 @@ from hcc.floatbits import pack_float32
 from hcc.typesys import TypeKind, is_flonum, is_integer, round_to_half
 from hcc.sema.constexpr_math import fold_int_call, fold_math_call
 from hcc.sema.constexpr_rel import fold_rel_equal
+from hcc.sema.constexpr_intfloat import int_to_flonum
 
 
 class NotConstant(Exception):
@@ -111,6 +112,8 @@ def eval_float(node) -> float:
         return _round_to_flonum(node.value, node.ty)
     if isinstance(node, N.Cast) and is_flonum(node.operand.ty):
         return _round_to_flonum(eval_float(node.operand), node.ty)
+    if isinstance(node, N.Cast) and is_integer(node.operand.ty) and is_flonum(node.ty):
+        return _round_to_flonum(int_to_flonum(_num(node.operand), node.ty), node.ty)
     if isinstance(node, N.Unary) and node.op == "-":
         return -eval_float(node.operand)
     if isinstance(node, N.Binary) and node.op in "+-*/":

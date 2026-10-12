@@ -297,6 +297,10 @@ class ExpressionMixin:
             node = self.unary()
             self.typed(node)
             ty = node.ty
+            if ty.kind == TypeKind.VLA:
+                # sizeof(expr) of a variably modified type still evaluates
+                # expr (its VLA lengths may have side effects).
+                return self.typed(N.Comma(t.loc, node, self.vla_size_expr(ty, t.loc)))
         if ty.kind == TypeKind.VLA or is_dyn_struct(ty):
             size = self.vla_size_expr(ty, t.loc)
             if effects:

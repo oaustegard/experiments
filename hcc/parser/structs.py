@@ -284,6 +284,10 @@ def layout_struct(ty) -> None:
                 bits = T.align_to(unit_end, sz * 8)
             if not loose and bits // (sz * 8) != (bits + m.bit_width - 1) // (sz * 8):
                 bits = T.align_to(bits, sz * 8)
+            if m.explicit_align and m.align > 1 and bits % (sz * 8) == 0:
+                # `int d : 2 __attribute__((aligned(16)))` opening a new storage unit
+                # starts at the attribute's alignment (GCC; a unit-sharing field does not move)
+                bits = T.align_to(bits, m.align * 8)
             m.offset = (bits // 8) // sz * sz if not loose else bits // 8
             m.bit_offset = bits - m.offset * 8
             unit_end = (bits // (sz * 8)) * (sz * 8) + sz * 8

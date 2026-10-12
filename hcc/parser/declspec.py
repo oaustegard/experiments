@@ -127,6 +127,7 @@ class DeclSpecMixin:
         ty = T.TY_INT
         counter = 0
         vsize = 0
+        tmode = None          # type-name __attribute__((mode(X)))
         auto_infer = False
         is_const = is_volatile = is_atomic = is_complex = False
         while self.is_typename():
@@ -181,6 +182,7 @@ class DeclSpecMixin:
                     scratch = VarAttr()
                     self.parse_attributes(scratch)
                     vsize = scratch.vector_size or vsize
+                    tmode = scratch.mode or tmode
                 else:
                     self.parse_attributes(attr)
                 continue
@@ -251,6 +253,8 @@ class DeclSpecMixin:
             # __attribute__((mode(QI/HI/SI/DI/TI))) re-sizes an integer base type
             ty = mode_type(ty, attr.mode)
             attr.mode = None
+        elif attr is None and tmode and ty is not None:
+            ty = mode_type(ty, tmode)
         if counter == 0 and attr is None and not (is_const or is_volatile or is_complex):
             self.error("expected type")
         if ty is not None and (is_const or is_volatile or is_atomic):

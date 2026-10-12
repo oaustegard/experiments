@@ -331,14 +331,11 @@ class DeclaratorMixin:
         return None
 
     def scoped_typename(self, allow_storage=False):
-        """typename() for sizeof/_Alignof/typeof: tags and enumerators declared
-        inside the type name are local to it (PR c/67784), so they do not leak
-        into the enclosing block scope."""
-        self.enter_scope()
-        try:
-            return self.typename(allow_storage)
-        finally:
-            self.leave_scope()
+        """typename() for sizeof/_Alignof/typeof. Tags and enumerators declared
+        inside the type name go to the innermost scope: the block, or the
+        if/while/do/for/switch statement whose controlling expression holds them
+        (PR c/67784)."""
+        return self.typename(allow_storage)
 
     def abstract_declarator(self, ty):
         ty, name = self.declarator(ty)

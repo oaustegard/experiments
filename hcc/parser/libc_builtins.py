@@ -31,11 +31,25 @@ _add(_CHAR_PTR, "strcpy stpcpy strncpy strcat strncat strchr strrchr strstr strp
 _add(_SIZE_T, "strlen strnlen")
 _add(T.TY_VOID, "abort exit _Exit free")
 _add(T.TY_DOUBLE, "sqrt sin cos tan exp log log10 pow floor ceil fabs atan atan2 copysign")
+_add(T.TY_DOUBLE, "asin acos sinh cosh tanh log2 exp2 cbrt trunc round fmod hypot fmin fmax")
 _add(T.TY_FLOAT, "sqrtf sinf cosf fabsf floorf ceilf powf copysignf")
 _add(T.TY_LDOUBLE, "sqrtl sinl cosl tanl expl logl log10l powl floorl ceill fabsl atanl atan2l copysignl")
 _add(T.TY_INT, "abs memcmp strcmp strncmp")
 _add(T.TY_LONG, "labs imaxabs")
 _add(T.TY_LLONG, "llabs")
+
+_add(T.TY_FLOAT, "tanf expf logf log10f log2f exp2f atanf atan2f asinf acosf fmodf hypotf")
+
+# Builtin math functions take fixed floating parameters: GCC converts the
+# arguments to them, so `__builtin_log2(an_unsigned_long)` works. Only the
+# names listed here get a prototype; the rest keep the unprototyped call.
+_MATH_ARGS: dict[str, list[T.Type]] = {}
+for _names, _n in (("sqrt sin cos tan exp log log10 floor ceil fabs atan asin acos sinh cosh tanh "
+                    "log2 exp2 cbrt trunc round", 1),
+                   ("pow atan2 copysign fmod hypot fmin fmax", 2)):
+    for _nm in _names.split():
+        _MATH_ARGS[_nm] = [T.TY_DOUBLE] * _n
+        _MATH_ARGS[_nm + "f"] = [T.TY_FLOAT] * _n
 
 
 def libc_return_type(name: str):
@@ -66,6 +80,12 @@ POWI_HELPERS = {
     "powi": ("__powidf2", T.TY_DOUBLE),
     "powil": ("__powixf2", T.TY_LDOUBLE),
 }
+
+
+def libc_param_types(name: str):
+    """Parameter types of builtin math function `name` (a new list), or None."""
+    ps = _MATH_ARGS.get(name)
+    return None if ps is None else list(ps)
 
 
 # Integer abs() functions that GCC expands inline (bit width of the operand).

@@ -10,7 +10,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.parser.builtins import SPECIAL_BUILTINS, floatn_libc_name
-from hcc.parser.libc_builtins import POWI_HELPERS, libc_return_type, libm_param_types
+from hcc.parser.libc_builtins import POWI_HELPERS, libc_param_types, libc_return_type, libm_param_types
 from hcc.parser import complex as CPX
 from hcc.parser.scope import VarScope
 from hcc.sema.compat import is_compatible
@@ -107,12 +107,10 @@ class PrimaryMixin:
             if rty is None:
                 diag.warn(t, f"implicit declaration of function '{name}'")
                 rty = T.TY_INT
-            fn = self.implicit_function(name, t, rty)
             params = libm_param_types(name, rty)
-            if params is not None:
-                fn.ty.params = params
-                fn.ty.has_proto = True
-            return self.typed(N.VarRef(t.loc, fn))
+            if params is None:
+                params = libc_param_types(name)
+            return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty, params)))
         self.error(f"'{name}' undeclared", t)
 
     def c23_mode(self):
@@ -133,9 +131,12 @@ class PrimaryMixin:
             self._func_name_var = (self.fn, var)
         return self._func_name_var[1]
 
-    def implicit_function(self, name, tok, ret_ty=None):
+    def implicit_function(self, name, tok, ret_ty=None, params=None):
         fty = T.func_type(ret_ty or T.TY_INT)
         fty.has_proto = False
+        if params is not None:          # builtin with a known prototype
+            fty.params = params
+            fty.has_proto = True
         fn = N.Function(name, fty, loc=tok.loc)
         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
         self.objs.append(fn)

@@ -15,6 +15,7 @@ import struct
 from hcc import nodes as N
 from hcc.halfbits import half_to_double
 from hcc.parser.fp_classify import FP_CLASS_STEMS
+from hcc.parser.nan_payload import nan_literal
 from hcc.parser.float16_math import F16_MATH_NAMES, f16_math_call
 from hcc.parser.has_attribute import has_attribute_call
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
@@ -28,7 +29,7 @@ from hcc.parser.vector_shuffle import lower_shuffle
 from hcc.parser.x86_sse_sigs import X86_BUILTINS, x86_call
 from hcc.parser.vector_shufflevector import lower_shufflevector
 from hcc.parser.tgmath import tgmath_call
-from hcc.parser.complex import make_complex
+from hcc.parser.complex import conjugate, make_complex
 from hcc.parser.complex import builtin_complex
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
@@ -59,7 +60,7 @@ __builtin_fpclassify __builtin_isnormal __builtin_isinf_sign
 __builtin_isless __builtin_islessequal __builtin_islessgreater
 __builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
 __builtin_object_size __builtin_dynamic_object_size __builtin_has_attribute
-__builtin_complex
+__builtin_complex __builtin_conj __builtin_conjf __builtin_conjl
 """.split())
 
 # SSE4.2 CRC32 builtins: (crc, value) -> CRC-32C accumulated over the value's width.
@@ -124,6 +125,15 @@ class BuiltinParseMixin:
             node = getattr(self, "_b_" + name)(tok)
         self.expect(")")
         return node
+
+    def _b_conj(self, tok):
+        """__builtin_conj{f,,l}(z): the complex conjugate of a _Complex value."""
+        (z,) = self._args(1)
+        if not z.ty.is_complex:
+            self.error("__builtin_conj expects a complex argument")
+        return conjugate(self, z, tok.loc)
+
+    _b_conjf = _b_conjl = _b_conj
 
     def _b_complex(self, tok):
         """__builtin_complex(re, im): a _Complex value (see parser/complex.py)."""
@@ -417,10 +427,9 @@ class BuiltinParseMixin:
         return N.FloatLit(tok.loc, float("inf"), ty=ty)
 
     def _nan_lit(self, tok, ty):
-        """__builtin_nan*(tag): a constant quiet NaN (the tag string only
-        selects a payload, which is not modelled)."""
-        self._args(1)
-        return N.FloatLit(tok.loc, float("nan"), ty=ty)
+        """__builtin_nan*(tag): a constant quiet NaN whose payload is read from the tag."""
+        args = self._args(1)
+        return nan_literal(args[0], ty, False, tok.loc)
 
     def _b_nan(self, tok):
         return self._nan_lit(tok, T.TY_DOUBLE)
@@ -432,20 +441,9 @@ class BuiltinParseMixin:
         return self._nan_lit(tok, T.TY_LDOUBLE)
 
     def _snan_lit(self, tok, ty):
-        """__builtin_nans*(tag): a signaling NaN, as GCC encodes the empty payload: the
-        quiet bit clear and the bit below it set. Only the float/double/x87 patterns are
-        exact; the tag string only selects a payload, which is not modelled."""
-        self._args(1)
-        if ty.kind == T.TypeKind.FLOAT:
-            bits = 0x7FA00000
-            val = struct.unpack("<f", struct.pack("<I", bits))[0]
-        elif ty.kind == T.TypeKind.DOUBLE:
-            bits = 0x7FF4000000000000
-            val = struct.unpack("<d", struct.pack("<Q", bits))[0]
-        else:       # x87: exponent 0x7fff, integer bit set, quiet bit clear (as GCC)
-            bits = (0x7FFF << 64) | 0xA000000000000000
-            val = float("nan")
-        return N.FloatLit(tok.loc, val, ty=ty, bits=bits)
+        """__builtin_nans*(tag): a constant signaling NaN (quiet bit clear)."""
+        args = self._args(1)
+        return nan_literal(args[0], ty, True, tok.loc)
 
     def _b_nans(self, tok):
         return self._snan_lit(tok, T.TY_DOUBLE)

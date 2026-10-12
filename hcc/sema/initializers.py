@@ -158,14 +158,15 @@ def _write_le(init, ty, gd, offset) -> None:
             diag.error(expr, "initializer element is not constant", "sema")
         if ty.kind == T.TypeKind.FLOAT16:
             gd.data[offset:offset + 2] = half_bits(v).to_bytes(2, "little")
-        elif ty.kind == T.TypeKind.FLOAT:
-            exact = _exact_bits(expr, 31)     # keeps signaling NaN bits a Python float loses
-            gd.data[offset:offset + 4] = (pack_float32(v) if exact is None
-                                          else exact.to_bytes(4, "little"))
-        elif ty.kind == T.TypeKind.DOUBLE:
-            exact = _exact_bits(expr, 63)
-            gd.data[offset:offset + 8] = (pack_float64(v) if exact is None
-                                          else exact.to_bytes(8, "little"))
+        elif ty.kind in (T.TypeKind.FLOAT, T.TypeKind.DOUBLE):
+            size = 4 if ty.kind == T.TypeKind.FLOAT else 8
+            exact = _exact_float_bits(expr, ty)
+            if exact is not None:        # keeps signaling NaN payloads (no float round trip)
+                gd.data[offset:offset + size] = exact.to_bytes(size, "little")
+            elif size == 4:
+                gd.data[offset:offset + 4] = pack_float32(v)
+            else:
+                gd.data[offset:offset + 8] = pack_float64(v)
         else:
             exact = _exact_bits(expr, 79)
             gd.data[offset:offset + 10] = (exact.to_bytes(10, "little") if exact is not None
@@ -294,6 +295,19 @@ def _exact_bits(node, sign_bit: int) -> int | None:
     if isinstance(node, N.Unary) and node.op == "-":
         bits = _exact_bits(node.operand, sign_bit)
         return None if bits is None else bits ^ (1 << sign_bit)
+    return None
+
+
+def _exact_float_bits(node, ty) -> int | None:
+    """Exact float/double encoding of a literal of the same type (optionally negated);
+    None when the Python float value is the only source (not a literal)."""
+    if isinstance(node, N.FloatLit):
+        if node.bits is None or node.ty is None or node.ty.kind != ty.kind:
+            return None
+        return node.bits
+    if isinstance(node, N.Unary) and node.op == "-":
+        bits = _exact_float_bits(node.operand, ty)
+        return None if bits is None else bits ^ (1 << (ty.size * 8 - 1))
     return None
 
 

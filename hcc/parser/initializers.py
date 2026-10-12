@@ -291,6 +291,11 @@ class InitializerMixin:
             self.member_designator(init)
             return
         self.accept("=")
+        if self.at("{") and (init.children is not None or init.expr is not None):
+            # `[i] = { ... }` / `.f = { ... }` initializes the whole sub-object: values set
+            # by earlier initializers for it are dropped (C11 6.7.9p19), others become 0.
+            fresh = new_initializer(init.ty, init.is_flexible)
+            init.expr, init.children, init.mem = None, fresh.children, None
         self.initializer2(init)
 
     def at_member_designator(self) -> bool:

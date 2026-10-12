@@ -70,8 +70,8 @@ def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
 
 
 _SCANNERS = {(lc, u8): _make_scanner(lc, u8) for lc in (True, False) for u8 in (True, False)}
-# -std values that do not recognise `//` comments
-C90_STDS = frozenset({"c89", "c90", "gnu89", "gnu90", "iso9899:1990", "ansi"})
+# Strict -std values that do not recognise `//` comments (GCC: gnu89/gnu90 keep them)
+C90_STDS = frozenset({"c89", "c90", "iso9899:1990", "iso9899:199409", "ansi"})
 
 _UCN_RE = re.compile(r"\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})")
 

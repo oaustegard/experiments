@@ -155,7 +155,7 @@ def _member(n: N.Member_):
 
 
 def _stmt_expr(n: N.StmtExpr):
-    items = n.body.items
+    items = [i for i in n.body.items if not isinstance(i, N.VLAExit)]
     n.ty = TY_VOID
     while items:
         last = items[-1]

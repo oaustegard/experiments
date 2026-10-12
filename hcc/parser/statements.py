@@ -95,14 +95,18 @@ class StatementMixin:
         return N.Return(t.loc, e)
 
     def _stmt_if(self, t):
+        # tags/enumerators declared in the controlling expression are local to the statement
+        self.enter_scope()
         self.expect("(")
         cond = CPX.truth(self, self.typed(self.expr()))
         self.expect(")")
-        then = self.stmt()
-        els = self.stmt() if self.accept("else") else None
+        then = self.sub_stmt()
+        els = self.sub_stmt() if self.accept("else") else None
+        self.leave_scope()
         return N.If(t.loc, cond, then, els)
 
     def _stmt_switch(self, t):
+        self.enter_scope()
         self.expect("(")
         cond = CPX.truth(self, self.typed(self.expr()))
         self.expect(")")
@@ -111,8 +115,9 @@ class StatementMixin:
         sw = N.Switch(t.loc, cond, None, [], None, self.new_label())
         saved = (self.cur_switch, self.brk_label)
         self.cur_switch, self.brk_label = sw, sw.brk_label
-        sw.body = self.stmt()
+        sw.body = self.sub_stmt()
         self.cur_switch, self.brk_label = saved
+        self.leave_scope()
         return sw
 
     def _stmt_case(self, t):
@@ -140,8 +145,16 @@ class StatementMixin:
     def _loop_body(self, brk, cont):
         saved = (self.brk_label, self.cont_label)
         self.brk_label, self.cont_label = brk, cont
-        body = self.stmt()
+        body = self.sub_stmt()
         self.brk_label, self.cont_label = saved
+        return body
+
+    def sub_stmt(self):
+        """Substatement of if/else/switch/loops: a block of its own (C11 6.8.4p3, 6.8.5p5),
+        so a tag declared in it (`if (c) x = sizeof(struct s {int a;});`) is local to it."""
+        self.enter_scope()
+        body = self.stmt()
+        self.leave_scope()
         return body
 
     def _stmt_for(self, t):
@@ -166,14 +179,17 @@ class StatementMixin:
         return N.For(t.loc, init, cond, inc, body, brk, cont)
 
     def _stmt_while(self, t):
+        self.enter_scope()
         self.expect("(")
         cond = CPX.truth(self, self.typed(self.expr()))
         self.expect(")")
         brk, cont = self.new_label(), self.new_label()
         body = self._loop_body(brk, cont)
+        self.leave_scope()
         return N.For(t.loc, None, cond, None, body, brk, cont)
 
     def _stmt_do(self, t):
+        self.enter_scope()
         brk, cont = self.new_label(), self.new_label()
         body = self._loop_body(brk, cont)
         self.expect("while")
@@ -181,6 +197,7 @@ class StatementMixin:
         cond = CPX.truth(self, self.typed(self.expr()))
         self.expect(")")
         self.expect(";")
+        self.leave_scope()
         return N.DoWhile(t.loc, body, cond, brk, cont)
 
     def _stmt_goto(self, t):
