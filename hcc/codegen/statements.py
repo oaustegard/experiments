@@ -36,7 +36,19 @@ class StatementMixin:
         self.emit(f"mov %rsp, {node.saved.offset}(%rbp)")
 
     def stmt_VLAExit(self, node) -> None:
-        self.emit(f"mov {node.saved.offset}(%rbp), %rsp")
+        self.emit(f"mov {node.saved.offset}(%rbp), %rcx")
+        self._keep_alloca_memory("%rcx")
+        self.emit("mov %rcx, %rsp")
+
+    def _keep_alloca_memory(self, reg) -> None:
+        """alloca memory lives until function return: never raise %rsp above
+        the lowest alloca block (the function's alloca_bottom mark)."""
+        mark = self.fn.alloca_bottom
+        if mark is None:
+            return
+        self.emit(f"mov {mark.offset}(%rbp), %r10")
+        self.emit(f"cmp %r10, {reg}")
+        self.emit(f"cmova %r10, {reg}")
 
     def stmt_VLAAlloc(self, node) -> None:
         # Reset %rsp to the block's saved value first so that re-executing a
@@ -45,6 +57,7 @@ class StatementMixin:
         self.emit("add $15, %rax")
         self.emit("and $-16, %rax")
         self.emit(f"mov {node.saved.offset}(%rbp), %rcx")
+        self._keep_alloca_memory("%rcx")
         self.emit("sub %rax, %rcx")
         self.emit("mov %rcx, %rsp")
         self.emit(f"mov %rsp, {node.var.offset}(%rbp)")

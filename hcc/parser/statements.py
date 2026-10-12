@@ -8,6 +8,7 @@ One `_stmt_<keyword>` method per statement keyword; see STMT_KEYWORDS.
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc import typesys as T
 from hcc.sema.constexpr import eval_const
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
@@ -44,6 +45,8 @@ class StatementMixin:
         saves = self.block_vla_saves
         self.block_vla_saves = outer_saves
         if saves:
+            if self.fn is not None and self.fn.alloca_bottom is None:
+                self.fn.alloca_bottom = self.new_temp(T.TY_ULONG)   # alloca low-water mark
             items = [N.VLAEnter(loc, saves[0])] + items + [N.VLAExit(loc, saves[0])]
         return N.Block(loc, items)
 

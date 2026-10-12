@@ -99,6 +99,8 @@ class FunctionMixin:
         self.emit("mov %rsp, %rbp")
         if size:
             self.emit(f"sub ${size}, %rsp")
+        if fn.alloca_bottom is not None:        # no alloca memory yet (see statements.py)
+            self.emit(f"movq $-1, {fn.alloca_bottom.offset}(%rbp)")
         if fn.chain_var is not None:
             self.emit(f"mov %r10, {fn.chain_var.offset}(%rbp)")
         self.depth = 0

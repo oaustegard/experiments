@@ -27,7 +27,8 @@ class PostfixMixin:
             ty = self.typename()
             self.expect(")")
             if self.at("{"):
-                return self.postfix_ops(self.compound_literal(ty))
+                ty, pre = self.vla_bind(ty, self.tok.loc)
+                return self.postfix_ops(self.vla_prefix(pre, self.compound_literal(ty), self.tok.loc))
             self.pos = save
         return self.postfix_ops(self.primary())
 

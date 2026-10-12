@@ -118,15 +118,16 @@ class ExpressionMixin:
             if self.at("{"):                      # compound literal
                 self.pos = start
                 return self.unary()
+            ty, pre = self.vla_bind(ty, loc)      # `(int (*)[++i])p` evaluates ++i
             operand = self.cast_expr()
             if ty.kind == TypeKind.VOID:
-                return N.Cast(loc, operand, ty=ty)
+                return self.vla_prefix(pre, N.Cast(loc, operand, ty=ty), loc)
             lowered = lower_scalar_to_vector(self, loc, self.typed(operand), ty.unqual())
             if lowered is not None:
-                return lowered
+                return self.vla_prefix(pre, lowered, loc)
             node = N.Cast(loc, operand, ty=ty.unqual())
             self.typed(operand)
-            return node
+            return self.vla_prefix(pre, node, loc)
         return self.unary()
 
     def unary(self):

@@ -233,6 +233,16 @@ class BuiltinMixin:
         self.gen_expr(node.args[0])
         self._alloca_rax()
 
+    def _update_alloca_mark(self) -> None:
+        """Lower the function's alloca mark to the new block address in %r11."""
+        mark = self.fn.alloca_bottom
+        if mark is None:
+            return
+        self.emit(f"mov {mark.offset}(%rbp), %r10")
+        self.emit("cmp %r10, %r11")
+        self.emit("cmovb %r11, %r10")
+        self.emit(f"mov %r10, {mark.offset}(%rbp)")
+
     def _alloca_rax(self) -> None:
         """Allocate %rax bytes (rounded to 16) on the stack; result in %rax.
 
@@ -249,6 +259,7 @@ class BuiltinMixin:
         self.emit(f"add ${d * 8}, %r11")       # r11 = logical base
         self.emit("sub %rax, %r11")
         self.emit("and $-16, %r11")            # r11 = block address (new base)
+        self._update_alloca_mark()
         for i in range(d):
             self.emit(f"mov {i * 8}(%rsp), %r10")
             self.emit(f"mov %r10, {i * 8 - d * 8}(%r11)")

@@ -171,6 +171,12 @@ class InitializerMixin:
 
     def array_initializer1(self, init) -> None:
         self.expect("{")
+        if self.tok.kind == TokenKind.STRING and T.is_integer(init.ty.base) and \
+                self.peek().text in ("}", ","):
+            # `char s[] = {"foo"};`: braces around a string literal initialize the array
+            self.string_initializer(init)
+            self._consume_end()
+            return
         i = 0
         first = True
         while not self._consume_end():

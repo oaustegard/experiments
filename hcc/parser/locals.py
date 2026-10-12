@@ -84,6 +84,9 @@ class LocalDeclMixin:
                 if self.accept("="):
                     self.error("variable-sized object may not be initialized", name)
                 continue
+            if ty.kind == T.TypeKind.PTR:          # `int (*p)[n];` evaluates n here
+                ty, pre = self.vla_bind(ty, name.loc)
+                items.extend(pre)
             var = self.new_lvar(name.text, ty, name.loc)
             al = max(attr.align, dattr.align)
             if al:
