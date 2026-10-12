@@ -390,6 +390,12 @@ def predefined_source(opts) -> str:
     if STD_VERSIONS.get(std, "") >= "202000L":
         # C23 makes static_assert a keyword (C11/C17 provide it via <assert.h>)
         lines.append("#define static_assert _Static_assert")
+    # gcc: -fgnu89-inline (or a gnu89 -std=) defines __GNUC_GNU_INLINE__,
+    # otherwise __GNUC_STDC_INLINE__ is defined.
+    if opts.gnu89_inline or std in ("c89", "c90", "gnu89", "gnu90"):
+        lines.append("#define __GNUC_GNU_INLINE__ 1")
+    else:
+        lines.append("#define __GNUC_STDC_INLINE__ 1")
     if opts.pic:
         lines.append("#define __PIC__ 2\n#define __pic__ 2")
     return "\n".join(lines) + "\n"
