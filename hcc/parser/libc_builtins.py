@@ -43,6 +43,15 @@ def libc_return_type(name: str):
     return _TABLE.get(name)
 
 
+# __builtin_powi{f,,l}(x, n): integer power, expanded by libgcc as __powi{sf,df,xf}2.
+# Maps the builtin's libm-style name to (libgcc helper, C type of x and result).
+POWI_HELPERS = {
+    "powif": ("__powisf2", T.TY_FLOAT),
+    "powi": ("__powidf2", T.TY_DOUBLE),
+    "powil": ("__powixf2", T.TY_LDOUBLE),
+}
+
+
 # Integer abs() functions that GCC expands inline (bit width of the operand).
 _INT_ABS = {"abs": 32, "labs": 64, "llabs": 64, "imaxabs": 64}
 

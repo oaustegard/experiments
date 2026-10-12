@@ -10,7 +10,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.parser.builtins import SPECIAL_BUILTINS, floatn_libc_name
-from hcc.parser.libc_builtins import libc_return_type
+from hcc.parser.libc_builtins import POWI_HELPERS, libc_return_type
 from hcc.parser.scope import VarScope
 from hcc.sema.compat import is_compatible
 from hcc.tokens import TokenKind
@@ -76,6 +76,8 @@ class PrimaryMixin:
         is_call = self.at("(")
         if name.startswith("__builtin_"):
             bname = name[len("__builtin_"):]
+            if is_call and bname in POWI_HELPERS:
+                return self.typed(N.VarRef(t.loc, self.powi_helper(t, bname)))
             if is_call or libc_return_type(bname) is not None:
                 # &__builtin_abs and __builtin_abs(...) both name the library function.
                 name = floatn_libc_name(bname)
@@ -114,6 +116,20 @@ class PrimaryMixin:
         fty.has_proto = False
         fn = N.Function(name, fty, loc=tok.loc)
         self.scopes[0].vars.setdefault(name, VarScope()).var = fn
+        self.objs.append(fn)
+        return fn
+
+    def powi_helper(self, tok, bname):
+        """The libgcc helper behind __builtin_powi{f,,l}, declared once with a
+        prototype (T x, int n) so that x is converted to its C type."""
+        helper, ty = POWI_HELPERS[bname]
+        vs = self.find_var(helper)
+        if vs is not None and vs.var is not None:
+            return vs.var
+        fty = T.func_type(ty)
+        fty.params = [ty, T.TY_INT]
+        fn = N.Function(helper, fty, loc=tok.loc)
+        self.scopes[0].vars.setdefault(helper, VarScope()).var = fn
         self.objs.append(fn)
         return fn
 
