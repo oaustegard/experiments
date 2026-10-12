@@ -47,7 +47,7 @@ class Member:
 
     __slots__ = ("name", "ty", "offset", "align", "idx", "is_bitfield",
                  "bit_offset", "bit_width", "tok", "rev_bytes", "is_packed",
-                 "explicit_align", "alias")
+                 "explicit_align", "alias", "open_array")
 
     def __init__(self, name, ty, offset=0, align=1, idx=0):
         self.name: str | None = name
@@ -63,6 +63,7 @@ class Member:
         self.rev_bytes = 0      # >0: bitfield in a scalar_storage_order("big-endian") struct
         self.is_packed = False  # member carries __attribute__((packed)): no alignment, may straddle units
         self.explicit_align = 0  # _Alignas / __attribute__((aligned(N))) on the member (survives struct packed)
+        self.open_array = False  # trailing `T x[]` member (incomplete; stored as length 0)
 
     def __repr__(self):
         return f"Member({self.name}, {self.ty}, off={self.offset})"
