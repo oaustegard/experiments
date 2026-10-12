@@ -155,6 +155,7 @@ class DeclSpecMixin:
         is_const = is_volatile = is_atomic = is_complex = is_restrict = False
         seen_storage = set()  # storage class specifiers seen in this declaration
         tag_hit = None        # struct/union tag of an empty declaration (see StructMixin.struct_decl)
+        fwd_enum = None       # tag of a bodyless `enum e : T` (see EnumMixin.enum_specifier)
         while self.is_typename():
             if self.at_std_attribute():
                 self.skip_std_attributes()
@@ -252,9 +253,12 @@ class DeclSpecMixin:
                 self.next()
                 if spec is not None:
                     self.empty_tag_hit = None
+                    self.enum_fixed_fwd = None
                     ty = spec(self, tok, attr)
                     tag_hit = self.empty_tag_hit or tag_hit
                     self.empty_tag_hit = None
+                    fwd_enum = self.enum_fixed_fwd or fwd_enum
+                    self.enum_fixed_fwd = None
                 elif is_floatn:
                     ty = NAMED_SCALAR_TYPES[s]
                 else:
@@ -272,6 +276,8 @@ class DeclSpecMixin:
             ty = _BASE_TYPES[counter]
         if tag_hit is not None:
             _check_empty_tag_decl(self, tag_hit, is_const or is_volatile or is_restrict, seen_storage - {"typedef"})
+        if fwd_enum is not None and attr is not None and self.at(";"):
+            _check_empty_enum_fixed(self, attr, seen_storage, is_const or is_volatile or is_restrict or is_atomic)
         if attr is not None and attr.is_tls:
             # __thread (_Thread_local) only applies to objects with static storage or extern
             bads = ("typedef", "register") if self.c23_mode() else ("typedef", "auto", "register")
@@ -347,6 +353,24 @@ def check_empty_inline(self, attr) -> None:
     """`int inline;` has no declarator: GCC rejects the function specifier there."""
     if attr is not None and attr.is_inline and self.at(";"):
         self.error("'inline' in empty declaration", self.tok.loc)
+
+
+def _check_empty_enum_fixed(self, attr, storage: set, quals: bool) -> None:
+    """C23 6.7.2.2: `extern enum e : int;` is an empty declaration; storage classes,
+    qualifiers and alignment are not allowed on it (GCC: 'in empty declaration')."""
+    tail = "with 'enum' underlying type"
+    for s in ("extern", "static", "_Thread_local"):
+        if s in storage:
+            self.error(f"'{s}' in empty declaration {tail}")
+    for s in ("register", "auto"):      # allowed in block scope
+        if s in storage and len(self.scopes) == 1:
+            self.error(f"'{s}' in file-scope empty declaration")
+    if attr.is_noreturn:
+        self.error(f"'_Noreturn' in empty declaration {tail}")
+    if attr.alignas_min:
+        self.error(f"'alignas' in empty declaration {tail}")
+    if quals:
+        self.error(f"type qualifier in empty declaration {tail}")
 
 
 def _check_empty_tag_decl(self, tag_hit, quals: bool, storage: set) -> None:

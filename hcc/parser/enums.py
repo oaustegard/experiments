@@ -60,6 +60,8 @@ class EnumMixin:
         if tag is not None and fixed is not None:
             self.check_fwd_fixed(tag)
         if tag is not None and not self.at("{"):
+            if fixed is not None:
+                self.enum_fixed_fwd = tag     # bodyless `enum e : T`: an empty declaration
             ty = self.find_tag(tag.text)
             if ty is None:
                 self.check_tag_in_auto_init(tag)
