@@ -25,6 +25,26 @@ import time
 from pathlib import Path
 
 
+_BLOCK = re.compile(r"^<{7} [^\n]*\n(.*?)^={7}\n(.*?)^>{7} [^\n]*\n", re.M | re.S)
+
+
+def resolve_markers(cwd: Path) -> list[str]:
+    """Resolve git-apply --3way conflict blocks by keeping both sides, as the rebase prompt asks."""
+    import subprocess
+    names = subprocess.run(["git", "-C", str(cwd), "diff", "--name-only"],
+                           capture_output=True, text=True).stdout.split()
+    fixed = []
+    for n in names:
+        p = cwd / n
+        if not p.is_file():
+            continue
+        s = p.read_text(errors="replace")
+        if "<<<<<<< " in s:
+            p.write_text(_BLOCK.sub(lambda m: m.group(1) + m.group(2), s))
+            fixed.append(n)
+    return fixed
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("tasks", type=Path)
@@ -40,7 +60,7 @@ def main(argv: list[str] | None = None) -> int:
         mode = m.group(1)
     time.sleep(0.5)
     fixdir = a.cwd / "hcc" / "_fake_fixes"
-    changed = []
+    changed = resolve_markers(a.cwd)   # a REBASE task starts from a conflicted tree; a real worker resolves it
     if mode == "conflict":
         (a.cwd / "hcc" / "_fake_conflict.txt").write_text(task["id"] + "\n")
         changed.append("hcc/_fake_conflict.txt")
