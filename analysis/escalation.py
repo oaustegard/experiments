@@ -178,7 +178,8 @@ def run(a):
         bpath.write_text(json.dumps(res))
         sh("git", "worktree", "remove", "--force", str(bt), check=False)
     bres = json.loads(bpath.read_text())
-    items = [i for i in spec["items"] if not any(is_pass(bres.get(t)) for t in i["tests"])]
+    # spec["items"] is an oversampled pool in suite round-robin order; keep the first --n still failing
+    items = [i for i in spec["items"] if not any(is_pass(bres.get(t)) for t in i["tests"])][:a.n]
     sample = [t for t in spec["sample"] if is_pass(bres.get(t))]
     for i in items:
         i["members"] = [t for t in i["members"] if not is_pass(bres.get(t))]
@@ -224,9 +225,10 @@ def report(a):
 def main():
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
-    p = sp.add_parser("select"); p.add_argument("--n", type=int, default=40); p.add_argument("--out", required=True)
+    p = sp.add_parser("select"); p.add_argument("--n", type=int, default=120, help="pool size (run keeps 40)"); p.add_argument("--out", required=True)
     p = sp.add_parser("run"); p.add_argument("--set", required=True); p.add_argument("--work", required=True)
     p.add_argument("--concurrency", type=int, default=8); p.add_argument("--reps", type=int, default=2)
+    p.add_argument("--n", type=int, default=40, help="clusters kept from the pool after the base check")
     p = sp.add_parser("report"); p.add_argument("--work", required=True)
     a = ap.parse_args()
     {"select": select, "run": run, "report": report}[a.cmd](a)
