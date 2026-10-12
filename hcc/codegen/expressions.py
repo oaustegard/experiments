@@ -10,6 +10,7 @@ import struct
 
 from hcc.floatbits import pack_float32, pack_float64
 from hcc.codegen.bitfield_rev import assign_rev_bitfield, load_rev_bitfield
+from hcc.codegen.bitfield_rev_wide import assign_rev_wide, load_rev_wide
 from hcc.codegen.bitfield_wide import assign_wide_bitfield, load_wide_bitfield
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
@@ -95,6 +96,9 @@ class ExpressionMixin:
     def expr_Member_(self, node) -> None:
         self.gen_addr(node)
         m = node.member
+        if m.is_bitfield and m.rev_bytes > 8:
+            load_rev_wide(self, m)
+            return
         if m.is_bitfield and m.rev_bytes:
             load_rev_bitfield(self, m)
         elif m.is_bitfield and m.ty.size == 16:
@@ -127,6 +131,9 @@ class ExpressionMixin:
         self.push()
         self.gen_expr(node.rhs)
         lhs = node.lhs
+        if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.rev_bytes > 8:
+            assign_rev_wide(self, node)
+            return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.rev_bytes:
             assign_rev_bitfield(self, node)
             return
