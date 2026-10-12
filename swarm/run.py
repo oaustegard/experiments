@@ -33,6 +33,7 @@ import time
 from collections import Counter
 from pathlib import Path
 
+from swarm import federation as fed
 from swarm import merge
 from swarm import queue as workqueue
 from swarm import testrun as tr
@@ -103,7 +104,7 @@ def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_no
 
 
 def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) -> dict:
-    tid = f"w{seq:05d}"
+    tid = f"{ctx.id_prefix}w{seq:05d}"
     base = head(ctx)
     wt = ctx.worktree(tid)
     add_worktree(ctx, wt, base)
@@ -235,8 +236,28 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
     if errs and not a.force:
         log("fix these or pass --force")
         return 2
-    if not (ctx.state / "baseline.json").exists() or not tr.known(ctx):
+    refresher: threading.Thread | None = None
+    if a.sibling or a.federate:
+        fed.ensure_remote(ctx, a.fed_remote)
+    if a.sibling:
+        # Seed the baseline from the hub, rebase onto hcc/main, then re-baseline this node's
+        # suites in the background (the seeded entries were measured on the hub, maybe hours ago).
+        fed.sibling_fetch(ctx, a.sibling)
+        fed.seed(ctx)
+        fed.sibling_rebase(ctx, a.sibling)
+        fst = fed.fstate(ctx)
+        if fst.get("initial_refresh") != a.suites:
+            fst["initial_refresh"] = a.suites
+            fed.fstate_put(ctx, fst)
+            refresher = threading.Thread(target=merge.refresh, args=(ctx,), kwargs={"do_bisect": False}, daemon=True)
+            refresher.start()
+    if refresher is None and (not (ctx.state / "baseline.json").exists() or not tr.known(ctx)):
         merge.refresh(ctx, do_bisect=False)
+    last_poll = last_rebase = last_pub = 0.0
+    pub_head = ""
+    if a.sibling:
+        last_rebase = time.time()
+    stop_launch = bool(a.no_launch)
     procs: dict[str, subprocess.Popen | None] = {}
     for r in ledger(ctx).values():            # adopt survivors of an interrupted run
         if r["status"] == "launched":
@@ -244,11 +265,23 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
     launched = 0
     idle_tree, idle_since = None, None
     tree_checked = 0.0
-    stop_launch = False
     # Full refresh runs in a thread (it can take many minutes); launching and
     # reaping continue meanwhile, merging waits for it.
-    refresher: threading.Thread | None = None
     while True:
+        busy = refresher is not None and refresher.is_alive()
+        if a.federate and not busy and time.time() - last_poll >= a.fed_poll:
+            last_poll = time.time()
+            try:
+                fed.poll_candidates(ctx)
+            except Exception as e:  # noqa: BLE001 -- the transport must never stop the loop
+                log(f"fed    poll error: {e}")
+        if a.sibling and not busy and time.time() - last_rebase >= a.rebase_every:
+            last_rebase = time.time()
+            try:
+                if fed.sibling_fetch(ctx, a.sibling):
+                    fed.sibling_rebase(ctx, a.sibling)
+            except Exception as e:  # noqa: BLE001
+                log(f"fed    rebase error: {e}")
         led = ledger(ctx)
         for tid in list(procs):
             p = procs[tid]
@@ -290,6 +323,12 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 refresher = threading.Thread(target=merge.refresh, args=(ctx,), daemon=True)
                 refresher.start()
                 refreshing = True
+        if (a.federate or a.sibling) and (time.time() - last_pub >= 60 or head(ctx) != pub_head):
+            last_pub, pub_head = time.time(), head(ctx)
+            try:
+                fed.hub_publish(ctx) if a.federate else fed.publish_cand(ctx, a.sibling)
+            except Exception as e:  # noqa: BLE001
+                log(f"fed    publish error: {e}")
         if a.max_usd and spent(ctx) >= a.max_usd and not stop_launch:
             log(f"spend ${spent(ctx):.2f} reached --max-usd; no more launches")
             stop_launch = True
@@ -313,7 +352,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 if time.time() - idle_since > a.idle_max:
                     log("queue empty and nothing in flight")
                     break
-                time.sleep(60)
+                time.sleep(min(60, a.idle_max))
                 continue
             seq = len(ledger(ctx)) + 1
             led = ledger(ctx)
@@ -334,7 +373,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 procs[w["rec"]["id"]] = w["proc"]
                 seq += 1
                 launched += 1
-        if stop_launch and not procs and not refreshing and \
+        if stop_launch and not procs and not refreshing and (not a.federate or a.no_launch) and \
                 not any(r["status"] == "finished" for r in ledger(ctx).values()):
             break
         time.sleep(a.poll)
@@ -380,7 +419,8 @@ def status(ctx: Ctx) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", nargs="?", default="run", choices=["run", "status", "queue", "refresh"])
+    ap.add_argument("cmd", nargs="?", default="run",
+                    choices=["run", "status", "queue", "refresh", "fed-publish", "fed-poll", "fed-status"])
     ap.add_argument("--root", type=Path, default=Ctx().root)
     ap.add_argument("--wt-root", type=Path, default=Ctx().wt_root)
     ap.add_argument("--max-workers", type=int, default=0, help="launches in this invocation (0 = no cap)")
@@ -406,10 +446,27 @@ def main(argv: list[str] | None = None) -> int:
                     help="seconds to wait with an empty queue for new tests/ commits before exiting")
     ap.add_argument("--max-load", type=float, default=3.0 * (os.cpu_count() or 4),
                     help="no new launches while the 1-min load average is above this")
+    ap.add_argument("--sibling", default="", metavar="NAME",
+                    help="federated sibling: ids NAME-wNNNNN, rebase onto hcc/main, push hcc/cand/NAME")
+    ap.add_argument("--federate", action="store_true",
+                    help="federated hub: ingest hcc/cand/* candidates, push hcc/main and hcc/state")
+    ap.add_argument("--fed-remote", default=fed.DEFAULT_URL, help="git URL (or path) of the transport repo")
+    ap.add_argument("--fed-poll", type=float, default=180, help="hub: seconds between candidate polls")
+    ap.add_argument("--rebase-every", type=float, default=900, help="sibling: seconds between rebases")
+    ap.add_argument("--no-launch", action="store_true", help="launch no workers (hub: ingest only)")
     a = ap.parse_args(argv)
     ctx = Ctx(root=a.root.resolve(), wt_root=a.wt_root, jobs=a.jobs, batch=a.batch,
               sample_size=a.sample, full_every=a.full_every,
-              suites=[s for s in a.suites.split(",") if s])
+              suites=[s for s in a.suites.split(",") if s],
+              id_prefix=f"{a.sibling}-" if a.sibling else "", stamp_fixed=bool(a.sibling))
+    if a.cmd.startswith("fed-"):
+        fed.ensure_remote(ctx, a.fed_remote)
+        if a.cmd == "fed-publish":
+            fed.hub_publish(ctx, force_state=True)
+        elif a.cmd == "fed-poll":
+            print(f"{fed.poll_candidates(ctx)} new candidates")
+        fed.status(ctx)
+        return 0
     if a.cmd == "status":
         return status(ctx)
     if a.cmd == "refresh":

@@ -8,6 +8,14 @@ run.py --fake through every gate path and asserts the ledger outcome:
 fix -> merged, tests/ edit -> rejected, noop -> failed, break -> rejected by
 the gate sample or reverted by the full refresh, two conflicting candidates -> one merged,
 two candidates with conflicting doc edits -> both merged.
+
+Federation (swarm/federation.py), with a local bare repo as the transport: the
+hub publishes hcc/main + hcc/state; a sibling clone seeds its state from them,
+merges two fakes locally and pushes hcc/cand/s1 (with Fixed: trailers); the hub
+ingests and merges both; after the hub moves on, the sibling rebases (dropping
+what the hub took) and re-stacks its branch fast-forward; a sibling commit that
+conflicts with the hub is rejected there, dropped by the sibling's next rebase
+and re-dispatched as a REBASE worker.
 """
 
 from __future__ import annotations
@@ -16,6 +24,7 @@ if __name__ == "__main__":
     import _boot  # noqa: F401
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -76,16 +85,104 @@ def build_repo(root: Path) -> None:
 
 def run(root: Path, wt: Path, *args: str) -> str:
     cmd = [sys.executable, str(root / "swarm" / "run.py"), "run", "--fake", "--root", str(root),
-           "--wt-root", str(wt), "--poll", "0.3", "--sample", "4", *args]
+           "--wt-root", str(wt), "--poll", "0.3", "--sample", "4", "--idle-max", "5", *args]
     p = subprocess.run(cmd, capture_output=True, text=True, timeout=300, check=False)
     return p.stdout + p.stderr
 
 
-def statuses(root: Path) -> dict[str, str]:
+def records(root: Path) -> dict[str, dict]:
     last: dict[str, dict] = {}
     for r in read_jsonl(root / "swarm" / "state" / "ledger.jsonl"):
         last[r["id"]] = r
-    return {k: v["status"] for k, v in last.items()}
+    return last
+
+
+def statuses(root: Path) -> dict[str, str]:
+    return {k: v["status"] for k, v in records(root).items()}
+
+
+def federation(tmp: Path, root: Path, wt: Path, expect) -> None:
+    """Hub `root` + sibling clone `sib` talking through the bare repo `bare`."""
+    bare, sib, swt = tmp / "remote.git", tmp / "sib", tmp / "wt-s1"
+    sh(tmp, "git", "init", "-q", "--bare", str(bare))
+    F = ("--fed-remote", str(bare))
+
+    def fed(repo: Path, *args: str) -> str:
+        p = subprocess.run([sys.executable, str(repo / "swarm" / "run.py"), *args, "--root", str(repo), *F],
+                           capture_output=True, text=True, timeout=300, check=False)
+        return p.stdout + p.stderr
+
+    def remote(ref: str) -> str:
+        return subprocess.run(["git", "rev-parse", "-q", "--verify", ref], cwd=bare, capture_output=True,
+                              text=True).stdout.strip()
+
+    def hub_ingest(*extra: str) -> str:
+        return run(root, wt, "--federate", "--no-launch", "--fed-poll", "0", "--suites", "smoke,c-testsuite", *F, *extra)
+
+    def sibling(*extra: str) -> str:
+        return run(sib, swt, "--sibling", "s1", "--only", "gcc-torture/*", "--suites", "smoke,c-testsuite,gcc-torture",
+                   "--full-every", "99", *F, *extra)
+
+    out = fed(root, "fed-publish")
+    hub_main = sh(root, "git", "rev-parse", "main").strip()
+    state_files = sh(bare, "git", "ls-tree", "--name-only", "-r", "hcc/state") if remote("hcc/state") else ""
+    expect("hub publishes hcc/main and hcc/state", remote("hcc/main") == hub_main and "federation/known.json" in state_files,
+           out)
+
+    sh(tmp, "git", "clone", "-q", "-b", "hcc/main", str(bare), str(sib))
+    sh(sib, "git", "checkout", "-q", "-b", "fed-s1")
+    out = sibling("--max-workers", "2", "--concurrency", "2")
+    st = statuses(sib)
+    tip = remote("hcc/cand/s1")
+    msg = sh(sib, "git", "log", "-1", "--format=%B", tip) if tip else ""
+    expect("sibling seeds from hcc/state, merges locally, pushes hcc/cand/s1 with Fixed: trailer",
+           st.get("s1-w00001") == "merged" and st.get("s1-w00002") == "merged" and "Fixed: gcc-torture/" in msg
+           and (sib / "swarm/state/known.json").exists(), out)
+
+    out = hub_ingest()
+    hst = statuses(root)
+    log = sh(root, "git", "log", "--format=%B", "-5")
+    expect("hub ingests both candidates, merges them and pushes hcc/main",
+           hst.get("s1-w00001") == "merged" and hst.get("s1-w00002") == "merged" and "Swarm-Task: s1-w00002" in log
+           and remote("hcc/main") == sh(root, "git", "rev-parse", "main").strip(), out)
+
+    # Sibling round 2: rebase drops what the hub took; its new conflicting commit is re-stacked (fast-forward).
+    old_tip = remote("hcc/cand/s1")
+    out = sibling("--max-workers", "1", "--concurrency", "1", "--fake-mode", "conflict")
+    new_tip = remote("hcc/cand/s1")
+    stack = sh(sib, "git", "rev-list", "--first-parent", "--no-merges", new_tip, "^" + remote("hcc/main")).split()
+    ff = subprocess.run(["git", "merge-base", "--is-ancestor", old_tip, new_tip], cwd=bare).returncode == 0
+    expect("sibling rebase drops hub-merged commits; hcc/cand/s1 only fast-forwards",
+           statuses(sib).get("s1-w00003") == "merged" and len(stack) == 1 and ff, out)
+
+    # The hub merges its own conflicting change first, so the sibling's candidate conflicts there.
+    (root / "hcc" / "_fake_conflict.txt").write_text("hub change\n")
+    sh(root, "git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qam", "hub: conflicting change")
+    out = hub_ingest()
+    r = records(root).get("s1-w00003") or {}
+    expect("hub: conflicting candidate rejected (once per sha), nothing re-ingested",
+           r.get("status") == "rejected" and str(r.get("reason", "")).startswith("conflict")
+           and not any(k in ("s1-w00001", "s1-w00002") and v["status"] != "merged" for k, v in records(root).items()),
+           out)
+
+    out = sibling("--no-launch")
+    r = records(sib).get("s1-w00003") or {}
+    known = __import__("json").loads((sib / "swarm/state/known.json").read_text())
+    refail = [t for t in r.get("gate_fixed") or [] if known.get(t, {}).get("status") != "PASS"]
+    expect("sibling rebase drops the conflicting commit, marks it a conflict, re-measures its tests",
+           r.get("status") == "rejected" and str(r.get("reason", "")).startswith("conflict") and refail, out)
+
+    out = sibling("--max-workers", "1", "--concurrency", "1", "--only", ",".join(r.get("tests") or []))
+    r4 = records(sib).get("s1-w00004") or {}
+    out += hub_ingest()
+    expect("conflicted cluster re-dispatched as a REBASE worker, then ingested by the hub",
+           r4.get("rebase_of") == "s1-w00003" and statuses(root).get("s1-w00004") == "merged", out)
+
+    out = fed(root, "fed-publish")
+    ingest = __import__("json").loads(sh(bare, "git", "show", "hcc/state:federation/ingest.json"))
+    expect("hcc/state carries the hub's ingest outcomes",
+           ingest.get("s1-w00003", {}).get("status") == "rejected" and ingest.get("s1-w00004", {}).get("status") == "merged",
+           out)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -110,15 +207,23 @@ def main(argv: list[str] | None = None) -> int:
     check("fix -> merged", out, {"w00001": "merged", "w00002": "merged"})
     out = run(root, wt, "--fake-mode", "tests", "--max-workers", "1", "--concurrency", "1")
     check("tests/ edit -> rejected", out, {"w00003": "rejected"})
+    os.environ["SWARM_PYCHECK"] = f"{sys.executable} -m compileall -q"   # the real one needs PyPy
+    out = run(root, wt, "--fake-mode", "syntax", "--max-workers", "1", "--concurrency", "1")
+    r = records(root).get("w00004") or {}
+    ok = r.get("status") == "rejected" and str(r.get("reason", "")).startswith("python 3.11 syntax:")
+    print(f"{'ok  ' if ok else 'FAIL'} hcc/ that does not byte-compile -> rejected  {r.get('reason', '')[:80]}")
+    if not ok:
+        failures.append("pycheck")
+        print(out[-2000:])
     out = run(root, wt, "--fake-mode", "noop", "--max-workers", "1", "--concurrency", "1")
-    check("noop -> failed", out, {"w00004": "failed"})
+    check("noop -> failed", out, {"w00005": "failed"})
     out = run(root, wt, "--fake-mode", "break", "--max-workers", "1", "--concurrency", "1", "--full-every", "1")
     # caught by the gate's sample (rejected) or else by the full refresh (reverted)
-    check("break -> rejected by gate or reverted by refresh", out, {"w00005": "rejected|reverted"})
+    check("break -> rejected by gate or reverted by refresh", out, {"w00006": "rejected|reverted"})
     out = run(root, wt, "--fake-mode", "conflict", "--max-workers", "2", "--concurrency", "2",
               "--batch", "2", "--poll", "2", "--full-every", "99")
     got = statuses(root)
-    pair = sorted([got.get("w00006"), got.get("w00007")])
+    pair = sorted([got.get("w00007"), got.get("w00008")])
     ok = pair == ["merged", "rejected"]
     print(f"{'ok  ' if ok else 'FAIL'} conflicting pair -> one merged, one rejected  {pair}")
     if not ok:
@@ -127,7 +232,14 @@ def main(argv: list[str] | None = None) -> int:
     out = run(root, wt, "--fake-mode", "docs", "--max-workers", "2", "--concurrency", "2",
               "--batch", "2", "--poll", "2", "--full-every", "99")
     check("conflicting doc edits -> both merged (code only for one)", out,
-          {"w00008": "merged", "w00009": "merged"})
+          {"w00009": "merged", "w00010": "merged"})
+    def expect(name: str, ok: bool, out: str) -> None:
+        print(f"{'ok  ' if ok else 'FAIL'} {name}")
+        if not ok:
+            failures.append(name)
+            print(out[-3000:])
+
+    federation(tmp, root, wt, expect)
     log = sh(root, "git", "log", "--format=%an %s")
     if "Oskar Austegard" not in log:
         failures.append("author")

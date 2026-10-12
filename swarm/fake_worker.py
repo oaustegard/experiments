@@ -11,6 +11,7 @@ out JSON. Modes (default from env SWARM_FAKE_MODE, else "fix"):
   tests  edit a file under tests/ (must be rejected by the gate)
   conflict  like fix, plus write hcc/_fake_conflict.txt (two of these conflict)
   docs   like fix, plus write docs/STATUS.md (two of these conflict on docs only)
+  syntax like fix, plus a .py under hcc/ that does not compile
 """
 
 from __future__ import annotations
@@ -47,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
         (a.cwd / "docs").mkdir(exist_ok=True)
         (a.cwd / "docs" / "STATUS.md").write_text(f"done by {task['id']}\n")
         changed.append("docs/STATUS.md")
-    if mode in ("fix", "break", "conflict", "docs"):
+    if mode in ("fix", "break", "conflict", "docs", "syntax"):
         fixdir.mkdir(parents=True, exist_ok=True)
         for t in tests:
             p = fixdir / t.replace("/", "__")
@@ -58,6 +59,9 @@ def main(argv: list[str] | None = None) -> int:
         if others:
             others[0].unlink()
             changed.append(str(others[0].relative_to(a.cwd)))
+    if mode == "syntax":   # a fix that does not byte-compile (the gate's pycheck must reject it)
+        (a.cwd / "hcc" / "_fake_bad.py").write_text("def broken(:\n    pass\n")
+        changed.append("hcc/_fake_bad.py")
     if mode == "tests":
         p = a.cwd / "tests" / "HACK.txt"
         p.write_text("cheating\n")

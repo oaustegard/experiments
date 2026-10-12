@@ -16,7 +16,10 @@ from pathlib import Path
 DEFAULT_ROOT = Path(__file__).resolve().parent.parent
 AUTHOR_NAME = "Oskar Austegard"
 AUTHOR_EMAIL = "oskar@austegard.com"
-FANOUT = Path("/mnt/skills/user/dispatching-subagents/scripts/headless_fanout.py")
+_SKILL_FANOUT = Path("/mnt/skills/user/dispatching-subagents/scripts/headless_fanout.py")
+# A sibling container has no skills mount: fall back to the copy in federation/.
+FANOUT = Path(os.environ.get("SWARM_FANOUT") or (
+    _SKILL_FANOUT if _SKILL_FANOUT.exists() else DEFAULT_ROOT / "federation" / "headless_fanout.py"))
 
 
 @dataclass
@@ -29,6 +32,8 @@ class Ctx:
     sample_size: int = 150
     full_every: int = 25                          # full-suite refresh every N merges
     batch: int = 4                                # candidates gated together
+    id_prefix: str = ""                           # sibling: task ids are "<name>-wNNNNN"
+    stamp_fixed: bool = False                     # sibling: add Fixed: trailers to merged commits
 
     @property
     def swarm(self) -> Path:
