@@ -220,6 +220,17 @@ class TopLevelMixin:
             params.append(ty)
         fty.params = params
 
+    def check_param_complete(self, i, pty, pname, loc) -> None:
+        """C11 6.9.1p10: parameters of a function definition need complete
+        non-void types (arrays/pointers were already adjusted by the declarator)."""
+        bad = pty.kind == T.TypeKind.VOID or \
+            (pty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not pty.is_complete) or \
+            (pty.kind == T.TypeKind.ENUM and pty.enum_consts == "fwd")
+        if not bad:
+            return
+        what = f" ('{pname.text}')" if pname is not None else ""
+        self.error(f"parameter {i + 1}{what} has incomplete type", pname.loc if pname else loc)
+
     def bind_vla_param(self, ty, inits, loc):
         """Parameter types like `char a[2][N]` (pointer to a VLA): the length
         is copied into a hidden local on entry (appended to `inits`) and the
@@ -271,6 +282,7 @@ class TopLevelMixin:
         for i, pty in enumerate(ty.params):
             pname = ty.param_names[i] if i < len(ty.param_names) else None
             pvar = ty.param_vars[i] if i < len(ty.param_vars) else None
+            self.check_param_complete(i, pty, pname, fn.loc)
             pty = self.bind_vla_param(pty, vla_inits, pname.loc if pname else fn.loc)
             if pname is not None and pvar is not None:
                 # reuse the Var the prototype parse already put in scope
