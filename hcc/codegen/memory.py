@@ -12,7 +12,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.codegen.scalar_rev import load_rev_scalar, store_rev_scalar
-from hcc.typesys import TypeKind
+from hcc.typesys import TypeKind, is_dyn_struct
 from hcc.codegen.half import LOAD_HALF, STORE_HALF
 
 _NO_LOAD = (TypeKind.ARRAY, TypeKind.STRUCT, TypeKind.UNION, TypeKind.FUNC, TypeKind.VLA)
@@ -24,7 +24,7 @@ class MemoryMixin:
         if isinstance(var, N.Var) and var.is_local:
             if self.is_outer_local(var):
                 return self.outer_var_addr(var)
-            if var.ty.kind == TypeKind.VLA:
+            if var.ty.kind == TypeKind.VLA or is_dyn_struct(var.ty):
                 # VLA object: its frame slot holds the address of its storage.
                 self.emit(f"mov {var.offset}(%rbp), %rax")
                 return

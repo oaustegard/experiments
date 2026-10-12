@@ -82,6 +82,8 @@ class StatementMixin:
         e = self.typed(self.expr())
         self.expect(";")
         rty = self.fn.ty.return_ty
+        if T.is_dyn_struct(e.ty):
+            self.error("unsupported: returning a struct with a variably modified member", t)
         if rty.kind == TypeKind.VOID:
             return N.Return(t.loc, e)
         if rty.is_complex or e.ty.is_complex:

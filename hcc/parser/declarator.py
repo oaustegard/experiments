@@ -154,7 +154,12 @@ class DeclaratorMixin:
             self.skip_std_attributes()
             attr = VarAttr()
             base = self.declspec(attr)
-            pty, name = self.declarator(base)
+            saved_proto = self.in_proto_params
+            self.in_proto_params = True     # sizeof in a prototype is unevaluated
+            try:
+                pty, name = self.declarator(base)
+            finally:
+                self.in_proto_params = saved_proto
             self.parse_attributes()
             dim = None
             if (pty.kind == T.TypeKind.ARRAY and not pty.is_vector) or pty.kind == T.TypeKind.VLA:

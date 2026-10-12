@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
-from hcc.typesys import TypeKind
+from hcc.typesys import TypeKind, is_dyn_struct
 
 
 class NestedMixin:
@@ -42,7 +42,7 @@ class NestedMixin:
         if cur is None:
             diag.error(var.loc, f"'{var.name}' is not in an enclosing function")
         self.frame_of(cur)
-        if var.ty.kind == TypeKind.VLA:
+        if var.ty.kind == TypeKind.VLA or is_dyn_struct(var.ty):
             self.emit(f"mov {var.offset}(%r11), %rax")
         else:
             self.emit(f"lea {var.offset}(%r11), %rax")

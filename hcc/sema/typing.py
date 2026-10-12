@@ -11,7 +11,7 @@ from hcc import diag
 from hcc import nodes as N
 from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
 from hcc.sema.constexpr import try_eval_const
-from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_integer, is_numeric, pointer_to)
+from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_dyn_struct, is_integer, is_numeric, pointer_to)
 
 
 def add_type(node) -> None:
@@ -78,6 +78,8 @@ def _logical(n: N.Logical):
 
 def _assign(n: N.Assign):
     lt = n.lhs.ty
+    if is_dyn_struct(lt) or is_dyn_struct(n.rhs.ty):
+        diag.error(n, "unsupported: assignment of a struct with a variably modified member", "sema")
     if lt.kind == TypeKind.ARRAY and not lt.is_vector:
         diag.error(n, "assignment to expression with array type", "sema")
     if lt.kind not in (TypeKind.STRUCT, TypeKind.UNION) and not lt.is_vector:
@@ -173,6 +175,9 @@ def _stmt_expr(n: N.StmtExpr):
 
 
 def _call(n: N.Call):
+    for a in n.args:
+        if is_dyn_struct(a.ty):
+            diag.error(n, "unsupported: passing a struct with a variably modified member by value", "sema")
     n.ty = n.func_ty.return_ty
 
 

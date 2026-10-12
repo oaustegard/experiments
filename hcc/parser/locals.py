@@ -12,6 +12,7 @@ from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser.scope import VarAttr
 from hcc.parser.attributes import mode_type
+from hcc.parser.vla import vla_slot_type
 
 # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
 GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
@@ -101,6 +102,17 @@ class LocalDeclMixin:
                 continue
             if ty.kind == T.TypeKind.VOID:
                 self.error(f"variable '{name.text}' declared void", name)
+            if T.is_dyn_struct(ty):
+                # `struct { int x[n]; } s;`: storage is allocated like a VLA;
+                # the frame slot holds its address (size 8, see vla_slot_type).
+                if self.at("="):
+                    self.error("variably modified struct may not be initialized", name)
+                ty, pre = self.vla_bind(ty, name.loc)
+                items.extend(pre)
+                var = self.new_lvar(name.text, vla_slot_type(ty), name.loc)
+                size = self.vla_size_expr(ty, name.loc)
+                items.append(N.VLAAlloc(name.loc, var, self.vla_block_slot(), size))
+                continue
             if ty.kind == T.TypeKind.VLA:
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)

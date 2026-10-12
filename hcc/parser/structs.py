@@ -212,6 +212,9 @@ def layout_struct(ty) -> None:
             bits += m.bit_width
             unit = sz * 8
         else:
+            if m.ty.kind == T.TypeKind.VLA or T.is_dyn_struct(m.ty):
+                _layout_dyn_tail(ty, m, bits, align)
+                return
             if ms and unit:     # MS: a following plain member starts after the bit-field's unit
                 bits = T.align_to(bits, unit)
             unit = 0
@@ -222,6 +225,24 @@ def layout_struct(ty) -> None:
             align = m.align
     ty.align = align
     ty.size = T.align_to(T.align_to(bits, 8) // 8, align)
+
+
+def _layout_dyn_tail(ty, m, bits: int, align: int) -> None:
+    """Trailing variably-sized member (GNU `struct { int x[n]; }`): the static
+    size is the offset of the member; the run-time size is added by sizeof."""
+    if m is not ty.members[-1]:
+        diag.error(m.tok, "variably modified member must be the last member of a struct", "parse")
+    if T.is_dyn_struct(m.ty):
+        diag.error(m.tok, "unsupported: struct with variably modified member nested in a struct", "parse")
+    if ty.is_packed or ty.is_ms_struct or ty.is_reverse_sso:
+        diag.error(m.tok, "unsupported: variably modified member in packed or reversed struct", "parse")
+    elem = m.ty.base
+    m.align = max(m.explicit_align, elem.align)     # a VLA's own align is its slot size
+    off = T.align_to(bits // 8, m.align)
+    m.offset = off
+    ty.dyn_tail = m.ty
+    ty.size = off
+    ty.align = max(align, m.align)
 
 
 def mirror_reverse_bitfields(ty) -> None:

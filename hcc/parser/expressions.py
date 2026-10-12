@@ -17,7 +17,7 @@ from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
-from hcc.typesys import TY_INT, TY_ULONG, TypeKind, pointer_to
+from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, pointer_to
 from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.parser import complex as CPX
 
@@ -256,22 +256,30 @@ class ExpressionMixin:
     def sizeof_expr(self):
         t = self.next()
         node = None
+        effects = []
         if self.at("(") and self.is_typename(self.peek()):
             start = self.pos
             allow = self.compound_lit_follows()
             self.next()
+            outer_vm = self.vm_typeof
+            self.vm_typeof = []
             ty = self.scoped_typename(allow_storage=allow)
+            effects = self.vm_typeof        # `sizeof(typeof(vm-expr))` evaluates vm-expr
+            self.vm_typeof = outer_vm
             self.expect(")")
             if self.at("{"):
                 self.pos = start
+                effects = []
                 node = self.unary()
                 ty = node.ty
         else:
             node = self.unary()
             self.typed(node)
             ty = node.ty
-        if ty.kind == TypeKind.VLA:
+        if ty.kind == TypeKind.VLA or is_dyn_struct(ty):
             size = self.vla_size_expr(ty, t.loc)
+            if effects:
+                size = self.vla_prefix([N.ExprStmt(e.loc, e) for e in effects], size, t.loc)
             if node is not None:
                 # `sizeof expr` on a VLA still evaluates expr (its side effects).
                 size = self.typed(N.Comma(t.loc, node, size))

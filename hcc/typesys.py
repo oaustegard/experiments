@@ -74,7 +74,7 @@ class Type:
                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
-                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn")
+                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -112,6 +112,7 @@ class Type:
         self.param_dims: list = []   # FUNC: VLA-dimension expr per param (or None)
         self.proto_scope = None      # FUNC: parser Scope of the parameter list (tags stay visible in the body)
         self.is_complex = False      # C99 _Complex: a STRUCT {re, im} of base (see complex_of)
+        self.dyn_tail = None         # STRUCT: VLA type of a trailing variably-sized member (size = prefix)
 
     def copy(self) -> "Type":
         t = Type.__new__(Type)
@@ -242,6 +243,11 @@ def vector_of(base: Type, nbytes: int) -> Type:
     if nbytes & (nbytes - 1) == 0:
         t.align = max(t.align, nbytes)   # GCC aligns a vector to its own size (power of two)
     return t
+
+
+def is_dyn_struct(t) -> bool:
+    """Struct whose last member is a VLA (GNU extension): its size is run-time."""
+    return t is not None and t.kind == TypeKind.STRUCT and t.dyn_tail is not None
 
 
 def vla_of(base: Type, length_expr) -> Type:

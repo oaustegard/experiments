@@ -12,6 +12,8 @@ VlaMixin.vla_prefix(pre, expr, loc) -> Expr
 """
 from __future__ import annotations
 
+import copy
+
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.sema.conversions import new_cast
@@ -21,12 +23,38 @@ def _has_vla(ty) -> bool:
     """True when ty is a VLA, or a pointer/array chain ending in one."""
     while ty is not None and ty.kind in (T.TypeKind.PTR, T.TypeKind.ARRAY):
         ty = ty.base
+    if T.is_dyn_struct(ty):
+        return True
     return ty is not None and ty.kind == T.TypeKind.VLA and ty.vla_len is not None
+
+
+def _rebind_struct(ty, tail):
+    """Copy of struct `ty` whose trailing member has type `tail`."""
+    new = ty.copy()
+    new.dyn_tail = tail
+    members = []
+    for m in ty.members:
+        if m is ty.members[-1]:
+            m = copy.copy(m)
+            m.ty = tail
+        members.append(m)
+    new.members = members
+    return new
+
+
+def vla_slot_type(ty):
+    """Type of the frame slot of a run-time-sized object: holds an address."""
+    t = ty.copy()
+    t.size = 8              # the real alignment is kept (sizeof reads the members)
+    return t
 
 
 class VlaMixin:
 
     def vla_bind(self, ty, loc):
+        if T.is_dyn_struct(ty):
+            tail, pre = self.vla_bind(ty.dyn_tail, loc)
+            return _rebind_struct(ty, tail), pre
         if ty.kind == T.TypeKind.PTR and _has_vla(ty.base):
             base, pre = self.vla_bind(ty.base, loc)
             new = ty.copy()
@@ -60,8 +88,20 @@ class VlaMixin:
         return saves[0]
 
     def vla_size_expr(self, ty, loc):
+        if T.is_dyn_struct(ty):
+            # prefix (offset of the trailing member) + tail bytes, rounded up to align
+            tail = self.vla_size_expr(ty.dyn_tail, loc)
+            prefix = ty.members[-1].offset      # ty.size is the slot size for run-time objects
+            total = self.typed(N.Binary(loc, "+", self.typed(N.IntLit(loc, prefix, ty=T.TY_ULONG)), tail))
+            if ty.align > 1:
+                total = self.typed(N.Binary(loc, "+", total, self.typed(N.IntLit(loc, ty.align - 1, ty=T.TY_ULONG))))
+                mask = self.typed(N.IntLit(loc, -ty.align & (2**64 - 1), ty=T.TY_ULONG))
+                total = self.typed(N.Binary(loc, "&", total, mask))
+            return total
         if ty.kind != T.TypeKind.VLA:
             return self.typed(N.IntLit(loc, ty.size, ty=T.TY_ULONG))
+        if ty.vla_len is None and self.in_proto_params:
+            return self.typed(N.IntLit(loc, 0, ty=T.TY_ULONG))   # `[*]` in a prototype: unevaluated
         if ty.vla_len is None:
             # `[*]` is only legal in prototype scope, where a size is never
             # evaluated (e.g. `int c[sizeof(*b)]` after `int b[*][*]`).
