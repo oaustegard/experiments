@@ -71,6 +71,7 @@ class StructMixin:
                 def_pos[id(ty)] = brace_pos
         members = self.struct_members()
         self.parse_attributes(attr)
+        self.check_designated_init(attr, kind == T.TypeKind.STRUCT, self.toks[brace_pos])
         check_duplicate_members(members, self.toks[brace_pos])
         if kind == T.TypeKind.UNION:
             check_union_flexible(members, self.toks[brace_pos])

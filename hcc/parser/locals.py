@@ -90,6 +90,7 @@ class LocalDeclMixin:
             self.parse_attributes(dattr)
             self.skip_std_attributes()
             self.parse_asm_label(dattr)
+            self.check_designated_init(dattr, ty.kind == T.TypeKind.STRUCT, name)
             if name is None:
                 self.error("identifier expected in declaration")
             if for_init:

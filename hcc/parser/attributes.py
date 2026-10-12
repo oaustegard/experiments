@@ -211,6 +211,8 @@ class AttributeMixin:
                 ty.is_packed = True
         elif name == "ms_struct" and attr is not None:
             attr.is_ms_struct = True
+        elif name == "designated_init" and attr is not None:
+            attr.is_designated_init = True
         elif name == "scalar_storage_order" and attr is not None and args:
             attr.reverse_sso = args[0].value.rstrip(b"\0") == b"big-endian"
         elif name == "noreturn" and attr is not None:
@@ -269,6 +271,11 @@ class AttributeMixin:
                            % (attr.vector_size, VECTOR_SIZE_MAX), self.toks[args_start])
         elif name == "mode" and attr is not None and args:
             attr.mode = args[0].text.strip("_")
+
+    def check_designated_init(self, attr, is_struct: bool, where=None) -> None:
+        """`designated_init` is only valid on a struct type (GCC: hard error)."""
+        if attr is not None and attr.is_designated_init and not is_struct:
+            self.error("'designated_init' attribute is only valid on 'struct' type", where)
 
     def check_align_limit(self, val, where=None) -> None:
         """Reject alignments above the x86-64 ELF object file maximum (2**28),

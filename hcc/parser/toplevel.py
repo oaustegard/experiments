@@ -79,6 +79,7 @@ class TopLevelMixin:
             self.parse_attributes(dattr)
             self.parse_asm_label(dattr)
             self.parse_attributes(dattr)
+            self.check_designated_init(dattr, ty.kind == T.TypeKind.STRUCT, name)
             if name is None:
                 self.error("identifier expected in declaration")
             if dattr.vector_size:

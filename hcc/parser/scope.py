@@ -45,6 +45,7 @@ class VarAttr:
     fn_attrs: set = field(default_factory=set)  # leaf, returns_nonnull, ... (names only)
     is_nocommon: bool = False       # __attribute__((nocommon)): tentative def goes to .bss
     is_packed: bool = False
+    is_designated_init: bool = False  # __attribute__((designated_init)): struct-only (checked)
     is_ms_struct: bool = False
     reverse_sso: bool = False       # scalar_storage_order("big-endian")
     section: str | None = None

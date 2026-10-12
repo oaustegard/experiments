@@ -125,6 +125,7 @@ class EnumMixin:
         elif hi >= 1 << 32:
             ty.size = ty.align = 8
         self.parse_attributes(attr if attr is not None else VarAttr())   # `enum {..} __attribute__((mode(word)))`
+        self.check_designated_init(attr, False, self.toks[self.pos - 1])
         if tag is not None:
             self.scopes[-1].tags[tag.text] = ty
         return ty
