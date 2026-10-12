@@ -161,6 +161,13 @@ def _assign_regs(ops, clobbers) -> None:
             continue
         if op.fixed:
             op.reg = op.fixed
+        elif "Q" in op.cons:
+            # "Q" is a/b/c/d only: those are the registers with %h high bytes.
+            pick = next((r for r in ("rax", "rcx", "rdx") if r in free), None)
+            if pick is None:
+                diag.error(op.expr, "codegen: too many asm operands for available registers", "codegen")
+            free.remove(pick)
+            op.reg = pick
         else:
             if not free:
                 diag.error(op.expr, "codegen: too many asm operands for available registers", "codegen")
@@ -173,7 +180,10 @@ def _assign_regs(ops, clobbers) -> None:
             op.kind = ops[op.match].kind
 
 
-def _render(op: _Op, mod: str | None) -> str:
+_HIGH8 = {"rax": "ah", "rcx": "ch", "rdx": "dh", "rbx": "bh"}
+
+
+def _render(op: _Op, mod: str | None, loc) -> str:
     if op.kind == "label":
         return op.stub
     if op.kind == "imm":
@@ -182,6 +192,10 @@ def _render(op: _Op, mod: str | None) -> str:
         return f"%st({op.reg})"
     if op.kind == "mem":
         return f"(%{op.reg})"
+    if mod == "h":
+        if op.reg not in _HIGH8:
+            diag.error(loc, "codegen: operand has no high-byte register", "codegen")
+        return "%" + _HIGH8[op.reg]
     size = {"k": 4, "w": 2, "b": 1, "q": 8}.get(mod, op.size)
     return "%" + _reg_name(op.reg, size)
 
@@ -202,7 +216,7 @@ def _subst(tpl: str, ops, loc) -> str:
             i += 1
             continue
         mod = None
-        if i < n and tpl[i] in "kwbqcP":
+        if i < n and tpl[i] in "kwbqcPh":
             mod = tpl[i]
             i += 1
         elif i + 1 < n and tpl[i] == "l" and (tpl[i + 1].isdigit() or tpl[i + 1] == "["):
@@ -227,7 +241,7 @@ def _subst(tpl: str, ops, loc) -> str:
             i = j
         if idx >= len(ops):
             diag.error(loc, "codegen: asm operand number out of range", "codegen")
-        out.append(_render(ops[idx], mod))
+        out.append(_render(ops[idx], mod, loc))
     return "".join(out)
 
 
