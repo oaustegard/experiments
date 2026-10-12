@@ -54,7 +54,7 @@ class MemoryMixin:
         if t is N.Member_:
             self.gen_addr(node.operand)
             if node.member.offset:
-                self.emit(f"add ${node.member.offset}, %rax")
+                self.add_offset_rax(node.member.offset)
             return
         if t is N.Cast:
             self.gen_addr(node.operand)
@@ -64,6 +64,15 @@ class MemoryMixin:
             self.gen_expr(node)
             return
         diag.error(node, "lvalue required", "codegen")
+
+    def add_offset_rax(self, off: int) -> None:
+        """%rax += off. Offsets outside imm32 (huge arrays in packed structs)
+        go through %r11, since x86 has no 64-bit immediate add."""
+        if -(1 << 31) <= off < (1 << 31):
+            self.emit(f"add ${off}, %rax")
+        else:
+            self.emit(f"movabs ${off}, %r11")
+            self.emit("add %r11, %rax")
 
     def load(self, ty) -> None:
         k = ty.kind
