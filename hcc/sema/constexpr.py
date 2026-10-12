@@ -233,7 +233,7 @@ def _eval(node):
     if t is N.AddrOf:
         return _eval_addr(node.operand)
     if t is N.VarRef:
-        if node.var.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC) and not getattr(node.var, "is_local", False):
+        if node.var.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC) and _has_link_address(node.var):
             return node.var.symbol, 0
         return None, _const_var_value(node.var)
     if t is N.StrLit:
@@ -315,10 +315,18 @@ def _compare(op, a, b) -> bool:
     return {"==": a == b, "!=": a != b, "<": a < b, "<=": a <= b, ">": a > b, ">=": a >= b}[op]
 
 
+def _has_link_address(var) -> bool:
+    """True when `var` has a link-time symbol usable in a static initializer. Block-scope
+    objects, thread-local objects (their address is per-thread) and GNU nested functions
+    (which need the enclosing frame) do not."""
+    return not (getattr(var, "is_local", False) or getattr(var, "is_tls", False)
+                or getattr(var, "outer", None) is not None)
+
+
 def _eval_addr(node):
     t = type(node)
     if t is N.VarRef:
-        if getattr(node.var, "is_local", False):
+        if not _has_link_address(node.var):
             raise NotConstant
         return node.var.symbol, 0
     if t is N.Deref:
