@@ -71,6 +71,8 @@ class StructMixin:
         members = self.struct_members()
         self.parse_attributes(attr)
         check_duplicate_members(members, self.toks[brace_pos])
+        if kind == T.TypeKind.UNION:
+            check_union_flexible(members, self.toks[brace_pos])
         ty.members = members
         ty.is_packed = attr.is_packed
         ty.is_ms_struct = attr.is_ms_struct
@@ -188,6 +190,15 @@ def check_flexible_members(members, where) -> None:
     others = [m for m in members[:-1] if not (m.name is None and m.is_bitfield)]
     if not others:
         diag.error(last.tok or where, "flexible array member in a struct with no named members")
+
+
+def check_union_flexible(members, where) -> None:
+    """C11 6.7.2.1p3: a union may not have a flexible array member (`T a[]`,
+    also through a typedef)."""
+    for m in members:
+        if getattr(m, "open_array", False) or (m.ty.kind == T.TypeKind.ARRAY and m.ty.array_len < 0):
+            diag.error(m.tok or where, "flexible array member in union")
+            return
 
 
 def _member_names(members, out) -> None:
