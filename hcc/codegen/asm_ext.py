@@ -8,8 +8,9 @@ lower_extended(cg, node) lowers `asm(tpl : outs : ins : clobbers)`:
   4. output registers are pushed and stored back through the saved addresses.
 Constraints: GPR letters (r q g R l x ...), fixed a c d S D, memory (m o V),
 immediate (i n ...) for constant operands, matching digits, and =, +, &.
-x87 operands (t/u/f, long double): inputs are staged as 16-byte slots and
-loaded onto the FPU before the template; outputs are stored with fstpt after it.
+x87 operands (t/u/f; float, double or long double): inputs are converted to long
+double, staged as 16-byte slots and loaded onto the FPU before the template; outputs
+are stored with fstps/fstpl/fstpt according to their C type.
 Float/double operands with GPR constraints travel as their raw bits (movd/movq
 from %xmm0). Aggregate operands are rejected.
 """
@@ -17,7 +18,8 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.sema import constexpr
-from hcc.typesys import TypeKind
+from hcc.typesys import TY_LDOUBLE, TypeKind
+from hcc.sema.conversions import new_cast
 
 _POOL = ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"]
 _FIXED = {"a": "rax", "c": "rcx", "d": "rdx", "S": "rsi", "D": "rdi"}
@@ -26,6 +28,7 @@ _LEGACY8 = {"rax": "al", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil"}
 _REG_LETTERS = set("rqgRlxyQabcdSDXp")  # X (any) and p (address) use a GPR
 _MEM_LETTERS = set("moV")
 _X87_LETTERS = set("tuf")
+_X87_STORE = {TypeKind.FLOAT: "fstps", TypeKind.DOUBLE: "fstpl", TypeKind.LDOUBLE: "fstpt"}
 _IMM_LETTERS = set("inIJKLMNeEFZs")
 _BAD_KINDS = (TypeKind.FLOAT16, TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.STRUCT, TypeKind.UNION)
 # Arrays and functions decay to their address when used as register operands.
@@ -112,8 +115,8 @@ def _classify(op: _Op, dead: bool = False) -> None:
         return
     if letters & _X87_LETTERS:
         op.kind = "x87"
-        if op.expr.ty.kind != TypeKind.LDOUBLE:
-            diag.error(where, "codegen: x87 asm operands must be long double", "codegen")
+        if op.expr.ty.kind not in (TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE):
+            diag.error(where, "codegen: x87 asm operands must be floating point", "codegen")
         if op.rw:
             diag.error(where, "codegen: read-write x87 asm operands are not supported", "codegen")
         return
@@ -314,7 +317,10 @@ def lower_extended(cg, node) -> None:
     # Phase 2a: x87 inputs, staged in 16-byte slots (first input deepest).
     units = 0
     for op in x87_in:
-        cg.gen_expr(op.expr)
+        val = op.expr
+        if val.ty.kind != TypeKind.LDOUBLE:
+            val = new_cast(val, TY_LDOUBLE)
+        cg.gen_expr(val)
         cg.emit("sub $16, %rsp")
         cg.emit("fstpt (%rsp)")
         cg.depth += 2
@@ -361,7 +367,7 @@ def lower_extended(cg, node) -> None:
     for op in x87_out:
         k = outs.index(op)
         cg.emit(f"mov {8 * (r + m - 1 - k)}(%rsp), %rdi")
-        cg.emit("fstpt (%rdi)")
+        cg.emit(_X87_STORE[op.expr.ty.kind] + " (%rdi)")
     for j, op in enumerate(regs_out):
         k = outs.index(op)
         cg.emit(f"mov {8 * (r + m - 1 - k)}(%rsp), %rdi")
