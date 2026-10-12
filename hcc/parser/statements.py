@@ -144,6 +144,8 @@ class StatementMixin:
         init = None
         if self.is_typename():
             init = N.Block(t.loc, self.local_declaration())
+        elif self.at("_Static_assert"):
+            self.static_assert()  # consumes its own ';'
         elif not self.accept(";"):
             init = N.ExprStmt(t.loc, self.expr())
             self.expect(";")
