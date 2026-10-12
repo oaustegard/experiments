@@ -277,9 +277,17 @@ class DeclaratorMixin:
             self.error("size of array element is not a multiple of its alignment", self.tok)
 
     def array_dims(self, ty):
+        has_static = False
         while (self.at("static") or self.at("const") or self.at("volatile")
                or self.at("restrict") or self.at("_Atomic")):
+            if self.at("static"):
+                has_static = True
             self.next()
+        if has_static and self.at("]"):
+            # C99 6.7.5.2p1: `static` requires a size expression
+            self.error("'static' may not be used without an array size")
+        if has_static and self.at("*") and self.peek().text == "]":
+            self.error("'static' may not be used with an unspecified variable length array size")
         if self.accept("]"):
             ty = self.type_suffix(ty)
             self.check_array_elem(ty)
