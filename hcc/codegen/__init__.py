@@ -19,6 +19,7 @@ from hcc.codegen.data import DataMixin
 from hcc.codegen.expressions import ExpressionMixin
 from hcc.codegen.floats import FloatMixin
 from hcc.codegen.functions import FunctionMixin
+from hcc.codegen.nested import NestedMixin
 from hcc.codegen.memory import MemoryMixin
 from hcc.codegen.overflow import OverflowMixin
 from hcc.codegen.statements import StatementMixin
@@ -26,7 +27,7 @@ from hcc.codegen.varargs import VarargsMixin
 from hcc.codegen.vector_ops import VectorOpsMixin
 
 
-class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
+class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
               CastMixin, CallMixin, VarargsMixin, BuiltinMixin, OverflowMixin, AsmMixin, MemoryMixin,
               DataMixin, VectorOpsMixin, CodeGenBase):
 

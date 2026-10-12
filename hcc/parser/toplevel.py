@@ -213,6 +213,8 @@ class TopLevelMixin:
                 v = self.new_temp(pty)
             v.is_param = True
             params.append(v)
+        if fn.outer is not None:                 # static link slot (codegen/nested.py)
+            fn.chain_var = self.new_temp(T.pointer_to(T.TY_VOID))
         if ty.is_variadic:
             fn.va_area = self.new_temp(T.array_of(T.TY_CHAR, 176))  # SysV register save area
             fn.va_tmp = self.new_temp(T.array_of(T.TY_CHAR, 16))  # va_arg scratch for split structs

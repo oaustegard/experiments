@@ -87,6 +87,8 @@ class Function(Obj):
     visibility: str | None = None
     alias_of: str | None = None
     align: int = 0                          # from __attribute__((aligned(N)))
+    outer: "Function | None" = None         # GNU nested function: enclosing function
+    chain_var: Var | None = None            # nested fn: slot holding the static link
 
 
 @dataclass(eq=False)

@@ -20,6 +20,8 @@ class MemoryMixin:
 
     def var_addr(self, var) -> None:
         if isinstance(var, N.Var) and var.is_local:
+            if self.is_outer_local(var):
+                return self.outer_var_addr(var)
             if var.ty.kind == TypeKind.VLA:
                 # VLA object: its frame slot holds the address of its storage.
                 self.emit(f"mov {var.offset}(%rbp), %rax")

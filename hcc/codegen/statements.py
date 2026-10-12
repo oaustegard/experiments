@@ -212,7 +212,7 @@ class StatementMixin:
                     self.emit(f"mov {self.ret_ptr_offset}(%rbp), %rdi")
                     self.copy_struct(ty.size)
                     self.emit("mov %rdi, %rax")
-        self.emit(f"jmp .L.return.{self.fn.name}")
+        self.emit(f"jmp .L.return.{self.fn.symbol}")
 
     def struct_to_regs(self, ty) -> None:
         """%rax points at a <=16-byte struct; load it into rax/rdx/xmm0/xmm1."""

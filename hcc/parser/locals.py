@@ -47,6 +47,9 @@ class LocalDeclMixin:
                 items.extend(pre)
                 self.push_scope_entry(name.text).type_def = ty
                 continue
+            if ty.kind == T.TypeKind.FUNC and self.at("{"):
+                self.nested_function(ty, name, attr, dattr)
+                return items
             if ty.kind == T.TypeKind.FUNC:
                 fn = self.declare_function(ty, name, attr, dattr)
                 self.push_scope_entry(name.text).var = fn

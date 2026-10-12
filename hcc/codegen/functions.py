@@ -99,6 +99,8 @@ class FunctionMixin:
         self.emit("mov %rsp, %rbp")
         if size:
             self.emit(f"sub ${size}, %rsp")
+        if fn.chain_var is not None:
+            self.emit(f"mov %r10, {fn.chain_var.offset}(%rbp)")
         self.depth = 0
         if self.ret_ptr_offset is not None:
             self.emit(f"mov %rdi, {self.ret_ptr_offset}(%rbp)")
@@ -119,7 +121,7 @@ class FunctionMixin:
         self.gen_stmt(fn.body)
         assert self.depth == 0, f"stack depth {self.depth} in {fn.name}"
         self.emit("mov $0, %eax")
-        self.label(f".L.return.{fn.name}")
+        self.label(f".L.return.{sym}")
         self.emit("mov %rbp, %rsp")
         self.emit("pop %rbp")
         self.emit("ret")
