@@ -16,6 +16,7 @@ from hcc import nodes as N
 from hcc.halfbits import half_to_double
 from hcc.parser.float16_math import F16_MATH_NAMES, f16_math_call
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
+from hcc.parser.crc_builtins import CRC_BUILTINS, crc_call
 from hcc.parser.object_size import lower_object_size
 from hcc.parser.structs import find_member
 from hcc.parser.vector_cast import lower_convertvector
@@ -68,7 +69,7 @@ FLOATN_BUILTIN_MAP = {
 FLOAT16_BUILTINS = frozenset(f"__builtin_{base}f16" for base in
                              ("inf", "huge_val", "nan", "nans") + F16_MATH_NAMES)
 SPECIAL_BUILTINS = (SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS | frozenset(FLOATN_BUILTIN_MAP)
-                    | FLOAT16_BUILTINS)
+                    | FLOAT16_BUILTINS | CRC_BUILTINS)
 
 
 def floatn_libc_name(name: str) -> str:
@@ -107,6 +108,8 @@ class BuiltinParseMixin:
         self.expect("(")
         if tok.text in BIT_BUILTINS:
             node = self._bitop(tok, name)
+        elif tok.text in CRC_BUILTINS:
+            node = crc_call(self, tok)
         else:
             node = getattr(self, "_b_" + name)(tok)
         self.expect(")")
