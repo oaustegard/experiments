@@ -20,10 +20,33 @@ class ExactLongDouble(float):
     x87: int = 0
 
 
+_CHUNK = 1000          # Python refuses int() of >4300 decimal digits; parse in chunks
+
+
+def _int_from_digits(digits: str) -> int:
+    """Exact int of a decimal digit string of any length (chunked, no int-str limit)."""
+    n = 0
+    for i in range(0, len(digits), _CHUNK):
+        part = digits[i:i + _CHUNK]
+        n = n * 10 ** len(part) + int(part)
+    return n
+
+
+def exact_decimal(body: str) -> Fraction:
+    """Exact rational of a decimal floating body (no suffix), for any digit count."""
+    mant, _, exp = body.lower().partition("e")
+    ip, _, fp = mant.partition(".")
+    digits = ip + fp
+    e10 = (int(exp) if exp else 0) - len(fp)
+    if not digits.strip("0"):
+        return Fraction(0)
+    return Fraction(_int_from_digits(digits)) * Fraction(10) ** e10
+
+
 def _parse_text(body: str, is_hex: bool) -> Fraction:
     """Exact rational value of a C floating literal body (suffix already removed)."""
     if not is_hex:
-        return Fraction(body)
+        return exact_decimal(body)
     low = body.lower()
     if "p" in low:
         mant, exp2 = low[2:].split("p", 1)

@@ -11,10 +11,12 @@ Public API:
 """
 from __future__ import annotations
 
+from fractions import Fraction
+
 from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
 from hcc.halfbits import round_to_half
-from hcc.ldouble_lit import x87_from_text
+from hcc.ldouble_lit import exact_decimal, x87_from_text
 from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_FLOAT16, TY_FLOAT128,
                        TY_INT, TY_LDOUBLE, TY_LLONG, TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG,
                        TY_USHORT, Type, TypeKind, array_of)
@@ -96,6 +98,22 @@ _FLOAT_SUFFIXES = (("f16", TY_FLOAT16), ("f32x", TY_DOUBLE), ("f32", TY_FLOAT),
                    ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE))
 
 
+def _round_decimal_to_f32(fr: Fraction) -> float:
+    """Correctly round an exact rational to IEEE binary32 (no double rounding)."""
+    if fr == 0:
+        return 0.0
+    a = abs(fr)
+    e = a.numerator.bit_length() - a.denominator.bit_length()
+    if a < Fraction(2) ** e:
+        e -= 1
+    q = max(e, -126) - 23          # quantum of the binary32 significand
+    n = round(a / Fraction(2) ** q)  # round-half-even
+    if n * 2 ** q >= 2 ** 128:
+        return float("-inf") if fr < 0 else float("inf")
+    val = float(n) * 2.0 ** q
+    return -val if fr < 0 else val
+
+
 def parse_number(tok: Token):
     s = tok.text.replace("'", "")                # C23 digit separators
     low = s.lower()
@@ -109,7 +127,15 @@ def parse_number(tok: Token):
         try:
             if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):   # exact x87 encoding
                 return x87_from_text(body, is_hex, ty.kind == TypeKind.FLOAT128), ty
-            val = float.fromhex(body) if is_hex else float(body)
+            if is_hex:
+                val = float.fromhex(body)
+            elif ty is TY_FLOAT:
+                val = _round_decimal_to_f32(exact_decimal(body))
+            else:
+                val = float(body)
+        except OverflowError:
+            # hex constant beyond double range: C says the value is +/-inf
+            val = float("-inf") if body.startswith("-") else float("inf")
         except ValueError:
             diag.error(tok, f"invalid floating constant '{s}'")
         except OverflowError:
