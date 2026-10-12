@@ -221,6 +221,17 @@ class AttributeMixin:
             ty.align = al
         return ty
 
+    def var_aligned(self, ty, attr, dattr):
+        """`T x __attribute__((aligned(N)))` on a variable: N sets the alignment
+        exactly, so it may also lower it below the type's natural alignment
+        (GCC: `int c __attribute__((aligned(2)))` gives _Alignof(c) == 2)."""
+        al = max(attr.align, dattr.align)
+        if 0 < al < ty.align:
+            ty = ty.copy()
+            ty.align = al
+            return ty
+        return self.typedef_aligned(ty, attr, dattr)
+
     def parse_asm_label(self, attr) -> None:
         """`asm("name")` following a declarator (glibc redirects)."""
         while self.at("asm"):
