@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from hcc import nodes as N
 from hcc.codegen.arith import ArithMixin
+from hcc.codegen.atomics import AtomicMixin
 from hcc.codegen.asm import AsmMixin
 from hcc.codegen.builtins import BuiltinMixin
 from hcc.codegen.calls import CallMixin
@@ -25,7 +26,7 @@ from hcc.codegen.varargs import VarargsMixin
 from hcc.codegen.vector_ops import VectorOpsMixin
 
 
-class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, FloatMixin,
+class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
               CastMixin, CallMixin, VarargsMixin, BuiltinMixin, OverflowMixin, AsmMixin, MemoryMixin,
               DataMixin, VectorOpsMixin, CodeGenBase):
 
