@@ -103,6 +103,8 @@ class ExpressionMixin:
             self.next()
             rhs = self.binary(level + 1)
             node = new_binop(t.text, node, rhs, t.loc)
+            if isinstance(node, N.Binary) and node.ty.is_vector:
+                node.result_buf = self.new_temp(node.ty, t.loc)
 
     def cast_expr(self):
         if self.at("(") and self.is_typename(self.peek()):
@@ -133,7 +135,9 @@ class ExpressionMixin:
                 return self.cast_expr()
             if s == "-":
                 self.next()
-                return self.typed(N.Unary(t.loc, "-", self.cast_expr()))
+                operand = self.cast_expr()
+                buf = self.new_temp(operand.ty, t.loc) if operand.ty.is_vector else None
+                return self.typed(N.Unary(t.loc, "-", operand, result_buf=buf))
             if s == "!":
                 self.next()
                 return self.typed(N.Unary(t.loc, "!", self.cast_expr()))

@@ -14,6 +14,8 @@ _SETCC = {"==": ("sete", "sete"), "!=": ("setne", "setne"), "<": ("setl", "setb"
 class ArithMixin:
 
     def expr_Binary(self, node) -> None:
+        if node.result_buf is not None:
+            return self.vector_binary(node)
         lty = node.lhs.ty
         if is_flonum(lty):
             return self.float_binary(node)

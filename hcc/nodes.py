@@ -147,10 +147,15 @@ class Deref(Expr):
 
 @dataclass(eq=False)
 class Binary(Expr):
-    """Arithmetic/bitwise/shift/comparison. Operands already converted."""
+    """Arithmetic/bitwise/shift/comparison. Operands already converted.
+
+    result_buf: for element-wise vector operands, the anonymous local that
+    holds the result (set by the parser; codegen computes into it).
+    """
     op: str
     lhs: Expr
     rhs: Expr
+    result_buf: Obj | None = field(default=None, kw_only=True)
 
 
 @dataclass(eq=False)

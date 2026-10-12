@@ -121,7 +121,10 @@ class ExpressionMixin:
 
     def expr_Unary(self, node) -> None:
         if node.result_buf is not None:
-            self.vector_not(node)
+            if node.op == "-":
+                self.vector_neg(node)
+            else:
+                self.vector_not(node)
             return
         self.gen_expr(node.operand)
         ty = node.operand.ty

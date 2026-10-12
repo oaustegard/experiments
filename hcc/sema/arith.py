@@ -14,7 +14,7 @@ from hcc import nodes as N
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
-from hcc.typesys import TY_INT, TY_LONG, TypeKind, is_numeric, pointer_to
+from hcc.typesys import TY_INT, TY_LONG, TypeKind, is_integer, is_numeric, pointer_to
 
 
 def _t(node):
@@ -64,7 +64,27 @@ def new_sub(lhs, rhs, loc):
     diag.error(loc, f"invalid operands to binary - ('{lhs.ty}' and '{rhs.ty}')", "sema")
 
 
+VECTOR_OPS = ("+", "-", "*", "/", "%", "&", "|", "^")
+
+
+def vector_binop(op, lhs, rhs, loc):
+    """Element-wise `lhs op rhs` on two integer GCC vectors of equal size.
+    Returns None when the operands are not such a pair."""
+    if op not in VECTOR_OPS or not (lhs.ty.is_vector and rhs.ty.is_vector):
+        return None
+    if lhs.ty.size != rhs.ty.size or not is_integer(lhs.ty.base):
+        return None
+    return _t(N.Binary(loc, op, lhs, rhs, ty=lhs.ty))
+
+
 def new_binop(op, lhs, rhs, loc):
+    add_type(lhs)
+    add_type(rhs)
+    vec = vector_binop(op, lhs, rhs, loc)
+    if vec is not None:
+        return vec
+    if op in VECTOR_OPS and (lhs.ty.is_vector or rhs.ty.is_vector):
+        diag.error(loc, f"invalid operands to binary {op} ('{lhs.ty}' and '{rhs.ty}')", "sema")
     if op == "+":
         return new_add(lhs, rhs, loc)
     if op == "-":

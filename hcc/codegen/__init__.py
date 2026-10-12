@@ -22,11 +22,12 @@ from hcc.codegen.memory import MemoryMixin
 from hcc.codegen.overflow import OverflowMixin
 from hcc.codegen.statements import StatementMixin
 from hcc.codegen.varargs import VarargsMixin
+from hcc.codegen.vector_ops import VectorOpsMixin
 
 
 class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, FloatMixin,
               CastMixin, CallMixin, VarargsMixin, BuiltinMixin, OverflowMixin, AsmMixin, MemoryMixin,
-              DataMixin, CodeGenBase):
+              DataMixin, VectorOpsMixin, CodeGenBase):
 
     def run(self) -> str:
         self.directive(f'.file "{getattr(self.opts, "source_name", "") or "hcc"}"')
