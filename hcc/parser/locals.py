@@ -94,6 +94,8 @@ class LocalDeclMixin:
                 items.extend(pre)
                 self.push_scope_entry(name.text).type_def = ty
                 continue
+            if ty.kind == T.TypeKind.FUNC:
+                self.check_block_func_storage(attr, name)
             if ty.kind == T.TypeKind.FUNC and ty.enum_consts == "knr" \
                     and not self.at(";") and not self.at(","):
                 self.knr_params(ty)              # GNU nested K&R definition
@@ -196,6 +198,12 @@ class LocalDeclMixin:
         arg = self.typed(N.AddrOf(name.loc, self.typed(N.VarRef(name.loc, var))))
         call = self.typed(N.Call(name.loc, callee, [arg], fn.ty))
         return N.CleanupDecl(name.loc, var, call)
+
+    def check_block_func_storage(self, attr, name) -> None:
+        """Block-scope function declarations and definitions may only be
+        `extern` (or no storage class): static/register/thread-local are invalid."""
+        if attr.is_static or attr.is_register or attr.is_tls:
+            self.error(f"invalid storage class for function '{name.text}'", name)
 
     def block_func_composite(self, ty, name: str):
         """Block-scope function declaration `T *f(void);` that names a function

@@ -87,6 +87,8 @@ class TopLevelMixin:
                 ty = self.typedef_aligned(ty, attr, dattr, name.text)
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty)
             elif ty.kind == T.TypeKind.FUNC:
+                if attr.is_register or attr.is_tls:
+                    self.error(f"invalid storage class for function '{name.text}'", name)
                 fn = self.declare_function(ty, name, attr, dattr)
                 if not self.at("{") and (attr.is_weakref or dattr.is_weakref):
                     fn.is_weakref_decl = True
