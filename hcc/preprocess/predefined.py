@@ -29,6 +29,7 @@ PREDEFINED = r"""
 #define __GNUC__ 4
 #define __GNUC_MINOR__ 2
 #define __GNUC_PATCHLEVEL__ 1
+#define __PRAGMA_REDEFINE_EXTNAME 1
 #define __VERSION__ "hcc 0.1 (gcc 4.2 compatible)"
 #define __x86_64__ 1
 #define __x86_64 1
