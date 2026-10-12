@@ -66,18 +66,30 @@ class PrimaryMixin:
             self.error(f"unexpected type name '{name}': expected expression", t)
         if name in ("__func__", "__FUNCTION__", "__PRETTY_FUNCTION__") and self.fn is not None:
             return self.typed(N.VarRef(t.loc, self.func_name_var()))
-        if self.at("("):
-            if name.startswith("__builtin_"):
-                name = name[len("__builtin_"):]
+        if name == "nullptr" and self.c23_mode():
+            # C23 nullptr constant: a null pointer constant (approximated as void *).
+            return N.Cast(t.loc, N.IntLit(t.loc, 0, ty=T.TY_INT), ty=T.pointer_to(T.TY_VOID))
+        is_call = self.at("(")
+        if name.startswith("__builtin_"):
+            bname = name[len("__builtin_"):]
+            if is_call or libc_return_type(bname) is not None:
+                # &__builtin_abs and __builtin_abs(...) both name the library function.
+                name = bname
                 vs = self.find_var(name)
                 if vs is not None and vs.var is not None:
                     return self.typed(N.VarRef(t.loc, vs.var))
+                is_call = True
+        if is_call:
             rty = libc_return_type(name)
             if rty is None:
                 diag.warn(t, f"implicit declaration of function '{name}'")
                 rty = T.TY_INT
             return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty)))
         self.error(f"'{name}' undeclared", t)
+
+    def c23_mode(self):
+        std = (getattr(self.opts, "std", None) or "gnu11").lower()
+        return std in ("c2x", "gnu2x", "c23", "gnu23")
 
     def string_var(self, tok):
         var = self.new_anon_gvar(tok.ty, tok.loc)
