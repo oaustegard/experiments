@@ -21,6 +21,7 @@ __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_prefetch
+__builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 """.split())
 
 
@@ -73,6 +74,19 @@ class BuiltinParseMixin:
         for a in reversed(args):
             node = N.Comma(tok.loc, N.Cast(tok.loc, a, ty=T.TY_VOID), node, ty=T.TY_VOID)
         return node
+
+    def _bswap(self, tok, bits, ty):
+        args = [new_cast(a, ty) for a in self._args(1)]
+        return self._call(tok, f"bswap{bits}", args, ty)
+
+    def _b_bswap16(self, tok):
+        return self._bswap(tok, 16, T.TY_USHORT)
+
+    def _b_bswap32(self, tok):
+        return self._bswap(tok, 32, T.TY_UINT)
+
+    def _b_bswap64(self, tok):
+        return self._bswap(tok, 64, T.TY_ULONG)
 
     def _b_alloca(self, tok):
         args = [new_cast(a, T.TY_ULONG) for a in self._args(1)]

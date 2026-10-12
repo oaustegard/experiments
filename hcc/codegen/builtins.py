@@ -18,6 +18,19 @@ class BuiltinMixin:
     def builtin_trap(self, node) -> None:
         self.emit("ud2")
 
+    def builtin_bswap16(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("rol $8, %ax")
+        self.emit("movzwl %ax, %eax")
+
+    def builtin_bswap32(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("bswap %eax")
+
+    def builtin_bswap64(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("bswap %rax")
+
     def builtin_alloca(self, node) -> None:
         self.gen_expr(node.args[0])
         self._alloca_rax()
