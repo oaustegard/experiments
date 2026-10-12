@@ -296,6 +296,9 @@ class ExpressionMixin:
                         self.error("'__alignof' applied to a bit-field", t)
                     if isinstance(node, N.Member_) and node.member.align:
                         return N.IntLit(t.loc, node.member.align, ty=TY_ULONG)   # packed/aligned member
+                if not ty.is_complete and ty.kind not in (TypeKind.VOID, TypeKind.FUNC):
+                    # C23 6.5.4.6: `_Alignof` needs a complete type (`T[]` included).
+                    self.error(f"invalid application of '_Alignof' to incomplete type '{ty}'", t)
                 return N.IntLit(t.loc, ty.align, ty=TY_ULONG)
             if s == "__extension__":
                 self.next()
