@@ -215,14 +215,17 @@ class StatementMixin:
             if not self.accept(":"):
                 break
             while self.tok.kind == TokenKind.STRING or self.at("["):
+                sym = None
                 if self.accept("["):
-                    self.expect_ident()
+                    sym = self.expect_ident().text
                     self.expect("]")
                 cons = self.next().value.rstrip(b"\0").decode()
                 self.expect("(")
                 e = self.typed(self.expr())
                 self.expect(")")
                 sec.append((cons, e))
+                if sym is not None:
+                    node.names[sym] = len(node.outputs) + len(node.inputs) - 1
                 if not self.accept(","):
                     break
         else:
