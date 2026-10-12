@@ -20,7 +20,7 @@ class InitFiniMixin:
             if not isinstance(obj, N.Function) or not obj.is_definition or not obj.init_kind:
                 continue
             base = _SECTIONS[obj.init_kind]
-            name = f"{base}.{obj.init_prio}" if obj.init_prio else base
+            name = base if obj.init_prio is None else f"{base}.{obj.init_prio}"
             self.directive(f'.section {name},"aw",@init_array' if obj.init_kind == "init"
                            else f'.section {name},"aw",@fini_array')
             self.directive(f".quad {obj.symbol}")
