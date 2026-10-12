@@ -79,6 +79,8 @@ class TopLevelMixin:
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty)
             elif ty.kind == T.TypeKind.FUNC:
                 fn = self.declare_function(ty, name, attr, dattr)
+                if not self.at("{") and (attr.is_weakref or dattr.is_weakref):
+                    fn.is_weakref_decl = True
                 if ty.enum_consts == "knr" and not self.at(";") and not self.at(","):
                     self.knr_params(ty)
                 if self.at("{"):
@@ -88,6 +90,8 @@ class TopLevelMixin:
             else:
                 var = self.declare_global_var(ty, name, attr, dattr)
                 if self.accept("="):
+                    if var.init_data is not None:
+                        self.error(f"redefinition of '{name.text}'", name.loc)
                     self.global_initializer(var)
                     var.is_definition = True
                     var.is_tentative = False
@@ -263,7 +267,7 @@ class TopLevelMixin:
         return bool(gnu89 and attr.is_extern and attr.is_inline)
 
     def function_definition(self, fn, ty, inline_only=False) -> None:
-        if fn.is_definition:
+        if fn.is_definition or fn.is_weakref_decl or (inline_only and fn.body is not None):
             self.error(f"redefinition of '{fn.name}'", fn.loc)
         if not inline_only:
             fn.is_definition = True
