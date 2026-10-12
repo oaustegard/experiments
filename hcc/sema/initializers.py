@@ -124,6 +124,8 @@ def _write_le(init, ty, gd, offset) -> None:
     diff = _label_difference(expr)
     if diff is not None:
         label, minus, extra, addend = diff
+        if ty.size > 8:     # the assembler resolves a narrower `.long a - b` itself
+            _check_reloc_size(expr, ty)
         gd.relocs.append(N.Reloc(offset, label, addend, ty.size, minus, extra))
         return
     inner = _same_size_operand(expr, ty)
@@ -156,10 +158,21 @@ def _write_le(init, ty, gd, offset) -> None:
     except NotConstant:
         diag.error(expr, "initializer element is not constant", "sema")
     if label is not None:
+        _check_reloc_size(expr, ty)
         gd.relocs.append(N.Reloc(offset, label, v))
         return
     size = ty.size
     gd.data[offset:offset + size] = (v & ((1 << (size * 8)) - 1)).to_bytes(size, "little")
+
+
+def _check_reloc_size(expr, ty) -> None:
+    """An address constant can only initialise an object of pointer size: a char, int or
+    __int128 object cannot hold a relocated address (gcc: 'initializer element is not
+    constant' for narrow objects, 'not computable at load time' for wider ones)."""
+    if ty.size != 8:
+        if ty.size > 8:
+            diag.error(expr, "initializer element is not computable at load time", "sema")
+        diag.error(expr, "initializer element is not constant", "sema")
 
 
 def _static_compound_literal(expr):
