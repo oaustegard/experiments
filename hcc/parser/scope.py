@@ -36,6 +36,7 @@ class VarAttr:
     align: int = 0
     is_weak: bool = False
     is_packed: bool = False
+    is_ms_struct: bool = False
     reverse_sso: bool = False       # scalar_storage_order("big-endian")
     section: str | None = None
     visibility: str | None = None

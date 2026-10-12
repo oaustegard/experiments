@@ -47,6 +47,7 @@ class StructMixin:
         self.parse_attributes(attr)
         ty.members = members
         ty.is_packed = attr.is_packed
+        ty.is_ms_struct = attr.is_ms_struct
         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
         if kind == T.TypeKind.STRUCT:
             layout_struct(ty)
@@ -76,9 +77,11 @@ class StructMixin:
             self.skip_std_attributes()     # `[[gnu::x]] char c[];`
             attr = VarAttr()
             basety = self.declspec(attr)
-            if self.accept(";"):           # anonymous struct/union member
-                m = T.Member(None, basety, 0, attr.align or basety.align)
-                members.append(m)
+            if self.accept(";"):
+                # anonymous struct/union member; `struct S;` (tagged) declares nothing
+                if basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and basety.tag is None:
+                    m = T.Member(None, basety, 0, attr.align or basety.align)
+                    members.append(m)
                 continue
             first = True
             while not self.accept(";"):
@@ -91,13 +94,17 @@ class StructMixin:
                 m = T.Member(name.text if name else None, ty)
                 m.tok = name
                 # aligned/_Alignas on a member can only raise its alignment
-                m.align = max(ty.align, mattr.align, attr.align)
+                m.explicit_align = max(mattr.align, attr.align)
+                m.align = max(ty.align, m.explicit_align)
                 if attr.is_packed:
                     m.align = 1
                 if self.accept(":"):
                     m.is_bitfield = True
                     m.bit_width = self.const_expr()
                 self.parse_attributes(mattr)
+                m.explicit_align = max(m.explicit_align, mattr.align)
+                if m.explicit_align:
+                    m.align = max(m.align, m.explicit_align)
                 if mattr.is_packed:
                     m.align = 1
                     m.is_packed = True
@@ -119,23 +126,31 @@ def layout_struct(ty) -> None:
     bits = 0
     align = 1
     packed = ty.is_packed
+    ms = ty.is_ms_struct
+    unit = 0        # ms: bits of the last bit-field's declared-type storage unit
     if members_flexible(ty):
         ty.is_flexible = True
     for m in ty.members:
-        if packed:
-            m.align = 1
+        if packed:      # packed drops natural alignment; explicit aligned(N) still applies
+            m.align = 1 if m.is_packed else (m.explicit_align or 1)
         if m.is_bitfield and m.bit_width == 0:
             bits = T.align_to(bits, m.ty.size * 8)
             continue
         if m.is_bitfield:
             sz = m.ty.size
             loose = packed or m.is_packed
+            if ms and not unit and bits:    # MS: a bit-field never shares a unit with plain data
+                bits = T.align_to(bits, sz * 8)
             if not loose and bits // (sz * 8) != (bits + m.bit_width - 1) // (sz * 8):
                 bits = T.align_to(bits, sz * 8)
             m.offset = (bits // 8) // sz * sz if not loose else bits // 8
             m.bit_offset = bits - m.offset * 8
             bits += m.bit_width
+            unit = sz * 8
         else:
+            if ms and unit:     # MS: a following plain member starts after the bit-field's unit
+                bits = T.align_to(bits, unit)
+            unit = 0
             bits = T.align_to(bits, m.align * 8)
             m.offset = bits // 8
             bits += m.ty.size * 8

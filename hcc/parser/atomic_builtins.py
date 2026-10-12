@@ -48,7 +48,7 @@ def atomic_call(parser, tok):
         if name in _VALUE_RET or name in _SYNC_VALUE_RET:
             ty = args[0].ty.base.unqual()
         elif name in _INT_RET or name in _SYNC_INT_RET:
-            ty = T.TY_INT
+            ty = T.TY_BOOL     # gcc: compare_exchange / bool_compare_and_swap yield _Bool
         else:
             ty = T.TY_VOID
     return N.BuiltinCall(tok.loc, name[2:], args, None, ty=ty)
