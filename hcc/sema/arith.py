@@ -12,6 +12,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
+from hcc.sema.compat import is_compatible
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
 from hcc.sema.void_value import require_value
@@ -70,6 +71,18 @@ def new_add(lhs, rhs, loc):
     return N.Binary(loc, "+", lhs, off, ty=pointer_to(lhs.ty.base))
 
 
+def _pointees_compatible(a, b) -> bool:
+    """C11 6.5.6p3: pointer difference needs pointers to compatible object types,
+    ignoring const/volatile/restrict on the pointees (_Atomic is not ignored)."""
+    def strip(t):
+        if not (t.is_const or t.is_volatile or t.is_restrict):
+            return t
+        u = t.copy()
+        u.is_const = u.is_volatile = u.is_restrict = False
+        return u
+    return is_compatible(strip(a), strip(b))
+
+
 def new_sub(lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
@@ -83,6 +96,8 @@ def new_sub(lhs, rhs, loc):
         off = N.Binary(loc, "*", new_cast(rhs, TY_LONG), size, ty=TY_LONG)
         return N.Binary(loc, "-", lhs, off, ty=pointer_to(lhs.ty.base))
     if _is_ptr(lhs.ty) and _is_ptr(rhs.ty):
+        if not _pointees_compatible(lhs.ty.base, rhs.ty.base):
+            diag.error(loc, f"invalid operands to binary - ('{lhs.ty}' and '{rhs.ty}')", "sema")
         diff = N.Binary(loc, "-", new_cast(lhs, TY_LONG), new_cast(rhs, TY_LONG), ty=TY_LONG)
         return N.Binary(loc, "/", diff, _elem_size(lhs.ty, loc), ty=TY_LONG)
     diag.error(loc, f"invalid operands to binary - ('{lhs.ty}' and '{rhs.ty}')", "sema")
