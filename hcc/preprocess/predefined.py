@@ -67,6 +67,7 @@ PREDEFINED = r"""
 #define __UINTMAX_TYPE__ unsigned long
 #define __INTPTR_TYPE__ long
 #define __UINTPTR_TYPE__ unsigned long
+#define __CHAR8_TYPE__ unsigned char
 #define __CHAR16_TYPE__ unsigned short
 #define __CHAR32_TYPE__ unsigned int
 #define __INT8_TYPE__ signed char
@@ -250,6 +251,7 @@ PREDEFINED = r"""
 #define __INT_FAST64_WIDTH__ 64
 #define __GCC_ATOMIC_BOOL_LOCK_FREE 2
 #define __GCC_ATOMIC_CHAR_LOCK_FREE 2
+#define __GCC_ATOMIC_CHAR8_T_LOCK_FREE 2
 #define __GCC_ATOMIC_CHAR16_T_LOCK_FREE 2
 #define __GCC_ATOMIC_CHAR32_T_LOCK_FREE 2
 #define __GCC_ATOMIC_WCHAR_T_LOCK_FREE 2
