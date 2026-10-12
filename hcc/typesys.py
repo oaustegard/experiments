@@ -26,6 +26,9 @@ class TypeKind(Enum):
     DOUBLE = "double"
     LDOUBLE = "long double"
     FLOAT128 = "_Float128"
+    DEC32 = "_Decimal32"
+    DEC64 = "_Decimal64"
+    DEC128 = "_Decimal128"
     ENUM = "enum"
     PTR = "pointer"
     ARRAY = "array"
@@ -39,6 +42,8 @@ INTEGER_KINDS = frozenset({TypeKind.BOOL, TypeKind.CHAR, TypeKind.SHORT, TypeKin
                            TypeKind.LONG, TypeKind.LLONG, TypeKind.INT128, TypeKind.ENUM})
 FLOAT_KINDS = frozenset({TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE,
                          TypeKind.FLOAT128})
+# C23/TR 24732 decimal floating types: BID encoding, never mixed with binary floats.
+DECIMAL_KINDS = frozenset({TypeKind.DEC32, TypeKind.DEC64, TypeKind.DEC128})
 
 
 class Member:
@@ -189,6 +194,9 @@ TY_FLOAT64X.floatn = "_Float64x"
 TY_DOUBLE = _base(TypeKind.DOUBLE, 8, 8)
 TY_LDOUBLE = _base(TypeKind.LDOUBLE, 16, 16)
 TY_FLOAT128 = _base(TypeKind.FLOAT128, 16, 16)
+TY_DEC32 = _base(TypeKind.DEC32, 4, 4)
+TY_DEC64 = _base(TypeKind.DEC64, 8, 8)
+TY_DEC128 = _base(TypeKind.DEC128, 16, 16)
 
 
 def is_integer(t: Type) -> bool:
@@ -199,8 +207,12 @@ def is_flonum(t: Type) -> bool:
     return t.kind in FLOAT_KINDS
 
 
+def is_decimal(t: Type) -> bool:
+    return t.kind in DECIMAL_KINDS
+
+
 def is_numeric(t: Type) -> bool:
-    return is_integer(t) or is_flonum(t)
+    return is_integer(t) or is_flonum(t) or is_decimal(t)
 
 
 def is_pointer_like(t: Type) -> bool:

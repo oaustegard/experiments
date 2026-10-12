@@ -101,6 +101,7 @@ hcc/
   typesys.py             Type, Member, TypeKind, LP64 base types, constructors (STABLE)
   nodes.py               all AST node dataclasses + Obj (Var/Function)        (STABLE)
   ldouble_lit.py         exact long double literals (decimal/hex -> 80-bit x87)
+  bidbits.py             BID encoding of integer constants for static _Decimal objects
 
   preprocess/
     __init__.py        Preprocessor class: main expansion loop, public API
@@ -183,6 +184,8 @@ hcc/
     atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs
     asm.py             inline asm statements (basic + extended)
     fpclassify.py      __builtin_fpclassify / isnormal / isinf_sign (bit-level classes)
+    decimal.py         _Decimal32/64/128 (BID bits in %xmm0; ops via libgcc __bid_* calls)
+    decimal_vector.py  GCC vectors of _Decimal lanes (per-lane calls, lane sign flip)
 
   include/             (optional) hcc's own override headers, searched before
                        the system dirs (e.g. a future stdatomic.h)

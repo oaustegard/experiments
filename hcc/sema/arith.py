@@ -15,7 +15,7 @@ from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
 from hcc.sema.void_value import require_value
-from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_flonum, is_integer,
+from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_decimal, is_flonum, is_integer,
                          is_numeric, pointer_to, vector_of)
 
 
@@ -110,7 +110,7 @@ def vector_binop(op, lhs, rhs, loc):
             return None
         res = vector_of(int_type_for(lhs.ty.base.size, False), lhs.ty.size)  # lanes: -1 / 0
         return _t(N.Binary(loc, op, lhs, rhs, ty=res))
-    if is_flonum(lhs.ty.base):
+    if is_flonum(lhs.ty.base) or is_decimal(lhs.ty.base):
         if op not in ("+", "-", "*", "/"):
             return None
     elif not is_integer(lhs.ty.base):

@@ -12,7 +12,7 @@ from hcc import nodes as N
 from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.void_value import require_value
-from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_integer, is_numeric, pointer_to)
+from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_decimal, is_integer, is_numeric, pointer_to)
 
 
 def add_type(node) -> None:
@@ -34,7 +34,8 @@ def _unary(n: N.Unary):
     if n.op == "!":
         n.ty = TY_INT
         return
-    if n.op in ("~", "-") and t.is_vector and is_integer(t.base):
+    if n.op in ("~", "-") and t.is_vector and (is_integer(t.base) or
+                                                (n.op == "-" and is_decimal(t.base))):
         n.ty = t                    # element-wise complement/negation keeps the vector type
         return
     if not is_numeric(t):

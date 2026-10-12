@@ -9,7 +9,7 @@ from dataclasses import fields, is_dataclass
 
 from hcc.codegen.expressions import _contains_call
 from hcc.sema.constexpr import try_eval_const
-from hcc.typesys import TypeKind, is_flonum
+from hcc.typesys import TypeKind, is_decimal, is_flonum
 
 _SETCC = {"==": ("sete", "sete"), "!=": ("setne", "setne"), "<": ("setl", "setb"),
           "<=": ("setle", "setbe"), ">": ("setg", "seta"), ">=": ("setge", "setae")}
@@ -33,6 +33,8 @@ class ArithMixin:
         if node.result_buf is not None:
             return self.vector_binary(node)
         lty = node.lhs.ty
+        if is_decimal(lty):
+            return self.decimal_binary(node)
         if is_flonum(lty):
             return self.float_binary(node)
         if lty.kind == TypeKind.INT128:

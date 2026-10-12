@@ -10,11 +10,14 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
-from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_flonum,
-                       is_integer, pointer_to)
+from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_decimal,
+                       is_flonum, is_integer, pointer_to)
 
 _FLOAT_RANK = {TypeKind.FLOAT16: 1, TypeKind.FLOAT: 2, TypeKind.DOUBLE: 3, TypeKind.LDOUBLE: 4,
                TypeKind.FLOAT128: 5}
+
+
+_DEC_RANK = {TypeKind.DEC32: 1, TypeKind.DEC64: 2, TypeKind.DEC128: 3}
 
 
 def int_promote(ty: Type) -> Type:
@@ -32,6 +35,12 @@ def common_type(a: Type, b: Type) -> Type:
         return pointer_to(a)
     if b.kind == TypeKind.FUNC:
         return pointer_to(b)
+    if is_decimal(a) or is_decimal(b):
+        if is_flonum(a) or is_flonum(b):
+            diag.error(None, "both decimal floating and binary floating types in an operation", "sema")
+        ra = _DEC_RANK.get(a.kind, 0)
+        rb = _DEC_RANK.get(b.kind, 0)
+        return a if ra >= rb else b
     if is_flonum(a) or is_flonum(b):
         ra = _FLOAT_RANK.get(a.kind, 0)
         rb = _FLOAT_RANK.get(b.kind, 0)

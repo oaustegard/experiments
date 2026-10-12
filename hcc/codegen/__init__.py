@@ -16,6 +16,8 @@ from hcc.codegen.calls import CallMixin
 from hcc.codegen.casts import CastMixin
 from hcc.codegen.context import CodeGenBase
 from hcc.codegen.data import DataMixin
+from hcc.codegen.decimal import DecimalMixin
+from hcc.codegen.decimal_vector import DecimalVectorMixin
 from hcc.codegen.expressions import ExpressionMixin
 from hcc.codegen.floats import FloatMixin
 from hcc.codegen.fpclassify import FpClassifyMixin
@@ -34,7 +36,7 @@ from hcc.codegen.vector_wide import VectorWideMixin
 
 class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
               CastMixin, CallMixin, VarargsMixin, BuiltinMixin, FpClassifyMixin, OverflowMixin, Overflow128Mixin, AsmMixin, MemoryMixin,
-              DataMixin, VectorOpsMixin, VectorWideMixin, InitFiniMixin, Int128Mixin, CodeGenBase):
+              DataMixin, VectorOpsMixin, VectorWideMixin, InitFiniMixin, Int128Mixin, DecimalMixin, DecimalVectorMixin, CodeGenBase):
 
     def run(self) -> str:
         self.directive(f'.file "{getattr(self.opts, "source_name", "") or "hcc"}"')

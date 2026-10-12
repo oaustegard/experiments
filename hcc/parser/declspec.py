@@ -60,6 +60,9 @@ STORAGE = frozenset(("typedef", "static", "extern", "inline", "_Thread_local", "
 FLOATN_TYPES = {"_Float16": T.TY_FLOAT16, "_Float32": T.TY_FLOAT32, "_Float64": T.TY_FLOAT64,
                 "_Float32x": T.TY_FLOAT32X, "_Float64x": T.TY_FLOAT64X,
                 "_Float128": T.TY_FLOAT128, "_Float128x": T.TY_FLOAT128}
+# _Decimal32/64/128 (TR 24732): BID-encoded decimal floating types, see codegen/decimal.py.
+DECIMAL_TYPES = {"_Decimal32": T.TY_DEC32, "_Decimal64": T.TY_DEC64, "_Decimal128": T.TY_DEC128}
+NAMED_SCALAR_TYPES = {**FLOATN_TYPES, **DECIMAL_TYPES}
 
 
 class DeclSpecMixin:
@@ -111,7 +114,7 @@ class DeclSpecMixin:
             return False
         if tok.kind == TokenKind.KEYWORD:
             return tok.text in TYPE_KEYWORDS
-        if tok.kind == TokenKind.IDENT and tok.text in FLOATN_TYPES and self.find_typedef(tok) is None:
+        if tok.kind == TokenKind.IDENT and tok.text in NAMED_SCALAR_TYPES and self.find_typedef(tok) is None:
             return True
         if self.is_c23_bool(tok):
             return True
@@ -197,7 +200,7 @@ class DeclSpecMixin:
                 continue
             # user-defined / special types
             td = self.find_typedef(tok)
-            is_floatn = tok.kind == TokenKind.IDENT and s in FLOATN_TYPES and td is None
+            is_floatn = tok.kind == TokenKind.IDENT and s in NAMED_SCALAR_TYPES and td is None
             if s in ("struct", "union", "enum", "typeof", "typeof_unqual", "__builtin_va_list",
                      "__auto_type", "__float128", "__float80", "__uint128_t") or td is not None or is_floatn:
                 if counter:
@@ -224,7 +227,7 @@ class DeclSpecMixin:
                 elif s == "__auto_type":
                     ty = None       # resolved by the declaration's initializer
                 elif is_floatn:
-                    ty = FLOATN_TYPES[s]
+                    ty = NAMED_SCALAR_TYPES[s]
                 else:
                     ty = td
                 counter += OTHER

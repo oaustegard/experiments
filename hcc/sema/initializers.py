@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import dataclasses
 
+from hcc.bidbits import bid_from_int
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.arith import new_add
@@ -147,6 +148,9 @@ def _write_le(init, ty, gd, offset) -> None:
             gd.data[offset:offset + 10] = (exact.to_bytes(10, "little") if exact is not None
                                            else float_to_x87(v))
         return
+    if T.is_decimal(ty):
+        gd.data[offset:offset + ty.size] = _decimal_static_bits(expr, ty)
+        return
     try:
         label, v = _static_scalar(expr, ty)
     except NotConstant:
@@ -239,6 +243,23 @@ def _static_scalar(expr, ty):
     if T.is_integer(ty) and T.is_flonum(getattr(expr, "ty", None) or T.TY_VOID):
         return None, float_to_int(eval_float(expr), ty)
     return eval_reloc(expr)
+
+
+def _decimal_static_bits(expr, ty) -> bytes:
+    """BID bits of a static _Decimal object initialised from an integer constant.
+    Other constants (floating, decimal-to-decimal) are not folded yet."""
+    inner = expr
+    while type(inner) is N.Cast and T.is_integer(inner.operand.ty):
+        inner = inner.operand
+    if not T.is_integer(getattr(inner, "ty", None) or T.TY_VOID):
+        diag.error(expr, f"unsupported static initializer for '{ty}'", "sema")
+    try:
+        label, v = _static_scalar(inner, inner.ty)
+    except NotConstant:
+        diag.error(expr, "initializer element is not constant", "sema")
+    if label is not None:
+        diag.error(expr, "unsupported static initializer for decimal type", "sema")
+    return bid_from_int(v, ty.size)
 
 
 def _const_int(expr, ty=T.TY_INT) -> int:
