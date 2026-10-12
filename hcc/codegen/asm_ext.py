@@ -27,7 +27,9 @@ _MEM_LETTERS = set("moV")
 _X87_LETTERS = set("tuf")
 _IMM_LETTERS = set("inIJKLMNeEFZs")
 _BAD_KINDS = (TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE, TypeKind.FLOAT128,
-              TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.FUNC)
+              TypeKind.STRUCT, TypeKind.UNION)
+# Arrays and functions decay to their address when used as register operands.
+_DECAY_KINDS = (TypeKind.ARRAY, TypeKind.FUNC)
 
 
 def _reg_name(reg: str, size: int) -> str:
@@ -52,7 +54,8 @@ class _Op:
         self.match = None        # operand index for matching constraints
         self.imm = None
         self.reg = None          # assigned register (no '%')
-        self.size = _norm_size(expr.ty.size)
+        decays = expr.ty.kind in _DECAY_KINDS
+        self.size = 8 if decays else _norm_size(expr.ty.size)
 
 
 def _classify(op: _Op) -> None:
