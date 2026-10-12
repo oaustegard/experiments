@@ -93,10 +93,29 @@ def parse_int_literal(tok: Token) -> tuple[int, Type]:
     return val & ((1 << 64) - 1), ty
 
 
-# floating suffixes, longest first; the _FloatN/_FloatNx forms are GCC's TS 18661 suffixes
+# floating suffixes, longest first; the _FloatN/_FloatNx forms are GCC's TS 18661 suffixes.
+# w/W is GCC's __float80 suffix, q/Q its __float128 suffix, d/D a (non-decimal) double suffix.
 _FLOAT_SUFFIXES = (("f16", TY_FLOAT16), ("f32x", TY_DOUBLE), ("f32", TY_FLOAT),
                    ("f64x", TY_LDOUBLE), ("f64", TY_DOUBLE), ("f128x", TY_FLOAT128),
-                   ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE))
+                   ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE),
+                   ("w", TY_LDOUBLE), ("q", TY_FLOAT128), ("d", TY_DOUBLE))
+
+
+def _split_float_suffixes(s: str) -> tuple[str, Type, bool]:
+    """Strip one floating-type suffix and one imaginary marker (i/j), in either
+    order (`2.5i`, `2.5fi`, `2.5if`).  Returns (body, type, is_imaginary)."""
+    body, ty, imag = s, None, False
+    for _ in range(2):
+        low = body.lower()
+        if not imag and low.endswith(("i", "j")):
+            imag, body = True, body[:-1]
+            continue
+        if ty is None:
+            for suf, suf_ty in _FLOAT_SUFFIXES:
+                if low.endswith(suf):
+                    ty, body = suf_ty, body[: -len(suf)]
+                    break
+    return body, ty or TY_DOUBLE, imag
 
 
 def _round_decimal_to_f32(fr: Fraction) -> float:
@@ -118,37 +137,36 @@ def _round_decimal_to_f32(fr: Fraction) -> float:
 def parse_number(tok: Token):
     s = tok.text.replace("'", "")                # C23 digit separators
     low = s.lower()
-    if low.endswith(("i", "j")):                 # GNU imaginary constant: 2.5i, 1j
-        return _parse_imaginary(tok, s[:-1])
     is_hex = low.startswith("0x")
     if not is_hex and ("." in s or "e" in low) or is_hex and ("." in s or "p" in low):
-        ty, body = TY_DOUBLE, s
-        for suf, suf_ty in _FLOAT_SUFFIXES:
-            if low.endswith(suf):
-                ty, body = suf_ty, s[: -len(suf)]
-                break
-        try:
-            if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):   # exact x87 encoding
-                return x87_from_text(body, is_hex, ty.kind == TypeKind.FLOAT128), ty
-            if is_hex:
-                val = float.fromhex(body)
-            elif ty is TY_FLOAT:
-                val = _round_decimal_to_f32(exact_decimal(body))
-            else:
-                val = float(body)
-        except OverflowError:
-            # hex constant beyond double range: C says the value is +/-inf
-            val = float("-inf") if body.startswith("-") else float("inf")
-        except ValueError:
-            diag.error(tok, f"invalid floating constant '{s}'")
-        except OverflowError:
-            # out of range for a Python float: GCC warns and uses infinity
-            diag.warn(tok, f"floating constant '{s}' exceeds range")
-            val = float("inf")
-        if ty.kind == TypeKind.FLOAT16:
-            val = round_to_half(val)
+        body, ty, imag = _split_float_suffixes(s)
+        val = _float_value(tok, s, body, ty, is_hex)
+        if imag:                                  # GNU imaginary constant: 2.5i, 2.5fi
+            return val, complex_of(ty)
         return val, ty
+    if low.endswith(("i", "j")):                 # GNU imaginary constant: 1i, 1j
+        return _parse_imaginary(tok, s[:-1])
     return parse_int_literal(tok)
+
+
+def _float_value(tok: Token, s: str, body: str, ty: Type, is_hex: bool):
+    try:
+        if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):   # exact x87 encoding
+            return x87_from_text(body, is_hex, ty.kind == TypeKind.FLOAT128)
+        if is_hex:
+            val = float.fromhex(body)
+        elif ty is TY_FLOAT:
+            val = _round_decimal_to_f32(exact_decimal(body))
+        else:
+            val = float(body)
+    except OverflowError:
+        # hex constant beyond double range: C says the value is +/-inf
+        val = float("-inf") if body.startswith("-") else float("inf")
+    except ValueError:
+        diag.error(tok, f"invalid floating constant '{s}'")
+    if ty.kind == TypeKind.FLOAT16:
+        val = round_to_half(val)
+    return val
 
 
 def _check_ucn(tok: Token, cp: int) -> None:
