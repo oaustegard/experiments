@@ -64,6 +64,7 @@ class LocalDeclMixin:
                 self.nested_function(ty, name, attr, dattr)
                 return items
             if ty.kind == T.TypeKind.FUNC:
+                ty = self.block_func_composite(ty, name.text)
                 fn = self.declare_function(ty, name, attr, dattr)
                 self.push_scope_entry(name.text).var = fn
                 if self.at("{"):                     # GNU nested function definition
@@ -119,6 +120,25 @@ class LocalDeclMixin:
             if not var.ty.is_complete or var.ty.size < 0:
                 self.error(f"storage size of '{name.text}' isn't known", name)
         return items
+
+    def block_func_composite(self, ty, name: str):
+        """Block-scope function declaration `T *f(void);` that names a function
+        visible from an outer scope: an incomplete array element type in the
+        return pointer (`IA *`) takes the complete one (`A10 *`) from the prior
+        declaration, as the composite type rule requires."""
+        vs = self.find_var(name)
+        prior = vs.var if vs is not None else None
+        if not isinstance(prior, N.Function) or prior.ty.kind != T.TypeKind.FUNC:
+            return ty
+        new_r, old_r = ty.return_ty, prior.ty.return_ty
+        if new_r is None or old_r is None or new_r.kind != T.TypeKind.PTR \
+                or old_r.kind != T.TypeKind.PTR:
+            return ty
+        if new_r.base.kind == T.TypeKind.ARRAY and new_r.base.array_len < 0 \
+                and old_r.base.kind == T.TypeKind.ARRAY and old_r.base.array_len >= 0:
+            ty = ty.copy()
+            ty.return_ty = old_r
+        return ty
 
     def nested_function_definition(self, fn, ty) -> None:
         """GNU nested function: parsed as a file-level function.
