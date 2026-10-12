@@ -218,6 +218,10 @@ class TopLevelMixin:
             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
                 self.error(f"redefinition of '{name.text}'", name.loc)
+            # GCC: a weak declaration cannot be applied to an existing static definition
+            if (attr.is_weak or dattr.is_weak) and fn.is_static and fn.is_definition:
+                self.error(f"weak declaration of '{name.text}' being applied to a already "
+                           f"existing, static definition", name.loc)
             if ty.has_proto or not fn.ty.has_proto:
                 fn.ty = ty
         if len(self.scopes) == 1:
