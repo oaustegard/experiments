@@ -13,6 +13,7 @@ from hcc import typesys as T
 from hcc.parser.scope import VarAttr
 from hcc.parser.attributes import mode_type
 from hcc.parser.redecl import check_redecl
+from hcc.parser.toplevel import is_incomplete_object
 
 # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
 GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
@@ -141,7 +142,7 @@ class LocalDeclMixin:
                     self.error("variable-sized object may not be initialized except with an empty initializer", name)
                 e = self.local_initializer(var)
                 items.append(N.ExprStmt(name.loc, e))
-            if not var.ty.is_complete or var.ty.size < 0:
+            if not var.ty.is_complete or var.ty.size < 0 or is_incomplete_object(var.ty):
                 self.error(f"storage size of '{name.text}' isn't known", name)
         return items
 

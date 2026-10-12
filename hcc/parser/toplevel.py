@@ -21,6 +21,16 @@ from hcc.parser.redecl import check_redecl
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
 
+def is_incomplete_object(ty) -> bool:
+    """True for a type that cannot name an object's storage: an incomplete
+    struct/union, or an enum that was only forward-declared (`enum E;`)."""
+    if ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        return not ty.is_complete
+    if ty.kind == T.TypeKind.ENUM:
+        return ty.enum_consts == "fwd"
+    return False
+
+
 class TopLevelMixin:
 
     def translation_unit(self) -> N.TranslationUnit:
@@ -191,6 +201,10 @@ class TopLevelMixin:
         for o in self.objs:
             if isinstance(o, N.Var) and not o.is_local and o.init_data is None:
                 if o.is_tentative and not o.is_extern:
+                    # C11 6.9.2p2: a tentative definition must have a complete type
+                    # by the end of the translation unit (gcc: "storage size isn't known").
+                    if is_incomplete_object(o.ty):
+                        self.error(f"storage size of '{o.name}' isn't known", o.loc)
                     o.is_definition = True
                     if o.ty.kind == T.TypeKind.ARRAY and o.ty.array_len < 0:
                         o.ty = T.array_of(o.ty.base, 1)
