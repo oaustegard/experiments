@@ -58,6 +58,9 @@ def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
         # ... and only `L` is a literal prefix (C90 has no u8/u/U prefixes):
         # gnu89 `u'a'` lexes as identifier `u` then char constant (dg utf-dflt).
         src = src.replace("(?:u8|u|U|L)?", "(?:L)?")
+        # C90 pp-numbers have no hex exponent sign: `0x1p+f` is `0x1p`, `+`, `f`
+        # (the sign is part of a pp-number only from C99 on).
+        src = src.replace("[pP][+-]|", "")
     if not u8_chars:
         # u8'x' character constants exist only in C23; before that `u8` is an identifier.
         src = src.replace("(?P<chr>(?:u8|u|U|L)?", "(?P<chr>(?:u|U|L)?")

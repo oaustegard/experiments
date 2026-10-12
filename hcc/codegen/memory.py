@@ -114,8 +114,15 @@ class MemoryMixin:
             self.emit("movss %xmm0, (%rdi)")
         elif k == TypeKind.DOUBLE:
             self.emit("movsd %xmm0, (%rdi)")
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k == TypeKind.LDOUBLE:
             self.emit("fstpt (%rdi)")
+            self.emit("fldt (%rdi)")
+        elif k == TypeKind.FLOAT128:
+            # x87 image in the first 10 bytes; zero the padding so the 16-byte
+            # object is fully defined (union/memcpy reads of it are deterministic).
+            self.emit("fstpt (%rdi)")
+            self.emit("movl $0, 10(%rdi)")
+            self.emit("movw $0, 14(%rdi)")
             self.emit("fldt (%rdi)")
         elif ty.size == 1:
             self.emit("mov %al, (%rdi)")

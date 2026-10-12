@@ -45,4 +45,6 @@ def _parse_va_arg(self, tok):
     fn = getattr(self, "fn", None)
     if fn is not None and fn.va_tmp is None:
         fn.va_tmp = self.new_temp(T.array_of(T.TY_CHAR, 16))
-    return self._call(tok, "va_arg", [ap], ty, ty)
+    # `va_arg(ap, typeof(int (*)[++i]))`: the VLA bounds are evaluated first
+    ty, pre = self.vla_bind(ty, tok.loc)
+    return self.vla_prefix(pre, self._call(tok, "va_arg", [ap], ty, ty), tok.loc)
