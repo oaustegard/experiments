@@ -388,6 +388,10 @@ class TopLevelMixin:
         (C11 6.9.1p7; gcc: 'declares more/fewer arguments than previous old-style')."""
         if not fn.is_definition or fn.ty.has_proto or not ty.has_proto:
             return
+        if self.fn is fn:
+            # A block-scope declaration inside the body of the old-style
+            # definition itself (GCC accepts `void f(int);` in `void f() {...}`).
+            return
         have = len(fn.ty.param_names)
         if len(ty.params) > have:
             self.error(f"prototype for '{name.text}' declares more arguments than "
