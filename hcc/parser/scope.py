@@ -31,6 +31,7 @@ class VarAttr:
     is_typedef: bool = False
     is_static: bool = False
     is_extern: bool = False
+    is_register: bool = False
     is_inline: bool = False
     is_gnu_inline: bool = False     # __attribute__((gnu_inline)): gnu89 inline semantics
     is_tls: bool = False
