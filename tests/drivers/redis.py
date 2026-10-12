@@ -13,7 +13,7 @@ Test ids (tests/suites/redis/manifest.json; regenerate with tests/scripts/gen_re
                        a redis-server whose objects are all built by hcc, except that an object hcc cannot compile
                        yet is replaced by its gcc object.  Cases that pass with the gcc build in two runs only.
   redis/src/<dir>/<file>.c   hcc compiles that one translation unit of redis-server; the rest is gcc; the smoke
-                       files unit.type.incr and unit.type.string must give the gcc build's status for every case.
+                       files unit.type.incr and unit.keyspace must give the gcc build's status for every case.
 """
 import json
 import os
@@ -29,7 +29,7 @@ import projlib as P
 URL = "https://github.com/redis/redis.git"
 REF = "7.2.5"
 COMMIT = "f60370ce28b946c1146dcea77c9c399d39601aaa"
-SMOKE = ["unit.type.incr", "unit.type.string"]
+SMOKE = ["unit.type.incr", "unit.keyspace"]
 RUN_TIMEOUT = 900
 RUN_VERSION = "1"  # bump when run_file / parse change: cached reference runs are keyed on it
 MAX_LIVE = 400

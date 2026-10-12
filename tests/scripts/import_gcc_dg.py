@@ -21,6 +21,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 
@@ -203,11 +204,18 @@ def validate_reject(dest, skips):
     def one(rel):
         p = os.path.join(dest, rel)
         fl = open(p + ".flags").read().split() if os.path.exists(p + ".flags") else []
+        proc = subprocess.Popen(["gcc", "-fsyntax-only", "-w"] + fl + [p], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                start_new_session=True)  # own process group: cc1 must die with the gcc driver
         try:
-            r = subprocess.run(["gcc", "-fsyntax-only", "-w"] + fl + [p], capture_output=True, timeout=30)
+            _, stderr = proc.communicate(timeout=30)
         except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.communicate()
             return rel, "gcc needs more than 30 s"
-        err = r.stderr.decode("utf-8", "replace")
+
+        class r:  # noqa: N801
+            returncode = proc.returncode
+        err = stderr.decode("utf-8", "replace")
         errs = [l for l in err.splitlines() if "error:" in l]
         if "internal compiler error" in err:
             return rel, "gcc itself crashes on it"
