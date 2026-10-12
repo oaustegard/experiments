@@ -140,6 +140,11 @@ def vector_binop(op, lhs, rhs, loc):
         return None
     if lhs.ty.size != rhs.ty.size:
         return None
+    # GCC: element kinds must agree (integer with integer, float with float)
+    # and have the same width; e.g. float vector + int vector is invalid.
+    le, re_ = lhs.ty.base, rhs.ty.base
+    if is_flonum(le) != is_flonum(re_) or le.size != re_.size:
+        return None
     if op in VECTOR_CMP_OPS:
         # float/double lanes compare too (ordered predicates, GCC semantics)
         if not (is_integer(lhs.ty.base) or (is_flonum(lhs.ty.base) and lhs.ty.base.size in (4, 8))):
