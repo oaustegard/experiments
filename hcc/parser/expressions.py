@@ -37,6 +37,16 @@ def _comma_result_type(t):
     return t
 
 
+def _is_readonly(node) -> bool:
+    """True if the lvalue `node` has a const-qualified type (a member of a
+    const struct is const too)."""
+    if node.ty is not None and node.ty.is_const:
+        return True
+    if isinstance(node, N.Member_):
+        return _is_readonly(node.operand)
+    return False
+
+
 class ExpressionMixin:
 
     def expr(self):
@@ -72,6 +82,11 @@ class ExpressionMixin:
         return node
 
     def check_assignable(self, node, tok) -> None:
+        self._check_lvalue(node, tok)
+        if _is_readonly(node):
+            self.error("assignment of read-only location", tok)
+
+    def _check_lvalue(self, node, tok) -> None:
         if isinstance(node, (N.VarRef, N.Deref, N.Member_)):
             return
         if isinstance(node, N.ComplexPart) and isinstance(node.operand, (N.VarRef, N.Deref, N.Member_)):
