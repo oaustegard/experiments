@@ -137,7 +137,8 @@ def _split_id(s: str) -> list[tuple[str, str]]:
 
 
 _KIND = {"num": TokenKind.NUMBER, "str": TokenKind.STRING, "chr": TokenKind.CHAR,
-         "id": TokenKind.IDENT, "punct": TokenKind.PUNCT, "other": TokenKind.PUNCT}
+         "id": TokenKind.IDENT, "punct": TokenKind.PUNCT, "other": TokenKind.PUNCT,
+         "bad": TokenKind.PUNCT}
 
 
 def remove_splices(text: str) -> str:
@@ -198,9 +199,7 @@ def tokenize(text: str, path: str, line_comments: bool = True,
             bol = True
             space = False
             continue
-        if kind in ("ws", "lc", "bad"):
-            # "bad" = a byte that is not valid UTF-8 outside a literal or comment
-            # (surrogateescape): GCC treats it as a stray token that vanishes.
+        if kind in ("ws", "lc"):
             space = True
             continue
         if kind == "bc":

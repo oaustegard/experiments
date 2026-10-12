@@ -156,17 +156,16 @@ class EnumMixin:
             self.error("empty enum is invalid", self.toks[self.pos - 1])
         lo = min(consts, default=0)
         hi = max(consts, default=0)
-        if fixed is None and tag is not None:
-            self.__dict__.setdefault("enum_nofixed_ids", {})[id(ty)] = ty   # keeps ty alive: no id reuse
-        self.parse_attributes(attr if attr is not None else VarAttr(), ty)   # `enum {..} __attribute__((mode(word)))`
-        if fixed is not None:
-            pass
-        elif lo < 0:
-            if lo < -(1 << 31) or hi >= 1 << 31:
+        if fixed is None:
+            if tag is not None:     # keeps ty alive: no id reuse
+                self.__dict__.setdefault("enum_nofixed_ids", {})[id(ty)] = ty
+            if lo < 0:              # tagged or not: negative values make the type signed
+                if lo < -(1 << 31) or hi >= 1 << 31:
+                    ty.size = ty.align = 8
+                ty.is_unsigned = False
+            elif hi >= 1 << 32:
                 ty.size = ty.align = 8
-            ty.is_unsigned = False
-        elif hi >= 1 << 32:
-            ty.size = ty.align = 8
+        self.parse_attributes(attr if attr is not None else VarAttr(), ty)   # `enum {..} __attribute__((mode(word)))`
         if fixed is None and (ty.is_packed or getattr(self.opts, "short_enums", False)):
             packed_enum_size(ty, lo, hi)     # `__attribute__((packed))`: smallest integer that fits
         self.check_designated_init(attr, False, self.toks[self.pos - 1])

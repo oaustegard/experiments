@@ -203,6 +203,8 @@ hcc/
     initializers.py    Initializer -> local assignment exprs; Initializer ->
                        static bytes + relocations (GlobalData)
     compat.py          type compatibility (is_compatible)
+    compound_order.py  has_call(): `lhs op= f()` evaluates the rhs (calls) before lhs (gcc order)
+    x87_widen.py       static long double from a double/float inf or NaN keeps payload (x87 bytes)
 
   codegen/
     __init__.py        generate(tu, opts) -> str ; CodeGen class: bases = every

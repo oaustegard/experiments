@@ -18,6 +18,7 @@ from hcc import typesys as T
 from hcc.floatbits import pack_float32, pack_float64
 from hcc.halfbits import half_bits
 from hcc.f128_lit import float128_bits
+from hcc.sema.x87_widen import widened_nonfinite_x87
 
 
 def _has_value(init) -> bool:
@@ -192,7 +193,12 @@ def _write_le(init, ty, gd, offset) -> None:
                 exact = float128_bits(v)
             gd.data[offset:offset + 16] = exact.to_bytes(16, "little")
         else:
-            exact = _exact_bits(expr, 79)
+            exact = _exact_bits(expr, 79, T.TypeKind.LDOUBLE)
+            if exact is None:            # a double/float inf or NaN widened to long double
+                wide = widened_nonfinite_x87(expr)
+                if wide is not None:
+                    gd.data[offset:offset + 10] = wide
+                    return
             gd.data[offset:offset + 10] = (exact.to_bytes(10, "little") if exact is not None
                                            else float_to_x87(v))
         return

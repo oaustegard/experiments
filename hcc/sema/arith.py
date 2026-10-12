@@ -15,6 +15,7 @@ from hcc.sema.atomic_rmw import atomic_rmw
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.compat import is_compatible
 from hcc.sema.dyn_struct_size import dyn_struct_bytes
+from hcc.sema.compound_order import has_call
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
 from hcc.sema.void_value import require_value
@@ -204,6 +205,10 @@ def compound_assign(op, lhs, rhs, loc, new_temp):
     rmw = atomic_rmw(op, lhs, rhs, loc, want_old=False)
     if rmw is not None:
         return rmw
+    if has_call(rhs):                       # gcc: the rhs call runs before lhs is read
+        rtmp = new_temp(rhs.ty.unqual())
+        first = _t(N.Assign(loc, _t(N.VarRef(loc, rtmp)), rhs))
+        return _t(N.Comma(loc, first, compound_assign(op, lhs, _t(N.VarRef(loc, rtmp)), loc, new_temp)))
     if isinstance(lhs, N.VarRef):           # simple variable: no temp needed
         return _t(N.Assign(loc, lhs, _binop_buf(op, lhs, rhs, loc, new_temp)))
     if isinstance(lhs, N.Member_) and lhs.member.is_bitfield:
