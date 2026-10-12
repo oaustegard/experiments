@@ -83,6 +83,8 @@ def _eval(node):
     if t is N.IntLit:
         return None, node.value
     if t is N.FloatLit:
+        if node.value != node.value or node.value in (float("inf"), float("-inf")):
+            raise NotConstant  # inf/nan has no integer value
         return None, int(node.value)
     if t is N.Binary:
         op = node.op

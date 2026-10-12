@@ -23,6 +23,8 @@ __builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
 __builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
+__builtin_huge_val __builtin_huge_valf __builtin_huge_vall
+__builtin_inf __builtin_inff __builtin_infl
 """.split())
 
 # Bit-counting builtins: {clz,ctz,popcount,parity,ffs}{,l,ll}. The suffix picks
@@ -167,6 +169,28 @@ class BuiltinParseMixin:
     def _b_constant_p(self, tok):
         args = self._args(1)
         return N.IntLit(tok.loc, int(try_eval_const(args[0]) is not None), ty=T.TY_INT)
+
+    def _inf_lit(self, tok, ty):
+        """__builtin_huge_val*()/__builtin_inf*(): a constant +infinity."""
+        return N.FloatLit(tok.loc, float("inf"), ty=ty)
+
+    def _b_huge_val(self, tok):
+        return self._inf_lit(tok, T.TY_DOUBLE)
+
+    def _b_inf(self, tok):
+        return self._inf_lit(tok, T.TY_DOUBLE)
+
+    def _b_huge_valf(self, tok):
+        return self._inf_lit(tok, T.TY_FLOAT)
+
+    def _b_inff(self, tok):
+        return self._inf_lit(tok, T.TY_FLOAT)
+
+    def _b_huge_vall(self, tok):
+        return self._inf_lit(tok, T.TY_LDOUBLE)
+
+    def _b_infl(self, tok):
+        return self._inf_lit(tok, T.TY_LDOUBLE)
 
     def _b_unreachable(self, tok):
         return self._call(tok, "trap", [], T.TY_VOID)
