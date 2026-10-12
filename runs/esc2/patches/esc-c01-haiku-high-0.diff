@@ -1,0 +1,72 @@
+diff --git a/hcc/parser/complex.py b/hcc/parser/complex.py
+index 0cc30cd1..d25ddda8 100644
+--- a/hcc/parser/complex.py
++++ b/hcc/parser/complex.py
+@@ -287,3 +287,16 @@ def builtin_complex(p, loc, args):
+     if cre is not None and cim is not None:
+         CC.attach(node, (cre[0], cim[0]), base)
+     return node
++
++
++def cond_arms(p, then, els, loc):
++    """`c ? a : b` (or `x ?: b`) where an arm is complex: both arms are converted to
++    the common complex type (C11 6.5.15); arms that are not complex-compatible are
++    returned unchanged for the ordinary conditional rules."""
++    if not (then.ty.is_complex or els.ty.is_complex):
++        return then, els
++    for e in (then, els):
++        if not (e.ty.is_complex or is_integer(e.ty) or is_flonum(e.ty)):
++            return then, els
++    cty = complex_of(_common_base(p, [then, els], loc))
++    return convert(p, then, cty, loc), convert(p, els, cty, loc)
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index 920b0863..3e77f7c2 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -118,18 +118,21 @@ class ExpressionMixin:
+         cond = self.logor()
+         if not self.at("?"):
+             return cond
+-        cond = CPX.truth(self, cond)
+         loc = self.next().loc
+         if self.at(":"):                  # GNU a ?: b
+             self.next()
++            # Keep the operand's own value (a complex one must not become its
++            # truth value); only the test on the saved copy is a truth test.
+             tmp = self.new_temp(_comma_result_type(cond.ty))
+             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
+-            rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
+-                                    self.typed(N.VarRef(loc, tmp)), self.conditional()))
++            then, els = CPX.cond_arms(self, self.typed(N.VarRef(loc, tmp)), self.conditional(), loc)
++            rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))), then, els))
+             return self.typed(N.Comma(loc, lhs, rhs))
++        cond = CPX.truth(self, cond)
+         then = self.expr()
+         self.expect(":")
+         els = self.conditional()
++        then, els = CPX.cond_arms(self, then, els, loc)
+         return self.typed(N.Cond(loc, cond, then, els))
+ 
+     def logor(self):
+diff --git a/hcc/selftest/complex_elvis_omitted_middle.c b/hcc/selftest/complex_elvis_omitted_middle.c
+new file mode 100644
+index 00000000..2a619249
+--- /dev/null
++++ b/hcc/selftest/complex_elvis_omitted_middle.c
+@@ -0,0 +1,16 @@
++// EXPECT-EXIT: 0
++// GNU `x ?: y` with a complex x: the saved value keeps its imaginary part,
++// the call runs once, and a real arm is converted to complex.
++static int calls;
++_Complex int g(int re, int im) { calls++; return re + im * 1i; }
++_Complex double gd(double re) { calls++; return re; }
++int main(void) {
++    _Complex int a = g(0, 0) ?: (_Complex int)(7 + 9i);
++    _Complex int b = g(3, 4) ?: (_Complex int)(7 + 9i);
++    _Complex double d = gd(0.0) ?: 5.0;
++    if (__real__ a != 7 || __imag__ a != 9) return 1;
++    if (__real__ b != 3 || __imag__ b != 4) return 2;
++    if (__real__ d != 5.0 || __imag__ d != 0.0) return 3;
++    if (calls != 3) return 4;
++    return 0;
++}

@@ -1,0 +1,44 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index 920b0863..8e7b4e97 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -118,15 +118,17 @@ class ExpressionMixin:
+         cond = self.logor()
+         if not self.at("?"):
+             return cond
+-        cond = CPX.truth(self, cond)
+         loc = self.next().loc
+         if self.at(":"):                  # GNU a ?: b
+             self.next()
++            # The temp keeps the operand's value (complex stays complex); only
++            # the test on it is reduced to a truth value.
+             tmp = self.new_temp(_comma_result_type(cond.ty))
+             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
+             rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
+                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
+             return self.typed(N.Comma(loc, lhs, rhs))
++        cond = CPX.truth(self, cond)
+         then = self.expr()
+         self.expect(":")
+         els = self.conditional()
+diff --git a/hcc/selftest/parser_elvis_complex.c b/hcc/selftest/parser_elvis_complex.c
+new file mode 100644
+index 00000000..a9dcb018
+--- /dev/null
++++ b/hcc/selftest/parser_elvis_complex.c
+@@ -0,0 +1,15 @@
++// EXPECT-EXIT: 0
++// GNU `a ?: b` where `a` is complex: the hidden temporary keeps the complex
++// value (only its truth test is reduced), so a nonzero operand is returned as-is.
++int calls;
++_Complex int g(_Complex int v) { calls++; return v; }
++_Complex int doo(void) {
++    _Complex int rhs;
++    return g(1 + 2i) ? : rhs;
++}
++int main(void) {
++    _Complex int r = doo();
++    if (calls != 1) return 2;
++    if (__real__ r != 1 || __imag__ r != 2) return 1;
++    return 0;
++}

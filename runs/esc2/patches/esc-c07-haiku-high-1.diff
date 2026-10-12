@@ -1,0 +1,52 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..b987eca4 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -69,7 +69,14 @@ class EnumMixin:
+             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                     and def_pos[id(prev)] != brace_pos):
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+-        ty = T.enum_type()
++        # `enum E;` followed by `enum E {...}` in the same scope completes the
++        # forward-declared object in place, so typedefs/decls made earlier see it.
++        fwd = self.scopes[-1].tags.get(tag.text) if tag is not None else None
++        if fwd is not None and fwd.kind == T.TypeKind.ENUM and fwd.enum_consts == "fwd":
++            ty = fwd
++            ty.enum_consts = None
++        else:
++            ty = T.enum_type()
+         ty.tag = tag.text if tag else None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 31e010cd..d99e1b95 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -284,9 +284,12 @@ class TopLevelMixin:
+     def check_param_complete(self, i, pty, pname, loc) -> None:
+         """C11 6.9.1p10: parameters of a function definition need complete
+         non-void types (arrays/pointers were already adjusted by the declarator)."""
+-        bad = pty.kind == T.TypeKind.VOID or \
+-            (pty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not pty.is_complete) or \
+-            (pty.kind == T.TypeKind.ENUM and pty.enum_consts == "fwd")
++        base = pty
++        while base.kind == T.TypeKind.ENUM and base.enum_consts == "fwd" and base.origin is not None:
++            base = base.origin      # a copy made while the enum was forward-declared (typedef)
++        bad = base.kind == T.TypeKind.VOID or \
++            (base.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not base.is_complete) or \
++            (base.kind == T.TypeKind.ENUM and base.enum_consts == "fwd")
+         if not bad:
+             return
+         what = f" ('{pname.text}')" if pname is not None else ""
+diff --git a/hcc/selftest/parse_enum_fwd_typedef_complete.c b/hcc/selftest/parse_enum_fwd_typedef_complete.c
+new file mode 100644
+index 00000000..bdafb567
+--- /dev/null
++++ b/hcc/selftest/parse_enum_fwd_typedef_complete.c
+@@ -0,0 +1,6 @@
++// EXPECT-EXIT: 0
++// A typedef of a forward-declared enum sees the body completed later in the same scope.
++typedef enum E E;
++enum E { E_a, E_b };
++static int f(int a, E op) { return a + (int)op; }
++int main(void) { return f(1, E_b) == 2 ? 0 : 1; }

@@ -1,0 +1,31 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..3d6df4a3 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -69,7 +69,14 @@ class EnumMixin:
+             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                     and def_pos[id(prev)] != brace_pos):
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+-        ty = T.enum_type()
++        ty = None
++        if tag is not None:
++            fwd = self.scopes[-1].tags.get(tag.text)
++            if fwd is not None and fwd.kind == T.TypeKind.ENUM and fwd.enum_consts == "fwd":
++                ty = fwd            # complete the forward-declared enum in place
++                ty.enum_consts = None
++        if ty is None:
++            ty = T.enum_type()
+         ty.tag = tag.text if tag else None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+diff --git a/hcc/selftest/enum_fwd_typedef_param.c b/hcc/selftest/enum_fwd_typedef_param.c
+new file mode 100644
+index 00000000..625e1b27
+--- /dev/null
++++ b/hcc/selftest/enum_fwd_typedef_param.c
+@@ -0,0 +1,5 @@
++// EXPECT-EXIT: 2
++typedef enum E E;
++enum E { A, B, C };
++static int f(int x, E op) { return x + op; }
++int main(void) { return f(1, B); }

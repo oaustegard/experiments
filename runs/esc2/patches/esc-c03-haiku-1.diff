@@ -1,0 +1,35 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..588a5832 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -69,7 +69,16 @@ class EnumMixin:
+             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                     and def_pos[id(prev)] != brace_pos):
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+-        ty = T.enum_type()
++        ty = None
++        if tag is not None:
++            # `typedef enum E E; ... enum E {..}`: complete the forward-declared
++            # object so earlier typedefs/declarations of it see the body too.
++            fwd = self.scopes[-1].tags.get(tag.text)
++            if fwd is not None and fwd.kind == T.TypeKind.ENUM and fwd.enum_consts == "fwd":
++                ty = fwd
++                ty.enum_consts = None
++        if ty is None:
++            ty = T.enum_type()
+         ty.tag = tag.text if tag else None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+diff --git a/hcc/selftest/parse_enum_fwd_typedef_complete.c b/hcc/selftest/parse_enum_fwd_typedef_complete.c
+new file mode 100644
+index 00000000..94b2af99
+--- /dev/null
++++ b/hcc/selftest/parse_enum_fwd_typedef_complete.c
+@@ -0,0 +1,7 @@
++// EXPECT-EXIT: 0
++// A typedef of a forward-declared enum sees the later body (parameter completeness).
++typedef enum E E;
++int f(int a, E op);
++enum E { A, B };
++int f(int a, E op) { return a + (int)op; }
++int main(void) { return f(1, B) == 2 ? 0 : 1; }

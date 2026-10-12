@@ -1,0 +1,73 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 7bf6e4ef..331e03d3 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -56,6 +56,15 @@ class ArithMixin:
+             self.gen_expr(node.rhs)
+             self.emit("mov %rax, %rdi")
+             self.pop("%rax")
++        elif _contains_call(node.lhs) and _contains_call(node.rhs):
++            # Two calls (`P_Random() - P_Random()`): gcc -O0 evaluates the
++            # left operand first; the rhs-first template below would invert
++            # the order and change the program's observable results.
++            self.gen_expr(node.lhs)
++            self.push()
++            self.gen_expr(node.rhs)
++            self.emit("mov %rax, %rdi")
++            self.pop("%rax")
+         else:
+             self.gen_expr(node.rhs)
+             self.push()
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..44551b5f 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -69,8 +69,15 @@ class EnumMixin:
+             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                     and def_pos[id(prev)] != brace_pos):
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+-        ty = T.enum_type()
+-        ty.tag = tag.text if tag else None
++        prev = self.scopes[-1].tags.get(tag.text) if tag is not None else None
++        if prev is not None and prev.kind == T.TypeKind.ENUM and prev.enum_consts == "fwd":
++            # `enum e; ... enum e {..};`: the body completes the forward-declared
++            # type object, so earlier users of the tag (typedefs, params) see it.
++            ty = prev
++            ty.enum_consts = None
++        else:
++            ty = T.enum_type()
++            ty.tag = tag.text if tag else None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+             # The tag is visible from its declaration on, so enumerator
+diff --git a/hcc/selftest/codegen_binary_call_order.c b/hcc/selftest/codegen_binary_call_order.c
+new file mode 100644
+index 00000000..90f73f20
+--- /dev/null
++++ b/hcc/selftest/codegen_binary_call_order.c
+@@ -0,0 +1,11 @@
++// EXPECT-EXIT: 0
++// Both operands of a binary operator call functions: the left one is evaluated
++// first (as gcc -O0 does), so `next() - next()` is -1 here.
++static int n;
++static int next(void) { return ++n; }
++int main(void) {
++    int r = next() - next();
++    int s = 5;
++    s += next() - next();
++    return (r == -1 && s == 4) ? 0 : 1;
++}
+diff --git a/hcc/selftest/parse_enum_fwd_complete.c b/hcc/selftest/parse_enum_fwd_complete.c
+new file mode 100644
+index 00000000..23f8749c
+--- /dev/null
++++ b/hcc/selftest/parse_enum_fwd_complete.c
+@@ -0,0 +1,8 @@
++// EXPECT-EXIT: 2
++// `enum e;` forward declaration (typedef'd before) completed by a later body:
++// the typedef'd name must denote the completed enum.
++enum e;
++typedef enum e E;
++enum e { A, B, C };
++static int f(E op) { return (int)op; }
++int main(void) { return f(C); }

@@ -1,0 +1,43 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index 920b0863..80d5a216 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -118,15 +118,18 @@ class ExpressionMixin:
+         cond = self.logor()
+         if not self.at("?"):
+             return cond
+-        cond = CPX.truth(self, cond)
+         loc = self.next().loc
+         if self.at(":"):                  # GNU a ?: b
+             self.next()
++            # The value (not its truth) is the result: keep the operand's type
++            # and test truthiness of the saved copy (complex-aware).
+             tmp = self.new_temp(_comma_result_type(cond.ty))
+             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
+-            rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
++            test = CPX.truth(self, self.typed(N.VarRef(loc, tmp)))
++            rhs = self.typed(N.Cond(loc, test,
+                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
+             return self.typed(N.Comma(loc, lhs, rhs))
++        cond = CPX.truth(self, cond)
+         then = self.expr()
+         self.expect(":")
+         els = self.conditional()
+diff --git a/hcc/selftest/parser_elvis_complex.c b/hcc/selftest/parser_elvis_complex.c
+new file mode 100644
+index 00000000..14331bc5
+--- /dev/null
++++ b/hcc/selftest/parser_elvis_complex.c
+@@ -0,0 +1,12 @@
++// EXPECT-EXIT: 0
++// GNU a ?: b must yield a's value (complex-aware), not its truth value.
++extern void abort(void);
++int main(void) {
++    _Complex double c = 0;
++    _Complex double d = 2.0 + 0.0i;
++    _Complex double z = c ? : d;
++    if (__real__ z != 2.0) abort();
++    int a = 0;
++    if ((a ? : 7) != 7) abort();
++    return 0;
++}

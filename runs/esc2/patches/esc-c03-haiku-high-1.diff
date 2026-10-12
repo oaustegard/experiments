@@ -1,0 +1,76 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 7bf6e4ef..e3eca96a 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -46,11 +46,13 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
++        elif _contains_call(node.lhs) or \
+                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
+-            # Only a call-free operand may be parked on the stack: a value
+-            # pushed before a call (e.g. setjmp, whose resumption reuses the
+-            # stack slot) would be clobbered. Evaluate the call side first.
++            # The call side goes first: gcc -O0 evaluates calls in an operand
++            # pair left to right (`f() - f()`), and programs whose output
++            # depends on that order (e.g. doom's P_Random()-P_Random()) must
++            # match it. Plain operands are still read after the calls.
++            # The lhs value is parked on the stack across the rhs.
+             self.gen_expr(node.lhs)
+             self.push()
+             self.gen_expr(node.rhs)
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..c5f02f9b 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -69,7 +69,14 @@ class EnumMixin:
+             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                     and def_pos[id(prev)] != brace_pos):
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+-        ty = T.enum_type()
++        fwd = self.scopes[-1].tags.get(tag.text) if tag is not None else None
++        if fwd is not None and fwd.kind == T.TypeKind.ENUM and fwd.enum_consts == "fwd":
++            # `typedef enum E E; enum E { .. };`: complete the type already named
++            # by the forward declaration (typedefs and params hold that object)
++            ty = fwd
++            ty.enum_consts = None
++        else:
++            ty = T.enum_type()
+         ty.tag = tag.text if tag else None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+diff --git a/hcc/selftest/codegen_call_operand_order.c b/hcc/selftest/codegen_call_operand_order.c
+new file mode 100644
+index 00000000..a9a765a0
+--- /dev/null
++++ b/hcc/selftest/codegen_call_operand_order.c
+@@ -0,0 +1,12 @@
++// EXPECT-EXIT: 0
++// EXPECT-STDOUT: -1 1 11
++// gcc -O0 evaluates the call on the left first: next() - next() == 1 - 2
++int printf(const char *, ...);
++int n;
++int next(void) { return ++n; }
++int main(void) {
++    int d = next() - next();
++    int s = next() + next() * 2;
++    printf("%d %d %d\n", d, n == 4, s);
++    return 0;
++}
+diff --git a/hcc/selftest/parse_enum_fwd_typedef.c b/hcc/selftest/parse_enum_fwd_typedef.c
+new file mode 100644
+index 00000000..8e55c615
+--- /dev/null
++++ b/hcc/selftest/parse_enum_fwd_typedef.c
+@@ -0,0 +1,10 @@
++// EXPECT-EXIT: 0
++// EXPECT-STDOUT: 3
++int printf(const char *, ...);
++typedef enum E E;                  /* forward typedef of an enum tag, completed below */
++enum E { A, B, C };
++static int f(int a, E op) { return a + (int)op; }
++int main(void) {
++    printf("%d\n", f(1, C) + 0 * (int)B);
++    return 0;
++}

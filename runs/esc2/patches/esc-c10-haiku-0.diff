@@ -1,0 +1,45 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..cbb7e4b0 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -69,7 +69,7 @@ class EnumMixin:
+             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                     and def_pos[id(prev)] != brace_pos):
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+-        ty = T.enum_type()
++        ty = self.complete_fwd_enum(tag)
+         ty.tag = tag.text if tag else None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+@@ -82,6 +82,17 @@ class EnumMixin:
+         finally:
+             open_defs.discard(id(ty))
+ 
++    def complete_fwd_enum(self, tag):
++        """`enum E;` followed by `enum E {...}` in the same scope: the body
++        completes the forward-declared type object (typedefs and earlier
++        declarations already refer to it), so it is reused, not replaced."""
++        if tag is not None:
++            prev = self.scopes[-1].tags.get(tag.text)
++            if prev is not None and prev.kind == T.TypeKind.ENUM and prev.enum_consts == "fwd":
++                prev.enum_consts = None
++                return prev
++        return T.enum_type()
++
+     def enum_body(self, ty, tag, fixed, attr):
+         """Enumerator list after the `{` of an enum definition (see enum_specifier)."""
+         if fixed is not None:
+diff --git a/hcc/selftest/enum_fwd_complete.c b/hcc/selftest/enum_fwd_complete.c
+new file mode 100644
+index 00000000..2dd871bf
+--- /dev/null
++++ b/hcc/selftest/enum_fwd_complete.c
+@@ -0,0 +1,8 @@
++// EXPECT-EXIT: 0
++// An enum forward-declared (via typedef) and later defined in the same scope
++// must complete the same type: parameters of the forward type are complete.
++typedef enum E E;
++int f(int x, E op);
++enum E { A, B };
++int g(int x, E op) { return x + (int)op; }
++int main(void) { return g(1, B) - 2; }

@@ -1,0 +1,85 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 7bf6e4ef..897f1374 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -56,6 +56,14 @@ class ArithMixin:
+             self.gen_expr(node.rhs)
+             self.emit("mov %rax, %rdi")
+             self.pop("%rax")
++        elif _contains_call(node.lhs) and _contains_call(node.rhs):
++            # Both sides call: gcc -O0 evaluates the lhs first (`f() - g()`),
++            # so side-effect order must match it.
++            self.gen_expr(node.lhs)
++            self.push()
++            self.gen_expr(node.rhs)
++            self.emit("mov %rax, %rdi")
++            self.pop("%rax")
+         else:
+             self.gen_expr(node.rhs)
+             self.push()
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..c9a22da2 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -69,7 +69,9 @@ class EnumMixin:
+             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                     and def_pos[id(prev)] != brace_pos):
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+-        ty = T.enum_type()
++        ty = self.forward_enum_in_scope(tag)
++        if ty is None:
++            ty = T.enum_type()
+         ty.tag = tag.text if tag else None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+@@ -82,6 +84,18 @@ class EnumMixin:
+         finally:
+             open_defs.discard(id(ty))
+ 
++    def forward_enum_in_scope(self, tag):
++        """`typedef enum E E; enum E { ... };`: the body completes the forward
++        type object already named by earlier declarations in this scope, so
++        those declarations (e.g. typedefs) see the enumerators too."""
++        if tag is None:
++            return None
++        prev = self.scopes[-1].tags.get(tag.text)
++        if prev is None or prev.kind != T.TypeKind.ENUM or prev.enum_consts != "fwd":
++            return None
++        prev.enum_consts = None
++        return prev
++
+     def enum_body(self, ty, tag, fixed, attr):
+         """Enumerator list after the `{` of an enum definition (see enum_specifier)."""
+         if fixed is not None:
+diff --git a/hcc/selftest/codegen_binary_call_order.c b/hcc/selftest/codegen_binary_call_order.c
+new file mode 100644
+index 00000000..b1974ff4
+--- /dev/null
++++ b/hcc/selftest/codegen_binary_call_order.c
+@@ -0,0 +1,10 @@
++// EXPECT-EXIT: 0
++// EXPECT-STDOUT: 12 sub=-1
++// Both operands of a binary operator call functions: lhs is evaluated first (as gcc -O0 does).
++#include <stdio.h>
++static int f(int v) { printf("%d", v); return v; }
++int main(void) {
++    int r = f(1) - f(2);
++    printf(" sub=%d\n", r);
++    return 0;
++}
+diff --git a/hcc/selftest/enum_fwd_typedef_complete.c b/hcc/selftest/enum_fwd_typedef_complete.c
+new file mode 100644
+index 00000000..187c45f7
+--- /dev/null
++++ b/hcc/selftest/enum_fwd_typedef_complete.c
+@@ -0,0 +1,10 @@
++// EXPECT-EXIT: 0
++// A forward typedef of an enum is completed by a later body in the same scope.
++typedef enum E E;
++static int f(E e);
++enum E { A, B = 5 };
++static int f(E e) { return e == B; }
++int main(void) {
++    E v = B;
++    return f(v) ? 0 : 1;
++}

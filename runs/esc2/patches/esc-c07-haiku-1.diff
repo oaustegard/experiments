@@ -1,0 +1,31 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..51ba9557 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -71,6 +71,13 @@ class EnumMixin:
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+         ty = T.enum_type()
+         ty.tag = tag.text if tag else None
++        if tag is not None:
++            # `enum E; ... enum E {..}` in the same scope completes the forward
++            # declaration in place, so typedefs/prototypes naming it see the body.
++            fwd = self.scopes[-1].tags.get(tag.text)
++            if fwd is not None and fwd.kind == T.TypeKind.ENUM and fwd.enum_consts == "fwd":
++                ty = fwd
++                ty.enum_consts = None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+             # The tag is visible from its declaration on, so enumerator
+diff --git a/hcc/selftest/enums_fwd_complete.c b/hcc/selftest/enums_fwd_complete.c
+new file mode 100644
+index 00000000..d54047b2
+--- /dev/null
++++ b/hcc/selftest/enums_fwd_complete.c
+@@ -0,0 +1,7 @@
++// EXPECT-EXIT: 0
++// A forward-declared enum completed later in the same scope: a typedef and a
++// parameter naming it must see the body.
++typedef enum E E;
++enum E { A, B };
++static int f(int a, E op) { return a + op; }
++int main(void) { return f(1, B) == 2 ? 0 : 1; }
