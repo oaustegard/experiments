@@ -21,7 +21,7 @@ __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
-__builtin_prefetch
+__builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 """.split())
 
@@ -97,6 +97,22 @@ class BuiltinParseMixin:
         for a in reversed(args):
             node = N.Comma(tok.loc, N.Cast(tok.loc, a, ty=T.TY_VOID), node, ty=T.TY_VOID)
         return node
+
+    def _frame_level(self, tok, name):
+        """__builtin_{return,frame}_address(n): n must be a non-negative integer
+        constant. The level is passed as an IntLit; codegen walks the %rbp chain."""
+        args = self._args(1)
+        level = try_eval_const(args[0])
+        if level is None or level < 0:
+            self.error(f"'__builtin_{name}' needs a non-negative integer constant")
+        return self._call(tok, name, [N.IntLit(tok.loc, level, ty=T.TY_INT)],
+                          T.pointer_to(T.TY_VOID))
+
+    def _b_return_address(self, tok):
+        return self._frame_level(tok, "return_address")
+
+    def _b_frame_address(self, tok):
+        return self._frame_level(tok, "frame_address")
 
     def _bswap(self, tok, bits, ty):
         args = [new_cast(a, ty) for a in self._args(1)]

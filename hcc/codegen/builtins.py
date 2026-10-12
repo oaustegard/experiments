@@ -18,6 +18,20 @@ class BuiltinMixin:
     def builtin_trap(self, node) -> None:
         self.emit("ud2")
 
+    def _frame_walk(self, node) -> None:
+        """%rax = frame pointer of level args[0]: every hcc function sets %rbp
+        as its frame pointer and saves the caller's %rbp at 0(%rbp)."""
+        self.emit("mov %rbp, %rax")
+        for _ in range(node.args[0].value):
+            self.emit("mov (%rax), %rax")
+
+    def builtin_frame_address(self, node) -> None:
+        self._frame_walk(node)
+
+    def builtin_return_address(self, node) -> None:
+        self._frame_walk(node)
+        self.emit("mov 8(%rax), %rax")
+
     def builtin_bswap16(self, node) -> None:
         self.gen_expr(node.args[0])
         self.emit("rol $8, %ax")
