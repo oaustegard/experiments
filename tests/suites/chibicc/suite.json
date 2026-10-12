@@ -1,0 +1,19 @@
+{
+  "description": "chibicc test/ (github.com/rui314/chibicc). Each test uses ASSERT(expected, expr) from support/test.h; support/common.c (built by host gcc) prints 'expr => val' and exit(1) on mismatch. Pass = exit 0.",
+  "glob": [
+    "*.c"
+  ],
+  "cflags": [
+    "-I{suite}/support"
+  ],
+  "support": [
+    "support/common.c"
+  ],
+  "ldflags": [
+    "-lm",
+    "-pthread"
+  ],
+  "gcc_cflags": [
+    "-fcommon"
+  ]
+}
