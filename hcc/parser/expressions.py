@@ -17,7 +17,7 @@ from hcc.sema.constexpr import eval_const
 from hcc.sema.strict_overflow import simplify_mul_div
 from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
-from hcc.sema.conversions import new_cast
+from hcc.sema.conversions import int_promote, new_cast
 from hcc.tokens import TokenKind
 from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, is_scalar, pointer_to
 from hcc.parser.plan9_ptr import plan9_pointer_conv
@@ -58,6 +58,16 @@ def _is_readonly(node) -> bool:
     if isinstance(node, N.Member_):
         return _is_readonly(node.operand)
     return False
+
+
+def _plus_result(parser, operand, loc):
+    """Unary '+' yields an rvalue: an lvalue operand gets an explicit (promoting) cast so that
+    `+x = 1` and `&+x` are rejected like any other non-lvalue expression."""
+    t = parser.typed(operand).ty
+    if isinstance(operand, (N.VarRef, N.Deref, N.Member_)) and is_scalar(t) \
+            and not t.is_complex and not t.is_vector:
+        return parser.typed(N.Cast(loc, operand, ty=int_promote(t).unqual()))
+    return operand
 
 
 class ExpressionMixin:
@@ -107,13 +117,14 @@ class ExpressionMixin:
             self.error("assignment of read-only location", tok)
 
     def _check_lvalue(self, node, tok) -> None:
+        ty = self.typed(node).ty
+        if ty.kind == TypeKind.FUNC or (ty.kind == TypeKind.ARRAY and not ty.is_vector):
+            # function designators and array objects are not modifiable (vectors have value semantics)
+            self.error("lvalue required as left operand of assignment", tok)
         if isinstance(node, (N.VarRef, N.Deref, N.Member_)):
             return
         if isinstance(node, N.Comma) and node.lvalue:     # compound literal
             return
-        if isinstance(node, N.Cast) and isinstance(node.operand, (N.VarRef, N.Deref, N.Member_)) \
-                and node.ty.size == node.operand.ty.size:
-            return      # GNU lvalue casts in old code; tolerated
         self.error("lvalue required as left operand of assignment", tok)
 
     def conditional(self):
@@ -212,7 +223,7 @@ class ExpressionMixin:
         if t.kind == TokenKind.PUNCT:
             if s == "+":
                 self.next()
-                return self.cast_expr()
+                return _plus_result(self, self.cast_expr(), t.loc)
             if s == "-":
                 self.next()
                 operand = self.cast_expr()
