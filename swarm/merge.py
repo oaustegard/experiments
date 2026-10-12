@@ -53,7 +53,8 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
         return "", [], "worktree missing"
     git(wt, "add", "-A")
     changed = [f for f in git(wt, "diff", "--cached", "--name-only", rec["base"]).splitlines() if f]
-    bad = [f for f in changed if f.startswith(FORBIDDEN)]
+    # symlinks are the orchestrator's links to untracked suites (common.link_untracked_suites)
+    bad = [f for f in changed if f.startswith(FORBIDDEN) and not (wt / f).is_symlink()]
     if bad:
         return "", changed, f"edited forbidden paths: {', '.join(bad[:5])}"
     files = [f for f in changed if f.startswith(ALLOWED) and not any(j in f for j in JUNK)]

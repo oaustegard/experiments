@@ -90,7 +90,8 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
     out.unlink(missing_ok=True)
     tdir = ctx.task_dir(tid)
     prev = [r["result"]["notes"] for r in ledger(ctx).values()
-            if r.get("signature") == item.signature and (r.get("result") or {}).get("notes")]
+            if r.get("signature") == item.signature and r.get("status") in ("failed", "rejected", "reverted")
+            and (r.get("result") or {}).get("notes")]
     task = {"id": tid, "prompt": task_prompt(ctx, tid, item, out, prev) + (f"\n[fake:{a.fake_mode}]" if a.fake_mode else ""),
             "out": str(out), "model": a.model, "tools": TOOLS,
             "allow": [f"Edit(/{wt}/**)", "Edit(//tmp/**)", "Bash"],
