@@ -63,18 +63,33 @@ class FunctionMixin:
         if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and is_memory_struct(ret):
             offset += 8
             self.ret_ptr_offset = -offset
-        # Lay out in reverse declaration order so that, as with gcc -O0, the
+        # Locals are grouped by block (Var.scope, a path of block ids).  A block's
+        # locals sit below its ancestors' locals; sibling blocks start at the same
+        # base, so their slots overlap (as gcc -O0 does).  Within a group, the
         # first-declared local sits at the lowest address.
+        groups: dict[tuple, list] = {}
         for v in reversed(fn.locals):
             if v in stack_params:
                 continue
-            al = v.align or v.ty.align or 1
-            if v.ty.kind == TypeKind.ARRAY and v.ty.size >= 16:
-                al = max(al, 16)
-            offset += max(v.ty.size, 0)
-            offset = align_to(offset, al)
-            v.offset = -offset
-        return align_to(offset, 16)
+            groups.setdefault(v.scope, []).append(v)
+        children: dict[tuple, set] = {}
+        for sc in groups:
+            for k in range(len(sc)):
+                children.setdefault(sc[:k], set()).add(sc[:k + 1])
+        frame_end = offset
+        pending = [((), offset)]
+        while pending:
+            sc, cur = pending.pop()
+            for v in groups.get(sc, ()):
+                al = v.align or v.ty.align or 1
+                if v.ty.kind == TypeKind.ARRAY and v.ty.size >= 16:
+                    al = max(al, 16)
+                cur += max(v.ty.size, 0)
+                cur = align_to(cur, al)
+                v.offset = -cur
+            frame_end = max(frame_end, cur)
+            pending.extend((c, cur) for c in children.get(sc, ()))
+        return align_to(frame_end, 16)
 
     def emit_function(self, fn) -> None:
         self.fn = fn

@@ -225,7 +225,7 @@ class TopLevelMixin:
         self.goto_names = []
         # parameter-list tags and names share the body's outermost scope (C11 6.2.1p4)
         if ty.proto_scope is not None:
-            self.scopes.append(ty.proto_scope)
+            self.push_scope(ty.proto_scope)
         else:
             self.enter_scope()
         params = []

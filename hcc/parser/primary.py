@@ -26,7 +26,11 @@ class PrimaryMixin:
             if self.peek().text == "{" and self.peek().kind == TokenKind.PUNCT:
                 self.next()
                 self.next()
+                outer_base = self.stmt_expr_base
+                if outer_base is None:
+                    self.stmt_expr_base = len(self.scope_stack)
                 body = self.compound_stmt_body(t.loc)
+                self.stmt_expr_base = outer_base
                 self.expect(")")
                 return self.typed(N.StmtExpr(t.loc, body))
             self.next()
