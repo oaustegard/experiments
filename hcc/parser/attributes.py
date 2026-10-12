@@ -167,6 +167,9 @@ class AttributeMixin:
                 if self.at("("):
                     self.skip_balanced()
                 self._apply_attribute(name, args_start, attr, ty)
+                # attributes in one list are separated by commas only
+                if not self.at(",") and not self.at(")"):
+                    self.error("expected ',' or ';' before '%s' token" % self.tok.text)
             self.expect(")")
             self.expect(")")
 
