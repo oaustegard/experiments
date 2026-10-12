@@ -140,7 +140,8 @@ class _Eval:
         if t.kind == TokenKind.CHAR:
             from hcc.literals import parse_char_literal
             val, _ = parse_char_literal(t)
-            return (val, False)
+            # u8'x' and U'x' are unsigned in #if (C23 / gcc), plain and L/u are signed
+            return (val, t.text.startswith(("u8", "U")))
         if t.kind == TokenKind.IDENT:
             return (0, False)
         diag.error(t, f"#if: unexpected token '{t.text}'")

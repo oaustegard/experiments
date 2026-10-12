@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
-from hcc.typesys import (TY_CHAR, TY_DOUBLE, TY_FLOAT, TY_INT, TY_LDOUBLE, TY_LLONG,
+from hcc.typesys import (TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_INT, TY_LDOUBLE, TY_LLONG,
                        TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG, TY_USHORT, Type, array_of)
 
 KEYWORD_ALIASES = {
@@ -173,7 +173,7 @@ def parse_char_literal(tok: Token) -> tuple[int, Type]:
         return (v - (1 << 32) if v >= 1 << 31 else v), TY_INT
     units = _decode(tok, body, True)
     v = units[-1] if units else 0
-    ty = {"L": TY_INT, "u": TY_USHORT, "U": TY_UINT, "u8": TY_CHAR}[prefix]
+    ty = {"L": TY_INT, "u": TY_USHORT, "U": TY_UINT, "u8": TY_UCHAR}[prefix]
     return v & ((1 << (ty.size * 8)) - 1), ty
 
 

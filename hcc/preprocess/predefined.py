@@ -84,12 +84,19 @@ PREDEFINED = r"""
 #define __LONG_LONG_MAX__ 0x7fffffffffffffffLL
 #define __WCHAR_MAX__ 0x7fffffff
 #define __WCHAR_MIN__ (-__WCHAR_MAX__ - 1)
+#define __WINT_MIN__ 0U
+#define __WINT_MAX__ 0xffffffffU
+#define __WINT_WIDTH__ 32
 #define __SIZE_MAX__ 0xffffffffffffffffUL
 #define __PTRDIFF_MAX__ 0x7fffffffffffffffL
 #define __INTMAX_MAX__ 0x7fffffffffffffffL
 #define __UINTMAX_MAX__ 0xffffffffffffffffUL
 #define __INTPTR_MAX__ 0x7fffffffffffffffL
 #define __UINTPTR_MAX__ 0xffffffffffffffffUL
+#define __SIG_ATOMIC_TYPE__ int
+#define __SIG_ATOMIC_MAX__ 0x7fffffff
+#define __SIG_ATOMIC_MIN__ (-__SIG_ATOMIC_MAX__ - 1)
+#define __SIG_ATOMIC_WIDTH__ 32
 #define __INT8_MAX__ 0x7f
 #define __INT16_MAX__ 0x7fff
 #define __INT32_MAX__ 0x7fffffff

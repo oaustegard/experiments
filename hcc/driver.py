@@ -18,6 +18,12 @@ from hcc.options import Options
 # flags that take a separate argument we ignore or pass to the linker
 _IGNORED_WITH_ARG = {"-MF", "-MT", "-MQ", "-arch", "-target", "--param", "-aux-info"}
 _LINKER_WITH_ARG = {"-L", "-l", "-Xlinker", "-T", "-u", "-z"}
+# -f flags that gcc reflects as predefined macros (non-default settings only)
+_MATH_FLAG_MACROS = {"-fno-math-errno": "__NO_MATH_ERRNO__",
+                     "-fassociative-math": "__ASSOCIATIVE_MATH__",
+                     "-fno-trapping-math": "__NO_TRAPPING_MATH__",
+                     "-freciprocal-math": "__RECIPROCAL_MATH__",
+                     "-frounding-math": "__ROUNDING_MATH__"}
 
 
 def parse_args(argv: list[str]) -> Options:
@@ -68,6 +74,8 @@ def parse_args(argv: list[str]) -> Options:
             o.nostdinc = True
         elif a in ("-fPIC", "-fpic", "-fPIE", "-fpie"):
             o.pic = a in ("-fPIC", "-fpic")
+        elif a in _MATH_FLAG_MACROS:
+            o.defines.append(("-D", _MATH_FLAG_MACROS[a]))
         elif a == "-x":
             i += 1
             o.language = argv[i]
