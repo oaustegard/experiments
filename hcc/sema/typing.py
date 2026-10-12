@@ -67,10 +67,19 @@ SHIFTS = ("<<", ">>")
 COMPARES = ("==", "!=", "<", "<=", ">", ">=")
 
 
+def _check_shift_operands(n: N.Binary):
+    """Shifts need integer (or integer vector) operands; GCC rejects floats/pointers."""
+    for side in (n.lhs, n.rhs):
+        if side.ty.is_vector or is_integer(side.ty):
+            continue
+        diag.error(n.loc, f"invalid operands to binary {n.op} (have '{n.lhs.ty}' and '{n.rhs.ty}')", "sema")
+
+
 def _binary(n: N.Binary):
     require_value(n.lhs)
     require_value(n.rhs)
     if n.op in SHIFTS:
+        _check_shift_operands(n)
         n.lhs = new_cast(n.lhs, int_promote(n.lhs.ty))
         n.rhs = new_cast(n.rhs, int_promote(n.rhs.ty))
         n.ty = n.lhs.ty
