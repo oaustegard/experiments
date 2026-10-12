@@ -62,6 +62,7 @@ class StructMixin:
                 def_pos[id(ty)] = brace_pos
         members = self.struct_members()
         self.parse_attributes(attr)
+        check_duplicate_members(members, self.toks[brace_pos])
         ty.members = members
         ty.is_packed = attr.is_packed
         ty.is_ms_struct = attr.is_ms_struct
@@ -154,6 +155,31 @@ class StructMixin:
         for i, m in enumerate(members):
             m.idx = i
         return members
+
+
+def _member_names(members, out) -> None:
+    """Append (name, tok) for every name a member list contributes to its
+    enclosing struct/union scope: named members, Plan 9 aliases, and (recursively)
+    the names of anonymous struct/union members."""
+    for m in members:
+        if m.name is not None:
+            out.append((m.name, m.tok))
+        elif m.alias is not None:
+            out.append((m.alias, None))
+        elif m.ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+            _member_names(complete_struct(m.ty).members, out)
+
+
+def check_duplicate_members(members, where) -> None:
+    """C11 6.7.2.1: member names in one struct/union (including those reached
+    through anonymous members) must be distinct."""
+    names = []
+    _member_names(members, names)
+    seen = set()
+    for name, tok in names:
+        if name in seen:
+            diag.error(tok or where, f"duplicate member '{name}'")
+        seen.add(name)
 
 
 def check_member_complete(ty, name, where) -> None:
