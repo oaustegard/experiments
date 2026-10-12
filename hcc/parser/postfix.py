@@ -61,7 +61,11 @@ class PostfixMixin:
             self.next()
             outer_vm = self.vm_typeof
             self.vm_typeof = []
+            outer_align = getattr(self, "typename_alignas", 0)
+            self.typename_alignas = 0
             ty = self.typename(allow_storage=allow)
+            lit_align = self.typename_alignas
+            self.typename_alignas = outer_align
             effects = self.vm_typeof        # `(typeof(vm-expr)){...}` evaluates vm-expr first
             self.vm_typeof = outer_vm
             self.expect(")")
@@ -70,6 +74,12 @@ class PostfixMixin:
                     self.error("compound literal has variable size", self.tok)
                 if ty.kind == TypeKind.FUNC:
                     self.error("compound literal has function type", self.tok)
+                if lit_align:
+                    if lit_align < ty.align:
+                        self.error("'_Alignas' specifiers cannot reduce alignment of compound literal",
+                                   self.tok)
+                    ty = ty.copy()
+                    ty.align = lit_align
                 if ty.kind in (TypeKind.STRUCT, TypeKind.UNION) and \
                         not complete_struct(ty).is_complete:
                     self.error(f"invalid use of undefined type '{ty}'", self.tok)

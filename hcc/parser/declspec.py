@@ -233,6 +233,8 @@ class DeclSpecMixin:
                 if attr is not None:
                     attr.align = max(attr.align, al)
                     attr.alignas_min = max(attr.alignas_min, al)
+                # also noted for a compound literal's type name (postfix.py checks it)
+                self.typename_alignas = max(getattr(self, "typename_alignas", 0), al)
                 continue
             # user-defined / special types
             td = self.find_typedef(tok)
