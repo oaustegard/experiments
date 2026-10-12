@@ -11,6 +11,7 @@ from hcc import diag
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser import complex as CPX
+from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser.assign_struct_check import check_struct_assign
 from hcc.parser.dyn_struct_ret import dyn_return
 from hcc.sema.constexpr import eval_const, wrap
@@ -337,6 +338,8 @@ class StatementMixin:
                     self.error("output operand constraint lacks '='", cons_tok)
                 self.expect("(")
                 e = self.typed(self.expr())
+                if is_output and is_rvalue_operand(e):
+                    self.error("lvalue required in 'asm' statement", cons_tok)
                 self.expect(")")
                 sec.append((cons, e))
                 if sym is not None:
