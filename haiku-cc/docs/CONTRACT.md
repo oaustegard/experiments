@@ -107,6 +107,7 @@ hcc/
     conditionals.py    #if/#elif expression evaluation (defined, __has_*)
     includes.py        include search path resolution, file reading/caching
     predefined.py      predefined macros (__x86_64__, __LP64__, __GNUC__, ...)
+    floatn_macros.py   gcc-predefined __FLT16_/__FLT32_/... values read by <float.h>
                        and builtin dynamic macros (__FILE__, __LINE__, ...)
 
   parser/
@@ -135,6 +136,8 @@ hcc/
     builtins.py        parsing of __builtin_* that take types or are special
                        (va_arg, offsetof, types_compatible_p, ...)
     atomic_builtins.py __atomic_* (stdatomic.h) parsing; codegen/atomics.py lowers them
+    vector_shuffle.py  __builtin_shuffle on GCC vectors, lowered to element stores
+    vector_shufflevector.py  __builtin_shufflevector on GCC vectors (constant indices), element stores
 
   sema/
     __init__.py        re-exports

@@ -1,0 +1,23 @@
+{
+  "description": "gcc/testsuite/gcc.dg tests with dg-error (top level, torture, tree-ssa, ipa, atomic, sso, tls, cpp, special, debug, charset, weak, rtl, noncompile) that gcc itself rejects with an error at -w in its default dialect. PASS = the compiler under test exits with status 1 (a diagnostic); accepting the invalid program is the failure. <test>.c.gccerror holds gcc's first diagnostic. Driver rejectonly. Regenerate with tests/scripts/import_gcc_dg.py.",
+  "glob": [
+    "*.c",
+    "torture/*.c",
+    "tree-ssa/*.c",
+    "ipa/*.c",
+    "atomic/*.c",
+    "sso/*.c",
+    "tls/*.c",
+    "cpp/*.c",
+    "special/*.c",
+    "debug/*.c",
+    "charset/*.c",
+    "weak/*.c",
+    "rtl/*.c",
+    "noncompile/*.c"
+  ],
+  "cflags": [
+    "-w"
+  ],
+  "driver": "rejectonly"
+}

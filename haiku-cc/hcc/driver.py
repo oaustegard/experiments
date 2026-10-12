@@ -18,6 +18,13 @@ from hcc.options import Options
 # flags that take a separate argument we ignore or pass to the linker
 _IGNORED_WITH_ARG = {"-MF", "-MT", "-MQ", "-arch", "-target", "--param", "-aux-info"}
 _LINKER_WITH_ARG = {"-L", "-l", "-Xlinker", "-T", "-u", "-z"}
+# -f flags that gcc reflects as predefined macros (non-default settings only)
+_MATH_FLAG_MACROS = {"-fno-math-errno": "__NO_MATH_ERRNO__",
+                     "-fassociative-math": "__ASSOCIATIVE_MATH__",
+                     "-fno-trapping-math": "__NO_TRAPPING_MATH__",
+                     "-freciprocal-math": "__RECIPROCAL_MATH__",
+                     "-frounding-math": "__ROUNDING_MATH__",
+                     "-fno-signed-zeros": "__NO_SIGNED_ZEROS__"}
 
 
 def parse_args(argv: list[str]) -> Options:
@@ -64,10 +71,16 @@ def parse_args(argv: list[str]) -> Options:
             o.std = a[5:]
         elif a == "-ansi":
             o.std = "c89"
+        elif a == "-trigraphs":
+            o.trigraphs = True
+        elif a == "-fgnu89-inline":
+            o.gnu89_inline = True
         elif a == "-nostdinc":
             o.nostdinc = True
         elif a in ("-fPIC", "-fpic", "-fPIE", "-fpie"):
             o.pic = a in ("-fPIC", "-fpic")
+        elif a in _MATH_FLAG_MACROS:
+            o.defines.append(("-D", _MATH_FLAG_MACROS[a]))
         elif a == "-x":
             i += 1
             o.language = argv[i]
@@ -116,7 +129,8 @@ def compile_to_asm(path: str, opts: Options) -> str:
     from hcc.parser import parse
     toks = preprocess_file(path, opts)
     with diag.stage("parse"):
-        toks = convert_tokens(toks)
+        c23 = (opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
+        toks = convert_tokens(toks, u8_unsigned=c23, c23=c23)
         tu = parse(toks, opts)
     if opts.dump_ast:
         for o in tu.objs:
@@ -205,7 +219,8 @@ def main(argv: list[str]) -> int:
             stage = "link"
             out = opts.output or "a.out"
             pie = [] if "-shared" in opts.linker_args else ["-no-pie"]
-            run_tool(["gcc", *pie, "-o", out, *objs, *opts.linker_args], "link")
+            # -lm last: libm is not pulled in by default, but C programs call its functions.
+            run_tool(["gcc", *pie, "-o", out, *objs, *opts.linker_args, "-lm"], "link")
         return 0
     except diag.CompileError as e:
         if e.stage is None:

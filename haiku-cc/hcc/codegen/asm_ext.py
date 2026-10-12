@@ -10,7 +10,8 @@ Constraints: GPR letters (r q g R l x ...), fixed a c d S D, memory (m o V),
 immediate (i n ...) for constant operands, matching digits, and =, +, &.
 x87 operands (t/u/f, long double): inputs are staged as 16-byte slots and
 loaded onto the FPU before the template; outputs are stored with fstpt after it.
-Float and aggregate operands are otherwise rejected.
+Float/double operands with GPR constraints travel as their raw bits (movd/movq
+from %xmm0). Aggregate operands are rejected.
 """
 from __future__ import annotations
 
@@ -22,12 +23,11 @@ _POOL = ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"]
 _FIXED = {"a": "rax", "c": "rcx", "d": "rdx", "S": "rsi", "D": "rdi"}
 _LEGACY = {"rax": "ax", "rcx": "cx", "rdx": "dx", "rsi": "si", "rdi": "di"}
 _LEGACY8 = {"rax": "al", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil"}
-_REG_LETTERS = set("rqgRlxyQabcdSD")
+_REG_LETTERS = set("rqgRlxyQabcdSDXp")  # X (any) and p (address) use a GPR
 _MEM_LETTERS = set("moV")
 _X87_LETTERS = set("tuf")
 _IMM_LETTERS = set("inIJKLMNeEFZs")
-_BAD_KINDS = (TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE, TypeKind.FLOAT128,
-              TypeKind.STRUCT, TypeKind.UNION)
+_BAD_KINDS = (TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.STRUCT, TypeKind.UNION)
 # Arrays and functions decay to their address when used as register operands.
 _DECAY_KINDS = (TypeKind.ARRAY, TypeKind.FUNC)
 
@@ -43,28 +43,73 @@ def _norm_size(size: int) -> int:
     return size if size in (1, 2, 4, 8) else 8
 
 
+def _sse_to_gpr(cg, ty) -> None:
+    """A float/double value in %xmm0 is moved to %rax as its raw bits."""
+    if ty.kind == TypeKind.FLOAT:
+        cg.emit("movd %xmm0, %eax")
+    elif ty.kind == TypeKind.DOUBLE:
+        cg.emit("movq %xmm0, %rax")
+
+
+def _pick_alternative(cons: str) -> str:
+    """Multi-alternative constraints ("=r,m"): keep the first alternative that
+    the register/immediate/matching machinery can satisfy, else the first."""
+    alts = cons.split(",")
+    for alt in alts:
+        c = "".join(ch for ch in alt if ch not in "=+&%")
+        if c and (c.isdigit() or set(c) & (_REG_LETTERS | _IMM_LETTERS)):
+            return alt
+    return alts[0]
+
+
 class _Op:
-    def __init__(self, cons: str, expr, is_out: bool):
-        self.cons = cons
+    def __init__(self, cons: str, expr, is_out: bool, implicit: bool = False):
+        self.cons = _pick_alternative(cons)
         self.expr = expr
         self.is_out = is_out
         self.rw = "+" in cons
-        self.kind = "reg"        # reg | mem | imm
+        self.implicit = implicit  # GCC's input copy of a "+" output (never pushed)
+        self.kind = "reg"        # reg | mem | imm | label (asm goto label operand)
         self.fixed = None        # fixed register for a/c/d/S/D
         self.match = None        # operand index for matching constraints
         self.imm = None
         self.reg = None          # assigned register (no '%')
-        decays = expr.ty.kind in _DECAY_KINDS
-        self.size = 8 if decays else _norm_size(expr.ty.size)
+        self.label = None        # label name (kind "label")
+        self.stub = None         # jump-target stub emitted for kind "label"
+        decays = expr is not None and expr.ty.kind in _DECAY_KINDS
+        self.size = 8 if expr is None or decays else _norm_size(expr.ty.size)
 
 
-def _classify(op: _Op) -> None:
-    c = "".join(ch for ch in op.cons if ch not in "=+&%")
+def _imm_value(expr, dead: bool):
+    """Integer constant, or an address constant rendered as `sym+off` for the assembler.
+    In statically dead code a non-constant operand can never execute, so it gets a
+    placeholder instead of a diagnostic."""
+    try:
+        label, v = constexpr.eval_reloc(expr)
+    except constexpr.NotConstant:
+        label, v = None, None
+    if v is None and dead:
+        return 0
+    if v is None:
+        diag.error(expr, "codegen: asm immediate operand is not constant", "codegen")
+    if label is None:
+        return v
+    return label if v == 0 else f"{label}{v:+d}"
+
+
+def _classify(op: _Op, dead: bool = False) -> None:
+    # Constraints may list alternatives ("1,p", "=m,m"); use the first one.
+    c = "".join(ch for ch in op.cons if ch not in "=+&%").split(",")[0]
     where = op.expr
     if c.isdigit():
         op.match = int(c)
         return
     letters = set(c)
+    if not letters:
+        # An empty constraint (`""(x)`) places no restriction: like "g",
+        # let the operand live in a general register.
+        op.kind = "reg"
+        return
     if letters & _X87_LETTERS:
         op.kind = "x87"
         if op.expr.ty.kind != TypeKind.LDOUBLE:
@@ -80,12 +125,10 @@ def _classify(op: _Op) -> None:
         op.kind = "mem"
     elif letters & _IMM_LETTERS:
         op.kind = "imm"
-        op.imm = constexpr.try_eval_const(op.expr)
-        if op.imm is None:
-            diag.error(where, "codegen: asm immediate operand is not constant", "codegen")
+        op.imm = _imm_value(where, dead)
     else:
         diag.error(where, f"codegen: unsupported asm constraint '{op.cons}'", "codegen")
-    if op.kind != "imm" and op.expr.ty.kind in _BAD_KINDS and op.kind == "reg":
+    if op.kind == "reg" and op.expr.ty.kind in _BAD_KINDS:
         diag.error(where, "codegen: float/aggregate asm operands are not supported", "codegen")
 
 
@@ -114,7 +157,7 @@ def _assign_regs(ops, clobbers) -> None:
     free = [r for r in _POOL if r not in used]
     _assign_x87(ops)
     for op in ops:
-        if op.kind in ("imm", "x87") or op.match is not None:
+        if op.kind in ("imm", "x87", "label") or op.match is not None:
             continue
         if op.fixed:
             op.reg = op.fixed
@@ -131,6 +174,8 @@ def _assign_regs(ops, clobbers) -> None:
 
 
 def _render(op: _Op, mod: str | None) -> str:
+    if op.kind == "label":
+        return op.stub
     if op.kind == "imm":
         return str(op.imm) if mod in ("c", "P") else f"${op.imm}"
     if op.kind == "x87":
@@ -160,13 +205,26 @@ def _subst(tpl: str, ops, loc) -> str:
         if i < n and tpl[i] in "kwbqcP":
             mod = tpl[i]
             i += 1
-        j = i
-        while j < n and tpl[j].isdigit():
-            j += 1
-        if j == i:
-            diag.error(loc, "codegen: unsupported asm operand reference", "codegen")
-        idx = int(tpl[i:j])
-        i = j
+        elif i + 1 < n and tpl[i] == "l" and (tpl[i + 1].isdigit() or tpl[i + 1] == "["):
+            mod = "l"
+            i += 1
+        if i < n and tpl[i] == "[":
+            end = tpl.find("]", i)
+            if end < 0:
+                diag.error(loc, "codegen: unsupported asm operand reference", "codegen")
+            name = tpl[i + 1:end]
+            idx = next((k for k, op in enumerate(ops) if op.kind == "label" and op.label == name), None)
+            if idx is None:
+                diag.error(loc, f"codegen: unknown asm label operand '{name}'", "codegen")
+            i = end + 1
+        else:
+            j = i
+            while j < n and tpl[j].isdigit():
+                j += 1
+            if j == i:
+                diag.error(loc, "codegen: unsupported asm operand reference", "codegen")
+            idx = int(tpl[i:j])
+            i = j
         if idx >= len(ops):
             diag.error(loc, "codegen: asm operand number out of range", "codegen")
         out.append(_render(ops[idx], mod))
@@ -174,11 +232,24 @@ def _subst(tpl: str, ops, loc) -> str:
 
 
 def lower_extended(cg, node) -> None:
-    ops = [_Op(c, e, True) for c, e in node.outputs] + \
-          [_Op(c, e, False) for c, e in node.inputs]
+    outs_all = [_Op(c, e, True) for c, e in node.outputs]
+    ins_all = [_Op(c, e, False) for c, e in node.inputs]
+    # GCC numbering: outputs, explicit inputs, then one implicit input per "+"
+    # output (matching it), then the asm goto labels.
+    implicit = [_Op(str(k), op.expr, False, implicit=True)
+                for k, op in enumerate(outs_all) if op.rw]
+    labels = []
+    for name in node.goto_labels:
+        lop = _Op("", None, False)
+        lop.kind = "label"
+        lop.label = name
+        lop.stub = cg.new_label()
+        labels.append(lop)
+    ops = outs_all + ins_all + implicit + labels
     clobbers = {c.strip().lstrip("%") for c in node.clobbers}
     for op in ops:
-        _classify(op)
+        if op.kind != "label":
+            _classify(op, getattr(cg, "dead_code", False))
     _assign_regs(ops, clobbers)
 
     outs = [op for op in ops if op.is_out and op.kind in ("reg", "x87")]
@@ -205,7 +276,7 @@ def lower_extended(cg, node) -> None:
     # Phase 2b: input values, "+" values and memory addresses.
     pushes = []
     for op in ops:
-        if op.kind in ("imm", "x87") or (op.is_out and op.kind == "reg" and not op.rw):
+        if op.kind in ("imm", "x87", "label") or op.implicit or (op.is_out and op.kind == "reg" and not op.rw):
             continue
         if op.kind == "mem":
             cg.gen_addr(op.expr)
@@ -213,8 +284,10 @@ def lower_extended(cg, node) -> None:
             k = outs.index(op)
             cg.emit(f"mov {8 * (units + m - 1 - k)}(%rsp), %rax")
             cg.load(op.expr.ty)
+            _sse_to_gpr(cg, op.expr.ty)
         else:
             cg.gen_expr(op.expr)
+            _sse_to_gpr(cg, op.expr.ty)
         cg.push()
         units += 1
         pushes.append(op)
@@ -249,3 +322,15 @@ def lower_extended(cg, node) -> None:
     if m:
         cg.emit(f"add ${8 * (r + m)}, %rsp")
     cg.depth -= m       # phase-1 address slots are released here
+    # Phase 5 (asm goto): a jump to a label leaves the template with the phase-1
+    # output addresses still pushed, so each label is reached through a stub
+    # that pops them and continues at the C label.
+    if labels:
+        skip = cg.new_label()
+        cg.emit(f"jmp {skip}")
+        for lop in labels:
+            cg.label(lop.stub)
+            if m:
+                cg.emit(f"add ${8 * m}, %rsp")
+            cg.emit(f"jmp {cg.user_label(lop.label)}")
+        cg.label(skip)

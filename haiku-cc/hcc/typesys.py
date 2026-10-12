@@ -41,7 +41,8 @@ class Member:
     """A struct/union member. Bitfields have is_bitfield=True."""
 
     __slots__ = ("name", "ty", "offset", "align", "idx", "is_bitfield",
-                 "bit_offset", "bit_width", "tok", "rev_bytes")
+                 "bit_offset", "bit_width", "tok", "rev_bytes", "is_packed",
+                 "explicit_align")
 
     def __init__(self, name, ty, offset=0, align=1, idx=0):
         self.name: str | None = name
@@ -54,6 +55,8 @@ class Member:
         self.bit_width = 0
         self.tok = None
         self.rev_bytes = 0      # >0: bitfield in a scalar_storage_order("big-endian") struct
+        self.is_packed = False  # member carries __attribute__((packed)): no alignment, may straddle units
+        self.explicit_align = 0  # _Alignas / __attribute__((aligned(N))) on the member (survives struct packed)
 
     def __repr__(self):
         return f"Member({self.name}, {self.ty}, off={self.offset})"
@@ -62,9 +65,10 @@ class Member:
 class Type:
     __slots__ = ("kind", "size", "align", "is_unsigned", "is_const", "is_volatile",
                  "is_restrict", "is_atomic", "base", "array_len", "vla_len", "vla_size",
-                 "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso",
+                 "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
-                 "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims")
+                 "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
+                 "proto_scope", "is_rev_order")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -84,6 +88,8 @@ class Type:
         self.is_flexible = False
         self.is_packed = False
         self.is_reverse_sso = False
+        self.is_ms_struct = False   # __attribute__((ms_struct)): MS bit-field layout
+        self.is_rev_order = False   # scalar stored big-endian (scalar_storage_order)
         self.is_complete = True
         self.return_ty: Type | None = None
         self.params: list[Type] = []
@@ -96,6 +102,7 @@ class Type:
         self.is_vector = False    # GCC vector_size: an ARRAY with value semantics
         self.param_vars: list = []   # FUNC: parse-time Var per named param (or None)
         self.param_dims: list = []   # FUNC: VLA-dimension expr per param (or None)
+        self.proto_scope = None      # FUNC: parser Scope of the parameter list (tags stay visible in the body)
 
     def copy(self) -> "Type":
         t = Type.__new__(Type)
@@ -206,6 +213,8 @@ def vector_of(base: Type, nbytes: int) -> Type:
     t = array_of(base, n)
     t.size = nbytes
     t.is_vector = True
+    if nbytes & (nbytes - 1) == 0:
+        t.align = max(t.align, nbytes)   # GCC aligns a vector to its own size (power of two)
     return t
 
 

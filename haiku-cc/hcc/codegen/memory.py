@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
+from hcc.codegen.scalar_rev import load_rev_scalar, store_rev_scalar
 from hcc.typesys import TypeKind
 
 _NO_LOAD = (TypeKind.ARRAY, TypeKind.STRUCT, TypeKind.UNION, TypeKind.FUNC, TypeKind.VLA)
@@ -20,6 +21,8 @@ class MemoryMixin:
 
     def var_addr(self, var) -> None:
         if isinstance(var, N.Var) and var.is_local:
+            if self.is_outer_local(var):
+                return self.outer_var_addr(var)
             if var.ty.kind == TypeKind.VLA:
                 # VLA object: its frame slot holds the address of its storage.
                 self.emit(f"mov {var.offset}(%rbp), %rax")
@@ -65,7 +68,9 @@ class MemoryMixin:
         k = ty.kind
         if k in _NO_LOAD:
             return
-        if k == TypeKind.FLOAT:
+        if ty.is_rev_order:
+            load_rev_scalar(self, ty)
+        elif k == TypeKind.FLOAT:
             self.emit("movss (%rax), %xmm0")
         elif k == TypeKind.DOUBLE:
             self.emit("movsd (%rax), %xmm0")
@@ -88,7 +93,9 @@ class MemoryMixin:
         if k in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY):
             self.copy_struct(ty.size)
             return
-        if k == TypeKind.FLOAT:
+        if ty.is_rev_order:
+            store_rev_scalar(self, ty)
+        elif k == TypeKind.FLOAT:
             self.emit("movss %xmm0, (%rdi)")
         elif k == TypeKind.DOUBLE:
             self.emit("movsd %xmm0, (%rdi)")
@@ -110,6 +117,19 @@ class MemoryMixin:
 
     def copy_struct(self, size: int) -> None:
         """Copy size bytes from (%rax) to (%rdi); leaves %rax = src."""
+        if size > 64:
+            # Large aggregates: unrolled moves would emit O(size) code, so use
+            # rep movsb. rsi/rcx/rdi are saved so the caller's view is unchanged.
+            self.emit("push %rsi")
+            self.emit("push %rcx")
+            self.emit("push %rdi")
+            self.emit("mov %rax, %rsi")
+            self.emit(f"mov ${size}, %rcx")
+            self.emit("rep movsb")
+            self.emit("pop %rdi")
+            self.emit("pop %rcx")
+            self.emit("pop %rsi")
+            return
         i = 0
         while i + 8 <= size:
             self.emit(f"mov {i}(%rax), %r8")

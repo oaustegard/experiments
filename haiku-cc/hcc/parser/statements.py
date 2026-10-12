@@ -8,6 +8,7 @@ One `_stmt_<keyword>` method per statement keyword; see STMT_KEYWORDS.
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc import typesys as T
 from hcc.sema.constexpr import eval_const
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
@@ -44,6 +45,8 @@ class StatementMixin:
         saves = self.block_vla_saves
         self.block_vla_saves = outer_saves
         if saves:
+            if self.fn is not None and self.fn.alloca_bottom is None:
+                self.fn.alloca_bottom = self.new_temp(T.TY_ULONG)   # alloca low-water mark
             items = [N.VLAEnter(loc, saves[0])] + items + [N.VLAExit(loc, saves[0])]
         return N.Block(loc, items)
 
@@ -66,7 +69,7 @@ class StatementMixin:
         if t.kind == TokenKind.PUNCT and t.text == ";":
             self.next()
             return N.Block(t.loc, [])
-        if self.is_typename() and t.kind == TokenKind.KEYWORD and t.text != "__extension__":
+        if self.is_typename() and t.text != "__extension__":
             return N.Block(t.loc, self.local_declaration())     # declaration after label
         node = self.expr()
         self.expect(";")
@@ -136,6 +139,7 @@ class StatementMixin:
 
     def _stmt_for(self, t):
         self.expect("(")
+        self.skip_std_attributes()  # `for ([[]] int i = 0; ...)`
         self.enter_scope()
         init = None
         if self.is_typename():
@@ -229,7 +233,7 @@ class StatementMixin:
                         break
                 if self.accept(":"):            # asm goto labels
                     while self.tok.kind == TokenKind.IDENT:
-                        self.next()
+                        node.goto_labels.append(self.next().text)
                         if not self.accept(","):
                             break
         self.expect(")")

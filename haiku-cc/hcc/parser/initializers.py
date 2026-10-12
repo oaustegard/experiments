@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from hcc import nodes as N
 from hcc.parser.structs import find_member
+from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import lower_local_init, serialize_global_init
 from hcc.tokens import TokenKind
 from hcc import typesys as T
@@ -24,7 +25,12 @@ def new_initializer(ty, is_flexible: bool) -> N.Initializer:
             init.is_flexible = True
             init.children = []
         else:
-            init.children = [new_initializer(ty.base, False) for _ in range(max(ty.array_len, 0))]
+            base = ty.base
+            if ty.array_len > 0:
+                init.children = N.ChildTable(ty.array_len,
+                                             lambda: new_initializer(base, False))
+            else:       # zero-length (may grow as a flexible member): plain list
+                init.children = []
     elif ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
         init.children = [new_initializer(m.ty, False) for m in ty.members]
         # A trailing flexible array member (stored with length 0) grows on demand.
@@ -39,7 +45,10 @@ class InitializerMixin:
     def parse_initializer(self, ty):
         init = new_initializer(ty, True)
         self.initializer2(init)
-        if ty.kind == T.TypeKind.ARRAY and ty.array_len < 0:
+        if ty.kind == T.TypeKind.ARRAY and ty.array_len < 0 and init.expr is not None:
+            ty = init.expr.ty           # `int a[] = (int[4]){...};` takes the literal's size
+            init.ty = ty
+        elif ty.kind == T.TypeKind.ARRAY and ty.array_len < 0:
             ty = T.array_of(ty.base, len(init.children))
             init.ty = ty
         return init, ty
@@ -47,10 +56,18 @@ class InitializerMixin:
     def local_initializer(self, var) -> N.Expr:
         init, ty = self.parse_initializer(var.ty)
         var.ty = ty
+        if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
+            # GCC folds `const int a = 0;` when it is read in a constant initializer.
+            var.const_value = try_eval_const(init.expr)
         return lower_local_init(init, var, self.typed)
 
     def global_initializer(self, var) -> None:
-        init, ty = self.parse_initializer(var.ty)
+        saved = self.in_static_init
+        self.in_static_init = True
+        try:
+            init, ty = self.parse_initializer(var.ty)
+        finally:
+            self.in_static_init = saved
         var.ty = ty
         var.init_data = serialize_global_init(init, ty)
 
@@ -92,6 +109,8 @@ class InitializerMixin:
     # ---- dispatch -------------------------------------------------------------
     def initializer2(self, init) -> None:
         ty = init.ty
+        while ty.kind == T.TypeKind.ARRAY and self.at("__extension__"):
+            self.next()             # `char s[] = __extension__ "..."`
         if ty.kind == T.TypeKind.ARRAY and self.tok.kind == TokenKind.STRING and \
                 T.is_integer(ty.base):
             self.string_initializer(init)
@@ -110,6 +129,14 @@ class InitializerMixin:
                 return
             self.pos = save
         if ty.kind == T.TypeKind.ARRAY:
+            if self.at("(") and self.is_typename(self.peek()):
+                # GNU: `int a[] = (int[4]){1, 2};` copies a compound literal.
+                save = self.pos
+                expr = self.typed(self.assign())
+                if expr.ty.kind == T.TypeKind.ARRAY and not expr.ty.is_vector:
+                    init.expr = expr
+                    return
+                self.pos = save
             if self.at("{"):
                 self.array_initializer1(init)
             else:
@@ -157,6 +184,12 @@ class InitializerMixin:
 
     def array_initializer1(self, init) -> None:
         self.expect("{")
+        if self.tok.kind == TokenKind.STRING and T.is_integer(init.ty.base) and \
+                self.peek().text in ("}", ","):
+            # `char s[] = {"foo"};`: braces around a string literal initialize the array
+            self.string_initializer(init)
+            self._consume_end()
+            return
         i = 0
         first = True
         while not self._consume_end():

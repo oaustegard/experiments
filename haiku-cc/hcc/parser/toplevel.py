@@ -14,6 +14,9 @@ from hcc.parser.scope import VarAttr, VarScope
 from hcc.sema.compat import is_compatible
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
+from hcc.parser.attributes import mode_type
+
+GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
 
 class TopLevelMixin:
@@ -38,6 +41,9 @@ class TopLevelMixin:
             basety = self.declspec(attr)
             if self.accept(";"):
                 continue
+            if basety is None:                  # file-scope __auto_type x = expr;
+                self.auto_type_global(attr)
+                continue
             self.file_declaration(basety, attr)
         self.finish_tentatives()
         return N.TranslationUnit(self.objs)
@@ -57,18 +63,20 @@ class TopLevelMixin:
                 self.error("identifier expected in declaration")
             if dattr.vector_size:
                 ty = T.vector_of(ty, dattr.vector_size)
+            if dattr.mode:
+                ty = mode_type(ty, dattr.mode)
+            if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
+                ty = self.typedef_aligned(ty, attr, dattr)     # `T x __attribute__((aligned(N)))`
             if attr.is_typedef:
-                ty = self.typedef_aligned(ty, attr, dattr)
+                ty = self.typedef_aligned(ty, attr, dattr, name.text)
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty)
             elif ty.kind == T.TypeKind.FUNC:
                 fn = self.declare_function(ty, name, attr, dattr)
                 if ty.enum_consts == "knr" and not self.at(";") and not self.at(","):
                     self.knr_params(ty)
                 if self.at("{"):
-                    if not first and False:
-                        pass
                     fn.ty = ty
-                    self.function_definition(fn, ty)
+                    self.function_definition(fn, ty, self.gnu89_extern_inline(attr))
                     return
             else:
                 var = self.declare_global_var(ty, name, attr, dattr)
@@ -78,6 +86,22 @@ class TopLevelMixin:
                     var.is_tentative = False
             if self.accept(";"):
                 return
+
+    def auto_type_global(self, attr) -> None:
+        """`__auto_type name = expr;` at file scope: the variable takes the
+        type of the initializer expression (array decays to pointer)."""
+        name = self.expect_ident()
+        self.expect("=")
+        start = self.pos
+        ty = self.typed(self.assign()).ty
+        if ty.kind == T.TypeKind.ARRAY:
+            ty = T.pointer_to(ty.base)
+        self.pos = start                    # re-parse the initializer with the real type
+        var = self.declare_global_var(ty, name, attr, VarAttr())
+        self.global_initializer(var)
+        var.is_definition = True
+        var.is_tentative = False
+        self.expect(";")
 
     # ---- objects -----------------------------------------------------------------
     def declare_function(self, ty, name, attr, dattr) -> N.Function:
@@ -97,6 +121,7 @@ class TopLevelMixin:
         fn.section = dattr.section or attr.section or fn.section
         fn.visibility = dattr.visibility or attr.visibility or fn.visibility
         fn.alias_of = dattr.alias or attr.alias or fn.alias_of
+        fn.ifunc_of = dattr.ifunc or attr.ifunc or fn.ifunc_of
         fn.align = max(fn.align, attr.align, dattr.align)
         return fn
 
@@ -145,11 +170,17 @@ class TopLevelMixin:
             basety = self.declspec(attr)
             while True:
                 ty, name = self.declarator(basety)
-                if ty.kind == T.TypeKind.ARRAY:
-                    ty = T.pointer_to(ty.base)
-                elif ty.kind == T.TypeKind.FUNC:
-                    ty = T.pointer_to(ty)
-                decls[name.text] = ty
+                dattr = VarAttr()           # `int foo __attribute__((unused));`
+                self.parse_attributes(dattr)
+                self.skip_std_attributes()
+                if dattr.mode:
+                    ty = mode_type(ty, dattr.mode)
+                if name is not None:        # empty declaration (`int;`) is ignored
+                    if ty.kind == T.TypeKind.ARRAY:
+                        ty = T.pointer_to(ty.base)
+                    elif ty.kind == T.TypeKind.FUNC:
+                        ty = T.pointer_to(ty)
+                    decls[name.text] = ty
                 if not self.accept(","):
                     break
             self.expect(";")
@@ -185,16 +216,28 @@ class TopLevelMixin:
                                                          new_cast(ty.vla_len, T.TY_LONG)))))
         return T.vla_of(base, self.typed(N.VarRef(loc, tmp)))
 
-    def function_definition(self, fn, ty) -> None:
+    def gnu89_extern_inline(self, attr) -> bool:
+        """gnu89 inline semantics: `extern inline` with a body is only an
+        inline definition and provides no external symbol."""
+        o = self.opts
+        gnu89 = o is not None and (o.gnu89_inline or o.std in GNU89_STDS)
+        return bool(gnu89 and attr.is_extern and attr.is_inline)
+
+    def function_definition(self, fn, ty, inline_only=False) -> None:
         if fn.is_definition:
             self.error(f"redefinition of '{fn.name}'", fn.loc)
-        fn.is_definition = True
+        if not inline_only:
+            fn.is_definition = True
         self.fn = fn
         # keep temps made while parsing the prototype: VLA parameter dimensions
         # (`int a[i++]`) are parsed before this point and may create temps
         self.label_names = set()
         self.goto_names = []
-        self.enter_scope()
+        # parameter-list tags and names share the body's outermost scope (C11 6.2.1p4)
+        if ty.proto_scope is not None:
+            self.push_scope(ty.proto_scope)
+        else:
+            self.enter_scope()
         params = []
         vla_inits = []
         for i, pty in enumerate(ty.params):
@@ -213,6 +256,8 @@ class TopLevelMixin:
                 v = self.new_temp(pty)
             v.is_param = True
             params.append(v)
+        if fn.outer is not None:                 # static link slot (codegen/nested.py)
+            fn.chain_var = self.new_temp(T.pointer_to(T.TY_VOID))
         if ty.is_variadic:
             fn.va_area = self.new_temp(T.array_of(T.TY_CHAR, 176))  # SysV register save area
             fn.va_tmp = self.new_temp(T.array_of(T.TY_CHAR, 16))  # va_arg scratch for split structs
@@ -226,9 +271,12 @@ class TopLevelMixin:
             fn.body.items[0:0] = vla_inits
         self.leave_scope()
         for g in self.goto_names:
-            if g.text not in self.label_names:
+            # a nested function's gotos may target labels of the enclosing
+            # function; nested_fn.py forwards them to the enclosing check
+            if g.text not in self.label_names and fn.outer is None:
                 self.error(f"label '{g.text}' used but not defined", g)
         fn.params = params
+        fn.labels = set(self.label_names)
         fn.locals = self.locals
         self.fn = None
         self.locals = []

@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import struct
 
+from hcc.floatbits import pack_float32, pack_float64
 from hcc.codegen.bitfield_rev import assign_rev_bitfield, load_rev_bitfield
+from hcc.codegen.bitfield_wide import assign_wide_bitfield, load_wide_bitfield
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
 from dataclasses import fields, is_dataclass
@@ -54,11 +56,15 @@ class ExpressionMixin:
         k = node.ty.kind
         v = float(node.value)
         if k == TypeKind.FLOAT:
-            bits = struct.unpack("<I", struct.pack("<f", v))[0]
+            bits = struct.unpack("<I", pack_float32(v))[0]
+            if node.bits is not None:
+                bits = node.bits & 0xFFFFFFFF
             self.emit(f"mov ${bits}, %eax")
             self.emit("movq %rax, %xmm0")
         elif k == TypeKind.DOUBLE:
-            bits = struct.unpack("<Q", struct.pack("<d", v))[0]
+            bits = struct.unpack("<Q", pack_float64(v))[0]
+            if node.bits is not None:
+                bits = node.bits & 0xFFFFFFFFFFFFFFFF
             self.emit(f"movabs ${bits}, %rax")
             self.emit("movq %rax, %xmm0")
         else:
@@ -86,6 +92,12 @@ class ExpressionMixin:
         m = node.member
         if m.is_bitfield and m.rev_bytes:
             load_rev_bitfield(self, m)
+        elif m.is_bitfield and m.ty.size == 16:
+            load_wide_bitfield(self, m)
+            return
+        elif m.is_bitfield and m.bit_offset + m.bit_width > m.ty.size * 8:
+            # Packed bitfield straddling its type's storage unit: load 8 bytes.
+            self.emit("mov (%rax), %rax")
         else:
             self.load(node.ty)
         if m.is_bitfield:
@@ -113,6 +125,9 @@ class ExpressionMixin:
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.rev_bytes:
             assign_rev_bitfield(self, node)
             return
+        if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.ty.size == 16:
+            assign_wide_bitfield(self, node)
+            return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield:
             m = lhs.member
             self.emit("mov %rax, %r8")              # value to return
@@ -121,12 +136,21 @@ class ExpressionMixin:
             self.emit(f"movabs ${mask}, %rcx")
             self.emit("and %rcx, %rdi")
             self.emit(f"shl ${m.bit_offset}, %rdi")
+            straddle = m.bit_offset + m.bit_width > m.ty.size * 8
             self.emit("mov (%rsp), %rax")
-            self.load(m.ty)
+            if straddle:
+                # Packed bitfield spanning past its type's storage unit: 8-byte RMW.
+                self.emit("mov (%rax), %rax")
+            else:
+                self.load(m.ty)
             self.emit(f"movabs ${(~(mask << m.bit_offset)) & ((1 << 64) - 1)}, %r9")
             self.emit("and %r9, %rax")
             self.emit("or %rdi, %rax")
-            self.store(node.ty)
+            if straddle:
+                self.pop("%rdi")
+                self.emit("mov %rax, (%rdi)")
+            else:
+                self.store(node.ty)
             self.emit("mov %r8, %rax")
             # result: the assigned value truncated to the bitfield
             self.emit(f"shl ${64 - m.bit_width}, %rax")

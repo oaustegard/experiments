@@ -34,7 +34,7 @@ class DeclaratorMixin:
                     ty.is_volatile = True
                 elif self.at("restrict"):
                     self.next()
-                elif self.at("__attribute__"):
+                elif self.at("__attribute__") or self.at_std_attribute():
                     self.parse_attributes()
                 else:
                     break
@@ -61,6 +61,7 @@ class DeclaratorMixin:
         name = None
         if self.tok.kind == TokenKind.IDENT:
             name = self.next()
+            self.skip_std_attributes()  # `void f [[]] (void);`
         ty = self.type_suffix(ty)
         return ty, name
 
@@ -81,7 +82,9 @@ class DeclaratorMixin:
                     if depth == 0:
                         break
         nxt = self.peek(i)
-        return nxt.text == ")" and nxt.kind == TokenKind.PUNCT or self.is_typename(nxt)
+        if nxt.kind == TokenKind.PUNCT and nxt.text in (")", "..."):
+            return True          # `int (void-less)` or variadic `int (...)`
+        return self.is_typename(nxt)
 
     def _skip_declarator(self) -> None:
         depth = 0
@@ -98,6 +101,7 @@ class DeclaratorMixin:
             self.next()
 
     def type_suffix(self, ty):
+        self.skip_std_attributes()  # `int g [2] [[]] [3] [[]];`
         if self.at("("):
             self.next()
             return self.func_params(ty)
@@ -133,6 +137,7 @@ class DeclaratorMixin:
         # Prototype scope: earlier named params are visible in later array
         # dimensions (`int b[a++]`); their Vars are reused by the definition.
         self.enter_scope()
+        fwd = self._param_forward_decls()
         while not self.accept(")"):
             if params:
                 self.expect(",")
@@ -140,6 +145,7 @@ class DeclaratorMixin:
                 fty.is_variadic = True
                 self.expect(")")
                 break
+            self.skip_std_attributes()
             attr = VarAttr()
             base = self.declspec(attr)
             pty, name = self.declarator(base)
@@ -153,7 +159,11 @@ class DeclaratorMixin:
             elif pty.kind == T.TypeKind.FUNC:
                 pty = T.pointer_to(pty)
             pvar = None
-            if name is not None:
+            if name is not None and name.text in fwd:
+                pvar = fwd[name.text]       # the real param is the forward-declared Var
+                pvar.ty, pvar.loc, pvar.align = pty, name.loc, pty.align
+                self.push_scope_entry(name.text).var = pvar
+            elif name is not None:
                 pvar = Var(name.text, pty, loc=name.loc, is_local=True,
                            is_definition=True, align=pty.align)
                 pvar.is_param = True
@@ -162,6 +172,7 @@ class DeclaratorMixin:
             names.append(name)
             pvars.append(pvar)
             pdims.append(dim)
+        fty.proto_scope = self.scopes[-1]
         self.leave_scope()
         fty.params = params
         fty.param_names = names
@@ -169,8 +180,51 @@ class DeclaratorMixin:
         fty.param_dims = pdims
         return fty
 
+    def _param_forward_decls(self) -> dict:
+        """GNU parameter forward declarations: `f(int n; int m, int n)`. Each `;`
+        at depth 0 before the closing `)` ends one list of forward-declared
+        parameters; the final list is the real parameter list. Forward names are
+        declared in the prototype scope so array bounds can use them; the real
+        parameter with the same name reuses that Var. Returns name -> Var."""
+        fwd = {}
+        for _ in range(self._count_fwd_lists()):
+            while True:
+                self.skip_std_attributes()
+                pty, name = self.declarator(self.declspec(VarAttr()))
+                self.parse_attributes()
+                if name is not None:
+                    pvar = Var(name.text, pty, loc=name.loc, is_local=True,
+                               is_definition=True, align=pty.align)
+                    pvar.is_param = True
+                    self.push_scope_entry(name.text).var = pvar
+                    fwd[name.text] = pvar
+                if not self.accept(","):
+                    break
+            self.expect(";")
+        return fwd
+
+    def _count_fwd_lists(self) -> int:
+        """Number of `;` at depth 0 between the current position and the `)`
+        that closes the parameter list."""
+        depth, count = 0, 0
+        for t in self.toks[self.pos:]:
+            if t.kind == TokenKind.EOF:
+                break
+            if t.kind != TokenKind.PUNCT:
+                continue
+            if t.text in ("(", "[", "{"):
+                depth += 1
+            elif t.text in (")", "]", "}"):
+                if depth == 0:
+                    break
+                depth -= 1
+            elif t.text == ";" and depth == 0:
+                count += 1
+        return count
+
     def array_dims(self, ty):
-        while self.at("static") or self.at("const") or self.at("volatile") or self.at("restrict"):
+        while (self.at("static") or self.at("const") or self.at("volatile")
+               or self.at("restrict") or self.at("_Atomic")):
             self.next()
         if self.accept("]"):
             ty = self.type_suffix(ty)
@@ -191,9 +245,56 @@ class DeclaratorMixin:
             self.error("size of array is negative", expr)
         return T.array_of(ty, n)
 
-    def typename(self):
-        ty = self.declspec(None)
+    def typename(self, allow_storage=False):
+        # allow_storage: C23 compound literal `(static int){1}`; storage class
+        # specifiers are otherwise rejected (casts, sizeof, _Alignof).
+        ty = self.declspec(VarAttr() if allow_storage else None)
         return self.abstract_declarator(ty)
+
+    def compound_lit_follows(self):
+        """At '(' : True if the matching ')' is followed by '{'."""
+        end = self._paren_end()
+        if end is None:
+            return False
+        nxt = self.toks[min(end + 1, len(self.toks) - 1)]
+        return nxt.kind == TokenKind.PUNCT and nxt.text == "{"
+
+    def compound_lit_is_static(self):
+        """At '(' : True if `static` appears directly inside the parens."""
+        end = self._paren_end()
+        if end is None:
+            return False
+        depth = 0
+        for t in self.toks[self.pos:end]:
+            if t.kind == TokenKind.PUNCT and t.text in ("(", "[", "{"):
+                depth += 1
+            elif t.kind == TokenKind.PUNCT and t.text in (")", "]", "}"):
+                depth -= 1
+            elif depth == 1 and t.text == "static":
+                return True
+        return False
+
+    def _paren_end(self):
+        depth = 0
+        for i in range(self.pos, len(self.toks)):
+            t = self.toks[i]
+            if t.kind == TokenKind.PUNCT and t.text in ("(", "[", "{"):
+                depth += 1
+            elif t.kind == TokenKind.PUNCT and t.text in (")", "]", "}"):
+                depth -= 1
+                if depth == 0:
+                    return i
+        return None
+
+    def scoped_typename(self, allow_storage=False):
+        """typename() for sizeof/_Alignof/typeof: tags and enumerators declared
+        inside the type name are local to it (PR c/67784), so they do not leak
+        into the enclosing block scope."""
+        self.enter_scope()
+        try:
+            return self.typename(allow_storage)
+        finally:
+            self.leave_scope()
 
     def abstract_declarator(self, ty):
         ty, name = self.declarator(ty)

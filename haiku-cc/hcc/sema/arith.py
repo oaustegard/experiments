@@ -91,9 +91,10 @@ def vector_binop(op, lhs, rhs, loc):
     if lhs.ty.size != rhs.ty.size:
         return None
     if op in VECTOR_CMP_OPS:
-        if not is_integer(lhs.ty.base):
+        # float/double lanes compare too (ordered predicates, GCC semantics)
+        if not (is_integer(lhs.ty.base) or (is_flonum(lhs.ty.base) and lhs.ty.base.size in (4, 8))):
             return None
-        res = vector_of(int_type_for(lhs.ty.base.size, False), lhs.ty.size)
+        res = vector_of(int_type_for(lhs.ty.base.size, False), lhs.ty.size)  # lanes: -1 / 0
         return _t(N.Binary(loc, op, lhs, rhs, ty=res))
     if is_flonum(lhs.ty.base):
         if op not in ("+", "-", "*", "/"):

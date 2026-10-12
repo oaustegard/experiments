@@ -26,12 +26,16 @@ def _add(ty, names: str) -> None:
         _TABLE[n] = ty
 
 
-_add(_VOID_PTR, "memcpy memmove memset memchr malloc calloc realloc alloca")
-_add(_CHAR_PTR, "strcpy strncpy strcat strncat strchr strrchr strstr strpbrk")
+_add(_VOID_PTR, "memcpy memmove mempcpy memset memchr malloc calloc realloc alloca")
+_add(_CHAR_PTR, "strcpy stpcpy strncpy strcat strncat strchr strrchr strstr strpbrk strdup strndup")
 _add(_SIZE_T, "strlen strnlen")
 _add(T.TY_VOID, "abort exit _Exit free")
 _add(T.TY_DOUBLE, "sqrt sin cos tan exp log log10 pow floor ceil fabs atan atan2 copysign")
 _add(T.TY_FLOAT, "sqrtf sinf cosf fabsf floorf ceilf powf copysignf")
+_add(T.TY_LDOUBLE, "sqrtl sinl cosl tanl expl logl log10l powl floorl ceill fabsl atanl atan2l copysignl")
+_add(T.TY_INT, "abs")
+_add(T.TY_LONG, "labs imaxabs")
+_add(T.TY_LLONG, "llabs")
 
 
 def libc_return_type(name: str):
@@ -52,3 +56,12 @@ def int_abs_call(loc, name: str, arg):
         return None
     ty = T.TY_INT if bits == 32 else T.TY_LONG
     return N.BuiltinCall(loc, f"abs{bits}", [new_cast(arg, ty)], None, ty=ty)
+
+
+def fabs_float_call(loc, name: str, arg):
+    """`fabs(x)` with a float x is expanded by GCC as an inline sign-bit clear on
+    the float (no widening to double), so a signaling NaN stays signaling. Returns
+    the float-typed BuiltinCall, or None when the call is not of that form."""
+    if name != "fabs" or arg.ty is None or arg.ty.kind != T.TypeKind.FLOAT:
+        return None
+    return N.BuiltinCall(loc, "fabsf", [arg], None, ty=T.TY_FLOAT)

@@ -152,7 +152,7 @@ def norm(s, t, cwd, hexfilter=False):
 
 
 def shell(R, script, cwd, t, timeout=TIMEOUT, hexfilter=False):
-    rc, out, err, to = R.run_cmd(["sh", "-c", "( %s ) 2>&1" % script], timeout, cwd=cwd)
+    rc, out, err, to = P.run_cmd(R, ["sh", "-c", "( %s ) 2>&1" % script], timeout, cwd=cwd)
     files = {}
     for fn in sorted(os.listdir(cwd)):
         p = os.path.join(cwd, fn)

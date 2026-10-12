@@ -17,7 +17,7 @@ from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
-from hcc.typesys import TY_INT, TY_ULONG, TypeKind
+from hcc.typesys import TY_INT, TY_ULONG, TypeKind, pointer_to
 
 ASSIGN_OPS = {"=": None, "+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "&=": "&",
               "|=": "|", "^=": "^", "<<=": "<<", ">>=": ">>"}
@@ -26,13 +26,24 @@ BINARY_LEVELS = [("|",), ("^",), ("&",), ("==", "!="), ("<", "<=", ">", ">="),
                  ("<<", ">>"), ("+", "-"), ("*", "/", "%")]
 
 
+def _comma_result_type(t):
+    """Type of `a, b`: a function or array designator decays to a pointer."""
+    if t.kind == TypeKind.FUNC:
+        return pointer_to(t)
+    if t.kind == TypeKind.ARRAY and not t.is_vector:
+        return pointer_to(t.base)
+    return t
+
+
 class ExpressionMixin:
 
     def expr(self):
         node = self.assign()
         while self.at(","):
             loc = self.next().loc
-            node = self.typed(N.Comma(loc, node, self.assign()))
+            rhs = self.assign()
+            node = self.typed(N.Comma(loc, node, rhs))
+            node.ty = _comma_result_type(rhs.ty)   # the operator's own result: decayed
         return node
 
     def const_expr(self) -> int:
@@ -112,24 +123,28 @@ class ExpressionMixin:
     def cast_expr(self):
         if self.at("(") and self.is_typename(self.peek()):
             start = self.pos
+            allow = self.compound_lit_follows()
             loc = self.next().loc
-            ty = self.typename()
+            ty = self.typename(allow_storage=allow)
             self.expect(")")
             if self.at("{"):                      # compound literal
                 self.pos = start
                 return self.unary()
+            ty, pre = self.vla_bind(ty, loc)      # `(int (*)[++i])p` evaluates ++i
             operand = self.cast_expr()
             if ty.kind == TypeKind.VOID:
-                return N.Cast(loc, operand, ty=ty)
+                return self.vla_prefix(pre, N.Cast(loc, operand, ty=ty), loc)
             lowered = lower_scalar_to_vector(self, loc, self.typed(operand), ty.unqual())
             if lowered is not None:
-                return lowered
+                return self.vla_prefix(pre, lowered, loc)
             node = N.Cast(loc, operand, ty=ty.unqual())
             self.typed(operand)
-            return node
+            return self.vla_prefix(pre, node, loc)
         return self.unary()
 
     def unary(self):
+        while self.at("__extension__"):     # GNU: `__extension__ expr` is a no-op prefix
+            self.next()
         t = self.tok
         s = t.text
         if t.kind == TokenKind.PUNCT:
@@ -154,6 +169,8 @@ class ExpressionMixin:
                 operand = self.cast_expr()
                 if isinstance(operand, N.Member_) and operand.member.is_bitfield:
                     self.error("cannot take address of bit-field", t)
+                if operand.ty is not None and operand.ty.is_rev_order:
+                    self.error("cannot take address of scalar with reverse storage order", t)
                 return self.typed(N.AddrOf(t.loc, operand))
             if s == "*":
                 self.next()
@@ -178,7 +195,7 @@ class ExpressionMixin:
                 self.next()
                 if self.at("(") and self.is_typename(self.peek()):
                     self.next()
-                    ty = self.typename()
+                    ty = self.scoped_typename()
                     self.expect(")")
                 else:
                     node = self.unary()
@@ -198,8 +215,9 @@ class ExpressionMixin:
         t = self.next()
         if self.at("(") and self.is_typename(self.peek()):
             start = self.pos
+            allow = self.compound_lit_follows()
             self.next()
-            ty = self.typename()
+            ty = self.scoped_typename(allow_storage=allow)
             self.expect(")")
             if self.at("{"):
                 self.pos = start

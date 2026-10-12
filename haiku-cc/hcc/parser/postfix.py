@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
-from hcc.parser.libc_builtins import int_abs_call
+from hcc.parser.libc_builtins import fabs_float_call, int_abs_call
 from hcc.parser.structs import find_member
 from hcc.sema.arith import inc_dec, new_add
 from hcc.sema.conversions import default_arg_promote, new_cast
@@ -23,11 +23,14 @@ class PostfixMixin:
     def postfix(self):
         if self.at("(") and self.is_typename(self.peek()):
             save = self.pos
+            allow = self.compound_lit_follows()
+            is_static = allow and self.compound_lit_is_static()
             self.next()
-            ty = self.typename()
+            ty = self.typename(allow_storage=allow)
             self.expect(")")
             if self.at("{"):
-                return self.postfix_ops(self.compound_literal(ty))
+                ty, pre = self.vla_bind(ty, self.tok.loc)
+                return self.postfix_ops(self.vla_prefix(pre, self.compound_literal(ty, is_static), self.tok.loc))
             self.pos = save
         return self.postfix_ops(self.primary())
 
@@ -106,15 +109,21 @@ class PostfixMixin:
             abs_node = int_abs_call(loc, fn.var.name, conv[0])
             if abs_node is not None:
                 return self.typed(abs_node)
+            fabs_node = fabs_float_call(loc, fn.var.name, args[0])
+            if fabs_node is not None:
+                return self.typed(fabs_node)
         node = N.Call(loc, fn, conv, fty)
         if is_struct_like(fty.return_ty) or fty.return_ty.is_vector:
             node.ret_buffer = self.new_temp(fty.return_ty)
         return self.typed(node)
 
-    def compound_literal(self, ty):
+    def compound_literal(self, ty, is_static=False):
         loc = self.tok.loc
-        if self.fn is None:
+        if self.fn is None or self.in_static_init or is_static:   # `static` => static storage
+            # Static storage: the literal is itself a static object whose address/value
+            # the enclosing constant initializer refers to (see sema/initializers.py).
             var = self.new_anon_gvar(ty, loc)
+            var.is_compound_literal = True
             self.global_initializer(var)
             return self.typed(N.VarRef(loc, var))
         var = self.new_temp(ty, loc)

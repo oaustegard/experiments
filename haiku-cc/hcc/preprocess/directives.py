@@ -14,6 +14,17 @@ from hcc.preprocess.macros import Macro
 from hcc.tokens import Token, TokenKind
 
 
+# -f math flags reflected as predefined macros: macro -> (on flag, off flag).
+_OPT_MATH_MACROS = {
+    "__NO_MATH_ERRNO__": ("-fno-math-errno", "-fmath-errno"),
+    "__ASSOCIATIVE_MATH__": ("-fassociative-math", "-fno-associative-math"),
+    "__NO_TRAPPING_MATH__": ("-fno-trapping-math", "-ftrapping-math"),
+    "__RECIPROCAL_MATH__": ("-freciprocal-math", "-fno-reciprocal-math"),
+    "__ROUNDING_MATH__": ("-frounding-math", "-fno-rounding-math"),
+    "__NO_SIGNED_ZEROS__": ("-fno-signed-zeros", "-fsigned-zeros"),
+}
+
+
 @dataclass
 class CondIncl:
     ctx: str          # "if" | "elif" | "else"
@@ -249,6 +260,22 @@ class DirectiveMixin:
             self.pragma_once.add(hash_tok.loc.file)
         elif line and line[0].text in ("push_macro", "pop_macro"):
             self._macro_pragma(line)
+        elif len(line) >= 2 and line[0].text == "GCC" and line[1].text == "optimize":
+            self._optimize_pragma(line[2:])
+
+    def _optimize_pragma(self, line: list[Token]) -> None:
+        """#pragma GCC optimize "-fno-math-errno" toggles __NO_MATH_ERRNO__ (and
+        the other -f math flags that gcc reflects as predefined macros)."""
+        for t in line:
+            if t.kind != TokenKind.STRING:
+                continue
+            flag = t.text[1:-1]
+            for name, (on_flag, off_flag) in _OPT_MATH_MACROS.items():
+                if flag == on_flag:
+                    one = Token(TokenKind.NUMBER, "1", t.loc, False, True)
+                    self.macros[name] = Macro(name, True, body=[one])
+                elif flag == off_flag:
+                    self.macros.pop(name, None)
 
     def _macro_pragma(self, line: list[Token]) -> None:
         """#pragma push_macro("NAME") / pop_macro("NAME")."""

@@ -80,7 +80,7 @@ def workdir(r, work, name):
 
 
 def run_prog(R, exe, d):
-    rc, out, err, to = R.run_cmd([exe], RUN_TIMEOUT, cwd=d)
+    rc, out, err, to = P.run_cmd(R, [exe], RUN_TIMEOUT, cwd=d)
     cases_ = {}
     for line in R.text(out).splitlines():
         m = LINE.match(line)

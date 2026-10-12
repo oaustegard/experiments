@@ -11,6 +11,27 @@ AttributeMixin provides:
 from __future__ import annotations
 
 from hcc.tokens import TokenKind
+from hcc import typesys as T
+
+# byte sizes for __attribute__((mode(...))) integer modes (x86-64: word = DI)
+MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
+
+
+def mode_type(ty, mode):
+    """Re-size an integer or enum type to the byte size named by a mode attribute.
+
+    Returns `ty` unchanged for unknown modes or non-integer types; never mutates
+    `ty` (enums are copied, integers come from the shared base-type table)."""
+    size = MODE_SIZES.get(mode)
+    if size is None or ty is None:
+        return ty
+    if ty.kind == T.TypeKind.ENUM:
+        ty = ty.copy()
+        ty.size = ty.align = size
+        return ty
+    if T.is_integer(ty):
+        return T.int_type_for(size, ty.is_unsigned)
+    return ty
 
 
 class AttributeMixin:
@@ -50,7 +71,10 @@ class AttributeMixin:
                     depth -= 1
 
     def parse_attributes(self, attr=None, ty=None) -> None:
-        while self.at("__attribute__") or self.at("__declspec"):
+        while self.at_attribute() or self.at_std_attribute():
+            if self.at_std_attribute():
+                self.skip_std_attributes()
+                continue
             if self.next().text == "__declspec":
                 self.skip_balanced()
                 continue
@@ -92,6 +116,8 @@ class AttributeMixin:
                 attr.is_packed = True
             if ty is not None:
                 ty.is_packed = True
+        elif name == "ms_struct" and attr is not None:
+            attr.is_ms_struct = True
         elif name == "scalar_storage_order" and attr is not None and args:
             attr.reverse_sso = args[0].value.rstrip(b"\0") == b"big-endian"
         elif name == "noreturn" and attr is not None:
@@ -104,6 +130,8 @@ class AttributeMixin:
             attr.visibility = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name == "alias" and attr is not None and args:
             attr.alias = args[0].value.rstrip(b"\0").decode() if args[0].value else None
+        elif name == "ifunc" and attr is not None and args:
+            attr.ifunc = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name == "vector_size" and attr is not None and args:
             save = self.pos
             self.pos = args_start + 1
@@ -112,11 +140,19 @@ class AttributeMixin:
         elif name == "mode" and attr is not None and args:
             attr.mode = args[0].text.strip("_")
 
-    def typedef_aligned(self, ty, attr, dattr):
+    def typedef_aligned(self, ty, attr, dattr, name=None):
         """`typedef T X __attribute__((aligned(N)))`: raise the typedef's alignment.
 
+        Alignment is sticky across redeclarations of the same typedef in the
+        same scope (GCC keeps the largest), so a later plain `typedef T X;`
+        does not drop an earlier aligned attribute.
         Returns a copy of `ty` (never mutates a shared type) when N is larger."""
         al = max(attr.align, dattr.align)
+        if name is not None:
+            prev = self.scopes[-1].vars.get(name)
+            if prev is not None and prev.type_def is not None \
+                    and prev.type_def.kind == ty.kind and prev.type_def.align > al:
+                al = prev.type_def.align
         if al > ty.align:
             ty = ty.copy()
             ty.align = al

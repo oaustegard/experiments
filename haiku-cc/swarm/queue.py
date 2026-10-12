@@ -30,8 +30,11 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 # Ladder level per suite-name prefix: higher runs first.
-LADDER = [("smoke", 6), ("c-testsuite", 5), ("chibicc", 5), ("torture", 4), ("gcc", 4),
-          ("csmith", 3), ("sqlite", 2), ("lua", 2), ("quickjs", 2), ("doom", 1), ("linux", 1)]
+# Real programs rank with the basics: once the conformance suites saturate, a whole-program
+# build failure (one root cause, hundreds of tests) is the highest-yield work in the queue.
+LADDER = [("smoke", 6), ("c-testsuite", 5), ("chibicc", 5), ("sqlite", 5), ("lua", 5), ("quickjs", 5),
+          ("doom", 5), ("zlib", 5), ("bzip2", 5), ("cjson", 5), ("tcc", 5), ("mbedtls", 5), ("redis", 5),
+          ("cpython", 5), ("torture", 4), ("gcc", 4), ("csmith", 4), ("llvm", 4), ("linux", 3)]
 DEFAULT_LEVEL = 2
 SHARD_SIZE = 10        # a cluster of n tests gets min(MAX_SHARDS, n // SHARD_SIZE) shards
 MAX_SHARDS = 6
@@ -124,6 +127,8 @@ def build(results: dict, ledger: dict | None = None, source_size=None, limit: in
         if r.get("status") in ("launched", "finished"):
             busy_keys.add(r.get("key"))
             busy_tests.update(r.get("tests", []))
+        elif r.get("status") == "rejected" and str(r.get("reason", "")).startswith(("conflict", "main kept moving")):
+            continue   # a good fix that lost a merge race: the next worker rebases it, no penalty
         elif r.get("status") in ("rejected", "failed", "reverted"):
             sig_fails[r.get("signature")] = sig_fails.get(r.get("signature"), 0) + 1
             # a worker that died without a result (rate limit, timeout) counts half
@@ -133,7 +138,10 @@ def build(results: dict, ledger: dict | None = None, source_size=None, limit: in
     items: list[WorkItem] = []
     for sig, tids in clusters(results).items():
         n = len(tids)
-        shards = max(1, min(MAX_SHARDS, n // SHARD_SIZE))
+        # A fully concrete signature (nothing masked, e.g. one undefined symbol) is one root cause:
+        # shards would only make several workers write the same fix and conflict.
+        concrete = not re.search(r"<(id|n|file|path)>", sig)
+        shards = 1 if concrete else max(1, min(MAX_SHARDS, n // SHARD_SIZE))
         for k in range(shards):
             members = [t for t in tids if shards == 1 or _shard(t, shards) == k]
             key = sig if shards == 1 else f"{sig} #{k + 1}/{shards}"

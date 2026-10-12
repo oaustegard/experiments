@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import tarfile
 import threading
+import time
 import zipfile
 
 import common as C
@@ -167,5 +168,18 @@ def ref_value(name, parts, compute):
     return C.cached_value(name, [C.gcc_fingerprint()] + list(parts), compute)
 
 
+def run_cmd(R, argv, timeout, cwd=None, env=None, stdin_data=None):
+    """R.run_cmd that retries "Text file busy": a program written a moment ago can still be open for writing in a
+    forked child of another test thread."""
+    for _ in range(8):
+        r = R.run_cmd(argv, timeout, cwd=cwd, env=env, stdin_data=stdin_data)
+        if r[0] == 127 and b"Text file busy" in r[2]:
+            time.sleep(0.25)
+            continue
+        return r
+    return r
+
+
 def run(R, argv, cwd, timeout=60, stdin_data=None, env=None):
-    return C.run_and_capture(R, argv, timeout, cwd, env=env, stdin_data=stdin_data)
+    rc, out, err, to = run_cmd(R, argv, timeout, cwd=cwd, env=env, stdin_data=stdin_data)
+    return {"rc": rc, "out": R.text(out), "err": R.text(err), "timeout": to}

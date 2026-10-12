@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import time
 
+from hcc.preprocess.floatn_macros import FLOATN_MACROS
 from hcc.tokens import Token, TokenKind
 
 PREDEFINED = r"""
@@ -84,12 +85,19 @@ PREDEFINED = r"""
 #define __LONG_LONG_MAX__ 0x7fffffffffffffffLL
 #define __WCHAR_MAX__ 0x7fffffff
 #define __WCHAR_MIN__ (-__WCHAR_MAX__ - 1)
+#define __WINT_MIN__ 0U
+#define __WINT_MAX__ 0xffffffffU
+#define __WINT_WIDTH__ 32
 #define __SIZE_MAX__ 0xffffffffffffffffUL
 #define __PTRDIFF_MAX__ 0x7fffffffffffffffL
 #define __INTMAX_MAX__ 0x7fffffffffffffffL
 #define __UINTMAX_MAX__ 0xffffffffffffffffUL
 #define __INTPTR_MAX__ 0x7fffffffffffffffL
 #define __UINTPTR_MAX__ 0xffffffffffffffffUL
+#define __SIG_ATOMIC_TYPE__ int
+#define __SIG_ATOMIC_MAX__ 0x7fffffff
+#define __SIG_ATOMIC_MIN__ (-__SIG_ATOMIC_MAX__ - 1)
+#define __SIG_ATOMIC_WIDTH__ 32
 #define __INT8_MAX__ 0x7f
 #define __INT16_MAX__ 0x7fff
 #define __INT32_MAX__ 0x7fffffff
@@ -215,11 +223,21 @@ STD_VERSIONS = {"c89": "199409L", "c90": "199409L", "gnu89": "199409L", "gnu90":
                 "c2x": "202000L", "gnu2x": "202000L", "c23": "202311L", "gnu23": "202311L"}
 
 
+# GCC spellings of the ISO standard names (-std=iso9899:2017 etc.).
+STD_ALIASES = {"iso9899:1990": "c90", "iso9899:199409": "c89", "iso9899:1999": "c99",
+               "iso9899:2011": "c11", "iso9899:2017": "c17", "iso9899:2018": "c17",
+               "c1x": "c11", "gnu1x": "gnu11"}
+
+
 def predefined_source(opts) -> str:
-    std = (opts.std or "gnu11").lower()
-    lines = [PREDEFINED, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201112L')}"]
+    std = (opts.std or "gnu17").lower()
+    std = STD_ALIASES.get(std, std)
+    lines = [PREDEFINED, FLOATN_MACROS, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201710L')}"]
     if std.startswith("c"):
         lines.append("#define __STRICT_ANSI__ 1")
+    if STD_VERSIONS.get(std, "") >= "202000L":
+        # C23 makes static_assert a keyword (C11/C17 provide it via <assert.h>)
+        lines.append("#define static_assert _Static_assert")
     if opts.pic:
         lines.append("#define __PIC__ 2\n#define __pic__ 2")
     return "\n".join(lines) + "\n"

@@ -12,6 +12,7 @@ from __future__ import annotations
 from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
 from hcc.parser.scope import VarAttr
+from hcc.parser.attributes import mode_type
 from hcc import typesys as T
 
 VOID, BOOL, CHAR, SHORT, INT, LONG = 1 << 0, 1 << 2, 1 << 4, 1 << 6, 1 << 8, 1 << 10
@@ -38,35 +39,70 @@ _COUNTS = {"void": VOID, "_Bool": BOOL, "char": CHAR, "short": SHORT, "int": INT
            "float": FLOAT, "double": DOUBLE, "signed": SIGNED, "unsigned": UNSIGNED,
            "__int128": INT128}
 
-# byte sizes for __attribute__((mode(...))) integer modes
-_MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16}
-
 TYPE_KEYWORDS = frozenset(_COUNTS) | frozenset("""
 typedef static extern inline _Thread_local auto register _Noreturn const volatile restrict
 _Atomic _Alignas struct union enum typeof __attribute__ __declspec __extension__
 __builtin_va_list __auto_type __float128 __uint128_t _Complex __complex__ __complex __label__
+constexpr
 """.split())
 
 STORAGE = frozenset(("typedef", "static", "extern", "inline", "_Thread_local", "auto",
                      "register", "_Noreturn"))
 
+# ISO/IEC TS 18661-3 _FloatN / _FloatNx names. They are plain identifiers to the
+# lexer (so headers may still typedef them); they map onto the base float type
+# with the same representation. _Float16 is not supported (no half codegen).
+FLOATN_TYPES = {"_Float32": T.TY_FLOAT, "_Float64": T.TY_DOUBLE,
+                "_Float32x": T.TY_DOUBLE, "_Float64x": T.TY_LDOUBLE,
+                "_Float128": T.TY_FLOAT128, "_Float128x": T.TY_FLOAT128}
+
 
 class DeclSpecMixin:
 
+    def _index_of_tok(self, tok):
+        """Index in self.toks of tok (searching forward from pos), or None."""
+        for i in range(self.pos, min(self.pos + 16, len(self.toks))):
+            if self.toks[i] is tok:
+                return i
+        return None
+
     def is_typename(self, tok=None) -> bool:
         tok = tok or self.tok
+        if tok.kind == TokenKind.KEYWORD and tok.text == "__extension__":
+            # __extension__ is a no-op marker: it starts a declaration only if
+            # the token after the marker run does (e.g. not `(__extension__ (x))`).
+            i = self._index_of_tok(tok)
+            if i is not None:
+                while i < len(self.toks) and self.toks[i].kind == TokenKind.KEYWORD \
+                        and self.toks[i].text == "__extension__":
+                    i += 1
+                if i < len(self.toks):
+                    return self.is_typename(self.toks[i])
+            return False
         if tok.kind == TokenKind.KEYWORD:
             return tok.text in TYPE_KEYWORDS
+        if tok.kind == TokenKind.IDENT and tok.text in FLOATN_TYPES and self.find_typedef(tok) is None:
+            return True
+        if self.is_c23_bool(tok):
+            return True
         return self.find_typedef(tok) is not None
+
+    def is_c23_bool(self, tok):
+        """C23 makes `bool` a keyword (= _Bool) unless a typedef of that name is in scope."""
+        return tok.kind == TokenKind.IDENT and tok.text == "bool" \
+            and self.c23_mode() and self.find_typedef(tok) is None
 
     def declspec(self, attr=None):
         ty = T.TY_INT
         counter = 0
         vsize = 0
+        auto_infer = False
         is_const = is_volatile = is_atomic = False
         while self.is_typename():
             tok = self.tok
             s = tok.text
+            if self.is_c23_bool(tok):
+                s = "_Bool"
             if s in STORAGE:
                 if attr is None:
                     self.error("storage class specifier is not allowed in this context")
@@ -83,11 +119,13 @@ class DeclSpecMixin:
                     attr.is_tls = True
                 elif s == "_Noreturn":
                     attr.is_noreturn = True
+                elif s == "auto":
+                    auto_infer = self.c23_mode()    # C23 `auto x = expr;`: no type given
                 continue
-            if s in ("const", "volatile", "restrict", "__extension__", "_Complex", "__complex__",
-                     "__complex", "__label__"):
+            if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "_Complex",
+                     "__complex__", "__complex", "__label__"):
                 self.next()
-                is_const |= s == "const"
+                is_const |= s in ("const", "constexpr")  # C23 constexpr objects are const
                 is_volatile |= s == "volatile"
                 continue
             if s == "_Atomic":
@@ -120,8 +158,9 @@ class DeclSpecMixin:
                 continue
             # user-defined / special types
             td = self.find_typedef(tok)
+            is_floatn = tok.kind == TokenKind.IDENT and s in FLOATN_TYPES and td is None
             if s in ("struct", "union", "enum", "typeof", "__builtin_va_list", "__auto_type",
-                     "__float128", "__uint128_t") or td is not None:
+                     "__float128", "__uint128_t") or td is not None or is_floatn:
                 if counter:
                     break          # e.g. "typedef int T; int T;" -> T is a declarator
                 self.next()
@@ -130,7 +169,7 @@ class DeclSpecMixin:
                 elif s == "union":
                     ty = self.struct_decl(T.TypeKind.UNION)
                 elif s == "enum":
-                    ty = self.enum_specifier()
+                    ty = self.enum_specifier(attr)
                 elif s == "typeof":
                     ty = self.typeof_specifier()
                 elif s == "__builtin_va_list":
@@ -141,6 +180,8 @@ class DeclSpecMixin:
                     ty = T.TY_UINT128
                 elif s == "__auto_type":
                     ty = None       # resolved by the declaration's initializer
+                elif is_floatn:
+                    ty = FLOATN_TYPES[s]
                 else:
                     ty = td
                 counter += OTHER
@@ -154,6 +195,8 @@ class DeclSpecMixin:
                     pass
                 self.error(f"invalid type: '{s}' here")
             ty = _BASE_TYPES[counter]
+        if auto_infer and counter == 0 and attr is not None:
+            return None         # type comes from the initializer, as for __auto_type
         if attr is not None and attr.vector_size and ty is not None:
             ty = T.vector_of(ty, attr.vector_size)
             attr.vector_size = 0
@@ -161,9 +204,7 @@ class DeclSpecMixin:
             ty = T.vector_of(ty, vsize)
         if attr is not None and attr.mode:
             # __attribute__((mode(QI/HI/SI/DI/TI))) re-sizes an integer base type
-            size = _MODE_SIZES.get(attr.mode)
-            if size is not None and ty is not None and T.is_integer(ty):
-                ty = T.int_type_for(size, ty.is_unsigned)
+            ty = mode_type(ty, attr.mode)
             attr.mode = None
         if counter == 0 and attr is None and not (is_const or is_volatile):
             self.error("expected type")
@@ -177,7 +218,7 @@ class DeclSpecMixin:
     def typeof_specifier(self):
         self.expect("(")
         if self.is_typename():
-            ty = self.typename()
+            ty = self.scoped_typename()
         else:
             node = self.expr()
             add_type(node)

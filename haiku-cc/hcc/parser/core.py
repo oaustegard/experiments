@@ -34,6 +34,10 @@ class ParserBase:
         self.cur_switch = None
         self.goto_names: list[Token] = []
         self.label_names: set[str] = set()
+        self.in_static_init = False          # inside a static-storage initializer
+        self.scope_stack: list[int] = [0]    # ids of enclosing block scopes (0 = file scope)
+        self.scope_seq = 0
+        self.stmt_expr_base: int | None = None  # scope depth of the outermost ({ }) being parsed
 
     # ---- token cursor -------------------------------------------------------
     @property
@@ -90,10 +94,23 @@ class ParserBase:
 
     # ---- scopes -------------------------------------------------------------
     def enter_scope(self) -> None:
-        self.scopes.append(Scope())
+        self.push_scope(Scope())
+
+    def push_scope(self, scope: Scope) -> None:
+        self.scopes.append(scope)
+        self.scope_seq += 1
+        self.scope_stack.append(self.scope_seq)
 
     def leave_scope(self) -> None:
         self.scopes.pop()
+        self.scope_stack.pop()
+
+    def var_scope_path(self) -> tuple:
+        """Block-id path a new local belongs to.  Locals of a statement expression
+        are pinned to the scope enclosing the outermost ({ }), because its value
+        may be used after the block's own locals would be dead."""
+        n = len(self.scope_stack) if self.stmt_expr_base is None else self.stmt_expr_base
+        return tuple(self.scope_stack[:n])
 
     def find_var(self, name: str) -> VarScope | None:
         for sc in reversed(self.scopes):
@@ -122,7 +139,8 @@ class ParserBase:
 
     # ---- objects ------------------------------------------------------------
     def new_lvar(self, name: str, ty: Type, loc=None) -> Var:
-        v = Var(name, ty, loc=loc, is_local=True, is_definition=True, align=ty.align)
+        v = Var(name, ty, loc=loc, is_local=True, is_definition=True, align=ty.align,
+                scope=self.var_scope_path())
         self.push_scope_entry(name).var = v
         self.locals.append(v)
         return v

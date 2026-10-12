@@ -6,7 +6,9 @@ VlaMixin.vla_bind(ty, loc) -> (Type, list[Stmt])
     vla_len refers to those locals, plus the statements doing the evaluation.
 VlaMixin.vla_size_expr(ty, loc) -> Expr
     Runtime byte size (ulong expression) of a type; used by sizeof.
-Only typedefs of VLA types are supported so far (no VLA objects yet).
+VlaMixin.vla_prefix(pre, expr, loc) -> Expr
+    Wraps expr so the length evaluations in pre run first (casts, compound
+    literals and locals of pointer-to-VLA type, e.g. `(int (*)[++i])p`).
 """
 from __future__ import annotations
 
@@ -15,9 +17,21 @@ from hcc import typesys as T
 from hcc.sema.conversions import new_cast
 
 
+def _has_vla(ty) -> bool:
+    """True when ty is a VLA, or a pointer/array chain ending in one."""
+    while ty is not None and ty.kind in (T.TypeKind.PTR, T.TypeKind.ARRAY):
+        ty = ty.base
+    return ty is not None and ty.kind == T.TypeKind.VLA and ty.vla_len is not None
+
+
 class VlaMixin:
 
     def vla_bind(self, ty, loc):
+        if ty.kind == T.TypeKind.PTR and _has_vla(ty.base):
+            base, pre = self.vla_bind(ty.base, loc)
+            new = ty.copy()
+            new.base = base
+            return new, pre
         if ty.kind != T.TypeKind.VLA or ty.vla_len is None:
             return ty, []
         pre = []
@@ -31,6 +45,11 @@ class VlaMixin:
         base, base_pre = self.vla_bind(ty.base, loc)
         new.base = base
         return new, pre + base_pre
+
+    def vla_prefix(self, pre, expr, loc):
+        for st in reversed(pre):
+            expr = self.typed(N.Comma(loc, st.expr, expr, lvalue=getattr(expr, "lvalue", False)))
+        return expr
 
     def vla_block_slot(self):
         """Hidden ulong slot holding %rsp at entry of the innermost block that

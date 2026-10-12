@@ -160,9 +160,15 @@ class CallMixin:
             else:
                 self.pop(ARG_REGS64[gp])
                 gp += 1
-        self.emit("mov %rax, %r10")
-        self.emit(f"mov ${fp}, %eax")
-        self.emit("call *%r10")
+        callee = self.nested_callee(node)
+        if callee is not None:
+            self.emit_static_link(callee)
+            self.emit(f"mov ${fp}, %eax")
+            self.emit(f"call {callee.symbol}")
+        else:
+            self.emit("mov %rax, %r10")
+            self.emit(f"mov ${fp}, %eax")
+            self.emit("call *%r10")
         if stack:
             self.emit(f"add ${stack * 8}, %rsp")
             self.depth -= stack

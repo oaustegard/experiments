@@ -4,6 +4,7 @@ Each hcc/selftest/*.c is compiled with hcc, linked, run. Header comments:
     // EXPECT-EXIT: 42          expected exit status (default 0)
     // EXPECT-STDOUT: text      one per expected stdout line (optional)
     // EXPECT-ERROR: [parse]    compilation must fail with this in stderr
+    // EXPECT-FLAGS: -std=c23  extra hcc flags for this test
 """
 from __future__ import annotations
 
@@ -20,7 +21,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))
 
 
 def parse_expect(path: str) -> dict:
-    exp = {"exit": 0, "stdout": None, "error": None}
+    exp = {"exit": 0, "stdout": None, "error": None, "flags": []}
     with open(path, encoding="utf-8", errors="replace") as f:
         for line in f:
             s = line.strip()
@@ -37,6 +38,8 @@ def parse_expect(path: str) -> dict:
                 exp["stdout"] = (exp["stdout"] or []) + [text]
             elif body.startswith("EXPECT-ERROR:"):
                 exp["error"] = body.split(":", 1)[1].strip()
+            elif body.startswith("EXPECT-FLAGS:"):     # extra hcc command-line flags
+                exp["flags"] = body.split(":", 1)[1].split()
     return exp
 
 
@@ -45,7 +48,7 @@ def run_one(path: str) -> tuple[str, bool, str]:
     exp = parse_expect(path)
     with tempfile.TemporaryDirectory() as td:
         exe = os.path.join(td, "a.out")
-        r = subprocess.run([sys.executable, "-m", "hcc", path, "-o", exe], cwd=ROOT,
+        r = subprocess.run([sys.executable, "-m", "hcc", *exp["flags"], path, "-o", exe], cwd=ROOT,
                            capture_output=True, text=True, timeout=120)
         if exp["error"] is not None:
             ok = r.returncode != 0 and exp["error"] in r.stderr

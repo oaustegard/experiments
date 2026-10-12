@@ -19,17 +19,29 @@ class OverflowMixin:
     def builtin_mul_overflow(self, node) -> None:
         self._overflow_op(node, "mul")
 
+    def builtin_add_overflow_p(self, node) -> None:
+        self._overflow_p(node, "add")
+
+    def builtin_sub_overflow_p(self, node) -> None:
+        self._overflow_p(node, "sub")
+
     def builtin_mul_overflow_p(self, node) -> None:
         """Like mul_overflow but only reports whether the product fits the type
         of the third argument; nothing is stored."""
+        self._overflow_p(node, "mul")
+
+    def _overflow_p(self, node, op: str) -> None:
         sa = not node.args[0].ty.is_unsigned
         sb = not node.args[1].ty.is_unsigned
-        for arg in node.args:
+        for arg in node.args[:2]:
             self.gen_expr(arg)
             self.push()
         self.pop("%rcx")     # b
         self.pop("%rsi")     # a
-        self._exact_mul(sa, sb)
+        if op == "mul":
+            self._exact_mul(sa, sb)
+        else:
+            self._exact_addsub(op, sa, sb)
         self._store_and_check(node.type_arg, store=False)
 
     def _overflow_op(self, node, op: str) -> None:

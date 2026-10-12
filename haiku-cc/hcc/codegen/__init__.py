@@ -19,16 +19,18 @@ from hcc.codegen.data import DataMixin
 from hcc.codegen.expressions import ExpressionMixin
 from hcc.codegen.floats import FloatMixin
 from hcc.codegen.functions import FunctionMixin
+from hcc.codegen.nested import NestedMixin
 from hcc.codegen.memory import MemoryMixin
 from hcc.codegen.overflow import OverflowMixin
 from hcc.codegen.statements import StatementMixin
 from hcc.codegen.varargs import VarargsMixin
 from hcc.codegen.vector_ops import VectorOpsMixin
+from hcc.codegen.vector_wide import VectorWideMixin
 
 
-class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
+class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
               CastMixin, CallMixin, VarargsMixin, BuiltinMixin, OverflowMixin, AsmMixin, MemoryMixin,
-              DataMixin, VectorOpsMixin, CodeGenBase):
+              DataMixin, VectorOpsMixin, VectorWideMixin, CodeGenBase):
 
     def run(self) -> str:
         self.directive(f'.file "{getattr(self.opts, "source_name", "") or "hcc"}"')
@@ -40,6 +42,8 @@ class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, Atomic
                     self.emit_function(obj)
                 elif obj.alias_of:
                     self.emit_alias(obj)
+                elif obj.ifunc_of:
+                    self.emit_ifunc(obj)
             elif isinstance(obj, N.Var):
                 if obj.is_definition and not obj.is_extern:
                     self.emit_data(obj)
@@ -54,6 +58,15 @@ class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, Atomic
         if fn.is_weak:
             self.directive(f".weak {fn.symbol}")
         self.directive(f".set {fn.symbol}, {fn.alias_of}")
+
+    def emit_ifunc(self, fn) -> None:
+        """GNU indirect function: the symbol's value is the resolver's address."""
+        if not fn.is_static:
+            self.directive(f".globl {fn.symbol}")
+        if fn.visibility in ("hidden", "internal", "protected"):
+            self.directive(f".{fn.visibility} {fn.symbol}")
+        self.directive(f".type {fn.symbol}, @gnu_indirect_function")
+        self.directive(f".set {fn.symbol}, {fn.ifunc_of}")
 
 
 def generate(tu, opts=None) -> str:

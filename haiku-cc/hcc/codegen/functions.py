@@ -63,18 +63,48 @@ class FunctionMixin:
         if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and is_memory_struct(ret):
             offset += 8
             self.ret_ptr_offset = -offset
-        # Lay out in reverse declaration order so that, as with gcc -O0, the
+        # Stack protector (as gcc's -fstack-protector-strong): a function with a
+        # local array gets a canary just below the saved %rbp.  All array locals
+        # are placed directly below the canary, so an overflow reaches the canary
+        # before any scalar or the return address.
+        self.canary_offset = None
+        arrays = [v for v in fn.locals if v not in stack_params and v.ty.kind == TypeKind.ARRAY]
+        if arrays:
+            offset += 8
+            self.canary_offset = -offset
+            for v in reversed(arrays):
+                al = v.align or v.ty.align or 1
+                if v.ty.size >= 16:
+                    al = max(al, 16)
+                offset = align_to(offset + max(v.ty.size, 0), al)
+                v.offset = -offset
+        # Other locals are grouped by block (Var.scope, a path of block ids).  A block's
+        # locals sit below its ancestors' locals; sibling blocks start at the same
+        # base, so their slots overlap (as gcc -O0 does).  Within a group, the
         # first-declared local sits at the lowest address.
+        groups: dict[tuple, list] = {}
         for v in reversed(fn.locals):
-            if v in stack_params:
+            if v in stack_params or v.ty.kind == TypeKind.ARRAY:   # arrays: placed above
                 continue
-            al = v.align or v.ty.align or 1
-            if v.ty.kind == TypeKind.ARRAY and v.ty.size >= 16:
-                al = max(al, 16)
-            offset += max(v.ty.size, 0)
-            offset = align_to(offset, al)
-            v.offset = -offset
-        return align_to(offset, 16)
+            groups.setdefault(v.scope, []).append(v)
+        children: dict[tuple, set] = {}
+        for sc in groups:
+            for k in range(len(sc)):
+                children.setdefault(sc[:k], set()).add(sc[:k + 1])
+        frame_end = offset
+        pending = [((), offset)]
+        while pending:
+            sc, cur = pending.pop()
+            for v in groups.get(sc, ()):
+                al = v.align or v.ty.align or 1
+                if v.ty.kind == TypeKind.ARRAY and v.ty.size >= 16:
+                    al = max(al, 16)
+                cur += max(v.ty.size, 0)
+                cur = align_to(cur, al)
+                v.offset = -cur
+            frame_end = max(frame_end, cur)
+            pending.extend((c, cur) for c in children.get(sc, ()))
+        return align_to(frame_end, 16)
 
     def emit_function(self, fn) -> None:
         self.fn = fn
@@ -99,6 +129,13 @@ class FunctionMixin:
         self.emit("mov %rsp, %rbp")
         if size:
             self.emit(f"sub ${size}, %rsp")
+        if self.canary_offset is not None:
+            self.emit("mov %fs:0x28, %r11")
+            self.emit(f"mov %r11, {self.canary_offset}(%rbp)")
+        if fn.alloca_bottom is not None:        # no alloca memory yet (see statements.py)
+            self.emit(f"movq $-1, {fn.alloca_bottom.offset}(%rbp)")
+        if fn.chain_var is not None:
+            self.emit(f"mov %r10, {fn.chain_var.offset}(%rbp)")
         self.depth = 0
         if self.ret_ptr_offset is not None:
             self.emit(f"mov %rdi, {self.ret_ptr_offset}(%rbp)")
@@ -119,11 +156,19 @@ class FunctionMixin:
         self.gen_stmt(fn.body)
         assert self.depth == 0, f"stack depth {self.depth} in {fn.name}"
         self.emit("mov $0, %eax")
-        self.label(f".L.return.{fn.name}")
+        self.label(f".L.return.{sym}")
+        if self.canary_offset is not None:  # %rax/%xmm0 hold the return value: use %r11 only
+            ok = f".L.canary_ok.{sym}"
+            self.emit(f"mov {self.canary_offset}(%rbp), %r11")
+            self.emit("sub %fs:0x28, %r11")
+            self.emit(f"je {ok}")
+            self.emit("call __stack_chk_fail")
+            self.label(ok)
         self.emit("mov %rbp, %rsp")
         self.emit("pop %rbp")
         self.emit("ret")
         self.directive(f".size {sym}, .-{sym}")
+        self.directive(f".set .Lframe.{sym}, {size}")
         self.fn = None
 
     def store_gp_param(self, reg: int, off: int, size: int) -> None:

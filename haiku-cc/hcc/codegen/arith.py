@@ -52,6 +52,12 @@ class ArithMixin:
         elif op == "<<":
             self.emit("mov %rdi, %rcx")
             self.emit(f"shl %cl, {ax}")
+            if lty.size == 16:
+                # hcc keeps 128-bit values in one 64-bit word: a count of 64 or
+                # more must clear it (x86 would wrap the count modulo 64).
+                self.emit("xor %edx, %edx")
+                self.emit("cmp $64, %rcx")
+                self.emit("cmovae %rdx, %rax")
         elif op == ">>":
             self.emit("mov %rdi, %rcx")
             self.emit(f"{'shr' if lty.is_unsigned else 'sar'} %cl, {ax}")

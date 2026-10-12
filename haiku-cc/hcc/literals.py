@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
-from hcc.typesys import (TY_CHAR, TY_DOUBLE, TY_FLOAT, TY_INT, TY_LDOUBLE, TY_LLONG,
+from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_INT, TY_LDOUBLE, TY_LLONG,
                        TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG, TY_USHORT, Type, array_of)
 
 KEYWORD_ALIASES = {
@@ -173,7 +173,7 @@ def parse_char_literal(tok: Token) -> tuple[int, Type]:
         return (v - (1 << 32) if v >= 1 << 31 else v), TY_INT
     units = _decode(tok, body, True)
     v = units[-1] if units else 0
-    ty = {"L": TY_INT, "u": TY_USHORT, "U": TY_UINT, "u8": TY_CHAR}[prefix]
+    ty = {"L": TY_INT, "u": TY_USHORT, "U": TY_UINT, "u8": TY_UCHAR}[prefix]
     return v & ((1 << (ty.size * 8)) - 1), ty
 
 
@@ -204,14 +204,19 @@ def string_bytes(units: list[int], elem: Type) -> bytes:
     return b"".join((u & ((1 << (8 * sz)) - 1)).to_bytes(sz, "little") for u in units + [0])
 
 
-def convert_tokens(toks: list[Token]) -> list[Token]:
+def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
+                   c23: bool = False) -> list[Token]:
+    """`u8_unsigned`: C23 types u8"" literals as unsigned char arrays.
+    `c23`: `constexpr` is a keyword (it is an ordinary identifier otherwise)."""
     out: list[Token] = []
     i, n = 0, len(toks)
     while i < n:
         t = toks[i]
         k = t.kind
         if k == TokenKind.IDENT:
-            if t.text in KEYWORDS:
+            if c23 and t.text in ("true", "false"):
+                t = _c23_bool_const(t)
+            elif t.text in KEYWORDS or (c23 and t.text == "constexpr"):
                 t = t.copy()
                 t.kind = TokenKind.KEYWORD
                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
@@ -225,7 +230,7 @@ def convert_tokens(toks: list[Token]) -> list[Token]:
             j = i + 1
             while j < n and toks[j].kind == TokenKind.STRING:
                 j += 1
-            t = _concat_strings(toks[i:j])
+            t = _concat_strings(toks[i:j], TY_UCHAR if u8_unsigned else TY_CHAR)
             out.append(t)
             i = j
             continue
@@ -236,11 +241,22 @@ def convert_tokens(toks: list[Token]) -> list[Token]:
     return out
 
 
-def _concat_strings(pieces: list[Token]) -> Token:
+def _c23_bool_const(t: Token) -> Token:
+    """C23: `true`/`false` are constants of type bool (value 1/0)."""
+    t = t.copy()
+    t.kind = TokenKind.NUMBER
+    t.value = int(t.text == "true")
+    t.ty = TY_BOOL
+    return t
+
+
+def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR) -> Token:
     """Concatenate adjacent string literals (C11 6.4.5p5)."""
     prefix = ""
+    has_u8 = False
     for p in pieces:
         pre, _ = _prefix(p.text)
+        has_u8 = has_u8 or pre == "u8"
         if pre and pre != "u8":
             if prefix and prefix != pre:
                 diag.error(p, "unsupported non-standard concatenation of string literals")
@@ -253,7 +269,7 @@ def _concat_strings(pieces: list[Token]) -> Token:
             units += parse_string_literal(fake)[0]
         else:
             units += parse_string_literal(p)[0]
-    elem = STRING_ELEM[prefix]
+    elem = STRING_ELEM[prefix] if prefix else (u8_elem if has_u8 else TY_CHAR)
     t = pieces[0].copy()
     t.value = string_bytes(units, elem)
     t.ty = array_of(elem, len(t.value) // elem.size)

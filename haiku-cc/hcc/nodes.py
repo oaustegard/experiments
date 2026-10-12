@@ -69,6 +69,9 @@ class Var(Obj):
     section: str | None = None
     visibility: str | None = None
     alias_of: str | None = None             # __attribute__((alias("sym")))
+    is_compound_literal: bool = False       # anon static object of a compound literal in a static init
+    const_value: int | None = None          # block-scope const integer with a constant initializer (GNU folding)
+    scope: tuple = ()                       # enclosing block ids (outermost first); sibling blocks share frame slots
 
 
 @dataclass(eq=False)
@@ -86,7 +89,11 @@ class Function(Obj):
     section: str | None = None
     visibility: str | None = None
     alias_of: str | None = None
+    ifunc_of: str | None = None             # __attribute__((ifunc("resolver")))
     align: int = 0                          # from __attribute__((aligned(N)))
+    outer: "Function | None" = None         # GNU nested function: enclosing function
+    chain_var: Var | None = None            # nested fn: slot holding the static link
+    labels: set = field(default_factory=set)  # names of labels defined in this body
 
 
 @dataclass(eq=False)
@@ -110,6 +117,9 @@ class IntLit(Expr):
 @dataclass(eq=False)
 class FloatLit(Expr):
     value: float
+    # Exact IEEE encoding for the literal's own width (float/double), when the
+    # Python float would lose it (e.g. signaling NaNs are quieted by a round trip).
+    bits: int | None = field(default=None, kw_only=True)
 
 
 @dataclass(eq=False)
@@ -220,10 +230,15 @@ class MemZero(Expr):
 
 @dataclass(eq=False)
 class BuiltinCall(Expr):
-    """__builtin_* intrinsic; lowered in codegen/builtins.py."""
+    """__builtin_* intrinsic; lowered in codegen/builtins.py.
+
+    result_buf: for vector-valued builtins (__builtin_shuffle), the anonymous
+    local that holds the result (set by the parser).
+    """
     name: str
     args: list[Expr]
     type_arg: Type | None = None
+    result_buf: Obj | None = field(default=None, kw_only=True)
 
 
 @dataclass(eq=False)
@@ -268,6 +283,13 @@ class VLAAlloc(Stmt):
     """VLA declaration: rsp = saved - size (16-aligned); `var`'s slot gets the address."""
     var: Var
     saved: Var
+    size: Expr
+
+
+@dataclass(eq=False)
+class VLAZero(Stmt):
+    """`T vla[n] = {};` on a VLA: zero-fill `size` bytes at the address held in `var`."""
+    var: Var
     size: Expr
 
 
@@ -358,6 +380,7 @@ class Asm(Stmt):
     inputs: list = field(default_factory=list)    # [(constraint, Expr)]
     clobbers: list = field(default_factory=list)
     is_volatile: bool = False
+    goto_labels: list = field(default_factory=list)   # asm goto: [label name]
 
 
 # --------------------------------------------------------------------------
@@ -368,6 +391,53 @@ class Initializer:
     """Tree mirroring an aggregate type. Leaves have `expr`."""
     ty: Type
     expr: Expr | None = None
-    children: list["Initializer"] | None = None
+    children: "list[Initializer] | ChildTable | None" = None
     is_flexible: bool = False
     mem: Member | None = None       # for unions: the initialized member
+
+
+class ChildTable:
+    """Children of an array initializer, materialized only on first access.
+
+    `len()` is the array length, but elements are created lazily so that huge
+    arrays (e.g. `char b[1 << 29]`) cost nothing unless actually initialized.
+    Iterate with `items()` (present elements only), never with `for c in ...`.
+    """
+    __slots__ = ("n", "_make", "_items")
+
+    def __init__(self, n: int, make) -> None:
+        self.n = n
+        self._make = make
+        self._items: dict[int, Initializer] = {}
+
+    def __len__(self) -> int:
+        return self.n
+
+    def __bool__(self) -> bool:
+        return self.n > 0
+
+    def __getitem__(self, i: int) -> Initializer:
+        if i < 0:
+            i += self.n
+        if not 0 <= i < self.n:
+            raise IndexError(i)
+        child = self._items.get(i)
+        if child is None:
+            child = self._items[i] = self._make()
+        return child
+
+    def __iter__(self):
+        raise TypeError("ChildTable: use items() to visit materialized children")
+
+    def items(self) -> list[tuple[int, Initializer]]:
+        """(index, child) for every materialized child, in index order."""
+        return sorted(self._items.items(), key=lambda kv: kv[0])
+
+
+def present_children(children) -> list[tuple[int, Initializer]]:
+    """(index, child) pairs that exist in either a list or a ChildTable."""
+    if children is None:
+        return []
+    if isinstance(children, ChildTable):
+        return children.items()
+    return list(enumerate(children))

@@ -9,6 +9,7 @@ layout_struct()/layout_union(), following the SysV/gcc rules.
 """
 from __future__ import annotations
 
+from hcc import diag
 from hcc.parser.scope import VarAttr
 from hcc.tokens import TokenKind
 from hcc import typesys as T
@@ -46,6 +47,7 @@ class StructMixin:
         self.parse_attributes(attr)
         ty.members = members
         ty.is_packed = attr.is_packed
+        ty.is_ms_struct = attr.is_ms_struct
         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
         if kind == T.TypeKind.STRUCT:
             layout_struct(ty)
@@ -56,6 +58,7 @@ class StructMixin:
             ty.size = T.align_to(ty.size, ty.align)
         if ty.is_reverse_sso:
             mirror_reverse_bitfields(ty)
+            mark_reverse_scalars(ty)
         ty.is_complete = True
         return ty
 
@@ -71,11 +74,14 @@ class StructMixin:
                 continue
             if self.accept(";"):
                 continue
+            self.skip_std_attributes()     # `[[gnu::x]] char c[];`
             attr = VarAttr()
             basety = self.declspec(attr)
-            if self.accept(";"):           # anonymous struct/union member
-                m = T.Member(None, basety, 0, attr.align or basety.align)
-                members.append(m)
+            if self.accept(";"):
+                # anonymous struct/union member; `struct S;` (tagged) declares nothing
+                if basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and basety.tag is None:
+                    m = T.Member(None, basety, 0, attr.align or basety.align)
+                    members.append(m)
                 continue
             first = True
             while not self.accept(";"):
@@ -87,13 +93,21 @@ class StructMixin:
                 self.parse_attributes(mattr)
                 m = T.Member(name.text if name else None, ty)
                 m.tok = name
-                m.align = mattr.align or attr.align or ty.align
-                if attr.is_packed or mattr.is_packed:
+                # aligned/_Alignas on a member can only raise its alignment
+                m.explicit_align = max(mattr.align, attr.align)
+                m.align = max(ty.align, m.explicit_align)
+                if attr.is_packed:
                     m.align = 1
                 if self.accept(":"):
                     m.is_bitfield = True
                     m.bit_width = self.const_expr()
                 self.parse_attributes(mattr)
+                m.explicit_align = max(m.explicit_align, mattr.align)
+                if m.explicit_align:
+                    m.align = max(m.align, m.explicit_align)
+                if mattr.is_packed:
+                    m.align = 1
+                    m.is_packed = True
                 members.append(m)
         if members and members[-1].ty.kind == T.TypeKind.ARRAY and members[-1].ty.array_len < 0:
             last = members[-1]
@@ -103,30 +117,44 @@ class StructMixin:
         return members
 
 
+def _unnamed_bitfield(m) -> bool:
+    """Unnamed bit-fields never raise the alignment of their aggregate (SysV)."""
+    return m.is_bitfield and m.name is None
+
+
 def layout_struct(ty) -> None:
     bits = 0
     align = 1
     packed = ty.is_packed
+    ms = ty.is_ms_struct
+    unit = 0        # ms: bits of the last bit-field's declared-type storage unit
     if members_flexible(ty):
         ty.is_flexible = True
     for m in ty.members:
-        if packed:
-            m.align = 1
+        if packed:      # packed drops natural alignment; explicit aligned(N) still applies
+            m.align = 1 if m.is_packed else (m.explicit_align or 1)
         if m.is_bitfield and m.bit_width == 0:
             bits = T.align_to(bits, m.ty.size * 8)
             continue
         if m.is_bitfield:
             sz = m.ty.size
-            if not packed and bits // (sz * 8) != (bits + m.bit_width - 1) // (sz * 8):
+            loose = packed or m.is_packed
+            if ms and not unit and bits:    # MS: a bit-field never shares a unit with plain data
                 bits = T.align_to(bits, sz * 8)
-            m.offset = (bits // 8) // sz * sz if not packed else bits // 8
+            if not loose and bits // (sz * 8) != (bits + m.bit_width - 1) // (sz * 8):
+                bits = T.align_to(bits, sz * 8)
+            m.offset = (bits // 8) // sz * sz if not loose else bits // 8
             m.bit_offset = bits - m.offset * 8
             bits += m.bit_width
+            unit = sz * 8
         else:
+            if ms and unit:     # MS: a following plain member starts after the bit-field's unit
+                bits = T.align_to(bits, unit)
+            unit = 0
             bits = T.align_to(bits, m.align * 8)
             m.offset = bits // 8
             bits += m.ty.size * 8
-        if align < m.align:
+        if align < m.align and not _unnamed_bitfield(m):
             align = m.align
     ty.align = align
     ty.size = T.align_to(T.align_to(bits, 8) // 8, align)
@@ -150,6 +178,42 @@ def mirror_reverse_bitfields(ty) -> None:
         m.rev_bytes = j1 - j0 + 1
 
 
+def mark_reverse_scalars(ty) -> None:
+    """scalar_storage_order("big-endian"): integer and floating members are
+    stored byte-reversed. The member type becomes a reverse-order variant
+    (Type.is_rev_order) so loads, stores and derefs of it swap bytes; arrays
+    get a reverse-order element type. Pointers stay in native order (as gcc
+    does). Scalars wider than 8 bytes and long double are rejected instead of
+    miscompiled."""
+    for m in ty.members:
+        if not m.is_bitfield:
+            m.ty = _reverse_type(m.ty, m.tok)
+
+
+def _reverse_type(ty, tok):
+    k = ty.kind
+    if k in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        return ty                       # nested aggregate keeps its own order
+    if k == T.TypeKind.ARRAY:
+        if ty.base is None:
+            return ty
+        base = _reverse_type(ty.base, tok)
+        if base is ty.base:
+            return ty
+        arr = ty.copy()
+        arr.base = base
+        return arr
+    if ty.size == 1 or ty.is_rev_order or k == T.TypeKind.PTR:
+        return ty                       # byte-sized or pointer: same image either way
+    if k in (T.TypeKind.LDOUBLE, T.TypeKind.FLOAT128, T.TypeKind.VLA, T.TypeKind.INT128) \
+            or ty.size > 8:
+        diag.error(tok, "scalar_storage_order: unsupported member type in "
+                   "reverse-order struct", "parse")
+    rev = ty.copy()
+    rev.is_rev_order = True
+    return rev
+
+
 def layout_union(ty) -> None:
     size = 0
     align = 1
@@ -158,7 +222,8 @@ def layout_union(ty) -> None:
             m.align = 1
         m.offset = 0
         size = max(size, m.ty.size if not m.is_bitfield else (m.bit_width + 7) // 8)
-        align = max(align, m.align)
+        if not _unnamed_bitfield(m):
+            align = max(align, m.align)
     ty.align = align
     ty.size = T.align_to(size, align)
 

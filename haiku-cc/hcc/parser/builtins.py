@@ -9,9 +9,15 @@ produces a BuiltinCall.
 """
 from __future__ import annotations
 
+import struct
+
 from hcc import nodes as N
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
+from hcc.parser.object_size import lower_object_size
 from hcc.parser.structs import find_member
+from hcc.parser.vector_cast import lower_convertvector
+from hcc.parser.vector_shuffle import lower_shuffle
+from hcc.parser.vector_shufflevector import lower_shufflevector
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
 from hcc.sema.conversions import new_cast
@@ -22,13 +28,23 @@ __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
+__builtin_add_overflow_p __builtin_sub_overflow_p
 __builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
-__builtin_nan __builtin_nanf __builtin_nanl
-__builtin_setjmp __builtin_longjmp
+__builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
+__builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_shufflevector __builtin_convertvector
+__builtin_isinf __builtin_isnan __builtin_isfinite
+__builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
+__builtin_isless __builtin_islessequal __builtin_islessgreater
+__builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
+__builtin_object_size
 """.split())
+
+# SSE4.2 CRC32 builtins: (crc, value) -> CRC-32C accumulated over the value's width.
+# The value operand width gives the codegen suffix; `di` works on 64-bit operands.
+CRC32_BUILTINS = {"qi": T.TY_UCHAR, "hi": T.TY_USHORT, "si": T.TY_UINT, "di": T.TY_ULLONG}
 
 # Bit-counting builtins: {clz,ctz,popcount,parity,ffs}{,l,ll}. The suffix picks
 # the operand width (int = 32 bit, long/long long = 64 bit).
@@ -36,7 +52,27 @@ BIT_BUILTINS = frozenset(
     f"__builtin_{base}{suffix}"
     for base in ("clz", "ctz", "popcount", "parity", "ffs", "clrsb")
     for suffix in ("", "l", "ll"))
-SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS
+# GCC's _FloatN spellings of the inf/nan builtins, e.g. __builtin_inff64x (the
+# _Float64x variant). Mapped onto the base builtin of the matching C type width:
+# _Float32 -> float, _Float32x/_Float64 -> double, _Float64x/_Float128 -> long double.
+_FLOATN_SUFFIX = {"32": "f", "32x": "", "64": "", "64x": "l", "128": "l", "128x": "l"}
+FLOATN_BUILTIN_MAP = {
+    f"__builtin_{base}f{width}": f"__builtin_{base}{sfx}"
+    for base in ("inf", "huge_val", "nan", "nans")
+    for width, sfx in _FLOATN_SUFFIX.items()}
+
+SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS | frozenset(FLOATN_BUILTIN_MAP)
+
+
+def floatn_libc_name(name: str) -> str:
+    """`fabsf64x` -> `fabsl`, `acoshf32` -> `acoshf`: the libm function behind a GCC
+    __builtin_<fn>f<N>[x] spelling (the libm suffix of the same C type width).
+    Other names are returned unchanged."""
+    for width, sfx in _FLOATN_SUFFIX.items():
+        tail = "f" + width
+        if name.endswith(tail) and len(name) > len(tail):
+            return name[:-len(tail)] + sfx
+    return name
 
 
 class BuiltinParseMixin:
@@ -47,7 +83,7 @@ class BuiltinParseMixin:
             node = atomic_call(self, tok)
             self.expect(")")
             return node
-        name = tok.text[len("__builtin_"):]
+        name = FLOATN_BUILTIN_MAP.get(tok.text, tok.text)[len("__builtin_"):]
         self.expect("(")
         if tok.text in BIT_BUILTINS:
             node = self._bitop(tok, name)
@@ -80,6 +116,19 @@ class BuiltinParseMixin:
     def _call(self, tok, name, args, ty, type_arg=None):
         return N.BuiltinCall(tok.loc, name, args, type_arg, ty=ty)
 
+    def _b_shuffle(self, tok):
+        return lower_shuffle(self, tok.loc, self._args())
+
+    def _b_shufflevector(self, tok):
+        return lower_shufflevector(self, tok.loc, self._args())
+
+    def _b_convertvector(self, tok):
+        """__builtin_convertvector(vec, vector_type): element-wise conversion."""
+        src = self.typed(self.assign())
+        self.expect(",")
+        dst = self.typename()
+        return lower_convertvector(self, tok.loc, src, dst)
+
     def _b_va_start(self, tok):
         args = self._args()
         return self._call(tok, "va_start", args[:1], T.TY_VOID)
@@ -95,7 +144,32 @@ class BuiltinParseMixin:
         ap = self.typed(self.assign())
         self.expect(",")
         ty = self.typename()
+        # a va_list may be consumed by any function (not only variadic ones,
+        # e.g. `void f(va_list ap)`), so make sure the split-struct scratch exists
+        fn = getattr(self, "fn", None)
+        if fn is not None and fn.va_tmp is None:
+            fn.va_tmp = self.new_temp(T.array_of(T.TY_CHAR, 16))
         return self._call(tok, "va_arg", [ap], ty, ty)
+
+    def _b_shuffle(self, tok):
+        """__builtin_shuffle(v, mask) / __builtin_shuffle(a, b, mask): element
+        i of the result is v[mask[i] % N] (or the concatenation a:b for the
+        3-argument form, indices taken modulo 2N). Result type is that of the
+        first vector."""
+        args = self._args()
+        if len(args) not in (2, 3):
+            self.error("builtin expects 2 or 3 arguments")
+        a, mask = args[0], args[-1]
+        if not a.ty.is_vector or not mask.ty.is_vector or not T.is_integer(mask.ty.base):
+            self.error("'__builtin_shuffle' expects integer vector operands")
+        n = a.ty.size // a.ty.base.size
+        if mask.ty.size // mask.ty.base.size != n:
+            self.error("'__builtin_shuffle' mask must have as many elements as the vector")
+        if len(args) == 3 and not is_compatible(args[1].ty, a.ty):
+            self.error("'__builtin_shuffle' vector operands must have the same type")
+        node = self._call(tok, "shuffle", args, a.ty)
+        node.result_buf = self.new_temp(a.ty, tok.loc)
+        return node
 
     def _b_prefetch(self, tok):
         """__builtin_prefetch(addr[, rw[, locality]]) is only a cache hint: it
@@ -137,6 +211,26 @@ class BuiltinParseMixin:
     def _b_bswap64(self, tok):
         return self._bswap(tok, 64, T.TY_ULONG)
 
+    def _crc32(self, tok, width):
+        """__builtin_ia32_crc32{qi,hi,si,di}(crc, v): crc is unsigned int (unsigned
+        long long for di); the result has the same type as crc."""
+        crc_ty = T.TY_ULLONG if width == "di" else T.TY_UINT
+        crc, val = self._args(2)
+        args = [new_cast(crc, crc_ty), new_cast(val, CRC32_BUILTINS[width])]
+        return self._call(tok, f"ia32_crc32{width}", args, crc_ty)
+
+    def _b_ia32_crc32qi(self, tok):
+        return self._crc32(tok, "qi")
+
+    def _b_ia32_crc32hi(self, tok):
+        return self._crc32(tok, "hi")
+
+    def _b_ia32_crc32si(self, tok):
+        return self._crc32(tok, "si")
+
+    def _b_ia32_crc32di(self, tok):
+        return self._crc32(tok, "di")
+
     def _b_alloca(self, tok):
         args = [new_cast(a, T.TY_ULONG) for a in self._args(1)]
         return self._call(tok, "alloca", args, T.pointer_to(T.TY_VOID))
@@ -171,12 +265,24 @@ class BuiltinParseMixin:
     def _b_mul_overflow(self, tok):
         return self._overflow(tok, "mul")
 
-    def _b_mul_overflow_p(self, tok):
-        """__builtin_mul_overflow_p(a, b, c): 1 iff a*b does not fit the type of
-        c. Only the type of c is used (its value is never read or stored)."""
+    def _overflow_p(self, tok, name):
+        """__builtin_{add,sub,mul}_overflow_p(a, b, c): 1 iff a OP b does not fit
+        the type of c. Only the type of c is used (its value is never read or stored)."""
         args = self._args(3)
         ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
-        return self._call(tok, "mul_overflow_p", ops, T.TY_INT, args[2].ty)
+        return self._call(tok, name + "_overflow_p", ops, T.TY_INT, args[2].ty)
+
+    def _b_mul_overflow_p(self, tok):
+        return self._overflow_p(tok, "mul")
+
+    def _b_add_overflow_p(self, tok):
+        return self._overflow_p(tok, "add")
+
+    def _b_sub_overflow_p(self, tok):
+        return self._overflow_p(tok, "sub")
+
+    def _b_object_size(self, tok):
+        return lower_object_size(self, tok)
 
     def _b_expect(self, tok):
         args = self._args(2)
@@ -207,6 +313,74 @@ class BuiltinParseMixin:
 
     def _b_nanl(self, tok):
         return self._nan_lit(tok, T.TY_LDOUBLE)
+
+    def _snan_lit(self, tok, ty):
+        """__builtin_nans*(tag): a signaling NaN (quiet bit clear, payload 1). Only the
+        double/float bit patterns are exact; long double is carried as a double."""
+        self._args(1)
+        if ty.kind == T.TypeKind.FLOAT:
+            bits = 0x7F800001
+            val = struct.unpack("<f", struct.pack("<I", bits))[0]
+        else:
+            bits = 0x7FF0000000000001
+            val = struct.unpack("<d", struct.pack("<Q", bits))[0]
+        return N.FloatLit(tok.loc, val, ty=ty, bits=bits)
+
+    def _b_nans(self, tok):
+        return self._snan_lit(tok, T.TY_DOUBLE)
+
+    def _b_nansf(self, tok):
+        return self._snan_lit(tok, T.TY_FLOAT)
+
+    def _b_nansl(self, tok):
+        return self._snan_lit(tok, T.TY_LDOUBLE)
+
+    def _fp_class_call(self, tok, base):
+        """__builtin_isinf/isnan/isfinite(x): call the libc classifier for x's own
+        width (isinf/isinff/isinfl, ...) so long double arguments are not narrowed."""
+        arg = self._args(1)[0]
+        kind = arg.ty.kind
+        sfx = {T.TypeKind.FLOAT: "f", T.TypeKind.LDOUBLE: "l"}.get(kind, "")
+        cty = {"f": T.TY_FLOAT, "l": T.TY_LDOUBLE}.get(sfx, T.TY_DOUBLE)
+        fn = self.implicit_function(base + sfx, tok, T.TY_INT)
+        callee = self.typed(N.VarRef(tok.loc, fn))
+        return self.typed(N.Call(tok.loc, callee, [new_cast(arg, cty)], fn.ty))
+
+    def _fpcmp(self, tok, name):
+        """__builtin_is<op>(a, b): quiet comparison of two real floats; both
+        operands are widened to long double if either is, else to double
+        (exact for float). Codegen sets the result from ucomi flags."""
+        args = self._args(2)
+        wide = any(a.ty.kind == T.TypeKind.LDOUBLE for a in args)
+        ty = T.TY_LDOUBLE if wide else T.TY_DOUBLE
+        return self._call(tok, name, [new_cast(a, ty) for a in args], T.TY_INT)
+
+    def _b_isunordered(self, tok):
+        return self._fpcmp(tok, "isunordered")
+
+    def _b_isgreater(self, tok):
+        return self._fpcmp(tok, "isgreater")
+
+    def _b_isgreaterequal(self, tok):
+        return self._fpcmp(tok, "isgreaterequal")
+
+    def _b_isless(self, tok):
+        return self._fpcmp(tok, "isless")
+
+    def _b_islessequal(self, tok):
+        return self._fpcmp(tok, "islessequal")
+
+    def _b_islessgreater(self, tok):
+        return self._fpcmp(tok, "islessgreater")
+
+    def _b_isinf(self, tok):
+        return self._fp_class_call(tok, "isinf")
+
+    def _b_isnan(self, tok):
+        return self._fp_class_call(tok, "isnan")
+
+    def _b_isfinite(self, tok):
+        return self._fp_class_call(tok, "finite")
 
     def _b_huge_val(self, tok):
         return self._inf_lit(tok, T.TY_DOUBLE)
@@ -268,6 +442,7 @@ class BuiltinParseMixin:
         ty = self.typename()
         self.expect(",")
         off = 0
+        dyn = []      # run-time terms: array subscripts that are not integer constants
         cur = ty
         first = True
         while True:
@@ -281,10 +456,21 @@ class BuiltinParseMixin:
                     off += m.offset
                     cur = m.ty
             elif self.accept("["):
-                idx = self.const_expr()
+                idx = self.conditional()
                 self.expect("]")
-                off += idx * cur.base.size
+                k = try_eval_const(idx)
+                if k is not None:
+                    off += k * cur.base.size
+                else:       # GCC: a non-constant designator is evaluated at run time
+                    term = N.Binary(tok.loc, "*", N.Cast(tok.loc, idx, ty=T.TY_LONG),
+                                    N.IntLit(tok.loc, cur.base.size, ty=T.TY_LONG))
+                    dyn.append(self.typed(term))
                 cur = cur.base
             else:
                 break
-        return N.IntLit(tok.loc, off, ty=T.TY_ULONG)
+        if not dyn:
+            return N.IntLit(tok.loc, off, ty=T.TY_ULONG)
+        node = N.IntLit(tok.loc, off, ty=T.TY_LONG)
+        for term in dyn:
+            node = self.typed(N.Binary(tok.loc, "+", node, term))
+        return self.typed(N.Cast(tok.loc, node, ty=T.TY_ULONG))

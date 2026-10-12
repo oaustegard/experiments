@@ -36,7 +36,19 @@ class StatementMixin:
         self.emit(f"mov %rsp, {node.saved.offset}(%rbp)")
 
     def stmt_VLAExit(self, node) -> None:
-        self.emit(f"mov {node.saved.offset}(%rbp), %rsp")
+        self.emit(f"mov {node.saved.offset}(%rbp), %rcx")
+        self._keep_alloca_memory("%rcx")
+        self.emit("mov %rcx, %rsp")
+
+    def _keep_alloca_memory(self, reg) -> None:
+        """alloca memory lives until function return: never raise %rsp above
+        the lowest alloca block (the function's alloca_bottom mark)."""
+        mark = self.fn.alloca_bottom
+        if mark is None:
+            return
+        self.emit(f"mov {mark.offset}(%rbp), %r10")
+        self.emit(f"cmp %r10, {reg}")
+        self.emit(f"cmova %r10, {reg}")
 
     def stmt_VLAAlloc(self, node) -> None:
         # Reset %rsp to the block's saved value first so that re-executing a
@@ -45,9 +57,18 @@ class StatementMixin:
         self.emit("add $15, %rax")
         self.emit("and $-16, %rax")
         self.emit(f"mov {node.saved.offset}(%rbp), %rcx")
+        self._keep_alloca_memory("%rcx")
         self.emit("sub %rax, %rcx")
         self.emit("mov %rcx, %rsp")
         self.emit(f"mov %rsp, {node.var.offset}(%rbp)")
+
+    def stmt_VLAZero(self, node) -> None:
+        # Empty braces (GNU/C23): zero the whole variable-length object.
+        self.gen_expr(node.size)
+        self.emit("mov %rax, %rcx")
+        self.emit(f"mov {node.var.offset}(%rbp), %rdi")
+        self.emit("mov $0, %al")
+        self.emit("rep stosb")
 
     def stmt_If(self, node) -> None:
         taken = try_eval_const(node.cond)
@@ -96,7 +117,11 @@ class StatementMixin:
         if node is None:
             return
         start = len(self.out)
-        self.gen_stmt(node)
+        was_dead, self.dead_code = self.dead_code, True
+        try:
+            self.gen_stmt(node)
+        finally:
+            self.dead_code = was_dead
         seg = self.out[start:]
         first = next((i for i, ln in enumerate(seg)
                       if ln.endswith(":") and not ln.startswith(" ")), len(seg))
@@ -188,7 +213,19 @@ class StatementMixin:
         self.emit(f"jmp {node.label}")
 
     def stmt_Goto(self, node) -> None:
-        self.emit(f"jmp {self.user_label(node.name)}")
+        owner = self.fn
+        while owner.outer is not None and node.name not in owner.labels:
+            owner = owner.outer
+        if owner is self.fn:
+            self.emit(f"jmp {self.user_label(node.name)}")
+            return
+        # GNU non-local goto from a nested function into an enclosing one:
+        # restore the enclosing %rbp and its frame-bottom %rsp (labels are
+        # reached at statement depth 0, where %rsp == %rbp - frame size).
+        self.frame_of(owner)
+        self.emit("mov %r11, %rbp")
+        self.emit(f"lea -.Lframe.{owner.symbol}(%rbp), %rsp")
+        self.emit(f"jmp .L.{owner.name}.{node.name}")
 
     def stmt_GotoExpr(self, node) -> None:
         self.gen_expr(node.target)
@@ -212,7 +249,7 @@ class StatementMixin:
                     self.emit(f"mov {self.ret_ptr_offset}(%rbp), %rdi")
                     self.copy_struct(ty.size)
                     self.emit("mov %rdi, %rax")
-        self.emit(f"jmp .L.return.{self.fn.name}")
+        self.emit(f"jmp .L.return.{self.fn.symbol}")
 
     def struct_to_regs(self, ty) -> None:
         """%rax points at a <=16-byte struct; load it into rax/rdx/xmm0/xmm1."""
