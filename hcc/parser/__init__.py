@@ -22,12 +22,13 @@ from hcc.parser.primary import PrimaryMixin
 from hcc.parser.statements import StatementMixin
 from hcc.parser.structs import StructMixin
 from hcc.parser.toplevel import TopLevelMixin
+from hcc.parser.vla import VlaMixin
 
 
 class Parser(TopLevelMixin, LocalDeclMixin, StatementMixin, InitializerMixin,
              ExpressionMixin, PostfixMixin, PrimaryMixin, BuiltinParseMixin,
              DeclSpecMixin, DeclaratorMixin, StructMixin, EnumMixin, AttributeMixin,
-             ParserBase):
+             VlaMixin, ParserBase):
     pass
 
 

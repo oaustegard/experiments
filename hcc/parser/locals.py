@@ -3,7 +3,8 @@
 LocalDeclMixin.local_declaration() -> list[Stmt]
 Handles typedefs, function prototypes, extern and static locals, automatic
 variables with initializers (lowered to ExprStmt), __auto_type.
-VLAs: TODO (currently a parse error).
+VLA typedefs evaluate their length at the declaration (see vla.py); VLA
+objects: TODO (currently a parse error).
 """
 from __future__ import annotations
 
@@ -41,6 +42,8 @@ class LocalDeclMixin:
             if name is None:
                 self.error("identifier expected in declaration")
             if attr.is_typedef:
+                ty, pre = self.vla_bind(ty, name.loc)
+                items.extend(pre)
                 self.push_scope_entry(name.text).type_def = ty
                 continue
             if ty.kind == T.TypeKind.FUNC:

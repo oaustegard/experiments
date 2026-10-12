@@ -206,7 +206,7 @@ class ExpressionMixin:
             self.typed(node)
             ty = node.ty
         if ty.kind == TypeKind.VLA:
-            self.error("sizeof on variable length arrays is not supported yet", t)
+            return self.vla_size_expr(ty, t.loc)
         if not ty.is_complete and ty.kind != TypeKind.VOID and ty.kind != TypeKind.FUNC:
             self.error(f"invalid application of 'sizeof' to incomplete type '{ty}'", t)
         return N.IntLit(t.loc, ty.size, ty=TY_ULONG)
