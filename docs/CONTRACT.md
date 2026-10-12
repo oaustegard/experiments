@@ -1,6 +1,9 @@
 # hcc Architecture Contract
 
-hcc is a C11 compiler written in pure Python 3.12 (stdlib only). It emits
+hcc is a C11 compiler written in pure Python (stdlib only), pinned to **Python 3.11 syntax and stdlib**
+(large inputs run under PyPy 3.11, which has no 3.12+; the merge gate byte-compiles hcc/ under PyPy and
+rejects anything newer: no `type X = ...`, no PEP 695 generics, no nested same-quote f-strings, no
+`itertools.batched`). It emits
 x86-64 System V AT&T assembly. The system `as` assembles it; `gcc` is used
 **only** as the linker driver. hcc never calls gcc/cc1/cpp to preprocess,
 parse or compile.

@@ -1,0 +1,5 @@
+#!/bin/bash
+# Byte-compile hcc/ under PyPy 3.11 (hcc is pinned to 3.11 syntax). Exit 0 if clean or PyPy is absent.
+PYPY=${HCC_PYPY:-$(ls /opt/uvpy/pypy-3.11*/bin/pypy3 2>/dev/null | head -1)}
+[ -n "$PYPY" ] && [ -x "$PYPY" ] || { echo "hcc-pycheck: PyPy not installed, skipped" >&2; exit 0; }
+exec "$PYPY" -m compileall -q -x '(^|/)selftest/' "${1:-hcc}"

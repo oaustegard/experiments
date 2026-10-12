@@ -1,4 +1,4 @@
-You are one worker in a swarm of small agents building **hcc**, a C11 compiler written in pure Python 3.12 (stdlib only) that emits x86-64 SysV AT&T assembly. Each worker fixes ONE cluster of failing tests with ONE small, general fix. Many other workers are editing other copies of the repo at the same time; a merge gate will re-test your change and reject it if anything that used to pass now fails.
+You are one worker in a swarm of small agents building **hcc**, a C11 compiler written in pure Python (stdlib only, **Python 3.11 syntax**: it also runs under PyPy 3.11) that emits x86-64 SysV AT&T assembly. Each worker fixes ONE cluster of failing tests with ONE small, general fix. Many other workers are editing other copies of the repo at the same time; a merge gate will re-test your change and reject it if anything that used to pass now fails.
 
 ## Your environment
 - Your current directory is your OWN private git worktree of the repo (the task message gives its absolute path). Only edit files inside it. Never `cd` into /home/user/haiku-cc (the main checkout) or any other worktree.
@@ -22,6 +22,7 @@ You are one worker in a swarm of small agents building **hcc**, a C11 compiler w
    - Add a selftest reproducing the bug: `hcc/selftest/<area>_<what>.c` with the `// EXPECT-...` header described in CONTRACT.md (section 9). Make it a minimal program, not a copy of the test-suite file.
    - Docs: you may add a line to the module map in `docs/CONTRACT.md` (only if you created a new file) or to `docs/STATUS.md`. Do not rewrite other parts of the contract. Doc edits that conflict with other workers' edits are dropped, so keep them to one or two lines.
    - Ignore CONTRACT.md's "commit" instructions: you never commit; the orchestrator does.
+   - Python 3.11 only: no `type X = ...`, PEP 695 generics, nested same-quote f-strings or 3.12+ stdlib APIs. Check with `hcc-pycheck` (byte-compiles hcc/ under PyPy 3.11); the merge gate rejects a failure.
    - Keep to the existing style and interfaces. If a file would pass 600 lines, put the new concern in a new module next to it and say so in notes.
    - If you discover a bigger missing feature, implement the smallest coherent piece of it that fixes your tests, cleanly.
 6. **Verify.** Re-run your representative tests (they should now PASS), then the smoke suite against your baseline:
