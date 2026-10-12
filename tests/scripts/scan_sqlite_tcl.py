@@ -19,7 +19,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TESTS = os.path.dirname(HERE)
-SRC = os.path.join(TESTS, "tools", "sqlite-src", "test")
+SRC = os.path.join(TESTS, "tools", "sqlite-srcdist", "sqlite-src-3490100", "test")
 SKIP = re.compile(r"^(all|veryquick|quick|soak|releasetest|permutations|fuzz\d*|fuzzer.*|speed.*|malloc.*|oom.*|crash.*|"
                   r"journal.*|walcrash.*|walthread|thread.*|mt.*|backup_ioerr|ioerr.*|shell.*|corrupt.*|savepoint7|"
                   r"fts3.*|fts4.*|lock.*|multiplex.*|sqllimits1|bigfile.*|trace.*|pager.*|tkt.*|collate.*)$", re.I)
@@ -45,7 +45,8 @@ def main():
     ap.add_argument("--testfixture", required=True)
     ap.add_argument("--jobs", type=int, default=2)
     ap.add_argument("--limit", type=int, default=20)
-    ap.add_argument("--write", action="store_true")
+    ap.add_argument("--write", action="store_true", help="write the manifest (files that run clean in <= --manifest-secs)")
+    ap.add_argument("--manifest-secs", type=float, default=5.0)
     args = ap.parse_args()
     names = sorted(os.path.basename(p)[:-5] for p in glob.glob(os.path.join(SRC, "*.test")))
     names = [n for n in names if not SKIP.match(n)]
@@ -59,7 +60,7 @@ def main():
     os.makedirs(os.path.join(TESTS, "cache"), exist_ok=True)
     with open(os.path.join(TESTS, "cache", "sqlite_tcl_scan.json"), "w") as f:
         json.dump(res, f, indent=1, sort_keys=True)
-    good = sorted(n for n, r in res.items() if r["rc"] == 0 and r["summary"] and r["summary"][0] == "0" and int(r["summary"][1]) > 0)
+    good = sorted(n for n, r in res.items() if r["rc"] == 0 and r["summary"] and r["summary"][0] == "0" and int(r["summary"][1]) > 0 and r["secs"] <= args.manifest_secs)
     print("%d of %d run clean within %ds" % (len(good), len(names), args.limit))
     if args.write:
         with open(os.path.join(TESTS, "suites", "sqlite", "tcl-tests.txt"), "w") as f:
