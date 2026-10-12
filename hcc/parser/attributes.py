@@ -22,6 +22,9 @@ MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
 # GCC's MAX_OFILE_ALIGNMENT for x86-64 ELF: 2**28 bytes
 OBJECT_FILE_MAX_ALIGN = 1 << 28
 
+# largest vector_size byte count GCC accepts on LP64 (ssizetype maximum)
+VECTOR_SIZE_MAX = (1 << 63) - 1
+
 # every other machine mode GCC knows by name; mode(<other identifier>) is an
 # "unknown machine mode" error
 _OTHER_MODES = frozenset({
@@ -260,6 +263,10 @@ class AttributeMixin:
             self.pos = args_start + 1
             attr.vector_size = self.const_expr()
             self.pos = save
+            # GCC: the byte size must fit ssizetype (LP64: 2**63-1)
+            if attr.vector_size > VECTOR_SIZE_MAX:
+                self.error("'vector_size' attribute argument value '%d' exceeds %d"
+                           % (attr.vector_size, VECTOR_SIZE_MAX), self.toks[args_start])
         elif name == "mode" and attr is not None and args:
             attr.mode = args[0].text.strip("_")
 
