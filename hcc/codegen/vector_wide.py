@@ -4,13 +4,52 @@ Each element is handled as two 64-bit halves (low at +0, high at +8).
 Add/sub use carry/borrow across the halves; bitwise ops act on each half;
 shifts use shld/shrd plus a cmov for counts >= 64 (count taken mod 128).
 Multiplication is the low 128 bits (mulq + two imul cross terms). Division and
-remainder need a real 128-bit divider and are reported as unsupported.
+remainder call the libgcc helpers (__udivti3, __divti3, __umodti3, __modti3),
+which the gcc driver links in anyway.
 """
 from __future__ import annotations
 
 from hcc import diag
 
-_WIDE_OPS = ("+", "-", "*", "&", "|", "^", "<<", ">>")
+_WIDE_OPS = ("+", "-", "*", "&", "|", "^", "<<", ">>", "/", "%")
+
+_DIVMOD_HELPER = {
+    ("/", False): "__udivti3",
+    ("/", True): "__divti3",
+    ("%", False): "__umodti3",
+    ("%", True): "__modti3",
+}
+
+
+def _wide_divmod(self, node, size: int, signed: bool) -> None:
+    """Per-element 128-bit `/` or `%` via libgcc helpers.
+
+    Entry: %rsi = lhs base, %r8 = rhs base, %rdi = result base.
+    The bases are spilled to the stack so they survive the calls. The
+    helpers take (rdi:rsi = dividend, rdx:rcx = divisor) and return the
+    quotient or remainder in rax:rdx. Padding keeps %rsp 16-byte aligned
+    at each call, given the stack machine's depth parity convention."""
+    helper = _DIVMOD_HELPER[(node.op, signed)]
+    pad = 8 if self.depth % 2 == 0 else 0
+    if pad:
+        self.emit("sub $8, %rsp")
+    self.emit("push %rdi")                       # 16(%rsp) after pushes below
+    self.emit("push %r8")                        # 8(%rsp)
+    self.emit("push %rsi")                       # 0(%rsp)
+    for i in range(0, size, 16):
+        self.emit("mov 0(%rsp), %rax")           # lhs base
+        self.emit("mov 8(%rsp), %rcx")           # rhs base
+        self.emit(f"movq {i}(%rax), %rdi")       # a_lo
+        self.emit(f"movq {i + 8}(%rax), %rsi")   # a_hi
+        self.emit(f"movq {i}(%rcx), %rdx")       # b_lo
+        self.emit(f"movq {i + 8}(%rcx), %r8")    # b_hi
+        self.emit("mov %r8, %rcx")
+        self.emit(f"call {helper}")
+        self.emit("mov 16(%rsp), %rcx")          # result base
+        self.emit(f"movq %rax, {i}(%rcx)")
+        self.emit(f"movq %rdx, {i + 8}(%rcx)")
+    self.emit("mov 16(%rsp), %rax")
+    self.emit(f"add ${24 + pad}, %rsp")
 
 
 def _wide_shift(self, op: str, signed: bool) -> None:
@@ -77,6 +116,8 @@ class VectorWideMixin:
         self.pop("%r8")
         self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
         signed = not node.lhs.ty.base.is_unsigned
+        if node.op in ("/", "%"):
+            return _wide_divmod(self, node, size, signed)
         for i in range(0, size, 16):
             if node.op == "*":
                 _wide_mul(self, i)
