@@ -381,6 +381,7 @@ class Asm(Stmt):
     clobbers: list = field(default_factory=list)
     is_volatile: bool = False
     goto_labels: list = field(default_factory=list)   # asm goto: [label name]
+    names: dict = field(default_factory=dict)   # [sym] operand name -> GCC operand index
 
 
 # --------------------------------------------------------------------------

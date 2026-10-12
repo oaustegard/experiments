@@ -21,9 +21,12 @@ from hcc.sema import constexpr
 from hcc.typesys import TypeKind
 
 _POOL = ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"]
+# Callee-saved GPRs: used only when the caller-saved pool runs out, and then
+# preserved around the template (see lower_extended).
+_CALLEE_SAVED = ["rbx", "r12", "r13", "r14", "r15"]
 _FIXED = {"a": "rax", "c": "rcx", "d": "rdx", "S": "rsi", "D": "rdi"}
-_LEGACY = {"rax": "ax", "rcx": "cx", "rdx": "dx", "rsi": "si", "rdi": "di"}
-_LEGACY8 = {"rax": "al", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil"}
+_LEGACY = {"rax": "ax", "rcx": "cx", "rdx": "dx", "rsi": "si", "rdi": "di", "rbx": "bx"}
+_LEGACY8 = {"rax": "al", "rcx": "cl", "rdx": "dl", "rsi": "sil", "rdi": "dil", "rbx": "bl"}
 _REG_LETTERS = set("rqgRlxyQabcdSDXp")  # X (any) and p (address) use a GPR
 _MEM_LETTERS = set("moV")
 _X87_LETTERS = set("tuf")
@@ -83,7 +86,7 @@ def _pick_alternative(cons: str) -> str:
     alts = cons.split(",")
     for alt in alts:
         c = "".join(ch for ch in alt if ch not in "=+&%")
-        if c and (c.isdigit() or set(c) & (_REG_LETTERS | _IMM_LETTERS)):
+        if c and (c.isdigit() or c.startswith("[") or set(c) & (_REG_LETTERS | _IMM_LETTERS)):
             return alt
     return alts[0]
 
@@ -179,8 +182,8 @@ def _assign_regs(ops, clobbers) -> None:
     for op in ops:
         if op.fixed:
             used.add(op.fixed)
-    used |= {c for c in clobbers if c in _POOL}
-    free = [r for r in _POOL if r not in used]
+    used |= {c for c in clobbers if c in _POOL or c in _CALLEE_SAVED}
+    free = [r for r in _POOL + _CALLEE_SAVED if r not in used]
     _assign_x87(ops)
     for op in ops:
         if op.kind in ("imm", "x87", "label") or op.match is not None:
@@ -212,7 +215,7 @@ def _render(op: _Op, mod: str | None) -> str:
     return "%" + _reg_name(op.reg, size)
 
 
-def _subst(tpl: str, ops, loc) -> str:
+def _subst(tpl: str, ops, names, loc) -> str:
     out = []
     i = 0
     n = len(tpl)
@@ -241,7 +244,9 @@ def _subst(tpl: str, ops, loc) -> str:
             name = tpl[i + 1:end]
             idx = next((k for k, op in enumerate(ops) if op.kind == "label" and op.label == name), None)
             if idx is None:
-                diag.error(loc, f"codegen: unknown asm label operand '{name}'", "codegen")
+                idx = names.get(name)
+            if idx is None:
+                diag.error(loc, f"codegen: unknown asm operand name '{name}'", "codegen")
             i = end + 1
         else:
             j = i
@@ -295,11 +300,26 @@ def lower_extended(cg, node) -> None:
         lop.stub = cg.new_label()
         labels.append(lop)
     ops = outs_all + ins_all + implicit + labels
+    for op in ops:
+        # Symbolic matching constraint "[name]" refers to the operand with that name.
+        if op.cons.startswith("["):
+            idx = node.names.get(op.cons[1:-1])
+            if idx is None:
+                diag.error(op.expr, f"codegen: unknown asm operand name '{op.cons}'", "codegen")
+            op.cons = str(idx)
     clobbers = {c.strip().lstrip("%") for c in node.clobbers}
     for op in ops:
         if op.kind != "label":
             _classify(op, getattr(cg, "dead_code", False))
     _assign_regs(ops, clobbers)
+
+    # Callee-saved registers the template may write are preserved on the stack
+    # around the whole sequence (saved first, so they sit deepest).
+    touched = {op.reg for op in ops if op.reg} | clobbers
+    saved = [r for r in _CALLEE_SAVED if r in touched]
+    for r in saved:
+        cg.emit(f"push %{r}")
+        cg.depth += 1
 
     outs = [op for op in ops if op.is_out and op.kind in ("reg", "x87")]
     regs_out = [op for op in outs if op.kind == "reg"]
@@ -360,7 +380,7 @@ def lower_extended(cg, node) -> None:
         cg.emit(f"add ${16 * nx}, %rsp")
         cg.depth -= 2 * nx
     # Phase 3: the template.
-    text = _subst(node.text, ops, node)
+    text = _subst(node.text, ops, node.names, node)
     for line in text.split("\n"):
         line = line.strip()
         if line:
@@ -385,15 +405,19 @@ def lower_extended(cg, node) -> None:
     if nspill:
         cg.emit(f"add ${8 * nspill}, %rsp")
         cg.depth -= nspill
+    for r in reversed(saved):
+        cg.pop(f"%{r}")
     # Phase 5 (asm goto): a jump to a label leaves the template with the phase-1
     # output addresses still pushed, so each label is reached through a stub
-    # that pops them and continues at the C label.
+    # that pops them, restores the saved registers and continues at the C label.
     if labels:
         skip = cg.new_label()
         cg.emit(f"jmp {skip}")
         for lop in labels:
             cg.label(lop.stub)
-            if m:
-                cg.emit(f"add ${8 * m}, %rsp")
+            if m + nspill:
+                cg.emit(f"add ${8 * (m + nspill)}, %rsp")
+            for r in reversed(saved):
+                cg.emit(f"pop %{r}")
             cg.emit(f"jmp {cg.user_label(lop.label)}")
         cg.label(skip)
