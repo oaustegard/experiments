@@ -291,7 +291,7 @@ class InitializerMixin:
             self._init_element(init.children[i])
             i += 1
 
-    def array_designator(self, init, tail: bool = True) -> int:
+    def array_designator(self, init, tail: bool = True, dkinds: str = "") -> int:
         """`[i] ...= x` inside an array initializer; returns next index.
         A range `[lo ... hi]` re-parses the designation once per index; the
         brace-elided tail after it (`, 5, 6`) is consumed only once, by the
@@ -311,7 +311,7 @@ class InitializerMixin:
             self.pos = save
             if not self._grow(init, idx):
                 self.error("array index in initializer exceeds array bounds")
-            self.designation(init.children[idx], tail and idx == hi)
+            self.designation(init.children[idx], tail and idx == hi, dkinds + "[")
         return hi + 1
 
     def _tail_follows(self, init, nxt: int) -> bool:
@@ -323,8 +323,10 @@ class InitializerMixin:
             return init.ty.kind == T.TypeKind.STRUCT and nxt < len(init.ty.members)
         return init.is_flexible or nxt < len(init.children)
 
-    def designation(self, init, tail: bool = True) -> None:
-        """Continue a designator chain into `init`, then parse `= value`."""
+    def designation(self, init, tail: bool = True, dkinds: str = "") -> None:
+        """Continue a designator chain into `init`, then parse `= value`.
+        `dkinds` holds the kinds of the designators already consumed ("[", ".", "n"
+        for GNU `name:`). Without `=` only a single `[i]` or `name:` is accepted."""
         if init.expr is not None and (self.at("[") or self.at(".")):
             # A sub-object was already set as a whole (`T y[] = {x, [0].b=3}`):
             # the designator re-initializes it from zero (other members -> 0).
@@ -333,7 +335,7 @@ class InitializerMixin:
         if self.at("["):
             if init.ty.kind != T.TypeKind.ARRAY:
                 self.error("array index in non-array initializer")
-            nxt = self.array_designator(init, tail)
+            nxt = self.array_designator(init, tail, dkinds)
             # Following brace-elided values continue inside the designated
             # sub-aggregate (C11 6.7.9p17), e.g. `[0][1]=7, 8` sets x[0][2].
             if tail and self._tail_follows(init, nxt):
@@ -343,14 +345,16 @@ class InitializerMixin:
         if self.at("."):
             if not T.is_struct_like(init.ty):
                 self.error("field name not in record or union initializer")
-            nxt = self.member_designator(init, tail)
+            nxt = self.member_designator(init, tail, dkinds)
             # `.k[0]=1, 2` / `.a=1, 2`: the brace-elided tail continues with the
             # siblings after the designated member (struct only; unions take one).
             if tail and self._tail_follows(init, nxt):
                 self.next()
                 self.struct_initializer2(init, nxt)
             return
-        self.accept("=")
+        if not self.accept("="):
+            if dkinds not in ("[", "n"):
+                self.error("expected '=' before initializer value")
         if self.at("{") and (init.children is not None or init.expr is not None):
             # `[i] = { ... }` / `.f = { ... }` initializes the whole sub-object: values set
             # by earlier initializers for it are dropped (C11 6.7.9p19), others become 0.
@@ -364,9 +368,10 @@ class InitializerMixin:
             return True
         return self.tok.kind == TokenKind.IDENT and self.peek().text == ":"
 
-    def member_designator(self, init, tail: bool = True) -> int:
+    def member_designator(self, init, tail: bool = True, dkinds: str = "") -> int:
         """`.name ...= x` (or GNU `name: x`) inside a struct/union initializer;
         returns next index."""
+        kind = "." if self.at(".") else "n"
         if self.at("."):
             self.expect(".")
         name = self.expect_ident()
@@ -383,7 +388,7 @@ class InitializerMixin:
         m = path[-1]
         if cur.ty.kind == T.TypeKind.UNION:
             cur.mem = m
-        self.designation(cur.children[m.idx], tail)
+        self.designation(cur.children[m.idx], tail, dkinds + kind)
         return path[0].idx + 1
 
     def struct_initializer1(self, init) -> None:
