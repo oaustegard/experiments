@@ -135,6 +135,10 @@ class AttributeMixin:
                         and self.at("(") and self.peek().kind == TokenKind.PUNCT
                         and self.peek().text == ")"):
                     self.error("parentheses must be omitted if attribute argument list is empty")
+                elif (t.kind == TokenKind.IDENT and prev in ("[", ",", ":")
+                        and t.text.strip("_") == "copy" and self.at("(")
+                        and self.peek().kind == TokenKind.STRING):
+                    self.error("'copy' attribute argument cannot be a string")
                 prev = t.text
 
     def parse_attributes(self, attr=None, ty=None) -> None:
@@ -182,6 +186,9 @@ class AttributeMixin:
             if not counts[0] <= n <= counts[1]:
                 self.error("wrong number of arguments specified for '%s' attribute" % name,
                            self.toks[args_start - 1] if args_start > 0 else None)
+        if name == "copy" and args and args[0].kind == TokenKind.STRING:
+            self.error("'copy' attribute argument cannot be a string",
+                       self.toks[args_start - 1] if args_start > 0 else None)
         if name == "aligned":
             val = 16
             if args:
