@@ -213,6 +213,12 @@ class MacroMixin:
             else:
                 parts.append(t.text)
         s = "".join(parts)
+        # GCC: an odd run of trailing backslashes would escape the closing
+        # quote; warn and drop the final backslash (as cpp does).
+        tail = len(s) - len(s.rstrip("\\"))
+        if tail % 2 == 1:
+            diag.warn(hash_tok, "invalid string literal, ignoring final '\\'")
+            s = s[:-1]
         return Token(TokenKind.STRING, f'"{s}"', hash_tok.loc, False, hash_tok.space)
 
     def paste(self, lhs: Token, rhs: Token) -> Token:
