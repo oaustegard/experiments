@@ -77,7 +77,24 @@ class _Op:
         self.size = 8 if decays else _norm_size(expr.ty.size)
 
 
-def _classify(op: _Op) -> None:
+def _imm_value(expr, dead: bool):
+    """Integer constant, or an address constant rendered as `sym+off` for the assembler.
+    In statically dead code a non-constant operand can never execute, so it gets a
+    placeholder instead of a diagnostic."""
+    try:
+        label, v = constexpr.eval_reloc(expr)
+    except constexpr.NotConstant:
+        label, v = None, None
+    if v is None and dead:
+        return 0
+    if v is None:
+        diag.error(expr, "codegen: asm immediate operand is not constant", "codegen")
+    if label is None:
+        return v
+    return label if v == 0 else f"{label}{v:+d}"
+
+
+def _classify(op: _Op, dead: bool = False) -> None:
     # Constraints may list alternatives ("1,p", "=m,m"); use the first one.
     c = "".join(ch for ch in op.cons if ch not in "=+&%").split(",")[0]
     where = op.expr
@@ -105,9 +122,7 @@ def _classify(op: _Op) -> None:
         op.kind = "mem"
     elif letters & _IMM_LETTERS:
         op.kind = "imm"
-        op.imm = constexpr.try_eval_const(op.expr)
-        if op.imm is None:
-            diag.error(where, "codegen: asm immediate operand is not constant", "codegen")
+        op.imm = _imm_value(where, dead)
     else:
         diag.error(where, f"codegen: unsupported asm constraint '{op.cons}'", "codegen")
     if op.kind == "reg" and op.expr.ty.kind in _BAD_KINDS:
@@ -203,7 +218,7 @@ def lower_extended(cg, node) -> None:
           [_Op(c, e, False) for c, e in node.inputs]
     clobbers = {c.strip().lstrip("%") for c in node.clobbers}
     for op in ops:
-        _classify(op)
+        _classify(op, getattr(cg, "dead_code", False))
     _assign_regs(ops, clobbers)
 
     outs = [op for op in ops if op.is_out and op.kind in ("reg", "x87")]

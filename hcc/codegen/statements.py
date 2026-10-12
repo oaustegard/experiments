@@ -117,7 +117,11 @@ class StatementMixin:
         if node is None:
             return
         start = len(self.out)
-        self.gen_stmt(node)
+        was_dead, self.dead_code = self.dead_code, True
+        try:
+            self.gen_stmt(node)
+        finally:
+            self.dead_code = was_dead
         seg = self.out[start:]
         first = next((i for i, ln in enumerate(seg)
                       if ln.endswith(":") and not ln.startswith(" ")), len(seg))

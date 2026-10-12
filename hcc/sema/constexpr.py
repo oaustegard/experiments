@@ -400,6 +400,8 @@ def _ptr_val(node) -> tuple:
             return ("val", id(node.var)), 0
     if t is N.AddrOf:
         return _ptr_addr(node.operand)
+    if t is N.Deref and node.ty is not None and node.ty.kind == TypeKind.ARRAY:
+        return _ptr_addr(node)          # an array lvalue decays to its own address
     if t is N.Binary and node.op in ("+", "-") and node.ty.kind == TypeKind.PTR:
         key, off = _ptr_val(node.lhs)
         k = _num(node.rhs)

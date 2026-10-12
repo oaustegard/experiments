@@ -25,6 +25,7 @@ class CodeGenBase:
         self.depth = 0
         self.label_count = 0
         self.fn = None
+        self.dead_code = False       # set while generating a statically dead branch
         self._expr_dispatch: dict = {}
         self._stmt_dispatch: dict = {}
 
