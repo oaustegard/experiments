@@ -112,6 +112,10 @@ def parse_number(tok: Token):
             val = float.fromhex(body) if is_hex else float(body)
         except ValueError:
             diag.error(tok, f"invalid floating constant '{s}'")
+        except OverflowError:
+            # out of range for a Python float: GCC warns and uses infinity
+            diag.warn(tok, f"floating constant '{s}' exceeds range")
+            val = float("inf")
         if ty.kind == TypeKind.FLOAT16:
             val = round_to_half(val)
         return val, ty
