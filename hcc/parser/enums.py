@@ -12,6 +12,29 @@ from hcc.tokens import TokenKind
 from hcc import typesys as T
 
 
+def fits_type(v, ty):
+    """True if integer value v is representable in integer type ty."""
+    bits = ty.size * 8
+    if ty.is_unsigned:
+        return 0 <= v < (1 << bits)
+    return -(1 << (bits - 1)) <= v < (1 << (bits - 1))
+
+
+def enumerator_type(v, expr_ty):
+    """C23 type of an explicitly valued enumerator: int if it fits, else the
+    type of its constant expression."""
+    return T.TY_INT if fits_type(v, T.TY_INT) else expr_ty
+
+
+def widen_type(ty):
+    """Next wider type of the same signedness (implicit enumerator overflow)."""
+    if ty.size >= 8:
+        return ty
+    if ty.is_unsigned:
+        return T.TY_UINT if ty.size < 4 else T.TY_ULONG
+    return T.TY_INT if ty.size < 4 else T.TY_LONG
+
+
 class EnumMixin:
 
     def enum_specifier(self, attr=None):
@@ -41,6 +64,7 @@ class EnumMixin:
             self.apply_fixed_underlying(ty, fixed)
         consts = []
         val = 0
+        cty = T.TY_INT
         while not self.accept("}"):
             if consts:
                 self.expect(",")
@@ -49,10 +73,14 @@ class EnumMixin:
             name = self.expect_ident()
             self.parse_attributes(VarAttr())
             if self.accept("="):
-                val = self.const_expr()
+                val, ety = self.const_expr_typed()
+                cty = enumerator_type(val, ety)
+            elif not fits_type(val, cty):
+                cty = widen_type(cty)
             vs = self.push_scope_entry(name.text)
             vs.enum_ty = ty
             vs.enum_val = val
+            vs.enum_cty = cty
             consts.append(val)
             val += 1
         lo = min(consts, default=0)

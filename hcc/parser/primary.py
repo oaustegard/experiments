@@ -65,7 +65,7 @@ class PrimaryMixin:
                 return self.typed(N.VarRef(t.loc, vs.var))
             if vs.enum_ty is not None:
                 v = vs.enum_val
-                ty = T.TY_INT if -(1 << 31) <= v < (1 << 31) else T.TY_LONG
+                ty = vs.enum_cty or (T.TY_INT if -(1 << 31) <= v < (1 << 31) else T.TY_LONG)
                 return N.IntLit(t.loc, v, ty=ty)
             self.error(f"unexpected type name '{name}': expected expression", t)
         if name in ("__func__", "__FUNCTION__", "__PRETTY_FUNCTION__") and self.fn is not None:

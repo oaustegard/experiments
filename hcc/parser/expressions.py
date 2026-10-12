@@ -50,6 +50,11 @@ class ExpressionMixin:
     def const_expr(self) -> int:
         return eval_const(self.conditional())
 
+    def const_expr_typed(self):
+        """Constant expression plus its (C) type: returns (value, Type)."""
+        node = self.conditional()
+        return eval_const(node), (getattr(node, "ty", None) or TY_INT)
+
     def assign(self):
         node = self.conditional()
         t = self.tok
