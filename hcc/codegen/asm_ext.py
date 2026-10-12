@@ -85,6 +85,11 @@ def _classify(op: _Op) -> None:
         op.match = int(c)
         return
     letters = set(c)
+    if not letters:
+        # An empty constraint (`""(x)`) places no restriction: like "g",
+        # let the operand live in a general register.
+        op.kind = "reg"
+        return
     if letters & _X87_LETTERS:
         op.kind = "x87"
         if op.expr.ty.kind != TypeKind.LDOUBLE:
