@@ -164,11 +164,11 @@ def _str(tok: Token, s: str) -> list[Token]:
 
 
 def _file(pp, tok):
-    return _str(tok, tok.loc.file)
+    return _str(tok, pp.presumed(tok.loc)[0])
 
 
 def _line(pp, tok):
-    return _num(tok, tok.loc.line)
+    return _num(tok, pp.presumed(tok.loc)[1])
 
 
 def _counter(pp, tok):

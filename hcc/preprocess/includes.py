@@ -88,6 +88,7 @@ class IncludeMixin:
         if dir_index >= 0:
             self.file_dir_index[path] = dir_index
         self.include_depth += 1
+        self.line_marks.pop(path, None)      # #line marks are per inclusion
         self.push_tokens(self.file_tokens(path))
 
 

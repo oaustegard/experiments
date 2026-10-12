@@ -39,7 +39,7 @@ class DirectiveMixin:
         name = name_tok.text
         handler = getattr(self, "dir_" + name, None) if name_tok.kind == TokenKind.IDENT or name in ("if", "else") else None
         if name_tok.kind == TokenKind.NUMBER:     # GNU line marker "# 12 "file""
-            self.read_line()
+            self.apply_line_directive(hash_tok, [name_tok] + self.read_line())
             return
         if handler is None:
             if name in ("if", "else"):
@@ -210,7 +210,30 @@ class DirectiveMixin:
 
     # ---- misc -----------------------------------------------------------------
     def dir_line(self, hash_tok, name_tok):
-        self.read_line()       # TODO: honour #line for __LINE__/__FILE__
+        self.apply_line_directive(hash_tok, self.read_line())
+
+    def apply_line_directive(self, hash_tok, line: list[Token]) -> None:
+        """Record a `#line N "name"` (or GNU `# N "name"`) for later lines."""
+        if line and line[0].kind != TokenKind.STRING:
+            line = self.expand_list(line)
+        if not line or line[0].kind != TokenKind.NUMBER or not line[0].text.isdigit():
+            diag.error(hash_tok, "invalid line number in #line directive")
+        n = int(line[0].text)
+        if len(line) > 1 and line[1].kind != TokenKind.STRING:
+            diag.error(line[1], "invalid filename in #line directive")
+        start = hash_tok.loc.line + 1          # first physical line affected
+        name = line[1].text[1:-1] if len(line) > 1 else self.presumed(hash_tok.loc)[0]
+        marks = self.line_marks.setdefault(hash_tok.loc.file, [])
+        while marks and marks[-1][0] >= start:
+            marks.pop()
+        marks.append((start, n, name))
+
+    def presumed(self, loc) -> tuple[str, int]:
+        """(file, line) as seen by __FILE__/__LINE__ after any #line marks."""
+        for start, n, name in reversed(self.line_marks.get(loc.file, ())):
+            if start <= loc.line:
+                return name, n + (loc.line - start)
+        return loc.file, loc.line
 
     def dir_error(self, hash_tok, name_tok):
         msg = " ".join(t.text for t in self.read_line())

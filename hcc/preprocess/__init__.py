@@ -32,6 +32,7 @@ class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
         self.stack: list[Token] = []
         self.cond_stack = []
         self.counter = 0
+        self.line_marks: dict[str, list[tuple[int, int, str]]] = {}   # #line marks per file
         self.include_depth = 0
         self.base_file = ""
         self.init_search_path()
