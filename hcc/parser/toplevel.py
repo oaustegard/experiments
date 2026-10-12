@@ -201,6 +201,10 @@ class TopLevelMixin:
             if not is_compatible(fn.ty, ty):
                 self.error(f"conflicting types for '{name.text}'", name.loc)
             self.check_proto_after_knr_def(fn, ty, name)
+            # C11 6.2.2p7: a file-scope `static` declaration may not follow a
+            # declaration with external linkage (a previous non-static one).
+            if len(self.scopes) == 1 and (attr.is_static or dattr.is_static) and not fn.is_static:
+                self.error(f"static declaration of '{name.text}' follows non-static declaration", name.loc)
             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
                 self.error(f"redefinition of '{name.text}'", name.loc)
