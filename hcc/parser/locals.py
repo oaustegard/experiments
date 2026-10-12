@@ -11,6 +11,9 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser.scope import VarAttr
+from hcc.parser.declspec import constexpr_type
+from hcc.sema.constexpr import try_eval_const
+from hcc.parser.initializers import const_bytes
 from hcc.parser.attributes import mode_type
 from hcc.parser.vla import vla_slot_type
 
@@ -57,10 +60,18 @@ class LocalDeclMixin:
                 ty = e.ty
                 if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):   # arrays decay (VLAs too)
                     ty = T.pointer_to(ty.base)
+                if attr.is_constexpr:
+                    ty = constexpr_type(ty)
                 var = self.new_lvar(name.text, ty, name.loc)
+                if ty.is_const and not ty.is_volatile and T.is_integer(ty):
+                    var.const_value = try_eval_const(e)     # `constexpr auto n = 4;`
+                elif ty.is_const and not ty.is_volatile:
+                    var.const_data = const_bytes(N.Initializer(ty, expr=e), ty)
                 items.append(N.ExprStmt(name.loc, self.typed(N.Assign(name.loc, self.typed(N.VarRef(name.loc, var)), e))))
                 continue
             ty, name = self.declarator(basety)
+            if attr.is_constexpr:
+                ty = constexpr_type(ty)
             dattr = VarAttr()
             self.parse_attributes(dattr)
             self.skip_std_attributes()

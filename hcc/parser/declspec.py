@@ -19,6 +19,16 @@ from hcc import typesys as T
 from hcc.parser.vla import _has_vla as _has_vla_type
 from hcc.parser.complex import complex_decl_type
 
+
+def constexpr_type(ty):
+    """C23 `constexpr` object: the object's own (top-level) type is const-qualified,
+    e.g. `constexpr int *p` is `int *const p` (not `const int *`)."""
+    if ty is None:
+        return None
+    ty = ty.copy()
+    ty.is_const = True
+    return ty
+
 VOID, BOOL, CHAR, SHORT, INT, LONG = 1 << 0, 1 << 2, 1 << 4, 1 << 6, 1 << 8, 1 << 10
 FLOAT, DOUBLE, OTHER, SIGNED, UNSIGNED, INT128 = 1 << 12, 1 << 14, 1 << 16, 1 << 17, 1 << 18, 1 << 19
 
@@ -169,7 +179,10 @@ class DeclSpecMixin:
                 continue
             if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "__label__"):
                 self.next()
-                is_const |= s in ("const", "constexpr")  # C23 constexpr objects are const
+                if s == "constexpr" and attr is not None:
+                    attr.is_constexpr = True    # applied to the declared object, see constexpr_type()
+                else:
+                    is_const |= s in ("const", "constexpr")  # C23 constexpr objects are const
                 is_volatile |= s == "volatile"
                 continue
             if s == "_Atomic":

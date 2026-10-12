@@ -75,6 +75,7 @@ class Var(Obj):
     visibility: str | None = None
     alias_of: str | None = None             # __attribute__((alias("sym")))
     is_compound_literal: bool = False       # anon static object of a compound literal in a static init
+    const_data: object = None               # block-scope const aggregate: static image (GlobalData)
     const_value: int | None = None          # block-scope const integer with a constant initializer (GNU folding)
     scope: tuple = ()                       # enclosing block ids (outermost first); sibling blocks share frame slots
 

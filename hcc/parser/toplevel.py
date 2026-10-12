@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import nodes as N
 from hcc.parser.scope import VarAttr, VarScope
+from hcc.parser.declspec import constexpr_type
 from hcc.sema.compat import is_compatible
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
@@ -67,6 +68,8 @@ class TopLevelMixin:
                 self.expect(",")
             first = False
             ty, name = self.declarator(basety)
+            if attr.is_constexpr:
+                ty = constexpr_type(ty)
             dattr = VarAttr()
             self.parse_attributes(dattr)
             self.parse_asm_label(dattr)
@@ -112,6 +115,8 @@ class TopLevelMixin:
         ty = self.typed(self.assign()).ty
         if ty.kind == T.TypeKind.ARRAY:
             ty = T.pointer_to(ty.base)
+        if attr.is_constexpr:
+            ty = constexpr_type(ty)
         self.pos = start                    # re-parse the initializer with the real type
         var = self.declare_global_var(ty, name, attr, VarAttr())
         self.global_initializer(var)

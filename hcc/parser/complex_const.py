@@ -37,10 +37,13 @@ def value_of(node):
             return (store_value(node.ty, cv[0]), 0)
     if node.ty is None or node.ty.is_complex or not (is_flonum(node.ty) or is_integer(node.ty)):
         return None
-    try:                                  # e.g. 3 / 2.0 as a real part
-        return (eval_float(node), 0.0)
+    try:                                  # real float arithmetic, e.g. 3.0f / 2.0f or 3 / 2.0
+        v = eval_float(node)
     except NotConstant:
         return None
+    if is_flonum(node.ty):                # round to the operand type (float stays float)
+        v = store_value(node.ty, v)
+    return (v, 0.0)
 
 
 def real_value(node):

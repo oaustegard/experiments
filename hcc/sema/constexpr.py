@@ -16,6 +16,7 @@ from hcc.builtins import builtin_fold
 from hcc.floatbits import pack_float32
 from hcc.typesys import TypeKind, is_flonum, is_integer, round_to_half
 from hcc.sema.constexpr_math import fold_int_call, fold_math_call
+from hcc.sema.constexpr_ptr import const_ptr_value
 from hcc.sema.constexpr_rel import fold_rel_equal
 from hcc.sema.constexpr_intfloat import int_to_flonum
 
@@ -225,6 +226,8 @@ def _eval(node):
     if t is N.Cond:
         return _eval(node.then) if _num(node.cond) else _eval(node.els)
     if t is N.Comma:
+        if node.lvalue and type(node.rhs) is N.VarRef and getattr(node.rhs.var, "const_value", None) is not None:
+            return _eval(node.rhs)   # constexpr compound literal with a constant initializer
         _eval(node.lhs)          # must itself be constant, else folding would drop its side effects
         return _eval(node.rhs)
     if t is N.Cast:
@@ -241,6 +244,12 @@ def _eval(node):
     if t is N.VarRef:
         if node.var.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC) and _has_link_address(node.var):
             return node.var.symbol, 0
+        if node.var.ty.kind == TypeKind.PTR:
+            cp = const_ptr_value(node.var)
+            if cp is None:
+                raise NotConstant
+            label, v = cp
+            return (label, v) if label is not None else (None, wrap(v, node.var.ty))
         return None, _const_var_value(node.var)
     if t is N.StrLit:
         raise NotConstant
@@ -373,10 +382,12 @@ def _const_member_value(node) -> int:
             raise NotConstant
         off += base.member.offset
         base = base.operand
-    if type(base) is not N.VarRef or getattr(base.var, "is_local", False):
+        if type(base) is N.Comma and base.lvalue and type(base.rhs) is N.VarRef:
+            base = base.rhs             # `(constexpr struct S){...}.m`: the literal's temp
+    if type(base) is not N.VarRef:
         raise NotConstant
     var = base.var
-    data = getattr(var, "init_data", None)
+    data = getattr(var, "const_data" if getattr(var, "is_local", False) else "init_data", None)
     if data is None or data.relocs or var.ty.is_volatile or not var.ty.is_const:
         raise NotConstant
     ty = node.ty
