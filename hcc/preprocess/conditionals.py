@@ -8,6 +8,7 @@ maps remaining identifiers to 0 and evaluates with intmax_t/uintmax_t rules.
 from __future__ import annotations
 
 from hcc import diag
+from hcc.preprocess import assertions
 from hcc.tokens import Token, TokenKind
 
 MASK64 = (1 << 64) - 1
@@ -153,7 +154,8 @@ class ConditionalMixin:
         return (self.opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
 
     def eval_condition(self, hash_tok: Token, line: list[Token]) -> bool:
-        toks = self._replace_defined(line)
+        toks = assertions.replace_assertion_tests(self, line)
+        toks = self._replace_defined(toks)
         toks = self.expand_list(toks)
         toks = self._replace_defined(toks)
         if self._c23_mode():   # C23: true/false are keywords (1/0 in #if)

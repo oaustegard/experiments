@@ -30,6 +30,7 @@ class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
         self.opts = opts
         self.macros: dict[str, Macro] = {}
         self.pushed_macros: dict[str, list] = {}   # #pragma push_macro stacks
+        self.assertions: dict[str, list[str]] = {}   # GNU #assert predicate -> answers
         self.stack: list[Token] = []
         self.cond_stack = []
         self.counter = 0

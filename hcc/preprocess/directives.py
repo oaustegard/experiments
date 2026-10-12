@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from hcc import diag
+from hcc.preprocess import assertions
 from hcc.preprocess.macros import Macro
 from hcc.tokens import Token, TokenKind
 
@@ -310,5 +311,8 @@ class DirectiveMixin:
         self.read_line()
 
     dir_sccs = dir_ident
-    dir_assert = dir_ident
-    dir_unassert = dir_ident
+    def dir_assert(self, hash_tok, name_tok):
+        assertions.dir_assert(self, hash_tok, self.read_line())
+
+    def dir_unassert(self, hash_tok, name_tok):
+        assertions.dir_unassert(self, hash_tok, self.read_line())
