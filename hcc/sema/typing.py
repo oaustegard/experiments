@@ -13,7 +13,8 @@ from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.void_value import require_value
 from hcc.sema.incomplete import check_value_operands
-from hcc.typesys import (TY_INT, TY_VOID, Type, TypeKind, is_decimal, is_dyn_struct, is_integer, is_numeric, pointer_to)
+from hcc.typesys import (TY_INT, TY_VOID, Type, TypeKind, is_decimal, is_dyn_struct, is_integer, is_numeric, pointer_to,
+                         type_str)
 
 
 def add_type(node) -> None:
@@ -160,7 +161,8 @@ def _check_struct_scalar_mix(n, lt, rt):
     l_scalar = lt.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.VOID)
     r_scalar = rt.kind not in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ARRAY, TypeKind.VOID)
     if (l_agg and r_scalar) or (r_agg and l_scalar):
-        diag.error(n, "incompatible types when assigning to this type from this type", "sema")
+        diag.error(n, f"incompatible types when assigning to type '{type_str(lt)}' "
+                      f"from type '{type_str(rt)}'", "sema")
 
 
 def _is_null_const(node) -> bool:

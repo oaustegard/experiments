@@ -110,7 +110,7 @@ class StatementMixin:
         if rty.kind == TypeKind.VOID:
             return N.Return(t.loc, e)
         require_value(e)
-        check_struct_assign(self, rty, e.ty, t)     # struct/union <-> scalar is never a valid return
+        check_struct_assign(self, rty, e.ty, t, site="return")     # struct/union <-> scalar is never a valid return
         if rty.is_complex or e.ty.is_complex:
             e = CPX.convert(self, e, rty, t.loc)
             return N.Return(t.loc, e)
