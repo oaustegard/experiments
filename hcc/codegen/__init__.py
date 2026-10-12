@@ -19,12 +19,13 @@ from hcc.codegen.expressions import ExpressionMixin
 from hcc.codegen.floats import FloatMixin
 from hcc.codegen.functions import FunctionMixin
 from hcc.codegen.memory import MemoryMixin
+from hcc.codegen.overflow import OverflowMixin
 from hcc.codegen.statements import StatementMixin
 from hcc.codegen.varargs import VarargsMixin
 
 
 class CodeGen(FunctionMixin, StatementMixin, ExpressionMixin, ArithMixin, FloatMixin,
-              CastMixin, CallMixin, VarargsMixin, BuiltinMixin, AsmMixin, MemoryMixin,
+              CastMixin, CallMixin, VarargsMixin, BuiltinMixin, OverflowMixin, AsmMixin, MemoryMixin,
               DataMixin, CodeGenBase):
 
     def run(self) -> str:

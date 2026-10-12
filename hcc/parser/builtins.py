@@ -20,6 +20,7 @@ SPECIAL_BUILTINS = frozenset("""
 __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin_offsetof
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
+__builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow
 """.split())
 
 
@@ -65,6 +66,25 @@ class BuiltinParseMixin:
     def _b_alloca(self, tok):
         args = [new_cast(a, T.TY_ULONG) for a in self._args(1)]
         return self._call(tok, "alloca", args, T.pointer_to(T.TY_VOID))
+
+    def _overflow(self, tok, name):
+        """__builtin_{add,sub,mul}_overflow(a, b, &res): operands are widened to
+        exact 64-bit LONG/ULONG (by their own signedness); codegen does the check."""
+        args = self._args(3)
+        ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
+        res = args[2]
+        if res.ty.kind != T.TypeKind.PTR or res.ty.base is None:
+            self.error(f"'__builtin_{name}_overflow' expects a pointer as third argument")
+        return self._call(tok, name + "_overflow", ops + [res], T.TY_INT, res.ty.base)
+
+    def _b_add_overflow(self, tok):
+        return self._overflow(tok, "add")
+
+    def _b_sub_overflow(self, tok):
+        return self._overflow(tok, "sub")
+
+    def _b_mul_overflow(self, tok):
+        return self._overflow(tok, "mul")
 
     def _b_expect(self, tok):
         args = self._args(2)
