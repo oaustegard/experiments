@@ -14,9 +14,15 @@ def representable(v: int, ty) -> bool:
     return -(1 << (bits - 1)) <= v < (1 << (bits - 1))
 
 
+MSG_INT = "'constexpr' integer initializer is not an integer constant expression"
+
+
 def check_scalar(parser, init) -> None:
     """An integer constant leaf `init.expr` converted to the integer type `init.ty`."""
     ty, e = init.ty, init.expr
+    if T.is_integer(ty) and (T.is_flonum(e.ty) or e.ty.is_complex):
+        # `constexpr int i = 5.0;` / `constexpr int i = 5i;`: the value must be an integer.
+        parser.error(MSG_INT, e)
     if ty.kind == T.TypeKind.BOOL or not T.is_integer(ty) or not T.is_integer(e.ty):
         return
     v = try_eval_const(e)
