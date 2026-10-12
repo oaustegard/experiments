@@ -12,6 +12,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.parser.scope import VarAttr, VarScope
 from hcc.sema.compat import is_compatible
+from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 
 
@@ -159,6 +160,30 @@ class TopLevelMixin:
             params.append(ty)
         fty.params = params
 
+    def bind_vla_param(self, ty, inits, loc):
+        """Parameter types like `char a[2][N]` (pointer to a VLA): the length
+        is copied into a hidden local on entry (appended to `inits`) and the
+        VLA type refers to that local, so element sizes are known at run time."""
+        if ty.kind == T.TypeKind.PTR:
+            base = self.bind_vla_param(ty.base, inits, loc)
+            if base is ty.base:
+                return ty
+            new = T.pointer_to(base)
+            new.is_const = ty.is_const
+            return new
+        if ty.kind not in (T.TypeKind.ARRAY, T.TypeKind.VLA):
+            return ty
+        base = self.bind_vla_param(ty.base, inits, loc)
+        if ty.kind == T.TypeKind.ARRAY:
+            return ty if base is ty.base else T.array_of(base, ty.array_len)
+        if ty.vla_len is None:
+            return ty if base is ty.base else T.vla_of(base, None)
+        tmp = self.new_temp(T.TY_LONG, loc)
+        var_ref = self.typed(N.VarRef(loc, tmp))
+        inits.append(N.ExprStmt(loc, self.typed(N.Assign(loc, var_ref,
+                                                         new_cast(ty.vla_len, T.TY_LONG)))))
+        return T.vla_of(base, self.typed(N.VarRef(loc, tmp)))
+
     def function_definition(self, fn, ty) -> None:
         if fn.is_definition:
             self.error(f"redefinition of '{fn.name}'", fn.loc)
@@ -169,12 +194,15 @@ class TopLevelMixin:
         self.goto_names = []
         self.enter_scope()
         params = []
+        vla_inits = []
         for i, pty in enumerate(ty.params):
             pname = ty.param_names[i] if i < len(ty.param_names) else None
             pvar = ty.param_vars[i] if i < len(ty.param_vars) else None
+            pty = self.bind_vla_param(pty, vla_inits, pname.loc if pname else fn.loc)
             if pname is not None and pvar is not None:
                 # reuse the Var the prototype parse already put in scope
                 v = pvar
+                v.ty = pty
                 self.locals.append(v)
                 self.push_scope_entry(pname.text).var = v
             elif pname is not None:
@@ -192,6 +220,8 @@ class TopLevelMixin:
         dims = [d for d in ty.param_dims if d is not None]
         if dims:
             fn.body.items[0:0] = [N.ExprStmt(d.loc, d) for d in dims]
+        if vla_inits:
+            fn.body.items[0:0] = vla_inits
         self.leave_scope()
         for g in self.goto_names:
             if g.text not in self.label_names:

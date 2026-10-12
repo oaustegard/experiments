@@ -22,11 +22,20 @@ def _t(node):
     return node
 
 
-def _elem_size(ty) -> int:
+def _elem_size(ty, loc):
+    """Byte size of one pointee/element as an integer expression. Pointees
+    that are VLAs (bound to a hidden length local) give a run-time product."""
     base = ty.base
     if base.kind in (TypeKind.VOID, TypeKind.FUNC):
-        return 1
-    return base.size
+        return N.IntLit(loc, 1, ty=TY_LONG)
+    return _size_expr(base, loc)
+
+
+def _size_expr(t, loc):
+    if t.kind == TypeKind.VLA and t.vla_len is not None:
+        n = new_cast(t.vla_len, TY_LONG)
+        return _t(N.Binary(loc, "*", n, _size_expr(t.base, loc), ty=TY_LONG))
+    return N.IntLit(loc, t.size, ty=TY_LONG)
 
 
 def _is_ptr(ty) -> bool:
@@ -44,7 +53,7 @@ def new_add(lhs, rhs, loc):
         lhs, rhs = rhs, lhs
     if not _is_ptr(lhs.ty):
         diag.error(loc, f"invalid operands to binary + ('{lhs.ty}' and '{rhs.ty}')", "sema")
-    size = N.IntLit(loc, _elem_size(lhs.ty), ty=TY_LONG)
+    size = _elem_size(lhs.ty, loc)
     off = N.Binary(loc, "*", new_cast(rhs, TY_LONG), size, ty=TY_LONG)
     return N.Binary(loc, "+", lhs, off, ty=pointer_to(lhs.ty.base))
 
@@ -55,12 +64,12 @@ def new_sub(lhs, rhs, loc):
     if is_numeric(lhs.ty) and is_numeric(rhs.ty):
         return _t(narrow_wide_bitfield_result("-", lhs, rhs, _t(N.Binary(loc, "-", lhs, rhs))))
     if _is_ptr(lhs.ty) and is_numeric(rhs.ty):
-        size = N.IntLit(loc, _elem_size(lhs.ty), ty=TY_LONG)
+        size = _elem_size(lhs.ty, loc)
         off = N.Binary(loc, "*", new_cast(rhs, TY_LONG), size, ty=TY_LONG)
         return N.Binary(loc, "-", lhs, off, ty=pointer_to(lhs.ty.base))
     if _is_ptr(lhs.ty) and _is_ptr(rhs.ty):
         diff = N.Binary(loc, "-", new_cast(lhs, TY_LONG), new_cast(rhs, TY_LONG), ty=TY_LONG)
-        return N.Binary(loc, "/", diff, N.IntLit(loc, _elem_size(lhs.ty), ty=TY_LONG), ty=TY_LONG)
+        return N.Binary(loc, "/", diff, _elem_size(lhs.ty, loc), ty=TY_LONG)
     diag.error(loc, f"invalid operands to binary - ('{lhs.ty}' and '{rhs.ty}')", "sema")
 
 

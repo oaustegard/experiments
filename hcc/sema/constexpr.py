@@ -56,6 +56,25 @@ def is_const_expr(node) -> bool:
     return try_eval_const(node) is not None
 
 
+def float_to_int(f: float, ty) -> int:
+    """Fold a floating -> integer conversion the way GCC does: out-of-range
+    values saturate to the target range and NaN becomes 0."""
+    if ty.kind == TypeKind.BOOL:
+        return int(f != 0)
+    if f != f:
+        return 0
+    bits = ty.size * 8
+    if ty.is_unsigned:
+        lo, hi = 0, (1 << bits) - 1
+    else:
+        lo, hi = -(1 << (bits - 1)), (1 << (bits - 1)) - 1
+    if f >= float(hi):
+        return hi
+    if f <= float(lo):
+        return lo
+    return int(f)
+
+
 def eval_float(node) -> float:
     if isinstance(node, N.FloatLit):
         return node.value
@@ -137,7 +156,7 @@ def _eval(node):
         return _eval(node.rhs)
     if t is N.Cast:
         if is_flonum(node.operand.ty) and is_integer(node.ty):
-            return None, wrap(int(eval_float(node.operand)), node.ty)
+            return None, float_to_int(eval_float(node.operand), node.ty)
         label, v = _eval(node.operand)
         if label is not None:
             if node.ty.size != 8:

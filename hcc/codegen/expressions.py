@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import struct
 
+from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
-from hcc.typesys import TypeKind, is_flonum
+from hcc.typesys import TypeKind, is_flonum, is_integer
 
 
 class ExpressionMixin:
@@ -93,6 +94,12 @@ class ExpressionMixin:
         self.gen_expr(node.rhs)
 
     def expr_Cast(self, node) -> None:
+        if is_flonum(node.operand.ty) and is_integer(node.ty):
+            # constant float->int conversions are folded (saturating, like GCC)
+            folded = try_eval_const(node)
+            if folded is not None:
+                self.emit(f"movabs ${folded}, %rax")
+                return
         self.gen_expr(node.operand)
         if node.operand.ty.is_vector:
             # vector values are addresses: reinterpret the same bytes
