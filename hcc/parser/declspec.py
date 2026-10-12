@@ -217,7 +217,7 @@ class DeclSpecMixin:
     def typeof_specifier(self):
         self.expect("(")
         if self.is_typename():
-            ty = self.typename()
+            ty = self.scoped_typename()
         else:
             node = self.expr()
             add_type(node)

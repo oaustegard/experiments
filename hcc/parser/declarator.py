@@ -199,6 +199,16 @@ class DeclaratorMixin:
         ty = self.declspec(None)
         return self.abstract_declarator(ty)
 
+    def scoped_typename(self):
+        """typename() for sizeof/_Alignof/typeof: tags and enumerators declared
+        inside the type name are local to it (PR c/67784), so they do not leak
+        into the enclosing block scope."""
+        self.enter_scope()
+        try:
+            return self.typename()
+        finally:
+            self.leave_scope()
+
     def abstract_declarator(self, ty):
         ty, name = self.declarator(ty)
         if name is not None:

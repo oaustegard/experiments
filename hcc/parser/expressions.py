@@ -190,7 +190,7 @@ class ExpressionMixin:
                 self.next()
                 if self.at("(") and self.is_typename(self.peek()):
                     self.next()
-                    ty = self.typename()
+                    ty = self.scoped_typename()
                     self.expect(")")
                 else:
                     node = self.unary()
@@ -211,7 +211,7 @@ class ExpressionMixin:
         if self.at("(") and self.is_typename(self.peek()):
             start = self.pos
             self.next()
-            ty = self.typename()
+            ty = self.scoped_typename()
             self.expect(")")
             if self.at("{"):
                 self.pos = start
