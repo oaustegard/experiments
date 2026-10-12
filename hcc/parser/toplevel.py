@@ -191,6 +191,7 @@ class TopLevelMixin:
         else:
             if not is_compatible(fn.ty, ty):
                 self.error(f"conflicting types for '{name.text}'", name.loc)
+            self.check_proto_after_knr_def(fn, ty, name)
             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
                 self.error(f"redefinition of '{name.text}'", name.loc)
@@ -335,6 +336,20 @@ class TopLevelMixin:
                 ty = T.TY_DOUBLE        # default argument promotion (not for _Float32)
             params.append(ty)
         fty.params = params
+
+    def check_proto_after_knr_def(self, fn, ty, name) -> None:
+        """A prototype following an old-style definition (`void f() {}` or
+        `void f(a) int a; {}`) must declare the same number of parameters
+        (C11 6.9.1p7; gcc: 'declares more/fewer arguments than previous old-style')."""
+        if not fn.is_definition or fn.ty.has_proto or not ty.has_proto:
+            return
+        have = len(fn.ty.param_names)
+        if len(ty.params) > have:
+            self.error(f"prototype for '{name.text}' declares more arguments than "
+                       f"previous old-style definition", name.loc)
+        elif len(ty.params) < have:
+            self.error(f"prototype for '{name.text}' declares fewer arguments than "
+                       f"previous old-style definition", name.loc)
 
     def check_knr_definition(self, fn, ty, name) -> None:
         """An old-style definition must match an earlier prototype in arity
