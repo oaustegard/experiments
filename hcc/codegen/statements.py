@@ -22,8 +22,15 @@ class StatementMixin:
         for s in node.items:
             self.gen_stmt(s)
 
+    def discard_value(self, ty) -> None:
+        # A long double result lives on the x87 register stack; a discarded
+        # value must be popped or the 8-slot stack overflows (-> NaN).
+        if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+            self.emit("fstp %st(0)")
+
     def stmt_ExprStmt(self, node) -> None:
         self.gen_expr(node.expr)
+        self.discard_value(node.expr.ty)
 
     def stmt_VLAEnter(self, node) -> None:
         self.emit(f"mov %rsp, {node.saved.offset}(%rbp)")
@@ -110,6 +117,7 @@ class StatementMixin:
         self.label(node.cont_label)
         if node.inc is not None:
             self.gen_expr(node.inc)
+            self.discard_value(node.inc.ty)
         self.emit(f"jmp {begin}")
         self.label(node.brk_label)
 

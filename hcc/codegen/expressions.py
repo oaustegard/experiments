@@ -91,6 +91,7 @@ class ExpressionMixin:
 
     def expr_Comma(self, node) -> None:
         self.gen_expr(node.lhs)
+        self.discard_value(node.lhs.ty)
         self.gen_expr(node.rhs)
 
     def expr_Cast(self, node) -> None:

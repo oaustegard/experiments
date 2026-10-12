@@ -37,11 +37,19 @@ u64f80 = ("mov %rax, -8(%rsp); fildq -8(%rsp); test %rax, %rax; jns 1f;"
 
 def _from_flt(sfx: str):
     cv = f"cvtt{sfx}2si"
+    # float/double -> uint64: values >= 2^63 do not fit cvtt...2siq, so
+    # subtract 2^63, convert, and flip bit 63 back (as GCC does).
+    if sfx == "ss":
+        load, ucomi, sub = "mov $0x5f000000, %ecx; movd %ecx, %xmm1", "ucomiss", "subss"
+    else:
+        load, ucomi, sub = "movabs $0x43e0000000000000, %rcx; movq %rcx, %xmm1", "ucomisd", "subsd"
+    u64 = (f"{load}; {ucomi} %xmm1, %xmm0; jae 1f; {cv}q %xmm0, %rax; jmp 2f; "
+           f"1: {sub} %xmm1, %xmm0; {cv}q %xmm0, %rax; btc $63, %rax; 2:")
     return {
         I8: f"{cv}l %xmm0, %eax; movsbl %al, %eax", U8: f"{cv}l %xmm0, %eax; movzbl %al, %eax",
         I16: f"{cv}l %xmm0, %eax; movswl %ax, %eax", U16: f"{cv}l %xmm0, %eax; movzwl %ax, %eax",
         I32: f"{cv}l %xmm0, %eax", U32: f"{cv}q %xmm0, %rax", I64: f"{cv}q %xmm0, %rax",
-        U64: f"{cv}q %xmm0, %rax",
+        U64: u64,
     }
 
 
