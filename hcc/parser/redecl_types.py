@@ -17,7 +17,7 @@ def _has_tag(t: Type, depth: int = 0) -> bool:
     if depth > 16 or t is None:
         return False
     if t.kind in _TAGGED:
-        return True
+        return t.tag is not None     # an anonymous struct/union/enum has no tag to forward-declare
     if t.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.VLA):
         return _has_tag(t.base, depth + 1)
     if t.kind == TypeKind.FUNC:
