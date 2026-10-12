@@ -19,7 +19,8 @@ OUT = os.path.join(os.path.dirname(HERE), "suites", "sqlite", "sql")
 def main():
     os.makedirs(OUT, exist_ok=True)
     for old in glob.glob(os.path.join(OUT, "*.sql")):
-        os.remove(old)
+        if not os.path.basename(old).startswith("gen_"):  # gen_*.sql come from gen_sqlite_generated.py
+            os.remove(old)
     n = 0
     for mod in (A, B):
         for cat, items in mod.SCRIPTS.items():
