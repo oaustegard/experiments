@@ -68,6 +68,8 @@ class PostfixMixin:
             if self.at("{"):
                 if _array_chain_is_vla(ty):
                     self.error("compound literal has variable size", self.tok)
+                if ty.kind == TypeKind.FUNC:
+                    self.error("compound literal has function type", self.tok)
                 if ty.kind in (TypeKind.STRUCT, TypeKind.UNION) and \
                         not complete_struct(ty).is_complete:
                     self.error(f"invalid use of undefined type '{ty}'", self.tok)
