@@ -102,8 +102,12 @@ def text(b, limit=200000):
     return b[:limit].decode("utf-8", "replace")
 
 
+_LOC = re.compile(r"(?:/[^\s:]+|[\w.\-]+\.[ch]):\d+(?::\d+)?:\s*")
+
+
 def short(s, n=160):
-    s = " ".join(s.split())
+    # Drop file:line:col prefixes so long absolute paths don't eat the message.
+    s = _LOC.sub("", " ".join(s.split()))
     return s if len(s) <= n else s[: n - 3] + "..."
 
 
