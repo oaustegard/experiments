@@ -13,6 +13,7 @@ from hcc import diag
 from hcc import nodes as N
 from hcc.parser.libc_builtins import fabs_float_call, int_abs_call
 from hcc.parser.structs import find_member
+from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.sema.arith import inc_dec, new_add
 from hcc.sema.conversions import default_arg_promote, new_cast
 from hcc.typesys import TypeKind, is_struct_like
@@ -99,6 +100,7 @@ class PostfixMixin:
             if i < len(params):
                 pty = params[i]
                 if not is_struct_like(pty):
+                    a = plan9_pointer_conv(self, a, pty)
                     a = new_cast(a, pty)
             else:
                 if a.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC):

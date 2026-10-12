@@ -23,6 +23,7 @@ class Options:
     trigraphs: bool = False            # -trigraphs (also implied by strict -std=)
     gnu89_inline: bool = False         # -fgnu89-inline
     no_asm: bool = False               # -fno-asm (asm/typeof are not keywords)
+    plan9_extensions: bool = False     # -fplan9-extensions (`struct S;` member is anonymous)
     linker_args: list[str] = field(default_factory=list)
     keep_temps: bool = False
     dump_ast: bool = False

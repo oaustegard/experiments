@@ -76,11 +76,18 @@ class StructMixin:
                 continue
             self.skip_std_attributes()     # `[[gnu::x]] char c[];`
             attr = VarAttr()
+            start = self.pos
             basety = self.declspec(attr)
+            single_tok = self.pos == start + 1      # the declspec was one bare identifier
             if self.accept(";"):
                 # anonymous struct/union member; `struct S;` (tagged) declares nothing
-                if basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and basety.tag is None:
+                # unless -fplan9-extensions makes it an anonymous member of type S
+                plan9 = self.opts is not None and self.opts.plan9_extensions
+                if basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and (basety.tag is None or plan9):
                     m = T.Member(None, basety, 0, attr.align or basety.align)
+                    tok0 = self.toks[start]
+                    if plan9 and single_tok and tok0.kind == TokenKind.IDENT:
+                        m.alias = tok0.text     # `typedef struct {..} D; struct { D; };` names it D
                     members.append(m)
                 continue
             first = True
@@ -259,6 +266,8 @@ def find_member(ty, name: str):
     """Return the member path to `name` (through anonymous members) or None."""
     ty = complete_struct(ty)
     for m in ty.members:
+        if m.name is None and m.alias == name:
+            return [m]
         if m.name is None and m.ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
             sub = find_member(m.ty, name)
             if sub is not None:

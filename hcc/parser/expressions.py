@@ -18,6 +18,7 @@ from hcc.parser.vector_cast import lower_scalar_to_vector
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
 from hcc.typesys import TY_INT, TY_ULONG, TypeKind, pointer_to
+from hcc.parser.plan9_ptr import plan9_pointer_conv
 
 ASSIGN_OPS = {"=": None, "+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "&=": "&",
               "|=": "|", "^=": "^", "<<=": "<<", ">>=": ">>"}
@@ -58,6 +59,7 @@ class ExpressionMixin:
             op = ASSIGN_OPS[t.text]
             self.check_assignable(node, t)
             if op is None:
+                rhs = plan9_pointer_conv(self, rhs, self.typed(node).ty)
                 return self.typed(N.Assign(t.loc, node, rhs))
             node, rhs = promote_vector_operands(self, t.loc, op, node, rhs)
             return compound_assign(op, node, rhs, t.loc, self.new_temp)

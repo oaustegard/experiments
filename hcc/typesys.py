@@ -46,10 +46,11 @@ class Member:
 
     __slots__ = ("name", "ty", "offset", "align", "idx", "is_bitfield",
                  "bit_offset", "bit_width", "tok", "rev_bytes", "is_packed",
-                 "explicit_align")
+                 "explicit_align", "alias")
 
     def __init__(self, name, ty, offset=0, align=1, idx=0):
         self.name: str | None = name
+        self.alias: str | None = None   # plan9: anonymous member declared by typedef name
         self.ty: Type = ty
         self.offset = offset
         self.align = align
