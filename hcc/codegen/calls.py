@@ -105,7 +105,7 @@ class CallMixin:
 
     def expr_Call(self, node) -> None:
         if node.func.ty.kind == TypeKind.FUNC and type(node.func).__name__ == "VarRef" and \
-                node.func.var.name == "alloca":
+                node.func.var.name == "alloca" and len(node.args) == 1:
             return self.builtin_alloca_call(node)
         on_stack, _ = self._classify_args(node)
         offs, total = self._stack_layout(node, on_stack)
