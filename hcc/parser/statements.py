@@ -302,12 +302,16 @@ class StatementMixin:
         for sec in sections:
             if not self.accept(":"):
                 break
+            is_output = sec is node.outputs
             while self.tok.kind == TokenKind.STRING or self.at("["):
                 sym = None
                 if self.accept("["):
                     sym = self.expect_ident().text
                     self.expect("]")
-                cons = self.next().value.rstrip(b"\0").decode()
+                cons_tok = self.next()
+                cons = cons_tok.value.rstrip(b"\0").decode()
+                if is_output and "=" not in cons and "+" not in cons:
+                    self.error("output operand constraint lacks '='", cons_tok)
                 self.expect("(")
                 e = self.typed(self.expr())
                 self.expect(")")
