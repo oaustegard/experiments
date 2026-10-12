@@ -26,6 +26,7 @@ from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.parser.incdec_check import check_incdec_operand
 from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser import complex as CPX
+from hcc.parser.complex_incdec import complex_inc_dec
 from hcc.parser.dyn_struct_ret import dyn_struct_assign
 from hcc.parser.assign_struct_check import check_struct_assign
 
@@ -276,6 +277,8 @@ class ExpressionMixin:
                 self.next()
                 operand = self.unary()
                 check_incdec_operand(self, operand, t)
+                if self.typed(operand).ty.is_complex:
+                    return complex_inc_dec(self, operand, 1 if s == "++" else -1, False, t.loc)
                 return inc_dec(operand, 1 if s == "++" else -1, False, t.loc, self.new_temp)
             if s == "&&":                        # GNU label address
                 self.next()
