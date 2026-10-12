@@ -23,6 +23,7 @@ share one cache instead of rebuilding in each worktree.
 """
 import contextlib
 import fcntl
+import glob
 import hashlib
 import json
 import os
@@ -146,6 +147,67 @@ def read_json(path):
         return None
 
 
+# ----------------------------------------------------------- cache eviction
+
+def _dir_size(d):
+    total = 0
+    for dp, _, fn in os.walk(d):
+        for f in fn:
+            try:
+                total += os.path.getsize(os.path.join(dp, f))
+            except OSError:
+                pass
+    return total
+
+
+def evict_old(limit_mb=None, min_interval=600):
+    """Keep the hcc-built artefacts (obj/, prog/*-hcc) under a size limit by deleting the
+    least recently used entries (hits bump the mtime).  gcc-built references are stable
+    and cheap to keep.  Runs at most every `min_interval` seconds per cache; entries that
+    are being built (lock held) are skipped.  Limit: $HCC_TEST_CACHE_MAX_MB, default 6000."""
+    import time
+    limit = (limit_mb or int(os.environ.get("HCC_TEST_CACHE_MAX_MB", "6000"))) * 1024 * 1024
+    root = cache_root()
+    stamp = os.path.join(root, ".evict-stamp")
+    try:
+        if time.time() - os.path.getmtime(stamp) < min_interval:
+            return
+    except OSError:
+        pass
+    with open(stamp, "w"):
+        pass
+    entries = []
+    for pattern in ("obj/*/*", "prog/*-hcc/*", "prog/qjs-hcc/*"):
+        for d in glob.glob(os.path.join(root, pattern)):
+            if os.path.isdir(d):
+                entries.append((os.path.getmtime(d), d))
+    sizes = {d: _dir_size(d) for _, d in entries}
+    total = sum(sizes.values())
+    if total <= limit:
+        return
+    for _, d in sorted(entries):
+        if total <= limit * 0.8:
+            break
+        lockp = d + ".lock"
+        fd = os.open(lockp, os.O_CREAT | os.O_RDWR, 0o644)
+        try:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except OSError:
+                continue  # in use
+            shutil.rmtree(d, ignore_errors=True)
+            total -= sizes[d]
+            with contextlib.suppress(OSError):
+                os.remove(lockp)
+        finally:
+            os.close(fd)
+
+
+def touch(d):
+    with contextlib.suppress(OSError):
+        os.utime(d)
+
+
 # ------------------------------------------------------------ compile steps
 
 class Failure:
@@ -197,10 +259,13 @@ def cached_object(R, cc_argv, cflags, src, tag, timeout=900, extra_key=""):
     failp = os.path.join(d, "fail.json")
     with locked(d):
         if os.path.exists(obj):
+            touch(d)
             return obj, None
         f = read_json(failp)
         if f is not None:
+            touch(d)
             return None, Failure.from_json(f)
+        evict_old()
         os.makedirs(d, exist_ok=True)
         work = tempfile.mkdtemp(prefix="cc-", dir=d)
         try:
@@ -259,10 +324,14 @@ def cached_program(R, name, key_parts, build):
     failp = os.path.join(d, "fail.json")
     with locked(d):
         if os.path.exists(exe):
+            touch(d)
             return exe, None
         f = read_json(failp)
         if f is not None:
+            touch(d)
             return None, Failure.from_json(f)
+        if name.endswith("hcc"):
+            evict_old()
         os.makedirs(d, exist_ok=True)
         tmp = os.path.join(d, "out.tmp")
         fail = build(tmp)

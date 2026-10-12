@@ -1,0 +1,6 @@
+class Temp { constructor(c) { this.c = c; } [Symbol.toPrimitive](hint) { return hint === 'string' ? `${this.c}C` : hint === 'number' ? this.c : `default:${this.c}`; } get [Symbol.toStringTag]() { return 'Temp'; } static [Symbol.hasInstance](x) { return 'c' in x; } }
+const t = new Temp(20); console.log(`${t}`, +t, t + '', t * 2, String(t), Object.prototype.toString.call(t), ({ c: 1 }) instanceof Temp, [] instanceof Temp);
+const arr = [1, 2, 3]; arr[Symbol.isConcatSpreadable] = false; console.log([0].concat(arr).length, [0].concat({ length: 2, 0: 'a', 1: 'b', [Symbol.isConcatSpreadable]: true }));
+class MyArr extends Array { static get [Symbol.species]() { return Array; } } const ma = new MyArr(1, 2, 3); console.log(ma.map(x => x) instanceof MyArr, ma instanceof MyArr, ma.filter(Boolean).constructor.name);
+const re = { [Symbol.match](s) { return ['custom:' + s]; }, [Symbol.replace](s, r) { return s + '->' + r; }, [Symbol.split](s) { return ['sp', s]; }, [Symbol.search]() { return 42; } }; console.log('x'.match(re), 'x'.replace(re, 'y'), 'x'.split(re), 'x'.search(re));
+console.log(Symbol.asyncIterator.toString(), Symbol.unscopables.description, Object.getOwnPropertySymbols(Array.prototype).length > 0, Array.prototype[Symbol.unscopables].flat);

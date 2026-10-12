@@ -143,8 +143,8 @@ console.log('3b sync end');
 ("promises_combinators", """
 const d = (v, ms, fail) => new Promise((res, rej) => setTimeout(() => fail ? rej(new Error(v)) : res(v), ms));
 (async () => {
-  console.log(await Promise.all([d('a', 3), d('b', 1), 5]));
-  console.log(await Promise.race([d('slow', 5), d('fast', 1)]));
+  console.log(JSON.stringify(await Promise.all([d('a', 3), d('b', 1), 5])));
+  console.log(await Promise.race([d('slow', 5), Promise.resolve('fast')]));
   console.log(await Promise.allSettled([d('ok', 1), d('bad', 1, true)]).then(r => r.map(x => x.status + ':' + (x.value || x.reason.message))));
   console.log(await Promise.any([d('x', 1, true), d('y', 2)]));
   try { await Promise.any([d('x', 1, true)]); } catch (e) { console.log(e.constructor.name, e.errors.length); }
@@ -351,7 +351,7 @@ for (const e of ['1+2*3', '(1+2)*3', '2^3^2', '-4+10/4', '3.5*2-1', '((2))*((3+4
 ("event_loop_pipeline", """
 const results = []; const sleep = (ms, v) => new Promise(r => setTimeout(() => r(v), ms));
 async function worker(id, jobs) { for (const j of jobs) { await sleep(j % 3, null); results.push(`w${id}:${j}`); } }
-(async () => { await Promise.all([worker(1, [1, 2, 3]), worker(2, [4, 5]), worker(3, [6])]); console.log(results.length, results.sort().join()); const r = await Promise.race([sleep(20, 'slow'), sleep(1, 'fast')]); console.log(r); })();
+(async () => { await Promise.all([worker(1, [1, 2, 3]), worker(2, [4, 5]), worker(3, [6])]); console.log(results.length, results.sort().join()); const r = await Promise.race([sleep(20, 'slow'), Promise.resolve('fast')]); console.log(r); })();
 """),
 ("garbage_gc_stress", """
 let keep = []; for (let i = 0; i < 20000; i++) { const o = { i, a: [i, i + 1], s: 'v' + i }; o.self = o; if (i % 100 === 0) keep.push(o); }
@@ -410,5 +410,190 @@ import * as std from 'std';
 export const x = 1; export default function f() { return 2; } export { x as y };
 console.log(x, typeof f);
 console.log(typeof import.meta, typeof import.meta.url, import.meta.main);
+"""),
+]
+
+SCRIPTS["more"] = [
+("with_statement_sloppy", """
+var o = { a: 1, b: 2 }; with (o) { a = 10; var c = a + b; } console.log(o, c, typeof a);
+function f() { with ({ x: 5 }) { return function () { return x; }; } } console.log(f()());
+"""),
+("arguments_object", """
+function f(a, b) { arguments[0] = 'changed'; b = 'B'; return [a, arguments[1], arguments.length, typeof arguments.callee]; } console.log(f(1, 2), f(1));
+function g(a, b = 2) { arguments[0] = 'x'; return [a, arguments.length]; } console.log(g(1));
+function h() { 'use strict'; return [typeof arguments.callee === 'undefined' ? 'noncallee' : 'callee']; } try { console.log(h(1)); } catch (e) { console.log(e.name); }
+console.log((function () { return [].slice.call(arguments, 1); })(1, 2, 3), (function () { return Array.from(arguments).length; })(...'abcd'));
+"""),
+("default_params_scope", """
+let x = 'outer'; function f(a = x, b = () => a, c = a + '!') { var x = 'inner'; return [a, b(), c, x]; } console.log(f(), f(1, undefined, 3));
+function g(a, b = a * 2, c = b + 1) { return [a, b, c]; } console.log(g(1), g(1, 5), g.length);
+try { (function (a = b, b = 1) {})(); } catch (e) { console.log(e.name); }
+function n() { return new.target === undefined ? 'call' : 'new'; } console.log(n(), new n() instanceof n, Reflect.construct(n, []) instanceof n);
+"""),
+("getter_setter_inheritance", """
+class A { get v() { return 'A' + this._v; } set v(x) { this._v = x; } static get s() { return 'sA'; } }
+class B extends A { get v() { return 'B' + super.v; } set v(x) { super.v = x * 2; } static get s() { return 'sB' + super.s; } }
+const b = new B(); b.v = 5; console.log(b.v, b._v, B.s, Object.getOwnPropertyNames(B.prototype), Object.getOwnPropertyDescriptor(B.prototype, 'v').set !== undefined);
+const o = { __proto__: { get g() { return this.k; } }, k: 7 }; console.log(o.g, o.__proto__ !== undefined, '__proto__' in o);
+const p = {}; p.__defineGetter__('z', () => 99); console.log(p.z, p.__lookupGetter__('z') !== undefined);
+"""),
+("class_fields_static", """
+class C { a = 1; b = this.a + 1; static s = 'st'; static t = C.s + '!'; ['comp' + 1] = 'c'; static #cnt = 0; static inc() { return ++C.#cnt; } #priv = 'p'; static has(o) { return #priv in o; } arrow = () => this.a; }
+const c = new C(); console.log(c, C.t, C.inc(), C.inc(), C.has(c), C.has({}), c.arrow.call(null), Object.keys(c));
+class D extends C { a = 100; constructor() { super(); this.z = this.b; } } console.log(new D());
+"""),
+("generators_advanced", """
+function* a() { try { yield 1; yield 2; } finally { yield 'cleanup'; console.log('after cleanup'); } }
+const it = a(); console.log(it.next(), it.return('r'), it.next(), it.next());
+function* b() { const x = yield* (function* () { const y = yield 'in'; return y * 2; })(); yield x; } const g = b(); console.log(g.next(), g.next(21), g.next());
+const obj = { *[Symbol.iterator]() { yield* [1, 2, 3]; } }; console.log([...obj], Array.from(obj, x => x * x), new Set(obj).size);
+function* inf() { let i = 0; while (true) yield i++; } const take = (n, it) => { const r = []; for (const v of it) { if (r.length >= n) break; r.push(v); } return r; }; console.log(take(5, inf()));
+"""),
+("iterator_helpers_if_present", """
+const it = [1, 2, 3, 4].values(); console.log(typeof it.map, typeof Iterator);
+if (typeof Iterator !== 'undefined' && it.map) { console.log(typeof it.take, typeof Iterator.from); }
+console.log(Object.prototype.toString.call([].values()), Object.prototype.toString.call(new Map().entries()), Object.prototype.toString.call(''[Symbol.iterator]()), typeof [][Symbol.iterator]().next);
+"""),
+("exceptions_finally_order", """
+function f() { const log = []; try { try { throw 1; } finally { log.push('f1'); } } catch (e) { log.push('c' + e); } finally { log.push('f2'); } return log; } console.log(f());
+function g() { try { throw new Error('a'); } catch (e) { try { throw new Error('b'); } catch (e2) { return e.message + e2.message; } finally { console.log('inner finally'); } } } console.log(g());
+function h() { l: try { return 'ret'; } finally { break l; } return 'after'; } console.log(h());
+function k() { for (const x of [1, 2, 3]) { try { if (x === 2) continue; if (x === 3) return x; } finally { console.log('fin', x); } } } console.log(k());
+const r = (() => { try { return 'a'; } finally { console.log('side'); } })(); console.log(r);
+"""),
+("error_properties", """
+const e = new Error('msg'); console.log(Object.keys(e), e.hasOwnProperty('message'), e.hasOwnProperty('stack'), typeof e.stack, e.toString(), Object.prototype.toString.call(e));
+console.log(new TypeError('t').name, TypeError.prototype.name, RangeError.prototype instanceof Error, new AggregateError([new Error('x')], 'agg').errors.length, Error('no new') instanceof Error, Error.prototype.message === '', Error.length);
+console.log(String(new Error()), String(new Error(undefined)), String(new Error(null)), String(Object.assign(new Error('m'), { name: 'Custom' })), String(Object.assign(new Error('m'), { name: '' })));
+try { null.f(); } catch (e) { console.log(e.message); } try { undefined.x = 1; } catch (e) { console.log(e.message); } try { ({}).x.y.z; } catch (e) { console.log(e.message); }
+try { x = y + 1; let y; } catch (e) { console.log(e.name, e.message); } try { new (class A { constructor() { this.x; } }); class B extends Object { constructor() { this.x; } } new B(); } catch (e) { console.log(e.name); }
+"""),
+("coercion_edge_cases", """
+const vals = [0, -0, 1, NaN, '', ' ', '0', 'a', null, undefined, [], [0], [1, 2], {}, true, false, 1n, Symbol.iterator];
+for (const v of vals) { let s; try { s = [Boolean(v), typeof v === 'symbol' ? 'sym' : String(v), typeof v === 'bigint' ? Number(v) : (typeof v === 'symbol' ? 'sym' : Number(v))].join('|'); } catch (e) { s = e.name; } console.log(s); }
+console.log([1] + [2], {} + 1, [] * 2, '5' * '5', null + 1, undefined + 1, true + '1', [] == ![], NaN != NaN, '' == 0, '0' == false, null >= 0, null > 0, null == 0, undefined == 0);
+console.log(new Number(5) + 1, new String('a') + 'b', typeof new Boolean(false), !!new Boolean(false), new Number(1) === 1, Object(1) == 1, JSON.stringify([new Number(1), new String('s'), new Boolean(true)]));
+"""),
+("number_parsing_edge", """
+for (const s of ['0b101', '0o17', '0xFf', '1_000', '1e', '.e1', '+.5', '-', '  \\n42\\t', '١٢٣', '1,5', 'Infinity', '-Infinity', 'infinity', '0x', '00012', '1e-400', '9e999']) console.log(JSON.stringify(s), Number(s), parseInt(s), parseFloat(s));
+console.log(0.1 * 3, 1 / 3, 100 / 3, 2 ** 0.5, 10 ** 21, 10 ** -7, 123456789 * 987654321, 0xFFFFFFFF | 0, 0xFFFFFFFF >>> 0, 2 ** 32 >> 0, -(2 ** 31) | 0, 1e21 | 0, NaN | 0, Infinity | 0);
+"""),
+("string_replace_functions", """
+console.log('abcabc'.replace('b', (m, off, str) => `[${m}@${off}/${str.length}]`), 'abc'.replace(/(?<l>b)/, (...args) => typeof args[args.length - 1]), 'aaa'.replace(/a/g, (m, off) => off), 'x-y_z'.replace(/[-_](.)/g, (_, c) => c.toUpperCase()));
+console.log('a b  c'.split(' '), 'a b  c'.split(/\\s+/), 'abc'.split('', 2), ''.split(''), ''.split('x'), 'a1b2'.split(/(\\d)/), 'test'.split('t'), 'ab'.split(/(?:)/));
+console.log('$1 $& $$'.replace(/(\\$)/g, '[$1]'), 'abc'.replace('b', '$`|$\\''), 'abc'.replace(/(b)/, '$01$10$2'), 'aXb'.replace(/x/i, '$&$&'), 'abc'.replaceAll(/b/g, 'X'));
+try { 'abc'.replaceAll(/b/, 'X'); } catch (e) { console.log(e.name); }
+console.log('abc'.at(5), 'abc'.charAt(5) === '', 'abc'[5], 'abc'.substring(2, 0), 'abc'.substr(1), 'abc'.slice(2, 1), ' \\t x'.trimStart(), 'x \\n'.trimEnd() + '|', 'abc'.padStart(2), 'abc'.padEnd(6, ''), 'ab'.padEnd(5, 'xyz'));
+"""),
+("array_like_generic_methods", """
+const al = { 0: 'a', 1: 'b', 2: 'c', length: 3 };
+console.log(Array.prototype.map.call(al, x => x.toUpperCase()), Array.prototype.join.call(al, '-'), Array.prototype.indexOf.call(al, 'b'), Array.prototype.slice.call(al, 1), Array.prototype.reverse.call({ 0: 1, 1: 2, length: 2 }), Array.prototype.push.call({ length: 1 }, 'x'));
+console.log(Array.from('abc').entries().toString(), Array.from({ length: 3 }), Array.from(new Set([1, 1, 2])), Array.from([1, 2, 3], function (x) { return x * this.m; }, { m: 10 }), [].concat([1], [[2]], 3), [3, 2, 1].sort().concat([0]));
+console.log(Array.prototype.filter.call('hello', c => c > 'h').join(''), Array.prototype.some.call('abc', c => c === 'b'), [].slice.call({ length: 2, 0: 'x' }), Array.prototype.fill.call({ length: 2 }, 7), Array.prototype.concat.call('a', 'b'));
+"""),
+("object_property_order", """
+const o = { z: 1, 10: 'a', b: 2, 2: 'b', [Symbol('s')]: 3, '-1': 'neg', '01': 'lead', 4294967294: 'maxidx', 4294967295: 'notidx' };
+console.log(Object.keys(o), JSON.stringify(o), Reflect.ownKeys(o).length); for (const k in o) process_k(k); function process_k(k) { console.log('key', k); }
+o.a = 0; delete o.z; o.z = 9; console.log(Object.keys(o).join()); console.log(Object.entries({ b: 1, a: 2 }).sort().join(';'));
+class P { constructor() { this.b = 1; this.a = 2; } } P.prototype.c = 3; console.log(Object.keys(new P()), (() => { const r = []; for (const k in new P()) r.push(k); return r; })());
+"""),
+("map_set_ordering_mutation", """
+const m = new Map([['a', 1], ['b', 2], ['c', 3]]); m.delete('a'); m.set('a', 4); console.log([...m.keys()]);
+const seen = []; for (const [k] of m) { seen.push(k); if (k === 'b') { m.delete('c'); m.set('d', 5); } } console.log(seen, [...m.keys()]);
+const s = new Set([1, 2, 3]); const out = []; for (const v of s) { out.push(v); if (v < 3) { s.delete(v); s.add(v + 10); } if (out.length > 10) break; } console.log(out, [...s]);
+const big = new Map(); for (let i = 0; i < 1000; i++) big.set(i, i * i); for (let i = 0; i < 1000; i += 3) big.delete(i); console.log(big.size, [...big.keys()].slice(0, 5), big.get(999), big.get(3));
+console.log(new Map([[NaN, 1]]).get(NaN), new Set([0, -0]).size, [...new Set([-0])][0] === 0 && 1 / [...new Set([-0])][0], new Map([[{}, 1], [{}, 2]]).size);
+"""),
+("date_parsing_formats", """
+const forms = ['2024-03-15', '2024-03-15T10:20:30', '2024-03-15T10:20:30.123Z', '2024-03-15T10:20:30+05:30', '2024-03', '2024', '+002024-03-15T00:00:00Z', 'Mar 15, 2024', 'March 15, 2024 10:20:30 UTC', '15 Mar 2024 10:20 GMT', 'Fri, 15 Mar 2024 10:20:30 GMT', '2024/03/15', '3/15/2024', 'not a date', '2024-13-01', '2024-02-30', '2024-03-15T25:00:00Z', ''];
+for (const f of forms) { const t = Date.parse(f); console.log(JSON.stringify(f), Number.isNaN(t) ? 'NaN' : new Date(t).toISOString()); }
+"""),
+("date_setters_arithmetic", """
+const d = new Date(Date.UTC(2024, 0, 31, 12)); const ops = [['setUTCMonth', 1], ['setUTCDate', 31], ['setUTCDate', 0], ['setUTCFullYear', 2023, 1, 29], ['setUTCHours', 24], ['setUTCMinutes', -1], ['setUTCSeconds', 3600], ['setUTCMilliseconds', 1500], ['setTime', 0]];
+for (const [fn, ...a] of ops) { const r = d[fn](...a); console.log(fn, a.join(), r, d.toISOString()); }
+const x = new Date(Date.UTC(2024, 2, 10)); console.log(x.getUTCDay(), new Date(x.getTime() + 864e5 * 365).toISOString(), Math.round((Date.UTC(2025, 0, 1) - Date.UTC(2024, 0, 1)) / 864e5), new Date(2024, 0, 1, 0, 0, 0, 0) < new Date(2024, 0, 1, 0, 0, 0, 1));
+console.log(new Date(2024, 0).getTime() === new Date('2024-01-01T00:00:00').getTime(), new Date(0, 0).getFullYear(), new Date(100, 0).getFullYear(), new Date(-1).toISOString(), new Date(1e15).toISOString(), new Date(2 ** 31 * 1000).toISOString());
+"""),
+("regexp_backtracking_unicode", """
+console.log(/^(a+)+$/.test('aaaaaaaaaaaaaaaaaaaa'), /(x+x+)+y/.test('xxxxxxxxxxxxxxxxxx'), 'aaa'.match(/a*?/)[0].length, 'aaa'.match(/a*?$/)[0], /(a|ab)(c|bcd)(d*)/.exec('abcd'), /(?=(a+))a*b\\1/.exec('baaabac'), /(?!a)\\w+/.exec('abc'));
+console.log('The Quick Brown'.match(/\\b\\w/g), 'ÀÉÎ'.match(/\\p{Lu}/gu), 'a\\u0301'.match(/./gu).length, '😀😁'.match(/./gu).length, '😀😁'.match(/./g).length, /[\\u{1F600}-\\u{1F64F}]/u.test('😁'), /\\w/u.test('é'), /\\w/iu.test('ſ'), /[\\w-]/.test('-'), /\\cJ/.test('\\n'), /[\\b]/.test('\\b'));
+console.log('2024-03-15'.match(/(?<y>\\d+)-(?<m>\\d+)-(?<d>\\d+)/).groups, /(?<a>.)\\k<a>/.test('xx'), 'aBc'.replace(/b/i, m => m.toLowerCase()), /a(?<!b)/.test('a'), /^[^\\d\\s]+$/.test('ab c'), /\\d{3,}/.exec('12 123 1234')[0], 'x'.repeat(100).replace(/x{10}/g, 'T'));
+"""),
+("typed_array_conversions", """
+const f64 = new Float64Array([1.5, -0, NaN, Infinity, 1e300]); const u8 = new Uint8Array(f64.buffer); console.log(u8.length, [...u8.slice(0, 8)], new Float64Array(u8.buffer)[1], Object.is(new Float64Array(u8.buffer)[1], -0));
+console.log(Array.from(new Uint8Array([1, 2, 3]).map(x => x * 100)), new Int8Array([1, 2, 3]).map(x => x * 100), new Uint16Array([1, 2, 3]).filter(x => x > 1), new Uint8Array(5).fill(7, 1, 3), new Int32Array([5, 1, 4]).sort((a, b) => b - a), new Float32Array([3, 1, 2]).sort().reverse());
+const dv = new DataView(new ArrayBuffer(8)); dv.setUint16(0, 0x1234); dv.setUint16(2, 0x1234, true); console.log([...new Uint8Array(dv.buffer, 0, 4)].map(x => x.toString(16)), dv.getUint32(0), dv.getUint32(0, true), dv.getInt16(2, true));
+console.log(Uint8Array.from({ length: 3 }, (_, i) => i * 100), new Uint8Array([1, 2, 3]).toString(), Array.prototype.slice.call(new Uint8Array([9, 8])), JSON.stringify(new Uint8Array([1, 2])), new Uint8Array([1, 2, 3]).subarray(1, 2).byteOffset, new Uint8Array(new ArrayBuffer(4), 1, 2).byteLength);
+console.log(Atomics.add(new Int32Array(new SharedArrayBuffer(8)), 0, 5), typeof Atomics.wait, new Int32Array(new SharedArrayBuffer(8)).length);
+"""),
+("symbol_well_known", """
+class Temp { constructor(c) { this.c = c; } [Symbol.toPrimitive](hint) { return hint === 'string' ? `${this.c}C` : hint === 'number' ? this.c : `default:${this.c}`; } get [Symbol.toStringTag]() { return 'Temp'; } static [Symbol.hasInstance](x) { return 'c' in x; } }
+const t = new Temp(20); console.log(`${t}`, +t, t + '', t * 2, String(t), Object.prototype.toString.call(t), ({ c: 1 }) instanceof Temp, [] instanceof Temp);
+const arr = [1, 2, 3]; arr[Symbol.isConcatSpreadable] = false; console.log([0].concat(arr).length, [0].concat({ length: 2, 0: 'a', 1: 'b', [Symbol.isConcatSpreadable]: true }));
+class MyArr extends Array { static get [Symbol.species]() { return Array; } } const ma = new MyArr(1, 2, 3); console.log(ma.map(x => x) instanceof MyArr, ma instanceof MyArr, ma.filter(Boolean).constructor.name);
+const re = { [Symbol.match](s) { return ['custom:' + s]; }, [Symbol.replace](s, r) { return s + '->' + r; }, [Symbol.split](s) { return ['sp', s]; }, [Symbol.search]() { return 42; } }; console.log('x'.match(re), 'x'.replace(re, 'y'), 'x'.split(re), 'x'.search(re));
+console.log(Symbol.asyncIterator.toString(), Symbol.unscopables.description, Object.getOwnPropertySymbols(Array.prototype).length > 0, Array.prototype[Symbol.unscopables].flat);
+"""),
+("weakref_finalization_gc", """
+let o = { big: new Array(1000).fill(1) }; const wr = new WeakRef(o); console.log(wr.deref() === o, typeof FinalizationRegistry, typeof gc);
+const reg = new FinalizationRegistry(() => {}); reg.register(o, 'tok', o); console.log(reg.unregister(o), reg.unregister({}));
+const cache = new Map(); function mk(i) { return { i, payload: 'x'.repeat(100) }; } for (let i = 0; i < 5000; i++) cache.set(i % 50, mk(i)); console.log(cache.size, cache.get(7).i);
+let s = ''; for (let i = 0; i < 200; i++) { const a = []; for (let j = 0; j < 100; j++) a.push({ j, a }); s = String(a.length); } console.log(s);
+"""),
+("proxy_invariants_traps", """
+const t = {}; Object.defineProperty(t, 'fixed', { value: 1, configurable: false }); const p = new Proxy(t, { get: () => 2, has: () => false, ownKeys: () => [], deleteProperty: () => true });
+for (const f of [() => p.fixed, () => 'fixed' in p, () => Object.keys(p), () => delete p.fixed, () => Object.getOwnPropertyDescriptor(p, 'fixed')]) { try { console.log('ok', f()); } catch (e) { console.log(e.name); } }
+const calls = []; const q = new Proxy([], { get(t, k, r) { calls.push(String(k)); return Reflect.get(t, k, r); }, set(t, k, v, r) { calls.push('set ' + String(k)); return Reflect.set(t, k, v, r); } }); q.push(1, 2); console.log(calls.join());
+console.log(Array.isArray(new Proxy([], {})), typeof new Proxy(function () {}, {}), typeof new Proxy({}, {}), Object.prototype.toString.call(new Proxy([], {})), JSON.stringify(new Proxy({ a: [1] }, {})), new Proxy({}, { getPrototypeOf: () => Array.prototype }) instanceof Array);
+"""),
+("module_like_patterns", """
+const mod = (function () { let priv = 0; const api = { inc: () => ++priv, get count() { return priv; } }; return Object.freeze(api); })(); mod.inc(); mod.inc(); console.log(mod.count, Object.isFrozen(mod));
+const EventEmitter = class { #h = {}; on(e, f) { (this.#h[e] ||= []).push(f); return this; } emit(e, ...a) { (this.#h[e] || []).forEach(f => f(...a)); return !!this.#h[e]; } };
+const em = new EventEmitter(); em.on('x', (a, b) => console.log('x1', a, b)).on('x', a => console.log('x2', a)); console.log(em.emit('x', 1, 2), em.emit('y'));
+const curry = f => function c(...a) { return a.length >= f.length ? f(...a) : (...b) => c(...a, ...b); }; console.log(curry((a, b, c) => a + b + c)(1)(2)(3), curry((a, b) => a * b)(3, 4));
+const compose = (...fs) => x => fs.reduceRight((v, f) => f(v), x); console.log(compose(x => x + 1, x => x * 2)(5));
+"""),
+("lru_and_trie_programs", """
+class LRU { constructor(n) { this.n = n; this.m = new Map(); } get(k) { if (!this.m.has(k)) return -1; const v = this.m.get(k); this.m.delete(k); this.m.set(k, v); return v; } put(k, v) { this.m.delete(k); this.m.set(k, v); if (this.m.size > this.n) this.m.delete(this.m.keys().next().value); } }
+const c = new LRU(2); c.put(1, 1); c.put(2, 2); console.log(c.get(1)); c.put(3, 3); console.log(c.get(2), c.get(3)); c.put(4, 4); console.log(c.get(1), c.get(3), c.get(4));
+const trie = {}; for (const w of ['car', 'card', 'care', 'cat', 'dog', 'do']) { let n = trie; for (const ch of w) n = n[ch] ||= {}; n.$ = true; }
+const words = (n, p = '') => Object.entries(n).flatMap(([k, v]) => k === '$' ? [p] : words(v, p + k)); console.log(words(trie).sort().join(), words(trie.c.a).length);
+"""),
+("dijkstra_graph", """
+const g = { A: { B: 7, C: 9, F: 14 }, B: { A: 7, C: 10, D: 15 }, C: { A: 9, B: 10, D: 11, F: 2 }, D: { B: 15, C: 11, E: 6 }, E: { D: 6, F: 9 }, F: { A: 14, C: 2, E: 9 } };
+function dijk(s) { const d = Object.fromEntries(Object.keys(g).map(k => [k, Infinity])); d[s] = 0; const q = new Set(Object.keys(g)); while (q.size) { let u = null; for (const v of q) if (u === null || d[v] < d[u]) u = v; q.delete(u); for (const [v, w] of Object.entries(g[u])) if (d[u] + w < d[v]) d[v] = d[u] + w; } return d; } console.log(dijk('A'));
+"""),
+("json_pretty_deep_and_unicode", """
+let deep = {}; let cur = deep; for (let i = 0; i < 50; i++) { cur.n = { i }; cur = cur.n; } const s = JSON.stringify(deep); console.log(s.length, JSON.parse(s).n.n.n.i);
+console.log(JSON.stringify({ 'ключ': 'значение', e: '😀', ctl: '\\u0000\\u001f\\u007f', quote: '"\\\\/', big: 1e300, small: 1e-300, arr: [[]], o: {} }, null, '--'));
+console.log(JSON.stringify('\\ud83d'), JSON.stringify('\\ud83d\\ude00'), JSON.parse('"\\\\ud83d\\\\ude00"'), JSON.parse('{"__proto__": 1}').__proto__, Object.keys(JSON.parse('{"__proto__": {"x": 1}}')));
+console.log(JSON.parse('[1, 2, 3]', function (k, v) { return Array.isArray(v) ? v.length : v * 2; }), JSON.stringify({ a: 1, b: 2, c: 3 }, ['c', 'a']), JSON.stringify([1, [2, [3]]], null, 1).split('\\n').length);
+"""),
+("labeled_blocks_switch_edge", """
+function f(x) { switch (typeof x) { case 'number': if (x > 0) { return 'pos'; } case 'string': return 'num-or-str'; default: return 'other'; case 'boolean': return 'bool'; } } console.log(f(1), f(-1), f('s'), f(true), f(null));
+function g(x) { switch (x) { case 1: case 2: return 'low'; case NaN: return 'nan'; case '1': return 'str1'; default: return 'dflt'; } } console.log(g(1), g(2), g('1'), g(NaN), g(3));
+a: for (var i = 0; i < 3; i++) { b: for (var j = 0; j < 3; j++) { if (j === 1) continue a; if (i === 2) break a; console.log(i, j); } } console.log(i, j);
+var r = []; x: { r.push(1); y: { r.push(2); break x; } r.push(3); } console.log(r);
+let n = 0; while (true) { if (++n > 5) break; else continue; } do n--; while (n > 3); console.log(n);
+for (var k = 0, m = 10; k < m; k += 3, m -= 3); console.log(k, m);
+"""),
+("recursion_depth_tail", """
+function sum(n) { return n === 0 ? 0 : n + sum(n - 1); } console.log(sum(50), sum(100));
+let depth = 0; function probe() { depth++; probe(); } try { probe(); } catch (e) { console.log(e.name); }
+function even(n) { return n === 0 ? true : odd(n - 1); } function odd(n) { return n === 0 ? false : even(n - 1); } console.log(even(100), odd(77));
+const fact = n => n <= 1n ? 1n : n * fact(n - 1n); console.log(String(fact(60n)).length);
+"""),
+("string_building_large", """
+let s = ''; for (let i = 0; i < 30000; i++) s += i % 10; console.log(s.length, s.slice(-5)); const parts = []; for (let i = 0; i < 30000; i++) parts.push(i % 7); console.log(parts.join('').length);
+console.log('ab'.repeat(50000).length, 'x'.repeat(1e6).length, ('a'.repeat(1000) + 'b').lastIndexOf('b'), 'abc'.repeat(3).split('c').length);
+let w = ''; for (let i = 0; i < 2000; i++) w = 'é' + w + '😀'; console.log(w.length, w.codePointAt(0), w.at(-1).charCodeAt(0));
+const rope = []; for (let i = 0; i < 100; i++) rope.push('x'.repeat(i)); console.log(rope.join('|').length, rope.join('').length, rope.reduce((a, b) => a + b.length, 0));
+"""),
+("numeric_loops_float_accumulation", """
+let s = 0; for (let i = 1; i <= 100000; i++) s += 1 / (i * i); console.log(s, Math.sqrt(s * 6));
+let a = 0; for (let i = 0; i < 10; i++) a += 0.1; console.log(a, a === 1, Math.abs(a - 1) < Number.EPSILON);
+let h = 0; for (let i = 0; i < 100000; i++) h = (h * 31 + i) >>> 0; console.log(h); let x = 1; for (let i = 0; i < 100; i++) x = x * 1.1 % 7; console.log(x);
+const pi = (n) => { let p = 0; for (let k = 0; k < n; k++) p += (k % 2 ? -1 : 1) / (2 * k + 1); return 4 * p; }; console.log(pi(100000), pi(10).toFixed(6));
+console.log(Array.from({ length: 10 }, (_, i) => (i * 0.1).toFixed(1)).join(), (1e21 + 1).toString(), 2 ** 1023 * 2, -(2 ** 1023) * 2, 5e-324 / 2, (0.1).toFixed(20), (1.45).toFixed(1), (8.345).toFixed(2));
 """),
 ]

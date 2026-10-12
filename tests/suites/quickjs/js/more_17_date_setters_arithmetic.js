@@ -1,0 +1,4 @@
+const d = new Date(Date.UTC(2024, 0, 31, 12)); const ops = [['setUTCMonth', 1], ['setUTCDate', 31], ['setUTCDate', 0], ['setUTCFullYear', 2023, 1, 29], ['setUTCHours', 24], ['setUTCMinutes', -1], ['setUTCSeconds', 3600], ['setUTCMilliseconds', 1500], ['setTime', 0]];
+for (const [fn, ...a] of ops) { const r = d[fn](...a); console.log(fn, a.join(), r, d.toISOString()); }
+const x = new Date(Date.UTC(2024, 2, 10)); console.log(x.getUTCDay(), new Date(x.getTime() + 864e5 * 365).toISOString(), Math.round((Date.UTC(2025, 0, 1) - Date.UTC(2024, 0, 1)) / 864e5), new Date(2024, 0, 1, 0, 0, 0, 0) < new Date(2024, 0, 1, 0, 0, 0, 1));
+console.log(new Date(2024, 0).getTime() === new Date('2024-01-01T00:00:00').getTime(), new Date(0, 0).getFullYear(), new Date(100, 0).getFullYear(), new Date(-1).toISOString(), new Date(1e15).toISOString(), new Date(2 ** 31 * 1000).toISOString());

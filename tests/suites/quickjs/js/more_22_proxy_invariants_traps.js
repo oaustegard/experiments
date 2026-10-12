@@ -1,0 +1,4 @@
+const t = {}; Object.defineProperty(t, 'fixed', { value: 1, configurable: false }); const p = new Proxy(t, { get: () => 2, has: () => false, ownKeys: () => [], deleteProperty: () => true });
+for (const f of [() => p.fixed, () => 'fixed' in p, () => Object.keys(p), () => delete p.fixed, () => Object.getOwnPropertyDescriptor(p, 'fixed')]) { try { console.log('ok', f()); } catch (e) { console.log(e.name); } }
+const calls = []; const q = new Proxy([], { get(t, k, r) { calls.push(String(k)); return Reflect.get(t, k, r); }, set(t, k, v, r) { calls.push('set ' + String(k)); return Reflect.set(t, k, v, r); } }); q.push(1, 2); console.log(calls.join());
+console.log(Array.isArray(new Proxy([], {})), typeof new Proxy(function () {}, {}), typeof new Proxy({}, {}), Object.prototype.toString.call(new Proxy([], {})), JSON.stringify(new Proxy({ a: [1] }, {})), new Proxy({}, { getPrototypeOf: () => Array.prototype }) instanceof Array);

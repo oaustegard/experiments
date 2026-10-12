@@ -1,0 +1,2 @@
+for (const s of ['0b101', '0o17', '0xFf', '1_000', '1e', '.e1', '+.5', '-', '  \n42\t', '١٢٣', '1,5', 'Infinity', '-Infinity', 'infinity', '0x', '00012', '1e-400', '9e999']) console.log(JSON.stringify(s), Number(s), parseInt(s), parseFloat(s));
+console.log(0.1 * 3, 1 / 3, 100 / 3, 2 ** 0.5, 10 ** 21, 10 ** -7, 123456789 * 987654321, 0xFFFFFFFF | 0, 0xFFFFFFFF >>> 0, 2 ** 32 >> 0, -(2 ** 31) | 0, 1e21 | 0, NaN | 0, Infinity | 0);

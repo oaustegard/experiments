@@ -1,0 +1,2 @@
+const forms = ['2024-03-15', '2024-03-15T10:20:30', '2024-03-15T10:20:30.123Z', '2024-03-15T10:20:30+05:30', '2024-03', '2024', '+002024-03-15T00:00:00Z', 'Mar 15, 2024', 'March 15, 2024 10:20:30 UTC', '15 Mar 2024 10:20 GMT', 'Fri, 15 Mar 2024 10:20:30 GMT', '2024/03/15', '3/15/2024', 'not a date', '2024-13-01', '2024-02-30', '2024-03-15T25:00:00Z', ''];
+for (const f of forms) { const t = Date.parse(f); console.log(JSON.stringify(f), Number.isNaN(t) ? 'NaN' : new Date(t).toISOString()); }

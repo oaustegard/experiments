@@ -1,0 +1,2 @@
+const g = { A: { B: 7, C: 9, F: 14 }, B: { A: 7, C: 10, D: 15 }, C: { A: 9, B: 10, D: 11, F: 2 }, D: { B: 15, C: 11, E: 6 }, E: { D: 6, F: 9 }, F: { A: 14, C: 2, E: 9 } };
+function dijk(s) { const d = Object.fromEntries(Object.keys(g).map(k => [k, Infinity])); d[s] = 0; const q = new Set(Object.keys(g)); while (q.size) { let u = null; for (const v of q) if (u === null || d[v] < d[u]) u = v; q.delete(u); for (const [v, w] of Object.entries(g[u])) if (d[u] + w < d[v]) d[v] = d[u] + w; } return d; } console.log(dijk('A'));

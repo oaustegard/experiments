@@ -1,0 +1,5 @@
+const e = new Error('msg'); console.log(Object.keys(e), e.hasOwnProperty('message'), e.hasOwnProperty('stack'), typeof e.stack, e.toString(), Object.prototype.toString.call(e));
+console.log(new TypeError('t').name, TypeError.prototype.name, RangeError.prototype instanceof Error, new AggregateError([new Error('x')], 'agg').errors.length, Error('no new') instanceof Error, Error.prototype.message === '', Error.length);
+console.log(String(new Error()), String(new Error(undefined)), String(new Error(null)), String(Object.assign(new Error('m'), { name: 'Custom' })), String(Object.assign(new Error('m'), { name: '' })));
+try { null.f(); } catch (e) { console.log(e.message); } try { undefined.x = 1; } catch (e) { console.log(e.message); } try { ({}).x.y.z; } catch (e) { console.log(e.message); }
+try { x = y + 1; let y; } catch (e) { console.log(e.name, e.message); } try { new (class A { constructor() { this.x; } }); class B extends Object { constructor() { this.x; } } new B(); } catch (e) { console.log(e.name); }

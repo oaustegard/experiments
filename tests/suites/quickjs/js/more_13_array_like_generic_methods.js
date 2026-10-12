@@ -1,0 +1,4 @@
+const al = { 0: 'a', 1: 'b', 2: 'c', length: 3 };
+console.log(Array.prototype.map.call(al, x => x.toUpperCase()), Array.prototype.join.call(al, '-'), Array.prototype.indexOf.call(al, 'b'), Array.prototype.slice.call(al, 1), Array.prototype.reverse.call({ 0: 1, 1: 2, length: 2 }), Array.prototype.push.call({ length: 1 }, 'x'));
+console.log(Array.from('abc').entries().toString(), Array.from({ length: 3 }), Array.from(new Set([1, 1, 2])), Array.from([1, 2, 3], function (x) { return x * this.m; }, { m: 10 }), [].concat([1], [[2]], 3), [3, 2, 1].sort().concat([0]));
+console.log(Array.prototype.filter.call('hello', c => c > 'h').join(''), Array.prototype.some.call('abc', c => c === 'b'), [].slice.call({ length: 2, 0: 'x' }), Array.prototype.fill.call({ length: 2 }, 7), Array.prototype.concat.call('a', 'b'));
