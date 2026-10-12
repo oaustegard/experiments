@@ -409,6 +409,8 @@ class TopLevelMixin:
         self.leave_scope()
         for g, msg in self.jump_scope.violations():
             self.error(msg, g)
+        for c in self.jump_scope.case_violations():
+            self.error("switch jumps into scope of identifier with variably modified type", c)
         self.jump_scope = saved_jumps
         for g in self.goto_names:
             # a nested function's gotos may target labels of the enclosing

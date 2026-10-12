@@ -44,6 +44,19 @@ class JumpScopes:
         self.gotos: list[tuple] = []        # (seq, name token, enclosing stmt-expr ids)
         self.labels: list[tuple] = []       # (seq, name, enclosing block ids, stmt-expr ids)
         self.vm_decls: list[tuple] = []     # (seq, block id)
+        self.switch_stack: list[int] = []   # seq of each enclosing switch head
+        self.cases: list[tuple] = []        # (seq, case token, switch seq, enclosing block ids)
+
+    def enter_switch(self) -> None:
+        self.switch_stack.append(self._tick())
+
+    def leave_switch(self) -> None:
+        self.switch_stack.pop()
+
+    def note_case(self, tok) -> None:
+        """A case/default label: a jump from the innermost switch head."""
+        if self.switch_stack:
+            self.cases.append((self._tick(), tok, self.switch_stack[-1], tuple(self.block_ids)))
 
     def enter_block(self) -> None:
         self.block_seq += 1
@@ -88,5 +101,15 @@ class JumpScopes:
                     continue
                 if any(gseq < vseq < lseq and vblock in lblocks for vseq, vblock in self.vm_decls):
                     bad.append((gtok, "jump into scope of identifier with variably modified type"))
+                    break
+        return bad
+
+    def case_violations(self) -> list:
+        """Case/default label tokens of a switch that jump into the scope of a VM identifier."""
+        bad = []
+        for lseq, ltok, sseq, lblocks in self.cases:
+            for vseq, vblock in self.vm_decls:
+                if sseq < vseq < lseq and vblock in lblocks:
+                    bad.append(ltok)
                     break
         return bad

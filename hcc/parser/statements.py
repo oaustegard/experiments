@@ -132,7 +132,9 @@ class StatementMixin:
         sw = N.Switch(t.loc, cond, None, [], None, self.new_label())
         saved = (self.cur_switch, self.brk_label)
         self.cur_switch, self.brk_label = sw, sw.brk_label
+        self.jump_scope.enter_switch()
         sw.body = self.sub_stmt()
+        self.jump_scope.leave_switch()
         self.cur_switch, self.brk_label = saved
         self.leave_scope()
         return sw
@@ -147,6 +149,7 @@ class StatementMixin:
             hi = wrap(eval_const(self.conditional()), sw_ty)
         self.expect(":")
         self.check_case_overlap(t, lo, hi)
+        self.jump_scope.note_case(t)
         c = N.Case(t.loc, lo, hi, None, self.new_label())
         if lo <= hi:      # an empty range matches nothing: keep only its label
             self.cur_switch.cases.append(c)
@@ -166,6 +169,7 @@ class StatementMixin:
         if self.cur_switch is None:
             self.error("'default' label not within a switch statement", t)
         self.expect(":")
+        self.jump_scope.note_case(t)
         c = N.Case(t.loc, None, None, None, self.new_label())
         self.cur_switch.default = c
         c.body = None if self.at("}") else self.stmt()
