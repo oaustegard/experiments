@@ -60,8 +60,26 @@ FLOATN_TYPES = {"_Float32": T.TY_FLOAT, "_Float64": T.TY_DOUBLE,
 
 class DeclSpecMixin:
 
+    def _index_of_tok(self, tok):
+        """Index in self.toks of tok (searching forward from pos), or None."""
+        for i in range(self.pos, min(self.pos + 16, len(self.toks))):
+            if self.toks[i] is tok:
+                return i
+        return None
+
     def is_typename(self, tok=None) -> bool:
         tok = tok or self.tok
+        if tok.kind == TokenKind.KEYWORD and tok.text == "__extension__":
+            # __extension__ is a no-op marker: it starts a declaration only if
+            # the token after the marker run does (e.g. not `(__extension__ (x))`).
+            i = self._index_of_tok(tok)
+            if i is not None:
+                while i < len(self.toks) and self.toks[i].kind == TokenKind.KEYWORD \
+                        and self.toks[i].text == "__extension__":
+                    i += 1
+                if i < len(self.toks):
+                    return self.is_typename(self.toks[i])
+            return False
         if tok.kind == TokenKind.KEYWORD:
             return tok.text in TYPE_KEYWORDS
         if tok.kind == TokenKind.IDENT and tok.text in FLOATN_TYPES and self.find_typedef(tok) is None:
