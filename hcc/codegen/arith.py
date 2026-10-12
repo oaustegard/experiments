@@ -46,21 +46,15 @@ class ArithMixin:
             # constant rhs: no operand needs parking on the stack
             self.gen_expr(node.lhs)
             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
-                (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
-            # Only a call-free operand may be parked on the stack: a value
-            # pushed before a call (e.g. setjmp, whose resumption reuses the
-            # stack slot) would be clobbered. Evaluate the call side first.
+        else:
+            # Left-to-right, as gcc -O0 does: `f() - g()` calls f first, and
+            # programs whose output depends on that order (e.g. doom's
+            # `P_Random()-P_Random()`) must match the gcc reference.
             self.gen_expr(node.lhs)
             self.push()
             self.gen_expr(node.rhs)
             self.emit("mov %rax, %rdi")
             self.pop("%rax")
-        else:
-            self.gen_expr(node.rhs)
-            self.push()
-            self.gen_expr(node.lhs)
-            self.pop("%rdi")
         wide = lty.size == 8 or lty.kind in (TypeKind.PTR, TypeKind.ARRAY, TypeKind.FUNC) or \
             lty.size > 8
         ax, di, dx = ("%rax", "%rdi", "%rdx") if wide else ("%eax", "%edi", "%edx")
