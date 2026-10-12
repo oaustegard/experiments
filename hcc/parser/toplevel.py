@@ -197,6 +197,16 @@ class TopLevelMixin:
                     o.is_definition = True
                     if o.ty.kind == T.TypeKind.ARRAY and o.ty.array_len < 0:
                         o.ty = T.array_of(o.ty.base, 1)
+                    self.check_global_complete(o)
+
+    def check_global_complete(self, var) -> None:
+        """A file-scope object defined without an initializer must have a
+        complete type by the end of the translation unit (C11 6.9.2p3)."""
+        t = var.ty
+        while t.kind == T.TypeKind.ARRAY:
+            t = t.base
+        if t.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION, T.TypeKind.ENUM) and not t.is_complete:
+            self.error(f"storage size of '{var.name}' isn't known", var.loc)
 
     # ---- function bodies ---------------------------------------------------------
     def knr_params(self, fty) -> None:
