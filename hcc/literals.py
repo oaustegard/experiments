@@ -211,9 +211,10 @@ def string_bytes(units: list[int], elem: Type) -> bytes:
 
 
 def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
-                   c23: bool = False) -> list[Token]:
+                   c23: bool = False, off_keywords: frozenset = frozenset()) -> list[Token]:
     """`u8_unsigned`: C23 types u8"" literals as unsigned char arrays.
-    `c23`: `constexpr` is a keyword (it is an ordinary identifier otherwise)."""
+    `c23`: `constexpr` is a keyword (it is an ordinary identifier otherwise).
+    `off_keywords`: spellings that stay identifiers (e.g. `typeof` in strict ISO modes)."""
     out: list[Token] = []
     i, n = 0, len(toks)
     while i < n:
@@ -222,7 +223,7 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
         if k == TokenKind.IDENT:
             if c23 and t.text in ("true", "false"):
                 t = _c23_bool_const(t)
-            elif t.text in KEYWORDS or (c23 and t.text == "constexpr"):
+            elif (t.text in KEYWORDS and t.text not in off_keywords) or (c23 and t.text == "constexpr"):
                 t = t.copy()
                 t.kind = TokenKind.KEYWORD
                 t.text = KEYWORD_ALIASES.get(t.text, t.text)

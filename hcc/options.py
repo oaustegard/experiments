@@ -22,6 +22,7 @@ class Options:
     nostdinc: bool = False
     trigraphs: bool = False            # -trigraphs (also implied by strict -std=)
     gnu89_inline: bool = False         # -fgnu89-inline
+    no_asm: bool = False               # -fno-asm (asm/typeof are not keywords)
     linker_args: list[str] = field(default_factory=list)
     keep_temps: bool = False
     dump_ast: bool = False

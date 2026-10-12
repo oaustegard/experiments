@@ -75,6 +75,8 @@ def parse_args(argv: list[str]) -> Options:
             o.trigraphs = True
         elif a == "-fgnu89-inline":
             o.gnu89_inline = True
+        elif a == "-fno-asm":
+            o.no_asm = True
         elif a == "-nostdinc":
             o.nostdinc = True
         elif a in ("-fPIC", "-fpic", "-fPIE", "-fpie"):
@@ -130,7 +132,10 @@ def compile_to_asm(path: str, opts: Options) -> str:
     toks = preprocess_file(path, opts)
     with diag.stage("parse"):
         c23 = (opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
-        toks = convert_tokens(toks, u8_unsigned=c23, c23=c23)
+        # `asm` and `typeof` are extension keywords: off in strict ISO modes and under -fno-asm.
+        strict = not (opts.std or "gnu17").lower().startswith("gnu")
+        off = frozenset(("asm", "typeof") if strict or opts.no_asm else ())
+        toks = convert_tokens(toks, u8_unsigned=c23, c23=c23, off_keywords=off)
         tu = parse(toks, opts)
     if opts.dump_ast:
         for o in tu.objs:

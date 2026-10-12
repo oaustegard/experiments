@@ -66,6 +66,22 @@ class DeclSpecMixin:
                 return i
         return None
 
+    def _skip_std_attr_run(self, i):
+        """Index just past any C23 `[[...]]` groups starting at token index i."""
+        toks = self.toks
+        while i + 1 < len(toks) and toks[i].text == "[" and toks[i + 1].text == "[" \
+                and toks[i].kind == TokenKind.PUNCT:
+            depth = 0
+            while i < len(toks) and toks[i].kind != TokenKind.EOF:
+                if toks[i].kind == TokenKind.PUNCT and toks[i].text == "[":
+                    depth += 1
+                elif toks[i].kind == TokenKind.PUNCT and toks[i].text == "]":
+                    depth -= 1
+                i += 1
+                if depth == 0:
+                    break
+        return i
+
     def is_typename(self, tok=None) -> bool:
         tok = tok or self.tok
         if tok.kind == TokenKind.KEYWORD and tok.text == "__extension__":
@@ -76,6 +92,15 @@ class DeclSpecMixin:
                 while i < len(self.toks) and self.toks[i].kind == TokenKind.KEYWORD \
                         and self.toks[i].text == "__extension__":
                     i += 1
+                i = self._skip_std_attr_run(i)
+                if i < len(self.toks):
+                    return self.is_typename(self.toks[i])
+            return False
+        if tok.kind == TokenKind.PUNCT and tok.text == "[":
+            # C23 `[[...]] int x;`: attributes start a declaration if a specifier follows.
+            i = self._index_of_tok(tok)
+            if i is not None and self._skip_std_attr_run(i) > i:
+                i = self._skip_std_attr_run(i)
                 if i < len(self.toks):
                     return self.is_typename(self.toks[i])
             return False
@@ -99,6 +124,9 @@ class DeclSpecMixin:
         auto_infer = False
         is_const = is_volatile = is_atomic = False
         while self.is_typename():
+            if self.at_std_attribute():
+                self.skip_std_attributes()
+                continue
             tok = self.tok
             s = tok.text
             if self.is_c23_bool(tok):
