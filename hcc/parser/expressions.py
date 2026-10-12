@@ -22,6 +22,7 @@ from hcc.sema.conversions import int_promote, new_cast
 from hcc.tokens import TokenKind
 from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, is_scalar, pointer_to
 from hcc.parser.plan9_ptr import plan9_pointer_conv
+from hcc.parser.incdec_check import check_incdec_operand
 from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser import complex as CPX
 from hcc.parser.dyn_struct_ret import dyn_struct_assign
@@ -264,6 +265,7 @@ class ExpressionMixin:
             if s in ("++", "--"):
                 self.next()
                 operand = self.unary()
+                check_incdec_operand(self, operand, t)
                 return inc_dec(operand, 1 if s == "++" else -1, False, t.loc, self.new_temp)
             if s == "&&":                        # GNU label address
                 self.next()

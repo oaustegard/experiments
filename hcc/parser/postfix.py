@@ -25,6 +25,7 @@ from hcc.sema.conversions import default_arg_promote, new_cast
 from hcc.typesys import TypeKind
 from hcc.typesys import TypeKind, is_struct_like
 from hcc.parser.va_pack import is_pack_placeholder
+from hcc.parser.incdec_check import check_incdec_operand
 from hcc.parser.call_arg_check import check_struct_arg
 
 
@@ -124,6 +125,7 @@ class PostfixMixin:
                 node = self.struct_ref(self.typed(N.Deref(t.loc, node)), self.expect_ident())
             elif s in ("++", "--") and t.kind.name == "PUNCT":
                 self.next()
+                check_incdec_operand(self, node, t)
                 node = inc_dec(node, 1 if s == "++" else -1, True, t.loc, self.new_temp)
             else:
                 return node
