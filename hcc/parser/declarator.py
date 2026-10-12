@@ -209,6 +209,8 @@ class DeclaratorMixin:
                            is_definition=True, align=pty.align)
                 pvar.is_param = True
                 self.push_scope_entry(name.text).var = pvar
+            if name is not None and any(n is not None and n.text == name.text for n in names):
+                self.error(f"redefinition of parameter '{name.text}'", name.loc)
             params.append(pty)
             names.append(name)
             pvars.append(pvar)
