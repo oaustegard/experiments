@@ -11,6 +11,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.typesys import TypeKind, is_flonum, is_integer
+from hcc.sema.constexpr_math import fold_math_call
 
 
 class NotConstant(Exception):
@@ -87,6 +88,11 @@ def eval_float(node) -> float:
         return {"+": a + b, "-": a - b, "*": a * b, "/": a / b if b else float("inf")}[node.op]
     if isinstance(node, N.Cond):
         return eval_float(node.then) if _num(node.cond) else eval_float(node.els)
+    if isinstance(node, N.Call):
+        v = fold_math_call(node, eval_float)
+        if v is None:
+            raise NotConstant
+        return v
     return float(_num(node))
 
 

@@ -12,7 +12,7 @@ import struct
 from hcc import diag
 from hcc import nodes as N
 from hcc.sema.arith import new_add
-from hcc.sema.constexpr import NotConstant, eval_float, eval_reloc
+from hcc.sema.constexpr import NotConstant, eval_float, eval_reloc, float_to_int
 from hcc import typesys as T
 
 
@@ -83,7 +83,7 @@ def _write(init, ty, gd, offset) -> None:
                 if m.is_bitfield:
                     if child.expr is None:
                         continue
-                    v = _const_int(child.expr)
+                    v = _const_int(child.expr, m.ty)
                     _write_bits(gd, offset + m.offset, m, v)
                 else:
                     _write(child, m.ty, gd, offset + m.offset)
@@ -129,7 +129,7 @@ def _write(init, ty, gd, offset) -> None:
             gd.data[offset:offset + 10] = float_to_x87(v)
         return
     try:
-        label, v = eval_reloc(expr)
+        label, v = _static_scalar(expr, ty)
     except NotConstant:
         diag.error(expr, "initializer element is not constant", "sema")
     if label is not None:
@@ -183,9 +183,18 @@ def _label_difference(expr):
     return la, lb, a - b
 
 
-def _const_int(expr) -> int:
+def _static_scalar(expr, ty):
+    """(label, value) of a static scalar initializer converted to `ty`.
+    A floating constant stored into an integer object is converted like a cast
+    (the implicit conversion may not have been materialised as an ast.Cast)."""
+    if T.is_integer(ty) and T.is_flonum(getattr(expr, "ty", None) or T.TY_VOID):
+        return None, float_to_int(eval_float(expr), ty)
+    return eval_reloc(expr)
+
+
+def _const_int(expr, ty=T.TY_INT) -> int:
     try:
-        label, v = eval_reloc(expr)
+        label, v = _static_scalar(expr, ty)
     except NotConstant:
         diag.error(expr, "initializer element is not constant", "sema")
     return v
