@@ -17,6 +17,7 @@ from hcc import typesys as T
 from hcc.parser.attributes import mode_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.redecl import check_redecl
+from hcc.parser.knr_check import knr_param_index
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
@@ -95,7 +96,7 @@ class TopLevelMixin:
                 check_redecl(self, self.scopes[0], name, "func")
                 fn = self.declare_function(ty, name, attr, dattr)
                 if ty.enum_consts == "knr" and not self.at(";") and not self.at(","):
-                    self.knr_params(ty)
+                    self.knr_params(ty, fn.ty)
                 if self.at("{"):
                     fn.ty = ty
                     self.function_definition(fn, ty, self.gnu89_extern_inline(attr))
@@ -210,8 +211,9 @@ class TopLevelMixin:
                         o.ty = T.array_of(o.ty.base, 1)
 
     # ---- function bodies ---------------------------------------------------------
-    def knr_params(self, fty) -> None:
-        """K&R parameter declarations between `)` and `{`."""
+    def knr_params(self, fty, proto=None) -> None:
+        """K&R parameter declarations between `)` and `{`. `proto` is the
+        prior prototype of the same function, if any, that they must match."""
         decls = {}
         while not self.at("{"):
             attr = VarAttr()
@@ -232,6 +234,14 @@ class TopLevelMixin:
                 if not self.accept(","):
                     break
             self.expect(";")
+        declared = [decls.get(n.text, T.TY_INT) for n in fty.param_names]
+        if proto is not None and proto.has_proto:
+            if len(proto.params) != len(declared):
+                self.error("conflicting types for function definition")
+            i = knr_param_index(proto, declared)
+            if i is not None:
+                pname = fty.param_names[i]
+                self.error(f"argument '{pname.text}' doesn't match prototype", pname.loc)
         params = []
         for n in fty.param_names:
             ty = decls.get(n.text, T.TY_INT)
