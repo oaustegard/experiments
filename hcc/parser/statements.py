@@ -12,7 +12,7 @@ from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser import complex as CPX
 from hcc.parser.dyn_struct_ret import dyn_return
-from hcc.sema.constexpr import eval_const
+from hcc.sema.constexpr import eval_const, wrap
 from hcc.sema.void_value import require_value
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
@@ -133,15 +133,27 @@ class StatementMixin:
     def _stmt_case(self, t):
         if self.cur_switch is None:
             self.error("case label not within a switch statement", t)
-        lo = eval_const(self.conditional())
+        sw_ty = self.cur_switch.cond.ty
+        lo = wrap(eval_const(self.conditional()), sw_ty)
         hi = lo
         if self.accept("..."):
-            hi = eval_const(self.conditional())
+            hi = wrap(eval_const(self.conditional()), sw_ty)
         self.expect(":")
+        self.check_case_overlap(t, lo, hi)
         c = N.Case(t.loc, lo, hi, None, self.new_label())
-        self.cur_switch.cases.append(c)
+        if lo <= hi:      # an empty range matches nothing: keep only its label
+            self.cur_switch.cases.append(c)
         c.body = None if self.at("}") else self.stmt()
         return c
+
+    def check_case_overlap(self, t, lo: int, hi: int) -> None:
+        """Reject a case value/range that overlaps an earlier one (C11 6.8.4.2).
+        Empty ranges (lo > hi) match nothing and never conflict."""
+        if lo > hi:
+            return
+        for prev in self.cur_switch.cases:
+            if prev.lo <= hi and lo <= prev.hi:
+                self.error("duplicate (or overlapping) case value", t)
 
     def _stmt_default(self, t):
         if self.cur_switch is None:
