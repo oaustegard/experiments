@@ -67,6 +67,8 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
         return "", changed, "empty diff (no changes under hcc/)"
     # --no-renames: a rename would list only the new path and drop the deletion
     patch = git(wt, "diff", "--cached", "--no-renames", "--binary", rec["base"], "--", *files)
+    if re.search(r"^\+(<{7}|>{7}) ", patch, re.M) or re.search(r"^\+={7}$", patch, re.M):
+        return "", changed, "unresolved conflict markers in the diff"
     cached.write_text(patch)
     write_json(tdir / "patch_files.json", files)
     return patch, files, None

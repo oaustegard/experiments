@@ -57,6 +57,24 @@ def source_size(ctx: Ctx):
     return size
 
 
+def premerge_rebase(wt: Path, patch: str) -> list[str] | None:
+    """Re-apply a conflicted worker's diff into a fresh worktree with `git apply --3way`, leaving
+    conflict markers in place for the rebase worker to resolve. Returns the conflicted files ([] when
+    it applied cleanly), or None when it could not be applied at all (the worker then re-applies by
+    hand from the diff path)."""
+    p = subprocess.run(["git", "-C", str(wt), "apply", "--3way", "--whitespace=nowarn", patch],
+                       capture_output=True, text=True)
+    unmerged = subprocess.run(["git", "-C", str(wt), "diff", "--name-only", "--diff-filter=U"],
+                              capture_output=True, text=True).stdout.split()
+    if p.returncode != 0 and not unmerged:
+        subprocess.run(["git", "-C", str(wt), "checkout", "--", "."], capture_output=True)
+        subprocess.run(["git", "-C", str(wt), "clean", "-fdq", "hcc"], capture_output=True)
+        return None
+    # Leave conflicted files as plain working-tree edits: the orchestrator diffs with `git add -A`.
+    subprocess.run(["git", "-C", str(wt), "reset", "-q"], capture_output=True)
+    return unmerged
+
+
 def is_conflict(r: dict) -> bool:
     return r.get("status") == "rejected" and str(r.get("reason", "")).startswith(("conflict", "main kept moving"))
 
@@ -73,7 +91,7 @@ Never make a construct parse-and-silently-miscompile: unsupported parts must sti
 
 
 def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_notes: list[str],
-                rebase_patch: str | None = None) -> str:
+                rebase_patch: str | None = None, conflicted_files: list[str] | None = None) -> str:
     wt = ctx.worktree(tid)
     lines = [f"Task id: {tid}", f"Your worktree (current directory): {wt}", f"Result JSON out path: {out}",
              f"Scratch dir: /tmp/{tid}/", "",
@@ -92,7 +110,14 @@ def task_prompt(ctx: Ctx, tid: str, item: workqueue.WorkItem, out: Path, prev_no
     if prev_notes:
         lines += ["", "Notes from earlier workers on this cluster (their fixes were not merged):"]
         lines += [f"  * {n[:400]}" for n in prev_notes[-2:]]
-    if rebase_patch:
+    if rebase_patch and conflicted_files is not None:
+        lines += ["", "REBASE: an earlier worker fixed this cluster, but its diff conflicted with newer main.",
+                  f"It has been re-applied to your worktree with `git apply --3way` (original diff: {rebase_patch}).",
+                  ("Files with conflict markers (<<<<<<< ours / ======= / >>>>>>> theirs): " + ", ".join(conflicted_files))
+                  if conflicted_files else "It applied without conflicts this time; just verify it.",
+                  "Resolve each conflict keeping the intent of BOTH sides (main's newer code and the earlier fix),",
+                  "remove every marker line, then verify as usual. The gate rejects any leftover marker."]
+    elif rebase_patch:
         lines += ["", f"REBASE: an earlier worker fixed this cluster, but its diff no longer applies because main moved on.",
                   f"Its diff is at {rebase_patch}. Read it, re-apply the same change by hand to the current code",
                   "(the surrounding code may have changed), then verify as usual. Start from that diff, not from scratch."]
@@ -121,7 +146,8 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
                   and r["id"] not in used and (ctx.task_dir(r["id"]) / "patch.diff").exists()]
     rebase_of = conflicted[-1]["id"] if conflicted else None
     rebase_patch = str(ctx.task_dir(rebase_of) / "patch.diff") if rebase_of else None
-    task = {"id": tid, "prompt": task_prompt(ctx, tid, item, out, prev, rebase_patch) + (f"\n[fake:{a.fake_mode}]" if a.fake_mode else ""),
+    conflicted_files = premerge_rebase(wt, rebase_patch) if rebase_patch else None
+    task = {"id": tid, "prompt": task_prompt(ctx, tid, item, out, prev, rebase_patch, conflicted_files) + (f"\n[fake:{a.fake_mode}]" if a.fake_mode else ""),
             "out": str(out), "model": a.model, "tools": TOOLS,
             "allow": [f"Edit(/{wt}/**)", "Edit(//tmp/**)", "Bash"],
             "system_prompt": (ctx.swarm / "worker_prompt.md").read_text(), "timeout": a.timeout}
