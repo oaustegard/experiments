@@ -31,6 +31,113 @@ class BuiltinMixin:
         self.gen_expr(node.args[0])
         self.emit("bswap %rax")
 
+    # Bit-counting builtins. Results are fully defined even for a zero
+    # argument (GCC leaves clz/ctz of 0 undefined): clz/ctz give the width,
+    # ffs gives 0, popcount/parity give 0.
+    def builtin_clz32(self, node) -> None:
+        self._bit_arg32(node)
+        self.emit("mov $-1, %edx")
+        self.emit("bsr %eax, %eax")
+        self.emit("cmovz %edx, %eax")
+        self.emit("neg %eax")
+        self.emit("add $31, %eax")
+
+    def builtin_clz64(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("mov $-1, %edx")
+        self.emit("bsr %rax, %rax")
+        self.emit("cmovz %edx, %eax")
+        self.emit("neg %eax")
+        self.emit("add $63, %eax")
+
+    def builtin_ctz32(self, node) -> None:
+        self._bit_arg32(node)
+        self.emit("mov $32, %edx")
+        self.emit("bsf %eax, %eax")
+        self.emit("cmovz %edx, %eax")
+
+    def builtin_ctz64(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("mov $64, %edx")
+        self.emit("bsf %rax, %rax")
+        self.emit("cmovz %edx, %eax")
+
+    def builtin_ffs32(self, node) -> None:
+        self._bit_arg32(node)
+        self.emit("mov $-1, %edx")
+        self.emit("bsf %eax, %eax")
+        self.emit("cmovz %edx, %eax")
+        self.emit("add $1, %eax")
+
+    def builtin_ffs64(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("mov $-1, %edx")
+        self.emit("bsf %rax, %rax")
+        self.emit("cmovz %edx, %eax")
+        self.emit("add $1, %eax")
+
+    def builtin_popcount32(self, node) -> None:
+        self._bit_arg32(node)
+        self._popcount32()
+
+    def builtin_popcount64(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self._popcount64()
+
+    def builtin_parity32(self, node) -> None:
+        self._bit_arg32(node)
+        self._popcount32()
+        self.emit("and $1, %eax")
+
+    def builtin_parity64(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self._popcount64()
+        self.emit("and $1, %eax")
+
+    def _bit_arg32(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("mov %eax, %eax")  # clear any upper garbage
+
+    def _popcount32(self) -> None:
+        """SWAR population count of %eax (clobbers %edx)."""
+        self.emit("mov %eax, %edx")
+        self.emit("shr $1, %edx")
+        self.emit("and $0x55555555, %edx")
+        self.emit("sub %edx, %eax")
+        self.emit("mov %eax, %edx")
+        self.emit("and $0x33333333, %eax")
+        self.emit("shr $2, %edx")
+        self.emit("and $0x33333333, %edx")
+        self.emit("add %edx, %eax")
+        self.emit("mov %eax, %edx")
+        self.emit("shr $4, %edx")
+        self.emit("add %edx, %eax")
+        self.emit("and $0x0f0f0f0f, %eax")
+        self.emit("imul $0x01010101, %eax, %eax")
+        self.emit("shr $24, %eax")
+
+    def _popcount64(self) -> None:
+        """SWAR population count of %rax (clobbers %rdx, %rcx)."""
+        self.emit("mov %rax, %rdx")
+        self.emit("shr $1, %rdx")
+        self.emit("movabs $0x5555555555555555, %rcx")
+        self.emit("and %rcx, %rdx")
+        self.emit("sub %rdx, %rax")
+        self.emit("movabs $0x3333333333333333, %rcx")
+        self.emit("mov %rax, %rdx")
+        self.emit("and %rcx, %rax")
+        self.emit("shr $2, %rdx")
+        self.emit("and %rcx, %rdx")
+        self.emit("add %rdx, %rax")
+        self.emit("mov %rax, %rdx")
+        self.emit("shr $4, %rdx")
+        self.emit("add %rdx, %rax")
+        self.emit("movabs $0x0f0f0f0f0f0f0f0f, %rcx")
+        self.emit("and %rcx, %rax")
+        self.emit("movabs $0x0101010101010101, %rcx")
+        self.emit("imul %rcx, %rax")
+        self.emit("shr $56, %rax")
+
     def builtin_alloca(self, node) -> None:
         self.gen_expr(node.args[0])
         self._alloca_rax()

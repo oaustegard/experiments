@@ -24,15 +24,37 @@ __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_p
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 """.split())
 
+# Bit-counting builtins: {clz,ctz,popcount,parity,ffs}{,l,ll}. The suffix picks
+# the operand width (int = 32 bit, long/long long = 64 bit).
+BIT_BUILTINS = frozenset(
+    f"__builtin_{base}{suffix}"
+    for base in ("clz", "ctz", "popcount", "parity", "ffs")
+    for suffix in ("", "l", "ll"))
+SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS
+
 
 class BuiltinParseMixin:
 
     def parse_builtin(self, tok):
         name = tok.text[len("__builtin_"):]
         self.expect("(")
-        node = getattr(self, "_b_" + name)(tok)
+        if tok.text in BIT_BUILTINS:
+            node = self._bitop(tok, name)
+        else:
+            node = getattr(self, "_b_" + name)(tok)
         self.expect(")")
         return node
+
+    def _bitop(self, tok, name):
+        """clz/ctz/popcount/parity/ffs: argument converted to unsigned int
+        (or unsigned long for the l/ll forms); result is int."""
+        base = name.rstrip("l")
+        bits = 64 if name[len(base):] else 32
+        ty = T.TY_ULONG if bits == 64 else T.TY_UINT
+        if base == "ffs":  # ffs takes an int; the bit pattern is the same
+            ty = T.TY_LONG if bits == 64 else T.TY_INT
+        args = [new_cast(a, ty) for a in self._args(1)]
+        return self._call(tok, f"{base}{bits}", args, T.TY_INT)
 
     def _args(self, n=None):
         args = []
