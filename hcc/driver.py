@@ -132,9 +132,15 @@ def compile_to_asm(path: str, opts: Options) -> str:
     toks = preprocess_file(path, opts)
     with diag.stage("parse"):
         c23 = (opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
-        # `asm` and `typeof` are extension keywords: off in strict ISO modes and under -fno-asm.
+        # `asm` is an extension keyword: off in strict ISO modes and under -fno-asm.
+        # `typeof` is an extension keyword before C23 but a standard one from C23 on.
         strict = not (opts.std or "gnu17").lower().startswith("gnu")
-        off = frozenset(("asm", "typeof") if strict or opts.no_asm else ())
+        off = set()
+        if strict or opts.no_asm:
+            off.add("asm")
+        if (strict and not c23) or opts.no_asm:
+            off.add("typeof")
+        off = frozenset(off)
         toks = convert_tokens(toks, u8_unsigned=c23, c23=c23, off_keywords=off)
         tu = parse(toks, opts)
     if opts.dump_ast:

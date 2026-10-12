@@ -42,7 +42,7 @@ _COUNTS = {"void": VOID, "_Bool": BOOL, "char": CHAR, "short": SHORT, "int": INT
 
 TYPE_KEYWORDS = frozenset(_COUNTS) | frozenset("""
 typedef static extern inline _Thread_local auto register _Noreturn const volatile restrict
-_Atomic _Alignas struct union enum typeof __attribute__ __declspec __extension__
+_Atomic _Alignas struct union enum typeof typeof_unqual __attribute__ __declspec __extension__
 __builtin_va_list __auto_type __float128 __uint128_t _Complex __complex__ __complex __label__
 constexpr
 """.split())
@@ -188,8 +188,8 @@ class DeclSpecMixin:
             # user-defined / special types
             td = self.find_typedef(tok)
             is_floatn = tok.kind == TokenKind.IDENT and s in FLOATN_TYPES and td is None
-            if s in ("struct", "union", "enum", "typeof", "__builtin_va_list", "__auto_type",
-                     "__float128", "__uint128_t") or td is not None or is_floatn:
+            if s in ("struct", "union", "enum", "typeof", "typeof_unqual", "__builtin_va_list",
+                     "__auto_type", "__float128", "__uint128_t") or td is not None or is_floatn:
                 if counter:
                     break          # e.g. "typedef int T; int T;" -> T is a declarator
                 self.next()
@@ -201,6 +201,8 @@ class DeclSpecMixin:
                     ty = self.enum_specifier(attr)
                 elif s == "typeof":
                     ty = self.typeof_specifier()
+                elif s == "typeof_unqual":
+                    ty = self.typeof_specifier(unqual=True)
                 elif s == "__builtin_va_list":
                     ty = T.va_list_type()
                 elif s == "__float128":
@@ -244,7 +246,7 @@ class DeclSpecMixin:
             ty.is_atomic |= is_atomic
         return ty
 
-    def typeof_specifier(self):
+    def typeof_specifier(self, unqual=False):
         self.expect("(")
         if self.is_typename():
             ty = self.scoped_typename()
@@ -256,4 +258,8 @@ class DeclSpecMixin:
                 # typeof(vm-expr) evaluates expr; locals.py emits it as a statement.
                 self.vm_typeof.append(node)
         self.expect(")")
+        if unqual and ty is not None and (ty.is_const or ty.is_volatile or ty.is_atomic):
+            # typeof_unqual: drop the top-level qualifiers of the operand's type.
+            ty = ty.copy()
+            ty.is_const = ty.is_volatile = ty.is_atomic = False
         return ty

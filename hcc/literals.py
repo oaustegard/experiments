@@ -32,7 +32,10 @@ KEYWORD_ALIASES = {
     "__complex__": "_Complex", "__complex": "_Complex",
     "__real": "__real__", "__imag": "__imag__",
     "__int128_t": "__int128",
+    "__typeof_unqual": "typeof_unqual", "__typeof_unqual__": "typeof_unqual",
 }
+# C23 typeof_unqual (plain spelling only in C23 mode; the __ spellings are always keywords).
+TYPEOF_UNQUAL_SPELLINGS = frozenset(("typeof_unqual", "__typeof_unqual", "__typeof_unqual__"))
 
 _ESCAPES = {"a": 7, "b": 8, "f": 12, "n": 10, "r": 13, "t": 9, "v": 11, "e": 27, "E": 27,
             "\\": 92, "'": 39, '"': 34, "?": 63}
@@ -223,7 +226,8 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
         if k == TokenKind.IDENT:
             if c23 and t.text in ("true", "false"):
                 t = _c23_bool_const(t)
-            elif (t.text in KEYWORDS and t.text not in off_keywords) or (c23 and t.text == "constexpr"):
+            elif (t.text in KEYWORDS and t.text not in off_keywords) or (c23 and t.text == "constexpr") \
+                    or (t.text in TYPEOF_UNQUAL_SPELLINGS and (c23 or t.text.startswith("__"))):
                 t = t.copy()
                 t.kind = TokenKind.KEYWORD
                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
