@@ -1,0 +1,5 @@
+{
+  "description": "Redis 7.2.5 (git tag, commit-pinned, fetched into tests/tools), MALLOC=libc, redis-server built by hcc (100 src/ files + Lua 5.1, hdr_histogram, fpconv objects; flags taken from the gcc build) and run through Redis' own Tcl test suite (tclsh, ./runtest --single FILE). case/<file>/<n>_<slug>: one `[ok]` test case, same status as with the gcc-built server (objects hcc cannot compile yet are replaced by gcc objects). src/*: one object by hcc, rest gcc, smoke files unit/type/incr and unit/type/string. manifest.json lists the cases (tests/scripts/gen_redis_manifest.py). Driver: tests/drivers/redis.py",
+  "driver": "redis",
+  "cflags": ["-w"]
+}
