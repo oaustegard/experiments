@@ -15,6 +15,10 @@ from hcc.tokens import TokenKind
 from hcc import typesys as T
 
 
+def _kind_word(kind) -> str:
+    return "struct" if kind == T.TypeKind.STRUCT else "union"
+
+
 class StructMixin:
 
     def struct_decl(self, kind):
@@ -32,17 +36,26 @@ class StructMixin:
             ty.tag = tag.text
             self.scopes[-1].tags[tag.text] = ty
             return ty
+        brace_pos = self.pos
+        def_pos = self.__dict__.setdefault("struct_def_pos", {})   # id(ty) -> '{' index
         self.expect("{")
         ty = None
         if tag is not None:
             prev = self.scopes[-1].tags.get(tag.text)
             if prev is not None and not prev.is_complete and prev.kind == kind:
                 ty = prev
+            elif prev is not None and prev.is_complete and prev.kind == kind:
+                # a second body for the same tag in one scope; a re-parse of the
+                # same declaration (compound-literal backtrack) is not a redefinition
+                # (types stay alive in the scopes that name them, so id() is stable)
+                if def_pos.get(id(prev)) != brace_pos:
+                    diag.error(tag, f"redefinition of '{_kind_word(kind)} {tag.text}'")
         if ty is None:
             ty = T.struct_type(kind)
             ty.tag = tag.text if tag else None
             if tag is not None:
                 self.scopes[-1].tags[tag.text] = ty
+                def_pos[id(ty)] = brace_pos
         members = self.struct_members()
         self.parse_attributes(attr)
         ty.members = members
