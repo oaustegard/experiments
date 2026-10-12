@@ -95,6 +95,8 @@ class TopLevelMixin:
                 if ty.enum_consts == "knr" and not self.at(";") and not self.at(","):
                     self.knr_params(ty)
                 if self.at("{"):
+                    if ty.enum_consts == "knr":
+                        self.check_knr_definition(fn, ty, name)
                     fn.ty = ty
                     self.function_definition(fn, ty, self.gnu89_extern_inline(attr))
                     return
@@ -252,6 +254,15 @@ class TopLevelMixin:
                 ty = T.TY_DOUBLE        # default argument promotion (not for _Float32)
             params.append(ty)
         fty.params = params
+
+    def check_knr_definition(self, fn, ty, name) -> None:
+        """An old-style definition must match an earlier prototype in arity
+        (C11 6.7.6.3p15 / gcc: 'number of arguments doesn't match prototype')."""
+        proto = fn.ty
+        if proto is None or proto is ty or not proto.has_proto:
+            return
+        if len(proto.params) != len(ty.param_names):
+            self.error(f"number of arguments doesn't match prototype", name.loc)
 
     def check_param_complete(self, i, pty, pname, loc) -> None:
         """C11 6.9.1p10: parameters of a function definition need complete
