@@ -43,6 +43,9 @@ class StructMixin:
         ty = None
         if tag is not None:
             prev = self.scopes[-1].tags.get(tag.text)
+            if prev is not None and prev.is_complete and prev.kind == kind:
+                kw = "struct" if kind == T.TypeKind.STRUCT else "union"
+                self.error(f"redefinition of '{kw} {tag.text}'", tag)
             if prev is not None and not prev.is_complete and prev.kind == kind:
                 ty = prev
             elif prev is not None and prev.is_complete and prev.kind == kind:
