@@ -20,6 +20,7 @@ class Options:
     includes: list[str] = field(default_factory=list)         # -include FILE
     std: str = "gnu17"
     nostdinc: bool = False
+    trigraphs: bool = False            # -trigraphs (also implied by strict -std=)
     gnu89_inline: bool = False         # -fgnu89-inline
     linker_args: list[str] = field(default_factory=list)
     keep_temps: bool = False

@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 
 from hcc import diag
-from hcc.lexer import C90_STDS, tokenize
+from hcc.lexer import C90_STDS, TRIGRAPH_STDS, tokenize
 from hcc.preprocess.conditionals import ConditionalMixin
 from hcc.preprocess.directives import DirectiveMixin
 from hcc.preprocess.includes import IncludeMixin
@@ -62,10 +62,16 @@ class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
         """`u8'x'` is a character constant only in C23 modes."""
         return (self.opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
 
+    @property
+    def trigraphs(self) -> bool:
+        """Trigraphs are on in strict ISO modes (-std=c11, -ansi) or with -trigraphs."""
+        return self.opts.trigraphs or (self.opts.std or "").lower() in TRIGRAPH_STDS
+
     def run(self, path: str) -> list[Token]:
         self.base_file = path
         main = self.file_tokens(path)
-        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments, self.u8_chars)
+        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments,
+                           self.u8_chars, self.trigraphs)
         self.stack = []
         self.push_tokens(main)
         cmd_eof = cmdline.pop()      # drop its EOF so it flows into the main file
@@ -79,8 +85,9 @@ class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
         """Preprocess a string (used by tests and -x c -)."""
         self.base_file = path
         self.stack = []
-        self.push_tokens(tokenize(text, path, self.line_comments, self.u8_chars))
-        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments, self.u8_chars)
+        self.push_tokens(tokenize(text, path, self.line_comments, self.u8_chars, self.trigraphs))
+        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments,
+                           self.u8_chars, self.trigraphs)
         cmdline.pop()
         self.push_tokens(cmdline)
         return self._loop()

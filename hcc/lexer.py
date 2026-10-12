@@ -94,8 +94,27 @@ def remove_splices(text: str) -> str:
     return result[:-1] if not text.endswith("\n") and result.endswith("\n") else result
 
 
+_TRIGRAPHS = {"=": "#", "(": "[", "/": "\\", ")": "]", "'": "^",
+              "<": "{", "!": "|", ">": "}", "-": "~"}
+_TRIGRAPH_RE = re.compile(r"\?\?([=(/)'<!>-])")
+# -std values in which trigraphs are enabled (strict ISO modes); gnu* disable them
+TRIGRAPH_STDS = frozenset({"c89", "c90", "c99", "c9x", "c11", "c1x", "c17", "c18",
+                           "c2x", "c23", "ansi", "iso9899:1990", "iso9899:199409",
+                           "iso9899:1999", "iso9899:199x", "iso9899:2011",
+                           "iso9899:2017", "iso9899:2018", "iso9899:2024"})
+
+
+def replace_trigraphs(text: str) -> str:
+    """Translation phase 1: replace the nine trigraph sequences (C11 5.2.1.1)."""
+    if "??" not in text:
+        return text
+    return _TRIGRAPH_RE.sub(lambda m: _TRIGRAPHS[m.group(1)], text)
+
+
 def tokenize(text: str, path: str, line_comments: bool = True,
-             u8_chars: bool = False) -> list[Token]:
+             u8_chars: bool = False, trigraphs: bool = False) -> list[Token]:
+    if trigraphs:
+        text = replace_trigraphs(text)
     text = remove_splices(text)
     toks: list[Token] = []
     line = 1
@@ -146,5 +165,5 @@ def read_source(path: str) -> str:
 
 
 def tokenize_file(path: str, line_comments: bool = True,
-                  u8_chars: bool = False) -> list[Token]:
-    return tokenize(read_source(path), path, line_comments, u8_chars)
+                  u8_chars: bool = False, trigraphs: bool = False) -> list[Token]:
+    return tokenize(read_source(path), path, line_comments, u8_chars, trigraphs)
