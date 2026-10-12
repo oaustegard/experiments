@@ -118,6 +118,8 @@ class InitializerMixin:
 
     def _grow(self, init, i: int) -> bool:
         """Make child i exist for flexible arrays. False if out of range."""
+        if i < 0:
+            return False
         if init.is_flexible:
             while len(init.children) <= i:
                 init.children.append(new_initializer(init.ty.base, False))
