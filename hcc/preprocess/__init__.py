@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 
 from hcc import diag
-from hcc.lexer import C90_STDS, TRIGRAPH_STDS, tokenize
+from hcc.lexer import C90_LITERAL_STDS, C90_STDS, TRIGRAPH_STDS, tokenize
 from hcc.preprocess.macros import Macro
 from hcc.preprocess.padding import fold_pad, is_pad
 from hcc.preprocess.predefined import DYNAMIC_MACROS, predefined_source
@@ -66,6 +66,11 @@ class Preprocessor(*assemble_mixins("hcc.preprocess", object)):
         return (self.opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
 
     @property
+    def c90_literals(self) -> bool:
+        """No u8/u/U literal prefixes before C11 (gnu89 `u"a"` is identifier + string)."""
+        return (self.opts.std or "gnu11").lower() in C90_LITERAL_STDS
+
+    @property
     def trigraphs(self) -> bool:
         """Trigraphs are on in strict ISO modes (-std=c11, -ansi) or with -trigraphs."""
         return self.opts.trigraphs or (self.opts.std or "").lower() in TRIGRAPH_STDS
@@ -74,7 +79,7 @@ class Preprocessor(*assemble_mixins("hcc.preprocess", object)):
         self.base_file = path
         main = self.file_tokens(path)
         cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments,
-                           self.u8_chars, self.trigraphs)
+                           self.u8_chars, self.trigraphs, self.c90_literals)
         self.stack = []
         self.push_tokens(main)
         cmd_eof = cmdline.pop()      # drop its EOF so it flows into the main file
@@ -88,9 +93,10 @@ class Preprocessor(*assemble_mixins("hcc.preprocess", object)):
         """Preprocess a string (used by tests and -x c -)."""
         self.base_file = path
         self.stack = []
-        self.push_tokens(tokenize(text, path, self.line_comments, self.u8_chars, self.trigraphs))
+        self.push_tokens(tokenize(text, path, self.line_comments, self.u8_chars,
+                                  self.trigraphs, self.c90_literals))
         cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments,
-                           self.u8_chars, self.trigraphs)
+                           self.u8_chars, self.trigraphs, self.c90_literals)
         cmdline.pop()
         self.push_tokens(cmdline)
         return self._loop()

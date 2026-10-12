@@ -43,8 +43,12 @@ _TOKEN_SRC = r"""
   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
   | (?P<other>.)
 """
-def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
+def _make_scanner(line_comments: bool, u8_chars: bool, c90_literals: bool = False) -> "re.Pattern[str]":
     src = _TOKEN_SRC
+    if c90_literals:
+        # gnu89/gnu90 (and C89/C90) have no u8/u/U literal prefixes: `u"a"` is the
+        # identifier `u` followed by a string (dg utf-dflt, utf-dflt2).
+        src = src.replace("(?:u8|u|U|L)?", "(?:L)?")
     if not line_comments:
         # C89/C90 have no `//` comments: drop the `lc` alternative.
         src = src.replace(r"  | (?P<lc>//[^\n]*)" + "\n", "")
@@ -72,9 +76,12 @@ def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
     return re.compile(src, re.VERBOSE | re.DOTALL)
 
 
-_SCANNERS = {(lc, u8): _make_scanner(lc, u8) for lc in (True, False) for u8 in (True, False)}
+_SCANNERS = {(lc, u8, c90): _make_scanner(lc, u8, c90) for lc in (True, False)
+             for u8 in (True, False) for c90 in (True, False)}
 # Strict -std values that do not recognise `//` comments (GCC: gnu89/gnu90 keep them)
 C90_STDS = frozenset({"c89", "c90", "iso9899:1990", "iso9899:199409", "ansi"})
+# -std values without u8/u/U literal prefixes (pre-C11; gnu89/gnu90 included)
+C90_LITERAL_STDS = C90_STDS | frozenset({"gnu89", "gnu90"})
 
 _UCN_RE = re.compile(r"\\u([0-9A-Fa-f]{4})|\\U([0-9A-Fa-f]{8})")
 
@@ -129,7 +136,8 @@ def replace_trigraphs(text: str) -> str:
 
 
 def tokenize(text: str, path: str, line_comments: bool = True,
-             u8_chars: bool = False, trigraphs: bool = False) -> list[Token]:
+             u8_chars: bool = False, trigraphs: bool = False,
+             c90_literals: bool = False) -> list[Token]:
     if trigraphs:
         text = replace_trigraphs(text)
     text = remove_splices(text)
@@ -138,7 +146,7 @@ def tokenize(text: str, path: str, line_comments: bool = True,
     line_start = 0
     bol = True
     space = False
-    scanner = _SCANNERS[(bool(line_comments), bool(u8_chars))]
+    scanner = _SCANNERS[(bool(line_comments), bool(u8_chars), bool(c90_literals))]
     for m in scanner.finditer(text):
         kind = m.lastgroup
         if kind == "nl":
@@ -186,5 +194,6 @@ def read_source(path: str) -> str:
 
 
 def tokenize_file(path: str, line_comments: bool = True,
-                  u8_chars: bool = False, trigraphs: bool = False) -> list[Token]:
-    return tokenize(read_source(path), path, line_comments, u8_chars, trigraphs)
+                  u8_chars: bool = False, trigraphs: bool = False,
+                  c90_literals: bool = False) -> list[Token]:
+    return tokenize(read_source(path), path, line_comments, u8_chars, trigraphs, c90_literals)
