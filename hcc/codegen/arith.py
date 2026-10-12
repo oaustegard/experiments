@@ -5,11 +5,25 @@ ArithMixin.expr_Binary(node): rhs -> push, lhs -> %rax, pop rhs -> %rdi.
 """
 from __future__ import annotations
 
+from dataclasses import fields, is_dataclass
+
 from hcc.codegen.expressions import _contains_call
 from hcc.typesys import TypeKind, is_flonum
 
 _SETCC = {"==": ("sete", "sete"), "!=": ("setne", "setne"), "<": ("setl", "setb"),
           "<=": ("setle", "setbe"), ">": ("setg", "seta"), ">=": ("setge", "setae")}
+
+
+def _contains_comma(node) -> bool:
+    """True if the tree holds a Comma (e.g. a VLA length binding from vla_prefix)."""
+    if type(node).__name__ == "Comma":
+        return True
+    if isinstance(node, list):
+        return any(_contains_comma(x) for x in node)
+    if not is_dataclass(node):
+        return False
+    return any(_contains_comma(getattr(node, f.name, None)) for f in fields(node)
+               if f.name not in ("ty", "var", "member", "loc", "scope"))
 
 
 class ArithMixin:
@@ -20,7 +34,10 @@ class ArithMixin:
         lty = node.lhs.ty
         if is_flonum(lty):
             return self.float_binary(node)
-        if _contains_call(node.lhs) and not _contains_call(node.rhs):
+        # lhs-first when the lhs holds a VLA length binding (a Comma from
+        # vla_prefix) that the rhs reads, e.g. `(*(int (*)[n])p)[1]`.
+        if (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
+                (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
             # Only a call-free operand may be parked on the stack: a value
             # pushed before a call (e.g. setjmp, whose resumption reuses the
             # stack slot) would be clobbered. Evaluate the call side first.

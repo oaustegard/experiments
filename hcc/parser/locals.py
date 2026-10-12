@@ -32,7 +32,7 @@ class LocalDeclMixin:
                 self.expect("=")
                 e = self.typed(self.assign())
                 ty = e.ty
-                if ty.kind == T.TypeKind.ARRAY:
+                if ty.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA):   # arrays decay (VLAs too)
                     ty = T.pointer_to(ty.base)
                 var = self.new_lvar(name.text, ty, name.loc)
                 items.append(N.ExprStmt(name.loc, self.typed(N.Assign(name.loc, self.typed(N.VarRef(name.loc, var)), e))))
