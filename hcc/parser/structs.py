@@ -34,6 +34,9 @@ class StructMixin:
         self.parse_attributes(attr)
         if tag is not None and not self.at("{"):
             ty = self.find_tag(tag.text)
+            if ty is not None and self.at(";"):
+                # empty declaration: a visible tag of either kind is noted for the declspec check
+                self.empty_tag_hit = (tag, ty.kind != kind)
             if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
                 return ty
             ty = T.struct_type(kind)

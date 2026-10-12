@@ -151,6 +151,7 @@ class DeclSpecMixin:
         auto_infer = False
         is_const = is_volatile = is_atomic = is_complex = is_restrict = False
         seen_storage = set()  # storage class specifiers seen in this declaration
+        tag_hit = None        # struct/union tag of an empty declaration (see StructMixin.struct_decl)
         while self.is_typename():
             if self.at_std_attribute():
                 self.skip_std_attributes()
@@ -241,7 +242,10 @@ class DeclSpecMixin:
                     self.check_unavailable(tok.text, tok)
                 self.next()
                 if spec is not None:
+                    self.empty_tag_hit = None
                     ty = spec(self, tok, attr)
+                    tag_hit = self.empty_tag_hit or tag_hit
+                    self.empty_tag_hit = None
                 elif is_floatn:
                     ty = NAMED_SCALAR_TYPES[s]
                 else:
@@ -257,6 +261,8 @@ class DeclSpecMixin:
                     pass
                 self.error(f"invalid type: '{s}' here")
             ty = _BASE_TYPES[counter]
+        if tag_hit is not None:
+            _check_empty_tag_decl(self, tag_hit, is_const or is_volatile or is_restrict, seen_storage - {"typedef"})
         if auto_infer and counter == 0 and attr is not None:
             return None         # type comes from the initializer, as for __auto_type
         if is_complex:
@@ -320,3 +326,15 @@ def _qualified_vector(vty, is_const, is_volatile):
     elem.is_const |= is_const
     elem.is_volatile |= is_volatile
     return T.vector_of(elem, vty.size)
+
+
+def _check_empty_tag_decl(self, tag_hit, quals: bool, storage: set) -> None:
+    """C99 6.7.2.3p8: `const struct T;` / `extern union T;` with T visible does not redeclare T."""
+    if not (quals or storage):
+        return
+    tok, wrong_kind = tag_hit
+    if wrong_kind:
+        self.error(f"'{tok.text}' defined as wrong kind of tag", tok)
+    if quals:
+        self.error("empty declaration with type qualifier does not redeclare tag", tok)
+    self.error("empty declaration with storage class specifier does not redeclare tag", tok)
