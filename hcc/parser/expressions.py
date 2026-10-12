@@ -48,6 +48,7 @@ class ExpressionMixin:
             self.check_assignable(node, t)
             if op is None:
                 return self.typed(N.Assign(t.loc, node, rhs))
+            node, rhs = promote_vector_operands(self, t.loc, op, node, rhs)
             return compound_assign(op, node, rhs, t.loc, self.new_temp)
         return node
 

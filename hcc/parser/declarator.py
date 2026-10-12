@@ -145,7 +145,7 @@ class DeclaratorMixin:
             pty, name = self.declarator(base)
             self.parse_attributes()
             dim = None
-            if pty.kind == T.TypeKind.ARRAY or pty.kind == T.TypeKind.VLA:
+            if (pty.kind == T.TypeKind.ARRAY and not pty.is_vector) or pty.kind == T.TypeKind.VLA:
                 q = pty
                 dim = q.vla_len if q.kind == T.TypeKind.VLA else None
                 pty = T.pointer_to(pty.base)

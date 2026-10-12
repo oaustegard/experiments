@@ -10,7 +10,7 @@ Struct return: >16 bytes uses the hidden pointer saved at self.ret_ptr_offset.
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import struct_arg_regs, struct_in_regs
+from hcc.codegen.abi import abi_kind, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS8, ARG_REGS16, ARG_REGS32, ARG_REGS64
 from hcc.typesys import TypeKind, align_to
 
@@ -22,12 +22,12 @@ class FunctionMixin:
         gp = fp = 0
         stack_off = 16
         ret = fn.ty.return_ty
-        if ret.kind in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16:
+        if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16:
             gp = 1
         result = []
         for p in fn.params:
             ty = p.ty
-            k = ty.kind
+            k = abi_kind(ty)
             where = None
             if k in (TypeKind.STRUCT, TypeKind.UNION):
                 regs = struct_arg_regs(ty)
@@ -60,7 +60,7 @@ class FunctionMixin:
         offset = 0
         ret = fn.ty.return_ty
         self.ret_ptr_offset = None
-        if ret.kind in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16:
+        if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16:
             offset += 8
             self.ret_ptr_offset = -offset
         # Lay out in reverse declaration order so that, as with gcc -O0, the

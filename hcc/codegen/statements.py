@@ -5,7 +5,7 @@ StatementMixin: one `stmt_<NodeClass>` method per statement node.
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import struct_in_regs
+from hcc.codegen.abi import abi_kind, struct_in_regs
 from hcc.sema.constexpr import try_eval_const
 from hcc.typesys import TypeKind
 
@@ -195,7 +195,7 @@ class StatementMixin:
         if node.expr is not None:
             self.gen_expr(node.expr)
             ty = node.expr.ty
-            if ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
+            if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
                 if ty.size == 0:
                     pass  # empty struct: nothing to return
                 elif ty.size <= 16:

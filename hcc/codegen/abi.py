@@ -50,5 +50,11 @@ def struct_in_regs(ty):
     return fp1, fp2
 
 
+def abi_kind(ty):
+    """TypeKind used for call/return ABI decisions: GCC vector values are
+    passed and returned like structs (their address is the value)."""
+    return TypeKind.STRUCT if ty.is_vector else ty.kind
+
+
 def eightbytes(ty) -> int:
     return 1 if ty.size <= 8 else 2

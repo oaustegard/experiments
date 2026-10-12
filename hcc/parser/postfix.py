@@ -102,7 +102,7 @@ class PostfixMixin:
                 a = default_arg_promote(a)
             conv.append(a)
         node = N.Call(loc, fn, conv, fty)
-        if is_struct_like(fty.return_ty):
+        if is_struct_like(fty.return_ty) or fty.return_ty.is_vector:
             node.ret_buffer = self.new_temp(fty.return_ty)
         return self.typed(node)
 

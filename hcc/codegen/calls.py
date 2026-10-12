@@ -10,14 +10,14 @@ CallMixin.expr_Call(node):
 """
 from __future__ import annotations
 
-from hcc.codegen.abi import struct_arg_regs, struct_in_regs
+from hcc.codegen.abi import abi_kind, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS64
 from hcc.typesys import TypeKind, align_to
 
 
 def _stack_footprint(ty) -> int:
     """Bytes a stack-passed argument of type ty occupies (as pushed)."""
-    if ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
+    if abi_kind(ty) in (TypeKind.STRUCT, TypeKind.UNION):
         return align_to(ty.size, 8)
     if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
         return 16
@@ -30,12 +30,12 @@ class CallMixin:
         """Returns (on_stack: list[bool], stack_slots: int)."""
         gp = fp = stack = 0
         ret = node.ty
-        if ret.kind in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16:
+        if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16:
             gp += 1
         on_stack = []
         for a in node.args:
             ty = a.ty
-            k = ty.kind
+            k = abi_kind(ty)
             by_stack = False
             if k in (TypeKind.STRUCT, TypeKind.UNION):
                 regs = struct_arg_regs(ty)
@@ -83,7 +83,7 @@ class CallMixin:
 
     def _push_arg(self, a) -> None:
         self.gen_expr(a)
-        k = a.ty.kind
+        k = abi_kind(a.ty)
         if k in (TypeKind.STRUCT, TypeKind.UNION):
             sz = align_to(a.ty.size, 8)
             self.emit(f"sub ${sz}, %rsp")
@@ -130,7 +130,7 @@ class CallMixin:
             if not on_stack[i]:
                 self._push_arg(args[i])
         ret = node.ty
-        big_ret = ret.kind in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16
+        big_ret = abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16
         if big_ret:
             self.emit(f"lea {node.ret_buffer.offset}(%rbp), %rax")
             self.push()
@@ -142,7 +142,7 @@ class CallMixin:
         for i, a in enumerate(args):
             if on_stack[i]:
                 continue
-            k = a.ty.kind
+            k = abi_kind(a.ty)
             if k in (TypeKind.STRUCT, TypeKind.UNION):
                 fp1, fp2 = struct_in_regs(a.ty)
                 n = 1 if a.ty.size <= 8 else 2
@@ -174,7 +174,7 @@ class CallMixin:
                 self.emit(f"{'movzbl' if ret.is_unsigned else 'movsbl'} %al, %eax")
             else:
                 self.emit(f"{'movzwl' if ret.is_unsigned else 'movswl'} %ax, %eax")
-        if k in (TypeKind.STRUCT, TypeKind.UNION) and not big_ret:
+        if abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and not big_ret:
             self.copy_ret_regs_to_buffer(ret, node.ret_buffer.offset)
             self.emit(f"lea {node.ret_buffer.offset}(%rbp), %rax")
 
