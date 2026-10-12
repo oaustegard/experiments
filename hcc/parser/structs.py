@@ -121,6 +121,7 @@ class StructMixin:
                 mattr = VarAttr()
                 ty, name = self.declarator(basety)
                 self.parse_attributes(mattr)
+                check_member_complete(ty, name, self.toks[start])
                 m = T.Member(name.text if name else None, ty)
                 m.tok = name
                 # aligned/_Alignas on a member can only raise its alignment
@@ -146,6 +147,21 @@ class StructMixin:
         for i, m in enumerate(members):
             m.idx = i
         return members
+
+
+def check_member_complete(ty, name, where) -> None:
+    """A member's type (after array dimensions) must be a complete struct/union.
+    Pointers to incomplete types and flexible array members (`T a[]`) are fine."""
+    base = ty
+    while base is not None and base.kind == T.TypeKind.ARRAY:
+        base = base.base
+    if base is None or base.kind not in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        return
+    if complete_struct(base).is_complete:
+        return
+    if name is not None:
+        diag.error(name, f"field '{name.text}' has incomplete type")
+    diag.error(where, "field has incomplete type")
 
 
 def _unnamed_bitfield(m) -> bool:
