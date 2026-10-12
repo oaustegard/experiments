@@ -339,6 +339,8 @@ class ExpressionMixin:
             node = self.unary()
             self.typed(node)
             ty = node.ty
+            if isinstance(node, N.Member_) and node.member.is_bitfield:
+                self.error("'sizeof' applied to a bit-field", t)
             if ty.kind == TypeKind.VLA:
                 # sizeof(expr) of a variably modified type still evaluates
                 # expr (its VLA lengths may have side effects).
