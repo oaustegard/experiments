@@ -83,7 +83,9 @@ def parse_int_literal(tok: Token) -> tuple[int, Type]:
 # floating suffixes, longest first; the _FloatN/_FloatNx forms are GCC's TS 18661 suffixes
 _FLOAT_SUFFIXES = (("f16", TY_FLOAT16), ("f32x", TY_DOUBLE), ("f32", TY_FLOAT),
                    ("f64x", TY_LDOUBLE), ("f64", TY_DOUBLE), ("f128x", TY_FLOAT128),
-                   ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE))
+                   ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE),
+                   ("w", TY_LDOUBLE), ("q", TY_FLOAT128))
+_IMAG_SUFFIXES = ("i", "j")
 
 
 def parse_number(tok: Token):
@@ -92,6 +94,10 @@ def parse_number(tok: Token):
     is_hex = low.startswith("0x")
     if not is_hex and ("." in s or "e" in low) or is_hex and ("." in s or "p" in low):
         ty, body = TY_DOUBLE, s
+        # imaginary suffix (i/j, optionally after f/l) -- _Complex is not implemented yet
+        im = low.rstrip("fl") if low[-1:] in ("f", "l") else low
+        if im[-1:] in _IMAG_SUFFIXES:
+            diag.error(tok, f"imaginary floating constant '{s}' is not supported")
         for suf, suf_ty in _FLOAT_SUFFIXES:
             if low.endswith(suf):
                 ty, body = suf_ty, s[: -len(suf)]

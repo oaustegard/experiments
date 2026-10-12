@@ -42,7 +42,7 @@ _COUNTS = {"void": VOID, "_Bool": BOOL, "char": CHAR, "short": SHORT, "int": INT
 TYPE_KEYWORDS = frozenset(_COUNTS) | frozenset("""
 typedef static extern inline _Thread_local auto register _Noreturn const volatile restrict
 _Atomic _Alignas struct union enum typeof __attribute__ __declspec __extension__
-__builtin_va_list __auto_type __float128 __uint128_t _Complex __complex__ __complex __label__
+__builtin_va_list __auto_type __float128 __float80 __uint128_t _Complex __complex__ __complex __label__
 constexpr
 """.split())
 
@@ -160,7 +160,7 @@ class DeclSpecMixin:
             td = self.find_typedef(tok)
             is_floatn = tok.kind == TokenKind.IDENT and s in FLOATN_TYPES and td is None
             if s in ("struct", "union", "enum", "typeof", "__builtin_va_list", "__auto_type",
-                     "__float128", "__uint128_t") or td is not None or is_floatn:
+                     "__float128", "__float80", "__uint128_t") or td is not None or is_floatn:
                 if counter:
                     break          # e.g. "typedef int T; int T;" -> T is a declarator
                 self.next()
@@ -176,6 +176,8 @@ class DeclSpecMixin:
                     ty = T.va_list_type()
                 elif s == "__float128":
                     ty = T.TY_FLOAT128
+                elif s == "__float80":
+                    ty = T.TY_LDOUBLE
                 elif s == "__uint128_t":
                     ty = T.TY_UINT128
                 elif s == "__auto_type":

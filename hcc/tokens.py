@@ -69,7 +69,7 @@ _Static_assert _Thread_local __complex__ __complex
 __attribute__ __attribute __asm__ __asm asm __extension__ __typeof__ __typeof typeof
 __restrict __restrict__ __inline __inline__ __const __const__ __volatile__ __volatile
 __signed__ __signed __alignof__ __alignof __thread __label__
-__builtin_va_list __int128 __int128_t __uint128_t __float128
+__builtin_va_list __int128 __int128_t __uint128_t __float128 __float80
 __auto_type __builtin_va_arg __builtin_offsetof __complex__ __complex
 __builtin_types_compatible_p __real__ __imag__ __real __imag
 """.split())
