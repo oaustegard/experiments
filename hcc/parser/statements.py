@@ -26,6 +26,7 @@ class StatementMixin:
     def compound_stmt_body(self, loc) -> N.Block:
         items = []
         self.enter_scope()
+        self.jump_scope.enter_block()
         outer_saves = getattr(self, "block_vla_saves", None)
         self.block_vla_saves = []
         while not self.accept("}"):
@@ -45,6 +46,7 @@ class StatementMixin:
                 continue
             items.append(self.stmt())
         self.leave_scope()
+        self.jump_scope.leave_block()
         saves = self.block_vla_saves
         self.block_vla_saves = outer_saves
         if saves:
@@ -64,6 +66,7 @@ class StatementMixin:
             self.next()
             self.parse_attributes()
             self.label_names.add(t.text)
+            self.jump_scope.note_label(t.text)
             body = None if self.at("}") else self.stmt()
             return N.Label(t.loc, t.text, body)
         if t.kind == TokenKind.PUNCT and t.text == "{":
@@ -221,6 +224,7 @@ class StatementMixin:
             return N.GotoExpr(t.loc, target)
         name = self.expect_ident()
         self.goto_names.append(name)
+        self.jump_scope.note_goto(name)
         self.expect(";")
         return N.Goto(t.loc, name.text)
 

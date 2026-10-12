@@ -71,6 +71,7 @@ class LocalDeclMixin:
                 items.append(N.ExprStmt(name.loc, self.typed(N.Assign(name.loc, self.typed(N.VarRef(name.loc, var)), e))))
                 continue
             ty, name = self.declarator(basety)
+            self.jump_scope.note_decl(ty)
             if attr.is_constexpr:
                 ty = constexpr_type(ty)
             dattr = VarAttr()

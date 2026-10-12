@@ -10,6 +10,7 @@ Redeclarations reuse the first Obj, so `extern int x; int x = 1;` is one Var.
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import VarAttr, VarScope
 from hcc.parser.declspec import constexpr_type
 from hcc.sema.compat import is_compatible
@@ -301,6 +302,7 @@ class TopLevelMixin:
         # (`int a[i++]`) are parsed before this point and may create temps
         self.label_names = set()
         self.goto_names = []
+        saved_jumps, self.jump_scope = self.jump_scope, JumpScopes()
         # parameter-list tags and names share the body's outermost scope (C11 6.2.1p4)
         if ty.proto_scope is not None:
             self.push_scope(ty.proto_scope)
@@ -341,6 +343,9 @@ class TopLevelMixin:
         if vla_inits:
             fn.body.items[0:0] = vla_inits
         self.leave_scope()
+        for g in self.jump_scope.violations():
+            self.error("jump into scope of identifier with variably modified type", g)
+        self.jump_scope = saved_jumps
         for g in self.goto_names:
             # a nested function's gotos may target labels of the enclosing
             # function; nested_fn.py forwards them to the enclosing check

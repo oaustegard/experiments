@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.nodes import Expr, Function, StrLit, Var
+from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import Scope, VarScope
 from hcc.sema.typing import add_type
 from hcc.tokens import Token, TokenKind
@@ -41,6 +42,7 @@ class ParserBase:
         self.cur_switch = None
         self.goto_names: list[Token] = []
         self.label_names: set[str] = set()
+        self.jump_scope = JumpScopes()       # gotos into VM scopes (current function)
         self.in_static_init = False          # inside a static-storage initializer
         self.scope_stack: list[int] = [0]    # ids of enclosing block scopes (0 = file scope)
         self.scope_seq = 0
