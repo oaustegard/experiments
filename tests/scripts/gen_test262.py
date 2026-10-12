@@ -37,7 +37,12 @@ def main():
     ap.add_argument("--src", default=os.path.join(TESTS, "tools", "test262-src"))
     ap.add_argument("--per-dir", type=int, default=4)
     ap.add_argument("--cap", type=int, default=4000)
+    ap.add_argument("--x", action="store_true", help="select the test262x set (tests that need run-test262) instead")
+    ap.add_argument("--x-per-dir", type=int, default=3)
+    ap.add_argument("--x-cap", type=int, default=1500)
     args = ap.parse_args()
+    if args.x:
+        return select_x(args)
     suite = R.Suite("quickjs")
     out_root = os.path.join(suite.dir, "test262")
     hdir = Q.harness_dir(suite)
@@ -100,6 +105,69 @@ def main():
         f.write("tc39/test262 %s\n" % commit)
     shutil.rmtree(work, ignore_errors=True)
     print("kept %d tests in %s (%.1f MB)" % (len(sel), out_root, sum(os.path.getsize(p) for _, p in sel) / 1e6))
+
+
+def select_x(args):
+    """Tests the plain-qjs selection cannot run ($262 host object, module code, ...), validated with the
+    gcc-built run-test262 (exit 0 and no output)."""
+    import re
+    suite = R.Suite("quickjs")
+    out_root = os.path.join(suite.dir, "test262x")
+    shutil.rmtree(out_root, ignore_errors=True)
+    have = set()
+    for dp, dn, fn in os.walk(os.path.join(suite.dir, "test262")):
+        have |= {os.path.relpath(os.path.join(dp, f), os.path.join(suite.dir, "test262")) for f in fn}
+    ref = Q.ref_rt(R, suite)
+    cands = []
+    for root in ROOTS:
+        base = os.path.join(args.src, "test", root)
+        for dp, dn, fn in os.walk(base):
+            dn.sort()
+            files = []
+            for f in sorted(fn):
+                p = os.path.join(dp, f)
+                if not f.endswith(".js") or "_FIXTURE" in f or os.path.relpath(p, os.path.join(args.src, "test")) in have:
+                    continue
+                with open(p, encoding="utf-8", errors="replace") as fh:
+                    text = fh.read()
+                meta = Q.parse_meta(text)
+                if "$262" in text or "module" in meta["flags"] or "CanBlockIsFalse" in meta["flags"]:
+                    files.append(p)
+            if not files:
+                continue
+            k = min(args.x_per_dir, len(files))
+            cands += [files[int(i * len(files) / k)] for i in range(k)]
+    print("%d candidates" % len(cands), flush=True)
+    work = tempfile.mkdtemp(prefix="t262x-")
+    sel = []
+    for n, path in enumerate(cands):
+        rel = os.path.relpath(path, os.path.join(args.src, "test"))
+        dst = os.path.join(out_root, rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copy(path, dst)
+        # fixtures (module tests import siblings): copy the whole directory's *_FIXTURE.js files
+        for f in os.listdir(os.path.dirname(path)):
+            if "_FIXTURE" in f:
+                shutil.copy(os.path.join(os.path.dirname(path), f), os.path.dirname(dst))
+        r = Q.run_rt262(R, ref, suite, "test262x/" + rel, work)
+        ok = r["rc"] == 0 and r["out"].strip().endswith("[stderr]")
+        if ok:
+            sel.append(rel)
+        else:
+            os.remove(dst)
+        if n % 200 == 0:
+            print("%d/%d checked, %d kept" % (n, len(cands), len(sel)), flush=True)
+    if len(sel) > args.x_cap:
+        step = len(sel) / args.x_cap
+        keep = {sel[int(i * step)] for i in range(args.x_cap)}
+        for rel in sel:
+            if rel not in keep:
+                os.remove(os.path.join(out_root, rel))
+        sel = sorted(keep)
+    with open(os.path.join(out_root, "COMMIT"), "w") as f:
+        f.write("tc39/test262 %s\n" % subprocess.run(["git", "-C", args.src, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip())
+    shutil.rmtree(work, ignore_errors=True)
+    print("kept %d tests in %s" % (len(sel), out_root))
 
 
 if __name__ == "__main__":

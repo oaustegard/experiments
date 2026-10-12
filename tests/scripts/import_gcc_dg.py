@@ -29,24 +29,35 @@ TESTS = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import dg  # noqa: E402
 
-SUITES = {
-    "gcc-dg": [".", "torture", "tree-ssa", "ipa", "atomic", "sso", "tls", "cpp", "special", "debug", "charset",
-               "weak", "rtl"],
+DIRS = [".", "torture", "tree-ssa", "ipa", "atomic", "sso", "tls", "cpp", "special", "debug", "charset", "weak", "rtl"]
+SUITES = {  # name -> (directories, mode)
+    "gcc-dg": (DIRS, "run"),
+    "gcc-dg-compile": (DIRS, "compile"),
 }
+DESC_COMPILE = ("gcc/testsuite/gcc.dg tests whose applicable dg-do is compile/assemble (or unspecified), without dg-error "
+                "(%s). Compile-only: PASS = the compiler's -S succeeds and `as` accepts the output (driver compileonly). "
+                "Per-test flags from dg-options in <test>.c.flags; skip.txt lists inapplicable tests and tests gcc -O0 -w "
+                "itself rejects. Regenerate with tests/scripts/import_gcc_dg.py.")
 DESC = ("gcc/testsuite/gcc.dg tests whose applicable dg-do is `run` (%s). Pass = exit 0 (and stdout equal to the "
         "gcc -O0 binary's where the test has a dg-output). Per-test flags from dg-options in <test>.c.flags; skip.txt "
         "lists inapplicable tests and tests gcc -O0 itself fails. Regenerate with tests/scripts/import_gcc_dg.py.")
 
 
-def classify(text):
+def classify(text, mode="run"):
     """Returns (flags, skip_reason or None, is_candidate)."""
     dirs = dg.directives(text)
-    if not re.search(r"dg-do\s+\"?run", text):
+    if mode == "run" and not re.search(r"dg-do\s+\"?run", text):
         return [], None, False
     try:
         kind = dg.do_kind(dirs)
     except dg.Unknown as e:
         return [], "dg-do guard uses unknown feature %s" % e, True
+    if mode == "compile":
+        if kind is None:
+            kind = "compile"  # gcc.dg default
+        if kind not in ("compile", "assemble"):
+            return [], None, False
+        kind = "run"  # reuse the checks below
     flags, opt_reasons = dg.options(dirs)
     flags = ["-std=gnu2x" if f == "-std=gnu23" else "-std=c2x" if f == "-std=c23" else f for f in flags]
     names = {n for n, _ in dirs}
@@ -63,6 +74,8 @@ def classify(text):
         reason = "dg-output-file (expected output in another file)"
     elif "dg-timeout" in names:
         reason = "dg-timeout (slow test)"
+    elif names & {"dg-lto-do", "dg-lto-options", "dg-extra-ld-options"}:
+        reason = "link-time / multi-step test"
     reason = reason or dg.skip_if(dirs, flags) or (opt_reasons[0] if opt_reasons else None)
     return flags, reason, True
 
@@ -86,7 +99,7 @@ def gcc_reference(path, flags):
     return outs[0] if outs[0] == outs[1] else None
 
 
-def build_suite(name, dirs_, src_root):
+def build_suite(name, dirs_, mode, src_root):
     root = os.path.join(src_root, "gcc", "testsuite", "gcc.dg")
     dest = os.path.join(TESTS, "suites", name)
     os.makedirs(dest, exist_ok=True)
@@ -112,7 +125,7 @@ def build_suite(name, dirs_, src_root):
             if not f.endswith(".c"):
                 continue
             text = open(p, errors="replace").read()
-            flags, reason, cand = classify(text)
+            flags, reason, cand = classify(text, mode)
             if not cand:
                 continue
             n_cand += 1
@@ -123,15 +136,17 @@ def build_suite(name, dirs_, src_root):
                     fh.write(" ".join(flags) + "\n")
             if reason:
                 skips[rel_prefix + f] = reason
-            elif re.search(r"\bdg-output\b", text):
+            elif mode == "run" and re.search(r"\bdg-output\b", text):
                 ref = gcc_reference(dst, flags)
                 if ref is None:
                     skips[rel_prefix + f] = "dg-output: gcc -O0 reference output unavailable or nondeterministic"
                 else:
                     with open(dst + ".expected", "wb") as fh:
                         fh.write(ref)
-    cfg = {"description": DESC % ", ".join(d if d != "." else "top level" for d in dirs_),
+    cfg = {"description": (DESC if mode == "run" else DESC_COMPILE) % ", ".join(d if d != "." else "top level" for d in dirs_),
            "glob": globs, "cflags": ["-w"]}
+    if mode == "compile":
+        cfg["driver"] = "compileonly"
     with open(os.path.join(dest, "suite.json"), "w") as fh:
         json.dump(cfg, fh, indent=2)
         fh.write("\n")
@@ -166,10 +181,10 @@ def main():
         only = args[i + 1]
         del args[i:i + 2]
     src_root = args[0] if args else os.path.join(TESTS, "tools", "src", "gcc")
-    for name, dirs_ in SUITES.items():
+    for name, (dirs_, mode) in SUITES.items():
         if only and name != only:
             continue
-        build_suite(name, dirs_, src_root)
+        build_suite(name, dirs_, mode, src_root)
 
 
 if __name__ == "__main__":
