@@ -27,6 +27,34 @@ def _contains_comma(node) -> bool:
                if f.name not in ("ty", "var", "member", "loc", "scope"))
 
 
+# Functions that return twice: a longjmp re-enters them with the stack pointer
+# they saved, so no operand may be parked across a call to one of them.
+_RETURNS_TWICE = frozenset(("setjmp", "_setjmp", "sigsetjmp", "__sigsetjmp"))
+
+
+def _is_returns_twice(node) -> bool:
+    if type(node).__name__ == "BuiltinCall":
+        return node.name == "setjmp"
+    if type(node).__name__ != "Call":
+        return False
+    func = node.func
+    while type(func).__name__ == "Cast":
+        func = func.operand
+    return type(func).__name__ == "VarRef" and func.var.name in _RETURNS_TWICE
+
+
+def _contains_setjmp(node) -> bool:
+    """True if the tree calls a returns-twice function (setjmp and kin)."""
+    if _is_returns_twice(node):
+        return True
+    if isinstance(node, list):
+        return any(_contains_setjmp(x) for x in node)
+    if not is_dataclass(node):
+        return False
+    return any(_contains_setjmp(getattr(node, f.name, None)) for f in fields(node)
+               if f.name not in ("ty", "var", "member", "loc", "scope"))
+
+
 class ArithMixin:
 
     def expr_Binary(self, node) -> None:
@@ -46,6 +74,14 @@ class ArithMixin:
             # constant rhs: no operand needs parking on the stack
             self.gen_expr(node.lhs)
             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+        elif _contains_setjmp(node.rhs) and not _contains_setjmp(node.lhs):
+            # Only the setjmp side may run with nothing parked: a value pushed
+            # before the setjmp is popped after resumption, but later calls reuse
+            # that slot. (selftest builtin_setjmp_operand_order.c)
+            self.gen_expr(node.rhs)
+            self.push()
+            self.gen_expr(node.lhs)
+            self.pop("%rdi")
         else:
             # Left-to-right, as gcc -O0 does: `f() - g()` calls f first, and
             # programs whose output depends on that order (e.g. doom's
