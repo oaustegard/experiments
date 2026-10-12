@@ -96,6 +96,15 @@ class InitializerMixin:
             return True
         return i < len(init.children)
 
+    def _init_element(self, child) -> None:
+        """Initialize one brace-list element. A brace-elided aggregate with no
+        room (zero-length array, empty struct) consumes no tokens; its excess
+        elements are then skipped (GCC: "excess elements in initializer")."""
+        save = self.pos
+        self.initializer2(child)
+        if self.pos == save:
+            self._skip_excess()
+
     def _skip_excess(self) -> None:
         if self.at("{"):
             self.next()
@@ -204,7 +213,7 @@ class InitializerMixin:
                 i = self.array_designator(init)
                 continue
             if self._grow(init, i):
-                self.initializer2(init.children[i])
+                self._init_element(init.children[i])
             else:
                 self._skip_excess()
             i += 1
@@ -219,7 +228,7 @@ class InitializerMixin:
             if self.at("[") or self.at("."):
                 return
             self._grow(init, i)
-            self.initializer2(init.children[i])
+            self._init_element(init.children[i])
             i += 1
 
     def array_designator(self, init) -> int:
@@ -311,7 +320,7 @@ class InitializerMixin:
             if i < len(members) and not (is_union and i > 0):
                 if is_union:
                     init.mem = members[i]
-                self.initializer2(init.children[i])
+                self._init_element(init.children[i])
                 i += 1
             else:
                 self._skip_excess()
@@ -333,7 +342,7 @@ class InitializerMixin:
             first = False
             if is_union:
                 init.mem = members[i]
-            self.initializer2(init.children[i])
+            self._init_element(init.children[i])
             i += 1
 
     @staticmethod
