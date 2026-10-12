@@ -46,16 +46,22 @@ class JumpScopes:
         self.vm_decls: list[tuple] = []     # (seq, block id)
         self.switch_stack: list[int] = []   # seq of each enclosing switch head
         self.cases: list[tuple] = []        # (seq, case token, switch seq, enclosing block ids)
+        self.switch_se: list[tuple] = []    # stmt-expr ids enclosing each switch head
+        self.se_cases: list = []            # case tokens inside a stmt-expr their switch is outside
 
     def enter_switch(self) -> None:
         self.switch_stack.append(self._tick())
+        self.switch_se.append(tuple(self.se_ids))
 
     def leave_switch(self) -> None:
         self.switch_stack.pop()
+        self.switch_se.pop()
 
     def note_case(self, tok) -> None:
         """A case/default label: a jump from the innermost switch head."""
         if self.switch_stack:
+            if any(s not in self.switch_se[-1] for s in self.se_ids):
+                self.se_cases.append(tok)
             self.cases.append((self._tick(), tok, self.switch_stack[-1], tuple(self.block_ids)))
 
     def enter_block(self) -> None:

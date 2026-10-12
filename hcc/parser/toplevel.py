@@ -484,6 +484,8 @@ class TopLevelMixin:
         self.leave_scope()
         for g, msg in self.jump_scope.violations():
             self.error(msg, g)
+        for c in self.jump_scope.se_cases:
+            self.error("switch jumps into statement expression", c)
         for c in self.jump_scope.case_violations():
             self.error("switch jumps into scope of identifier with variably modified type", c)
         self.jump_scope = saved_jumps
