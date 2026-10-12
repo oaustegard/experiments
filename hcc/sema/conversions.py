@@ -59,8 +59,18 @@ def new_cast(expr: N.Expr, ty: Type) -> N.Expr:
     return c
 
 
+def _bitfield_operand_type(expr: N.Expr) -> Type:
+    """C11 6.3.1.1: a bit-field narrower than int promotes to int, whatever
+    its declared type (`long x:24` is an int operand)."""
+    m = getattr(expr, "member", None)
+    if type(expr) is N.Member_ and m is not None and m.is_bitfield and \
+            is_integer(expr.ty) and m.bit_width < 32:
+        return TY_INT
+    return expr.ty
+
+
 def usual_arith_conv(lhs: N.Expr, rhs: N.Expr):
-    ty = common_type(lhs.ty, rhs.ty)
+    ty = common_type(_bitfield_operand_type(lhs), _bitfield_operand_type(rhs))
     return new_cast(lhs, ty), new_cast(rhs, ty)
 
 

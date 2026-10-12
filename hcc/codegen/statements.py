@@ -59,6 +59,10 @@ class StatementMixin:
             skip = self.new_label()
             self.emit(f"jmp {skip}")
             self.gen_dead_stmt(dead)
+            if dead is not None:
+                # Labels inside the dead branch are reachable by goto; falling
+                # out of them must not run the live branch.
+                self.emit(f"jmp {end}")
             self.label(skip)
             if live is not None:
                 self.gen_stmt(live)
