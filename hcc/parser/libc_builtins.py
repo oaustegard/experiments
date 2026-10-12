@@ -56,3 +56,12 @@ def int_abs_call(loc, name: str, arg):
         return None
     ty = T.TY_INT if bits == 32 else T.TY_LONG
     return N.BuiltinCall(loc, f"abs{bits}", [new_cast(arg, ty)], None, ty=ty)
+
+
+def fabs_float_call(loc, name: str, arg):
+    """`fabs(x)` with a float x is expanded by GCC as an inline sign-bit clear on
+    the float (no widening to double), so a signaling NaN stays signaling. Returns
+    the float-typed BuiltinCall, or None when the call is not of that form."""
+    if name != "fabs" or arg.ty is None or arg.ty.kind != T.TypeKind.FLOAT:
+        return None
+    return N.BuiltinCall(loc, "fabsf", [arg], None, ty=T.TY_FLOAT)

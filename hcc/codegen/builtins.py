@@ -57,6 +57,13 @@ class BuiltinMixin:
         self.emit("xor %edx, %eax")
         self.emit("sub %edx, %eax")
 
+    def builtin_fabsf(self, node) -> None:
+        """|x| on a float in %xmm0: clear the sign bit (quiet/signaling bits kept)."""
+        self.gen_expr(node.args[0])
+        self.emit("movd %xmm0, %eax")
+        self.emit("and $0x7fffffff, %eax")
+        self.emit("movd %eax, %xmm0")
+
     def builtin_abs64(self, node) -> None:
         self.gen_expr(node.args[0])
         self.emit("mov %rax, %rdx")

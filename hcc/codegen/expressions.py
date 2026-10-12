@@ -57,10 +57,14 @@ class ExpressionMixin:
         v = float(node.value)
         if k == TypeKind.FLOAT:
             bits = struct.unpack("<I", pack_float32(v))[0]
+            if node.bits is not None:
+                bits = node.bits & 0xFFFFFFFF
             self.emit(f"mov ${bits}, %eax")
             self.emit("movq %rax, %xmm0")
         elif k == TypeKind.DOUBLE:
             bits = struct.unpack("<Q", pack_float64(v))[0]
+            if node.bits is not None:
+                bits = node.bits & 0xFFFFFFFFFFFFFFFF
             self.emit(f"movabs ${bits}, %rax")
             self.emit("movq %rax, %xmm0")
         else:

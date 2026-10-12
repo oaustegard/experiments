@@ -309,10 +309,12 @@ class BuiltinParseMixin:
         double/float bit patterns are exact; long double is carried as a double."""
         self._args(1)
         if ty.kind == T.TypeKind.FLOAT:
-            val = struct.unpack("<f", struct.pack("<I", 0x7F800001))[0]
+            bits = 0x7F800001
+            val = struct.unpack("<f", struct.pack("<I", bits))[0]
         else:
-            val = struct.unpack("<d", struct.pack("<Q", 0x7FF0000000000001))[0]
-        return N.FloatLit(tok.loc, val, ty=ty)
+            bits = 0x7FF0000000000001
+            val = struct.unpack("<d", struct.pack("<Q", bits))[0]
+        return N.FloatLit(tok.loc, val, ty=ty, bits=bits)
 
     def _b_nans(self, tok):
         return self._snan_lit(tok, T.TY_DOUBLE)
