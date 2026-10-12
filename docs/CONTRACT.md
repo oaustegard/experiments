@@ -182,6 +182,8 @@ hcc/
     builtins.py        __builtin_* lowering (alloca, expect, clz, ...)
     atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs
     asm.py             inline asm statements (basic + extended)
+    x86_sse.py        lowering of __builtin_ia32_* SSE/MMX intrinsics (table-driven)
+    lazy_inline.py    gnu_inline/gnu89 extern-inline bodies: emitted only when referenced
     fpclassify.py      __builtin_fpclassify / isnormal / isinf_sign (bit-level classes)
 
   include/             (optional) hcc's own override headers, searched before

@@ -145,6 +145,8 @@ class ExpressionMixin:
                 node.result_buf = self.new_temp(node.ty, t.loc)
 
     def cast_expr(self):
+        while self.at("__extension__"):     # `__extension__ (T)x`: the marker precedes the cast
+            self.next()
         if self.at("(") and self.is_typename(self.peek()):
             start = self.pos
             allow = self.compound_lit_follows()
