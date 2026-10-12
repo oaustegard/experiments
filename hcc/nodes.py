@@ -124,9 +124,14 @@ class VarRef(Expr):
 
 @dataclass(eq=False)
 class Unary(Expr):
-    """op is one of '-', '~', '!'."""
+    """op is one of '-', '~', '!'.
+
+    result_buf: for vector operands, the anonymous local that holds the result
+    (set by the parser; codegen copies the operand into it and inverts it).
+    """
     op: str
     operand: Expr
+    result_buf: Obj | None = field(default=None, kw_only=True)
 
 
 @dataclass(eq=False)

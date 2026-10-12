@@ -120,6 +120,9 @@ class ExpressionMixin:
         self.label(end)
 
     def expr_Unary(self, node) -> None:
+        if node.result_buf is not None:
+            self.vector_not(node)
+            return
         self.gen_expr(node.operand)
         ty = node.operand.ty
         if node.op == "!":
@@ -167,3 +170,23 @@ class ExpressionMixin:
 
     def expr_LabelAddr(self, node) -> None:
         self.emit(f"lea {self.user_label(node.label)}(%rip), %rax")
+
+    def vector_not(self, node) -> None:
+        """`~v` on a GCC vector: copy v into the result buffer, then invert it
+        word by word. Leaves %rax = address of the result (like struct values)."""
+        self.gen_expr(node.operand)                  # %rax = source address
+        buf = node.result_buf
+        size = node.operand.ty.size
+        self.emit(f"lea {buf.offset}(%rbp), %rdi")
+        self.copy_struct(size)                       # %rdi = dest, %rax = src
+        i = 0
+        while i + 8 <= size:
+            self.emit(f"notq {i}(%rdi)")
+            i += 8
+        while i + 4 <= size:
+            self.emit(f"notl {i}(%rdi)")
+            i += 4
+        while i < size:
+            self.emit(f"notb {i}(%rdi)")
+            i += 1
+        self.emit("mov %rdi, %rax")

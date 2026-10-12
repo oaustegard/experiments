@@ -32,6 +32,9 @@ def _unary(n: N.Unary):
     if n.op == "!":
         n.ty = TY_INT
         return
+    if n.op == "~" and t.is_vector and is_integer(t.base):
+        n.ty = t                    # element-wise complement keeps the vector type
+        return
     if not is_numeric(t):
         diag.error(n, f"invalid operand to unary '{n.op}' (have '{t}')", "sema")
     if n.op == "~" and not is_integer(t):

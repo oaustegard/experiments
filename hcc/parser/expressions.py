@@ -139,7 +139,9 @@ class ExpressionMixin:
                 return self.typed(N.Unary(t.loc, "!", self.cast_expr()))
             if s == "~":
                 self.next()
-                return self.typed(N.Unary(t.loc, "~", self.cast_expr()))
+                operand = self.cast_expr()
+                buf = self.new_temp(operand.ty, t.loc) if operand.ty.is_vector else None
+                return self.typed(N.Unary(t.loc, "~", operand, result_buf=buf))
             if s == "&":
                 self.next()
                 operand = self.cast_expr()
