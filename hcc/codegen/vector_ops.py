@@ -8,7 +8,10 @@ result buffer, and leaves %rax = address of the result.
 """
 from __future__ import annotations
 
+from hcc.codegen.vector_cmp import vector_compare
 from hcc.typesys import is_flonum
+
+_CMP_OPS = ("==", "!=", "<", "<=", ">", ">=")
 
 _FBIN = {"+": "add", "-": "sub", "*": "mul", "/": "div"}
 
@@ -51,6 +54,8 @@ class VectorOpsMixin:
 
     def vector_binary(self, node) -> None:
         lty = node.lhs.ty
+        if node.op in _CMP_OPS:
+            return vector_compare(self, node)
         if is_flonum(lty.base):
             return self.vector_float_binary(node)
         size, es = lty.size, lty.base.size

@@ -13,7 +13,8 @@ from hcc.sema.arith import new_add
 from hcc.sema.conversions import new_cast
 from hcc.typesys import TY_INT, is_numeric, pointer_to
 
-VECTOR_BINOPS = ("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")
+VECTOR_BINOPS = ("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>",
+                 "==", "!=", "<", "<=", ">", ">=")
 
 
 def broadcast_scalar(parser, loc, scalar: N.Expr, vec_ty) -> N.Expr:

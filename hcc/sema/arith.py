@@ -14,7 +14,8 @@ from hcc import nodes as N
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
-from hcc.typesys import TY_INT, TY_LONG, TypeKind, is_flonum, is_integer, is_numeric, pointer_to
+from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_flonum, is_integer,
+                         is_numeric, pointer_to, vector_of)
 
 
 def _t(node):
@@ -74,16 +75,26 @@ def new_sub(lhs, rhs, loc):
 
 
 VECTOR_OPS = ("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")
+VECTOR_CMP_OPS = ("==", "!=", "<", "<=", ">", ">=")
 
 
 def vector_binop(op, lhs, rhs, loc):
     """Element-wise `lhs op rhs` on two GCC vectors of equal size (integer
     elements for all VECTOR_OPS, floating elements for + - * /).
+    Comparisons on integer vectors yield a signed-integer vector of the same
+    width whose lanes are all-ones (true) or zero (false).
     Returns None when the operands are not such a pair."""
-    if op not in VECTOR_OPS or not (lhs.ty.is_vector and rhs.ty.is_vector):
+    if not (op in VECTOR_OPS or op in VECTOR_CMP_OPS):
+        return None
+    if not (lhs.ty.is_vector and rhs.ty.is_vector):
         return None
     if lhs.ty.size != rhs.ty.size:
         return None
+    if op in VECTOR_CMP_OPS:
+        if not is_integer(lhs.ty.base):
+            return None
+        res = vector_of(int_type_for(lhs.ty.base.size, False), lhs.ty.size)
+        return _t(N.Binary(loc, op, lhs, rhs, ty=res))
     if is_flonum(lhs.ty.base):
         if op not in ("+", "-", "*", "/"):
             return None
@@ -98,7 +109,7 @@ def new_binop(op, lhs, rhs, loc):
     vec = vector_binop(op, lhs, rhs, loc)
     if vec is not None:
         return vec
-    if op in VECTOR_OPS and (lhs.ty.is_vector or rhs.ty.is_vector):
+    if (op in VECTOR_OPS or op in VECTOR_CMP_OPS) and (lhs.ty.is_vector or rhs.ty.is_vector):
         diag.error(loc, f"invalid operands to binary {op} ('{lhs.ty}' and '{rhs.ty}')", "sema")
     if op == "+":
         return new_add(lhs, rhs, loc)
