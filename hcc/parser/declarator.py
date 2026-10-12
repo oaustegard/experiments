@@ -142,6 +142,8 @@ class DeclaratorMixin:
         # dimensions (`int b[a++]`); their Vars are reused by the definition.
         self.enter_scope()
         fwd = self._param_forward_decls()
+        outer_proto = getattr(self, "in_proto_params", False)
+        self.in_proto_params = True     # sizeof(*b) of `[*]` params is allowed here
         while not self.accept(")"):
             if params:
                 self.expect(",")
@@ -177,6 +179,7 @@ class DeclaratorMixin:
             pvars.append(pvar)
             pdims.append(dim)
         fty.proto_scope = self.scopes[-1]
+        self.in_proto_params = outer_proto
         self.leave_scope()
         fty.params = params
         fty.param_names = names

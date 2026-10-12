@@ -63,6 +63,10 @@ class VlaMixin:
         if ty.kind != T.TypeKind.VLA:
             return self.typed(N.IntLit(loc, ty.size, ty=T.TY_ULONG))
         if ty.vla_len is None:
+            # `[*]` is only legal in prototype scope, where a size is never
+            # evaluated (e.g. `int c[sizeof(*b)]` after `int b[*][*]`).
+            if getattr(self, "in_proto_params", False):
+                return self.typed(N.IntLit(loc, 0, ty=T.TY_ULONG))
             self.error("invalid use of array with unspecified bounds", loc)
         length = new_cast(ty.vla_len, T.TY_ULONG)
         elem = self.vla_size_expr(ty.base, loc)
