@@ -135,6 +135,7 @@ hcc/
     builtins.py        parsing of __builtin_* that take types or are special
                        (va_arg, offsetof, types_compatible_p, ...)
     atomic_builtins.py __atomic_* (stdatomic.h) parsing; codegen/atomics.py lowers them
+    vector_shuffle.py  __builtin_shuffle on GCC vectors, lowered to element stores
 
   sema/
     __init__.py        re-exports

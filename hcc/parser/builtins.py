@@ -12,6 +12,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.structs import find_member
+from hcc.parser.vector_shuffle import lower_shuffle
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
 from hcc.sema.conversions import new_cast
@@ -27,7 +28,7 @@ __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
 __builtin_nan __builtin_nanf __builtin_nanl
-__builtin_setjmp __builtin_longjmp
+__builtin_setjmp __builtin_longjmp __builtin_shuffle
 """.split())
 
 # Bit-counting builtins: {clz,ctz,popcount,parity,ffs}{,l,ll}. The suffix picks
@@ -79,6 +80,9 @@ class BuiltinParseMixin:
 
     def _call(self, tok, name, args, ty, type_arg=None):
         return N.BuiltinCall(tok.loc, name, args, type_arg, ty=ty)
+
+    def _b_shuffle(self, tok):
+        return lower_shuffle(self, tok.loc, self._args())
 
     def _b_va_start(self, tok):
         args = self._args()
