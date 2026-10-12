@@ -40,7 +40,7 @@ _COUNTS = {"void": VOID, "_Bool": BOOL, "char": CHAR, "short": SHORT, "int": INT
 TYPE_KEYWORDS = frozenset(_COUNTS) | frozenset("""
 typedef static extern inline _Thread_local auto register _Noreturn const volatile restrict
 _Atomic _Alignas struct union enum typeof __attribute__ __declspec __extension__
-__builtin_va_list __auto_type __float128 __uint128_t _Complex __label__
+__builtin_va_list __auto_type __float128 __uint128_t _Complex __complex__ __complex __label__
 """.split())
 
 STORAGE = frozenset(("typedef", "static", "extern", "inline", "_Thread_local", "auto",
@@ -79,7 +79,8 @@ class DeclSpecMixin:
                 elif s == "_Noreturn":
                     attr.is_noreturn = True
                 continue
-            if s in ("const", "volatile", "restrict", "__extension__", "_Complex", "__label__"):
+            if s in ("const", "volatile", "restrict", "__extension__", "_Complex", "__complex__",
+                     "__complex", "__label__"):
                 self.next()
                 is_const |= s == "const"
                 is_volatile |= s == "volatile"
