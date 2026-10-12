@@ -149,7 +149,7 @@ class DeclSpecMixin:
         vsize = 0
         tmode = None          # type-name __attribute__((mode(X)))
         auto_infer = False
-        is_const = is_volatile = is_atomic = is_complex = False
+        is_const = is_volatile = is_atomic = is_complex = is_restrict = False
         seen_storage = set()  # storage class specifiers seen in this declaration
         while self.is_typename():
             if self.at_std_attribute():
@@ -198,6 +198,7 @@ class DeclSpecMixin:
                 else:
                     is_const |= s in ("const", "constexpr")  # C23 constexpr objects are const
                 is_volatile |= s == "volatile"
+                is_restrict |= s == "restrict"
                 continue
             if s == "_Atomic":
                 self.next()
@@ -272,6 +273,9 @@ class DeclSpecMixin:
             ty = mode_type(ty, tmode)
         if counter == 0 and attr is None and not (is_const or is_volatile or is_complex):
             self.error("expected type")
+        if is_restrict and ty is not None and not _is_object_pointer(ty):
+            # C11 6.7.3p2: restrict only qualifies object pointer types
+            self.error("invalid use of 'restrict'")
         if ty is not None and ty.is_vector and (is_const or is_volatile):
             ty = _qualified_vector(ty, is_const, is_volatile)   # elements carry the qualifiers
         if ty is not None and (is_const or is_volatile or is_atomic):
@@ -301,6 +305,12 @@ class DeclSpecMixin:
             ty = ty.copy()
             ty.is_const = ty.is_volatile = ty.is_atomic = False
         return ty
+
+
+def _is_object_pointer(ty):
+    """True for a pointer whose pointee is an object (not function) type."""
+    return ty.kind == T.TypeKind.PTR and ty.base is not None \
+        and ty.base.kind != T.TypeKind.FUNC
 
 
 def _qualified_vector(vty, is_const, is_volatile):
