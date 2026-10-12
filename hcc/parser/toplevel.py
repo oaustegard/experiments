@@ -20,6 +20,7 @@ from hcc.parser.attributes import mode_type
 from hcc.parser.vla import vla_slot_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
+from hcc.parser.knr_check import knr_param_index
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
@@ -95,7 +96,7 @@ class TopLevelMixin:
                 if not self.at("{") and (attr.is_weakref or dattr.is_weakref):
                     fn.is_weakref_decl = True
                 if ty.enum_consts == "knr" and not self.at(";") and not self.at(","):
-                    self.knr_params(ty)
+                    self.knr_params(ty, fn.ty)
                 if self.at("{"):
                     if ty.enum_consts == "knr":
                         self.check_knr_definition(fn, ty, name)
@@ -242,8 +243,9 @@ class TopLevelMixin:
             self.error(f"storage size of '{var.name}' isn't known", var.loc)
 
     # ---- function bodies ---------------------------------------------------------
-    def knr_params(self, fty) -> None:
-        """K&R parameter declarations between `)` and `{`."""
+    def knr_params(self, fty, proto=None) -> None:
+        """K&R parameter declarations between `)` and `{`. `proto` is the
+        prior prototype of the same function, if any, that they must match."""
         decls = {}
         while not self.at("{"):
             attr = VarAttr()
@@ -264,6 +266,14 @@ class TopLevelMixin:
                 if not self.accept(","):
                     break
             self.expect(";")
+        declared = [decls.get(n.text, T.TY_INT) for n in fty.param_names]
+        if proto is not None and proto.has_proto:
+            if len(proto.params) != len(declared):
+                self.error("conflicting types for function definition")
+            i = knr_param_index(proto, declared)
+            if i is not None:
+                pname = fty.param_names[i]
+                self.error(f"argument '{pname.text}' doesn't match prototype", pname.loc)
         params = []
         for n in fty.param_names:
             ty = decls.get(n.text, T.TY_INT)
