@@ -87,7 +87,8 @@ class StructMixin:
                 self.parse_attributes(mattr)
                 m = T.Member(name.text if name else None, ty)
                 m.tok = name
-                m.align = mattr.align or attr.align or ty.align
+                # aligned/_Alignas on a member can only raise its alignment
+                m.align = max(ty.align, mattr.align, attr.align)
                 if attr.is_packed or mattr.is_packed:
                     m.align = 1
                 if self.accept(":"):

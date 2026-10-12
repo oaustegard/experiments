@@ -1,8 +1,9 @@
 """Lexer: source text -> list of preprocessing tokens.
 
 Public API:
-    tokenize(text: str, path: str) -> list[Token]   (ends with an EOF token)
-    tokenize_file(path: str) -> list[Token]
+    tokenize(text, path, line_comments=True) -> list[Token]   (ends with EOF)
+    tokenize_file(path, line_comments=True) -> list[Token]
+line_comments=False (C89/C90 mode) makes `//` two `/` punctuators.
 
 Tokens are pp-tokens (CONTRACT section 3): identifiers (keywords are NOT yet
 marked), pp-numbers, string/char literals (raw spelling incl. quotes and
@@ -26,7 +27,7 @@ PUNCTUATORS = [
 ]
 DIGRAPHS = {"<:": "[", ":>": "]", "<%": "{", "%>": "}", "%:": "#", "%:%:": "##"}
 
-_TOKEN_RE = re.compile(r"""
+_TOKEN_SRC = r"""
     (?P<nl>\n)
   | (?P<ws>[ \t\f\v\r]+)
   | (?P<lc>//[^\n]*)
@@ -38,7 +39,13 @@ _TOKEN_RE = re.compile(r"""
   | (?P<id>[A-Za-z_$\u0080-\U0010ffff][A-Za-z0-9_$\u0080-\U0010ffff]*)
   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
   | (?P<other>.)
-""", re.VERBOSE | re.DOTALL)
+"""
+_TOKEN_RE = re.compile(_TOKEN_SRC, re.VERBOSE | re.DOTALL)
+# C89/C90 have no `//` comments: the same scanner without the `lc` alternative.
+_TOKEN_RE_C90 = re.compile(_TOKEN_SRC.replace(r"  | (?P<lc>//[^\n]*)" + "\n", ""),
+                           re.VERBOSE | re.DOTALL)
+# -std values that do not recognise `//` comments
+C90_STDS = frozenset({"c89", "c90", "gnu89", "gnu90", "iso9899:1990", "ansi"})
 
 _KIND = {"num": TokenKind.NUMBER, "str": TokenKind.STRING, "chr": TokenKind.CHAR,
          "id": TokenKind.IDENT, "punct": TokenKind.PUNCT, "other": TokenKind.PUNCT}
@@ -65,14 +72,15 @@ def remove_splices(text: str) -> str:
     return result[:-1] if not text.endswith("\n") and result.endswith("\n") else result
 
 
-def tokenize(text: str, path: str) -> list[Token]:
+def tokenize(text: str, path: str, line_comments: bool = True) -> list[Token]:
     text = remove_splices(text)
     toks: list[Token] = []
     line = 1
     line_start = 0
     bol = True
     space = False
-    for m in _TOKEN_RE.finditer(text):
+    scanner = _TOKEN_RE if line_comments else _TOKEN_RE_C90
+    for m in scanner.finditer(text):
         kind = m.lastgroup
         if kind == "nl":
             line += 1
@@ -112,5 +120,5 @@ def read_source(path: str) -> str:
     return text
 
 
-def tokenize_file(path: str) -> list[Token]:
-    return tokenize(read_source(path), path)
+def tokenize_file(path: str, line_comments: bool = True) -> list[Token]:
+    return tokenize(read_source(path), path, line_comments)

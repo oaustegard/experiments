@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 
 from hcc import diag
-from hcc.lexer import tokenize
+from hcc.lexer import C90_STDS, tokenize
 from hcc.preprocess.conditionals import ConditionalMixin
 from hcc.preprocess.directives import DirectiveMixin
 from hcc.preprocess.includes import IncludeMixin
@@ -52,10 +52,15 @@ class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
             lines.append(f'#include "{os.path.abspath(inc)}"')
         return "\n".join(lines) + "\n"
 
+    @property
+    def line_comments(self) -> bool:
+        """`//` starts a comment except in C89/C90 modes (-std=c89, -ansi)."""
+        return (self.opts.std or "gnu11").lower() not in C90_STDS
+
     def run(self, path: str) -> list[Token]:
         self.base_file = path
         main = self.file_tokens(path)
-        cmdline = tokenize(self._command_line_source(), "<command-line>")
+        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments)
         self.stack = []
         self.push_tokens(main)
         cmd_eof = cmdline.pop()      # drop its EOF so it flows into the main file
@@ -69,8 +74,8 @@ class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
         """Preprocess a string (used by tests and -x c -)."""
         self.base_file = path
         self.stack = []
-        self.push_tokens(tokenize(text, path))
-        cmdline = tokenize(self._command_line_source(), "<command-line>")
+        self.push_tokens(tokenize(text, path, self.line_comments))
+        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments)
         cmdline.pop()
         self.push_tokens(cmdline)
         return self._loop()
