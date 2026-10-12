@@ -13,6 +13,7 @@ from hcc import diag
 from hcc import nodes as N
 from hcc.codegen.scalar_rev import load_rev_scalar, store_rev_scalar
 from hcc.typesys import TypeKind
+from hcc.codegen.half import LOAD_HALF, STORE_HALF
 
 _NO_LOAD = (TypeKind.ARRAY, TypeKind.STRUCT, TypeKind.UNION, TypeKind.FUNC, TypeKind.VLA)
 
@@ -70,6 +71,8 @@ class MemoryMixin:
             return
         if ty.is_rev_order:
             load_rev_scalar(self, ty)
+        elif k == TypeKind.FLOAT16:
+            self.emit(LOAD_HALF)
         elif k == TypeKind.FLOAT:
             self.emit("movss (%rax), %xmm0")
         elif k == TypeKind.DOUBLE:
@@ -95,6 +98,8 @@ class MemoryMixin:
             return
         if ty.is_rev_order:
             store_rev_scalar(self, ty)
+        elif k == TypeKind.FLOAT16:
+            self.emit(STORE_HALF)
         elif k == TypeKind.FLOAT:
             self.emit("movss %xmm0, (%rdi)")
         elif k == TypeKind.DOUBLE:

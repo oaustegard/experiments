@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from hcc.halfbits import round_to_half   # re-exported: binary16 rounding lives in halfbits
+
 
 class TypeKind(Enum):
     VOID = "void"
@@ -19,6 +21,7 @@ class TypeKind(Enum):
     LONG = "long"
     LLONG = "long long"
     INT128 = "__int128"
+    FLOAT16 = "_Float16"
     FLOAT = "float"
     DOUBLE = "double"
     LDOUBLE = "long double"
@@ -34,7 +37,8 @@ class TypeKind(Enum):
 
 INTEGER_KINDS = frozenset({TypeKind.BOOL, TypeKind.CHAR, TypeKind.SHORT, TypeKind.INT,
                            TypeKind.LONG, TypeKind.LLONG, TypeKind.INT128, TypeKind.ENUM})
-FLOAT_KINDS = frozenset({TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE, TypeKind.FLOAT128})
+FLOAT_KINDS = frozenset({TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE,
+                         TypeKind.FLOAT128})
 
 
 class Member:
@@ -158,6 +162,7 @@ TY_UINT = _base(TypeKind.INT, 4, 4, True)
 TY_ULONG = _base(TypeKind.LONG, 8, 8, True)
 TY_ULLONG = _base(TypeKind.LLONG, 8, 8, True)
 TY_UINT128 = _base(TypeKind.INT128, 16, 16, True)
+TY_FLOAT16 = _base(TypeKind.FLOAT16, 2, 2)
 TY_FLOAT = _base(TypeKind.FLOAT, 4, 4)
 TY_DOUBLE = _base(TypeKind.DOUBLE, 8, 8)
 TY_LDOUBLE = _base(TypeKind.LDOUBLE, 16, 16)

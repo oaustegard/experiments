@@ -16,6 +16,7 @@ from hcc.sema.initializers import float_to_x87
 from dataclasses import fields, is_dataclass
 
 from hcc.typesys import TypeKind, is_flonum, is_integer
+from hcc.halfbits import half_bits, half_to_float_bits
 
 
 def _contains_call(node) -> bool:
@@ -55,7 +56,11 @@ class ExpressionMixin:
     def expr_FloatLit(self, node) -> None:
         k = node.ty.kind
         v = float(node.value)
-        if k == TypeKind.FLOAT:
+        if k == TypeKind.FLOAT16:           # register form: float holding an exact half value
+            bits = half_to_float_bits(half_bits(v))
+            self.emit(f"mov ${bits}, %eax")
+            self.emit("movq %rax, %xmm0")
+        elif k == TypeKind.FLOAT:
             bits = struct.unpack("<I", pack_float32(v))[0]
             if node.bits is not None:
                 bits = node.bits & 0xFFFFFFFF
@@ -214,7 +219,7 @@ class ExpressionMixin:
             self.emit("not %rax")
             return
         k = node.ty.kind
-        if k == TypeKind.FLOAT:
+        if k in (TypeKind.FLOAT16, TypeKind.FLOAT):
             self.emit("mov $1, %rax")
             self.emit("shl $31, %rax")
             self.emit("movq %rax, %xmm1")

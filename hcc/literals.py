@@ -13,8 +13,10 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
-from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_INT, TY_LDOUBLE, TY_LLONG,
-                       TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG, TY_USHORT, Type, array_of)
+from hcc.halfbits import round_to_half
+from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_FLOAT16, TY_FLOAT128,
+                       TY_INT, TY_LDOUBLE, TY_LLONG, TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG,
+                       TY_USHORT, Type, TypeKind, array_of)
 
 KEYWORD_ALIASES = {
     "__restrict": "restrict", "__restrict__": "restrict",
@@ -78,24 +80,28 @@ def parse_int_literal(tok: Token) -> tuple[int, Type]:
     return val & ((1 << 64) - 1), ty
 
 
+# floating suffixes, longest first; the _FloatN/_FloatNx forms are GCC's TS 18661 suffixes
+_FLOAT_SUFFIXES = (("f16", TY_FLOAT16), ("f32x", TY_DOUBLE), ("f32", TY_FLOAT),
+                   ("f64x", TY_LDOUBLE), ("f64", TY_DOUBLE), ("f128x", TY_FLOAT128),
+                   ("f128", TY_FLOAT128), ("f", TY_FLOAT), ("l", TY_LDOUBLE))
+
+
 def parse_number(tok: Token):
     s = tok.text
     low = s.lower()
     is_hex = low.startswith("0x")
     if not is_hex and ("." in s or "e" in low) or is_hex and ("." in s or "p" in low):
-        ty = TY_DOUBLE
-        body = s
-        if low.endswith("f") and not is_hex or (is_hex and low.endswith("f") and "p" in low):
-            ty, body = TY_FLOAT, s[:-1]
-        elif low.endswith("l"):
-            ty, body = TY_LDOUBLE, s[:-1]
-        for suf in ("f16", "f32", "f64", "f128", "f32x", "f64x"):
-            if body.lower().endswith(suf):
-                body = body[: -len(suf)]
+        ty, body = TY_DOUBLE, s
+        for suf, suf_ty in _FLOAT_SUFFIXES:
+            if low.endswith(suf):
+                ty, body = suf_ty, s[: -len(suf)]
+                break
         try:
             val = float.fromhex(body) if is_hex else float(body)
         except ValueError:
             diag.error(tok, f"invalid floating constant '{s}'")
+        if ty.kind == TypeKind.FLOAT16:
+            val = round_to_half(val)
         return val, ty
     return parse_int_literal(tok)
 

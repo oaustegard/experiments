@@ -9,9 +9,12 @@ produces a BuiltinCall.
 """
 from __future__ import annotations
 
+import math
 import struct
 
 from hcc import nodes as N
+from hcc.halfbits import half_to_double
+from hcc.parser.float16_math import F16_MATH_NAMES, f16_math_call
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.object_size import lower_object_size
 from hcc.parser.structs import find_member
@@ -29,7 +32,7 @@ __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unr
 __builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
 __builtin_add_overflow_p __builtin_sub_overflow_p
-__builtin_prefetch __builtin_return_address __builtin_frame_address
+__builtin_prefetch __builtin_return_address __builtin_frame_address __builtin_assoc_barrier
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
@@ -61,7 +64,11 @@ FLOATN_BUILTIN_MAP = {
     for base in ("inf", "huge_val", "nan", "nans")
     for width, sfx in _FLOATN_SUFFIX.items()}
 
-SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS | frozenset(FLOATN_BUILTIN_MAP)
+# _Float16 forms (__builtin_inff16, __builtin_sinf16, ...): see _float16_builtin.
+FLOAT16_BUILTINS = frozenset(f"__builtin_{base}f16" for base in
+                             ("inf", "huge_val", "nan", "nans") + F16_MATH_NAMES)
+SPECIAL_BUILTINS = (SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS | frozenset(FLOATN_BUILTIN_MAP)
+                    | FLOAT16_BUILTINS)
 
 
 def floatn_libc_name(name: str) -> str:
@@ -83,6 +90,11 @@ class BuiltinParseMixin:
             node = atomic_call(self, tok)
             self.expect(")")
             return node
+        if tok.text in FLOAT16_BUILTINS:
+            self.expect("(")
+            node = self._float16_builtin(tok)
+            self.expect(")")
+            return node
         name = FLOATN_BUILTIN_MAP.get(tok.text, tok.text)[len("__builtin_"):]
         self.expect("(")
         if tok.text in BIT_BUILTINS:
@@ -91,6 +103,21 @@ class BuiltinParseMixin:
             node = getattr(self, "_b_" + name)(tok)
         self.expect(")")
         return node
+
+    def _float16_builtin(self, tok):
+        """__builtin_{inf,huge_val,nan,nans}f16(...): a _Float16 constant. The NaN bit
+        patterns are built directly in binary16 (a float or double round trip would
+        quiet a signaling NaN). Other math functions go through parser/float16_math.py."""
+        base = tok.text[len("__builtin_"):-len("f16")]
+        if base in F16_MATH_NAMES:
+            return f16_math_call(self, tok, base)
+        if base.startswith("nan"):
+            self._args(1)
+            val = half_to_double(0x7D01 if base == "nans" else 0x7E00)
+        else:
+            self._args(0)
+            val = math.inf
+        return N.FloatLit(tok.loc, val, ty=T.TY_FLOAT16)
 
     def _bitop(self, tok, name):
         """clz/ctz/popcount/parity/ffs: argument converted to unsigned int
@@ -283,6 +310,10 @@ class BuiltinParseMixin:
 
     def _b_object_size(self, tok):
         return lower_object_size(self, tok)
+
+    def _b_assoc_barrier(self, tok):
+        # Identity on the value: it only stops reassociation of floating expressions.
+        return self._args(1)[0]
 
     def _b_expect(self, tok):
         args = self._args(2)

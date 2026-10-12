@@ -6,6 +6,7 @@ FPU stack (st1 = lhs, st0 = rhs).
 """
 from __future__ import annotations
 
+from hcc.codegen.half import ROUND_HALF
 from hcc.typesys import TypeKind
 
 
@@ -15,7 +16,7 @@ class FloatMixin:
         k = node.lhs.ty.kind
         if k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
             return self.x87_binary(node)
-        sz = "ss" if k == TypeKind.FLOAT else "sd"
+        sz = "ss" if k in (TypeKind.FLOAT16, TypeKind.FLOAT) else "sd"
         self.gen_expr(node.rhs)
         self.pushf()
         self.gen_expr(node.lhs)
@@ -24,6 +25,8 @@ class FloatMixin:
         if op in ("+", "-", "*", "/"):
             ins = {"+": "add", "-": "sub", "*": "mul", "/": "div"}[op]
             self.emit(f"{ins}{sz} %xmm1, %xmm0")
+            if node.ty.kind == TypeKind.FLOAT16:
+                self.emit(ROUND_HALF)       # half arithmetic: round the float result
             return
         if op == "==":
             self.emit(f"ucomi{sz} %xmm1, %xmm0")

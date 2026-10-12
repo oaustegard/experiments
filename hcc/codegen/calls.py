@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from hcc.codegen.abi import abi_kind, is_memory_struct, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS64
+from hcc.codegen.half import FROM_ABI_HALF, TO_ABI_HALF
 from hcc.typesys import TypeKind, align_to
 
 
@@ -52,7 +53,7 @@ class CallMixin:
                         by_stack = True
                 if by_stack:
                     stack += align_to(ty.size, 8) // 8
-            elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE):
                 if fp >= 8:
                     by_stack = True
                     stack += 1
@@ -90,6 +91,9 @@ class CallMixin:
             self.depth += sz // 8
             self.emit("mov %rsp, %rdi")
             self.copy_struct(a.ty.size)
+        elif k == TypeKind.FLOAT16:
+            self.emit(TO_ABI_HALF)          # passed as half bits in the low 16 bits
+            self.pushf()
         elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
             self.pushf()
         elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
@@ -154,7 +158,7 @@ class CallMixin:
                     else:
                         self.pop(ARG_REGS64[gp])
                         gp += 1
-            elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE):
                 self.popf(fp)
                 fp += 1
             else:
@@ -172,6 +176,8 @@ class CallMixin:
         if stack:
             self.emit(f"add ${stack * 8}, %rsp")
             self.depth -= stack
+        if ret.kind == TypeKind.FLOAT16:
+            self.emit(FROM_ABI_HALF)
         k = ret.kind
         if k == TypeKind.BOOL:
             self.emit("movzbl %al, %eax")

@@ -13,6 +13,7 @@ from hcc.sema.arith import new_add
 from hcc.sema.constexpr import NotConstant, eval_float, eval_reloc, float_to_int
 from hcc import typesys as T
 from hcc.floatbits import pack_float32, pack_float64
+from hcc.halfbits import half_bits
 
 
 def _has_value(init) -> bool:
@@ -135,7 +136,9 @@ def _write_le(init, ty, gd, offset) -> None:
             v = eval_float(expr)
         except NotConstant:
             diag.error(expr, "initializer element is not constant", "sema")
-        if ty.kind == T.TypeKind.FLOAT:
+        if ty.kind == T.TypeKind.FLOAT16:
+            gd.data[offset:offset + 2] = half_bits(v).to_bytes(2, "little")
+        elif ty.kind == T.TypeKind.FLOAT:
             gd.data[offset:offset + 4] = pack_float32(v)
         elif ty.kind == T.TypeKind.DOUBLE:
             gd.data[offset:offset + 8] = pack_float64(v)

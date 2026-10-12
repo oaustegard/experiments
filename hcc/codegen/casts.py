@@ -7,6 +7,7 @@ _Bool target is handled by cmp_zero. Add new conversions to TABLE only.
 from __future__ import annotations
 
 from hcc.typesys import TypeKind
+from hcc.codegen.half import ROUND_HALF
 
 I8, I16, I32, I64, U8, U16, U32, U64, F32, F64, F80 = range(11)
 
@@ -98,7 +99,7 @@ TABLE = [
 
 def type_id(ty) -> int:
     k = ty.kind
-    if k == TypeKind.FLOAT:
+    if k in (TypeKind.FLOAT, TypeKind.FLOAT16):
         return F32
     if k == TypeKind.DOUBLE:
         return F64
@@ -121,7 +122,7 @@ class CastMixin:
 
     def cmp_zero(self, ty) -> None:
         k = ty.kind
-        if k == TypeKind.FLOAT:
+        if k in (TypeKind.FLOAT16, TypeKind.FLOAT):
             self.emit("xorps %xmm1, %xmm1")
             self.emit("ucomiss %xmm1, %xmm0")
         elif k == TypeKind.DOUBLE:
@@ -152,3 +153,5 @@ class CastMixin:
         if code:
             for part in code.split("; "):
                 self.emit(part)
+        if to.kind == TypeKind.FLOAT16 and frm.kind != TypeKind.FLOAT16:
+            self.emit(ROUND_HALF)       # the register value must be exactly a half

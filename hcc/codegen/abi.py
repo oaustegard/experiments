@@ -23,7 +23,7 @@ def has_flonum(ty, lo: int, hi: int, offset: int = 0) -> bool:
             if not has_flonum(ty.base, lo, hi, offset + ty.base.size * i):
                 return False
         return True
-    return offset < lo or hi <= offset or k in (TypeKind.FLOAT, TypeKind.DOUBLE)
+    return offset < lo or hi <= offset or k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE)
 
 
 def has_ldouble(ty) -> bool:

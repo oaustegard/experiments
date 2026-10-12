@@ -8,9 +8,12 @@ Results are wrapped to the node's type width/signedness.
 """
 from __future__ import annotations
 
+import struct
+
 from hcc import diag
 from hcc import nodes as N
-from hcc.typesys import TypeKind, is_flonum, is_integer
+from hcc.floatbits import pack_float32
+from hcc.typesys import TypeKind, is_flonum, is_integer, round_to_half
 from hcc.sema.constexpr_math import fold_int_call, fold_math_call
 
 
@@ -86,11 +89,21 @@ def _ieee_div(a: float, b: float) -> float:
     return math.copysign(math.inf, a) * math.copysign(1.0, b)
 
 
+def _round_to_flonum(v: float, ty) -> float:
+    """Value of the float constant `v` once it is stored in `ty` (_Float16 and
+    float round; double and wider are kept as Python floats)."""
+    if ty.kind == TypeKind.FLOAT16:
+        return round_to_half(v)
+    if ty.kind == TypeKind.FLOAT:
+        return struct.unpack("<f", pack_float32(v))[0]
+    return v
+
+
 def eval_float(node) -> float:
     if isinstance(node, N.FloatLit):
-        return node.value
+        return _round_to_flonum(node.value, node.ty)
     if isinstance(node, N.Cast) and is_flonum(node.operand.ty):
-        return eval_float(node.operand)
+        return _round_to_flonum(eval_float(node.operand), node.ty)
     if isinstance(node, N.Unary) and node.op == "-":
         return -eval_float(node.operand)
     if isinstance(node, N.Binary) and node.op in "+-*/":

@@ -167,6 +167,7 @@ hcc/
                        assign, logical ops
     arith.py           integer binary operators and comparisons
     floats.py          float/double/long double arithmetic & comparisons
+    half.py            _Float16 (binary16) codegen: F16C load/store, round-to-half, ABI half bits
     casts.py           conversions between all scalar types (cast table)
     calls.py           function calls: argument evaluation & placement
     abi.py             SysV ABI classification (INTEGER/SSE/MEMORY eightbytes)

@@ -72,7 +72,7 @@ class VarargsMixin:
         self.emit("mov %rax, %rcx")
         k = ty.kind
         stack, done = self.new_label(), self.new_label()
-        if k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+        if k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE):
             self.emit("movl 4(%rcx), %eax")
             self.emit("cmp $160, %eax")
             self.emit(f"ja {stack}")

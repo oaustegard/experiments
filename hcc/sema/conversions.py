@@ -12,7 +12,8 @@ from hcc import nodes as N
 from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_flonum,
                        is_integer, pointer_to)
 
-_FLOAT_RANK = {TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3, TypeKind.FLOAT128: 4}
+_FLOAT_RANK = {TypeKind.FLOAT16: 1, TypeKind.FLOAT: 2, TypeKind.DOUBLE: 3, TypeKind.LDOUBLE: 4,
+               TypeKind.FLOAT128: 5}
 
 
 def int_promote(ty: Type) -> Type:

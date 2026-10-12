@@ -23,7 +23,8 @@ def is_compatible(a: Type, b: Type) -> bool:
     if k in (TypeKind.CHAR, TypeKind.SHORT, TypeKind.INT, TypeKind.LONG, TypeKind.LLONG,
              TypeKind.INT128, TypeKind.BOOL):
         return a.is_unsigned == b.is_unsigned
-    if k in (TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.VOID):
+    if k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE, TypeKind.LDOUBLE, TypeKind.FLOAT128,
+             TypeKind.VOID):
         return True
     if k == TypeKind.PTR:
         return is_compatible(a.base, b.base)

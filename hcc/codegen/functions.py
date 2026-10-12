@@ -39,7 +39,7 @@ class FunctionMixin:
                         where = ("struct", gp, fp)
                         fp += nfp
                         gp += ngp
-            elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
+            elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE):
                 if fp < 8:
                     where = ("fp", fp)
                 fp += 1
@@ -149,6 +149,10 @@ class FunctionMixin:
             if w[0] == "gp":
                 self.store_gp_param(w[1], p.offset, p.ty.size)
             elif w[0] == "fp":
+                if p.ty.kind == TypeKind.FLOAT16:       # ABI: half bits in low 16
+                    self.emit(f"movd %xmm{w[1]}, %eax")
+                    self.emit(f"mov %ax, {p.offset}(%rbp)")
+                    continue
                 ins = "movss" if p.ty.kind == TypeKind.FLOAT else "movsd"
                 self.emit(f"{ins} %xmm{w[1]}, {p.offset}(%rbp)")
             elif w[0] == "struct":

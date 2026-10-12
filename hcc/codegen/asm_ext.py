@@ -27,7 +27,7 @@ _REG_LETTERS = set("rqgRlxyQabcdSDXp")  # X (any) and p (address) use a GPR
 _MEM_LETTERS = set("moV")
 _X87_LETTERS = set("tuf")
 _IMM_LETTERS = set("inIJKLMNeEFZs")
-_BAD_KINDS = (TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.STRUCT, TypeKind.UNION)
+_BAD_KINDS = (TypeKind.FLOAT16, TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.STRUCT, TypeKind.UNION)
 # Arrays and functions decay to their address when used as register operands.
 _DECAY_KINDS = (TypeKind.ARRAY, TypeKind.FUNC)
 
