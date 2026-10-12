@@ -268,7 +268,12 @@ class AttributeMixin:
         elif name == "nocommon" and attr is not None:
             attr.is_nocommon = True
         elif name == "section" and attr is not None and args:
-            attr.section = args[0].value.rstrip(b"\0").decode() if args[0].value else None
+            new_sec = args[0].value.rstrip(b"\0").decode() if args[0].value else None
+            # GCC: two different section names on one declaration is an error
+            # (only redeclarations in separate declarations merely warn)
+            if attr.section is not None and new_sec != attr.section:
+                self.error("conflicting 'section' attribute in declaration", self.toks[args_start])
+            attr.section = new_sec
         elif name == "visibility" and attr is not None and args:
             attr.visibility = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name == "alias" and attr is not None and args:
