@@ -140,6 +140,7 @@ class LocalDeclMixin:
                     var.is_definition = False
                     self.push_scope_entry(name.text).var = var
                     continue
+                self.check_extern_completes_tentative(prior, ty, name)
                 var = self.declare_global_var(ty, name, attr, dattr)
                 self.push_scope_entry(name.text).var = var
                 continue
