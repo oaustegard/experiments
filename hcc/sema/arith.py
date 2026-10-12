@@ -154,6 +154,13 @@ def vector_binop(op, lhs, rhs, loc):
     return _t(N.Binary(loc, op, lhs, rhs, ty=lhs.ty))
 
 
+def _is_aggregate_operand(expr) -> bool:
+    """A struct or union (not a GCC vector) is never an operand of a binary
+    arithmetic, bitwise or relational operator (C11 6.5.5-6.5.14)."""
+    t = expr.ty
+    return not t.is_vector and t.kind in (TypeKind.STRUCT, TypeKind.UNION)
+
+
 def new_binop(op, lhs, rhs, loc):
     add_type(lhs)
     add_type(rhs)
@@ -163,6 +170,8 @@ def new_binop(op, lhs, rhs, loc):
     if vec is not None:
         return vec
     if (op in VECTOR_OPS or op in VECTOR_CMP_OPS) and (lhs.ty.is_vector or rhs.ty.is_vector):
+        diag.error(loc, f"invalid operands to binary {op} ('{lhs.ty}' and '{rhs.ty}')", "sema")
+    if _is_aggregate_operand(lhs) or _is_aggregate_operand(rhs):
         diag.error(loc, f"invalid operands to binary {op} ('{lhs.ty}' and '{rhs.ty}')", "sema")
     if op == "+":
         return new_add(lhs, rhs, loc)
