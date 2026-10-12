@@ -289,6 +289,8 @@ class ExpressionMixin:
                     ty = node.ty
                     if isinstance(node, N.VarRef) and isinstance(node.var, N.Function) and node.var.align:
                         return N.IntLit(t.loc, node.var.align, ty=TY_ULONG)
+                    if isinstance(node, N.Member_) and node.member.is_bitfield:
+                        self.error("'__alignof' applied to a bit-field", t)
                     if isinstance(node, N.Member_) and node.member.align:
                         return N.IntLit(t.loc, node.member.align, ty=TY_ULONG)   # packed/aligned member
                 return N.IntLit(t.loc, ty.align, ty=TY_ULONG)
