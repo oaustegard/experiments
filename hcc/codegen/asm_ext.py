@@ -107,10 +107,13 @@ class _Op:
         self.match = None        # operand index for matching constraints
         self.imm = None
         self.reg = None          # assigned register (no '%')
+        self.reg2 = None         # high-half register of a register pair (pair ops only)
         self.label = None        # label name (kind "label")
         self.stub = None         # jump-target stub emitted for kind "label"
         decays = expr is not None and expr.ty.kind in _DECAY_KINDS
         self.size = 8 if expr is None or decays else _norm_size(expr.ty.size)
+        # A 16-byte _Complex long long travels in two GPRs (low qword, high qword).
+        self.pair = expr is not None and expr.ty.is_complex and expr.ty.size == 16
 
 
 def _imm_value(expr, dead: bool):
@@ -163,7 +166,7 @@ def _classify(op: _Op, dead: bool = False) -> None:
         op.imm = _imm_value(where, dead)
     else:
         diag.error(where, f"codegen: unsupported asm constraint '{op.cons}'", "codegen")
-    if op.kind == "reg" and _is_bad_operand(op.expr.ty):
+    if op.kind == "reg" and not op.pair and _is_bad_operand(op.expr.ty):
         diag.error(where, "codegen: float/aggregate asm operands are not supported", "codegen")
 
 
@@ -207,11 +210,17 @@ def _assign_regs(ops, clobbers) -> None:
             if not free:
                 diag.error(op.expr, "codegen: too many asm operands for available registers", "codegen")
             op.reg = free.pop(0)
+        if op.pair:
+            if not free:
+                diag.error(op.expr, "codegen: too many asm operands for available registers", "codegen")
+            op.reg2 = free.pop(0)
     for op in ops:
         if op.match is not None:
             if op.match >= len(ops):
                 diag.error(op.expr, "codegen: asm matching constraint refers to a missing operand", "codegen")
             op.reg = ops[op.match].reg
+            op.reg2 = ops[op.match].reg2
+            op.pair = ops[op.match].pair
             op.kind = ops[op.match].kind
 
 
@@ -335,7 +344,7 @@ def lower_extended(cg, node) -> None:
 
     # Callee-saved registers the template may write are preserved on the stack
     # around the whole sequence (saved first, so they sit deepest).
-    touched = {op.reg for op in ops if op.reg} | clobbers
+    touched = {op.reg for op in ops if op.reg} | {op.reg2 for op in ops if op.reg2} | clobbers
     saved = [r for r in _CALLEE_SAVED if r in touched]
     for r in saved:
         cg.emit(f"push %{r}")
@@ -346,7 +355,7 @@ def lower_extended(cg, node) -> None:
     x87_out = sorted([op for op in outs if op.kind == "x87"], key=lambda o: o.reg)
     x87_in = [op for op in ops if op.kind == "x87" and not op.is_out]
     m = len(outs)
-    r = len(regs_out)
+    r = sum(2 if op.pair else 1 for op in regs_out)  # stack slots for register outputs
     nx = len(x87_in)
     if sorted(op.reg for op in x87_in) != list(range(nx)):
         diag.error(node, "codegen: unsupported x87 asm operand arrangement", "codegen")
@@ -379,6 +388,19 @@ def lower_extended(cg, node) -> None:
     for op in ops:
         if op.kind in ("imm", "x87", "label") or op.implicit or (op.is_out and op.kind == "reg" and not op.rw):
             continue
+        if op.kind == "reg" and op.pair:
+            # Two qwords of the 16-byte value: high pushed first, low on top.
+            if op.is_out:
+                k = outs.index(op)
+                cg.emit(f"mov {8 * (units + m - 1 - k)}(%rsp), %rax")
+            else:
+                cg.gen_expr(op.expr)
+            cg.emit("push 8(%rax)")
+            cg.emit("push (%rax)")
+            cg.depth += 2
+            units += 2
+            pushes.append(op)
+            continue
         if op.kind == "mem" and id(op) in spill_depth:
             cg.emit(f"lea {8 * (cg.depth - spill_depth[id(op)])}(%rsp), %rax")
         elif op.kind == "mem":
@@ -396,6 +418,8 @@ def lower_extended(cg, node) -> None:
         pushes.append(op)
     for op in reversed(pushes):
         cg.pop("%" + op.reg)
+        if op.pair:
+            cg.pop("%" + op.reg2)
     # Phase 2c: load x87 inputs; the deepest st(N) goes first.
     for idx, op in sorted(enumerate(x87_in), key=lambda p: -p[1].reg):
         cg.emit(f"fldt {16 * (nx - 1 - idx)}(%rsp)")
@@ -410,18 +434,22 @@ def lower_extended(cg, node) -> None:
             cg.emit(line)
     # Phase 4: store register outputs (pushed, then written back through the
     # saved addresses), then x87 outputs in increasing st(N) order.
-    if r:
-        for op in regs_out:
-            cg.emit(f"push %{op.reg}")
+    vals = []  # (op, qword half) for each pushed register output slot
+    for op in regs_out:
+        cg.emit(f"push %{op.reg}")
+        vals.append((op, 0))
+        if op.pair:
+            cg.emit(f"push %{op.reg2}")
+            vals.append((op, 1))
     for op in x87_out:
         k = outs.index(op)
         cg.emit(f"mov {8 * (r + m - 1 - k)}(%rsp), %rdi")
         cg.emit(_X87_STORE[op.expr.ty.kind] + " (%rdi)")
-    for j, op in enumerate(regs_out):
+    for j, (op, half) in enumerate(vals):
         k = outs.index(op)
         cg.emit(f"mov {8 * (r + m - 1 - k)}(%rsp), %rdi")
         cg.emit(f"mov {8 * (r - 1 - j)}(%rsp), %rax")
-        cg.emit(f"mov %{_reg_name('rax', op.size)}, (%rdi)")
+        cg.emit(f"mov %{_reg_name('rax', op.size)}, {8 * half}(%rdi)")
     if m:
         cg.emit(f"add ${8 * (r + m)}, %rsp")
     cg.depth -= m       # phase-1 address slots are released here
