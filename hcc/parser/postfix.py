@@ -17,6 +17,7 @@ from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.sema.arith import inc_dec, new_add
 from hcc.sema.conversions import default_arg_promote, new_cast
 from hcc.typesys import TypeKind, is_struct_like
+from hcc.parser.va_pack import is_pack_placeholder
 
 
 class PostfixMixin:
@@ -93,12 +94,20 @@ class PostfixMixin:
                 self.expect(",")
             args.append(self.typed(self.assign()))
         params = fty.params if fty.has_proto else []
-        if fty.has_proto and len(args) < len(params):
-            self.error("too few arguments to function", loc)
-        if fty.has_proto and not fty.is_variadic and len(args) > len(params):
-            self.error("too many arguments to function", loc)
+        # __builtin_va_arg_pack() stands for an unknown number of arguments until
+        # parser/va_pack.py specialises the call: skip arity checks and conversions
+        # from the placeholder on.
+        pack_at = next((i for i, a in enumerate(args) if is_pack_placeholder(a)), len(args))
+        if pack_at == len(args):
+            if fty.has_proto and len(args) < len(params):
+                self.error("too few arguments to function", loc)
+            if fty.has_proto and not fty.is_variadic and len(args) > len(params):
+                self.error("too many arguments to function", loc)
         conv = []
         for i, a in enumerate(args):
+            if i >= pack_at:
+                conv.append(a)
+                continue
             if i < len(params):
                 pty = params[i]
                 if not is_struct_like(pty):

@@ -28,6 +28,7 @@ from hcc import typesys as T
 
 SPECIAL_BUILTINS = frozenset("""
 __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin_offsetof
+__builtin_va_arg_pack __builtin_va_arg_pack_len
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_alloca_with_align __builtin_choose_expr __builtin_classify_type
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
@@ -161,6 +162,13 @@ class BuiltinParseMixin:
     def _b_va_start(self, tok):
         args = self._args()
         return self._call(tok, "va_start", args[:1], T.TY_VOID)
+
+    def _b_va_arg_pack(self, tok):
+        """Placeholder resolved by parser/va_pack.py (extra args of the inlined call)."""
+        return self._call(tok, "va_arg_pack", [], T.TY_INT)
+
+    def _b_va_arg_pack_len(self, tok):
+        return self._call(tok, "va_arg_pack_len", [], T.TY_INT)
 
     def _b_va_end(self, tok):
         self._args()

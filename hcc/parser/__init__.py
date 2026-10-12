@@ -24,6 +24,7 @@ from hcc.parser.statements import StatementMixin
 from hcc.parser.structs import StructMixin
 from hcc.parser.toplevel import TopLevelMixin
 from hcc.parser.vla import VlaMixin
+from hcc.parser.va_pack import specialise_pack_calls
 
 
 class Parser(TopLevelMixin, LocalDeclMixin, NestedFnMixin, StatementMixin, InitializerMixin,
@@ -34,4 +35,6 @@ class Parser(TopLevelMixin, LocalDeclMixin, NestedFnMixin, StatementMixin, Initi
 
 
 def parse(tokens, opts=None):
-    return Parser(tokens, opts).translation_unit()
+    tu = Parser(tokens, opts).translation_unit()
+    specialise_pack_calls(tu)
+    return tu
