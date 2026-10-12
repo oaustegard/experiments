@@ -39,7 +39,7 @@ __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
 __builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
 __builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_shufflevector __builtin_convertvector
-__builtin_isinf __builtin_isnan __builtin_isfinite
+__builtin_isinf __builtin_isnan __builtin_isfinite __builtin_isnormal
 __builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
 __builtin_fpclassify __builtin_isnormal __builtin_isinf_sign
 __builtin_isless __builtin_islessequal __builtin_islessgreater
@@ -463,6 +463,33 @@ class BuiltinParseMixin:
 
     def _b_isfinite(self, tok):
         return self._fp_class_call(tok, "finite")
+
+    def _b_isnormal(self, tok):
+        """__builtin_isnormal(x) == (__fpclassify{,f,l}(x) == FP_NORMAL). glibc has
+        no isnormal() symbol, so it is built on the libc fpclassify classifier.
+        The operand is evaluated once into a temp. _Float16 has no libc classifier:
+        it is widened exactly to double, and a value is normal there iff its
+        magnitude is at least 2^-14 (the smallest normal _Float16)."""
+        arg = self._args(1)[0]
+        f16 = arg.ty.kind == T.TypeKind.FLOAT16
+        sfx = {T.TypeKind.FLOAT: "f", T.TypeKind.LDOUBLE: "l"}.get(arg.ty.kind, "")
+        cty = {"f": T.TY_FLOAT, "l": T.TY_LDOUBLE}.get(sfx, T.TY_DOUBLE)
+        tmp = self.new_temp(cty, tok.loc)
+        store = self.typed(N.Assign(tok.loc, self.typed(N.VarRef(tok.loc, tmp)),
+                                    new_cast(arg, cty)))
+        fn = self.implicit_function("__fpclassify" + sfx, tok, T.TY_INT)
+        callee = self.typed(N.VarRef(tok.loc, fn))
+        val = self.typed(N.VarRef(tok.loc, tmp))
+        cls = self.typed(N.Call(tok.loc, callee, [val], fn.ty))
+        res = self.typed(N.Binary(tok.loc, "==", cls, N.IntLit(tok.loc, 4, ty=T.TY_INT)))
+        if f16:
+            lim = 2.0 ** -14
+            big = self.typed(N.Logical(tok.loc, "||",
+                self.typed(N.Binary(tok.loc, ">=", val, N.FloatLit(tok.loc, lim, ty=T.TY_DOUBLE))),
+                self.typed(N.Binary(tok.loc, "<=", self.typed(N.VarRef(tok.loc, tmp)),
+                                    N.FloatLit(tok.loc, -lim, ty=T.TY_DOUBLE)))))
+            res = self.typed(N.Logical(tok.loc, "&&", res, big))
+        return self.typed(N.Comma(tok.loc, store, res))
 
     def _b_huge_val(self, tok):
         return self._inf_lit(tok, T.TY_DOUBLE)
