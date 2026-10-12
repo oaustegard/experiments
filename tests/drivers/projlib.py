@@ -51,18 +51,22 @@ def fetch_tarball(name, url, sha256, subdir=None):
 
 
 def fetch_git(name, url, ref, commit):
-    """Shallow-clone `ref` of url into tests/tools/src/<name> (once) and check it is `commit`."""
+    """Fetch exactly `commit` of url (shallow) into tests/tools/src/<name> once.  `ref` is only documentation
+    (the tag or branch the commit came from)."""
     d = os.path.join(C.tools_root(), "src", name)
     with C.locked(d):
-        if not os.path.isdir(os.path.join(d, ".git")):
-            os.makedirs(os.path.dirname(d), exist_ok=True)
-            r = subprocess.run(["git", "clone", "-q", "--depth", "1", "--branch", ref, url, d],
-                               capture_output=True, text=True)
-            if r.returncode:
-                raise RuntimeError("git clone %s failed: %s" % (url, r.stderr[-500:]))
-        head = subprocess.run(["git", "-C", d, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+        head = None
+        if os.path.isdir(os.path.join(d, ".git")):
+            head = subprocess.run(["git", "-C", d, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
         if head != commit:
-            raise RuntimeError("%s is at %s, expected %s" % (d, head, commit))
+            if os.path.isdir(d):
+                shutil.rmtree(d)
+            os.makedirs(d)
+            for cmd in (["git", "init", "-q"], ["git", "remote", "add", "origin", url],
+                        ["git", "fetch", "-q", "--depth", "1", "origin", commit], ["git", "checkout", "-q", "FETCH_HEAD"]):
+                r = subprocess.run(cmd, cwd=d, capture_output=True, text=True)
+                if r.returncode:
+                    raise RuntimeError("%s failed: %s" % (" ".join(cmd), r.stderr[-500:]))
     return d
 
 
