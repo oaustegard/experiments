@@ -46,6 +46,7 @@ C23_KEYWORD_ALIASES = {
     "static_assert": "_Static_assert", "thread_local": "_Thread_local",
 }
 
+_HEX = frozenset("0123456789abcdefABCDEF")
 _ESCAPES = {"a": 7, "b": 8, "f": 12, "n": 10, "r": 13, "t": 9, "v": 11, "e": 27, "E": 27,
             "\\": 92, "'": 39, '"': 34, "?": 63}
 
@@ -178,17 +179,48 @@ def _decode(tok: Token, body: str, wide: bool) -> list[int]:
                 j += 1
             out.append(int(body[i:j], 8) & (0xFFFFFFFF if wide else 0xFF))
             i = j
+        elif c == "x" and i + 1 < n and body[i + 1] == "{":
+            # P2290 delimited escape: \x{hex-digits}
+            j = body.find("}", i + 2)
+            digits = body[i + 2:j] if j >= 0 else ""
+            if j < 0 or not digits or any(d not in _HEX for d in digits):
+                diag.error(tok, "\\x{...} needs hex digits and a closing brace")
+            out.append(int(digits, 16) & (0xFFFFFFFF if wide else 0xFF))
+            i = j + 1
+        elif c == "o" and i + 1 < n and body[i + 1] == "{":
+            # P2290 delimited escape: \o{octal-digits}
+            j = body.find("}", i + 2)
+            digits = body[i + 2:j] if j >= 0 else ""
+            if j < 0 or not digits or any(d not in "01234567" for d in digits):
+                diag.error(tok, "\\o{...} needs octal digits and a closing brace")
+            out.append(int(digits, 8) & (0xFFFFFFFF if wide else 0xFF))
+            i = j + 1
         elif c == "x":
             j = i + 1
-            while j < n and body[j] in "0123456789abcdefABCDEF":
+            while j < n and body[j] in _HEX:
                 j += 1
             if j == i + 1:
                 diag.error(tok, "\\x used with no following hex digits")
             out.append(int(body[i + 1:j], 16) & (0xFFFFFFFF if wide else 0xFF))
             i = j
+        elif c == "u" and i + 1 < n and body[i + 1] == "{":
+            # P2290 delimited universal character name: \u{hex-digits}
+            j = body.find("}", i + 2)
+            digits = body[i + 2:j] if j >= 0 else ""
+            if j < 0 or not digits or any(d not in _HEX for d in digits):
+                diag.error(tok, "\\u{...} needs hex digits and a closing brace")
+            cp = int(digits, 16)
+            i = j + 1
+            if wide:
+                out.append(cp)
+            else:
+                out.extend(chr(cp).encode("utf-8", errors="surrogatepass"))
         elif c in "uU":
             k = 4 if c == "u" else 8
-            cp = int(body[i + 1:i + 1 + k], 16)
+            digits = body[i + 1:i + 1 + k]
+            if len(digits) != k or any(d not in _HEX for d in digits):
+                diag.error(tok, "incomplete universal character name")
+            cp = int(digits, 16)
             i += 1 + k
             if wide:
                 out.append(cp)
