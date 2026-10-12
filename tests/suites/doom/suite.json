@@ -1,0 +1,5 @@
+{
+  "description": "doomgeneric (commit-pinned) built by hcc and run headless (fake clock, per-frame hash of the frame buffer; tests/suites/doom/doomgeneric_headless.c) on Freedoom 0.13.0 phase 1 (sha256-pinned, fetched into tests/tools). src/<u>.c: hcc compiles one of the 79 game files or the backend, gcc -O0 the rest, demo1 for 60 tics. demo/demoN: entirely hcc-built, timedemo N for 800-1000 tics (demo4 skipped: not reproducible even with gcc). warp/<map>: idle player on nine maps. Output must equal the gcc -O0 build's. Driver: tests/drivers/doom.py",
+  "driver": "doom",
+  "cflags": ["-w"]
+}
