@@ -60,6 +60,12 @@ _F64.update({F32: "cvtsd2ss %xmm0, %xmm0", F80: "movsd %xmm0, -8(%rsp); fldl -8(
 
 _F80_1 = "fnstcw -10(%rsp); movzwl -10(%rsp), %eax; or $12, %ah; mov %ax, -12(%rsp); fldcw -12(%rsp); "
 _F80_2 = " -24(%rsp); fldcw -10(%rsp); "
+# long double -> uint64: fistp only covers the signed range, so for x >= 2^63
+# subtract 2^63 (a x87 m80 constant at -40(%rsp)), convert, and set bit 63.
+# Leaves the converted value in -24(%rsp); the caller loads it.
+_F80_U64 = ("movabs $0x8000000000000000, %rax; mov %rax, -40(%rsp); movw $16446, -32(%rsp); "
+            "fldt -40(%rsp); fcomi %st(1), %st; fstp %st(0); jbe 1f; fistpq -24(%rsp); jmp 2f; "
+            "1: fldt -40(%rsp); fsubr %st(1), %st; fstp %st(1); fistpq -24(%rsp); btcq $63, -24(%rsp); 2: ")
 _F80 = {
     I8: _F80_1 + "fistps" + _F80_2 + "movsbl -24(%rsp), %eax",
     U8: _F80_1 + "fistps" + _F80_2 + "movzbl -24(%rsp), %eax",
@@ -68,7 +74,7 @@ _F80 = {
     I32: _F80_1 + "fistpl" + _F80_2 + "mov -24(%rsp), %eax",
     U32: _F80_1 + "fistpq" + _F80_2 + "mov -24(%rsp), %eax",
     I64: _F80_1 + "fistpq" + _F80_2 + "mov -24(%rsp), %rax",
-    U64: _F80_1 + "fistpq" + _F80_2 + "mov -24(%rsp), %rax",
+    U64: _F80_1 + _F80_U64 + "mov -24(%rsp), %rax; fldcw -10(%rsp)",
     F32: "fstps -8(%rsp); movss -8(%rsp), %xmm0",
     F64: "fstpl -8(%rsp); movsd -8(%rsp), %xmm0",
 }
