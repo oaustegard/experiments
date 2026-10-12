@@ -13,6 +13,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.parser import complex as CPX
 from hcc.parser import complex_const as CC
+from hcc.parser import constexpr_init as CE
 from hcc.parser.structs import find_member
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import lower_local_init, serialize_global_init
@@ -59,7 +60,7 @@ class InitializerMixin:
     def local_initializer(self, var) -> N.Expr:
         if var.is_constexpr:
             return self.constexpr_local_initializer(var)
-        init, ty = self.parse_initializer(var.ty)
+        init, ty = self.with_constexpr(var, self.parse_initializer, var.ty)
         var.ty = ty
         if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
             # GCC folds `const int a = 0;` when it is read in a constant initializer.
@@ -73,7 +74,7 @@ class InitializerMixin:
         saved = self.in_static_init
         self.in_static_init = True
         try:
-            init, ty = self.parse_initializer(var.ty)
+            init, ty = self.with_constexpr(var, self.parse_initializer, var.ty)
         finally:
             self.in_static_init = saved
         var.ty = ty
@@ -95,13 +96,22 @@ class InitializerMixin:
         saved = self.in_static_init
         self.in_static_init = True
         try:
-            init, ty = self.parse_initializer(var.ty)
+            init, ty = self.with_constexpr(var, self.parse_initializer, var.ty)
         finally:
             self.in_static_init = saved
         var.ty = ty
         var.init_data = serialize_global_init(init, ty)
 
     # ---- helpers --------------------------------------------------------------
+    def with_constexpr(self, var, fn, *args):
+        """Run fn with in_constexpr_init set when var is a C23 constexpr object."""
+        saved = self.in_constexpr_init
+        self.in_constexpr_init = bool(getattr(var, "is_constexpr", False))
+        try:
+            return fn(*args)
+        finally:
+            self.in_constexpr_init = saved
+
     def _check_flex_nesting(self, init, root: bool) -> None:
         """GCC: a trailing `T x[]` member may only be initialized when its struct
         is the object being initialized itself, not a sub-object of an aggregate."""
@@ -217,6 +227,8 @@ class InitializerMixin:
                 self._skip_excess()
             return
         init.expr = self.typed(self.assign())
+        if self.in_constexpr_init and T.is_integer(init.ty):
+            CE.check_scalar(self, try_eval_const(init.expr), init.ty)
         if init.ty.is_complex or init.expr.ty.is_complex:
             if self.fn is None or self.in_static_init:   # static storage or constexpr object
                 CC.set_global_init(self, init)
@@ -233,6 +245,8 @@ class InitializerMixin:
                  for i in range(n)]
         if init.is_flexible:
             self._grow(init, n - 1)
+        if self.in_constexpr_init:
+            CE.check_string_units(self, units, tok.ty.base.size * 8, tok.ty.base.is_unsigned, elem)
         count = min(len(init.children), n)
         for i in range(count):
             v = units[i]

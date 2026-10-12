@@ -38,6 +38,7 @@ class ParserBase:
         self.goto_names: list[Token] = []
         self.label_names: set[str] = set()
         self.in_static_init = False          # inside a static-storage initializer
+        self.in_constexpr_init = False       # inside a C23 constexpr object's initializer
         self.scope_stack: list[int] = [0]    # ids of enclosing block scopes (0 = file scope)
         self.scope_seq = 0
         self.stmt_expr_base: int | None = None  # scope depth of the outermost ({ }) being parsed
