@@ -261,8 +261,8 @@ class DeclaratorMixin:
         nxt = self.toks[min(end + 1, len(self.toks) - 1)]
         return nxt.kind == TokenKind.PUNCT and nxt.text == "{"
 
-    def compound_lit_is_static(self):
-        """At '(' : True if `static` appears directly inside the parens."""
+    def compound_lit_is_static(self, words=("static",)):
+        """At '(' : True if one of `words` (default `static`) appears directly inside the parens."""
         end = self._paren_end()
         if end is None:
             return False
@@ -272,7 +272,7 @@ class DeclaratorMixin:
                 depth += 1
             elif t.kind == TokenKind.PUNCT and t.text in (")", "]", "}"):
                 depth -= 1
-            elif depth == 1 and t.text == "static":
+            elif depth == 1 and t.text in words:
                 return True
         return False
 
