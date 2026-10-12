@@ -31,6 +31,7 @@ DIGRAPHS = {"<:": "[", ":>": "]", "<%": "{", "%>": "}", "%:": "#", "%:%:": "##"}
 _TOKEN_SRC = r"""
     (?P<nl>\n)
   | (?P<ws>[ \t\f\v\r]+)
+  | (?P<bad>[\udc80-\udcff])
   | (?P<lc>//[^\n]*)
   | (?P<bc>/\*.*?\*/)
   | (?P<ubc>/\*)
@@ -38,8 +39,8 @@ _TOKEN_SRC = r"""
             |\.?[0-9](?:[eE][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
   | (?P<str>(?:u8|u|U|L)?"(?:[^"\\\n]|\\.)*")
   | (?P<chr>(?:u8|u|U|L)?'(?:[^'\\\n]|\\.)*')
-  | (?P<id>(?:[A-Za-z_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
-             (?:[A-Za-z0-9_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+  | (?P<id>(?:[A-Za-z_$\u0080-\udc7f\udd00-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
+             (?:[A-Za-z0-9_$\u0080-\udc7f\udd00-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
   | (?P<other>.)
 """
@@ -53,7 +54,7 @@ def _make_scanner(line_comments: bool, u8_chars: bool, c90_literals: bool = Fals
         # C89/C90 have no `//` comments: drop the `lc` alternative.
         src = src.replace(r"  | (?P<lc>//[^\n]*)" + "\n", "")
         # C89/C90 do not allow extended (non-ASCII) characters in identifiers.
-        src = src.replace(r"\u0080-\U0010ffff", "")
+        src = src.replace(r"\u0080-\udc7f\udd00-\U0010ffff", "")
         # ... and no universal character names (\uXXXX) inside identifiers
         # either: `aª` lexes as `a`, `\`, `u00aa` (GCC -std=c89).
         head, sep, tail = src.partition("(?P<id>")
@@ -155,7 +156,9 @@ def tokenize(text: str, path: str, line_comments: bool = True,
             bol = True
             space = False
             continue
-        if kind in ("ws", "lc"):
+        if kind in ("ws", "lc", "bad"):
+            # "bad" = a byte that is not valid UTF-8 outside a literal or comment
+            # (surrogateescape): GCC treats it as a stray token that vanishes.
             space = True
             continue
         if kind == "bc":
