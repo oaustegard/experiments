@@ -1,0 +1,163 @@
+{
+ "duration_api_ms": 10903,
+ "stop_reason": "tool_use",
+ "session_id": "2cef5b39-c390-4887-8b39-2bce6a82d985",
+ "total_cost_usd": 0.00173896,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2698,
+  "cache_read_input_tokens": 7986,
+  "output_tokens": 1716,
+  "output_tokens_details": {
+   "thinking_tokens": 1121
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2698,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1643,
+    "cache_read_input_tokens": 4584,
+    "cache_creation_input_tokens": 1516,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1516
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1600,
+   "outputTokens": 1919,
+   "cacheReadInputTokens": 7986,
+   "cacheCreationInputTokens": 2698,
+   "webSearchRequests": 0,
+   "costUSD": 0.00173896,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1304,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A man in a dark suit, seen from behind and partly turned, stands in a lamp-lit workshop and holds the brass pendulum of a tall walnut longcase clock, with a workbench of tools and glass bottles on the left.\",\"contradictions\":[{\"what\":\"Room: the words place the action in a house where Madame Monnier and card players sit at a table, but the image shows a cluttered workshop with a workbench, tools, and bottles, and no parlour or card table.\",\"severity\":\"jarring\"},{\"what\":\"Who is present: the words say Madame Monnier is in plain sight and the man is at the card table, implying other people; the image shows only one man, alone.\",\"severity\":\"jarring\"},{\"what\":\"Object named: the words say the piano stopped, but no piano appears in the image.\",\"severity\":\"jarring\"},{\"what\":\"Object named: the words say a card table, and the image has no card table or cards.\",\"severity\":\"minor\"},{\"what\":\"Object implied: the words say he took his cigar case from his coat, but the image shows a closed dark coat with no cigar case and no hand going into a pocket.\",\"severity\":\"minor\"},{\"what\":\"Action: the words say he set the clock's hands back, but the image shows his hand on the pendulum rod and bob inside the case, not on the dial; the clock face is cropped at the top so the hands cannot be seen.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A man in a dark suit, seen from behind and partly turned, stands in a lamp-lit workshop and holds the brass pendulum of a tall walnut longcase clock, with a workbench of tools and glass bottles on the left.",
+  "contradictions": [
+   {
+    "what": "Room: the words place the action in a house where Madame Monnier and card players sit at a table, but the image shows a cluttered workshop with a workbench, tools, and bottles, and no parlour or card table.",
+    "severity": "jarring"
+   },
+   {
+    "what": "Who is present: the words say Madame Monnier is in plain sight and the man is at the card table, implying other people; the image shows only one man, alone.",
+    "severity": "jarring"
+   },
+   {
+    "what": "Object named: the words say the piano stopped, but no piano appears in the image.",
+    "severity": "jarring"
+   },
+   {
+    "what": "Object named: the words say a card table, and the image has no card table or cards.",
+    "severity": "minor"
+   },
+   {
+    "what": "Object implied: the words say he took his cigar case from his coat, but the image shows a closed dark coat with no cigar case and no hand going into a pocket.",
+    "severity": "minor"
+   },
+   {
+    "what": "Action: the words say he set the clock's hands back, but the image shows his hand on the pendulum rod and bob inside the case, not on the dial; the clock face is cropped at the top so the hands cannot be seen.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1000,
+ "type": "result",
+ "duration_ms": 9703,
+ "uuid": "4bfb737f-2d7b-45f4-81da-8ea025043edd",
+ "ttft_stream_ms": 653,
+ "time_to_request_ms": 242,
+ "time_to_request_phases_ms": {
+  "other": 20,
+  "system_prompt": 18,
+  "resume_other": 0,
+  "process_user_input": 4,
+  "input_attachments": 13,
+  "input_hooks": 6,
+  "tool_pool_refresh": 3,
+  "init_message": 8,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 154,
+  "autocompact": 2,
+  "query_setup": 0,
+  "model_gates": 1,
+  "tool_schema_build": 4,
+  "message_normalization": 1,
+  "client_creation": 2,
+  "request_build": 4
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 92,
+ "time_to_request_cpu_ms": 237,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 8,
+  "cpu_ms": 18,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 654,
+ "time_to_request_from_spawn_ms": 174950,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768257833.878,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

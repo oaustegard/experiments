@@ -1,0 +1,155 @@
+{
+ "duration_api_ms": 15031,
+ "stop_reason": "tool_use",
+ "session_id": "12f02a1b-f89b-4cdb-83e0-c1e8fc4b3cc4",
+ "total_cost_usd": 0.00205921,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2781,
+  "cache_read_input_tokens": 8071,
+  "output_tokens": 2203,
+  "output_tokens_details": {
+   "thinking_tokens": 1616
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2781,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2132,
+    "cache_read_input_tokens": 4669,
+    "cache_creation_input_tokens": 1514,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1514
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1678,
+   "outputTokens": 2509,
+   "cacheReadInputTokens": 8071,
+   "cacheCreationInputTokens": 2781,
+   "webSearchRequests": 0,
+   "costUSD": 0.00205921,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1899,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A painted night scene in a dim salon: a woman in black with her hair in a bun holds a hand of cards at a round table lit by an oil lamp, facing a white-bearded, bespectacled man in a black suit who smokes a cigar, with a watch chain across his waistcoat, while a marble mantel clock sits on the mantelpiece behind them.\",\"contradictions\":[{\"what\":\"The narration says 'The doctor had examined the body,' but no body or dead person appears anywhere in the frame; both figures are seated and alive at the card table.\",\"severity\":\"minor\"},{\"what\":\"Dr Vauthier speaks of Madame playing the piano as he leaves the room, but no piano is visible in the frame. The room shown contains a mantel clock, a fireplace, and a card table, and the piano is only implied off-frame.\",\"severity\":\"minor\"},{\"what\":\"The lines say the doctor went out to the hall to fetch his cigar case from his coat, but he is already holding a lit cigar and has another cigar resting in his other hand. No cigar case is visible.\",\"severity\":\"minor\"},{\"what\":\"The words say 'the hall clock struck eleven,' but the only clock shown is a marble mantel clock inside the salon, not a hall clock. The clock is in the room where they play, so the sound of a hall clock would not come from it.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A painted night scene in a dim salon: a woman in black with her hair in a bun holds a hand of cards at a round table lit by an oil lamp, facing a white-bearded, bespectacled man in a black suit who smokes a cigar, with a watch chain across his waistcoat, while a marble mantel clock sits on the mantelpiece behind them.",
+  "contradictions": [
+   {
+    "what": "The narration says 'The doctor had examined the body,' but no body or dead person appears anywhere in the frame; both figures are seated and alive at the card table.",
+    "severity": "minor"
+   },
+   {
+    "what": "Dr Vauthier speaks of Madame playing the piano as he leaves the room, but no piano is visible in the frame. The room shown contains a mantel clock, a fireplace, and a card table, and the piano is only implied off-frame.",
+    "severity": "minor"
+   },
+   {
+    "what": "The lines say the doctor went out to the hall to fetch his cigar case from his coat, but he is already holding a lit cigar and has another cigar resting in his other hand. No cigar case is visible.",
+    "severity": "minor"
+   },
+   {
+    "what": "The words say 'the hall clock struck eleven,' but the only clock shown is a marble mantel clock inside the salon, not a hall clock. The clock is in the room where they play, so the sound of a hall clock would not come from it.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1964,
+ "type": "result",
+ "duration_ms": 14695,
+ "uuid": "461bd2ae-cec2-450f-88bc-1d8a41cd6787",
+ "ttft_stream_ms": 1689,
+ "time_to_request_ms": 1290,
+ "time_to_request_phases_ms": {
+  "other": 190,
+  "system_prompt": 339,
+  "resume_other": 0,
+  "process_user_input": 36,
+  "input_attachments": 189,
+  "input_hooks": 45,
+  "tool_pool_refresh": 3,
+  "init_message": 45,
+  "engine_pickup": 2,
+  "message_prep": 1,
+  "model_config_wait": 376,
+  "autocompact": 8,
+  "query_setup": 3,
+  "model_gates": 0,
+  "tool_schema_build": 15,
+  "message_normalization": 8,
+  "client_creation": 18,
+  "request_build": 12
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 909,
+ "time_to_request_cpu_ms": 231,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "at_mentioned_files",
+  "slowest_producer_ms": 85,
+  "cpu_ms": 25,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1689,
+ "time_to_request_from_spawn_ms": 159680,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768235542.8599,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

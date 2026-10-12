@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 29166,
+ "stop_reason": "tool_use",
+ "session_id": "1ad93b0b-1854-4162-a749-a6c90e5817c4",
+ "total_cost_usd": 0.00168022,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2697,
+  "cache_read_input_tokens": 7982,
+  "output_tokens": 1603,
+  "output_tokens_details": {
+   "thinking_tokens": 1157
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2697,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1527,
+    "cache_read_input_tokens": 4580,
+    "cache_creation_input_tokens": 1519,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1519
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1595,
+   "outputTokens": 1803,
+   "cacheReadInputTokens": 7982,
+   "cacheCreationInputTokens": 2697,
+   "webSearchRequests": 0,
+   "costUSD": 0.00168022,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1338,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A dim, lamp-lit kitchen at night, where a young woman in a grey dress sits by a black iron stove holding a small pocket watch while an older woman in a white cap and apron polishes a glass behind her, with a windup alarm clock on a wall shelf.\",\"contradictions\":[{\"what\":\"Lina's gaze is directed up and to the right, away from the wall shelf where the alarm clock sits. The words say she looked at Rosa's clock when the piano began, so a viewer could expect her looking at the clock. This is a minor undercut because the still is a single moment and need not show the act of looking.\",\"severity\":\"minor\"},{\"what\":\"The alarm clock's hands are too small and low-contrast to read with confidence, so the image neither confirms nor refutes the stated times of 10:58 and 11:11. The image also does not establish that this alarm clock is 'Rosa's clock'.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A dim, lamp-lit kitchen at night, where a young woman in a grey dress sits by a black iron stove holding a small pocket watch while an older woman in a white cap and apron polishes a glass behind her, with a windup alarm clock on a wall shelf.",
+  "contradictions": [
+   {
+    "what": "Lina's gaze is directed up and to the right, away from the wall shelf where the alarm clock sits. The words say she looked at Rosa's clock when the piano began, so a viewer could expect her looking at the clock. This is a minor undercut because the still is a single moment and need not show the act of looking.",
+    "severity": "minor"
+   },
+   {
+    "what": "The alarm clock's hands are too small and low-contrast to read with confidence, so the image neither confirms nor refutes the stated times of 10:58 and 11:11. The image also does not establish that this alarm clock is 'Rosa's clock'.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 2350,
+ "type": "result",
+ "duration_ms": 28726,
+ "uuid": "2baa277f-3a64-458e-a1b0-d77640d0b7c8",
+ "ttft_stream_ms": 2335,
+ "time_to_request_ms": 1058,
+ "time_to_request_phases_ms": {
+  "other": 227,
+  "system_prompt": 154,
+  "resume_other": 0,
+  "process_user_input": 20,
+  "input_attachments": 91,
+  "input_hooks": 34,
+  "tool_pool_refresh": 22,
+  "init_message": 44,
+  "engine_pickup": 21,
+  "message_prep": 2,
+  "model_config_wait": 290,
+  "autocompact": 3,
+  "query_setup": 1,
+  "model_gates": 1,
+  "tool_schema_build": 31,
+  "message_normalization": 2,
+  "client_creation": 75,
+  "request_build": 40
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 605,
+ "time_to_request_cpu_ms": 279,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 55,
+  "cpu_ms": 18,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 2336,
+ "time_to_request_from_spawn_ms": 160297,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768235596.9727,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

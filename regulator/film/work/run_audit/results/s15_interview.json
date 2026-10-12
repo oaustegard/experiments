@@ -1,0 +1,151 @@
+{
+ "duration_api_ms": 13079,
+ "stop_reason": "tool_use",
+ "session_id": "66167b5b-cc85-49df-b175-5c51ca490981",
+ "total_cost_usd": 0.0017938300000000002,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2643,
+  "cache_read_input_tokens": 7933,
+  "output_tokens": 1821,
+  "output_tokens_details": {
+   "thinking_tokens": 1330
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2643,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1750,
+    "cache_read_input_tokens": 4531,
+    "cache_creation_input_tokens": 1514,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1514
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1549,
+   "outputTokens": 2062,
+   "cacheReadInputTokens": 7933,
+   "cacheCreationInputTokens": 2643,
+   "webSearchRequests": 0,
+   "costUSD": 0.0017938300000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1553,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A dark, lamp-lit room at night, where a moustached man in a snow-dusted greatcoat and gloves sits alone at a wooden table, writing in a notebook beside a lit oil lamp, with frosted windows behind him and two empty chairs.\",\"contradictions\":[{\"what\":\"The narration says \\\"she had found him,\\\" which implies a discovered body or victim, but the still shows no body or any sign of a death. A still framed on the interviewer may simply leave it out, so this is an absence rather than a direct conflict.\",\"severity\":\"minor\"},{\"what\":\"\\\"I took them one at a time\\\" implies several witnesses being brought in one after another, but only one person is present, and the two empty chairs at the table do not show anyone waiting.\",\"severity\":\"minor\"},{\"what\":\"The interviewer still wears a heavy outdoor greatcoat with snow on the shoulders and gloves on while writing. That suggests he has just come in from outside, which sits slightly oddly with a long interview running from 1 to 4 a.m. in a dining room.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A dark, lamp-lit room at night, where a moustached man in a snow-dusted greatcoat and gloves sits alone at a wooden table, writing in a notebook beside a lit oil lamp, with frosted windows behind him and two empty chairs.",
+  "contradictions": [
+   {
+    "what": "The narration says \"she had found him,\" which implies a discovered body or victim, but the still shows no body or any sign of a death. A still framed on the interviewer may simply leave it out, so this is an absence rather than a direct conflict.",
+    "severity": "minor"
+   },
+   {
+    "what": "\"I took them one at a time\" implies several witnesses being brought in one after another, but only one person is present, and the two empty chairs at the table do not show anyone waiting.",
+    "severity": "minor"
+   },
+   {
+    "what": "The interviewer still wears a heavy outdoor greatcoat with snow on the shoulders and gloves on while writing. That suggests he has just come in from outside, which sits slightly oddly with a long interview running from 1 to 4 a.m. in a dining room.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 2096,
+ "type": "result",
+ "duration_ms": 12507,
+ "uuid": "f729df6c-fb37-44dc-adbe-cd4fecd23419",
+ "ttft_stream_ms": 1326,
+ "time_to_request_ms": 934,
+ "time_to_request_phases_ms": {
+  "other": 100,
+  "system_prompt": 231,
+  "resume_other": 0,
+  "process_user_input": 7,
+  "input_attachments": 62,
+  "input_hooks": 14,
+  "tool_pool_refresh": 3,
+  "init_message": 41,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 381,
+  "autocompact": 13,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 14,
+  "message_normalization": 10,
+  "client_creation": 16,
+  "request_build": 39
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 321,
+ "time_to_request_cpu_ms": 233,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 25,
+  "cpu_ms": 16,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1329,
+ "time_to_request_from_spawn_ms": 160421,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768235599.9978,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

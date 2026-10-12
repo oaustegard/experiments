@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 11525,
+ "stop_reason": "tool_use",
+ "session_id": "be8bdb26-7a1f-47e6-b216-8f26a36a96ea",
+ "total_cost_usd": 0.0017491499999999999,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2677,
+  "cache_read_input_tokens": 7965,
+  "output_tokens": 1708,
+  "output_tokens_details": {
+   "thinking_tokens": 1262
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2677,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1635,
+    "cache_read_input_tokens": 4563,
+    "cache_creation_input_tokens": 1516,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1516
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1576,
+   "outputTokens": 1953,
+   "cacheReadInputTokens": 7965,
+   "cacheCreationInputTokens": 2677,
+   "webSearchRequests": 0,
+   "costUSD": 0.0017491499999999999,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1488,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A dim, close-up painting looking up at a dark plank ceiling with heavy beams, an iron S-hook hanging from one beam, and a shaft of warm light slanting down from a gap between the boards, with a pale lit frame at the lower left.\",\"contradictions\":[{\"what\":\"The words name a pocket watch (\\\"by my watch\\\") and the uncle's repeater, but neither is visible. The still shows no clock or watch, so the sound and time claims are unsupported by anything on screen. This is a quibble, since a ceiling shot need not show the source of a sound.\",\"severity\":\"minor\"},{\"what\":\"The words imply someone in the room directly above (the thump on the floor, the uncle's repeater). The still shows no person, and the only light comes from a crack in the boards, so the room above is not visibly occupied. This is a quibble, not a clear contradiction, since the words do not say anyone is visible.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A dim, close-up painting looking up at a dark plank ceiling with heavy beams, an iron S-hook hanging from one beam, and a shaft of warm light slanting down from a gap between the boards, with a pale lit frame at the lower left.",
+  "contradictions": [
+   {
+    "what": "The words name a pocket watch (\"by my watch\") and the uncle's repeater, but neither is visible. The still shows no clock or watch, so the sound and time claims are unsupported by anything on screen. This is a quibble, since a ceiling shot need not show the source of a sound.",
+    "severity": "minor"
+   },
+   {
+    "what": "The words imply someone in the room directly above (the thump on the floor, the uncle's repeater). The still shows no person, and the only light comes from a crack in the boards, so the room above is not visibly occupied. This is a quibble, not a clear contradiction, since the words do not say anyone is visible.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 882,
+ "type": "result",
+ "duration_ms": 10465,
+ "uuid": "76558f9b-c47a-4dcc-8fbd-82a50db64277",
+ "ttft_stream_ms": 593,
+ "time_to_request_ms": 255,
+ "time_to_request_phases_ms": {
+  "other": 30,
+  "system_prompt": 57,
+  "resume_other": 0,
+  "process_user_input": 4,
+  "input_attachments": 32,
+  "input_hooks": 6,
+  "tool_pool_refresh": 5,
+  "init_message": 14,
+  "engine_pickup": 10,
+  "message_prep": 2,
+  "model_config_wait": 55,
+  "autocompact": 2,
+  "query_setup": 1,
+  "model_gates": 1,
+  "tool_schema_build": 15,
+  "message_normalization": 2,
+  "client_creation": 10,
+  "request_build": 9
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 205,
+ "time_to_request_cpu_ms": 187,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 24,
+  "cpu_ms": 15,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 593,
+ "time_to_request_from_spawn_ms": 168643,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768251722.887,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

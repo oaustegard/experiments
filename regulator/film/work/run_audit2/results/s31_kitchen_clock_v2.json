@@ -1,0 +1,155 @@
+{
+ "duration_api_ms": 15646,
+ "stop_reason": "tool_use",
+ "session_id": "e44b0657-c3d2-4197-b7fd-a18a3a15c547",
+ "total_cost_usd": 0.00220184,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2810,
+  "cache_read_input_tokens": 8094,
+  "output_tokens": 2543,
+  "output_tokens_details": {
+   "thinking_tokens": 1938
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2810,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2466,
+    "cache_read_input_tokens": 4692,
+    "cache_creation_input_tokens": 1520,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1520
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1704,
+   "outputTokens": 2777,
+   "cacheReadInputTokens": 8094,
+   "cacheCreationInputTokens": 2810,
+   "webSearchRequests": 0,
+   "costUSD": 0.00220184,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 2153,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A dim, painted still life of a worn wooden shelf holding a bell-top alarm clock, two copper saucepans, and four empty stemmed glasses, with a lit window at the left edge and no people present.\",\"contradictions\":[{\"what\":\"No people appear anywhere in the image, but the narration refers to Rosa, Lina, and Monnier, including Lina 'seeing him laughing' and Lina reaching the kitchen. The still shows only objects, so the named characters are absent.\",\"severity\":\"minor\"},{\"what\":\"The narration describes a clock that 'strikes' the hour, which Rosa's clock is said to do. The clock shown is a bell-top alarm clock, which rings an alarm rather than striking hours, so the object type is mismatched.\",\"severity\":\"minor\"},{\"what\":\"The dial's hands read roughly 10:15 to 10:40: the short hour hand sits between 10 and 11 and the long minute hand points near the 3 (about 15 minutes). The narration states 11:13. The hour hand is well short of the 11 position, so the time does not match, though painted hands are hard to read exactly.\",\"severity\":\"minor\"},{\"what\":\"The window at the left is rendered with pale, lit panes and the wall is evenly grey, which reads more like daylight than the night of 31 December that the narration implies. The darkness of the room only partly offsets this.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A dim, painted still life of a worn wooden shelf holding a bell-top alarm clock, two copper saucepans, and four empty stemmed glasses, with a lit window at the left edge and no people present.",
+  "contradictions": [
+   {
+    "what": "No people appear anywhere in the image, but the narration refers to Rosa, Lina, and Monnier, including Lina 'seeing him laughing' and Lina reaching the kitchen. The still shows only objects, so the named characters are absent.",
+    "severity": "minor"
+   },
+   {
+    "what": "The narration describes a clock that 'strikes' the hour, which Rosa's clock is said to do. The clock shown is a bell-top alarm clock, which rings an alarm rather than striking hours, so the object type is mismatched.",
+    "severity": "minor"
+   },
+   {
+    "what": "The dial's hands read roughly 10:15 to 10:40: the short hour hand sits between 10 and 11 and the long minute hand points near the 3 (about 15 minutes). The narration states 11:13. The hour hand is well short of the 11 position, so the time does not match, though painted hands are hard to read exactly.",
+    "severity": "minor"
+   },
+   {
+    "what": "The window at the left is rendered with pale, lit panes and the wall is evenly grey, which reads more like daylight than the night of 31 December that the narration implies. The darkness of the room only partly offsets this.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1030,
+ "type": "result",
+ "duration_ms": 14408,
+ "uuid": "349b0370-e98b-4f92-8631-8e9129f7b429",
+ "ttft_stream_ms": 628,
+ "time_to_request_ms": 240,
+ "time_to_request_phases_ms": {
+  "other": 31,
+  "system_prompt": 19,
+  "resume_other": 1,
+  "process_user_input": 4,
+  "input_attachments": 29,
+  "input_hooks": 9,
+  "tool_pool_refresh": 2,
+  "init_message": 7,
+  "engine_pickup": 1,
+  "message_prep": 4,
+  "model_config_wait": 112,
+  "autocompact": 2,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 7,
+  "message_normalization": 2,
+  "client_creation": 3,
+  "request_build": 6
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 129,
+ "time_to_request_cpu_ms": 231,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 20,
+  "cpu_ms": 27,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 629,
+ "time_to_request_from_spawn_ms": 368623,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768451048.0073,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

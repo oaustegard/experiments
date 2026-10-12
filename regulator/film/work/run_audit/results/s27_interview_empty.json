@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 12642,
+ "stop_reason": "tool_use",
+ "session_id": "85fe2c20-54eb-46fa-8690-88a0fe5a3b90",
+ "total_cost_usd": 0.00187957,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2790,
+  "cache_read_input_tokens": 8077,
+  "output_tokens": 1947,
+  "output_tokens_details": {
+   "thinking_tokens": 1519
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2790,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1873,
+    "cache_read_input_tokens": 4675,
+    "cache_creation_input_tokens": 1517,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1517
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1688,
+   "outputTokens": 2144,
+   "cacheReadInputTokens": 8077,
+   "cacheCreationInputTokens": 2790,
+   "webSearchRequests": 0,
+   "costUSD": 0.00187957,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1699,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"An empty paneled dining room, lit by a lamp and candle on a dark wooden table with a closed book and pencil, with six chairs around it and a window showing blue light behind.\",\"contradictions\":[{\"what\":\"No people are shown. The narration refers to six household members who gave accounts (\\\"one of the six lied to me\\\", \\\"the other five told me honestly\\\") and to \\\"no one in that house\\\", but the room is completely empty. The victim, Aur\u00e8le Monnier, who was struck, is also not shown, and nothing in the room suggests a violent act.\",\"severity\":\"jarring\"},{\"what\":\"No clock is visible anywhere in the room, yet all three lines are about clocks: what the witnesses believed about \\\"a clock\\\", \\\"no clock was touched\\\", and \\\"the temple bell keeps true time\\\". The clock the words centre on is missing from the image.\",\"severity\":\"jarring\"}]}",
+ "structured_output": {
+  "describe": "An empty paneled dining room, lit by a lamp and candle on a dark wooden table with a closed book and pencil, with six chairs around it and a window showing blue light behind.",
+  "contradictions": [
+   {
+    "what": "No people are shown. The narration refers to six household members who gave accounts (\"one of the six lied to me\", \"the other five told me honestly\") and to \"no one in that house\", but the room is completely empty. The victim, Aur\u00e8le Monnier, who was struck, is also not shown, and nothing in the room suggests a violent act.",
+    "severity": "jarring"
+   },
+   {
+    "what": "No clock is visible anywhere in the room, yet all three lines are about clocks: what the witnesses believed about \"a clock\", \"no clock was touched\", and \"the temple bell keeps true time\". The clock the words centre on is missing from the image.",
+    "severity": "jarring"
+   }
+  ]
+ },
+ "ttft_ms": 1186,
+ "type": "result",
+ "duration_ms": 12204,
+ "uuid": "7037605f-bf78-4e10-ac9f-e7b07d36761a",
+ "ttft_stream_ms": 885,
+ "time_to_request_ms": 291,
+ "time_to_request_phases_ms": {
+  "other": 16,
+  "system_prompt": 40,
+  "resume_other": 1,
+  "process_user_input": 2,
+  "input_attachments": 30,
+  "input_hooks": 4,
+  "tool_pool_refresh": 2,
+  "init_message": 5,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 170,
+  "autocompact": 1,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 4,
+  "message_normalization": 2,
+  "client_creation": 5,
+  "request_build": 6
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 112,
+ "time_to_request_cpu_ms": 196,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 14,
+  "cpu_ms": 11,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 885,
+ "time_to_request_from_spawn_ms": 170510,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768253377.0178,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

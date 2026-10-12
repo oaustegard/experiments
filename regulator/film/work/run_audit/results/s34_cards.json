@@ -1,0 +1,151 @@
+{
+ "duration_api_ms": 11017,
+ "stop_reason": "tool_use",
+ "session_id": "9498b202-b117-4f4b-a736-7f0f6e46ffb1",
+ "total_cost_usd": 0.00171446,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2756,
+  "cache_read_input_tokens": 8046,
+  "output_tokens": 1606,
+  "output_tokens_details": {
+   "thinking_tokens": 1155
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2756,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1535,
+    "cache_read_input_tokens": 4644,
+    "cache_creation_input_tokens": 1514,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1514
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1658,
+   "outputTokens": 1834,
+   "cacheReadInputTokens": 8046,
+   "cacheCreationInputTokens": 2756,
+   "webSearchRequests": 0,
+   "costUSD": 0.00171446,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1362,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A lamp-lit parlor at night, with a woman in black and an older bespectacled man smoking a cigar seated opposite each other at a small round card table, a marble mantel clock behind them.\",\"contradictions\":[{\"what\":\"The narration says the doctor went out at 10:45 as the piano began, but the still shows him seated at the card table with the cards, not leaving the room. The image may depict only the card-table version of events the doctor claims, so this is a minor tension rather than a clear error.\",\"severity\":\"minor\"},{\"what\":\"The narration refers to 'his watch' and a repeater sounding, and the doctor's waistcoat shows a gold watch chain, but no watch is visible. The chain alone is consistent with a watch in a pocket.\",\"severity\":\"minor\"},{\"what\":\"The narration describes a piano beginning to play, but no piano is visible. It may simply be off-frame, since the parlor is only partly shown.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A lamp-lit parlor at night, with a woman in black and an older bespectacled man smoking a cigar seated opposite each other at a small round card table, a marble mantel clock behind them.",
+  "contradictions": [
+   {
+    "what": "The narration says the doctor went out at 10:45 as the piano began, but the still shows him seated at the card table with the cards, not leaving the room. The image may depict only the card-table version of events the doctor claims, so this is a minor tension rather than a clear error.",
+    "severity": "minor"
+   },
+   {
+    "what": "The narration refers to 'his watch' and a repeater sounding, and the doctor's waistcoat shows a gold watch chain, but no watch is visible. The chain alone is consistent with a watch in a pocket.",
+    "severity": "minor"
+   },
+   {
+    "what": "The narration describes a piano beginning to play, but no piano is visible. It may simply be off-frame, since the parlor is only partly shown.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 882,
+ "type": "result",
+ "duration_ms": 9698,
+ "uuid": "207e3a1a-7eb9-4609-9e37-98dbb15e9e77",
+ "ttft_stream_ms": 511,
+ "time_to_request_ms": 118,
+ "time_to_request_phases_ms": {
+  "other": 20,
+  "system_prompt": 22,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 9,
+  "input_hooks": 3,
+  "tool_pool_refresh": 1,
+  "init_message": 5,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 34,
+  "autocompact": 2,
+  "query_setup": 0,
+  "model_gates": 0,
+  "tool_schema_build": 7,
+  "message_normalization": 1,
+  "client_creation": 4,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 68,
+ "time_to_request_cpu_ms": 142,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "model",
+  "slowest_producer_ms": 5,
+  "cpu_ms": 10,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 511,
+ "time_to_request_from_spawn_ms": 173768,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768256683.8496,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

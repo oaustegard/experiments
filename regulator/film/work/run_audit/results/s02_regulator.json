@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 7767,
+ "stop_reason": "tool_use",
+ "session_id": "5c57ca26-d810-4bcb-860e-d41a1d7d1283",
+ "total_cost_usd": 0.0012942700000000001,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2638,
+  "cache_read_input_tokens": 7927,
+  "output_tokens": 890,
+  "output_tokens_details": {
+   "thinking_tokens": 524
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2638,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 818,
+    "cache_read_input_tokens": 4525,
+    "cache_creation_input_tokens": 1515,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1515
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1539,
+   "outputTokens": 1067,
+   "cacheReadInputTokens": 7927,
+   "cacheCreationInputTokens": 2638,
+   "webSearchRequests": 0,
+   "costUSD": 0.0012942700000000001,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 683,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A close-up painting of a wall-mounted regulator clock with a blank white dial (only the centre arbor pin is visible, no hands) and a brass pendulum bob hanging below, beside a lit oil lamp against a wooden wall in dim, night-like light.\",\"contradictions\":[{\"what\":\"The words say the regulator's hands stood at five past ten, but the dial shows no hands at all, only the centre pin, so no time is displayed.\",\"severity\":\"jarring\"},{\"what\":\"The words place a man beneath the clock (\\\"above him\\\"), but no person is visible anywhere in the frame; the still shows only the clock, pendulum, lamp and wall.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A close-up painting of a wall-mounted regulator clock with a blank white dial (only the centre arbor pin is visible, no hands) and a brass pendulum bob hanging below, beside a lit oil lamp against a wooden wall in dim, night-like light.",
+  "contradictions": [
+   {
+    "what": "The words say the regulator's hands stood at five past ten, but the dial shows no hands at all, only the centre pin, so no time is displayed.",
+    "severity": "jarring"
+   },
+   {
+    "what": "The words place a man beneath the clock (\"above him\"), but no person is visible anywhere in the frame; the still shows only the clock, pendulum, lamp and wall.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1835,
+ "type": "result",
+ "duration_ms": 7830,
+ "uuid": "52c62529-e231-455b-ad69-af131e0c6955",
+ "ttft_stream_ms": 1810,
+ "time_to_request_ms": 1116,
+ "time_to_request_phases_ms": {
+  "other": 199,
+  "system_prompt": 157,
+  "resume_other": 0,
+  "process_user_input": 57,
+  "input_attachments": 65,
+  "input_hooks": 184,
+  "tool_pool_refresh": 41,
+  "init_message": 40,
+  "engine_pickup": 30,
+  "message_prep": 17,
+  "model_config_wait": 193,
+  "autocompact": 18,
+  "query_setup": 1,
+  "model_gates": 11,
+  "tool_schema_build": 45,
+  "message_normalization": 11,
+  "client_creation": 26,
+  "request_build": 21
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 780,
+ "time_to_request_cpu_ms": 287,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 40,
+  "cpu_ms": 38,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1810,
+ "time_to_request_from_spawn_ms": 160160,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768235441.2847,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

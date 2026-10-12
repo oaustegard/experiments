@@ -95,9 +95,10 @@ and asks the viewer to stop and solve; the drawing-room reveal follows. Source a
 | stills | 30 shots × 2 takes, the chosen portraits passed as reference images ([`film/shots.py`](film/shots.py)); 5 weak shots reshot with 2 more takes | a Haiku vision judge per shot ($0.08): match score, flaws, and a fatal flag for lettering, extra or missing people, borders |
 | voices | 7 voices designed from descriptions with Gemini 3.8 Flash TTS ([`film/voices.py`](film/voices.py)) | best of 2 takes per line by faster-whisper WER; mean 0.053, and the worst lines are all proper names that Whisper spells its own way ("Lena Ruby") |
 | sound | [`film/audio.py`](film/audio.py), numpy: a clock's tick that stops when the regulator stops, the temple bell, the repeater's chime (10 low, 2 doubled, 8 high) | the chime after Félix's line is faint but complete, so a careful listener can count the minute |
+| audit | after Oskar saw the first scene (Rosa walking *down* the stairs while the line says she climbs), a Haiku vision check of every chosen still against the exact lines spoken over it, 34 scenes for $0.06 | 6 real fixes: the stairs reshot (4 takes), five painted clock faces repainted to the stated times by [`film/fix_dials.py`](film/fix_dials.py) (inpaint the painted hands, draw new ones, an ellipse for the foreshortened Morbier), and a hall doorway that read as daylight darkened. The rest of its "jarring" flags were wrong on inspection (a 7 a.m. reveal called daylight at night, a foreshortened 11:00 read as 12:00) |
 | picture | [`film/render.py`](film/render.py): PIL Ken Burns, pycairo subtitles, speaker tags, dial cards that turn back to true time in the reveal | preview frames checked before the full render |
 
-About 86 pro images (~$11.50), under $1 of narration, about $1 of Haiku and Sonnet children. Two gotchas:
+The first cut's judges compared each still with its image prompt instead of the narration, and that is how a maid descending the stairs reached the film. About 90 pro images (~$12), under $1 of narration, about $1 of Haiku and Sonnet children. Two gotchas:
 `muninn-story/script.py` shadows a local `script.py` once that directory is on `sys.path`, and the JetBrains Mono
 latin subset has no arrow glyph, so the reveal cards draw theirs.
 

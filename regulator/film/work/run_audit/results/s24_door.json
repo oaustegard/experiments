@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 10048,
+ "stop_reason": "tool_use",
+ "session_id": "91f0d2e0-facd-48e9-a010-68761562781d",
+ "total_cost_usd": 0.00160124,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2673,
+  "cache_read_input_tokens": 7964,
+  "output_tokens": 1465,
+  "output_tokens_details": {
+   "thinking_tokens": 1073
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2673,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1395,
+    "cache_read_input_tokens": 4562,
+    "cache_creation_input_tokens": 1513,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1513
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1580,
+   "outputTokens": 1658,
+   "cacheReadInputTokens": 7964,
+   "cacheCreationInputTokens": 2673,
+   "webSearchRequests": 0,
+   "costUSD": 0.00160124,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1249,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A lamp-lit, dark-wood library with a closed paneled door, empty chairs and desks, and only a pair of black shoes visible at the threshold where the door meets the floor.\",\"contradictions\":[{\"what\":\"Line 2 says Bastien Girard and F\u00e9lix 'sat together there' in the library, but no one is seated in the image. The only chair is empty and no one is visible except one pair of feet at the door, so the image shows neither the two men nor a seated pair.\",\"severity\":\"jarring\"},{\"what\":\"Line 1 describes someone 'coming quickly down' (descending, e.g. stairs), but the image has no staircase or landing. It shows a pair of shoes standing still at a closed door, so the movement and the descent are not depicted.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A lamp-lit, dark-wood library with a closed paneled door, empty chairs and desks, and only a pair of black shoes visible at the threshold where the door meets the floor.",
+  "contradictions": [
+   {
+    "what": "Line 2 says Bastien Girard and F\u00e9lix 'sat together there' in the library, but no one is seated in the image. The only chair is empty and no one is visible except one pair of feet at the door, so the image shows neither the two men nor a seated pair.",
+    "severity": "jarring"
+   },
+   {
+    "what": "Line 1 describes someone 'coming quickly down' (descending, e.g. stairs), but the image has no staircase or landing. It shows a pair of shoes standing still at a closed door, so the movement and the descent are not depicted.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1064,
+ "type": "result",
+ "duration_ms": 9115,
+ "uuid": "fe1ee8c7-cbab-41d2-8b5c-937a557e0155",
+ "ttft_stream_ms": 843,
+ "time_to_request_ms": 280,
+ "time_to_request_phases_ms": {
+  "other": 28,
+  "system_prompt": 37,
+  "resume_other": 0,
+  "process_user_input": 4,
+  "input_attachments": 20,
+  "input_hooks": 6,
+  "tool_pool_refresh": 2,
+  "init_message": 7,
+  "engine_pickup": 5,
+  "message_prep": 0,
+  "model_config_wait": 140,
+  "autocompact": 2,
+  "query_setup": 0,
+  "model_gates": 5,
+  "tool_schema_build": 14,
+  "message_normalization": 1,
+  "client_creation": 3,
+  "request_build": 6
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 113,
+ "time_to_request_cpu_ms": 223,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 11,
+  "cpu_ms": 16,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 843,
+ "time_to_request_from_spawn_ms": 169040,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768251942.3325,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

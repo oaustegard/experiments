@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 9695,
+ "stop_reason": "tool_use",
+ "session_id": "e8a9eefb-40e6-4552-9231-c0cb00b6f666",
+ "total_cost_usd": 0.00162904,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2705,
+  "cache_read_input_tokens": 7994,
+  "output_tokens": 1424,
+  "output_tokens_details": {
+   "thinking_tokens": 983
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2705,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1352,
+    "cache_read_input_tokens": 4592,
+    "cache_creation_input_tokens": 1515,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1515
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1606,
+   "outputTokens": 1695,
+   "cacheReadInputTokens": 7994,
+   "cacheCreationInputTokens": 2705,
+   "webSearchRequests": 0,
+   "costUSD": 0.00162904,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1235,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A painted dim hallway shows a man in a dark green coat and bowler hat, flecked with snow, standing and gazing up at a tall, floral-painted longcase clock whose Roman-numeral dial is visible at the top.\",\"contradictions\":[{\"what\":\"The words say the narrator's evidence involves two clocks, a 'regulator' and the hall clock. The image shows only one clock, the tall longcase. The regulator is not depicted, though the words do not require it to be visible at this moment.\",\"severity\":\"minor\"},{\"what\":\"The words state the hall clock struck eleven at a moment when, by the narrator's account, it was 12 minutes to eleven true time, so the dial should read about 11:00. The dial's hands look to sit near 10 and 11, closer to 10:55 than 11:00. The image is too small and low-resolution to read the hands reliably, so this is uncertain.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A painted dim hallway shows a man in a dark green coat and bowler hat, flecked with snow, standing and gazing up at a tall, floral-painted longcase clock whose Roman-numeral dial is visible at the top.",
+  "contradictions": [
+   {
+    "what": "The words say the narrator's evidence involves two clocks, a 'regulator' and the hall clock. The image shows only one clock, the tall longcase. The regulator is not depicted, though the words do not require it to be visible at this moment.",
+    "severity": "minor"
+   },
+   {
+    "what": "The words state the hall clock struck eleven at a moment when, by the narrator's account, it was 12 minutes to eleven true time, so the dial should read about 11:00. The dial's hands look to sit near 10 and 11, closer to 10:55 than 11:00. The image is too small and low-resolution to read the hands reliably, so this is uncertain.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 897,
+ "type": "result",
+ "duration_ms": 8351,
+ "uuid": "a38d02d6-80e7-4b88-b6c8-b395a6515d2d",
+ "ttft_stream_ms": 631,
+ "time_to_request_ms": 174,
+ "time_to_request_phases_ms": {
+  "other": 22,
+  "system_prompt": 41,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 7,
+  "input_hooks": 3,
+  "tool_pool_refresh": 2,
+  "init_message": 6,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 72,
+  "autocompact": 2,
+  "query_setup": 0,
+  "model_gates": 1,
+  "tool_schema_build": 4,
+  "message_normalization": 2,
+  "client_creation": 3,
+  "request_build": 4
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 73,
+ "time_to_request_cpu_ms": 165,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 4,
+  "cpu_ms": 16,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 633,
+ "time_to_request_from_spawn_ms": 172631,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768255078.6562,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

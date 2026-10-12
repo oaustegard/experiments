@@ -14,7 +14,7 @@ SCENES = [
   ("M", "She was going to fetch her master for the toast.", [])]),
  dict(part="open", shot="body", kb="in", lines=[
   ("M", "Aurèle Monnier lay on the floor of his atelier. Someone had struck him once, from behind, with the brass mallet from his own bench.", [])]),
- dict(part="open", shot="regulator", kb="in", dial=("regulator", "10:05"), lines=[
+ dict(part="open", shot="regulator", kb="up", lines=[
   ("M", "On the wall above him, the regulator had stopped. Its hands stood at five past ten.", [])]),
  dict(part="open", shot="repeater", kb="in", lines=[
   ("M", "And in his right hand was the watch he had spent four years making. A minute repeater, with its slide pressed home.", [])]),

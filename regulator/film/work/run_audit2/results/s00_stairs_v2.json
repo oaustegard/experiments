@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 11156,
+ "stop_reason": "tool_use",
+ "session_id": "74a33a82-6737-4f8b-a265-2bc7146c0ad0",
+ "total_cost_usd": 0.00176423,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2724,
+  "cache_read_input_tokens": 8013,
+  "output_tokens": 1670,
+  "output_tokens_details": {
+   "thinking_tokens": 1211
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2724,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1598,
+    "cache_read_input_tokens": 4611,
+    "cache_creation_input_tokens": 1515,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1515
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1623,
+   "outputTokens": 1954,
+   "cacheReadInputTokens": 8013,
+   "cacheCreationInputTokens": 2724,
+   "webSearchRequests": 0,
+   "costUSD": 0.00176423,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1476,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A lone maid in a white cap, dark blue dress and white apron climbs a wooden staircase at night, holding a tray of flute glasses in one hand and a lit candle in the other, with a large shadow of her cast on a stone wall beside her.\",\"contradictions\":[{\"what\":\"The maid is climbing, with her back to the viewer, carrying a tray of champagne-style flutes, at night by candlelight, which matches the narration. Nothing in the frame contradicts the time, the direction of movement, the object, or the number of people.\",\"severity\":\"minor\"},{\"what\":\"The shadow on the left stone wall is very large and its head sits well above the maid's cap, so an attentive viewer could read it as a second, larger person with a raised arm rather than the maid's own shadow. The narration says only one maid is climbing, so this could briefly suggest someone else is present. It is most likely the maid's shadow enlarged by the candle's proximity to the wall.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A lone maid in a white cap, dark blue dress and white apron climbs a wooden staircase at night, holding a tray of flute glasses in one hand and a lit candle in the other, with a large shadow of her cast on a stone wall beside her.",
+  "contradictions": [
+   {
+    "what": "The maid is climbing, with her back to the viewer, carrying a tray of champagne-style flutes, at night by candlelight, which matches the narration. Nothing in the frame contradicts the time, the direction of movement, the object, or the number of people.",
+    "severity": "minor"
+   },
+   {
+    "what": "The shadow on the left stone wall is very large and its head sits well above the maid's cap, so an attentive viewer could read it as a second, larger person with a raised arm rather than the maid's own shadow. The narration says only one maid is climbing, so this could briefly suggest someone else is present. It is most likely the maid's shadow enlarged by the candle's proximity to the wall.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1127,
+ "type": "result",
+ "duration_ms": 9919,
+ "uuid": "4301e036-fa0a-4423-96ec-a7699c11e361",
+ "ttft_stream_ms": 788,
+ "time_to_request_ms": 371,
+ "time_to_request_phases_ms": {
+  "other": 21,
+  "system_prompt": 34,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 33,
+  "input_hooks": 4,
+  "tool_pool_refresh": 1,
+  "init_message": 5,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 235,
+  "autocompact": 3,
+  "query_setup": 0,
+  "model_gates": 2,
+  "tool_schema_build": 12,
+  "message_normalization": 2,
+  "client_creation": 4,
+  "request_build": 10
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 103,
+ "time_to_request_cpu_ms": 241,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 21,
+  "cpu_ms": 25,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 789,
+ "time_to_request_from_spawn_ms": 368590,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768451041.3994,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

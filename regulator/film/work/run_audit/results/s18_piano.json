@@ -1,0 +1,143 @@
+{
+ "duration_api_ms": 10645,
+ "stop_reason": "tool_use",
+ "session_id": "871e4b8d-53fc-4620-a648-6bb72e8aa6e2",
+ "total_cost_usd": 0.00161691,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2761,
+  "cache_read_input_tokens": 8051,
+  "output_tokens": 1409,
+  "output_tokens_details": {
+   "thinking_tokens": 1086
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2761,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1338,
+    "cache_read_input_tokens": 4649,
+    "cache_creation_input_tokens": 1514,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1514
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1662,
+   "outputTokens": 1636,
+   "cacheReadInputTokens": 8051,
+   "cacheCreationInputTokens": 2761,
+   "webSearchRequests": 0,
+   "costUSD": 0.00161691,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1295,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A dark-clad woman with grey hair in a bun sits at an upright piano, playing by lamplight and candlelight, while a card table with scattered piquet cards, a smoking cigar in an ashtray, and an empty chair sit in a room with drawn curtains and a dark window.\",\"contradictions\":[{\"what\":\"A lit cigar is smouldering in an ashtray on the card table, but the words say the doctor left the table to fetch his cigars, which implies he had none with him. Mildly undercuts the stated motive for leaving.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A dark-clad woman with grey hair in a bun sits at an upright piano, playing by lamplight and candlelight, while a card table with scattered piquet cards, a smoking cigar in an ashtray, and an empty chair sit in a room with drawn curtains and a dark window.",
+  "contradictions": [
+   {
+    "what": "A lit cigar is smouldering in an ashtray on the card table, but the words say the doctor left the table to fetch his cigars, which implies he had none with him. Mildly undercuts the stated motive for leaving.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1392,
+ "type": "result",
+ "duration_ms": 9731,
+ "uuid": "d17a24ff-ae13-4b68-8306-f63baa80f639",
+ "ttft_stream_ms": 1337,
+ "time_to_request_ms": 814,
+ "time_to_request_phases_ms": {
+  "other": 153,
+  "system_prompt": 242,
+  "resume_other": 0,
+  "process_user_input": 40,
+  "input_attachments": 83,
+  "input_hooks": 39,
+  "tool_pool_refresh": 20,
+  "init_message": 69,
+  "engine_pickup": 2,
+  "message_prep": 14,
+  "model_config_wait": 52,
+  "autocompact": 6,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 35,
+  "message_normalization": 14,
+  "client_creation": 18,
+  "request_build": 26
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 764,
+ "time_to_request_cpu_ms": 220,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 59,
+  "cpu_ms": 18,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1338,
+ "time_to_request_from_spawn_ms": 160284,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768235568.2039,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

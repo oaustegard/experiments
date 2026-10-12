@@ -1,0 +1,155 @@
+{
+ "duration_api_ms": 10692,
+ "stop_reason": "tool_use",
+ "session_id": "e0dffe28-b15f-483d-8368-4c40538d5621",
+ "total_cost_usd": 0.0017242800000000001,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2803,
+  "cache_read_input_tokens": 8088,
+  "output_tokens": 1564,
+  "output_tokens_details": {
+   "thinking_tokens": 1002
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2803,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1488,
+    "cache_read_input_tokens": 4686,
+    "cache_creation_input_tokens": 1519,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1519
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1703,
+   "outputTokens": 1825,
+   "cacheReadInputTokens": 8088,
+   "cacheCreationInputTokens": 2803,
+   "webSearchRequests": 0,
+   "costUSD": 0.0017242800000000001,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1240,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A dim, painted still life of a silver alarm clock, two copper saucepans, and four empty stemmed glasses on a wooden shelf beside a window, with no people in view.\",\"contradictions\":[{\"what\":\"Clock face: the narration gives Rosa's clock as 11:13, but the visible hands point roughly toward the 1 and the 4-5 positions, with no hand near 11. The face is small and worn, so this reading is approximate, but it does not show 11:13.\",\"severity\":\"jarring\"},{\"what\":\"Narration describes people (Monnier laughing, Lina coming down two flights of stairs to the kitchen, the strike Rosa heard). The image shows no people at all, so the human actions and the 'Lina saw him laughing' moment have nothing visible.\",\"severity\":\"jarring\"},{\"what\":\"Narration describes a kitchen and a staircase. The image shows a shelf with a window, no staircase, and no clear kitchen fittings beyond the saucepans.\",\"severity\":\"minor\"},{\"what\":\"Time of day: the narration is set at night on New Year's Eve (around 10:20 to 11:15 pm). The window at left is bright and whitish, which reads as daylight, so the scene looks like day rather than night.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A dim, painted still life of a silver alarm clock, two copper saucepans, and four empty stemmed glasses on a wooden shelf beside a window, with no people in view.",
+  "contradictions": [
+   {
+    "what": "Clock face: the narration gives Rosa's clock as 11:13, but the visible hands point roughly toward the 1 and the 4-5 positions, with no hand near 11. The face is small and worn, so this reading is approximate, but it does not show 11:13.",
+    "severity": "jarring"
+   },
+   {
+    "what": "Narration describes people (Monnier laughing, Lina coming down two flights of stairs to the kitchen, the strike Rosa heard). The image shows no people at all, so the human actions and the 'Lina saw him laughing' moment have nothing visible.",
+    "severity": "jarring"
+   },
+   {
+    "what": "Narration describes a kitchen and a staircase. The image shows a shelf with a window, no staircase, and no clear kitchen fittings beyond the saucepans.",
+    "severity": "minor"
+   },
+   {
+    "what": "Time of day: the narration is set at night on New Year's Eve (around 10:20 to 11:15 pm). The window at left is bright and whitish, which reads as daylight, so the scene looks like day rather than night.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1092,
+ "type": "result",
+ "duration_ms": 9472,
+ "uuid": "4a62fb17-6777-485e-a2b9-7cbc2eb74222",
+ "ttft_stream_ms": 703,
+ "time_to_request_ms": 297,
+ "time_to_request_phases_ms": {
+  "other": 49,
+  "system_prompt": 59,
+  "resume_other": 1,
+  "process_user_input": 2,
+  "input_attachments": 29,
+  "input_hooks": 17,
+  "tool_pool_refresh": 12,
+  "init_message": 38,
+  "engine_pickup": 1,
+  "message_prep": 2,
+  "model_config_wait": 53,
+  "autocompact": 3,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 6,
+  "message_normalization": 1,
+  "client_creation": 18,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 157,
+ "time_to_request_cpu_ms": 142,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "environment",
+  "slowest_producer_ms": 10,
+  "cpu_ms": 17,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 703,
+ "time_to_request_from_spawn_ms": 172239,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768255078.691,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

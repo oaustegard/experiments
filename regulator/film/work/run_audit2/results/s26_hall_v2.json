@@ -1,0 +1,143 @@
+{
+ "duration_api_ms": 12939,
+ "stop_reason": "tool_use",
+ "session_id": "5b54777f-f55d-455b-91b1-94447e05339a",
+ "total_cost_usd": 0.00185841,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2662,
+  "cache_read_input_tokens": 7951,
+  "output_tokens": 1918,
+  "output_tokens_details": {
+   "thinking_tokens": 1367
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2662,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1846,
+    "cache_read_input_tokens": 4549,
+    "cache_creation_input_tokens": 1515,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1515
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1565,
+   "outputTokens": 2180,
+   "cacheReadInputTokens": 7951,
+   "cacheCreationInputTokens": 2662,
+   "webSearchRequests": 0,
+   "costUSD": 0.00185841,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1613,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A man in a snow-dusted dark overcoat and hat holds open a heavy wooden door and steps into a dim stone-floored hall beside a grey longcase clock and a staircase.\",\"contradictions\":[{\"what\":\"The exterior beyond the open door is bright, snowy white, reading as daylight, while the words place the moment at night (about 10:46 pm on 31 December 1899).\",\"severity\":\"jarring\"}]}",
+ "structured_output": {
+  "describe": "A man in a snow-dusted dark overcoat and hat holds open a heavy wooden door and steps into a dim stone-floored hall beside a grey longcase clock and a staircase.",
+  "contradictions": [
+   {
+    "what": "The exterior beyond the open door is bright, snowy white, reading as daylight, while the words place the moment at night (about 10:46 pm on 31 December 1899).",
+    "severity": "jarring"
+   }
+  ]
+ },
+ "ttft_ms": 1044,
+ "type": "result",
+ "duration_ms": 13453,
+ "uuid": "d166ebc9-adef-407f-a220-e68f680b39f1",
+ "ttft_stream_ms": 668,
+ "time_to_request_ms": 224,
+ "time_to_request_phases_ms": {
+  "other": 19,
+  "system_prompt": 13,
+  "resume_other": 0,
+  "process_user_input": 3,
+  "input_attachments": 10,
+  "input_hooks": 4,
+  "tool_pool_refresh": 1,
+  "init_message": 7,
+  "engine_pickup": 1,
+  "message_prep": 1,
+  "model_config_wait": 148,
+  "autocompact": 1,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 5,
+  "message_normalization": 2,
+  "client_creation": 2,
+  "request_build": 6
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 37,
+ "time_to_request_cpu_ms": 190,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "model",
+  "slowest_producer_ms": 6,
+  "cpu_ms": 16,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 668,
+ "time_to_request_from_spawn_ms": 368638,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768451048.931,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

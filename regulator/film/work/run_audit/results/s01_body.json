@@ -1,0 +1,138 @@
+{
+ "duration_api_ms": 9978,
+ "stop_reason": "tool_use",
+ "session_id": "a8c64a9d-53a7-4d83-baa0-5e69a2fadbad",
+ "total_cost_usd": 0.00207344,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 6057,
+  "cache_read_input_tokens": 4544,
+  "output_tokens": 1063,
+  "output_tokens_details": {
+   "thinking_tokens": 836
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 6057,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 993,
+    "cache_read_input_tokens": 4544,
+    "cache_creation_input_tokens": 1513,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1513
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1556,
+   "outputTokens": 1322,
+   "cacheReadInputTokens": 4544,
+   "cacheCreationInputTokens": 6057,
+   "webSearchRequests": 0,
+   "costUSD": 0.00207344,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1076,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A dimly lit workshop at night, with dark windows, a lit oil lamp on the workbench, and an older man in dark work clothes lying on the wooden floor beside the bench, with a brass mallet on the floorboards near his outstretched hand.\",\"contradictions\":[]}",
+ "structured_output": {
+  "describe": "A dimly lit workshop at night, with dark windows, a lit oil lamp on the workbench, and an older man in dark work clothes lying on the wooden floor beside the bench, with a brass mallet on the floorboards near his outstretched hand.",
+  "contradictions": []
+ },
+ "ttft_ms": 2027,
+ "type": "result",
+ "duration_ms": 9462,
+ "uuid": "6f141fb1-4c09-4f3c-b32c-4ab2e4650ac9",
+ "ttft_stream_ms": 1648,
+ "time_to_request_ms": 1203,
+ "time_to_request_phases_ms": {
+  "other": 243,
+  "system_prompt": 235,
+  "resume_other": 0,
+  "process_user_input": 43,
+  "input_attachments": 122,
+  "input_hooks": 28,
+  "tool_pool_refresh": 2,
+  "init_message": 57,
+  "engine_pickup": 1,
+  "message_prep": 16,
+  "model_config_wait": 153,
+  "autocompact": 2,
+  "query_setup": 31,
+  "model_gates": 1,
+  "tool_schema_build": 43,
+  "message_normalization": 1,
+  "client_creation": 193,
+  "request_build": 32
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 938,
+ "time_to_request_cpu_ms": 246,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 70,
+  "cpu_ms": 23,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1648,
+ "time_to_request_from_spawn_ms": 159384,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768235427.8413,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 17271,
+ "stop_reason": "tool_use",
+ "session_id": "871ec09c-3a10-4e23-8942-cb0f9eb0c752",
+ "total_cost_usd": 0.0022892,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2791,
+  "cache_read_input_tokens": 8080,
+  "output_tokens": 2673,
+  "output_tokens_details": {
+   "thinking_tokens": 2246
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2791,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 2601,
+    "cache_read_input_tokens": 4678,
+    "cache_creation_input_tokens": 1515,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1515
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1692,
+   "outputTokens": 2962,
+   "cacheReadInputTokens": 8080,
+   "cacheCreationInputTokens": 2791,
+   "webSearchRequests": 0,
+   "costUSD": 0.0022892,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 2513,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A lamplit dining room where six people are seated around a wooden table, with a maid standing at the back right, and the older bespectacled, bearded man at the centre raising a pocket watch while others show or hold small objects toward the table.\",\"contradictions\":[{\"what\":\"Headcount: the words name at least seven people at dinner (Monnier, Odile, F\u00e9lix, Aur\u00e8le, Lina, the doctor, Monsieur Girard), but the image shows only six seated diners plus one standing maid. Odile and Aur\u00e8le are not clearly identifiable in the painting.\",\"severity\":\"jarring\"},{\"what\":\"Lina's object: the words say she shows her own watch (\\\"Mine was exact\\\"), but the young woman beside the young man appears to hold a small round pendant or locket at her chest on a dark cord, which reads less clearly as a pocket watch.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A lamplit dining room where six people are seated around a wooden table, with a maid standing at the back right, and the older bespectacled, bearded man at the centre raising a pocket watch while others show or hold small objects toward the table.",
+  "contradictions": [
+   {
+    "what": "Headcount: the words name at least seven people at dinner (Monnier, Odile, F\u00e9lix, Aur\u00e8le, Lina, the doctor, Monsieur Girard), but the image shows only six seated diners plus one standing maid. Odile and Aur\u00e8le are not clearly identifiable in the painting.",
+    "severity": "jarring"
+   },
+   {
+    "what": "Lina's object: the words say she shows her own watch (\"Mine was exact\"), but the young woman beside the young man appears to hold a small round pendant or locket at her chest on a dark cord, which reads less clearly as a pocket watch.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1711,
+ "type": "result",
+ "duration_ms": 16942,
+ "uuid": "3b5166ad-2fbf-4b3a-9a60-a1ec1b391252",
+ "ttft_stream_ms": 1619,
+ "time_to_request_ms": 1018,
+ "time_to_request_phases_ms": {
+  "other": 187,
+  "system_prompt": 230,
+  "resume_other": 0,
+  "process_user_input": 4,
+  "input_attachments": 91,
+  "input_hooks": 35,
+  "tool_pool_refresh": 20,
+  "init_message": 64,
+  "engine_pickup": 5,
+  "message_prep": 6,
+  "model_config_wait": 278,
+  "autocompact": 3,
+  "query_setup": 1,
+  "model_gates": 5,
+  "tool_schema_build": 38,
+  "message_normalization": 8,
+  "client_creation": 27,
+  "request_build": 16
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 865,
+ "time_to_request_cpu_ms": 244,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 33,
+  "cpu_ms": 14,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1619,
+ "time_to_request_from_spawn_ms": 160208,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768235507.2573,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

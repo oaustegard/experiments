@@ -1,0 +1,143 @@
+{
+ "duration_api_ms": 9695,
+ "stop_reason": "tool_use",
+ "session_id": "55225ab2-5ca0-4c89-a278-35225b930d08",
+ "total_cost_usd": 0.0015111500000000002,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2656,
+  "cache_read_input_tokens": 7945,
+  "output_tokens": 1251,
+  "output_tokens_details": {
+   "thinking_tokens": 910
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2656,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1179,
+    "cache_read_input_tokens": 4543,
+    "cache_creation_input_tokens": 1515,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1515
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1560,
+   "outputTokens": 1489,
+   "cacheReadInputTokens": 7945,
+   "cacheCreationInputTokens": 2656,
+   "webSearchRequests": 0,
+   "costUSD": 0.0015111500000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1128,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A painted, snow-covered street of gabled houses under a pale yellow twilight sky, with a church tower and clock at the back, smoke rising from chimneys, and lamp-lit ground-floor workshop windows where two dark figures stand at the right.\",\"contradictions\":[{\"what\":\"Time of day: the narration places the scene at 10:38 p.m. on New Year's Eve, but the sky is still a bright, luminous pale yellow with no deep night darkness, which reads as dusk or dawn light (the file is even named dawn_1). Only the interior lamps suggest night.\",\"severity\":\"jarring\"}]}",
+ "structured_output": {
+  "describe": "A painted, snow-covered street of gabled houses under a pale yellow twilight sky, with a church tower and clock at the back, smoke rising from chimneys, and lamp-lit ground-floor workshop windows where two dark figures stand at the right.",
+  "contradictions": [
+   {
+    "what": "Time of day: the narration places the scene at 10:38 p.m. on New Year's Eve, but the sky is still a bright, luminous pale yellow with no deep night darkness, which reads as dusk or dawn light (the file is even named dawn_1). Only the interior lamps suggest night.",
+    "severity": "jarring"
+   }
+  ]
+ },
+ "ttft_ms": 885,
+ "type": "result",
+ "duration_ms": 7867,
+ "uuid": "dabd9e92-3575-4dbe-a7fc-f906c803a9ed",
+ "ttft_stream_ms": 752,
+ "time_to_request_ms": 172,
+ "time_to_request_phases_ms": {
+  "other": 22,
+  "system_prompt": 12,
+  "resume_other": 0,
+  "process_user_input": 4,
+  "input_attachments": 9,
+  "input_hooks": 6,
+  "tool_pool_refresh": 2,
+  "init_message": 4,
+  "engine_pickup": 1,
+  "message_prep": 2,
+  "model_config_wait": 90,
+  "autocompact": 3,
+  "query_setup": 1,
+  "model_gates": 0,
+  "tool_schema_build": 6,
+  "message_normalization": 2,
+  "client_creation": 3,
+  "request_build": 5
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 66,
+ "time_to_request_cpu_ms": 193,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 5,
+  "cpu_ms": 13,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 752,
+ "time_to_request_from_spawn_ms": 178330,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768261561.306,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

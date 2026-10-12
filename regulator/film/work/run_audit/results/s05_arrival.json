@@ -1,0 +1,143 @@
+{
+ "duration_api_ms": 11893,
+ "stop_reason": "tool_use",
+ "session_id": "4dbc9cbe-8883-4efb-aadb-562efe9bfb2d",
+ "total_cost_usd": 0.0016475600000000002,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2667,
+  "cache_read_input_tokens": 7956,
+  "output_tokens": 1491,
+  "output_tokens_details": {
+   "thinking_tokens": 1118
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2667,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1419,
+    "cache_read_input_tokens": 4554,
+    "cache_creation_input_tokens": 1515,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1515
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1566,
+   "outputTokens": 1756,
+   "cacheReadInputTokens": 7956,
+   "cacheCreationInputTokens": 2667,
+   "webSearchRequests": 0,
+   "costUSD": 0.0016475600000000002,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1364,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A snowy winter night in a Swiss-looking street: a civilian in a dark overcoat holding a hat and notebook stands at the lit threshold of an open wooden door, facing a uniformed policeman in a kepi who holds a lantern outside, while fireworks burst over the snowy rooftops.\",\"contradictions\":[{\"what\":\"Direction of movement is ambiguous. The narration says Matthey was 'called to that house' (arriving), but the image shows him already standing on the threshold of the open door, facing outward toward the officer, with hat in hand. It could read as someone leaving or being met at the door rather than arriving and entering, so the stated arrival is not clearly depicted.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A snowy winter night in a Swiss-looking street: a civilian in a dark overcoat holding a hat and notebook stands at the lit threshold of an open wooden door, facing a uniformed policeman in a kepi who holds a lantern outside, while fireworks burst over the snowy rooftops.",
+  "contradictions": [
+   {
+    "what": "Direction of movement is ambiguous. The narration says Matthey was 'called to that house' (arriving), but the image shows him already standing on the threshold of the open door, facing outward toward the officer, with hat in hand. It could read as someone leaving or being met at the door rather than arriving and entering, so the stated arrival is not clearly depicted.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 2067,
+ "type": "result",
+ "duration_ms": 11345,
+ "uuid": "04fcfec4-6d08-4423-9715-10a4cf6d242d",
+ "ttft_stream_ms": 1969,
+ "time_to_request_ms": 1259,
+ "time_to_request_phases_ms": {
+  "other": 297,
+  "system_prompt": 120,
+  "resume_other": 0,
+  "process_user_input": 5,
+  "input_attachments": 149,
+  "input_hooks": 68,
+  "tool_pool_refresh": 3,
+  "init_message": 48,
+  "engine_pickup": 6,
+  "message_prep": 8,
+  "model_config_wait": 223,
+  "autocompact": 20,
+  "query_setup": 1,
+  "model_gates": 6,
+  "tool_schema_build": 38,
+  "message_normalization": 38,
+  "client_creation": 144,
+  "request_build": 85
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 1040,
+ "time_to_request_cpu_ms": 220,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 53,
+  "cpu_ms": 19,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 1969,
+ "time_to_request_from_spawn_ms": 160106,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768235480.7239,
+ "queued_turn_count": 0,
+ "result_index": 0
+}

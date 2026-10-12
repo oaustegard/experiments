@@ -1,0 +1,147 @@
+{
+ "duration_api_ms": 12591,
+ "stop_reason": "tool_use",
+ "session_id": "7faa26a1-930a-483a-9050-54dad5ef1fae",
+ "total_cost_usd": 0.00184012,
+ "usage": {
+  "input_tokens": 4,
+  "cache_creation_input_tokens": 2766,
+  "cache_read_input_tokens": 8052,
+  "output_tokens": 1875,
+  "output_tokens_details": {
+   "thinking_tokens": 1378
+  },
+  "server_tool_use": {
+   "web_search_requests": 0,
+   "web_fetch_requests": 0
+  },
+  "service_tier": "standard",
+  "cache_creation": {
+   "ephemeral_1h_input_tokens": 2766,
+   "ephemeral_5m_input_tokens": 0
+  },
+  "inference_geo": "global",
+  "iterations": [
+   {
+    "input_tokens": 2,
+    "output_tokens": 1800,
+    "cache_read_input_tokens": 4650,
+    "cache_creation_input_tokens": 1518,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 1518
+    },
+    "type": "message"
+   }
+  ],
+  "speed": "standard",
+  "fallback_credit": null
+ },
+ "modelUsage": {
+  "claude-haiku-5-5": {
+   "inputTokens": 1664,
+   "outputTokens": 2080,
+   "cacheReadInputTokens": 8052,
+   "cacheCreationInputTokens": 2766,
+   "webSearchRequests": 0,
+   "costUSD": 0.00184012,
+   "contextWindow": 1000000,
+   "maxOutputTokens": 128000,
+   "thinkingTokens": 1562,
+   "canonicalModel": "claude-haiku-5-5",
+   "provider": "firstParty",
+   "costBasis": "list"
+  }
+ },
+ "permission_denials": [],
+ "terminal_reason": "completed",
+ "fast_mode_state": "off",
+ "fast_mode_disabled_reason": "sdk_opt_in_required",
+ "subagent_stats": {
+  "spawned": 0,
+  "requested": {
+   "background": 0,
+   "foreground": 0,
+   "unset": 0
+  },
+  "started_in_background": 0,
+  "max_depth": 0,
+  "spawned_by_subagents": 0,
+  "completed": 0,
+  "failed": 0,
+  "killed": {
+   "parent": 0,
+   "user": 0,
+   "system": 0
+  },
+  "refused": {
+   "depth_limit": 0,
+   "concurrency_limit": 0,
+   "budget": 0
+  },
+  "by_type": {}
+ },
+ "safety_stops": 0,
+ "is_error": false,
+ "num_turns": 3,
+ "subtype": "success",
+ "api_error_status": null,
+ "result": "{\"describe\":\"A dim, lamp-lit interior at night, painted in oil style: an elderly bearded man with wire-rimmed glasses works on a watch movement at the left of a wooden table, while a young woman in a dark dress and white collar sits opposite at right, peering through a loupe, with a glowing oil lamp, watch parts, and a tool tray between them, and a pendulum wall clock on the back wall.\",\"contradictions\":[{\"what\":\"The wall clock's hands appear to show roughly 12 and 1 (about 12:05), not the times the words name (9:48, 10:00, 10:20). The clock is small and its hands are hard to read exactly, but the words treat the regulator as the time reference, so a viewer checking the dial would see a mismatch.\",\"severity\":\"jarring\"},{\"what\":\"A faint reflection of a seated figure appears in the dark left window, behind and to the right of the old man. An attentive viewer could read it as a third person in the room, though it most likely reflects the master himself, so the words' two-person scene is not clearly contradicted.\",\"severity\":\"minor\"}]}",
+ "structured_output": {
+  "describe": "A dim, lamp-lit interior at night, painted in oil style: an elderly bearded man with wire-rimmed glasses works on a watch movement at the left of a wooden table, while a young woman in a dark dress and white collar sits opposite at right, peering through a loupe, with a glowing oil lamp, watch parts, and a tool tray between them, and a pendulum wall clock on the back wall.",
+  "contradictions": [
+   {
+    "what": "The wall clock's hands appear to show roughly 12 and 1 (about 12:05), not the times the words name (9:48, 10:00, 10:20). The clock is small and its hands are hard to read exactly, but the words treat the regulator as the time reference, so a viewer checking the dial would see a mismatch.",
+    "severity": "jarring"
+   },
+   {
+    "what": "A faint reflection of a seated figure appears in the dark left window, behind and to the right of the old man. An attentive viewer could read it as a third person in the room, though it most likely reflects the master himself, so the words' two-person scene is not clearly contradicted.",
+    "severity": "minor"
+   }
+  ]
+ },
+ "ttft_ms": 1052,
+ "type": "result",
+ "duration_ms": 11503,
+ "uuid": "356473ed-2fe3-42d3-84a0-24a074bd5356",
+ "ttft_stream_ms": 811,
+ "time_to_request_ms": 331,
+ "time_to_request_phases_ms": {
+  "other": 61,
+  "system_prompt": 16,
+  "resume_other": 0,
+  "process_user_input": 4,
+  "input_attachments": 15,
+  "input_hooks": 8,
+  "tool_pool_refresh": 9,
+  "init_message": 59,
+  "engine_pickup": 11,
+  "message_prep": 1,
+  "model_config_wait": 87,
+  "autocompact": 5,
+  "query_setup": 1,
+  "model_gates": 8,
+  "tool_schema_build": 9,
+  "message_normalization": 2,
+  "client_creation": 26,
+  "request_build": 9
+ },
+ "turn_start_resume_kind": "none",
+ "process_turn_index": 0,
+ "time_to_request_loop_lag_ms": 201,
+ "time_to_request_cpu_ms": 190,
+ "time_to_request_major_faults": 0,
+ "input_attachments_detail": {
+  "slowest_producer": "queued_commands",
+  "slowest_producer_ms": 11,
+  "cpu_ms": 15,
+  "major_faults": 0
+ },
+ "first_content_frame_ms": 812,
+ "time_to_request_from_spawn_ms": 368195,
+ "warm_spare_claimed": false,
+ "flag_fetch_kick": "not_asked_warm",
+ "time_origin_ms": 1791768451030.8076,
+ "queued_turn_count": 0,
+ "result_index": 0
+}
