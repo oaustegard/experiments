@@ -235,7 +235,7 @@ class StatementMixin:
         text = ""
         while self.tok.kind == TokenKind.STRING:
             text += self.next().value.rstrip(b"\0").decode("utf-8", "replace")
-        node = N.Asm(t.loc, text, is_volatile=is_volatile)
+        node = N.Asm(t.loc, text, is_volatile=is_volatile, extended=self.at(":"))
         sections = [node.outputs, node.inputs]
         for sec in sections:
             if not self.accept(":"):
