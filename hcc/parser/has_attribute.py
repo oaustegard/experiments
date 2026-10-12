@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from hcc import nodes as N
 from hcc import typesys as T
+from hcc.parser.attr_copy import member_has_attr
 
 # attribute name -> Function field that records it
 FUNCTION_ATTRS = {"noreturn": "is_noreturn", "weak": "is_weak"}
@@ -72,6 +73,8 @@ def has_attribute_call(parser, tok) -> N.Expr:
     name = parser.expect_ident().text
     want = strip_attr_name(name).strip("_")
     found = want in written_attribute_names(parser.toks[start:end])
+    if isinstance(decl, N.Member_):
+        found = found or member_has_attr(decl, want)
     var = getattr(decl, "var", None)
     field = FUNCTION_ATTRS.get(want)
     if field is not None and isinstance(var, N.Function):

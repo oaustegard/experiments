@@ -110,8 +110,9 @@ class StructMixin:
                 # aligned/_Alignas on a member can only raise its alignment
                 m.explicit_align = max(mattr.align, attr.align)
                 m.align = max(ty.align, m.explicit_align)
-                if attr.is_packed:
-                    m.align = 1
+                if attr.is_packed:      # leading `__attribute__((packed | copy(..)))` on the member
+                    m.align = m.explicit_align or 1     # packed keeps an explicit aligned(N)
+                    m.is_packed = True
                 if self.accept(":"):
                     m.is_bitfield = True
                     m.bit_width = self.const_expr()
