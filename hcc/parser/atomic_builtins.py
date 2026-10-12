@@ -12,6 +12,10 @@ from hcc import typesys as T
 
 _RMW_OPS = ("add", "sub", "and", "or", "xor", "nand")
 
+# Arithmetic/bitwise read-modify-write builtins (both __atomic_ and __sync_ spellings).
+_RMW_ARITH_NAMES = frozenset(
+    [f"__atomic_fetch_{o}" for o in _RMW_OPS] + [f"__atomic_{o}_fetch" for o in _RMW_OPS]
+    + [f"__sync_fetch_and_{o}" for o in _RMW_OPS] + [f"__sync_{o}_and_fetch" for o in _RMW_OPS])
 # Builtins returning the pointee type (value-producing), the bool/int result
 # of compare_exchange, and void for the rest.
 _VALUE_RET = frozenset(
@@ -61,6 +65,10 @@ def atomic_call(parser, tok):
     else:
         if not args or not T.is_pointer_like(args[0].ty):
             parser.error(f"'{name}' expects a pointer as first argument", tok)
+        if name in _RMW_ARITH_NAMES and args[0].ty.base.unqual().kind is T.TypeKind.BOOL:
+            # gcc (PR 68966): arithmetic/bitwise RMW on _Bool would break its representation.
+            parser.error(f"operand type '{args[0].ty.base}' is incompatible with argument 1 "
+                         f"of '{name}'", tok)
         if name in _VALUE_RET or name in _SYNC_VALUE_RET:
             ty = args[0].ty.base.unqual()
         elif name in _INT_RET or name in _SYNC_INT_RET:
