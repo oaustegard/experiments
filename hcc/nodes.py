@@ -84,6 +84,7 @@ class Function(Obj):
     is_definition: bool = False
     is_noreturn: bool = False
     is_weak: bool = False
+    fn_attrs: set = field(default_factory=set)  # other recorded attrs (leaf, returns_nonnull)
     va_area: Var | None = None
     va_tmp: Var | None = None
     alloca_bottom: Var | None = None
