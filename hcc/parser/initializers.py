@@ -169,6 +169,10 @@ class InitializerMixin:
             save = self.pos
             expr = self.typed(self.assign())
             if expr.ty.is_vector:     # `vec v = other_vec;` copies the value
+                if expr.ty.size != ty.size or expr.ty.base.size != ty.base.size or \
+                        T.is_flonum(expr.ty.base) != T.is_flonum(ty.base):
+                    self.error(f"incompatible types when initializing type '{T.type_str(ty)}' "
+                               f"using type '{T.type_str(expr.ty)}'", expr.loc)
                 init.expr = expr
                 return
             self.pos = save
