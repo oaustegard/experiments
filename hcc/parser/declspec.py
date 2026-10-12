@@ -232,6 +232,7 @@ class DeclSpecMixin:
                 self.expect(")")
                 if attr is not None:
                     attr.align = max(attr.align, al)
+                    attr.alignas_min = max(attr.alignas_min, al)
                 continue
             # user-defined / special types
             td = self.find_typedef(tok)

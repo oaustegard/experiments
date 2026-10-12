@@ -89,7 +89,7 @@ class TopLevelMixin:
             if (dattr.warn_if_not_aligned or attr.warn_if_not_aligned) and not attr.is_typedef:
                 self.error("'warn_if_not_aligned' may not be specified for '%s'" % name.text, name)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
-                ty = self.var_aligned(ty, attr, dattr)      # `T x __attribute__((aligned(N)))`
+                ty = self.var_aligned(ty, attr, dattr, name)      # `T x __attribute__((aligned(N)))`
             unavail = attr.is_unavailable or dattr.is_unavailable
             if (attr.is_weakref or dattr.is_weakref) and not attr.is_typedef and not attr.is_static:
                 # GCC: a weakref alias must be an internal (static) symbol

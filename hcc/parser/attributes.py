@@ -304,10 +304,14 @@ class AttributeMixin:
             ty.align = al
         return ty
 
-    def var_aligned(self, ty, attr, dattr):
+    def var_aligned(self, ty, attr, dattr, name=None):
         """`T x __attribute__((aligned(N)))` on a variable: N sets the alignment
         exactly, so it may also lower it below the type's natural alignment
-        (GCC: `int c __attribute__((aligned(2)))` gives _Alignof(c) == 2)."""
+        (GCC: `int c __attribute__((aligned(2)))` gives _Alignof(c) == 2).
+        `_Alignas(N)` may not reduce alignment (GCC: "cannot reduce alignment")."""
+        if attr.alignas_min and attr.alignas_min < ty.align:
+            self.error("'_Alignas' specifiers cannot reduce alignment of '%s'"
+                       % (name.text if name is not None else "object"), name)
         al = max(attr.align, dattr.align)
         if 0 < al < ty.align:
             ty = ty.copy()

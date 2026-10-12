@@ -39,6 +39,7 @@ class VarAttr:
     is_noreturn: bool = False
     is_constexpr: bool = False      # C23 `constexpr`: the object itself is const (see declspec)
     align: int = 0
+    alignas_min: int = 0            # largest _Alignas(N) on the declaration (may not be lowered)
     is_weak: bool = False
     is_weakref: bool = False        # __attribute__((weakref("t"))) on a declaration
     is_unavailable: bool = False    # __attribute__((unavailable)) on the declaration
