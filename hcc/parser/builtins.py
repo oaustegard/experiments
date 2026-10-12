@@ -29,7 +29,7 @@ __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 # the operand width (int = 32 bit, long/long long = 64 bit).
 BIT_BUILTINS = frozenset(
     f"__builtin_{base}{suffix}"
-    for base in ("clz", "ctz", "popcount", "parity", "ffs")
+    for base in ("clz", "ctz", "popcount", "parity", "ffs", "clrsb")
     for suffix in ("", "l", "ll"))
 SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS
 
@@ -52,7 +52,7 @@ class BuiltinParseMixin:
         base = name.rstrip("l")
         bits = 64 if name[len(base):] else 32
         ty = T.TY_ULONG if bits == 64 else T.TY_UINT
-        if base == "ffs":  # ffs takes an int; the bit pattern is the same
+        if base in ("ffs", "clrsb"):  # signed operands
             ty = T.TY_LONG if bits == 64 else T.TY_INT
         args = [new_cast(a, ty) for a in self._args(1)]
         return self._call(tok, f"{base}{bits}", args, T.TY_INT)

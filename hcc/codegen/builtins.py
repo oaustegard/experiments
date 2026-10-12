@@ -76,6 +76,30 @@ class BuiltinMixin:
         self.emit("cmovz %edx, %eax")
         self.emit("add $1, %eax")
 
+    # clrsb(x): number of redundant sign bits below the sign bit, i.e.
+    # clz(x ^ (x >> (w-1))) - 1. Defined for 0 and -1 (gives w-1).
+    def builtin_clrsb32(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("mov %eax, %edx")
+        self.emit("sar $31, %edx")
+        self.emit("xor %edx, %eax")
+        self.emit("mov $-1, %edx")
+        self.emit("bsr %eax, %eax")
+        self.emit("cmovz %edx, %eax")
+        self.emit("neg %eax")
+        self.emit("add $30, %eax")
+
+    def builtin_clrsb64(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("mov %rax, %rdx")
+        self.emit("sar $63, %rdx")
+        self.emit("xor %rdx, %rax")
+        self.emit("mov $-1, %edx")
+        self.emit("bsr %rax, %rax")
+        self.emit("cmovz %edx, %eax")
+        self.emit("neg %eax")
+        self.emit("add $62, %eax")
+
     def builtin_popcount32(self, node) -> None:
         self._bit_arg32(node)
         self._popcount32()
