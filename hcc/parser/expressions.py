@@ -270,7 +270,9 @@ class ExpressionMixin:
             if s == "&&":                        # GNU label address
                 self.next()
                 name = self.expect_ident()
-                fname = self.fn.name if self.fn is not None else ""
+                if self.fn is None:
+                    self.error(f"label '{name.text}' referenced outside of any function", name)
+                fname = self.fn.name
                 return self.typed(N.LabelAddr(t.loc, name.text, fname))
         elif t.kind == TokenKind.KEYWORD:
             if s == "sizeof":
