@@ -143,7 +143,9 @@ def _write_le(init, ty, gd, offset) -> None:
         elif ty.kind == T.TypeKind.DOUBLE:
             gd.data[offset:offset + 8] = pack_float64(v)
         else:
-            gd.data[offset:offset + 10] = float_to_x87(v)
+            exact = _exact_x87_bits(expr)
+            gd.data[offset:offset + 10] = (exact.to_bytes(10, "little") if exact is not None
+                                           else float_to_x87(v))
         return
     try:
         label, v = _static_scalar(expr, ty)
@@ -239,6 +241,17 @@ def _write_bits(gd, off, m, v) -> None:
     mask = ((1 << m.bit_width) - 1) << m.bit_offset
     cur = (cur & ~mask) | ((v << m.bit_offset) & mask)
     gd.data[off:off + size] = cur.to_bytes(size, order)
+
+
+def _exact_x87_bits(node) -> int | None:
+    """Exact x87 encoding of a long double literal, optionally negated (-1e-4940L
+    would underflow to -0.0 through a Python float); None when not a literal."""
+    if isinstance(node, N.FloatLit):
+        return node.bits
+    if isinstance(node, N.Unary) and node.op == "-":
+        bits = _exact_x87_bits(node.operand)
+        return None if bits is None else bits ^ (1 << 79)
+    return None
 
 
 def float_to_x87(v: float) -> bytes:

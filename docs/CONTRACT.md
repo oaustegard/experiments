@@ -100,6 +100,7 @@ hcc/
                        keyword marking, string concatenation
   typesys.py             Type, Member, TypeKind, LP64 base types, constructors (STABLE)
   nodes.py               all AST node dataclasses + Obj (Var/Function)        (STABLE)
+  ldouble_lit.py         exact long double literals (decimal/hex -> 80-bit x87)
 
   preprocess/
     __init__.py        Preprocessor class: main expansion loop, public API
@@ -178,6 +179,7 @@ hcc/
     builtins.py        __builtin_* lowering (alloca, expect, clz, ...)
     atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs
     asm.py             inline asm statements (basic + extended)
+    fpclassify.py      __builtin_fpclassify / isnormal / isinf_sign (bit-level classes)
 
   include/             (optional) hcc's own override headers, searched before
                        the system dirs (e.g. a future stdatomic.h)

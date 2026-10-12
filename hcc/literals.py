@@ -14,6 +14,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
 from hcc.halfbits import round_to_half
+from hcc.ldouble_lit import x87_from_text
 from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_FLOAT16, TY_FLOAT128,
                        TY_INT, TY_LDOUBLE, TY_LLONG, TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG,
                        TY_USHORT, Type, TypeKind, array_of)
@@ -106,6 +107,8 @@ def parse_number(tok: Token):
                 ty, body = suf_ty, s[: -len(suf)]
                 break
         try:
+            if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):   # exact x87 encoding
+                return x87_from_text(body, is_hex, ty.kind == TypeKind.FLOAT128), ty
             val = float.fromhex(body) if is_hex else float(body)
         except ValueError:
             diag.error(tok, f"invalid floating constant '{s}'")

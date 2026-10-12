@@ -18,6 +18,7 @@ from hcc.codegen.context import CodeGenBase
 from hcc.codegen.data import DataMixin
 from hcc.codegen.expressions import ExpressionMixin
 from hcc.codegen.floats import FloatMixin
+from hcc.codegen.fpclassify import FpClassifyMixin
 from hcc.codegen.functions import FunctionMixin
 from hcc.codegen.initfini import InitFiniMixin
 from hcc.codegen.nested import NestedMixin
@@ -30,7 +31,7 @@ from hcc.codegen.vector_wide import VectorWideMixin
 
 
 class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
-              CastMixin, CallMixin, VarargsMixin, BuiltinMixin, OverflowMixin, AsmMixin, MemoryMixin,
+              CastMixin, CallMixin, VarargsMixin, BuiltinMixin, FpClassifyMixin, OverflowMixin, AsmMixin, MemoryMixin,
               DataMixin, VectorOpsMixin, VectorWideMixin, InitFiniMixin, CodeGenBase):
 
     def run(self) -> str:

@@ -41,6 +41,7 @@ __builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __bui
 __builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_shufflevector __builtin_convertvector
 __builtin_isinf __builtin_isnan __builtin_isfinite
 __builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
+__builtin_fpclassify __builtin_isnormal __builtin_isinf_sign
 __builtin_isless __builtin_islessequal __builtin_islessgreater
 __builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
 __builtin_object_size __builtin_dynamic_object_size
@@ -412,6 +413,29 @@ class BuiltinParseMixin:
         wide = any(a.ty.kind == T.TypeKind.LDOUBLE for a in args)
         ty = T.TY_LDOUBLE if wide else T.TY_DOUBLE
         return self._call(tok, name, [new_cast(a, ty) for a in args], T.TY_INT)
+
+    def _b_fpclassify(self, tok):
+        """__builtin_fpclassify(nan, inf, normal, subnormal, zero, x): the five
+        category constants must be integer constant expressions (glibc math.h)."""
+        args = self._args(6)
+        consts = []
+        for a in args[:5]:
+            v = try_eval_const(a)
+            if v is None:
+                self.error("__builtin_fpclassify: category arguments must be integer constants", tok)
+            consts.append(N.IntLit(a.loc, v, ty=T.TY_INT))
+        return self._call(tok, "fpclassify", consts + [self._fp_value(args[5])], T.TY_INT)
+
+    def _b_isnormal(self, tok):
+        return self._call(tok, "isnormal", [self._fp_value(self._args(1)[0])], T.TY_INT)
+
+    def _b_isinf_sign(self, tok):
+        return self._call(tok, "isinf_sign", [self._fp_value(self._args(1)[0])], T.TY_INT)
+
+    def _fp_value(self, arg):
+        """Floating operands keep their own width (classified bit-exactly);
+        integer operands are converted to double like the C library macros do."""
+        return arg if T.is_flonum(arg.ty) else new_cast(arg, T.TY_DOUBLE)
 
     def _b_isunordered(self, tok):
         return self._fpcmp(tok, "isunordered")

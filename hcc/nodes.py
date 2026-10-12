@@ -122,6 +122,7 @@ class FloatLit(Expr):
     value: float
     # Exact IEEE encoding for the literal's own width (float/double), when the
     # Python float would lose it (e.g. signaling NaNs are quieted by a round trip).
+    # For long double/_Float128 literals: the exact 80-bit x87 encoding (ldouble_lit.py).
     bits: int | None = field(default=None, kw_only=True)
 
 

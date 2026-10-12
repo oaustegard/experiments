@@ -77,7 +77,8 @@ class ExpressionMixin:
             self.emit(f"movabs ${bits}, %rax")
             self.emit("movq %rax, %xmm0")
         else:
-            raw = float_to_x87(v)
+            raw = (node.bits.to_bytes(10, "little") if node.bits is not None
+                   else float_to_x87(v))
             lo = int.from_bytes(raw[:8], "little")
             hi = int.from_bytes(raw[8:10], "little")
             self.emit(f"movabs ${lo}, %rax")

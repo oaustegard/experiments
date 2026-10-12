@@ -40,7 +40,7 @@ class PrimaryMixin:
         if k == TokenKind.NUMBER:
             self.next()
             if T.is_flonum(t.ty):
-                return N.FloatLit(t.loc, t.value, ty=t.ty)
+                return N.FloatLit(t.loc, t.value, ty=t.ty, bits=getattr(t.value, "x87", None))
             return N.IntLit(t.loc, t.value, ty=t.ty)
         if k == TokenKind.CHAR:
             self.next()
