@@ -11,7 +11,7 @@ Postfix and primary expressions live in postfix.py / primary.py.
 from __future__ import annotations
 
 from hcc import nodes as N
-from hcc.sema.arith import compound_assign, inc_dec, new_add, new_binop, new_sub
+from hcc.sema.arith import _addressed_place, compound_assign, inc_dec, new_add, new_binop, new_sub
 from hcc.sema.constexpr import eval_const
 from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
@@ -259,11 +259,17 @@ class ExpressionMixin:
         return self.postfix()
 
     def complex_compound(self, op, node, rhs, loc):
-        """`a op= b` on a complex operand: `a = a op b`, so `a` must have no side effects."""
-        if not _side_effect_free(node):
-            self.error("unsupported: compound assignment to a complex lvalue with side effects", loc)
-        value = CPX.binary(self, op, node, rhs, loc)
-        return self.typed(N.Assign(loc, node, CPX.convert(self, value, node.ty, loc)))
+        """`a op= b` on a complex operand: `a = a op b`. When `a` has side effects its
+        address is evaluated once into a temporary (as for scalar compound assignment)."""
+        if _side_effect_free(node):
+            pre, place = [], (lambda: node)
+        else:
+            pre, place = _addressed_place(node, loc, self.new_temp)
+        value = CPX.binary(self, op, place(), rhs, loc)
+        result = self.typed(N.Assign(loc, place(), CPX.convert(self, value, node.ty, loc)))
+        for e in reversed(pre):
+            result = self.typed(N.Comma(loc, e, result))
+        return result
 
     def sizeof_expr(self):
         t = self.next()
