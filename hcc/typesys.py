@@ -41,7 +41,7 @@ class Member:
     """A struct/union member. Bitfields have is_bitfield=True."""
 
     __slots__ = ("name", "ty", "offset", "align", "idx", "is_bitfield",
-                 "bit_offset", "bit_width", "tok", "rev_bytes")
+                 "bit_offset", "bit_width", "tok", "rev_bytes", "is_packed")
 
     def __init__(self, name, ty, offset=0, align=1, idx=0):
         self.name: str | None = name
@@ -54,6 +54,7 @@ class Member:
         self.bit_width = 0
         self.tok = None
         self.rev_bytes = 0      # >0: bitfield in a scalar_storage_order("big-endian") struct
+        self.is_packed = False  # member carries __attribute__((packed)): no alignment, may straddle units
 
     def __repr__(self):
         return f"Member({self.name}, {self.ty}, off={self.offset})"
@@ -206,6 +207,8 @@ def vector_of(base: Type, nbytes: int) -> Type:
     t = array_of(base, n)
     t.size = nbytes
     t.is_vector = True
+    if nbytes & (nbytes - 1) == 0:
+        t.align = max(t.align, nbytes)   # GCC aligns a vector to its own size (power of two)
     return t
 
 

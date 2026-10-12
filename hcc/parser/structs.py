@@ -90,12 +90,15 @@ class StructMixin:
                 m.tok = name
                 # aligned/_Alignas on a member can only raise its alignment
                 m.align = max(ty.align, mattr.align, attr.align)
-                if attr.is_packed or mattr.is_packed:
+                if attr.is_packed:
                     m.align = 1
                 if self.accept(":"):
                     m.is_bitfield = True
                     m.bit_width = self.const_expr()
                 self.parse_attributes(mattr)
+                if mattr.is_packed:
+                    m.align = 1
+                    m.is_packed = True
                 members.append(m)
         if members and members[-1].ty.kind == T.TypeKind.ARRAY and members[-1].ty.array_len < 0:
             last = members[-1]
@@ -119,9 +122,10 @@ def layout_struct(ty) -> None:
             continue
         if m.is_bitfield:
             sz = m.ty.size
-            if not packed and bits // (sz * 8) != (bits + m.bit_width - 1) // (sz * 8):
+            loose = packed or m.is_packed
+            if not loose and bits // (sz * 8) != (bits + m.bit_width - 1) // (sz * 8):
                 bits = T.align_to(bits, sz * 8)
-            m.offset = (bits // 8) // sz * sz if not packed else bits // 8
+            m.offset = (bits // 8) // sz * sz if not loose else bits // 8
             m.bit_offset = bits - m.offset * 8
             bits += m.bit_width
         else:

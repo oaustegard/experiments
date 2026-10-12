@@ -17,7 +17,7 @@ from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
-from hcc.typesys import TY_INT, TY_ULONG, TypeKind
+from hcc.typesys import TY_INT, TY_ULONG, TypeKind, pointer_to
 
 ASSIGN_OPS = {"=": None, "+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "&=": "&",
               "|=": "|", "^=": "^", "<<=": "<<", ">>=": ">>"}
@@ -26,13 +26,24 @@ BINARY_LEVELS = [("|",), ("^",), ("&",), ("==", "!="), ("<", "<=", ">", ">="),
                  ("<<", ">>"), ("+", "-"), ("*", "/", "%")]
 
 
+def _comma_result_type(t):
+    """Type of `a, b`: a function or array designator decays to a pointer."""
+    if t.kind == TypeKind.FUNC:
+        return pointer_to(t)
+    if t.kind == TypeKind.ARRAY and not t.is_vector:
+        return pointer_to(t.base)
+    return t
+
+
 class ExpressionMixin:
 
     def expr(self):
         node = self.assign()
         while self.at(","):
             loc = self.next().loc
-            node = self.typed(N.Comma(loc, node, self.assign()))
+            rhs = self.assign()
+            node = self.typed(N.Comma(loc, node, rhs))
+            node.ty = _comma_result_type(rhs.ty)   # the operator's own result: decayed
         return node
 
     def const_expr(self) -> int:
