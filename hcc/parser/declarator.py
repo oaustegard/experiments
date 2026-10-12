@@ -213,6 +213,10 @@ class DeclaratorMixin:
             names.append(name)
             pvars.append(pvar)
             pdims.append(dim)
+        matched = {n.text for n in names if n is not None}
+        for fname, fvar in fwd.items():
+            if fname not in matched:
+                self.error("parameter '%s' has just a forward declaration" % fname, fvar.loc)
         fty.proto_scope = self.scopes[-1]
         self.in_proto_params = outer_proto
         self.leave_scope()
