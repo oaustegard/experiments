@@ -94,6 +94,11 @@ class ExpressionMixin:
 
     def expr_Cast(self, node) -> None:
         self.gen_expr(node.operand)
+        if node.operand.ty.is_vector:
+            # vector values are addresses: reinterpret the same bytes
+            if not node.ty.is_vector:
+                self.load(node.ty)
+            return
         self.cast(node.operand.ty, node.ty)
 
     def expr_MemZero(self, node) -> None:

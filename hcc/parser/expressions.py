@@ -13,6 +13,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.sema.arith import compound_assign, inc_dec, new_add, new_binop, new_sub
 from hcc.sema.constexpr import eval_const
+from hcc.parser.vector_cast import lower_scalar_to_vector
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
 from hcc.typesys import TY_INT, TY_ULONG, TypeKind
@@ -115,6 +116,9 @@ class ExpressionMixin:
             operand = self.cast_expr()
             if ty.kind == TypeKind.VOID:
                 return N.Cast(loc, operand, ty=ty)
+            lowered = lower_scalar_to_vector(self, loc, self.typed(operand), ty.unqual())
+            if lowered is not None:
+                return lowered
             node = N.Cast(loc, operand, ty=ty.unqual())
             self.typed(operand)
             return node
