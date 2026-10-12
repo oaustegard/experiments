@@ -19,6 +19,33 @@ RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
 
 MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
 
+# GCC-accepted argument counts (min, max) for attributes that take a fixed
+# number of arguments; anything outside the range is a hard error.
+ARG_COUNTS = {
+    "copy": (1, 1),
+    "assume_aligned": (1, 2),
+    "alloc_align": (1, 1),
+    "assume": (1, 1),
+    "access": (2, 3),
+}
+
+
+def count_attr_args(args) -> int:
+    """Number of comma-separated top-level arguments in an attribute's tokens."""
+    if not args:
+        return 0
+    n, depth = 1, 0
+    for t in args:
+        if t.kind != TokenKind.PUNCT:
+            continue
+        if t.text in ("(", "[", "{"):
+            depth += 1
+        elif t.text in (")", "]", "}"):
+            depth -= 1
+        elif t.text == "," and depth == 0:
+            n += 1
+    return n
+
 
 def mode_type(ty, mode):
     """Re-size an integer or enum type to the byte size named by a mode attribute.
@@ -103,6 +130,12 @@ class AttributeMixin:
 
     def _apply_attribute(self, name, args_start, attr, ty) -> None:
         args = self._attr_args(args_start)
+        counts = ARG_COUNTS.get(name)
+        if counts is not None:
+            n = count_attr_args(args)
+            if not counts[0] <= n <= counts[1]:
+                self.error("wrong number of arguments specified for '%s' attribute" % name,
+                           self.toks[args_start - 1] if args_start > 0 else None)
         if name == "aligned":
             val = 16
             if args:
