@@ -20,16 +20,21 @@ class EnumMixin:
         if self.tok.kind == TokenKind.IDENT:
             tag = self.next()
         self.parse_attributes(VarAttr())
+        fixed = self.fixed_underlying()
         if tag is not None and not self.at("{"):
             ty = self.find_tag(tag.text)
             if ty is None:
                 ty = T.enum_type()
                 ty.tag = tag.text
                 self.scopes[-1].tags[tag.text] = ty
+            if fixed is not None:
+                self.apply_fixed_underlying(ty, fixed)
             return ty
         self.expect("{")
         ty = T.enum_type()
         ty.tag = tag.text if tag else None
+        if fixed is not None:
+            self.apply_fixed_underlying(ty, fixed)
         consts = []
         val = 0
         while not self.accept("}"):
@@ -48,7 +53,9 @@ class EnumMixin:
             val += 1
         lo = min(consts, default=0)
         hi = max(consts, default=0)
-        if lo < 0:
+        if fixed is not None:
+            pass
+        elif lo < 0:
             if lo < -(1 << 31) or hi >= 1 << 31:
                 ty.size = ty.align = 8
             ty.is_unsigned = False
@@ -58,3 +65,21 @@ class EnumMixin:
         if tag is not None:
             self.scopes[-1].tags[tag.text] = ty
         return ty
+
+    def fixed_underlying(self):
+        """C23 `enum e : type`: consume `: type-specifiers` if a type follows.
+
+        A bare `:` (e.g. an unnamed bit-field `enum e : 3;`) is left alone.
+        Returns the underlying Type or None.
+        """
+        if not self.at(":"):
+            return None
+        i = self.pos + 1
+        if i >= len(self.toks) or not self.is_typename(self.toks[i]):
+            return None
+        self.next()
+        return self.declspec()
+
+    def apply_fixed_underlying(self, ty, under):
+        ty.size = ty.align = under.size
+        ty.is_unsigned = under.is_unsigned

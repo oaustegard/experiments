@@ -84,7 +84,14 @@ class DeclSpecMixin:
             return tok.text in TYPE_KEYWORDS
         if tok.kind == TokenKind.IDENT and tok.text in FLOATN_TYPES and self.find_typedef(tok) is None:
             return True
+        if self.is_c23_bool(tok):
+            return True
         return self.find_typedef(tok) is not None
+
+    def is_c23_bool(self, tok):
+        """C23 makes `bool` a keyword (= _Bool) unless a typedef of that name is in scope."""
+        return tok.kind == TokenKind.IDENT and tok.text == "bool" \
+            and self.c23_mode() and self.find_typedef(tok) is None
 
     def declspec(self, attr=None):
         ty = T.TY_INT
@@ -94,6 +101,8 @@ class DeclSpecMixin:
         while self.is_typename():
             tok = self.tok
             s = tok.text
+            if self.is_c23_bool(tok):
+                s = "_Bool"
             if s in STORAGE:
                 if attr is None:
                     self.error("storage class specifier is not allowed in this context")
