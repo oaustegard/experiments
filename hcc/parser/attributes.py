@@ -64,6 +64,13 @@ def mode_type(ty, mode):
     return ty
 
 
+# C23 / GNU standard attributes that take no arguments.
+_NO_ARG_STD_ATTRS = frozenset({
+    "noreturn", "__noreturn__", "maybe_unused", "__maybe_unused__",
+    "fallthrough", "__fallthrough__",
+})
+
+
 class AttributeMixin:
 
     def skip_balanced(self) -> None:
@@ -86,11 +93,15 @@ class AttributeMixin:
         return self.at("[") and self.peek().kind == TokenKind.PUNCT and self.peek().text == "["
 
     def skip_std_attributes(self) -> None:
-        """Skip any C23 `[[...]]` attribute lists (no semantics applied)."""
+        """Skip any C23 `[[...]]` attribute lists (no semantics applied).
+
+        Standard attributes that take no arguments are rejected when written
+        with an argument list: `[[noreturn()]]`, `[[fallthrough(1)]]`."""
         while self.at_std_attribute():
             self.next()
             self.next()
             depth = 2
+            prev = "["
             while depth:
                 if self.at_eof():
                     self.error("unterminated attribute list")
@@ -99,6 +110,11 @@ class AttributeMixin:
                     depth += 1
                 elif t.kind == TokenKind.PUNCT and t.text == "]":
                     depth -= 1
+                elif (t.kind == TokenKind.IDENT and prev in ("[", ",", "::")
+                        and t.text in _NO_ARG_STD_ATTRS
+                        and self.at("(")):
+                    self.error(f"'{t.text}' attribute does not take any arguments")
+                prev = t.text
 
     def parse_attributes(self, attr=None, ty=None) -> None:
         while self.at_attribute() or self.at_std_attribute():
