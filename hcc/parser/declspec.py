@@ -151,6 +151,8 @@ class DeclSpecMixin:
                     attr.is_inline = True
                 elif s == "_Thread_local":
                     attr.is_tls = True
+                elif s == "register":
+                    attr.is_register = True
                 elif s == "_Noreturn":
                     attr.is_noreturn = True
                 elif s == "auto":

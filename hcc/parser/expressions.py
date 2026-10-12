@@ -199,6 +199,8 @@ class ExpressionMixin:
                     self.error("cannot take address of bit-field", t)
                 if operand.ty is not None and operand.ty.is_rev_order:
                     self.error("cannot take address of scalar with reverse storage order", t)
+                if isinstance(operand, N.VarRef) and getattr(operand.var, "is_register", False):
+                    self.error(f"address of register variable '{operand.var.name}' requested", t)
                 return self.typed(N.AddrOf(t.loc, operand))
             if s == "*":
                 self.next()

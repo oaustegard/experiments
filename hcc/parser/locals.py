@@ -131,6 +131,7 @@ class LocalDeclMixin:
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
             var = self.new_lvar(name.text, ty, name.loc)
+            var.is_register = attr.is_register
             reg = (dattr.asm_name or "").lstrip("%")
             if reg in GP64_REGS and self.fn is not None:
                 # Register-bound local: its value is the register's contents at function entry.
