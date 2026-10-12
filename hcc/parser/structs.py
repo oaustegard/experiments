@@ -77,7 +77,10 @@ class StructMixin:
             self.skip_std_attributes()     # `[[gnu::x]] char c[];`
             attr = VarAttr()
             basety = self.declspec(attr)
-            if self.accept(";"):
+            # GNU: a struct/union specifier may end a member list without its `;`
+            # (`struct { struct { int a; } }`), which is treated as an anonymous member.
+            missing_semi = self.at("}") and basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION)
+            if self.accept(";") or missing_semi:
                 # anonymous struct/union member; `struct S;` (tagged) declares nothing
                 if basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and basety.tag is None:
                     m = T.Member(None, basety, 0, attr.align or basety.align)
@@ -85,6 +88,8 @@ class StructMixin:
                 continue
             first = True
             while not self.accept(";"):
+                if not first and self.at("}"):
+                    break           # GNU: `int c }` -- the last `;` may be omitted
                 if not first:
                     self.expect(",")
                 first = False
