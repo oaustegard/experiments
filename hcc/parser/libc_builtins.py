@@ -34,6 +34,16 @@ _add(T.TY_DOUBLE, "sqrt sin cos tan exp log log10 pow floor ceil fabs atan atan2
 _add(T.TY_DOUBLE, "asin acos sinh cosh tanh log2 exp2 cbrt trunc round fmod hypot fmin fmax")
 _add(T.TY_FLOAT, "sqrtf sinf cosf fabsf floorf ceilf powf copysignf")
 _add(T.TY_LDOUBLE, "sqrtl sinl cosl tanl expl logl log10l powl floorl ceill fabsl atanl atan2l copysignl")
+# C99 math functions of one or two floating arguments (double, f and l variants).
+for _base in ("acosh asinh atanh erf erfc expm1 log1p tgamma lgamma nearbyint rint "
+              "remainder fdim acos asin cbrt cosh exp2 fmod hypot log2 sinh tanh "
+              "frexp ldexp scalbn scalbln logb modf remquo nan").split():
+    _add(T.TY_DOUBLE, _base)
+    _add(T.TY_FLOAT, _base + "f")
+    _add(T.TY_LDOUBLE, _base + "l")
+_add(T.TY_INT, "ilogb ilogbf ilogbl")
+_add(T.TY_LONG, "lrint lround lrintf lroundf lrintl lroundl")
+_add(T.TY_LLONG, "llrint llround llrintf llroundf llrintl llroundl")
 _add(T.TY_INT, "abs memcmp strcmp strncmp")
 _add(T.TY_LONG, "labs imaxabs")
 _add(T.TY_LLONG, "llabs")
@@ -48,8 +58,9 @@ _add(T.TY_LDOUBLE, "fmal nextafterl")
 # names listed here get a prototype; the rest keep the unprototyped call.
 _MATH_ARGS: dict[str, list[T.Type]] = {}
 for _names, _n in (("sqrt sin cos tan exp log log10 floor ceil fabs atan asin acos sinh cosh tanh "
-                    "log2 exp2 cbrt trunc round", 1),
-                   ("pow atan2 copysign fmod hypot fmin fmax", 2)):
+                    "log2 exp2 cbrt trunc round acosh asinh atanh erf erfc expm1 log1p tgamma lgamma "
+                    "nearbyint rint", 1),
+                   ("pow atan2 copysign fmod hypot fmin fmax remainder fdim", 2)):
     for _nm in _names.split():
         _MATH_ARGS[_nm] = [T.TY_DOUBLE] * _n
         _MATH_ARGS[_nm + "f"] = [T.TY_FLOAT] * _n
@@ -63,16 +74,24 @@ def libc_return_type(name: str):
 # Floating libm builtins taking two operands (base name, before any f/l suffix);
 # every other entry takes one.
 _LIBM_TWO_ARG = frozenset(
-    "pow copysign atan2 fmod hypot fmin fmax nextafter".split())
+    "pow copysign atan2 fmod hypot fmin fmax nextafter remainder fdim".split())
 _LIBM_THREE_ARG = frozenset("fma fmaf fmal".split())
+# Floating-return builtins whose other operands are not floating (int exponent,
+# pointer out-parameter, char* tag): left unprototyped rather than given a guessed arity.
+_LIBM_UNPROTOTYPED = frozenset(
+    "frexp ldexp scalbn scalbln modf remquo nan ilogb logb lrint lround llrint llround".split())
 _LIBM_FLOAT_KINDS = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
 
 
-def _libm_arity(name: str) -> int:
+def _libm_arity(name: str):
+    """Operand count of libm builtin `name` (None: not a prototyped floating builtin)."""
+    base = name[:-1] if name[-1:] in ("f", "l") else name
     if name in _LIBM_THREE_ARG:
         return 3
-    if name in _LIBM_TWO_ARG or (name[-1:] in ("f", "l") and name[:-1] in _LIBM_TWO_ARG):
+    if name in _LIBM_TWO_ARG or base in _LIBM_TWO_ARG:
         return 2
+    if name in _LIBM_UNPROTOTYPED or base in _LIBM_UNPROTOTYPED:
+        return None
     return 1
 
 
@@ -83,7 +102,8 @@ def libm_param_types(name: str, rty):
     name has no such builtin prototype."""
     if rty is None or rty.kind not in _LIBM_FLOAT_KINDS or _TABLE.get(name) is not rty:
         return None
-    return [rty] * _libm_arity(name)
+    arity = _libm_arity(name)
+    return None if arity is None else [rty] * arity
 
 
 # __builtin_powi{f,,l}(x, n): integer power, expanded by libgcc as __powi{sf,df,xf}2.

@@ -25,8 +25,8 @@ def _root(t: Type) -> Type:
 
 def _enum_as_int(t: Type) -> Type:
     """An enum type is compatible with its underlying integer type (C11 6.7.2.2):
-    the signed/unsigned int or long of the same size and signedness."""
-    kind = TypeKind.LONG if t.size == 8 else TypeKind.INT
+    the signed/unsigned integer type of the same size (char, short, int or long)."""
+    kind = {1: TypeKind.CHAR, 2: TypeKind.SHORT, 8: TypeKind.LONG}.get(t.size, TypeKind.INT)
     return Type(kind, t.size, t.align, bool(t.is_unsigned))
 
 

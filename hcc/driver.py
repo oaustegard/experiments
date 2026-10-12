@@ -91,6 +91,8 @@ def parse_args(argv: list[str]) -> Options:
             o.char_unsigned = a == "-funsigned-char"
         elif a in ("-fwrapv", "-fno-wrapv"):
             o.wrapv = a == "-fwrapv"
+        elif a in ("-fshort-enums", "-fno-short-enums"):
+            o.short_enums = a == "-fshort-enums"
         elif a == "-nostdinc":
             o.nostdinc = True
         elif a in ("-fPIC", "-fpic"):

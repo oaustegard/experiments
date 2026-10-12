@@ -48,6 +48,21 @@ def widen_type(ty):
 ENUM_MODE_BYTES = {"QI": 1, "byte": 1, "HI": 2, "SI": 4, "DI": 8, "word": 8, "TI": 16}
 
 
+def packed_enum_size(ty, lo, hi):
+    """GCC: a packed enum (no fixed type) takes the smallest of 1/2/4/8 bytes that holds
+    every enumerator value, with alignment 1."""
+    for n in (1, 2, 4, 8):
+        bits = n * 8
+        if ty.is_unsigned:
+            fits = 0 <= lo and hi < (1 << bits)
+        else:
+            fits = -(1 << (bits - 1)) <= lo and hi < (1 << (bits - 1))
+        if fits:
+            ty.size = n
+            ty.align = 1
+            return
+
+
 class EnumMixin:
 
     def enum_specifier(self, attr=None):
@@ -143,6 +158,7 @@ class EnumMixin:
         hi = max(consts, default=0)
         if fixed is None and tag is not None:
             self.__dict__.setdefault("enum_nofixed_ids", {})[id(ty)] = ty   # keeps ty alive: no id reuse
+        self.parse_attributes(attr if attr is not None else VarAttr(), ty)   # `enum {..} __attribute__((mode(word)))`
         if fixed is not None:
             pass
         elif lo < 0:
@@ -151,7 +167,8 @@ class EnumMixin:
             ty.is_unsigned = False
         elif hi >= 1 << 32:
             ty.size = ty.align = 8
-        self.parse_attributes(attr if attr is not None else VarAttr())   # `enum {..} __attribute__((mode(word)))`
+        if fixed is None and (ty.is_packed or getattr(self.opts, "short_enums", False)):
+            packed_enum_size(ty, lo, hi)     # `__attribute__((packed))`: smallest integer that fits
         self.check_designated_init(attr, False, self.toks[self.pos - 1])
         self.check_enum_mode_fits(attr, lo, hi, self.toks[self.pos - 1])
         if tag is not None:

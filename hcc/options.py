@@ -30,6 +30,7 @@ class Options:
     char_unsigned: bool = False        # -funsigned-char (plain char is unsigned; only checked by constexpr)
     wrapv: bool = False                # -fwrapv (signed overflow wraps; default -fno-wrapv: undefined)
     permissive: bool = False           # -fpermissive (int-conversion errors become warnings)
+    short_enums: bool = False          # -fshort-enums (enums without a fixed type take the smallest size)
     linker_args: list[str] = field(default_factory=list)
     keep_temps: bool = False
     dump_ast: bool = False
