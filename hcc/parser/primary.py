@@ -11,6 +11,7 @@ from hcc import diag
 from hcc import nodes as N
 from hcc.parser.builtins import SPECIAL_BUILTINS, floatn_libc_name
 from hcc.parser.libc_builtins import POWI_HELPERS, libc_return_type
+from hcc.parser import complex as CPX
 from hcc.parser.scope import VarScope
 from hcc.sema.compat import is_compatible
 from hcc.tokens import TokenKind
@@ -39,6 +40,8 @@ class PrimaryMixin:
             return node
         if k == TokenKind.NUMBER:
             self.next()
+            if t.ty.is_complex:                   # imaginary constant (GNU 2i)
+                return CPX.complex_literal(self, t.loc, t.value, t.ty)
             if T.is_flonum(t.ty):
                 return N.FloatLit(t.loc, t.value, ty=t.ty, bits=getattr(t.value, "x87", None))
             return N.IntLit(t.loc, t.value, ty=t.ty)

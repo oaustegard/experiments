@@ -11,6 +11,8 @@ initialization of char/wchar arrays, flexible (incomplete) arrays.
 from __future__ import annotations
 
 from hcc import nodes as N
+from hcc.parser import complex as CPX
+from hcc.parser import complex_const as CC
 from hcc.parser.structs import find_member
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import lower_local_init, serialize_global_init
@@ -142,7 +144,7 @@ class InitializerMixin:
             else:
                 self.array_initializer2(init, 0)
             return
-        if ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
+        if ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not ty.is_complex:
             if self.at("{"):
                 self.struct_initializer1(init)
                 return
@@ -164,6 +166,11 @@ class InitializerMixin:
             self._consume_end()
             return
         init.expr = self.typed(self.assign())
+        if init.ty.is_complex or init.expr.ty.is_complex:
+            if self.fn is None:
+                CC.set_global_init(self, init)
+            else:
+                init.expr = CPX.convert(self, init.expr, init.ty, init.expr.loc)
 
     def string_initializer(self, init) -> None:
         tok = self.next()

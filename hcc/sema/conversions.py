@@ -8,6 +8,7 @@
 """
 from __future__ import annotations
 
+from hcc import diag
 from hcc import nodes as N
 from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_flonum,
                        is_integer, pointer_to)
@@ -54,6 +55,9 @@ def new_cast(expr: N.Expr, ty: Type) -> N.Expr:
     add_type(expr)
     if expr.ty is ty:
         return expr
+    if expr.ty.is_complex or ty.is_complex:
+        # complex conversions are lowered by the parser (parser/complex.py); reaching here is a gap
+        diag.error(expr, f"unsupported conversion from '{expr.ty}' to '{ty}'", "sema")
     if same_scalar(expr.ty, ty) and ty.kind != TypeKind.PTR:
         return expr
     c = N.Cast(expr.loc, expr, ty=ty.unqual() if ty.kind != TypeKind.VOID else ty)

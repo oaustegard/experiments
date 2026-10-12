@@ -26,7 +26,7 @@ GNU case ranges, computed goto (`&&label`), K&R function definitions,
 ## TODO (good swarm tasks; each should come with a selftest)
 * VLAs (`parser/locals.py`, `codegen` alloca of `vla_size`), sizeof on VLA
 * `__int128` arithmetic (currently loads/stores low half only)
-* `_Complex` / `__complex__`, imaginary constants (`1.0i`)
+* `_Complex`: done for + - * / == != unary -, __real__/__imag__, imaginary constants, conversions; TODO: complex long double across calls (x87 ABI), `++`/`--`, complex in switch, `__divdc3`-exact division (inf/NaN)
 * GNU vector extensions (`__attribute__((vector_size(N)))`)
 * extended inline asm operands (`codegen/asm.py`)
 * `__builtin_*`: mul/add/sub_overflow, bswap, clz/ctz/popcount, prefetch,

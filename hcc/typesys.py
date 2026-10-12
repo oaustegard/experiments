@@ -73,7 +73,7 @@ class Type:
                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
-                 "proto_scope", "is_rev_order", "is_floatn")
+                 "proto_scope", "is_rev_order", "is_floatn", "is_complex")
 
     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
         self.kind = kind
@@ -109,6 +109,7 @@ class Type:
         self.param_vars: list = []   # FUNC: parse-time Var per named param (or None)
         self.param_dims: list = []   # FUNC: VLA-dimension expr per param (or None)
         self.proto_scope = None      # FUNC: parser Scope of the parameter list (tags stay visible in the body)
+        self.is_complex = False      # C99 _Complex: a STRUCT {re, im} of base (see complex_of)
 
     def copy(self) -> "Type":
         t = Type.__new__(Type)
@@ -140,6 +141,8 @@ def type_str(t: Type) -> str:
     if k == TypeKind.FUNC:
         ps = ", ".join(type_str(p) for p in t.params) + (", ..." if t.is_variadic else "")
         return f"{type_str(t.return_ty)}({ps})"
+    if t.is_complex:
+        return f"{q}_Complex {type_str(t.base)}"
     if k in (TypeKind.STRUCT, TypeKind.UNION, TypeKind.ENUM):
         return f"{q}{k.value} {t.tag or '<anon>'}"
     u = "unsigned " if t.is_unsigned and k not in (TypeKind.BOOL,) else ""
@@ -260,6 +263,22 @@ def va_list_type() -> Type:
                  Member("reg_save_area", pointer_to(TY_VOID), 16, 8, 3)]
     s.size, s.align, s.is_complete = 24, 8, True
     return array_of(s, 1)
+
+
+def complex_of(base: Type) -> Type:
+    """C99 `_Complex base`: a two-member struct {re, im} laid out like `base[2]`.
+    Its `base` is the element type; values are copied and passed like structs."""
+    t = Type(TypeKind.STRUCT, base.size * 2, base.align)
+    t.is_complex = True
+    t.base = base
+    t.tag = None
+    t.members = [Member("re", base, 0, base.align, 0),
+                 Member("im", base, base.size, base.align, 1)]
+    return t
+
+
+def is_complex(t: Type) -> bool:
+    return t.is_complex
 
 
 def int_type_for(size: int, unsigned: bool) -> Type:

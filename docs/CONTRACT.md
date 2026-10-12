@@ -142,6 +142,8 @@ hcc/
     atomic_builtins.py __atomic_* (stdatomic.h) parsing; codegen/atomics.py lowers them
     vector_shuffle.py  __builtin_shuffle on GCC vectors, lowered to element stores
     vector_shufflevector.py  __builtin_shufflevector on GCC vectors (constant indices), element stores
+    complex.py         C99 _Complex: complex = STRUCT{re,im} (typesys.complex_of); ops lowered to temps
+    complex_const.py   file-scope complex constants (cval folding -> struct initializer leaves)
 
   sema/
     __init__.py        re-exports

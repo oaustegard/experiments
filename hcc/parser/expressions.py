@@ -19,6 +19,7 @@ from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
 from hcc.typesys import TY_INT, TY_ULONG, TypeKind, pointer_to
 from hcc.parser.plan9_ptr import plan9_pointer_conv
+from hcc.parser import complex as CPX
 
 ASSIGN_OPS = {"=": None, "+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "&=": "&",
               "|=": "|", "^=": "^", "<<=": "<<", ">>=": ">>"}
@@ -34,6 +35,14 @@ def _comma_result_type(t):
     if t.kind == TypeKind.ARRAY and not t.is_vector:
         return pointer_to(t.base)
     return t
+
+
+def _side_effect_free(node) -> bool:
+    if isinstance(node, (N.VarRef, N.IntLit, N.FloatLit)):
+        return True
+    if isinstance(node, (N.Member_, N.Deref)):
+        return _side_effect_free(node.operand)
+    return False
 
 
 class ExpressionMixin:
@@ -65,7 +74,11 @@ class ExpressionMixin:
             self.check_assignable(node, t)
             if op is None:
                 rhs = plan9_pointer_conv(self, rhs, self.typed(node).ty)
+                if node.ty.is_complex or self.typed(rhs).ty.is_complex:
+                    rhs = CPX.convert(self, rhs, node.ty, t.loc)
                 return self.typed(N.Assign(t.loc, node, rhs))
+            if self.typed(node).ty.is_complex or self.typed(rhs).ty.is_complex:
+                return self.complex_compound(op, node, rhs, t.loc)
             node, rhs = promote_vector_operands(self, t.loc, op, node, rhs)
             return compound_assign(op, node, rhs, t.loc, self.new_temp)
         return node
@@ -84,12 +97,13 @@ class ExpressionMixin:
         cond = self.logor()
         if not self.at("?"):
             return cond
+        cond = CPX.truth(self, cond)
         loc = self.next().loc
         if self.at(":"):                  # GNU a ?: b
             self.next()
             tmp = self.new_temp(cond.ty)
             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
-            rhs = self.typed(N.Cond(loc, self.typed(N.VarRef(loc, tmp)),
+            rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
             return self.typed(N.Comma(loc, lhs, rhs))
         then = self.expr()
@@ -101,14 +115,14 @@ class ExpressionMixin:
         node = self.logand()
         while self.at("||"):
             loc = self.next().loc
-            node = self.typed(N.Logical(loc, "||", node, self.logand()))
+            node = self.typed(N.Logical(loc, "||", CPX.truth(self, node), CPX.truth(self, self.logand())))
         return node
 
     def logand(self):
         node = self.binary(0)
         while self.at("&&"):
             loc = self.next().loc
-            node = self.typed(N.Logical(loc, "&&", node, self.binary(0)))
+            node = self.typed(N.Logical(loc, "&&", CPX.truth(self, node), CPX.truth(self, self.binary(0))))
         return node
 
     def binary(self, level: int):
@@ -122,6 +136,9 @@ class ExpressionMixin:
                 return node
             self.next()
             rhs = self.binary(level + 1)
+            if self.typed(node).ty.is_complex or self.typed(rhs).ty.is_complex:
+                node = CPX.binary(self, t.text, node, rhs, t.loc)
+                continue
             node, rhs = promote_vector_operands(self, t.loc, t.text, node, rhs)
             node = new_binop(t.text, node, rhs, t.loc)
             if isinstance(node, N.Binary) and node.ty.is_vector:
@@ -141,6 +158,8 @@ class ExpressionMixin:
             operand = self.cast_expr()
             if ty.kind == TypeKind.VOID:
                 return self.vla_prefix(pre, N.Cast(loc, operand, ty=ty), loc)
+            if ty.is_complex or self.typed(operand).ty.is_complex:
+                return self.vla_prefix(pre, CPX.convert(self, operand, ty.unqual(), loc), loc)
             lowered = lower_scalar_to_vector(self, loc, self.typed(operand), ty.unqual())
             if lowered is not None:
                 return self.vla_prefix(pre, lowered, loc)
@@ -161,11 +180,13 @@ class ExpressionMixin:
             if s == "-":
                 self.next()
                 operand = self.cast_expr()
+                if self.typed(operand).ty.is_complex:
+                    return CPX.negate(self, operand, t.loc)
                 buf = self.new_temp(operand.ty, t.loc) if operand.ty.is_vector else None
                 return self.typed(N.Unary(t.loc, "-", operand, result_buf=buf))
             if s == "!":
                 self.next()
-                return self.typed(N.Unary(t.loc, "!", self.cast_expr()))
+                return self.typed(N.Unary(t.loc, "!", CPX.truth(self, self.typed(self.cast_expr()))))
             if s == "~":
                 self.next()
                 operand = self.cast_expr()
@@ -221,8 +242,16 @@ class ExpressionMixin:
                 return self.cast_expr()
             if s in ("__real__", "__imag__"):
                 self.next()
-                return self.cast_expr()       # TODO: _Complex
+                operand = self.cast_expr()
+                return CPX.part(self, self.typed(operand), 0 if s == "__real__" else 1, t.loc)
         return self.postfix()
+
+    def complex_compound(self, op, node, rhs, loc):
+        """`a op= b` on a complex operand: `a = a op b`, so `a` must have no side effects."""
+        if not _side_effect_free(node):
+            self.error("unsupported: compound assignment to a complex lvalue with side effects", loc)
+        value = CPX.binary(self, op, node, rhs, loc)
+        return self.typed(N.Assign(loc, node, CPX.convert(self, value, node.ty, loc)))
 
     def sizeof_expr(self):
         t = self.next()

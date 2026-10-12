@@ -15,6 +15,7 @@ from hcc.parser.libc_builtins import fabs_float_call, int_abs_call
 from hcc.parser.structs import find_member
 from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.sema.arith import inc_dec, new_add
+from hcc.parser import complex as CPX
 from hcc.sema.conversions import default_arg_promote, new_cast
 from hcc.typesys import TypeKind, is_struct_like
 from hcc.parser.va_pack import is_pack_placeholder
@@ -110,7 +111,9 @@ class PostfixMixin:
                 continue
             if i < len(params):
                 pty = params[i]
-                if not is_struct_like(pty):
+                if pty.is_complex or a.ty.is_complex:
+                    a = CPX.convert(self, a, pty, loc)
+                elif not is_struct_like(pty):
                     a = plan9_pointer_conv(self, a, pty)
                     a = new_cast(a, pty)
             else:
@@ -126,6 +129,7 @@ class PostfixMixin:
             if fabs_node is not None:
                 return self.typed(fabs_node)
         node = N.Call(loc, fn, conv, fty)
+        CPX.check_abi(self, fty.return_ty, loc)
         if is_struct_like(fty.return_ty) or fty.return_ty.is_vector:
             node.ret_buffer = self.new_temp(fty.return_ty)
         return self.typed(node)

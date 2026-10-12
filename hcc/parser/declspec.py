@@ -15,6 +15,7 @@ from hcc.parser.scope import VarAttr
 from hcc.parser.attributes import mode_type
 from hcc import typesys as T
 from hcc.parser.vla import _has_vla as _has_vla_type
+from hcc.parser.complex import complex_decl_type
 
 VOID, BOOL, CHAR, SHORT, INT, LONG = 1 << 0, 1 << 2, 1 << 4, 1 << 6, 1 << 8, 1 << 10
 FLOAT, DOUBLE, OTHER, SIGNED, UNSIGNED, INT128 = 1 << 12, 1 << 14, 1 << 16, 1 << 17, 1 << 18, 1 << 19
@@ -127,7 +128,7 @@ class DeclSpecMixin:
         counter = 0
         vsize = 0
         auto_infer = False
-        is_const = is_volatile = is_atomic = False
+        is_const = is_volatile = is_atomic = is_complex = False
         while self.is_typename():
             if self.at_std_attribute():
                 self.skip_std_attributes()
@@ -155,8 +156,11 @@ class DeclSpecMixin:
                 elif s == "auto":
                     auto_infer = self.c23_mode()    # C23 `auto x = expr;`: no type given
                 continue
-            if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "_Complex",
-                     "__complex__", "__complex", "__label__"):
+            if s in ("_Complex", "__complex__", "__complex"):
+                self.next()
+                is_complex = True
+                continue
+            if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "__label__"):
                 self.next()
                 is_const |= s in ("const", "constexpr")  # C23 constexpr objects are const
                 is_volatile |= s == "volatile"
@@ -234,6 +238,8 @@ class DeclSpecMixin:
             ty = _BASE_TYPES[counter]
         if auto_infer and counter == 0 and attr is not None:
             return None         # type comes from the initializer, as for __auto_type
+        if is_complex:
+            ty = complex_decl_type(self, ty)
         if attr is not None and attr.vector_size and ty is not None:
             ty = T.vector_of(ty, attr.vector_size)
             attr.vector_size = 0
@@ -243,7 +249,7 @@ class DeclSpecMixin:
             # __attribute__((mode(QI/HI/SI/DI/TI))) re-sizes an integer base type
             ty = mode_type(ty, attr.mode)
             attr.mode = None
-        if counter == 0 and attr is None and not (is_const or is_volatile):
+        if counter == 0 and attr is None and not (is_const or is_volatile or is_complex):
             self.error("expected type")
         if ty is not None and (is_const or is_volatile or is_atomic):
             ty = ty.copy()

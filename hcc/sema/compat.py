@@ -30,6 +30,8 @@ def is_compatible(a: Type, b: Type) -> bool:
         if b.kind == TypeKind.ENUM and a.kind != TypeKind.ENUM:
             return is_compatible(a, _enum_as_int(b))
         return False
+    if a.is_complex or b.is_complex:      # _Complex T: compatible iff the element types are
+        return a.is_complex and b.is_complex and is_compatible(a.base, b.base)
     k = a.kind
     if k in (TypeKind.CHAR, TypeKind.SHORT, TypeKind.INT, TypeKind.LONG, TypeKind.LLONG,
              TypeKind.INT128, TypeKind.BOOL):

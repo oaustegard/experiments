@@ -19,7 +19,7 @@ from hcc.halfbits import round_to_half
 from hcc.ldouble_lit import exact_decimal, x87_from_text
 from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_FLOAT16, TY_FLOAT128,
                        TY_INT, TY_LDOUBLE, TY_LLONG, TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG,
-                       TY_USHORT, Type, TypeKind, array_of)
+                       TY_USHORT, Type, TypeKind, array_of, complex_of, is_flonum)
 
 KEYWORD_ALIASES = {
     "__restrict": "restrict", "__restrict__": "restrict",
@@ -117,6 +117,8 @@ def _round_decimal_to_f32(fr: Fraction) -> float:
 def parse_number(tok: Token):
     s = tok.text.replace("'", "")                # C23 digit separators
     low = s.lower()
+    if low.endswith(("i", "j")):                 # GNU imaginary constant: 2.5i, 1j
+        return _parse_imaginary(tok, s[:-1])
     is_hex = low.startswith("0x")
     if not is_hex and ("." in s or "e" in low) or is_hex and ("." in s or "p" in low):
         ty, body = TY_DOUBLE, s
@@ -250,6 +252,17 @@ def string_bytes(units: list[int], elem: Type) -> bytes:
     if sz == 1:
         return bytes(u & 0xFF for u in units) + b"\0"
     return b"".join((u & ((1 << (8 * sz)) - 1)).to_bytes(sz, "little") for u in units + [0])
+
+
+def _parse_imaginary(tok: Token, body: str):
+    """`1i` / `2.5fi`: the value is the imaginary part of a _Complex constant
+    (an integer body gives _Complex double, as in GCC)."""
+    sub = tok.copy()
+    sub.text = body
+    val, ty = parse_number(sub)
+    if not is_flonum(ty):
+        return float(val), complex_of(TY_DOUBLE)
+    return val, complex_of(ty)
 
 
 def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
