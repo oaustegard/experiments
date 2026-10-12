@@ -45,6 +45,11 @@ class ExpressionMixin:
         if is_flonum(node.ty):
             return self.expr_FloatLit(node)
         v = node.value
+        if node.ty.kind == TypeKind.INT128:
+            u = v & ((1 << 128) - 1)
+            self.emit(f"movabs ${u & ((1 << 64) - 1)}, %rax")
+            self.emit(f"movabs ${u >> 64}, %rdx")
+            return
         if -(1 << 31) <= v < (1 << 31):
             self.emit(f"mov ${v}, %rax")
         else:
@@ -140,7 +145,7 @@ class ExpressionMixin:
         self.gen_expr(node.rhs)
 
     def expr_Cast(self, node) -> None:
-        if is_flonum(node.operand.ty) and is_integer(node.ty):
+        if is_flonum(node.operand.ty) and is_integer(node.ty) and node.ty.kind != TypeKind.INT128:
             # constant float->int conversions are folded (saturating, like GCC)
             folded = try_eval_const(node)
             if folded is not None:
@@ -186,6 +191,8 @@ class ExpressionMixin:
             self.emit("sete %al")
             self.emit("movzbl %al, %eax")
             return
+        if node.ty.kind == TypeKind.INT128:
+            return self.int128_unary(node.op)
         if node.op == "~":
             self.emit("not %rax")
             return

@@ -171,6 +171,7 @@ hcc/
     builtins.py        __builtin_* lowering (alloca, expect, clz, ...)
     atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs
     asm.py             inline asm statements (basic + extended)
+    int128.py          __int128 values in %rdx:%rax: ops, casts, compares (libgcc helpers)
 
   include/             (optional) hcc's own override headers, searched before
                        the system dirs (e.g. a future stdatomic.h)

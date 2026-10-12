@@ -19,6 +19,8 @@ class ArithMixin:
         lty = node.lhs.ty
         if is_flonum(lty):
             return self.float_binary(node)
+        if lty.kind == TypeKind.INT128:
+            return self.int128_binary(node)
         self.gen_expr(node.rhs)
         self.push()
         self.gen_expr(node.lhs)
