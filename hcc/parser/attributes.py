@@ -173,6 +173,9 @@ class AttributeMixin:
                     or (mname not in MODE_SIZES and mname not in _OTHER_MODES)):
                 self.error("unknown machine mode '%s'" % args[0].text,
                            self.toks[args_start - 1] if args_start > 0 else None)
+        if name == "malloc":
+            from hcc.parser.attr_malloc import check_malloc_attr
+            check_malloc_attr(self, args_start, args)
         counts = ARG_COUNTS.get(name)
         if counts is not None:
             n = count_attr_args(args)
