@@ -40,6 +40,7 @@ class VarAttr:
     section: str | None = None
     visibility: str | None = None
     alias: str | None = None
+    ifunc: str | None = None        # __attribute__((ifunc("resolver")))
     asm_name: str | None = None
     vector_size: int = 0
     mode: str | None = None

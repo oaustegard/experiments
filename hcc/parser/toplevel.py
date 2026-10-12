@@ -97,6 +97,7 @@ class TopLevelMixin:
         fn.section = dattr.section or attr.section or fn.section
         fn.visibility = dattr.visibility or attr.visibility or fn.visibility
         fn.alias_of = dattr.alias or attr.alias or fn.alias_of
+        fn.ifunc_of = dattr.ifunc or attr.ifunc or fn.ifunc_of
         fn.align = max(fn.align, attr.align, dattr.align)
         return fn
 

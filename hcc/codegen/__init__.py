@@ -42,6 +42,8 @@ class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, Arith
                     self.emit_function(obj)
                 elif obj.alias_of:
                     self.emit_alias(obj)
+                elif obj.ifunc_of:
+                    self.emit_ifunc(obj)
             elif isinstance(obj, N.Var):
                 if obj.is_definition and not obj.is_extern:
                     self.emit_data(obj)
@@ -56,6 +58,15 @@ class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, Arith
         if fn.is_weak:
             self.directive(f".weak {fn.symbol}")
         self.directive(f".set {fn.symbol}, {fn.alias_of}")
+
+    def emit_ifunc(self, fn) -> None:
+        """GNU indirect function: the symbol's value is the resolver's address."""
+        if not fn.is_static:
+            self.directive(f".globl {fn.symbol}")
+        if fn.visibility in ("hidden", "internal", "protected"):
+            self.directive(f".{fn.visibility} {fn.symbol}")
+        self.directive(f".type {fn.symbol}, @gnu_indirect_function")
+        self.directive(f".set {fn.symbol}, {fn.ifunc_of}")
 
 
 def generate(tu, opts=None) -> str:

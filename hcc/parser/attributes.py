@@ -107,6 +107,8 @@ class AttributeMixin:
             attr.visibility = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name == "alias" and attr is not None and args:
             attr.alias = args[0].value.rstrip(b"\0").decode() if args[0].value else None
+        elif name == "ifunc" and attr is not None and args:
+            attr.ifunc = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name == "vector_size" and attr is not None and args:
             save = self.pos
             self.pos = args_start + 1

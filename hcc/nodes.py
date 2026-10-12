@@ -88,6 +88,7 @@ class Function(Obj):
     section: str | None = None
     visibility: str | None = None
     alias_of: str | None = None
+    ifunc_of: str | None = None             # __attribute__((ifunc("resolver")))
     align: int = 0                          # from __attribute__((aligned(N)))
     outer: "Function | None" = None         # GNU nested function: enclosing function
     chain_var: Var | None = None            # nested fn: slot holding the static link
