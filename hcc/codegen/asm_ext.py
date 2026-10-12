@@ -12,7 +12,8 @@ x87 operands (t/u/f; float, double or long double): inputs are converted to long
 double, staged as 16-byte slots and loaded onto the FPU before the template; outputs
 are stored with fstps/fstpl/fstpt according to their C type.
 Float/double operands with GPR constraints travel as their raw bits (movd/movq
-from %xmm0). Aggregate operands are rejected.
+from %xmm0). Struct/union operands of 1, 2, 4 or 8 bytes travel as their bytes;
+other aggregates are rejected.
 """
 from __future__ import annotations
 
@@ -30,7 +31,8 @@ _MEM_LETTERS = set("moV")
 _X87_LETTERS = set("tuf")
 _X87_STORE = {TypeKind.FLOAT: "fstps", TypeKind.DOUBLE: "fstpl", TypeKind.LDOUBLE: "fstpt"}
 _IMM_LETTERS = set("inIJKLMNeEFZs")
-_BAD_KINDS = (TypeKind.FLOAT16, TypeKind.LDOUBLE, TypeKind.FLOAT128, TypeKind.STRUCT, TypeKind.UNION)
+_BAD_KINDS = (TypeKind.FLOAT16, TypeKind.LDOUBLE, TypeKind.FLOAT128)
+_AGG_KINDS = (TypeKind.STRUCT, TypeKind.UNION)
 # Arrays and functions decay to their address when used as register operands.
 _DECAY_KINDS = (TypeKind.ARRAY, TypeKind.FUNC)
 
@@ -52,6 +54,30 @@ def _sse_to_gpr(cg, ty) -> None:
         cg.emit("movd %xmm0, %eax")
     elif ty.kind == TypeKind.DOUBLE:
         cg.emit("movq %xmm0, %rax")
+
+
+def _is_bad_operand(ty) -> bool:
+    """Operand types that a GPR constraint cannot carry: x87/float16/float128
+    values, and aggregates that are not 1, 2, 4 or 8 bytes big."""
+    if ty.kind in _AGG_KINDS:
+        return ty.size not in (1, 2, 4, 8)
+    return ty.kind in _BAD_KINDS
+
+
+def _bits_of_value(cg, ty) -> None:
+    """Value in %rax (scalars already evaluated; aggregates as an address) as raw bits."""
+    if ty.kind not in _AGG_KINDS:
+        _sse_to_gpr(cg, ty)
+        return
+    # A 1/2/4/8-byte struct or union travels as its bytes, zero-extended.
+    if ty.size == 1:
+        cg.emit("movzbl (%rax), %eax")
+    elif ty.size == 2:
+        cg.emit("movzwl (%rax), %eax")
+    elif ty.size == 4:
+        cg.emit("movl (%rax), %eax")
+    else:
+        cg.emit("movq (%rax), %rax")
 
 
 def _pick_alternative(cons: str) -> str:
@@ -131,7 +157,7 @@ def _classify(op: _Op, dead: bool = False) -> None:
         op.imm = _imm_value(where, dead)
     else:
         diag.error(where, f"codegen: unsupported asm constraint '{op.cons}'", "codegen")
-    if op.kind == "reg" and op.expr.ty.kind in _BAD_KINDS:
+    if op.kind == "reg" and _is_bad_operand(op.expr.ty):
         diag.error(where, "codegen: float/aggregate asm operands are not supported", "codegen")
 
 
@@ -338,10 +364,10 @@ def lower_extended(cg, node) -> None:
             k = outs.index(op)
             cg.emit(f"mov {8 * (units + m - 1 - k)}(%rsp), %rax")
             cg.load(op.expr.ty)
-            _sse_to_gpr(cg, op.expr.ty)
+            _bits_of_value(cg, op.expr.ty)
         else:
             cg.gen_expr(op.expr)
-            _sse_to_gpr(cg, op.expr.ty)
+            _bits_of_value(cg, op.expr.ty)
         cg.push()
         units += 1
         pushes.append(op)
