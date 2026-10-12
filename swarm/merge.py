@@ -193,6 +193,25 @@ def bump_merge_counter(ctx: Ctx, n: int) -> int:
 
 # ---------------------------------------------------------------- gate
 
+RECHECK_MAX = 1500   # cluster members re-run after a merge (beyond the gate's targets)
+
+
+def recheck_clusters(ctx: Ctx, g, commit: str, recs: list[dict]) -> None:
+    """Re-run every known-failing member of each merged worker's cluster at the new main.
+    The gate checks at most GATE_TARGETS members, so without this a fix to a shared root
+    cause (e.g. a whole-program build) leaves thousands of stale FAILs in known.json and
+    the queue keeps dispatching workers on tests that already pass."""
+    from swarm import queue as workqueue
+    sigs = {r.get("signature") for r in recs}
+    k = tr.known(ctx)
+    ids = [t for t, rec in k.items() if not tr.is_pass(rec) and workqueue.signature(rec) in sigs]
+    if not ids:
+        return
+    res = tr.run_ids(ctx, g, ids[:RECHECK_MAX])
+    tr.record(ctx, commit, res)
+    flipped = sum(1 for t in res if tr.is_pass(res[t]))
+    log(f"recheck {len(res)} cluster members at {commit[:10]}: {flipped} now pass")
+
 def merge_batch(ctx: Ctx, recs: list[dict]) -> int:
     """Gate and merge `recs` (ledger records with status finished). Returns merged count."""
     pending: list[tuple[dict, str]] = []
@@ -245,6 +264,7 @@ def merge_batch(ctx: Ctx, recs: list[dict]) -> int:
             accept(ctx, r, sha, parent, fixed[r["id"]])
             parent = sha
         bump_merge_counter(ctx, len(stacked))
+        recheck_clusters(ctx, g, top, [r for r, _, _ in stacked])
         return merged + len(stacked)
     for r, _ in pending:
         reject(ctx, r, "main kept moving during gate")

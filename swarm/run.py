@@ -212,6 +212,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             procs[r["id"]] = None
     launched = 0
     idle_tree, idle_since = None, None
+    tree_checked = 0.0
     stop_launch = False
     # Full refresh runs in a thread (it can take many minutes); launching and
     # reaping continue meanwhile, merging waits for it.
@@ -236,6 +237,18 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                 del procs[tid]
         finished = [r for r in ledger(ctx).values() if r["status"] == "finished"]
         refreshing = refresher is not None and refresher.is_alive()
+        if not refreshing and time.time() - tree_checked > 120:
+            # A suite builder committed to tests/ on main: baseline the new tests now,
+            # not after the next --full-every merges.
+            tree_checked = time.time()
+            tree = subprocess.run(["git", "-C", str(ctx.root), "rev-parse", "HEAD:tests"],
+                                  capture_output=True, text=True).stdout.strip()
+            if tree and idle_tree and tree != idle_tree:
+                log(f"tests/ tree changed ({tree[:10]}); background refresh")
+                refresher = threading.Thread(target=merge.refresh, args=(ctx,), daemon=True)
+                refresher.start()
+                refreshing = True
+            idle_tree = tree or idle_tree
         if not refreshing:                    # the gate tree and known.json belong to refresh
             for i in range(0, len(finished), ctx.batch):
                 batch = finished[i:i + ctx.batch]
