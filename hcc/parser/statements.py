@@ -12,6 +12,7 @@ from hcc import typesys as T
 from hcc.parser import complex as CPX
 from hcc.parser.dyn_struct_ret import dyn_return
 from hcc.sema.constexpr import eval_const
+from hcc.sema.void_value import require_value
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
 from hcc.typesys import TypeKind
@@ -87,6 +88,7 @@ class StatementMixin:
             return dyn_return(self, e, rty, t.loc)
         if rty.kind == TypeKind.VOID:
             return N.Return(t.loc, e)
+        require_value(e)
         if rty.is_complex or e.ty.is_complex:
             e = CPX.convert(self, e, rty, t.loc)
             return N.Return(t.loc, e)
@@ -98,7 +100,9 @@ class StatementMixin:
         # tags/enumerators declared in the controlling expression are local to the statement
         self.enter_scope()
         self.expect("(")
-        cond = CPX.truth(self, self.typed(self.expr()))
+        cond = self.typed(self.expr())
+        require_value(cond)
+        cond = CPX.truth(self, cond)
         self.expect(")")
         then = self.sub_stmt()
         els = self.sub_stmt() if self.accept("else") else None
@@ -108,7 +112,9 @@ class StatementMixin:
     def _stmt_switch(self, t):
         self.enter_scope()
         self.expect("(")
-        cond = CPX.truth(self, self.typed(self.expr()))
+        cond = self.typed(self.expr())
+        require_value(cond)
+        cond = CPX.truth(self, cond)
         self.expect(")")
         from hcc.sema.conversions import int_promote
         cond = new_cast(cond, int_promote(cond.ty))
@@ -169,7 +175,11 @@ class StatementMixin:
         elif not self.accept(";"):
             init = N.ExprStmt(t.loc, self.expr())
             self.expect(";")
-        cond = None if self.at(";") else CPX.truth(self, self.typed(self.expr()))
+        cond = None
+        if not self.at(";"):
+            cond = self.typed(self.expr())
+            require_value(cond)
+            cond = CPX.truth(self, cond)
         self.expect(";")
         inc = None if self.at(")") else self.typed(self.expr())
         self.expect(")")
@@ -181,7 +191,9 @@ class StatementMixin:
     def _stmt_while(self, t):
         self.enter_scope()
         self.expect("(")
-        cond = CPX.truth(self, self.typed(self.expr()))
+        cond = self.typed(self.expr())
+        require_value(cond)
+        cond = CPX.truth(self, cond)
         self.expect(")")
         brk, cont = self.new_label(), self.new_label()
         body = self._loop_body(brk, cont)
@@ -194,7 +206,9 @@ class StatementMixin:
         body = self._loop_body(brk, cont)
         self.expect("while")
         self.expect("(")
-        cond = CPX.truth(self, self.typed(self.expr()))
+        cond = self.typed(self.expr())
+        require_value(cond)
+        cond = CPX.truth(self, cond)
         self.expect(")")
         self.expect(";")
         self.leave_scope()
