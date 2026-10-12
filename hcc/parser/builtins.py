@@ -28,6 +28,7 @@ __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_choose_expr __builtin_classify_type
 __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_mul_overflow_p
+__builtin_add_overflow_p __builtin_sub_overflow_p
 __builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
@@ -264,12 +265,21 @@ class BuiltinParseMixin:
     def _b_mul_overflow(self, tok):
         return self._overflow(tok, "mul")
 
-    def _b_mul_overflow_p(self, tok):
-        """__builtin_mul_overflow_p(a, b, c): 1 iff a*b does not fit the type of
-        c. Only the type of c is used (its value is never read or stored)."""
+    def _overflow_p(self, tok, name):
+        """__builtin_{add,sub,mul}_overflow_p(a, b, c): 1 iff a OP b does not fit
+        the type of c. Only the type of c is used (its value is never read or stored)."""
         args = self._args(3)
         ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
-        return self._call(tok, "mul_overflow_p", ops, T.TY_INT, args[2].ty)
+        return self._call(tok, name + "_overflow_p", ops, T.TY_INT, args[2].ty)
+
+    def _b_mul_overflow_p(self, tok):
+        return self._overflow_p(tok, "mul")
+
+    def _b_add_overflow_p(self, tok):
+        return self._overflow_p(tok, "add")
+
+    def _b_sub_overflow_p(self, tok):
+        return self._overflow_p(tok, "sub")
 
     def _b_object_size(self, tok):
         return lower_object_size(self, tok)
