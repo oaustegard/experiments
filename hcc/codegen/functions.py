@@ -63,7 +63,9 @@ class FunctionMixin:
         if ret.kind in (TypeKind.STRUCT, TypeKind.UNION) and ret.size > 16:
             offset += 8
             self.ret_ptr_offset = -offset
-        for v in fn.locals:
+        # Lay out in reverse declaration order so that, as with gcc -O0, the
+        # first-declared local sits at the lowest address.
+        for v in reversed(fn.locals):
             if v in stack_params:
                 continue
             al = v.align or v.ty.align or 1
