@@ -7,6 +7,7 @@ __LINE__, __COUNTER__, ...) are implemented by `DYNAMIC_MACROS`, functions
 """
 from __future__ import annotations
 
+import os
 import time
 
 from hcc.tokens import Token, TokenKind
@@ -191,8 +192,20 @@ def _time(pp, tok):
     return _str(tok, time.strftime("%H:%M:%S", _NOW))
 
 
+def _timestamp(pp, tok):
+    # gcc: modification time of the current source file, ctime(3) layout
+    # "Www Mmm dd hh:mm:ss yyyy" (always 24 chars, day space-padded).
+    try:
+        tm = time.localtime(os.stat(tok.loc.file).st_mtime)
+    except OSError:
+        tm = _NOW
+    day = f"{tm.tm_mday:2d}"
+    return _str(tok, time.strftime("%a %b ", tm) + day
+                + time.strftime(" %H:%M:%S %Y", tm))
+
+
 DYNAMIC_MACROS = {
     "__FILE__": _file, "__LINE__": _line, "__COUNTER__": _counter,
     "__BASE_FILE__": _base_file, "__DATE__": _date, "__TIME__": _time,
-    "__TIMESTAMP__": _date, "__INCLUDE_LEVEL__": lambda pp, tok: _num(tok, 0),
+    "__TIMESTAMP__": _timestamp, "__INCLUDE_LEVEL__": lambda pp, tok: _num(tok, 0),
 }
