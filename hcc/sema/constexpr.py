@@ -208,6 +208,8 @@ def _eval(node):
         return _eval_addr(node)
     if t is N.Deref and node.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC):
         return _eval(node.operand)
+    if t is N.Deref and is_integer(node.ty):
+        return None, _string_char(node)
     if t is N.BuiltinCall and node.name == "__builtin_constant_p":
         return None, builtin_constant_p(node.args[0])
     if t is N.Call and is_integer(node.ty):          # integer-valued libm call, e.g. lround
@@ -325,6 +327,34 @@ def _label_cmp(op, la, a, lb, b) -> int:
 def _cmp(op, a, b) -> bool:
     return {"==": a == b, "!=": a != b, "<": a < b, "<=": a <= b,
             ">": a > b, ">=": a >= b}[op]
+
+
+def _is_string_var(node) -> bool:
+    while type(node) is N.Cast:
+        node = node.operand
+    return type(node) is N.VarRef and getattr(node.var, "is_string_literal", False)
+
+
+def _string_char(node) -> int:
+    """Value of `"literal"[k]` (also `k["literal"]`, `*("literal" + k)`): GCC folds
+    a read of a string literal at a constant index. NotConstant otherwise."""
+    ptr = node.operand
+    while type(ptr) is N.Cast:
+        ptr = ptr.operand
+    k = 0
+    if type(ptr) is N.Binary and ptr.op == "+":
+        if _is_string_var(ptr.lhs):
+            ptr, k = ptr.lhs, _num(ptr.rhs)
+        elif _is_string_var(ptr.rhs):
+            ptr, k = ptr.rhs, _num(ptr.lhs)
+    if not _is_string_var(ptr):
+        raise NotConstant
+    while type(ptr) is N.Cast:
+        ptr = ptr.operand
+    data = ptr.var.init_data.data
+    if not 0 <= k < len(data):
+        raise NotConstant
+    return wrap(data[k], node.ty)
 
 
 def _eval_sub(node) -> tuple:

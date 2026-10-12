@@ -170,16 +170,29 @@ def _label_difference(expr):
     # pointer difference is lowered to (a - b) / elemsize; only elemsize 1 is a plain byte difference
     if isinstance(expr, N.Binary) and expr.op == "/" and isinstance(expr.rhs, N.IntLit) and expr.rhs.value == 1:
         expr = expr.lhs
-    if not (isinstance(expr, N.Binary) and expr.op == "-"):
+    if not (isinstance(expr, N.Binary) and expr.op in ("+", "-")):
+        return None
+    if expr.op == "-":
+        try:
+            la, a = eval_reloc(expr.lhs)
+            lb, b = eval_reloc(expr.rhs)
+        except NotConstant:
+            la = None
+        else:
+            if la is not None and lb is not None:
+                return la, lb, a - b
+    # `(&&a - &&b) +/- k`: a label difference plus an integer constant
+    base = _label_difference(expr.lhs)
+    if base is None:
         return None
     try:
-        la, a = eval_reloc(expr.lhs)
-        lb, b = eval_reloc(expr.rhs)
+        lc, c = eval_reloc(expr.rhs)
     except NotConstant:
         return None
-    if la is None or lb is None:
+    if lc is not None:
         return None
-    return la, lb, a - b
+    a, b, addend = base
+    return a, b, addend + (c if expr.op == "+" else -c)
 
 
 def _static_scalar(expr, ty):
