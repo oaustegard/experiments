@@ -58,6 +58,8 @@ class VectorOpsMixin:
             return vector_compare(self, node)
         if is_flonum(lty.base):
             return self.vector_float_binary(node)
+        if lty.base.size == 16:
+            return self.vector_wide_binary(node)
         size, es = lty.size, lty.base.size
         signed = not lty.base.is_unsigned
         self.gen_expr(node.rhs)                      # %rax = rhs address
@@ -92,6 +94,8 @@ class VectorOpsMixin:
     def vector_neg(self, node) -> None:
         """`-v` on a GCC integer vector: negate each element into the result buffer."""
         ty = node.operand.ty
+        if ty.base.size == 16:
+            return self.vector_wide_neg(node)
         size, es = ty.size, ty.base.size
         signed = not ty.base.is_unsigned
         self.gen_expr(node.operand)                  # %rax = source address
