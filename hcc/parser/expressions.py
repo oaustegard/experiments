@@ -19,7 +19,7 @@ from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
-from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, pointer_to
+from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, is_scalar, pointer_to
 from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser import complex as CPX
@@ -179,6 +179,9 @@ class ExpressionMixin:
             lowered = lower_scalar_to_vector(self, loc, self.typed(operand), ty.unqual())
             if lowered is not None:
                 return self.vla_prefix(pre, lowered, loc)
+            src_kind = self.typed(operand).ty.kind
+            if src_kind in (TypeKind.STRUCT, TypeKind.UNION) and is_scalar(ty):
+                self.error(f"used {src_kind.value} type value where scalar is required", loc)
             node = N.Cast(loc, operand, ty=ty.unqual())
             self.typed(operand)
             return self.vla_prefix(pre, node, loc)
