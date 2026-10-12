@@ -98,6 +98,24 @@ PREDEFINED = r"""
 #define __SIG_ATOMIC_MAX__ 0x7fffffff
 #define __SIG_ATOMIC_MIN__ (-__SIG_ATOMIC_MAX__ - 1)
 #define __SIG_ATOMIC_WIDTH__ 32
+#define __SCHAR_WIDTH__ 8
+#define __SHRT_WIDTH__ 16
+#define __INT_WIDTH__ 32
+#define __INTPTR_WIDTH__ 64
+#define __WCHAR_WIDTH__ 32
+#define __LONG_WIDTH__ 64
+#define __LONG_LONG_WIDTH__ 64
+#define __SIZE_WIDTH__ 64
+#define __PTRDIFF_WIDTH__ 64
+#define __INTMAX_WIDTH__ 64
+#define __INT_LEAST8_WIDTH__ 8
+#define __INT_LEAST16_WIDTH__ 16
+#define __INT_LEAST32_WIDTH__ 32
+#define __INT_LEAST64_WIDTH__ 64
+#define __INT_FAST8_WIDTH__ 8
+#define __INT_FAST16_WIDTH__ 64
+#define __INT_FAST32_WIDTH__ 64
+#define __INT_FAST64_WIDTH__ 64
 #define __INT8_MAX__ 0x7f
 #define __INT16_MAX__ 0x7fff
 #define __INT32_MAX__ 0x7fffffff
