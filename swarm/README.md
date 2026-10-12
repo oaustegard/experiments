@@ -15,7 +15,7 @@ python3 swarm/selftest.py            # asserts every gate path on a throwaway fa
 Key flags: `--max-workers N` (launches this invocation), `--concurrency`, `--max-usd`
 (total ledger spend), `--per-task-usd` (2.0), `--timeout` (1500 s/worker), `--batch` (4
 candidates per gate run), `--sample` (150), `--full-every` (25 merges), `--suites a,b`,
-`--jobs` (gate test parallelism), `--max-load` (no launches above this load avg), `--root`/`--wt-root` (point at a scratch repo).
+`--jobs` (gate test parallelism), `--max-load` (no launches above this load avg), `--only GLOBS` (dispatch only these test ids), `--root`/`--wt-root` (point at a scratch repo).
 
 ## Flow
 1. **Baseline** (`merge.refresh`): every suite at main HEAD → `state/known.json`

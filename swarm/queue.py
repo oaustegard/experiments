@@ -73,6 +73,10 @@ def normalise(reason: str) -> str:
     r = re.sub(r"\b\d+(\.\d+)?\b", "<n>", r)
     r = re.sub(r"(<path>|<file>)(\s*<(?:path|file)>)+", r"\1", r)
     r = re.sub(r"\s+", " ", r).strip(" :")
+    r = re.sub(r"^\[\w+\]\s*", "", r)                 # "[parse] msg": stage is already in the signature
+    if r.endswith("..."):                               # tests/run.py truncates at varying lengths:
+        words = r[:-3].rstrip().split(" ")[:-1]         # drop the cut word, keep a stable prefix
+        r = " ".join(words[:3]) + " ..."
     return r[:110] or "<no reason>"
 
 

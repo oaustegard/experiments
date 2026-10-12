@@ -155,6 +155,15 @@ def reap(ctx: Ctx, rec: dict) -> dict:
     return rec
 
 
+def only(results: dict, globs: str) -> dict:
+    """Restrict queue input to test ids matching any comma-separated glob."""
+    if not globs:
+        return results
+    import fnmatch
+    pats = globs.split(",")
+    return {t: r for t, r in results.items() if any(fnmatch.fnmatchcase(t, p) for p in pats)}
+
+
 def spent(ctx: Ctx) -> float:
     return sum(r.get("cost_usd") or 0 for r in ledger(ctx).values())
 
@@ -243,7 +252,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             stop_launch = True
         overloaded = a.max_load and os.getloadavg()[0] > a.max_load
         if not stop_launch and not overloaded and len(procs) < a.concurrency:
-            items = workqueue.build(tr.known(ctx), ledger(ctx), source_size(ctx))
+            items = workqueue.build(only(tr.known(ctx), a.only), ledger(ctx), source_size(ctx))
             if not items and not procs and not finished and not refreshing:
                 log("queue empty and nothing in flight")
                 break
@@ -322,6 +331,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--poll", type=float, default=POLL_SECS)
     ap.add_argument("--top", type=int, default=20)
     ap.add_argument("--force", action="store_true", help="run despite preflight problems")
+    ap.add_argument("--only", default="", help="comma globs on test ids: dispatch only these failures")
     ap.add_argument("--max-load", type=float, default=3.0 * (os.cpu_count() or 4),
                     help="no new launches while the 1-min load average is above this")
     a = ap.parse_args(argv)
@@ -334,7 +344,7 @@ def main(argv: list[str] | None = None) -> int:
         merge.refresh(ctx)
         return 0
     if a.cmd == "queue":
-        for w in workqueue.build(tr.known(ctx), ledger(ctx), source_size(ctx), limit=a.top):
+        for w in workqueue.build(only(tr.known(ctx), a.only), ledger(ctx), source_size(ctx), limit=a.top):
             print(f"{w.priority:7.2f} n={w.size:<4} {w.key}\n         e.g. {', '.join(w.tests)}")
         return 0
     return run(ctx, a)
