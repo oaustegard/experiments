@@ -266,6 +266,11 @@ class StatementMixin:
             self.gen_stmt(node.body)
 
     def stmt_Return(self, node) -> None:
+        if node.size is not None:
+            self.return_dyn_struct(node)
+            self.cleanup_return(node.expr.ty)
+            self.emit(f"jmp .L.return.{self.fn.symbol}")
+            return
         if node.expr is not None:
             self.gen_expr(node.expr)
             ty = node.expr.ty

@@ -21,6 +21,7 @@ from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, pointer_to
 from hcc.parser.plan9_ptr import plan9_pointer_conv
 from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser import complex as CPX
+from hcc.parser.dyn_struct_ret import dyn_struct_assign
 
 ASSIGN_OPS = {"=": None, "+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "&=": "&",
               "|=": "|", "^=": "^", "<<=": "<<", ">>=": ">>"}
@@ -74,6 +75,8 @@ class ExpressionMixin:
             op = ASSIGN_OPS[t.text]
             self.check_assignable(node, t)
             if op is None:
+                if is_dyn_struct(self.typed(node).ty):
+                    return dyn_struct_assign(self, node, self.typed(rhs), t.loc)
                 rhs = plan9_pointer_conv(self, rhs, self.typed(node).ty)
                 if node.ty.is_complex or self.typed(rhs).ty.is_complex:
                     rhs = CPX.convert(self, rhs, node.ty, t.loc)

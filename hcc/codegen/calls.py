@@ -13,7 +13,7 @@ from __future__ import annotations
 from hcc.codegen.abi import abi_kind, is_memory_struct, is_x87_complex, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS64
 from hcc.codegen.half import FROM_ABI_HALF, TO_ABI_HALF
-from hcc.typesys import TypeKind, align_to
+from hcc.typesys import TypeKind, align_to, is_dyn_struct
 
 
 def _stack_footprint(ty) -> int:
@@ -146,7 +146,10 @@ class CallMixin:
         ret = node.ty
         big_ret = abi_kind(ret) in (TypeKind.STRUCT, TypeKind.UNION) and is_memory_struct(ret)
         if big_ret:
-            self.frame_lea(node.ret_buffer.offset, "%rax")
+            if is_dyn_struct(ret):     # the slot holds the result block's address
+                self.emit(f"mov {node.ret_buffer.offset}(%rbp), %rax")
+            else:
+                self.frame_lea(node.ret_buffer.offset, "%rax")
             self.push()
         self.gen_expr(node.func)
         gp = fp = 0

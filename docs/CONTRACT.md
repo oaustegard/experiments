@@ -147,6 +147,7 @@ hcc/
     complex_const.py   file-scope complex constants (cval folding -> struct initializer leaves)
     complex_div.py     C Annex G complex division recovery (NaN quotient -> libgcc __divdc3/__divsc3)
     dyn_struct_args.py  by-value struct with VLA tail: caller passes a pointer to a fresh copy
+    dyn_struct_ret.py   struct with VLA tail as call result / assignment target (memcpy of run-time size)
 
   sema/
     __init__.py        re-exports
@@ -181,6 +182,7 @@ hcc/
     varargs.py         va_start/va_arg/va_copy, register save area
     statements.py      statements, switch dispatch, goto/labels
     cleanup.py         __attribute__((cleanup(f))): pending cleanup calls, run at block exit/break/return
+    dyn_struct_ret.py  VLA-tail struct results: hoisted result-block allocs per statement, return copy
     data.py            .data/.bss/.rodata emission, string literals, relocs
     builtins.py        __builtin_* lowering (alloca, expect, clz, ...)
     atomics.py         __atomic_* lowering: lock cmpxchg loops, xchg, sized movs

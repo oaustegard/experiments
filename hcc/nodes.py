@@ -223,6 +223,9 @@ class Call(Expr):
     # `chain_slot` (a frame temp) before the call; codegen loads it into %r10.
     static_chain: Expr | None = None
     chain_slot: Var | None = None
+    # Struct with a variably modified member returned by value: `ret_buffer` is a pointer
+    # slot filled by `dyn_alloc` (a VLAAlloc codegen hoists before the enclosing statement).
+    dyn_alloc: object = None
 
 
 @dataclass(eq=False)
@@ -394,6 +397,7 @@ class Label(Stmt):
 @dataclass(eq=False)
 class Return(Stmt):
     expr: Expr | None
+    size: Expr | None = None      # run-time byte size when returning a struct with a VLA member
 
 
 @dataclass(eq=False)

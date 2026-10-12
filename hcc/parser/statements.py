@@ -10,6 +10,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser import complex as CPX
+from hcc.parser.dyn_struct_ret import dyn_return
 from hcc.sema.constexpr import eval_const
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
@@ -82,8 +83,8 @@ class StatementMixin:
         e = self.typed(self.expr())
         self.expect(";")
         rty = self.fn.ty.return_ty
-        if T.is_dyn_struct(e.ty):
-            self.error("unsupported: returning a struct with a variably modified member", t)
+        if T.is_dyn_struct(e.ty) or T.is_dyn_struct(rty):
+            return dyn_return(self, e, rty, t.loc)
         if rty.kind == TypeKind.VOID:
             return N.Return(t.loc, e)
         if rty.is_complex or e.ty.is_complex:

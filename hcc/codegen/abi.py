@@ -60,6 +60,8 @@ def is_x87_complex(ty) -> bool:
 
 def is_memory_struct(ty) -> bool:
     """Struct/union returned via a hidden pointer (SysV MEMORY class)."""
+    if is_dyn_struct(ty):
+        return True             # run-time size: always through the caller's result block
     if is_x87_complex(ty):
         return False
     return ty.size > 16 or has_unaligned(ty)

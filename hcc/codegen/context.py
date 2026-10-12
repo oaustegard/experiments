@@ -90,4 +90,5 @@ class CodeGenBase:
             if fn is None:
                 diag.error(node, f"codegen: unsupported statement {cls.__name__}", "codegen")
             self._stmt_dispatch[cls] = fn
+        self.hoist_dyn_allocs(node)
         fn(node)

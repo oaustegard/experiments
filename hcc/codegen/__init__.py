@@ -29,12 +29,13 @@ from hcc.codegen.memory import MemoryMixin
 from hcc.codegen.overflow import OverflowMixin
 from hcc.codegen.overflow128 import Overflow128Mixin
 from hcc.codegen.statements import StatementMixin
+from hcc.codegen.dyn_struct_ret import DynStructRetMixin
 from hcc.codegen.varargs import VarargsMixin
 from hcc.codegen.vector_ops import VectorOpsMixin
 from hcc.codegen.vector_wide import VectorWideMixin
 
 
-class CodeGen(FunctionMixin, NestedMixin, StatementMixin, CleanupMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
+class CodeGen(FunctionMixin, NestedMixin, StatementMixin, DynStructRetMixin, CleanupMixin, ExpressionMixin, ArithMixin, AtomicMixin, FloatMixin,
               CastMixin, CallMixin, VarargsMixin, BuiltinMixin, FpClassifyMixin, OverflowMixin, Overflow128Mixin, AsmMixin, MemoryMixin,
               DataMixin, VectorOpsMixin, VectorWideMixin, InitFiniMixin, Int128Mixin, CodeGenBase):
 

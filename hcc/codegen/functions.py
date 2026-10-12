@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from hcc.codegen.abi import abi_kind, is_memory_struct, struct_arg_regs, struct_in_regs
 from hcc.codegen.context import ARG_REGS8, ARG_REGS16, ARG_REGS32, ARG_REGS64
-from hcc.typesys import TypeKind, align_to
+from hcc.typesys import TypeKind, align_to, is_dyn_struct
 
 
 class FunctionMixin:
@@ -218,7 +218,8 @@ class FunctionMixin:
 
     def store_struct_param(self, p, gp: int, fp: int) -> None:
         ty = p.ty
-        fp1, fp2 = struct_in_regs(ty)
+        # a by-value run-time sized struct arrives as its copy's address (one INTEGER slot)
+        fp1, fp2 = (False, False) if is_dyn_struct(ty) else struct_in_regs(ty)
         for chunk, is_fp in enumerate([fp1, fp2][: 1 if ty.size <= 8 else 2]):
             base = p.offset + chunk * 8
             n = min(8, ty.size - chunk * 8)
