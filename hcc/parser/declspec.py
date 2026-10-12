@@ -225,6 +225,7 @@ class DeclSpecMixin:
                     al = self.typename().align
                 else:
                     al = self.const_expr()
+                    self.check_align_limit(al)
                 self.expect(")")
                 if attr is not None:
                     attr.align = max(attr.align, al)

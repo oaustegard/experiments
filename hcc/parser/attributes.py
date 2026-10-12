@@ -19,6 +19,9 @@ RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
 
 MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
 
+# GCC's MAX_OFILE_ALIGNMENT for x86-64 ELF: 2**28 bytes
+OBJECT_FILE_MAX_ALIGN = 1 << 28
+
 # every other machine mode GCC knows by name; mode(<other identifier>) is an
 # "unknown machine mode" error
 _OTHER_MODES = frozenset({
@@ -183,6 +186,7 @@ class AttributeMixin:
                 self.pos = args_start + 1
                 val = self.const_expr()
                 self.pos = save
+                self.check_align_limit(val)
             if attr is not None:
                 attr.align = max(attr.align, val)
             elif ty is not None:
@@ -248,6 +252,13 @@ class AttributeMixin:
             self.pos = save
         elif name == "mode" and attr is not None and args:
             attr.mode = args[0].text.strip("_")
+
+    def check_align_limit(self, val, where=None) -> None:
+        """Reject alignments above the x86-64 ELF object file maximum (2**28),
+        as GCC does for objects, functions and typedefs alike (MAX_OFILE_ALIGNMENT)."""
+        if val > OBJECT_FILE_MAX_ALIGN:
+            self.error("requested alignment '%d' exceeds object file maximum %d"
+                       % (val, OBJECT_FILE_MAX_ALIGN), where)
 
     def typedef_aligned(self, ty, attr, dattr, name=None):
         """`typedef T X __attribute__((aligned(N)))`: raise the typedef's alignment.
