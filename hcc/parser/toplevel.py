@@ -15,6 +15,7 @@ from hcc.sema.compat import is_compatible
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 from hcc.parser.attributes import mode_type
+from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
@@ -24,6 +25,9 @@ class TopLevelMixin:
     def translation_unit(self) -> N.TranslationUnit:
         while not self.at_eof():
             if self.accept(";"):
+                continue
+            if at_pack_marker(self):
+                consume_pack_marker(self)
                 continue
             if self.at_std_attribute():
                 self.skip_std_attributes()

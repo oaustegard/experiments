@@ -13,6 +13,8 @@ from hcc import diag
 from hcc.preprocess.macros import Macro
 from hcc.tokens import Token, TokenKind
 
+PRAGMA_PACK_MARK = "__hcc_pragma_pack"   # marker token: parser applies the #pragma pack state
+
 
 # -f math flags reflected as predefined macros: macro -> (on flag, off flag).
 _OPT_MATH_MACROS = {
@@ -262,6 +264,16 @@ class DirectiveMixin:
             self._macro_pragma(line)
         elif len(line) >= 2 and line[0].text == "GCC" and line[1].text == "optimize":
             self._optimize_pragma(line[2:])
+        elif line and line[0].text == "pack":
+            self._pack_pragma(hash_tok, line[1:])
+
+    def _pack_pragma(self, hash_tok, args: list[Token]) -> None:
+        """#pragma pack(...) is forwarded to the parser as one marker token
+        (text PRAGMA_PACK_MARK, value = argument texts) placed back in the stream."""
+        texts = [t.text for t in args if t.text not in ("(", ")")]
+        marker = Token(TokenKind.PUNCT, PRAGMA_PACK_MARK, hash_tok.loc)
+        marker.value = texts
+        self.stack.append(marker)
 
     def _optimize_pragma(self, line: list[Token]) -> None:
         """#pragma GCC optimize "-fno-math-errno" toggles __NO_MATH_ERRNO__ (and

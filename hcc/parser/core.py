@@ -25,6 +25,8 @@ class ParserBase:
         self.opts = opts
         self.scopes: list[Scope] = [Scope()]
         self.objs: list = []                 # TranslationUnit order
+        self.pack_align = 0                  # #pragma pack current maximum alignment (0 = none)
+        self.pack_stack: list[int] = []      # #pragma pack(push) saved values
         self.fn: Function | None = None      # function being parsed
         self.locals: list[Var] = []
         self.label_count = 0

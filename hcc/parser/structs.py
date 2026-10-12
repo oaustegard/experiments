@@ -50,7 +50,7 @@ class StructMixin:
         ty.is_ms_struct = attr.is_ms_struct
         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
         if kind == T.TypeKind.STRUCT:
-            layout_struct(ty)
+            layout_struct(ty, self.pack_align)
         else:
             layout_union(ty)
         if attr.align:
@@ -122,20 +122,31 @@ def _unnamed_bitfield(m) -> bool:
     return m.is_bitfield and m.name is None
 
 
-def layout_struct(ty) -> None:
+def layout_struct(ty, pack: int = 0) -> None:
+    """`pack`: #pragma pack maximum alignment for plain members (0 = none)."""
     bits = 0
     align = 1
     packed = ty.is_packed
     ms = ty.is_ms_struct
     unit = 0        # ms: bits of the last bit-field's declared-type storage unit
+    zero_width_prev = False
     if members_flexible(ty):
         ty.is_flexible = True
     for m in ty.members:
         if packed:      # packed drops natural alignment; explicit aligned(N) still applies
             m.align = 1 if m.is_packed else (m.explicit_align or 1)
+        if pack and not m.is_bitfield and not m.explicit_align and m.align > pack:
+            m.align = pack      # #pragma pack caps natural member alignment
         if m.is_bitfield and m.bit_width == 0:
+            if ms and zero_width_prev:      # MS: back-to-back zero-width bit-fields do not pad again
+                continue
+            if ms and align < m.ty.size:    # MS: a padding zero-width bit-field aligns the struct
+                align = m.ty.size
             bits = T.align_to(bits, m.ty.size * 8)
+            unit = 0
+            zero_width_prev = True
             continue
+        zero_width_prev = False
         if m.is_bitfield:
             sz = m.ty.size
             loose = packed or m.is_packed
