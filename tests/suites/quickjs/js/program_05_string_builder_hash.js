@@ -1,0 +1,2 @@
+let h = 5381; let s = ''; for (let i = 0; i < 3000; i++) { s += String.fromCharCode(97 + (i * 31) % 26); h = ((h << 5) + h + s.charCodeAt(i)) | 0; } console.log(s.length, h, s.slice(0, 30), s.split('a').length);
+const words = 'the quick brown fox jumps over the lazy dog the end'.split(' '); const freq = {}; for (const w of words) freq[w] = (freq[w] || 0) + 1; console.log(Object.entries(freq).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 3));

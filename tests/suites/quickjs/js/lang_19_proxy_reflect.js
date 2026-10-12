@@ -1,0 +1,5 @@
+const log = []; const p = new Proxy({ a: 1 }, { get(t, k, r) { log.push('get ' + String(k)); return Reflect.get(t, k, r); }, set(t, k, v) { log.push('set ' + k); t[k] = v * 2; return true; }, has(t, k) { return k === 'magic' || k in t; }, deleteProperty(t, k) { log.push('del ' + k); return delete t[k]; }, ownKeys(t) { return [...Reflect.ownKeys(t), 'virt']; }, getOwnPropertyDescriptor(t, k) { return k === 'virt' ? { value: 'v', enumerable: true, configurable: true } : Reflect.getOwnPropertyDescriptor(t, k); } });
+p.b = 5; console.log(p.a, p.b, 'magic' in p, 'zz' in p, Object.keys(p)); delete p.a; console.log(log);
+const fp = new Proxy(function (x) { return x + 1; }, { apply(t, th, args) { return t(...args) * 10; }, construct(t, args) { return { made: args }; } }); console.log(fp(1), new fp(1, 2));
+console.log(Reflect.ownKeys({ b: 1, a: 2, 1: 3, [Symbol.iterator]: 0 }), Reflect.has({ x: 1 }, 'x'), Reflect.getPrototypeOf([]) === Array.prototype, Reflect.apply(Math.max, null, [1, 5, 2]), Reflect.construct(Date, [0]).getTime());
+const { proxy, revoke } = Proxy.revocable({}, {}); revoke(); try { proxy.x; } catch (e) { console.log(e.name); }

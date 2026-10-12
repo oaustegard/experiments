@@ -1,0 +1,2 @@
+for (const n of [0, 1, -1, 0.1, 1 / 3, 100, 1e6, 1e20, 1e21, 1.5e300, 1e-6, 1e-7, 123456789.123456789, 2 ** 31, 2 ** 53, -(2 ** 63), 0.000001, 4.35, 0.1 + 0.7, 5e-324, 1.7976931348623157e308, 255.255, 1.0000000000000002]) console.log(String(n), n.toFixed(2), n.toPrecision(4), n.toExponential(3));
+console.log(parseFloat('1e1000'), parseFloat('-.5e-2'), parseFloat('0x10'), parseInt('  -42abc'), parseInt('z', 36), parseInt('101', 2), parseInt('9007199254740993'), parseInt(''), parseInt('1e3'), parseInt(0.0000005), (1e21 + 1).toLocaleString === undefined);

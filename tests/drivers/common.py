@@ -229,7 +229,7 @@ def gcc_object(cflags, src, tag):
             return obj
         os.makedirs(d, exist_ok=True)
         tmp = obj + ".tmp"
-        r = subprocess.run(["gcc", "-O0", "-w"] + cflags + ["-c", "-o", tmp, src],
+        r = subprocess.run(["gcc", "-O0", "-w", "-x", "c"] + cflags + ["-c", "-o", tmp, src],
                            capture_output=True, text=True, cwd=d)
         if r.returncode != 0:
             raise RuntimeError("reference gcc build of %s failed:\n%s" % (src, r.stderr[-2000:]))

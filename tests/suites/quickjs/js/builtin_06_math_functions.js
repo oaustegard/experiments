@@ -1,0 +1,6 @@
+const r = x => Math.round(x * 1e10) / 1e10;
+console.log(Math.abs(-3), Math.sign(-2), Math.floor(-1.5), Math.ceil(-1.5), Math.round(-1.5), Math.round(2.5), Math.trunc(-1.9), Math.max(), Math.min(), Math.max(1, NaN), Math.hypot(3, 4), Math.cbrt(27));
+console.log(r(Math.sin(1)), r(Math.cos(1)), r(Math.tan(1)), r(Math.atan2(1, 2)), r(Math.exp(1)), r(Math.log(10)), r(Math.log2(10)), r(Math.log10(5)), r(Math.sinh(1)), r(Math.expm1(1e-5)), r(Math.log1p(1e-5)), r(Math.asinh(1)));
+console.log(Math.pow(2, 0.5) === Math.SQRT2, Math.PI, Math.E, Math.LN2, Math.fround(5.5), Math.fround(5.05), Math.clz32(1), Math.imul(0xffffffff, 5), Math.sqrt(-1), Math.pow(0, 0), Math.pow(NaN, 0), 0.1 * 3, 4.35 * 100);
+console.log((25).toString(2), (255).toString(16), (-255).toString(36), (0.5).toString(2), (1 / 3).toString(3), 1e21.toString(7).length > 0, (123.456).toFixed(1), (0.000001234).toFixed(8), (1e21).toFixed(2), (1.005).toFixed(2), (-1.5).toFixed(0));
+console.log((1234.5678).toPrecision(6), (0.00001234).toPrecision(2), (1234.5678).toExponential(2), (0).toExponential(), 255..toString(16).toUpperCase(), Number('12px'), (12).toString().padStart(4, '0'), 5e-324, 1.7976931348623157e308 * 10, (-0).toString(), String(-0), `${-0}`, JSON.stringify(-0));

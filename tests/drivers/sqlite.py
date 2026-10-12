@@ -110,7 +110,7 @@ def run_test(suite, rel, cc_argv, work, R):
             f.write("SELECT sqlite_version(), sqlite_source_id(), 1+1;\n.version\n")
     else:
         script = os.path.join(suite.dir, rel)
-    want = C.cached_value("sqlite-ref-run", [C.gcc_fingerprint(), C.file_sha(ref), C.file_sha(script)],
+    want = C.cached_value("sqlite-ref-run", [C.gcc_fingerprint(), C.file_sha(ref), C.file_sha(script), C.file_sha(__file__)],
                           lambda: run_script(R, ref, script, _tmp(work, "ref")))
     got = run_script(R, shell, script, _tmp(work, "got"))
     return C.compare_runs(R, got, want)

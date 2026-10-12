@@ -143,7 +143,7 @@ def run_src_test(suite, rel, cc_argv, work, R):
         f = C.link(R, exe, use, LDFLAGS, work)
         if f:
             return f.result(R)
-        want = C.cached_value("lua-smoke-luac", [C.gcc_fingerprint(), src_hash(suite), C.file_sha(os.path.join(suite.dir, "smoke.lua"))],
+        want = C.cached_value("lua-smoke-luac", [C.gcc_fingerprint(), src_hash(suite), C.file_sha(os.path.join(suite.dir, "smoke.lua")), C.file_sha(__file__)],
                               lambda: smoke_luac(R, ref_program(R, suite, gflags, "luac"), ref_lua,
                                                  _tmp(work, "ref"), suite))
         got = smoke_luac(R, exe, ref_lua, _tmp(work, "got"), suite)
@@ -154,7 +154,7 @@ def run_src_test(suite, rel, cc_argv, work, R):
     f = C.link(R, exe, use, LDFLAGS, work)
     if f:
         return f.result(R)
-    want = C.cached_value("lua-smoke", [C.gcc_fingerprint(), src_hash(suite), C.file_sha(os.path.join(suite.dir, "smoke.lua"))],
+    want = C.cached_value("lua-smoke", [C.gcc_fingerprint(), src_hash(suite), C.file_sha(os.path.join(suite.dir, "smoke.lua")), C.file_sha(__file__)],
                           lambda: smoke_lua(R, ref_lua, _tmp(work, "ref"), suite))
     got = smoke_lua(R, exe, _tmp(work, "got"), suite)
     return C.compare_runs(R, got, want)
@@ -214,7 +214,7 @@ def run_testes_test(suite, rel, cc_argv, work, R):
     gflags = list(suite.cfg["cflags"])
     ref_lua = ref_program(R, suite, gflags, "lua")
     key = [C.gcc_fingerprint(), src_hash(suite), C.file_sha(os.path.join(suite.dir, rel)),
-           C.file_sha(os.path.join(suite.dir, "driver-version"))]
+           C.file_sha(__file__)]
     want = C.cached_value("lua-official", key, lambda: run_official(R, ref_lua, _tmp(work, "ref"), suite, name, 900))
     if want["timeout"]:
         return R.Result("FAIL", "run", "reference lua timed out; add to skip.txt")
