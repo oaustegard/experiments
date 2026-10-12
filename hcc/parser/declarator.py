@@ -104,7 +104,9 @@ class DeclaratorMixin:
         self.skip_std_attributes()  # `int g [2] [[]] [3] [[]];`
         if self.at("("):
             self.next()
-            return self.func_params(ty)
+            fty = self.func_params(ty)
+            self.skip_std_attributes()  # `void (int) [[gnu::format(...)]]`
+            return fty
         if self.at("["):
             self.next()
             return self.array_dims(ty)
