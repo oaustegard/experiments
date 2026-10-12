@@ -15,6 +15,7 @@ from hcc.parser.bitfield_width import bitfield_width_value
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 from hcc.parser.vector_limits import vector_of_checked
+from hcc.parser.aggregate_size_limit import check_aggregate_size
 from hcc.tokens import TokenKind
 from hcc import typesys as T
 
@@ -92,6 +93,7 @@ class StructMixin:
             layout_struct(ty)
         else:
             layout_union(ty)
+        check_aggregate_size(self, ty, self.toks[brace_pos])
         if attr.align:
             ty.align = max(ty.align, attr.align)
             ty.size = T.align_to(ty.size, ty.align)
