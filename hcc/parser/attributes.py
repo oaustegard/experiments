@@ -121,6 +121,7 @@ class AttributeMixin:
 
         Standard attributes that take no arguments are rejected when written
         with an argument list: `[[noreturn()]]`, `[[fallthrough(1)]]`."""
+        start = self.pos
         while self.at_std_attribute():
             self.next()
             self.next()
@@ -147,6 +148,9 @@ class AttributeMixin:
                         and self.peek().kind == TokenKind.STRING):
                     self.error("'copy' attribute argument cannot be a string")
                 prev = t.text
+        if self.pos != start and self.at("_Static_assert"):
+            # attributes may not prefix a static_assert-declaration (C23 6.7.12)
+            self.error("expected identifier or '(' before '_Static_assert'")
 
     def parse_attributes(self, attr=None, ty=None) -> None:
         while self.at_attribute() or self.at_std_attribute():
