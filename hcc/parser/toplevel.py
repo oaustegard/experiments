@@ -242,7 +242,7 @@ class TopLevelMixin:
         declared = [decls.get(n.text, T.TY_INT) for n in fty.param_names]
         if proto is not None and proto.has_proto:
             if len(proto.params) != len(declared):
-                self.error("conflicting types for function definition")
+                self.error("number of arguments doesn't match prototype")
             i = knr_param_index(proto, declared)
             if i is not None:
                 pname = fty.param_names[i]
