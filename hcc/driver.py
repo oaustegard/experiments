@@ -215,7 +215,8 @@ def main(argv: list[str]) -> int:
             stage = "link"
             out = opts.output or "a.out"
             pie = [] if "-shared" in opts.linker_args else ["-no-pie"]
-            run_tool(["gcc", *pie, "-o", out, *objs, *opts.linker_args], "link")
+            # -lm last: libm is not pulled in by default, but C programs call its functions.
+            run_tool(["gcc", *pie, "-o", out, *objs, *opts.linker_args, "-lm"], "link")
         return 0
     except diag.CompileError as e:
         if e.stage is None:

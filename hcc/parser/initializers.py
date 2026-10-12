@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from hcc import nodes as N
 from hcc.parser.structs import find_member
+from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import lower_local_init, serialize_global_init
 from hcc.tokens import TokenKind
 from hcc import typesys as T
@@ -52,10 +53,18 @@ class InitializerMixin:
     def local_initializer(self, var) -> N.Expr:
         init, ty = self.parse_initializer(var.ty)
         var.ty = ty
+        if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
+            # GCC folds `const int a = 0;` when it is read in a constant initializer.
+            var.const_value = try_eval_const(init.expr)
         return lower_local_init(init, var, self.typed)
 
     def global_initializer(self, var) -> None:
-        init, ty = self.parse_initializer(var.ty)
+        saved = self.in_static_init
+        self.in_static_init = True
+        try:
+            init, ty = self.parse_initializer(var.ty)
+        finally:
+            self.in_static_init = saved
         var.ty = ty
         var.init_data = serialize_global_init(init, ty)
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
-from hcc.parser.builtins import SPECIAL_BUILTINS
+from hcc.parser.builtins import SPECIAL_BUILTINS, floatn_libc_name
 from hcc.parser.libc_builtins import libc_return_type
 from hcc.parser.scope import VarScope
 from hcc.sema.compat import is_compatible
@@ -74,7 +74,7 @@ class PrimaryMixin:
             bname = name[len("__builtin_"):]
             if is_call or libc_return_type(bname) is not None:
                 # &__builtin_abs and __builtin_abs(...) both name the library function.
-                name = bname
+                name = floatn_libc_name(bname)
                 vs = self.find_var(name)
                 if vs is not None and vs.var is not None:
                     return self.typed(N.VarRef(t.loc, vs.var))

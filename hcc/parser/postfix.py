@@ -113,8 +113,11 @@ class PostfixMixin:
 
     def compound_literal(self, ty):
         loc = self.tok.loc
-        if self.fn is None:
+        if self.fn is None or self.in_static_init:
+            # Static storage: the literal is itself a static object whose address/value
+            # the enclosing constant initializer refers to (see sema/initializers.py).
             var = self.new_anon_gvar(ty, loc)
+            var.is_compound_literal = True
             self.global_initializer(var)
             return self.typed(N.VarRef(loc, var))
         var = self.new_temp(ty, loc)

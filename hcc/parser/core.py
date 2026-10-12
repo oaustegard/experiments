@@ -34,6 +34,7 @@ class ParserBase:
         self.cur_switch = None
         self.goto_names: list[Token] = []
         self.label_names: set[str] = set()
+        self.in_static_init = False          # inside a static-storage initializer
 
     # ---- token cursor -------------------------------------------------------
     @property

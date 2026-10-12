@@ -69,6 +69,8 @@ class Var(Obj):
     section: str | None = None
     visibility: str | None = None
     alias_of: str | None = None             # __attribute__((alias("sym")))
+    is_compound_literal: bool = False       # anon static object of a compound literal in a static init
+    const_value: int | None = None          # block-scope const integer with a constant initializer (GNU folding)
 
 
 @dataclass(eq=False)

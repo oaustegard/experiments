@@ -9,6 +9,8 @@ produces a BuiltinCall.
 """
 from __future__ import annotations
 
+import struct
+
 from hcc import nodes as N
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.structs import find_member
@@ -27,8 +29,9 @@ __builtin_prefetch __builtin_return_address __builtin_frame_address
 __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
-__builtin_nan __builtin_nanf __builtin_nanl
+__builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
 __builtin_setjmp __builtin_longjmp __builtin_shuffle
+__builtin_isinf __builtin_isnan __builtin_isfinite
 """.split())
 
 # Bit-counting builtins: {clz,ctz,popcount,parity,ffs}{,l,ll}. The suffix picks
@@ -37,7 +40,27 @@ BIT_BUILTINS = frozenset(
     f"__builtin_{base}{suffix}"
     for base in ("clz", "ctz", "popcount", "parity", "ffs", "clrsb")
     for suffix in ("", "l", "ll"))
-SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS
+# GCC's _FloatN spellings of the inf/nan builtins, e.g. __builtin_inff64x (the
+# _Float64x variant). Mapped onto the base builtin of the matching C type width:
+# _Float32 -> float, _Float32x/_Float64 -> double, _Float64x/_Float128 -> long double.
+_FLOATN_SUFFIX = {"32": "f", "32x": "", "64": "", "64x": "l", "128": "l", "128x": "l"}
+FLOATN_BUILTIN_MAP = {
+    f"__builtin_{base}f{width}": f"__builtin_{base}{sfx}"
+    for base in ("inf", "huge_val", "nan", "nans")
+    for width, sfx in _FLOATN_SUFFIX.items()}
+
+SPECIAL_BUILTINS = SPECIAL_BUILTINS | BIT_BUILTINS | ATOMIC_BUILTINS | frozenset(FLOATN_BUILTIN_MAP)
+
+
+def floatn_libc_name(name: str) -> str:
+    """`fabsf64x` -> `fabsl`, `acoshf32` -> `acoshf`: the libm function behind a GCC
+    __builtin_<fn>f<N>[x] spelling (the libm suffix of the same C type width).
+    Other names are returned unchanged."""
+    for width, sfx in _FLOATN_SUFFIX.items():
+        tail = "f" + width
+        if name.endswith(tail) and len(name) > len(tail):
+            return name[:-len(tail)] + sfx
+    return name
 
 
 class BuiltinParseMixin:
@@ -48,7 +71,7 @@ class BuiltinParseMixin:
             node = atomic_call(self, tok)
             self.expect(")")
             return node
-        name = tok.text[len("__builtin_"):]
+        name = FLOATN_BUILTIN_MAP.get(tok.text, tok.text)[len("__builtin_"):]
         self.expect("(")
         if tok.text in BIT_BUILTINS:
             node = self._bitop(tok, name)
@@ -231,6 +254,45 @@ class BuiltinParseMixin:
 
     def _b_nanl(self, tok):
         return self._nan_lit(tok, T.TY_LDOUBLE)
+
+    def _snan_lit(self, tok, ty):
+        """__builtin_nans*(tag): a signaling NaN (quiet bit clear, payload 1). Only the
+        double/float bit patterns are exact; long double is carried as a double."""
+        self._args(1)
+        if ty.kind == T.TypeKind.FLOAT:
+            val = struct.unpack("<f", struct.pack("<I", 0x7F800001))[0]
+        else:
+            val = struct.unpack("<d", struct.pack("<Q", 0x7FF0000000000001))[0]
+        return N.FloatLit(tok.loc, val, ty=ty)
+
+    def _b_nans(self, tok):
+        return self._snan_lit(tok, T.TY_DOUBLE)
+
+    def _b_nansf(self, tok):
+        return self._snan_lit(tok, T.TY_FLOAT)
+
+    def _b_nansl(self, tok):
+        return self._snan_lit(tok, T.TY_LDOUBLE)
+
+    def _fp_class_call(self, tok, base):
+        """__builtin_isinf/isnan/isfinite(x): call the libc classifier for x's own
+        width (isinf/isinff/isinfl, ...) so long double arguments are not narrowed."""
+        arg = self._args(1)[0]
+        kind = arg.ty.kind
+        sfx = {T.TypeKind.FLOAT: "f", T.TypeKind.LDOUBLE: "l"}.get(kind, "")
+        cty = {"f": T.TY_FLOAT, "l": T.TY_LDOUBLE}.get(sfx, T.TY_DOUBLE)
+        fn = self.implicit_function(base + sfx, tok, T.TY_INT)
+        callee = self.typed(N.VarRef(tok.loc, fn))
+        return self.typed(N.Call(tok.loc, callee, [new_cast(arg, cty)], fn.ty))
+
+    def _b_isinf(self, tok):
+        return self._fp_class_call(tok, "isinf")
+
+    def _b_isnan(self, tok):
+        return self._fp_class_call(tok, "isnan")
+
+    def _b_isfinite(self, tok):
+        return self._fp_class_call(tok, "finite")
 
     def _b_huge_val(self, tok):
         return self._inf_lit(tok, T.TY_DOUBLE)
