@@ -5,6 +5,7 @@ To add a builtin: parse it in parser/builtins.py, implement builtin_<name> here.
 from __future__ import annotations
 
 from hcc import diag
+from hcc.codegen.vector_shuffle import shuffle
 
 
 class BuiltinMixin:
@@ -17,6 +18,9 @@ class BuiltinMixin:
 
     def builtin_trap(self, node) -> None:
         self.emit("ud2")
+
+    def builtin_shuffle(self, node) -> None:
+        shuffle(self, node)
 
     def _frame_walk(self, node) -> None:
         """%rax = frame pointer of level args[0]: every hcc function sets %rbp

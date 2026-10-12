@@ -101,6 +101,26 @@ class BuiltinParseMixin:
         ty = self.typename()
         return self._call(tok, "va_arg", [ap], ty, ty)
 
+    def _b_shuffle(self, tok):
+        """__builtin_shuffle(v, mask) / __builtin_shuffle(a, b, mask): element
+        i of the result is v[mask[i] % N] (or the concatenation a:b for the
+        3-argument form, indices taken modulo 2N). Result type is that of the
+        first vector."""
+        args = self._args()
+        if len(args) not in (2, 3):
+            self.error("builtin expects 2 or 3 arguments")
+        a, mask = args[0], args[-1]
+        if not a.ty.is_vector or not mask.ty.is_vector or not T.is_integer(mask.ty.base):
+            self.error("'__builtin_shuffle' expects integer vector operands")
+        n = a.ty.size // a.ty.base.size
+        if mask.ty.size // mask.ty.base.size != n:
+            self.error("'__builtin_shuffle' mask must have as many elements as the vector")
+        if len(args) == 3 and not is_compatible(args[1].ty, a.ty):
+            self.error("'__builtin_shuffle' vector operands must have the same type")
+        node = self._call(tok, "shuffle", args, a.ty)
+        node.result_buf = self.new_temp(a.ty, tok.loc)
+        return node
+
     def _b_prefetch(self, tok):
         """__builtin_prefetch(addr[, rw[, locality]]) is only a cache hint: it
         evaluates its arguments (for side effects) and yields void."""

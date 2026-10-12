@@ -220,10 +220,15 @@ class MemZero(Expr):
 
 @dataclass(eq=False)
 class BuiltinCall(Expr):
-    """__builtin_* intrinsic; lowered in codegen/builtins.py."""
+    """__builtin_* intrinsic; lowered in codegen/builtins.py.
+
+    result_buf: for vector-valued builtins (__builtin_shuffle), the anonymous
+    local that holds the result (set by the parser).
+    """
     name: str
     args: list[Expr]
     type_arg: Type | None = None
+    result_buf: Obj | None = field(default=None, kw_only=True)
 
 
 @dataclass(eq=False)
