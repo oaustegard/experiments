@@ -266,6 +266,12 @@ class DeclSpecMixin:
             ty = _BASE_TYPES[counter]
         if tag_hit is not None:
             _check_empty_tag_decl(self, tag_hit, is_const or is_volatile or is_restrict, seen_storage - {"typedef"})
+        if attr is not None and attr.is_tls:
+            # __thread (_Thread_local) only applies to objects with static storage or extern
+            bads = ("typedef", "register") if self.c23_mode() else ("typedef", "auto", "register")
+            for bad in bads:      # C23 `auto` is type inference, not a storage class
+                if bad in seen_storage:
+                    self.error(f"'__thread' used with '{bad}'")
         if auto_infer and counter == 0 and attr is not None:
             return None         # type comes from the initializer, as for __auto_type
         if is_complex:
