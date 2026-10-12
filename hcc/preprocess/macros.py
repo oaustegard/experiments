@@ -87,6 +87,10 @@ class MacroMixin:
             t = stack.pop()
             if t.kind == TokenKind.EOF:
                 diag.error(name_tok, f"unterminated call to macro '{m.name}'")
+            if t.kind == TokenKind.PUNCT and t.bol and t.text == "#" and not t.hideset:
+                # directives may appear inside macro arguments (C11 6.10.3p11)
+                self.directive(t)
+                continue
             if t.kind == TokenKind.PUNCT:
                 if t.text == "(":
                     depth += 1
