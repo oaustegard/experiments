@@ -43,7 +43,17 @@ def _has_vla_struct(ty) -> bool:
 
 class LocalDeclMixin:
 
-    def local_declaration(self) -> list:
+    def _check_for_init_declarator(self, attr: VarAttr, ty, name) -> None:
+        """C11 6.8.5p3: a for-loop init declaration declares only automatic or
+        register objects; typedefs and function declarations are not allowed."""
+        where = f" in 'for' loop initial declaration"
+        if attr.is_typedef or ty.kind == T.TypeKind.FUNC:
+            self.error(f"declaration of non-variable '{name.text}'{where}", name)
+        if attr.is_static or attr.is_extern or attr.is_tls:
+            kind = "static" if attr.is_static else ("extern" if attr.is_extern else "thread-local")
+            self.error(f"declaration of {kind} variable '{name.text}'{where}", name)
+
+    def local_declaration(self, for_init: bool = False) -> list:
         attr = VarAttr()
         self.vm_typeof = []
         basety = self.declspec(attr)
@@ -80,6 +90,8 @@ class LocalDeclMixin:
             self.parse_asm_label(dattr)
             if name is None:
                 self.error("identifier expected in declaration")
+            if for_init:
+                self._check_for_init_declarator(attr, ty, name)
             self.check_block_redecl(name, ty, attr)
             cleanup = dattr.cleanup or attr.cleanup
             if cleanup and (attr.is_static or attr.is_extern or attr.is_typedef):

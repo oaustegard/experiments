@@ -202,7 +202,7 @@ class StatementMixin:
         init = None
         if self.is_typename():
             self._check_for_init_tags()
-            init = N.Block(t.loc, self.local_declaration())
+            init = N.Block(t.loc, self.local_declaration(for_init=True))
         elif self.at("_Static_assert"):
             self.static_assert()  # consumes its own ';'
         elif not self.accept(";"):
