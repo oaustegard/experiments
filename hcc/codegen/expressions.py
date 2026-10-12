@@ -90,6 +90,9 @@ class ExpressionMixin:
         elif m.is_bitfield and m.ty.size == 16:
             load_wide_bitfield(self, m)
             return
+        elif m.is_bitfield and m.bit_offset + m.bit_width > m.ty.size * 8:
+            # Packed bitfield straddling its type's storage unit: load 8 bytes.
+            self.emit("mov (%rax), %rax")
         else:
             self.load(node.ty)
         if m.is_bitfield:
@@ -128,12 +131,21 @@ class ExpressionMixin:
             self.emit(f"movabs ${mask}, %rcx")
             self.emit("and %rcx, %rdi")
             self.emit(f"shl ${m.bit_offset}, %rdi")
+            straddle = m.bit_offset + m.bit_width > m.ty.size * 8
             self.emit("mov (%rsp), %rax")
-            self.load(m.ty)
+            if straddle:
+                # Packed bitfield spanning past its type's storage unit: 8-byte RMW.
+                self.emit("mov (%rax), %rax")
+            else:
+                self.load(m.ty)
             self.emit(f"movabs ${(~(mask << m.bit_offset)) & ((1 << 64) - 1)}, %r9")
             self.emit("and %r9, %rax")
             self.emit("or %rdi, %rax")
-            self.store(node.ty)
+            if straddle:
+                self.pop("%rdi")
+                self.emit("mov %rax, (%rdi)")
+            else:
+                self.store(node.ty)
             self.emit("mov %r8, %rax")
             # result: the assigned value truncated to the bitfield
             self.emit(f"shl ${64 - m.bit_width}, %rax")

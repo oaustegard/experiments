@@ -202,6 +202,8 @@ def _const_int(expr, ty=T.TY_INT) -> int:
 
 def _write_bits(gd, off, m, v) -> None:
     size = m.rev_bytes or m.ty.size
+    # A packed bitfield may straddle its declared type's storage unit.
+    size = max(size, (m.bit_offset + m.bit_width + 7) // 8)
     order = "big" if m.rev_bytes else "little"     # scalar_storage_order("big-endian")
     cur = int.from_bytes(gd.data[off:off + size], order)
     mask = ((1 << m.bit_width) - 1) << m.bit_offset
