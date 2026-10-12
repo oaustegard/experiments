@@ -68,6 +68,8 @@ C23_KEYWORDS = {"bool": "_Bool", "thread_local": "_Thread_local"}
 
 STORAGE = frozenset(("typedef", "static", "extern", "inline", "_Thread_local", "auto",
                      "register", "_Noreturn"))
+# Storage classes that may appear at most once and not together (C11 6.7.1p2).
+STORAGE_CLASSES = frozenset(("typedef", "static", "extern", "auto", "register"))
 
 # ISO/IEC TS 18661-3 _FloatN / _FloatNx names. They are plain identifiers to the
 # lexer (so headers may still typedef them); they map onto the base float type
@@ -148,6 +150,7 @@ class DeclSpecMixin:
         tmode = None          # type-name __attribute__((mode(X)))
         auto_infer = False
         is_const = is_volatile = is_atomic = is_complex = False
+        seen_storage = set()  # storage class specifiers seen in this declaration
         while self.is_typename():
             if self.at_std_attribute():
                 self.skip_std_attributes()
@@ -159,6 +162,13 @@ class DeclSpecMixin:
             if s in STORAGE:
                 if attr is None:
                     self.error("storage class specifier is not allowed in this context")
+                if s in STORAGE_CLASSES:
+                    if s in seen_storage:
+                        self.error(f"duplicate '{s}'")
+                    if seen_storage & STORAGE_CLASSES:
+                        self.error("multiple storage classes in declaration specifiers")
+                if s not in ("inline", "_Noreturn"):
+                    seen_storage.add(s)
                 self.next()
                 if s == "typedef":
                     attr.is_typedef = True
