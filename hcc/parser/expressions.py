@@ -101,7 +101,7 @@ class ExpressionMixin:
         loc = self.next().loc
         if self.at(":"):                  # GNU a ?: b
             self.next()
-            tmp = self.new_temp(cond.ty)
+            tmp = self.new_temp(_comma_result_type(cond.ty))
             lhs = self.typed(N.Assign(loc, self.typed(N.VarRef(loc, tmp)), cond))
             rhs = self.typed(N.Cond(loc, CPX.truth(self, self.typed(N.VarRef(loc, tmp))),
                                     self.typed(N.VarRef(loc, tmp)), self.conditional()))
