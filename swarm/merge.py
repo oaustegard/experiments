@@ -150,7 +150,8 @@ def evaluate(ctx: Ctx, tree: Path, ids: list[str]) -> tuple[dict, list[str]]:
     once at low parallelism so a timeout under CPU load does not reject a good patch."""
     k = tr.known(ctx)
     res = tr.run_ids(ctx, tree, ids)
-    regs = [t for t in ids if tr.is_pass(k.get(t)) and not tr.is_pass(res.get(t))]
+    # MISSING = the test no longer runs (moved to a suite's skip.txt or removed): not a regression.
+    regs = [t for t in ids if tr.is_pass(k.get(t)) and res.get(t, {}).get("status") not in ("PASS", "MISSING")]
     if regs:
         again = tr.run_ids(ctx, tree, regs, jobs=max(1, ctx.jobs // 2))
         res.update(again)
