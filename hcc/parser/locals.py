@@ -50,6 +50,9 @@ class LocalDeclMixin:
             if ty.kind == T.TypeKind.FUNC:
                 fn = self.declare_function(ty, name, attr, dattr)
                 self.push_scope_entry(name.text).var = fn
+                if self.at("{"):                     # GNU nested function definition
+                    self.nested_function_definition(fn, ty)
+                    return items
                 continue
             if attr.is_extern:
                 var = self.declare_global_var(ty, name, attr, dattr)
@@ -88,3 +91,19 @@ class LocalDeclMixin:
             if not var.ty.is_complete or var.ty.size < 0:
                 self.error(f"storage size of '{name.text}' isn't known", name)
         return items
+
+    def nested_function_definition(self, fn, ty) -> None:
+        """GNU nested function: parsed as a file-level function.
+
+        The enclosing function's per-function parser state is saved and
+        restored around the body. References to enclosing locals are not
+        supported yet (no static chain); the body is emitted as a plain
+        function.
+        """
+        saved = (self.fn, self.locals, self.label_names, self.goto_names,
+                 self.brk_label, self.cont_label, self.cur_switch)
+        self.fn, self.locals = None, []
+        self.brk_label = self.cont_label = self.cur_switch = None
+        self.function_definition(fn, ty)
+        (self.fn, self.locals, self.label_names, self.goto_names,
+         self.brk_label, self.cont_label, self.cur_switch) = saved
