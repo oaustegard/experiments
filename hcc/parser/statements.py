@@ -11,7 +11,7 @@ from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser import complex as CPX
 from hcc.parser.incomplete_check import check_value_use
-from hcc.sema.constexpr import eval_const
+from hcc.sema.constexpr import eval_const, wrap
 from hcc.sema.void_value import require_value
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
@@ -19,6 +19,27 @@ from hcc.typesys import TypeKind
 
 STMT_KEYWORDS = frozenset(("return", "if", "switch", "case", "default", "for", "while", "do",
                            "goto", "break", "continue", "asm"))
+
+
+def check_duplicate_cases(parser, sw: N.Switch) -> None:
+    """C11 6.8.4.2p3: no two case labels may have overlapping values after
+    conversion to the promoted controlling type. Empty ranges (lo > hi) are
+    ignored. Reports the later label in source order."""
+    ty = sw.cond.ty
+    ivs = []
+    for idx, c in enumerate(sw.cases):
+        lo, hi = wrap(c.lo, ty), wrap(c.hi, ty)
+        if lo <= hi:
+            ivs.append((lo, hi, idx))
+    ivs.sort()
+    best = None  # (hi, idx) with the largest hi seen so far
+    for lo, hi, idx in ivs:
+        if best is not None and lo <= best[0]:
+            other = best[1]
+            later = max(idx, other)
+            parser.error("duplicate case value", sw.cases[later].loc)
+        if best is None or hi > best[0]:
+            best = (hi, idx)
 
 
 class StatementMixin:
@@ -123,6 +144,7 @@ class StatementMixin:
         self.cur_switch, self.brk_label = sw, sw.brk_label
         sw.body = self.stmt()
         self.cur_switch, self.brk_label = saved
+        check_duplicate_cases(self, sw)
         return sw
 
     def _stmt_case(self, t):
