@@ -69,7 +69,7 @@ class StatementMixin:
         if t.kind == TokenKind.PUNCT and t.text == ";":
             self.next()
             return N.Block(t.loc, [])
-        if self.is_typename() and t.kind == TokenKind.KEYWORD and t.text != "__extension__":
+        if self.is_typename() and t.text != "__extension__":
             return N.Block(t.loc, self.local_declaration())     # declaration after label
         node = self.expr()
         self.expect(";")

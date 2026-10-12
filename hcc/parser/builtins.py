@@ -14,6 +14,7 @@ import struct
 from hcc import nodes as N
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.structs import find_member
+from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
@@ -30,7 +31,7 @@ __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
 __builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
-__builtin_setjmp __builtin_longjmp __builtin_shuffle
+__builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_convertvector
 __builtin_isinf __builtin_isnan __builtin_isfinite
 """.split())
 
@@ -106,6 +107,13 @@ class BuiltinParseMixin:
 
     def _b_shuffle(self, tok):
         return lower_shuffle(self, tok.loc, self._args())
+
+    def _b_convertvector(self, tok):
+        """__builtin_convertvector(vec, vector_type): element-wise conversion."""
+        src = self.typed(self.assign())
+        self.expect(",")
+        dst = self.typename()
+        return lower_convertvector(self, tok.loc, src, dst)
 
     def _b_va_start(self, tok):
         args = self._args()

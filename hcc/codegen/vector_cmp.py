@@ -1,10 +1,12 @@
-"""Element-wise integer GCC vector comparisons (CONTRACT section 5).
+"""Element-wise GCC vector comparisons (integer and float lanes) (CONTRACT section 5).
 
 `a OP b` on two integer vectors yields a vector whose lanes are -1 (true)
 or 0 (false). Each lane is compared with the signedness of the element type.
 16-byte elements (__int128) are compared as two 64-bit halves.
 """
 from __future__ import annotations
+
+from hcc.typesys import is_flonum
 
 _EQ_CC = {"==": "e", "!=": "ne"}
 # signed / unsigned condition codes for a - b (AT&T `cmp b, a`)
@@ -49,6 +51,25 @@ def _cmp_wide(gen, op: str, off: int, signed: bool) -> None:
     gen.emit(f"set{signed_cc if signed else unsigned_cc} %al")
 
 
+# SSE compare predicates (cmpXXsd imm form): ordered eq / lt / le, and
+# unordered-or-not-equal for !=. a > b is b < a, a >= b is b <= a.
+_FCMP = {"==": ("eq", False), "!=": ("neq", False), "<": ("lt", False),
+         "<=": ("le", False), ">": ("lt", True), ">=": ("le", True)}
+
+
+def _float_compare(gen, node, size: int, es: int) -> None:
+    """Float/double lanes: cmpXXsd/ss yields an all-ones/zero lane directly."""
+    pred, swap = _FCMP[node.op]
+    sfx = "ss" if es == 4 else "sd"
+    mov = "movss" if es == 4 else "movsd"
+    for i in range(0, size, es):
+        a, b = ("%xmm1", "%xmm0") if swap else ("%xmm0", "%xmm1")
+        gen.emit(f"{mov} {i}(%rsi), %xmm0")
+        gen.emit(f"{mov} {i}(%r8), %xmm1")
+        gen.emit(f"cmp{pred}{sfx} {b}, {a}")     # a = (a PRED b) mask
+        gen.emit(f"{mov} {a}, {i}(%rdi)")
+
+
 def vector_compare(gen, node) -> None:
     """Lower a vector comparison node; result buffer holds -1/0 lanes."""
     lty = node.lhs.ty
@@ -61,6 +82,10 @@ def vector_compare(gen, node) -> None:
     gen.emit("mov %rax, %rsi")
     gen.pop("%r8")
     gen.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+    if is_flonum(lty.base):
+        _float_compare(gen, node, size, es)
+        gen.emit("mov %rdi, %rax")
+        return
     for i in range(0, size, es):
         if es == 16:
             _cmp_wide(gen, op, i, signed)
