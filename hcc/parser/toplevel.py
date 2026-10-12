@@ -40,6 +40,9 @@ class TopLevelMixin:
             basety = self.declspec(attr)
             if self.accept(";"):
                 continue
+            if basety is None:                  # file-scope __auto_type x = expr;
+                self.auto_type_global(attr)
+                continue
             self.file_declaration(basety, attr)
         self.finish_tentatives()
         return N.TranslationUnit(self.objs)
@@ -78,6 +81,22 @@ class TopLevelMixin:
                     var.is_tentative = False
             if self.accept(";"):
                 return
+
+    def auto_type_global(self, attr) -> None:
+        """`__auto_type name = expr;` at file scope: the variable takes the
+        type of the initializer expression (array decays to pointer)."""
+        name = self.expect_ident()
+        self.expect("=")
+        start = self.pos
+        ty = self.typed(self.assign()).ty
+        if ty.kind == T.TypeKind.ARRAY:
+            ty = T.pointer_to(ty.base)
+        self.pos = start                    # re-parse the initializer with the real type
+        var = self.declare_global_var(ty, name, attr, VarAttr())
+        self.global_initializer(var)
+        var.is_definition = True
+        var.is_tentative = False
+        self.expect(";")
 
     # ---- objects -----------------------------------------------------------------
     def declare_function(self, ty, name, attr, dattr) -> N.Function:
@@ -146,11 +165,12 @@ class TopLevelMixin:
             basety = self.declspec(attr)
             while True:
                 ty, name = self.declarator(basety)
-                if ty.kind == T.TypeKind.ARRAY:
-                    ty = T.pointer_to(ty.base)
-                elif ty.kind == T.TypeKind.FUNC:
-                    ty = T.pointer_to(ty)
-                decls[name.text] = ty
+                if name is not None:        # empty declaration (`int;`) is ignored
+                    if ty.kind == T.TypeKind.ARRAY:
+                        ty = T.pointer_to(ty.base)
+                    elif ty.kind == T.TypeKind.FUNC:
+                        ty = T.pointer_to(ty)
+                    decls[name.text] = ty
                 if not self.accept(","):
                     break
             self.expect(";")
