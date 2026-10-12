@@ -177,7 +177,10 @@ class LocalDeclMixin:
                     continue
                 self.check_extern_completes_tentative(prior, ty, name)
                 check_redecl(self, self.scopes[-1], name, "var")
+                file_before = self.scopes[0].vars.get(name.text)
                 var = self.declare_global_var(ty, name, attr, dattr)
+                if file_before is None:
+                    var.block_decl_only = True      # external, but lexically block-scoped
                 self.push_scope_entry(name.text).var = var
                 continue
             if (attr.is_weak or dattr.is_weak) and not attr.is_extern:

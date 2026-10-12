@@ -24,7 +24,7 @@ from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 from hcc.parser.pragma_ivdep import at_ivdep_marker, consume_ivdep_marker
 from hcc.parser.knr_check import knr_param_index
-from hcc.parser.redecl import check_redecl
+from hcc.parser.redecl import check_redecl, drop_block_extern_var, clear_block_extern_var
 from hcc.parser.libc_protos import builtin_shape_matches, libc_prototype
 from hcc.parser.vector_limits import vector_of_checked
 
@@ -125,6 +125,7 @@ class TopLevelMixin:
                 if prev_td is not None and prev_td.type_def is not None \
                         and typedef_conflicts(prev_td.type_def, ty):
                     self.error(f"conflicting types for '{name.text}'", name.loc)
+                drop_block_extern_var(self.scopes[0], name.text)
                 check_redecl(self, self.scopes[0], name, "typedef")
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty, unavailable=unavail)
             elif ty.kind == T.TypeKind.FUNC:
@@ -144,6 +145,7 @@ class TopLevelMixin:
                     self.function_definition(fn, ty, self.gnu89_extern_inline(attr))
                     return
             else:
+                clear_block_extern_var(self.scopes[0], name.text)
                 check_redecl(self, self.scopes[0], name, "var")
                 if attr.is_register and not (dattr.asm_name or attr.asm_name):
                     # GCC: a file-scope `register` variable needs a register name
