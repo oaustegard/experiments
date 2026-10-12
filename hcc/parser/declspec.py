@@ -96,6 +96,7 @@ class DeclSpecMixin:
         ty = T.TY_INT
         counter = 0
         vsize = 0
+        auto_infer = False
         is_const = is_volatile = is_atomic = False
         while self.is_typename():
             tok = self.tok
@@ -118,6 +119,8 @@ class DeclSpecMixin:
                     attr.is_tls = True
                 elif s == "_Noreturn":
                     attr.is_noreturn = True
+                elif s == "auto":
+                    auto_infer = self.c23_mode()    # C23 `auto x = expr;`: no type given
                 continue
             if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "_Complex",
                      "__complex__", "__complex", "__label__"):
@@ -192,6 +195,8 @@ class DeclSpecMixin:
                     pass
                 self.error(f"invalid type: '{s}' here")
             ty = _BASE_TYPES[counter]
+        if auto_infer and counter == 0 and attr is not None:
+            return None         # type comes from the initializer, as for __auto_type
         if attr is not None and attr.vector_size and ty is not None:
             ty = T.vector_of(ty, attr.vector_size)
             attr.vector_size = 0
