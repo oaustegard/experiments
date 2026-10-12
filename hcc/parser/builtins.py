@@ -24,6 +24,7 @@ from hcc.parser.overflow_wide import wide_overflow_operands
 from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
 from hcc.parser.vector_shufflevector import lower_shufflevector
+from hcc.parser.tgmath import tgmath_call
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
 from hcc.sema.conversions import new_cast
@@ -32,6 +33,7 @@ from hcc import typesys as T
 SPECIAL_BUILTINS = frozenset("""
 __builtin_va_start __builtin_va_end __builtin_va_arg __builtin_va_copy __builtin_offsetof
 __builtin_va_arg_pack __builtin_va_arg_pack_len
+__builtin_tgmath
 __builtin_types_compatible_p __builtin_expect __builtin_constant_p __builtin_unreachable
 __builtin_trap __builtin_alloca __builtin_alloca_with_align __builtin_choose_expr __builtin_classify_type
 __builtin_call_with_static_chain
@@ -114,6 +116,9 @@ class BuiltinParseMixin:
             node = getattr(self, "_b_" + name)(tok)
         self.expect(")")
         return node
+
+    def _b_tgmath(self, tok):
+        return tgmath_call(self, tok)
 
     def _float16_builtin(self, tok):
         """__builtin_{inf,huge_val,nan,nans}f16(...): a _Float16 constant. The NaN bit

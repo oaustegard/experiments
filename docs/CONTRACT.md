@@ -140,6 +140,7 @@ hcc/
     builtins.py        parsing of __builtin_* that take types or are special
                        (va_arg, offsetof, types_compatible_p, ...)
     atomic_builtins.py __atomic_* (stdatomic.h) parsing; codegen/atomics.py lowers them
+    tgmath.py          __builtin_tgmath: candidate choice by common floating type (uses build_call)
     vector_shuffle.py  __builtin_shuffle on GCC vectors, lowered to element stores
     vector_shufflevector.py  __builtin_shufflevector on GCC vectors (constant indices), element stores
     complex.py         C99 _Complex: complex = STRUCT{re,im} (typesys.complex_of); ops lowered to temps

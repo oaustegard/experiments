@@ -5,6 +5,7 @@ PostfixMixin provides:
     postfix_ops(node)            the suffix loop on an existing node
     compound_literal()           `(type){init}` at file or block scope
     funcall(fn_node, loc)        argument conversion + Call node
+    build_call(fn, args, loc)    the Call node for already-parsed arguments
     struct_ref(node, name_tok)   member access via find_member path
 """
 from __future__ import annotations
@@ -83,17 +84,27 @@ class PostfixMixin:
         return node
 
     def funcall(self, fn, loc):
+        self.call_type(fn, loc)
+        args = []
+        while not self.accept(")"):
+            if args:
+                self.expect(",")
+            args.append(self.typed(self.assign()))
+        return self.build_call(fn, args, loc)
+
+    def call_type(self, fn, loc):
+        """The FUNC type a call of `fn` uses (function or function pointer)."""
         self.typed(fn)
         fty = fn.ty
         if fty.kind == TypeKind.PTR and fty.base.kind == TypeKind.FUNC:
             fty = fty.base
         if fty.kind != TypeKind.FUNC:
             self.error("called object is not a function or function pointer", loc)
-        args = []
-        while not self.accept(")"):
-            if args:
-                self.expect(",")
-            args.append(self.typed(self.assign()))
+        return fty
+
+    def build_call(self, fn, args, loc):
+        """Call node for `fn(args...)`; `args` are typed expressions (parser-side tgmath too)."""
+        fty = self.call_type(fn, loc)
         params = fty.params if fty.has_proto else []
         # __builtin_va_arg_pack() stands for an unknown number of arguments until
         # parser/va_pack.py specialises the call: skip arity checks and conversions
