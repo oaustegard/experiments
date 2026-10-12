@@ -56,6 +56,7 @@ class EnumMixin:
                 if fixed is None:
                     ty.enum_consts = "fwd"    # forward ref: no body, no fixed type (incomplete)
             if fixed is not None:
+                self.check_fixed_after_nofixed_body(ty, tag)
                 self.apply_fixed_underlying(ty, fixed)
             return ty
         brace_pos = self.pos
@@ -120,6 +121,8 @@ class EnumMixin:
         hi = max(consts, default=0)
         if fixed is not None:
             pass
+        elif tag is not None:
+            self.__dict__.setdefault("enum_nofixed_ids", {})[id(ty)] = ty   # keeps ty alive: no id reuse
         elif lo < 0:
             if lo < -(1 << 31) or hi >= 1 << 31:
                 ty.size = ty.align = 8
@@ -152,6 +155,13 @@ class EnumMixin:
         prev = self.scopes[-1].tags.get(tag.text)
         if prev is not None and prev.kind == T.TypeKind.ENUM and prev.enum_consts == "fwd":
             self.error(f"'enum' declared both with and without fixed underlying type", tag)
+
+    def check_fixed_after_nofixed_body(self, ty, tag):
+        """`enum e : T` naming a tag whose body (in this scope) was defined without a
+        fixed underlying type is an error (e.g. `enum e : typeof(enum e {A})`)."""
+        nofixed = self.__dict__.get("enum_nofixed_ids", {})
+        if nofixed.get(id(ty)) is ty:
+            self.error(f"'enum' declared with but defined without fixed underlying type", tag)
 
     def apply_fixed_underlying(self, ty, under):
         ty.size = ty.align = under.size
