@@ -30,7 +30,9 @@ class PrimaryMixin:
                 outer_base = self.stmt_expr_base
                 if outer_base is None:
                     self.stmt_expr_base = len(self.scope_stack)
+                self.jump_scope.enter_stmt_expr()
                 body = self.compound_stmt_body(t.loc)
+                self.jump_scope.leave_stmt_expr()
                 self.stmt_expr_base = outer_base
                 self.expect(")")
                 return self.typed(N.StmtExpr(t.loc, body))

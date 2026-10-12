@@ -39,8 +39,10 @@ class JumpScopes:
         self.seq = 0
         self.block_ids: list[int] = []      # enclosing block ids, innermost last
         self.block_seq = 0
-        self.gotos: list[tuple] = []        # (seq, name token)
-        self.labels: list[tuple] = []       # (seq, name, enclosing block ids)
+        self.se_ids: list[int] = []         # enclosing statement-expression ids
+        self.se_seq = 0
+        self.gotos: list[tuple] = []        # (seq, name token, enclosing stmt-expr ids)
+        self.labels: list[tuple] = []       # (seq, name, enclosing block ids, stmt-expr ids)
         self.vm_decls: list[tuple] = []     # (seq, block id)
 
     def enter_block(self) -> None:
@@ -49,6 +51,13 @@ class JumpScopes:
 
     def leave_block(self) -> None:
         self.block_ids.pop()
+
+    def enter_stmt_expr(self) -> None:
+        self.se_seq += 1
+        self.se_ids.append(self.se_seq)
+
+    def leave_stmt_expr(self) -> None:
+        self.se_ids.pop()
 
     def _tick(self) -> int:
         self.seq += 1
@@ -59,23 +68,25 @@ class JumpScopes:
             self.vm_decls.append((self._tick(), self.block_ids[-1]))
 
     def note_goto(self, name_tok) -> None:
-        self.gotos.append((self._tick(), name_tok))
+        self.gotos.append((self._tick(), name_tok, tuple(self.se_ids)))
 
     def note_label(self, name: str) -> None:
-        self.labels.append((self._tick(), name, tuple(self.block_ids)))
+        self.labels.append((self._tick(), name, tuple(self.block_ids), tuple(self.se_ids)))
 
     def violations(self) -> list:
-        """Name tokens of gotos that jump into the scope of a VM identifier."""
+        """(name token, message) for gotos that jump into a statement expression
+        or into the scope of a VM identifier."""
         bad = []
-        for gseq, gtok in self.gotos:
-            for lseq, lname, lblocks in self.labels:
-                if lname != gtok.text or lseq < gseq:
+        for gseq, gtok, gse in self.gotos:
+            for lseq, lname, lblocks, lse in self.labels:
+                if lname != gtok.text:
                     continue
-                for vseq, vblock in self.vm_decls:
-                    if gseq < vseq < lseq and vblock in lblocks:
-                        bad.append(gtok)
-                        break
-                else:
+                if any(s not in gse for s in lse):
+                    bad.append((gtok, "jump into statement expression"))
+                    break
+                if lseq < gseq:
                     continue
-                break
+                if any(gseq < vseq < lseq and vblock in lblocks for vseq, vblock in self.vm_decls):
+                    bad.append((gtok, "jump into scope of identifier with variably modified type"))
+                    break
         return bad

@@ -390,8 +390,8 @@ class TopLevelMixin:
         if vla_inits:
             fn.body.items[0:0] = vla_inits
         self.leave_scope()
-        for g in self.jump_scope.violations():
-            self.error("jump into scope of identifier with variably modified type", g)
+        for g, msg in self.jump_scope.violations():
+            self.error(msg, g)
         self.jump_scope = saved_jumps
         for g in self.goto_names:
             # a nested function's gotos may target labels of the enclosing
