@@ -46,6 +46,12 @@ class StructMixin:
             if prev is not None and prev.is_complete and prev.kind == kind:
                 kw = "struct" if kind == T.TypeKind.STRUCT else "union"
                 self.error(f"redefinition of '{kw} {tag.text}'", tag)
+            open_prev = self.find_tag(tag.text)     # body still open in an enclosing scope/sizeof
+            if open_prev is not None and not open_prev.is_complete and id(open_prev) in def_pos \
+                    and def_pos[id(open_prev)] != brace_pos:
+                # the same tag's body is still being parsed (`struct s { struct s {..} *p; }`)
+                kw = _kind_word(kind)
+                self.error(f"nested redefinition of '{kw} {tag.text}'", tag)
             if prev is not None and not prev.is_complete and prev.kind == kind:
                 ty = prev
             elif prev is not None and prev.is_complete and prev.kind == kind:
