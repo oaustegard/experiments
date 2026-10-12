@@ -168,6 +168,8 @@ class ExpressionMixin:
                 else:
                     node = self.unary()
                     ty = node.ty
+                    if isinstance(node, N.VarRef) and isinstance(node.var, N.Function) and node.var.align:
+                        return N.IntLit(t.loc, node.var.align, ty=TY_ULONG)
                 return N.IntLit(t.loc, ty.align, ty=TY_ULONG)
             if s == "__extension__":
                 self.next()

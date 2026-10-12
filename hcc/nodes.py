@@ -80,6 +80,7 @@ class Function(Obj):
     section: str | None = None
     visibility: str | None = None
     alias_of: str | None = None
+    align: int = 0                          # from __attribute__((aligned(N)))
 
 
 @dataclass(eq=False)

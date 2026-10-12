@@ -90,6 +90,7 @@ class TopLevelMixin:
         fn.section = dattr.section or attr.section or fn.section
         fn.visibility = dattr.visibility or attr.visibility or fn.visibility
         fn.alias_of = dattr.alias or attr.alias or fn.alias_of
+        fn.align = max(fn.align, attr.align, dattr.align)
         return fn
 
     def declare_global_var(self, ty, name, attr, dattr) -> N.Var:
