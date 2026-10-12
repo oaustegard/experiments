@@ -23,6 +23,9 @@ from hcc.diag import CompileError
 from hcc import typesys as T
 from hcc.sema.compat import is_compatible
 
+# PTRDIFF_MAX on x86-64: the largest object GCC accepts (same limit as declarator.py)
+_MAX_OBJECT_SIZE = (1 << 63) - 1
+
 
 def new_initializer(ty, is_flexible: bool) -> N.Initializer:
     init = N.Initializer(ty)
@@ -134,6 +137,10 @@ class InitializerMixin:
         if i < 0:
             return False
         if init.is_flexible:
+            # an object may not exceed PTRDIFF_MAX bytes (LP64); reject before
+            # materializing up to `i` children (`[0x8000000000000000] = x`)
+            if (i + 1) * max(init.ty.base.size, 1) > _MAX_OBJECT_SIZE:
+                return False
             while len(init.children) <= i:
                 init.children.append(new_initializer(init.ty.base, False))
             return True
