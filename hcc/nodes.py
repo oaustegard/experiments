@@ -67,6 +67,7 @@ class Var(Obj):
     is_tls: bool = False
     is_param: bool = False
     is_register: bool = False               # `register` storage class: address may not be taken
+    is_constexpr: bool = False              # C23 `constexpr` object (an integer constant expression operand)
     align: int = 0
     offset: int = 0                         # %rbp-relative, set by codegen
     init_data: GlobalData | None = None

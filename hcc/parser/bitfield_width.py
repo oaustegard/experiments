@@ -18,7 +18,8 @@ def _names_variable(node) -> bool:
     stack = [node]
     while stack:
         n = stack.pop()
-        if type(n) is N.VarRef:
+        # C23: a constexpr object is itself a constant (GCC accepts it as a width)
+        if type(n) is N.VarRef and not getattr(n.var, "is_constexpr", False):
             return True
         if isinstance(n, N.Node) and dataclasses.is_dataclass(n):
             for f in dataclasses.fields(n):
