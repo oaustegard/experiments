@@ -17,6 +17,7 @@ from hcc.parser.structs import find_member
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import lower_local_init, serialize_global_init
 from hcc.tokens import TokenKind
+from hcc.diag import CompileError
 from hcc import typesys as T
 
 
@@ -62,6 +63,9 @@ class InitializerMixin:
         if ty.is_const and not ty.is_volatile and T.is_integer(ty) and init.expr is not None:
             # GCC folds `const int a = 0;` when it is read in a constant initializer.
             var.const_value = try_eval_const(init.expr)
+        elif ty.is_const and not ty.is_volatile and not T.is_integer(ty):
+            # `constexpr struct S s = {...};`: static bytes, so `s.m` folds in constant expressions
+            var.const_data = const_bytes(init, ty)
         return lower_local_init(init, var, self.typed)
 
     def global_initializer(self, var) -> None:
@@ -392,3 +396,14 @@ class InitializerMixin:
         while i < len(members) and members[i].is_bitfield and members[i].name is None:
             i += 1
         return i
+
+
+def const_bytes(init, ty):
+    """Static image of a constant local initializer, or None if it is not constant."""
+    e = init.expr
+    if isinstance(e, N.VarRef) and getattr(e.var, "const_data", None) is not None:
+        return e.var.const_data             # `constexpr struct S t = s;` copies a constant s
+    try:
+        return serialize_global_init(init, ty)
+    except CompileError:
+        return None

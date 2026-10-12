@@ -197,6 +197,7 @@ hcc/
                        assignment and ++/-- lowering
     strict_overflow.py (x*c)/c -> x for signed x (UB overflow); parser applies it unless -fwrapv
     constexpr.py       integer constant evaluation, address constants
+    constexpr_ptr.py   const-qualified pointer objects as address constants (C23 constexpr)
     initializers.py    Initializer -> local assignment exprs; Initializer ->
                        static bytes + relocations (GlobalData)
     compat.py          type compatibility (is_compatible)

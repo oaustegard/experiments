@@ -206,10 +206,12 @@ def _write_le(init, ty, gd, offset) -> None:
 
 def _static_compound_literal(expr):
     """File-scope compound literal used as a static initializer: its GlobalData, else None."""
-    if isinstance(expr, N.VarRef) and not getattr(expr.var, "is_local", False):
-        src = getattr(expr.var, "init_data", None)
-        if src is not None:
-            return src
+    if isinstance(expr, N.Comma) and expr.lvalue and isinstance(expr.rhs, N.VarRef):
+        expr = expr.rhs                     # block-scope compound literal (its temp object)
+    if isinstance(expr, N.VarRef):
+        if not getattr(expr.var, "is_local", False):
+            return getattr(expr.var, "init_data", None)
+        return getattr(expr.var, "const_data", None)    # constexpr block-scope aggregate
     return None
 
 

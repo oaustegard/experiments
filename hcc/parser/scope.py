@@ -36,6 +36,7 @@ class VarAttr:
     is_gnu_inline: bool = False     # __attribute__((gnu_inline)): gnu89 inline semantics
     is_tls: bool = False
     is_noreturn: bool = False
+    is_constexpr: bool = False      # C23 `constexpr`: the object itself is const (see declspec)
     align: int = 0
     is_weak: bool = False
     is_weakref: bool = False        # __attribute__((weakref("t"))) on a declaration

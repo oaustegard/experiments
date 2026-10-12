@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import fields
 
 from hcc.parser.scope import VarAttr
+from hcc.parser.declspec import constexpr_type
 from hcc import nodes as N
 from hcc.nodes import Node, Var
 from hcc.sema.constexpr import try_eval_const
@@ -295,8 +296,12 @@ class DeclaratorMixin:
     def typename(self, allow_storage=False):
         # allow_storage: C23 compound literal `(static int){1}`; storage class
         # specifiers are otherwise rejected (casts, sizeof, _Alignof).
-        ty = self.declspec(VarAttr() if allow_storage else None)
-        return self.abstract_declarator(ty)
+        attr = VarAttr() if allow_storage else None
+        ty = self.declspec(attr)
+        ty = self.abstract_declarator(ty)
+        if attr is not None and attr.is_constexpr:
+            ty = constexpr_type(ty)          # `(constexpr T){...}`: the literal object is const
+        return ty
 
     def compound_lit_follows(self):
         """At '(' : True if the matching ')' is followed by '{'."""
