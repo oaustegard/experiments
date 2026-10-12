@@ -15,6 +15,7 @@ from hcc.sema.arith import _addressed_place, compound_assign, inc_dec, new_add, 
 from hcc.sema.bitfield_width import narrow_wide_bitfield_unary
 from hcc.sema.constexpr import eval_const
 from hcc.sema.incomplete import is_incomplete_object
+from hcc.sema.const_members import has_const_member
 from hcc.sema.strict_overflow import simplify_mul_div
 from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
@@ -55,10 +56,19 @@ def _side_effect_free(node) -> bool:
 def _is_readonly(node) -> bool:
     """True if the lvalue `node` has a const-qualified type (a member of a
     const struct is const too)."""
-    if node.ty is not None and node.ty.is_const:
-        return True
+    if node.ty is not None and (node.ty.is_const or has_const_member(node.ty)):
+        return True     # a struct/union with a const member is not modifiable (C11 6.3.2.1p1)
+    return _in_const_aggregate(node)
+
+
+def _in_const_aggregate(node) -> bool:
+    """True if `node` is a member of a const-qualified struct/union (only the
+    qualifier of the enclosing object counts, not its const members)."""
     if isinstance(node, N.Member_):
-        return _is_readonly(node.operand)
+        op = node.operand
+        if op.ty is not None and op.ty.is_const:
+            return True
+        return _in_const_aggregate(op)
     return False
 
 
