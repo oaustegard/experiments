@@ -42,7 +42,7 @@ __builtin_add_overflow __builtin_sub_overflow __builtin_mul_overflow __builtin_m
 __builtin_add_overflow_p __builtin_sub_overflow_p
 __builtin_prefetch __builtin_return_address __builtin_frame_address __builtin_assoc_barrier
 __builtin_assume_aligned
-__builtin_bswap16 __builtin_bswap32 __builtin_bswap64
+__builtin_bswap16 __builtin_bswap32 __builtin_bswap64 __builtin_bswap128
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
 __builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
@@ -264,6 +264,9 @@ class BuiltinParseMixin:
 
     def _b_bswap64(self, tok):
         return self._bswap(tok, 64, T.TY_ULONG)
+
+    def _b_bswap128(self, tok):
+        return self._bswap(tok, 128, T.TY_UINT128)
 
     def _crc32(self, tok, width):
         """__builtin_ia32_crc32{qi,hi,si,di}(crc, v): crc is unsigned int (unsigned

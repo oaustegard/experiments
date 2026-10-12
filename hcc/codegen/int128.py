@@ -67,6 +67,14 @@ class Int128Mixin:
         self.emit(f"movabs ${value & _MASK64}, %rax")
         self.emit(f"movabs ${(value >> 64) & _MASK64}, %rdx")
 
+    def builtin_bswap128(self, node) -> None:
+        """__builtin_bswap128(x): reverse the 16 bytes: bswap each 64-bit half
+        and exchange the halves (%rdx:%rax in, %rdx:%rax out)."""
+        self.gen_expr(node.args[0])
+        self.emit("bswap %rax")
+        self.emit("bswap %rdx")
+        self.emit("xchg %rax, %rdx")
+
     def int128_unary(self, op: str, node) -> None:
         if op == "~":
             self.emit("not %rax")
