@@ -142,7 +142,6 @@ hcc/
                        new_cast(), implicit conversion on assign/return/args
     arith.py           new_add/new_sub (pointer arithmetic), compound
                        assignment and ++/-- lowering
-    lvalues.py         lvalue/modifiable checks
     constexpr.py       integer constant evaluation, address constants
     initializers.py    Initializer -> local assignment exprs; Initializer ->
                        static bytes + relocations (GlobalData)
@@ -169,6 +168,9 @@ hcc/
     data.py            .data/.bss/.rodata emission, string literals, relocs
     builtins.py        __builtin_* lowering (alloca, expect, clz, ...)
     asm.py             inline asm statements (basic + extended)
+
+  include/             (optional) hcc's own override headers, searched before
+                       the system dirs (e.g. a future stdatomic.h)
 
   selftest/
     __main__.py        `python3 -m hcc.selftest [-k substr] [-j N]`
@@ -233,7 +235,7 @@ class Type:
     return_ty; params: list[Type]; param_names: list[str|None]
     is_variadic; has_proto (False for K&R "int f()")
     origin: Type | None       # the type this was copied from (for compat)
-    name: Token | None        # declarator name (used while parsing)
+    name                      # unused; Parser.declarator() returns (Type, name_tok)
 
 class Member: name, ty, offset, align, idx, is_bitfield, bit_offset, bit_width
 ```
@@ -289,7 +291,7 @@ Lowering conventions (performed by parser/sema so codegen stays simple):
   with `ty` = pointer type; `p - q` becomes `Binary('/', Binary('-', p, q), size)`.
 * `a op= b` -> `Comma(Assign(tmp, AddrOf(a)), Assign(Deref(tmp), Binary(op, Deref(tmp), b)))`
   (`sema/arith.py`). `a++` -> `Cast(Binary('-', (a += 1), 1))` etc. Bitfields too.
-* `a->b` -> `Member(Deref(a), m)`.
+* `a->b` -> `Member_(Deref(a), m)`.
 * `sizeof`/`_Alignof` of non-VLA -> `IntLit`.
 * A local declaration with initializer -> `ExprStmt(Comma(MemZero(var), assigns...))`.
 * Implicit conversions (assignment, args, return, usual arithmetic) -> `Cast`.
@@ -301,7 +303,7 @@ Lowering conventions (performed by parser/sema so codegen stays simple):
 |---|---|---|
 | `IntLit` | `value: int` | integer constant (ty set) |
 | `FloatLit` | `value: float` | float/double/long double constant |
-| `StrLit` | `data: bytes` | string literal incl. terminating NUL bytes; ty = array |
+| `StrLit` | `data: bytes` | reserved; the parser currently turns every string literal into an anonymous static `Var` (`.L..anon.N`, `init_data` = bytes) referenced by a `VarRef` |
 | `VarRef` | `var: Obj` | variable or function designator |
 | `Unary` | `op: str ('-','~','!'), operand` | |
 | `AddrOf` / `Deref` | `operand` | `&x` / `*x` |
@@ -312,7 +314,7 @@ Lowering conventions (performed by parser/sema so codegen stays simple):
 | `Comma` | `lhs, rhs` | |
 | `Cast` | `operand` (target is `ty`) | explicit or implicit conversion |
 | `Call` | `func: Expr, args: list[Expr], func_ty: Type, ret_buffer: Var\|None` | |
-| `Member` | `operand, member: Member` | `s.m` |
+| `Member_` | `operand, member: typesys.Member` | `s.m` (trailing underscore avoids a clash with `typesys.Member`; codegen method `expr_Member_`) |
 | `StmtExpr` | `body: Block` | GNU `({ ... })` |
 | `MemZero` | `var: Var` | zero a local (initializers) |
 | `BuiltinCall` | `name: str, args: list[Expr], type_arg: Type\|None` | `__builtin_*` handled in codegen/builtins.py |
@@ -452,6 +454,16 @@ Run `python3 -m hcc.selftest` (all), `-k struct` (filter), `-j 4`.
 6. Run `python3 -m hcc.selftest`; commit with a message naming the feature.
 7. Do not change STABLE interfaces (sections 3–5) without editing this file
    in the same commit, and keep old field names working.
+
+### Parser conventions worth knowing
+* `Parser.declarator(ty)` returns `(Type, name_token_or_None)`; `typename()`
+  returns a `Type`. Struct types are shared objects (completed in place), so
+  never `copy()` a struct type just to attach information.
+* `Parser.typed(node)` must be called on every new Expr (sema.typing.add_type).
+* `Parser.new_temp(ty)` creates an anonymous local (used by lowering).
+* Statement keywords dispatch to `StatementMixin._stmt_<keyword>`;
+  special builtins to `BuiltinParseMixin._b_<name>`; preprocessing directives
+  to `DirectiveMixin.dir_<name>`.
 
 ### Status / not yet implemented (v1 slice)
 See `docs/STATUS.md` (kept up to date by contributors) — anything listed
