@@ -117,7 +117,9 @@ class DeclaratorMixin:
             self.next()
             return fty
         if self.accept(")"):
-            fty.has_proto = False
+            # C23 (6.7.6.3p15): `()` means `(void)`, i.e. a prototype with no
+            # parameters; before C23 it is an unprototyped declaration.
+            fty.has_proto = self.c23_mode()
             return fty
         # K&R identifier list: int f(a, b) int a; ...
         if self.tok.kind == TokenKind.IDENT and not self.is_typename() and \

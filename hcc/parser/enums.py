@@ -35,6 +35,10 @@ class EnumMixin:
         ty.tag = tag.text if tag else None
         if fixed is not None:
             self.apply_fixed_underlying(ty, fixed)
+        if tag is not None:
+            # C11 6.2.1p7: the tag's scope begins just after its appearance, so
+            # `enum A { X = sizeof(enum A *) }` refers to this (incomplete) type.
+            self.scopes[-1].tags[tag.text] = ty
         consts = []
         val = 0
         while not self.accept("}"):
