@@ -20,7 +20,8 @@ from hcc.parser.has_attribute import has_attribute_call
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
 from hcc.parser.crc_builtins import CRC_BUILTINS, crc_call
 from hcc.parser.object_size import lower_object_size
-from hcc.parser.structs import find_member
+from hcc.parser.structs import find_member, complete_struct
+from hcc.parser.dyn_members import in_dyn_region
 from hcc.parser.overflow_wide import wide_overflow_operands
 from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
@@ -654,6 +655,9 @@ class BuiltinParseMixin:
                 if path is None:
                     self.error(f"'{cur}' has no member named '{name.text}'", name)
                 for m in path:
+                    cs = complete_struct(cur)
+                    if T.is_dyn_struct(cs) and in_dyn_region(cs, cs.members.index(m)):
+                        self.error("unsupported: offsetof a member after a variably modified member", name)
                     off += m.offset
                     cur = m.ty
             elif self.accept("["):

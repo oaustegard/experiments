@@ -16,6 +16,8 @@ import copy
 
 from hcc import nodes as N
 from hcc import typesys as T
+from hcc.parser.dyn_members import dyn_struct_size_expr
+from hcc.parser.structs import is_dyn_member_type
 from hcc.sema.conversions import new_cast
 
 
@@ -28,18 +30,22 @@ def _has_vla(ty) -> bool:
     return ty is not None and ty.kind == T.TypeKind.VLA and ty.vla_len is not None
 
 
-def _rebind_struct(ty, tail):
-    """Copy of struct `ty` whose trailing member has type `tail`."""
+def _rebind_struct(self, ty, loc):
+    """Copy of struct `ty` whose run-time-sized members are bound (their VLA
+    lengths evaluated into hidden locals). Returns (copy, statements)."""
     new = ty.copy()
-    new.dyn_tail = tail
     members = []
+    pre = []
     for m in ty.members:
-        if m is ty.members[-1]:
+        if is_dyn_member_type(m.ty):
+            mty, mpre = self.vla_bind(m.ty, loc)
+            pre.extend(mpre)
             m = copy.copy(m)
-            m.ty = tail
+            m.ty = mty
+            new.dyn_tail = mty
         members.append(m)
     new.members = members
-    return new
+    return new, pre
 
 
 def vla_slot_type(ty):
@@ -53,8 +59,12 @@ class VlaMixin:
 
     def vla_bind(self, ty, loc):
         if T.is_dyn_struct(ty):
-            tail, pre = self.vla_bind(ty.dyn_tail, loc)
-            return _rebind_struct(ty, tail), pre
+            return _rebind_struct(self, ty, loc)
+        if ty.kind == T.TypeKind.ARRAY and _has_vla(ty.base):
+            base, pre = self.vla_bind(ty.base, loc)
+            new = ty.copy()
+            new.base = base
+            return new, pre
         if ty.kind == T.TypeKind.PTR and _has_vla(ty.base):
             base, pre = self.vla_bind(ty.base, loc)
             new = ty.copy()
@@ -91,15 +101,10 @@ class VlaMixin:
 
     def vla_size_expr(self, ty, loc):
         if T.is_dyn_struct(ty):
-            # prefix (offset of the trailing member) + tail bytes, rounded up to align
-            tail = self.vla_size_expr(ty.dyn_tail, loc)
-            prefix = ty.members[-1].offset      # ty.size is the slot size for run-time objects
-            total = self.typed(N.Binary(loc, "+", self.typed(N.IntLit(loc, prefix, ty=T.TY_ULONG)), tail))
-            if ty.align > 1:
-                total = self.typed(N.Binary(loc, "+", total, self.typed(N.IntLit(loc, ty.align - 1, ty=T.TY_ULONG))))
-                mask = self.typed(N.IntLit(loc, -ty.align & (2**64 - 1), ty=T.TY_ULONG))
-                total = self.typed(N.Binary(loc, "&", total, mask))
-            return total
+            return dyn_struct_size_expr(self, ty, loc)
+        if ty.kind == T.TypeKind.ARRAY and _has_vla(ty.base):
+            elem = self.vla_size_expr(ty.base, loc)
+            return self.typed(N.Binary(loc, "*", self.typed(N.IntLit(loc, ty.array_len, ty=T.TY_ULONG)), elem))
         if ty.kind != T.TypeKind.VLA:
             return self.typed(N.IntLit(loc, ty.size, ty=T.TY_ULONG))
         if ty.vla_len is None and self.in_proto_params:

@@ -240,11 +240,28 @@ def layout_struct(ty) -> None:
     zero_width_prev = False
     if members_flexible(ty):
         ty.is_flexible = True
+    dyn_region = False  # a run-time-sized member was seen: later offsets are run-time
     for m in ty.members:
         if packed or m.is_packed:   # packed drops natural alignment; explicit aligned(N) still applies
             m.align = m.explicit_align or 1
         if m.pack_cap and not m.is_bitfield and not m.explicit_align and m.align > m.pack_cap:
             m.align = m.pack_cap    # #pragma pack caps natural member alignment
+        if dyn_region or is_dyn_member_type(m.ty):
+            if m.is_bitfield:
+                diag.error(m.tok, "unsupported: bit-field after a variably modified member", "parse")
+            _check_dyn_struct(ty, m)
+            _dyn_member_align(ty, m)
+            if not dyn_region:
+                dyn_region = True
+                # static prefix: the first run-time member's offset (later ones: run-time)
+                m.offset = T.align_to((bits + 7) // 8, m.align)
+                ty.size = m.offset
+            else:
+                m.offset = 0       # run-time offset (see dyn_members.dyn_member_offset_expr)
+            ty.dyn_tail = m.ty     # the last run-time-sized member's type
+            if align < m.align and not _unnamed_bitfield(m):
+                align = m.align
+            continue
         if m.is_bitfield and m.bit_width == 0:
             if ms and zero_width_prev:      # MS: back-to-back zero-width bit-fields do not pad again
                 continue
@@ -273,9 +290,6 @@ def layout_struct(ty) -> None:
             bits += m.bit_width
             unit = sz * 8
         else:
-            if m.ty.kind == T.TypeKind.VLA or T.is_dyn_struct(m.ty):
-                _layout_dyn_tail(ty, m, bits, align)
-                return
             if ms and unit:     # MS: a following plain member starts after the bit-field's unit
                 bits = T.align_to(bits, unit)
             unit = 0
@@ -285,28 +299,40 @@ def layout_struct(ty) -> None:
         if align < m.align and not _unnamed_bitfield(m):
             align = m.align
     ty.align = align
+    if dyn_region:      # ty.size is the static prefix; the run-time size is added by sizeof
+        return
     ty.size = T.align_to(T.align_to(bits, 8) // 8, align)
 
 
-def _layout_dyn_tail(ty, m, bits: int, align: int) -> None:
-    """Trailing variably-sized member (GNU `struct { int x[n]; }`): the static
-    size is the offset of the member; the run-time size is added by sizeof."""
-    if m is not ty.members[-1]:
-        diag.error(m.tok, "variably modified member must be the last member of a struct", "parse")
-    if T.is_dyn_struct(m.ty):
-        diag.error(m.tok, "unsupported: struct with variably modified member nested in a struct", "parse")
+def _check_dyn_struct(ty, m) -> None:
     if ty.is_ms_struct or ty.is_reverse_sso:
         diag.error(m.tok, "unsupported: variably modified member in packed or reversed struct", "parse")
-    elem = m.ty.base
+
+
+def _dyn_member_align(ty, m) -> int:
+    """Alignment of a run-time-sized member (its slot's own align is not its alignment)."""
     if ty.is_packed or m.is_packed:     # packed drops natural alignment; explicit aligned(N) still applies
         m.align = m.explicit_align or 1
     else:
-        m.align = max(m.explicit_align, elem.align)     # a VLA's own align is its slot size
-    off = T.align_to(bits // 8, m.align)
-    m.offset = off
-    ty.dyn_tail = m.ty
-    ty.size = off
-    ty.align = max(align, m.align)
+        m.align = max(m.explicit_align, dyn_elem_align(m.ty))
+    return m.align
+
+
+def dyn_elem_align(t) -> int:
+    """Natural alignment of the innermost element of an array/VLA chain (or the type)."""
+    while t.kind in (T.TypeKind.ARRAY, T.TypeKind.VLA) and t.base is not None:
+        t = t.base
+    return t.align
+
+
+def is_dyn_member_type(t) -> bool:
+    """Member whose size is only known at run time: a VLA, a struct with a
+    variably modified member, or an array of those (`A a[2]`, A a VLA typedef)."""
+    while t is not None and t.kind == T.TypeKind.ARRAY:
+        t = t.base
+    if t is None:
+        return False
+    return (t.kind == T.TypeKind.VLA and t.vla_len is not None) or T.is_dyn_struct(t)
 
 
 def mirror_reverse_bitfields(ty) -> None:

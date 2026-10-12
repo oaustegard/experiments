@@ -15,6 +15,7 @@ from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser.dyn_struct_args import dyn_struct_arg
 from hcc.parser.dyn_struct_ret import dyn_ret_buffer
+from hcc.parser.dyn_members import dyn_member_access, in_dyn_region
 from hcc.parser.libc_builtins import fabs_float_call, int_abs_call
 from hcc.parser.structs import find_member, complete_struct
 from hcc.parser.plan9_ptr import plan9_pointer_conv
@@ -104,7 +105,13 @@ class PostfixMixin:
             if ty.is_const and not mty.is_const:
                 mty = mty.copy()
                 mty.is_const = True
-            node = N.Member_(name_tok.loc, node, m, ty=mty)
+            cty = complete_struct(ty)
+            if T.is_dyn_struct(cty) and in_dyn_region(cty, cty.members.index(m)):
+                node = dyn_member_access(self, node, cty, cty.members.index(m), name_tok.loc)
+                node.ty = mty
+            else:
+                node = N.Member_(name_tok.loc, node, m, ty=mty)
+            ty = mty
         return node
 
     def funcall(self, fn, loc):

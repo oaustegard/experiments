@@ -148,6 +148,7 @@ hcc/
     complex_div.py     C Annex G complex division recovery (NaN quotient -> libgcc __divdc3/__divsc3)
     dyn_struct_args.py  by-value struct with VLA tail: caller passes a pointer to a fresh copy
     dyn_struct_ret.py   struct with VLA tail as call result / assignment target (memcpy of run-time size)
+    dyn_members.py     run-time offsets of members after a VLA member (GNU struct { int p[n], i; })
 
   sema/
     __init__.py        re-exports
