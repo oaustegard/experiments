@@ -55,6 +55,9 @@ def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
         head, sep, tail = src.partition("(?P<id>")
         tail = tail.replace(r"|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}", "")
         src = head + sep + tail
+        # ... and only `L` is a literal prefix (C90 has no u8/u/U prefixes):
+        # gnu89 `u'a'` lexes as identifier `u` then char constant (dg utf-dflt).
+        src = src.replace("(?:u8|u|U|L)?", "(?:L)?")
     if not u8_chars:
         # u8'x' character constants exist only in C23; before that `u8` is an identifier.
         src = src.replace("(?P<chr>(?:u8|u|U|L)?", "(?P<chr>(?:u|U|L)?")
