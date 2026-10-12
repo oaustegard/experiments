@@ -310,6 +310,12 @@ class AttributeMixin:
         if attr is not None and attr.is_designated_init and not is_struct:
             self.error("'designated_init' attribute is only valid on 'struct' type", where)
 
+    def check_mode_target(self, attr, where=None) -> None:
+        """`mode` re-sizes only integer, float and enum types; on a struct or
+        union body GCC rejects it as a hard error."""
+        if attr is not None and attr.mode:
+            self.error("mode '%s' applied to inappropriate type" % attr.mode, where)
+
     def check_align_limit(self, val, where=None) -> None:
         """Reject alignments above the x86-64 ELF object file maximum (2**28),
         as GCC does for objects, functions and typedefs alike (MAX_OFILE_ALIGNMENT)."""
