@@ -208,7 +208,9 @@ class TopLevelMixin:
             self.implicit_protos.discard(id(fn))
             fn.ty = ty
         else:
-            if not is_compatible(fn.ty, ty):
+            # A K&R definition's parameter types are checked against the prototype
+            # by knr_params (before default promotion), not by the plain compat rule.
+            if ty.enum_consts != "knr" and not is_compatible(fn.ty, ty):
                 self.error(f"conflicting types for '{name.text}'", name.loc)
             self.check_proto_after_knr_def(fn, ty, name)
             # C11 6.2.2p7: a file-scope `static` declaration may not follow a
@@ -362,7 +364,7 @@ class TopLevelMixin:
         declared = [decls.get(n.text, T.TY_INT) for n in fty.param_names]
         if proto is not None and proto.has_proto:
             if len(proto.params) != len(declared):
-                self.error("conflicting types for function definition")
+                self.error("number of arguments doesn't match prototype")
             i = knr_param_index(proto, declared)
             if i is not None:
                 pname = fty.param_names[i]
