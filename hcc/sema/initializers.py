@@ -97,7 +97,18 @@ def _write(init, ty, gd, offset) -> None:
         return
     expr = init.expr
     if T.is_struct_like(ty):
-        diag.error(expr, "initializer element is not constant", "sema")
+        src = _static_compound_literal(expr)
+        if src is None:
+            diag.error(expr, "initializer element is not constant", "sema")
+        gd.data[offset:offset + ty.size] = src.data[:ty.size]
+        gd.relocs.extend(N.Reloc(offset + r.offset, r.label, r.addend, r.size, r.minus)
+                         for r in src.relocs)
+        return
+    diff = _label_difference(expr)
+    if diff is not None:
+        a, b, addend = diff
+        gd.relocs.append(N.Reloc(offset, a, addend, ty.size, b))
+        return
     if T.is_flonum(ty):
         try:
             v = eval_float(expr)
@@ -119,6 +130,34 @@ def _write(init, ty, gd, offset) -> None:
         return
     size = ty.size
     gd.data[offset:offset + size] = (v & ((1 << (size * 8)) - 1)).to_bytes(size, "little")
+
+
+def _static_compound_literal(expr):
+    """File-scope compound literal used as a static initializer: its GlobalData, else None."""
+    if isinstance(expr, N.VarRef) and not getattr(expr.var, "is_local", False):
+        src = getattr(expr.var, "init_data", None)
+        if src is not None:
+            return src
+    return None
+
+
+def _label_difference(expr):
+    """`&&a - &&b` (possibly cast) -> (a, b, addend) for an assembler-resolved reloc, else None."""
+    while isinstance(expr, N.Cast):
+        expr = expr.operand
+    # pointer difference is lowered to (a - b) / elemsize; only elemsize 1 is a plain byte difference
+    if isinstance(expr, N.Binary) and expr.op == "/" and isinstance(expr.rhs, N.IntLit) and expr.rhs.value == 1:
+        expr = expr.lhs
+    if not (isinstance(expr, N.Binary) and expr.op == "-"):
+        return None
+    try:
+        la, a = eval_reloc(expr.lhs)
+        lb, b = eval_reloc(expr.rhs)
+    except NotConstant:
+        return None
+    if la is None or lb is None:
+        return None
+    return la, lb, a - b
 
 
 def _const_int(expr) -> int:

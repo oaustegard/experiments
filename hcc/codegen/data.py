@@ -63,8 +63,10 @@ class DataMixin:
                     self.directive(".byte " + ",".join(chunk))
                     chunk = []
                 sign = "+" if r.addend >= 0 else "-"
-                self.directive(f".quad {r.label}{sign}{abs(r.addend)}")
-                pos += 8
+                sub = f"-{r.minus}" if r.minus else ""
+                d = {1: ".byte", 2: ".short", 4: ".long"}.get(r.size, ".quad")
+                self.directive(f"{d} {r.label}{sub}{sign}{abs(r.addend)}")
+                pos += r.size
                 continue
             chunk.append(str(data[pos]))
             if len(chunk) == 32:

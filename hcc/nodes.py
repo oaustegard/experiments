@@ -25,9 +25,13 @@ class Node:
 
 @dataclass(eq=False)
 class Reloc:
+    """Address constant stored at `offset`: `label + addend` (or `label - minus + addend`
+    when `minus` is set, a difference of two labels resolved by the assembler), `size` bytes."""
     offset: int
     label: str
     addend: int
+    size: int = 8
+    minus: str | None = None
 
 
 @dataclass(eq=False)
