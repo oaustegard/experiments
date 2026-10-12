@@ -68,7 +68,10 @@ def main(argv: list[str] | None = None) -> int:
         (a.cwd / "docs").mkdir(exist_ok=True)
         (a.cwd / "docs" / "STATUS.md").write_text(f"done by {task['id']}\n")
         changed.append("docs/STATUS.md")
-    if mode in ("fix", "break", "conflict", "docs", "syntax"):
+    if mode == "selftest":   # fixes its targets but breaks a compiler selftest (the gate must reject it)
+        (a.cwd / "hcc" / "_fake_selftest_break.txt").write_text(task["id"] + "\n")
+        changed.append("hcc/_fake_selftest_break.txt")
+    if mode in ("fix", "break", "conflict", "docs", "syntax", "selftest"):
         fixdir.mkdir(parents=True, exist_ok=True)
         for t in tests:
             p = fixdir / t.replace("/", "__")

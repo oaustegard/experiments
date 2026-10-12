@@ -194,6 +194,13 @@ def main(argv: list[str] | None = None) -> int:
     root.mkdir()
     build_repo(root)
     failures = []
+    # the gate's hcc selftest stand-in (the real 710 take minutes): one fake selftest that fails
+    # while the tree carries hcc/_fake_selftest_break.txt
+    fake_st = tmp / "fake_selftest.py"
+    fake_st.write_text("import os\nbad = os.path.exists('hcc/_fake_selftest_break.txt')\n"
+                       "print('FAIL fake_selftest.c: broken') if bad else None\n"
+                       "print(f'{1 - bad}/1 passed')\n")
+    os.environ["SWARM_SELFTEST"] = f"{sys.executable} {fake_st}"
 
     def check(name: str, out: str, want: dict[str, str]) -> None:
         got = statuses(root)
@@ -251,6 +258,16 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{'ok  ' if ok else 'FAIL'} quick refresh runs after a merge and completes")
     if not ok:
         failures.append("quick refresh")
+        print(out[-2000:])
+    # selftest gate: a candidate that fixes its targets but breaks an hcc selftest is rejected
+    before = set(records(root))
+    out = run(root, wt, "--fake-mode", "selftest", "--max-workers", "1", "--concurrency", "1", "--full-every", "99")
+    new = [r for k, r in records(root).items() if k not in before]
+    ok = bool(new) and new[0].get("status") == "rejected" and \
+        str(new[0].get("reason", "")).startswith("selftest regressions (1): fake_selftest.c")
+    print(f"{'ok  ' if ok else 'FAIL'} a candidate that breaks an hcc selftest -> rejected")
+    if not ok:
+        failures.append("selftest gate")
         print(out[-2000:])
     # idle refresh: once the queue drains, merges since the last full refresh get one
     cf = root / "swarm" / "state" / "counters.json"

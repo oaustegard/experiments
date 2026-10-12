@@ -88,6 +88,36 @@ def prepare_gate(ctx: Ctx, commit: str) -> Path:
     return g
 
 
+def selftest_fails(g: Path) -> set[str] | None:
+    """Names of the hcc selftests failing in the gate tree, or None when the run itself did not
+    complete (no runner, timeout): None means "not checked", never "nothing failed".
+    $SWARM_SELFTEST overrides the command (swarm selftest)."""
+    import subprocess
+    cmd = os.environ.get("SWARM_SELFTEST") or f"{sys.executable} -m hcc.selftest"
+    try:
+        p = subprocess.run(cmd.split(), cwd=g, env={**os.environ, "PYTHONPATH": str(g)},
+                           capture_output=True, text=True, timeout=1800, check=False)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    if not re.search(r"^\d+/\d+ passed$", p.stdout, re.M):
+        return None
+    return {x[5:].split(":", 1)[0] for x in p.stdout.splitlines() if x.startswith("FAIL ")}
+
+
+def selftest_base(ctx: Ctx, g: Path, main: str) -> set[str] | None:
+    """Failing selftests at main: cached per commit in state/selftest.json, else run in the gate
+    tree while it still sits at main (before any candidate is stacked)."""
+    c = read_json(ctx.state / "selftest.json", {}) or {}
+    if c.get("commit") == main:
+        return set(c.get("fails") or [])
+    fails = selftest_fails(g)
+    if fails is not None:
+        write_json(ctx.state / "selftest.json", {"commit": main, "fails": sorted(fails)})
+    else:
+        log("selftest: could not run at main; gate continues without the selftest check")
+    return fails
+
+
 def pycheck(g: Path) -> str | None:
     """hcc is pinned to Python 3.11 syntax: byte-compile the gate tree's hcc/ under PyPy 3.11
     (tests/bin/hcc-pycheck; exits 0 when PyPy is absent). Returns the first error line or None.
@@ -279,6 +309,7 @@ def merge_batch(ctx: Ctx, recs: list[dict]) -> int:
             return merged
         main = head(ctx)
         g = prepare_gate(ctx, main)
+        st_base = selftest_base(ctx, g, main)
         stacked: list[tuple[dict, str, str]] = []
         for r, patch in pending:
             sha = commit_patch(ctx, g, r, patch)
@@ -301,6 +332,14 @@ def merge_batch(ctx: Ctx, recs: list[dict]) -> int:
         if regs:
             r = stacked[0][0]
             reject(ctx, r, f"regressions ({len(regs)}): {', '.join(regs[:6])}")
+            return merged
+        st_now = selftest_fails(g) if st_base is not None else None
+        st_new = sorted(st_now - st_base) if st_now is not None and st_base is not None else []
+        if st_new and len(stacked) > 1:
+            log(f"batch of {len(stacked)} broke {len(st_new)} selftests; gating one by one")
+            return merged + sum(merge_batch(ctx, [r]) for r, _, _ in stacked)
+        if st_new:
+            reject(ctx, stacked[0][0], f"selftest regressions ({len(st_new)}): {', '.join(st_new[:6])}")
             return merged
         no_gain = [(r, p) for r, p, _ in stacked
                    if not r.get("ingest") and not gains(ctx, res, r.get("targets") or r["tests"])]
@@ -325,6 +364,8 @@ def merge_batch(ctx: Ctx, recs: list[dict]) -> int:
             pending = [(r, p) for r, p, _ in stacked]
             continue
         tr.record(ctx, top, res)
+        if st_now is not None:
+            write_json(ctx.state / "selftest.json", {"commit": top, "fails": sorted(st_now)})
         claimed = {t: {"status": "PASS", "reason": "", "stage": ""} for r, _, _ in stacked if r.get("ingest")
                    for t in fixed[r["id"]] if t not in res}
         if claimed:
