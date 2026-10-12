@@ -49,7 +49,7 @@ _ESCAPES = {"a": 7, "b": 8, "f": 12, "n": 10, "r": 13, "t": 9, "v": 11, "e": 27,
 
 
 def parse_int_literal(tok: Token) -> tuple[int, Type]:
-    s = tok.text.lower()
+    s = tok.text.replace("'", "").lower()        # C23 digit separators
     suffix_start = len(s)
     if s.startswith(("0x", "0b")):
         digits_ok = "0123456789abcdef" if s[1] == "x" else "01"
@@ -97,7 +97,7 @@ _FLOAT_SUFFIXES = (("f16", TY_FLOAT16), ("f32x", TY_DOUBLE), ("f32", TY_FLOAT),
 
 
 def parse_number(tok: Token):
-    s = tok.text
+    s = tok.text.replace("'", "")                # C23 digit separators
     low = s.lower()
     is_hex = low.startswith("0x")
     if not is_hex and ("." in s or "e" in low) or is_hex and ("." in s or "p" in low):

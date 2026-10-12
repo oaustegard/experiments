@@ -230,9 +230,10 @@ class DirectiveMixin:
         """Record a `#line N "name"` (or GNU `# N "name"`) for later lines."""
         if line and line[0].kind != TokenKind.STRING:
             line = self.expand_list(line)
-        if not line or line[0].kind != TokenKind.NUMBER or not line[0].text.isdigit():
+        digits = line[0].text.replace("'", "") if line else ""
+        if not line or line[0].kind != TokenKind.NUMBER or not digits.isdigit():
             diag.error(hash_tok, "invalid line number in #line directive")
-        n = int(line[0].text)
+        n = int(digits)
         if len(line) > 1 and line[1].kind != TokenKind.STRING:
             diag.error(line[1], "invalid filename in #line directive")
         start = hash_tok.loc.line + 1          # first physical line affected

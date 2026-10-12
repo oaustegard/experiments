@@ -34,7 +34,8 @@ _TOKEN_SRC = r"""
   | (?P<lc>//[^\n]*)
   | (?P<bc>/\*.*?\*/)
   | (?P<ubc>/\*)
-  | (?P<num>\.?[0-9](?:[eEpP][+-]|[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+  | (?P<num>\.?0[xX](?:[pP][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*
+            |\.?[0-9](?:[eE][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
   | (?P<str>(?:u8|u|U|L)?"(?:[^"\\\n]|\\.)*")
   | (?P<chr>(?:u8|u|U|L)?'(?:[^'\\\n]|\\.)*')
   | (?P<id>(?:[A-Za-z_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
@@ -52,6 +53,11 @@ def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
     if not u8_chars:
         # u8'x' character constants exist only in C23; before that `u8` is an identifier.
         src = src.replace("(?P<chr>(?:u8|u|U|L)?", "(?P<chr>(?:u|U|L)?")
+        # C23 digit separators (`1'000`) exist only in C23; before that `'` ends a number.
+        src = src.replace("DIGSEP", "")
+    else:
+        # C23 digit separator: pp-number ' digit / pp-number ' nondigit (6.4.9).
+        src = src.replace("DIGSEP", "'(?=[0-9A-Za-z_\u0080-\U0010ffff])|")
     return re.compile(src, re.VERBOSE | re.DOTALL)
 
 
