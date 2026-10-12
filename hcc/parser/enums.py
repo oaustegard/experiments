@@ -44,6 +44,10 @@ def widen_type(ty):
     return T.TY_INT if ty.size < 4 else T.TY_LONG
 
 
+# byte widths of the integer machine modes an enum may be given
+ENUM_MODE_BYTES = {"QI": 1, "byte": 1, "HI": 2, "SI": 4, "DI": 8, "word": 8, "TI": 16}
+
+
 class EnumMixin:
 
     def enum_specifier(self, attr=None):
@@ -147,9 +151,23 @@ class EnumMixin:
             ty.size = ty.align = 8
         self.parse_attributes(attr if attr is not None else VarAttr())   # `enum {..} __attribute__((mode(word)))`
         self.check_designated_init(attr, False, self.toks[self.pos - 1])
+        self.check_enum_mode_fits(attr, lo, hi, self.toks[self.pos - 1])
         if tag is not None:
             self.scopes[-1].tags[tag.text] = ty
         return ty
+
+    def check_enum_mode_fits(self, attr, lo, hi, where) -> None:
+        """`__attribute__((mode(QI)))` etc. on an enum body: every enumerator
+        must fit the mode's width (GCC: hard error otherwise)."""
+        if attr is None or not attr.mode:
+            return
+        width = ENUM_MODE_BYTES.get(attr.mode)
+        if width is None:
+            return
+        bits = width * 8
+        fits = (0 <= lo and hi < (1 << bits)) or (-(1 << (bits - 1)) <= lo and hi < (1 << (bits - 1)))
+        if not fits:
+            self.error("specified mode too small for enumerated values", where)
 
     def fixed_underlying(self):
         """C23 `enum e : type`: consume `: type-specifiers` if a type follows.
