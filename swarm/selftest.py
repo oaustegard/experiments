@@ -31,7 +31,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from swarm.common import read_jsonl
+from swarm.common import read_json, read_jsonl, write_json
 
 HERE = Path(__file__).resolve().parent
 
@@ -251,6 +251,17 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{'ok  ' if ok else 'FAIL'} quick refresh runs after a merge and completes")
     if not ok:
         failures.append("quick refresh")
+        print(out[-2000:])
+    # idle refresh: once the queue drains, merges since the last full refresh get one
+    cf = root / "swarm" / "state" / "counters.json"
+    c = read_json(cf, {}) or {}
+    c["merges_since_full"] = 3          # merges the gate checked only against its sample
+    write_json(cf, c)
+    out = run(root, wt, "--max-workers", "50", "--concurrency", "2", "--full-every", "99")
+    ok = "merges since the last full refresh, refreshing" in out
+    print(f"{'ok  ' if ok else 'FAIL'} empty queue with unrefreshed merges -> full refresh")
+    if not ok:
+        failures.append("idle refresh")
         print(out[-2000:])
     print(f"{len(failures)} failures" + (f": {failures}" if failures else ""))
     if a.keep:

@@ -406,6 +406,14 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
                     merge.refresh(ctx)
                     idle_since = None
                     continue
+                n = (read_json(ctx.state / "counters.json", {}) or {}).get("merges_since_full", 0)
+                if n:
+                    # Merges since the last full refresh were checked only against the gate's
+                    # sample; regressions they hid would otherwise ship with the idle tree.
+                    log(f"queue empty; {n} merges since the last full refresh, refreshing")
+                    merge.refresh(ctx)
+                    idle_since = None
+                    continue
                 idle_since = idle_since or time.time()
                 if time.time() - idle_since > a.idle_max:
                     log("queue empty and nothing in flight")
