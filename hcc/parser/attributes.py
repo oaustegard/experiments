@@ -92,6 +92,8 @@ class AttributeMixin:
                 attr.is_packed = True
             if ty is not None:
                 ty.is_packed = True
+        elif name == "scalar_storage_order" and attr is not None and args:
+            attr.reverse_sso = args[0].value.rstrip(b"\0") == b"big-endian"
         elif name == "noreturn" and attr is not None:
             attr.is_noreturn = True
         elif name == "weak" and attr is not None:

@@ -149,6 +149,7 @@ hcc/
 
   codegen/
     __init__.py        generate(tu, opts) -> str ; CodeGen class assembly
+    bitfield_rev.py    bitfields in scalar_storage_order("big-endian") structs
     context.py         CodeGenBase: output buffer, emit(), labels,
                        push/pop with stack-depth tracking, current function
     functions.py       frame layout (local offsets), prologue/epilogue,

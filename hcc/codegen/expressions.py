@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import struct
 
+from hcc.codegen.bitfield_rev import assign_rev_bitfield, load_rev_bitfield
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
 from dataclasses import fields, is_dataclass
@@ -82,8 +83,11 @@ class ExpressionMixin:
 
     def expr_Member_(self, node) -> None:
         self.gen_addr(node)
-        self.load(node.ty)
         m = node.member
+        if m.is_bitfield and m.rev_bytes:
+            load_rev_bitfield(self, m)
+        else:
+            self.load(node.ty)
         if m.is_bitfield:
             self.emit(f"shl ${64 - m.bit_width - m.bit_offset}, %rax")
             self.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - m.bit_width}, %rax")
@@ -106,6 +110,9 @@ class ExpressionMixin:
         self.push()
         self.gen_expr(node.rhs)
         lhs = node.lhs
+        if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.rev_bytes:
+            assign_rev_bitfield(self, node)
+            return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield:
             m = lhs.member
             self.emit("mov %rax, %r8")              # value to return

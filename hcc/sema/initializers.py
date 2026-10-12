@@ -169,11 +169,12 @@ def _const_int(expr) -> int:
 
 
 def _write_bits(gd, off, m, v) -> None:
-    size = m.ty.size
-    cur = int.from_bytes(gd.data[off:off + size], "little")
+    size = m.rev_bytes or m.ty.size
+    order = "big" if m.rev_bytes else "little"     # scalar_storage_order("big-endian")
+    cur = int.from_bytes(gd.data[off:off + size], order)
     mask = ((1 << m.bit_width) - 1) << m.bit_offset
     cur = (cur & ~mask) | ((v << m.bit_offset) & mask)
-    gd.data[off:off + size] = cur.to_bytes(size, "little")
+    gd.data[off:off + size] = cur.to_bytes(size, order)
 
 
 def float_to_x87(v: float) -> bytes:

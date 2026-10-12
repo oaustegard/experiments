@@ -41,7 +41,7 @@ class Member:
     """A struct/union member. Bitfields have is_bitfield=True."""
 
     __slots__ = ("name", "ty", "offset", "align", "idx", "is_bitfield",
-                 "bit_offset", "bit_width", "tok")
+                 "bit_offset", "bit_width", "tok", "rev_bytes")
 
     def __init__(self, name, ty, offset=0, align=1, idx=0):
         self.name: str | None = name
@@ -53,6 +53,7 @@ class Member:
         self.bit_offset = 0
         self.bit_width = 0
         self.tok = None
+        self.rev_bytes = 0      # >0: bitfield in a scalar_storage_order("big-endian") struct
 
     def __repr__(self):
         return f"Member({self.name}, {self.ty}, off={self.offset})"
@@ -61,7 +62,7 @@ class Member:
 class Type:
     __slots__ = ("kind", "size", "align", "is_unsigned", "is_const", "is_volatile",
                  "is_restrict", "is_atomic", "base", "array_len", "vla_len", "vla_size",
-                 "members", "tag", "is_flexible", "is_packed", "is_complete",
+                 "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso",
                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims")
 
@@ -82,6 +83,7 @@ class Type:
         self.tag: str | None = None
         self.is_flexible = False
         self.is_packed = False
+        self.is_reverse_sso = False
         self.is_complete = True
         self.return_ty: Type | None = None
         self.params: list[Type] = []

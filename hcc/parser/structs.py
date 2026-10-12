@@ -46,6 +46,7 @@ class StructMixin:
         self.parse_attributes(attr)
         ty.members = members
         ty.is_packed = attr.is_packed
+        ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
         if kind == T.TypeKind.STRUCT:
             layout_struct(ty)
         else:
@@ -53,6 +54,8 @@ class StructMixin:
         if attr.align:
             ty.align = max(ty.align, attr.align)
             ty.size = T.align_to(ty.size, ty.align)
+        if ty.is_reverse_sso:
+            mirror_reverse_bitfields(ty)
         ty.is_complete = True
         return ty
 
@@ -127,6 +130,24 @@ def layout_struct(ty) -> None:
             align = m.align
     ty.align = align
     ty.size = T.align_to(T.align_to(bits, 8) // 8, align)
+
+
+def mirror_reverse_bitfields(ty) -> None:
+    """scalar_storage_order("big-endian"): the struct image is the byte-reversed
+    little-endian image of a bit-mirrored layout (bit p..p+w-1 -> 8S-(p+w)..).
+    Each bitfield becomes a big-endian byte span: offset = first memory byte,
+    bit_offset = LSB position inside the span, rev_bytes = span length."""
+    total = ty.size * 8
+    for m in ty.members:
+        if not m.is_bitfield or m.bit_width == 0:
+            continue
+        p = m.offset * 8 + m.bit_offset
+        q = total - (p + m.bit_width)
+        j0 = q // 8
+        j1 = (q + m.bit_width - 1) // 8
+        m.offset = ty.size - 1 - j1
+        m.bit_offset = q - 8 * j0
+        m.rev_bytes = j1 - j0 + 1
 
 
 def layout_union(ty) -> None:
