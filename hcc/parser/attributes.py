@@ -286,12 +286,18 @@ class AttributeMixin:
         elif name == "vector_size" and attr is not None and args:
             save = self.pos
             self.pos = args_start + 1
-            attr.vector_size = self.const_expr()
+            size = self.const_expr()
             self.pos = save
+            if size < 0:
+                self.error("'vector_size' attribute argument value '%d' is negative"
+                           % size, self.toks[args_start])
+            if size == 0:
+                self.error("zero vector size", self.toks[args_start])
             # GCC: the byte size must fit ssizetype (LP64: 2**63-1)
-            if attr.vector_size > VECTOR_SIZE_MAX:
+            if size > VECTOR_SIZE_MAX:
                 self.error("'vector_size' attribute argument value '%d' exceeds %d"
-                           % (attr.vector_size, VECTOR_SIZE_MAX), self.toks[args_start])
+                           % (size, VECTOR_SIZE_MAX), self.toks[args_start])
+            attr.vector_size = size
         elif name == "strict_flex_array" and attr is not None:
             attr.strict_flex_array = True
         elif name == "mode" and attr is not None and args:
