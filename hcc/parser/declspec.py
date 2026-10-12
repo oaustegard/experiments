@@ -291,6 +291,8 @@ class DeclSpecMixin:
                     pass
                 self.error(f"invalid type: '{s}' here")
             ty = _BASE_TYPES[counter]
+            if counter == CHAR and getattr(self.opts, "char_unsigned", False):
+                ty = T.TY_UCHAR          # -funsigned-char: plain char is unsigned
         if tag_hit is not None:
             _check_empty_tag_decl(self, tag_hit, is_const or is_volatile or is_restrict, seen_storage - {"typedef"})
         if fwd_enum is not None and attr is not None and self.at(";"):
