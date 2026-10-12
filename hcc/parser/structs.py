@@ -150,6 +150,7 @@ class StructMixin:
         if members and members[-1].ty.kind == T.TypeKind.ARRAY and members[-1].ty.array_len < 0:
             last = members[-1]
             last.ty = T.array_of(last.ty.base, 0)
+            last.open_array = True
         for i, m in enumerate(members):
             m.idx = i
         return members
