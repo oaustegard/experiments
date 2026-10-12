@@ -25,7 +25,7 @@ _SYNC_VALUE_RET = frozenset(
     [f"__sync_fetch_and_{o}" for o in _RMW_OPS] + [f"__sync_{o}_and_fetch" for o in _RMW_OPS]
     + ["__sync_lock_test_and_set", "__sync_val_compare_and_swap"])
 _SYNC_INT_RET = frozenset(["__sync_bool_compare_and_swap"])
-_SYNC_VOID_RET = frozenset(["__sync_lock_release"])
+_SYNC_VOID_RET = frozenset(["__sync_lock_release", "__sync_synchronize"])
 SYNC_BUILTINS = _SYNC_VALUE_RET | _SYNC_INT_RET | _SYNC_VOID_RET
 ATOMIC_BUILTINS = _VALUE_RET | _INT_RET | _VOID_RET | SYNC_BUILTINS
 
@@ -37,6 +37,10 @@ def atomic_call(parser, tok):
     if name in ("__atomic_thread_fence", "__atomic_signal_fence"):
         if len(args) != 1:
             parser.error(f"'{name}' expects 1 argument", tok)
+        ty = T.TY_VOID
+    elif name == "__sync_synchronize":
+        if args:
+            parser.error(f"'{name}' expects no arguments", tok)
         ty = T.TY_VOID
     else:
         if not args or not T.is_pointer_like(args[0].ty):

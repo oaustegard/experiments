@@ -173,6 +173,9 @@ class AtomicMixin:
         pass
 
     # __sync_* (legacy gcc intrinsics)
+    def builtin_sync_synchronize(self, node) -> None:
+        self.emit("mfence")
+
     def builtin_sync_fetch_and_add(self, node) -> None: self._rmw(node, "add", True)
     def builtin_sync_fetch_and_sub(self, node) -> None: self._rmw(node, "sub", True)
     def builtin_sync_fetch_and_and(self, node) -> None: self._rmw(node, "and", True)
