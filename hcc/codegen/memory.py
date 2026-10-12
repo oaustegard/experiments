@@ -112,6 +112,19 @@ class MemoryMixin:
 
     def copy_struct(self, size: int) -> None:
         """Copy size bytes from (%rax) to (%rdi); leaves %rax = src."""
+        if size > 64:
+            # Large aggregates: unrolled moves would emit O(size) code, so use
+            # rep movsb. rsi/rcx/rdi are saved so the caller's view is unchanged.
+            self.emit("push %rsi")
+            self.emit("push %rcx")
+            self.emit("push %rdi")
+            self.emit("mov %rax, %rsi")
+            self.emit(f"mov ${size}, %rcx")
+            self.emit("rep movsb")
+            self.emit("pop %rdi")
+            self.emit("pop %rcx")
+            self.emit("pop %rsi")
+            return
         i = 0
         while i + 8 <= size:
             self.emit(f"mov {i}(%rax), %r8")

@@ -19,7 +19,7 @@ from hcc import typesys as T
 def _has_value(init) -> bool:
     if init.expr is not None:
         return True
-    return bool(init.children) and any(_has_value(c) for c in init.children)
+    return bool(init.children) and any(_has_value(c) for _, c in N.present_children(init.children))
 
 
 def lower_local_init(init, var, typed) -> N.Expr:
@@ -40,7 +40,7 @@ def _lower(init, ty, lhs, out, typed, loc) -> None:
         out.append(typed(N.Assign(loc, lhs(), init.expr)))
         return
     if ty.kind == T.TypeKind.ARRAY and init.children:
-        for i, child in enumerate(init.children):
+        for i, child in N.present_children(init.children):
             if not _has_value(child):
                 continue
             def elem(i=i):
@@ -74,7 +74,7 @@ def _write(init, ty, gd, offset) -> None:
     if ty.kind == T.TypeKind.ARRAY and init.expr is None:
         if init.children:
             sz = ty.base.size
-            for i, child in enumerate(init.children):
+            for i, child in N.present_children(init.children):
                 _write(child, ty.base, gd, offset + sz * i)
         return
     if ty.kind == T.TypeKind.STRUCT and init.expr is None:

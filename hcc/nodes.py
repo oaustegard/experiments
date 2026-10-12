@@ -375,6 +375,53 @@ class Initializer:
     """Tree mirroring an aggregate type. Leaves have `expr`."""
     ty: Type
     expr: Expr | None = None
-    children: list["Initializer"] | None = None
+    children: "list[Initializer] | ChildTable | None" = None
     is_flexible: bool = False
     mem: Member | None = None       # for unions: the initialized member
+
+
+class ChildTable:
+    """Children of an array initializer, materialized only on first access.
+
+    `len()` is the array length, but elements are created lazily so that huge
+    arrays (e.g. `char b[1 << 29]`) cost nothing unless actually initialized.
+    Iterate with `items()` (present elements only), never with `for c in ...`.
+    """
+    __slots__ = ("n", "_make", "_items")
+
+    def __init__(self, n: int, make) -> None:
+        self.n = n
+        self._make = make
+        self._items: dict[int, Initializer] = {}
+
+    def __len__(self) -> int:
+        return self.n
+
+    def __bool__(self) -> bool:
+        return self.n > 0
+
+    def __getitem__(self, i: int) -> Initializer:
+        if i < 0:
+            i += self.n
+        if not 0 <= i < self.n:
+            raise IndexError(i)
+        child = self._items.get(i)
+        if child is None:
+            child = self._items[i] = self._make()
+        return child
+
+    def __iter__(self):
+        raise TypeError("ChildTable: use items() to visit materialized children")
+
+    def items(self) -> list[tuple[int, Initializer]]:
+        """(index, child) for every materialized child, in index order."""
+        return sorted(self._items.items(), key=lambda kv: kv[0])
+
+
+def present_children(children) -> list[tuple[int, Initializer]]:
+    """(index, child) pairs that exist in either a list or a ChildTable."""
+    if children is None:
+        return []
+    if isinstance(children, ChildTable):
+        return children.items()
+    return list(enumerate(children))

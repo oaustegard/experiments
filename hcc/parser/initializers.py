@@ -24,7 +24,12 @@ def new_initializer(ty, is_flexible: bool) -> N.Initializer:
             init.is_flexible = True
             init.children = []
         else:
-            init.children = [new_initializer(ty.base, False) for _ in range(max(ty.array_len, 0))]
+            base = ty.base
+            if ty.array_len > 0:
+                init.children = N.ChildTable(ty.array_len,
+                                             lambda: new_initializer(base, False))
+            else:       # zero-length (may grow as a flexible member): plain list
+                init.children = []
     elif ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
         init.children = [new_initializer(m.ty, False) for m in ty.members]
         # A trailing flexible array member (stored with length 0) grows on demand.
