@@ -23,7 +23,8 @@ _MATH_FLAG_MACROS = {"-fno-math-errno": "__NO_MATH_ERRNO__",
                      "-fassociative-math": "__ASSOCIATIVE_MATH__",
                      "-fno-trapping-math": "__NO_TRAPPING_MATH__",
                      "-freciprocal-math": "__RECIPROCAL_MATH__",
-                     "-frounding-math": "__ROUNDING_MATH__"}
+                     "-frounding-math": "__ROUNDING_MATH__",
+                     "-fno-signed-zeros": "__NO_SIGNED_ZEROS__"}
 
 
 def parse_args(argv: list[str]) -> Options:
