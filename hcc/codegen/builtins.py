@@ -41,8 +41,23 @@ class BuiltinMixin:
         self._alloca_rax()
 
     def _alloca_rax(self) -> None:
-        # NOTE: assumes no pushed temporaries are live (depth == 0) — TODO
+        """Allocate %rax bytes (rounded to 16) on the stack; result in %rax.
+
+        The stack machine may have `self.depth` pushed temporaries live at
+        (%rsp), so the logical base is rsp + depth*8. The block is carved
+        just below that base (16-aligned, gcc-like). The temporaries are
+        copied to just below the block (ascending, so overlap is safe since
+        the destination is always lower), and the block's bottom becomes the
+        new depth-0 base, so later pops never reach the block."""
+        d = self.depth
         self.emit("add $15, %rax")
         self.emit("and $-16, %rax")
-        self.emit("sub %rax, %rsp")
-        self.emit("mov %rsp, %rax")
+        self.emit("mov %rsp, %r11")
+        self.emit(f"add ${d * 8}, %r11")       # r11 = logical base
+        self.emit("sub %rax, %r11")
+        self.emit("and $-16, %r11")            # r11 = block address (new base)
+        for i in range(d):
+            self.emit(f"mov {i * 8}(%rsp), %r10")
+            self.emit(f"mov %r10, {i * 8 - d * 8}(%r11)")
+        self.emit("mov %r11, %rax")
+        self.emit(f"lea {-d * 8}(%r11), %rsp")

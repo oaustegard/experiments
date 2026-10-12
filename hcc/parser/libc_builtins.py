@@ -24,7 +24,7 @@ def _add(ty, names: str) -> None:
         _TABLE[n] = ty
 
 
-_add(_VOID_PTR, "memcpy memmove memset memchr malloc calloc realloc")
+_add(_VOID_PTR, "memcpy memmove memset memchr malloc calloc realloc alloca")
 _add(_CHAR_PTR, "strcpy strncpy strcat strncat strchr strrchr strstr strpbrk")
 _add(_SIZE_T, "strlen strnlen")
 _add(T.TY_VOID, "abort exit _Exit free")
