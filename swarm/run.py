@@ -211,6 +211,7 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
         if r["status"] == "launched":
             procs[r["id"]] = None
     launched = 0
+    idle_tree, idle_since = None, None
     stop_launch = False
     # Full refresh runs in a thread (it can take many minutes); launching and
     # reaping continue meanwhile, merging waits for it.
@@ -254,8 +255,22 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
         if not stop_launch and not overloaded and len(procs) < a.concurrency:
             items = workqueue.build(only(tr.known(ctx), a.only), ledger(ctx), source_size(ctx))
             if not items and not procs and not finished and not refreshing:
-                log("queue empty and nothing in flight")
-                break
+                # Idle: new suites may land on main in tests/ (suite builders commit there).
+                # Refresh when the tests/ tree changed since the last refresh, else wait.
+                tree = subprocess.run(["git", "-C", str(ctx.root), "rev-parse", "HEAD:tests"],
+                                      capture_output=True, text=True).stdout.strip()
+                if tree and tree != idle_tree:
+                    idle_tree = tree
+                    log(f"queue empty; tests/ tree {tree[:10]} not yet baselined, refreshing")
+                    merge.refresh(ctx)
+                    idle_since = None
+                    continue
+                idle_since = idle_since or time.time()
+                if time.time() - idle_since > a.idle_max:
+                    log("queue empty and nothing in flight")
+                    break
+                time.sleep(60)
+                continue
             seq = len(ledger(ctx)) + 1
             for item in items[:a.concurrency - len(procs)]:
                 if a.max_workers and launched >= a.max_workers:
@@ -332,6 +347,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--top", type=int, default=20)
     ap.add_argument("--force", action="store_true", help="run despite preflight problems")
     ap.add_argument("--only", default="", help="comma globs on test ids: dispatch only these failures")
+    ap.add_argument("--idle-max", type=float, default=4 * 3600,
+                    help="seconds to wait with an empty queue for new tests/ commits before exiting")
     ap.add_argument("--max-load", type=float, default=3.0 * (os.cpu_count() or 4),
                     help="no new launches while the 1-min load average is above this")
     a = ap.parse_args(argv)
