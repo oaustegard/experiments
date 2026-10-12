@@ -32,7 +32,12 @@ KEYWORD_ALIASES = {
     "__complex__": "_Complex", "__complex": "_Complex",
     "__real": "__real__", "__imag": "__imag__",
     "__int128_t": "__int128",
+    "thread_local": "_Thread_local",
 }
+
+# Identifiers that are keywords only in C23 (`thread_local` is a macro for
+# _Thread_local in C11's <threads.h>).
+C23_KEYWORDS = frozenset(("constexpr", "thread_local"))
 
 _ESCAPES = {"a": 7, "b": 8, "f": 12, "n": 10, "r": 13, "t": 9, "v": 11, "e": 27, "E": 27,
             "\\": 92, "'": 39, '"': 34, "?": 63}
@@ -228,7 +233,7 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
         if k == TokenKind.IDENT:
             if c23 and t.text in ("true", "false"):
                 t = _c23_bool_const(t)
-            elif t.text in KEYWORDS or (c23 and t.text == "constexpr"):
+            elif t.text in KEYWORDS or (c23 and t.text in C23_KEYWORDS):
                 t = t.copy()
                 t.kind = TokenKind.KEYWORD
                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
