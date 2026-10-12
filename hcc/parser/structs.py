@@ -162,6 +162,8 @@ class StructMixin:
                     m.bit_width = bitfield_width_value(self.conditional(), name, self.toks[start])
                     check_bitfield_width(m, name, self.toks[start])
                 self.parse_attributes(mattr)
+                if m.is_bitfield:
+                    check_bitfield_type(m, name, self.toks[start], mattr.vector_size)
                 m.explicit_align = max(m.explicit_align, mattr.align)
                 if m.explicit_align:
                     m.align = max(m.align, m.explicit_align)
@@ -238,6 +240,18 @@ def check_bitfield_width(m, name, where) -> None:
     if width > limit:
         label = f"'{name.text}'" if name is not None else "bit-field"
         diag.error(name or where, f"width of {label} exceeds its type")
+
+
+def check_bitfield_type(m, name, where, trailing_vector) -> None:
+    """C11 6.7.2.1p5: a bit-field must have an integer (or _Bool/enum) type.
+    `trailing_vector` is a vector_size attribute written after the width, which
+    would make the bit-field's type a vector (gcc: "has invalid type")."""
+    ty = m.ty
+    ok = (ty.kind in (T.TypeKind.BOOL, T.TypeKind.ENUM) or T.is_integer(ty)) \
+        and not ty.is_vector and not trailing_vector
+    if not ok:
+        label = f"'{name.text}'" if name is not None else ""
+        diag.error(name or where, f"bit-field {label} has invalid type".replace("  ", " "))
 
 
 def check_member_complete(ty, name, where) -> None:
