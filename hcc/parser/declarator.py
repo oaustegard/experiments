@@ -236,7 +236,7 @@ class DeclaratorMixin:
             self.next()
             ty = self.type_suffix(ty)
             return T.vla_of(ty, None)
-        expr = self.conditional()
+        expr = self.assign()
         self.expect("]")
         ty = self.type_suffix(ty)
         n = try_eval_const(expr)
