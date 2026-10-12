@@ -32,6 +32,9 @@ class TopLevelMixin:
             if self.at_std_attribute():
                 self.skip_std_attributes()
                 continue
+            if self.at("__extension__"):     # GNU no-op marker: `__extension__ [[]] int a;`
+                self.next()
+                continue
             if self.at("_Static_assert"):
                 self.static_assert()
                 continue
