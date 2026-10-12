@@ -12,12 +12,23 @@ def _root(t: Type) -> Type:
     return t
 
 
+def _enum_as_int(t: Type) -> Type:
+    """An enum type is compatible with its underlying integer type (C11 6.7.2.2):
+    the signed/unsigned int or long of the same size and signedness."""
+    kind = TypeKind.LONG if t.size == 8 else TypeKind.INT
+    return Type(kind, t.size, t.align, bool(t.is_unsigned))
+
+
 def is_compatible(a: Type, b: Type) -> bool:
     if a is b:
         return True
     if a.is_const != b.is_const or a.is_volatile != b.is_volatile or a.is_atomic != b.is_atomic:
         return False
     if a.kind != b.kind:
+        if a.kind == TypeKind.ENUM and b.kind != TypeKind.ENUM:
+            return is_compatible(_enum_as_int(a), b)
+        if b.kind == TypeKind.ENUM and a.kind != TypeKind.ENUM:
+            return is_compatible(a, _enum_as_int(b))
         return False
     k = a.kind
     if k in (TypeKind.CHAR, TypeKind.SHORT, TypeKind.INT, TypeKind.LONG, TypeKind.LLONG,
