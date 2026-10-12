@@ -111,7 +111,9 @@ class StatementMixin:
             self.gen_expr(node.expr)
             ty = node.expr.ty
             if ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
-                if ty.size <= 16:
+                if ty.size == 0:
+                    pass  # empty struct: nothing to return
+                elif ty.size <= 16:
                     self.struct_to_regs(ty)
                 else:
                     self.emit(f"mov {self.ret_ptr_offset}(%rbp), %rdi")
