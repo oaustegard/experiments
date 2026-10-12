@@ -8,6 +8,7 @@ from __future__ import annotations
 from dataclasses import fields, is_dataclass
 
 from hcc.codegen.expressions import _contains_call
+from hcc.sema.constexpr import try_eval_const
 from hcc.typesys import TypeKind, is_flonum
 
 _SETCC = {"==": ("sete", "sete"), "!=": ("setne", "setne"), "<": ("setl", "setb"),
@@ -36,7 +37,12 @@ class ArithMixin:
             return self.float_binary(node)
         # lhs-first when the lhs holds a VLA length binding (a Comma from
         # vla_prefix) that the rhs reads, e.g. `(*(int (*)[n])p)[1]`.
-        if (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
+        rc = None if is_flonum(node.rhs.ty) or node.rhs.ty.size > 8 else try_eval_const(node.rhs)
+        if rc is not None:
+            # constant rhs: no operand needs parking on the stack
+            self.gen_expr(node.lhs)
+            self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
             # Only a call-free operand may be parked on the stack: a value
             # pushed before a call (e.g. setjmp, whose resumption reuses the

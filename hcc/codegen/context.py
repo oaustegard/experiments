@@ -16,6 +16,8 @@ ARG_REGS16 = ["%di", "%si", "%dx", "%cx", "%r8w", "%r9w"]
 ARG_REGS8 = ["%dil", "%sil", "%dl", "%cl", "%r8b", "%r9b"]
 
 
+from hcc.codegen.peephole import fuse_setcc_branch
+
 class CodeGenBase:
 
     def __init__(self, tu, opts=None):
@@ -31,6 +33,8 @@ class CodeGenBase:
 
     # ---- output -------------------------------------------------------------
     def emit(self, line: str) -> None:
+        if line[:2] in ("je", "jn") and fuse_setcc_branch(self.out, line):
+            return
         self.out.append("  " + line)
 
     def label(self, name: str) -> None:
