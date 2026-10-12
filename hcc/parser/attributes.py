@@ -124,6 +124,8 @@ class AttributeMixin:
             attr.is_noreturn = True
         elif name == "weak" and attr is not None:
             attr.is_weak = True
+        elif name == "nocommon" and attr is not None:
+            attr.is_nocommon = True
         elif name == "section" and attr is not None and args:
             attr.section = args[0].value.rstrip(b"\0").decode() if args[0].value else None
         elif name == "visibility" and attr is not None and args:

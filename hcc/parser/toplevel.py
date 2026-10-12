@@ -143,6 +143,7 @@ class TopLevelMixin:
         var.is_static |= attr.is_static
         var.is_tls |= attr.is_tls
         var.is_weak |= attr.is_weak or dattr.is_weak
+        var.is_nocommon |= attr.is_nocommon or dattr.is_nocommon
         var.asm_name = dattr.asm_name or var.asm_name
         var.section = dattr.section or attr.section or var.section
         var.visibility = dattr.visibility or attr.visibility or var.visibility

@@ -66,6 +66,7 @@ class Var(Obj):
     offset: int = 0                         # %rbp-relative, set by codegen
     init_data: GlobalData | None = None
     is_weak: bool = False
+    is_nocommon: bool = False               # __attribute__((nocommon)) on a tentative definition
     section: str | None = None
     visibility: str | None = None
     alias_of: str | None = None             # __attribute__((alias("sym")))
