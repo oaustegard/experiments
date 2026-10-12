@@ -1,15 +1,45 @@
 """GCC vectors whose elements are 128-bit integers (`unsigned __int128`).
 
 Each element is handled as two 64-bit halves (low at +0, high at +8).
-Add/sub use carry/borrow across the halves; bitwise ops act on each half.
-Multiplication, division, remainder and shifts need a real 128-bit
-multiplier/divider and are reported as unsupported rather than miscompiled.
+Add/sub use carry/borrow across the halves; bitwise ops act on each half;
+shifts use shld/shrd plus a cmov for counts >= 64 (count taken mod 128).
+Multiplication, division and remainder need a real 128-bit multiplier/divider
+and are reported as unsupported rather than miscompiled.
 """
 from __future__ import annotations
 
 from hcc import diag
 
-_WIDE_OPS = ("+", "-", "&", "|", "^")
+_WIDE_OPS = ("+", "-", "&", "|", "^", "<<", ">>")
+
+
+def _wide_shift(self, op: str, signed: bool) -> None:
+    """Shift %rax:%rdx (lhs) by the low 64 bits of %rcx (rhs), count taken mod 128.
+    Result in %rax:%rdx. Clobbers %r10, %r11, %r9 and %cl."""
+    self.emit("andq $127, %rcx")
+    if op == "<<":
+        # n < 64: shld/shl; n >= 64: hi = lo << (n-64), lo = 0
+        self.emit("shldq %cl, %rax, %rdx")
+        self.emit("shlq %cl, %rax")
+        self.emit("xorl %r9d, %r9d")
+        self.emit("testq $64, %rcx")
+        self.emit("cmovnzq %rax, %rdx")
+        self.emit("cmovnzq %r9, %rax")
+    else:
+        # n < 64: shrd + shift hi; n >= 64: lo = hi >> (n-64), hi = fill
+        shift = "sarq" if signed else "shrq"
+        self.emit("movq %rdx, %r10")
+        self.emit("movq %rdx, %r11")
+        self.emit("shrdq %cl, %rdx, %rax")
+        self.emit(f"{shift} %cl, %rdx")
+        self.emit(f"{shift} %cl, %r10")
+        if signed:
+            self.emit("sarq $63, %r11")
+        else:
+            self.emit("xorl %r11d, %r11d")
+        self.emit("testq $64, %rcx")
+        self.emit("cmovnzq %r10, %rax")
+        self.emit("cmovnzq %r11, %rdx")
 
 
 class VectorWideMixin:
@@ -26,6 +56,7 @@ class VectorWideMixin:
         self.emit("mov %rax, %rsi")
         self.pop("%r8")
         self.emit(f"lea {node.result_buf.offset}(%rbp), %rdi")
+        signed = not node.lhs.ty.base.is_unsigned
         for i in range(0, size, 16):
             self.emit(f"movq {i}(%rsi), %rax")
             self.emit(f"movq {i + 8}(%rsi), %rdx")
@@ -37,6 +68,8 @@ class VectorWideMixin:
             elif node.op == "-":
                 self.emit("subq %rcx, %rax")
                 self.emit("sbbq %r9, %rdx")
+            elif node.op in ("<<", ">>"):
+                _wide_shift(self, node.op, signed)
             else:
                 mn = {"&": "and", "|": "or", "^": "xor"}[node.op]
                 self.emit(f"{mn}q %rcx, %rax")
