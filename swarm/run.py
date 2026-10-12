@@ -155,6 +155,12 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
     # A rebase of a feature worker's diff is feature-sized too: the small budget cannot re-apply it
     # (28 of the first 29 feature rejections were conflicts that then died as small rebases).
     feature = len(prev) >= FEATURE_AFTER or bool(rebase_of and (led.get(rebase_of) or {}).get("feature"))
+    # Effort ladder (agent-routing: rung 2 is the same model one effort step up, before any tier
+    # jump): the first attempt on a signature runs at the run's --effort, any attempt after a real
+    # failure (a lost merge race is not one) and all feature work runs at high.
+    nfail = sum(1 for r in led.values() if r.get("signature") == item.signature
+                and r.get("status") in ("failed", "rejected", "reverted") and not is_conflict(r))
+    effort = "high" if (feature or nfail >= 1) else a.effort
     timeout = max(a.timeout, 3600) if feature else a.timeout
     task["timeout"] = timeout
     (tdir / "task.jsonl").write_text(json.dumps(task) + "\n")
@@ -168,17 +174,17 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
                "--model", a.model, "--concurrency", "1", "--retries", "0", "--timeout", str(timeout)]
         if a.per_task_usd:
             cmd += ["--max-usd-per-task", str(max(a.per_task_usd, 5.0) if feature else a.per_task_usd)]
-        if a.effort:
-            cmd += ["--effort", a.effort]
+        if effort:
+            cmd += ["--effort", effort]
     logf = open(tdir / "runner.log", "w")
     p = subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
                          start_new_session=True)
     rec = {"id": tid, "key": item.key, "signature": item.signature, "tests": item.tests,
            "targets": item.targets, "base": base, "status": "launched", "pid": p.pid,
            "cost_usd": 0.0, "result": None, "merged_commit": None, "reason": "",
-           "t_launch": time.time(), "model": "fake" if a.fake else a.model, "feature": feature, "rebase_of": rebase_of}
+           "t_launch": time.time(), "model": "fake" if a.fake else a.model, "feature": feature, "rebase_of": rebase_of, "effort": effort}
     ledger_put(ctx, rec)
-    log(f"LAUNCH {tid} [{item.priority}] {'FEATURE ' if feature else ''}{'REBASE ' if rebase_of else ''}{item.key}  tests: {', '.join(item.tests)}")
+    log(f"LAUNCH {tid} [{item.priority}] {'FEATURE ' if feature else ''}{'REBASE ' if rebase_of else ''}{'HIGH ' if effort == 'high' else ''}{item.key}  tests: {', '.join(item.tests)}")
     return {"rec": rec, "proc": p}
 
 
