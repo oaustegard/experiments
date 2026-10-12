@@ -279,6 +279,9 @@ class DeclaratorMixin:
             self.check_array_elem(ty)
             return T.array_of(ty, -1)
         if self.at("*") and self.peek().text == "]":
+            # C11 6.7.6.2p4: `[*]` only in a prototype's parameter list
+            if not getattr(self, "in_proto_params", False):
+                self.error("'[*]' not allowed in other than function prototype scope")
             self.next()
             self.next()
             ty = self.type_suffix(ty)
