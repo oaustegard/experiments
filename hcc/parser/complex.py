@@ -235,6 +235,8 @@ def part(p, operand, which, loc):
 def truth(p, node):
     """A complex value used as a condition: true if either part is nonzero."""
     if not node.ty.is_complex:
+        if node.ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
+            p.error(f"used {node.ty.kind.value} type value where scalar is required", node.loc)
         return node
     loc = node.loc
     tmp = p.new_temp(node.ty, loc)
