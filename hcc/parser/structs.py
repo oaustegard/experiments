@@ -12,6 +12,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc.parser.scope import VarAttr
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
+from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 from hcc.tokens import TokenKind
 from hcc import typesys as T
 
@@ -24,6 +25,7 @@ class StructMixin:
 
     def struct_decl(self, kind):
         attr = VarAttr()
+        attr.reverse_sso = self.sso_reverse     # #pragma scalar_storage_order default
         self.parse_attributes(attr)
         tag = None
         if self.tok.kind == TokenKind.IDENT:
@@ -97,6 +99,9 @@ class StructMixin:
         while not self.accept("}"):
             if at_pack_marker(self):        # #pragma pack inside the body applies to later members
                 consume_pack_marker(self)
+                continue
+            if at_sso_marker(self):
+                consume_sso_marker(self)
                 continue
             if self.at("_Static_assert"):
                 self.static_assert()

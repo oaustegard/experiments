@@ -77,6 +77,8 @@ def parse_args(argv: list[str]) -> Options:
             o.gnu89_inline = True
         elif a == "-fno-asm":
             o.no_asm = True
+        elif a.startswith("-fsso-struct="):
+            o.sso_struct = a.split("=", 1)[1]
         elif a == "-fplan9-extensions":
             o.plan9_extensions = True
         elif a == "-nostdinc":

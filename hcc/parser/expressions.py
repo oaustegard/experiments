@@ -156,13 +156,18 @@ class ExpressionMixin:
             start = self.pos
             allow = self.compound_lit_follows()
             loc = self.next().loc
+            outer_vm = self.vm_typeof
+            self.vm_typeof = []
             ty = self.typename(allow_storage=allow)
+            effects = self.vm_typeof              # `(typeof(vm-expr))x` evaluates vm-expr
+            self.vm_typeof = outer_vm
             self.expect(")")
             if self.at("{"):                      # compound literal
                 self.pos = start
                 return self.unary()
             _check_cast_target(self, loc, ty)
             ty, pre = self.vla_bind(ty, loc)      # `(int (*)[++i])p` evaluates ++i
+            pre = [N.ExprStmt(loc, e) for e in effects] + pre
             operand = self.cast_expr()
             if ty.kind == TypeKind.VOID:
                 return self.vla_prefix(pre, N.Cast(loc, operand, ty=ty), loc)

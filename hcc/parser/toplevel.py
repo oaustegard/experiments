@@ -17,6 +17,7 @@ from hcc import typesys as T
 from hcc.parser.attributes import mode_type
 from hcc.parser.vla import vla_slot_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
+from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
 
@@ -29,6 +30,9 @@ class TopLevelMixin:
                 continue
             if at_pack_marker(self):
                 consume_pack_marker(self)
+                continue
+            if at_sso_marker(self):
+                consume_sso_marker(self)
                 continue
             if self.at_std_attribute():
                 self.skip_std_attributes()

@@ -47,7 +47,11 @@ class PostfixMixin:
             is_tls = allow and self.compound_lit_is_static(("_Thread_local",))
             is_static = allow and (is_tls or self.compound_lit_is_static())
             self.next()
+            outer_vm = self.vm_typeof
+            self.vm_typeof = []
             ty = self.typename(allow_storage=allow)
+            effects = self.vm_typeof        # `(typeof(vm-expr)){...}` evaluates vm-expr first
+            self.vm_typeof = outer_vm
             self.expect(")")
             if self.at("{"):
                 if _array_chain_is_vla(ty):
@@ -57,7 +61,11 @@ class PostfixMixin:
                     self.error(f"invalid use of undefined type '{ty}'", self.tok)
                 ty, pre = self.vla_bind(ty, self.tok.loc)
                 lit = self.compound_literal(ty, is_static, is_tls)
-                return self.postfix_ops(self.vla_prefix(pre, lit, self.tok.loc))
+                lit = self.vla_prefix(pre, lit, self.tok.loc)
+                for e in reversed(effects):
+                    lit = self.typed(N.Comma(self.tok.loc, e, lit,
+                                             lvalue=getattr(lit, "lvalue", False)))
+                return self.postfix_ops(lit)
             self.pos = save
         return self.postfix_ops(self.primary())
 

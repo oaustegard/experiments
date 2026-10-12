@@ -27,6 +27,9 @@ class ParserBase:
         self.objs: list = []                 # TranslationUnit order
         self.pack_align = 0                  # #pragma pack current maximum alignment (0 = none)
         self.pack_stack: list[int] = []      # #pragma pack(push) saved values
+        # -fsso-struct default; #pragma scalar_storage_order default restores it
+        self.sso_default = getattr(opts, "sso_struct", "") == "big-endian"
+        self.sso_reverse = self.sso_default  # #pragma scalar_storage_order in effect
         self.fn: Function | None = None      # function being parsed
         self.locals: list[Var] = []
         self.label_count = 0

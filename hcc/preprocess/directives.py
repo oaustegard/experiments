@@ -15,6 +15,7 @@ from hcc.preprocess.macros import Macro
 from hcc.tokens import Token, TokenKind
 
 PRAGMA_PACK_MARK = "__hcc_pragma_pack"   # marker token: parser applies the #pragma pack state
+PRAGMA_SSO_MARK = "__hcc_pragma_sso"     # marker token: #pragma scalar_storage_order state
 
 
 # -f math flags reflected as predefined macros: macro -> (on flag, off flag).
@@ -274,6 +275,16 @@ class DirectiveMixin:
             self._pack_pragma(hash_tok, line[1:])
         elif line and line[0].text == "weak":
             self._weak_pragma(hash_tok, line[1:])
+        elif line and line[0].text == "scalar_storage_order":
+            self._sso_pragma(hash_tok, line[1:])
+
+    def _sso_pragma(self, hash_tok, args: list[Token]) -> None:
+        """#pragma scalar_storage_order big-endian|little-endian|default is forwarded
+        to the parser as a marker token (value = the argument texts)."""
+        texts = [t.text for t in args]
+        marker = Token(TokenKind.PUNCT, PRAGMA_SSO_MARK, hash_tok.loc)
+        marker.value = texts
+        self.stack.append(marker)
 
     def _weak_pragma(self, hash_tok, line: list[Token]) -> None:
         """#pragma weak sym  /  #pragma weak sym = target: forwarded to the

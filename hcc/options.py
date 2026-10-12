@@ -13,6 +13,7 @@ class Options:
     output: str | None = None
     mode: str = "link"                 # "preprocess" | "asm" | "obj" | "link"
     include_dirs: list[str] = field(default_factory=list)     # -I
+    sso_struct: str = "little-endian"  # -fsso-struct=big-endian|little-endian|native
     quote_dirs: list[str] = field(default_factory=list)       # -iquote
     system_dirs: list[str] = field(default_factory=list)      # -isystem
     after_dirs: list[str] = field(default_factory=list)       # -idirafter
