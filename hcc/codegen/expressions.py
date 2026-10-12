@@ -9,6 +9,7 @@ from __future__ import annotations
 import struct
 
 from hcc.codegen.bitfield_rev import assign_rev_bitfield, load_rev_bitfield
+from hcc.codegen.bitfield_wide import assign_wide_bitfield, load_wide_bitfield
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.initializers import float_to_x87
 from dataclasses import fields, is_dataclass
@@ -86,6 +87,9 @@ class ExpressionMixin:
         m = node.member
         if m.is_bitfield and m.rev_bytes:
             load_rev_bitfield(self, m)
+        elif m.is_bitfield and m.ty.size == 16:
+            load_wide_bitfield(self, m)
+            return
         else:
             self.load(node.ty)
         if m.is_bitfield:
@@ -112,6 +116,9 @@ class ExpressionMixin:
         lhs = node.lhs
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.rev_bytes:
             assign_rev_bitfield(self, node)
+            return
+        if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield and lhs.member.ty.size == 16:
+            assign_wide_bitfield(self, node)
             return
         if type(lhs).__name__ == "Member_" and lhs.member.is_bitfield:
             m = lhs.member
