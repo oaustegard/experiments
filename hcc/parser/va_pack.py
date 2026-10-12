@@ -38,29 +38,43 @@ def is_pack_placeholder(node) -> bool:
     return type(node) is N.BuiltinCall and node.name == PACK
 
 
-def _uses_pack(node) -> bool:
+def _uses_pack(node, seen=None) -> bool:
+    # The AST is a DAG in places (Switch.cases shares its Case nodes with the
+    # switch body), so every node is visited once; otherwise nested switches
+    # cost 2^depth.
+    if seen is None:
+        seen = set()
     if type(node) is N.BuiltinCall and node.name in PLACEHOLDERS:
         return True
     if isinstance(node, N.Node):
-        return any(_uses_pack(getattr(node, f.name, None)) for f in fields(node))
+        if id(node) in seen:
+            return False
+        seen.add(id(node))
+        return any(_uses_pack(getattr(node, f.name, None), seen) for f in fields(node))
     if isinstance(node, list):
-        return any(_uses_pack(x) for x in node)
+        return any(_uses_pack(x, seen) for x in node)
     return False
 
 
-def _clone_tree(node):
+def _clone_tree(node, memo=None):
     """Structural copy of a node tree. Types and Obj references are shared (so
     VarRef identity and singleton types keep working); the Node objects and
-    lists are fresh so that the clone can be rewritten independently."""
+    lists are fresh so that the clone can be rewritten independently. Nodes
+    shared in the source (see _uses_pack) stay shared in the copy."""
+    if memo is None:
+        memo = {}
     if isinstance(node, N.Node):
+        if id(node) in memo:
+            return memo[id(node)]
         new = copy.copy(node)
+        memo[id(node)] = new
         for f in fields(node):
             val = getattr(node, f.name, None)
             if isinstance(val, (N.Node, list)):
-                setattr(new, f.name, _clone_tree(val))
+                setattr(new, f.name, _clone_tree(val, memo))
         return new
     if isinstance(node, list):
-        return [_clone_tree(x) for x in node]
+        return [_clone_tree(x, memo) for x in node]
     return node
 
 
@@ -87,23 +101,32 @@ class _PackSpecialiser:
 
     # -- tree rewrite -------------------------------------------------------
 
-    def rewrite(self, node, pack_vars):
+    def rewrite(self, node, pack_vars, done=None):
+        # `done` maps already-rewritten nodes (the AST is a DAG, see _uses_pack)
+        # so each node is processed once and shared nodes stay shared.
+        if done is None:
+            done = {}
         if isinstance(node, list):
             out = []
             for x in node:
                 if type(x) is N.BuiltinCall and x.name == PACK:
                     out.extend(N.VarRef(x.loc, v, ty=v.ty) for v in pack_vars)
                 else:
-                    out.append(self.rewrite(x, pack_vars))
+                    out.append(self.rewrite(x, pack_vars, done))
             return out
         if not isinstance(node, N.Node):
             return node
+        if id(node) in done:
+            return done[id(node)]
+        done[id(node)] = node
         if type(node) is N.BuiltinCall and node.name == PACK_LEN:
-            return N.IntLit(node.loc, len(pack_vars), ty=T.TY_INT)
+            res = N.IntLit(node.loc, len(pack_vars), ty=T.TY_INT)
+            done[id(node)] = res
+            return res
         for f in fields(node):
             val = getattr(node, f.name, None)
             if isinstance(val, (N.Node, list)):
-                setattr(node, f.name, self.rewrite(val, pack_vars))
+                setattr(node, f.name, self.rewrite(val, pack_vars, done))
         if type(node) is N.Call:
             self.redirect_call(node)
         return node
