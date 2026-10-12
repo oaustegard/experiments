@@ -50,6 +50,11 @@ def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
         src = src.replace(r"  | (?P<lc>//[^\n]*)" + "\n", "")
         # C89/C90 do not allow extended (non-ASCII) characters in identifiers.
         src = src.replace(r"\u0080-\U0010ffff", "")
+        # ... and no universal character names (\uXXXX) inside identifiers
+        # either: `aª` lexes as `a`, `\`, `u00aa` (GCC -std=c89).
+        head, sep, tail = src.partition("(?P<id>")
+        tail = tail.replace(r"|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8}", "")
+        src = head + sep + tail
     if not u8_chars:
         # u8'x' character constants exist only in C23; before that `u8` is an identifier.
         src = src.replace("(?P<chr>(?:u8|u|U|L)?", "(?P<chr>(?:u|U|L)?")
