@@ -259,6 +259,9 @@ class DeclaratorMixin:
         """Reject arrays whose element type is incomplete (C11 6.7.6.2p1)."""
         if ty.kind == T.TypeKind.VLA:
             return
+        if ty.kind == T.TypeKind.VOID:
+            # C11 6.7.6.2p1: the element type of an array must be a complete object type
+            self.error("declaration of type name as array of voids", self.tok)
         if (ty.kind == T.TypeKind.ARRAY and ty.array_len < 0) or \
                 (ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not ty.is_complete):
             self.error("array type has incomplete element type", self.tok)
