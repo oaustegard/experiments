@@ -180,6 +180,10 @@ class DeclaratorMixin:
             finally:
                 self.in_proto_params = saved_proto
                 self.in_param_decl = saved_pdecl
+            if pty.kind == T.TypeKind.VOID and (pty.is_const or pty.is_volatile or attr.is_register):
+                # C23 6.7.6.3p10: a parameter of type void may not be qualified
+                # (`const void`, `cv` typedef, `register void`); `const void *` is fine.
+                self.error("'void' as only parameter may not be qualified")
             self.parse_attributes()
             dim = None
             if (pty.kind == T.TypeKind.ARRAY and not pty.is_vector) or pty.kind == T.TypeKind.VLA:
