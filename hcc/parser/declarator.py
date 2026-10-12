@@ -200,6 +200,10 @@ class DeclaratorMixin:
         fty.proto_scope = self.scopes[-1]
         self.in_proto_params = outer_proto
         self.leave_scope()
+        if len(params) == 1 and names[0] is None and params[0].kind == T.TypeKind.VOID:
+            # C23 6.7.6.3p10: a sole unnamed parameter of type void (e.g. from
+            # `typeof (*vp)`, not just the keyword) means an empty `(void)` list.
+            params, names, pvars, pdims = [], [], [], []
         fty.params = params
         fty.param_names = names
         fty.param_vars = pvars
