@@ -77,7 +77,12 @@ class EnumMixin:
         if tag is not None and not self.at("{"):
             if fixed is not None:
                 self.enum_fixed_fwd = tag     # bodyless `enum e : T`: an empty declaration
-            ty = self.find_tag(tag.text)
+            # C23 `enum e : T ;` is a declaration of a tag in the current scope
+            # (like `struct s;`): it never refers to an outer `enum e`.
+            if fixed is not None and self.at(";"):
+                ty = self.scopes[-1].tags.get(tag.text)
+            else:
+                ty = self.find_tag(tag.text)
             if ty is None:
                 self.check_tag_in_auto_init(tag)
                 ty = T.enum_type()
