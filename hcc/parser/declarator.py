@@ -82,7 +82,9 @@ class DeclaratorMixin:
                     if depth == 0:
                         break
         nxt = self.peek(i)
-        return nxt.text == ")" and nxt.kind == TokenKind.PUNCT or self.is_typename(nxt)
+        if nxt.kind == TokenKind.PUNCT and nxt.text in (")", "..."):
+            return True          # `int (void-less)` or variadic `int (...)`
+        return self.is_typename(nxt)
 
     def _skip_declarator(self) -> None:
         depth = 0
