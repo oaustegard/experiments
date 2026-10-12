@@ -1,0 +1,8 @@
+print(string.format("%5d|%-5d|%05d|%+d|% d", 42, 42, 42, 42, 42))
+print(string.format("%x|%X|%#x|%o|%c|%i", 255, 255, 255, 8, 65, 7))
+print(string.format("%e|%E|%.3e|%g|%G|%a", 12345.6789, 12345.6789, 0.00012345, 1e20, 1e-10, 1.0))
+print(string.format("%10.3f|%-10.2f|%.0f|%#.0f|%f", 3.14159, 2.5, 2.5, 2.5, 1/3))
+print(string.format("%s|%10s|%-10s|%.2s|%q", "str", "right", "left", "truncate", 'q"uo\te\n'))
+print(string.format("%q %q %q %q", 1, 1.5, math.mininteger, 1/0))
+print(pcall(string.format, "%d", 1.5), pcall(string.format, "%z", 1), pcall(string.format, "%d"))
+print(#string.format("%99d", 1), pcall(string.format, "%100d", 1))

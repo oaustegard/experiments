@@ -1,0 +1,5 @@
+print(1, 1.0, -0.0, 3 // 2, 3.0 // 2, -3 // 2, 3 % -2, -3 % 2, 3.5 % 2, 2^2, 7 // 0.0, -7 // 0.0, 0/0 ~= 0/0)
+print(math.maxinteger + 1 == math.mininteger, math.maxinteger * 2, math.mininteger // -1, pcall(function() return 1 // 0 end))
+print(1e15, 1e16, 2^53, 2^63, 123456789012345678, 0.1 + 0.2, 100 // 1e-1, 3 | 0, pcall(function() return 3.5 | 0 end))
+print(string.format("%d %s %g %.14g", 3, 3.0, 3.0, 0.1), tostring(2^31), 1 < 1.5, math.tointeger("8"), math.tointeger(2^53))
+print(8 // 3 * 3 + 8 % 3, (-8) // 3 * 3 + (-8) % 3, 5.3 % -2, -5.3 % 2, 1e308 * 10 // 1, math.fmod(-5, 3), math.fmod(5, -3))

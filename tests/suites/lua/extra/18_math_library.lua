@@ -1,0 +1,8 @@
+print(math.abs(-5), math.abs(math.mininteger), math.ceil(1.2), math.ceil(-1.2), math.floor(1.8), math.floor(-1.8), math.floor(2^70), math.max(1, 5, 3), math.min(4.5, 2), pcall(math.max))
+print(math.sqrt(16), math.sqrt(2), math.sin(0), math.cos(0), math.tan(0), math.asin(1), math.acos(1), math.atan(1), math.atan(1, -1), math.exp(0), math.log(1), math.log(8, 2), math.log(100, 10), math.log(2, 4))
+print(math.pi, math.huge, -math.huge, math.maxinteger, math.mininteger, math.tointeger(3.0), math.tointeger(3.5), math.tointeger("x"), math.type(1), math.type(1.0), math.type("1"), math.ult(1, -1), math.ult(-1, 1))
+print(math.fmod(7, 3), math.fmod(-7, 3), math.fmod(7, -3), math.fmod(7.5, 2), pcall(math.fmod, 1, 0), math.fmod(1, 0.0), math.modf(3.7), math.modf(-3.7), math.modf(math.huge), math.modf(5))
+math.randomseed(42) local a = {math.random(), math.random(10), math.random(5, 7)} math.randomseed(42) local b = {math.random(), math.random(10), math.random(5, 7)} print(a[1] == b[1], a[2] == b[2], a[3] == b[3], a[1] >= 0 and a[1] < 1, a[2] >= 1 and a[2] <= 10)
+print(pcall(math.random, 0), pcall(math.random, 2, 1), math.random(3, 3), pcall(math.random, 1, 2, 3), math.random(math.mininteger, math.maxinteger) ~= nil)
+print(7 // 2, 7.0 // 2, -7 // 2, 7 % 3, -7 % 3, 7 % -3, 2^0.5 == math.sqrt(2), 10 // 3 * 3 + 10 % 3, 5 // 0.0, -5 // 0.0, 0.0 / 0.0 ~= 0.0 / 0.0, 3 % math.huge, -3 % math.huge, pcall(function() return 3 % 0 end))
+local s = 0 for i = 1, 1000 do s = s + math.sin(i) * math.cos(i) end print(string.format("%.10f", s))

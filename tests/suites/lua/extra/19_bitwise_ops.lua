@@ -1,0 +1,6 @@
+print(5 & 3, 5 | 3, 5 ~ 3, ~5, 1 << 4, 256 >> 4, -1 >> 1, -1 << 1, 1 << 63, 1 << 64, 1 >> -1, 1 << -1, 2^53 | 0, pcall(function() return "3" | 0 end), pcall(function() return 1.5 | 0 end), pcall(function() return "a" | 0 end))
+print(0xFF, 0xff & 0x0f, 0x7fffffffffffffff, 0xffffffffffffffff, 0x1p4, 0x.8, 0xA.8p0, 1e2 | 0, math.maxinteger // 1 | 0, -0x8000000000000000)
+local function popcount(n) local c = 0 while n ~= 0 do c = c + (n & 1) n = n >> 1 end return c end print(popcount(255), popcount(-1), popcount(0x5555555555555555))
+local h = 5381 for i = 1, 200 do h = ((h << 5) + h + i) & 0xFFFFFFFF end print(h)
+local x = 0x12345678 print(string.format("%08x %08x %08x", x << 4 & 0xFFFFFFFF, x >> 4, ((x << 8) | (x >> 24)) & 0xFFFFFFFF))
+print(3 & 2.0, pcall(function() return 3 & 2.5 end), pcall(function() return 2^64 | 0 end), math.tointeger(2^63), -2^63 | 0)

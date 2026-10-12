@@ -1,0 +1,7 @@
+print("10" + 5, "3" * "4", 10 .. 20, "0x10" + 0, "1e1" + 0, " 5 " + 0, pcall(function() return "abc" + 1 end), pcall(function() return {} .. "x" end))
+print("a" < "b", "a" < "B", "" < "a", "abc" < "abd", "Z" < "a", "10" < "9", pcall(function() return 1 < "2" end), "a\0b" < "a\0c", "a\0" > "a")
+print(1 == 1.0, "1" == 1, 0 == -0, 1/0 == math.huge, "abc" == "abc", {} == {}, math.type(2^31 | 0), 2^31 | 0, "10" + 0 == 10, "0x10" == 16)
+print(tostring(1e100), tostring(-1e-100), tostring(1/3), tostring(100), tostring(100.0), tostring(1e15), tostring(2^63), tostring(-2^63), 123456.789e3, 0.1 + 0.2 == 0.3, 255 // 1 | 0)
+print(#tostring(print) > 0, tostring(print):match("^builtin") or tostring(print):match("^function"), tostring({}):match("^table: ") ~= nil, tostring(coroutine.create(print)):match("^thread: ") ~= nil)
+print(("x"):rep(3) == "xxx", "a" .. "b" .. "c" == "abc", "a" .. 1 + 2, 2 ^ 3 ^ 2, -2 ^ 2, not nil == true, not 0, 1 and 2, nil and 1, false or "d", nil or false, 1 or error("no"))
+print(#"abc" + 1, -"2", - -"2", "5" // 2, "5" % 3, 10 // "3", pcall(function() return -{} end), 2^"2", "2"^2, pcall(function() return "8" | 1 end), pcall(function() return "8.5" | 1 end))

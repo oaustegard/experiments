@@ -1,0 +1,7 @@
+print(utf8.char(72, 228, 8364, 128512), utf8.charpattern, utf8.len("häl€😀"), utf8.len("\xff"), utf8.len("abc", 4), utf8.len("abc", 5 - 1))
+for p, c in utf8.codes("aä€😀") do io.write(p, "=", c, " ") end print()
+print(utf8.codepoint("häl", 1, -1)) print(utf8.offset("häl€", 3), utf8.offset("häl€", -1), utf8.offset("abc", 5), pcall(utf8.codepoint, "\xff"))
+print(pcall(utf8.char, -1), utf8.char(0x7FFFFFFF):byte(1, -1)) print(utf8.len("\u{D7FF}"), utf8.len("\u{10FFFF}"), utf8.len("\u{110000}", 1, -1, true), utf8.len("\u{110000}"))
+for _, c in utf8.codes("ab", true) do io.write(c, " ") end print() print(pcall(function() for _ in utf8.codes("a\xffb") do end end))
+print(("héllo"):upper(), ("ÀB"):lower(), #("€"):rep(3), ("日本語"):len(), utf8.len("日本語"), ("日本語"):sub(1, 3), ("日本語"):match(utf8.charpattern))
+local t = {} for ch in ("a€b"):gmatch(utf8.charpattern) do t[#t + 1] = #ch end print(table.concat(t, ","))

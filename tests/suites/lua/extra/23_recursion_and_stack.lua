@@ -1,0 +1,8 @@
+local function depth(n) if n == 0 then return 0 end return 1 + depth(n - 1) end print(depth(100), depth(5000), pcall(depth, 150000))
+local function tail(n, acc) if n == 0 then return acc end return tail(n - 1, acc + 1) end print(tail(1000000, 0))
+local function ack(m, n) if m == 0 then return n + 1 elseif n == 0 then return ack(m - 1, 1) else return ack(m - 1, ack(m, n - 1)) end end print(ack(2, 3), ack(3, 3))
+local ok, err = pcall(function() local function inf() return 1 + inf() end return inf() end) print(ok, (tostring(err):gsub("^.-:%d+: ", "")))
+local co = coroutine.wrap(function() return depth(1000) end) print(co())
+local t = {} for i = 1, 100 do t = {t} end local function d(x) return x[1] and 1 + d(x[1]) or 0 end print(d(t))
+local s = string.rep("(", 150) .. "1" .. string.rep(")", 150) print(load("return " .. s) ~= nil, load("return " .. string.rep("(", 300) .. "1" .. string.rep(")", 300)))
+print(select("#", table.unpack({}, 1, 200)), pcall(table.unpack, {}, 1, 1e7), pcall(string.rep, "x", 1 << 40))

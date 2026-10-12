@@ -1,0 +1,8 @@
+print(("abc"):rep(3, "-"), ("x"):rep(0), ("x"):rep(-1), ("abc"):reverse(), ("MiXed"):upper(), ("MiXed"):lower(), ("abc"):len(), #"\0\0")
+print(("hello"):sub(2, 3), ("hello"):sub(-3), ("hello"):sub(2), ("hello"):sub(0), ("hello"):sub(10), ("hello"):sub(-100, 2), ("hello"):sub(3, 2))
+print(("A"):byte(), ("ABC"):byte(1, -1), string.char(72, 101, 108, 108, 111), pcall(string.char, 256), ("é"):byte(1, -1))
+print(tostring(12), tostring(1.5), tostring(nil), tostring(true), tonumber("0x10"), tonumber("10", 2), tonumber("  5  "), tonumber("5x"), tonumber("1e1"), tonumber(""), tonumber("z", 36))
+print(#"héllo", utf8.len("héllo"), utf8.char(233, 8364), utf8.codepoint("héllo", 1, -1))
+print(table.concat({1, 2, 3}, ", "), table.concat({}, "x"), table.concat({"a"}, "x"), table.concat({1, 2, 3}, "-", 2, 3), pcall(table.concat, {{}}))
+print(select("#"), select("#", nil, nil), select(2, "a", "b", "c"), select(-1, "a", "b", "c"), pcall(select, 0))
+print(("x"):rep(3, ", "), ("%d items"):format(3), ("abc"):find("b", 1, true), #("x"):rep(1000), ("a,b"):find(",", 1, true))

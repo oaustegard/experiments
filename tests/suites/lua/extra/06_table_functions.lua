@@ -1,0 +1,10 @@
+local t = {5, 2, 8, 1, 9, 3}
+table.sort(t) print(table.concat(t, " "))
+table.sort(t, function(a, b) return a > b end) print(table.concat(t, " "))
+print(table.unpack({1, 2, 3})) print(table.unpack({1, 2, 3}, 2)) print(table.unpack({1, 2, 3}, 2, 5)) print(table.pack(1, nil, 3).n, #table.pack())
+table.insert(t, 100) table.insert(t, 1, 0) print(table.concat(t, ","), table.remove(t), table.remove(t, 1), table.remove({}), #t)
+print(table.concat(table.move({1, 2, 3}, 1, 3, 3), ","), table.concat(table.move({1, 2, 3}, 2, 3, 1), ","), table.concat(table.move({1, 2}, 1, 2, 1, {9, 9, 9}), ","))
+print(pcall(table.insert, {1, 2}, 5, 1), pcall(table.insert, {}, 1, 2, 3), pcall(table.sort, {3, 2, "x"}))
+local names = {"bob", "Alice", "carol", "Dave"} table.sort(names) print(table.concat(names, " ")) table.sort(names, function(a, b) return a:lower() < b:lower() end) print(table.concat(names, " "))
+local big = {} for i = 1, 500 do big[i] = (i * 7919) % 1009 end table.sort(big) local ok = true for i = 2, #big do ok = ok and big[i - 1] <= big[i] end print(ok, big[1], big[500], #big)
+print(#{1, 2, 3, nil, 5}, #{n = 3}, #{[1] = 1, [2] = 2}, next({}), rawlen({1, 2}), rawlen("abc"), rawequal("a", "a"), rawget(setmetatable({}, {__index = function() return 1 end}), "x"))
