@@ -12,7 +12,7 @@ from hcc.codegen import asm_ext
 class AsmMixin:
 
     def stmt_Asm(self, node) -> None:
-        if node.outputs or node.inputs:
+        if node.extended or node.outputs or node.inputs:
             asm_ext.lower_extended(self, node)
             return
         self.out.append(node.text)
