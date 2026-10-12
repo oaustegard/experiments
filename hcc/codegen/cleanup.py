@@ -22,9 +22,14 @@ class CleanupMixin:
 
     def run_cleanups(self, depth: int) -> None:
         """Emit the cleanup calls pushed above `depth`, innermost first."""
-        for call in reversed(self.cleanup_stack[depth:]):
+        stack = self.cleanup_stack
+        for j in reversed(range(depth, len(stack))):
+            call = stack[j]
+            # while `call` runs, only the cleanups below it are still pending (unwinding)
+            self.unwind_override = list(stack[:j])
             self.gen_expr(call)
             self.discard_value(call.ty)
+        self.unwind_override = None
 
     def end_cleanup_scope(self, depth: int, falls_through: bool) -> None:
         """A block with mark `depth` ends: run its cleanups if control reaches the end,

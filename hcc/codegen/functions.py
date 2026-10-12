@@ -127,6 +127,7 @@ class FunctionMixin:
             self.directive(f".{fn.visibility} {sym}")
         self.directive(f".type {sym}, @function")
         self.label(sym)
+        self.unwind_begin()
         params, gp_named, fp_named, stack_end = self._classify_params(fn)
         stack_params = {p for p, w in params if w[0] == "stack"}
         for p, w in params:
@@ -135,7 +136,10 @@ class FunctionMixin:
         size = self.layout_frame(fn, stack_params)
         self.va_info = (gp_named, fp_named, stack_end)
         self.emit("push %rbp")
+        self.directive(".cfi_def_cfa_offset 16")
+        self.directive(".cfi_offset 6, -16")
         self.emit("mov %rsp, %rbp")
+        self.directive(".cfi_def_cfa_register 6")
         if size and size < (1 << 31):
             self.emit(f"sub ${size}, %rsp")
         elif size:
@@ -188,9 +192,13 @@ class FunctionMixin:
             self.emit(f"je {ok}")
             self.emit("call __stack_chk_fail")
             self.label(ok)
+        self.directive(".cfi_remember_state")
         self.emit("mov %rbp, %rsp")
         self.emit("pop %rbp")
+        self.directive(".cfi_def_cfa 7, 8")
         self.emit("ret")
+        self.directive(".cfi_restore_state")
+        self.unwind_finish(sym, size)
         self.directive(f".size {sym}, .-{sym}")
         self.directive(f".set .Lframe.{sym}, {size}")
         self.fn = None
