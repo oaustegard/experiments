@@ -19,6 +19,7 @@ from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
 from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, pointer_to
 from hcc.parser.plan9_ptr import plan9_pointer_conv
+from hcc.parser.addr_operand import is_rvalue_operand
 from hcc.parser import complex as CPX
 
 ASSIGN_OPS = {"=": None, "+=": "+", "-=": "-", "*=": "*", "/=": "/", "%=": "%", "&=": "&",
@@ -200,6 +201,8 @@ class ExpressionMixin:
             if s == "&":
                 self.next()
                 operand = self.cast_expr()
+                if is_rvalue_operand(operand):
+                    self.error("lvalue required as unary '&' operand", t)
                 if isinstance(operand, N.Member_) and operand.member.is_bitfield:
                     self.error("cannot take address of bit-field", t)
                 if operand.ty is not None and operand.ty.is_rev_order:
