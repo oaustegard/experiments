@@ -244,3 +244,30 @@ Hub worker outcomes: 369 merged, 245 rejected, 239 failed, 1 reverted, 15 in fli
 Losses by reason: worker reported failed 194, conflict applying onto main 176, empty diff
 64, worker reported partial 43. The 16:53Z draft counted 950 hub workers because it
 included ingested sibling candidates; `stats.py` now counts those under their sibling.
+
+### 18:19–21:37Z: rounds 19 to 22, quick refresh, queue empty
+
+At 18:15Z the hub merged 9 of the 10 run-3 Haiku patches (`esc3-c00` to `c09`); `c00` fixed
+Doom's three demo replays, and `c03` conflicted with another candidate in its batch and then
+with main. At 18:37Z the hub
+ran a full refresh after about 200 merges. It finished at 19:19Z with 82 regressions that
+the gate's 80-test sample had missed. The bisect named 73daae00 (`__attribute__((cleanup))`),
+256 commits back; its revert conflicted, and the gate accepted the regressions into the
+known state so that workers would pick them up as ordinary failures. Commit 2cddfd3d at
+19:49Z added a quick refresh: the fast suites (smoke, c-testsuite, chibicc, GCC torture)
+every 25 merges, bisecting only over those merges, so a culprit is still recent when found.
+It is covered by the orchestrator selftest; round 21 merged only 7 times, so it never fired
+in production.
+
+Round 21 ran out of work at 20:12Z: its last 7 workers fixed C23 enum, constexpr and typeof
+cases in gcc-dg and gcc-dg-compile, which left no failing test in its dispatch set (`--only`:
+the conformance suites, reject-gcc-dg and gcc-dg-compile). The 122 failures still in the
+known state were Redis 100, Mbed TLS 20 and QuickJS 2, outside every late round's
+dispatch set. It idled until it was stopped at 21:37Z.
+
+Two harness faults from this stretch: a worker's background task wrote 4.3 GB under Claude
+Code's per-directory temp directory (`/tmp/claude-<uid>/<cwd>`), which the scratch cleanup
+did not cover, and a kill at 16:58Z between pushing the federation state commit and saving
+its parent made every later `hcc/state` push non-fast-forward until 0845a36b chained the
+commit onto the fetched remote tip. Both are fixed in `swarm/run.py` reap and
+`swarm/federation.py`.
