@@ -50,6 +50,8 @@ class EnumMixin:
                 ty = T.enum_type()
                 ty.tag = tag.text
                 self.scopes[-1].tags[tag.text] = ty
+                if fixed is None:
+                    ty.enum_consts = "fwd"    # forward ref: no body, no fixed type (incomplete)
             if fixed is not None:
                 self.apply_fixed_underlying(ty, fixed)
             return ty
