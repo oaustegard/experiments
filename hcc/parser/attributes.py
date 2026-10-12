@@ -194,6 +194,12 @@ class AttributeMixin:
             if not counts[0] <= n <= counts[1]:
                 self.error("wrong number of arguments specified for '%s' attribute" % name,
                            self.toks[args_start - 1] if args_start > 0 else None)
+        if name == "scalar_storage_order" and args:
+            if (args[0].kind != TokenKind.STRING
+                    or args[0].value.rstrip(b"\0") not in (b"big-endian", b"little-endian")):
+                self.error("attribute 'scalar_storage_order' argument must be one of "
+                           "'big-endian' or 'little-endian'",
+                           self.toks[args_start - 1] if args_start > 0 else None)
         if name == "copy" and args and args[0].kind == TokenKind.STRING:
             self.error("'copy' attribute argument cannot be a string",
                        self.toks[args_start - 1] if args_start > 0 else None)
