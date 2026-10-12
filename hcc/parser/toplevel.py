@@ -58,6 +58,7 @@ class TopLevelMixin:
             if dattr.vector_size:
                 ty = T.vector_of(ty, dattr.vector_size)
             if attr.is_typedef:
+                ty = self.typedef_aligned(ty, attr, dattr)
                 self.scopes[0].vars[name.text] = VarScope(type_def=ty)
             elif ty.kind == T.TypeKind.FUNC:
                 fn = self.declare_function(ty, name, attr, dattr)

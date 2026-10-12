@@ -110,6 +110,16 @@ class AttributeMixin:
         elif name == "mode" and attr is not None and args:
             attr.mode = args[0].text.strip("_")
 
+    def typedef_aligned(self, ty, attr, dattr):
+        """`typedef T X __attribute__((aligned(N)))`: raise the typedef's alignment.
+
+        Returns a copy of `ty` (never mutates a shared type) when N is larger."""
+        al = max(attr.align, dattr.align)
+        if al > ty.align:
+            ty = ty.copy()
+            ty.align = al
+        return ty
+
     def parse_asm_label(self, attr) -> None:
         """`asm("name")` following a declarator (glibc redirects)."""
         while self.at("asm"):

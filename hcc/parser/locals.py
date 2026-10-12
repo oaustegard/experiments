@@ -42,6 +42,7 @@ class LocalDeclMixin:
             if name is None:
                 self.error("identifier expected in declaration")
             if attr.is_typedef:
+                ty = self.typedef_aligned(ty, attr, dattr)
                 ty, pre = self.vla_bind(ty, name.loc)
                 items.extend(pre)
                 self.push_scope_entry(name.text).type_def = ty
