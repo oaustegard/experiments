@@ -12,7 +12,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.parser.jump_scope import JumpScopes
 from hcc.parser.scope import VarAttr, VarScope
-from hcc.parser.declspec import constexpr_type
+from hcc.parser.declspec import constexpr_type, check_empty_inline
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import composite_redecl, redecl_conflicts
 from hcc.sema.incomplete import is_incomplete_object
@@ -57,6 +57,7 @@ class TopLevelMixin:
                 continue
             attr = VarAttr()
             basety = self.declspec(attr)
+            check_empty_inline(self, attr)
             if self.accept(";"):
                 continue
             if basety is None:                  # file-scope __auto_type x = expr;

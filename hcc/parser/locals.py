@@ -11,7 +11,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser.scope import VarAttr
-from hcc.parser.declspec import constexpr_type
+from hcc.parser.declspec import constexpr_type, check_empty_inline
 from hcc.sema.constexpr import try_eval_const
 from hcc.parser.initializers import const_bytes
 from hcc.parser.attributes import mode_type
@@ -59,6 +59,7 @@ class LocalDeclMixin:
         attr = VarAttr()
         self.vm_typeof = []
         basety = self.declspec(attr)
+        check_empty_inline(self, attr)
         items = [N.ExprStmt(e.loc, e) for e in self.vm_typeof]
         self.vm_typeof = []
         first = True

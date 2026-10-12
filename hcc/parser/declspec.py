@@ -331,6 +331,12 @@ def _qualified_vector(vty, is_const, is_volatile):
     return T.vector_of(elem, vty.size)
 
 
+def check_empty_inline(self, attr) -> None:
+    """`int inline;` has no declarator: GCC rejects the function specifier there."""
+    if attr is not None and attr.is_inline and self.at(";"):
+        self.error("'inline' in empty declaration", self.tok.loc)
+
+
 def _check_empty_tag_decl(self, tag_hit, quals: bool, storage: set) -> None:
     """C99 6.7.2.3p8: `const struct T;` / `extern union T;` with T visible does not redeclare T."""
     if not (quals or storage):
