@@ -265,6 +265,10 @@ class DeclaratorMixin:
         if (ty.kind == T.TypeKind.ARRAY and ty.array_len < 0) or \
                 (ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not ty.is_complete):
             self.error("array type has incomplete element type", self.tok)
+        elif ty.align > 0 and ty.size % ty.align != 0 and ty.is_complete:
+            # GCC: `aligned` on a typedef raises the alignment without padding the size,
+            # so the element stride would be misaligned; gcc rejects such arrays.
+            self.error("size of array element is not a multiple of its alignment", self.tok)
 
     def array_dims(self, ty):
         while (self.at("static") or self.at("const") or self.at("volatile")
