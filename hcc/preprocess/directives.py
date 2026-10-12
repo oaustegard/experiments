@@ -16,6 +16,7 @@ from hcc.tokens import Token, TokenKind
 
 PRAGMA_PACK_MARK = "__hcc_pragma_pack"   # marker token: parser applies the #pragma pack state
 PRAGMA_SSO_MARK = "__hcc_pragma_sso"     # marker token: #pragma scalar_storage_order state
+PRAGMA_IVDEP_MARK = "__hcc_pragma_ivdep"  # marker token: #pragma GCC ivdep before a loop
 
 
 # -f math flags reflected as predefined macros: macro -> (on flag, off flag).
@@ -282,6 +283,9 @@ class DirectiveMixin:
             self._weak_pragma(hash_tok, line[1:])
         elif line and line[0].text == "scalar_storage_order":
             self._sso_pragma(hash_tok, line[1:])
+        elif len(line) == 2 and line[0].text == "GCC" and line[1].text == "ivdep":
+            marker = Token(TokenKind.PUNCT, PRAGMA_IVDEP_MARK, hash_tok.loc)
+            self.stack.append(marker)
 
     def _sso_pragma(self, hash_tok, args: list[Token]) -> None:
         """#pragma scalar_storage_order big-endian|little-endian|default is forwarded

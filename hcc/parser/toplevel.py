@@ -22,6 +22,7 @@ from hcc.parser.attributes import mode_type
 from hcc.parser.vla import vla_slot_type
 from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
+from hcc.parser.pragma_ivdep import at_ivdep_marker, consume_ivdep_marker
 from hcc.parser.knr_check import knr_param_index
 from hcc.parser.redecl import check_redecl
 from hcc.parser.libc_protos import builtin_shape_matches, libc_prototype
@@ -41,6 +42,9 @@ class TopLevelMixin:
                 continue
             if at_sso_marker(self):
                 consume_sso_marker(self)
+                continue
+            if at_ivdep_marker(self):       # file-scope `#pragma GCC ivdep` has no loop: ignored
+                consume_ivdep_marker(self)
                 continue
             if self.at_std_attribute():
                 self.skip_std_attributes()
