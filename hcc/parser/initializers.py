@@ -133,6 +133,13 @@ class InitializerMixin:
         if self.pos == save:
             self._skip_excess()
 
+    def _skip_excess_group(self) -> None:
+        """An aggregate has no element left for a `{...}` group: GCC rejects it
+        ("extra brace group at end of initializer"). Scalars still skip excess."""
+        if self.at("{"):
+            self.error("extra brace group at end of initializer")
+        self._skip_excess()
+
     def _skip_excess(self) -> None:
         if self.at("{"):
             self.next()
@@ -259,7 +266,7 @@ class InitializerMixin:
             if self._grow(init, i):
                 self._init_element(init.children[i])
             else:
-                self._skip_excess()
+                self._skip_excess_group()
             i += 1
 
     def array_initializer2(self, init, i: int) -> None:
@@ -392,7 +399,7 @@ class InitializerMixin:
                 self._init_element(init.children[i])
                 i += 1
             else:
-                self._skip_excess()
+                self._skip_excess_group()
 
     def struct_initializer2(self, init, i: int) -> None:
         members = init.ty.members
