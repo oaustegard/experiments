@@ -13,6 +13,7 @@ import struct
 
 from hcc import nodes as N
 from hcc.parser.atomic_builtins import ATOMIC_BUILTINS, atomic_call
+from hcc.parser.object_size import lower_object_size
 from hcc.parser.structs import find_member
 from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
@@ -36,6 +37,7 @@ __builtin_isinf __builtin_isnan __builtin_isfinite
 __builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
 __builtin_isless __builtin_islessequal __builtin_islessgreater
 __builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
+__builtin_object_size
 """.split())
 
 # SSE4.2 CRC32 builtins: (crc, value) -> CRC-32C accumulated over the value's width.
@@ -264,6 +266,9 @@ class BuiltinParseMixin:
         args = self._args(3)
         ops = [new_cast(a, T.TY_ULONG if a.ty.is_unsigned else T.TY_LONG) for a in args[:2]]
         return self._call(tok, "mul_overflow_p", ops, T.TY_INT, args[2].ty)
+
+    def _b_object_size(self, tok):
+        return lower_object_size(self, tok)
 
     def _b_expect(self, tok):
         args = self._args(2)
