@@ -108,6 +108,11 @@ class StructMixin:
         return members
 
 
+def _unnamed_bitfield(m) -> bool:
+    """Unnamed bit-fields never raise the alignment of their aggregate (SysV)."""
+    return m.is_bitfield and m.name is None
+
+
 def layout_struct(ty) -> None:
     bits = 0
     align = 1
@@ -132,7 +137,7 @@ def layout_struct(ty) -> None:
             bits = T.align_to(bits, m.align * 8)
             m.offset = bits // 8
             bits += m.ty.size * 8
-        if align < m.align:
+        if align < m.align and not _unnamed_bitfield(m):
             align = m.align
     ty.align = align
     ty.size = T.align_to(T.align_to(bits, 8) // 8, align)
@@ -164,7 +169,8 @@ def layout_union(ty) -> None:
             m.align = 1
         m.offset = 0
         size = max(size, m.ty.size if not m.is_bitfield else (m.bit_width + 7) // 8)
-        align = max(align, m.align)
+        if not _unnamed_bitfield(m):
+            align = max(align, m.align)
     ty.align = align
     ty.size = T.align_to(size, align)
 
