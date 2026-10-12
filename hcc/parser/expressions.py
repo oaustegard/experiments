@@ -13,6 +13,7 @@ from __future__ import annotations
 from hcc import nodes as N
 from hcc.sema.arith import compound_assign, inc_dec, new_add, new_binop, new_sub
 from hcc.sema.constexpr import eval_const
+from hcc.parser.vector_broadcast import promote_vector_operands
 from hcc.parser.vector_cast import lower_scalar_to_vector
 from hcc.sema.conversions import new_cast
 from hcc.tokens import TokenKind
@@ -102,6 +103,7 @@ class ExpressionMixin:
                 return node
             self.next()
             rhs = self.binary(level + 1)
+            node, rhs = promote_vector_operands(self, t.loc, t.text, node, rhs)
             node = new_binop(t.text, node, rhs, t.loc)
             if isinstance(node, N.Binary) and node.ty.is_vector:
                 node.result_buf = self.new_temp(node.ty, t.loc)
