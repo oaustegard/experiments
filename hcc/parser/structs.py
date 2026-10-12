@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.parser.scope import VarAttr
+from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.tokens import TokenKind
 from hcc import typesys as T
 
@@ -50,7 +51,7 @@ class StructMixin:
         ty.is_ms_struct = attr.is_ms_struct
         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
         if kind == T.TypeKind.STRUCT:
-            layout_struct(ty, self.pack_align)
+            layout_struct(ty)
         else:
             layout_union(ty)
         if attr.align:
@@ -69,6 +70,9 @@ class StructMixin:
     def struct_members(self) -> list:
         members = []
         while not self.accept("}"):
+            if at_pack_marker(self):        # #pragma pack inside the body applies to later members
+                consume_pack_marker(self)
+                continue
             if self.at("_Static_assert"):
                 self.static_assert()
                 continue
@@ -85,6 +89,7 @@ class StructMixin:
                 plan9 = self.opts is not None and self.opts.plan9_extensions
                 if basety.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and (basety.tag is None or plan9):
                     m = T.Member(None, basety, 0, attr.align or basety.align)
+                    m.pack_cap = self.pack_align
                     tok0 = self.toks[start]
                     if plan9 and single_tok and tok0.kind == TokenKind.IDENT:
                         m.alias = tok0.text     # `typedef struct {..} D; struct { D; };` names it D
@@ -104,6 +109,7 @@ class StructMixin:
                 self.parse_attributes(mattr)
                 m = T.Member(name.text if name else None, ty)
                 m.tok = name
+                m.pack_cap = self.pack_align
                 # aligned/_Alignas on a member can only raise its alignment
                 m.explicit_align = max(mattr.align, attr.align)
                 m.align = max(ty.align, m.explicit_align)
@@ -133,8 +139,8 @@ def _unnamed_bitfield(m) -> bool:
     return m.is_bitfield and m.name is None
 
 
-def layout_struct(ty, pack: int = 0) -> None:
-    """`pack`: #pragma pack maximum alignment for plain members (0 = none)."""
+def layout_struct(ty) -> None:
+    """Each member's `pack_cap` is the #pragma pack maximum alignment in effect where it was declared."""
     bits = 0
     align = 1
     packed = ty.is_packed
@@ -146,8 +152,8 @@ def layout_struct(ty, pack: int = 0) -> None:
     for m in ty.members:
         if packed:      # packed drops natural alignment; explicit aligned(N) still applies
             m.align = 1 if m.is_packed else (m.explicit_align or 1)
-        if pack and not m.is_bitfield and not m.explicit_align and m.align > pack:
-            m.align = pack      # #pragma pack caps natural member alignment
+        if m.pack_cap and not m.is_bitfield and not m.explicit_align and m.align > m.pack_cap:
+            m.align = m.pack_cap    # #pragma pack caps natural member alignment
         if m.is_bitfield and m.bit_width == 0:
             if ms and zero_width_prev:      # MS: back-to-back zero-width bit-fields do not pad again
                 continue

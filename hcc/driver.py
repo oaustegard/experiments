@@ -81,8 +81,12 @@ def parse_args(argv: list[str]) -> Options:
             o.plan9_extensions = True
         elif a == "-nostdinc":
             o.nostdinc = True
-        elif a in ("-fPIC", "-fpic", "-fPIE", "-fpie"):
-            o.pic = a in ("-fPIC", "-fpic")
+        elif a in ("-fPIC", "-fpic"):
+            o.pic, o.pie = True, False
+        elif a in ("-fPIE", "-fpie"):
+            o.pic, o.pie = True, True
+        elif a in ("-fno-pic", "-fno-PIC", "-fno-pie", "-fno-PIE"):
+            o.pic, o.pie = False, False
         elif a in _MATH_FLAG_MACROS:
             o.defines.append(("-D", _MATH_FLAG_MACROS[a]))
         elif a == "-x":

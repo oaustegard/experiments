@@ -400,6 +400,8 @@ def predefined_source(opts) -> str:
         lines.append("#define __GNUC_STDC_INLINE__ 1")
     if opts.pic:
         lines.append("#define __PIC__ 2\n#define __pic__ 2")
+    if opts.pic and opts.pie:
+        lines.append("#define __PIE__ 2\n#define __pie__ 2")
     return "\n".join(lines) + "\n"
 
 

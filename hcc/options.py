@@ -28,5 +28,6 @@ class Options:
     keep_temps: bool = False
     dump_ast: bool = False
     dump_tokens: bool = False
-    pic: bool = False
+    pic: bool = True                  # __PIC__/__pic__ (gcc on x86-64 defaults to -fPIE)
+    pie: bool = True                  # __PIE__/__pie__ (-fPIE, the default; -fPIC clears it)
     language: str | None = None        # -x c / -x assembler
