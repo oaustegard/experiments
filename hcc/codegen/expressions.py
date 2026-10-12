@@ -83,6 +83,8 @@ class ExpressionMixin:
                 bits = node.bits & 0xFFFFFFFFFFFFFFFF
             self.emit(f"movabs ${bits}, %rax")
             self.emit("movq %rax, %xmm0")
+        elif k == TypeKind.FLOAT128:
+            self.f128_literal(node)
         else:
             raw = (node.bits.to_bytes(10, "little") if node.bits is not None
                    else float_to_x87(v))
@@ -294,7 +296,9 @@ class ExpressionMixin:
             self.emit("shl $63, %rax")
             self.emit("movq %rax, %xmm1")
             self.emit("xorpd %xmm1, %xmm0")
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k == TypeKind.FLOAT128:
+            self.f128_neg()
+        elif k == TypeKind.LDOUBLE:
             self.emit("fchs")
         else:
             self.emit("neg %rax")

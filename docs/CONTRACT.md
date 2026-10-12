@@ -113,6 +113,7 @@ hcc/
   typesys.py             Type, Member, TypeKind, LP64 base types, constructors (STABLE)
   nodes.py               all AST node dataclasses + Obj (Var/Function)        (STABLE)
   ldouble_lit.py         exact long double literals (decimal/hex -> 80-bit x87)
+  f128_lit.py            exact _Float128 literals / float->binary128 bit patterns
   registry.py            Registry (decorator tables, modules imported on first lookup)
                          and assemble_mixins (bases = every *Mixin class of a package)
 
@@ -230,6 +231,7 @@ hcc/
                       registered by builtins/x86_sse.py)
     lazy_inline.py    gnu_inline/gnu89 extern-inline bodies: emitted only when referenced
     fpclassify.py      __builtin_fpclassify / isnormal / isinf_sign (bit-level classes)
+    float128.py        _Float128 (binary128) in %xmm0; ops via libgcc __addtf3/__eqtf2/__fixtfsi...
 
   include/             (optional) hcc's own override headers, searched before
                        the system dirs (e.g. a future stdatomic.h)

@@ -17,6 +17,7 @@ from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
 from hcc.halfbits import round_to_half
 from hcc.ldouble_lit import exact_decimal, x87_from_text
+from hcc.f128_lit import binary128_from_text
 from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_FLOAT16, TY_FLOAT128,
                        TY_INT, TY_LDOUBLE, TY_LLONG, TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG,
                        TY_USHORT, Type, TypeKind, array_of, complex_of, is_flonum)
@@ -151,8 +152,10 @@ def parse_number(tok: Token):
 
 def _float_value(tok: Token, s: str, body: str, ty: Type, is_hex: bool):
     try:
-        if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):   # exact x87 encoding
-            return x87_from_text(body, is_hex, ty.kind == TypeKind.FLOAT128)
+        if ty.kind == TypeKind.FLOAT128:                       # exact binary128 encoding
+            return binary128_from_text(body, is_hex)
+        if ty.kind == TypeKind.LDOUBLE:                        # exact x87 encoding
+            return x87_from_text(body, is_hex)
         if is_hex:
             val = float.fromhex(body)
         elif ty is TY_FLOAT:

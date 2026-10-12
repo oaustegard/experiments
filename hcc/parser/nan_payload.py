@@ -45,6 +45,12 @@ def nan_bits(payload: int, ty, signaling: bool) -> int:
         if not signaling:
             return bits | quiet
         return bits if payload & mant else bits | (quiet >> 1)
+    if ty.kind == TypeKind.FLOAT128:    # binary128: 112 fraction bits, quiet bit 111
+        mant, quiet = (1 << 111) - 1, 1 << 111
+        bits = (0x7FFF << 112) | (payload & mant)
+        if not signaling:
+            return bits | quiet
+        return bits if payload & mant else bits | (quiet >> 1)
     # x87 long double: explicit integer bit 63, quiet bit 62.
     mant, quiet = (1 << 62) - 1, 1 << 62
     bits = (0x7FFF << 64) | (1 << 63) | (payload & mant)
@@ -61,6 +67,6 @@ def nan_literal(arg, ty, signaling: bool, loc) -> N.FloatLit:
     elif ty.kind == TypeKind.DOUBLE:
         value = struct.unpack("<d", struct.pack("<Q", bits))[0]
     else:
-        value = float("nan")            # value is ignored: codegen uses the 80-bit bits
+        value = float("nan")            # value is ignored: codegen uses the x87/binary128 bits
     return N.FloatLit(loc, value, ty=ty, bits=bits)
 

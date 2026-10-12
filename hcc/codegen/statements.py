@@ -42,7 +42,7 @@ class StatementMixin:
     def discard_value(self, ty) -> None:
         # A long double result lives on the x87 register stack; a discarded
         # value must be popped or the 8-slot stack overflows (-> NaN).
-        if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        if ty.kind == TypeKind.LDOUBLE:
             self.emit("fstp %st(0)")
 
     def stmt_ExprStmt(self, node) -> None:

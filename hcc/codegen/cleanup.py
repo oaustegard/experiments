@@ -68,7 +68,7 @@ class CleanupMixin:
             return
         x87 = 0
         if ty is not None:
-            if ty.kind in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+            if ty.kind == TypeKind.LDOUBLE:
                 x87 = 1
             elif is_x87_complex(ty):
                 x87 = 2

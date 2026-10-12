@@ -39,6 +39,9 @@ _add(T.TY_LONG, "labs imaxabs")
 _add(T.TY_LLONG, "llabs")
 
 _add(T.TY_FLOAT, "tanf expf logf log10f log2f exp2f atanf atan2f asinf acosf fmodf hypotf")
+_add(T.TY_DOUBLE, "fma nextafter")
+_add(T.TY_FLOAT, "fmaf nextafterf")
+_add(T.TY_LDOUBLE, "fmal nextafterl")
 
 # Builtin math functions take fixed floating parameters: GCC converts the
 # arguments to them, so `__builtin_log2(an_unsigned_long)` works. Only the
@@ -59,7 +62,9 @@ def libc_return_type(name: str):
 
 # Floating libm builtins taking two operands; every other entry takes one.
 _LIBM_TWO_ARG = frozenset(
-    "pow copysign atan2 powf copysignf atan2f powl copysignl atan2l".split())
+    "pow copysign atan2 powf copysignf atan2f powl copysignl atan2l "
+    "nextafter nextafterf nextafterl".split())
+_LIBM_THREE_ARG = frozenset("fma fmaf fmal".split())
 _LIBM_FLOAT_KINDS = (T.TypeKind.FLOAT, T.TypeKind.DOUBLE, T.TypeKind.LDOUBLE)
 
 
@@ -70,7 +75,8 @@ def libm_param_types(name: str, rty):
     name has no such builtin prototype."""
     if rty is None or rty.kind not in _LIBM_FLOAT_KINDS or _TABLE.get(name) is not rty:
         return None
-    return [rty] * (2 if name in _LIBM_TWO_ARG else 1)
+    n = 3 if name in _LIBM_THREE_ARG else 2 if name in _LIBM_TWO_ARG else 1
+    return [rty] * n
 
 
 # __builtin_powi{f,,l}(x, n): integer power, expanded by libgcc as __powi{sf,df,xf}2.

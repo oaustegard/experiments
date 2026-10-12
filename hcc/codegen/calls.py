@@ -59,7 +59,12 @@ class CallMixin:
                     by_stack = True
                     stack += 1
                 fp += 1
-            elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+            elif k == TypeKind.FLOAT128:
+                if fp >= 8:
+                    by_stack = True
+                    stack += 2
+                fp += 1
+            elif k == TypeKind.LDOUBLE:
                 by_stack = True
                 stack += 2
             elif k == TypeKind.INT128:
@@ -103,7 +108,9 @@ class CallMixin:
             self.pushf()
         elif k in (TypeKind.FLOAT, TypeKind.DOUBLE):
             self.pushf()
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k == TypeKind.FLOAT128:
+            self.f128_push()
+        elif k == TypeKind.LDOUBLE:
             self.emit("sub $16, %rsp")
             self.emit("fstpt (%rsp)")
             self.depth += 2
@@ -174,6 +181,9 @@ class CallMixin:
                         gp += 1
             elif k in (TypeKind.FLOAT16, TypeKind.FLOAT, TypeKind.DOUBLE):
                 self.popf(fp)
+                fp += 1
+            elif k == TypeKind.FLOAT128:
+                self.f128_pop(fp)
                 fp += 1
             elif k == TypeKind.INT128:
                 self.pop(ARG_REGS64[gp])        # low word

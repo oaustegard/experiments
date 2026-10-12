@@ -14,7 +14,9 @@ class FloatMixin:
 
     def float_binary(self, node) -> None:
         k = node.lhs.ty.kind
-        if k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        if k == TypeKind.FLOAT128:
+            return self.f128_binary(node)
+        if k == TypeKind.LDOUBLE:
             return self.x87_binary(node)
         sz = "ss" if k in (TypeKind.FLOAT16, TypeKind.FLOAT) else "sd"
         self.gen_expr(node.rhs)
@@ -94,6 +96,8 @@ class FloatMixin:
         name = node.name
         swap = name in ("isless", "islessequal")
         lhs, rhs = node.args
+        if lhs.ty.kind == TypeKind.FLOAT128:
+            return self.f128_fp_cmp(name, lhs, rhs)
         if lhs.ty.kind == TypeKind.LDOUBLE:
             self.gen_expr(lhs)
             self.gen_expr(rhs)                       # st0 = rhs, st1 = lhs

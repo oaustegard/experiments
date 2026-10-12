@@ -31,8 +31,10 @@ def floatn_libc_name(name: str) -> str:
 
 
 def _spellings(base: str, sfx: str) -> list:
-    """__builtin_<base><sfx> plus every _FloatN spelling of the same C type."""
-    return [f"__builtin_{base}{sfx}"] + [f"__builtin_{base}f{w}" for w, s in _FLOATN_SUFFIX.items() if s == sfx]
+    """__builtin_<base><sfx> plus every _FloatN spelling of the same C type
+    (the _Float128 spellings are registered separately, see _register)."""
+    return [f"__builtin_{base}{sfx}"] + [f"__builtin_{base}f{w}" for w, s in _FLOATN_SUFFIX.items()
+                                         if s == sfx and w not in _F128_WIDTHS]
 
 
 def _inf_lit(self, tok, ty):
@@ -52,6 +54,9 @@ def _snan_lit(self, tok, ty):
     return nan_literal(args[0], ty, True, tok.loc)
 
 
+_F128_WIDTHS = ("128", "128x")
+
+
 def _register(base: str, sfx: str, lit) -> None:
     ty = _SUFFIX_TY[sfx]
 
@@ -59,6 +64,11 @@ def _register(base: str, sfx: str, lit) -> None:
         return lit(self, tok, ty)
     parse_const.__qualname__ = f"parse_{base}{sfx}"
     builtin_parser(*_spellings(base, sfx))(parse_const)
+    if sfx == "l":                       # __builtin_<base>f128[x]: binary128, not x87
+        def parse_f128(self, tok):
+            return lit(self, tok, T.TY_FLOAT128)
+        parse_f128.__qualname__ = f"parse_{base}f128"
+        builtin_parser(*[f"__builtin_{base}f{w}" for w in _F128_WIDTHS])(parse_f128)
 
 
 for _sfx in ("", "f", "l"):

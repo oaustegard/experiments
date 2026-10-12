@@ -43,7 +43,11 @@ class FunctionMixin:
                 if fp < 8:
                     where = ("fp", fp)
                 fp += 1
-            elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+            elif k == TypeKind.FLOAT128:
+                if fp < 8:
+                    where = ("fp", fp)
+                fp += 1
+            elif k == TypeKind.LDOUBLE:
                 pass
             elif k == TypeKind.INT128:
                 if gp + 2 <= 6:
@@ -154,7 +158,7 @@ class FunctionMixin:
             for i, r in enumerate(ARG_REGS64):
                 self.emit(f"mov {r}, {off + i * 8}(%rbp)")
             for i in range(8):
-                self.emit(f"movsd %xmm{i}, {off + 48 + i * 16}(%rbp)")
+                self.emit(f"movdqu %xmm{i}, {off + 48 + i * 16}(%rbp)")   # full 16 bytes: _Float128 args
         for p, w in params:
             if w[0] == "gp":
                 self.store_gp_param(w[1], p.offset, p.ty.size)
@@ -162,6 +166,9 @@ class FunctionMixin:
                 if p.ty.kind == TypeKind.FLOAT16:       # ABI: half bits in low 16
                     self.emit(f"movd %xmm{w[1]}, %eax")
                     self.emit(f"mov %ax, {p.offset}(%rbp)")
+                    continue
+                if p.ty.kind == TypeKind.FLOAT128:
+                    self.emit(f"movdqu %xmm{w[1]}, {self.frame_ref(p.offset)}")
                     continue
                 ins = "movss" if p.ty.kind == TypeKind.FLOAT else "movsd"
                 self.emit(f"{ins} %xmm{w[1]}, {self.frame_ref(p.offset)}")

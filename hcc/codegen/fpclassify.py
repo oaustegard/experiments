@@ -95,7 +95,20 @@ class FpClassifyMixin:
             self.emit("movabs $0x000fffffffffffff, %rax")
             self.emit("and %rax, %rdx")
             self._fp_tail(0x7FF, x87=False)
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k == TypeKind.FLOAT128:
+            # binary128 in %xmm0: %rdx = nonzero iff the 112-bit fraction is nonzero
+            self.emit("movdqu %xmm0, -16(%rsp)")
+            self.emit("mov -8(%rsp), %r8")
+            self.emit("mov %r8, %rcx")
+            self.emit("shr $48, %rcx")
+            self.emit("and $0x7fff, %ecx")
+            self.emit("movabs $0x0000ffffffffffff, %rax")
+            self.emit("mov %r8, %rdx")
+            self.emit("and %rax, %rdx")
+            self.emit("or -16(%rsp), %rdx")
+            self.emit("shr $63, %r8")
+            self._fp_tail(0x7FFF, x87=False)
+        elif k == TypeKind.LDOUBLE:
             # pop st(0) into memory: 64-bit mantissa (explicit integer bit
             # included) and the 16-bit sign/exponent word
             self.emit("sub $16, %rsp")

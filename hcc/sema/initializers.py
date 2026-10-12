@@ -16,6 +16,7 @@ from hcc.sema.constexpr import NotConstant, eval_float, eval_reloc, float_to_int
 from hcc import typesys as T
 from hcc.floatbits import pack_float32, pack_float64
 from hcc.halfbits import half_bits
+from hcc.f128_lit import float128_bits
 
 
 def _has_value(init) -> bool:
@@ -182,6 +183,11 @@ def _write_le(init, ty, gd, offset) -> None:
                 gd.data[offset:offset + 4] = pack_float32(v)
             else:
                 gd.data[offset:offset + 8] = pack_float64(v)
+        elif ty.kind == T.TypeKind.FLOAT128:
+            exact = _exact_bits(expr, 127, T.TypeKind.FLOAT128)
+            if exact is None:
+                exact = float128_bits(v)
+            gd.data[offset:offset + 16] = exact.to_bytes(16, "little")
         else:
             exact = _exact_bits(expr, 79)
             gd.data[offset:offset + 10] = (exact.to_bytes(10, "little") if exact is not None
@@ -300,15 +306,17 @@ def _write_bits(gd, off, m, v) -> None:
     gd.data[off:off + size] = cur.to_bytes(size, order)
 
 
-def _exact_bits(node, sign_bit: int) -> int | None:
+def _exact_bits(node, sign_bit: int, kind=None) -> int | None:
     """Exact IEEE/x87 encoding of a floating literal (float, double or long double
     width; `sign_bit` is its sign position), optionally negated: -1e-4940L would
     underflow to -0.0 through a Python float, and a signaling NaN is quieted by one.
     None when the expression is not a literal."""
     if isinstance(node, N.FloatLit):
+        if kind is not None and (node.ty is None or node.ty.kind != kind):
+            return None                  # e.g. a double NaN literal: encode its value instead
         return node.bits
     if isinstance(node, N.Unary) and node.op == "-":
-        bits = _exact_bits(node.operand, sign_bit)
+        bits = _exact_bits(node.operand, sign_bit, kind)
         return None if bits is None else bits ^ (1 << sign_bit)
     return None
 

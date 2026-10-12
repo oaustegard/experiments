@@ -128,7 +128,9 @@ class CastMixin:
         elif k == TypeKind.DOUBLE:
             self.emit("xorpd %xmm1, %xmm1")
             self.emit("ucomisd %xmm1, %xmm0")
-        elif k in (TypeKind.LDOUBLE, TypeKind.FLOAT128):
+        elif k == TypeKind.FLOAT128:
+            self.f128_is_zero()
+        elif k == TypeKind.LDOUBLE:
             self.emit("fldz")
             self.emit("fucomip")
             self.emit("fstp %st(0)")
@@ -151,6 +153,11 @@ class CastMixin:
         if frm.kind in (TypeKind.STRUCT, TypeKind.UNION) or to.kind in (TypeKind.STRUCT, TypeKind.UNION):
             return
         if frm.kind == TypeKind.VOID:
+            return
+        if TypeKind.FLOAT128 in (frm.kind, to.kind):
+            self.f128_cast(frm, to)
+            if to.kind == TypeKind.FLOAT16:
+                self.emit(ROUND_HALF)
             return
         if (frm.kind == TypeKind.INT128 or to.kind == TypeKind.INT128) and self.cast128(frm, to):
             if to.kind == TypeKind.FLOAT16:
