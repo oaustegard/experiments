@@ -82,10 +82,21 @@ def attach(node, cval, base):
 
 def set_global_init(p, init) -> None:
     """File-scope complex initializer: one constant leaf per part (struct children)."""
-    if not init.ty.is_complex:
-        p.error("complex value used to initialize a real object is not supported", init.expr.loc)
     loc = init.expr.loc
     cv = value_of(init.expr)
+    if not init.ty.is_complex:
+        # C11 6.3.1.7: complex -> real conversion keeps the real part, drops the imaginary part
+        if not (is_flonum(init.ty) or is_integer(init.ty)):
+            p.error("complex value used to initialize a non-arithmetic object", loc)
+        if cv is None:
+            p.error("initializer element is not constant", loc)
+        real = cv[0] != 0 if init.ty.kind == TypeKind.BOOL else cv[0]
+        v = store_value(init.ty, real)
+        if is_flonum(init.ty):
+            init.expr = p.typed(N.FloatLit(loc, float(v), ty=init.ty))
+        else:
+            init.expr = p.typed(N.IntLit(loc, int(v), ty=init.ty))
+        return
     if cv is None:
         p.error("initializer element is not constant", loc)
     base = init.ty.base
