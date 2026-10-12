@@ -10,7 +10,7 @@ from __future__ import annotations
 from hcc import diag
 from hcc import nodes as N
 from hcc.parser.builtins import SPECIAL_BUILTINS, floatn_libc_name
-from hcc.parser.libc_builtins import POWI_HELPERS, libc_return_type
+from hcc.parser.libc_builtins import POWI_HELPERS, libc_return_type, libm_param_types
 from hcc.parser import complex as CPX
 from hcc.parser.scope import VarScope
 from hcc.sema.compat import is_compatible
@@ -107,7 +107,12 @@ class PrimaryMixin:
             if rty is None:
                 diag.warn(t, f"implicit declaration of function '{name}'")
                 rty = T.TY_INT
-            return self.typed(N.VarRef(t.loc, self.implicit_function(name, t, rty)))
+            fn = self.implicit_function(name, t, rty)
+            params = libm_param_types(name, rty)
+            if params is not None:
+                fn.ty.params = params
+                fn.ty.has_proto = True
+            return self.typed(N.VarRef(t.loc, fn))
         self.error(f"'{name}' undeclared", t)
 
     def c23_mode(self):
