@@ -18,8 +18,12 @@ _VALUE_RET = frozenset(
     [f"__atomic_fetch_{o}" for o in _RMW_OPS] + [f"__atomic_{o}_fetch" for o in _RMW_OPS]
     + ["__atomic_exchange_n", "__atomic_load_n"])
 _INT_RET = frozenset(["__atomic_compare_exchange_n", "__atomic_compare_exchange"])
+# atomic_flag ops: test_and_set yields _Bool, clear yields void.
+_FLAG_BOOL_RET = frozenset(["__atomic_test_and_set"])
 _VOID_RET = frozenset(["__atomic_store_n", "__atomic_load", "__atomic_store", "__atomic_exchange",
-                       "__atomic_thread_fence", "__atomic_signal_fence"])
+                       "__atomic_thread_fence", "__atomic_signal_fence", "__atomic_clear"])
+# __atomic_is_lock_free(size, ptr): the first argument is a size, not a pointer.
+_LOCK_FREE = "__atomic_is_lock_free"
 # Legacy gcc __sync_* builtins share the same lowering (full barriers on x86).
 _SYNC_VALUE_RET = frozenset(
     [f"__sync_fetch_and_{o}" for o in _RMW_OPS] + [f"__sync_{o}_and_fetch" for o in _RMW_OPS]
@@ -27,7 +31,8 @@ _SYNC_VALUE_RET = frozenset(
 _SYNC_INT_RET = frozenset(["__sync_bool_compare_and_swap"])
 _SYNC_VOID_RET = frozenset(["__sync_lock_release", "__sync_synchronize"])
 SYNC_BUILTINS = _SYNC_VALUE_RET | _SYNC_INT_RET | _SYNC_VOID_RET
-ATOMIC_BUILTINS = _VALUE_RET | _INT_RET | _VOID_RET | SYNC_BUILTINS
+ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUILTINS
+                   | frozenset([_LOCK_FREE]))
 
 
 def atomic_call(parser, tok):
@@ -42,6 +47,14 @@ def atomic_call(parser, tok):
         if args:
             parser.error(f"'{name}' expects no arguments", tok)
         ty = T.TY_VOID
+    elif name == _LOCK_FREE:
+        if len(args) != 2:
+            parser.error(f"'{name}' expects 2 arguments", tok)
+        ty = T.TY_BOOL
+    elif name in _FLAG_BOOL_RET:
+        if not args or not T.is_pointer_like(args[0].ty):
+            parser.error(f"'{name}' expects a pointer as first argument", tok)
+        ty = T.TY_BOOL
     else:
         if not args or not T.is_pointer_like(args[0].ty):
             parser.error(f"'{name}' expects a pointer as first argument", tok)
