@@ -1,9 +1,10 @@
 """Lexer: source text -> list of preprocessing tokens.
 
 Public API:
-    tokenize(text, path, line_comments=True) -> list[Token]   (ends with EOF)
-    tokenize_file(path, line_comments=True) -> list[Token]
-line_comments=False (C89/C90 mode) makes `//` two `/` punctuators.
+    tokenize(text, path, line_comments=True, u8_chars=False) -> list[Token]
+    tokenize_file(path, line_comments=True, u8_chars=False) -> list[Token]
+line_comments=False (C89/C90 mode) makes `//` two `/` punctuators and bars
+non-ASCII identifiers. u8_chars=True (C23) makes u8'x' a char constant.
 
 Tokens are pp-tokens (CONTRACT section 3): identifiers (keywords are NOT yet
 marked), pp-numbers, string/char literals (raw spelling incl. quotes and
@@ -33,7 +34,7 @@ _TOKEN_SRC = r"""
   | (?P<lc>//[^\n]*)
   | (?P<bc>/\*.*?\*/)
   | (?P<ubc>/\*)
-  | (?P<num>\.?[0-9](?:[eEpP][+-]|[0-9A-Za-z_.\u0080-￿])*)
+  | (?P<num>\.?[0-9](?:[eEpP][+-]|[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
   | (?P<str>(?:u8|u|U|L)?"(?:[^"\\\n]|\\.)*")
   | (?P<chr>(?:u8|u|U|L)?'(?:[^'\\\n]|\\.)*')
   | (?P<id>(?:[A-Za-z_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
@@ -41,10 +42,20 @@ _TOKEN_SRC = r"""
   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
   | (?P<other>.)
 """
-_TOKEN_RE = re.compile(_TOKEN_SRC, re.VERBOSE | re.DOTALL)
-# C89/C90 have no `//` comments: the same scanner without the `lc` alternative.
-_TOKEN_RE_C90 = re.compile(_TOKEN_SRC.replace(r"  | (?P<lc>//[^\n]*)" + "\n", ""),
-                           re.VERBOSE | re.DOTALL)
+def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
+    src = _TOKEN_SRC
+    if not line_comments:
+        # C89/C90 have no `//` comments: drop the `lc` alternative.
+        src = src.replace(r"  | (?P<lc>//[^\n]*)" + "\n", "")
+        # C89/C90 do not allow extended (non-ASCII) characters in identifiers.
+        src = src.replace(r"\u0080-\U0010ffff", "")
+    if not u8_chars:
+        # u8'x' character constants exist only in C23; before that `u8` is an identifier.
+        src = src.replace("(?P<chr>(?:u8|u|U|L)?", "(?P<chr>(?:u|U|L)?")
+    return re.compile(src, re.VERBOSE | re.DOTALL)
+
+
+_SCANNERS = {(lc, u8): _make_scanner(lc, u8) for lc in (True, False) for u8 in (True, False)}
 # -std values that do not recognise `//` comments
 C90_STDS = frozenset({"c89", "c90", "gnu89", "gnu90", "iso9899:1990", "ansi"})
 
@@ -83,14 +94,15 @@ def remove_splices(text: str) -> str:
     return result[:-1] if not text.endswith("\n") and result.endswith("\n") else result
 
 
-def tokenize(text: str, path: str, line_comments: bool = True) -> list[Token]:
+def tokenize(text: str, path: str, line_comments: bool = True,
+             u8_chars: bool = False) -> list[Token]:
     text = remove_splices(text)
     toks: list[Token] = []
     line = 1
     line_start = 0
     bol = True
     space = False
-    scanner = _TOKEN_RE if line_comments else _TOKEN_RE_C90
+    scanner = _SCANNERS[(bool(line_comments), bool(u8_chars))]
     for m in scanner.finditer(text):
         kind = m.lastgroup
         if kind == "nl":
@@ -133,5 +145,6 @@ def read_source(path: str) -> str:
     return text
 
 
-def tokenize_file(path: str, line_comments: bool = True) -> list[Token]:
-    return tokenize(read_source(path), path, line_comments)
+def tokenize_file(path: str, line_comments: bool = True,
+                  u8_chars: bool = False) -> list[Token]:
+    return tokenize(read_source(path), path, line_comments, u8_chars)

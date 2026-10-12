@@ -57,10 +57,15 @@ class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
         """`//` starts a comment except in C89/C90 modes (-std=c89, -ansi)."""
         return (self.opts.std or "gnu11").lower() not in C90_STDS
 
+    @property
+    def u8_chars(self) -> bool:
+        """`u8'x'` is a character constant only in C23 modes."""
+        return (self.opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
+
     def run(self, path: str) -> list[Token]:
         self.base_file = path
         main = self.file_tokens(path)
-        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments)
+        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments, self.u8_chars)
         self.stack = []
         self.push_tokens(main)
         cmd_eof = cmdline.pop()      # drop its EOF so it flows into the main file
@@ -74,8 +79,8 @@ class Preprocessor(MacroMixin, DirectiveMixin, ConditionalMixin, IncludeMixin):
         """Preprocess a string (used by tests and -x c -)."""
         self.base_file = path
         self.stack = []
-        self.push_tokens(tokenize(text, path, self.line_comments))
-        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments)
+        self.push_tokens(tokenize(text, path, self.line_comments, self.u8_chars))
+        cmdline = tokenize(self._command_line_source(), "<command-line>", self.line_comments, self.u8_chars)
         cmdline.pop()
         self.push_tokens(cmdline)
         return self._loop()
