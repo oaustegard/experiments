@@ -52,9 +52,6 @@ class StructMixin:
         ty = None
         if tag is not None:
             prev = self.scopes[-1].tags.get(tag.text)
-            if prev is not None and prev.is_complete and prev.kind == kind:
-                kw = "struct" if kind == T.TypeKind.STRUCT else "union"
-                self.error(f"redefinition of '{kw} {tag.text}'", tag)
             # body still open in this scope (`struct s { struct s {..} *p; }`); a body
             # open in an enclosing scope is shadowed by a new tag, not redefined
             open_prev = self.scopes[-1].tags.get(tag.text)
