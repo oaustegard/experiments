@@ -62,6 +62,7 @@ class Var(Obj):
     is_tentative: bool = False
     is_tls: bool = False
     is_param: bool = False
+    is_register: bool = False               # `register` storage class: address may not be taken
     align: int = 0
     offset: int = 0                         # %rbp-relative, set by codegen
     init_data: GlobalData | None = None

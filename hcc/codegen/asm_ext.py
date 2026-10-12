@@ -18,6 +18,7 @@ other aggregates are rejected.
 from __future__ import annotations
 
 from hcc import diag
+from hcc import nodes as N
 from hcc.sema import constexpr
 from hcc.typesys import TY_LDOUBLE, TypeKind
 from hcc.sema.conversions import new_cast
@@ -155,6 +156,8 @@ def _classify(op: _Op, dead: bool = False) -> None:
         op.fixed = fixed[0] if fixed else None
     elif letters & _MEM_LETTERS:
         op.kind = "mem"
+        if isinstance(op.expr, N.VarRef) and getattr(op.expr.var, "is_register", False):
+            diag.error(where, f"address of register variable '{op.expr.var.name}' requested", "codegen")
     elif letters & _IMM_LETTERS:
         op.kind = "imm"
         op.imm = _imm_value(where, dead)
