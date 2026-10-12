@@ -147,8 +147,20 @@ def members_flexible(ty) -> bool:
     return bool(ms) and ms[-1].ty.kind == T.TypeKind.ARRAY and ms[-1].ty.array_len == 0
 
 
+def complete_struct(ty):
+    """Return the completed type behind a qualified copy made while incomplete.
+
+    `const struct S` copies S's Type before S's body is seen; the copy keeps
+    an empty member list, so member lookup follows `origin` to the real type.
+    """
+    while not ty.is_complete and ty.origin is not None:
+        ty = ty.origin
+    return ty
+
+
 def find_member(ty, name: str):
     """Return the member path to `name` (through anonymous members) or None."""
+    ty = complete_struct(ty)
     for m in ty.members:
         if m.name is None and m.ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
             sub = find_member(m.ty, name)
