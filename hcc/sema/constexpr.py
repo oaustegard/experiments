@@ -76,6 +76,16 @@ def float_to_int(f: float, ty) -> int:
     return int(f)
 
 
+def _ieee_div(a: float, b: float) -> float:
+    """IEEE 754 division: x/0 is a signed infinity, 0/0 and NaN/0 are NaN."""
+    import math
+    if b != 0:
+        return a / b
+    if a == 0 or math.isnan(a):
+        return math.nan
+    return math.copysign(math.inf, a) * math.copysign(1.0, b)
+
+
 def eval_float(node) -> float:
     if isinstance(node, N.FloatLit):
         return node.value
@@ -85,7 +95,9 @@ def eval_float(node) -> float:
         return -eval_float(node.operand)
     if isinstance(node, N.Binary) and node.op in "+-*/":
         a, b = eval_float(node.lhs), eval_float(node.rhs)
-        return {"+": a + b, "-": a - b, "*": a * b, "/": a / b if b else float("inf")}[node.op]
+        if node.op == "/":
+            return _ieee_div(a, b)
+        return {"+": a + b, "-": a - b, "*": a * b}[node.op]
     if isinstance(node, N.Cond):
         return eval_float(node.then) if _num(node.cond) else eval_float(node.els)
     if isinstance(node, N.Call):

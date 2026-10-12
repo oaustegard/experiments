@@ -33,6 +33,8 @@ __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf
 __builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
 __builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_convertvector
 __builtin_isinf __builtin_isnan __builtin_isfinite
+__builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
+__builtin_isless __builtin_islessequal __builtin_islessgreater
 __builtin_ia32_crc32qi __builtin_ia32_crc32hi __builtin_ia32_crc32si __builtin_ia32_crc32di
 """.split())
 
@@ -322,6 +324,33 @@ class BuiltinParseMixin:
         fn = self.implicit_function(base + sfx, tok, T.TY_INT)
         callee = self.typed(N.VarRef(tok.loc, fn))
         return self.typed(N.Call(tok.loc, callee, [new_cast(arg, cty)], fn.ty))
+
+    def _fpcmp(self, tok, name):
+        """__builtin_is<op>(a, b): quiet comparison of two real floats; both
+        operands are widened to long double if either is, else to double
+        (exact for float). Codegen sets the result from ucomi flags."""
+        args = self._args(2)
+        wide = any(a.ty.kind == T.TypeKind.LDOUBLE for a in args)
+        ty = T.TY_LDOUBLE if wide else T.TY_DOUBLE
+        return self._call(tok, name, [new_cast(a, ty) for a in args], T.TY_INT)
+
+    def _b_isunordered(self, tok):
+        return self._fpcmp(tok, "isunordered")
+
+    def _b_isgreater(self, tok):
+        return self._fpcmp(tok, "isgreater")
+
+    def _b_isgreaterequal(self, tok):
+        return self._fpcmp(tok, "isgreaterequal")
+
+    def _b_isless(self, tok):
+        return self._fpcmp(tok, "isless")
+
+    def _b_islessequal(self, tok):
+        return self._fpcmp(tok, "islessequal")
+
+    def _b_islessgreater(self, tok):
+        return self._fpcmp(tok, "islessgreater")
 
     def _b_isinf(self, tok):
         return self._fp_class_call(tok, "isinf")

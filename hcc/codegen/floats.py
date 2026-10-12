@@ -64,3 +64,30 @@ class FloatMixin:
         cc = {"==": "sete", "!=": "setne", "<": "seta", "<=": "setae", ">": "setb", ">=": "setbe"}[op]
         self.emit(f"{cc} %al")
         self.emit("movzbl %al, %eax")
+
+    def fp_cmp_builtin(self, node) -> None:
+        """__builtin_is<op>(a, b) (C99 quiet comparisons): ucomi/fucomip set
+        ZF,PF,CF = 111 when unordered, so every relation except isunordered
+        and islessgreater is false for NaN. 'less' forms compare b against a
+        so that seta/setae cannot be fooled by CF=1 on unordered operands."""
+        name = node.name
+        swap = name in ("isless", "islessequal")
+        lhs, rhs = node.args
+        if lhs.ty.kind == TypeKind.LDOUBLE:
+            self.gen_expr(lhs)
+            self.gen_expr(rhs)                       # st0 = rhs, st1 = lhs
+            if not swap:
+                self.emit("fxch %st(1)")             # st0 = lhs, st1 = rhs
+            self.emit("fucomip %st(1), %st")
+            self.emit("fstp %st(0)")
+        else:
+            self.gen_expr(rhs)
+            self.pushf()
+            self.gen_expr(lhs)
+            self.popf(1)                             # xmm0 = lhs, xmm1 = rhs
+            self.emit("ucomisd %xmm0, %xmm1" if swap else "ucomisd %xmm1, %xmm0")
+        cc = {"isunordered": "setp", "isgreater": "seta", "isgreaterequal": "setae",
+              "isless": "seta", "islessequal": "setae", "islessgreater": "setne"}[name]
+        self.emit(f"{cc} %al")
+        self.emit("and $1, %al")
+        self.emit("movzbl %al, %eax")

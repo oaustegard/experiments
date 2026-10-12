@@ -85,6 +85,12 @@ class BuiltinMixin:
     def builtin_ia32_crc32di(self, node) -> None:
         self._crc32(node, "crc32q", "%rcx", "%rax")
 
+    def _fpcmp(self, node) -> None:
+        self.fp_cmp_builtin(node)
+
+    builtin_isunordered = builtin_isgreater = builtin_isgreaterequal = _fpcmp
+    builtin_isless = builtin_islessequal = builtin_islessgreater = _fpcmp
+
     def builtin_signbit(self, node) -> None:
         self.gen_expr(node.args[0])  # double in %xmm0
         self.emit("movq %xmm0, %rax")
