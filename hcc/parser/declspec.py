@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
+from hcc.parser.scope import VarAttr
 from hcc import typesys as T
 
 VOID, BOOL, CHAR, SHORT, INT, LONG = 1 << 0, 1 << 2, 1 << 4, 1 << 6, 1 << 8, 1 << 10
@@ -58,6 +59,7 @@ class DeclSpecMixin:
     def declspec(self, attr=None):
         ty = T.TY_INT
         counter = 0
+        vsize = 0
         is_const = is_volatile = is_atomic = False
         while self.is_typename():
             tok = self.tok
@@ -95,7 +97,12 @@ class DeclSpecMixin:
                 is_atomic = True
                 continue
             if s in ("__attribute__", "__declspec"):
-                self.parse_attributes(attr)
+                if attr is None:      # type name: `(__attribute__((vector_size(N))) float)`
+                    scratch = VarAttr()
+                    self.parse_attributes(scratch)
+                    vsize = scratch.vector_size or vsize
+                else:
+                    self.parse_attributes(attr)
                 continue
             if s == "_Alignas":
                 self.next()
@@ -147,6 +154,8 @@ class DeclSpecMixin:
         if attr is not None and attr.vector_size and ty is not None:
             ty = T.vector_of(ty, attr.vector_size)
             attr.vector_size = 0
+        elif attr is None and vsize and ty is not None:
+            ty = T.vector_of(ty, vsize)
         if counter == 0 and attr is None and not (is_const or is_volatile):
             self.error("expected type")
         if ty is not None and (is_const or is_volatile or is_atomic):
