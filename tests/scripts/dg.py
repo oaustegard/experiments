@@ -88,11 +88,18 @@ indirect_calls indirect_jumps label_values nonlocal_goto named_sections exceptio
 scheduling non_strict_prototype alias weak visibility stdint_types asm_goto_with_outputs gnu_retain
 c99_runtime freestanding hosted native default_packed c tls tls_native tls_runtime
 long_double large_long_double float128 float80 double64 double64plus wchar ucn
+sync_char_short sync_int_long sync_long_long_runtime sync_int_long_runtime sync_char_short_runtime
+sync_int_128 sync_long_long store_merge strndup mmap fstack_protector fenv_exceptions fenv trapping
+floatn floatn_runtime float16 float32 float64 float128_runtime float32x float64x float128x
+supports_stack_clash_protection issignaling alarm sse_runtime sse2_runtime fopenmp_unused
+wchar_t_runtime inf nan nonstrict_prototype pthread pthread_h signal setjmp user_label_prefix
+c99 c11 c23 c99_runtime_unused alloca utf8 posix_memalign
 trampolines untyped_assembly run_expensive_tests""".split())
 # Keywords that are false here.
 FALSE = set("""ia32 llp64 ilp32 mips arm aarch64 powerpc s390 avr pdp11 bpf nvptx rx
 fopenmp fgraphite lto plugin dfp dfprt arm_arch_v5t_thumb_ok thumb1 thumb2 aarch64_sve
-x32 newlib vxworks_kernel int16 size16 cygwin_or_mingw""".split())
+x32 newlib vxworks_kernel int16 size16 cygwin_or_mingw bitint bitint575 bitint128 bitint65535
+split_stack sync_int_128_runtime cet ilp32 ia32 lto_unused""".split())
 
 SKIP_REASON = {
     "trampolines": "nested functions with trampolines (GCC-only)",
@@ -104,9 +111,21 @@ X86_ISA = re.compile(r"(avx\w*|sse\w*|mmx|bmi\w*|fma\w*|xop|aes|pclmul|vaes|popc
                      r"xsave\w*|sha|adx|prfchw|movbe|fsgsbase|rtm|hle|cet\w*)")
 
 
+TRUE_RX = re.compile(r"(float(16|32|64|128)x?(_runtime)?|__float\w+|fenv_exceptions\w*|sync_\w+(_runtime)?|"
+                     r"hard_float|ctz|clz\w*|le|ifunc|c99_runtime\w*|ptr_eq_long|sizeof_\w+|inline|"
+                     r"stdint_types\w*|have_\w+|non_eabi)")
+FALSE_RX = re.compile(r"(bfloat16\w*|branch_cost|vect_\w+|vect\w*|bitint\w*|sync_int_128\w*|split_stack|"
+                      r"powerpc\w*|ppc\w*|arm\w*|aarch64\w*|mips\w*|s390\w*|riscv\w*|nvptx\w*|"
+                      r"cet|ilp32|stack_size\w*|lto\w*|ia32)")
+
+
 def _feature(name):
     if name in TRUE:
         return True
+    if FALSE_RX.fullmatch(name) and not name.startswith("sync_"):
+        return False
+    if TRUE_RX.fullmatch(name):
+        return not name.startswith("sync_int_128")
     if name in FALSE or X86_ISA.fullmatch(name):
         return False
     raise Unknown(name)
@@ -167,14 +186,15 @@ KEEP_FLAG = re.compile(r"^(-std=(gnu|c)\w+|-ansi|-fgnu89-inline|-fwrapv|-fno-str
                        r"-fno-asm|-fms-extensions|-fplan9-extensions|-fno-short-enums|-fshort-enums|"
                        r"-fpack-struct(=\d+)?|-fno-pic|-fno-pie|-fno-strict-aliasing|-fshort-wchar|"
                        r"-fallow-store-data-races|-D[A-Za-z_]\w*(=\S*)?|-U\w+|-fno-trapping-math|"
-                       r"-fno-math-errno|-ftrapping-math|-fno-builtin-\w+|-trigraphs)$")
+                       r"-fno-math-errno|-ftrapping-math|-fno-builtin-\w+|-trigraphs|-fexceptions|-fno-exceptions|"
+                       r"-fnon-call-exceptions|-fasynchronous-unwind-tables|-fno-asynchronous-unwind-tables)$")
 # options that make the test unsuitable for a plain `cc -S` comparison
 SKIP_FLAG = [
     (re.compile(r"^-m(?!(32|64)$)\S+$"), "target-specific option {}"),
     (re.compile(r"^-(fgimple|fopenmp\S*|fsanitize\S*|fprofile\S*|fplugin\S*|ftest-coverage|"
                 r"fstack-check\S*|fstack-clash\S*|fsplit-stack|flto\S*|fcf-protection\S*|fanalyzer\S*|"
                 r"fpatchable\S*|fzero-call\S*|fharden\S*|fvtable\S*|ftls-model\S*|fgraphite\S*|"
-                r"fno-exceptions|fexceptions|fnon-call-exceptions|save-temps|E|M|MM|MD|MMD|"
+                r"save-temps|E|M|MM|MD|MMD|"
                 r"nostdlib\S*|fpreprocessed|fdirectives-only)$"),
      "needs gcc-only/unsupported option {}"),
 ]
@@ -207,10 +227,22 @@ def options(dirs):
     return kept, reasons
 
 
+def do_kind(dirs):
+    """The dg-do kind (run/compile/assemble/link/preprocess) that applies on this target:
+    the last dg-do whose target guard holds, or None.  Raises Unknown for unknown guards."""
+    kind = None
+    for name, args in dirs:
+        if name == "dg-do" and args and isinstance(args[0], str):
+            _, sel = split_target(args)
+            if sel is None or selector_true(sel):
+                kind = args[0]
+    return kind
+
+
 def skip_if(dirs, flags):
-    """Evaluate dg-skip-if / dg-require-* / dg-do target guards for plain gcc -O0 on
-    x86_64-linux.  Returns a skip reason, or None if the test applies."""
-    optstr = " ".join(["-O0"] + list(flags))
+    """Evaluate dg-skip-if / dg-require-* guards for plain gcc -O0 on x86_64-linux.
+    Returns a skip reason, or None if the test applies."""
+    optstr = " ".join(flags)  # -O0 is implicit: dg-skip-if on -O0 is left to the gcc -O0 validation run
     for name, args in dirs:
         try:
             if name == "dg-require-effective-target" and args and isinstance(args[0], str):
@@ -235,10 +267,6 @@ def skip_if(dirs, flags):
             elif name in ("dg-require-profiling", "dg-require-dll", "dg-require-stack-check",
                           "dg-require-lto", "dg-require-plugin", "dg-require-openmp"):
                 return "requires %s" % name[len("dg-require-"):]
-            elif name == "dg-do" and len(args) > 1:
-                _, sel = split_target(args)
-                if sel is not None and not selector_true(sel):
-                    return "dg-do restricted to another target"
         except Unknown as e:
             return "dg selector uses unknown feature %s" % e
     return None

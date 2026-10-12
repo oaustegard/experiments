@@ -1,0 +1,13 @@
+CREATE TABLE big(a, b, c);
+CREATE TABLE small(a, b);
+CREATE INDEX bia ON big(a);
+CREATE INDEX bib ON big(b);
+WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM n WHERE i<2000) INSERT INTO big SELECT i, i%50, i%3 FROM n;
+INSERT INTO small VALUES(1,1),(2,2),(3,3);
+ANALYZE;
+EXPLAIN QUERY PLAN SELECT * FROM big, small WHERE big.a = small.a;
+EXPLAIN QUERY PLAN SELECT * FROM big WHERE a > 1990 AND b = 4;
+EXPLAIN QUERY PLAN SELECT * FROM big WHERE b = 4 AND c = 1;
+SELECT count(*) FROM big, small WHERE big.b = small.b;
+SELECT b, count(*) FROM big WHERE a BETWEEN 100 AND 400 GROUP BY b ORDER BY 2 DESC, 1 LIMIT 3;
+SELECT stat FROM sqlite_stat1 WHERE idx = 'bib';

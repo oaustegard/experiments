@@ -7,6 +7,9 @@ Test ids:
         Expected: exit code, stdout and stderr of the same script under a gcc -O0 build.
   sqlite/build/sqlite3.c, sqlite/build/shell.c   hcc compiles that file (no run).
   sqlite/build/version   the hcc-built shell starts and answers a trivial query.
+  sqlite/debug/..., sqlite/ext/...   the same kinds of test under other build configurations (CONFIGS
+        below): SQLITE_DEBUG (assertions, trace code), and an extended build (threads, FTS3/4, GeoPoly,
+        STAT4, session, extra vtabs); ext/sql-ext/ holds scripts that need those options.
 
 sqlite3.c is 9 MB: hcc compiles it ONCE per hcc source hash (tests/drivers/common.py
 caches the object, and a failure's error text), never once per test.  The amalgamation
@@ -27,9 +30,42 @@ COMPILE_TIMEOUT = 3600
 RUN_TIMEOUT = 120
 
 
+# Build configurations.  "" is the suite.json configuration; the others replace -DSQLITE_THREADSAFE and add
+# options.  debug: assertions and trace code compiled in (SQLITE_DEBUG).  ext: threads on, FTS3/4, GeoPoly,
+# STAT4, bytecode/dbpage/stmt vtabs, session/preupdate, soundex, ... (its scripts: the hand-written sql/ ones
+# plus sql-ext/).
+CONFIGS = {
+    "": ([], []),
+    "debug": (["-DSQLITE_DEBUG", "-DSQLITE_MEMDEBUG", "-DSQLITE_ENABLE_API_ARMOR", "-DSQLITE_ENABLE_EXPLAIN_COMMENTS",
+               "-DSQLITE_ENABLE_SELECTTRACE", "-DSQLITE_ENABLE_WHERETRACE", "-DSQLITE_ENABLE_TREETRACE",
+               "-DSQLITE_ENABLE_STMT_SCANSTATUS"], []),
+    "ext": (["-DSQLITE_THREADSAFE=1", "-DSQLITE_ENABLE_FTS3", "-DSQLITE_ENABLE_FTS3_PARENTHESIS", "-DSQLITE_ENABLE_FTS4",
+             "-DSQLITE_ENABLE_GEOPOLY", "-DSQLITE_ENABLE_STAT4", "-DSQLITE_ENABLE_BYTECODE_VTAB", "-DSQLITE_ENABLE_DBPAGE_VTAB",
+             "-DSQLITE_ENABLE_STMTVTAB", "-DSQLITE_ENABLE_COLUMN_METADATA", "-DSQLITE_ENABLE_PREUPDATE_HOOK",
+             "-DSQLITE_ENABLE_SESSION", "-DSQLITE_ENABLE_MEMORY_MANAGEMENT", "-DSQLITE_ENABLE_NORMALIZE",
+             "-DSQLITE_ENABLE_SNAPSHOT", "-DSQLITE_SOUNDEX", "-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT",
+             "-DSQLITE_ENABLE_UNLOCK_NOTIFY"], ["-lpthread"]),
+}
+
+
+def split_rel(rel):
+    """'debug/sql/x.sql' -> ('debug', 'sql/x.sql'); 'sql/x.sql' -> ('', 'sql/x.sql')."""
+    head, _, rest = rel.partition("/")
+    if head in CONFIGS and head:
+        return head, rest
+    return "", rel
+
+
 def list_tests(suite):
-    out = ["sql/" + os.path.basename(p) for p in glob.glob(os.path.join(suite.dir, "sql", "*.sql"))]
-    return out + ["build/sqlite3.c", "build/shell.c", "build/version"]
+    sql = sorted(os.path.basename(p) for p in glob.glob(os.path.join(suite.dir, "sql", "*.sql")))
+    ext = sorted(os.path.basename(p) for p in glob.glob(os.path.join(suite.dir, "sql-ext", "*.sql")))
+    out = ["sql/" + n for n in sql]
+    out += ["debug/sql/" + n for n in sql]
+    out += ["ext/sql/" + n for n in sql if not n.startswith("gen_")] + ["ext/sql-ext/" + n for n in ext]
+    for cfg in CONFIGS:
+        pre = cfg + "/" if cfg else ""
+        out += [pre + "build/sqlite3.c", pre + "build/shell.c", pre + "build/version"]
+    return out
 
 
 def source_dir():
@@ -45,30 +81,37 @@ def source_dir():
     return d
 
 
-def flags(suite, cc_argv):
-    return suite.cflags(cc_argv)
+def cfg_flags(base, cfg):
+    extra = CONFIGS[cfg][0]
+    if any(f.startswith("-DSQLITE_THREADSAFE") for f in extra):
+        base = [f for f in base if not f.startswith("-DSQLITE_THREADSAFE")]
+    return base + extra
 
 
-def gcc_flags(suite):
-    return list(suite.cfg["cflags"])
+def flags(suite, cc_argv, cfg=""):
+    return cfg_flags(suite.cflags(cc_argv), cfg)
 
 
-def ref_shell(R, suite):
+def gcc_flags(suite, cfg=""):
+    return cfg_flags(list(suite.cfg["cflags"]), cfg)
+
+
+def ref_shell(R, suite, cfg=""):
     d = source_dir()
-    objs = [C.gcc_object(gcc_flags(suite), os.path.join(d, f), "sqlite/" + f) for f in ("sqlite3.c", "shell.c")]
+    objs = [C.gcc_object(gcc_flags(suite, cfg), os.path.join(d, f), "sqlite/" + f) for f in ("sqlite3.c", "shell.c")]
 
     def build(out):
-        return C.link(R, out, objs, LDFLAGS, os.path.dirname(out))
+        return C.link(R, out, objs, LDFLAGS + CONFIGS[cfg][1], os.path.dirname(out))
     path, fail = C.cached_program(R, "sqlite-ref", [C.gcc_fingerprint(), C.file_sha(os.path.join(d, "sqlite3.c")),
-                                                    C.file_sha(os.path.join(d, "shell.c")), " ".join(gcc_flags(suite))], build)
+                                                    C.file_sha(os.path.join(d, "shell.c")), " ".join(gcc_flags(suite, cfg))], build)
     if fail:
         raise RuntimeError("reference sqlite shell failed to link: " + fail.reason)
     return path
 
 
-def hcc_shell(R, suite, cc_argv):
+def hcc_shell(R, suite, cc_argv, cfg=""):
     d = source_dir()
-    fl = flags(suite, cc_argv)
+    fl = flags(suite, cc_argv, cfg)
 
     def build(out):
         objs = []
@@ -81,7 +124,7 @@ def hcc_shell(R, suite, cc_argv):
                 objs.append(obj)
         if first:
             return first
-        return C.link(R, out, objs, LDFLAGS, os.path.dirname(out))
+        return C.link(R, out, objs, LDFLAGS + CONFIGS[cfg][1], os.path.dirname(out))
     return C.cached_program(R, "sqlite-hcc", [C.compiler_fingerprint(R, cc_argv), C.file_sha(os.path.join(d, "sqlite3.c")),
                                               C.file_sha(os.path.join(d, "shell.c")), " ".join(fl)], build)
 
@@ -96,20 +139,21 @@ def run_script(R, shell, script_path, work):
 
 
 def run_test(suite, rel, cc_argv, work, R):
-    if rel in ("build/sqlite3.c", "build/shell.c"):
-        f = rel.split("/")[1]
-        obj, fail = C.cached_object(R, cc_argv, flags(suite, cc_argv), os.path.join(source_dir(), f), "sqlite/" + f, COMPILE_TIMEOUT)
+    cfg, rest = split_rel(rel)
+    if rest in ("build/sqlite3.c", "build/shell.c"):
+        f = rest.split("/")[1]
+        obj, fail = C.cached_object(R, cc_argv, flags(suite, cc_argv, cfg), os.path.join(source_dir(), f), "sqlite/" + f, COMPILE_TIMEOUT)
         return fail.result(R) if fail else R.Result("PASS")
-    shell, fail = hcc_shell(R, suite, cc_argv)
+    shell, fail = hcc_shell(R, suite, cc_argv, cfg)
     if fail:
         return fail.result(R)
-    ref = ref_shell(R, suite)
-    if rel == "build/version":
+    ref = ref_shell(R, suite, cfg)
+    if rest == "build/version":
         script = os.path.join(work, "version.sql")
         with open(script, "w") as f:
-            f.write("SELECT sqlite_version(), sqlite_source_id(), 1+1;\n.version\n")
+            f.write("SELECT sqlite_version(), sqlite_source_id(), 1+1, sqlite_compileoption_used('THREADSAFE=0');\n")
     else:
-        script = os.path.join(suite.dir, rel)
+        script = os.path.join(suite.dir, rest)
     want = C.cached_value("sqlite-ref-run", [C.gcc_fingerprint(), C.file_sha(ref), C.file_sha(script), C.file_sha(__file__)],
                           lambda: run_script(R, ref, script, _tmp(work, "ref")))
     got = run_script(R, shell, script, _tmp(work, "got"))

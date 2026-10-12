@@ -1,0 +1,10 @@
+CREATE TABLE src(id INTEGER PRIMARY KEY, t, u);
+INSERT INTO src VALUES(1,'alpha beta','x'),(2,'beta gamma','y'),(3,'gamma delta','z');
+CREATE VIRTUAL TABLE i USING fts4(content='src', t, notindexed=u);
+INSERT INTO i(i) VALUES('rebuild');
+SELECT docid FROM i WHERE i MATCH 'beta' ORDER BY docid;
+SELECT docid FROM i WHERE i MATCH 'x';
+CREATE VIRTUAL TABLE l USING fts4(a, languageid='lid');
+INSERT INTO l(docid, a, lid) VALUES(1, 'hello', 0),(2, 'hello', 1),(3, 'world', 1);
+SELECT docid FROM l WHERE l MATCH 'hello' AND lid = 1;
+SELECT docid FROM l WHERE l MATCH 'hello' AND lid = 0;

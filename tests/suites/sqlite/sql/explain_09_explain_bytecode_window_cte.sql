@@ -1,0 +1,4 @@
+CREATE TABLE t(g, v);
+EXPLAIN SELECT g, v, sum(v) OVER (PARTITION BY g ORDER BY v ROWS 2 PRECEDING), rank() OVER (ORDER BY v) FROM t;
+EXPLAIN WITH RECURSIVE c(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM c WHERE n<5) SELECT n FROM c;
+EXPLAIN SELECT json_extract('{"a":1}', '$.a'), printf('%d', 5), strftime('%Y', '2024-01-01');
