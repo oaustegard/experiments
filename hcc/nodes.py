@@ -370,6 +370,7 @@ class Switch(Stmt):
     cases: list[Case]
     default: Case | None
     brk_label: str
+    case_index: list = field(default_factory=list, repr=False)  # sorted (lo, hi) of cases (parser bookkeeping)
 
 
 @dataclass(eq=False)

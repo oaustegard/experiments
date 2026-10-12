@@ -7,6 +7,7 @@ One `_stmt_<keyword>` method per statement keyword; see STMT_KEYWORDS.
 """
 from __future__ import annotations
 
+import bisect
 from hcc import diag
 from hcc import nodes as N
 from hcc import typesys as T
@@ -164,6 +165,7 @@ class StatementMixin:
         c = N.Case(t.loc, lo, hi, None, self.new_label())
         if lo <= hi:      # an empty range matches nothing: keep only its label
             self.cur_switch.cases.append(c)
+            bisect.insort(self.cur_switch.case_index, (lo, hi))
         c.body = None if self.at("}") else self.stmt()
         return c
 
@@ -172,9 +174,12 @@ class StatementMixin:
         Empty ranges (lo > hi) match nothing and never conflict."""
         if lo > hi:
             return
-        for prev in self.cur_switch.cases:
-            if prev.lo <= hi and lo <= prev.hi:
-                self.error("duplicate (or overlapping) case value", t)
+        # accepted ranges are disjoint and sorted by lo: only the last one starting at or
+        # before hi can overlap [lo, hi] (binary search keeps N labels O(N log N)).
+        idx = self.cur_switch.case_index
+        i = bisect.bisect_right(idx, (hi, float("inf")))
+        if i > 0 and idx[i - 1][1] >= lo:
+            self.error("duplicate (or overlapping) case value", t)
 
     def _stmt_default(self, t):
         if self.cur_switch is None:
