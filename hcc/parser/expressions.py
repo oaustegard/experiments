@@ -154,7 +154,8 @@ class ExpressionMixin:
             if s == "&&":                        # GNU label address
                 self.next()
                 name = self.expect_ident()
-                return self.typed(N.LabelAddr(t.loc, name.text))
+                fname = self.fn.name if self.fn is not None else ""
+                return self.typed(N.LabelAddr(t.loc, name.text, fname))
         elif t.kind == TokenKind.KEYWORD:
             if s == "sizeof":
                 return self.sizeof_expr()

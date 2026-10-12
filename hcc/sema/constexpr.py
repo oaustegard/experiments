@@ -150,6 +150,8 @@ def _eval(node):
         raise NotConstant
     if t is N.StrLit:
         raise NotConstant
+    if t is N.LabelAddr:                 # GNU &&label: same symbol codegen emits (context.user_label)
+        return f".L.{node.func}.{node.label}", 0
     if t is N.Member_ and node.ty.kind == TypeKind.ARRAY:
         return _eval_addr(node)
     if t is N.Deref and node.ty.kind in (TypeKind.ARRAY, TypeKind.FUNC):

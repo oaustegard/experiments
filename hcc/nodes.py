@@ -210,8 +210,9 @@ class BuiltinCall(Expr):
 
 @dataclass(eq=False)
 class LabelAddr(Expr):
-    """GNU &&label."""
+    """GNU &&label. `func` is the enclosing function name (labels are per-function)."""
     label: str
+    func: str = ""
 
 
 @dataclass(eq=False)
