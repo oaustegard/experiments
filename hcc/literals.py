@@ -37,6 +37,12 @@ KEYWORD_ALIASES = {
 # C23 typeof_unqual (plain spelling only in C23 mode; the __ spellings are always keywords).
 TYPEOF_UNQUAL_SPELLINGS = frozenset(("typeof_unqual", "__typeof_unqual", "__typeof_unqual__"))
 
+# C23 keywords that are ordinary identifiers before C23; they map onto the C11 spellings.
+C23_KEYWORD_ALIASES = {
+    "alignas": "_Alignas", "alignof": "_Alignof",
+    "static_assert": "_Static_assert", "thread_local": "_Thread_local",
+}
+
 _ESCAPES = {"a": 7, "b": 8, "f": 12, "n": 10, "r": 13, "t": 9, "v": 11, "e": 27, "E": 27,
             "\\": 92, "'": 39, '"': 34, "?": 63}
 
@@ -231,6 +237,10 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
                 t = t.copy()
                 t.kind = TokenKind.KEYWORD
                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
+            elif c23 and t.text in C23_KEYWORD_ALIASES:
+                t = t.copy()
+                t.kind = TokenKind.KEYWORD
+                t.text = C23_KEYWORD_ALIASES[t.text]
         elif k == TokenKind.NUMBER:
             t = t.copy()
             t.value, t.ty = parse_number(t)
