@@ -186,7 +186,7 @@ class ExpressionMixin:
     def expr_MemZero(self, node) -> None:
         v = node.var
         self.emit(f"mov ${v.ty.size}, %rcx")
-        self.emit(f"lea {v.offset}(%rbp), %rdi")
+        self.lea_rbp(v.offset, "%rdi")
         self.emit("mov $0, %al")
         self.emit("rep stosb")
 

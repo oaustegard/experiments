@@ -127,8 +127,11 @@ class FunctionMixin:
         self.va_info = (gp_named, fp_named, stack_end)
         self.emit("push %rbp")
         self.emit("mov %rsp, %rbp")
-        if size:
+        if size and size <= 0x7fffffff:
             self.emit(f"sub ${size}, %rsp")
+        elif size:
+            self.emit(f"movabs ${size}, %r11")
+            self.emit("sub %r11, %rsp")
         if self.canary_offset is not None:
             self.emit("mov %fs:0x28, %r11")
             self.emit(f"mov %r11, {self.canary_offset}(%rbp)")

@@ -28,7 +28,7 @@ class MemoryMixin:
                 # VLA object: its frame slot holds the address of its storage.
                 self.emit(f"mov {var.offset}(%rbp), %rax")
                 return
-            self.emit(f"lea {var.offset}(%rbp), %rax")
+            self.lea_rbp(var.offset, "%rax")
             return
         if isinstance(var, N.Var) and var.is_tls:
             self.emit("mov %fs:0, %rax")
@@ -54,7 +54,7 @@ class MemoryMixin:
         if t is N.Member_:
             self.gen_addr(node.operand)
             if node.member.offset:
-                self.emit(f"add ${node.member.offset}, %rax")
+                self.add_offset_rax(node.member.offset)
             return
         if t is N.Cast:
             self.gen_addr(node.operand)
@@ -64,6 +64,24 @@ class MemoryMixin:
             self.gen_expr(node)
             return
         diag.error(node, "lvalue required", "codegen")
+
+    def lea_rbp(self, off: int, reg: str) -> None:
+        """reg = %rbp + off; frame slots beyond disp32 (objects > 2 GiB) are
+        computed with movabs, since lea cannot take a 64-bit displacement."""
+        if -0x80000000 <= off <= 0x7fffffff:
+            self.emit(f"lea {off}(%rbp), {reg}")
+        else:
+            self.emit(f"movabs ${off}, {reg}")
+            self.emit(f"add %rbp, {reg}")
+
+    def add_offset_rax(self, off: int) -> None:
+        """%rax += off. Offsets outside imm32 (huge arrays in packed structs)
+        go through %r11, since x86 has no 64-bit immediate add."""
+        if -0x80000000 <= off <= 0x7fffffff:
+            self.emit(f"add ${off}, %rax")
+        else:
+            self.emit(f"movabs ${off}, %r11")
+            self.emit("add %r11, %rax")
 
     def load(self, ty) -> None:
         k = ty.kind
