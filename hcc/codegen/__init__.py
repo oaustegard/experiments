@@ -46,11 +46,17 @@ class CodeGen(FunctionMixin, NestedMixin, StatementMixin, ExpressionMixin, Arith
                     self.emit_alias(obj)
                 elif obj.ifunc_of:
                     self.emit_ifunc(obj)
+                elif obj.is_weak:
+                    # Weak declaration without a definition here: the symbol
+                    # is an undefined weak reference (resolves to 0 if absent).
+                    self.directive(f".weak {obj.symbol}")
             elif isinstance(obj, N.Var):
                 if obj.is_definition and not obj.is_extern:
                     self.emit_data(obj)
                 elif obj.alias_of and not obj.is_definition:
                     self.emit_alias(obj)
+                elif obj.is_weak and not obj.is_definition:
+                    self.directive(f".weak {obj.symbol}")
         self.emit_init_fini()
         self.directive('.section .note.GNU-stack,"",@progbits')
         return "\n".join(self.out) + "\n"
