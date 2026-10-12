@@ -204,15 +204,17 @@ def string_bytes(units: list[int], elem: Type) -> bytes:
     return b"".join((u & ((1 << (8 * sz)) - 1)).to_bytes(sz, "little") for u in units + [0])
 
 
-def convert_tokens(toks: list[Token], u8_unsigned: bool = False) -> list[Token]:
-    """`u8_unsigned`: C23 types u8"" literals as unsigned char arrays."""
+def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
+                   c23: bool = False) -> list[Token]:
+    """`u8_unsigned`: C23 types u8"" literals as unsigned char arrays.
+    `c23`: `constexpr` is a keyword (it is an ordinary identifier otherwise)."""
     out: list[Token] = []
     i, n = 0, len(toks)
     while i < n:
         t = toks[i]
         k = t.kind
         if k == TokenKind.IDENT:
-            if t.text in KEYWORDS:
+            if t.text in KEYWORDS or (c23 and t.text == "constexpr"):
                 t = t.copy()
                 t.kind = TokenKind.KEYWORD
                 t.text = KEYWORD_ALIASES.get(t.text, t.text)

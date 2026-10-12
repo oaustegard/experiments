@@ -127,7 +127,8 @@ def compile_to_asm(path: str, opts: Options) -> str:
     from hcc.parser import parse
     toks = preprocess_file(path, opts)
     with diag.stage("parse"):
-        toks = convert_tokens(toks, u8_unsigned=(opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x"))
+        c23 = (opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
+        toks = convert_tokens(toks, u8_unsigned=c23, c23=c23)
         tu = parse(toks, opts)
     if opts.dump_ast:
         for o in tu.objs:
