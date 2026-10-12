@@ -94,7 +94,7 @@ class TopLevelMixin:
     def auto_type_global(self, attr) -> None:
         """`__auto_type name = expr;` at file scope: the variable takes the
         type of the initializer expression (array decays to pointer)."""
-        name = self.expect_ident()
+        name = self.auto_declarator_name()
         self.expect("=")
         start = self.pos
         ty = self.typed(self.assign()).ty
@@ -106,6 +106,18 @@ class TopLevelMixin:
         var.is_definition = True
         var.is_tentative = False
         self.expect(";")
+
+    def auto_declarator_name(self):
+        """Name in a type-inferred `auto x = e;`; redundant parentheses around it
+        (`auto ((x)) = e;`) are allowed, as in any declarator."""
+        depth = 0
+        while self.accept("("):
+            depth += 1
+        name = self.expect_ident()
+        for _ in range(depth):
+            self.expect(")")
+        self.skip_std_attributes()          # `auto x [[attr]] = e;`
+        return name
 
     # ---- objects -----------------------------------------------------------------
     def declare_function(self, ty, name, attr, dattr) -> N.Function:

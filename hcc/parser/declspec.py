@@ -47,6 +47,9 @@ __builtin_va_list __auto_type __float128 __uint128_t _Complex __complex__ __comp
 constexpr
 """.split())
 
+# Identifiers that C23 turns into keywords (mapped to their keyword spelling).
+C23_KEYWORDS = {"bool": "_Bool", "thread_local": "_Thread_local"}
+
 STORAGE = frozenset(("typedef", "static", "extern", "inline", "_Thread_local", "auto",
                      "register", "_Noreturn"))
 
@@ -114,8 +117,9 @@ class DeclSpecMixin:
         return self.find_typedef(tok) is not None
 
     def is_c23_bool(self, tok):
-        """C23 makes `bool` a keyword (= _Bool) unless a typedef of that name is in scope."""
-        return tok.kind == TokenKind.IDENT and tok.text == "bool" \
+        """C23 makes `bool` (= _Bool) and `thread_local` (= _Thread_local) keywords
+        unless a typedef of that name is in scope."""
+        return tok.kind == TokenKind.IDENT and tok.text in C23_KEYWORDS \
             and self.c23_mode() and self.find_typedef(tok) is None
 
     def declspec(self, attr=None):
@@ -131,7 +135,7 @@ class DeclSpecMixin:
             tok = self.tok
             s = tok.text
             if self.is_c23_bool(tok):
-                s = "_Bool"
+                s = C23_KEYWORDS[tok.text]
             if s in STORAGE:
                 if attr is None:
                     self.error("storage class specifier is not allowed in this context")

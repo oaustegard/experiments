@@ -31,7 +31,7 @@ class LocalDeclMixin:
                 self.expect(",")
             first = False
             if basety is None:                       # __auto_type x = expr;
-                name = self.expect_ident()
+                name = self.auto_declarator_name()
                 self.expect("=")
                 e = self.typed(self.assign())
                 ty = e.ty
