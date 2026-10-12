@@ -70,6 +70,13 @@ class PrimaryMixin:
             self.error(f"unexpected type name '{name}': expected expression", t)
         if name in ("__func__", "__FUNCTION__", "__PRETTY_FUNCTION__") and self.fn is not None:
             return self.typed(N.VarRef(t.loc, self.func_name_var()))
+        if name in ("__func__", "__FUNCTION__", "__PRETTY_FUNCTION__") and self.fn is None:
+            # Outside a function GCC yields an empty string (warning for __func__ only).
+            if name == "__func__":
+                diag.warn(t, "'__func__' is not defined outside of function scope")
+            var = self.new_anon_gvar(T.array_of(T.TY_CHAR, 1), t.loc)
+            var.init_data = N.GlobalData(bytearray(b"\0"))
+            return self.typed(N.VarRef(t.loc, var))
         if name == "nullptr" and self.c23_mode():
             # C23 nullptr constant: a null pointer constant (approximated as void *).
             return N.Cast(t.loc, N.IntLit(t.loc, 0, ty=T.TY_INT), ty=T.pointer_to(T.TY_VOID))
