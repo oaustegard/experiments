@@ -107,6 +107,7 @@ hcc/
     conditionals.py    #if/#elif expression evaluation (defined, __has_*)
     includes.py        include search path resolution, file reading/caching
     predefined.py      predefined macros (__x86_64__, __LP64__, __GNUC__, ...)
+    floatn_macros.py   gcc-predefined __FLT16_/__FLT32_/... values read by <float.h>
                        and builtin dynamic macros (__FILE__, __LINE__, ...)
 
   parser/

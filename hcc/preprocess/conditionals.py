@@ -149,10 +149,16 @@ class _Eval:
 
 class ConditionalMixin:
 
+    def _c23_mode(self) -> bool:
+        return (self.opts.std or "").lower() in ("c23", "gnu23", "c2x", "gnu2x")
+
     def eval_condition(self, hash_tok: Token, line: list[Token]) -> bool:
         toks = self._replace_defined(line)
         toks = self.expand_list(toks)
         toks = self._replace_defined(toks)
+        if self._c23_mode():   # C23: true/false are keywords (1/0 in #if)
+            toks = [self._one(t, int(t.text == "true")) if t.kind == TokenKind.IDENT
+                    and t.text in ("true", "false") else t for t in toks]
         if not toks:
             diag.error(hash_tok, "#if with no expression")
         return _Eval(toks, hash_tok).run() != 0

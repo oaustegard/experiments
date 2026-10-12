@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import time
 
+from hcc.preprocess.floatn_macros import FLOATN_MACROS
 from hcc.tokens import Token, TokenKind
 
 PREDEFINED = r"""
@@ -231,7 +232,7 @@ STD_ALIASES = {"iso9899:1990": "c90", "iso9899:199409": "c89", "iso9899:1999": "
 def predefined_source(opts) -> str:
     std = (opts.std or "gnu17").lower()
     std = STD_ALIASES.get(std, std)
-    lines = [PREDEFINED, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201710L')}"]
+    lines = [PREDEFINED, FLOATN_MACROS, f"#define __STDC_VERSION__ {STD_VERSIONS.get(std, '201710L')}"]
     if std.startswith("c"):
         lines.append("#define __STRICT_ANSI__ 1")
     if STD_VERSIONS.get(std, "") >= "202000L":

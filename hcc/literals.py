@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc.tokens import KEYWORDS, Token, TokenKind
-from hcc.typesys import (TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_INT, TY_LDOUBLE, TY_LLONG,
+from hcc.typesys import (TY_BOOL, TY_CHAR, TY_UCHAR, TY_DOUBLE, TY_FLOAT, TY_INT, TY_LDOUBLE, TY_LLONG,
                        TY_LONG, TY_UINT, TY_ULLONG, TY_ULONG, TY_USHORT, Type, array_of)
 
 KEYWORD_ALIASES = {
@@ -214,7 +214,9 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
         t = toks[i]
         k = t.kind
         if k == TokenKind.IDENT:
-            if t.text in KEYWORDS or (c23 and t.text == "constexpr"):
+            if c23 and t.text in ("true", "false"):
+                t = _c23_bool_const(t)
+            elif t.text in KEYWORDS or (c23 and t.text == "constexpr"):
                 t = t.copy()
                 t.kind = TokenKind.KEYWORD
                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
@@ -237,6 +239,15 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
         out.append(t)
         i += 1
     return out
+
+
+def _c23_bool_const(t: Token) -> Token:
+    """C23: `true`/`false` are constants of type bool (value 1/0)."""
+    t = t.copy()
+    t.kind = TokenKind.NUMBER
+    t.value = int(t.text == "true")
+    t.ty = TY_BOOL
+    return t
 
 
 def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR) -> Token:
