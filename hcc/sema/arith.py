@@ -32,7 +32,23 @@ def _elem_size(ty, loc):
     base = ty.base
     if base.kind in (TypeKind.VOID, TypeKind.FUNC):
         return N.IntLit(loc, 1, ty=TY_LONG)
+    if _is_incomplete_object(base):
+        diag.error(loc, f"arithmetic on pointer to an incomplete type '{base}'", "sema")
     return _size_expr(base, loc)
+
+
+def _is_incomplete_object(t) -> bool:
+    """C11 6.5.6p1: a pointee of arithmetic must be a complete object type.
+    Covers incomplete struct/union/enum tags and `T[]` (no bound)."""
+    if t.kind == TypeKind.ARRAY:
+        return not t.is_complete
+    if t.kind in (TypeKind.STRUCT, TypeKind.UNION):
+        while not t.is_complete and getattr(t, "origin", None) is not None:   # const-qualified copies
+            t = t.origin
+        return not t.is_complete
+    if t.kind == TypeKind.ENUM:
+        return t.enum_consts == "fwd"
+    return False
 
 
 def _size_expr(t, loc):
