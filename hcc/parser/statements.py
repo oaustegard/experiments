@@ -71,6 +71,8 @@ class StatementMixin:
             self.next()
             self.next()
             self.parse_attributes()
+            if t.text in self.label_names:      # labels have function scope (C11 6.8.1p3)
+                self.error(f"duplicate label '{t.text}'", t)
             self.label_names.add(t.text)
             self.jump_scope.note_label(t.text)
             body = None if self.at("}") else self.stmt()
