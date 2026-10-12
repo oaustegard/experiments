@@ -267,6 +267,25 @@ class DirectiveMixin:
             self._optimize_pragma(line[2:])
         elif line and line[0].text == "pack":
             self._pack_pragma(hash_tok, line[1:])
+        elif line and line[0].text == "weak":
+            self._weak_pragma(hash_tok, line[1:])
+
+    def _weak_pragma(self, hash_tok, line: list[Token]) -> None:
+        """#pragma weak sym  /  #pragma weak sym = target: forwarded to the
+        parser as file-scope `asm(".weak sym" [ ".set sym, target" ])`."""
+        if not line or line[0].kind != TokenKind.IDENT:
+            return
+        sym = line[0].text
+        asm = f"\\t.weak {sym}"
+        if len(line) == 3 and line[1].text == "=" and line[2].kind == TokenKind.IDENT:
+            asm += f"\\n\\t.set {sym}, {line[2].text}"
+        elif len(line) != 1:
+            return
+        loc = hash_tok.loc
+        toks = [Token(TokenKind.IDENT, "asm", loc), Token(TokenKind.PUNCT, "(", loc),
+                Token(TokenKind.STRING, f'"{asm}"', loc), Token(TokenKind.PUNCT, ")", loc),
+                Token(TokenKind.PUNCT, ";", loc)]
+        self.stack.extend(reversed(toks))
 
     def _pack_pragma(self, hash_tok, args: list[Token]) -> None:
         """#pragma pack(...) is forwarded to the parser as one marker token
