@@ -241,7 +241,8 @@ def run(ctx: Ctx, a: argparse.Namespace) -> int:
             stop_launch = True
         if a.max_workers and launched >= a.max_workers:
             stop_launch = True
-        if not stop_launch and len(procs) < a.concurrency:
+        overloaded = a.max_load and os.getloadavg()[0] > a.max_load
+        if not stop_launch and not overloaded and len(procs) < a.concurrency:
             items = workqueue.build(tr.known(ctx), ledger(ctx), source_size(ctx))
             if not items and not procs and not finished and not refreshing:
                 log("queue empty and nothing in flight")
@@ -321,6 +322,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--poll", type=float, default=POLL_SECS)
     ap.add_argument("--top", type=int, default=20)
     ap.add_argument("--force", action="store_true", help="run despite preflight problems")
+    ap.add_argument("--max-load", type=float, default=3.0 * (os.cpu_count() or 4),
+                    help="no new launches while the 1-min load average is above this")
     a = ap.parse_args(argv)
     ctx = Ctx(root=a.root.resolve(), wt_root=a.wt_root, jobs=a.jobs, batch=a.batch,
               sample_size=a.sample, full_every=a.full_every,

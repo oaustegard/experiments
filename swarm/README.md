@@ -10,11 +10,12 @@ python3 swarm/run.py queue --top 20  # what would be dispatched next
 python3 swarm/run.py refresh         # full-suite baseline now (with bisect/revert)
 python3 swarm/run.py run --fake ...  # whole machinery with swarm/fake_worker.py, no model calls
 python3 swarm/queue.py R.json ...    # cluster any tests/run.py --json output
+python3 swarm/selftest.py            # asserts every gate path on a throwaway fake repo (~10 s)
 ```
 Key flags: `--max-workers N` (launches this invocation), `--concurrency`, `--max-usd`
 (total ledger spend), `--per-task-usd` (2.0), `--timeout` (1500 s/worker), `--batch` (4
 candidates per gate run), `--sample` (150), `--full-every` (25 merges), `--suites a,b`,
-`--jobs` (gate test parallelism), `--root`/`--wt-root` (point at a scratch repo).
+`--jobs` (gate test parallelism), `--max-load` (no launches above this load avg), `--root`/`--wt-root` (point at a scratch repo).
 
 ## Flow
 1. **Baseline** (`merge.refresh`): every suite at main HEAD → `state/known.json`

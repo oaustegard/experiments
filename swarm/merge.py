@@ -52,7 +52,7 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
     if not wt.exists():
         return "", [], "worktree missing"
     git(wt, "add", "-A")
-    changed = [f for f in git(wt, "diff", "--cached", "--name-only", rec["base"]).splitlines() if f]
+    changed = [f for f in git(wt, "diff", "--cached", "--no-renames", "--name-only", rec["base"]).splitlines() if f]
     # symlinks are the orchestrator's links to untracked suites (common.link_untracked_suites)
     bad = [f for f in changed if f.startswith(FORBIDDEN) and not (wt / f).is_symlink()]
     if bad:
@@ -60,7 +60,8 @@ def candidate_patch(ctx: Ctx, rec: dict) -> tuple[str, list[str], str | None]:
     files = [f for f in changed if f.startswith(ALLOWED) and not any(j in f for j in JUNK)]
     if not files:
         return "", changed, "empty diff (no changes under hcc/)"
-    patch = git(wt, "diff", "--cached", "--binary", rec["base"], "--", *files)
+    # --no-renames: a rename would list only the new path and drop the deletion
+    patch = git(wt, "diff", "--cached", "--no-renames", "--binary", rec["base"], "--", *files)
     cached.write_text(patch)
     write_json(tdir / "patch_files.json", files)
     return patch, files, None
