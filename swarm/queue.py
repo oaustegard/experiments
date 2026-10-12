@@ -6,7 +6,8 @@ A signature is "<stage>: <normalised reason>", e.g.
     "parse: expected <id> in struct declarator"
 Numbers, file:line:col, identifiers in quotes and hex constants are masked so
 the same compiler bug in different tests lands in one cluster. Short
-punctuation and C keywords in quotes are kept ("expected ';'" stays specific).
+punctuation, C keywords and CamelCase names (AST node classes, e.g. a
+"KeyError: 'StructRef'") in quotes are kept ("expected ';'" stays specific).
 
 A work item is one cluster (or one shard of a big cluster) with 1-3
 representative tests. Priority = ladder level of the suite, then cluster size,
@@ -54,16 +55,19 @@ def level(suite: str) -> int:
 
 def _quoted(m: re.Match) -> str:
     q, s = m.group(1), m.group(2)
-    keep = s in C_KEYWORDS or (len(s) <= 3 and not re.search(r"\w", s))
+    keep = (s in C_KEYWORDS or (len(s) <= 3 and not re.search(r"\w", s))
+            or re.fullmatch(r"[A-Z][a-z]+(?:[A-Z][a-z]*)+|[A-Z][a-z]{3,}", s) is not None)  # AST class names
     return f"{q}{s}{q}" if keep else f"{q}<id>{q}"
 
 
 def normalise(reason: str) -> str:
     r = (reason or "").strip().splitlines()[-1:] or [""]   # last line: exception / message
     r = r[0]
-    r = re.sub(r"(?:/[\w.+-]+)+/?", "<path>", r)                      # absolute paths
-    r = re.sub(r"[\w.+-]+\.(?:c|h|s|S|o|i)\b(?::\d+)*:?", "<file>", r)  # foo.c:12:3:
+    r = re.sub(r"(?<![\w.])(?:/[\w.+-]+){2,}/?", "<path>", r)          # absolute paths
+    r = re.sub(r"(?<![\w<])[\w.+-]+\.(?:c|h|s|S|o|i)\b", "<file>", r)   # foo.c
+    r = re.sub(r"^\s*(?:<path>|<file>)(?::\d+)*:\s*(?:(?:fatal )?error:\s*)?", "", r)  # "f.c:1:2: error:"
     r = re.sub(r"\bline \d+", "line <n>", r)
+    r = r.replace("\u2018", "'").replace("\u2019", "'").replace("\u201c", '"').replace("\u201d", '"')
     r = re.sub(r"(['\"`])(.*?)\1", _quoted, r)
     r = re.sub(r"\b0x[0-9a-fA-F]+\b", "<hex>", r)
     r = re.sub(r"\b\d+(\.\d+)?\b", "<n>", r)
