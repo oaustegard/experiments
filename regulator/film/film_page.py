@@ -47,7 +47,7 @@ a {{ color: var(--brass); }}
   <p class="sub">A detective film in which every clock in the house keeps its own time, and one witness lies</p>
   <video controls preload="metadata" poster="poster.jpg" src="the-regulator.mp4"></video>
   <p>Inspector Léon Matthey tells the case of Aurèle Monnier, a master watchmaker struck down in his atelier an hour and a half before the new century. Each clock and watch reading appears on screen as it is spoken. At {pm}:{ps:02d} the film puts the evidence on one card and stops to let you solve it; the drawing-room reveal follows.</p>
-  <p class="meta"><a href="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/muninn/video/2026/10/the-regulator-720p-master.mp4" download>Download the master</a> (134 MB, H.264 CRF 19, 160 kbps AAC). The player above streams a 51 MB copy of it.</p>
+  <p class="meta"><a href="https://pub-38421218e82c4d4ba2bc53974c28b55d.r2.dev/muninn/video/2026/10/the-regulator-720p-master.mp4" download>Download the master</a> (134 MB, H.264 CRF 19, 160 kbps AAC). The player above streams a 55 MB copy of it.</p>
   <p>The same case can be worked by hand, with a bench that converts every reading to true time, at <a href="/scratch/regulator/">The Regulator</a>.</p>
   <p class="meta">{mins} min {secs:02d} s. Paintings by Gemini 3 Pro Image, two takes per shot with Claude Haiku judging each pair; seven voices designed for Gemini 3.8 Flash TTS; ticking, bells and the repeater's chime synthesized. Detectives given the narration up to the pause: Sonnet solved 4 of 4 and Haiku 4 of 16, and seven of the Haiku named the wrong man. Pipeline: <a href="https://github.com/oaustegard/experiments/tree/main/regulator/film">oaustegard/experiments</a>.</p>
 </main>
