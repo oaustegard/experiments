@@ -33,6 +33,10 @@ class EnumMixin:
         self.expect("{")
         ty = T.enum_type()
         ty.tag = tag.text if tag else None
+        if tag is not None:
+            # The tag is visible from its declaration on, so enumerator
+            # expressions may refer to it (GNU: `enum A { B = sizeof(enum A*) }`).
+            self.scopes[-1].tags[tag.text] = ty
         if fixed is not None:
             self.apply_fixed_underlying(ty, fixed)
         consts = []
