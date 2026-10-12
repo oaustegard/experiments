@@ -353,7 +353,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--jobs", type=int, default=4, help="test parallelism in gate/baseline")
     ap.add_argument("--batch", type=int, default=4)
     ap.add_argument("--sample", type=int, default=150)
-    ap.add_argument("--full-every", type=int, default=25)
+    ap.add_argument("--full-every", type=int, default=100)
     ap.add_argument("--final-refresh", action="store_true", help="full run after the loop ends")
     ap.add_argument("--suites", default="", help="comma list; default every dir in tests/suites")
     ap.add_argument("--poll", type=float, default=POLL_SECS)
