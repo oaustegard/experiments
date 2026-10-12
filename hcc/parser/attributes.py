@@ -115,11 +115,19 @@ class AttributeMixin:
         elif name == "mode" and attr is not None and args:
             attr.mode = args[0].text.strip("_")
 
-    def typedef_aligned(self, ty, attr, dattr):
+    def typedef_aligned(self, ty, attr, dattr, name=None):
         """`typedef T X __attribute__((aligned(N)))`: raise the typedef's alignment.
 
+        Alignment is sticky across redeclarations of the same typedef in the
+        same scope (GCC keeps the largest), so a later plain `typedef T X;`
+        does not drop an earlier aligned attribute.
         Returns a copy of `ty` (never mutates a shared type) when N is larger."""
         al = max(attr.align, dattr.align)
+        if name is not None:
+            prev = self.scopes[-1].vars.get(name)
+            if prev is not None and prev.type_def is not None \
+                    and prev.type_def.kind == ty.kind and prev.type_def.align > al:
+                al = prev.type_def.align
         if al > ty.align:
             ty = ty.copy()
             ty.align = al

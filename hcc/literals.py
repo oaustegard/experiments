@@ -204,7 +204,8 @@ def string_bytes(units: list[int], elem: Type) -> bytes:
     return b"".join((u & ((1 << (8 * sz)) - 1)).to_bytes(sz, "little") for u in units + [0])
 
 
-def convert_tokens(toks: list[Token]) -> list[Token]:
+def convert_tokens(toks: list[Token], u8_unsigned: bool = False) -> list[Token]:
+    """`u8_unsigned`: C23 types u8"" literals as unsigned char arrays."""
     out: list[Token] = []
     i, n = 0, len(toks)
     while i < n:
@@ -225,7 +226,7 @@ def convert_tokens(toks: list[Token]) -> list[Token]:
             j = i + 1
             while j < n and toks[j].kind == TokenKind.STRING:
                 j += 1
-            t = _concat_strings(toks[i:j])
+            t = _concat_strings(toks[i:j], TY_UCHAR if u8_unsigned else TY_CHAR)
             out.append(t)
             i = j
             continue
@@ -236,11 +237,13 @@ def convert_tokens(toks: list[Token]) -> list[Token]:
     return out
 
 
-def _concat_strings(pieces: list[Token]) -> Token:
+def _concat_strings(pieces: list[Token], u8_elem: Type = TY_CHAR) -> Token:
     """Concatenate adjacent string literals (C11 6.4.5p5)."""
     prefix = ""
+    has_u8 = False
     for p in pieces:
         pre, _ = _prefix(p.text)
+        has_u8 = has_u8 or pre == "u8"
         if pre and pre != "u8":
             if prefix and prefix != pre:
                 diag.error(p, "unsupported non-standard concatenation of string literals")
@@ -253,7 +256,7 @@ def _concat_strings(pieces: list[Token]) -> Token:
             units += parse_string_literal(fake)[0]
         else:
             units += parse_string_literal(p)[0]
-    elem = STRING_ELEM[prefix]
+    elem = STRING_ELEM[prefix] if prefix else (u8_elem if has_u8 else TY_CHAR)
     t = pieces[0].copy()
     t.value = string_bytes(units, elem)
     t.ty = array_of(elem, len(t.value) // elem.size)
