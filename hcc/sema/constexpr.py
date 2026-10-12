@@ -137,6 +137,10 @@ def _num(node) -> int:
 
 def _eval(node):
     t = type(node)
+    cv = getattr(node, "cval", None)
+    if cv is not None and node.ty is not None and is_integer(node.ty):
+        # a lowered complex expression with a folded value (e.g. `(_Complex float)x == 0.5`)
+        return None, int(cv[0])
     if t is N.IntLit:
         return None, node.value
     if t is N.FloatLit:

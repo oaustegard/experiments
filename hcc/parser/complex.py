@@ -24,6 +24,7 @@ Division uses the textbook formula, falling back to libgcc __divdc3/__divsc3
     conjugate(p, operand, loc)    GCC `~z` on a complex operand
     part(p, operand, which, loc)  __real__ (0) / __imag__ (1) lvalue or rvalue
     convert(p, expr, ty, loc)     implicit/explicit conversion to ty
+    builtin_complex(p, loc, args) __builtin_complex(re, im)
 """
 from __future__ import annotations
 
@@ -261,3 +262,25 @@ def convert(p, expr, ty, loc):
                     new_cast(_part(p, tmp, 0, loc), ty))
         return CC.attach(real, None if cv is None else (cv[0], 0), ty) if cv is not None else real
     return new_cast(expr, ty)
+
+
+def builtin_complex(p, loc, args):
+    """`__builtin_complex(re, im)`: a complex value from two real floating parts
+    of the same type (the parts are not converted, as in GCC)."""
+    if len(args) != 2:
+        p.error("'__builtin_complex' expects 2 arguments", loc)
+    re, im = args
+    for e in args:
+        if e.ty.is_complex or e.ty.kind not in _RANK:
+            p.error("'__builtin_complex' expects real floating-point arguments", loc)
+    base = re.ty.unqual()
+    if im.ty.kind != base.kind or im.ty.size != base.size:
+        p.error("'__builtin_complex' arguments must have the same type", loc)
+    tmp = p.new_temp(complex_of(base), loc)
+    pre = [_assign(p, loc, _part(p, tmp, 0, loc), re),
+           _assign(p, loc, _part(p, tmp, 1, loc), im)]
+    node = _seq(p, loc, pre, _vref(p, tmp, loc))
+    cre, cim = CC.value_of(re), CC.value_of(im)
+    if cre is not None and cim is not None:
+        CC.attach(node, (cre[0], cim[0]), base)
+    return node

@@ -14,6 +14,7 @@ from __future__ import annotations
 import struct
 
 from hcc import nodes as N
+from hcc.sema.constexpr import NotConstant, eval_float
 from hcc.typesys import TypeKind, is_flonum, is_integer
 
 
@@ -34,7 +35,12 @@ def value_of(node):
         cv = value_of(node.operand)      # a real cast, or the real part of a complex constant
         if cv is not None:
             return (store_value(node.ty, cv[0]), 0)
-    return None
+    if node.ty is None or node.ty.is_complex or not (is_flonum(node.ty) or is_integer(node.ty)):
+        return None
+    try:                                  # e.g. 3 / 2.0 as a real part
+        return (eval_float(node), 0.0)
+    except NotConstant:
+        return None
 
 
 def real_value(node):

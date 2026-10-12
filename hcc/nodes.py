@@ -32,6 +32,9 @@ class Reloc:
     addend: int
     size: int = 8
     minus: str | None = None
+    # further assembler-resolved address terms: (sign, label) pairs, e.g. the
+    # `+ (&&c - &&d)` of `(&&a - &&b) + (&&c - &&d)`; emitted after `minus`
+    extra: tuple = ()
 
 
 @dataclass(eq=False)

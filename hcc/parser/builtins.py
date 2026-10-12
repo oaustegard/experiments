@@ -28,6 +28,7 @@ from hcc.parser.x86_sse_sigs import X86_BUILTINS, x86_call
 from hcc.parser.vector_shufflevector import lower_shufflevector
 from hcc.parser.tgmath import tgmath_call
 from hcc.parser.complex import make_complex
+from hcc.parser.complex import builtin_complex
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
 from hcc.sema.conversions import new_cast
@@ -130,6 +131,9 @@ class BuiltinParseMixin:
 
     def _b_tgmath(self, tok):
         return tgmath_call(self, tok)
+
+    def _b_complex(self, tok):
+        return builtin_complex(self, tok.loc, self._args())
 
     def _float16_builtin(self, tok):
         """__builtin_{inf,huge_val,nan,nans}f16(...): a _Float16 constant. The NaN bit
