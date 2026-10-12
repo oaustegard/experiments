@@ -145,6 +145,7 @@ class TopLevelMixin:
         fn.is_inline |= attr.is_inline
         fn.is_noreturn |= attr.is_noreturn or dattr.is_noreturn
         fn.is_weak |= attr.is_weak or dattr.is_weak
+        fn.fn_attrs |= attr.fn_attrs | dattr.fn_attrs
         fn.asm_name = dattr.asm_name or attr.asm_name or fn.asm_name
         fn.section = dattr.section or attr.section or fn.section
         fn.visibility = dattr.visibility or attr.visibility or fn.visibility

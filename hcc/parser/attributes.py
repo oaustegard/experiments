@@ -14,6 +14,9 @@ from hcc.tokens import TokenKind
 from hcc import typesys as T
 
 # byte sizes for __attribute__((mode(...))) integer modes (x86-64: word = DI)
+# function attributes hcc records by name only (queried via __builtin_has_attribute)
+RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
+
 MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
 
 
@@ -126,6 +129,8 @@ class AttributeMixin:
             attr.is_gnu_inline = True
         elif name == "weak" and attr is not None:
             attr.is_weak = True
+        elif name in RECORDED_FN_ATTRS and attr is not None:
+            attr.fn_attrs.add(name)
         elif name == "copy" and attr is not None and args:
             # copy(f): inherit the attributes hcc records on the function f
             from hcc import nodes as N
@@ -133,6 +138,8 @@ class AttributeMixin:
             if vs is not None and isinstance(vs.var, N.Function):
                 attr.is_noreturn |= vs.var.is_noreturn
                 attr.is_weak |= vs.var.is_weak
+                # GCC does not copy `leaf` (it only describes extern functions)
+                attr.fn_attrs |= vs.var.fn_attrs - {"leaf"}
             else:
                 # copy(expr): inherit `packed` from the expression's member or type
                 from hcc.parser.attr_copy import apply_copy_expr
