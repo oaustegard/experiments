@@ -128,6 +128,10 @@ class AttributeMixin:
                         and t.text in _NO_ARG_STD_ATTRS
                         and self.at("(")):
                     self.error(f"'{t.text}' attribute does not take any arguments")
+                elif (t.kind == TokenKind.IDENT and prev in ("[", ",", "::")
+                        and self.at("(") and self.peek().kind == TokenKind.PUNCT
+                        and self.peek().text == ")"):
+                    self.error("parentheses must be omitted if attribute argument list is empty")
                 prev = t.text
 
     def parse_attributes(self, attr=None, ty=None) -> None:
