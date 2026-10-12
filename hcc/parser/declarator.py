@@ -168,6 +168,8 @@ class DeclaratorMixin:
             self.skip_std_attributes()
             attr = VarAttr()
             base = self.declspec(attr)
+            if attr.is_static or attr.is_extern or attr.is_typedef:
+                self.error("storage class specified for parameter")
             saved_proto = self.in_proto_params
             self.in_proto_params = True     # sizeof in a prototype is unevaluated
             try:
