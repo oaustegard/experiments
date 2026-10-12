@@ -172,11 +172,14 @@ class DeclaratorMixin:
             if attr.is_static or attr.is_extern or attr.is_typedef:
                 self.error("storage class specified for parameter")
             saved_proto = self.in_proto_params
+            saved_pdecl = self.in_param_decl
             self.in_proto_params = True     # sizeof in a prototype is unevaluated
+            self.in_param_decl = True
             try:
                 pty, name = self.declarator(base)
             finally:
                 self.in_proto_params = saved_proto
+                self.in_param_decl = saved_pdecl
             self.parse_attributes()
             dim = None
             if (pty.kind == T.TypeKind.ARRAY and not pty.is_vector) or pty.kind == T.TypeKind.VLA:

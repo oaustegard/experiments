@@ -25,6 +25,8 @@ class PrimaryMixin:
         k = t.kind
         if k == TokenKind.PUNCT and t.text == "(":
             if self.peek().text == "{" and self.peek().kind == TokenKind.PUNCT:
+                if self.in_param_decl:
+                    self.error("braced-group within expression allowed only inside a function")
                 self.next()
                 self.next()
                 outer_base = self.stmt_expr_base

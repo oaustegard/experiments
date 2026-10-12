@@ -278,7 +278,12 @@ class TopLevelMixin:
                 if v.enum_ty is not None and enums_before.get(k) is not v and k in pnames:
                     self.error(f"'{k}' declared as a non-parameter", self.tok.loc)
             while True:
-                ty, name = self.declarator(basety)
+                saved_pdecl = self.in_param_decl
+                self.in_param_decl = True   # GNU: no braced-group in a parameter's array size
+                try:
+                    ty, name = self.declarator(basety)
+                finally:
+                    self.in_param_decl = saved_pdecl
                 dattr = VarAttr()           # `int foo __attribute__((unused));`
                 self.parse_attributes(dattr)
                 self.skip_std_attributes()
