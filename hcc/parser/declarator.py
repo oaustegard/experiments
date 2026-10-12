@@ -347,6 +347,9 @@ class DeclaratorMixin:
         # expression, so `char [i]` with `const int i = 1;` is still a VLA.
         if self.fn is not None and n is not None and _names_variable(expr):
             n = None
+        if n is None and self.fn is None and not getattr(self, "in_proto_params", False):
+            # C11 6.7.6.2p2: a variably modified type may not appear at file scope
+            self.error("variably modified type at file scope", expr)
         if n is None or ty.kind == T.TypeKind.VLA or T.is_dyn_struct(ty):
             # an array of run-time-sized structs has a run-time size too (`struct S a[2][n]`)
             add_type(expr)
