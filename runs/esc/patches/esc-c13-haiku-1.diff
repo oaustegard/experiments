@@ -1,0 +1,50 @@
+diff --git a/hcc/codegen/asm.py b/hcc/codegen/asm.py
+index e8b33dfb..4f4b1232 100644
+--- a/hcc/codegen/asm.py
++++ b/hcc/codegen/asm.py
+@@ -12,7 +12,9 @@ from hcc.codegen import asm_ext
+ class AsmMixin:
+ 
+     def stmt_Asm(self, node) -> None:
+-        if node.outputs or node.inputs:
++        # Extended asm whose template uses '%' (operand names/numbers or '%%')
++        # must be substituted, even when it has no operands at all.
++        if node.outputs or node.inputs or (node.is_extended and "%" in node.text):
+             asm_ext.lower_extended(self, node)
+             return
+         self.out.append(node.text)
+diff --git a/hcc/nodes.py b/hcc/nodes.py
+index 9c19c990..80562a17 100644
+--- a/hcc/nodes.py
++++ b/hcc/nodes.py
+@@ -407,6 +407,7 @@ class Asm(Stmt):
+     inputs: list = field(default_factory=list)    # [(constraint, Expr)]
+     clobbers: list = field(default_factory=list)
+     is_volatile: bool = False
++    is_extended: bool = False                     # written with a ':' section (not basic asm)
+     goto_labels: list = field(default_factory=list)   # asm goto: [label name]
+     names: dict = field(default_factory=dict)   # [sym] operand name -> GCC operand index
+ 
+diff --git a/hcc/parser/statements.py b/hcc/parser/statements.py
+index c73eca03..b009f1cb 100644
+--- a/hcc/parser/statements.py
++++ b/hcc/parser/statements.py
+@@ -236,6 +236,7 @@ class StatementMixin:
+         while self.tok.kind == TokenKind.STRING:
+             text += self.next().value.rstrip(b"\0").decode("utf-8", "replace")
+         node = N.Asm(t.loc, text, is_volatile=is_volatile)
++        node.is_extended = self.at(":")
+         sections = [node.outputs, node.inputs]
+         for sec in sections:
+             if not self.accept(":"):
+diff --git a/hcc/selftest/asm_unknown_operand_noops.c b/hcc/selftest/asm_unknown_operand_noops.c
+new file mode 100644
+index 00000000..1968ee43
+--- /dev/null
++++ b/hcc/selftest/asm_unknown_operand_noops.c
+@@ -0,0 +1,5 @@
++// EXPECT-ERROR: unknown asm operand name
++// Extended asm with no operands must still substitute '%[name]': an unknown
++// name is a compile error, not text emitted verbatim.
++void h(void) { asm("%[missing]" : : ); }
++int main(void) { return 0; }

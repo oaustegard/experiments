@@ -1,0 +1,33 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..f4e9d0fa 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -69,7 +69,16 @@ class EnumMixin:
+             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
+                     and def_pos[id(prev)] != brace_pos):
+                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
+-        ty = T.enum_type()
++        # A body completing a forward reference in this scope (`typedef enum E E;`
++        # then `enum E {...}`) must fill in the same Type object, since typedefs
++        # already hold it.
++        prev_here = self.scopes[-1].tags.get(tag.text) if tag is not None else None
++        if prev_here is not None and prev_here.kind == T.TypeKind.ENUM \
++                and prev_here.enum_consts == "fwd":
++            ty = prev_here
++            ty.enum_consts = None
++        else:
++            ty = T.enum_type()
+         ty.tag = tag.text if tag else None
+         if tag is not None:
+             def_pos[id(ty)] = brace_pos
+diff --git a/hcc/selftest/enum_fwd_typedef_complete.c b/hcc/selftest/enum_fwd_typedef_complete.c
+new file mode 100644
+index 00000000..763b6999
+--- /dev/null
++++ b/hcc/selftest/enum_fwd_typedef_complete.c
+@@ -0,0 +1,5 @@
++// EXPECT-EXIT: 0
++typedef enum E E;
++enum E { A, B = 5 };
++static int f(E e) { return (int)e; }
++int main(void) { return f(B) == 5 ? 0 : 1; }

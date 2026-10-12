@@ -1,0 +1,35 @@
+diff --git a/hcc/builtins/varargs.py b/hcc/builtins/varargs.py
+index a80f174f..044b3bc1 100644
+--- a/hcc/builtins/varargs.py
++++ b/hcc/builtins/varargs.py
+@@ -2,6 +2,7 @@
+ va_arg_pack placeholders are resolved by parser/va_pack.py."""
+ from __future__ import annotations
+ 
++from hcc import diag
+ from hcc import nodes as N
+ from hcc import typesys as T
+ from hcc.builtins import builtin_parser
+@@ -40,6 +41,8 @@ def _parse_va_arg(self, tok):
+     ap = self.typed(self.assign())
+     self.expect(",")
+     ty = self.typename()
++    if ty.kind == T.TypeKind.FUNC:
++        diag.error(tok.loc, "second argument to 'va_arg' is a function type")
+     # a va_list may be consumed by any function (not only variadic ones,
+     # e.g. `void f(va_list ap)`), so make sure the split-struct scratch exists
+     fn = getattr(self, "fn", None)
+diff --git a/hcc/selftest/builtins_va_arg_func_type.c b/hcc/selftest/builtins_va_arg_func_type.c
+new file mode 100644
+index 00000000..ed25221c
+--- /dev/null
++++ b/hcc/selftest/builtins_va_arg_func_type.c
+@@ -0,0 +1,8 @@
++// EXPECT-ERROR: function type
++// va_arg with a function type as the second argument is a constraint violation.
++int f(int s, ...)
++{
++  __builtin_va_list ap;
++  __builtin_va_start(ap, s);
++  return __builtin_va_arg(ap, int (void))();
++}

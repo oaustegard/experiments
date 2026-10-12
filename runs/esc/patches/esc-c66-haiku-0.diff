@@ -1,0 +1,53 @@
+diff --git a/hcc/parser/atomic_builtins.py b/hcc/parser/atomic_builtins.py
+index 9ea27ebe..655fa1ac 100644
+--- a/hcc/parser/atomic_builtins.py
++++ b/hcc/parser/atomic_builtins.py
+@@ -42,10 +42,36 @@ ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUI
+                    | _LOCK_FREE_NAMES)
+ 
+ 
++# Exact argument counts (gcc rejects both too few and too many arguments).
++_ARITY = {}
++for _o in _RMW_OPS:
++    _ARITY[f"__atomic_fetch_{_o}"] = 3
++    _ARITY[f"__atomic_{_o}_fetch"] = 3
++    _ARITY[f"__sync_fetch_and_{_o}"] = 2
++    _ARITY[f"__sync_{_o}_and_fetch"] = 2
++_ARITY.update({
++    "__atomic_exchange_n": 3, "__atomic_load_n": 2, "__atomic_store_n": 3,
++    "__atomic_load": 3, "__atomic_store": 3, "__atomic_exchange": 4,
++    "__atomic_compare_exchange_n": 6, "__atomic_compare_exchange": 6,
++    "__atomic_test_and_set": 2, "__atomic_clear": 2,
++    "__sync_lock_test_and_set": 2, "__sync_val_compare_and_swap": 3,
++    "__sync_bool_compare_and_swap": 3, "__sync_lock_release": 1,
++})
++
++
++def _check_arity(parser, name, nargs, tok):
++    want = _ARITY.get(name)
++    if want is None or nargs == want:
++        return
++    which = "too few" if nargs < want else "too many"
++    parser.error(f"{which} arguments to function '{name}'", tok)
++
++
+ def atomic_call(parser, tok):
+     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
+     name = tok.text
+     args = parser._args()
++    _check_arity(parser, name, len(args), tok)
+     if name in ("__atomic_thread_fence", "__atomic_signal_fence"):
+         if len(args) != 1:
+             parser.error(f"'{name}' expects 1 argument", tok)
+diff --git a/hcc/selftest/parser_atomic_arity.c b/hcc/selftest/parser_atomic_arity.c
+new file mode 100644
+index 00000000..01a3b092
+--- /dev/null
++++ b/hcc/selftest/parser_atomic_arity.c
+@@ -0,0 +1,6 @@
++// EXPECT-ERROR: [parse] too few arguments to function
++int i;
++int main(void) {
++  __atomic_exchange_n(&i, 1);
++  return 0;
++}

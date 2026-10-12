@@ -1,0 +1,61 @@
+diff --git a/hcc/literals.py b/hcc/literals.py
+index 7766a402..fdba1c95 100644
+--- a/hcc/literals.py
++++ b/hcc/literals.py
+@@ -342,6 +342,8 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
+                     or (t.text in TYPEOF_UNQUAL_SPELLINGS and (c23 or t.text.startswith("__"))):
+                 t = t.copy()
+                 t.kind = TokenKind.KEYWORD
++                if t.text == "__thread":
++                    t.spell = "__thread"    # GNU spelling: keeps its stricter ordering rules
+                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
+             elif c23 and t.text in C23_KEYWORD_ALIASES:
+                 t = t.copy()
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..7f0da699 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -133,6 +133,8 @@ class DeclSpecMixin:
+         vsize = 0
+         tmode = None          # type-name __attribute__((mode(X)))
+         auto_infer = False
++        tls_tok = None        # the (first) _Thread_local token; `.spell` set for GNU __thread
++        storage_seen = []
+         is_const = is_volatile = is_atomic = is_complex = False
+         while self.is_typename():
+             if self.at_std_attribute():
+@@ -146,6 +148,13 @@ class DeclSpecMixin:
+                 if attr is None:
+                     self.error("storage class specifier is not allowed in this context")
+                 self.next()
++                storage_seen.append(s)
++                if s == "_Thread_local":
++                    if tls_tok is not None:
++                        self.error(f"duplicate '{tok.spell or s}'")
++                    tls_tok = tok
++                elif s in ("extern", "static") and tls_tok is not None and tls_tok.spell:
++                    self.error(f"'__thread' before '{s}'")
+                 if s == "typedef":
+                     attr.is_typedef = True
+                 elif s == "static":
+@@ -226,6 +235,10 @@ class DeclSpecMixin:
+                     pass
+                 self.error(f"invalid type: '{s}' here")
+             ty = _BASE_TYPES[counter]
++        if tls_tok is not None and tls_tok.spell:
++            for bad in ("typedef", "auto", "register"):
++                if bad in storage_seen:
++                    self.error(f"'__thread' used with '{bad}'")
+         if auto_infer and counter == 0 and attr is not None:
+             return None         # type comes from the initializer, as for __auto_type
+         if is_complex:
+diff --git a/hcc/selftest/tls_gnu_thread_order.c b/hcc/selftest/tls_gnu_thread_order.c
+new file mode 100644
+index 00000000..1a88cbd8
+--- /dev/null
++++ b/hcc/selftest/tls_gnu_thread_order.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: '__thread' before 'extern'
++// GNU __thread must follow extern/static; C11 _Thread_local has no such rule.
++__thread extern int g;
++int main(void) { return 0; }

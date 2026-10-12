@@ -1,0 +1,28 @@
+diff --git a/hcc/parser/postfix.py b/hcc/parser/postfix.py
+index ff4da8c9..6b8ea892 100644
+--- a/hcc/parser/postfix.py
++++ b/hcc/parser/postfix.py
+@@ -77,6 +77,12 @@ class PostfixMixin:
+                 self.next()
+                 idx = self.expr()
+                 self.expect("]")
++                base = node
++                while isinstance(base, N.Member_):
++                    base = base.operand
++                if (isinstance(base, N.VarRef) and getattr(base.var, "is_register", False)
++                        and self.typed(node).ty.kind == TypeKind.ARRAY):
++                    self.error(f"address of register variable '{base.var.name}' requested", t)
+                 ptr = new_add(node, idx, t.loc)
+                 self.typed(ptr)
+                 if ptr.ty.base is not None and ptr.ty.base.kind == TypeKind.FUNC:
+diff --git a/hcc/selftest/parser_register_array_subscript.c b/hcc/selftest/parser_register_array_subscript.c
+new file mode 100644
+index 00000000..17de2409
+--- /dev/null
++++ b/hcc/selftest/parser_register_array_subscript.c
+@@ -0,0 +1,5 @@
++// EXPECT-ERROR: [parse] address of register variable
++int main(void) {
++    register int a[2];
++    return a[0];
++}

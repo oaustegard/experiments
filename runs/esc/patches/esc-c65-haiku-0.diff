@@ -1,0 +1,49 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..c5db0dc1 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -71,6 +71,10 @@ _NO_ARG_STD_ATTRS = frozenset({
+     "fallthrough", "__fallthrough__",
+ })
+ 
++# C23 standard attributes whose argument list is optional and, when present,
++# must be exactly one string literal: `[[deprecated]]`, `[[deprecated("why")]]`.
++_OPT_STR_STD_ATTRS = frozenset({"deprecated", "nodiscard"})
++
+ 
+ class AttributeMixin:
+ 
+@@ -115,8 +119,23 @@ class AttributeMixin:
+                         and t.text in _NO_ARG_STD_ATTRS
+                         and self.at("(")):
+                     self.error(f"'{t.text}' attribute does not take any arguments")
++                elif (t.kind == TokenKind.IDENT and prev in ("[", ",", "::")
++                        and t.text in _OPT_STR_STD_ATTRS
++                        and self.at("(")):
++                    self._check_optional_string_arg(t.text)
++                    t = self.toks[self.pos - 1]
+                 prev = t.text
+ 
++    def _check_optional_string_arg(self, name) -> None:
++        """Validate `(...)` after a C23 attribute taking one optional string literal."""
++        start = self.pos
++        self.skip_balanced()
++        args = self.toks[start + 1:self.pos - 1]
++        if not args:
++            self.error("parentheses must be omitted if attribute argument list is empty")
++        if len(args) != 1 or args[0].kind != TokenKind.STRING:
++            self.error(f"expected string literal as argument of '{name}' attribute")
++
+     def parse_attributes(self, attr=None, ty=None) -> None:
+         while self.at_attribute() or self.at_std_attribute():
+             if self.at_std_attribute():
+diff --git a/hcc/selftest/parser_c23_deprecated_empty_parens.c b/hcc/selftest/parser_c23_deprecated_empty_parens.c
+new file mode 100644
+index 00000000..df8437f3
+--- /dev/null
++++ b/hcc/selftest/parser_c23_deprecated_empty_parens.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// C23 [[deprecated]] takes no parentheses when its argument list is empty.
++// EXPECT-FLAGS: -std=c23
++[[deprecated()]] int a;

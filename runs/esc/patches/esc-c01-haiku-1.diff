@@ -1,0 +1,37 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 90980bd9..0a03dd02 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -44,11 +44,11 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
++        elif _contains_call(node.lhs) or \
+                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
+-            # Only a call-free operand may be parked on the stack: a value
+-            # pushed before a call (e.g. setjmp, whose resumption reuses the
+-            # stack slot) would be clobbered. Evaluate the call side first.
++            # gcc -O0 evaluates the lhs of a binary operator first, also when
++            # both operands contain calls (`f() - f()`), so the call side is
++            # evaluated first and its value parked while the rhs runs.
+             self.gen_expr(node.lhs)
+             self.push()
+             self.gen_expr(node.rhs)
+diff --git a/hcc/selftest/codegen_binary_lhs_first.c b/hcc/selftest/codegen_binary_lhs_first.c
+new file mode 100644
+index 00000000..81ad3b07
+--- /dev/null
++++ b/hcc/selftest/codegen_binary_lhs_first.c
+@@ -0,0 +1,11 @@
++// EXPECT-EXIT: 0
++// EXPECT-STDOUT: f1;f2;f3;f4;
++// Both operands of a binary operator contain calls: gcc -O0 evaluates the lhs first.
++#include <stdio.h>
++static int f(int v) { printf("f%d;", v); return v; }
++int main(void) {
++    int a = f(1) - f(2);
++    int b = (f(3) - f(4)) << 2;
++    printf("\n");
++    return (a + b) == -5 ? 0 : 1;
++}

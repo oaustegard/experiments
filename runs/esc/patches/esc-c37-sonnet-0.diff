@@ -1,0 +1,50 @@
+diff --git a/hcc/literals.py b/hcc/literals.py
+index 7766a402..4b348f52 100644
+--- a/hcc/literals.py
++++ b/hcc/literals.py
+@@ -342,6 +342,8 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
+                     or (t.text in TYPEOF_UNQUAL_SPELLINGS and (c23 or t.text.startswith("__"))):
+                 t = t.copy()
+                 t.kind = TokenKind.KEYWORD
++                if t.text == "__thread":
++                    t.value = "__thread"      # GNU spelling: ordering rules differ
+                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
+             elif c23 and t.text in C23_KEYWORD_ALIASES:
+                 t = t.copy()
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..a21b1c5d 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -133,6 +133,7 @@ class DeclSpecMixin:
+         vsize = 0
+         tmode = None          # type-name __attribute__((mode(X)))
+         auto_infer = False
++        gnu_thread = False
+         is_const = is_volatile = is_atomic = is_complex = False
+         while self.is_typename():
+             if self.at_std_attribute():
+@@ -146,6 +147,15 @@ class DeclSpecMixin:
+                 if attr is None:
+                     self.error("storage class specifier is not allowed in this context")
+                 self.next()
++                if tok.value == "__thread" and s == "_Thread_local":
++                    if attr.is_tls:
++                        self.error("duplicate '__thread'")
++                    if attr.is_extern or attr.is_static:
++                        pass
++                    else:
++                        gnu_thread = True
++                elif gnu_thread and s in ("extern", "static"):
++                    self.error(f"'__thread' before '{s}'")
+                 if s == "typedef":
+                     attr.is_typedef = True
+                 elif s == "static":
+diff --git a/hcc/selftest/err_thread_before_extern.c b/hcc/selftest/err_thread_before_extern.c
+new file mode 100644
+index 00000000..af04e70d
+--- /dev/null
++++ b/hcc/selftest/err_thread_before_extern.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++// __thread before extern is rejected.
++__thread extern int g1;

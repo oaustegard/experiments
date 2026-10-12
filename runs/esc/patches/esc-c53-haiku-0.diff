@@ -1,0 +1,24 @@
+diff --git a/hcc/parser/declarator.py b/hcc/parser/declarator.py
+index 29a55c54..f9673fd4 100644
+--- a/hcc/parser/declarator.py
++++ b/hcc/parser/declarator.py
+@@ -256,6 +256,9 @@ class DeclaratorMixin:
+         """Reject arrays whose element type is incomplete (C11 6.7.6.2p1)."""
+         if ty.kind == T.TypeKind.VLA:
+             return
++        if ty.kind == T.TypeKind.FUNC:
++            # C11 6.7.6.2p1: element type may not be a function type
++            self.error("declaration of array of functions", self.tok)
+         if (ty.kind == T.TypeKind.ARRAY and ty.array_len < 0) or \
+                 (ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not ty.is_complete):
+             self.error("array type has incomplete element type", self.tok)
+diff --git a/hcc/selftest/parser_array_of_functions.c b/hcc/selftest/parser_array_of_functions.c
+new file mode 100644
+index 00000000..31257335
+--- /dev/null
++++ b/hcc/selftest/parser_array_of_functions.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// Array elements may not be function types (C11 6.7.6.2p1).
++int a[3](void);
++int main(void) { return 0; }

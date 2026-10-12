@@ -1,0 +1,29 @@
+diff --git a/hcc/codegen/asm_ext.py b/hcc/codegen/asm_ext.py
+index 7f7dcc4d..2ff9246e 100644
+--- a/hcc/codegen/asm_ext.py
++++ b/hcc/codegen/asm_ext.py
+@@ -315,6 +315,10 @@ def _gen_value(cg, node) -> None:
+ 
+ 
+ def lower_extended(cg, node) -> None:
++    for c, e in node.outputs:
++        # GCC: every output constraint must be write-only ("=") or read-write ("+").
++        if "=" not in c and "+" not in c:
++            diag.error(e, "output operand constraint lacks '='", "codegen")
+     outs_all = [_Op(c, e, True) for c, e in node.outputs]
+     ins_all = [_Op(c, e, False) for c, e in node.inputs]
+     # GCC numbering: outputs, explicit inputs, then one implicit input per "+"
+diff --git a/hcc/selftest/asm_output_no_equals.c b/hcc/selftest/asm_output_no_equals.c
+new file mode 100644
+index 00000000..1f009988
+--- /dev/null
++++ b/hcc/selftest/asm_output_no_equals.c
+@@ -0,0 +1,8 @@
++// EXPECT-ERROR: output operand constraint lacks '='
++// Extended asm: an output operand whose constraint has neither '=' nor '+'
++// is a compile error (GCC: "output operand constraint lacks '='").
++int main(void) {
++    int x = 1;
++    __asm__ ("" : "r" (x));
++    return 0;
++}

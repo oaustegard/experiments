@@ -1,0 +1,63 @@
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..25288b96 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -67,6 +67,10 @@ class LocalDeclMixin:
+             self.parse_asm_label(dattr)
+             if name is None:
+                 self.error("identifier expected in declaration")
++            prev = self.scopes[-1].vars.get(name.text)
++            if prev is not None and not attr.is_extern and ty.kind != T.TypeKind.FUNC \
++                    and isinstance(prev.var, N.Var) and prev.var.is_local and not prev.var.is_param:
++                self.error(f"redeclaration of '{name.text}'", name)
+             cleanup = dattr.cleanup or attr.cleanup
+             if cleanup and (attr.is_static or attr.is_extern or attr.is_typedef):
+                 self.error("cleanup attribute on a non-automatic variable", name)
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 035ec413..78d65c05 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -140,6 +140,8 @@ class TopLevelMixin:
+             self.scopes[0].vars[name.text] = VarScope(var=fn)
+             self.objs.append(fn)
+         else:
++            if not is_compatible(fn.ty, ty):
++                self.error(f"conflicting types for '{name.text}'", name.loc)
+             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
+                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
+                 self.error(f"redefinition of '{name.text}'", name.loc)
+@@ -169,6 +171,8 @@ class TopLevelMixin:
+             self.scopes[0].vars[name.text] = VarScope(var=var)
+             self.objs.append(var)
+             var.is_definition = False
++        elif not is_compatible(var.ty, ty):
++            self.error(f"conflicting types for '{name.text}'", name.loc)
+         elif ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
+                 var.ty.array_len < 0 and ty.kind == T.TypeKind.ARRAY and ty.array_len >= 0:
+             var.ty = ty
+diff --git a/hcc/selftest/parse_redecl_conflict.c b/hcc/selftest/parse_redecl_conflict.c
+new file mode 100644
+index 00000000..58bd0059
+--- /dev/null
++++ b/hcc/selftest/parse_redecl_conflict.c
+@@ -0,0 +1,6 @@
++// EXPECT-ERROR: conflicting types
++int main(void) {
++  extern int x;
++  extern double x;
++  return 0;
++}
+diff --git a/hcc/sema/compat.py b/hcc/sema/compat.py
+index 2be59045..b29911d6 100644
+--- a/hcc/sema/compat.py
++++ b/hcc/sema/compat.py
+@@ -24,6 +24,9 @@ def is_compatible(a: Type, b: Type) -> bool:
+         return True
+     if a.is_const != b.is_const or a.is_volatile != b.is_volatile or a.is_atomic != b.is_atomic:
+         return False
++    arrs = (TypeKind.ARRAY, TypeKind.VLA)
++    if a.kind in arrs and b.kind in arrs and (a.kind == TypeKind.VLA or b.kind == TypeKind.VLA):
++        return is_compatible(a.base, b.base)     # variable length: size unknown until run time
+     if a.kind != b.kind:
+         if a.kind == TypeKind.ENUM and b.kind != TypeKind.ENUM:
+             return is_compatible(_enum_as_int(a), b)

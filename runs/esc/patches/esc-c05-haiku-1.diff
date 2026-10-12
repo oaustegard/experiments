@@ -1,0 +1,58 @@
+diff --git a/hcc/parser/atomic_builtins.py b/hcc/parser/atomic_builtins.py
+index 9ea27ebe..c6daf7f3 100644
+--- a/hcc/parser/atomic_builtins.py
++++ b/hcc/parser/atomic_builtins.py
+@@ -42,6 +42,27 @@ ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUI
+                    | _LOCK_FREE_NAMES)
+ 
+ 
++# Zero-based indices of operands that must be pointers in the generic (non-_n) forms.
++_GENERIC_PTR_ARGS = {
++    "__atomic_load": (1,),
++    "__atomic_store": (1,),
++    "__atomic_exchange": (1, 2),
++    "__atomic_compare_exchange": (1, 2),
++}
++
++
++def _is_pointer_operand(node) -> bool:
++    """A pointer, or an array that decays to one. Array rvalues (e.g. `f().a`) do not decay."""
++    if node.ty.kind is T.TypeKind.PTR:
++        return True
++    if node.ty.kind is not T.TypeKind.ARRAY:
++        return False
++    inner = node
++    while type(inner).__name__ in ("Member_", "Cast"):
++        inner = inner.operand
++    return type(inner).__name__ in ("VarRef", "Deref", "StrLit")
++
++
+ def atomic_call(parser, tok):
+     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
+     name = tok.text
+@@ -65,6 +86,12 @@ def atomic_call(parser, tok):
+     else:
+         if not args or not T.is_pointer_like(args[0].ty):
+             parser.error(f"'{name}' expects a pointer as first argument", tok)
++        if (args[0].ty.base.unqual().kind is T.TypeKind.VOID
++                or (args[0].ty.kind is T.TypeKind.ARRAY and not _is_pointer_operand(args[0]))):
++            parser.error(f"argument 1 of '{name}' must be a non-void pointer type", tok)
++        for idx in _GENERIC_PTR_ARGS.get(name, ()):
++            if idx < len(args) and not _is_pointer_operand(args[idx]):
++                parser.error(f"argument {idx + 1} of '{name}' must be a pointer type", tok)
+         if name in _RMW_ARITH_NAMES and args[0].ty.base.unqual().kind is T.TypeKind.BOOL:
+             # gcc (PR 68966): arithmetic/bitwise RMW on _Bool would break its representation.
+             parser.error(f"operand type '{args[0].ty.base}' is incompatible with argument 1 "
+diff --git a/hcc/selftest/parser_atomic_load_void_ptr.c b/hcc/selftest/parser_atomic_load_void_ptr.c
+new file mode 100644
+index 00000000..1472caa6
+--- /dev/null
++++ b/hcc/selftest/parser_atomic_load_void_ptr.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: [parse]
++// __atomic_load's first operand must be a non-void pointer (gcc PR 82112); an array rvalue does not decay.
++struct S { int a[4]; } get(void);
++int b;
++void f(void) {
++    __atomic_load(get().a, &b, 5);
++}

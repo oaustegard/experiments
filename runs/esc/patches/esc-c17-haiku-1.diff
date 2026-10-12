@@ -1,0 +1,42 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..f4e2903a 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -23,6 +23,11 @@ def _kind_word(kind) -> str:
+ 
+ class StructMixin:
+ 
++    def check_aggregate_mode(self, attr) -> None:
++        """`__attribute__((mode(X)))` is only valid on scalar types, not structs/unions."""
++        if attr.mode:
++            self.error(f"mode '{attr.mode}' applied to inappropriate type")
++
+     def struct_decl(self, kind):
+         attr = VarAttr()
+         attr.reverse_sso = self.sso_reverse     # #pragma scalar_storage_order default
+@@ -31,6 +36,7 @@ class StructMixin:
+         if self.tok.kind == TokenKind.IDENT:
+             tag = self.next()
+         self.parse_attributes(attr)
++        self.check_aggregate_mode(attr)
+         if tag is not None and not self.at("{"):
+             ty = self.find_tag(tag.text)
+             if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
+@@ -70,6 +76,7 @@ class StructMixin:
+                 def_pos[id(ty)] = brace_pos
+         members = self.struct_members()
+         self.parse_attributes(attr)
++        self.check_aggregate_mode(attr)
+         check_duplicate_members(members, self.toks[brace_pos])
+         ty.members = members
+         ty.is_packed = attr.is_packed
+diff --git a/hcc/selftest/parser_struct_mode_attr.c b/hcc/selftest/parser_struct_mode_attr.c
+new file mode 100644
+index 00000000..382e3c0a
+--- /dev/null
++++ b/hcc/selftest/parser_struct_mode_attr.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// mode(SI) is a scalar-only attribute; applying it to a struct is an error.
++typedef struct __attribute__((mode(SI))) { int a : 1; } S;
++int main(void) { return 0; }

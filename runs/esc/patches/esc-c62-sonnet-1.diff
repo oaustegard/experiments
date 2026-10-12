@@ -1,0 +1,22 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..56a36143 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -160,6 +160,9 @@ class AttributeMixin:
+                 self.pos = args_start + 1
+                 val = self.const_expr()
+                 self.pos = save
++            if val > 0x10000000:
++                self.error("requested alignment '%d' exceeds object file maximum 268435456" % val,
++                           self.toks[args_start])
+             if attr is not None:
+                 attr.align = max(attr.align, val)
+             elif ty is not None:
+diff --git a/hcc/selftest/attr_align_too_big.c b/hcc/selftest/attr_align_too_big.c
+new file mode 100644
+index 00000000..fa72f9c2
+--- /dev/null
++++ b/hcc/selftest/attr_align_too_big.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: requested alignment
++int foo __attribute__((aligned(1 << 29)));

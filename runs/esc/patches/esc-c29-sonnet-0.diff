@@ -1,0 +1,33 @@
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..f65b84d8 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -12,7 +12,7 @@ from hcc import nodes as N
+ from hcc import typesys as T
+ from hcc.parser.scope import VarAttr
+ from hcc.parser.attributes import mode_type
+-from hcc.parser.vla import vla_slot_type
++from hcc.parser.vla import vla_slot_type, _has_vla
+ 
+ # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
+ GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
+@@ -87,6 +87,8 @@ class LocalDeclMixin:
+                 self.nested_function(ty, name, attr, dattr)
+                 return items
+             if ty.kind == T.TypeKind.FUNC:
++                if ty.return_ty is not None and _has_vla(ty.return_ty):
++                    self.error("non-nested function with variably modified type", name)
+                 ty = self.block_func_composite(ty, name.text)
+                 fn = self.declare_function(ty, name, attr, dattr)
+                 self.push_scope_entry(name.text).var = fn
+diff --git a/hcc/selftest/parse_vla_fn_return.c b/hcc/selftest/parse_vla_fn_return.c
+new file mode 100644
+index 00000000..fc6a08c9
+--- /dev/null
++++ b/hcc/selftest/parse_vla_fn_return.c
+@@ -0,0 +1,5 @@
++// EXPECT-ERROR: non-nested function with variably modified type
++int a;
++void f(void) {
++  int (*g4(void))[a];
++}

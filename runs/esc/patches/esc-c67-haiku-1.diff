@@ -1,0 +1,139 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..1410eb38 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -221,6 +221,9 @@ class AttributeMixin:
+             self.pos = args_start + 1
+             attr.vector_size = self.const_expr()
+             self.pos = save
++        elif name == "unavailable" and attr is not None:
++            attr.unavailable = (args[0].value.rstrip(b"\0").decode("utf-8", "replace")
++                                if args and args[0].value else "")
+         elif name == "mode" and attr is not None and args:
+             attr.mode = args[0].text.strip("_")
+ 
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..282679f5 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -262,6 +262,8 @@ class DeclSpecMixin:
+                 # typeof(vm-expr) evaluates expr; locals.py emits it as a statement.
+                 self.vm_typeof.append(node)
+         self.expect(")")
++        if ty is not None and ty.unavailable is not None:
++            self.error(f"type is unavailable: {ty.unavailable}")
+         if unqual and ty is not None and (ty.is_const or ty.is_volatile or ty.is_atomic):
+             # typeof_unqual: drop the top-level qualifiers of the operand's type.
+             ty = ty.copy()
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..9967790d 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -72,6 +72,7 @@ class LocalDeclMixin:
+                 self.error("cleanup attribute on a non-automatic variable", name)
+             if dattr.mode:
+                 ty = mode_type(ty, dattr.mode)
++            ty = self.unavailable_decl(ty, attr, name)
+             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
+                 ty = self.var_aligned(ty, attr, dattr)      # `T x __attribute__((aligned(N)))`
+             if attr.is_typedef:
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..42ad96c4 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -52,5 +52,6 @@ class VarAttr:
+     init_prio: int | None = None    # constructor(N) / destructor(N) priority (None: default)
+     cleanup: str | None = None      # cleanup(f) on an automatic variable: handler name f
+     asm_name: str | None = None
++    unavailable: str | None = None  # __attribute__((unavailable("msg"))): the declared type is unusable
+     vector_size: int = 0
+     mode: str | None = None
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..35fe1c17 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -73,6 +73,8 @@ class StructMixin:
+         check_duplicate_members(members, self.toks[brace_pos])
+         ty.members = members
+         ty.is_packed = attr.is_packed
++        if attr.unavailable is not None:      # `struct {..} __attribute__((unavailable("m"))) x;`
++            ty.unavailable = attr.unavailable
+         ty.is_ms_struct = attr.is_ms_struct
+         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
+         if kind == T.TypeKind.STRUCT:
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 035ec413..cd9e6145 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -77,6 +77,7 @@ class TopLevelMixin:
+                 ty = T.vector_of(ty, dattr.vector_size)
+             if dattr.mode:
+                 ty = mode_type(ty, dattr.mode)
++            ty = self.unavailable_decl(ty, attr, name)
+             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
+                 ty = self.var_aligned(ty, attr, dattr)      # `T x __attribute__((aligned(N)))`
+             if attr.is_typedef:
+diff --git a/hcc/parser/unavailable.py b/hcc/parser/unavailable.py
+new file mode 100644
+index 00000000..c0dda052
+--- /dev/null
++++ b/hcc/parser/unavailable.py
+@@ -0,0 +1,26 @@
++"""__attribute__((unavailable("msg"))) on a declaration: its type is marked unusable.
++
++UnavailableMixin.unavailable_decl(ty, attr, name): when the declaration's specifier
++attribute carries `unavailable`, returns a copy of `ty` marked with the message and
++reports "type is unavailable: msg" for an object declaration (typedefs only mark the
++type). typeof() of such a type is rejected in declspec.py.
++"""
++from __future__ import annotations
++
++from hcc import typesys as T
++
++
++class UnavailableMixin:
++
++    def unavailable_decl(self, ty, attr, name):
++        if ty is None or ty.kind == T.TypeKind.FUNC:
++            return ty
++        msg = attr.unavailable if attr is not None and attr.unavailable is not None else ty.unavailable
++        if msg is None:
++            return ty
++        if ty.unavailable != msg:
++            ty = ty.copy()
++            ty.unavailable = msg
++        if attr is None or not attr.is_typedef:
++            self.error(f"type is unavailable: {msg}", name)
++        return ty
+diff --git a/hcc/selftest/attr_unavailable_type.c b/hcc/selftest/attr_unavailable_type.c
+new file mode 100644
+index 00000000..eec35907
+--- /dev/null
++++ b/hcc/selftest/attr_unavailable_type.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// __attribute__((unavailable)) on a struct declared with a variable: the
++// declaration is rejected (gcc: "type is unavailable").
++struct { int a; } __attribute__((unavailable("Do not use"))) x;
+diff --git a/hcc/typesys.py b/hcc/typesys.py
+index f8539714..2fa04732 100644
+--- a/hcc/typesys.py
++++ b/hcc/typesys.py
+@@ -75,7 +75,8 @@ class Type:
+                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
+                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
+                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
+-                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size")
++                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size",
++                 "unavailable")
+ 
+     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
+         self.kind = kind
+@@ -115,6 +116,7 @@ class Type:
+         self.is_complex = False      # C99 _Complex: a STRUCT {re, im} of base (see complex_of)
+         self.dyn_tail = None         # STRUCT: VLA type of a trailing variably-sized member (size = prefix)
+         self.dyn_size = None         # bound dynamic STRUCT: ulong expr of its run-time sizeof (pointer strides)
++        self.unavailable: str | None = None   # __attribute__((unavailable("msg"))): using the type is an error
+ 
+     def copy(self) -> "Type":
+         t = Type.__new__(Type)

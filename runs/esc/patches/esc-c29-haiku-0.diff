@@ -1,0 +1,38 @@
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..9ca5615a 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -12,7 +12,7 @@ from hcc import nodes as N
+ from hcc import typesys as T
+ from hcc.parser.scope import VarAttr
+ from hcc.parser.attributes import mode_type
+-from hcc.parser.vla import vla_slot_type
++from hcc.parser.vla import _has_vla, vla_slot_type
+ 
+ # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
+ GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
+@@ -87,6 +87,10 @@ class LocalDeclMixin:
+                 self.nested_function(ty, name, attr, dattr)
+                 return items
+             if ty.kind == T.TypeKind.FUNC:
++                if not attr.is_static and _has_vla(ty.return_ty):
++                    # C11 6.7.6.2p2 / GCC: a block-scope function declaration
++                    # has external linkage, so its result may not be variably modified.
++                    self.error("non-nested function with variably modified type", name)
+                 ty = self.block_func_composite(ty, name.text)
+                 fn = self.declare_function(ty, name, attr, dattr)
+                 self.push_scope_entry(name.text).var = fn
+diff --git a/hcc/selftest/parse_vm_block_func_ret.c b/hcc/selftest/parse_vm_block_func_ret.c
+new file mode 100644
+index 00000000..70b6ba66
+--- /dev/null
++++ b/hcc/selftest/parse_vm_block_func_ret.c
+@@ -0,0 +1,8 @@
++// EXPECT-ERROR: non-nested function with variably modified type
++// Block-scope function declarations have external linkage: the result type
++// may not be variably modified.
++int a;
++void f(void) {
++    typedef int T[a];
++    T *g(void);
++}

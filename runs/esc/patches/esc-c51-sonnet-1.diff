@@ -1,0 +1,25 @@
+diff --git a/hcc/selftest/sema_incdec_incomplete.c b/hcc/selftest/sema_incdec_incomplete.c
+new file mode 100644
+index 00000000..1b71914e
+--- /dev/null
++++ b/hcc/selftest/sema_incdec_incomplete.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [sema] increment of pointer to an incomplete type
++struct a *q;
++void f(void) { q++; }
+diff --git a/hcc/sema/arith.py b/hcc/sema/arith.py
+index d4dd6206..9760459a 100644
+--- a/hcc/sema/arith.py
++++ b/hcc/sema/arith.py
+@@ -207,6 +207,11 @@ def inc_dec(lhs, delta: int, is_post: bool, loc, new_temp):
+     afterwards: the store may wrap (e.g. a 1-bit bit-field), so `new - delta`
+     is wrong in general.  The lvalue address is evaluated only once."""
+     add_type(lhs)
++    if lhs.ty.kind == TypeKind.PTR and lhs.ty.base is not None:
++        b = lhs.ty.base
++        if not b.is_complete and b.kind not in (TypeKind.VOID, TypeKind.FUNC):
++            diag.error(loc, f"{'increment' if delta > 0 else 'decrement'} of pointer "
++                       f"to an incomplete type '{b}'", "sema")
+     one = N.IntLit(loc, delta, ty=TY_INT)
+     if not is_post:
+         return compound_assign("+", lhs, one, loc, new_temp)

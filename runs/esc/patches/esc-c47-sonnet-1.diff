@@ -1,0 +1,68 @@
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..9b8ea1b8 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -13,6 +13,7 @@ from hcc import typesys as T
+ from hcc.parser.scope import VarAttr
+ from hcc.parser.attributes import mode_type
+ from hcc.parser.vla import vla_slot_type
++from hcc.sema.compat import is_compatible
+ 
+ # 64-bit general registers accepted in `register T x __asm__("reg")` local bindings.
+ GP64_REGS = frozenset("rax rbx rcx rdx rsi rdi rbp rsp r8 r9 r10 r11 r12 r13 r14 r15".split())
+@@ -88,6 +89,7 @@ class LocalDeclMixin:
+                 return items
+             if ty.kind == T.TypeKind.FUNC:
+                 ty = self.block_func_composite(ty, name.text)
++                self.check_extern_conflict(ty, name)
+                 fn = self.declare_function(ty, name, attr, dattr)
+                 self.push_scope_entry(name.text).var = fn
+                 if self.at("{"):                     # GNU nested function definition
+@@ -95,10 +97,12 @@ class LocalDeclMixin:
+                     return items
+                 continue
+             if attr.is_extern:
++                self.check_extern_conflict(ty, name)
+                 var = self.declare_global_var(ty, name, attr, dattr)
+                 self.push_scope_entry(name.text).var = var
+                 continue
+             if attr.is_static:
++                self.reject_local_redecl(name)
+                 self.anon_count += 1
+                 var = N.Var(f"{name.text}.{self.anon_count}", ty, is_static=True, loc=name.loc,
+                             is_definition=True, align=max(attr.align, dattr.align) or ty.align,
+@@ -112,6 +116,7 @@ class LocalDeclMixin:
+                 continue
+             if ty.kind == T.TypeKind.VOID:
+                 self.error(f"variable '{name.text}' declared void", name)
++            self.reject_local_redecl(name)
+             if T.is_dyn_struct(ty) or (ty.kind == T.TypeKind.ARRAY and _has_vla_struct(ty)):
+                 # `struct { int x[n]; } s;`: storage is allocated like a VLA;
+                 # the frame slot holds its address (size 8, see vla_slot_type).
+@@ -171,6 +176,18 @@ class LocalDeclMixin:
+                 items.append(self.cleanup_decl(var, cleanup, name))
+         return items
+ 
++    def reject_local_redecl(self, name) -> None:
++        """An object declared without linkage may not redeclare a name of the same block scope."""
++        if len(self.scopes) > 1 and name.text in self.scopes[-1].vars:
++            self.error(f"redeclaration of '{name.text}' with no linkage", name)
++
++    def check_extern_conflict(self, ty, name) -> None:
++        """A block-scope extern declaration must agree with the file-scope object."""
++        vs = self.scopes[0].vars.get(name.text)
++        old = getattr(vs.var, "ty", None) if vs is not None and vs.var is not None else None
++        if old is not None and not is_compatible(old, ty):
++            self.error(f"conflicting types for '{name.text}'", name)
++
+     def cleanup_decl(self, var, handler: str, name):
+         """__attribute__((cleanup(f))) on a local: the statement f(&var), which codegen
+         runs when the variable's block is left (see codegen/cleanup.py)."""
+diff --git a/hcc/selftest/parse_local_redecl.c b/hcc/selftest/parse_local_redecl.c
+new file mode 100644
+index 00000000..b24f2961
+--- /dev/null
++++ b/hcc/selftest/parse_local_redecl.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: redeclaration
++int main(void) { int r = 0; double r = 1; return r; }

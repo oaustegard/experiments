@@ -1,0 +1,37 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..97715bfb 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -160,6 +160,7 @@ class AttributeMixin:
+                 self.pos = args_start + 1
+                 val = self.const_expr()
+                 self.pos = save
++                self._check_aligned_value(val, args_start)
+             if attr is not None:
+                 attr.align = max(attr.align, val)
+             elif ty is not None:
+@@ -224,6 +225,15 @@ class AttributeMixin:
+         elif name == "mode" and attr is not None and args:
+             attr.mode = args[0].text.strip("_")
+ 
++    def _check_aligned_value(self, val, args_start) -> None:
++        """GCC limits aligned(N) on ELF targets to 1 << 28 (MAX_OFILE_ALIGNMENT)
++        and requires a power of two; anything else is a hard error."""
++        tok = self.toks[args_start - 1] if args_start > 0 else None
++        if val > (1 << 28):
++            self.error("requested alignment '%d' exceeds maximum %d" % (val, 1 << 28), tok)
++        elif val > 0 and val & (val - 1):
++            self.error("requested alignment is not a power of 2", tok)
++
+     def typedef_aligned(self, ty, attr, dattr, name=None):
+         """`typedef T X __attribute__((aligned(N)))`: raise the typedef's alignment.
+ 
+diff --git a/hcc/selftest/attr_aligned_max.c b/hcc/selftest/attr_aligned_max.c
+new file mode 100644
+index 00000000..a0d50630
+--- /dev/null
++++ b/hcc/selftest/attr_aligned_max.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++// aligned(N) above 1 << 28 is rejected, as GCC does on ELF targets
++typedef char X29 __attribute__((aligned(1 << 29)));

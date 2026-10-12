@@ -1,0 +1,50 @@
+diff --git a/hcc/codegen/asm.py b/hcc/codegen/asm.py
+index e8b33dfb..91091f14 100644
+--- a/hcc/codegen/asm.py
++++ b/hcc/codegen/asm.py
+@@ -6,13 +6,36 @@ input/output register shuffling).
+ """
+ from __future__ import annotations
+ 
++from hcc import diag
+ from hcc.codegen import asm_ext
+ 
+ 
++def _check_no_named_refs(node) -> None:
++    """Basic asm has no operands, so any '%[name]' reference is undefined."""
++    text = node.text
++    i = 0
++    n = len(text)
++    while i < n:
++        if text[i] != "%":
++            i += 1
++            continue
++        i += 1
++        if i < n and text[i] == "%":      # literal '%%'
++            i += 1
++            continue
++        if i < n and text[i] in "kwbqcPhl":
++            i += 1
++        if i < n and text[i] == "[":
++            end = text.find("]", i)
++            name = text[i + 1:end] if end >= 0 else text[i + 1:]
++            diag.error(node, f"undefined named operand '{name}'", "codegen")
++
++
+ class AsmMixin:
+ 
+     def stmt_Asm(self, node) -> None:
+         if node.outputs or node.inputs:
+             asm_ext.lower_extended(self, node)
+             return
++        _check_no_named_refs(node)
+         self.out.append(node.text)
+diff --git a/hcc/selftest/asm_basic_named_operand.c b/hcc/selftest/asm_basic_named_operand.c
+new file mode 100644
+index 00000000..3e00add2
+--- /dev/null
++++ b/hcc/selftest/asm_basic_named_operand.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: undefined named operand
++// Basic asm (no operands) has no named operands: "%[x]" is an error.
++void h(void) { asm("%[x]"); }

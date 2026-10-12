@@ -1,0 +1,45 @@
+diff --git a/hcc/parser/atomic_builtins.py b/hcc/parser/atomic_builtins.py
+index 9ea27ebe..871358af 100644
+--- a/hcc/parser/atomic_builtins.py
++++ b/hcc/parser/atomic_builtins.py
+@@ -42,6 +42,18 @@ ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUI
+                    | _LOCK_FREE_NAMES)
+ 
+ 
++# Generic (non-_n) forms: 0-based indices of arguments that point at the value/result
++# object (their pointee must be a data type, not a function).
++_PTR_VALUE_ARGS = {
++    "__atomic_exchange": (1, 2), "__atomic_compare_exchange": (1, 2),
++    "__atomic_load": (1,), "__atomic_store": (1,),
++}
++
++
++def _is_ptr_to_function(ty) -> bool:
++    return T.is_pointer_like(ty) and ty.base is not None and ty.base.kind is T.TypeKind.FUNC
++
++
+ def atomic_call(parser, tok):
+     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
+     name = tok.text
+@@ -69,6 +81,10 @@ def atomic_call(parser, tok):
+             # gcc (PR 68966): arithmetic/bitwise RMW on _Bool would break its representation.
+             parser.error(f"operand type '{args[0].ty.base}' is incompatible with argument 1 "
+                          f"of '{name}'", tok)
++        for idx in _PTR_VALUE_ARGS.get(name, ()):
++            if idx < len(args) and _is_ptr_to_function(args[idx].ty):
++                parser.error(f"argument {idx + 1} of '{name}' must not be a pointer to a "
++                             f"function", tok)
+         if name in _VALUE_RET or name in _SYNC_VALUE_RET:
+             ty = args[0].ty.base.unqual()
+         elif name in _INT_RET or name in _SYNC_INT_RET:
+diff --git a/hcc/selftest/parser_atomic_fnptr_operand.c b/hcc/selftest/parser_atomic_fnptr_operand.c
+new file mode 100644
+index 00000000..13eda794
+--- /dev/null
++++ b/hcc/selftest/parser_atomic_fnptr_operand.c
+@@ -0,0 +1,5 @@
++// EXPECT-ERROR: must not be a pointer to a function
++// __atomic_exchange's value operand may not point at a function.
++void f(void) {}
++int a, b;
++void g(void) { __atomic_exchange(&a, &f, &b, __ATOMIC_RELAXED); }

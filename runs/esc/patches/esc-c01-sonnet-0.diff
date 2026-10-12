@@ -1,0 +1,48 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 90980bd9..3cfae7d1 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -27,6 +27,17 @@ def _contains_comma(node) -> bool:
+                if f.name not in ("ty", "var", "member", "loc", "scope"))
+ 
+ 
++def _has_setjmp(node) -> bool:
++    if type(node).__name__ == "BuiltinCall" and node.name == "setjmp":
++        return True
++    if isinstance(node, list):
++        return any(_has_setjmp(x) for x in node)
++    if not is_dataclass(node):
++        return False
++    return any(_has_setjmp(getattr(node, f.name, None)) for f in fields(node)
++               if f.name not in ("ty", "var", "member", "loc", "scope"))
++
++
+ class ArithMixin:
+ 
+     def expr_Binary(self, node) -> None:
+@@ -44,7 +55,8 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
++        elif (_contains_call(node.lhs) and (not _contains_call(node.rhs) or
++                                            (_contains_call(node.rhs) and not _has_setjmp(node.rhs)))) or \
+                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
+             # Only a call-free operand may be parked on the stack: a value
+             # pushed before a call (e.g. setjmp, whose resumption reuses the
+diff --git a/hcc/selftest/codegen_binary_call_order.c b/hcc/selftest/codegen_binary_call_order.c
+new file mode 100644
+index 00000000..ccbeee7c
+--- /dev/null
++++ b/hcc/selftest/codegen_binary_call_order.c
+@@ -0,0 +1,10 @@
++// EXPECT-EXIT: 0
++static int n;
++static int r(void) { return n++; }
++int main(void) {
++    int x = r() - r();
++    if (x != -1) return 1;
++    n = 0;
++    if (!(r() < r())) return 2;
++    return 0;
++}

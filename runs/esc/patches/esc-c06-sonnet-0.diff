@@ -1,0 +1,173 @@
+diff --git a/hcc/codegen/cleanup.py b/hcc/codegen/cleanup.py
+index 1e1f0785..9faeb402 100644
+--- a/hcc/codegen/cleanup.py
++++ b/hcc/codegen/cleanup.py
+@@ -19,6 +19,7 @@ class CleanupMixin:
+ 
+     def stmt_CleanupDecl(self, node) -> None:
+         self.cleanup_stack.append(node.call)
++        self.eh_mark()
+ 
+     def run_cleanups(self, depth: int) -> None:
+         """Emit the cleanup calls pushed above `depth`, innermost first."""
+@@ -31,7 +32,9 @@ class CleanupMixin:
+         then forget them."""
+         if falls_through:
+             self.run_cleanups(depth)
+-        del self.cleanup_stack[depth:]
++        if len(self.cleanup_stack) > depth:
++            del self.cleanup_stack[depth:]
++            self.eh_mark()
+ 
+     def note_loop_cleanups(self, *labels) -> None:
+         """Remember the cleanup depth at a loop/switch's break and continue labels."""
+diff --git a/hcc/codegen/functions.py b/hcc/codegen/functions.py
+index 7badf3ac..4f74a922 100644
+--- a/hcc/codegen/functions.py
++++ b/hcc/codegen/functions.py
+@@ -123,6 +123,9 @@ class FunctionMixin:
+             self.directive(f".{fn.visibility} {sym}")
+         self.directive(f".type {sym}, @function")
+         self.label(sym)
++        self.eh_begin()
++        self.directive(".cfi_startproc")
++        cfi_at = len(self.out)
+         params, gp_named, fp_named, stack_end = self._classify_params(fn)
+         stack_params = {p for p, w in params if w[0] == "stack"}
+         for p, w in params:
+@@ -131,7 +134,10 @@ class FunctionMixin:
+         size = self.layout_frame(fn, stack_params)
+         self.va_info = (gp_named, fp_named, stack_end)
+         self.emit("push %rbp")
++        self.directive(".cfi_def_cfa_offset 16")
++        self.directive(".cfi_offset 6, -16")
+         self.emit("mov %rsp, %rbp")
++        self.directive(".cfi_def_cfa_register 6")
+         if size and size < (1 << 31):
+             self.emit(f"sub ${size}, %rsp")
+         elif size:
+@@ -183,8 +189,26 @@ class FunctionMixin:
+             self.label(ok)
+         self.emit("mov %rbp, %rsp")
+         self.emit("pop %rbp")
++        self.directive(".cfi_def_cfa 7, 8")
+         self.emit("ret")
+         self.directive(f".size {sym}, .-{sym}")
++        self.eh_finish(sym, size)
++        if self.eh_segs:
++            self.out[cfi_at:cfi_at] = [
++                "  .cfi_personality 0x9b, DW.ref.__gcc_personality_v0",
++                f"  .cfi_lsda 0x1b, {self.eh_lsda}"]
++            if not getattr(self, "eh_personality_done", False):
++                self.eh_personality_done = True
++                self.directive(".hidden DW.ref.__gcc_personality_v0")
++                self.directive(".weak DW.ref.__gcc_personality_v0")
++                self.directive('.section .data.rel.local.DW.ref.__gcc_personality_v0,"awG",@progbits,'
++                               'DW.ref.__gcc_personality_v0,comdat')
++                self.directive(".align 8")
++                self.directive(".type DW.ref.__gcc_personality_v0, @object")
++                self.directive(".size DW.ref.__gcc_personality_v0, 8")
++                self.label("DW.ref.__gcc_personality_v0")
++                self.directive(".quad __gcc_personality_v0")
++                self.directive(".text")
+         self.directive(f".set .Lframe.{sym}, {size}")
+         self.fn = None
+ 
+diff --git a/hcc/codegen/unwind.py b/hcc/codegen/unwind.py
+new file mode 100644
+index 00000000..a81a69fd
+--- /dev/null
++++ b/hcc/codegen/unwind.py
+@@ -0,0 +1,70 @@
++"""Unwind tables: CFI for every function, an LSDA + landing pads for cleanup variables.
++
++Every function gets `.cfi_*` directives (standard %rbp frame) so `_Unwind_*` can walk
++through it.  A function with `__attribute__((cleanup(f)))` variables also gets an
++exception table for `__gcc_personality_v0`: each stretch of code with a fixed set of
++pending cleanups is a call-site region whose landing pad runs those cleanups
++(innermost first) and continues with `_Unwind_Resume`.
++"""
++from __future__ import annotations
++
++
++class UnwindMixin:
++
++    def eh_begin(self) -> None:
++        self.eh_segs = []           # (start label, end label, pad label)
++        self.eh_pads = []           # (pad label, [cleanup calls])
++        self.eh_cur = None          # (start label, pad label)
++
++    def eh_mark(self) -> None:
++        """The pending-cleanup set changed: close the current region, open a new one."""
++        if self.eh_cur is not None:
++            end = self.new_label()
++            self.label(end)
++            self.eh_segs.append((self.eh_cur[0], end, self.eh_cur[1]))
++            self.eh_cur = None
++        if self.cleanup_stack:
++            start, pad = self.new_label(), self.new_label()
++            self.label(start)
++            self.eh_cur = (start, pad)
++            self.eh_pads.append((pad, list(self.cleanup_stack)))
++
++    def eh_finish(self, sym: str, size: int) -> None:
++        """After the epilogue: landing pads, `.cfi_endproc` and the LSDA."""
++        if self.eh_pads:
++            self.directive(".cfi_def_cfa 6, 16")
++        for pad, calls in self.eh_pads:
++            self.label(pad)
++            self.emit("mov %rbp, %rsp")
++            if size:
++                self.emit(f"sub ${size}, %rsp")
++            self.emit("push %rax")
++            self.emit("push %rax")
++            self.depth = 2
++            for call in reversed(calls):
++                self.gen_expr(call)
++                self.discard_value(call.ty)
++            self.emit("mov (%rsp), %rdi")
++            self.emit("call _Unwind_Resume@PLT")
++            self.depth = 0
++        self.directive(".cfi_endproc")
++        if not self.eh_segs:
++            return
++        lsda = f".Lhcc.lsda.{sym}"
++        self.directive(".section .gcc_except_table,\"a\",@progbits")
++        self.directive(".align 4")
++        self.label(lsda)
++        self.directive(".byte 0xff")
++        self.directive(".byte 0xff")
++        self.directive(".byte 0x1")
++        self.directive(f".uleb128 {lsda}.e-{lsda}.b")
++        self.label(lsda + ".b")
++        for start, end, pad in self.eh_segs:
++            self.directive(f".uleb128 {start}-{sym}")
++            self.directive(f".uleb128 {end}-{start}")
++            self.directive(f".uleb128 {pad}-{sym}")
++            self.directive(".uleb128 0")
++        self.label(lsda + ".e")
++        self.directive(".text")
++        self.eh_lsda = lsda
++
+diff --git a/hcc/selftest/codegen_cleanup_unwind.c b/hcc/selftest/codegen_cleanup_unwind.c
+new file mode 100644
+index 00000000..1f31377c
+--- /dev/null
++++ b/hcc/selftest/codegen_cleanup_unwind.c
+@@ -0,0 +1,16 @@
++// EXPECT-EXIT: 0
++#include <unwind.h>
++#include <stdlib.h>
++#include <string.h>
++static _Unwind_Reason_Code stop(int v, _Unwind_Action a, _Unwind_Exception_Class c,
++    struct _Unwind_Exception *e, struct _Unwind_Context *x, void *p)
++{ if (a & _UA_END_OF_STACK) abort(); return _URC_NO_REASON; }
++static void handler(void *p) { exit(0); }
++static void doit(void) {
++  char d __attribute__((cleanup(handler)));
++  struct _Unwind_Exception *e = malloc(sizeof *e);
++  memset(e, 0, sizeof *e);
++  _Unwind_ForcedUnwind(e, stop, 0);
++  abort();
++}
++int main(void) { doit(); abort(); }

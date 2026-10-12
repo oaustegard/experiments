@@ -1,0 +1,43 @@
+diff --git a/hcc/parser/postfix.py b/hcc/parser/postfix.py
+index ff4da8c9..ce9c2a2f 100644
+--- a/hcc/parser/postfix.py
++++ b/hcc/parser/postfix.py
+@@ -69,6 +69,18 @@ class PostfixMixin:
+             self.pos = save
+         return self.postfix_ops(self.primary())
+ 
++    def check_register_subscript(self, node, t):
++        """Subscripting a `register` array needs its address (rejected before C2Y)."""
++        if node.ty is None or node.ty.kind != TypeKind.ARRAY:
++            return
++        if (getattr(self.opts, "std", None) or "").lower() in ("c2y", "gnu2y", "c26", "gnu26"):
++            return
++        root = node
++        while isinstance(root, N.Member_):
++            root = root.operand
++        if isinstance(root, N.VarRef) and getattr(root.var, "is_register", False):
++            self.error(f"address of register variable '{root.var.name}' requested", t)
++
+     def postfix_ops(self, node):
+         while True:
+             t = self.tok
+@@ -77,6 +89,7 @@ class PostfixMixin:
+                 self.next()
+                 idx = self.expr()
+                 self.expect("]")
++                self.check_register_subscript(node, t)
+                 ptr = new_add(node, idx, t.loc)
+                 self.typed(ptr)
+                 if ptr.ty.base is not None and ptr.ty.base.kind == TypeKind.FUNC:
+diff --git a/hcc/selftest/reject_register_subscript.c b/hcc/selftest/reject_register_subscript.c
+new file mode 100644
+index 00000000..d03b931e
+--- /dev/null
++++ b/hcc/selftest/reject_register_subscript.c
+@@ -0,0 +1,6 @@
++// EXPECT-ERROR: address of register variable
++int main(void) {
++    register int a[2];
++    a[0] = 1;
++    return 0;
++}

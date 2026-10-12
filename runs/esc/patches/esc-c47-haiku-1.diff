@@ -1,0 +1,97 @@
+diff --git a/hcc/parser/local_redecl.py b/hcc/parser/local_redecl.py
+new file mode 100644
+index 00000000..9e5c7a0a
+--- /dev/null
++++ b/hcc/parser/local_redecl.py
+@@ -0,0 +1,37 @@
++"""Block-scope redeclaration checks (C11 6.2.1p4, 6.2.2p4, 6.7p3).
++
++* A second declaration of an identifier in the same block scope is an error,
++  unless both are `extern` (or function declarations) with compatible types.
++* A block-scope `extern` object or function declaration must have a type
++  compatible with any visible prior declaration of the same identifier.
++"""
++from __future__ import annotations
++
++from hcc import nodes as N
++from hcc import typesys as T
++from hcc.sema.compat import is_compatible
++
++
++class LocalRedeclMixin:
++
++    def check_local_redecl(self, name, ty, attr) -> None:
++        """Diagnose a conflicting block-scope declaration of `name` with type `ty`."""
++        links = attr.is_extern or (ty.kind == T.TypeKind.FUNC and not attr.is_static
++                                   and not attr.is_typedef)
++        cur = self.scopes[-1].vars.get(name.text)
++        if cur is not None and cur.var is not None:
++            prev = cur.var
++            prev_links = isinstance(prev, N.Function) or getattr(prev, "is_extern", False)
++            if not (links and prev_links and is_compatible(prev.ty, ty)):
++                self.error(f"conflicting types for '{name.text}'", name)
++            return
++        if not links:
++            return
++        for sc in reversed(self.scopes[:-1]):
++            vs = sc.vars.get(name.text)
++            if vs is None:
++                continue
++            if vs.var is not None and isinstance(vs.var, (N.Var, N.Function)):
++                if not is_compatible(vs.var.ty, ty):
++                    self.error(f"conflicting types for '{name.text}'", name)
++            return
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..c86331b7 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -80,6 +80,7 @@ class LocalDeclMixin:
+                 items.extend(pre)
+                 self.push_scope_entry(name.text).type_def = ty
+                 continue
++            self.check_local_redecl(name, ty, attr)
+             if ty.kind == T.TypeKind.FUNC and ty.enum_consts == "knr" \
+                     and not self.at(";") and not self.at(","):
+                 self.knr_params(ty)              # GNU nested K&R definition
+diff --git a/hcc/selftest/parser_local_extern_conflict.c b/hcc/selftest/parser_local_extern_conflict.c
+new file mode 100644
+index 00000000..52189a1b
+--- /dev/null
++++ b/hcc/selftest/parser_local_extern_conflict.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: conflicting types
++// A block-scope extern declaration must match the file-scope declaration's type.
++extern int foo;
++int main(void) {
++    extern double foo;
++    return 0;
++}
+diff --git a/hcc/selftest/parser_local_extern_ok.c b/hcc/selftest/parser_local_extern_ok.c
+new file mode 100644
+index 00000000..0325d1eb
+--- /dev/null
++++ b/hcc/selftest/parser_local_extern_ok.c
+@@ -0,0 +1,10 @@
++// EXPECT-EXIT: 3
++// Compatible block-scope extern redeclarations and shadowing by a non-extern local are valid.
++extern int g;
++int g = 3;
++int f(void) { extern int g; return g; }
++int main(void) {
++    extern int g;
++    { double g = 1.0; (void)g; }
++    return f();
++}
+diff --git a/hcc/selftest/parser_local_redecl_conflict.c b/hcc/selftest/parser_local_redecl_conflict.c
+new file mode 100644
+index 00000000..2a8bc1cf
+--- /dev/null
++++ b/hcc/selftest/parser_local_redecl_conflict.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: conflicting types
++// A block-scope redeclaration of a local with a different type is an error.
++int main(void) {
++    int r = 0;
++    double r = 1.0;
++    return 0;
++}

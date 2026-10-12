@@ -1,0 +1,21 @@
+diff --git a/hcc/parser/statements.py b/hcc/parser/statements.py
+index c73eca03..80496d02 100644
+--- a/hcc/parser/statements.py
++++ b/hcc/parser/statements.py
+@@ -246,6 +246,8 @@ class StatementMixin:
+                     sym = self.expect_ident().text
+                     self.expect("]")
+                 cons = self.next().value.rstrip(b"\0").decode()
++                if sec is node.outputs and "=" not in cons and "+" not in cons:
++                    self.error("output operand constraint lacks '='", t)
+                 self.expect("(")
+                 e = self.typed(self.expr())
+                 self.expect(")")
+diff --git a/hcc/selftest/asm_output_constraint.c b/hcc/selftest/asm_output_constraint.c
+new file mode 100644
+index 00000000..022b9ddb
+--- /dev/null
++++ b/hcc/selftest/asm_output_constraint.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: [parse] output operand constraint lacks
++void f(void) { int x; __asm__ ("" : "" (x)); }

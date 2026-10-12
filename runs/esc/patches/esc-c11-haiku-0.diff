@@ -1,0 +1,24 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..46be350f 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -95,6 +95,9 @@ class EnumMixin:
+                 if self.accept("}"):
+                     break
+             name = self.expect_ident()
++            prev = self.scopes[-1].vars.get(name.text)
++            if prev is not None and prev.enum_ty is not None:
++                self.error(f"redeclaration of enumerator '{name.text}'", name)
+             self.parse_attributes(VarAttr())
+             if self.accept("="):
+                 val, ety = self.const_expr_typed()
+diff --git a/hcc/selftest/enum_redeclared_enumerator.c b/hcc/selftest/enum_redeclared_enumerator.c
+new file mode 100644
+index 00000000..33c2e9e2
+--- /dev/null
++++ b/hcc/selftest/enum_redeclared_enumerator.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: redeclaration of enumerator
++enum { CODES };
++enum { CODES };
++int main(void) { return 0; }

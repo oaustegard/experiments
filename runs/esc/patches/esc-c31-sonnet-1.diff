@@ -1,0 +1,38 @@
+diff --git a/hcc/parser/atomic_builtins.py b/hcc/parser/atomic_builtins.py
+index 9ea27ebe..3c042af9 100644
+--- a/hcc/parser/atomic_builtins.py
++++ b/hcc/parser/atomic_builtins.py
+@@ -26,6 +26,9 @@ _INT_RET = frozenset(["__atomic_compare_exchange_n", "__atomic_compare_exchange"
+ _FLAG_BOOL_RET = frozenset(["__atomic_test_and_set"])
+ _VOID_RET = frozenset(["__atomic_store_n", "__atomic_load", "__atomic_store", "__atomic_exchange",
+                        "__atomic_thread_fence", "__atomic_signal_fence", "__atomic_clear"])
++# Generic (by-pointer) forms: how many leading args are object pointers.
++_GENERIC_PTR_ARGS = {"__atomic_load": 2, "__atomic_store": 2, "__atomic_exchange": 3,
++                     "__atomic_compare_exchange": 3}
+ # __atomic_is_lock_free(size, ptr): the first argument is a size, not a pointer.
+ _LOCK_FREE = "__atomic_is_lock_free"
+ # __atomic_always_lock_free(size, ptr): same argument shape, folded to a constant.
+@@ -65,6 +68,13 @@ def atomic_call(parser, tok):
+     else:
+         if not args or not T.is_pointer_like(args[0].ty):
+             parser.error(f"'{name}' expects a pointer as first argument", tok)
++        if name in _GENERIC_PTR_ARGS:
++            for i in range(min(_GENERIC_PTR_ARGS[name], len(args))):
++                ty_i = args[i].ty
++                if (T.is_pointer_like(ty_i) and ty_i.base is not None
++                        and ty_i.base.unqual().kind is T.TypeKind.FUNC):
++                    parser.error(f"argument {i + 1} of '{name}' must not be a pointer "
++                                 f"to a function", tok)
+         if name in _RMW_ARITH_NAMES and args[0].ty.base.unqual().kind is T.TypeKind.BOOL:
+             # gcc (PR 68966): arithmetic/bitwise RMW on _Bool would break its representation.
+             parser.error(f"operand type '{args[0].ty.base}' is incompatible with argument 1 "
+diff --git a/hcc/selftest/atomic_generic_funcptr.c b/hcc/selftest/atomic_generic_funcptr.c
+new file mode 100644
+index 00000000..a8aba079
+--- /dev/null
++++ b/hcc/selftest/atomic_generic_funcptr.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: must not be a pointer to a function
++void foo(void) {}
++int a, b;
++int main(void) { __atomic_exchange(&a, &foo, &b, 0); return 0; }

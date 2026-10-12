@@ -1,0 +1,21 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..4a04d6be 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -87,6 +87,8 @@ class StructMixin:
+             mark_reverse_scalars(ty)
+         elif attr.reverse_sso:          # scalar_storage_order on a union
+             mark_reverse_scalars(ty)
++        if ty.size > 0x7FFFFFFFFFFFFFFF:
++            diag.error(tag or self.toks[brace_pos], f"type '{_kind_word(kind)} {tag.text if tag else '<anonymous>'}' is too large")
+         ty.is_complete = True
+         return ty
+ 
+diff --git a/hcc/selftest/struct_too_large.c b/hcc/selftest/struct_too_large.c
+new file mode 100644
+index 00000000..25acd744
+--- /dev/null
++++ b/hcc/selftest/struct_too_large.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: [parse]
++struct S { int a; char b[0x7fffffffffffffffL]; };

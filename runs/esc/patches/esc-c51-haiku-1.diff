@@ -1,0 +1,57 @@
+diff --git a/hcc/selftest/sema_incdec_incomplete_ptr.c b/hcc/selftest/sema_incdec_incomplete_ptr.c
+new file mode 100644
+index 00000000..a3ffb8df
+--- /dev/null
++++ b/hcc/selftest/sema_incdec_incomplete_ptr.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [sema] increment of pointer to an incomplete type
++// ++ on a pointer to a struct that is declared but never defined.
++struct a *q;
++void f(void) { q++; }
+diff --git a/hcc/sema/arith.py b/hcc/sema/arith.py
+index d4dd6206..5086d750 100644
+--- a/hcc/sema/arith.py
++++ b/hcc/sema/arith.py
+@@ -25,12 +25,33 @@ def _t(node):
+     return node
+ 
+ 
++def _is_incomplete(t) -> bool:
++    """True when `t` has no completed definition, following the `origin` link of
++    qualified copies made before a struct/union body was seen."""
++    while not t.is_complete and t.origin is not None:
++        t = t.origin
++    return not t.is_complete
++
++
++def _check_incomplete_pointee(ty, loc, what: str) -> None:
++    """C11 6.5.2.4p1 / 6.5.6: `++`/`--` on a pointer to an object type that is
++    still incomplete (struct/union/enum without a body, or `T[]`) is an error."""
++    if ty.kind != TypeKind.PTR or ty.base is None:
++        return
++    base = ty.base
++    if base.kind in (TypeKind.VLA, TypeKind.VOID, TypeKind.FUNC) or not _is_incomplete(base):
++        return
++    diag.error(loc, f"{what} of pointer to an incomplete type '{base}'", "sema")
++
++
+ def _elem_size(ty, loc):
+     """Byte size of one pointee/element as an integer expression. Pointees
+     that are VLAs (bound to a hidden length local) give a run-time product."""
+     base = ty.base
+     if base.kind in (TypeKind.VOID, TypeKind.FUNC):
+         return N.IntLit(loc, 1, ty=TY_LONG)
++    if base.kind != TypeKind.VLA and _is_incomplete(base):
++        diag.error(loc, f"arithmetic on pointer to an incomplete type '{base}'", "sema")
+     return _size_expr(base, loc)
+ 
+ 
+@@ -207,6 +228,8 @@ def inc_dec(lhs, delta: int, is_post: bool, loc, new_temp):
+     afterwards: the store may wrap (e.g. a 1-bit bit-field), so `new - delta`
+     is wrong in general.  The lvalue address is evaluated only once."""
+     add_type(lhs)
++    _check_incomplete_pointee(lhs.ty, loc,
++                              "increment" if delta > 0 else "decrement")
+     one = N.IntLit(loc, delta, ty=TY_INT)
+     if not is_post:
+         return compound_assign("+", lhs, one, loc, new_temp)

@@ -1,0 +1,23 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..b0114de5 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -33,6 +33,8 @@ class StructMixin:
+         self.parse_attributes(attr)
+         if tag is not None and not self.at("{"):
+             ty = self.find_tag(tag.text)
++            if ty is not None and ty.kind != kind:
++                self.error(f"'{tag.text}' defined as wrong kind of tag", tag)
+             if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
+                 return ty
+             ty = T.struct_type(kind)
+diff --git a/hcc/selftest/parser_wrong_kind_tag.c b/hcc/selftest/parser_wrong_kind_tag.c
+new file mode 100644
+index 00000000..daa58f6f
+--- /dev/null
++++ b/hcc/selftest/parser_wrong_kind_tag.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: wrong kind of tag
++union u3 { float v; };
++struct u3 *p;
++int main(void) { return 0; }

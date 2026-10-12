@@ -1,0 +1,78 @@
+diff --git a/hcc/parser/complex.py b/hcc/parser/complex.py
+index 2f38c86d..c873619f 100644
+--- a/hcc/parser/complex.py
++++ b/hcc/parser/complex.py
+@@ -33,7 +33,7 @@ from hcc.sema.arith import new_binop
+ from hcc.parser import complex_const as CC
+ from hcc.parser.complex_div import recover_division
+ from hcc.sema.conversions import common_type, new_cast
+-from hcc.typesys import TY_DOUBLE, TypeKind, complex_of, is_flonum, is_integer
++from hcc.typesys import TY_DOUBLE, TypeKind, complex_of, is_flonum, is_integer, is_struct_like
+ 
+ _RANK = {TypeKind.FLOAT16: 0, TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3,
+          TypeKind.FLOAT128: 4}
+@@ -235,6 +235,9 @@ def part(p, operand, which, loc):
+ def truth(p, node):
+     """A complex value used as a condition: true if either part is nonzero."""
+     if not node.ty.is_complex:
++        if is_struct_like(node.ty):
++            kind = "union" if node.ty.kind == TypeKind.UNION else "struct"
++            p.error(f"used {kind} type value where scalar is required", node.loc)
+         return node
+     loc = node.loc
+     tmp = p.new_temp(node.ty, loc)
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index f8c0dc75..260cfc54 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -18,7 +18,7 @@ from hcc.parser.vector_broadcast import promote_vector_operands
+ from hcc.parser.vector_cast import lower_scalar_to_vector
+ from hcc.sema.conversions import new_cast
+ from hcc.tokens import TokenKind
+-from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, pointer_to
++from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, is_scalar, is_struct_like, pointer_to
+ from hcc.parser.plan9_ptr import plan9_pointer_conv
+ from hcc.parser.addr_operand import is_rvalue_operand
+ from hcc.parser import complex as CPX
+@@ -169,6 +169,7 @@ class ExpressionMixin:
+             ty, pre = self.vla_bind(ty, loc)      # `(int (*)[++i])p` evaluates ++i
+             pre = [N.ExprStmt(loc, e) for e in effects] + pre
+             operand = self.cast_expr()
++            _check_struct_to_scalar(self, loc, ty, self.typed(operand).ty)
+             if ty.kind == TypeKind.VOID:
+                 return self.vla_prefix(pre, N.Cast(loc, operand, ty=ty), loc)
+             if ty.is_complex or self.typed(operand).ty.is_complex:
+@@ -323,6 +324,13 @@ class ExpressionMixin:
+ __all__ = ["ExpressionMixin", "new_add", "new_sub", "new_cast", "inc_dec", "TY_INT"]
+ 
+ 
++def _check_struct_to_scalar(parser, loc, ty, src) -> None:
++    """A struct/union value cannot be converted to a scalar type (e.g. `(_Bool) u`)."""
++    if is_scalar(ty) and not ty.is_vector and not src.is_complex and is_struct_like(src):
++        kind = "union" if src.kind == TypeKind.UNION else "struct"
++        parser.error(f"used {kind} type value where scalar is required", loc)
++
++
+ def _check_cast_target(parser, loc, ty) -> None:
+     """C99 6.5.4: a cast's type name must not be an array or function type."""
+     if ty.kind in (TypeKind.ARRAY, TypeKind.VLA) and not ty.is_vector:   # GCC vectors are casts
+diff --git a/hcc/selftest/parser_struct_as_scalar.c b/hcc/selftest/parser_struct_as_scalar.c
+new file mode 100644
+index 00000000..c9e09a27
+--- /dev/null
++++ b/hcc/selftest/parser_struct_as_scalar.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// A union value used as a condition or cast to a scalar is an error.
++union a { int x; };
++int f(union a a) { if (a) return 1; return 0; }
+diff --git a/hcc/selftest/parser_struct_cast_bool.c b/hcc/selftest/parser_struct_cast_bool.c
+new file mode 100644
+index 00000000..89726d86
+--- /dev/null
++++ b/hcc/selftest/parser_struct_cast_bool.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// A struct value cannot be cast to _Bool.
++struct s { int x; };
++int f(struct s a) { return (_Bool) a; }

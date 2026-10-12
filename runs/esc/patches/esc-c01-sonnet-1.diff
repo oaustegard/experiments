@@ -1,0 +1,32 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 90980bd9..baa7894f 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -44,11 +44,12 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
++        elif _contains_call(node.lhs) or \
+                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
+             # Only a call-free operand may be parked on the stack: a value
+             # pushed before a call (e.g. setjmp, whose resumption reuses the
+-            # stack slot) would be clobbered. Evaluate the call side first.
++            # stack slot) would be clobbered. Evaluate the call side first; with
++            # calls on both sides go lhs-first like gcc (`f() - g()`).
+             self.gen_expr(node.lhs)
+             self.push()
+             self.gen_expr(node.rhs)
+diff --git a/hcc/selftest/codegen_call_order_binary.c b/hcc/selftest/codegen_call_order_binary.c
+new file mode 100644
+index 00000000..0cea1fc9
+--- /dev/null
++++ b/hcc/selftest/codegen_call_order_binary.c
+@@ -0,0 +1,7 @@
++// EXPECT-EXIT: 0
++static int n;
++static int f(void) { return ++n * 10; }
++int main(void) {
++    int d = f() - f();
++    return d == -10 ? 0 : 1;
++}

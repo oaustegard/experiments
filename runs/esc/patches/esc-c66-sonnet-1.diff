@@ -1,0 +1,37 @@
+diff --git a/hcc/parser/atomic_builtins.py b/hcc/parser/atomic_builtins.py
+index 9ea27ebe..48aef545 100644
+--- a/hcc/parser/atomic_builtins.py
++++ b/hcc/parser/atomic_builtins.py
+@@ -41,11 +41,23 @@ SYNC_BUILTINS = _SYNC_VALUE_RET | _SYNC_INT_RET | _SYNC_VOID_RET
+ ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUILTINS
+                    | _LOCK_FREE_NAMES)
+ 
++# exact argument counts of the fixed-arity __atomic_* builtins
++_ARITY = {"__atomic_load_n": 2, "__atomic_store_n": 3, "__atomic_exchange_n": 3,
++          "__atomic_compare_exchange_n": 6, "__atomic_compare_exchange": 6,
++          "__atomic_load": 3, "__atomic_store": 3, "__atomic_exchange": 4,
++          "__atomic_test_and_set": 2, "__atomic_clear": 2}
++for _o in _RMW_OPS:
++    _ARITY[f"__atomic_fetch_{_o}"] = _ARITY[f"__atomic_{_o}_fetch"] = 3
++
+ 
+ def atomic_call(parser, tok):
+     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
+     name = tok.text
+     args = parser._args()
++    want = _ARITY.get(name)
++    if want is not None and len(args) != want:
++        parser.error(f"too {'few' if len(args) < want else 'many'} arguments to function "
++                     f"'{name}'", tok)
+     if name in ("__atomic_thread_fence", "__atomic_signal_fence"):
+         if len(args) != 1:
+             parser.error(f"'{name}' expects 1 argument", tok)
+diff --git a/hcc/selftest/atomic_arity.c b/hcc/selftest/atomic_arity.c
+new file mode 100644
+index 00000000..918317fe
+--- /dev/null
++++ b/hcc/selftest/atomic_arity.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: too few arguments
++int i;
++int main(void) { __atomic_exchange_n(&i, 1); return 0; }

@@ -1,0 +1,23 @@
+diff --git a/hcc/parser/complex.py b/hcc/parser/complex.py
+index 2f38c86d..793af29a 100644
+--- a/hcc/parser/complex.py
++++ b/hcc/parser/complex.py
+@@ -234,6 +234,9 @@ def part(p, operand, which, loc):
+ 
+ def truth(p, node):
+     """A complex value used as a condition: true if either part is nonzero."""
++    if node.ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
++        kind = "union" if node.ty.kind == TypeKind.UNION else "struct"
++        p.error(f"used {kind} type value where scalar is required")
+     if not node.ty.is_complex:
+         return node
+     loc = node.loc
+diff --git a/hcc/selftest/sema_union_condition.c b/hcc/selftest/sema_union_condition.c
+new file mode 100644
+index 00000000..2227be14
+--- /dev/null
++++ b/hcc/selftest/sema_union_condition.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: used union type value where scalar is required
++union u { int a; };
++int f(union u x) { if (x) return 1; return 0; }

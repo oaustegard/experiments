@@ -1,0 +1,22 @@
+diff --git a/hcc/parser/complex.py b/hcc/parser/complex.py
+index 2f38c86d..f7fc1e51 100644
+--- a/hcc/parser/complex.py
++++ b/hcc/parser/complex.py
+@@ -234,6 +234,8 @@ def part(p, operand, which, loc):
+ 
+ def truth(p, node):
+     """A complex value used as a condition: true if either part is nonzero."""
++    if node.ty.kind in (TypeKind.STRUCT, TypeKind.UNION) and not node.ty.is_complex:
++        p.error("used struct type value where scalar is required", node.loc)
+     if not node.ty.is_complex:
+         return node
+     loc = node.loc
+diff --git a/hcc/selftest/parser_struct_condition.c b/hcc/selftest/parser_struct_condition.c
+new file mode 100644
+index 00000000..48035531
+--- /dev/null
++++ b/hcc/selftest/parser_struct_condition.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: scalar
++struct a { int x; };
++int f(struct a a) { if (a) return 1; return 0; }

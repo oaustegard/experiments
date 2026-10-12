@@ -1,0 +1,83 @@
+diff --git a/hcc/nodes.py b/hcc/nodes.py
+index 9c19c990..fb60ca47 100644
+--- a/hcc/nodes.py
++++ b/hcc/nodes.py
+@@ -51,6 +51,7 @@ class Obj:
+     is_static: bool = False        # internal linkage (file scope) or static local
+     asm_name: str | None = None    # from `__asm__("sym")`; overrides symbol name
+     loc: Loc | None = None
++    is_unavailable: bool = False   # __attribute__((unavailable)): a use is a compile error
+ 
+     @property
+     def symbol(self) -> str:
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..8e3f5899 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -198,6 +198,8 @@ class AttributeMixin:
+                 apply_copy_expr(self, args_start, attr)
+         elif name == "cleanup" and attr is not None and args:
+             attr.cleanup = args[0].text
++        elif name == "unavailable" and attr is not None:
++            attr.is_unavailable = True
+         elif name == "nocommon" and attr is not None:
+             attr.is_nocommon = True
+         elif name == "section" and attr is not None and args:
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index 1978ebaf..1fbe1c03 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -65,6 +65,8 @@ class PrimaryMixin:
+         vs = self.find_var(name)
+         if vs is not None:
+             if vs.var is not None:
++                if vs.var.is_unavailable:
++                    self.error(f"'{name}' is unavailable", t)
+                 return self.typed(N.VarRef(t.loc, vs.var))
+             if vs.enum_ty is not None:
+                 v = vs.enum_val
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..bfa130ff 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -39,6 +39,7 @@ class VarAttr:
+     align: int = 0
+     is_weak: bool = False
+     is_weakref: bool = False        # __attribute__((weakref("t"))) on a declaration
++    is_unavailable: bool = False    # __attribute__((unavailable)): any use is an error
+     fn_attrs: set = field(default_factory=set)  # leaf, returns_nonnull, ... (names only)
+     is_nocommon: bool = False       # __attribute__((nocommon)): tentative def goes to .bss
+     is_packed: bool = False
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 035ec413..6be60b78 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -149,6 +149,7 @@ class TopLevelMixin:
+         fn.is_inline |= attr.is_inline
+         fn.is_noreturn |= attr.is_noreturn or dattr.is_noreturn
+         fn.is_weak |= attr.is_weak or dattr.is_weak
++        fn.is_unavailable |= attr.is_unavailable or dattr.is_unavailable
+         fn.fn_attrs |= attr.fn_attrs | dattr.fn_attrs
+         fn.asm_name = dattr.asm_name or attr.asm_name or fn.asm_name
+         fn.section = dattr.section or attr.section or fn.section
+@@ -175,6 +176,7 @@ class TopLevelMixin:
+         var.is_static |= attr.is_static
+         var.is_tls |= attr.is_tls
+         var.is_weak |= attr.is_weak or dattr.is_weak
++        var.is_unavailable |= attr.is_unavailable or dattr.is_unavailable
+         var.is_nocommon |= attr.is_nocommon or dattr.is_nocommon
+         var.asm_name = dattr.asm_name or var.asm_name
+         var.section = dattr.section or attr.section or var.section
+diff --git a/hcc/selftest/attr_unavailable_use.c b/hcc/selftest/attr_unavailable_use.c
+new file mode 100644
+index 00000000..6e7300f4
+--- /dev/null
++++ b/hcc/selftest/attr_unavailable_use.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: unavailable
++// __attribute__((unavailable)) on a function: any use of the name is an error.
++void func(void);
++void func(void) __attribute__((unavailable));
++void f(void) {
++    func();
++}

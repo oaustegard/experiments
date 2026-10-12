@@ -1,0 +1,35 @@
+diff --git a/hcc/builtins/varargs.py b/hcc/builtins/varargs.py
+index a80f174f..110131f4 100644
+--- a/hcc/builtins/varargs.py
++++ b/hcc/builtins/varargs.py
+@@ -4,6 +4,7 @@ from __future__ import annotations
+ 
+ from hcc import nodes as N
+ from hcc import typesys as T
++from hcc.typesys import TypeKind
+ from hcc.builtins import builtin_parser
+ 
+ 
+@@ -40,6 +41,9 @@ def _parse_va_arg(self, tok):
+     ap = self.typed(self.assign())
+     self.expect(",")
+     ty = self.typename()
++    # C11 7.16.1.1: the second argument must be a complete object type (not a function)
++    if ty.kind == TypeKind.FUNC:
++        self.error("second argument to 'va_arg' is a function type", tok.loc)
+     # a va_list may be consumed by any function (not only variadic ones,
+     # e.g. `void f(va_list ap)`), so make sure the split-struct scratch exists
+     fn = getattr(self, "fn", None)
+diff --git a/hcc/selftest/sema_va_arg_function_type.c b/hcc/selftest/sema_va_arg_function_type.c
+new file mode 100644
+index 00000000..a73629b2
+--- /dev/null
++++ b/hcc/selftest/sema_va_arg_function_type.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: second argument to 'va_arg' is a function type
++// va_arg with a function type as its second argument is invalid.
++void f(int s, ...) {
++    __builtin_va_list ap;
++    int e = __builtin_va_arg(ap, int (void));
++    (void)e;
++}

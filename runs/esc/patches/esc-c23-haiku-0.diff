@@ -1,0 +1,29 @@
+diff --git a/hcc/parser/statements.py b/hcc/parser/statements.py
+index c73eca03..10433f64 100644
+--- a/hcc/parser/statements.py
++++ b/hcc/parser/statements.py
+@@ -245,7 +245,10 @@ class StatementMixin:
+                 if self.accept("["):
+                     sym = self.expect_ident().text
+                     self.expect("]")
+-                cons = self.next().value.rstrip(b"\0").decode()
++                cons_tok = self.next()
++                cons = cons_tok.value.rstrip(b"\0").decode()
++                if sec is node.outputs and cons[:1] not in ("=", "+"):
++                    self.error("output operand constraint lacks '='", cons_tok)
+                 self.expect("(")
+                 e = self.typed(self.expr())
+                 self.expect(")")
+diff --git a/hcc/selftest/asm_output_constraint_eq.c b/hcc/selftest/asm_output_constraint_eq.c
+new file mode 100644
+index 00000000..3fd5e1b6
+--- /dev/null
++++ b/hcc/selftest/asm_output_constraint_eq.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: [parse]
++// An extended-asm output operand must start with '=' or '+'.
++int main(void) {
++    int x = 0;
++    asm volatile("" : "r"(x));
++    return x;
++}

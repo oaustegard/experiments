@@ -1,0 +1,32 @@
+diff --git a/hcc/parser/declarator.py b/hcc/parser/declarator.py
+index 29a55c54..54f95284 100644
+--- a/hcc/parser/declarator.py
++++ b/hcc/parser/declarator.py
+@@ -152,6 +152,7 @@ class DeclaratorMixin:
+             fty.enum_consts = "knr"       # marker: K&R definition follows
+             return fty
+         params, names, pvars, pdims = [], [], [], []
++        seen_names = set()              # C11 6.7p3: no identifier declared twice in one scope
+         # Prototype scope: earlier named params are visible in later array
+         # dimensions (`int b[a++]`); their Vars are reused by the definition.
+         self.enter_scope()
+@@ -183,6 +184,10 @@ class DeclaratorMixin:
+                 pty.is_const = q.is_const
+             elif pty.kind == T.TypeKind.FUNC:
+                 pty = T.pointer_to(pty)
++            if name is not None:
++                if name.text in seen_names:
++                    self.error(f"redefinition of parameter '{name.text}'", name.loc)
++                seen_names.add(name.text)
+             pvar = None
+             if name is not None and name.text in fwd:
+                 pvar = fwd[name.text]       # the real param is the forward-declared Var
+diff --git a/hcc/selftest/decl_dup_param.c b/hcc/selftest/decl_dup_param.c
+new file mode 100644
+index 00000000..d679b490
+--- /dev/null
++++ b/hcc/selftest/decl_dup_param.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++// No two parameters of one function declarator may share a name.
++void f (int fred, int fred);

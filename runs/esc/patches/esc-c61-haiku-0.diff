@@ -1,0 +1,89 @@
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..ca186c3c 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -146,6 +146,7 @@ class DeclSpecMixin:
+                 if attr is None:
+                     self.error("storage class specifier is not allowed in this context")
+                 self.next()
++                attr.qualified = True
+                 if s == "typedef":
+                     attr.is_typedef = True
+                 elif s == "static":
+@@ -169,6 +170,8 @@ class DeclSpecMixin:
+                 continue
+             if s in ("const", "constexpr", "volatile", "restrict", "__extension__", "__label__"):
+                 self.next()
++                if attr is not None and s != "__extension__" and s != "__label__":
++                    attr.qualified = True
+                 is_const |= s in ("const", "constexpr")  # C23 constexpr objects are const
+                 is_volatile |= s == "volatile"
+                 continue
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..f3512bcb 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -36,6 +36,7 @@ class VarAttr:
+     is_gnu_inline: bool = False     # __attribute__((gnu_inline)): gnu89 inline semantics
+     is_tls: bool = False
+     is_noreturn: bool = False
++    qualified: bool = False         # a type qualifier or storage class precedes the type
+     align: int = 0
+     is_weak: bool = False
+     is_weakref: bool = False        # __attribute__((weakref("t"))) on a declaration
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..74e5d47c 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -23,7 +23,7 @@ def _kind_word(kind) -> str:
+ 
+ class StructMixin:
+ 
+-    def struct_decl(self, kind):
++    def struct_decl(self, kind, qualified=False):
+         attr = VarAttr()
+         attr.reverse_sso = self.sso_reverse     # #pragma scalar_storage_order default
+         self.parse_attributes(attr)
+@@ -33,7 +33,12 @@ class StructMixin:
+         self.parse_attributes(attr)
+         if tag is not None and not self.at("{"):
+             ty = self.find_tag(tag.text)
+-            if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
++            empty = self.at(";")
++            shadow = self.tag_is_shadow_decl(tag.text)
++            if ty is not None and ty.kind != kind and (qualified or not (empty and shadow)):
++                # `union u; struct u *p;` or `union u; const struct u;`: the visible tag is the wrong kind
++                self.error(f"'{tag.text}' defined as wrong kind of tag", tag)
++            if ty is not None and not (empty and shadow):
+                 return ty
+             ty = T.struct_type(kind)
+             ty.tag = tag.text
+diff --git a/hcc/parser/typespecs/tagged.py b/hcc/parser/typespecs/tagged.py
+index 0f8b3eca..8f9e1495 100644
+--- a/hcc/parser/typespecs/tagged.py
++++ b/hcc/parser/typespecs/tagged.py
+@@ -7,12 +7,12 @@ from hcc.parser.typespecs import type_specifier
+ 
+ @type_specifier("struct")
+ def _struct(self, tok, attr):
+-    return self.struct_decl(T.TypeKind.STRUCT)
++    return self.struct_decl(T.TypeKind.STRUCT, bool(attr is not None and attr.qualified))
+ 
+ 
+ @type_specifier("union")
+ def _union(self, tok, attr):
+-    return self.struct_decl(T.TypeKind.UNION)
++    return self.struct_decl(T.TypeKind.UNION, bool(attr is not None and attr.qualified))
+ 
+ 
+ @type_specifier("enum")
+diff --git a/hcc/selftest/parser_tag_wrong_kind.c b/hcc/selftest/parser_tag_wrong_kind.c
+new file mode 100644
+index 00000000..fcbb0129
+--- /dev/null
++++ b/hcc/selftest/parser_tag_wrong_kind.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: wrong kind of tag
++// A qualified empty declaration does not redeclare a tag visible from an outer scope; a different kind is an error.
++union u3 { float v; };
++void h(void) { const struct u3; }

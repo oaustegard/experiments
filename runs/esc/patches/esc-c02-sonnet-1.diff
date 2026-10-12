@@ -1,0 +1,22 @@
+diff --git a/hcc/parser/pragma_sso.py b/hcc/parser/pragma_sso.py
+index 79680ed9..58017e08 100644
+--- a/hcc/parser/pragma_sso.py
++++ b/hcc/parser/pragma_sso.py
+@@ -24,5 +24,7 @@ def consume_sso_marker(parser) -> None:
+         parser.sso_reverse = False
+     elif arg == "default":
+         parser.sso_reverse = parser.sso_default
++    elif arg == "":
++        diag.warn(tok, "missing 'big-endian', 'little-endian', or 'default'")
+     else:
+-        diag.error(tok, "unknown argument to '#pragma scalar_storage_order'")
++        diag.warn(tok, "expected 'big-endian', 'little-endian', or 'default'")
+diff --git a/hcc/selftest/pragma_sso_missing_arg.c b/hcc/selftest/pragma_sso_missing_arg.c
+new file mode 100644
+index 00000000..a86eecff
+--- /dev/null
++++ b/hcc/selftest/pragma_sso_missing_arg.c
+@@ -0,0 +1,3 @@
++// EXPECT-EXIT: 0
++#pragma scalar_storage_order
++int main(void) { return 0; }

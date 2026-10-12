@@ -1,0 +1,38 @@
+diff --git a/hcc/parser/atomic_builtins.py b/hcc/parser/atomic_builtins.py
+index 9ea27ebe..1e83495e 100644
+--- a/hcc/parser/atomic_builtins.py
++++ b/hcc/parser/atomic_builtins.py
+@@ -41,6 +41,10 @@ SYNC_BUILTINS = _SYNC_VALUE_RET | _SYNC_INT_RET | _SYNC_VOID_RET
+ ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUILTINS
+                    | _LOCK_FREE_NAMES)
+ 
++# Generic (non _n) forms: number of leading pointer arguments.
++_GENERIC_PTR_ARGS = {"__atomic_load": 2, "__atomic_store": 2, "__atomic_exchange": 3,
++                     "__atomic_compare_exchange": 3}
++
+ 
+ def atomic_call(parser, tok):
+     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
+@@ -69,6 +73,12 @@ def atomic_call(parser, tok):
+             # gcc (PR 68966): arithmetic/bitwise RMW on _Bool would break its representation.
+             parser.error(f"operand type '{args[0].ty.base}' is incompatible with argument 1 "
+                          f"of '{name}'", tok)
++        if name in _GENERIC_PTR_ARGS:
++            for i in range(min(_GENERIC_PTR_ARGS[name], len(args))):
++                a = args[i].ty
++                if T.is_pointer_like(a) and a.base.unqual().kind is T.TypeKind.FUNC:
++                    parser.error(f"argument {i + 1} of '{name}' must not be a pointer "
++                                 "to a function", tok)
+         if name in _VALUE_RET or name in _SYNC_VALUE_RET:
+             ty = args[0].ty.base.unqual()
+         elif name in _INT_RET or name in _SYNC_INT_RET:
+diff --git a/hcc/selftest/builtins_atomic_funcptr.c b/hcc/selftest/builtins_atomic_funcptr.c
+new file mode 100644
+index 00000000..c880d689
+--- /dev/null
++++ b/hcc/selftest/builtins_atomic_funcptr.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: must not be a pointer to a function
++void foo(void) {}
++int a, b;
++void f(void) { __atomic_exchange(&a, &foo, &b, __ATOMIC_RELAXED); }

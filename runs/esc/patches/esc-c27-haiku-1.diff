@@ -1,0 +1,25 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..b8af241d 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -160,6 +160,11 @@ class AttributeMixin:
+                 self.pos = args_start + 1
+                 val = self.const_expr()
+                 self.pos = save
++                # GCC: alignment 0 is ignored (warning); other non-powers of 2 are errors
++                if val < 0 or (val > 0 and val & (val - 1)):
++                    self.error("requested alignment '%d' is not a positive power of 2" % val,
++                               self.toks[args_start - 1] if args_start > 0 else None)
++                val = max(val, 0)
+             if attr is not None:
+                 attr.align = max(attr.align, val)
+             elif ty is not None:
+diff --git a/hcc/selftest/parse_aligned_not_pow2.c b/hcc/selftest/parse_aligned_not_pow2.c
+new file mode 100644
+index 00000000..7d26e54a
+--- /dev/null
++++ b/hcc/selftest/parse_aligned_not_pow2.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++__attribute__((aligned(3))) int x;
++int main(void) { return 0; }

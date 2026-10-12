@@ -1,0 +1,146 @@
+diff --git a/hcc/codegen/cleanup.py b/hcc/codegen/cleanup.py
+index 1e1f0785..ea7015c3 100644
+--- a/hcc/codegen/cleanup.py
++++ b/hcc/codegen/cleanup.py
+@@ -19,6 +19,59 @@ class CleanupMixin:
+ 
+     def stmt_CleanupDecl(self, node) -> None:
+         self.cleanup_stack.append(node.call)
++        self.mark_cleanup_state()
++
++    def mark_cleanup_state(self) -> None:
++        """Start a new LSDA call-site region: the pending cleanups changed here."""
++        label = self.new_label()
++        self.label(label)
++        self.cs_regions.append((label, tuple(self.cleanup_stack)))
++
++    def emit_unwind_tables(self, start_idx: int, start: str, end: str, size: int) -> None:
++        """Landing pads + LSDA so a forced/exception unwind runs the pending cleanups.
++        `start_idx` is the index in self.out of the `.cfi_startproc` line."""
++        regions = self.cs_regions
++        if not any(st for _, st in regions):
++            return
++        pads: dict[tuple, str] = {}
++        for _, st in regions:
++            if st and st not in pads:
++                pads[st] = self.new_label()
++        saved = self.cleanup_stack
++        for st, pad in pads.items():
++            self.label(pad)
++            self.cleanup_stack = []
++            self.emit(f"lea {-size}(%rbp), %rsp")
++            self.emit("sub $16, %rsp")
++            self.emit("mov %rax, (%rsp)")
++            self.depth = 2
++            for call in reversed(st):
++                self.gen_expr(call)
++                self.discard_value(call.ty)
++            self.emit("mov (%rsp), %rdi")
++            self.emit("call _Unwind_Resume@PLT")
++            self.depth = 0
++        self.cleanup_stack = saved
++        lsda = self.new_label()
++        self.out.insert(start_idx + 1, f"  .cfi_lsda 0x1b, {lsda}")
++        self.out.insert(start_idx + 1, "  .cfi_personality 0x1b, __gcc_personality_v0")
++        self.directive(".pushsection .gcc_except_table,\"a\",@progbits")
++        self.directive(".align 4")
++        self.label(lsda)
++        cs, cse = self.new_label(), self.new_label()
++        self.directive(".byte 0xff")
++        self.directive(".byte 0xff")
++        self.directive(".byte 0x1")
++        self.directive(f".uleb128 {cse}-{cs}")
++        self.label(cs)
++        bounds = [r[0] for r in regions] + [end]
++        for i, (lab, st) in enumerate(regions):
++            self.directive(f".uleb128 {lab}-{start}")
++            self.directive(f".uleb128 {bounds[i + 1]}-{lab}")
++            self.directive(f".uleb128 {pads[st] + '-' + start if st else 0}")
++            self.directive(".uleb128 0")
++        self.label(cse)
++        self.directive(".popsection")
+ 
+     def run_cleanups(self, depth: int) -> None:
+         """Emit the cleanup calls pushed above `depth`, innermost first."""
+@@ -31,7 +84,9 @@ class CleanupMixin:
+         then forget them."""
+         if falls_through:
+             self.run_cleanups(depth)
+-        del self.cleanup_stack[depth:]
++        if len(self.cleanup_stack) > depth:
++            del self.cleanup_stack[depth:]
++            self.mark_cleanup_state()
+ 
+     def note_loop_cleanups(self, *labels) -> None:
+         """Remember the cleanup depth at a loop/switch's break and continue labels."""
+diff --git a/hcc/codegen/functions.py b/hcc/codegen/functions.py
+index 7badf3ac..165d0d6b 100644
+--- a/hcc/codegen/functions.py
++++ b/hcc/codegen/functions.py
+@@ -113,6 +113,7 @@ class FunctionMixin:
+     def emit_function(self, fn) -> None:
+         self.fn = fn
+         self.cleanup_stack = []
++        self.cs_regions = []
+         sym = fn.symbol
+         self.directive(".text" if not fn.section else f".section {fn.section},\"ax\",@progbits")
+         if not fn.is_static:
+@@ -123,6 +124,8 @@ class FunctionMixin:
+             self.directive(f".{fn.visibility} {sym}")
+         self.directive(f".type {sym}, @function")
+         self.label(sym)
++        start_idx = len(self.out)
++        self.directive(".cfi_startproc")
+         params, gp_named, fp_named, stack_end = self._classify_params(fn)
+         stack_params = {p for p, w in params if w[0] == "stack"}
+         for p, w in params:
+@@ -131,7 +134,13 @@ class FunctionMixin:
+         size = self.layout_frame(fn, stack_params)
+         self.va_info = (gp_named, fp_named, stack_end)
+         self.emit("push %rbp")
++        self.directive(".cfi_def_cfa_offset 16")
++        self.directive(".cfi_offset 6, -16")
+         self.emit("mov %rsp, %rbp")
++        self.directive(".cfi_def_cfa_register 6")
++        start = self.new_label()
++        self.label(start)
++        self.mark_cleanup_state()
+         if size and size < (1 << 31):
+             self.emit(f"sub ${size}, %rsp")
+         elif size:
+@@ -184,6 +193,10 @@ class FunctionMixin:
+         self.emit("mov %rbp, %rsp")
+         self.emit("pop %rbp")
+         self.emit("ret")
++        end = self.new_label()
++        self.emit_unwind_tables(start_idx, sym, end, size)
++        self.label(end)
++        self.directive(".cfi_endproc")
+         self.directive(f".size {sym}, .-{sym}")
+         self.directive(f".set .Lframe.{sym}, {size}")
+         self.fn = None
+diff --git a/hcc/selftest/cleanup_forced_unwind.c b/hcc/selftest/cleanup_forced_unwind.c
+new file mode 100644
+index 00000000..caa6beb4
+--- /dev/null
++++ b/hcc/selftest/cleanup_forced_unwind.c
+@@ -0,0 +1,19 @@
++// EXPECT-EXIT: 0
++// A forced unwind runs __attribute__((cleanup)) handlers (needs CFI + LSDA).
++#include <unwind.h>
++#include <stdlib.h>
++#include <string.h>
++static _Unwind_Reason_Code stop(int v, _Unwind_Action a, _Unwind_Exception_Class c,
++    struct _Unwind_Exception *e, struct _Unwind_Context *x, void *p)
++{ if (a & _UA_END_OF_STACK) abort(); return _URC_NO_REASON; }
++static void handler(void *p) { exit(0); }
++static void doit(void)
++{
++  char d __attribute__((cleanup(handler)));
++  struct _Unwind_Exception *e = malloc(sizeof *e);
++  memset(&e->exception_class, 0, sizeof e->exception_class);
++  e->exception_cleanup = 0;
++  _Unwind_ForcedUnwind(e, stop, 0);
++  abort();
++}
++int main(void) { doit(); abort(); }

@@ -1,0 +1,39 @@
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..2735c4b7 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -205,6 +205,7 @@ class DeclSpecMixin:
+             td = self.find_typedef(tok)
+             is_floatn = tok.kind == TokenKind.IDENT and s in FLOATN_TYPES and td is None
+             spec = type_specifier.get(s)      # hcc/parser/typespecs/<name>.py
++            self.tag_qualified = is_const or is_volatile   # `const struct s;` never shadows
+             if spec is not None or td is not None or is_floatn:
+                 if counter:
+                     break          # e.g. "typedef int T; int T;" -> T is a declarator
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..5f9923b1 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -33,7 +33,12 @@ class StructMixin:
+         self.parse_attributes(attr)
+         if tag is not None and not self.at("{"):
+             ty = self.find_tag(tag.text)
++            qualified = self.__dict__.pop("tag_qualified", False)
++            if ty is not None and qualified and self.at(";") and ty.kind != kind:
++                self.error(f"'{tag.text}' defined as wrong kind of tag", tag)
+             if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
++                if ty.kind != kind:
++                    self.error(f"'{tag.text}' defined as wrong kind of tag", tag)
+                 return ty
+             ty = T.struct_type(kind)
+             ty.tag = tag.text
+diff --git a/hcc/selftest/parser_wrong_tag_kind.c b/hcc/selftest/parser_wrong_tag_kind.c
+new file mode 100644
+index 00000000..e62d8003
+--- /dev/null
++++ b/hcc/selftest/parser_wrong_tag_kind.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: wrong kind of tag
++union u3 { float v; };
++void h(void) { const struct u3; }
++int main(void) { return 0; }

@@ -1,0 +1,24 @@
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index 1978ebaf..98d360b9 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -25,6 +25,8 @@ class PrimaryMixin:
+         k = t.kind
+         if k == TokenKind.PUNCT and t.text == "(":
+             if self.peek().text == "{" and self.peek().kind == TokenKind.PUNCT:
++                if self.fn is None:          # file scope / parameter list
++                    self.error("braced-group within expression allowed only inside a function", t)
+                 self.next()
+                 self.next()
+                 outer_base = self.stmt_expr_base
+diff --git a/hcc/selftest/parse_stmt_expr_file_scope.c b/hcc/selftest/parse_stmt_expr_file_scope.c
+new file mode 100644
+index 00000000..6a305b53
+--- /dev/null
++++ b/hcc/selftest/parse_stmt_expr_file_scope.c
+@@ -0,0 +1,5 @@
++// EXPECT-ERROR: braced-group
++// A statement expression at file scope (outside any function body) is rejected
++// instead of crashing the parser (no enclosing function for nested functions).
++int x = ({ 1; });
++int main(void) { return 0; }

@@ -1,0 +1,53 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..112e9b4b 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -17,7 +17,7 @@ from hcc import typesys as T
+ # function attributes hcc records by name only (queried via __builtin_has_attribute)
+ RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
+ 
+-MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
++MODE_SIZES = {"byte": 1, "QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
+ 
+ # GCC-accepted argument counts (min, max) for attributes that take a fixed
+ # number of arguments; anything outside the range is a hard error.
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..4e838f21 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -7,6 +7,7 @@ to (unsigned) long when values don't fit in 32 bits.
+ """
+ from __future__ import annotations
+ 
++from hcc.parser.attributes import MODE_SIZES
+ from hcc.parser.scope import VarAttr
+ from hcc.tokens import TokenKind
+ from hcc import typesys as T
+@@ -117,7 +118,17 @@ class EnumMixin:
+             ty.is_unsigned = False
+         elif hi >= 1 << 32:
+             ty.size = ty.align = 8
+-        self.parse_attributes(attr if attr is not None else VarAttr())   # `enum {..} __attribute__((mode(word)))`
++        attr = attr if attr is not None else VarAttr()
++        self.parse_attributes(attr)   # `enum {..} __attribute__((mode(word)))`
++        msize = MODE_SIZES.get(attr.mode) if attr.mode else None
++        if msize is not None:
++            bits = 8 * msize
++            if lo < 0:
++                ok = lo >= -(1 << (bits - 1)) and hi < (1 << (bits - 1))
++            else:
++                ok = hi < (1 << bits)
++            if not ok:
++                self.error("specified mode too small for enumerated values", self.toks[self.pos - 1])
+         if tag is not None:
+             self.scopes[-1].tags[tag.text] = ty
+         return ty
+diff --git a/hcc/selftest/enum_mode_too_small.c b/hcc/selftest/enum_mode_too_small.c
+new file mode 100644
+index 00000000..81006502
+--- /dev/null
++++ b/hcc/selftest/enum_mode_too_small.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse] specified mode too small
++enum e1 { A = 256 } __attribute__((__mode__(__byte__)));
++int main(void) { return 0; }

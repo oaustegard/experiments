@@ -1,0 +1,34 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..d8044f54 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -17,6 +17,9 @@ from hcc.tokens import TokenKind
+ from hcc import typesys as T
+ 
+ 
++_MAX_OBJECT_SIZE = 2 ** 63 - 1      # LP64 PTRDIFF_MAX: largest permitted object
++
++
+ def _kind_word(kind) -> str:
+     return "struct" if kind == T.TypeKind.STRUCT else "union"
+ 
+@@ -82,6 +85,9 @@ class StructMixin:
+         if attr.align:
+             ty.align = max(ty.align, attr.align)
+             ty.size = T.align_to(ty.size, ty.align)
++        if ty.size > _MAX_OBJECT_SIZE:      # gcc: no object may exceed PTRDIFF_MAX bytes
++            name = f"{_kind_word(kind)} {tag.text}" if tag else f"{_kind_word(kind)} <anonymous>"
++            diag.error(self.toks[brace_pos], f"type '{name}' is too large")
+         if ty.is_reverse_sso:
+             mirror_reverse_bitfields(ty)
+             mark_reverse_scalars(ty)
+diff --git a/hcc/selftest/struct_too_large.c b/hcc/selftest/struct_too_large.c
+new file mode 100644
+index 00000000..15326533
+--- /dev/null
++++ b/hcc/selftest/struct_too_large.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: too large
++// A struct whose size exceeds the maximum object size (PTRDIFF_MAX) is rejected.
++struct S { int a; char b[0x7fffffffffffffffL]; };
++int main(void) { return 0; }

@@ -1,0 +1,22 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index f8c0dc75..9cf719e2 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -253,6 +253,8 @@ class ExpressionMixin:
+                 if ty is None:
+                     node = self.unary()
+                     ty = node.ty
++                    if isinstance(node, N.Member_) and node.member.is_bitfield:
++                        self.error("'_Alignof' applied to a bit-field", t)
+                     if isinstance(node, N.VarRef) and isinstance(node.var, N.Function) and node.var.align:
+                         return N.IntLit(t.loc, node.var.align, ty=TY_ULONG)
+                     if isinstance(node, N.Member_) and node.member.align:
+diff --git a/hcc/selftest/parse_alignof_bitfield.c b/hcc/selftest/parse_alignof_bitfield.c
+new file mode 100644
+index 00000000..c65d8181
+--- /dev/null
++++ b/hcc/selftest/parse_alignof_bitfield.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++struct { int a : 1; } x;
++int r = __alignof (x.a);

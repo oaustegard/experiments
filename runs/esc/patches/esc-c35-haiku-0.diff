@@ -1,0 +1,22 @@
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index 1978ebaf..befbb14a 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -25,6 +25,8 @@ class PrimaryMixin:
+         k = t.kind
+         if k == TokenKind.PUNCT and t.text == "(":
+             if self.peek().text == "{" and self.peek().kind == TokenKind.PUNCT:
++                if self.fn is None:
++                    self.error("braced-group within expression allowed only inside a function", t)
+                 self.next()
+                 self.next()
+                 outer_base = self.stmt_expr_base
+diff --git a/hcc/selftest/parse_stmt_expr_file_scope.c b/hcc/selftest/parse_stmt_expr_file_scope.c
+new file mode 100644
+index 00000000..4d5128b9
+--- /dev/null
++++ b/hcc/selftest/parse_stmt_expr_file_scope.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++// Statement expressions are only valid inside a function body.
++void f(int a, int b[({ 1; })]);

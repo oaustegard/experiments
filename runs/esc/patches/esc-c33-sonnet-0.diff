@@ -1,0 +1,50 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index f8c0dc75..669f9540 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -303,6 +303,8 @@ class ExpressionMixin:
+             node = self.unary()
+             self.typed(node)
+             ty = node.ty
++            if isinstance(node, N.Member_) and getattr(node.member, "open_array", False):
++                self.error(f"invalid application of 'sizeof' to incomplete type '{ty.base}[]'", t)
+             if ty.kind == TypeKind.VLA:
+                 # sizeof(expr) of a variably modified type still evaluates
+                 # expr (its VLA lengths may have side effects).
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..7f4a2e85 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -8,6 +8,7 @@ objects: TODO (currently a parse error).
+ """
+ from __future__ import annotations
+ 
++import copy
+ from hcc import nodes as N
+ from hcc import typesys as T
+ from hcc.parser.scope import VarAttr
+@@ -95,7 +96,14 @@ class LocalDeclMixin:
+                     return items
+                 continue
+             if attr.is_extern:
++                shadowed = self.find_var(name.text)
++                shadowed = shadowed is not None and isinstance(shadowed.var, N.Var) and shadowed.var.is_local
+                 var = self.declare_global_var(ty, name, attr, dattr)
++                if shadowed and ty.kind == T.TypeKind.ARRAY and ty.array_len < 0 and var.ty is not ty:
++                    # Hidden by an inner object, so no composite type with the
++                    # file-scope declaration: this one stays incomplete.
++                    var = copy.copy(var)
++                    var.ty = ty
+                 self.push_scope_entry(name.text).var = var
+                 continue
+             if attr.is_static:
+diff --git a/hcc/selftest/sema_sizeof_flex_member.c b/hcc/selftest/sema_sizeof_flex_member.c
+new file mode 100644
+index 00000000..64e76669
+--- /dev/null
++++ b/hcc/selftest/sema_sizeof_flex_member.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse] invalid application of
++struct g { int w; int x[]; } g;
++char t[sizeof (g.x) ? -1 : 1];
++int main(void) { return 0; }

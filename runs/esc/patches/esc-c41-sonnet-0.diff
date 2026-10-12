@@ -1,0 +1,36 @@
+diff --git a/hcc/parser/complex.py b/hcc/parser/complex.py
+index 2f38c86d..a74debbf 100644
+--- a/hcc/parser/complex.py
++++ b/hcc/parser/complex.py
+@@ -234,6 +234,8 @@ def part(p, operand, which, loc):
+ 
+ def truth(p, node):
+     """A complex value used as a condition: true if either part is nonzero."""
++    if node.ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
++        p.error("used struct type value where scalar is required", node.loc)
+     if not node.ty.is_complex:
+         return node
+     loc = node.loc
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index f8c0dc75..cc907bdf 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -178,6 +178,9 @@ class ExpressionMixin:
+                 return self.vla_prefix(pre, lowered, loc)
+             node = N.Cast(loc, operand, ty=ty.unqual())
+             self.typed(operand)
++            if ty.kind not in (TypeKind.STRUCT, TypeKind.UNION) and operand.ty is not None \
++                    and operand.ty.kind in (TypeKind.STRUCT, TypeKind.UNION):
++                self.error("used struct type value where scalar is required", loc)
+             return self.vla_prefix(pre, node, loc)
+         return self.unary()
+ 
+diff --git a/hcc/selftest/sema_struct_cond.c b/hcc/selftest/sema_struct_cond.c
+new file mode 100644
+index 00000000..1800297e
+--- /dev/null
++++ b/hcc/selftest/sema_struct_cond.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: struct type
++struct a { int x; };
++int f(struct a a) { if (a) return 1; return 0; }

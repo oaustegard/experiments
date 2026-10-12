@@ -1,0 +1,63 @@
+diff --git a/hcc/parser/block_redecl.py b/hcc/parser/block_redecl.py
+new file mode 100644
+index 00000000..7376dc12
+--- /dev/null
++++ b/hcc/parser/block_redecl.py
+@@ -0,0 +1,31 @@
++"""Conflicting block-scope redeclarations (C11 6.7p3, 6.2.7p2).
++
++BlockRedeclMixin.check_block_redecl(name, ty, attr) is called by
++local_declaration() for each declarator before it is entered into scope:
++  * a name already declared in the same block scope with an incompatible type
++    is an error ("conflicting types");
++  * a block-scope `extern` declaration whose name is visible from an outer
++    scope with linkage (a file-scope object or function) must have a
++    compatible type with that prior declaration.
++"""
++from __future__ import annotations
++
++from hcc import nodes as N
++from hcc.sema.compat import is_compatible
++
++
++class BlockRedeclMixin:
++
++    def check_block_redecl(self, name, ty, attr) -> None:
++        prior = self.scopes[-1].vars.get(name.text)
++        pvar = prior.var if prior is not None else None
++        if isinstance(pvar, (N.Var, N.Function)) and not is_compatible(pvar.ty, ty):
++            self.error(f"conflicting types for '{name.text}'", name)
++        if not attr.is_extern or pvar is not None:
++            return
++        outer = self.find_var(name.text)
++        ovar = outer.var if outer is not None else None
++        if ovar is None or getattr(ovar, "is_local", False):
++            return
++        if isinstance(ovar, (N.Var, N.Function)) and not is_compatible(ovar.ty, ty):
++            self.error(f"conflicting types for '{name.text}'", name)
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..3dcabc37 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -67,6 +67,8 @@ class LocalDeclMixin:
+             self.parse_asm_label(dattr)
+             if name is None:
+                 self.error("identifier expected in declaration")
++            if not attr.is_typedef:
++                self.check_block_redecl(name, ty, attr)
+             cleanup = dattr.cleanup or attr.cleanup
+             if cleanup and (attr.is_static or attr.is_extern or attr.is_typedef):
+                 self.error("cleanup attribute on a non-automatic variable", name)
+diff --git a/hcc/selftest/parser_block_redecl_conflict.c b/hcc/selftest/parser_block_redecl_conflict.c
+new file mode 100644
+index 00000000..3da9c393
+--- /dev/null
++++ b/hcc/selftest/parser_block_redecl_conflict.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: conflicting types
++// Block-scope redeclaration of a variable with an incompatible type.
++int main(void) {
++    int r = 0;
++    double r = 1.0;
++    return 0;
++}

@@ -1,0 +1,29 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..5b0fcc4a 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -115,6 +115,16 @@ class AttributeMixin:
+                         and t.text in _NO_ARG_STD_ATTRS
+                         and self.at("(")):
+                     self.error(f"'{t.text}' attribute does not take any arguments")
++                elif (t.kind == TokenKind.IDENT and prev in ("[", ",")
++                        and t.text.strip("_") in ("deprecated", "nodiscard")
++                        and self.at("(")):
++                    if self.peek().text == ")":
++                        self.error("parentheses must be omitted if "
++                                   "attribute argument list is empty")
++                    if not (self.peek().kind == TokenKind.STRING
++                            and self.peek(2).text == ")"):
++                        self.error("expected string literal as the only "
++                                   f"argument of '{t.text}'")
+                 prev = t.text
+ 
+     def parse_attributes(self, attr=None, ty=None) -> None:
+diff --git a/hcc/selftest/attr_std_empty_args.c b/hcc/selftest/attr_std_empty_args.c
+new file mode 100644
+index 00000000..3bc512ac
+--- /dev/null
++++ b/hcc/selftest/attr_std_empty_args.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: parentheses must be omitted
++[[deprecated()]] int a;

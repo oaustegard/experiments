@@ -1,0 +1,76 @@
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..057ac529 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -210,6 +210,12 @@ class DeclSpecMixin:
+                     break          # e.g. "typedef int T; int T;" -> T is a declarator
+                 self.next()
+                 if spec is not None:
++                    # C99 6.7.2.3#8: a qualified/storage-class tag declaration with no
++                    # body (`const struct s;`) must not shadow a visible tag (see structs.py)
++                    self.tag_decl_qualified = bool(is_const or is_volatile or is_atomic or
++                                                   (attr is not None and (attr.is_extern or attr.is_static
++                                                                          or attr.is_typedef or attr.is_tls
++                                                                          or attr.is_register)))
+                     ty = spec(self, tok, attr)
+                 elif is_floatn:
+                     ty = FLOATN_TYPES[s]
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..b28ab186 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -31,9 +31,16 @@ class StructMixin:
+         if self.tok.kind == TokenKind.IDENT:
+             tag = self.next()
+         self.parse_attributes(attr)
++        qualified = getattr(self, "tag_decl_qualified", False)
++        self.tag_decl_qualified = False
+         if tag is not None and not self.at("{"):
+             ty = self.find_tag(tag.text)
+-            if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
++            # plain `struct S;` in an inner scope declares a new tag; with a qualifier or
++            # storage class it refers to the visible one (C99 6.7.2.3#8)
++            shadow = self.at(";") and not qualified and self.tag_is_shadow_decl(tag.text)
++            if ty is not None and not shadow:
++                if ty.kind != kind:
++                    diag.error(tag, f"'{tag.text}' defined as wrong kind of tag")
+                 return ty
+             ty = T.struct_type(kind)
+             ty.tag = tag.text
+@@ -45,6 +52,8 @@ class StructMixin:
+         ty = None
+         if tag is not None:
+             prev = self.scopes[-1].tags.get(tag.text)
++            if prev is not None and prev.kind != kind:
++                diag.error(tag, f"'{tag.text}' defined as wrong kind of tag")
+             if prev is not None and prev.is_complete and prev.kind == kind:
+                 kw = "struct" if kind == T.TypeKind.STRUCT else "union"
+                 self.error(f"redefinition of '{kw} {tag.text}'", tag)
+diff --git a/hcc/selftest/tags_qualified_decl_ok.c b/hcc/selftest/tags_qualified_decl_ok.c
+new file mode 100644
+index 00000000..1e5c580e
+--- /dev/null
++++ b/hcc/selftest/tags_qualified_decl_ok.c
+@@ -0,0 +1,11 @@
++// EXPECT-EXIT: 0
++// Plain `struct S;` in an inner scope still declares a new tag, and a
++// qualified `const struct S;` with no visible tag declares one too.
++struct s0 { int a; };
++int main(void) {
++    struct s0;
++    const struct s1;
++    struct s1 *p = 0;
++    (void)p;
++    return 0;
++}
+diff --git a/hcc/selftest/tags_wrong_kind.c b/hcc/selftest/tags_wrong_kind.c
+new file mode 100644
+index 00000000..dace6980
+--- /dev/null
++++ b/hcc/selftest/tags_wrong_kind.c
+@@ -0,0 +1,5 @@
++// EXPECT-ERROR: wrong kind of tag
++// A qualified bare tag declaration in an inner scope refers to the visible
++// union tag; using it as a struct is an error (C99 6.7.2.3#8).
++union u3 { float v; };
++void h(void) { const struct u3; }

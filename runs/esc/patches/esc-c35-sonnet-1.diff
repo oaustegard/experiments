@@ -1,0 +1,21 @@
+diff --git a/hcc/parser/nested_fn.py b/hcc/parser/nested_fn.py
+index f1906dbf..b5a9cabc 100644
+--- a/hcc/parser/nested_fn.py
++++ b/hcc/parser/nested_fn.py
+@@ -15,6 +15,8 @@ class NestedFnMixin:
+ 
+     def nested_function(self, ty, name, attr, dattr) -> None:
+         outer = self.fn
++        if outer is None:
++            self.error('braced-group within expression allowed only inside a function', name)
+         self.anon_count += 1
+         fn = N.Function(name.text, ty, loc=name.loc)
+         fn.is_static = True
+diff --git a/hcc/selftest/parse_nested_fn_outside_fn.c b/hcc/selftest/parse_nested_fn_outside_fn.c
+new file mode 100644
+index 00000000..4513d6d8
+--- /dev/null
++++ b/hcc/selftest/parse_nested_fn_outside_fn.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: [parse] braced-group
++int b[({ void h() {} 1; })];

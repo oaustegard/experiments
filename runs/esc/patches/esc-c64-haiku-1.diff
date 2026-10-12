@@ -1,0 +1,60 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..16c3517a 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -17,7 +17,7 @@ from hcc import typesys as T
+ # function attributes hcc records by name only (queried via __builtin_has_attribute)
+ RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
+ 
+-MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
++MODE_SIZES = {"QI": 1, "byte": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8, "pointer": 8}
+ 
+ # GCC-accepted argument counts (min, max) for attributes that take a fixed
+ # number of arguments; anything outside the range is a hard error.
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..08303856 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -8,6 +8,7 @@ to (unsigned) long when values don't fit in 32 bits.
+ from __future__ import annotations
+ 
+ from hcc.parser.scope import VarAttr
++from hcc.parser.attributes import MODE_SIZES
+ from hcc.tokens import TokenKind
+ from hcc import typesys as T
+ 
+@@ -117,7 +118,10 @@ class EnumMixin:
+             ty.is_unsigned = False
+         elif hi >= 1 << 32:
+             ty.size = ty.align = 8
+-        self.parse_attributes(attr if attr is not None else VarAttr())   # `enum {..} __attribute__((mode(word)))`
++        mattr = attr if attr is not None else VarAttr()
++        self.parse_attributes(mattr)   # `enum {..} __attribute__((mode(word)))
++        if mattr.mode and mattr.mode in MODE_SIZES and not enum_values_fit(lo, hi, MODE_SIZES[mattr.mode]):
++            self.error("specified mode too small for enumerated values")
+         if tag is not None:
+             self.scopes[-1].tags[tag.text] = ty
+         return ty
+@@ -141,3 +145,11 @@ class EnumMixin:
+         ty.is_unsigned = under.is_unsigned
+         if under.kind == T.TypeKind.BOOL:
+             ty.kind = T.TypeKind.BOOL     # `enum e : _Bool`: conversions to it are `!= 0`
++
++
++def enum_values_fit(lo, hi, nbytes):
++    """True if enumerator values lo..hi are representable in an nbytes-wide mode."""
++    bits = 8 * nbytes
++    if lo < 0:
++        return lo >= -(1 << (bits - 1)) and hi < (1 << (bits - 1))
++    return hi < (1 << bits)
+diff --git a/hcc/selftest/parser_enum_mode_small.c b/hcc/selftest/parser_enum_mode_small.c
+new file mode 100644
+index 00000000..8a318c17
+--- /dev/null
++++ b/hcc/selftest/parser_enum_mode_small.c
+@@ -0,0 +1,5 @@
++// EXPECT-ERROR: specified mode too small for enumerated values
++// GCC rejects an enum whose enumerator values do not fit the mode named by
++// __attribute__((mode(...))) on the enum definition.
++enum e { A = 256 } __attribute__((__mode__(__byte__)));
++int main(void) { return 0; }

@@ -1,0 +1,71 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..112e9b4b 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -17,7 +17,7 @@ from hcc import typesys as T
+ # function attributes hcc records by name only (queried via __builtin_has_attribute)
+ RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
+ 
+-MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
++MODE_SIZES = {"byte": 1, "QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
+ 
+ # GCC-accepted argument counts (min, max) for attributes that take a fixed
+ # number of arguments; anything outside the range is a hard error.
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..6b3109e7 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -8,10 +8,19 @@ to (unsigned) long when values don't fit in 32 bits.
+ from __future__ import annotations
+ 
+ from hcc.parser.scope import VarAttr
++from hcc.parser.attributes import MODE_SIZES
+ from hcc.tokens import TokenKind
+ from hcc import typesys as T
+ 
+ 
++def values_fit_bytes(lo, hi, size):
++    """True if every enumerator value in [lo, hi] fits a `size`-byte integer mode."""
++    bits = size * 8
++    if lo < 0:
++        return lo >= -(1 << (bits - 1)) and hi < (1 << (bits - 1))
++    return hi < (1 << bits)
++
++
+ def fits_type(v, ty):
+     """True if integer value v is representable in integer type ty."""
+     bits = ty.size * 8
+@@ -117,7 +126,12 @@ class EnumMixin:
+             ty.is_unsigned = False
+         elif hi >= 1 << 32:
+             ty.size = ty.align = 8
+-        self.parse_attributes(attr if attr is not None else VarAttr())   # `enum {..} __attribute__((mode(word)))`
++        eattr = attr if attr is not None else VarAttr()
++        self.parse_attributes(eattr)   # `enum {..} __attribute__((mode(word)))`
++        if eattr.mode and consts:
++            size = MODE_SIZES.get(eattr.mode)
++            if size is not None and not values_fit_bytes(lo, hi, size):
++                self.error("specified mode too small for enumerated values", tag)
+         if tag is not None:
+             self.scopes[-1].tags[tag.text] = ty
+         return ty
+diff --git a/hcc/selftest/attr_enum_mode_fits.c b/hcc/selftest/attr_enum_mode_fits.c
+new file mode 100644
+index 00000000..86851dd6
+--- /dev/null
++++ b/hcc/selftest/attr_enum_mode_fits.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 0
++// Enum values that fit the mode (QI: 0..255) are accepted.
++enum e { A = 255 } __attribute__((mode(QI)));
++int main(void) { return 0; }
+diff --git a/hcc/selftest/attr_enum_mode_too_small.c b/hcc/selftest/attr_enum_mode_too_small.c
+new file mode 100644
+index 00000000..738b9990
+--- /dev/null
++++ b/hcc/selftest/attr_enum_mode_too_small.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: specified mode too small for enumerated values
++// An enum whose values do not fit its __mode__ (byte = 1 byte) is an error.
++enum e { A = 256 } __attribute__((__mode__(__byte__)));
++int main(void) { return A; }

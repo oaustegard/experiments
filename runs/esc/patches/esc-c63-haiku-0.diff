@@ -1,0 +1,44 @@
+diff --git a/hcc/parser/postfix.py b/hcc/parser/postfix.py
+index ff4da8c9..b85c70e6 100644
+--- a/hcc/parser/postfix.py
++++ b/hcc/parser/postfix.py
+@@ -75,6 +75,7 @@ class PostfixMixin:
+             s = t.text
+             if s == "[" and t.kind.name == "PUNCT":
+                 self.next()
++                self.check_register_array_subscript(node, t)
+                 idx = self.expr()
+                 self.expect("]")
+                 ptr = new_add(node, idx, t.loc)
+@@ -100,6 +101,18 @@ class PostfixMixin:
+             else:
+                 return node
+ 
++    def check_register_array_subscript(self, node, t):
++        """Subscripting a `register` array decays it to a pointer, which takes
++        the address of a register variable: rejected before C2Y."""
++        if not (isinstance(node, N.VarRef) and getattr(node.var, "is_register", False)):
++            return
++        if node.var.ty is None or node.var.ty.kind != TypeKind.ARRAY:
++            return
++        std = (getattr(self.opts, "std", None) or "gnu11").lower()
++        if std in ("c2y", "gnu2y"):
++            return
++        self.error(f"address of register variable '{node.var.name}' requested", t)
++
+     def struct_ref(self, node, name_tok):
+         self.typed(node)
+         ty = node.ty
+diff --git a/hcc/selftest/parser_register_array_subscript.c b/hcc/selftest/parser_register_array_subscript.c
+new file mode 100644
+index 00000000..4fa7f782
+--- /dev/null
++++ b/hcc/selftest/parser_register_array_subscript.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: address of register variable
++// Subscripting a `register` array takes the address of a register variable (pre-C2Y).
++int main(void) {
++    register int a[2];
++    a[0] = 1;
++    return a[0];
++}

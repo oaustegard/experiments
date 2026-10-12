@@ -1,0 +1,44 @@
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..c8091d36 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -30,6 +30,20 @@ def _has_vla_member(ty) -> bool:
+     return any(_has_vla_member(m.ty) for m in ty.members)
+ 
+ 
++def _is_vm(ty) -> bool:
++    """True for a variably modified type (a VLA reached through ptr/array/func)."""
++    while ty is not None:
++        if ty.kind == T.TypeKind.VLA:
++            return True
++        if ty.kind == T.TypeKind.FUNC:
++            ty = ty.return_ty
++        elif ty.kind in (T.TypeKind.PTR, T.TypeKind.ARRAY):
++            ty = ty.base
++        else:
++            return False
++    return False
++
++
+ def _has_vla_struct(ty) -> bool:
+     """True for an array (of arrays) whose element is a struct with a VLA member."""
+     while ty.kind == T.TypeKind.ARRAY and ty.base is not None:
+@@ -87,6 +101,9 @@ class LocalDeclMixin:
+                 self.nested_function(ty, name, attr, dattr)
+                 return items
+             if ty.kind == T.TypeKind.FUNC:
++                if _is_vm(ty.return_ty):
++                    self.error("function declaration isn't a prototype: "
++                               "non-nested function with variably modified type", name)
+                 ty = self.block_func_composite(ty, name.text)
+                 fn = self.declare_function(ty, name, attr, dattr)
+                 self.push_scope_entry(name.text).var = fn
+diff --git a/hcc/selftest/vla_fn_decl_ret.c b/hcc/selftest/vla_fn_decl_ret.c
+new file mode 100644
+index 00000000..74e6f7ec
+--- /dev/null
++++ b/hcc/selftest/vla_fn_decl_ret.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++int a;
++void f(void) { int (*g(void))[a]; }

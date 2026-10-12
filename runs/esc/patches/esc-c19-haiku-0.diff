@@ -1,0 +1,67 @@
+diff --git a/hcc/parser/complex.py b/hcc/parser/complex.py
+index 2f38c86d..37964b99 100644
+--- a/hcc/parser/complex.py
++++ b/hcc/parser/complex.py
+@@ -33,7 +33,7 @@ from hcc.sema.arith import new_binop
+ from hcc.parser import complex_const as CC
+ from hcc.parser.complex_div import recover_division
+ from hcc.sema.conversions import common_type, new_cast
+-from hcc.typesys import TY_DOUBLE, TypeKind, complex_of, is_flonum, is_integer
++from hcc.typesys import TY_DOUBLE, TypeKind, complex_of, is_flonum, is_integer, is_struct_like
+ 
+ _RANK = {TypeKind.FLOAT16: 0, TypeKind.FLOAT: 1, TypeKind.DOUBLE: 2, TypeKind.LDOUBLE: 3,
+          TypeKind.FLOAT128: 4}
+@@ -233,8 +233,11 @@ def part(p, operand, which, loc):
+ 
+ 
+ def truth(p, node):
+-    """A complex value used as a condition: true if either part is nonzero."""
++    """A complex value used as a condition: true if either part is nonzero.
++    Any other value used as a condition must be scalar (C11 6.5.13/6.5.14/6.8.4.1)."""
+     if not node.ty.is_complex:
++        if is_struct_like(node.ty):
++            p.error(f"used {node.ty.kind.value} type value where scalar is required", node.loc)
+         return node
+     loc = node.loc
+     tmp = p.new_temp(node.ty, loc)
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index f8c0dc75..c6931c93 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -18,7 +18,7 @@ from hcc.parser.vector_broadcast import promote_vector_operands
+ from hcc.parser.vector_cast import lower_scalar_to_vector
+ from hcc.sema.conversions import new_cast
+ from hcc.tokens import TokenKind
+-from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, pointer_to
++from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, is_struct_like, pointer_to
+ from hcc.parser.plan9_ptr import plan9_pointer_conv
+ from hcc.parser.addr_operand import is_rvalue_operand
+ from hcc.parser import complex as CPX
+@@ -173,6 +173,8 @@ class ExpressionMixin:
+                 return self.vla_prefix(pre, N.Cast(loc, operand, ty=ty), loc)
+             if ty.is_complex or self.typed(operand).ty.is_complex:
+                 return self.vla_prefix(pre, CPX.convert(self, operand, ty.unqual(), loc), loc)
++            if not is_struct_like(ty) and is_struct_like(self.typed(operand).ty):  # `(_Bool) s`: s must be scalar
++                self.error(f"used {operand.ty.kind.value} type value where scalar is required", loc)
+             lowered = lower_scalar_to_vector(self, loc, self.typed(operand), ty.unqual())
+             if lowered is not None:
+                 return self.vla_prefix(pre, lowered, loc)
+diff --git a/hcc/selftest/parser_union_as_condition.c b/hcc/selftest/parser_union_as_condition.c
+new file mode 100644
+index 00000000..ef57bc05
+--- /dev/null
++++ b/hcc/selftest/parser_union_as_condition.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: used union type value where scalar is required
++// A union (or struct) value used as a condition or cast to a scalar is an error.
++union u { int x; };
++int f(union u v) { if (v) return 1; return 0; }
+diff --git a/hcc/selftest/parser_union_cast_bool.c b/hcc/selftest/parser_union_cast_bool.c
+new file mode 100644
+index 00000000..51931ed7
+--- /dev/null
++++ b/hcc/selftest/parser_union_cast_bool.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: used union type value where scalar is required
++union u { int x; };
++int f(union u v) { return (_Bool) v; }

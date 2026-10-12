@@ -1,0 +1,43 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..0f827d79 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -23,14 +23,21 @@ def _kind_word(kind) -> str:
+ 
+ class StructMixin:
+ 
++    def reject_struct_mode(self, attr):
++        """__attribute__((mode(X))) only re-sizes integer/enum types, never a struct/union."""
++        if attr.mode:
++            self.error(f"mode '{attr.mode}' applied to inappropriate type")
++
+     def struct_decl(self, kind):
+         attr = VarAttr()
+         attr.reverse_sso = self.sso_reverse     # #pragma scalar_storage_order default
+         self.parse_attributes(attr)
++        self.reject_struct_mode(attr)
+         tag = None
+         if self.tok.kind == TokenKind.IDENT:
+             tag = self.next()
+         self.parse_attributes(attr)
++        self.reject_struct_mode(attr)
+         if tag is not None and not self.at("{"):
+             ty = self.find_tag(tag.text)
+             if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
+@@ -70,6 +77,7 @@ class StructMixin:
+                 def_pos[id(ty)] = brace_pos
+         members = self.struct_members()
+         self.parse_attributes(attr)
++        self.reject_struct_mode(attr)
+         check_duplicate_members(members, self.toks[brace_pos])
+         ty.members = members
+         ty.is_packed = attr.is_packed
+diff --git a/hcc/selftest/parse_struct_mode_reject.c b/hcc/selftest/parse_struct_mode_reject.c
+new file mode 100644
+index 00000000..f0044354
+--- /dev/null
++++ b/hcc/selftest/parse_struct_mode_reject.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse] mode 'SI' applied to inappropriate type
++struct __attribute__((mode(SI))) S { int a; };
++int main(void) { return 0; }

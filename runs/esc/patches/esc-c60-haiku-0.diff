@@ -1,0 +1,24 @@
+diff --git a/hcc/parser/declarator.py b/hcc/parser/declarator.py
+index 29a55c54..63ce1e5d 100644
+--- a/hcc/parser/declarator.py
++++ b/hcc/parser/declarator.py
+@@ -259,6 +259,9 @@ class DeclaratorMixin:
+         if (ty.kind == T.TypeKind.ARRAY and ty.array_len < 0) or \
+                 (ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION) and not ty.is_complete):
+             self.error("array type has incomplete element type", self.tok)
++        if ty.size > 0 and ty.align > ty.size:
++            # `typedef int A __attribute__((aligned(8)))`: GCC rejects `A a[4]` (PR c/116357)
++            self.error("alignment of array elements is greater than element size", self.tok)
+ 
+     def array_dims(self, ty):
+         while (self.at("static") or self.at("const") or self.at("volatile")
+diff --git a/hcc/selftest/attr_array_elem_align.c b/hcc/selftest/attr_array_elem_align.c
+new file mode 100644
+index 00000000..502f5577
+--- /dev/null
++++ b/hcc/selftest/attr_array_elem_align.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse] alignment of array elements is greater than element size
++typedef int A __attribute__((aligned (8)));
++A a[4];
++int main(void) { return 0; }

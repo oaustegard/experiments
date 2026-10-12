@@ -1,0 +1,22 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..28bfeac4 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -82,6 +82,9 @@ class StructMixin:
+         if attr.align:
+             ty.align = max(ty.align, attr.align)
+             ty.size = T.align_to(ty.size, ty.align)
++        if ty.size > (1 << 63) - 1:
++            diag.error(tag or self.toks[brace_pos],
++                       f"type '{_kind_word(kind)} {tag.text if tag else ''}' is too large")
+         if ty.is_reverse_sso:
+             mirror_reverse_bitfields(ty)
+             mark_reverse_scalars(ty)
+diff --git a/hcc/selftest/struct_too_large.c b/hcc/selftest/struct_too_large.c
+new file mode 100644
+index 00000000..4a7bd322
+--- /dev/null
++++ b/hcc/selftest/struct_too_large.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: too large
++struct S { int a; char b[__INTPTR_MAX__]; };

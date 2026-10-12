@@ -1,0 +1,95 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..ad1f3f50 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -223,6 +223,9 @@ class AttributeMixin:
+             self.pos = save
+         elif name == "mode" and attr is not None and args:
+             attr.mode = args[0].text.strip("_")
++        elif name == "unavailable" and attr is not None:
++            msg = args[0].value.rstrip(b"\0").decode() if args and args[0].value else ""
++            attr.unavailable = msg
+ 
+     def typedef_aligned(self, ty, attr, dattr, name=None):
+         """`typedef T X __attribute__((aligned(N)))`: raise the typedef's alignment.
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..431293cf 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -261,6 +261,8 @@ class DeclSpecMixin:
+             if _has_vla_type(ty):
+                 # typeof(vm-expr) evaluates expr; locals.py emits it as a statement.
+                 self.vm_typeof.append(node)
++        if ty is not None and ty.unavailable is not None:
++            self.error("type is unavailable: %s" % ty.unavailable, self.toks[self.pos - 1])
+         self.expect(")")
+         if unqual and ty is not None and (ty.is_const or ty.is_volatile or ty.is_atomic):
+             # typeof_unqual: drop the top-level qualifiers of the operand's type.
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..8e7ed07e 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -54,3 +54,4 @@ class VarAttr:
+     asm_name: str | None = None
+     vector_size: int = 0
+     mode: str | None = None
++    unavailable: str | None = None  # __attribute__((unavailable("msg"))): "" when no message
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..feb7f846 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -74,6 +74,8 @@ class StructMixin:
+         ty.members = members
+         ty.is_packed = attr.is_packed
+         ty.is_ms_struct = attr.is_ms_struct
++        if attr.unavailable is not None:
++            ty.unavailable = attr.unavailable
+         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
+         if kind == T.TypeKind.STRUCT:
+             layout_struct(ty)
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 035ec413..079d9060 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -172,6 +172,9 @@ class TopLevelMixin:
+         elif ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
+                 var.ty.array_len < 0 and ty.kind == T.TypeKind.ARRAY and ty.array_len >= 0:
+             var.ty = ty
++        if ty.unavailable is not None:
++            # __attribute__((unavailable)) on the type: declaring an object of it is an error
++            self.error("type is unavailable: %s" % ty.unavailable, name)
+         var.is_static |= attr.is_static
+         var.is_tls |= attr.is_tls
+         var.is_weak |= attr.is_weak or dattr.is_weak
+diff --git a/hcc/selftest/attr_unavailable_type.c b/hcc/selftest/attr_unavailable_type.c
+new file mode 100644
+index 00000000..d669d116
+--- /dev/null
++++ b/hcc/selftest/attr_unavailable_type.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: type is unavailable
++struct { int a; } __attribute__((unavailable("Do not use"))) x;
++typeof(x) y;
++int main(void) { return 0; }
+diff --git a/hcc/typesys.py b/hcc/typesys.py
+index f8539714..29024f9a 100644
+--- a/hcc/typesys.py
++++ b/hcc/typesys.py
+@@ -75,7 +75,8 @@ class Type:
+                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
+                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
+                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
+-                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size")
++                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size",
++                 "unavailable")
+ 
+     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
+         self.kind = kind
+@@ -115,6 +116,7 @@ class Type:
+         self.is_complex = False      # C99 _Complex: a STRUCT {re, im} of base (see complex_of)
+         self.dyn_tail = None         # STRUCT: VLA type of a trailing variably-sized member (size = prefix)
+         self.dyn_size = None         # bound dynamic STRUCT: ulong expr of its run-time sizeof (pointer strides)
++        self.unavailable = None      # __attribute__((unavailable("msg"))) on the type: "" if no message
+ 
+     def copy(self) -> "Type":
+         t = Type.__new__(Type)

@@ -1,0 +1,80 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..89e21de2 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -173,6 +173,8 @@ class AttributeMixin:
+             attr.is_ms_struct = True
+         elif name == "scalar_storage_order" and attr is not None and args:
+             attr.reverse_sso = args[0].value.rstrip(b"\0") == b"big-endian"
++        elif name == "unavailable" and attr is not None:
++            attr.unavailable = args[0].value.rstrip(b"\0").decode("latin-1") if args and hasattr(args[0], "value") and isinstance(args[0].value, bytes) else ""
+         elif name == "noreturn" and attr is not None:
+             attr.is_noreturn = True
+         elif name == "gnu_inline" and attr is not None:
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..350b860f 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -262,6 +262,8 @@ class DeclSpecMixin:
+                 # typeof(vm-expr) evaluates expr; locals.py emits it as a statement.
+                 self.vm_typeof.append(node)
+         self.expect(")")
++        if ty is not None and ty.unavailable is not None:
++            self.error("type is unavailable" + (": " + ty.unavailable if ty.unavailable else ""))
+         if unqual and ty is not None and (ty.is_const or ty.is_volatile or ty.is_atomic):
+             # typeof_unqual: drop the top-level qualifiers of the operand's type.
+             ty = ty.copy()
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..c841511a 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -35,6 +35,7 @@ class VarAttr:
+     is_inline: bool = False
+     is_gnu_inline: bool = False     # __attribute__((gnu_inline)): gnu89 inline semantics
+     is_tls: bool = False
++    unavailable: str | None = None  # __attribute__((unavailable("msg"))) on a tagged type
+     is_noreturn: bool = False
+     align: int = 0
+     is_weak: bool = False
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..1c8d9dc4 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -73,6 +73,7 @@ class StructMixin:
+         check_duplicate_members(members, self.toks[brace_pos])
+         ty.members = members
+         ty.is_packed = attr.is_packed
++        ty.unavailable = attr.unavailable
+         ty.is_ms_struct = attr.is_ms_struct
+         ty.is_reverse_sso = attr.reverse_sso and kind == T.TypeKind.STRUCT
+         if kind == T.TypeKind.STRUCT:
+diff --git a/hcc/selftest/attr_unavailable_type.c b/hcc/selftest/attr_unavailable_type.c
+new file mode 100644
+index 00000000..4cd4a6d9
+--- /dev/null
++++ b/hcc/selftest/attr_unavailable_type.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse] type is unavailable
++struct { int a; } __attribute__((unavailable ("Do not use"))) x;
++typeof(x) y;
+diff --git a/hcc/typesys.py b/hcc/typesys.py
+index f8539714..10471129 100644
+--- a/hcc/typesys.py
++++ b/hcc/typesys.py
+@@ -75,7 +75,7 @@ class Type:
+                  "members", "tag", "is_flexible", "is_packed", "is_complete", "is_reverse_sso", "is_ms_struct",
+                  "return_ty", "params", "param_names", "is_variadic", "has_proto",
+                  "origin", "name", "enum_consts", "is_vector", "param_vars", "param_dims",
+-                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size")
++                 "proto_scope", "is_rev_order", "is_floatn", "is_complex", "floatn", "dyn_tail", "dyn_size", "unavailable")
+ 
+     def __init__(self, kind: TypeKind, size: int = 0, align: int = 1, is_unsigned: bool = False):
+         self.kind = kind
+@@ -113,6 +113,7 @@ class Type:
+         self.param_dims: list = []   # FUNC: VLA-dimension expr per param (or None)
+         self.proto_scope = None      # FUNC: parser Scope of the parameter list (tags stay visible in the body)
+         self.is_complex = False      # C99 _Complex: a STRUCT {re, im} of base (see complex_of)
++        self.unavailable = None      # struct/union tagged __attribute__((unavailable)): message
+         self.dyn_tail = None         # STRUCT: VLA type of a trailing variably-sized member (size = prefix)
+         self.dyn_size = None         # bound dynamic STRUCT: ulong expr of its run-time sizeof (pointer strides)
+ 

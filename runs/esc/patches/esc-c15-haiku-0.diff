@@ -1,0 +1,111 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..7acbea86 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -177,6 +177,8 @@ class AttributeMixin:
+             attr.is_noreturn = True
+         elif name == "gnu_inline" and attr is not None:
+             attr.is_gnu_inline = True
++        elif name == "unavailable" and attr is not None:
++            attr.is_unavailable = True
+         elif name == "weak" and attr is not None:
+             attr.is_weak = True
+         elif name == "weakref" and attr is not None:
+@@ -224,6 +226,13 @@ class AttributeMixin:
+         elif name == "mode" and attr is not None and args:
+             attr.mode = args[0].text.strip("_")
+ 
++    def mark_unavailable(self, name: str, attr, dattr) -> None:
++        """Record `__attribute__((unavailable))` on the file-scope entry `name`."""
++        if attr.is_unavailable or dattr.is_unavailable:
++            vs = self.scopes[0].vars.get(name)
++            if vs is not None:
++                vs.unavailable = True
++
+     def typedef_aligned(self, ty, attr, dattr, name=None):
+         """`typedef T X __attribute__((aligned(N)))`: raise the typedef's alignment.
+ 
+diff --git a/hcc/parser/core.py b/hcc/parser/core.py
+index ea0d3ee8..8061e815 100644
+--- a/hcc/parser/core.py
++++ b/hcc/parser/core.py
+@@ -142,6 +142,8 @@ class ParserBase:
+         if tok.kind != TokenKind.IDENT:
+             return None
+         vs = self.find_var(tok.text)
++        if vs is not None and vs.unavailable and vs.type_def is not None:
++            self.error(f"'{tok.text}' is unavailable", tok)
+         return vs.type_def if vs else None
+ 
+     # ---- objects ------------------------------------------------------------
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index 1978ebaf..8d1f952d 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -64,6 +64,8 @@ class PrimaryMixin:
+         name = t.text
+         vs = self.find_var(name)
+         if vs is not None:
++            if vs.unavailable:
++                self.error(f"'{name}' is unavailable", t)
+             if vs.var is not None:
+                 return self.typed(N.VarRef(t.loc, vs.var))
+             if vs.enum_ty is not None:
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..5b5169f0 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -17,6 +17,7 @@ class VarScope:
+     enum_ty: Type | None = None
+     enum_val: int = 0
+     enum_cty: Type | None = None    # C23 type of the enumerator constant itself
++    unavailable: bool = False       # declared with __attribute__((unavailable))
+ 
+ 
+ @dataclass
+@@ -36,6 +37,7 @@ class VarAttr:
+     is_gnu_inline: bool = False     # __attribute__((gnu_inline)): gnu89 inline semantics
+     is_tls: bool = False
+     is_noreturn: bool = False
++    is_unavailable: bool = False    # __attribute__((unavailable)): any use is an error
+     align: int = 0
+     is_weak: bool = False
+     is_weakref: bool = False        # __attribute__((weakref("t"))) on a declaration
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 035ec413..dcef725a 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -82,6 +82,7 @@ class TopLevelMixin:
+             if attr.is_typedef:
+                 ty = self.typedef_aligned(ty, attr, dattr, name.text)
+                 self.scopes[0].vars[name.text] = VarScope(type_def=ty)
++                self.mark_unavailable(name.text, attr, dattr)
+             elif ty.kind == T.TypeKind.FUNC:
+                 fn = self.declare_function(ty, name, attr, dattr)
+                 if not self.at("{") and (attr.is_weakref or dattr.is_weakref):
+@@ -159,6 +160,7 @@ class TopLevelMixin:
+             if a.init_kind:
+                 fn.init_kind, fn.init_prio = a.init_kind, a.init_prio
+         fn.align = max(fn.align, attr.align, dattr.align)
++        self.mark_unavailable(name.text, attr, dattr)
+         return fn
+ 
+     def declare_global_var(self, ty, name, attr, dattr) -> N.Var:
+@@ -188,6 +190,7 @@ class TopLevelMixin:
+                 var.is_tentative = True
+         elif not var.is_tentative and var.init_data is None:
+             var.is_extern = True
++        self.mark_unavailable(name.text, attr, dattr)
+         return var
+ 
+     def finish_tentatives(self) -> None:
+diff --git a/hcc/selftest/attr_unavailable_use.c b/hcc/selftest/attr_unavailable_use.c
+new file mode 100644
+index 00000000..8f98cfa5
+--- /dev/null
++++ b/hcc/selftest/attr_unavailable_use.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// `unavailable` function: using its name is an error.
++int f1(void) __attribute__((unavailable));
++int main(void) { return f1(); }

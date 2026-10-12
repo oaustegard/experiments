@@ -1,0 +1,29 @@
+diff --git a/hcc/parser/pragma_sso.py b/hcc/parser/pragma_sso.py
+index 79680ed9..a214cc97 100644
+--- a/hcc/parser/pragma_sso.py
++++ b/hcc/parser/pragma_sso.py
+@@ -25,4 +25,5 @@ def consume_sso_marker(parser) -> None:
+     elif arg == "default":
+         parser.sso_reverse = parser.sso_default
+     else:
+-        diag.error(tok, "unknown argument to '#pragma scalar_storage_order'")
++        # gcc only warns here and keeps the current storage order.
++        diag.warn(tok, "missing or unknown argument to '#pragma scalar_storage_order'")
+diff --git a/hcc/selftest/attr_sso_pragma_bad_arg.c b/hcc/selftest/attr_sso_pragma_bad_arg.c
+new file mode 100644
+index 00000000..6a0fa8ee
+--- /dev/null
++++ b/hcc/selftest/attr_sso_pragma_bad_arg.c
+@@ -0,0 +1,12 @@
++// EXPECT-EXIT: 0
++// Bare or unknown #pragma scalar_storage_order args only warn; state is unchanged.
++#pragma scalar_storage_order
++#pragma scalar_storage_order big-endian
++#pragma scalar_storage_order other
++struct S1 { int i; };
++struct S1 a = { 0x12345678 };
++unsigned char be[4] = { 0x12, 0x34, 0x56, 0x78 };
++int main(void) {
++    if (__builtin_memcmp(&a, be, 4)) return 1;
++    return 0;
++}

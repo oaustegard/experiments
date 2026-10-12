@@ -1,0 +1,45 @@
+diff --git a/hcc/lexer.py b/hcc/lexer.py
+index 8face774..8493d8ec 100644
+--- a/hcc/lexer.py
++++ b/hcc/lexer.py
+@@ -38,18 +38,24 @@ _TOKEN_SRC = r"""
+             |\.?[0-9](?:[eE][+-]|DIGSEP[0-9A-Za-z_.\u0080-￿]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+   | (?P<str>(?:u8|u|U|L)?"(?:[^"\\\n]|\\.)*")
+   | (?P<chr>(?:u8|u|U|L)?'(?:[^'\\\n]|\\.)*')
+-  | (?P<id>(?:[A-Za-z_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
+-             (?:[A-Za-z0-9_$\u0080-\U0010ffff]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
++  | (?P<id>(?:[A-Za-z_$NONASCII_ID]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})
++             (?:[A-Za-z0-9_$NONASCII_ID]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*)
+   | (?P<punct>""" + "|".join(re.escape(p) for p in PUNCTUATORS) + r"""|[\[\](){}.&*+\-~!/%<>^|?:;=,#\\])
+   | (?P<other>.)
+ """
++# Non-ASCII identifier characters. Surrogates (U+D800..U+DFFF) are excluded:
++# undecodable input bytes arrive as lone surrogates (surrogateescape) and are
++# stray tokens, not identifier characters (GCC: invalid UTF-8 is CPP_OTHER).
++_NONASCII_ID = r"\u0080-\ud7ff\ue000-\U0010ffff"
++
++
+ def _make_scanner(line_comments: bool, u8_chars: bool) -> "re.Pattern[str]":
+-    src = _TOKEN_SRC
++    src = _TOKEN_SRC.replace("NONASCII_ID", _NONASCII_ID)
+     if not line_comments:
+         # C89/C90 have no `//` comments: drop the `lc` alternative.
+         src = src.replace(r"  | (?P<lc>//[^\n]*)" + "\n", "")
+         # C89/C90 do not allow extended (non-ASCII) characters in identifiers.
+-        src = src.replace(r"\u0080-\U0010ffff", "")
++        src = src.replace(_NONASCII_ID, "")
+         # ... and no universal character names (\uXXXX) inside identifiers
+         # either: `aª` lexes as `a`, `\`, `u00aa` (GCC -std=c89).
+         head, sep, tail = src.partition("(?P<id>")
+diff --git a/hcc/selftest/lexer_stray_byte_after_ident.c b/hcc/selftest/lexer_stray_byte_after_ident.c
+new file mode 100644
+index 00000000..e2e54f71
+--- /dev/null
++++ b/hcc/selftest/lexer_stray_byte_after_ident.c
+@@ -0,0 +1,6 @@
++// EXPECT-EXIT: 0
++// An undecodable (stray) byte right after an identifier ends the identifier,
++// so the macro `a` still expands before it.
++#define a b(
++#define b(x) 0
++int main(void) { return a�); }

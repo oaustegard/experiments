@@ -1,0 +1,22 @@
+diff --git a/hcc/builtins/varargs.py b/hcc/builtins/varargs.py
+index a80f174f..c5ee77b4 100644
+--- a/hcc/builtins/varargs.py
++++ b/hcc/builtins/varargs.py
+@@ -40,6 +40,8 @@ def _parse_va_arg(self, tok):
+     ap = self.typed(self.assign())
+     self.expect(",")
+     ty = self.typename()
++    if ty.kind == T.TypeKind.FUNC:
++        self.error("second argument to 'va_arg' is a function type", tok)
+     # a va_list may be consumed by any function (not only variadic ones,
+     # e.g. `void f(va_list ap)`), so make sure the split-struct scratch exists
+     fn = getattr(self, "fn", None)
+diff --git a/hcc/selftest/reject_va_arg_func.c b/hcc/selftest/reject_va_arg_func.c
+new file mode 100644
+index 00000000..7290d476
+--- /dev/null
++++ b/hcc/selftest/reject_va_arg_func.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: function type
++#include <stdarg.h>
++int f(int s, ...) { va_list ap; va_start(ap, s); int e = va_arg(ap, int(void))(); va_end(ap); return e; }

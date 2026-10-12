@@ -1,0 +1,23 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..29937d7d 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -97,7 +97,10 @@ class EnumMixin:
+             name = self.expect_ident()
+             self.parse_attributes(VarAttr())
+             if self.accept("="):
++                etok = self.tok
+                 val, ety = self.const_expr_typed()
++                if T.is_pointer_like(ety):
++                    self.error(f"enumerator value for '{name.text}' is not an integer constant", etok)
+                 cty = enumerator_type(val, ety)
+             elif not fits_type(val, cty):
+                 cty = widen_type(cty)
+diff --git a/hcc/selftest/enum_pointer_value.c b/hcc/selftest/enum_pointer_value.c
+new file mode 100644
+index 00000000..ff88c637
+--- /dev/null
++++ b/hcc/selftest/enum_pointer_value.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: not an integer constant
++enum e { E1 = (void *)4 };

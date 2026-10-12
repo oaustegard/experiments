@@ -1,0 +1,21 @@
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..32deb86d 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -31,6 +31,8 @@ class StructMixin:
+         if self.tok.kind == TokenKind.IDENT:
+             tag = self.next()
+         self.parse_attributes(attr)
++        if attr.mode:
++            self.error(f"mode '{attr.mode.upper()}' applied to inappropriate type")
+         if tag is not None and not self.at("{"):
+             ty = self.find_tag(tag.text)
+             if ty is not None and not (self.at(";") and self.tag_is_shadow_decl(tag.text)):
+diff --git a/hcc/selftest/reject_struct_mode_attr.c b/hcc/selftest/reject_struct_mode_attr.c
+new file mode 100644
+index 00000000..6a00fe9d
+--- /dev/null
++++ b/hcc/selftest/reject_struct_mode_attr.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: inappropriate type
++typedef struct __attribute__((mode(SI))) { int a; } S;

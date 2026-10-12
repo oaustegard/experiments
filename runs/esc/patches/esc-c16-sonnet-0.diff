@@ -1,0 +1,45 @@
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..4f14e345 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -63,7 +63,8 @@ STORAGE = frozenset(("typedef", "static", "extern", "inline", "_Thread_local", "
+ # with the same representation; _Float16 is IEEE binary16 (see codegen/half.py).
+ FLOATN_TYPES = {"_Float16": T.TY_FLOAT16, "_Float32": T.TY_FLOAT32, "_Float64": T.TY_FLOAT64,
+                 "_Float32x": T.TY_FLOAT32X, "_Float64x": T.TY_FLOAT64X,
+-                "_Float128": T.TY_FLOAT128, "_Float128x": T.TY_FLOAT128}
++                "_Float128": T.TY_FLOAT128, "_Float128x": T.TY_FLOAT128,
++                "_Decimal32": T.TY_DEC32, "_Decimal64": T.TY_DEC64, "_Decimal128": T.TY_DEC128}
+ 
+ 
+ class DeclSpecMixin:
+diff --git a/hcc/selftest/types_decimal_names.c b/hcc/selftest/types_decimal_names.c
+new file mode 100644
+index 00000000..e7ffec64
+--- /dev/null
++++ b/hcc/selftest/types_decimal_names.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 0
++typedef _Decimal64 __attribute__((__vector_size__ (16))) V;
++int foo(char c, _Decimal32 d) { d *= c; return d; }
++int main(void) { _Decimal128 x = 0; (void)x; return 0; }
+diff --git a/hcc/typesys.py b/hcc/typesys.py
+index f8539714..e1b7d885 100644
+--- a/hcc/typesys.py
++++ b/hcc/typesys.py
+@@ -188,6 +188,16 @@ TY_FLOAT32X.floatn = "_Float32x"
+ TY_FLOAT64X = _base(TypeKind.LDOUBLE, 16, 16)
+ TY_FLOAT64X.is_floatn = True
+ TY_FLOAT64X.floatn = "_Float64x"
++# _DecimalN: approximated by binary types of the same size (compile-only support)
++TY_DEC32 = _base(TypeKind.FLOAT, 4, 4)
++TY_DEC32.is_floatn = True
++TY_DEC32.floatn = "_Decimal32"
++TY_DEC64 = _base(TypeKind.DOUBLE, 8, 8)
++TY_DEC64.is_floatn = True
++TY_DEC64.floatn = "_Decimal64"
++TY_DEC128 = _base(TypeKind.LDOUBLE, 16, 16)
++TY_DEC128.is_floatn = True
++TY_DEC128.floatn = "_Decimal128"
+ TY_DOUBLE = _base(TypeKind.DOUBLE, 8, 8)
+ TY_LDOUBLE = _base(TypeKind.LDOUBLE, 16, 16)
+ TY_FLOAT128 = _base(TypeKind.FLOAT128, 16, 16)

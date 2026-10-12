@@ -1,0 +1,49 @@
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index f8c0dc75..3121c7dd 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -315,6 +315,8 @@ class ExpressionMixin:
+                 # `sizeof expr` on a VLA still evaluates expr (its side effects).
+                 size = self.typed(N.Comma(t.loc, node, size))
+             return size
++        if node is not None and isinstance(node, N.Member_) and node.member.open_array:
++            self.error(f"invalid application of 'sizeof' to incomplete type '{ty.base}[]'", t)
+         if not ty.is_complete and ty.kind != TypeKind.VOID and ty.kind != TypeKind.FUNC:
+             self.error(f"invalid application of 'sizeof' to incomplete type '{ty}'", t)
+         return N.IntLit(t.loc, ty.size, ty=TY_ULONG)
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..c5d365a1 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -8,6 +8,8 @@ objects: TODO (currently a parse error).
+ """
+ from __future__ import annotations
+ 
++import dataclasses
++
+ from hcc import nodes as N
+ from hcc import typesys as T
+ from hcc.parser.scope import VarAttr
+@@ -95,7 +97,13 @@ class LocalDeclMixin:
+                     return items
+                 continue
+             if attr.is_extern:
++                shadowed = any(name.text in sc.vars for sc in self.scopes[1:])
+                 var = self.declare_global_var(ty, name, attr, dattr)
++                if shadowed and ty.kind == T.TypeKind.ARRAY and ty.array_len < 0 \
++                        and var.ty.kind == T.TypeKind.ARRAY and var.ty.array_len >= 0:
++                    # The intermediate block's declaration hides the file-scope
++                    # type, so this extern declaration stays incomplete.
++                    var = dataclasses.replace(var, ty=ty)
+                 self.push_scope_entry(name.text).var = var
+                 continue
+             if attr.is_static:
+diff --git a/hcc/selftest/sizeof_flexible_incomplete.c b/hcc/selftest/sizeof_flexible_incomplete.c
+new file mode 100644
+index 00000000..065edeaf
+--- /dev/null
++++ b/hcc/selftest/sizeof_flexible_incomplete.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++struct g { int w; int x[]; } g;
++char t[sizeof (g.x) ? -1 : 1];

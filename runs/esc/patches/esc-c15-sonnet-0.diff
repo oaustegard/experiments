@@ -1,0 +1,36 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..0b925c73 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -15,7 +15,7 @@ from hcc import typesys as T
+ 
+ # byte sizes for __attribute__((mode(...))) integer modes (x86-64: word = DI)
+ # function attributes hcc records by name only (queried via __builtin_has_attribute)
+-RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
++RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull", "unavailable"})
+ 
+ MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
+ 
+diff --git a/hcc/parser/primary.py b/hcc/parser/primary.py
+index 1978ebaf..4ed5ea40 100644
+--- a/hcc/parser/primary.py
++++ b/hcc/parser/primary.py
+@@ -65,6 +65,8 @@ class PrimaryMixin:
+         vs = self.find_var(name)
+         if vs is not None:
+             if vs.var is not None:
++                if "unavailable" in getattr(vs.var, "fn_attrs", ()):
++                    self.error(f"'{name}' is unavailable", t)
+                 return self.typed(N.VarRef(t.loc, vs.var))
+             if vs.enum_ty is not None:
+                 v = vs.enum_val
+diff --git a/hcc/selftest/attr_unavailable_fn.c b/hcc/selftest/attr_unavailable_fn.c
+new file mode 100644
+index 00000000..4fce0180
+--- /dev/null
++++ b/hcc/selftest/attr_unavailable_fn.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse] 'func' is unavailable
++void func(void);
++void func(void) __attribute__((unavailable));
++void f(void) { func(); }

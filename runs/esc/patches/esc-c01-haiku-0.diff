@@ -1,0 +1,42 @@
+diff --git a/hcc/codegen/arith.py b/hcc/codegen/arith.py
+index 90980bd9..8ff5f2cc 100644
+--- a/hcc/codegen/arith.py
++++ b/hcc/codegen/arith.py
+@@ -44,11 +44,14 @@ class ArithMixin:
+             # constant rhs: no operand needs parking on the stack
+             self.gen_expr(node.lhs)
+             self.emit(f"mov ${((rc + (1 << 63)) % (1 << 64)) - (1 << 63)}, %rdi")
+-        elif (_contains_call(node.lhs) and not _contains_call(node.rhs)) or \
++        elif (_contains_call(node.lhs) and not _contains_comma(node.rhs)) or \
+                 (_contains_comma(node.lhs) and not _contains_comma(node.rhs)):
+-            # Only a call-free operand may be parked on the stack: a value
+-            # pushed before a call (e.g. setjmp, whose resumption reuses the
+-            # stack slot) would be clobbered. Evaluate the call side first.
++            # A call on the lhs is evaluated first, as gcc -O0 does for
++            # `f() - g()` (the order is unspecified, but doom's demo playback
++            # depends on gcc's choice, e.g. `(P_Random()-P_Random())<<18`).
++            # The lhs is evaluated first and parked on the stack while the
++            # rhs runs (a call-containing rhs included). Keep the rhs-first
++            # order when the rhs holds a VLA binding the lhs may read.
+             self.gen_expr(node.lhs)
+             self.push()
+             self.gen_expr(node.rhs)
+diff --git a/hcc/selftest/codegen_binop_call_order.c b/hcc/selftest/codegen_binop_call_order.c
+new file mode 100644
+index 00000000..bd596436
+--- /dev/null
++++ b/hcc/selftest/codegen_binop_call_order.c
+@@ -0,0 +1,13 @@
++// EXPECT-EXIT: 0
++// EXPECT-STDOUT: -1 -262144
++// Both operands of a binary operator call a function: the lhs is evaluated
++// first (gcc -O0 order), so (f() - f()) is 1 - 2.
++#include <stdio.h>
++static int n;
++static int f(void) { return ++n; }
++int main(void) {
++    int a = f() - f();
++    int b = (f() - f()) << 18;
++    printf("%d %d\n", a, b);
++    return 0;
++}

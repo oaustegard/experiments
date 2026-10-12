@@ -1,0 +1,89 @@
+diff --git a/hcc/parser/complex.py b/hcc/parser/complex.py
+index 2f38c86d..00e9f668 100644
+--- a/hcc/parser/complex.py
++++ b/hcc/parser/complex.py
+@@ -31,6 +31,7 @@ from __future__ import annotations
+ from hcc import nodes as N
+ from hcc.sema.arith import new_binop
+ from hcc.parser import complex_const as CC
++from hcc.parser.scalar_check import require_scalar_operand
+ from hcc.parser.complex_div import recover_division
+ from hcc.sema.conversions import common_type, new_cast
+ from hcc.typesys import TY_DOUBLE, TypeKind, complex_of, is_flonum, is_integer
+@@ -235,6 +236,7 @@ def part(p, operand, which, loc):
+ def truth(p, node):
+     """A complex value used as a condition: true if either part is nonzero."""
+     if not node.ty.is_complex:
++        require_scalar_operand(p, node, node.loc)
+         return node
+     loc = node.loc
+     tmp = p.new_temp(node.ty, loc)
+diff --git a/hcc/parser/expressions.py b/hcc/parser/expressions.py
+index f8c0dc75..da35c36c 100644
+--- a/hcc/parser/expressions.py
++++ b/hcc/parser/expressions.py
+@@ -16,6 +16,7 @@ from hcc.sema.bitfield_width import narrow_wide_bitfield_unary
+ from hcc.sema.constexpr import eval_const
+ from hcc.parser.vector_broadcast import promote_vector_operands
+ from hcc.parser.vector_cast import lower_scalar_to_vector
++from hcc.parser.scalar_check import check_scalar_cast
+ from hcc.sema.conversions import new_cast
+ from hcc.tokens import TokenKind
+ from hcc.typesys import TY_INT, TY_ULONG, TypeKind, is_dyn_struct, pointer_to
+@@ -177,7 +178,7 @@ class ExpressionMixin:
+             if lowered is not None:
+                 return self.vla_prefix(pre, lowered, loc)
+             node = N.Cast(loc, operand, ty=ty.unqual())
+-            self.typed(operand)
++            check_scalar_cast(self, self.typed(operand), ty, loc)
+             return self.vla_prefix(pre, node, loc)
+         return self.unary()
+ 
+diff --git a/hcc/parser/scalar_check.py b/hcc/parser/scalar_check.py
+new file mode 100644
+index 00000000..c337bd13
+--- /dev/null
++++ b/hcc/parser/scalar_check.py
+@@ -0,0 +1,22 @@
++"""C11 6.5.4 / 6.8.4 / 6.5.13: struct and union values are not scalars.
++
++Used by condition contexts (if/while/for/do, ?:, &&, ||, !) and by casts to a
++scalar type: an aggregate operand there is a hard error, as in gcc.
++"""
++from hcc.typesys import TypeKind, is_scalar
++
++
++def _is_plain_aggregate(ty) -> bool:
++    return ty.kind in (TypeKind.STRUCT, TypeKind.UNION) and not ty.is_complex
++
++
++def require_scalar_operand(parser, node, loc) -> None:
++    """Error if `node` (already typed) is a struct or union value."""
++    if _is_plain_aggregate(node.ty):
++        parser.error("used struct type value where scalar is required", loc)
++
++
++def check_scalar_cast(parser, operand, target, loc) -> None:
++    """Error for a cast of a struct or union value to a scalar type."""
++    if _is_plain_aggregate(operand.ty) and (is_scalar(target) or target.kind == TypeKind.BOOL):
++        parser.error("used struct type value where scalar is required", loc)
+diff --git a/hcc/selftest/err_struct_bool_cast.c b/hcc/selftest/err_struct_bool_cast.c
+new file mode 100644
+index 00000000..8f7762d3
+--- /dev/null
++++ b/hcc/selftest/err_struct_bool_cast.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// C 6.5.4: a cast of a struct value to _Bool is invalid.
++struct a { int x; };
++_Bool f (struct a s) { return (_Bool) s; }
+diff --git a/hcc/selftest/err_struct_condition.c b/hcc/selftest/err_struct_condition.c
+new file mode 100644
+index 00000000..e7e3e1d6
+--- /dev/null
++++ b/hcc/selftest/err_struct_condition.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// C 6.8.4: a struct value is not a scalar, so it cannot be used as an if condition.
++struct a { int x; };
++int f (struct a s) { if (s) return 1; return 0; }

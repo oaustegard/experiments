@@ -1,0 +1,23 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..712737ab 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -98,6 +98,8 @@ class EnumMixin:
+             self.parse_attributes(VarAttr())
+             if self.accept("="):
+                 val, ety = self.const_expr_typed()
++                if not T.is_integer(ety):
++                    self.error(f"enumerator value for '{name.text}' is not an integer constant", name)
+                 cty = enumerator_type(val, ety)
+             elif not fits_type(val, cty):
+                 cty = widen_type(cty)
+diff --git a/hcc/selftest/enum_nonint_value.c b/hcc/selftest/enum_nonint_value.c
+new file mode 100644
+index 00000000..f868b5f3
+--- /dev/null
++++ b/hcc/selftest/enum_nonint_value.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 0
++enum e { A };
++enum e2 { X = (enum e)A, Y = (_Bool)1, Z = 'a' };
++int main(void) { return Z == 97 ? 0 : 1; }

@@ -1,0 +1,47 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..23155115 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -169,6 +169,8 @@ class AttributeMixin:
+                 attr.is_packed = True
+             if ty is not None:
+                 ty.is_packed = True
++        elif name == "unavailable" and attr is not None:
++            attr.is_unavailable = True
+         elif name == "ms_struct" and attr is not None:
+             attr.is_ms_struct = True
+         elif name == "scalar_storage_order" and attr is not None and args:
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..4cfe99c8 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -35,6 +35,7 @@ class VarAttr:
+     is_inline: bool = False
+     is_gnu_inline: bool = False     # __attribute__((gnu_inline)): gnu89 inline semantics
+     is_tls: bool = False
++    is_unavailable: bool = False    # __attribute__((unavailable)) on a type
+     is_noreturn: bool = False
+     align: int = 0
+     is_weak: bool = False
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..e0aa0021 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -71,6 +71,8 @@ class StructMixin:
+         members = self.struct_members()
+         self.parse_attributes(attr)
+         check_duplicate_members(members, self.toks[brace_pos])
++        if attr.is_unavailable and not self.at(";"):
++            self.error("type is unavailable", self.toks[brace_pos])    # declarator uses it
+         ty.members = members
+         ty.is_packed = attr.is_packed
+         ty.is_ms_struct = attr.is_ms_struct
+diff --git a/hcc/selftest/attr_unavailable_type.c b/hcc/selftest/attr_unavailable_type.c
+new file mode 100644
+index 00000000..99d2436a
+--- /dev/null
++++ b/hcc/selftest/attr_unavailable_type.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: type is unavailable
++struct { int a; } __attribute__((unavailable ("no"))) x;
++int main(void) { return 0; }

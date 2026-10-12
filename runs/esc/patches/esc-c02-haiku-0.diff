@@ -1,0 +1,30 @@
+diff --git a/hcc/parser/pragma_sso.py b/hcc/parser/pragma_sso.py
+index 79680ed9..cc3ba4ba 100644
+--- a/hcc/parser/pragma_sso.py
++++ b/hcc/parser/pragma_sso.py
+@@ -24,5 +24,11 @@ def consume_sso_marker(parser) -> None:
+         parser.sso_reverse = False
+     elif arg == "default":
+         parser.sso_reverse = parser.sso_default
++    elif not arg:
++        # GCC: a bare pragma is only a warning; the current state is kept.
++        diag.warn(tok, "missing 'big-endian', 'little-endian', or 'default' "
++                       "argument to '#pragma scalar_storage_order'")
+     else:
+-        diag.error(tok, "unknown argument to '#pragma scalar_storage_order'")
++        # GCC: an unknown argument is only a warning; the current state is kept.
++        diag.warn(tok, "expected 'big-endian', 'little-endian', or 'default' "
++                       "argument to '#pragma scalar_storage_order'")
+diff --git a/hcc/selftest/attr_sso_pragma_bad_arg.c b/hcc/selftest/attr_sso_pragma_bad_arg.c
+new file mode 100644
+index 00000000..9e5f1655
+--- /dev/null
++++ b/hcc/selftest/attr_sso_pragma_bad_arg.c
+@@ -0,0 +1,7 @@
++// EXPECT-EXIT: 0
++// Bare or unknown #pragma scalar_storage_order arguments only warn; state is kept.
++#pragma scalar_storage_order
++#pragma scalar_storage_order bogus
++#pragma scalar_storage_order big-endian
++struct S { int i; };
++int main(void) { return 0; }

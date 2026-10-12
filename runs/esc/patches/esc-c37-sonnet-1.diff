@@ -1,0 +1,52 @@
+diff --git a/hcc/literals.py b/hcc/literals.py
+index 7766a402..58a90246 100644
+--- a/hcc/literals.py
++++ b/hcc/literals.py
+@@ -342,6 +342,8 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
+                     or (t.text in TYPEOF_UNQUAL_SPELLINGS and (c23 or t.text.startswith("__"))):
+                 t = t.copy()
+                 t.kind = TokenKind.KEYWORD
++                if t.text == "__thread":
++                    t.spell = "__thread"
+                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
+             elif c23 and t.text in C23_KEYWORD_ALIASES:
+                 t = t.copy()
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..395f70b2 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -145,6 +145,12 @@ class DeclSpecMixin:
+             if s in STORAGE:
+                 if attr is None:
+                     self.error("storage class specifier is not allowed in this context")
++                if tok.spell == "__thread" and attr.is_tls:
++                    self.error("duplicate '__thread'")
++                if s in ("static", "extern") and attr.is_tls and attr.tls_gnu:
++                    self.error(f"'__thread' before '{s}'")
++                if tok.spell == "__thread":
++                    attr.tls_gnu = True
+                 self.next()
+                 if s == "typedef":
+                     attr.is_typedef = True
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..348ee5d2 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -35,6 +35,7 @@ class VarAttr:
+     is_inline: bool = False
+     is_gnu_inline: bool = False     # __attribute__((gnu_inline)): gnu89 inline semantics
+     is_tls: bool = False
++    tls_gnu: bool = False           # spelled __thread (storage class must follow it)
+     is_noreturn: bool = False
+     align: int = 0
+     is_weak: bool = False
+diff --git a/hcc/selftest/err_thread_before_extern.c b/hcc/selftest/err_thread_before_extern.c
+new file mode 100644
+index 00000000..898a76bf
+--- /dev/null
++++ b/hcc/selftest/err_thread_before_extern.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// __thread must follow the storage class specifier, not precede it.
++__thread extern int g1;
++int main(void) { return 0; }

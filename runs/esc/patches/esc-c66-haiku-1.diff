@@ -1,0 +1,67 @@
+diff --git a/hcc/parser/atomic_builtins.py b/hcc/parser/atomic_builtins.py
+index 9ea27ebe..90296075 100644
+--- a/hcc/parser/atomic_builtins.py
++++ b/hcc/parser/atomic_builtins.py
+@@ -41,22 +41,46 @@ SYNC_BUILTINS = _SYNC_VALUE_RET | _SYNC_INT_RET | _SYNC_VOID_RET
+ ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUILTINS
+                    | _LOCK_FREE_NAMES)
+ 
++# Exact argument counts (gcc's builtin prototypes, memory-order args included).
++_ARITY = {}
++for _o in _RMW_OPS:
++    _ARITY[f"__atomic_fetch_{_o}"] = 3
++    _ARITY[f"__atomic_{_o}_fetch"] = 3
++    _ARITY[f"__sync_fetch_and_{_o}"] = 2
++    _ARITY[f"__sync_{_o}_and_fetch"] = 2
++_ARITY.update({
++    "__atomic_exchange_n": 3, "__atomic_load_n": 2, "__atomic_store_n": 3,
++    "__atomic_load": 3, "__atomic_store": 3, "__atomic_exchange": 4,
++    "__atomic_compare_exchange_n": 6, "__atomic_compare_exchange": 6,
++    "__atomic_thread_fence": 1, "__atomic_signal_fence": 1,
++    "__atomic_test_and_set": 2, "__atomic_clear": 2,
++    "__atomic_is_lock_free": 2, "__atomic_always_lock_free": 2,
++    "__sync_lock_test_and_set": 2, "__sync_val_compare_and_swap": 3,
++    "__sync_bool_compare_and_swap": 3, "__sync_lock_release": 1,
++    "__sync_synchronize": 0,
++})
++
++
++def _check_arity(parser, name, args, tok):
++    want = _ARITY.get(name)
++    if want is None:
++        return
++    if len(args) < want:
++        parser.error(f"too few arguments to function '{name}'", tok)
++    if len(args) > want:
++        parser.error(f"too many arguments to function '{name}'", tok)
++
+ 
+ def atomic_call(parser, tok):
+     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
+     name = tok.text
+     args = parser._args()
++    _check_arity(parser, name, args, tok)
+     if name in ("__atomic_thread_fence", "__atomic_signal_fence"):
+-        if len(args) != 1:
+-            parser.error(f"'{name}' expects 1 argument", tok)
+         ty = T.TY_VOID
+     elif name == "__sync_synchronize":
+-        if args:
+-            parser.error(f"'{name}' expects no arguments", tok)
+         ty = T.TY_VOID
+     elif name in _LOCK_FREE_NAMES:
+-        if len(args) != 2:
+-            parser.error(f"'{name}' expects 2 arguments", tok)
+         ty = T.TY_BOOL
+     elif name in _FLAG_BOOL_RET:
+         if not args or not T.is_pointer_like(args[0].ty):
+diff --git a/hcc/selftest/parser_atomic_arity.c b/hcc/selftest/parser_atomic_arity.c
+new file mode 100644
+index 00000000..ded5c72f
+--- /dev/null
++++ b/hcc/selftest/parser_atomic_arity.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// __atomic_exchange_n takes exactly 3 arguments (ptr, value, memory order).
++int i;
++int main(void) { __atomic_exchange_n(&i, 1); return 0; }

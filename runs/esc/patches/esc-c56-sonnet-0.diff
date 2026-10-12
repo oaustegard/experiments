@@ -1,0 +1,22 @@
+diff --git a/hcc/parser/declarator.py b/hcc/parser/declarator.py
+index 29a55c54..2f513678 100644
+--- a/hcc/parser/declarator.py
++++ b/hcc/parser/declarator.py
+@@ -184,6 +184,9 @@ class DeclaratorMixin:
+             elif pty.kind == T.TypeKind.FUNC:
+                 pty = T.pointer_to(pty)
+             pvar = None
++            if name is not None and any(n is not None and n.text == name.text
++                                        for n in names):
++                self.error(f"redefinition of parameter '{name.text}'", name.loc)
+             if name is not None and name.text in fwd:
+                 pvar = fwd[name.text]       # the real param is the forward-declared Var
+                 pvar.ty, pvar.loc, pvar.align = pty, name.loc, pty.align
+diff --git a/hcc/selftest/parser_redef_param.c b/hcc/selftest/parser_redef_param.c
+new file mode 100644
+index 00000000..15b94f05
+--- /dev/null
++++ b/hcc/selftest/parser_redef_param.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: [parse] redefinition of parameter 'fred'
++void f(int fred, int fred);

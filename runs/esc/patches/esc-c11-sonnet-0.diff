@@ -1,0 +1,22 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..01de139b 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -101,6 +101,8 @@ class EnumMixin:
+                 cty = enumerator_type(val, ety)
+             elif not fits_type(val, cty):
+                 cty = widen_type(cty)
++            if name.text in self.scopes[-1].vars:
++                self.error(f"redeclaration of enumerator '{name.text}'", name)
+             vs = self.push_scope_entry(name.text)
+             vs.enum_ty = ty
+             vs.enum_val = val
+diff --git a/hcc/selftest/enum_redeclared.c b/hcc/selftest/enum_redeclared.c
+new file mode 100644
+index 00000000..203bd0f1
+--- /dev/null
++++ b/hcc/selftest/enum_redeclared.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++enum { A }; enum { A };
++int main(void){return 0;}

@@ -1,0 +1,33 @@
+diff --git a/hcc/parser/statements.py b/hcc/parser/statements.py
+index c73eca03..09067735 100644
+--- a/hcc/parser/statements.py
++++ b/hcc/parser/statements.py
+@@ -7,6 +7,8 @@ One `_stmt_<keyword>` method per statement keyword; see STMT_KEYWORDS.
+ """
+ from __future__ import annotations
+ 
++import re
++
+ from hcc import nodes as N
+ from hcc import typesys as T
+ from hcc.parser import complex as CPX
+@@ -266,6 +268,11 @@ class StatementMixin:
+                         if not self.accept(","):
+                             break
+         self.expect(")")
++        for m in re.finditer(r"%+\[([^\]]*)\]", text):
++            if (m.group(0).count("%")) % 2 == 0:
++                continue
++            if m.group(1) not in node.names:
++                self.error(f"undefined named operand '{m.group(1)}'", t)
+         return node
+ 
+     def static_assert(self) -> None:
+diff --git a/hcc/selftest/asm_undefined_named_operand.c b/hcc/selftest/asm_undefined_named_operand.c
+new file mode 100644
+index 00000000..3edfbfcd
+--- /dev/null
++++ b/hcc/selftest/asm_undefined_named_operand.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: undefined named operand
++void h(void) { __asm__ ("%[foo]" : : ); }

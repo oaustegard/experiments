@@ -1,0 +1,22 @@
+diff --git a/hcc/selftest/sema_incomplete_ptr_arith.c b/hcc/selftest/sema_incomplete_ptr_arith.c
+new file mode 100644
+index 00000000..05b6fabe
+--- /dev/null
++++ b/hcc/selftest/sema_incomplete_ptr_arith.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: incomplete type
++struct a *q;
++void f(void) { q++; }
+diff --git a/hcc/sema/arith.py b/hcc/sema/arith.py
+index d4dd6206..eb16ae02 100644
+--- a/hcc/sema/arith.py
++++ b/hcc/sema/arith.py
+@@ -31,6 +31,8 @@ def _elem_size(ty, loc):
+     base = ty.base
+     if base.kind in (TypeKind.VOID, TypeKind.FUNC):
+         return N.IntLit(loc, 1, ty=TY_LONG)
++    if not base.is_complete:
++        diag.error(loc, f"arithmetic on pointer to an incomplete type '{base}'", "sema")
+     return _size_expr(base, loc)
+ 
+ 

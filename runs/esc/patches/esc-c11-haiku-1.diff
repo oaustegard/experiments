@@ -1,0 +1,48 @@
+diff --git a/hcc/parser/enums.py b/hcc/parser/enums.py
+index 1c1f776f..48078a59 100644
+--- a/hcc/parser/enums.py
++++ b/hcc/parser/enums.py
+@@ -94,6 +94,7 @@ class EnumMixin:
+                 self.expect(",")
+                 if self.accept("}"):
+                     break
++            name_idx = self.pos
+             name = self.expect_ident()
+             self.parse_attributes(VarAttr())
+             if self.accept("="):
+@@ -101,7 +102,13 @@ class EnumMixin:
+                 cty = enumerator_type(val, ety)
+             elif not fits_type(val, cty):
+                 cty = widen_type(cty)
++            prev = self.scopes[-1].vars.get(name.text)
++            # A second enumerator of the same name in one scope is a redeclaration;
++            # a re-parse of the same declaration (backtrack) reuses the same token.
++            if prev is not None and prev.enum_ty is not None and prev.enum_tok != name_idx:
++                self.error(f"redeclaration of enumerator '{name.text}'", name)
+             vs = self.push_scope_entry(name.text)
++            vs.enum_tok = name_idx
+             vs.enum_ty = ty
+             vs.enum_val = val
+             vs.enum_cty = cty
+diff --git a/hcc/parser/scope.py b/hcc/parser/scope.py
+index ee419129..d2de3b91 100644
+--- a/hcc/parser/scope.py
++++ b/hcc/parser/scope.py
+@@ -17,6 +17,7 @@ class VarScope:
+     enum_ty: Type | None = None
+     enum_val: int = 0
+     enum_cty: Type | None = None    # C23 type of the enumerator constant itself
++    enum_tok: int = -1              # token index of the enumerator's defining identifier
+ 
+ 
+ @dataclass
+diff --git a/hcc/selftest/parser_enumerator_redecl.c b/hcc/selftest/parser_enumerator_redecl.c
+new file mode 100644
+index 00000000..7ba6f9bc
+--- /dev/null
++++ b/hcc/selftest/parser_enumerator_redecl.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse]
++// An enumerator may not be redeclared in the same scope.
++enum { CODES };
++enum { CODES };

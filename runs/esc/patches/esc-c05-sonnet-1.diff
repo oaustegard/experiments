@@ -1,0 +1,55 @@
+diff --git a/hcc/parser/atomic_builtins.py b/hcc/parser/atomic_builtins.py
+index 9ea27ebe..0401e518 100644
+--- a/hcc/parser/atomic_builtins.py
++++ b/hcc/parser/atomic_builtins.py
+@@ -42,6 +42,31 @@ ATOMIC_BUILTINS = (_VALUE_RET | _INT_RET | _VOID_RET | _FLAG_BOOL_RET | SYNC_BUI
+                    | _LOCK_FREE_NAMES)
+ 
+ 
++_GENERIC_PTR_ARGS = {"__atomic_load": 2, "__atomic_store": 2, "__atomic_exchange": 3,
++                     "__atomic_compare_exchange": 3}
++
++
++def _rvalue_array(node) -> bool:
++    """An array that is a member of a call result (an rvalue; it does not decay in C90)."""
++    if node.ty.kind not in (T.TypeKind.ARRAY, T.TypeKind.VLA):
++        return False
++    while type(node).__name__ == "Member_":
++        node = node.operand
++        if type(node).__name__ == "Call":
++            return True
++    return False
++
++
++def _check_generic_ptrs(parser, name, args, tok):
++    for i in range(min(_GENERIC_PTR_ARGS[name], len(args))):
++        a = args[i]
++        if a.ty.kind != T.TypeKind.PTR and not (T.is_pointer_like(a.ty) and not _rvalue_array(a)):
++            what = "a non-void pointer type" if i == 0 else "a pointer type"
++            parser.error(f"argument {i + 1} of '{name}' must be {what}", tok)
++        if i == 0 and a.ty.kind == T.TypeKind.PTR and a.ty.base.unqual().kind is T.TypeKind.VOID:
++            parser.error(f"argument 1 of '{name}' must be a non-void pointer type", tok)
++
++
+ def atomic_call(parser, tok):
+     """Parse the argument list (the '(' is already consumed) of an __atomic_* call."""
+     name = tok.text
+@@ -63,6 +88,8 @@ def atomic_call(parser, tok):
+             parser.error(f"'{name}' expects a pointer as first argument", tok)
+         ty = T.TY_BOOL
+     else:
++        if name in _GENERIC_PTR_ARGS:
++            _check_generic_ptrs(parser, name, args, tok)
+         if not args or not T.is_pointer_like(args[0].ty):
+             parser.error(f"'{name}' expects a pointer as first argument", tok)
+         if name in _RMW_ARITH_NAMES and args[0].ty.base.unqual().kind is T.TypeKind.BOOL:
+diff --git a/hcc/selftest/atomic_generic_rvalue_array.c b/hcc/selftest/atomic_generic_rvalue_array.c
+new file mode 100644
+index 00000000..f3396bd7
+--- /dev/null
++++ b/hcc/selftest/atomic_generic_rvalue_array.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse] argument 1 of
++struct S { int a[10]; } bar (void);
++int b;
++void foo (void) { __atomic_load (bar ().a, &b, 5); }

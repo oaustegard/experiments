@@ -1,0 +1,75 @@
+diff --git a/hcc/literals.py b/hcc/literals.py
+index 7766a402..b2780a81 100644
+--- a/hcc/literals.py
++++ b/hcc/literals.py
+@@ -342,6 +342,8 @@ def convert_tokens(toks: list[Token], u8_unsigned: bool = False,
+                     or (t.text in TYPEOF_UNQUAL_SPELLINGS and (c23 or t.text.startswith("__"))):
+                 t = t.copy()
+                 t.kind = TokenKind.KEYWORD
++                if t.text == "__thread":
++                    t.spell = "__thread"    # GNU spelling: diagnosed by declspec ordering rules
+                 t.text = KEYWORD_ALIASES.get(t.text, t.text)
+             elif c23 and t.text in C23_KEYWORD_ALIASES:
+                 t = t.copy()
+diff --git a/hcc/parser/declspec.py b/hcc/parser/declspec.py
+index 4c7e3aca..fcc5e017 100644
+--- a/hcc/parser/declspec.py
++++ b/hcc/parser/declspec.py
+@@ -133,6 +133,9 @@ class DeclSpecMixin:
+         vsize = 0
+         tmode = None          # type-name __attribute__((mode(X)))
+         auto_infer = False
++        gnu_tls = None        # first GNU `__thread` token (ordering rules below)
++        saw_tls = False
++        bad_tls_mix = None    # first typedef/auto/register in this specifier list
+         is_const = is_volatile = is_atomic = is_complex = False
+         while self.is_typename():
+             if self.at_std_attribute():
+@@ -146,6 +149,8 @@ class DeclSpecMixin:
+                 if attr is None:
+                     self.error("storage class specifier is not allowed in this context")
+                 self.next()
++                if s in ("static", "extern") and gnu_tls is not None:
++                    self.error(f"'__thread' before '{s}'", gnu_tls)
+                 if s == "typedef":
+                     attr.is_typedef = True
+                 elif s == "static":
+@@ -155,6 +160,11 @@ class DeclSpecMixin:
+                 elif s == "inline":
+                     attr.is_inline = True
+                 elif s == "_Thread_local":
++                    if saw_tls:
++                        self.error("duplicate '__thread'", tok)
++                    saw_tls = True
++                    if tok.spell == "__thread" and gnu_tls is None:
++                        gnu_tls = tok
+                     attr.is_tls = True
+                 elif s == "register":
+                     attr.is_register = True
+@@ -162,6 +172,8 @@ class DeclSpecMixin:
+                     attr.is_noreturn = True
+                 elif s == "auto":
+                     auto_infer = self.c23_mode()    # C23 `auto x = expr;`: no type given
++                if s in ("typedef", "auto", "register") and bad_tls_mix is None:
++                    bad_tls_mix = (s, tok)
+                 continue
+             if s in ("_Complex", "__complex__", "__complex"):
+                 self.next()
+@@ -226,6 +238,8 @@ class DeclSpecMixin:
+                     pass
+                 self.error(f"invalid type: '{s}' here")
+             ty = _BASE_TYPES[counter]
++        if gnu_tls is not None and bad_tls_mix is not None:
++            self.error(f"'__thread' used with '{bad_tls_mix[0]}'", gnu_tls)
+         if auto_infer and counter == 0 and attr is not None:
+             return None         # type comes from the initializer, as for __auto_type
+         if is_complex:
+diff --git a/hcc/selftest/parser_gnu_thread_order.c b/hcc/selftest/parser_gnu_thread_order.c
+new file mode 100644
+index 00000000..f7c80313
+--- /dev/null
++++ b/hcc/selftest/parser_gnu_thread_order.c
+@@ -0,0 +1,3 @@
++// EXPECT-ERROR: [parse]
++// GNU __thread must not follow static/extern in the declaration specifiers.
++__thread extern int g1;

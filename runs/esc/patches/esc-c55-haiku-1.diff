@@ -1,0 +1,35 @@
+diff --git a/hcc/parser/attributes.py b/hcc/parser/attributes.py
+index 7044345c..941593f9 100644
+--- a/hcc/parser/attributes.py
++++ b/hcc/parser/attributes.py
+@@ -17,6 +17,9 @@ from hcc import typesys as T
+ # function attributes hcc records by name only (queried via __builtin_has_attribute)
+ RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
+ 
++# largest __attribute__((aligned(N))) GCC accepts on ELF: (1 << 28) bytes
++MAX_ATTR_ALIGN = 1 << 28
++
+ MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
+ 
+ # GCC-accepted argument counts (min, max) for attributes that take a fixed
+@@ -160,6 +163,10 @@ class AttributeMixin:
+                 self.pos = args_start + 1
+                 val = self.const_expr()
+                 self.pos = save
++            if val > MAX_ATTR_ALIGN:
++                # GCC on ELF targets: MAX_OFILE_ALIGNMENT = (1 << 28) * BITS_PER_UNIT
++                self.error("requested alignment '%d' exceeds maximum %d"
++                           % (val, MAX_ATTR_ALIGN), self.toks[args_start])
+             if attr is not None:
+                 attr.align = max(attr.align, val)
+             elif ty is not None:
+diff --git a/hcc/selftest/attr_aligned_too_big.c b/hcc/selftest/attr_aligned_too_big.c
+new file mode 100644
+index 00000000..6d30f8de
+--- /dev/null
++++ b/hcc/selftest/attr_aligned_too_big.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: [parse] requested alignment
++// Alignments above 1<<28 are rejected (GCC's ELF MAX_OFILE_ALIGNMENT).
++typedef char X __attribute__((aligned(((unsigned long long)1) << 29)));
++int main(void) { return 0; }

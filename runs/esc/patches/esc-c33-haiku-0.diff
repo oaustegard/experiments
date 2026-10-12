@@ -1,0 +1,64 @@
+diff --git a/hcc/parser/locals.py b/hcc/parser/locals.py
+index 0eb71bce..367544ad 100644
+--- a/hcc/parser/locals.py
++++ b/hcc/parser/locals.py
+@@ -96,6 +96,13 @@ class LocalDeclMixin:
+                 continue
+             if attr.is_extern:
+                 var = self.declare_global_var(ty, name, attr, dattr)
++                if var.ty is not ty and not ty.is_complete and var.ty.is_complete:
++                    # `extern T a[];` in a block names the same object as a complete
++                    # file-scope `T a[N]`, but its own type stays incomplete (C11 6.2.7).
++                    shadow = N.Var(var.name, ty, loc=name.loc, align=ty.align)
++                    shadow.is_extern = True
++                    shadow.is_definition = False
++                    var = shadow
+                 self.push_scope_entry(name.text).var = var
+                 continue
+             if attr.is_static:
+diff --git a/hcc/parser/structs.py b/hcc/parser/structs.py
+index 7aadee13..205f7ede 100644
+--- a/hcc/parser/structs.py
++++ b/hcc/parser/structs.py
+@@ -168,6 +168,7 @@ class StructMixin:
+         if members and members[-1].ty.kind == T.TypeKind.ARRAY and members[-1].ty.array_len < 0:
+             last = members[-1]
+             last.ty = T.array_of(last.ty.base, 0)
++            last.ty.is_complete = False     # `T x[]` has no size: sizeof(s.x) is invalid (C11 6.7.2.1p2)
+             last.open_array = True
+         check_flexible_members(members, self.toks[self.pos])
+         for i, m in enumerate(members):
+diff --git a/hcc/selftest/decl_block_extern_access.c b/hcc/selftest/decl_block_extern_access.c
+new file mode 100644
+index 00000000..ef31d421
+--- /dev/null
++++ b/hcc/selftest/decl_block_extern_access.c
+@@ -0,0 +1,4 @@
++// EXPECT-EXIT: 7
++// Block-scope extern array declarations still name the file-scope object.
++int a[3] = {1, 2, 3};
++int main(void) { extern int a[]; a[2] = 7; return a[2]; }
+diff --git a/hcc/selftest/decl_block_extern_incomplete.c b/hcc/selftest/decl_block_extern_incomplete.c
+new file mode 100644
+index 00000000..07a682cf
+--- /dev/null
++++ b/hcc/selftest/decl_block_extern_incomplete.c
+@@ -0,0 +1,7 @@
++// EXPECT-ERROR: incomplete
++// A block-scope `extern T a[];` keeps its incomplete type even when a complete file-scope a exists.
++int a[1] = { 0 };
++int main(void) {
++    extern int a[];
++    return (int)sizeof(a);
++}
+diff --git a/hcc/selftest/decl_flexible_member_sizeof.c b/hcc/selftest/decl_flexible_member_sizeof.c
+new file mode 100644
+index 00000000..175fc0cd
+--- /dev/null
++++ b/hcc/selftest/decl_flexible_member_sizeof.c
+@@ -0,0 +1,5 @@
++// EXPECT-ERROR: sizeof
++// A flexible array member `T x[]` has no size: sizeof(s.x) is invalid.
++struct g { int w; int x[]; } g;
++char test_iso[sizeof (g.x) ? -1 : 1];
++int main(void) { return 0; }

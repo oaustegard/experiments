@@ -1,0 +1,78 @@
+diff --git a/hcc/parser/redecl.py b/hcc/parser/redecl.py
+new file mode 100644
+index 00000000..dffa161f
+--- /dev/null
++++ b/hcc/parser/redecl.py
+@@ -0,0 +1,26 @@
++"""Conflicting-type diagnostics for file-scope redeclarations (C11 6.7p4)."""
++from hcc import typesys as T
++from hcc.sema.compat import is_compatible
++
++_C23_STDS = ("c23", "gnu23", "c2x", "gnu2x")
++
++
++class RedeclMixin:
++    def _promotion_affected(self, t) -> bool:
++        t = t.unqual()
++        return t.kind == T.TypeKind.FLOAT or (
++            t.kind in (T.TypeKind.CHAR, T.TypeKind.SHORT, T.TypeKind.BOOL))
++
++    def check_fn_redecl(self, old, new, name) -> None:
++        ok = is_compatible(old, new)
++        if ok and old.has_proto != new.has_proto:
++            std = getattr(self.opts, "std", "gnu17") if self.opts is not None else "gnu17"
++            if std not in _C23_STDS:
++                proto = new if new.has_proto else old
++                ok = not any(self._promotion_affected(p) for p in proto.params)
++        if not ok:
++            self.error(f"conflicting types for '{name.text}'", name.loc)
++
++    def check_var_redecl(self, old, new, name) -> None:
++        if not is_compatible(old, new):
++            self.error(f"conflicting types for '{name.text}'", name.loc)
+diff --git a/hcc/parser/toplevel.py b/hcc/parser/toplevel.py
+index 035ec413..619679a7 100644
+--- a/hcc/parser/toplevel.py
++++ b/hcc/parser/toplevel.py
+@@ -140,6 +140,7 @@ class TopLevelMixin:
+             self.scopes[0].vars[name.text] = VarScope(var=fn)
+             self.objs.append(fn)
+         else:
++            self.check_fn_redecl(fn.ty, ty, name)
+             if (dattr.alias or attr.alias or dattr.ifunc or attr.ifunc) and \
+                     (fn.is_definition or fn.alias_of or fn.ifunc_of):
+                 self.error(f"redefinition of '{name.text}'", name.loc)
+@@ -169,7 +170,9 @@ class TopLevelMixin:
+             self.scopes[0].vars[name.text] = VarScope(var=var)
+             self.objs.append(var)
+             var.is_definition = False
+-        elif ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
++        else:
++            self.check_var_redecl(var.ty, ty, name)
++        if var is not None and ty.is_complete and not var.ty.is_complete or var.ty.kind == T.TypeKind.ARRAY and \
+                 var.ty.array_len < 0 and ty.kind == T.TypeKind.ARRAY and ty.array_len >= 0:
+             var.ty = ty
+         var.is_static |= attr.is_static
+diff --git a/hcc/selftest/parser_redecl_conflict.c b/hcc/selftest/parser_redecl_conflict.c
+new file mode 100644
+index 00000000..1b7d41d8
+--- /dev/null
++++ b/hcc/selftest/parser_redecl_conflict.c
+@@ -0,0 +1,4 @@
++// EXPECT-ERROR: conflicting types
++extern char a[0];
++char a[1];
++int main(void) { return 0; }
+diff --git a/hcc/sema/compat.py b/hcc/sema/compat.py
+index 2be59045..5dc0d319 100644
+--- a/hcc/sema/compat.py
++++ b/hcc/sema/compat.py
+@@ -25,6 +25,8 @@ def is_compatible(a: Type, b: Type) -> bool:
+     if a.is_const != b.is_const or a.is_volatile != b.is_volatile or a.is_atomic != b.is_atomic:
+         return False
+     if a.kind != b.kind:
++        if {a.kind, b.kind} == {TypeKind.ARRAY, TypeKind.VLA}:     # size is run-time
++            return is_compatible(a.base, b.base)
+         if a.kind == TypeKind.ENUM and b.kind != TypeKind.ENUM:
+             return is_compatible(_enum_as_int(a), b)
+         if b.kind == TypeKind.ENUM and a.kind != TypeKind.ENUM:

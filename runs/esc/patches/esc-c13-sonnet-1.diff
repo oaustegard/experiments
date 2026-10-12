@@ -1,0 +1,40 @@
+diff --git a/hcc/parser/statements.py b/hcc/parser/statements.py
+index c73eca03..333d5131 100644
+--- a/hcc/parser/statements.py
++++ b/hcc/parser/statements.py
+@@ -7,6 +7,7 @@ One `_stmt_<keyword>` method per statement keyword; see STMT_KEYWORDS.
+ """
+ from __future__ import annotations
+ 
++import re
+ from hcc import nodes as N
+ from hcc import typesys as T
+ from hcc.parser import complex as CPX
+@@ -236,6 +237,7 @@ class StatementMixin:
+         while self.tok.kind == TokenKind.STRING:
+             text += self.next().value.rstrip(b"\0").decode("utf-8", "replace")
+         node = N.Asm(t.loc, text, is_volatile=is_volatile)
++        extended = self.at(":")
+         sections = [node.outputs, node.inputs]
+         for sec in sections:
+             if not self.accept(":"):
+@@ -265,6 +267,11 @@ class StatementMixin:
+                         node.goto_labels.append(self.next().text)
+                         if not self.accept(","):
+                             break
++        if extended:
++            for m in re.finditer(r"%%|%[a-zA-Z]?\[([^\]]*)\]", text):
++                nm = m.group(1)
++                if nm is not None and nm not in node.names and nm not in node.goto_labels:
++                    self.error(f"undefined named operand '{nm}'", t)
+         self.expect(")")
+         return node
+ 
+diff --git a/hcc/selftest/parser_asm_undefined_operand.c b/hcc/selftest/parser_asm_undefined_operand.c
+new file mode 100644
+index 00000000..5b19c5c8
+--- /dev/null
++++ b/hcc/selftest/parser_asm_undefined_operand.c
+@@ -0,0 +1,2 @@
++// EXPECT-ERROR: undefined named operand
++void h(void) { asm ("%[x]" : : ); }
