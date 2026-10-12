@@ -1,0 +1,9 @@
+{
+  "description": "llvm/llvm-test-suite SingleSource: UnitTests, Regression/C (+ieee), quick plain-C Benchmarks. Expected stdout/exit code come from a gcc -O0 build (compared with the upstream reference_output in manifest.json); output that differs between two gcc runs is not compared. Regenerate with tests/scripts/import_llvm_single.py.",
+  "glob": [
+    "**/*.c"
+  ],
+  "cflags": [
+    "-w"
+  ]
+}

@@ -5,7 +5,8 @@
     (cd tests/tools/src/llvm-test-suite && git sparse-checkout set SingleSource)
     python3 tests/scripts/import_llvm_single.py [tests/tools/src/llvm-test-suite]
 
-Covers SingleSource/UnitTests (all subdirectories that hold C), Regression/C (top level, SSE,
+Covers SingleSource/UnitTests (subdirectories that hold portable C: not the per-architecture,
+intrinsics and vectoriser directories), Regression/C (top level, SSE,
 gcc-c-torture/execute/ieee; the rest of gcc-c-torture duplicates the gcc-torture suite and
 builtins/ needs paired -lib.c files) and the Benchmarks that are plain C and quick
 (BenchmarkGame, CoyoteBench, Dhrystone, Linpack, McGill, Misc, Shootout, Stanford).
@@ -36,6 +37,7 @@ MAX_SECS = 1.5
 
 ROOTS = [
     ("UnitTests", True),
+    ("UnitTests/Vector", False),  # GCC vector extensions; the intrinsics subdirectories are left out
     ("Regression/C", False),
     ("Regression/C/SSE", False),
     ("Regression/C/gcc-c-torture/execute/ieee", False),
@@ -50,7 +52,8 @@ def collect(src_root):
         d = os.path.join(base, rel)
         if recursive:
             for dp, dn, fn in os.walk(d):
-                dn[:] = sorted(x for x in dn if x not in ("C++11", "ObjC", "ObjC++", "EH", "AArch64", "Mips"))
+                dn[:] = sorted(x for x in dn if x not in ("C++11", "ObjC", "ObjC++", "EH", "AArch64", "Mips", "LoongArch", "PowerPC", "RISCV",
+                                                 "SystemZ", "Hexagon", "ARM", "X86", "Vector", "Vectorizer", "Matrix"))
                 for f in sorted(fn):
                     if f.endswith((".c", ".h")):
                         files.append(os.path.relpath(os.path.join(dp, f), base))
