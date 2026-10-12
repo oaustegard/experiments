@@ -17,6 +17,7 @@ from hcc.parser.object_size import lower_object_size
 from hcc.parser.structs import find_member
 from hcc.parser.vector_cast import lower_convertvector
 from hcc.parser.vector_shuffle import lower_shuffle
+from hcc.parser.vector_shufflevector import lower_shufflevector
 from hcc.sema.compat import is_compatible
 from hcc.sema.constexpr import builtin_constant_p, try_eval_const
 from hcc.sema.conversions import new_cast
@@ -32,7 +33,7 @@ __builtin_bswap16 __builtin_bswap32 __builtin_bswap64
 __builtin_huge_val __builtin_huge_valf __builtin_huge_vall
 __builtin_inf __builtin_inff __builtin_infl __builtin_signbit __builtin_signbitf __builtin_signbitl
 __builtin_nan __builtin_nanf __builtin_nanl __builtin_nans __builtin_nansf __builtin_nansl
-__builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_convertvector
+__builtin_setjmp __builtin_longjmp __builtin_shuffle __builtin_shufflevector __builtin_convertvector
 __builtin_isinf __builtin_isnan __builtin_isfinite
 __builtin_isunordered __builtin_isgreater __builtin_isgreaterequal
 __builtin_isless __builtin_islessequal __builtin_islessgreater
@@ -116,6 +117,9 @@ class BuiltinParseMixin:
 
     def _b_shuffle(self, tok):
         return lower_shuffle(self, tok.loc, self._args())
+
+    def _b_shufflevector(self, tok):
+        return lower_shufflevector(self, tok.loc, self._args())
 
     def _b_convertvector(self, tok):
         """__builtin_convertvector(vec, vector_type): element-wise conversion."""

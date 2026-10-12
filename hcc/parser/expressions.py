@@ -143,6 +143,8 @@ class ExpressionMixin:
         return self.unary()
 
     def unary(self):
+        while self.at("__extension__"):     # GNU: `__extension__ expr` is a no-op prefix
+            self.next()
         t = self.tok
         s = t.text
         if t.kind == TokenKind.PUNCT:

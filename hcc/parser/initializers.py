@@ -45,7 +45,10 @@ class InitializerMixin:
     def parse_initializer(self, ty):
         init = new_initializer(ty, True)
         self.initializer2(init)
-        if ty.kind == T.TypeKind.ARRAY and ty.array_len < 0:
+        if ty.kind == T.TypeKind.ARRAY and ty.array_len < 0 and init.expr is not None:
+            ty = init.expr.ty           # `int a[] = (int[4]){...};` takes the literal's size
+            init.ty = ty
+        elif ty.kind == T.TypeKind.ARRAY and ty.array_len < 0:
             ty = T.array_of(ty.base, len(init.children))
             init.ty = ty
         return init, ty
@@ -106,6 +109,8 @@ class InitializerMixin:
     # ---- dispatch -------------------------------------------------------------
     def initializer2(self, init) -> None:
         ty = init.ty
+        while ty.kind == T.TypeKind.ARRAY and self.at("__extension__"):
+            self.next()             # `char s[] = __extension__ "..."`
         if ty.kind == T.TypeKind.ARRAY and self.tok.kind == TokenKind.STRING and \
                 T.is_integer(ty.base):
             self.string_initializer(init)
@@ -124,6 +129,14 @@ class InitializerMixin:
                 return
             self.pos = save
         if ty.kind == T.TypeKind.ARRAY:
+            if self.at("(") and self.is_typename(self.peek()):
+                # GNU: `int a[] = (int[4]){1, 2};` copies a compound literal.
+                save = self.pos
+                expr = self.typed(self.assign())
+                if expr.ty.kind == T.TypeKind.ARRAY and not expr.ty.is_vector:
+                    init.expr = expr
+                    return
+                self.pos = save
             if self.at("{"):
                 self.array_initializer1(init)
             else:

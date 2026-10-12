@@ -36,6 +36,8 @@ def lower_local_init(init, var, typed) -> N.Expr:
 
 def _lower(init, ty, lhs, out, typed, loc) -> None:
     if init.expr is not None:
+        if ty.kind == T.TypeKind.ARRAY and not ty.is_vector:
+            diag.error(init.expr, "array initialized from non-constant array expression", "sema")
         out.append(typed(N.Assign(loc, lhs(), init.expr)))
         return
     if ty.kind == T.TypeKind.ARRAY and init.children:
@@ -108,7 +110,7 @@ def _write_le(init, ty, gd, offset) -> None:
     if init.expr is None:
         return
     expr = init.expr
-    if T.is_struct_like(ty):
+    if T.is_struct_like(ty) or ty.kind == T.TypeKind.ARRAY:
         src = _static_compound_literal(expr)
         if src is None:
             diag.error(expr, "initializer element is not constant", "sema")

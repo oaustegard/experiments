@@ -136,6 +136,7 @@ class DeclaratorMixin:
         # Prototype scope: earlier named params are visible in later array
         # dimensions (`int b[a++]`); their Vars are reused by the definition.
         self.enter_scope()
+        fwd = self._param_forward_decls()
         while not self.accept(")"):
             if params:
                 self.expect(",")
@@ -157,7 +158,11 @@ class DeclaratorMixin:
             elif pty.kind == T.TypeKind.FUNC:
                 pty = T.pointer_to(pty)
             pvar = None
-            if name is not None:
+            if name is not None and name.text in fwd:
+                pvar = fwd[name.text]       # the real param is the forward-declared Var
+                pvar.ty, pvar.loc, pvar.align = pty, name.loc, pty.align
+                self.push_scope_entry(name.text).var = pvar
+            elif name is not None:
                 pvar = Var(name.text, pty, loc=name.loc, is_local=True,
                            is_definition=True, align=pty.align)
                 pvar.is_param = True
@@ -173,6 +178,48 @@ class DeclaratorMixin:
         fty.param_vars = pvars
         fty.param_dims = pdims
         return fty
+
+    def _param_forward_decls(self) -> dict:
+        """GNU parameter forward declarations: `f(int n; int m, int n)`. Each `;`
+        at depth 0 before the closing `)` ends one list of forward-declared
+        parameters; the final list is the real parameter list. Forward names are
+        declared in the prototype scope so array bounds can use them; the real
+        parameter with the same name reuses that Var. Returns name -> Var."""
+        fwd = {}
+        for _ in range(self._count_fwd_lists()):
+            while True:
+                self.skip_std_attributes()
+                pty, name = self.declarator(self.declspec(VarAttr()))
+                self.parse_attributes()
+                if name is not None:
+                    pvar = Var(name.text, pty, loc=name.loc, is_local=True,
+                               is_definition=True, align=pty.align)
+                    pvar.is_param = True
+                    self.push_scope_entry(name.text).var = pvar
+                    fwd[name.text] = pvar
+                if not self.accept(","):
+                    break
+            self.expect(";")
+        return fwd
+
+    def _count_fwd_lists(self) -> int:
+        """Number of `;` at depth 0 between the current position and the `)`
+        that closes the parameter list."""
+        depth, count = 0, 0
+        for t in self.toks[self.pos:]:
+            if t.kind == TokenKind.EOF:
+                break
+            if t.kind != TokenKind.PUNCT:
+                continue
+            if t.text in ("(", "[", "{"):
+                depth += 1
+            elif t.text in (")", "]", "}"):
+                if depth == 0:
+                    break
+                depth -= 1
+            elif t.text == ";" and depth == 0:
+                count += 1
+        return count
 
     def array_dims(self, ty):
         while (self.at("static") or self.at("const") or self.at("volatile")

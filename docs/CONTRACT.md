@@ -137,6 +137,7 @@ hcc/
                        (va_arg, offsetof, types_compatible_p, ...)
     atomic_builtins.py __atomic_* (stdatomic.h) parsing; codegen/atomics.py lowers them
     vector_shuffle.py  __builtin_shuffle on GCC vectors, lowered to element stores
+    vector_shufflevector.py  __builtin_shufflevector on GCC vectors (constant indices), element stores
 
   sema/
     __init__.py        re-exports
