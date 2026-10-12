@@ -70,6 +70,8 @@ def parse_args(argv: list[str]) -> Options:
             o.std = a[5:]
         elif a == "-ansi":
             o.std = "c89"
+        elif a == "-fgnu89-inline":
+            o.gnu89_inline = True
         elif a == "-nostdinc":
             o.nostdinc = True
         elif a in ("-fPIC", "-fpic", "-fPIE", "-fpie"):

@@ -15,6 +15,8 @@ from hcc.sema.compat import is_compatible
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 
+GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
+
 
 class TopLevelMixin:
 
@@ -65,10 +67,8 @@ class TopLevelMixin:
                 if ty.enum_consts == "knr" and not self.at(";") and not self.at(","):
                     self.knr_params(ty)
                 if self.at("{"):
-                    if not first and False:
-                        pass
                     fn.ty = ty
-                    self.function_definition(fn, ty)
+                    self.function_definition(fn, ty, self.gnu89_extern_inline(attr))
                     return
             else:
                 var = self.declare_global_var(ty, name, attr, dattr)
@@ -185,10 +185,18 @@ class TopLevelMixin:
                                                          new_cast(ty.vla_len, T.TY_LONG)))))
         return T.vla_of(base, self.typed(N.VarRef(loc, tmp)))
 
-    def function_definition(self, fn, ty) -> None:
+    def gnu89_extern_inline(self, attr) -> bool:
+        """gnu89 inline semantics: `extern inline` with a body is only an
+        inline definition and provides no external symbol."""
+        o = self.opts
+        gnu89 = o is not None and (o.gnu89_inline or o.std in GNU89_STDS)
+        return bool(gnu89 and attr.is_extern and attr.is_inline)
+
+    def function_definition(self, fn, ty, inline_only=False) -> None:
         if fn.is_definition:
             self.error(f"redefinition of '{fn.name}'", fn.loc)
-        fn.is_definition = True
+        if not inline_only:
+            fn.is_definition = True
         self.fn = fn
         # keep temps made while parsing the prototype: VLA parameter dimensions
         # (`int a[i++]`) are parsed before this point and may create temps
