@@ -73,6 +73,8 @@ def parse_args(argv: list[str]) -> Options:
             o.std = "c89"
         elif a == "-trigraphs":
             o.trigraphs = True
+        elif a == "-pedantic-errors":
+            o.pedantic_errors = True
         elif a == "-fgnu89-inline":
             o.gnu89_inline = True
         elif a == "-fno-asm":

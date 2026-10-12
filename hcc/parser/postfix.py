@@ -39,6 +39,16 @@ def _array_chain_is_vla(ty):
     return ty is not None and ty.kind == TypeKind.VLA
 
 
+def register_array_root(node):
+    """The `register` variable that an array-valued `node` (a.b.c through
+    member accesses) lives in, or None."""
+    while isinstance(node, N.Member_):
+        node = node.operand
+    if isinstance(node, N.VarRef) and getattr(node.var, "is_register", False):
+        return node.var
+    return None
+
+
 class PostfixMixin:
 
     def postfix(self):
@@ -79,6 +89,10 @@ class PostfixMixin:
                 self.next()
                 idx = self.expr()
                 self.expect("]")
+                if register_array_root(node) is not None and self.opts is not None \
+                        and getattr(self.opts, "pedantic_errors", False) \
+                        and (self.opts.std or "").lower() not in ("c2y", "gnu2y"):
+                    diag.error(t.loc, "ISO C forbids subscripting 'register' array before C2Y", "sema")
                 ptr = new_add(node, idx, t.loc)
                 self.typed(ptr)
                 if ptr.ty.base is not None and ptr.ty.base.kind == TypeKind.FUNC:

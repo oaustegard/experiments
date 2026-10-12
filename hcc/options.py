@@ -22,6 +22,7 @@ class Options:
     std: str = "gnu17"
     nostdinc: bool = False
     trigraphs: bool = False            # -trigraphs (also implied by strict -std=)
+    pedantic_errors: bool = False      # -pedantic-errors (pedantic diagnostics become errors)
     gnu89_inline: bool = False         # -fgnu89-inline
     no_asm: bool = False               # -fno-asm (asm/typeof are not keywords)
     plan9_extensions: bool = False     # -fplan9-extensions (`struct S;` member is anonymous)
