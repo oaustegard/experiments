@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from hcc import nodes as N
 from hcc.sema.typing import add_type
-from hcc.typesys import TY_INT
+from hcc.typesys import TY_INT, is_integer
 
 NARROWING_OPS = ("+", "-", "*", "<<")
 
@@ -21,16 +21,26 @@ def _wide_bitfield(node) -> bool:
     return ty.size > 4 and node.member.bit_width < ty.size * 8
 
 
+def _narrowable_operand(node) -> bool:
+    """GCC only narrows when every operand is a wide bit-field or an int-sized
+    integer (`s.b - 8`), never a 64-bit operand (`s.b - 1ULL << 32`)."""
+    if _wide_bitfield(node):
+        return True
+    return is_integer(node.ty) and node.ty.size <= 4
+
+
 def narrow_wide_bitfield_result(op, lhs, rhs, node):
-    """Return `node` truncated to the narrowest wide bit-field operand's width."""
+    """Return `node` truncated to the widest wide bit-field operand's width."""
     if op not in NARROWING_OPS:
         return node
     widths = [n.member.bit_width for n in (lhs, rhs) if _wide_bitfield(n)]
     if not widths:
         return node
+    if not all(_narrowable_operand(n) for n in (lhs, rhs)):
+        return node
     add_type(node)
     ty = node.ty
-    shift = ty.size * 8 - min(widths)
+    shift = ty.size * 8 - max(widths)
     loc = node.loc
     up = N.Binary(loc, "<<", node, N.IntLit(loc, shift, ty=TY_INT), ty=ty)
     op2 = ">>"
