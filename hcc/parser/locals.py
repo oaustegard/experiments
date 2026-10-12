@@ -111,6 +111,16 @@ class LocalDeclMixin:
                     return items
                 continue
             if attr.is_extern:
+                prior = self.find_var(name.text)
+                if prior is not None and isinstance(prior.var, N.Var) and prior.var.is_local:
+                    # C11 6.2.2p4: the visible prior declaration has no linkage (a
+                    # block-scope object), so this extern names a new identifier
+                    # with its own declared type; the file-scope object is not reused.
+                    var = N.Var(name.text, ty, loc=name.loc, align=ty.align)
+                    var.is_extern = True
+                    var.is_definition = False
+                    self.push_scope_entry(name.text).var = var
+                    continue
                 var = self.declare_global_var(ty, name, attr, dattr)
                 self.push_scope_entry(name.text).var = var
                 continue

@@ -336,7 +336,11 @@ class ExpressionMixin:
                 # `sizeof expr` on a VLA still evaluates expr (its side effects).
                 size = self.typed(N.Comma(t.loc, node, size))
             return size
-        if not ty.is_complete and ty.kind != TypeKind.VOID and ty.kind != TypeKind.FUNC:
+        flexible = node is not None and isinstance(node, N.Member_) and \
+            getattr(node.member, "open_array", False)
+        if (not ty.is_complete or flexible) and ty.kind != TypeKind.VOID and ty.kind != TypeKind.FUNC:
+            # A flexible array member `T x[]` has no size (GCC's zero-length
+            # extension `T x[0]` is complete and is not flagged here).
             self.error(f"invalid application of 'sizeof' to incomplete type '{ty}'", t)
         return N.IntLit(t.loc, ty.size, ty=TY_ULONG)
 
