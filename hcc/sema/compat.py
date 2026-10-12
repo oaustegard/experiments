@@ -15,7 +15,7 @@ def _root(t: Type) -> Type:
 def is_compatible(a: Type, b: Type) -> bool:
     if a is b:
         return True
-    if a.is_const != b.is_const or a.is_volatile != b.is_volatile:
+    if a.is_const != b.is_const or a.is_volatile != b.is_volatile or a.is_atomic != b.is_atomic:
         return False
     if a.kind != b.kind:
         return False

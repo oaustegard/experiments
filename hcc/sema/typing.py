@@ -95,6 +95,29 @@ def _func_decay(t):
     return pointer_to(t) if t.kind == TypeKind.FUNC else t
 
 
+def _pointee_quals(t):
+    """(const, volatile) of a pointee, looking through array element types (C23)."""
+    c = v = False
+    while True:
+        c = c or t.is_const
+        v = v or t.is_volatile
+        if t.kind != TypeKind.ARRAY or t.base is None:
+            return c, v
+        t = t.base
+
+
+def _void_ptr_composite(pa, pb):
+    """Composite pointee when a `void *` meets another pointer: void carrying the
+    union of both pointees' const/volatile; _Atomic is dropped."""
+    c1, v1 = _pointee_quals(pa)
+    c2, v2 = _pointee_quals(pb)
+    t = TY_VOID.copy()
+    t.is_const = c1 or c2
+    t.is_volatile = v1 or v2
+    t.is_atomic = False
+    return pointer_to(t)
+
+
 def _cond(n: N.Cond):
     a, b = _func_decay(n.then.ty), _func_decay(n.els.ty)
     if a.kind == TypeKind.VOID or b.kind == TypeKind.VOID:
@@ -109,10 +132,9 @@ def _cond(n: N.Cond):
             n.ty = a  # a null pointer constant takes the other operand's type
         elif a.base is not None and b.base is not None and _is_null_const(n.then):
             n.ty = b
-        elif a.base is not None and a.base.kind == TypeKind.VOID:
-            n.ty = a
-        elif b.base is not None and b.base.kind == TypeKind.VOID:
-            n.ty = b
+        elif a.base is not None and b.base is not None and (
+                a.base.kind == TypeKind.VOID or b.base.kind == TypeKind.VOID):
+            n.ty = _void_ptr_composite(a.base, b.base)
         elif a.base is not None and b.base is not None and not a.base.is_complete \
                 and b.base.is_complete:
             n.ty = b  # composite of `T (*)[]` and `T (*)[N]` is `T (*)[N]`
