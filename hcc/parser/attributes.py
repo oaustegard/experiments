@@ -284,6 +284,8 @@ class AttributeMixin:
                 attr.init_prio = self.const_expr()
                 self.pos = save
         elif name == "vector_size" and attr is not None and args:
+            if attr.vector_size:     # GCC: a type that is already a vector cannot be vectorized again
+                self.error("invalid vector type for attribute 'vector_size'", self.toks[args_start])
             save = self.pos
             self.pos = args_start + 1
             size = self.const_expr()
