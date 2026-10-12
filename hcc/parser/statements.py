@@ -11,6 +11,7 @@ from hcc import diag
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser import complex as CPX
+from hcc.parser.assign_struct_check import check_struct_assign
 from hcc.parser.dyn_struct_ret import dyn_return
 from hcc.sema.constexpr import eval_const, wrap
 from hcc.sema.void_value import require_value
@@ -102,6 +103,7 @@ class StatementMixin:
         if rty.kind == TypeKind.VOID:
             return N.Return(t.loc, e)
         require_value(e)
+        check_struct_assign(self, rty, e.ty, t)     # struct/union <-> scalar is never a valid return
         if rty.is_complex or e.ty.is_complex:
             e = CPX.convert(self, e, rty, t.loc)
             return N.Return(t.loc, e)
