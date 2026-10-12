@@ -125,7 +125,9 @@ def launch(ctx: Ctx, a: argparse.Namespace, item: workqueue.WorkItem, seq: int) 
             "out": str(out), "model": a.model, "tools": TOOLS,
             "allow": [f"Edit(/{wt}/**)", "Edit(//tmp/**)", "Bash"],
             "system_prompt": (ctx.swarm / "worker_prompt.md").read_text(), "timeout": a.timeout}
-    feature = len(prev) >= FEATURE_AFTER
+    # A rebase of a feature worker's diff is feature-sized too: the small budget cannot re-apply it
+    # (28 of the first 29 feature rejections were conflicts that then died as small rebases).
+    feature = len(prev) >= FEATURE_AFTER or bool(rebase_of and (led.get(rebase_of) or {}).get("feature"))
     timeout = max(a.timeout, 3600) if feature else a.timeout
     task["timeout"] = timeout
     (tdir / "task.jsonl").write_text(json.dumps(task) + "\n")
