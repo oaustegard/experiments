@@ -232,7 +232,7 @@ class StatementMixin:
                         break
                 if self.accept(":"):            # asm goto labels
                     while self.tok.kind == TokenKind.IDENT:
-                        self.next()
+                        node.goto_labels.append(self.next().text)
                         if not self.accept(","):
                             break
         self.expect(")")

@@ -380,6 +380,7 @@ class Asm(Stmt):
     inputs: list = field(default_factory=list)    # [(constraint, Expr)]
     clobbers: list = field(default_factory=list)
     is_volatile: bool = False
+    goto_labels: list = field(default_factory=list)   # asm goto: [label name]
 
 
 # --------------------------------------------------------------------------

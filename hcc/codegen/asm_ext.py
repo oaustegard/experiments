@@ -63,18 +63,21 @@ def _pick_alternative(cons: str) -> str:
 
 
 class _Op:
-    def __init__(self, cons: str, expr, is_out: bool):
+    def __init__(self, cons: str, expr, is_out: bool, implicit: bool = False):
         self.cons = _pick_alternative(cons)
         self.expr = expr
         self.is_out = is_out
         self.rw = "+" in cons
-        self.kind = "reg"        # reg | mem | imm
+        self.implicit = implicit  # GCC's input copy of a "+" output (never pushed)
+        self.kind = "reg"        # reg | mem | imm | label (asm goto label operand)
         self.fixed = None        # fixed register for a/c/d/S/D
         self.match = None        # operand index for matching constraints
         self.imm = None
         self.reg = None          # assigned register (no '%')
-        decays = expr.ty.kind in _DECAY_KINDS
-        self.size = 8 if decays else _norm_size(expr.ty.size)
+        self.label = None        # label name (kind "label")
+        self.stub = None         # jump-target stub emitted for kind "label"
+        decays = expr is not None and expr.ty.kind in _DECAY_KINDS
+        self.size = 8 if expr is None or decays else _norm_size(expr.ty.size)
 
 
 def _imm_value(expr, dead: bool):
@@ -154,7 +157,7 @@ def _assign_regs(ops, clobbers) -> None:
     free = [r for r in _POOL if r not in used]
     _assign_x87(ops)
     for op in ops:
-        if op.kind in ("imm", "x87") or op.match is not None:
+        if op.kind in ("imm", "x87", "label") or op.match is not None:
             continue
         if op.fixed:
             op.reg = op.fixed
@@ -171,6 +174,8 @@ def _assign_regs(ops, clobbers) -> None:
 
 
 def _render(op: _Op, mod: str | None) -> str:
+    if op.kind == "label":
+        return op.stub
     if op.kind == "imm":
         return str(op.imm) if mod in ("c", "P") else f"${op.imm}"
     if op.kind == "x87":
@@ -200,13 +205,26 @@ def _subst(tpl: str, ops, loc) -> str:
         if i < n and tpl[i] in "kwbqcP":
             mod = tpl[i]
             i += 1
-        j = i
-        while j < n and tpl[j].isdigit():
-            j += 1
-        if j == i:
-            diag.error(loc, "codegen: unsupported asm operand reference", "codegen")
-        idx = int(tpl[i:j])
-        i = j
+        elif i + 1 < n and tpl[i] == "l" and (tpl[i + 1].isdigit() or tpl[i + 1] == "["):
+            mod = "l"
+            i += 1
+        if i < n and tpl[i] == "[":
+            end = tpl.find("]", i)
+            if end < 0:
+                diag.error(loc, "codegen: unsupported asm operand reference", "codegen")
+            name = tpl[i + 1:end]
+            idx = next((k for k, op in enumerate(ops) if op.kind == "label" and op.label == name), None)
+            if idx is None:
+                diag.error(loc, f"codegen: unknown asm label operand '{name}'", "codegen")
+            i = end + 1
+        else:
+            j = i
+            while j < n and tpl[j].isdigit():
+                j += 1
+            if j == i:
+                diag.error(loc, "codegen: unsupported asm operand reference", "codegen")
+            idx = int(tpl[i:j])
+            i = j
         if idx >= len(ops):
             diag.error(loc, "codegen: asm operand number out of range", "codegen")
         out.append(_render(ops[idx], mod))
@@ -214,11 +232,24 @@ def _subst(tpl: str, ops, loc) -> str:
 
 
 def lower_extended(cg, node) -> None:
-    ops = [_Op(c, e, True) for c, e in node.outputs] + \
-          [_Op(c, e, False) for c, e in node.inputs]
+    outs_all = [_Op(c, e, True) for c, e in node.outputs]
+    ins_all = [_Op(c, e, False) for c, e in node.inputs]
+    # GCC numbering: outputs, explicit inputs, then one implicit input per "+"
+    # output (matching it), then the asm goto labels.
+    implicit = [_Op(str(k), op.expr, False, implicit=True)
+                for k, op in enumerate(outs_all) if op.rw]
+    labels = []
+    for name in node.goto_labels:
+        lop = _Op("", None, False)
+        lop.kind = "label"
+        lop.label = name
+        lop.stub = cg.new_label()
+        labels.append(lop)
+    ops = outs_all + ins_all + implicit + labels
     clobbers = {c.strip().lstrip("%") for c in node.clobbers}
     for op in ops:
-        _classify(op, getattr(cg, "dead_code", False))
+        if op.kind != "label":
+            _classify(op, getattr(cg, "dead_code", False))
     _assign_regs(ops, clobbers)
 
     outs = [op for op in ops if op.is_out and op.kind in ("reg", "x87")]
@@ -245,7 +276,7 @@ def lower_extended(cg, node) -> None:
     # Phase 2b: input values, "+" values and memory addresses.
     pushes = []
     for op in ops:
-        if op.kind in ("imm", "x87") or (op.is_out and op.kind == "reg" and not op.rw):
+        if op.kind in ("imm", "x87", "label") or op.implicit or (op.is_out and op.kind == "reg" and not op.rw):
             continue
         if op.kind == "mem":
             cg.gen_addr(op.expr)
@@ -291,3 +322,15 @@ def lower_extended(cg, node) -> None:
     if m:
         cg.emit(f"add ${8 * (r + m)}, %rsp")
     cg.depth -= m       # phase-1 address slots are released here
+    # Phase 5 (asm goto): a jump to a label leaves the template with the phase-1
+    # output addresses still pushed, so each label is reached through a stub
+    # that pops them and continues at the C label.
+    if labels:
+        skip = cg.new_label()
+        cg.emit(f"jmp {skip}")
+        for lop in labels:
+            cg.label(lop.stub)
+            if m:
+                cg.emit(f"add ${8 * m}, %rsp")
+            cg.emit(f"jmp {cg.user_label(lop.label)}")
+        cg.label(skip)
