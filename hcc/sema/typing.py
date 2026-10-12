@@ -12,6 +12,7 @@ from hcc import nodes as N
 from hcc.sema.conversions import int_promote, new_cast, usual_arith_conv
 from hcc.sema.constexpr import try_eval_const
 from hcc.sema.void_value import require_value
+from hcc.sema.incomplete import check_value_operands
 from hcc.typesys import (TY_INT, TY_VOID, TypeKind, is_decimal, is_dyn_struct, is_integer, is_numeric, pointer_to)
 
 
@@ -21,6 +22,7 @@ def add_type(node) -> None:
     h = _HANDLERS.get(type(node))
     if h is None:
         diag.error(node, f"sema: cannot type {type(node).__name__}", "sema")
+    check_value_operands(node)
     h(node)
 
 

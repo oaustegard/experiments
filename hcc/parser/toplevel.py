@@ -15,6 +15,7 @@ from hcc.parser.scope import VarAttr, VarScope
 from hcc.parser.declspec import constexpr_type
 from hcc.sema.compat import is_compatible
 from hcc.parser.redecl_types import composite_redecl, redecl_conflicts
+from hcc.sema.incomplete import is_incomplete_object
 from hcc.sema.conversions import new_cast
 from hcc import typesys as T
 from hcc.parser.attributes import mode_type
@@ -249,7 +250,7 @@ class TopLevelMixin:
         t = var.ty
         while t.kind == T.TypeKind.ARRAY:
             t = t.base
-        if t.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION, T.TypeKind.ENUM) and not t.is_complete:
+        if t.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION, T.TypeKind.ENUM) and is_incomplete_object(t):
             self.error(f"storage size of '{var.name}' isn't known", var.loc)
 
     # ---- function bodies ---------------------------------------------------------

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
+from hcc.sema.incomplete import check_value_operands
 from hcc.typesys import (TY_DOUBLE, TY_INT, TY_LDOUBLE, TY_UINT, Type, TypeKind, is_decimal,
                        is_flonum, is_integer, pointer_to)
 
@@ -62,6 +63,7 @@ def same_scalar(a: Type, b: Type) -> bool:
 def new_cast(expr: N.Expr, ty: Type) -> N.Expr:
     from hcc.sema.typing import add_type
     add_type(expr)
+    check_value_operands(N.Cast(expr.loc, expr, ty=ty))   # lvalue conversion of an incomplete object
     if expr.ty is ty:
         return expr
     if expr.ty.is_complex or ty.is_complex:

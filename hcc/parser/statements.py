@@ -15,6 +15,7 @@ from hcc.parser.dyn_struct_ret import dyn_return
 from hcc.sema.constexpr import eval_const, wrap
 from hcc.sema.void_value import require_value
 from hcc.sema.conversions import new_cast
+from hcc.sema.incomplete import check_value_operands
 from hcc.tokens import TokenKind
 from hcc.typesys import TypeKind
 
@@ -84,7 +85,9 @@ class StatementMixin:
             return N.Block(t.loc, self.local_declaration())     # declaration after label
         node = self.expr()
         self.expect(";")
-        return N.ExprStmt(t.loc, node)
+        stmt = N.ExprStmt(t.loc, node)
+        check_value_operands(stmt)     # `vs;` on an incomplete lvalue (C11 6.3.2.1p2)
+        return stmt
 
     def _stmt_return(self, t):
         if self.accept(";"):

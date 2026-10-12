@@ -70,7 +70,12 @@ class EnumMixin:
             if (prev is not None and prev.kind == T.TypeKind.ENUM and id(prev) in def_pos
                     and def_pos[id(prev)] != brace_pos):
                 self.error(f"redeclaration of 'enum {tag.text}'", tag)
-        ty = T.enum_type()
+        prev_fwd = self.scopes[-1].tags.get(tag.text) if tag is not None else None
+        if prev_fwd is not None and prev_fwd.kind == T.TypeKind.ENUM and prev_fwd.enum_consts == "fwd":
+            ty = prev_fwd                 # the body completes an earlier `enum e;` in this scope
+            ty.enum_consts = None
+        else:
+            ty = T.enum_type()
         ty.tag = tag.text if tag else None
         if tag is not None:
             def_pos[id(ty)] = brace_pos
