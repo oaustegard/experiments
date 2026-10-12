@@ -19,6 +19,19 @@ RECORDED_FN_ATTRS = frozenset({"leaf", "returns_nonnull"})
 
 MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16, "word": 8}
 
+# every other machine mode GCC knows by name; mode(<other identifier>) is an
+# "unknown machine mode" error
+_OTHER_MODES = frozenset({
+    "BI", "OI", "XI", "PSI", "PDI", "HF", "SF", "DF", "XF", "TF", "SD", "DD", "TD",
+    "SC", "DC", "XC", "TC", "CQI", "CHI", "CSI", "CDI", "CTI", "COI", "CHF", "CSF",
+    "CDF", "CXF", "CTF", "QQ", "HQ", "SQ", "DQ", "TQ", "UQQ", "UHQ", "USQ", "UDQ",
+    "UTQ", "HA", "SA", "DA", "TA", "UHA", "USA", "UDA", "UTA", "CQQ", "CHQ", "CSQ",
+    "CDQ", "CTQ", "CHA", "CSA", "CDA", "CTA", "CUQQ", "CUHQ", "CUSQ", "CUDQ", "CUTQ",
+    "CUHA", "CUSA", "CUDA", "CUTA", "pointer", "byte", "unwind_word", "V2QI", "V4QI",
+    "V8QI", "V2HI", "V4HI", "V2SI", "V1DI", "V2DI", "V4SI", "V8HI", "V16QI", "V4DI",
+    "V8SI", "V16HI", "V32QI", "V2SF", "V4SF", "V2DF", "V8SF", "V4DF", "V1TI",
+})
+
 # GCC-accepted argument counts (min, max) for attributes that take a fixed
 # number of arguments; anything outside the range is a hard error.
 ARG_COUNTS = {
@@ -147,6 +160,12 @@ class AttributeMixin:
 
     def _apply_attribute(self, name, args_start, attr, ty) -> None:
         args = self._attr_args(args_start)
+        if name == "mode" and args:
+            mname = args[0].text.strip("_")
+            if (args[0].kind != TokenKind.IDENT
+                    or (mname not in MODE_SIZES and mname not in _OTHER_MODES)):
+                self.error("unknown machine mode '%s'" % args[0].text,
+                           self.toks[args_start - 1] if args_start > 0 else None)
         counts = ARG_COUNTS.get(name)
         if counts is not None:
             n = count_attr_args(args)
