@@ -197,6 +197,7 @@ hcc/
     arith.py           new_add/new_sub (pointer arithmetic), compound
                        assignment and ++/-- lowering
     strict_overflow.py (x*c)/c -> x for signed x (UB overflow); parser applies it unless -fwrapv
+    atomic_rmw.py      `a op= b`, `++a`, `a++` on _Atomic integers -> __atomic_*_fetch builtins
     constexpr.py       integer constant evaluation, address constants
     constexpr_ptr.py   const-qualified pointer objects as address constants (C23 constexpr)
     initializers.py    Initializer -> local assignment exprs; Initializer ->

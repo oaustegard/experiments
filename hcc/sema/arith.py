@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
+from hcc.sema.atomic_rmw import atomic_rmw
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.compat import is_compatible
 from hcc.sema.dyn_struct_size import dyn_struct_bytes
@@ -200,6 +201,9 @@ def compound_assign(op, lhs, rhs, loc, new_temp):
     add_type(rhs)
     require_value(lhs)
     require_value(rhs)
+    rmw = atomic_rmw(op, lhs, rhs, loc, want_old=False)
+    if rmw is not None:
+        return rmw
     if isinstance(lhs, N.VarRef):           # simple variable: no temp needed
         return _t(N.Assign(loc, lhs, _binop_buf(op, lhs, rhs, loc, new_temp)))
     if isinstance(lhs, N.Member_) and lhs.member.is_bitfield:
@@ -249,6 +253,9 @@ def inc_dec(lhs, delta: int, is_post: bool, loc, new_temp):
     one = N.IntLit(loc, delta, ty=TY_INT)
     if not is_post:
         return compound_assign("+", lhs, one, loc, new_temp)
+    rmw = atomic_rmw("+", lhs, one, loc, want_old=True)
+    if rmw is not None:
+        return rmw
     if isinstance(lhs, N.VarRef):
         pre, make_place = [], (lambda: lhs)
     else:

@@ -24,7 +24,7 @@ from hcc.parser.pragma_pack import at_pack_marker, consume_pack_marker
 from hcc.parser.pragma_sso import at_sso_marker, consume_sso_marker
 from hcc.parser.knr_check import knr_param_index
 from hcc.parser.redecl import check_redecl
-from hcc.parser.libc_protos import libc_prototype
+from hcc.parser.libc_protos import builtin_shape_matches, libc_prototype
 from hcc.parser.vector_limits import vector_of_checked
 
 GNU89_STDS = ("c89", "c90", "gnu89", "gnu90")
@@ -182,7 +182,7 @@ class TopLevelMixin:
         vs = self.scopes[0].vars.get(name.text)
         fn = vs.var if vs is not None and isinstance(vs.var, N.Function) else None
         builtin = libc_prototype(name.text)
-        if builtin is not None and ty.has_proto and not is_compatible(builtin, ty):
+        if builtin is not None and ty.has_proto and not builtin_shape_matches(builtin, ty):
             self.error(f"conflicting types for '{name.text}'", name.loc)
         if fn is None:
             fn = N.Function(name.text, ty, loc=name.loc)
