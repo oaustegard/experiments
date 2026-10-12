@@ -7,6 +7,7 @@ One `_stmt_<keyword>` method per statement keyword; see STMT_KEYWORDS.
 """
 from __future__ import annotations
 
+from hcc import diag
 from hcc import nodes as N
 from hcc import typesys as T
 from hcc.parser import complex as CPX
@@ -166,12 +167,41 @@ class StatementMixin:
         self.leave_scope()
         return body
 
+    def _check_for_init_tags(self):
+        """C11 6.8.5p3: a for-loop init declaration may not declare a struct,
+        union or enum tag (`for (struct s { int p; } *p = 0;;)` is an error)."""
+        depth = 0
+        i = self.pos
+        while True:
+            t = self.toks[i]
+            if t.kind == TokenKind.EOF:
+                return
+            if t.kind in (TokenKind.PUNCT, TokenKind.KEYWORD):
+                if t.text in ("(", "["):
+                    depth += 1
+                elif t.text in (")", "]"):
+                    depth -= 1
+                    if depth < 0:
+                        return
+                elif t.text == ";" and depth == 0:
+                    return
+                elif t.text in ("struct", "union", "enum") and t.kind == TokenKind.KEYWORD:
+                    j = i + 1
+                    name = ""
+                    if self.toks[j].kind == TokenKind.IDENT:
+                        name = " " + self.toks[j].text
+                        j += 1
+                    if self.toks[j].kind == TokenKind.PUNCT and self.toks[j].text == "{":
+                        diag.error(t, f"'{t.text}{name}' declared in 'for' loop initial declaration")
+            i += 1
+
     def _stmt_for(self, t):
         self.expect("(")
         self.skip_std_attributes()  # `for ([[]] int i = 0; ...)`
         self.enter_scope()
         init = None
         if self.is_typename():
+            self._check_for_init_tags()
             init = N.Block(t.loc, self.local_declaration())
         elif self.at("_Static_assert"):
             self.static_assert()  # consumes its own ';'
