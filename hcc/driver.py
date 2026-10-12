@@ -146,6 +146,8 @@ def compile_to_asm(path: str, opts: Options) -> str:
             off.add("asm")
         if (strict and not c23) or opts.no_asm:
             off.add("typeof")
+        if opts.no_asm:
+            off.add("inline")  # -fno-asm: plain `inline` is an identifier too
         off = frozenset(off)
         toks = convert_tokens(toks, u8_unsigned=c23, c23=c23, off_keywords=off)
         tu = parse(toks, opts)
