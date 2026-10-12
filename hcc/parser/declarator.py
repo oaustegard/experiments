@@ -22,6 +22,9 @@ from hcc.sema.typing import add_type
 from hcc.tokens import TokenKind
 from hcc import typesys as T
 
+# PTRDIFF_MAX on x86-64: the largest object GCC accepts.
+_MAX_OBJECT_SIZE = (1 << 63) - 1
+
 
 def _names_variable(node) -> bool:
     """True if the expression tree refers to a variable (not a function)."""
@@ -334,6 +337,10 @@ class DeclaratorMixin:
             return T.vla_of(ty, expr)
         if n < 0:
             self.error("size of array is negative", expr)
+        # C/GCC: an object may not exceed PTRDIFF_MAX bytes on x86-64 (LP64)
+        if ty.is_complete and n * ty.size > _MAX_OBJECT_SIZE:
+            self.error(f"size '{n * ty.size}' of array exceeds maximum object size "
+                       f"'{_MAX_OBJECT_SIZE}'", expr)
         return T.array_of(ty, n)
 
     def typename(self, allow_storage=False):
