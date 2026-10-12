@@ -16,18 +16,13 @@ dyn_member_access(p, node, ty, i, loc) lvalue of members[i] of struct value `nod
 """
 from __future__ import annotations
 
+import copy
+
 from hcc import nodes as N
 from hcc import typesys as T
-from hcc.parser.structs import is_dyn_member_type
 from hcc.sema.arith import new_add
 from hcc.sema.conversions import new_cast
-
-
-def first_dyn_index(ty):
-    for i, m in enumerate(ty.members):
-        if is_dyn_member_type(m.ty):
-            return i
-    return None
+from hcc.sema.dyn_struct_size import dyn_struct_bytes, dyn_walk, first_dyn_index
 
 
 def in_dyn_region(ty, idx: int) -> bool:
@@ -35,49 +30,21 @@ def in_dyn_region(ty, idx: int) -> bool:
     return first is not None and idx >= first
 
 
-def _ulong(p, value: int, loc):
-    return p.typed(N.IntLit(loc, value, ty=T.TY_ULONG))
-
-
-def _align_up(p, expr, align: int, loc):
-    if align <= 1:
-        return expr
-    total = p.typed(N.Binary(loc, "+", expr, _ulong(p, align - 1, loc)))
-    return p.typed(N.Binary(loc, "&", total, _ulong(p, -align & (2**64 - 1), loc)))
-
-
 def dyn_member_offset_expr(p, ty, idx: int, loc):
     """Byte offset of members[idx] (idx in the dynamic region), as a ulong expression."""
-    first = first_dyn_index(ty)
-    end = None
-    for j in range(first, idx + 1):
-        m = ty.members[j]
-        if j == first:
-            off = _ulong(p, m.offset, loc)
-        else:
-            off = _align_up(p, end, m.align, loc)
-        if j == idx:
-            return off
-        size = p.vla_size_expr(m.ty, loc)
-        end = p.typed(N.Binary(loc, "+", off, size))
-    raise AssertionError("unreachable: idx is in the dynamic region")
+    return dyn_walk(ty, idx, loc, p.vla_size_expr)[0]
 
 
 def dyn_struct_size_expr(p, ty, loc):
-    """sizeof a struct with a run-time-sized member: end of the last member, rounded up."""
-    last = len(ty.members) - 1
-    first = first_dyn_index(ty)
-    if last < first:
-        return _ulong(p, ty.size, loc)
-    off = dyn_member_offset_expr(p, ty, last, loc)
-    end = p.typed(N.Binary(loc, "+", off, p.vla_size_expr(ty.members[last].ty, loc)))
-    return _align_up(p, end, ty.align, loc)
+    """sizeof a struct with a run-time-sized member (see sema/dyn_struct_size.py)."""
+    return dyn_struct_bytes(ty, loc, p.vla_size_expr)
 
 
 def dyn_member_access(p, node, ty, idx: int, loc):
     """lvalue `node.members[idx]` for a member in the dynamic region: the object is
     addressed through its byte offset from the struct's address (struct values are
-    addresses, see CONTRACT section 1)."""
+    addresses, see CONTRACT section 1). A bit-field becomes a member of offset 0 of the
+    storage unit at that address, keeping its static bit_offset."""
     m = ty.members[idx]
     char_ptr = T.pointer_to(T.TY_CHAR)
     base = N.Cast(loc, node)
@@ -86,4 +53,8 @@ def dyn_member_access(p, node, ty, idx: int, loc):
     p.typed(addr)
     obj_ptr = T.pointer_to(m.ty)
     cast = p.typed(new_cast(addr, obj_ptr))
-    return p.typed(N.Deref(loc, cast))
+    if not m.is_bitfield:
+        return p.typed(N.Deref(loc, cast))
+    unit = copy.copy(m)
+    unit.offset = 0
+    return N.Member_(loc, p.typed(N.Deref(loc, cast)), unit, ty=m.ty)

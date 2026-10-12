@@ -241,14 +241,19 @@ def layout_struct(ty) -> None:
     if members_flexible(ty):
         ty.is_flexible = True
     dyn_region = False  # a run-time-sized member was seen: later offsets are run-time
+    dyn_cur = None      # open bit-field group in the dynamic region: (bit cursor, unit bytes)
     for m in ty.members:
         if packed or m.is_packed:   # packed drops natural alignment; explicit aligned(N) still applies
             m.align = m.explicit_align or 1
         if m.pack_cap and not m.is_bitfield and not m.explicit_align and m.align > m.pack_cap:
             m.align = m.pack_cap    # #pragma pack caps natural member alignment
+        if dyn_region and m.is_bitfield:
+            dyn_cur = _dyn_bitfield(m, dyn_cur)
+            if align < m.align and not _unnamed_bitfield(m):
+                align = m.align
+            continue
         if dyn_region or is_dyn_member_type(m.ty):
-            if m.is_bitfield:
-                diag.error(m.tok, "unsupported: bit-field after a variably modified member", "parse")
+            dyn_cur = None
             _check_dyn_struct(ty, m)
             _dyn_member_align(ty, m)
             if not dyn_region:
@@ -306,6 +311,28 @@ def layout_struct(ty) -> None:
     if dyn_region:      # ty.size is the static prefix; the run-time size is added by sizeof
         return
     ty.size = T.align_to(T.align_to(bits, 8) // 8, align)
+
+
+def _dyn_bitfield(m, cur):
+    """Bit-field after a run-time-sized member. Its bit_offset is relative to the run-time
+    byte offset of its group (see dyn_members.py); a group is a run of same-size bit-fields
+    packed in one unit window. A group start has bit_offset 0. Returns the open group state."""
+    if m.bit_width == 0:
+        diag.error(m.tok, "unsupported: zero-width bit-field after a variably modified member", "parse")
+    sz = m.ty.size
+    w = m.bit_width
+    start = None
+    if cur is not None and cur[1] == sz:
+        start = cur[0]
+        if start // (sz * 8) != (start + w - 1) // (sz * 8):
+            start = T.align_to(start, sz * 8)
+        if start + w > sz * 8:
+            start = None
+    if start is None:
+        start = 0
+    m.offset = 0
+    m.bit_offset = start
+    return (start + w, sz)
 
 
 def _check_dyn_struct(ty, m) -> None:

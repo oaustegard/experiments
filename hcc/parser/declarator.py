@@ -282,7 +282,8 @@ class DeclaratorMixin:
         # expression, so `char [i]` with `const int i = 1;` is still a VLA.
         if self.fn is not None and n is not None and _names_variable(expr):
             n = None
-        if n is None or ty.kind == T.TypeKind.VLA:
+        if n is None or ty.kind == T.TypeKind.VLA or T.is_dyn_struct(ty):
+            # an array of run-time-sized structs has a run-time size too (`struct S a[2][n]`)
             add_type(expr)
             return T.vla_of(ty, expr)
         if n < 0:

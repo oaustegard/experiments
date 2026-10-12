@@ -13,9 +13,10 @@ from hcc import diag
 from hcc import nodes as N
 from hcc.sema.bitfield_width import narrow_wide_bitfield_result
 from hcc.sema.compat import is_compatible
+from hcc.sema.dyn_struct_size import dyn_struct_bytes
 from hcc.sema.conversions import new_cast
 from hcc.sema.typing import add_type
-from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_flonum, is_integer,
+from hcc.typesys import (TY_INT, TY_LONG, TypeKind, int_type_for, is_dyn_struct, is_flonum, is_integer,
                          is_numeric, pointer_to, vector_of)
 
 
@@ -34,6 +35,8 @@ def _elem_size(ty, loc):
 
 
 def _size_expr(t, loc):
+    if is_dyn_struct(t):
+        return dyn_struct_bytes(t, loc, _size_expr)
     if t.kind == TypeKind.VLA and t.vla_len is not None:
         n = new_cast(t.vla_len, TY_LONG)
         return _t(N.Binary(loc, "*", n, _size_expr(t.base, loc), ty=TY_LONG))
