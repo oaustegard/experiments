@@ -144,7 +144,7 @@ class StructMixin:
                 if m.explicit_align:
                     m.align = max(m.align, m.explicit_align)
                 if mattr.is_packed:
-                    m.align = 1
+                    m.align = m.explicit_align or 1     # packed keeps an explicit aligned(N)
                     m.is_packed = True
                 members.append(m)
         if members and members[-1].ty.kind == T.TypeKind.ARRAY and members[-1].ty.array_len < 0:
@@ -186,8 +186,8 @@ def layout_struct(ty) -> None:
     if members_flexible(ty):
         ty.is_flexible = True
     for m in ty.members:
-        if packed:      # packed drops natural alignment; explicit aligned(N) still applies
-            m.align = 1 if m.is_packed else (m.explicit_align or 1)
+        if packed or m.is_packed:   # packed drops natural alignment; explicit aligned(N) still applies
+            m.align = m.explicit_align or 1
         if m.pack_cap and not m.is_bitfield and not m.explicit_align and m.align > m.pack_cap:
             m.align = m.pack_cap    # #pragma pack caps natural member alignment
         if m.is_bitfield and m.bit_width == 0:
