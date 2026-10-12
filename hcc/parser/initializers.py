@@ -27,6 +27,10 @@ def new_initializer(ty, is_flexible: bool) -> N.Initializer:
             init.children = [new_initializer(ty.base, False) for _ in range(max(ty.array_len, 0))]
     elif ty.kind in (T.TypeKind.STRUCT, T.TypeKind.UNION):
         init.children = [new_initializer(m.ty, False) for m in ty.members]
+        # A trailing flexible array member (stored with length 0) grows on demand.
+        if ty.members and ty.members[-1].ty.kind == T.TypeKind.ARRAY and \
+                ty.members[-1].ty.array_len == 0:
+            init.children[-1].is_flexible = True
     return init
 
 
@@ -53,6 +57,10 @@ class InitializerMixin:
     # ---- helpers --------------------------------------------------------------
     def _at_end(self) -> bool:
         return self.at("}") or (self.at(",") and self.peek().text == "}")
+
+    def _at_designator_after_comma(self) -> bool:
+        """True when the next tokens are `,` followed by a designator."""
+        return self.at(",") and self.peek().text in ("[", ".")
 
     def _consume_end(self) -> bool:
         if self.accept("}"):
@@ -170,6 +178,8 @@ class InitializerMixin:
         start = i
         while (init.is_flexible or i < len(init.children)) and not self._at_end():
             if i > start:
+                if self._at_designator_after_comma():
+                    return      # leave ',' for the enclosing initializer
                 self.expect(",")
             if self.at("[") or self.at("."):
                 return
@@ -195,10 +205,21 @@ class InitializerMixin:
 
     def designation(self, init) -> None:
         """Continue a designator chain into `init`, then parse `= value`."""
+        if init.expr is not None and (self.at("[") or self.at(".")):
+            # A sub-object was already set as a whole (`T y[] = {x, [0].b=3}`):
+            # the designator re-initializes it from zero (other members -> 0).
+            fresh = new_initializer(init.ty, init.is_flexible)
+            init.expr, init.children = None, fresh.children
         if self.at("["):
             if init.ty.kind != T.TypeKind.ARRAY:
                 self.error("array index in non-array initializer")
-            self.array_designator(init)
+            nxt = self.array_designator(init)
+            # Following brace-elided values continue inside the designated
+            # sub-aggregate (C11 6.7.9p17), e.g. `[0][1]=7, 8` sets x[0][2].
+            if self.at(",") and (init.is_flexible or nxt < len(init.children)) and \
+                    not self._at_designator_after_comma() and not self._at_end():
+                self.next()
+                self.array_initializer2(init, nxt)
             return
         if self.at("."):
             if not T.is_struct_like(init.ty):
@@ -269,6 +290,8 @@ class InitializerMixin:
             if i >= len(members) or self._at_end() or (is_union and not first):
                 return
             if not first:
+                if self._at_designator_after_comma():
+                    return      # leave ',' for the enclosing initializer
                 self.expect(",")
             if self.at_member_designator() or self.at("["):
                 return
