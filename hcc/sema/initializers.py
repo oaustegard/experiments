@@ -76,6 +76,14 @@ def serialize_global_init(init, ty) -> N.GlobalData:
 
 
 def _write(init, ty, gd, offset) -> None:
+    if ty.is_reverse_sso and init.expr is None:
+        # scalar_storage_order struct: no relocation can be byte-swapped, so any
+        # address constant among its members is rejected (as gcc does).
+        nrel = len(gd.relocs)
+        _write_le(init, ty, gd, offset)
+        if len(gd.relocs) != nrel:
+            diag.error(_first_expr(init), "initializer element is not constant", "sema")
+        return
     if not ty.is_rev_order or init.expr is None:
         return _write_le(init, ty, gd, offset)
     # scalar_storage_order("big-endian"): write the little-endian image, then
@@ -86,6 +94,18 @@ def _write(init, ty, gd, offset) -> None:
         diag.error(init.expr, "address constant in a reverse-order struct "
                    "is not supported", "sema")
     gd.data[offset:offset + ty.size] = gd.data[offset:offset + ty.size][::-1]
+
+
+def _first_expr(init):
+    """The first expression found in an initializer tree (for diagnostics)."""
+    if init.expr is not None:
+        return init.expr
+    for c in init.children or ():
+        if c is not None:
+            e = _first_expr(c)
+            if e is not None:
+                return e
+    return init
 
 
 def _write_le(init, ty, gd, offset) -> None:
