@@ -187,6 +187,9 @@ class StatementMixin:
     def sub_stmt(self):
         """Substatement of if/else/switch/loops: a block of its own (C11 6.8.4p3, 6.8.5p5),
         so a tag declared in it (`if (c) x = sizeof(struct s {int a;});`) is local to it."""
+        if self.is_typename() and self.tok.text != "__extension__":
+            # C11 6.8p1: a substatement is a statement, not a declaration (gcc: expected expression)
+            diag.error(self.tok, f"expected expression before '{self.tok.text}'")
         self.enter_scope()
         body = self.stmt()
         self.leave_scope()
