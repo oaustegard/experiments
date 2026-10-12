@@ -38,6 +38,9 @@ _COUNTS = {"void": VOID, "_Bool": BOOL, "char": CHAR, "short": SHORT, "int": INT
            "float": FLOAT, "double": DOUBLE, "signed": SIGNED, "unsigned": UNSIGNED,
            "__int128": INT128}
 
+# byte sizes for __attribute__((mode(...))) integer modes
+_MODE_SIZES = {"QI": 1, "HI": 2, "SI": 4, "DI": 8, "TI": 16}
+
 TYPE_KEYWORDS = frozenset(_COUNTS) | frozenset("""
 typedef static extern inline _Thread_local auto register _Noreturn const volatile restrict
 _Atomic _Alignas struct union enum typeof __attribute__ __declspec __extension__
@@ -156,6 +159,12 @@ class DeclSpecMixin:
             attr.vector_size = 0
         elif attr is None and vsize and ty is not None:
             ty = T.vector_of(ty, vsize)
+        if attr is not None and attr.mode:
+            # __attribute__((mode(QI/HI/SI/DI/TI))) re-sizes an integer base type
+            size = _MODE_SIZES.get(attr.mode)
+            if size is not None and ty is not None and T.is_integer(ty):
+                ty = T.int_type_for(size, ty.is_unsigned)
+            attr.mode = None
         if counter == 0 and attr is None and not (is_const or is_volatile):
             self.error("expected type")
         if ty is not None and (is_const or is_volatile or is_atomic):
