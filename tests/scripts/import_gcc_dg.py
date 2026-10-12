@@ -33,11 +33,15 @@ DIRS = [".", "torture", "tree-ssa", "ipa", "atomic", "sso", "tls", "cpp", "speci
 SUITES = {  # name -> (directories, mode)
     "gcc-dg": (DIRS, "run"),
     "gcc-dg-compile": (DIRS, "compile"),
+    "reject-gcc-dg": (DIRS + ["noncompile"], "reject"),
 }
 DESC_COMPILE = ("gcc/testsuite/gcc.dg tests whose applicable dg-do is compile/assemble (or unspecified), without dg-error "
                 "(%s). Compile-only: PASS = the compiler's -S succeeds and `as` accepts the output (driver compileonly). "
                 "Per-test flags from dg-options in <test>.c.flags; skip.txt lists inapplicable tests and tests gcc -O0 -w "
                 "itself rejects. Regenerate with tests/scripts/import_gcc_dg.py.")
+DESC_REJECT = ("gcc/testsuite/gcc.dg tests with dg-error (%s) that gcc itself rejects with an error at -w in its default dialect. "
+               "PASS = the compiler under test exits with status 1 (a diagnostic); accepting the invalid program is the failure. "
+               "<test>.c.gccerror holds gcc's first diagnostic. Driver rejectonly. Regenerate with tests/scripts/import_gcc_dg.py.")
 DESC = ("gcc/testsuite/gcc.dg tests whose applicable dg-do is `run` (%s). Pass = exit 0 (and stdout equal to the "
         "gcc -O0 binary's where the test has a dg-output). Per-test flags from dg-options in <test>.c.flags; skip.txt "
         "lists inapplicable tests and tests gcc -O0 itself fails. Regenerate with tests/scripts/import_gcc_dg.py.")
@@ -52,6 +56,18 @@ def classify(text, mode="run"):
         kind = dg.do_kind(dirs)
     except dg.Unknown as e:
         return [], "dg-do guard uses unknown feature %s" % e, True
+    if mode == "reject":
+        if "dg-error" not in {n for n, _ in dirs}:
+            return [], None, False
+        if kind not in (None, "compile", "assemble"):
+            return [], None, False
+        flags, opt_reasons = dg.options(dirs, re.compile(r"^-pedantic-errors$"))
+        flags = [{"-std=gnu23": "-std=gnu2x", "-std=c23": "-std=c2x"}.get(f, f) for f in flags if f not in ("-fpermissive",)]
+        names = {n for n, _ in dirs}
+        reason = dg.skip_if(dirs, flags) or (opt_reasons[0] if opt_reasons else None)
+        if not reason and "dg-additional-sources" in names:
+            reason = "multi-file test (dg-additional-sources)"
+        return flags, reason, True
     if mode == "compile":
         if kind is None:
             kind = "compile"  # gcc.dg default
@@ -105,7 +121,7 @@ def build_suite(name, dirs_, mode, src_root):
     os.makedirs(dest, exist_ok=True)
     for dp, _, fn in os.walk(dest):
         for f in fn:
-            if f.endswith((".c", ".h", ".flags", ".expected")) or f == "skip.txt":
+            if f.endswith((".c", ".h", ".flags", ".expected", ".gccerror")) or f == "skip.txt":
                 os.remove(os.path.join(dp, f))
     skips, n_cand = {}, 0
     globs = []
@@ -143,14 +159,21 @@ def build_suite(name, dirs_, mode, src_root):
                 else:
                     with open(dst + ".expected", "wb") as fh:
                         fh.write(ref)
-    cfg = {"description": (DESC if mode == "run" else DESC_COMPILE) % ", ".join(d if d != "." else "top level" for d in dirs_),
+    cfg = {"description": {"run": DESC, "compile": DESC_COMPILE, "reject": DESC_REJECT}[mode] % ", ".join(d if d != "." else "top level" for d in dirs_),
            "glob": globs, "cflags": ["-w"]}
     if mode == "compile":
         cfg["driver"] = "compileonly"
+    if mode == "reject":
+        cfg["driver"] = "rejectonly"
     with open(os.path.join(dest, "suite.json"), "w") as fh:
         json.dump(cfg, fh, indent=2)
         fh.write("\n")
     write_skips(dest, skips)
+    if mode == "reject":
+        validate_reject(dest, skips)
+        write_skips(dest, skips)
+        print("%s: %d dg-error tests, %d skipped, %d active" % (name, n_cand, len(skips), n_cand - len(skips)))
+        return
     # Everything left must pass with gcc -O0 -w.
     out = os.path.join(dest, ".gcc-baseline.json")
     subprocess.run([sys.executable, os.path.join(TESTS, "run.py"), "--suite", name,
@@ -164,6 +187,42 @@ def build_suite(name, dirs_, mode, src_root):
     with open(os.path.join(dest, "SOURCE"), "w") as fh:
         fh.write("https://github.com/gcc-mirror/gcc %s gcc/testsuite/gcc.dg (%s)\n" % (rev, ", ".join(dirs_)))
     print("%s: %d dg-do run tests, %d skipped, %d active" % (name, n_cand, len(skips), n_cand - len(skips)))
+
+
+def validate_reject(dest, skips):
+    """Keep only tests gcc rejects with an error (no ICE) at -w; store its first diagnostic in <t>.c.gccerror."""
+    import concurrent.futures
+    todo = []
+    for dp, _, fn in os.walk(dest):
+        for f in sorted(fn):
+            if f.endswith(".c"):
+                rel = os.path.relpath(os.path.join(dp, f), dest)
+                if rel not in skips:
+                    todo.append(rel)
+
+    def one(rel):
+        p = os.path.join(dest, rel)
+        fl = open(p + ".flags").read().split() if os.path.exists(p + ".flags") else []
+        try:
+            r = subprocess.run(["gcc", "-fsyntax-only", "-w"] + fl + [p], capture_output=True, timeout=30)
+        except subprocess.TimeoutExpired:
+            return rel, "gcc needs more than 30 s"
+        err = r.stderr.decode("utf-8", "replace")
+        errs = [l for l in err.splitlines() if "error:" in l]
+        if "internal compiler error" in err:
+            return rel, "gcc itself crashes on it"
+        if r.returncode == 0 or not errs:
+            return rel, "gcc -w accepts it (the dg-error needs a flag or a warning-as-error)"
+        msg = errs[0].split("error:", 1)[1].strip()
+        if "command-line option" in err or "unrecognized" in msg and "option" in msg:
+            return rel, "gcc 13 does not know a flag of this test"
+        with open(p + ".gccerror", "w") as fh:
+            fh.write(msg[:200] + "\n")
+        return rel, None
+    with concurrent.futures.ThreadPoolExecutor(2) as ex:
+        for rel, why in ex.map(one, todo):
+            if why:
+                skips[rel] = why
 
 
 def write_skips(dest, skips):

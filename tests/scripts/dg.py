@@ -200,7 +200,7 @@ SKIP_FLAG = [
 ]
 
 
-def options(dirs):
+def options(dirs, extra=None):
     """Flags from dg-options / dg-additional-options whose target guard holds.
     Returns (kept flags, skip reasons)."""
     kept, reasons = [], []
@@ -222,7 +222,7 @@ def options(dirs):
                     reasons.append(why.format(f))
                     break
             else:
-                if KEEP_FLAG.match(f):
+                if KEEP_FLAG.match(f) or (extra is not None and extra.match(f)):
                     kept.append(f)
     return kept, reasons
 
