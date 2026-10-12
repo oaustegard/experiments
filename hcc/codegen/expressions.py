@@ -10,6 +10,7 @@ import struct
 
 from hcc.floatbits import pack_float32, pack_float64
 from hcc.codegen.bitfield_rev import assign_rev_bitfield, load_rev_bitfield
+from hcc.codegen.complex_rev import assign_complex_rev, needs_part_swap
 from hcc.codegen.bitfield_rev_wide import assign_rev_wide, load_rev_wide
 from hcc.codegen.bitfield_wide import assign_wide_bitfield, load_wide_bitfield
 from hcc.codegen.bitfield_straddle import assign_straddle_bitfield, load_straddle_bitfield
@@ -151,6 +152,9 @@ class ExpressionMixin:
             self.emit(f"{'shr' if m.ty.is_unsigned else 'sar'} ${64 - m.bit_width}, %rax")
 
     def expr_Assign(self, node) -> None:
+        if needs_part_swap(node.lhs.ty, node.rhs.ty):
+            assign_complex_rev(self, node)
+            return
         if _calls_before_store(node):
             # Evaluate a call-containing scalar rhs first so no lhs address
             # temp is live across the call (setjmp/longjmp re-entry would

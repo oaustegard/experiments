@@ -83,6 +83,8 @@ class StructMixin:
         if ty.is_reverse_sso:
             mirror_reverse_bitfields(ty)
             mark_reverse_scalars(ty)
+        elif attr.reverse_sso:          # scalar_storage_order on a union
+            mark_reverse_scalars(ty)
         ty.is_complete = True
         return ty
 
@@ -321,6 +323,10 @@ def mark_reverse_scalars(ty) -> None:
 
 def _reverse_type(ty, tok):
     k = ty.kind
+    if k == T.TypeKind.STRUCT and ty.is_complex:
+        # _Complex T is two scalars: each part is stored big-endian, real first
+        base = _reverse_type(ty.base, tok)
+        return ty if base is ty.base else T.complex_of(base)
     if k in (T.TypeKind.STRUCT, T.TypeKind.UNION):
         return ty                       # nested aggregate keeps its own order
     if k == T.TypeKind.ARRAY:
