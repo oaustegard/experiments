@@ -10,7 +10,9 @@ libc_return_type(name) -> Type | None
 """
 from __future__ import annotations
 
+from hcc import nodes as N
 from hcc import typesys as T
+from hcc.sema.conversions import new_cast
 
 _SIZE_T = T.TY_ULONG
 _VOID_PTR = T.pointer_to(T.TY_VOID)
@@ -35,3 +37,18 @@ _add(T.TY_FLOAT, "sqrtf sinf cosf fabsf floorf ceilf powf copysignf")
 def libc_return_type(name: str):
     """Return type GCC assumes for builtin library function `name`, or None."""
     return _TABLE.get(name)
+
+
+# Integer abs() functions that GCC expands inline (bit width of the operand).
+_INT_ABS = {"abs": 32, "labs": 64, "llabs": 64, "imaxabs": 64}
+
+
+def int_abs_call(loc, name: str, arg):
+    """If the call `name(arg)` is a builtin integer abs, return the
+    BuiltinCall node (GCC expands it inline even when the program declares
+    or defines the function itself); otherwise None."""
+    bits = _INT_ABS.get(name)
+    if bits is None:
+        return None
+    ty = T.TY_INT if bits == 32 else T.TY_LONG
+    return N.BuiltinCall(loc, f"abs{bits}", [new_cast(arg, ty)], None, ty=ty)

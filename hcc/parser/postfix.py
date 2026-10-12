@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hcc import diag
 from hcc import nodes as N
+from hcc.parser.libc_builtins import int_abs_call
 from hcc.parser.structs import find_member
 from hcc.sema.arith import inc_dec, new_add
 from hcc.sema.conversions import default_arg_promote, new_cast
@@ -101,6 +102,10 @@ class PostfixMixin:
                     a = new_cast(a, a.ty) if False else a
                 a = default_arg_promote(a)
             conv.append(a)
+        if fn.__class__ is N.VarRef and isinstance(fn.var, N.Function) and len(conv) == 1:
+            abs_node = int_abs_call(loc, fn.var.name, conv[0])
+            if abs_node is not None:
+                return self.typed(abs_node)
         node = N.Call(loc, fn, conv, fty)
         if is_struct_like(fty.return_ty) or fty.return_ty.is_vector:
             node.ret_buffer = self.new_temp(fty.return_ty)

@@ -45,6 +45,21 @@ class BuiltinMixin:
         self.gen_expr(node.args[0])
         self.emit("bswap %rax")
 
+    def builtin_abs32(self, node) -> None:
+        """Branch-free |x| for int: (x ^ m) - m with m = x >> 31."""
+        self.gen_expr(node.args[0])
+        self.emit("mov %eax, %edx")
+        self.emit("sar $31, %edx")
+        self.emit("xor %edx, %eax")
+        self.emit("sub %edx, %eax")
+
+    def builtin_abs64(self, node) -> None:
+        self.gen_expr(node.args[0])
+        self.emit("mov %rax, %rdx")
+        self.emit("sar $63, %rdx")
+        self.emit("xor %rdx, %rax")
+        self.emit("sub %rdx, %rax")
+
     def builtin_signbit(self, node) -> None:
         self.gen_expr(node.args[0])  # double in %xmm0
         self.emit("movq %xmm0, %rax")
