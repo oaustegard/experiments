@@ -99,6 +99,8 @@ class LocalDeclMixin:
             cleanup = dattr.cleanup or attr.cleanup
             if cleanup and (attr.is_static or attr.is_extern or attr.is_typedef):
                 self.error("cleanup attribute on a non-automatic variable", name)
+            if (dattr.warn_if_not_aligned or attr.warn_if_not_aligned) and not attr.is_typedef:
+                self.error("'warn_if_not_aligned' may not be specified for '%s'" % name.text, name)
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:

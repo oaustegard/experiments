@@ -215,6 +215,8 @@ class AttributeMixin:
             attr.is_designated_init = True
         elif name == "scalar_storage_order" and attr is not None and args:
             attr.reverse_sso = args[0].value.rstrip(b"\0") == b"big-endian"
+        elif name == "warn_if_not_aligned" and attr is not None:
+            attr.warn_if_not_aligned = True
         elif name == "noreturn" and attr is not None:
             attr.is_noreturn = True
         elif name == "gnu_inline" and attr is not None:

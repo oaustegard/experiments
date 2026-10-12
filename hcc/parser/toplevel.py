@@ -86,6 +86,8 @@ class TopLevelMixin:
                 ty = T.vector_of(ty, dattr.vector_size)
             if dattr.mode:
                 ty = mode_type(ty, dattr.mode)
+            if (dattr.warn_if_not_aligned or attr.warn_if_not_aligned) and not attr.is_typedef:
+                self.error("'warn_if_not_aligned' may not be specified for '%s'" % name.text, name)
             if not attr.is_typedef and ty.kind != T.TypeKind.FUNC:
                 ty = self.var_aligned(ty, attr, dattr)      # `T x __attribute__((aligned(N)))`
             unavail = attr.is_unavailable or dattr.is_unavailable

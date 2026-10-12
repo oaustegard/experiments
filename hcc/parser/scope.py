@@ -44,6 +44,7 @@ class VarAttr:
     is_unavailable: bool = False    # __attribute__((unavailable)) on the declaration
     fn_attrs: set = field(default_factory=set)  # leaf, returns_nonnull, ... (names only)
     is_nocommon: bool = False       # __attribute__((nocommon)): tentative def goes to .bss
+    warn_if_not_aligned: bool = False   # type-only attribute: rejected on objects/functions/fields
     is_packed: bool = False
     is_designated_init: bool = False  # __attribute__((designated_init)): struct-only (checked)
     is_ms_struct: bool = False
